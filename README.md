@@ -152,6 +152,7 @@ slice's model *and* how it aligns/projects.
 | [`docs/VERIFY-EXAMPLE.md`](./docs/VERIFY-EXAMPLE.md) | Reference | Sample signed `gmeow.gts` verification output: signature counts, transport-key fingerprint, emoji hash, randomart, and bundled ontology checks |
 | [`docs/cli-extensions.md`](./docs/cli-extensions.md) | Specification | The `gmeow` CLI extension roll-up — subcommand discovery from slice manifests, GTS profile gating, and solver-layer transforms |
 | [`docs/validation-thresholds.md`](./docs/validation-thresholds.md) | Reference | The four blocking validation gate floors (#579) — SHACL, vendored-entity coverage, slice-example, transpile recall — their measured values, where each floor lives, and the ratchet rule |
+| [`docs/i18n.md`](./docs/i18n.md) | Process | The compiled PO translation layer: `.po` layout, extract/merge/export/sync commands, translator workflow, and i18n quality gates |
 | [`slices/core/logic/design/LOGIC.md`](./slices/core/logic/design/LOGIC.md) | Doctrine | The native RDF 1.2 `logic:` layer: canonical logic source, projection profiles, conformance, runtime, and migration |
 | [`docs/reasoning.md`](./docs/reasoning.md) | Doctrine | The OWL-infers / SHACL-validates split, the four verification lanes, and why OWL cardinality is avoided |
 | [`docs/four-boxes.md`](./docs/four-boxes.md) | Doctrine | ABox/TBox/RBox/CBox as explicit graph roles for docs, validation diagnostics, GTS/package surfaces, and RDF 1.2 statement context |

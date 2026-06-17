@@ -74,6 +74,7 @@ checking generated site files into git.
 | `docs/transpile.md` | Consumer RDF to GMEOW to multi-vocab pipeline | Projection architecture | `move-to-slice-design` | Cross-cutting projection design. Pair with projection and schema projection cleanup. |
 | `docs/up-projection-audit.md` | Historical up-projection audit | Issue-specific audit | `update-or-archive` | Archive or fold surviving requirements into projection design docs. |
 | `docs/validation-thresholds.md` | The #579 validation gate floors and ratchet rule | Process/toolchain contract; gate floors | `keep-root` | Keep as the single source of truth for the four blocking validation floors. Update whenever a floor is ratcheted. |
+| `docs/i18n.md` | Compiled PO translation layer and translator workflow | Process/toolchain; i18n commands and gates | `keep-root` | Keep as the i18n workflow reference. Update when extract/merge/export commands or the PO layout change. |
 | `docs/up-projection-gap-triage.md` | Historical up-projection triage plan | Issue-specific triage | `update-or-archive` | Archive or fold current gaps into projection design docs/tests. |
 | `docs/wikidata-mapping.md` | Wikidata interoperability guide | QIDs/PIDs; stale paths | `promote-to-ontology`, `move-to-slice-design` | Promote QID/PID guidance and links into mapping DSL metadata. Keep remaining doctrine with coreference/projection design. |
 
