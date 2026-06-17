@@ -343,7 +343,7 @@ def load_po_catalog(path: Path) -> dict[tuple[str, str, str], str]:
             continue
         term_iri, predicate = entry.msgctxt.split("|", 1)
         predicate = _expand_predicate(predicate)
-        msgstr = _po_unescape(entry.msgstr)
+        msgstr = entry.msgstr
         if not msgstr:
             continue
         catalog[(term_iri, predicate, internal_tag)] = msgstr
@@ -472,7 +472,7 @@ def load_ontology_docs_template_catalog(
         if not entry.msgctxt or not entry.msgctxt.startswith("ontology-docs-template|"):
             continue
         key = entry.msgctxt[len("ontology-docs-template|") :]
-        msgstr = _po_unescape(entry.msgstr)
+        msgstr = entry.msgstr
         if msgstr:
             catalog[key] = msgstr
     return catalog
