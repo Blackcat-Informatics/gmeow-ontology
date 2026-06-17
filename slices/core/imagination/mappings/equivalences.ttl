@@ -12,6 +12,9 @@
 # All alignments are BY REFERENCE (Principle 5); GMEOW never imports an external axiom.
 
 gmeow:mapsetImagination a gmeow:MappingSet ;
+    rdfs:label "imagination mapping set"@x-gmeow-english ;
+    skos:definition "The SSSOM mapping set for the imagination slice — aligns gmeow:originGenerated (and, by prose, the full content-origin vocabulary) to external provenance and reality-monitoring vocabularies."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/imagination> ;
     gmeow:sssomFile "gmeow-imagination.sssom.tsv" ;
     gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/imagination" ;
     gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
@@ -43,6 +46,9 @@ gmeow:mapsetImagination a gmeow:MappingSet ;
 # the overlap is the generative-origin concept, hence a deliberately low-confidence
 # relatedMatch (not closeMatch), and only for the generated value, not the whole vocabulary.
 gmeow:eqImagination001 a gmeow:TermEquivalence ;
+    rdfs:label "originGenerated ↔ prov:Generation relatedMatch"@x-gmeow-english ;
+    skos:definition "Loose relatedMatch (confidence 0.4) between gmeow:originGenerated — a reality-monitoring content-origin value marking machine-synthesised content — and prov:Generation, the provenance activity by which an entity comes into being. The shared notion is generative origin; the concepts are not co-extensional (one is a content-origin value, the other an activity-provenance type)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/imagination> ;
     gmeow:alignSubject gmeow:originGenerated ;
     gmeow:alignPredicate skos:relatedMatch ;
     gmeow:alignObject prov:Generation ;
