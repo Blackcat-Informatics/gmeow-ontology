@@ -1,0 +1,44 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example — counterfactual rehearsal. An agent SUPPOSES a proposition (a
+# what-if premise), opening an imagined gmeow:imaginedWorld (a logic:World, BY
+# REFERENCE — no triple is asserted INTO the logic: namespace by the module; the
+# example merely instantiates the open-range target), and IMAGINES the scene that
+# would obtain in it. The supposed premise and the imagined scene carry their
+# reality-monitoring source via gmeow:contentOrigin (originSupposed / originImagined),
+# so nothing here is mistaken for a perceived or remembered fact. No truth bit
+# anywhere: supposing and imagining assert neither truth nor commitment.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/imagination/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+
+# --- The agent and the what-if premise she takes on hypothetically.
+ex:lillith a gmeow:Agent ;
+    gmeow:supposes ex:interestRatesDouble ;   # held AS-IF, not believed
+    gmeow:imagines ex:recessionScene .         # the scene she pictures under it
+
+# --- The supposed proposition. Its reality-monitoring source is "supposed": it is
+#     entertained for argument, never asserted as a fact.
+ex:interestRatesDouble a gmeow:Proposition ;
+    rdfs:label "interest rates double next year"@x-gmeow-english ;
+    gmeow:contentOrigin gmeow:originSupposed .
+
+# --- The imagined counterfactual world the supposition opens. Typed logic:World by
+#     reference (the logic slice's counterfactual-world machinery); imagination USES
+#     the modal machinery without the slice depending on logic:.
+ex:worldRatesDouble a logic:World ;
+    rdfs:label "the world where rates double"@x-gmeow-english .
+
+# --- The supposition and the imagining are scoped to that imagined world.
+ex:interestRatesDouble gmeow:imaginedWorld ex:worldRatesDouble .
+ex:recessionScene gmeow:imaginedWorld ex:worldRatesDouble .
+
+# --- The imagined scene. Its source is "imagined": quasi-perceptual content the
+#     agent generates, the canonical thing reality-monitoring must NOT later misread
+#     as perceived or remembered.
+ex:recessionScene a gmeow:Proposition ;
+    rdfs:label "shuttered shops on the high street"@x-gmeow-english ;
+    gmeow:contentOrigin gmeow:originImagined .

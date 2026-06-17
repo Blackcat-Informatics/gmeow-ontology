@@ -1,0 +1,47 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example — reality-monitoring, the flagship. The SAME content (a claimed
+# meeting) carries TWO coexisting gmeow:contentOrigin attributions from two vantages:
+# the agent recalls it as gmeow:originRemembered, while an auditor reviewing the
+# agent's memory marks it gmeow:originGenerated — a confabulation / hallucination
+# synthesised by the model, not actually remembered. Neither overwrites the other
+# (Principle 9, vantage-indexed; Principle 10, retain-never-delete): both are recorded
+# as gmeow:StandpointClaims, whose attribution rides gmeow:vantage. Origin
+# (where the content came from) is kept SEPARATE from veridicality (whether it is
+# true — gmeow:claimVeridicality, deception slice, by reference) and from authorship
+# (gmeow:accordingTo). This is exactly the recalled-vs-confabulated discrimination the
+# agent-memory product needs.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/imagination/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+
+# --- The content whose origin is in question.
+ex:meetingHappened a gmeow:Proposition ;
+    rdfs:label "we agreed the budget at the March meeting"@x-gmeow-english .
+
+# --- Vantage 1: the agent, who recalls the content as a memory.
+ex:lillith a gmeow:Agent .
+ex:lillithView a gmeow:Standpoint ;
+    gmeow:sharpens gmeow:universalStandpoint .
+
+ex:agentRecall a gmeow:StandpointClaim ;
+    gmeow:vantage ex:lillithView ;
+    gmeow:observedFeature ex:meetingHappened ;
+    gmeow:observationMethod gmeow:methodDirectObservation ;
+    gmeow:claimModality gmeow:probable ;
+    gmeow:contentOrigin gmeow:originRemembered .   # the agent takes it as recalled
+
+# --- Vantage 2: an auditor reviewing the agent's memory, who finds no grounding and
+#     marks the same content as model-generated (a confabulation). The origin
+#     attributions COEXIST; the auditor does not delete the agent's, it adds its own.
+ex:auditorView a gmeow:Standpoint ;
+    gmeow:sharpens gmeow:universalStandpoint .
+
+ex:auditorAssessment a gmeow:StandpointClaim ;
+    gmeow:vantage ex:auditorView ;
+    gmeow:observedFeature ex:meetingHappened ;
+    gmeow:observationMethod gmeow:methodExpertJudgement ;
+    gmeow:claimModality gmeow:refuted ;
+    gmeow:contentOrigin gmeow:originGenerated .   # the auditor: synthesised, not remembered
