@@ -186,8 +186,6 @@ macro_rules! logic_iri {
     };
 }
 
-const RDF_TYPE_IRI: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
-
 const fn pos(subject: TermPat, predicate: TermPat, object: TermPat) -> Atom {
     Atom {
         subject,
@@ -224,7 +222,7 @@ macro_rules! meta_rule {
             ),
             body: &[pos(
                 var("?C"),
-                TermPat::Const(RDF_TYPE_IRI),
+                TermPat::Const(RDF_TYPE),
                 TermPat::Const(logic_iri!($m)),
             )],
             distinct_pairs: NO_GUARD,
