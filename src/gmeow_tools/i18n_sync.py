@@ -138,7 +138,7 @@ def _make_entry(fields: dict[str, list[str]]) -> PoEntry:
     )
 
 
-def parse_po(text: str) -> list[PoEntry]:
+def parse_po(text: str, *, require_msgctxt: bool = True) -> list[PoEntry]:
     """Parse a PO file into a list of :class:`PoEntry` records.
 
     Supports single-line ``"..."`` and multi-line ``\"\"\"...\"\"\"`` strings,
@@ -147,6 +147,9 @@ def parse_po(text: str) -> list[PoEntry]:
 
     Args:
         text: Raw PO file content.
+        require_msgctxt: When ``True`` (the default), entries without a
+            ``msgctxt`` are dropped.  Markdown PO files set this to ``False``
+            because their identity is the segment content itself.
 
     Returns:
         A list of parsed entries in source order.
@@ -165,7 +168,7 @@ def parse_po(text: str) -> list[PoEntry]:
                 entry = _make_entry(fields)
             except PoParseError:
                 entry = None
-            if entry and entry.msgctxt:
+            if entry and (entry.msgctxt or not require_msgctxt):
                 entries.append(entry)
         fields = {}
         current_key = None
@@ -464,3 +467,157 @@ def sync_english_from_po(
             ttl_path.write_text(ttl_text, encoding="utf-8")
 
     return report
+
+
+def _find_segment_positions(text: str, segment: str) -> list[int]:
+    """Return the start index of every non-overlapping occurrence of *segment*."""
+    if not segment:
+        return []
+    positions: list[int] = []
+    start = 0
+    segment_len = len(segment)
+    while True:
+        idx = text.find(segment, start)
+        if idx < 0:
+            break
+        positions.append(idx)
+        start = idx + segment_len
+    return positions
+
+
+def _apply_md_entry(md_text: str, entry: PoEntry) -> tuple[str, str | None]:
+    """Apply one markdown PO entry to *md_text* using a 3-way merge.
+
+    Returns ``(new_text, None)`` when the entry is applied or requires no
+    change, and ``(md_text, reason)`` when it is skipped or conflicts.
+    """
+    old_value = entry.msgid
+    new_value = entry.msgstr
+
+    if not old_value:
+        return md_text, "empty msgid"
+
+    positions = _find_segment_positions(md_text, old_value)
+    if len(positions) > 1:
+        return md_text, f"ambiguous segment {old_value!r}: {len(positions)} occurrences"
+
+    if not positions:
+        if old_value == new_value:
+            return md_text, f"source changed, PO unchanged for segment {old_value!r}"
+        return md_text, (
+            f"conflict: source and PO both changed for segment {old_value!r}"
+        )
+
+    start = positions[0]
+    if old_value == new_value:
+        return md_text, None
+
+    return md_text[:start] + new_value + md_text[start + len(old_value) :], None
+
+
+def apply_md_sync(
+    po_path: Path,
+    md_path: Path,
+    *,
+    dry_run: bool = False,
+) -> SyncReport:
+    """Synchronize English translations from *po_path* into *md_path*.
+
+    The PO file supplies ``msgid`` (old English segment) and ``msgstr`` (new
+    English segment).  ``msgctxt`` is ignored for markdown masters because
+    identity is the segment content itself.  The function performs a 3-way
+    merge against the current markdown source and, unless *dry_run* is
+    ``True``, writes the result back to *md_path*.
+
+    Args:
+        po_path: Path to the PO catalog.
+        md_path: Path to the markdown source file to update.
+        dry_run: If ``True``, compute the report without writing to disk.
+
+    Returns:
+        A :class:`SyncReport` describing the outcome.
+    """
+    report = SyncReport()
+    po_text = po_path.read_text(encoding="utf-8")
+    entries = parse_po(po_text, require_msgctxt=False)
+    md_text = md_path.read_text(encoding="utf-8")
+
+    changed = False
+    for entry in entries:
+        new_text, error = _apply_md_entry(md_text, entry)
+        if error:
+            if error.startswith("conflict:"):
+                report.conflicts.append(error)
+            else:
+                report.skipped.append(error)
+            continue
+
+        if new_text != md_text:
+            changed = True
+            md_text = new_text
+        else:
+            report.unchanged.append(entry.msgid)
+
+    if changed:
+        report.changed_files.append(md_path)
+        if not dry_run:
+            md_path.write_text(md_text, encoding="utf-8")
+
+    return report
+
+
+def apply_ttl_sync(
+    po_path: Path,
+    ttl_path: Path,
+    *,
+    dry_run: bool = False,
+) -> SyncReport:
+    """Synchronize English translations from *po_path* into *ttl_path*.
+
+    Thin wrapper around :func:`sync_english_from_po` that exposes the
+    symmetric ``apply_*_sync`` API used by :func:`sync_english_file`.
+    """
+    return sync_english_from_po(po_path, ttl_path, dry_run=dry_run)
+
+
+def sync_english_file(
+    po_path: Path,
+    source_path: Path,
+    *,
+    dry_run: bool = False,
+) -> SyncReport:
+    """Synchronize a PO catalog with its canonical source file.
+
+    Dispatches to :func:`apply_ttl_sync` for Turtle sources or
+    :func:`apply_md_sync` for Markdown sources.  The decision is driven by
+    *source_path*'s extension, with the PO filename convention
+    (``*.ttl.po`` / ``*.md.po``) as a fallback.
+
+    Args:
+        po_path: Path to the PO catalog.
+        source_path: Path to the canonical source file (``.ttl`` or ``.md``).
+        dry_run: If ``True``, compute the report without writing to disk.
+
+    Returns:
+        A :class:`SyncReport` describing the outcome.
+
+    Raises:
+        ValueError: If *source_path* is neither a Turtle nor a Markdown file
+            and the PO filename convention does not resolve the type.
+    """
+    po_name = po_path.name
+    if (
+        source_path.suffix == ".ttl"
+        or po_name.endswith(".ttl.po")
+        or po_name.endswith(".ttl.pot")
+    ):
+        return apply_ttl_sync(po_path, source_path, dry_run=dry_run)
+
+    if (
+        source_path.suffix == ".md"
+        or po_name.endswith(".md.po")
+        or po_name.endswith(".md.pot")
+    ):
+        return apply_md_sync(po_path, source_path, dry_run=dry_run)
+
+    raise ValueError(f"unsupported source file type: {source_path}")

@@ -9,7 +9,9 @@ import pytest
 from gmeow_tools.i18n_sync import (
     PoEntry,
     PoParseError,
+    apply_md_sync,
     parse_po,
+    sync_english_file,
     sync_english_from_po,
 )
 
@@ -129,6 +131,12 @@ def _write_ttl(tmp_path: Path, content: str) -> Path:
 
 def _write_po(tmp_path: Path, content: str) -> Path:
     path = tmp_path / "translations.po"
+    path.write_text(content, encoding="utf-8")
+    return path
+
+
+def _write_md(tmp_path: Path, content: str) -> Path:
+    path = tmp_path / "source.md"
     path.write_text(content, encoding="utf-8")
     return path
 
@@ -391,3 +399,143 @@ msgstr "new"
         original = ttl.read_text(encoding="utf-8")
         assert '"old"@x-gmeow-english' in original
         assert '"new"@x-gmeow-english' not in original
+
+
+class TestMarkdownSync:
+    """Exercise markdown PO synchronization by segment."""
+
+    def test_in_place_segment_replacement(self, tmp_path: Path) -> None:
+        md = _write_md(tmp_path, "# Title\n\nOld paragraph.\n\nAnother line.\n")
+        po = _write_po(
+            tmp_path,
+            'msgid "Old paragraph."\nmsgstr "Improved paragraph."\n',
+        )
+        report = apply_md_sync(po, md)
+        assert report.changed_files == [md]
+        assert not report.conflicts
+        assert not report.skipped
+        updated = md.read_text(encoding="utf-8")
+        assert "# Title" in updated
+        assert "Improved paragraph." in updated
+        assert "Another line." in updated
+        assert "Old paragraph." not in updated
+
+    def test_preserves_front_matter(self, tmp_path: Path) -> None:
+        md = _write_md(
+            tmp_path,
+            "---\ntitle: Doc\nversion: 1\n---\n\nFirst paragraph.\n",
+        )
+        po = _write_po(
+            tmp_path,
+            'msgid "First paragraph."\nmsgstr "Updated first paragraph."\n',
+        )
+        report = apply_md_sync(po, md)
+        assert report.changed_files == [md]
+        updated = md.read_text(encoding="utf-8")
+        assert updated.startswith("---\ntitle: Doc\nversion: 1\n---\n")
+        assert "Updated first paragraph." in updated
+
+    def test_preserves_fenced_code_blocks(self, tmp_path: Path) -> None:
+        md = _write_md(
+            tmp_path,
+            "Intro.\n\n```python\nprint('hi')\n```\n\nOutro.\n",
+        )
+        po = _write_po(
+            tmp_path,
+            'msgid "Intro."\nmsgstr "Introduction."\n\n'
+            'msgid "Outro."\nmsgstr "Conclusion."\n',
+        )
+        report = apply_md_sync(po, md)
+        assert report.changed_files == [md]
+        updated = md.read_text(encoding="utf-8")
+        assert "Introduction." in updated
+        assert "Conclusion." in updated
+        assert "```python\nprint('hi')\n```" in updated
+
+    def test_idempotency_with_updated_po(self, tmp_path: Path) -> None:
+        md = _write_md(tmp_path, "Original.\n")
+        po1 = _write_po(
+            tmp_path,
+            'msgid "Original."\nmsgstr "Improved."\n',
+        )
+        report1 = apply_md_sync(po1, md)
+        assert report1.changed_files == [md]
+
+        po2 = _write_po(
+            tmp_path,
+            'msgid "Improved."\nmsgstr "Improved."\n',
+        )
+        report2 = apply_md_sync(po2, md)
+        assert not report2.changed_files
+        assert not report2.conflicts
+        assert not report2.skipped
+        assert report2.unchanged == ["Improved."]
+
+    def test_conflict_when_source_and_po_both_changed(self, tmp_path: Path) -> None:
+        md = _write_md(tmp_path, "Modified segment.\n")
+        po = _write_po(
+            tmp_path,
+            'msgid "Original segment."\nmsgstr "Proposed segment."\n',
+        )
+        report = apply_md_sync(po, md)
+        assert not report.changed_files
+        assert len(report.conflicts) == 1
+        assert "conflict" in report.conflicts[0]
+        assert not report.skipped
+
+    def test_skip_when_source_changed_po_unchanged(self, tmp_path: Path) -> None:
+        md = _write_md(tmp_path, "Modified.\n")
+        po = _write_po(
+            tmp_path,
+            'msgid "Original."\nmsgstr "Original."\n',
+        )
+        report = apply_md_sync(po, md)
+        assert not report.changed_files
+        assert not report.conflicts
+        assert len(report.skipped) == 1
+        assert "source changed, PO unchanged" in report.skipped[0]
+
+    def test_ambiguous_segment_is_skipped(self, tmp_path: Path) -> None:
+        md = _write_md(tmp_path, "Repeat. Repeat.\n")
+        po = _write_po(
+            tmp_path,
+            'msgid "Repeat."\nmsgstr "New."\n',
+        )
+        report = apply_md_sync(po, md)
+        assert not report.changed_files
+        assert not report.conflicts
+        assert len(report.skipped) == 1
+        assert "ambiguous" in report.skipped[0]
+
+
+class TestSyncEnglishFile:
+    """Exercise the extension-based dispatcher."""
+
+    def test_dispatches_to_md_sync(self, tmp_path: Path) -> None:
+        md = _write_md(tmp_path, "Old.\n")
+        po = _write_po(
+            tmp_path,
+            'msgid "Old."\nmsgstr "New."\n',
+        )
+        report = sync_english_file(po, md)
+        assert report.changed_files == [md]
+        assert "New." in md.read_text(encoding="utf-8")
+
+    def test_dispatches_to_ttl_sync(self, tmp_path: Path) -> None:
+        ttl = _write_ttl(
+            tmp_path,
+            """@prefix ex: <http://example.org/> .
+
+ex:s ex:p "old"@x-gmeow-english .
+""",
+        )
+        po = _write_po(
+            tmp_path,
+            """msgctxt "http://example.org/s|http://example.org/p"
+msgid "old"
+msgstr "new"
+""",
+        )
+        report = sync_english_file(po, ttl)
+        assert report.changed_files == [ttl]
+        assert '"new"@x-gmeow-english' in ttl.read_text(encoding="utf-8")
