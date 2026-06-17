@@ -21,23 +21,32 @@ if TYPE_CHECKING:
 
 mcp = FastMCP("gmeow")
 
+#: Cached language selector validated at server startup.
+_STARTUP_SELECTOR: LangSelector | None = None
+
 
 def _view() -> FoldView:
     """Load the bundled GTS snapshot into a fold view."""
     return FoldView(read(GTS_SNAPSHOT_FILE.read_bytes()))
 
 
-def _selector(view: FoldView) -> LangSelector:
-    """Resolve GMEOW_LANG against the snapshot's tag map, defaulting to English."""
-    from gmeow_tools.language_tags import UnknownLanguageError, resolve_lang_input
+def _selector(view: FoldView, lang: str | None = None) -> LangSelector:
+    """Resolve ``lang`` or ``GMEOW_LANG`` against the snapshot's tag map.
 
-    raw = os.environ.get("GMEOW_LANG")
-    try:
-        return resolve_lang_input(raw, view.tag_map())
-    except (
-        UnknownLanguageError
-    ):  # pragma: no cover - unknown env tag should not crash the server
-        return resolve_lang_input(None, view.tag_map())
+    ``lang`` takes precedence over ``GMEOW_LANG``; both fall back to English.
+    An unknown tag raises :class:`~gmeow_tools.language_tags.UnknownLanguageError`.
+    """
+    from gmeow_tools.language_tags import resolve_lang_input
+
+    raw = lang if lang is not None else os.environ.get("GMEOW_LANG")
+    return resolve_lang_input(raw, view.tag_map(), available=view.available_languages())
+
+
+def _validate_startup_lang() -> None:
+    """Validate ``GMEOW_LANG`` at server startup and cache the selector."""
+    global _STARTUP_SELECTOR
+    view = _view()
+    _STARTUP_SELECTOR = _selector(view)
 
 
 def _summary(term: Term) -> str:
@@ -48,20 +57,20 @@ def _summary(term: Term) -> str:
     )
 
 
-def _terms() -> list[Term]:
+def _terms(lang: str | None = None) -> list[Term]:
     """Collect public GMEOW terms from the bundled GTS snapshot."""
     view = _view()
-    return collect_terms(view, selector=_selector(view))
+    return collect_terms(view, selector=_selector(view, lang))
 
 
-def _lookup_term(query: str) -> dict[str, Any] | None:
+def _lookup_term(query: str, lang: str | None = None) -> dict[str, Any] | None:
     """Resolve a CURIE, local name, IRI, or unambiguous prefix."""
     needle = query.strip()
     if not needle:
         return None
     lower = needle.lower()
     matches: list[Term] = []
-    for term in _terms():
+    for term in _terms(lang):
         candidates = {
             term.curie,
             term.iri,
@@ -79,20 +88,29 @@ def _lookup_term(query: str) -> dict[str, Any] | None:
 
 
 @mcp.tool()
-def gmeow_lookup_term(term: str) -> str:
-    """Resolve a bundled GMEOW term to its public metadata."""
-    result = _lookup_term(term)
+def gmeow_lookup_term(term: str, lang: str | None = None) -> str:
+    """Resolve a bundled GMEOW term to its public metadata.
+
+    Args:
+        term: CURIE, local name, IRI, or label fragment to look up.
+        lang: Optional BCP-47 language tag. Overrides ``GMEOW_LANG``.
+    """
+    result = _lookup_term(term, lang)
     if result is None:
         return json.dumps({"ok": False, "error": f"Term not found: {term}"})
     result["ok"] = True
     return json.dumps(result)
 
 
-@mcp.resource("gmeow://ontology/llms.txt")
-def gmeow_llms_txt() -> str:
-    """Expose a compact bundled vocabulary index."""
+@mcp.resource("gmeow://ontology/llms.txt{?lang}")
+def gmeow_llms_txt(lang: str | None = None) -> str:
+    """Expose a compact bundled vocabulary index.
+
+    Args:
+        lang: Optional BCP-47 language tag. Overrides ``GMEOW_LANG``.
+    """
     view = _view()
-    selector = _selector(view)
+    selector = _selector(view, lang)
     title, version = fold_meta(view)
     terms = collect_terms(view, selector=selector)
     classes = [t for t in terms if t.category == "class"]
@@ -255,4 +273,5 @@ def revise_belief(
 
 def run() -> None:
     """Start the MCP stdio server."""
+    _validate_startup_lang()
     mcp.run(transport="stdio")
