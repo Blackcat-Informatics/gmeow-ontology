@@ -1460,11 +1460,11 @@
     void:triples 10 .
 
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-schema.org-5d26ac-skos_closeMatch> a void:Linkset ;
-    rdfs:label "GMEOW skos:closeMatch links to https://schema.org/ (152)"@en ;
+    rdfs:label "GMEOW skos:closeMatch links to https://schema.org/ (151)"@en ;
     void:linkPredicate skos:closeMatch ;
     void:objectsTarget schema: ;
     void:subjectsTarget <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset> ;
-    void:triples 152 .
+    void:triples 151 .
 
 <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-schema.org-5d26ac-skos_exactMatch> a void:Linkset ;
     rdfs:label "GMEOW skos:exactMatch links to https://schema.org/ (15)"@en ;
