@@ -604,11 +604,17 @@ fn run_example_shacl(
 
     let mut result = PhaseResult::default();
     let (violations, warnings) = partition_shacl_results(&report);
-    for v in violations {
-        result.errors.push(format!("example {name}: {v}"));
+    if !violations.is_empty() {
+        result.errors.push(format!(
+            "example {name}: SHACL violations:\n{}",
+            violations.join("\n")
+        ));
     }
-    for w in warnings {
-        result.warnings.push(format!("example {name}: {w}"));
+    if !warnings.is_empty() {
+        result.warnings.push(format!(
+            "example {name}: SHACL warnings:\n{}",
+            warnings.join("\n")
+        ));
     }
     Ok(result)
 }
