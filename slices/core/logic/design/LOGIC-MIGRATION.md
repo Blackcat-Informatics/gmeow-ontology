@@ -30,6 +30,15 @@ Two invariants hold across every rung: the Python oracle implements the rung fir
 spec, and the Rust core must pass the identical corpus (Principle 7). No rung is "done" until both
 agree.
 
+**Status (2026-06): v0–v5 have landed.** The monotonic core, profile certifier, foundation lowering,
+backward goals, and Stratum-C counterfactuals are all merged and gated by the corpus; only the v6
+probabilistic layer remains. For the **generative** strata (v4 backward goals, v5 counterfactuals) the
+Rust engine is the executable spec and conformance is pinned by golden answer fixtures
+(`queries/*.logic` → `expected/answers/*.json`); the Python oracle remains the authority for
+materialization (Strata A/B). The v5 surface is documented in
+[LOGIC-SEMANTICS.md](LOGIC-SEMANTICS.md#deterministic-revision-taming-the-agm-mutation-explosion) and
+[LOGIC-RUNTIME.md](LOGIC-RUNTIME.md); the corpus lives under `conformance/logic/cases/worlds-C/`.
+
 ## Adapter phases
 
 `logic:` does not require rewriting the existing model on day one. Two adapter phases run in parallel,
@@ -138,6 +147,13 @@ Nothing is removed before its replacement is gated. The deprecation order:
    (`make check` excludes Docker reasoners; HermiT runs in its own job, `make check-docker`). Once the
    native solver passes the corpus, `make reason --mode native` becomes the authority and the OWL
    reasoners validate only their projected fragments.
+   With **v5 landed (#505)** the native `logic:` corpus now spans Strata A/B/C (worlds A/B/C, backward
+   goals, foundation, profiles, paraconsistency, explanation) — complete enough to *begin* this
+   demotion. It is **not** done here: the flip still requires a DL/EL **projection cross-check** gate
+   (a dual-run analogous to #578's SHACL cross-check) proving `make reason --mode native` ≡ ELK on the
+   EL fragment before authority moves. Tracked as its own follow-up epic; the SHACL counterpart is #579
+   (pySHACL/rdflib removal). Apache Jena is on the mid-term removal list (sole RDF-1.2 triple-term
+   serializer today; removal blocked on a Rust/oxigraph serializer).
 2. **The Python solver becomes the oracle, not the engine.** It is retained permanently as the
    executable spec, but the Rust core carries production workloads.
 3. **`owl:*` and `gufo:` adapter source is retired per slice**, only after that slice's `logic:` form
