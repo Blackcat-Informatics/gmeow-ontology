@@ -164,9 +164,9 @@ and is referenced in prose, not mapped as a `gmeow:TermEquivalence`.
 
 | Slice | Why |
 |---|---|
-| `kernel` | `gmeow:Agent` (the experiencer, teacher, and learner domain) and the `gmeow:Participation` idiom |
-| `mentation` | `gmeow:MentalProcess` — the reparenting hook `gmeow:LearningEvent` rdfs:subClassOf'd under |
-| `events` | base event infrastructure (`gmeow:experiencer`) the mental-process umbrella inherits |
+| `kernel` | `gmeow:Agent` — the experiencer, teacher, and learner domain |
+| `mentation` | `gmeow:MentalProcess` (the reparenting hook `gmeow:LearningEvent` rdfs:subClassOf's under) and the inherited `gmeow:experiencer` |
+| `events` | `gmeow:Event` — the superclass `gmeow:MentalProcess` (hence `gmeow:LearningEvent`) reparents under; the `gmeow:Participation` relator idiom mirrored by `gmeow:Teaching` |
 | `cognition` | `gmeow:KnowledgeProficiency`, `gmeow:KnowledgeLevel`, and `gmeow:CognitiveState` — the knowledge-state targets of `gmeow:produces` / `gmeow:fromLevel` / `gmeow:toLevel` |
 | `expertise` | `gmeow:SkillProficiency` and `gmeow:ProficiencyLevel` — the skill-state targets of the same properties |
 | `temporal` | `gmeow:TimeScopedRelation` (the proficiency-tenure parent) and `gmeow:duringInterval` for trajectory sequences |

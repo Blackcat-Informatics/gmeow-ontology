@@ -1,0 +1,72 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example: a proficiency RISE as a SEQUENCE of tenures, never a mutation.
+# Two gmeow:LearningEvent occurrents raise lillith's cycling skill — a skill
+# acquisition (novice → advanced beginner) and a consolidating practice block
+# (advanced beginner → expert). Each event gmeow:produces its OWN reified
+# gmeow:SkillProficiency relator, scoped by its own interval; the earlier tenure
+# is kept with gmeow:displayable false rather than overwritten (Principle 10).
+# The trajectory of one event rides gmeow:fromLevel / gmeow:toLevel; the durable
+# standing is the proficiency tenure the event produced.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/learning/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+ex:lillith a gmeow:Agent ;
+    rdfs:label "Lillith"@x-gmeow-english .
+
+ex:cycling a gmeow:Skill ;
+    rdfs:label "riding a bicycle"@x-gmeow-english .
+
+ex:textbook a gmeow:CreativeWork ;
+    rdfs:label "Cycling: a beginner's manual"@x-gmeow-english .
+
+# --- Event 1: skill acquisition, novice → advanced beginner (the spring).
+ex:firstLessons a gmeow:LearningEvent ;
+    gmeow:experiencer ex:lillith ;
+    gmeow:learningType gmeow:learningSkillAcquisition ;
+    gmeow:learnedFrom ex:textbook ;
+    gmeow:fromLevel gmeow:dreyfusNovice ;
+    gmeow:toLevel gmeow:dreyfusAdvancedBeginner ;
+    gmeow:produces ex:profSpring ;
+    rdfs:label "first cycling lessons"@x-gmeow-english .
+
+# The proficiency tenure the first event produced — now SUPERSEDED, kept (not
+# deleted) with gmeow:displayable false: the earlier rung of the sequence.
+ex:profSpring a gmeow:SkillProficiency ;
+    gmeow:skillProficiencyAgent ex:lillith ;
+    gmeow:skillProficiencyOf ex:cycling ;
+    gmeow:skillProficiencyLevel gmeow:dreyfusAdvancedBeginner ;
+    gmeow:skillProficiencyScale gmeow:scaleDreyfus ;
+    gmeow:skillProficiencyInterval ex:springInterval ;
+    gmeow:displayable false ;
+    rdfs:label "cycling proficiency (spring): advanced beginner"@x-gmeow-english .
+
+ex:springInterval a gmeow:TimeInterval ;
+    gmeow:startedAtTime "2026-03-01T00:00:00Z"^^xsd:dateTime ;
+    gmeow:endedAtTime   "2026-05-31T23:59:59Z"^^xsd:dateTime .
+
+# --- Event 2: consolidating practice, advanced beginner → expert (the summer).
+#     Two varieties co-apply (P9): it both consolidates and further acquires.
+ex:summerPractice a gmeow:LearningEvent ;
+    gmeow:experiencer ex:lillith ;
+    gmeow:learningType gmeow:learningConsolidation, gmeow:learningSkillAcquisition ;
+    gmeow:fromLevel gmeow:dreyfusAdvancedBeginner ;
+    gmeow:toLevel gmeow:dreyfusExpert ;
+    gmeow:produces ex:profSummer ;
+    rdfs:label "a summer of daily practice"@x-gmeow-english .
+
+# The current proficiency tenure — a NEW relator, not a mutation of ex:profSpring.
+ex:profSummer a gmeow:SkillProficiency ;
+    gmeow:skillProficiencyAgent ex:lillith ;
+    gmeow:skillProficiencyOf ex:cycling ;
+    gmeow:skillProficiencyLevel gmeow:dreyfusExpert ;
+    gmeow:skillProficiencyScale gmeow:scaleDreyfus ;
+    gmeow:skillProficiencyInterval ex:summerInterval ;
+    rdfs:label "cycling proficiency (summer): expert"@x-gmeow-english .
+
+ex:summerInterval a gmeow:TimeInterval ;
+    gmeow:startedAtTime "2026-06-01T00:00:00Z"^^xsd:dateTime .
