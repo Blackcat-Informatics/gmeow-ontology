@@ -22,12 +22,14 @@
 //! PyO3-free so the rlib links into the future Rust compiler without any Python
 //! dependency.
 
+pub mod cache;
 pub mod coverage;
 pub mod dsl;
 pub mod gufo;
 pub mod lint;
 pub mod model;
 pub mod store;
+pub mod validate_all;
 
 // PyO3 bindings — the only module that imports pyo3.
 pub mod py;

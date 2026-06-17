@@ -19,7 +19,7 @@ GMEOW_DEV ?= uv run --package gmeow-dev gmeow-dev
         coverage acceptance crossref constitution-check compliance-report compliance-report-full audit evals-score \
         logic-build logic-test logic-py conformance \
         shacl-build shacl-test shacl-py \
-        validate-build validate-test validate-py
+        validate-build validate-test validate-py clippy
 
 help: ## Show this help.
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
@@ -41,7 +41,7 @@ lint: ## Lint (ruff), type-check (mypy), and full repo-hygiene suite (pre-commit
 	# so the local gate must too — otherwise those lanes only fail in CI.
 	uv run pre-commit run --all-files --show-diff-on-failure
 
-validate: ## Validate syntax, term annotations, and SHACL (pure Python).
+validate: validate-py shacl-py ## Validate syntax, term annotations, and SHACL (Rust-native orchestration).
 	$(GMEOW_DEV) validate
 
 crosscheck: ## Prove rdflib and pyoxigraph answer every committed query alike (no Docker).
@@ -168,6 +168,9 @@ validate-test: ## Run the gmeow-validate unit + integration tests.
 validate-py: ## Build and install the gmeow_validate Python extension (maturin develop).
 	uvx maturin develop --manifest-path crates/validate/Cargo.toml
 
+clippy: ## Run cargo clippy on all Rust targets with warnings as errors.
+	cargo clippy --all-targets -- -D warnings
+
 conformance: ## Run the logic: conformance suite (oracle ≡ engine, Principle 7 gate).
 	$(GMEOW_DEV) conformance
 
@@ -189,7 +192,7 @@ test-network: ## Run the network tests (LIVE endpoints) — MANUAL only, never i
 	GMEOW_RUN_NETWORK=1 uv run pytest -m network
 
 check: ## Fast local gate: core ontology + transforms (ELK only; HermiT runs in its own CI job).
-	$(MAKE) -j$$(nproc 2>/dev/null || echo 4) lint validate crosscheck check-generated constitution-check audit wikidata coverage acceptance reason verify mappings-only lint-alignment
+	$(MAKE) -j$$(nproc 2>/dev/null || echo 4) lint clippy validate crosscheck check-generated constitution-check audit wikidata coverage acceptance reason verify mappings-only lint-alignment
 	$(MAKE) test-fast
 	$(GMEOW_DEV) compliance-report --from-passing-check
 	@echo "✓ all checks passed"
