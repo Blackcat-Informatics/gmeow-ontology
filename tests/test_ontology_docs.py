@@ -603,3 +603,45 @@ def test_html_links_are_directory_index_safe(ontology_docs_tree: Path) -> None:
     alias_html = alias.read_text(encoding="utf-8")
     assert 'http-equiv="refresh"' in alias_html
     assert "../../reference/classes/gmeow-Person/" in alias_html
+
+
+@pytest.mark.ci_only
+def test_four_boxes_doctrine_page_exists(ontology_docs_tree: Path) -> None:
+    doctrine = (ontology_docs_tree / "markdown" / "four-boxes" / "index.md").read_text(
+        encoding="utf-8"
+    )
+
+    assert "# ABox, TBox, RBox, CBox in GMEOW" in doctrine
+    assert "[ABox role](../reference/boxes/abox.md)" in doctrine
+    assert "[TBox role](../reference/boxes/tbox.md)" in doctrine
+    assert "[RBox role](../reference/boxes/rbox.md)" in doctrine
+    assert "[CBox role](../reference/boxes/cbox.md)" in doctrine
+
+
+@pytest.mark.ci_only
+def test_box_role_landing_pages_list_terms(ontology_docs_tree: Path) -> None:
+    known_terms = {
+        "abox": "gmeow:boxABox",
+        "tbox": "gmeow:GraphBoxRole",
+        "rbox": "gmeow:partOf",
+        "cbox": "gmeow:concernStatementMetadata",
+    }
+    for slug, term_curie in known_terms.items():
+        page = ontology_docs_tree / "markdown" / "reference" / "boxes" / f"{slug}.md"
+        assert page.exists(), slug
+        text = page.read_text(encoding="utf-8")
+        role_label = f"{slug[0].upper()}Box role"
+        assert role_label in text
+        assert f"[`{term_curie}`]" in text
+
+
+@pytest.mark.ci_only
+def test_term_pages_link_to_box_role_pages(ontology_docs_tree: Path) -> None:
+    part_of = (
+        ontology_docs_tree / "markdown" / "reference" / "properties" / "gmeow-partOf.md"
+    )
+    text = part_of.read_text(encoding="utf-8")
+
+    assert "- **Box roles:**" in text
+    assert "[RBox role](../boxes/rbox.md)" in text
+    assert "[What is this?](../../four-boxes/index.md)" in text
