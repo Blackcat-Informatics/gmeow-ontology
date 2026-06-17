@@ -276,3 +276,29 @@ gmeow:dreyfusExpert
     gmeow:levelScale gmeow:scaleDreyfus ;
     skos:definition "The expert level of the Dreyfus scale — fluent, intuitive performance in which situation-recognition and response are fused, with deliberation reserved for the genuinely novel."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/expertise> .
+
+# --------------------------------------------------------------------------- #
+# Graph box role coverage (canonical explicit annotations).
+# --------------------------------------------------------------------------- #
+
+gmeow:Credential gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:Skill gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:SkillProficiency gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:credentialFor gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:credentialIssuer gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:dreyfusAdvancedBeginner gmeow:graphBoxRole gmeow:boxABox .
+gmeow:dreyfusCompetent gmeow:graphBoxRole gmeow:boxABox .
+gmeow:dreyfusExpert gmeow:graphBoxRole gmeow:boxABox .
+gmeow:dreyfusNovice gmeow:graphBoxRole gmeow:boxABox .
+gmeow:dreyfusProficient gmeow:graphBoxRole gmeow:boxABox .
+gmeow:hasOccupation gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:hasSkill gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:holdsCredential gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:occupationClassification gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:scaleDreyfus gmeow:graphBoxRole gmeow:boxABox .
+gmeow:skillProficiencyAgent gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:skillProficiencyInterval gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:skillProficiencyLevel gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:skillProficiencyOf gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:skillProficiencyScale gmeow:graphBoxRole gmeow:boxRBox .
+<https://blackcatinformatics.ca/gmeow/slices/expertise> gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .

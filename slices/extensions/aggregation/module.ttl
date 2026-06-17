@@ -132,3 +132,22 @@ gmeow:minimumPopulation
 #   gmeow:coarsenTo         (core.ttl)         — disclosure control generalisation
 #   gmeow:displayable       (names.ttl)        — suppression flag
 # =========================================================================== #
+
+# --------------------------------------------------------------------------- #
+# Graph box role coverage (canonical explicit annotations).
+# --------------------------------------------------------------------------- #
+
+gmeow:AggregationFunction gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:SpatialAggregation gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:SpatialBin gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:aggAverage gmeow:graphBoxRole gmeow:boxABox .
+gmeow:aggCentroid gmeow:graphBoxRole gmeow:boxABox .
+gmeow:aggCount gmeow:graphBoxRole gmeow:boxABox .
+gmeow:aggDensity gmeow:graphBoxRole gmeow:boxABox .
+gmeow:aggMaximum gmeow:graphBoxRole gmeow:boxABox .
+gmeow:aggMinimum gmeow:graphBoxRole gmeow:boxABox .
+gmeow:aggSum gmeow:graphBoxRole gmeow:boxABox .
+gmeow:aggregationFunction gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:hasBin gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:minimumPopulation gmeow:graphBoxRole gmeow:boxRBox .
+<https://blackcatinformatics.ca/gmeow/slices/aggregation> gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .

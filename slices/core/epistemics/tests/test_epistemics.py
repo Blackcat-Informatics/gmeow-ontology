@@ -13,7 +13,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from rdflib import Graph, URIRef
+from rdflib import Graph, Literal, URIRef
 from rdflib.collection import Collection
 from rdflib.namespace import OWL, RDF, RDFS
 from rdflib.term import Node
@@ -125,6 +125,9 @@ def test_justified_by_has_named_domain_and_range() -> None:
     assert (prop, RDFS.domain, _t("JustificationSubject")) in g
     assert (prop, RDFS.range, _t("JustificationGround")) in g
 
+    # justifiedBy is non-functional — multiple grounds may coexist (Principle 9).
+    assert (prop, RDF.type, OWL.FunctionalProperty) not in g
+
     subject_union = _union_members(g, _t("JustificationSubject"))
     assert subject_union == {_t("DoxasticState"), _t("StandpointClaim")}
 
@@ -176,3 +179,102 @@ def test_every_term_is_annotated() -> None:
         assert (term, RDFS.label, None) in g
         assert (term, SKOS_DEFINITION, None) in g
         assert (term, RDFS.isDefinedBy, None) in g
+
+
+def test_credence_and_confidence_are_distinct() -> None:
+    """credence lives on DoxasticState; confidence belongs to the statement layer.
+
+    They are separate terms, neither subsumes the other, and only credence is
+    declared with domain gmeow:DoxasticState in this slice (Principle 6).
+    """
+    g = _graph()
+    credence = _t("credence")
+    confidence = _t("confidence")
+    assert credence != confidence
+    assert (credence, RDFS.domain, _t("DoxasticState")) in g
+    assert (confidence, RDFS.domain, _t("DoxasticState")) not in g
+    assert (credence, RDFS.subPropertyOf, confidence) not in g
+    assert (confidence, RDFS.subPropertyOf, credence) not in g
+
+
+def test_suppression_round_trip() -> None:
+    """The flagship example retains superseded states and suppresses the tenure.
+
+    A defeater closes the original tenure (endedAtTime) and marks it
+    gmeow:displayable false, while the revised tenure stays open.  Both the
+    original and revised DoxasticState individuals remain in the ledger
+    (Principle 10); the original credence exceeds the revised one.
+    """
+    g = Graph()
+    flagship = _MODULE.parent / "examples" / "flagship-epistemic-ledger.ttl"
+    g.parse(flagship, format="turtle")
+
+    tenures = list(g.subjects(RDF.type, _t("DoxasticTenure")))
+    assert len(tenures) == 2
+
+    original: URIRef | None = None
+    revised: URIRef | None = None
+    for tenure in tenures:
+        interval = g.value(tenure, _t("duringInterval"))
+        if interval is not None and (interval, _t("endedAtTime"), None) in g:
+            original = tenure
+        else:
+            revised = tenure
+
+    assert original is not None
+    assert revised is not None
+    assert original != revised
+
+    revised_interval = g.value(revised, _t("duringInterval"))
+    assert revised_interval is not None
+
+    assert (original, _t("displayable"), Literal(False)) in g
+    assert (revised_interval, _t("endedAtTime"), None) not in g
+
+    original_state = g.value(original, _t("tenureOfDoxasticState"))
+    revised_state = g.value(revised, _t("tenureOfDoxasticState"))
+    assert isinstance(original_state, URIRef)
+    assert isinstance(revised_state, URIRef)
+    assert original_state != revised_state
+    assert (original_state, RDF.type, _t("DoxasticState")) in g
+    assert (revised_state, RDF.type, _t("DoxasticState")) in g
+
+    original_cred = g.value(original_state, _t("credence"))
+    revised_cred = g.value(revised_state, _t("credence"))
+    assert original_cred is not None
+    assert revised_cred is not None
+    assert float(original_cred) > float(revised_cred)
+
+
+def test_epistemics_mapping_set_exists_and_has_expected_rows() -> None:
+    """The generated SSSOM mapping set for epistemics contains expected subjects."""
+    import csv
+
+    mapping = (
+        _MODULE.parents[3] / "generated" / "mappings" / "gmeow-epistemics.sssom.tsv"
+    )
+    assert mapping.exists(), f"Missing mapping file: {mapping}"
+
+    with mapping.open("r", encoding="utf-8") as fh:
+        lines = [line for line in fh if not line.startswith("#")]
+        reader = csv.DictReader(lines, delimiter="\t")
+        subjects = {row["subject_id"] for row in reader if row.get("subject_id")}
+
+    expected = {
+        "gmeow:DoxasticState",
+        "gmeow:Proposition",
+        "gmeow:believes",
+        "gmeow:knowsThat",
+        "gmeow:justifiedBy",
+    }
+    assert expected.issubset(subjects), (
+        f"Missing subjects in mapping: {expected - subjects}"
+    )
+
+
+def test_flagship_example_parses() -> None:
+    """The flagship epistemic ledger is valid Turtle."""
+    g = Graph()
+    flagship = _MODULE.parent / "examples" / "flagship-epistemic-ledger.ttl"
+    g.parse(flagship, format="turtle")
+    assert len(g) > 0

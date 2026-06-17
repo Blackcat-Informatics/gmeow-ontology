@@ -127,3 +127,17 @@ gmeow:nationality
     owl:members ( gmeow:Person gmeow:Organization gmeow:SoftwareAgent
                   gmeow:Location gmeow:ContactPoint gmeow:CryptographicKey
                   gmeow:Appellation gmeow:Language gmeow:WritingSystem ) .
+
+# --------------------------------------------------------------------------- #
+# Graph box role coverage (canonical explicit annotations).
+# --------------------------------------------------------------------------- #
+
+gmeow:Group gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:Organization gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:Person gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:SoftwareAgent gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:description gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:hasWebPage gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:name gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:nationality gmeow:graphBoxRole gmeow:boxRBox .
+<https://blackcatinformatics.ca/gmeow/slices/entities> gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .

@@ -354,6 +354,32 @@ def constitution_check() -> None:
         raise _fail(f"✗ {len(result.errors)} error(s)")
 
 
+box_roles_app = typer.Typer(
+    help="Audit explicit graph-box role coverage in authored sources.",
+    no_args_is_help=True,
+)
+app.add_typer(box_roles_app, name="box-roles")
+
+
+@box_roles_app.command(name="audit")
+def box_roles_audit(
+    json_out: bool = typer.Option(
+        False,
+        "--json",
+        help="Emit machine-readable JSON instead of text.",
+    ),
+) -> None:
+    """Audit explicit ABox/TBox/RBox/CBox/ConfigBox role coverage."""
+    from gmeow_tools.box_roles import audit_box_roles, render_json, render_text
+
+    report = audit_box_roles()
+    console.print(render_json(report) if json_out else render_text(report))
+    if not report.ok:
+        raise _fail(
+            f"✗ {len(report.missing)} missing, {len(report.invalid)} invalid role(s)"
+        )
+
+
 @app.command()
 def audit(
     files: list[Path] = typer.Argument(  # noqa: B008

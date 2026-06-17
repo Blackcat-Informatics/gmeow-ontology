@@ -1089,3 +1089,122 @@ gmeow:granularityDay     a gmeow:GranularityLevel ; rdfs:label "day level"@x-gme
     skos:exactMatch time:unitDay .
 gmeow:granularityDay skos:definition "The day granularity level — a resolution at which a value may be disclosed or coarsened (Principle 10)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> .
+
+# --------------------------------------------------------------------------- #
+# Graph box role coverage (canonical explicit annotations).
+# --------------------------------------------------------------------------- #
+
+gmeow:CalendarSystem gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:DatingMethod gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:Instant gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:NamedPeriod gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:PeriodType gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:ReferencePosition gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:TemporalFrame gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxTBox .
+gmeow:TemporalMeasurement gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxTBox .
+gmeow:TimeInterval gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:TimeScale gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:TimeScopedRelation gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:agentInternationalCommissionOnStratigraphy gmeow:graphBoxRole gmeow:boxABox .
+gmeow:assertedAt gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxRBox .
+gmeow:atTime gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:calendarChinese gmeow:graphBoxRole gmeow:boxABox .
+gmeow:calendarCoptic gmeow:graphBoxRole gmeow:boxABox .
+gmeow:calendarEthiopian gmeow:graphBoxRole gmeow:boxABox .
+gmeow:calendarGregorian gmeow:graphBoxRole gmeow:boxABox .
+gmeow:calendarHebrew gmeow:graphBoxRole gmeow:boxABox .
+gmeow:calendarISOWeek gmeow:graphBoxRole gmeow:boxABox .
+gmeow:calendarIslamic gmeow:graphBoxRole gmeow:boxABox .
+gmeow:calendarJulian gmeow:graphBoxRole gmeow:boxABox .
+gmeow:calendarPersian gmeow:graphBoxRole gmeow:boxABox .
+gmeow:datingMethodAminoAcidRacemization gmeow:graphBoxRole gmeow:boxABox .
+gmeow:datingMethodDendrochronology gmeow:graphBoxRole gmeow:boxABox .
+gmeow:datingMethodElectronSpinResonance gmeow:graphBoxRole gmeow:boxABox .
+gmeow:datingMethodOpticallyStimulatedLuminescence gmeow:graphBoxRole gmeow:boxABox .
+gmeow:datingMethodPaleomagnetism gmeow:graphBoxRole gmeow:boxABox .
+gmeow:datingMethodPotassiumArgon gmeow:graphBoxRole gmeow:boxABox .
+gmeow:datingMethodRadiocarbon gmeow:graphBoxRole gmeow:boxABox .
+gmeow:datingMethodStratigraphicCorrelation gmeow:graphBoxRole gmeow:boxABox .
+gmeow:datingMethodThermoluminescence gmeow:graphBoxRole gmeow:boxABox .
+gmeow:datingMethodUraniumLead gmeow:graphBoxRole gmeow:boxABox .
+gmeow:duringInterval gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:edtfValue gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:endedAtTime gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:frameCalendarSystem gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:frameReferencePosition gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:frameTimeScale gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:granularityCentury gmeow:graphBoxRole gmeow:boxABox .
+gmeow:granularityDay gmeow:graphBoxRole gmeow:boxABox .
+gmeow:granularityDecade gmeow:graphBoxRole gmeow:boxABox .
+gmeow:granularityMonth gmeow:graphBoxRole gmeow:boxABox .
+gmeow:granularityYear gmeow:graphBoxRole gmeow:boxABox .
+gmeow:hasEndInstant gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:hasStartInstant gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:hasTemporalFrame gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxRBox .
+gmeow:hasTemporalMeasurement gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxRBox .
+gmeow:inTemporalFrame gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxRBox .
+gmeow:instantValue gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:intervalAfter gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:intervalBefore gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:intervalCoincidesWith gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:intervalContains gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:intervalDuring gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:intervalFinishedBy gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:intervalFinishes gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:intervalMeets gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:intervalMetBy gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:intervalOverlappedBy gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:intervalOverlaps gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:intervalStartedBy gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:intervalStarts gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:measuredAge gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:measuredDate gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:measurementCenozoicStart gmeow:graphBoxRole gmeow:boxABox .
+gmeow:measurementDeterminacy gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxRBox .
+gmeow:measurementHoloceneStart gmeow:graphBoxRole gmeow:boxABox .
+gmeow:measurementMethod gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:measurementPhanerozoicStart gmeow:graphBoxRole gmeow:boxABox .
+gmeow:measurementQuaternaryStart gmeow:graphBoxRole gmeow:boxABox .
+gmeow:measurementUncertainty gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:periodCenozoic gmeow:graphBoxRole gmeow:boxABox .
+gmeow:periodContainsPeriod gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:periodEnd gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:periodHolocene gmeow:graphBoxRole gmeow:boxABox .
+gmeow:periodPartOf gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:periodPhanerozoic gmeow:graphBoxRole gmeow:boxABox .
+gmeow:periodQuaternary gmeow:graphBoxRole gmeow:boxABox .
+gmeow:periodStart gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:periodType gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:periodTypeFiscalYear gmeow:graphBoxRole gmeow:boxABox .
+gmeow:periodTypeGeologicAge gmeow:graphBoxRole gmeow:boxABox .
+gmeow:periodTypeGeologicEon gmeow:graphBoxRole gmeow:boxABox .
+gmeow:periodTypeGeologicEpoch gmeow:graphBoxRole gmeow:boxABox .
+gmeow:periodTypeGeologicEra gmeow:graphBoxRole gmeow:boxABox .
+gmeow:periodTypeGeologicPeriod gmeow:graphBoxRole gmeow:boxABox .
+gmeow:periodTypeHistoricalDynasty gmeow:graphBoxRole gmeow:boxABox .
+gmeow:periodTypeHistoricalEra gmeow:graphBoxRole gmeow:boxABox .
+gmeow:recordedNoLaterThan gmeow:graphBoxRole gmeow:boxRBox .
+<https://blackcatinformatics.ca/gmeow/slices/temporal> gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxConfigBox, gmeow:boxTBox .
+gmeow:startedAtTime gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:temporalFrameGPSGregorian gmeow:graphBoxRole gmeow:boxABox, gmeow:boxCBox .
+gmeow:temporalFrameTAI gmeow:graphBoxRole gmeow:boxABox, gmeow:boxCBox .
+gmeow:temporalFrameTDBGregorian gmeow:graphBoxRole gmeow:boxABox, gmeow:boxCBox .
+gmeow:temporalFrameTTGregorian gmeow:graphBoxRole gmeow:boxABox, gmeow:boxCBox .
+gmeow:temporalFrameUT1Gregorian gmeow:graphBoxRole gmeow:boxABox, gmeow:boxCBox .
+gmeow:temporalFrameUTCChinese gmeow:graphBoxRole gmeow:boxABox, gmeow:boxCBox .
+gmeow:temporalFrameUTCCoptic gmeow:graphBoxRole gmeow:boxABox, gmeow:boxCBox .
+gmeow:temporalFrameUTCEthiopian gmeow:graphBoxRole gmeow:boxABox, gmeow:boxCBox .
+gmeow:temporalFrameUTCGregorian gmeow:graphBoxRole gmeow:boxABox, gmeow:boxCBox .
+gmeow:temporalFrameUTCHebrew gmeow:graphBoxRole gmeow:boxABox, gmeow:boxCBox .
+gmeow:temporalFrameUTCISOWeek gmeow:graphBoxRole gmeow:boxABox, gmeow:boxCBox .
+gmeow:temporalFrameUTCIslamic gmeow:graphBoxRole gmeow:boxABox, gmeow:boxCBox .
+gmeow:temporalFrameUTCJulian gmeow:graphBoxRole gmeow:boxABox, gmeow:boxCBox .
+gmeow:temporalFrameUTCPersian gmeow:graphBoxRole gmeow:boxABox, gmeow:boxCBox .
+gmeow:timeScaleGPS gmeow:graphBoxRole gmeow:boxABox .
+gmeow:timeScaleTAI gmeow:graphBoxRole gmeow:boxABox .
+gmeow:timeScaleTDB gmeow:graphBoxRole gmeow:boxABox .
+gmeow:timeScaleTT gmeow:graphBoxRole gmeow:boxABox .
+gmeow:timeScaleUT1 gmeow:graphBoxRole gmeow:boxABox .
+gmeow:timeScaleUTC gmeow:graphBoxRole gmeow:boxABox .
+gmeow:validFrom gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:validUntil gmeow:graphBoxRole gmeow:boxRBox .

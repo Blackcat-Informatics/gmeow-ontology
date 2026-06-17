@@ -63,3 +63,12 @@ gmeow:sourceLocation
     gmeow:howToUse "Assert gmeow:sourceLocation on the Manifestation or Item alongside gmeow:contentDigest; read the location as audit trail and the digest as the authoritative identity."@x-gmeow-english ;
     gmeow:avoidForConsumer gmeow:consumerPublicSite ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sources> .
+
+# --------------------------------------------------------------------------- #
+# Graph box role coverage (canonical explicit annotations).
+# --------------------------------------------------------------------------- #
+
+gmeow:contentDigest gmeow:graphBoxRole gmeow:boxRBox .
+<https://blackcatinformatics.ca/gmeow/slices/sources> gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxConfigBox, gmeow:boxTBox .
+gmeow:sourceLocation gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxRBox .
+gmeow:sourceModifiedAt gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxRBox .

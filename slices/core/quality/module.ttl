@@ -142,3 +142,20 @@ gmeow:qualityDimensionLineage
 # No new properties are minted for these axes — the quality module reuses the
 # existing cross-cutting vocabulary (Principle 4: one canonical source).
 # =========================================================================== #
+
+# --------------------------------------------------------------------------- #
+# Graph box role coverage (canonical explicit annotations).
+# --------------------------------------------------------------------------- #
+
+gmeow:QualityAssessment gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:QualityDimension gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:assessedEntity gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:qualityDimension gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:qualityDimensionCompleteness gmeow:graphBoxRole gmeow:boxABox .
+gmeow:qualityDimensionLineage gmeow:graphBoxRole gmeow:boxABox .
+gmeow:qualityDimensionLogicalConsistency gmeow:graphBoxRole gmeow:boxABox .
+gmeow:qualityDimensionPositionalAccuracy gmeow:graphBoxRole gmeow:boxABox .
+gmeow:qualityDimensionTemporalAccuracy gmeow:graphBoxRole gmeow:boxABox, gmeow:boxCBox .
+gmeow:qualityDimensionThematicAccuracy gmeow:graphBoxRole gmeow:boxABox .
+gmeow:qualityDimensionTopologicalConsistency gmeow:graphBoxRole gmeow:boxABox .
+<https://blackcatinformatics.ca/gmeow/slices/quality> gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .

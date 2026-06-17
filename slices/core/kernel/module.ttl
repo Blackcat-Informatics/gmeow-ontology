@@ -524,9 +524,9 @@ gmeow:GraphBoxRole
     a owl:Class, gufo:AbstractIndividualType ;
     rdfs:subClassOf gufo:QualityValue ;
     rdfs:label "Graph Box Role"@x-gmeow-english ;
-    skos:definition "A documentation and validation role describing which graph layer a term, shape, module, or graph artifact primarily serves: assertional data (ABox), terminology/schema (TBox), role/property behavior (RBox), or contextual statement metadata (CBox). Roles are descriptive annotations, may be multi-valued, and never partition the ontology into exactly one box per resource."@x-gmeow-english ;
+    skos:definition "A documentation and validation role describing which graph layer a term, shape, module, or graph artifact primarily serves: assertional data (ABox), terminology/schema (TBox), role/property behavior (RBox), contextual statement metadata (CBox), or runtime/package/profile configuration (ConfigBox). Roles are descriptive annotations, may be multi-valued, and never partition the ontology into exactly one box per resource."@x-gmeow-english ;
     skos:example "gmeow:confidence gmeow:graphBoxRole gmeow:boxCBox ."@x-gmeow-english ;
-    gmeow:useWhen "Use when a term, shape, generated report, or documentation surface needs to say whether it is about asserted data, schema/logic, role/property behavior, or statement context."@x-gmeow-english ;
+    gmeow:useWhen "Use when a term, shape, generated report, or documentation surface needs to say whether it is about asserted data, schema/logic, role/property behavior, statement context, or operational configuration/profile metadata."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid using box roles as logical class membership, named-graph routing, or an exactly-one partition; a construct can legitimately serve more than one box."@x-gmeow-english ;
     gmeow:howToUse "Annotate the subject with one or more gmeow:graphBoxRole values. Tooling may render the roles in describe output, generated docs, validation reports, and GTS/package summaries, but the annotations do not alter OWL entailments."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
@@ -540,7 +540,7 @@ gmeow:graphBoxRole
     skos:example "gmeow:partOf gmeow:graphBoxRole gmeow:boxRBox ."@x-gmeow-english ;
     gmeow:useWhen "Use to make a construct's graph-layer role explicit for readers and tools, especially when validation output needs to distinguish data, schema, role/property, and statement-context failures."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid treating it as an ownership, import, or named-graph directive; the canonical source/projection rules still decide where data is authored and generated."@x-gmeow-english ;
-    gmeow:howToUse "Attach one or more role individuals such as gmeow:boxTBox or gmeow:boxCBox. Consumers should preserve unknown future roles and must not assume the value set is closed."@x-gmeow-english ;
+    gmeow:howToUse "Attach one or more role individuals such as gmeow:boxTBox, gmeow:boxCBox, or gmeow:boxConfigBox. Consumers should preserve unknown future roles and must not assume the value set is closed."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> .
 
@@ -583,8 +583,19 @@ gmeow:boxCBox
     skos:definition "Contextual graph role: metadata about assertions, especially RDF 1.2 reifiers and statement annotations carrying provenance, evidence, confidence, temporal scope, standpoint, determinacy, validity, or disclosure context."@x-gmeow-english ;
     skos:example "A reifier that records confidence and evidence for an assertion is CBox-role data."@x-gmeow-english ;
     gmeow:useWhen "Use for statement context and assertion envelopes, especially when a shape or report is validating metadata attached to a reified statement."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid for deployment configuration or package-profile metadata unless it is explicitly contextual metadata about an assertion; use Profile/GTS configuration surfaces for operational configuration."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for deployment configuration or package-profile metadata unless it is explicitly contextual metadata about an assertion; use gmeow:boxConfigBox for operational configuration."@x-gmeow-english ;
     gmeow:howToUse "Annotate statement-metadata terms and reifier-focused SHACL shapes so validation can surface contextual assertion failures as CBox diagnostics."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> .
+
+gmeow:boxConfigBox
+    a gmeow:GraphBoxRole ;
+    rdfs:label "ConfigBox role"@x-gmeow-english ;
+    skos:definition "Configuration graph role: runtime, package, profile, solver, deployment, service-description, and transport metadata that controls how GMEOW artifacts are built, selected, bundled, served, or consumed, without being statement-context metadata about a particular assertion."@x-gmeow-english ;
+    skos:example "A GTS profile or service-description term that configures an offline package carries the ConfigBox role."@x-gmeow-english ;
+    gmeow:useWhen "Use for configuration/profile terms and graph artifacts that describe how tooling, packages, services, solvers, transports, or deployment surfaces should operate."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for provenance, evidence, confidence, standpoint, disclosure, or validity metadata attached to a particular assertion; those are CBox concerns."@x-gmeow-english ;
+    gmeow:howToUse "Annotate configuration and profile surfaces so docs, exports, validation reports, and package summaries can distinguish operational configuration from assertion context."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> .
 
@@ -781,3 +792,76 @@ gmeow:ProficiencyModality
     gmeow:avoidWhen "Avoid using it for the framework (gmeow:ProficiencyScale) or the attained rung (gmeow:ProficiencyLevel); modality is the channel axis, orthogonal to both. Omit it entirely when a proficiency is overall and undifferentiated by channel."@x-gmeow-english ;
     gmeow:howToUse "Mint each channel as an individual of gmeow:ProficiencyModality and cite it from gmeow:proficiencyModality on the relator; pair distinct modality values with distinct level values when one competency is rated per channel."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/kernel> .
+
+# --------------------------------------------------------------------------- #
+# Graph box role coverage (canonical explicit annotations).
+# --------------------------------------------------------------------------- #
+
+gmeow:AboutnessMode gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:Agent gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:Determinacy gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxTBox .
+gmeow:DisclosurePolicy gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxTBox .
+gmeow:Entity gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:GranularityLevel gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:InformationObject gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:MentalMoment gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:PhysicalObject gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:ProficiencyLevel gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:ProficiencyModality gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:ProficiencyScale gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:ProjectionContext gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxTBox .
+gmeow:SensitivityLevel gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:SocialObject gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:aboutnessDescribes gmeow:graphBoxRole gmeow:boxABox .
+gmeow:aboutnessEnacts gmeow:graphBoxRole gmeow:boxABox .
+gmeow:avoidForConsumer gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:avoidWhen gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:coarsenTo gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:coequalFacet gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:concernDisclosure gmeow:graphBoxRole gmeow:boxABox, gmeow:boxCBox .
+gmeow:concernFrames gmeow:graphBoxRole gmeow:boxABox .
+gmeow:concernGTSPackaging gmeow:graphBoxRole gmeow:boxABox, gmeow:boxConfigBox .
+gmeow:concernIdentifiersCoreference gmeow:graphBoxRole gmeow:boxABox .
+gmeow:concernProvenanceEvidence gmeow:graphBoxRole gmeow:boxABox, gmeow:boxCBox .
+gmeow:concernStandpoints gmeow:graphBoxRole gmeow:boxABox, gmeow:boxCBox .
+gmeow:connectsTo gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:consumerAgentMemory gmeow:graphBoxRole gmeow:boxABox .
+gmeow:consumerFoafExport gmeow:graphBoxRole gmeow:boxABox .
+gmeow:consumerInternalArchive gmeow:graphBoxRole gmeow:boxABox .
+gmeow:consumerPublicSite gmeow:graphBoxRole gmeow:boxABox .
+gmeow:consumerResearchQueue gmeow:graphBoxRole gmeow:boxABox .
+gmeow:consumerSchemaOrgJsonLd gmeow:graphBoxRole gmeow:boxABox .
+gmeow:consumerWikidata gmeow:graphBoxRole gmeow:boxABox .
+gmeow:consumerWikipedia gmeow:graphBoxRole gmeow:boxABox .
+gmeow:determinacyCrisp gmeow:graphBoxRole gmeow:boxABox, gmeow:boxCBox .
+gmeow:determinacyDisputed gmeow:graphBoxRole gmeow:boxABox, gmeow:boxCBox .
+gmeow:determinacyFuzzy gmeow:graphBoxRole gmeow:boxABox, gmeow:boxCBox .
+gmeow:determinacyProbabilistic gmeow:graphBoxRole gmeow:boxABox, gmeow:boxCBox .
+gmeow:determinacyVague gmeow:graphBoxRole gmeow:boxABox, gmeow:boxCBox .
+gmeow:eligibleForConsumer gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:generalizesVia gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:guideBlob gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
+gmeow:hasAboutness gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:hasDeterminacy gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxRBox .
+gmeow:hasDisclosurePolicy gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxRBox .
+gmeow:hasGranularity gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:hasSensitivity gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:hasUnit gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:howToUse gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:markdown gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:namingNote gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:pairsWith gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:policyInternalOnly gmeow:graphBoxRole gmeow:boxABox .
+gmeow:policyNeverPublic gmeow:graphBoxRole gmeow:boxABox .
+gmeow:policyPublicCareful gmeow:graphBoxRole gmeow:boxABox .
+gmeow:policyPublicOnlyWithIndependentSource gmeow:graphBoxRole gmeow:boxABox, gmeow:boxCBox .
+gmeow:policyPublicSafe gmeow:graphBoxRole gmeow:boxABox .
+gmeow:policySensitive gmeow:graphBoxRole gmeow:boxABox .
+gmeow:sensitivityConfidential gmeow:graphBoxRole gmeow:boxABox .
+gmeow:sensitivityInternal gmeow:graphBoxRole gmeow:boxABox .
+gmeow:sensitivityPublic gmeow:graphBoxRole gmeow:boxABox .
+gmeow:sensitivityRestricted gmeow:graphBoxRole gmeow:boxABox .
+gmeow:sensitivitySensitivePersonal gmeow:graphBoxRole gmeow:boxABox .
+<https://blackcatinformatics.ca/gmeow/slices/kernel> gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .
+gmeow:useForConsumer gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:useWhen gmeow:graphBoxRole gmeow:boxRBox .

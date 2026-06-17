@@ -199,3 +199,33 @@ gmeow:SexualOrientation rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty gmeow:sexualOrientationValue ; owl:someValuesFrom gmeow:SexualOrientationValue ] .
 gmeow:RomanticOrientation rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty gmeow:romanticOrientationValue ; owl:someValuesFrom gmeow:RomanticOrientationValue ] .
+
+# --------------------------------------------------------------------------- #
+# Graph box role coverage (canonical explicit annotations).
+# --------------------------------------------------------------------------- #
+
+gmeow:RomanticOrientation gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:RomanticOrientationValue gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:SexualOrientation gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:SexualOrientationValue gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:hasRomanticOrientation gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:hasSexualOrientation gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:orientAsexual gmeow:graphBoxRole gmeow:boxABox .
+gmeow:orientBisexual gmeow:graphBoxRole gmeow:boxABox .
+gmeow:orientDemisexual gmeow:graphBoxRole gmeow:boxABox .
+gmeow:orientHeterosexual gmeow:graphBoxRole gmeow:boxABox .
+gmeow:orientHomosexual gmeow:graphBoxRole gmeow:boxABox .
+gmeow:orientPansexual gmeow:graphBoxRole gmeow:boxABox .
+gmeow:orientQueer gmeow:graphBoxRole gmeow:boxABox .
+gmeow:orientQuestioning gmeow:graphBoxRole gmeow:boxABox .
+gmeow:romanticAromantic gmeow:graphBoxRole gmeow:boxABox .
+gmeow:romanticBiromantic gmeow:graphBoxRole gmeow:boxABox .
+gmeow:romanticDemiromantic gmeow:graphBoxRole gmeow:boxABox .
+gmeow:romanticHeteroromantic gmeow:graphBoxRole gmeow:boxABox .
+gmeow:romanticHomoromantic gmeow:graphBoxRole gmeow:boxABox .
+gmeow:romanticOrientationValue gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:romanticPanromantic gmeow:graphBoxRole gmeow:boxABox .
+gmeow:romanticQueerromantic gmeow:graphBoxRole gmeow:boxABox .
+gmeow:romanticQuestioning gmeow:graphBoxRole gmeow:boxABox .
+gmeow:sexualOrientationValue gmeow:graphBoxRole gmeow:boxRBox .
+<https://blackcatinformatics.ca/gmeow/slices/sexuality> gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .

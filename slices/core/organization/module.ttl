@@ -746,3 +746,76 @@ gmeow:daySaturday  a gmeow:DayOfWeek ; rdfs:label "Saturday"@x-gmeow-english ;  
 gmeow:daySaturday rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> .
 gmeow:daySunday    a gmeow:DayOfWeek ; rdfs:label "Sunday"@x-gmeow-english ;    skos:definition "Sunday."@x-gmeow-english .
 gmeow:daySunday rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> .
+
+# --------------------------------------------------------------------------- #
+# Graph box role coverage (canonical explicit annotations).
+# --------------------------------------------------------------------------- #
+
+gmeow:DayOfWeek gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:Identifier gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:Membership gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:Occupation gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:Offering gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:OpeningHoursSpecification gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:OrganizationType gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:Post gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:Role gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:ServiceOffering gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:ServiceType gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:SiteType gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:acceptsCurrency gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:acceptsPaymentMethod gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:alumniOf gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:areaServed gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:closesAt gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:dayFriday gmeow:graphBoxRole gmeow:boxABox .
+gmeow:dayMonday gmeow:graphBoxRole gmeow:boxABox .
+gmeow:daySaturday gmeow:graphBoxRole gmeow:boxABox .
+gmeow:daySunday gmeow:graphBoxRole gmeow:boxABox .
+gmeow:dayThursday gmeow:graphBoxRole gmeow:boxABox .
+gmeow:dayTuesday gmeow:graphBoxRole gmeow:boxABox .
+gmeow:dayWednesday gmeow:graphBoxRole gmeow:boxABox .
+gmeow:fillsPost gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:foundedBy gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:founderOf gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:hasIdentifier gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:hasMember gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:hasOpeningHours gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:hasRole gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:hasSite gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:identifierScheme gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:identifierUrl gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:identifierValue gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:industryClassification gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:itemOffered gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:jurisdiction gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:legalIdentifier gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:makesOffer gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:memberOf gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:membershipMember gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:membershipOrganization gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:offeringProvider gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:openingDay gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:opensAt gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:organizationPurpose gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:organizationType gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:organizationTypeAssociation gmeow:graphBoxRole gmeow:boxABox .
+gmeow:organizationTypeCollaboration gmeow:graphBoxRole gmeow:boxABox .
+gmeow:organizationTypeCompany gmeow:graphBoxRole gmeow:boxABox .
+gmeow:organizationTypeEducationalInstitution gmeow:graphBoxRole gmeow:boxABox .
+gmeow:organizationTypeGovernmentBody gmeow:graphBoxRole gmeow:boxABox .
+gmeow:organizationTypeNonprofit gmeow:graphBoxRole gmeow:boxABox .
+gmeow:ownedBy gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:ownerOf gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:postIn gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:predecessorOrganization gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:priceRange gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:serviceType gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:siteType gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:siteTypeBranch gmeow:graphBoxRole gmeow:boxABox .
+gmeow:siteTypeHeadquarters gmeow:graphBoxRole gmeow:boxABox .
+gmeow:siteTypeRegistered gmeow:graphBoxRole gmeow:boxABox .
+<https://blackcatinformatics.ca/gmeow/slices/organization> gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .
+gmeow:slogan gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:subOrganizationOf gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:successorOrganization gmeow:graphBoxRole gmeow:boxRBox .

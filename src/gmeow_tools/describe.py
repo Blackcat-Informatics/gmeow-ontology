@@ -264,7 +264,7 @@ def build_card(
     )
     card.pairs_with = sorted(_short(o) for o in graph.objects(term, GM.pairsWith))
     card.paired_from = sorted(_short(s) for s in graph.subjects(GM.pairsWith, term))
-    card.box_roles = sorted(_short(o) for o in graph.objects(term, GM.graphBoxRole))
+    card.box_roles = sorted({_short(o) for o in graph.objects(term, GM.graphBoxRole)})
 
     defined_by = graph.value(term, RDFS.isDefinedBy)
     if defined_by is not None:

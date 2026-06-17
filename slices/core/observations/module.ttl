@@ -536,3 +536,56 @@ gmeow:currency
 
 gmeow:MonetaryAmount rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty gmeow:currency ; owl:someValuesFrom gmeow:ReferenceFrame ] .
+
+# --------------------------------------------------------------------------- #
+# Graph box role coverage (canonical explicit annotations).
+# --------------------------------------------------------------------------- #
+
+gmeow:MeasuredValue gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:Measurement gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:MonetaryAmount gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:Observation gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:ObservationMethod gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:ObservationType gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:Quantity gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:ScalarQuantity gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:SensoryObservation gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:StandpointClaim gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxTBox .
+gmeow:Stream gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:currency gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:facetSubject gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:facetVantage gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:hasStream gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:isResultOf gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:methodComputationalModel gmeow:graphBoxRole gmeow:boxABox .
+gmeow:methodDirectObservation gmeow:graphBoxRole gmeow:boxABox .
+gmeow:methodExpertJudgement gmeow:graphBoxRole gmeow:boxABox .
+gmeow:methodInstrumentalReading gmeow:graphBoxRole gmeow:boxABox .
+gmeow:methodRemoteSensing gmeow:graphBoxRole gmeow:boxABox .
+gmeow:methodStreaming gmeow:graphBoxRole gmeow:boxABox .
+gmeow:methodSurvey gmeow:graphBoxRole gmeow:boxABox .
+gmeow:monetaryValue gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:observationEvent gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:observationMethod gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:observationResult gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:observationType gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:observationTypeDerived gmeow:graphBoxRole gmeow:boxABox .
+gmeow:observationTypeIdentity gmeow:graphBoxRole gmeow:boxABox .
+gmeow:observationTypeKinship gmeow:graphBoxRole gmeow:boxABox .
+gmeow:observationTypeMeasurement gmeow:graphBoxRole gmeow:boxABox .
+gmeow:observationTypeNaming gmeow:graphBoxRole gmeow:boxABox .
+gmeow:observationTypeRights gmeow:graphBoxRole gmeow:boxABox .
+gmeow:observationTypeSensory gmeow:graphBoxRole gmeow:boxABox .
+gmeow:observationTypeSimulation gmeow:graphBoxRole gmeow:boxABox .
+gmeow:observationTypeStandpoint gmeow:graphBoxRole gmeow:boxABox, gmeow:boxCBox .
+gmeow:observationTypeStreaming gmeow:graphBoxRole gmeow:boxABox .
+gmeow:observedFeature gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:quantityUncertainty gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:quantityValue gmeow:graphBoxRole gmeow:boxRBox .
+<https://blackcatinformatics.ca/gmeow/slices/observations> gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .
+gmeow:streamInterval gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:streamOf gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:streamPlatform gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:streamSample gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:streamSensor gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:vantage gmeow:graphBoxRole gmeow:boxRBox .

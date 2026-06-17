@@ -52072,6 +52072,7 @@
             "enum": [
               "boxABox",
               "boxCBox",
+              "boxConfigBox",
               "boxRBox",
               "boxTBox"
             ],
