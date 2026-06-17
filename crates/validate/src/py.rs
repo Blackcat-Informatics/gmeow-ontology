@@ -29,15 +29,15 @@ use crate::lint::{self, LintConfig, LintReport, ModuleSpec};
 use crate::store;
 
 /// Build the standard `{"errors": [...], "warnings": [...]}` report dict.
-fn report_dict(py: Python<'_>, errors: Vec<String>, warnings: Vec<String>) -> PyResult<PyObject> {
+fn report_dict(py: Python<'_>, errors: Vec<String>, warnings: Vec<String>) -> PyResult<Py<PyAny>> {
     let out = PyDict::new(py);
     out.set_item("errors", PyList::new(py, &errors)?)?;
     out.set_item("warnings", PyList::new(py, &warnings)?)?;
-    Ok(out.into())
+    Ok(out.into_any().unbind())
 }
 
 /// Convert a [`LintReport`] into the standard report dict.
-fn lint_report_dict(py: Python<'_>, report: LintReport) -> PyResult<PyObject> {
+fn lint_report_dict(py: Python<'_>, report: LintReport) -> PyResult<Py<PyAny>> {
     report_dict(py, report.errors, report.warnings)
 }
 
@@ -47,7 +47,7 @@ fn lint_report_dict(py: Python<'_>, report: LintReport) -> PyResult<PyObject> {
 /// `_SELECTOR_TOKENS` set, the core-slice IRI list, and the annotation-predicate
 /// list — no untyped dict bag (#579). Shared by `structural_lint`,
 /// `term_naming_lint`, and `declared_terms`.
-#[pyclass(name = "LintConfig")]
+#[pyclass(name = "LintConfig", from_py_object)]
 #[derive(Clone)]
 struct PyLintConfig {
     namespace: String,
@@ -119,7 +119,7 @@ fn structural_lint(
     py: Python<'_>,
     source_paths: Vec<String>,
     cfg: PyLintConfig,
-) -> PyResult<PyObject> {
+) -> PyResult<Py<PyAny>> {
     let store = build_store_or_err(&source_paths)?;
     let report = lint::structural_lint(&store, &cfg.to_engine());
     lint_report_dict(py, report)
@@ -131,7 +131,7 @@ fn term_naming_lint(
     py: Python<'_>,
     source_paths: Vec<String>,
     cfg: PyLintConfig,
-) -> PyResult<PyObject> {
+) -> PyResult<Py<PyAny>> {
     let store = build_store_or_err(&source_paths)?;
     let report = lint::term_naming_lint(&store, &cfg.to_engine());
     lint_report_dict(py, report)
@@ -147,7 +147,7 @@ fn slice_ownership_lint(
     py: Python<'_>,
     module_specs: Vec<(String, String)>,
     cfg: PyLintConfig,
-) -> PyResult<PyObject> {
+) -> PyResult<Py<PyAny>> {
     let mut modules: Vec<(ModuleSpec, oxigraph::store::Store)> = Vec::new();
     for (module_path, expected_slice_iri) in module_specs {
         let store = build_store_or_err(std::slice::from_ref(&module_path))?;
@@ -167,12 +167,16 @@ fn slice_ownership_lint(
 /// `_collect_typed_terms`), for the Python `_collect_typed_terms`/`_term_kind`
 /// routes.
 #[pyfunction]
-fn typed_terms(py: Python<'_>, source_paths: Vec<String>, cfg: PyLintConfig) -> PyResult<PyObject> {
+fn typed_terms(
+    py: Python<'_>,
+    source_paths: Vec<String>,
+    cfg: PyLintConfig,
+) -> PyResult<Py<PyAny>> {
     let store = build_store_or_err(&source_paths)?;
     let pairs: Vec<(String, String)> = lint::collect_typed_terms(&store, &cfg.to_engine())
         .into_iter()
         .collect();
-    Ok(PyList::new(py, &pairs)?.into())
+    Ok(PyList::new(py, &pairs)?.into_any().unbind())
 }
 
 /// The declared GMEOW-term IRI set over the merged sources (mirrors
@@ -182,10 +186,10 @@ fn declared_terms(
     py: Python<'_>,
     source_paths: Vec<String>,
     cfg: PyLintConfig,
-) -> PyResult<PyObject> {
+) -> PyResult<Py<PyAny>> {
     let store = build_store_or_err(&source_paths)?;
     let terms = lint::declared_terms(&store, &cfg.to_engine());
-    Ok(PyList::new(py, &terms)?.into())
+    Ok(PyList::new(py, &terms)?.into_any().unbind())
 }
 
 /// Parse every source Turtle file individually to catch syntax errors.
@@ -193,7 +197,7 @@ fn declared_terms(
 /// Mirrors `validate.check_syntax`: on a parse failure for `path`, appends
 /// `"syntax error in {path}: {exc}"`. Returns `{"errors": [...], "warnings": []}`.
 #[pyfunction]
-fn check_syntax(py: Python<'_>, paths: Vec<String>) -> PyResult<PyObject> {
+fn check_syntax(py: Python<'_>, paths: Vec<String>) -> PyResult<Py<PyAny>> {
     let mut errors: Vec<String> = Vec::new();
     for path in &paths {
         if let Err(exc) = store::parse_file(std::path::Path::new(path)) {
@@ -218,7 +222,7 @@ fn check_sameas_ban(
     paths: Vec<String>,
     namespace: String,
     allowlist: Vec<(String, String)>,
-) -> PyResult<PyObject> {
+) -> PyResult<Py<PyAny>> {
     if paths.is_empty() {
         return Err(pyo3::exceptions::PyValueError::new_err(
             "check_sameas_ban: paths to audit must not be empty",
@@ -248,7 +252,7 @@ fn check_sameas_ban(
 /// Build the `{"errors": [...], "warnings": []}` report dict from a flat error
 /// list (the reasoning checks only ever produce errors today; the dict shape is
 /// kept consistent with every other lint).
-fn errors_dict(py: Python<'_>, errors: Vec<String>) -> PyResult<PyObject> {
+fn errors_dict(py: Python<'_>, errors: Vec<String>) -> PyResult<Py<PyAny>> {
     report_dict(py, errors, Vec::new())
 }
 
@@ -262,7 +266,7 @@ fn run_reasoning_paths(
     check: GufoCheck,
     source_paths: Vec<String>,
     namespace: String,
-) -> PyResult<PyObject> {
+) -> PyResult<Py<PyAny>> {
     let store = build_store_or_err(&source_paths)?;
     let cfg = GufoConfig { namespace };
     errors_dict(py, check(&store, &cfg))
@@ -276,7 +280,7 @@ fn run_reasoning_nt(
     check: GufoCheck,
     data_nt: &str,
     namespace: String,
-) -> PyResult<PyObject> {
+) -> PyResult<Py<PyAny>> {
     let store = build_store_from_nt_or_err(data_nt)?;
     let cfg = GufoConfig { namespace };
     errors_dict(py, check(&store, &cfg))
@@ -290,13 +294,17 @@ fn reasoning_invariants(
     py: Python<'_>,
     source_paths: Vec<String>,
     namespace: String,
-) -> PyResult<PyObject> {
+) -> PyResult<Py<PyAny>> {
     run_reasoning_paths(py, gufo::reasoning_invariants, source_paths, namespace)
 }
 
 /// The aggregate reasoning invariants over an N-Triples graph (test-shim seam).
 #[pyfunction]
-fn reasoning_invariants_nt(py: Python<'_>, data_nt: &str, namespace: String) -> PyResult<PyObject> {
+fn reasoning_invariants_nt(
+    py: Python<'_>,
+    data_nt: &str,
+    namespace: String,
+) -> PyResult<Py<PyAny>> {
     run_reasoning_nt(py, gufo::reasoning_invariants, data_nt, namespace)
 }
 
@@ -306,7 +314,7 @@ fn reasoning_exactly_one_stereotype_nt(
     py: Python<'_>,
     data_nt: &str,
     namespace: String,
-) -> PyResult<PyObject> {
+) -> PyResult<Py<PyAny>> {
     run_reasoning_nt(py, gufo::exactly_one_stereotype, data_nt, namespace)
 }
 
@@ -316,7 +324,7 @@ fn reasoning_identity_overlap_nt(
     py: Python<'_>,
     data_nt: &str,
     namespace: String,
-) -> PyResult<PyObject> {
+) -> PyResult<Py<PyAny>> {
     run_reasoning_nt(py, gufo::identity_overlap, data_nt, namespace)
 }
 
@@ -326,7 +334,7 @@ fn reasoning_anti_rigidity_discipline_nt(
     py: Python<'_>,
     data_nt: &str,
     namespace: String,
-) -> PyResult<PyObject> {
+) -> PyResult<Py<PyAny>> {
     run_reasoning_nt(py, gufo::anti_rigidity_discipline, data_nt, namespace)
 }
 
@@ -336,7 +344,7 @@ fn reasoning_relator_mediation_nt(
     py: Python<'_>,
     data_nt: &str,
     namespace: String,
-) -> PyResult<PyObject> {
+) -> PyResult<Py<PyAny>> {
     run_reasoning_nt(py, gufo::relator_mediation, data_nt, namespace)
 }
 
@@ -346,7 +354,7 @@ fn reasoning_coequal_facet_orthogonality_nt(
     py: Python<'_>,
     data_nt: &str,
     namespace: String,
-) -> PyResult<PyObject> {
+) -> PyResult<Py<PyAny>> {
     run_reasoning_nt(py, gufo::coequal_facet_orthogonality, data_nt, namespace)
 }
 
@@ -356,7 +364,7 @@ fn reasoning_frame_declaration_completeness_nt(
     py: Python<'_>,
     data_nt: &str,
     namespace: String,
-) -> PyResult<PyObject> {
+) -> PyResult<Py<PyAny>> {
     run_reasoning_nt(py, gufo::frame_declaration_completeness, data_nt, namespace)
 }
 
@@ -375,7 +383,7 @@ fn coverage_analyze(
     fixture_paths: Vec<String>,
     aligned: Vec<String>,
     namespace: String,
-) -> PyResult<PyObject> {
+) -> PyResult<Py<PyAny>> {
     let paths: Vec<PathBuf> = fixture_paths.iter().map(PathBuf::from).collect();
     let aligned_set: BTreeSet<String> = aligned.into_iter().collect();
     let sets = coverage::coverage_analyze(&paths, &aligned_set, &namespace)
@@ -394,7 +402,7 @@ fn coverage_analyze(
         "gap_predicates",
         PyList::new(py, sets.gap_predicates.iter())?,
     )?;
-    Ok(out.into())
+    Ok(out.into_any().unbind())
 }
 
 /// Build the merged graph from `source_paths` and dump it as canonical
@@ -423,12 +431,12 @@ fn merge_to_ntriples(source_paths: Vec<String>) -> PyResult<String> {
 fn dsl_merge_with_provenance(
     py: Python<'_>,
     dsl_paths: Vec<String>,
-) -> PyResult<(String, PyObject)> {
+) -> PyResult<(String, Py<PyAny>)> {
     let paths: Vec<PathBuf> = dsl_paths.iter().map(PathBuf::from).collect();
     let merge =
         dsl::merge_with_provenance(&paths).map_err(pyo3::exceptions::PyValueError::new_err)?;
     let pairs = PyList::new(py, &merge.focus_to_file)?;
-    Ok((merge.data_nt, pairs.into()))
+    Ok((merge.data_nt, pairs.into_any().unbind()))
 }
 
 /// Python extension module `gmeow_validate`.
