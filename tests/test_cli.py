@@ -227,6 +227,59 @@ def test_gts_shim_injects_snapshot_before_flags(
     )
 
 
+@patch("gmeow_tools.cli.subprocess.run")
+@patch("gmeow_tools.cli.shutil.which", return_value="/fake/gts")
+def test_gts_shim_does_not_inject_when_file_follows_flags(
+    _which: Any, mock_run: Any, runner: CliRunner
+) -> None:
+    mock_run.return_value.returncode = 0
+    result = runner.invoke(public_app, ["gts", "info", "--json", "myfile.gts"])
+    assert result.exit_code == 0
+    mock_run.assert_called_once_with(
+        ["/fake/gts", "info", "--json", "myfile.gts"], check=False
+    )
+
+
+@patch("gmeow_tools.cli.subprocess.run")
+@patch("gmeow_tools.cli.shutil.which", return_value="/fake/gts")
+def test_gts_shim_does_not_inject_after_double_dash(
+    _which: Any, mock_run: Any, runner: CliRunner
+) -> None:
+    mock_run.return_value.returncode = 0
+    # Typer strips the "--" separator before it reaches ctx.args, so the
+    # forwarded call does not contain it; the important behaviour is that the
+    # file after the separator is recognised and no snapshot is injected.
+    result = runner.invoke(public_app, ["gts", "info", "--", "myfile.gts"])
+    assert result.exit_code == 0
+    mock_run.assert_called_once_with(["/fake/gts", "info", "myfile.gts"], check=False)
+
+
+@patch("gmeow_tools.cli.subprocess.run")
+@patch("gmeow_tools.cli.shutil.which", return_value="/fake/gts")
+def test_gts_shim_injects_snapshot_for_extract_key(
+    _which: Any, mock_run: Any, runner: CliRunner
+) -> None:
+    mock_run.return_value.returncode = 0
+    result = runner.invoke(public_app, ["gts", "extract-key"])
+    assert result.exit_code == 0
+    mock_run.assert_called_once_with(
+        ["/fake/gts", "extract-key", str(GTS_SNAPSHOT_FILE)], check=False
+    )
+
+
+@patch("gmeow_tools.cli.subprocess.run")
+@patch("gmeow_tools.cli.shutil.which", return_value="/fake/gts")
+def test_gts_shim_does_not_inject_for_extract_key_with_file(
+    _which: Any, mock_run: Any, runner: CliRunner
+) -> None:
+    mock_run.return_value.returncode = 0
+    result = runner.invoke(public_app, ["gts", "extract-key", "myfile.gts"])
+    assert result.exit_code == 0
+    mock_run.assert_called_once_with(
+        ["/fake/gts", "extract-key", "myfile.gts"], check=False
+    )
+
+
 def test_dev_cli_keeps_checkout_commands(runner: CliRunner) -> None:
     result = runner.invoke(dev_app, ["--help"])
     assert result.exit_code == 0
