@@ -202,32 +202,18 @@ pub fn validate(data: &Store, shapes: &Shapes) -> ValidationReport {
     }
 }
 
-/// Validate data (N-Triples) against shapes (Turtle), returning a [`ValidationReport`].
+/// Parse a SHACL shapes graph from a Turtle string.
 ///
-/// Creates two in-memory stores, loads the respective graphs, parses shapes
-/// via [`crate::shapes::from_store`], and delegates to [`validate`].
-///
-/// Both graphs are loaded with the **lenient** RDF parser. A validator must be
-/// able to ingest the data graph before it can validate any shapes against it,
-/// and RDF lexical well-formedness is a separate concern from SHACL conformance.
-/// The gmeow ontology carries private-use `@x-gmeow-*` language tags whose
-/// subtag exceeds BCP-47's 8-char limit (e.g. `@x-gmeow-afrikaans`); the strict
-/// parser rejects the entire file on these, which would make the real ontology
-/// un-validatable. Lenient parsing skips that check so the data ingests. See #597.
+/// Creates an in-memory store, loads the shapes graph with prefix extraction,
+/// and parses it into a reusable [`Shapes`] model. The parsed model can be
+/// shared across multiple data graphs via [`validate`], eliminating the cost of
+/// re-parsing shapes for every validation phase.
 ///
 /// # Errors
 ///
-/// Returns an error string if either graph fails to parse.
-pub fn validate_graphs(data_nt: &str, shapes_ttl: &str) -> Result<ValidationReport, String> {
-    let data = Store::new().map_err(|e| format!("data store creation failed: {e}"))?;
-    if !data_nt.is_empty() {
-        data.load_from_reader(
-            RdfParser::from_format(RdfFormat::NTriples).lenient(),
-            data_nt.as_bytes(),
-        )
-        .map_err(|e| format!("N-Triples parse error: {e}"))?;
-    }
-
+/// Returns an error string if the shapes Turtle fails to parse or contains
+/// unsupported SHACL constructs.
+pub fn parse_shapes(shapes_ttl: &str) -> Result<Shapes, String> {
     let shapes_store = Store::new().map_err(|e| format!("shapes store creation failed: {e}"))?;
     // Drive the Turtle parser by iterator (rather than Store::load_from_reader) so
     // we can recover the document's @prefix map — oxigraph stores do not retain
@@ -249,7 +235,36 @@ pub fn validate_graphs(data_nt: &str, shapes_ttl: &str) -> Result<ValidationRepo
             .collect();
     }
 
-    let shapes = crate::shapes::from_store_with_prefixes(&shapes_store, &doc_prefixes)?;
+    crate::shapes::from_store_with_prefixes(&shapes_store, &doc_prefixes)
+}
+
+/// Validate data (N-Triples) against shapes (Turtle), returning a [`ValidationReport`].
+///
+/// Creates an in-memory data store, loads the data graph, parses shapes once
+/// via [`parse_shapes`], and delegates to [`validate`].
+///
+/// The data graph is loaded with the **lenient** RDF parser. A validator must be
+/// able to ingest the data graph before it can validate any shapes against it,
+/// and RDF lexical well-formedness is a separate concern from SHACL conformance.
+/// The gmeow ontology carries private-use `@x-gmeow-*` language tags whose
+/// subtag exceeds BCP-47's 8-char limit (e.g. `@x-gmeow-afrikaans`); the strict
+/// parser rejects the entire file on these, which would make the real ontology
+/// un-validatable. Lenient parsing skips that check so the data ingests. See #597.
+///
+/// # Errors
+///
+/// Returns an error string if either graph fails to parse.
+pub fn validate_graphs(data_nt: &str, shapes_ttl: &str) -> Result<ValidationReport, String> {
+    let data = Store::new().map_err(|e| format!("data store creation failed: {e}"))?;
+    if !data_nt.is_empty() {
+        data.load_from_reader(
+            RdfParser::from_format(RdfFormat::NTriples).lenient(),
+            data_nt.as_bytes(),
+        )
+        .map_err(|e| format!("N-Triples parse error: {e}"))?;
+    }
+
+    let shapes = parse_shapes(shapes_ttl)?;
     Ok(validate(&data, &shapes))
 }
 

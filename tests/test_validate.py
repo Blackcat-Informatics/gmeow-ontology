@@ -2,15 +2,19 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable
 from pathlib import Path
 
+import gmeow_validate
 import pytest
 from rdflib import RDFS, Graph, Literal, URIRef
 from rdflib.namespace import OWL, SKOS
 
 import gmeow_tools.validate as validate_mod
-from gmeow_tools.config import NAMESPACE
+from gmeow_tools.config import (
+    MAPPING_DSL_DIR,
+    NAMESPACE,
+    STATEMENT_DSL_DIR,
+)
 from gmeow_tools.validate import (
     ValidationResult,
     _read_cached_result,
@@ -28,108 +32,109 @@ def test_check_syntax_on_sources() -> None:
     assert check_syntax().ok
 
 
-def test_validate_all_orchestrates_cached_gates(
+def test_validate_all_delegates_to_rust_native(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    calls: list[str] = []
-    # The validation path is graph-free now (#579): validate_all computes the
-    # source PATHS once and hands them to every gate. The orchestration test
-    # asserts that wiring (paths in, no merged graph).
+    """validate_all wraps gmeow_validate.validate_all_native (#634)."""
+    captured: dict[str, object] = {}
     source_paths = ["/fake/a.ttl", "/fake/b.ttl"]
+    declared_terms = ["https://example.org/gmeow/TermA"]
 
-    def result(name: str) -> ValidationResult:
-        calls.append(name)
-        return ValidationResult(warnings=[name])
+    def fake_validate_all_native(
+        paths: list[str],
+        shapes_ttl: str,
+        mapping_dsl_dir: str,
+        statement_dsl_dir: str,
+        config: object,
+        options: object,
+    ) -> dict[str, object]:
+        captured["paths"] = paths
+        captured["shapes_ttl"] = shapes_ttl
+        captured["mapping_dsl_dir"] = mapping_dsl_dir
+        captured["statement_dsl_dir"] = statement_dsl_dir
+        captured["config"] = config
+        captured["options"] = options
+        return {
+            "errors": [],
+            "warnings": ["rust-warning"],
+            "declared_terms": declared_terms,
+            "timings": [{"phase": "test", "elapsed_ms": 1, "metadata": "ok"}],
+        }
 
-    def lint(name: str) -> Callable[..., ValidationResult]:
-        def _lint(paths: object | None = None, *args: object) -> ValidationResult:
-            if paths is not None:
-                assert paths == source_paths
-            return result(name)
+    anchor_calls: list[tuple[list[str], list[str]]] = []
 
-        return _lint
-
-    def cached_result(
-        kind: str,
-        key: str,
-        compute: Callable[[], ValidationResult],
+    def fake_guide_anchor_lint(
+        paths: list[str],
+        root: Path | None = None,
+        *,
+        declared_terms: list[str] | None = None,
     ) -> ValidationResult:
-        calls.append(f"cache:{kind}:{key}")
-        return compute()
+        anchor_calls.append((paths, list(declared_terms or [])))
+        return ValidationResult(warnings=["anchor-warning"])
 
-    monkeypatch.setattr(validate_mod, "check_syntax", lambda: result("syntax"))
-    monkeypatch.setattr(validate_mod, "check_sameas_ban", lambda: result("sameas"))
+    monkeypatch.setattr(
+        gmeow_validate,
+        "validate_all_native",
+        fake_validate_all_native,
+    )
     monkeypatch.setattr(
         validate_mod,
         "iter_source_files",
         lambda: [Path(p) for p in source_paths],
     )
-    monkeypatch.setattr(validate_mod, "merged_ntriples", lambda paths: f"nt:{paths}")
-    monkeypatch.setattr(validate_mod, "structural_lint", lint("structural"))
-    monkeypatch.setattr(validate_mod, "term_naming_lint", lint("term-naming"))
-    monkeypatch.setattr(
-        validate_mod, "slice_ownership_lint", lambda: result("slice-ownership")
-    )
-    monkeypatch.setattr(validate_mod, "guide_anchor_lint", lint("guide-anchors"))
-    monkeypatch.setattr(validate_mod, "reasoning_lint", lint("reasoning"))
-    monkeypatch.setattr(validate_mod, "_merged_shacl_cache_key", lambda: "merged-key")
-    monkeypatch.setattr(validate_mod, "_cached_result", cached_result)
-    monkeypatch.setattr(validate_mod, "run_shacl", lambda _nt: result("merged-shacl"))
     monkeypatch.setattr(
         validate_mod,
-        "check_examples",
-        lambda paths, *, base_cache_key: result(f"examples:{base_cache_key}"),
-    )
-    monkeypatch.setattr(
-        validate_mod,
-        "_dsl_shacl_cache_key",
-        lambda _dsl_dir, label: f"{label}-key",
-    )
-    monkeypatch.setattr(
-        validate_mod,
-        "_dsl_shacl",
-        lambda _dsl_dir, label: result(f"dsl:{label}"),
+        "guide_anchor_lint",
+        fake_guide_anchor_lint,
     )
 
-    validation = validate_mod.validate_all()
+    validation = validate_mod.validate_all(timings=True)
 
     assert validation.ok
-    assert calls == [
-        "syntax",
-        "sameas",
-        "structural",
-        "term-naming",
-        "slice-ownership",
-        "guide-anchors",
-        "reasoning",
-        "cache:merged-shacl:merged-key",
-        "merged-shacl",
-        "examples:merged-key",
-        "cache:dsl-shacl:mapping-key",
-        "dsl:mapping",
-        "cache:dsl-shacl:statement-key",
-        "dsl:statement",
-    ]
+    assert validation.warnings == ["rust-warning", "anchor-warning"]
+    assert validation.timings == [{"phase": "test", "elapsed_ms": 1, "metadata": "ok"}]
+    assert captured["paths"] == source_paths
+    shapes_ttl = captured["shapes_ttl"]
+    assert isinstance(shapes_ttl, str)
+    assert "sh:Shape" in shapes_ttl or "@prefix" in shapes_ttl
+    assert captured["mapping_dsl_dir"] == str(MAPPING_DSL_DIR)
+    assert captured["statement_dsl_dir"] == str(STATEMENT_DSL_DIR)
+    assert captured["options"] is not None
+    assert captured["config"] is not None
+    assert anchor_calls == [(source_paths, declared_terms)]
 
 
-def test_validate_all_stops_before_graph_lints_on_parse_errors(
+def test_validate_all_skips_guide_anchor_on_rust_errors(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    """When Rust reports errors, Python skips the guide-anchor lint."""
+
+    def fake_validate_all_native(*args: object, **kwargs: object) -> dict[str, object]:
+        return {
+            "errors": ["rust-error"],
+            "warnings": [],
+            "declared_terms": ["https://example.org/gmeow/TermA"],
+            "timings": [],
+        }
+
+    def failing_guide_anchor_lint(*args: object, **kwargs: object) -> ValidationResult:
+        pytest.fail("guide_anchor_lint should not run when Rust reports errors")
+
     monkeypatch.setattr(
-        validate_mod,
-        "check_syntax",
-        lambda: ValidationResult(errors=["syntax failed"]),
+        gmeow_validate,
+        "validate_all_native",
+        fake_validate_all_native,
     )
-    monkeypatch.setattr(validate_mod, "check_sameas_ban", lambda: ValidationResult())
     monkeypatch.setattr(
         validate_mod,
-        "iter_source_files",
-        lambda: pytest.fail("validate_all should not enumerate sources on parse error"),
+        "guide_anchor_lint",
+        failing_guide_anchor_lint,
     )
 
     validation = validate_mod.validate_all()
 
-    assert validation.errors == ["syntax failed"]
+    assert not validation.ok
+    assert validation.errors == ["rust-error"]
 
 
 def test_cached_validation_result_write_replaces_cleanly(tmp_path: Path) -> None:
