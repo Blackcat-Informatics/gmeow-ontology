@@ -663,10 +663,10 @@ def write_markdown(
     ]
     for t in classes:
         lines.append(
-            f"### {_marked(t.label or t.curie, t.label_fallback)} (`{t.curie}`)"
+            f"### {marked(t.label or t.curie, t.label_fallback)} (`{t.curie}`)"
         )
         if t.definition:
-            lines.append(f"\n{_marked(t.definition, t.definition_fallback)}")
+            lines.append(f"\n{marked(t.definition, t.definition_fallback)}")
         _append_markdown_advisory(lines, t)
         if t.parents:
             lines.append(f"\n*Subclass of:* {', '.join(f'`{p}`' for p in t.parents)}")
@@ -676,10 +676,10 @@ def write_markdown(
     lines += ["## Properties", ""]
     for t in properties:
         lines.append(
-            f"### {_marked(t.label or t.curie, t.label_fallback)} (`{t.curie}`)"
+            f"### {marked(t.label or t.curie, t.label_fallback)} (`{t.curie}`)"
         )
         if t.definition:
-            lines.append(f"\n{_marked(t.definition, t.definition_fallback)}")
+            lines.append(f"\n{marked(t.definition, t.definition_fallback)}")
         _append_markdown_advisory(lines, t)
         meta = f"*{t.prop_kind} property*"
         if t.domain or t.range:
@@ -694,10 +694,10 @@ def write_markdown(
         lines += ["## Individuals", ""]
         for t in individuals:
             lines.append(
-                f"### {_marked(t.label or t.curie, t.label_fallback)} (`{t.curie}`)"
+                f"### {marked(t.label or t.curie, t.label_fallback)} (`{t.curie}`)"
             )
             if t.definition:
-                lines.append(f"\n{_marked(t.definition, t.definition_fallback)}")
+                lines.append(f"\n{marked(t.definition, t.definition_fallback)}")
             _append_markdown_advisory(lines, t)
             if t.types:
                 lines.append(f"\n*Type:* {', '.join(f'`{x}`' for x in t.types)}")
@@ -877,14 +877,14 @@ def _ttl_literal(text: str, lang: str | None = None) -> str:
     return f"{lit}@{lang}" if lang else lit
 
 
-def _marked(text: str, fallback: bool, fallback_lang: str = "en") -> str:
+def marked(text: str, fallback: bool, fallback_lang: str = "en") -> str:
     """Append a fallback marker when the value was resolved via English."""
     return f"{text} [fallback: {fallback_lang}]" if fallback else text
 
 
 def _term_summary(term: Term) -> str:
     """The selected definition-or-label for compact list views."""
-    return _marked(
+    return marked(
         term.definition or term.label,
         term.definition_fallback or term.label_fallback,
     )

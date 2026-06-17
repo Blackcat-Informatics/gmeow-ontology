@@ -104,6 +104,7 @@ class FoldView:
         self._spo: dict[str | None, dict[int, list[tuple[int, int]]]] = {}
         self._po: dict[str | None, dict[tuple[int, int], list[int]]] = {}
         self._tag_map: dict[str, str] | None = None
+        self._available_languages: frozenset[str] | None = None
 
     # -- terms ----------------------------------------------------------------
 
@@ -277,6 +278,26 @@ class FoldView:
                     out[self.lex(internal)] = self.lex(bcp)
             self._tag_map = out
         return self._tag_map
+
+    def available_languages(self) -> frozenset[str]:
+        """Public BCP-47 tags that actually have literals in the snapshot.
+
+        Always includes the carrier language (``en``). Non-English tags are
+        included only when at least one language-tagged literal uses them —
+        either directly or via an internal ``x-gmeow-*`` mapping.
+        """
+        if self._available_languages is None:
+            tags: set[str] = set()
+            tag_map = self.tag_map()
+            for t in self.graph.terms:
+                if t.kind is not TermKind.LITERAL or not t.lang:
+                    continue
+                lang = t.lang
+                public = tag_map.get(lang, lang) if is_internal_tag(lang) else lang
+                if public and public.lower() != "en":
+                    tags.add(public.lower())
+            self._available_languages = frozenset({"en"} | tags)
+        return self._available_languages
 
     def public_text(self, s_tid: int, p_iri: str, scope: str | None = DEFAULT) -> str:
         """The public-facing text for ``(s, p)`` — the projection boundary.

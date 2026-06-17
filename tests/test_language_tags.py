@@ -8,6 +8,7 @@ import pytest
 from rdflib import Graph, Literal, Namespace
 from rdflib.namespace import RDF, RDFS, SKOS
 
+from gmeow_tools.export import marked
 from gmeow_tools.language_tags import (
     UnknownLanguageError,
     filter_graph,
@@ -57,6 +58,23 @@ def test_resolve_lang_input_rejects_unknown_tag() -> None:
 def test_resolve_lang_input_rejects_unknown_internal_tag() -> None:
     with pytest.raises(UnknownLanguageError):
         resolve_lang_input("x-gmeow-klingon", _tag_map())
+
+
+def test_resolve_lang_input_respects_custom_available_set() -> None:
+    """When *available* is supplied, validation and LangSelector.available use it."""
+    tag_map = _tag_map()
+    selector = resolve_lang_input("fr", tag_map, available={"en", "fr"})
+    assert selector.requested == ("fr",)
+    assert selector.available == frozenset({"en", "fr"})
+
+
+def test_resolve_lang_input_rejects_tag_outside_custom_available() -> None:
+    """A tag in the full tag map but absent from *available* is rejected."""
+    tag_map = _tag_map()
+    with pytest.raises(UnknownLanguageError) as exc_info:
+        resolve_lang_input("zh", tag_map, available={"en", "fr"})
+    assert "zh" in str(exc_info.value)
+    assert exc_info.value.available == ["en", "fr"]
 
 
 def test_select_literal_prefers_requested_language() -> None:
@@ -137,3 +155,10 @@ def test_filter_graph_keeps_only_selected_language() -> None:
     definitions = set(graph.objects(term, SKOS.definition))
     assert len(definitions) == 1
     assert str(definitions.pop()) == "An English definition"
+
+
+def test_marked_is_public_export() -> None:
+    """The fallback marker helper is exported publicly as ``marked``."""
+    assert marked("hello", False) == "hello"
+    assert marked("hello", True) == "hello [fallback: en]"
+    assert marked("bonjour", True, fallback_lang="fr") == "bonjour [fallback: fr]"
