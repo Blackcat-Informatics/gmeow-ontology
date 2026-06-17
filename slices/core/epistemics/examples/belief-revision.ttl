@@ -1,0 +1,75 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example — BELIEF REVISION as SUPPRESSION (Principle 10).
+#
+# An agent believes "the printer is broken" with high credence.
+# Later a defeater arrives — "the document was never sent to the print queue" —
+# an undercutting defeater: it removes the warrant without asserting the negation.
+# Revision does NOT delete anything:
+#   * the original DoxasticState is RETAINED;
+#   * the original DoxasticTenure is CLOSED (endedAtTime) and marked displayable false;
+#   * a new DoxasticState (lower credence / different modality) records the revision.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/epistemics/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+ex:operator a gmeow:Agent ;
+    rdfs:label "Office operator"@x-gmeow-english .
+
+ex:propPrinterBroken a gmeow:Proposition ;
+    rdfs:label "the printer is broken"@x-gmeow-english .
+
+# --- Original belief (high credence, unequivocal) -----------------------------
+ex:originalBelief a gmeow:DoxasticState ;
+    rdfs:label "original belief: the printer is broken"@x-gmeow-english ;
+    gmeow:epistemicAgent ex:operator ;
+    gmeow:doxasticContent ex:propPrinterBroken ;
+    gmeow:credence "0.92"^^xsd:decimal ;
+    gmeow:doxasticClaim ex:originalClaim .
+
+ex:originalClaim a gmeow:StandpointClaim ;
+    rdfs:label "Original claim: printer is broken"@x-gmeow-english ;
+    gmeow:vantage ex:operator ;
+    gmeow:observedFeature ex:propPrinterBroken ;
+    gmeow:claimModality gmeow:unequivocal ;
+    gmeow:observationMethod gmeow:methodExpertJudgement .
+
+ex:originalTenure a gmeow:DoxasticTenure ;
+    rdfs:label "Original tenure of the 'printer is broken' belief"@x-gmeow-english ;
+    gmeow:tenureOfDoxasticState ex:originalBelief ;
+    gmeow:duringInterval ex:originalInterval .
+
+ex:originalInterval a gmeow:TimeInterval ;
+    gmeow:startedAtTime "2026-06-15T11:00:00Z"^^xsd:dateTime ;
+    gmeow:endedAtTime   "2026-06-15T11:18:00Z"^^xsd:dateTime ;
+    gmeow:hasTemporalFrame gmeow:temporalFrameUTCGregorian .
+
+# --- Suppression of the withdrawn original tenure -----------------------------
+ex:originalTenure gmeow:displayable false .
+
+# --- Revised belief (lower credence, probable) --------------------------------
+ex:revisedBelief a gmeow:DoxasticState ;
+    rdfs:label "revised belief: printer may be broken"@x-gmeow-english ;
+    gmeow:epistemicAgent ex:operator ;
+    gmeow:doxasticContent ex:propPrinterBroken ;
+    gmeow:credence "0.35"^^xsd:decimal ;
+    gmeow:doxasticClaim ex:revisedClaim .
+
+ex:revisedClaim a gmeow:StandpointClaim ;
+    rdfs:label "Revised claim: printer may be broken"@x-gmeow-english ;
+    gmeow:vantage ex:operator ;
+    gmeow:observedFeature ex:propPrinterBroken ;
+    gmeow:claimModality gmeow:probable ;
+    gmeow:observationMethod gmeow:methodExpertJudgement .
+
+ex:revisedTenure a gmeow:DoxasticTenure ;
+    rdfs:label "Revised tenure of the 'printer may be broken' belief"@x-gmeow-english ;
+    gmeow:tenureOfDoxasticState ex:revisedBelief ;
+    gmeow:duringInterval ex:revisedInterval .
+
+ex:revisedInterval a gmeow:TimeInterval ;
+    gmeow:startedAtTime "2026-06-15T11:18:00Z"^^xsd:dateTime ;
+    gmeow:hasTemporalFrame gmeow:temporalFrameUTCGregorian .
