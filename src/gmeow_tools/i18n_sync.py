@@ -228,6 +228,11 @@ def parse_po(text: str, *, require_msgctxt: bool = True) -> list[PoEntry]:
     current_key: str | None = None
 
     def flush() -> None:
+        """Finalize the current PO entry and append it to *entries* if valid.
+
+        Resets the per-entry parser state (*fields* and *current_key*) so the
+        next line starts a fresh entry.
+        """
         nonlocal fields, current_key
         if fields:
             try:
