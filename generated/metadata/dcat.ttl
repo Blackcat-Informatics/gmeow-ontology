@@ -23,13 +23,13 @@
     dcat:mediaType "text/turtle"^^xsd:string .
 
 <https://blackcatinformatics.ca/gmeow/profiles/claims> a dcat:Dataset ;
-    dcterms:description "Slim dependency-closed profile: 10 declared slice(s), 31 in the import closure."@en ;
+    dcterms:description "Slim dependency-closed profile: 11 declared slice(s), 32 in the import closure."@en ;
     dcterms:isPartOf gmeow:full ;
     dcterms:title "GMEOW — claims profile"@en ;
     dcat:landingPage <https://blackcatinformatics.ca/gmeow/profiles/claims> .
 
 <https://blackcatinformatics.ca/gmeow/profiles/memory> a dcat:Dataset ;
-    dcterms:description "Slim dependency-closed profile: 17 declared slice(s), 34 in the import closure."@en ;
+    dcterms:description "Slim dependency-closed profile: 18 declared slice(s), 35 in the import closure."@en ;
     dcterms:isPartOf gmeow:full ;
     dcterms:title "GMEOW — memory profile"@en ;
     dcat:landingPage <https://blackcatinformatics.ca/gmeow/profiles/memory> .

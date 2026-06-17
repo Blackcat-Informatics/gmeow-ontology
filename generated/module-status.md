@@ -17,6 +17,7 @@ Tier-2 uplift backlog.
 | ai | core | core | 5 | 11 | 23 | 0 | 1 | 34/34 | full |
 | archaeological-evidence | extension | extensions | 6 | 7 | 18 | 0 | 1 | - | full |
 | attestation | core | core | 5 | 16 | 28 | 0 | 1 | 44/44 | full |
+| awareness | core | core | 2 | 3 | 5 | 0 | 2 | 8/8 | full |
 | calendar | core | core | 4 | 14 | 26 | 0 | 1 | 40/40 | full |
 | citations | core | core | 3 | 5 | 11 | 0 | 1 | 16/16 | full |
 | cognition | core | core | 2 | 3 | 14 | 0 | 4 | 17/17 | full |
@@ -78,4 +79,4 @@ Tier-2 uplift backlog.
 | trust | core | core | 2 | 7 | 23 | 0 | 1 | 30/30 | full |
 | versions | core | core | 3 | 4 | 7 | 0 | 1 | 11/11 | full |
 
-**69 slices** · documentation: 69 full guides, 0 stubs remaining (#325); advisory coverage: 1120/1207 core class/property terms (#471).
+**70 slices** · documentation: 70 full guides, 0 stubs remaining (#325); advisory coverage: 1128/1215 core class/property terms (#471).
