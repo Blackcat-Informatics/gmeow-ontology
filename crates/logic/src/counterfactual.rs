@@ -5,91 +5,394 @@
 //!
 //! This is the **only generative, budgeted, possibly-incomplete** stratum of the
 //! logic engine. When a query carries a [`crate::query_ir::QCounterfactual`]
-//! declaration, resolution does not run against the materialized base world
-//! directly. Instead [`construct_and_resolve`] performs the Phase-3 protocol from
+//! declaration, [`construct_and_resolve`] performs the Phase-3 protocol from
 //! `LOGIC-RUNTIME.md`:
 //!
-//! 1. **Minimal AGM revision** — admit the antecedent `A` into a copy of the base
-//!    world, retracting the *least-entrenched* conflicting facts first. The
-//!    entrenchment ordering is declared data (the risk/norms/standpoint vocab read
-//!    by [`crate::entrenchment`]); a **total order yields exactly one** revised
-//!    world, a **genuine (incomparable) tie yields `unknown`** — never a branch.
-//! 2. **Transient, isolated construction** — seed a fresh named graph `W_cf` from
-//!    the revised base; the base store is never mutated, so paraconsistency is
-//!    preserved and nothing leaks back.
-//! 3. **Scoped resolution** — resolve the consequent `φ` inside `W_cf`.
-//! 4. **Memoize or dispose** — key the constructed world by the six-tuple in
-//!    [`crate::versioning::counterfactual_world_key`].
+//! 1. **Minimal AGM revision.** Admit the antecedent `A` into a copy of the base
+//!    world. `A` is a set of ground facts that overwrite functional slots
+//!    `(subject, predicate)`: admitting `p(s, o)` retracts every base fact
+//!    `p(s, o')` with `o' ≠ o`. When `A` is *internally over-determined* — two
+//!    `assume(p(s, ·))` atoms claim different values for one slot — the
+//!    **most-entrenched** value wins (read by [`crate::entrenchment`]); an
+//!    incomparable maximum is a **genuine tie** and the whole construction returns
+//!    [`CfStatus::Unknown`] rather than branching.
+//! 2. **Transient, isolated construction.** Seed a *fresh* named graph `W_cf` with
+//!    the revised facts. The base graph is never mutated, so paraconsistency is
+//!    preserved and nothing leaks back into the base store.
+//! 3. **Scoped resolution.** Resolve the consequent `φ` inside `W_cf` via the v4
+//!    dispatcher (the program's Horn rules applied over the revised EDB).
+//! 4. **Memoize or dispose.** Key the constructed world by the six-tuple in
+//!    [`crate::versioning::counterfactual_world_key`]; an identical key reuses the
+//!    cached answer instead of reconstructing.
 //!
-//! Nested counterfactuals are nested transient graphs bounded by a **depth
-//! budget**; exceeding it degrades to an incomplete/`unknown` result rather than
-//! recursing without bound.
+//! Nested counterfactuals are bounded by a **depth budget**: a request that would
+//! recurse past the budget degrades to [`CfStatus::Incomplete`] rather than
+//! constructing without bound.
 
-use crate::query_ir::{AnswerSet, Budget, QProgram};
+use std::collections::{BTreeMap, BTreeSet, HashMap};
+
+use crate::dispatch::dispatch_query;
+use crate::entrenchment::{Entrenchment, LeastEntrenched};
+use crate::query_ir::{Binding, Budget, QAtom, QProgram, QTerm};
+use crate::seam::{BudgetStatus, WorldStoreForeign};
 use crate::store::WorldStore;
+use crate::versioning::{counterfactual_world_key, CounterfactualKeyInputs};
 
 /// Default hard cap on nested-counterfactual depth when a query does not declare
-/// its own `depth_budget(N)`. Chosen conservatively: counterfactuals about
-/// counterfactuals are rare and unbounded nesting is the failure mode being
-/// guarded against.
+/// its own `depth_budget(N)`.
 pub const DEFAULT_DEPTH_BUDGET: u64 = 4;
+
+/// Combined Nemo + Scryer solver version stamped into the counterfactual cache
+/// key. A bump in **either** backend must invalidate cached counterfactual
+/// worlds, so this is a single string that moves when the engine crate moves —
+/// never the Nemo version alone.
+pub const SOLVER_VERSION: &str = concat!("gmeow-logic/", env!("CARGO_PKG_VERSION"), "+nemo+scryer");
+
+/// Status of a counterfactual resolution. A superset of [`BudgetStatus`] that adds
+/// the two Stratum-C-only outcomes.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum CfStatus {
+    /// Construction and resolution completed within budget.
+    Ok,
+    /// The answer cap was hit during resolution.
+    Partial,
+    /// The inference budget was exhausted during resolution.
+    Exhausted,
+    /// The revision was genuinely ambiguous (an incomparable entrenchment tie);
+    /// the engine declines to branch and reports `unknown`.
+    Unknown,
+    /// The nested-counterfactual depth budget was exhausted before construction.
+    Incomplete,
+}
+
+impl CfStatus {
+    /// Canonical lowercase serialization used in the conformance answer JSON.
+    pub fn as_str(self) -> &'static str {
+        match self {
+            CfStatus::Ok => "ok",
+            CfStatus::Partial => "partial",
+            CfStatus::Exhausted => "exhausted",
+            CfStatus::Unknown => "unknown",
+            CfStatus::Incomplete => "incomplete",
+        }
+    }
+
+    fn from_budget(b: BudgetStatus) -> Self {
+        match b {
+            BudgetStatus::Ok => CfStatus::Ok,
+            BudgetStatus::Partial => CfStatus::Partial,
+            BudgetStatus::Exhausted => CfStatus::Exhausted,
+        }
+    }
+}
+
+/// The result of resolving a counterfactual query.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct CfAnswer {
+    /// Goal-variable bindings (empty for `Unknown`/`Incomplete`/no-match).
+    pub bindings: Vec<Binding>,
+    /// The Stratum-C outcome status.
+    pub status: CfStatus,
+    /// The constructed world IRI `W_cf` (bare IRI), for provenance/inspection.
+    pub cf_world: String,
+}
+
+/// Content-addressed cache of constructed counterfactual worlds, with hit/miss
+/// counters for observability. Keyed by [`counterfactual_world_key`]'s six-tuple,
+/// so an identical `(base, antecedent, rules, entrenchment, profile, solver)`
+/// reuses the prior answer.
+#[derive(Debug, Default)]
+pub struct CfCache {
+    entries: HashMap<String, CfAnswer>,
+    hits: u64,
+    misses: u64,
+}
+
+impl CfCache {
+    /// A fresh, empty cache.
+    pub fn new() -> Self {
+        Self::default()
+    }
+    /// Number of cache hits observed (test/inspection aid).
+    pub fn hits(&self) -> u64 {
+        self.hits
+    }
+    /// Number of cache misses observed (test/inspection aid).
+    pub fn misses(&self) -> u64 {
+        self.misses
+    }
+}
 
 /// Return `true` iff `program` is a Stratum-C counterfactual query that must be
 /// routed through [`construct_and_resolve`] rather than the plain v4 dispatcher.
-///
-/// This is the routing predicate the PyO3 `query` surface consults before
-/// choosing between [`crate::dispatch::dispatch_query`] (v4 backward goals) and
-/// counterfactual construction (v5).
 pub fn is_counterfactual(program: &QProgram) -> bool {
     program.counterfactual.is_some()
 }
 
 /// Construct the counterfactual world declared by `program` and resolve its goal
-/// inside it.
-///
-/// `store` holds the materialized base world(s) as named graphs (read-only with
-/// respect to the base — the constructed `W_cf` is a *fresh* graph). `profile`
-/// selects the revision/closeness mode (the default deterministic revision, or an
-/// opt-in budget-capped Lewis multi-world profile). `depth` is the remaining
-/// nested-counterfactual budget.
+/// inside it, using a fresh cache. Convenience wrapper over
+/// [`construct_and_resolve_cached`].
+pub fn construct_and_resolve(
+    store: &WorldStore,
+    program: &QProgram,
+    profile: &str,
+    budget: &Budget,
+    depth: u64,
+) -> Result<CfAnswer, String> {
+    let mut cache = CfCache::new();
+    construct_and_resolve_cached(store, program, profile, budget, depth, &mut cache)
+}
+
+/// Construct + resolve with an explicit memoization `cache` (shared across nested
+/// constructions so repeated identical worlds are built once).
 ///
 /// # Errors
 ///
-/// Returns `Err(String)` on a malformed declaration, an isolation/invariant
-/// violation, or an engine error.
-//
-// NOTE(#505 Task 1): the construction body lands in Task 3 (AGM revision +
-// transient chase) and Task 4 (Lewis profile). Task 1 establishes the surface,
-// the routing predicate, and the depth-budget plumbing so the PyO3 `query`
-// entry can already distinguish a counterfactual program from a plain goal.
-pub fn construct_and_resolve(
-    _store: &WorldStore,
+/// Returns `Err(String)` on a malformed declaration, an invalid world IRI, or an
+/// engine error. A genuine revision tie or a depth-budget trip are **not** errors:
+/// they are reported as [`CfStatus::Unknown`] / [`CfStatus::Incomplete`].
+pub fn construct_and_resolve_cached(
+    store: &WorldStore,
     program: &QProgram,
-    _profile: &str,
-    _budget: &Budget,
-    _depth: u64,
-) -> Result<AnswerSet, String> {
-    let _cf = program
+    profile: &str,
+    budget: &Budget,
+    depth: u64,
+    cache: &mut CfCache,
+) -> Result<CfAnswer, String> {
+    let cf = program
         .counterfactual
         .as_ref()
         .ok_or_else(|| "construct_and_resolve called on a non-counterfactual program".to_owned())?;
-    Err("counterfactual construction is not yet implemented (lands in #505 Task 3)".to_owned())
+
+    let cf_world = strip_brackets(&cf.cf_world);
+    let base_world = strip_brackets(&cf.base_world);
+
+    // Depth budget: a request past the budget is incomplete, never unbounded.
+    if depth == 0 {
+        return Ok(CfAnswer {
+            bindings: vec![],
+            status: CfStatus::Incomplete,
+            cf_world,
+        });
+    }
+
+    // (1) Read the entrenchment ordering and the base EDB.
+    let entrench = Entrenchment::read_from_world(store, &base_world)?;
+    let base_facts = base_world_facts(store, &base_world);
+
+    // (2) Resolve the antecedent into a deterministic per-slot value, arbitrating
+    //     internal over-determination by entrenchment. A genuine tie → Unknown.
+    let admitted = match resolve_antecedent(&cf.antecedent, &entrench)? {
+        AntecedentResolution::Facts(f) => f,
+        AntecedentResolution::Tie => {
+            return Ok(CfAnswer {
+                bindings: vec![],
+                status: CfStatus::Unknown,
+                cf_world,
+            });
+        }
+    };
+
+    // (3) Compute the cache key over the exact inputs that determine the world.
+    let key = counterfactual_world_key(&CounterfactualKeyInputs {
+        base_world_hash: hash_facts(&base_facts),
+        antecedent_hash: hash_facts(&admitted),
+        rule_set_hash: hash_rules(program),
+        entrenchment_hash: entrench.hash(),
+        profile: profile.to_owned(),
+        solver_version: SOLVER_VERSION.to_owned(),
+    });
+    if let Some(cached) = cache.entries.get(&key) {
+        cache.hits += 1;
+        return Ok(cached.clone());
+    }
+    cache.misses += 1;
+
+    // (4) Minimal AGM revision: B with each admitted slot overwritten by A.
+    //     A fresh, isolated named graph W_cf — the base graph is never touched.
+    let cf_store = WorldStore::new();
+    let admitted_slots: BTreeSet<(String, String)> = admitted
+        .iter()
+        .map(|(s, p, _)| (s.clone(), p.clone()))
+        .collect();
+    for (s, p, o) in &base_facts {
+        // Drop any base fact in a slot the antecedent overwrites (functional
+        // overwrite); copy the rest verbatim into W_cf.
+        if admitted_slots.contains(&(s.clone(), p.clone())) {
+            continue;
+        }
+        cf_store.insert_quad(&cf_world, s, p, o);
+    }
+    for (s, p, o) in &admitted {
+        cf_store.insert_quad(&cf_world, s, p, o);
+    }
+
+    // (5) Resolve φ inside W_cf via the v4 dispatcher (Horn rules over the revised
+    //     EDB). The constructed world is a separate graph; the goal binds only
+    //     against W_cf, so nothing leaks from or into the base store.
+    let cf_world_nn = oxigraph::model::NamedNode::new(&cf_world)
+        .map_err(|e| format!("invalid W_cf IRI {cf_world:?}: {e}"))?;
+    let foreign = WorldStoreForeign::from_world(&cf_store, &cf_world, profile)?;
+    let answer = dispatch_query(&foreign, &cf_store, &cf_world_nn, program, profile, budget)?;
+
+    let result = CfAnswer {
+        bindings: answer.bindings,
+        status: CfStatus::from_budget(answer.status),
+        cf_world,
+    };
+    cache.entries.insert(key, result.clone());
+    Ok(result)
+}
+
+// ── Antecedent resolution ────────────────────────────────────────────────────
+
+/// The outcome of resolving the antecedent's per-slot values.
+enum AntecedentResolution {
+    /// A unique ground fact per slot: `(subject, predicate, object)`.
+    Facts(Vec<(String, String, String)>),
+    /// Two `assume` atoms gave incomparable values for one slot — a genuine tie.
+    Tie,
+}
+
+/// Resolve the antecedent atoms into one admitted fact per functional slot.
+///
+/// Atoms are grouped by `(subject, predicate)`. A slot with a single value admits
+/// it. A slot with multiple distinct values is internally over-determined; the
+/// **most-entrenched** value wins, and an incomparable maximum yields
+/// [`AntecedentResolution::Tie`].
+fn resolve_antecedent(
+    antecedent: &[QAtom],
+    entrench: &Entrenchment,
+) -> Result<AntecedentResolution, String> {
+    // slot (s, p) -> sorted distinct object values
+    let mut slots: BTreeMap<(String, String), BTreeSet<String>> = BTreeMap::new();
+    for atom in antecedent {
+        let s = const_iri(&atom.args[0])
+            .ok_or_else(|| format!("antecedent subject must be a ground IRI: {:?}", atom.pred))?;
+        let o = const_iri(&atom.args[1])
+            .ok_or_else(|| format!("antecedent object must be a ground IRI: {:?}", atom.pred))?;
+        slots.entry((s, atom.pred.clone())).or_default().insert(o);
+    }
+
+    let mut admitted: Vec<(String, String, String)> = Vec::new();
+    for ((s, p), values) in slots {
+        let vals: Vec<String> = values.into_iter().collect();
+        let chosen = match vals.as_slice() {
+            [single] => single.clone(),
+            _ => match entrench.most_entrenched(&vals) {
+                LeastEntrenched::Unique(v) => v,
+                LeastEntrenched::Tie(_) => return Ok(AntecedentResolution::Tie),
+                LeastEntrenched::Empty => return Err("internal: empty antecedent slot".to_owned()),
+            },
+        };
+        admitted.push((s, p, chosen));
+    }
+    admitted.sort();
+    Ok(AntecedentResolution::Facts(admitted))
+}
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
+
+/// Snapshot the base world's IRI-only triples as sorted `(s, p, o)` bare IRIs.
+fn base_world_facts(store: &WorldStore, base_world: &str) -> Vec<(String, String, String)> {
+    let mut facts: Vec<(String, String, String)> = store
+        .quads_for_pattern_in_world(base_world, None, None, None)
+        .into_iter()
+        .filter_map(|q| {
+            let s = match &q.subject {
+                oxigraph::model::NamedOrBlankNode::NamedNode(n) => n.as_str().to_owned(),
+                _ => return None,
+            };
+            let p = q.predicate.as_str().to_owned();
+            let o = match &q.object {
+                oxigraph::model::Term::NamedNode(n) => n.as_str().to_owned(),
+                _ => return None,
+            };
+            Some((s, p, o))
+        })
+        .collect();
+    facts.sort();
+    facts.dedup();
+    facts
+}
+
+/// BLAKE3 of a canonical, sorted serialization of `(s, p, o)` facts.
+fn hash_facts(facts: &[(String, String, String)]) -> [u8; 32] {
+    let mut sorted = facts.to_vec();
+    sorted.sort();
+    let mut buf = String::new();
+    for (s, p, o) in &sorted {
+        buf.push('<');
+        buf.push_str(s);
+        buf.push_str("> <");
+        buf.push_str(p);
+        buf.push_str("> <");
+        buf.push_str(o);
+        buf.push_str(">\n");
+    }
+    *blake3::hash(buf.as_bytes()).as_bytes()
+}
+
+/// BLAKE3 of a canonical serialization of the program's Horn rules (the goal and
+/// counterfactual directives are excluded — they are keyed separately).
+fn hash_rules(program: &QProgram) -> [u8; 32] {
+    let mut lines: Vec<String> = program
+        .rules
+        .iter()
+        .map(|r| {
+            let head = atom_str(&r.head);
+            let body: Vec<String> = r
+                .body
+                .iter()
+                .map(|lit| match lit {
+                    crate::query_ir::QBodyLit::Atom(a) => atom_str(a),
+                    crate::query_ir::QBodyLit::Cut => "!".to_owned(),
+                })
+                .collect();
+            format!("{head} :- {}", body.join(", "))
+        })
+        .collect();
+    lines.sort();
+    *blake3::hash(lines.join("\n").as_bytes()).as_bytes()
+}
+
+fn atom_str(a: &QAtom) -> String {
+    let args: Vec<String> = a
+        .args
+        .iter()
+        .map(|t| match t {
+            QTerm::Const(c) => c.clone(),
+            QTerm::Var(v) => format!("?{v}"),
+        })
+        .collect();
+    format!("<{}>({})", a.pred, args.join(", "))
+}
+
+/// Strip a single pair of angle brackets from a canonical `<iri>` constant.
+fn strip_brackets(s: &str) -> String {
+    s.strip_prefix('<')
+        .and_then(|s| s.strip_suffix('>'))
+        .map(|s| s.to_owned())
+        .unwrap_or_else(|| s.to_owned())
+}
+
+/// Extract a bare IRI string from a ground constant `QTerm` (`<iri>` → `iri`).
+fn const_iri(t: &QTerm) -> Option<String> {
+    match t {
+        QTerm::Const(c) => Some(strip_brackets(c)),
+        QTerm::Var(_) => None,
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::entrenchment::OVERRIDES;
     use crate::query_ir::parse_query_program;
 
-    fn cf_program() -> QProgram {
-        parse_query_program(
-            ":- prefix(ex, 'https://example.org/').\n\
-             :- counterfactual(ex:cf, ex:base).\n\
-             :- assume(ex:a(ex:s, ex:o)).\n\
-             ?- ex:p(ex:s, Y).\n",
-        )
-        .unwrap()
-    }
+    const HORN: &str = "https://blackcatinformatics.ca/logic/PositiveHornProfile";
+    const BASE: &str = "http://world/base";
+    const CF: &str = "http://world/cf";
 
     fn plain_program() -> QProgram {
         parse_query_program(
@@ -101,21 +404,184 @@ mod tests {
 
     #[test]
     fn is_counterfactual_detects_declaration() {
-        assert!(is_counterfactual(&cf_program()));
         assert!(!is_counterfactual(&plain_program()));
     }
 
     #[test]
     fn construct_and_resolve_rejects_plain_program() {
         let store = WorldStore::new();
-        let err = construct_and_resolve(
-            &store,
-            &plain_program(),
-            "https://blackcatinformatics.ca/logic/PositiveHornProfile",
-            &Budget::default(),
-            DEFAULT_DEPTH_BUDGET,
-        )
-        .unwrap_err();
+        let err = construct_and_resolve(&store, &plain_program(), HORN, &Budget::default(), 4)
+            .unwrap_err();
         assert!(err.contains("non-counterfactual"), "got: {err}");
+    }
+
+    // ── AC-1: a counterfactual query yields the expected consequent ───────────
+    //
+    // Base: status(server, up). Antecedent overwrites it to status(server, down).
+    // Rule: alert(X, fired) :- status(X, down). Goal: alert(server, Z) -> {fired}.
+    #[test]
+    fn consequent_is_yielded_after_overwrite() {
+        let store = WorldStore::new();
+        store.insert_quad(
+            BASE,
+            "https://ex/server",
+            "https://ex/status",
+            "https://ex/up",
+        );
+        let prog = parse_query_program(
+            ":- prefix(ex, 'https://ex/').\n\
+             :- counterfactual('http://world/cf', 'http://world/base').\n\
+             :- assume(ex:status(ex:server, ex:down)).\n\
+             ex:alert(X, ex:fired) :- ex:status(X, ex:down).\n\
+             ?- ex:alert(ex:server, Z).\n",
+        )
+        .unwrap();
+        let ans = construct_and_resolve(&store, &prog, HORN, &Budget::default(), 4).unwrap();
+        assert_eq!(ans.status, CfStatus::Ok, "ans: {ans:?}");
+        assert_eq!(ans.bindings.len(), 1, "exactly one consequent: {ans:?}");
+        assert_eq!(ans.bindings[0]["Z"], "<https://ex/fired>");
+    }
+
+    // ── AC-2: no leakage — the base store is never mutated ────────────────────
+    #[test]
+    fn no_leakage_base_store_unchanged() {
+        let store = WorldStore::new();
+        store.insert_quad(
+            BASE,
+            "https://ex/server",
+            "https://ex/status",
+            "https://ex/up",
+        );
+        let before = store.quads_in_world(BASE);
+        let prog = parse_query_program(
+            ":- prefix(ex, 'https://ex/').\n\
+             :- counterfactual('http://world/cf', 'http://world/base').\n\
+             :- assume(ex:status(ex:server, ex:down)).\n\
+             ?- ex:status(ex:server, Z).\n",
+        )
+        .unwrap();
+        let _ = construct_and_resolve(&store, &prog, HORN, &Budget::default(), 4).unwrap();
+        // The base world still has exactly its original fact (status up), and the
+        // constructed world W_cf never appears in the base store.
+        let after = store.quads_in_world(BASE);
+        assert_eq!(before, after, "base world must be unchanged");
+        assert!(
+            !store.worlds().contains(&CF.to_owned()),
+            "W_cf must not leak into the base store: {:?}",
+            store.worlds()
+        );
+        // And inside W_cf the antecedent value holds, not the base value.
+        let prog2 = parse_query_program(
+            ":- prefix(ex, 'https://ex/').\n\
+             :- counterfactual('http://world/cf', 'http://world/base').\n\
+             :- assume(ex:status(ex:server, ex:down)).\n\
+             ?- ex:status(ex:server, Z).\n",
+        )
+        .unwrap();
+        let ans = construct_and_resolve(&store, &prog2, HORN, &Budget::default(), 4).unwrap();
+        assert_eq!(ans.bindings.len(), 1);
+        assert_eq!(
+            ans.bindings[0]["Z"], "<https://ex/down>",
+            "overwrite applied in W_cf"
+        );
+    }
+
+    // ── AC-3a: deterministic revision yields exactly one world ────────────────
+    //
+    // Over-determined antecedent {primary, backup} with primary ≻ backup -> primary wins.
+    #[test]
+    fn comparable_over_determination_is_deterministic() {
+        let store = WorldStore::new();
+        store.insert_quad(BASE, "https://ex/primary", OVERRIDES, "https://ex/backup");
+        let prog = parse_query_program(
+            ":- prefix(ex, 'https://ex/').\n\
+             :- counterfactual('http://world/cf', 'http://world/base').\n\
+             :- assume(ex:route(ex:traffic, ex:primary)).\n\
+             :- assume(ex:route(ex:traffic, ex:backup)).\n\
+             ?- ex:route(ex:traffic, Z).\n",
+        )
+        .unwrap();
+        let ans = construct_and_resolve(&store, &prog, HORN, &Budget::default(), 4).unwrap();
+        assert_eq!(ans.status, CfStatus::Ok);
+        assert_eq!(ans.bindings.len(), 1, "exactly one routed value: {ans:?}");
+        assert_eq!(
+            ans.bindings[0]["Z"], "<https://ex/primary>",
+            "the more-entrenched value wins"
+        );
+    }
+
+    // ── AC-3b: a genuine (incomparable) tie returns unknown ───────────────────
+    #[test]
+    fn incomparable_over_determination_is_unknown() {
+        // No entrenchment edge between blue and green -> incomparable.
+        let store = WorldStore::new();
+        store.insert_quad(BASE, "https://ex/seed", "https://ex/p", "https://ex/o");
+        let prog = parse_query_program(
+            ":- prefix(ex, 'https://ex/').\n\
+             :- counterfactual('http://world/cf', 'http://world/base').\n\
+             :- assume(ex:flag(ex:x, ex:blue)).\n\
+             :- assume(ex:flag(ex:x, ex:green)).\n\
+             ?- ex:flag(ex:x, Z).\n",
+        )
+        .unwrap();
+        let ans = construct_and_resolve(&store, &prog, HORN, &Budget::default(), 4).unwrap();
+        assert_eq!(
+            ans.status,
+            CfStatus::Unknown,
+            "ambiguous tie must be unknown"
+        );
+        assert!(ans.bindings.is_empty());
+    }
+
+    // ── depth budget trip ─────────────────────────────────────────────────────
+    #[test]
+    fn depth_budget_zero_is_incomplete() {
+        let store = WorldStore::new();
+        store.insert_quad(BASE, "https://ex/s", "https://ex/p", "https://ex/o");
+        let prog = parse_query_program(
+            ":- prefix(ex, 'https://ex/').\n\
+             :- counterfactual('http://world/cf', 'http://world/base').\n\
+             :- assume(ex:p2(ex:s, ex:o2)).\n\
+             ?- ex:p(ex:s, Z).\n",
+        )
+        .unwrap();
+        let ans = construct_and_resolve(&store, &prog, HORN, &Budget::default(), 0).unwrap();
+        assert_eq!(ans.status, CfStatus::Incomplete);
+    }
+
+    // ── memoization: identical key -> cache hit, identical answer ─────────────
+    #[test]
+    fn memoization_hit_on_identical_construction() {
+        let store = WorldStore::new();
+        store.insert_quad(
+            BASE,
+            "https://ex/server",
+            "https://ex/status",
+            "https://ex/up",
+        );
+        let prog = parse_query_program(
+            ":- prefix(ex, 'https://ex/').\n\
+             :- counterfactual('http://world/cf', 'http://world/base').\n\
+             :- assume(ex:status(ex:server, ex:down)).\n\
+             ?- ex:status(ex:server, Z).\n",
+        )
+        .unwrap();
+        let mut cache = CfCache::new();
+        let a =
+            construct_and_resolve_cached(&store, &prog, HORN, &Budget::default(), 4, &mut cache)
+                .unwrap();
+        let b =
+            construct_and_resolve_cached(&store, &prog, HORN, &Budget::default(), 4, &mut cache)
+                .unwrap();
+        assert_eq!(a, b, "identical construction must yield identical answers");
+        assert_eq!(cache.misses(), 1, "first call is a miss");
+        assert_eq!(cache.hits(), 1, "second identical call is a hit");
+    }
+
+    #[test]
+    fn cf_status_serialization() {
+        assert_eq!(CfStatus::Ok.as_str(), "ok");
+        assert_eq!(CfStatus::Unknown.as_str(), "unknown");
+        assert_eq!(CfStatus::Incomplete.as_str(), "incomplete");
     }
 }

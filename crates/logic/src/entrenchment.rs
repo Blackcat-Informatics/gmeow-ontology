@@ -227,6 +227,50 @@ impl Entrenchment {
         }
     }
 
+    /// Select the unique strictly-**most**-entrenched IRI among `candidates`.
+    ///
+    /// The dual of [`Self::least_entrenched`]: returns [`LeastEntrenched::Unique`]
+    /// when exactly one candidate is `≻` every other, and [`LeastEntrenched::Tie`]
+    /// when the strict maximum is not unique. This is the arbitration primitive
+    /// for an internally over-determined antecedent: when two `assume(p(s,·))`
+    /// atoms claim different values for one functional slot, the **most entrenched**
+    /// value wins; an incomparable maximum is a genuine tie ⇒ `unknown`.
+    pub fn most_entrenched(&self, candidates: &[String]) -> LeastEntrenched {
+        match candidates.len() {
+            0 => return LeastEntrenched::Empty,
+            1 => return LeastEntrenched::Unique(candidates[0].clone()),
+            _ => {}
+        }
+        // A candidate is a strict maximum iff it is ≻ every other candidate.
+        let maxima: Vec<&String> = candidates
+            .iter()
+            .filter(|c| {
+                candidates
+                    .iter()
+                    .all(|other| other == *c || self.compare(c, other) == Some(Ordering::Greater))
+            })
+            .collect();
+        match maxima.as_slice() {
+            [only] => LeastEntrenched::Unique((*only).clone()),
+            _ => {
+                // No unique strict maximum: the candidates not dominated by any
+                // other form the incomparable tie set.
+                let mut tie: Vec<String> = candidates
+                    .iter()
+                    .filter(|c| {
+                        !candidates
+                            .iter()
+                            .any(|other| self.compare(other, c) == Some(Ordering::Greater))
+                    })
+                    .cloned()
+                    .collect();
+                tie.sort();
+                tie.dedup();
+                LeastEntrenched::Tie(tie)
+            }
+        }
+    }
+
     /// Canonical byte serialization of the ordering: every transitively-closed
     /// `x ≻ y` edge, sorted, newline-framed. Used to derive the
     /// `entrenchment_hash` cache-key component.
@@ -454,6 +498,28 @@ mod tests {
             LeastEntrenched::Tie(t) => {
                 assert_eq!(t, vec![ex("b"), ex("d")]);
             }
+            other => panic!("expected Tie, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn most_entrenched_unique_and_tie() {
+        let store = WorldStore::new();
+        store.insert_quad(W, &ex("a"), OVERRIDES, &ex("b"));
+        let e = Entrenchment::read_from_world(&store, W).unwrap();
+        // a ≻ b: the most entrenched is a (unique).
+        assert_eq!(
+            e.most_entrenched(&[ex("a"), ex("b")]),
+            LeastEntrenched::Unique(ex("a"))
+        );
+
+        // Two incomparable values → tie for most entrenched.
+        let store2 = WorldStore::new();
+        store2.insert_quad(W, &ex("a"), OVERRIDES, &ex("b"));
+        store2.insert_quad(W, &ex("c"), OVERRIDES, &ex("d"));
+        let e2 = Entrenchment::read_from_world(&store2, W).unwrap();
+        match e2.most_entrenched(&[ex("a"), ex("c")]) {
+            LeastEntrenched::Tie(t) => assert_eq!(t, vec![ex("a"), ex("c")]),
             other => panic!("expected Tie, got {other:?}"),
         }
     }
