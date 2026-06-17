@@ -139,7 +139,12 @@ def term_to_str(term: str | None) -> str:
 
 def _role_prefix(result: ShaclResult) -> str:
     roles = result.get("result_box_roles") or []
-    labels = sorted({_BOX_LABELS.get(role, role.rsplit("/", 1)[-1]) for role in roles})
+    labels = sorted(
+        {
+            _BOX_LABELS.get(role, role.rsplit("/", 1)[-1].rsplit("#", 1)[-1])
+            for role in roles
+        }
+    )
     return f"[{'/'.join(labels)}] " if labels else ""
 
 

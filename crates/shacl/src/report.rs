@@ -92,8 +92,8 @@ impl ValidationResult {
 
 fn dedup_roles(roles: &[NamedNode]) -> Vec<NamedNode> {
     let mut out = roles.to_vec();
-    out.sort_by(|a, b| a.as_str().cmp(b.as_str()));
-    out.dedup_by(|a, b| a.as_str() == b.as_str());
+    out.sort_unstable();
+    out.dedup();
     out
 }
 

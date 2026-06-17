@@ -6,6 +6,8 @@
 //! Evaluates all non-SPARQL SHACL Core constraint components plus the
 //! recursive shape evaluator.  PyO3-free.
 
+use std::collections::HashSet;
+
 use oxigraph::model::{
     GraphNameRef, NamedNode, NamedOrBlankNode, NamedOrBlankNodeRef, Term, Triple,
 };
@@ -108,29 +110,41 @@ fn eval_property_shape(
         }
         results.extend(rs);
     }
-    results.extend(eval_reifier_shapes(
+    results.extend(eval_reifier_shapes(ReifierEvalContext {
         store,
         focus,
-        &value_nodes,
+        value_nodes: &value_nodes,
         ps,
-        &ps_as_shape,
-        &source_roles,
-        &path_roles,
-        &path_term,
-    ));
+        ps_as_shape: &ps_as_shape,
+        source_roles: &source_roles,
+        path_roles: &path_roles,
+        path_term: &path_term,
+    }));
     results
 }
 
-fn eval_reifier_shapes(
-    store: &Store,
-    focus: &Term,
-    value_nodes: &[Term],
-    ps: &PropertyShape,
-    ps_as_shape: &Shape,
-    source_roles: &[NamedNode],
-    path_roles: &[NamedNode],
-    path_term: &Term,
-) -> Vec<ValidationResult> {
+struct ReifierEvalContext<'a> {
+    store: &'a Store,
+    focus: &'a Term,
+    value_nodes: &'a [Term],
+    ps: &'a PropertyShape,
+    ps_as_shape: &'a Shape,
+    source_roles: &'a [NamedNode],
+    path_roles: &'a [NamedNode],
+    path_term: &'a Term,
+}
+
+fn eval_reifier_shapes(ctx: ReifierEvalContext<'_>) -> Vec<ValidationResult> {
+    let ReifierEvalContext {
+        store,
+        focus,
+        value_nodes,
+        ps,
+        ps_as_shape,
+        source_roles,
+        path_roles,
+        path_term,
+    } = ctx;
     if ps.reifier_shapes.is_empty() && !ps.reification_required {
         return vec![];
     }
@@ -213,7 +227,7 @@ fn triple_term(focus: &Term, predicate: &NamedNode, value: &Term) -> Option<Term
 }
 
 fn reifiers_for(store: &Store, triple_term: &Term) -> Vec<Term> {
-    let mut reifiers: Vec<Term> = store
+    let reifiers: Vec<Term> = store
         .quads_for_pattern(
             None,
             Some(rdf::REIFIES),
@@ -222,8 +236,9 @@ fn reifiers_for(store: &Store, triple_term: &Term) -> Vec<Term> {
         )
         .filter_map(|q| q.ok().map(|q| Term::from(q.subject)))
         .collect();
+    let reifiers_set: HashSet<Term> = reifiers.into_iter().collect();
+    let mut reifiers: Vec<Term> = reifiers_set.into_iter().collect();
     reifiers.sort_by_key(|t| t.to_string());
-    reifiers.dedup();
     reifiers
 }
 
@@ -247,16 +262,16 @@ fn path_box_roles(store: &Store, path: &Path) -> Vec<NamedNode> {
             _ => None,
         })
         .collect();
-    roles.sort_by(|a, b| a.as_str().cmp(b.as_str()));
-    roles.dedup_by(|a, b| a.as_str() == b.as_str());
+    roles.sort_unstable();
+    roles.dedup();
     roles
 }
 
 fn with_cbox_role(source_roles: &[NamedNode]) -> Vec<NamedNode> {
     let mut roles = source_roles.to_vec();
     roles.push(NamedNode::from(gmeow::BOX_CBOX));
-    roles.sort_by(|a, b| a.as_str().cmp(b.as_str()));
-    roles.dedup_by(|a, b| a.as_str() == b.as_str());
+    roles.sort_unstable();
+    roles.dedup();
     roles
 }
 

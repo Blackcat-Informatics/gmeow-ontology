@@ -404,8 +404,8 @@ impl<'s> Parser<'s> {
                 _ => None,
             })
             .collect();
-        roles.sort_by(|a, b| a.as_str().cmp(b.as_str()));
-        roles.dedup_by(|a, b| a.as_str() == b.as_str());
+        roles.sort_unstable();
+        roles.dedup();
         roles
     }
 
@@ -953,23 +953,24 @@ impl<'s> Parser<'s> {
         // constraints on the property shape
         let constraints = self.parse_constraints(ps_node)?;
         let box_roles = self.box_roles_of(ps_node);
+        let reification_required = self
+            .objects_of(ps_node, sh::REIFICATION_REQUIRED)
+            .into_iter()
+            .any(|t| matches!(t, Term::Literal(lit) if lit.value() == "true"));
 
         let mut reifier_shape_nodes: Vec<Term> = self.objects_of(ps_node, sh::REIFIER_SHAPE);
         reifier_shape_nodes.sort_by_key(|t| t.to_string());
-        if !reifier_shape_nodes.is_empty() && !matches!(path, Path::Predicate(_)) {
+        if (!reifier_shape_nodes.is_empty() || reification_required)
+            && !matches!(path, Path::Predicate(_))
+        {
             return Err(format!(
-                "sh:reifierShape on property shape {ps_str} requires an IRI sh:path"
+                "sh:reifierShape or sh:reificationRequired on property shape {ps_str} requires an IRI sh:path"
             ));
         }
         let mut reifier_shapes = Vec::new();
         for node in reifier_shape_nodes {
             reifier_shapes.push(self.parse_node_shape(node)?);
         }
-
-        let reification_required = self
-            .objects_of(ps_node, sh::REIFICATION_REQUIRED)
-            .into_iter()
-            .any(|t| matches!(t, Term::Literal(lit) if lit.value() == "true"));
 
         Ok(PropertyShape {
             path,
@@ -1594,6 +1595,32 @@ mod tests {
         let err = result.unwrap_err();
         assert!(
             err.contains("requires an IRI sh:path"),
+            "error should document the supported path boundary, got: {err}"
+        );
+    }
+
+    #[test]
+    fn test_reification_required_requires_predicate_path() {
+        let ttl = format!(
+            r#"{PREFIXES}
+            ex:ContextualShape a sh:NodeShape ;
+                sh:targetClass ex:Node ;
+                sh:property [
+                    sh:path [ sh:inversePath ex:knows ] ;
+                    sh:reificationRequired true ;
+                ] .
+        "#
+        );
+        let store = load_store(&ttl);
+        let result = from_store(&store);
+        assert!(
+            result.is_err(),
+            "sh:reificationRequired on a non-IRI path must cause a hard error"
+        );
+        let err = result.unwrap_err();
+        assert!(
+            err.contains("sh:reifierShape or sh:reificationRequired")
+                && err.contains("requires an IRI sh:path"),
             "error should document the supported path boundary, got: {err}"
         );
     }

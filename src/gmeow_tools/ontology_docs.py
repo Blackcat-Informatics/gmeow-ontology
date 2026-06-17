@@ -1575,7 +1575,7 @@ def _doc_term(view: FoldView, term: Term) -> DocTerm:
             for obj in view.objects(tid, _DOCS_CONCERN)
             if view.is_iri(obj)
         ]
-        box_roles = _public_curies(view, tid, _GRAPH_BOX_ROLE)
+        box_roles = sorted(set(_public_curies(view, tid, _GRAPH_BOX_ROLE)))
         owner = _owner(view, tid)
     else:
         box_roles = []
