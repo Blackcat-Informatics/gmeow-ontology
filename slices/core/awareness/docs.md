@@ -69,7 +69,7 @@ The machine modes are **substrate-specific realisations** of the awareness facul
 column is documented in prose; no equivalence triple is minted. `gmeow:awarenessMode`
 (open domain, range `gmeow:AwarenessMode`) marks an experiencer with its state, and
 is **non-functional and vantage-indexed** (Principle 9): a self-reported mode and an
-observer-attributed mode for the same span coexist, whose attribution riding
+observer-attributed mode for the same span coexist, whose attribution rides
 `gmeow:accordingTo`.
 
 ## The arousal ladder and the scalar
