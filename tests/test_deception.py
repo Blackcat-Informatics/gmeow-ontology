@@ -32,7 +32,7 @@ def test_divergence_properties_exist() -> None:
     for prop in (GMEOW.heldStandpoint, GMEOW.projectedStandpoint):
         assert (prop, RDF.type, OWL.ObjectProperty) in graph
         assert (prop, RDFS.domain, GMEOW.Event) in graph
-        assert (prop, RDFS.range, GMEOW.StandpointClaim) in graph
+        assert (prop, RDFS.range, GMEOW.DoxasticStandpointClaim) in graph
 
 
 def test_deceptive_intent_claim_property_exists() -> None:

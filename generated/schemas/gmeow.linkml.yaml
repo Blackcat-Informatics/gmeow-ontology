@@ -7938,7 +7938,7 @@ slots:
   heldStandpoint:
     slot_uri: https://blackcatinformatics.ca/gmeow/heldStandpoint
     title: held standpoint
-    range: StandpointClaim
+    range: DoxasticStandpointClaim
     domain: Event
     multivalued: true
   holdingAgent:
@@ -10333,7 +10333,7 @@ slots:
   projectedStandpoint:
     slot_uri: https://blackcatinformatics.ca/gmeow/projectedStandpoint
     title: projected standpoint
-    range: StandpointClaim
+    range: DoxasticStandpointClaim
     domain: Event
     multivalued: true
   projectionFunction:

@@ -393,7 +393,7 @@
                 },
                 "heldStandpoint": {
                     "items": {
-                        "$ref": "#/$defs/StandpointClaim"
+                        "$ref": "#/$defs/DoxasticStandpointClaim"
                     },
                     "type": [
                         "array",
@@ -493,7 +493,7 @@
                 },
                 "projectedStandpoint": {
                     "items": {
-                        "$ref": "#/$defs/StandpointClaim"
+                        "$ref": "#/$defs/DoxasticStandpointClaim"
                     },
                     "type": [
                         "array",
@@ -11617,7 +11617,7 @@
                 },
                 "heldStandpoint": {
                     "items": {
-                        "$ref": "#/$defs/StandpointClaim"
+                        "$ref": "#/$defs/DoxasticStandpointClaim"
                     },
                     "type": [
                         "array",
@@ -11717,7 +11717,7 @@
                 },
                 "projectedStandpoint": {
                     "items": {
-                        "$ref": "#/$defs/StandpointClaim"
+                        "$ref": "#/$defs/DoxasticStandpointClaim"
                     },
                     "type": [
                         "array",
@@ -15816,7 +15816,7 @@
                 },
                 "heldStandpoint": {
                     "items": {
-                        "$ref": "#/$defs/StandpointClaim"
+                        "$ref": "#/$defs/DoxasticStandpointClaim"
                     },
                     "type": [
                         "array",
@@ -15916,7 +15916,7 @@
                 },
                 "projectedStandpoint": {
                     "items": {
-                        "$ref": "#/$defs/StandpointClaim"
+                        "$ref": "#/$defs/DoxasticStandpointClaim"
                     },
                     "type": [
                         "array",
@@ -17947,7 +17947,7 @@
                 },
                 "heldStandpoint": {
                     "items": {
-                        "$ref": "#/$defs/StandpointClaim"
+                        "$ref": "#/$defs/DoxasticStandpointClaim"
                     },
                     "type": [
                         "array",
@@ -18056,7 +18056,7 @@
                 },
                 "projectedStandpoint": {
                     "items": {
-                        "$ref": "#/$defs/StandpointClaim"
+                        "$ref": "#/$defs/DoxasticStandpointClaim"
                     },
                     "type": [
                         "array",
@@ -37865,7 +37865,7 @@
                 },
                 "heldStandpoint": {
                     "items": {
-                        "$ref": "#/$defs/StandpointClaim"
+                        "$ref": "#/$defs/DoxasticStandpointClaim"
                     },
                     "type": [
                         "array",
@@ -37965,7 +37965,7 @@
                 },
                 "projectedStandpoint": {
                     "items": {
-                        "$ref": "#/$defs/StandpointClaim"
+                        "$ref": "#/$defs/DoxasticStandpointClaim"
                     },
                     "type": [
                         "array",
@@ -39676,7 +39676,7 @@
                 },
                 "heldStandpoint": {
                     "items": {
-                        "$ref": "#/$defs/StandpointClaim"
+                        "$ref": "#/$defs/DoxasticStandpointClaim"
                     },
                     "type": [
                         "array",
@@ -39776,7 +39776,7 @@
                 },
                 "projectedStandpoint": {
                     "items": {
-                        "$ref": "#/$defs/StandpointClaim"
+                        "$ref": "#/$defs/DoxasticStandpointClaim"
                     },
                     "type": [
                         "array",
@@ -40306,7 +40306,7 @@
                 },
                 "heldStandpoint": {
                     "items": {
-                        "$ref": "#/$defs/StandpointClaim"
+                        "$ref": "#/$defs/DoxasticStandpointClaim"
                     },
                     "type": [
                         "array",
@@ -40424,7 +40424,7 @@
                 },
                 "projectedStandpoint": {
                     "items": {
-                        "$ref": "#/$defs/StandpointClaim"
+                        "$ref": "#/$defs/DoxasticStandpointClaim"
                     },
                     "type": [
                         "array",
@@ -44956,7 +44956,7 @@
                 },
                 "heldStandpoint": {
                     "items": {
-                        "$ref": "#/$defs/StandpointClaim"
+                        "$ref": "#/$defs/DoxasticStandpointClaim"
                     },
                     "type": [
                         "array",
@@ -45056,7 +45056,7 @@
                 },
                 "projectedStandpoint": {
                     "items": {
-                        "$ref": "#/$defs/StandpointClaim"
+                        "$ref": "#/$defs/DoxasticStandpointClaim"
                     },
                     "type": [
                         "array",
@@ -46619,7 +46619,7 @@
                 },
                 "heldStandpoint": {
                     "items": {
-                        "$ref": "#/$defs/StandpointClaim"
+                        "$ref": "#/$defs/DoxasticStandpointClaim"
                     },
                     "type": [
                         "array",
@@ -46719,7 +46719,7 @@
                 },
                 "projectedStandpoint": {
                     "items": {
-                        "$ref": "#/$defs/StandpointClaim"
+                        "$ref": "#/$defs/DoxasticStandpointClaim"
                     },
                     "type": [
                         "array",
@@ -54262,7 +54262,7 @@
                 },
                 "heldStandpoint": {
                     "items": {
-                        "$ref": "#/$defs/StandpointClaim"
+                        "$ref": "#/$defs/DoxasticStandpointClaim"
                     },
                     "type": [
                         "array",
@@ -54369,7 +54369,7 @@
                 },
                 "projectedStandpoint": {
                     "items": {
-                        "$ref": "#/$defs/StandpointClaim"
+                        "$ref": "#/$defs/DoxasticStandpointClaim"
                     },
                     "type": [
                         "array",
@@ -54839,7 +54839,7 @@
                 },
                 "heldStandpoint": {
                     "items": {
-                        "$ref": "#/$defs/StandpointClaim"
+                        "$ref": "#/$defs/DoxasticStandpointClaim"
                     },
                     "type": [
                         "array",
@@ -54957,7 +54957,7 @@
                 },
                 "projectedStandpoint": {
                     "items": {
-                        "$ref": "#/$defs/StandpointClaim"
+                        "$ref": "#/$defs/DoxasticStandpointClaim"
                     },
                     "type": [
                         "array",
@@ -61293,7 +61293,7 @@
                 },
                 "heldStandpoint": {
                     "items": {
-                        "$ref": "#/$defs/StandpointClaim"
+                        "$ref": "#/$defs/DoxasticStandpointClaim"
                     },
                     "type": [
                         "array",
@@ -61402,7 +61402,7 @@
                 },
                 "projectedStandpoint": {
                     "items": {
-                        "$ref": "#/$defs/StandpointClaim"
+                        "$ref": "#/$defs/DoxasticStandpointClaim"
                     },
                     "type": [
                         "array",
@@ -62612,7 +62612,7 @@
                 },
                 "heldStandpoint": {
                     "items": {
-                        "$ref": "#/$defs/StandpointClaim"
+                        "$ref": "#/$defs/DoxasticStandpointClaim"
                     },
                     "type": [
                         "array",
@@ -62712,7 +62712,7 @@
                 },
                 "projectedStandpoint": {
                     "items": {
-                        "$ref": "#/$defs/StandpointClaim"
+                        "$ref": "#/$defs/DoxasticStandpointClaim"
                     },
                     "type": [
                         "array",
@@ -63083,7 +63083,7 @@
                 },
                 "heldStandpoint": {
                     "items": {
-                        "$ref": "#/$defs/StandpointClaim"
+                        "$ref": "#/$defs/DoxasticStandpointClaim"
                     },
                     "type": [
                         "array",
@@ -63183,7 +63183,7 @@
                 },
                 "projectedStandpoint": {
                     "items": {
-                        "$ref": "#/$defs/StandpointClaim"
+                        "$ref": "#/$defs/DoxasticStandpointClaim"
                     },
                     "type": [
                         "array",
@@ -64961,7 +64961,7 @@
                 },
                 "heldStandpoint": {
                     "items": {
-                        "$ref": "#/$defs/StandpointClaim"
+                        "$ref": "#/$defs/DoxasticStandpointClaim"
                     },
                     "type": [
                         "array",
@@ -65106,7 +65106,7 @@
                 },
                 "projectedStandpoint": {
                     "items": {
-                        "$ref": "#/$defs/StandpointClaim"
+                        "$ref": "#/$defs/DoxasticStandpointClaim"
                     },
                     "type": [
                         "array",
@@ -66046,7 +66046,7 @@
                 },
                 "heldStandpoint": {
                     "items": {
-                        "$ref": "#/$defs/StandpointClaim"
+                        "$ref": "#/$defs/DoxasticStandpointClaim"
                     },
                     "type": [
                         "array",
@@ -66152,7 +66152,7 @@
                 },
                 "projectedStandpoint": {
                     "items": {
-                        "$ref": "#/$defs/StandpointClaim"
+                        "$ref": "#/$defs/DoxasticStandpointClaim"
                     },
                     "type": [
                         "array",
@@ -68284,7 +68284,7 @@
                 },
                 "heldStandpoint": {
                     "items": {
-                        "$ref": "#/$defs/StandpointClaim"
+                        "$ref": "#/$defs/DoxasticStandpointClaim"
                     },
                     "type": [
                         "array",
@@ -68384,7 +68384,7 @@
                 },
                 "projectedStandpoint": {
                     "items": {
-                        "$ref": "#/$defs/StandpointClaim"
+                        "$ref": "#/$defs/DoxasticStandpointClaim"
                     },
                     "type": [
                         "array",
@@ -75395,7 +75395,7 @@
                 },
                 "heldStandpoint": {
                     "items": {
-                        "$ref": "#/$defs/StandpointClaim"
+                        "$ref": "#/$defs/DoxasticStandpointClaim"
                     },
                     "type": [
                         "array",
@@ -75513,7 +75513,7 @@
                 },
                 "projectedStandpoint": {
                     "items": {
-                        "$ref": "#/$defs/StandpointClaim"
+                        "$ref": "#/$defs/DoxasticStandpointClaim"
                     },
                     "type": [
                         "array",
@@ -76512,7 +76512,7 @@
                 },
                 "heldStandpoint": {
                     "items": {
-                        "$ref": "#/$defs/StandpointClaim"
+                        "$ref": "#/$defs/DoxasticStandpointClaim"
                     },
                     "type": [
                         "array",
@@ -76640,7 +76640,7 @@
                 },
                 "projectedStandpoint": {
                     "items": {
-                        "$ref": "#/$defs/StandpointClaim"
+                        "$ref": "#/$defs/DoxasticStandpointClaim"
                     },
                     "type": [
                         "array",
@@ -80646,7 +80646,7 @@
                 },
                 "heldStandpoint": {
                     "items": {
-                        "$ref": "#/$defs/StandpointClaim"
+                        "$ref": "#/$defs/DoxasticStandpointClaim"
                     },
                     "type": [
                         "array",
@@ -80746,7 +80746,7 @@
                 },
                 "projectedStandpoint": {
                     "items": {
-                        "$ref": "#/$defs/StandpointClaim"
+                        "$ref": "#/$defs/DoxasticStandpointClaim"
                     },
                     "type": [
                         "array",
@@ -93299,7 +93299,7 @@
                 },
                 "heldStandpoint": {
                     "items": {
-                        "$ref": "#/$defs/StandpointClaim"
+                        "$ref": "#/$defs/DoxasticStandpointClaim"
                     },
                     "type": [
                         "array",
@@ -93399,7 +93399,7 @@
                 },
                 "projectedStandpoint": {
                     "items": {
-                        "$ref": "#/$defs/StandpointClaim"
+                        "$ref": "#/$defs/DoxasticStandpointClaim"
                     },
                     "type": [
                         "array",
@@ -101040,7 +101040,7 @@
                 },
                 "heldStandpoint": {
                     "items": {
-                        "$ref": "#/$defs/StandpointClaim"
+                        "$ref": "#/$defs/DoxasticStandpointClaim"
                     },
                     "type": [
                         "array",
@@ -101149,7 +101149,7 @@
                 },
                 "projectedStandpoint": {
                     "items": {
-                        "$ref": "#/$defs/StandpointClaim"
+                        "$ref": "#/$defs/DoxasticStandpointClaim"
                     },
                     "type": [
                         "array",
@@ -117057,7 +117057,7 @@
                 },
                 "heldStandpoint": {
                     "items": {
-                        "$ref": "#/$defs/StandpointClaim"
+                        "$ref": "#/$defs/DoxasticStandpointClaim"
                     },
                     "type": [
                         "array",
@@ -117157,7 +117157,7 @@
                 },
                 "projectedStandpoint": {
                     "items": {
-                        "$ref": "#/$defs/StandpointClaim"
+                        "$ref": "#/$defs/DoxasticStandpointClaim"
                     },
                     "type": [
                         "array",
@@ -123060,7 +123060,7 @@
                 },
                 "heldStandpoint": {
                     "items": {
-                        "$ref": "#/$defs/StandpointClaim"
+                        "$ref": "#/$defs/DoxasticStandpointClaim"
                     },
                     "type": [
                         "array",
@@ -123160,7 +123160,7 @@
                 },
                 "projectedStandpoint": {
                     "items": {
-                        "$ref": "#/$defs/StandpointClaim"
+                        "$ref": "#/$defs/DoxasticStandpointClaim"
                     },
                     "type": [
                         "array",
@@ -124657,7 +124657,7 @@
                 },
                 "heldStandpoint": {
                     "items": {
-                        "$ref": "#/$defs/StandpointClaim"
+                        "$ref": "#/$defs/DoxasticStandpointClaim"
                     },
                     "type": [
                         "array",
@@ -124757,7 +124757,7 @@
                 },
                 "projectedStandpoint": {
                     "items": {
-                        "$ref": "#/$defs/StandpointClaim"
+                        "$ref": "#/$defs/DoxasticStandpointClaim"
                     },
                     "type": [
                         "array",
@@ -152380,7 +152380,7 @@
                 },
                 "heldStandpoint": {
                     "items": {
-                        "$ref": "#/$defs/StandpointClaim"
+                        "$ref": "#/$defs/DoxasticStandpointClaim"
                     },
                     "type": [
                         "array",
@@ -152480,7 +152480,7 @@
                 },
                 "projectedStandpoint": {
                     "items": {
-                        "$ref": "#/$defs/StandpointClaim"
+                        "$ref": "#/$defs/DoxasticStandpointClaim"
                     },
                     "type": [
                         "array",
@@ -158782,7 +158782,7 @@
                 },
                 "heldStandpoint": {
                     "items": {
-                        "$ref": "#/$defs/StandpointClaim"
+                        "$ref": "#/$defs/DoxasticStandpointClaim"
                     },
                     "type": [
                         "array",
@@ -158882,7 +158882,7 @@
                 },
                 "projectedStandpoint": {
                     "items": {
-                        "$ref": "#/$defs/StandpointClaim"
+                        "$ref": "#/$defs/DoxasticStandpointClaim"
                     },
                     "type": [
                         "array",
@@ -163124,7 +163124,7 @@
                 },
                 "heldStandpoint": {
                     "items": {
-                        "$ref": "#/$defs/StandpointClaim"
+                        "$ref": "#/$defs/DoxasticStandpointClaim"
                     },
                     "type": [
                         "array",
@@ -163224,7 +163224,7 @@
                 },
                 "projectedStandpoint": {
                     "items": {
-                        "$ref": "#/$defs/StandpointClaim"
+                        "$ref": "#/$defs/DoxasticStandpointClaim"
                     },
                     "type": [
                         "array",

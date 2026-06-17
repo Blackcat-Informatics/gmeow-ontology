@@ -25,7 +25,7 @@ Tier-2 uplift backlog.
 | contacts | core | core | 6 | 10 | 26 | 0 | 1 | 36/36 | full |
 | coreference | core | core | 2 | 0 | 5 | 0 | 1 | 5/5 | full |
 | creative-works | core | core | 4 | 16 | 41 | 0 | 1 | 57/57 | full |
-| deception | core | core | 4 | 2 | 10 | 0 | 1 | 12/12 | full |
+| deception | core | core | 5 | 2 | 10 | 0 | 1 | 12/12 | full |
 | documents | core | core | 7 | 22 | 35 | 0 | 1 | 57/57 | full |
 | email | extension | extensions | 8 | 24 | 94 | 0 | 1 | - | full |
 | employment | extension | extensions | 5 | 3 | 6 | 0 | 1 | - | full |
