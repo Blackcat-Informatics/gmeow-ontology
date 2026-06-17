@@ -1,0 +1,8 @@
+{
+  "bindings": [
+    {
+      "Z": "<https://example.org/worlds-c/revision/primary>"
+    }
+  ],
+  "status": "ok"
+}

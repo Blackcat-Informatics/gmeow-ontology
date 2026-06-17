@@ -75,6 +75,32 @@ pub struct QGoal {
     pub atoms: Vec<QAtom>,
 }
 
+/// A Stratum-C counterfactual declaration parsed from `.logic` directives (#505).
+///
+/// A counterfactual query departs from a **base world** `W_base`, admits a
+/// hypothetical **antecedent** `A` (one or more ground atoms) via a deterministic
+/// AGM revision, and resolves the program's goal `φ` inside the **constructed
+/// world** `W_cf` — an isolated, transient named graph that never leaks back into
+/// the base store. The closeness/entrenchment ordering and the revision itself are
+/// applied by [`crate::counterfactual`] at resolution time; this struct only carries
+/// the declared inputs.
+///
+/// Surface (parsed from query-layer directives, NOT ontology terms):
+/// - `:- counterfactual(<W_cf>, <W_base>).` — declare the constructed and base worlds.
+/// - `:- assume(pred(S, O)).` — one antecedent atom `A` (repeatable; must be ground).
+/// - `:- depth_budget(N).` — optional hard cap on nested-counterfactual depth.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct QCounterfactual {
+    /// The constructed counterfactual world IRI `W_cf` (canonical `<iri>` form).
+    pub cf_world: String,
+    /// The base world IRI `W_base` the revision departs from (canonical `<iri>` form).
+    pub base_world: String,
+    /// The antecedent `A`: ground atoms admitted into `W_cf`. Each maps to a triple.
+    pub antecedent: Vec<QAtom>,
+    /// Optional hard cap on nested-counterfactual depth; `None` uses the engine default.
+    pub depth_budget: Option<u64>,
+}
+
 /// A complete parsed program: a set of rules and exactly one goal.
 ///
 /// Prefix declarations are consumed during parsing; the resulting IRIs are
@@ -85,6 +111,9 @@ pub struct QProgram {
     pub rules: Vec<QRule>,
     /// The single conjunctive goal.
     pub goal: QGoal,
+    /// `Some` iff this is a Stratum-C counterfactual query (#505); `None` for a
+    /// plain v4 backward goal resolved directly against the materialized world.
+    pub counterfactual: Option<QCounterfactual>,
 }
 
 // ── Answer types ──────────────────────────────────────────────────────────────
@@ -147,6 +176,13 @@ pub fn parse_query_program(src: &str) -> Result<QProgram, String> {
     let mut rules: Vec<QRule> = Vec::new();
     let mut goal: Option<QGoal> = None;
 
+    // ── Stratum-C counterfactual accumulators (#505) ─────────────────────────
+    // Populated by the `counterfactual(...)`, `assume(...)`, and `depth_budget(...)`
+    // directives. `cf_worlds` is Some once a `counterfactual(...)` directive is seen.
+    let mut cf_worlds: Option<(String, String)> = None;
+    let mut cf_antecedent: Vec<QAtom> = Vec::new();
+    let mut cf_depth_budget: Option<u64> = None;
+
     // ── Phase 1: collect raw logical clauses ─────────────────────────────────
     // We join continuation lines into complete clauses terminated by `.`.
     let mut pending = String::new();
@@ -191,12 +227,30 @@ pub fn parse_query_program(src: &str) -> Result<QProgram, String> {
         }
 
         if let Some(body) = clause.strip_prefix(":-") {
-            // Directive: :- prefix(alias, 'iri').
+            // Directive. Recognized forms: prefix / counterfactual / assume / depth_budget.
             let body = body.trim();
             if let Some(pfx) = parse_prefix_directive(body)? {
                 prefixes.insert(pfx.0, pfx.1);
+            } else if body.starts_with("counterfactual(") {
+                if cf_worlds.is_some() {
+                    return Err(
+                        "program has more than one counterfactual(...) directive".to_owned()
+                    );
+                }
+                cf_worlds = Some(parse_counterfactual_directive(body, &prefixes)?);
+            } else if body.starts_with("assume(") {
+                cf_antecedent.push(parse_assume_directive(body, &prefixes)?);
+            } else if body.starts_with("depth_budget(") {
+                if cf_depth_budget.is_some() {
+                    return Err("program has more than one depth_budget(...) directive".to_owned());
+                }
+                cf_depth_budget = Some(parse_depth_budget_directive(body)?);
+            } else {
+                // An unrecognized directive is an error, not a no-op: silently
+                // ignoring one means a typo (e.g. `:- depth_buget(...)`) would
+                // disable an intended guardrail without any signal.
+                return Err(format!("unrecognized directive: {body:?}"));
             }
-            // Unknown directives are silently ignored.
         } else if let Some(goal_body) = clause.strip_prefix("?-") {
             // Goal clause.
             if goal.is_some() {
@@ -217,7 +271,59 @@ pub fn parse_query_program(src: &str) -> Result<QProgram, String> {
 
     let goal = goal.ok_or_else(|| "program has no ?- goal".to_owned())?;
 
-    Ok(QProgram { rules, goal })
+    // ── Assemble the optional counterfactual declaration ─────────────────────
+    let counterfactual = match cf_worlds {
+        Some((cf_world, base_world)) => {
+            // A counterfactual must admit at least one antecedent fact: an empty
+            // `A` is a no-op revision (it asserts nothing hypothetical), almost
+            // always a malformed query (the `assume(...)` was forgotten or typo'd).
+            if cf_antecedent.is_empty() {
+                return Err(
+                    "counterfactual(...) directive requires at least one assume(...) antecedent"
+                        .to_owned(),
+                );
+            }
+            // Antecedent atoms must be ground — `A` is a concrete hypothetical fact,
+            // not a query pattern. Reject any variable to keep the revision deterministic.
+            for atom in &cf_antecedent {
+                if atom.args.iter().any(|t| matches!(t, QTerm::Var(_))) {
+                    return Err(format!(
+                        "assume(...) antecedent atom must be ground (no variables): {:?}",
+                        atom.pred
+                    ));
+                }
+            }
+            Some(QCounterfactual {
+                cf_world,
+                base_world,
+                antecedent: cf_antecedent,
+                depth_budget: cf_depth_budget,
+            })
+        }
+        None => {
+            // `assume`/`depth_budget` without `counterfactual` is a malformed program:
+            // they are meaningless outside a Stratum-C query.
+            if !cf_antecedent.is_empty() {
+                return Err(
+                    "assume(...) directive present without a counterfactual(...) directive"
+                        .to_owned(),
+                );
+            }
+            if cf_depth_budget.is_some() {
+                return Err(
+                    "depth_budget(...) directive present without a counterfactual(...) directive"
+                        .to_owned(),
+                );
+            }
+            None
+        }
+    };
+
+    Ok(QProgram {
+        rules,
+        goal,
+        counterfactual,
+    })
 }
 
 // ── Clause-end detector ───────────────────────────────────────────────────────
@@ -296,6 +402,70 @@ fn parse_prefix_directive(body: &str) -> Result<Option<(String, String)>, String
     }
 
     Ok(Some((alias, iri)))
+}
+
+// ── Counterfactual directive parsers (#505) ──────────────────────────────────
+
+/// Parse a `counterfactual(<W_cf>, <W_base>)` directive body (the part after `:-`).
+///
+/// Both arguments are IRI references (prefixed name, single-quoted IRI, or
+/// angle-bracketed IRI), resolved to the canonical `<iri>` constant form.
+///
+/// Returns `(cf_world, base_world)` in canonical `<iri>` form.
+fn parse_counterfactual_directive(
+    body: &str,
+    prefixes: &BTreeMap<String, String>,
+) -> Result<(String, String), String> {
+    let inner = body
+        .strip_prefix("counterfactual(")
+        .and_then(|s| s.strip_suffix(')'))
+        .ok_or_else(|| format!("malformed counterfactual directive: {body:?}"))?;
+    let args = split_comma_top(inner);
+    if args.len() != 2 {
+        return Err(format!(
+            "counterfactual(...) takes exactly 2 world IRIs (W_cf, W_base); got {} in {body:?}",
+            args.len()
+        ));
+    }
+    let cf_world = resolve_iri(args[0].trim(), prefixes)
+        .ok_or_else(|| format!("cannot resolve W_cf IRI {:?} in {body:?}", args[0].trim()))?;
+    let base_world = resolve_iri(args[1].trim(), prefixes)
+        .ok_or_else(|| format!("cannot resolve W_base IRI {:?} in {body:?}", args[1].trim()))?;
+    if cf_world == base_world {
+        return Err(format!(
+            "counterfactual W_cf and W_base must differ (got both = {cf_world})"
+        ));
+    }
+    Ok((cf_world, base_world))
+}
+
+/// Parse an `assume(pred(S, O))` directive body (the part after `:-`).
+///
+/// The inner `pred(S, O)` is parsed as an ordinary binary atom; ground-ness is
+/// enforced by the caller once the whole program is assembled.
+fn parse_assume_directive(
+    body: &str,
+    prefixes: &BTreeMap<String, String>,
+) -> Result<QAtom, String> {
+    let inner = body
+        .strip_prefix("assume(")
+        .and_then(|s| s.strip_suffix(')'))
+        .ok_or_else(|| format!("malformed assume directive: {body:?}"))?;
+    parse_atom(inner.trim(), prefixes)
+}
+
+/// Parse a `depth_budget(N)` directive body (the part after `:-`).
+///
+/// `N` is a non-negative integer — the hard cap on nested-counterfactual depth.
+fn parse_depth_budget_directive(body: &str) -> Result<u64, String> {
+    let inner = body
+        .strip_prefix("depth_budget(")
+        .and_then(|s| s.strip_suffix(')'))
+        .ok_or_else(|| format!("malformed depth_budget directive: {body:?}"))?;
+    inner
+        .trim()
+        .parse::<u64>()
+        .map_err(|e| format!("depth_budget(...) must be a non-negative integer in {body:?}: {e}"))
 }
 
 // ── Rule parser ───────────────────────────────────────────────────────────────
@@ -732,6 +902,157 @@ ex:ancestorOf(X, Y) :- ex:parentOf(X, Z), ex:ancestorOf(Z, Y).\
     }
 
     // ── Answer-set canonicalization ───────────────────────────────────────────
+
+    // ── Counterfactual directive parsing (#505) ───────────────────────────────
+
+    #[test]
+    fn plain_program_has_no_counterfactual() {
+        let prog = parse_query_program(
+            ":- prefix(ex, 'https://example.org/').\n\
+             ?- ex:p(ex:a, Y).\n",
+        )
+        .unwrap();
+        assert!(
+            prog.counterfactual.is_none(),
+            "a plain v4 goal must not be a counterfactual"
+        );
+    }
+
+    #[test]
+    fn parse_counterfactual_with_assume_and_depth() {
+        let prog = parse_query_program(
+            ":- prefix(ex, 'https://example.org/wc/').\n\
+             :- counterfactual('http://world/cf', 'http://world/base').\n\
+             :- assume(ex:mitigation(ex:x, ex:failed)).\n\
+             :- assume(ex:control(ex:y, ex:absent)).\n\
+             :- depth_budget(3).\n\
+             ?- ex:harm(ex:y, Z).\n",
+        )
+        .unwrap();
+        let cf = prog.counterfactual.expect("counterfactual must be parsed");
+        assert_eq!(cf.cf_world, "<http://world/cf>");
+        assert_eq!(cf.base_world, "<http://world/base>");
+        assert_eq!(cf.antecedent.len(), 2, "two assume(...) atoms");
+        assert_eq!(cf.antecedent[0].pred, "https://example.org/wc/mitigation");
+        assert_eq!(
+            cf.antecedent[0].args[1],
+            QTerm::Const("<https://example.org/wc/failed>".to_owned())
+        );
+        assert_eq!(cf.depth_budget, Some(3));
+        // The goal φ is an ordinary atom resolved inside W_cf.
+        assert_eq!(prog.goal.atoms[0].pred, "https://example.org/wc/harm");
+    }
+
+    #[test]
+    fn counterfactual_defaults_depth_budget_to_none() {
+        let prog = parse_query_program(
+            ":- prefix(ex, 'https://example.org/').\n\
+             :- counterfactual(ex:cf, ex:base).\n\
+             :- assume(ex:a(ex:s, ex:o)).\n\
+             ?- ex:p(ex:s, Y).\n",
+        )
+        .unwrap();
+        let cf = prog.counterfactual.unwrap();
+        assert_eq!(cf.depth_budget, None);
+        assert_eq!(cf.cf_world, "<https://example.org/cf>");
+    }
+
+    #[test]
+    fn reject_variable_in_antecedent() {
+        let err = parse_query_program(
+            ":- prefix(ex, 'https://example.org/').\n\
+             :- counterfactual(ex:cf, ex:base).\n\
+             :- assume(ex:a(ex:s, O)).\n\
+             ?- ex:p(ex:s, Y).\n",
+        )
+        .unwrap_err();
+        assert!(err.contains("ground"), "unexpected error: {err}");
+    }
+
+    #[test]
+    fn reject_assume_without_counterfactual() {
+        let err = parse_query_program(
+            ":- prefix(ex, 'https://example.org/').\n\
+             :- assume(ex:a(ex:s, ex:o)).\n\
+             ?- ex:p(ex:s, Y).\n",
+        )
+        .unwrap_err();
+        assert!(
+            err.contains("without a counterfactual"),
+            "unexpected error: {err}"
+        );
+    }
+
+    #[test]
+    fn reject_depth_budget_without_counterfactual() {
+        let err = parse_query_program(
+            ":- prefix(ex, 'https://example.org/').\n\
+             :- depth_budget(2).\n\
+             ?- ex:p(ex:s, Y).\n",
+        )
+        .unwrap_err();
+        assert!(
+            err.contains("without a counterfactual"),
+            "unexpected error: {err}"
+        );
+    }
+
+    #[test]
+    fn reject_duplicate_counterfactual_directive() {
+        let err = parse_query_program(
+            ":- prefix(ex, 'https://example.org/').\n\
+             :- counterfactual(ex:cf, ex:base).\n\
+             :- counterfactual(ex:cf2, ex:base).\n\
+             ?- ex:p(ex:s, Y).\n",
+        )
+        .unwrap_err();
+        assert!(err.contains("more than one"), "unexpected error: {err}");
+    }
+
+    #[test]
+    fn reject_counterfactual_same_world() {
+        let err = parse_query_program(
+            ":- prefix(ex, 'https://example.org/').\n\
+             :- counterfactual(ex:w, ex:w).\n\
+             ?- ex:p(ex:s, Y).\n",
+        )
+        .unwrap_err();
+        assert!(err.contains("must differ"), "unexpected error: {err}");
+    }
+
+    #[test]
+    fn reject_unrecognized_directive() {
+        // A typo'd directive (here `depth_buget`) must fail loudly rather than be
+        // silently dropped — otherwise the intended guardrail vanishes unnoticed.
+        let err = parse_query_program(
+            ":- prefix(ex, 'https://example.org/').\n\
+             :- counterfactual(ex:cf, ex:base).\n\
+             :- assume(ex:a(ex:s, ex:o)).\n\
+             :- depth_buget(2).\n\
+             ?- ex:p(ex:s, Y).\n",
+        )
+        .unwrap_err();
+        assert!(
+            err.contains("unrecognized directive"),
+            "unexpected error: {err}"
+        );
+    }
+
+    #[test]
+    fn reject_counterfactual_with_empty_antecedent() {
+        // A counterfactual with no assume(...) admits nothing hypothetical: a
+        // no-op revision, rejected as malformed.
+        let err = parse_query_program(
+            ":- prefix(ex, 'https://example.org/').\n\
+             :- counterfactual(ex:cf, ex:base).\n\
+             ?- ex:p(ex:s, Y).\n",
+        )
+        .unwrap_err();
+        assert!(
+            err.contains("at least one assume"),
+            "unexpected error: {err}"
+        );
+    }
 
     #[test]
     fn answer_set_canonicalize_sorts_bindings() {

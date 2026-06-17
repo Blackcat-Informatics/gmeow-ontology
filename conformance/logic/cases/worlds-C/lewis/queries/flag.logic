@@ -1,0 +1,11 @@
+% SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+% SPDX-License-Identifier: AGPL-3.0-only
+%
+% Lewis (credulous): {blue, green} are incomparable -> two closest worlds. The
+% credulous quantifier returns φ that holds in SOME closest world -> the union
+% {blue, green}, instead of the deterministic profile's "unknown".
+:- prefix(ex, 'https://example.org/worlds-c/lewis/').
+:- counterfactual(ex:cf, ex:base).
+:- assume(ex:flag(ex:x, ex:blue)).
+:- assume(ex:flag(ex:x, ex:green)).
+?- ex:flag(ex:x, Z).

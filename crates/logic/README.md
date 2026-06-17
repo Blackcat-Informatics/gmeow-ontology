@@ -129,6 +129,32 @@ to pre-#503: a single-stratum fixpoint with no NAF evaluation. Foundation loweri
 
 ---
 
+## Stratum-C counterfactuals (issue #505)
+
+`query(...)` resolves a `.logic` program that declares a counterfactual
+(`:- counterfactual(W_cf, W_base).` + `:- assume(p(s, o)).`) by constructing a
+transient, isolated world rather than reading the base world directly
+(`src/counterfactual.rs`). The base world is minimally revised by a **functional
+overwrite** that admits the antecedent; an over-determined antecedent is arbitrated
+by the **declared entrenchment ordering** (`src/entrenchment.rs`, reusing
+`gmeow:overrides` / `gmeow:strongerThan` / `gmeow:moreSevereThan` / `gmeow:sharpens`).
+
+This is the **only generative, budgeted, possibly-incomplete** stratum — the only
+place a chase is spawned on the fly. Its status field extends the budget vocabulary:
+
+- `unknown` — a genuine (incomparable) entrenchment tie. The default deterministic
+  profile **declines to branch**; exactly one world or `unknown`, never an arbitrary pick.
+- `incomplete` — a hard budget tripped: the nested-counterfactual `depth_budget(N)`,
+  or the opt-in `LewisCredulousProfile`/`LewisSkepticalProfile` branch budget over the
+  closest worlds. Never unbounded.
+
+Isolation preserves paraconsistency: `W_cf` is a fresh named graph, the base store is
+never mutated, and nothing leaks back. Constructed worlds are content-keyed
+(`counterfactual_world_key`, `src/versioning.rs`) for memoization. The corpus lives
+under `conformance/logic/cases/worlds-C/`.
+
+---
+
 ## Oracle-parity discipline
 
 - **A world is a named graph.** Every insert targets a specific named graph IRI;
