@@ -122,7 +122,7 @@ impl PyShapes {
         let ptr = capsule
             .pointer_checked(Some(c"gmeow-validation-store"))
             .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))?;
-        let addr = unsafe { *ptr.cast::<usize>().as_ref() };
+        let addr = unsafe { *ptr.cast::<usize>().as_ptr() };
         let store = unsafe { &*(addr as *const Store) };
         Ok(PyValidationReport::new(engine::validate(
             store,
