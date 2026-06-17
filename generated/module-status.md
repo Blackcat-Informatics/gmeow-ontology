@@ -48,7 +48,7 @@ Tier-2 uplift backlog.
 | lifecycle | core | core | 4 | 1 | 7 | 0 | 1 | 8/8 | full |
 | logic | core | core | 0 | 15 | 17 | 17 | 0 | 0/32 | full |
 | mentation | core | core | 4 | 3 | 3 | 0 | 1 | 6/6 | full |
-| metacognition | core | core | 5 | 2 | 5 | 0 | 3 | 7/7 | full |
+| metacognition | core | core | 6 | 2 | 5 | 0 | 3 | 7/7 | full |
 | music | extension | extensions | 12 | 59 | 126 | 0 | 1 | - | full |
 | names | core | core | 9 | 16 | 36 | 0 | 1 | 52/52 | full |
 | narrative | extension | extensions | 6 | 17 | 41 | 0 | 1 | - | full |
