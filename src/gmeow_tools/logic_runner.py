@@ -599,7 +599,12 @@ def _resolve_answers(
 
     result: dict[str, object] = {}
     for qfile in query_files:
-        qtext = qfile.read_text(encoding="utf-8")
+        try:
+            qtext = qfile.read_text(encoding="utf-8")
+        except OSError as exc:
+            raise RunnerError(
+                f"Case {case_dir.name}: cannot read query {qfile.name}: {exc}"
+            ) from exc
         try:
             answer = gmeow_logic.query(
                 world_nquads,
