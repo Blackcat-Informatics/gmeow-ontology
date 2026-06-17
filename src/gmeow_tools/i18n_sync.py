@@ -501,6 +501,8 @@ def _replace_literal_in_text(
         except PoParseError:
             continue
         suffix = m.group("suffix") or ""
+        if suffix != "@x-gmeow-english":
+            continue
         candidates.append((m.start(), m.end(), quote_style, suffix))
         decoded_by_start[m.start()] = decoded
 

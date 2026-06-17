@@ -601,6 +601,36 @@ msgstr "changed"
         assert 'ex:p "changed"@x-gmeow-english' in updated
         assert 'ex:q "shared"@x-gmeow-english' in updated
 
+    def test_public_language_literal_left_untouched(self, tmp_path: Path) -> None:
+        """A subject+predicate may carry both a public language tag and the
+        internal ``@x-gmeow-english`` literal. Only the internal literal must be
+        updated by the sync, while the public language literal remains unchanged
+        and no conflict is reported.
+        """
+        ttl = _write_ttl(
+            tmp_path,
+            """@prefix ex: <http://example.org/> .
+
+ex:s ex:p "public"@en, "old"@x-gmeow-english .
+""",
+        )
+        po = _write_po(
+            tmp_path,
+            """
+msgctxt "http://example.org/s|http://example.org/p"
+msgid "old"
+msgstr "improved"
+""",
+        )
+        report = sync_english_from_po(po, ttl)
+        assert report.changed_files == [ttl]
+        assert not report.conflicts
+        assert not report.skipped
+        updated = ttl.read_text(encoding="utf-8")
+        assert '"improved"@x-gmeow-english' in updated
+        assert '"public"@en' in updated
+        assert '"old"@x-gmeow-english' not in updated
+
     def test_idempotency_after_ir_predicate_refactor(self, tmp_path: Path) -> None:
         """A second sync with the same PO must make no further changes."""
         ttl = _write_ttl(
