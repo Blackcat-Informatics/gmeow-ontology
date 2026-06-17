@@ -7384,17 +7384,8 @@ type DocumentationConcern
 
 type DoxasticStandpointClaim
   {
-    credibilityScore: [Float]
-    facetSubject: [Person]
-    facetVantage: [Agent]
-    observationEvent: [Event]
-    observationMethod: ObservationMethod
-    observationResult: [Entity]
-    observationType: [ObservationType]
-    observedFeature: [String]
-    perceptionEnvironment: SensoryEnvironment
-    timbreObservationResult: TimbreDescriptor
-    vantage: [Entity]
+    defeatedBy: [JustificationStatus]
+    justifiedBy: [JustificationGround]
     argumentAcceptability: [Float]
     claimModality: StandpointModality
     claimVeridicality: [ClaimVeridicality]
@@ -10794,8 +10785,18 @@ type JurisdictionTenure
     jurisdictionPolity: Agent
   }
 
+type JustificationGround
+  {
+  }
+
 type JustificationStatus
   {
+  }
+
+type JustificationSubject
+  {
+    defeatedBy: [JustificationStatus]
+    justifiedBy: [JustificationGround]
   }
 
 type KeyScheme
@@ -19326,17 +19327,8 @@ type SensoryObservation
 
 type SensoryPerception
   {
-    credibilityScore: [Float]
-    facetSubject: [Person]
-    facetVantage: [Agent]
-    observationEvent: [Event]
-    observationMethod: ObservationMethod
-    observationResult: [Entity]
-    observationType: [ObservationType]
-    observedFeature: [String]
-    perceptionEnvironment: SensoryEnvironment
-    timbreObservationResult: TimbreDescriptor
-    vantage: [Entity]
+    defeatedBy: [JustificationStatus]
+    justifiedBy: [JustificationGround]
     argumentAcceptability: [Float]
     claimModality: StandpointModality
     claimVeridicality: [ClaimVeridicality]
@@ -21086,17 +21078,8 @@ type Standpoint
 
 type StandpointClaim
   {
-    credibilityScore: [Float]
-    facetSubject: [Person]
-    facetVantage: [Agent]
-    observationEvent: [Event]
-    observationMethod: ObservationMethod
-    observationResult: [Entity]
-    observationType: [ObservationType]
-    observedFeature: [String]
-    perceptionEnvironment: SensoryEnvironment
-    timbreObservationResult: TimbreDescriptor
-    vantage: [Entity]
+    defeatedBy: [JustificationStatus]
+    justifiedBy: [JustificationGround]
     argumentAcceptability: [Float]
     claimModality: StandpointModality
     claimVeridicality: [ClaimVeridicality]

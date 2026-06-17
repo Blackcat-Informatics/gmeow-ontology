@@ -4408,7 +4408,7 @@ export interface DoxasticStandpointClaim extends StandpointClaim {
 
 
 
-export interface DoxasticState extends MentalMoment {
+export interface DoxasticState extends JustificationGround {
     credence?: number[],
     doxasticClaim?: StandpointClaim,
     doxasticContent?: Proposition,
@@ -5282,7 +5282,19 @@ export interface JurisdictionTenure extends TimeScopedRelation {
 
 
 
+export interface JustificationGround {
+}
+
+
+
 export interface JustificationStatus {
+}
+
+
+
+export interface JustificationSubject {
+    defeatedBy?: JustificationStatus[],
+    justifiedBy?: JustificationGround[],
 }
 
 
@@ -7354,7 +7366,7 @@ export interface Standpoint extends Entity {
 
 
 
-export interface StandpointClaim extends Observation {
+export interface StandpointClaim extends JustificationSubject {
     argumentAcceptability?: number[],
     claimModality?: StandpointModality,
     claimVeridicality?: ClaimVeridicality[],

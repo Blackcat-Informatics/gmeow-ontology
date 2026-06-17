@@ -29,13 +29,9 @@ gmeow:DoxasticStandpointClaimShape
     sh:property [
         sh:path gmeow:justifiedBy ;
         sh:minCount 0 ;
-        sh:or (
-            [ sh:class gmeow:EvidenceSpan ]
-            [ sh:class gmeow:Attestation ]
-            [ sh:class gmeow:DoxasticState ]
-        ) ;
+        sh:class gmeow:JustificationGround ;
         sh:severity sh:Violation ;
-        sh:message "If present, a justification ground (gmeow:justifiedBy) must be an EvidenceSpan, Attestation, or DoxasticState." ;
+        sh:message "If present, a justification ground (gmeow:justifiedBy) must be a gmeow:JustificationGround (EvidenceSpan, Attestation, or DoxasticState)." ;
     ] ;
     sh:property [
         sh:path gmeow:defeatedBy ;
@@ -87,13 +83,9 @@ gmeow:DoxasticStateShape
     sh:property [
         sh:path gmeow:justifiedBy ;
         sh:minCount 0 ;
-        sh:or (
-            [ sh:class gmeow:EvidenceSpan ]
-            [ sh:class gmeow:Attestation ]
-            [ sh:class gmeow:DoxasticState ]
-        ) ;
+        sh:class gmeow:JustificationGround ;
         sh:severity sh:Violation ;
-        sh:message "If present, gmeow:justifiedBy must point to a gmeow:EvidenceSpan, gmeow:Attestation, or gmeow:DoxasticState." ;
+        sh:message "If present, gmeow:justifiedBy must point to a gmeow:JustificationGround (EvidenceSpan, Attestation, or DoxasticState)." ;
     ] ;
     sh:property [
         sh:path gmeow:defeatedBy ;

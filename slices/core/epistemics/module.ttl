@@ -251,14 +251,39 @@ gmeow:claimOfBelief
 # Gettier case) is solver work, never a reasoner entailment (Principle 12).
 # =========================================================================== #
 
-_:DoxasticJustificationDomain
-    a owl:Class ;
-    owl:unionOf ( gmeow:DoxasticState gmeow:StandpointClaim ) .
+gmeow:JustificationSubject
+    a owl:Class, gufo:Category ;
+    rdfs:subClassOf owl:Thing ;
+    owl:equivalentClass [ a owl:Class ; owl:unionOf ( gmeow:DoxasticState gmeow:StandpointClaim ) ] ;
+    rdfs:label "Justification Subject"@x-gmeow-english ;
+    skos:definition "The class of things that can carry justification or defeat relations — a doxastic state or a standpoint claim. Introduced as a named superclass so that schema projections (LinkML, TypeScript, GraphQL) can assign a single domain to gmeow:justifiedBy and gmeow:defeatedBy instead of losing a blank-node owl:unionOf."@x-gmeow-english ;
+    skos:example "ex:aliceBelievesRound a gmeow:DoxasticState ; gmeow:justifiedBy ex:photoEvidence . ex:aliceRoundClaim a gmeow:StandpointClaim ; gmeow:defeatedBy gmeow:justificationStatusGettier ."@x-gmeow-english ;
+    gmeow:useWhen "Use as the domain of gmeow:justifiedBy and gmeow:defeatedBy when projecting the ontology into schema languages that cannot consume a blank-node owl:unionOf."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting it as an independent kind of entity; it is a schema-friendly union category whose instances are always DoxasticStates or StandpointClaims."@x-gmeow-english ;
+    gmeow:howToUse "Let instances be typed as gmeow:DoxasticState or gmeow:StandpointClaim; the explicit subClassOf axioms make them gmeow:JustificationSubjects for downstream schemas."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> .
+
+gmeow:JustificationGround
+    a owl:Class, gufo:Category ;
+    rdfs:subClassOf owl:Thing ;
+    owl:equivalentClass [ a owl:Class ; owl:unionOf ( gmeow:EvidenceSpan gmeow:Attestation gmeow:DoxasticState ) ] ;
+    rdfs:label "Justification Ground"@x-gmeow-english ;
+    skos:definition "The class of things that can serve as a justification basis — an evidence span, an attestation, or a further doxastic state. Introduced as a named superclass so that schema projections can assign a single range to gmeow:justifiedBy instead of losing a blank-node owl:unionOf."@x-gmeow-english ;
+    skos:example "ex:aliceBelievesRound gmeow:justifiedBy ex:photoEvidence , ex:expertAttestation , ex:bobBelievesRound ."@x-gmeow-english ;
+    gmeow:useWhen "Use as the range of gmeow:justifiedBy when projecting the ontology into schema languages that cannot consume a blank-node owl:unionOf."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting it as an independent kind of entity; it is a schema-friendly union category whose instances are always EvidenceSpans, Attestations, or DoxasticStates."@x-gmeow-english ;
+    gmeow:howToUse "Let instances be typed as gmeow:EvidenceSpan, gmeow:Attestation, or gmeow:DoxasticState; the explicit subClassOf axioms make them gmeow:JustificationGrounds for downstream schemas."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> .
+
+gmeow:DoxasticState rdfs:subClassOf gmeow:JustificationSubject , gmeow:JustificationGround .
+gmeow:StandpointClaim rdfs:subClassOf gmeow:JustificationSubject .
+gmeow:EvidenceSpan rdfs:subClassOf gmeow:JustificationGround .
+gmeow:Attestation rdfs:subClassOf gmeow:JustificationGround .
 
 gmeow:justifiedBy
     a owl:ObjectProperty ;
-    rdfs:domain _:DoxasticJustificationDomain ;
-    rdfs:range [ a owl:Class ; owl:unionOf ( gmeow:EvidenceSpan gmeow:Attestation gmeow:DoxasticState ) ] ;
+    rdfs:domain gmeow:JustificationSubject ;
+    rdfs:range gmeow:JustificationGround ;
     rdfs:label "justified by"@x-gmeow-english ;
     skos:definition "A doxastic state or standpoint-claim is justified by some evidence span, attestation, or further doxastic state — the basing / available-evidence relation. Non-functional: a single state or claim may be supported by several independent grounds, and competing justifications coexist (Principle 9). This property models only that the ground is available as a basis; it does NOT assert that the basis is adequate, and it never promotes justified-true-belief to knowledge — adequacy and Gettier verdicts are solver work (Principle 12)."@x-gmeow-english ;
     skos:example "ex:aliceBelievesRound gmeow:justifiedBy ex:photoEvidence , ex:expertAttestation ."@x-gmeow-english ;
@@ -269,7 +294,7 @@ gmeow:justifiedBy
 
 gmeow:defeatedBy
     a owl:ObjectProperty ;
-    rdfs:domain _:DoxasticJustificationDomain ;
+    rdfs:domain gmeow:JustificationSubject ;
     rdfs:range gmeow:JustificationStatus ;
     rdfs:label "defeated by"@x-gmeow-english ;
     skos:definition "A doxastic state or standpoint-claim is marked with a justification-defeat status — a solver-set flag such as Gettier-case or defeated. Non-functional: a state or claim may carry several defeat markers over time, and old markers are suppressed rather than erased (Principle 10). This is a solver annotation only; the reasoner never promotes or retracts it (Principle 12)."@x-gmeow-english ;

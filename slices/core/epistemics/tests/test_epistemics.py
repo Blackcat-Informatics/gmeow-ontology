@@ -81,10 +81,18 @@ def test_no_factivity_no_truth_bit() -> None:
 
 
 def _union_members(g: Graph, expr: URIRef) -> set[URIRef]:
-    """Return the URIs inside an owl:unionOf class expression, if any."""
+    """Return the URIs inside an owl:unionOf class expression, if any.
+
+    Handles both direct union expressions and unions nested via
+    owl:equivalentClass (used for schema-friendly named union classes).
+    """
     list_node = g.value(expr, OWL.unionOf)
     if list_node is None:
-        return set()
+        equivalent = g.value(expr, OWL.equivalentClass)
+        if equivalent is not None:
+            list_node = g.value(equivalent, OWL.unionOf)
+        if list_node is None:
+            return set()
     return set(Collection(g, list_node))
 
 
@@ -107,23 +115,23 @@ def test_claim_of_belief_is_functional_object_property() -> None:
     assert (prop, RDFS.range, _t("DoxasticState")) in g
 
 
-def test_justified_by_has_union_domain_and_range() -> None:
+def test_justified_by_has_named_domain_and_range() -> None:
     g = _graph()
     prop = _t("justifiedBy")
     assert (prop, RDF.type, OWL.ObjectProperty) in g
 
-    domain = g.value(prop, RDFS.domain)
-    assert domain is not None
-    domain_members = _union_members(g, domain)
-    assert _t("DoxasticState") in domain_members
-    assert _t("StandpointClaim") in domain_members
+    # Domain/range are now schema-friendly named classes instead of blank unions.
+    assert (prop, RDFS.domain, _t("JustificationSubject")) in g
+    assert (prop, RDFS.range, _t("JustificationGround")) in g
 
-    range_ = g.value(prop, RDFS.range)
-    assert range_ is not None
-    range_members = _union_members(g, range_)
-    assert _t("EvidenceSpan") in range_members
-    assert _t("Attestation") in range_members
-    assert _t("DoxasticState") in range_members
+    subject_union = _union_members(g, _t("JustificationSubject"))
+    assert _t("DoxasticState") in subject_union
+    assert _t("StandpointClaim") in subject_union
+
+    ground_union = _union_members(g, _t("JustificationGround"))
+    assert _t("EvidenceSpan") in ground_union
+    assert _t("Attestation") in ground_union
+    assert _t("DoxasticState") in ground_union
 
 
 def test_defeated_by_has_status_range() -> None:
@@ -148,6 +156,8 @@ def test_justification_terms_are_annotated() -> None:
         "justifiedBy",
         "defeatedBy",
         "JustificationStatus",
+        "JustificationSubject",
+        "JustificationGround",
     ):
         term = _t(name)
         assert (term, RDFS.label, None) in g
