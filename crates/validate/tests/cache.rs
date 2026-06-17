@@ -5,7 +5,7 @@
 
 use std::collections::{BTreeSet, HashSet};
 use std::fs;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicU64, Ordering};
 
 use gmeow_validate::cache::{CachedResult, ValidationCache};
@@ -24,7 +24,7 @@ fn temp_project_root() -> PathBuf {
     dir
 }
 
-fn write_file(dir: &PathBuf, name: &str, content: &str) -> PathBuf {
+fn write_file(dir: &Path, name: &str, content: &str) -> PathBuf {
     let path = dir.join(name);
     if let Some(parent) = path.parent() {
         fs::create_dir_all(parent).unwrap();
@@ -78,8 +78,8 @@ fn files_cache_key_is_content_addressed() {
         "@prefix ex: <https://example.org/> .\nex:a ex:p ex:b .\n",
     );
     let cache = ValidationCache::new(&root);
-    let key1 = cache.files_cache_key(&[path.clone()]).unwrap();
-    let key2 = cache.files_cache_key(&[path.clone()]).unwrap();
+    let key1 = cache.files_cache_key(std::slice::from_ref(&path)).unwrap();
+    let key2 = cache.files_cache_key(std::slice::from_ref(&path)).unwrap();
     assert_eq!(key1, key2);
 
     fs::write(
@@ -98,7 +98,7 @@ fn files_cache_key_uses_relative_path_when_possible() {
     let root = temp_project_root();
     let rel = write_file(&root, "nested/file.ttl", "<a> <b> <c> .\n");
     let cache = ValidationCache::new(&root);
-    let key_rel = cache.files_cache_key(&[rel.clone()]).unwrap();
+    let key_rel = cache.files_cache_key(std::slice::from_ref(&rel)).unwrap();
     let key_abs = cache
         .files_cache_key(&[rel.canonicalize().unwrap()])
         .unwrap();
