@@ -31,6 +31,7 @@
     <uri name="https://blackcatinformatics.ca/gmeow/slices/creative-works" uri="slices/core/creative-works/module.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/slices/deception" uri="slices/core/deception/module.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/slices/documents" uri="slices/core/documents/module.ttl"/>
+    <uri name="https://blackcatinformatics.ca/gmeow/slices/dreaming" uri="slices/extensions/dreaming/module.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/slices/email" uri="slices/extensions/email/module.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/slices/employment" uri="slices/extensions/employment/module.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/slices/entities" uri="slices/core/entities/module.ttl"/>
@@ -85,6 +86,7 @@
 
     <!-- Named profiles (generated, #330) -->
     <uri name="https://blackcatinformatics.ca/gmeow/profiles/claims" uri="generated/profiles/claims.ttl"/>
+    <uri name="https://blackcatinformatics.ca/gmeow/profiles/dreaming" uri="generated/profiles/dreaming.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/profiles/memory" uri="generated/profiles/memory.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/profiles/music" uri="generated/profiles/music.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/profiles/narrative" uri="generated/profiles/narrative.ttl"/>
