@@ -155,6 +155,38 @@ under `conformance/logic/cases/worlds-C/`.
 
 ---
 
+## Probabilistic / weighted layer (issue #506)
+
+Under `logic:ProbabilisticProfile`, `query(...)` routes to the probabilistic evaluator
+(`src/probabilistic.rs`) instead of the backward-goal dispatcher. It computes **exact
+marginals by weighted model counting**: it enumerates every total choice θ over the
+probabilistic facts, computes the least Herbrand model of `(Horn rules ∪ deterministic
+facts ∪ θ's true facts)` per choice, and sums `P(θ)` over the choices whose model derives
+each query binding. Each answer binding carries a `probability`; the computation is
+`#P-hard` in general (the certifier records `probabilistic/#P-hard`), which suits the
+tiny, fully-enumerable conformance corpora.
+
+Query-layer directives carry the model and the probabilistic facts (the compiled surface
+for the `logic:` terms, as `:- counterfactual(...)` is for `logic:counterfactualOf`):
+
+- `:- probability_model(full_independence | dependency).` — the declared `logic:ProbabilityModel`.
+- `:- probability(pred(S, O), p).` — an independent Bernoulli fact (`logic:probability`).
+- `:- joint(p, atom1, atom2, …).` — one `logic:JointOutcome` of a dependency model (the
+  listed atoms true, the rest false; outcomes must sum to one).
+- `:- confidence(pred(S, O), c).` — `logic:confidence` metadata on an asserted fact.
+
+Three structural guards enforce the epistemic-hygiene contract:
+
+- **confidence ≠ probability** — only `:- probability` / `:- joint` enter the marginal; a
+  confidence-annotated fact is deterministic (marginal `1.0`), the value never promoted.
+- **model required** — probabilistic facts with no declared model return status `unknown`;
+  independence is never silently assumed.
+- **cut is rejected** — `!` belongs only to `ProceduralPrologProfile`.
+
+The corpus lives under `conformance/logic/cases/profiles/probabilistic-*`.
+
+---
+
 ## Oracle-parity discipline
 
 - **A world is a named graph.** Every insert targets a specific named graph IRI;

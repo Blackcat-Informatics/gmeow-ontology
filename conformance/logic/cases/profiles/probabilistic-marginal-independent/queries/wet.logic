@@ -1,0 +1,15 @@
+% SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+% SPDX-License-Identifier: AGPL-3.0-only
+%
+% Probabilistic marginal under a declared independence model (#506 AC-1).
+% rain and sprinkler are independent Bernoulli facts (p=0.5 each); a noisy-OR
+% rule makes the ground wet whenever either holds. Under logic:FullIndependence:
+%   P(wet) = 1 - (1-0.5)(1-0.5) = 0.75.
+% Expected: X = ex:yes with probability 0.75, status ok.
+:- prefix(ex, 'https://example.org/profiles/probabilistic-marginal-independent/').
+:- probability_model(full_independence).
+:- probability(ex:rain(ex:today, ex:yes), 0.5).
+:- probability(ex:sprinkler(ex:today, ex:yes), 0.5).
+ex:wet(D, ex:yes) :- ex:rain(D, ex:yes).
+ex:wet(D, ex:yes) :- ex:sprinkler(D, ex:yes).
+?- ex:wet(ex:today, X).

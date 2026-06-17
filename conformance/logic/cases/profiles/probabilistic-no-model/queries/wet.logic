@@ -1,0 +1,12 @@
+% SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+% SPDX-License-Identifier: AGPL-3.0-only
+%
+% No-model refusal guard (#506). A probabilistic fact is declared but NO
+% probability_model is. Probabilistic inference REQUIRES a declared independence
+% or dependency model; with none, the evaluator refuses rather than assuming
+% independence over the logic:probability facts.
+% Expected: no bindings, status unknown.
+:- prefix(ex, 'https://example.org/profiles/probabilistic-no-model/').
+:- probability(ex:rain(ex:today, ex:yes), 0.5).
+ex:wet(D, ex:yes) :- ex:rain(D, ex:yes).
+?- ex:wet(ex:today, X).
