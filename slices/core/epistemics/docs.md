@@ -30,9 +30,11 @@ statement or claim; typed `gmeow:Proposition` content arrives at the reified tie
 
 - **The keystone** — `gmeow:knowsThat rdfs:subPropertyOf gmeow:believes`: knowledge entails belief;
   the reverse never holds; asserting `knowsThat` materialises `believes`.
-- **No factive knows** (Principles 1, 12) — there is no `isTrue`, no truth datatype, no factivity
-  axiom. `knowsThat` is a vantage-indexed claim that (belief ∧ truth-per-frame ∧ justification) holds,
-  never a global verdict; the JTB → knowledge judgement (and Gettier defeaters) is solver work.
+- **No factive knows** (Principles 1, 12) — `gmeow:knowsThat` is **non-factive**. Asserting it
+  entails only `gmeow:believes`; it commits no global truth verdict. There is no `isTrue`, no truth
+  datatype, and no factivity axiom. `knowsThat` is a vantage-indexed claim that
+  (belief ∧ truth-per-frame ∧ justification) holds from a frame; the JTB → knowledge judgement
+  (and Gettier defeaters) is solver work.
 - **Truth-per-frame is reused, never re-minted** (Principle 6) — how settled a proposition is held
   rides the standpoint modality (`gmeow:standpointModality` on a flattened statement,
   `gmeow:claimModality` on a reified `StandpointClaim`), in the standpoint slice.
@@ -43,6 +45,33 @@ statement or claim; typed `gmeow:Proposition` content arrives at the reified tie
   same `gmeow:Proposition` but differ in fit (mind-to-world vs world-to-mind); deliberately **no**
   `Goal ⊑ Proposition` subsumption, no `teleology` dependency.
 - **Acceptance is not belief** — `gmeow:accepts` is pragmatic; it entails neither belief nor truth.
+
+## External alignment
+
+`gmeow:DoxasticState` is axiomatically grounded in gUFO: it is a `gufo:Kind` under
+`gmeow:MentalMoment`, and `gmeow:MentalMoment` is itself a named `gufo:Category` below
+`gufo:IntrinsicMode` (see the kernel slice). That subsumption is ontology, not a mapping row:
+the SSSOM set records cross-vocabulary links only.
+
+The epistemics mapping set is authored in
+[`slices/core/epistemics/mappings/equivalences.ttl`](./mappings/equivalences.ttl) and compiled to
+[`generated/mappings/gmeow-epistemics.sssom.tsv`](../../../generated/mappings/gmeow-epistemics.sssom.tsv).
+All alignments are by reference (Principle 5); GMEOW never imports an external axiom.
+
+| GMEOW term | External target(s) | Predicate | Note |
+|---|---|---|---|
+| `gmeow:DoxasticState` | `crminf:I2_Belief` | `skos:closeMatch` | both are an agent's held attitude toward a proposition; CRMinf I2 is temporal, GMEOW's state is an endurant mental moment |
+| `gmeow:Proposition` | `crminf:I4_Proposition_Set` | `skos:relatedMatch` | I4 is a set; GMEOW's term is a single truth-apt content |
+| `gmeow:Proposition` | `iao:0000030` | `skos:relatedMatch` | IAO information content entity, broader |
+| `gmeow:Proposition` | `wd:Q108163` | `skos:relatedMatch` | Wikidata "proposition", entity-page verified |
+| `gmeow:believes` | `sumo:believes` | `skos:relatedMatch` | SUMO's predicate is conceptually adjacent; GMEOW's is non-factive and standpoint-indexed |
+| `gmeow:knowsThat` | `sumo:knows` | `skos:relatedMatch` | explicitly **non-factive**: GMEOW `knowsThat` entails only `believes`, never global truth |
+| `gmeow:justifiedBy` | `crminf:J2_concluded_that` | `skos:relatedMatch` | direction of support is inverted |
+
+`gmeow:credence` and `gmeow:accepts` are left unaligned: no canonical, resolvable RDF vocabulary
+was found. ATOMIC belief edges and AIF S-/RA-nodes are referenced in prose only; no stable,
+resolvable namespace suitable for SSSOM rows is available. Epistemic-modal operators (S4/S5/KD45)
+belong to the `logic:` slice profiles.
 
 ## Terms
 
@@ -94,6 +123,17 @@ spine to a `gmeow:DoxasticState`.
 | `gmeow:DoxasticTenure` | Time-scoped belief-revision history — a `temporal:TimeScopedRelation`. |
 | `gmeow:tenureOfDoxasticState` | The `DoxasticState` whose holding interval the tenure records (functional). |
 
+### `gmeow:justifiedBy`
+
+The lightweight belief→justifier hook. `gmeow:justifiedBy` points from a `gmeow:DoxasticState`
+to the thing that supports it — typically an `EvidenceSpan`, an `Attestation`, or another
+`DoxasticState`. It is non-functional: a belief may rest on multiple independent grounds,
+and competing justifications coexist (Principle 9).
+
+This property is intentionally thin. It records *that* a doxastic state is supported, not the
+full inferential argument structure. Full argument graphs, inference-making acts, and defeater
+chains live in the sibling justification child (#561).
+
 ### `revise_belief` — suppression, not deletion
 
 Revising a belief closes the prior `gmeow:DoxasticTenure` by setting `gmeow:endedAtTime` on its
@@ -102,3 +142,21 @@ retained as audit. A new `DoxasticState` (and a new open `DoxasticTenure`) recor
 This is the same suppression pattern used by `inference:InferenceTenure` (Principle 10).
 
 Example: see `slices/core/epistemics/examples/belief-revision.ttl`.
+
+## Flagship worked example
+
+[`slices/core/epistemics/examples/flagship-epistemic-ledger.ttl`](./examples/flagship-epistemic-ledger.ttl)
+is the reference epistemic ledger for this slice. It models an operator deciding whether a
+flagship LLM recalled a meeting date correctly:
+
+- `ex:propRecall` mints the shared `gmeow:Proposition`.
+- The operator's original `gmeow:DoxasticState` carries `gmeow:credence "0.85"` and is
+  `gmeow:justifiedBy` an `EvidenceSpan` pinned to a calendar chunk.
+- A defeater arrives; the operator revises to a lower-credence state and a new
+  `gmeow:DoxasticTenure`. The original tenure is closed with `gmeow:endedAtTime` and
+  suppressed with `gmeow:displayable false` (Principle 10); the old `DoxasticState` is
+  retained as audit.
+- The LLM itself is modeled with `gmeow:knowsThat` — non-factive: it entails only that the
+  LLM `gmeow:believes` the proposition, with no global truth commitment.
+- A skeptic `gmeow:doubts` the same proposition and records a standpoint-indexed refutation.
+  The competing attitudes coexist; none is privileged (Principle 9).

@@ -1,0 +1,117 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Flagship worked example — EPISTEMIC LEDGER (issue #562, Task 3).
+#
+# Scenario: an operator asks whether the flagship LLM recalled a meeting date
+# correctly.  Initially the operator is fairly confident (credence 0.85) and
+# the belief is justified by an EvidenceSpan pinned to a calendar source.
+# A defeater then arrives, the operator revises down to credence 0.30, and the
+# original tenure is closed and suppressed (Principle 10).  Meanwhile the LLM
+# itself is modeled as knowing-that the proposition (non-factive: it entails
+# the LLM believes it, but commits no global truth), while a skeptic doubts the
+# same proposition and records a standpoint-indexed refutation.  Competing
+# attitudes coexist; none is privileged (Principle 9).
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/epistemics/flagship/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+# --- Three agents ----------------------------------------------------------------
+ex:llm a gmeow:SoftwareAgent ;
+    rdfs:label "flagship LLM"@x-gmeow-english .
+
+ex:operator a gmeow:Person ;
+    rdfs:label "human operator"@x-gmeow-english .
+
+ex:skeptic a gmeow:Person ;
+    rdfs:label "skeptical reviewer"@x-gmeow-english .
+
+# --- The proposition -------------------------------------------------------------
+ex:propRecall a gmeow:Proposition ;
+    rdfs:label "the flagship LLM recalled the meeting date correctly"@x-gmeow-english .
+
+# --- Original credence-weighted belief (operator) --------------------------------
+ex:opBeliefOriginal a gmeow:DoxasticState ;
+    rdfs:label "original belief: LLM recalled the meeting date correctly"@x-gmeow-english ;
+    gmeow:epistemicAgent ex:operator ;
+    gmeow:doxasticContent ex:propRecall ;
+    gmeow:doxasticClaim ex:opClaimOriginal ;
+    gmeow:credence "0.85"^^xsd:decimal ;
+    gmeow:justifiedBy ex:evidenceSpan1 .
+
+ex:opClaimOriginal a gmeow:StandpointClaim ;
+    rdfs:label "original operator claim: LLM recalled the meeting date correctly"@x-gmeow-english ;
+    gmeow:vantage ex:operator ;
+    gmeow:observedFeature ex:propRecall ;
+    gmeow:claimModality gmeow:probable ;
+    gmeow:observationMethod gmeow:methodExpertJudgement .
+
+# --- EvidenceSpan justification pinned to a source chunk -------------------------
+ex:evidenceSpan1 a gmeow:EvidenceSpan ;
+    rdfs:label "calendar evidence span for the meeting date"@x-gmeow-english ;
+    gmeow:selectorTextQuote "the meeting is scheduled for 2026-06-18"@x-gmeow-english ;
+    gmeow:spanOfChunk ex:chunk1 .
+
+ex:chunk1 a gmeow:Chunk ;
+    rdfs:label "retrieved chunk containing the meeting date"@x-gmeow-english ;
+    gmeow:chunkOf ex:source1 ;
+    gmeow:spanStart 142 ;
+    gmeow:spanEnd 186 .
+
+ex:source1 a gmeow:Document ;
+    rdfs:label "team calendar entry"@x-gmeow-english ;
+    gmeow:sourceLocation "https://calendar.example.com/events/2026-06-18-meeting" .
+
+# --- Original open-ended tenure --------------------------------------------------
+ex:opTenureOriginal a gmeow:DoxasticTenure ;
+    rdfs:label "original tenure of the operator's belief"@x-gmeow-english ;
+    gmeow:tenureOfDoxasticState ex:opBeliefOriginal ;
+    gmeow:duringInterval ex:originalInterval .
+
+ex:originalInterval a gmeow:TimeInterval ;
+    gmeow:startedAtTime "2026-06-10T09:00:00Z"^^xsd:dateTime ;
+    gmeow:hasTemporalFrame gmeow:temporalFrameUTCGregorian .
+
+# --- Revised belief after a defeater ---------------------------------------------
+ex:opBeliefRevised a gmeow:DoxasticState ;
+    rdfs:label "revised belief: LLM probably misremembered the meeting date"@x-gmeow-english ;
+    gmeow:epistemicAgent ex:operator ;
+    gmeow:doxasticContent ex:propRecall ;
+    gmeow:doxasticClaim ex:opClaimRevised ;
+    gmeow:credence "0.30"^^xsd:decimal .
+
+ex:opClaimRevised a gmeow:StandpointClaim ;
+    rdfs:label "revised operator claim: LLM recall is at best conceivable"@x-gmeow-english ;
+    gmeow:vantage ex:operator ;
+    gmeow:observedFeature ex:propRecall ;
+    gmeow:claimModality gmeow:conceivable ;
+    gmeow:observationMethod gmeow:methodExpertJudgement .
+
+ex:opTenureRevised a gmeow:DoxasticTenure ;
+    rdfs:label "revised tenure of the operator's belief"@x-gmeow-english ;
+    gmeow:tenureOfDoxasticState ex:opBeliefRevised ;
+    gmeow:duringInterval ex:revisedInterval .
+
+ex:revisedInterval a gmeow:TimeInterval ;
+    gmeow:startedAtTime "2026-06-15T14:00:00Z"^^xsd:dateTime ;
+    gmeow:hasTemporalFrame gmeow:temporalFrameUTCGregorian .
+
+# --- Suppression of the original tenure (Principle 10) ---------------------------
+ex:originalInterval gmeow:endedAtTime "2026-06-15T14:00:00Z"^^xsd:dateTime .
+ex:opTenureOriginal gmeow:displayable false .
+
+# --- Non-factive knowsThat coexisting with standpoint-indexed denial -------------
+# knowsThat is NON-FACTIVE: asserting it only entails gmeow:believes for the LLM;
+# it commits no global truth verdict.
+ex:llm gmeow:knowsThat ex:propRecall .
+
+ex:skeptic gmeow:doubts ex:propRecall .
+
+ex:skepticDenial a gmeow:StandpointClaim ;
+    rdfs:label "skeptic's standpoint-indexed denial"@x-gmeow-english ;
+    gmeow:vantage ex:skeptic ;
+    gmeow:observedFeature ex:propRecall ;
+    gmeow:claimModality gmeow:refuted ;
+    gmeow:observationMethod gmeow:methodExpertJudgement .
