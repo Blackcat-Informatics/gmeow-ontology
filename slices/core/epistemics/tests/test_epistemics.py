@@ -14,7 +14,9 @@ from __future__ import annotations
 from pathlib import Path
 
 from rdflib import Graph, URIRef
+from rdflib.collection import Collection
 from rdflib.namespace import OWL, RDF, RDFS
+from rdflib.term import Node
 
 GMEOW = "https://blackcatinformatics.ca/gmeow/"
 SKOS_DEFINITION = URIRef("http://www.w3.org/2004/02/skos/core#definition")
@@ -77,6 +79,93 @@ def test_no_factivity_no_truth_bit() -> None:
     assert (None, is_true, None) not in g
     assert (None, None, is_true) not in g
     assert (_t("knowsThat"), RDFS.range, None) not in g
+
+
+def _union_members(g: Graph, expr: Node) -> set[URIRef]:
+    """Return the URIs inside an owl:unionOf class expression, if any.
+
+    Handles both direct union expressions and unions nested via
+    owl:equivalentClass (used for schema-friendly named union classes).
+    """
+    list_node = g.value(expr, OWL.unionOf)
+    if list_node is None:
+        equivalent = g.value(expr, OWL.equivalentClass)
+        if equivalent is not None:
+            list_node = g.value(equivalent, OWL.unionOf)
+        if list_node is None:
+            return set()
+    return {member for member in Collection(g, list_node) if isinstance(member, URIRef)}
+
+
+# ---------------------------------------------------------------------------
+# Issue #561 — Epistemic justification terms (Tasks 1 & 2).
+# ---------------------------------------------------------------------------
+
+
+def test_doxastic_standpoint_claim_is_subclass_of_standpoint_claim() -> None:
+    g = _graph()
+    assert (_t("DoxasticStandpointClaim"), RDFS.subClassOf, _t("StandpointClaim")) in g
+
+
+def test_claim_of_belief_is_functional_object_property() -> None:
+    g = _graph()
+    prop = _t("claimOfBelief")
+    assert (prop, RDF.type, OWL.ObjectProperty) in g
+    assert (prop, RDF.type, OWL.FunctionalProperty) in g
+    assert (prop, RDFS.domain, _t("DoxasticStandpointClaim")) in g
+    assert (prop, RDFS.range, _t("DoxasticState")) in g
+
+
+def test_justified_by_has_named_domain_and_range() -> None:
+    g = _graph()
+    prop = _t("justifiedBy")
+    assert (prop, RDF.type, OWL.ObjectProperty) in g
+
+    # Domain/range are now schema-friendly named classes instead of blank unions.
+    assert (prop, RDFS.domain, _t("JustificationSubject")) in g
+    assert (prop, RDFS.range, _t("JustificationGround")) in g
+
+    subject_union = _union_members(g, _t("JustificationSubject"))
+    assert subject_union == {_t("DoxasticState"), _t("StandpointClaim")}
+
+    ground_union = _union_members(g, _t("JustificationGround"))
+    assert ground_union == {_t("EvidenceSpan"), _t("Attestation"), _t("DoxasticState")}
+
+
+def test_defeated_by_has_status_range() -> None:
+    g = _graph()
+    prop = _t("defeatedBy")
+    assert (prop, RDF.type, OWL.ObjectProperty) in g
+    assert (prop, RDFS.range, _t("JustificationStatus")) in g
+
+
+def test_justification_status_individuals_exist() -> None:
+    g = _graph()
+    for name in ("justificationStatusGettier", "justificationStatusDefeated"):
+        assert (_t(name), RDF.type, _t("JustificationStatus")) in g
+
+
+def test_justification_terms_are_annotated() -> None:
+    """Annotation-completeness for the new #561 terms (Principle 8)."""
+    g = _graph()
+    for name in (
+        "DoxasticStandpointClaim",
+        "claimOfBelief",
+        "justifiedBy",
+        "defeatedBy",
+        "JustificationStatus",
+        "JustificationSubject",
+        "JustificationGround",
+    ):
+        term = _t(name)
+        assert (term, RDFS.label, None) in g
+        assert (term, SKOS_DEFINITION, None) in g
+        assert (term, RDFS.isDefinedBy, None) in g
+
+    for status in g.subjects(RDF.type, _t("JustificationStatus")):
+        assert (status, RDFS.label, None) in g
+        assert (status, SKOS_DEFINITION, None) in g
+        assert (status, RDFS.isDefinedBy, None) in g
 
 
 def test_every_term_is_annotated() -> None:

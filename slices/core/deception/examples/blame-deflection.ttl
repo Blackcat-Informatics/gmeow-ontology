@@ -4,11 +4,18 @@
 # Worked example: deception is held ≠ projected. A spokesperson
 # privately BELIEVES an internal misconfiguration caused an outage, but publicly
 # PROJECTS that a third-party vendor did. The lie is a gmeow:Event linking the
-# two StandpointClaims: gmeow:heldStandpoint (the believed claim) and
+# two DoxasticStandpointClaims: gmeow:heldStandpoint (the believed claim) and
 # gmeow:projectedStandpoint (the asserted-but-disbelieved one). Falsehood is not
 # an isFalse boolean — it is the projected claim carrying gmeow:claimVeridicality
 # gmeow:veridicalityUntrue. Nothing here needs a "deception class": ordinary
 # claims, an event type, and the held/projected gap do all the work.
+#
+# Re-grounded for issue #561: both standpoints are reified as gmeow:DoxasticState
+# instances and reported by gmeow:DoxasticStandpointClaim instances via
+# gmeow:claimOfBelief. The held belief has high credence; the projected belief has
+# low credence — the spokesperson publicly avows the vendor-caused proposition
+# while actually disbelieving it. The deception is the divergence between the
+# high-credence held state and the low-credence projected state.
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/deception/> .
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
@@ -26,24 +33,51 @@ ex:vendor a gmeow:Organization ; gmeow:name "Northwind CDN (third party)"@x-gmeo
 
 ex:spokesperson a gmeow:Person ; gmeow:name "Comms lead"@x-gmeow-english .
 
+# --- Propositions that are the truth-apt contents of the two standpoints.
+ex:internalCauseProposition a gmeow:Proposition ;
+    rdfs:label "the internal engineer caused the outage"@x-gmeow-english .
+
+ex:vendorCauseProposition a gmeow:Proposition ;
+    rdfs:label "the third-party vendor caused the outage"@x-gmeow-english .
+
+# --- The spokesperson's privately HELD belief state.
+ex:spokespersonHeldBelief a gmeow:DoxasticState ;
+    rdfs:label "spokesperson's held belief: internal engineer caused the outage"@x-gmeow-english ;
+    gmeow:epistemicAgent ex:spokesperson ;
+    gmeow:doxasticContent ex:internalCauseProposition ;
+    gmeow:doxasticClaim ex:heldClaim ;
+    gmeow:credence "0.95"^^xsd:decimal .
+
 # --- What the spokesperson privately HOLDS: the internal engineer caused it.
-ex:heldClaim a gmeow:StandpointClaim ;
+ex:heldClaim a gmeow:DoxasticStandpointClaim ;
     gmeow:vantage ex:spokesperson ;
-    gmeow:observedFeature ex:outage ;
-    gmeow:observationResult ex:internalCause ;
-    gmeow:observationMethod gmeow:methodExpertJudgement ;
-    gmeow:claimModality gmeow:unequivocal .
+    gmeow:observedFeature ex:internalCauseProposition ;
+    gmeow:claimOfBelief ex:spokespersonHeldBelief ;
+    gmeow:claimModality gmeow:unequivocal ;
+    gmeow:observationMethod gmeow:methodExpertJudgement .
+
+# --- The spokesperson's publicly PROJECTED belief state: the vendor caused it,
+#     but held with very low credence — the spokesperson disbelieves what they
+#     avow. The low credence is the structural signature of the lie.
+ex:spokespersonProjectedBelief a gmeow:DoxasticState ;
+    rdfs:label "spokesperson's projected belief: vendor caused the outage (avowed, low credence)"@x-gmeow-english ;
+    gmeow:epistemicAgent ex:spokesperson ;
+    gmeow:doxasticContent ex:vendorCauseProposition ;
+    gmeow:doxasticClaim ex:projectedClaim ;
+    gmeow:credence "0.05"^^xsd:decimal .
 
 # --- What the spokesperson publicly PROJECTS: the vendor caused it. Asserted
 #     unequivocally, but UNTRUE — the falsehood is a veridicality value on the
-#     claim, never an isFalse flag.
-ex:projectedClaim a gmeow:StandpointClaim ;
+#     claim, never an isFalse flag. The claim is backed by the low-credence
+#     projected DoxasticState; the gap between the avowed unequivocal claim and
+#     the 0.05 credence is the deception.
+ex:projectedClaim a gmeow:DoxasticStandpointClaim ;
     gmeow:vantage ex:spokesperson ;
-    gmeow:observedFeature ex:outage ;
-    gmeow:observationResult ex:vendor ;
-    gmeow:observationMethod gmeow:methodExpertJudgement ;
+    gmeow:observedFeature ex:vendorCauseProposition ;
+    gmeow:claimOfBelief ex:spokespersonProjectedBelief ;
     gmeow:claimModality gmeow:unequivocal ;
-    gmeow:claimVeridicality gmeow:veridicalityUntrue .
+    gmeow:claimVeridicality gmeow:veridicalityUntrue ;
+    gmeow:observationMethod gmeow:methodExpertJudgement .
 
 # --- The lie: an Event whose held and projected standpoints diverge. That gap
 #     IS the deception; the spokesperson is its participant in the deceiver role.
