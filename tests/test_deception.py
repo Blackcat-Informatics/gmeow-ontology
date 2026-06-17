@@ -7,6 +7,8 @@ SHACL shapes, and the no-isFalse doctrine.
 
 from __future__ import annotations
 
+from pathlib import Path
+
 from rdflib import OWL, RDF, RDFS, Graph, Literal, Namespace, URIRef
 
 from gmeow_tools.config import COMPETENCY_DIR
@@ -33,6 +35,32 @@ def test_divergence_properties_exist() -> None:
         assert (prop, RDF.type, OWL.ObjectProperty) in graph
         assert (prop, RDFS.domain, GMEOW.Event) in graph
         assert (prop, RDFS.range, GMEOW.DoxasticStandpointClaim) in graph
+
+
+def test_blame_deflection_example_uses_doxastic_standpoint_claims() -> None:
+    """Issue #561 re-grounding: the blame-deflection example parses and its
+    held/projected standpoints are typed gmeow:DoxasticStandpointClaim."""
+    g = Graph()
+    example = (
+        Path(__file__).resolve().parents[1]
+        / "slices/core/deception/examples/blame-deflection.ttl"
+    )
+    g.parse(example, format="turtle")
+
+    held = {
+        o
+        for s, p, o in g
+        if p == GMEOW.heldStandpoint
+        and (o, RDF.type, GMEOW.DoxasticStandpointClaim) in g
+    }
+    projected = {
+        o
+        for s, p, o in g
+        if p == GMEOW.projectedStandpoint
+        and (o, RDF.type, GMEOW.DoxasticStandpointClaim) in g
+    }
+    assert held, "expected at least one held DoxasticStandpointClaim"
+    assert projected, "expected at least one projected DoxasticStandpointClaim"
 
 
 def test_deceptive_intent_claim_property_exists() -> None:
