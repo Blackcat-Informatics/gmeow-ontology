@@ -1,0 +1,15 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+# Conformance case: profiles/probabilistic-no-model
+# AC (#506): probabilistic inference REQUIRES a declared independence/dependency
+# model. Here a probabilistic fact (rain=0.5) is present but NO
+# `:- probability_model(...)` is declared. The evaluator must REFUSE — returning
+# status "unknown" with no bindings — rather than silently assuming independence.
+# A computed marginal here would be the named failure mode (treating un-modelled
+# probabilistic facts as if independence had been declared).
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://example.org/profiles/probabilistic-no-model/> .
+
+ex:Condition a logic:Kind .

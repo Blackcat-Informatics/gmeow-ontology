@@ -1,0 +1,17 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+# Conformance case: profiles/probabilistic-dependency-joint
+# AC (#506): marginals under a DECLARED dependency model (explicit joint), which
+# must differ from the independence reading. Facts a and b are perfectly
+# correlated: the joint table is { (a∧b): 0.5, (neither): 0.5 }. The rule
+# both :- a, b gives P(both) = 0.5 under this joint — vs 0.5·0.5 = 0.25 if a and b
+# were (wrongly) read as independent. This proves the declared joint is actually
+# used. The model + joints + rule live in queries/both.logic.
+#
+# See README.md for the joint-outcome enumeration.
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://example.org/profiles/probabilistic-dependency-joint/> .
+
+ex:Condition a logic:Kind .

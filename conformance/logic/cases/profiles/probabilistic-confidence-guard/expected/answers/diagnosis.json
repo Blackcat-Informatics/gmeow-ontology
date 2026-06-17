@@ -1,0 +1,9 @@
+{
+  "bindings": [
+    {
+      "X": "<https://example.org/profiles/probabilistic-confidence-guard/flu>",
+      "probability": 1.0
+    }
+  ],
+  "status": "ok"
+}

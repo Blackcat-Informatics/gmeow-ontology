@@ -1,0 +1,18 @@
+% SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+% SPDX-License-Identifier: AGPL-3.0-only
+%
+% Probabilistic marginal under a declared DEPENDENCY model (#506).
+% a and b are perfectly correlated by the explicit joint table:
+%   joint(0.5, a, b)   — both true with probability 0.5
+%   joint(0.5)         — neither true with probability 0.5
+% The rule both :- a, b makes `both` derivable only when a AND b hold, so
+%   P(both) = 0.5  (the joint mass of the (a∧b) outcome).
+% Under a (wrong) independence reading this would be 0.5·0.5 = 0.25 — the
+% differing value proves the declared joint is used.
+% Expected: X = ex:on with probability 0.5, status ok.
+:- prefix(ex, 'https://example.org/profiles/probabilistic-dependency-joint/').
+:- probability_model(dependency).
+:- joint(0.5, ex:a(ex:s, ex:on), ex:b(ex:s, ex:on)).
+:- joint(0.5).
+ex:both(S, ex:on) :- ex:a(S, ex:on), ex:b(S, ex:on).
+?- ex:both(ex:s, X).

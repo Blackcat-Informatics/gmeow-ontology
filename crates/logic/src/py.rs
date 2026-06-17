@@ -542,7 +542,9 @@ fn certify(py: Python<'_>, rules: &str, profile: &str) -> PyResult<Py<PyAny>> {
 /// - `query_program` — the `.logic` source (prefixes, Horn rules, optional `!` cut,
 ///   exactly one `?- goal.`).
 /// - `profile` — the semantic profile in force (bare name or IRI). Cut is permitted
-///   ONLY under `ProceduralPrologProfile`; otherwise this raises `ValueError`.
+///   ONLY under `ProceduralPrologProfile`; otherwise this raises `ValueError`. Under
+///   `ProbabilisticProfile` (#506) the goal is resolved by weighted model counting and
+///   each binding carries a `probability` (see [`crate::probabilistic`]).
 /// - `world_iri` — which world to resolve against. If `None`, the store must contain
 ///   exactly one named graph (auto-selected); otherwise this is an error.
 /// - `max_answers` — output cap (→ `status="partial"`).
@@ -595,6 +597,29 @@ fn query(
 
     // 3. Parse the query program (rules + goal).
     let program = parse_query_program(query_program).map_err(value_err)?;
+
+    // 3b. Probabilistic profile (#506, v6): marginal inference by weighted model
+    //     counting routes here instead of the backward-goal dispatcher. Each binding
+    //     carries a `probability`; this is the ONLY path that emits that key, so
+    //     non-probabilistic answers stay byte-identical. confidence/weight/evidence
+    //     never enter the marginal — the confidence≠probability guard is structural.
+    if crate::profile_gate::is_probabilistic_profile(profile) {
+        let answer =
+            crate::probabilistic::evaluate(&store, &world, &program, profile).map_err(value_err)?;
+        let bindings = PyList::empty(py);
+        for binding in &answer.bindings {
+            let row = PyDict::new(py);
+            for (var, val) in &binding.vars {
+                row.set_item(var, val)?;
+            }
+            row.set_item("probability", binding.probability)?;
+            bindings.append(row)?;
+        }
+        let result = PyDict::new(py);
+        result.set_item("bindings", bindings)?;
+        result.set_item("status", answer.status.as_str())?;
+        return Ok(result.into_any().unbind());
+    }
 
     // 4. Build the read-only EDB accessor for this world.
     let foreign = WorldStoreForeign::from_world(&store, &world, profile).map_err(value_err)?;
@@ -651,6 +676,7 @@ fn query(
 /// - `materialize(rules, input, max_rule_firings=None, max_answers=None, time_ms=None)`
 /// - `certify(rules, profile) -> dict`
 /// - `query(world_nquads, query_program, profile, world_iri=None, max_answers=None, max_steps=None) -> dict`
+///   (under `ProbabilisticProfile` each binding carries a `probability`; #506)
 #[pymodule]
 fn gmeow_logic(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(materialize, m)?)?;
