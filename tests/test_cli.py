@@ -364,6 +364,19 @@ def test_dev_i18n_sync_english_dry_run(runner: CliRunner) -> None:
     assert result.exit_code == 0, result.output
 
 
+def test_dev_i18n_extract(runner: CliRunner, tmp_path: Path) -> None:
+    out = tmp_path / "i18n"
+    result = runner.invoke(dev_app, ["i18n", "extract", "--output-dir", str(out)])
+    assert result.exit_code == 0, result.output
+    pot = out / "slices" / "core" / "lifecycle.pot"
+    assert pot.exists(), result.output
+    text = pot.read_text(encoding="utf-8")
+    assert (
+        'msgctxt "https://blackcatinformatics.ca/gmeow/hasCreationEvent|'
+        'http://www.w3.org/2000/01/rdf-schema#label"'
+    ) in text
+
+
 def test_workspace_declares_separate_dev_package() -> None:
     root = Path(__file__).resolve().parents[1]
     main = tomllib.loads((root / "pyproject.toml").read_text(encoding="utf-8"))

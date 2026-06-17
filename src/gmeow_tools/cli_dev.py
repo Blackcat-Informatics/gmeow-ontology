@@ -20,6 +20,7 @@ from rich.console import Console
 from gmeow_tools import __version__
 from gmeow_tools.config import PROJECT_ROOT
 from gmeow_tools.projections import PROFILES as _PROFILES
+from gmeow_tools.slices import Slice
 
 if TYPE_CHECKING:
     from rdflib import Graph
@@ -2190,6 +2191,122 @@ def conformance(
 
 i18n_app = typer.Typer(help="Internationalization commands.", no_args_is_help=True)
 app.add_typer(i18n_app, name="i18n")
+
+
+def _i18n_output_path(
+    slice_iri: str,
+    slices_by_iri: dict[str, Slice],
+    output_dir: Path,
+    ext: str,
+) -> Path:
+    """Return the output path for a slice or namespace grouping."""
+    slice_info = slices_by_iri.get(slice_iri)
+    if slice_info is not None:
+        return output_dir / "slices" / slice_info.group / f"{slice_info.name}.{ext}"
+    local = slice_iri.rstrip("/#").split("/")[-1] if "/" in slice_iri else slice_iri
+    if not local:
+        local = "_"
+    safe = "".join(c if c.isalnum() or c in "-_" else "_" for c in local)[:64]
+    return output_dir / "slices" / "_core" / f"{safe}.{ext}"
+
+
+@i18n_app.command(name="extract")
+def extract_catalog(
+    root: Path = typer.Option(  # noqa: B008
+        PROJECT_ROOT,
+        "--root",
+        help="Repository root containing the slices/ directory.",
+    ),
+    output_dir: Path = typer.Option(  # noqa: B008
+        PROJECT_ROOT / "dist" / "i18n",
+        "--output-dir",
+        "-o",
+        help="Directory to write the generated POT/PO files.",
+    ),
+    lang: str | None = typer.Option(
+        None,
+        "--lang",
+        "-l",
+        help="If given, write .po files for this language instead of .pot templates.",
+    ),
+) -> None:
+    """Extract translatable ontology strings into gettext catalogs.
+
+    Walks the merged ontology graph, groups translatable strings by owning
+    slice, and emits one POT (or PO when --lang is given) file per slice.
+    """
+    from rdflib import Graph, Literal, URIRef
+
+    from gmeow_tools.graph import load_merged_graph
+    from gmeow_tools.i18n_catalog import (
+        LOCALIZABLE_PREDICATES,
+        build_pot,
+        extract_terms,
+        write_po,
+    )
+    from gmeow_tools.i18n_sync import PoEntry
+    from gmeow_tools.slices import discover_slices
+
+    graph = load_merged_graph(include_imports=False)
+    slices_by_iri: dict[str, Slice] = discover_slices(root / "slices")
+
+    # Map each localizable (term, predicate, value) triple to the slice
+    # module(s) that declare it. This lets terms reused across slices with
+    # different definitions be routed to the slice that actually owns the
+    # literal, while terms not declared in any slice module fall back to
+    # namespace-based grouping.
+    value_sources: dict[tuple[str, str, str], set[str]] = {}
+    for slice_info in slices_by_iri.values():
+        if not slice_info.module_path.is_file():
+            continue
+        module_graph = Graph()
+        try:
+            module_graph.parse(slice_info.module_path, format="turtle")
+        except Exception:
+            continue
+        for subject, predicate, obj in module_graph:
+            if (
+                isinstance(subject, URIRef)
+                and predicate in LOCALIZABLE_PREDICATES
+                and isinstance(obj, Literal)
+            ):
+                value_sources.setdefault(
+                    (str(subject), str(predicate), str(obj)), set()
+                ).add(slice_info.iri)
+
+    def _resolve_slice(term_iri: str, predicate_iri: str, lexical: str) -> str | None:
+        source_slices = value_sources.get((term_iri, predicate_iri, lexical))
+        if source_slices:
+            return min(source_slices)
+        return None
+
+    groups: dict[str, list[Any]] = {}
+    total_keys = 0
+    for key in extract_terms(graph, slice_resolver=_resolve_slice):
+        groups.setdefault(key.slice_iri, []).append(key)
+        total_keys += 1
+
+    for slice_iri, keys in groups.items():
+        ext = "po" if lang else "pot"
+        path = _i18n_output_path(slice_iri, slices_by_iri, output_dir, ext)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        if lang:
+            entries = [
+                PoEntry(
+                    msgctxt=f"{key.term_iri}|{key.predicate}",
+                    msgid=key.english_value,
+                    msgstr=key.english_value,
+                )
+                for key in keys
+            ]
+            write_po(path, entries, lang)
+        else:
+            path.write_text(build_pot(keys), encoding="utf-8")
+
+    console.print(
+        f"[green]✓[/green] wrote {len(groups)} catalog(s) "
+        f"({total_keys} keys) to {output_dir}"
+    )
 
 
 @i18n_app.command(name="sync-english")

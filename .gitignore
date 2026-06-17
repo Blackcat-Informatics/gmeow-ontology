@@ -16,6 +16,7 @@ htmlcov/
 # Exception (#440): ontology-docs/ at the repository root is a committed
 # generated artifact owned by the ontology-docs registered generator.
 /dist/
+/dist/i18n/
 /docs/_generated/
 /llms.txt
 

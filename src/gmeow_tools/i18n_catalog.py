@@ -11,7 +11,7 @@ the canonical sources; this catalog is the shared library that operates on them.
 from __future__ import annotations
 
 import re
-from collections.abc import Iterator
+from collections.abc import Callable, Iterator
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -99,14 +99,23 @@ def _slice_iri_for_term(term_iri: str) -> str:
     return _term_namespace(term_iri)
 
 
-def extract_terms(graph: Graph) -> Iterator[TranslationKey]:
+def extract_terms(
+    graph: Graph,
+    *,
+    slice_resolver: Callable[[str, str, str], str | None] | None = None,
+) -> Iterator[TranslationKey]:
     """Yield :class:`TranslationKey` records for localizable literals in *graph*.
 
     Walks every triple whose predicate is in :data:`LOCALIZABLE_PREDICATES` and
     whose object is a ``Literal``. Accepts literals tagged
     ``@x-gmeow-english`` first; untagged literals are used as a fallback. If a
-    subject+predicate carries multiple distinct ``@x-gmeow-english`` values, a
-    :class:`ValueError` is raised.
+    subject+predicate carries multiple distinct ``@x-gmeow-english`` values in
+    the same slice, a :class:`ValueError` is raised.
+
+    When ``slice_resolver`` is supplied it is called as
+    ``slice_resolver(term_iri, predicate_iri, lexical_value)`` and may return a
+    slice IRI to override the default path-derived grouping. Returning ``None``
+    falls back to the path-based heuristic.
 
     Results are yielded sorted deterministically by
     ``(slice_iri, term_iri, predicate)``.
@@ -122,19 +131,25 @@ def extract_terms(graph: Graph) -> Iterator[TranslationKey]:
 
         term_iri = str(subject)
         pred_iri = str(predicate)
-        key = (_slice_iri_for_term(term_iri), term_iri, pred_iri)
+        lexical = str(obj)
+        slice_iri: str | None = None
+        if slice_resolver is not None:
+            slice_iri = slice_resolver(term_iri, pred_iri, lexical)
+        if slice_iri is None:
+            slice_iri = _slice_iri_for_term(term_iri)
+        key = (slice_iri, term_iri, pred_iri)
 
         if obj.language == _ENGLISH_TAG:
-            english_values.setdefault(key, set()).add(str(obj))
+            english_values.setdefault(key, set()).add(lexical)
             if len(english_values[key]) > 1:
                 raise ValueError(
                     f"multiple distinct @x-gmeow-english values for "
-                    f"{term_iri} {pred_iri}"
+                    f"{term_iri} {pred_iri} in {slice_iri}"
                 )
-            collected[key] = (_ENGLISH_TAG, str(obj))
+            collected[key] = (_ENGLISH_TAG, lexical)
         elif obj.language is None and key not in collected:
             # Untagged fallback only used when no tagged English value exists.
-            collected[key] = ("", str(obj))
+            collected[key] = ("", lexical)
 
     for key in sorted(collected):
         slice_iri, term_iri, pred_iri = key
