@@ -5,7 +5,7 @@
 //!
 //! This module is the byte-faithful Rust port of the Python *foundation oracle*
 //! (`gmeow_tools.logic_foundation` + the `enable_naf` path of
-//! `gmeow_tools.logic_materialize._chase_world`).  It lowers four OntoUML
+//! `gmeow_tools.logic_materialize._chase_world`).  It lowers five OntoUML
 //! structural disciplines into a small stratified Datalog program with
 //! negation-as-failure and inequality guards, runs that program *per world* as a
 //! semi-naive chase, and then applies two cross-world post-passes (positive
