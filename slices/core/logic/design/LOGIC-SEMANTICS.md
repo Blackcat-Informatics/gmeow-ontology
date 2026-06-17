@@ -302,7 +302,7 @@ specification of the lowering — and they additionally decide cases (cross-worl
 identity) the lints cannot express.
 
 **Implemented natively in Rust (#503 lowered the disciplines; #636 retired the Python oracle).** The
-three type-level disciplines are evaluated by `crates/logic/src/foundation.rs` (exposed as
+five type-level disciplines are evaluated by `crates/logic/src/foundation.rs` (exposed as
 `gmeow_logic.foundation(input_nq, anti_rigidity_policy)`): it derives `logic:violation` facts for
 `logic:StereotypeCardinality`, `logic:MixIden`, `logic:FreeRole`, `logic:MixRig`, and `logic:RelComp`
 under `logic:StratifiedNAFProfile`-certified stratified NAF, with absence expressed via

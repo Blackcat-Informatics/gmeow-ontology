@@ -94,26 +94,27 @@ the same kind of projection**:
   foundation. A bridge view is labelled in the [preservation ledger](LOGIC-CONFORMANCE.md) so no
   consumer mistakes it for a sound projection.
 
-### v3 status: three lint disciplines lowered; cross-world rigidity decided; witness-world deferred
+### v3 status: five in-world disciplines lowered; cross-world rigidity decided; witness-world deferred
 
-**Implemented in v3 (#503).** The lint-to-axiom move for the four OntoUML disciplines is now
+**Implemented in v3 (#503).** The lint-to-axiom move for the OntoUML disciplines is now
 partially complete:
 
-- **Three disciplines lowered, evaluated natively (done; oracle retired in #636).** The native Rust
-  evaluator `crates/logic/src/foundation.rs` (exposed as `gmeow_logic.foundation`) derives
+- **Five in-world disciplines lowered, evaluated natively (done; oracle retired in #636).** The
+  native Rust evaluator `crates/logic/src/foundation.rs` (exposed as `gmeow_logic.foundation`) derives
   `?C logic:violation <label>` facts reproducing, class-for-class, the offending sets `reasoning_lint.py`
-  produces for `exactly_one_stereotype` (`logic:StereotypeCardinality`), `identity_overlap`
-  (`logic:MixIden`), `anti_rigidity_discipline` (`logic:FreeRole`, `logic:MixRig`), and
-  `relator_mediation` (`logic:RelComp`). The lowering certifies under `logic:StratifiedNAFProfile`.
-  Correctness is proven end-to-end by the foundation conformance goldens through
+  produces — five `logic:violation` labels from four lint checks: `exactly_one_stereotype`
+  (`logic:StereotypeCardinality`), `identity_overlap` (`logic:MixIden`), `anti_rigidity_discipline`
+  (`logic:FreeRole`, `logic:MixRig`), and `relator_mediation` (`logic:RelComp`). The lowering
+  certifies under `logic:StratifiedNAFProfile`. Correctness is proven end-to-end by the foundation
+  conformance goldens through
   `tests/test_logic_foundation_lint_equivalence.py` (`test_foundation_conformance_cases_are_green`).
-  **`reasoning_lint.py` is now the regression specification for these three disciplines**, not the
+  **`reasoning_lint.py` is now the regression specification for these five disciplines**, not the
   enforcement mechanism; enforcement is the native lowering materialized over `logic:` facts. The
   Python oracle (`logic_foundation.py`) that originally hosted the lowering has been deleted (#636,
   no-optionality doctrine: no Python fallback).
 
-- **Positive cross-world rigidity decided over the materialized world set (done).** This is the
-  fourth discipline, which the type-only lint cannot express. Because the GMEOW chase is world-local
+- **Positive cross-world rigidity decided over the materialized world set (done).** This is a
+  further, world-spanning discipline, which the type-only lint cannot express. Because the GMEOW chase is world-local
   (derived quads stay in their origin world; no cross-world union), rigidity's world-spanning
   universal quantifier cannot be expressed as an ordinary in-world Datalog rule. It is therefore
   evaluated in the native `crates/logic/src/foundation.rs` evaluator — a bounded closure pass over the
