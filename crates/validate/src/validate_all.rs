@@ -597,7 +597,17 @@ fn run_example_shacl(
     path: &Path,
     name: &str,
 ) -> Result<PhaseResult, String> {
-    let example_quads = parse_file(path)?;
+    let example_quads = match parse_file(path) {
+        Ok(q) => q,
+        Err(e) => {
+            let mut result = PhaseResult::default();
+            result.errors.push(format!(
+                "example {name}: failed to parse {}: {e}",
+                path.display()
+            ));
+            return Ok(result);
+        }
+    };
     let inserted = scoped_overlay_insert(store, example_quads.iter());
     let report = gmeow_shacl::engine::validate(store, shapes);
     scoped_overlay_remove(store, &inserted);
