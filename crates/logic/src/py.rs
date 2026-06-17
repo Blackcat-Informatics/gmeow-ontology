@@ -599,13 +599,26 @@ fn query(
     // 4. Build the read-only EDB accessor for this world.
     let foreign = WorldStoreForeign::from_world(&store, &world, profile).map_err(value_err)?;
 
-    // 5. Dispatch (the cut/profile gate runs inside dispatch_query).
+    // 5. Dispatch. A Stratum-C counterfactual program (#505) routes through
+    //    transient world construction; a plain v4 backward goal runs against the
+    //    materialized world via the cut/profile-gated dispatcher.
     let budget = Budget {
         max_answers,
         max_steps,
     };
-    let answer = dispatch_query(&foreign, &store, &world_nn, &program, profile, &budget)
-        .map_err(value_err)?;
+    let answer = if crate::counterfactual::is_counterfactual(&program) {
+        crate::counterfactual::construct_and_resolve(
+            &store,
+            &program,
+            profile,
+            &budget,
+            crate::counterfactual::DEFAULT_DEPTH_BUDGET,
+        )
+        .map_err(value_err)?
+    } else {
+        dispatch_query(&foreign, &store, &world_nn, &program, profile, &budget)
+            .map_err(value_err)?
+    };
 
     // 6. Build the Python result dict: {"bindings": [...], "status": "..."}.
     let bindings = PyList::empty(py);
