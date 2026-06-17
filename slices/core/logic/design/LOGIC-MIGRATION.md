@@ -26,9 +26,18 @@ small and prevents scope creep into the maximal end-state prematurely.
 | **v5: Stratum-C counterfactuals** | Deterministic revision + transient world construction under budget | Multi-world Lewis ties by default |
 | **v6: probabilistic/weighted layer** | Explicit `logic:probability`/`logic:weight` semantics with tests | Treating `logic:confidence` as probability |
 
-Two invariants hold across every rung: the Python oracle implements the rung first as the executable
-spec, and the Rust core must pass the identical corpus (Principle 7). No rung is "done" until both
-agree.
+The executable-spec authority depends on the rung's kind, and the Rust core must pass the identical
+corpus either way (Principle 7):
+
+- For the **materialization** strata (v1–v3, worlds A/B), the Python oracle implements the rung first
+  as the executable spec; no such rung is "done" until the oracle and the Rust core agree on the
+  corpus.
+- For the **generative** strata (v4 backward goals, v5 counterfactual construction) — where there is
+  no Python materialization oracle to mirror — the Rust engine is the executable spec and the rung is
+  gated by golden answer fixtures (`queries/*.logic` → `expected/answers/*.json`); the Python oracle
+  retains authority for the materialization those strata build on.
+
+The Python oracle is permanent either way (Principle 7).
 
 **Status (2026-06): v0–v5 have landed.** The monotonic core, profile certifier, foundation lowering,
 backward goals, and Stratum-C counterfactuals are all merged and gated by the corpus; only the v6
