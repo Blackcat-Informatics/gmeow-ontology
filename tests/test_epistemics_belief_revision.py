@@ -81,7 +81,10 @@ def test_new_doxastic_tenure_is_open(graph: Graph) -> None:
         graph: Fixture graph containing the belief-revision example.
     """
     new_interval = EX.revisedInterval
-    assert (new_interval, GMEOW.startedAtTime, None) in graph
+    starts = list(graph.objects(new_interval, GMEOW.startedAtTime))
+    assert len(starts) == 1
+    assert isinstance(starts[0], Literal)
+    assert starts[0].datatype == XSD.dateTime
     assert (new_interval, GMEOW.endedAtTime, None) not in graph
 
 
