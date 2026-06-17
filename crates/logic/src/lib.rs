@@ -13,6 +13,7 @@
 pub mod counterfactual;
 pub mod dispatch;
 pub mod encode;
+pub mod entrenchment;
 pub mod profile_gate;
 pub mod provenance;
 pub mod query_ir;
