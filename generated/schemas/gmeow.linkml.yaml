@@ -1808,6 +1808,19 @@ classes:
     class_uri: https://blackcatinformatics.ca/gmeow/LanguageVersion
     title: Language Version
     is_a: Language
+  LearningEvent:
+    class_uri: https://blackcatinformatics.ca/gmeow/LearningEvent
+    title: Learning Event
+    is_a: MentalProcess
+    slots:
+    - fromLevel
+    - learnedFrom
+    - learningType
+    - produces
+    - toLevel
+  LearningEventType:
+    class_uri: https://blackcatinformatics.ca/gmeow/LearningEventType
+    title: Learning Event Type
   LedgerAccount:
     class_uri: https://blackcatinformatics.ca/gmeow/LedgerAccount
     title: Ledger Account
@@ -3604,6 +3617,13 @@ classes:
   TaskStatus:
     class_uri: https://blackcatinformatics.ca/gmeow/TaskStatus
     title: Task Status
+  Teaching:
+    class_uri: https://blackcatinformatics.ca/gmeow/Teaching
+    title: Teaching
+    slots:
+    - learner
+    - subjectTaught
+    - teacher
   TelephoneNumber:
     class_uri: https://blackcatinformatics.ca/gmeow/TelephoneNumber
     title: Telephone Number
@@ -6667,6 +6687,12 @@ slots:
     range: EmailAddress
     domain: EmailMessage
     multivalued: true
+  fromLevel:
+    slot_uri: https://blackcatinformatics.ca/gmeow/fromLevel
+    title: from level
+    range: uriorcurie
+    domain: LearningEvent
+    multivalued: true
   fullName:
     slot_uri: https://blackcatinformatics.ca/gmeow/fullName
     title: full name
@@ -8486,6 +8512,24 @@ slots:
     range: decimal
     domain: GeoCoordinates
     multivalued: true
+  learnedFrom:
+    slot_uri: https://blackcatinformatics.ca/gmeow/learnedFrom
+    title: learned from
+    range: uriorcurie
+    domain: LearningEvent
+    multivalued: true
+  learner:
+    slot_uri: https://blackcatinformatics.ca/gmeow/learner
+    title: learner
+    range: Agent
+    domain: Teaching
+    multivalued: true
+  learningType:
+    slot_uri: https://blackcatinformatics.ca/gmeow/learningType
+    title: learning type
+    range: LearningEventType
+    domain: LearningEvent
+    multivalued: true
   ledgerAccountCurrency:
     slot_uri: https://blackcatinformatics.ca/gmeow/ledgerAccountCurrency
     title: ledger account currency
@@ -10120,6 +10164,12 @@ slots:
     title: process rule text
     range: string
     domain: GenerativeProcess
+  produces:
+    slot_uri: https://blackcatinformatics.ca/gmeow/produces
+    title: produces
+    range: uriorcurie
+    domain: LearningEvent
+    multivalued: true
   producesMentalMoment:
     slot_uri: https://blackcatinformatics.ca/gmeow/producesMentalMoment
     title: produces mental moment
@@ -11641,6 +11691,12 @@ slots:
     range: string
     domain: EmailMessage
     multivalued: true
+  subjectTaught:
+    slot_uri: https://blackcatinformatics.ca/gmeow/subjectTaught
+    title: subject taught
+    range: uriorcurie
+    domain: Teaching
+    multivalued: true
   successorOrganization:
     slot_uri: https://blackcatinformatics.ca/gmeow/successorOrganization
     title: successor organization
@@ -11773,6 +11829,12 @@ slots:
     range: TaskStatus
     domain: Task
     multivalued: true
+  teacher:
+    slot_uri: https://blackcatinformatics.ca/gmeow/teacher
+    title: teacher
+    range: Agent
+    domain: Teaching
+    multivalued: false
   telephone:
     slot_uri: https://blackcatinformatics.ca/gmeow/telephone
     title: telephone
@@ -11958,6 +12020,12 @@ slots:
     title: to
     range: EmailAddress
     domain: EmailMessage
+    multivalued: true
+  toLevel:
+    slot_uri: https://blackcatinformatics.ca/gmeow/toLevel
+    title: to level
+    range: uriorcurie
+    domain: LearningEvent
     multivalued: true
   toneEventArticulation:
     slot_uri: https://blackcatinformatics.ca/gmeow/toneEventArticulation
@@ -15820,6 +15888,27 @@ enums:
       kindStandard:
         meaning: https://blackcatinformatics.ca/gmeow/kindStandard
         title: standard
+  LearningEventTypeEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/LearningEventType
+    permissible_values:
+      learningBeingTaught:
+        meaning: https://blackcatinformatics.ca/gmeow/learningBeingTaught
+        title: being taught
+      learningConceptFormation:
+        meaning: https://blackcatinformatics.ca/gmeow/learningConceptFormation
+        title: concept formation
+      learningConsolidation:
+        meaning: https://blackcatinformatics.ca/gmeow/learningConsolidation
+        title: consolidation
+      learningSkillAcquisition:
+        meaning: https://blackcatinformatics.ca/gmeow/learningSkillAcquisition
+        title: skill acquisition
+      learningTransfer:
+        meaning: https://blackcatinformatics.ca/gmeow/learningTransfer
+        title: transfer
+      learningUnlearning:
+        meaning: https://blackcatinformatics.ca/gmeow/learningUnlearning
+        title: unlearning
   LedgerAccountTypeEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/LedgerAccountType
     permissible_values:
@@ -16129,6 +16218,9 @@ enums:
       processImagining:
         meaning: https://blackcatinformatics.ca/gmeow/processImagining
         title: imagining
+      processLearning:
+        meaning: https://blackcatinformatics.ca/gmeow/processLearning
+        title: learning
       processMindWandering:
         meaning: https://blackcatinformatics.ca/gmeow/processMindWandering
         title: mind-wandering

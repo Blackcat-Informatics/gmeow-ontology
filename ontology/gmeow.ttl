@@ -60,6 +60,7 @@
         <https://blackcatinformatics.ca/gmeow/slices/inquiry> ,
         <https://blackcatinformatics.ca/gmeow/slices/kernel> ,
         <https://blackcatinformatics.ca/gmeow/slices/language> ,
+        <https://blackcatinformatics.ca/gmeow/slices/learning> ,
         <https://blackcatinformatics.ca/gmeow/slices/lifecycle> ,
         <https://blackcatinformatics.ca/gmeow/slices/logic> ,
         <https://blackcatinformatics.ca/gmeow/slices/mentation> ,

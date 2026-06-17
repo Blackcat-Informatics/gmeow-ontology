@@ -1,0 +1,67 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example: the two faces of instruction. A gmeow:Teaching relator reifies
+# the instruction relation — one teacher, two learners taught together, one
+# subject — making the roles first-class; teacher ≠ learner is enforced by
+# gmeow:TeachingShape (SHACL), so an agent never teaches itself. Each learner's
+# OWN acquisition is a separate gmeow:LearningEvent of variety
+# gmeow:learningBeingTaught that gmeow:learnedFrom the teacher and gmeow:produces
+# the cognitive state it settled — the being-taught face of learning, paired with
+# the teaching relator the events participate in.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/learning/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+ex:mentor a gmeow:Agent ;
+    rdfs:label "the cycling coach"@x-gmeow-english .
+
+ex:lillith a gmeow:Agent ;
+    rdfs:label "Lillith"@x-gmeow-english .
+
+ex:rowan a gmeow:Agent ;
+    rdfs:label "Rowan"@x-gmeow-english .
+
+ex:balancing a gmeow:Skill ;
+    rdfs:label "balancing on two wheels"@x-gmeow-english .
+
+# --- The reified instruction: one teacher, TWO learners taught together, one
+#     subject. teacher ≠ learner (gmeow:TeachingShape); co-taught learners share
+#     ONE gmeow:Teaching rather than one Teaching each.
+ex:lesson a gmeow:Teaching ;
+    gmeow:teacher ex:mentor ;
+    gmeow:learner ex:lillith, ex:rowan ;
+    gmeow:subjectTaught ex:balancing ;
+    rdfs:label "a group balancing lesson"@x-gmeow-english .
+
+# --- Lillith's own acquisition: a being-taught LearningEvent, learned FROM the
+#     teacher, producing the cognitive state it settled.
+ex:lillithLearns a gmeow:LearningEvent ;
+    gmeow:experiencer ex:lillith ;
+    gmeow:mentalProcessType gmeow:processLearning ;
+    gmeow:learningType gmeow:learningBeingTaught ;
+    gmeow:learnedFrom ex:mentor ;
+    gmeow:produces ex:lillithBalances ;
+    gmeow:eventTime "2026-06-15T14:00:00Z"^^xsd:dateTime ; # temporal placement — CONSTITUTION P11
+    gmeow:eventTemporalFrame gmeow:temporalFrameUTCGregorian ;
+    rdfs:label "Lillith learns to balance"@x-gmeow-english .
+
+ex:lillithBalances a gmeow:CognitiveState ;
+    rdfs:label "Lillith's grasp of balancing"@x-gmeow-english .
+
+# --- Rowan's acquisition is a DISTINCT event sharing the one gmeow:Teaching: two
+#     learners, two LearningEvents, one instruction relation.
+ex:rowanLearns a gmeow:LearningEvent ;
+    gmeow:experiencer ex:rowan ;
+    gmeow:mentalProcessType gmeow:processLearning ;
+    gmeow:learningType gmeow:learningBeingTaught ;
+    gmeow:learnedFrom ex:mentor ;
+    gmeow:produces ex:rowanBalances ;
+    gmeow:eventTime "2026-06-15T14:30:00Z"^^xsd:dateTime ; # temporal placement — CONSTITUTION P11
+    gmeow:eventTemporalFrame gmeow:temporalFrameUTCGregorian ;
+    rdfs:label "Rowan learns to balance"@x-gmeow-english .
+
+ex:rowanBalances a gmeow:CognitiveState ;
+    rdfs:label "Rowan's grasp of balancing"@x-gmeow-english .

@@ -46,6 +46,7 @@ Tier-2 uplift backlog.
 | kernel | core | core | 0 | 16 | 27 | 0 | 1 | 27/43 | full |
 | language | core | core | 2 | 5 | 5 | 3 | 1 | 10/10 | full |
 | languages | extension | extensions | 6 | 15 | 30 | 0 | 1 | - | full |
+| learning | core | core | 7 | 3 | 8 | 0 | 2 | 11/11 | full |
 | lexicon | extension | extensions | 5 | 6 | 16 | 0 | 1 | - | full |
 | lifecycle | core | core | 4 | 1 | 7 | 0 | 1 | 8/8 | full |
 | logic | core | core | 0 | 15 | 17 | 17 | 1 | 0/32 | full |
@@ -78,4 +79,4 @@ Tier-2 uplift backlog.
 | trust | core | core | 2 | 7 | 23 | 0 | 1 | 30/30 | full |
 | versions | core | core | 3 | 4 | 7 | 0 | 1 | 11/11 | full |
 
-**69 slices** · documentation: 69 full guides, 0 stubs remaining (#325); advisory coverage: 1117/1204 core class/property terms (#471).
+**70 slices** · documentation: 70 full guides, 0 stubs remaining (#325); advisory coverage: 1128/1215 core class/property terms (#471).
