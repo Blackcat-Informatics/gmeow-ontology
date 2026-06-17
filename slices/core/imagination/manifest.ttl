@@ -1,0 +1,20 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow:   <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+
+<https://blackcatinformatics.ca/gmeow/slices/imagination>
+    a gmeow:Slice ;
+    rdfs:label "imagination"@x-gmeow-english ;
+    skos:definition "The imagination slice of the GMEOW ontology (core tier): GMEOW Imagination Module — the as-if attitude flavour of mind, introducing the flat gmeow:imagines / gmeow:supposes spine (content entertained quasi-perceptually or suppositionally, decoupled from belief gmeow:believes and pragmatic acceptance gmeow:accepts) together with the gmeow:ContentOrigin reality-monitoring value vocabulary (perceived / remembered / believed / imagined / supposed / generated) that lets agent memory tell a recalled fact from a confabulated or machine-generated one. The imagining act (gmeow:processImagining, mentation), the counterfactual worlds (logic:World), and licensed falsehood (gmeow:veridicalityLicensedFalsehood, deception) are consumed BY REFERENCE — no asserted triples into those namespaces. Anatomy, dependencies, and consumer are declared in this manifest; the manifest is the sole source of slice identity and tier."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/imagination> ;
+    dcterms:title "GMEOW Imagination Module"@x-gmeow-english ;
+    dcterms:creator "Blackcat Informatics® Inc." ;
+    gmeow:sliceTier gmeow:tierCore ;
+    gmeow:sliceProfile "claims" , "memory" ;
+    gmeow:sliceDependsOn
+        <https://blackcatinformatics.ca/gmeow/slices/kernel> ;
+    gmeow:sliceConsumer "Reality-monitoring for the agent-memory flagship (Principle 14) — store_claim records a gmeow:contentOrigin (gmeow:originPerceived / originRemembered / originBelieved / originImagined / originSupposed / originGenerated) so recall can tell a recalled fact from a confabulated or LLM-generated one, gmeow:originGenerated being the disciplined hallucination/provenance marker; counterfactual rehearsal and planning rollouts entertain content with gmeow:imagines / gmeow:supposes against an imagined gmeow:imaginedWorld (logic:, by reference); fiction and narrative interiority are shared licensed imagining bridging gmeow:veridicalityLicensedFalsehood (deception); abduction entertains candidate explanations as suppositions before any are believed."@x-gmeow-english .
