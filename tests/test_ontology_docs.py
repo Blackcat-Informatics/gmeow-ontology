@@ -612,7 +612,7 @@ def test_four_boxes_doctrine_page_exists(ontology_docs_tree: Path) -> None:
         encoding="utf-8"
     )
 
-    assert "# ABox, TBox, RBox, CBox in GMEOW" in doctrine
+    assert "# ABox, TBox, RBox, CBox, ConfigBox in GMEOW" in doctrine
     assert "[ABox role](../reference/boxes/abox.md)" in doctrine
     assert "[TBox role](../reference/boxes/tbox.md)" in doctrine
     assert "[RBox role](../reference/boxes/rbox.md)" in doctrine

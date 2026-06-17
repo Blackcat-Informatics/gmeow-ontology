@@ -473,7 +473,7 @@ _BOX_ROLE_CURIES = [
 ]
 
 _FOUR_BOXES_SOURCE = PROJECT_ROOT / "docs" / "four-boxes.md"
-_FOUR_BOXES_TITLE = "ABox, TBox, RBox, CBox in GMEOW"
+_FOUR_BOXES_TITLE = "ABox, TBox, RBox, CBox, ConfigBox in GMEOW"
 
 
 @dataclass(slots=True)
