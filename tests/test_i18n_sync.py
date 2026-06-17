@@ -5,7 +5,11 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
+from rdflib import Graph, Literal, URIRef
+from rdflib.namespace import OWL, RDF, RDFS, SKOS
+from typer.testing import CliRunner
 
+from gmeow_tools.cli_dev import app as dev_app
 from gmeow_tools.i18n_sync import (
     PoEntry,
     PoParseError,
@@ -139,6 +143,18 @@ def _write_md(tmp_path: Path, content: str) -> Path:
     path = tmp_path / "source.md"
     path.write_text(content, encoding="utf-8")
     return path
+
+
+@pytest.fixture
+def i18n_fixtures_dir() -> Path:
+    return Path(__file__).resolve().parent / "fixtures" / "i18n"
+
+
+def _copy_fixture(tmp_path: Path, fixtures_dir: Path, name: str) -> Path:
+    src = fixtures_dir / name
+    dst = tmp_path / name
+    dst.write_text(src.read_text(encoding="utf-8"), encoding="utf-8")
+    return dst
 
 
 class TestThreeWayMerge:
@@ -539,3 +555,190 @@ msgstr "new"
         report = sync_english_file(po, ttl)
         assert report.changed_files == [ttl]
         assert '"new"@x-gmeow-english' in ttl.read_text(encoding="utf-8")
+
+
+class TestFixtureBasedSync:
+    """Fixture-based end-to-end tests for the i18n sync engine."""
+
+    def test_ttl_in_place_value_replacement(
+        self, tmp_path: Path, i18n_fixtures_dir: Path
+    ) -> None:
+        ttl = _copy_fixture(tmp_path, i18n_fixtures_dir, "module.ttl")
+        po = _copy_fixture(tmp_path, i18n_fixtures_dir, "lifecycle_en.po")
+        report = sync_english_from_po(po, ttl)
+        assert report.changed_files == [ttl]
+        assert not report.conflicts
+        assert not report.skipped
+        updated = ttl.read_text(encoding="utf-8")
+        assert '"Lifecycle Process"@x-gmeow-english' in updated
+        assert '"Active State"@x-gmeow-english' in updated
+        assert '"has lifecycle state"@x-gmeow-english' in updated
+        assert (
+            '"A process that manages entity states over time."@x-gmeow-english'
+            in updated
+        )
+        assert '"Original lifecycle description."@x-gmeow-english' not in updated
+        assert '"has state"@x-gmeow-english' not in updated
+
+    def test_ttl_no_structural_drift(
+        self, tmp_path: Path, i18n_fixtures_dir: Path
+    ) -> None:
+        ttl = _copy_fixture(tmp_path, i18n_fixtures_dir, "module.ttl")
+        po = _copy_fixture(tmp_path, i18n_fixtures_dir, "lifecycle_en.po")
+        report = sync_english_from_po(po, ttl)
+        assert report.changed_files == [ttl]
+        assert not report.conflicts
+        graph = Graph()
+        graph.parse(ttl, format="turtle")
+        lifecycle = URIRef("http://example.org/i18n-fixture/lifecycle#Lifecycle")
+        active = URIRef("http://example.org/i18n-fixture/lifecycle#Active")
+        has_state = URIRef("http://example.org/i18n-fixture/lifecycle#hasState")
+        assert (lifecycle, RDF.type, OWL.Class) in graph
+        assert (active, RDF.type, OWL.Class) in graph
+        assert (has_state, RDF.type, OWL.ObjectProperty) in graph
+        assert (
+            lifecycle,
+            RDFS.label,
+            Literal("Lifecycle Process", lang="x-gmeow-english"),
+        ) in graph
+        assert (
+            lifecycle,
+            SKOS.definition,
+            Literal(
+                "A process that manages entity states over time.",
+                lang="x-gmeow-english",
+            ),
+        ) in graph
+
+    def test_ttl_idempotency(self, tmp_path: Path, i18n_fixtures_dir: Path) -> None:
+        ttl = _copy_fixture(tmp_path, i18n_fixtures_dir, "module.ttl")
+        po = _copy_fixture(tmp_path, i18n_fixtures_dir, "lifecycle_en.po")
+        report1 = sync_english_from_po(po, ttl)
+        assert report1.changed_files == [ttl]
+        report2 = sync_english_from_po(po, ttl)
+        assert not report2.changed_files
+        assert not report2.conflicts
+        assert not report2.skipped
+        assert report2.unchanged
+
+    def test_ttl_conflict_detection(
+        self, tmp_path: Path, i18n_fixtures_dir: Path
+    ) -> None:
+        ttl = _copy_fixture(tmp_path, i18n_fixtures_dir, "module.ttl")
+        non_conflicting_po = _copy_fixture(
+            tmp_path, i18n_fixtures_dir, "lifecycle_en.po"
+        )
+        # First sync brings the master up to date with the non-conflicting PO.
+        sync_english_from_po(non_conflicting_po, ttl)
+        # Now apply a PO that proposes different values for the same originals.
+        conflicting_po = _copy_fixture(
+            tmp_path, i18n_fixtures_dir, "lifecycle_en_conflicting.po"
+        )
+        report = sync_english_from_po(conflicting_po, ttl)
+        assert not report.changed_files
+        assert len(report.conflicts) == 6
+        assert all("conflict" in conflict for conflict in report.conflicts)
+        assert not report.skipped
+        assert not report.unchanged
+
+    def test_md_in_place_segment_replacement(
+        self, tmp_path: Path, i18n_fixtures_dir: Path
+    ) -> None:
+        md = _copy_fixture(tmp_path, i18n_fixtures_dir, "docs.md")
+        po = _copy_fixture(tmp_path, i18n_fixtures_dir, "sample.md.po")
+        report = apply_md_sync(po, md)
+        assert report.changed_files == [md]
+        assert not report.conflicts
+        assert not report.skipped
+        updated = md.read_text(encoding="utf-8")
+        assert "This is the updated introduction paragraph." in updated
+        assert "This is the updated conclusion." in updated
+        assert "This is the original introduction paragraph." not in updated
+        assert "This is the original conclusion." not in updated
+
+    def test_md_preserves_fenced_code_and_front_matter(
+        self, tmp_path: Path, i18n_fixtures_dir: Path
+    ) -> None:
+        md = _copy_fixture(tmp_path, i18n_fixtures_dir, "docs.md")
+        po = _copy_fixture(tmp_path, i18n_fixtures_dir, "sample.md.po")
+        apply_md_sync(po, md)
+        updated = md.read_text(encoding="utf-8")
+        assert updated.startswith("---\ntitle: Sample Document\nversion: 1.0\n---\n")
+        assert '```python\nprint("hello")\n```' in updated
+
+    def test_md_idempotency(self, tmp_path: Path, i18n_fixtures_dir: Path) -> None:
+        md = _copy_fixture(tmp_path, i18n_fixtures_dir, "docs.md")
+        po = _copy_fixture(tmp_path, i18n_fixtures_dir, "sample.md.po")
+        report1 = apply_md_sync(po, md)
+        assert report1.changed_files == [md]
+
+        # A Markdown PO identifies segments by their content, so a second run
+        # with the original PO would see a changed source.  Idempotency is
+        # exercised by re-syncing with a PO whose msgid values match the
+        # already-updated master.
+        updated_po = tmp_path / "updated.md.po"
+        updated_po.write_text(
+            'msgid "This is the updated introduction paragraph."\n'
+            'msgstr "This is the updated introduction paragraph."\n\n'
+            'msgid "This is the updated conclusion."\n'
+            'msgstr "This is the updated conclusion."\n',
+            encoding="utf-8",
+        )
+        report2 = apply_md_sync(updated_po, md)
+        assert not report2.changed_files
+        assert not report2.conflicts
+        assert not report2.skipped
+        assert report2.unchanged
+
+    def test_md_conflict_detection(
+        self, tmp_path: Path, i18n_fixtures_dir: Path
+    ) -> None:
+        md = _copy_fixture(tmp_path, i18n_fixtures_dir, "docs.md")
+        po = _copy_fixture(tmp_path, i18n_fixtures_dir, "sample.md.po")
+        original = md.read_text(encoding="utf-8")
+        modified = original.replace(
+            "This is the original introduction paragraph.",
+            "This is an independently edited introduction paragraph.",
+        ).replace(
+            "This is the original conclusion.",
+            "This is an independently edited conclusion.",
+        )
+        md.write_text(modified, encoding="utf-8")
+        report = apply_md_sync(po, md)
+        assert not report.changed_files
+        assert len(report.conflicts) == 2
+        assert all("conflict" in conflict for conflict in report.conflicts)
+        assert not report.skipped
+        assert not report.unchanged
+        assert md.read_text(encoding="utf-8") == modified
+
+    def test_cli_dry_run_reports_changes(
+        self, tmp_path: Path, i18n_fixtures_dir: Path
+    ) -> None:
+        slice_dir = tmp_path / "slices" / "lifecycle"
+        i18n_dir = slice_dir / "i18n"
+        i18n_dir.mkdir(parents=True)
+        ttl = _copy_fixture(slice_dir, i18n_fixtures_dir, "module.ttl")
+        md = _copy_fixture(slice_dir, i18n_fixtures_dir, "docs.md")
+        en_po = _copy_fixture(i18n_dir, i18n_fixtures_dir, "lifecycle_en.po")
+        (i18n_dir / "en.po").write_text(
+            en_po.read_text(encoding="utf-8"), encoding="utf-8"
+        )
+        md_po = _copy_fixture(i18n_dir, i18n_fixtures_dir, "sample.md.po")
+        (i18n_dir / "docs.md.po").write_text(
+            md_po.read_text(encoding="utf-8"), encoding="utf-8"
+        )
+
+        runner = CliRunner()
+        result = runner.invoke(
+            dev_app,
+            ["i18n", "sync-english", "--dry-run", "--root", str(tmp_path)],
+        )
+        assert result.exit_code == 0, result.output
+        assert "would change" in result.output
+        assert ttl.name in result.output
+        assert md.name in result.output
+        assert "Lifecycle Process" not in ttl.read_text(encoding="utf-8")
+        assert "This is the updated introduction paragraph." not in md.read_text(
+            encoding="utf-8"
+        )
