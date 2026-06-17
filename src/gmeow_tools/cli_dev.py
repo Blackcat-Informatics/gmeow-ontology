@@ -1901,7 +1901,7 @@ def logic_query(
     stored fact).
     """
     try:
-        import gmeow_logic  # type: ignore[import-untyped]
+        import gmeow_logic
     except ImportError as exc:  # pragma: no cover - environment guard
         raise _fail(
             "✗ gmeow_logic extension not built — run `make logic-py` "

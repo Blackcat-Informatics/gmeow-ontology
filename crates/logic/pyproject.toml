@@ -31,3 +31,8 @@ module-name = "gmeow_logic"
 features = ["pyo3/extension-module"]
 # abi3 wheel targets Python >= 3.13 using the stable ABI.
 python-requires = ">=3.13"
+# Mixed Rust/Python layout: ship a hand-written type stub (__init__.pyi) and the
+# PEP 561 `py.typed` marker alongside the compiled extension so mypy type-checks
+# every gmeow_logic call site (query/materialize/certify) instead of treating the
+# module as untyped Any. The __init__.py mirrors what maturin auto-generates.
+python-source = "python"

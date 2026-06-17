@@ -588,7 +588,7 @@ def _resolve_answers(
     # queries exist is a hard failure (no degraded fallback — no-optionality doctrine;
     # the conformance CI always builds the extension).
     try:
-        import gmeow_logic  # type: ignore[import-untyped]
+        import gmeow_logic
     except ImportError as exc:
         raise RunnerError(
             f"Case {case_dir.name}: gmeow_logic native extension is not installed "
