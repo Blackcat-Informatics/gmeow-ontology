@@ -1,0 +1,80 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example — CONCEPTUAL CHANGE (issue #585, Task 2).
+#
+# Scenario: the concept "planet" changes its intension around the 2006 IAU  # codespell:ignore
+# redefinition.  The pre-2006 intension ("a body orbiting the Sun") is recorded  # codespell:ignore
+# as a closed gmeow:ConceptTenure that is suppressed with gmeow:displayable false
+# (Principle 10).  The post-2006 intension ("a body that has cleared its  # codespell:ignore
+# neighbourhood") is recorded as a new, open tenure.
+#
+# Pluto is then categorized under the concept "planet" from two coexisting
+# standpoints (Principle 9): the IAU 2006 standpoint assigns a low typicality
+# (it is a dwarf planet under the new intension), while a school-textbook  # codespell:ignore
+# standpoint assigns a higher typicality (it is still presented as a planet in
+# introductory materials).  Both categorizations coexist; neither is privileged.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/concepts/conceptual-change/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
+
+# --- The concept "planet" ---------------------------------------------------------
+ex:planet a gmeow:Concept ;
+    rdfs:label "planet"@en .
+
+# --- Pre-2006 intension, closed and suppressed (Principle 10) ---------------------  # codespell:ignore
+ex:planetTenurePre2006 a gmeow:ConceptTenure ;
+    rdfs:label "pre-2006 intension of 'planet'"@x-gmeow-english ;  # codespell:ignore
+    gmeow:conceptHoldsFor ex:planet ;
+    gmeow:duringInterval ex:pre2006Interval ;
+    rdfs:comment "A body orbiting the Sun."@x-gmeow-english ;
+    gmeow:displayable false .
+
+ex:pre2006Interval a gmeow:TimeInterval ;
+    gmeow:startedAtTime "0001-01-01T00:00:00Z"^^xsd:dateTime ;
+    gmeow:endedAtTime "2006-08-24T00:00:00Z"^^xsd:dateTime ;
+    gmeow:hasTemporalFrame gmeow:temporalFrameUTCGregorian .
+
+# --- Post-2006 intension, open tenure ---------------------------------------------  # codespell:ignore
+ex:planetTenurePost2006 a gmeow:ConceptTenure ;
+    rdfs:label "post-2006 intension of 'planet'"@x-gmeow-english ;  # codespell:ignore
+    gmeow:conceptHoldsFor ex:planet ;
+    gmeow:duringInterval ex:post2006Interval ;
+    rdfs:comment "A body that has cleared its neighbourhood."@x-gmeow-english .
+
+ex:post2006Interval a gmeow:TimeInterval ;
+    gmeow:startedAtTime "2006-08-24T00:00:00Z"^^xsd:dateTime ;
+    gmeow:hasTemporalFrame gmeow:temporalFrameUTCGregorian .
+
+# --- The entity being categorized -------------------------------------------------
+ex:pluto a gmeow:Entity ;
+    rdfs:label "Pluto"@en .
+
+# --- Standpoint: IAU 2006 — low typicality ----------------------------------------
+ex:iau2006 a gmeow:Agent ;
+    rdfs:label "IAU 2006 redefinition"@x-gmeow-english .
+
+ex:plutoCategorizationIAU a gmeow:ConceptCategorization ;
+    rdfs:label "Pluto categorized as a planet from the IAU 2006 standpoint"@x-gmeow-english ;
+    gmeow:vantage ex:iau2006 ;
+    gmeow:observedFeature ex:pluto ;
+    gmeow:observationResult ex:planet ;
+    gmeow:typicality "0.3"^^xsd:decimal ;
+    gmeow:claimModality gmeow:conceivable ;
+    gmeow:confidence "0.95"^^xsd:decimal .
+
+# --- Standpoint: school textbook — higher typicality (Principle 9) ----------------
+ex:schoolTextbook a gmeow:Agent ;
+    rdfs:label "introductory school textbook"@x-gmeow-english .
+
+ex:plutoCategorizationTextbook a gmeow:ConceptCategorization ;
+    rdfs:label "Pluto categorized as a planet in school textbooks"@x-gmeow-english ;
+    gmeow:vantage ex:schoolTextbook ;
+    gmeow:observedFeature ex:pluto ;
+    gmeow:observationResult ex:planet ;
+    gmeow:typicality "0.85"^^xsd:decimal ;
+    gmeow:claimModality gmeow:probable ;
+    gmeow:accordingTo ex:schoolTextbook .

@@ -1,0 +1,71 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow:  <https://blackcatinformatics.ca/gmeow/> .
+@prefix owl:    <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs:   <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:   <http://www.w3.org/2004/02/skos/core#> .
+@prefix semapv: <https://w3id.org/semapv/vocab/> .
+@prefix ontolex: <http://www.w3.org/ns/lemon/ontolex#> .
+
+# Term equivalences for the concepts slice — GMEOW authoring source.
+# Compiled to mappings/gmeow-concepts.sssom.tsv by `gmeow compile-mappings`.
+# All alignments are BY REFERENCE (Principle 5); GMEOW never imports an external axiom.
+
+gmeow:mapsetConcepts a gmeow:MappingSet ;
+    rdfs:label "concepts mapping set"@x-gmeow-english ;
+    skos:definition "The SSSOM mapping set for the concepts slice — aligns the concept class, concept subsumption, and the lexical-concept bridge to external vocabularies by reference."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/concepts> ;
+    gmeow:sssomFile "gmeow-concepts.sssom.tsv" ;
+    gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/concepts" ;
+    gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
+    gmeow:setComment """Concepts slice alignments (Principle 5 — by reference only).
+        AXIOMATIC GROUNDING: gmeow:Concept is a gufo:Kind subclass of gmeow:SocialObject,
+        and gmeow:ConceptCategorization is a gufo:SubKind subclass of gmeow:StandpointClaim;
+        these subsumptions are ontology, documented here rather than asserted as mapping rows.
+        SKOS: gmeow:Concept is a closeMatch to skos:Concept, and gmeow:subsumes is a closeMatch
+        to skos:broader after accounting for domain inversion. The bridge is authored in the
+        mapping DSL, not as an OWL axiom in the module.
+        ontolex: gmeow:Concept is a relatedMatch to ontolex:LexicalConcept as a forward bridge
+        to the future lexicon slice; a lexical concept is language-bound and narrower.
+        Rosch prototype theory and Gärdenfors conceptual spaces are referenced in prose only
+        (no resolvable RDF namespace suitable for SSSOM rows).""" .
+
+# SKOS — Concept as a unit in a concept scheme.
+gmeow:eqConcepts001 a gmeow:TermEquivalence ;
+    rdfs:label "Concept ↔ skos:Concept closeMatch"@x-gmeow-english ;
+    skos:definition "CloseMatch between gmeow:Concept and skos:Concept — both are units of thought or categories held within a concept scheme. GMEOW's Concept is a socially sustained representational object; SKOS Concept is a generic unit of knowledge organization."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/concepts> ;
+    gmeow:alignSubject gmeow:Concept ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject skos:Concept ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.8 ;
+    gmeow:comment "gmeow:Concept is a socially sustained representational object, not the gUFO universal; skos:Concept is the SKOS unit of knowledge organization" ;
+    gmeow:sssomFile "gmeow-concepts.sssom.tsv" .
+
+# ontolex — forward bridge to the future lexicon slice.
+gmeow:eqConcepts002 a gmeow:TermEquivalence ;
+    rdfs:label "Concept ↔ ontolex:LexicalConcept relatedMatch"@x-gmeow-english ;
+    skos:definition "RelatedMatch between gmeow:Concept and ontolex:LexicalConcept — a forward bridge to the future lexicon slice. A lexical concept is language-bound and narrower than a GMEOW Concept."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/concepts> ;
+    gmeow:alignSubject gmeow:Concept ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject ontolex:LexicalConcept ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.6 ;
+    gmeow:comment "ontolex:LexicalConcept is language-bound and narrower than the socially sustained gmeow:Concept; bridge to the future lexicon slice" ;
+    gmeow:sssomFile "gmeow-concepts.sssom.tsv" .
+
+# SKOS — subsumes as the broader/narrower mapping target.
+gmeow:eqConcepts003 a gmeow:TermEquivalence ;
+    rdfs:label "subsumes ↔ skos:broader closeMatch"@x-gmeow-english ;
+    skos:definition "CloseMatch between gmeow:subsumes and skos:broader — both express a broader-to-narrower concept relation. The bridge is authored in the mapping DSL, not as an OWL sub-property axiom, because GMEOW keeps SKOS projection separate from core axioms."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/concepts> ;
+    gmeow:alignSubject gmeow:subsumes ;
+    gmeow:alignPredicate skos:closeMatch ;
+    gmeow:alignObject skos:broader ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.7 ;
+    gmeow:comment "gmeow:subsumes points from broader to narrower concept; skos:broader points from narrower to broader. Direction inverts, so the closeMatch is via the mapping DSL, not an OWL axiom" ;
+    gmeow:sssomFile "gmeow-concepts.sssom.tsv" .
