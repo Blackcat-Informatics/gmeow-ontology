@@ -12,7 +12,7 @@ Comparison is **value-based**, not lexical: ``"645.0"^^xsd:decimal`` and
 literals differently while meaning the same thing.
 
 What this does NOT cover (no oxigraph equivalent — they stay single-engine, run
-full in the authoritative gate): SHACL (pyshacl/rdflib) and OWL reasoning
+full in the authoritative gate): SHACL (gmeow_shacl) and OWL reasoning
 (Jena/ROBOT). Queries are run on the *asserted* merged graph: the gate proves
 engine equivalence, not entailment, so reasoning is intentionally absent.
 """
