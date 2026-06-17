@@ -68,7 +68,8 @@ meta:gate-generator-registry a meta:Gate ;
     rdfs:label "generator registry: regenerate / drift / orphan gates"@x-gmeow-english ;
     meta:artifact "src/gmeow_tools/generator.py" ;
     meta:symbol "regenerate_order" ;
-    meta:cliCommand "regenerate", "check-generated" ;
+    meta:cliCommand "regenerate", "check-generated",
+        "compile-gts", "compile-gts-full" ;
     meta:makeTarget "check-generated", "regenerate" ;
     meta:generator "statements", "mappings", "gts", "exports",
         "metadata", "schemas", "lpg", "matrix", "apache",
