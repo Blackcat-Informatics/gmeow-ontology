@@ -303,3 +303,40 @@ gmeow:AwarenessTenure
     gmeow:avoidWhen "Avoid for a timeless or lightweight state tag (put gmeow:awarenessMode directly on the agent or process), and avoid modelling the dreaming/processing ACT here — that is a gmeow:processDreaming / model invocation (mentation, by reference); the tenure is the state-over-time."@x-gmeow-english ;
     gmeow:howToUse "Instantiate it carrying gmeow:awarenessSubject (the gmeow:Agent), gmeow:awarenessMode (the state), and gmeow:duringInterval (a gmeow:TimeInterval whose bounds bear gmeow:hasTemporalFrame, P11); add gmeow:awarenessLevel and/or gmeow:awarenessScalar for arousal, and nest finer sub-tenures (a gmeow:modeREM episode within a night's sleep) as their own gmeow:AwarenessTenure individuals."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/awareness> .
+
+# --------------------------------------------------------------------------- #
+# Graph box role coverage (canonical explicit annotations).
+# --------------------------------------------------------------------------- #
+
+gmeow:AwarenessLevel gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:AwarenessMode gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:AwarenessTenure gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:awarenessLevel gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:awarenessMode gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:awarenessScalar gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:awarenessSubject gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:levelAlert gmeow:graphBoxRole gmeow:boxABox .
+gmeow:levelDrowsy gmeow:graphBoxRole gmeow:boxABox .
+gmeow:levelHyperalert gmeow:graphBoxRole gmeow:boxABox .
+gmeow:levelObtunded gmeow:graphBoxRole gmeow:boxABox .
+gmeow:levelRank gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:levelRelaxed gmeow:graphBoxRole gmeow:boxABox .
+gmeow:levelUnresponsive gmeow:graphBoxRole gmeow:boxABox .
+gmeow:modeAsleep gmeow:graphBoxRole gmeow:boxABox .
+gmeow:modeComatose gmeow:graphBoxRole gmeow:boxABox .
+gmeow:modeDormant gmeow:graphBoxRole gmeow:boxABox .
+gmeow:modeDreaming gmeow:graphBoxRole gmeow:boxABox .
+gmeow:modeDrowsy gmeow:graphBoxRole gmeow:boxABox .
+gmeow:modeFlow gmeow:graphBoxRole gmeow:boxABox .
+gmeow:modeFocused gmeow:graphBoxRole gmeow:boxABox .
+gmeow:modeLucidDreaming gmeow:graphBoxRole gmeow:boxABox .
+gmeow:modeMeditative gmeow:graphBoxRole gmeow:boxABox .
+gmeow:modeMindWandering gmeow:graphBoxRole gmeow:boxABox .
+gmeow:modeOfflineReplay gmeow:graphBoxRole gmeow:boxABox .
+gmeow:modeOnlineInference gmeow:graphBoxRole gmeow:boxABox .
+gmeow:modeREM gmeow:graphBoxRole gmeow:boxABox .
+gmeow:modeSampling gmeow:graphBoxRole gmeow:boxABox .
+gmeow:modeSedated gmeow:graphBoxRole gmeow:boxABox .
+gmeow:modeTraining gmeow:graphBoxRole gmeow:boxABox .
+gmeow:modeWaking gmeow:graphBoxRole gmeow:boxABox .
+<https://blackcatinformatics.ca/gmeow/slices/awareness> gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .

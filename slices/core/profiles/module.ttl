@@ -131,3 +131,17 @@ gmeow:profileTemporalProvenance
         gmeow:assertedAt ,
         gmeow:recordedNoLaterThan ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/profiles> .
+
+# --------------------------------------------------------------------------- #
+# Graph box role coverage (canonical explicit annotations).
+# --------------------------------------------------------------------------- #
+
+gmeow:Profile gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .
+gmeow:hasProfile gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
+gmeow:profileAppliesTo gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
+gmeow:profileDescriptor gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
+gmeow:profileOpenValue gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
+gmeow:profileReferenceFrame gmeow:graphBoxRole gmeow:boxABox, gmeow:boxConfigBox .
+gmeow:profileTemporalFrame gmeow:graphBoxRole gmeow:boxABox, gmeow:boxCBox, gmeow:boxConfigBox .
+gmeow:profileTemporalProvenance gmeow:graphBoxRole gmeow:boxABox, gmeow:boxCBox, gmeow:boxConfigBox .
+<https://blackcatinformatics.ca/gmeow/slices/profiles> gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .

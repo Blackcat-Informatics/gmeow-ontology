@@ -1176,6 +1176,7 @@ export enum GraphBoxRoleEnum {
 
     ABox_role = "boxABox",
     CBox_role = "boxCBox",
+    ConfigBox_role = "boxConfigBox",
     RBox_role = "boxRBox",
     TBox_role = "boxTBox",
 };

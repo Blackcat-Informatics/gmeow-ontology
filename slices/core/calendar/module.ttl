@@ -590,3 +590,70 @@ gmeow:Availability rdfs:subClassOf
 
 gmeow:Reminder rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty gmeow:reminderTarget ; owl:someValuesFrom gmeow:Event ] .
+
+# --------------------------------------------------------------------------- #
+# Graph box role coverage (canonical explicit annotations).
+# --------------------------------------------------------------------------- #
+
+gmeow:Availability gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:AvailabilityStatus gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:Calendar gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:EventInvitation gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:EventSchedule gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:ExceptionType gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:InvitationStatus gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:Reminder gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:ReminderAction gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:RsvpStatus gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:ScheduleException gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:Task gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:TaskStatus gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:TimeZone gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:availabilityAgent gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:availabilitySlot gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:availabilityStatus gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:availabilityStatusBusy gmeow:graphBoxRole gmeow:boxABox .
+gmeow:availabilityStatusFree gmeow:graphBoxRole gmeow:boxABox .
+gmeow:availabilityStatusOutOfOffice gmeow:graphBoxRole gmeow:boxABox .
+gmeow:availabilityStatusTentative gmeow:graphBoxRole gmeow:boxABox .
+gmeow:calendarMember gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:calendarTimeZone gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:eventTimeZone gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:exceptionOriginalDate gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:exceptionReplacementEvent gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:exceptionSchedule gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:exceptionType gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:exceptionTypeCancellation gmeow:graphBoxRole gmeow:boxABox .
+gmeow:exceptionTypeRescheduling gmeow:graphBoxRole gmeow:boxABox .
+gmeow:invitationEvent gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:invitationInvitee gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:invitationStatus gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:invitationStatusAccepted gmeow:graphBoxRole gmeow:boxABox .
+gmeow:invitationStatusDeclined gmeow:graphBoxRole gmeow:boxABox .
+gmeow:invitationStatusNeedsAction gmeow:graphBoxRole gmeow:boxABox .
+gmeow:invitationStatusTentative gmeow:graphBoxRole gmeow:boxABox .
+gmeow:reminderAction gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:reminderActionAudio gmeow:graphBoxRole gmeow:boxABox .
+gmeow:reminderActionDisplay gmeow:graphBoxRole gmeow:boxABox .
+gmeow:reminderActionEmail gmeow:graphBoxRole gmeow:boxABox .
+gmeow:reminderTarget gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:reminderTrigger gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:rsvpStatus gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:rsvpStatusAccepted gmeow:graphBoxRole gmeow:boxABox .
+gmeow:rsvpStatusDeclined gmeow:graphBoxRole gmeow:boxABox .
+gmeow:rsvpStatusNeedsAction gmeow:graphBoxRole gmeow:boxABox .
+gmeow:rsvpStatusTentative gmeow:graphBoxRole gmeow:boxABox .
+gmeow:scheduleOccurrence gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:scheduleRecurrenceRule gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:scheduleTemplateEvent gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:scheduleTimeZone gmeow:graphBoxRole gmeow:boxRBox .
+<https://blackcatinformatics.ca/gmeow/slices/calendar> gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .
+gmeow:taskDueDate gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:taskPriority gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:taskRecurrenceUntilDone gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:taskStatus gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:taskStatusCancelled gmeow:graphBoxRole gmeow:boxABox .
+gmeow:taskStatusCompleted gmeow:graphBoxRole gmeow:boxABox .
+gmeow:taskStatusInProgress gmeow:graphBoxRole gmeow:boxABox .
+gmeow:taskStatusNotStarted gmeow:graphBoxRole gmeow:boxABox .
+gmeow:timeZoneIanaId gmeow:graphBoxRole gmeow:boxRBox .

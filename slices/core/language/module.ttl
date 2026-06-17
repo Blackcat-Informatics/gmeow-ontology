@@ -208,3 +208,22 @@ gmeow:writtenInLanguage
     gmeow:avoidWhen "Avoid giving it a code literal as object (the object is always a Language IRI; codes live on the language via gmeow:languageCode) and avoid forcing a single language — multilingual content and polyglot codebases name several, so it stays non-functional."@x-gmeow-english ;
     gmeow:howToUse "Reference one or more gmeow:Language individuals (a gmeow:ProgrammingLanguage for software); when the per-language extent, role, or confidence must be first-class, promote to a reified usage relator rather than overloading this flat property."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/language> .
+
+# --------------------------------------------------------------------------- #
+# Graph box role coverage (canonical explicit annotations).
+# --------------------------------------------------------------------------- #
+
+gmeow:FormalLanguage gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:Language gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:ProgrammingLanguage gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:TransliterationScheme gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:WritingSystem gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:bcp47Tag gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:langEnglish gmeow:graphBoxRole gmeow:boxABox .
+gmeow:langFrench gmeow:graphBoxRole gmeow:boxABox .
+gmeow:langMandarin gmeow:graphBoxRole gmeow:boxABox .
+gmeow:languageCode gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:languageTag gmeow:graphBoxRole gmeow:boxRBox .
+<https://blackcatinformatics.ca/gmeow/slices/language> gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .
+gmeow:transliterationScheme gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:writtenInLanguage gmeow:graphBoxRole gmeow:boxRBox .

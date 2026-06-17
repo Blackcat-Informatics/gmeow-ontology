@@ -835,3 +835,115 @@ gmeow:BuildActivity rdfs:subClassOf
 # have multiple parents, and the initial commit has zero. The someValuesFrom
 # restriction above is also deliberately omitted for parentCommit to allow
 # the root commit case.
+
+# --------------------------------------------------------------------------- #
+# Graph box role coverage (canonical explicit annotations).
+# --------------------------------------------------------------------------- #
+
+gmeow:AuthorIdentity gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:Blob gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:Branch gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:BuildActivity gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:Builder gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:CodeReview gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:Commit gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:Diff gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:Distribution gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:ForgePlatform gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:GovernanceModel gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:Issue gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:MaintenanceStatus gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:Merge gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:MergeRequest gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:Package gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .
+gmeow:Project gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:Push gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:Ref gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:Release gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:Repository gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:RepositoryType gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:Review gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:SLSALevel gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:SoftwareName gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:SoftwareProduct gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:SoftwareProject gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:SourceDirectory gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxTBox .
+gmeow:SourceFile gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxTBox .
+gmeow:SourceNode gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxTBox .
+gmeow:SourceTree gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxTBox .
+gmeow:TreeEntry gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:authorIdentityString gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:authorTime gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:authoredBy gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:bugDatabase gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:buildConfigUri gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
+gmeow:buildOutput gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:buildSource gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxRBox .
+gmeow:canonicalizedIdentity gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:cloneUrl gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:commitAncestor gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:commitAuthorIdentity gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:commitCommitterIdentity gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:commitDescendant gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:commitInRepository gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:commitTree gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:committedBy gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:committerTime gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:diffFrom gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:diffTo gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:distributionFormat gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:downloadPage gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:eventTypeBuild gmeow:graphBoxRole gmeow:boxABox .
+gmeow:governanceBDFL gmeow:graphBoxRole gmeow:boxABox .
+gmeow:governanceCorporate gmeow:graphBoxRole gmeow:boxABox .
+gmeow:governanceDAO gmeow:graphBoxRole gmeow:boxABox .
+gmeow:governanceFoundation gmeow:graphBoxRole gmeow:boxABox .
+gmeow:governanceMeritocracy gmeow:graphBoxRole gmeow:boxABox .
+gmeow:governanceModel gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:hasDistribution gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:hasRelease gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:hasRepository gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:hasSLSALevel gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:hasSoftwareName gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:hostedAt gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:mailmapEntry gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:maintenanceStatus gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:materializationDepth gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:mergeBase gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:mergeSource gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxRBox .
+gmeow:mergeTarget gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:packageOf gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
+gmeow:parentCommit gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:pointsToCommit gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:programmingLanguage gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:projectHomepage gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:projectIdentifier gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:projectLicense gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:pushTarget gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:releaseDoi gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:releaseOf gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:releaseTag gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:releaseVersion gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:repoTypeFossil gmeow:graphBoxRole gmeow:boxABox .
+gmeow:repoTypeGit gmeow:graphBoxRole gmeow:boxABox .
+gmeow:repoTypeHg gmeow:graphBoxRole gmeow:boxABox .
+gmeow:repoTypeJJ gmeow:graphBoxRole gmeow:boxABox .
+gmeow:repoTypePijul gmeow:graphBoxRole gmeow:boxABox .
+gmeow:repoTypeSVN gmeow:graphBoxRole gmeow:boxABox .
+gmeow:repositoryType gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:reviewCommit gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:reviewOf gmeow:graphBoxRole gmeow:boxRBox .
+<https://blackcatinformatics.ca/gmeow/slices/software> gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .
+gmeow:slsaLevel1 gmeow:graphBoxRole gmeow:boxABox .
+gmeow:slsaLevel2 gmeow:graphBoxRole gmeow:boxABox .
+gmeow:slsaLevel3 gmeow:graphBoxRole gmeow:boxABox .
+gmeow:slsaLevel4 gmeow:graphBoxRole gmeow:boxABox .
+gmeow:statusAbandoned gmeow:graphBoxRole gmeow:boxABox .
+gmeow:statusActive gmeow:graphBoxRole gmeow:boxABox .
+gmeow:statusDeprecated gmeow:graphBoxRole gmeow:boxABox .
+gmeow:statusEOL gmeow:graphBoxRole gmeow:boxABox .
+gmeow:statusMaintained gmeow:graphBoxRole gmeow:boxABox .
+gmeow:treeEntryMode gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:treeEntryName gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:treeEntryObject gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:webUrl gmeow:graphBoxRole gmeow:boxRBox .

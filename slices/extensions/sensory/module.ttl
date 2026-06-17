@@ -198,3 +198,30 @@ gmeow:hasSensoryQuantity
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sensory> .
 
 gmeow:hasSensoryQuantity owl:propertyChainAxiom ( gmeow:hasSensoryObservation gmeow:sensoryResult ) .
+
+# --------------------------------------------------------------------------- #
+# Graph box role coverage (canonical explicit annotations).
+# --------------------------------------------------------------------------- #
+
+gmeow:ObservableProperty gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:Sensor gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:SensorPlatform gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:SensoryQuantity gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:hasSensoryObservation gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:hasSensoryQuantity gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:observablePropertyAirQualityIndex gmeow:graphBoxRole gmeow:boxABox .
+gmeow:observablePropertyAtmosphericPressure gmeow:graphBoxRole gmeow:boxABox .
+gmeow:observablePropertyHumidity gmeow:graphBoxRole gmeow:boxABox .
+gmeow:observablePropertyLightIntensity gmeow:graphBoxRole gmeow:boxABox .
+gmeow:observablePropertyLoudness gmeow:graphBoxRole gmeow:boxABox .
+gmeow:observablePropertyRadiationLevel gmeow:graphBoxRole gmeow:boxABox .
+gmeow:observablePropertyRoughness gmeow:graphBoxRole gmeow:boxABox .
+gmeow:observablePropertySoundPressureLevel gmeow:graphBoxRole gmeow:boxABox .
+gmeow:observablePropertyTemperature gmeow:graphBoxRole gmeow:boxABox .
+gmeow:observablePropertyTimbre gmeow:graphBoxRole gmeow:boxABox .
+gmeow:observablePropertyTimingDeviation gmeow:graphBoxRole gmeow:boxABox .
+gmeow:platformLocation gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:sensoryObservationOf gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:sensoryProperty gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:sensoryResult gmeow:graphBoxRole gmeow:boxRBox .
+<https://blackcatinformatics.ca/gmeow/slices/sensory> gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .

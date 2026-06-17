@@ -355,3 +355,42 @@ gmeow:GenderIdentity rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty gmeow:genderValue ; owl:someValuesFrom gmeow:Gender ] .
 gmeow:GenderExpression rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty gmeow:expressionValue ; owl:someValuesFrom gmeow:GenderExpressionStyle ] .
+
+# --------------------------------------------------------------------------- #
+# Graph box role coverage (canonical explicit annotations).
+# --------------------------------------------------------------------------- #
+
+gmeow:Gender gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:GenderExpression gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:GenderExpressionStyle gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:GenderIdentity gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:IdentityFacet gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:SexAssignedAtBirth gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:expressionAndrogynous gmeow:graphBoxRole gmeow:boxABox .
+gmeow:expressionFeminine gmeow:graphBoxRole gmeow:boxABox .
+gmeow:expressionFluid gmeow:graphBoxRole gmeow:boxABox .
+gmeow:expressionMasculine gmeow:graphBoxRole gmeow:boxABox .
+gmeow:expressionNeutral gmeow:graphBoxRole gmeow:boxABox .
+gmeow:expressionValue gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:genderAgender gmeow:graphBoxRole gmeow:boxABox .
+gmeow:genderBigender gmeow:graphBoxRole gmeow:boxABox .
+gmeow:genderDemiboy gmeow:graphBoxRole gmeow:boxABox .
+gmeow:genderDemigirl gmeow:graphBoxRole gmeow:boxABox .
+gmeow:genderGenderfluid gmeow:graphBoxRole gmeow:boxABox .
+gmeow:genderGenderqueer gmeow:graphBoxRole gmeow:boxABox .
+gmeow:genderMan gmeow:graphBoxRole gmeow:boxABox .
+gmeow:genderNonBinary gmeow:graphBoxRole gmeow:boxABox .
+gmeow:genderQuestioning gmeow:graphBoxRole gmeow:boxABox .
+gmeow:genderTwoSpirit gmeow:graphBoxRole gmeow:boxABox .
+gmeow:genderValue gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:genderWoman gmeow:graphBoxRole gmeow:boxABox .
+gmeow:hasGenderExpression gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:hasGenderIdentity gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:intersexVariation gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:saabFemale gmeow:graphBoxRole gmeow:boxABox .
+gmeow:saabIntersex gmeow:graphBoxRole gmeow:boxABox .
+gmeow:saabMale gmeow:graphBoxRole gmeow:boxABox .
+gmeow:saabUnknown gmeow:graphBoxRole gmeow:boxABox .
+gmeow:selfAsserted gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxRBox .
+gmeow:sexAssignedAtBirth gmeow:graphBoxRole gmeow:boxRBox .
+<https://blackcatinformatics.ca/gmeow/slices/gender> gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .

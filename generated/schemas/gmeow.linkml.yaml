@@ -15466,6 +15466,9 @@ enums:
       boxCBox:
         meaning: https://blackcatinformatics.ca/gmeow/boxCBox
         title: CBox role
+      boxConfigBox:
+        meaning: https://blackcatinformatics.ca/gmeow/boxConfigBox
+        title: ConfigBox role
       boxRBox:
         meaning: https://blackcatinformatics.ca/gmeow/boxRBox
         title: RBox role

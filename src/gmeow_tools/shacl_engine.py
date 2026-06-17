@@ -58,6 +58,7 @@ _BOX_LABELS = {
     _GMEOW + "boxTBox": "TBox",
     _GMEOW + "boxRBox": "RBox",
     _GMEOW + "boxCBox": "CBox",
+    _GMEOW + "boxConfigBox": "ConfigBox",
 }
 
 

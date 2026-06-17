@@ -360,3 +360,33 @@ gmeow:scaleSOLO a gmeow:ProficiencyScale ;
     rdfs:label "SOLO taxonomy"@x-gmeow-english ;
     skos:definition "An alternate knowledge-depth framework — Biggs & Collis's Structure of Observed Learning Outcomes (prestructural ≺ unistructural ≺ multistructural ≺ relational ≺ extended-abstract). Reused as a gmeow:ProficiencyScale; correspondence to the native axis lives in the alignment ledger, not as an axiom."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/cognition> .
+
+# --------------------------------------------------------------------------- #
+# Graph box role coverage (canonical explicit annotations).
+# --------------------------------------------------------------------------- #
+
+gmeow:CognitiveState gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:KnowledgeLevel gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:KnowledgeProficiency gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:attendsTo gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:curiousAbout gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:deeperThan gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:hasMastered gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:interestedIn gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:isAwareOf gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:knowledgeAware gmeow:graphBoxRole gmeow:boxABox .
+gmeow:knowledgeKnowsAbout gmeow:graphBoxRole gmeow:boxABox .
+gmeow:knowledgeMastered gmeow:graphBoxRole gmeow:boxABox .
+gmeow:knowledgeProficiencyAgent gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:knowledgeProficiencyInterval gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:knowledgeProficiencyLevel gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:knowledgeProficiencyScale gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:knowledgeProficiencySubject gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:knowledgeUnderstands gmeow:graphBoxRole gmeow:boxABox .
+gmeow:knowsAbout gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:remembers gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:scaleBloomRevised gmeow:graphBoxRole gmeow:boxABox .
+gmeow:scaleKnowledgeDepth gmeow:graphBoxRole gmeow:boxABox .
+gmeow:scaleSOLO gmeow:graphBoxRole gmeow:boxABox .
+<https://blackcatinformatics.ca/gmeow/slices/cognition> gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .
+gmeow:understands gmeow:graphBoxRole gmeow:boxRBox .

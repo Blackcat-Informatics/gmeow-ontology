@@ -150,3 +150,28 @@ gmeow:AccessibilityAssertion rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty gmeow:assertionSubject ; owl:someValuesFrom gmeow:Entity ] ,
     [ a owl:Restriction ; owl:onProperty gmeow:assertionFacet ; owl:someValuesFrom gmeow:AccessibilityFacet ] ,
     [ a owl:Restriction ; owl:onProperty gmeow:assertionPolarity ; owl:someValuesFrom gmeow:AccessibilityPolarity ] .
+
+# --------------------------------------------------------------------------- #
+# Graph box role coverage (canonical explicit annotations).
+# --------------------------------------------------------------------------- #
+
+gmeow:AccessibilityAssertion gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxTBox .
+gmeow:AccessibilityFacet gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:AccessibilityPolarity gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:assertionFacet gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxRBox .
+gmeow:assertionPolarity gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxRBox .
+gmeow:assertionSubject gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxRBox .
+gmeow:facetAuditory gmeow:graphBoxRole gmeow:boxABox .
+gmeow:facetClearance gmeow:graphBoxRole gmeow:boxABox .
+gmeow:facetCognitive gmeow:graphBoxRole gmeow:boxABox .
+gmeow:facetLifeSupport gmeow:graphBoxRole gmeow:boxABox .
+gmeow:facetStepFree gmeow:graphBoxRole gmeow:boxABox .
+gmeow:facetVisual gmeow:graphBoxRole gmeow:boxABox .
+gmeow:facetWheelchair gmeow:graphBoxRole gmeow:boxABox .
+gmeow:hasAccessibilityFeature gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:hasAccessibilityNeed gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:hasBarrier gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:polarityBarrier gmeow:graphBoxRole gmeow:boxABox .
+gmeow:polarityFeature gmeow:graphBoxRole gmeow:boxABox .
+gmeow:polarityLimited gmeow:graphBoxRole gmeow:boxABox .
+<https://blackcatinformatics.ca/gmeow/slices/accessibility> gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .

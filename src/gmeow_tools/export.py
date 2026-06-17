@@ -86,6 +86,7 @@ _ALIGN_TAGS: dict[str, str] = {
 
 
 class _AdvisoryKwargs(TypedDict):
+    box_roles: list[str]
     scope_notes: list[str]
     examples: list[str]
     use_when: list[str]
@@ -125,6 +126,7 @@ class Term:
     sub_property_of: list[str] = field(default_factory=list)  # CURIEs
     types: list[str] = field(default_factory=list)  # CURIEs (individuals only)
     alignments: list[str] = field(default_factory=list)  # "tag=curie"
+    box_roles: list[str] = field(default_factory=list)  # CURIEs
     scope_notes: list[str] = field(default_factory=list)
     examples: list[str] = field(default_factory=list)
     use_when: list[str] = field(default_factory=list)
@@ -164,6 +166,8 @@ class Term:
             rec["types"] = self.types
         if self.alignments:
             rec["alignments"] = self.alignments
+        if self.box_roles:
+            rec["boxRoles"] = self.box_roles
         if self.scope_notes:
             rec["scopeNotes"] = self.scope_notes
         if self.examples:
@@ -246,6 +250,7 @@ def _fold_advisory(
 ) -> _AdvisoryKwargs:
     """Shared term-documentation metadata used by every flat export."""
     return {
+        "box_roles": _fold_curies(view, s_tid, _GM + "graphBoxRole"),
         "scope_notes": _fold_public_texts(view, s_tid, _SKOS + "scopeNote", selector),
         "examples": _fold_public_texts(view, s_tid, _SKOS + "example", selector),
         "use_when": _fold_public_texts(view, s_tid, _GM + "useWhen", selector),
@@ -419,6 +424,7 @@ def collect_terms(
 # --------------------------------------------------------------------------- #
 
 _ADVISORY_COLUMNS = [
+    "boxRoles",
     "scopeNotes",
     "examples",
     "useWhen",
@@ -463,6 +469,7 @@ _INDIVIDUAL_COLUMNS = [
 def _advisory_record(term: Term) -> dict[str, str]:
     """CSV-friendly representation of term advisory metadata."""
     return {
+        "boxRoles": "; ".join(term.box_roles),
         "scopeNotes": "; ".join(term.scope_notes),
         "examples": "; ".join(term.examples),
         "useWhen": "; ".join(term.use_when),
@@ -618,6 +625,8 @@ def write_jsonl(terms: list[Term], dist_dir: Path) -> Path:
 
 def _append_markdown_advisory(lines: list[str], term: Term) -> None:
     """Append human-facing advisory fields for a term reference entry."""
+    if term.box_roles:
+        lines.append("\n*Box roles:* " + ", ".join(f"`{r}`" for r in term.box_roles))
     for label, values in (
         ("Scope", term.scope_notes),
         ("Example", term.examples),
@@ -884,10 +893,13 @@ def marked(text: str, fallback: bool, fallback_lang: str = "en") -> str:
 
 def _term_summary(term: Term) -> str:
     """The selected definition-or-label for compact list views."""
-    return marked(
+    summary = marked(
         term.definition or term.label,
         term.definition_fallback or term.label_fallback,
     )
+    if term.box_roles:
+        summary += " [box roles: " + ", ".join(term.box_roles) + "]"
+    return summary
 
 
 def write_skos(

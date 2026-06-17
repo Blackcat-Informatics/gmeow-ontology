@@ -336,3 +336,46 @@ gmeow:findContextDating       rdfs:subPropertyOf gmeow:observationResult .
 # gmeow:observationResult has range gmeow:Entity (= gufo:Endurant), and in
 # gUFO gufo:Event and gufo:Endurant are disjoint. Subsumption would make the
 # property unsatisfiable (Principle 8: reasoning-centric).
+
+# --------------------------------------------------------------------------- #
+# Graph box role coverage (canonical explicit annotations).
+# --------------------------------------------------------------------------- #
+
+gmeow:ArchaeologicalFindContext gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxTBox .
+gmeow:Inscription gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:InscriptionReading gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:InscriptionTranslation gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:InscriptionTransliteration gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:PhysicalCarrierType gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:ScriptLanguageAttribution gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:attributedLanguage gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:attributedNotation gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:attributedScript gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:attributionTarget gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:carrierBone gmeow:graphBoxRole gmeow:boxABox .
+gmeow:carrierCoin gmeow:graphBoxRole gmeow:boxABox .
+gmeow:carrierInscription gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:carrierManuscript gmeow:graphBoxRole gmeow:boxABox .
+gmeow:carrierMetal gmeow:graphBoxRole gmeow:boxABox .
+gmeow:carrierOstracon gmeow:graphBoxRole gmeow:boxABox .
+gmeow:carrierPapyrus gmeow:graphBoxRole gmeow:boxABox .
+gmeow:carrierPotterySherd gmeow:graphBoxRole gmeow:boxABox .
+gmeow:carrierSeal gmeow:graphBoxRole gmeow:boxABox .
+gmeow:carrierStela gmeow:graphBoxRole gmeow:boxABox .
+gmeow:carrierTablet gmeow:graphBoxRole gmeow:boxABox .
+gmeow:carrierType gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:carrierWallInscription gmeow:graphBoxRole gmeow:boxABox .
+gmeow:carrierWood gmeow:graphBoxRole gmeow:boxABox .
+gmeow:findContextDating gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxRBox .
+gmeow:findContextEvent gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxRBox .
+gmeow:findContextPlace gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxRBox .
+gmeow:findContextStratigraphy gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxRBox .
+gmeow:findContextTarget gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxRBox .
+gmeow:inscriptionCarrier gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:readingOf gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:readingResult gmeow:graphBoxRole gmeow:boxRBox .
+<https://blackcatinformatics.ca/gmeow/slices/archaeological-evidence> gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxConfigBox, gmeow:boxTBox .
+gmeow:translationOf gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:translationResult gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:transliterationOf gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:transliterationResult gmeow:graphBoxRole gmeow:boxRBox .

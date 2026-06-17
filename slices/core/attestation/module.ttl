@@ -724,3 +724,84 @@ gmeow:BlockchainNetwork rdfs:subClassOf
 
 gmeow:SmartContract rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty gmeow:contractAddress ; owl:someValuesFrom rdfs:Literal ] .
+
+# --------------------------------------------------------------------------- #
+# Graph box role coverage (canonical explicit annotations).
+# --------------------------------------------------------------------------- #
+
+gmeow:Attestation gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxTBox .
+gmeow:AttestationArtifact gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxTBox .
+gmeow:AttestationPolicy gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxTBox .
+gmeow:AttestationType gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxTBox .
+gmeow:Block gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxTBox .
+gmeow:BlockchainAccount gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxTBox .
+gmeow:BlockchainNetwork gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxTBox .
+gmeow:LedgerEvent gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxTBox .
+gmeow:LedgerFinalityStatus gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxTBox .
+gmeow:LedgerTransaction gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxTBox .
+gmeow:SignatureScheme gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxTBox .
+gmeow:SmartContract gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxTBox .
+gmeow:TransparencyLogEntry gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxTBox .
+gmeow:VerificationActivity gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxTBox .
+gmeow:VerificationResult gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxTBox .
+gmeow:VerificationStatus gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxTBox .
+gmeow:artifactMediaType gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxRBox .
+gmeow:attestationArtifact gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxRBox .
+gmeow:attestationPolicy gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxRBox .
+gmeow:attestationType gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxRBox .
+gmeow:attestationTypeAIOutput gmeow:graphBoxRole gmeow:boxABox, gmeow:boxCBox .
+gmeow:attestationTypeBlockchainClaim gmeow:graphBoxRole gmeow:boxABox, gmeow:boxCBox .
+gmeow:attestationTypeC2PA gmeow:graphBoxRole gmeow:boxABox, gmeow:boxCBox .
+gmeow:attestationTypeDSSE gmeow:graphBoxRole gmeow:boxABox, gmeow:boxCBox .
+gmeow:attestationTypeEAT gmeow:graphBoxRole gmeow:boxABox, gmeow:boxCBox .
+gmeow:attestationTypeGitSignedTag gmeow:graphBoxRole gmeow:boxABox, gmeow:boxCBox .
+gmeow:attestationTypeInToto gmeow:graphBoxRole gmeow:boxABox, gmeow:boxCBox .
+gmeow:attestationTypeNanopublication gmeow:graphBoxRole gmeow:boxABox, gmeow:boxCBox .
+gmeow:attestationTypeQualityReport gmeow:graphBoxRole gmeow:boxABox, gmeow:boxCBox .
+gmeow:attestationTypeReleaseManifest gmeow:graphBoxRole gmeow:boxABox, gmeow:boxCBox .
+gmeow:attestationTypeSCITT gmeow:graphBoxRole gmeow:boxABox, gmeow:boxCBox .
+gmeow:attestationTypeSLSAProvenance gmeow:graphBoxRole gmeow:boxABox, gmeow:boxCBox .
+gmeow:attestationTypeSignedRDF gmeow:graphBoxRole gmeow:boxABox, gmeow:boxCBox .
+gmeow:attestationTypeVerifiableCredential gmeow:graphBoxRole gmeow:boxABox, gmeow:boxCBox .
+gmeow:attestedClaim gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxRBox .
+gmeow:attestedSubject gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxRBox .
+gmeow:attester gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxRBox .
+gmeow:blockHash gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxRBox .
+gmeow:blockNumber gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxRBox .
+gmeow:chainId gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxRBox .
+gmeow:confirmationDepth gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxRBox .
+gmeow:contractAddress gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxRBox .
+gmeow:finalityStatus gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxRBox .
+gmeow:finalityStatusConfirmed gmeow:graphBoxRole gmeow:boxABox, gmeow:boxCBox .
+gmeow:finalityStatusFinalized gmeow:graphBoxRole gmeow:boxABox, gmeow:boxCBox .
+gmeow:finalityStatusOrphaned gmeow:graphBoxRole gmeow:boxABox, gmeow:boxCBox .
+gmeow:finalityStatusPending gmeow:graphBoxRole gmeow:boxABox, gmeow:boxCBox .
+gmeow:finalityStatusReorged gmeow:graphBoxRole gmeow:boxABox, gmeow:boxCBox .
+gmeow:hasAttestation gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxRBox .
+gmeow:hasSignature gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxRBox .
+gmeow:hasVerificationStatus gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxRBox .
+gmeow:issuedAt gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxRBox .
+gmeow:ledgerInclusionProof gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxRBox .
+gmeow:logEntryIndex gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxRBox .
+gmeow:logEntryUrl gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxRBox .
+gmeow:logIndex gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxRBox .
+gmeow:signatureOf gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxRBox .
+gmeow:signatureRecoveryAddress gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxRBox .
+gmeow:signatureSchemeBls12381 gmeow:graphBoxRole gmeow:boxABox, gmeow:boxCBox .
+gmeow:signatureSchemeECDSAP256 gmeow:graphBoxRole gmeow:boxABox, gmeow:boxCBox .
+gmeow:signatureSchemeECDSASecp256k1 gmeow:graphBoxRole gmeow:boxABox, gmeow:boxCBox .
+gmeow:signatureSchemeEd25519 gmeow:graphBoxRole gmeow:boxABox, gmeow:boxCBox .
+gmeow:signatureSchemeRSASHA256 gmeow:graphBoxRole gmeow:boxABox, gmeow:boxCBox .
+<https://blackcatinformatics.ca/gmeow/slices/attestation> gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxConfigBox, gmeow:boxTBox .
+gmeow:transactionHash gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxRBox .
+gmeow:transparencyLogEntry gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxRBox .
+gmeow:verificationActivity gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxRBox .
+gmeow:verificationResult gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxRBox .
+gmeow:verificationStatusExpired gmeow:graphBoxRole gmeow:boxABox, gmeow:boxCBox .
+gmeow:verificationStatusFailed gmeow:graphBoxRole gmeow:boxABox, gmeow:boxCBox .
+gmeow:verificationStatusFinalityPending gmeow:graphBoxRole gmeow:boxABox, gmeow:boxCBox .
+gmeow:verificationStatusPolicyFailed gmeow:graphBoxRole gmeow:boxABox, gmeow:boxCBox .
+gmeow:verificationStatusRevoked gmeow:graphBoxRole gmeow:boxABox, gmeow:boxCBox .
+gmeow:verificationStatusUnverified gmeow:graphBoxRole gmeow:boxABox, gmeow:boxCBox .
+gmeow:verificationStatusVerified gmeow:graphBoxRole gmeow:boxABox, gmeow:boxCBox .
+gmeow:verifiedBy gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxRBox .

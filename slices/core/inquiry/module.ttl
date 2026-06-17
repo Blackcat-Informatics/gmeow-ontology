@@ -259,3 +259,27 @@ gmeow:tenureQuestion
 
 gmeow:InquiryTenure rdfs:subClassOf
     [ a owl:Restriction ; owl:onProperty gmeow:tenureQuestion ; owl:someValuesFrom gmeow:Question ] .
+
+# --------------------------------------------------------------------------- #
+# Graph box role coverage (canonical explicit annotations).
+# --------------------------------------------------------------------------- #
+
+gmeow:InquiryTenure gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:Question gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:QuestionType gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:answers gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:asks gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:evokes gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:inquiresInto gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:presupposes gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:questionType gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:seeksToKnow gmeow:graphBoxRole gmeow:boxRBox .
+<https://blackcatinformatics.ca/gmeow/slices/inquiry> gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .
+gmeow:tenureInquirer gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:tenureQuestion gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:typeAlternative gmeow:graphBoxRole gmeow:boxABox .
+gmeow:typeHow gmeow:graphBoxRole gmeow:boxABox .
+gmeow:typePolar gmeow:graphBoxRole gmeow:boxABox .
+gmeow:typeWh gmeow:graphBoxRole gmeow:boxABox .
+gmeow:typeWhy gmeow:graphBoxRole gmeow:boxABox .
+gmeow:wondersWhether gmeow:graphBoxRole gmeow:boxRBox .

@@ -67,11 +67,7 @@ fn eval_property_shape(
 ) -> Vec<ValidationResult> {
     let value_nodes = path::eval(store, focus, &ps.path);
     let path_term = path::path_to_term(&ps.path);
-    let source_roles: Vec<NamedNode> = if ps.box_roles.is_empty() {
-        parent_shape.box_roles.clone()
-    } else {
-        ps.box_roles.clone()
-    };
+    let source_roles = merge_box_roles(&parent_shape.box_roles, &ps.box_roles);
     let path_roles = path_box_roles(store, &ps.path);
 
     // Build a synthetic shape wrapping the property shape so result
@@ -204,7 +200,9 @@ fn eval_reifier_shapes(ctx: ReifierEvalContext<'_>) -> Vec<ValidationResult> {
                         path_box_roles: vec![],
                         result_box_roles: vec![],
                     };
-                    result.apply_box_roles(&source_roles, path_roles);
+                    let inner_source_roles =
+                        merge_box_roles(&source_roles, &inner.source_box_roles);
+                    result.apply_box_roles(&inner_source_roles, path_roles);
                     results.push(result);
                 }
             }
@@ -268,8 +266,12 @@ fn path_box_roles(store: &Store, path: &Path) -> Vec<NamedNode> {
 }
 
 fn with_cbox_role(source_roles: &[NamedNode]) -> Vec<NamedNode> {
-    let mut roles = source_roles.to_vec();
-    roles.push(NamedNode::from(gmeow::BOX_CBOX));
+    merge_box_roles(source_roles, &[NamedNode::from(gmeow::BOX_CBOX)])
+}
+
+fn merge_box_roles(left: &[NamedNode], right: &[NamedNode]) -> Vec<NamedNode> {
+    let mut roles = left.to_vec();
+    roles.extend_from_slice(right);
     roles.sort_unstable();
     roles.dedup();
     roles
@@ -1209,6 +1211,14 @@ mod tests {
             .collect()
     }
 
+    fn role_iris(roles: &[NamedNode]) -> Vec<&str> {
+        roles.iter().map(|role| role.as_str()).collect()
+    }
+
+    fn named_role(role: oxigraph::model::NamedNodeRef<'static>) -> NamedNode {
+        NamedNode::from(role)
+    }
+
     // ── minCount ───────────────────────────────────────────────────────────────
 
     #[test]
@@ -1226,6 +1236,106 @@ mod tests {
         let results = validate_shape(&store, &ex("a"), &shape);
         assert_eq!(results.len(), 1);
         assert!(component_iri(&results)[0].contains("MinCount"));
+    }
+
+    #[test]
+    fn property_shape_box_roles_augment_parent_roles() {
+        use crate::model::gmeow;
+        use crate::shapes::Path;
+
+        let store = load_store(&format!(
+            "@prefix ex: <{EX}> .\n\
+             @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
+             ex:p gmeow:graphBoxRole gmeow:boxRBox .\n\
+             ex:a a ex:Thing .\n"
+        ));
+        let shape = Shape {
+            id: ex("S"),
+            targets: vec![],
+            constraints: vec![],
+            property_shapes: vec![PropertyShape {
+                path: Path::Predicate(NamedNode::new_unchecked(format!("{EX}p"))),
+                constraints: vec![Constraint::MinCount(1)],
+                reifier_shapes: vec![],
+                reification_required: false,
+                severity: Severity::Violation,
+                message: None,
+                box_roles: vec![named_role(gmeow::BOX_CONFIG_BOX)],
+            }],
+            severity: Severity::Violation,
+            message: None,
+            deactivated: false,
+            box_roles: vec![named_role(gmeow::BOX_TBOX)],
+        };
+
+        let results = validate_shape(&store, &ex("a"), &shape);
+        assert_eq!(results.len(), 1);
+        let source_roles = role_iris(&results[0].source_box_roles);
+        assert!(source_roles.contains(&gmeow::BOX_TBOX.as_str()));
+        assert!(source_roles.contains(&gmeow::BOX_CONFIG_BOX.as_str()));
+        assert_eq!(
+            role_iris(&results[0].path_box_roles),
+            [gmeow::BOX_RBOX.as_str()]
+        );
+        let result_roles = role_iris(&results[0].result_box_roles);
+        assert!(result_roles.contains(&gmeow::BOX_TBOX.as_str()));
+        assert!(result_roles.contains(&gmeow::BOX_CONFIG_BOX.as_str()));
+        assert!(result_roles.contains(&gmeow::BOX_RBOX.as_str()));
+    }
+
+    #[test]
+    fn reifier_shape_box_roles_preserve_inner_roles() {
+        use crate::model::gmeow;
+        use crate::shapes::Path;
+
+        let store = load_store(&format!(
+            "@prefix ex: <{EX}> .\n\
+             @prefix rdf: <{RDF}> .\n\
+             ex:a ex:p ex:b .\n\
+             ex:reifier rdf:reifies <<( ex:a ex:p ex:b )>> .\n"
+        ));
+        let reifier_shape = Shape {
+            id: ex("ReifierShape"),
+            targets: vec![],
+            constraints: vec![Constraint::Class(NamedNode::new_unchecked(format!(
+                "{EX}RequiredReifierClass"
+            )))],
+            property_shapes: vec![],
+            severity: Severity::Violation,
+            message: None,
+            deactivated: false,
+            box_roles: vec![named_role(gmeow::BOX_CONFIG_BOX)],
+        };
+        let shape = Shape {
+            id: ex("S"),
+            targets: vec![],
+            constraints: vec![],
+            property_shapes: vec![PropertyShape {
+                path: Path::Predicate(NamedNode::new_unchecked(format!("{EX}p"))),
+                constraints: vec![],
+                reifier_shapes: vec![reifier_shape],
+                reification_required: false,
+                severity: Severity::Violation,
+                message: None,
+                box_roles: vec![],
+            }],
+            severity: Severity::Violation,
+            message: None,
+            deactivated: false,
+            box_roles: vec![named_role(gmeow::BOX_TBOX)],
+        };
+
+        let results = validate_shape(&store, &ex("a"), &shape);
+        assert_eq!(results.len(), 1);
+        assert!(component_iri(&results)[0].contains("ReifierShapeConstraintComponent"));
+        let source_roles = role_iris(&results[0].source_box_roles);
+        assert!(source_roles.contains(&gmeow::BOX_TBOX.as_str()));
+        assert!(source_roles.contains(&gmeow::BOX_CBOX.as_str()));
+        assert!(source_roles.contains(&gmeow::BOX_CONFIG_BOX.as_str()));
+        let result_roles = role_iris(&results[0].result_box_roles);
+        assert!(result_roles.contains(&gmeow::BOX_TBOX.as_str()));
+        assert!(result_roles.contains(&gmeow::BOX_CBOX.as_str()));
+        assert!(result_roles.contains(&gmeow::BOX_CONFIG_BOX.as_str()));
     }
 
     // ── maxCount ───────────────────────────────────────────────────────────────

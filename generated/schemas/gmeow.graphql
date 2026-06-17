@@ -1165,6 +1165,7 @@ enum GraphBoxRoleEnum
   {
     boxABox
     boxCBox
+    boxConfigBox
     boxRBox
     boxTBox
   }

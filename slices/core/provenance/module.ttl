@@ -165,3 +165,22 @@ gmeow:provenance
     gmeow:avoidWhen "Avoid when the custody chain can be expressed structurally; prefer gmeow:wasDerivedFrom, gmeow:wasGeneratedBy, and gmeow:wasAttributedTo so the lineage is queryable rather than locked in a literal."@x-gmeow-english ;
     gmeow:howToUse "Attach the prose to the gmeow:Entity as a literal; where parts of the narrative can be lifted into structured derivation, generation, or attribution links, model those and reserve this property for the irreducible remainder."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/provenance> .
+
+# --------------------------------------------------------------------------- #
+# Graph box role coverage (canonical explicit annotations).
+# --------------------------------------------------------------------------- #
+
+gmeow:Activity gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxTBox .
+gmeow:ImportActivity gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxTBox .
+gmeow:Summary gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxTBox .
+gmeow:TextExtraction gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxTBox .
+gmeow:confidence gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxRBox .
+gmeow:importanceLevel gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxRBox .
+gmeow:ingestedAt gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxRBox .
+gmeow:mappedFrom gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxRBox .
+gmeow:provenance gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxRBox .
+<https://blackcatinformatics.ca/gmeow/slices/provenance> gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxConfigBox, gmeow:boxTBox .
+gmeow:wasAssociatedWith gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxRBox .
+gmeow:wasAttributedTo gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxRBox .
+gmeow:wasDerivedFrom gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxRBox .
+gmeow:wasGeneratedBy gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxRBox .

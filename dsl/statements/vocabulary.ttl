@@ -107,3 +107,18 @@ gmeow:reifier rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/statement-d
 
 gmeow:statement-dsl skos:definition "The GMEOW statement DSL vocabulary — terms used to author RDF 1.2 / RDF* statement-level metadata (provenance, confidence, temporal scope, standpoint) that compile to both native RDF 1.2 and OWL axiom-annotation forms (Principles 2–3)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/statement-dsl> .
+
+# --------------------------------------------------------------------------- #
+# Graph box role coverage (canonical explicit annotations).
+# --------------------------------------------------------------------------- #
+
+gmeow:StatementMetadata gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxTBox .
+gmeow:annProperty gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:annValue gmeow:graphBoxRole gmeow:boxABox .
+gmeow:annotation gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:qObject gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:qObjectLiteral gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:qPredicate gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:qSubject gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:reifier gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxRBox .
+gmeow:statement-dsl gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxConfigBox, gmeow:boxTBox .

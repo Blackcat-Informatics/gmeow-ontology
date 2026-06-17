@@ -192,10 +192,26 @@ fn object_iris(
     out
 }
 
+/// Whether `(subject_iri, rdf:type, type_iri)` exists.
+fn has_type(store: &Store, subject_iri: &str, type_iri: oxigraph::model::NamedNodeRef) -> bool {
+    let subject = oxigraph::model::NamedNode::new_unchecked(subject_iri);
+    store
+        .quads_for_pattern(
+            Some((&subject).into()),
+            Some(rdf::TYPE),
+            Some(type_iri.into()),
+            None,
+        )
+        .next()
+        .is_some()
+}
+
 /// The structural lint over the merged store (mirrors `structural_lint`).
 pub fn structural_lint(store: &Store, cfg: &LintConfig) -> LintReport {
     let mut report = LintReport::default();
     let typed = collect_typed_terms(store, cfg);
+    let graph_box_role = ns_node(cfg, "graphBoxRole");
+    let graph_box_role_class = ns_node(cfg, "GraphBoxRole");
 
     // 1. Per-term required annotations (sorted by IRI — BTreeMap iterates sorted).
     for (term, kind) in &typed {
@@ -213,6 +229,39 @@ pub fn structural_lint(store: &Store, cfg: &LintConfig) -> LintReport {
             report
                 .errors
                 .push(format!("{kind} {term} is missing rdfs:isDefinedBy"));
+        }
+        let subject = oxigraph::model::NamedNode::new_unchecked(term);
+        let mut has_role = false;
+        for quad in store
+            .quads_for_pattern(
+                Some((&subject).into()),
+                Some(graph_box_role.as_ref()),
+                None,
+                None,
+            )
+            .flatten()
+        {
+            has_role = true;
+            let role = match &quad.object {
+                Term::NamedNode(role) => role,
+                other => {
+                    report.errors.push(format!(
+                        "{kind} {term} has non-IRI gmeow:graphBoxRole value {other}"
+                    ));
+                    continue;
+                }
+            };
+            if !has_type(store, role.as_str(), graph_box_role_class.as_ref()) {
+                report.errors.push(format!(
+                    "{kind} {term} has gmeow:graphBoxRole value {} that is not a gmeow:GraphBoxRole",
+                    role.as_str()
+                ));
+            }
+        }
+        if !has_role {
+            report
+                .errors
+                .push(format!("{kind} {term} is missing gmeow:graphBoxRole"));
         }
     }
 
@@ -695,9 +744,12 @@ mod tests {
     }
 
     const PREFIXES: &str = "@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
+         @prefix ex: <https://example.org/> .\n\
          @prefix owl: <http://www.w3.org/2002/07/owl#> .\n\
          @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\
          @prefix skos: <http://www.w3.org/2004/02/skos/core#> .\n";
+
+    const ROLE: &str = "ex:boxTBox a gmeow:GraphBoxRole .\n";
 
     #[test]
     fn structural_flags_missing_definition() {
@@ -715,14 +767,48 @@ mod tests {
     #[test]
     fn structural_clean_for_well_formed_term() {
         let store = store_from(&format!(
-            "{PREFIXES}\
+            "{PREFIXES}{ROLE}\
+             gmeow:Documented a owl:Class ;\n\
+               rdfs:label \"Documented\" ;\n\
+               skos:definition \"A well-formed term.\" ;\n\
+               gmeow:graphBoxRole ex:boxTBox ;\n\
+               rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/> .\n"
+        ));
+        let report = structural_lint(&store, &cfg());
+        assert!(report.errors.is_empty(), "errors: {:?}", report.errors);
+    }
+
+    #[test]
+    fn structural_flags_missing_graph_box_role() {
+        let store = store_from(&format!(
+            "{PREFIXES}{ROLE}\
              gmeow:Documented a owl:Class ;\n\
                rdfs:label \"Documented\" ;\n\
                skos:definition \"A well-formed term.\" ;\n\
                rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/> .\n"
         ));
         let report = structural_lint(&store, &cfg());
-        assert!(report.errors.is_empty(), "errors: {:?}", report.errors);
+        assert!(report
+            .errors
+            .iter()
+            .any(|e| e.contains("missing gmeow:graphBoxRole")));
+    }
+
+    #[test]
+    fn structural_rejects_untyped_graph_box_role() {
+        let store = store_from(&format!(
+            "{PREFIXES}\
+             gmeow:Documented a owl:Class ;\n\
+               rdfs:label \"Documented\" ;\n\
+               skos:definition \"A well-formed term.\" ;\n\
+               gmeow:graphBoxRole ex:notARole ;\n\
+               rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/> .\n"
+        ));
+        let report = structural_lint(&store, &cfg());
+        assert!(report
+            .errors
+            .iter()
+            .any(|e| e.contains("not a gmeow:GraphBoxRole")));
     }
 
     #[test]
@@ -756,10 +842,11 @@ mod tests {
     #[test]
     fn structural_rejects_en_on_gmeow_label() {
         let store = store_from(&format!(
-            "{PREFIXES}\
+            "{PREFIXES}{ROLE}\
              gmeow:TestTerm a owl:Class ;\n\
                rdfs:label \"Name\"@en ;\n\
                skos:definition \"A test term.\" ;\n\
+               gmeow:graphBoxRole ex:boxTBox ;\n\
                rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/> .\n"
         ));
         let report = structural_lint(&store, &cfg());
@@ -772,10 +859,11 @@ mod tests {
     #[test]
     fn structural_accepts_x_gmeow_english_on_label() {
         let store = store_from(&format!(
-            "{PREFIXES}\
+            "{PREFIXES}{ROLE}\
              gmeow:TestTerm a owl:Class ;\n\
                rdfs:label \"Name\"@x-gmeow-english ;\n\
                skos:definition \"A test term.\"@x-gmeow-english ;\n\
+               gmeow:graphBoxRole ex:boxTBox ;\n\
                rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/> .\n"
         ));
         let report = structural_lint(&store, &cfg());

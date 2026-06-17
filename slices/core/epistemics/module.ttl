@@ -342,3 +342,22 @@ gmeow:justificationStatusRebutted
 # --- Flat-first / reify-on-demand pairings --- #
 gmeow:believes   gmeow:pairsWith gmeow:DoxasticState .
 gmeow:DoxasticState gmeow:pairsWith gmeow:DoxasticTenure .
+
+# --------------------------------------------------------------------------- #
+# Graph box role coverage (canonical explicit annotations).
+# --------------------------------------------------------------------------- #
+
+gmeow:DoxasticState gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:DoxasticTenure gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:Proposition gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:accepts gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:believes gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:credence gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:doubts gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:doxasticClaim gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxRBox .
+gmeow:doxasticContent gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:epistemicAgent gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:knowsThat gmeow:graphBoxRole gmeow:boxRBox .
+<https://blackcatinformatics.ca/gmeow/slices/epistemics> gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .
+gmeow:suspendsJudgementOn gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:tenureOfDoxasticState gmeow:graphBoxRole gmeow:boxRBox .

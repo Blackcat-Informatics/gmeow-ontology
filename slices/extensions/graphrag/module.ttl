@@ -274,3 +274,43 @@ gmeow:summarizesCommunity
     rdfs:label "summarizes community"@x-gmeow-english ;
     skos:definition "The community this summary condenses."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/graphrag> .
+
+# --------------------------------------------------------------------------- #
+# Graph box role coverage (canonical explicit annotations).
+# --------------------------------------------------------------------------- #
+
+gmeow:Community gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:CommunitySummary gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:Corpus gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:DistanceMetric gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:Embedding gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:ExtractedEntity gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:ExtractedRelationship gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:IndexAlgorithm gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:RetrievalEvent gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:VectorIndex gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:againstIndex gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:communityLevel gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:communityMember gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:corpusMember gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:distanceMetric gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:distanceMetricCosine gmeow:graphBoxRole gmeow:boxABox .
+gmeow:distanceMetricDotProduct gmeow:graphBoxRole gmeow:boxABox .
+gmeow:distanceMetricEuclidean gmeow:graphBoxRole gmeow:boxABox .
+gmeow:embeddingDimensions gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:embeddingModel gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:embeddingOf gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:forQuery gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:indexAlgorithm gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:indexAlgorithmFlat gmeow:graphBoxRole gmeow:boxABox .
+gmeow:indexAlgorithmHnsw gmeow:graphBoxRole gmeow:boxABox .
+gmeow:indexAlgorithmIvf gmeow:graphBoxRole gmeow:boxABox .
+gmeow:indexParameters gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:indexesCorpus gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:relationshipSource gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxRBox .
+gmeow:relationshipTarget gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:retrievalScore gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:retrievedChunk gmeow:graphBoxRole gmeow:boxRBox .
+<https://blackcatinformatics.ca/gmeow/slices/graphrag> gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .
+gmeow:summarizesCommunity gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:vectorRef gmeow:graphBoxRole gmeow:boxRBox .

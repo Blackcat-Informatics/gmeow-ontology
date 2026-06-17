@@ -323,3 +323,44 @@ gmeow:EvidenceSpan
     gmeow:avoidWhen "Avoid minting a second selector model (this one is reused by both citations and annotations) and avoid pointing it at the whole resource when a precise span is available; reserve the bare resource link for cases with no usable locator."@x-gmeow-english ;
     gmeow:howToUse "Mint the span as an EvidenceSpan (or a Selector specialization), assert the applicable selector properties (gmeow:selectorTextQuote, gmeow:selectorTextPosition, gmeow:selectorPage, gmeow:selectorLocator), and link it from the gmeow:CitationAct or annotation target so the warrant resolves to an exact, auditable location."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/evidence> .
+
+# --------------------------------------------------------------------------- #
+# Graph box role coverage (canonical explicit annotations).
+# --------------------------------------------------------------------------- #
+
+gmeow:CoverageDepth gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxTBox .
+gmeow:EvidenceClass gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxTBox .
+gmeow:EvidenceSpan gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxTBox .
+gmeow:SourceIndependence gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxTBox .
+gmeow:SourceTier gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxTBox .
+gmeow:coverageDepth gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxRBox .
+gmeow:coverageDepthPassingMention gmeow:graphBoxRole gmeow:boxABox, gmeow:boxCBox .
+gmeow:coverageDepthRoutineFiling gmeow:graphBoxRole gmeow:boxABox, gmeow:boxCBox .
+gmeow:coverageDepthSignificantCoverage gmeow:graphBoxRole gmeow:boxABox, gmeow:boxCBox .
+gmeow:evidenceANECDOTAL gmeow:graphBoxRole gmeow:boxABox, gmeow:boxCBox .
+gmeow:evidenceFamilyNarrative gmeow:graphBoxRole gmeow:boxABox, gmeow:boxCBox .
+gmeow:evidenceGeneratedReport gmeow:graphBoxRole gmeow:boxABox, gmeow:boxCBox .
+gmeow:evidenceIndependentTradePress gmeow:graphBoxRole gmeow:boxABox, gmeow:boxCBox .
+gmeow:evidenceLegalFiling gmeow:graphBoxRole gmeow:boxABox, gmeow:boxCBox .
+gmeow:evidenceNewspaperLead gmeow:graphBoxRole gmeow:boxABox, gmeow:boxCBox .
+gmeow:evidenceOcrExtract gmeow:graphBoxRole gmeow:boxABox, gmeow:boxCBox .
+gmeow:evidenceOfficialSource gmeow:graphBoxRole gmeow:boxABox, gmeow:boxCBox .
+gmeow:evidencePrivateCorrespondence gmeow:graphBoxRole gmeow:boxABox, gmeow:boxCBox .
+gmeow:evidencePrivateScan gmeow:graphBoxRole gmeow:boxABox, gmeow:boxCBox .
+gmeow:evidencePublicRegistry gmeow:graphBoxRole gmeow:boxABox, gmeow:boxCBox .
+gmeow:evidenceRUMOR gmeow:graphBoxRole gmeow:boxABox, gmeow:boxCBox .
+gmeow:evidenceRawArchive gmeow:graphBoxRole gmeow:boxABox, gmeow:boxCBox .
+gmeow:evidenceSELF gmeow:graphBoxRole gmeow:boxABox, gmeow:boxCBox .
+gmeow:evidenceSelfControlledSite gmeow:graphBoxRole gmeow:boxABox, gmeow:boxCBox .
+gmeow:evidenceSourceCodeArchive gmeow:graphBoxRole gmeow:boxABox, gmeow:boxCBox .
+gmeow:evidenceVERIFIED gmeow:graphBoxRole gmeow:boxABox, gmeow:boxCBox .
+gmeow:hasEvidenceClass gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxRBox .
+<https://blackcatinformatics.ca/gmeow/slices/evidence> gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxConfigBox, gmeow:boxTBox .
+gmeow:sourceIndependence gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxRBox .
+gmeow:sourceIndependenceIndependent gmeow:graphBoxRole gmeow:boxABox, gmeow:boxCBox .
+gmeow:sourceIndependenceSelfOrIssuerOriginated gmeow:graphBoxRole gmeow:boxABox, gmeow:boxCBox .
+gmeow:sourceTier gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxRBox .
+gmeow:sourceTierPrimary gmeow:graphBoxRole gmeow:boxABox, gmeow:boxCBox .
+gmeow:sourceTierSecondary gmeow:graphBoxRole gmeow:boxABox, gmeow:boxCBox .
+gmeow:sourceTierTertiary gmeow:graphBoxRole gmeow:boxABox, gmeow:boxCBox .
+gmeow:supportsNotability gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxRBox .

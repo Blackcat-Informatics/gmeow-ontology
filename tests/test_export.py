@@ -63,6 +63,7 @@ def test_term_attributes_are_populated() -> None:
     person = terms["gmeow:Person"]
     assert person.label == "Person"
     assert person.definition
+    assert "gmeow:boxTBox" in person.box_roles
     assert "gmeow:Agent" in person.parents
     assert "equivalentClass=foaf:Person" in person.alignments
 
@@ -73,6 +74,7 @@ def test_term_attributes_are_populated() -> None:
     assert signing_key.functional is True
 
     has_name = terms["gmeow:hasName"]
+    assert "gmeow:boxRBox" in has_name.box_roles
     assert has_name.use_when
     assert has_name.how_to_use
     assert "gmeow:consumerPublicSite" in has_name.use_for_consumer
@@ -172,6 +174,7 @@ def test_classes_csv_is_well_formed(tmp_path: Path) -> None:
     assert "gmeow:Person" in by_curie
     assert by_curie["gmeow:Person"]["iri"] == NAMESPACE + "Person"
     assert by_curie["gmeow:Person"]["subClassOf"] == "gmeow:Agent"
+    assert "gmeow:boxTBox" in by_curie["gmeow:Person"]["boxRoles"]
 
 
 def test_properties_csv_records_functionality(tmp_path: Path) -> None:
@@ -180,6 +183,7 @@ def test_properties_csv_records_functionality(tmp_path: Path) -> None:
         rows = {r["curie"]: r for r in csv.DictReader(handle)}
     assert rows["gmeow:signingKey"]["functional"] == "true"
     assert rows["gmeow:from"]["functional"] == "false"
+    assert "gmeow:boxRBox" in rows["gmeow:from"]["boxRoles"]
     assert "co-equal person-to-PersonName" in rows["gmeow:hasName"]["useWhen"]
     assert "gmeow:consumerPublicSite" in rows["gmeow:hasName"]["useForConsumer"]
 
@@ -194,6 +198,7 @@ def test_jsonl_catalog_parses(tmp_path: Path) -> None:
     categories = {r["category"] for r in records}
     assert categories == {"class", "property", "individual"}
     has_name = next(r for r in records if r["curie"] == "gmeow:hasName")
+    assert "gmeow:boxRBox" in has_name["boxRoles"]
     assert has_name["useWhen"]
     assert "gmeow:consumerPublicSite" in has_name["useForConsumer"]
 
@@ -216,6 +221,7 @@ def test_markdown_reference_has_all_sections(tmp_path: Path) -> None:
     for section in ("## Classes", "## Properties", "## Individuals"):
         assert section in md
     assert "gmeow:keySchemePGP" in md
+    assert "*Box roles:* `gmeow:boxTBox`" in md
     assert "*Use when:* Use for a direct, co-equal person-to-PersonName" in md
 
 
@@ -225,6 +231,7 @@ def test_llms_txt_bundle(tmp_path: Path) -> None:
     assert text.startswith("# GMEOW")
     assert "## Classes" in text and "## Properties" in text
     assert "gmeow:EmailMessage" in text
+    assert "[box roles: gmeow:boxTBox]" in text
 
 
 def test_llms_txt_has_no_blank_nodes(tmp_path: Path) -> None:

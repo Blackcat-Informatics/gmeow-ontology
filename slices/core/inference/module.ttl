@@ -322,3 +322,43 @@ gmeow:defeaterUndercutting
     rdfs:label "undercutting"@x-gmeow-english ;
     skos:definition "An undercutting defeater (Pollock) — attacks the inferential link, removing the warrant's support without asserting the conclusion's negation (the premises no longer license the conclusion)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> .
+
+# --------------------------------------------------------------------------- #
+# Graph box role coverage (canonical explicit annotations).
+# --------------------------------------------------------------------------- #
+
+gmeow:Analogy gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:Correspondence gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:DefeaterKind gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:InferenceCommitment gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:InferenceMode gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:InferenceProcess gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:InferenceTenure gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:analogicalSource gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxRBox .
+gmeow:analogicalTarget gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:candidateHypothesis gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:competesWith gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:conclusion gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:correspondingSource gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxRBox .
+gmeow:correspondingTarget gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:defeaterKind gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:defeaterRebutting gmeow:graphBoxRole gmeow:boxABox .
+gmeow:defeaterUndercutting gmeow:graphBoxRole gmeow:boxABox .
+gmeow:explains gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:explanandum gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:explanatoryScore gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:hasCorrespondence gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:hasDefeater gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:hasInferenceCommitment gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:inferenceMode gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:inferenceModeOf gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:inferredFrom gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:modeAbduction gmeow:graphBoxRole gmeow:boxABox .
+gmeow:modeAnalogical gmeow:graphBoxRole gmeow:boxABox .
+gmeow:modeDeduction gmeow:graphBoxRole gmeow:boxABox .
+gmeow:modeInduction gmeow:graphBoxRole gmeow:boxABox .
+gmeow:premise gmeow:graphBoxRole gmeow:boxRBox .
+<https://blackcatinformatics.ca/gmeow/slices/inference> gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .
+gmeow:systematicity gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:tenureOf gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:warrant gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxRBox .

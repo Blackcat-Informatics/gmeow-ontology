@@ -161,3 +161,29 @@ gmeow:routeKindAccessible
     rdfs:label "accessible route"@x-gmeow-english ;
     skos:definition "A route computed to satisfy a set of accessibility needs. The actual path is determined by the solver layer (Principle 12), not asserted in OWL."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/connectivity> .
+
+# --------------------------------------------------------------------------- #
+# Graph box role coverage (canonical explicit annotations).
+# --------------------------------------------------------------------------- #
+
+gmeow:Connection gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:Route gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:RouteKind gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:connectionSource gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxRBox .
+gmeow:connectionTarget gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:hasRoute gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:hasRouteSegment gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:referenceFrameNetworkGraph gmeow:graphBoxRole gmeow:boxABox .
+gmeow:routeEnd gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:routeKind gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:routeKindAccessible gmeow:graphBoxRole gmeow:boxABox .
+gmeow:routeKindCitation gmeow:graphBoxRole gmeow:boxABox .
+gmeow:routeKindDependency gmeow:graphBoxRole gmeow:boxABox .
+gmeow:routeKindFlight gmeow:graphBoxRole gmeow:boxABox .
+gmeow:routeKindNetwork gmeow:graphBoxRole gmeow:boxABox .
+gmeow:routeKindSocial gmeow:graphBoxRole gmeow:boxABox .
+gmeow:routeKindTransit gmeow:graphBoxRole gmeow:boxABox .
+gmeow:routeKindWalking gmeow:graphBoxRole gmeow:boxABox .
+gmeow:routeStart gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:routeVia gmeow:graphBoxRole gmeow:boxRBox .
+<https://blackcatinformatics.ca/gmeow/slices/connectivity> gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .

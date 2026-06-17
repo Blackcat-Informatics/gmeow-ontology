@@ -500,3 +500,51 @@ gmeow:smuflCodepoint
     gmeow:avoidWhen "Avoid using it for non-SMuFL or non-musical glyph references and avoid treating a single triple as exhaustive — a notation system carries many codepoints, one per glyph."@x-gmeow-english ;
     gmeow:howToUse "Attach each SMuFL codepoint string (e.g. \"U+E050\") to the gmeow:NotationSystem via gmeow:smuflCodepoint; repeat the triple for each glyph the system uses."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> .
+
+# --------------------------------------------------------------------------- #
+# Graph box role coverage (canonical explicit annotations).
+# --------------------------------------------------------------------------- #
+
+gmeow:NotationProjectionProfile gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .
+gmeow:NotationSystem gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:NotationSystemUsage gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:NotationUsageRole gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:ProjectionFunction gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:ProjectionLoss gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:SymbolicSystem gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:SymbolicSystemKind gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:accountsForParameter gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:declaredLoss gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:hasNotationProjectionProfile gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
+gmeow:hasNotationSystem gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:notationRoleCipher gmeow:graphBoxRole gmeow:boxABox .
+gmeow:notationRoleCommunication gmeow:graphBoxRole gmeow:boxABox .
+gmeow:notationRoleEncoding gmeow:graphBoxRole gmeow:boxABox .
+gmeow:notationRoleExpression gmeow:graphBoxRole gmeow:boxABox .
+gmeow:notationRoleRepresentation gmeow:graphBoxRole gmeow:boxABox .
+gmeow:notationRoleShorthand gmeow:graphBoxRole gmeow:boxABox .
+gmeow:notationRoleTranscription gmeow:graphBoxRole gmeow:boxABox .
+gmeow:notationSystemFor gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:notationSystemKind gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:notationSystemOf gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:notationUsageInterval gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:notationUsageNotationSystem gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:notationUsageRole gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:notationUsageTarget gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:projectableExpression gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:projectionFunction gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:representableParameter gmeow:graphBoxRole gmeow:boxRBox .
+<https://blackcatinformatics.ca/gmeow/slices/notation> gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .
+gmeow:smuflCodepoint gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:symbolicKindCommunicationConvention gmeow:graphBoxRole gmeow:boxABox .
+gmeow:symbolicKindCryptographic gmeow:graphBoxRole gmeow:boxABox .
+gmeow:symbolicKindEmoji gmeow:graphBoxRole gmeow:boxABox .
+gmeow:symbolicKindEncoding gmeow:graphBoxRole gmeow:boxABox .
+gmeow:symbolicKindGesture gmeow:graphBoxRole gmeow:boxABox .
+gmeow:symbolicKindMathematical gmeow:graphBoxRole gmeow:boxABox .
+gmeow:symbolicKindMusical gmeow:graphBoxRole gmeow:boxABox .
+gmeow:symbolicKindPlatformConvention gmeow:graphBoxRole gmeow:boxABox .
+gmeow:symbolicKindStenographic gmeow:graphBoxRole gmeow:boxABox .
+gmeow:symbolicKindTranscription gmeow:graphBoxRole gmeow:boxABox .
+gmeow:symbolicSystemKind gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:writingSystemAsNotation gmeow:graphBoxRole gmeow:boxRBox .

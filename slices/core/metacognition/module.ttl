@@ -183,3 +183,20 @@ gmeow:eventTypeReflection
     gmeow:avoidWhen "Avoid using it for the unfolding reasoning EPISODE itself (that is a gmeow:MentalProcess, mentation — one canonical source per fact, Principle 4) and avoid treating the reflection→revision link as an entailment; the gmeow:hasDefeater installation is asserted, not derived."@x-gmeow-english ;
     gmeow:howToUse "Type a reflection event with gmeow:eventType gmeow:eventTypeReflection; record belief revision by installing gmeow:hasDefeater on the agent's own gmeow:InferenceCommitment and suppressing the defeated conclusion with gmeow:displayable false, retaining the prior inference as audit (Principle 10)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/metacognition> .
+
+# --------------------------------------------------------------------------- #
+# Graph box role coverage (canonical explicit annotations).
+# --------------------------------------------------------------------------- #
+
+gmeow:CalibrationStatus gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:MetacognitiveState gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:awareOfNotKnowing gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:calibration gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:calibrationError gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:epistemicSelfTrust gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:eventTypeReflection gmeow:graphBoxRole gmeow:boxABox .
+gmeow:metaTarget gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:overconfident gmeow:graphBoxRole gmeow:boxABox .
+<https://blackcatinformatics.ca/gmeow/slices/metacognition> gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .
+gmeow:underconfident gmeow:graphBoxRole gmeow:boxABox .
+gmeow:wellCalibrated gmeow:graphBoxRole gmeow:boxABox .

@@ -37,6 +37,13 @@ gmeow:GmeowClassShape
         sh:minCount 1 ;
         sh:severity sh:Violation ;
         sh:message "Every GMEOW class must declare rdfs:isDefinedBy the ontology (issue #221)." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:graphBoxRole ;
+        sh:minCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "Every GMEOW class must carry at least one explicit IRI-valued gmeow:graphBoxRole; the Rust structural lint verifies each value is typed gmeow:GraphBoxRole." ;
     ] .
 
 gmeow:GmeowPropertyShape
@@ -73,6 +80,13 @@ gmeow:GmeowPropertyShape
         sh:minCount 1 ;
         sh:severity sh:Violation ;
         sh:message "Every GMEOW property must declare rdfs:isDefinedBy the ontology (issue #221)." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:graphBoxRole ;
+        sh:minCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "Every GMEOW property must carry at least one explicit IRI-valued gmeow:graphBoxRole; the Rust structural lint verifies each value is typed gmeow:GraphBoxRole." ;
     ] .
 
 gmeow:GmeowDatatypeShape
@@ -104,6 +118,13 @@ gmeow:GmeowDatatypeShape
         sh:minCount 1 ;
         sh:severity sh:Violation ;
         sh:message "Every GMEOW datatype must declare rdfs:isDefinedBy the ontology (issue #221)." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:graphBoxRole ;
+        sh:minCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "Every GMEOW datatype must carry at least one explicit IRI-valued gmeow:graphBoxRole; the Rust structural lint verifies each value is typed gmeow:GraphBoxRole." ;
     ] .
 
 gmeow:GmeowOntologyShape
@@ -138,6 +159,13 @@ gmeow:GmeowOntologyShape
         sh:minCount 1 ;
         sh:severity sh:Violation ;
         sh:message "Every GMEOW ontology header must declare rdfs:isDefinedBy itself (issue #221)." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:graphBoxRole ;
+        sh:minCount 1 ;
+        sh:nodeKind sh:IRI ;
+        sh:severity sh:Violation ;
+        sh:message "Every GMEOW ontology header must carry at least one explicit IRI-valued gmeow:graphBoxRole; the Rust structural lint verifies each value is typed gmeow:GraphBoxRole." ;
     ] .
 
 # --------------------------------------------------------------------------- #
