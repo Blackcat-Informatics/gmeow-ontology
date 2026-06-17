@@ -487,6 +487,39 @@ msgstr "Updated Label"
         assert 'skos:altLabel "Shared"@x-gmeow-english' in updated
         assert 'rdfs:comment "Sentence one. Sentence two."@en' in updated
 
+    def test_escaped_triple_quote_in_preceding_literal_does_not_confuse_context(
+        self, tmp_path: Path
+    ) -> None:
+        # Regression: the tokenizer must skip escaped triple-quote sequences
+        # inside a preceding long literal so statement boundaries stay correct.
+        ttl = _write_ttl(
+            tmp_path,
+            '''@prefix ex: <http://example.org/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+
+ex:thing rdfs:comment """This contains \\"\\"\\" escaped quotes."""@en ;
+         skos:altLabel "Other"@x-gmeow-english .
+''',
+        )
+        po = _write_po(
+            tmp_path,
+            """
+msgctxt "http://example.org/thing|http://www.w3.org/2004/02/skos/core#altLabel"
+msgid "Other"
+msgstr "Updated Other"
+""",
+        )
+        report = sync_english_from_po(po, ttl)
+        assert report.changed_files == [ttl]
+        assert not report.conflicts
+        assert not report.skipped
+        updated = ttl.read_text(encoding="utf-8")
+        assert 'skos:altLabel "Updated Other"@x-gmeow-english' in updated
+        assert (
+            'rdfs:comment """This contains \\"\\"\\" escaped quotes."""@en' in updated
+        )
+
     def test_dry_run_does_not_write(self, tmp_path: Path) -> None:
         ttl = _write_ttl(
             tmp_path,

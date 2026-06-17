@@ -303,10 +303,27 @@ def _iri_text_forms(iri: str, prefixes: dict[str, str]) -> list[str]:
     return forms
 
 
+def _skip_triple_quoted(text: str, i: int, end: int, quote: str) -> int:
+    r"""Return the index just after a triple-quoted string starting at *i*.
+
+    Skips ``\``-prefixed escape sequences and terminates only on an unescaped
+    triple quote.  Returns *end* if the string is unterminated.
+    """
+    j = i + 3
+    while j < end:
+        if text[j] == "\\" and j + 1 < end:
+            j += 2
+        elif text.startswith(quote, j):
+            return j + 3
+        else:
+            j += 1
+    return end
+
+
 def _tokenize_turtle(text: str, end: int | None = None) -> list[tuple[int, str, str]]:
     """Return structural Turtle tokens as ``(position, kind, value)`` up to *end*.
 
-    String literals (double quoted only, matching the rest of this module) and
+    String literals (double and single quoted, including triple quoted) and
     comments are skipped so that periods, semicolons, and IRIs inside literals
     cannot be mistaken for statement structure.
     """
@@ -324,10 +341,10 @@ def _tokenize_turtle(text: str, end: int | None = None) -> list[tuple[int, str, 
                 i += 1
             continue
         if text.startswith('"""', i):
-            j = text.find('"""', i + 3, end)
-            if j < 0:
-                break
-            i = j + 3
+            i = _skip_triple_quoted(text, i, end, '"""')
+            continue
+        if text.startswith("'''", i):
+            i = _skip_triple_quoted(text, i, end, "'''")
             continue
         if ch == '"':
             j = i + 1
@@ -335,6 +352,18 @@ def _tokenize_turtle(text: str, end: int | None = None) -> list[tuple[int, str, 
                 if text[j] == "\\" and j + 1 < end:
                     j += 2
                 elif text[j] == '"':
+                    j += 1
+                    break
+                else:
+                    j += 1
+            i = j
+            continue
+        if ch == "'":
+            j = i + 1
+            while j < end:
+                if text[j] == "\\" and j + 1 < end:
+                    j += 2
+                elif text[j] == "'":
                     j += 1
                     break
                 else:
