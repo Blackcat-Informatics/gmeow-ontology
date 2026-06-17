@@ -154,6 +154,7 @@ slice's model *and* how it aligns/projects.
 | [`docs/validation-thresholds.md`](./docs/validation-thresholds.md) | Reference | The four blocking validation gate floors (#579) — SHACL, vendored-entity coverage, slice-example, transpile recall — their measured values, where each floor lives, and the ratchet rule |
 | [`slices/core/logic/design/LOGIC.md`](./slices/core/logic/design/LOGIC.md) | Doctrine | The native RDF 1.2 `logic:` layer: canonical logic source, projection profiles, conformance, runtime, and migration |
 | [`docs/reasoning.md`](./docs/reasoning.md) | Doctrine | The OWL-infers / SHACL-validates split, the four verification lanes, and why OWL cardinality is avoided |
+| [`docs/four-boxes.md`](./docs/four-boxes.md) | Doctrine | ABox/TBox/RBox/CBox as explicit graph roles for docs, validation diagnostics, GTS/package surfaces, and RDF 1.2 statement context |
 | [`docs/projections.md`](./docs/projections.md) | Doctrine | The four-artifact alignment stack (SSSOM / EDOAL / FnO / SPARQL) and how lossy down-projection works |
 | [`docs/transpile.md`](./docs/transpile.md) | Doctrine | The full transpile — consumer RDF → pure-GMEOW draft → MAXIMAL multi-vocab; `gmeow transpile`, stdin streaming, and the draft as a first-class artifact |
 | [`docs/foundational-bridging.md`](./docs/foundational-bridging.md) | Doctrine | The gUFO ↔ BFO 2020 foundational-spine bridge, by reference (Principle 5 applied recursively) |
@@ -434,6 +435,13 @@ competing source of truth — and it recedes as RDF-1.2-native reasoners and sto
 downcasts are guarded by `make check-generated`
 ([Principle 7](./CONSTITUTION.md)). The scope is exact: the **logical TBox stays OWL 2 DL** —
 triple-terms are not OWL 2 DL, and GMEOW never claims otherwise.
+
+GMEOW makes the surrounding graph roles explicit with
+`gmeow:graphBoxRole`: ABox for asserted data and examples, TBox for schema and
+shape vocabulary, RBox for property/role behavior, and CBox for contextual
+assertion metadata such as RDF 1.2 reifiers. The four-box terminology is a
+documentation and validation aid over the same canonical sources; it is not a
+new source-of-truth layer. See [`docs/four-boxes.md`](./docs/four-boxes.md).
 
 ### Native logic: OWL is a projection, not the ceiling
 

@@ -1,0 +1,28 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix ex: <http://example.org/ns#> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+
+ex:PersonShape
+    a sh:NodeShape ;
+    sh:targetNode ex:alice ;
+    sh:property ex:KnowsShape .
+
+ex:KnowsShape
+    a sh:PropertyShape ;
+    gmeow:graphBoxRole gmeow:boxCBox ;
+    sh:path ex:knows ;
+    sh:message "knowledge claims need statement context" ;
+    sh:reificationRequired true ;
+    sh:reifierShape ex:ProvenanceShape .
+
+ex:ProvenanceShape
+    a sh:NodeShape ;
+    gmeow:graphBoxRole gmeow:boxCBox ;
+    sh:property ex:SourceShape .
+
+ex:SourceShape
+    a sh:PropertyShape ;
+    sh:path ex:source ;
+    sh:minCount 1 ;
+    sh:severity sh:Warning ;
+    sh:message "source recommended" .

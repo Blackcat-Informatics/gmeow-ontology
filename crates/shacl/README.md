@@ -22,6 +22,16 @@ graph with no inference (parity with pySHACL `inference="none"`), using the
 non-SPARQL constraint/target surface. SPARQL-based constraints and targets
 arrive in issue #577.
 
+In four-box terms, the data graph is usually the ABox, the shapes graph is a
+TBox/RBox validation surface, and RDF 1.2 reifier metadata is the CBox. The
+crate preserves existing report keys while adding optional box-role metadata for
+callers that want richer diagnostics.
+
+The crate implements a scoped SHACL 1.2 Working Draft feature:
+`sh:reifierShape` and `sh:reificationRequired` for direct IRI property paths.
+The relevant SHACL 1.2 Core draft is dated 2026-06-02. This is not a claim of
+full SHACL 1.2 conformance.
+
 The Python `gmeow_shacl` extension (PyO3/maturin) exposes a single
 `validate(shapes_ttl, data_nt)` function that returns a dict-form SHACL
 conformance report. The engine core (`engine.rs`, `shapes.rs`, `constraints.rs`,
@@ -78,6 +88,11 @@ report = gmeow_shacl.validate(shapes_ttl="...", data_nt="...")
 print(report["conforms"])  # True / False
 print(report["results"])   # list of violation dicts
 ```
+
+Each result dict keeps the stable keys `focus`, `path`, `value`, `severity`,
+`component`, `source_shape`, and `message`. When the shapes or path terms carry
+`gmeow:graphBoxRole`, result dicts may also include `source_box_roles`,
+`path_box_roles`, and `result_box_roles`.
 
 ---
 

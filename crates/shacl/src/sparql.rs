@@ -137,6 +137,9 @@ pub fn eval_sparql_constraint(
             source_shape: source_shape.clone(),
             severity,
             message: message.clone(),
+            source_box_roles: vec![],
+            path_box_roles: vec![],
+            result_box_roles: vec![],
         });
     }
     Ok(out)

@@ -71,6 +71,30 @@ pub struct ValidationResult {
     pub severity: Severity,
     /// An optional human-readable message.
     pub message: Option<String>,
+    /// GMEOW graph-box roles attached to the source shape, if any.
+    pub source_box_roles: Vec<NamedNode>,
+    /// GMEOW graph-box roles attached to the result path/predicate, if any.
+    pub path_box_roles: Vec<NamedNode>,
+    /// Deterministic union of source/path/component roles relevant to this result.
+    pub result_box_roles: Vec<NamedNode>,
+}
+
+impl ValidationResult {
+    /// Apply optional GMEOW graph-box role metadata to this result.
+    pub fn apply_box_roles(&mut self, source_roles: &[NamedNode], path_roles: &[NamedNode]) {
+        self.source_box_roles = dedup_roles(source_roles);
+        self.path_box_roles = dedup_roles(path_roles);
+        let mut merged = self.source_box_roles.clone();
+        merged.extend(self.path_box_roles.iter().cloned());
+        self.result_box_roles = dedup_roles(&merged);
+    }
+}
+
+fn dedup_roles(roles: &[NamedNode]) -> Vec<NamedNode> {
+    let mut out = roles.to_vec();
+    out.sort_unstable();
+    out.dedup();
+    out
 }
 
 // ── ValidationReport ─────────────────────────────────────────────────────────
@@ -380,6 +404,9 @@ mod tests {
             source_shape: Term::NamedNode(NamedNode::new_unchecked("http://example.org/ShapeA")),
             severity: Severity::Violation,
             message: Some("must have at least one value".to_owned()),
+            source_box_roles: vec![],
+            path_box_roles: vec![],
+            result_box_roles: vec![],
         }
     }
 
