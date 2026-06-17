@@ -50,6 +50,7 @@
     <uri name="https://blackcatinformatics.ca/gmeow/slices/kernel" uri="slices/core/kernel/module.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/slices/language" uri="slices/core/language/module.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/slices/languages" uri="slices/extensions/languages/module.ttl"/>
+    <uri name="https://blackcatinformatics.ca/gmeow/slices/learning" uri="slices/core/learning/module.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/slices/lexicon" uri="slices/extensions/lexicon/module.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/slices/lifecycle" uri="slices/core/lifecycle/module.ttl"/>
     <uri name="https://blackcatinformatics.ca/gmeow/slices/logic" uri="slices/core/logic/module.ttl"/>

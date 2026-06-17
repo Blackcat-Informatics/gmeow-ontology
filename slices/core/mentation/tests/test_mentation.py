@@ -10,7 +10,7 @@ Guards the minimal core of the mentation slice:
     several type values simultaneously)
   * gmeow:MentalProcessType is a value-vocab class (gufo:AbstractIndividualType,
     ⊑ gufo:QualityValue — no subclasses, only individuals; Principle 9)
-  * all eight gmeow:process* seed individuals are declared as MentalProcessType
+  * all nine gmeow:process* seed individuals are declared as MentalProcessType
   * gmeow:realizesMentalMoment is non-functional, domain MentalProcess,
     range MentalMoment
   * gmeow:producesMentalMoment is non-functional, domain MentalProcess,
@@ -52,6 +52,7 @@ _INDIVIDUALS = (
     "processRecollection",
     "processMindWandering",
     "processDreaming",
+    "processLearning",
 )
 _ALL_TERMS = list(_CLASSES) + list(_PROPERTIES) + list(_INDIVIDUALS)
 
@@ -141,7 +142,7 @@ def test_mentalprocesstype_is_value_vocab() -> None:
 
 
 def test_all_eight_process_individuals() -> None:
-    """All eight gmeow:process* seeds are declared as gmeow:MentalProcessType."""
+    """All nine gmeow:process* seeds are declared as gmeow:MentalProcessType."""
     g = _graph()
     for name in _INDIVIDUALS:
         individual = _t(name)
