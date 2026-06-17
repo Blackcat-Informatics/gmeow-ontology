@@ -105,16 +105,38 @@ impl Entrenchment {
 
         // (2) Authority-level inheritance: norm → its level individual.
         //     n1 ≻ n2 when level(n1) ≻ level(n2) in the strongerThan order.
+        //     A norm carries exactly one authority level; conflicting
+        //     `hasAuthorityLevel` assertions are a contradiction in the source
+        //     data and are rejected rather than silently collapsed (the surviving
+        //     value would otherwise depend on ingestion order, breaking
+        //     determinism).
         let mut norm_level: BTreeMap<String, String> = BTreeMap::new();
         for q in store.quads_for_pattern_in_world(base_world, None, Some(HAS_AUTHORITY_LEVEL), None)
         {
             if let (Some(s), Some(o)) = (named_iri(&q.subject), term_iri(&q.object)) {
-                norm_level.insert(s, o);
+                if let Some(prev) = norm_level.get(&s) {
+                    if prev != &o {
+                        return Err(format!(
+                            "conflicting hasAuthorityLevel values for norm {s:?}: \
+                             {prev:?} vs {o:?}"
+                        ));
+                    }
+                } else {
+                    norm_level.insert(s, o);
+                }
             }
         }
         if !norm_level.is_empty() {
-            // Level order is the strongerThan closure built from the direct edges.
-            let level_order = closure(&edges);
+            // Level order must come only from `gmeow:strongerThan(level, level)`;
+            // an `overrides`/`moreSevereThan`/`sharpens` edge that happens to touch
+            // a level individual must NOT synthesize false authority precedence.
+            let mut level_edges: BTreeSet<(String, String)> = BTreeSet::new();
+            for q in store.quads_for_pattern_in_world(base_world, None, Some(STRONGER_THAN), None) {
+                if let (Some(s), Some(o)) = (named_iri(&q.subject), term_iri(&q.object)) {
+                    level_edges.insert((s, o));
+                }
+            }
+            let level_order = closure(&level_edges);
             for (n1, l1) in &norm_level {
                 for (n2, l2) in &norm_level {
                     if n1 == n2 {
@@ -431,6 +453,50 @@ mod tests {
             Some(Ordering::Greater),
             "treaty (absolute) outranks policy (high)"
         );
+    }
+
+    #[test]
+    fn authority_inheritance_uses_strongerthan_only_not_other_edges() {
+        // A non-strongerThan edge between two level individuals (here `overrides`)
+        // must NOT be read as authority-level precedence: norms carrying those
+        // levels stay incomparable unless a `strongerThan` chain links the levels.
+        let store = WorldStore::new();
+        // overrides edge directly between the *level* individuals (not strongerThan).
+        store.insert_quad(W, &gm("authorityHigh"), OVERRIDES, &gm("authorityMedium"));
+        store.insert_quad(W, &ex("policy"), HAS_AUTHORITY_LEVEL, &gm("authorityHigh"));
+        store.insert_quad(
+            W,
+            &ex("guideline"),
+            HAS_AUTHORITY_LEVEL,
+            &gm("authorityMedium"),
+        );
+        let e = Entrenchment::read_from_world(&store, W).unwrap();
+        // The levels themselves are ordered by the direct `overrides` edge …
+        assert_eq!(
+            e.compare(&gm("authorityHigh"), &gm("authorityMedium")),
+            Some(Ordering::Greater)
+        );
+        // … but that must not synthesize precedence between the *norms*: only a
+        // `strongerThan` level order may be inherited, and there is none here.
+        assert_eq!(
+            e.compare(&ex("policy"), &ex("guideline")),
+            None,
+            "overrides between levels must not leak into authority-level inheritance"
+        );
+    }
+
+    #[test]
+    fn conflicting_authority_level_is_rejected() {
+        let store = WorldStore::new();
+        store.insert_quad(
+            W,
+            &ex("treaty"),
+            HAS_AUTHORITY_LEVEL,
+            &gm("authorityAbsolute"),
+        );
+        store.insert_quad(W, &ex("treaty"), HAS_AUTHORITY_LEVEL, &gm("authorityHigh"));
+        let err = Entrenchment::read_from_world(&store, W).unwrap_err();
+        assert!(err.contains("conflicting hasAuthorityLevel"), "got: {err}");
     }
 
     // ── moreSevereThan axis ────────────────────────────────────────────────────
