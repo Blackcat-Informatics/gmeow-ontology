@@ -2017,9 +2017,9 @@ def certify(
     2. ``semantic_profile`` in a sibling ``profile.json``, if present;
     3. ``PositiveHornProfile`` (the v1 default).
     """
-    from gmeow_tools.logic_certify import certify_invariants
     from gmeow_tools.logic_frontend import LogicParseError, parse_logic_source
     from gmeow_tools.logic_ir import SemanticProfileId
+    from gmeow_tools.logic_projections import extract_nemo_rules_section, project_nemo
 
     if not input_path.is_file():
         raise _fail(f"✗ certify: input not found: {input_path}")
@@ -2058,7 +2058,24 @@ def certify(
     except LogicParseError as exc:
         raise _fail(f"✗ certify: cannot parse {input_path}: {exc}") from exc
 
-    violations = certify_invariants(program, declared_profile)
+    # Rust-authoritative certification (#497): the native certifier is the
+    # reasoning authority; the Python oracle is only a secondary validator.
+    try:
+        import gmeow_logic
+    except ImportError as exc:
+        raise _fail(
+            "✗ certify: gmeow_logic native extension is not installed "
+            "(certification is Rust-authoritative since #497) — run 'make logic-py'."
+        ) from exc
+    try:
+        rules_only = extract_nemo_rules_section(project_nemo(program).content)
+    except (ValueError, RuntimeError) as exc:
+        raise _fail(f"✗ certify: cannot project/extract NEMO rules: {exc}") from exc
+    try:
+        verdict = gmeow_logic.certify(rules_only, str(declared_profile))
+    except (ValueError, RuntimeError) as exc:
+        raise _fail(f"✗ certify: native certifier failed: {exc}") from exc
+    violations = list(verdict["violations"])
     if violations:
         err_console.print(
             f"[red]✗ certify: {len(violations)} violation(s) for "

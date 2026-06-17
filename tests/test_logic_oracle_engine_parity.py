@@ -66,7 +66,10 @@ from gmeow_tools.logic_materialize import (  # noqa: E402
     DerivedQuad,
     materialize_program,
 )
-from gmeow_tools.logic_projections import project_nemo  # noqa: E402
+from gmeow_tools.logic_projections import (  # noqa: E402
+    extract_nemo_rules_section,
+    project_nemo,
+)
 
 # --------------------------------------------------------------------------- #
 # Corpus root + case discovery
@@ -156,30 +159,10 @@ _CASE_PROFILE: dict[str, SemanticProfileId] = {
 # --------------------------------------------------------------------------- #
 
 
-def _extract_rules_section(nemo_content: str) -> str:
-    """Return only the ``% === Rules ===`` section from a ``.rls`` string.
-
-    The ``project_nemo`` output includes two sections:
-
-    * ``% === Ground facts (axioms) ===`` — schema-level metadata axioms
-      (logic:type declarations, logic:head / logic:body reification nodes).
-      These are NOT materialization inputs; they describe the rule structure
-      in RDF terms, and including them in the engine call produces spurious
-      output predicates (logic:body, logic:head etc.) with blank-node-like
-      IRI objects that the Rust decoder cannot round-trip.
-
-    * ``% === Rules ===`` — the actual Nemo inference rules.  These are the
-      only input the engine needs to reproduce the oracle's chase.
-
-    Returns everything from the rules-section header to the end of string.
-    If the header is absent (no rules in the program), returns an empty string.
-    """
-    marker = "% === Rules ==="
-    idx = nemo_content.find(marker)
-    if idx == -1:
-        return ""
-    # Return the rule text after the section header
-    return nemo_content[idx + len(marker) :].strip()
+# The canonical extractor lives in ``logic_projections`` (the runner and the
+# ``logic-certify`` CLI use the same Rust-authoritative certification path);
+# this alias keeps the call sites below readable.
+_extract_rules_section = extract_nemo_rules_section
 
 
 # --------------------------------------------------------------------------- #
@@ -405,19 +388,31 @@ def test_oracle_engine_parity(case_dir: Path) -> None:
     # ALL present in the oracle's explanation cited-IRI set.
     # (This is a subset check — the engine may not produce every IRI the oracle
     # cites; we only assert no hallucinated IRIs appear on the engine side.)
-    from gmeow_tools.logic_explain import explain  # local import to avoid CI overhead
-
+    # The native explanation engine (``gmeow_logic.explain``, issue #497) is
+    # already bound at module scope via importorskip.
     engine_rule_iris: set[str] = {
         str(d["rule_iri"])
         for d in engine_dicts
         if str(d["rule_iri"]) != "https://blackcatinformatics.ca/logic/assert"
     }
 
-    # Collect ALL cited IRIs from the oracle's explanation pool.
+    # Collect ALL cited IRIs from the oracle's explanation pool, via the native
+    # engine over the oracle's materialized quads (one explanation per quad).
+    explain_payload = [
+        {
+            "graph": oq.graph,
+            "subject": oq.subject,
+            "predicate": oq.predicate,
+            "obj": oq.obj,
+            "derivation_id": oq.derivation_id,
+            "rule_iri": oq.rule_iri,
+            "source_quad_ids": list(oq.source_quad_ids),
+        }
+        for oq in oracle_result.quads
+    ]
     oracle_cited_all: set[str] = set()
-    for oq in oracle_result.quads:
-        exp = explain(oracle_result, oq, onto_graph=None)
-        oracle_cited_all.update(exp.cited_iris)
+    for exp_row in gmeow_logic.explain(explain_payload):
+        oracle_cited_all.update(str(c) for c in exp_row["cited_iris"])
 
     for eng_rule_iri in engine_rule_iris:
         assert eng_rule_iri in oracle_cited_all, (

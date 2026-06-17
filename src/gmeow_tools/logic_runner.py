@@ -3,9 +3,9 @@
 """Conformance runner for the Logic v1 monotonic core (issue #501, Task 7).
 
 This module is the **Python oracle runner** — it wires :mod:`~.logic_frontend`,
-:mod:`~.logic_materialize`, :mod:`~.logic_projections`, and :mod:`~.logic_explain`
-into the single ``run()`` function required by the runner contract in
-``conformance/logic/runner/README.md``.
+:mod:`~.logic_materialize`, :mod:`~.logic_projections`, and the native
+``gmeow_logic.explain`` engine into the single ``run()`` function required by the
+runner contract in ``conformance/logic/runner/README.md``.
 
 Runner contract
 ---------------
@@ -69,16 +69,16 @@ from rdflib.compare import isomorphic
 
 from gmeow_tools.logic_certify import (
     PredicateDepGraph,
-    certify_program,
     stratify,
 )
-from gmeow_tools.logic_explain import Explanation, explain
 from gmeow_tools.logic_frontend import LogicParseError, parse_logic_source
 from gmeow_tools.logic_ir import LogicAxiom, LogicProgram, SemanticProfileId
 from gmeow_tools.logic_materialize import (
     _ASSERT_RULE_IRI,
     BudgetParams,
     DerivedQuad,
+    Explanation,
+    ExplanationStep,
     MaterializationError,
     MaterializationResult,
     materialize_program,
@@ -86,6 +86,7 @@ from gmeow_tools.logic_materialize import (
 from gmeow_tools.logic_projections import (
     ProjectionResult,
     build_projection_report,
+    extract_nemo_rules_section,
     project_canonical_rdf12,
     project_datalog,
     project_gufo,
@@ -149,9 +150,9 @@ class RunnerOutputs:
 
         projections: All projection back-ends + ledger.  **Populated**.
 
-        explanations: Per-derived-quad explanation skeletons.  **Populated**
-            (one :class:`~.logic_explain.Explanation` per derived quad, ordered
-            by world then quad position).
+        explanations: Per-quad explanation skeletons.  **Populated**
+            (one :class:`~.logic_materialize.Explanation` per quad, in
+            ``result.quads`` order).
 
         verdicts: World-indexed truth verdicts JSON dict.  **Populated** as a
             minimal ``{world_iri: {"quads": n, "status": "consistent"}}``
@@ -370,36 +371,146 @@ def _run_projections(program: LogicProgram) -> ProjectionOutputs:
 
 
 def _run_explanations(result: MaterializationResult) -> tuple[Explanation, ...]:
-    """Produce explanation skeletons for every derived quad in ``result``.
+    """Produce explanation skeletons for every quad in ``result``.
 
-    Asserted quads (rule_iri == ``logic:assert``) are included — their
-    explanation is trivial (depth-0 step, the fact itself).  The list is
-    sorted by (graph, subject, predicate, object) for determinism.
+    The explanation *engine* is native Rust (``gmeow_logic.explain``, issue
+    #497): the retired Python oracle (``logic_explain.py``) is gone and there is
+    no fallback (no-optionality doctrine — a missing extension is a hard
+    failure, mirroring :func:`_materialize_foundation`).  One explanation is
+    produced per quad, in ``result.quads`` order; asserted quads (rule_iri ==
+    ``logic:assert``) get a trivial depth-0 explanation.
 
     Args:
         result: The materialization result.
 
     Returns:
-        A tuple of :class:`~.logic_explain.Explanation` objects, one per quad.
+        A tuple of :class:`~.logic_materialize.Explanation` objects, one per
+        quad, in input order.
 
     Raises:
-        RunnerError: If an explanation cannot be built for any quad.
+        RunnerError: If the ``gmeow_logic`` extension is not installed (hard
+            fail), or if the native engine rejects the proof trace.
     """
-    from gmeow_tools.logic_explain import ExplainError
+    if not result.quads:
+        return ()
+
+    try:
+        import gmeow_logic
+    except ImportError as exc:
+        raise RunnerError(
+            "gmeow_logic native extension is not installed but explanations were "
+            "requested — run 'make logic-py' first: "
+            f"{exc}"
+        ) from exc
+
+    # Build the payload list of dicts from the materialized quads (one per quad,
+    # preserving order).  The native engine reads the same seam fields the Python
+    # oracle did: graph/subject/predicate/obj/derivation_id/rule_iri/source_quad_ids.
+    payload = [
+        {
+            "graph": quad.graph,
+            "subject": quad.subject,
+            "predicate": quad.predicate,
+            "obj": quad.obj,
+            "derivation_id": quad.derivation_id,
+            "rule_iri": quad.rule_iri,
+            "source_quad_ids": list(quad.source_quad_ids),
+        }
+        for quad in result.quads
+    ]
+
+    try:
+        rows = gmeow_logic.explain(payload)
+    except (ValueError, RuntimeError) as exc:
+        raise RunnerError(f"gmeow_logic.explain failed: {exc}") from exc
 
     explanations: list[Explanation] = []
-    for quad in result.quads:
-        try:
-            exp = explain(result, quad, onto_graph=None)
-            explanations.append(exp)
-        except ExplainError as exc:
-            raise RunnerError(
-                f"explain() failed for quad "
-                f"({quad.subject!r}, {quad.predicate!r}, {quad.obj!r}) "
-                f"in world {quad.graph!r}: {exc}"
-            ) from exc
+    for row in rows:
+        steps = tuple(
+            ExplanationStep(
+                derivation_id=str(step["derivation_id"]),
+                rule_iri=str(step["rule_iri"]),
+                quad_reifier=str(step["quad_reifier"]),
+                subject_iri=str(step["subject_iri"]),
+                predicate_iri=str(step["predicate_iri"]),
+                obj_n3=str(step["obj_n3"]),
+                graph_iri=str(step["graph_iri"]),
+                term_iris=tuple(str(t) for t in step["term_iris"]),
+                source_step_ids=tuple(str(s) for s in step["source_step_ids"]),
+                is_asserted=bool(step["is_asserted"]),
+                depth=int(step["depth"]),
+            )
+            for step in row["step_skeleton"]
+        )
+        explanations.append(
+            Explanation(
+                target_derivation_id=str(row["target_derivation_id"]),
+                target_quad_reifier=str(row["target_quad_reifier"]),
+                world_iri=str(row["world_iri"]),
+                step_skeleton=steps,
+                cited_iris=frozenset(str(c) for c in row["cited_iris"]),
+            )
+        )
 
     return tuple(explanations)
+
+
+# --------------------------------------------------------------------------- #
+# Static certification (native, Rust-authoritative — issue #497)
+# --------------------------------------------------------------------------- #
+
+
+def _certify_native(
+    program: LogicProgram,
+    declared_profile: SemanticProfileId,
+    case_label: str,
+) -> dict[str, object]:
+    """Statically certify ``program`` against ``declared_profile`` via the Rust core.
+
+    The native ``gmeow_logic.certify`` certifier is the reasoning authority
+    (Principle 17, the "maximally use Rust" doctrine); the Python
+    ``logic_certify.certify_program`` oracle is retained only as a secondary
+    validator (``tests/test_logic_oracle_engine_parity.py``). The engine takes
+    the ``% === Rules ===`` section of ``project_nemo`` (the ground-fact axioms
+    are not certification inputs) plus the declared profile, and returns the
+    verdict dict (``certified``, ``decidability_class``, ``profile_id``, sorted
+    ``violations``) — the exact shape the conformance ``certification.json``
+    golden compares.
+
+    Args:
+        program: The parsed logic program IR.
+        declared_profile: The :class:`SemanticProfileId` the case declares.
+        case_label: Case name for error messages.
+
+    Returns:
+        The certification verdict as a JSON-able dict.
+
+    Raises:
+        RunnerError: If the ``gmeow_logic`` extension is not installed (hard
+            fail, no Python fallback) or the native certifier raises.
+    """
+    try:
+        import gmeow_logic
+    except ImportError as exc:
+        raise RunnerError(
+            f"Case {case_label}: gmeow_logic native extension is not installed "
+            "(certification is Rust-authoritative since #497) — run 'make logic-py'."
+        ) from exc
+
+    try:
+        rules_only = extract_nemo_rules_section(project_nemo(program).content)
+    except (ValueError, RuntimeError) as exc:
+        raise RunnerError(
+            f"Case {case_label}: NEMO projection for certification failed: {exc}"
+        ) from exc
+    try:
+        verdict = gmeow_logic.certify(rules_only, str(declared_profile))
+    except (ValueError, RuntimeError) as exc:
+        raise RunnerError(
+            f"Case {case_label}: gmeow_logic.certify failed for profile "
+            f"{declared_profile!s}: {exc}"
+        ) from exc
+    return dict(verdict)
 
 
 # --------------------------------------------------------------------------- #
@@ -835,11 +946,11 @@ def run(case_dir: Path, mode: str = "native") -> RunnerOutputs:
             semantic_profile_str,
         )
 
-    # Static certification against the DECLARED profile (issue #502, Task 5).
-    # This is pure analysis over the IR and never raises; a non-empty
-    # ``violations`` list is surfaced (not raised) so the conformance diff can
-    # compare it as a golden artifact.
-    certification = certify_program(program, declared_profile).to_json()
+    # Static certification against the DECLARED profile (issue #502, Task 5;
+    # made Rust-authoritative in #497).  Pure analysis over the projected rules;
+    # a non-empty ``violations`` list is surfaced (not raised) so the conformance
+    # diff can compare it as a golden artifact.
+    certification = _certify_native(program, declared_profile, case_dir.name)
 
     # Build the input ConjunctiveGraph for the materializer.
     # Projection-only cases carry no named-graph worlds (flat Turtle program);
@@ -886,6 +997,16 @@ def run(case_dir: Path, mode: str = "native") -> RunnerOutputs:
         # (and StableModel / WellFounded programs the stratified oracle cannot
         # compute) fall through with ``enable_naf=False`` and keep their lossy
         # positive materialization with the loss recorded — byte-identical.
+        #
+        # NOTE (#497): the default forward chase remains the Python oracle. Routing
+        # it through native ``gmeow_logic.materialize`` (the Nemo engine) was
+        # attempted and is BLOCKED — Nemo rejects non-stratifiable StableModel /
+        # WellFounded programs outright (``SelectionStrategyError``), and its
+        # provenance structure is not the reifier graph the native explain / query /
+        # counterfactual consumers reconstruct. Making materialization
+        # Rust-authoritative is tracked as the dedicated #651 follow-up; the Nemo
+        # engine remains the Principle-7 secondary validator
+        # (test_logic_oracle_engine_parity.py) until that work lands.
         try:
             mat_result = materialize_program(
                 program,

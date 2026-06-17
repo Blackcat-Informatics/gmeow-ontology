@@ -1452,6 +1452,54 @@ def project_nemo(
 
 
 # --------------------------------------------------------------------------- #
+# Nemo rules-section extraction (certifier input)
+# --------------------------------------------------------------------------- #
+
+
+def extract_nemo_rules_section(nemo_content: str) -> str:
+    """Extract the ``% === Rules ===`` section from a ``.rls`` string.
+
+    ``project_nemo`` emits two sections:
+
+    * ``% === Ground facts (axioms) ===`` — schema-level metadata axioms
+      (``logic:type`` declarations, ``logic:head`` / ``logic:body`` reification
+      nodes). These describe the rule structure in RDF terms; they are NOT
+      certification (or materialization) inputs.
+    * ``% === Rules ===`` — the actual Nemo inference rules. These are the only
+      input the static certifier (and the chase engine) needs.
+
+    Feeding the rules section alone to ``gmeow_logic.certify`` is the
+    Rust-authoritative certification path (the runner and the ``logic-certify``
+    CLI both use it). Returns everything after the rules header, stripped; an
+    empty string when the program declares no rules (but the header is present).
+
+    ``project_nemo`` always emits the ``% === Rules ===`` marker, even for
+    zero-rule programs; a missing marker indicates a corrupt or unexpected
+    projection output and is a hard error.
+
+    Args:
+        nemo_content: The full ``ProjectionResult.content`` from ``project_nemo``.
+
+    Returns:
+        The rule text after the ``% === Rules ===`` header (empty string when the
+        program has no rules).
+
+    Raises:
+        ValueError: If the ``% === Rules ===`` marker is absent — this signals a
+            corrupt or unexpected projection output that must not silently be fed
+            to the certifier as an empty rule set.
+    """
+    marker = "% === Rules ==="
+    idx = nemo_content.find(marker)
+    if idx == -1:
+        raise ValueError(
+            'Nemo projection is missing the "% === Rules ===" marker; '
+            "cannot extract certifier input safely."
+        )
+    return nemo_content[idx + len(marker) :].strip()
+
+
+# --------------------------------------------------------------------------- #
 # Projection report
 # --------------------------------------------------------------------------- #
 

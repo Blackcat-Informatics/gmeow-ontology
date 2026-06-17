@@ -14,6 +14,7 @@ pub mod counterfactual;
 pub mod dispatch;
 pub mod encode;
 pub mod entrenchment;
+pub mod explain;
 pub mod foundation;
 pub mod probabilistic;
 pub mod profile_gate;
