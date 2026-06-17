@@ -87,17 +87,34 @@ fn split_nq_terms(body: &str) -> Vec<&str> {
     out
 }
 
-/// Find the single quad matching `(subject_local, predicate_local, object_n3)`.
+/// Find the single quad matching `(subject, predicate, object_n3)` in named graph
+/// `graph`.  Panics unless EXACTLY one quad matches: matching is graph-scoped and
+/// uniqueness-checked so a multi-world regression that emits the same `(s, p, o)`
+/// in more than one graph cannot be silently masked by a first-match lookup.
 fn find<'a>(
     quads: &'a [FoundationQuad],
+    graph: &str,
     subject: &str,
     predicate: &str,
     object_n3: &str,
 ) -> &'a FoundationQuad {
-    quads
+    let matches: Vec<&'a FoundationQuad> = quads
         .iter()
-        .find(|q| q.subject == subject && q.predicate == predicate && q.object == object_n3)
-        .unwrap_or_else(|| panic!("no quad {subject} {predicate} {object_n3}; have: {quads:#?}"))
+        .filter(|q| {
+            q.graph == graph
+                && q.subject == subject
+                && q.predicate == predicate
+                && q.object == object_n3
+        })
+        .collect();
+    assert_eq!(
+        matches.len(),
+        1,
+        "expected exactly one quad {subject} {predicate} {object_n3} in graph {graph}, \
+         found {}; have: {quads:#?}",
+        matches.len()
+    );
+    matches[0]
 }
 
 /// Whether a violation `(subject, label_local)` is present.
@@ -428,6 +445,7 @@ fn provenance_isclass_derivation_matches_recipe() {
     let honors = format!("{base}/HonorsStudent");
     let is_class = find(
         &quads,
+        &format!("{base}/schema"),
         &honors,
         &format!("{LOGIC}isClass"),
         &format!("<{honors}>"),
@@ -482,6 +500,7 @@ fn provenance_rigidity_and_obligation_recipes() {
     let alice = format!("{base}/alice");
     let rig = find(
         &quads,
+        &format!("{base}/worldB"),
         &alice,
         &format!("{LOGIC}rigidityViolation"),
         &format!("<{base}/Person>"),
@@ -501,6 +520,7 @@ fn provenance_rigidity_and_obligation_recipes() {
     let carol = format!("{base}/carol");
     let obl = find(
         &quads,
+        &format!("{base}/worldA"),
         &carol,
         &format!("{LOGIC}dischargeObligation"),
         &format!("<{base}/Employee>"),
