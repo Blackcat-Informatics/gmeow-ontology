@@ -41,7 +41,7 @@ lint: ## Lint (ruff), type-check (mypy), and full repo-hygiene suite (pre-commit
 	# so the local gate must too — otherwise those lanes only fail in CI.
 	uv run pre-commit run --all-files --show-diff-on-failure
 
-validate: ## Validate syntax, term annotations, and SHACL (pure Python).
+validate: validate-py shacl-py ## Validate syntax, term annotations, and SHACL (Rust-native orchestration).
 	$(GMEOW_DEV) validate
 
 crosscheck: ## Prove rdflib and pyoxigraph answer every committed query alike (no Docker).
