@@ -1,0 +1,21 @@
+@prefix : <http://example.org/i18n-fixture/lifecycle#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix xml: <http://www.w3.org/XML/1998/namespace> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+
+<http://example.org/i18n-fixture/lifecycle> rdf:type owl:Ontology .
+
+:Lifecycle rdf:type owl:Class ;
+    rdfs:label "Lifecycle"@x-gmeow-english ;
+    skos:definition "Original lifecycle description."@x-gmeow-english .
+
+:Active rdf:type owl:Class ;
+    rdfs:label "Active"@x-gmeow-english ;
+    skos:definition "Original active state description."@x-gmeow-english .
+
+:hasState rdf:type owl:ObjectProperty ;
+    rdfs:label "has state"@x-gmeow-english ;
+    skos:definition "Relates an entity to its lifecycle state."@x-gmeow-english .

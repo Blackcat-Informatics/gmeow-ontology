@@ -1,0 +1,6 @@
+# po4a-style markdown translations for sample.md.
+msgid "This is the original introduction paragraph."
+msgstr "This is the updated introduction paragraph."
+
+msgid "This is the original conclusion."
+msgstr "This is the updated conclusion."

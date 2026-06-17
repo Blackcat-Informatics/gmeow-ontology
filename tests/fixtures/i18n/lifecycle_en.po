@@ -1,0 +1,24 @@
+# English translations for the synthetic lifecycle module.
+msgctxt "http://example.org/i18n-fixture/lifecycle#Lifecycle|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Lifecycle"
+msgstr "Lifecycle Process"
+
+msgctxt "http://example.org/i18n-fixture/lifecycle#Lifecycle|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Original lifecycle description."
+msgstr "A process that manages entity states over time."
+
+msgctxt "http://example.org/i18n-fixture/lifecycle#Active|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "Active"
+msgstr "Active State"
+
+msgctxt "http://example.org/i18n-fixture/lifecycle#Active|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Original active state description."
+msgstr "A state in which an entity is operational."
+
+msgctxt "http://example.org/i18n-fixture/lifecycle#hasState|http://www.w3.org/2000/01/rdf-schema#label"
+msgid "has state"
+msgstr "has lifecycle state"
+
+msgctxt "http://example.org/i18n-fixture/lifecycle#hasState|http://www.w3.org/2004/02/skos/core#definition"
+msgid "Relates an entity to its lifecycle state."
+msgstr "Associates an entity with its current lifecycle state."
