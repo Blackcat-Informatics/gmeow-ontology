@@ -32,6 +32,8 @@ ex:firstLessons a gmeow:LearningEvent ;
     gmeow:fromLevel gmeow:dreyfusNovice ;
     gmeow:toLevel gmeow:dreyfusAdvancedBeginner ;
     gmeow:produces ex:profSpring ;
+    gmeow:eventTime "2026-03-15T10:00:00Z"^^xsd:dateTime ; # temporal placement — CONSTITUTION P11
+    gmeow:eventTemporalFrame gmeow:temporalFrameUTCGregorian ;
     rdfs:label "first cycling lessons"@x-gmeow-english .
 
 # The proficiency tenure the first event produced — now SUPERSEDED, kept (not
@@ -57,6 +59,8 @@ ex:summerPractice a gmeow:LearningEvent ;
     gmeow:fromLevel gmeow:dreyfusAdvancedBeginner ;
     gmeow:toLevel gmeow:dreyfusExpert ;
     gmeow:produces ex:profSummer ;
+    gmeow:eventTime "2026-08-15T10:00:00Z"^^xsd:dateTime ; # temporal placement — CONSTITUTION P11
+    gmeow:eventTemporalFrame gmeow:temporalFrameUTCGregorian ;
     rdfs:label "a summer of daily practice"@x-gmeow-english .
 
 # The current proficiency tenure — a NEW relator, not a mutation of ex:profSpring.
