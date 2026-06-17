@@ -1702,7 +1702,7 @@
         <https://blackcatinformatics.ca/gmeow.nt>,
         <https://blackcatinformatics.ca/gmeow.rdf>,
         <https://blackcatinformatics.ca/gmeow.ttl> ;
-    void:entities 4383 ;
+    void:entities 4384 ;
     void:exampleResource gmeow:Person ;
     void:feature <http://www.w3.org/ns/formats/JSON-LD>,
         <http://www.w3.org/ns/formats/N-Triples>,
@@ -1930,7 +1930,7 @@
         <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-wgs84_pos-ed16f2-skos_closeMatch>,
         <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-whgazetteer.org-1272e7-skos_closeMatch>,
         <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-www.discogs.com-4b9508-skos_relatedMatch> ;
-    void:triples 31966 ;
+    void:triples 36822 ;
     void:uriSpace "https://blackcatinformatics.ca/gmeow/" ;
     void:vocabulary faldo:,
         cc:,
