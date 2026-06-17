@@ -24,6 +24,11 @@ otherwise offline episode.
 `gmeow:learningType gmeow:learningConsolidation`, recombining stored claims via
 `gmeow:Analogy` and `gmeow:learningConceptFormation`.
 
+> Note: The dreaming slice does not declare a hard dependency on the forthcoming
+> `concepts` slice because it is not yet in the registry. Concept-formation
+> dreaming routes through `gmeow:learningConceptFormation` in the learning slice,
+> which is already a declared dependency; no additional slice is required.
+
 `gmeow:DreamReport` is a **recollection experience**
 (`gmeow:mentalProcessType gmeow:processRecollection`,
 `gmeow:contentOrigin gmeow:originImagined`) that reports or recalls a dream. It is a
