@@ -19,7 +19,7 @@ from rdflib.query import ResultRow
 from gmeow_tools.config import NAMESPACE
 from gmeow_tools.graph import load_merged_graph
 from gmeow_tools.slices import module_path
-from gmeow_tools.validate import run_shacl
+from tests._graph_nt import run_shacl
 
 GM = Namespace(NAMESPACE)
 GUFO = Namespace("http://purl.org/nemo/gufo#")

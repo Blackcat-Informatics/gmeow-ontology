@@ -366,8 +366,7 @@ def test_relation_aware_exact_is_fact_generalizing_is_claim() -> None:
 def test_up_project_generalizing_claim_without_confidence_is_valid() -> None:
     """A `<=` cell that supplied no confidence still lifts as a claim — carrying
     gmeow:mappedFrom but no gmeow:confidence — and stays SHACL-valid."""
-    from pyshacl import validate as shacl_validate
-
+    from gmeow_tools import shacl_engine
     from gmeow_tools.config import STATEMENT_DSL_SHAPES_FILE
 
     lift = build_lift_map()
@@ -393,11 +392,10 @@ def test_up_project_generalizing_claim_without_confidence_is_valid() -> None:
     }
     assert URIRef(GM + "mappedFrom") in props
     assert URIRef(GM + "confidence") not in props
-    shapes = Graph().parse(STATEMENT_DSL_SHAPES_FILE, format="turtle")
-    conforms, _g, report = shacl_validate(
-        up.graph, shacl_graph=shapes, advanced=True, inference="none"
-    )
-    assert conforms, report
+    shapes_ttl = STATEMENT_DSL_SHAPES_FILE.read_text(encoding="utf-8")
+    data_nt = up.graph.serialize(format="nt", encoding="utf-8").decode("utf-8")
+    report = shacl_engine.validate_nt(data_nt, shapes_ttl)
+    assert report["conforms"], report["results"]
 
 
 def test_up_project_emits_provenance_stamped_claim_not_a_bare_fact() -> None:
@@ -460,7 +458,7 @@ def test_up_project_claims_are_shacl_valid() -> None:
     Annotation shape.
     """
     from gmeow_tools.config import STATEMENT_DSL_SHAPES_FILE
-    from gmeow_tools.validate import run_shacl
+    from tests._graph_nt import run_shacl
 
     src = Graph()
     a = URIRef("https://ex.org/a")

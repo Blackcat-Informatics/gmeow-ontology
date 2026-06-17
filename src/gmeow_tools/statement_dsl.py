@@ -187,15 +187,12 @@ def _cells(graph: Graph) -> list[StatementCell]:
 def load_statement_dsl(src: Path = STATEMENT_DSL_DIR) -> StatementDsl:
     """Parse the whole statement DSL into deterministically-ordered cells."""
     graph = Graph()
-    node_to_file: dict[Node, Path] = {}
-    for path in sorted(src.rglob("*.ttl")):
+    sources = sorted(src.rglob("*.ttl"))
+    for path in sources:
         graph.parse(path, format="turtle")
-        # Track source file for named IRIs (second parse is harmless).
-        file_graph = Graph().parse(path, format="turtle")
-        for subject in file_graph.subjects():
-            if isinstance(subject, URIRef) and subject not in node_to_file:
-                node_to_file[subject] = path
-    violations = validate_statement_dsl(graph, node_to_file)
+    # SHACL validation + focus→file provenance run in Rust over the same source
+    # paths (#579); the rdflib graph is kept only for cell extraction below.
+    violations = validate_statement_dsl([str(path) for path in sources])
     if violations:
         raise CompileError(
             "statement DSL SHACL violations:\n  " + "\n  ".join(violations)

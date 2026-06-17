@@ -8,16 +8,19 @@ fixture idiom as :mod:`tests.test_validate` and :mod:`tests.test_statements`.
 
 from __future__ import annotations
 
+import gmeow_validate
 from rdflib import RDF, RDFS, Graph, URIRef
 from rdflib.namespace import OWL, Namespace
 
 from gmeow_tools.config import NAMESPACE, PREFIXES
-from gmeow_tools.graph import load_merged_graph
-from gmeow_tools.reasoning_lint import (
+from gmeow_tools.graph import iter_source_files
+
+# Graph-accepting test shims: serialize a synthetic rdflib graph to N-Triples and
+# route it through the graph-free production reasoning checks (#579).
+from tests._graph_nt import (
     anti_rigidity_discipline,
     exactly_one_stereotype,
     identity_overlap,
-    reasoning_invariants,
     relator_mediation,
 )
 
@@ -43,7 +46,11 @@ def _cls(
 
 
 def test_real_ontology_is_clean() -> None:
-    assert reasoning_invariants(load_merged_graph()) == []
+    # The real ontology is checked graph-free over its source paths (#579).
+    report = gmeow_validate.reasoning_invariants(
+        [str(p) for p in iter_source_files()], str(NAMESPACE)
+    )
+    assert list(report["errors"]) == []
 
 
 # --------------------------------------------------------------------------- #

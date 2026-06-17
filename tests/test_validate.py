@@ -17,8 +17,11 @@ from gmeow_tools.validate import (
     _write_cached_result,
     check_sameas_ban,
     check_syntax,
-    structural_lint,
 )
+
+# Graph-accepting structural-lint shim: serializes a synthetic rdflib graph to
+# N-Triples and routes it through the graph-free production lint (#579).
+from tests._graph_nt import structural_lint
 
 
 def test_check_syntax_on_sources() -> None:
@@ -29,23 +32,22 @@ def test_validate_all_orchestrates_cached_gates(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     calls: list[str] = []
-    merged = object()
+    # The validation path is graph-free now (#579): validate_all computes the
+    # source PATHS once and hands them to every gate. The orchestration test
+    # asserts that wiring (paths in, no merged graph).
+    source_paths = ["/fake/a.ttl", "/fake/b.ttl"]
 
     def result(name: str) -> ValidationResult:
         calls.append(name)
         return ValidationResult(warnings=[name])
 
-    def lint(name: str) -> Callable[[object | None], ValidationResult]:
-        def _lint(graph: object | None = None) -> ValidationResult:
-            if graph is not None:
-                assert graph is merged
+    def lint(name: str) -> Callable[..., ValidationResult]:
+        def _lint(paths: object | None = None, *args: object) -> ValidationResult:
+            if paths is not None:
+                assert paths == source_paths
             return result(name)
 
         return _lint
-
-    def load_merged_graph() -> object:
-        calls.append("load-merged")
-        return merged
 
     def cached_result(
         kind: str,
@@ -59,21 +61,24 @@ def test_validate_all_orchestrates_cached_gates(
     monkeypatch.setattr(validate_mod, "check_sameas_ban", lambda: result("sameas"))
     monkeypatch.setattr(
         validate_mod,
-        "load_merged_graph",
-        load_merged_graph,
+        "iter_source_files",
+        lambda: [Path(p) for p in source_paths],
     )
+    monkeypatch.setattr(validate_mod, "merged_ntriples", lambda paths: f"nt:{paths}")
     monkeypatch.setattr(validate_mod, "structural_lint", lint("structural"))
     monkeypatch.setattr(validate_mod, "term_naming_lint", lint("term-naming"))
-    monkeypatch.setattr(validate_mod, "slice_ownership_lint", lint("slice-ownership"))
+    monkeypatch.setattr(
+        validate_mod, "slice_ownership_lint", lambda: result("slice-ownership")
+    )
     monkeypatch.setattr(validate_mod, "guide_anchor_lint", lint("guide-anchors"))
     monkeypatch.setattr(validate_mod, "reasoning_lint", lint("reasoning"))
     monkeypatch.setattr(validate_mod, "_merged_shacl_cache_key", lambda: "merged-key")
     monkeypatch.setattr(validate_mod, "_cached_result", cached_result)
-    monkeypatch.setattr(validate_mod, "run_shacl", lint("merged-shacl"))
+    monkeypatch.setattr(validate_mod, "run_shacl", lambda _nt: result("merged-shacl"))
     monkeypatch.setattr(
         validate_mod,
         "check_examples",
-        lambda graph, *, base_cache_key: result(f"examples:{base_cache_key}"),
+        lambda paths, *, base_cache_key: result(f"examples:{base_cache_key}"),
     )
     monkeypatch.setattr(
         validate_mod,
@@ -92,7 +97,6 @@ def test_validate_all_orchestrates_cached_gates(
     assert calls == [
         "syntax",
         "sameas",
-        "load-merged",
         "structural",
         "term-naming",
         "slice-ownership",
@@ -119,8 +123,8 @@ def test_validate_all_stops_before_graph_lints_on_parse_errors(
     monkeypatch.setattr(validate_mod, "check_sameas_ban", lambda: ValidationResult())
     monkeypatch.setattr(
         validate_mod,
-        "load_merged_graph",
-        lambda: pytest.fail("validate_all should not load the merged graph"),
+        "iter_source_files",
+        lambda: pytest.fail("validate_all should not enumerate sources on parse error"),
     )
 
     validation = validate_mod.validate_all()

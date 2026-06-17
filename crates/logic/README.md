@@ -30,7 +30,7 @@ the fast path.
 
 The current scope is the **world-indexed storage layer**: an in-memory
 `WorldStore` wrapping oxigraph that enforces isolated named graphs as worlds.
-Nemo-based rule materialization and PyO3/wasm bindings arrive in later tasks.
+Nemo-based rule materialization and PyO3 bindings are included.
 
 ---
 
@@ -114,8 +114,8 @@ in-world foundation rules run identically on both engines and are covered by the
 passes are Python oracle-level computations over the materialized world set; the Rust engine
 receives their output folded into the materialized quad set.
 
-A Rust-native emitter (`crates/logic/src/foundation.rs`) is deferred. Its only payoff is a
-no-Python wasm path; it is not required by any #503 acceptance criterion.
+A Rust-native emitter (`crates/logic/src/foundation.rs`) is deferred; it is not required by any
+issue-503 acceptance criterion.
 
 ### `enable_naf` addition to the oracle
 

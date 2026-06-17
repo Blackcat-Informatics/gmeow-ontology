@@ -24,7 +24,7 @@ So GMEOW keeps two halves of every relator invariant:
 | Logic | Axiom (phase 2, #38) | Constraint (phase 3, #39) |
 |---|---|---|
 | **OWL 2 EL** (open-world) | `gmeow:GenderIdentity ⊑ ∃ gmeow:genderValue . gmeow:Gender` — *points at some Gender*; the reasoner uses it to **classify**. | — |
-| **SHACL** (closed-world) | — | `sh:minCount 1 ; sh:maxCount 1` on `gmeow:genderValue` — *points at **exactly** one*; pyshacl uses it to **validate**. |
+| **SHACL** (closed-world) | — | `sh:minCount 1 ; sh:maxCount 1` on `gmeow:genderValue` — *points at **exactly** one*; `gmeow_shacl` uses it to **validate**. |
 
 The OWL existential lives in `ontology/modules/*.ttl`; the matching SHACL cardinality lives in
 `shapes/gmeow-shapes.ttl`. `ontology/modules/gender.ttl` even says so inline: *"'exactly one'
@@ -39,7 +39,7 @@ GMEOW runs four complementary verification lanes. Each owns a distinct class of 
 | **EL pre-check** | ELK (ROBOT, Docker) | open | fast incoherence / unsatisfiability in the EL fragment | `make reason` |
 | **DL gate** | HermiT (ROBOT, Docker) | open | sound + complete consistency, disjointness contradictions | `make reason-hermit`; `tests/test_reasoning_entailments.py` |
 | **Entailment tests** | `owlrl` (pure-Python OWL 2 RL) | open | positive derivations — property chains, transitivity, sub-property closure | `tests/test_reasoning_entailments.py`, `tests/test_competency.py` |
-| **Closed-world validation** | SHACL (pyshacl) + ROBOT `verify` | closed | cardinality, required shapes, display contract, orthogonality data-checks | `make validate`, `make verify`, `tests/test_shapes.py` |
+| **Closed-world validation** | SHACL (`gmeow_shacl`) + ROBOT `verify` | closed | cardinality, required shapes, display contract, orthogonality data-checks | `make validate`, `make verify`, `tests/test_shapes.py` |
 
 Reasoning order is **reason first to enrich, then validate the enriched graph**. ELK is an
 *incomplete* pre-check (GMEOW already uses `owl:inverseOf`, `SymmetricProperty`, functional
@@ -75,7 +75,7 @@ nowhere in the A-Box.
 
 Two sub-lanes, both closed-world, for the constraints OWL deliberately cannot enforce:
 
-- **SHACL (pyshacl), always-on, asserted graph.** `make validate` runs the shapes in
+- **SHACL (`gmeow_shacl`), always-on, asserted graph.** `make validate` runs the shapes in
   `shapes/gmeow-shapes.ttl`. Because it validates the **term graph** (the TBox has no
   instances), the instance-data shapes stay dormant there and cannot regress the gate; they bite
   when a *data* graph is checked (`tests/test_shapes.py`, against the
@@ -95,7 +95,7 @@ Two sub-lanes, both closed-world, for the constraints OWL deliberately cannot en
   reasoning pass. It runs the SPARQL **SELECT** "bad-example" queries in `queries/verify/*.rq`
   over the **materialized** graph — the [OBO QC pattern](http://robot.obolibrary.org/): any
   returned row is a violation. The underlying reason step uses `--exclude-tautologies structural`,
-  so trivial entailments like `X ⊑ owl:Thing` never trip a query. Unlike the pyshacl lane
+  so trivial entailments like `X ⊑ owl:Thing` never trip a query. Unlike the `gmeow_shacl` lane
   (asserted only), these see the reasoned closure, so they catch problems that appear *after*
   inference. They currently assert:
   - every GMEOW class is punned with a gUFO meta-class (meta-grounding completeness);

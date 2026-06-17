@@ -8,7 +8,10 @@
 //! in-memory [`oxigraph::store::Store`] and routes every insert and query
 //! through the named-graph IRI that identifies the world.
 
-use oxigraph::model::{GraphName, GraphNameRef, NamedNode, NamedOrBlankNodeRef, Quad};
+use oxigraph::model::{
+    GraphName, GraphNameRef, NamedNode, NamedNodeRef, NamedOrBlankNodeRef, Quad, Term,
+};
+use oxigraph::sparql::{QueryResults, SparqlEvaluator};
 use oxigraph::store::Store;
 
 /// A world-indexed RDF store.
@@ -27,6 +30,23 @@ impl WorldStore {
         Self {
             inner: Store::new().expect("in-memory oxigraph Store::new() is infallible"),
         }
+    }
+
+    /// Load N-Quads text into the store, preserving named graphs (worlds).
+    ///
+    /// Each quad's graph component becomes its world. The default graph and
+    /// blank-node graphs are loaded as-is by oxigraph but are not addressable as
+    /// worlds via the world-indexed API. Mirrors the `load_from_reader` path used
+    /// by `py.rs::materialize` so the backward-goal EDB parses identically.
+    ///
+    /// # Errors
+    ///
+    /// Returns `Err(String)` if the N-Quads text is malformed.
+    pub fn load_nquads(&self, nquads: &str) -> Result<(), String> {
+        self.inner
+            .load_from_reader(oxigraph::io::RdfFormat::NQuads, nquads.as_bytes())
+            .map_err(|e| format!("N-Quads parse error: {e}"))?;
+        Ok(())
     }
 
     /// Insert the triple `(s, p, o)` — all IRI strings — into the named graph
@@ -78,6 +98,108 @@ impl WorldStore {
                 })
             })
             .collect()
+    }
+
+    /// Return the oxigraph [`Quad`]s in `world` matching the optional `(s, p, o)` IRI pattern.
+    ///
+    /// Each of `s`, `p`, `o` is an optional IRI string filter:
+    /// - `Some(iri)` — restrict to quads where that component equals the IRI.
+    /// - `None` — no restriction on that component.
+    ///
+    /// Queries are scoped exclusively to the named graph `world`; no cross-world
+    /// union is performed (world-indexed only).  If `world` is not a valid IRI,
+    /// returns `vec![]` (mirrors [`quads_in_world`]).
+    ///
+    /// Used by the SPARQL fast path and the facts-as-DB snapshot in the seam layer.
+    pub fn quads_for_pattern_in_world(
+        &self,
+        world: &str,
+        s: Option<&str>,
+        p: Option<&str>,
+        o: Option<&str>,
+    ) -> Vec<Quad> {
+        let graph_node = match NamedNode::new(world) {
+            Ok(n) => n,
+            Err(_) => return vec![],
+        };
+        let graph_ref: GraphNameRef<'_> = GraphNameRef::NamedNode(graph_node.as_ref());
+
+        // Build optional NamedNode filters; silently drop quads whose filter IRI
+        // is invalid (caller invariant: filter IRIs are pre-validated).
+        let subject_nn: Option<NamedNode> = s.and_then(|iri| NamedNode::new(iri).ok());
+        let predicate_nn: Option<NamedNode> = p.and_then(|iri| NamedNode::new(iri).ok());
+        let object_nn: Option<NamedNode> = o.and_then(|iri| NamedNode::new(iri).ok());
+
+        // If a filter IRI was provided but invalid, return empty immediately — the
+        // pattern can never match.
+        if s.is_some() && subject_nn.is_none() {
+            return vec![];
+        }
+        if p.is_some() && predicate_nn.is_none() {
+            return vec![];
+        }
+        if o.is_some() && object_nn.is_none() {
+            return vec![];
+        }
+
+        let subject_ref: Option<NamedOrBlankNodeRef<'_>> = subject_nn
+            .as_ref()
+            .map(|n| NamedOrBlankNodeRef::NamedNode(n.as_ref()));
+        let predicate_ref: Option<NamedNodeRef<'_>> = predicate_nn.as_ref().map(|n| n.as_ref());
+        let object_term: Option<Term> = object_nn.map(Term::NamedNode);
+        let object_ref: Option<oxigraph::model::TermRef<'_>> =
+            object_term.as_ref().map(|t| t.as_ref());
+
+        self.inner
+            .quads_for_pattern(subject_ref, predicate_ref, object_ref, Some(graph_ref))
+            .filter_map(|r| r.ok())
+            .collect()
+    }
+
+    /// Run a SPARQL SELECT query over the world-indexed store.
+    ///
+    /// Returns each solution as a map of variable-name → canonical term string,
+    /// where IRIs are `<iri>` and literals are n3 — matching
+    /// [`crate::provenance::term_n3`] and the oracle's `Const` form.
+    ///
+    /// World-scoping is the caller's responsibility (include `GRAPH <world> { … }` in
+    /// the query). Only SELECT queries are supported; returns `Err` for ASK/CONSTRUCT
+    /// results or for any evaluation error.
+    ///
+    /// # Errors
+    ///
+    /// Returns `Err(String)` on SPARQL parse/evaluation errors, on a non-SELECT result
+    /// type, or if `term_n3` fails on an RDF-star term.
+    pub fn select(
+        &self,
+        sparql: &str,
+    ) -> Result<Vec<std::collections::BTreeMap<String, String>>, String> {
+        let results = SparqlEvaluator::new()
+            .parse_query(sparql)
+            .map_err(|e| format!("SPARQL parse error: {e}"))?
+            .on_store(&self.inner)
+            .execute()
+            .map_err(|e| format!("SPARQL evaluation error: {e}"))?;
+
+        match results {
+            QueryResults::Solutions(solutions) => {
+                let mut out = Vec::new();
+                for sol in solutions {
+                    let sol = sol.map_err(|e| format!("SPARQL solution error: {e}"))?;
+                    let mut row = std::collections::BTreeMap::new();
+                    for (var, term) in sol.iter() {
+                        let canonical = crate::provenance::term_n3(term)
+                            .map_err(|e| format!("term_n3 failed in select: {e}"))?;
+                        row.insert(var.as_str().to_owned(), canonical);
+                    }
+                    out.push(row);
+                }
+                Ok(out)
+            }
+            QueryResults::Boolean(_) | QueryResults::Graph(_) => Err(
+                "select() requires a SPARQL SELECT query; got ASK or CONSTRUCT/DESCRIBE".to_owned(),
+            ),
+        }
     }
 
     /// Return the distinct world IRIs (named graph IRIs) present in the store.
@@ -197,5 +319,110 @@ mod tests {
         for q in store.quads_in_world(WORLD_B) {
             assert_eq!(q[3], WORLD_B, "fourth column must be the world IRI");
         }
+    }
+
+    // ── quads_for_pattern_in_world ────────────────────────────────────────────
+
+    #[test]
+    fn pattern_all_none_returns_all_quads_in_world() {
+        let store = populated_store();
+        let quads = store.quads_for_pattern_in_world(WORLD_A, None, None, None);
+        assert_eq!(quads.len(), 1, "world A has exactly 1 quad");
+        assert_eq!(
+            quads[0].subject.to_string(),
+            format!("<{}>", S_A),
+            "subject must be world A's subject"
+        );
+    }
+
+    #[test]
+    fn pattern_subject_filter_returns_match() {
+        let store = populated_store();
+        // Filter by the correct subject — should return the one quad.
+        let quads = store.quads_for_pattern_in_world(WORLD_A, Some(S_A), None, None);
+        assert_eq!(quads.len(), 1);
+        // Filter by a wrong subject — should return empty.
+        let quads_miss = store.quads_for_pattern_in_world(WORLD_A, Some(S_B), None, None);
+        assert!(
+            quads_miss.is_empty(),
+            "wrong subject should return no results"
+        );
+    }
+
+    #[test]
+    fn pattern_predicate_filter_returns_match() {
+        let store = populated_store();
+        let quads = store.quads_for_pattern_in_world(WORLD_A, None, Some(P_A), None);
+        assert_eq!(quads.len(), 1);
+        let quads_miss = store.quads_for_pattern_in_world(WORLD_A, None, Some(P_B), None);
+        assert!(quads_miss.is_empty());
+    }
+
+    #[test]
+    fn pattern_nonexistent_world_returns_empty() {
+        let store = populated_store();
+        let quads = store.quads_for_pattern_in_world("http://world/doesNotExist", None, None, None);
+        assert!(quads.is_empty());
+    }
+
+    #[test]
+    fn pattern_invalid_world_iri_returns_empty() {
+        let store = populated_store();
+        let quads = store.quads_for_pattern_in_world("not a valid IRI", None, None, None);
+        assert!(quads.is_empty());
+    }
+
+    #[test]
+    fn pattern_no_cross_world_leak() {
+        let store = populated_store();
+        // World A's pattern should NOT see world B's quads.
+        let quads_a = store.quads_for_pattern_in_world(WORLD_A, None, None, None);
+        for q in &quads_a {
+            assert!(
+                !q.subject.to_string().contains("s/b"),
+                "world A pattern returned world B's quad: {q:?}"
+            );
+        }
+        // World B's pattern should NOT see world A's quads.
+        let quads_b = store.quads_for_pattern_in_world(WORLD_B, None, None, None);
+        for q in &quads_b {
+            assert!(
+                !q.subject.to_string().contains("s/a"),
+                "world B pattern returned world A's quad: {q:?}"
+            );
+        }
+    }
+
+    // ── select (SPARQL SELECT helper) ─────────────────────────────────────────
+
+    #[test]
+    fn select_returns_canonical_bindings() {
+        let store = populated_store();
+        // Query only world A's objects for a known subject and predicate.
+        let sparql = format!("SELECT ?o WHERE {{ GRAPH <{WORLD_A}> {{ <{S_A}> <{P_A}> ?o }} }}");
+        let rows = store.select(&sparql).expect("select must succeed");
+        assert_eq!(rows.len(), 1, "exactly one match expected: {rows:?}");
+        let canonical_o = &rows[0]["o"];
+        assert_eq!(
+            canonical_o,
+            &format!("<{O_A}>"),
+            "canonical form must be <iri>: {canonical_o:?}"
+        );
+    }
+
+    #[test]
+    fn select_no_cross_world_results() {
+        let store = populated_store();
+        // Query world A but for world B's triple — should return nothing.
+        let sparql = format!("SELECT ?o WHERE {{ GRAPH <{WORLD_A}> {{ <{S_B}> <{P_B}> ?o }} }}");
+        let rows = store.select(&sparql).expect("select must succeed");
+        assert!(rows.is_empty(), "no cross-world results expected: {rows:?}");
+    }
+
+    #[test]
+    fn select_parse_error_returns_err() {
+        let store = WorldStore::new();
+        let result = store.select("NOT VALID SPARQL AT ALL");
+        assert!(result.is_err(), "invalid SPARQL must return Err");
     }
 }

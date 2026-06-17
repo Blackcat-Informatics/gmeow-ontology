@@ -20,7 +20,10 @@ from rdflib.namespace import OWL, SKOS
 from gmeow_tools.describe import build_card, render_card, resolve_term
 from gmeow_tools.graph import load_merged_graph
 from gmeow_tools.language_tags import load_tag_map, resolve_lang_input
-from gmeow_tools.validate import guide_anchor_lint, structural_lint
+
+# Graph-accepting shims: serialize a synthetic rdflib graph and route it through
+# the graph-free production lints (#579).
+from tests._graph_nt import guide_anchor_lint, structural_lint
 
 GMEOW = "https://blackcatinformatics.ca/gmeow/"
 GM = Namespace(GMEOW)

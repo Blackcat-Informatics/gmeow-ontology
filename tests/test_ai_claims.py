@@ -15,7 +15,7 @@ from rdflib.namespace import OWL
 
 from gmeow_tools.config import FIXTURES_DIR, NAMESPACE
 from gmeow_tools.graph import load_merged_graph
-from gmeow_tools.validate import run_shacl
+from tests._graph_nt import run_shacl
 
 GUFO = "http://purl.org/nemo/gufo#"
 

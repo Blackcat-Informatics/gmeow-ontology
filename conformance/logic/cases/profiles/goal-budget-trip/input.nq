@@ -1,0 +1,3 @@
+<https://example.org/profiles/goal-budget-trip/a> <https://example.org/profiles/goal-budget-trip/parentOf> <https://example.org/profiles/goal-budget-trip/b> <https://example.org/profiles/goal-budget-trip/world> .
+<https://example.org/profiles/goal-budget-trip/b> <https://example.org/profiles/goal-budget-trip/parentOf> <https://example.org/profiles/goal-budget-trip/c> <https://example.org/profiles/goal-budget-trip/world> .
+<https://example.org/profiles/goal-budget-trip/c> <https://example.org/profiles/goal-budget-trip/parentOf> <https://example.org/profiles/goal-budget-trip/d> <https://example.org/profiles/goal-budget-trip/world> .

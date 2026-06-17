@@ -18,7 +18,7 @@ from gmeow_tools.evals import (
     score_emissions,
 )
 from gmeow_tools.graph import load_merged_graph
-from gmeow_tools.validate import run_shacl
+from tests._graph_nt import run_shacl
 
 _BASELINE = EVALS_DIR / "outputs" / "reference-baseline" / "claims.jsonl"
 

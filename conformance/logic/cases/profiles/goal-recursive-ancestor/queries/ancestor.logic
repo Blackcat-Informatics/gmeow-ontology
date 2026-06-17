@@ -1,0 +1,10 @@
+% SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+% SPDX-License-Identifier: AGPL-3.0-only
+%
+% Backward goal: recursive transitive ancestor (AC-1 tabled recursion).
+% Resolves ex:ancestor(ex:a, Y) over the parentOf chain a→b→c→d.
+% Expected: bindings Y={b,c,d}, status ok.
+:- prefix(ex, 'https://example.org/profiles/goal-recursive-ancestor/').
+ex:ancestor(X,Y) :- ex:parentOf(X,Y).
+ex:ancestor(X,Y) :- ex:parentOf(X,Z), ex:ancestor(Z,Y).
+?- ex:ancestor(ex:a, Y).

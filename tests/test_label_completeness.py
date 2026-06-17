@@ -18,7 +18,10 @@ from gmeow_tools.config import (
     STATEMENT_DSL_DIR,
 )
 from gmeow_tools.graph import load_merged_graph
-from gmeow_tools.validate import structural_lint
+
+# Graph-accepting shim: serialize a synthetic (or the real merged) rdflib graph
+# and route it through the graph-free production structural lint (#579).
+from tests._graph_nt import structural_lint
 
 
 def _assert_lint_ok(graph: Graph, message: str) -> None:

@@ -453,36 +453,6 @@ def crosscheck_queries() -> None:
     )
 
 
-@app.command(name="shacl-crosscheck")
-def shacl_crosscheck() -> None:
-    """Dual-run SHACL cross-check: pySHACL ≡ gmeow_shacl (#578, EPIC #575).
-
-    Validates the merged ontology + every slice example under BOTH engines and
-    compares their result key-sets, writing the divergence ledger. REPORT-ONLY:
-    it prints divergences and always exits 0; #579 makes it blocking and removes
-    pySHACL. The empty-ledger state is what licenses that next step.
-    """
-    from gmeow_tools.shacl_crosscheck import LEDGER_FILE, crosscheck_all, write_ledger
-
-    divergences = crosscheck_all()
-    write_ledger(divergences)
-    for d in divergences:
-        err_console.print(
-            f"[yellow]diverge[/yellow] [{d.side}] {d.unit}: {d.key} ({d.reason})"
-        )
-    if divergences:
-        console.print(
-            f"[yellow]⚠ {len(divergences)} SHACL divergence(s) between pySHACL and "
-            f"gmeow_shacl — recorded in {LEDGER_FILE.name} "
-            f"(report-only; #579 blocks)[/yellow]"
-        )
-    else:
-        console.print(
-            "[green]✓ pySHACL ≡ gmeow_shacl across the merged ontology + every "
-            "slice example (empty divergence ledger)[/green]"
-        )
-
-
 @app.command()
 def reason(
     reasoner: str = typer.Option("ELK", help="Reasoner: ELK (fast) or hermit (DL)."),
@@ -894,8 +864,30 @@ def coverage(
     show_gaps: bool = typer.Option(
         False, "--gaps", help="List the uncovered (gap) classes and predicates."
     ),
+    min_class: float | None = typer.Option(
+        None,
+        "--min-class",
+        help=(
+            "Hard floor for class coverage (0..1). Exit 1 if the measured "
+            "fraction is below it. Omit for report-only."
+        ),
+    ),
+    min_predicate: float | None = typer.Option(
+        None,
+        "--min-predicate",
+        help=(
+            "Hard floor for predicate coverage (0..1). Exit 1 if the measured "
+            "fraction is below it. Omit for report-only."
+        ),
+    ),
 ) -> None:
-    """Report how much of the vendored entity slice GMEOW covers."""
+    """Report how much of the vendored entity slice GMEOW covers.
+
+    With ``--min-class`` / ``--min-predicate`` the command becomes a HARD gate
+    (#579): a measured coverage fraction below either floor exits 1. The floors
+    are the project's vendored-entity coverage contract — the Makefile passes the
+    current measured values so any regression below them fails the build.
+    """
     from gmeow_tools.coverage import run_coverage
 
     report = run_coverage()
@@ -914,6 +906,17 @@ def coverage(
             err_console.print(f"[yellow]gap class[/yellow] {iri}")
         for iri in sorted(report.gap_predicates):
             err_console.print(f"[yellow]gap predicate[/yellow] {iri}")
+
+    if min_class is not None and report.class_coverage < min_class:
+        raise _fail(
+            f"✗ class coverage {report.class_coverage:.4f} is below the "
+            f"required floor {min_class:.4f}"
+        )
+    if min_predicate is not None and report.predicate_coverage < min_predicate:
+        raise _fail(
+            f"✗ predicate coverage {report.predicate_coverage:.4f} is below the "
+            f"required floor {min_predicate:.4f}"
+        )
 
 
 @app.command()
@@ -1264,6 +1267,12 @@ def acceptance(
         "--floor",
         help="Use the per-term floor instead of the context-aware descent.",
     ),
+    min_recall: float | None = typer.Option(
+        None,
+        "--min-recall",
+        help="HARD aggregate floor (#579): if the corpus-aggregate round-trip "
+        "recall %% falls below this, fail with exit 1. Omit for report-only.",
+    ),
 ) -> None:
     """Score the full transpile against real data — the honest scoreboard (#450).
 
@@ -1272,9 +1281,20 @@ def acceptance(
     invariant (hard), external-validator (no x-gmeow leak hard; term-attestation
     and SHACL-from-vendored-axioms report-only), and the honest coverage report.
     The corpus is the verbatim ``external/`` snapshots — numbers that cannot be
-    moved by writing fixtures. A progress meter, not a CI blocker.
+    moved by writing fixtures.
+
+    The per-file round-trip gate stays a scoreboard (red until done). Passing
+    ``--min-recall`` adds a SEPARATE *aggregate* floor (#579): the pooled
+    Σ recovered / Σ addressable recall across the whole corpus must clear it, or
+    the command hard-fails — making the transpile gate block without demanding
+    100%% per-file recall (honest-scoreboard doctrine preserved).
     """
-    from gmeow_tools.acceptance import default_corpus, render_report, run_acceptance
+    from gmeow_tools.acceptance import (
+        corpus_recall_pct,
+        default_corpus,
+        render_report,
+        run_acceptance,
+    )
 
     sources = [source] if source is not None else default_corpus()
     if not sources:
@@ -1293,6 +1313,18 @@ def acceptance(
     for fa in results:
         verdict = "[green]PASS[/green]" if fa.passed else "[red]FAIL[/red]"
         err_console.print(f"{verdict} {fa.source}")
+
+    if min_recall is not None:
+        aggregate = corpus_recall_pct(results)
+        if aggregate < min_recall:
+            raise _fail(
+                f"✗ corpus-aggregate round-trip recall {aggregate:.2f}% is below "
+                f"the floor {min_recall:.2f}% ({len(results)} source(s))"
+            )
+        err_console.print(
+            f"[green]✓[/green] corpus-aggregate round-trip recall "
+            f"{aggregate:.2f}% ≥ floor {min_recall:.2f}%"
+        )
 
 
 _EXPORT_PROFILES = ("croissant", "ro-crate", "dcat", "datacite", "frictionless")
@@ -1621,6 +1653,97 @@ _LOGIC_MODES = (
     "canonical-rdf12",
     "report",
 )
+
+
+@logic_app.command("query")
+def logic_query(
+    world: Path = typer.Argument(  # noqa: B008
+        ...,
+        help="N-Quads file of the materialized world(s) — the read-only EDB.",
+    ),
+    query_file: Path = typer.Argument(  # noqa: B008
+        ...,
+        help="A .logic query: prefixes, Horn rules, optional cut, one `?- goal.`",
+    ),
+    profile: str = typer.Option(
+        "PositiveHornProfile",
+        "--profile",
+        help="Semantic profile in force. Cut (`!`) is permitted ONLY under "
+        "ProceduralPrologProfile.",
+    ),
+    world_iri: str | None = typer.Option(
+        None,
+        "--world-iri",
+        help="Target world IRI. Default: the single named graph in the N-Quads.",
+    ),
+    max_answers: int | None = typer.Option(
+        None,
+        "--max-answers",
+        min=0,
+        help="Cap the answer set (status=partial when the cap is hit).",
+    ),
+    max_steps: int | None = typer.Option(
+        None,
+        "--max-steps",
+        min=0,
+        help="Inference-count ceiling (status=exhausted when exceeded).",
+    ),
+    as_json: bool = typer.Option(
+        False,
+        "--json",
+        help="Emit the raw {bindings, status} JSON instead of a table.",
+    ),
+) -> None:
+    """Resolve a backward goal (`.logic`) over a materialized world (issue #504, v4).
+
+    Loads the N-Quads EDB, parses the `.logic` program, enforces the cut/profile
+    gate, and routes the goal through the dispatcher — the oxigraph SPARQL fast
+    path for non-recursive pattern goals, or embedded Scryer Prolog (with
+    tabling) for recursive/unification-heavy goals. Answers are **virtual**:
+    nothing is written back into the world (cut is operational-only, never a
+    stored fact).
+    """
+    try:
+        import gmeow_logic
+    except ImportError as exc:  # pragma: no cover - environment guard
+        raise _fail(
+            "✗ gmeow_logic extension not built — run `make logic-py` "
+            f"(maturin develop). Underlying error: {exc}"
+        ) from exc
+
+    if not world.is_file():
+        raise _fail(f"✗ world N-Quads file not found: {world}")
+    if not query_file.is_file():
+        raise _fail(f"✗ query file not found: {query_file}")
+
+    nquads = world.read_text(encoding="utf-8")
+    program = query_file.read_text(encoding="utf-8")
+
+    try:
+        result = gmeow_logic.query(
+            nquads, program, profile, world_iri, max_answers, max_steps
+        )
+    except (ValueError, OverflowError) as exc:
+        # Cut outside ProceduralPrologProfile, malformed input, ambiguous world,
+        # a Scryer resolution error, or a budget value too large to convert —
+        # all surface as a hard failure.
+        raise _fail(f"✗ query failed: {exc}") from exc
+
+    if as_json:
+        import json
+
+        console.print(json.dumps(result, sort_keys=True, ensure_ascii=False))
+        return
+
+    bindings = result["bindings"]
+    status = result["status"]
+    if not bindings:
+        console.print("[yellow]no answers[/yellow]")
+    else:
+        for row in bindings:
+            rendered = ", ".join(f"{k} = {v}" for k, v in sorted(row.items()))
+            console.print(rendered if rendered else "(true)")
+    console.print(f"[dim]{len(bindings)} answer(s); status={status}[/dim]")
 
 
 @logic_app.command("compile")

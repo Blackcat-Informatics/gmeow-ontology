@@ -1,0 +1,6 @@
+{
+  "semantic_profile": "PositiveHornProfile",
+  "world_types": ["epistemic"],
+  "mode": "native",
+  "budget_params": {"max_answers": 2}
+}

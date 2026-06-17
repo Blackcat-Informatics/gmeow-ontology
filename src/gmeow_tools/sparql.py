@@ -8,7 +8,7 @@ executors use.
 
 This is a **non-authoritative acceleration path**. Jena remains the canonical
 RDF 1.2 writer and reasoner; ``gmeow_shacl`` (Rust + oxigraph) is the canonical
-SHACL engine (#578).
+SHACL engine (#579).
 The :mod:`gmeow_tools.engine_crosscheck` gate proves rdflib and pyoxigraph return
 identical answers for every committed query, which is what licenses callers to
 trust this engine (CONSTITUTION Principle 7 — verified by construction).

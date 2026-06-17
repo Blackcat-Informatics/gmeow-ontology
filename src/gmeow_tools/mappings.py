@@ -124,6 +124,24 @@ def build_alignment_graph(mappings: list[Mapping]) -> Graph:
     return graph
 
 
+def aligned_iris(mappings_dir: Path = MAPPINGS_DIR) -> set[str]:
+    """Return every external IRI GMEOW aligns to (from the SSSOM mappings).
+
+    Builds the alignment graph from the loaded mappings and collects every
+    ``URIRef`` mentioned as a subject or object — i.e. every external term GMEOW
+    links to. This is the rdflib-bearing seam ``coverage.covered_iris`` delegates
+    to so the coverage module stays graph-free (#579); the rdflib walk lives here,
+    alongside the rest of the mapping/alignment-graph machinery.
+    """
+    graph = build_alignment_graph(load_mappings(mappings_dir))
+    iris: set[str] = set()
+    for subject, _predicate, obj in graph:
+        for node in (subject, obj):
+            if isinstance(node, URIRef):
+                iris.add(str(node))
+    return iris
+
+
 def object_namespace(object_iri: URIRef) -> str:
     """Return the namespace of an IRI (split on the last ``#`` or ``/``)."""
     iri = str(object_iri)

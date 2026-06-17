@@ -1,0 +1,65 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example — the logic: foundation surface in use: a rule set declares the
+# SEMANTIC PROFILE that governs its reading, a derivation rides the four
+# normatively-DISTINCT quantitative axes, and a projection records its
+# PRESERVATION POLARITY in the loss ledger (Principle 17).
+#
+# The shape of the example mirrors the logic doctrine: "sound" is meaningless
+# until the profile is named, so every rule set declares one; and a lossy
+# projection must say what it GUARANTEES about answers, not only what it omits —
+# so each projection carries a logic:preservationKind alongside its complexity
+# class. The four axes (probability, confidence, weight, evidenceStrength) are
+# carried on the SAME derivation to show they are independent numbers, never
+# interchangeable. No Expression-typed value is asserted, so no P11 frame is
+# required.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/logic/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+# --- A rule set MUST declare the semantic profile that governs it; a rule set
+#     with no declared profile is rejected by the compiler. This one is
+#     positive (negation-free), so it rides the monotonic Horn least-model
+#     semantics (logic:PositiveHornProfile) — the base case against which the
+#     richer profiles add cost.  No logic:RuleSet class is minted (the
+#     vocabulary is foundation-only); the rule set is modelled as a
+#     gmeow:InformationObject and linked to the REAL declared profile individual
+#     via rdfs:seeAlso, which is sufficient to make the pedagogical connection
+#     without inventing new vocabulary.
+ex:mortalityRuleSet a gmeow:InformationObject ;
+    rdfs:label "the mortality rule set is read under positive Horn semantics"@x-gmeow-english ;
+    rdfs:seeAlso logic:PositiveHornProfile .
+
+# --- A single derivation carrying all FOUR quantitative axes at once, to make
+#     plain that they are distinct and not interchangeable: a calibrated
+#     probability is not an asserter's confidence, a solver ranking weight, or
+#     an evidential warrant. A confidence is NOT read as a probability absent an
+#     explicit mapping (the named failure mode this surface guards against).
+ex:derivation-socratesMortal a gmeow:InformationObject ;
+    rdfs:label "derived: Socrates is mortal"@x-gmeow-english ;
+    logic:probability "0.99"^^xsd:decimal ;       # calibrated, only under the probabilistic profile
+    logic:confidence "0.9"^^xsd:decimal ;         # the asserter's epistemic confidence
+    logic:weight "1.0"^^xsd:decimal ;             # a solver ranking preference
+    logic:evidenceStrength "0.8"^^xsd:decimal .   # provenance-derived evidential warrant
+
+# --- The loss ledger: a projection of the canonical logic: model down to an
+#     OWL-EL view records BOTH a complexity class AND a preservation polarity.
+#     Overclaiming preservation is a red build, exactly like dropping a fact
+#     silently — so the projection honestly declares a SOUND UNDER-APPROXIMATION:
+#     anything it entails is canonically valid, but it may miss canonical answers.
+ex:elProjectionReport a gmeow:InformationObject ;
+    rdfs:label "OWL-EL projection of the mortality rule set"@x-gmeow-english ;
+    logic:preservationKind logic:SoundUnderApproximation ;
+    logic:complexityClass "EL → PTIME" .
+
+# --- A bridge view (e.g. a BFO/DOLCE alignment) constrains but does not reason:
+#     the honest label is validation-only — it can flag ill-formedness without
+#     computing canonical consequences, never claiming exact preservation.
+ex:bridgeViewReport a gmeow:InformationObject ;
+    rdfs:label "upper-ontology bridge view of the foundation sorts"@x-gmeow-english ;
+    logic:preservationKind logic:ValidationOnly ;
+    logic:complexityClass "structural validation only" .

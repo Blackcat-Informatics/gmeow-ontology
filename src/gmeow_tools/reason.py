@@ -239,8 +239,9 @@ def verify(
     query that returns a row is a violation, so ROBOT exits non-zero and the
     failure surfaces as :class:`ToolExecutionError`. Reasoning runs with
     ``--exclude-tautologies structural`` so trivial entailments (e.g.
-    ``X subClassOf owl:Thing``) never trip a verify query. Unlike the pure-Python
-    pyshacl lane (asserted graph only), these checks see the reasoned closure and
+    ``X subClassOf owl:Thing``) never trip a verify query. Unlike the
+    ``gmeow_shacl`` SHACL lane (asserted graph only), these checks see the
+    reasoned closure and
     so catch violations that only appear after inference. See docs/reasoning.md.
 
     Args:

@@ -1,0 +1,250 @@
+// SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+// SPDX-License-Identifier: AGPL-3.0-only
+
+//! Profile gate — cut-confinement guard (AC-2).
+//!
+//! # Structural no-write firewall
+//!
+//! The entire query and resolution path (`run_scryer`, `resolve`, `fast_path`) accepts only
+//! `&dyn ScryerForeign` and `&WorldStore` — **shared, read-only references**. There is no
+//! `&mut` write path anywhere in the resolution stack. A `cut` (`!`) in a rule body can
+//! influence *which* answers Scryer Prolog returns (first-answer commitment), but it can
+//! **never produce a stored quad**: the engine drives a fresh Scryer machine per query,
+//! collects virtual answer bindings into a `Vec<Binding>`, and returns. Zero quads are
+//! inserted into `WorldStore.inner` during or after resolution. Cut is virtual-only by
+//! construction.
+//!
+//! # Profile matching
+//!
+//! A profile "denotes ProceduralPrologProfile" iff it:
+//! - Equals [`PROCEDURAL_PROLOG_PROFILE`] (the full IRI), OR
+//! - Equals the bare short name `"ProceduralPrologProfile"`, OR
+//! - Ends with `"ProceduralPrologProfile"` (covers `logic:ProceduralPrologProfile`,
+//!   `https://…/ProceduralPrologProfile`, and any other prefixed form that profile.json
+//!   might emit).
+
+use crate::query_ir::{QBodyLit, QProgram};
+
+/// The canonical full IRI for the procedural Prolog profile.
+pub const PROCEDURAL_PROLOG_PROFILE: &str =
+    "https://blackcatinformatics.ca/logic/ProceduralPrologProfile";
+
+/// The bare short name accepted as an alias for [`PROCEDURAL_PROLOG_PROFILE`].
+const PROCEDURAL_SHORT_NAME: &str = "ProceduralPrologProfile";
+
+/// Return `true` if any rule body in `program` contains a [`QBodyLit::Cut`].
+pub fn has_cut(program: &QProgram) -> bool {
+    program
+        .rules
+        .iter()
+        .any(|rule| rule.body.iter().any(|lit| matches!(lit, QBodyLit::Cut)))
+}
+
+/// Assert that if `program` contains cut, `profile` denotes
+/// [`PROCEDURAL_PROLOG_PROFILE`].
+///
+/// Cut may appear ONLY under the procedural Prolog profile. Hard-fail otherwise —
+/// there is no fallback or silent stripping of cut.
+///
+/// A profile denotes `ProceduralPrologProfile` iff it equals
+/// [`PROCEDURAL_PROLOG_PROFILE`], equals `"ProceduralPrologProfile"`, or ends with
+/// `"ProceduralPrologProfile"`.
+///
+/// If the program contains no cut this function always returns `Ok(())`.
+///
+/// # Errors
+///
+/// Returns `Err(String)` with a message naming the offending profile when the program
+/// contains cut and the profile does not denote `ProceduralPrologProfile`.
+pub fn check_cut_profile(program: &QProgram, profile: &str) -> Result<(), String> {
+    if !has_cut(program) {
+        return Ok(());
+    }
+    if is_procedural_profile(profile) {
+        return Ok(());
+    }
+    Err(format!(
+        "program contains cut (`!`) but profile {profile:?} does not denote \
+         ProceduralPrologProfile; cut is only permitted under \
+         {PROCEDURAL_PROLOG_PROFILE:?}"
+    ))
+}
+
+/// Return `true` if `profile` denotes the procedural Prolog profile.
+fn is_procedural_profile(profile: &str) -> bool {
+    profile == PROCEDURAL_PROLOG_PROFILE
+        || profile == PROCEDURAL_SHORT_NAME
+        || profile.ends_with(PROCEDURAL_SHORT_NAME)
+}
+
+// ── Unit tests ─────────────────────────────────────────────────────────────────
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::query_ir::parse_query_program;
+    use crate::seam::WorldStoreForeign;
+    use crate::store::WorldStore;
+
+    const BASE: &str = "https://example.org/";
+    const HORN_PROFILE: &str = "https://blackcatinformatics.ca/logic/PositiveHornProfile";
+    const WORLD: &str = "http://logic.test/world/gate";
+
+    fn cut_program() -> crate::query_ir::QProgram {
+        let src = format!(
+            ":- prefix(ex, '{BASE}').\n\
+             ex:first(X, Y) :- ex:edge(X, Y), !.\n\
+             ?- ex:first(ex:a, Y).\n"
+        );
+        parse_query_program(&src).unwrap()
+    }
+
+    fn no_cut_program() -> crate::query_ir::QProgram {
+        let src = format!(
+            ":- prefix(ex, '{BASE}').\n\
+             ex:reach(X, Y) :- ex:edge(X, Y).\n\
+             ?- ex:reach(ex:a, Y).\n"
+        );
+        parse_query_program(&src).unwrap()
+    }
+
+    // ── has_cut ────────────────────────────────────────────────────────────────
+
+    #[test]
+    fn has_cut_detects_cut_in_body() {
+        assert!(
+            has_cut(&cut_program()),
+            "cut program must report has_cut=true"
+        );
+    }
+
+    #[test]
+    fn has_cut_false_when_no_cut() {
+        assert!(
+            !has_cut(&no_cut_program()),
+            "non-cut program must report has_cut=false"
+        );
+    }
+
+    // ── check_cut_profile — Ok cases ──────────────────────────────────────────
+
+    #[test]
+    fn cut_with_full_procedural_iri_is_ok() {
+        let prog = cut_program();
+        assert!(
+            check_cut_profile(&prog, PROCEDURAL_PROLOG_PROFILE).is_ok(),
+            "cut + full IRI must be Ok"
+        );
+    }
+
+    #[test]
+    fn cut_with_bare_short_name_is_ok() {
+        let prog = cut_program();
+        assert!(
+            check_cut_profile(&prog, "ProceduralPrologProfile").is_ok(),
+            "cut + bare short name must be Ok"
+        );
+    }
+
+    #[test]
+    fn cut_with_prefixed_name_ending_in_short_name_is_ok() {
+        let prog = cut_program();
+        // A profile.json-style prefixed form that ends_with the short name.
+        assert!(
+            check_cut_profile(&prog, "logic:ProceduralPrologProfile").is_ok(),
+            "cut + prefixed name ending in short name must be Ok"
+        );
+    }
+
+    // ── check_cut_profile — Err cases ─────────────────────────────────────────
+
+    #[test]
+    fn cut_with_positive_horn_profile_returns_err() {
+        let prog = cut_program();
+        let result = check_cut_profile(&prog, HORN_PROFILE);
+        assert!(result.is_err(), "cut + PositiveHornProfile must be Err");
+        let msg = result.unwrap_err();
+        assert!(
+            msg.contains(HORN_PROFILE),
+            "error message must name the offending profile: {msg:?}"
+        );
+    }
+
+    #[test]
+    fn cut_with_empty_profile_returns_err() {
+        let prog = cut_program();
+        let result = check_cut_profile(&prog, "");
+        assert!(result.is_err(), "cut + empty profile must be Err");
+    }
+
+    // ── check_cut_profile — no-cut programs always pass ───────────────────────
+
+    #[test]
+    fn no_cut_any_profile_is_ok() {
+        let prog = no_cut_program();
+        assert!(check_cut_profile(&prog, HORN_PROFILE).is_ok());
+        assert!(check_cut_profile(&prog, "").is_ok());
+        assert!(check_cut_profile(&prog, "SomeRandomProfile").is_ok());
+    }
+
+    // ── No-write firewall ──────────────────────────────────────────────────────
+    //
+    // Run a terminating cut program through `run_scryer` under the procedural
+    // profile and verify the store quad count is unchanged — cut is virtual-only,
+    // no quads are inserted.
+
+    #[test]
+    fn no_write_firewall_cut_program_leaves_store_unchanged() {
+        let store = WorldStore::new();
+        store.insert_quad(
+            WORLD,
+            &format!("{BASE}a"),
+            &format!("{BASE}edge"),
+            &format!("{BASE}b"),
+        );
+        store.insert_quad(
+            WORLD,
+            &format!("{BASE}a"),
+            &format!("{BASE}edge"),
+            &format!("{BASE}c"),
+        );
+
+        let before = store.quads_in_world(WORLD).len();
+
+        let world_nn = oxigraph::model::NamedNode::new(WORLD).unwrap();
+        let foreign = WorldStoreForeign::from_world(&store, WORLD, PROCEDURAL_PROLOG_PROFILE)
+            .expect("from_world must succeed");
+
+        let src = format!(
+            ":- prefix(ex, '{BASE}').\n\
+             ex:first(X, Y) :- ex:edge(X, Y), !.\n\
+             ?- ex:first(ex:a, Y).\n"
+        );
+        let prog = parse_query_program(&src).unwrap();
+
+        // Gate passes; engine runs; answers are virtual only.
+        check_cut_profile(&prog, PROCEDURAL_PROLOG_PROFILE)
+            .expect("gate must pass under ProceduralPrologProfile");
+
+        let ans = crate::scryer_engine::run_scryer(
+            &foreign,
+            &world_nn,
+            &prog,
+            &[], // no tabling — cut program is procedural
+            &crate::query_ir::Budget::default(),
+        )
+        .expect("run_scryer must succeed on a terminating cut program");
+
+        // Cut commits to the first answer; store is still unchanged.
+        assert_eq!(
+            ans.bindings.len(),
+            1,
+            "cut must commit to first answer: {ans:?}"
+        );
+        let after = store.quads_in_world(WORLD).len();
+        assert_eq!(
+            before, after,
+            "store quad count must be UNCHANGED after run_scryer (no-write firewall)"
+        );
+    }
+}

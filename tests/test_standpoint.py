@@ -29,7 +29,7 @@ from gmeow_tools.statement_dsl import (
     load_statement_dsl,
 )
 from gmeow_tools.statement_lint import no_preferred_rank, statement_invariants
-from gmeow_tools.validate import run_shacl
+from tests._graph_nt import run_shacl
 
 GMEOW = "https://blackcatinformatics.ca/gmeow/"
 GM = Namespace(GMEOW)

@@ -20,7 +20,7 @@ from gmeow_tools.references import (
     extract_candidates_from_text,
     write_reference_exports,
 )
-from gmeow_tools.validate import run_shacl
+from tests._graph_nt import run_shacl
 
 GMEOW = Namespace("https://blackcatinformatics.ca/gmeow/")
 EX = Namespace("https://example.org/references/")

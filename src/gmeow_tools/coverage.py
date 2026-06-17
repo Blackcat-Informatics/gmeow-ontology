@@ -18,20 +18,10 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from rdflib import RDF, Graph, URIRef
+import gmeow_validate
 
-from gmeow_tools.config import FIXTURES_DIR, NAMESPACE, PREFIXES
-from gmeow_tools.mappings import build_alignment_graph, load_mappings
-
-#: Namespaces that are pure RDF plumbing — not counted for or against coverage.
-_IGNORED = (
-    PREFIXES["rdf"],
-    PREFIXES["rdfs"],
-    PREFIXES["owl"],
-    PREFIXES["xsd"],
-)
-#: Namespaces GMEOW explicitly reuses wholesale (recommended value vocabularies).
-_RECOMMENDED = (PREFIXES["skos"],)
+from gmeow_tools.config import FIXTURES_DIR, NAMESPACE
+from gmeow_tools.mappings import aligned_iris
 
 
 @dataclass(slots=True)
@@ -62,47 +52,37 @@ def covered_iris() -> set[str]:
     Returns:
         Every non-GMEOW IRI mentioned as a subject or object in the alignment
         graph (i.e. every external term GMEOW links to).
+
+    Delegates the alignment-graph walk to :func:`gmeow_tools.mappings.aligned_iris`
+    so the coverage module stays graph-free (#579) — the graph machinery lives in
+    ``mappings.py`` next to the rest of the SSSOM/alignment-graph code.
     """
-    graph = build_alignment_graph(load_mappings())
-    iris: set[str] = set()
-    for subject, _predicate, obj in graph:
-        for node in (subject, obj):
-            if isinstance(node, URIRef):
-                iris.add(str(node))
-    return iris
+    return aligned_iris()
 
 
-def _is_ignored(iri: str) -> bool:
-    return any(iri.startswith(ns) for ns in _IGNORED)
-
-
-def _is_covered(iri: str, aligned: set[str]) -> bool:
-    if iri.startswith(NAMESPACE):
-        return True
-    if any(iri.startswith(ns) for ns in _RECOMMENDED):
-        return True
-    return iri in aligned
-
-
-def load_fixtures(fixtures_dir: Path = FIXTURES_DIR) -> Graph:
-    """Parse and merge all vendored coverage fixtures into one graph.
+def fixture_paths(fixtures_dir: Path = FIXTURES_DIR) -> list[Path]:
+    """Discover every vendored coverage fixture, sorted.
 
     Recurses into ``external/`` so the real-world site snapshots (the bii/paudley
     parity targets) are part of the measurement — coverage is *about* them. The
     snapshots are exempt from GMEOW's authoring policies, but they are still the
     target the harness scores against.
     """
-    graph = Graph()
-    for path in sorted(fixtures_dir.rglob("*.ttl")):
-        graph.parse(path, format="turtle")
-    return graph
+    return sorted(fixtures_dir.rglob("*.ttl"))
 
 
-def analyze(data: Graph, aligned: set[str] | None = None) -> CoverageReport:
-    """Classify the classes and predicates used in a data graph.
+def analyze(
+    paths: list[Path],
+    aligned: set[str] | None = None,
+) -> CoverageReport:
+    """Classify the classes and predicates used across the fixture graphs.
+
+    A thin seam over the Rust ``gmeow_validate.coverage_analyze`` engine (#579):
+    the graph-walk classification runs on oxigraph; only the SSSOM ``aligned``
+    set and the ``CoverageReport`` assembly stay in Python.
 
     Args:
-        data: The merged fixture graph.
+        paths: The discovered fixture file paths.
         aligned: The set of aligned external IRIs (computed if not supplied).
 
     Returns:
@@ -110,33 +90,19 @@ def analyze(data: Graph, aligned: set[str] | None = None) -> CoverageReport:
     """
     if aligned is None:
         aligned = covered_iris()
-    report = CoverageReport()
-
-    for cls in set(data.objects(None, RDF.type)):
-        if not isinstance(cls, URIRef):
-            continue
-        iri = str(cls)
-        if not iri.startswith("http") or _is_ignored(iri):
-            continue
-        if _is_covered(iri, aligned):
-            report.covered_classes.add(iri)
-        else:
-            report.gap_classes.add(iri)
-
-    for predicate in set(data.predicates()):
-        iri = str(predicate)
-        if _is_ignored(iri):
-            continue
-        target = (
-            report.covered_predicates
-            if _is_covered(iri, aligned)
-            else report.gap_predicates
-        )
-        target.add(iri)
-
-    return report
+    result = gmeow_validate.coverage_analyze(
+        [str(p) for p in paths],
+        sorted(aligned),
+        str(NAMESPACE),
+    )
+    return CoverageReport(
+        covered_classes=set(result["covered_classes"]),
+        gap_classes=set(result["gap_classes"]),
+        covered_predicates=set(result["covered_predicates"]),
+        gap_predicates=set(result["gap_predicates"]),
+    )
 
 
 def run_coverage(fixtures_dir: Path = FIXTURES_DIR) -> CoverageReport:
     """Run the coverage analysis over the vendored fixtures."""
-    return analyze(load_fixtures(fixtures_dir))
+    return analyze(fixture_paths(fixtures_dir))
