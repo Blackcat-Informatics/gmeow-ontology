@@ -40,6 +40,7 @@
 //! calling thread.
 
 use std::collections::BTreeMap;
+use std::sync::{LazyLock, Mutex};
 
 use oxigraph::model::{NamedNode, Term as OxTerm};
 use scryer_prolog::{LeafAnswer, MachineBuilder, Term as PlTerm};
@@ -62,6 +63,20 @@ const BUDGET_RESULT_VAR: &str = "ScryerBudgetResult__";
 
 /// The atom `call_with_inference_limit/3` binds its result to when the budget is hit.
 const INFERENCE_LIMIT_EXCEEDED: &str = "inference_limit_exceeded";
+
+/// Serialises every Scryer machine's lifetime (`build` → `run_query` → `Drop`).
+///
+/// Required because `scryer-prolog` maintains process-global mutable state (the atom
+/// table / wam arena) that is mutated on machine construction **and** teardown. Two
+/// threads each building their own `Machine` race that global state — `Machine` being
+/// `!Send` prevents sharing one machine across threads but does **not** protect the
+/// shared globals — corrupting the heap into an allocation abort. This is the exact
+/// analogue of [`crate::nemo_engine`]'s `CHASE_LOCK` for Nemo's global timer, and is
+/// needed in the same two contexts: default-parallel `cargo test`, and PyO3 hosts that
+/// drive `query()` from multiple Python threads. The Python conformance path only ever
+/// held one machine at a time (GIL + sequential cases), which is why the race surfaced
+/// solely on the parallel `rust` gate.
+static SCRYER_LOCK: LazyLock<Mutex<()>> = LazyLock::new(|| Mutex::new(()));
 
 // ── Public entry point ──────────────────────────────────────────────────────────
 
@@ -95,6 +110,14 @@ pub fn run_scryer(
     table_preds: &[String],
     budget: &Budget,
 ) -> Result<AnswerSet, String> {
+    // Serialise Scryer's process-global state for the full machine lifetime. Declared
+    // first so it is dropped last — the guard is still held while `machine` is dropped
+    // below (Scryer's `Drop` also touches the global atom table). A poisoned lock means
+    // a prior query panicked; recover the guard so callers are not permanently wedged.
+    let _scryer_guard = SCRYER_LOCK
+        .lock()
+        .unwrap_or_else(|poisoned| poisoned.into_inner());
+
     let module = build_module(foreign, world, program, table_preds)?;
     let goal_vars = goal_vars(&program.goal);
     let query = build_goal_query(&program.goal, budget)?;
