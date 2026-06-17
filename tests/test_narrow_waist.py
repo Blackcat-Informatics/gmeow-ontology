@@ -153,3 +153,67 @@ def test_registry_orders_gts_before_every_consumer() -> None:
         assert gts_pos < order.index(consumer), (
             f"{consumer} ordered before its input producer"
         )
+
+
+_CLI = PROJECT_ROOT / "src" / "gmeow_tools" / "cli.py"
+_GTS_APP = "gts_app"
+_GTS_SUBCOMMANDS = frozenset(
+    {
+        "gts_info",
+        "gts_verify",
+        "gts_extract_key",
+        "gts_to_nq",
+        "gts_from_rdf",
+        "gts_to_sqlite",
+        "gts_to_duckdb",
+    }
+)
+
+
+def test_public_cli_does_not_reimplement_gts_subcommands() -> None:
+    """Static proof that the public ``gmeow`` CLI shells out to ``gts``.
+
+    The GTS engine commands used to be reimplemented inside ``gmeow`` via a
+    local ``gts_app`` Typer sub-application. After #617 they are delegated to
+    the external ``gts`` binary, so the public CLI must contain no trace of
+    the old sub-command functions or decorators.
+    """
+    tree = ast.parse(_CLI.read_text(encoding="utf-8"))
+
+    assigned: set[str] = set()
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Assign):
+            for target in node.targets:
+                if isinstance(target, ast.Name):
+                    assigned.add(target.id)
+        elif isinstance(node, ast.AnnAssign) and isinstance(node.target, ast.Name):
+            assigned.add(node.target.id)
+    assert _GTS_APP not in assigned, (
+        f"public CLI still assigns to the legacy {_GTS_APP!r} Typer app"
+    )
+
+    defined = {
+        node.name
+        for node in ast.walk(tree)
+        if isinstance(node, ast.FunctionDef | ast.AsyncFunctionDef)
+    }
+    offenders = defined & _GTS_SUBCOMMANDS
+    assert not offenders, (
+        f"public CLI still defines legacy GTS subcommand function(s): "
+        f"{sorted(offenders)}"
+    )
+
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.FunctionDef | ast.AsyncFunctionDef):
+            continue
+        for decorator in node.decorator_list:
+            func = decorator.func if isinstance(decorator, ast.Call) else decorator
+            if (
+                isinstance(func, ast.Attribute)
+                and func.attr == "command"
+                and isinstance(func.value, ast.Name)
+                and func.value.id == _GTS_APP
+            ):
+                raise AssertionError(
+                    f"public CLI still uses @{_GTS_APP}.command on {node.name!r}"
+                )
