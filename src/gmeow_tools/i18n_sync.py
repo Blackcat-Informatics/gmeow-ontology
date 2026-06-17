@@ -67,9 +67,9 @@ _LITERAL_RE = re.compile(
     re.DOTALL,
 )
 
-#: Matches an @prefix declaration in a Turtle file.
+#: Matches an @prefix declaration in a Turtle file (including the default prefix).
 _PREFIX_RE = re.compile(
-    r"@prefix\s+([a-zA-Z_][a-zA-Z0-9_-]*)\s*:\s*<([^>]+)>\s*\.",
+    r"@prefix\s+([a-zA-Z_][a-zA-Z0-9_-]*)?\s*:\s*<([^>]+)>\s*\.",
 )
 
 #: Matches a standalone PO continuation string.
@@ -78,7 +78,7 @@ _PO_STRING_RE = re.compile(r'^"(?:[^"\\]|\\.)*"$')
 #: Structural Turtle tokens used to locate the subject+predicate of a literal.
 _CONTEXT_TOKEN_RE = re.compile(
     r"(?P<iri><[^>]+>)"
-    r"|(?P<prefixed>[a-zA-Z_][a-zA-Z0-9_-]*:[a-zA-Z_][a-zA-Z0-9_-]*)"
+    r"|(?P<prefixed>(?:[a-zA-Z_][a-zA-Z0-9_-]*)?:[a-zA-Z_][a-zA-Z0-9_-]*)"
     r"|(?P<bnode>_:[a-zA-Z_][a-zA-Z0-9_-]*)"
     r"|(?P<bnstart>\[)"
     r"|(?P<bnend>\])"
@@ -280,7 +280,7 @@ def parse_po(text: str, *, require_msgctxt: bool = True) -> list[PoEntry]:
 
 def _extract_prefixes(text: str) -> dict[str, str]:
     """Return the ``prefix -> namespace`` map declared in a Turtle file."""
-    return {m.group(1): m.group(2) for m in _PREFIX_RE.finditer(text)}
+    return {(m.group(1) or ""): m.group(2) for m in _PREFIX_RE.finditer(text)}
 
 
 def _iri_text_forms(iri: str, prefixes: dict[str, str]) -> list[str]:
@@ -442,14 +442,19 @@ def _replace_literal_in_text(
 ) -> tuple[str, str | None]:
     """Replace one English literal in *text* while preserving formatting.
 
-    Returns the updated text, or ``(text, error)`` if the literal cannot be
-    found or is ambiguous.
+    The literal is located by its subject+predicate context (encoded in the
+    PO entry's ``msgctxt``), not by matching *old_value*.  Once the unique
+    literal for that subject+predicate has been identified, *old_value* is
+    used as a consistency check; if the located value differs from
+    *old_value*, the caller is notified so the 3-way merge logic can surface
+    the drift as a conflict.
     """
     prefixes = _extract_prefixes(text)
     subject_forms = _iri_text_forms(str(subject), prefixes)
     predicate_forms = _iri_text_forms(str(predicate), prefixes)
 
     candidates: list[tuple[int, int, str, str]] = []
+    decoded_by_start: dict[int, str] = {}
     for m in _LITERAL_RE.finditer(text):
         if m.group("triple"):
             lexical = m.group("lexical_triple") or ""
@@ -461,25 +466,32 @@ def _replace_literal_in_text(
             decoded = _unescape_turtle(lexical)
         except PoParseError:
             continue
-        if decoded != old_value:
-            continue
         suffix = m.group("suffix") or ""
         candidates.append((m.start(), m.end(), quote_style, suffix))
+        decoded_by_start[m.start()] = decoded
 
-    if not candidates:
-        return text, f"literal {old_value!r} not found in source text"
+    scoped = _filter_by_context(text, candidates, subject_forms, predicate_forms)
+    if not scoped:
+        return text, f"no literal for {subject} {predicate} in source text"
+    if len(scoped) > 1:
+        return text, (
+            f"conflict: ambiguous literal for {subject} {predicate}: "
+            f"{len(scoped)} occurrences in source text"
+        )
 
-    if len(candidates) > 1:
-        scoped = _filter_by_context(text, candidates, subject_forms, predicate_forms)
-        if len(scoped) == 1:
-            candidates = scoped
-        else:
-            return text, (
-                f"conflict: ambiguous literal {old_value!r}: "
-                f"{len(candidates)} occurrences in source text"
-            )
+    start, end, quote_style, suffix = scoped[0]
+    decoded = decoded_by_start[start]
 
-    start, end, quote_style, suffix = candidates[0]
+    if decoded != old_value:
+        return (
+            text,
+            f"conflict: literal for {subject} {predicate} "
+            f"is {decoded!r}, expected {old_value!r}",
+        )
+
+    if decoded == new_value:
+        return text, None
+
     if quote_style == "triple":
         replacement = f'"""{_escape_turtle_triple(new_value)}"""{suffix}'
     else:
@@ -541,7 +553,7 @@ def _apply_entry(entry: PoEntry, ttl_text: str, graph: Graph) -> tuple[str, str 
         return ttl_text, None
     if old_value == current_value and old_value != new_value:
         return _replace_literal_in_text(
-            ttl_text, subject, predicate, current_value, new_value
+            ttl_text, subject, predicate, old_value, new_value
         )
     if old_value != current_value and old_value == new_value:
         return ttl_text, f"source changed, PO unchanged for {identity}"

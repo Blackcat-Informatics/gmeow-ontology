@@ -510,6 +510,91 @@ msgstr "new"
         assert '"new"@x-gmeow-english' not in original
 
 
+class TestIriPredicateLookup:
+    """Regression tests for IRI+predicate-based literal lookup (gap 4)."""
+
+    def test_source_drifted_to_msgstr_is_unchanged(self, tmp_path: Path) -> None:
+        """When the source has been hand-edited to the PO value, locating the
+        literal by IRI+predicate must not produce a false conflict just because
+        the source no longer matches ``msgid``.
+        """
+        ttl = _write_ttl(
+            tmp_path,
+            """@prefix ex: <http://example.org/> .
+
+ex:s ex:p "hand-edited value"@x-gmeow-english .
+""",
+        )
+        po = _write_po(
+            tmp_path,
+            """
+msgctxt "http://example.org/s|http://example.org/p"
+msgid "old value"
+msgstr "hand-edited value"
+""",
+        )
+        report = sync_english_from_po(po, ttl)
+        assert not report.changed_files
+        assert not report.conflicts
+        assert not report.skipped
+        assert report.unchanged == ["http://example.org/s|http://example.org/p"]
+        assert '"hand-edited value"@x-gmeow-english' in ttl.read_text(encoding="utf-8")
+
+    def test_updates_only_targeted_predicate_for_shared(self, tmp_path: Path) -> None:
+        """Two literals with the same lexical value but different predicates
+        must be distinguished by their subject+predicate context.
+        """
+        ttl = _write_ttl(
+            tmp_path,
+            """@prefix ex: <http://example.org/> .
+
+ex:s ex:p "shared"@x-gmeow-english ;
+    ex:q "shared"@x-gmeow-english .
+""",
+        )
+        po = _write_po(
+            tmp_path,
+            """
+msgctxt "http://example.org/s|http://example.org/p"
+msgid "shared"
+msgstr "changed"
+""",
+        )
+        report = sync_english_from_po(po, ttl)
+        assert report.changed_files == [ttl]
+        assert not report.conflicts
+        assert not report.skipped
+        updated = ttl.read_text(encoding="utf-8")
+        assert 'ex:p "changed"@x-gmeow-english' in updated
+        assert 'ex:q "shared"@x-gmeow-english' in updated
+
+    def test_idempotency_after_ir_predicate_refactor(self, tmp_path: Path) -> None:
+        """A second sync with the same PO must make no further changes."""
+        ttl = _write_ttl(
+            tmp_path,
+            """@prefix ex: <http://example.org/> .
+
+ex:s ex:p "old"@x-gmeow-english .
+""",
+        )
+        po = _write_po(
+            tmp_path,
+            """
+msgctxt "http://example.org/s|http://example.org/p"
+msgid "old"
+msgstr "new"
+""",
+        )
+        report1 = sync_english_from_po(po, ttl)
+        assert report1.changed_files == [ttl]
+
+        report2 = sync_english_from_po(po, ttl)
+        assert not report2.changed_files
+        assert not report2.conflicts
+        assert not report2.skipped
+        assert report2.unchanged == ["http://example.org/s|http://example.org/p"]
+
+
 class TestMarkdownSync:
     """Exercise markdown PO synchronization by segment."""
 
