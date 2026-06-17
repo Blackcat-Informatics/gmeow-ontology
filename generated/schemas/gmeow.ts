@@ -1414,6 +1414,16 @@ export enum LanguageVarietyKindEnum {
     standard = "kindStandard",
 };
 
+export enum LearningEventTypeEnum {
+
+    being_taught = "learningBeingTaught",
+    concept_formation = "learningConceptFormation",
+    consolidation = "learningConsolidation",
+    skill_acquisition = "learningSkillAcquisition",
+    transfer = "learningTransfer",
+    unlearning = "learningUnlearning",
+};
+
 export enum LedgerAccountTypeEnum {
 
     asset = "ledgerAccountTypeAsset",
@@ -5354,6 +5364,21 @@ export interface LanguageVersion extends Language {
 
 
 
+export interface LearningEvent extends MentalProcess {
+    fromLevel?: string[],
+    learnedFrom?: string[],
+    learningType?: LearningEventType[],
+    produces?: string[],
+    toLevel?: string[],
+}
+
+
+
+export interface LearningEventType {
+}
+
+
+
 export interface LedgerAccount extends InformationObject {
     ledgerAccountCurrency?: ReferenceFrame[],
     ledgerAccountHolder?: Agent[],
@@ -7408,6 +7433,14 @@ export interface Task extends Event {
 
 
 export interface TaskStatus {
+}
+
+
+
+export interface Teaching {
+    learner?: Agent[],
+    subjectTaught?: string[],
+    teacher?: Agent,
 }
 
 

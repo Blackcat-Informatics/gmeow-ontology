@@ -66,13 +66,11 @@ classes:
     - accepts
     - asks
     - attendsTo
-    - awareOfNotKnowing
     - believes
     - curiousAbout
     - doubts
     - email
     - endorses
-    - epistemicSelfTrust
     - founderOf
     - hasAgreement
     - hasContactPoint
@@ -85,7 +83,6 @@ classes:
     - holdsAccount
     - holdsCredential
     - holdsKey
-    - imagines
     - inquiresInto
     - interestedIn
     - isAwareOf
@@ -100,7 +97,6 @@ classes:
     - remembers
     - seeksToKnow
     - slogan
-    - supposes
     - suspendsJudgementOn
     - telephone
     - understands
@@ -284,20 +280,6 @@ classes:
   AvailabilityStatus:
     class_uri: https://blackcatinformatics.ca/gmeow/AvailabilityStatus
     title: Availability Status
-  AwarenessLevel:
-    class_uri: https://blackcatinformatics.ca/gmeow/AwarenessLevel
-    title: Awareness Level
-    slots:
-    - levelRank
-  AwarenessMode:
-    class_uri: https://blackcatinformatics.ca/gmeow/AwarenessMode
-    title: Awareness Mode
-  AwarenessTenure:
-    class_uri: https://blackcatinformatics.ca/gmeow/AwarenessTenure
-    title: Awareness Tenure
-    is_a: TimeScopedRelation
-    slots:
-    - awarenessSubject
   Axis:
     class_uri: https://blackcatinformatics.ca/gmeow/Axis
     title: Axis
@@ -397,9 +379,6 @@ classes:
   CalendarSystem:
     class_uri: https://blackcatinformatics.ca/gmeow/CalendarSystem
     title: Calendar System
-  CalibrationStatus:
-    class_uri: https://blackcatinformatics.ca/gmeow/CalibrationStatus
-    title: Calibration Status
   Capacity:
     class_uri: https://blackcatinformatics.ca/gmeow/Capacity
     title: Capacity
@@ -636,9 +615,6 @@ classes:
   ContentDisposition:
     class_uri: https://blackcatinformatics.ca/gmeow/ContentDisposition
     title: Content Disposition
-  ContentOrigin:
-    class_uri: https://blackcatinformatics.ca/gmeow/ContentOrigin
-    title: Content Origin
   ContentSegment:
     class_uri: https://blackcatinformatics.ca/gmeow/ContentSegment
     title: Content Segment
@@ -1808,6 +1784,19 @@ classes:
     class_uri: https://blackcatinformatics.ca/gmeow/LanguageVersion
     title: Language Version
     is_a: Language
+  LearningEvent:
+    class_uri: https://blackcatinformatics.ca/gmeow/LearningEvent
+    title: Learning Event
+    is_a: MentalProcess
+    slots:
+    - fromLevel
+    - learnedFrom
+    - learningType
+    - produces
+    - toLevel
+  LearningEventType:
+    class_uri: https://blackcatinformatics.ca/gmeow/LearningEventType
+    title: Learning Event Type
   LedgerAccount:
     class_uri: https://blackcatinformatics.ca/gmeow/LedgerAccount
     title: Ledger Account
@@ -2021,9 +2010,7 @@ classes:
     slots:
     - experiencer
     - mentalProcessType
-    - producesMentalMoment
-    - realizesMentalMoment
-    - updatesMentalTenure
+    - realizesMoment
   MentalProcessType:
     class_uri: https://blackcatinformatics.ca/gmeow/MentalProcessType
     title: Mental Process Type
@@ -2094,13 +2081,6 @@ classes:
   MessageParticipantRole:
     class_uri: https://blackcatinformatics.ca/gmeow/MessageParticipantRole
     title: Message Participant Role
-  MetacognitiveState:
-    class_uri: https://blackcatinformatics.ca/gmeow/MetacognitiveState
-    title: Metacognitive State
-    is_a: MentalMoment
-    slots:
-    - calibration
-    - metaTarget
   MeterAssignment:
     class_uri: https://blackcatinformatics.ca/gmeow/MeterAssignment
     title: Meter Assignment
@@ -3604,6 +3584,13 @@ classes:
   TaskStatus:
     class_uri: https://blackcatinformatics.ca/gmeow/TaskStatus
     title: Task Status
+  Teaching:
+    class_uri: https://blackcatinformatics.ca/gmeow/Teaching
+    title: Teaching
+    slots:
+    - learner
+    - subjectTaught
+    - teacher
   TelephoneNumber:
     class_uri: https://blackcatinformatics.ca/gmeow/TelephoneNumber
     title: Telephone Number
@@ -4652,33 +4639,6 @@ slots:
     slot_uri: https://blackcatinformatics.ca/gmeow/avoidWhen
     title: avoid when
     range: string
-  awareOfNotKnowing:
-    slot_uri: https://blackcatinformatics.ca/gmeow/awareOfNotKnowing
-    title: aware of not knowing
-    range: uriorcurie
-    domain: Agent
-    multivalued: true
-  awarenessLevel:
-    slot_uri: https://blackcatinformatics.ca/gmeow/awarenessLevel
-    title: awareness level
-    range: AwarenessLevel
-    multivalued: true
-  awarenessMode:
-    slot_uri: https://blackcatinformatics.ca/gmeow/awarenessMode
-    title: awareness mode
-    range: AwarenessMode
-    multivalued: true
-  awarenessScalar:
-    slot_uri: https://blackcatinformatics.ca/gmeow/awarenessScalar
-    title: awareness scalar
-    range: decimal
-    multivalued: true
-  awarenessSubject:
-    slot_uri: https://blackcatinformatics.ca/gmeow/awarenessSubject
-    title: awareness subject
-    range: Agent
-    domain: AwarenessTenure
-    multivalued: false
   bcc:
     slot_uri: https://blackcatinformatics.ca/gmeow/bcc
     title: bcc
@@ -4804,16 +4764,6 @@ slots:
     range: string
     domain: EmailMessage
     multivalued: true
-  calibration:
-    slot_uri: https://blackcatinformatics.ca/gmeow/calibration
-    title: calibration
-    range: CalibrationStatus
-    domain: MetacognitiveState
-    multivalued: true
-  calibrationError:
-    slot_uri: https://blackcatinformatics.ca/gmeow/calibrationError
-    title: calibration error
-    range: string
   calledByInvocation:
     slot_uri: https://blackcatinformatics.ca/gmeow/calledByInvocation
     title: called by invocation
@@ -5362,11 +5312,6 @@ slots:
     title: content language
     range: Language
     domain: Work
-    multivalued: true
-  contentOrigin:
-    slot_uri: https://blackcatinformatics.ca/gmeow/contentOrigin
-    title: content origin
-    range: ContentOrigin
     multivalued: true
   contractAddress:
     slot_uri: https://blackcatinformatics.ca/gmeow/contractAddress
@@ -6158,12 +6103,6 @@ slots:
     range: TimeInterval
     domain: SensoryEnvironment
     multivalued: true
-  epistemicSelfTrust:
-    slot_uri: https://blackcatinformatics.ca/gmeow/epistemicSelfTrust
-    title: epistemic self-trust
-    range: uriorcurie
-    domain: Agent
-    multivalued: true
   eulerOrder:
     slot_uri: https://blackcatinformatics.ca/gmeow/eulerOrder
     title: Euler order
@@ -6666,6 +6605,12 @@ slots:
     title: from
     range: EmailAddress
     domain: EmailMessage
+    multivalued: true
+  fromLevel:
+    slot_uri: https://blackcatinformatics.ca/gmeow/fromLevel
+    title: from level
+    range: uriorcurie
+    domain: LearningEvent
     multivalued: true
   fullName:
     slot_uri: https://blackcatinformatics.ca/gmeow/fullName
@@ -7973,17 +7918,6 @@ slots:
     range: decimal
     domain: MediaObject
     multivalued: false
-  imaginedWorld:
-    slot_uri: https://blackcatinformatics.ca/gmeow/imaginedWorld
-    title: imagined world
-    range: uriorcurie
-    multivalued: true
-  imagines:
-    slot_uri: https://blackcatinformatics.ca/gmeow/imagines
-    title: imagines
-    range: uriorcurie
-    domain: Agent
-    multivalued: true
   implicates:
     slot_uri: https://blackcatinformatics.ca/gmeow/implicates
     title: implicates
@@ -8486,6 +8420,24 @@ slots:
     range: decimal
     domain: GeoCoordinates
     multivalued: true
+  learnedFrom:
+    slot_uri: https://blackcatinformatics.ca/gmeow/learnedFrom
+    title: learned from
+    range: uriorcurie
+    domain: LearningEvent
+    multivalued: true
+  learner:
+    slot_uri: https://blackcatinformatics.ca/gmeow/learner
+    title: learner
+    range: Agent
+    domain: Teaching
+    multivalued: true
+  learningType:
+    slot_uri: https://blackcatinformatics.ca/gmeow/learningType
+    title: learning type
+    range: LearningEventType
+    domain: LearningEvent
+    multivalued: true
   ledgerAccountCurrency:
     slot_uri: https://blackcatinformatics.ca/gmeow/ledgerAccountCurrency
     title: ledger account currency
@@ -8520,12 +8472,6 @@ slots:
     title: legal identifier
     range: Identifier
     domain: Organization
-    multivalued: true
-  levelRank:
-    slot_uri: https://blackcatinformatics.ca/gmeow/levelRank
-    title: level rank
-    range: integer
-    domain: AwarenessLevel
     multivalued: true
   levelScale:
     slot_uri: https://blackcatinformatics.ca/gmeow/levelScale
@@ -8999,12 +8945,6 @@ slots:
     title: met by
     range: Event
     domain: Event
-    multivalued: true
-  metaTarget:
-    slot_uri: https://blackcatinformatics.ca/gmeow/metaTarget
-    title: meta target
-    range: uriorcurie
-    domain: MetacognitiveState
     multivalued: true
   meterCarrier:
     slot_uri: https://blackcatinformatics.ca/gmeow/meterCarrier
@@ -10120,11 +10060,11 @@ slots:
     title: process rule text
     range: string
     domain: GenerativeProcess
-  producesMentalMoment:
-    slot_uri: https://blackcatinformatics.ca/gmeow/producesMentalMoment
-    title: produces mental moment
-    range: MentalMoment
-    domain: MentalProcess
+  produces:
+    slot_uri: https://blackcatinformatics.ca/gmeow/produces
+    title: produces
+    range: uriorcurie
+    domain: LearningEvent
     multivalued: true
   proficiencyAgent:
     slot_uri: https://blackcatinformatics.ca/gmeow/proficiencyAgent
@@ -10461,10 +10401,10 @@ slots:
     range: Work
     domain: Expression
     multivalued: true
-  realizesMentalMoment:
-    slot_uri: https://blackcatinformatics.ca/gmeow/realizesMentalMoment
-    title: realizes mental moment
-    range: MentalMoment
+  realizesMoment:
+    slot_uri: https://blackcatinformatics.ca/gmeow/realizesMoment
+    title: realizes moment
+    range: uriorcurie
     domain: MentalProcess
     multivalued: true
   receivedAt:
@@ -11641,6 +11581,12 @@ slots:
     range: string
     domain: EmailMessage
     multivalued: true
+  subjectTaught:
+    slot_uri: https://blackcatinformatics.ca/gmeow/subjectTaught
+    title: subject taught
+    range: uriorcurie
+    domain: Teaching
+    multivalued: true
   successorOrganization:
     slot_uri: https://blackcatinformatics.ca/gmeow/successorOrganization
     title: successor organization
@@ -11676,12 +11622,6 @@ slots:
     title: supports notability
     range: boolean
     domain: CitationAct
-    multivalued: true
-  supposes:
-    slot_uri: https://blackcatinformatics.ca/gmeow/supposes
-    title: supposes
-    range: uriorcurie
-    domain: Agent
     multivalued: true
   suspendsJudgementOn:
     slot_uri: https://blackcatinformatics.ca/gmeow/suspendsJudgementOn
@@ -11773,6 +11713,12 @@ slots:
     range: TaskStatus
     domain: Task
     multivalued: true
+  teacher:
+    slot_uri: https://blackcatinformatics.ca/gmeow/teacher
+    title: teacher
+    range: Agent
+    domain: Teaching
+    multivalued: false
   telephone:
     slot_uri: https://blackcatinformatics.ca/gmeow/telephone
     title: telephone
@@ -11958,6 +11904,12 @@ slots:
     title: to
     range: EmailAddress
     domain: EmailMessage
+    multivalued: true
+  toLevel:
+    slot_uri: https://blackcatinformatics.ca/gmeow/toLevel
+    title: to level
+    range: uriorcurie
+    domain: LearningEvent
     multivalued: true
   toneEventArticulation:
     slot_uri: https://blackcatinformatics.ca/gmeow/toneEventArticulation
@@ -12228,12 +12180,6 @@ slots:
     title: understands
     range: Entity
     domain: Agent
-    multivalued: true
-  updatesMentalTenure:
-    slot_uri: https://blackcatinformatics.ca/gmeow/updatesMentalTenure
-    title: updates mental tenure
-    range: TimeScopedRelation
-    domain: MentalProcess
     multivalued: true
   usageAppellation:
     slot_uri: https://blackcatinformatics.ca/gmeow/usageAppellation
@@ -12928,81 +12874,6 @@ enums:
       availabilityStatusTentative:
         meaning: https://blackcatinformatics.ca/gmeow/availabilityStatusTentative
         title: tentative
-  AwarenessLevelEnum:
-    enum_uri: https://blackcatinformatics.ca/gmeow/AwarenessLevel
-    permissible_values:
-      levelAlert:
-        meaning: https://blackcatinformatics.ca/gmeow/levelAlert
-        title: alert
-      levelDrowsy:
-        meaning: https://blackcatinformatics.ca/gmeow/levelDrowsy
-        title: drowsy
-      levelHyperalert:
-        meaning: https://blackcatinformatics.ca/gmeow/levelHyperalert
-        title: hyperalert
-      levelObtunded:
-        meaning: https://blackcatinformatics.ca/gmeow/levelObtunded
-        title: obtunded
-      levelRelaxed:
-        meaning: https://blackcatinformatics.ca/gmeow/levelRelaxed
-        title: relaxed
-      levelUnresponsive:
-        meaning: https://blackcatinformatics.ca/gmeow/levelUnresponsive
-        title: unresponsive
-  AwarenessModeEnum:
-    enum_uri: https://blackcatinformatics.ca/gmeow/AwarenessMode
-    permissible_values:
-      modeAsleep:
-        meaning: https://blackcatinformatics.ca/gmeow/modeAsleep
-        title: asleep
-      modeComatose:
-        meaning: https://blackcatinformatics.ca/gmeow/modeComatose
-        title: comatose
-      modeDormant:
-        meaning: https://blackcatinformatics.ca/gmeow/modeDormant
-        title: dormant
-      modeDreaming:
-        meaning: https://blackcatinformatics.ca/gmeow/modeDreaming
-        title: dreaming
-      modeDrowsy:
-        meaning: https://blackcatinformatics.ca/gmeow/modeDrowsy
-        title: drowsy
-      modeFlow:
-        meaning: https://blackcatinformatics.ca/gmeow/modeFlow
-        title: flow
-      modeFocused:
-        meaning: https://blackcatinformatics.ca/gmeow/modeFocused
-        title: focused
-      modeLucidDreaming:
-        meaning: https://blackcatinformatics.ca/gmeow/modeLucidDreaming
-        title: lucid dreaming
-      modeMeditative:
-        meaning: https://blackcatinformatics.ca/gmeow/modeMeditative
-        title: meditative
-      modeMindWandering:
-        meaning: https://blackcatinformatics.ca/gmeow/modeMindWandering
-        title: mind wandering
-      modeOfflineReplay:
-        meaning: https://blackcatinformatics.ca/gmeow/modeOfflineReplay
-        title: offline replay
-      modeOnlineInference:
-        meaning: https://blackcatinformatics.ca/gmeow/modeOnlineInference
-        title: online inference
-      modeREM:
-        meaning: https://blackcatinformatics.ca/gmeow/modeREM
-        title: REM sleep
-      modeSampling:
-        meaning: https://blackcatinformatics.ca/gmeow/modeSampling
-        title: sampling
-      modeSedated:
-        meaning: https://blackcatinformatics.ca/gmeow/modeSedated
-        title: sedated
-      modeTraining:
-        meaning: https://blackcatinformatics.ca/gmeow/modeTraining
-        title: training
-      modeWaking:
-        meaning: https://blackcatinformatics.ca/gmeow/modeWaking
-        title: waking
   AxisEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/Axis
     permissible_values:
@@ -13402,18 +13273,6 @@ enums:
       calendarPersian:
         meaning: https://blackcatinformatics.ca/gmeow/calendarPersian
         title: Persian (Solar Hijri) calendar
-  CalibrationStatusEnum:
-    enum_uri: https://blackcatinformatics.ca/gmeow/CalibrationStatus
-    permissible_values:
-      overconfident:
-        meaning: https://blackcatinformatics.ca/gmeow/overconfident
-        title: overconfident
-      underconfident:
-        meaning: https://blackcatinformatics.ca/gmeow/underconfident
-        title: underconfident
-      wellCalibrated:
-        meaning: https://blackcatinformatics.ca/gmeow/wellCalibrated
-        title: well calibrated
   CarrierMediumEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/CarrierMedium
     permissible_values:
@@ -13657,27 +13516,6 @@ enums:
       contentDispositionInline:
         meaning: https://blackcatinformatics.ca/gmeow/contentDispositionInline
         title: inline
-  ContentOriginEnum:
-    enum_uri: https://blackcatinformatics.ca/gmeow/ContentOrigin
-    permissible_values:
-      originBelieved:
-        meaning: https://blackcatinformatics.ca/gmeow/originBelieved
-        title: believed
-      originGenerated:
-        meaning: https://blackcatinformatics.ca/gmeow/originGenerated
-        title: generated
-      originImagined:
-        meaning: https://blackcatinformatics.ca/gmeow/originImagined
-        title: imagined
-      originPerceived:
-        meaning: https://blackcatinformatics.ca/gmeow/originPerceived
-        title: perceived
-      originRemembered:
-        meaning: https://blackcatinformatics.ca/gmeow/originRemembered
-        title: remembered
-      originSupposed:
-        meaning: https://blackcatinformatics.ca/gmeow/originSupposed
-        title: supposed
   ContentSegmentTypeEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/ContentSegmentType
     permissible_values:
@@ -14665,9 +14503,6 @@ enums:
       eventTypeRecordingSession:
         meaning: https://blackcatinformatics.ca/gmeow/eventTypeRecordingSession
         title: recording session
-      eventTypeReflection:
-        meaning: https://blackcatinformatics.ca/gmeow/eventTypeReflection
-        title: reflection
       eventTypeRehearsal:
         meaning: https://blackcatinformatics.ca/gmeow/eventTypeRehearsal
         title: rehearsal
@@ -15820,6 +15655,27 @@ enums:
       kindStandard:
         meaning: https://blackcatinformatics.ca/gmeow/kindStandard
         title: standard
+  LearningEventTypeEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/LearningEventType
+    permissible_values:
+      learningBeingTaught:
+        meaning: https://blackcatinformatics.ca/gmeow/learningBeingTaught
+        title: being taught
+      learningConceptFormation:
+        meaning: https://blackcatinformatics.ca/gmeow/learningConceptFormation
+        title: concept formation
+      learningConsolidation:
+        meaning: https://blackcatinformatics.ca/gmeow/learningConsolidation
+        title: consolidation
+      learningSkillAcquisition:
+        meaning: https://blackcatinformatics.ca/gmeow/learningSkillAcquisition
+        title: skill acquisition
+      learningTransfer:
+        meaning: https://blackcatinformatics.ca/gmeow/learningTransfer
+        title: transfer
+      learningUnlearning:
+        meaning: https://blackcatinformatics.ca/gmeow/learningUnlearning
+        title: unlearning
   LedgerAccountTypeEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/LedgerAccountType
     permissible_values:
