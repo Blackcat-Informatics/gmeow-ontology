@@ -13,8 +13,8 @@ Two routes are checked:
 
 * the direct ``gmeow_validate.reasoning_invariants`` extension API over the real
   source paths, and
-* the ``gmeow_tools.validate.reasoning_lint`` wrapper over the merged rdflib
-  graph (the production ``validate_all`` path),
+* the ``gmeow_tools.validate.reasoning_lint`` wrapper over the real source
+  paths (the production ``validate_all`` path, now graph-free),
 
 so neither the FFI boundary nor the Python adapter can drift from the golden.
 """

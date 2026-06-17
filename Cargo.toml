@@ -3,7 +3,7 @@
 
 [workspace]
 # The GTS engine moved to the gmeow-gts repo; its `gts` binary is obtained via
-# `cargo install gmeow-gts`. The ontology Rust workspace keeps logic + shacl.
+# `cargo install gmeow-gts`. The ontology Rust workspace keeps logic + shacl + validate.
 members = ["crates/logic", "crates/shacl", "crates/validate"]
 resolver = "2"
 
