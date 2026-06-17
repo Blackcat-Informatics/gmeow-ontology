@@ -165,6 +165,21 @@ def test_export_respects_language_selector(runner: CliRunner, tmp_path: Path) ->
     assert "label_fallback" in text
 
 
+def test_export_lang_flag_wins_over_env(runner: CliRunner, tmp_path: Path) -> None:
+    """--lang wins over GMEOW_LANG when exporting CSVs."""
+    out = tmp_path / "export"
+    with patch.dict("os.environ", {"GMEOW_LANG": "en"}):
+        result = runner.invoke(
+            public_app, ["export", "--out", str(out), "--lang", "fr"]
+        )
+    assert result.exit_code == 0, result.output
+    classes_csv = out / "gmeow-classes.csv"
+    assert classes_csv.exists()
+    header = classes_csv.read_text(encoding="utf-8").splitlines()[0]
+    assert "label_fr" in header
+    assert "label_en" not in header
+
+
 def test_create_docs_language_fallback(runner: CliRunner, tmp_path: Path) -> None:
     out = tmp_path / "docs-tree"
     result = runner.invoke(
