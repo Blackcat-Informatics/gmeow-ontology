@@ -35,6 +35,7 @@ ex:lillithReplayEpisode a gmeow:LearningEvent ;
     gmeow:learningType gmeow:learningConsolidation , gmeow:learningConceptFormation ;
     gmeow:experiencer ex:aiAgentLillith ;
     gmeow:wasDerivedFrom ex:lillithMemoryPackage ;
+    gmeow:learnedFrom ex:replayAnalogy ;
     gmeow:eventTime "2026-06-16T04:00:00Z"^^xsd:dateTime ;
     gmeow:eventTemporalFrame gmeow:temporalFrameUTCGregorian .
 
