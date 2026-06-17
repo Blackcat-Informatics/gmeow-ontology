@@ -193,17 +193,19 @@ fn object_iris(
 }
 
 /// Whether `(subject_iri, rdf:type, type_iri)` exists.
-fn has_type(store: &Store, subject_iri: &str, type_iri: oxigraph::model::NamedNodeRef) -> bool {
-    let subject = oxigraph::model::NamedNode::new_unchecked(subject_iri);
+fn has_type(
+    store: &Store,
+    subject_iri: oxigraph::model::NamedNodeRef,
+    type_iri: oxigraph::model::NamedNodeRef,
+) -> bool {
     store
         .quads_for_pattern(
-            Some((&subject).into()),
+            Some(subject_iri.into()),
             Some(rdf::TYPE),
             Some(type_iri.into()),
             None,
         )
-        .next()
-        .is_some()
+        .any(|r| r.is_ok())
 }
 
 /// The structural lint over the merged store (mirrors `structural_lint`).
@@ -251,7 +253,7 @@ pub fn structural_lint(store: &Store, cfg: &LintConfig) -> LintReport {
                     continue;
                 }
             };
-            if !has_type(store, role.as_str(), graph_box_role_class.as_ref()) {
+            if !has_type(store, role.as_ref(), graph_box_role_class.as_ref()) {
                 report.errors.push(format!(
                     "{kind} {term} has gmeow:graphBoxRole value {} that is not a gmeow:GraphBoxRole",
                     role.as_str()
