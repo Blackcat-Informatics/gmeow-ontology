@@ -1,0 +1,26 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow:   <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+
+<https://blackcatinformatics.ca/gmeow/slices/learning>
+    a gmeow:Slice ;
+    rdfs:label "learning"@x-gmeow-english ;
+    skos:definition "The learning slice of the GMEOW ontology (core tier): GMEOW Learning Module — learning as PROCESS, the occurrent that transitions an agent along the cognition knowledge spectrum or the expertise proficiency scale. Memory-as-storage is not learning; the cognition and expertise slices model knowledge STATES, and this slice models the gmeow:LearningEvent that changes them — acquisition, being-taught, consolidation, transfer, and unlearning — the dynamic complement to the state-heavy mental layer. Anatomy, dependencies, and consumer are declared in this manifest; the manifest is the sole source of slice identity and tier."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/learning> ;
+    dcterms:title "GMEOW Learning Module"@x-gmeow-english ;
+    dcterms:creator "Blackcat Informatics® Inc." ;
+    gmeow:sliceTier gmeow:tierCore ;
+    gmeow:sliceDependsOn
+        <https://blackcatinformatics.ca/gmeow/slices/kernel> ,
+        <https://blackcatinformatics.ca/gmeow/slices/mentation> ,
+        <https://blackcatinformatics.ca/gmeow/slices/events> ,
+        <https://blackcatinformatics.ca/gmeow/slices/cognition> ,
+        <https://blackcatinformatics.ca/gmeow/slices/expertise> ,
+        <https://blackcatinformatics.ca/gmeow/slices/temporal> ,
+        <https://blackcatinformatics.ca/gmeow/slices/sources> ;
+    gmeow:sliceProfile "memory" ;
+    gmeow:sliceConsumer "How agent memory GROWS (Principle 14): when, from whom, and how an agent came to know something — the GTS ai-package belief-acquisition log. A gmeow:LearningEvent records the transition that raised a gmeow:KnowledgeProficiency or gmeow:SkillProficiency; gmeow:learnedFrom carries the provenance of acquired knowledge; pedagogy and rubric consumers (the teleology / rubrics slices) read gmeow:Teaching. Forgetting is suppression (cognition's gmeow:remembers + gmeow:displayable false), referenced here, never re-minted."@x-gmeow-english .

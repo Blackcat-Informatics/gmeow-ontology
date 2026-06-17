@@ -1,0 +1,238 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow:   <https://blackcatinformatics.ca/gmeow/> .
+@prefix gufo:    <http://purl.org/nemo/gufo#> .
+@prefix owl:     <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+
+<https://blackcatinformatics.ca/gmeow/slices/learning>
+    a owl:Ontology ;
+    rdfs:label "GMEOW Learning Module"@x-gmeow-english ;
+    skos:definition "The GMEOW Learning Module — learning as PROCESS: gmeow:LearningEvent, the occurrent that transitions an agent along the cognition knowledge spectrum or the expertise proficiency scale, together with the gmeow:LearningEventType value vocabulary for its varieties, the gmeow:Teaching relator, and the provenance / trajectory / product relations that tie an event to what it was learned from and the state it raised."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/learning> ;
+    rdfs:comment """The dynamic complement to the state-heavy mental layer: where the cognition slice models the endurant gmeow:KnowledgeProficiency and the expertise slice the endurant gmeow:SkillProficiency, learning models the OCCURRENT gmeow:LearningEvent that RAISES them. Memory-as-storage (the flagship store/recall) is not learning; learning is the event that grows what an agent knows.
+
+DOCTRINE.
+  * Reparent, not re-root (the reserved hook): gmeow:LearningEvent rdfs:subClassOf gmeow:MentalProcess — the occurrent umbrella the mentation slice reserves for it. A learning event is a gmeow:Event borne by exactly one gmeow:experiencer (inherited from gmeow:MentalProcess), so it joins the agent's single occurrent mental-timeline stream.
+  * Class names the learning-ness, value names the variety (Principle 4 / Principle 6 — one canonical source): the CLASS gmeow:LearningEvent already asserts 'a learning process happened', so no class-trivial gmeow:mentalProcessType value is minted for it (the inference-slice precedent that dropped eventTypeInference). The VARIETY — acquisition, being-taught, consolidation, transfer, unlearning, concept-formation — is a gmeow:LearningEventType value carried by gmeow:learningType, mirroring how the inference slice carries gmeow:InferenceMode alongside processReasoning.
+  * Trajectory as a tenure sequence, never mutation (Principle 10): a learning event carries gmeow:fromLevel / gmeow:toLevel, but a RISE in proficiency over time is a SEQUENCE of reified proficiency tenures (the cognition / temporal gmeow:TimeScopedRelation idiom), each with its own interval — never the in-place mutation of one relator. The old tenure is kept with gmeow:displayable false, not deleted.
+  * Open ranges where the target is not yet anchored (Principle 13): gmeow:subjectTaught, gmeow:learnedFrom, gmeow:fromLevel / gmeow:toLevel, and gmeow:produces all leave rdfs:range OPEN and document the intended targets in prose — the concepts slice (gmeow:Concept) is not yet built, and gmeow:Source is retired in favour of gmeow:CreativeWork plus a source-role.
+  * Teacher must differ from learner: gmeow:Teaching is the gmeow:Participation-style relator mediating one teacher, one or more learners, and the subject taught; the closed-world teacher ≠ learner well-formedness rule is SHACL's (gmeow:TeachingShape), not a DL axiom.
+  * Forgetting is suppression, referenced not duplicated (Principle 6): there is deliberately NO gmeow:forgets / gmeow:forgotten term — forgetting is the cognition slice's gmeow:remembers withdrawn by gmeow:displayable false, and gmeow:learningUnlearning names the revision event, not a new deletion construct.
+  * Bridges are documented routing, not axioms (Principle 12): gmeow:learningTransfer routes to the inference slice's gmeow:Analogy (applying learning to a new domain is an analogical structure-mapping), and gmeow:learningConceptFormation names the bridge to the forthcoming concepts slice — neither carries a reasoner-enforced relation in core."""@x-gmeow-english ;
+    dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
+
+# =========================================================================== #
+# LEARNING EVENT — the occurrent that transitions an agent's knowledge state.
+# Reparents under gmeow:MentalProcess (the hook the mentation slice reserves),
+# inheriting gmeow:experiencer and the unified mental-timeline stream. Typed
+# gufo:EventType (the gUFO event-type stereotype), exactly like gmeow:MentalProcess
+# and the sibling gmeow:InferenceProcess.
+# =========================================================================== #
+
+gmeow:LearningEvent
+    a owl:Class, gufo:EventType ;
+    rdfs:subClassOf gmeow:MentalProcess ;
+    rdfs:label "Learning Event"@x-gmeow-english ;
+    skos:definition "The occurrent that transitions an agent along the cognition knowledge spectrum or the expertise proficiency scale — learning as it unfolds in time: an acquisition, a being-taught, a consolidation, a transfer, an unlearning. The perdurant complement of the endurant knowledge STATES (cognition's gmeow:KnowledgeProficiency, expertise's gmeow:SkillProficiency): those say what an agent knows, a gmeow:LearningEvent is the event that CHANGED what it knows. A gmeow:MentalProcess (the reparenting hook the mentation slice reserves), so it is borne by exactly one gmeow:experiencer and joins the agent's single occurrent mental-timeline stream; its variety is a gmeow:learningType value, never a subclass (Principle 9)."@x-gmeow-english ;
+    skos:scopeNote "The CLASS already asserts that a learning process occurred, so no class-trivial gmeow:mentalProcessType value is minted for it — the inference-slice precedent (eventTypeInference was deliberately not minted, Principle 4 — one canonical source). The variety rides gmeow:learningType (a gmeow:LearningEventType value); the agent rides the inherited gmeow:experiencer; the knowledge state it settles rides gmeow:produces."@x-gmeow-english ;
+    skos:example "ex:lesson a gmeow:LearningEvent ; gmeow:experiencer ex:lillith ; gmeow:learningType gmeow:learningSkillAcquisition ."@x-gmeow-english ;
+    gmeow:useWhen "Use to record the EVENT that grew an agent's knowledge or skill — when, from whom, and how it came to know something — so a belief-acquisition log can show not just the current state but the transition that produced it (Principle 14)."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid it for the enduring knowledge STATE itself (that is cognition's gmeow:KnowledgeProficiency or expertise's gmeow:SkillProficiency, endurant relators, not occurrents) and avoid subclassing it to record a kind of learning; the variety is a gmeow:learningType value, never a subclass (Principle 9)."@x-gmeow-english ;
+    gmeow:howToUse "Type the episode gmeow:LearningEvent, bind its learner with the inherited gmeow:experiencer (functional), tag its variety with gmeow:learningType, record where it was learned from with gmeow:learnedFrom, its trajectory with gmeow:fromLevel / gmeow:toLevel, and the state it raised with gmeow:produces; model a proficiency rise as a SEQUENCE of cognition / expertise proficiency tenures, never the mutation of one relator (Principle 10)."@x-gmeow-english ;
+    gmeow:useForConsumer gmeow:consumerInternalArchive,
+        gmeow:consumerAgentMemory,
+        gmeow:consumerResearchQueue ;
+    gmeow:avoidForConsumer gmeow:consumerSchemaOrgJsonLd,
+        gmeow:consumerFoafExport ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/learning> .
+
+# =========================================================================== #
+# LEARNING EVENT TYPE — a value vocabulary of learning varieties (individuals,
+# never subclasses). The dedicated kind-vocab for learning, mirroring the
+# inference slice's gmeow:InferenceMode: the class names the learning-ness, this
+# names the variety. Open: a variety not seeded is a fresh individual.
+# =========================================================================== #
+
+gmeow:LearningEventType
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:label "Learning Event Type"@x-gmeow-english ;
+    skos:definition "The variety of a learning event — a value vocabulary spanning concept-formation, skill-acquisition, being-taught, consolidation, transfer, and unlearning: gmeow:learningConceptFormation, gmeow:learningSkillAcquisition, gmeow:learningBeingTaught, gmeow:learningConsolidation, gmeow:learningTransfer, gmeow:learningUnlearning. Its members are individuals, never subclasses (Principle 9), more than one may co-apply to a single event, and the set is OPEN — a variety not among the seeds is a fresh gmeow:LearningEventType individual. The dedicated learning analogue of the inference slice's gmeow:InferenceMode."@x-gmeow-english ;
+    skos:example "gmeow:learningSkillAcquisition a gmeow:LearningEventType ."@x-gmeow-english ;
+    gmeow:useWhen "Use as the value vocabulary for the variety of a gmeow:LearningEvent — the open set of learning kinds (acquisition, being-taught, consolidation, transfer, unlearning, concept-formation) that gmeow:learningType draws from; mint a fresh individual for a variety not seeded."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid subclassing it to add a variety — its members are individuals and the set is extended by minting, not subclassing (Principle 9) — and avoid forcing exactly one variety onto every event; a transfer that also consolidates is both gmeow:learningTransfer and gmeow:learningConsolidation (gmeow:learningType is non-functional)."@x-gmeow-english ;
+    gmeow:howToUse "Reference the seeded gmeow:LearningEventType individuals from a gmeow:LearningEvent via gmeow:learningType, attaching as many as genuinely apply; treat the bridges (gmeow:learningTransfer → inference gmeow:Analogy, gmeow:learningConceptFormation → the concepts slice) as documented routing rather than new axioms."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/learning> .
+
+gmeow:learningConceptFormation
+    a gmeow:LearningEventType ;
+    rdfs:label "concept formation"@x-gmeow-english ;
+    skos:definition "A learning event in which the agent forms a new concept — acquiring a category, schema, or abstraction it did not previously hold. Bridges the forthcoming concepts slice: the concept formed is the gmeow:Concept that slice will define; until then the product rides gmeow:produces with an open range. The bridge is documented routing, not an axiom."@x-gmeow-english .
+gmeow:learningConceptFormation rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/learning> .
+
+gmeow:learningSkillAcquisition
+    a gmeow:LearningEventType ;
+    rdfs:label "skill acquisition"@x-gmeow-english ;
+    skos:definition "A learning event that raises an agent's procedural competence — moving it up the expertise proficiency scale (e.g. a Dreyfus step from novice toward expert). The transition is recorded by gmeow:fromLevel / gmeow:toLevel and the raised state by gmeow:produces, typically an expertise gmeow:SkillProficiency."@x-gmeow-english .
+gmeow:learningSkillAcquisition rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/learning> .
+
+gmeow:learningBeingTaught
+    a gmeow:LearningEventType ;
+    rdfs:label "being taught"@x-gmeow-english ;
+    skos:definition "A learning event in which the agent learns through instruction from a teacher — the learner-side face of a gmeow:Teaching relator. The teacher and the taught subject are carried by the gmeow:Teaching the event participates in; gmeow:learnedFrom points at the teacher or the teaching material."@x-gmeow-english .
+gmeow:learningBeingTaught rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/learning> .
+
+gmeow:learningConsolidation
+    a gmeow:LearningEventType ;
+    rdfs:label "consolidation"@x-gmeow-english ;
+    skos:definition "A learning event that strengthens or stabilises already-acquired knowledge or skill — rehearsal, practice, or sleep-based memory consolidation — without introducing new content. It raises the durability or fluency of a knowledge state rather than its level, so gmeow:fromLevel and gmeow:toLevel may coincide while gmeow:produces re-affirms the state."@x-gmeow-english .
+gmeow:learningConsolidation rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/learning> .
+
+gmeow:learningTransfer
+    a gmeow:LearningEventType ;
+    rdfs:label "transfer"@x-gmeow-english ;
+    skos:definition "A learning event in which knowledge or skill acquired in one domain is applied to a new domain — analogical transfer. Bridges the inference slice: the source-to-target structure-mapping that warrants the transfer is an inference gmeow:Analogy (Gentner), so a transfer event routes to that relator for its mapping. The bridge is documented routing, not an axiom."@x-gmeow-english .
+gmeow:learningTransfer rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/learning> .
+
+gmeow:learningUnlearning
+    a gmeow:LearningEventType ;
+    rdfs:label "unlearning"@x-gmeow-english ;
+    skos:definition "A learning event of revision — the agent retires or supersedes previously-held knowledge or skill as it learns. Unlearning is modelled as suppression of the prior state (cognition's gmeow:remembers withdrawn by gmeow:displayable false), never deletion (Principle 10); this individual names the revision event, not a new deletion construct."@x-gmeow-english .
+gmeow:learningUnlearning rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/learning> .
+
+gmeow:learningType
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:LearningEvent ;
+    rdfs:range gmeow:LearningEventType ;
+    rdfs:label "learning type"@x-gmeow-english ;
+    skos:definition "Classifies a learning event by its variety — one or more of the gmeow:LearningEventType value vocabulary. NOT functional: a single event may carry several varieties at once (a transfer that also consolidates is both gmeow:learningTransfer and gmeow:learningConsolidation), so the property admits multiple values rather than forcing one. The learning analogue of gmeow:inferenceMode / gmeow:mentalProcessType."@x-gmeow-english ;
+    skos:example "ex:lesson gmeow:learningType gmeow:learningSkillAcquisition ."@x-gmeow-english ;
+    gmeow:useWhen "Use to tag the variety(ies) of a gmeow:LearningEvent with gmeow:LearningEventType values — the value-vocabulary alternative to subclassing the event."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid forcing exactly one variety per event — it is non-functional, and several varieties may co-apply — and avoid pointing it at anything outside the gmeow:LearningEventType vocabulary."@x-gmeow-english ;
+    gmeow:howToUse "Attach one or more gmeow:LearningEventType individuals to the event; read a gmeow:learningTransfer value to route the mapping to an inference gmeow:Analogy and a gmeow:learningConceptFormation value to route the product to the concepts slice."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/learning> .
+
+# =========================================================================== #
+# PROVENANCE, TRAJECTORY, AND PRODUCT — where the learning came FROM, the levels
+# it moved BETWEEN, and the state it PRODUCED. Domain gmeow:LearningEvent; ranges
+# left OPEN (Principle 13) where the target class is retired (gmeow:Source) or
+# not yet built (gmeow:Concept), documented in prose.
+# =========================================================================== #
+
+gmeow:learnedFrom
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:LearningEvent ;
+    rdfs:label "learned from"@x-gmeow-english ;
+    skos:definition "Relates a learning event to what the agent learned from — the provenance of acquired knowledge. The RANGE is left intentionally open: the source is typically a gmeow:CreativeWork (a document, a corpus), a teaching gmeow:Agent, or a body of evidence, but asserting a range (or an owl:unionOf) would prematurely close the surface, so it stays open and is documented in prose. The retired gmeow:Source class is deliberately not the range; provenance bottoms out in gmeow:CreativeWork plus a source-role. NOT functional — a learning event may draw on several sources."@x-gmeow-english ;
+    skos:example "ex:lesson gmeow:learnedFrom ex:textbook ."@x-gmeow-english ;
+    gmeow:useWhen "Use to record the provenance of acquired knowledge — the document, corpus, teacher, or evidence a learning event drew on — so the belief-acquisition log can show from-whom and from-what an agent came to know something."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid expecting a fixed range (it is open by design — a gmeow:CreativeWork, an gmeow:Agent, or a corpus) and avoid reviving the retired gmeow:Source class as its object; point at a gmeow:CreativeWork plus a source-role instead."@x-gmeow-english ;
+    gmeow:howToUse "Point the gmeow:LearningEvent at one or more sources (a gmeow:CreativeWork, a teaching gmeow:Agent, or evidence); for instruction, the teacher is also bound through the gmeow:Teaching relator the event participates in."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/learning> .
+
+gmeow:fromLevel
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:LearningEvent ;
+    rdfs:label "from level"@x-gmeow-english ;
+    skos:definition "The proficiency or knowledge level an agent held BEFORE a learning event — the start of the trajectory. The RANGE is left intentionally open: the level is a cognition gmeow:KnowledgeLevel (gmeow:knowledgeAware … gmeow:knowledgeMastered) or a kernel / expertise gmeow:ProficiencyLevel (e.g. a Dreyfus stage), but asserting a range would close the surface, so it stays open and is documented in prose. NOT functional — an event may move along more than one dimension. A RISE over time is a SEQUENCE of reified proficiency tenures (Principle 10), never the mutation of one relator."@x-gmeow-english ;
+    skos:scopeNote "Trajectory, not mutation (Principle 10): gmeow:fromLevel / gmeow:toLevel record the endpoints of one learning event; the agent's standing over time is a sequence of cognition gmeow:KnowledgeProficiency / expertise gmeow:SkillProficiency tenures, each scoped by its own interval (the temporal gmeow:TimeScopedRelation idiom), the prior tenure kept with gmeow:displayable false rather than overwritten."@x-gmeow-english ;
+    skos:example "ex:lesson gmeow:fromLevel gmeow:dreyfusNovice ."@x-gmeow-english ;
+    gmeow:useWhen "Use to record the level an agent held before a learning event — the start of the proficiency / knowledge trajectory the event traversed."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid expecting a fixed range (a gmeow:KnowledgeLevel or a gmeow:ProficiencyLevel are both admitted) and avoid mutating one proficiency relator to model a rise; mint a new proficiency tenure and suppress the prior one (Principle 10)."@x-gmeow-english ;
+    gmeow:howToUse "Point the event at the gmeow:KnowledgeLevel or gmeow:ProficiencyLevel the agent held before it; pair with gmeow:toLevel for the level reached, and reify the standing as a proficiency tenure when the trajectory over time is itself the fact."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/learning> .
+
+gmeow:toLevel
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:LearningEvent ;
+    rdfs:label "to level"@x-gmeow-english ;
+    skos:definition "The proficiency or knowledge level an agent reached AFTER a learning event — the end of the trajectory. The RANGE is left intentionally open, exactly as gmeow:fromLevel: a cognition gmeow:KnowledgeLevel or a kernel / expertise gmeow:ProficiencyLevel, documented in prose rather than asserted. NOT functional. For a consolidation event gmeow:toLevel may equal gmeow:fromLevel (the level is stabilised, not raised). A rise over time is a SEQUENCE of proficiency tenures (Principle 10), never the mutation of one relator."@x-gmeow-english ;
+    skos:example "ex:lesson gmeow:toLevel gmeow:dreyfusAdvancedBeginner ."@x-gmeow-english ;
+    gmeow:useWhen "Use to record the level an agent reached after a learning event — the end of the proficiency / knowledge trajectory; equal to gmeow:fromLevel for a consolidation that stabilises rather than raises."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid expecting a fixed range (a gmeow:KnowledgeLevel or a gmeow:ProficiencyLevel are both admitted) and avoid reading it as the agent's permanent standing; the durable state is a reified proficiency tenure, opened and closed over intervals (Principle 10)."@x-gmeow-english ;
+    gmeow:howToUse "Point the event at the gmeow:KnowledgeLevel or gmeow:ProficiencyLevel the agent reached; pair with gmeow:fromLevel for the starting level, and record the raised state via gmeow:produces."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/learning> .
+
+gmeow:produces
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:LearningEvent ;
+    rdfs:label "produces"@x-gmeow-english ;
+    skos:definition "Relates a learning event to the knowledge state it raised or settled — its product. The RANGE is left intentionally open: the product is typically a cognition gmeow:CognitiveState or gmeow:KnowledgeProficiency, an expertise gmeow:SkillProficiency, or (once the concepts slice lands) a gmeow:Concept, but asserting a range (or an owl:unionOf) would prematurely close the surface, so it stays open and is documented in prose. NOT functional — one event may settle several states. The occurrent / endurant bridge: the event PRODUCES the enduring state, keeping the gUFO split clean."@x-gmeow-english ;
+    skos:example "ex:lesson gmeow:produces ex:cycling ."@x-gmeow-english ;
+    gmeow:useWhen "Use to link a gmeow:LearningEvent to the enduring knowledge state it raised — the cognition gmeow:KnowledgeProficiency, expertise gmeow:SkillProficiency, or gmeow:CognitiveState the event settled — so the state's acquisition event is queryable."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid expecting a fixed range (cognition, expertise, and the forthcoming concepts targets are all admitted) and avoid using it for the level endpoints (those are gmeow:fromLevel / gmeow:toLevel); gmeow:produces names the resulting STATE, not the trajectory."@x-gmeow-english ;
+    gmeow:howToUse "Point the event at the enduring state(s) it settled; pair with gmeow:fromLevel / gmeow:toLevel for the trajectory, and model the state itself as a cognition / expertise proficiency tenure scoped by interval (Principle 10)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/learning> .
+
+# =========================================================================== #
+# TEACHING — the relator mediating one teacher, one or more learners, and the
+# subject taught. The gmeow:Participation idiom (a gufo:Relator), reified so the
+# roles, period, and evidence of instruction are first-class. teacher ≠ learner
+# is a closed-world well-formedness rule (gmeow:TeachingShape, SHACL), not a DL
+# axiom; the EL someValuesFrom blocks assert the open-world mediation.
+# =========================================================================== #
+
+gmeow:Teaching
+    a owl:Class, gufo:Kind ;
+    rdfs:subClassOf gufo:Relator ;
+    rdfs:label "Teaching"@x-gmeow-english ;
+    skos:definition "A reified teaching relation — one teacher, one or more learners, and the subject taught, mediated as a gufo:Relator so the roles, period, confidence, and evidence of instruction are first-class (the gmeow:Participation / gmeow:KnowledgeProficiency relator idiom). The being-taught face of learning: a learner's gmeow:LearningEvent of variety gmeow:learningBeingTaught participates in a gmeow:Teaching, which carries who taught it (gmeow:teacher) and what was taught (gmeow:subjectTaught). The teacher must differ from the learner — a closed-world rule enforced by gmeow:TeachingShape (SHACL), not a DL axiom."@x-gmeow-english ;
+    skos:example "ex:lesson1 a gmeow:Teaching ; gmeow:teacher ex:mentor ; gmeow:learner ex:lillith ; gmeow:subjectTaught ex:cycling ."@x-gmeow-english ;
+    gmeow:useWhen "Use to reify a teaching relation when the roles, period, or evidence of instruction matter — an instructor and the learners they taught, the subject covered — the being-taught complement of a learner's gmeow:LearningEvent."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid it for the 80% case where only the learner's acquisition matters (use a bare gmeow:LearningEvent with gmeow:learnedFrom the teacher) and never give the same agent both the gmeow:teacher and gmeow:learner role on one Teaching (gmeow:TeachingShape forbids it)."@x-gmeow-english ;
+    gmeow:howToUse "Mint one gmeow:Teaching per teaching relation, bind the single gmeow:teacher (functional), one or more gmeow:learner, and the gmeow:subjectTaught; pair it with each learner's gmeow:LearningEvent (variety gmeow:learningBeingTaught) and retract a withdrawn role with gmeow:displayable false rather than deletion (Principle 10)."@x-gmeow-english ;
+    gmeow:useForConsumer gmeow:consumerInternalArchive,
+        gmeow:consumerAgentMemory ;
+    gmeow:avoidForConsumer gmeow:consumerSchemaOrgJsonLd,
+        gmeow:consumerFoafExport ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/learning> .
+
+gmeow:teacher
+    a owl:ObjectProperty, owl:FunctionalProperty ;
+    rdfs:domain gmeow:Teaching ;
+    rdfs:range gmeow:Agent ;
+    rdfs:label "teacher"@x-gmeow-english ;
+    skos:definition "The agent providing instruction in a gmeow:Teaching relation. Functional: one teaching, one teacher; co-teaching is several gmeow:Teaching relators sharing a gmeow:subjectTaught and a gmeow:learner set. The teacher must differ from every gmeow:learner of the same Teaching (gmeow:TeachingShape)."@x-gmeow-english ;
+    skos:example "ex:lesson1 gmeow:teacher ex:mentor ."@x-gmeow-english ;
+    gmeow:useWhen "Use to bind a gmeow:Teaching to the single gmeow:Agent giving instruction — the mandatory, functional teacher player of the relator."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid more than one teacher per Teaching (it is functional — co-teaching is several Teachings) and never point it at an agent that is also a gmeow:learner of the same Teaching (gmeow:TeachingShape forbids teacher = learner)."@x-gmeow-english ;
+    gmeow:howToUse "Point the Teaching at exactly one gmeow:Agent as teacher; bind the learner(s) with gmeow:learner and the content with gmeow:subjectTaught, keeping teacher and learner distinct."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/learning> .
+
+gmeow:learner
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Teaching ;
+    rdfs:range gmeow:Agent ;
+    rdfs:label "learner"@x-gmeow-english ;
+    skos:definition "An agent receiving instruction in a gmeow:Teaching relation. NON-functional: several learners may be taught together in one Teaching. Each learner's own acquisition is a gmeow:LearningEvent of variety gmeow:learningBeingTaught participating in this Teaching. Every learner must differ from the gmeow:teacher (gmeow:TeachingShape)."@x-gmeow-english ;
+    skos:example "ex:lesson1 gmeow:learner ex:lillith ."@x-gmeow-english ;
+    gmeow:useWhen "Use to bind a gmeow:Teaching to each gmeow:Agent receiving instruction — non-functional, so a class taught together is one Teaching with several learners."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid pointing it at the same agent as gmeow:teacher (gmeow:TeachingShape forbids teacher = learner) and avoid splitting a co-taught group into one Teaching per learner when the instruction was joint; several learners share one Teaching."@x-gmeow-english ;
+    gmeow:howToUse "Bind each learning agent with gmeow:learner, pair each with its own gmeow:LearningEvent (variety gmeow:learningBeingTaught), and keep every learner distinct from the gmeow:teacher."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/learning> .
+
+gmeow:subjectTaught
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Teaching ;
+    rdfs:label "subject taught"@x-gmeow-english ;
+    skos:definition "The content taught in a gmeow:Teaching relation — the topic, skill, or proposition instruction conveyed. The RANGE is left intentionally open: the subject is typically a concept (the gmeow:Concept the concepts slice will define), a gmeow:Skill (expertise), or a gmeow:Proposition, but asserting a range (or an owl:unionOf) would prematurely close the surface, so it stays open and is documented in prose. NOT functional — a lesson may cover several subjects."@x-gmeow-english ;
+    skos:example "ex:lesson1 gmeow:subjectTaught ex:cycling ."@x-gmeow-english ;
+    gmeow:useWhen "Use to record what a gmeow:Teaching conveyed — the topic, skill, or proposition taught — so instruction can be queried by subject."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid expecting a fixed range (a concept, a gmeow:Skill, or a gmeow:Proposition are all admitted, pending the concepts slice) and avoid collapsing a multi-topic lesson to one subject; it is non-functional."@x-gmeow-english ;
+    gmeow:howToUse "Point the Teaching at one or more subjects taught; once the concepts slice lands, a taught concept is the same gmeow:Concept a gmeow:learningConceptFormation event produces."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/learning> .
+
+# =========================================================================== #
+# AXIOMATIZED DOCTRINE (relator-mediation doctrine) — a gmeow:Teaching mediates
+# at least one teacher and at least one learner (EL someValuesFrom, open-world);
+# the closed-world "exactly one teacher, teacher ≠ learner" is SHACL's
+# (gmeow:TeachingShape). Mirrors the gmeow:InquiryTenure someValuesFrom block.
+# =========================================================================== #
+
+gmeow:Teaching rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:teacher ; owl:someValuesFrom gmeow:Agent ] ,
+    [ a owl:Restriction ; owl:onProperty gmeow:learner ; owl:someValuesFrom gmeow:Agent ] .
