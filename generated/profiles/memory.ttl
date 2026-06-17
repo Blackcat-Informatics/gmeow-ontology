@@ -14,6 +14,7 @@
     owl:imports
         <https://blackcatinformatics.ca/gmeow/slices/accounts> ,
         <https://blackcatinformatics.ca/gmeow/slices/agreements> ,
+        <https://blackcatinformatics.ca/gmeow/slices/awareness> ,
         <https://blackcatinformatics.ca/gmeow/slices/citations> ,
         <https://blackcatinformatics.ca/gmeow/slices/cognition> ,
         <https://blackcatinformatics.ca/gmeow/slices/contacts> ,

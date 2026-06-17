@@ -1,0 +1,90 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow:  <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:   <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:   <http://www.w3.org/2004/02/skos/core#> .
+@prefix semapv: <https://w3id.org/semapv/vocab/> .
+@prefix prov:   <http://www.w3.org/ns/prov#> .
+@prefix snomed: <http://snomed.info/id/> .
+
+# Term equivalences for the awareness slice — GMEOW authoring source.
+# Compiled to mappings/gmeow-awareness.sssom.tsv by `gmeow compile-mappings`.
+# All alignments are BY REFERENCE (Principle 5); GMEOW never imports an external axiom.
+
+gmeow:mapsetAwareness a gmeow:MappingSet ;
+    rdfs:label "awareness mapping set"@x-gmeow-english ;
+    skos:definition "The SSSOM mapping set for the awareness slice — aligns the awareness modes and arousal levels to external sleep/wake, consciousness, and provenance vocabularies."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/awareness> ;
+    gmeow:sssomFile "gmeow-awareness.sssom.tsv" ;
+    gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/awareness" ;
+    gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
+    gmeow:setComment """Awareness slice alignments — the state-of-the-experiencer axis: human awareness modes and arousal levels beside the machine operational modes (the Principle-5 bridge).
+
+        EXTERNAL FRAMEWORKS NAMED IN PROSE (no stable, freely-resolvable RDF namespace is imported; GMEOW imports no external axiom, Principle 5):
+        * NSWO (Non-REM/REM Sleep–Wake Ontology) and sleep-staging vocabularies: the
+          clinical account of wake / REM / non-REM stages is the conceptual basis of the
+          sleep-related awareness modes (gmeow:modeAsleep / gmeow:modeREM / gmeow:modeDreaming).
+        * SNOMED CT consciousness concepts: the clinical consciousness-state terms
+          (alert, drowsy, obtunded, stuporous, comatose) parallel the awareness levels and
+          the low-arousal modes; SNOMED CT is a licensed terminology, named in prose only.
+        * Glasgow Coma Scale (GCS): the clinical arousal scale to which the lowest rungs
+          gmeow:levelObtunded and gmeow:levelUnresponsive correspond by reference — an ordinal
+          arousal mapping, not an imported numeric scale.
+        * W3C PROV-O: the AI operational regimes (gmeow:modeOnlineInference / gmeow:modeTraining /
+          gmeow:modeSampling) are also describable as prov:Activity instances; the overlap is
+          recorded as a deliberately low-confidence relatedMatch, not a closeMatch.
+
+        The machine awareness modes are SIBLINGS of the human modes bridged by ANALOGY, NOT by
+        equivalence (Principle 5): no owl:sameAs / owl:equivalentClass couples a machine mode to a
+        human one, and the analogue pairings (online-inference≈waking, offline-replay≈dreaming) are
+        documented in prose, never asserted.""" ;
+    gmeow:setTrailer "# No frame-selecting mapping (Principle 9): GMEOW asserts no single 'correct' theory of consciousness or sleep staging; the value-vocab members are co-equal, and the human↔machine analogue is by reference only." .
+
+# Sleep state — gmeow:modeAsleep names the general sleep state. Clinical terminologies model
+# being asleep as a finding; gmeow:modeAsleep is a state-of-the-experiencer awareness value. The
+# shared notion is the sleep state, hence a deliberately low-confidence relatedMatch (not
+# closeMatch). The object is the SNOMED CT "Asleep" finding; the NSWO / sleep-staging account
+# named in the set comment is the wider conceptual basis, by reference (Principle 5).
+gmeow:eqAwareness001 a gmeow:TermEquivalence ;
+    rdfs:label "modeAsleep ↔ SNOMED Asleep relatedMatch"@x-gmeow-english ;
+    skos:definition "Loose relatedMatch (confidence 0.3) between gmeow:modeAsleep — the general sleep awareness mode — and the SNOMED CT 'Asleep' finding (and, by reference, the NSWO / clinical sleep-staging account of the sleep state). The shared notion is the sleep state; the concepts are not co-extensional (one is a state-of-the-experiencer value, the other a clinical finding / physiological process-state classification)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/awareness> ;
+    gmeow:alignSubject gmeow:modeAsleep ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject snomed:248218005 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.3 ;
+    gmeow:comment "gmeow:modeAsleep is a state-of-the-experiencer awareness value; SNOMED CT 'Asleep' (248218005) is a clinical finding. Shared notion: the sleep state — loose relatedMatch only; the NSWO sleep-staging account is referenced in the set comment, not imported." ;
+    gmeow:sssomFile "gmeow-awareness.sssom.tsv" .
+
+# Glasgow Coma Scale — gmeow:levelUnresponsive is the arousal floor of coma. The GCS is an
+# ordinal clinical arousal scale; gmeow:levelUnresponsive corresponds to its lowest range by
+# reference. The shared notion is unarousable unresponsiveness, hence a low-confidence relatedMatch.
+gmeow:eqAwareness002 a gmeow:TermEquivalence ;
+    rdfs:label "levelUnresponsive ↔ Glasgow Coma Scale low range relatedMatch"@x-gmeow-english ;
+    skos:definition "Loose relatedMatch (confidence 0.3) between gmeow:levelUnresponsive — the lowest arousal rung, the floor of coma — and the lowest range of the Glasgow Coma Scale. The shared notion is unarousable unresponsiveness; the GCS is a clinical scoring scale, gmeow:levelUnresponsive an ordinal arousal value, so the alignment is by reference and deliberately loose."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/awareness> ;
+    gmeow:alignSubject gmeow:levelUnresponsive ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject snomed:371632003 ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.3 ;
+    gmeow:comment "gmeow:levelUnresponsive is the arousal floor; the object is a coma / Glasgow-Coma-Scale consciousness concept named by reference (SNOMED CT 'Coma'). Shared notion: unarousable unresponsiveness — loose relatedMatch only, no imported numeric scale." ;
+    gmeow:sssomFile "gmeow-awareness.sssom.tsv" .
+
+# PROV-O 'Activity' — gmeow:modeOnlineInference is a machine operational state, also describable
+# as a prov:Activity (a serving run). PROV models the ACTIVITY by which entities are used and
+# generated; gmeow:modeOnlineInference is a state-of-the-experiencer awareness value. The overlap
+# is the running-process notion, hence a deliberately low-confidence relatedMatch.
+gmeow:eqAwareness003 a gmeow:TermEquivalence ;
+    rdfs:label "modeOnlineInference ↔ prov:Activity relatedMatch"@x-gmeow-english ;
+    skos:definition "Loose relatedMatch (confidence 0.4) between gmeow:modeOnlineInference — the live serving operational mode — and prov:Activity, the provenance notion of a process occurring over time. The shared notion is the running operational process; the concepts are not co-extensional (one is a state-of-the-experiencer awareness value, the other a provenance activity), so the alignment is deliberately loose."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/awareness> ;
+    gmeow:alignSubject gmeow:modeOnlineInference ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject prov:Activity ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.4 ;
+    gmeow:comment "gmeow:modeOnlineInference is a state-of-the-experiencer awareness value; prov:Activity is a provenance process type. Shared notion: a running operational process — loose relatedMatch only, the awareness mode is not asserted to BE a prov:Activity." ;
+    gmeow:sssomFile "gmeow-awareness.sssom.tsv" .

@@ -5833,6 +5833,93 @@
             "title": "AvailabilityStatusEnum",
             "type": "string"
         },
+        "AwarenessLevel": {
+            "additionalProperties": false,
+            "description": "",
+            "properties": {
+                "levelRank": {
+                    "items": {
+                        "type": "integer"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                }
+            },
+            "title": "AwarenessLevel",
+            "type": "object"
+        },
+        "AwarenessLevelEnum": {
+            "description": "",
+            "enum": [
+                "levelAlert",
+                "levelDrowsy",
+                "levelHyperalert",
+                "levelObtunded",
+                "levelRelaxed",
+                "levelUnresponsive"
+            ],
+            "title": "AwarenessLevelEnum",
+            "type": "string"
+        },
+        "AwarenessMode": {
+            "additionalProperties": false,
+            "description": "",
+            "title": "AwarenessMode",
+            "type": "object"
+        },
+        "AwarenessModeEnum": {
+            "description": "",
+            "enum": [
+                "modeAsleep",
+                "modeComatose",
+                "modeDormant",
+                "modeDreaming",
+                "modeDrowsy",
+                "modeFlow",
+                "modeFocused",
+                "modeLucidDreaming",
+                "modeMeditative",
+                "modeMindWandering",
+                "modeOfflineReplay",
+                "modeOnlineInference",
+                "modeREM",
+                "modeSampling",
+                "modeSedated",
+                "modeTraining",
+                "modeWaking"
+            ],
+            "title": "AwarenessModeEnum",
+            "type": "string"
+        },
+        "AwarenessTenure": {
+            "additionalProperties": false,
+            "description": "",
+            "properties": {
+                "awarenessSubject": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/Agent"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ]
+                },
+                "duringInterval": {
+                    "items": {
+                        "$ref": "#/$defs/TimeInterval"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                }
+            },
+            "title": "AwarenessTenure",
+            "type": "object"
+        },
         "Axis": {
             "additionalProperties": false,
             "description": "",
