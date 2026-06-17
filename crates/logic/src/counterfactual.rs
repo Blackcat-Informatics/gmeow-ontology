@@ -190,7 +190,15 @@ pub fn construct_and_resolve_cached(
     //     leaves several values — a genuine tie that the two profiles treat
     //     differently (deterministic → unknown; Lewis → one closest world each).
     let choices = slot_choices(&cf.antecedent, &entrench)?;
-    let world_count: usize = choices.iter().map(|c| c.values.len()).product();
+    // Saturating product: an over-determined antecedent (many multi-valued slots)
+    // must not panic (debug) or wrap (release) before the budget comparison below.
+    // The exact magnitude past the budget is irrelevant — saturating to u64::MAX
+    // preserves every `> 1` / `> DEFAULT_BRANCH_BUDGET` decision.
+    let world_count: u64 = choices
+        .iter()
+        .map(|c| c.values.len() as u64)
+        .try_fold(1u64, |acc, x| acc.checked_mul(x))
+        .unwrap_or(u64::MAX);
     let lewis = crate::profile_gate::lewis_mode(profile);
 
     // (3) Compute the cache key over the exact inputs that determine the world(s).
@@ -213,7 +221,7 @@ pub fn construct_and_resolve_cached(
         // Deterministic revision: a non-unique closest world is a genuine tie.
         // The engine declines to branch and reports unknown.
         Some(CfStatus::Unknown)
-    } else if lewis.is_some() && world_count as u64 > DEFAULT_BRANCH_BUDGET {
+    } else if lewis.is_some() && world_count > DEFAULT_BRANCH_BUDGET {
         // Lewis multi-world: a closest-world set past the hard branch budget
         // degrades to incomplete rather than enumerating without bound.
         Some(CfStatus::Incomplete)
@@ -352,13 +360,16 @@ fn resolve_in_world(
     world_iri: &str,
 ) -> Result<(BTreeSet<Binding>, CfStatus), String> {
     let cf_store = WorldStore::new();
-    let admitted_slots: BTreeSet<(String, String)> = admitted
+    // Borrow the (subject, predicate) slots from `admitted` (which outlives this
+    // function) rather than cloning every key — and the per-fact lookup below
+    // borrows too, avoiding an allocation for each base fact.
+    let admitted_slots: BTreeSet<(&str, &str)> = admitted
         .iter()
-        .map(|(s, p, _)| (s.clone(), p.clone()))
+        .map(|(s, p, _)| (s.as_str(), p.as_str()))
         .collect();
     for (s, p, o) in base_facts {
         // Functional overwrite: drop base facts in any slot the antecedent sets.
-        if admitted_slots.contains(&(s.clone(), p.clone())) {
+        if admitted_slots.contains(&(s.as_str(), p.as_str())) {
             continue;
         }
         cf_store.insert_quad(world_iri, s, p, o);
