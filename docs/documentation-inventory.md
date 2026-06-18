@@ -77,6 +77,7 @@ checking generated site files into git.
 | `docs/i18n.md` | Compiled PO translation layer and translator workflow | Process/toolchain; i18n commands and gates | `keep-root` | Keep as the i18n workflow reference. Update when extract/merge/export commands or the PO layout change. |
 | `docs/up-projection-gap-triage.md` | Historical up-projection triage plan | Issue-specific triage | `update-or-archive` | Archive or fold current gaps into projection design docs/tests. |
 | `docs/wikidata-mapping.md` | Wikidata interoperability guide | QIDs/PIDs; stale paths | `promote-to-ontology`, `move-to-slice-design` | Promote QID/PID guidance and links into mapping DSL metadata. Keep remaining doctrine with coreference/projection design. |
+| `docs/mentation-architecture.md` | Cross-cutting mentation architecture map | Issue #580, child issues #581–#589 | `keep-root` | Project-level north-star document; slice-specific doctrine should live in `slices/core/<slice>/design/` once implemented. |
 
 ## Non-Markdown root assets
 
