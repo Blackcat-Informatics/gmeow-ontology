@@ -13,8 +13,7 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 
 import pytest
-from rdflib import OWL, RDF, RDFS, Graph, Literal, Namespace, URIRef
-from rdflib.namespace import DCTERMS, SKOS
+from rdflib import OWL, RDF, Graph, Literal, Namespace, URIRef
 
 from gmeow_tools.config import (
     CATALOG_FILE,
@@ -29,6 +28,7 @@ from gmeow_tools.config import (
     STATEMENT_DSL_DIR,
 )
 from gmeow_tools.graph import iter_module_files
+from gmeow_tools.i18n_catalog import LOCALIZABLE_PREDICATES
 from gmeow_tools.slices import (
     iter_slice_example_files,
     iter_slice_mapping_files,
@@ -337,32 +337,6 @@ def test_slice_examples_use_only_declared_terms(
     assert not undeclared, "Undeclared GMEOW terms in slice examples:\n" + "\n".join(
         messages
     )
-
-
-# Predicates whose object is human-readable, translatable prose. Every literal
-# on one of these MUST carry a language tag so a translation (Mandarin, French,
-# …) can attach a sibling literal beside the source rendering. The internal
-# authoring tag is ``@x-gmeow-english``; published projections coarsen it to a
-# public BCP-47 tag (``@en``) at the generation boundary — either satisfies the
-# discipline, so the gate only fails CLOSED on a *plain* (untagged) literal.
-LOCALIZABLE_PREDICATES: frozenset[URIRef] = frozenset(
-    {
-        RDFS.label,
-        RDFS.comment,
-        SKOS.definition,
-        SKOS.scopeNote,
-        SKOS.example,
-        SKOS.prefLabel,
-        SKOS.altLabel,
-        SKOS.note,
-        DCTERMS.title,
-        DCTERMS.description,
-        GMEOW.name,
-        GMEOW.title,
-        GMEOW.description,
-        GMEOW.fullName,
-    }
-)
 
 
 def _iter_slice_source_files() -> list[Path]:
