@@ -4,8 +4,14 @@
 [workspace]
 # The GTS engine moved to the gmeow-gts repo; its `gts` binary is obtained via
 # `cargo install gmeow-gts`. The ontology Rust workspace keeps logic + shacl +
-# validate plus shared diagnostics.
-members = ["crates/diagnostics", "crates/logic", "crates/shacl", "crates/validate"]
+# validate plus shared diagnostics/RDF glue.
+members = [
+    "crates/diagnostics",
+    "crates/logic",
+    "crates/rdf",
+    "crates/shacl",
+    "crates/validate",
+]
 resolver = "2"
 
 [workspace.package]
