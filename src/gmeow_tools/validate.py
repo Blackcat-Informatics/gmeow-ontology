@@ -502,7 +502,9 @@ def guide_anchor_lint(
     return result
 
 
-def validate_all(timings: bool = False) -> ValidationResult:
+def validate_all(
+    timings: bool = False, gts_input: Path | None = None
+) -> ValidationResult:
     """Run syntax, structural lint, SHACL, and sameAs-ban checks.
 
     This is now a thin Python compatibility wrapper around the Rust-native
@@ -516,36 +518,77 @@ def validate_all(timings: bool = False) -> ValidationResult:
         timings: When ``True``, ask the Rust engine to record per-phase wall
             timings and surface them in :attr:`ValidationResult.timings` for
             the CLI to report.
+        gts_input: When provided, validate the folded GTS bundle at this path
+            directly instead of the repo Turtle sources (#644). The Rust engine
+            builds the shared store from the bundle and skips the per-file
+            Turtle phases (syntax + ``owl:sameAs`` ban) that don't apply to an
+            already-folded graph; every store-based phase runs unchanged. The
+            Python-side per-file lints (guide-anchor, i18n PO) are likewise
+            skipped to mirror the Rust GTS phase set — ``--gts`` differs only in
+            input provenance, never in validation semantics.
     """
     # Ensure the content-addressed cache root exists before Rust needs it.
     _VALIDATION_CACHE_DIR.mkdir(parents=True, exist_ok=True)
 
-    source_paths = [str(p) for p in iter_source_files()]
+    if gts_input is not None:
+        try:
+            gts_bytes: bytes | None = gts_input.read_bytes()
+        except OSError as exc:
+            # A missing/unreadable --gts path is a usage error, not a crash:
+            # surface it as a normal validation failure instead of a traceback.
+            return ValidationResult(
+                errors=[f"failed to read GTS bundle '{gts_input}': {exc}"]
+            )
+    else:
+        gts_bytes = None
+    # In GTS mode the store is built from the bundle, so there are no per-file
+    # source paths to attribute Turtle syntax/sameAs errors to.
+    source_paths = (
+        [] if gts_input is not None else [str(p) for p in iter_source_files()]
+    )
     shapes_ttl = _shapes_turtle(SHAPES_FILE)
-    mapping_shapes_ttl = _dsl_shapes_turtle(MAPPING_DSL_SHAPES_FILE)
-    statement_shapes_ttl = _dsl_shapes_turtle(STATEMENT_DSL_SHAPES_FILE)
 
-    modules = iter_slice_module_files()
-    module_specs = [
-        (str(module), f"{NAMESPACE}slices/{module.parent.name}") for module in modules
-    ]
+    # GTS mode validates a folded graph, so only the store-based phases apply
+    # (structural lint, term-naming, reasoning/gUFO invariants, merged SHACL).
+    # The source-layout phases — slice-ownership, example coverage, per-example
+    # SHACL, and the mapping/statement DSL SHACL — validate the repo source tree,
+    # not a bundle, so we withhold their filesystem inputs; the Rust engine skips
+    # any phase whose inputs are absent (#644).
+    if gts_input is not None:
+        module_specs: list[tuple[str, str]] = []
+        slices_dir_opt: str | None = None
+        mapping_shapes_ttl: str | None = None
+        statement_shapes_ttl: str | None = None
+        mapping_dsl_dir = ""
+        statement_dsl_dir = ""
+    else:
+        mapping_shapes_ttl = _dsl_shapes_turtle(MAPPING_DSL_SHAPES_FILE)
+        statement_shapes_ttl = _dsl_shapes_turtle(STATEMENT_DSL_SHAPES_FILE)
+        module_specs = [
+            (str(module), f"{NAMESPACE}slices/{module.parent.name}")
+            for module in iter_slice_module_files()
+        ]
+        slices_dir_opt = str(SLICES_DIR)
+        mapping_dsl_dir = str(MAPPING_DSL_DIR)
+        statement_dsl_dir = str(STATEMENT_DSL_DIR)
 
     config = _lint_config()
     options = gmeow_validate.ValidateOptions(
         timings=timings,
         sameas_allowlist=[(subject, obj) for subject, obj in _SAMEAS_ALLOWLIST],
         module_specs=module_specs,
-        slices_dir=str(SLICES_DIR),
+        slices_dir=slices_dir_opt,
         mapping_shapes_ttl=mapping_shapes_ttl,
         statement_shapes_ttl=statement_shapes_ttl,
         project_root=str(PROJECT_ROOT),
+        gts_bytes=gts_bytes,
     )
 
     report = gmeow_validate.validate_all_native(
         source_paths,
         shapes_ttl,
-        str(MAPPING_DSL_DIR),
-        str(STATEMENT_DSL_DIR),
+        mapping_dsl_dir,
+        statement_dsl_dir,
         config,
         options,
     )
@@ -556,23 +599,31 @@ def validate_all(timings: bool = False) -> ValidationResult:
         timings=list(report.get("timings", [])),
     )
 
-    # Guide-anchor lint stays Python-side: it resolves markdown anchors in
-    # slice docs.md against the declared GMEOW terms returned by Rust. Skip it
-    # when earlier phases already failed (mirrors the original orchestration).
-    if result.ok:
-        declared_terms = list(report.get("declared_terms", []))
-        result.extend(guide_anchor_lint(source_paths, declared_terms=declared_terms))
+    # The Python-side per-file lints below validate repo source files (slice
+    # docs.md, authored PO files), not the folded GTS graph. In GTS mode there
+    # are no per-file source paths, so we skip them to mirror the Rust engine's
+    # GTS phase set (which skips its own per-file Turtle phases) — #644.
+    if gts_input is None:
+        # Guide-anchor lint stays Python-side: it resolves markdown anchors in
+        # slice docs.md against the declared GMEOW terms returned by Rust. Skip
+        # it when earlier phases already failed (mirrors the original
+        # orchestration).
+        if result.ok:
+            declared_terms = list(report.get("declared_terms", []))
+            result.extend(
+                guide_anchor_lint(source_paths, declared_terms=declared_terms)
+            )
 
-    # PO i18n lint: structural validity, orphaned/stale entries, and fuzzy
-    # ratio gates (#572).  Kept Python-side because it reads authored PO files
-    # and the merged rdflib English graph.
-    try:
-        from gmeow_tools.i18n_lint import lint_po_files
+        # PO i18n lint: structural validity, orphaned/stale entries, and fuzzy
+        # ratio gates (#572).  Kept Python-side because it reads authored PO
+        # files and the merged rdflib English graph.
+        try:
+            from gmeow_tools.i18n_lint import lint_po_files
 
-        i18n_report = lint_po_files(PROJECT_ROOT)
-        result.warnings.extend(i18n_report.warnings)
-        result.errors.extend(i18n_report.errors)
-    except Exception as exc:  # pragma: no cover - guard against unknown failures
-        result.errors.append(f"i18n PO lint failed: {exc}")
+            i18n_report = lint_po_files(PROJECT_ROOT)
+            result.warnings.extend(i18n_report.warnings)
+            result.errors.extend(i18n_report.errors)
+        except Exception as exc:  # pragma: no cover - guard against unknown failures
+            result.errors.append(f"i18n PO lint failed: {exc}")
 
     return result

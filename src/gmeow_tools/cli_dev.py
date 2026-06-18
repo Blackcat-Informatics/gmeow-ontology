@@ -314,12 +314,17 @@ def compile_statements_pyoxigraph() -> None:
 @app.command()
 def validate(
     timings: bool = typer.Option(False, "--timings", help="Report per-phase timings."),
+    gts: Path | None = typer.Option(  # noqa: B008
+        None,
+        "--gts",
+        help="Validate a .gts bundle directly instead of the repo Turtle sources.",
+    ),
 ) -> None:
     """Validate Turtle syntax, term annotations, and SHACL conformance."""
     from gmeow_tools.diagnostics import emit_legacy_cli, report_from_validation_result
     from gmeow_tools.validate import validate_all
 
-    result = validate_all(timings=timings)
+    result = validate_all(timings=timings, gts_input=gts)
     report = report_from_validation_result(result, tool="validate")
     emit_legacy_cli(report, err_console)
     if timings and result.timings:
