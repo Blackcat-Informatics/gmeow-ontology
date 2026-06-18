@@ -15,6 +15,7 @@ use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 use std::time::Instant;
 
+use gmeow_gts::model::Graph;
 use oxigraph::model::Term;
 use oxigraph::store::Store;
 use serde::{Deserialize, Serialize};
@@ -130,10 +131,18 @@ impl ValidationRun {
             );
         }
 
+        // Parse GTS bytes once outside the timed store-build phase; the timing
+        // should measure only oxigraph construction from the parsed graph.
+        let gts_graph: Option<Graph> = if let Some(bytes) = &options.gts_bytes {
+            Some(store::read_gts_graph(bytes)?)
+        } else {
+            None
+        };
+
         // Build the shared store once.
         let store = timed(&mut timings, "build-store", options, None, || {
-            if let Some(bytes) = &options.gts_bytes {
-                store::build_store_from_gts(bytes)
+            if let Some(graph) = &gts_graph {
+                store::build_store_from_graph(graph)
             } else {
                 let paths: Vec<PathBuf> = source_paths.iter().map(PathBuf::from).collect();
                 store::build_store(&paths)
@@ -229,8 +238,9 @@ impl ValidationRun {
 
         // Phase 8: merged SHACL validation against the shared store.
         let merged_shacl_key = if let Some(cache) = cache.as_ref() {
-            let source_key = if let Some(bytes) = &options.gts_bytes {
-                ValidationCache::cache_key(&[bytes.as_slice()])
+            let source_key = if let Some(graph) = &gts_graph {
+                let heads: Vec<&[u8]> = graph.segment_heads.iter().map(|h| h.as_slice()).collect();
+                ValidationCache::cache_key(&heads)
             } else {
                 let source_paths_buf: Vec<PathBuf> =
                     source_paths.iter().map(PathBuf::from).collect();
