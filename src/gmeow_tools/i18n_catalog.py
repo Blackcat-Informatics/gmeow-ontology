@@ -357,7 +357,19 @@ def merge_terms(base_graph: Graph, po_paths: list[Path]) -> Graph:
     The returned graph contains all triples from *base_graph* plus, for each PO
     file, triples of the form ``(term_iri, predicate, Literal(msgstr, lang=tag))``.
     *base_graph* is not mutated.
+
+    Raises:
+        ValueError: If a PO catalog entry references a term/predicate pair that
+            does not exist in *base_graph*.
     """
+    allowed_keys = {
+        (str(subject), str(predicate))
+        for subject, predicate, obj in base_graph
+        if isinstance(subject, URIRef)
+        and predicate in LOCALIZABLE_PREDICATES
+        and isinstance(obj, Literal)
+    }
+
     merged = Graph()
     for triple in base_graph:
         merged.add(triple)
@@ -365,6 +377,11 @@ def merge_terms(base_graph: Graph, po_paths: list[Path]) -> Graph:
     for path in sorted(po_paths):
         catalog = load_po_catalog(path)
         for (term_iri, predicate, internal_tag), msgstr in catalog.items():
+            if (term_iri, predicate) not in allowed_keys:
+                raise ValueError(
+                    f"PO catalog entry references unknown term/predicate: "
+                    f"{term_iri} {predicate}"
+                )
             merged.add(
                 (
                     URIRef(term_iri),

@@ -205,9 +205,17 @@ def test_load_po_catalog_for_lifecycle_french() -> None:
     )
 
 
-def test_merge_terms_adds_french_translations() -> None:
+def test_merge_terms_adds_french_translations(tmp_path: Path) -> None:
     base = _sample_graph()
-    po_path = SLICES_DIR / "core" / "lifecycle" / "i18n" / "fr.po"
+    entries = [
+        PoEntry(
+            msgctxt=f"{NAMESPACE}Entity|{RDFS.label}",
+            msgid="Entity",
+            msgstr="Entité",
+        )
+    ]
+    po_path = tmp_path / "fr.po"
+    write_po(po_path, entries, lang="fr")
     merged = merge_terms(base, [po_path])
 
     # Original English values are retained.
@@ -216,10 +224,28 @@ def test_merge_terms_adds_french_translations() -> None:
     )
 
     # French translations were added for terms present in both the graph and PO.
-    french_label = merged.value(GMEOW.EntityExistence, RDFS.label, any=False)
-    assert isinstance(french_label, Literal)
-    assert french_label.language == "x-gmeow-french"
-    assert str(french_label) == "Existence d'entité"
+    french_labels = {
+        str(obj)
+        for obj in merged.objects(GMEOW.Entity, RDFS.label)
+        if isinstance(obj, Literal) and obj.language == "x-gmeow-french"
+    }
+    assert french_labels == {"Entité"}
+
+
+def test_merge_terms_rejects_unknown_catalog_keys(tmp_path: Path) -> None:
+    base = _sample_graph()
+    entries = [
+        PoEntry(
+            msgctxt=f"{NAMESPACE}UnknownTerm|{RDFS.label}",
+            msgid="Unknown",
+            msgstr="Inconnu",
+        )
+    ]
+    po_path = tmp_path / "fr.po"
+    write_po(po_path, entries, lang="fr")
+
+    with pytest.raises(ValueError, match="unknown term/predicate"):
+        merge_terms(base, [po_path])
 
 
 def test_merge_terms_does_not_mutate_base_graph(tmp_path: Path) -> None:
