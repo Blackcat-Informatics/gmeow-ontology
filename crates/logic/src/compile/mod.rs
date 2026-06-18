@@ -29,4 +29,5 @@
 //! are ported character-for-character (null-byte separators, Python `bool`
 //! `Display` of `True`/`False`, corpus-safety append-only `negated`/`distinct`).
 
+pub mod frontend;
 pub mod ir;
