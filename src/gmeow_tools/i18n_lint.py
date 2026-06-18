@@ -223,6 +223,13 @@ def lint_po_files(
 
         for entry in entries:
             if not entry.msgctxt or "|" not in entry.msgctxt:
+                report.errors.append(
+                    f"{rel_path}: invalid msgctxt {entry.msgctxt!r}; "
+                    f"expected '<term-IRI>|<predicate>'"
+                )
+                report.total_counts[internal_tag] = (
+                    report.total_counts.get(internal_tag, 0) + 1
+                )
                 continue
 
             term_iri, predicate = entry.msgctxt.split("|", 1)
