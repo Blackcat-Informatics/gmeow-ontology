@@ -21,13 +21,14 @@ Tier-2 uplift backlog.
 | calendar | core | core | 4 | 14 | 26 | 0 | 1 | 40/40 | full |
 | citations | core | core | 3 | 5 | 11 | 0 | 1 | 16/16 | full |
 | cognition | core | core | 2 | 3 | 14 | 0 | 4 | 17/17 | full |
-| concepts | core | core | 4 | 3 | 5 | 0 | 1 | 8/8 | full |
+| concepts | core | core | 5 | 3 | 5 | 0 | 1 | 8/8 | full |
 | connectivity | extension | extensions | 2 | 3 | 8 | 0 | 1 | - | full |
 | contacts | core | core | 6 | 10 | 26 | 0 | 1 | 36/36 | full |
 | coreference | core | core | 2 | 0 | 5 | 0 | 1 | 5/5 | full |
 | creative-works | core | core | 4 | 16 | 41 | 0 | 1 | 57/57 | full |
 | deception | core | core | 5 | 2 | 10 | 0 | 1 | 12/12 | full |
 | documents | core | core | 7 | 22 | 35 | 0 | 1 | 57/57 | full |
+| dreaming | extension | extensions | 9 | 1 | 1 | 0 | 3 | - | full |
 | email | extension | extensions | 8 | 24 | 94 | 0 | 1 | - | full |
 | employment | extension | extensions | 5 | 3 | 6 | 0 | 1 | - | full |
 | entities | core | core | 7 | 4 | 4 | 0 | 1 | 8/8 | full |
@@ -80,4 +81,4 @@ Tier-2 uplift backlog.
 | trust | core | core | 2 | 7 | 23 | 0 | 1 | 30/30 | full |
 | versions | core | core | 3 | 4 | 7 | 0 | 1 | 11/11 | full |
 
-**71 slices** · documentation: 71 full guides, 0 stubs remaining (#325); advisory coverage: 1152/1247 core class/property terms (#471).
+**72 slices** · documentation: 72 full guides, 0 stubs remaining (#325); advisory coverage: 1152/1247 core class/property terms (#471).
