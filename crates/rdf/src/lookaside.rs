@@ -120,6 +120,16 @@ impl RdfLookasideResource {
         self
     }
 
+    pub fn with_iri(mut self, iri: impl Into<String>) -> Self {
+        self.iri = Some(iri.into());
+        self
+    }
+
+    pub fn with_graph_name(mut self, graph_name: impl Into<String>) -> Self {
+        self.graph_name = Some(graph_name.into());
+        self
+    }
+
     pub fn with_media_type(mut self, media_type: impl Into<String>) -> Self {
         self.media_type = Some(media_type.into());
         self
@@ -127,6 +137,16 @@ impl RdfLookasideResource {
 
     pub fn with_digest(mut self, digest: impl Into<String>) -> Self {
         self.content_digest = Some(digest.into());
+        self
+    }
+
+    pub fn with_path(mut self, path: impl Into<String>) -> Self {
+        self.path = Some(path.into());
+        self
+    }
+
+    pub fn with_location(mut self, location: RdfLocation) -> Self {
+        self.location = Some(location);
         self
     }
 }

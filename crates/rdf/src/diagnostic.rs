@@ -71,6 +71,11 @@ impl RdfLocation {
         self
     }
 
+    pub fn with_gts_segment(mut self, segment_index: usize) -> Self {
+        self.gts_segment_index = Some(segment_index);
+        self
+    }
+
     pub fn is_empty(&self) -> bool {
         self.path.is_none()
             && self.line.is_none()
