@@ -20,7 +20,7 @@ GMEOW_DEV ?= uv run --package gmeow-dev gmeow-dev
         diagnostics-build diagnostics-test diagnostics-py \
         native-py rust-test logic-build logic-test logic-py conformance \
         shacl-build shacl-test shacl-py \
-        validate-build validate-test validate-py clippy
+        validate-build validate-test validate-py validate-gts clippy
 
 help: ## Show this help.
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
@@ -44,6 +44,9 @@ lint: ## Lint (ruff), type-check (mypy), and full repo-hygiene suite (pre-commit
 
 validate: diagnostics-py validate-py shacl-py ## Validate syntax, term annotations, and SHACL (Rust-native orchestration).
 	$(GMEOW_DEV) validate
+
+validate-gts: diagnostics-py validate-py shacl-py ## Validate the committed GTS bundle directly via the gmeow-gts oxigraph adapter (#644).
+	$(GMEOW_DEV) validate --gts generated/dist/gmeow.gts
 
 crosscheck: ## Prove rdflib and pyoxigraph answer every committed query alike (no Docker).
 	$(GMEOW_DEV) crosscheck-queries
