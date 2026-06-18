@@ -569,10 +569,14 @@ def reason(
     ``--full``/``--exclude-tautologies`` apply to it).
     """
     from gmeow_tools import reason as reasoning
-    from gmeow_tools.diagnostics import emit_legacy_cli
     from gmeow_tools.runner import ToolExecutionError, ToolUnavailableError
 
     if mode == "native":
+        # emit_legacy_cli pulls in the gmeow_diagnostics extension; import it only
+        # inside the native lane so the Docker oracle lane — and the CI jobs that
+        # run it without building that extension — never need it.
+        from gmeow_tools.diagnostics import emit_legacy_cli
+
         try:
             report = reasoning.reason_native(merge=merge)
         except (ToolUnavailableError, ToolExecutionError) as exc:
