@@ -70,7 +70,7 @@ def expand_curie(curie: str) -> URIRef:
     """
     if curie.startswith("<") and curie.endswith(">"):
         return URIRef(curie[1:-1])
-    if "://" in curie:
+    if "://" in curie or curie.startswith("urn:"):
         scheme = curie.split(":", 1)[0]
         if scheme in {"http", "https", "urn", "file"}:
             return URIRef(curie)

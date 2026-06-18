@@ -28,6 +28,19 @@ def test_expand_curie_rejects_unknown_prefix() -> None:
         expand_curie("notacurie")
 
 
+def test_expand_curie_returns_absolute_iris_unchanged() -> None:
+    assert expand_curie("urn:uuid:123e4567-e89b-12d3-a456-426614174000") == URIRef(
+        "urn:uuid:123e4567-e89b-12d3-a456-426614174000"
+    )
+    assert expand_curie("file:///tmp/foo.ttl") == URIRef("file:///tmp/foo.ttl")
+    assert expand_curie("http://example.org/Thing") == URIRef(
+        "http://example.org/Thing"
+    )
+    assert expand_curie("https://example.org/Thing") == URIRef(
+        "https://example.org/Thing"
+    )
+
+
 def test_load_seed_mappings() -> None:
     mappings = load_mappings()
     assert mappings, "seed SSSOM files should yield mappings"
