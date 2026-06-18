@@ -358,9 +358,9 @@ mod tests {
 
         let mut graph = Graph::default();
         for value in [
-            "https://example.org/a",
-            "https://example.org/p",
-            "https://example.org/b",
+            "http://example.org/ns#a",
+            "http://example.org/ns#p",
+            "http://example.org/ns#b",
         ] {
             graph.terms.push(GtsTerm {
                 kind: TermKind::Iri,
