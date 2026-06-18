@@ -132,6 +132,23 @@ impl ValidationCache {
         ])
     }
 
+    /// Return a content-addressed cache key for a parsed GTS graph.
+    ///
+    /// The key is stable across different byte serializations of the same
+    /// semantic graph because it is computed from the canonicalised N-Quads of
+    /// the folded quads, reifiers, and annotations. Blank node labels are taken
+    /// as-is, so graphs that differ only in blank-node skolemisation still hash
+    /// the same lexical N-Quads; full isomorphism is not attempted.
+    pub fn gts_graph_cache_key(graph: &gmeow_gts::model::Graph) -> String {
+        let mut lines: Vec<String> = gmeow_gts::nquads::to_nquads(graph)
+            .lines()
+            .map(str::to_string)
+            .filter(|s| !s.is_empty())
+            .collect();
+        lines.sort();
+        Self::cache_key(&[lines.join("\n").as_bytes()])
+    }
+
     /// Read a cached result if present and valid.
     pub fn read_cached_result(&self, kind: &str, key: &str) -> Option<CachedResult> {
         let path = self.cache_path(kind, key);
