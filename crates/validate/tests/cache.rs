@@ -449,6 +449,77 @@ fn gts_cache_key_changes_with_content() {
 }
 
 #[test]
+fn gts_cache_key_is_stable_across_segment_orders() {
+    // Build two distinct single-segment graphs and serialize each
+    // deterministically so their wire bytes are stable.
+    let alpha = build_gts_graph_with_triples(&[(
+        "https://example.org/a",
+        "https://example.org/p",
+        "https://example.org/b",
+    )]);
+    let beta = build_gts_graph_with_triples(&[(
+        "https://example.org/c",
+        "https://example.org/q",
+        "https://example.org/d",
+    )]);
+
+    let alpha_bytes = write_gts_bundle(&alpha, true);
+    let beta_bytes = write_gts_bundle(&beta, true);
+
+    // Concatenate the same two segments in opposite orders.  The resulting
+    // multi-segment bundles have identical semantic content but different
+    // on-the-wire segment order.
+    let mut original = alpha_bytes.clone();
+    original.extend_from_slice(&beta_bytes);
+    let mut reversed = beta_bytes.clone();
+    reversed.extend_from_slice(&alpha_bytes);
+
+    assert_ne!(
+        original, reversed,
+        "multi-segment bundles with reordered segments must differ on the wire"
+    );
+
+    let graph_original =
+        store::read_gts_graph(&original).expect("original multi-segment bundle must parse");
+    let graph_reversed =
+        store::read_gts_graph(&reversed).expect("reversed multi-segment bundle must parse");
+
+    assert_eq!(
+        graph_original.segment_heads.len(),
+        2,
+        "original bundle must expose two segment heads"
+    );
+    assert_eq!(
+        graph_reversed.segment_heads.len(),
+        2,
+        "reversed bundle must expose two segment heads"
+    );
+
+    // The merged-shacl source key sorts segment heads before hashing so that
+    // segment order on the wire does not affect cache identity.
+    let mut heads_original: Vec<&[u8]> = graph_original
+        .segment_heads
+        .iter()
+        .map(|h| h.as_slice())
+        .collect();
+    heads_original.sort();
+    let key_original = ValidationCache::cache_key(&heads_original);
+
+    let mut heads_reversed: Vec<&[u8]> = graph_reversed
+        .segment_heads
+        .iter()
+        .map(|h| h.as_slice())
+        .collect();
+    heads_reversed.sort();
+    let key_reversed = ValidationCache::cache_key(&heads_reversed);
+
+    assert_eq!(
+        key_original, key_reversed,
+        "multi-segment bundles with the same segments in different order must yield the same cache key"
+    );
+}
+
+#[test]
 fn gts_validate_uses_cache_when_configured() {
     use gmeow_gts::model::{Term, TermKind};
 

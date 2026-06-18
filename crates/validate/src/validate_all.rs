@@ -239,7 +239,9 @@ impl ValidationRun {
         // Phase 8: merged SHACL validation against the shared store.
         let merged_shacl_key = if let Some(cache) = cache.as_ref() {
             let source_key = if let Some(graph) = &gts_graph {
-                let heads: Vec<&[u8]> = graph.segment_heads.iter().map(|h| h.as_slice()).collect();
+                let mut heads: Vec<&[u8]> =
+                    graph.segment_heads.iter().map(|h| h.as_slice()).collect();
+                heads.sort();
                 ValidationCache::cache_key(&heads)
             } else {
                 let source_paths_buf: Vec<PathBuf> =
