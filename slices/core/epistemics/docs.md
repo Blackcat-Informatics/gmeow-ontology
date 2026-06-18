@@ -11,7 +11,7 @@ cognition slice (objectual, agent → entity): epistemics relates an agent to a 
 an entity. This slice provides both the flat doxastic spine and the reified tier: `gmeow:Proposition`,
 `gmeow:DoxasticState` (a `kernel:MentalMoment`), `gmeow:credence`, `gmeow:doxasticClaim`
 (linked to a `standpoint:StandpointClaim`), and `gmeow:DoxasticTenure` (a `temporal:TimeScopedRelation`).
-Justification grounds land in a sibling child (#561).
+Justification grounds are modeled in this module via `gmeow:justifiedBy`; full inferential argumentation lives in the inference slice.
 
 ## The flat doxastic spine
 
@@ -132,7 +132,7 @@ and competing justifications coexist (Principle 9).
 
 This property is intentionally thin. It records *that* a doxastic state is supported, not the
 full inferential argument structure. Full argument graphs, inference-making acts, and defeater
-chains live in the sibling justification child (#561).
+chains live in the inference slice.
 
 ### `revise_belief` — suppression, not deletion
 
