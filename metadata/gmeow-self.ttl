@@ -9,6 +9,7 @@
 @prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
 @prefix foaf:    <http://xmlns.com/foaf/0.1/> .
+@prefix wd:      <http://www.wikidata.org/entity/> .
 
 <https://blackcatinformatics.ca/gmeow/self>
     a owl:Ontology ;
@@ -69,6 +70,7 @@
 <https://blackcatinformatics.ca/#bii>
     a foaf:Organization ;
     foaf:name "Blackcat Informatics® Inc."@x-gmeow-english ;
+    gmeow:authorityLink wd:Q140285712 ;
     foaf:mbox <mailto:root@blackcatinformatics.ca> .
 
 # =========================================================================== #
@@ -90,7 +92,8 @@
     a gmeow:Person ;
     rdfs:label "Patrick Audley"@x-gmeow-english ;
     gmeow:name "Patrick Audley"@x-gmeow-english ;
-    gmeow:authorityLink <https://orcid.org/0000-0003-4382-7625> ;
+    gmeow:authorityLink <https://orcid.org/0000-0003-4382-7625>,
+        wd:Q139770478 ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/self> .
 
 :contribution-patrick
