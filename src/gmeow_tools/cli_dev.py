@@ -2006,7 +2006,8 @@ def certify(
 
     This is the standalone build-error surface for the logic-profile / decidability
     certifier — the analogue of ``reasoning_lint`` for the IR.  It parses the
-    program, runs :func:`gmeow_tools.logic_certify.certify_invariants`, prints
+    program, runs the native ``gmeow_logic.certify`` certifier (Rust-authoritative
+    since #497/#651), prints
     every self-documenting violation string to stderr, and exits non-zero when
     any violation is found (zero when certified clean).  Mirror of how
     ``reasoning_lint`` fails the build under ``make check``.

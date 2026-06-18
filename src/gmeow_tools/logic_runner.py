@@ -2,10 +2,12 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 """Conformance runner for the Logic v1 monotonic core (issue #501, Task 7).
 
-This module is the **Python oracle runner** — it wires :mod:`~.logic_frontend`,
-:mod:`~.logic_materialize`, :mod:`~.logic_projections`, and the native
-``gmeow_logic.explain`` engine into the single ``run()`` function required by the
-runner contract in ``conformance/logic/runner/README.md``.
+This module is the **conformance runner** — it wires :mod:`~.logic_frontend`,
+:mod:`~.logic_seam` (the Rust-fed seam containers), :mod:`~.logic_projections`,
+and the native ``gmeow_logic`` engine (``materialize`` / ``certify`` /
+``explain``) into the single ``run()`` function required by the runner contract
+in ``conformance/logic/runner/README.md``.  Reasoning is Rust-authoritative
+(#651): there is no Python forward-chase oracle.
 
 Runner contract
 ---------------
@@ -67,22 +69,8 @@ from pathlib import Path
 from rdflib import ConjunctiveGraph, Graph, URIRef
 from rdflib.compare import isomorphic
 
-from gmeow_tools.logic_certify import (
-    PredicateDepGraph,
-    stratify,
-)
 from gmeow_tools.logic_frontend import LogicParseError, parse_logic_source
-from gmeow_tools.logic_ir import LogicAxiom, LogicProgram, SemanticProfileId
-from gmeow_tools.logic_materialize import (
-    _ASSERT_RULE_IRI,
-    BudgetParams,
-    DerivedQuad,
-    Explanation,
-    ExplanationStep,
-    MaterializationError,
-    MaterializationResult,
-    materialize_program,
-)
+from gmeow_tools.logic_ir import LogicProgram, SemanticProfileId
 from gmeow_tools.logic_projections import (
     ProjectionResult,
     build_projection_report,
@@ -94,6 +82,15 @@ from gmeow_tools.logic_projections import (
     project_nemo,
     project_owl_dl,
     project_owl_el,
+)
+from gmeow_tools.logic_seam import (
+    _ASSERT_RULE_IRI,
+    BudgetParams,
+    DerivedQuad,
+    Explanation,
+    ExplanationStep,
+    LossEntry,
+    MaterializationResult,
 )
 
 _log = logging.getLogger(__name__)
@@ -151,7 +148,7 @@ class RunnerOutputs:
         projections: All projection back-ends + ledger.  **Populated**.
 
         explanations: Per-quad explanation skeletons.  **Populated**
-            (one :class:`~.logic_materialize.Explanation` per quad, in
+            (one :class:`~.logic_seam.Explanation` per quad, in
             ``result.quads`` order).
 
         verdicts: World-indexed truth verdicts JSON dict.  **Populated** as a
@@ -170,19 +167,18 @@ class RunnerOutputs:
 
         certification: The static profile/decidability verdict for ``program``
             against the case's declared profile, as the deterministic sorted-key
-            dict produced by
-            :meth:`~.logic_certify.CertificationVerdict.to_json`.  **Populated**
-            for every case (issue #502, Task 5).
+            dict produced by the native ``gmeow_logic.certify`` certifier.
+            **Populated** for every case (issue #502, Task 5).
 
         budget_status: The aggregate budget-governor status copied from
-            :attr:`~.logic_materialize.MaterializationResult.budget_status` —
+            :attr:`~.logic_seam.MaterializationResult.budget_status` —
             ``"ok"`` when the chase reached fixpoint within budget (or ran
             unbounded), ``"exhausted"`` when a declared ceiling was tripped.
             **Populated** for every case.
 
         incomplete: ``True`` iff the materialization was a sound partial because
             a budget ceiling was tripped (i.e. ``budget_status == "exhausted"``).
-            Mirrors :attr:`~.logic_materialize.MaterializationResult.incomplete`.
+            Mirrors :attr:`~.logic_seam.MaterializationResult.incomplete`.
     """
 
     case_dir: Path
@@ -292,11 +288,11 @@ def discover_cases(conformance_root: Path) -> list[ConformanceCase]:
 
 
 def _materialize_to_nquads(result: MaterializationResult) -> str:
-    """Serialize a :class:`~.logic_materialize.MaterializationResult` to N-Quads.
+    """Serialize a :class:`~.logic_seam.MaterializationResult` to N-Quads.
 
     Produces a deterministic N-Quads string with one line per quad, sorted
     lexicographically by (graph, subject, predicate, object) — the canonical
-    order used by :mod:`~.logic_materialize`.
+    order used by :mod:`~.logic_seam`.
 
     Args:
         result: The materialization result from the forward chase.
@@ -318,11 +314,18 @@ def _materialize_to_nquads(result: MaterializationResult) -> str:
 # --------------------------------------------------------------------------- #
 
 
-def _run_projections(program: LogicProgram) -> ProjectionOutputs:
+def _run_projections(
+    program: LogicProgram,
+    materialization_loss_entries: tuple[LossEntry, ...] = (),
+) -> ProjectionOutputs:
     """Run all 7 projection back-ends and build the preservation ledger.
 
     Args:
         program: The compiled logic program to project.
+        materialization_loss_entries: Loss recorded by the materialization phase,
+            folded into the preservation report. The native evaluators apply the
+            declared semantics fully, so this is empty today; threading it keeps the
+            seam contract honest (any future loss-recording path reaches the ledger).
 
     Returns:
         A :class:`ProjectionOutputs` with all 7 results, the report graph,
@@ -345,7 +348,11 @@ def _run_projections(program: LogicProgram) -> ProjectionOutputs:
     all_projections = [r_dl, r_el, r_datalog, r_n3, r_gufo, r_rdf12, r_nemo]
 
     try:
-        report_graph = build_projection_report(program, all_projections)
+        report_graph = build_projection_report(
+            program,
+            all_projections,
+            materialization_loss_entries=list(materialization_loss_entries),
+        )
     except Exception as exc:
         raise RunnerError(f"build_projection_report failed: {exc}") from exc
 
@@ -384,7 +391,7 @@ def _run_explanations(result: MaterializationResult) -> tuple[Explanation, ...]:
         result: The materialization result.
 
     Returns:
-        A tuple of :class:`~.logic_materialize.Explanation` objects, one per
+        A tuple of :class:`~.logic_seam.Explanation` objects, one per
         quad, in input order.
 
     Raises:
@@ -467,10 +474,10 @@ def _certify_native(
 ) -> dict[str, object]:
     """Statically certify ``program`` against ``declared_profile`` via the Rust core.
 
-    The native ``gmeow_logic.certify`` certifier is the reasoning authority
-    (Principle 17, the "maximally use Rust" doctrine); the Python
-    ``logic_certify.certify_program`` oracle is retained only as a secondary
-    validator (``tests/test_logic_oracle_engine_parity.py``). The engine takes
+    The native ``gmeow_logic.certify`` certifier is the sole reasoning authority
+    (Principle 17, the "maximally use Rust" doctrine); the Python certifier was
+    retired in #651 (parity is now pinned by the conformance ``certification.json``
+    goldens + the ``crates/logic/src/certify.rs`` cargo tests).  The engine takes
     the ``% === Rules ===`` section of ``project_nemo`` (the ground-fact axioms
     are not certification inputs) plus the declared profile, and returns the
     verdict dict (``certified``, ``decidability_class``, ``profile_id``, sorted
@@ -559,7 +566,7 @@ def _parse_budget_params(
 
     The object is optional and every field inside it is optional.  Recognised
     keys are ``time_ms``, ``max_rule_firings`` and ``max_answers`` (all positive
-    integers, matching :class:`~.logic_materialize.BudgetParams`).  When the key
+    integers, matching :class:`~.logic_seam.BudgetParams`).  When the key
     is absent the chase runs unbounded (``None``) — the #501 default that keeps
     the existing corpus byte-identical.
 
@@ -572,7 +579,7 @@ def _parse_budget_params(
         profile_data: The parsed ``profile.json`` dict.
 
     Returns:
-        A :class:`~.logic_materialize.BudgetParams` when ``budget_params`` is
+        A :class:`~.logic_seam.BudgetParams` when ``budget_params`` is
         present, else ``None``.
     """
     raw = profile_data.get("budget_params")
@@ -617,30 +624,156 @@ def _parse_budget_params(
     )
 
 
-def _program_has_stratifiable_negation(program: LogicProgram) -> bool:
-    """True iff the program carries ``logic:negatedBody`` AND stratifies.
+def _bare_iri(term_surface: str) -> str:
+    """Strip one layer of N3 angle brackets from a term surface.
 
-    The v1/v2 oracle materialized every non-foundation case with NAF OFF — a
-    ``logic:negatedBody`` atom was silently joined *positively* (the issue #503
-    review surfaced this latent gap).  Real stratified negation-as-failure is sound
-    only for a *stratifiable* program: negation must cross stratum boundaries, never
-    a recursive cycle.  A program whose negation is non-stratifiable — or one that
-    genuinely needs StableModel / WellFounded semantics, which the stratified oracle
-    does NOT compute — keeps the lossy positive materialization with the loss
-    recorded, exactly as before.
-
-    Gating on stratifiability therefore (a) corrects every StratifiedNAF program
-    (the oracle now evaluates its negation) and (b) leaves non-stratifiable cases
-    byte-identical, so the only goldens that move are the stratifiable-NAF ones.
+    The native ``gmeow_logic.materialize`` seam emits the *subject* as a term
+    display form (``<iri>`` for a NamedNode), while the explanation engine's reifier
+    reconstruction (and the Python :class:`DerivedQuad` contract) expects the BARE
+    IRI. A blank-node (``_:b``) or already-bare value passes through unchanged.
     """
-    has_negation = any(
-        isinstance(atom, LogicAxiom) and atom.negated
-        for rule in program.rules
-        for atom in rule.body
+    if len(term_surface) >= 2 and term_surface[0] == "<" and term_surface[-1] == ">":
+        return term_surface[1:-1]
+    return term_surface
+
+
+def _materialize_native(
+    case_dir: Path,
+    program: LogicProgram,
+    input_graph: ConjunctiveGraph,
+    semantic_profile_str: str,
+    budget: BudgetParams | None,
+) -> MaterializationResult:
+    """Materialize the forward chase via the native ``gmeow_logic.materialize``.
+
+    This is the Rust-authoritative default path (issue #651): the Python
+    forward-chase oracle (``materialize_program``) is retired. The program's
+    ``% === Rules ===`` projection (with ``#[name("…")]`` provenance annotations)
+    and the world facts (``input.nq`` as N-Quads) are handed to the engine, which
+    routes by ``semantic_profile_str``:
+
+    * PositiveHorn / stratified NAF → the Nemo chase;
+    * WellFounded → the native alternating-fixpoint evaluator;
+    * StableModel → the native cautious (skeptical) materialization;
+    * a declared StratifiedNAF set that fails stratification → asserted-only.
+
+    Provenance is content-addressed and identical to the foundation path, so the
+    native ``gmeow_logic.explain`` consumes the rows unchanged.
+
+    Raises:
+        RunnerError: If the ``gmeow_logic`` extension is not installed (hard fail,
+            no Python fallback), the NEMO projection fails, or the engine raises.
+    """
+    try:
+        import gmeow_logic
+    except ImportError as exc:
+        raise RunnerError(
+            f"Case {case_dir.name}: gmeow_logic native extension is not installed "
+            "(materialization is Rust-authoritative since #651) — run 'make logic-py'."
+        ) from exc
+
+    try:
+        rules_text = extract_nemo_rules_section(project_nemo(program).content)
+    except (ValueError, RuntimeError) as exc:
+        raise RunnerError(
+            f"Case {case_dir.name}: NEMO projection for materialization failed: {exc}"
+        ) from exc
+
+    input_nq_text = input_graph.serialize(format="nquads")
+
+    try:
+        rows = gmeow_logic.materialize(
+            rules_text,
+            input_nq_text,
+            budget.max_rule_firings if budget else None,
+            budget.max_answers if budget else None,
+            budget.time_ms if budget else None,
+            semantic_profile_str,
+        )
+    except (ValueError, RuntimeError) as exc:
+        # ValueError = input/rule parse error; RuntimeError = chase/provenance/eval
+        # failure. Both must be wrapped so the runner's case-level boundary holds.
+        raise RunnerError(
+            f"Case {case_dir.name}: gmeow_logic.materialize failed: {exc}"
+        ) from exc
+
+    quads: list[DerivedQuad] = [
+        DerivedQuad(
+            graph=row["graph"],
+            subject=_bare_iri(row["subject"]),
+            predicate=row["predicate"],
+            obj=row["object"],
+            graph_component=row["graph_component"],
+            derivation_id=row["derivation_id"],
+            rule_iri=row["rule_iri"],
+            source_quad_ids=list(row["source_quad_ids"]),
+            profile=row["profile"],
+            budget_status=row["budget_status"],
+        )
+        for row in rows
+    ]
+
+    worlds = frozenset(q.graph for q in quads)
+    derived_count = sum(1 for q in quads if q.rule_iri != _ASSERT_RULE_IRI)
+    input_count = len(quads) - derived_count
+    exhausted = any(q.budget_status == "exhausted" for q in quads)
+
+    return MaterializationResult(
+        quads=tuple(quads),
+        worlds=worlds,
+        # Label the artifact with the profile the run was actually computed under
+        # (PositiveHorn / stratified NAF via Nemo, WellFounded / StableModel via the
+        # native evaluators) rather than a hardcoded PositiveHorn — the native
+        # evaluators apply the declared semantics fully, so the artifact must say so.
+        profile=semantic_profile_str,
+        # The native evaluators apply the declared semantics fully (well-founded /
+        # cautious-stable / stratified NAF) — there is no positive over-approximation,
+        # so there is nothing to record as projection loss.
+        loss_entries=(),
+        input_quad_count=input_count,
+        derived_quad_count=derived_count,
+        budget_status="exhausted" if exhausted else "ok",
+        incomplete=exhausted,
     )
-    if not has_negation:
-        return False
-    return stratify(PredicateDepGraph.from_program(program)).is_stratified
+
+
+def _resolve_witnesses(
+    case_dir: Path,
+    program: LogicProgram,
+    input_graph: ConjunctiveGraph,
+    semantic_profile_str: str,
+) -> dict[str, object]:
+    """Resolve the stable-model witnesses for a StableModel case (issue #651).
+
+    For every other profile the within-world materialization is single-model, so
+    there are no answer-set witnesses and the result is ``{}``. For
+    ``StableModelProfile`` the cautious intersection (what ``materialized.nq``
+    carries) hides the individual models, so they are surfaced here for the
+    ``witnesses.json`` side file: a dict keyed by world IRI, each value a list of
+    models, each model a sorted list of atom dicts ``{subject, predicate, object}``.
+    """
+    if semantic_profile_str != "StableModelProfile":
+        return {}
+    try:
+        import gmeow_logic
+    except ImportError as exc:
+        raise RunnerError(
+            f"Case {case_dir.name}: gmeow_logic native extension is not installed "
+            "(stable-model witnesses are Rust-authoritative) — run 'make logic-py'."
+        ) from exc
+    try:
+        rules_text = extract_nemo_rules_section(project_nemo(program).content)
+    except (ValueError, RuntimeError) as exc:
+        raise RunnerError(
+            f"Case {case_dir.name}: NEMO projection for witnesses failed: {exc}"
+        ) from exc
+    input_nq_text = input_graph.serialize(format="nquads")
+    try:
+        return dict(gmeow_logic.stable_models(rules_text, input_nq_text))
+    except (ValueError, RuntimeError) as exc:
+        raise RunnerError(
+            f"Case {case_dir.name}: gmeow_logic.stable_models failed: {exc}"
+        ) from exc
 
 
 # --------------------------------------------------------------------------- #
@@ -753,8 +886,8 @@ def _materialize_foundation(
 
     The input world facts (``input.nq``, one named graph per world) are serialized
     to N-Quads and handed to ``gmeow_logic.foundation``; its full-provenance rows
-    are mapped one-to-one onto :class:`~.logic_materialize.DerivedQuad` records and
-    assembled into a :class:`~.logic_materialize.MaterializationResult` that every
+    are mapped one-to-one onto :class:`~.logic_seam.DerivedQuad` records and
+    assembled into a :class:`~.logic_seam.MaterializationResult` that every
     downstream consumer (explanations, verdicts, projections, certification) reads
     unchanged.
 
@@ -769,7 +902,7 @@ def _materialize_foundation(
             parameter (see Raises).
 
     Returns:
-        A :class:`~.logic_materialize.MaterializationResult` over the native rows.
+        A :class:`~.logic_seam.MaterializationResult` over the native rows.
 
     Raises:
         RunnerError: If the ``gmeow_logic`` extension is not installed (hard fail,
@@ -937,14 +1070,11 @@ def run(case_dir: Path, mode: str = "native") -> RunnerOutputs:
             f"{[str(p) for p in SemanticProfileId]}"
         ) from exc
 
-    # The v1 oracle only handles PositiveHornProfile
-    if semantic_profile_str != "PositiveHornProfile":
-        _log.warning(
-            "Case %s: semantic_profile %r is not PositiveHornProfile; "
-            "v1 oracle will materialize with PositiveHorn semantics (loss recorded).",
-            case_dir.name,
-            semantic_profile_str,
-        )
+    # The native engine applies the DECLARED semantics directly (issue #651):
+    # PositiveHorn / stratified NAF via the Nemo chase; WellFounded and StableModel
+    # via the native non-stratifiable evaluators. There is no PositiveHorn
+    # over-approximation any more, so no loss is recorded for a non-PositiveHorn
+    # profile — the prior "v1 oracle" warning is retired with the oracle.
 
     # Static certification against the DECLARED profile (issue #502, Task 5;
     # made Rust-authoritative in #497).  Pure analysis over the projected rules;
@@ -990,35 +1120,16 @@ def run(case_dir: Path, mode: str = "native") -> RunnerOutputs:
             case_dir, input_graph, profile_data, budget
         )
     else:
-        enable_naf = _program_has_stratifiable_negation(program)
-        # NAF correctness (issue #503 review, PR #605): evaluate ``logic:negatedBody``
-        # as real stratified negation-as-failure for ANY stratifiable negation
-        # program, not only the foundation-lowering opt-in.  Non-stratifiable sets
-        # (and StableModel / WellFounded programs the stratified oracle cannot
-        # compute) fall through with ``enable_naf=False`` and keep their lossy
-        # positive materialization with the loss recorded — byte-identical.
-        #
-        # NOTE (#497): the default forward chase remains the Python oracle. Routing
-        # it through native ``gmeow_logic.materialize`` (the Nemo engine) was
-        # attempted and is BLOCKED — Nemo rejects non-stratifiable StableModel /
-        # WellFounded programs outright (``SelectionStrategyError``), and its
-        # provenance structure is not the reifier graph the native explain / query /
-        # counterfactual consumers reconstruct. Making materialization
-        # Rust-authoritative is tracked as the dedicated #651 follow-up; the Nemo
-        # engine remains the Principle-7 secondary validator
-        # (test_logic_oracle_engine_parity.py) until that work lands.
-        try:
-            mat_result = materialize_program(
-                program,
-                input_graph,
-                profile=SemanticProfileId.POSITIVE_HORN,
-                budget=budget,
-                enable_naf=enable_naf,
-            )
-        except MaterializationError as exc:
-            raise RunnerError(
-                f"Case {case_dir.name}: materialize_program failed: {exc}"
-            ) from exc
+        # Rust-authoritative default forward chase (issue #651): the Python oracle
+        # (``materialize_program``) is retired. ``gmeow_logic.materialize`` routes by
+        # the declared semantic profile — the Nemo chase for PositiveHorn / stratified
+        # NAF, and the native well-founded / stable-model evaluators for the
+        # non-stratifiable profiles the Nemo chase rejects. Provenance is the same
+        # content-addressed reifier graph the native explain / query / counterfactual
+        # consumers reconstruct.
+        mat_result = _materialize_native(
+            case_dir, program, input_graph, semantic_profile_str, budget
+        )
 
     # N-Quads serialization
     nquads_str = _materialize_to_nquads(mat_result)
@@ -1037,13 +1148,17 @@ def run(case_dir: Path, mode: str = "native") -> RunnerOutputs:
     answers = _resolve_answers(case_dir, nquads_str, query_profile, budget)
 
     # Projections
-    proj_outputs = _run_projections(program)
+    proj_outputs = _run_projections(program, mat_result.loss_entries)
 
     # Explanations (over whatever quads exist; empty for projection-only cases)
     explanations = _run_explanations(mat_result)
 
     # Verdicts (v1 minimal)
     verdicts = _build_verdicts(mat_result)
+
+    # Stable-model witnesses (issue #651): the individual answer sets, surfaced for
+    # the ``witnesses.json`` side file. ``{}`` for every single-model profile.
+    witnesses = _resolve_witnesses(case_dir, program, input_graph, semantic_profile_str)
 
     return RunnerOutputs(
         case_dir=case_dir,
@@ -1054,7 +1169,7 @@ def run(case_dir: Path, mode: str = "native") -> RunnerOutputs:
         projections=proj_outputs,
         explanations=explanations,
         verdicts=verdicts,
-        witnesses={},  # deferred to #503
+        witnesses=witnesses,
         answers=answers,
         certification=certification,
         budget_status=mat_result.budget_status,

@@ -153,9 +153,10 @@ class LogicGenerator(Generator):
             raise CompileError(f"logic: overclaim gate blocked emit: {exc}") from exc
 
         # --- Projection report (also runs the per-projection overclaim gate) ---
-        # The compile path runs projection only (no oracle chase), so
+        # The compile path runs projection only (no materialization), so
         # materialization_loss_entries is omitted here.  Callers that also run
-        # materialize_program() should pass the resulting loss_entries explicitly.
+        # gmeow_logic.materialize() should pass the resulting loss_entries
+        # explicitly.
         try:
             build_projection_report(
                 program,
