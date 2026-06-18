@@ -21,7 +21,7 @@ The flat shortcut that asserts an entity is categorized under a concept. Domain 
 
 ### gmeow:ConceptCategorization
 
-A standpoint-indexed claim that an entity falls under a concept — the reified form of `gmeow:instanceOfConcept`. It is a `standpoint:StandpointClaim`: `gmeow:vantage` names the categorizing standpoint, `gmeow:observedFeature` is the categorized entity, and `gmeow:observationResult` is the `gmeow:Concept`. Reuses `gmeow:typicality`, `gmeow:confidence`, `gmeow:accordingTo`, and `gmeow:claimModality` from sibling slices.
+A standpoint-indexed claim that an entity falls under a concept — the reified form of `gmeow:instanceOfConcept`. It is a `gmeow:StandpointClaim`: `gmeow:vantage` names the categorizing standpoint, `gmeow:observedFeature` is the categorized entity, and `gmeow:observationResult` is the `gmeow:Concept`. Reuses `gmeow:typicality`, `gmeow:confidence`, `gmeow:accordingTo`, and `gmeow:claimModality` from sibling slices.
 
 ### gmeow:typicality
 
@@ -45,7 +45,7 @@ Binds a `gmeow:ConceptTenure` to the `gmeow:Concept` whose intension it time-sco
 
 ### Reuse of `gmeow:Determinacy` / `gmeow:hasDeterminacy` from kernel
 
-Concept boundaries are often vague, fuzzy, or disputed. Rather than minting new concept-specific vocabulary, this slice reuses `kernel:gmeow:Determinacy` and `kernel:gmeow:hasDeterminacy`. A `gmeow:Concept` or a `gmeow:ConceptCategorization` may declare `gmeow:hasDeterminacy gmeow:determinacyVague` (or `fuzzy`, `probabilistic`, `disputed`) to record the ontic character of its boundaries. This is orthogonal to `gmeow:confidence` (epistemic certainty) and to `gmeow:typicality` (graded membership). The fuzzy/probabilistic arithmetic lives in the solver layer (Principle 12).
+Concept boundaries are often vague, fuzzy, or disputed. Rather than minting new concept-specific vocabulary, this slice reuses `gmeow:Determinacy` and `gmeow:hasDeterminacy`. A `gmeow:Concept` or a `gmeow:ConceptCategorization` may declare `gmeow:hasDeterminacy gmeow:determinacyVague` (or `fuzzy`, `probabilistic`, `disputed`) to record the ontic character of its boundaries. This is orthogonal to `gmeow:confidence` (epistemic certainty) and to `gmeow:typicality` (graded membership). The fuzzy/probabilistic arithmetic lives in the solver layer (Principle 12).
 
 ## Dependencies
 
