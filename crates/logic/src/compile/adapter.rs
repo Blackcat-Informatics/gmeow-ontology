@@ -1,0 +1,513 @@
+// SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+// SPDX-License-Identifier: AGPL-3.0-only
+
+//! OWL/gUFO adapter: normalize legacy `owl:*` / `gufo:` source into the IR.
+//!
+//! A faithful Rust port of `src/gmeow_tools/logic_adapter.py`.  It accepts legacy
+//! RDF that uses `owl:*` structural vocabulary and/or `gufo:` stereotypes and
+//! normalizes it into the same [`LogicProgram`] IR the `logic:` front-end
+//! produces, enabling the **round-trip isomorphism gate** ([`assert_ir_isomorphic`]):
+//! a construct authored in `logic:` and an equivalent construct in
+//! `owl:*`/`gufo:` form must normalize to identical IR.
+//!
+//! # Adapter contract (identical to the Python ancestor)
+//!
+//! * **Fail-soft** on unrecognised constructs (blank-node restrictions, unmapped
+//!   `owl:` predicates) — emit a [`Diagnostic`] and skip; nothing is silently lost.
+//! * **Raise** ([`LogicParseError`]) on empty/unreadable input.
+//!
+//! The `gufo: class → logic: term` *coverage* correspondence (the `#663`
+//! "gmeow:logic ⊇ gUFO floor" gate fixture, with its `SUPERSEDED` sentinel) is a
+//! Python-only test fixture and is **not** part of the compiler runtime — it is
+//! intentionally not ported here.
+
+use std::collections::HashSet;
+use std::path::Path;
+
+use oxigraph::io::RdfFormat;
+use oxigraph::model::{GraphNameRef, NamedOrBlankNode, Term};
+use oxigraph::store::Store;
+
+use super::frontend::{Diagnostic, LogicParseError, Severity};
+use super::graphutil::{
+    default_graph_quads, is_empty, nn, subject_is_blank, subject_str, subjects_with,
+    term_as_subject, term_is_blank, term_is_literal, term_str, RDF_TYPE,
+};
+use super::ir::{
+    ContextualScope, LogicAxiom, LogicProfile, LogicProgram, LogicRule, LOGIC_NAMESPACE,
+};
+
+const GUFO_NS: &str = "http://purl.org/nemo/gufo#";
+const OWL_NS: &str = "http://www.w3.org/2002/07/owl#";
+const RDFS_NS: &str = "http://www.w3.org/2000/01/rdf-schema#";
+
+fn gufo(local: &str) -> String {
+    format!("{GUFO_NS}{local}")
+}
+fn owl(local: &str) -> String {
+    format!("{OWL_NS}{local}")
+}
+fn rdfs(local: &str) -> String {
+    format!("{RDFS_NS}{local}")
+}
+fn logic(local: &str) -> String {
+    format!("{LOGIC_NAMESPACE}{local}")
+}
+
+// --------------------------------------------------------------------------- //
+// Mapping tables (verbatim from logic_adapter.py)
+// --------------------------------------------------------------------------- //
+
+/// gUFO stereotype local name → `logic:` sort local name (`rdf:type` assertions).
+const GUFO_TO_LOGIC_SORT: &[(&str, &str)] = &[
+    ("Kind", "Kind"),
+    ("SubKind", "SubKind"),
+    ("Phase", "Phase"),
+    ("Role", "Role"),
+    ("Category", "Category"),
+    ("Mixin", "Mixin"),
+    ("RoleMixin", "RoleMixin"),
+    ("PhaseMixin", "PhaseMixin"),
+    ("Relator", "Relator"),
+    ("EventType", "Event"),
+    ("SituationType", "Situation"),
+];
+
+/// OWL/RDFS structural predicate → `logic:` predicate local name.
+/// The tuple is `(namespace, owl_local, logic_local)`.
+const OWL_PRED_TO_LOGIC: &[(&str, &str, &str)] = &[
+    (RDFS_NS, "subClassOf", "subClassOf"),
+    (OWL_NS, "equivalentClass", "equivalentClass"),
+    (OWL_NS, "disjointWith", "disjointWith"),
+    (RDFS_NS, "subPropertyOf", "subPropertyOf"),
+    (OWL_NS, "equivalentProperty", "equivalentProperty"),
+    (OWL_NS, "inverseOf", "inverseOf"),
+    (RDFS_NS, "domain", "domain"),
+    (RDFS_NS, "range", "range"),
+];
+
+/// OWL property-characteristic class local name → `logic:` characteristic local
+/// name (used as `rdf:type` objects).
+const OWL_CHARACTERISTIC_TO_LOGIC: &[(&str, &str)] = &[
+    ("TransitiveProperty", "transitiveProperty"),
+    ("SymmetricProperty", "symmetricProperty"),
+    ("FunctionalProperty", "functionalProperty"),
+    ("InverseFunctionalProperty", "inverseFunctionalProperty"),
+];
+
+/// OWL/RDFS meta-annotation predicates that carry no structural logic payload.
+fn rdfs_skip_preds() -> HashSet<String> {
+    [
+        rdfs("label"),
+        rdfs("comment"),
+        rdfs("seeAlso"),
+        rdfs("isDefinedBy"),
+        owl("versionIRI"),
+        owl("versionInfo"),
+        owl("imports"),
+        owl("deprecated"),
+    ]
+    .into_iter()
+    .collect()
+}
+
+/// OWL restriction predicates that mark a blank node as a complex restriction.
+const OWL_RESTRICTION_PREDS: &[&str] = &[
+    "someValuesFrom",
+    "allValuesFrom",
+    "hasValue",
+    "onProperty",
+    "minCardinality",
+    "maxCardinality",
+    "cardinality",
+    "onClass",
+    "onDataRange",
+];
+
+// --------------------------------------------------------------------------- //
+// IR isomorphism gate
+// --------------------------------------------------------------------------- //
+
+const SEP: char = '\u{0}';
+
+/// Raised by [`assert_ir_isomorphic`] when two programs differ.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct IRIsomorphismError(pub String);
+
+impl std::fmt::Display for IRIsomorphismError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(&self.0)
+    }
+}
+
+impl std::error::Error for IRIsomorphismError {}
+
+fn py_bool(b: bool) -> &'static str {
+    if b {
+        "True"
+    } else {
+        "False"
+    }
+}
+
+/// Stable diff key for an axiom (mirrors Python `_axiom_key`: subject, predicate,
+/// obj, obj_is_literal — scope and negation are intentionally excluded).
+fn axiom_key(a: &LogicAxiom) -> String {
+    format!(
+        "{}{SEP}{}{SEP}{}{SEP}{}",
+        a.subject,
+        a.predicate,
+        a.obj,
+        py_bool(a.obj_is_literal)
+    )
+}
+
+/// Stable diff key for a rule (mirrors Python `_rule_key`).
+fn rule_key(r: &LogicRule) -> String {
+    let head = &r.head;
+    let head_key = format!("{}{SEP}{}{SEP}{}", head.subject, head.predicate, head.obj);
+    let mut body: Vec<String> = r
+        .body
+        .iter()
+        .map(|b| format!("{}{SEP}{}{SEP}{}", b.subject, b.predicate, b.obj))
+        .collect();
+    body.sort();
+    let mut base = format!("{head_key}{SEP}{}", body.join("|"));
+    if !r.distinct_pairs.is_empty() {
+        let distinct = r
+            .distinct_pairs
+            .iter()
+            .map(|(a, b)| format!("{a}{SEP}{b}"))
+            .collect::<Vec<_>>()
+            .join("|");
+        base.push(SEP);
+        base.push_str(&distinct);
+    }
+    base
+}
+
+/// Stable diff key for a profile (mirrors Python `_profile_key`).
+fn profile_key(p: &LogicProfile) -> String {
+    let compl = p.complexity.as_ref().map(|c| c.label()).unwrap_or("");
+    format!("{}{SEP}{compl}", p.profile_id.as_str())
+}
+
+/// Assert that two [`LogicProgram`]s are canonically equal, raising
+/// [`IRIsomorphismError`] with a directional diff on mismatch (mirrors the Python
+/// `assert_ir_isomorphic`).
+pub fn assert_ir_isomorphic(
+    prog_a: &LogicProgram,
+    prog_b: &LogicProgram,
+) -> Result<(), IRIsomorphismError> {
+    if prog_a == prog_b {
+        return Ok(());
+    }
+
+    let axioms_a: HashSet<String> = prog_a.axioms.iter().map(axiom_key).collect();
+    let axioms_b: HashSet<String> = prog_b.axioms.iter().map(axiom_key).collect();
+    let rules_a: HashSet<String> = prog_a.rules.iter().map(rule_key).collect();
+    let rules_b: HashSet<String> = prog_b.rules.iter().map(rule_key).collect();
+    let profiles_a: HashSet<String> = prog_a.profiles.iter().map(profile_key).collect();
+    let profiles_b: HashSet<String> = prog_b.profiles.iter().map(profile_key).collect();
+
+    let diff = |from: &HashSet<String>, to: &HashSet<String>| -> Vec<String> {
+        let mut v: Vec<String> = from.difference(to).cloned().collect();
+        v.sort();
+        v
+    };
+
+    let mut lines: Vec<String> = Vec::new();
+    for item in diff(&axioms_a, &axioms_b) {
+        lines.push(format!("A has, B lacks (axiom):  {item}"));
+    }
+    for item in diff(&axioms_b, &axioms_a) {
+        lines.push(format!("B has, A lacks (axiom):  {item}"));
+    }
+    for item in diff(&rules_a, &rules_b) {
+        lines.push(format!("A has, B lacks (rule):   {item}"));
+    }
+    for item in diff(&rules_b, &rules_a) {
+        lines.push(format!("B has, A lacks (rule):   {item}"));
+    }
+    for item in diff(&profiles_a, &profiles_b) {
+        lines.push(format!("A has, B lacks (profile): {item}"));
+    }
+    for item in diff(&profiles_b, &profiles_a) {
+        lines.push(format!("B has, A lacks (profile): {item}"));
+    }
+
+    if lines.is_empty() {
+        if prog_a.source_iri != prog_b.source_iri {
+            lines.push(format!(
+                "source_iri differs: A={:?}  B={:?}",
+                prog_a.source_iri, prog_b.source_iri
+            ));
+        } else {
+            lines.push("programs differ (canonical mismatch — check nested scope)".to_owned());
+        }
+    }
+
+    Err(IRIsomorphismError(format!(
+        "IR isomorphism gate FAILED — programs do not normalize identically:\n  {}",
+        lines.join("\n  ")
+    )))
+}
+
+// --------------------------------------------------------------------------- //
+// Axiom extraction from OWL/gUFO source
+// --------------------------------------------------------------------------- //
+
+/// An internal carrier before converting to a [`LogicAxiom`].
+struct MappedAxiom {
+    subject: String,
+    predicate: String,
+    obj: String,
+    obj_is_literal: bool,
+}
+
+/// Whether the blank node `node` is a complex OWL restriction (`owl:onProperty`,
+/// `owl:someValuesFrom`, cardinalities, …).
+fn is_complex_restriction(store: &Store, node: &NamedOrBlankNode) -> bool {
+    OWL_RESTRICTION_PREDS.iter().any(|p| {
+        let pred = nn(&owl(p));
+        store
+            .quads_for_pattern(
+                Some(node.as_ref()),
+                Some(pred.as_ref()),
+                None,
+                Some(GraphNameRef::DefaultGraph),
+            )
+            .next()
+            .is_some()
+    })
+}
+
+fn extract_gufo_sort_axioms(store: &Store, diagnostics: &mut Vec<Diagnostic>) -> Vec<MappedAxiom> {
+    let mut result = Vec::new();
+    for (gufo_local, logic_local) in GUFO_TO_LOGIC_SORT {
+        let gufo_class = Term::NamedNode(nn(&gufo(gufo_local)));
+        let logic_type_iri = logic(logic_local);
+        for subject in subjects_with(store, &nn(RDF_TYPE), &gufo_class) {
+            if subject_is_blank(&subject) {
+                diagnostics.push(warn(
+                    "BLANK_NODE_GUFO_SORT",
+                    format!(
+                        "Blank-node subject typed {} cannot be normalized to a logic: sort; \
+                         skipped",
+                        gufo(gufo_local)
+                    ),
+                    None,
+                ));
+                continue;
+            }
+            result.push(MappedAxiom {
+                subject: subject_str(&subject),
+                predicate: RDF_TYPE.to_owned(),
+                obj: logic_type_iri.clone(),
+                obj_is_literal: false,
+            });
+        }
+    }
+    result
+}
+
+fn extract_owl_char_axioms(store: &Store, diagnostics: &mut Vec<Diagnostic>) -> Vec<MappedAxiom> {
+    let mut result = Vec::new();
+    for (owl_local, logic_local) in OWL_CHARACTERISTIC_TO_LOGIC {
+        let owl_char = Term::NamedNode(nn(&owl(owl_local)));
+        let logic_type = logic(logic_local);
+        for subject in subjects_with(store, &nn(RDF_TYPE), &owl_char) {
+            if subject_is_blank(&subject) {
+                diagnostics.push(warn(
+                    "BLANK_NODE_OWL_CHAR",
+                    format!(
+                        "Blank-node subject typed {} cannot be normalized; skipped",
+                        owl(owl_local)
+                    ),
+                    None,
+                ));
+                continue;
+            }
+            result.push(MappedAxiom {
+                subject: subject_str(&subject),
+                predicate: RDF_TYPE.to_owned(),
+                obj: logic_type.clone(),
+                obj_is_literal: false,
+            });
+        }
+    }
+    result
+}
+
+fn extract_owl_structural_axioms(
+    store: &Store,
+    diagnostics: &mut Vec<Diagnostic>,
+) -> Vec<MappedAxiom> {
+    let mut result = Vec::new();
+    for (ns, owl_local, logic_local) in OWL_PRED_TO_LOGIC {
+        let owl_pred = nn(&format!("{ns}{owl_local}"));
+        let logic_pred = logic(logic_local);
+        for quad in store
+            .quads_for_pattern(
+                None,
+                Some(owl_pred.as_ref()),
+                None,
+                Some(GraphNameRef::DefaultGraph),
+            )
+            .filter_map(Result::ok)
+        {
+            if subject_is_blank(&quad.subject) {
+                // Anonymous subject — skip silently (blank reification helper).
+                continue;
+            }
+            if term_is_blank(&quad.object) {
+                let s_str = subject_str(&quad.subject);
+                let pred_str = format!("{ns}{owl_local}");
+                let is_restriction = term_as_subject(&quad.object)
+                    .as_ref()
+                    .is_some_and(|n| is_complex_restriction(store, n));
+                let message = if is_restriction {
+                    format!(
+                        "{s_str:?} {pred_str:?} [blank-node restriction]: OWL restrictions \
+                         cannot be normalized to logic: axioms; skipped"
+                    )
+                } else {
+                    format!(
+                        "{s_str:?} {pred_str:?} [blank node]: anonymous blank-node object \
+                         cannot be normalized; skipped"
+                    )
+                };
+                diagnostics.push(warn("UNMAPPED_OWL_CONSTRUCT", message, Some(s_str)));
+                continue;
+            }
+            result.push(MappedAxiom {
+                subject: subject_str(&quad.subject),
+                predicate: logic_pred.clone(),
+                obj: term_str(&quad.object),
+                obj_is_literal: term_is_literal(&quad.object),
+            });
+        }
+    }
+    result
+}
+
+fn extract_unmapped_owl_triples(store: &Store, diagnostics: &mut Vec<Diagnostic>) {
+    let skip = rdfs_skip_preds();
+    let mapped_owl: HashSet<String> = OWL_PRED_TO_LOGIC
+        .iter()
+        .map(|(ns, local, _)| format!("{ns}{local}"))
+        .collect();
+    for quad in default_graph_quads(store) {
+        let p_str = quad.predicate.as_str();
+        if !p_str.starts_with(OWL_NS) {
+            continue;
+        }
+        if mapped_owl.contains(p_str) || skip.contains(p_str) {
+            continue;
+        }
+        if p_str == RDF_TYPE {
+            continue;
+        }
+        if subject_is_blank(&quad.subject) {
+            continue;
+        }
+        let s_str = subject_str(&quad.subject);
+        diagnostics.push(warn(
+            "UNMAPPED_OWL_CONSTRUCT",
+            format!("OWL predicate {p_str:?} on {s_str:?} has no logic: equivalent; skipped"),
+            Some(s_str),
+        ));
+    }
+}
+
+fn warn(code: &str, message: String, subject: Option<String>) -> Diagnostic {
+    Diagnostic {
+        severity: Severity::Warning,
+        code: code.to_owned(),
+        message,
+        subject,
+    }
+}
+
+// --------------------------------------------------------------------------- //
+// Public API
+// --------------------------------------------------------------------------- //
+
+/// Normalize legacy `owl:*` / `gufo:` RDF already loaded into a [`Store`]
+/// (default graph) into a [`LogicProgram`] + diagnostics.
+pub fn adapt_legacy_store(
+    store: &Store,
+    source_iri: Option<String>,
+) -> Result<(LogicProgram, Vec<Diagnostic>), LogicParseError> {
+    if is_empty(store) {
+        return Err(LogicParseError(
+            "Source graph is empty — nothing to adapt.  Pass a non-empty graph or a \
+             Turtle file with owl:* / gufo: triples."
+                .to_owned(),
+        ));
+    }
+
+    let mut diagnostics: Vec<Diagnostic> = Vec::new();
+    let mut mapped: Vec<MappedAxiom> = Vec::new();
+    mapped.extend(extract_gufo_sort_axioms(store, &mut diagnostics));
+    mapped.extend(extract_owl_char_axioms(store, &mut diagnostics));
+    mapped.extend(extract_owl_structural_axioms(store, &mut diagnostics));
+    extract_unmapped_owl_triples(store, &mut diagnostics);
+
+    // Build LogicAxiom instances, dedup by content (the Python `set(...)`).
+    let mut seen: HashSet<String> = HashSet::new();
+    let mut axioms: Vec<LogicAxiom> = Vec::new();
+    for m in mapped {
+        match LogicAxiom::new(
+            m.subject.clone(),
+            m.predicate,
+            m.obj,
+            m.obj_is_literal,
+            false,
+            ContextualScope::default(),
+        ) {
+            Ok(ax) => {
+                if seen.insert(axiom_key(&ax)) {
+                    axioms.push(ax);
+                }
+            }
+            Err(exc) => diagnostics.push(warn("MALFORMED_ADAPTED_AXIOM", exc, Some(m.subject))),
+        }
+    }
+
+    // OWL/gUFO has no rule or profile surface (logic:-only).
+    let program = LogicProgram::new(axioms, Vec::<LogicRule>::new(), Vec::new(), source_iri);
+    Ok((program, diagnostics))
+}
+
+/// Normalize legacy `owl:*` / `gufo:` Turtle text into a [`LogicProgram`].
+pub fn adapt_legacy_str(
+    turtle: &str,
+    source_iri: Option<String>,
+) -> Result<(LogicProgram, Vec<Diagnostic>), LogicParseError> {
+    let store =
+        Store::new().map_err(|e| LogicParseError(format!("in-memory store init failed: {e}")))?;
+    store
+        .load_from_reader(RdfFormat::Turtle, turtle.as_bytes())
+        .map_err(|e| LogicParseError(format!("Failed to parse Turtle source: {e}")))?;
+    adapt_legacy_store(&store, source_iri)
+}
+
+/// Normalize a legacy `owl:*` / `gufo:` Turtle file into a [`LogicProgram`].
+pub fn adapt_legacy_path(
+    path: &Path,
+    source_iri: Option<String>,
+) -> Result<(LogicProgram, Vec<Diagnostic>), LogicParseError> {
+    if !path.exists() {
+        return Err(LogicParseError(format!(
+            "Source file does not exist: {}",
+            path.display()
+        )));
+    }
+    let turtle = std::fs::read_to_string(path)
+        .map_err(|e| LogicParseError(format!("Failed to read {}: {e}", path.display())))?;
+    adapt_legacy_str(&turtle, source_iri)
+}
+
+#[cfg(test)]
+mod tests;

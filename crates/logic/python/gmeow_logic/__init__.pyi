@@ -13,7 +13,24 @@
 # They are typed as ``dict[str, Any]`` here (mypy then checks the *call sites* —
 # arity and argument types — which is where FFI mistakes hide).
 
-from typing import Any
+from typing import Any, TypedDict
+
+class CompileDiagnostic(TypedDict):
+    severity: str
+    code: str
+    message: str
+    subject: str
+
+class CompileLogicResult(TypedDict):
+    owl_dl: str
+    owl_el: str
+    datalog: str
+    n3: str
+    gufo: str
+    canonical_rdf12: str
+    nemo: str
+    report: str
+    diagnostics: list[CompileDiagnostic]
 
 def materialize(
     rules: str,
@@ -38,3 +55,16 @@ def query(
     max_answers: int | None = ...,
     max_steps: int | None = ...,
 ) -> dict[str, Any]: ...
+def compile_logic(source_ttl: str) -> CompileLogicResult:
+    """Compile logic: Turtle source → the 8 artifacts + parse diagnostics (#664).
+
+    Returns a dict with the following keys:
+
+    * ``owl_dl``, ``owl_el``, ``datalog``, ``n3``, ``gufo``,
+      ``canonical_rdf12``, ``nemo``, ``report`` — each the serialized content string.
+    * ``diagnostics`` — a list of dicts, each carrying ``severity`` (str),
+      ``code`` (str), ``message`` (str), and ``subject`` (str, empty string when
+      no subject).  Recoverable parse issues are surfaced here as warnings and
+      never block compilation.
+    """
+    ...
