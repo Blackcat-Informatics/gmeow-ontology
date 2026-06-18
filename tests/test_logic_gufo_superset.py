@@ -83,11 +83,7 @@ def _logic_module_graph() -> Graph:
 
 def _non_superseded_targets() -> set[URIRef]:
     """The set of distinct logic: IRIs the dict maps gUFO classes to."""
-    return {
-        URIRef(v)
-        for v in _GUFO_CLASS_TO_LOGIC.values()
-        if not isinstance(v, type(SUPERSEDED))
-    }
+    return {URIRef(v) for v in _GUFO_CLASS_TO_LOGIC.values() if isinstance(v, str)}
 
 
 # --------------------------------------------------------------------------- #
