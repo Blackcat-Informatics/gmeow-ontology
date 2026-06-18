@@ -33,4 +33,5 @@ pub mod adapter;
 pub mod frontend;
 pub mod graphutil;
 pub mod ir;
+pub mod lower;
 pub mod projections;

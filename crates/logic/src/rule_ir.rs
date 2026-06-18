@@ -61,7 +61,7 @@ use crate::provenance::{mint_derivation_id, mint_reifier, ASSERT_RULE_IRI, LOGIC
 /// Subject and predicate are never literals (an `.rls` predicate is always an IRI
 /// and a subject is an IRI/blank in the gmeow fragment); only an *object* may be a
 /// [`ConstLit`](EvalTerm::ConstLit).
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub(crate) enum EvalTerm {
     /// A variable, e.g. `?X` (the string includes the leading `?`, matching Nemo's
     /// `Display` for a universal variable).
@@ -73,7 +73,7 @@ pub(crate) enum EvalTerm {
 }
 
 /// A single arity-3-derived atom, with the world slot dropped (subject, object).
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub(crate) struct EvalAtom {
     /// The subject term (slot 0).
     pub(crate) subject: EvalTerm,
@@ -87,7 +87,7 @@ pub(crate) struct EvalAtom {
 
 /// A lowered rule: one head atom, an ordered body (positive atoms then negated
 /// atoms), the firing rule IRI (from `#[name("...")]`), and inequality guards.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub(crate) struct EvalRule {
     /// The single head atom.
     pub(crate) head: EvalAtom,
