@@ -18,11 +18,6 @@
 //! cannot express entailments that quantify over the predicate position
 //! (domain/range, property chains) — see the [`ElClosure::gaps`] surface.
 
-use crate::encode::{
-    decode_iri_term, decode_nemo_term, decode_string_constant, encode_quad_to_nemo_fact,
-};
-use crate::nemo_engine::{run_chase, ChaseRow};
-use crate::store::WorldStore;
 use gmeow_rdf::RdfStore;
 
 /// The fixed OWL-2-EL/RL class-level entailment rule set, in the world-scoped
@@ -79,95 +74,29 @@ pub struct ElClosure {
     pub gaps: Vec<String>,
 }
 
-/// Decode one antecedent chase row into a `(subject, predicate, object)` triple.
-///
-/// The antecedent rows are the same ternary shape as derived rows: subject is
-/// an IRI term, object is any Nemo term (decoded to its display string), and
-/// the third value is the world string constant (dropped here — premises carry
-/// only the triple shape).
-fn decode_premise(row: &ChaseRow) -> Result<(String, String, String), String> {
-    if row.values.len() != 3 {
-        return Err(format!(
-            "antecedent row has arity {} (expected 3): {row:?}",
-            row.values.len()
-        ));
-    }
-    let subject = decode_iri_term(&row.values[0])?;
-    let object = decode_nemo_term(&row.values[1])?.to_string();
-    Ok((subject, row.predicate.clone(), object))
-}
-
 /// Compute the OWL-2-EL/RL subsumption closure of `edb` via the Nemo chase.
 ///
-/// Loads `edb` into a fresh [`WorldStore`], encodes every quad of every world
-/// into the ternary gmeow EDB, runs the fixed [`EL_RULES`] through the chase,
-/// and returns the decoded subsumption closure with raw provenance.
+/// Runs the fixed [`EL_RULES`] over `edb` through the shared
+/// [`crate::reason::run_reasoning`] chase machinery, then filters the decoded
+/// closure to the subsumption predicates and surfaces the honest DL gaps.
 ///
 /// # Errors
 ///
 /// Returns `Err(String)` if the source store cannot be loaded, if the Nemo
 /// chase fails to parse/validate/evaluate, or if a derived row fails to decode.
 pub fn el_closure(edb: &impl RdfStore) -> Result<ElClosure, String> {
-    // 1. Load the source into a fresh world-indexed store.
-    let store = WorldStore::new();
-    store.load_rdf_store(edb)?;
+    // 1. Run the fixed EL rule set through the shared chase machinery.
+    let all = crate::reason::run_reasoning(edb, EL_RULES)?;
 
-    // 2. Encode every quad of every world into ternary EDB fact lines.
-    let mut edb_facts: Vec<String> = Vec::new();
-    for world in store.worlds() {
-        for quad in store.quads_for_pattern_in_world(&world, None, None, None) {
-            edb_facts.push(encode_quad_to_nemo_fact(
-                &quad.subject,
-                &quad.predicate,
-                &quad.object,
-                &world,
-            ));
-        }
-    }
+    // 2. `total_facts` counts every decoded ternary row; filter the surfaced
+    //    closure to the subsumption predicates.
+    let total_facts = all.len();
+    let inferred: Vec<InferredAxiom> = all
+        .into_iter()
+        .filter(|a| SUBSUMPTION_PREDICATES.contains(&a.predicate.as_str()))
+        .collect();
 
-    // 3. Build the program and run the chase.
-    let rls = format!("{}\n{}", edb_facts.join("\n"), EL_RULES);
-    let rows = run_chase(rls)?;
-
-    // 4. Decode each ternary row into an InferredAxiom, filtering to the
-    //    subsumption predicates. `total_facts` counts all ternary rows.
-    let mut total_facts = 0usize;
-    let mut inferred: Vec<InferredAxiom> = Vec::new();
-    for rwp in &rows {
-        let row = &rwp.row;
-        if row.values.len() != 3 {
-            continue;
-        }
-        total_facts += 1;
-
-        let predicate = row.predicate.clone();
-        if !SUBSUMPTION_PREDICATES.contains(&predicate.as_str()) {
-            continue;
-        }
-
-        let subject = decode_iri_term(&row.values[0])?;
-        let object = decode_nemo_term(&row.values[1])?.to_string();
-        let world = decode_string_constant(&row.values[2])?;
-
-        let prov = &rwp.provenance;
-        let premises = prov
-            .antecedent_rows
-            .iter()
-            .map(decode_premise)
-            .collect::<Result<Vec<_>, String>>()?;
-
-        inferred.push(InferredAxiom {
-            subject,
-            predicate,
-            object,
-            world,
-            is_edb: prov.is_edb,
-            rule_name: prov.rule_name.clone(),
-            premises,
-        });
-    }
-
-    // 5. Honest DL-gap surface: the ternary predicate-as-symbol encoding cannot
+    // 3. Honest DL-gap surface: the ternary predicate-as-symbol encoding cannot
     //    express entailments that quantify over the predicate position.
     let gaps = vec![
         "domain/range and property-chain entailments are NOT expressible in the \
