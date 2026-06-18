@@ -1,0 +1,58 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example — an ordinary human dream with narrative texture.
+#
+# A dream is composed from core GMEOW machinery: a gmeow:Experience whose
+# gmeow:mentalProcessType is gmeow:processDreaming, whose awareness mode is
+# gmeow:modeDreaming, and whose content is gmeow:originImagined. Imagined
+# constituents are attached via the dreaming slice's gmeow:dreamElement, and the
+# morning report is a gmeow:DreamReport (a recollection experience) marked as a
+# low-reliability, standpoint-indexed claim.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/dreaming/human-dream/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+# --- The experiencer.
+ex:dreamerMaya a gmeow:Person ;
+    rdfs:label "Maya"@x-gmeow-english ;
+    rdfs:comment "The human dreamer in the ordinary-dream example."@x-gmeow-english .
+
+# --- The dream episode: a composed Experience.
+ex:mayaFlyingDream a gmeow:Experience ;
+    rdfs:label "Maya's flying dream"@x-gmeow-english ;
+    rdfs:comment "An ordinary human dream of flying over a city and visiting a childhood house."@x-gmeow-english ;
+    gmeow:experiencer ex:dreamerMaya ;
+    gmeow:mentalProcessType gmeow:processDreaming ;
+    gmeow:awarenessMode gmeow:modeDreaming ;
+    gmeow:contentOrigin gmeow:originImagined ;
+    gmeow:eventInterval ex:mayaDreamInterval .
+
+ex:mayaDreamInterval a gmeow:TimeInterval ;
+    rdfs:label "Maya's dream interval"@x-gmeow-english ;
+    gmeow:hasTemporalFrame gmeow:temporalFrameUTCGregorian ;
+    gmeow:startedAtTime "2026-06-16T03:00:00Z"^^xsd:dateTime ;
+    gmeow:endedAtTime   "2026-06-16T03:25:00Z"^^xsd:dateTime .
+
+# --- Imagined constituents of the dream.
+ex:flyingSequence a gmeow:InformationObject ;
+    rdfs:label "flying sequence"@x-gmeow-english ;
+    rdfs:comment "An imagined constituent of Maya's dream: the sensation of flying over a city."@x-gmeow-english .
+
+ex:childhoodHouse a gmeow:Place ;
+    rdfs:label "childhood house"@x-gmeow-english ;
+    rdfs:comment "An imagined place appearing as a constituent of Maya's dream."@x-gmeow-english .
+
+ex:mayaFlyingDream gmeow:dreamElement ex:flyingSequence , ex:childhoodHouse .
+
+# --- The morning report: a low-reliability recollection of the dream.
+ex:mayaMorningReport a gmeow:DreamReport ;
+    rdfs:label "Maya's morning dream report"@x-gmeow-english ;
+    rdfs:comment "A low-reliability recollection of the flying dream, reported after waking."@x-gmeow-english ;
+    gmeow:experiencer ex:dreamerMaya ;
+    gmeow:mentalProcessType gmeow:processRecollection ;
+    gmeow:contentOrigin gmeow:originImagined ;
+    rdfs:comment "Reliability note: dream reports are standpoint-indexed, fallible recollections with low metacognitive confidence."@x-gmeow-english .

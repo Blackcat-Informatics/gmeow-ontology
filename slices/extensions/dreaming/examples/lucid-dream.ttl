@@ -1,0 +1,63 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example — a lucid dream with online metacognition.
+#
+# The dream is a gmeow:Experience typed gmeow:processDreaming and tagged with
+# gmeow:modeLucidDreaming. The lucidity seam is documented by a
+# gmeow:Observation made from within the dream: the dreamer observes that the
+# current experience is itself a dream. A dream element and a morning report are
+# included for completeness.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/dreaming/lucid-dream/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+# --- The experiencer.
+ex:dreamerLuca a gmeow:Person ;
+    rdfs:label "Luca"@x-gmeow-english ;
+    rdfs:comment "The human dreamer in the lucid-dream example."@x-gmeow-english .
+
+# --- The lucid dream episode.
+ex:lucaLucidDream a gmeow:Experience ;
+    rdfs:label "Luca's lucid dream"@x-gmeow-english ;
+    rdfs:comment "A lucid dream: dreaming while aware that one is dreaming."@x-gmeow-english ;
+    gmeow:experiencer ex:dreamerLuca ;
+    gmeow:mentalProcessType gmeow:processDreaming ;
+    gmeow:awarenessMode gmeow:modeLucidDreaming ;
+    gmeow:contentOrigin gmeow:originImagined ;
+    gmeow:eventInterval ex:lucaDreamInterval .
+
+ex:lucaDreamInterval a gmeow:TimeInterval ;
+    rdfs:label "Luca's lucid dream interval"@x-gmeow-english ;
+    gmeow:hasTemporalFrame gmeow:temporalFrameUTCGregorian ;
+    gmeow:startedAtTime "2026-06-16T04:10:00Z"^^xsd:dateTime ;
+    gmeow:endedAtTime   "2026-06-16T04:23:00Z"^^xsd:dateTime .
+
+# --- In-dream metacognitive observation: the dreamer notices the dream state.
+ex:lucaDreamStateObservation a gmeow:Observation ;
+    rdfs:label "Luca's in-dream state observation"@x-gmeow-english ;
+    rdfs:comment "A metacognitive observation made from within the dream."@x-gmeow-english ;
+    gmeow:vantage ex:dreamerLuca ;
+    gmeow:observedFeature ex:lucaLucidDream ;
+    gmeow:observationResult ex:lucaAwarenessResult .
+
+ex:lucaAwarenessResult a gmeow:InformationObject ;
+    rdfs:label "I am aware this is a dream"@x-gmeow-english ;
+    rdfs:comment "The dreamer's in-dream recognition of the dream state."@x-gmeow-english .
+
+# --- An imagined dream element and a morning report.
+ex:controlGesture a gmeow:InformationObject ;
+    rdfs:label "volitional control gesture"@x-gmeow-english ;
+    rdfs:comment "An imagined constituent of Luca's lucid dream: a deliberate gesture used to stabilise the dream."@x-gmeow-english .
+
+ex:lucaLucidDream gmeow:dreamElement ex:controlGesture .
+
+ex:lucaMorningReport a gmeow:DreamReport ;
+    rdfs:label "Luca's morning lucid-dream report"@x-gmeow-english ;
+    rdfs:comment "A low-reliability recollection of the lucid dream, reported after waking."@x-gmeow-english ;
+    gmeow:experiencer ex:dreamerLuca ;
+    gmeow:mentalProcessType gmeow:processRecollection ;
+    gmeow:contentOrigin gmeow:originImagined .
