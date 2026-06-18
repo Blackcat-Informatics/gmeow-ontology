@@ -1,0 +1,24 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+
+# Maturin build configuration for the gmeow_diagnostics Python extension.
+# Run: uvx maturin develop (from crates/diagnostics/) or: make diagnostics-py
+# (repo root).
+
+[build-system]
+requires = ["maturin>=1.7,<2"]
+build-backend = "maturin"
+
+[project]
+name = "gmeow-diagnostics"
+version = "0.1.0"
+description = "GMEOW diagnostics PyO3 bindings: Finding/Report plus JSON, SARIF, HTML, and text renderers"
+requires-python = ">=3.13"
+license = { text = "AGPL-3.0-only" }
+authors = [{ name = "Blackcat Informatics® Inc." }]
+keywords = ["diagnostics", "sarif", "validation", "gmeow"]
+
+[tool.maturin]
+module-name = "gmeow_diagnostics"
+features = ["pyo3/extension-module"]
+python-requires = ">=3.13"
