@@ -155,8 +155,10 @@ fn verdict_token(consistent: bool) -> &'static str {
 /// Compare native and HermiT consistency verdicts (and their unsat class sets).
 ///
 /// If `hermit_consistent` is `None` the oracle was not run: a single note row is
-/// emitted (classified [`DivergenceKind::OracleOnly`]) recording that only the
-/// native verdict is known, with `object` set to the native verdict token.
+/// emitted (classified [`DivergenceKind::NativeOnly`]) recording that only the
+/// native verdict is known, with `object` set to the native verdict token. The
+/// knowledge is native-only — no oracle ran — so the row is `NativeOnly`, never
+/// `OracleOnly` (naming the source honestly).
 ///
 /// If `Some(h)`, one [`DivergenceKind::Agree`] row is emitted when the verdicts
 /// match; otherwise the disagreement is recorded as a [`DivergenceKind::NativeOnly`]
@@ -177,7 +179,7 @@ pub fn compare_consistency(
     match hermit_consistent {
         None => {
             rows.push(LedgerRow {
-                kind: DivergenceKind::OracleOnly,
+                kind: DivergenceKind::NativeOnly,
                 category: "consistency".to_owned(),
                 subject: String::new(),
                 object: native_token.clone(),
@@ -417,7 +419,11 @@ mod tests {
             1,
             "single note row when HermiT not run: {rows:?}"
         );
-        assert_eq!(rows[0].kind, DivergenceKind::OracleOnly);
+        assert_eq!(
+            rows[0].kind,
+            DivergenceKind::NativeOnly,
+            "no oracle ran — the verdict is native-only knowledge, not oracle-only"
+        );
         assert_eq!(rows[0].object, "inconsistent", "records the native verdict");
         assert!(rows[0].detail.contains("not run"));
     }
