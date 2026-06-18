@@ -9,16 +9,86 @@ from unittest.mock import MagicMock, patch
 
 import httpx
 import pytest
+from rdflib import Graph, Literal, Namespace, URIRef
+from rdflib.namespace import DCTERMS, OWL, RDF, RDFS, SKOS
 from typer.testing import CliRunner
 
 from gmeow_tools.cli import app as public_app
 from gmeow_tools.cli_dev import app as dev_app
-from gmeow_tools.config import GTS_SNAPSHOT_FILE
+from gmeow_tools.config import GTS_SNAPSHOT_FILE, NAMESPACE, ONTOLOGY_IRI
+from gmeow_tools.gts_producer import compile_gts
 
 
 @pytest.fixture
 def runner() -> CliRunner:
     return CliRunner()
+
+
+def _multilingual_gts(
+    tmp_path: Path, *, include_fr: bool = True, include_zh: bool = True
+) -> Path:
+    """Build a controlled, byte-deterministic multilingual GTS fixture."""
+    graph = Graph()
+    gm = Namespace(NAMESPACE)
+    ontology = URIRef(ONTOLOGY_IRI)
+    graph.add((ontology, RDF.type, OWL.Ontology))
+    graph.add(
+        (ontology, DCTERMS.title, Literal("Fixture ontology", lang="x-gmeow-english"))
+    )
+    graph.add((ontology, OWL.versionInfo, Literal("0.0.0")))
+    term = gm.SampleTerm
+    graph.add((term, RDF.type, OWL.Class))
+    graph.add((term, RDFS.label, Literal("sample label", lang="x-gmeow-english")))
+    graph.add(
+        (
+            term,
+            SKOS.definition,
+            Literal("English definition text.", lang="x-gmeow-english"),
+        )
+    )
+    if include_fr:
+        graph.add(
+            (
+                term,
+                RDFS.label,
+                Literal("étiquette échantillon", lang="x-gmeow-french"),
+            )
+        )
+        graph.add(
+            (
+                term,
+                SKOS.definition,
+                Literal("Définition en français.", lang="x-gmeow-french"),
+            )
+        )
+    if include_zh:
+        graph.add((term, RDFS.label, Literal("样本标签", lang="x-gmeow-mandarin")))
+        graph.add(
+            (
+                term,
+                SKOS.definition,
+                Literal("中文定义。", lang="x-gmeow-mandarin"),
+            )
+        )
+    graph.add((term, RDFS.isDefinedBy, URIRef(NAMESPACE + "slices/lifecycle")))
+    graph.add((gm.langEnglish, RDF.type, gm.Language))
+    graph.add((gm.langEnglish, gm.languageTag, Literal("x-gmeow-english")))
+    graph.add((gm.langEnglish, gm.bcp47Tag, Literal("en")))
+    graph.add((gm.langEnglish, RDFS.label, Literal("English", lang="x-gmeow-english")))
+    graph.add((gm.langFrench, RDF.type, gm.Language))
+    graph.add((gm.langFrench, gm.languageTag, Literal("x-gmeow-french")))
+    graph.add((gm.langFrench, gm.bcp47Tag, Literal("fr")))
+    graph.add((gm.langFrench, RDFS.label, Literal("français", lang="x-gmeow-french")))
+    graph.add((gm.langMandarin, RDF.type, gm.Language))
+    graph.add((gm.langMandarin, gm.languageTag, Literal("x-gmeow-mandarin")))
+    graph.add((gm.langMandarin, gm.bcp47Tag, Literal("zh")))
+    if include_zh:
+        graph.add(
+            (gm.langMandarin, RDFS.label, Literal("中文", lang="x-gmeow-mandarin"))
+        )
+    fixture = tmp_path / "fixture.gts"
+    fixture.write_bytes(compile_gts(graph))
+    return fixture
 
 
 def test_quality_strict_fails_when_oops_raises(runner: CliRunner) -> None:
@@ -107,26 +177,51 @@ def test_describe_unknown_language_fails(runner: CliRunner) -> None:
     assert "Available languages" in result.output
 
 
-def test_describe_unknown_language_error_is_content_aware(runner: CliRunner) -> None:
-    """When content is limited, the error list does not advertise the full catalog."""
-    mock_view = MagicMock()
-    mock_view.tag_map.return_value = {
-        "x-gmeow-english": "en",
-        "x-gmeow-french": "fr",
-        "x-gmeow-chinese": "zh",
-    }
-    mock_view.available_languages.return_value = frozenset({"en", "fr"})
+def test_describe_renders_french(runner: CliRunner, tmp_path: Path) -> None:
+    """A fixture with French labels renders them without an English fallback marker."""
+    fixture = _multilingual_gts(tmp_path)
+    result = runner.invoke(
+        public_app, ["describe", "SampleTerm", "--lang", "fr", "--gts", str(fixture)]
+    )
+    assert result.exit_code == 0, result.output
+    assert "Définition en français" in result.output
+    assert "fallback: en" not in result.output
 
-    with patch("gmeow_tools.cli._bundle_view", return_value=mock_view):
-        result = runner.invoke(public_app, ["describe", "Person", "--lang", "notatag"])
+
+def test_describe_renders_mandarin(runner: CliRunner, tmp_path: Path) -> None:
+    """A fixture with Mandarin labels renders them without a fallback marker."""
+    fixture = _multilingual_gts(tmp_path)
+    result = runner.invoke(
+        public_app, ["describe", "SampleTerm", "--lang", "zh", "--gts", str(fixture)]
+    )
+    assert result.exit_code == 0, result.output
+    assert "中文定义" in result.output
+    assert "fallback: en" not in result.output
+
+
+def test_describe_unknown_language_error_is_content_aware(
+    runner: CliRunner, tmp_path: Path
+) -> None:
+    """When content is limited, the error list does not advertise the full catalog."""
+    fixture = _multilingual_gts(tmp_path, include_fr=True, include_zh=False)
+    result = runner.invoke(
+        public_app,
+        ["describe", "SampleTerm", "--lang", "notatag", "--gts", str(fixture)],
+    )
     assert result.exit_code != 0
     assert "Available languages: en, fr" in result.output
     assert "zh" not in result.output
 
 
-def test_describe_fallback_marker_for_missing_language(runner: CliRunner) -> None:
-    """The bundled snapshot only carries English, so a French request falls back."""
-    result = runner.invoke(public_app, ["describe", "Person", "--lang", "fr"])
+def test_describe_fallback_marker_for_missing_language(
+    runner: CliRunner, tmp_path: Path
+) -> None:
+    """An English-only fixture falls back when French is requested."""
+    fixture = _multilingual_gts(tmp_path, include_fr=False, include_zh=False)
+    result = runner.invoke(
+        public_app,
+        ["describe", "SampleTerm", "--lang", "fr", "--gts", str(fixture)],
+    )
     assert result.exit_code == 0, result.output
     assert "fallback: en" in result.output
 
@@ -138,20 +233,32 @@ def test_describe_env_language_rejected_if_unknown(runner: CliRunner) -> None:
     assert "unknown language tag" in result.output.lower()
 
 
-def test_describe_explicit_empty_lang_overrides_env(runner: CliRunner) -> None:
+def test_describe_explicit_empty_lang_overrides_env(
+    runner: CliRunner, tmp_path: Path
+) -> None:
     """--lang '' wins over GMEOW_LANG and selects the default English carrier."""
+    fixture = _multilingual_gts(tmp_path)
     with patch.dict("os.environ", {"GMEOW_LANG": "fr"}):
-        result = runner.invoke(public_app, ["describe", "Person", "--lang", ""])
+        result = runner.invoke(
+            public_app,
+            ["describe", "SampleTerm", "--lang", "", "--gts", str(fixture)],
+        )
     assert result.exit_code == 0, result.output
     assert "fallback: en" not in result.output
+    assert "English definition text" in result.output
 
 
-def test_describe_env_empty_lang_defaults_to_english(runner: CliRunner) -> None:
+def test_describe_env_empty_lang_defaults_to_english(
+    runner: CliRunner, tmp_path: Path
+) -> None:
     """An empty GMEOW_LANG env value maps to the default English carrier."""
+    fixture = _multilingual_gts(tmp_path)
     with patch.dict("os.environ", {"GMEOW_LANG": ""}):
-        result = runner.invoke(public_app, ["describe", "Person"])
+        result = runner.invoke(
+            public_app, ["describe", "SampleTerm", "--gts", str(fixture)]
+        )
     assert result.exit_code == 0, result.output
-    assert "Person" in result.output
+    assert "English definition text" in result.output
 
 
 def test_export_respects_language_selector(runner: CliRunner, tmp_path: Path) -> None:
@@ -181,14 +288,16 @@ def test_export_lang_flag_wins_over_env(runner: CliRunner, tmp_path: Path) -> No
 
 
 def test_create_docs_language_fallback(runner: CliRunner, tmp_path: Path) -> None:
+    fixture = _multilingual_gts(tmp_path, include_fr=False, include_zh=False)
     out = tmp_path / "docs-tree"
     result = runner.invoke(
-        public_app, ["docs", "--directory", str(out), "--lang", "fr"]
+        public_app,
+        ["docs", "--directory", str(out), "--lang", "fr", str(fixture)],
     )
     assert result.exit_code == 0, result.output
-    person_file = out / "terms" / "classes" / "gmeow-Person.md"
-    assert person_file.exists()
-    text = person_file.read_text(encoding="utf-8")
+    sample_file = out / "terms" / "classes" / "gmeow-SampleTerm.md"
+    assert sample_file.exists()
+    text = sample_file.read_text(encoding="utf-8")
     assert "[fallback: en]" in text
 
 
