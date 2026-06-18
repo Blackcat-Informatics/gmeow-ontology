@@ -1032,6 +1032,7 @@ dependencies = [
  "scryer-prolog",
  "serde_json",
  "sha1",
+ "sha2",
  "tokio",
 ]
 
