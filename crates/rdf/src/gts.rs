@@ -199,11 +199,12 @@ fn segment_records(graph: &Graph) -> Vec<RdfSegmentRecord> {
 }
 
 fn blob_records(graph: &Graph) -> Vec<RdfBlobRecord> {
+    let blob_meta = blob_metadata_index(graph);
     graph
         .blobs
         .iter()
         .map(|(digest, entry)| {
-            let metadata = blob_metadata(graph, digest);
+            let metadata = blob_metadata(&blob_meta, digest);
             RdfBlobRecord {
                 digest: digest.clone(),
                 media_type: metadata_text(&metadata, "mt"),
@@ -216,11 +217,12 @@ fn blob_records(graph: &Graph) -> Vec<RdfBlobRecord> {
 }
 
 fn resource_records(graph: &Graph) -> Vec<RdfLookasideResource> {
+    let blob_meta = blob_metadata_index(graph);
     graph
         .blobs
         .iter()
         .map(|(digest, _)| {
-            let metadata = blob_metadata(graph, digest);
+            let metadata = blob_metadata(&blob_meta, digest);
             let kind = lookaside_kind_from_metadata(&metadata);
             let mut resource = RdfLookasideResource::new(kind).with_digest(digest.clone());
             resource.media_type = metadata_text(&metadata, "mt");
@@ -236,12 +238,21 @@ fn resource_records(graph: &Graph) -> Vec<RdfLookasideResource> {
         .collect()
 }
 
-fn blob_metadata(graph: &Graph, digest: &str) -> BTreeMap<String, RdfMetadataValue> {
+fn blob_metadata_index(graph: &Graph) -> BTreeMap<&str, &Value> {
     graph
         .blob_meta
         .iter()
-        .find(|(candidate, _)| candidate == digest)
-        .map(|(_, value)| match metadata_value_from_cbor(value) {
+        .map(|(digest, value)| (digest.as_str(), value))
+        .collect()
+}
+
+fn blob_metadata(
+    blob_meta: &BTreeMap<&str, &Value>,
+    digest: &str,
+) -> BTreeMap<String, RdfMetadataValue> {
+    blob_meta
+        .get(digest)
+        .map(|value| match metadata_value_from_cbor(value) {
             RdfMetadataValue::Map(map) => map,
             value => {
                 let mut map = BTreeMap::new();
@@ -327,9 +338,11 @@ fn term_display(graph: &Graph, term_id: usize) -> String {
 }
 
 fn hex_bytes(bytes: &[u8]) -> String {
+    use std::fmt::Write as _;
+
     let mut out = String::with_capacity(bytes.len() * 2);
     for byte in bytes {
-        out.push_str(&format!("{byte:02x}"));
+        let _ = write!(out, "{byte:02x}");
     }
     out
 }
@@ -562,14 +575,14 @@ pub fn flattened_oxigraph_store_from_graph(
             RdfDiagnostic::error("gts-nquads-parse", "GTS N-Quads projection failed")
                 .with_detail(e.to_string())
         })?;
-        let triple = Quad::new(
+        let flattened_quad = Quad::new(
             quad.subject,
             quad.predicate,
             quad.object,
             GraphNameRef::DefaultGraph,
         );
         store
-            .insert(&triple)
+            .insert(&flattened_quad)
             .map_err(|e| RdfDiagnostic::error("oxigraph-store-insert", e.to_string()))?;
     }
     Ok(store)
