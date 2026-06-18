@@ -31,23 +31,17 @@ use std::fmt;
 use std::path::Path;
 
 use oxigraph::io::RdfFormat;
-use oxigraph::model::{
-    GraphNameRef, NamedNode, NamedNodeRef, NamedOrBlankNode, NamedOrBlankNodeRef, Quad, Term,
-};
+use oxigraph::model::{GraphNameRef, NamedOrBlankNode, Term};
 use oxigraph::store::Store;
 
+use super::graphutil::{
+    default_graph_quads, nn, objects, subject_str, subjects_with, term_as_subject, term_is_literal,
+    term_str, value, RDF_OBJECT, RDF_PREDICATE, RDF_REIFIES, RDF_STATEMENT, RDF_SUBJECT, RDF_TYPE,
+};
 use super::ir::{
     ComplexityClass, ContextualScope, LogicAxiom, LogicModality, LogicProfile, LogicProgram,
     LogicRule, SemanticProfileId, LOGIC_NAMESPACE,
 };
-
-// Well-known IRIs (string constants — avoids per-call `NamedNode::new`).
-const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
-const RDF_REIFIES: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies";
-const RDF_STATEMENT: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#Statement";
-const RDF_SUBJECT: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#subject";
-const RDF_PREDICATE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#predicate";
-const RDF_OBJECT: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#object";
 
 fn logic_iri(local: &str) -> String {
     format!("{LOGIC_NAMESPACE}{local}")
@@ -117,93 +111,6 @@ impl fmt::Display for LogicParseError {
 impl std::error::Error for LogicParseError {}
 
 // --------------------------------------------------------------------------- //
-// Term stringification (matches rdflib `str(node)`)
-// --------------------------------------------------------------------------- //
-
-/// `str(node)` for an object term — matches rdflib: IRI → the IRI; blank node →
-/// the bare id; literal → its lexical value (no datatype/quotes).
-fn term_str(term: &Term) -> String {
-    match term {
-        Term::NamedNode(nn) => nn.as_str().to_owned(),
-        Term::BlankNode(bn) => bn.as_str().to_owned(),
-        Term::Literal(lit) => lit.value().to_owned(),
-        Term::Triple(_) => String::new(),
-    }
-}
-
-/// `str(node)` for a subject node.
-fn subject_str(s: &NamedOrBlankNode) -> String {
-    match s {
-        NamedOrBlankNode::NamedNode(nn) => nn.as_str().to_owned(),
-        NamedOrBlankNode::BlankNode(bn) => bn.as_str().to_owned(),
-    }
-}
-
-fn term_is_literal(term: &Term) -> bool {
-    matches!(term, Term::Literal(_))
-}
-
-/// View a term as a subject node (for `graph.value(term, ...)` lookups), if it
-/// is an IRI or blank node.
-fn term_as_subject(term: &Term) -> Option<NamedOrBlankNode> {
-    match term {
-        Term::NamedNode(nn) => Some(NamedOrBlankNode::NamedNode(nn.clone())),
-        Term::BlankNode(bn) => Some(NamedOrBlankNode::BlankNode(bn.clone())),
-        _ => None,
-    }
-}
-
-// --------------------------------------------------------------------------- //
-// Graph access helpers
-// --------------------------------------------------------------------------- //
-
-/// All triples in the default graph, materialized for repeated iteration.
-fn default_graph_quads(store: &Store) -> Vec<Quad> {
-    store
-        .quads_for_pattern(None, None, None, Some(GraphNameRef::DefaultGraph))
-        .filter_map(Result::ok)
-        .collect()
-}
-
-/// `graph.value(subject, predicate)` — the first object of `(subject, predicate, *)`
-/// in the default graph, or `None`.
-fn value(store: &Store, subject: &NamedOrBlankNode, predicate: &NamedNode) -> Option<Term> {
-    let s: NamedOrBlankNodeRef<'_> = subject.as_ref();
-    let p: NamedNodeRef<'_> = predicate.as_ref();
-    store
-        .quads_for_pattern(Some(s), Some(p), None, Some(GraphNameRef::DefaultGraph))
-        .filter_map(Result::ok)
-        .next()
-        .map(|q| q.object)
-}
-
-/// All objects of `(subject, predicate, *)` in the default graph.
-fn objects(store: &Store, subject: &NamedOrBlankNode, predicate: &NamedNode) -> Vec<Term> {
-    let s: NamedOrBlankNodeRef<'_> = subject.as_ref();
-    let p: NamedNodeRef<'_> = predicate.as_ref();
-    store
-        .quads_for_pattern(Some(s), Some(p), None, Some(GraphNameRef::DefaultGraph))
-        .filter_map(Result::ok)
-        .map(|q| q.object)
-        .collect()
-}
-
-/// All subjects of `(*, predicate, object)` in the default graph.
-fn subjects_with(store: &Store, predicate: &NamedNode, object: &Term) -> Vec<NamedOrBlankNode> {
-    let p: NamedNodeRef<'_> = predicate.as_ref();
-    store
-        .quads_for_pattern(
-            None,
-            Some(p),
-            Some(object.as_ref()),
-            Some(GraphNameRef::DefaultGraph),
-        )
-        .filter_map(Result::ok)
-        .map(|q| q.subject)
-        .collect()
-}
-
-// --------------------------------------------------------------------------- //
 // Scope extraction
 // --------------------------------------------------------------------------- //
 
@@ -259,11 +166,6 @@ fn scope_from_node(
     // `ContextualScope::new` only fails on out-of-range confidence, which we have
     // already filtered to `None` above, so this never errors.
     ContextualScope::new(standpoint, time, confidence, modality, provenance).unwrap_or_default()
-}
-
-/// Construct a [`NamedNode`] from a known-valid IRI string.
-fn nn(iri: &str) -> NamedNode {
-    NamedNode::new(iri).unwrap_or_else(|e| panic!("invalid built-in IRI {iri:?}: {e}"))
 }
 
 // --------------------------------------------------------------------------- //
