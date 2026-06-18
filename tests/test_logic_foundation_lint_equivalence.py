@@ -28,14 +28,13 @@ from __future__ import annotations
 
 from pathlib import Path
 
-import pytest
-
 from gmeow_tools.graph import load_merged_graph
 from gmeow_tools.logic_runner import diff_case, run
 
 # Graph-accepting shim: serialize the merged graph and route it through the
 # graph-free production reasoning invariants (#579).
 from tests._graph_nt import reasoning_invariants
+from tests._required_native import require_gmeow_logic
 
 # --------------------------------------------------------------------------- #
 # AC#2 — regression: the real ontology stays clean under every reasoning lint.
@@ -91,10 +90,7 @@ def test_foundation_conformance_cases_are_green() -> None:
         and (d / "profile.json").exists()
     )
     # The six foundation cases (one per lowered discipline + the cross-world case).
-    pytest.importorskip(
-        "gmeow_logic",
-        reason="gmeow_logic native extension not installed — run 'make logic-py' first",
-    )
+    require_gmeow_logic()
     assert len(case_dirs) == 6, [d.name for d in case_dirs]
     for case_dir in case_dirs:
         outputs = run(case_dir)

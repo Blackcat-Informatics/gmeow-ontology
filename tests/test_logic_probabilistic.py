@@ -15,8 +15,8 @@ its committed golden, plus explicit red-if-violated guard assertions:
   4. probabilistic-no-model             — probabilistic facts with no declared
      model REFUSE with status "unknown".
 
-The module is skipped cleanly when the native extension is not installed, matching
-test_logic_query.py.
+The native extension is required. Missing ``gmeow_logic`` is a test-environment
+failure, not a skip.
 """
 
 from __future__ import annotations
@@ -26,10 +26,9 @@ from pathlib import Path
 
 import pytest
 
-gmeow_logic = pytest.importorskip(
-    "gmeow_logic",
-    reason=("gmeow_logic native extension not installed — run 'make logic-py' first"),
-)
+from tests._required_native import require_gmeow_logic
+
+gmeow_logic = require_gmeow_logic()
 
 # --------------------------------------------------------------------------- #
 # Repository paths
