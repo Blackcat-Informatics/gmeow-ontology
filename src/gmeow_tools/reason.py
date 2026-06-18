@@ -400,10 +400,22 @@ def _iri_term(value: str) -> str:
     return f"<{inner}>"
 
 
-def _rule_iri(rule_name: str) -> str:
-    """Mint a namespaced, percent-encoded IRI for a reasoning rule label."""
+def _rule_iri(rule_name: str | None) -> str:
+    """Mint a namespaced, percent-encoded IRI for a reasoning rule label.
+
+    Every *derived* (non-EDB) axiom must be labelled with the rule that produced
+    it. A ``None`` rule name on a derived axiom is an engine-invariant violation,
+    not a recoverable condition, so this fails loudly (no-optionality doctrine)
+    rather than minting a fabricated ``<.../None>`` IRI or silently dropping the
+    derivation's provenance.
+    """
     from urllib.parse import quote
 
+    if rule_name is None:
+        raise ValueError(
+            "derived axiom has no rule_name; the native engine must label every "
+            "inferred (non-EDB) axiom with the rule that produced it"
+        )
     return f"<{_RULE_IRI_BASE}{quote(rule_name, safe='')}>"
 
 
@@ -611,8 +623,19 @@ def build_dl_el_ledger_ttl(result: dict[str, Any]) -> str:
 
 
 def _escape_literal(value: str) -> str:
-    """Escape a string for embedding in a double-quoted Turtle literal."""
-    return value.replace("\\", "\\\\").replace('"', '\\"').replace("\n", "\\n")
+    """Escape a string for embedding in a double-quoted Turtle literal.
+
+    Backslash is escaped first (so later escapes are not doubled), then the
+    quote and the control characters Turtle forbids raw in a quoted literal —
+    newline, carriage return, and tab — are escaped to their two-character forms.
+    """
+    return (
+        value.replace("\\", "\\\\")
+        .replace('"', '\\"')
+        .replace("\n", "\\n")
+        .replace("\r", "\\r")
+        .replace("\t", "\\t")
+    )
 
 
 def _asserted_turtle(gts_bytes: bytes) -> str:
@@ -650,7 +673,7 @@ def reason_native(
 ) -> DiagnosticsReport:
     """Run the native EL/DL reasoning lane and emit its diagnostics + closure.
 
-    The Java/Docker-free authority lane (Principle 17): the Rust engine reasons
+    The Java/Docker-free authority lane (Principles 17 and 18): the Rust engine reasons
     the bundle, this builds the diagnostics report (consistency verdict,
     beyond-EL gaps, any inconsistency/unsatisfiability), folds in the four-box
     role audit, writes the inferred-closure RDF 1.2 artifact, and writes the
