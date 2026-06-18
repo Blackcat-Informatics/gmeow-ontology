@@ -73,8 +73,8 @@ collapse them into one overloaded relation.
 
 | Relation | Domain → Range | Meaning |
 |---|---|---|
-| `gmeow:realizesMentalMoment` | `MentalProcess` → `MentalMoment` | A process manifests or makes present an existing mental capacity or state. |
-| `gmeow:producesMentalMoment` | `MentalProcess` → `MentalMoment` | A process creates a new `MentalMoment` that did not exist before. |
+| `gmeow:realizesMentalMoment` | `MentalProcess` → `MentalMoment` | A process manifests or makes present an existing mental capacity or state — e.g., a `gmeow:MentalProcess` typed `gmeow:processPerception` realizes a perceptual `gmeow:MentalMoment`. |
+| `gmeow:producesMentalMoment` | `MentalProcess` → `MentalMoment` | A process creates a new `MentalMoment` that did not exist before — e.g., an `gmeow:InferenceProcess` `gmeow:producesMentalMoment` a new belief `gmeow:MentalMoment`. |
 | `gmeow:updatesMentalTenure` | `MentalProcess` → `TimeScopedRelation` | A process revises, extends, or closes a held, time-scoped mental tenure. |
 
 > **Why not `gmeow:realizes` / `gmeow:produces`?** The generic properties already serve the WEMI
