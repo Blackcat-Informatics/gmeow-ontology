@@ -215,8 +215,37 @@ pub fn structural_lint(store: &Store, cfg: &LintConfig) -> LintReport {
     let graph_box_role = ns_node(cfg, "graphBoxRole");
     let graph_box_role_class = ns_node(cfg, "GraphBoxRole");
 
+    // The `self` self-description ontology (`<namespace>self`) holds the project's
+    // own A-Box metadata — its contributions, citations, manifestations, license,
+    // and version IRI. Those individuals are instance data, not vocabulary
+    // surface, so the per-term annotation/graphBoxRole contract does not apply to
+    // them (the triad governs the vocabulary surface only). This matters when
+    // validating the committed GTS bundle, which folds in `metadata/gmeow-self.ttl`
+    // that the Turtle source set excludes (#644). A term is exempt when it is the
+    // `self` ontology header itself or is `rdfs:isDefinedBy <namespace>self`.
+    let self_ontology = format!("{}self", cfg.namespace);
+    let self_node = oxigraph::model::NamedNode::new_unchecked(&self_ontology);
+    let is_self_description = |term: &str| -> bool {
+        if term == self_ontology {
+            return true;
+        }
+        let subject = oxigraph::model::NamedNode::new_unchecked(term);
+        store
+            .quads_for_pattern(
+                Some((&subject).into()),
+                Some(rdfs::IS_DEFINED_BY),
+                Some((&self_node).into()),
+                None,
+            )
+            .next()
+            .is_some()
+    };
+
     // 1. Per-term required annotations (sorted by IRI — BTreeMap iterates sorted).
     for (term, kind) in &typed {
+        if is_self_description(term) {
+            continue;
+        }
         if !has_predicate(store, term, rdfs::LABEL) {
             report
                 .errors
@@ -794,6 +823,45 @@ mod tests {
             .errors
             .iter()
             .any(|e| e.contains("missing gmeow:graphBoxRole")));
+    }
+
+    #[test]
+    fn structural_exempts_self_description_abox() {
+        // A-Box individuals defined by the `self` self-description ontology are
+        // project metadata, not vocabulary surface, so the per-term annotation /
+        // graphBoxRole contract must not fire on them (#644). The same individual
+        // shape would be flagged if it were ordinary vocabulary.
+        let store = store_from(&format!(
+            "{PREFIXES}\
+             gmeow:self#contribution-bii a gmeow:Contribution ;\n\
+               rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/self> .\n"
+        ));
+        let report = structural_lint(&store, &cfg());
+        assert!(
+            !report.errors.iter().any(|e| e.contains("contribution-bii")),
+            "self-description A-Box must be exempt: {:?}",
+            report.errors
+        );
+    }
+
+    #[test]
+    fn structural_still_flags_vocabulary_individual() {
+        // A gmeow individual NOT defined by `self` (ordinary controlled
+        // vocabulary) is still held to the contract — the exemption is narrow.
+        let store = store_from(&format!(
+            "{PREFIXES}\
+             gmeow:roleAuthor a owl:NamedIndividual ;\n\
+               rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> .\n"
+        ));
+        let report = structural_lint(&store, &cfg());
+        assert!(
+            report
+                .errors
+                .iter()
+                .any(|e| e.contains("roleAuthor") && e.contains("graphBoxRole")),
+            "ordinary vocabulary individual must still be linted: {:?}",
+            report.errors
+        );
     }
 
     #[test]

@@ -637,9 +637,11 @@ fn validate_all_native(
     config: PyLintConfig,
     options: PyValidateOptions,
 ) -> PyResult<Py<PyAny>> {
-    if source_paths.is_empty() {
+    // Empty source_paths is only valid when a GTS bundle supplies the store
+    // (mirrors ValidationRun::run's own contract, #644).
+    if source_paths.is_empty() && options.gts_bytes.is_none() {
         return Err(pyo3::exceptions::PyValueError::new_err(
-            "validate_all_native: source_paths must not be empty",
+            "validate_all_native: source_paths must not be empty unless gts_bytes is provided",
         ));
     }
 
