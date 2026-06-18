@@ -34,7 +34,10 @@ pub(crate) fn term_str(term: &Term) -> String {
         Term::NamedNode(nn) => nn.as_str().to_owned(),
         Term::BlankNode(bn) => bn.as_str().to_owned(),
         Term::Literal(lit) => lit.value().to_owned(),
-        Term::Triple(_) => String::new(),
+        Term::Triple(_) => panic!(
+            "RDF-star quoted-triple terms are not supported in gmeow-logic v1 \
+             (Term::Triple cannot be stringified without silent data loss)"
+        ),
     }
 }
 
