@@ -20,7 +20,8 @@ isolated graph and never mutates the input — and is pinned by the Rust unit te
 ``counterfactual::tests::no_leakage_base_store_unchanged``; here we additionally
 assert the base store is observable unchanged after a counterfactual query.
 
-Skipped cleanly when the native extension is not installed (run 'make logic-py').
+The native extension is required. Missing ``gmeow_logic`` is a test-environment
+failure, not a skip.
 """
 
 from __future__ import annotations
@@ -30,10 +31,9 @@ from pathlib import Path
 
 import pytest
 
-gmeow_logic = pytest.importorskip(
-    "gmeow_logic",
-    reason="gmeow_logic native extension not installed — run 'make logic-py' first",
-)
+from tests._required_native import require_gmeow_logic
+
+gmeow_logic = require_gmeow_logic()
 
 _REPO_ROOT = Path(__file__).resolve().parents[1]
 _WORLDS_C = _REPO_ROOT / "conformance" / "logic" / "cases" / "worlds-C"

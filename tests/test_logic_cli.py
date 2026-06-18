@@ -23,6 +23,7 @@ import pytest
 from typer.testing import CliRunner
 
 from gmeow_tools.cli_dev import app as dev_app
+from tests._required_native import require_gmeow_logic
 
 if TYPE_CHECKING:
     from gmeow_tools.generator import Generator
@@ -162,7 +163,7 @@ def _query_case(name: str) -> Path:
 
 def test_logic_query_recursive_ancestor(runner: CliRunner) -> None:
     """`logic query` resolves a tabled recursive goal to the transitive closure."""
-    pytest.importorskip("gmeow_logic", reason="run 'make logic-py' first")
+    require_gmeow_logic()
     case = _query_case("goal-recursive-ancestor")
     result = runner.invoke(
         dev_app,
@@ -190,7 +191,7 @@ def test_logic_query_recursive_ancestor(runner: CliRunner) -> None:
 
 def test_logic_query_cut_rejected_outside_procedural(runner: CliRunner) -> None:
     """Cut under a non-ProceduralPrologProfile profile hard-fails (AC-2 gate)."""
-    pytest.importorskip("gmeow_logic", reason="run 'make logic-py' first")
+    require_gmeow_logic()
     case = _query_case("goal-procedural-cut")
     result = runner.invoke(
         dev_app,

@@ -23,8 +23,8 @@ equivalent gUFO schema (cross-checked against the lint in development); the
 ``mixrig-kind-under-role`` case in particular asserts the MixRig catch (AC#3).
 
 A second test re-runs ``diff_case(run(case_dir))`` per case and asserts zero diffs,
-pinning the goldens to the runner oracle (the locally authoritative path; the native
-engine is not built in this environment).
+pinning the goldens to the runner oracle. The native logic engine is required;
+missing ``gmeow_logic`` is a test-environment failure, not a skip.
 """
 
 from __future__ import annotations
@@ -35,6 +35,7 @@ import pytest
 
 from gmeow_tools.logic_runner import diff_case
 from gmeow_tools.logic_runner import run as logic_run
+from tests._required_native import require_gmeow_logic
 
 # --------------------------------------------------------------------------- #
 # Constants
@@ -218,10 +219,7 @@ def test_mixrig_ac3_is_caught() -> None:
 @pytest.mark.parametrize("case", _CASES)
 def test_runner_diff_against_golden_is_clean(case: str) -> None:
     """``diff_case(run(case))`` reports zero diffs — goldens pinned to the oracle."""
-    pytest.importorskip(
-        "gmeow_logic",
-        reason="gmeow_logic native extension not installed — run 'make logic-py' first",
-    )
+    require_gmeow_logic()
     case_dir = _FOUNDATION_ROOT / case
     result = diff_case(logic_run(case_dir))
     assert result.passed, f"{case}: diff_case reported:\n" + "\n".join(result.diffs)

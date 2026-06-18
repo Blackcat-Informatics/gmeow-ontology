@@ -38,7 +38,7 @@ The Python `gmeow_validate` extension (PyO3/maturin) exposes:
 ## Build
 
 > **Toolchain requirement:** nightly Rust is required. The repo ships a
-> `rust-toolchain.toml` at the root that pins the channel to `nightly`;
+> `rust-toolchain.toml` at the root that selects the latest available `nightly`;
 > `cargo` and `rustup` pick this up automatically. This crate does NOT link
 > Nemo, so the `crates/logic` zstd/TMPDIR build workarounds are not needed.
 

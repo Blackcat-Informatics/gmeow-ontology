@@ -11,8 +11,8 @@ Covers the four conformance cases under conformance/logic/cases/profiles/:
 Also verifies that the same cut program under PositiveHornProfile raises ValueError
 (profile gate enforcement — AC-2 negative path).
 
-The module is skipped cleanly (pytest.importorskip) when the native extension has
-not been installed, matching the convention established in test_logic_engine.py.
+The native extension is required. Missing ``gmeow_logic`` is a test-environment
+failure, not a skip.
 """
 
 from __future__ import annotations
@@ -22,10 +22,9 @@ from pathlib import Path
 
 import pytest
 
-gmeow_logic = pytest.importorskip(
-    "gmeow_logic",
-    reason=("gmeow_logic native extension not installed — run 'make logic-py' first"),
-)
+from tests._required_native import require_gmeow_logic
+
+gmeow_logic = require_gmeow_logic()
 
 # --------------------------------------------------------------------------- #
 # Repository paths

@@ -9,19 +9,17 @@ Covers:
   and the Python oracle (gmeow_tools.logic_frontend + LogicProgram) also
   produces an empty canonical output for empty logic source.
 
-The module is skipped cleanly (pytest.importorskip) when the native extension
-has not been installed, which allows the test suite to run in environments
-where maturin develop has not been executed yet (e.g. pure-Python CI lanes).
+The native extension is required. Missing ``gmeow_logic`` is a test-environment
+failure, not a skip.
 """
 
 from __future__ import annotations
 
 import pytest
 
-gmeow_logic = pytest.importorskip(
-    "gmeow_logic",
-    reason=("gmeow_logic native extension not installed — run 'make logic-py' first"),
-)
+from tests._required_native import require_gmeow_logic
+
+gmeow_logic = require_gmeow_logic()
 
 # ── Fixtures ──────────────────────────────────────────────────────────────────
 
