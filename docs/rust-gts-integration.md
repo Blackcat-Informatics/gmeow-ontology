@@ -140,6 +140,6 @@ whether the triples came from the source tree or the bundle.
 
 This mirrors the gts / gmeow seam: `gts` performs file-level operations
 (verify, never convert), while `gmeow` performs ontology-level operations.
-Validating a bundle is GMEOW reading a graph that GTS produced and verified,
-through the one narrow waist described in
+Validating a bundle amounts to GMEOW reading a graph that GTS produced and
+verified, through the one narrow waist described in
 [the narrow-waist doctrine](./gts-narrow-waist.md).
