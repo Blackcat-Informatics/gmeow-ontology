@@ -27,6 +27,7 @@ from __future__ import annotations
 import logging
 from collections.abc import Sequence
 from pathlib import Path
+from typing import cast
 
 import gmeow_logic
 
@@ -111,7 +112,7 @@ class LogicGenerator(Generator):
             raise CompileError(f"logic: compile failed: {exc}") from exc
 
         # --- Surface parse diagnostics as warnings (fail-soft contract) --
-        for diag in result.get("diagnostics", []):
+        for diag in result["diagnostics"]:
             log.warning(
                 "logic: parse diagnostic [%s] %s: %s",
                 diag["severity"],
@@ -119,8 +120,12 @@ class LogicGenerator(Generator):
                 diag["message"],
             )
 
-        # Alias for artifact access (diagnostics key excluded from writes).
-        artifacts = result
+        # Cast to plain str-keyed mapping for dynamic-key artifact operations.
+        # The TypedDict return type enforces the exact keys at literal call sites;
+        # here we need a runtime loop over the 8 artifact keys, which mypy cannot
+        # verify statically on a TypedDict.  The cast is safe: every key in
+        # `outputs` is a declared field of CompileLogicResult.
+        artifacts: dict[str, str] = cast("dict[str, str]", result)
 
         # --- Map artifact name → committed path, write into staging ------
         def _staged(committed: Path) -> Path:
