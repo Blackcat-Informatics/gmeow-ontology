@@ -196,6 +196,22 @@ pub(crate) fn cautious_materialize(
         for f in &first.atoms {
             first_model.insert(f.clone());
         }
+
+        // A cautious derivation may cite only antecedents that are themselves in the
+        // cautious materialization — the asserted EDB or another cautious head.
+        // Otherwise its source quad is absent from the emitted set and the provenance
+        // would dangle.  Precompute the admissible source reifiers so the loop below
+        // can hard-fail (rather than silently emit) on a non-cautious antecedent.
+        let mut allowed_reifiers: BTreeSet<String> = BTreeSet::new();
+        for f in &edb_facts {
+            allowed_reifiers.insert(f.reifier()?);
+        }
+        for f in &first.atoms {
+            if cautious_keys.contains(&f.key()) {
+                allowed_reifiers.insert(f.reifier()?);
+            }
+        }
+
         let derivations = least_model_of_reduct(&edb, rules, &first_model)?.derivations;
 
         for row in derivations {
@@ -207,12 +223,22 @@ pub(crate) fn cautious_materialize(
             if !cautious_keys.contains(&key) {
                 continue;
             }
-            // The reduct engine's source_quad_ids reference the antecedent reifiers;
-            // a cautious atom whose derivation depends on a non-cautious atom cannot
-            // be soundly stamped.  In the corpus this branch is never taken (cautious
-            // set is empty), so we conservatively reject it.
-            // (Antecedent atoms are not re-decoded here; we trust the reduct rows,
-            // which are already filtered to cautious heads.)
+            // Hard error (no-optionality): a cautious atom whose firing rests on a
+            // non-cautious positive antecedent cannot be soundly stamped.  This branch
+            // is never reached by the Phase-A corpus (its cautious set is empty); it is
+            // the documented v1 limitation made real, NOT a silent skip.
+            for src in &row.source_quad_ids {
+                if !allowed_reifiers.contains(src) {
+                    return Err(format!(
+                        "stablemodel: cautious atom <{}> <{}> {} cites non-cautious \
+                         antecedent {src} — unsound provenance (gmeow-logic v1 does not \
+                         materialize cautious consequences with non-cautious support)",
+                        row.subject,
+                        row.predicate.as_str(),
+                        row.object
+                    ));
+                }
+            }
             out.push(DerivedRow {
                 graph: world.clone(),
                 ..row

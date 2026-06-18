@@ -127,7 +127,7 @@ impl Fact {
     }
 
     /// The reifier IRI for this fact, via the golden-pinned recipe.
-    fn reifier(&self) -> Result<String, String> {
+    pub(crate) fn reifier(&self) -> Result<String, String> {
         mint_reifier(&self.subject, &self.predicate, &self.object)
     }
 }
@@ -203,20 +203,17 @@ pub(crate) struct DerivedRow {
 /// Sort rows canonically by `(graph, subject, predicate, object)` N3 surfaces —
 /// the same deterministic order the Nemo path and `foundation.rs` emit. Shared by
 /// the well-founded and stable-model materializers.
+///
+/// Uses `sort_by_cached_key` so each row's string key is materialized once (O(n)
+/// allocations) rather than on every comparison.
 pub(crate) fn sort_rows(rows: &mut [DerivedRow]) {
-    rows.sort_by(|a, b| {
+    rows.sort_by_cached_key(|r| {
         (
-            &a.graph,
-            a.subject.to_string(),
-            a.predicate.as_str(),
-            a.object.to_string(),
+            r.graph.clone(),
+            r.subject.to_string(),
+            r.predicate.as_str().to_owned(),
+            r.object.to_string(),
         )
-            .cmp(&(
-                &b.graph,
-                b.subject.to_string(),
-                b.predicate.as_str(),
-                b.object.to_string(),
-            ))
     });
 }
 

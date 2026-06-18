@@ -89,6 +89,7 @@ from gmeow_tools.logic_seam import (
     DerivedQuad,
     Explanation,
     ExplanationStep,
+    LossEntry,
     MaterializationResult,
 )
 
@@ -313,11 +314,18 @@ def _materialize_to_nquads(result: MaterializationResult) -> str:
 # --------------------------------------------------------------------------- #
 
 
-def _run_projections(program: LogicProgram) -> ProjectionOutputs:
+def _run_projections(
+    program: LogicProgram,
+    materialization_loss_entries: tuple[LossEntry, ...] = (),
+) -> ProjectionOutputs:
     """Run all 7 projection back-ends and build the preservation ledger.
 
     Args:
         program: The compiled logic program to project.
+        materialization_loss_entries: Loss recorded by the materialization phase,
+            folded into the preservation report. The native evaluators apply the
+            declared semantics fully, so this is empty today; threading it keeps the
+            seam contract honest (any future loss-recording path reaches the ledger).
 
     Returns:
         A :class:`ProjectionOutputs` with all 7 results, the report graph,
@@ -340,7 +348,11 @@ def _run_projections(program: LogicProgram) -> ProjectionOutputs:
     all_projections = [r_dl, r_el, r_datalog, r_n3, r_gufo, r_rdf12, r_nemo]
 
     try:
-        report_graph = build_projection_report(program, all_projections)
+        report_graph = build_projection_report(
+            program,
+            all_projections,
+            materialization_loss_entries=list(materialization_loss_entries),
+        )
     except Exception as exc:
         raise RunnerError(f"build_projection_report failed: {exc}") from exc
 
@@ -709,7 +721,11 @@ def _materialize_native(
     return MaterializationResult(
         quads=tuple(quads),
         worlds=worlds,
-        profile=str(SemanticProfileId.POSITIVE_HORN),
+        # Label the artifact with the profile the run was actually computed under
+        # (PositiveHorn / stratified NAF via Nemo, WellFounded / StableModel via the
+        # native evaluators) rather than a hardcoded PositiveHorn — the native
+        # evaluators apply the declared semantics fully, so the artifact must say so.
+        profile=semantic_profile_str,
         # The native evaluators apply the declared semantics fully (well-founded /
         # cautious-stable / stratified NAF) — there is no positive over-approximation,
         # so there is nothing to record as projection loss.
@@ -1132,7 +1148,7 @@ def run(case_dir: Path, mode: str = "native") -> RunnerOutputs:
     answers = _resolve_answers(case_dir, nquads_str, query_profile, budget)
 
     # Projections
-    proj_outputs = _run_projections(program)
+    proj_outputs = _run_projections(program, mat_result.loss_entries)
 
     # Explanations (over whatever quads exist; empty for projection-only cases)
     explanations = _run_explanations(mat_result)
