@@ -13,6 +13,8 @@ use crate::{
     RdfStoreCapabilities, RdfSuppressionRecord, RdfTerm, RdfTriple,
 };
 
+const MAX_GTS_TERM_NESTING_DEPTH: usize = 16;
+
 /// RDF store view over a folded GTS graph.
 #[derive(Debug, Clone, Copy)]
 pub struct GtsGraphStore<'a> {
@@ -395,9 +397,20 @@ fn triple_from_ids(
     o: usize,
     location: RdfLocation,
 ) -> Result<RdfTriple, RdfDiagnostic> {
-    let subject = term_from_id(graph, s, location.clone())?;
-    let predicate = predicate_from_id(graph, p, location.clone())?;
-    let object = term_from_id(graph, o, location.clone())?;
+    triple_from_ids_depth(graph, s, p, o, location, 0)
+}
+
+fn triple_from_ids_depth(
+    graph: &Graph,
+    s: usize,
+    p: usize,
+    o: usize,
+    location: RdfLocation,
+    depth: usize,
+) -> Result<RdfTriple, RdfDiagnostic> {
+    let subject = term_from_id_depth(graph, s, location.clone(), depth)?;
+    let predicate = predicate_from_id_depth(graph, p, location.clone(), depth)?;
+    let object = term_from_id_depth(graph, o, location.clone(), depth)?;
     Ok(RdfTriple::new(subject, predicate, object).with_location(location))
 }
 
@@ -406,7 +419,16 @@ fn predicate_from_id(
     term_id: usize,
     location: RdfLocation,
 ) -> Result<String, RdfDiagnostic> {
-    match term_from_id(graph, term_id, location.clone())? {
+    predicate_from_id_depth(graph, term_id, location, 0)
+}
+
+fn predicate_from_id_depth(
+    graph: &Graph,
+    term_id: usize,
+    location: RdfLocation,
+    depth: usize,
+) -> Result<String, RdfDiagnostic> {
+    match term_from_id_depth(graph, term_id, location.clone(), depth)? {
         RdfTerm::Iri(iri) => Ok(iri),
         other => Err(RdfDiagnostic::error(
             "gts-predicate-not-iri",
@@ -421,6 +443,22 @@ fn term_from_id(
     term_id: usize,
     location: RdfLocation,
 ) -> Result<RdfTerm, RdfDiagnostic> {
+    term_from_id_depth(graph, term_id, location, 0)
+}
+
+fn term_from_id_depth(
+    graph: &Graph,
+    term_id: usize,
+    location: RdfLocation,
+    depth: usize,
+) -> Result<RdfTerm, RdfDiagnostic> {
+    if depth > MAX_GTS_TERM_NESTING_DEPTH {
+        return Err(RdfDiagnostic::error(
+            "gts-term-nesting-limit",
+            "GTS term nesting depth limit exceeded",
+        )
+        .with_location(location.with_gts_term(term_id)));
+    }
     let term = graph.terms.get(term_id).ok_or_else(|| {
         RdfDiagnostic::error(
             "gts-term-out-of-range",
@@ -429,7 +467,16 @@ fn term_from_id(
         .with_location(location.clone().with_gts_term(term_id))
     })?;
     match term.kind {
-        TermKind::Iri => Ok(RdfTerm::iri(term.value.as_deref().unwrap_or_default())),
+        TermKind::Iri => {
+            let Some(iri) = term.value.as_deref().filter(|value| !value.is_empty()) else {
+                return Err(RdfDiagnostic::error(
+                    "gts-iri-missing-value",
+                    "GTS IRI term requires a non-empty value",
+                )
+                .with_location(location.with_gts_term(term_id)));
+            };
+            Ok(RdfTerm::iri(iri))
+        }
         TermKind::Bnode => Ok(RdfTerm::blank_node(
             term.value
                 .clone()
@@ -437,19 +484,21 @@ fn term_from_id(
         )),
         TermKind::Literal => {
             let datatype = match term.datatype {
-                Some(datatype_id) => match term_from_id(graph, datatype_id, location.clone())? {
-                    RdfTerm::Iri(iri) => Some(iri),
-                    other => {
-                        return Err(RdfDiagnostic::error(
-                            "gts-literal-datatype-not-iri",
-                            format!(
-                                "GTS literal datatype must resolve to an IRI, got {:?}",
-                                other.kind()
-                            ),
-                        )
-                        .with_location(location.with_gts_term(datatype_id)));
+                Some(datatype_id) => {
+                    match term_from_id_depth(graph, datatype_id, location.clone(), depth + 1)? {
+                        RdfTerm::Iri(iri) => Some(iri),
+                        other => {
+                            return Err(RdfDiagnostic::error(
+                                "gts-literal-datatype-not-iri",
+                                format!(
+                                    "GTS literal datatype must resolve to an IRI, got {:?}",
+                                    other.kind()
+                                ),
+                            )
+                            .with_location(location.with_gts_term(datatype_id)));
+                        }
                     }
-                },
+                }
                 None => None,
             };
             Ok(RdfTerm::literal(RdfLiteral {
@@ -474,12 +523,13 @@ fn term_from_id(
                 )
                 .with_location(location.with_gts_term(term_id).with_gts_reifier(reifier_id)));
             };
-            Ok(RdfTerm::triple(triple_from_ids(
+            Ok(RdfTerm::triple(triple_from_ids_depth(
                 graph,
                 s,
                 p,
                 o,
                 location.with_gts_reifier(reifier_id),
+                depth + 1,
             )?))
         }
     }
@@ -596,6 +646,55 @@ mod tests {
         let result = read_all_segments(b"not a valid gts file");
         assert!(result.is_err(), "bad GTS bytes must fail");
         assert_eq!(result.unwrap_err().code, "gts-fold-diagnostic");
+    }
+
+    #[test]
+    fn cyclic_triple_terms_hit_nesting_limit() {
+        let mut graph = Graph::default();
+        graph.terms.push(Term {
+            kind: TermKind::Triple,
+            value: None,
+            datatype: None,
+            lang: None,
+            reifier: Some(0),
+        });
+        graph.terms.push(Term {
+            kind: TermKind::Iri,
+            value: Some("https://example.org/p".to_owned()),
+            datatype: None,
+            lang: None,
+            reifier: None,
+        });
+        graph.terms.push(Term {
+            kind: TermKind::Iri,
+            value: Some("https://example.org/o".to_owned()),
+            datatype: None,
+            lang: None,
+            reifier: None,
+        });
+        graph.reifiers.push((0, (0, 1, 2)));
+
+        let err = term_from_id(&graph, 0, RdfLocation::logical("test"))
+            .expect_err("cyclic triple term should hit nesting limit");
+        assert_eq!(err.code, "gts-term-nesting-limit");
+    }
+
+    #[test]
+    fn iri_terms_require_non_empty_values() {
+        for value in [None, Some("")] {
+            let mut graph = Graph::default();
+            graph.terms.push(Term {
+                kind: TermKind::Iri,
+                value: value.map(str::to_owned),
+                datatype: None,
+                lang: None,
+                reifier: None,
+            });
+
+            let err = term_from_id(&graph, 0, RdfLocation::logical("test"))
+                .expect_err("invalid GTS IRI term should fail");
+            assert_eq!(err.code, "gts-iri-missing-value");
+        }
     }
 
     #[test]
