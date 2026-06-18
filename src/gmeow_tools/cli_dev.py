@@ -573,7 +573,15 @@ def reason(
     from gmeow_tools.runner import ToolExecutionError, ToolUnavailableError
 
     if mode == "native":
-        report = reasoning.reason_native(merge=merge)
+        try:
+            report = reasoning.reason_native(merge=merge)
+        except (ToolUnavailableError, ToolExecutionError) as exc:
+            raise _fail(f"native reasoning failed: {exc}") from exc
+        except (ValueError, RuntimeError, OSError) as exc:
+            # ValueError: unreadable GTS bundle; RuntimeError: native chase
+            # failure; OSError: artifact write failure. Render as a formatted
+            # diagnostic instead of leaking a raw traceback.
+            raise _fail(f"native reasoning failed: {exc}") from exc
         emit_legacy_cli(report, err_console)
         if report.ok:
             console.print("[green]✓ native EL/DL reasoning (Docker-free)[/green]")
