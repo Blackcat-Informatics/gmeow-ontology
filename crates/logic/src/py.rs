@@ -1131,15 +1131,27 @@ fn reason_native(py: Python<'_>, gts_bytes: &[u8]) -> PyResult<Py<PyAny>> {
     // The GtsGraphStore borrows the Graph, which is not Send; build BOTH the graph
     // and the store inside the GIL-released closure (moving the bytes in) so the
     // detached work is self-contained. `reason_all` runs the single chase here.
+    // Distinguish the two failure modes per the docstring: a GTS read/parse
+    // failure is a caller-input error (`ValueError`); a reasoning failure (chase
+    // parse/validate/evaluate/decode, or a gap-scan quad-read) is a `RuntimeError`.
+    enum ReasonNativeError {
+        GtsRead(String),
+        Reason(String),
+    }
     let bytes = gts_bytes.to_vec();
-    let read_result: Result<crate::reason::ReasonResult, String> = py.detach(move || {
-        let graph =
-            gmeow_rdf::gts::read_graph(&bytes, true).map_err(|e| format!("GTS read error: {e}"))?;
-        let store = gmeow_rdf::gts::GtsGraphStore::new(&graph);
-        crate::reason::reason_all(&store)
-    });
-    let result = read_result
-        .map_err(|e| pyo3::exceptions::PyRuntimeError::new_err(format!("reason error: {e}")))?;
+    let read_result: Result<crate::reason::ReasonResult, ReasonNativeError> =
+        py.detach(move || {
+            let graph = gmeow_rdf::gts::read_graph(&bytes, true)
+                .map_err(|e| ReasonNativeError::GtsRead(format!("GTS read error: {e}")))?;
+            let store = gmeow_rdf::gts::GtsGraphStore::new(&graph);
+            crate::reason::reason_all(&store).map_err(ReasonNativeError::Reason)
+        });
+    let result = read_result.map_err(|e| match e {
+        ReasonNativeError::GtsRead(m) => pyo3::exceptions::PyValueError::new_err(m),
+        ReasonNativeError::Reason(m) => {
+            pyo3::exceptions::PyRuntimeError::new_err(format!("reason error: {m}"))
+        }
+    })?;
 
     let out = PyDict::new(py);
     out.set_item("consistent", result.verdict.consistent)?;
