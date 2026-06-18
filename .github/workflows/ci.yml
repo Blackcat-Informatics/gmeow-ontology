@@ -249,6 +249,9 @@ jobs:
       - name: Build + install gmeow_shacl extension (#578 — validate runs through it)
         run: VIRTUAL_ENV="$PWD/.venv" uvx maturin develop --manifest-path crates/shacl/Cargo.toml
 
+      - name: Build + install gmeow_logic extension (#664 — logic generator imports it)
+        run: VIRTUAL_ENV="$PWD/.venv" uvx maturin develop --manifest-path crates/logic/Cargo.toml
+
       - name: Build + install gmeow_validate extension (#579 — validation runs through it)
         run: VIRTUAL_ENV="$PWD/.venv" uvx maturin develop --manifest-path crates/validate/Cargo.toml
 

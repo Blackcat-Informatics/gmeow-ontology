@@ -11,6 +11,9 @@ use oxigraph::io::{RdfFormat, RdfParser};
 use oxigraph::model::Term;
 use oxigraph::store::Store;
 
+use gmeow_rdf::oxigraph::{store_from_rdf_store, GraphPolicy};
+use gmeow_rdf::RdfStore;
+
 use crate::model::{rdf, rdfs};
 use crate::report::ValidationReport;
 use crate::shapes::{Shapes, Target};
@@ -202,6 +205,26 @@ pub fn validate(data: &Store, shapes: &Shapes) -> ValidationReport {
     }
 }
 
+/// Validate any [`gmeow_rdf::RdfStore`] against parsed SHACL shapes.
+///
+/// The source store is materialized into oxigraph through the shared RDF 1.2
+/// adapter boundary. Named graphs are flattened so GTS bundle partitions behave
+/// like the repository's Turtle source merge, which loads all inputs into one
+/// default graph.
+///
+/// # Errors
+///
+/// Returns an error string if the source store cannot be materialized into
+/// oxigraph.
+pub fn validate_rdf_store(
+    data: &impl RdfStore,
+    shapes: &Shapes,
+) -> Result<ValidationReport, String> {
+    let data = store_from_rdf_store(data, GraphPolicy::FlattenToDefaultGraph)
+        .map_err(|e| e.to_string())?;
+    Ok(validate(&data, shapes))
+}
+
 /// Parse a SHACL shapes graph from a Turtle string.
 ///
 /// Creates an in-memory store, loads the shapes graph with prefix extraction,
@@ -268,6 +291,20 @@ pub fn validate_graphs(data_nt: &str, shapes_ttl: &str) -> Result<ValidationRepo
     Ok(validate(&data, &shapes))
 }
 
+/// Validate any [`gmeow_rdf::RdfStore`] against a Turtle SHACL shapes graph.
+///
+/// # Errors
+///
+/// Returns an error string if the shapes graph fails to parse or if the source
+/// store cannot be materialized into oxigraph.
+pub fn validate_rdf_store_graphs(
+    data: &impl RdfStore,
+    shapes_ttl: &str,
+) -> Result<ValidationReport, String> {
+    let shapes = parse_shapes(shapes_ttl)?;
+    validate_rdf_store(data, &shapes)
+}
+
 // ── Tests ─────────────────────────────────────────────────────────────────────
 
 #[cfg(test)]
@@ -312,6 +349,42 @@ mod tests {
             report.results.is_empty(),
             "empty report must have no results"
         );
+    }
+
+    #[test]
+    fn rdf_store_entrypoint_validates_gts_backed_graph() {
+        use gmeow_gts::model::{Graph, Term as GtsTerm, TermKind};
+        use gmeow_rdf::gts::GtsGraphStore;
+
+        let mut graph = Graph::default();
+        for value in [
+            "http://example.org/ns#a",
+            "http://example.org/ns#p",
+            "http://example.org/ns#b",
+        ] {
+            graph.terms.push(GtsTerm {
+                kind: TermKind::Iri,
+                value: Some(value.to_owned()),
+                datatype: None,
+                lang: None,
+                reifier: None,
+            });
+        }
+        graph.quads.push((0, 1, 2, None));
+
+        let shapes_ttl = format!(
+            "{PREFIXES}
+            ex:Shape a sh:NodeShape ;
+                sh:targetNode ex:a ;
+                sh:property [
+                    sh:path ex:missing ;
+                    sh:minCount 1 ;
+                ] ."
+        );
+        let report = validate_rdf_store_graphs(&GtsGraphStore::new(&graph), &shapes_ttl)
+            .expect("GTS-backed store should validate");
+        assert!(!report.conforms, "missing property must violate the shape");
+        assert_eq!(report.results.len(), 1);
     }
 
     #[test]

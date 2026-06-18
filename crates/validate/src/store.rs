@@ -191,44 +191,7 @@ pub fn build_store_from_nt(data_nt: &str) -> Result<Store, String> {
 /// (fail-fast) so callers never receive a silent partial store from malformed
 /// or truncated GTS bytes.
 pub fn build_store_from_gts(bytes: &[u8]) -> Result<Store, String> {
-    // allow_segments = true: fold ALL segments of the bundle. With false, a
-    // multi-segment bundle emits a fatal SegmentBoundary diagnostic and silently
-    // drops everything past the first segment — invalid for validating a complete
-    // bundle.
-    let graph = gmeow_gts::reader::read(bytes, true, None);
-    if !graph.diagnostics.is_empty() {
-        let joined = graph
-            .diagnostics
-            .iter()
-            .map(|d| format!("{}: {}", d.code, d.detail))
-            .collect::<Vec<_>>()
-            .join("; ");
-        return Err(format!(
-            "GTS fold reported {} diagnostic(s): {}",
-            graph.diagnostics.len(),
-            joined
-        ));
-    }
-    let nquads = gmeow_gts::nquads::to_nquads(&graph);
-    let store = Store::new().map_err(|e| format!("store creation failed: {e}"))?;
-    for quad in RdfParser::from_format(RdfFormat::NQuads)
-        .lenient()
-        .for_reader(nquads.as_bytes())
-    {
-        let quad = quad.map_err(|e| format!("GTS N-Quads parse error: {e}"))?;
-        // Collapse every named graph into the default graph so the validation
-        // store matches the flattened union the Turtle source merge produces.
-        let triple = Quad::new(
-            quad.subject,
-            quad.predicate,
-            quad.object,
-            GraphNameRef::DefaultGraph,
-        );
-        store
-            .insert(&triple)
-            .map_err(|e| format!("GTS store insert failed: {e}"))?;
-    }
-    Ok(store)
+    gmeow_rdf::gts::flattened_oxigraph_store_from_bytes(bytes).map_err(|e| e.to_string())
 }
 
 /// Serialize a [`Store`]'s default graph to canonical N-Triples text.

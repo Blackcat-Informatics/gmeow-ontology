@@ -1,0 +1,30 @@
+// SPDX-FileCopyrightText: 2026 Blackcat Informatics Inc. <paudley@blackcatinformatics.ca>
+// SPDX-License-Identifier: AGPL-3.0-only
+
+//! `gmeow-rdf` -- PyO3-free RDF 1.2 kernel for the GMEOW Rust workspace.
+//!
+//! The crate is the narrow waist between transport/runtime stores (GTS,
+//! oxigraph, and future logic stores) and consumers such as SHACL, validate, and
+//! LOGIC. It models RDF 1.2 terms directly, preserves source/location context
+//! where adapters can provide it, and keeps reporting structured but SARIF-free.
+
+pub mod diagnostic;
+#[cfg(feature = "gts")]
+pub mod gts;
+pub mod lookaside;
+pub mod model;
+#[cfg(feature = "oxigraph")]
+pub mod oxigraph;
+pub mod store;
+
+pub use diagnostic::{RdfDiagnostic, RdfLocation, RdfLoss, RdfSeverity};
+pub use lookaside::{
+    RdfBlobRecord, RdfLookaside, RdfLookasideKind, RdfLookasideResource, RdfMetadataEntry,
+    RdfMetadataValue, RdfOpaqueNodeRecord, RdfSegmentRecord, RdfSignatureRecord,
+    RdfSuppressionRecord,
+};
+pub use model::{
+    RdfAnnotation, RdfLiteral, RdfQuad, RdfReifier, RdfTerm, RdfTermKind, RdfTextDirection,
+    RdfTriple,
+};
+pub use store::{RdfStore, RdfStoreCapabilities, VecRdfStore};
