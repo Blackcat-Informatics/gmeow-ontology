@@ -190,7 +190,7 @@ equivalence.
 
 The native `gmeow:scaleKnowledgeDepth` is the default scale; Bloom's revised
 taxonomy (`gmeow:scaleBloomRevised`), SOLO (`gmeow:scaleSOLO`), and Dreyfus
-(`gmeow:scaleDreyfus`, from `languages`) are reusable alternate
+(`gmeow:scaleDreyfus`, from `expertise`) are reusable alternate
 `gmeow:ProficiencyScale`s — **no canonical framework is enforced** (Principle 6).
 The band correspondence below is a *soft, documented* alignment (this ledger), never
 an OWL axiom; the knows-axis and the can-do-axis are never silently bridged (P9):
