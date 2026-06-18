@@ -389,6 +389,23 @@ def test_dev_i18n_extract_produces_docs_pot_files(
     assert 'msgctxt "README.md|' in readme_pot.read_text(encoding="utf-8")
 
 
+def test_dev_i18n_extract_lang_includes_language_tag_in_paths(
+    runner: CliRunner, tmp_path: Path
+) -> None:
+    out = tmp_path / "i18n"
+    result = runner.invoke(
+        dev_app, ["i18n", "extract", "--output-dir", str(out), "--lang", "fr"]
+    )
+    assert result.exit_code == 0, result.output
+    po = out / "slices" / "core" / "lifecycle" / "i18n" / "fr.po"
+    assert po.exists(), result.output
+    assert '"Language: fr\\n"' in po.read_text(encoding="utf-8")
+    assert (out / "ontology-docs-templates.fr.po").exists(), result.output
+    readme_po = out / "docs" / "README.md.fr.po"
+    assert readme_po.exists(), result.output
+    assert 'msgctxt "README.md|' in readme_po.read_text(encoding="utf-8")
+
+
 def test_dev_i18n_extract_terms_only_skips_docs(
     runner: CliRunner, tmp_path: Path
 ) -> None:

@@ -2197,17 +2197,28 @@ def _i18n_output_path(
     slice_iri: str,
     slices_by_iri: dict[str, Slice],
     output_dir: Path,
-    ext: str,
+    lang: str | None,
 ) -> Path:
     """Return the output path for a slice or namespace grouping."""
     slice_info = slices_by_iri.get(slice_iri)
     if slice_info is not None:
-        return output_dir / "slices" / slice_info.group / f"{slice_info.name}.{ext}"
+        if lang is None:
+            return output_dir / "slices" / slice_info.group / f"{slice_info.name}.pot"
+        return (
+            output_dir
+            / "slices"
+            / slice_info.group
+            / slice_info.name
+            / "i18n"
+            / f"{lang}.po"
+        )
     local = slice_iri.rstrip("/#").split("/")[-1] if "/" in slice_iri else slice_iri
     if not local:
         local = "_"
     safe = "".join(c if c.isalnum() or c in "-_" else "_" for c in local)[:64]
-    return output_dir / "slices" / "_core" / f"{safe}.{ext}"
+    if lang is None:
+        return output_dir / "slices" / "_core" / f"{safe}.pot"
+    return output_dir / "slices" / "_core" / safe / "i18n" / f"{lang}.po"
 
 
 @i18n_app.command(name="extract")
@@ -2297,8 +2308,7 @@ def extract_catalog(
         total_keys += 1
 
     for slice_iri, keys in groups.items():
-        ext = "po" if lang else "pot"
-        path = _i18n_output_path(slice_iri, slices_by_iri, output_dir, ext)
+        path = _i18n_output_path(slice_iri, slices_by_iri, output_dir, lang)
         path.parent.mkdir(parents=True, exist_ok=True)
         if lang:
             entries = [
@@ -2316,7 +2326,6 @@ def extract_catalog(
     if not terms_only:
         docs_output = output_dir / "docs"
         docs_output.mkdir(parents=True, exist_ok=True)
-        ext = "po" if lang else "pot"
 
         md_sources: list[Path] = []
         md_sources.extend(sorted(root.glob("slices/*/*/docs.md")))
@@ -2327,7 +2336,9 @@ def extract_catalog(
         for source in md_sources:
             rel = source.relative_to(root)
             entries = extract_markdown(source, rel_path=rel.as_posix())
-            path = docs_output / f"{rel}.{ext}"
+            path = (
+                docs_output / f"{rel}.{lang}.po" if lang else docs_output / f"{rel}.pot"
+            )
             path.parent.mkdir(parents=True, exist_ok=True)
             if lang:
                 po_entries = [
@@ -2343,7 +2354,11 @@ def extract_catalog(
                 write_pot(path, entries)
 
         template_entries = extract_ontology_docs_templates()
-        template_path = output_dir / f"ontology-docs-templates.{ext}"
+        template_path = (
+            output_dir / f"ontology-docs-templates.{lang}.po"
+            if lang
+            else output_dir / "ontology-docs-templates.pot"
+        )
         if lang:
             po_entries = [
                 PoEntry(
