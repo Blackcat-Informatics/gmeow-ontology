@@ -47,10 +47,10 @@ from dataclasses import dataclass
 from pathlib import Path
 
 # TYPE_CHECKING-only import to avoid a runtime circular dependency: the
-# LossEntry type lives in logic_materialize, which imports from logic_ir but
-# NOT from logic_projections.  We reference it only in function signatures so
-# the ``from __future__ import annotations`` deferred evaluation means the name
-# is never resolved at module-import time.
+# LossEntry type lives in logic_seam, which imports from logic_ir but NOT from
+# logic_projections.  We reference it only in function signatures so the
+# ``from __future__ import annotations`` deferred evaluation means the name is
+# never resolved at module-import time.
 from typing import TYPE_CHECKING
 
 from rdflib import RDF, Graph, Literal, Namespace, URIRef
@@ -65,7 +65,7 @@ from gmeow_tools.logic_ir import (
 )
 
 if TYPE_CHECKING:
-    from gmeow_tools.logic_materialize import LossEntry
+    from gmeow_tools.logic_seam import LossEntry
 
 LOGIC = Namespace(LOGIC_NAMESPACE)
 GMEOW = Namespace(NAMESPACE)
@@ -1217,8 +1217,8 @@ def project_nemo(
 
     The emitted ``.rls`` is **syntactically valid Nemo** — parseable by
     ``nemo::api::load_string`` — and encodes the **same rule semantics** as
-    :func:`project_datalog` and the :mod:`logic_materialize` oracle: positive
-    Horn forward monotonic evaluation over the arity-3 ternary encoding.
+    :func:`project_datalog` and the native ``gmeow_logic.materialize`` engine:
+    positive Horn forward monotonic evaluation over the arity-3 ternary encoding.
 
     Output is **deterministic** (sorted output, same sort keys as
     :func:`project_datalog`).
@@ -1428,7 +1428,7 @@ def project_nemo(
             # - Ground zero-body rules (both head terms are IRIs/literals, no
             #   variables) are thus equivalent to plain axioms, and "default" is
             #   the correct encoding for unscoped facts in the Nemo projection.
-            # - The oracle (logic_materialize._chase_world) runs zero-body rules
+            # - The native engine (gmeow_logic.materialize) runs zero-body rules
             #   once per world with an empty binding set, which is semantically
             #   equivalent to asserting a ground fact in that world.
             # - No current conformance case exercises a zero-body rule; if one
@@ -1530,8 +1530,8 @@ def build_projection_report(
     Materialization loss ledger (Task 5)
     -------------------------------------
     When *materialization_loss_entries* is supplied (non-empty list of
-    :class:`~.logic_materialize.LossEntry` records from a
-    :func:`~.logic_materialize.materialize_program` run), the narrowed
+    :class:`~.logic_seam.LossEntry` records from a native materialization run),
+    the narrowed
     constructs are attached to the ``nemo`` target node (the Nemo/materialization
     projection) as ``gmeow:lossyDrop`` literals prefixed ``"materialization: "``.
     The overclaim gate is extended to cover the materialization path: if the
@@ -1542,11 +1542,11 @@ def build_projection_report(
         program: The source program (used for counts).
         projections: List of :class:`ProjectionResult` instances.
         materialization_loss_entries: Optional list of
-            :class:`~.logic_materialize.LossEntry` records from the oracle
-            chase.  When present and non-empty, they are recorded as
+            :class:`~.logic_seam.LossEntry` records from a native materialization
+            run.  When present and non-empty, they are recorded as
             ``gmeow:lossyDrop`` nodes on the ``nemo`` target and trigger the
             materialization overclaim check.  Pass ``None`` or ``[]`` for
-            projection-only runs where no oracle chase was performed.
+            projection-only runs where no materialization was performed.
         path: When given, the Turtle text is written there.
 
     Returns:

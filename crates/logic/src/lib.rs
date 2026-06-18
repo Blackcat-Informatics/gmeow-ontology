@@ -21,10 +21,13 @@ pub mod profile_gate;
 pub mod provenance;
 pub mod query_ir;
 pub mod reference_resolver;
+pub mod rule_ir;
 pub mod scryer_engine;
 pub mod seam;
+pub mod stablemodel;
 pub mod store;
 pub mod versioning;
+pub mod wellfounded;
 
 // PyO3 Python bindings.
 pub mod py;

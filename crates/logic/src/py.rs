@@ -42,6 +42,7 @@ use crate::encode::{
 use crate::nemo_engine::{run_chase, ChaseRow, ChaseRowWithProvenance};
 use crate::provenance::{mint_derivation_id, mint_reifier, ASSERT_RULE_IRI, LOGIC_NAMESPACE};
 use crate::query_ir::{parse_query_program, Budget};
+use crate::rule_ir::{DerivedRow, EvalRule};
 use crate::seam::{BudgetStatus, DerivationId, DerivedQuad, WorldStoreForeign};
 use crate::store::WorldStore;
 
@@ -108,6 +109,121 @@ fn rule_iri_from_name(rule_name: Option<&str>) -> String {
         Some(name) if !name.is_empty() => name.to_owned(),
         _ => format!("{}rule/anonymous", LOGIC_NAMESPACE),
     }
+}
+
+// ── Non-stratifiable native routing (issue #651) ────────────────────────────────
+//
+// The Nemo chase rejects negation-in-a-cycle outright (`SelectionStrategyError`),
+// so it cannot evaluate the well-founded or stable-model semantics. Those are
+// evaluated by native Rust ([`crate::wellfounded`] / [`crate::stablemodel`]) —
+// no Nemo, no Python oracle. A declared `StratifiedNAFProfile` set that fails
+// stratification (the certifier's negative control) cannot run on Nemo either; it
+// materialises asserted-only (the lossy-positive minimal), with the projection
+// loss recorded on the Python side. Everything else (PositiveHorn, genuinely
+// stratified NAF, projection-only EDB round-trips) falls through to the Nemo path
+// unchanged — `profile = None` preserves the pre-#651 behaviour byte-for-byte.
+
+/// Load an N-Quads string into a world-indexed [`WorldStore`].
+fn world_store_from_nquads(input: &str) -> PyResult<WorldStore> {
+    let store = WorldStore::new();
+    store
+        .load_nquads(input)
+        .map_err(pyo3::exceptions::PyValueError::new_err)?;
+    Ok(store)
+}
+
+/// Parse `.rls` text into the native evaluable rule IR.
+fn parse_eval_rules(rules: &str) -> PyResult<Vec<EvalRule>> {
+    crate::rule_ir::parse_eval_rules(rules).map_err(pyo3::exceptions::PyValueError::new_err)
+}
+
+/// Serialise native [`DerivedRow`]s to the SAME Python-dict shape as
+/// [`derived_quad_to_dict`] (the materialize seam contract), so the runner's
+/// row→`MaterializationResult` adapter consumes them unchanged. The native
+/// non-stratifiable paths run to a polynomial fixpoint / bounded enumeration with
+/// no budget ceiling, so `budget_status` is always `"ok"`.
+fn derived_rows_to_dicts(py: Python<'_>, rows: &[DerivedRow]) -> PyResult<Vec<Py<PyAny>>> {
+    rows.iter()
+        .map(|r| {
+            let d = PyDict::new(py);
+            d.set_item("graph", r.graph.as_str())?;
+            d.set_item("subject", r.subject.to_string())?;
+            d.set_item("predicate", r.predicate.as_str())?;
+            d.set_item("object", r.object.to_string())?;
+            d.set_item("graph_component", r.graph.as_str())?;
+            d.set_item("derivation_id", r.derivation_id.as_str())?;
+            d.set_item("rule_iri", r.rule_iri.as_str())?;
+            d.set_item("source_quad_ids", r.source_quad_ids.clone())?;
+            d.set_item("profile", ASSERTED_PROFILE)?;
+            d.set_item("budget_status", "ok")?;
+            Ok(d.into_any().unbind())
+        })
+        .collect()
+}
+
+/// Echo only the asserted EDB facts (per world) as materialized quads. Used for a
+/// declared `StratifiedNAFProfile` set that is genuinely non-stratifiable: Nemo
+/// would reject it, the well-founded/stable evaluators are not selected, so the
+/// honest minimal materialization is the input itself (loss recorded Python-side).
+fn echo_edb_only(input: &str) -> PyResult<Vec<DerivedRow>> {
+    let store = world_store_from_nquads(input)?;
+    let mut worlds = store.worlds();
+    worlds.sort();
+    let mut rows: Vec<DerivedRow> = Vec::new();
+    for world in &worlds {
+        let edb = crate::rule_ir::world_edb_facts(&store, world)
+            .map_err(pyo3::exceptions::PyRuntimeError::new_err)?;
+        rows.extend(
+            crate::rule_ir::echo_asserted(world, &edb)
+                .map_err(pyo3::exceptions::PyRuntimeError::new_err)?,
+        );
+    }
+    Ok(rows)
+}
+
+/// Route a non-stratifiable program to its native evaluator, returning `Some(rows)`
+/// when handled, or `None` to fall through to the Nemo chase.
+fn route_non_stratifiable(
+    py: Python<'_>,
+    rules: &str,
+    input: &str,
+    profile: Option<&str>,
+) -> PyResult<Option<Vec<Py<PyAny>>>> {
+    let rows: Vec<DerivedRow> = match profile {
+        Some("WellFoundedProfile") => {
+            let store = world_store_from_nquads(input)?;
+            let eval_rules = parse_eval_rules(rules)?;
+            crate::wellfounded::materialize(&store, &eval_rules).map_err(|e| {
+                pyo3::exceptions::PyRuntimeError::new_err(format!(
+                    "well-founded materialization failed: {e}"
+                ))
+            })?
+        }
+        Some("StableModelProfile") => {
+            let store = world_store_from_nquads(input)?;
+            let eval_rules = parse_eval_rules(rules)?;
+            crate::stablemodel::cautious_materialize(&store, &eval_rules).map_err(|e| {
+                pyo3::exceptions::PyRuntimeError::new_err(format!(
+                    "stable-model materialization failed: {e}"
+                ))
+            })?
+        }
+        _ => {
+            // PositiveHorn / declared StratifiedNAF / None / projection-only.
+            // Empty rules (projection-only) and genuinely stratified sets run on
+            // Nemo; only a declared set that FAILS stratification is echoed here.
+            if rules.trim().is_empty() {
+                return Ok(None);
+            }
+            let stratifiable = crate::certify::is_stratifiable(rules)
+                .map_err(pyo3::exceptions::PyValueError::new_err)?;
+            if stratifiable {
+                return Ok(None);
+            }
+            echo_edb_only(input)?
+        }
+    };
+    Ok(Some(derived_rows_to_dicts(py, &rows)?))
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -203,7 +319,7 @@ fn derived_quad_to_dict(py: Python<'_>, dq: &DerivedQuad) -> PyResult<Py<PyAny>>
 /// Returns a Python `ValueError` for N-Quads parse errors and
 /// `RuntimeError` for chase or decode failures.
 #[pyfunction]
-#[pyo3(signature = (rules, input, max_rule_firings=None, max_answers=None, time_ms=None))]
+#[pyo3(signature = (rules, input, max_rule_firings=None, max_answers=None, time_ms=None, profile=None))]
 fn materialize(
     py: Python<'_>,
     rules: &str,
@@ -211,6 +327,7 @@ fn materialize(
     max_rule_firings: Option<u64>,
     max_answers: Option<u64>,
     time_ms: Option<u64>,
+    profile: Option<&str>,
 ) -> PyResult<Vec<Py<PyAny>>> {
     // Start the post-fixpoint wall-clock the instant we enter (the chase itself is
     // not interruptible; `time_ms` bounds the post-chase decode/bookkeeping — see
@@ -220,6 +337,15 @@ fn materialize(
     // ── Short-circuit: nothing to do ──────────────────────────────────────────
     if input.trim().is_empty() {
         return Ok(vec![]);
+    }
+
+    // ── Non-stratifiable native routing (issue #651) ─────────────────────────
+    // Well-founded / stable-model semantics (and a declared-StratifiedNAF set that
+    // fails stratification) are evaluated natively — the Nemo chase below rejects
+    // negation-in-a-cycle. `profile = None` with stratifiable rules returns `None`
+    // here and falls through to the byte-identical pre-#651 Nemo path.
+    if let Some(rows) = route_non_stratifiable(py, rules, input, profile)? {
+        return Ok(rows);
     }
 
     // ── 1. Parse input N-Quads into an oxigraph Store ────────────────────────
@@ -868,15 +994,65 @@ fn explain(py: Python<'_>, quads: Vec<Bound<'_, PyDict>>) -> PyResult<Vec<Py<PyA
     Ok(out)
 }
 
+/// `stable_models(rules, input) -> dict` — enumerate the stable models (answer
+/// sets) of a non-stratifiable program, per world (issue #651).
+///
+/// The cautious (skeptical) intersection of these models is what
+/// `materialize(..., profile="StableModelProfile")` emits as quads; this entry
+/// surfaces the individual models for the conformance `witnesses.json` side file,
+/// keeping the materialized quad set honest (an even loop's cautious core is
+/// empty, so its `materialized.nq` stays asserted-only).
+///
+/// # Returns
+///
+/// A dict keyed by world IRI; each value is a `list` of models, each model a
+/// `list` of atom dicts `{subject, predicate, object}` (atoms sorted canonically,
+/// models in canonical enumeration order). An empty `input` returns `{}`.
+///
+/// # Errors
+///
+/// Raises `ValueError` for unparsable `.rls` / N-Quads and `RuntimeError` for an
+/// evaluation failure.
+#[pyfunction]
+#[pyo3(signature = (rules, input))]
+fn stable_models(py: Python<'_>, rules: &str, input: &str) -> PyResult<Py<PyAny>> {
+    let out = PyDict::new(py);
+    if input.trim().is_empty() {
+        return Ok(out.into_any().unbind());
+    }
+    let store = world_store_from_nquads(input)?;
+    let eval_rules = parse_eval_rules(rules)?;
+    let per_world = crate::stablemodel::stable_models(&store, &eval_rules).map_err(|e| {
+        pyo3::exceptions::PyRuntimeError::new_err(format!("stable_models failed: {e}"))
+    })?;
+    for (world, models) in &per_world {
+        let models_list = PyList::empty(py);
+        for model in models {
+            let atoms_list = PyList::empty(py);
+            for fact in &model.atoms {
+                let ad = PyDict::new(py);
+                ad.set_item("subject", fact.subject.to_string())?;
+                ad.set_item("predicate", fact.predicate.as_str())?;
+                ad.set_item("object", fact.object.to_string())?;
+                atoms_list.append(ad)?;
+            }
+            models_list.append(atoms_list)?;
+        }
+        out.set_item(world.as_str(), models_list)?;
+    }
+    Ok(out.into_any().unbind())
+}
+
 // ── Module registration ───────────────────────────────────────────────────────
 
 /// Python extension module `gmeow_logic`.
 ///
 /// Exposes:
-/// - `materialize(rules, input, max_rule_firings=None, max_answers=None, time_ms=None)`
+/// - `materialize(rules, input, max_rule_firings=None, max_answers=None, time_ms=None, profile=None)`
 /// - `foundation(input, anti_rigidity_policy=None) -> list[dict]` (issue #636)
 /// - `explain(quads) -> list[dict]` — cited-IRI explanation skeletons (issue #497)
 /// - `certify(rules, profile) -> dict`
+/// - `stable_models(rules, input) -> dict` — answer sets per world (issue #651)
 /// - `query(world_nquads, query_program, profile, world_iri=None, max_answers=None, max_steps=None) -> dict`
 ///   (under `ProbabilisticProfile` each binding carries a `probability`; #506)
 #[pymodule]
@@ -885,6 +1061,7 @@ fn gmeow_logic(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(foundation, m)?)?;
     m.add_function(wrap_pyfunction!(explain, m)?)?;
     m.add_function(wrap_pyfunction!(certify, m)?)?;
+    m.add_function(wrap_pyfunction!(stable_models, m)?)?;
     m.add_function(wrap_pyfunction!(query, m)?)?;
     Ok(())
 }

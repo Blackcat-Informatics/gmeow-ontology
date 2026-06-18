@@ -51,10 +51,17 @@ def test_every_principle_has_a_manifest_entry() -> None:
 
 
 def test_honor_system_principles_are_visible_not_silent() -> None:
-    """Practice-only principles surface as warnings (today: 1, 6, 15, 17)."""
+    """Practice-only principles surface as warnings (today: 1, 6, 15).
+
+    Principle 17 ("the logic itself is canonical") graduated from honor-system to
+    gate-enforcement when the #497 logic EPIC landed: it is now backed by the
+    ``gate-logic-conformance`` / ``gate-logic-round-trip`` /
+    ``gate-foundation-conformance`` gates in ``governance/constitution.ttl``, so it
+    is no longer practice-only.
+    """
     result = check_constitution()
     flagged = {int(w.split()[1]) for w in result.warnings if "review practice" in w}
-    assert flagged == {1, 6, 15, 17}
+    assert flagged == {1, 6, 15}
 
 
 def test_zero_enforcement_is_an_error(tmp_path: Path) -> None:

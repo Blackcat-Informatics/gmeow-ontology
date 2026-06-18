@@ -563,6 +563,27 @@ fn is_stratified(graph: &DepGraph) -> bool {
     offending_cycle(graph).is_none()
 }
 
+/// Whether the `.rls` program is stratifiable (no negation-as-failure cycle).
+///
+/// Thin wrapper over the existing dependency-graph analysis, exposed so the later
+/// `py.rs` materialize routing phase (issue #651) can dispatch stratifiable
+/// programs to the Nemo chase and non-stratifiable ones to the native
+/// well-founded / stable-model evaluators.  Additive; reuses
+/// [`parse_rule_views`], [`DepGraph`], and [`is_stratified`] verbatim.
+///
+/// # Errors
+///
+/// Returns the Nemo parse-error string if `rules` does not parse as `.rls`.
+// Phase-A scaffolding for #651: the `py.rs` materialize router that dispatches on
+// stratifiability (Nemo chase vs native well-founded / stable-model evaluators) is
+// Phase B; this helper is landed now so the routing change is additive.
+#[allow(dead_code)]
+pub(crate) fn is_stratifiable(rules: &str) -> Result<bool, String> {
+    let views = parse_rule_views(rules)?;
+    let graph = DepGraph::from_views(&views);
+    Ok(is_stratified(&graph))
+}
+
 // ── Profile-family checks (each → Vec<String>) ───────────────────────────────
 
 /// PositiveHorn forbids negation-as-failure. Mirrors `certify_positive_horn`.
