@@ -1982,22 +1982,24 @@ def _html_shell(title: str, body: str, prefix: str) -> str:
         else ""
     )
     nav = {
-        "nav_home": ontology_docs_template("nav_home"),
-        "nav_getting_started": ontology_docs_template("nav_getting_started"),
-        "nav_learning_paths": ontology_docs_template("nav_learning_paths"),
-        "nav_recipes": ontology_docs_template("nav_recipes"),
-        "nav_examples": ontology_docs_template("nav_examples"),
-        "nav_concerns": ontology_docs_template("nav_concerns"),
-        "nav_four_boxes": ontology_docs_template("nav_four_boxes"),
-        "nav_slices": ontology_docs_template("nav_slices"),
-        "nav_adoption": ontology_docs_template("nav_adoption"),
-        "nav_linkages": ontology_docs_template("nav_linkages"),
-        "nav_bibliography": ontology_docs_template("nav_bibliography"),
-        "nav_reference": ontology_docs_template("nav_reference"),
-        "nav_external": ontology_docs_template("nav_external"),
-        "nav_rdf12": ontology_docs_template("nav_rdf12"),
-        "footer_generated": ontology_docs_template("footer_generated"),
-        "footer_license": ontology_docs_template("footer_license"),
+        "nav_home": html.escape(ontology_docs_template("nav_home")),
+        "nav_getting_started": html.escape(
+            ontology_docs_template("nav_getting_started")
+        ),
+        "nav_learning_paths": html.escape(ontology_docs_template("nav_learning_paths")),
+        "nav_recipes": html.escape(ontology_docs_template("nav_recipes")),
+        "nav_examples": html.escape(ontology_docs_template("nav_examples")),
+        "nav_concerns": html.escape(ontology_docs_template("nav_concerns")),
+        "nav_four_boxes": html.escape(ontology_docs_template("nav_four_boxes")),
+        "nav_slices": html.escape(ontology_docs_template("nav_slices")),
+        "nav_adoption": html.escape(ontology_docs_template("nav_adoption")),
+        "nav_linkages": html.escape(ontology_docs_template("nav_linkages")),
+        "nav_bibliography": html.escape(ontology_docs_template("nav_bibliography")),
+        "nav_reference": html.escape(ontology_docs_template("nav_reference")),
+        "nav_external": html.escape(ontology_docs_template("nav_external")),
+        "nav_rdf12": html.escape(ontology_docs_template("nav_rdf12")),
+        "footer_generated": html.escape(ontology_docs_template("footer_generated")),
+        "footer_license": html.escape(ontology_docs_template("footer_license")),
     }
     nav_home = nav["nav_home"]
     nav_getting_started = nav["nav_getting_started"]
