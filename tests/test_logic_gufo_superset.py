@@ -36,6 +36,7 @@ from gmeow_tools.logic_adapter import (
 GUFO = Namespace(PREFIXES["gufo"])
 GMEOW = Namespace(PREFIXES["gmeow"])
 LOGIC = Namespace(LOGIC_NAMESPACE)
+EX = Namespace("https://blackcatinformatics.ca/gmeow/examples/logic/")
 
 GUFO_TTL = IMPORTS_DIR / "gufo.ttl"
 LOGIC_MODULE_TTL = SLICES_DIR / "core" / "logic" / "module.ttl"
@@ -221,9 +222,10 @@ def test_criticism_example_has_native_edge_property() -> None:
     assert (reifier, RDF.subject, None) in graph
     assert (reifier, RDF.predicate, None) in graph
     assert (reifier, RDF.object, None) in graph
-    # And carries the edge time-scope metadata (validFrom/validTo) on the edge.
-    valid_from = [o for o in graph.objects(reifier, None) if isinstance(o, Literal)]
-    assert valid_from, "reifier carries no literal edge metadata (validFrom/validTo)"
+    # And carries the edge time-scope metadata specifically on validFrom/validTo.
+    for pred, name in ((EX.validFrom, "validFrom"), (EX.validTo, "validTo")):
+        objs = [o for o in graph.objects(reifier, pred) if isinstance(o, Literal)]
+        assert objs, f"reifier carries no literal {name} edge metadata"
 
 
 def test_criticism_example_has_strict_partial_order() -> None:
