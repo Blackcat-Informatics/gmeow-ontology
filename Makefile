@@ -17,6 +17,7 @@ GMEOW_DEV ?= uv run --package gmeow-dev gmeow-dev
         lint-alignment refresh-target-axioms docs docs-full ontology-docs ontology-docs-full quality \
         normalize build project test test-fast test-docker check check-docker check-generated release regenerate commit clean clean-docs pull-images \
         coverage acceptance crossref constitution-check compliance-report compliance-report-full audit evals-score \
+        diagnostics-build diagnostics-test diagnostics-py \
         native-py rust-test logic-build logic-test logic-py conformance \
         shacl-build shacl-test shacl-py \
         validate-build validate-test validate-py clippy
@@ -41,7 +42,7 @@ lint: ## Lint (ruff), type-check (mypy), and full repo-hygiene suite (pre-commit
 	# so the local gate must too — otherwise those lanes only fail in CI.
 	uv run pre-commit run --all-files --show-diff-on-failure
 
-validate: validate-py shacl-py ## Validate syntax, term annotations, and SHACL (Rust-native orchestration).
+validate: diagnostics-py validate-py shacl-py ## Validate syntax, term annotations, and SHACL (Rust-native orchestration).
 	$(GMEOW_DEV) validate
 
 crosscheck: ## Prove rdflib and pyoxigraph answer every committed query alike (no Docker).
@@ -141,6 +142,15 @@ audit: ## Claim audit gates over the worked fixture (#55): ungrounded/contradict
 evals-score: ## Score committed model emissions against the published contract (offline, #298).
 	$(GMEOW_DEV) evals score
 
+diagnostics-build: ## Build the gmeow-diagnostics Rust crate (shared Finding/Report core).
+	cargo build -p gmeow-diagnostics
+
+diagnostics-test: ## Run the gmeow-diagnostics unit tests.
+	cargo test -p gmeow-diagnostics
+
+diagnostics-py: ## Build and install the gmeow_diagnostics Python extension (maturin develop).
+	VIRTUAL_ENV="$$(pwd)/.venv" uvx maturin develop --manifest-path crates/diagnostics/Cargo.toml
+
 logic-build: ## Build the gmeow-logic Rust crate (world-indexed oxigraph store core).
 	cargo build -p gmeow-logic
 
@@ -171,7 +181,7 @@ validate-py: ## Build and install the gmeow_validate Python extension (maturin d
 clippy: ## Run cargo clippy on all Rust targets with warnings as errors.
 	cargo clippy --all-targets -- -D warnings
 
-native-py: logic-py shacl-py validate-py ## Build and install all Rust-backed Python extensions.
+native-py: diagnostics-py logic-py shacl-py validate-py ## Build and install all Rust-backed Python extensions.
 
 rust-test: ## Run the Rust workspace tests.
 	cargo test

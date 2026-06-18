@@ -72,6 +72,9 @@ jobs:
       - name: Cache Cargo dependencies
         uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
 
+      - name: Build + install gmeow_diagnostics extension (#654)
+        run: VIRTUAL_ENV="$PWD/.venv" uvx maturin develop --manifest-path crates/diagnostics/Cargo.toml
+
       - name: Build + install gmeow_logic extension (AC2 / AC4)
         run: VIRTUAL_ENV="$PWD/.venv" uvx maturin develop --manifest-path crates/logic/Cargo.toml
 
@@ -83,6 +86,9 @@ jobs:
 
       - name: Build + install gmeow_validate extension (#579 — validation runs through it)
         run: VIRTUAL_ENV="$PWD/.venv" uvx maturin develop --manifest-path crates/validate/Cargo.toml
+
+      - name: gmeow_diagnostics extension imports
+        run: uv run python -c "import gmeow_diagnostics; print('gmeow_diagnostics at', gmeow_diagnostics.__file__)"
 
       - name: gmeow_shacl extension imports
         run: uv run python -c "import gmeow_shacl; print('gmeow_shacl at', gmeow_shacl.__file__)"
@@ -137,6 +143,9 @@ jobs:
 
       - name: Cache Cargo dependencies
         uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
+
+      - name: Build + install gmeow_diagnostics extension (#654)
+        run: VIRTUAL_ENV="$PWD/.venv" uvx maturin develop --manifest-path crates/diagnostics/Cargo.toml
 
       - name: Build + install gmeow_shacl extension (#578 — validation runs through it)
         run: VIRTUAL_ENV="$PWD/.venv" uvx maturin develop --manifest-path crates/shacl/Cargo.toml
@@ -233,6 +242,9 @@ jobs:
 
       - name: Cache Cargo dependencies
         uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
+
+      - name: Build + install gmeow_diagnostics extension (#654)
+        run: VIRTUAL_ENV="$PWD/.venv" uvx maturin develop --manifest-path crates/diagnostics/Cargo.toml
 
       - name: Build + install gmeow_shacl extension (#578 — validate runs through it)
         run: VIRTUAL_ENV="$PWD/.venv" uvx maturin develop --manifest-path crates/shacl/Cargo.toml
