@@ -140,7 +140,7 @@ These mechanisms apply to every moment and process, regardless of the other thre
 - **Provenance** — source, derivation, evidence span, and temporal scope (Principle 14).
 - **Temporal scoping** — valid-time, transaction-time, and event phases are recorded explicitly.
 - **Suppression-not-erasure** — outdated or withdrawn mental content is marked `displayable false`,
-  never deleted (Principle 10).
+  never deleted (Principle 14).
 - **Unified-observation stance** — a measurement, a perception, and an inferred claim are the same
   reified construct: an attributed, dated, confidence-weighted claim from a vantage (Principle 9).
 
