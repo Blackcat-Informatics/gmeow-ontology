@@ -304,6 +304,26 @@ fn logic_program_with_rules_order_independence() {
 }
 
 #[test]
+fn logic_program_canonical_treats_signed_zero_confidence_equally() {
+    // Regression for D2: `-0.0` and `0.0` compare equal via PartialEq but
+    // `(-0.0f64).to_string()` yields "-0", producing divergent dedup/canonical
+    // keys for two logically-identical programs.  The fix normalises to `0.0`
+    // before `to_string()` in both `content_key` (ir.rs) and
+    // `content_dedup_key` (frontend.rs).
+    let scope_pos = ContextualScope::new(None, None, Some(0.0), LogicModality::None, None).unwrap();
+    let scope_neg =
+        ContextualScope::new(None, None, Some(-0.0), LogicModality::None, None).unwrap();
+    let ax_pos =
+        LogicAxiom::new("ex:s", format!("{LOGIC}p"), "ex:o", false, false, scope_pos).unwrap();
+    let ax_neg =
+        LogicAxiom::new("ex:s", format!("{LOGIC}p"), "ex:o", false, false, scope_neg).unwrap();
+    let prog_pos = LogicProgram::new(vec![ax_pos], vec![], vec![], None);
+    let prog_neg = LogicProgram::new(vec![ax_neg], vec![], vec![], None);
+    assert_eq!(prog_pos, prog_neg);
+    assert_eq!(prog_pos.canonical_key(), prog_neg.canonical_key());
+}
+
+#[test]
 fn logic_program_source_iri_preserved() {
     let prog = LogicProgram::new(
         vec![],

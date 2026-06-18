@@ -281,7 +281,10 @@ impl ContextualScope {
         // gate and canonical equality), never serialized into a byte-pinned
         // artifact, so its exact float spelling is internal.
         let conf = match self.confidence {
-            Some(c) => c.to_string(),
+            Some(c) => {
+                let c = if c == 0.0 { 0.0 } else { c }; // collapse -0.0 -> 0.0
+                c.to_string()
+            }
             None => String::new(),
         };
         format!(

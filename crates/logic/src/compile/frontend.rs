@@ -601,7 +601,10 @@ fn content_dedup_key(ax: &LogicAxiom) -> String {
     let conf = ax
         .scope
         .confidence
-        .map(|c| c.to_string())
+        .map(|c| {
+            let c = if c == 0.0 { 0.0 } else { c }; // collapse -0.0 -> 0.0
+            c.to_string()
+        })
         .unwrap_or_default();
     format!(
         "{}\u{0}{}\u{0}{}\u{0}{}\u{0}{}\u{0}{}",
