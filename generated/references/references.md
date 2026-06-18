@@ -146,6 +146,7 @@ This bibliography is generated from `metadata/references.ttl`.
 | snomed.info/id/Patient | [link](http://snomed.info/id/Patient) | 1 |
 | spdx.org/licenses | [link](http://spdx.org/licenses/) | 1 |
 | spdx.org/rdf/terms | [link](http://spdx.org/rdf/terms#) | 1 |
+| OpenCyc knowsAbout (2012-05-10 snapshot) | [link](http://sw.opencyc.org/2012/05/10/concept/en/knowsAbout) | 1 |
 | sweetontology.net | [link](http://sweetontology.net/) | 1 |
 | umbel.org/umbel | [link](http://umbel.org/umbel#) | 1 |
 | umbel.org/umbel/rc | [link](http://umbel.org/umbel/rc/) | 1 |

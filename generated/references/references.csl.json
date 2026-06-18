@@ -834,6 +834,12 @@
     "type": "webpage"
   },
   {
+    "URL": "http://sw.opencyc.org/2012/05/10/concept/en/knowsAbout",
+    "id": "knowsabout-34e5806e",
+    "title": "OpenCyc knowsAbout (2012-05-10 snapshot)",
+    "type": "webpage"
+  },
+  {
     "URL": "http://sweetontology.net/",
     "id": "sweetontology-net-20aae8c4",
     "title": "sweetontology.net",

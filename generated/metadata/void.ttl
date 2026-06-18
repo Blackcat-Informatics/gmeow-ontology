@@ -27,6 +27,7 @@
 @prefix crminf: <http://www.ics.forth.gr/isl/CRMinf/> .
 @prefix crmsci: <http://www.cidoc-crm.org/extensions/crmsci/> .
 @prefix ctdlasn: <https://credreg.net/ctdlasn/terms/> .
+@prefix cyc: <http://sw.opencyc.org/2012/05/10/concept/en/> .
 @prefix dc: <http://purl.org/dc/elements/1.1/> .
 @prefix dcat: <http://www.w3.org/ns/dcat#> .
 @prefix dcmitype: <http://purl.org/dc/dcmitype/> .
@@ -788,6 +789,13 @@
     rdfs:label "GMEOW skos:relatedMatch links to http://id.loc.gov/datatypes/edtf/ (1)"@en ;
     void:linkPredicate skos:relatedMatch ;
     void:objectsTarget edtf: ;
+    void:subjectsTarget <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset> ;
+    void:triples 1 .
+
+<https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-en-03819e-skos_relatedMatch> a void:Linkset ;
+    rdfs:label "GMEOW skos:relatedMatch links to http://sw.opencyc.org/2012/05/10/concept/en/ (1)"@en ;
+    void:linkPredicate skos:relatedMatch ;
+    void:objectsTarget cyc: ;
     void:subjectsTarget <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset> ;
     void:triples 1 .
 
@@ -1847,6 +1855,7 @@
         <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-dqv-a670fd-skos_closeMatch>,
         <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-dqv-a670fd-skos_relatedMatch>,
         <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-edtf-799f39-skos_relatedMatch>,
+        <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-en-03819e-skos_relatedMatch>,
         <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-entity-77a672-skos_broadMatch>,
         <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-entity-77a672-skos_closeMatch>,
         <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-entity-77a672-skos_exactMatch>,
