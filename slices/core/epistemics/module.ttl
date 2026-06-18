@@ -20,7 +20,7 @@ DOCTRINE.
   * Keystone: gmeow:knowsThat rdfs:subPropertyOf gmeow:believes — knowledge is justified, standpoint-true belief held from a vantage, and there is NO factive knows. Asserting knowsThat materialises believes; the reverse never holds; neither commits global truth. The reasoner never promotes justified-true-belief to knowledge — that verdict (and its Gettier defeaters) is solver work (Principle 12).
   * No truth bit: there is no isTrue, no truth datatype, no factivity axiom anywhere. Truth-per-frame rides the standpoint modality (gmeow:standpointModality on a flattened statement, gmeow:claimModality on a reified StandpointClaim), reused from the standpoint slice, never re-minted (Principle 6).
   * Flat-first (Principle 4 / Principle 13): the believes / doubts / suspendsJudgementOn / accepts / knowsThat spine is the cheap 80% surface with an OPEN range (point at any reified statement or claim). The reified tier (DoxasticState, credence, doxasticClaim, DoxasticTenure) and the mental-moment grounding live in this module as the promotion target when credence, temporal scope, or standpoint modality must be first-class.
-  * Justification hook: gmeow:justifiedBy links a DoxasticState to its supporting EvidenceSpan, Attestation, or DoxasticState. Full inferential argumentation remains in sibling child #561.
+  * Justification hook: gmeow:justifiedBy links a DoxasticState to its supporting EvidenceSpan, Attestation, or DoxasticState. Full inferential argumentation remains in the inference slice; the lightweight hook lives in this module.
   * believes is documented — never axiomatised — as riding gmeow:accordingTo on the statement (an owl:ObjectProperty cannot subproperty an owl:AnnotationProperty in OWL 2 DL; the gmeow:vantage / gmeow:accordingTo precedent). The bridge is realised in the projection layer.
   * Acceptance is not belief: gmeow:accepts is pragmatic (a premise taken on for argument) and entails neither belief nor truth (Principle 1)."""@x-gmeow-english ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
@@ -48,19 +48,19 @@ gmeow:Proposition
 # Domain gmeow:Agent; range OPEN (the standpoint tenurePosition / observations
 # observedFeature precedent), so the 80% case points cheaply at any reified
 # statement or claim (Principle 13). Typed content (range gmeow:Proposition)
-# arrives only at the reified tier (doxasticContent, sibling child #560).
+# arrives only at the reified tier (doxasticContent).
 # =========================================================================== #
 
 gmeow:believes
     a owl:ObjectProperty ;
     rdfs:domain gmeow:Agent ;
     rdfs:label "believes"@x-gmeow-english ;
-    skos:definition "An agent holds a proposition to be true — the base doxastic attitude. Range is intentionally OPEN: the object may be a gmeow:Proposition, a reified statement, or any claim the agent holds (the five-minute-gate shortcut, Principle 13); the typed content link arrives at the reified doxastic state in a sibling child. Non-functional — an agent holds many beliefs, and contested beliefs coexist (Principle 9). How strongly, and from whose vantage, rides gmeow:standpointModality and gmeow:accordingTo on the statement, never a truth bit here."@x-gmeow-english ;
+    skos:definition "An agent holds a proposition to be true — the base doxastic attitude. Range is intentionally OPEN: the object may be a gmeow:Proposition, a reified statement, or any claim the agent holds (the five-minute-gate shortcut, Principle 13); the typed content link arrives at the reified doxastic state (DoxasticState). Non-functional — an agent holds many beliefs, and contested beliefs coexist (Principle 9). How strongly, and from whose vantage, rides gmeow:standpointModality and gmeow:accordingTo on the statement, never a truth bit here."@x-gmeow-english ;
     skos:scopeNote "believes is documented — not axiomatised — as riding gmeow:accordingTo on the statement (an owl:ObjectProperty cannot rdfs:subPropertyOf an owl:AnnotationProperty in OWL 2 DL; the gmeow:vantage / gmeow:accordingTo precedent). Realised in the projection layer."@x-gmeow-english ;
     skos:example "ex:alice gmeow:believes ex:earthIsRound ."@x-gmeow-english ;
     gmeow:useWhen "Use to record that an agent holds a proposition (or any reified statement / claim) to be true — the base doxastic attitude and the cheap 80% surface; how strongly and from whose vantage ride gmeow:standpointModality and gmeow:accordingTo on the holding statement."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid reading it as a global truth claim — believing is one agent's held attitude, never a factive knowledge verdict; for a merely entertained premise use gmeow:accepts (no belief), for the justified case use gmeow:knowsThat, and never force one belief to win in a merge (it is non-functional)."@x-gmeow-english ;
-    gmeow:howToUse "Point the agent at a gmeow:Proposition or reified statement; carry strength and frame on gmeow:standpointModality / gmeow:accordingTo of the statement, and promote to the reified doxastic state (sibling child) only when credence, justification, or the mental moment must be first-class."@x-gmeow-english ;
+    gmeow:howToUse "Point the agent at a gmeow:Proposition or reified statement; carry strength and frame on gmeow:standpointModality / gmeow:accordingTo of the statement, and promote to the reified doxastic state (DoxasticState) only when credence, justification, or the mental moment must be first-class."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> .
 
 gmeow:doubts
@@ -219,18 +219,18 @@ gmeow:tenureOfDoxasticState
 # A StandpointClaim whose observedFeature is a Proposition and whose
 # claimOfBelief points to the underlying DoxasticState that carries the
 # qualitative claimModality. This is the promotion target when the claim
-# itself must be justified or defeated (Task 1 of #561).
+# itself must be justified or defeated in this module.
 # =========================================================================== #
 
 gmeow:DoxasticStandpointClaim
     a owl:Class, gufo:SubKind ;
     rdfs:subClassOf gmeow:StandpointClaim ;
     rdfs:label "doxastic standpoint claim"@x-gmeow-english ;
-    skos:definition "A StandpointClaim that explicitly reports a held DoxasticState — the reified, vantage-indexed claim that an agent is in a particular believing mode toward a proposition. It carries the qualitative claimModality of the belief and links to the underlying DoxasticState via gmeow:claimOfBelief, so the holding can be justified or defeated in a sibling child (Principles 9, 15)."@x-gmeow-english ;
+    skos:definition "A StandpointClaim that explicitly reports a held DoxasticState — the reified, vantage-indexed claim that an agent is in a particular believing mode toward a proposition. It carries the qualitative claimModality of the belief and links to the underlying DoxasticState via gmeow:claimOfBelief, so the holding can be justified or defeated in this module (Principles 9, 15)."@x-gmeow-english ;
     skos:example "ex:aliceRoundClaim a gmeow:DoxasticStandpointClaim ; gmeow:vantage ex:alice ; gmeow:observedFeature ex:earthIsRound ; gmeow:claimOfBelief ex:aliceBelievesRound ; gmeow:claimModality gmeow:unequivocal ."@x-gmeow-english ;
     gmeow:useWhen "Use when a belief report must be a first-class StandpointClaim that can be justified, defeated, or standpoint-indexed independently of the flat gmeow:believes / gmeow:knowsThat spine (Principle 9)."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid when the flat doxastic spine suffices; do not mint both a flat believes statement and a DoxasticStandpointClaim for the same holding without a clear reason (Principle 4)."@x-gmeow-english ;
-    gmeow:howToUse "Mint one DoxasticStandpointClaim per (agent, proposition, belief-modality) tuple; set its vantage to the agent, observedFeature to the proposition, claimModality to the qualitative belief value, and claimOfBelief to the underlying DoxasticState. Justification and defeat are modeled via gmeow:justifiedBy and gmeow:defeatedBy in the sibling child."@x-gmeow-english ;
+    gmeow:howToUse "Mint one DoxasticStandpointClaim per (agent, proposition, belief-modality) tuple; set its vantage to the agent, observedFeature to the proposition, claimModality to the qualitative belief value, and claimOfBelief to the underlying DoxasticState. Justification and defeat are modeled via gmeow:justifiedBy and gmeow:defeatedBy in this module."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> .
 
 gmeow:claimOfBelief
