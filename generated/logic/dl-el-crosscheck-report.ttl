@@ -1,0 +1,1480 @@
+# GMEOW native vs ELK/HermiT DL/EL crosscheck ledger (REPORT-ONLY).
+# Built from the native EL/DL reasoning lane ONLY (Java/Docker-free). The
+# oracle comparison and divergence ENFORCEMENT are deferred to the
+# classic-cross-check lane (#666); this ledger records the native verdict,
+# the native-only subsumption entailments, and the beyond-EL gaps. DO NOT
+# EDIT.
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+
+# --- ledger header (report-only; #666 enforces) ---
+gmeow:dl-el-crosscheck a gmeow:CrosscheckLedger ;
+   gmeow:consistent true ;
+   gmeow:oracleCrosscheck "deferred to classic-cross-check (#666); ledger is report-only"@en .
+
+# --- native-only subsumption entailments ---
+gmeow:ledger-entry-0 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://data.europa.eu/esco/model#Occupation> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://data.europa.eu/esco/model#Occupation> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-1 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://data.europa.eu/esco/model#Occupation> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Occupation> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-2 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://data.europa.eu/esco/model#Occupation> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://schema.org/Occupation> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-3 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://id.loc.gov/ontologies/bibframe/Title> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://id.loc.gov/ontologies/bibframe/Title> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-4 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://id.loc.gov/ontologies/bibframe/Title> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/CreativeWorkTitle> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-5 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://iflastandards.info/ns/lrm/lrmoo/F1_Work> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://iflastandards.info/ns/lrm/lrmoo/F1_Work> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-6 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://iflastandards.info/ns/lrm/lrmoo/F1_Work> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/vocab/frbr/core#Work> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-7 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://iflastandards.info/ns/lrm/lrmoo/F1_Work> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Work> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-8 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://iflastandards.info/ns/lrm/lrmoo/F2_Expression> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://iflastandards.info/ns/lrm/lrmoo/F2_Expression> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-9 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://iflastandards.info/ns/lrm/lrmoo/F2_Expression> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/vocab/frbr/core#Expression> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-10 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://iflastandards.info/ns/lrm/lrmoo/F2_Expression> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Expression> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-11 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://iflastandards.info/ns/lrm/lrmoo/F3_Manifestation> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://iflastandards.info/ns/lrm/lrmoo/F3_Manifestation> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-12 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://iflastandards.info/ns/lrm/lrmoo/F3_Manifestation> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/vocab/frbr/core#Manifestation> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-13 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://iflastandards.info/ns/lrm/lrmoo/F3_Manifestation> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Manifestation> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-14 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://iflastandards.info/ns/lrm/lrmoo/F5_Item> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://iflastandards.info/ns/lrm/lrmoo/F5_Item> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-15 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://iflastandards.info/ns/lrm/lrmoo/F5_Item> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/vocab/frbr/core#Item> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-16 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://iflastandards.info/ns/lrm/lrmoo/F5_Item> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Item> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-17 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://purl.org/nemo/gufo#AntiRigidType> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#ConcreteIndividualType> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/imports> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-18 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://purl.org/nemo/gufo#AntiRigidType> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#EndurantType> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/imports> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-19 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://purl.org/nemo/gufo#AntiRigidType> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Type> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/imports> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-20 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://purl.org/nemo/gufo#Aspect> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#ConcreteIndividual> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/imports> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-21 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://purl.org/nemo/gufo#Aspect> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Individual> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/imports> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-22 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://purl.org/nemo/gufo#Category> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#ConcreteIndividualType> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/imports> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-23 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://purl.org/nemo/gufo#Category> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#EndurantType> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/imports> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-24 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://purl.org/nemo/gufo#Category> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Type> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/imports> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-25 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://purl.org/nemo/gufo#Collection> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#ConcreteIndividual> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/imports> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-26 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://purl.org/nemo/gufo#Collection> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Endurant> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/imports> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-27 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://purl.org/nemo/gufo#Collection> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Individual> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/imports> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-28 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://purl.org/nemo/gufo#ComparativeRelationshipType> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Type> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/imports> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-29 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://purl.org/nemo/gufo#Endurant> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Individual> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/imports> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-30 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://purl.org/nemo/gufo#EndurantType> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Type> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/imports> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-31 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://purl.org/nemo/gufo#Event> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Individual> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/imports> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-32 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://purl.org/nemo/gufo#EventType> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Type> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/imports> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-33 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://purl.org/nemo/gufo#ExtrinsicAspect> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#ConcreteIndividual> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/imports> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-34 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://purl.org/nemo/gufo#ExtrinsicAspect> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Endurant> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/imports> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-35 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://purl.org/nemo/gufo#ExtrinsicAspect> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Individual> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/imports> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-36 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://purl.org/nemo/gufo#ExtrinsicMode> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Aspect> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/imports> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-37 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://purl.org/nemo/gufo#ExtrinsicMode> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#ConcreteIndividual> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/imports> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-38 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://purl.org/nemo/gufo#ExtrinsicMode> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Endurant> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/imports> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-39 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://purl.org/nemo/gufo#ExtrinsicMode> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Individual> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/imports> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-40 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://purl.org/nemo/gufo#FixedCollection> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#ConcreteIndividual> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/imports> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-41 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://purl.org/nemo/gufo#FixedCollection> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Endurant> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/imports> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-42 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://purl.org/nemo/gufo#FixedCollection> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Individual> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/imports> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-43 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://purl.org/nemo/gufo#FixedCollection> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Object> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/imports> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-44 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://purl.org/nemo/gufo#FunctionalComplex> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#ConcreteIndividual> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/imports> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-45 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://purl.org/nemo/gufo#FunctionalComplex> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Endurant> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/imports> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-46 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://purl.org/nemo/gufo#FunctionalComplex> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Individual> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/imports> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-47 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://purl.org/nemo/gufo#IntrinsicAspect> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#ConcreteIndividual> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/imports> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-48 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://purl.org/nemo/gufo#IntrinsicAspect> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Endurant> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/imports> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-49 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://purl.org/nemo/gufo#IntrinsicAspect> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Individual> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/imports> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-50 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://purl.org/nemo/gufo#IntrinsicMode> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Aspect> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/imports> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-51 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://purl.org/nemo/gufo#IntrinsicMode> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#ConcreteIndividual> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/imports> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-52 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://purl.org/nemo/gufo#IntrinsicMode> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Endurant> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/imports> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-53 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://purl.org/nemo/gufo#IntrinsicMode> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Individual> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/imports> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-54 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://purl.org/nemo/gufo#Kind> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#ConcreteIndividualType> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/imports> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-55 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://purl.org/nemo/gufo#Kind> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#EndurantType> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/imports> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-56 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://purl.org/nemo/gufo#Kind> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Type> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/imports> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-57 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://purl.org/nemo/gufo#MaterialRelationshipType> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Type> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/imports> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-58 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://purl.org/nemo/gufo#Mixin> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#ConcreteIndividualType> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/imports> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-59 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://purl.org/nemo/gufo#Mixin> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#EndurantType> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/imports> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-60 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://purl.org/nemo/gufo#Mixin> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#NonRigidType> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/imports> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-61 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://purl.org/nemo/gufo#Mixin> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Type> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/imports> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-62 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://purl.org/nemo/gufo#NonRigidType> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#ConcreteIndividualType> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/imports> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-63 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://purl.org/nemo/gufo#NonRigidType> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Type> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/imports> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-64 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://purl.org/nemo/gufo#NonSortal> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#ConcreteIndividualType> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/imports> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-65 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://purl.org/nemo/gufo#NonSortal> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Type> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/imports> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-66 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://purl.org/nemo/gufo#Object> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#ConcreteIndividual> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/imports> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-67 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://purl.org/nemo/gufo#Object> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Individual> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/imports> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-68 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://purl.org/nemo/gufo#Participation> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#ConcreteIndividual> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/imports> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-69 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://purl.org/nemo/gufo#Participation> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Individual> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/imports> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-70 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://purl.org/nemo/gufo#Phase> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#ConcreteIndividualType> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/imports> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-71 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://purl.org/nemo/gufo#Phase> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#EndurantType> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/imports> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-72 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://purl.org/nemo/gufo#Phase> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#NonRigidType> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/imports> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-73 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://purl.org/nemo/gufo#Phase> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Type> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/imports> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-74 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://purl.org/nemo/gufo#PhaseMixin> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#ConcreteIndividualType> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/imports> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-75 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://purl.org/nemo/gufo#PhaseMixin> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#EndurantType> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/imports> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-76 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://purl.org/nemo/gufo#PhaseMixin> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#NonRigidType> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/imports> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-77 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://purl.org/nemo/gufo#PhaseMixin> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Type> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/imports> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-78 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://purl.org/nemo/gufo#Quality> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Aspect> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/imports> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-79 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://purl.org/nemo/gufo#Quality> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#ConcreteIndividual> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/imports> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-80 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://purl.org/nemo/gufo#Quality> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Endurant> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/imports> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-81 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://purl.org/nemo/gufo#Quality> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Individual> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/imports> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-82 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://purl.org/nemo/gufo#QualityValue> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Individual> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/imports> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-83 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://purl.org/nemo/gufo#QualityValueAttributionSituation> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#ConcreteIndividual> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/imports> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-84 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://purl.org/nemo/gufo#QualityValueAttributionSituation> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Individual> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/imports> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-85 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://purl.org/nemo/gufo#Quantity> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#ConcreteIndividual> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/imports> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-86 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://purl.org/nemo/gufo#Quantity> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Endurant> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/imports> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-87 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://purl.org/nemo/gufo#Quantity> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Individual> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/imports> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-88 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://purl.org/nemo/gufo#Relator> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Aspect> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/imports> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-89 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://purl.org/nemo/gufo#Relator> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#ConcreteIndividual> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/imports> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-90 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://purl.org/nemo/gufo#Relator> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Endurant> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/imports> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-91 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://purl.org/nemo/gufo#Relator> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Individual> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/imports> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-92 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://purl.org/nemo/gufo#RigidType> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#ConcreteIndividualType> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/imports> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-93 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://purl.org/nemo/gufo#RigidType> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Type> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/imports> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-94 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://purl.org/nemo/gufo#Role> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#ConcreteIndividualType> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/imports> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-95 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://purl.org/nemo/gufo#Role> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#EndurantType> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/imports> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-96 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://purl.org/nemo/gufo#Role> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#NonRigidType> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/imports> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-97 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://purl.org/nemo/gufo#Role> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Type> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/imports> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-98 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://purl.org/nemo/gufo#RoleMixin> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#ConcreteIndividualType> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/imports> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-99 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://purl.org/nemo/gufo#RoleMixin> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#EndurantType> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/imports> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-100 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://purl.org/nemo/gufo#RoleMixin> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#NonRigidType> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/imports> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-101 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://purl.org/nemo/gufo#RoleMixin> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Type> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/imports> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-102 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://purl.org/nemo/gufo#SemiRigidType> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#ConcreteIndividualType> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/imports> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-103 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://purl.org/nemo/gufo#SemiRigidType> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#EndurantType> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/imports> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-104 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://purl.org/nemo/gufo#SemiRigidType> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Type> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/imports> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-105 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://purl.org/nemo/gufo#Situation> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Individual> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/imports> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-106 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://purl.org/nemo/gufo#SituationType> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Type> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/imports> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-107 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://purl.org/nemo/gufo#Sortal> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#ConcreteIndividualType> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/imports> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-108 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://purl.org/nemo/gufo#Sortal> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Type> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/imports> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-109 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://purl.org/nemo/gufo#SubKind> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#ConcreteIndividualType> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/imports> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-110 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://purl.org/nemo/gufo#SubKind> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#EndurantType> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/imports> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-111 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://purl.org/nemo/gufo#SubKind> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Type> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/imports> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-112 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://purl.org/nemo/gufo#TemporaryConstitutionSituation> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#ConcreteIndividual> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/imports> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-113 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://purl.org/nemo/gufo#TemporaryConstitutionSituation> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Individual> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/imports> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-114 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://purl.org/nemo/gufo#TemporaryInstantiationSituation> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#ConcreteIndividual> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/imports> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-115 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://purl.org/nemo/gufo#TemporaryInstantiationSituation> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Individual> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/imports> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-116 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://purl.org/nemo/gufo#TemporaryParthoodSituation> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#ConcreteIndividual> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/imports> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-117 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://purl.org/nemo/gufo#TemporaryParthoodSituation> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Individual> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/imports> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-118 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://purl.org/nemo/gufo#TemporaryRelationshipSituation> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#ConcreteIndividual> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/imports> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-119 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://purl.org/nemo/gufo#TemporaryRelationshipSituation> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Individual> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/imports> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-120 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://purl.org/nemo/gufo#VariableCollection> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#ConcreteIndividual> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/imports> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-121 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://purl.org/nemo/gufo#VariableCollection> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Endurant> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/imports> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-122 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://purl.org/nemo/gufo#VariableCollection> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Individual> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/imports> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-123 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://purl.org/nemo/gufo#VariableCollection> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Object> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/imports> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-124 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://purl.org/ontology/bibo/AcademicArticle> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://schema.org/Article> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-125 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://purl.org/ontology/bibo/Patent> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/ontology/bibo/Patent> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-126 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://purl.org/ontology/bibo/Patent> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Patent> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-127 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://purl.org/vocab/frbr/core#Expression> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://iflastandards.info/ns/lrm/lrmoo/F2_Expression> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-128 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://purl.org/vocab/frbr/core#Expression> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/vocab/frbr/core#Expression> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-129 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://purl.org/vocab/frbr/core#Expression> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Expression> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-130 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://purl.org/vocab/frbr/core#Item> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://iflastandards.info/ns/lrm/lrmoo/F5_Item> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-131 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://purl.org/vocab/frbr/core#Item> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/vocab/frbr/core#Item> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-132 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://purl.org/vocab/frbr/core#Item> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Item> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-133 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://purl.org/vocab/frbr/core#Manifestation> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://iflastandards.info/ns/lrm/lrmoo/F3_Manifestation> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-134 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://purl.org/vocab/frbr/core#Manifestation> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/vocab/frbr/core#Manifestation> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-135 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://purl.org/vocab/frbr/core#Manifestation> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Manifestation> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-136 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://purl.org/vocab/frbr/core#Work> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://iflastandards.info/ns/lrm/lrmoo/F1_Work> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-137 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://purl.org/vocab/frbr/core#Work> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/vocab/frbr/core#Work> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-138 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://purl.org/vocab/frbr/core#Work> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Work> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-139 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://rdfs.org/sioc/ns#UserAccount> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://xmlns.com/foaf/0.1/OnlineAccount> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-140 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://www.w3.org/2000/10/swap/pim/gedcom#Family> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://www.w3.org/2000/10/swap/pim/gedcom#Family> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-141 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://www.w3.org/2000/10/swap/pim/gedcom#Family> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Family> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-142 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://www.w3.org/2000/10/swap/pim/gedcom#Individual> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://www.w3.org/2000/10/swap/pim/gedcom#Individual> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-143 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://www.w3.org/2000/10/swap/pim/gedcom#Individual> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://xmlns.com/foaf/0.1/Person> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-144 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://www.w3.org/2000/10/swap/pim/gedcom#Individual> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Person> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-145 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://www.w3.org/2000/10/swap/pim/gedcom#Individual> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://schema.org/Person> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-146 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://www.w3.org/2006/time#Instant> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Individual> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/imports> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-147 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://www.w3.org/ns/org#FormalOrganization> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://xmlns.com/foaf/0.1/Organization> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-148 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://www.w3.org/ns/org#FormalOrganization> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://schema.org/Organization> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-149 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://www.w3.org/ns/org#Membership> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://www.w3.org/ns/org#Membership> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-150 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://www.w3.org/ns/org#Membership> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Membership> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-151 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://www.w3.org/ns/org#Post> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://www.w3.org/ns/org#Post> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-152 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://www.w3.org/ns/org#Post> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Post> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-153 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://www.w3.org/ns/org#Role> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://www.w3.org/ns/org#Role> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-154 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://www.w3.org/ns/org#Role> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Role> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-155 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://www.w3.org/ns/prov#Activity> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://www.w3.org/ns/prov#Activity> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-156 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://www.w3.org/ns/prov#Activity> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Activity> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-157 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://www.w3.org/ns/prov#Agent> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://www.w3.org/ns/prov#Agent> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-158 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://www.w3.org/ns/prov#Agent> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://xmlns.com/foaf/0.1/Agent> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-159 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://www.w3.org/ns/prov#Agent> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Agent> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-160 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://xmlns.com/foaf/0.1/Agent> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://www.w3.org/ns/prov#Agent> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-161 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://xmlns.com/foaf/0.1/Agent> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://xmlns.com/foaf/0.1/Agent> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-162 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://xmlns.com/foaf/0.1/Agent> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Agent> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-163 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://xmlns.com/foaf/0.1/Group> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://xmlns.com/foaf/0.1/Group> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-164 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://xmlns.com/foaf/0.1/Group> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Group> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-165 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://xmlns.com/foaf/0.1/OnlineAccount> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://xmlns.com/foaf/0.1/OnlineAccount> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-166 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://xmlns.com/foaf/0.1/OnlineAccount> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/OnlineAccount> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-167 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://xmlns.com/foaf/0.1/Organization> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://xmlns.com/foaf/0.1/Organization> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-168 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://xmlns.com/foaf/0.1/Organization> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Organization> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-169 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://xmlns.com/foaf/0.1/Organization> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://schema.org/Organization> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-170 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://xmlns.com/foaf/0.1/Person> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://www.w3.org/2000/10/swap/pim/gedcom#Individual> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-171 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://xmlns.com/foaf/0.1/Person> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://xmlns.com/foaf/0.1/Person> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-172 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://xmlns.com/foaf/0.1/Person> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Person> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-173 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <http://xmlns.com/foaf/0.1/Person> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://schema.org/Person> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-174 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <https://blackcatinformatics.ca/gmeow/Activity> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://www.w3.org/ns/prov#Activity> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-175 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <https://blackcatinformatics.ca/gmeow/Activity> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Activity> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-176 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <https://blackcatinformatics.ca/gmeow/Agent> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://www.w3.org/ns/prov#Agent> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-177 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <https://blackcatinformatics.ca/gmeow/Agent> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://xmlns.com/foaf/0.1/Agent> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-178 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <https://blackcatinformatics.ca/gmeow/Agent> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Agent> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-179 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <https://blackcatinformatics.ca/gmeow/Article> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Article> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-180 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <https://blackcatinformatics.ca/gmeow/Article> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://schema.org/Article> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-181 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <https://blackcatinformatics.ca/gmeow/ContactPoint> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/ContactPoint> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-182 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <https://blackcatinformatics.ca/gmeow/ContactPoint> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://schema.org/ContactPoint> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-183 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <https://blackcatinformatics.ca/gmeow/CreativeWork> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/CreativeWork> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-184 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <https://blackcatinformatics.ca/gmeow/CreativeWork> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://schema.org/CreativeWork> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-185 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <https://blackcatinformatics.ca/gmeow/CreativeWorkTitle> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://id.loc.gov/ontologies/bibframe/Title> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-186 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <https://blackcatinformatics.ca/gmeow/CreativeWorkTitle> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/CreativeWorkTitle> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-187 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <https://blackcatinformatics.ca/gmeow/Credential> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Credential> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-188 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <https://blackcatinformatics.ca/gmeow/Credential> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://purl.org/ctdl/terms/Credential> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-189 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <https://blackcatinformatics.ca/gmeow/Credential> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://schema.org/EducationalOccupationalCredential> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-190 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <https://blackcatinformatics.ca/gmeow/Dataset> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Dataset> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-191 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <https://blackcatinformatics.ca/gmeow/Dataset> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://schema.org/Dataset> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-192 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <https://blackcatinformatics.ca/gmeow/Document> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Document> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-193 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <https://blackcatinformatics.ca/gmeow/Document> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://schema.org/DigitalDocument> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-194 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <https://blackcatinformatics.ca/gmeow/EmailMessage> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/EmailMessage> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-195 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <https://blackcatinformatics.ca/gmeow/EmailMessage> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://schema.org/EmailMessage> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-196 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <https://blackcatinformatics.ca/gmeow/Expression> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://iflastandards.info/ns/lrm/lrmoo/F2_Expression> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-197 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <https://blackcatinformatics.ca/gmeow/Expression> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/vocab/frbr/core#Expression> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-198 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <https://blackcatinformatics.ca/gmeow/Expression> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Expression> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-199 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <https://blackcatinformatics.ca/gmeow/Family> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://www.w3.org/2000/10/swap/pim/gedcom#Family> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-200 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <https://blackcatinformatics.ca/gmeow/Family> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Family> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-201 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <https://blackcatinformatics.ca/gmeow/GeoCoordinates> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/GeoCoordinates> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-202 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <https://blackcatinformatics.ca/gmeow/GeoCoordinates> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://schema.org/GeoCoordinates> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-203 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <https://blackcatinformatics.ca/gmeow/Group> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://xmlns.com/foaf/0.1/Group> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-204 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <https://blackcatinformatics.ca/gmeow/Group> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Group> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-205 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <https://blackcatinformatics.ca/gmeow/Item> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://iflastandards.info/ns/lrm/lrmoo/F5_Item> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-206 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <https://blackcatinformatics.ca/gmeow/Item> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/vocab/frbr/core#Item> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-207 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <https://blackcatinformatics.ca/gmeow/Item> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Item> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-208 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <https://blackcatinformatics.ca/gmeow/Manifestation> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://iflastandards.info/ns/lrm/lrmoo/F3_Manifestation> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-209 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <https://blackcatinformatics.ca/gmeow/Manifestation> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/vocab/frbr/core#Manifestation> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-210 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <https://blackcatinformatics.ca/gmeow/Manifestation> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Manifestation> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-211 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <https://blackcatinformatics.ca/gmeow/MediaObject> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/MediaObject> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-212 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <https://blackcatinformatics.ca/gmeow/MediaObject> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://schema.org/MediaObject> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-213 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <https://blackcatinformatics.ca/gmeow/Membership> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://www.w3.org/ns/org#Membership> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-214 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <https://blackcatinformatics.ca/gmeow/Membership> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Membership> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-215 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <https://blackcatinformatics.ca/gmeow/Occupation> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://data.europa.eu/esco/model#Occupation> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-216 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <https://blackcatinformatics.ca/gmeow/Occupation> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Occupation> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-217 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <https://blackcatinformatics.ca/gmeow/Occupation> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://schema.org/Occupation> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-218 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <https://blackcatinformatics.ca/gmeow/OnlineAccount> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://xmlns.com/foaf/0.1/OnlineAccount> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-219 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <https://blackcatinformatics.ca/gmeow/OnlineAccount> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/OnlineAccount> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-220 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <https://blackcatinformatics.ca/gmeow/Organization> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://xmlns.com/foaf/0.1/Organization> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-221 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <https://blackcatinformatics.ca/gmeow/Organization> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Organization> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-222 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <https://blackcatinformatics.ca/gmeow/Organization> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://schema.org/Organization> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-223 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <https://blackcatinformatics.ca/gmeow/Patent> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/ontology/bibo/Patent> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-224 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <https://blackcatinformatics.ca/gmeow/Patent> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Patent> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-225 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <https://blackcatinformatics.ca/gmeow/Person> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://www.w3.org/2000/10/swap/pim/gedcom#Individual> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-226 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <https://blackcatinformatics.ca/gmeow/Person> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://xmlns.com/foaf/0.1/Person> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-227 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <https://blackcatinformatics.ca/gmeow/Person> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Person> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-228 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <https://blackcatinformatics.ca/gmeow/Person> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://schema.org/Person> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-229 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <https://blackcatinformatics.ca/gmeow/Place> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Place> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-230 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <https://blackcatinformatics.ca/gmeow/Place> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://schema.org/Place> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-231 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <https://blackcatinformatics.ca/gmeow/Post> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://www.w3.org/ns/org#Post> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-232 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <https://blackcatinformatics.ca/gmeow/Post> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Post> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-233 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <https://blackcatinformatics.ca/gmeow/PostalAddress> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/PostalAddress> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-234 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <https://blackcatinformatics.ca/gmeow/PostalAddress> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://schema.org/PostalAddress> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-235 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <https://blackcatinformatics.ca/gmeow/Role> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://www.w3.org/ns/org#Role> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-236 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <https://blackcatinformatics.ca/gmeow/Role> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Role> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-237 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <https://blackcatinformatics.ca/gmeow/WebPage> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/WebPage> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-238 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <https://blackcatinformatics.ca/gmeow/WebPage> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://schema.org/WebPage> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-239 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <https://blackcatinformatics.ca/gmeow/Work> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://iflastandards.info/ns/lrm/lrmoo/F1_Work> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-240 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <https://blackcatinformatics.ca/gmeow/Work> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/vocab/frbr/core#Work> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-241 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <https://blackcatinformatics.ca/gmeow/Work> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Work> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-242 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <https://purl.org/ctdl/terms/Credential> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Credential> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-243 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <https://purl.org/ctdl/terms/Credential> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://purl.org/ctdl/terms/Credential> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-244 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <https://purl.org/ctdl/terms/Credential> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://schema.org/EducationalOccupationalCredential> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-245 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <https://schema.org/Article> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Article> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-246 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <https://schema.org/Article> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://schema.org/Article> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-247 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <https://schema.org/AudioObject> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://schema.org/MediaObject> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-248 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <https://schema.org/BlogPosting> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://schema.org/Article> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-249 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <https://schema.org/ContactPoint> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/ContactPoint> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-250 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <https://schema.org/ContactPoint> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://schema.org/ContactPoint> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-251 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <https://schema.org/Country> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://schema.org/Place> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-252 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <https://schema.org/CreativeWork> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/CreativeWork> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-253 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <https://schema.org/CreativeWork> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://schema.org/CreativeWork> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-254 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <https://schema.org/Dataset> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Dataset> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-255 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <https://schema.org/Dataset> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://schema.org/Dataset> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-256 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <https://schema.org/DigitalDocument> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Document> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-257 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <https://schema.org/DigitalDocument> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://schema.org/DigitalDocument> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-258 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <https://schema.org/EducationalOccupationalCredential> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Credential> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-259 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <https://schema.org/EducationalOccupationalCredential> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://purl.org/ctdl/terms/Credential> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-260 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <https://schema.org/EducationalOccupationalCredential> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://schema.org/EducationalOccupationalCredential> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-261 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <https://schema.org/EmailMessage> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/EmailMessage> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-262 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <https://schema.org/EmailMessage> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://schema.org/EmailMessage> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-263 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <https://schema.org/GeoCoordinates> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/GeoCoordinates> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-264 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <https://schema.org/GeoCoordinates> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://schema.org/GeoCoordinates> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-265 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <https://schema.org/ImageObject> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://schema.org/MediaObject> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-266 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <https://schema.org/MediaObject> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/MediaObject> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-267 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <https://schema.org/MediaObject> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://schema.org/MediaObject> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-268 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <https://schema.org/NewsArticle> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://schema.org/Article> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-269 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <https://schema.org/Occupation> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://data.europa.eu/esco/model#Occupation> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-270 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <https://schema.org/Occupation> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Occupation> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-271 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <https://schema.org/Occupation> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://schema.org/Occupation> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-272 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <https://schema.org/Organization> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://xmlns.com/foaf/0.1/Organization> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-273 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <https://schema.org/Organization> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Organization> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-274 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <https://schema.org/Organization> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://schema.org/Organization> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-275 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <https://schema.org/OrganizationRole> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://www.w3.org/ns/org#Role> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-276 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <https://schema.org/Person> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://www.w3.org/2000/10/swap/pim/gedcom#Individual> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-277 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <https://schema.org/Person> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://xmlns.com/foaf/0.1/Person> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-278 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <https://schema.org/Person> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Person> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-279 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <https://schema.org/Person> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://schema.org/Person> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-280 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <https://schema.org/Place> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Place> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-281 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <https://schema.org/Place> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://schema.org/Place> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-282 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <https://schema.org/PostalAddress> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/PostalAddress> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-283 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <https://schema.org/PostalAddress> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://schema.org/PostalAddress> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-284 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <https://schema.org/ScholarlyArticle> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://schema.org/Article> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-285 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <https://schema.org/WebPage> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/WebPage> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+gmeow:ledger-entry-286 a gmeow:LedgerEntry ;
+   gmeow:entryKind gmeow:NativeOnly ;
+   gmeow:subsumes << <https://schema.org/WebPage> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://schema.org/WebPage> >> ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> ;
+   rdfs:comment "oracle comparison deferred to classic-cross-check #666"@en .
+
+# --- beyond-EL DL gaps ---
+gmeow:dl-gap-0 a gmeow:DlGap ;
+   gmeow:gapCode "reason.dl-gap.complementOf"@en ;
+   rdfs:comment "owl:complementOf is beyond the EL Horn fragment in the predicate-as-symbol encoding; consistency for axioms using it is decided by the HermiT oracle only (named, not silently assumed consistent)."@en .
+gmeow:dl-gap-1 a gmeow:DlGap ;
+   gmeow:gapCode "reason.dl-gap.someValuesFrom"@en ;
+   rdfs:comment "owl:someValuesFrom is beyond the EL Horn fragment in the predicate-as-symbol encoding; consistency for axioms using it is decided by the HermiT oracle only (named, not silently assumed consistent)."@en .
+gmeow:dl-gap-2 a gmeow:DlGap ;
+   gmeow:gapCode "reason.dl-gap.cardinality"@en ;
+   rdfs:comment "owl:cardinality is beyond the EL Horn fragment in the predicate-as-symbol encoding; consistency for axioms using it is decided by the HermiT oracle only (named, not silently assumed consistent)."@en .
+gmeow:dl-gap-3 a gmeow:DlGap ;
+   gmeow:gapCode "reason.dl-gap.qualifiedCardinality"@en ;
+   rdfs:comment "owl:qualifiedCardinality is beyond the EL Horn fragment in the predicate-as-symbol encoding; consistency for axioms using it is decided by the HermiT oracle only (named, not silently assumed consistent)."@en .
+gmeow:dl-gap-4 a gmeow:DlGap ;
+   gmeow:gapCode "reason.dl-gap.minQualifiedCardinality"@en ;
+   rdfs:comment "owl:minQualifiedCardinality is beyond the EL Horn fragment in the predicate-as-symbol encoding; consistency for axioms using it is decided by the HermiT oracle only (named, not silently assumed consistent)."@en .
+gmeow:dl-gap-5 a gmeow:DlGap ;
+   gmeow:gapCode "reason.dl-gap.disjointUnionOf"@en ;
+   rdfs:comment "owl:disjointUnionOf is beyond the EL Horn fragment in the predicate-as-symbol encoding; consistency for axioms using it is decided by the HermiT oracle only (named, not silently assumed consistent)."@en .
+gmeow:dl-gap-6 a gmeow:DlGap ;
+   gmeow:gapCode "reason.dl-gap.hasValue"@en ;
+   rdfs:comment "owl:hasValue is beyond the EL Horn fragment in the predicate-as-symbol encoding; consistency for axioms using it is decided by the HermiT oracle only (named, not silently assumed consistent)."@en .
+
+# --- counts ---
+gmeow:dl-el-crosscheck gmeow:entailmentCount 287 ;
+   gmeow:gapCount 7 .

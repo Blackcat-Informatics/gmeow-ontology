@@ -266,6 +266,23 @@ meta:gate-logic-gufo-superset a meta:Gate ;
     meta:artifact "tests/test_logic_gufo_superset.py", "src/gmeow_tools/logic_adapter.py" ;
     meta:symbol "_GUFO_CLASS_TO_LOGIC", "test_every_gufo_class_has_logic_correspondence" .
 
+# Principle 18 enforcement — the #665 native reasoning authority. The native
+# EL/DL lane is the Java/Docker-free authoritative gate; the divergence ledger
+# is built from native results ONLY (report-only) with oracle comparison +
+# enforcement deferred to classic-cross-check (#666).
+meta:gate-reason-native a meta:Gate ;
+    rdfs:label "native Docker-free EL/DL reasoning authority (reason --mode native)"@x-gmeow-english ;
+    meta:artifact "src/gmeow_tools/reason.py" ;
+    meta:symbol "reason_native" ;
+    meta:makeTarget "reason-native" ;
+    meta:cliCommand "reason" .
+
+meta:gate-dl-el-crosscheck a meta:Gate ;
+    rdfs:label "native vs ELK/HermiT divergence ledger (report-only; #666 enforces)"@x-gmeow-english ;
+    meta:artifact "src/gmeow_tools/native_reason_gen.py", "generated/logic/dl-el-crosscheck-report.ttl" ;
+    meta:symbol "NativeReasoningGenerator" ;
+    meta:generator "native-reasoning" .
+
 # --------------------------------------------------------------------------- #
 # The principles
 # --------------------------------------------------------------------------- #
@@ -363,3 +380,8 @@ meta:Principle17 a meta:Principle ;
     meta:title "The logic itself is canonical — OWL is a projection of it, not its ceiling" ;
     meta:enforcedBy meta:gate-logic-conformance, meta:gate-logic-round-trip,
         meta:gate-foundation-conformance, meta:gate-logic-gufo-superset .
+
+meta:Principle18 a meta:Principle ;
+    meta:number 18 ;
+    meta:title "The reference RDF-1.2 stack — complete, coherent, and Docker-free" ;
+    meta:enforcedBy meta:gate-reason-native, meta:gate-dl-el-crosscheck .
