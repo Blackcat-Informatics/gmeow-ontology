@@ -9,15 +9,20 @@
 //! [`crate::compile`] pipeline projects, these rule sets are intrinsic to the
 //! reasoner: they encode the OWL semantics themselves, not a domain ontology.
 //!
-//! Currently provides the EL subsumption closure ([`el`]) and DL
-//! consistency / unsatisfiability ([`dl`]); the divergence ledger lands in a
-//! sibling module.
+//! Currently provides the EL subsumption closure ([`el`]), DL consistency /
+//! unsatisfiability ([`dl`]), and the report-only divergence ledger
+//! ([`ledger`]) comparing the native engine against the classic oracles.
 
 pub mod dl;
 pub mod el;
+pub mod ledger;
 
 pub use dl::{dl_consistency, DlVerdict, InconsistencyWitness, UnsatClass};
 pub use el::{el_closure, ElClosure, InferredAxiom};
+pub use ledger::{
+    build_ledger, compare_consistency, compare_subsumption, dl_gap_rows, DivergenceKind,
+    DivergenceLedger, LedgerRow,
+};
 
 use crate::encode::{
     decode_iri_term, decode_nemo_term, decode_string_constant, encode_quad_to_nemo_fact,
