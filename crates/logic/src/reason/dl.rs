@@ -60,7 +60,12 @@ const DL_EXTRA_RULES: &str = r#"
 /// Assemble the full DL rule set: the fixed EL calculus plus the
 /// clash-detection rules. Built at runtime from [`EL_RULES`] +
 /// [`DL_EXTRA_RULES`] to avoid duplicating the EL rule text.
-fn dl_rules() -> String {
+///
+/// `pub(crate)` so the single-chase combined entry point
+/// ([`crate::reason::reason_all`]) can run this exact rule set once and derive
+/// both the subsumption closure and the consistency verdict from the same
+/// `Vec<InferredAxiom>`.
+pub(crate) fn dl_rules() -> String {
     format!("{EL_RULES}\n{DL_EXTRA_RULES}")
 }
 
@@ -125,11 +130,33 @@ fn unwrap_iri(display: &str) -> &str {
 /// chase fails to parse/validate/evaluate/decode.
 pub fn dl_consistency(edb: &impl RdfStore) -> Result<DlVerdict, String> {
     let inferred: Vec<InferredAxiom> = crate::reason::run_reasoning(edb, &dl_rules())?;
+    verdict_from_inferred(&inferred, edb)
+}
 
+/// Read off the [`DlVerdict`] from an already-computed [`dl_rules`] closure.
+///
+/// Pure over `inferred` for the clash scan (every `type(?i, owl:Nothing, ?w)` is
+/// an [`InconsistencyWitness`]; every `subClassOf(?c, owl:Nothing, ?w)` with `?c`
+/// not `owl:Nothing` is an [`UnsatClass`]); the `gaps` scan still walks `edb`
+/// (the beyond-EL constructs are an *input* property, not a derived one). The
+/// verdict is consistent iff no inconsistency witness was derived.
+///
+/// Factored out so the single-chase [`crate::reason::reason_all`] can reuse the
+/// SAME `Vec<InferredAxiom>` it derives for the subsumption closure, running
+/// Nemo once instead of twice. [`dl_consistency`] is the thin wrapper that runs
+/// the chase then calls this — its behaviour is unchanged.
+///
+/// # Errors
+///
+/// Returns `Err(String)` if a quad cannot be read from `edb` during the gap scan.
+pub(crate) fn verdict_from_inferred(
+    inferred: &[InferredAxiom],
+    edb: &impl RdfStore,
+) -> Result<DlVerdict, String> {
     let mut inconsistencies: Vec<InconsistencyWitness> = Vec::new();
     let mut unsatisfiable_classes: Vec<UnsatClass> = Vec::new();
 
-    for ax in &inferred {
+    for ax in inferred {
         let object_iri = unwrap_iri(&ax.object);
         // An individual forced into owl:Nothing — an inconsistency witness.
         if ax.predicate == RDF_TYPE && object_iri == OWL_NOTHING {

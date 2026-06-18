@@ -37,7 +37,10 @@ pub const EL_RULES: &str = r#"
 
 /// The subsumption predicates the EL closure surfaces. Other derived rows from
 /// the chase (none, for [`EL_RULES`]) are filtered out of [`ElClosure::inferred`].
-const SUBSUMPTION_PREDICATES: &[&str] = &[
+///
+/// `pub(crate)` so the single-chase [`crate::reason::reason_all`] can apply the
+/// same subsumption filter to the shared `dl_rules` closure it runs once.
+pub(crate) const SUBSUMPTION_PREDICATES: &[&str] = &[
     "http://www.w3.org/2000/01/rdf-schema#subClassOf",
     "http://www.w3.org/2002/07/owl#equivalentClass",
     "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",

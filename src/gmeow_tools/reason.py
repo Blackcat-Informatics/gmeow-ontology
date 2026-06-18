@@ -13,10 +13,13 @@ HermiT for sound-and-complete OWL 2 DL consistency at release time.
 from __future__ import annotations
 
 from pathlib import Path
+from typing import TYPE_CHECKING, Any
 
 from gmeow_tools.config import (
     CATALOG_FILE,
     DIST_DIR,
+    GTS_SNAPSHOT_FILE,
+    NAMESPACE,
     ONTOLOGY_FILE,
     PROJECT_ROOT,
     ROBOT_IMAGE,
@@ -26,10 +29,24 @@ from gmeow_tools.config import (
 from gmeow_tools.runner import run_container
 from gmeow_tools.slices import iter_slice_query_files
 
+if TYPE_CHECKING:
+    from gmeow_tools.diagnostics import DiagnosticsReport
+
 #: Canonical merged (asserted) release product.
 MERGED_FILE = DIST_DIR / "gmeow-merged.ttl"
 #: Reasoned product carrying inferred axioms (release closure).
 FULL_FILE = DIST_DIR / "gmeow-full.ttl"
+
+#: The native reasoning lane's inferred-closure artifact (told-vs-inferred, in
+#: RDF 1.2 with per-triple derivation provenance). Java/Docker-free authority.
+INFERRED_CLOSURE_FILE = DIST_DIR / "gmeow-inferred-closure.rdf12.ttl"
+#: Diagnostics-artifact stem for the native lane (JSON / SARIF / HTML).
+NATIVE_REASON_STEM = "gmeow-reason-native"
+
+#: IRI base for a reasoning rule, minted under the gmeow namespace so the
+#: ``gmeow:viaRule`` annotation points at a dereferenceable, namespaced term
+#: rather than a bare rule label.
+_RULE_IRI_BASE = NAMESPACE + "rule/"
 
 
 def _rel(path: Path) -> str:
@@ -348,3 +365,256 @@ def build_full(*, merged: Path = MERGED_FILE, output: Path = FULL_FILE) -> Path:
         timeout=_HERMIT_TIMEOUT,
     )
     return output
+
+
+# --------------------------------------------------------------------------- #
+# Native reasoning lane (Rust, Java/Docker-free authority)
+# --------------------------------------------------------------------------- #
+
+#: Minimal prefix block for the inferred-closure RDF 1.2 artifact.
+_CLOSURE_PREFIXES = (
+    "@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n"
+    "@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n"
+    "@prefix owl: <http://www.w3.org/2002/07/owl#> .\n"
+    "@prefix prov: <http://www.w3.org/ns/prov#> .\n"
+    f"@prefix gmeow: <{NAMESPACE}> .\n"
+)
+
+#: Banner prepended to the inferred-closure artifact.
+_CLOSURE_BANNER = (
+    "# GMEOW native inferred closure (RDF 1.2).\n"
+    "# The told-vs-inferred derived axioms produced by the native EL/DL\n"
+    "# reasoning lane (gmeow_logic.reason_native, Java/Docker-free). Each\n"
+    "# inferred triple carries an RDF 1.2 reifier annotated with its\n"
+    "# derivation provenance (prov:wasDerivedBy / gmeow:viaRule). DO NOT EDIT.\n"
+)
+
+
+def _iri_term(value: str) -> str:
+    """Normalize a native-engine term into an angle-bracketed full IRI.
+
+    The native engine emits subjects/predicates as bare IRI strings and objects
+    already wrapped in ``<...>``; this collapses both to one ``<iri>`` form.
+    """
+    inner = value[1:-1] if value.startswith("<") and value.endswith(">") else value
+    return f"<{inner}>"
+
+
+def _rule_iri(rule_name: str) -> str:
+    """Mint a namespaced, percent-encoded IRI for a reasoning rule label."""
+    from urllib.parse import quote
+
+    return f"<{_RULE_IRI_BASE}{quote(rule_name, safe='')}>"
+
+
+def build_inferred_closure_ttl(
+    result: dict[str, Any], *, merge_asserted_from: bytes | None = None
+) -> str:
+    """Render the native told-vs-inferred closure as an RDF 1.2 Turtle document.
+
+    For every entailment in ``result['inferred']`` whose ``is_edb`` is false (a
+    *derived*, not asserted, axiom) this emits the triple plus an RDF 1.2
+    reifier carrying its derivation provenance: ``prov:wasDerivedBy`` and
+    ``gmeow:viaRule`` (both pointing at the namespaced rule IRI),
+    ``gmeow:inferenceKind gmeow:Deduction``, and ``gmeow:inWorld`` recording the
+    world (named graph) the entailment holds in. The world is carried as an
+    annotation rather than a Turtle named graph so the artifact stays valid
+    Turtle (it parses under ``RdfFormat.TURTLE``).
+
+    This function is pure (dict in, string out) so the Task 5 generator can reuse
+    it without any I/O.
+
+    Args:
+        result: The dict returned by ``gmeow_logic.reason_native``.
+        merge_asserted_from: When given, the asserted GTS bundle bytes; their
+            told graph is prepended so the document is the *union* of asserted
+            and derived axioms (the ``--merge`` mode).
+
+    Returns:
+        A valid RDF 1.2 Turtle document.
+    """
+    parts: list[str] = [_CLOSURE_BANNER, _CLOSURE_PREFIXES]
+
+    if merge_asserted_from is not None:
+        asserted = _asserted_turtle(merge_asserted_from)
+        if asserted:
+            parts.append(
+                "\n# --- asserted (told) graph (union; --merge) ---\n" + asserted
+            )
+
+    parts.append("\n# --- derived (inferred) closure ---\n")
+    for axiom in result.get("inferred", []):
+        if axiom.get("is_edb"):
+            continue
+        subject = _iri_term(axiom["subject"])
+        predicate = _iri_term(axiom["predicate"])
+        obj = _iri_term(axiom["object"])
+        rule_iri = _rule_iri(axiom["rule_name"])
+        world_iri = _iri_term(axiom["world"])
+        parts.append(f"{subject} {predicate} {obj} .\n")
+        parts.append(
+            f"[] rdf:reifies << {subject} {predicate} {obj} >> ;\n"
+            f"   prov:wasDerivedBy {rule_iri} ;\n"
+            f"   gmeow:viaRule {rule_iri} ;\n"
+            f"   gmeow:inferenceKind gmeow:Deduction ;\n"
+            f"   gmeow:inWorld {world_iri} .\n"
+        )
+    return "".join(parts)
+
+
+def _asserted_turtle(gts_bytes: bytes) -> str:
+    """Serialize the asserted GTS bundle's triples to Turtle (RDF 1.2 / star).
+
+    The bundle's named-graph quads are flattened into the closure document's
+    default graph (the graph component is dropped) so the artifact is a single
+    Turtle document. pyoxigraph serializes and re-parses any RDF-star triple
+    terms the asserted statement layer carries, so the round-trip stays valid
+    under ``RdfFormat.TURTLE``. Uses gts + pyoxigraph (no rdflib; #629).
+    """
+    from io import BytesIO
+
+    import gts as _gts
+    import pyoxigraph
+
+    quads = pyoxigraph.Store()
+    nquads = _gts.to_nquads(_gts.read(gts_bytes))
+    quads.load(nquads.encode("utf-8"), format=pyoxigraph.RdfFormat.N_QUADS)
+    flat = pyoxigraph.Store()
+    flat.extend(
+        pyoxigraph.Quad(quad.subject, quad.predicate, quad.object) for quad in quads
+    )
+    buffer = BytesIO()
+    pyoxigraph.serialize(flat, buffer, format=pyoxigraph.RdfFormat.TURTLE)
+    return buffer.getvalue().decode("utf-8")
+
+
+def reason_native(
+    *,
+    gts: Path = GTS_SNAPSHOT_FILE,
+    merge: bool = False,
+    output_dir: Path = DIST_DIR,
+    run_box_roles: bool = True,
+) -> DiagnosticsReport:
+    """Run the native EL/DL reasoning lane and emit its diagnostics + closure.
+
+    The Java/Docker-free authority lane (Principle 17): the Rust engine reasons
+    the bundle, this builds the diagnostics report (consistency verdict,
+    beyond-EL gaps, any inconsistency/unsatisfiability), folds in the four-box
+    role audit, writes the inferred-closure RDF 1.2 artifact, and writes the
+    JSON / SARIF / HTML diagnostics artifacts. It never raises on an
+    inconsistent ontology — the caller inspects ``report.ok``.
+
+    Args:
+        gts: The committed GTS bundle to reason over.
+        merge: When true, the closure artifact is the union of the asserted and
+            derived graphs; otherwise it carries only the derived axioms.
+        output_dir: Destination directory for all artifacts.
+        run_box_roles: When true, fold the four-box graph-role audit findings in.
+
+    Returns:
+        The diagnostics report (its ``ok`` reflects reasoning consistency).
+    """
+    import gmeow_logic
+
+    from gmeow_tools import diagnostics
+    from gmeow_tools.box_roles import audit_box_roles
+
+    gts_bytes = gts.read_bytes()
+    result = gmeow_logic.reason_native(gts_bytes)
+
+    derived = [a for a in result.get("inferred", []) if not a.get("is_edb")]
+    gaps = result.get("gaps", [])
+    report = diagnostics.report(tool="reason")
+    report.add(
+        diagnostics.finding(
+            severity="note",
+            code="reason.native.summary",
+            message=(
+                f"native EL/DL reasoning: consistent={result['consistent']}, "
+                f"{len(derived)} entailments, {len(gaps)} beyond-EL gaps"
+            ),
+            tool="reason",
+        )
+    )
+    report.add(
+        diagnostics.finding(
+            severity="info",
+            code="reason.native.shacl",
+            message=(
+                "structural SHACL conformance is enforced by the validate gate "
+                "(gmeow_shacl); the native reasoning lane composes with it in "
+                "make check"
+            ),
+            tool="reason",
+        )
+    )
+    for gap in gaps:
+        report.add(
+            diagnostics.finding(
+                severity="note",
+                code=gap["code"],
+                message=gap["message"],
+                tool="reason",
+            )
+        )
+    for incon in result.get("inconsistencies", []):
+        report.add(
+            diagnostics.finding(
+                severity="error",
+                code="reason.inconsistent",
+                message=(
+                    f"individual {incon['individual']} forced into owl:Nothing "
+                    f"in world {incon['world']}"
+                ),
+                tool="reason",
+            )
+        )
+    for unsat in result.get("unsatisfiable_classes", []):
+        report.add(
+            diagnostics.finding(
+                severity="warning",
+                code="reason.unsatisfiable",
+                message=(
+                    f"class {unsat['class']} is unsatisfiable in world {unsat['world']}"
+                ),
+                tool="reason",
+            )
+        )
+
+    if run_box_roles:
+        try:
+            audit = audit_box_roles()
+            for role_finding in (*audit.missing, *audit.invalid):
+                report.add(
+                    diagnostics.finding(
+                        severity="warning",
+                        code="box_roles",
+                        message=(
+                            f"{role_finding.term} ({role_finding.kind}): "
+                            f"{role_finding.message}"
+                        ),
+                        tool="reason",
+                        path=role_finding.source,
+                    )
+                )
+        except Exception as exc:  # must never crash the authority lane
+            report.add(
+                diagnostics.finding(
+                    severity="warning",
+                    code="box_roles.unavailable",
+                    message=f"four-box role audit skipped: {exc}",
+                    tool="reason",
+                )
+            )
+
+    output_dir.mkdir(parents=True, exist_ok=True)
+    closure_ttl = build_inferred_closure_ttl(
+        result, merge_asserted_from=(gts_bytes if merge else None)
+    )
+    (output_dir / "gmeow-inferred-closure.rdf12.ttl").write_text(
+        closure_ttl, encoding="utf-8"
+    )
+    diagnostics.write_report_artifacts(
+        report, output_dir=output_dir, stem=NATIVE_REASON_STEM
+    )
+    return report
