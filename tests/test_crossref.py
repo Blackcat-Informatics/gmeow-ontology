@@ -5,7 +5,7 @@ from __future__ import annotations
 import dataclasses
 from xml.etree import ElementTree as ET
 
-from gmeow_tools.config import ONTOLOGY_IRI
+from gmeow_tools.config import ALIGNMENT_TARGETS, ONTOLOGY_IRI
 from gmeow_tools.crossref import (
     AI_NS,
     CR_NS,
@@ -23,6 +23,13 @@ def _parse(xml: str) -> ET.Element:
 def _with_version_doi(version_doi: str = "10.67342/v010") -> SelfDescription:
     """The real self-description, but with a minted version DOI for two-record tests."""
     return dataclasses.replace(load_self_description(), version_doi=version_doi)
+
+
+def _doi_data_for(root: ET.Element, doi: str) -> ET.Element:
+    for doi_data in root.iter(f"{{{CR_NS}}}doi_data"):
+        if doi_data.findtext(f"{{{CR_NS}}}doi") == doi:
+            return doi_data
+    raise AssertionError(f"missing doi_data for {doi}")
 
 
 def test_deposit_is_well_formed() -> None:
@@ -134,11 +141,21 @@ def test_version_doi_emits_two_records_with_intra_relations() -> None:
 def test_deposit_carries_access_indicators_license() -> None:
     """The CC license is deposited via the AccessIndicators ai:program."""
     root = _parse(build_deposit_xml())
-    license_ref = root.find(f".//{{{AI_NS}}}license_ref")
-    assert license_ref is not None
-    assert license_ref.text == load_self_description().license_uri
-    assert license_ref.attrib["applies_to"] == "vor"
+    license_refs = root.findall(f".//{{{AI_NS}}}license_ref")
+    applies_to = {node.attrib["applies_to"] for node in license_refs}
+    assert applies_to == {"tdm", "vor"}
+    assert {node.text for node in license_refs} == {load_self_description().license_uri}
     assert root.find(f".//{{{AI_NS}}}free_to_read") is not None
+
+
+def test_deposit_carries_registrant_wikidata_institution_id() -> None:
+    """BII's QID is Crossref-valid institution metadata."""
+    root = _parse(build_deposit_xml())
+    ids = {
+        (node.attrib["type"], node.text)
+        for node in root.findall(f".//{{{CR_NS}}}institution_id")
+    }
+    assert ("wikidata", "https://www.wikidata.org/entity/Q140285712") in ids
 
 
 def test_deposit_carries_person_contributor_with_orcid() -> None:
@@ -160,6 +177,72 @@ def test_deposit_carries_format_and_serialization_relations() -> None:
     ]
     assert f"{ONTOLOGY_IRI}.ttl" in has_format
     assert f"{ONTOLOGY_IRI}.gts" in has_format
+
+
+def test_deposit_carries_text_mining_urls() -> None:
+    """TDM URLs expose every machine-readable ontology serialization."""
+    root = _parse(build_deposit_xml())
+    doi_data = _doi_data_for(root, full_doi())
+    collection = doi_data.find(f"{{{CR_NS}}}collection[@property='text-mining']")
+    assert collection is not None
+    resources = {
+        (node.text, node.attrib["mime_type"], node.attrib["content_version"])
+        for node in collection.findall(f".//{{{CR_NS}}}resource")
+    }
+    assert (f"{ONTOLOGY_IRI}.ttl", "text/turtle", "vor") in resources
+    assert (f"{ONTOLOGY_IRI}.rdf", "application/rdf+xml", "vor") in resources
+    assert (f"{ONTOLOGY_IRI}.nt", "application/n-triples", "vor") in resources
+    assert (f"{ONTOLOGY_IRI}.jsonld", "application/ld+json", "vor") in resources
+    assert (
+        f"{ONTOLOGY_IRI}.gts",
+        "application/cbor-seq",
+        "vor",
+    ) in resources
+
+
+def test_version_doi_carries_version_scoped_text_mining_urls() -> None:
+    """Version DOI TDM URLs point at immutable version serializations."""
+    meta = _with_version_doi()
+    root = _parse(build_deposit_xml(meta=meta))
+    doi_data = _doi_data_for(root, meta.version_doi or "")
+    collection = doi_data.find(f"{{{CR_NS}}}collection[@property='text-mining']")
+    assert collection is not None
+    resources = {node.text for node in collection.findall(f".//{{{CR_NS}}}resource")}
+    assert f"{meta.version_iri}.ttl" in resources
+    assert f"{ONTOLOGY_IRI}.ttl" in {
+        node.text
+        for node in _doi_data_for(root, meta.concept_doi).findall(
+            f".//{{{CR_NS}}}resource"
+        )
+    }
+
+
+def test_citation_list_projects_alignment_targets() -> None:
+    """The alignment registry becomes Crossref references."""
+    root = _parse(build_deposit_xml())
+    citations = root.findall(f".//{{{CR_NS}}}citation_list/{{{CR_NS}}}citation")
+    assert len(citations) == len(ALIGNMENT_TARGETS)
+    by_key = {node.attrib["key"]: node for node in citations}
+    assert {"ref-bfo", "ref-gufo", "ref-schema"}.issubset(by_key)
+    gufo = by_key["ref-gufo"]
+    assert gufo.attrib["type"] == "web_resource"
+    assert gufo.findtext(f"{{{CR_NS}}}article_title") == "gUFO"
+    assert (
+        gufo.findtext(f"{{{CR_NS}}}unstructured_citation")
+        == "gUFO. http://purl.org/nemo/gufo#."
+    )
+
+
+def test_deposit_omits_unsupported_crossref_fields() -> None:
+    """Do not spoof unavailable metadata just to raise participation metrics."""
+    xml = build_deposit_xml()
+    root = _parse(xml)
+    assert root.find(f".//{{{CR_NS}}}subject") is None
+    assert root.find(f".//{{{CR_NS}}}keywords") is None
+    assert 'property="crawler-based"' not in xml
+    assert "similarity-check" not in xml
+    assert "Crossmark" not in xml
+    assert "fundref" not in xml
 
 
 def test_lint_passes_on_real_self_description() -> None:

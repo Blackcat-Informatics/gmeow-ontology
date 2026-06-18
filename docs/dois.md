@@ -74,8 +74,19 @@ output validates against `crossref5.4.0.xsd` + `AccessIndicators.xsd` +
 - **`<description>`, `<format>`, dual `<database_date>`** (publication + update),
   **`<version_info>`**, and **`<publisher_item>`** identifiers.
 - **`<publisher>`** (name + place) and **`<institution>`** (name + acronym + place).
+- **`<institution_id type="wikidata">`** for the Blackcat Informatics® Inc.
+  organization QID, projected from the self-description authority link.
 - **`ai:program` (AccessIndicators)** — `free_to_read` + `license_ref` for the CC
-  license, making the license machine-readable in the PID graph.
+  license, making the license machine-readable in the PID graph for both the
+  version of record (`applies_to="vor"`) and text/data-mining use
+  (`applies_to="tdm"`).
+- **Text-mining full-text URLs** — Crossref
+  `<collection property="text-mining">` resources under `<doi_data>` for the
+  public machine-readable serializations: Turtle, RDF/XML, N-Triples, JSON-LD,
+  and the GTS package. The public HTTP/signposting media type for GTS is
+  `application/vnd.blackcat.gts+cbor-seq`; Crossref 5.4.0's media-type enum does
+  not accept that vendor subtype, so the Crossref deposit uses the schema-valid
+  parent type `application/cbor-seq` for the `.gts` TDM URL.
 - **`<intra_work_relation>`** — `hasFormat` to every published serialization (the
   Crossref-native analog of the Signposting `item` links), plus `hasVersion` /
   `isVersionOf` binding the two DOIs when a version DOI exists.
@@ -84,8 +95,24 @@ output validates against `crossref5.4.0.xsd` + `AccessIndicators.xsd` +
   ontologies) / `references` (peer schemas), identified by DOI when known else
   namespace URI. Crossref auto-creates the reverse link, making the deposit a
   first-class PID-graph node.
+- **`<citation_list>`** — explicit Crossref references for the same curated
+  alignment targets, so reference metadata is available through Crossref's
+  reference channels rather than only through relation metadata.
 - **`<component_list>` seam** — a documented comment marking where future
   per-profile sub-DOIs attach.
+
+The current Crossref 5.4.0 `database` / `dataset` record model does not expose a
+schema-valid generic subject or keyword element. GMEOW's descriptive subject
+set for this DOI is: ontology; semantic web; linked data; knowledge
+representation; RDF; OWL; SHACL; FAIR data; metadata; persistent identifiers;
+agent memory. Those subjects belong in GMEOW's own RDF/catalog projections and
+documentation until Crossref documents a dataset-valid field for them; the
+deposit must not spoof unrelated fields just to raise a participation-report
+percentage.
+
+Likewise, the deposit intentionally omits Similarity Check URLs, ROR IDs, funder
+registry/award metadata, and Crossmark metadata until those facts or service
+enrollments exist.
 
 ## FAIR Signposting bridge
 

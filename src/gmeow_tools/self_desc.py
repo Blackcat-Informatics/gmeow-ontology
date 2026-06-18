@@ -19,6 +19,8 @@ FOAF = Namespace("http://xmlns.com/foaf/0.1/")
 
 #: ORCID is the recognised person-authority scheme for Crossref contributors.
 _ORCID_PREFIX = "https://orcid.org/"
+#: Wikidata entity IRIs can identify organizations in Crossref institution metadata.
+_WIKIDATA_PREFIX = "http://www.wikidata.org/entity/"
 
 SELF_DESC_FILE = Path(__file__).resolve().parents[2] / "metadata" / "gmeow-self.ttl"
 
@@ -75,6 +77,7 @@ class SelfDescription:
     depositor_name: str
     depositor_email: str
     registrant: str
+    registrant_wikidata: str | None
     license_uri: str
     homepage: str
     description: str
@@ -262,6 +265,14 @@ def load_self_description_from_graph(g: Graph) -> SelfDescription:
             depositor_email = str(obj).removeprefix("mailto:")
             break
     registrant = depositor_name
+    registrant_wikidata = next(
+        (
+            str(o)
+            for o in g.objects(publisher, GMEOW.authorityLink)
+            if isinstance(o, URIRef) and str(o).startswith(_WIKIDATA_PREFIX)
+        ),
+        None,
+    )
 
     if not depositor_name or not depositor_email:
         raise ValueError(
@@ -299,6 +310,7 @@ def load_self_description_from_graph(g: Graph) -> SelfDescription:
         depositor_name=depositor_name,
         depositor_email=depositor_email,
         registrant=registrant,
+        registrant_wikidata=registrant_wikidata,
         license_uri=license_uri,
         homepage=homepage,
         description=description,

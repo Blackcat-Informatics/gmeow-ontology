@@ -14,10 +14,11 @@ GMEOW follows a **single-anchor** DOI strategy (see ``docs/dois.md``):
 
 The deposit uses the *whole* schema, not just ``<dataset type="record">``:
 contributors (organization + ORCID-identified persons), description, publication
-and update dates, publisher and institution, ``publisher_item`` identifiers,
-``version_info``, ``format``, the **AccessIndicators** license program
-(``ai:program`` — the CC license made machine-readable), and a rich relations
-program (``rel:program``):
+and update dates, publisher and institution identifiers, ``publisher_item``
+identifiers, ``version_info``, ``format``, the **AccessIndicators** license
+program (``ai:program`` — the CC license made machine-readable for version-of-
+record and TDM uses), text-mining full-text URLs, references, and a rich
+relations program (``rel:program``):
 
 * ``hasFormat`` intra-work relations to every published serialization (the
   Crossref-native analog of the FAIR Signposting ``item`` links);
@@ -77,12 +78,14 @@ _CITATION_CFF = PROJECT_ROOT / "CITATION.cff"
 
 #: Published serializations at ``{ONTOLOGY_IRI}.{ext}``; each becomes a
 #: ``hasFormat`` relation (the deposit's machine-readable representations).
-_SERIALIZATIONS: tuple[tuple[str, str], ...] = (
-    ("ttl", "Turtle"),
-    ("rdf", "RDF/XML"),
-    ("nt", "N-Triples"),
-    ("jsonld", "JSON-LD"),
-    ("gts", "GTS content-addressed package"),
+_SERIALIZATIONS: tuple[tuple[str, str, str], ...] = (
+    ("ttl", "Turtle", "text/turtle"),
+    ("rdf", "RDF/XML", "application/rdf+xml"),
+    ("nt", "N-Triples", "application/n-triples"),
+    ("jsonld", "JSON-LD", "application/ld+json"),
+    # Crossref's 5.4.0 mediatype enum does not include the vendor-specific GTS
+    # media type. GTS is a CBOR Sequence, so use the schema-valid parent type here.
+    ("gts", "GTS content-addressed package", "application/cbor-seq"),
 )
 
 
@@ -95,6 +98,26 @@ class _Relation:
     identifier_type: str  # "uri" | "doi" | ...
     target: str
     description: str
+
+
+@dataclass(frozen=True, slots=True)
+class _TdmResource:
+    """One Crossref text-mining full-text URL."""
+
+    url: str
+    mime_type: str
+    content_version: str = "vor"
+
+
+@dataclass(frozen=True, slots=True)
+class _Citation:
+    """One Crossref citation-list entry."""
+
+    key: str
+    type: str
+    title: str
+    unstructured: str
+    doi: str | None = None
 
 
 def _child(
@@ -127,6 +150,13 @@ def _live_stamp(description: SelfDescription) -> tuple[str, str]:
 def _doi_suffix(doi: str) -> str:
     """The suffix of a DOI (the part after ``10.<prefix>/``)."""
     return doi.split("/", 1)[1] if "/" in doi else doi
+
+
+def _crossref_pid_uri(identifier: str) -> str:
+    """Normalize internal authority IRIs to Crossref PID URI constraints."""
+    return identifier.replace(
+        "http://www.wikidata.org/entity/", "https://www.wikidata.org/entity/", 1
+    )
 
 
 # --------------------------------------------------------------------------- #
@@ -169,10 +199,20 @@ def _add_publisher(parent: ET.Element, name: str, place: str) -> None:
         _child(node, "publisher_place", place)
 
 
-def _add_institution(parent: ET.Element, name: str, acronym: str, place: str) -> None:
+def _add_institution(
+    parent: ET.Element,
+    name: str,
+    acronym: str,
+    place: str,
+    identifiers: Sequence[tuple[str, str]] = (),
+) -> None:
     """Add the ``<institution>`` block."""
     node = _child(parent, "institution")
     _child(node, "institution_name", name)
+    for id_type, value in identifiers:
+        _child(
+            node, "institution_id", _crossref_pid_uri(value), attrs={"type": id_type}
+        )
     if acronym:
         _child(node, "institution_acronym", acronym)
     if place:
@@ -208,13 +248,14 @@ def _add_access(parent: ET.Element, license_url: str, start_date: str) -> None:
         return
     node = _child(parent, "program", attrs={"name": "AccessIndicators"}, ns=AI_NS)
     _child(node, "free_to_read", attrs={"start_date": start_date}, ns=AI_NS)
-    _child(
-        node,
-        "license_ref",
-        license_url,
-        attrs={"start_date": start_date, "applies_to": "vor"},
-        ns=AI_NS,
-    )
+    for applies_to in ("vor", "tdm"):
+        _child(
+            node,
+            "license_ref",
+            license_url,
+            attrs={"start_date": start_date, "applies_to": applies_to},
+            ns=AI_NS,
+        )
 
 
 def _add_relations(parent: ET.Element, relations: Sequence[_Relation]) -> None:
@@ -236,6 +277,41 @@ def _add_relations(parent: ET.Element, relations: Sequence[_Relation]) -> None:
             },
             ns=REL_NS,
         )
+
+
+def _add_tdm_resources(doi_data: ET.Element, resources: Sequence[_TdmResource]) -> None:
+    """Add Crossref full-text URLs for text and data mining."""
+    if not resources:
+        return
+    collection = _child(doi_data, "collection", attrs={"property": "text-mining"})
+    for resource in resources:
+        item = _child(collection, "item")
+        _child(
+            item,
+            "resource",
+            resource.url,
+            attrs={
+                "mime_type": resource.mime_type,
+                "content_version": resource.content_version,
+            },
+        )
+
+
+def _add_citation_list(parent: ET.Element, citations: Sequence[_Citation]) -> None:
+    """Add Crossref references to the dataset record."""
+    if not citations:
+        return
+    citation_list = _child(parent, "citation_list")
+    for citation in citations:
+        node = _child(
+            citation_list,
+            "citation",
+            attrs={"key": citation.key, "type": citation.type},
+        )
+        if citation.doi:
+            _child(node, "doi", citation.doi)
+        _child(node, "article_title", citation.title)
+        _child(node, "unstructured_citation", citation.unstructured)
 
 
 # --------------------------------------------------------------------------- #
@@ -265,6 +341,24 @@ def _alignment_relations() -> list[_Relation]:
     return relations
 
 
+def _alignment_citations() -> list[_Citation]:
+    """Project alignment targets into Crossref citation-list references."""
+    citations: list[_Citation] = []
+    for key in sorted(ALIGNMENT_TARGETS):
+        target = ALIGNMENT_TARGETS[key]
+        identifier = target.related_identifier
+        citations.append(
+            _Citation(
+                key=f"ref-{key}",
+                type="web_resource",
+                title=target.name,
+                unstructured=f"{target.name}. {identifier}.",
+                doi=target.doi,
+            )
+        )
+    return citations
+
+
 def _format_relations(base_iri: str = ONTOLOGY_IRI) -> list[_Relation]:
     """``hasFormat`` relations to every published serialization of *base_iri*.
 
@@ -281,7 +375,15 @@ def _format_relations(base_iri: str = ONTOLOGY_IRI) -> list[_Relation]:
             target=f"{base_iri}.{ext}",
             description=f"{label} serialization of the ontology.",
         )
-        for ext, label in _SERIALIZATIONS
+        for ext, label, _mime_type in _SERIALIZATIONS
+    ]
+
+
+def _tdm_resources(base_iri: str = ONTOLOGY_IRI) -> list[_TdmResource]:
+    """Text-mining URLs to every public machine-readable serialization."""
+    return [
+        _TdmResource(f"{base_iri}.{ext}", mime_type)
+        for ext, _label, mime_type in _SERIALIZATIONS
     ]
 
 
@@ -299,6 +401,8 @@ def _add_dataset(
     title: str,
     dataset_description: str,
     relations: Sequence[_Relation],
+    tdm_resources: Sequence[_TdmResource],
+    citations: Sequence[_Citation],
     component_seam: bool,
 ) -> None:
     """Append one fully-populated ``<dataset>`` record."""
@@ -335,6 +439,8 @@ def _add_dataset(
     doi_data = _child(dataset, "doi_data")
     _child(doi_data, "doi", doi)
     _child(doi_data, "resource", resource)
+    _add_tdm_resources(doi_data, tdm_resources)
+    _add_citation_list(dataset, citations)
 
 
 def build_deposit_xml(
@@ -397,7 +503,15 @@ def build_deposit_xml(
     _add_date(db_metadata, "update_date", description.release_date)
     _add_publisher(db_metadata, description.registrant, REGISTRANT_PLACE)
     _add_institution(
-        db_metadata, description.registrant, REGISTRANT_ACRONYM, REGISTRANT_PLACE
+        db_metadata,
+        description.registrant,
+        REGISTRANT_ACRONYM,
+        REGISTRANT_PLACE,
+        identifiers=(
+            (("wikidata", description.registrant_wikidata),)
+            if description.registrant_wikidata
+            else ()
+        ),
     )
     _add_publisher_item(
         db_metadata, item_numbers=[("site", DATASET_SLUG)], identifiers=[]
@@ -440,6 +554,8 @@ def build_deposit_xml(
         title=f"{description.title} (concept)",
         dataset_description=description.description,
         relations=concept_relations,
+        tdm_resources=_tdm_resources(),
+        citations=_alignment_citations(),
         component_seam=False,
     )
 
@@ -464,6 +580,8 @@ def build_deposit_xml(
             title=f"{description.title} (version {description.version})",
             dataset_description=description.description,
             relations=version_relations,
+            tdm_resources=_tdm_resources(description.version_iri),
+            citations=_alignment_citations(),
             component_seam=True,
         )
 
@@ -567,6 +685,8 @@ def lint_deposit(meta: SelfDescription | None = None) -> list[str]:
         problems.append("self-description carries no dcterms:license for ai:program")
     if not description.contributors:
         problems.append("self-description carries no author contributors")
+    if not description.registrant_wikidata:
+        problems.append("self-description carries no Wikidata authority for registrant")
 
     # (b) round-trip: the rendered deposit's (doi, resource) pairs must match.
     xml = build_deposit_xml(meta=description)
@@ -586,5 +706,20 @@ def lint_deposit(meta: SelfDescription | None = None) -> list[str]:
             f"deposit (doi, resource) pairs {sorted(pairs)} "
             f"do not match self-description {sorted(expected)}"
         )
+
+    # Participation-report invariants for metadata we can truthfully support.
+    tdm_collection = root.find(f".//{{{CR_NS}}}collection[@property='text-mining']")
+    if tdm_collection is None:
+        problems.append("deposit carries no text-mining URL collection")
+    citation_nodes = root.findall(f".//{{{CR_NS}}}citation_list/{{{CR_NS}}}citation")
+    if not citation_nodes:
+        problems.append("deposit carries no citation_list references")
+    for citation_list in root.findall(f".//{{{CR_NS}}}citation_list"):
+        citation_keys = [
+            node.get("key") or ""
+            for node in citation_list.findall(f"{{{CR_NS}}}citation")
+        ]
+        if len(citation_keys) != len(set(citation_keys)):
+            problems.append("deposit citation_list contains duplicate citation keys")
 
     return problems
