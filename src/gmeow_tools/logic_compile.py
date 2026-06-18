@@ -136,6 +136,12 @@ class LogicGenerator(Generator):
             "nemo": LOGIC_NEMO_FILE,
             "report": LOGIC_REPORT_FILE,
         }
+        missing = [k for k in outputs if k not in artifacts]
+        if missing:
+            raise CompileError(
+                f"logic: compile produced no output for: {', '.join(sorted(missing))}"
+            )
+
         for key, committed in outputs.items():
             staged = _staged(committed)
             staged.parent.mkdir(parents=True, exist_ok=True)
