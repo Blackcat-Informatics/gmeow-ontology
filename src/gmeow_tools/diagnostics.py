@@ -1,0 +1,100 @@
+"""Python facade for the Rust-owned GMEOW diagnostics core."""
+
+from __future__ import annotations
+
+import json
+from collections.abc import Mapping, Sequence
+from pathlib import Path
+from typing import Any, cast
+
+import gmeow_diagnostics
+from rich.console import Console
+
+from gmeow_tools.config import PROJECT_ROOT
+
+DiagnosticsFinding = Any
+DiagnosticsReport = Any
+
+
+def finding(
+    *,
+    severity: str,
+    code: str,
+    message: str,
+    tool: str | None = None,
+    path: str | None = None,
+    line: int | None = None,
+    column: int | None = None,
+    logical: str | None = None,
+    detail: str | None = None,
+    tags: Sequence[str] | None = None,
+    suggestions: Sequence[str] | None = None,
+) -> DiagnosticsFinding:
+    """Build a native diagnostics finding."""
+    return gmeow_diagnostics.Finding(
+        severity,
+        code,
+        message,
+        tool=tool,
+        path=path,
+        line=line,
+        column=column,
+        logical=logical,
+        detail=detail,
+        tags=list(tags or []),
+        suggestions=list(suggestions or []),
+    )
+
+
+def report(tool: str) -> DiagnosticsReport:
+    """Build an empty native diagnostics report."""
+    return gmeow_diagnostics.Report(tool)
+
+
+def report_from_messages(
+    *,
+    tool: str,
+    errors: Sequence[str],
+    warnings: Sequence[str],
+) -> DiagnosticsReport:
+    """Build a diagnostics report from legacy error and warning strings."""
+    return gmeow_diagnostics.from_legacy(tool, list(errors), list(warnings))
+
+
+def report_from_validation_result(
+    result: Any,
+    *,
+    tool: str = "validate",
+) -> DiagnosticsReport:
+    """Build a diagnostics report from ``ValidationResult`` without changing it."""
+    output = report_from_messages(
+        tool=tool,
+        errors=list(result.errors),
+        warnings=list(result.warnings),
+    )
+    timings = list(getattr(result, "timings", []))
+    if timings:
+        output.set_metadata_json("timings", json.dumps(timings, sort_keys=True))
+    return output
+
+
+def emit_legacy_cli(report_obj: DiagnosticsReport, err_console: Console) -> None:
+    """Print warnings and errors in the existing CLI style."""
+    for warning in list(report_obj.warnings):
+        err_console.print(f"[yellow]warning[/yellow] {warning}")
+    for error in list(report_obj.errors):
+        err_console.print(f"[red]error[/red] {error}")
+
+
+def write_report_artifacts(
+    report_obj: DiagnosticsReport,
+    *,
+    output_dir: Path = PROJECT_ROOT / "dist",
+    stem: str = "gmeow-feedback",
+) -> dict[str, Path]:
+    """Write JSON, SARIF, and HTML artifacts for a diagnostics report."""
+    raw_paths = cast(
+        Mapping[str, str],
+        report_obj.write_artifacts(str(output_dir), stem),
+    )
+    return {kind: Path(path) for kind, path in raw_paths.items()}
