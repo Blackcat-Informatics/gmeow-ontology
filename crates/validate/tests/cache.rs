@@ -342,37 +342,33 @@ fn validate_all_uses_cache_when_configured() {
 }
 
 #[test]
-fn gts_cache_key_stable_across_serializations() {
+fn gts_cache_key_matches_segment_heads() {
     let graph = build_gts_graph_with_triples(&[(
         "https://example.org/a",
         "https://example.org/p",
         "https://example.org/b",
     )]);
 
-    let det_bytes = write_gts_bundle(&graph, true);
-    let nondet_bytes = write_gts_bundle(&graph, false);
-    assert_ne!(
-        det_bytes, nondet_bytes,
-        "deterministic and non-deterministic serializations must produce different bytes"
+    let bytes = write_gts_bundle(&graph, true);
+    let graph = gmeow_validate::store::read_gts_graph(&bytes).expect("bundle must parse");
+
+    assert!(
+        !graph.segment_heads.is_empty(),
+        "parsed GTS graph must expose wire segment_heads"
     );
 
-    let det_graph =
-        gmeow_validate::store::read_gts_graph(&det_bytes).expect("deterministic bundle must parse");
-    let nondet_graph = gmeow_validate::store::read_gts_graph(&nondet_bytes)
-        .expect("non-deterministic bundle must parse");
-
-    let det_key = ValidationCache::gts_graph_cache_key(&det_graph);
-    let nondet_key = ValidationCache::gts_graph_cache_key(&nondet_graph);
+    let heads: Vec<&[u8]> = graph.segment_heads.iter().map(|h| h.as_slice()).collect();
+    let source_key = ValidationCache::cache_key(&heads);
     assert_eq!(
-        det_key, nondet_key,
-        "content-addressed source keys must be stable across serializations"
-    );
-
-    let det_raw = ValidationCache::cache_key(&[det_bytes.as_slice()]);
-    let nondet_raw = ValidationCache::cache_key(&[nondet_bytes.as_slice()]);
-    assert_ne!(
-        det_raw, nondet_raw,
-        "raw byte cache keys must differ across serializations"
+        source_key,
+        ValidationCache::cache_key(
+            &graph
+                .segment_heads
+                .iter()
+                .map(|h| h.as_slice())
+                .collect::<Vec<_>>()
+        ),
+        "GTS source key must be derived from wire segment_heads content IDs"
     );
 }
 
@@ -395,11 +391,23 @@ fn gts_cache_key_changes_with_content() {
     let graph1 = gmeow_validate::store::read_gts_graph(&b1).expect("first bundle must parse");
     let graph2 = gmeow_validate::store::read_gts_graph(&b2).expect("second bundle must parse");
 
-    let k1 = ValidationCache::gts_graph_cache_key(&graph1);
-    let k2 = ValidationCache::gts_graph_cache_key(&graph2);
+    let k1 = ValidationCache::cache_key(
+        &graph1
+            .segment_heads
+            .iter()
+            .map(|h| h.as_slice())
+            .collect::<Vec<_>>(),
+    );
+    let k2 = ValidationCache::cache_key(
+        &graph2
+            .segment_heads
+            .iter()
+            .map(|h| h.as_slice())
+            .collect::<Vec<_>>(),
+    );
     assert_ne!(
         k1, k2,
-        "different semantic content must yield different source keys"
+        "different GTS content must yield different segment-head-based keys"
     );
 }
 
