@@ -463,6 +463,7 @@ fn gts_validate_uses_cache_when_configured() {
         thing_iri.clone(),
         "http://www.w3.org/2002/07/owl#Class".to_string(),
         "http://purl.org/nemo/gufo#Kind".to_string(),
+        "http://www.w3.org/1999/02/22-rdf-syntax-ns#type".to_string(),
         "http://www.w3.org/2000/01/rdf-schema#label".to_string(),
         "http://www.w3.org/2004/02/skos/core#definition".to_string(),
         "http://www.w3.org/2000/01/rdf-schema#isDefinedBy".to_string(),
@@ -493,18 +494,19 @@ fn gts_validate_uses_cache_when_configured() {
     let thing = 0;
     let owl_class = 1;
     let gufo_kind = 2;
-    let rdfs_label = 3;
-    let skos_def = 4;
-    let rdfs_defined_by = 5;
-    let ns_term = 6;
+    let rdf_type = 3;
+    let rdfs_label = 4;
+    let skos_def = 5;
+    let rdfs_defined_by = 6;
+    let ns_term = 7;
     let label = literal(&mut graph, "Thing");
     let definition = literal(&mut graph, "A thing.");
 
     graph.quads.push((thing, rdfs_label, label, None));
     graph.quads.push((thing, skos_def, definition, None));
     graph.quads.push((thing, rdfs_defined_by, ns_term, None));
-    graph.quads.push((thing, owl_class, thing, None));
-    graph.quads.push((thing, gufo_kind, thing, None));
+    graph.quads.push((thing, rdf_type, owl_class, None));
+    graph.quads.push((thing, rdf_type, gufo_kind, None));
 
     let bytes = write_gts_bundle(&graph, true);
     let root = temp_project_root();
