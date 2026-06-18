@@ -193,7 +193,7 @@ def extract_terms(
     whose object is a ``Literal``. Accepts literals tagged
     ``@x-gmeow-english`` first; untagged literals are used as a fallback. If a
     subject+predicate carries multiple distinct ``@x-gmeow-english`` values in
-    the same slice, a :class:`ValueError` is raised.
+    the same slice, an error is raised.
 
     When ``slice_resolver`` is supplied it is called as
     ``slice_resolver(term_iri, predicate_iri, lexical_value)`` and may return a
@@ -202,6 +202,19 @@ def extract_terms(
 
     Results are yielded sorted deterministically by
     ``(slice_iri, term_iri, predicate)``.
+
+    Args:
+        graph: The RDF graph to scan for localizable literals.
+        slice_resolver: Optional callable that returns a slice IRI for a given
+            term, predicate, and lexical value, or ``None`` to use the default
+            heuristic.
+
+    Yields:
+        :class:`TranslationKey` records in deterministic order.
+
+    Raises:
+        ValueError: If multiple distinct ``@x-gmeow-english`` values exist for
+            the same term, predicate, and slice.
     """
     collected: dict[tuple[str, str, str], tuple[str, str]] = {}
     english_values: dict[tuple[str, str, str], set[str]] = {}
@@ -271,6 +284,12 @@ def build_pot(entries: list[TranslationKey]) -> str:
     ``Content-Type``, and ``Content-Transfer-Encoding`` fields. Each entry is
     emitted as ``#: slice_iri``, ``msgctxt "term_iri|predicate"``,
     ``msgid "english_value"``, ``msgstr ""``.
+
+    Args:
+        entries: Translation keys to include in the template.
+
+    Returns:
+        The rendered POT file content.
     """
     lines: list[str] = [
         "# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc.",
@@ -329,6 +348,17 @@ def load_po_catalog(path: Path) -> dict[tuple[str, str, str], str]:
     language tag is resolved from the PO ``Language:`` header via the merged
     ontology's inverse tag map (e.g. ``fr`` -> ``x-gmeow-french``). Entries with
     an empty ``msgstr`` are skipped.
+
+    Args:
+        path: Path to the PO catalog file.
+
+    Returns:
+        Mapping from ``(term_iri, predicate, internal_lang_tag)`` to the
+        translated ``msgstr`` value.
+
+    Raises:
+        ValueError: If the PO ``Language:`` header cannot be mapped to a GMEOW
+            internal tag.
     """
     text = path.read_text(encoding="utf-8")
     bcp_lang = _language_from_po(text)
@@ -357,6 +387,13 @@ def merge_terms(base_graph: Graph, po_paths: list[Path]) -> Graph:
     The returned graph contains all triples from *base_graph* plus, for each PO
     file, triples of the form ``(term_iri, predicate, Literal(msgstr, lang=tag))``.
     *base_graph* is not mutated.
+
+    Args:
+        base_graph: The English ontology graph to merge translations into.
+        po_paths: Paths to translated PO catalogs.
+
+    Returns:
+        A new graph containing the merged triples.
 
     Raises:
         ValueError: If a PO catalog entry references a term/predicate pair that
@@ -429,7 +466,15 @@ def _write_po_header(path: Path, *, language: str | None = None) -> None:
 
 
 def ontology_docs_template(key: str, fallback: str = "") -> str:
-    """Return the current ontology-docs template string for *key*."""
+    """Return the current ontology-docs template string for *key*.
+
+    Args:
+        key: Template identifier (e.g. ``"nav_home"``).
+        fallback: Value to return when *key* is not registered.
+
+    Returns:
+        The registered template string, or *fallback* if the key is missing.
+    """
     return _active_templates.get(key, fallback)
 
 
@@ -437,7 +482,16 @@ def ontology_docs_template(key: str, fallback: str = "") -> str:
 def translated_ontology_docs_templates(
     catalog: dict[str, str],
 ) -> Iterator[None]:
-    """Temporarily override ontology-docs template strings with *catalog*."""
+    """Temporarily override ontology-docs template strings with *catalog*.
+
+    Args:
+        catalog: Mapping from template id to translated string. The mapping is
+            merged with the English defaults, so missing keys fall back to
+            English.
+
+    Yields:
+        None. The original template catalog is restored on context exit.
+    """
     global _active_templates
     previous = _active_templates
     _active_templates = merge_ontology_docs_templates(catalog)
@@ -452,6 +506,9 @@ def extract_ontology_docs_templates() -> list[PoEntry]:
 
     Each entry carries ``msgctxt "ontology-docs-template|<id>"`` and an empty
     ``msgstr`` so it can be shipped as a POT template.
+
+    Returns:
+        Template entries in deterministic id order.
     """
     return [
         PoEntry(msgctxt=f"ontology-docs-template|{key}", msgid=value, msgstr="")
@@ -465,6 +522,12 @@ def merge_ontology_docs_templates(catalog: dict[str, str]) -> dict[str, str]:
     *catalog* maps template ids (without the ``ontology-docs-template|`` prefix)
     to translated strings. Missing or empty values fall back to the English
     defaults.
+
+    Args:
+        catalog: Mapping from template id to translated string.
+
+    Returns:
+        A full template dictionary including English fallbacks.
     """
     merged = dict(_ONTOLOGY_DOCS_TEMPLATES)
     for key, value in catalog.items():
@@ -480,6 +543,14 @@ def load_ontology_docs_template_catalog(
 
     Reads ``dist/i18n/ontology-docs-templates.<lang>.po`` and returns a dict
     mapping template id to translated string.
+
+    Args:
+        lang: BCP-47 language tag (e.g. ``"fr"``).
+        root: Repository root used to locate ``dist/i18n/``.
+
+    Returns:
+        Mapping from template id to translated string, or an empty dict when the
+        PO file does not exist.
     """
     po_path = root / "dist" / "i18n" / f"ontology-docs-templates.{lang}.po"
     if not po_path.is_file():
@@ -586,6 +657,14 @@ def extract_markdown(path: Path, *, rel_path: str | None = None) -> list[PoEntry
     Code blocks are preserved as single segments.  Each entry uses
     ``msgctxt "<rel-path>|<anchor-hash>"`` so translations can be merged back
     by matching the same source segments.
+
+    Args:
+        path: Markdown file to extract segments from.
+        rel_path: Optional relative path used in the ``msgctxt`` key. Defaults
+            to ``path.name``.
+
+    Returns:
+        PO entries for every translatable segment in source order.
     """
     with path.open("r", encoding="utf-8", newline="") as fh:
         text = fh.read()
@@ -608,6 +687,11 @@ def merge_markdown(source: Path, po_path: Path, output: Path) -> None:
     source segment is replaced by its ``msgstr`` when one exists and is
     non-empty; otherwise the original English segment is kept.  The result is
     written to *output* preserving the original line ending and structure.
+
+    Args:
+        source: English Markdown source file.
+        po_path: PO catalog containing translated segments.
+        output: Path to write the merged Markdown file.
     """
     po_text = po_path.read_text(encoding="utf-8")
     catalog: dict[str, str] = {}
@@ -645,6 +729,12 @@ def discover_doc_languages(root: Path = PROJECT_ROOT) -> list[str]:
     Languages are discovered from ``slices/*/*/i18n/*.po`` files whose
     ``Language:`` header is not ``en``.  The English carrier is handled
     separately so that consumers can always fall back to it.
+
+    Args:
+        root: Repository root to search for PO catalogs.
+
+    Returns:
+        Sorted list of BCP-47 tags (excluding ``en``).
     """
     tags: set[str] = set()
     for po_path in sorted(root.glob("slices/*/*/i18n/*.po")):
@@ -687,6 +777,12 @@ def merge_all_markdown(
     English source files are merged with translations found at
     ``dist/i18n/docs/<rel-path>.<lang>.po``.  Missing PO files produce the
     original English content.
+
+    Args:
+        root: Repository root containing English Markdown sources.
+        lang: BCP-47 target language tag.
+        output_root: Directory to write the translated Markdown tree.
+        include_readme: Also translate ``README.md`` at the repository root.
     """
     sources: list[tuple[Path, Path]] = []
 
@@ -712,7 +808,13 @@ def merge_all_markdown(
 
 
 def write_po(path: Path, entries: list[PoEntry], lang: str) -> None:
-    """Write a ``.po`` file with the given language header and entries."""
+    """Write a ``.po`` file with the given language header and entries.
+
+    Args:
+        path: Destination file path.
+        entries: PO entries to append after the header.
+        lang: BCP-47 language tag for the ``Language:`` header.
+    """
     _write_po_header(path, language=lang)
     if not entries:
         return
@@ -726,7 +828,12 @@ def write_po(path: Path, entries: list[PoEntry], lang: str) -> None:
 
 
 def write_pot(path: Path, entries: list[PoEntry]) -> None:
-    """Write a ``.pot`` template file (no ``Language:`` header)."""
+    """Write a ``.pot`` template file (no ``Language:`` header).
+
+    Args:
+        path: Destination file path.
+        entries: PO entries to append after the header.
+    """
     _write_po_header(path, language=None)
     if not entries:
         return
@@ -792,6 +899,12 @@ def parse_po_catalog(text: str) -> list[PoCatalogEntry]:
 
     The header entry (empty ``msgid``) and any entries without a ``msgctxt`` are
     retained so callers can filter them as needed.
+
+    Args:
+        text: Raw PO file content.
+
+    Returns:
+        Parsed catalog entries in source order.
     """
     entries: list[PoCatalogEntry] = []
     for block in _split_po_blocks(text):
@@ -825,6 +938,12 @@ def iter_po_catalogs(root: Path) -> Iterator[PoCatalog]:
     Each catalog carries the BCP-47 language parsed from its ``Language:``
     header, the owning slice name (last directory segment), the relative slice
     path, and all parsed entries.
+
+    Args:
+        root: Repository root to search for PO catalogs.
+
+    Yields:
+        :class:`PoCatalog` records in deterministic path order.
     """
     for po_path in sorted(root.glob("slices/*/*/i18n/*.po")):
         text = po_path.read_text(encoding="utf-8")
@@ -846,7 +965,12 @@ def iter_po_catalogs(root: Path) -> Iterator[PoCatalog]:
 
 
 def write_csv_export(catalogs: Iterable[PoCatalog], out: Path | None) -> None:
-    """Write the CSV export to *out*, or to stdout when *out* is ``None``."""
+    """Write the CSV export to *out*, or to stdout when *out* is ``None``.
+
+    Args:
+        catalogs: PO catalogs to include in the export.
+        out: Destination CSV file, or ``None`` to write to stdout.
+    """
     header = ["slice", "term_iri", "predicate", "language", "msgid", "msgstr", "fuzzy"]
     rows: list[list[str]] = []
     for catalog in catalogs:
@@ -883,7 +1007,12 @@ def _xml_escape(text: str) -> str:
 
 
 def write_xliff_export(catalogs: Iterable[PoCatalog], out: Path | None) -> None:
-    """Write the XLIFF 1.2 export to *out*, or to stdout when *out* is ``None``."""
+    """Write the XLIFF 1.2 export to *out*, or to stdout when *out* is ``None``.
+
+    Args:
+        catalogs: PO catalogs to include in the export.
+        out: Destination XLIFF file, or ``None`` to write to stdout.
+    """
     lines: list[str] = [
         '<?xml version="1.0" encoding="UTF-8"?>',
         '<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">',

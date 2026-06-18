@@ -2252,6 +2252,13 @@ def extract_catalog(
     slice, and emits one POT (or PO when --lang is given) file per slice.
     When --terms-only is not given, also extracts slice guides, project docs,
     README.md, and ontology-docs template strings.
+
+    Args:
+        root: Repository root containing the slices/ directory.
+        output_dir: Directory to write the generated POT/PO files.
+        lang: If given, write .po files for this language instead of .pot templates.
+        terms_only: Only extract ontology term strings, skip Markdown docs and
+            templates.
     """
     from rdflib import Graph, Literal, URIRef
 
@@ -2397,6 +2404,10 @@ def sync_english(
     maps them to their canonical masters, and applies a 3-way merge.  ``en.po``
     catalogs update sibling ``module.ttl`` and ``manifest.ttl`` files;
     ``*.md.po`` catalogs update the matching ``*.md`` file in the same slice.
+
+    Args:
+        root: Repository root to search for slices.
+        dry_run: Report only; do not write changes.
     """
     from gmeow_tools.i18n_sync import sync_english_file
 
@@ -2486,6 +2497,11 @@ def merge(
     translated triples to the merged English ontology graph. The result is a
     single Turtle graph carrying language-tagged labels, definitions, and
     comments without modifying canonical ``.ttl`` or ``.md`` sources.
+
+    Args:
+        root: Repository root to search for slices.
+        output: Output Turtle file. Defaults to stdout.
+        lang: BCP-47 language tag to merge (e.g. 'fr'). Defaults to all languages.
     """
     from gmeow_tools.graph import load_merged_graph
     from gmeow_tools.i18n_catalog import _language_from_po, merge_terms
@@ -2537,6 +2553,10 @@ def export_csv(
     Discovers ``slices/*/*/i18n/*.po`` files, parses each entry's fuzzy flag,
     and emits one row per translatable term/predicate with the slice name,
     language, source string, and translation.
+
+    Args:
+        root: Repository root to search for slices.
+        output: Output CSV file (default: stdout).
     """
     from gmeow_tools.i18n_catalog import iter_po_catalogs, write_csv_export
 
@@ -2562,6 +2582,10 @@ def export_xliff(
     Discovers ``slices/*/*/i18n/*.po`` files and emits one XLIFF ``<file>`` per
     slice/language, with ``<trans-unit>`` elements keyed by
     ``term_iri|predicate``.
+
+    Args:
+        root: Repository root to search for slices.
+        output: Output XLIFF 1.2 file (default: stdout).
     """
     from gmeow_tools.i18n_catalog import iter_po_catalogs, write_xliff_export
 

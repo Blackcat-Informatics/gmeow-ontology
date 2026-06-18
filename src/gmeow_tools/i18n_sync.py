@@ -32,7 +32,11 @@ __all__ = [
 
 
 class PoParseError(ValueError):
-    """Raised when a PO file cannot be parsed."""
+    """Raised when a PO file cannot be parsed.
+
+    Carries the original parser error message so callers can report the
+    offending file and line.
+    """
 
 
 @dataclass(frozen=True, slots=True)
@@ -798,6 +802,14 @@ def apply_ttl_sync(
 
     Thin wrapper around :func:`sync_english_from_po` that exposes the
     symmetric ``apply_*_sync`` API used by :func:`sync_english_file`.
+
+    Args:
+        po_path: Path to the PO catalog.
+        ttl_path: Path to the Turtle source file to update.
+        dry_run: If ``True``, compute the report without writing to disk.
+
+    Returns:
+        A :class:`SyncReport` describing the outcome.
     """
     return sync_english_from_po(po_path, ttl_path, dry_run=dry_run)
 
