@@ -3,13 +3,14 @@
 
 //! Integration tests for the `.cache/validate` content-addressed cache (#634).
 
-use std::collections::{BTreeSet, HashSet};
+use std::collections::{BTreeSet, HashMap, HashSet};
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicU64, Ordering};
 
 use gmeow_validate::cache::{CachedResult, ValidationCache};
 use gmeow_validate::lint::LintConfig;
+use gmeow_validate::store;
 use gmeow_validate::validate_all::{ValidateOptions, ValidationRun};
 
 static TEST_DIR_COUNTER: AtomicU64 = AtomicU64::new(0);
@@ -210,6 +211,83 @@ fn mini_shapes_ttl() -> String {
         .to_owned()
 }
 
+fn build_gts_graph_with_triples(triples: &[(&str, &str, &str)]) -> gmeow_gts::model::Graph {
+    use gmeow_gts::model::{Term, TermKind};
+
+    let mut graph = gmeow_gts::model::Graph::default();
+    let mut iri_to_id: HashMap<String, usize> = HashMap::new();
+
+    for (s, p, o) in triples {
+        let s_id = *iri_to_id.entry(s.to_string()).or_insert_with(|| {
+            let id = graph.terms.len();
+            graph.terms.push(Term {
+                kind: TermKind::Iri,
+                value: Some(s.to_string()),
+                datatype: None,
+                lang: None,
+                reifier: None,
+            });
+            id
+        });
+        let p_id = *iri_to_id.entry(p.to_string()).or_insert_with(|| {
+            let id = graph.terms.len();
+            graph.terms.push(Term {
+                kind: TermKind::Iri,
+                value: Some(p.to_string()),
+                datatype: None,
+                lang: None,
+                reifier: None,
+            });
+            id
+        });
+        let o_id = *iri_to_id.entry(o.to_string()).or_insert_with(|| {
+            let id = graph.terms.len();
+            graph.terms.push(Term {
+                kind: TermKind::Iri,
+                value: Some(o.to_string()),
+                datatype: None,
+                lang: None,
+                reifier: None,
+            });
+            id
+        });
+        graph.quads.push((s_id, p_id, o_id, None));
+    }
+
+    graph
+}
+
+fn write_gts_bundle(graph: &gmeow_gts::model::Graph, deterministic: bool) -> Vec<u8> {
+    if deterministic {
+        gmeow_gts::writer::Writer::deterministic(graph, "gmeow-validate-test")
+            .expect("deterministic GTS writer must succeed")
+            .to_bytes()
+    } else {
+        // Non-deterministic serialization of the same semantic graph: fold the
+        // deterministic bundle back into a Graph so the logical frame order is
+        // identical, then emit it again with the optional CBOR self-describe
+        // tag omitted. The wire bytes differ, but the content-addressed
+        // segment head stays stable.
+        let canonical_bytes =
+            gmeow_gts::writer::Writer::deterministic(graph, "gmeow-validate-test")
+                .expect("deterministic GTS writer must succeed")
+                .to_bytes();
+        let canonical_graph =
+            store::read_gts_graph(&canonical_bytes).expect("canonical bundle must parse");
+        let mut writer = gmeow_gts::writer::Writer::with_options(
+            "gmeow-validate-test",
+            gmeow_gts::writer::WriterOptions {
+                magic_tag: false,
+                ..Default::default()
+            },
+        )
+        .expect("non-deterministic writer options must be valid");
+        writer.add_terms(&canonical_graph.terms);
+        writer.add_quads(&canonical_graph.quads);
+        writer.to_bytes()
+    }
+}
+
 #[test]
 fn validate_all_uses_cache_when_configured() {
     let root = temp_project_root();
@@ -270,6 +348,268 @@ fn validate_all_uses_cache_when_configured() {
     assert_eq!(merged_meta2, Some("cache-hit"));
 
     // The cache directory must contain the merged-shacl entry.
+    let cache = ValidationCache::new(&root);
+    let entries: Vec<_> = fs::read_dir(cache.cache_dir().join("merged-shacl"))
+        .unwrap()
+        .filter_map(|e| e.ok())
+        .collect();
+    assert!(
+        !entries.is_empty(),
+        "merged-shacl cache directory must contain entries"
+    );
+}
+
+#[test]
+fn gts_cache_key_is_stable_across_serializations() {
+    let graph = build_gts_graph_with_triples(&[(
+        "https://example.org/a",
+        "https://example.org/p",
+        "https://example.org/b",
+    )]);
+
+    let deterministic_bytes = write_gts_bundle(&graph, true);
+    let non_deterministic_bytes = write_gts_bundle(&graph, false);
+
+    assert_ne!(
+        deterministic_bytes, non_deterministic_bytes,
+        "deterministic and non-deterministic serializations must differ on the wire"
+    );
+
+    let graph1 =
+        store::read_gts_graph(&deterministic_bytes).expect("deterministic bundle must parse");
+    let graph2 = store::read_gts_graph(&non_deterministic_bytes)
+        .expect("non-deterministic bundle must parse");
+
+    assert!(
+        !graph1.segment_heads.is_empty(),
+        "parsed GTS graph must expose wire segment_heads"
+    );
+    assert!(
+        !graph2.segment_heads.is_empty(),
+        "parsed GTS graph must expose wire segment_heads"
+    );
+
+    let key1 = ValidationCache::cache_key(
+        &graph1
+            .segment_heads
+            .iter()
+            .map(|h| h.as_slice())
+            .collect::<Vec<_>>(),
+    );
+    let key2 = ValidationCache::cache_key(
+        &graph2
+            .segment_heads
+            .iter()
+            .map(|h| h.as_slice())
+            .collect::<Vec<_>>(),
+    );
+    assert_eq!(
+        key1, key2,
+        "different GTS serializations of the same graph must yield the same cache key"
+    );
+}
+
+#[test]
+fn gts_cache_key_changes_with_content() {
+    let g1 = build_gts_graph_with_triples(&[(
+        "https://example.org/a",
+        "https://example.org/p",
+        "https://example.org/b",
+    )]);
+    let g2 = build_gts_graph_with_triples(&[(
+        "https://example.org/a",
+        "https://example.org/p",
+        "https://example.org/c",
+    )]);
+
+    let b1 = write_gts_bundle(&g1, true);
+    let b2 = write_gts_bundle(&g2, true);
+
+    let graph1 = gmeow_validate::store::read_gts_graph(&b1).expect("first bundle must parse");
+    let graph2 = gmeow_validate::store::read_gts_graph(&b2).expect("second bundle must parse");
+
+    let k1 = ValidationCache::cache_key(
+        &graph1
+            .segment_heads
+            .iter()
+            .map(|h| h.as_slice())
+            .collect::<Vec<_>>(),
+    );
+    let k2 = ValidationCache::cache_key(
+        &graph2
+            .segment_heads
+            .iter()
+            .map(|h| h.as_slice())
+            .collect::<Vec<_>>(),
+    );
+    assert_ne!(
+        k1, k2,
+        "different GTS content must yield different segment-head-based keys"
+    );
+}
+
+#[test]
+fn gts_cache_key_is_stable_across_segment_orders() {
+    // Build two distinct single-segment graphs and serialize each
+    // deterministically so their wire bytes are stable.
+    let alpha = build_gts_graph_with_triples(&[(
+        "https://example.org/a",
+        "https://example.org/p",
+        "https://example.org/b",
+    )]);
+    let beta = build_gts_graph_with_triples(&[(
+        "https://example.org/c",
+        "https://example.org/q",
+        "https://example.org/d",
+    )]);
+
+    let alpha_bytes = write_gts_bundle(&alpha, true);
+    let beta_bytes = write_gts_bundle(&beta, true);
+
+    // Concatenate the same two segments in opposite orders.  The resulting
+    // multi-segment bundles have identical semantic content but different
+    // on-the-wire segment order.
+    let mut original = alpha_bytes.clone();
+    original.extend_from_slice(&beta_bytes);
+    let mut reversed = beta_bytes.clone();
+    reversed.extend_from_slice(&alpha_bytes);
+
+    assert_ne!(
+        original, reversed,
+        "multi-segment bundles with reordered segments must differ on the wire"
+    );
+
+    let graph_original =
+        store::read_gts_graph(&original).expect("original multi-segment bundle must parse");
+    let graph_reversed =
+        store::read_gts_graph(&reversed).expect("reversed multi-segment bundle must parse");
+
+    assert_eq!(
+        graph_original.segment_heads.len(),
+        2,
+        "original bundle must expose two segment heads"
+    );
+    assert_eq!(
+        graph_reversed.segment_heads.len(),
+        2,
+        "reversed bundle must expose two segment heads"
+    );
+
+    // The merged-shacl source key sorts segment heads before hashing so that
+    // segment order on the wire does not affect cache identity.
+    let mut heads_original: Vec<&[u8]> = graph_original
+        .segment_heads
+        .iter()
+        .map(|h| h.as_slice())
+        .collect();
+    heads_original.sort();
+    let key_original = ValidationCache::cache_key(&heads_original);
+
+    let mut heads_reversed: Vec<&[u8]> = graph_reversed
+        .segment_heads
+        .iter()
+        .map(|h| h.as_slice())
+        .collect();
+    heads_reversed.sort();
+    let key_reversed = ValidationCache::cache_key(&heads_reversed);
+
+    assert_eq!(
+        key_original, key_reversed,
+        "multi-segment bundles with the same segments in different order must yield the same cache key"
+    );
+}
+
+#[test]
+fn gts_validate_uses_cache_when_configured() {
+    use gmeow_gts::model::{Term, TermKind};
+
+    // Build a minimal GTS graph that mirrors the ontology used in
+    // `validate_all_uses_cache_when_configured`, with the required annotations
+    // for the structural lint.
+    let mut graph = gmeow_gts::model::Graph::default();
+    let ns = "https://blackcatinformatics.ca/gmeow/";
+    let thing_iri = format!("{ns}Thing");
+
+    let iris = [
+        thing_iri.clone(),
+        "http://www.w3.org/2002/07/owl#Class".to_string(),
+        "http://purl.org/nemo/gufo#Kind".to_string(),
+        "http://www.w3.org/1999/02/22-rdf-syntax-ns#type".to_string(),
+        "http://www.w3.org/2000/01/rdf-schema#label".to_string(),
+        "http://www.w3.org/2004/02/skos/core#definition".to_string(),
+        "http://www.w3.org/2000/01/rdf-schema#isDefinedBy".to_string(),
+        ns.to_string(),
+    ];
+    for iri in &iris {
+        graph.terms.push(Term {
+            kind: TermKind::Iri,
+            value: Some(iri.clone()),
+            datatype: None,
+            lang: None,
+            reifier: None,
+        });
+    }
+
+    fn literal(graph: &mut gmeow_gts::model::Graph, value: &str) -> usize {
+        let id = graph.terms.len();
+        graph.terms.push(Term {
+            kind: TermKind::Literal,
+            value: Some(value.to_string()),
+            datatype: None,
+            lang: None,
+            reifier: None,
+        });
+        id
+    }
+
+    let thing = 0;
+    let owl_class = 1;
+    let gufo_kind = 2;
+    let rdf_type = 3;
+    let rdfs_label = 4;
+    let skos_def = 5;
+    let rdfs_defined_by = 6;
+    let ns_term = 7;
+    let label = literal(&mut graph, "Thing");
+    let definition = literal(&mut graph, "A thing.");
+
+    graph.quads.push((thing, rdfs_label, label, None));
+    graph.quads.push((thing, skos_def, definition, None));
+    graph.quads.push((thing, rdfs_defined_by, ns_term, None));
+    graph.quads.push((thing, rdf_type, owl_class, None));
+    graph.quads.push((thing, rdf_type, gufo_kind, None));
+
+    let bytes = write_gts_bundle(&graph, true);
+    let root = temp_project_root();
+    let options = ValidateOptions {
+        timings: true,
+        project_root: Some(root.clone()),
+        gts_bytes: Some(bytes.clone()),
+        ..ValidateOptions::default()
+    };
+
+    let run1 = ValidationRun::run(&[], &mini_shapes_ttl(), "", "", &lint_config(), &options)
+        .expect("first run must complete");
+    let merged_meta1 = run1
+        .timings
+        .iter()
+        .find(|t| t.phase == "merged-shacl")
+        .expect("merged-shacl timing must exist")
+        .metadata
+        .as_deref();
+    assert_eq!(merged_meta1, Some("cache-miss"));
+
+    let run2 = ValidationRun::run(&[], &mini_shapes_ttl(), "", "", &lint_config(), &options)
+        .expect("second run must complete");
+    let merged_meta2 = run2
+        .timings
+        .iter()
+        .find(|t| t.phase == "merged-shacl")
+        .expect("merged-shacl timing must exist")
+        .metadata
+        .as_deref();
+    assert_eq!(merged_meta2, Some("cache-hit"));
+
     let cache = ValidationCache::new(&root);
     let entries: Vec<_> = fs::read_dir(cache.cache_dir().join("merged-shacl"))
         .unwrap()
