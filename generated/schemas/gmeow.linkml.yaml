@@ -972,6 +972,23 @@ classes:
     is_a: TimeScopedRelation
     slots:
     - tenureOfDoxasticState
+  DreamReport:
+    class_uri: https://blackcatinformatics.ca/gmeow/DreamReport
+    title: Dream Report
+    description: 'A dream report is a recollection episode: an instance of gmeow:Experience
+      with gmeow:mentalProcessType gmeow:processRecollection and gmeow:contentOrigin
+      gmeow:originImagined. It is a claim about a prior dream episode, but modelled
+      as the recollection process itself rather than as a propositional claim class,
+      so it inherits the occurrent mental-timeline machinery (gmeow:experiencer, gmeow:mentalProcessType,
+      etc.) from gmeow:Experience.
+
+
+      Dream reports are co-equal vantage-indexed claims with low metacognitive reliability
+      (Principle 9): the dreamer, an analyst, and a later interview may produce competing
+      reports of the same dream episode, and all may coexist. A superseded report
+      (for example, a corrected or withdrawn dream-journal entry) is suppressed with
+      gmeow:displayable false rather than deleted (Principle 10).'
+    is_a: Experience
   Duration:
     class_uri: https://blackcatinformatics.ca/gmeow/Duration
     title: Duration
@@ -1277,6 +1294,8 @@ classes:
     class_uri: https://blackcatinformatics.ca/gmeow/Experience
     title: Experience
     is_a: MentalProcess
+    slots:
+    - dreamElement
   Expression:
     class_uri: https://blackcatinformatics.ca/gmeow/Expression
     title: Expression
@@ -6083,6 +6102,17 @@ slots:
     range: Proposition
     domain: DoxasticState
     multivalued: false
+  dreamElement:
+    slot_uri: https://blackcatinformatics.ca/gmeow/dreamElement
+    title: dream element
+    description: Used to decompose a dream experience into its constituent imagined
+      parts. The range is deliberately left open (Principle 13) so the property can
+      point at any entity, description, or proposition that plays a part in the dream.
+      Competing elementations from different vantages coexist as co-equal claims (Principle
+      9).
+    range: uriorcurie
+    domain: Experience
+    multivalued: true
   durationValue:
     slot_uri: https://blackcatinformatics.ca/gmeow/durationValue
     title: duration value

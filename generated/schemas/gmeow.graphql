@@ -7413,6 +7413,63 @@ type DoxasticTenure
     tenureOfDoxasticState: DoxasticState
   }
 
+type DreamReport
+  {
+    after: [Event]
+    before: [Event]
+    coincidesWith: [Event]
+    complies: [Norm]
+    contains: [Event]
+    deceptionCue: [Observation]
+    deceptiveIntentClaim: [StandpointClaim]
+    during: [Event]
+    earliestStart: [String]
+    eventAspect: [GrammaticalAspect]
+    eventDescribedBy: [EmailMessage]
+    eventFromLocation: [Location]
+    eventInterval: [TimeInterval]
+    eventLocation: [Location]
+    eventObservation: [Observation]
+    eventSpacetime: [LocationState]
+    eventTemporalFrame: TemporalFrame
+    eventTense: [GrammaticalTense]
+    eventTime: [String]
+    eventTimeZone: TimeZone
+    eventToLocation: [Location]
+    eventTrajectory: [Trajectory]
+    eventType: [EventType]
+    finishedBy: [Event]
+    finishes: [Event]
+    hasDuration: [Duration]
+    hasParticipant: [Agent]
+    hasSubEvent: [Event]
+    heldStandpoint: [DoxasticStandpointClaim]
+    implicates: [Entity]
+    latestEnd: [String]
+    maximViolationType: [MaximViolationType]
+    meets: [Event]
+    metBy: [Event]
+    occurrenceOfSeries: [EventSeries]
+    overlappedBy: [Event]
+    overlaps: [Event]
+    performanceOf: [CreativeWork]
+    predecessorOrganization: [Organization]
+    projectedStandpoint: [DoxasticStandpointClaim]
+    propagationMutationDistance: [Int]
+    startedBy: [Event]
+    starts: [Event]
+    subEventOf: [Event]
+    successorOrganization: [Organization]
+    temporalPrecision: [TemporalPrecision]
+    violates: [Norm]
+    experiencer: Agent
+    mentalProcessType: [MentalProcessType]
+    producesMentalMoment: [MentalMoment]
+    realizesMentalMoment: [MentalMoment]
+    updatesMentalTenure: [TimeScopedRelation]
+    dreamElement: [String]
+  }
+
 type Duration
   {
     acquireLicensePage: [String]
@@ -8247,6 +8304,7 @@ type Experience
     producesMentalMoment: [MentalMoment]
     realizesMentalMoment: [MentalMoment]
     updatesMentalTenure: [TimeScopedRelation]
+    dreamElement: [String]
   }
 
 type Expression

@@ -4423,6 +4423,15 @@ export interface DoxasticTenure extends TimeScopedRelation {
 }
 
 
+/**
+ * A dream report is a recollection episode: an instance of gmeow:Experience with gmeow:mentalProcessType gmeow:processRecollection and gmeow:contentOrigin gmeow:originImagined. It is a claim about a prior dream episode, but modelled as the recollection process itself rather than as a propositional claim class, so it inherits the occurrent mental-timeline machinery (gmeow:experiencer, gmeow:mentalProcessType, etc.) from gmeow:Experience.
+
+Dream reports are co-equal vantage-indexed claims with low metacognitive reliability (Principle 9): the dreamer, an analyst, and a later interview may produce competing reports of the same dream episode, and all may coexist. A superseded report (for example, a corrected or withdrawn dream-journal entry) is suppressed with gmeow:displayable false rather than deleted (Principle 10).
+ */
+export interface DreamReport extends Experience {
+}
+
+
 
 export interface Duration extends Entity {
     durationValue?: string,
@@ -4751,6 +4760,8 @@ export interface ExifTag {
 
 
 export interface Experience extends MentalProcess {
+    /** Used to decompose a dream experience into its constituent imagined parts. The range is deliberately left open (Principle 13) so the property can point at any entity, description, or proposition that plays a part in the dream. Competing elementations from different vantages coexist as co-equal claims (Principle 9). */
+    dreamElement?: string[],
 }
 
 

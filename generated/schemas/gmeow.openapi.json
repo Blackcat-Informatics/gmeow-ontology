@@ -33527,6 +33527,498 @@
             "title": "DoxasticTenure",
             "type": "object"
           },
+          "DreamReport": {
+            "additionalProperties": false,
+            "description": "A dream report is a recollection episode: an instance of gmeow:Experience with gmeow:mentalProcessType gmeow:processRecollection and gmeow:contentOrigin gmeow:originImagined. It is a claim about a prior dream episode, but modelled as the recollection process itself rather than as a propositional claim class, so it inherits the occurrent mental-timeline machinery (gmeow:experiencer, gmeow:mentalProcessType, etc.) from gmeow:Experience.\n\nDream reports are co-equal vantage-indexed claims with low metacognitive reliability (Principle 9): the dreamer, an analyst, and a later interview may produce competing reports of the same dream episode, and all may coexist. A superseded report (for example, a corrected or withdrawn dream-journal entry) is suppressed with gmeow:displayable false rather than deleted (Principle 10).",
+            "properties": {
+              "after": {
+                "items": {
+                  "$ref": "#/$defs/Event"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "before": {
+                "items": {
+                  "$ref": "#/$defs/Event"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "coincidesWith": {
+                "items": {
+                  "$ref": "#/$defs/Event"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "complies": {
+                "items": {
+                  "$ref": "#/$defs/Norm"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "contains": {
+                "items": {
+                  "$ref": "#/$defs/Event"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "deceptionCue": {
+                "items": {
+                  "$ref": "#/$defs/Observation"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "deceptiveIntentClaim": {
+                "items": {
+                  "$ref": "#/$defs/StandpointClaim"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "dreamElement": {
+                "description": "Used to decompose a dream experience into its constituent imagined parts. The range is deliberately left open (Principle 13) so the property can point at any entity, description, or proposition that plays a part in the dream. Competing elementations from different vantages coexist as co-equal claims (Principle 9).",
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "during": {
+                "items": {
+                  "$ref": "#/$defs/Event"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "earliestStart": {
+                "items": {
+                  "format": "date-time",
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "eventAspect": {
+                "items": {
+                  "$ref": "#/$defs/GrammaticalAspect"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "eventDescribedBy": {
+                "items": {
+                  "$ref": "#/$defs/EmailMessage"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "eventFromLocation": {
+                "items": {
+                  "$ref": "#/$defs/Location"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "eventInterval": {
+                "items": {
+                  "$ref": "#/$defs/TimeInterval"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "eventLocation": {
+                "items": {
+                  "$ref": "#/$defs/Location"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "eventObservation": {
+                "items": {
+                  "$ref": "#/$defs/Observation"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "eventSpacetime": {
+                "items": {
+                  "$ref": "#/$defs/LocationState"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "eventTemporalFrame": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/TemporalFrame"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "eventTense": {
+                "items": {
+                  "$ref": "#/$defs/GrammaticalTense"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "eventTime": {
+                "items": {
+                  "format": "date-time",
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "eventTimeZone": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/TimeZone"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "eventToLocation": {
+                "items": {
+                  "$ref": "#/$defs/Location"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "eventTrajectory": {
+                "items": {
+                  "$ref": "#/$defs/Trajectory"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "eventType": {
+                "items": {
+                  "$ref": "#/$defs/EventType"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "experiencer": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/Agent"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "finishedBy": {
+                "items": {
+                  "$ref": "#/$defs/Event"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "finishes": {
+                "items": {
+                  "$ref": "#/$defs/Event"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasDuration": {
+                "items": {
+                  "$ref": "#/$defs/Duration"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasParticipant": {
+                "items": {
+                  "$ref": "#/$defs/Agent"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "hasSubEvent": {
+                "items": {
+                  "$ref": "#/$defs/Event"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "heldStandpoint": {
+                "items": {
+                  "$ref": "#/$defs/DoxasticStandpointClaim"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "implicates": {
+                "items": {
+                  "$ref": "#/$defs/Entity"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "latestEnd": {
+                "items": {
+                  "format": "date-time",
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "maximViolationType": {
+                "items": {
+                  "$ref": "#/$defs/MaximViolationType"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "meets": {
+                "items": {
+                  "$ref": "#/$defs/Event"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "mentalProcessType": {
+                "items": {
+                  "$ref": "#/$defs/MentalProcessType"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "metBy": {
+                "items": {
+                  "$ref": "#/$defs/Event"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "occurrenceOfSeries": {
+                "items": {
+                  "$ref": "#/$defs/EventSeries"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "overlappedBy": {
+                "items": {
+                  "$ref": "#/$defs/Event"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "overlaps": {
+                "items": {
+                  "$ref": "#/$defs/Event"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "performanceOf": {
+                "items": {
+                  "$ref": "#/$defs/CreativeWork"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "predecessorOrganization": {
+                "items": {
+                  "$ref": "#/$defs/Organization"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "producesMentalMoment": {
+                "items": {
+                  "$ref": "#/$defs/MentalMoment"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "projectedStandpoint": {
+                "items": {
+                  "$ref": "#/$defs/DoxasticStandpointClaim"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "propagationMutationDistance": {
+                "items": {
+                  "type": "integer"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "realizesMentalMoment": {
+                "items": {
+                  "$ref": "#/$defs/MentalMoment"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "startedBy": {
+                "items": {
+                  "$ref": "#/$defs/Event"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "starts": {
+                "items": {
+                  "$ref": "#/$defs/Event"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "subEventOf": {
+                "items": {
+                  "$ref": "#/$defs/Event"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "successorOrganization": {
+                "items": {
+                  "$ref": "#/$defs/Organization"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "temporalPrecision": {
+                "items": {
+                  "$ref": "#/$defs/TemporalPrecision"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "updatesMentalTenure": {
+                "items": {
+                  "$ref": "#/$defs/TimeScopedRelation"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "violates": {
+                "items": {
+                  "$ref": "#/$defs/Norm"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              }
+            },
+            "title": "DreamReport",
+            "type": "object"
+          },
           "Duration": {
             "additionalProperties": false,
             "description": "",
@@ -40049,6 +40541,16 @@
               "deceptiveIntentClaim": {
                 "items": {
                   "$ref": "#/$defs/StandpointClaim"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "dreamElement": {
+                "description": "Used to decompose a dream experience into its constituent imagined parts. The range is deliberately left open (Principle 13) so the property can point at any entity, description, or proposition that plays a part in the dream. Competing elementations from different vantages coexist as co-equal claims (Principle 9).",
+                "items": {
+                  "type": "string"
                 },
                 "type": [
                   "array",
