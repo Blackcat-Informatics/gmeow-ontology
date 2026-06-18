@@ -23,10 +23,10 @@ dependencies = [
     "pyoxigraph>=0.5.8",
     # the GTS format engine — now an external package (repo: gmeow-gts),
     # resolved from PyPI; the narrow-waist glue (gts_producer/views/db/gen)
-    # consumes this published `gts` library.  0.1.2 ships the post-0.1.1 codec
+    # consumes this published `gts` library.  0.9.0 ships the stable codec
     # (producer zstd-rsyncable path) plus the gts.verify module and
     # Signer.from_gpg_secret_key that cli/cli_dev's verify+sign commands need.
-    "gmeow-gts>=0.1.2,<0.2",
+    "gmeow-gts>=0.9.0,<0.10",
 ]
 
 [project.scripts]
@@ -149,7 +149,7 @@ markers = [
 # msgstr is not English prose to spell-check; their English msgids are already
 # checked at the .ttl/.md source, #572). Patterns are fnmatch'd against
 # repo-relative paths.
-skip = "uv.lock,*.svg,*.png,*.po,imports,imports/*,tests/fixtures/coverage/external,tests/fixtures/coverage/external/*,ontology-docs,ontology-docs/*"
+skip = "uv.lock,Cargo.lock,*.svg,*.png,*.po,imports,imports/*,tests/fixtures/coverage/external,tests/fixtures/coverage/external/*,ontology-docs,ontology-docs/*"
 # False positives: LOD (Linked Open Data), "derails" (valid word), domain tokens,
 # opNe (the not-equal expression operator in the mapping DSL algebra),
 # ser (Rust serde/ciborium module path `ciborium::ser`),

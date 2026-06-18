@@ -61,6 +61,10 @@ pub struct ValidateOptions {
     /// `None`, caching is disabled; Task 4 wires Python to pass `PROJECT_ROOT`
     /// so CI/local reruns share the same cache.
     pub project_root: Option<PathBuf>,
+    /// Optional GTS byte bundle. When present, the orchestration builds the
+    /// shared store from the bundle instead of from `source_paths`, and the
+    /// per-file Turtle phases (syntax check, `owl:sameAs` ban) are skipped.
+    pub gts_bytes: Option<Vec<u8>>,
 }
 
 /// The result of one validation phase.
@@ -119,10 +123,21 @@ impl ValidationRun {
         let mut errors: Vec<String> = Vec::new();
         let mut warnings: Vec<String> = Vec::new();
 
+        if source_paths.is_empty() && options.gts_bytes.is_none() {
+            return Err(
+                "ValidationRun::run: source_paths must not be empty unless gts_bytes is provided"
+                    .to_owned(),
+            );
+        }
+
         // Build the shared store once.
         let store = timed(&mut timings, "build-store", options, None, || {
-            let paths: Vec<PathBuf> = source_paths.iter().map(PathBuf::from).collect();
-            store::build_store(&paths)
+            if let Some(bytes) = &options.gts_bytes {
+                store::build_store_from_gts(bytes)
+            } else {
+                let paths: Vec<PathBuf> = source_paths.iter().map(PathBuf::from).collect();
+                store::build_store(&paths)
+            }
         })?;
 
         // Parse the normal SHACL shapes once.
@@ -130,23 +145,25 @@ impl ValidationRun {
             gmeow_shacl::engine::parse_shapes(shapes_ttl)
         })?;
 
-        // Phase 1: Turtle syntax check.
-        let result = timed(&mut timings, "syntax", options, None, || {
-            check_syntax(source_paths)
-        })?;
-        errors.extend(result.errors);
-        warnings.extend(result.warnings);
+        // Phase 1: Turtle syntax check (only meaningful for per-file sources).
+        if options.gts_bytes.is_none() {
+            let result = timed(&mut timings, "syntax", options, None, || {
+                check_syntax(source_paths)
+            })?;
+            errors.extend(result.errors);
+            warnings.extend(result.warnings);
 
-        // Phase 2: owl:sameAs external-entity ban.
-        let result = timed(&mut timings, "sameas-ban", options, None, || {
-            check_sameas_ban(
-                source_paths,
-                &lint_config.namespace,
-                &options.sameas_allowlist,
-            )
-        })?;
-        errors.extend(result.errors);
-        warnings.extend(result.warnings);
+            // Phase 2: owl:sameAs external-entity ban.
+            let result = timed(&mut timings, "sameas-ban", options, None, || {
+                check_sameas_ban(
+                    source_paths,
+                    &lint_config.namespace,
+                    &options.sameas_allowlist,
+                )
+            })?;
+            errors.extend(result.errors);
+            warnings.extend(result.warnings);
+        }
 
         // Python short-circuits if syntax or sameAs failed — no merged graph work.
         if !errors.is_empty() {
@@ -211,9 +228,14 @@ impl ValidationRun {
         let cache = options.project_root.as_ref().map(ValidationCache::new);
 
         // Phase 8: merged SHACL validation against the shared store.
-        let source_paths_buf: Vec<PathBuf> = source_paths.iter().map(PathBuf::from).collect();
         let merged_shacl_key = if let Some(cache) = cache.as_ref() {
-            let source_key = cache.files_cache_key(&source_paths_buf)?;
+            let source_key = if let Some(bytes) = &options.gts_bytes {
+                ValidationCache::cache_key(&[bytes.as_slice()])
+            } else {
+                let source_paths_buf: Vec<PathBuf> =
+                    source_paths.iter().map(PathBuf::from).collect();
+                cache.files_cache_key(&source_paths_buf)?
+            };
             let shapes_key = ValidationCache::cache_key(&[shapes_ttl.as_bytes()]);
             let salt = ValidationCache::toolchain_salt();
             ValidationCache::cache_key(&[
@@ -861,6 +883,9 @@ fn find_example_files(slices_dir: &str) -> Result<Vec<(String, PathBuf)>, String
 mod tests {
     use super::*;
     use oxigraph::io::{RdfFormat, RdfParser};
+    use std::collections::{BTreeSet, HashSet};
+
+    use crate::store::dump_store_to_ntriples;
 
     fn store_from(ttl: &str) -> Store {
         let store = Store::new().unwrap();
@@ -918,5 +943,73 @@ mod tests {
 
         scoped_overlay_remove(&store, &inserted);
         assert_eq!(store.len().unwrap(), 1);
+    }
+
+    fn minimal_gts_bytes() -> Vec<u8> {
+        use gmeow_gts::model::{Term, TermKind};
+        use gmeow_gts::writer::Writer;
+
+        let mut graph = gmeow_gts::model::Graph::default();
+        graph.terms.push(Term {
+            kind: TermKind::Iri,
+            value: Some("https://example.org/a".to_string()),
+            datatype: None,
+            lang: None,
+            reifier: None,
+        });
+        graph.terms.push(Term {
+            kind: TermKind::Iri,
+            value: Some("https://example.org/p".to_string()),
+            datatype: None,
+            lang: None,
+            reifier: None,
+        });
+        graph.terms.push(Term {
+            kind: TermKind::Iri,
+            value: Some("https://example.org/b".to_string()),
+            datatype: None,
+            lang: None,
+            reifier: None,
+        });
+        graph.quads.push((0, 1, 2, None));
+
+        let writer = Writer::deterministic(&graph, "gmeow-validate-test")
+            .expect("deterministic GTS writer must succeed");
+        writer.to_bytes()
+    }
+
+    fn minimal_lint_config() -> LintConfig {
+        LintConfig {
+            namespace: "https://blackcatinformatics.ca/gmeow/".to_owned(),
+            ontology_iri: "https://blackcatinformatics.ca/gmeow".to_owned(),
+            selector_tokens: BTreeSet::new(),
+            core_slice_iris: HashSet::new(),
+            annotation_predicates: HashSet::new(),
+        }
+    }
+
+    #[test]
+    fn run_with_gts_bytes_succeeds_with_empty_source_paths() {
+        let bytes = minimal_gts_bytes();
+        let options = ValidateOptions {
+            gts_bytes: Some(bytes),
+            ..ValidateOptions::default()
+        };
+
+        let run = ValidationRun::run(&[], "", "", "", &minimal_lint_config(), &options)
+            .expect("ValidationRun::run with gts_bytes must succeed");
+
+        assert!(run.errors.is_empty(), "unexpected errors: {:?}", run.errors);
+        assert!(
+            run.warnings.is_empty(),
+            "unexpected warnings: {:?}",
+            run.warnings
+        );
+        assert_eq!(run.store.len().unwrap(), 1);
+
+        let nt = dump_store_to_ntriples(&run.store).expect("store must serialize to N-Triples");
+        assert!(nt.contains("<https://example.org/a>"));
+        assert!(nt.contains("<https://example.org/p>"));
+        assert!(nt.contains("<https://example.org/b>"));
     }
 }
