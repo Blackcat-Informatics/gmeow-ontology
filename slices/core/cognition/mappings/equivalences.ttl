@@ -8,6 +8,7 @@
 @prefix foaf:   <http://xmlns.com/foaf/0.1/> .
 @prefix wd:     <http://www.wikidata.org/entity/> .
 @prefix sumo:   <https://www.ontologyportal.org/SUMO.owl#> .
+@prefix cyc:    <http://sw.opencyc.org/2012/05/10/concept/en/> .
 @prefix esco-base: <http://data.europa.eu/esco/> .
 @prefix ctdlasn: <https://credreg.net/ctdlasn/terms/> .
 @prefix onet:   <https://www.onetcenter.org/> .
@@ -23,7 +24,7 @@ gmeow:mapsetCognition a gmeow:MappingSet ;
     gmeow:sssomFile "gmeow-cognition.sssom.tsv" ;
     gmeow:setId "https://blackcatinformatics.ca/gmeow/mappings/cognition" ;
     gmeow:license "https://creativecommons.org/licenses/by/4.0/" ;
-    gmeow:setComment "Cognition alignments — the knowledge spectrum and its reified tier. schema.org offers a single flat knowsAbout; GMEOW's four-level spectrum down-collapses to it (lossy), and a bare schema:knowsAbout lifts to the eponymous gmeow:knowsAbout level (its honest floor — depth is never inferred from a flat edge). The reified gmeow:KnowledgeProficiency reads its depth on a gmeow:ProficiencyScale: the native gmeow:scaleKnowledgeDepth (the four gmeow:KnowledgeLevel ordinals) is the default, while Bloom's revised taxonomy (gmeow:scaleBloomRevised), SOLO (gmeow:scaleSOLO), and Dreyfus (gmeow:scaleDreyfus, expertise) are reusable alternates — NO canonical framework is enforced (Principle 6). The cross-framework band correspondence is the documented alignment ledger in docs.md, never an OWL axiom (cognition ⊥ expertise; the knows-axis and the can-do axis are never silently bridged, Principle 9). Additional relatedMatch anchors: FOAF interest/focus for motivational/attentional relations; Wikidata QIDs for knowledge, attention, curiosity and mastery; SUMO knows (and CYC in prose) for objectual knowing concepts; ESCO, CTDL/ASN and O*NET competency-framework namespaces for the knowledge-depth axis." .
+    gmeow:setComment "Cognition alignments — the knowledge spectrum and its reified tier. schema.org offers a single flat knowsAbout; GMEOW's four-level spectrum down-collapses to it (lossy), and a bare schema:knowsAbout lifts to the eponymous gmeow:knowsAbout level (its honest floor — depth is never inferred from a flat edge). The reified gmeow:KnowledgeProficiency reads its depth on a gmeow:ProficiencyScale: the native gmeow:scaleKnowledgeDepth (the four gmeow:KnowledgeLevel ordinals) is the default, while Bloom's revised taxonomy (gmeow:scaleBloomRevised), SOLO (gmeow:scaleSOLO), and Dreyfus (gmeow:scaleDreyfus, expertise) are reusable alternates — NO canonical framework is enforced (Principle 6). The cross-framework band correspondence is the documented alignment ledger in docs.md, never an OWL axiom (cognition ⊥ expertise; the knows-axis and the can-do axis are never silently bridged, Principle 9). Additional relatedMatch anchors: FOAF interest/focus for motivational/attentional relations; Wikidata QIDs for knowledge, attention, curiosity and mastery; SUMO knows and OpenCyc knowsAbout for objectual knowing concepts; ESCO, CTDL/ASN and O*NET competency-framework namespaces for the knowledge-depth axis." .
 
 # schema:knowsAbout IS the gmeow:knowsAbout level of the spectrum: an agent has
 # knowledge of a subject. exactMatch (not closeMatch) so a source schema:knowsAbout
@@ -183,4 +184,17 @@ gmeow:eqCognition015 a gmeow:TermEquivalence ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.7 ;
     gmeow:comment "Wikidata Q12770764 'mastery' — entity-page verified 2026-06-18. Issue-supplied Q1016098 resolved to 'Mautes' (French commune) and was rejected." ;
+    gmeow:sssomFile "gmeow-cognition.sssom.tsv" .
+
+# OpenCyc — objectual knowing-about. CYC knowsAbout relates an IntelligentAgent to
+# a THING (not a proposition), so it aligns with GMEOW's objectual gmeow:knowsAbout.
+# The 2012-05-10 readable OpenCyc IRI is used; live resolution depends on the
+# OpenCyc semantic-web endpoint, which has been intermittent (stability caveat).
+gmeow:eqCognition016 a gmeow:TermEquivalence ;
+    gmeow:alignSubject gmeow:knowsAbout ;
+    gmeow:alignPredicate skos:relatedMatch ;
+    gmeow:alignObject cyc:knowsAbout ;
+    gmeow:justification semapv:ManualMappingCuration ;
+    gmeow:confidence 0.6 ;
+    gmeow:comment "OpenCyc knowsAbout (http://sw.opencyc.org/2012/05/10/concept/en/knowsAbout) — an IntelligentAgent knows something about a THING; objectual, not propositional. relatedMatch to gmeow:knowsAbout only. OpenCyc endpoint stability is a known caveat." ;
     gmeow:sssomFile "gmeow-cognition.sssom.tsv" .

@@ -326,6 +326,7 @@ PREFIXES: dict[str, str] = {
     "dul": "http://www.ontologydesignpatterns.org/ont/dul/DUL.owl#",
     "bfo": "http://purl.obolibrary.org/obo/",
     "sumo": "https://www.ontologyportal.org/SUMO.owl#",
+    "cyc": "http://sw.opencyc.org/2012/05/10/concept/en/",
     # Peer schemas GMEOW supersets / aligns to
     "foaf": "http://xmlns.com/foaf/0.1/",
     "rel": "http://purl.org/vocab/relationship/",

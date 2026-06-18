@@ -14922,3 +14922,17 @@ repo:README.md a gmeow:CreativeWork ;
 
 <https://blackcatinformatics.ca/gmeow/references/selector/0424575766c7a1be> a gmeow:Selector ;
     gmeow:selectorLocator "slices/core/cognition/mappings/equivalences.ttl" .
+
+<https://blackcatinformatics.ca/gmeow/references/citation/ed27f0d91d4b006e> a gmeow:CitationAct ;
+    rdfs:label "slices/core/cognition/mappings/equivalences.ttl"@en ;
+    gmeow:citationIntent gmeow:intentBridgedByReference ;
+    gmeow:citedEntity <http://sw.opencyc.org/2012/05/10/concept/en/knowsAbout> ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/slices/core/cognition/mappings/equivalences.ttl> ;
+    gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/d46477f3aa3ed2c6> .
+
+<http://sw.opencyc.org/2012/05/10/concept/en/knowsAbout> a gmeow:CreativeWork ;
+    rdfs:label "OpenCyc knowsAbout (2012-05-10 snapshot)"@en ;
+    gmeow:sourceLocation "http://sw.opencyc.org/2012/05/10/concept/en/knowsAbout" .
+
+<https://blackcatinformatics.ca/gmeow/references/selector/d46477f3aa3ed2c6> a gmeow:Selector ;
+    gmeow:selectorLocator "slices/core/cognition/mappings/equivalences.ttl" .
