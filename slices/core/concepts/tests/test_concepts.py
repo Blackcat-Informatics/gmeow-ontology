@@ -239,24 +239,49 @@ def test_wellformed_concept_categorization_conforms() -> None:
     assert result.ok, result.errors
 
 
+_MISSING_FEATURE_MESSAGE = (
+    "A ConceptCategorization must have exactly one observed feature "
+    "(the categorized entity) via gmeow:observedFeature."
+)
+
+_OBSERVATION_RESULT_MESSAGE = (
+    "A ConceptCategorization must have exactly one observation result of type "
+    "gmeow:Concept via gmeow:observationResult."
+)
+
+_TYPICALITY_MESSAGE = (
+    "If present, gmeow:typicality must be an xsd:decimal in the closed interval [0,1]."
+)
+
+_TENURE_INTERVAL_MESSAGE = (
+    "A ConceptTenure must scope exactly one gmeow:TimeInterval via "
+    "gmeow:duringInterval."
+)
+
+
+def _assert_shacl_error(result: object, message: str) -> None:
+    """Assert that *result* has SHACL errors and that *message* appears exactly."""
+    assert not result.ok
+    assert result.errors, "expected SHACL errors but none were reported"
+    error_text = "\n".join(result.errors)
+    assert message in error_text, f"expected message not found in errors:\n{error_text}"
+
+
 def test_categorization_missing_feature_is_flagged() -> None:
     result = run_shacl(_data(_CATEGORIZATION_MISSING_FEATURE), shapes_path=_SHAPES)
-    assert not result.ok
-    assert "exactly one observed feature" in " ".join(result.errors).lower()
+    _assert_shacl_error(result, _MISSING_FEATURE_MESSAGE)
 
 
 def test_categorization_result_not_concept_is_flagged() -> None:
     result = run_shacl(_data(_CATEGORIZATION_RESULT_NOT_CONCEPT), shapes_path=_SHAPES)
-    assert not result.ok
-    assert "exactly one observation result" in " ".join(result.errors).lower()
+    _assert_shacl_error(result, _OBSERVATION_RESULT_MESSAGE)
 
 
 def test_categorization_typicality_out_of_range_is_flagged() -> None:
     result = run_shacl(
         _data(_CATEGORIZATION_TYPICALITY_OUT_OF_RANGE), shapes_path=_SHAPES
     )
-    assert not result.ok
-    assert "xsd:decimal in the closed interval [0,1]" in " ".join(result.errors)
+    _assert_shacl_error(result, _TYPICALITY_MESSAGE)
 
 
 def test_wellformed_concept_tenure_conforms() -> None:
@@ -266,5 +291,4 @@ def test_wellformed_concept_tenure_conforms() -> None:
 
 def test_tenure_missing_interval_is_flagged() -> None:
     result = run_shacl(_data(_TENURE_MISSING_INTERVAL), shapes_path=_SHAPES)
-    assert not result.ok
-    assert "exactly one gmeow:TimeInterval" in " ".join(result.errors)
+    _assert_shacl_error(result, _TENURE_INTERVAL_MESSAGE)
