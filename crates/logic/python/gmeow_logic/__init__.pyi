@@ -38,3 +38,10 @@ def query(
     max_answers: int | None = ...,
     max_steps: int | None = ...,
 ) -> dict[str, Any]: ...
+def compile_logic(source_ttl: str) -> dict[str, str]:
+    """Compile logic: Turtle source → the 8 artifacts (#664).
+
+    Returns a dict keyed by ``owl_dl``, ``owl_el``, ``datalog``, ``n3``, ``gufo``,
+    ``canonical_rdf12``, ``nemo``, ``report`` — each the serialized content string.
+    """
+    ...

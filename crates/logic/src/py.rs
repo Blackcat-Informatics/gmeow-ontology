@@ -1055,6 +1055,37 @@ fn stable_models(py: Python<'_>, rules: &str, input: &str) -> PyResult<Py<PyAny>
 /// - `stable_models(rules, input) -> dict` — answer sets per world (issue #651)
 /// - `query(world_nquads, query_program, profile, world_iri=None, max_answers=None, max_steps=None) -> dict`
 ///   (under `ProbabilisticProfile` each binding carries a `probability`; #506)
+/// Compile a `logic:` RDF 1.2 source document (Turtle text) into all eight
+/// committed artifacts, in Rust (issue #664).  The drop-in replacement for the
+/// Python `logic_frontend` + `logic_projections` pipeline behind the registered
+/// `LogicGenerator`.
+///
+/// Returns a dict keyed by artifact name (`owl_dl`, `owl_el`, `datalog`, `n3`,
+/// `gufo`, `canonical_rdf12`, `nemo`, `report`), each mapping to the serialized
+/// content string.  Text targets are byte-identical to the Python compiler; RDF
+/// targets are RDF-isomorphic.  Raises `ValueError` on a parse failure, a Nemo
+/// rule-safety violation, or an overclaim (Principle 7).
+#[pyfunction]
+fn compile_logic<'py>(py: Python<'py>, source_ttl: &str) -> PyResult<Bound<'py, PyDict>> {
+    use crate::compile::frontend::parse_logic_str;
+    use crate::compile::projections::compile_program;
+
+    let (program, _diagnostics) = parse_logic_str(source_ttl, None)
+        .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.0))?;
+    let arts = compile_program(&program).map_err(pyo3::exceptions::PyValueError::new_err)?;
+
+    let out = PyDict::new(py);
+    out.set_item("owl_dl", arts.owl_dl)?;
+    out.set_item("owl_el", arts.owl_el)?;
+    out.set_item("datalog", arts.datalog)?;
+    out.set_item("n3", arts.n3)?;
+    out.set_item("gufo", arts.gufo)?;
+    out.set_item("canonical_rdf12", arts.canonical_rdf12)?;
+    out.set_item("nemo", arts.nemo)?;
+    out.set_item("report", arts.report)?;
+    Ok(out)
+}
+
 #[pymodule]
 fn gmeow_logic(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(materialize, m)?)?;
@@ -1063,6 +1094,7 @@ fn gmeow_logic(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(certify, m)?)?;
     m.add_function(wrap_pyfunction!(stable_models, m)?)?;
     m.add_function(wrap_pyfunction!(query, m)?)?;
+    m.add_function(wrap_pyfunction!(compile_logic, m)?)?;
     Ok(())
 }
 
