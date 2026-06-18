@@ -103,8 +103,10 @@ fn triple_set(turtle: &str) -> Vec<String> {
         .unwrap_or_else(|e| panic!("turtle parse failed: {e}\n---\n{turtle}"));
     let mut lines: Vec<String> = store
         .iter()
-        .filter_map(Result::ok)
-        .map(|q| format!("{} {} {}", q.subject, q.predicate, q.object))
+        .map(|q| {
+            let q = q.expect("store iteration must not fail");
+            format!("{} {} {}", q.subject, q.predicate, q.object)
+        })
         .collect();
     lines.sort();
     lines

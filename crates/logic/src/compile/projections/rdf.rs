@@ -508,16 +508,9 @@ pub fn project_canonical_rdf12(program: &LogicProgram) -> Result<ProjectionResul
         let head_node = format!("{LOGIC_NS}rule/{rule_id}/head");
         g.add_iri(&rule_node, &logic("head"), &head_node);
         g.add_iri(&head_node, RDF_TYPE, &format!("{RDF_NS}Statement"));
-        add_reified_term(&mut g, &head_node, "subject", &head.subject, false, true);
+        add_reified_term(&mut g, &head_node, "subject", &head.subject, false);
         g.add_iri(&head_node, &format!("{RDF_NS}predicate"), &head.predicate);
-        add_reified_term(
-            &mut g,
-            &head_node,
-            "object",
-            &head.obj,
-            head.obj_is_literal,
-            false,
-        );
+        add_reified_term(&mut g, &head_node, "object", &head.obj, head.obj_is_literal);
 
         // Body (positive then negated), each polarity sorted independently.
         let positive: Vec<_> = rule.body.iter().filter(|a| !a.negated).collect();
@@ -532,16 +525,9 @@ pub fn project_canonical_rdf12(program: &LogicProgram) -> Result<ProjectionResul
                 let body_node = format!("{LOGIC_NS}rule/{rule_id}/{path_seg}/{i:04}");
                 g.add_iri(&rule_node, &logic(link_local), &body_node);
                 g.add_iri(&body_node, RDF_TYPE, &format!("{RDF_NS}Statement"));
-                add_reified_term(&mut g, &body_node, "subject", &ba.subject, false, true);
+                add_reified_term(&mut g, &body_node, "subject", &ba.subject, false);
                 g.add_iri(&body_node, &format!("{RDF_NS}predicate"), &ba.predicate);
-                add_reified_term(
-                    &mut g,
-                    &body_node,
-                    "object",
-                    &ba.obj,
-                    ba.obj_is_literal,
-                    false,
-                );
+                add_reified_term(&mut g, &body_node, "object", &ba.obj, ba.obj_is_literal);
             }
         }
 
@@ -590,14 +576,7 @@ pub fn project_canonical_rdf12(program: &LogicProgram) -> Result<ProjectionResul
 
 /// Add a reified `rdf:subject`/`rdf:object` term: a `?`-variable is emitted as a
 /// plain Literal (to round-trip), else IRI / literal per `is_literal`.
-fn add_reified_term(
-    g: &mut TripleSink,
-    node: &str,
-    role: &str,
-    value: &str,
-    is_literal: bool,
-    _is_subject: bool,
-) {
+fn add_reified_term(g: &mut TripleSink, node: &str, role: &str, value: &str, is_literal: bool) {
     let pred = format!("{RDF_NS}{role}");
     // A `?`-variable round-trips as a plain Literal, exactly like an actual
     // literal object; only proper IRIs are emitted as IRIs.
