@@ -24,6 +24,12 @@
     "type": "webpage"
   },
   {
+    "URL": "http://data.europa.eu/esco/",
+    "id": "esco-ec2ac8f8",
+    "title": "ESCO namespace",
+    "type": "webpage"
+  },
+  {
     "URL": "http://data.europa.eu/esco/model#",
     "id": "data-europa-eu-a8af08b2",
     "title": "data.europa.eu/esco/model",
@@ -1950,6 +1956,12 @@
     "type": "webpage"
   },
   {
+    "URL": "http://www.wikidata.org/entity/Q12770764",
+    "id": "q12770764-33e399e5",
+    "title": "Wikidata Q12770764 (mastery)",
+    "type": "webpage"
+  },
+  {
     "URL": "http://www.wikidata.org/entity/Q150",
     "id": "q150-894222d1",
     "title": "www.wikidata.org/entity/Q150",
@@ -1962,9 +1974,21 @@
     "type": "webpage"
   },
   {
+    "URL": "http://www.wikidata.org/entity/Q1774565",
+    "id": "q1774565-b805bccf",
+    "title": "Wikidata Q1774565 (Bloom taxonomy)",
+    "type": "webpage"
+  },
+  {
     "URL": "http://www.wikidata.org/entity/Q1860",
     "id": "q1860-f81a88e8",
     "title": "www.wikidata.org/entity/Q1860",
+    "type": "webpage"
+  },
+  {
+    "URL": "http://www.wikidata.org/entity/Q366791",
+    "id": "q366791-a15245ed",
+    "title": "Wikidata Q366791 (curiosity)",
     "type": "webpage"
   },
   {
@@ -1974,9 +1998,27 @@
     "type": "webpage"
   },
   {
+    "URL": "http://www.wikidata.org/entity/Q5307365",
+    "id": "q5307365-fdeec2ee",
+    "title": "Wikidata Q5307365 (Dreyfus model of skill acquisition)",
+    "type": "webpage"
+  },
+  {
+    "URL": "http://www.wikidata.org/entity/Q6501338",
+    "id": "q6501338-2351cc5a",
+    "title": "Wikidata Q6501338 (attention)",
+    "type": "webpage"
+  },
+  {
     "URL": "http://www.wikidata.org/entity/Q685328",
     "id": "q685328-0440fe18",
     "title": "www.wikidata.org/entity/Q685328",
+    "type": "webpage"
+  },
+  {
+    "URL": "http://www.wikidata.org/entity/Q9081",
+    "id": "q9081-1cc5fbb9",
+    "title": "Wikidata Q9081 (knowledge)",
     "type": "webpage"
   },
   {
@@ -2052,9 +2094,21 @@
     "type": "webpage"
   },
   {
+    "URL": "http://xmlns.com/foaf/0.1/focus",
+    "id": "focus-be871737",
+    "title": "foaf:focus",
+    "type": "webpage"
+  },
+  {
     "URL": "http://xmlns.com/foaf/0.1/homepage",
     "id": "homepage-7f647552",
     "title": "xmlns.com/foaf/0.1/homepage",
+    "type": "webpage"
+  },
+  {
+    "URL": "http://xmlns.com/foaf/0.1/interest",
+    "id": "interest-1bf20418",
+    "title": "foaf:interest",
     "type": "webpage"
   },
   {
@@ -2477,6 +2531,12 @@
     "URL": "https://credreg.net/ctdl/terms",
     "id": "terms-400ec47a",
     "title": "credreg.net/ctdl/terms",
+    "type": "webpage"
+  },
+  {
+    "URL": "https://credreg.net/ctdlasn/terms/",
+    "id": "terms-dee8a51b",
+    "title": "CTDL/ASN namespace",
     "type": "webpage"
   },
   {
@@ -3059,6 +3119,12 @@
     "URL": "https://en.wikipedia.org/wiki/Paltering",
     "id": "paltering-a2e6b15b",
     "title": "en.wikipedia.org/wiki/Paltering",
+    "type": "webpage"
+  },
+  {
+    "URL": "https://en.wikipedia.org/wiki/Structure_of_observed_learning_outcome",
+    "id": "structure-of-observed-learning-outcome-04245757",
+    "title": "Wikipedia: Structure of observed learning outcome (SOLO taxonomy)",
     "type": "webpage"
   },
   {
@@ -5102,6 +5168,12 @@
     "type": "webpage"
   },
   {
+    "URL": "https://www.onetcenter.org/",
+    "id": "www-onetcenter-org-49e49130",
+    "title": "O*NET Resource Center",
+    "type": "webpage"
+  },
+  {
     "URL": "https://www.onetonline.org/",
     "id": "www-onetonline-org-b6c007b2",
     "title": "www.onetonline.org",
@@ -5111,6 +5183,12 @@
     "URL": "https://www.ontologyportal.org/SUMO.owl",
     "id": "sumo-owl-96b28abe",
     "title": "www.ontologyportal.org/SUMO.owl",
+    "type": "webpage"
+  },
+  {
+    "URL": "https://www.ontologyportal.org/SUMO.owl#knows",
+    "id": "knows-bb9e7e11",
+    "title": "SUMO knows",
     "type": "webpage"
   },
   {

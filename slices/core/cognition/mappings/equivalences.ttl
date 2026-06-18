@@ -8,7 +8,7 @@
 @prefix foaf:   <http://xmlns.com/foaf/0.1/> .
 @prefix wd:     <http://www.wikidata.org/entity/> .
 @prefix sumo:   <https://www.ontologyportal.org/SUMO.owl#> .
-@prefix esco:   <http://data.europa.eu/esco/> .
+@prefix esco-base: <http://data.europa.eu/esco/> .
 @prefix ctdlasn: <https://credreg.net/ctdlasn/terms/> .
 @prefix onet:   <https://www.onetcenter.org/> .
 
@@ -98,7 +98,7 @@ gmeow:eqCognition006 a gmeow:TermEquivalence ;
 gmeow:eqCognition007 a gmeow:TermEquivalence ;
     gmeow:alignSubject gmeow:scaleKnowledgeDepth ;
     gmeow:alignPredicate skos:relatedMatch ;
-    gmeow:alignObject esco: ;
+    gmeow:alignObject esco-base: ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.65 ;
     gmeow:comment "ESCO (European Skills, Competences, Qualifications and Occupations) namespace — band-level relatedMatch. ESCO organises knowledge, skills and competences; no single term corresponds to the whole GMEOW depth axis." ;
