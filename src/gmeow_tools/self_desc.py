@@ -265,14 +265,19 @@ def load_self_description_from_graph(g: Graph) -> SelfDescription:
             depositor_email = str(obj).removeprefix("mailto:")
             break
     registrant = depositor_name
-    registrant_wikidata = next(
-        (
+    wikidata_links = sorted(
+        {
             str(o)
             for o in g.objects(publisher, GMEOW.authorityLink)
             if isinstance(o, URIRef) and str(o).startswith(_WIKIDATA_PREFIX)
-        ),
-        None,
+        }
     )
+    if len(wikidata_links) > 1:
+        raise ValueError(
+            f"Publisher {publisher} has multiple Wikidata authority links: "
+            f"{wikidata_links}. Expected exactly one."
+        )
+    registrant_wikidata = wikidata_links[0] if wikidata_links else None
 
     if not depositor_name or not depositor_email:
         raise ValueError(

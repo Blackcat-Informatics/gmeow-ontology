@@ -5,6 +5,9 @@ from __future__ import annotations
 import dataclasses
 from xml.etree import ElementTree as ET
 
+import pytest
+from rdflib import Graph, URIRef
+
 from gmeow_tools.config import ALIGNMENT_TARGETS, ONTOLOGY_IRI
 from gmeow_tools.crossref import (
     AI_NS,
@@ -13,7 +16,14 @@ from gmeow_tools.crossref import (
     build_deposit_xml,
     lint_deposit,
 )
-from gmeow_tools.self_desc import SelfDescription, full_doi, load_self_description
+from gmeow_tools.self_desc import (
+    GMEOW,
+    SELF_DESC_FILE,
+    SelfDescription,
+    full_doi,
+    load_self_description,
+    load_self_description_from_graph,
+)
 
 
 def _parse(xml: str) -> ET.Element:
@@ -156,6 +166,22 @@ def test_deposit_carries_registrant_wikidata_institution_id() -> None:
         for node in root.findall(f".//{{{CR_NS}}}institution_id")
     }
     assert ("wikidata", "https://www.wikidata.org/entity/Q140285712") in ids
+
+
+def test_self_description_rejects_multiple_registrant_wikidata_links() -> None:
+    """A Crossref registrant must not silently pick one of several QIDs."""
+    graph = Graph()
+    graph.parse(SELF_DESC_FILE, format="turtle")
+    graph.add(
+        (
+            URIRef("https://blackcatinformatics.ca/#bii"),
+            GMEOW.authorityLink,
+            URIRef("http://www.wikidata.org/entity/Q999999999"),
+        )
+    )
+
+    with pytest.raises(ValueError, match="multiple Wikidata authority links"):
+        load_self_description_from_graph(graph)
 
 
 def test_deposit_carries_person_contributor_with_orcid() -> None:
