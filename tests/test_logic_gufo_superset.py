@@ -83,6 +83,8 @@ def _logic_module_graph() -> Graph:
 
 def _non_superseded_targets() -> set[URIRef]:
     """The set of distinct logic: IRIs the dict maps gUFO classes to."""
+    # Non-superseded targets are the ``str`` IRIs; ``isinstance(v, str)`` both
+    # filters out the SUPERSEDED sentinel and narrows ``v`` to ``str`` for mypy.
     return {URIRef(v) for v in _GUFO_CLASS_TO_LOGIC.values() if isinstance(v, str)}
 
 
