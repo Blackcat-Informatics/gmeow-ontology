@@ -8,6 +8,7 @@ from xml.etree import ElementTree as ET
 import pytest
 from rdflib import Graph, URIRef
 
+from gmeow_tools import crossref as crossref_mod
 from gmeow_tools.config import ALIGNMENT_TARGETS, ONTOLOGY_IRI
 from gmeow_tools.crossref import (
     AI_NS,
@@ -159,13 +160,22 @@ def test_deposit_carries_access_indicators_license() -> None:
 
 
 def test_deposit_carries_registrant_wikidata_institution_id() -> None:
-    """BII's QID is Crossref-valid institution metadata."""
-    root = _parse(build_deposit_xml())
+    """BII's QID is emitted through Crossref's native institution metadata."""
+    xml = build_deposit_xml()
+    root = _parse(xml)
     ids = {
         (node.attrib["type"], node.text)
         for node in root.findall(f".//{{{CR_NS}}}institution_id")
     }
     assert ("wikidata", "https://www.wikidata.org/entity/Q140285712") in ids
+    assert "Q140285712" in xml
+
+
+def test_deposit_keeps_person_qid_out_of_non_native_crossref_fields() -> None:
+    """Patrick's Wikidata QID stays in RDF; Crossref person metadata uses ORCID."""
+    xml = build_deposit_xml()
+    assert "Q139770478" not in xml
+    assert "https://orcid.org/0000-0003-4382-7625" in xml
 
 
 def test_self_description_rejects_multiple_registrant_wikidata_links() -> None:
@@ -233,13 +243,24 @@ def test_version_doi_carries_version_scoped_text_mining_urls() -> None:
     doi_data = _doi_data_for(root, meta.version_doi or "")
     collection = doi_data.find(f"{{{CR_NS}}}collection[@property='text-mining']")
     assert collection is not None
-    resources = {node.text for node in collection.findall(f".//{{{CR_NS}}}resource")}
-    assert f"{meta.version_iri}.ttl" in resources
-    assert f"{ONTOLOGY_IRI}.ttl" in {
-        node.text
-        for node in _doi_data_for(root, meta.concept_doi).findall(
-            f".//{{{CR_NS}}}resource"
-        )
+    resources = {
+        (node.text, node.attrib["mime_type"], node.attrib["content_version"])
+        for node in collection.findall(f".//{{{CR_NS}}}resource")
+    }
+    assert resources == {
+        (f"{meta.version_iri}.ttl", "text/turtle", "vor"),
+        (f"{meta.version_iri}.rdf", "application/rdf+xml", "vor"),
+        (f"{meta.version_iri}.nt", "application/n-triples", "vor"),
+        (f"{meta.version_iri}.jsonld", "application/ld+json", "vor"),
+        (f"{meta.version_iri}.gts", "application/cbor-seq", "vor"),
+    }
+    concept_collection = _doi_data_for(root, meta.concept_doi).find(
+        f"{{{CR_NS}}}collection[@property='text-mining']"
+    )
+    assert concept_collection is not None
+    assert (f"{ONTOLOGY_IRI}.ttl", "text/turtle", "vor") in {
+        (node.text, node.attrib["mime_type"], node.attrib["content_version"])
+        for node in concept_collection.findall(f".//{{{CR_NS}}}resource")
     }
 
 
@@ -273,6 +294,27 @@ def test_deposit_omits_unsupported_crossref_fields() -> None:
 
 def test_lint_passes_on_real_self_description() -> None:
     assert lint_deposit() == []
+
+
+def test_lint_identifies_duplicate_citation_list_dataset(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    duplicate = crossref_mod._Citation(
+        key="ref-duplicate",
+        type="web_resource",
+        title="Duplicate reference",
+        unstructured="Duplicate reference. https://example.invalid/.",
+    )
+    monkeypatch.setattr(
+        crossref_mod,
+        "_alignment_citations",
+        lambda: [duplicate, duplicate],
+    )
+
+    assert (
+        "deposit citation_list for dataset DOI 10.67342/26w4o contains duplicate "
+        "citation keys"
+    ) in lint_deposit()
 
 
 def test_lint_flags_placeholder_doi() -> None:

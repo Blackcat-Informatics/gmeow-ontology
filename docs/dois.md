@@ -76,6 +76,10 @@ output validates against `crossref5.4.0.xsd` + `AccessIndicators.xsd` +
 - **`<publisher>`** (name + place) and **`<institution>`** (name + acronym + place).
 - **`<institution_id type="wikidata">`** for the Blackcat Informatics® Inc.
   organization QID, projected from the self-description authority link.
+  Patrick Audley's Wikidata QID is also canonical self-description metadata, but
+  Crossref's native person-contributor surface is ORCID rather than a generic
+  Wikidata person PID field; the deposit therefore emits his ORCID and does not
+  spoof the personal QID into a non-native Crossref element.
 - **`ai:program` (AccessIndicators)** — `free_to_read` + `license_ref` for the CC
   license, making the license machine-readable in the PID graph for both the
   version of record (`applies_to="vor"`) and text/data-mining use

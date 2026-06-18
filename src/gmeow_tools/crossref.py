@@ -714,12 +714,19 @@ def lint_deposit(meta: SelfDescription | None = None) -> list[str]:
     citation_nodes = root.findall(f".//{{{CR_NS}}}citation_list/{{{CR_NS}}}citation")
     if not citation_nodes:
         problems.append("deposit carries no citation_list references")
-    for citation_list in root.findall(f".//{{{CR_NS}}}citation_list"):
+    for index, dataset in enumerate(root.findall(f".//{{{CR_NS}}}dataset"), start=1):
+        citation_list = dataset.find(f"{{{CR_NS}}}citation_list")
+        if citation_list is None:
+            continue
         citation_keys = [
             node.get("key") or ""
             for node in citation_list.findall(f"{{{CR_NS}}}citation")
         ]
         if len(citation_keys) != len(set(citation_keys)):
-            problems.append("deposit citation_list contains duplicate citation keys")
+            doi = dataset.findtext(f"{{{CR_NS}}}doi_data/{{{CR_NS}}}doi")
+            location = f"dataset DOI {doi}" if doi else f"dataset #{index}"
+            problems.append(
+                f"deposit citation_list for {location} contains duplicate citation keys"
+            )
 
     return problems
