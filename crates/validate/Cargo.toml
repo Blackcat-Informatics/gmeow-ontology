@@ -30,11 +30,17 @@ sha2 = "0.10"
 # and validates the shared store directly (#634). The engine core is PyO3-free;
 # only the py modules on both sides touch PyO3.
 gmeow-shacl = { path = "../shacl" }
-# GTS format engine: shared bundle codec and verification used by validate (#644).
-gmeow-gts = { version = "0.9.0", features = ["oxigraph-adapter"] }
+# Shared RDF 1.2 kernel: GTS/oxigraph store construction and diagnostics (#648).
+gmeow-rdf = { path = "../rdf", features = ["gts", "oxigraph"] }
+# GTS format engine: cache-key derivation reads `gmeow_gts::model::Graph::segment_heads`,
+# and the toolchain salt mixes `gmeow_gts::wire::VERSION`. Runtime GTS ingestion itself
+# lives in gmeow-rdf (#683).
+gmeow-gts = "0.9.0"
 # pyo3 is an UNCONDITIONAL native-only dependency: this crate is native-only and
 # carries NO architecture cfgs (never a [target.'cfg(...)'] table). A capability
 # cfg would be optionality, not compliance (#579). The engine core
 # (store.rs/model.rs) stays PyO3-free; only py.rs imports pyo3, so the rlib links
 # into a future Rust compiler without Python.
 pyo3 = { version = "0.29", features = ["extension-module", "abi3-py313"] }
+
+[dev-dependencies]

@@ -14,6 +14,9 @@ use oxigraph::model::{
 use oxigraph::sparql::{QueryResults, SparqlEvaluator};
 use oxigraph::store::Store;
 
+use gmeow_rdf::oxigraph::{store_from_rdf_store, GraphPolicy};
+use gmeow_rdf::RdfStore;
+
 /// A world-indexed RDF store.
 ///
 /// Each world is an oxigraph named graph identified by an IRI string. Only
@@ -46,6 +49,29 @@ impl WorldStore {
         self.inner
             .load_from_reader(oxigraph::io::RdfFormat::NQuads, nquads.as_bytes())
             .map_err(|e| format!("N-Quads parse error: {e}"))?;
+        Ok(())
+    }
+
+    /// Load any shared RDF store into the world-indexed store, preserving named graphs.
+    ///
+    /// GTS-backed sources, oxigraph-backed stores, and future sidecar-aware stores
+    /// all cross into LOGIC through the same `gmeow-rdf` adapter. Named graphs are
+    /// retained as worlds; default-graph quads are loaded but remain inaccessible
+    /// through the world-only APIs by design.
+    ///
+    /// # Errors
+    ///
+    /// Returns `Err(String)` if the source store cannot be materialized into
+    /// oxigraph or if an insert into the in-memory store fails.
+    pub fn load_rdf_store(&self, source: &impl RdfStore) -> Result<(), String> {
+        let materialized = store_from_rdf_store(source, GraphPolicy::PreserveNamedGraphs)
+            .map_err(|e| e.to_string())?;
+        for quad in materialized.iter() {
+            let quad = quad.map_err(|e| format!("RDF store iteration failed: {e}"))?;
+            self.inner
+                .insert(&quad)
+                .map_err(|e| format!("world store insert failed: {e}"))?;
+        }
         Ok(())
     }
 
@@ -242,6 +268,25 @@ mod tests {
         store.insert_quad(WORLD_A, S_A, P_A, O_A);
         store.insert_quad(WORLD_B, S_B, P_B, O_B);
         store
+    }
+
+    #[test]
+    fn load_rdf_store_preserves_named_graph_worlds() {
+        use gmeow_rdf::{RdfQuad, RdfTerm, VecRdfStore};
+
+        let source = VecRdfStore::with_quads(vec![RdfQuad::new(
+            RdfTerm::iri(S_A),
+            P_A,
+            RdfTerm::iri(O_A),
+        )
+        .in_graph(RdfTerm::iri(WORLD_A))]);
+        let store = WorldStore::new();
+        store
+            .load_rdf_store(&source)
+            .expect("shared RDF store should load into LOGIC");
+
+        assert_eq!(store.quads_in_world(WORLD_A).len(), 1);
+        assert!(store.quads_in_world(WORLD_B).is_empty());
     }
 
     #[test]

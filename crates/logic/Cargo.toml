@@ -21,6 +21,9 @@ path = "src/lib.rs"
 # we never use); `rdf-12` enables the RDF 1.2 parser/serializer the whole logic
 # layer is built on. One in-memory store, one code path — correct dependency.
 oxigraph = { version = "0.5", default-features = false, features = ["rdf-12"] }
+# Shared RDF 1.2 adapter boundary for loading GTS/oxigraph/sidecar-aware stores
+# into world-indexed logic stores (#648, supports #630/#667).
+gmeow-rdf = { path = "../rdf", features = ["oxigraph"] }
 blake3 = "1"
 sha1 = "0.10"
 # sha2: the canonical-rdf12 projection mints content-stable reifier IRIs as
