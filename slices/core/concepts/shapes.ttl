@@ -23,6 +23,7 @@ gmeow:ConceptCategorizationShape
         sh:minCount 1 ;
         sh:maxCount 1 ;
         sh:nodeKind sh:IRI ;
+        sh:class gmeow:Entity ;
         sh:severity sh:Violation ;
         sh:message "A ConceptCategorization must have exactly one observed feature (the categorized entity) via gmeow:observedFeature." ;
     ] ;
