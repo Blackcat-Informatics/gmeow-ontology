@@ -572,21 +572,25 @@ def reason(
     from gmeow_tools.runner import ToolExecutionError, ToolUnavailableError
 
     if mode == "native":
-        # emit_legacy_cli pulls in the gmeow_diagnostics extension; import it only
-        # inside the native lane so the Docker oracle lane — and the CI jobs that
-        # run it without building that extension — never need it.
-        from gmeow_tools.diagnostics import emit_legacy_cli
-
         try:
+            # emit_legacy_cli pulls in the gmeow_diagnostics extension; import it
+            # only in the native lane (the Docker oracle lane — and the CI jobs
+            # that run it without that extension — never need it), and inside the
+            # guard so a missing/failed extension renders cleanly too.
+            from gmeow_tools.diagnostics import emit_legacy_cli
+
             report = reasoning.reason_native(merge=merge)
-        except (ToolUnavailableError, ToolExecutionError) as exc:
+            emit_legacy_cli(report, err_console)
+        except ToolUnavailableError as exc:
+            raise _fail(f"tool unavailable: {exc}", code=2) from exc
+        except ToolExecutionError as exc:
+            raise _fail(f"native reasoning failed:\n{exc.output}") from exc
+        except (ImportError, ValueError, RuntimeError, OSError) as exc:
+            # ImportError: native diagnostics extension unavailable; ValueError:
+            # unreadable GTS bundle; RuntimeError: native chase failure; OSError:
+            # artifact write failure. Render as a formatted diagnostic instead of
+            # leaking a raw traceback.
             raise _fail(f"native reasoning failed: {exc}") from exc
-        except (ValueError, RuntimeError, OSError) as exc:
-            # ValueError: unreadable GTS bundle; RuntimeError: native chase
-            # failure; OSError: artifact write failure. Render as a formatted
-            # diagnostic instead of leaking a raw traceback.
-            raise _fail(f"native reasoning failed: {exc}") from exc
-        emit_legacy_cli(report, err_console)
         if report.ok:
             console.print("[green]✓ native EL/DL reasoning (Docker-free)[/green]")
             return
