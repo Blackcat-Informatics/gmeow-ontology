@@ -19,6 +19,14 @@
       "only gUFO-mapped sorts and structural predicates emitted",
       "logic: world-modal/contextual structure has no gUFO equivalent",
       "rules not representable in gUFO; only type/subtype declarations kept",
+      "fluents / 4D temporal-part structure (logic:Fluent, logic:temporalPartOf, logic:Process, logic:Perdurant beyond gufo:Event) have no gUFO class and are dropped",
+      "multi-level / HiLog instantiation (logic:instanceOf, logic:orderedType — arbitrary type-of-type levels) has no gUFO punning equivalent and is dropped",
+      "scoped open/closed worlds (logic:WorldBoundary, logic:closedUnder, scoped-CWA) have no gUFO equivalent and are dropped",
+      "native builtins (logic:Builtin and the builtin individuals) have no gUFO class and are dropped",
+      "strict-partial-order parthood characteristics (asymmetric + irreflexive on logic:properPartOf) cannot be declared in OWL 2 DL gUFO (it only states transitivity) and are dropped",
+      "native edge-property metadata (RDF-1.2 statement-level scope on logic edges) has no gUFO equivalent and is dropped",
+      "the five gUFO temporary-situation reifiers (QualityValueAttributionSituation, TemporaryConstitution/Instantiation/Parthood/RelationshipSituation) are SUPERSEDED by logic:Fluent + RDF-1.2 edge properties — not re-emitted by the down-projection",
+      "logic:Mode (and Intrinsic/Extrinsic mode/aspect refinements) has no single gUFO base class as a projection target and is dropped (gufo:Aspect is emitted; gufo:Mode does not exist)",
       "preservation kind is ValidationOnly: gUFO is an anti-pattern check, not an entailment surface"
     ],
     "preservation": "ValidationOnly"

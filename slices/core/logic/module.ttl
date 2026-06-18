@@ -3,6 +3,7 @@
 @prefix owl:     <http://www.w3.org/2002/07/owl#> .
 @prefix rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
 @prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix vann:    <http://purl.org/vocab/vann/> .
@@ -38,66 +39,77 @@ logic:Kind
     a owl:Class ;
     rdfs:label "Kind"@x-gmeow-english ;
     skos:definition "A rigid sortal that supplies a principle of identity to its instances and applies necessarily across every world in which an instance exists: an ultimate sortal under which an object falls for its whole existence. Every object instantiates exactly one ultimate Kind. Rigid (rigidlyAppliesTo) and identity-supplying (suppliesIdentity); contrast the anti-rigid Role and Phase."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
 
 logic:SubKind
     a owl:Class ;
     rdfs:label "Sub Kind"@x-gmeow-english ;
     skos:definition "A rigid sortal that specializes a Kind without supplying its own independent principle of identity: it carries the identity criterion inherited from the Kind it specializes. Rigid like a Kind, but identity-dependent rather than identity-supplying."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
 
 logic:Phase
     a owl:Class ;
     rdfs:label "Phase"@x-gmeow-english ;
     skos:definition "An anti-rigid sortal an instance falls under during a stage of its existence determined by a change in its own intrinsic state — child, adult, vacant, occupied. Anti-rigid: there is a world of existence in which the instance lacks the Phase (the anti-rigidity witness). Contrast Role, whose change is relational rather than intrinsic."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
 
 logic:Role
     a owl:Class ;
     rdfs:label "Role"@x-gmeow-english ;
     skos:definition "An anti-rigid sortal an instance falls under contingently, by virtue of a relation it bears to some other entity — student, employee, defendant. Anti-rigid: there is a world of existence in which the instance lacks the Role (the anti-rigidity witness). Identity-dependent on the underlying Kind; contrast Phase, whose change is intrinsic rather than relational."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
 
 logic:Category
     a owl:Class ;
     rdfs:label "Category"@x-gmeow-english ;
     skos:definition "A rigid non-sortal that classifies instances of several different Kinds by shared essential properties without itself supplying a principle of identity: it dispersively spans Kinds rather than carrying its own identity criterion. Rigid but identity-dispersive; the rigid counterpart of the anti-rigid RoleMixin and PhaseMixin."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
 
 logic:Mixin
     a owl:Class ;
     rdfs:label "Mixin"@x-gmeow-english ;
     skos:definition "A semi-rigid non-sortal that classifies instances of several Kinds, applying rigidly to some instances and anti-rigidly to others: a dispersive type whose rigidity is mixed across its extension. Identity-dispersive like a Category, but semi-rigid rather than uniformly rigid."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
 
 logic:RoleMixin
     a owl:Class ;
     rdfs:label "Role Mixin"@x-gmeow-english ;
     skos:definition "An anti-rigid non-sortal that abstracts a relationally-acquired property shared across instances of several Kinds — customer (a person or an organization), insured party. Anti-rigid and identity-dispersive: a Role generalized to span multiple Kinds without supplying identity."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
 
 logic:PhaseMixin
     a owl:Class ;
     rdfs:label "Phase Mixin"@x-gmeow-english ;
     skos:definition "An anti-rigid non-sortal that abstracts an intrinsically-determined phase shared across instances of several Kinds — living thing (a person or an animal in its living phase). Anti-rigid and identity-dispersive: a Phase generalized to span multiple Kinds without supplying identity."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
 
 logic:Relator
     a owl:Class ;
     rdfs:label "Relator"@x-gmeow-english ;
     skos:definition "A truthmaker of a material relation: an objectified relationship — a marriage, an employment, an enrolment — that mediates two or more relata and existentially depends on each of them. A Relator must mediate at least two distinct entities (the relator-mediation discipline, RelComp); the relation it grounds holds in virtue of the Relator existing."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
 
 logic:Event
     a owl:Class ;
     rdfs:label "Event"@x-gmeow-english ;
     skos:definition "A perdurant occurrence that happens in time and is composed of temporal parts: an action, a process, a happening that unfolds and is complete once it has occurred. Tokens it as an occurrence rather than an endurant; in the type-level world strata (risk, teleology, norms) the no-occurrence gate keeps reasoning over Event *types* without entailing any Event instance."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
 
 logic:Situation
     a owl:Class ;
     rdfs:label "Situation"@x-gmeow-english ;
     skos:definition "A reified configuration of entities and their properties standing in a state of affairs at a time — the DOLCE Description-and-Situation sense: a snapshot of how things are that can satisfy a described state (a goal-world realized by a Situation). The static counterpart of the dynamic Event."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
 
 # --------------------------------------------------------------------------- #
@@ -460,6 +472,436 @@ logic:distinctBody
     skos:definition "Relates a logic:Rule to an inequality body guard: a reified node carrying rdf:subject and rdf:object (two rule variables, and — unlike logic:body — no rdf:predicate) that must bind to DISTINCT values for the rule to fire, projecting to the Datalog/Nemo inequality constraint ?A != ?B. Parallel to logic:negatedBody as an additive rule-structural surface: it lets a rule detect 'at least two distinct values' (e.g. a class carrying more than one stereotype, or a relator mediating two distinct relata) that set-semantic Datalog cannot otherwise express. An inequality guard introduces no negative dependency edge, so it leaves a rule's stratification class unchanged (issue #503)."@x-gmeow-english ;
     rdfs:comment "Inequality body guard of a logic:Rule. Default-absent: a rule that needs no inequality carries no logic:distinctBody, so the existing corpus is byte-identical (issue #503)."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
+
+# --------------------------------------------------------------------------- #
+# ── UFO⁺ superset spine + greenfield primitives (#663) ──
+#
+# The gUFO-floor superset: every gUFO top-level term gets a logic: counterpart
+# so gmeow:logic ⊇ gUFO as a minimum baseline (LOGIC-FOUNDATION.md §Thesis,
+# §Greenfield feature map), plus the greenfield primitives the charter declares
+# (mereology with a strict partial order, 4D/fluents, multi-level, scoped
+# open/closed worlds, builtins). STANDALONE like the rest of the foundation:
+# no gUFO parentage and no rdfs:subClassOf into gmeow: reasoned classes — every
+# taxonomy relation is stated in the definition prose, exactly as the existing
+# sorts are authored. These are bare declarations; the axioms over them land
+# with the native solver (#664/#665). Each term carries its gmeow:graphBoxRole
+# so the four-box partition stays machine-checkable (LOGIC-FOUNDATION.md
+# §Four-box organization).
+# --------------------------------------------------------------------------- #
+
+# --- Endurant / Perdurant / Aspect spine (TBox) ---------------------------- #
+
+logic:Endurant
+    a owl:Class ;
+    rdfs:label "Endurant"@x-gmeow-english ;
+    skos:definition "A continuant: an individual that persists through time and is wholly present at each moment of its existence, enduring through change rather than unfolding through it. The counterpart of gufo:Endurant and the bearer side of the endurant/perdurant divide; contrast logic:Perdurant, which has temporal parts. Substantials and aspects are both endurants."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
+
+logic:Perdurant
+    a owl:Class ;
+    rdfs:label "Perdurant"@x-gmeow-english ;
+    skos:definition "An occurrent: an individual that unfolds in time by accumulating temporal parts, so that at any single moment only a part of it is present. The four-dimensional counterpart of the endurant; logic:Event and logic:Process are perdurants (every Event is a Perdurant — the supertype relation is stated here in prose rather than as an rdfs:subClassOf edge, matching how the foundation sorts are authored). Contrast logic:Endurant, which is wholly present at each moment."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
+
+logic:Object
+    a owl:Class ;
+    rdfs:label "Object"@x-gmeow-english ;
+    skos:definition "A substantial endurant that bears its own principle of identity and does not inhere in another individual — a person, an organization, a physical artefact. The counterpart of gufo:Object: an independent endurant, contrasted with the aspects that existentially depend on it. Every Object is a logic:Substantial and a logic:Endurant (stated in prose, not as a subclass edge)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
+
+logic:Aspect
+    a owl:Class ;
+    rdfs:label "Aspect"@x-gmeow-english ;
+    skos:definition "A moment (trope): an endurant that exists only by inhering in a bearer on which it existentially depends — a colour, a belief, a marriage's commitment. The counterpart of gufo:Aspect, covering its intrinsic/extrinsic split (gufo:IntrinsicAspect inheres in a single bearer, gufo:ExtrinsicAspect depends on several): logic: carries that distinction on the inherence/dependence relation rather than as separate classes. The dependent counterpart of logic:Substantial. Qualities and modes are aspects (stated in prose, not as a subclass edge)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
+
+logic:Substantial
+    a owl:Class ;
+    rdfs:label "Substantial"@x-gmeow-english ;
+    skos:definition "An endurant that does NOT inhere in another individual: an independent bearer that can exist on its own and onto which aspects inhere. The complement of logic:Aspect within the endurant category; every logic:Object is a Substantial (stated in prose, not as a subclass edge)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
+
+logic:AbstractIndividual
+    a owl:Class ;
+    rdfs:label "Abstract Individual"@x-gmeow-english ;
+    skos:definition "An individual that exists outside spacetime and bears no qualities — a number, a set, a value structure — neither enduring nor perduring nor inhering. The counterpart of gufo:AbstractIndividual; the abstract sibling of the concrete (endurant/perdurant) individuals. Quality values live here (stated in prose, not as a subclass edge)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
+
+# --- Quality / Mode (TBox) ------------------------------------------------- #
+
+logic:Quality
+    a owl:Class ;
+    rdfs:label "Quality"@x-gmeow-english ;
+    skos:definition "An aspect whose value is a point or region in a quality space — a mass, a temperature, a colour hue — an intrinsic, directly measurable moment. The counterpart of gufo:Quality; a logic:Aspect that takes a logic:QualityValue in a logic:QualitySpace (stated in prose, not as a subclass edge). Contrast logic:Mode, which is not directly measurable."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
+
+logic:Mode
+    a owl:Class ;
+    rdfs:label "Mode"@x-gmeow-english ;
+    skos:definition "An aspect that is NOT directly measurable in a quality space — a belief, a skill, an intention, a symptom — whether intrinsic to a single bearer or relational across several. The counterpart of gufo:IntrinsicMode and gufo:ExtrinsicMode generalized: a logic:Aspect lacking a quality value (stated in prose, not as a subclass edge). Contrast logic:Quality, which is measurable."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
+
+logic:QualityValue
+    a owl:Class ;
+    rdfs:label "Quality Value"@x-gmeow-english ;
+    skos:definition "A point or region within a quality space that a logic:Quality takes as its value — 80 kg, 37 °C, the hue at coordinate (h,s,v). The counterpart of gufo:QualityValue; a logic:AbstractIndividual situated in a logic:QualitySpace (stated in prose, not as a subclass edge)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
+
+logic:QualitySpace
+    a owl:Class ;
+    rdfs:label "Quality Space"@x-gmeow-english ;
+    skos:definition "The structured space of possible values for a kind of quality — the mass scale, the temperature scale, a colour solid — within which a logic:Quality's logic:QualityValue is located. The conceptual-space structure (ordering, metric, dimensions) against which quality values are compared; it supplies the geometry a bare value would lack."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
+
+# --- Mereology (RBox properties + characteristic markers) ------------------ #
+#
+# OWL 2 forbids a property being both transitive and asymmetric (criticism 7,
+# LOGIC-FOUNDATION.md). logic: imposes no such global restriction, so it needs
+# its own property-characteristic markers independent of the OWL ones it would
+# otherwise be constrained by. logic:transitiveProperty / asymmetricProperty /
+# irreflexiveProperty are minted here as logic: characteristic classes (TBox)
+# so logic:properPartOf can be typed transitive ∧ asymmetric ∧ irreflexive — a
+# strict partial order that is illegal in OWL DL but legal and fully reasoned
+# here, the deliberate OWL-2-criticism demonstrator.
+
+logic:transitiveProperty
+    a owl:Class ;
+    rdfs:label "transitive property"@x-gmeow-english ;
+    skos:definition "The logic: property-characteristic marker for transitivity: a property P such that P(a,b) ∧ P(b,c) entails P(a,c). The logic: analogue of owl:TransitiveProperty, minted standalone so logic: can combine it with logic:asymmetricProperty — a combination OWL 2 DL forbids globally (criticism 7) but logic: reasons over fully."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
+
+logic:asymmetricProperty
+    a owl:Class ;
+    rdfs:label "asymmetric property"@x-gmeow-english ;
+    skos:definition "The logic: property-characteristic marker for asymmetry: a property P such that P(a,b) entails ¬P(b,a). The logic: analogue of owl:AsymmetricProperty, minted standalone so it can co-occur with logic:transitiveProperty on the same property — the transitive ∧ asymmetric combination OWL 2 DL bars for decidability but logic: keeps and reasons over (criticism 7)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
+
+logic:irreflexiveProperty
+    a owl:Class ;
+    rdfs:label "irreflexive property"@x-gmeow-english ;
+    skos:definition "The logic: property-characteristic marker for irreflexivity: a property P such that P(a,a) holds for no a. The logic: analogue of owl:IrreflexiveProperty, used together with logic:transitiveProperty and logic:asymmetricProperty to make logic:properPartOf a genuine strict partial order (criticism 7)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
+
+logic:partOf
+    a owl:ObjectProperty ;
+    rdfs:label "part of"@x-gmeow-english ;
+    skos:definition "The general (reflexive) parthood relation: relates an entity to a whole it is part of, where every entity is trivially part of itself. The mereological base relation over which logic:properPartOf is the strict (irreflexive) restriction. Distinct from logic:memberOf, which relates a member to a collection without the part being a part of the whole in the mereological sense."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
+
+logic:properPartOf
+    a owl:ObjectProperty, logic:transitiveProperty, logic:asymmetricProperty, logic:irreflexiveProperty ;
+    rdfs:label "proper part of"@x-gmeow-english ;
+    skos:definition "STRICT parthood: relates an entity to a whole it is part of but NOT identical to. Transitive, asymmetric, and irreflexive — a genuine strict partial order (proper-part-of, ancestor). This exact combination is illegal in OWL 2 DL, which globally forbids a property being both transitive and asymmetric (criticism 7, LOGIC-FOUNDATION.md §OWL 2 criticisms); logic: imposes no such global restriction and reasons over it completely, recovering decidability by projection rather than by crippling the canon. The deliberate OWL-2-criticism demonstrator."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
+
+logic:memberOf
+    a owl:ObjectProperty ;
+    rdfs:label "member of"@x-gmeow-english ;
+    skos:definition "The member-collection relation: relates a member to a logic:Collection it belongs to, where the members are the relevant units of the whole. Distinct from logic:partOf and logic:properPartOf: collection membership is not mereological parthood — a team member is a member of, not a proper part of, the team, and membership does not inherit parthood's transitivity through the collection."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
+
+# --- Collective / count / quantity (TBox) ---------------------------------- #
+
+logic:Collection
+    a owl:Class ;
+    rdfs:label "Collection"@x-gmeow-english ;
+    skos:definition "A plurality individuated by its members, where the members are themselves the relevant units of the whole — a deck of cards, a committee, a playlist. The counterpart of gufo:Collection; members relate to it via logic:memberOf rather than logic:properPartOf. Contrast logic:Quantity, which is individuated by constitution rather than by member count."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
+
+logic:Quantity
+    a owl:Class ;
+    rdfs:label "Quantity"@x-gmeow-english ;
+    skos:definition "An amount of stuff individuated by its constitution rather than by a count of members — a portion of water, a lump of clay, a quantity of gold. The counterpart of gufo:Quantity; its identity tracks the matter that constitutes it (maximally self-connected portions of a substance), not a number of discrete units. Contrast logic:Collection, individuated by its members."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
+
+# --- 4D / fluents ---------------------------------------------------------- #
+
+logic:Process
+    a owl:Class ;
+    rdfs:label "Process"@x-gmeow-english ;
+    skos:definition "A perdurant with internal dynamics: an occurrent composed of sub-processes and phases that unfold over its temporal extent — a manufacturing run, a negotiation, a fermentation. A logic:Perdurant richer than a punctual event (stated in prose, not as a subclass edge); part of the native four-dimensional treatment that restores the UFO-B account gUFO scales back (criticism 3)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
+
+logic:Participation
+    a owl:Class ;
+    rdfs:label "Participation"@x-gmeow-english ;
+    skos:definition "The reified involvement of an endurant in a perdurant — an actor's participation in an event, a reactant's participation in a reaction. The counterpart of gufo:Participation: a relator-like reified link binding a logic:Endurant to the logic:Perdurant it takes part in, so the role and temporal scope of the involvement can be carried on the participation itself."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
+
+logic:temporalPartOf
+    a owl:ObjectProperty ;
+    rdfs:label "temporal part of"@x-gmeow-english ;
+    skos:definition "Parthood among perdurants: relates a temporal part of an occurrent to the larger occurrent it is a phase of — the first act is a temporal part of the play. The four-dimensional parthood relation, distinct from the endurant parthood of logic:partOf / logic:properPartOf: it carves a perdurant along its temporal extent into sub-occurrents."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
+
+logic:Fluent
+    a owl:Class ;
+    rdfs:label "Fluent"@x-gmeow-english ;
+    skos:definition "A value or relation indexed to time (and world): a time-varying property whose truth changes across moments — an object's location, an account's balance, a temperature reading. The native temporal-fluent construct of the four-dimensional treatment (criticism 3), pairing with Principle-11 frame-relativity so each temporal value lives in an explicit reference system rather than as a bare literal."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
+
+# --- Multi-level (RBox) ---------------------------------------------------- #
+
+logic:instanceOf
+    a owl:ObjectProperty ;
+    rdfs:label "instance of"@x-gmeow-english ;
+    skos:definition "HiLog deep instantiation: relates an individual or a type to a (possibly higher-order) type it instantiates, across any number of meta-levels. The first-class multi-level primitive that replaces OWL punning (criticism 5): types are reified as first-order individuals so 'an instance of a type that is itself an instance of a metatype' is ordinary first-order quantification rather than a punning trick. The general relation of which logic:suppliesIdentity is the identity-supplying specialization."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
+
+logic:orderedType
+    a owl:DatatypeProperty ;
+    rdfs:range xsd:nonNegativeInteger ;
+    rdfs:label "ordered type"@x-gmeow-english ;
+    skos:definition "Relates a type to its order (level) in the multi-level hierarchy: a first-order type is order 1, a type whose instances are first-order types is order 2, and so on. Makes the deep-instantiation level explicit so logic:instanceOf chains can be checked for level coherence (an order-n type instantiates an order-(n+1) type), the well-formedness condition that keeps HiLog multi-level modeling stratified."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
+
+# --- Scoped worlds / hybrid open-closed ------------------------------------ #
+
+logic:WorldBoundary
+    a owl:Class ;
+    rdfs:label "World Boundary"@x-gmeow-english ;
+    skos:definition "A scoped region within which the closed-world assumption applies: it demarcates where what is not derivable may be read as false, leaving the rest of the model under the open-world assumption. The scoping construct of the hybrid open/closed feature (LOGIC-FOUNDATION.md §Greenfield feature map): the closed-world (CWA) lane realized by the built-in SHACL is confined to what a WorldBoundary encloses, while logic: outside it stays open-world. Enforcement is seamed to the engine (#665)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
+
+logic:closedUnder
+    a owl:ObjectProperty ;
+    rdfs:label "closed under"@x-gmeow-english ;
+    skos:definition "Declares a predicate or shape closed within a logic:WorldBoundary: the closed-world-assumption toggle that says, for the named predicate inside the boundary, that the materialized extension is complete and absence may be read as falsity. The per-predicate CWA switch of the hybrid open/closed construct, enforced by the built-in SHACL (the CWA lane); outside any boundary, or for predicates not closed under one, the open-world reading holds. Enforcement is seamed to the engine (#665)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
+
+# --- Builtins -------------------------------------------------------------- #
+
+logic:Builtin
+    a owl:Class ;
+    rdfs:label "Builtin"@x-gmeow-english ;
+    skos:definition "A native computational primitive usable in rule bodies under logic:ProceduralPrologProfile: the registry entry for a derivational builtin such as string concatenation, date arithmetic, or basic math (criticism 8, LOGIC-FOUNDATION.md §OWL 2 criticisms). Builtins are the lightweight derivations a foundation genuinely needs (Principle 12, in-logic); heavy domain computation — geo/datum transforms, relation-algebra composition, vector operations — stays external by reference. The registry is declared here; builtin execution is seamed to the compiler/engine (#664/#665)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
+
+logic:invokesBuiltin
+    a owl:ObjectProperty ;
+    rdfs:label "invokes builtin"@x-gmeow-english ;
+    skos:definition "Relates a logic:Rule to a logic:Builtin it calls in its body: the dependency edge recording that a rule uses a native computational primitive, and therefore requires logic:ProceduralPrologProfile (where builtins are gated). Lets the compiler check that a rule invoking a builtin declares the procedural profile and records the loss when such a rule is projected to a declarative semantics."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
+
+logic:builtinStringConcat
+    a owl:NamedIndividual, logic:Builtin ;
+    rdfs:label "string-concat builtin"@x-gmeow-english ;
+    skos:definition "The native string-concatenation builtin: derives a string by joining its arguments, e.g. fullName = firstName + \" \" + lastName. A derivational builtin (Principle 12, in-logic): the lightweight string derivation a foundation needs, NOT heavy domain text processing, which stays external by reference. Gated to logic:ProceduralPrologProfile; execution is seamed to #664/#665."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
+
+logic:builtinDateDifference
+    a owl:NamedIndividual, logic:Builtin ;
+    rdfs:label "date-difference builtin"@x-gmeow-english ;
+    skos:definition "The native date-arithmetic builtin: derives the difference between two dates, e.g. legalAge = year(now) − year(birth). A derivational builtin (Principle 12, in-logic): the lightweight date arithmetic a foundation needs, NOT heavy temporal-domain computation (calendar/datum transforms), which stays external by reference. Gated to logic:ProceduralPrologProfile; execution is seamed to #664/#665."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
+
+logic:builtinArithmetic
+    a owl:NamedIndividual, logic:Builtin ;
+    rdfs:label "arithmetic builtin"@x-gmeow-english ;
+    skos:definition "The native basic-math builtin: derives a value by the arithmetic operations (add, subtract, multiply, divide, compare) over numeric arguments. A derivational builtin (Principle 12, in-logic): the lightweight math a foundation needs, NOT heavy numerical domain computation (n-dimensional vector operations, SLAM, trajectory updates), which stays external by reference. Gated to logic:ProceduralPrologProfile; execution is seamed to #664/#665."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
+
+# --- Taxonomy of Types (TBox) ---------------------------------------------- #
+#
+# Completing the gUFO floor: gUFO's "Taxonomy of Types" branch. gUFO reifies
+# types as first-order individuals (its gufo:*Type classes classify those type
+# individuals). logic: does the same via logic:instanceOf / logic:orderedType:
+# a logic:Type is an order-≥1 type individual, and these meta-types classify it
+# by what its instances are. STANDALONE: the taxonomy relations are stated in
+# prose, never as rdfs:subClassOf edges into gmeow: reasoned classes.
+
+logic:Type
+    a owl:Class ;
+    rdfs:label "Type"@x-gmeow-english ;
+    skos:definition "A universal: a type whose instances share a common feature, reified as a first-order individual so it can itself be the object of logic:instanceOf and carry a logic:orderedType. The counterpart of gufo:Type; first-order (its instances are logic:Individuals, logic:orderedType 1) or higher-order (its instances are themselves types). The root of the type taxonomy, complementing logic:Individual; every foundation sort (logic:Kind, logic:Role, …) and every meta-type below is a logic:Type."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
+
+logic:EndurantType
+    a owl:Class ;
+    rdfs:label "Endurant Type"@x-gmeow-english ;
+    skos:definition "A logic:Type whose instances are logic:Endurants — the type whose extension (via logic:instanceOf) is drawn from continuants. The counterpart of gufo:EndurantType; the type-of-endurants branch under which the sortal and non-sortal foundation meta-types (logic:Kind, logic:Phase, logic:Role, logic:Category, …) ultimately fall. Stated in prose, not as a subclass edge. Contrast logic:Event and logic:Situation, which carry gUFO's EventType/SituationType roles per the down-projection."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
+
+logic:RelationshipType
+    a owl:Class ;
+    rdfs:label "Relationship Type"@x-gmeow-english ;
+    skos:definition "A logic:Type whose instances are relationships (relators or comparative relations): the type-level classifier of how two or more entities are related. The counterpart of gufo:RelationshipType; specialized by logic:MaterialRelationshipType (founded on a logic:Relator) and logic:ComparativeRelationshipType (grounded in the relata's qualities, with no relator). Stated in prose, not as a subclass edge."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
+
+logic:MaterialRelationshipType
+    a owl:Class ;
+    rdfs:label "Material Relationship Type"@x-gmeow-english ;
+    skos:definition "A logic:RelationshipType whose instances are material relations — relations founded on a logic:Relator that mediates the relata (marriage, employment, enrolment). The counterpart of gufo:MaterialRelationshipType; the relation it types holds in virtue of the mediating Relator existing (logic:mediates), so its instances are reducible to the relator and its mediation links. Stated in prose, not as a subclass edge. Contrast logic:ComparativeRelationshipType, which needs no relator."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
+
+logic:ComparativeRelationshipType
+    a owl:Class ;
+    rdfs:label "Comparative Relationship Type"@x-gmeow-english ;
+    skos:definition "A logic:RelationshipType whose instances are comparative relations grounded directly in the qualities of their relata, with NO mediating relator (heavier-than, older-than, the same colour as). The counterpart of gufo:ComparativeRelationshipType; the relation holds in virtue of the relata's logic:Quality values standing in an ordering within a logic:QualitySpace, not in virtue of any logic:Relator. Stated in prose, not as a subclass edge. Contrast logic:MaterialRelationshipType, which is relator-founded."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
+
+logic:AbstractIndividualType
+    a owl:Class ;
+    rdfs:label "Abstract Individual Type"@x-gmeow-english ;
+    skos:definition "A logic:Type whose instances are logic:AbstractIndividuals — the type whose extension (via logic:instanceOf) is drawn from individuals outside spacetime (numbers, sets, logic:QualityValues). The counterpart of gufo:AbstractIndividualType. Stated in prose, not as a subclass edge. Contrast logic:ConcreteIndividualType, whose instances are located in spacetime."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
+
+logic:ConcreteIndividualType
+    a owl:Class ;
+    rdfs:label "Concrete Individual Type"@x-gmeow-english ;
+    skos:definition "A logic:Type whose instances are logic:ConcreteIndividuals — the type whose extension (via logic:instanceOf) is drawn from individuals located in spacetime (endurants and perdurants). The counterpart of gufo:ConcreteIndividualType; the umbrella over logic:EndurantType together with the type-of-perdurants. Stated in prose, not as a subclass edge. Contrast logic:AbstractIndividualType."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
+
+# --- Sortal / rigidity meta-types (TBox) ----------------------------------- #
+#
+# These meta-types classify the existing foundation sorts by the two OntoUML
+# axes — identity-supply (sortal vs non-sortal) and modal rigidity (rigid /
+# anti-rigid / semi-rigid). They are higher-order logic:Types: their instances
+# (via logic:instanceOf) are the sort individuals (logic:Kind, logic:Role, …).
+# The classification is stated in prose here; the native solver lowers it to
+# axioms over logic:rigidlyAppliesTo and logic:suppliesIdentity (issue #503).
+
+logic:Sortal
+    a owl:Class ;
+    rdfs:label "Sortal"@x-gmeow-english ;
+    skos:definition "A logic:Type that carries a principle of identity for its instances — it answers what counts as the same instance over time. The counterpart of gufo:Sortal; the meta-type whose instances are the identity-bearing sorts: logic:Kind (which supplies identity, via logic:suppliesIdentity), logic:SubKind, logic:Phase, and logic:Role (which inherit it). Stated in prose, not as a subclass edge. Contrast logic:NonSortal, which supplies no identity."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
+
+logic:NonSortal
+    a owl:Class ;
+    rdfs:label "Non-Sortal"@x-gmeow-english ;
+    skos:definition "A logic:Type that aggregates instances of several different logic:Sortals and supplies NO principle of identity of its own — it spans Kinds dispersively. The counterpart of gufo:NonSortal; the meta-type whose instances are the dispersive sorts: logic:Category, logic:Mixin, logic:RoleMixin, logic:PhaseMixin. Stated in prose, not as a subclass edge. Identity-dispersive (logic:suppliesIdentity holds for none of its instances); contrast logic:Sortal."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
+
+logic:RigidType
+    a owl:Class ;
+    rdfs:label "Rigid Type"@x-gmeow-english ;
+    skos:definition "A logic:Type that applies necessarily to each of its instances — in every world in which an instance exists it instantiates the type (logic:rigidlyAppliesTo holds for all its instances). The counterpart of gufo:RigidType; the meta-type whose instances are the rigid sorts: logic:Kind and logic:SubKind are each a logic:RigidType and a logic:Sortal, logic:Category is a logic:RigidType and a logic:NonSortal. Stated in prose, not as a subclass edge. Contrast logic:AntiRigidType."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
+
+logic:AntiRigidType
+    a owl:Class ;
+    rdfs:label "Anti-Rigid Type"@x-gmeow-english ;
+    skos:definition "A logic:Type that applies contingently to EVERY one of its instances — for each instance there is a world of existence in which it lacks the type (the anti-rigidity witness; logic:rigidlyAppliesTo holds for none of its instances). The counterpart of gufo:AntiRigidType; the meta-type whose instances are the anti-rigid sorts: logic:Phase and logic:Role (each a logic:AntiRigidType and a logic:Sortal), logic:RoleMixin and logic:PhaseMixin (each a logic:AntiRigidType and a logic:NonSortal). Stated in prose, not as a subclass edge. The discipline that anti-rigid instantiation owes a witness is logic:dischargeObligation. Contrast logic:RigidType."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
+
+logic:SemiRigidType
+    a owl:Class ;
+    rdfs:label "Semi-Rigid Type"@x-gmeow-english ;
+    skos:definition "A logic:Type that is rigid for some of its instances and anti-rigid for others — logic:rigidlyAppliesTo holds for part of its extension and fails for the rest. The counterpart of gufo:SemiRigidType; its sole foundation instance is logic:Mixin (a logic:SemiRigidType and a logic:NonSortal). Stated in prose, not as a subclass edge. A logic:SemiRigidType is a logic:NonRigidType but not a logic:AntiRigidType (which requires contingency for every instance)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
+
+logic:NonRigidType
+    a owl:Class ;
+    rdfs:label "Non-Rigid Type"@x-gmeow-english ;
+    skos:definition "A logic:Type that is not rigid: either anti-rigid (logic:AntiRigidType) or semi-rigid (logic:SemiRigidType). The counterpart of gufo:NonRigidType; the meta-type that is the union complement of logic:RigidType over the sorts — its instances are logic:Phase, logic:Role, logic:RoleMixin, logic:PhaseMixin (anti-rigid) and logic:Mixin (semi-rigid). Stated in prose, not as a subclass edge. The negation of logic:RigidType, used where a discipline only needs 'not necessarily applying' rather than the stronger 'contingent for every instance'."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
+
+# --- Individual taxonomy (TBox) -------------------------------------------- #
+#
+# The complement of the type taxonomy: gUFO's gufo:Individual branch. A
+# logic:Individual is anything that is NOT a logic:Type — a particular at the
+# bottom of every logic:instanceOf chain (logic:orderedType 0). logic: already
+# mints logic:AbstractIndividual; these add the root and the concrete sibling.
+
+logic:Individual
+    a owl:Class ;
+    rdfs:label "Individual"@x-gmeow-english ;
+    skos:definition "A particular: an entity that is NOT a logic:Type — it is instantiated by types (via logic:instanceOf) but has no instances of its own, sitting at the bottom of every instantiation chain (logic:orderedType 0). The counterpart of gufo:Individual; the root complementing logic:Type. Specialized by logic:ConcreteIndividual (in spacetime) and logic:AbstractIndividual (outside it). Stated in prose, not as a subclass edge."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
+
+logic:ConcreteIndividual
+    a owl:Class ;
+    rdfs:label "Concrete Individual"@x-gmeow-english ;
+    skos:definition "A logic:Individual located in spacetime — an endurant or a perdurant, something that bears qualities and stands in causal relations. The counterpart of gufo:ConcreteIndividual; the concrete sibling that complements logic:AbstractIndividual within logic:Individual. Every logic:Endurant and every logic:Perdurant is a logic:ConcreteIndividual (stated in prose, not as a subclass edge); it is the instance-level counterpart of logic:ConcreteIndividualType."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
+
+# --- Collections / wholes (TBox) ------------------------------------------- #
+#
+# Completing gUFO's collective/whole branch alongside logic:Collection (minted
+# above). A logic:FunctionalComplex is the complex-object whole; the fixed /
+# variable collection split records whether membership (logic:memberOf) is
+# stable or time-varying.
+
+logic:FunctionalComplex
+    a owl:Class ;
+    rdfs:label "Functional Complex"@x-gmeow-english ;
+    skos:definition "A whole whose parts play distinct functional roles — a car (engine, wheels, chassis), an organism (organs), an organization (departments): a complex object, not a mere collection of like members. The counterpart of gufo:FunctionalComplex; its parts relate to it via logic:properPartOf (mereological parthood) rather than logic:memberOf, and each part contributes a different function. Stated in prose, not as a subclass edge. Contrast logic:Collection (uniform members) and logic:Quantity (homogeneous stuff)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
+
+logic:FixedCollection
+    a owl:Class ;
+    rdfs:label "Fixed Collection"@x-gmeow-english ;
+    skos:definition "A logic:Collection with fixed membership: its members (via logic:memberOf) do not change over its existence, so gaining or losing a member yields a different collection — a specific deck of 52 cards, the founding signatories of a treaty. The counterpart of gufo:FixedCollection. Stated in prose, not as a subclass edge. Because membership is invariant across worlds the membership relation reads rigidly; contrast logic:VariableCollection."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
+
+logic:VariableCollection
+    a owl:Class ;
+    rdfs:label "Variable Collection"@x-gmeow-english ;
+    skos:definition "A logic:Collection whose membership may change over time while the collection retains its identity — a club whose roster gains and loses members, a playlist edited over the years. The counterpart of gufo:VariableCollection. Stated in prose, not as a subclass edge. Its time-varying logic:memberOf is naturally carried as a logic:Fluent (membership indexed to time/world) rather than as the static membership of a logic:FixedCollection — the four-dimensional treatment of changing membership."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
+
+# --- Superseded gUFO temporary-situation reifiers (NO 1:1 logic: class) ---- #
+#
+# gUFO's temporary-situation reifiers (QualityValueAttribution /
+# TemporaryConstitution / TemporaryInstantiation / TemporaryParthood /
+# TemporaryRelationship Situation) have NO 1:1 logic: class — they are
+# superseded by logic:Fluent + RDF-1.2 edge properties (the triple-bloat fix);
+# the gUFO down-projection maps them as superseded. Where gUFO reifies a
+# changeable quality value, constitution, instantiation, parthood, or
+# relationship into a per-change Situation individual, logic: carries the same
+# time-/world-varying fact natively as a logic:Fluent over an RDF-1.2 quoted
+# edge, so no reifier class is minted (Task 3 encodes this mapping in the
+# adapter).
 
 # --------------------------------------------------------------------------- #
 # Graph box role coverage (canonical explicit annotations).

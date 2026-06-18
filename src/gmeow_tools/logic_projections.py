@@ -130,6 +130,30 @@ _TARGET_META: dict[str, tuple[PreservationKind, str, tuple[str, ...]]] = {
             "only gUFO-mapped sorts and structural predicates emitted",
             "logic: world-modal/contextual structure has no gUFO equivalent",
             "rules not representable in gUFO; only type/subtype declarations kept",
+            # #663 spine drops: logic: terms with NO faithful gUFO equivalent.
+            "fluents / 4D temporal-part structure (logic:Fluent, "
+            "logic:temporalPartOf, logic:Process, logic:Perdurant beyond "
+            "gufo:Event) have no gUFO class and are dropped",
+            "multi-level / HiLog instantiation (logic:instanceOf, "
+            "logic:orderedType — arbitrary type-of-type levels) has no gUFO "
+            "punning equivalent and is dropped",
+            "scoped open/closed worlds (logic:WorldBoundary, logic:closedUnder, "
+            "scoped-CWA) have no gUFO equivalent and are dropped",
+            "native builtins (logic:Builtin and the builtin individuals) have no "
+            "gUFO class and are dropped",
+            "strict-partial-order parthood characteristics (asymmetric + "
+            "irreflexive on logic:properPartOf) cannot be declared in OWL 2 DL "
+            "gUFO (it only states transitivity) and are dropped",
+            "native edge-property metadata (RDF-1.2 statement-level scope on "
+            "logic edges) has no gUFO equivalent and is dropped",
+            "the five gUFO temporary-situation reifiers "
+            "(QualityValueAttributionSituation, TemporaryConstitution/"
+            "Instantiation/Parthood/RelationshipSituation) are SUPERSEDED by "
+            "logic:Fluent + RDF-1.2 edge properties — not re-emitted by the "
+            "down-projection",
+            "logic:Mode (and Intrinsic/Extrinsic mode/aspect refinements) has no "
+            "single gUFO base class as a projection target and is dropped "
+            "(gufo:Aspect is emitted; gufo:Mode does not exist)",
             "preservation kind is ValidationOnly: gUFO is an anti-pattern check, "
             "not an entailment surface",
         ),
@@ -168,8 +192,25 @@ _LOGIC_PRED_TO_OWL: dict[str, URIRef] = {
     LOGIC_NAMESPACE + "range": RDFS.range,
 }
 
-#: logic: sort IRI → gUFO stereotype IRI.
+#: logic: sort IRI → gUFO class/stereotype IRI (the faithful down-projection
+#: targets only).  ``project_gufo`` emits ``rdf:type <gUFO>`` for every logic:
+#: sort listed here; logic: sorts *absent* from this map (because gUFO has no
+#: faithful equivalent — see the "gufo" entry in ``_TARGET_META`` for the full
+#: drop catalogue) are recorded as ``actual_drops`` instead.
+#:
+#: The first 11 rows are the OntoUML stereotypes (the original projection
+#: surface).  The remaining rows (the #663 foundational spine) add every new
+#: logic: sort that *does* have a 1:1 gUFO class: the individual taxonomy
+#: (Individual / Concrete / Abstract), the endurant / event / situation spine,
+#: object/aspect/quality kinds, the collection lattice, and the type level
+#: (including the sortality/rigidity meta-axes).  This is the projection-side
+#: mirror of ``logic_adapter._GUFO_CLASS_TO_LOGIC`` (minus the SUPERSEDED rows
+#: and the many-to-one source rows — ``logic:Mode`` and ``logic:Aspect`` have NO
+#: single gUFO base class as a projection *target*; ``gufo:Aspect`` does exist
+#: so ``logic:Aspect`` maps, but ``gufo:Mode`` does not, so ``logic:Mode`` is
+#: dropped, not projected).
 _LOGIC_SORT_TO_GUFO: dict[str, URIRef] = {
+    # --- The 11 OntoUML stereotypes (original surface) ---
     LOGIC_NAMESPACE + "Kind": GUFO.Kind,
     LOGIC_NAMESPACE + "SubKind": GUFO.SubKind,
     LOGIC_NAMESPACE + "Phase": GUFO.Phase,
@@ -181,6 +222,39 @@ _LOGIC_SORT_TO_GUFO: dict[str, URIRef] = {
     LOGIC_NAMESPACE + "Relator": GUFO.Relator,
     LOGIC_NAMESPACE + "Event": GUFO.EventType,
     LOGIC_NAMESPACE + "Situation": GUFO.SituationType,
+    # --- #663 individual taxonomy ---
+    LOGIC_NAMESPACE + "Individual": GUFO.Individual,
+    LOGIC_NAMESPACE + "ConcreteIndividual": GUFO.ConcreteIndividual,
+    LOGIC_NAMESPACE + "AbstractIndividual": GUFO.AbstractIndividual,
+    # --- #663 endurant / event / situation spine ---
+    LOGIC_NAMESPACE + "Endurant": GUFO.Endurant,
+    LOGIC_NAMESPACE + "Participation": GUFO.Participation,
+    # --- #663 object / aspect / quality kinds ---
+    LOGIC_NAMESPACE + "Object": GUFO.Object,
+    LOGIC_NAMESPACE + "Aspect": GUFO.Aspect,
+    LOGIC_NAMESPACE + "Quality": GUFO.Quality,
+    LOGIC_NAMESPACE + "QualityValue": GUFO.QualityValue,
+    # --- #663 collection lattice ---
+    LOGIC_NAMESPACE + "Collection": GUFO.Collection,
+    LOGIC_NAMESPACE + "FixedCollection": GUFO.FixedCollection,
+    LOGIC_NAMESPACE + "VariableCollection": GUFO.VariableCollection,
+    LOGIC_NAMESPACE + "Quantity": GUFO.Quantity,
+    LOGIC_NAMESPACE + "FunctionalComplex": GUFO.FunctionalComplex,
+    # --- #663 type level (higher-order) ---
+    LOGIC_NAMESPACE + "Type": GUFO.Type,
+    LOGIC_NAMESPACE + "EndurantType": GUFO.EndurantType,
+    LOGIC_NAMESPACE + "RelationshipType": GUFO.RelationshipType,
+    LOGIC_NAMESPACE + "MaterialRelationshipType": GUFO.MaterialRelationshipType,
+    LOGIC_NAMESPACE + "ComparativeRelationshipType": GUFO.ComparativeRelationshipType,
+    LOGIC_NAMESPACE + "AbstractIndividualType": GUFO.AbstractIndividualType,
+    LOGIC_NAMESPACE + "ConcreteIndividualType": GUFO.ConcreteIndividualType,
+    # --- #663 endurant-type meta-axes (sortality / rigidity) ---
+    LOGIC_NAMESPACE + "Sortal": GUFO.Sortal,
+    LOGIC_NAMESPACE + "NonSortal": GUFO.NonSortal,
+    LOGIC_NAMESPACE + "RigidType": GUFO.RigidType,
+    LOGIC_NAMESPACE + "AntiRigidType": GUFO.AntiRigidType,
+    LOGIC_NAMESPACE + "SemiRigidType": GUFO.SemiRigidType,
+    LOGIC_NAMESPACE + "NonRigidType": GUFO.NonRigidType,
 }
 
 #: logic: property-characteristic sort IRI → OWL type IRI.

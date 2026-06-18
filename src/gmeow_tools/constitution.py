@@ -145,6 +145,8 @@ def _python_names(path: Path) -> frozenset[str]:
             names.add(node.name)
         elif isinstance(node, ast.Assign):
             names.update(t.id for t in node.targets if isinstance(t, ast.Name))
+        elif isinstance(node, ast.AnnAssign) and isinstance(node.target, ast.Name):
+            names.add(node.target.id)
     return frozenset(names)
 
 
