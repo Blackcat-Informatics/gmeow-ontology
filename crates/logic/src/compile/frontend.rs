@@ -620,7 +620,24 @@ fn content_dedup_key(ax: &LogicAxiom) -> String {
 /// Build a `file://` URI for a path (best-effort; mirrors `Path.as_uri()`).
 fn path_to_file_uri(path: &Path) -> Option<String> {
     let abs = std::fs::canonicalize(path).ok()?;
-    Some(format!("file://{}", abs.display()))
+    #[cfg(windows)]
+    {
+        let mut s = abs.to_string_lossy().into_owned();
+        if let Some(stripped) = s.strip_prefix(r"\\?\") {
+            s = stripped.to_string();
+        }
+        let s = s.replace('\\', "/");
+        let s = if s.starts_with('/') {
+            s
+        } else {
+            format!("/{s}")
+        };
+        Some(format!("file://{s}"))
+    }
+    #[cfg(not(windows))]
+    {
+        Some(format!("file://{}", abs.display()))
+    }
 }
 
 #[cfg(test)]
