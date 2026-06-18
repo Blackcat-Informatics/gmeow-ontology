@@ -15,6 +15,7 @@ Covers:
 
 from __future__ import annotations
 
+import functools
 import json
 from pathlib import Path
 
@@ -599,17 +600,29 @@ class TestReasonNativePipeline:
         assert _parse_rdf12_turtle(closure.read_text(encoding="utf-8")) > 0
 
 
+@functools.cache
+def _native_result() -> dict[str, object]:
+    """Reason the committed bundle once, cached across the helper tests.
+
+    The full native chase is expensive; the pure ``build_*`` helpers only read
+    the result dict, so a single cached run is shared by every helper test
+    instead of recomputing the whole pipeline per method. (A skip when the
+    snapshot is absent raises before returning, so nothing is cached.)
+    """
+    import gmeow_logic
+
+    from gmeow_tools.config import GTS_SNAPSHOT_FILE
+
+    if not GTS_SNAPSHOT_FILE.exists():
+        pytest.skip("GTS snapshot not present in this checkout")
+    return gmeow_logic.reason_native(GTS_SNAPSHOT_FILE.read_bytes())
+
+
 class TestNativeReasonHelpers:
     """The pure dict→RDF-1.2-Turtle helpers parse under pyoxigraph (#665)."""
 
     def _result(self) -> dict[str, object]:
-        import gmeow_logic
-
-        from gmeow_tools.config import GTS_SNAPSHOT_FILE
-
-        if not GTS_SNAPSHOT_FILE.exists():
-            pytest.skip("GTS snapshot not present in this checkout")
-        return gmeow_logic.reason_native(GTS_SNAPSHOT_FILE.read_bytes())
+        return _native_result()
 
     def test_build_inferred_closure_ttl_parses(self) -> None:
         import gmeow_tools.reason as reason

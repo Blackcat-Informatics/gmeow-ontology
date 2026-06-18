@@ -65,7 +65,7 @@ def _canonical_quads(path: Path) -> list[str]:
     dataset = pyoxigraph.Dataset()
     for quad in pyoxigraph.parse(path.read_bytes(), format=pyoxigraph.RdfFormat.TURTLE):
         dataset.add(pyoxigraph.Quad(quad.subject, quad.predicate, quad.object))
-    dataset.canonicalize(pyoxigraph.CanonicalizationAlgorithm.UNSTABLE)
+    dataset.canonicalize(pyoxigraph.CanonicalizationAlgorithm.RDFC_1_0)
     return sorted(str(quad) for quad in dataset)
 
 

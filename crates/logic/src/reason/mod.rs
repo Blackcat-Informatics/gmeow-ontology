@@ -143,6 +143,9 @@ pub(crate) fn run_reasoning(
     let mut inferred: Vec<InferredAxiom> = Vec::new();
     for rwp in &rows {
         let row = &rwp.row;
+        // Every reasoning fact is the ternary `predicate(subject, object, world)`;
+        // a row with any other arity is not an inferred axiom (e.g. an internal
+        // bookkeeping atom the chase may surface), so skip it rather than misdecode.
         if row.values.len() != 3 {
             continue;
         }
