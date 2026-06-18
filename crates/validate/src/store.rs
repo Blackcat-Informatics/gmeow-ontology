@@ -185,10 +185,30 @@ pub fn build_store_from_nt(data_nt: &str) -> Result<Store, String> {
 ///
 /// # Errors
 ///
-/// Returns `Err(message)` if the GTS bytes cannot be folded or the projected
-/// N-Quads fail to parse.
+/// Returns `Err(message)` if the GTS fold reports any diagnostics (corruption,
+/// truncation, empty input, or unfolded segments) or if the projected N-Quads
+/// fail to parse. Any non-empty diagnostic list is treated as a hard failure
+/// (fail-fast) so callers never receive a silent partial store from malformed
+/// or truncated GTS bytes.
 pub fn build_store_from_gts(bytes: &[u8]) -> Result<Store, String> {
-    let graph = gmeow_gts::reader::read(bytes, false, None);
+    // allow_segments = true: fold ALL segments of the bundle. With false, a
+    // multi-segment bundle emits a fatal SegmentBoundary diagnostic and silently
+    // drops everything past the first segment — invalid for validating a complete
+    // bundle.
+    let graph = gmeow_gts::reader::read(bytes, true, None);
+    if !graph.diagnostics.is_empty() {
+        let joined = graph
+            .diagnostics
+            .iter()
+            .map(|d| format!("{}: {}", d.code, d.detail))
+            .collect::<Vec<_>>()
+            .join("; ");
+        return Err(format!(
+            "GTS fold reported {} diagnostic(s): {}",
+            graph.diagnostics.len(),
+            joined
+        ));
+    }
     let nquads = gmeow_gts::nquads::to_nquads(&graph);
     let store = Store::new().map_err(|e| format!("store creation failed: {e}"))?;
     for quad in RdfParser::from_format(RdfFormat::NQuads)
@@ -424,5 +444,28 @@ mod tests {
         let nt = dump_store_to_ntriples(&store).expect("default-graph dump");
         assert!(nt.contains("x-gmeow-afrikaans"), "lang tag preserved: {nt}");
         assert!(nt.contains("<https://example.org/s>"));
+    }
+
+    #[test]
+    fn build_store_from_gts_rejects_malformed_bytes() {
+        // Clearly non-GTS bytes must trigger a fold diagnostic and return Err,
+        // not a silent empty store. This exercises the fail-fast contract.
+        let result = build_store_from_gts(b"this is not a valid gts file");
+        assert!(
+            result.is_err(),
+            "malformed GTS bytes must return Err, not a silent empty store"
+        );
+        let msg = result.err().unwrap();
+        assert!(
+            msg.contains("diagnostic"),
+            "error message must mention diagnostics; got: {msg}"
+        );
+
+        // Also verify raw garbage bytes (not even ASCII text).
+        let result2 = build_store_from_gts(&[0u8, 1, 2, 3, 0xFF, 0xFE]);
+        assert!(
+            result2.is_err(),
+            "binary garbage bytes must return Err, not a silent empty store"
+        );
     }
 }
