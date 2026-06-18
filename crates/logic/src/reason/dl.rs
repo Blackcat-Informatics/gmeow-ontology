@@ -44,6 +44,10 @@ const OWL_MAX_QUALIFIED_CARDINALITY: &str = "http://www.w3.org/2002/07/owl#maxQu
 const OWL_DISJOINT_UNION_OF: &str = "http://www.w3.org/2002/07/owl#disjointUnionOf";
 const OWL_ONE_OF: &str = "http://www.w3.org/2002/07/owl#oneOf";
 const OWL_HAS_VALUE: &str = "http://www.w3.org/2002/07/owl#hasValue";
+// `owl:unionOf` (general class union / disjunction) is beyond the EL Horn
+// fragment. Note `owl:intersectionOf` is deliberately NOT listed: conjunction
+// IS in EL, so it is decided natively rather than named as a gap.
+const OWL_UNION_OF: &str = "http://www.w3.org/2002/07/owl#unionOf";
 
 /// The clash-detection rules layered on top of [`EL_RULES`], in the
 /// world-scoped ternary gmeow encoding. Full IRIs in angle brackets; `?w`
@@ -235,6 +239,7 @@ fn scan_gaps(edb: &impl RdfStore) -> Result<Vec<RdfLoss>, String> {
             "owl:disjointUnionOf",
             "disjointUnionOf",
         ),
+        (OWL_UNION_OF, "owl:unionOf", "unionOf"),
         (OWL_ONE_OF, "owl:oneOf", "oneOf"),
         (OWL_HAS_VALUE, "owl:hasValue", "hasValue"),
     ];
@@ -346,6 +351,24 @@ mod tests {
                 .iter()
                 .any(|g| { g.code.contains("complementOf") && g.message.contains("complementOf") }),
             "owl:complementOf must be named in the gap surface: {:?}",
+            verdict.gaps
+        );
+    }
+
+    #[test]
+    fn union_of_is_named_as_a_gap() {
+        // owl:unionOf (general class disjunction) is beyond EL and must be named
+        // as a gap — unlike owl:intersectionOf, which IS in EL and is decided
+        // natively rather than surfaced.
+        let store = VecRdfStore::with_quads(vec![quad(A, super::OWL_UNION_OF, B)]);
+        let verdict = dl_consistency(&store).expect("dl consistency should succeed");
+
+        assert!(
+            verdict
+                .gaps
+                .iter()
+                .any(|g| { g.code.contains("unionOf") && g.message.contains("unionOf") }),
+            "owl:unionOf must be named in the gap surface: {:?}",
             verdict.gaps
         );
     }
