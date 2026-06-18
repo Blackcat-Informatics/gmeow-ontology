@@ -68,6 +68,43 @@ make validate-test
 
 ---
 
+## GTS inputs and content-addressed cache
+
+The Rust-native orchestration in `ValidateOptions` supports two ways to supply
+the ontology:
+
+- a list of source Turtle files (`source_paths`), or
+- a pre-built Graph Transport Substrate bundle passed as `ValidateOptions::gts_bytes`.
+
+When `gts_bytes` is provided, the orchestration builds the shared oxigraph store
+from the bundle and skips the per-file Turtle phases (syntax check and the
+`owl:sameAs` external-entity ban), because those lints are meaningless for an
+already-materialized GTS graph.
+
+If both `source_paths` and `gts_bytes` are supplied, `gts_bytes` takes
+precedence: the store is built from the bundle, the per-file Turtle phases are
+skipped, and `source_paths` is not inspected.
+
+If `ValidateOptions::project_root` is set, validation results are cached under
+`<project_root>/.cache/validate/<kind>/<key>.json`. The cache is purely
+content-addressed: there is no TTL, and a changed input produces a new key.
+
+Cache-key composition differs by input kind:
+
+- **GTS inputs:** the merged-SHACL key is derived from the `gmeow_gts::wire`
+  segment-head content IDs (BLAKE3 hashes), not from raw bundle bytes. Folding
+  the same logical graph through different bundle encodings therefore hits the
+  same cache entry.
+- **Non-GTS inputs:** the key is derived from source-file paths, mtime size, and
+  raw content (SHA-256), matching the legacy Python `generator.source_hash`
+  behavior.
+
+In both cases the final key also mixes a toolchain salt that includes the
+versions of `gmeow-validate`, `gmeow-shacl`, and the `gmeow-gts` wire format, so
+upgrading any of those crates automatically invalidates prior cached results.
+
+---
+
 ## Python extension
 
 ```bash
