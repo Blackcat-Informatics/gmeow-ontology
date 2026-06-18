@@ -160,6 +160,21 @@ pub fn build_store_from_nt(data_nt: &str) -> Result<Store, String> {
     Ok(store)
 }
 
+/// Build an oxigraph [`Store`] from a GTS byte bundle.
+///
+/// Uses the `gmeow-gts` oxigraph adapter to fold the GTS and project its
+/// triples into the store. This mirrors the lenient parsing stance of
+/// [`build_store_from_nt`]: malformed input surfaces as an error string,
+/// while the adapter handles GTS-specific degradation.
+///
+/// # Errors
+///
+/// Returns `Err(message)` if the GTS bytes cannot be folded or projected.
+pub fn build_store_from_gts(bytes: &[u8]) -> Result<Store, String> {
+    let graph = gmeow_gts::reader::read(bytes, false, None);
+    gmeow_gts::oxigraph::graph_to_store(&graph).map_err(|e| format!("GTS store error: {e}"))
+}
+
 /// Serialize a [`Store`]'s default graph to canonical N-Triples text.
 ///
 /// Uses oxigraph's own N-Triples serializer (no hand-rolled literal escaping),
@@ -288,5 +303,42 @@ mod tests {
     #[test]
     fn nt_rejects_malformed() {
         assert!(build_store_from_nt("this is not n-triples @@@").is_err());
+    }
+
+    #[test]
+    fn gts_loads_single_triple() {
+        use gmeow_gts::model::{Term, TermKind};
+        use gmeow_gts::writer::Writer;
+
+        let mut graph = gmeow_gts::model::Graph::default();
+        graph.terms.push(Term {
+            kind: TermKind::Iri,
+            value: Some("https://example.org/a".to_string()),
+            datatype: None,
+            lang: None,
+            reifier: None,
+        });
+        graph.terms.push(Term {
+            kind: TermKind::Iri,
+            value: Some("https://example.org/p".to_string()),
+            datatype: None,
+            lang: None,
+            reifier: None,
+        });
+        graph.terms.push(Term {
+            kind: TermKind::Iri,
+            value: Some("https://example.org/b".to_string()),
+            datatype: None,
+            lang: None,
+            reifier: None,
+        });
+        graph.quads.push((0, 1, 2, None));
+
+        let writer = Writer::deterministic(&graph, "gmeow-validate-test")
+            .expect("deterministic GTS writer must succeed");
+        let bytes = writer.to_bytes();
+
+        let store = build_store_from_gts(&bytes).expect("GTS bytes must load into store");
+        assert_eq!(store.len().unwrap(), 1);
     }
 }
