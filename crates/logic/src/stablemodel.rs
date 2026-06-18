@@ -92,11 +92,17 @@ fn stable_models_in_world(
         .collect();
     candidates.sort_by_key(Fact::key);
 
+    // Exhaustive guess-and-check is O(2^n) reduct evaluations — each subset of the
+    // candidate universe is tested for Gelfond-Lifschitz stability. The hard ceiling
+    // bounds that blow-up: 2^20 ≈ 1M reducts is the practical limit for gmeow-logic
+    // v1 (the conformance corpus has 2 candidate atoms). Above it we hard-fail rather
+    // than hang — a smarter grounder/ASP solver is the path to lifting this bound.
+    const MAX_CANDIDATE_ATOMS: usize = 20;
     let n = candidates.len();
-    if n > 32 {
+    if n > MAX_CANDIDATE_ATOMS {
         return Err(format!(
-            "stablemodel: candidate universe too large ({n} atoms) for exhaustive \
-             enumeration in gmeow-logic v1"
+            "stablemodel: candidate universe too large ({n} atoms > {MAX_CANDIDATE_ATOMS}) \
+             for exhaustive enumeration in gmeow-logic v1 (2^{n} reduct evaluations)"
         ));
     }
 
@@ -214,26 +220,8 @@ pub(crate) fn cautious_materialize(
         }
     }
 
-    sort_rows(&mut out);
+    crate::rule_ir::sort_rows(&mut out);
     Ok(out)
-}
-
-/// Sort rows canonically by `(graph, subject, predicate, object)` N3 surfaces.
-fn sort_rows(rows: &mut [DerivedRow]) {
-    rows.sort_by(|a, b| {
-        (
-            &a.graph,
-            a.subject.to_string(),
-            a.predicate.as_str(),
-            a.object.to_string(),
-        )
-            .cmp(&(
-                &b.graph,
-                b.subject.to_string(),
-                b.predicate.as_str(),
-                b.object.to_string(),
-            ))
-    });
 }
 
 #[cfg(test)]

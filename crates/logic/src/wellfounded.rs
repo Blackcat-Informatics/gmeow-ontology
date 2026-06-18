@@ -101,26 +101,8 @@ pub(crate) fn materialize(
         }
     }
 
-    sort_rows(&mut out);
+    crate::rule_ir::sort_rows(&mut out);
     Ok(out)
-}
-
-/// Sort rows canonically by `(graph, subject, predicate, object)` N3 surfaces.
-fn sort_rows(rows: &mut [DerivedRow]) {
-    rows.sort_by(|a, b| {
-        (
-            &a.graph,
-            a.subject.to_string(),
-            a.predicate.as_str(),
-            a.object.to_string(),
-        )
-            .cmp(&(
-                &b.graph,
-                b.subject.to_string(),
-                b.predicate.as_str(),
-                b.object.to_string(),
-            ))
-    });
 }
 
 #[cfg(test)]

@@ -200,6 +200,26 @@ pub(crate) struct DerivedRow {
     pub(crate) derivation_id: String,
 }
 
+/// Sort rows canonically by `(graph, subject, predicate, object)` N3 surfaces —
+/// the same deterministic order the Nemo path and `foundation.rs` emit. Shared by
+/// the well-founded and stable-model materializers.
+pub(crate) fn sort_rows(rows: &mut [DerivedRow]) {
+    rows.sort_by(|a, b| {
+        (
+            &a.graph,
+            a.subject.to_string(),
+            a.predicate.as_str(),
+            a.object.to_string(),
+        )
+            .cmp(&(
+                &b.graph,
+                b.subject.to_string(),
+                b.predicate.as_str(),
+                b.object.to_string(),
+            ))
+    });
+}
+
 /// The result of a reduct least-model computation: the final store plus the
 /// first-wins provenance of every derived (non-EDB) fact.
 #[derive(Debug, Clone)]
