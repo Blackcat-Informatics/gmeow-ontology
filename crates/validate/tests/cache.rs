@@ -10,6 +10,7 @@ use std::sync::atomic::{AtomicU64, Ordering};
 
 use gmeow_validate::cache::{CachedResult, ValidationCache};
 use gmeow_validate::lint::LintConfig;
+use gmeow_validate::store;
 use gmeow_validate::validate_all::{ValidateOptions, ValidationRun};
 
 static TEST_DIR_COUNTER: AtomicU64 = AtomicU64::new(0);
@@ -262,10 +263,27 @@ fn write_gts_bundle(graph: &gmeow_gts::model::Graph, deterministic: bool) -> Vec
             .expect("deterministic GTS writer must succeed")
             .to_bytes()
     } else {
-        let mut writer = gmeow_gts::writer::Writer::new("gmeow-validate-test");
-        let terms: Vec<gmeow_gts::model::Term> = graph.terms.to_vec();
-        writer.add_terms(&terms);
-        writer.add_quads(&graph.quads);
+        // Non-deterministic serialization of the same semantic graph: fold the
+        // deterministic bundle back into a Graph so the logical frame order is
+        // identical, then emit it again with the optional CBOR self-describe
+        // tag omitted. The wire bytes differ, but the content-addressed
+        // segment head stays stable.
+        let canonical_bytes =
+            gmeow_gts::writer::Writer::deterministic(graph, "gmeow-validate-test")
+                .expect("deterministic GTS writer must succeed")
+                .to_bytes();
+        let canonical_graph =
+            store::read_gts_graph(&canonical_bytes).expect("canonical bundle must parse");
+        let mut writer = gmeow_gts::writer::Writer::with_options(
+            "gmeow-validate-test",
+            gmeow_gts::writer::WriterOptions {
+                magic_tag: false,
+                ..Default::default()
+            },
+        )
+        .expect("non-deterministic writer options must be valid");
+        writer.add_terms(&canonical_graph.terms);
+        writer.add_quads(&canonical_graph.quads);
         writer.to_bytes()
     }
 }
@@ -342,33 +360,52 @@ fn validate_all_uses_cache_when_configured() {
 }
 
 #[test]
-fn gts_cache_key_matches_segment_heads() {
+fn gts_cache_key_is_stable_across_serializations() {
     let graph = build_gts_graph_with_triples(&[(
         "https://example.org/a",
         "https://example.org/p",
         "https://example.org/b",
     )]);
 
-    let bytes = write_gts_bundle(&graph, true);
-    let graph = gmeow_validate::store::read_gts_graph(&bytes).expect("bundle must parse");
+    let deterministic_bytes = write_gts_bundle(&graph, true);
+    let non_deterministic_bytes = write_gts_bundle(&graph, false);
+
+    assert_ne!(
+        deterministic_bytes, non_deterministic_bytes,
+        "deterministic and non-deterministic serializations must differ on the wire"
+    );
+
+    let graph1 =
+        store::read_gts_graph(&deterministic_bytes).expect("deterministic bundle must parse");
+    let graph2 = store::read_gts_graph(&non_deterministic_bytes)
+        .expect("non-deterministic bundle must parse");
 
     assert!(
-        !graph.segment_heads.is_empty(),
+        !graph1.segment_heads.is_empty(),
+        "parsed GTS graph must expose wire segment_heads"
+    );
+    assert!(
+        !graph2.segment_heads.is_empty(),
         "parsed GTS graph must expose wire segment_heads"
     );
 
-    let heads: Vec<&[u8]> = graph.segment_heads.iter().map(|h| h.as_slice()).collect();
-    let source_key = ValidationCache::cache_key(&heads);
+    let key1 = ValidationCache::cache_key(
+        &graph1
+            .segment_heads
+            .iter()
+            .map(|h| h.as_slice())
+            .collect::<Vec<_>>(),
+    );
+    let key2 = ValidationCache::cache_key(
+        &graph2
+            .segment_heads
+            .iter()
+            .map(|h| h.as_slice())
+            .collect::<Vec<_>>(),
+    );
     assert_eq!(
-        source_key,
-        ValidationCache::cache_key(
-            &graph
-                .segment_heads
-                .iter()
-                .map(|h| h.as_slice())
-                .collect::<Vec<_>>()
-        ),
-        "GTS source key must be derived from wire segment_heads content IDs"
+        key1, key2,
+        "different GTS serializations of the same graph must yield the same cache key"
     );
 }
 
