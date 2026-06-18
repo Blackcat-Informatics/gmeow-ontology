@@ -207,9 +207,12 @@ fatal flaw engineered out: the precision is always *available*, but progressive 
 
 ## Four-box organization (built in)
 
-The upper ontology is classified throughout by the **built-in graph-box roles** (`gmeow:graphBoxRole`,
-landed across #642 / #650 / #653 and already asserted on this module via `gmeow:boxTBox` and
-`gmeow:boxConfigBox`). The four boxes partition the foundation cleanly:
+The upper ontology is classified throughout by the **built-in graph-box roles** — the annotation
+property `gmeow:graphBoxRole`, whose four box values are `gmeow:boxTBox`, `gmeow:boxABox`,
+`gmeow:boxRBox`, and `gmeow:boxCBox` (landed across #642 / #650 / #653 and already asserted on this
+module via `gmeow:boxTBox` and the fifth, meta, role `gmeow:boxConfigBox` — the ontology-header /
+configuration role that marks the module's own declaration rather than a reasoned term). The four
+boxes partition the foundation cleanly:
 
 - **TBox** — the sort and type taxonomy: `logic:Kind`, `logic:SubKind`, `logic:Phase`, `logic:Role`,
   `logic:Category`, `logic:Mixin`, `logic:RoleMixin`, `logic:PhaseMixin`, and the
