@@ -161,6 +161,7 @@ impl PyValidateOptions {
             mapping_shapes_ttl: self.mapping_shapes_ttl.clone(),
             statement_shapes_ttl: self.statement_shapes_ttl.clone(),
             project_root: self.project_root.as_ref().map(PathBuf::from),
+            gts_bytes: None,
         }
     }
 }
