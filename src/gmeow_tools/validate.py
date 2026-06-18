@@ -530,7 +530,17 @@ def validate_all(
     # Ensure the content-addressed cache root exists before Rust needs it.
     _VALIDATION_CACHE_DIR.mkdir(parents=True, exist_ok=True)
 
-    gts_bytes = gts_input.read_bytes() if gts_input is not None else None
+    if gts_input is not None:
+        try:
+            gts_bytes: bytes | None = gts_input.read_bytes()
+        except OSError as exc:
+            # A missing/unreadable --gts path is a usage error, not a crash:
+            # surface it as a normal validation failure instead of a traceback.
+            return ValidationResult(
+                errors=[f"failed to read GTS bundle '{gts_input}': {exc}"]
+            )
+    else:
+        gts_bytes = None
     # In GTS mode the store is built from the bundle, so there are no per-file
     # source paths to attribute Turtle syntax/sameAs errors to.
     source_paths = (
