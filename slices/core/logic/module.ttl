@@ -38,66 +38,77 @@ logic:Kind
     a owl:Class ;
     rdfs:label "Kind"@x-gmeow-english ;
     skos:definition "A rigid sortal that supplies a principle of identity to its instances and applies necessarily across every world in which an instance exists: an ultimate sortal under which an object falls for its whole existence. Every object instantiates exactly one ultimate Kind. Rigid (rigidlyAppliesTo) and identity-supplying (suppliesIdentity); contrast the anti-rigid Role and Phase."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
 
 logic:SubKind
     a owl:Class ;
     rdfs:label "Sub Kind"@x-gmeow-english ;
     skos:definition "A rigid sortal that specializes a Kind without supplying its own independent principle of identity: it carries the identity criterion inherited from the Kind it specializes. Rigid like a Kind, but identity-dependent rather than identity-supplying."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
 
 logic:Phase
     a owl:Class ;
     rdfs:label "Phase"@x-gmeow-english ;
     skos:definition "An anti-rigid sortal an instance falls under during a stage of its existence determined by a change in its own intrinsic state — child, adult, vacant, occupied. Anti-rigid: there is a world of existence in which the instance lacks the Phase (the anti-rigidity witness). Contrast Role, whose change is relational rather than intrinsic."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
 
 logic:Role
     a owl:Class ;
     rdfs:label "Role"@x-gmeow-english ;
     skos:definition "An anti-rigid sortal an instance falls under contingently, by virtue of a relation it bears to some other entity — student, employee, defendant. Anti-rigid: there is a world of existence in which the instance lacks the Role (the anti-rigidity witness). Identity-dependent on the underlying Kind; contrast Phase, whose change is intrinsic rather than relational."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
 
 logic:Category
     a owl:Class ;
     rdfs:label "Category"@x-gmeow-english ;
     skos:definition "A rigid non-sortal that classifies instances of several different Kinds by shared essential properties without itself supplying a principle of identity: it dispersively spans Kinds rather than carrying its own identity criterion. Rigid but identity-dispersive; the rigid counterpart of the anti-rigid RoleMixin and PhaseMixin."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
 
 logic:Mixin
     a owl:Class ;
     rdfs:label "Mixin"@x-gmeow-english ;
     skos:definition "A semi-rigid non-sortal that classifies instances of several Kinds, applying rigidly to some instances and anti-rigidly to others: a dispersive type whose rigidity is mixed across its extension. Identity-dispersive like a Category, but semi-rigid rather than uniformly rigid."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
 
 logic:RoleMixin
     a owl:Class ;
     rdfs:label "Role Mixin"@x-gmeow-english ;
     skos:definition "An anti-rigid non-sortal that abstracts a relationally-acquired property shared across instances of several Kinds — customer (a person or an organization), insured party. Anti-rigid and identity-dispersive: a Role generalized to span multiple Kinds without supplying identity."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
 
 logic:PhaseMixin
     a owl:Class ;
     rdfs:label "Phase Mixin"@x-gmeow-english ;
     skos:definition "An anti-rigid non-sortal that abstracts an intrinsically-determined phase shared across instances of several Kinds — living thing (a person or an animal in its living phase). Anti-rigid and identity-dispersive: a Phase generalized to span multiple Kinds without supplying identity."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
 
 logic:Relator
     a owl:Class ;
     rdfs:label "Relator"@x-gmeow-english ;
     skos:definition "A truthmaker of a material relation: an objectified relationship — a marriage, an employment, an enrolment — that mediates two or more relata and existentially depends on each of them. A Relator must mediate at least two distinct entities (the relator-mediation discipline, RelComp); the relation it grounds holds in virtue of the Relator existing."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
 
 logic:Event
     a owl:Class ;
     rdfs:label "Event"@x-gmeow-english ;
     skos:definition "A perdurant occurrence that happens in time and is composed of temporal parts: an action, a process, a happening that unfolds and is complete once it has occurred. Tokens it as an occurrence rather than an endurant; in the type-level world strata (risk, teleology, norms) the no-occurrence gate keeps reasoning over Event *types* without entailing any Event instance."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
 
 logic:Situation
     a owl:Class ;
     rdfs:label "Situation"@x-gmeow-english ;
     skos:definition "A reified configuration of entities and their properties standing in a state of affairs at a time — the DOLCE Description-and-Situation sense: a snapshot of how things are that can satisfy a described state (a goal-world realized by a Situation). The static counterpart of the dynamic Event."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
 
 # --------------------------------------------------------------------------- #
