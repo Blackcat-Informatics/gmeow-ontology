@@ -316,13 +316,12 @@ def validate(
     timings: bool = typer.Option(False, "--timings", help="Report per-phase timings."),
 ) -> None:
     """Validate Turtle syntax, term annotations, and SHACL conformance."""
+    from gmeow_tools.diagnostics import emit_legacy_cli, report_from_validation_result
     from gmeow_tools.validate import validate_all
 
     result = validate_all(timings=timings)
-    for warning in result.warnings:
-        err_console.print(f"[yellow]warning[/yellow] {warning}")
-    for error in result.errors:
-        err_console.print(f"[red]error[/red] {error}")
+    report = report_from_validation_result(result, tool="validate")
+    emit_legacy_cli(report, err_console)
     if timings and result.timings:
         err_console.print("[dim]timings:[/dim]")
         for record in result.timings:
@@ -335,6 +334,40 @@ def validate(
             err_console.print(f"[dim]{line}[/dim]")
     if result.ok:
         console.print("[green]✓ validation passed[/green]")
+    else:
+        raise _fail(f"✗ {len(result.errors)} error(s)")
+
+
+@app.command()
+def feedback(
+    output_dir: Path = typer.Option(  # noqa: B008
+        PROJECT_ROOT / "dist",
+        "--output-dir",
+        help="Directory for diagnostics artifacts.",
+    ),
+    stem: str = typer.Option(
+        "gmeow-feedback",
+        "--stem",
+        help="Output filename stem for JSON, SARIF, and HTML artifacts.",
+    ),
+    timings: bool = typer.Option(False, "--timings", help="Record validation timings."),
+) -> None:
+    """Write first-class diagnostics artifacts for the validation gate."""
+    from gmeow_tools.diagnostics import (
+        emit_legacy_cli,
+        report_from_validation_result,
+        write_report_artifacts,
+    )
+    from gmeow_tools.validate import validate_all
+
+    result = validate_all(timings=timings)
+    report = report_from_validation_result(result, tool="validate")
+    emit_legacy_cli(report, err_console)
+    paths = write_report_artifacts(report, output_dir=output_dir, stem=stem)
+    for kind in ("json", "sarif", "html"):
+        console.print(f"[green]wrote[/green] {paths[kind]}")
+    if result.ok:
+        console.print("[green]✓ diagnostics feedback written[/green]")
     else:
         raise _fail(f"✗ {len(result.errors)} error(s)")
 

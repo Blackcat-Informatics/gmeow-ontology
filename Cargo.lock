@@ -1013,6 +1013,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "gmeow-diagnostics"
+version = "0.1.0"
+dependencies = [
+ "pyo3",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "gmeow-logic"
 version = "0.1.0"
 dependencies = [
