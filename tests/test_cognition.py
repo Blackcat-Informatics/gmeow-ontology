@@ -12,6 +12,7 @@ from __future__ import annotations
 from rdflib import OWL, RDF, RDFS, Graph, URIRef
 
 from gmeow_tools.graph import load_merged_graph
+from gmeow_tools.mappings import load_mappings
 from tests._graph_nt import run_shacl
 
 GMEOW = "https://blackcatinformatics.ca/gmeow/"
@@ -265,3 +266,71 @@ def test_malformed_knowledge_proficiency_is_flagged() -> None:
     assert "must reference exactly one subject" in errors
     assert "must carry exactly one KnowledgeLevel" in errors
     assert "at most one scale" in errors
+
+
+# --------------------------------------------------------------------------- #
+# SSSOM alignment ledger coverage (#549 / PR #678).
+# --------------------------------------------------------------------------- #
+
+
+def _cognition_sssom_rows() -> set[tuple[str, str, str]]:
+    """Return the (subject_id, predicate_id, object_id) rows from the cognition
+    mapping set."""
+    return {
+        (m.subject_id, m.predicate_id, m.object_id)
+        for m in load_mappings()
+        if m.source.name == "gmeow-cognition.sssom.tsv"
+    }
+
+
+def test_cognition_sssom_rows_include_expected_alignments() -> None:
+    """The cognition SSSOM ledger contains the expected cross-ontology rows."""
+    rows = _cognition_sssom_rows()
+    expected = {
+        # Knowledge spectrum surface vocabulary anchors.
+        ("gmeow:knowsAbout", "skos:exactMatch", "schema:knowsAbout"),
+        ("gmeow:knowsAbout", "skos:relatedMatch", "sumo:knows"),
+        ("gmeow:knowsAbout", "skos:relatedMatch", "wd:Q9081"),
+        ("gmeow:isAwareOf", "skos:relatedMatch", "sumo:knows"),
+        ("gmeow:attendsTo", "skos:closeMatch", "foaf:focus"),
+        ("gmeow:interestedIn", "skos:closeMatch", "foaf:interest"),
+        # Corrected Wikidata QIDs for attention, curiosity, and mastery.
+        ("gmeow:attendsTo", "skos:relatedMatch", "wd:Q6501338"),
+        ("gmeow:curiousAbout", "skos:relatedMatch", "wd:Q366791"),
+        ("gmeow:hasMastered", "skos:relatedMatch", "wd:Q12770764"),
+        # New OpenCyc objectual-knows anchor.
+        ("gmeow:knowsAbout", "skos:relatedMatch", "cyc:knowsAbout"),
+        # Competency / knowledge-depth framework references.
+        ("gmeow:scaleKnowledgeDepth", "skos:relatedMatch", "ctdlasn:"),
+        ("gmeow:scaleKnowledgeDepth", "skos:relatedMatch", "esco-base:"),
+        ("gmeow:scaleKnowledgeDepth", "skos:relatedMatch", "onet:"),
+        ("gmeow:scaleKnowledgeDepth", "skos:relatedMatch", "wd:Q1774565"),
+        ("gmeow:scaleKnowledgeDepth", "skos:relatedMatch", "wd:Q5307365"),
+        (
+            "gmeow:scaleKnowledgeDepth",
+            "skos:relatedMatch",
+            "https://en.wikipedia.org/wiki/Structure_of_observed_learning_outcome",
+        ),
+    }
+    missing = expected - rows
+    assert not missing, f"Missing cognition SSSOM rows: {missing}"
+
+
+def test_cognition_sssom_includes_corrected_wikidata_qids() -> None:
+    """The issue-supplied QIDs were rejected and replaced with verified entities
+    (#549)."""
+    rows = _cognition_sssom_rows()
+    qids = {obj for _subj, _pred, obj in rows if obj.startswith("wd:")}
+    assert "wd:Q6501338" in qids, "attention QID expected"
+    assert "wd:Q366791" in qids, "curiosity QID expected"
+    assert "wd:Q12770764" in qids, "mastery QID expected"
+    # Rejected issue QIDs must not have crept back in.
+    assert "wd:Q327954" not in qids, "rejected 'torch' QID"
+    assert "wd:Q179637" not in qids, "rejected 'prisoner of war' QID"
+    assert "wd:Q1016098" not in qids, "rejected 'Mautes' QID"
+
+
+def test_cognition_sssom_includes_opencyc_knows_about() -> None:
+    """OpenCyc knowsAbout is present as a relatedMatch anchor (#549)."""
+    rows = _cognition_sssom_rows()
+    assert ("gmeow:knowsAbout", "skos:relatedMatch", "cyc:knowsAbout") in rows

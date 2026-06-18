@@ -14737,3 +14737,202 @@ repo:README.md a gmeow:CreativeWork ;
 <https://blackcatinformatics.ca/gmeow/repo/tests/test_alignments.py> a gmeow:CreativeWork ;
     rdfs:label "tests/test_alignments.py"@en ;
     gmeow:sourceLocation "tests/test_alignments.py" .
+<https://blackcatinformatics.ca/gmeow/repo/slices/core/cognition/mappings/equivalences.ttl> a gmeow:CreativeWork ;
+    rdfs:label "slices/core/cognition/mappings/equivalences.ttl"@en ;
+    gmeow:sourceLocation "slices/core/cognition/mappings/equivalences.ttl" .
+
+<https://blackcatinformatics.ca/gmeow/references/citation/1bf204186a16ee8e> a gmeow:CitationAct ;
+    rdfs:label "slices/core/cognition/mappings/equivalences.ttl"@en ;
+    gmeow:citationIntent gmeow:intentBridgedByReference ;
+    gmeow:citedEntity <http://xmlns.com/foaf/0.1/interest> ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/slices/core/cognition/mappings/equivalences.ttl> ;
+    gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/1bf204186a16ee8e> .
+
+<https://blackcatinformatics.ca/gmeow/references/citation/be871737f172af7d> a gmeow:CitationAct ;
+    rdfs:label "slices/core/cognition/mappings/equivalences.ttl"@en ;
+    gmeow:citationIntent gmeow:intentBridgedByReference ;
+    gmeow:citedEntity <http://xmlns.com/foaf/0.1/focus> ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/slices/core/cognition/mappings/equivalences.ttl> ;
+    gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/be871737f172af7d> .
+
+<https://blackcatinformatics.ca/gmeow/references/citation/1cc5fbb923438612> a gmeow:CitationAct ;
+    rdfs:label "slices/core/cognition/mappings/equivalences.ttl"@en ;
+    gmeow:citationIntent gmeow:intentBridgedByReference ;
+    gmeow:citedEntity <http://www.wikidata.org/entity/Q9081> ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/slices/core/cognition/mappings/equivalences.ttl> ;
+    gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/1cc5fbb923438612> .
+
+<https://blackcatinformatics.ca/gmeow/references/citation/2351cc5a8cc949eb> a gmeow:CitationAct ;
+    rdfs:label "slices/core/cognition/mappings/equivalences.ttl"@en ;
+    gmeow:citationIntent gmeow:intentBridgedByReference ;
+    gmeow:citedEntity <http://www.wikidata.org/entity/Q6501338> ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/slices/core/cognition/mappings/equivalences.ttl> ;
+    gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/2351cc5a8cc949eb> .
+
+<https://blackcatinformatics.ca/gmeow/references/citation/a15245ed10847c5e> a gmeow:CitationAct ;
+    rdfs:label "slices/core/cognition/mappings/equivalences.ttl"@en ;
+    gmeow:citationIntent gmeow:intentBridgedByReference ;
+    gmeow:citedEntity <http://www.wikidata.org/entity/Q366791> ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/slices/core/cognition/mappings/equivalences.ttl> ;
+    gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/a15245ed10847c5e> .
+
+<https://blackcatinformatics.ca/gmeow/references/citation/33e399e5057f7001> a gmeow:CitationAct ;
+    rdfs:label "slices/core/cognition/mappings/equivalences.ttl"@en ;
+    gmeow:citationIntent gmeow:intentBridgedByReference ;
+    gmeow:citedEntity <http://www.wikidata.org/entity/Q12770764> ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/slices/core/cognition/mappings/equivalences.ttl> ;
+    gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/33e399e5057f7001> .
+
+<https://blackcatinformatics.ca/gmeow/references/citation/b805bccf943f2a7d> a gmeow:CitationAct ;
+    rdfs:label "slices/core/cognition/mappings/equivalences.ttl"@en ;
+    gmeow:citationIntent gmeow:intentBridgedByReference ;
+    gmeow:citedEntity <http://www.wikidata.org/entity/Q1774565> ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/slices/core/cognition/mappings/equivalences.ttl> ;
+    gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/b805bccf943f2a7d> .
+
+<https://blackcatinformatics.ca/gmeow/references/citation/fdeec2eeafced32e> a gmeow:CitationAct ;
+    rdfs:label "slices/core/cognition/mappings/equivalences.ttl"@en ;
+    gmeow:citationIntent gmeow:intentBridgedByReference ;
+    gmeow:citedEntity <http://www.wikidata.org/entity/Q5307365> ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/slices/core/cognition/mappings/equivalences.ttl> ;
+    gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/fdeec2eeafced32e> .
+
+<https://blackcatinformatics.ca/gmeow/references/citation/bb9e7e11996131fa> a gmeow:CitationAct ;
+    rdfs:label "slices/core/cognition/mappings/equivalences.ttl"@en ;
+    gmeow:citationIntent gmeow:intentBridgedByReference ;
+    gmeow:citedEntity <https://www.ontologyportal.org/SUMO.owl#knows> ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/slices/core/cognition/mappings/equivalences.ttl> ;
+    gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/bb9e7e11996131fa> .
+
+<https://blackcatinformatics.ca/gmeow/references/citation/ec2ac8f853990062> a gmeow:CitationAct ;
+    rdfs:label "slices/core/cognition/mappings/equivalences.ttl"@en ;
+    gmeow:citationIntent gmeow:intentBridgedByReference ;
+    gmeow:citedEntity <http://data.europa.eu/esco/> ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/slices/core/cognition/mappings/equivalences.ttl> ;
+    gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/ec2ac8f853990062> .
+
+<https://blackcatinformatics.ca/gmeow/references/citation/dee8a51b71ca55b4> a gmeow:CitationAct ;
+    rdfs:label "slices/core/cognition/mappings/equivalences.ttl"@en ;
+    gmeow:citationIntent gmeow:intentBridgedByReference ;
+    gmeow:citedEntity <https://credreg.net/ctdlasn/terms/> ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/slices/core/cognition/mappings/equivalences.ttl> ;
+    gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/dee8a51b71ca55b4> .
+
+<https://blackcatinformatics.ca/gmeow/references/citation/49e491308a10d3c9> a gmeow:CitationAct ;
+    rdfs:label "slices/core/cognition/mappings/equivalences.ttl"@en ;
+    gmeow:citationIntent gmeow:intentBridgedByReference ;
+    gmeow:citedEntity <https://www.onetcenter.org/> ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/slices/core/cognition/mappings/equivalences.ttl> ;
+    gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/49e491308a10d3c9> .
+
+<https://blackcatinformatics.ca/gmeow/references/citation/0424575766c7a1be> a gmeow:CitationAct ;
+    rdfs:label "slices/core/cognition/mappings/equivalences.ttl"@en ;
+    gmeow:citationIntent gmeow:intentBridgedByReference ;
+    gmeow:citedEntity <https://en.wikipedia.org/wiki/Structure_of_observed_learning_outcome> ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/slices/core/cognition/mappings/equivalences.ttl> ;
+    gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/0424575766c7a1be> .
+
+<http://xmlns.com/foaf/0.1/interest> a gmeow:CreativeWork ;
+    rdfs:label "foaf:interest"@en ;
+    gmeow:sourceLocation "http://xmlns.com/foaf/0.1/interest" .
+
+<https://blackcatinformatics.ca/gmeow/references/selector/1bf204186a16ee8e> a gmeow:Selector ;
+    gmeow:selectorLocator "slices/core/cognition/mappings/equivalences.ttl" .
+
+<http://xmlns.com/foaf/0.1/focus> a gmeow:CreativeWork ;
+    rdfs:label "foaf:focus"@en ;
+    gmeow:sourceLocation "http://xmlns.com/foaf/0.1/focus" .
+
+<https://blackcatinformatics.ca/gmeow/references/selector/be871737f172af7d> a gmeow:Selector ;
+    gmeow:selectorLocator "slices/core/cognition/mappings/equivalences.ttl" .
+
+<http://www.wikidata.org/entity/Q9081> a gmeow:CreativeWork ;
+    rdfs:label "Wikidata Q9081 (knowledge)"@en ;
+    gmeow:sourceLocation "http://www.wikidata.org/entity/Q9081" .
+
+<https://blackcatinformatics.ca/gmeow/references/selector/1cc5fbb923438612> a gmeow:Selector ;
+    gmeow:selectorLocator "slices/core/cognition/mappings/equivalences.ttl" .
+
+<http://www.wikidata.org/entity/Q6501338> a gmeow:CreativeWork ;
+    rdfs:label "Wikidata Q6501338 (attention)"@en ;
+    gmeow:sourceLocation "http://www.wikidata.org/entity/Q6501338" .
+
+<https://blackcatinformatics.ca/gmeow/references/selector/2351cc5a8cc949eb> a gmeow:Selector ;
+    gmeow:selectorLocator "slices/core/cognition/mappings/equivalences.ttl" .
+
+<http://www.wikidata.org/entity/Q366791> a gmeow:CreativeWork ;
+    rdfs:label "Wikidata Q366791 (curiosity)"@en ;
+    gmeow:sourceLocation "http://www.wikidata.org/entity/Q366791" .
+
+<https://blackcatinformatics.ca/gmeow/references/selector/a15245ed10847c5e> a gmeow:Selector ;
+    gmeow:selectorLocator "slices/core/cognition/mappings/equivalences.ttl" .
+
+<http://www.wikidata.org/entity/Q12770764> a gmeow:CreativeWork ;
+    rdfs:label "Wikidata Q12770764 (mastery)"@en ;
+    gmeow:sourceLocation "http://www.wikidata.org/entity/Q12770764" .
+
+<https://blackcatinformatics.ca/gmeow/references/selector/33e399e5057f7001> a gmeow:Selector ;
+    gmeow:selectorLocator "slices/core/cognition/mappings/equivalences.ttl" .
+
+<http://www.wikidata.org/entity/Q1774565> a gmeow:CreativeWork ;
+    rdfs:label "Wikidata Q1774565 (Bloom taxonomy)"@en ;
+    gmeow:sourceLocation "http://www.wikidata.org/entity/Q1774565" .
+
+<https://blackcatinformatics.ca/gmeow/references/selector/b805bccf943f2a7d> a gmeow:Selector ;
+    gmeow:selectorLocator "slices/core/cognition/mappings/equivalences.ttl" .
+
+<http://www.wikidata.org/entity/Q5307365> a gmeow:CreativeWork ;
+    rdfs:label "Wikidata Q5307365 (Dreyfus model of skill acquisition)"@en ;
+    gmeow:sourceLocation "http://www.wikidata.org/entity/Q5307365" .
+
+<https://blackcatinformatics.ca/gmeow/references/selector/fdeec2eeafced32e> a gmeow:Selector ;
+    gmeow:selectorLocator "slices/core/cognition/mappings/equivalences.ttl" .
+
+<https://www.ontologyportal.org/SUMO.owl#knows> a gmeow:CreativeWork ;
+    rdfs:label "SUMO knows"@en ;
+    gmeow:sourceLocation "https://www.ontologyportal.org/SUMO.owl#knows" .
+
+<https://blackcatinformatics.ca/gmeow/references/selector/bb9e7e11996131fa> a gmeow:Selector ;
+    gmeow:selectorLocator "slices/core/cognition/mappings/equivalences.ttl" .
+
+<http://data.europa.eu/esco/> a gmeow:CreativeWork ;
+    rdfs:label "ESCO namespace"@en ;
+    gmeow:sourceLocation "http://data.europa.eu/esco/" .
+
+<https://blackcatinformatics.ca/gmeow/references/selector/ec2ac8f853990062> a gmeow:Selector ;
+    gmeow:selectorLocator "slices/core/cognition/mappings/equivalences.ttl" .
+
+<https://credreg.net/ctdlasn/terms/> a gmeow:CreativeWork ;
+    rdfs:label "CTDL/ASN namespace"@en ;
+    gmeow:sourceLocation "https://credreg.net/ctdlasn/terms/" .
+
+<https://blackcatinformatics.ca/gmeow/references/selector/dee8a51b71ca55b4> a gmeow:Selector ;
+    gmeow:selectorLocator "slices/core/cognition/mappings/equivalences.ttl" .
+
+<https://www.onetcenter.org/> a gmeow:CreativeWork ;
+    rdfs:label "O*NET Resource Center"@en ;
+    gmeow:sourceLocation "https://www.onetcenter.org/" .
+
+<https://blackcatinformatics.ca/gmeow/references/selector/49e491308a10d3c9> a gmeow:Selector ;
+    gmeow:selectorLocator "slices/core/cognition/mappings/equivalences.ttl" .
+
+<https://en.wikipedia.org/wiki/Structure_of_observed_learning_outcome> a gmeow:CreativeWork ;
+    rdfs:label "Wikipedia: Structure of observed learning outcome (SOLO taxonomy)"@en ;
+    gmeow:sourceLocation "https://en.wikipedia.org/wiki/Structure_of_observed_learning_outcome" .
+
+<https://blackcatinformatics.ca/gmeow/references/selector/0424575766c7a1be> a gmeow:Selector ;
+    gmeow:selectorLocator "slices/core/cognition/mappings/equivalences.ttl" .
+
+<https://blackcatinformatics.ca/gmeow/references/citation/ed27f0d91d4b006e> a gmeow:CitationAct ;
+    rdfs:label "slices/core/cognition/mappings/equivalences.ttl"@en ;
+    gmeow:citationIntent gmeow:intentBridgedByReference ;
+    gmeow:citedEntity <http://sw.opencyc.org/2012/05/10/concept/en/knowsAbout> ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/slices/core/cognition/mappings/equivalences.ttl> ;
+    gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/d46477f3aa3ed2c6> .
+
+<http://sw.opencyc.org/2012/05/10/concept/en/knowsAbout> a gmeow:CreativeWork ;
+    rdfs:label "OpenCyc knowsAbout (2012-05-10 snapshot)"@en ;
+    gmeow:sourceLocation "http://sw.opencyc.org/2012/05/10/concept/en/knowsAbout" .
+
+<https://blackcatinformatics.ca/gmeow/references/selector/d46477f3aa3ed2c6> a gmeow:Selector ;
+    gmeow:selectorLocator "slices/core/cognition/mappings/equivalences.ttl" .
