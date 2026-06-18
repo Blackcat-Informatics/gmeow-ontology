@@ -75,7 +75,7 @@ collapse them into one overloaded relation.
 |---|---|---|
 | `gmeow:realizes` | `MentalProcess` → `MentalMoment` | An occurrent process *realizes* or *constitutes* an endurant mental moment at a time. Example: the process of inferring realizes the resulting belief-state. |
 | `gmeow:produces` | `MentalProcess` → `MentalMoment` \| `InformationObject` | A process *produces* a new mental moment or content object that did not exist before. Example: a chain-of-thought produces a derived claim. |
-| `gmeow:updates` | `MentalProcess` → `MentalMoment` | A process *updates* an existing mental moment, e.g. by changing confidence, suppressing it, or revising its temporal scope. The identity of the moment is preserved across the update. |
+| `updates` | `MentalProcess` → `MentalMoment` | A process *updates* an existing mental moment, e.g. by changing confidence, suppressing it, or revising its temporal scope. The identity of the moment is preserved across the update. |
 
 `realizes` is constitution-like; `produces` is creation-like; `updates` is revision-like. A single
 process may realize one moment, produce another, and update a third, but those are three different
@@ -148,14 +148,14 @@ identity; it treats them as shared faculty architecture realized in substrate-sp
 
 | Faculty | Human face | Machine/AI face | Bridge properties |
 |---|---|---|---|
-| Belief / credence | Subjective probability / confidence | Logits, probabilities, token likelihood | `gmeow:derivedCredence`, `gmeow:calibrationEvidence` |
-| Attention | Selective focus | Attention weights / activation maps | `gmeow:hasModelObservable` |
-| Memory | Recall / recognition | Context window / RAG retrieval / trained weights | `gmeow:implementationSubstrate` |
-| Inference | Reasoning / deduction / abduction | Chain-of-thought / tool-call derivation | `gmeow:computationalCorrelate` |
-| Imagination | Suppositional / counterfactual thought | Generative sampling / latent rollouts | `gmeow:contentOrigin` |
-| Dreaming | Offline consolidation / replay | Offline generative replay / synthetic rehearsal | `gmeow:computationalCorrelate` |
-| Awareness mode | Wake / sleep / focused / diffuse | Online / offline / training / sampling regime | `gmeow:implementationSubstrate` |
-| Metacognition | Uncertainty estimation / calibration | Model confidence / calibration curves | `gmeow:derivedCredence`, `gmeow:calibrationEvidence` |
+| Belief / credence | Subjective probability / confidence | Logits, probabilities, token likelihood | `derivedCredence`, `calibrationEvidence` |
+| Attention | Selective focus | Attention weights / activation maps | `hasModelObservable` |
+| Memory | Recall / recognition | Context window / RAG retrieval / trained weights | `implementationSubstrate` |
+| Inference | Reasoning / deduction / abduction | Chain-of-thought / tool-call derivation | `computationalCorrelate` |
+| Imagination | Suppositional / counterfactual thought | Generative sampling / latent rollouts | `contentOrigin` |
+| Dreaming | Offline consolidation / replay | Offline generative replay / synthetic rehearsal | `computationalCorrelate` |
+| Awareness mode | Wake / sleep / focused / diffuse | Online / offline / training / sampling regime | `implementationSubstrate` |
+| Metacognition | Uncertainty estimation / calibration | Model confidence / calibration curves | `derivedCredence`, `calibrationEvidence` |
 
 These bridges are authored as SSSOM/EDOAL mapping cells in the DSL, not as `owl:sameAs`
 assertions. The machine face is a *computational correlate* of the faculty, not a reduction of it.
@@ -245,7 +245,7 @@ in [`docs/projections.md`](./projections.md).
 2. **Distinguish `realizes`, `produces`, and `updates`.** A process can do all three, but the
    relation used must match the ontological job. Never collapse them into a single generic
    "causes" or "results in" property.
-3. **Human↔AI mappings are shared faculty architecture, not identity.** `gmeow:attention` is not
+3. **Human↔AI mappings are shared faculty architecture, not identity.** `attention` is not
    identical to transformer attention weights; it is the same faculty realized in a biological
    substrate and in a computational substrate. Bridge properties (`hasModelObservable`,
    `computationalCorrelate`, `implementationSubstrate`) carry the mapping, never `owl:sameAs`.
