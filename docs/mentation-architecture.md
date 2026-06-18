@@ -264,9 +264,7 @@ in [`docs/projections.md`](./projections.md).
   gestalt.
 - **`MentalProcess`** — An occurrent mental happening extended in time, modelled as a sub-class of
   `gmeow:Event`. Examples: inferring, recalling, attending, imagining, dreaming.
-- **`Experience`** — A standpoint-indexed, temporally-scoped `MentalMoment` whose content is
-  phenomenally or functionally present to the agent. Used to model wake/sleep/awareness modes
-  without asserting a hard problem of consciousness solution.
+- **`Experience`** — A standpoint-indexed, temporally-scoped `MentalProcess` (occurrent) whose content is phenomenally or functionally present to the agent. The one declared subclass of `MentalProcess` in the mentation slice; finer experiential kinds are typed via `mentalProcessType` rather than via further subclasses.
 - **`contentOrigin`** — An annotation property indicating how mental content came about
   (perception, inference, imagination, testimony, generative sampling, etc.). It types the
   *genesis* of the content, not its truth value.
