@@ -1070,9 +1070,19 @@ fn compile_logic<'py>(py: Python<'py>, source_ttl: &str) -> PyResult<Bound<'py, 
     use crate::compile::frontend::parse_logic_str;
     use crate::compile::projections::compile_program;
 
-    let (program, _diagnostics) = parse_logic_str(source_ttl, None)
+    let (program, diagnostics) = parse_logic_str(source_ttl, None)
         .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.0))?;
     let arts = compile_program(&program).map_err(pyo3::exceptions::PyValueError::new_err)?;
+
+    let diag_list = PyList::empty(py);
+    for diag in &diagnostics {
+        let d = PyDict::new(py);
+        d.set_item("severity", diag.severity.as_str())?;
+        d.set_item("code", diag.code.as_str())?;
+        d.set_item("message", diag.message.as_str())?;
+        d.set_item("subject", diag.subject.as_deref().unwrap_or(""))?;
+        diag_list.append(d)?;
+    }
 
     let out = PyDict::new(py);
     out.set_item("owl_dl", arts.owl_dl)?;
@@ -1083,6 +1093,7 @@ fn compile_logic<'py>(py: Python<'py>, source_ttl: &str) -> PyResult<Bound<'py, 
     out.set_item("canonical_rdf12", arts.canonical_rdf12)?;
     out.set_item("nemo", arts.nemo)?;
     out.set_item("report", arts.report)?;
+    out.set_item("diagnostics", diag_list)?;
     Ok(out)
 }
 

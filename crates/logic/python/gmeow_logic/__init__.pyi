@@ -38,10 +38,16 @@ def query(
     max_answers: int | None = ...,
     max_steps: int | None = ...,
 ) -> dict[str, Any]: ...
-def compile_logic(source_ttl: str) -> dict[str, str]:
-    """Compile logic: Turtle source → the 8 artifacts (#664).
+def compile_logic(source_ttl: str) -> dict[str, Any]:
+    """Compile logic: Turtle source → the 8 artifacts + parse diagnostics (#664).
 
-    Returns a dict keyed by ``owl_dl``, ``owl_el``, ``datalog``, ``n3``, ``gufo``,
-    ``canonical_rdf12``, ``nemo``, ``report`` — each the serialized content string.
+    Returns a dict with the following keys:
+
+    * ``owl_dl``, ``owl_el``, ``datalog``, ``n3``, ``gufo``,
+      ``canonical_rdf12``, ``nemo``, ``report`` — each the serialized content string.
+    * ``diagnostics`` — a list of dicts, each carrying ``severity`` (str),
+      ``code`` (str), ``message`` (str), and ``subject`` (str, empty string when
+      no subject).  Recoverable parse issues are surfaced here as warnings and
+      never block compilation.
     """
     ...

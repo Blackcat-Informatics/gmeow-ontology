@@ -24,6 +24,7 @@ CLI face of the #500 logic compiler (Task 4).
 
 from __future__ import annotations
 
+import logging
 from collections.abc import Sequence
 from pathlib import Path
 
@@ -31,6 +32,8 @@ import gmeow_logic
 
 from gmeow_tools.config import GENERATED_DIR, PROJECT_ROOT, SLICES_DIR
 from gmeow_tools.generator import Generator, rdf_compare, register
+
+log = logging.getLogger(__name__)
 
 # --------------------------------------------------------------------------- #
 # Canonical input + output paths
@@ -103,9 +106,21 @@ class LogicGenerator(Generator):
         # --- Compile (Rust): source Turtle → the 8 artifact strings ------
         source_ttl = LOGIC_SOURCE_FILE.read_text(encoding="utf-8")
         try:
-            artifacts = gmeow_logic.compile_logic(source_ttl)
+            result = gmeow_logic.compile_logic(source_ttl)
         except ValueError as exc:
             raise CompileError(f"logic: compile failed: {exc}") from exc
+
+        # --- Surface parse diagnostics as warnings (fail-soft contract) --
+        for diag in result.get("diagnostics", []):
+            log.warning(
+                "logic: parse diagnostic [%s] %s: %s",
+                diag["severity"],
+                diag["code"],
+                diag["message"],
+            )
+
+        # Alias for artifact access (diagnostics key excluded from writes).
+        artifacts = result
 
         # --- Map artifact name → committed path, write into staging ------
         def _staged(committed: Path) -> Path:
