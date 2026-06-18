@@ -315,7 +315,10 @@ pub fn project_nemo(program: &LogicProgram) -> Result<ProjectionResult, String> 
             nemo_iri(&head.obj)
         };
 
-        // Safety: head variables must appear in the body.
+        // Safety: every variable in the head, in a negated body atom, or in a
+        // distinct_pairs guard must be bound by at least one POSITIVE (non-negated)
+        // body atom.  Variables that appear ONLY in negated atoms or only in a !=
+        // guard are unsafe and make Nemo fail or produce wrong results.
         let mut head_vars: Vec<&str> = Vec::new();
         if head.subject.starts_with('?') {
             head_vars.push(&head.subject);
@@ -323,19 +326,46 @@ pub fn project_nemo(program: &LogicProgram) -> Result<ProjectionResult, String> 
         if head.obj.starts_with('?') {
             head_vars.push(&head.obj);
         }
-        let mut body_vars: std::collections::HashSet<&str> = std::collections::HashSet::new();
+        let mut positive_body_vars: std::collections::HashSet<&str> =
+            std::collections::HashSet::new();
+        let mut negated_body_vars: std::collections::HashSet<&str> =
+            std::collections::HashSet::new();
         for ba in &rule.body {
-            if ba.subject.starts_with('?') {
-                body_vars.insert(&ba.subject);
-            }
-            if ba.obj.starts_with('?') {
-                body_vars.insert(&ba.obj);
+            if ba.negated {
+                if ba.subject.starts_with('?') {
+                    negated_body_vars.insert(&ba.subject);
+                }
+                if ba.obj.starts_with('?') {
+                    negated_body_vars.insert(&ba.obj);
+                }
+            } else {
+                if ba.subject.starts_with('?') {
+                    positive_body_vars.insert(&ba.subject);
+                }
+                if ba.obj.starts_with('?') {
+                    positive_body_vars.insert(&ba.obj);
+                }
             }
         }
-        let mut unbound: Vec<&str> = head_vars
+        let mut guard_vars: std::collections::HashSet<&str> = std::collections::HashSet::new();
+        for (a, b) in &rule.distinct_pairs {
+            if a.starts_with('?') {
+                guard_vars.insert(a.as_str());
+            }
+            if b.starts_with('?') {
+                guard_vars.insert(b.as_str());
+            }
+        }
+        let required_vars: std::collections::HashSet<&str> = head_vars
             .iter()
             .copied()
-            .filter(|v| !body_vars.contains(v))
+            .chain(negated_body_vars.iter().copied())
+            .chain(guard_vars.iter().copied())
+            .collect();
+        let mut unbound: Vec<&str> = required_vars
+            .iter()
+            .copied()
+            .filter(|v| !positive_body_vars.contains(v))
             .collect();
         if !unbound.is_empty() {
             unbound.sort_unstable();
