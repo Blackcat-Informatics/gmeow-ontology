@@ -2,10 +2,12 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 """Conformance runner for the Logic v1 monotonic core (issue #501, Task 7).
 
-This module is the **Python oracle runner** — it wires :mod:`~.logic_frontend`,
-:mod:`~.logic_materialize`, :mod:`~.logic_projections`, and the native
-``gmeow_logic.explain`` engine into the single ``run()`` function required by the
-runner contract in ``conformance/logic/runner/README.md``.
+This module is the **conformance runner** — it wires :mod:`~.logic_frontend`,
+:mod:`~.logic_seam` (the Rust-fed seam containers), :mod:`~.logic_projections`,
+and the native ``gmeow_logic`` engine (``materialize`` / ``certify`` /
+``explain``) into the single ``run()`` function required by the runner contract
+in ``conformance/logic/runner/README.md``.  Reasoning is Rust-authoritative
+(#651): there is no Python forward-chase oracle.
 
 Runner contract
 ---------------
@@ -69,14 +71,6 @@ from rdflib.compare import isomorphic
 
 from gmeow_tools.logic_frontend import LogicParseError, parse_logic_source
 from gmeow_tools.logic_ir import LogicProgram, SemanticProfileId
-from gmeow_tools.logic_materialize import (
-    _ASSERT_RULE_IRI,
-    BudgetParams,
-    DerivedQuad,
-    Explanation,
-    ExplanationStep,
-    MaterializationResult,
-)
 from gmeow_tools.logic_projections import (
     ProjectionResult,
     build_projection_report,
@@ -88,6 +82,14 @@ from gmeow_tools.logic_projections import (
     project_nemo,
     project_owl_dl,
     project_owl_el,
+)
+from gmeow_tools.logic_seam import (
+    _ASSERT_RULE_IRI,
+    BudgetParams,
+    DerivedQuad,
+    Explanation,
+    ExplanationStep,
+    MaterializationResult,
 )
 
 _log = logging.getLogger(__name__)
@@ -145,7 +147,7 @@ class RunnerOutputs:
         projections: All projection back-ends + ledger.  **Populated**.
 
         explanations: Per-quad explanation skeletons.  **Populated**
-            (one :class:`~.logic_materialize.Explanation` per quad, in
+            (one :class:`~.logic_seam.Explanation` per quad, in
             ``result.quads`` order).
 
         verdicts: World-indexed truth verdicts JSON dict.  **Populated** as a
@@ -164,19 +166,18 @@ class RunnerOutputs:
 
         certification: The static profile/decidability verdict for ``program``
             against the case's declared profile, as the deterministic sorted-key
-            dict produced by
-            :meth:`~.logic_certify.CertificationVerdict.to_json`.  **Populated**
-            for every case (issue #502, Task 5).
+            dict produced by the native ``gmeow_logic.certify`` certifier.
+            **Populated** for every case (issue #502, Task 5).
 
         budget_status: The aggregate budget-governor status copied from
-            :attr:`~.logic_materialize.MaterializationResult.budget_status` —
+            :attr:`~.logic_seam.MaterializationResult.budget_status` —
             ``"ok"`` when the chase reached fixpoint within budget (or ran
             unbounded), ``"exhausted"`` when a declared ceiling was tripped.
             **Populated** for every case.
 
         incomplete: ``True`` iff the materialization was a sound partial because
             a budget ceiling was tripped (i.e. ``budget_status == "exhausted"``).
-            Mirrors :attr:`~.logic_materialize.MaterializationResult.incomplete`.
+            Mirrors :attr:`~.logic_seam.MaterializationResult.incomplete`.
     """
 
     case_dir: Path
@@ -286,11 +287,11 @@ def discover_cases(conformance_root: Path) -> list[ConformanceCase]:
 
 
 def _materialize_to_nquads(result: MaterializationResult) -> str:
-    """Serialize a :class:`~.logic_materialize.MaterializationResult` to N-Quads.
+    """Serialize a :class:`~.logic_seam.MaterializationResult` to N-Quads.
 
     Produces a deterministic N-Quads string with one line per quad, sorted
     lexicographically by (graph, subject, predicate, object) — the canonical
-    order used by :mod:`~.logic_materialize`.
+    order used by :mod:`~.logic_seam`.
 
     Args:
         result: The materialization result from the forward chase.
@@ -378,7 +379,7 @@ def _run_explanations(result: MaterializationResult) -> tuple[Explanation, ...]:
         result: The materialization result.
 
     Returns:
-        A tuple of :class:`~.logic_materialize.Explanation` objects, one per
+        A tuple of :class:`~.logic_seam.Explanation` objects, one per
         quad, in input order.
 
     Raises:
@@ -461,10 +462,10 @@ def _certify_native(
 ) -> dict[str, object]:
     """Statically certify ``program`` against ``declared_profile`` via the Rust core.
 
-    The native ``gmeow_logic.certify`` certifier is the reasoning authority
-    (Principle 17, the "maximally use Rust" doctrine); the Python
-    ``logic_certify.certify_program`` oracle is retained only as a secondary
-    validator (``tests/test_logic_oracle_engine_parity.py``). The engine takes
+    The native ``gmeow_logic.certify`` certifier is the sole reasoning authority
+    (Principle 17, the "maximally use Rust" doctrine); the Python certifier was
+    retired in #651 (parity is now pinned by the conformance ``certification.json``
+    goldens + the ``crates/logic/src/certify.rs`` cargo tests).  The engine takes
     the ``% === Rules ===`` section of ``project_nemo`` (the ground-fact axioms
     are not certification inputs) plus the declared profile, and returns the
     verdict dict (``certified``, ``decidability_class``, ``profile_id``, sorted
@@ -553,7 +554,7 @@ def _parse_budget_params(
 
     The object is optional and every field inside it is optional.  Recognised
     keys are ``time_ms``, ``max_rule_firings`` and ``max_answers`` (all positive
-    integers, matching :class:`~.logic_materialize.BudgetParams`).  When the key
+    integers, matching :class:`~.logic_seam.BudgetParams`).  When the key
     is absent the chase runs unbounded (``None``) — the #501 default that keeps
     the existing corpus byte-identical.
 
@@ -566,7 +567,7 @@ def _parse_budget_params(
         profile_data: The parsed ``profile.json`` dict.
 
     Returns:
-        A :class:`~.logic_materialize.BudgetParams` when ``budget_params`` is
+        A :class:`~.logic_seam.BudgetParams` when ``budget_params`` is
         present, else ``None``.
     """
     raw = profile_data.get("budget_params")
@@ -869,8 +870,8 @@ def _materialize_foundation(
 
     The input world facts (``input.nq``, one named graph per world) are serialized
     to N-Quads and handed to ``gmeow_logic.foundation``; its full-provenance rows
-    are mapped one-to-one onto :class:`~.logic_materialize.DerivedQuad` records and
-    assembled into a :class:`~.logic_materialize.MaterializationResult` that every
+    are mapped one-to-one onto :class:`~.logic_seam.DerivedQuad` records and
+    assembled into a :class:`~.logic_seam.MaterializationResult` that every
     downstream consumer (explanations, verdicts, projections, certification) reads
     unchanged.
 
@@ -885,7 +886,7 @@ def _materialize_foundation(
             parameter (see Raises).
 
     Returns:
-        A :class:`~.logic_materialize.MaterializationResult` over the native rows.
+        A :class:`~.logic_seam.MaterializationResult` over the native rows.
 
     Raises:
         RunnerError: If the ``gmeow_logic`` extension is not installed (hard fail,

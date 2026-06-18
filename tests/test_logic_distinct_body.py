@@ -11,8 +11,8 @@ additive, byte-stable extension that mirrors how issue #502 added
 2. Round-trip isomorphism: parse → ``project_canonical_rdf12`` → re-parse yields
    an equal rule (the inequality guard survives serialize→re-parse).
 3. ``project_nemo`` emits the ``?A != ?B`` inequality constraint.
-4. The Python oracle materializer does NOT derive the head when a guard binds
-   equal, and DOES when it binds unequal.
+4. (The guarded materialization itself — derive when distinct, skip when equal —
+   is Rust-authoritative since #651; see the section-4 note below.)
 5. Byte-stability: a rule with NO guard is canonically/sort-key-identical to its
    pre-#503 form.
 """
@@ -21,18 +21,15 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from rdflib import RDF, BNode, ConjunctiveGraph, Graph, Literal, Namespace, URIRef
+from rdflib import RDF, BNode, Graph, Literal, Namespace
 
 from gmeow_tools.config import LOGIC_NAMESPACE
 from gmeow_tools.logic_frontend import WARNING, parse_logic_source
 from gmeow_tools.logic_ir import (
-    ContextualScope,
     LogicAxiom,
     LogicProgram,
     LogicRule,
-    SemanticProfileId,
 )
-from gmeow_tools.logic_materialize import materialize_program
 from gmeow_tools.logic_projections import (
     project_canonical_rdf12,
     project_nemo,
@@ -244,60 +241,11 @@ def test_nemo_emits_inequality_constraint() -> None:
 
 
 # --------------------------------------------------------------------------- #
-# (4) Oracle materializer honours the guard
+# (4) The guarded materialization itself (derive when distinct, skip when equal)
+# is Rust-authoritative since #651 — pinned by the ``foundation/relcomp-under-
+# mediated`` conformance case (whose STRATA rule carries the ``?R1 != ?R2``
+# guard) and the ``crates/logic`` cargo tests, not by a Python oracle re-run.
 # --------------------------------------------------------------------------- #
-
-
-def _two_value_program() -> LogicProgram:
-    """``pair(?A, ?B) :- val(?C, ?A), val(?C, ?B), ?A != ?B`` over one world."""
-    head = LogicAxiom(subject="?A", predicate=str(EX.pair), obj="?B")
-    body = (
-        LogicAxiom(subject="?C", predicate=str(EX.val), obj="?A"),
-        LogicAxiom(subject="?C", predicate=str(EX.val), obj="?B"),
-    )
-    rule = LogicRule(
-        head=head,
-        body=body,
-        distinct_pairs=(("?A", "?B"),),
-        scope=ContextualScope(provenance=str(EX.pairRule)),
-    )
-    return LogicProgram(axioms=(), rules=(rule,), profiles=())
-
-
-def _world_with(values: list[str]) -> ConjunctiveGraph:
-    """A single named world where EX.c has each value in *values* under EX.val."""
-    cg = ConjunctiveGraph()
-    world = URIRef(str(EX.world))
-    ctx = cg.get_context(world)
-    for v in values:
-        ctx.add((URIRef(str(EX.c)), URIRef(str(EX.val)), URIRef(v)))
-    return cg
-
-
-def test_oracle_derives_head_when_values_distinct() -> None:
-    """With two distinct values the guard passes and the pair head is derived."""
-    prog = _two_value_program()
-    cg = _world_with([str(EX.v1), str(EX.v2)])
-    result = materialize_program(prog, cg, profile=SemanticProfileId.POSITIVE_HORN)
-
-    derived = [q for q in result.quads if q.predicate == str(EX.pair)]
-    assert derived, "Expected at least one derived pair() quad for distinct values"
-    # The reflexive bindings ?A == ?B (v1,v1 and v2,v2) must be rejected.
-    for q in derived:
-        assert q.subject != q.obj.strip("<>")
-
-
-def test_oracle_skips_head_when_values_equal() -> None:
-    """With a single value the only binding is ?A == ?B; nothing is derived."""
-    prog = _two_value_program()
-    cg = _world_with([str(EX.v1)])
-    result = materialize_program(prog, cg, profile=SemanticProfileId.POSITIVE_HORN)
-
-    derived = [q for q in result.quads if q.predicate == str(EX.pair)]
-    assert derived == [], (
-        "Equal-binding guard must reject the head; no pair() quad expected, "
-        f"got {derived!r}"
-    )
 
 
 # --------------------------------------------------------------------------- #
