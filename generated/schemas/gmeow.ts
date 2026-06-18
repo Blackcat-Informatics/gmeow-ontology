@@ -3938,6 +3938,25 @@ export interface ComplianceAssessment extends Observation {
 
 
 
+export interface Concept extends SocialObject {
+    composedOf?: Concept[],
+    subsumes?: Concept[],
+}
+
+
+
+export interface ConceptCategorization extends StandpointClaim {
+    typicality?: number[],
+}
+
+
+
+export interface ConceptTenure extends TimeScopedRelation {
+    conceptHoldsFor?: Concept,
+}
+
+
+
 export interface Condition extends InformationObject {
     conditionParameter?: ConditionParameter[],
     conditionText?: string,
@@ -4575,6 +4594,7 @@ export interface Entity {
     hasVersion?: Entity[],
     hasVoice?: Voice[],
     hasWebPage?: WebPage[],
+    instanceOfConcept?: Concept[],
     isAbout?: Entity[],
     isAccessibleForFree?: boolean[],
     isReferencedBy?: Entity[],
