@@ -771,7 +771,8 @@ def project_datalog(
             bp = "type" if ba_pred == rdf_type_str else _local(ba_pred)
             bs = _dl_term(body_atom.subject, False)
             bo = _dl_term(body_atom.obj, body_atom.obj_is_literal)
-            body_parts.append(f"{bp}({bs}, {bo}, {world_var})")
+            prefix = "not " if body_atom.negated else ""
+            body_parts.append(f"{prefix}{bp}({bs}, {bo}, {world_var})")
 
         # Inequality body guards (issue #503): each distinct pair becomes a
         # Datalog disequality literal ``A != B`` appended to the body (the idiom

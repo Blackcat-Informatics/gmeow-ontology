@@ -122,7 +122,8 @@ pub fn project_datalog(program: &LogicProgram) -> ProjectionResult {
             };
             let bs = dl_term(&ba.subject, false);
             let bo = dl_term(&ba.obj, ba.obj_is_literal);
-            body_parts.push(format!("{bp}({bs}, {bo}, {world})"));
+            let prefix = if ba.negated { "not " } else { "" };
+            body_parts.push(format!("{prefix}{bp}({bs}, {bo}, {world})"));
         }
         for (a, b) in &rule.distinct_pairs {
             body_parts.push(format!("{a} != {b}"));

@@ -4,13 +4,13 @@
 % === Ground facts (axioms) ===
 type("https://example.org/decidability/non-stratified-flagged/Position", "https://blackcatinformatics.ca/logic/Kind", "default").
 type("https://example.org/decidability/non-stratified-flagged/ruleLose", "https://blackcatinformatics.ca/logic/Rule", "default").
-body("https://example.org/decidability/non-stratified-flagged/ruleLose", "nf80ca256d558428491ea6ed2ab4629b8b5", "default").
-head("https://example.org/decidability/non-stratified-flagged/ruleLose", "nf80ca256d558428491ea6ed2ab4629b8b4", "default").
+body("https://example.org/decidability/non-stratified-flagged/ruleLose", "n718cc38247d44906ab36e7fb67964b0fb5", "default").
+head("https://example.org/decidability/non-stratified-flagged/ruleLose", "n718cc38247d44906ab36e7fb67964b0fb4", "default").
 provenance("https://example.org/decidability/non-stratified-flagged/ruleLose", "https://example.org/decidability/non-stratified-flagged/ruleLose", "default").
 type("https://example.org/decidability/non-stratified-flagged/ruleWin", "https://blackcatinformatics.ca/logic/Rule", "default").
-body("https://example.org/decidability/non-stratified-flagged/ruleWin", "nf80ca256d558428491ea6ed2ab4629b8b2", "default").
-head("https://example.org/decidability/non-stratified-flagged/ruleWin", "nf80ca256d558428491ea6ed2ab4629b8b1", "default").
-negatedBody("https://example.org/decidability/non-stratified-flagged/ruleWin", "nf80ca256d558428491ea6ed2ab4629b8b3", "default").
+body("https://example.org/decidability/non-stratified-flagged/ruleWin", "n718cc38247d44906ab36e7fb67964b0fb2", "default").
+head("https://example.org/decidability/non-stratified-flagged/ruleWin", "n718cc38247d44906ab36e7fb67964b0fb1", "default").
+negatedBody("https://example.org/decidability/non-stratified-flagged/ruleWin", "n718cc38247d44906ab36e7fb67964b0fb3", "default").
 provenance("https://example.org/decidability/non-stratified-flagged/ruleWin", "https://example.org/decidability/non-stratified-flagged/ruleWin", "default").
 
 % === Rules ===
@@ -18,4 +18,4 @@ lose(?X, ?X, ?C) :-
     win(?X, ?X, ?C).
 win(?X, ?X, ?C) :-
     move(?X, ?Y, ?C),
-    lose(?Y, ?Y, ?C).
+    not lose(?Y, ?Y, ?C).
