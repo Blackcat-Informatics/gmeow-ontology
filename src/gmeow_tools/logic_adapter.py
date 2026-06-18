@@ -160,6 +160,122 @@ _GUFO_TO_LOGIC_SORT: dict[URIRef, str] = {
 }
 
 # --------------------------------------------------------------------------- #
+# gUFO class IRI → logic: term  (the machine-checkable correspondence floor)
+# --------------------------------------------------------------------------- #
+
+
+class _Superseded:
+    """Sentinel marking a gUFO class that ``gmeow:logic`` deliberately replaces.
+
+    The five gUFO *temporary-situation reifiers* (quality-value attribution,
+    temporary constitution / instantiation / parthood / relationship) are a
+    workaround for OWL 2 DL's inability to attach a time interval to an edge.
+    ``gmeow:logic`` supersedes that whole reification pattern with
+    :class:`logic:Fluent` + RDF-1.2 edge properties (a time-scoped statement is
+    a first-class edge, not a reified blank node).  There is therefore **no**
+    faithful 1:1 logic: term for these classes — they map to this sentinel so
+    the coverage gate can assert "covered by supersession" rather than "missing".
+    """
+
+    __slots__ = ()
+
+    def __repr__(self) -> str:  # pragma: no cover - debug aid only
+        return "SUPERSEDED"
+
+
+#: Module-level singleton sentinel (see :class:`_Superseded`).
+SUPERSEDED: _Superseded = _Superseded()
+
+#: Authoritative, COMPREHENSIVE ``gUFO class IRI → logic: term`` correspondence.
+#:
+#: This dict is the machine-checkable **"gmeow:logic ⊇ gUFO floor"**
+#: correspondence: every one of the 49 ``owl:Class`` declarations in
+#: ``imports/gufo.ttl`` appears here exactly once, mapped to either
+#:
+#: * the IRI string of the corresponding ``logic:`` term (the faithful
+#:   down-projection target — gUFO is a VALIDATION_ONLY lossy projection of
+#:   ``gmeow:logic``), or
+#: * :data:`SUPERSEDED` for the five temporary-situation reifiers that
+#:   ``gmeow:logic`` replaces with :class:`logic:Fluent` + RDF-1.2 edge
+#:   properties (see :class:`_Superseded`).
+#:
+#: It is consumed by the coverage gate ``tests/test_logic_gufo_superset.py``
+#: (#663 Task 4), which asserts that the gUFO floor is wholly covered by the
+#: richer ``gmeow:logic`` spine.  It is a strict **superset** of
+#: :data:`_GUFO_TO_LOGIC_SORT` (the 11 stereotype rows): the stereotype rows
+#: reappear here with the same targets, plus the remaining 38 structural /
+#: foundational / higher-order categories.
+#:
+#: Mapping notes for classes without a same-named ``logic:`` term:
+#:   * ``gufo:EventType`` → ``logic:Event`` and ``gufo:SituationType`` →
+#:     ``logic:Situation`` (consistent with the stereotype map: gUFO punning
+#:     reifies the type, gmeow:logic keeps the perdurant/situation sort).
+#:   * ``gufo:IntrinsicMode`` / ``gufo:ExtrinsicMode`` → ``logic:Mode``.
+#:   * ``gufo:IntrinsicAspect`` / ``gufo:ExtrinsicAspect`` → ``logic:Aspect``.
+#:   * ``gufo:QualityValue`` → ``logic:QualityValue``; the *quality space* it
+#:     ranges over is ``logic:QualitySpace`` (a gmeow:logic enrichment with no
+#:     gUFO class of its own, hence not a key here).
+_GUFO_CLASS_TO_LOGIC: dict[URIRef, str | _Superseded] = {
+    # --- Top of the individual taxonomy ---
+    GUFO.Individual: LOGIC_NAMESPACE + "Individual",
+    GUFO.ConcreteIndividual: LOGIC_NAMESPACE + "ConcreteIndividual",
+    GUFO.AbstractIndividual: LOGIC_NAMESPACE + "AbstractIndividual",
+    # --- Endurants / perdurants / situations (concrete-individual spine) ---
+    GUFO.Endurant: LOGIC_NAMESPACE + "Endurant",
+    GUFO.Event: LOGIC_NAMESPACE + "Event",
+    GUFO.Situation: LOGIC_NAMESPACE + "Situation",
+    GUFO.Participation: LOGIC_NAMESPACE + "Participation",
+    # --- Endurant subkinds: objects vs aspects ---
+    GUFO.Object: LOGIC_NAMESPACE + "Object",
+    GUFO.Aspect: LOGIC_NAMESPACE + "Aspect",
+    GUFO.IntrinsicAspect: LOGIC_NAMESPACE + "Aspect",
+    GUFO.ExtrinsicAspect: LOGIC_NAMESPACE + "Aspect",
+    GUFO.IntrinsicMode: LOGIC_NAMESPACE + "Mode",
+    GUFO.ExtrinsicMode: LOGIC_NAMESPACE + "Mode",
+    GUFO.Quality: LOGIC_NAMESPACE + "Quality",
+    GUFO.QualityValue: LOGIC_NAMESPACE + "QualityValue",
+    GUFO.Relator: LOGIC_NAMESPACE + "Relator",
+    # --- Object aggregation kinds ---
+    GUFO.Collection: LOGIC_NAMESPACE + "Collection",
+    GUFO.FixedCollection: LOGIC_NAMESPACE + "FixedCollection",
+    GUFO.VariableCollection: LOGIC_NAMESPACE + "VariableCollection",
+    GUFO.Quantity: LOGIC_NAMESPACE + "Quantity",
+    GUFO.FunctionalComplex: LOGIC_NAMESPACE + "FunctionalComplex",
+    # --- Type level (higher-order) ---
+    GUFO.Type: LOGIC_NAMESPACE + "Type",
+    GUFO.EndurantType: LOGIC_NAMESPACE + "EndurantType",
+    GUFO.RelationshipType: LOGIC_NAMESPACE + "RelationshipType",
+    GUFO.MaterialRelationshipType: LOGIC_NAMESPACE + "MaterialRelationshipType",
+    GUFO.ComparativeRelationshipType: LOGIC_NAMESPACE + "ComparativeRelationshipType",
+    GUFO.AbstractIndividualType: LOGIC_NAMESPACE + "AbstractIndividualType",
+    GUFO.ConcreteIndividualType: LOGIC_NAMESPACE + "ConcreteIndividualType",
+    GUFO.EventType: LOGIC_NAMESPACE + "Event",
+    GUFO.SituationType: LOGIC_NAMESPACE + "Situation",
+    # --- Endurant-type meta axes (sortality / rigidity) ---
+    GUFO.Sortal: LOGIC_NAMESPACE + "Sortal",
+    GUFO.NonSortal: LOGIC_NAMESPACE + "NonSortal",
+    GUFO.RigidType: LOGIC_NAMESPACE + "RigidType",
+    GUFO.AntiRigidType: LOGIC_NAMESPACE + "AntiRigidType",
+    GUFO.SemiRigidType: LOGIC_NAMESPACE + "SemiRigidType",
+    GUFO.NonRigidType: LOGIC_NAMESPACE + "NonRigidType",
+    # --- The 11 OntoUML stereotypes (superset of _GUFO_TO_LOGIC_SORT) ---
+    GUFO.Kind: LOGIC_NAMESPACE + "Kind",
+    GUFO.SubKind: LOGIC_NAMESPACE + "SubKind",
+    GUFO.Phase: LOGIC_NAMESPACE + "Phase",
+    GUFO.Role: LOGIC_NAMESPACE + "Role",
+    GUFO.Category: LOGIC_NAMESPACE + "Category",
+    GUFO.Mixin: LOGIC_NAMESPACE + "Mixin",
+    GUFO.RoleMixin: LOGIC_NAMESPACE + "RoleMixin",
+    GUFO.PhaseMixin: LOGIC_NAMESPACE + "PhaseMixin",
+    # --- Superseded temporary-situation reifiers (logic:Fluent + RDF-1.2) ---
+    GUFO.QualityValueAttributionSituation: SUPERSEDED,
+    GUFO.TemporaryConstitutionSituation: SUPERSEDED,
+    GUFO.TemporaryInstantiationSituation: SUPERSEDED,
+    GUFO.TemporaryParthoodSituation: SUPERSEDED,
+    GUFO.TemporaryRelationshipSituation: SUPERSEDED,
+}
+
+# --------------------------------------------------------------------------- #
 # OWL structural predicate → logic: predicate  (structural axioms)
 # --------------------------------------------------------------------------- #
 

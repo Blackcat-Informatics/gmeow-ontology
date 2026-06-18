@@ -261,6 +261,11 @@ meta:gate-foundation-conformance a meta:Gate ;
     meta:artifact "tests/test_logic_foundation_lint_equivalence.py", "crates/logic/src/foundation.rs" ;
     meta:symbol "evaluate" .
 
+meta:gate-logic-gufo-superset a meta:Gate ;
+    rdfs:label "gmeow:logic ⊇ gUFO floor — every gUFO class has a logic: correspondence (#663)"@x-gmeow-english ;
+    meta:artifact "tests/test_logic_gufo_superset.py", "src/gmeow_tools/logic_adapter.py" ;
+    meta:symbol "_GUFO_CLASS_TO_LOGIC", "test_every_gufo_class_has_logic_correspondence" .
+
 # --------------------------------------------------------------------------- #
 # The principles
 # --------------------------------------------------------------------------- #
@@ -357,4 +362,4 @@ meta:Principle17 a meta:Principle ;
     meta:number 17 ;
     meta:title "The logic itself is canonical — OWL is a projection of it, not its ceiling" ;
     meta:enforcedBy meta:gate-logic-conformance, meta:gate-logic-round-trip,
-        meta:gate-foundation-conformance .
+        meta:gate-foundation-conformance, meta:gate-logic-gufo-superset .

@@ -22,12 +22,13 @@ runtime, and full conformance corpus remain deferred to later rungs of the logic
 
 ## The design set
 
-The design is split by genre into five documents under [`design/`](./design/), so it can be
+The design is split by genre into documents under [`design/`](./design/), so it can be
 implemented against rather than only read:
 
 | Document | Genre | Contents |
 |---|---|---|
 | [`design/LOGIC.md`](./design/LOGIC.md) | manifesto | vision, doctrine, lineage, target architecture |
+| [`design/LOGIC-FOUNDATION.md`](./design/LOGIC-FOUNDATION.md) | charter | the `gmeow:logic` upper-ontology charter — the gUFO ⊇ baseline, the criticism ledger, the greenfield feature map, the Ithkuil precision ethos, the four-box organization |
 | [`design/LOGIC-SEMANTICS.md`](./design/LOGIC-SEMANTICS.md) | formal semantics | the unified core, triple-term/assertion rules, semantic profiles, modality, worlds, decidability |
 | [`design/LOGIC-RUNTIME.md`](./design/LOGIC-RUNTIME.md) | runtime | solver architecture, the Nemo–Prolog seam, graph versioning, generated artifacts, CLI |
 | [`design/LOGIC-MIGRATION.md`](./design/LOGIC-MIGRATION.md) | rollout | the MVP ladder, adapter phases, gates, deprecations, the design risk register |

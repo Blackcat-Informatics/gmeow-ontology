@@ -1,0 +1,125 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example — four gmeow:logic advantages over gUFO / OWL 2, each
+# demonstrating one of the named OWL-2 criticisms (LOGIC-FOUNDATION.md §OWL 2
+# criticisms). The logic: terms used here are the foundation surface authored in
+# #663; the native engine that EXECUTES them (rules, chase, builtins) is seamed
+# to #664/#665, so this file demonstrates the SHAPE of each fix, not its
+# evaluation.
+#
+#   §1  Native edge property (triple-bloat fix, criticism 3)
+#       An employment edge carries its validFrom/validTo time scope ON THE EDGE
+#       via an RDF-1.2 reifier — NOT by minting a gUFO Relator/Situation node.
+#       gUFO needs a reified TemporaryRelationshipSituation (a whole blank-node
+#       subgraph) to time-scope a relationship; gmeow:logic types the reifier a
+#       logic:Fluent (a time-indexed relation) and hangs the interval on it.
+#
+#   §2  Strict partial order (OWL-2 global-restriction fix, criticism 7)
+#       logic:properPartOf is typed transitive ∧ asymmetric ∧ irreflexive at
+#       once. OWL 2 DL FORBIDS this combination (transitive properties may not
+#       be irreflexive/asymmetric, the global cardinality/anti-symmetry
+#       restriction) — gmeow:logic carries it natively, so a genuine strict
+#       partial order over parthood is expressible.
+#
+#   §3  Multi-level instantiation (no punning, criticism 5)
+#       :marv is an instance of :goldenEagle, which is ITSELF an instance of
+#       :species. OWL 2 forces punning (the same IRI used as both class and
+#       individual) to fake this; logic:instanceOf reifies types as first-order
+#       individuals so the chain is ordinary first-order quantification, with
+#       logic:orderedType recording each level (HiLog deep instantiation).
+#
+#   §4  Builtin-derived value (criticism 8)
+#       A derivation references the logic:builtinArithmetic primitive to compute
+#       legalAge — the lightweight in-logic computation OWL 2 has no surface for
+#       (it can classify but not CALCULATE). The builtin individual is declared
+#       in the logic: module; this links a derivation to it via
+#       logic:invokesBuiltin.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/logic/> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl:   <http://www.w3.org/2002/07/owl#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+# ===========================================================================
+# §1  Native edge property — triple-bloat fix (criticism 3)
+# ===========================================================================
+# The relationship itself is a plain edge:
+ex:alice ex:employedBy ex:acme .
+
+# The time scope rides ON THE EDGE through an RDF-1.2 reifier. The canonical
+# RDF-1.2 triple-term form (the lead artifact, emitted by Apache Jena — see
+# generated/statements/gmeow.rdf12.ttl) is:
+#
+#     ex:employment-alice-acme rdf:reifies <<( ex:alice ex:employedBy ex:acme )>> .
+#
+# rdflib (the validation/docs toolchain, RDF-1.2-triple-terms unsupported) reads
+# the structurally-isomorphic RDF reification of that triple term — the same
+# reifier node, the same quoted (subject, predicate, object), just spelled with
+# the rdf:subject/rdf:predicate/rdf:object vocabulary the triple term desugars
+# to. The reifier is typed logic:Fluent: a time-indexed relation, the native
+# four-dimensional construct that REPLACES gUFO's reified
+# TemporaryRelationshipSituation blank-node subgraph.
+ex:employment-alice-acme
+    a rdf:Statement, logic:Fluent ;
+    rdfs:label "Alice's employment at Acme, scoped to 2020-03-01 .. 2024-08-15"@x-gmeow-english ;
+    rdf:subject   ex:alice ;
+    rdf:predicate ex:employedBy ;
+    rdf:object    ex:acme ;
+    ex:validFrom  "2020-03-01"^^xsd:date ;
+    ex:validTo    "2024-08-15"^^xsd:date .
+
+# ===========================================================================
+# §2  Strict partial order — OWL-2 global-restriction fix (criticism 7)
+# ===========================================================================
+# logic:properPartOf is declared in the module typed transitive ∧ asymmetric ∧
+# irreflexive — the genuine strict partial order OWL 2 DL forbids. A parthood
+# chain over a bicycle: the spoke is a proper part of the wheel, the wheel of
+# the bicycle. Under transitivity the spoke is therefore a proper part of the
+# bicycle; under irreflexivity nothing is a proper part of itself; under
+# asymmetry the relation never runs both ways. (Materialization of the
+# transitive consequence is the engine's job, #664/#665.)
+ex:spoke   logic:properPartOf ex:wheel .
+ex:wheel   logic:properPartOf ex:bicycle .
+
+# ===========================================================================
+# §3  Multi-level instantiation — no punning (criticism 5)
+# ===========================================================================
+# A two-step logic:instanceOf chain across three orders, with logic:orderedType
+# making each level explicit. :marv (an order-0 individual) instantiates
+# :goldenEagle (an order-1 type), which in turn instantiates :species (an
+# order-2 metatype). No IRI is used as both class and individual: every type is
+# a first-order logic:Type individual, so the chain is plain quantification.
+ex:species
+    a logic:Type ;
+    rdfs:label "the metatype whose instances are biological species"@x-gmeow-english ;
+    logic:orderedType "2"^^xsd:nonNegativeInteger .
+
+ex:goldenEagle
+    a logic:Type ;
+    rdfs:label "the golden eagle species"@x-gmeow-english ;
+    logic:instanceOf  ex:species ;
+    logic:orderedType "1"^^xsd:nonNegativeInteger .
+
+ex:marv
+    rdfs:label "Marv, an individual golden eagle"@x-gmeow-english ;
+    logic:instanceOf  ex:goldenEagle ;
+    logic:orderedType "0"^^xsd:nonNegativeInteger .
+
+# ===========================================================================
+# §4  Builtin-derived value (criticism 8)
+# ===========================================================================
+# A derivation that computes a person's legal age from a birth date references
+# the logic:builtinArithmetic primitive (declared in the logic: module) via
+# logic:invokesBuiltin. OWL 2 can classify but cannot CALCULATE; this is the
+# lightweight in-logic computation (Principle 12) the foundation needs. No
+# logic:Rule class is minted (the surface is foundation-only), so — exactly as
+# in projection-loss-ledger.ttl — the derivation is modelled as a
+# gmeow:InformationObject and linked to the REAL builtin individual.
+ex:derivation-legalAge
+    a gmeow:InformationObject ;
+    rdfs:label "derive legalAge = floor((today - birthDate) / 1 year) >= majority"@x-gmeow-english ;
+    logic:invokesBuiltin logic:builtinArithmetic .
