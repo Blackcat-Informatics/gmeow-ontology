@@ -1472,9 +1472,12 @@ gmeow:dl-gap-5 a gmeow:DlGap ;
    gmeow:gapCode "reason.dl-gap.disjointUnionOf"@en ;
    rdfs:comment "owl:disjointUnionOf is beyond the EL Horn fragment in the predicate-as-symbol encoding; consistency for axioms using it is decided by the HermiT oracle only (named, not silently assumed consistent)."@en .
 gmeow:dl-gap-6 a gmeow:DlGap ;
+   gmeow:gapCode "reason.dl-gap.unionOf"@en ;
+   rdfs:comment "owl:unionOf is beyond the EL Horn fragment in the predicate-as-symbol encoding; consistency for axioms using it is decided by the HermiT oracle only (named, not silently assumed consistent)."@en .
+gmeow:dl-gap-7 a gmeow:DlGap ;
    gmeow:gapCode "reason.dl-gap.hasValue"@en ;
    rdfs:comment "owl:hasValue is beyond the EL Horn fragment in the predicate-as-symbol encoding; consistency for axioms using it is decided by the HermiT oracle only (named, not silently assumed consistent)."@en .
 
 # --- counts ---
 gmeow:dl-el-crosscheck gmeow:entailmentCount 287 ;
-   gmeow:gapCount 7 .
+   gmeow:gapCount 8 .
