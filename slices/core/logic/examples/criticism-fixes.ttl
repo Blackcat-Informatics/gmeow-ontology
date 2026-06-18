@@ -96,18 +96,18 @@ ex:wheel   logic:properPartOf ex:bicycle .
 ex:species
     a logic:Type ;
     rdfs:label "the metatype whose instances are biological species"@x-gmeow-english ;
-    logic:orderedType 2 .
+    logic:orderedType "2"^^xsd:nonNegativeInteger .
 
 ex:goldenEagle
     a logic:Type ;
     rdfs:label "the golden eagle species"@x-gmeow-english ;
     logic:instanceOf  ex:species ;
-    logic:orderedType 1 .
+    logic:orderedType "1"^^xsd:nonNegativeInteger .
 
 ex:marv
     rdfs:label "Marv, an individual golden eagle"@x-gmeow-english ;
     logic:instanceOf  ex:goldenEagle ;
-    logic:orderedType 0 .
+    logic:orderedType "0"^^xsd:nonNegativeInteger .
 
 # ===========================================================================
 # §4  Builtin-derived value (criticism 8)

@@ -1947,7 +1947,7 @@
         <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-wgs84_pos-ed16f2-skos_closeMatch>,
         <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-whgazetteer.org-1272e7-skos_closeMatch>,
         <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-www.discogs.com-4b9508-skos_relatedMatch> ;
-    void:triples 37272 ;
+    void:triples 37273 ;
     void:uriSpace "https://blackcatinformatics.ca/gmeow/" ;
     void:vocabulary faldo:,
         cc:,

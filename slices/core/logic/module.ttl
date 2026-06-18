@@ -3,6 +3,7 @@
 @prefix owl:     <http://www.w3.org/2002/07/owl#> .
 @prefix rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
 @prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix vann:    <http://purl.org/vocab/vann/> .
@@ -671,7 +672,8 @@ logic:instanceOf
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> .
 
 logic:orderedType
-    a owl:ObjectProperty ;
+    a owl:DatatypeProperty ;
+    rdfs:range xsd:nonNegativeInteger ;
     rdfs:label "ordered type"@x-gmeow-english ;
     skos:definition "Relates a type to its order (level) in the multi-level hierarchy: a first-order type is order 1, a type whose instances are first-order types is order 2, and so on. Makes the deep-instantiation level explicit so logic:instanceOf chains can be checked for level coherence (an order-n type instantiates an order-(n+1) type), the well-formedness condition that keeps HiLog multi-level modeling stratified."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
