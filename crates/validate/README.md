@@ -81,6 +81,10 @@ from the bundle and skips the per-file Turtle phases (syntax check and the
 `owl:sameAs` external-entity ban), because those lints are meaningless for an
 already-materialized GTS graph.
 
+If both `source_paths` and `gts_bytes` are supplied, `gts_bytes` takes
+precedence: the store is built from the bundle, the per-file Turtle phases are
+skipped, and `source_paths` is not inspected.
+
 If `ValidateOptions::project_root` is set, validation results are cached under
 `<project_root>/.cache/validate/<kind>/<key>.json`. The cache is purely
 content-addressed: there is no TTL, and a changed input produces a new key.
