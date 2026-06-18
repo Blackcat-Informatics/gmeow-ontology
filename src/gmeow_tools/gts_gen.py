@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import io
 import tarfile
+import tempfile
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -27,11 +28,19 @@ from gmeow_tools.config import (
     MAPPINGS_DIR,
     NAMESPACE,
     PROJECT_ROOT,
+    SLICES_DIR,
     STATEMENT_RDF12_FILE,
 )
 from gmeow_tools.generator import Generator, register
 from gmeow_tools.graph import iter_import_files, iter_module_files
 from gmeow_tools.gts_producer import compile_gts
+from gmeow_tools.i18n_catalog import (
+    discover_doc_languages,
+    load_ontology_docs_template_catalog,
+    merge_all_markdown,
+    merge_terms,
+    translated_ontology_docs_templates,
+)
 from gmeow_tools.mappings import build_alignment_graph, load_mappings
 from gmeow_tools.self_desc import SELF_DESC_FILE
 from gmeow_tools.slices import discover_slices
@@ -99,7 +108,7 @@ def _tar_members(members: list[tuple[str, bytes]]) -> bytes:
     return buffer.getvalue()
 
 
-def _transform_blobs() -> list[tuple[bytes, str, str]]:
+def _transform_blobs(_graph: Graph) -> list[tuple[bytes, str, str]]:
     """Fold transform inputs into the bundle for repo-free consumer commands."""
     import json
 
@@ -153,24 +162,87 @@ def _doc_blobs(graph: Graph) -> list[tuple[bytes, str, str]]:
 
 
 def _project_doc_blobs() -> list[tuple[bytes, str, str]]:
-    """A single deterministic tar archive of the project docs tree."""
+    """A deterministic tar archive of the project docs tree.
+
+    Includes the English tree at ``x-gmeow-english/`` plus, for every
+    discovered language with slice PO translations, a translated tree at
+    ``x-gmeow-<lang>/``.  Missing Markdown translations produce the original
+    English content.
+    """
     docs_dir = PROJECT_ROOT / "docs"
     if not docs_dir.is_dir():
         return []
-    return [(_tar_directory(docs_dir), "application/x-tar", "project-docs")]
+
+    members: list[tuple[str, bytes]] = []
+
+    def add_tree(tree_root: Path, lang: str) -> None:
+        for source in sorted(
+            p for p in tree_root.rglob("*") if p.is_file() and _is_project_doc_path(p)
+        ):
+            arcname = f"x-gmeow-{lang}/{source.relative_to(tree_root).as_posix()}"
+            members.append((arcname, source.read_bytes()))
+
+    def _has_md_translations(lang: str) -> bool:
+        return bool(
+            list((PROJECT_ROOT / "dist" / "i18n" / "docs").rglob(f"*.{lang}.po"))
+        )
+
+    # English carrier stays at the historical prefix for backward compatibility.
+    add_tree(docs_dir, "english")
+
+    for lang in discover_doc_languages(PROJECT_ROOT):
+        if not _has_md_translations(lang):
+            continue
+        with tempfile.TemporaryDirectory(
+            dir=PROJECT_ROOT, prefix=".gmeow-tmp-pdoc-"
+        ) as tmp:
+            tmp_path = Path(tmp)
+            merge_all_markdown(PROJECT_ROOT, lang, tmp_path, include_readme=True)
+            # Project docs live under docs/ in the archive; README.md at root.
+            docs_tmp = tmp_path / "docs"
+            if docs_tmp.is_dir():
+                add_tree(docs_tmp, lang)
+            readme_tmp = tmp_path / "README.md"
+            if readme_tmp.is_file():
+                members.append((f"x-gmeow-{lang}/README.md", readme_tmp.read_bytes()))
+
+    return [(_tar_members(members), "application/x-tar", "project-docs")]
 
 
 def _ontology_doc_blobs() -> list[tuple[bytes, str, str]]:
-    """A deterministic tar archive of the ontology docs tree (#440)."""
-    from gmeow_tools.ontology_docs import cached_ontology_docs_tree
+    """A deterministic tar archive of the ontology docs tree (#440).
 
-    return [
-        (
-            _tar_directory(cached_ontology_docs_tree()),
-            "application/x-tar",
-            "ontology-docs",
-        )
-    ]
+    English content remains at ``x-gmeow-english/``.  For every other
+    discovered language a separate tree is rendered with translated ontology-docs
+    template strings.
+    """
+    from gmeow_tools.ontology_docs import build_ontology_docs, cached_ontology_docs_tree
+
+    members: list[tuple[str, bytes]] = []
+
+    def add_tree(tree_root: Path, lang: str) -> None:
+        for source in sorted(
+            p for p in tree_root.rglob("*") if p.is_file() and _is_project_doc_path(p)
+        ):
+            arcname = f"x-gmeow-{lang}/{source.relative_to(tree_root).as_posix()}"
+            members.append((arcname, source.read_bytes()))
+
+    en_tree = cached_ontology_docs_tree()
+    add_tree(en_tree, "english")
+
+    for lang in discover_doc_languages(PROJECT_ROOT):
+        catalog = load_ontology_docs_template_catalog(lang, root=PROJECT_ROOT)
+        if not catalog:
+            continue
+        with tempfile.TemporaryDirectory(
+            dir=PROJECT_ROOT, prefix=".gmeow-tmp-odoc-"
+        ) as tmp:
+            tmp_path = Path(tmp)
+            with translated_ontology_docs_templates(catalog):
+                build_ontology_docs(tmp_path)
+            add_tree(tmp_path, lang)
+
+    return [(_tar_members(members), "application/x-tar", "ontology-docs")]
 
 
 def _imports_graph() -> Graph:
@@ -217,15 +289,19 @@ def build_snapshot_bytes(
             f"guide anchor error(s) — {details}"
         )
         raise ValueError(msg)
+
+    po_paths = sorted(p for p in SLICES_DIR.glob("*/*/i18n/*.po") if p.stem != "en")
+    multilingual_graph = merge_terms(graph, po_paths)
+
     blobs = (
-        _doc_blobs(graph)
+        _doc_blobs(multilingual_graph)
         + _project_doc_blobs()
         + _ontology_doc_blobs()
-        + _transform_blobs()
+        + _transform_blobs(multilingual_graph)
     )
 
     return compile_gts(
-        graph,
+        multilingual_graph,
         STATEMENT_RDF12_FILE,
         alignment_graph=build_alignment_graph(load_mappings()),
         extra_named_graphs=[
@@ -270,6 +346,7 @@ class GtsSnapshotGenerator(Generator):
             PROJECT_ROOT / "src" / "gmeow_tools" / "config.py",
             PROJECT_ROOT / "src" / "gmeow_tools" / "graph.py",
             PROJECT_ROOT / "src" / "gmeow_tools" / "gts_producer.py",
+            PROJECT_ROOT / "src" / "gmeow_tools" / "i18n_catalog.py",
             PROJECT_ROOT / "src" / "gmeow_tools" / "mappings.py",
             PROJECT_ROOT / "src" / "gmeow_tools" / "ontology_docs.py",
             PROJECT_ROOT / "src" / "gmeow_tools" / "self_desc.py",
@@ -308,6 +385,7 @@ class GtsSnapshotGenerator(Generator):
             *sorted((MAPPING_DSL_DIR / "projections").glob("*.ttl")),
             *sorted(SLICES_DIR.glob("*/*/mappings/*.ttl")),
             *sorted(SLICES_DIR.glob("*/*/docs.md")),
+            *sorted(p for p in SLICES_DIR.glob("*/*/i18n/*.po") if p.stem != "en"),
             *ontology_docs_cache_inputs(),
             *sorted(doc_files),
         ]

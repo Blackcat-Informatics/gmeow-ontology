@@ -48,6 +48,7 @@ from gmeow_tools.config import (
 )
 from gmeow_tools.export import Term, collect_terms, curie, fold_meta
 from gmeow_tools.gts_views import FoldView, load_fold
+from gmeow_tools.i18n_catalog import ontology_docs_template
 from gmeow_tools.mapping_dsl import (
     Atom,
     OptionalGroup,
@@ -427,12 +428,26 @@ _CATEGORY_DIRS = {
     "datatype": "datatypes",
 }
 
-_CATEGORY_LABELS = {
-    "class": "Classes",
-    "property": "Properties",
-    "individual": "Individuals",
-    "datatype": "Datatypes",
+_CATEGORY_LABEL_KEYS = {
+    "class": "category_class",
+    "property": "category_property",
+    "individual": "category_individual",
+    "datatype": "category_datatype",
 }
+
+
+def _category_label(category: str) -> str:
+    """Return the localized label for a term category."""
+    return ontology_docs_template(
+        _CATEGORY_LABEL_KEYS.get(category, ""),
+        fallback={
+            "class": "Classes",
+            "property": "Properties",
+            "individual": "Individuals",
+            "datatype": "Datatypes",
+        }.get(category, category.capitalize()),
+    )
+
 
 _DEFAULT_CONCERNS = {
     NAMESPACE + "concernStatementMetadata": (
@@ -1960,11 +1975,48 @@ def _html_shell(title: str, body: str, prefix: str) -> str:
     # Only render the citation line when a DOI is actually present, so a missing
     # self-description falls back cleanly instead of emitting "https://doi.org/".
     citation = (
-        f'<br>\n    Cite as <a href="https://doi.org/{html.escape(doi, quote=True)}">'
+        f"<br>\n    {html.escape(ontology_docs_template('footer_cite_prefix'))} "
+        f'<a href="https://doi.org/{html.escape(doi, quote=True)}">'
         f"doi:{html.escape(doi)}</a> ·"
         if doi
         else ""
     )
+    nav = {
+        "nav_home": html.escape(ontology_docs_template("nav_home")),
+        "nav_getting_started": html.escape(
+            ontology_docs_template("nav_getting_started")
+        ),
+        "nav_learning_paths": html.escape(ontology_docs_template("nav_learning_paths")),
+        "nav_recipes": html.escape(ontology_docs_template("nav_recipes")),
+        "nav_examples": html.escape(ontology_docs_template("nav_examples")),
+        "nav_concerns": html.escape(ontology_docs_template("nav_concerns")),
+        "nav_four_boxes": html.escape(ontology_docs_template("nav_four_boxes")),
+        "nav_slices": html.escape(ontology_docs_template("nav_slices")),
+        "nav_adoption": html.escape(ontology_docs_template("nav_adoption")),
+        "nav_linkages": html.escape(ontology_docs_template("nav_linkages")),
+        "nav_bibliography": html.escape(ontology_docs_template("nav_bibliography")),
+        "nav_reference": html.escape(ontology_docs_template("nav_reference")),
+        "nav_external": html.escape(ontology_docs_template("nav_external")),
+        "nav_rdf12": html.escape(ontology_docs_template("nav_rdf12")),
+        "footer_generated": html.escape(ontology_docs_template("footer_generated")),
+        "footer_license": html.escape(ontology_docs_template("footer_license")),
+    }
+    nav_home = nav["nav_home"]
+    nav_getting_started = nav["nav_getting_started"]
+    nav_learning_paths = nav["nav_learning_paths"]
+    nav_recipes = nav["nav_recipes"]
+    nav_examples = nav["nav_examples"]
+    nav_concerns = nav["nav_concerns"]
+    nav_four_boxes = nav["nav_four_boxes"]
+    nav_slices = nav["nav_slices"]
+    nav_adoption = nav["nav_adoption"]
+    nav_linkages = nav["nav_linkages"]
+    nav_bibliography = nav["nav_bibliography"]
+    nav_reference = nav["nav_reference"]
+    nav_external = nav["nav_external"]
+    nav_rdf12 = nav["nav_rdf12"]
+    footer_generated = nav["footer_generated"]
+    footer_license = nav["footer_license"]
     return f"""<!doctype html>
 <html lang="en">
 <head>
@@ -1979,29 +2031,28 @@ def _html_shell(title: str, body: str, prefix: str) -> str:
   <a class="skip" href="#content">Skip to content</a>
   <header>
     <nav aria-label="Primary">
-      <a href="{home}">Home</a>
-      <a href="{prefix}getting-started/">Getting Started</a>
-      <a href="{prefix}learning-paths/">Learning Paths</a>
-      <a href="{prefix}recipes/">Recipes</a>
-      <a href="{prefix}examples/">Examples</a>
-      <a href="{prefix}concerns/">Concerns</a>
-      <a href="{prefix}four-boxes/">Four Boxes</a>
-      <a href="{prefix}slices/">Slices</a>
-      <a href="{prefix}adoption/">Adoption</a>
-      <a href="{prefix}linkages/">Linkages</a>
-      <a href="{prefix}references/">Bibliography</a>
-      <a href="{prefix}reference/">Reference</a>
-      <a href="{prefix}external/ontologies/">External</a>
-      <a href="{prefix}statements/">RDF 1.2</a>
+      <a href="{home}">{nav_home}</a>
+      <a href="{prefix}getting-started/">{nav_getting_started}</a>
+      <a href="{prefix}learning-paths/">{nav_learning_paths}</a>
+      <a href="{prefix}recipes/">{nav_recipes}</a>
+      <a href="{prefix}examples/">{nav_examples}</a>
+      <a href="{prefix}concerns/">{nav_concerns}</a>
+      <a href="{prefix}four-boxes/">{nav_four_boxes}</a>
+      <a href="{prefix}slices/">{nav_slices}</a>
+      <a href="{prefix}adoption/">{nav_adoption}</a>
+      <a href="{prefix}linkages/">{nav_linkages}</a>
+      <a href="{prefix}references/">{nav_bibliography}</a>
+      <a href="{prefix}reference/">{nav_reference}</a>
+      <a href="{prefix}external/ontologies/">{nav_external}</a>
+      <a href="{prefix}statements/">{nav_rdf12}</a>
     </nav>
   </header>
   <main id="content">
 {body}
   </main>
   <footer>
-    Generated from the GMEOW ontology. Canonical source is RDF/OWL; this
-    site is a deterministic projection.{citation}
-    © 2026 Blackcat Informatics® Inc. · Ontology licensed CC BY 4.0.
+    {footer_generated}{citation}
+    © 2026 Blackcat Informatics® Inc. · {footer_license}.
   </footer>
 </body>
 </html>
@@ -2877,7 +2928,8 @@ def _reference_index(model: DocsModel) -> Page:
         "coverage are summarized in [Linkages](../linkages/index.md).",
         "",
     ]
-    for category, label in _CATEGORY_LABELS.items():
+    for category, _label_key in _CATEGORY_LABEL_KEYS.items():
+        label = _category_label(category)
         rel = Path("reference") / _CATEGORY_DIRS[category] / "index.md"
         lines.append(f"- {_markdown_link(label, rel)}: {counts[category]} terms")
     lines.append("")
@@ -2886,7 +2938,7 @@ def _reference_index(model: DocsModel) -> Page:
 
 def _category_index(category: str, terms: list[DocTerm], model: DocsModel) -> Page:
     """Render one category index."""
-    label = _CATEGORY_LABELS[category]
+    label = _category_label(category)
     from_rel = Path("reference") / _CATEGORY_DIRS[category] / "index.md"
     lines = [
         f"# {label}",
@@ -3243,7 +3295,7 @@ def _slice_page(slice_entry: Slice, model: DocsModel) -> Page:
                 continue
             lines.extend(
                 [
-                    f"### {_CATEGORY_LABELS[category]}",
+                    f"### {_category_label(category)}",
                     "",
                     "| Term | Label | Definition |",
                     "|---|---|---|",

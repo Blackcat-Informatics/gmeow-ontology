@@ -23,6 +23,7 @@ from gts.model import TermKind
 from gts.wire import iter_items, unwrap_header
 from rdflib import RDF, Graph, Literal, URIRef
 from rdflib.compare import to_canonical_graph
+from rdflib.namespace import RDFS
 
 from gmeow_tools.config import (
     GTS_GRAPH_ALIGNMENTS,
@@ -30,10 +31,14 @@ from gmeow_tools.config import (
     GTS_GRAPH_METADATA,
     GTS_GRAPH_STATEMENTS,
     GTS_SNAPSHOT_FILE,
+    NAMESPACE,
     PROJECT_ROOT,
+    SLICES_DIR,
 )
 from gmeow_tools.graph import iter_import_files, load_merged_graph
 from gmeow_tools.gts_producer import compile_gts
+from gmeow_tools.gts_views import load_fold
+from gmeow_tools.i18n_catalog import load_po_catalog
 from gmeow_tools.mappings import build_alignment_graph, load_mappings
 
 EX = "https://example.org/"
@@ -177,16 +182,21 @@ def test_snapshot_partitions_sources_into_named_graphs() -> None:
 
     default_quads = sum(1 for q in g.quads if q[3] is None)
     merged_size = len(to_canonical_graph(load_merged_graph(include_imports=False)))
-    from gmeow_tools.config import SLICES_DIR
 
     guide_links = sum(
         1
         for m in SLICES_DIR.glob("*/*/manifest.ttl")
         if (m.parent / "docs.md").exists()
     )
+    translation_quads = sum(
+        len(load_po_catalog(p))
+        for p in sorted(SLICES_DIR.glob("*/*/i18n/*.po"))
+        if p.stem != "en"
+    )
     # The default graph carries the merged sources PLUS one gmeow:guideBlob
-    # linkage per embedded slice guide (#325).
-    assert default_quads == merged_size + guide_links
+    # linkage per embedded slice guide (#325) PLUS merged non-English PO
+    # translations (#572).
+    assert default_quads == merged_size + guide_links + translation_quads
 
     alignments = [
         q
@@ -214,6 +224,19 @@ def test_snapshot_partitions_sources_into_named_graphs() -> None:
 
     # the statement layer rides with its reifier machinery intact
     assert g.reifiers and g.annotations
+
+
+def test_snapshot_includes_translated_literals() -> None:
+    """Non-English PO catalogs are merged into the default graph before encoding."""
+    fold = load_fold(GTS_SNAPSHOT_FILE)
+    term_tid = fold.tid_of_iri(NAMESPACE + "EntityExistence")
+    assert term_tid is not None
+    label_langs = {
+        fold.lang(o_tid)
+        for o_tid in fold.objects(term_tid, str(RDFS.label))
+        if fold.is_literal(o_tid)
+    }
+    assert "x-gmeow-french" in label_langs
 
 
 def test_default_graph_loader_excludes_import_subjects() -> None:

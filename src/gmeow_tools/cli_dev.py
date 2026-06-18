@@ -20,6 +20,7 @@ from rich.console import Console
 from gmeow_tools import __version__
 from gmeow_tools.config import PROJECT_ROOT
 from gmeow_tools.projections import PROFILES as _PROFILES
+from gmeow_tools.slices import Slice
 
 if TYPE_CHECKING:
     from rdflib import Graph
@@ -2225,6 +2226,198 @@ i18n_app = typer.Typer(help="Internationalization commands.", no_args_is_help=Tr
 app.add_typer(i18n_app, name="i18n")
 
 
+def _i18n_output_path(
+    slice_iri: str,
+    slices_by_iri: dict[str, Slice],
+    output_dir: Path,
+    lang: str | None,
+) -> Path:
+    """Return the output path for a slice or namespace grouping."""
+    slice_info = slices_by_iri.get(slice_iri)
+    if slice_info is not None:
+        if lang is None:
+            return output_dir / "slices" / slice_info.group / f"{slice_info.name}.pot"
+        return (
+            output_dir
+            / "slices"
+            / slice_info.group
+            / slice_info.name
+            / "i18n"
+            / f"{lang}.po"
+        )
+    local = slice_iri.rstrip("/#").split("/")[-1] if "/" in slice_iri else slice_iri
+    if not local:
+        local = "_"
+    safe = "".join(c if c.isalnum() or c in "-_" else "_" for c in local)[:64]
+    if lang is None:
+        return output_dir / "slices" / "_core" / f"{safe}.pot"
+    return output_dir / "slices" / "_core" / safe / "i18n" / f"{lang}.po"
+
+
+@i18n_app.command(name="extract")
+def extract_catalog(
+    root: Path = typer.Option(  # noqa: B008
+        PROJECT_ROOT,
+        "--root",
+        help="Repository root containing the slices/ directory.",
+    ),
+    output_dir: Path = typer.Option(  # noqa: B008
+        PROJECT_ROOT / "dist" / "i18n",
+        "--output-dir",
+        "-o",
+        help="Directory to write the generated POT/PO files.",
+    ),
+    lang: str | None = typer.Option(
+        None,
+        "--lang",
+        "-l",
+        help="If given, write .po files for this language instead of .pot templates.",
+    ),
+    terms_only: bool = typer.Option(
+        False,
+        "--terms-only",
+        help="Only extract ontology term strings, skip Markdown docs and templates.",
+    ),
+) -> None:
+    """Extract translatable ontology strings into gettext catalogs.
+
+    Walks the merged ontology graph, groups translatable strings by owning
+    slice, and emits one POT (or PO when --lang is given) file per slice.
+    When --terms-only is not given, also extracts slice guides, project docs,
+    README.md, and ontology-docs template strings.
+
+    Args:
+        root: Repository root containing the slices/ directory.
+        output_dir: Directory to write the generated POT/PO files.
+        lang: If given, write .po files for this language instead of .pot templates.
+        terms_only: Only extract ontology term strings, skip Markdown docs and
+            templates.
+    """
+    from rdflib import Graph, Literal, URIRef
+
+    from gmeow_tools.graph import load_merged_graph
+    from gmeow_tools.i18n_catalog import (
+        LOCALIZABLE_PREDICATES,
+        build_pot,
+        extract_markdown,
+        extract_ontology_docs_templates,
+        extract_terms,
+        write_po,
+        write_pot,
+    )
+    from gmeow_tools.i18n_sync import PoEntry
+    from gmeow_tools.slices import discover_slices
+
+    graph = load_merged_graph(include_imports=False)
+    slices_by_iri: dict[str, Slice] = discover_slices(root / "slices")
+
+    # Map each localizable (term, predicate, value) triple to the slice
+    # module(s) that declare it. This lets terms reused across slices with
+    # different definitions be routed to the slice that actually owns the
+    # literal, while terms not declared in any slice module fall back to
+    # namespace-based grouping.
+    value_sources: dict[tuple[str, str, str], set[str]] = {}
+    for slice_info in slices_by_iri.values():
+        if not slice_info.module_path.is_file():
+            continue
+        module_graph = Graph()
+        try:
+            module_graph.parse(slice_info.module_path, format="turtle")
+        except Exception:
+            continue
+        for subject, predicate, obj in module_graph:
+            if (
+                isinstance(subject, URIRef)
+                and predicate in LOCALIZABLE_PREDICATES
+                and isinstance(obj, Literal)
+            ):
+                value_sources.setdefault(
+                    (str(subject), str(predicate), str(obj)), set()
+                ).add(slice_info.iri)
+
+    def _resolve_slice(term_iri: str, predicate_iri: str, lexical: str) -> str | None:
+        source_slices = value_sources.get((term_iri, predicate_iri, lexical))
+        if source_slices:
+            return min(source_slices)
+        return None
+
+    groups: dict[str, list[Any]] = {}
+    total_keys = 0
+    for key in extract_terms(graph, slice_resolver=_resolve_slice):
+        groups.setdefault(key.slice_iri, []).append(key)
+        total_keys += 1
+
+    for slice_iri, keys in groups.items():
+        path = _i18n_output_path(slice_iri, slices_by_iri, output_dir, lang)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        if lang:
+            entries = [
+                PoEntry(
+                    msgctxt=f"{key.term_iri}|{key.predicate}",
+                    msgid=key.english_value,
+                    msgstr=key.english_value,
+                )
+                for key in keys
+            ]
+            write_po(path, entries, lang)
+        else:
+            path.write_text(build_pot(keys), encoding="utf-8")
+
+    if not terms_only:
+        docs_output = output_dir / "docs"
+        docs_output.mkdir(parents=True, exist_ok=True)
+
+        md_sources: list[Path] = []
+        md_sources.extend(sorted(root.glob("slices/*/*/docs.md")))
+        md_sources.extend(sorted((root / "docs").glob("*.md")))
+        if (root / "README.md").is_file():
+            md_sources.append(root / "README.md")
+
+        for source in md_sources:
+            rel = source.relative_to(root)
+            entries = extract_markdown(source, rel_path=rel.as_posix())
+            path = (
+                docs_output / f"{rel}.{lang}.po" if lang else docs_output / f"{rel}.pot"
+            )
+            path.parent.mkdir(parents=True, exist_ok=True)
+            if lang:
+                po_entries = [
+                    PoEntry(
+                        msgctxt=entry.msgctxt,
+                        msgid=entry.msgid,
+                        msgstr=entry.msgid,
+                    )
+                    for entry in entries
+                ]
+                write_po(path, po_entries, lang)
+            else:
+                write_pot(path, entries)
+
+        template_entries = extract_ontology_docs_templates()
+        template_path = (
+            output_dir / f"ontology-docs-templates.{lang}.po"
+            if lang
+            else output_dir / "ontology-docs-templates.pot"
+        )
+        if lang:
+            po_entries = [
+                PoEntry(
+                    msgctxt=entry.msgctxt,
+                    msgid=entry.msgid,
+                    msgstr=entry.msgid,
+                )
+                for entry in template_entries
+            ]
+            write_po(template_path, po_entries, lang)
+        else:
+            write_pot(template_path, template_entries)
+
+    console.print(
+        f"[green]✓[/green] wrote {len(groups)} term catalog(s) "
+        f"({total_keys} keys) to {output_dir}"
+    )
+
+
 @i18n_app.command(name="sync-english")
 def sync_english(
     root: Path = typer.Option(  # noqa: B008
@@ -2244,6 +2437,10 @@ def sync_english(
     maps them to their canonical masters, and applies a 3-way merge.  ``en.po``
     catalogs update sibling ``module.ttl`` and ``manifest.ttl`` files;
     ``*.md.po`` catalogs update the matching ``*.md`` file in the same slice.
+
+    Args:
+        root: Repository root to search for slices.
+        dry_run: Report only; do not write changes.
     """
     from gmeow_tools.i18n_sync import sync_english_file
 
@@ -2306,6 +2503,126 @@ def sync_english(
         f"{len(changed_files)} changed, {len(conflicts)} conflicts, "
         f"{len(skipped)} skipped, {unchanged} unchanged"
     )
+
+
+@i18n_app.command(name="merge")
+def merge(
+    root: Path = typer.Option(  # noqa: B008
+        PROJECT_ROOT,
+        "--root",
+        help="Repository root to search for slices.",
+    ),
+    output: Path | None = typer.Option(  # noqa: B008
+        None,
+        "--output",
+        "-o",
+        help="Output Turtle file. Defaults to stdout.",
+    ),
+    lang: str | None = typer.Option(
+        None,
+        "--lang",
+        help="BCP-47 language tag to merge (e.g. 'fr'). Defaults to all languages.",
+    ),
+) -> None:
+    """Merge committed PO translations into a multilingual RDF graph.
+
+    Discovers ``*.po`` files under ``<root>/slices/*/*/i18n/`` and adds their
+    translated triples to the merged English ontology graph. The result is a
+    single Turtle graph carrying language-tagged labels, definitions, and
+    comments without modifying canonical ``.ttl`` or ``.md`` sources.
+
+    Args:
+        root: Repository root to search for slices.
+        output: Output Turtle file. Defaults to stdout.
+        lang: BCP-47 language tag to merge (e.g. 'fr'). Defaults to all languages.
+    """
+    from gmeow_tools.graph import load_merged_graph
+    from gmeow_tools.i18n_catalog import _language_from_po, merge_terms
+
+    po_paths = sorted(root.glob("slices/*/*/i18n/*.po"))
+    if lang is not None:
+        lang_lower = lang.lower()
+        po_paths = [
+            p
+            for p in po_paths
+            if _language_from_po(p.read_text(encoding="utf-8")).lower() == lang_lower
+        ]
+
+    base_graph = load_merged_graph(include_imports=False)
+    merged_graph = merge_terms(base_graph, po_paths)
+    added = len(merged_graph) - len(base_graph)
+
+    ttl = merged_graph.serialize(format="turtle")
+    if output is None:
+        console.print(ttl, end="")
+        output_note = "stdout"
+    else:
+        output.parent.mkdir(parents=True, exist_ok=True)
+        output.write_text(ttl, encoding="utf-8")
+        output_note = str(output)
+
+    err_console.print(
+        f"[green]✓ merged {len(po_paths)} PO file(s), "
+        f"{added} translated triple(s) added → {output_note}[/green]"
+    )
+
+
+@i18n_app.command(name="export-csv")
+def export_csv(
+    root: Path = typer.Option(  # noqa: B008
+        PROJECT_ROOT,
+        "--root",
+        help="Repository root to search for slices.",
+    ),
+    output: Path | None = typer.Option(  # noqa: B008
+        None,
+        "--output",
+        "-o",
+        help="Output CSV file (default: stdout).",
+    ),
+) -> None:
+    """Export translated PO catalogs to a flat CSV file.
+
+    Discovers ``slices/*/*/i18n/*.po`` files, parses each entry's fuzzy flag,
+    and emits one row per translatable term/predicate with the slice name,
+    language, source string, and translation.
+
+    Args:
+        root: Repository root to search for slices.
+        output: Output CSV file (default: stdout).
+    """
+    from gmeow_tools.i18n_catalog import iter_po_catalogs, write_csv_export
+
+    write_csv_export(iter_po_catalogs(root), output)
+
+
+@i18n_app.command(name="export-xliff")
+def export_xliff(
+    root: Path = typer.Option(  # noqa: B008
+        PROJECT_ROOT,
+        "--root",
+        help="Repository root to search for slices.",
+    ),
+    output: Path | None = typer.Option(  # noqa: B008
+        None,
+        "--output",
+        "-o",
+        help="Output XLIFF 1.2 file (default: stdout).",
+    ),
+) -> None:
+    """Export translated PO catalogs to an XLIFF 1.2 file.
+
+    Discovers ``slices/*/*/i18n/*.po`` files and emits one XLIFF ``<file>`` per
+    slice/language, with ``<trans-unit>`` elements keyed by
+    ``term_iri|predicate``.
+
+    Args:
+        root: Repository root to search for slices.
+        output: Output XLIFF 1.2 file (default: stdout).
+    """
+    from gmeow_tools.i18n_catalog import iter_po_catalogs, write_xliff_export
+
+    write_xliff_export(iter_po_catalogs(root), output)
 
 
 if __name__ == "__main__":  # pragma: no cover
