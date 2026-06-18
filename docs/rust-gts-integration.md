@@ -119,7 +119,7 @@ Rust-native orchestration `gmeow_validate.validate_all_native` (#634). The Rust
 engine builds the ontology store once, parses the SHACL shapes once, and runs
 every phase against that shared store. The `oxigraph-adapter` feature of
 `gmeow-gts` is what lets the decoded bundle triples land directly in the same
-oxigraph in-memory store (with RDF 1.2 features enabled) that the rest of the
+Oxigraph in-memory store (with RDF 1.2 features enabled) that the rest of the
 validator already uses — there is no intermediate re-serialization.
 
 In GTS mode the store is built from the bundle rather than from individual
