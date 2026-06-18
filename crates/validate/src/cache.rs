@@ -120,15 +120,17 @@ impl ValidationCache {
     /// Return a cache salt for the SHACL validation toolchain versions.
     ///
     /// Mirrors Python `_validation_toolchain_salt`: hashes version strings for
-    /// `gmeow-shacl` and `gmeow-validate`. Because these are Rust crates, the
-    /// package version from `CARGO_PKG_VERSION` is used instead of Python
-    /// `importlib.metadata.version`.
+    /// `gmeow-shacl`, `gmeow-validate`, and the `gmeow-gts` wire-format version.
+    /// Because these are Rust crates, the package version from
+    /// `CARGO_PKG_VERSION` is used instead of Python `importlib.metadata.version`.
     pub fn toolchain_salt() -> String {
         let validate_version = env!("CARGO_PKG_VERSION");
         let shacl_version = gmeow_shacl::VERSION;
+        let gts_version = gmeow_gts::wire::VERSION;
         Self::cache_key(&[
             format!("gmeow-validate={validate_version}").as_bytes(),
             format!("gmeow-shacl={shacl_version}").as_bytes(),
+            format!("gmeow-gts-wire={gts_version}").as_bytes(),
         ])
     }
 
