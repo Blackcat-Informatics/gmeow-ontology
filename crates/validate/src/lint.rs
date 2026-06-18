@@ -225,25 +225,28 @@ pub fn structural_lint(store: &Store, cfg: &LintConfig) -> LintReport {
     // `self` ontology header itself or is `rdfs:isDefinedBy <namespace>self`.
     let self_ontology = format!("{}self", cfg.namespace);
     let self_node = oxigraph::model::NamedNode::new_unchecked(&self_ontology);
-    let is_self_description = |term: &str| -> bool {
-        if term == self_ontology {
-            return true;
+    // Precompute the self-description A-Box once: one store scan instead of a
+    // per-term query, and no `new_unchecked` on arbitrary subject strings.
+    let mut self_defined: std::collections::HashSet<oxigraph::model::NamedNode> =
+        std::collections::HashSet::new();
+    for quad in store
+        .quads_for_pattern(
+            None,
+            Some(rdfs::IS_DEFINED_BY),
+            Some((&self_node).into()),
+            None,
+        )
+        .flatten()
+    {
+        if let NamedOrBlankNode::NamedNode(subject) = quad.subject {
+            self_defined.insert(subject);
         }
-        let subject = oxigraph::model::NamedNode::new_unchecked(term);
-        store
-            .quads_for_pattern(
-                Some((&subject).into()),
-                Some(rdfs::IS_DEFINED_BY),
-                Some((&self_node).into()),
-                None,
-            )
-            .next()
-            .is_some()
-    };
+    }
 
     // 1. Per-term required annotations (sorted by IRI — BTreeMap iterates sorted).
     for (term, kind) in &typed {
-        if is_self_description(term) {
+        let subject = oxigraph::model::NamedNode::new_unchecked(term);
+        if subject == self_node || self_defined.contains(&subject) {
             continue;
         }
         if !has_predicate(store, term, rdfs::LABEL) {
@@ -261,7 +264,6 @@ pub fn structural_lint(store: &Store, cfg: &LintConfig) -> LintReport {
                 .errors
                 .push(format!("{kind} {term} is missing rdfs:isDefinedBy"));
         }
-        let subject = oxigraph::model::NamedNode::new_unchecked(term);
         let mut has_role = false;
         for quad in store
             .quads_for_pattern(
