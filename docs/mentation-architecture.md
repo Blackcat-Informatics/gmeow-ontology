@@ -73,13 +73,18 @@ collapse them into one overloaded relation.
 
 | Relation | Domain → Range | Meaning |
 |---|---|---|
-| `gmeow:realizes` | `MentalProcess` → `MentalMoment` | An occurrent process *realizes* or *constitutes* an endurant mental moment at a time. Example: the process of inferring realizes the resulting belief-state. |
-| `gmeow:produces` | `MentalProcess` → `MentalMoment` \| `InformationObject` | A process *produces* a new mental moment or content object that did not exist before. Example: a chain-of-thought produces a derived claim. |
-| `updates` | `MentalProcess` → `MentalMoment` | A process *updates* an existing mental moment, e.g. by changing confidence, suppressing it, or revising its temporal scope. The identity of the moment is preserved across the update. |
+| `gmeow:realizesMentalMoment` | `MentalProcess` → `MentalMoment` | A process manifests or makes present an existing mental capacity or state. |
+| `gmeow:producesMentalMoment` | `MentalProcess` → `MentalMoment` | A process creates a new `MentalMoment` that did not exist before. |
+| `gmeow:updatesMentalTenure` | `MentalProcess` → `TimeScopedRelation` | A process revises, extends, or closes a held, time-scoped mental tenure. |
 
-`realizes` is constitution-like; `produces` is creation-like; `updates` is revision-like. A single
-process may realize one moment, produce another, and update a third, but those are three different
-facts.
+> **Why not `gmeow:realizes` / `gmeow:produces`?** The generic properties already serve the WEMI
+> / creative-works and learning slices. To keep one canonical source per term (Principle 4), the
+> mentation spine mints its own precise bridge properties instead of overloading the existing ones.
+
+`gmeow:realizesMentalMoment` is manifestation-like; `gmeow:producesMentalMoment` is creation-like;
+`gmeow:updatesMentalTenure` is revision-like. A single process may realize one moment via
+`gmeow:realizesMentalMoment`, produce another via `gmeow:producesMentalMoment`, and update a third
+via `gmeow:updatesMentalTenure`, but those are three different facts.
 
 ---
 
@@ -94,7 +99,7 @@ mixing them up is the most common failure mode in cognitive ontology.
 - **Occurrent**: `MentalProcess` and its sub-events (inferring, attending, recalling, etc.).
 
 No class may be both at once. If a slice needs both faces, it mints a moment class *and* a process
-class and links them with `realizes`/`produces`/`updates`.
+class and links them with `gmeow:realizesMentalMoment`/`gmeow:producesMentalMoment`/`gmeow:updatesMentalTenure`.
 
 ### Axis II — Content types
 
@@ -172,7 +177,7 @@ extension and a composition stress-test.
 |---|---|---|---|
 | #585 | `concepts` | `slices/core/concepts/` | Concept possession, category activation, concept learning. |
 | #582 | `inquiry` | `slices/core/inquiry/` | Questions, problems, investigation states, answer conditions. |
-| #586 | `mentation` | `slices/core/mentation/` | Keystone: `MentalMoment`, `MentalProcess`, `realizes`, `produces`, `updates`. |
+| #586 | `mentation` | `slices/core/mentation/` | Keystone: `MentalMoment`, `MentalProcess`, `gmeow:realizesMentalMoment`, `gmeow:producesMentalMoment`, `gmeow:updatesMentalTenure`. |
 | #581 | `inference` | `slices/core/inference/` | Reasoning processes and the claims they produce or update. |
 | #584 | `learning` | `slices/core/learning/` | Learning processes and the memories/competencies they update. |
 | #587 | `imagination` | `slices/core/imagination/` | Suppositional, counterfactual, and generative content. |
@@ -242,9 +247,9 @@ in [`docs/projections.md`](./projections.md).
 1. **Separate occurrent processes from relators and commitments.** Inference is a process; the
    inferred belief is a `MentalMoment`; the commitment/attribution that records *who* inferred it
    and *from what evidence* is a relator. Do not fold all three into one class.
-2. **Distinguish `realizes`, `produces`, and `updates`.** A process can do all three, but the
-   relation used must match the ontological job. Never collapse them into a single generic
-   "causes" or "results in" property.
+2. **Distinguish `gmeow:realizesMentalMoment`, `gmeow:producesMentalMoment`, and
+   `gmeow:updatesMentalTenure`.** A process can do all three, but the relation used must match the
+   ontological job. Never collapse them into a single generic "causes" or "results in" property.
 3. **Human↔AI mappings are shared faculty architecture, not identity.** `attention` is not
    identical to transformer attention weights; it is the same faculty realized in a biological
    substrate and in a computational substrate. Bridge properties (`hasModelObservable`,
