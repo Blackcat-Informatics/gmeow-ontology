@@ -265,6 +265,9 @@ in [`docs/projections.md`](./projections.md).
 - **`MentalProcess`** — An occurrent mental happening extended in time, modelled as a sub-class of
   `gmeow:Event`. Examples: inferring, recalling, attending, imagining, dreaming.
 - **`Experience`** — A standpoint-indexed, temporally-scoped `MentalProcess` (occurrent) whose content is phenomenally or functionally present to the agent. The one declared subclass of `MentalProcess` in the mentation slice; finer experiential kinds are typed via `mentalProcessType` rather than via further subclasses.
+- **`realizesMentalMoment`** — Manifestation relation: a `MentalProcess` realizes an already-potential `MentalMoment` — the process makes present or actualises an existing capacity or state rather than creating something new. Distinct from the creative-works relation `gmeow:realizes` (Expression to Work).
+- **`producesMentalMoment`** — Creation relation: a `MentalProcess` brings a new `MentalMoment` into being — the process is the causal origin of a fresh belief, knowledge-state, or perceptual claim. Distinct from the learning-slice relation `gmeow:produces`.
+- **`updatesMentalTenure`** — Revision relation: a `MentalProcess` revises, extends, or closes an existing `TimeScopedRelation` representing a held mental tenure (a belief tenure, knowledge tenure, or other time-scoped mental holding).
 - **`contentOrigin`** — An annotation property indicating how mental content came about
   (perception, inference, imagination, testimony, generative sampling, etc.). It types the
   *genesis* of the content, not its truth value.
