@@ -115,17 +115,18 @@ def test_memory_consolidation_replay() -> None:
         "Expected at least one LearningEvent with consolidation and concept formation."
     )
 
-    analogy_query = """
+    values_block = " ".join(f"<{uri}>" for uri in replays)
+    analogy_query = f"""
         PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
         SELECT ?analogy
-        WHERE {
-            ?replay a gmeow:LearningEvent ;
-                    gmeow:learnedFrom ?analogy .
+        WHERE {{
+            VALUES ?replay {{ {values_block} }}
+            ?replay gmeow:learnedFrom ?analogy .
             ?analogy a gmeow:Analogy .
-        }
+        }}
     """
     analogies = {str(row[0]) for row in graph.query(analogy_query)}
     assert analogies, (
-        "Expected at least one Analogy linked to a LearningEvent "
-        "via a provenance property."
+        "Expected at least one Analogy linked to the consolidation/concept-formation "
+        "LearningEvent via gmeow:learnedFrom."
     )
