@@ -160,6 +160,77 @@ pub fn build_store_from_nt(data_nt: &str) -> Result<Store, String> {
     Ok(store)
 }
 
+/// Build an oxigraph [`Store`] from a GTS byte bundle.
+///
+/// Folds the GTS bytes, serializes the graph to N-Quads text, and re-ingests it
+/// through the **lenient** oxigraph parser (RDF 1.2 / `rdf-12`). This mirrors the
+/// lenient stance of [`build_store_from_nt`] and is required for the real GMEOW
+/// bundle: the strict `gmeow_gts::oxigraph::graph_to_store` adapter constructs
+/// oxigraph literals via `Literal::new_language_tagged_literal`, which rejects
+/// the ontology's private-use `@x-gmeow-*` language tags (BCP-47 caps a subtag at
+/// 8 chars, e.g. `@x-gmeow-afrikaans`). The lenient parser accepts those tags
+/// exactly as the Turtle and N-Triples source paths do (#597, #644).
+///
+/// Reifiers/annotations are emitted by `to_nquads` in RDF 1.2 reifying style
+/// (`<reifier> rdf:reifies <<( s p o )>>`), which the `rdf-12` parser ingests.
+///
+/// All quads are folded into the **default graph**. The bundle preserves a
+/// named-graph partition (`graph/statements`, `graph/metadata`, `graph/imports`,
+/// `graph/alignments`, …) that is a transport/organizational detail; the Turtle
+/// validation path loads every source `.ttl` into the default graph (Turtle
+/// carries no graph names), so the SHACL/structural/reasoning lints reason over
+/// one union graph. Flattening here makes the GTS store structurally equivalent
+/// to that merge — without it, default-graph-scoped shape checks miscount values
+/// that live in a named graph (#644).
+///
+/// # Errors
+///
+/// Returns `Err(message)` if the GTS fold reports any diagnostics (corruption,
+/// truncation, empty input, or unfolded segments) or if the projected N-Quads
+/// fail to parse. Any non-empty diagnostic list is treated as a hard failure
+/// (fail-fast) so callers never receive a silent partial store from malformed
+/// or truncated GTS bytes.
+pub fn build_store_from_gts(bytes: &[u8]) -> Result<Store, String> {
+    // allow_segments = true: fold ALL segments of the bundle. With false, a
+    // multi-segment bundle emits a fatal SegmentBoundary diagnostic and silently
+    // drops everything past the first segment — invalid for validating a complete
+    // bundle.
+    let graph = gmeow_gts::reader::read(bytes, true, None);
+    if !graph.diagnostics.is_empty() {
+        let joined = graph
+            .diagnostics
+            .iter()
+            .map(|d| format!("{}: {}", d.code, d.detail))
+            .collect::<Vec<_>>()
+            .join("; ");
+        return Err(format!(
+            "GTS fold reported {} diagnostic(s): {}",
+            graph.diagnostics.len(),
+            joined
+        ));
+    }
+    let nquads = gmeow_gts::nquads::to_nquads(&graph);
+    let store = Store::new().map_err(|e| format!("store creation failed: {e}"))?;
+    for quad in RdfParser::from_format(RdfFormat::NQuads)
+        .lenient()
+        .for_reader(nquads.as_bytes())
+    {
+        let quad = quad.map_err(|e| format!("GTS N-Quads parse error: {e}"))?;
+        // Collapse every named graph into the default graph so the validation
+        // store matches the flattened union the Turtle source merge produces.
+        let triple = Quad::new(
+            quad.subject,
+            quad.predicate,
+            quad.object,
+            GraphNameRef::DefaultGraph,
+        );
+        store
+            .insert(&triple)
+            .map_err(|e| format!("GTS store insert failed: {e}"))?;
+    }
+    Ok(store)
+}
+
 /// Serialize a [`Store`]'s default graph to canonical N-Triples text.
 ///
 /// Uses oxigraph's own N-Triples serializer (no hand-rolled literal escaping),
@@ -288,5 +359,113 @@ mod tests {
     #[test]
     fn nt_rejects_malformed() {
         assert!(build_store_from_nt("this is not n-triples @@@").is_err());
+    }
+
+    #[test]
+    fn gts_loads_single_triple() {
+        use gmeow_gts::model::{Term, TermKind};
+        use gmeow_gts::writer::Writer;
+
+        let mut graph = gmeow_gts::model::Graph::default();
+        graph.terms.push(Term {
+            kind: TermKind::Iri,
+            value: Some("https://example.org/a".to_string()),
+            datatype: None,
+            lang: None,
+            reifier: None,
+        });
+        graph.terms.push(Term {
+            kind: TermKind::Iri,
+            value: Some("https://example.org/p".to_string()),
+            datatype: None,
+            lang: None,
+            reifier: None,
+        });
+        graph.terms.push(Term {
+            kind: TermKind::Iri,
+            value: Some("https://example.org/b".to_string()),
+            datatype: None,
+            lang: None,
+            reifier: None,
+        });
+        graph.quads.push((0, 1, 2, None));
+
+        let writer = Writer::deterministic(&graph, "gmeow-validate-test")
+            .expect("deterministic GTS writer must succeed");
+        let bytes = writer.to_bytes();
+
+        let store = build_store_from_gts(&bytes).expect("GTS bytes must load into store");
+        assert_eq!(store.len().unwrap(), 1);
+    }
+
+    #[test]
+    fn gts_accepts_private_lang_tag_and_flattens_named_graph() {
+        use gmeow_gts::model::{Term, TermKind};
+        use gmeow_gts::writer::Writer;
+
+        // A literal with a private-use `@x-gmeow-*` tag (BCP-47 subtag > 8 chars,
+        // which the strict oxigraph adapter rejects) in a NAMED graph. The lenient
+        // round-trip must accept the tag and collapse the named graph into the
+        // default graph (#644).
+        let mut graph = gmeow_gts::model::Graph::default();
+        for value in ["https://example.org/s", "https://example.org/p"] {
+            graph.terms.push(Term {
+                kind: TermKind::Iri,
+                value: Some(value.to_string()),
+                datatype: None,
+                lang: None,
+                reifier: None,
+            });
+        }
+        graph.terms.push(Term {
+            kind: TermKind::Literal,
+            value: Some("hallo".to_string()),
+            datatype: None,
+            lang: Some("x-gmeow-afrikaans".to_string()),
+            reifier: None,
+        });
+        graph.terms.push(Term {
+            kind: TermKind::Iri,
+            value: Some("https://blackcatinformatics.ca/gmeow/graph/metadata".to_string()),
+            datatype: None,
+            lang: None,
+            reifier: None,
+        });
+        // Object (term 2) carries the private lang tag; quad lives in named graph (term 3).
+        graph.quads.push((0, 1, 2, Some(3)));
+
+        let writer = Writer::deterministic(&graph, "gmeow-validate-test")
+            .expect("deterministic GTS writer must succeed");
+        let store = build_store_from_gts(&writer.to_bytes())
+            .expect("private lang tag in a named graph must load leniently");
+
+        assert_eq!(store.len().unwrap(), 1);
+        // Flattened: the triple must be visible in the default graph.
+        let nt = dump_store_to_ntriples(&store).expect("default-graph dump");
+        assert!(nt.contains("x-gmeow-afrikaans"), "lang tag preserved: {nt}");
+        assert!(nt.contains("<https://example.org/s>"));
+    }
+
+    #[test]
+    fn build_store_from_gts_rejects_malformed_bytes() {
+        // Clearly non-GTS bytes must trigger a fold diagnostic and return Err,
+        // not a silent empty store. This exercises the fail-fast contract.
+        let result = build_store_from_gts(b"this is not a valid gts file");
+        assert!(
+            result.is_err(),
+            "malformed GTS bytes must return Err, not a silent empty store"
+        );
+        let msg = result.err().unwrap();
+        assert!(
+            msg.contains("diagnostic"),
+            "error message must mention diagnostics; got: {msg}"
+        );
+
+        // Also verify raw garbage bytes (not even ASCII text).
+        let result2 = build_store_from_gts(&[0u8, 1, 2, 3, 0xFF, 0xFE]);
+        assert!(
+            result2.is_err(),
+            "binary garbage bytes must return Err, not a silent empty store"
+        );
     }
 }

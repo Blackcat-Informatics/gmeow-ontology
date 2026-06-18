@@ -30,6 +30,8 @@ sha2 = "0.10"
 # and validates the shared store directly (#634). The engine core is PyO3-free;
 # only the py modules on both sides touch PyO3.
 gmeow-shacl = { path = "../shacl" }
+# GTS format engine: shared bundle codec and verification used by validate (#644).
+gmeow-gts = { version = "0.9.0", features = ["oxigraph-adapter"] }
 # pyo3 is an UNCONDITIONAL native-only dependency: this crate is native-only and
 # carries NO architecture cfgs (never a [target.'cfg(...)'] table). A capability
 # cfg would be optionality, not compliance (#579). The engine core
