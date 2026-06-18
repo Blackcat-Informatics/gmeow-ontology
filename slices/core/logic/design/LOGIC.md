@@ -4,7 +4,7 @@
 # GMEOW Logic — Vision and Doctrine
 
 > Status: canonical target architecture for GMEOW's reasoning layer. This is the **manifesto**
-> of a five-document design set; it carries the vision, doctrine, lineage, and target
+> of the GMEOW Logic design set; it carries the vision, doctrine, lineage, and target
 > architecture. The formal semantics, runtime, rollout, and conformance contract live in the
 > sibling documents below. Where this document states a thesis once, the siblings make it
 > precise — repetition is replaced by cross-reference on purpose.
@@ -14,6 +14,7 @@
 | Document | Genre | Contents |
 |---|---|---|
 | `LOGIC.md` (this) | manifesto | vision, doctrine, lineage, target architecture |
+| [`LOGIC-FOUNDATION.md`](LOGIC-FOUNDATION.md) | charter | the `gmeow:logic` upper-ontology charter — the gUFO ⊇ baseline, the criticism ledger, the greenfield feature map, the Ithkuil precision ethos, the four-box organization |
 | [`LOGIC-SEMANTICS.md`](LOGIC-SEMANTICS.md) | formal semantics | the unified core, triple-term/assertion rules, semantic profiles, modality, worlds, decidability |
 | [`LOGIC-RUNTIME.md`](LOGIC-RUNTIME.md) | runtime | solver architecture, the Nemo–Prolog seam, graph versioning, generated artifacts, CLI |
 | [`LOGIC-MIGRATION.md`](LOGIC-MIGRATION.md) | rollout | the MVP ladder, adapter phases, gates, deprecations, the design risk register |
