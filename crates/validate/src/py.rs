@@ -116,11 +116,16 @@ struct PyValidateOptions {
     /// Project root used to locate `.cache/validate`. When `None`, the cache is
     /// disabled. Task 4 wires Python to pass `PROJECT_ROOT`.
     project_root: Option<String>,
+    /// Optional GTS byte bundle. When present, the orchestration builds the
+    /// shared store from the bundle instead of from `source_paths`, and the
+    /// per-file Turtle phases (syntax check, `owl:sameAs` ban) are skipped.
+    gts_bytes: Option<Vec<u8>>,
 }
 
 #[pymethods]
 impl PyValidateOptions {
     #[new]
+    #[allow(clippy::too_many_arguments)]
     #[pyo3(signature = (
         timings = false,
         sameas_allowlist = None,
@@ -129,6 +134,7 @@ impl PyValidateOptions {
         mapping_shapes_ttl = None,
         statement_shapes_ttl = None,
         project_root = None,
+        gts_bytes = None,
     ))]
     fn new(
         timings: bool,
@@ -138,6 +144,7 @@ impl PyValidateOptions {
         mapping_shapes_ttl: Option<String>,
         statement_shapes_ttl: Option<String>,
         project_root: Option<String>,
+        gts_bytes: Option<Vec<u8>>,
     ) -> Self {
         Self {
             timings,
@@ -147,6 +154,7 @@ impl PyValidateOptions {
             mapping_shapes_ttl,
             statement_shapes_ttl,
             project_root,
+            gts_bytes,
         }
     }
 }
@@ -161,7 +169,7 @@ impl PyValidateOptions {
             mapping_shapes_ttl: self.mapping_shapes_ttl.clone(),
             statement_shapes_ttl: self.statement_shapes_ttl.clone(),
             project_root: self.project_root.as_ref().map(PathBuf::from),
-            gts_bytes: None,
+            gts_bytes: self.gts_bytes.clone(),
         }
     }
 }
@@ -192,6 +200,17 @@ impl PyValidationStore {
         Ok(Self {
             store,
             source_paths,
+        })
+    }
+
+    /// Build a store from a GTS byte bundle instead of from Turtle source paths.
+    #[staticmethod]
+    fn from_gts_bytes(gts_bytes: Vec<u8>) -> PyResult<Self> {
+        let store = store::build_store_from_gts(&gts_bytes)
+            .map_err(pyo3::exceptions::PyValueError::new_err)?;
+        Ok(Self {
+            store,
+            source_paths: Vec::new(),
         })
     }
 
