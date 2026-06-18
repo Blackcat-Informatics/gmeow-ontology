@@ -2316,6 +2316,7 @@ def extract_catalog(
     if not terms_only:
         docs_output = output_dir / "docs"
         docs_output.mkdir(parents=True, exist_ok=True)
+        ext = "po" if lang else "pot"
 
         md_sources: list[Path] = []
         md_sources.extend(sorted(root.glob("slices/*/*/docs.md")))
@@ -2326,7 +2327,6 @@ def extract_catalog(
         for source in md_sources:
             rel = source.relative_to(root)
             entries = extract_markdown(source, rel_path=rel.as_posix())
-            ext = "po" if lang else "pot"
             path = docs_output / f"{rel}.{ext}"
             path.parent.mkdir(parents=True, exist_ok=True)
             if lang:
