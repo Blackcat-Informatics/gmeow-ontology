@@ -17,7 +17,7 @@ GMEOW_DEV ?= uv run --package gmeow-dev gmeow-dev
         lint-alignment refresh-target-axioms docs docs-full ontology-docs ontology-docs-full quality \
         normalize build project test test-fast test-docker check check-docker check-generated release regenerate commit clean clean-docs pull-images \
         coverage acceptance crossref constitution-check compliance-report compliance-report-full audit evals-score \
-        logic-build logic-test logic-py conformance \
+        native-py rust-test logic-build logic-test logic-py conformance \
         shacl-build shacl-test shacl-py \
         validate-build validate-test validate-py clippy
 
@@ -148,7 +148,7 @@ logic-test: ## Run the gmeow-logic unit tests (world-isolation conformance).
 	cargo test -p gmeow-logic
 
 logic-py: ## Build and install the gmeow_logic Python extension (maturin develop).
-	uvx maturin develop --manifest-path crates/logic/Cargo.toml
+	VIRTUAL_ENV="$$(pwd)/.venv" uvx maturin develop --manifest-path crates/logic/Cargo.toml
 
 shacl-build: ## Build the gmeow-shacl Rust crate (oxigraph SHACL Core validator).
 	cargo build -p gmeow-shacl
@@ -157,7 +157,7 @@ shacl-test: ## Run the gmeow-shacl unit + conformance tests.
 	cargo test -p gmeow-shacl
 
 shacl-py: ## Build and install the gmeow_shacl Python extension (maturin develop).
-	uvx maturin develop --manifest-path crates/shacl/Cargo.toml
+	VIRTUAL_ENV="$$(pwd)/.venv" uvx maturin develop --manifest-path crates/shacl/Cargo.toml
 
 validate-build: ## Build the gmeow-validate Rust crate (oxigraph validation-path lints).
 	cargo build -p gmeow-validate
@@ -166,12 +166,17 @@ validate-test: ## Run the gmeow-validate unit + integration tests.
 	cargo test -p gmeow-validate
 
 validate-py: ## Build and install the gmeow_validate Python extension (maturin develop).
-	uvx maturin develop --manifest-path crates/validate/Cargo.toml
+	VIRTUAL_ENV="$$(pwd)/.venv" uvx maturin develop --manifest-path crates/validate/Cargo.toml
 
 clippy: ## Run cargo clippy on all Rust targets with warnings as errors.
 	cargo clippy --all-targets -- -D warnings
 
-conformance: ## Run the logic: conformance suite (oracle ≡ engine, Principle 7 gate).
+native-py: logic-py shacl-py validate-py ## Build and install all Rust-backed Python extensions.
+
+rust-test: ## Run the Rust workspace tests.
+	cargo test
+
+conformance: logic-py ## Run the logic: conformance suite (oracle ≡ engine, Principle 7 gate).
 	$(GMEOW_DEV) conformance
 
 build: ## Build serializations and JSON-LD context into dist/.
@@ -180,10 +185,10 @@ build: ## Build serializations and JSON-LD context into dist/.
 project: ## Project GMEOW data to pure schema.org/GeoSPARQL/vCard/FOAF/iCal/OWL-Time profiles (FnO/EDOAL).
 	$(GMEOW_DEV) project
 
-test: ## Run the full test suite (incl. heavy ci_only export tests).
+test: native-py ## Run the full test suite (incl. heavy ci_only export tests).
 	uv run pytest -n auto --dist loadscope
 
-test-fast: ## Run the fast test suite (excludes ci_only, docker, and CI-only pyoxigraph).
+test-fast: native-py ## Run the fast test suite (excludes ci_only, docker, and CI-only pyoxigraph).
 	uv run pytest -n auto --dist loadscope -m "not ci_only and not docker and not pyoxigraph_ci"
 
 test-docker: check-docker ## Compatibility alias for the Docker-backed Make lanes.
@@ -191,9 +196,9 @@ test-docker: check-docker ## Compatibility alias for the Docker-backed Make lane
 test-network: ## Run the network tests (LIVE endpoints) — MANUAL only, never in CI/check.
 	GMEOW_RUN_NETWORK=1 uv run pytest -m network
 
-check: ## Fast local gate: core ontology + transforms (ELK only; HermiT runs in its own CI job).
-	$(MAKE) -j$$(nproc 2>/dev/null || echo 4) lint clippy validate crosscheck check-generated constitution-check audit wikidata coverage acceptance reason verify mappings-only lint-alignment
-	$(MAKE) test-fast
+check: logic-py ## Fast local gate: core ontology + transforms (ELK only; HermiT runs in its own CI job).
+	$(MAKE) -j$$(nproc 2>/dev/null || echo 4) lint clippy rust-test validate crosscheck check-generated constitution-check audit wikidata coverage acceptance reason verify mappings-only lint-alignment
+	uv run pytest -n auto --dist loadscope -m "not ci_only and not docker and not pyoxigraph_ci"
 	$(GMEOW_DEV) compliance-report --from-passing-check
 	@echo "✓ all checks passed"
 

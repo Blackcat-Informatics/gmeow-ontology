@@ -36,6 +36,10 @@ htmlcov/
 # Rust build artifacts
 /target/
 
+# Repository Cargo config is source, not build output.
+!/.cargo/
+!/.cargo/config.toml
+
 # Release signing secrets (public keys live under keys/ and ARE committed).
 keys/*.secret.asc
 keys/*.secret

@@ -36,12 +36,8 @@ For each case:
 
 Guard
 -----
-The test is guarded by ``pytest.importorskip("gmeow_logic")`` — it skips
-cleanly when the native extension is not installed locally (``make logic-py``
-has not been run), but is fully required in CI where the ``python`` job
-builds the extension before running pytest.  The marker filter in CI is
-``-m "not docker and not pyoxigraph_ci"`` — this test carries no such
-markers, so it always runs in CI once the extension is built.
+The native extension is required. Missing ``gmeow_logic`` is a test-environment
+failure, not a skip. The Makefile and CI build it before running pytest.
 """
 
 from __future__ import annotations
@@ -53,10 +49,9 @@ from typing import NamedTuple
 import pytest
 from rdflib import ConjunctiveGraph
 
-gmeow_logic = pytest.importorskip(
-    "gmeow_logic",
-    reason="gmeow_logic native extension not installed — run 'make logic-py' first",
-)
+from tests._required_native import require_gmeow_logic
+
+gmeow_logic = require_gmeow_logic()
 
 from gmeow_tools.logic_certify import certify_program  # noqa: E402
 from gmeow_tools.logic_frontend import parse_logic_source  # noqa: E402

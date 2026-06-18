@@ -1,0 +1,10 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+
+[env]
+# Cargo build scripts must not inherit host-wide C/C++ optimization flags.
+# In particular, aggressive ambient LTO flags can corrupt vendored C archives
+# such as zstd-sys before Rust links test binaries. Keep Rust builds
+# reproducible from the repository inputs instead.
+CFLAGS = { value = "", force = true }
+CXXFLAGS = { value = "", force = true }
