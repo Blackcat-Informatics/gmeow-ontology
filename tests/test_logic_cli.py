@@ -240,3 +240,33 @@ def test_logic_generator_render_compare_round_trip(tmp_path: Path) -> None:
             drifts.extend(gen.compare(fresh, committed))
 
     assert not drifts, "Round-trip produced drift:\n" + "\n".join(drifts)
+
+
+# --------------------------------------------------------------------------- #
+# gmeow reason --mode native (issue #665, native Docker-free authority lane)
+# --------------------------------------------------------------------------- #
+
+
+def test_reason_mode_native_exits_clean(runner: CliRunner) -> None:
+    """``reason --mode native`` reasons the bundle Docker-free and exits 0.
+
+    The native lane is the Java/Docker-free authority (Principle 18): it runs
+    the Rust EL/DL engine in-process — no container, no network — and exits 0
+    with the success banner on a consistent bundle.
+    """
+    require_gmeow_logic()
+    from gmeow_tools.config import GTS_SNAPSHOT_FILE
+
+    if not GTS_SNAPSHOT_FILE.exists():
+        pytest.skip("GTS snapshot not present in this checkout")
+
+    result = runner.invoke(dev_app, ["reason", "--mode", "native"])
+    assert result.exit_code == 0, f"Expected exit 0; got:\n{result.output}"
+    assert "native EL/DL reasoning" in result.output
+
+
+def test_reason_unknown_mode_fails(runner: CliRunner) -> None:
+    """An unknown ``--mode`` exits non-zero (only native/docker are valid)."""
+    result = runner.invoke(dev_app, ["reason", "--mode", "bogus"])
+    assert result.exit_code != 0
+    assert "unknown reasoning mode" in result.output or "bogus" in result.output

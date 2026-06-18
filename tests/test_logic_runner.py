@@ -533,6 +533,138 @@ def test_diff_case_passes_for_explanation_case() -> None:
 
 
 # --------------------------------------------------------------------------- #
+# Native EL/DL reasoning lane (#665) — gmeow_logic.reason_native + reason.py
+# --------------------------------------------------------------------------- #
+
+
+def _parse_rdf12_turtle(ttl: str) -> int:
+    """Parse an RDF 1.2 Turtle document with pyoxigraph; return the triple count.
+
+    The native-lane artifacts carry RDF 1.2 ``<< … >>`` triple terms, which
+    rdflib's Turtle parser cannot read — so pyoxigraph (not rdflib) is the only
+    parser the contract permits here.
+    """
+    import pyoxigraph
+
+    dataset = pyoxigraph.Dataset()
+    for quad in pyoxigraph.parse(
+        ttl.encode("utf-8"), format=pyoxigraph.RdfFormat.TURTLE
+    ):
+        dataset.add(pyoxigraph.Quad(quad.subject, quad.predicate, quad.object))
+    return len(dataset)
+
+
+class TestReasonNativeEngine:
+    """``gmeow_logic.reason_native`` over the committed GTS bundle (#665)."""
+
+    def test_consistent_with_entailments_and_gaps(self) -> None:
+        """The bundle reasons consistent, derives axioms, and names beyond-EL gaps."""
+        import gmeow_logic
+
+        from gmeow_tools.config import GTS_SNAPSHOT_FILE
+
+        if not GTS_SNAPSHOT_FILE.exists():
+            pytest.skip("GTS snapshot not present in this checkout")
+
+        result = gmeow_logic.reason_native(GTS_SNAPSHOT_FILE.read_bytes())
+        assert result["consistent"] is True
+        assert len(result["inferred"]) > 0, "native lane produced no entailments"
+        # The beyond-EL DL gaps must be named (not silently assumed consistent).
+        assert len(result["gaps"]) > 0, "expected named beyond-EL gaps, got none"
+        # Each gap carries a code + message (the diagnostics-finding contract).
+        for gap in result["gaps"]:
+            assert gap.get("code") and gap.get("message")
+        # Each inferred entailment carries the full provenance tuple.
+        sample = result["inferred"][0]
+        for key in ("subject", "predicate", "object", "world", "is_edb", "rule_name"):
+            assert key in sample, f"inferred entailment missing key {key!r}: {sample}"
+
+
+class TestReasonNativePipeline:
+    """``reason.reason_native`` report + artifact writing over the real bundle."""
+
+    def test_report_ok_and_writes_closure(self, tmp_path: Path) -> None:
+        """A consistent bundle yields ``report.ok`` and writes the closure artifact."""
+        import gmeow_tools.reason as reason
+        from gmeow_tools.config import GTS_SNAPSHOT_FILE
+
+        if not GTS_SNAPSHOT_FILE.exists():
+            pytest.skip("GTS snapshot not present in this checkout")
+
+        report = reason.reason_native(output_dir=tmp_path, run_box_roles=False)
+        assert report.ok, "consistent bundle must report ok"
+        closure = tmp_path / "gmeow-inferred-closure.rdf12.ttl"
+        assert closure.exists(), "closure artifact was not written"
+        # The closure must parse as valid RDF 1.2 with non-empty content.
+        assert _parse_rdf12_turtle(closure.read_text(encoding="utf-8")) > 0
+
+
+class TestNativeReasonHelpers:
+    """The pure dict→RDF-1.2-Turtle helpers parse under pyoxigraph (#665)."""
+
+    def _result(self) -> dict[str, object]:
+        import gmeow_logic
+
+        from gmeow_tools.config import GTS_SNAPSHOT_FILE
+
+        if not GTS_SNAPSHOT_FILE.exists():
+            pytest.skip("GTS snapshot not present in this checkout")
+        return gmeow_logic.reason_native(GTS_SNAPSHOT_FILE.read_bytes())
+
+    def test_build_inferred_closure_ttl_parses(self) -> None:
+        import gmeow_tools.reason as reason
+
+        ttl = reason.build_inferred_closure_ttl(self._result())
+        assert _parse_rdf12_turtle(ttl) > 0
+
+    def test_build_explanations_ttl_parses(self) -> None:
+        import gmeow_tools.reason as reason
+
+        ttl = reason.build_explanations_ttl(self._result())
+        assert _parse_rdf12_turtle(ttl) > 0
+
+    def test_build_dl_el_ledger_ttl_parses(self) -> None:
+        import gmeow_tools.reason as reason
+
+        ttl = reason.build_dl_el_ledger_ttl(self._result())
+        assert _parse_rdf12_turtle(ttl) > 0
+
+    def test_ledger_renders_inconsistency_and_gap_without_docker(self) -> None:
+        """Hand-built result with an inconsistency + a gap exercises the ledger path.
+
+        This unit-tests the inconsistency-rendering branch without needing a
+        synthetic GTS bundle (which would require Docker / a full build): the
+        ledger must surface the consistency verdict (false), a ``gmeow:DlGap``
+        resource, and the #666 report-only / oracle-deferral note.
+        """
+        import gmeow_tools.reason as reason
+
+        result: dict[str, object] = {
+            "consistent": False,
+            "inferred": [],
+            "unsatisfiable_classes": [],
+            "inconsistencies": [
+                {
+                    "individual": "https://example.org/x",
+                    "world": "https://example.org/w",
+                }
+            ],
+            "gaps": [{"code": "reason.dl-gap.complementOf", "message": "beyond EL"}],
+        }
+        ttl = reason.build_dl_el_ledger_ttl(result)
+        # Parses as valid RDF 1.2.
+        assert _parse_rdf12_turtle(ttl) > 0
+        # The inconsistent verdict surfaces.
+        assert "gmeow:consistent false" in ttl
+        # The beyond-EL gap is rendered as a DlGap resource.
+        assert "gmeow:DlGap" in ttl
+        assert "reason.dl-gap.complementOf" in ttl
+        # The report-only / #666 deferral note is present.
+        assert "classic-cross-check" in ttl
+        assert "#666" in ttl
+
+
+# --------------------------------------------------------------------------- #
 # run() error handling
 # --------------------------------------------------------------------------- #
 
