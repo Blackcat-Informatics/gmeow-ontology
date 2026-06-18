@@ -163,7 +163,7 @@ def lint_po_files(
         return report
 
     try:
-        english_graph = load_merged_graph(include_imports=False)
+        english_graph = load_merged_graph(root=root, include_imports=False)
     except Exception as exc:  # pragma: no cover - build failure is structural
         report.errors.append(f"failed to load merged English graph: {exc}")
         return report

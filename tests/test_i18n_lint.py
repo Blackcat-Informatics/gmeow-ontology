@@ -17,6 +17,22 @@ _VALID_TERM_DEF = (
     "chain id",
 )
 
+_MINIMAL_ONTOLOGY_TTL = """\
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+
+gmeow:eventTypeAdoption rdfs:label "adoption"@x-gmeow-english .
+gmeow:chainId rdfs:label "chain id"@x-gmeow-english .
+gmeow:placeTypeCity rdfs:label "city"@x-gmeow-english .
+"""
+
+
+def _setup_minimal_ontology(tmp_path: Path) -> None:
+    """Write a tiny English ontology to *tmp_path* so entries can resolve."""
+    ontology_path = tmp_path / "ontology" / "gmeow.ttl"
+    ontology_path.parent.mkdir(parents=True)
+    ontology_path.write_text(_MINIMAL_ONTOLOGY_TTL, encoding="utf-8")
+
 
 def _po_body(entries: list[tuple[str, str, str, bool]]) -> str:
     """Build PO file text from (msgctxt, msgid, msgstr, fuzzy) tuples."""
@@ -53,6 +69,7 @@ def test_lint_no_po_files_returns_empty_report(tmp_path: Path) -> None:
 
 def test_lint_valid_catalog_reports_no_errors(tmp_path: Path) -> None:
     """A catalog whose entries all resolve to current English literals passes."""
+    _setup_minimal_ontology(tmp_path)
     po_path = tmp_path / "tests" / "fixtures" / "i18n" / "valid_fr.po"
     po_path.parent.mkdir(parents=True)
     po_path.write_text(
@@ -74,6 +91,7 @@ def test_lint_valid_catalog_reports_no_errors(tmp_path: Path) -> None:
 
 def test_lint_orphaned_entries_are_warnings(tmp_path: Path) -> None:
     """Entries pointing to missing terms or stale msgids are warnings."""
+    _setup_minimal_ontology(tmp_path)
     po_path = tmp_path / "tests" / "fixtures" / "i18n" / "orphaned_fr.po"
     po_path.parent.mkdir(parents=True)
     po_path.write_text(
