@@ -11,6 +11,7 @@ This bibliography is generated from `metadata/references.ttl`.
 | biohackathon.org/resource/faldo | [link](http://biohackathon.org/resource/faldo#) | 1 |
 | console.cloud.google.com/gemini-code-assist/agents-tools | [link](http://console.cloud.google.com/gemini-code-assist/agents-tools) | 1 |
 | creativecommons.org/ns | [link](http://creativecommons.org/ns#) | 1 |
+| ESCO namespace | [link](http://data.europa.eu/esco/) | 1 |
 | data.europa.eu/esco/model | [link](http://data.europa.eu/esco/model#) | 1 |
 | data.europa.eu/r5r | [link](http://data.europa.eu/r5r/) | 1 |
 | datacite.org/schema/kernel-4 | [link](http://datacite.org/schema/kernel-4) | 1 |
@@ -145,6 +146,7 @@ This bibliography is generated from `metadata/references.ttl`.
 | snomed.info/id/Patient | [link](http://snomed.info/id/Patient) | 1 |
 | spdx.org/licenses | [link](http://spdx.org/licenses/) | 1 |
 | spdx.org/rdf/terms | [link](http://spdx.org/rdf/terms#) | 1 |
+| OpenCyc knowsAbout (2012-05-10 snapshot) | [link](http://sw.opencyc.org/2012/05/10/concept/en/knowsAbout) | 1 |
 | sweetontology.net | [link](http://sweetontology.net/) | 1 |
 | umbel.org/umbel | [link](http://umbel.org/umbel#) | 1 |
 | umbel.org/umbel/rc | [link](http://umbel.org/umbel/rc/) | 1 |
@@ -332,11 +334,17 @@ This bibliography is generated from `metadata/references.ttl`.
 | www.wikidata.org/entity | [link](http://www.wikidata.org/entity/) | 1 |
 | www.wikidata.org/entity/P275 | [link](http://www.wikidata.org/entity/P275) | 1 |
 | www.wikidata.org/entity/Q0 | [link](http://www.wikidata.org/entity/Q0) | 1 |
+| Wikidata Q12770764 (mastery) | [link](http://www.wikidata.org/entity/Q12770764) | 1 |
 | www.wikidata.org/entity/Q150 | [link](http://www.wikidata.org/entity/Q150) | 1 |
 | www.wikidata.org/entity/Q170028 | [link](http://www.wikidata.org/entity/Q170028) | 1 |
+| Wikidata Q1774565 (Bloom taxonomy) | [link](http://www.wikidata.org/entity/Q1774565) | 1 |
 | www.wikidata.org/entity/Q1860 | [link](http://www.wikidata.org/entity/Q1860) | 1 |
+| Wikidata Q366791 (curiosity) | [link](http://www.wikidata.org/entity/Q366791) | 1 |
 | www.wikidata.org/entity/Q42 | [link](http://www.wikidata.org/entity/Q42) | 1 |
+| Wikidata Q5307365 (Dreyfus model of skill acquisition) | [link](http://www.wikidata.org/entity/Q5307365) | 1 |
+| Wikidata Q6501338 (attention) | [link](http://www.wikidata.org/entity/Q6501338) | 1 |
 | www.wikidata.org/entity/Q685328 | [link](http://www.wikidata.org/entity/Q685328) | 1 |
+| Wikidata Q9081 (knowledge) | [link](http://www.wikidata.org/entity/Q9081) | 1 |
 | www.wikidata.org/entity/Q9192 | [link](http://www.wikidata.org/entity/Q9192) | 1 |
 | www.wikidata.org/entity/Q99999901 | [link](http://www.wikidata.org/entity/Q99999901) | 1 |
 | www.wikidata.org/entity/statement | [link](http://www.wikidata.org/entity/statement/) | 1 |
@@ -349,7 +357,9 @@ This bibliography is generated from `metadata/references.ttl`.
 | www.wurvoc.org/vocabularies/om-1.8 | [link](http://www.wurvoc.org/vocabularies/om-1.8/) | 1 |
 | FOAF | [link](http://xmlns.com/foaf/0.1/) | 1 |
 | xmlns.com/foaf/0.1/Person | [link](http://xmlns.com/foaf/0.1/Person) | 1 |
+| foaf:focus | [link](http://xmlns.com/foaf/0.1/focus) | 1 |
 | xmlns.com/foaf/0.1/homepage | [link](http://xmlns.com/foaf/0.1/homepage) | 1 |
+| foaf:interest | [link](http://xmlns.com/foaf/0.1/interest) | 1 |
 | xmlns.com/foaf/spec | [link](http://xmlns.com/foaf/spec/#term_Organization) | 1 |
 | xmlns.com/foaf/spec/index.rdf | [link](http://xmlns.com/foaf/spec/index.rdf) | 1 |
 | xmlns.com/wot/0.1 | [link](http://xmlns.com/wot/0.1/) | 1 |
@@ -420,6 +430,7 @@ This bibliography is generated from `metadata/references.ttl`.
 | credit.niso.org | [link](https://credit.niso.org/) | 1 |
 | credit.niso.org/contributor-roles | [link](https://credit.niso.org/contributor-roles/) | 1 |
 | credreg.net/ctdl/terms | [link](https://credreg.net/ctdl/terms) | 1 |
+| CTDL/ASN namespace | [link](https://credreg.net/ctdlasn/terms/) | 1 |
 | ct.example/entries/42 | [link](https://ct.example/entries/42) | 1 |
 | data.crossref.org/reports/help/schema_doc/4.4.0/schema_4_4_0.html | [link](https://data.crossref.org/reports/help/schema_doc/4.4.0/schema_4_4_0.html) | 1 |
 | data.crossref.org/reports/help/schema_doc/4.4.2/schema_4_4_2.html | [link](https://data.crossref.org/reports/help/schema_doc/4.4.2/schema_4_4_2.html) | 1 |
@@ -510,6 +521,7 @@ This bibliography is generated from `metadata/references.ttl`.
 | en.wikipedia.org/wiki/Dense_inert_metal_explosive | [link](https://en.wikipedia.org/wiki/Dense_inert_metal_explosive) | 1 |
 | en.wikipedia.org/wiki/On_bullshit | [link](https://en.wikipedia.org/wiki/On_bullshit) | 1 |
 | en.wikipedia.org/wiki/Paltering | [link](https://en.wikipedia.org/wiki/Paltering) | 1 |
+| Wikipedia: Structure of observed learning outcome (SOLO taxonomy) | [link](https://en.wikipedia.org/wiki/Structure_of_observed_learning_outcome) | 1 |
 | en.wikipedia.org/wiki/Writing_system | [link](https://en.wikipedia.org/wiki/Writing_system) | 1 |
 | en.wikipedia.org/wiki/paltering | [link](https://en.wikipedia.org/wiki/paltering) | 1 |
 | en.wikipedia.org/wiki/stenography | [link](https://en.wikipedia.org/wiki/stenography) | 1 |
@@ -850,8 +862,10 @@ This bibliography is generated from `metadata/references.ttl`.
 | www.ogc.org/standard/geosparql | [link](https://www.ogc.org/standard/geosparql/) | 1 |
 | www.omg.org/spec/BPMN/2.0 | [link](https://www.omg.org/spec/BPMN/2.0/) | 1 |
 | www.omg.org/spec/EDMC-FIBO/FBC/1.0/PDF | [link](https://www.omg.org/spec/EDMC-FIBO/FBC/1.0/PDF) | 1 |
+| O*NET Resource Center | [link](https://www.onetcenter.org/) | 1 |
 | www.onetonline.org | [link](https://www.onetonline.org/) | 1 |
 | www.ontologyportal.org/SUMO.owl | [link](https://www.ontologyportal.org/SUMO.owl) | 1 |
+| SUMO knows | [link](https://www.ontologyportal.org/SUMO.owl#knows) | 1 |
 | www.openarchives.org/OAI/2.0/openarchivesprotocol.htm | [link](https://www.openarchives.org/OAI/2.0/openarchivesprotocol.htm) | 1 |
 | www.openarchives.org/OAI/openarchivesprotocol.htm | [link](https://www.openarchives.org/OAI/openarchivesprotocol.htm) | 1 |
 | www.openarchives.org/OAI/openarchivesprotocol.html | [link](https://www.openarchives.org/OAI/openarchivesprotocol.html) | 1 |

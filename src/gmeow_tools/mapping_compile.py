@@ -748,6 +748,16 @@ def _sssom_header(meta: MappingSet | None, prefixes: list[str]) -> list[str]:
     return lines
 
 
+def _sssom_id(node: URIRef) -> str:
+    """Return a SSSOM-safe identifier: CURIE when possible, bare URI otherwise.
+
+    The DSL ``curie()`` helper falls back to Turtle angle-bracket syntax for
+    unregistered namespaces, but SSSOM TSV expects bare absolute URIs, so any
+    surrounding ``<...>`` is stripped here.
+    """
+    return curie(node).strip("<>")
+
+
 def emit_sssom(dsl: Dsl) -> dict[str, str]:
     """Render every SSSOM TSV file from the term-equivalence cells.
 
@@ -760,12 +770,12 @@ def emit_sssom(dsl: Dsl) -> dict[str, str]:
     for eq in dsl.equivalences:
         rows.setdefault(eq.sssom_file, []).append(
             {
-                "subject_id": curie(eq.subject),
+                "subject_id": _sssom_id(eq.subject),
                 "subject_label": eq.subject_label,
-                "predicate_id": curie(eq.predicate),
-                "object_id": curie(eq.obj),
+                "predicate_id": _sssom_id(eq.predicate),
+                "object_id": _sssom_id(eq.obj),
                 "object_label": eq.object_label,
-                "mapping_justification": curie(
+                "mapping_justification": _sssom_id(
                     eq.justification or _DEFAULT_JUSTIFICATION
                 ),
                 "confidence": _conf(eq.confidence),

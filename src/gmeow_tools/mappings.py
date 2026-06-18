@@ -57,7 +57,10 @@ def expand_curie(curie: str) -> URIRef:
     """Expand a ``prefix:local`` CURIE using the canonical prefix registry.
 
     Args:
-        curie: A compact IRI such as ``"foaf:Person"``.
+        curie: A compact IRI such as ``"foaf:Person"``, or an absolute IRI
+            either bare (``"http://example.org"``) or angle-bracketed
+            (``"<http://example.org>"``) as emitted by the DSL compiler when
+            no registered prefix matches.
 
     Returns:
         The full IRI as an rdflib :class:`~rdflib.URIRef`.
@@ -65,6 +68,12 @@ def expand_curie(curie: str) -> URIRef:
     Raises:
         MappingError: If the CURIE is malformed or its prefix is unknown.
     """
+    if curie.startswith("<") and curie.endswith(">"):
+        return URIRef(curie[1:-1])
+    if "://" in curie or curie.startswith("urn:"):
+        scheme = curie.split(":", 1)[0]
+        if scheme in {"http", "https", "urn", "file"}:
+            return URIRef(curie)
     if ":" not in curie:
         raise MappingError(f"not a CURIE: {curie!r}")
     prefix, local = curie.split(":", 1)

@@ -140,17 +140,57 @@ subject. Asserting it materialises the whole shallower tail.
 
 ## Alignment
 
+### schema.org
+
 `schema:knowsAbout` aligns by `skos:exactMatch` to `gmeow:knowsAbout` — the
 eponymous level is the bridge. A flat `schema:knowsAbout` edge lifts to the
 asserted `gmeow:knowsAbout` level (its honest floor: you cannot infer mastery
 from a flat edge). Going *down*, all four levels collapse to the single
 `schema:knowsAbout` the wider world offers — a lossy projection of the spectrum.
 
+### FOAF
+
+Motivational and attentional relations are anchored to FOAF without collapsing
+their distinct senses:
+
+| `gmeow` term | FOAF term | Relation | Note |
+|---|---|---|---|
+| `gmeow:interestedIn` | `foaf:interest` | `skos:closeMatch` | FOAF points to a *page about* a topic; GMEOW points directly to the subject. |
+| `gmeow:attendsTo` | `foaf:focus` | `skos:closeMatch` | `foaf:focus` maps a SKOS concept to its focal entity; `attendsTo` is an agent's momentary attention toward a subject. |
+
+### Wikidata
+
+Entity-level anchors for the cognitive relations and the depth axis. Three
+issue-supplied QIDs were verified and corrected during curation:
+
+| `gmeow` term | Wikidata | Status |
+|---|---|---|
+| `gmeow:attendsTo` | wd:Q6501338 (attention) | corrected from issue-supplied Q327954 (torch) |
+| `gmeow:curiousAbout` | wd:Q366791 (curiosity) | corrected from issue-supplied Q179637 (prisoner of war) |
+| `gmeow:hasMastered` | wd:Q12770764 (mastery) | corrected from issue-supplied Q1016098 (Mautes) |
+| `gmeow:knowsAbout` | wd:Q9081 (knowledge) | `skos:relatedMatch` |
+| `gmeow:scaleKnowledgeDepth` | wd:Q1774565 (Bloom's taxonomy) | `skos:relatedMatch` |
+| `gmeow:scaleKnowledgeDepth` | wd:Q5307365 (Dreyfus model) | `skos:relatedMatch` |
+
+### SUMO
+
+`sumo:knows` is propositional (an agent knows a formula), whereas GMEOW's
+`isAwareOf` and `knowsAbout` are objectual (an agent stands in a cognitive
+relation to a subject). The mappings are therefore `skos:relatedMatch` only.
+
+### ESCO, CTDL/ASN and O*NET
+
+The native `gmeow:scaleKnowledgeDepth` scale is band-level related to the
+knowledge/competency framework namespaces used by ESCO, CTDL/ASN and O*NET.
+No single term in any of these frameworks corresponds cleanly to the whole
+GMEOW depth axis, so the alignment is by namespace reference rather than term
+equivalence.
+
 ### The alignment ledger — alternate depth frameworks
 
 The native `gmeow:scaleKnowledgeDepth` is the default scale; Bloom's revised
 taxonomy (`gmeow:scaleBloomRevised`), SOLO (`gmeow:scaleSOLO`), and Dreyfus
-(`gmeow:scaleDreyfus`, from `languages`) are reusable alternate
+(`gmeow:scaleDreyfus`, from `expertise`) are reusable alternate
 `gmeow:ProficiencyScale`s — **no canonical framework is enforced** (Principle 6).
 The band correspondence below is a *soft, documented* alignment (this ledger), never
 an OWL axiom; the knows-axis and the can-do-axis are never silently bridged (P9):
