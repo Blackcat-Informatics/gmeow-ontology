@@ -206,6 +206,26 @@ def test_lint_unmapped_language_is_error(tmp_path: Path) -> None:
     assert "no GMEOW internal tag mapping" in report.errors[0]
 
 
+def test_lint_malformed_msgctxt_is_error(tmp_path: Path) -> None:
+    """A PO entry whose msgctxt lacks the term|predicate delimiter is rejected."""
+    po_path = tmp_path / "tests" / "fixtures" / "i18n" / "malformed_msgctxt.po"
+    po_path.parent.mkdir(parents=True)
+    po_path.write_text(
+        _po_body(
+            [
+                ("https://example.org/NoDelimiter", "x", "y", False),
+            ]
+        ),
+        encoding="utf-8",
+    )
+
+    report = lint_po_files(tmp_path)
+    assert len(report.errors) == 1
+    assert "invalid msgctxt" in report.errors[0]
+    assert "https://example.org/NoDelimiter" in report.errors[0]
+    assert report.total_counts.get("x-gmeow-french") == 1
+
+
 def test_lint_committed_fr_po_reports_orphaned_warnings() -> None:
     """The committed fr.po fixture carries expected orphaned/stale warnings."""
     report = lint_po_files(PROJECT_ROOT)
