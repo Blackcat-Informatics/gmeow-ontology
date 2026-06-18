@@ -24,23 +24,17 @@ CLI face of the #500 logic compiler (Task 4).
 
 from __future__ import annotations
 
+import logging
 from collections.abc import Sequence
 from pathlib import Path
+from typing import cast
+
+import gmeow_logic
 
 from gmeow_tools.config import GENERATED_DIR, PROJECT_ROOT, SLICES_DIR
 from gmeow_tools.generator import Generator, rdf_compare, register
-from gmeow_tools.logic_frontend import parse_logic_source
-from gmeow_tools.logic_projections import (
-    OverclaimError,
-    build_projection_report,
-    project_canonical_rdf12,
-    project_datalog,
-    project_gufo,
-    project_n3,
-    project_nemo,
-    project_owl_dl,
-    project_owl_el,
-)
+
+log = logging.getLogger(__name__)
 
 # --------------------------------------------------------------------------- #
 # Canonical input + output paths
@@ -100,71 +94,63 @@ class LogicGenerator(Generator):
         ]
 
     def render(self, staging: Path) -> None:
-        """Parse the logic: source and write all 8 artifacts into *staging*.
+        """Compile the logic: source (in Rust) and write all 8 artifacts.
 
-        The overclaim gate (:func:`~.logic_projections.assert_no_overclaim`) is
-        invoked inside each projection function — any overclaim raises
-        :class:`~.logic_projections.OverclaimError` before a single byte is
-        written to the committed tree (CONSTITUTION Principle 7).
+        The whole frontend → IR → 7-projections + report pipeline now runs in the
+        native ``gmeow_logic.compile_logic`` Rust compiler (#664).  The overclaim
+        gate (CONSTITUTION Principle 7) and the Nemo rule-safety check fire inside
+        the Rust ``compile_program`` — either raises ``ValueError`` before a single
+        byte is written to the committed tree.
         """
         from gmeow_tools.mapping_dsl import CompileError
 
-        # --- Parse -------------------------------------------------------
+        # --- Compile (Rust): source Turtle → the 8 artifact strings ------
+        source_ttl = LOGIC_SOURCE_FILE.read_text(encoding="utf-8")
         try:
-            program, diagnostics = parse_logic_source(LOGIC_SOURCE_FILE)
-        except Exception as exc:
-            raise CompileError(f"logic: source parse failed: {exc}") from exc
+            result = gmeow_logic.compile_logic(source_ttl)
+        except ValueError as exc:
+            raise CompileError(f"logic: compile failed: {exc}") from exc
 
-        # Log any recoverable diagnostics (they do not block the build).
-        import logging
-
-        log = logging.getLogger(__name__)
-        for diag in diagnostics:
+        # --- Surface parse diagnostics as warnings (fail-soft contract) --
+        for diag in result["diagnostics"]:
             log.warning(
                 "logic: parse diagnostic [%s] %s: %s",
-                diag.severity,
-                diag.code,
-                diag.message,
+                diag["severity"],
+                diag["code"],
+                diag["message"],
             )
 
-        # --- Output paths inside the staging tree ------------------------
+        # Cast to plain str-keyed mapping for dynamic-key artifact operations.
+        # The TypedDict return type enforces the exact keys at literal call sites;
+        # here we need a runtime loop over the 8 artifact keys, which mypy cannot
+        # verify statically on a TypedDict.  The cast is safe: every key in
+        # `outputs` is a declared field of CompileLogicResult.
+        artifacts: dict[str, str] = cast("dict[str, str]", result)
+
+        # --- Map artifact name → committed path, write into staging ------
         def _staged(committed: Path) -> Path:
             return staging / committed.relative_to(PROJECT_ROOT)
 
-        owl_dl_path = _staged(LOGIC_OWL_DL_FILE)
-        owl_el_path = _staged(LOGIC_OWL_EL_FILE)
-        datalog_path = _staged(LOGIC_DATALOG_FILE)
-        n3_path = _staged(LOGIC_N3_FILE)
-        gufo_path = _staged(LOGIC_GUFO_FILE)
-        rdf12_path = _staged(LOGIC_RDF12_FILE)
-        nemo_path = _staged(LOGIC_NEMO_FILE)
-        report_path = _staged(LOGIC_REPORT_FILE)
-
-        # --- Run all 8 back-ends (overclaim gate fires inside each) ------
-        try:
-            r_dl = project_owl_dl(program, path=owl_dl_path)
-            r_el = project_owl_el(program, path=owl_el_path)
-            r_dl_r = project_datalog(program, path=datalog_path)
-            r_n3 = project_n3(program, path=n3_path)
-            r_gufo = project_gufo(program, path=gufo_path)
-            r_rdf12 = project_canonical_rdf12(program, path=rdf12_path)
-            r_nemo = project_nemo(program, path=nemo_path)
-        except OverclaimError as exc:
-            raise CompileError(f"logic: overclaim gate blocked emit: {exc}") from exc
-
-        # --- Projection report (also runs the per-projection overclaim gate) ---
-        # The compile path runs projection only (no materialization), so
-        # materialization_loss_entries is omitted here.  Callers that also run
-        # gmeow_logic.materialize() should pass the resulting loss_entries
-        # explicitly.
-        try:
-            build_projection_report(
-                program,
-                [r_dl, r_el, r_dl_r, r_n3, r_gufo, r_rdf12, r_nemo],
-                path=report_path,
+        outputs: dict[str, Path] = {
+            "owl_dl": LOGIC_OWL_DL_FILE,
+            "owl_el": LOGIC_OWL_EL_FILE,
+            "datalog": LOGIC_DATALOG_FILE,
+            "n3": LOGIC_N3_FILE,
+            "gufo": LOGIC_GUFO_FILE,
+            "canonical_rdf12": LOGIC_RDF12_FILE,
+            "nemo": LOGIC_NEMO_FILE,
+            "report": LOGIC_REPORT_FILE,
+        }
+        missing = [k for k in outputs if k not in artifacts]
+        if missing:
+            raise CompileError(
+                f"logic: compile produced no output for: {', '.join(sorted(missing))}"
             )
-        except OverclaimError as exc:
-            raise CompileError(f"logic: overclaim in report: {exc}") from exc
+
+        for key, committed in outputs.items():
+            staged = _staged(committed)
+            staged.parent.mkdir(parents=True, exist_ok=True)
+            staged.write_text(artifacts[key], encoding="utf-8")
 
     def compare(self, fresh: Path, committed: Path) -> list[str]:
         """Graph-isomorphism for RDF/Turtle; byte-normalized compare for text."""

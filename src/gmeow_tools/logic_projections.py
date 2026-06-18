@@ -771,7 +771,8 @@ def project_datalog(
             bp = "type" if ba_pred == rdf_type_str else _local(ba_pred)
             bs = _dl_term(body_atom.subject, False)
             bo = _dl_term(body_atom.obj, body_atom.obj_is_literal)
-            body_parts.append(f"{bp}({bs}, {bo}, {world_var})")
+            prefix = "not " if body_atom.negated else ""
+            body_parts.append(f"{prefix}{bp}({bs}, {bo}, {world_var})")
 
         # Inequality body guards (issue #503): each distinct pair becomes a
         # Datalog disequality literal ``A != B`` appended to the body (the idiom
@@ -1397,21 +1398,39 @@ def project_nemo(
         else:
             head_obj_nemo = _nemo_iri(head.obj)
 
-        # Safety check: variables in head must appear in body
+        # Safety check: every variable in the head, in a negated body atom, or in
+        # a distinct_pairs guard must be bound by at least one POSITIVE (non-negated)
+        # body atom.  Variables that appear ONLY in negated atoms or only in a !=
+        # guard are unsafe and make Nemo fail or produce wrong results.
         head_vars: set[str] = set()
         if head.subject.startswith("?"):
             head_vars.add(head.subject)
         if head.obj.startswith("?"):
             head_vars.add(head.obj)
 
-        body_vars: set[str] = set()
+        positive_body_vars: set[str] = set()
+        negated_body_vars: set[str] = set()
         for ba in rule.body:
-            if ba.subject.startswith("?"):
-                body_vars.add(ba.subject)
-            if ba.obj.startswith("?"):
-                body_vars.add(ba.obj)
+            if ba.negated:
+                if ba.subject.startswith("?"):
+                    negated_body_vars.add(ba.subject)
+                if ba.obj.startswith("?"):
+                    negated_body_vars.add(ba.obj)
+            else:
+                if ba.subject.startswith("?"):
+                    positive_body_vars.add(ba.subject)
+                if ba.obj.startswith("?"):
+                    positive_body_vars.add(ba.obj)
 
-        unbound = head_vars - body_vars
+        guard_vars: set[str] = set()
+        for var_a, var_b in rule.distinct_pairs:
+            if var_a.startswith("?"):
+                guard_vars.add(var_a)
+            if var_b.startswith("?"):
+                guard_vars.add(var_b)
+
+        required_vars = head_vars | negated_body_vars | guard_vars
+        unbound = required_vars - positive_body_vars
         if unbound:
             raise ValueError(
                 f"Nemo safety violation: rule head variables {sorted(unbound)} "
@@ -1424,7 +1443,7 @@ def project_nemo(
         # (no cross-world joins).  It must not collide with a logical variable
         # the rule already uses (e.g. an object variable named ?C), so pick a
         # fresh name outside the rule's variable set.
-        rule_vars = head_vars | body_vars
+        rule_vars = head_vars | positive_body_vars | negated_body_vars
         world_var = "?W"
         _world_suffix = 0
         while world_var in rule_vars:

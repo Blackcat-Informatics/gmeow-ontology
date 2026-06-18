@@ -23,6 +23,9 @@ path = "src/lib.rs"
 oxigraph = { version = "0.5", default-features = false, features = ["rdf-12"] }
 blake3 = "1"
 sha1 = "0.10"
+# sha2: the canonical-rdf12 projection mints content-stable reifier IRIs as
+# sha256(sort_key)[:12], matching the Python compiler byte-for-byte.
+sha2 = "0.10"
 
 # pyo3: PyO3 Python bindings. Hard dependency — HARD FAIL if absent.
 pyo3 = { version = "0.29", features = ["extension-module", "abi3-py313"] }

@@ -4,20 +4,20 @@
 % === Ground facts (axioms) ===
 type("https://example.org/profiles/stable-model/Candidate", "https://blackcatinformatics.ca/logic/Kind", "default").
 type("https://example.org/profiles/stable-model/ruleInSet", "https://blackcatinformatics.ca/logic/Rule", "default").
-body("https://example.org/profiles/stable-model/ruleInSet", "n3aede6393ceb4bb7bc4240e965919b7eb2", "default").
-head("https://example.org/profiles/stable-model/ruleInSet", "n3aede6393ceb4bb7bc4240e965919b7eb1", "default").
-negatedBody("https://example.org/profiles/stable-model/ruleInSet", "n3aede6393ceb4bb7bc4240e965919b7eb3", "default").
+body("https://example.org/profiles/stable-model/ruleInSet", "n88c7d7af6ca84835b90fac7c7403b236b2", "default").
+head("https://example.org/profiles/stable-model/ruleInSet", "n88c7d7af6ca84835b90fac7c7403b236b1", "default").
+negatedBody("https://example.org/profiles/stable-model/ruleInSet", "n88c7d7af6ca84835b90fac7c7403b236b3", "default").
 provenance("https://example.org/profiles/stable-model/ruleInSet", "https://example.org/profiles/stable-model/ruleInSet", "default").
 type("https://example.org/profiles/stable-model/ruleOutSet", "https://blackcatinformatics.ca/logic/Rule", "default").
-body("https://example.org/profiles/stable-model/ruleOutSet", "n3aede6393ceb4bb7bc4240e965919b7eb5", "default").
-head("https://example.org/profiles/stable-model/ruleOutSet", "n3aede6393ceb4bb7bc4240e965919b7eb4", "default").
-negatedBody("https://example.org/profiles/stable-model/ruleOutSet", "n3aede6393ceb4bb7bc4240e965919b7eb6", "default").
+body("https://example.org/profiles/stable-model/ruleOutSet", "n88c7d7af6ca84835b90fac7c7403b236b5", "default").
+head("https://example.org/profiles/stable-model/ruleOutSet", "n88c7d7af6ca84835b90fac7c7403b236b4", "default").
+negatedBody("https://example.org/profiles/stable-model/ruleOutSet", "n88c7d7af6ca84835b90fac7c7403b236b6", "default").
 provenance("https://example.org/profiles/stable-model/ruleOutSet", "https://example.org/profiles/stable-model/ruleOutSet", "default").
 
 % === Rules ===
 inSet(?X, ?X, ?C) :-
     candidate(?X, ?X, ?C),
-    outSet(?X, ?X, ?C).
+    not outSet(?X, ?X, ?C).
 outSet(?X, ?X, ?C) :-
     candidate(?X, ?X, ?C),
-    inSet(?X, ?X, ?C).
+    not inSet(?X, ?X, ?C).
