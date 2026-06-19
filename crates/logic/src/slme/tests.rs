@@ -281,18 +281,17 @@ ex:Lonely1 ex:rel ex:Lonely2 .
 
 #[test]
 fn bnode_predicate_collected_into_sigma() {
-    // ex:bnodeProp appears only as owl:onProperty inside a blank-node restriction.
-    // With fix A, collect_named_iris_in_closure now picks up predicates, so seeding
-    // {bnodeProp} must pull in the BnodeClass + its equivalentClass restriction.
-    // This would have been dropped before fix A.
+    // ex:bnodeProp appears in PREDICATE position INSIDE the blank node — NOT as
+    // the object of owl:onProperty. The pre-fix-A closure walker collected only
+    // triple objects, so it would have missed ex:bnodeProp and dropped
+    // ex:BnodeClass. With fix A the walker collects predicates too, so seeding
+    // {bnodeProp} pulls in BnodeClass via its equivalentClass blank node.
     let ttl = format!(
         r#"@prefix ex: <{EX}> .
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
 ex:BnodeClass a owl:Class ;
     owl:equivalentClass [
-        a owl:Restriction ;
-        owl:onProperty ex:bnodeProp ;
-        owl:someValuesFrom ex:SomeTarget
+        ex:bnodeProp ex:SomeTarget
     ] .
 ex:bnodeProp a owl:ObjectProperty .
 ex:SomeTarget a owl:Class .
@@ -309,7 +308,7 @@ ex:SomeTarget a owl:Class .
         "bnodeProp must be in the module: {m}"
     );
     assert!(
-        m.contains("Restriction"),
-        "Restriction bnode must be in the module: {m}"
+        m.contains(&iri("SomeTarget")),
+        "blank-node closure (SomeTarget) must be in the module: {m}"
     );
 }

@@ -69,11 +69,13 @@ cov:rel a owl:ObjectProperty .
 cov:Lonely1 cov:rel cov:Lonely2 .
 
 # ── bnode-predicate-collection regression case (#695 bug A) ──────────────────
+# cov:bnodeProp appears in PREDICATE position INSIDE the blank node (not as the
+# object of owl:onProperty), so the closure walker must collect predicates — not
+# just objects — to see it. Before fix A, seeding {cov:bnodeProp} dropped
+# cov:BnodeClass entirely.
 cov:BnodeClass a owl:Class ;
     owl:equivalentClass [
-        a owl:Restriction ;
-        owl:onProperty cov:bnodeProp ;
-        owl:someValuesFrom cov:SomeTarget
+        cov:bnodeProp cov:SomeTarget
     ] .
 cov:bnodeProp a owl:ObjectProperty .
 cov:SomeTarget a owl:Class .

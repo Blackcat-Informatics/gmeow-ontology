@@ -174,7 +174,7 @@ Nothing is removed before its replacement is gated. The deprecation order:
    With **v5 landed (#505)** the native `logic:` corpus now spans Strata A/B/C (worlds A/B/C, backward
    goals, foundation, profiles, paraconsistency, explanation) — complete enough to *begin* this
    demotion. It is **not** done here: the flip still requires a DL/EL **projection cross-check** gate
-   (a dual-run analogous to #578's SHACL cross-check) proving `make reason --mode native` ≡ ELK on the
+   (a dual-run analogous to #578's SHACL cross-check) proving `make reason-native` ≡ ELK on the
    EL fragment before authority moves. Tracked as its own follow-up epic; the SHACL counterpart is #579
    (pySHACL/rdflib removal). Apache Jena is on the mid-term removal list (sole RDF-1.2 triple-term
    serializer today; removal blocked on a Rust/oxigraph serializer).
