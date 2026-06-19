@@ -15,13 +15,19 @@
 ex:shaclTool a gmeow:SoftwareAgent ;
     rdfs:label "GMEOW SHACL validator"@x-gmeow-english .
 
-# --- The reified statement the finding is about, pinned by GTS wire coordinates.
+# --- The statement the finding is about: NOT re-stated here, but pinned by its
+# GTS wire coordinates. Its RDF 1.2 reifier is referenced by gmeow:gtsReifierId
+# (the reifier's position in the bundle's reifies table), never by an inline
+# rdf:reifies triple — the wire coordinates ARE gmeow's reference to the statement,
+# which is exactly the shape the engine emits (no triple terms are re-materialized).
 ex:offendingStatement
+    gmeow:gtsReifierId 7 ;
     gmeow:gtsQuadIndex 42 ;
     gmeow:gtsSegmentIndex 2 ;
     rdfs:label "the quad missing a required skos:definition"@x-gmeow-english .
 
-# --- The finding: a reified observation about that statement (Principle 9).
+# --- The finding: an observation (gmeow:Finding ⊑ gmeow:Observation) whose
+# observed feature is that wire-pinned statement (Principle 9).
 ex:missingDefinitionFinding
     a gmeow:Finding ;
     gmeow:vantage ex:shaclTool ;
