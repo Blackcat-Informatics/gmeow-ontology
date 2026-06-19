@@ -40,6 +40,20 @@ pub struct Timing {
     pub metadata: Option<String>,
 }
 
+/// Signature/trust policy configuration for the GTS verification pre-gate.
+#[derive(Debug, Clone, Default)]
+pub struct SignatureConfig {
+    /// Signer KIDs or e-mail addresses considered trusted by this deployment.
+    pub trusted_signers: Vec<String>,
+    /// Require at least one signature frame to be present in the bundle.
+    pub require_signatures: bool,
+    /// Require at least one cryptographically valid signature from a trusted signer.
+    pub require_trusted_signer: bool,
+    /// Optional path to an ASCII-armored OpenPGP public key used instead of the
+    /// bundle's embedded `gts:transportKey`.
+    pub trusted_key: Option<String>,
+}
+
 /// Optional/extended inputs for the validation orchestration.
 #[derive(Debug, Clone, Default)]
 pub struct ValidateOptions {
@@ -68,6 +82,10 @@ pub struct ValidateOptions {
     /// shared store from the bundle instead of from `source_paths`, and the
     /// per-file Turtle phases (syntax check, `owl:sameAs` ban) are skipped.
     pub gts_bytes: Option<Vec<u8>>,
+    /// Optional signature/trust policy configuration for the GTS verification
+    /// pre-gate (#646). When `None`, signature verification is disabled and the
+    /// orchestration behaves as before.
+    pub signature_config: Option<SignatureConfig>,
 }
 
 /// The result of one validation phase.

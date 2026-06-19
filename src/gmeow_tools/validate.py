@@ -508,7 +508,9 @@ def guide_anchor_lint(
 
 
 def validate_all(
-    timings: bool = False, gts_input: Path | None = None
+    timings: bool = False,
+    gts_input: Path | None = None,
+    signature_config: dict[str, object] | None = None,
 ) -> ValidationResult:
     """Run syntax, structural lint, SHACL, and sameAs-ban checks.
 
@@ -531,6 +533,11 @@ def validate_all(
             Python-side per-file lints (guide-anchor, i18n PO) are likewise
             skipped to mirror the Rust GTS phase set — ``--gts`` differs only in
             input provenance, never in validation semantics.
+        signature_config: Optional signature/trust policy configuration for the
+            GTS verification pre-gate (#646). Keys: ``trusted_signers`` (list of
+            strings), ``require_signatures`` (bool), ``require_trusted_signer``
+            (bool), and ``trusted_key`` (optional path string). When omitted,
+            signature verification is disabled.
     """
     # Ensure the content-addressed cache root exists before Rust needs it.
     _VALIDATION_CACHE_DIR.mkdir(parents=True, exist_ok=True)
@@ -578,6 +585,18 @@ def validate_all(
         statement_dsl_dir = str(STATEMENT_DSL_DIR)
 
     config = _lint_config()
+    signature_options = (
+        gmeow_validate.SignatureConfig(
+            trusted_signers=list(signature_config.get("trusted_signers", [])),
+            require_signatures=bool(signature_config.get("require_signatures", False)),
+            require_trusted_signer=bool(
+                signature_config.get("require_trusted_signer", False)
+            ),
+            trusted_key=signature_config.get("trusted_key"),
+        )
+        if signature_config is not None
+        else None
+    )
     options = gmeow_validate.ValidateOptions(
         timings=timings,
         sameas_allowlist=[(subject, obj) for subject, obj in _SAMEAS_ALLOWLIST],
@@ -587,6 +606,7 @@ def validate_all(
         statement_shapes_ttl=statement_shapes_ttl,
         project_root=str(PROJECT_ROOT),
         gts_bytes=gts_bytes,
+        signature_config=signature_options,
     )
 
     report = gmeow_validate.validate_all_native(
