@@ -601,13 +601,14 @@ class TestReasonNativePipeline:
 
 
 @functools.cache
-def _native_result() -> dict[str, object]:
-    """Reason the committed bundle once, cached across the helper tests.
+def _native_artifacts() -> dict[str, str]:
+    """Emit the three native RDF 1.2 artifacts once, cached across the tests.
 
-    The full native chase is expensive; the pure ``build_*`` helpers only read
-    the result dict, so a single cached run is shared by every helper test
-    instead of recomputing the whole pipeline per method. (A skip when the
-    snapshot is absent raises before returning, so nothing is cached.)
+    The full native chase is expensive; all three artifacts come from ONE Rust
+    ``reason_native_artifacts`` call (engine reasons once, serializes via the
+    gmeow-rdf RDF 1.2 Turtle emitter), so a single cached run is shared by every
+    structure test instead of recomputing the whole pipeline per method. (A skip
+    when the snapshot is absent raises before returning, so nothing is cached.)
     """
     import gmeow_logic
 
@@ -615,66 +616,90 @@ def _native_result() -> dict[str, object]:
 
     if not GTS_SNAPSHOT_FILE.exists():
         pytest.skip("GTS snapshot not present in this checkout")
-    return gmeow_logic.reason_native(GTS_SNAPSHOT_FILE.read_bytes())
+    return gmeow_logic.reason_native_artifacts(GTS_SNAPSHOT_FILE.read_bytes(), False)
 
 
-class TestNativeReasonHelpers:
-    """The pure dict→RDF-1.2-Turtle helpers parse under pyoxigraph (#665)."""
+class TestNativeReasonArtifacts:
+    """The native (Rust) RDF-1.2-Turtle artifacts parse under pyoxigraph (#666).
 
-    def _result(self) -> dict[str, object]:
-        return _native_result()
+    Task 3 moved the closure / explanations / ledger emission off the Python
+    primary path into ``gmeow_logic.reason_native_artifacts`` (Rust + the
+    gmeow-rdf RDF 1.2 Turtle emitter). These tests assert the three artifacts
+    parse as valid RDF 1.2 and carry their key structural tokens.
+    """
 
-    def test_build_inferred_closure_ttl_parses(self) -> None:
-        import gmeow_tools.reason as reason
+    def _artifacts(self) -> dict[str, str]:
+        return _native_artifacts()
 
-        ttl = reason.build_inferred_closure_ttl(self._result())
+    def test_closure_parses_and_carries_reifier_provenance(self) -> None:
+        ttl = self._artifacts()["closure"]
         assert _parse_rdf12_turtle(ttl) > 0
+        # Derived axioms carry an RDF 1.2 reifier with derivation provenance.
+        assert "rdf:reifies" in ttl or "22-rdf-syntax-ns#reifies" in ttl
+        assert "viaRule" in ttl
+        assert "Deduction" in ttl
 
-    def test_build_explanations_ttl_parses(self) -> None:
-        import gmeow_tools.reason as reason
-
-        ttl = reason.build_explanations_ttl(self._result())
+    def test_explanations_parse_and_carry_derivation_skeleton(self) -> None:
+        ttl = self._artifacts()["explanations"]
         assert _parse_rdf12_turtle(ttl) > 0
+        # Each proof skeleton is a Derivation that concludes a triple term.
+        assert "Derivation" in ttl
+        assert "concludes" in ttl
+        # Multi-step derivations cite their premises (now exposed by the engine).
+        assert "hasPremise" in ttl
 
-    def test_build_dl_el_ledger_ttl_parses(self) -> None:
-        import gmeow_tools.reason as reason
-
-        ttl = reason.build_dl_el_ledger_ttl(self._result())
+    def test_ledger_parses_and_carries_entries_gaps_and_counts(self) -> None:
+        ttl = self._artifacts()["ledger"]
         assert _parse_rdf12_turtle(ttl) > 0
-
-    def test_ledger_renders_inconsistency_and_gap_without_docker(self) -> None:
-        """Hand-built result with an inconsistency + a gap exercises the ledger path.
-
-        This unit-tests the inconsistency-rendering branch without needing a
-        synthetic GTS bundle (which would require Docker / a full build): the
-        ledger must surface the consistency verdict (false), a ``gmeow:DlGap``
-        resource, and the #666 report-only / oracle-deferral note.
-        """
-        import gmeow_tools.reason as reason
-
-        result: dict[str, object] = {
-            "consistent": False,
-            "inferred": [],
-            "unsatisfiable_classes": [],
-            "inconsistencies": [
-                {
-                    "individual": "https://example.org/x",
-                    "world": "https://example.org/w",
-                }
-            ],
-            "gaps": [{"code": "reason.dl-gap.complementOf", "message": "beyond EL"}],
-        }
-        ttl = reason.build_dl_el_ledger_ttl(result)
-        # Parses as valid RDF 1.2.
-        assert _parse_rdf12_turtle(ttl) > 0
-        # The inconsistent verdict surfaces.
-        assert "gmeow:consistent false" in ttl
-        # The beyond-EL gap is rendered as a DlGap resource.
-        assert "gmeow:DlGap" in ttl
-        assert "reason.dl-gap.complementOf" in ttl
-        # The report-only / #666 deferral note is present.
+        # The report-only crosscheck ledger header + verdict (the native emitter
+        # writes full IRIs, so the consistency verdict is a `consistent> true`
+        # property — not the prefixed `gmeow:consistent true` form).
+        assert "CrosscheckLedger" in ttl
+        assert "consistent> true" in ttl
+        # Native-only subsumption entries and beyond-EL DL gaps.
+        assert "LedgerEntry" in ttl
+        assert "DlGap" in ttl
+        # The report-only / #666 oracle-deferral note is present.
         assert "classic-cross-check" in ttl
         assert "#666" in ttl
+        # Counts are emitted.
+        assert "entailmentCount" in ttl
+        assert "gapCount" in ttl
+
+    def test_artifacts_are_byte_regenerable_against_committed(self) -> None:
+        """The Rust-emitted artifacts are RDF-isomorphic to the committed files.
+
+        Mirrors ``NativeReasoningGenerator.compare`` (pyoxigraph RDFC-1.0
+        canonical quad-set equality): a fresh native emission must equal the
+        committed ``generated/logic/*.ttl`` so the drift gate stays green.
+        """
+        import pyoxigraph
+
+        from gmeow_tools.config import GENERATED_DIR
+
+        def _canon(text: str) -> list[str]:
+            dataset = pyoxigraph.Dataset()
+            for quad in pyoxigraph.parse(
+                text.encode("utf-8"), format=pyoxigraph.RdfFormat.TURTLE
+            ):
+                dataset.add(pyoxigraph.Quad(quad.subject, quad.predicate, quad.object))
+            dataset.canonicalize(pyoxigraph.CanonicalizationAlgorithm.RDFC_1_0)
+            return sorted(str(quad) for quad in dataset)
+
+        artifacts = self._artifacts()
+        committed = {
+            "closure": GENERATED_DIR / "logic" / "inferred-closure.rdf12.ttl",
+            "explanations": GENERATED_DIR
+            / "logic"
+            / "reasoning-explanations.rdf12.ttl",
+            "ledger": GENERATED_DIR / "logic" / "dl-el-crosscheck-report.ttl",
+        }
+        for key, path in committed.items():
+            if not path.exists():
+                pytest.skip(f"committed artifact absent: {path}")
+            assert _canon(artifacts[key]) == _canon(path.read_text(encoding="utf-8")), (
+                f"{key} drifted from committed {path.name}"
+            )
 
 
 # --------------------------------------------------------------------------- #

@@ -1199,6 +1199,81 @@ fn reason_native(py: Python<'_>, gts_bytes: &[u8]) -> PyResult<Py<PyAny>> {
     Ok(out.into_any().unbind())
 }
 
+// ── reason_native_artifacts ───────────────────────────────────────────────────
+
+/// Reason a `gmeow.gts` bundle ONCE and emit all three native RDF 1.2 Turtle
+/// artifacts (issue #666 Task 3).
+///
+/// This is the single-call replacement for the retired Python emitters
+/// (`gmeow_tools.reason.build_inferred_closure_ttl` / `build_explanations_ttl` /
+/// `build_dl_el_ledger_ttl`): it runs the native EL/DL reasoning lane
+/// ([`crate::reason::reason_all`]) exactly once and serializes the three
+/// committed artifacts via the gmeow-rdf RDF 1.2 Turtle emitter
+/// ([`crate::reason::artifacts`]). Reasoning runs with the GIL released.
+///
+/// # Arguments
+///
+/// - `gts_bytes` — the serialized `gmeow.gts` bundle bytes (segments allowed).
+/// - `merge` — when true, the inferred-closure artifact prepends the asserted
+///   (told) graph so the document is the union of asserted and derived axioms
+///   (the `--merge` mode). The explanations and ledger artifacts are unaffected.
+///
+/// # Returns
+///
+/// A dict with three string keys:
+/// - `closure` — the told-vs-inferred inferred-closure Turtle.
+/// - `explanations` — the per-axiom proof-skeleton Turtle.
+/// - `ledger` — the report-only native↔oracle DL/EL crosscheck ledger Turtle.
+///
+/// # Errors
+///
+/// Raises `ValueError` if the GTS bundle cannot be read, and `RuntimeError` if
+/// the native reasoning run fails or a derived axiom is missing its rule name
+/// (the no-optionality / honesty invariant — fabricated provenance is never
+/// emitted).
+#[pyfunction]
+#[pyo3(signature = (gts_bytes, merge=false))]
+fn reason_native_artifacts(py: Python<'_>, gts_bytes: &[u8], merge: bool) -> PyResult<Py<PyAny>> {
+    use crate::reason::artifacts::{
+        build_dl_el_ledger_ttl, build_explanations_ttl, build_inferred_closure_ttl,
+    };
+
+    // Distinguish the two failure modes (GTS read = ValueError, reasoning /
+    // emission = RuntimeError) the same way `reason_native` does. The
+    // GtsGraphStore borrows the Graph (not Send), so the graph, store, reasoning,
+    // AND the three serializations all run inside one GIL-released closure.
+    enum ArtifactsError {
+        GtsRead(String),
+        Reason(String),
+    }
+    let bytes = gts_bytes.to_vec();
+    let built: Result<(String, String, String), ArtifactsError> = py.detach(move || {
+        let graph = gmeow_rdf::gts::read_graph(&bytes, true)
+            .map_err(|e| ArtifactsError::GtsRead(format!("GTS read error: {e}")))?;
+        let store = gmeow_rdf::gts::GtsGraphStore::new(&graph);
+        let result = crate::reason::reason_all(&store).map_err(ArtifactsError::Reason)?;
+
+        let merge_store: Option<&dyn gmeow_rdf::RdfStore> = if merge { Some(&store) } else { None };
+        let closure =
+            build_inferred_closure_ttl(&result, merge_store).map_err(ArtifactsError::Reason)?;
+        let explanations = build_explanations_ttl(&result).map_err(ArtifactsError::Reason)?;
+        let ledger = build_dl_el_ledger_ttl(&result);
+        Ok((closure, explanations, ledger))
+    });
+    let (closure, explanations, ledger) = built.map_err(|e| match e {
+        ArtifactsError::GtsRead(m) => pyo3::exceptions::PyValueError::new_err(m),
+        ArtifactsError::Reason(m) => {
+            pyo3::exceptions::PyRuntimeError::new_err(format!("reason error: {m}"))
+        }
+    })?;
+
+    let out = PyDict::new(py);
+    out.set_item("closure", closure)?;
+    out.set_item("explanations", explanations)?;
+    out.set_item("ledger", ledger)?;
+    Ok(out.into_any().unbind())
+}
+
 #[pymodule]
 fn gmeow_logic(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(materialize, m)?)?;
@@ -1209,6 +1284,7 @@ fn gmeow_logic(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(query, m)?)?;
     m.add_function(wrap_pyfunction!(compile_logic, m)?)?;
     m.add_function(wrap_pyfunction!(reason_native, m)?)?;
+    m.add_function(wrap_pyfunction!(reason_native_artifacts, m)?)?;
     Ok(())
 }
 

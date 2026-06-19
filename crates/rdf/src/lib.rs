@@ -18,6 +18,7 @@ pub mod model;
 #[cfg(feature = "oxigraph")]
 pub mod oxigraph;
 pub mod store;
+pub mod turtle;
 
 pub use diagnostic::{RdfDiagnostic, RdfLocation, RdfLoss, RdfSeverity};
 pub use lookaside::{
@@ -30,3 +31,4 @@ pub use model::{
     RdfTriple,
 };
 pub use store::{RdfStore, RdfStoreCapabilities, VecRdfStore};
+pub use turtle::{emit_annotation, emit_quad, emit_reifier, emit_resource, emit_term, rule_iri};

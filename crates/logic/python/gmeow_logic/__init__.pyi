@@ -60,6 +60,25 @@ def reason_native(gts_bytes: bytes) -> dict[str, Any]:
     """
     ...
 
+def reason_native_artifacts(gts_bytes: bytes, merge: bool = ...) -> dict[str, str]:
+    """Reason a GTS bundle ONCE and emit the 3 native RDF 1.2 artifacts (#666).
+
+    Runs the native EL/DL reasoning lane exactly once and serializes the three
+    committed artifacts via the gmeow-rdf RDF 1.2 Turtle emitter. Returns a dict
+    with three string keys:
+
+    * ``closure`` — the told-vs-inferred inferred-closure Turtle (per-triple
+      derivation provenance). When ``merge`` is true the asserted (told) graph
+      is prepended so the document is the union of asserted and derived axioms.
+    * ``explanations`` — per-axiom proof-skeleton Turtle (conclusion → premises
+      → firing rule).
+    * ``ledger`` — the report-only native↔oracle DL/EL crosscheck ledger Turtle.
+
+    Raises ``ValueError`` if the GTS bundle cannot be read, ``RuntimeError`` if
+    reasoning fails or a derived axiom is missing its rule name.
+    """
+    ...
+
 def certify(rules: str, profile: str) -> dict[str, Any]: ...
 def stable_models(rules: str, input: str) -> dict[str, Any]: ...
 def query(

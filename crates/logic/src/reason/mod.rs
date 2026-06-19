@@ -13,6 +13,7 @@
 //! unsatisfiability ([`dl`]), and the report-only divergence ledger
 //! ([`ledger`]) comparing the native engine against the classic oracles.
 
+pub mod artifacts;
 pub mod dl;
 pub mod el;
 pub mod ledger;
