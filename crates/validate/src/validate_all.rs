@@ -15,6 +15,7 @@ use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 use std::time::Instant;
 
+use gmeow_diagnostics::{Finding, Location, Report, Severity};
 use gmeow_gts::model::Graph;
 use oxigraph::model::Term;
 use oxigraph::store::Store;
@@ -22,6 +23,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::cache::{CachedResult, ValidationCache};
 use crate::dsl;
+use crate::findings::finding_from_shacl;
 use crate::gufo::{self, GufoConfig};
 use crate::lint::{self, LintConfig, ModuleSpec};
 use crate::store::{self, parse_file};
@@ -77,6 +79,11 @@ struct PhaseResult {
 
 /// A complete validation run: shared store, parsed shapes, timings, diagnostics,
 /// and any data Python needs to finish phases that stay Python-side.
+///
+/// The single diagnostic product is [`ValidationRun::report`] — one canonical
+/// [`Report`] (#654). The legacy `errors`/`warnings` string surfaces are
+/// *derived* from it ([`ValidationRun::errors`] / [`ValidationRun::warnings`]),
+/// never separately stored, so there is no dual-truth.
 pub struct ValidationRun {
     /// The shared ontology store built from `source_paths`.
     pub store: Store,
@@ -84,10 +91,8 @@ pub struct ValidationRun {
     pub shapes: gmeow_shacl::shapes::Shapes,
     /// Per-phase timing records (populated when requested).
     pub timings: Vec<Timing>,
-    /// Error diagnostics aggregated across all phases.
-    pub errors: Vec<String>,
-    /// Warning diagnostics aggregated across all phases.
-    pub warnings: Vec<String>,
+    /// The single canonical diagnostics report aggregated across all phases.
+    pub report: Report,
     /// Declared GMEOW-term IRIs, for Python's `guide_anchor_lint`.
     pub declared_terms: Vec<String>,
 }
@@ -121,8 +126,12 @@ impl ValidationRun {
         options: &ValidateOptions,
     ) -> Result<Self, String> {
         let mut timings: Vec<Timing> = Vec::new();
+        // String scratch for the cheap lint phases; the SHACL phases produce
+        // structured findings directly. All three fold into ONE report at the
+        // aggregation points below (#654).
         let mut errors: Vec<String> = Vec::new();
         let mut warnings: Vec<String> = Vec::new();
+        let mut shacl_findings: Vec<Finding> = Vec::new();
 
         if source_paths.is_empty() && options.gts_bytes.is_none() {
             return Err(
@@ -180,8 +189,7 @@ impl ValidationRun {
                 store,
                 shapes,
                 timings,
-                errors,
-                warnings,
+                report: build_report(errors, warnings, shacl_findings),
                 declared_terms: Vec::new(),
             });
         }
@@ -261,7 +269,7 @@ impl ValidationRun {
         let start = Instant::now();
         let (result, meta) = run_cached(cache.as_ref(), "merged-shacl", &merged_shacl_key, || {
             let report = gmeow_shacl::engine::validate(&store, &shapes);
-            Ok(format_normal_shacl_results(&report))
+            Ok(shacl_findings_from_report(&report, None))
         })?;
         if options.timings {
             timings.push(Timing {
@@ -270,8 +278,7 @@ impl ValidationRun {
                 metadata: meta,
             });
         }
-        errors.extend(result.errors);
-        warnings.extend(result.warnings);
+        shacl_findings.extend(result);
 
         // Phase 9: example coverage check.
         if let Some(slices_dir) = &options.slices_dir {
@@ -297,8 +304,7 @@ impl ValidationRun {
                     metadata: meta,
                 });
             }
-            errors.extend(result.errors);
-            warnings.extend(result.warnings);
+            shacl_findings.extend(result);
         }
 
         // Phase 11: mapping DSL SHACL.
@@ -314,8 +320,7 @@ impl ValidationRun {
                         metadata: meta,
                     });
                 }
-                errors.extend(result.errors);
-                warnings.extend(result.warnings);
+                shacl_findings.extend(result);
             }
         }
 
@@ -336,8 +341,7 @@ impl ValidationRun {
                         metadata: meta,
                     });
                 }
-                errors.extend(result.errors);
-                warnings.extend(result.warnings);
+                shacl_findings.extend(result);
             }
         }
 
@@ -345,32 +349,105 @@ impl ValidationRun {
             store,
             shapes,
             timings,
-            errors,
-            warnings,
+            report: build_report(errors, warnings, shacl_findings),
             declared_terms,
         })
+    }
+
+    /// The error messages, derived from the single [`Report`].
+    pub fn errors(&self) -> Vec<String> {
+        self.report.legacy_errors()
+    }
+
+    /// The warning messages, derived from the single [`Report`].
+    pub fn warnings(&self) -> Vec<String> {
+        self.report.legacy_warnings()
+    }
+
+    /// The single canonical report serialized to JSON (always available).
+    pub fn report_json(&self) -> Result<String, serde_json::Error> {
+        serde_json::to_string(&self.report.normalized())
     }
 
     /// Serialize the diagnostic/timing output to JSON.
     ///
     /// The shared [`Store`] and [`gmeow_shacl::shapes::Shapes`] are not
-    /// serializable, so the JSON only carries the aggregated errors, warnings,
-    /// timings, and declared-term list.
+    /// serializable, so the JSON only carries the derived errors/warnings, the
+    /// timings, and the declared-term list.
     pub fn to_json(&self) -> Result<String, serde_json::Error> {
         #[derive(Serialize)]
-        struct JsonRun<'a> {
-            errors: &'a [String],
-            warnings: &'a [String],
-            timings: &'a [Timing],
-            declared_terms: &'a [String],
+        struct JsonRun {
+            errors: Vec<String>,
+            warnings: Vec<String>,
+            timings: Vec<Timing>,
+            declared_terms: Vec<String>,
         }
         serde_json::to_string_pretty(&JsonRun {
-            errors: &self.errors,
-            warnings: &self.warnings,
-            timings: &self.timings,
-            declared_terms: &self.declared_terms,
+            errors: self.errors(),
+            warnings: self.warnings(),
+            timings: self.timings.clone(),
+            declared_terms: self.declared_terms.clone(),
         })
     }
+}
+
+/// Fold the cheap-lint string scratch plus the structured SHACL findings into
+/// ONE canonical [`Report`] (#654). `from_legacy` turns each error/warning
+/// string into a finding, so `report.legacy_errors()/legacy_warnings()`
+/// reproduce the original strings exactly; the SHACL findings add focus-node
+/// locations on top.
+fn build_report(
+    errors: Vec<String>,
+    warnings: Vec<String>,
+    shacl_findings: Vec<Finding>,
+) -> Report {
+    let mut report = Report::from_legacy("validate", errors, warnings);
+    for finding in shacl_findings {
+        report.add_finding(finding);
+    }
+    report
+}
+
+/// Convert a SHACL [`ValidationReport`] into structured findings via the
+/// [`finding_from_shacl`] bridge, optionally tagging each with the example/DSL
+/// source (`origin`) as the finding's primary path so SARIF and the `gmeow:`
+/// RDF projection can attribute it.
+fn shacl_findings_from_report(
+    report: &gmeow_shacl::report::ValidationReport,
+    origin: Option<&str>,
+) -> Vec<Finding> {
+    let mut findings: Vec<Finding> = report
+        .results
+        .iter()
+        .map(|result| {
+            let mut finding = finding_from_shacl(result);
+            if let Some(origin) = origin {
+                finding.related_locations.push(Location {
+                    path: Some(origin.to_owned()),
+                    ..Location::default()
+                });
+            }
+            finding
+        })
+        .collect();
+    // Preserve the original "non-conforming with no results" guard so a failed
+    // graph never validates silently when the engine reports zero results.
+    if findings.is_empty() && !report.conforms {
+        let mut finding = Finding::new(
+            Severity::Error,
+            "shacl.nonconforming",
+            "SHACL validation failed: non-conforming with no results",
+        )
+        .with_tool("shacl");
+        if let Some(origin) = origin {
+            finding.add_location(Location {
+                path: Some(origin.to_owned()),
+                ..Location::default()
+            });
+        }
+        findings.push(finding);
+    }
+    findings
 }
 
 /// Run `closure` and, if timings are enabled, record how long it took.
@@ -397,41 +474,29 @@ where
     result
 }
 
-/// Convert a phase result into the cache serialization format.
-fn phase_to_cached(result: &PhaseResult) -> CachedResult {
-    CachedResult {
-        errors: result.errors.clone(),
-        warnings: result.warnings.clone(),
-    }
-}
-
-/// Look up a cached validation result or compute and store it.
+/// Look up cached findings for a phase or compute and store them.
 ///
-/// Returns the phase result plus timing metadata describing whether the result
-/// came from the cache (`cache-hit`), was freshly computed (`cache-miss`), or
-/// could not be cached because no cache root was configured (`cache-disabled`).
+/// Returns the findings plus timing metadata describing whether the result came
+/// from the cache (`cache-hit`), was freshly computed (`cache-miss`), or could
+/// not be cached because no cache root was configured (`cache-disabled`). The
+/// cached unit is the structured [`Finding`] list, so a hit preserves SHACL
+/// focus nodes and wire coordinates exactly as a fresh compute would (#654).
 fn run_cached<F>(
     cache: Option<&ValidationCache>,
     kind: &str,
     key: &str,
     compute: F,
-) -> Result<(PhaseResult, Option<String>), String>
+) -> Result<(Vec<Finding>, Option<String>), String>
 where
-    F: FnOnce() -> Result<PhaseResult, String>,
+    F: FnOnce() -> Result<Vec<Finding>, String>,
 {
     if let Some(cache) = cache {
         if let Some(cached) = cache.read_cached_result(kind, key) {
-            return Ok((
-                PhaseResult {
-                    errors: cached.errors,
-                    warnings: cached.warnings,
-                },
-                Some("cache-hit".to_owned()),
-            ));
+            return Ok((cached.findings, Some("cache-hit".to_owned())));
         }
-        let result = compute()?;
-        cache.write_cached_result(kind, key, &phase_to_cached(&result))?;
-        Ok((result, Some("cache-miss".to_owned())))
+        let findings = compute()?;
+        cache.write_cached_result(kind, key, &CachedResult::from_findings(findings.clone()))?;
+        Ok((findings, Some("cache-miss".to_owned())))
     } else {
         Ok((compute()?, Some("cache-disabled".to_owned())))
     }
@@ -497,63 +562,6 @@ fn check_slice_ownership(
     })
 }
 
-/// Format a normal SHACL report the way Python `run_shacl` does.
-fn format_normal_shacl_results(report: &gmeow_shacl::report::ValidationReport) -> PhaseResult {
-    use gmeow_shacl::report::Severity;
-    let mut result = PhaseResult::default();
-
-    let violations: Vec<String> = report
-        .results
-        .iter()
-        .filter(|r| r.severity == Severity::Violation)
-        .map(format_result_line)
-        .collect();
-    let warnings: Vec<String> = report
-        .results
-        .iter()
-        .filter(|r| r.severity != Severity::Violation)
-        .map(format_result_line)
-        .collect();
-
-    if !violations.is_empty() {
-        result
-            .errors
-            .push(format!("SHACL violations:\n{}", violations.join("\n")));
-    }
-    if !warnings.is_empty() {
-        result
-            .warnings
-            .push(format!("SHACL warnings:\n{}", warnings.join("\n")));
-    }
-    if !report.conforms && violations.is_empty() && warnings.is_empty() {
-        result
-            .errors
-            .push("SHACL validation failed: non-conforming with no results".to_owned());
-    }
-    result
-}
-
-/// Format a SHACL result as `<focus>: <message>` (or just the focus node).
-fn format_result_line(result: &gmeow_shacl::report::ValidationResult) -> String {
-    let focus = term_to_str(&result.focus_node);
-    match &result.message {
-        Some(msg) => format!("{focus}: {msg}"),
-        None => focus,
-    }
-}
-
-/// Mirror Python `shacl_engine.term_to_str`.
-fn term_to_str(term: &Term) -> String {
-    let s = term.to_string();
-    if s.starts_with('<') && s.ends_with('>') {
-        s[1..s.len() - 1].to_owned()
-    } else if let Some(rest) = s.strip_prefix("_:") {
-        rest.to_owned()
-    } else {
-        s
-    }
-}
-
 /// Phase 9: every slice must ship at least one `examples/*.ttl` file.
 fn check_example_coverage(slices_dir: &str) -> Result<PhaseResult, String> {
     let mut result = PhaseResult::default();
@@ -591,8 +599,8 @@ fn check_examples(
     slices_dir: &str,
     cache: Option<&ValidationCache>,
     base_key: &str,
-) -> Result<(PhaseResult, Option<String>), String> {
-    let mut result = PhaseResult::default();
+) -> Result<(Vec<Finding>, Option<String>), String> {
+    let mut findings: Vec<Finding> = Vec::new();
     let mut hits: usize = 0;
     let mut misses: usize = 0;
 
@@ -604,7 +612,7 @@ fn check_examples(
             ValidationCache::cache_key(&[base_key.as_bytes(), path.to_string_lossy().as_bytes()])
         };
 
-        let (example_result, meta) = run_cached(cache, "example-shacl", &example_key, || {
+        let (example_findings, meta) = run_cached(cache, "example-shacl", &example_key, || {
             run_example_shacl(store, shapes, &path, &name)
         })?;
         match meta.as_deref() {
@@ -612,8 +620,7 @@ fn check_examples(
             Some("cache-miss") => misses += 1,
             _ => {}
         }
-        result.errors.extend(example_result.errors);
-        result.warnings.extend(example_result.warnings);
+        findings.extend(example_findings);
     }
 
     let metadata = if cache.is_some() {
@@ -621,7 +628,7 @@ fn check_examples(
     } else {
         Some("cache-disabled".to_owned())
     };
-    Ok((result, metadata))
+    Ok((findings, metadata))
 }
 
 /// Validate one example file against the ontology + shapes via scoped overlay.
@@ -630,37 +637,22 @@ fn run_example_shacl(
     shapes: &gmeow_shacl::shapes::Shapes,
     path: &Path,
     name: &str,
-) -> Result<PhaseResult, String> {
+) -> Result<Vec<Finding>, String> {
     let example_quads = match parse_file(path) {
         Ok(q) => q,
         Err(e) => {
-            let mut result = PhaseResult::default();
-            result.errors.push(format!(
-                "example {name}: failed to parse {}: {e}",
-                path.display()
-            ));
-            return Ok(result);
+            return Ok(vec![Finding::new(
+                Severity::Error,
+                "example.parse",
+                format!("example {name}: failed to parse {}: {e}", path.display()),
+            )
+            .with_tool("validate")]);
         }
     };
     let inserted = scoped_overlay_insert(store, example_quads.iter());
     let report = gmeow_shacl::engine::validate(store, shapes);
     scoped_overlay_remove(store, &inserted);
-
-    let mut result = PhaseResult::default();
-    let (violations, warnings) = partition_shacl_results(&report);
-    if !violations.is_empty() {
-        result.errors.push(format!(
-            "example {name}: SHACL violations:\n{}",
-            violations.join("\n")
-        ));
-    }
-    if !warnings.is_empty() {
-        result.warnings.push(format!(
-            "example {name}: SHACL warnings:\n{}",
-            warnings.join("\n")
-        ));
-    }
-    Ok(result)
+    Ok(shacl_findings_from_report(&report, Some(name)))
 }
 
 /// Insert only quads that are not already present in `store` and return the
@@ -700,37 +692,16 @@ fn store_contains_quad(store: &Store, quad: &oxigraph::model::Quad) -> bool {
         .is_some()
 }
 
-/// Split a SHACL report into (violations, warnings) using the same formatting
-/// as the normal SHACL path.
-fn partition_shacl_results(
-    report: &gmeow_shacl::report::ValidationReport,
-) -> (Vec<String>, Vec<String>) {
-    use gmeow_shacl::report::Severity;
-    let violations: Vec<String> = report
-        .results
-        .iter()
-        .filter(|r| r.severity == Severity::Violation)
-        .map(format_result_line)
-        .collect();
-    let warnings: Vec<String> = report
-        .results
-        .iter()
-        .filter(|r| r.severity != Severity::Violation)
-        .map(format_result_line)
-        .collect();
-    (violations, warnings)
-}
-
 /// Phase 11/12: validate a DSL directory against its dedicated SHACL shapes.
 fn check_dsl(
     dsl_dir: &str,
     shapes_ttl: &str,
     label: &str,
     cache: Option<&ValidationCache>,
-) -> Result<(PhaseResult, Option<String>), String> {
+) -> Result<(Vec<Finding>, Option<String>), String> {
     let paths = collect_ttl_paths(dsl_dir)?;
     if paths.is_empty() {
-        return Ok((PhaseResult::default(), Some("no-inputs".to_owned())));
+        return Ok((Vec::new(), Some("no-inputs".to_owned())));
     }
 
     let key = if let Some(cache) = cache {
@@ -752,50 +723,47 @@ fn check_dsl(
         let data_store = store::build_store_from_nt(&merge.data_nt)?;
         let shapes = gmeow_shacl::engine::parse_shapes(shapes_ttl)?;
         let report = gmeow_shacl::engine::validate(&data_store, &shapes);
-
         let focus_to_file: HashMap<String, String> = merge.focus_to_file.into_iter().collect();
-        let violations = format_dsl_results(&report, &focus_to_file);
-
-        let mut result = PhaseResult::default();
-        if !violations.is_empty() {
-            result.errors.push(format!(
-                "{label} DSL SHACL violations:\n  {}",
-                violations.join("\n  ")
-            ));
-        }
-        if !report.conforms && violations.is_empty() {
-            result
-                .errors
-                .push("SHACL validation failed: non-conforming with no results".to_owned());
-        }
-        Ok(result)
+        Ok(dsl_findings(&report, &focus_to_file, label))
     })
 }
 
-/// Format DSL SHACL results with focus/path/message/source provenance.
-fn format_dsl_results(
+/// Convert DSL SHACL results into structured findings, attributing each to its
+/// authored source file (via the focus→file map) as the finding's primary path.
+fn dsl_findings(
     report: &gmeow_shacl::report::ValidationReport,
     focus_to_file: &HashMap<String, String>,
-) -> Vec<String> {
-    let mut lines: Vec<String> = Vec::new();
+    label: &str,
+) -> Vec<Finding> {
+    let mut findings: Vec<Finding> = Vec::new();
     for result in &report.results {
-        let mut parts: Vec<String> = Vec::new();
-        let focus = term_to_str(&result.focus_node);
-        parts.push(format!("focus={focus}"));
-        if let Some(path) = &result.result_path {
-            parts.push(format!("path={}", term_to_str(path)));
-        }
-        if let Some(msg) = &result.message {
-            parts.push(format!("msg={msg}"));
-        }
-        if let Term::NamedNode(n) = &result.focus_node {
-            if let Some(src) = focus_to_file.get(n.as_str()) {
-                parts.push(format!("source={src}"));
+        let mut finding = finding_from_shacl(result);
+        finding.tool = Some(format!("{label}-dsl"));
+        if let Term::NamedNode(node) = &result.focus_node {
+            if let Some(source) = focus_to_file.get(node.as_str()) {
+                if let Some(primary) = finding.locations.first_mut() {
+                    primary.path = Some(source.clone());
+                } else {
+                    finding.add_location(Location {
+                        path: Some(source.clone()),
+                        ..Location::default()
+                    });
+                }
             }
         }
-        lines.push(parts.join(" | "));
+        findings.push(finding);
     }
-    lines
+    if findings.is_empty() && !report.conforms {
+        findings.push(
+            Finding::new(
+                Severity::Error,
+                format!("{label}-dsl.nonconforming"),
+                "SHACL validation failed: non-conforming with no results",
+            )
+            .with_tool(format!("{label}-dsl")),
+        );
+    }
+    findings
 }
 
 /// Recursively collect all `.ttl` files under `dir`, sorted deterministically.
@@ -1011,12 +979,18 @@ mod tests {
         let run = ValidationRun::run(&[], "", "", "", &minimal_lint_config(), &options)
             .expect("ValidationRun::run with gts_bytes must succeed");
 
-        assert!(run.errors.is_empty(), "unexpected errors: {:?}", run.errors);
         assert!(
-            run.warnings.is_empty(),
-            "unexpected warnings: {:?}",
-            run.warnings
+            run.errors().is_empty(),
+            "unexpected errors: {:?}",
+            run.errors()
         );
+        assert!(
+            run.warnings().is_empty(),
+            "unexpected warnings: {:?}",
+            run.warnings()
+        );
+        // report_json is always available, even on a clean run.
+        assert!(run.report_json().is_ok());
         assert_eq!(run.store.len().unwrap(), 1);
 
         let nt = dump_store_to_ntriples(&run.store).expect("store must serialize to N-Triples");
