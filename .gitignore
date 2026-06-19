@@ -49,4 +49,6 @@ keys/*.tmp
 # maturin editable-install artifacts (the compiled extension is built, never committed)
 crates/logic/python/gmeow_logic/*.so
 crates/logic/python/gmeow_logic/*.pyd
+crates/rdf/python/gmeow_rdf/*.so
+crates/rdf/python/gmeow_rdf/*.pyd
 .worktree

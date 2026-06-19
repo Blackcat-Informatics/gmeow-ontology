@@ -13,7 +13,7 @@ build-backend = "maturin"
 [project]
 name = "gmeow-rdf"
 version = "0.1.0"
-description = "GMEOW RDF 1.2 kernel PyO3 bindings: native OWL↔RDF-1.2 statement codec (no Jena/Docker/SPARQL)"
+description = "GMEOW RDF 1.2 kernel PyO3 bindings: native OWL↔RDF-1.2 statement codec + oxigraph Store/SPARQL/canonicalize (no Jena/Docker/pyoxigraph)"
 requires-python = ">=3.13"
 license = { text = "AGPL-3.0-only" }
 authors = [{ name = "Blackcat Informatics® Inc." }]
@@ -23,3 +23,9 @@ keywords = ["rdf", "rdf-12", "statements", "gmeow"]
 module-name = "gmeow_rdf"
 features = ["python", "pyo3/extension-module"]
 python-requires = ">=3.13"
+# Mixed Rust/Python layout: ship the hand-written type stub (__init__.pyi) and the
+# PEP 561 `py.typed` marker alongside the compiled extension so mypy type-checks
+# every gmeow_rdf call site (the native oxigraph Store/SPARQL/parse/canonicalize
+# surface that replaces pyoxigraph, #667) instead of treating it as untyped Any.
+# The __init__.py mirrors what maturin auto-generates for a bare cdylib.
+python-source = "python"
