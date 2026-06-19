@@ -756,6 +756,15 @@ wheels = [
 ]
 
 [[package]]
+name = "elementpath"
+version = "5.1.2"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/98/66/2bb88f2d9bed40654a6fe40b83009784d34aafb4bd5eb87719fcfd33dde2/elementpath-5.1.2.tar.gz", hash = "sha256:43d67a38700153eb45349c6e14a4d4b3a06e390c31df06539f730a96baf9a7fc", size = 375909, upload-time = "2026-06-13T07:12:15.695Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/97/44/e595bc3dbd9293016dd6d0d211a0580616aa255bf2ef4e5ee0ffca2496f0/elementpath-5.1.2-py3-none-any.whl", hash = "sha256:dd35750b3f0d2b4df553d5ef2101011cde6a0e8080c51110765b5853e02aac8e", size = 260278, upload-time = "2026-06-13T07:12:13.196Z" },
+]
+
+[[package]]
 name = "email-validator"
 version = "2.3.0"
 source = { registry = "https://pypi.org/simple" }
@@ -949,6 +958,7 @@ dev = [
     { name = "pytest-xdist" },
     { name = "ruff" },
     { name = "types-jsonschema" },
+    { name = "xmlschema" },
 ]
 
 [package.metadata]
@@ -985,6 +995,7 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.6" },
     { name = "ruff", specifier = ">=0.9" },
     { name = "types-jsonschema", specifier = ">=4.23" },
+    { name = "xmlschema", specifier = ">=4.3" },
 ]
 
 [[package]]
@@ -3359,6 +3370,18 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/ab/31/2a7dc5f6abb2fca0b6e1610e120419f603650aceb4f1d3ac4cae0354e162/wrapt-2.2.1-cp314-cp314t-win_amd64.whl", hash = "sha256:fd0135d34387f5fd087d9be368ea77ea89cf2451dc1cd1c622d35021bcb3ab50", size = 83835, upload-time = "2026-05-22T14:49:21.634Z" },
     { url = "https://files.pythonhosted.org/packages/9f/c0/782b86e28d1ceebeb74cccea12d2cd3d2ba0bd68e3dec20b1bc5873f6127/wrapt-2.2.1-cp314-cp314t-win_arm64.whl", hash = "sha256:f70db64e8266d7c45d3b735f2e08eeb434b5e03da9a479ae42b2e2e486a21a00", size = 80722, upload-time = "2026-05-22T14:49:23.59Z" },
     { url = "https://files.pythonhosted.org/packages/53/46/29ac9daf11a86c22a8c38cd9236c62928ccae83f7ceb06bd3b0467cf9d05/wrapt-2.2.1-py3-none-any.whl", hash = "sha256:3aafea2975caef8ca49400640dde02cc7426e798f24870ed01f490bc3cffd32f", size = 61000, upload-time = "2026-05-22T14:49:41.593Z" },
+]
+
+[[package]]
+name = "xmlschema"
+version = "4.3.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "elementpath" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/da/c4/ef78a231be72349fd6677b989ff80e276ef62e28054c36c4fea3b4db9611/xmlschema-4.3.1.tar.gz", hash = "sha256:853effdfaf127849d4724368c17bd669e7f1486e15a0376404ad7954ec31a338", size = 646611, upload-time = "2026-01-17T23:01:04.422Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/dd/7b/3471405875d0b5fac642e9a879b2c7db63642370799b2e9eea8297ffbad0/xmlschema-4.3.1-py3-none-any.whl", hash = "sha256:9560314d70ae87be0aecb8712cfebed636f867707ccf9758d4b0645d607f64b9", size = 469891, upload-time = "2026-01-17T23:01:00.39Z" },
 ]
 
 [[package]]
