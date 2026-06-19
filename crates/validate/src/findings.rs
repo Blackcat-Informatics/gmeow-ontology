@@ -50,6 +50,18 @@ fn iri_local(iri: &str) -> &str {
         .unwrap_or(iri)
 }
 
+/// Strip the angle brackets oxigraph's N-Triples `Display` wraps around IRIs, so
+/// a focus node / path / value stored in a [`Location`] is the bare IRI (its
+/// identity), not its serialization. This keeps the SARIF projection (where a
+/// bracketed URI is invalid), the flat JSON report, and the `gmeow:` RDF graph
+/// all anchored on the same clean identifier. Blank nodes and literals lack the
+/// brackets and pass through unchanged.
+fn strip_angle(term: &str) -> &str {
+    term.strip_prefix('<')
+        .and_then(|inner| inner.strip_suffix('>'))
+        .unwrap_or(term)
+}
+
 /// Convert an [`RdfLocation`] into a diagnostics [`Location`], preserving every
 /// GTS wire coordinate (`usize` on the RDF side becomes the portable `u64` the
 /// diagnostics model serializes).
@@ -126,23 +138,26 @@ pub fn finding_from_shacl(result: &ValidationResult) -> Finding {
         Finding::new(severity_from_shacl(result.severity), code, message).with_tool("shacl");
 
     finding.add_location(Location {
-        logical: Some(result.focus_node.to_string()),
+        logical: Some(strip_angle(&result.focus_node.to_string()).to_owned()),
         ..Location::default()
     });
 
     if let Some(path) = &result.result_path {
         finding.related_locations.push(Location {
-            logical: Some(format!("path {path}")),
+            logical: Some(format!("path {}", strip_angle(&path.to_string()))),
             ..Location::default()
         });
     }
     if let Some(value) = &result.value {
         finding.related_locations.push(Location {
-            logical: Some(format!("value {value}")),
+            logical: Some(format!("value {}", strip_angle(&value.to_string()))),
             ..Location::default()
         });
     }
-    finding.detail = Some(format!("source shape: {}", result.source_shape));
+    finding.detail = Some(format!(
+        "source shape: {}",
+        strip_angle(&result.source_shape.to_string())
+    ));
     finding
 }
 
@@ -204,20 +219,22 @@ mod tests {
 
         assert_eq!(finding.severity, Severity::Error);
         assert_eq!(finding.code, "shacl.MinCountConstraintComponent");
-        // oxigraph Term Display is the N-Triples form, so IRIs are angle-bracketed.
+        // IRIs are stored bare (identity, not N-Triples serialization), so the
+        // SARIF projection emits a valid `artifactLocation.uri` (a bracketed
+        // `<https://…>` is rejected by GitHub code-scanning).
         assert_eq!(
             finding
                 .primary_location()
                 .and_then(|l| l.logical.as_deref()),
-            Some("<https://ex/a>")
+            Some("https://ex/a")
         );
         assert!(finding
             .related_locations
             .iter()
-            .any(|l| l.logical.as_deref() == Some("path <https://ex/p>")));
+            .any(|l| l.logical.as_deref() == Some("path https://ex/p")));
         assert_eq!(
             finding.detail.as_deref(),
-            Some("source shape: <https://ex/shape>")
+            Some("source shape: https://ex/shape")
         );
     }
 }

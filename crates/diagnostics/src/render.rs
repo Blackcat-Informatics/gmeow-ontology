@@ -43,13 +43,38 @@ pub fn to_sarif(report: &Report) -> Result<String, serde_json::Error> {
     serde_json::to_string_pretty(&payload)
 }
 
+/// Strip the angle brackets oxigraph's N-Triples `Display` wraps around IRIs.
+/// SARIF `artifactLocation.uri` must be a *bare* URI: GitHub code-scanning
+/// rejects the whole file when a location reads `<https://…>` ("first path
+/// segment in URL cannot contain colon"). RDF terms that are not IRIs (blank
+/// nodes, literals) lack the brackets and pass through unchanged.
+fn strip_angle(s: &str) -> &str {
+    s.strip_prefix('<')
+        .and_then(|inner| inner.strip_suffix('>'))
+        .unwrap_or(s)
+}
+
+/// Whether a string is usable as a SARIF `artifactLocation.uri`: a syntactically
+/// valid URI reference, i.e. non-empty, no embedded whitespace, and not a quoted
+/// RDF literal. Composite annotations such as `path <…>` / `value "x"` fail this
+/// and are surfaced as logical locations instead of corrupting the URI.
+fn is_artifact_uri(candidate: &str) -> bool {
+    !candidate.is_empty()
+        && !candidate.starts_with('"')
+        && !candidate.chars().any(char::is_whitespace)
+}
+
 /// The artifact URI a location points at: a concrete file path when present,
-/// otherwise the logical name (e.g. a `.gts` segment or focus node).
+/// otherwise a bare-IRI logical anchor (e.g. a `.gts` segment or focus node).
+/// Returns `None` when the only candidate is a non-URI annotation, so the
+/// run-level `artifacts` list never carries an invalid URI.
 fn artifact_uri(location: &Location) -> Option<String> {
     location
         .path
         .as_deref()
         .or(location.logical.as_deref())
+        .map(strip_angle)
+        .filter(|candidate| is_artifact_uri(candidate))
         .map(str::to_owned)
 }
 
@@ -439,26 +464,42 @@ fn sarif_location_properties(location: &Location) -> Option<Value> {
 }
 
 fn sarif_location(location: &Location) -> Value {
-    let mut physical = json!({
-        "artifactLocation": {
-            "uri": location.path.as_deref().or(location.logical.as_deref()).unwrap_or("<unknown>")
+    let mut out = json!({});
+
+    // Physical location: a concrete file path, or a bare-IRI logical anchor.
+    // Only a valid bare URI may become `artifactLocation.uri`; angle-bracketed
+    // N-Triples IRIs and composite annotations are normalised / diverted below.
+    let uri = artifact_uri(location);
+    let has_region = location.line.is_some() || location.column.is_some();
+    if uri.is_some() || has_region {
+        let mut physical = json!({
+            "artifactLocation": { "uri": uri.as_deref().unwrap_or("unknown") }
+        });
+        if has_region {
+            let mut region = json!({});
+            if let Some(line) = location.line {
+                region["startLine"] = json!(line);
+            }
+            if let Some(column) = location.column {
+                region["startColumn"] = json!(column);
+            }
+            physical["region"] = region;
         }
-    });
-    if location.line.is_some() || location.column.is_some() {
-        let mut region = json!({});
-        if let Some(line) = location.line {
-            region["startLine"] = json!(line);
-        }
-        if let Some(column) = location.column {
-            region["startColumn"] = json!(column);
-        }
-        physical["region"] = region;
+        out["physicalLocation"] = physical;
     }
-    let mut out = json!({ "physicalLocation": physical });
-    let logical = sarif_logical_locations(location);
+
+    // Logical locations: the GTS wire coordinates, plus any non-URI annotation
+    // (e.g. a SHACL result `path`/`value`) surfaced rather than dropped.
+    let mut logical = sarif_logical_locations(location);
+    if let Some(annotation) = location.logical.as_deref() {
+        if !is_artifact_uri(strip_angle(annotation)) {
+            logical.push(json!({ "fullyQualifiedName": annotation }));
+        }
+    }
     if !logical.is_empty() {
         out["logicalLocations"] = json!(logical);
     }
+
     if let Some(properties) = sarif_location_properties(location) {
         out["properties"] = properties;
     }
@@ -626,5 +667,55 @@ mod tests {
 
         assert!(html.contains("&lt;script&gt;"));
         assert!(!html.contains("<script>"));
+    }
+
+    #[test]
+    fn sarif_uris_are_bare_and_annotations_become_logical_locations() {
+        // A focus-node IRI stored bare must emit a valid `artifactLocation.uri`
+        // (no angle brackets — GitHub code-scanning rejects `<https://…>`), while
+        // a non-URI annotation like `path <iri>` must surface as a logical
+        // location instead of corrupting the URI. Regression for #666.
+        let mut finding =
+            Finding::new(Severity::Error, "shacl.MinCount", "missing property").with_tool("shacl");
+        finding.add_location(Location::new(
+            None,
+            None,
+            None,
+            Some("https://blackcatinformatics.ca/gmeow/examples/ai/claim".to_owned()),
+        ));
+        finding.related_locations.push(Location::new(
+            None,
+            None,
+            None,
+            Some("path https://blackcatinformatics.ca/gmeow/groundedIn".to_owned()),
+        ));
+        let mut report = Report::new("validate");
+        report.add_finding(finding);
+
+        let value: Value = serde_json::from_str(&to_sarif(&report).unwrap()).unwrap();
+        let result = &value["runs"][0]["results"][0];
+
+        // Primary location: a bare-IRI artifact URI, no angle brackets.
+        assert_eq!(
+            result["locations"][0]["physicalLocation"]["artifactLocation"]["uri"],
+            "https://blackcatinformatics.ca/gmeow/examples/ai/claim"
+        );
+        // The composite annotation is a logical location, not a physical URI.
+        let related = &result["relatedLocations"][0];
+        assert!(
+            related["physicalLocation"].is_null(),
+            "non-URI annotation must not become a physical artifactLocation"
+        );
+        assert_eq!(
+            related["logicalLocations"][0]["fullyQualifiedName"],
+            "path https://blackcatinformatics.ca/gmeow/groundedIn"
+        );
+
+        // No emitted URI anywhere carries an angle bracket.
+        let serialized = to_sarif(&report).unwrap();
+        assert!(
+            !serialized.contains("\"uri\": \"<") && !serialized.contains("\"uri\":\"<"),
+            "an angle-bracketed URI leaked into the SARIF output"
+        );
     }
 }
