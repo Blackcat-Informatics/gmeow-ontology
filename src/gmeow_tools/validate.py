@@ -17,6 +17,7 @@ from dataclasses import dataclass, field
 from functools import lru_cache
 from pathlib import Path
 
+import gmeow_diagnostics
 import gmeow_validate
 
 from gmeow_tools import shacl_engine
@@ -129,6 +130,10 @@ class ValidationResult:
     errors: list[str] = field(default_factory=list)
     warnings: list[str] = field(default_factory=list)
     timings: list[dict[str, object]] = field(default_factory=list)
+    #: The single canonical diagnostics report serialized to JSON (#654). The
+    #: Rust orchestration always supplies it; ``errors``/``warnings`` are its
+    #: legacy projection. ``None`` only for hand-built results.
+    report_json: str | None = None
 
     @property
     def ok(self) -> bool:
@@ -597,12 +602,17 @@ def validate_all(
         errors=list(report["errors"]),
         warnings=list(report["warnings"]),
         timings=list(report.get("timings", [])),
+        report_json=report.get("report_json"),
     )
 
     # The Python-side per-file lints below validate repo source files (slice
     # docs.md, authored PO files), not the folded GTS graph. In GTS mode there
     # are no per-file source paths, so we skip them to mirror the Rust engine's
-    # GTS phase set (which skips its own per-file Turtle phases) — #644.
+    # GTS phase set (which skips its own per-file Turtle phases) — #644. Their
+    # findings are tracked separately so they can be folded back into the single
+    # canonical report alongside the Rust findings (#654).
+    py_errors: list[str] = []
+    py_warnings: list[str] = []
     if gts_input is None:
         # Guide-anchor lint stays Python-side: it resolves markdown anchors in
         # slice docs.md against the declared GMEOW terms returned by Rust. Skip
@@ -610,9 +620,10 @@ def validate_all(
         # orchestration).
         if result.ok:
             declared_terms = list(report.get("declared_terms", []))
-            result.extend(
-                guide_anchor_lint(source_paths, declared_terms=declared_terms)
-            )
+            anchor = guide_anchor_lint(source_paths, declared_terms=declared_terms)
+            result.extend(anchor)
+            py_errors.extend(anchor.errors)
+            py_warnings.extend(anchor.warnings)
 
         # PO i18n lint: structural validity, orphaned/stale entries, and fuzzy
         # ratio gates (#572).  Kept Python-side because it reads authored PO
@@ -623,7 +634,18 @@ def validate_all(
             i18n_report = lint_po_files(PROJECT_ROOT)
             result.warnings.extend(i18n_report.warnings)
             result.errors.extend(i18n_report.errors)
+            py_errors.extend(i18n_report.errors)
+            py_warnings.extend(i18n_report.warnings)
         except Exception as exc:  # pragma: no cover - guard against unknown failures
-            result.errors.append(f"i18n PO lint failed: {exc}")
+            message = f"i18n PO lint failed: {exc}"
+            result.errors.append(message)
+            py_errors.append(message)
+
+    # Fold the Python-only lint findings into the single canonical report so
+    # report_json stays the complete source of truth (#654).
+    if result.report_json is not None and (py_errors or py_warnings):
+        merged = gmeow_diagnostics.Report.from_json(result.report_json)
+        merged.extend(gmeow_diagnostics.from_legacy("validate", py_errors, py_warnings))
+        result.report_json = merged.to_json()
 
     return result

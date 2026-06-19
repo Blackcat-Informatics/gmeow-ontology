@@ -1,0 +1,39 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example — a SHACL violation projected as a gmeow:Finding about a
+# reified RDF 1.2 statement, located by GTS wire coordinates. This is the shape
+# the Rust gmeow_diagnostics engine emits into the gmeow:graph/diagnostics named
+# graph embedded in a feedback .gts bundle (#654).
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/diagnostics/> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+
+# --- The tool that produced the finding (its vantage / agent).
+ex:shaclTool a gmeow:SoftwareAgent ;
+    rdfs:label "GMEOW SHACL validator"@x-gmeow-english .
+
+# --- The statement the finding is about: NOT re-stated here, but pinned by its
+# GTS wire coordinates. Its RDF 1.2 reifier is referenced by gmeow:gtsReifierId
+# (the reifier's position in the bundle's reifies table), never by an inline
+# rdf:reifies triple — the wire coordinates ARE gmeow's reference to the statement,
+# which is exactly the shape the engine emits (no triple terms are re-materialized).
+ex:offendingStatement
+    gmeow:gtsReifierId 7 ;
+    gmeow:gtsQuadIndex 42 ;
+    gmeow:gtsSegmentIndex 2 ;
+    rdfs:label "the quad missing a required skos:definition"@x-gmeow-english .
+
+# --- The finding: an observation (gmeow:Finding ⊑ gmeow:Observation) whose
+# observed feature is that wire-pinned statement (Principle 9).
+ex:missingDefinitionFinding
+    a gmeow:Finding ;
+    gmeow:vantage ex:shaclTool ;
+    gmeow:findingTool "shacl" ;
+    gmeow:findingSeverity gmeow:severityError ;
+    gmeow:findingCode "shacl.MinCountConstraintComponent" ;
+    gmeow:findingMessage "missing required skos:definition" ;
+    gmeow:findingLocation ex:offendingStatement ;
+    rdfs:label "missing skos:definition finding"@x-gmeow-english .

@@ -21,6 +21,7 @@
         <https://blackcatinformatics.ca/gmeow/slices/contacts> ,
         <https://blackcatinformatics.ca/gmeow/slices/coreference> ,
         <https://blackcatinformatics.ca/gmeow/slices/creative-works> ,
+        <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ,
         <https://blackcatinformatics.ca/gmeow/slices/documents> ,
         <https://blackcatinformatics.ca/gmeow/slices/entities> ,
         <https://blackcatinformatics.ca/gmeow/slices/epistemics> ,

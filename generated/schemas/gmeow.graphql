@@ -738,6 +738,14 @@ enum DeterminationStatusEnum
     determinationFree
   }
 
+enum DiagnosticSeverityEnum
+  {
+    severityError
+    severityInfo
+    severityNote
+    severityWarning
+  }
+
 enum DisclosurePolicyEnum
   {
     policyInternalOnly
@@ -7196,6 +7204,10 @@ type DeterminationStatus
   {
   }
 
+type DiagnosticSeverity
+  {
+  }
+
 type Diff
   {
     acquireLicensePage: [String]
@@ -8987,6 +8999,26 @@ type FinancialTransaction
     transactionAmount: MonetaryAmount
     transactionStatus: [TransactionStatus]
     transactionType: [TransactionType]
+  }
+
+type Finding
+  {
+    credibilityScore: [Float]
+    facetSubject: [Person]
+    facetVantage: [Agent]
+    observationEvent: [Event]
+    observationMethod: ObservationMethod
+    observationResult: [Entity]
+    observationType: [ObservationType]
+    observedFeature: [String]
+    perceptionEnvironment: SensoryEnvironment
+    timbreObservationResult: TimbreDescriptor
+    vantage: [Entity]
+    findingCode: [String]
+    findingLocation: [String]
+    findingMessage: [String]
+    findingSeverity: [DiagnosticSeverity]
+    findingTool: [String]
   }
 
 type ForgePlatform

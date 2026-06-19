@@ -1,0 +1,21 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow:   <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+
+<https://blackcatinformatics.ca/gmeow/slices/diagnostics>
+    a gmeow:Slice ;
+    rdfs:label "diagnostics"@x-gmeow-english ;
+    skos:definition "The diagnostics slice of the GMEOW ontology (core tier): GMEOW Diagnostics Module — gmeow:Finding as a specialization of gmeow:Observation, the universal claim construct, so a validation/lint/reasoning diagnostic is a reified observation ABOUT an RDF statement. The diagnostic tool is the gmeow:vantage, the offending statement (located by GTS wire coordinates) is the gmeow:observedFeature, and the verdict is a gmeow:DiagnosticSeverity gmeow:observationResult. This is the gmeow: RDF projection of the Rust-owned Finding/Report engine model (#654): SARIF/JSON/HTML/CLI and this RDF named graph are all projections of one canonical report (Principle 4). Anatomy, dependencies, and consumer are declared in this manifest; the manifest is the sole source of slice identity and tier."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    dcterms:title "GMEOW Diagnostics Module"@x-gmeow-english ;
+    dcterms:creator "Blackcat Informatics® Inc." ;
+    gmeow:sliceTier gmeow:tierCore ;
+    gmeow:sliceDependsOn
+        <https://blackcatinformatics.ca/gmeow/slices/kernel> ,
+        <https://blackcatinformatics.ca/gmeow/slices/observations> ;
+    gmeow:sliceProfile "claims" ;
+    gmeow:sliceConsumer "The Rust gmeow-diagnostics engine projects its canonical Report into this vocabulary as a gmeow:graph/diagnostics named graph embedded in the feedback .gts bundle, so a validation report rides with the data it describes and is SPARQL-queryable (#654). The native↔oracle divergence ledger and logic:violation share this Finding shape; SARIF is the external code-scanning projection of the same findings."@x-gmeow-english .

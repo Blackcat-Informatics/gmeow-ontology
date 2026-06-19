@@ -66,12 +66,23 @@ def report_from_validation_result(
     *,
     tool: str = "validate",
 ) -> DiagnosticsReport:
-    """Build a diagnostics report from ``ValidationResult`` without changing it."""
-    output = report_from_messages(
-        tool=tool,
-        errors=list(result.errors),
-        warnings=list(result.warnings),
-    )
+    """Build a diagnostics report from a ``ValidationResult`` without changing it.
+
+    When the result carries ``report_json`` — the single canonical report the
+    Rust validation orchestration always emits (#654) — that report IS the
+    source: it preserves SHACL focus nodes and GTS wire coordinates. A
+    hand-built result without ``report_json`` (e.g. in tests, or a sub-lint)
+    falls back to its legacy error/warning strings.
+    """
+    report_json = getattr(result, "report_json", None)
+    if report_json:
+        output = gmeow_diagnostics.Report.from_json(report_json)
+    else:
+        output = report_from_messages(
+            tool=tool,
+            errors=list(result.errors),
+            warnings=list(result.warnings),
+        )
     timings = list(getattr(result, "timings", []))
     if timings:
         output.set_metadata_json("timings", json.dumps(timings, sort_keys=True))

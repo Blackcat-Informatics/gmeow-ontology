@@ -17,6 +17,7 @@
   "gmeow-creative-works.sssom.tsv": 58,
   "gmeow-deception.sssom.tsv": 22,
   "gmeow-determinacy.sssom.tsv": 6,
+  "gmeow-diagnostics.sssom.tsv": 2,
   "gmeow-dublin-core.sssom.tsv": 43,
   "gmeow-email.sssom.tsv": 34,
   "gmeow-employment.sssom.tsv": 8,
@@ -66,8 +67,8 @@
   "gmeow-versions.sssom.tsv": 3,
   "gmeow-wikidata.sssom.tsv": 55
  },
- "equivalences": 1733,
+ "equivalences": 1735,
  "functions": 59,
- "mapping_sets": 66,
+ "mapping_sets": 67,
  "projections": 527
 }
