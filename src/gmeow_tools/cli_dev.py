@@ -280,38 +280,6 @@ def check_generated(
     )
 
 
-@app.command(name="compile-statements-pyoxigraph")
-def compile_statements_pyoxigraph() -> None:
-    """Cross-check statement-dsl/ against committed artifacts (pyoxigraph).
-
-    Non-authoritative read-only mirror that uses pyoxigraph instead of Apache
-    Jena for the RDF 1.2 projection and normalization. Proves the round-trip
-    is engine-independent (CONSTITUTION Principle 7). Never writes — Jena
-    remains the sole canonical artifact writer (Principle 4).
-    """
-    from gmeow_tools.mapping_dsl import CompileError
-    from gmeow_tools.statement_compile_pyoxigraph import (
-        compile_statements_pyoxigraph as run,
-    )
-
-    try:
-        report = run()
-    except CompileError as exc:
-        raise _fail(f"✗ {exc}") from exc
-
-    if report.drifted:
-        for rel in sorted(report.drifted):
-            err_console.print(f"[red]drift[/red] {rel}")
-        raise _fail(
-            f"✗ {len(report.drifted)} statement artifact(s) out of date — "
-            "run `gmeow regenerate`"
-        )
-    console.print(
-        "[green]✓ pyoxigraph cross-check: committed artifacts match "
-        "statement-dsl/ (no drift)[/green]"
-    )
-
-
 @app.command()
 def validate(
     timings: bool = typer.Option(False, "--timings", help="Report per-phase timings."),

@@ -19,12 +19,12 @@ NEXTEST_PARTITION_ARG := $(if $(NEXTEST_PARTITION),--partition $(NEXTEST_PARTITI
 .PHONY: help install fmt lint validate crosscheck classic-cross-check reason reason-native reason-hermit explain verify verify-docker reasoning-cases statements-docker-check extract \
         mappings wikidata wikidata-live wikidata-coverage wikidata-audit \
         lint-alignment refresh-target-axioms docs docs-full ontology-docs ontology-docs-full quality \
-        normalize build project test test-fast test-docker check check-generated check-generated-native release regenerate commit clean clean-docs pull-images \
+        normalize build project test test-fast test-docker check check-generated release regenerate commit clean clean-docs pull-images \
         coverage acceptance crossref constitution-check compliance-report compliance-report-full audit evals-score \
         diagnostics-build diagnostics-test diagnostics-py \
         native-py rust-test logic-build logic-test logic-py conformance \
         shacl-build shacl-test shacl-py \
-        validate-build validate-test validate-py validate-gts clippy
+        validate-build validate-test validate-py validate-gts rdf-py clippy
 
 help: ## Show this help.
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
@@ -158,9 +158,6 @@ normalize: ## Canonicalize the authored ontology sources (rewrites files).
 check-generated: ## Drift + orphan check for all registered generators.
 	$(GMEOW_DEV) check-generated -j $$(nproc 2>/dev/null || echo 4)
 
-check-generated-native: ## Drift check for the required gate — skips the Jena-backed statements lane (Docker/Java-free; statements drift is covered by the native statements-pyoxigraph job + the classic-cross-check oracle).
-	$(GMEOW_DEV) check-generated --skip statements -j $$(nproc 2>/dev/null || echo 4)
-
 constitution-check: ## Every constitutional principle must have live enforcement (#280).
 	$(GMEOW_DEV) constitution-check
 
@@ -216,10 +213,13 @@ validate-test: ## Run the gmeow-validate unit + integration tests.
 validate-py: ## Build and install the gmeow_validate Python extension (maturin develop).
 	VIRTUAL_ENV="$$(pwd)/.venv" uvx maturin develop --manifest-path crates/validate/Cargo.toml
 
+rdf-py: ## Build and install the gmeow_rdf Python extension (native statement codec; maturin develop).
+	VIRTUAL_ENV="$$(pwd)/.venv" uvx maturin develop --manifest-path crates/rdf/Cargo.toml
+
 clippy: ## Run cargo clippy on all Rust targets with warnings as errors.
 	cargo clippy --all-targets -- -D warnings
 
-native-py: diagnostics-py logic-py shacl-py validate-py ## Build and install all Rust-backed Python extensions.
+native-py: diagnostics-py logic-py shacl-py validate-py rdf-py ## Build and install all Rust-backed Python extensions.
 
 rust-test: ## Run the Rust workspace tests.
 	cargo nextest run $(NEXTEST_PARTITION_ARG)
@@ -237,17 +237,17 @@ project: ## Project GMEOW data to pure schema.org/GeoSPARQL/vCard/FOAF/iCal/OWL-
 test: native-py ## Run the full test suite (incl. heavy ci_only export tests; excludes the classic-cross-check lane).
 	uv run pytest -n auto --dist loadscope -m "not classic_cross_check"
 
-test-fast: native-py ## Run the fast test suite (excludes ci_only, docker, CI-only pyoxigraph, and the classic-cross-check lane).
-	uv run pytest -n auto --dist loadscope -m "not ci_only and not docker and not pyoxigraph_ci and not classic_cross_check"
+test-fast: native-py ## Run the fast test suite (excludes ci_only, docker, and the classic-cross-check lane).
+	uv run pytest -n auto --dist loadscope -m "not ci_only and not docker and not classic_cross_check"
 
 test-docker: classic-cross-check ## Compatibility alias for the classic-cross-check (Docker/Java oracle) lane.
 
 test-network: ## Run the network tests (LIVE endpoints) — MANUAL only, never in CI/check.
 	GMEOW_RUN_NETWORK=1 uv run pytest -m network
 
-check: logic-py ## Fast local gate: core ontology + transforms (native EL/DL reasoning — Java/Docker-free; classic-cross-check oracle lane runs separately).
-	$(MAKE) -j$$(nproc 2>/dev/null || echo 4) lint clippy rust-test validate check-generated-native constitution-check audit wikidata coverage acceptance reason-native verify mappings-only lint-alignment
-	uv run pytest -n auto --dist loadscope -m "not ci_only and not docker and not pyoxigraph_ci and not classic_cross_check"
+check: logic-py rdf-py ## Fast local gate: core ontology + transforms (native EL/DL reasoning — Java/Docker-free; classic-cross-check oracle lane runs separately).
+	$(MAKE) -j$$(nproc 2>/dev/null || echo 4) lint clippy rust-test validate check-generated constitution-check audit wikidata coverage acceptance reason-native verify mappings-only lint-alignment
+	uv run pytest -n auto --dist loadscope -m "not ci_only and not docker and not classic_cross_check"
 	$(GMEOW_DEV) compliance-report --from-passing-check
 	@echo "✓ all checks passed (Docker-free, Java-free)"
 

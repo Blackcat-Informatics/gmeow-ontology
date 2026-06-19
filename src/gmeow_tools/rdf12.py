@@ -16,18 +16,17 @@ optional add-on. A missing Docker / Jena image is a hard failure
 mode. The orchestration (emit the OWL form, drive this codec, prove the round-trip
 lossless, gate drift) lives in :mod:`gmeow_tools.statement_compile`.
 
-Two-lane note (#666 / Principle 18)
------------------------------------
-This Jena codec is **not** on the normal-use primary path: the Java/Docker
-round-trip + reasoning cross-check it backs runs **only** in the
-``classic-cross-check`` lane (``scripts/statements_docker_check.py``), never in
-``make check`` or the required CI ``quality`` gate. The native, Docker-free
-statement path uses pyoxigraph (:mod:`gmeow_tools.statement_compile_pyoxigraph`,
-the required ``statements-pyoxigraph`` CI job). Making the native
-oxigraph/pyoxigraph writer the **lead** RDF 1.2 producer (so Jena becomes a pure
-lane cross-check and this module can retire) is tracked in **#667** — #666
-relocates Jena's role into the lane but deliberately does not invert producer
-status.
+Oracle-only note (#667 / Principle 18)
+--------------------------------------
+This Jena codec is **not** the lead writer and **not** on the normal-use primary
+path. As of #667 the **lead** RDF 1.2 producer is the native ``gmeow-rdf`` Rust
+codec (``gmeow_rdf.project_statements_rdf12`` / ``normalize_rdf12_to_owl``, driven
+by :mod:`gmeow_tools.statement_compile`), so ``make check`` / ``check-generated`` /
+``regenerate`` carry **zero Java and zero Docker**. This module survives **only**
+as the ``classic-cross-check`` Jena oracle
+(:mod:`gmeow_tools.statements_docker_check`): it re-reads the native-written lead
+artifact and proves the two engines agree by RDF 1.2 graph isomorphism. It is
+never imported on the primary path.
 """
 
 from __future__ import annotations

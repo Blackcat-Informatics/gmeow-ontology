@@ -39,7 +39,7 @@ _NT = pyoxigraph.RdfFormat.N_TRIPLES
 #: ``pyoxigraph.Triple`` (a quoted triple, RDF 1.2) is included for completeness,
 #: but ``_to_rdflib`` rejects it explicitly: rdflib 7.6 has no quoted-triple *term*
 #: type, and the SELECT/CONSTRUCT queries this module serves never project one (the
-#: RDF 1.2 statement round-trip uses the dedicated ``rdf12_pyoxigraph`` path).
+#: RDF 1.2 statement round-trip uses the native ``gmeow_rdf`` codec).
 type _OxTerm = (
     pyoxigraph.NamedNode | pyoxigraph.BlankNode | pyoxigraph.Literal | pyoxigraph.Triple
 )
