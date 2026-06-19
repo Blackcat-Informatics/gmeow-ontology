@@ -12,7 +12,7 @@ TARGET ?= foaf
 MESSAGE ?= "chore: regenerate checked-in artifacts"
 GMEOW_DEV ?= uv run --package gmeow-dev gmeow-dev
 
-.PHONY: help install fmt lint validate crosscheck reason reason-native reason-hermit explain verify reasoning-cases statements-docker-check extract \
+.PHONY: help install fmt lint validate crosscheck classic-cross-check reason reason-native reason-hermit explain verify reasoning-cases statements-docker-check extract \
         mappings wikidata wikidata-live wikidata-coverage wikidata-audit \
         lint-alignment refresh-target-axioms docs docs-full ontology-docs ontology-docs-full quality \
         normalize build project test test-fast test-docker check check-docker check-generated release regenerate commit clean clean-docs pull-images \
@@ -54,22 +54,36 @@ crosscheck: ## Prove rdflib and pyoxigraph answer every committed query alike (n
 reason-native: logic-py ## Native Docker-free EL/DL reasoning authority (reason --mode native).
 	$(GMEOW_DEV) reason --mode native
 
-reason: ## Merge, validate OWL 2 DL profile, and check ELK consistency (Docker).
-	$(GMEOW_DEV) reason --reasoner ELK --exclude-tautologies structural
+# === CLASSIC-CROSS-CHECK LANE — the SOLE Java+Docker surface (#666, Principle 18) ===
+# Everything in this block runs the legacy oracles (ELK, HermiT, ROBOT, Jena) and
+# the rdflib engine cross-check. It is CROSS-CHECK ONLY: never part of `make check`,
+# never in the required CI `quality` gate, never required to use the repo normally.
+# The authoritative gate is the native, Docker-free `reason-native` lane.
+classic-cross-check: ## CROSS-CHECK ONLY (Docker/Java oracles) — NOT required for normal repo use (#666).
+	$(MAKE) reason
+	$(GMEOW_DEV) verify --reasoner ELK --reasoned-input dist/gmeow-reasoned-elk.ttl
+	$(MAKE) reason-hermit
+	$(MAKE) reasoning-cases
+	$(MAKE) statements-docker-check
+	$(GMEOW_DEV) crosscheck-queries
+	@echo "✓ classic-cross-check (oracle lane) passed — NOT a normal-use requirement"
 
-reason-hermit: ## Sound + complete consistency check with HermiT (Docker).
-	$(GMEOW_DEV) reason --reasoner hermit
+reason: ## [lane] Merge, validate OWL 2 DL profile, ELK consistency (Docker oracle).
+	$(GMEOW_DEV) reason --mode docker --reasoner ELK --exclude-tautologies structural
 
-explain: ## Explain any unsatisfiable classes (HermiT, Docker).
+reason-hermit: ## [lane] Sound + complete consistency check with HermiT (Docker oracle).
+	$(GMEOW_DEV) reason --mode docker --reasoner hermit
+
+explain: ## [lane] Explain any unsatisfiable classes (HermiT, Docker oracle).
 	$(GMEOW_DEV) explain
 
-verify: reason ## Reasoned-graph negative tests (ROBOT verify over queries/verify/, Docker).
+verify: reason ## [lane] Reasoned-graph negative tests (ROBOT verify over queries/verify/, Docker oracle).
 	$(GMEOW_DEV) verify --reasoner ELK --reasoned-input dist/gmeow-reasoned-elk.ttl
 
-reasoning-cases: ## HermiT/ELK inconsistency and fixture-coherence cases (Docker).
+reasoning-cases: ## [lane] HermiT/ELK inconsistency and fixture-coherence cases (Docker oracle).
 	uv run python scripts/reasoning_cases.py
 
-statements-docker-check: ## Jena/ROBOT-backed statement artifact and reasoning checks (Docker).
+statements-docker-check: ## [lane] Jena/ROBOT-backed statement artifact and reasoning checks (Docker oracle).
 	uv run python scripts/statements_docker_check.py
 
 extract: ## Report import/extract policy for TARGET (refuses reference-only).
