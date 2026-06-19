@@ -547,6 +547,48 @@ def crosscheck_queries() -> None:
     )
 
 
+@app.command(name="classic-cross-check")
+def classic_cross_check() -> None:
+    """Enforced native↔oracle divergence cross-check (#666 — Docker/Java lane).
+
+    The FINAL, ENFORCING step of ``make classic-cross-check`` (the sole Docker/Java
+    surface, Principle 18). It reasons the bundle natively (authority), runs the
+    classic ELK + HermiT oracles (timing each), calls the authoritative Rust
+    comparator, writes the agreement matrix + per-tool timing as SARIF/JSON, and
+    fails NON-ZERO on any real divergence (``NativeOnly`` / ``OracleOnly``).
+    ``DlGap`` is the only honest-expected, non-failing class. NEVER part of
+    ``make check`` or the required ``quality`` gate.
+    """
+    from gmeow_tools import classic_cross_check as crosscheck
+    from gmeow_tools.runner import ToolExecutionError, ToolUnavailableError
+
+    try:
+        passed, ledger, _report = crosscheck.run()
+    except ToolUnavailableError as exc:
+        raise _fail(f"tool unavailable: {exc}", code=2) from exc
+    except ToolExecutionError as exc:
+        raise _fail(f"classic cross-check oracle failed:\n{exc.output}") from exc
+
+    console.print(
+        "[bold]classic cross-check[/bold] — agreement matrix: "
+        f"agree={ledger['agree']} native_only={ledger['native_only']} "
+        f"oracle_only={ledger['oracle_only']} dl_gap={ledger['dl_gap']}"
+    )
+    if passed:
+        console.print(
+            f"[green]✓ native ≡ oracle (ELK/HermiT); {ledger['dl_gap']} honest "
+            "DL gap(s) — enforced cross-check passed[/green]"
+        )
+        return
+    for row in ledger["rows"]:
+        if row["kind"] in ("NativeOnly", "OracleOnly"):
+            err_console.print(f"[red]{row['kind']}[/red] {row['detail']}")
+    raise _fail(
+        f"✗ native↔oracle divergence: {ledger['native_only']} native-only + "
+        f"{ledger['oracle_only']} oracle-only row(s)"
+    )
+
+
 @app.command()
 def reason(
     mode: str = typer.Option(

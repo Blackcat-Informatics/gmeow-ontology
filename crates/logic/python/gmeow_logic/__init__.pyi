@@ -79,6 +79,38 @@ def reason_native_artifacts(gts_bytes: bytes, merge: bool = ...) -> dict[str, st
     """
     ...
 
+def build_divergence_ledger(
+    native_subsumptions: list[tuple[str, str, str]],
+    elk_subsumptions: list[tuple[str, str, str]],
+    native_consistent: bool,
+    native_unsat: list[str],
+    hermit_consistent: bool | None,
+    hermit_unsat: list[str],
+    gaps: list[tuple[str, str]],
+) -> dict[str, Any]:
+    """Build the native↔oracle divergence ledger (#666, ENFORCED lane).
+
+    PyO3 surface over the authoritative Rust comparison logic
+    (``crates/logic/src/reason/ledger.rs``); does not re-implement comparison.
+
+    * ``native_subsumptions`` / ``elk_subsumptions`` — each a list of
+      ``(subject, object, world)`` string triples.
+    * ``native_consistent`` / ``hermit_consistent`` — DL consistency verdicts;
+      ``hermit_consistent`` is ``None`` when HermiT was not run (recorded as a
+      native-only note, never a divergence).
+    * ``native_unsat`` / ``hermit_unsat`` — unsatisfiable-class IRIs.
+    * ``gaps`` — list of ``(code, message)`` beyond-EL DL gaps; each becomes one
+      honest, non-failing ``DlGap`` row.
+
+    Returns a dict ``{"rows": [{kind, category, subject, object, world, detail},
+    ...], "agree": int, "native_only": int, "oracle_only": int, "dl_gap": int}``
+    where ``kind`` is one of ``"Agree"``, ``"NativeOnly"``, ``"OracleOnly"``,
+    ``"DlGap"``.
+
+    Raises ``ValueError`` for a malformed subsumption or gap row.
+    """
+    ...
+
 def certify(rules: str, profile: str) -> dict[str, Any]: ...
 def stable_models(rules: str, input: str) -> dict[str, Any]: ...
 def query(

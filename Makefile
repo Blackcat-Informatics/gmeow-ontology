@@ -65,6 +65,7 @@ classic-cross-check: ## CROSS-CHECK ONLY (Docker/Java oracles) — NOT required 
 	uv run python scripts/reasoning_cases.py
 	uv run python scripts/statements_docker_check.py
 	$(GMEOW_DEV) crosscheck-queries
+	$(GMEOW_DEV) classic-cross-check
 	@echo "✓ classic-cross-check (oracle lane) passed — NOT a normal-use requirement"
 
 reason-hermit: ## [lane] Sound + complete consistency check with HermiT (Docker oracle).

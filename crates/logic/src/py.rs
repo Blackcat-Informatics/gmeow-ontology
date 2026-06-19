@@ -1097,6 +1097,145 @@ fn compile_logic<'py>(py: Python<'py>, source_ttl: &str) -> PyResult<Bound<'py, 
     Ok(out)
 }
 
+// ── build_divergence_ledger ───────────────────────────────────────────────────
+
+/// Extract a `(subject, object, world)` triple from a Python sequence row.
+///
+/// Accepts any 3-element Python sequence (tuple/list) of strings. A row of the
+/// wrong length or element type is a hard input error (`ValueError`) — a silently
+/// dropped row would corrupt the divergence comparison.
+fn extract_triple(row: &Bound<'_, PyAny>) -> PyResult<(String, String, String)> {
+    let items: Vec<String> = row.extract().map_err(|_| {
+        pyo3::exceptions::PyValueError::new_err(
+            "subsumption row must be a sequence of 3 strings (subject, object, world)",
+        )
+    })?;
+    if items.len() != 3 {
+        return Err(pyo3::exceptions::PyValueError::new_err(format!(
+            "subsumption row must have exactly 3 elements, got {}",
+            items.len()
+        )));
+    }
+    Ok((items[0].clone(), items[1].clone(), items[2].clone()))
+}
+
+/// Serialize one [`crate::reason::ledger::LedgerRow`] to a Python dict.
+fn ledger_row_to_dict(
+    py: Python<'_>,
+    row: &crate::reason::ledger::LedgerRow,
+) -> PyResult<Py<PyAny>> {
+    use crate::reason::ledger::DivergenceKind;
+    let kind = match row.kind {
+        DivergenceKind::Agree => "Agree",
+        DivergenceKind::NativeOnly => "NativeOnly",
+        DivergenceKind::OracleOnly => "OracleOnly",
+        DivergenceKind::DlGap => "DlGap",
+    };
+    let d = PyDict::new(py);
+    d.set_item("kind", kind)?;
+    d.set_item("category", &row.category)?;
+    d.set_item("subject", &row.subject)?;
+    d.set_item("object", &row.object)?;
+    d.set_item("world", &row.world)?;
+    d.set_item("detail", &row.detail)?;
+    Ok(d.into_any().unbind())
+}
+
+/// Build the native↔oracle divergence ledger and classify every row (issue #666
+/// Task 4 — the ENFORCED classic-cross-check lane).
+///
+/// This is the PyO3 surface over the authoritative Rust comparison logic in
+/// [`crate::reason::ledger`]; it does NOT re-implement any comparison. Python owns
+/// the Docker orchestration (running ELK/HermiT) and the enforcement decision;
+/// this function owns the structured classification.
+///
+/// # Arguments
+///
+/// - `native_subsumptions` — native derived subsumptions, each a 3-element
+///   sequence `(subject, object, world)`.
+/// - `elk_subsumptions` — ELK-inferred subsumptions, same shape.
+/// - `native_consistent` — the native DL consistency verdict.
+/// - `native_unsat` — native unsatisfiable-class IRIs.
+/// - `hermit_consistent` — HermiT's consistency verdict, or `None` if HermiT was
+///   not run (recorded as a native-only note, never a divergence).
+/// - `hermit_unsat` — HermiT's unsatisfiable-class IRIs.
+/// - `gaps` — beyond-EL DL gap codes/messages, each a 2-tuple `(code, message)`;
+///   each becomes one honest, non-failing `DlGap` row.
+///
+/// # Returns
+///
+/// A dict with keys:
+/// - `rows` — `list[dict]`, each `{kind, category, subject, object, world, detail}`
+///   where `kind` is one of `"Agree"`, `"NativeOnly"`, `"OracleOnly"`, `"DlGap"`.
+/// - `agree`, `native_only`, `oracle_only`, `dl_gap` — per-kind tallies (int).
+///
+/// # Errors
+///
+/// Raises `ValueError` for a malformed subsumption or gap row.
+#[pyfunction]
+#[pyo3(signature = (
+    native_subsumptions,
+    elk_subsumptions,
+    native_consistent,
+    native_unsat,
+    hermit_consistent,
+    hermit_unsat,
+    gaps
+))]
+#[allow(clippy::too_many_arguments)]
+fn build_divergence_ledger(
+    py: Python<'_>,
+    native_subsumptions: Vec<Bound<'_, PyAny>>,
+    elk_subsumptions: Vec<Bound<'_, PyAny>>,
+    native_consistent: bool,
+    native_unsat: Vec<String>,
+    hermit_consistent: Option<bool>,
+    hermit_unsat: Vec<String>,
+    gaps: Vec<(String, String)>,
+) -> PyResult<Py<PyAny>> {
+    use crate::reason::ledger::{
+        build_ledger, compare_consistency, compare_subsumption, dl_gap_rows,
+    };
+
+    let native: Vec<(String, String, String)> = native_subsumptions
+        .iter()
+        .map(extract_triple)
+        .collect::<PyResult<_>>()?;
+    let elk: Vec<(String, String, String)> = elk_subsumptions
+        .iter()
+        .map(extract_triple)
+        .collect::<PyResult<_>>()?;
+
+    let subsumption_rows = compare_subsumption(&native, &elk);
+    let consistency_rows = compare_consistency(
+        native_consistent,
+        &native_unsat,
+        hermit_consistent,
+        &hermit_unsat,
+    );
+    // The ledger gap-row builder takes RdfLoss; mint one per (code, message).
+    let gap_losses: Vec<gmeow_rdf::RdfLoss> = gaps
+        .iter()
+        .map(|(code, message)| gmeow_rdf::RdfLoss::new(code, message))
+        .collect();
+    let gap_rows = dl_gap_rows(&gap_losses);
+
+    let ledger = build_ledger(subsumption_rows, consistency_rows, gap_rows);
+
+    let rows = PyList::empty(py);
+    for row in &ledger.rows {
+        rows.append(ledger_row_to_dict(py, row)?)?;
+    }
+
+    let out = PyDict::new(py);
+    out.set_item("rows", rows)?;
+    out.set_item("agree", ledger.agree)?;
+    out.set_item("native_only", ledger.native_only)?;
+    out.set_item("oracle_only", ledger.oracle_only)?;
+    out.set_item("dl_gap", ledger.dl_gap)?;
+    Ok(out.into_any().unbind())
+}
+
 // ── reason_native ─────────────────────────────────────────────────────────────
 
 /// Run native OWL-2 reasoning over a `gmeow.gts` bundle (issue #665).
@@ -1285,6 +1424,7 @@ fn gmeow_logic(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(compile_logic, m)?)?;
     m.add_function(wrap_pyfunction!(reason_native, m)?)?;
     m.add_function(wrap_pyfunction!(reason_native_artifacts, m)?)?;
+    m.add_function(wrap_pyfunction!(build_divergence_ledger, m)?)?;
     Ok(())
 }
 
