@@ -695,8 +695,12 @@ class TestNativeReasonArtifacts:
             "ledger": GENERATED_DIR / "logic" / "dl-el-crosscheck-report.ttl",
         }
         for key, path in committed.items():
-            if not path.exists():
-                pytest.skip(f"committed artifact absent: {path}")
+            # The artifacts are git-tracked, so absence is a real regression
+            # (a deleted committed output), not a fresh-checkout condition —
+            # the drift gate must fail closed, never skip past missing outputs.
+            assert path.exists(), (
+                f"committed artifact missing; drift gate fails closed: {path}"
+            )
             assert _canon(artifacts[key]) == _canon(path.read_text(encoding="utf-8")), (
                 f"{key} drifted from committed {path.name}"
             )
