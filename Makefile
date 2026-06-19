@@ -12,7 +12,7 @@ TARGET ?= foaf
 MESSAGE ?= "chore: regenerate checked-in artifacts"
 GMEOW_DEV ?= uv run --package gmeow-dev gmeow-dev
 
-.PHONY: help install fmt lint validate crosscheck reason reason-hermit explain verify reasoning-cases statements-docker-check extract \
+.PHONY: help install fmt lint validate crosscheck reason reason-native reason-hermit explain verify reasoning-cases statements-docker-check extract \
         mappings wikidata wikidata-live wikidata-coverage wikidata-audit \
         lint-alignment refresh-target-axioms docs docs-full ontology-docs ontology-docs-full quality \
         normalize build project test test-fast test-docker check check-docker check-generated release regenerate commit clean clean-docs pull-images \
@@ -50,6 +50,9 @@ validate-gts: diagnostics-py validate-py shacl-py ## Validate the committed GTS 
 
 crosscheck: ## Prove rdflib and pyoxigraph answer every committed query alike (no Docker).
 	$(GMEOW_DEV) crosscheck-queries
+
+reason-native: logic-py ## Native Docker-free EL/DL reasoning authority (reason --mode native).
+	$(GMEOW_DEV) reason --mode native
 
 reason: ## Merge, validate OWL 2 DL profile, and check ELK consistency (Docker).
 	$(GMEOW_DEV) reason --reasoner ELK --exclude-tautologies structural
@@ -209,8 +212,8 @@ test-docker: check-docker ## Compatibility alias for the Docker-backed Make lane
 test-network: ## Run the network tests (LIVE endpoints) — MANUAL only, never in CI/check.
 	GMEOW_RUN_NETWORK=1 uv run pytest -m network
 
-check: logic-py ## Fast local gate: core ontology + transforms (ELK only; HermiT runs in its own CI job).
-	$(MAKE) -j$$(nproc 2>/dev/null || echo 4) lint clippy rust-test validate crosscheck check-generated constitution-check audit wikidata coverage acceptance reason verify mappings-only lint-alignment
+check: logic-py ## Fast local gate: core ontology + transforms (native EL/DL reasoning — Java/Docker-free; HermiT/ELK oracle lane runs in its own CI job).
+	$(MAKE) -j$$(nproc 2>/dev/null || echo 4) lint clippy rust-test validate crosscheck check-generated constitution-check audit wikidata coverage acceptance reason-native mappings-only lint-alignment
 	uv run pytest -n auto --dist loadscope -m "not ci_only and not docker and not pyoxigraph_ci"
 	$(GMEOW_DEV) compliance-report --from-passing-check
 	@echo "✓ all checks passed"

@@ -1097,6 +1097,108 @@ fn compile_logic<'py>(py: Python<'py>, source_ttl: &str) -> PyResult<Bound<'py, 
     Ok(out)
 }
 
+// ── reason_native ─────────────────────────────────────────────────────────────
+
+/// Run native OWL-2 reasoning over a `gmeow.gts` bundle (issue #665).
+///
+/// Ingests the RDF-1.2-first GTS bundle through the gmeow-rdf GTS adapter
+/// ([`gmeow_rdf::gts::read_graph`] / [`gmeow_rdf::gts::GtsGraphStore`]), then runs
+/// the single-chase combined entry point [`crate::reason::reason_all`] — the EL
+/// subsumption closure and the DL consistency verdict are derived from ONE Nemo
+/// chase, never two.
+///
+/// # Arguments
+///
+/// - `gts_bytes` — the serialized `gmeow.gts` bundle bytes (segments allowed).
+///
+/// # Returns
+///
+/// A dict with keys:
+/// - `consistent` (bool)
+/// - `inferred` (`list[dict]`): each `{subject, predicate, object, world, is_edb, rule_name}`
+///   (`rule_name` is `None` for asserted EDB axioms)
+/// - `unsatisfiable_classes` (`list[dict]`): each `{class, world}`
+/// - `inconsistencies` (`list[dict]`): each `{individual, world}`
+/// - `gaps` (`list[dict]`): each `{code, message}` — the named beyond-EL constructs
+///
+/// # Errors
+///
+/// Raises `ValueError` if the GTS bundle cannot be read, and `RuntimeError` if the
+/// native reasoning run fails (chase parse/validate/evaluate/decode, or a quad-read
+/// failure during the gap scan).
+#[pyfunction]
+fn reason_native(py: Python<'_>, gts_bytes: &[u8]) -> PyResult<Py<PyAny>> {
+    // The GtsGraphStore borrows the Graph, which is not Send; build BOTH the graph
+    // and the store inside the GIL-released closure (moving the bytes in) so the
+    // detached work is self-contained. `reason_all` runs the single chase here.
+    // Distinguish the two failure modes per the docstring: a GTS read/parse
+    // failure is a caller-input error (`ValueError`); a reasoning failure (chase
+    // parse/validate/evaluate/decode, or a gap-scan quad-read) is a `RuntimeError`.
+    enum ReasonNativeError {
+        GtsRead(String),
+        Reason(String),
+    }
+    let bytes = gts_bytes.to_vec();
+    let read_result: Result<crate::reason::ReasonResult, ReasonNativeError> =
+        py.detach(move || {
+            let graph = gmeow_rdf::gts::read_graph(&bytes, true)
+                .map_err(|e| ReasonNativeError::GtsRead(format!("GTS read error: {e}")))?;
+            let store = gmeow_rdf::gts::GtsGraphStore::new(&graph);
+            crate::reason::reason_all(&store).map_err(ReasonNativeError::Reason)
+        });
+    let result = read_result.map_err(|e| match e {
+        ReasonNativeError::GtsRead(m) => pyo3::exceptions::PyValueError::new_err(m),
+        ReasonNativeError::Reason(m) => {
+            pyo3::exceptions::PyRuntimeError::new_err(format!("reason error: {m}"))
+        }
+    })?;
+
+    let out = PyDict::new(py);
+    out.set_item("consistent", result.verdict.consistent)?;
+
+    let inferred = PyList::empty(py);
+    for ax in &result.inferred {
+        let d = PyDict::new(py);
+        d.set_item("subject", ax.subject.as_str())?;
+        d.set_item("predicate", ax.predicate.as_str())?;
+        d.set_item("object", ax.object.as_str())?;
+        d.set_item("world", ax.world.as_str())?;
+        d.set_item("is_edb", ax.is_edb)?;
+        d.set_item("rule_name", ax.rule_name.as_deref())?;
+        inferred.append(d)?;
+    }
+    out.set_item("inferred", inferred)?;
+
+    let unsat = PyList::empty(py);
+    for u in &result.verdict.unsatisfiable_classes {
+        let d = PyDict::new(py);
+        d.set_item("class", u.class.as_str())?;
+        d.set_item("world", u.world.as_str())?;
+        unsat.append(d)?;
+    }
+    out.set_item("unsatisfiable_classes", unsat)?;
+
+    let inconsist = PyList::empty(py);
+    for w in &result.verdict.inconsistencies {
+        let d = PyDict::new(py);
+        d.set_item("individual", w.individual.as_str())?;
+        d.set_item("world", w.world.as_str())?;
+        inconsist.append(d)?;
+    }
+    out.set_item("inconsistencies", inconsist)?;
+
+    let gaps = PyList::empty(py);
+    for g in &result.verdict.gaps {
+        let d = PyDict::new(py);
+        d.set_item("code", g.code.as_str())?;
+        d.set_item("message", g.message.as_str())?;
+        gaps.append(d)?;
+    }
+    out.set_item("gaps", gaps)?;
+
+    Ok(out.into_any().unbind())
+}
+
 #[pymodule]
 fn gmeow_logic(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(materialize, m)?)?;
@@ -1106,6 +1208,7 @@ fn gmeow_logic(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(stable_models, m)?)?;
     m.add_function(wrap_pyfunction!(query, m)?)?;
     m.add_function(wrap_pyfunction!(compile_logic, m)?)?;
+    m.add_function(wrap_pyfunction!(reason_native, m)?)?;
     Ok(())
 }
 

@@ -45,6 +45,21 @@ def foundation(
     anti_rigidity_policy: str | None = ...,
 ) -> list[dict[str, Any]]: ...
 def explain(quads: list[dict[str, Any]]) -> list[dict[str, Any]]: ...
+def reason_native(gts_bytes: bytes) -> dict[str, Any]:
+    """Reason over a GTS bundle (native EL/DL, Java/Docker-free; #665).
+
+    Returns a dict with the keys:
+
+    * ``consistent`` (bool) — whether the ontology is consistent.
+    * ``inferred`` — list of axiom dicts ``{subject, predicate, object, world,
+      is_edb, rule_name}`` (told + derived; ``is_edb`` marks asserted axioms).
+    * ``unsatisfiable_classes`` — list of ``{class, world}`` dicts.
+    * ``inconsistencies`` — list of ``{individual, world}`` dicts.
+    * ``gaps`` — list of ``{code, message}`` dicts naming the beyond-EL axioms
+      whose consistency only the HermiT oracle decides.
+    """
+    ...
+
 def certify(rules: str, profile: str) -> dict[str, Any]: ...
 def stable_models(rules: str, input: str) -> dict[str, Any]: ...
 def query(

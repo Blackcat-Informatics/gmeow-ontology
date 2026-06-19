@@ -50,6 +50,26 @@ def test_every_principle_has_a_manifest_entry() -> None:
     assert {p.number: p.title for p in manifest.principles} == headings
 
 
+def test_principle_18_native_rdf12_stack_enforced() -> None:
+    """Principle 18 (#665) exists, is titled verbatim, and is gate-enforced.
+
+    The native Docker-free EL/DL reasoning authority is backed by
+    ``gate-reason-native`` (``reason_native``) and ``gate-dl-el-crosscheck`` (the
+    ``native-reasoning`` generator) — both must be registered as enforcement.
+    """
+    manifest = load_manifest(MANIFEST_FILE)
+    by_number = {p.number: p for p in manifest.principles}
+    assert 18 in by_number, "Principle 18 missing from the manifest"
+    p18 = by_number[18]
+    assert p18.title == (
+        "The reference RDF-1.2 stack — complete, coherent, and Docker-free"
+    )
+    enforcers = {str(e) for e in p18.enforced_by}
+    meta = "https://blackcatinformatics.ca/gmeow/meta#"
+    assert f"{meta}gate-reason-native" in enforcers
+    assert f"{meta}gate-dl-el-crosscheck" in enforcers
+
+
 def test_honor_system_principles_are_visible_not_silent() -> None:
     """Practice-only principles surface as warnings (today: 1, 6, 15).
 
