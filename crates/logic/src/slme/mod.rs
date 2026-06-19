@@ -369,6 +369,22 @@ fn classify(
     let pred = predicate.as_str();
     let in_sigma = |iri: &str| sigma.contains(iri);
 
+    // Soundness: if the predicate IS in the seed signature (and is not a
+    // built-in logical predicate that already has its own locality rule below),
+    // the property is requested, so the whole assertion must be kept —
+    // regardless of whether the subject/object are in Σ.
+    if in_sigma(pred) && !LOGICAL_PREDICATES.contains(&pred) {
+        return match object {
+            Term::NamedNode(o) => Decision::Keep {
+                add: vec![subject.to_owned(), o.as_str().to_owned()],
+            },
+            Term::Literal(_) => Decision::Keep {
+                add: vec![subject.to_owned()],
+            },
+            Term::BlankNode(_) | Term::Triple(_) => Decision::ConservativeKeep,
+        };
+    }
+
     // A blank-node object always means a complex construct → conservative test.
     if matches!(object, Term::BlankNode(_)) {
         return conservative(subject, object, sigma, bnode_index);
@@ -618,9 +634,10 @@ fn collect_named_iris_in_closure(
             continue;
         }
         // bnode_index only holds blank-node-subject triples, so the subject of each
-        // is the blank node `bid` itself — only objects can introduce named IRIs.
+        // is the blank node `bid` itself — predicates and objects can introduce named IRIs.
         if let Some(triples) = bnode_index.get(&bid) {
             for t in triples {
+                out.insert(t.predicate.as_str().to_owned());
                 match &t.object {
                     Term::NamedNode(n) => {
                         out.insert(n.as_str().to_owned());

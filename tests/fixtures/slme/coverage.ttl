@@ -63,3 +63,17 @@ cov:q a owl:ObjectProperty ;
 
 cov:pInv a owl:ObjectProperty ;
     owl:inverseOf cov:p .
+
+# ── predicate-in-Σ regression case (#695 bug B) ─────────────────────────────
+cov:rel a owl:ObjectProperty .
+cov:Lonely1 cov:rel cov:Lonely2 .
+
+# ── bnode-predicate-collection regression case (#695 bug A) ──────────────────
+cov:BnodeClass a owl:Class ;
+    owl:equivalentClass [
+        a owl:Restriction ;
+        owl:onProperty cov:bnodeProp ;
+        owl:someValuesFrom cov:SomeTarget
+    ] .
+cov:bnodeProp a owl:ObjectProperty .
+cov:SomeTarget a owl:Class .

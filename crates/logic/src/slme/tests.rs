@@ -20,8 +20,8 @@ fn run(ttl: &str, seeds: &[&str], method: &str) -> ModuleResult {
 /// True iff the module Turtle contains a `<local-s> <pred> <local-o>` edge. We test
 /// against the canonical full IRIs (substring) so the prefix-style serializer output
 /// is matched robustly.
-fn has_edge(module: &str, s: &str, _pred_label: &str, o: &str) -> bool {
-    module.contains(&iri(s)) && module.contains(&iri(o))
+fn has_edge(module: &str, s: &str, pred_iri: &str, o: &str) -> bool {
+    module.contains(&iri(s)) && module.contains(pred_iri) && module.contains(&iri(o))
 }
 
 // ── Test 1: atomic subClassOf chain (BOT) ────────────────────────────────────────
@@ -103,7 +103,12 @@ ex:A owl:disjointWith ex:B .
     // Both A and B seeded → disjoint kept.
     let both = run(&ttl, &["A", "B"], "STAR");
     assert!(
-        has_edge(&both.module_ttl, "A", "disjointWith", "B"),
+        has_edge(
+            &both.module_ttl,
+            "A",
+            "http://www.w3.org/2002/07/owl#disjointWith",
+            "B"
+        ),
         "disjoint must be kept with both endpoints in Σ: {}",
         both.module_ttl
     );
@@ -163,7 +168,12 @@ ex:A rdfs:subClassOf ex:B .
     // BOT seeded at {A}: keep iff C(=A)∈Σ → kept.
     let bot_a = run(&ttl, &["A"], "BOT");
     assert!(
-        has_edge(&bot_a.module_ttl, "A", "subClassOf", "B"),
+        has_edge(
+            &bot_a.module_ttl,
+            "A",
+            "http://www.w3.org/2000/01/rdf-schema#subClassOf",
+            "B"
+        ),
         "BOT seeded at A must keep A⊑B: {}",
         bot_a.module_ttl
     );
@@ -179,7 +189,12 @@ ex:A rdfs:subClassOf ex:B .
     // TOP seeded at {B}: keep iff D(=B)∈Σ → kept.
     let top_b = run(&ttl, &["B"], "TOP");
     assert!(
-        has_edge(&top_b.module_ttl, "A", "subClassOf", "B"),
+        has_edge(
+            &top_b.module_ttl,
+            "A",
+            "http://www.w3.org/2000/01/rdf-schema#subClassOf",
+            "B"
+        ),
         "TOP seeded at B must keep A⊑B: {}",
         top_b.module_ttl
     );
@@ -238,4 +253,63 @@ ex:A rdfs:subClassOf ex:B .
         .findings
         .iter()
         .any(|f| f.code == "slme.unknown-method"));
+}
+
+// ── Test 7: predicate ∈ Σ keeps the whole assertion (bug B regression) ───────────
+
+#[test]
+fn predicate_in_sigma_keeps_assertion() {
+    // ex:rel is the seed; ex:Lonely1 ex:rel ex:Lonely2 must appear in the module
+    // even though neither Lonely1 nor Lonely2 is in Σ.
+    // This would have been dropped before fix B.
+    let ttl = format!(
+        r#"@prefix ex: <{EX}> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+ex:rel a owl:ObjectProperty .
+ex:Lonely1 ex:rel ex:Lonely2 .
+"#
+    );
+    let result = run(&ttl, &["rel"], "STAR");
+    let m = &result.module_ttl;
+    assert!(
+        m.contains(&iri("Lonely1")) && m.contains(&iri("rel")) && m.contains(&iri("Lonely2")),
+        "predicate-in-Σ assertion must be kept: {m}"
+    );
+}
+
+// ── Test 8: bnode predicate collected into Σ (bug A regression) ──────────────────
+
+#[test]
+fn bnode_predicate_collected_into_sigma() {
+    // ex:bnodeProp appears only as owl:onProperty inside a blank-node restriction.
+    // With fix A, collect_named_iris_in_closure now picks up predicates, so seeding
+    // {bnodeProp} must pull in the BnodeClass + its equivalentClass restriction.
+    // This would have been dropped before fix A.
+    let ttl = format!(
+        r#"@prefix ex: <{EX}> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+ex:BnodeClass a owl:Class ;
+    owl:equivalentClass [
+        a owl:Restriction ;
+        owl:onProperty ex:bnodeProp ;
+        owl:someValuesFrom ex:SomeTarget
+    ] .
+ex:bnodeProp a owl:ObjectProperty .
+ex:SomeTarget a owl:Class .
+"#
+    );
+    let result = run(&ttl, &["bnodeProp"], "STAR");
+    let m = &result.module_ttl;
+    assert!(
+        m.contains(&iri("BnodeClass")),
+        "BnodeClass must be pulled into module via bnode predicate collection: {m}"
+    );
+    assert!(
+        m.contains(&iri("bnodeProp")),
+        "bnodeProp must be in the module: {m}"
+    );
+    assert!(
+        m.contains("Restriction"),
+        "Restriction bnode must be in the module: {m}"
+    );
 }
