@@ -175,10 +175,14 @@ pub fn verify_gts_bundle(
         );
     }
 
-    // The gmeow_gts `ok` flag already encodes the approved short-circuit rule:
-    // false when signatures are missing (if required), invalid, unverified, or
-    // when a profile/trust policy error is present.
-    let hard_failures = !result.ok;
+    // The gmeow_gts `ok` flag encodes cryptographic short-circuit rules, but
+    // deployment-trust errors (e.g. an untrusted signer when one is required)
+    // are surfaced as Error-level findings above. Abort the validation run
+    // whenever any Error-level signature/trust finding is present.
+    let hard_failures = !result.ok
+        || findings
+            .iter()
+            .any(|finding| finding.severity == Severity::Error);
 
     Ok((findings, hard_failures))
 }
@@ -207,6 +211,7 @@ fn is_key_loading_error(error: &str) -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use ed25519_dalek::SigningKey;
     use gmeow_gts::model::{Term, TermKind};
 
     fn minimal_unsigned_gts_bytes() -> Vec<u8> {
@@ -239,6 +244,105 @@ mod tests {
         writer.to_bytes()
     }
 
+    fn deterministic_signing_key(seed: u8) -> SigningKey {
+        let mut bytes = [0u8; 32];
+        bytes[0] = seed;
+        // Mix the seed throughout so keys for different seeds differ.
+        for i in 1..32 {
+            bytes[i] = bytes[i - 1].wrapping_mul(31).wrapping_add(seed);
+        }
+        SigningKey::from_bytes(&bytes)
+    }
+
+    fn base64_encode(data: &[u8]) -> String {
+        const ALPHABET: &[u8; 64] =
+            b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+        let mut out = String::new();
+        for chunk in data.chunks(3) {
+            let b0 = chunk[0];
+            let b1 = chunk.get(1).copied().unwrap_or(0);
+            let b2 = chunk.get(2).copied().unwrap_or(0);
+            out.push(ALPHABET[(b0 >> 2) as usize] as char);
+            out.push(ALPHABET[(((b0 & 0x03) << 4) | (b1 >> 4)) as usize] as char);
+            if chunk.len() > 1 {
+                out.push(ALPHABET[(((b1 & 0x0f) << 2) | (b2 >> 6)) as usize] as char);
+            } else {
+                out.push('=');
+            }
+            if chunk.len() > 2 {
+                out.push(ALPHABET[(b2 & 0x3f) as usize] as char);
+            } else {
+                out.push('=');
+            }
+        }
+        out
+    }
+
+    /// Build a minimal ASCII-armored OpenPGP v4 Ed25519 public-key certificate
+    /// from a raw 32-byte public key. The format matches the one GPG emits and
+    /// `gmeow_gts::openpgp::parse_transport_key` accepts.
+    fn ed25519_public_key_armor(raw_public: &[u8; 32]) -> String {
+        const ED25519_ALGO: u8 = 22;
+        const ED25519_OID: &[u8] = &[0x2b, 0x06, 0x01, 0x04, 0x01, 0xda, 0x47, 0x0f, 0x01];
+
+        let mut body = Vec::new();
+        body.push(0x04); // OpenPGP v4
+        body.extend_from_slice(&0u32.to_be_bytes()); // creation time
+        body.push(ED25519_ALGO);
+        body.push(ED25519_OID.len() as u8);
+        body.extend_from_slice(ED25519_OID);
+        let mpi_len = 1 + raw_public.len(); // 0x40 marker + raw key
+        body.extend_from_slice(&(mpi_len as u16 * 8).to_be_bytes());
+        body.push(0x40);
+        body.extend_from_slice(raw_public);
+
+        // Old-format packet: tag 6, one-octet length.
+        let mut packet = Vec::new();
+        packet.push(0x98);
+        packet.push(body.len() as u8);
+        packet.extend_from_slice(&body);
+
+        let b64 = base64_encode(&packet);
+        let mut wrapped = String::new();
+        for line in b64.as_bytes().chunks(64) {
+            wrapped.push_str(std::str::from_utf8(line).unwrap());
+            wrapped.push('\n');
+        }
+        format!(
+            "-----BEGIN PGP PUBLIC KEY BLOCK-----\n\n{wrapped}-----END PGP PUBLIC KEY BLOCK-----\n"
+        )
+    }
+
+    fn minimal_signed_gts_bytes(signing_key: &SigningKey, kid: &str) -> Vec<u8> {
+        let mut writer = gmeow_gts::writer::Writer::new("gmeow-validate-test");
+        writer.sign_with(signing_key.clone(), kid);
+        writer.add_terms(&[
+            Term {
+                kind: TermKind::Iri,
+                value: Some("https://example.org/a".to_string()),
+                datatype: None,
+                lang: None,
+                reifier: None,
+            },
+            Term {
+                kind: TermKind::Iri,
+                value: Some("https://example.org/p".to_string()),
+                datatype: None,
+                lang: None,
+                reifier: None,
+            },
+            Term {
+                kind: TermKind::Iri,
+                value: Some("https://example.org/b".to_string()),
+                datatype: None,
+                lang: None,
+                reifier: None,
+            },
+        ]);
+        writer.add_quads(&[(0, 1, 2, None)]);
+        writer.to_bytes()
+    }
+
     #[test]
     fn unsigned_bundle_with_required_signatures_is_hard_failure() {
         let bytes = minimal_unsigned_gts_bytes();
@@ -266,6 +370,61 @@ mod tests {
         assert!(findings
             .iter()
             .any(|f| f.code == "signature.missing" && f.severity == Severity::Warning));
+    }
+
+    #[test]
+    fn signed_bundle_with_untrusted_signer_is_hard_failure() {
+        let signer = deterministic_signing_key(1);
+        let armor = ed25519_public_key_armor(&signer.verifying_key().to_bytes());
+        let transport =
+            gmeow_gts::openpgp::parse_transport_key(&armor).expect("test armor must parse");
+        let bytes = minimal_signed_gts_bytes(&signer, &transport.fingerprint);
+
+        // The signer is cryptographically valid, but the policy trusts a different fingerprint.
+        let other_fingerprint = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
+        let config = SignatureConfig {
+            require_trusted_signer: true,
+            trusted_key: Some(armor),
+            trusted_signers: vec![other_fingerprint.to_string()],
+            ..SignatureConfig::default()
+        };
+
+        let (findings, hard) = verify_gts_bundle(&bytes, &config).expect("verification must run");
+
+        assert!(
+            hard,
+            "untrusted signer when required must be a hard failure"
+        );
+        assert!(findings
+            .iter()
+            .any(|f| f.code == "signature.untrusted" && f.severity == Severity::Error));
+    }
+
+    #[test]
+    fn signed_bundle_with_trusted_signer_passes() {
+        let signer = deterministic_signing_key(2);
+        let armor = ed25519_public_key_armor(&signer.verifying_key().to_bytes());
+        let transport =
+            gmeow_gts::openpgp::parse_transport_key(&armor).expect("test armor must parse");
+        let bytes = minimal_signed_gts_bytes(&signer, &transport.fingerprint);
+
+        let config = SignatureConfig {
+            require_trusted_signer: true,
+            trusted_key: Some(armor),
+            trusted_signers: vec![transport.fingerprint],
+            ..SignatureConfig::default()
+        };
+
+        let (findings, hard) = verify_gts_bundle(&bytes, &config).expect("verification must run");
+
+        assert!(!hard, "trusted signer must not hard-fail");
+        assert!(
+            !findings.iter().any(|f| f.severity == Severity::Error),
+            "no error-level findings expected"
+        );
+        assert!(findings
+            .iter()
+            .any(|f| f.code == "signature.key" && f.severity == Severity::Info));
     }
 
     #[test]
