@@ -10,8 +10,18 @@
 pub mod builder;
 pub mod interner;
 
-use builder::Builder;
+use builder::{AnnotatedRow, Builder, ProducerError, TermDesc};
 use pyo3::prelude::*;
+use pyo3::types::{PyAnyMethods, PyDict, PyDictMethods};
+
+/// PyO3 input shape for a single annotated row.
+type AnnotatedRowInput = (
+    TermDesc,
+    TermDesc,
+    TermDesc,
+    TermDesc,
+    Vec<(TermDesc, TermDesc)>,
+);
 
 /// PyO3 wrapper around [`Builder`].
 #[pyclass(name = "Builder")]
@@ -39,7 +49,50 @@ impl PyBuilder {
     ) -> PyResult<()> {
         self.inner
             .add_graph(path, graph_name, bnode_scope)
-            .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))
+            .map_err(into_py_value_err)
+    }
+
+    /// Parse an RDF 1.2 artifact from `path` and append its statement layer.
+    #[pyo3(signature = (path, graph_name = None, bnode_scope = None))]
+    fn add_rdf12(
+        &mut self,
+        path: &str,
+        graph_name: Option<&str>,
+        bnode_scope: Option<&str>,
+    ) -> PyResult<()> {
+        self.inner
+            .add_rdf12(path, graph_name, bnode_scope)
+            .map_err(into_py_value_err)
+    }
+
+    /// Add annotated base triples from a list of structured term rows.
+    ///
+    /// Each row is a 5-tuple `(subject, predicate, object, reifier, annotations)`
+    /// where every term is a dict `{"kind": "iri"|"bnode"|"literal", "value": ...,
+    /// "datatype": ..., "lang": ...}`. The reifier is bound to the base triple and
+    /// its annotations are recorded in the statement layer.
+    #[pyo3(signature = (rows, graph_name = None, bnode_scope = None))]
+    fn add_annotated_rows(
+        &mut self,
+        rows: Vec<AnnotatedRowInput>,
+        graph_name: Option<&str>,
+        bnode_scope: Option<&str>,
+    ) -> PyResult<()> {
+        let rows: Vec<AnnotatedRow> = rows
+            .into_iter()
+            .map(
+                |(subject, predicate, object, reifier, annotations)| AnnotatedRow {
+                    subject,
+                    predicate,
+                    object,
+                    reifier,
+                    annotations,
+                },
+            )
+            .collect();
+        self.inner
+            .add_annotated_rows(&rows, graph_name, bnode_scope)
+            .map_err(into_py_value_err)
     }
 
     /// Number of accumulated terms.
@@ -52,6 +105,73 @@ impl PyBuilder {
     #[getter]
     fn quad_count(&self) -> usize {
         self.inner.quads().len()
+    }
+
+    /// Number of accumulated reifier bindings.
+    #[getter]
+    fn reifier_count(&self) -> usize {
+        self.inner.reifies().len()
+    }
+
+    /// Number of accumulated annotation triples.
+    #[getter]
+    fn annot_count(&self) -> usize {
+        self.inner.annot().len()
+    }
+}
+
+fn into_py_value_err(e: ProducerError) -> PyErr {
+    pyo3::exceptions::PyValueError::new_err(e.to_string())
+}
+
+impl<'a, 'py> FromPyObject<'a, 'py> for TermDesc {
+    type Error = PyErr;
+
+    fn extract(obj: pyo3::Borrowed<'a, 'py, PyAny>) -> PyResult<Self> {
+        let dict = obj.cast::<PyDict>()?;
+        let kind: String = dict
+            .get_item("kind")?
+            .ok_or_else(|| pyo3::exceptions::PyValueError::new_err("term dict missing 'kind'"))?
+            .extract()?;
+        match kind.as_str() {
+            "iri" => {
+                let value: String = dict
+                    .get_item("value")?
+                    .ok_or_else(|| {
+                        pyo3::exceptions::PyValueError::new_err("IRI term dict missing 'value'")
+                    })?
+                    .extract()?;
+                Ok(TermDesc::Iri(value))
+            }
+            "bnode" => {
+                let value: String = dict
+                    .get_item("value")?
+                    .ok_or_else(|| {
+                        pyo3::exceptions::PyValueError::new_err("bnode term dict missing 'value'")
+                    })?
+                    .extract()?;
+                Ok(TermDesc::Bnode(value))
+            }
+            "literal" => {
+                let value: String = dict
+                    .get_item("value")?
+                    .ok_or_else(|| {
+                        pyo3::exceptions::PyValueError::new_err("literal term dict missing 'value'")
+                    })?
+                    .extract()?;
+                let datatype: Option<String> =
+                    dict.get_item("datatype")?.and_then(|v| v.extract().ok());
+                let lang: Option<String> = dict.get_item("lang")?.and_then(|v| v.extract().ok());
+                Ok(TermDesc::Literal {
+                    value,
+                    datatype,
+                    lang,
+                })
+            }
+            _ => Err(pyo3::exceptions::PyValueError::new_err(format!(
+                "unknown term kind: {kind}"
+            ))),
+        }
     }
 }
 
