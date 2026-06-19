@@ -15,10 +15,14 @@ Two layers:
 
 from __future__ import annotations
 
+from pathlib import Path
+from typing import cast
+
 import pytest
 from rdflib import OWL, RDF, RDFS, BNode, Graph, Literal, Namespace, URIRef
 
 from gmeow_tools import rl_agreement
+from gmeow_tools.config import GTS_SNAPSHOT_FILE
 
 EX = Namespace("https://example.org/rl/")
 XSD = "http://www.w3.org/2001/XMLSchema#"
@@ -99,12 +103,13 @@ def test_build_report_marks_divergence_rows_as_errors() -> None:
 def test_rl_agreement_lane_enforces_over_the_real_bundle() -> None:
     """Native RL ≡ owlrl RL over the real told facts → the axis PASSES."""
     passed, result, _report = rl_agreement.run()
+    native_only = cast("list[object]", result["native_only"])
+    oracle_only = cast("list[object]", result["oracle_only"])
     assert passed, (
         "native RL and owlrl RL must agree on the canonicalized named-vocabulary "
-        f"closure; native_only={result['native_only'][:5]} "
-        f"oracle_only={result['oracle_only'][:5]}"
+        f"closure; native_only={native_only[:5]} oracle_only={oracle_only[:5]}"
     )
-    assert int(result["agree"]) > 0  # type: ignore[call-overload]
+    assert cast("int", result["agree"]) > 0
 
 
 @pytest.mark.classic_cross_check
@@ -114,9 +119,9 @@ def test_rl_agreement_lane_fails_on_a_synthetic_divergence(
     """A synthetic native-only triple must FAIL the enforced axis (strict, no knob)."""
     real_compare = rl_agreement.compare
 
-    def fake_compare(*args: object, **kwargs: object) -> dict[str, object]:
-        result = dict(real_compare(*args, **kwargs))
-        native_only = list(result["native_only"])  # type: ignore[arg-type]
+    def fake_compare(gts: Path = GTS_SNAPSHOT_FILE) -> dict[str, object]:
+        result = dict(real_compare(gts))
+        native_only = list(cast("list[object]", result["native_only"]))
         native_only.append(
             (
                 "https://example.org/x",
@@ -130,4 +135,6 @@ def test_rl_agreement_lane_fails_on_a_synthetic_divergence(
     monkeypatch.setattr(rl_agreement, "compare", fake_compare)
     passed, result, _report = rl_agreement.run()
     assert passed is False
-    assert any("Bogus" in str(row) for row in result["native_only"])  # type: ignore[union-attr]
+    assert any(
+        "Bogus" in str(row) for row in cast("list[object]", result["native_only"])
+    )
