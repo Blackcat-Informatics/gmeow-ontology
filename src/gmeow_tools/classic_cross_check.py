@@ -330,11 +330,19 @@ def _hermit_unsat_classes(told_facts: Path) -> list[str]:
     if not explanation:
         return []
     # The explanation markdown cites the unsatisfiable classes as IRIs; pull any
-    # bare http(s) IRIs out so the set is comparable to native.
+    # bare http(s) IRIs out so the set is comparable to native. The character
+    # class already drops whitespace and < > ", but a trailing sentence or
+    # markdown delimiter (".", ")", "]", …) would otherwise ride along and forge
+    # a phantom IRI. In the strict-fail lane that becomes a false divergence and
+    # a spurious build failure, so strip trailing punctuation to land the exact IRI.
     import re
 
-    iris = re.findall(r"https?://[^\s<>\"]+", explanation)
-    return sorted(set(iris))
+    trailing = ".,;:!?)]}'\""
+    iris = (
+        match.rstrip(trailing)
+        for match in re.findall(r"https?://[^\s<>\"]+", explanation)
+    )
+    return sorted({iri for iri in iris if iri})
 
 
 # --------------------------------------------------------------------------- #
