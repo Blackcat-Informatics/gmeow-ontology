@@ -153,10 +153,8 @@ pub fn to_gmeow_rdf(report: &Report) -> String {
     };
 
     for (index, finding) in normalized.findings.iter().enumerate() {
-        let subject = format!(
-            "<{GMEOW}diagnostics/finding/{}-{index}>",
-            stable_fingerprint(finding)
-        );
+        let fingerprint = stable_fingerprint(finding);
+        let subject = format!("<{GMEOW}diagnostics/finding/{fingerprint}-{index}>");
         triple(&subject, RDF_TYPE, &format!("<{GMEOW}Finding>"), &mut lines);
         triple(
             &subject,
@@ -185,7 +183,11 @@ pub fn to_gmeow_rdf(report: &Report) -> String {
             );
         }
         for (loc_index, location) in finding.locations.iter().enumerate() {
-            let loc_node = format!("_:loc{index}_{loc_index}");
+            // An IRI (not a blank node) so the findings graph round-trips
+            // through GTS fold without bnode relabeling — required for the
+            // feedback bundle's snapshot content id to stay stable.
+            let loc_node =
+                format!("<{GMEOW}diagnostics/finding/{fingerprint}-{index}/location/{loc_index}>");
             triple(
                 &subject,
                 &format!("{GMEOW}findingLocation"),
