@@ -951,14 +951,13 @@ def test_dev_validate_gts_with_trusted_key_cli_flag(
     assert "validation passed" in result.output
 
 
-def test_dev_validate_gts_with_untrusted_key_cli_flag_warns(
+def test_dev_validate_gts_with_untrusted_key_cli_flag_fails(
     runner: CliRunner, tmp_path: Path
 ) -> None:
-    """A wrong --trusted-key cannot verify the signature, but only warns.
+    """A wrong --trusted-key cannot verify the signature, so validation fails.
 
-    Because --trusted-key alone does not imply --require-signed or
-    require_trusted_signer, validation stays green and surfaces the mismatch
-    as a signature-unavailable warning.
+    Gap 2 promoted unresolved signatures from warnings to errors; a mismatched
+    --trusted-key means the signature cannot be resolved and the run hard-fails.
     """
     signer, _armor, _fingerprint = _make_signer()
     _untrusted_signer, untrusted_armor, _fingerprint2 = _make_signer()
@@ -972,5 +971,6 @@ def test_dev_validate_gts_with_untrusted_key_cli_flag_warns(
         dev_app,
         ["validate", "--gts", str(bundle_path), "--trusted-key", str(key_path)],
     )
-    assert result.exit_code == 0, result.output
+    assert result.exit_code == 1, result.output
     assert "signature(s) unverified" in result.output
+    assert "error(s)" in result.output
