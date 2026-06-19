@@ -50,6 +50,8 @@ from xml.etree import ElementTree as ET
 
 from gmeow_tools.config import (
     ALIGNMENT_TARGETS,
+    CROSSMARK_ENABLED,
+    CROSSMARK_POLICY_DOI,
     DATASET_SLUG,
     DEPOSIT_FORMAT,
     DIST_DIR,
@@ -258,6 +260,19 @@ def _add_access(parent: ET.Element, license_url: str, start_date: str) -> None:
         )
 
 
+def _add_crossmark(
+    parent: ET.Element, policy_doi: str, license_url: str, start_date: str
+) -> None:
+    """Add a Crossmark block with AccessIndicators nested in custom_metadata."""
+    if not license_url:
+        return
+    crossmark = _child(parent, "crossmark")
+    _child(crossmark, "crossmark_version", "1")
+    _child(crossmark, "crossmark_policy", policy_doi)
+    custom_metadata = _child(crossmark, "custom_metadata")
+    _add_access(custom_metadata, license_url, start_date)
+
+
 def _add_relations(parent: ET.Element, relations: Sequence[_Relation]) -> None:
     """Add the ``<rel:program>`` block with one related_item per relation."""
     if not relations:
@@ -404,6 +419,7 @@ def _add_dataset(
     tdm_resources: Sequence[_TdmResource],
     citations: Sequence[_Citation],
     component_seam: bool,
+    crossmark_policy: str | None = None,
 ) -> None:
     """Append one fully-populated ``<dataset>`` record."""
     dataset = _child(database, "dataset", attrs={"dataset_type": "record"})
@@ -418,7 +434,12 @@ def _add_dataset(
     )
     _child(dataset, "description", dataset_description)
     _child(dataset, "format", DEPOSIT_FORMAT)
-    _add_access(dataset, description.license_uri, description.release_date)
+    if crossmark_policy:
+        _add_crossmark(
+            dataset, crossmark_policy, description.license_uri, description.release_date
+        )
+    else:
+        _add_access(dataset, description.license_uri, description.release_date)
     _add_relations(dataset, relations)
     _add_version_info(
         dataset,
@@ -469,6 +490,7 @@ def build_deposit_xml(
     timestamp = timestamp or default_ts
     batch_id = batch_id or default_batch
     has_version = description.version_doi is not None
+    crossmark_policy = CROSSMARK_POLICY_DOI if CROSSMARK_ENABLED else None
 
     ET.register_namespace("", CR_NS)
     ET.register_namespace("ai", AI_NS)
@@ -557,6 +579,7 @@ def build_deposit_xml(
         tdm_resources=_tdm_resources(),
         citations=_alignment_citations(),
         component_seam=False,
+        crossmark_policy=crossmark_policy,
     )
 
     # --- version record: immutable release Manifestation (if a version DOI exists) ---
@@ -583,6 +606,7 @@ def build_deposit_xml(
             tdm_resources=_tdm_resources(description.version_iri),
             citations=_alignment_citations(),
             component_seam=True,
+            crossmark_policy=crossmark_policy,
         )
 
     ET.indent(root)
