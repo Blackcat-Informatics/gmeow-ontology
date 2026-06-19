@@ -69,13 +69,13 @@ structure and per-lowering loss judgments are in [LOGIC-IR.md](LOGIC-IR.md).
 
 ### The fourth framing: an externally-hosted secondary oracle
 
-An earlier authority model operated a Python oracle alongside the native solver: the Python
-implementation was the executable specification for materialization strata; the Rust core was
-required to agree with it over a shared corpus. That model served a real purpose — it forced
+An earlier authority model operated a separate secondary oracle alongside the native solver: that
+secondary implementation was the executable specification for materialization strata, and the
+native solver was required to agree with it over a shared corpus. That model served a real purpose — it forced
 explicit cross-verification and made the specification independent of the implementation — and the
 cross-verification discipline it established is preserved in the conformance corpus structure.
 What is superseded is the claim that the oracle is **permanent**: as the native solver acquires
-derivation-graph provenance, the Python oracle's role as authority for each discipline is
+derivation-graph provenance, the secondary oracle's role as authority for each discipline is
 superseded discipline-by-discipline, formalized by derivation-graph golden fixtures that make
 correctness concrete and engine-independent. The foundational lowering oracle, for instance, has
 already been retired; the native derivation graph is the specification for that discipline. The
