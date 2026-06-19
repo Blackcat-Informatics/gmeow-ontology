@@ -82,9 +82,9 @@ fn store_is_reused_across_phases() {
 
     // The missing-definition error proves structural_lint ran over the store.
     assert!(
-        run.errors.iter().any(|e| e.contains("skos:definition")),
+        run.errors().iter().any(|e| e.contains("skos:definition")),
         "structural lint must flag missing definition: {:?}",
-        run.errors
+        run.errors()
     );
 
     // Declared terms include both classes.

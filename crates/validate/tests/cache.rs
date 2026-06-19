@@ -8,10 +8,21 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicU64, Ordering};
 
+use gmeow_diagnostics::{Finding, Severity};
 use gmeow_validate::cache::{CachedResult, ValidationCache};
 use gmeow_validate::lint::LintConfig;
 use gmeow_validate::store;
 use gmeow_validate::validate_all::{ValidateOptions, ValidationRun};
+
+/// Build a `CachedResult` from `(severity, code, message)` triples for tests.
+fn cached(findings: &[(Severity, &str, &str)]) -> CachedResult {
+    CachedResult::from_findings(
+        findings
+            .iter()
+            .map(|(severity, code, message)| Finding::new(*severity, *code, *message))
+            .collect(),
+    )
+}
 
 static TEST_DIR_COUNTER: AtomicU64 = AtomicU64::new(0);
 
@@ -110,10 +121,11 @@ fn files_cache_key_uses_relative_path_when_possible() {
 fn read_write_roundtrip() {
     let root = temp_project_root();
     let cache = ValidationCache::new(&root);
-    let result = CachedResult {
-        errors: vec!["error one".to_owned(), "error two".to_owned()],
-        warnings: vec!["warning one".to_owned()],
-    };
+    let result = cached(&[
+        (Severity::Error, "shacl.x", "error one"),
+        (Severity::Error, "shacl.y", "error two"),
+        (Severity::Warning, "shacl.z", "warning one"),
+    ]);
 
     cache
         .write_cached_result("merged-shacl", "abc123", &result)
@@ -128,10 +140,7 @@ fn read_write_roundtrip() {
 fn atomic_write_leaves_no_temp_file() {
     let root = temp_project_root();
     let cache = ValidationCache::new(&root);
-    let result = CachedResult {
-        errors: vec!["e".to_owned()],
-        warnings: vec![],
-    };
+    let result = cached(&[(Severity::Error, "shacl.e", "e")]);
 
     cache
         .write_cached_result("example-shacl", "deadbeef", &result)
@@ -161,10 +170,7 @@ fn corrupted_cache_file_is_ignored() {
 fn cache_hit_skips_computation() {
     let root = temp_project_root();
     let cache = ValidationCache::new(&root);
-    let result = CachedResult {
-        errors: vec!["cached error".to_owned()],
-        warnings: vec![],
-    };
+    let result = cached(&[(Severity::Error, "shacl.cached", "cached error")]);
     cache
         .write_cached_result("dsl-shacl/mapping", "hitkey", &result)
         .unwrap();

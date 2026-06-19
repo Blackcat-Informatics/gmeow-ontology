@@ -32,6 +32,11 @@ sha2 = "0.10"
 gmeow-shacl = { path = "../shacl" }
 # Shared RDF 1.2 kernel: GTS/oxigraph store construction and diagnostics (#648).
 gmeow-rdf = { path = "../rdf", features = ["gts", "oxigraph"] }
+# Canonical Finding/Report model (#654). The RDF/SHACL -> Finding bridge lives
+# here, NOT in the PyO3-free gmeow-rdf kernel: gmeow-diagnostics links pyo3
+# unconditionally, and gmeow-validate already links pyo3, so this dependency
+# keeps the kernel clean while threading wire-coordinate findings end-to-end.
+gmeow-diagnostics = { path = "../diagnostics" }
 # GTS format engine: cache-key derivation reads `gmeow_gts::model::Graph::segment_heads`,
 # and the toolchain salt mixes `gmeow_gts::wire::VERSION`. Runtime GTS ingestion itself
 # lives in gmeow-rdf (#683).

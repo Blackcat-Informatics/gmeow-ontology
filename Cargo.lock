@@ -1274,6 +1274,7 @@ dependencies = [
 name = "gmeow-validate"
 version = "0.1.0"
 dependencies = [
+ "gmeow-diagnostics",
  "gmeow-gts",
  "gmeow-rdf",
  "gmeow-shacl",
