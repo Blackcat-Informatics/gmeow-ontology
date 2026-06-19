@@ -364,6 +364,7 @@ def feedback(
     and JSON projections as content-addressed blobs, #654). No flag: one fixed
     behavior. The canonical ``gmeow.gts`` is never touched.
     """
+    from gmeow_tools import diagnostics
     from gmeow_tools.diagnostics import (
         emit_legacy_cli,
         report_from_validation_result,
@@ -374,6 +375,28 @@ def feedback(
 
     result = validate_all(timings=timings)
     report = report_from_validation_result(result, tool="validate")
+
+    # Fold the native (Java/Docker-free) reasoning + reasoned-graph verify lanes
+    # into the same report so their findings ride the shared SARIF + self-attesting
+    # .gts feedback bundle (#695). The bundle then carries validation + reasoning +
+    # verify findings, all self-attested.
+    try:
+        from gmeow_tools import reason as reasoning
+
+        report.extend(
+            reasoning.reason_native(output_dir=output_dir, run_box_roles=False)
+        )
+        report.extend(reasoning.verify_native(output_dir=output_dir))
+    except (ImportError, ValueError, RuntimeError, OSError, FileNotFoundError) as exc:
+        report.add(
+            diagnostics.finding(
+                severity="warning",
+                code="feedback.native-skipped",
+                message=f"native reason/verify findings not folded: {exc}",
+                tool="feedback",
+            )
+        )
+
     emit_legacy_cli(report, err_console)
     paths = write_report_artifacts(report, output_dir=output_dir, stem=stem)
     for kind in ("json", "sarif", "html"):
@@ -725,17 +748,58 @@ def explain() -> None:
 
 @app.command()
 def verify(
+    mode: str = typer.Option(
+        "native",
+        "--mode",
+        help=(
+            "Verify backend: native (Rust reasoned closure, Java/Docker-free "
+            "authority) or docker (classic ROBOT verify, classic-cross-check oracle)."
+        ),
+    ),
     reasoner: str = typer.Option("ELK", help="Reasoner: ELK (fast) or hermit (DL)."),
     reasoned_input: Path | None = _REASONED_INPUT_OPTION,
 ) -> None:
-    """Run reasoned-graph negative tests (ROBOT verify over queries/verify/).
+    """Run reasoned-graph negative tests — native (authority) or docker (oracle).
 
     The closed-world QC lane of the hybrid OWL+SHACL architecture: reason, then
     run each SPARQL "bad-example" query over the materialized graph. Any returned
-    row is a violation (the OBO QC pattern), failing the gate.
+    row is a violation (the OBO QC pattern), failing the gate. The native lane
+    runs the Rust EL/DL closure (Java/Docker-free) and emits SARIF diagnostics;
+    the docker lane keeps the classic ROBOT verify reachable for the
+    classic-cross-check oracle (never on a required gate).
     """
     from gmeow_tools import reason as reasoning
     from gmeow_tools.runner import ToolExecutionError, ToolUnavailableError
+
+    if mode == "native":
+        try:
+            from gmeow_tools.diagnostics import emit_legacy_cli
+
+            report = reasoning.verify_native()
+            emit_legacy_cli(report, err_console)
+        except (
+            ImportError,
+            ValueError,
+            RuntimeError,
+            OSError,
+            FileNotFoundError,
+        ) as exc:
+            # ImportError: native extension unavailable; ValueError: unreadable
+            # GTS bundle; RuntimeError: native verify failure; OSError: artifact
+            # write failure; FileNotFoundError: no verify queries.
+            raise _fail(f"native verify failed: {exc}") from exc
+        if report.ok:
+            console.print(
+                "[green]✓ verify: no violations on the reasoned graph "
+                "(native, Docker-free)[/green]"
+            )
+            return
+        raise _fail(
+            f"✗ verify: {report.error_count} violation(s) on the reasoned graph"
+        )
+
+    if mode != "docker":
+        raise _fail(f"unknown verify mode: {mode!r} (expected native or docker)")
 
     try:
         reasoning.verify(reasoner=reasoner, reasoned=reasoned_input)
@@ -743,7 +807,9 @@ def verify(
         raise _fail(f"tool unavailable: {exc}", code=2) from exc
     except ToolExecutionError as exc:
         raise _fail(f"verify found violations:\n{exc.output}") from exc
-    console.print("[green]✓ verify: no violations on the reasoned graph[/green]")
+    console.print(
+        "[green]✓ verify: no violations on the reasoned graph (ROBOT)[/green]"
+    )
 
 
 @app.command()

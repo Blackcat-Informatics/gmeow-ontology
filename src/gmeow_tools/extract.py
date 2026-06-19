@@ -1,4 +1,7 @@
-"""ROBOT-based module extraction with license-policy enforcement.
+"""Native SLME module extraction with license-policy enforcement.
+
+Module extraction is native (Java/Docker-free): it runs the Rust ``gmeow_logic``
+syntactic-locality extractor in-process, replacing the retired ROBOT shell-out.
 
 Extraction *copies* axioms/labels from a source ontology into GMEOW (a CC BY 4.0
 work). That is only permissible for compatibly-licensed sources, so every
@@ -8,15 +11,16 @@ may still be *linked* by IRI via the mappings layer.
 
 This is the concrete teeth behind the plan's "refuses reference-only imports".
 
-Maintainer-only (#666 / Principle 18)
+Maintainer-only (#695 / Principle 18)
 -------------------------------------
-ROBOT module-extraction requires Java/Docker, so this is a **maintainer-only**
-tool (``make extract`` / ``make refresh-target-axioms``): it is NOT on the
-normal-use primary path, never part of ``make check`` or the required CI
-``quality`` gate. Replicating ROBOT's SLME module extraction natively in the Rust
-core (to drop the Java/Docker dependency entirely) is tracked in **#695**; until
-then extraction stays a maintainer-run, Docker-gated step alongside the
-``classic-cross-check`` lane.
+Extraction is a **maintainer** import tool (``make extract`` /
+``make refresh-target-axioms``) for vendoring target-axiom snapshots — it is NOT
+on the normal-use primary path, never part of ``make check`` or the required CI
+``quality`` gate. As of **#695** it is Java/Docker-free: the ROBOT shell-out was
+replaced by the in-process Rust ``gmeow_logic`` syntactic-locality extractor, so
+no maintainer needs Java/Docker to run it. ROBOT survives only as a non-required
+oracle in the ``classic-cross-check`` lane, where native SLME is cross-checked
+against it (native ⊇ ROBOT).
 """
 
 from __future__ import annotations
@@ -26,15 +30,39 @@ from pathlib import Path
 from gmeow_tools.config import (
     ALIGNMENT_TARGETS,
     DIST_DIR,
-    PROJECT_ROOT,
-    ROBOT_IMAGE,
+    NAMESPACE,
     LinkPolicy,
 )
-from gmeow_tools.runner import run_container
 
 
 class LicensePolicyError(RuntimeError):
     """Raised when extraction is attempted from a reference-only source."""
+
+
+def _slme_provenance_ttl(*, source_iri: str, method: str, axiom_count: int) -> str:
+    """Return a deterministic SLME-extraction provenance block (Turtle).
+
+    Reuses the provenance vocabulary (``gmeow:Activity``, ``gmeow:wasGeneratedBy``,
+    ``gmeow:wasDerivedFrom``, ``gmeow:wasAssociatedWith``) — no new terms are minted
+    (this is INSTANCE data, which the annotation contract does not govern). The
+    method/axiom count rides as ``rdfs:comment``. No timestamps are emitted, so the
+    block is a pure function of its inputs (determinism, Principle 4).
+    """
+    return (
+        "\n"
+        "# --- SLME module-extraction provenance (#695; native, deterministic) ---\n"
+        f"@prefix gmeow: <{NAMESPACE}> .\n"
+        "@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n"
+        "\n"
+        "gmeow:activity/slme-extract a gmeow:Activity ;\n"
+        f"    gmeow:wasDerivedFrom <{source_iri}> ;\n"
+        "    gmeow:wasAssociatedWith gmeow:agent/native-slme ;\n"
+        f'    rdfs:comment "SLME method {method}; {axiom_count} axioms"@en .\n'
+        "\n"
+        "<{module_iri}> gmeow:wasGeneratedBy gmeow:activity/slme-extract .\n".format(
+            module_iri=NAMESPACE + "module/slme-extract"
+        )
+    )
 
 
 def guard_importable(target_name: str) -> None:
@@ -74,7 +102,8 @@ def extract_terms(
         source: Source ontology file under the repo (e.g. a vendored import).
         terms: Seed term IRIs to extract the module around.
         output: Destination Turtle file.
-        method: ROBOT extract method (``STAR`` SLME by default).
+        method: SLME extraction notion (``STAR`` nested bot/top by default;
+            also ``BOT``/``TOP``, case-insensitive).
 
     Returns:
         The path to the extracted module.
@@ -87,18 +116,19 @@ def extract_terms(
     if not source.exists():
         raise FileNotFoundError(f"extract source not found: {source}")
     output.parent.mkdir(parents=True, exist_ok=True)
-    args = [
-        "robot",
-        "extract",
-        "--method",
-        method,
-        "--input",
-        str(source.relative_to(PROJECT_ROOT)),
-    ]
-    for term in terms:
-        args += ["--term", term]
-    args += ["--output", str(output.relative_to(PROJECT_ROOT))]
-    run_container(ROBOT_IMAGE, args)
+
+    import gmeow_logic
+
+    result = gmeow_logic.extract_module(
+        source.read_text(encoding="utf-8"), list(terms), method
+    )
+    target = ALIGNMENT_TARGETS[target_name]
+    provenance = _slme_provenance_ttl(
+        source_iri=target.namespace,
+        method=str(result["method"]),
+        axiom_count=int(result["selected_axiom_count"]),
+    )
+    output.write_text(result["module_ttl"] + provenance, encoding="utf-8")
     return output
 
 

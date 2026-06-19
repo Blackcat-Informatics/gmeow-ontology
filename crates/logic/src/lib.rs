@@ -26,8 +26,10 @@ pub mod reference_resolver;
 pub mod rule_ir;
 pub mod scryer_engine;
 pub mod seam;
+pub mod slme;
 pub mod stablemodel;
 pub mod store;
+pub mod verify;
 pub mod versioning;
 pub mod wellfounded;
 

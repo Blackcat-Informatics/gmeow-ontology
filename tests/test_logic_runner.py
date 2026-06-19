@@ -600,6 +600,50 @@ class TestReasonNativePipeline:
         assert _parse_rdf12_turtle(closure.read_text(encoding="utf-8")) > 0
 
 
+class TestVerifyNative:
+    """``reason.verify_native`` — native reasoned-graph verify (#695)."""
+
+    def test_clean_over_bundle_and_writes_artifacts(self, tmp_path: Path) -> None:
+        """The committed bundle passes verify and writes JSON/SARIF/HTML."""
+        import gmeow_tools.reason as reason
+        from gmeow_tools.config import GTS_SNAPSHOT_FILE
+
+        if not GTS_SNAPSHOT_FILE.exists():
+            pytest.skip("GTS snapshot not present in this checkout")
+
+        report = reason.verify_native(output_dir=tmp_path)
+        assert report.ok, "committed ontology must pass its own verify queries"
+        assert report.error_count == 0
+        for suffix in ("json", "sarif", "html"):
+            artifact = tmp_path / f"gmeow-verify-native.{suffix}"
+            assert artifact.exists(), f"{artifact.name} was not written"
+
+    def test_violating_query_reports_error(self) -> None:
+        """A query that returns rows over the bundle yields an error report."""
+        import gmeow_logic
+
+        from gmeow_tools import diagnostics
+        from gmeow_tools.config import GTS_SNAPSHOT_FILE
+
+        if not GTS_SNAPSHOT_FILE.exists():
+            pytest.skip("GTS snapshot not present in this checkout")
+
+        # Every class is a row → guaranteed non-empty → a "violation" by the
+        # negative-test convention; exercises the PyO3 + from_json violation path.
+        tripping = (
+            "queries/verify/_synthetic-every-class.rq",
+            "SELECT ?c WHERE { ?c a <http://www.w3.org/2002/07/owl#Class> }",
+        )
+        report_json = gmeow_logic.verify_native(
+            GTS_SNAPSHOT_FILE.read_bytes(), [tripping]
+        )
+        report = diagnostics.report_from_json(report_json)
+        assert not report.ok, "a returned row must fail the report"
+        assert report.error_count >= 1
+        codes = {f["code"] for f in report.findings}
+        assert "verify._synthetic-every-class" in codes, codes
+
+
 @functools.cache
 def _native_artifacts() -> dict[str, str]:
     """Emit the three native RDF 1.2 artifacts once, cached across the tests.
