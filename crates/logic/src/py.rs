@@ -1487,6 +1487,126 @@ fn rl_closure(py: Python<'_>, input: &str) -> PyResult<Vec<Py<PyAny>>> {
     Ok(out)
 }
 
+// ── verify_native ─────────────────────────────────────────────────────────────
+
+/// Run the native reasoned-graph verify over a `gmeow.gts` bundle (issue #695).
+///
+/// Materializes the asserted graph (flattened) unioned with the native EL/DL
+/// derived edges, runs each `(name, sparql)` SELECT query over it, and returns
+/// the resulting diagnostics report serialized as JSON. Python rehydrates it via
+/// `gmeow_diagnostics.Report.from_json` — returning JSON (rather than a
+/// cross-module pyclass) keeps the two extension modules decoupled.
+///
+/// # Arguments
+///
+/// - `gts_bytes` — the serialized `gmeow.gts` bundle bytes (segments allowed).
+/// - `queries` — `[(repo_relative_rq_path, sparql_text), …]`; discovery (incl.
+///   slice verify queries) is the Python caller's job (repo-layout knowledge).
+///
+/// # Returns
+///
+/// The normalized [`gmeow_diagnostics::Report`] as a JSON string. The report's
+/// `ok` is false iff any verify query returned a row.
+///
+/// # Errors
+///
+/// Raises `ValueError` if the GTS bundle cannot be read or the report cannot be
+/// serialized, and `RuntimeError` if verify fails (reasoning, a query parse/eval
+/// error, a non-SELECT query, or a derived-edge build error).
+#[pyfunction]
+fn verify_native(
+    py: Python<'_>,
+    gts_bytes: &[u8],
+    queries: Vec<(String, String)>,
+) -> PyResult<String> {
+    enum VerifyNativeError {
+        GtsRead(String),
+        Verify(String),
+    }
+    let bytes = gts_bytes.to_vec();
+    let verify_result: Result<gmeow_diagnostics::Report, VerifyNativeError> =
+        py.detach(move || {
+            let graph = gmeow_rdf::gts::read_graph(&bytes, true)
+                .map_err(|e| VerifyNativeError::GtsRead(format!("GTS read error: {e}")))?;
+            let store = gmeow_rdf::gts::GtsGraphStore::new(&graph);
+            crate::verify::verify(&store, &queries).map_err(VerifyNativeError::Verify)
+        });
+    let report = verify_result.map_err(|e| match e {
+        VerifyNativeError::GtsRead(m) => pyo3::exceptions::PyValueError::new_err(m),
+        VerifyNativeError::Verify(m) => {
+            pyo3::exceptions::PyRuntimeError::new_err(format!("verify error: {m}"))
+        }
+    })?;
+    // Normalize before serializing so the JSON (and any downstream content hash)
+    // is deterministic, matching the diagnostics render::to_json contract.
+    serde_json::to_string(&report.normalized())
+        .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))
+}
+
+// ── extract_module ──────────────────────────────────────────────────────────────
+
+/// Extract a syntactic-locality module (SLME) from a source ontology (issue #695).
+///
+/// Native, Java/Docker-free replacement for the ROBOT `extract` shell-out. Computes
+/// a *module* of `ontology_ttl` around the seed signature `terms` using ⊥-/⊤-locality
+/// (`method` ∈ `{"STAR", "BOT", "TOP"}`, case-insensitive; unknown → STAR with a
+/// warning). The module is **sound, not necessarily minimal**: any construct that
+/// touches the signature is kept, and constructs not classified by exact locality are
+/// kept conservatively (with a `slme.conservative-keep` warning). It may therefore be
+/// a superset of ROBOT's output — over-extraction is acceptable, under-extraction is
+/// not.
+///
+/// # Arguments
+///
+/// - `ontology_ttl` — the source ontology as Turtle text.
+/// - `terms` — the seed term IRIs (the signature Σ).
+/// - `method` — `"STAR"` (default/unknown), `"BOT"`, or `"TOP"` (case-insensitive).
+///
+/// # Returns
+///
+/// A dict with keys:
+/// - `module_ttl` (str) — the extracted module, deterministic Turtle.
+/// - `selected_axiom_count` (int) — number of top-level (named-subject) kept triples.
+/// - `method` (str) — the normalized method actually used.
+/// - `warnings` (`list[dict]`) — each `{code, message}` from the conservative-keep /
+///   unknown-method findings.
+///
+/// # Errors
+///
+/// Raises `ValueError` if the Turtle source cannot be parsed or the in-memory store
+/// fails to build/iterate.
+#[pyfunction]
+fn extract_module(
+    py: Python<'_>,
+    ontology_ttl: &str,
+    terms: Vec<String>,
+    method: &str,
+) -> PyResult<Py<PyAny>> {
+    // Run the parse + extract with the GIL released; the closure returns the plain
+    // data needed to build the Python dict afterwards (no Python objects cross the
+    // detach boundary, mirroring reason_native).
+    let ttl = ontology_ttl.to_owned();
+    let method_owned = method.to_owned();
+    let result = py
+        .detach(move || crate::slme::extract_module(&ttl, &terms, &method_owned))
+        .map_err(pyo3::exceptions::PyValueError::new_err)?;
+
+    let warnings = PyList::empty(py);
+    for finding in &result.findings {
+        let w = PyDict::new(py);
+        w.set_item("code", finding.code.as_str())?;
+        w.set_item("message", finding.message.as_str())?;
+        warnings.append(w)?;
+    }
+
+    let out = PyDict::new(py);
+    out.set_item("module_ttl", result.module_ttl)?;
+    out.set_item("selected_axiom_count", result.selected_axiom_count)?;
+    out.set_item("method", result.method.as_str())?;
+    out.set_item("warnings", warnings)?;
+    Ok(out.into_any().unbind())
+}
+
 #[pymodule]
 fn gmeow_logic(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(materialize, m)?)?;
@@ -1500,6 +1620,8 @@ fn gmeow_logic(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(reason_native_artifacts, m)?)?;
     m.add_function(wrap_pyfunction!(rl_closure, m)?)?;
     m.add_function(wrap_pyfunction!(build_divergence_ledger, m)?)?;
+    m.add_function(wrap_pyfunction!(verify_native, m)?)?;
+    m.add_function(wrap_pyfunction!(extract_module, m)?)?;
     Ok(())
 }
 

@@ -236,6 +236,7 @@ GTS_GRAPH_STATEMENTS = NAMESPACE + "graph/statements"
 GTS_GRAPH_ALIGNMENTS = NAMESPACE + "graph/alignments"
 GTS_GRAPH_IMPORTS = NAMESPACE + "graph/imports"
 GTS_GRAPH_METADATA = NAMESPACE + "graph/metadata"
+GTS_GRAPH_VERIFY = NAMESPACE + "graph/verify"
 
 # IRI-addressable ontology profiles (#330): the root IRI is the CORE profile
 # (generated imports of every tierCore slice); the full aggregation and any

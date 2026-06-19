@@ -30,6 +30,7 @@ from gmeow_tools.config import (
     GTS_GRAPH_IMPORTS,
     GTS_GRAPH_METADATA,
     GTS_GRAPH_STATEMENTS,
+    GTS_GRAPH_VERIFY,
     GTS_SNAPSHOT_FILE,
     NAMESPACE,
     PROJECT_ROOT,
@@ -178,6 +179,7 @@ def test_snapshot_partitions_sources_into_named_graphs() -> None:
         GTS_GRAPH_ALIGNMENTS,
         GTS_GRAPH_IMPORTS,
         GTS_GRAPH_METADATA,
+        GTS_GRAPH_VERIFY,
     }
 
     default_quads = sum(1 for q in g.quads if q[3] is None)
@@ -314,3 +316,47 @@ def test_compare_ignores_encoding_only_drift(tmp_path: Path) -> None:
     # equal bytes → clean
     fresh.write_bytes(committed.read_bytes())
     assert gen.compare(fresh, committed) == []
+
+
+def test_build_verify_attestation_graph_marks_pass_and_fail() -> None:
+    """A QualityAssessment per query records pass/fail from the verify report."""
+    from gmeow_tools import diagnostics
+    from gmeow_tools.gts_gen import build_verify_attestation_graph
+
+    report = diagnostics.report("verify")
+    report.add(
+        diagnostics.finding(
+            severity="error",
+            code="verify.bad-one",
+            message="row returned",
+            tool="verify",
+        )
+    )
+    names = ["queries/verify/bad-one.rq", "queries/verify/good-one.rq"]
+    graph = build_verify_attestation_graph(names, report)
+
+    result = URIRef(NAMESPACE + "observationResult")
+    bad = URIRef(NAMESPACE + "verify-attestation/bad-one")
+    good = URIRef(NAMESPACE + "verify-attestation/good-one")
+    assert (bad, result, Literal(False)) in graph
+    assert (good, result, Literal(True)) in graph
+    # The activity + its agent (reused provenance vocab) are present.
+    activity = URIRef(NAMESPACE + "activity/native-verify")
+    assert (
+        activity,
+        URIRef(NAMESPACE + "wasAssociatedWith"),
+        URIRef(NAMESPACE + "agent/native-verify"),
+    ) in graph
+
+
+def test_snapshot_carries_verify_attestation() -> None:
+    """The committed bundle's gmeow:graph/verify carries the attestations."""
+    g = read(GTS_SNAPSHOT_FILE.read_bytes())
+    verify_quads = [
+        q
+        for q in g.quads
+        if q[3] is not None and g.terms[q[3]].value == GTS_GRAPH_VERIFY
+    ]
+    assert verify_quads, "expected a gmeow:graph/verify named graph in the bundle"
+    subjects = {g.terms[q[0]].value for q in verify_quads}
+    assert any(s is not None and "verify-attestation/" in s for s in subjects)
