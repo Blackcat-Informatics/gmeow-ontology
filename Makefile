@@ -15,7 +15,7 @@ GMEOW_DEV ?= uv run --package gmeow-dev gmeow-dev
 .PHONY: help install fmt lint validate crosscheck classic-cross-check reason reason-native reason-hermit explain verify verify-docker reasoning-cases statements-docker-check extract \
         mappings wikidata wikidata-live wikidata-coverage wikidata-audit \
         lint-alignment refresh-target-axioms docs docs-full ontology-docs ontology-docs-full quality \
-        normalize build project test test-fast test-docker check check-generated release regenerate commit clean clean-docs pull-images \
+        normalize build project test test-fast test-docker check check-generated check-generated-native release regenerate commit clean clean-docs pull-images \
         coverage acceptance crossref constitution-check compliance-report compliance-report-full audit evals-score \
         diagnostics-build diagnostics-test diagnostics-py \
         native-py rust-test logic-build logic-test logic-py conformance \
@@ -154,6 +154,9 @@ normalize: ## Canonicalize the authored ontology sources (rewrites files).
 check-generated: ## Drift + orphan check for all registered generators.
 	$(GMEOW_DEV) check-generated -j $$(nproc 2>/dev/null || echo 4)
 
+check-generated-native: ## Drift check for the required gate — skips the Jena-backed statements lane (Docker/Java-free; statements drift is covered by the native statements-pyoxigraph job + the classic-cross-check oracle).
+	$(GMEOW_DEV) check-generated --skip statements -j $$(nproc 2>/dev/null || echo 4)
+
 constitution-check: ## Every constitutional principle must have live enforcement (#280).
 	$(GMEOW_DEV) constitution-check
 
@@ -234,7 +237,7 @@ test-network: ## Run the network tests (LIVE endpoints) — MANUAL only, never i
 	GMEOW_RUN_NETWORK=1 uv run pytest -m network
 
 check: logic-py ## Fast local gate: core ontology + transforms (native EL/DL reasoning — Java/Docker-free; classic-cross-check oracle lane runs separately).
-	$(MAKE) -j$$(nproc 2>/dev/null || echo 4) lint clippy rust-test validate check-generated constitution-check audit wikidata coverage acceptance reason-native verify mappings-only lint-alignment
+	$(MAKE) -j$$(nproc 2>/dev/null || echo 4) lint clippy rust-test validate check-generated-native constitution-check audit wikidata coverage acceptance reason-native verify mappings-only lint-alignment
 	uv run pytest -n auto --dist loadscope -m "not ci_only and not docker and not pyoxigraph_ci and not classic_cross_check"
 	$(GMEOW_DEV) compliance-report --from-passing-check
 	@echo "✓ all checks passed (Docker-free, Java-free)"
