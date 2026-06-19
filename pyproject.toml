@@ -118,7 +118,7 @@ mypy_path = ["crates/logic/python"]
 
 [[tool.mypy.overrides]]
 # Third-party libraries without complete type information.
-module = ["markdown.*", "sssom.*", "owlrl.*", "pyoxigraph.*", "gmeow_diagnostics.*", "gmeow_shacl.*", "gmeow_validate.*", "linkml.*", "linkml_runtime.*", "yaml"]
+module = ["markdown.*", "sssom.*", "owlrl.*", "pyoxigraph.*", "gmeow_diagnostics.*", "gmeow_shacl.*", "gmeow_validate.*", "gmeow_rdf.*", "linkml.*", "linkml_runtime.*", "yaml"]
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]
@@ -140,7 +140,6 @@ filterwarnings = [
 markers = [
     "network: tests that require network access (Wikidata/OOPS!/FOOPS!)",
     "docker: tests that require Docker (ROBOT/Jena)",
-    "pyoxigraph_ci: pyoxigraph RDF 1.2 cross-checks run only in the dedicated CI job",
     "ci_only: heavy pure-Python gates and secondary/export transformation tests; run in CI and 'make test', excluded from the fast 'make check' gate",
     "classic_cross_check: legacy-oracle cross-check tests (ELK/HermiT/owlrl/rdflib) — run ONLY in the `make classic-cross-check` lane (#666), never required for normal repo use",
 ]

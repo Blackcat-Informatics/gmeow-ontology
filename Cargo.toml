@@ -19,3 +19,28 @@ version = "0.1.0"
 edition = "2021"
 license = "AGPL-3.0-only"
 repository = "https://github.com/Blackcat-Informatics/gmeow-ontology"
+
+# === Build-memory taming for the `nemo` dependency tree ===
+# nemo / nemo-physical are generic-heavy: LLVM monomorphizes them into a few
+# enormous functions, so peak compile RAM (historically ~64 GB) is dominated by
+# (a) full DWARF on debug builds feeding the link step, and (b) opt-level-3 LLVM
+# working sets on release builds. These profiles cap both without slowing our own
+# crates. Combined with the bundled rust-lld linker (.cargo/config.toml), this
+# brings a clean nemo build back into normal-workstation territory.
+
+[profile.dev]
+# Full DWARF (the dev default `debug = 2`) is the debug-build RAM/disk hog and is
+# almost never needed for a Datalog engine; line tables keep usable backtraces.
+debug = "line-tables-only"
+# Keep debuginfo out of the object files handed to the linker.
+split-debuginfo = "unpacked"
+
+# Release/wheel builds: opt-level 3 on nemo's generics is the RAM driver. opt 2
+# keeps ~all the runtime speed; many small codegen units cap per-unit LLVM peak.
+[profile.release.package.nemo]
+opt-level = 2
+codegen-units = 256
+
+[profile.release.package.nemo-physical]
+opt-level = 2
+codegen-units = 256

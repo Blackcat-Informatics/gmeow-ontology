@@ -1,0 +1,25 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+
+# Maturin build configuration for the gmeow_rdf Python extension.
+# Run: uvx maturin develop (from crates/rdf/) or: make rdf-py (repo root).
+# The `python` feature gates pyo3 so the kernel rlib stays PyO3-free for its Rust
+# consumers; maturin turns it on here.
+
+[build-system]
+requires = ["maturin>=1.7,<2"]
+build-backend = "maturin"
+
+[project]
+name = "gmeow-rdf"
+version = "0.1.0"
+description = "GMEOW RDF 1.2 kernel PyO3 bindings: native OWL↔RDF-1.2 statement codec (no Jena/Docker/SPARQL)"
+requires-python = ">=3.13"
+license = { text = "AGPL-3.0-only" }
+authors = [{ name = "Blackcat Informatics® Inc." }]
+keywords = ["rdf", "rdf-12", "statements", "gmeow"]
+
+[tool.maturin]
+module-name = "gmeow_rdf"
+features = ["python", "pyo3/extension-module"]
+python-requires = ">=3.13"

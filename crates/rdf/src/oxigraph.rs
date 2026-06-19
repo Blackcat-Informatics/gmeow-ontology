@@ -96,7 +96,13 @@ pub fn store_from_rdf_store(
     Ok(store)
 }
 
-fn rdf_quad_from_oxigraph(quad: &Quad) -> RdfQuad {
+/// Convert an oxigraph [`Quad`] into the gmeow-rdf model.
+///
+/// Public so streaming parsers (`oxigraph::io::RdfParser`) can convert quads
+/// without an intermediate `Store` — the `Store` canonicalizes typed-literal
+/// lexical forms (e.g. `+00:00` → `Z`, `0.70` → `0.7`), which a faithful codec
+/// must preserve.
+pub fn rdf_quad_from_oxigraph(quad: &Quad) -> RdfQuad {
     let subject = match &quad.subject {
         NamedOrBlankNode::NamedNode(node) => RdfTerm::iri(node.as_str()),
         NamedOrBlankNode::BlankNode(node) => RdfTerm::blank_node(node.as_str()),

@@ -427,8 +427,8 @@ representative, grouped sample:
 GMEOW is **RDF 1.2 / RDF\*-first** ([Principles 2–3](./CONSTITUTION.md)): statement-level
 metadata — provenance, confidence, temporal scope — is **authored once** as native RDF 1.2 /
 RDF\* content in `dsl/statements/`, the canonical source. From it `gmeow-dev regenerate statements`
-generates two verified artifacts: the **RDF 1.2 / RDF\* serialization** (the lead form, via
-Apache Jena — the only engine that emits triple terms today) and the **OWL 2 axiom-annotation
+generates two verified artifacts: the **RDF 1.2 / RDF\* serialization** (the lead form, written
+natively by the `gmeow-rdf` Rust codec — no Java, no Docker; #667) and the **OWL 2 axiom-annotation
 form** (`owl:Axiom` + `owl:annotatedSource/Property/Target`) — the *generated,
 reasoning-lossless downcast* that the OWL 2 DL reasoners GMEOW gates on actually consume. The
 OWL form is the **downgrade for legacy tooling** — the same lossy-compatibility-as-projection
