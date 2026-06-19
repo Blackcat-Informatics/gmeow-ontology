@@ -342,56 +342,67 @@ impl Builder {
         }
 
         // Build the single snapshot payload that carries the whole graph.
-        let terms = Value::Array(tables.terms.iter().map(term_to_wire).collect());
+        let terms = Value::Array(tables.terms.iter().map(term_to_wire).collect::<Vec<_>>());
         let quads = Value::Array(
             tables
                 .quads
                 .iter()
                 .map(|&(s, p, o, g)| {
-                    let mut row = vec![iv(s as i64), iv(p as i64), iv(o as i64)];
+                    let mut row = Vec::with_capacity(3 + usize::from(g.is_some()));
+                    row.push(iv(s as i64));
+                    row.push(iv(p as i64));
+                    row.push(iv(o as i64));
                     if let Some(gv) = g {
                         row.push(iv(gv as i64));
                     }
                     Value::Array(row)
                 })
-                .collect(),
+                .collect::<Vec<_>>(),
         );
-        let mut snapshot_entries: Vec<(Value, Value)> = vec![
-            (Value::Text("terms".to_string()), terms),
-            (Value::Text("quads".to_string()), quads),
-        ];
+        let mut snapshot_entries: Vec<(Value, Value)> = Vec::with_capacity(
+            2 + usize::from(!tables.reifies.is_empty()) + usize::from(!tables.annot.is_empty()),
+        );
+        snapshot_entries.push((Value::Text("terms".to_string()), terms));
+        snapshot_entries.push((Value::Text("quads".to_string()), quads));
         if !tables.reifies.is_empty() {
-            let reifies = Value::Map(
-                tables
-                    .reifies
-                    .iter()
-                    .map(|&(rid, (s, p, o))| {
-                        (
-                            iv(rid as i64),
-                            Value::Array(vec![iv(s as i64), iv(p as i64), iv(o as i64)]),
-                        )
-                    })
-                    .collect(),
-            );
-            snapshot_entries.push((Value::Text("reifies".to_string()), reifies));
+            let mut reifies_entries: Vec<(Value, Value)> = Vec::with_capacity(tables.reifies.len());
+            for &(rid, (s, p, o)) in &tables.reifies {
+                reifies_entries.push((
+                    iv(rid as i64),
+                    Value::Array(vec![iv(s as i64), iv(p as i64), iv(o as i64)]),
+                ));
+            }
+            snapshot_entries.push((
+                Value::Text("reifies".to_string()),
+                Value::Map(reifies_entries),
+            ));
         }
         if !tables.annot.is_empty() {
-            let annot = Value::Array(
-                tables
-                    .annot
-                    .iter()
-                    .map(|&(r, p, v)| Value::Array(vec![iv(r as i64), iv(p as i64), iv(v as i64)]))
-                    .collect(),
-            );
-            snapshot_entries.push((Value::Text("annot".to_string()), annot));
+            let mut annot_rows: Vec<Value> = Vec::with_capacity(tables.annot.len());
+            for &(r, p, v) in &tables.annot {
+                annot_rows.push(Value::Array(vec![iv(r as i64), iv(p as i64), iv(v as i64)]));
+            }
+            snapshot_entries.push((Value::Text("annot".to_string()), Value::Array(annot_rows)));
         }
         let snapshot = Value::Map(snapshot_entries);
         let snapshot_bytes = canonical(&snapshot);
         let snapshot_chain = choose_transform(&snapshot_bytes);
+
+        // For transformed snapshots, pass the canonical snapshot bytes as the
+        // raw payload. This avoids a second canonicalisation of the structured
+        // Value inside the writer and keeps the emitted bytes identical.
+        let (snapshot_payload, snapshot_raw): (Option<Value>, Option<Vec<u8>>) =
+            if snapshot_chain == ["identity"] {
+                (Some(snapshot), None)
+            } else {
+                (None, Some(snapshot_bytes))
+            };
+
         writer.add_frame_with_options(
             "snapshot",
             FrameOptions {
-                payload: Some(snapshot),
+                payload: snapshot_payload,
+                raw: snapshot_raw,
                 transform: snapshot_chain,
                 ..FrameOptions::default()
             },
@@ -1174,9 +1185,9 @@ mod tests {
         let script = r#"
 import json
 from rdflib import URIRef, Literal, BNode
-from gmeow_tools.gts_producer import _Builder
+from gmeow_tools.gts_producer import _PyBuilder
 
-b = _Builder()
+b = _PyBuilder()
 b.add_annotated(
     URIRef('http://example.org/s'),
     URIRef('http://example.org/p'),

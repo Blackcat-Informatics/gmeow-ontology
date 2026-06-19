@@ -104,11 +104,6 @@ def _benchmark_suite(
     rust_fn = lambda: compile_gts(**kwargs)  # noqa: E731
     legacy_fn = lambda: _compile_gts_legacy(**kwargs)  # noqa: E731
 
-    if transform == ["gzip"]:
-        # ``build_snapshot_bytes`` is the production entry point; use it for
-        # the gzip comparison so the benchmark reflects the committed path.
-        rust_fn = build_snapshot_bytes
-
     rust_total, rust_times = _time(rust_fn, RUST_ITERATIONS)
     rust_mean = rust_total / RUST_ITERATIONS
     legacy_total, _ = _time(legacy_fn, iterations=1)
