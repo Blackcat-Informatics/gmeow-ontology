@@ -2,11 +2,11 @@
 
 from __future__ import annotations
 
-import owlrl
 from rdflib import OWL, RDF, RDFS, Graph, Namespace
 from rdflib.term import Node
 
 from gmeow_tools.graph import load_merged_graph
+from gmeow_tools.native_rl import native_rl_closure
 from gmeow_tools.slices import module_path
 
 GM = Namespace("https://blackcatinformatics.ca/gmeow/")
@@ -24,7 +24,7 @@ def _materialize(*modules: str, abox: tuple[tuple[Node, Node, Node], ...]) -> Gr
         graph.parse(module_path(module), format="turtle")
     for triple in abox:
         graph.add(triple)
-    owlrl.DeductiveClosure(owlrl.OWLRL_Semantics).expand(graph)
+    native_rl_closure(graph)
     return graph
 
 

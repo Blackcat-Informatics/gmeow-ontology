@@ -16,11 +16,11 @@ values in MentalReferenceFrames. These tests verify:
 
 from __future__ import annotations
 
-import owlrl
 from rdflib import OWL, RDF, RDFS, Graph, Literal, Namespace
 
 from gmeow_tools.config import NAMESPACE
 from gmeow_tools.graph import load_merged_graph
+from gmeow_tools.native_rl import native_rl_closure
 from gmeow_tools.slices import module_path
 
 GMEOW = Namespace(NAMESPACE)
@@ -98,7 +98,7 @@ def test_sensory_environment_el_axioms_fire() -> None:
     graph.add((EX.env1, GMEOW.environmentAtLocation, EX.place1))
     graph.add((EX.place1, RDF.type, GMEOW.Place))
 
-    owlrl.DeductiveClosure(owlrl.OWLRL_Semantics).expand(graph)
+    native_rl_closure(graph)
     assert (EX.env1, RDF.type, GMEOW.SensoryEnvironment) in graph
 
 
@@ -111,7 +111,7 @@ def test_sensory_perception_specialises_standpoint_claim() -> None:
 
     graph.add((EX.perc1, RDF.type, GMEOW.SensoryPerception))
 
-    owlrl.DeductiveClosure(owlrl.OWLRL_Semantics).expand(graph)
+    native_rl_closure(graph)
     assert (EX.perc1, RDF.type, GMEOW.StandpointClaim) in graph
     assert (EX.perc1, RDF.type, GMEOW.Observation) in graph
 
@@ -124,7 +124,7 @@ def test_mental_reference_frame_specialises_reference_frame() -> None:
 
     graph.add((EX.mrf1, RDF.type, GMEOW.MentalReferenceFrame))
 
-    owlrl.DeductiveClosure(owlrl.OWLRL_Semantics).expand(graph)
+    native_rl_closure(graph)
     assert (EX.mrf1, RDF.type, GMEOW.ReferenceFrame) in graph
 
 
@@ -141,7 +141,7 @@ def test_frame_inheritance_via_coordinate_matrix() -> None:
     graph.add((EX.matrix1, RDF.type, GMEOW.CoordinateMatrix))
     graph.add((EX.frameCIEXYZ, RDF.type, GMEOW.ReferenceFrame))
 
-    owlrl.DeductiveClosure(owlrl.OWLRL_Semantics).expand(graph)
+    native_rl_closure(graph)
     assert (EX.matrix1, GMEOW.hasReferenceFrame, EX.frameCIEXYZ) in graph
 
 
@@ -272,7 +272,7 @@ def test_mental_reference_frame_requires_host() -> None:
     graph.add((ex_frame, RDF.type, GMEOW.MentalReferenceFrame))
     graph.add((ex_frame, GMEOW.isHostedBy, ex_host))
 
-    owlrl.DeductiveClosure(owlrl.OWLRL_Semantics).expand(graph)
+    native_rl_closure(graph)
     assert not any(True for _ in graph.subjects(RDF.type, OWL.Nothing)), (
         "Ontology + hosted instance must be consistent"
     )

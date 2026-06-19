@@ -15,11 +15,11 @@ kinship claims into one gufo:Relator structure. These tests verify:
 
 from __future__ import annotations
 
-import owlrl
 from rdflib import OWL, RDF, RDFS, Graph, Namespace
 
 from gmeow_tools.config import NAMESPACE
 from gmeow_tools.graph import load_merged_graph
+from gmeow_tools.native_rl import native_rl_closure
 from gmeow_tools.slices import module_path
 
 GMEOW = Namespace(NAMESPACE)
@@ -112,7 +112,7 @@ def test_observation_el_axioms_fire() -> None:
     # reasoner will not *infer* Observation from the properties alone under
     # OWL 2 RL.  What we verify here is that the asserted type is not
     # contradicted — i.e. the axioms are consistent with the A-Box.
-    owlrl.DeductiveClosure(owlrl.OWLRL_Semantics).expand(graph)
+    native_rl_closure(graph)
     assert (EX.obs1, RDF.type, GMEOW.Observation) in graph
 
 
@@ -127,7 +127,7 @@ def test_frame_inheritance_property_chain() -> None:
     graph.add((EX.coords1, RDF.type, GMEOW.GeoCoordinates))
     graph.add((EX.frameWGS84, RDF.type, GMEOW.ReferenceFrame))
 
-    owlrl.DeductiveClosure(owlrl.OWLRL_Semantics).expand(graph)
+    native_rl_closure(graph)
     # The chain: inverse(observationResult) ∘ hasReferenceFrame ⊑ hasReferenceFrame
     # means: coords1 --inverse(observationResult)-- obs1
     #         --hasReferenceFrame-- frameWGS84
@@ -141,7 +141,7 @@ def test_measurement_specialises_observation() -> None:
     graph.parse(module_path("observations"), format="turtle")
     graph.add((EX.m1, RDF.type, GMEOW.Measurement))
 
-    owlrl.DeductiveClosure(owlrl.OWLRL_Semantics).expand(graph)
+    native_rl_closure(graph)
     assert (EX.m1, RDF.type, GMEOW.Observation) in graph
 
 
@@ -150,7 +150,7 @@ def test_sensory_observation_specialises_observation() -> None:
     graph.parse(module_path("observations"), format="turtle")
     graph.add((EX.s1, RDF.type, GMEOW.SensoryObservation))
 
-    owlrl.DeductiveClosure(owlrl.OWLRL_Semantics).expand(graph)
+    native_rl_closure(graph)
     assert (EX.s1, RDF.type, GMEOW.Observation) in graph
 
 
@@ -159,7 +159,7 @@ def test_standpoint_claim_specialises_observation() -> None:
     graph.parse(module_path("observations"), format="turtle")
     graph.add((EX.c1, RDF.type, GMEOW.StandpointClaim))
 
-    owlrl.DeductiveClosure(owlrl.OWLRL_Semantics).expand(graph)
+    native_rl_closure(graph)
     assert (EX.c1, RDF.type, GMEOW.Observation) in graph
 
 
@@ -175,7 +175,7 @@ def test_name_usage_specialises_observation() -> None:
     graph.parse(module_path("names"), format="turtle")
     graph.add((EX.nu1, RDF.type, GMEOW.NameUsage))
 
-    owlrl.DeductiveClosure(owlrl.OWLRL_Semantics).expand(graph)
+    native_rl_closure(graph)
     assert (EX.nu1, RDF.type, GMEOW.Observation) in graph
 
 
@@ -186,7 +186,7 @@ def test_identity_facet_specialises_observation() -> None:
     graph.parse(module_path("gender"), format="turtle")
     graph.add((EX.if1, RDF.type, GMEOW.IdentityFacet))
 
-    owlrl.DeductiveClosure(owlrl.OWLRL_Semantics).expand(graph)
+    native_rl_closure(graph)
     assert (EX.if1, RDF.type, GMEOW.Observation) in graph
 
 
@@ -197,7 +197,7 @@ def test_rights_statement_specialises_observation() -> None:
     graph.parse(module_path("rights"), format="turtle")
     graph.add((EX.rs1, RDF.type, GMEOW.RightsStatement))
 
-    owlrl.DeductiveClosure(owlrl.OWLRL_Semantics).expand(graph)
+    native_rl_closure(graph)
     assert (EX.rs1, RDF.type, GMEOW.Observation) in graph
 
 
@@ -208,7 +208,7 @@ def test_kin_relationship_specialises_observation() -> None:
     graph.parse(module_path("genealogy"), format="turtle")
     graph.add((EX.kr1, RDF.type, GMEOW.KinRelationship))
 
-    owlrl.DeductiveClosure(owlrl.OWLRL_Semantics).expand(graph)
+    native_rl_closure(graph)
     assert (EX.kr1, RDF.type, GMEOW.Observation) in graph
 
 
@@ -321,7 +321,7 @@ def test_is_result_of_provenance_chain() -> None:
     graph.add((EX.q1, RDF.type, GMEOW.Quantity))
     graph.add((EX.q1, GMEOW.isResultOf, EX.obs1))
 
-    owlrl.DeductiveClosure(owlrl.OWLRL_Semantics).expand(graph)
+    native_rl_closure(graph)
     # Because isResultOf is inverse of observationResult,
     # obs1 --observationResult--> q1 is inferred.
     assert (EX.obs1, GMEOW.observationResult, EX.q1) in graph
@@ -339,7 +339,7 @@ def test_frame_inheritance_via_quantity() -> None:
     graph.add((EX.q1, RDF.type, GMEOW.Quantity))
     graph.add((EX.frameSI, RDF.type, GMEOW.ReferenceFrame))
 
-    owlrl.DeductiveClosure(owlrl.OWLRL_Semantics).expand(graph)
+    native_rl_closure(graph)
     assert (EX.q1, GMEOW.hasReferenceFrame, EX.frameSI) in graph
 
 
@@ -430,7 +430,7 @@ def test_stream_el_axiom() -> None:
     graph.add((EX.stream1, GMEOW.streamOf, EX.entity1))
     graph.add((EX.entity1, RDF.type, GMEOW.Entity))
 
-    owlrl.DeductiveClosure(owlrl.OWLRL_Semantics).expand(graph)
+    native_rl_closure(graph)
     assert (EX.stream1, RDF.type, GMEOW.Stream) in graph
 
 
@@ -446,7 +446,7 @@ def test_spatial_measurement_infers_observation() -> None:
     graph.parse(module_path("places"), format="turtle")
     graph.add((EX.sm1, RDF.type, GMEOW.SpatialMeasurement))
 
-    owlrl.DeductiveClosure(owlrl.OWLRL_Semantics).expand(graph)
+    native_rl_closure(graph)
     assert (EX.sm1, RDF.type, GMEOW.Observation) in graph
 
 
@@ -458,7 +458,7 @@ def test_coordinate_observation_infers_spatial_measurement() -> None:
     graph.parse(module_path("places"), format="turtle")
     graph.add((EX.co1, RDF.type, GMEOW.CoordinateObservation))
 
-    owlrl.DeductiveClosure(owlrl.OWLRL_Semantics).expand(graph)
+    native_rl_closure(graph)
     assert (EX.co1, RDF.type, GMEOW.SpatialMeasurement) in graph
     assert (EX.co1, RDF.type, GMEOW.Observation) in graph
 
@@ -475,7 +475,7 @@ def test_coordinate_observation_frame_inheritance() -> None:
     graph.add((EX.coords2, RDF.type, GMEOW.GeoCoordinates))
     graph.add((EX.frameWGS84, RDF.type, GMEOW.ReferenceFrame))
 
-    owlrl.DeductiveClosure(owlrl.OWLRL_Semantics).expand(graph)
+    native_rl_closure(graph)
     # isResultOf is inverse of observationResult, so coords2 --isResultOf-- co2
     # Then the chain isResultOf ∘ hasReferenceFrame ⊑ hasReferenceFrame fires.
     assert (EX.coords2, GMEOW.hasReferenceFrame, EX.frameWGS84) in graph
@@ -493,7 +493,7 @@ def test_coordinate_observation_el_axioms() -> None:
     graph.add((EX.agent3, RDF.type, GMEOW.Agent))
     graph.add((EX.place3, RDF.type, GMEOW.Place))
 
-    owlrl.DeductiveClosure(owlrl.OWLRL_Semantics).expand(graph)
+    native_rl_closure(graph)
     assert (EX.co3, RDF.type, GMEOW.CoordinateObservation) in graph
 
 

@@ -79,6 +79,26 @@ def reason_native_artifacts(gts_bytes: bytes, merge: bool = ...) -> dict[str, st
     """
     ...
 
+def rl_closure(input: str) -> list[tuple[str, str, str, str, bool]]:
+    """Compute the native OWL 2 RL/RDF deductive closure of a graph (#666 Task 5).
+
+    The Docker-free PRIMARY entailment authority that replaces the ``owlrl``
+    baseline. ``input`` is N-Quads (named-graph triples close in their world) or
+    N-Triples (default-graph triples close in a single sentinel world). Computes
+    the closure RDF-1.2-first via the generic 4-ary ``triple(?s,?p,?o,?w)``
+    encoding (predicate-as-DATA) through the Nemo chase.
+
+    Returns a list of ``(subject, predicate, object_nt, world, is_edb)`` tuples —
+    the full closure (asserted + derived). ``subject``/``predicate`` are bare IRI
+    strings; ``object_nt`` is the N-Triples object form (``<iri>`` or a quoted
+    literal); ``world`` is the named-graph IRI; ``is_edb`` is true for asserted
+    facts.
+
+    Raises ``ValueError`` on an N-Quads/N-Triples parse error and ``RuntimeError``
+    on a chase or decode failure.
+    """
+    ...
+
 def build_divergence_ledger(
     native_subsumptions: list[tuple[str, str, str]],
     elk_subsumptions: list[tuple[str, str, str]],
