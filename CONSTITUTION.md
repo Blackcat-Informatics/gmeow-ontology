@@ -450,7 +450,11 @@ RL divergence fails the lane; only a named beyond-EL `DlGap` is honest-expected.
 requirement of using the repo normally. The committed `dl-el-crosscheck-report.ttl` stays report-only on
 the primary path (built from native results, Docker-free); enforcement lives only in the lane, which
 emits its agreement + timing data through the `gmeow-diagnostics` SARIF rail (the gate taxonomy this
-issue owns and #662 consumes). Producer inversion of the Jena RDF-1.2 codec is tracked in #667; native
+issue owns and #662 consumes). Producer inversion of the Jena RDF-1.2 codec is **done** (#667): the
+statement lead artifact (`generated/statements/gmeow.rdf12.ttl`) is written natively by `gmeow-rdf`
+(`gmeow_rdf.project_statements_rdf12`), so the build / `make check` / `check-generated` / `regenerate`
+carry **zero Java and zero Docker** on the statement path; Jena survives only as the lane-side
+`classic-cross-check` oracle that cross-checks the native artifact by RDF-1.2 graph isomorphism. Native
 replication of ROBOT (SLME extraction + verify) in #695 — until then those stay maintainer-only, lane-side.
 
 *Embodied in:* the native reason lane ([`src/gmeow_tools/reason.py`](./src/gmeow_tools/reason.py)),
