@@ -1,0 +1,65 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# SLME construct-coverage fixture (#695).
+#
+# A tiny, self-contained OWL Turtle ontology exercising every construct the
+# native syntactic-locality module extractor (gmeow_logic.extract_module)
+# handles exactly, PLUS one it must keep conservatively (the owl:Restriction).
+# It is consumed ONLY by scripts/slme_cross_check.py (the non-required
+# classic-cross-check oracle) which proves native SLME ⊇ ROBOT SLME. Every
+# class and property is declared so ROBOT treats them as signature entities.
+
+@prefix cov:  <http://example.org/cov#> .
+@prefix owl:  <http://www.w3.org/2002/07/owl#> .
+@prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+
+<http://example.org/cov> a owl:Ontology .
+
+# ── subClassOf chain A ⊑ B ⊑ C ⊑ D ───────────────────────────────────────────
+cov:A a owl:Class ;
+    rdfs:label "Alpha"@en , "Alpha (fr)"@fr ;
+    rdfs:subClassOf cov:B ;
+    # Conservative-keep case: an anonymous restriction. Exact locality does not
+    # classify it, so the native extractor keeps it (slme.conservative-keep).
+    rdfs:subClassOf [ a owl:Restriction ;
+                      owl:onProperty cov:p ;
+                      owl:someValuesFrom cov:B ] .
+
+cov:B a owl:Class ;
+    rdfs:subClassOf cov:C .
+
+cov:C a owl:Class ;
+    rdfs:subClassOf cov:D .
+
+cov:D a owl:Class .
+
+# ── unrelated class chain Z ⊑ Y (must be dropped when seeding {A}) ────────────
+cov:Y a owl:Class .
+
+cov:Z a owl:Class ;
+    rdfs:subClassOf cov:Y .
+
+# ── equivalence + disjointness ───────────────────────────────────────────────
+cov:E1 a owl:Class ;
+    owl:equivalentClass cov:E2 .
+
+cov:E2 a owl:Class .
+
+cov:F1 a owl:Class ;
+    owl:disjointWith cov:F2 .
+
+cov:F2 a owl:Class .
+
+# ── object property cov:p with domain/range, sub-property, inverse ────────────
+cov:p a owl:ObjectProperty ;
+    rdfs:domain cov:A ;
+    rdfs:range cov:B .
+
+cov:q a owl:ObjectProperty ;
+    rdfs:subPropertyOf cov:p .
+
+cov:pInv a owl:ObjectProperty ;
+    owl:inverseOf cov:p .
