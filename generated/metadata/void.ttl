@@ -2088,5 +2088,7 @@
         bot:,
         pon:,
         discogs: ;
-    foaf:homepage <https://blackcatinformatics.ca/gmeow> .
+    skos:exactMatch wd:Q140287679 ;
+    foaf:homepage <https://blackcatinformatics.ca/gmeow> ;
+    gmeow:authorityLink wd:Q140287679 .
 

@@ -17,12 +17,13 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from rdflib import RDF, RDFS, Graph, Literal, URIRef
-from rdflib.namespace import DCAT, DCTERMS, FOAF, VOID, XSD
+from rdflib.namespace import DCAT, DCTERMS, FOAF, SKOS, VOID, XSD
 
 from gmeow_tools.config import (
     ALIGNMENT_TARGETS,
     DCAT_FILE,
     GTS_GRAPH_ALIGNMENTS,
+    GTS_GRAPH_METADATA,
     GTS_SNAPSHOT_FILE,
     NAMESPACE,
     ONTOLOGY_IRI,
@@ -35,6 +36,7 @@ from gmeow_tools.generator import Generator, register, write_turtle
 from gmeow_tools.graph import bind_prefixes
 from gmeow_tools.gts_views import FoldView, load_fold
 from gmeow_tools.mappings import object_namespace
+from gmeow_tools.self_desc import GMEOW
 
 _CC_BY = URIRef("https://creativecommons.org/licenses/by/4.0/")
 _PUBLISHER = URIRef("https://blackcatinformatics.ca/#bii")
@@ -81,6 +83,24 @@ def _fold_description(view: FoldView) -> str:
         msg = f"snapshot lacks dcterms:description on {ONTOLOGY_IRI}"
         raise ValueError(msg)
     return view.lex(desc)
+
+
+_WIKIDATA_PREFIX = "http://www.wikidata.org/entity/"
+
+
+def _fold_wikidata_dataset_links(view: FoldView) -> list[URIRef]:
+    """Wikidata authority/exact-match links for the Work, projected to VoID/DCAT."""
+    work_tid = view.tid_of_iri(ONTOLOGY_IRI)
+    if work_tid is None:
+        return []
+    links: set[URIRef] = set()
+    for predicate_iri in (str(GMEOW.authorityLink), str(SKOS.exactMatch)):
+        for obj_tid in view.objects(work_tid, predicate_iri, scope=GTS_GRAPH_METADATA):
+            if view.is_iri(obj_tid):
+                obj_iri = view.lex(obj_tid)
+                if obj_iri.startswith(_WIKIDATA_PREFIX):
+                    links.add(URIRef(obj_iri))
+    return sorted(links, key=str)
 
 
 #: VoID statistics term IRIs, by rdf:type, for the published default graph.
@@ -202,6 +222,9 @@ def build_void_graph(view: FoldView | None = None) -> Graph:
     graph.add((dataset, DCTERMS.publisher, _PUBLISHER))
     graph.add((dataset, DCTERMS.creator, _PUBLISHER))
     graph.add((dataset, FOAF.homepage, URIRef(ONTOLOGY_IRI)))
+    for link in _fold_wikidata_dataset_links(view):
+        graph.add((dataset, GMEOW.authorityLink, link))
+        graph.add((dataset, SKOS.exactMatch, link))
     graph.add((dataset, DCTERMS.hasVersion, Literal(_fold_version(view))))
     graph.add((dataset, VOID.uriSpace, Literal(NAMESPACE)))
     graph.add((dataset, VOID.exampleResource, URIRef(NAMESPACE + "Person")))
@@ -254,6 +277,9 @@ def build_dcat_graph(view: FoldView | None = None) -> Graph:
     graph.add((dataset, DCTERMS.publisher, _PUBLISHER))
     graph.add((dataset, DCAT.landingPage, URIRef(ONTOLOGY_IRI)))
     graph.add((dataset, DCTERMS.hasVersion, Literal(_fold_version(view))))
+    for link in _fold_wikidata_dataset_links(view):
+        graph.add((dataset, GMEOW.authorityLink, link))
+        graph.add((dataset, SKOS.exactMatch, link))
     for ext, media in _MEDIA_TYPE.items():
         dist = URIRef(f"{ONTOLOGY_IRI}#dist-{ext}")
         graph.add((dist, RDF.type, DCAT.Distribution))

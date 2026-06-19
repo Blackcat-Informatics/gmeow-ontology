@@ -4,6 +4,8 @@
 @prefix dcat: <http://www.w3.org/ns/dcat#> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix wd: <http://www.wikidata.org/entity/> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
 <https://blackcatinformatics.ca/gmeow#dist-jsonld> a dcat:Distribution ;
@@ -58,11 +60,13 @@
     dcterms:license <https://creativecommons.org/licenses/by/4.0/> ;
     dcterms:publisher <https://blackcatinformatics.ca/#bii> ;
     dcterms:title "GMEOW"@en ;
+    skos:exactMatch wd:Q140287679 ;
     dcat:distribution <https://blackcatinformatics.ca/gmeow#dist-jsonld>,
         <https://blackcatinformatics.ca/gmeow#dist-nt>,
         <https://blackcatinformatics.ca/gmeow#dist-rdf>,
         <https://blackcatinformatics.ca/gmeow#dist-ttl> ;
-    dcat:landingPage <https://blackcatinformatics.ca/gmeow> .
+    dcat:landingPage <https://blackcatinformatics.ca/gmeow> ;
+    gmeow:authorityLink wd:Q140287679 .
 
 gmeow:full a dcat:Dataset ;
     dcterms:hasPart <https://blackcatinformatics.ca/gmeow> ;
