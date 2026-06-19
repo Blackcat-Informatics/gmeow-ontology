@@ -309,7 +309,7 @@ jobs:
           docker pull "$ROBOT_IMAGE"
 
       - name: Reason (ELK) + OWL 2 DL profile
-        run: uv run --package gmeow-dev gmeow-dev reason --reasoner ELK
+        run: uv run --package gmeow-dev gmeow-dev reason --mode docker --reasoner ELK
 
       - name: Reasoned-graph negative tests (verify)
         run: uv run --package gmeow-dev gmeow-dev verify --reasoner ELK
@@ -335,7 +335,7 @@ jobs:
           docker pull "$ROBOT_IMAGE"
 
       - name: Reason (HermiT) — sound + complete consistency
-        run: uv run --package gmeow-dev gmeow-dev reason --reasoner hermit
+        run: uv run --package gmeow-dev gmeow-dev reason --mode docker --reasoner hermit
 
   # The Docker-backed reasoning cases (HermiT inconsistency cases + the ELK
   # fixture-coherence check) as their own parallel job. The owlrl positive

@@ -22,6 +22,7 @@ MODULES = (
     "mapping_compile",
     "matrix",
     "metadata",
+    "native_reason_gen",
     "ontology_docs",
     "parquet_gen",
     "profiles_gen",

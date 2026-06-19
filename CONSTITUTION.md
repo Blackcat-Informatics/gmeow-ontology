@@ -408,6 +408,44 @@ The machine-readable enforcement lives in
 
 ---
 
+## 18. The reference RDF-1.2 stack — complete, coherent, and Docker-free
+
+> **The authoritative gate runs the native `logic:` solver and nothing heavier: `make check`, CI,
+> the build, and runtime need no Java and no Docker. ELK and HermiT survive only as cross-check
+> oracles, relocated out of the authoritative path into the `classic-cross-check` lane.**
+
+Principle 17 already settled *authority* — the native `logic:` core is the reasoner, OWL is a
+projection. This principle settles the *gate*: the consequence of that authority is that the
+machine which proves GMEOW correct carries no external runtime. The native EL/DL reasoning lane
+(`gmeow_logic.reason_native`, bound by PyO3) reasons the committed bundle in-process, emits the
+told-vs-inferred closure with per-triple derivation provenance, the per-axiom proof skeletons, and
+the native↔oracle divergence ledger — and every one of those artifacts is produced and drift-gated
+without spawning a container or a JVM. This extends Principle 13's Docker-free *consumer* gate to
+the *authoring* gate as well: the reasoner is no longer a heavyweight release-only step.
+
+ELK and HermiT are not discarded — they remain the *secondary validators* Principle 17 names, but
+they move off the critical path. The committed divergence ledger
+(`generated/logic/dl-el-crosscheck-report.ttl`) is built from the native results **only**: it records
+the native consistency verdict, the native-only subsumption entailments, and the beyond-EL DL gaps,
+and it carries an explicit note that the oracle comparison and divergence *enforcement* run in the
+`classic-cross-check` lane (#666), which is the home of the Java/Docker oracle pass. The
+authoritative gate thus stays green offline, on any machine, with no privileged daemon — and the
+oracle cross-check becomes an independent, separately-scheduled confirmation rather than a
+prerequisite.
+
+This extends Principle 17 (native authority) and Principle 13 (the consumer Docker-free gate) to the
+authoritative gate; later amendments append the public-receipts, reusable-crate-suite, and
+release-as-evidence clauses (#668/#669/#673).
+
+*Embodied in:* the native reason lane ([`src/gmeow_tools/reason.py`](./src/gmeow_tools/reason.py)),
+the `reason --mode native` CLI command, and the `native-reasoning` registered generator
+([`src/gmeow_tools/native_reason_gen.py`](./src/gmeow_tools/native_reason_gen.py)). *Tested by:* the
+native-reasoning authority gate (`meta:gate-reason-native`) and the report-only native↔oracle
+divergence ledger gate (`meta:gate-dl-el-crosscheck`), whose machine-readable enforcement lives in
+[`governance/constitution.ttl`](./governance/constitution.ttl).
+
+---
+
 ## Amending this Constitution
 
 These principles are amended only by the project owners (see

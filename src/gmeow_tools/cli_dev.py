@@ -536,6 +536,19 @@ def crosscheck_queries() -> None:
 
 @app.command()
 def reason(
+    mode: str = typer.Option(
+        "native",
+        "--mode",
+        help=(
+            "Reasoning backend: native (Rust, Java/Docker-free authority) or "
+            "docker (classic ELK/HermiT oracle lane for the divergence ledger)."
+        ),
+    ),
+    merge: bool = typer.Option(
+        False,
+        "--merge",
+        help="Native mode: emit the union of the asserted + derived closure.",
+    ),
     reasoner: str = typer.Option("ELK", help="Reasoner: ELK (fast) or hermit (DL)."),
     profile: str = typer.Option("DL", help="OWL 2 profile to validate against."),
     full: bool = typer.Option(
@@ -547,9 +560,44 @@ def reason(
         help="Exclude tautologies from the reasoned output (e.g. 'structural').",
     ),
 ) -> None:
-    """Merge the import closure, validate its OWL 2 profile, then reason."""
+    """Reason over the ontology — native (authority) or docker (oracle) lane.
+
+    The native lane runs the Rust EL/DL engine (Java/Docker-free), is the
+    authority, emits the inferred-closure RDF 1.2 graph plus SARIF diagnostics,
+    and fails on inconsistency. The docker lane keeps the classic ELK/HermiT
+    pipeline reachable for the divergence ledger (``--reasoner``/``--profile``/
+    ``--full``/``--exclude-tautologies`` apply to it).
+    """
     from gmeow_tools import reason as reasoning
     from gmeow_tools.runner import ToolExecutionError, ToolUnavailableError
+
+    if mode == "native":
+        try:
+            # emit_legacy_cli pulls in the gmeow_diagnostics extension; import it
+            # only in the native lane (the Docker oracle lane — and the CI jobs
+            # that run it without that extension — never need it), and inside the
+            # guard so a missing/failed extension renders cleanly too.
+            from gmeow_tools.diagnostics import emit_legacy_cli
+
+            report = reasoning.reason_native(merge=merge)
+            emit_legacy_cli(report, err_console)
+        except ToolUnavailableError as exc:
+            raise _fail(f"tool unavailable: {exc}", code=2) from exc
+        except ToolExecutionError as exc:
+            raise _fail(f"native reasoning failed:\n{exc.output}") from exc
+        except (ImportError, ValueError, RuntimeError, OSError) as exc:
+            # ImportError: native diagnostics extension unavailable; ValueError:
+            # unreadable GTS bundle; RuntimeError: native chase failure; OSError:
+            # artifact write failure. Render as a formatted diagnostic instead of
+            # leaking a raw traceback.
+            raise _fail(f"native reasoning failed: {exc}") from exc
+        if report.ok:
+            console.print("[green]✓ native EL/DL reasoning (Docker-free)[/green]")
+            return
+        raise _fail(f"✗ inconsistent / {report.error_count} error(s)")
+
+    if mode != "docker":
+        raise _fail(f"unknown reasoning mode: {mode!r} (expected native or docker)")
 
     try:
         reasoning.merge_release()
