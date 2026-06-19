@@ -28,7 +28,7 @@ Tier-2 uplift backlog.
 | creative-works | core | core | 4 | 16 | 41 | 0 | 1 | 57/57 | full |
 | deception | core | core | 5 | 2 | 10 | 0 | 1 | 12/12 | full |
 | documents | core | core | 7 | 22 | 35 | 0 | 1 | 57/57 | full |
-| dreaming | extension | extensions | 9 | 1 | 1 | 0 | 3 | - | full |
+| dreaming | extension | extensions | 10 | 1 | 1 | 0 | 3 | - | full |
 | email | extension | extensions | 8 | 24 | 94 | 0 | 1 | - | full |
 | employment | extension | extensions | 5 | 3 | 6 | 0 | 1 | - | full |
 | entities | core | core | 7 | 4 | 4 | 0 | 1 | 8/8 | full |

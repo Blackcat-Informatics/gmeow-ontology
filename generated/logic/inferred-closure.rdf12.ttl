@@ -10,6 +10,30 @@
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 
 # --- derived (inferred) closure ---
+<http://purl.org/nemo/gufo#isCollectionMemberOf> <http://www.w3.org/2000/01/rdf-schema#subPropertyOf> <http://purl.org/nemo/gufo#isProperPartOf> .
+[] rdf:reifies << <http://purl.org/nemo/gufo#isCollectionMemberOf> <http://www.w3.org/2000/01/rdf-schema#subPropertyOf> <http://purl.org/nemo/gufo#isProperPartOf> >> ;
+   prov:wasDerivedBy <https://blackcatinformatics.ca/gmeow/rule/el%3AsubPropertyOf-transitive> ;
+   gmeow:viaRule <https://blackcatinformatics.ca/gmeow/rule/el%3AsubPropertyOf-transitive> ;
+   gmeow:inferenceKind gmeow:Deduction ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/imports> .
+<http://purl.org/nemo/gufo#isComponentOf> <http://www.w3.org/2000/01/rdf-schema#subPropertyOf> <http://purl.org/nemo/gufo#isProperPartOf> .
+[] rdf:reifies << <http://purl.org/nemo/gufo#isComponentOf> <http://www.w3.org/2000/01/rdf-schema#subPropertyOf> <http://purl.org/nemo/gufo#isProperPartOf> >> ;
+   prov:wasDerivedBy <https://blackcatinformatics.ca/gmeow/rule/el%3AsubPropertyOf-transitive> ;
+   gmeow:viaRule <https://blackcatinformatics.ca/gmeow/rule/el%3AsubPropertyOf-transitive> ;
+   gmeow:inferenceKind gmeow:Deduction ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/imports> .
+<http://purl.org/nemo/gufo#isSubCollectionOf> <http://www.w3.org/2000/01/rdf-schema#subPropertyOf> <http://purl.org/nemo/gufo#isProperPartOf> .
+[] rdf:reifies << <http://purl.org/nemo/gufo#isSubCollectionOf> <http://www.w3.org/2000/01/rdf-schema#subPropertyOf> <http://purl.org/nemo/gufo#isProperPartOf> >> ;
+   prov:wasDerivedBy <https://blackcatinformatics.ca/gmeow/rule/el%3AsubPropertyOf-transitive> ;
+   gmeow:viaRule <https://blackcatinformatics.ca/gmeow/rule/el%3AsubPropertyOf-transitive> ;
+   gmeow:inferenceKind gmeow:Deduction ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/imports> .
+<http://purl.org/nemo/gufo#isSubQuantityOf> <http://www.w3.org/2000/01/rdf-schema#subPropertyOf> <http://purl.org/nemo/gufo#isProperPartOf> .
+[] rdf:reifies << <http://purl.org/nemo/gufo#isSubQuantityOf> <http://www.w3.org/2000/01/rdf-schema#subPropertyOf> <http://purl.org/nemo/gufo#isProperPartOf> >> ;
+   prov:wasDerivedBy <https://blackcatinformatics.ca/gmeow/rule/el%3AsubPropertyOf-transitive> ;
+   gmeow:viaRule <https://blackcatinformatics.ca/gmeow/rule/el%3AsubPropertyOf-transitive> ;
+   gmeow:inferenceKind gmeow:Deduction ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/imports> .
 <http://data.europa.eu/esco/model#Occupation> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://data.europa.eu/esco/model#Occupation> .
 [] rdf:reifies << <http://data.europa.eu/esco/model#Occupation> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://data.europa.eu/esco/model#Occupation> >> ;
    prov:wasDerivedBy <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
@@ -1732,27 +1756,3 @@
    gmeow:viaRule <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    gmeow:inferenceKind gmeow:Deduction ;
    gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> .
-<http://purl.org/nemo/gufo#isCollectionMemberOf> <http://www.w3.org/2000/01/rdf-schema#subPropertyOf> <http://purl.org/nemo/gufo#isProperPartOf> .
-[] rdf:reifies << <http://purl.org/nemo/gufo#isCollectionMemberOf> <http://www.w3.org/2000/01/rdf-schema#subPropertyOf> <http://purl.org/nemo/gufo#isProperPartOf> >> ;
-   prov:wasDerivedBy <https://blackcatinformatics.ca/gmeow/rule/el%3AsubPropertyOf-transitive> ;
-   gmeow:viaRule <https://blackcatinformatics.ca/gmeow/rule/el%3AsubPropertyOf-transitive> ;
-   gmeow:inferenceKind gmeow:Deduction ;
-   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/imports> .
-<http://purl.org/nemo/gufo#isComponentOf> <http://www.w3.org/2000/01/rdf-schema#subPropertyOf> <http://purl.org/nemo/gufo#isProperPartOf> .
-[] rdf:reifies << <http://purl.org/nemo/gufo#isComponentOf> <http://www.w3.org/2000/01/rdf-schema#subPropertyOf> <http://purl.org/nemo/gufo#isProperPartOf> >> ;
-   prov:wasDerivedBy <https://blackcatinformatics.ca/gmeow/rule/el%3AsubPropertyOf-transitive> ;
-   gmeow:viaRule <https://blackcatinformatics.ca/gmeow/rule/el%3AsubPropertyOf-transitive> ;
-   gmeow:inferenceKind gmeow:Deduction ;
-   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/imports> .
-<http://purl.org/nemo/gufo#isSubCollectionOf> <http://www.w3.org/2000/01/rdf-schema#subPropertyOf> <http://purl.org/nemo/gufo#isProperPartOf> .
-[] rdf:reifies << <http://purl.org/nemo/gufo#isSubCollectionOf> <http://www.w3.org/2000/01/rdf-schema#subPropertyOf> <http://purl.org/nemo/gufo#isProperPartOf> >> ;
-   prov:wasDerivedBy <https://blackcatinformatics.ca/gmeow/rule/el%3AsubPropertyOf-transitive> ;
-   gmeow:viaRule <https://blackcatinformatics.ca/gmeow/rule/el%3AsubPropertyOf-transitive> ;
-   gmeow:inferenceKind gmeow:Deduction ;
-   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/imports> .
-<http://purl.org/nemo/gufo#isSubQuantityOf> <http://www.w3.org/2000/01/rdf-schema#subPropertyOf> <http://purl.org/nemo/gufo#isProperPartOf> .
-[] rdf:reifies << <http://purl.org/nemo/gufo#isSubQuantityOf> <http://www.w3.org/2000/01/rdf-schema#subPropertyOf> <http://purl.org/nemo/gufo#isProperPartOf> >> ;
-   prov:wasDerivedBy <https://blackcatinformatics.ca/gmeow/rule/el%3AsubPropertyOf-transitive> ;
-   gmeow:viaRule <https://blackcatinformatics.ca/gmeow/rule/el%3AsubPropertyOf-transitive> ;
-   gmeow:inferenceKind gmeow:Deduction ;
-   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/imports> .
