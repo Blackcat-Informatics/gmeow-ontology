@@ -149,10 +149,13 @@ pub fn verify_gts_bundle(
     }
 
     // Reader diagnostics produced while the verifier re-folded the bundle.
+    // Their severity is inferred from the diagnostic code: structural integrity
+    // failures are errors; missing-capacity or soft-degradation codes are warnings.
     for diagnostic in &result.diagnostics {
+        let severity = reader_diagnostic_severity(&diagnostic.code);
         findings.push(
             Finding::new(
-                Severity::Warning,
+                severity,
                 format!("gts.{}", diagnostic.code),
                 format!("{} (frame {:?})", diagnostic.detail, diagnostic.frame_index),
             )
@@ -186,6 +189,31 @@ pub fn verify_gts_bundle(
             .any(|finding| finding.severity == Severity::Error);
 
     Ok((findings, hard_failures))
+}
+
+/// Map a `gmeow_gts` reader diagnostic code to a canonical [`Severity`].
+///
+/// The reader does not attach severity to its diagnostics; the design doc
+/// (#646) requires us to classify them. Structural integrity failures
+/// (empty input, damaged frames, broken chain, torn/truncated logs, layout
+/// violations) are treated as errors because they mean the bundle cannot be
+/// reliably folded. Missing-capability and soft-degradation codes (unknown
+/// frame types, missing decryption keys, forward references, conflicting
+/// reifiers) remain warnings because the reader degrades gracefully to opaque
+/// nodes or dropped quads.
+fn reader_diagnostic_severity(code: &str) -> Severity {
+    match code {
+        "EmptyFile"
+        | "DamagedFrame"
+        | "BrokenChain"
+        | "SegmentBoundary"
+        | "TruncatedLog"
+        | "TornAppendError"
+        | "StreamableLayoutError"
+        | "IndexMmrError"
+        | "PositionConstraint" => Severity::Error,
+        _ => Severity::Warning,
+    }
 }
 
 /// Read an ASCII-armored OpenPGP key from `path`, or return the string as-is if
@@ -420,6 +448,72 @@ mod tests {
         assert!(findings
             .iter()
             .any(|f| f.code == "signature.key" && f.severity == Severity::Info));
+    }
+
+    #[test]
+    fn reader_diagnostic_codes_classified_by_severity() {
+        // Structural integrity failures are errors.
+        assert_eq!(reader_diagnostic_severity("EmptyFile"), Severity::Error);
+        assert_eq!(reader_diagnostic_severity("DamagedFrame"), Severity::Error);
+        assert_eq!(reader_diagnostic_severity("BrokenChain"), Severity::Error);
+        assert_eq!(
+            reader_diagnostic_severity("SegmentBoundary"),
+            Severity::Error
+        );
+        assert_eq!(reader_diagnostic_severity("TruncatedLog"), Severity::Error);
+        assert_eq!(
+            reader_diagnostic_severity("TornAppendError"),
+            Severity::Error
+        );
+        assert_eq!(
+            reader_diagnostic_severity("StreamableLayoutError"),
+            Severity::Error
+        );
+        assert_eq!(reader_diagnostic_severity("IndexMmrError"), Severity::Error);
+        assert_eq!(
+            reader_diagnostic_severity("PositionConstraint"),
+            Severity::Error
+        );
+
+        // Soft-degradation / missing-capability codes remain warnings.
+        assert_eq!(reader_diagnostic_severity("MissingKey"), Severity::Warning);
+        assert_eq!(
+            reader_diagnostic_severity("UnknownFrameType"),
+            Severity::Warning
+        );
+        assert_eq!(
+            reader_diagnostic_severity("UnknownCodec"),
+            Severity::Warning
+        );
+        assert_eq!(
+            reader_diagnostic_severity("ForwardReference"),
+            Severity::Warning
+        );
+        assert_eq!(
+            reader_diagnostic_severity("ConflictingReifier"),
+            Severity::Warning
+        );
+
+        // Unknown future codes default to warning so we do not invent errors.
+        assert_eq!(
+            reader_diagnostic_severity("FutureDiagnostic"),
+            Severity::Warning
+        );
+    }
+
+    #[test]
+    fn empty_gts_bundle_emits_error_diagnostic() {
+        let config = SignatureConfig::default();
+
+        let (findings, hard) = verify_gts_bundle(&[], &config).expect("verification must run");
+
+        assert!(
+            hard,
+            "empty GTS bundle must hard-fail because the reader reports an error-level diagnostic"
+        );
+        assert!(findings
+            .iter()
+            .any(|f| f.code == "gts.EmptyFile" && f.severity == Severity::Error));
     }
 
     #[test]
