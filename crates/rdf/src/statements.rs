@@ -95,6 +95,35 @@ fn require_iri(term: &RdfTerm, context: &str) -> Result<String, RdfDiagnostic> {
     }
 }
 
+/// Set a structural slot exactly once.
+///
+/// A duplicate triple carrying the *same* object is the idempotent re-assertion of
+/// one triple (RDF is a set) and is accepted. A duplicate carrying a *different*
+/// object means two contradictory structural triples share one subject — a corrupt
+/// input the codec must **reject**, never silently last-write-win (CONSTITUTION
+/// Principle 7; no-optionality / hard-fail).
+fn set_once_or_error<T: PartialEq>(
+    slot: &mut Option<T>,
+    value: T,
+    subject: &RdfTerm,
+    field: &str,
+) -> Result<(), RdfDiagnostic> {
+    if let Some(existing) = slot {
+        if *existing != value {
+            return Err(RdfDiagnostic::error(
+                "statements-conflicting-structural",
+                format!(
+                    "{} has conflicting {field} triples (one subject carries two different values)",
+                    crate::emit_term(subject)
+                ),
+            ));
+        }
+    } else {
+        *slot = Some(value);
+    }
+    Ok(())
+}
+
 /// Accumulated facts for one `owl:Axiom` subject during projection.
 #[derive(Default)]
 struct AxiomAccum {
@@ -132,9 +161,24 @@ pub fn project_owl_to_rdf12(owl_ttl: &str) -> Result<String, RdfDiagnostic> {
                 }
                 // Other rdf:type values are filtered out (NOT IN rdf:type).
             }
-            OWL_ANNOTATED_SOURCE => acc.source = Some(quad.object.clone()),
-            OWL_ANNOTATED_PROPERTY => acc.property = Some(quad.object.clone()),
-            OWL_ANNOTATED_TARGET => acc.target = Some(quad.object.clone()),
+            OWL_ANNOTATED_SOURCE => set_once_or_error(
+                &mut acc.source,
+                quad.object.clone(),
+                &quad.subject,
+                "owl:annotatedSource",
+            )?,
+            OWL_ANNOTATED_PROPERTY => set_once_or_error(
+                &mut acc.property,
+                quad.object.clone(),
+                &quad.subject,
+                "owl:annotatedProperty",
+            )?,
+            OWL_ANNOTATED_TARGET => set_once_or_error(
+                &mut acc.target,
+                quad.object.clone(),
+                &quad.subject,
+                "owl:annotatedTarget",
+            )?,
             other => acc
                 .annotations
                 .push((other.to_owned(), quad.object.clone())),
@@ -229,7 +273,12 @@ pub fn normalize_rdf12_to_owl(rdf12_ttl: &str) -> Result<String, RdfDiagnostic> 
         });
         match quad.predicate.as_str() {
             RDF_REIFIES => match &quad.object {
-                RdfTerm::Triple(triple) => acc.reified = Some(triple.clone()),
+                RdfTerm::Triple(triple) => set_once_or_error(
+                    &mut acc.reified,
+                    triple.clone(),
+                    &quad.subject,
+                    "rdf:reifies",
+                )?,
                 other => {
                     return Err(RdfDiagnostic::error(
                         "statements-reifies-non-triple",
@@ -360,5 +409,60 @@ gmeow:ax a owl:Axiom ;
         let rdf12 = project_owl_to_rdf12(OWL).expect("project");
         let owl_back = normalize_rdf12_to_owl(&rdf12).expect("normalize");
         assert_ne!(quad_set(&owl_back), quad_set(OWL_MISSING));
+    }
+
+    #[test]
+    fn conflicting_annotated_source_is_rejected() {
+        // Two DIFFERENT owl:annotatedSource for one axiom: a corrupt input the
+        // codec must hard-fail on, never silently last-write-win.
+        const OWL_CONFLICT: &str = r#"
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+
+gmeow:s gmeow:p gmeow:o .
+gmeow:ax a owl:Axiom ;
+    owl:annotatedSource gmeow:s ;
+    owl:annotatedSource gmeow:other ;
+    owl:annotatedProperty gmeow:p ;
+    owl:annotatedTarget gmeow:o .
+"#;
+        let err = project_owl_to_rdf12(OWL_CONFLICT)
+            .expect_err("conflicting owl:annotatedSource must hard-fail, not be silently dropped");
+        assert_eq!(err.code, "statements-conflicting-structural");
+    }
+
+    #[test]
+    fn duplicate_identical_source_is_idempotent() {
+        // The SAME triple repeated is set membership, not a conflict — accepted.
+        const OWL_DUP: &str = r#"
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+
+gmeow:s gmeow:p gmeow:o .
+gmeow:ax a owl:Axiom ;
+    owl:annotatedSource gmeow:s ;
+    owl:annotatedSource gmeow:s ;
+    owl:annotatedProperty gmeow:p ;
+    owl:annotatedTarget gmeow:o .
+"#;
+        project_owl_to_rdf12(OWL_DUP)
+            .expect("an identical duplicate structural triple is accepted");
+    }
+
+    #[test]
+    fn conflicting_reifies_is_rejected() {
+        // Two DIFFERENT rdf:reifies triple terms for one reifier subject: corrupt
+        // input the normalizer must hard-fail on.
+        const RDF12_CONFLICT: &str = r#"
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+
+gmeow:s gmeow:p gmeow:o .
+gmeow:ax rdf:reifies <<( gmeow:s gmeow:p gmeow:o )>> ;
+    rdf:reifies <<( gmeow:s gmeow:p gmeow:other )>> .
+"#;
+        let err = normalize_rdf12_to_owl(RDF12_CONFLICT)
+            .expect_err("conflicting rdf:reifies must hard-fail, not be silently dropped");
+        assert_eq!(err.code, "statements-conflicting-structural");
     }
 }
