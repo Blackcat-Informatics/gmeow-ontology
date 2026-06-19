@@ -118,6 +118,12 @@ impl PyBuilder {
     fn annot_count(&self) -> usize {
         self.inner.annot().len()
     }
+
+    /// Emit an unsigned GTS snapshot frame from the accumulated tables.
+    #[pyo3(signature = (profile = "dist"))]
+    fn to_gts_unsigned(&self, profile: &str) -> PyResult<Vec<u8>> {
+        self.inner.to_gts_bytes(profile).map_err(into_py_value_err)
+    }
 }
 
 fn into_py_value_err(e: ProducerError) -> PyErr {

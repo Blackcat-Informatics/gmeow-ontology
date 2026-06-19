@@ -8,6 +8,7 @@ use std::fs;
 use std::path::Path;
 
 use gmeow_gts::model::{Quad, Term, TermKind, Triple3};
+use gmeow_gts::writer::Writer;
 use oxigraph::io::{RdfFormat, RdfParser};
 use oxigraph::model::{GraphName, NamedNode, NamedOrBlankNode, Term as OxTerm};
 
@@ -202,6 +203,26 @@ impl Builder {
             reifies: new_reifies.into_iter().collect(),
             annot: new_annot.into_iter().collect(),
         }
+    }
+
+    /// Emit an unsigned GTS snapshot frame from the canonicalized tables.
+    ///
+    /// Mirrors `src/gmeow_tools/gts_producer.py::_Builder.to_gts` for the
+    /// snapshot frame only: terms, quads, reifier bindings, and annotations are
+    /// added in that order, then the writer bytes are returned. Blobs,
+    /// signatures, and `meta` frames are intentionally omitted here.
+    pub fn to_gts_bytes(&self, profile: &str) -> Result<Vec<u8>, ProducerError> {
+        let canonical = self.canonicalize();
+        let mut writer = Writer::new(profile);
+        writer.add_terms(&canonical.terms);
+        writer.add_quads(&canonical.quads);
+        if !canonical.reifies.is_empty() {
+            writer.add_reifies(&canonical.reifies);
+        }
+        if !canonical.annot.is_empty() {
+            writer.add_annot(&canonical.annot);
+        }
+        Ok(writer.to_bytes())
     }
 
     /// Parse `path` with `oxigraph` and append its quads to this builder.
@@ -477,6 +498,7 @@ mod tests {
     use std::process::Command;
 
     use gmeow_gts::model::TermKind;
+    use gmeow_gts::reader::read;
     use tempfile::NamedTempFile;
 
     fn write_ttl(content: &str) -> NamedTempFile {
@@ -1129,5 +1151,33 @@ print(json.dumps({
                 *rs_row
             );
         }
+    }
+
+    #[test]
+    fn to_gts_bytes_round_trip() {
+        let nq = r#"
+            <http://example.org/s> <http://example.org/p> <http://example.org/o> <http://example.org/g> .
+            <http://example.org/s> <http://example.org/label> "hello"@en <http://example.org/g> .
+            _:b <http://example.org/q> "42"^^<http://www.w3.org/2001/XMLSchema#integer> <http://example.org/g> .
+        "#;
+        let file = write_nq(nq);
+        let mut builder = Builder::new();
+        builder
+            .add_graph(file.path().to_str().unwrap(), None, None)
+            .unwrap();
+
+        let canonical = builder.canonicalize();
+        let bytes = builder.to_gts_bytes("dist").unwrap();
+        let graph = read(&bytes, false, None);
+
+        assert_eq!(graph.terms.len(), canonical.terms.len());
+        assert_eq!(graph.quads.len(), canonical.quads.len());
+        assert!(graph.terms.iter().any(|t| t.kind == TermKind::Literal
+            && t.value.as_deref() == Some("hello")
+            && t.lang.as_deref() == Some("en")));
+        assert!(graph.terms.iter().any(|t| t.kind == TermKind::Literal
+            && t.value.as_deref() == Some("42")
+            && t.datatype.is_some()));
+        assert!(graph.quads.iter().all(|q| q.3.is_some()));
     }
 }
