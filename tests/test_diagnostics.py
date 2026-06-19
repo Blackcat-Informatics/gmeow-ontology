@@ -56,6 +56,40 @@ def test_validation_result_facade_preserves_legacy_lists() -> None:
     assert payload["metadata"]["timings"][0]["phase"] == "synthetic"
 
 
+@dataclass(slots=True)
+class ReportJsonValidationResult:
+    errors: list[str] = field(default_factory=list)
+    warnings: list[str] = field(default_factory=list)
+    timings: list[dict[str, object]] = field(default_factory=list)
+    report_json: str | None = None
+
+
+def test_facade_uses_report_json_with_wire_coords() -> None:
+    # A structured report carrying a GTS wire coordinate, as the Rust
+    # orchestration emits it.
+    source = gmeow_diagnostics.Report("validate")
+    source.add(
+        gmeow_diagnostics.Finding(
+            "error",
+            "shacl.MinCount",
+            "missing property",
+            logical="gts:quad",
+        )
+    )
+    result = ReportJsonValidationResult(
+        errors=["missing property"],
+        warnings=[],
+        report_json=source.to_json(),
+    )
+
+    report = diagnostics.report_from_validation_result(result)
+    sarif = json.loads(report.to_sarif())
+
+    # report_json is authoritative: the structured finding survives round-trip.
+    assert report.errors == ["missing property"]
+    assert sarif["runs"][0]["results"][0]["ruleId"] == "shacl.MinCount"
+
+
 def test_write_report_artifacts(tmp_path: Path) -> None:
     report = diagnostics.report_from_messages(
         tool="validate",

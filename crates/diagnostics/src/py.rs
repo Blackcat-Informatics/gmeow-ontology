@@ -105,6 +105,16 @@ impl PyReport {
         Self::from_engine(Report::new(tool))
     }
 
+    /// Deserialize a report from its JSON form (the inverse of `to_json` /
+    /// `ValidationRun.report_json`). This is how Python reconstructs the single
+    /// canonical report produced by the Rust validation orchestration (#654).
+    #[staticmethod]
+    fn from_json(data: String) -> PyResult<Self> {
+        let report: Report = serde_json::from_str(&data)
+            .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))?;
+        Ok(Self::from_engine(report))
+    }
+
     fn add(&mut self, finding: PyRef<'_, PyFinding>) {
         self.inner.add_finding(finding.inner.clone());
     }
