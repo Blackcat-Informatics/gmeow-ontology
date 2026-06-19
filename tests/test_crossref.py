@@ -279,6 +279,17 @@ def test_crossmark_enabled_without_license_emits_crossmark_not_custom_metadata(
         assert not _direct_ai_programs(dataset), "unexpected top-level ai:program"
 
 
+def test_deposit_omits_unsupported_non_crossref_fields() -> None:
+    """Do not spoof unavailable metadata just to raise participation metrics."""
+    xml = build_deposit_xml(timestamp="20260603120000")
+    root = _parse(xml)
+    assert root.find(f".//{{{CR_NS}}}subject") is None
+    assert root.find(f".//{{{CR_NS}}}keywords") is None
+    assert root.find(f".//{{{CR_NS}}}collection[@property='crawler-based']") is None
+    assert "similarity-check" not in xml
+    assert "fundref" not in xml
+
+
 def test_deposit_carries_registrant_wikidata_institution_id() -> None:
     """BII's QID is emitted through Crossref's native institution metadata."""
     xml = build_deposit_xml()
