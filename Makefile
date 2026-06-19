@@ -12,6 +12,10 @@ TARGET ?= foaf
 MESSAGE ?= "chore: regenerate checked-in artifacts"
 GMEOW_DEV ?= uv run --package gmeow-dev gmeow-dev
 
+# Optional cargo-nextest partition for sharded CI runs (e.g., count:1/2)
+NEXTEST_PARTITION ?=
+NEXTEST_PARTITION_ARG := $(if $(NEXTEST_PARTITION),--partition $(NEXTEST_PARTITION),)
+
 .PHONY: help install fmt lint validate crosscheck classic-cross-check reason reason-native reason-hermit explain verify verify-docker reasoning-cases statements-docker-check extract \
         mappings wikidata wikidata-live wikidata-coverage wikidata-audit \
         lint-alignment refresh-target-axioms docs docs-full ontology-docs ontology-docs-full quality \
@@ -176,7 +180,8 @@ diagnostics-build: ## Build the gmeow-diagnostics Rust crate (shared Finding/Rep
 	cargo build -p gmeow-diagnostics
 
 diagnostics-test: ## Run the gmeow-diagnostics unit tests.
-	cargo test -p gmeow-diagnostics
+	cargo nextest run -p gmeow-diagnostics $(NEXTEST_PARTITION_ARG)
+	cargo test --doc -p gmeow-diagnostics
 
 diagnostics-py: ## Build and install the gmeow_diagnostics Python extension (maturin develop).
 	VIRTUAL_ENV="$$(pwd)/.venv" uvx maturin develop --manifest-path crates/diagnostics/Cargo.toml
@@ -185,7 +190,8 @@ logic-build: ## Build the gmeow-logic Rust crate (world-indexed oxigraph store c
 	cargo build -p gmeow-logic
 
 logic-test: ## Run the gmeow-logic unit tests (world-isolation conformance).
-	cargo test -p gmeow-logic
+	cargo nextest run -p gmeow-logic $(NEXTEST_PARTITION_ARG)
+	cargo test --doc -p gmeow-logic
 
 logic-py: ## Build and install the gmeow_logic Python extension (maturin develop).
 	VIRTUAL_ENV="$$(pwd)/.venv" uvx maturin develop --manifest-path crates/logic/Cargo.toml
@@ -194,7 +200,8 @@ shacl-build: ## Build the gmeow-shacl Rust crate (oxigraph SHACL Core validator)
 	cargo build -p gmeow-shacl
 
 shacl-test: ## Run the gmeow-shacl unit + conformance tests.
-	cargo test -p gmeow-shacl
+	cargo nextest run -p gmeow-shacl $(NEXTEST_PARTITION_ARG)
+	cargo test --doc -p gmeow-shacl
 
 shacl-py: ## Build and install the gmeow_shacl Python extension (maturin develop).
 	VIRTUAL_ENV="$$(pwd)/.venv" uvx maturin develop --manifest-path crates/shacl/Cargo.toml
@@ -203,7 +210,8 @@ validate-build: ## Build the gmeow-validate Rust crate (oxigraph validation-path
 	cargo build -p gmeow-validate
 
 validate-test: ## Run the gmeow-validate unit + integration tests.
-	cargo test -p gmeow-validate
+	cargo nextest run -p gmeow-validate $(NEXTEST_PARTITION_ARG)
+	cargo test --doc -p gmeow-validate
 
 validate-py: ## Build and install the gmeow_validate Python extension (maturin develop).
 	VIRTUAL_ENV="$$(pwd)/.venv" uvx maturin develop --manifest-path crates/validate/Cargo.toml
@@ -214,7 +222,8 @@ clippy: ## Run cargo clippy on all Rust targets with warnings as errors.
 native-py: diagnostics-py logic-py shacl-py validate-py ## Build and install all Rust-backed Python extensions.
 
 rust-test: ## Run the Rust workspace tests.
-	cargo test
+	cargo nextest run $(NEXTEST_PARTITION_ARG)
+	cargo test --doc
 
 conformance: logic-py ## Run the logic: conformance suite (oracle ≡ engine, Principle 7 gate).
 	$(GMEOW_DEV) conformance
