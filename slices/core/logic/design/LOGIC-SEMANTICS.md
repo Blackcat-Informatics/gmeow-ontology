@@ -32,8 +32,8 @@
 - **Monotonic and non-monotonic rules.** Monotonic derivation *and* defeasible defaults,
   negation-as-failure, and classical negation. Recursion is unrestricted. Existential rules
   (tuple-generating dependencies) permit value invention. Which non-monotonic semantics governs a
-  rule set is **declared, not assumed** — it is the Consequence and Negation facets of the reasoning
-  contract (see [The reasoning contract](#the-reasoning-contract)).
+  rule set is **declared, not assumed** — it is the Model-semantics and Negation facets of the
+  reasoning contract (see [The reasoning contract](#the-reasoning-contract)).
 - **Logic programming, Prolog-grade.** Unification, SLD-style backward goal resolution,
   query-as-program, builtins, and generative/relational computation. The engine runs **both**
   directions: forward materialization and classification *and* backward goal resolution. Graph query
@@ -126,23 +126,38 @@ consequence, and procedural search all at once, **every reasoning request is gov
 [LOGIC-CONTRACT.md](LOGIC-CONTRACT.md). Soundness, completeness, and the decidability class are all
 stated *relative to that contract* — a claim of "sound" with no contract in hand is meaningless.
 
-The older notion of a fixed, closed list of six indivisible "profiles" is superseded. The consequence
-relations below are **values of the contract's `Consequence` facet** (composed with the `Negation`,
-`Closure`, and `Resource` facets), not standalone modes. Each carries the same formal meaning it
-always had; what changes is that they combine rather than exclude.
+The older notion of a fixed, closed list of six indivisible "profiles" is superseded — and so is the
+intermediate framing of a single `Consequence` facet. **There is no one consequence facet.** What an
+entailment *means* is settled jointly by several orthogonal facets of the contract
+([LOGIC-CONTRACT.md](LOGIC-CONTRACT.md)). The "modes" older drafts crowded into one column are in fact
+values of *different* facets; the table below attributes each to the facet that actually carries it.
+They compose rather than exclude.
 
-| Consequence-facet value | Formal meaning | Decidability character |
-|---|---|---|
-| positive Horn | monotonic Horn entailment; the least model | terminating for the function-free fragment |
-| stratified negation-as-failure | negation-as-failure under stratification; the unique perfect model | PTIME data complexity |
-| well-founded | well-founded semantics; three-valued | total, polynomial |
-| stable-model | answer-set / stable-model semantics; possibly several models | NP-hard |
-| FDE / LP paraconsistent | four-valued/paraconsistent consequence; contradiction does not explode | localized, witness-bearing |
-| probabilistic | probabilistic inference over `logic:probability` | requires a declared dependency model |
+| Facet | Value | Formal meaning | Decidability character |
+|---|---|---|---|
+| Model semantics | least-model (positive Horn) | monotonic Horn entailment; the least model | terminating for the function-free fragment |
+| Model semantics | least-model + stratified default negation | the unique perfect model under stratification | PTIME data complexity |
+| Model semantics | well-founded | well-founded semantics; three-valued | total, polynomial |
+| Model semantics | stable-model | answer-set / stable-model semantics; possibly several models | NP-hard |
+| Negation operators | `{default}` / `{explicit}` / both | which "not" a rule may use; a **set**, composed *with* a model semantics, never one of its own | inherits the model semantics it composes with |
+| Truth / inconsistency | a Belnap-family configuration (FDE, LP, K3, …) | four-valued / paraconsistent truth; contradiction does not explode | localized, witness-bearing |
+| Uncertainty | `{probabilistic}` (and/or weighted, fuzzy) | a graded-belief **measure** carried alongside the model semantics | requires a declared dependency model |
+
+Two attributions matter especially, because the old single-column table got them wrong:
+
+- **Stratified negation-as-failure is not a model semantics of its own.** It is least-model semantics
+  composed with the `Negation` facet value `{default}` under a stratification condition. Negation is a
+  *set-valued* facet — a program may use explicit and default negation together — orthogonal to which
+  model semantics selects the models.
+- **Paraconsistency and probability are not consequence relations.** Paraconsistent truth is the
+  `Truth / inconsistency` facet (a Belnap-family configuration — see
+  [LOGIC-CONTRACT.md § Truth values](LOGIC-CONTRACT.md#truth-values-admissible-valuations-and-the-designated-value-policy));
+  probabilistic inference is a *measure* on the `Uncertainty` facet, carried alongside whatever model
+  semantics is in force, never in place of one.
 
 The historical profile names survive only as **presets** — named bundles of facet values the compiler
 expands before anything else runs (see [LOGIC-CONTRACT.md § Presets](LOGIC-CONTRACT.md)). Procedural
-search with cut is the `procedural` preset: consequence positive-Horn with cut and builtins under a
+search with cut is the `procedural` preset: least-model semantics with cut and builtins under a
 bounded `Resource`, operational rather than declarative.
 
 The governing rule on combinations is the contract's, restated here for the semantics:
@@ -256,45 +271,70 @@ conditions and silently forces one to mask another; the compositional shape is *
   outside any certified fragment);
 - **unknown** — the engine cannot characterize its own completeness for this request.
 
-**`preservation` — what did lowering do to the formulas?** (See the preservation judgment in
-[LOGIC-IR.md](LOGIC-IR.md).)
+**`preservation` — what did lowering do to the formulas?** This field is **not a single choice.** It
+mirrors the structured, multidimensional preservation claim of
+[LOGIC-CONFORMANCE.md § The loss ledger and preservation claims](LOGIC-CONFORMANCE.md#the-loss-ledger-and-preservation-claims)
+and the per-lowering judgment of [LOGIC-IR.md](LOGIC-IR.md). It carries:
 
-- **exact** — every construct was carried by the lowering with no loss;
-- **under-approximation** — the evaluated theory is weaker than the source (some consequences dropped);
-- **over-approximation** — the evaluated theory is stronger than the source (some spurious consequences
-  possible);
-- **loss-affected** — a lowering did not preserve every construct, so some formulas were not evaluated
-  by the target at all.
+- a **set of preservation polarities** that may co-hold — `exact`, `under-approximation` (the evaluated
+  theory is weaker; some consequences dropped), `over-approximation` (the evaluated theory is stronger;
+  some spurious consequences possible), `inconsistency-preserving`, and `inconsistency-reflecting` —
+  because a single lowering can be, for instance, *both* an under-approximation *and*
+  inconsistency-reflecting; and
+- the **set of unsupported constructs** the lowering could not carry at all.
 
-**`information` — a four-valued (Belnap/FDE) information state about the queried proposition, plus an
-explicit non-evaluation.** It records what the *model's evidence* says — *when there were semantics to
-say anything at all*:
+`loss-affected` is **not** an alternative polarity. It is a *diagnostic* derived from the two sets
+above — "some construct in the unsupported-set was relevant to this query" — and is usually a
+*consequence* of an under-approximation, not a substitute for it. A result that passed through no
+lowering carries the singleton polarity set `{exact}` with an empty unsupported-set; the consumer reads
+the polarity set and the unsupported-set (or the full structured claim they reference) to see exactly
+which formulas the target did not evaluate.
+
+**`information` — a four-valued (Belnap/FDE) information state about the queried proposition, plus two
+explicit non-results.** It records what the *model's evidence* says — *when the evaluation was
+conclusive and there were semantics to say anything at all*:
 
 - **supported** — there is a proof and no counterproof;
 - **opposed** — there is a counterproof and no proof;
 - **both** — there is a proof *and* a counterproof (a witnessed contradiction within one context);
-- **neither** — there is **neither** proof nor counterproof: a genuine semantic result, the open-world
-  silence in which the contract *did* run but established nothing either way;
+- **neither** — there is **neither** proof nor counterproof, established by a **conclusive** evaluation
+  (a completed run, or one complete for a certified fragment). It is the open-world silence of a search
+  that *finished*: a genuine four-valued verdict. The mere absence of a witness in an *unfinished*
+  search is **not** `neither` — that is `undetermined`, below;
+- **undetermined** — the evaluation did **not** reach a conclusive verdict, so the four-valued
+  classification is not final. Any witnesses found so far are still reported — a proof found is
+  *provisional* `supported`, a counterproof *provisional* `opposed`, both *provisional* `both` — but the
+  bare *absence* of a witness within an incomplete search establishes nothing. Budget exhaustion before
+  completion, and a partial-order tie in deterministic revision, both land here. It is also where a
+  request that *has* a graded semantics but **no policy to discretize it** lands — a probabilistic
+  marginal with no declared threshold: the marginal is reported and the discrete classification is left
+  unassigned;
 - **not-evaluated** — **no information semantics were available** to assess the proposition: an
-  `unsupported` contract, or a missing required model (e.g. a probabilistic query with no declared
-  dependency model). This is the field that prevents the most dangerous confusion in the result.
+  `unsupported` contract, or a missing *required* model (e.g. a probabilistic query with no declared
+  dependency model — there is no probabilistic semantics to run at all). This is the field that prevents
+  the most dangerous confusion in the result.
 
-> `neither` and `not-evaluated` are **never** interchangeable. `neither` means *the engine looked and
-> found no proof and no counterproof* — a real four-valued answer. `not-evaluated` means *the engine
-> could not look*, because the request had no defined semantics. An unsupported contract, or a missing
-> probabilistic model, yields `information = not-evaluated`, **not** `neither`. Reporting such a gap as
-> `neither` would fabricate a semantic verdict the engine never reached.
+> The three non-positive states are **never** interchangeable. `neither` means *the engine looked,
+> conclusively, and found no proof and no counterproof* — a real four-valued verdict. `undetermined`
+> means *the engine has not (yet) reached a verdict* — the search did not finish, or no policy discretizes
+> a graded answer — so its silence proves nothing. `not-evaluated` means *the engine could not look*,
+> because the request had no defined semantics. Budget exhaustion yields `undetermined`; an unsupported
+> contract or a missing probabilistic model yields `not-evaluated`; only a finished, conclusive search
+> with no witnesses yields `neither`. Reporting an incomplete search's silence as `neither` would
+> fabricate a conclusive verdict the engine never reached.
 
 `information` is deliberately *not* classical true/false: `opposed` is not the negation of `supported`,
 and `neither` is not falsity. Treating "no proof" as "false" is exactly the closed-world collapse the
 open-world default rejects.
 
 Because the five fields are independent, a result can carry, for example,
-`input=valid · evaluation=budget-exhausted · completeness=incomplete · preservation=exact ·
-information=supported` (proof found, but the search did not finish) or
-`input=valid · evaluation=unsupported · completeness=unknown · preservation=exact ·
-information=not-evaluated` (no semantics for the request, so no information was assessed) — and the
-reader can tell those apart, which a single status word cannot.
+`input=valid · evaluation=budget-exhausted · completeness=incomplete · preservation={exact} ·
+information=supported` (a proof was found — provisional, since the search did not finish) or
+`input=valid · evaluation=unsupported · completeness=unknown · preservation={exact} ·
+information=not-evaluated` (no semantics for the request, so no information was assessed) or
+`input=valid · evaluation=budget-exhausted · completeness=incomplete · preservation={exact} ·
+information=undetermined` (the search ran out of budget having found neither a proof nor a counterproof,
+so no verdict was reached) — and the reader can tell those apart, which a single status word cannot.
 
 ### Contract-specific interpretation of `information` (Normative semantics)
 
@@ -312,8 +352,10 @@ generic one:
   three-valued model — not the absence of any verdict.
 - **Probabilistic contracts** do **not** convert a probability into `supported`/`opposed` without an
   **explicit threshold policy**. Absent a declared policy mapping a marginal to a discrete information
-  state, the discrete `information` field stays `neither` (the engine reports the marginal but takes no
-  binary stance); with no probabilistic model at all the field is `not-evaluated`, per the rule above.
+  state, the discrete `information` field is `undetermined` — the discretization is *not applicable*, so
+  the engine reports the marginal but takes no binary stance; this is emphatically **not** the
+  conclusive `neither`. With no probabilistic model at all there is no probabilistic semantics to run,
+  so the field is `not-evaluated`, per the rule above.
 - **FDE / paraconsistent contracts** read `supported` as *evidence for the formula* and `opposed` as
   *evidence for its explicit negation* — the two are tracked separately, so `both` (evidence for each)
   and `neither` (evidence for neither) are first-class, not derived from one another.
@@ -377,8 +419,10 @@ returns `evaluation = budget-exhausted` with `completeness = incomplete`, never 
 Soundness is total; completeness is relative to the budget and the certified fragment. Because
 `logic:` is open-world, paraconsistent, and provenance-carrying, budget exhaustion is a normal state,
 not a crash: the query returns the answers and witnesses found so far plus an explicit incompleteness
-marker, and unprovable-within-budget is **not** false (`information = neither`, not `opposed` — and
-emphatically not `not-evaluated`, since the engine *did* reason, it merely ran out of budget).
+marker. Unprovable-within-budget is **not** false, and it is **not** the Belnap `neither` either: a
+search that ran out of budget has not *established* the absence of a proof, so its information state is
+`undetermined` (witnesses found so far are reported as provisional `supported`/`opposed`/`both`) — never
+`opposed`, never the conclusive `neither`, and — since the engine *did* reason — never `not-evaluated`.
 
 OWL 2 DL is decidable but N2EXPTIME-complete, the everyday face of "decidable but intractable."
 `logic:` does not hide that cost behind a silent timeout; it makes the decidability class, the
@@ -633,9 +677,9 @@ opts out:
   (`gmeow:SourceTier` / `EvidenceClass`), and the `gmeow:sharpens` poset. The revision retracts the
   *least entrenched* facts first; a total order picks exactly one context.
 - **A genuine tie is not enumerated.** If the order is partial and leaves two minimal revisions
-  incomparable, the solver does **not** branch — it returns `information = neither` (genuinely
-  ambiguous: the revision ran but selected no unique context, so this is a real `neither`, not
-  `not-evaluated`) within budget.
+  incomparable, the solver does **not** branch — the revision *ran* but selected no unique context, so
+  it returns `information = undetermined` (the classification is not established because the selection
+  was ambiguous; this is neither the conclusive Belnap `neither` nor `not-evaluated`) within budget.
 - **Multi-context quantification is opt-in and budget-capped.** A slice that needs Lewis ties — `C` in
   *every* closest `A`-context (skeptical) or in *some* (credulous) — may request it as a non-default
   contract under a hard branch budget that degrades to an incomplete result on exhaustion. Never the

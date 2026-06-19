@@ -256,8 +256,9 @@ generated artifact passes this tier before it is considered a candidate for rele
 solver — Phase-1 materialization, Phase-2 goal resolution, and, where permitted by the contract,
 Phase-3 counterfactual construction. It checks cross-context rigidity, modal consistency,
 foundation discipline violations that require derivation, and the semantic integrity of
-probabilistic models. It produces `logic:ReasoningResult` values with the full status pair
-(information-status and computation-status) described in
+probabilistic models. It produces `logic:ReasoningResult` values with the full **compositional
+status** — the five orthogonal fields (input, evaluation, completeness, preservation, information)
+described in
 [LOGIC-SEMANTICS.md § The reasoning result](LOGIC-SEMANTICS.md#the-reasoning-result). Budget
 exhaustion is a normal outcome; the result discloses it explicitly rather than returning a false
 answer.

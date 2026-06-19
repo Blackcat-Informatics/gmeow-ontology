@@ -13,9 +13,11 @@
 
 Classical logic evaluates truth at a single state of affairs. Reasoning about *change* — an agent
 performing actions, a memory absorbing updates, a plan advancing — needs truth evaluated over a
-**sequence** of states. This is an orthogonal concern: a state-change program may run under Horn,
-well-founded, stable-model, or probabilistic consequence; over open or closed worlds; with or
-without world-indexing. Because the choice is independent, state change is the value
+**sequence** of states. This is an orthogonal concern: a state-change program may run under any model
+semantics — least-model, well-founded, or stable-model — with any uncertainty measure (probabilistic,
+weighted, fuzzy) carried alongside; over open or closed worlds; with or without world-indexing.
+(Probability is an `Uncertainty`-facet *measure*, not a consequence relation — see
+[`LOGIC-CONTRACT.md`](LOGIC-CONTRACT.md).) Because the choice is independent, state change is the value
 `transaction-path` of the Evolution facet, composed with the others, never a parallel mode that
 re-bundles them.
 
@@ -41,9 +43,13 @@ rest of the system is unaffected unless a contract selects `transaction-path`.
 The state-changing primitives are `ins` (assert) and `del` (retire). Three dimensions must be kept
 separate:
 
-- **State validity** — whether a proposition holds in a given state of the path. `del` advances the
-  path to a successor state in which the fact no longer holds; `ins` introduces a fact that holds
-  from the successor state onward.
+- **State validity** — whether a proposition holds in a given state of the path. `del` retires **one
+  particular active assertion (or tuple)** and advances the path to a successor state in which *that
+  support* no longer holds; `ins` introduces a fact that holds from the successor state onward.
+  Retiring one support does **not** by itself make the *proposition* cease to hold: if the same
+  proposition is still carried by another active assertion, or is derivable from other active facts, it
+  remains valid in the successor state. `del` removes a support, not a conclusion — a proposition ceases
+  to hold only when its last active support is retired and it is no longer derivable.
 - **Historical retention** — whether the prior assertion remains recorded in the store. The project's
   suppression doctrine governs here: **`del` is a supersession, never a physical erasure.** Every
   retired assertion version carries `activeInState`, `supersededBy`, `validUntilState`, and
@@ -77,12 +83,19 @@ Concurrent Transaction Logic extends the path model to **interleaved** execution
 program. It adds:
 
 - **concurrent composition** — programs that advance together, their elementary steps interleaved;
-- **isolation level and serializability notion** — the declared policy against which a schedule is
-  evaluated. The serializability notion must be named explicitly: *conflict-serializability*
-  (equivalent final state reachable by some serial order with no conflicting-operation swap),
-  *view-serializability* (same read-from and final-write relationships as some serial order), or
-  *strict / strong strict two-phase locking* (stronger opacity guarantees). These are not
-  equivalent, and the chosen notion is a declared isolation policy, not an implicit assumption.
+- **three distinct, separately-declared concerns** — which this facet keeps apart rather than
+  conflating, because they are not interchangeable and an implicit assumption about any one of them is a
+  defect:
+  - a **serializability criterion** — a *correctness property of a history*: *conflict-serializability*
+    (an equivalent serial order exists with no conflicting-operation swap) or *view-serializability*
+    (some serial order has the same read-from and final-write relationships). These are history
+    properties, not protocols;
+  - an **isolation level** — the declared *guarantee strength* a schedule must meet, up to and including
+    full serializability and **opacity** (the stronger correctness condition that even aborted or
+    in-flight transactions never observe an inconsistent state);
+  - a **concurrency-control protocol** — the *implementation mechanism* that enforces the chosen level:
+    *strict / strong-strict two-phase locking*, timestamp ordering, optimistic validation, and the like.
+    A protocol is *how* a guarantee is achieved; it is never the guarantee itself.
 - **serializability anomalies as history-level results** — a schedule that does not satisfy the
   declared notion is described as a `SerializationAnomaly`: a pattern of conflicting operations,
   read-from edges, and happens-before arcs in the transaction history that admits no equivalent

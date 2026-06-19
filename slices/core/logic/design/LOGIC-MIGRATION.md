@@ -50,7 +50,7 @@ paraconsistent contract, with a defined entailment relation indexed to context r
 global. Cross-world reasoning — rigidity, modal closure, counterfactual
 revision — is an explicit closure pass over the finite materialized world set, not an implicit
 union. The semantics of that algebra are given precisely in
-[LOGIC-SEMANTICS.md](LOGIC-SEMANTICS.md#worlds-modality-and-counterfactuals-a-typed-context-algebra).
+[LOGIC-SEMANTICS.md](LOGIC-SEMANTICS.md#worlds-modality-and-counterfactuals--a-typed-context-algebra).
 
 ### The third framing: a Datalog/Horn-only intermediate form
 
@@ -230,8 +230,8 @@ native EL/DL reasoning, the conformance corpus structure, and the derivation-gra
 mechanism are all running. The OWL projection cross-check and the SARIF/divergence-ledger pipeline
 are operational. Common Logic emission (CLIF/CGIF/XCL) is generated from the IR.
 
-**Required but not yet implemented.** Backward goal resolution beyond the `ProceduralPrologProfile`
-prototype, full Stratum C generative counterfactual construction (witness-world building for
+**Required but not yet implemented.** Backward goal resolution beyond the `logic:ProceduralPrologProfile`
+preset prototype, full Stratum C generative counterfactual construction (witness-world building for
 anti-rigidity), probabilistic inference under the `Uncertainty = probabilistic` facet, and complete
 ingestion of Common Logic into the canonical IR are all required by the design but not yet
 operationally complete.
@@ -261,11 +261,11 @@ honest.
 | Facet orthogonality is asserted, not proven | Two facets declared independent may interact semantically in an uncharted region | The disjointness checks and the compatibility matrix surface violations; the `unsupported` verdict is the safety net |
 | Foundation disciplines as native rules may diverge at scale | The native lowering reproduces lint verdicts on the current corpus; a novel ontology shape could expose a gap | The lint remains the regression specification; a divergence is a defect in the lowering, reported as a conformance failure |
 | Anti-rigidity witness-world obligation is not fully evaluated | Until Stratum C constructs witness worlds, anti-rigidity is only partially enforced | The `anti_rigidity_policy` field makes the obligation explicit; the gap is named in the loss ledger ([semantics](LOGIC-SEMANTICS.md#anti-rigidity-needs-a-witness-policy)) |
-| Cut changes declarative answers | Prolog profile | Cut is procedural-only, confined to `ProceduralPrologProfile`; loss recorded on projection ([semantics](LOGIC-SEMANTICS.md#cut-is-procedural-not-canonical)) |
-| Confidence mistaken for probability | Weighted/ProbLog-style inference | Four separate predicates; probability only in `ProbabilisticProfile` ([semantics](LOGIC-SEMANTICS.md#confidence-probability-weight-and-evidence)) |
+| Cut changes declarative answers | Prolog preset | Cut is procedural-only, confined to the `logic:ProceduralPrologProfile` preset; loss recorded on projection ([semantics](LOGIC-SEMANTICS.md#cut-is-procedural-not-canonical)) |
+| Confidence mistaken for probability | Weighted/ProbLog-style inference | Four separate predicates; probability only under the `logic:ProbabilisticProfile` preset (the `Uncertainty = probabilistic` facet) ([semantics](LOGIC-SEMANTICS.md#confidence-probability-weight-and-evidence)) |
 | Named graph treated as modal semantics | Worlds | World-indexed entailment relation; no implicit dataset-union ([semantics](LOGIC-SEMANTICS.md#inconsistency-across-contexts-and-context-indexed-entailment)) |
 | Triple term treated as both quote and assertion | Metalogic | A triple term names a proposition; assertion is via explicit predicates ([semantics](LOGIC-SEMANTICS.md#triple-terms-reifiers-and-assertion)) |
-| Counterfactual revision ties explode | Stratum C | Declared entrenchment ordering; genuine tie yields `unknown`, never branches ([semantics](LOGIC-SEMANTICS.md#deterministic-revision-taming-the-agm-mutation-explosion)) |
-| Undecidability / non-termination | Canonical layer | Decidability is a projection/profile property; budget exhaustion yields `unknown`/`incomplete` ([semantics](LOGIC-SEMANTICS.md#turing-completeness-decidability-and-termination)) |
+| Counterfactual revision ties explode | Stratum C | Declared entrenchment ordering; genuine tie yields `information = undetermined`, never branches ([semantics](LOGIC-SEMANTICS.md#deterministic-revision-taming-the-agm-mutation-explosion)) |
+| Undecidability / non-termination | Canonical layer | Decidability is a projection/preset property; budget exhaustion yields `completeness = incomplete` / `information = undetermined` ([semantics](LOGIC-SEMANTICS.md#turing-completeness-decidability-and-termination)) |
 | BFO/DOLCE overclaimed as truth-preserving | Foundation projection | Bridge views labelled as such; not truth-preserving unless certified per fragment ([conformance](LOGIC-CONFORMANCE.md)) |
 | Stale materialization or counterfactual cache | World store | Content-hash-keyed graph snapshots ([runtime](LOGIC-RUNTIME.md#graph-versioning-and-staleness)) |

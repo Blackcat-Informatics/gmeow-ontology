@@ -28,7 +28,7 @@ A conformance case is the atomic unit:
   reasoning contract;
 - a **contract** — the `logic:ReasoningContract` (as defined in
   [`LOGIC-CONTRACT.md`](LOGIC-CONTRACT.md)) under which the case is to be evaluated, including its
-  consequence facet, decidability class, and resource bound;
+  model-semantics, negation, truth, and uncertainty facets, decidability class, and resource bound;
 - **expected outputs** — derived quads, world-indexed verdicts, contradiction witnesses, projection
   artifacts, and goal or counterfactual answers, each in a canonical form against which an
   implementation's output is compared by graph isomorphism or canonical-sorted comparison.
@@ -40,10 +40,10 @@ Cases are organized by category. Each category tests a distinct design invariant
 | Foundation | The OntoUML disciplines (rigidity, identity-supply, mediation) derive the same verdicts as the structural checks they replace over the generated downcast |
 | Worlds-A | Contested claims coexist in distinct named context graphs without privileging either standpoint |
 | Worlds-B | Type-level modal reasoning generates exactly zero token occurrences (the no-occurrence gate) |
-| Worlds-C | A counterfactual construction does not leak into the base world graph; a genuine tie returns `unknown` |
+| Worlds-C | A counterfactual construction does not leak into the base world graph; a genuine tie returns `information = undetermined` (no unique context selected), never a branch |
 | Projections | Each generated projection matches its declared preservation claim and decidability class |
 | Decidability | A contract that falls within a certified fragment receives a `complete-for-fragment` result; a violating one is flagged |
-| Reasoning semantics | Answers under each consequence-facet value match the semantics declared by the contract |
+| Reasoning semantics | Answers under each model-semantics value — and its composed negation, truth, and uncertainty facets — match the semantics declared by the contract |
 | Explanation | Every IRI cited in a generated explanation appears in the proof trace — no justification outside the derivation |
 | Paraconsistency | A cross-world contradiction is confined to separate context graphs; a within-world contradiction emits witnesses |
 
@@ -71,9 +71,13 @@ machine-readable RDF document that asserts, for each recognized capability dimen
   return `unsupported` for any input that requires it, and corpus cases for that capability are
   excluded from the conformance gate.
 
-Recognized capability dimensions include, without limitation: IR parsing, exact RDF 1.2 projection,
-structural validation, Horn forward-chase materialization, stable-model semantics, backward-goal
-evaluation, generative counterfactuals, transaction execution, and explanation generation.
+The recognized capability dimensions are a **versioned, explicitly enumerated set** — the *capability
+registry*, identified by a registry version. They are not open-ended: a new dimension enters only by a
+registry-version increment, precisely so that a certification issued against one version is never
+retroactively invalidated by a later addition. At a given registry version the dimensions are, for
+example: IR parsing, exact RDF 1.2 projection, structural validation, Horn forward-chase
+materialization, stable-model semantics, backward-goal evaluation, generative counterfactuals,
+transaction execution, and explanation generation.
 
 A conforming implementation **must pass every mandatory corpus case within the capability set it
 claims via `logic:conformsTo`**, and **must return `unsupported` for every case that requires a
@@ -81,11 +85,15 @@ capability it has listed as `logic:unsupported`**. Returning a result for a case
 capability is declared `unsupported` is a conformance failure; returning `unsupported` for a case
 whose required capability is declared `conformsTo` is equally a failure.
 
-**Full-runtime conformance** is a distinguished top-level certification: a full runtime declares
-`logic:conformsTo` for every capability dimension, passes all corpus categories without any
+**Full-runtime conformance** is a distinguished top-level certification, and it is always **relative to
+a capability-registry version**: a full runtime declares `logic:conformsTo` for every capability
+dimension *in registry version v*, passes all corpus categories for that version without any
 `unsupported` exclusions, and is the only surface that may carry the full-runtime conformance label.
-A partial implementation that passes all cases within its declared capability set is conforming at
-its surface level, but it is not a full runtime and may not claim that label.
+The certificate names the registry version *v* it was issued against. A later registry version that adds
+a dimension does **not** retroactively invalidate a certificate issued against *v* — it defines a new,
+higher bar that a fresh certification may target. A partial implementation that passes all cases within
+its declared capability set is conforming at its surface level, but it is not a full runtime and may not
+claim that label.
 
 ## The two orthogonal correctness axes
 
@@ -199,8 +207,8 @@ it is never `ExactPreservation` unless a specific subfragment is explicitly cert
 
 The ledger aggregates these structured claims across all projections for a given program, giving the
 consumer a complete picture of which parts of the canonical reasoning are available at each target
-and under which guarantees. A result produced through a lowering that did not preserve every
-construct carries the `projection-loss-affected` computation-status in the reasoning result (as
+and under which guarantees. A result produced through a lowering that did not preserve every construct
+records the affected polarities and the unsupported-construct set in its `preservation` field (as
 defined in [`LOGIC-SEMANTICS.md`](LOGIC-SEMANTICS.md)), and the downstream consumer can inspect the
 ledger to see exactly which formulas were not evaluated.
 
@@ -288,7 +296,7 @@ without this constituting a defect. Asserting that a paraconsistent bundle is "i
 it contains a contradiction witness is a category error; asserting that it is "coherent" in the
 sense of being contradiction-free is false and misleading.
 
-A **coherence certificate** is a bounded, contract-scoped assertion with the following structure:
+The outcome of a coherence check is a contract-scoped assertion with the following structure:
 
 > No forbidden integrity violation and no undisclosed contradiction was found under contract **C**,
 > over certified fragment **F**, within resource budget **B**, against bundle hash **H**.
@@ -296,27 +304,52 @@ A **coherence certificate** is a bounded, contract-scoped assertion with the fol
 Each component of this assertion is load-bearing:
 
 - **Contract C** identifies the `logic:ReasoningContract` that defines what counts as a forbidden
-  violation and what is a permitted disclosed contradiction. A certificate issued under one contract
+  violation and what is a permitted disclosed contradiction. An assertion issued under one contract
   does not transfer to another.
-- **Fragment F** identifies the subset of the bundle that was actually inspected. A certificate
+- **Fragment F** identifies the subset of the bundle that was actually inspected. An assertion
   over fragment F makes no claim about constructs or graphs outside F.
 - **Budget B** records the resource bound (time, depth, or iteration limit) under which the check
-  ran. A certificate issued at budget B does not certify behaviour beyond that bound.
-- **Bundle hash H** content-addresses the exact artifact that was checked. A certificate is invalid
+  ran. An assertion issued at budget B does not certify behaviour beyond that bound.
+- **Bundle hash H** content-addresses the exact artifact that was checked. The assertion is invalid
   for any bundle whose canonical hash differs from H.
 
-A contradiction that is witnessed, typed, and disclosed in a dedicated test graph under a
-paraconsistent contract is **coherent**: it is exactly the behaviour the contract anticipates and the
-graph isolation rule ensures it does not contaminate the production closure. The certificate's
+**Two distinct artifacts record this outcome, differing precisely in how complete the inspection was —
+a completeness gate, because only a conclusive check can *certify* coherence:**
+
+- a **`logic:CoherenceCertificate`** — issued **only** when the governing check ran to
+  `evaluation = completed` with `completeness = complete-for-fragment` (see
+  [`LOGIC-SEMANTICS.md` § The reasoning result](LOGIC-SEMANTICS.md#the-reasoning-result)). It certifies
+  that, over fragment **F**, the inspection was *complete* and found no forbidden integrity violation
+  and no undisclosed contradiction. A complete check is the only thing entitled to the word *certify*;
+- a **`logic:CoherenceCheckAttestation`** — issued for a **bounded or incomplete** inspection
+  (`evaluation = budget-exhausted`, or `completeness = incomplete`). It records the strictly weaker fact
+  that *none was found within the completed search*. A budget-exhausted run produces an attestation,
+  **never** a certificate, because it cannot rule out a contradiction it never reached. An attestation
+  is honest evidence; it is not a certification of coherence.
+
+**Undisclosed contradiction, defined.** An *undisclosed* contradiction is one whose witness was **not
+captured, classified, and surfaced** under the governing contract — a glut the evaluation reached but did
+not record as a typed, attributable witness. Disclosure is about *capture and surfacing*, **not** about
+*where the data lives*: an intentional, production-world disagreement (two standpoints that genuinely
+conflict) is **disclosed** the moment its witness is captured and classified under the contract, even
+though it is real production data and not a `TestGraph` fixture. Conversely, a contradiction confined to
+a `TestGraph` is still *undisclosed* if no witness for it was ever captured. The `TestGraph` isolation
+rule governs *contamination of the production closure*; it does not define disclosure.
+
+A contradiction that is witnessed, typed, and disclosed under a paraconsistent contract is **coherent**:
+it is exactly the behaviour the contract anticipates, and — when it lives in a dedicated test graph —
+the graph isolation rule additionally ensures it does not contaminate the production closure. The
 assertion "no forbidden integrity violation" is satisfied because the contradiction is not forbidden
-under contract C — it is documented and confined. The certificate therefore does NOT mean "this
-bundle contains no contradiction." It means "every contradiction present is either permitted under
-the contract or has been reported as a violation."
+under contract C — it is captured and accounted for. The certificate therefore does NOT mean "this
+bundle contains no contradiction." It means "every contradiction present is either permitted under the
+contract and disclosed, or has been reported as a violation."
 
 The coherence certificate is the conformance artifact that closes the paraconsistency loop: a bundle
 that passes the paraconsistency corpus category, satisfies the graph isolation rule, and receives a
-coherence certificate under its governing contract is conforming with respect to contradiction
-handling, regardless of how many disclosed contradiction witnesses it contains.
+coherence **certificate** (from a complete check) under its governing contract is conforming with respect
+to contradiction handling, regardless of how many disclosed contradiction witnesses it contains. A bundle
+that has only an **attestation** from a bounded check is conforming *as far as the search reached*, and
+the gap is explicit rather than papered over.
 
 ## Constitutional alignment
 

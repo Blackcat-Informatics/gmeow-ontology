@@ -85,12 +85,16 @@ implemented against rather than only read:
 
 A reasoning request does not select a mode from a fixed list of profiles. It assembles a
 `logic:ReasoningContract`: a selection of values across orthogonal, independently-varying facets.
-The facets include the consequence relation (Horn, well-founded, stable-model, FDE/LP
-paraconsistent, …), the negation kind (classical, explicit, negation-as-failure), the closure
-assumption (open-world, predicate-scoped closed-world), the context index (unindexed,
-world-indexed, standpoint-indexed), the evolution mode (static, state-transition,
-transaction-path), the uncertainty handling (none, probabilistic, weighted, fuzzy), and others.
-Each facet is an open value vocabulary; new values join without a schema change.
+The facets include the model semantics (least-model/Horn, well-founded, stable-model, …), the
+negation operators (a *set* drawn from explicit/strong and default/negation-as-failure), the
+truth/inconsistency semantics (classical, or a Belnap-family configuration — algebra plus
+admissible-valuation policy plus designated set — yielding FDE, LP, K3, …), the closure assumption
+(a *map*: open-world, or predicate-scoped closed-world), the context index (a *multi-dimensional*
+index: unindexed, world-indexed, standpoint-indexed, time-indexed, path-indexed), the evolution
+mode (static, state-transition, transaction-path), the uncertainty handling (a *set* of measures:
+none, probabilistic, weighted, fuzzy), and others. There is no single "consequence" facet — what an
+entailment means is settled jointly by several of these. Each facet is an open value vocabulary;
+new values join without a schema change.
 
 The historical profile names — positive Horn, stratified negation-as-failure, well-founded,
 stable-model, procedural Prolog, probabilistic — survive as **presets**: named contracts with

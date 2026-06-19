@@ -44,7 +44,7 @@ These facets settle the meaning of an entailment.
 |---|---|---|---|
 | Formula fragment | single value | the syntactic class of admitted formulae | FOL · Horn · Datalog · existential-rules |
 | Model semantics | single value | which models are selected | classical · least-model · well-founded · stable-model |
-| Truth / inconsistency semantics | single value | how truth and contradiction are evaluated | classical · FDE · LP · other bilattice |
+| Truth / inconsistency semantics | **structured selection** | how truth and contradiction are evaluated | a Belnap-family configuration — algebra + admissible-valuation (gap/glut) policy + designated set — yielding FDE · LP · K3 · classical · … |
 | Negation operators | **set of values** | which "not" operators a program may use | explicit (strong) · default (negation-as-failure) · both |
 | Closure | **map: predicate / context → value** | what unstated facts mean, scoped per predicate or context | open · closed (per key) |
 | Context | **multi-dimensional index** | what a truth is relative to, on several axes at once | world · standpoint · time · path |
@@ -69,20 +69,36 @@ Three cardinalities deserve emphasis because the earlier framing flattened them:
 - **Uncertainty may carry several measures.** Probabilities and ranking/preference weights can
   coexist on the same result; the facet records the *set* of measures in force, not one.
 
-### Truth values and the designated-value policy
+### Truth values, admissible valuations, and the designated-value policy
 
-Paraconsistency is **not** a single interchangeable setting. It is modelled in two parts that vary
-independently:
+Paraconsistency is **not** a single interchangeable setting. It is modelled in **three** parts that
+vary independently:
 
 1. a **truth algebra** — the **Belnap bilattice** with the four values *true*, *false*, *both*
-   (over-determined / contradictory), and *neither* (under-determined / gap); and
-2. a **designated-value policy** — which of those values count as *designated*, i.e. which count
-   as "holding" for the purpose of consequence.
+   (over-determined / glut), and *neither* (under-determined / gap);
+2. an **admissible-valuation set** (the **gap/glut policy**) — which of the four values a valuation is
+   *allowed* to assign. Forbidding the gap, forbidding the glut, or forbidding both carves the classic
+   sub-logics out of the *same* algebra; and
+3. a **designated-value set** — which values count as *designated*, i.e. which count as "holding" for
+   the purpose of consequence.
 
-**FDE and LP share the same Belnap algebra but differ only in the designated-value policy** (they
-treat the *both* value differently when deciding what follows). Treating "FDE/LP" as one value
-erases exactly the choice that distinguishes them, so the contract separates the algebra from the
-policy and lets each be selected on its own.
+It is a **formal error** to say FDE and LP differ only in their designated values. In the standard
+presentations **both designate *true* and *both***; what distinguishes them is the
+**admissible-valuation set** — LP forbids the *neither* gap (every atom is at least true or false),
+while FDE admits all four values. K3 is the dual restriction (it forbids the *both* glut), and classical
+logic forbids both gap and glut. Only the three components together separate these related logics:
+
+| Logic | Admissible values | Designated |
+|---|---|---|
+| FDE | true, false, both, neither | true, both |
+| LP | true, false, both | true, both |
+| K3 | true, false, neither | true |
+| classical | true, false | true |
+
+The contract therefore selects the algebra, the admissible-valuation (gap/glut) policy, and the
+designated-value set **independently**. Collapsing any two of them — and in particular treating "FDE/LP"
+as one value, or reducing the FDE↔LP difference to the designated set — erases exactly the choices that
+distinguish these logics.
 
 ### Standing requests, not semantic selections
 

@@ -134,8 +134,8 @@ with the dropped characteristic recorded in the loss ledger.
 **8 — Too much logic, not enough practical features.** A frequent practitioner complaint is that
 OWL has rich classification but no *practical* computation: no native string concatenation, no
 date/time arithmetic, no basic math — pushing modellers into bolted-on rule extensions that break
-interoperability. `gmeow:logic` provides **native builtins**, profile-gated to the
-`logic:ProceduralPrologProfile`, and it draws the Constitution **Principle 12** line **explicitly**:
+interoperability. `gmeow:logic` provides **native builtins**, gated to the `logic:ProceduralPrologProfile`
+preset, and it draws the Constitution **Principle 12** line **explicitly**:
 
 - **Derivational builtins live *in* `logic:`** — string concatenation, date arithmetic, and basic
   math, e.g. `legalAge = year(now) − year(birth)` or `fullName = firstName + " " + lastName`. These
@@ -160,13 +160,13 @@ each greenfield feature paired with the primitive it declares.
    open-world `logic:` lane.
 4. **Native spatiotemporal (4D) and fluents.** The perdurant / process spine, `logic:Fluent`, and
    the frame seam give a real UFO-B (the answer to criticism 3).
-5. **Tractable, parallelizable, neuro-symbolic.** The `logic:` profiles supply the tractable lanes —
-   Datalog / Horn rule sets are PTIME and parallelizable — and the `logic:probability` /
+5. **Tractable, parallelizable, neuro-symbolic.** The certified-fragment presets supply the tractable
+   lanes — Datalog / Horn rule sets are PTIME and parallelizable — and the `logic:probability` /
    `logic:confidence` axes anchor the neuro-symbolic split: ML-approximate *classification* alongside
    symbolic *invariant enforcement* (see
-   [LOGIC-SEMANTICS.md § Semantic profiles](LOGIC-SEMANTICS.md#semantic-profiles)).
-6. **Integrated algorithmic / string primitives.** A `logic:Builtin` registry, gated to
-   `logic:ProceduralPrologProfile` (the answer to criticism 8).
+   [LOGIC-SEMANTICS.md § The reasoning contract](LOGIC-SEMANTICS.md#the-reasoning-contract)).
+6. **Integrated algorithmic / string primitives.** A `logic:Builtin` registry, gated to the
+   `logic:ProceduralPrologProfile` preset (the answer to criticism 8).
 
 ## Typed and contextual mereology, and holons
 
