@@ -126,7 +126,7 @@ file aligns to external vocabularies only, that unification is documented here r
 
 `tests/test_diagnostics.py` pins the load-bearing shape of the slice:
 
-- **Finding ⊑ Observation** — `gmeow:Finding` is an `owl:Class` (`gufo:Kind`) with a real
+- **Finding ⊑ Observation** — `gmeow:Finding` is an `owl:Class` (`gufo:SubKind`) with a real
   `rdfs:subClassOf gmeow:Observation` bridge.
 - **Role subproperties** — `gmeow:findingSeverity ⊑ gmeow:observationResult` (range
   `gmeow:DiagnosticSeverity`) and `gmeow:findingLocation ⊑ gmeow:observedFeature` (open range).

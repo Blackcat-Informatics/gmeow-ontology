@@ -64,12 +64,19 @@ def _g(name: str) -> URIRef:
     return URIRef(GMEOW + name)
 
 
-def test_finding_is_a_subclass_of_observation() -> None:
-    """A diagnostic IS an observation — a real subsumption bridge (Principle 9)."""
+def test_finding_is_a_subkind_of_observation() -> None:
+    """A diagnostic IS an observation — a rigid gufo:SubKind specialization.
+
+    Finding must be a gufo:SubKind, NOT a gufo:Kind: gmeow:Observation is itself a
+    gufo:Kind, and a Kind specializing a Kind is the OntoUML MixIden identity
+    conflict (every endurant instantiates exactly one Kind). The SubKind inherits
+    Observation's identity principle.
+    """
     g = _graph()
     finding = _g("Finding")
     assert (finding, RDF.type, OWL.Class) in g
-    assert (finding, RDF.type, URIRef(GUFO + "Kind")) in g
+    assert (finding, RDF.type, URIRef(GUFO + "SubKind")) in g
+    assert (finding, RDF.type, URIRef(GUFO + "Kind")) not in g
     assert (finding, RDFS.subClassOf, _g("Observation")) in g
 
 
