@@ -46,16 +46,18 @@ pub fn verify_gts_bundle(
     let result = verify_file_with_options(bytes, &options);
     let mut findings = Vec::new();
 
-    // Top-level verification errors from gmeow_gts. Most of these correspond to
-    // the count-based conditions below, but key-loading failures only appear
-    // here, so emit them explicitly as cryptographic/key failures.
+    // Top-level verification errors from gmeow_gts. These cover conditions not
+    // captured by the count-based fields below, especially key-loading failures.
     for error in &result.errors {
-        if is_key_loading_error(error) {
-            findings.push(
-                Finding::new(Severity::Error, "signature.invalid", error.clone())
-                    .with_tool("gts-verify"),
-            );
-        }
+        let code = if error.starts_with("cannot load trusted key")
+            || error.starts_with("cannot load embedded transport key")
+            || error.contains("transportKey")
+        {
+            "signature.invalid"
+        } else {
+            "signature.verify"
+        };
+        findings.push(Finding::new(Severity::Error, code, error.clone()).with_tool("gts-verify"));
     }
 
     // Missing signatures.
@@ -91,13 +93,12 @@ pub fn verify_gts_bundle(
         );
     }
 
-    // Signatures whose key could not be resolved. Emitted as a warning per the
-    // task mapping, but still treated as a hard failure by the short-circuit
-    // flag (`result.ok` is false when unverified signatures remain).
+    // Signatures whose key could not be resolved. Emitted as an error per the
+    // design doc; the verification run aborts when unresolved signatures remain.
     if result.unverified > 0 {
         findings.push(
             Finding::new(
-                Severity::Warning,
+                Severity::Error,
                 "signature.unverified",
                 format!(
                     "{} signature(s) unverified (key unavailable)",
@@ -200,12 +201,6 @@ fn read_armored_key(path: &str) -> Result<String, String> {
     std::fs::read_to_string(trimmed)
         .map(|s| s.trim().to_owned())
         .map_err(|e| format!("cannot read trusted key file {}: {e}", path))
-}
-
-fn is_key_loading_error(error: &str) -> bool {
-    error.starts_with("cannot load trusted key")
-        || error.starts_with("cannot load embedded transport key")
-        || error.contains("transportKey")
 }
 
 #[cfg(test)]
