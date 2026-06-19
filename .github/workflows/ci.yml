@@ -104,7 +104,7 @@ jobs:
       # (AC2/AC4 and the oracle≡engine parity gate run in every CI build).
       - name: Unit tests (pure Python)
         timeout-minutes: 60
-        run: uv run pytest -q -n auto --dist loadscope -m "not ci_only and not docker and not pyoxigraph_ci and not classic_cross_check"
+        run: uv run pytest -q -n auto --dist loadscope -m "not ci_only and not docker and not classic_cross_check"
 
   python-heavy:
     runs-on: ubuntu-latest
@@ -189,7 +189,7 @@ jobs:
       # so expensive module fixtures are not rebuilt once per xdist worker.
       - name: CI-heavy Python tests
         timeout-minutes: 60
-        run: uv run pytest -q -n auto --dist loadscope -m "ci_only and not docker and not pyoxigraph_ci and not classic_cross_check"
+        run: uv run pytest -q -n auto --dist loadscope -m "ci_only and not docker and not classic_cross_check"
 
       # Logic conformance suite: Python oracle self-consistency over the corpus.
       # Verifies that every committed golden artifact matches the live runner

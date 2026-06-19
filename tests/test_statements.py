@@ -1,17 +1,21 @@
 """Tests for the RDF-1.2-first statement-metadata pipeline (issues #28, #29).
 
 The pure-Python tests (DSL parse, reifier minting, the invariants, the OWL emit,
-the no-preview-language gate, and the hard-fail-without-Jena contract) run
-anywhere. The Jena-backed round-trip / no-drift / lossless checks run through a
-repo-local script so Make/CI can schedule Docker outside pytest.
+the no-preview-language gate, and the native lead-codec round-trip) run anywhere —
+the RDF 1.2 lead writer is the native ``gmeow-rdf`` Rust codec (#667), so the
+round-trip needs no Jena and no Docker. The Apache Jena oracle (no-drift /
+isomorphism cross-check) runs through a repo-local script so Make/CI can schedule
+Docker outside pytest, in the non-required ``classic-cross-check`` lane.
 """
 
 from __future__ import annotations
 
 from pathlib import Path
 
+import gmeow_rdf
 import pytest
-from rdflib import RDF, XSD, Literal, URIRef
+from rdflib import RDF, XSD, Graph, Literal, URIRef
+from rdflib.compare import isomorphic
 from rdflib.namespace import OWL
 
 from gmeow_tools import statements_docker_check
@@ -206,11 +210,34 @@ def test_no_preview_language_remains() -> None:
 
 
 # --------------------------------------------------------------------------- #
-# Pure-Python: the hard-fail-without-Jena contract (#28.3)
+# Native lead codec: the RDF 1.2 writer runs with no Jena / no Docker (#667)
 # --------------------------------------------------------------------------- #
 
 
-def test_rdf12_hard_fails_without_jena(
+def test_native_statement_codec_round_trips_without_jena() -> None:
+    """The native gmeow-rdf lead codec projects + normalizes losslessly, no Docker.
+
+    Proves the inversion (#667): the committed OWL downcast projects to the RDF 1.2
+    triple-term lead form and normalizes back isomorphic to the authored OWL — all
+    via the native Rust codec, with neither Apache Jena nor Docker on the path.
+    """
+    owl_text = STATEMENT_OWL_FILE.read_text(encoding="utf-8")
+    rdf12 = gmeow_rdf.project_statements_rdf12(owl_text)
+    assert "<<(" in rdf12 and "#reifies>" in rdf12, "expected RDF 1.2 triple terms"
+
+    owl_back = gmeow_rdf.normalize_rdf12_to_owl(rdf12)
+    authored = Graph().parse(data=owl_text, format="turtle")
+    round_trip = Graph().parse(data=owl_back, format="turtle")
+    assert isomorphic(authored, round_trip), "native RDF 1.2 round-trip is lossy"
+
+
+# --------------------------------------------------------------------------- #
+# The Jena ORACLE codec stays hard-fail (no degraded mode) — classic-cross-check
+# only. After #667 this is the cross-check engine, not the lead writer.
+# --------------------------------------------------------------------------- #
+
+
+def test_jena_oracle_codec_hard_fails_without_jena(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     import gmeow_tools.runner as runner
@@ -244,10 +271,10 @@ def test_statement_docker_check_reports_drift(monkeypatch: pytest.MonkeyPatch) -
 def test_statement_docker_check_lossless_negative_control(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """The Docker lane keeps the dropped-annotation negative control."""
+    """The Jena oracle lane keeps the dropped-annotation negative control."""
     monkeypatch.setattr(
         statements_docker_check,
-        "assert_lossless",
+        "assert_lossless_jena",
         lambda _owl, _path: ["OWL form has, RDF 1.2 lost: confidence"],
     )
 

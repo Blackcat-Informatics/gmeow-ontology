@@ -241,7 +241,7 @@ test: native-py ## Run the full test suite (incl. heavy ci_only export tests; ex
 	uv run pytest -n auto --dist loadscope -m "not classic_cross_check"
 
 test-fast: native-py ## Run the fast test suite (excludes ci_only, docker, CI-only pyoxigraph, and the classic-cross-check lane).
-	uv run pytest -n auto --dist loadscope -m "not ci_only and not docker and not pyoxigraph_ci and not classic_cross_check"
+	uv run pytest -n auto --dist loadscope -m "not ci_only and not docker and not classic_cross_check"
 
 test-docker: classic-cross-check ## Compatibility alias for the classic-cross-check (Docker/Java oracle) lane.
 
@@ -250,7 +250,7 @@ test-network: ## Run the network tests (LIVE endpoints) — MANUAL only, never i
 
 check: logic-py rdf-py ## Fast local gate: core ontology + transforms (native EL/DL reasoning — Java/Docker-free; classic-cross-check oracle lane runs separately).
 	$(MAKE) -j$$(nproc 2>/dev/null || echo 4) lint clippy rust-test validate check-generated constitution-check audit wikidata coverage acceptance reason-native verify mappings-only lint-alignment
-	uv run pytest -n auto --dist loadscope -m "not ci_only and not docker and not pyoxigraph_ci and not classic_cross_check"
+	uv run pytest -n auto --dist loadscope -m "not ci_only and not docker and not classic_cross_check"
 	$(GMEOW_DEV) compliance-report --from-passing-check
 	@echo "✓ all checks passed (Docker-free, Java-free)"
 
