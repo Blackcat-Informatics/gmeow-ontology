@@ -15,8 +15,8 @@ keywords = ["rdf", "rdf-12", "gts", "oxigraph", "diagnostics"]
 path = "src/lib.rs"
 
 [features]
-default = []
-gts = ["dep:ciborium", "dep:gmeow-gts"]
+default = ["gts"]
+gts = ["dep:ciborium", "dep:gmeow-gts", "dep:oxigraph", "oxigraph", "gmeow-gts/oxigraph-adapter"]
 oxigraph = ["dep:oxigraph"]
 
 [dependencies]
