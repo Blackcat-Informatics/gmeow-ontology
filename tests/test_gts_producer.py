@@ -60,6 +60,86 @@ def _frame_codecs(data: bytes) -> list[tuple[str, list[str]]]:
     return frames
 
 
+def _reps(folded: object) -> dict[str, bytes]:
+    """Map each blob's ``rep`` to its decoded payload in a folded bundle."""
+    out: dict[str, bytes] = {}
+    for digest, meta in folded.blob_meta.items():  # type: ignore[attr-defined]
+        rep = meta.get("rep")
+        payload = folded.blobs.get(digest)  # type: ignore[attr-defined]
+        if rep is not None and payload is not None:
+            out[str(rep)] = payload
+    return out
+
+
+def test_report_blobs_are_additive_and_do_not_perturb_the_graph() -> None:
+    """Embedding report blobs leaves the snapshot graph byte-identical (#654)."""
+    source = _sample_graph()
+    sarif = b'{"version":"2.1.0"}'
+    rdf = b"<https://ex/f> <https://ex/p> <https://ex/o> <https://ex/g> .\n"
+
+    base = compile_gts(source)
+    with_report = compile_gts(
+        source,
+        report_blobs=[
+            (sarif, "application/sarif+json", "gmeow:report/sarif"),
+            (rdf, "application/n-quads", "gmeow:report/rdf"),
+        ],
+    )
+
+    # The folded graph is identical with and without the report — purely additive.
+    assert to_nquads(read(base)) == to_nquads(read(with_report))
+
+    # The report payloads are retrievable by rep from the embedded bundle.
+    reps = _reps(read(with_report))
+    assert reps["gmeow:report/sarif"] == sarif
+    assert reps["gmeow:report/rdf"] == rdf
+    # The base bundle carries no report blobs.
+    assert "gmeow:report/sarif" not in _reps(read(base))
+
+
+def test_snapshot_content_id_is_stable_and_blob_independent() -> None:
+    """The self-attestation content id is a pure function of the snapshot (#654)."""
+    from gmeow_tools.gts_producer import _Builder
+
+    def _named_graph() -> Graph:
+        # No blank nodes: real usage canonicalizes first, so a bnode-free graph
+        # keeps the content id stable without to_canonical_graph here.
+        g = Graph()
+        g.add((URIRef(EX + "Cat"), RDFS.label, Literal("Cat", lang="en")))
+        return g
+
+    def _cid() -> str:
+        builder = _Builder()
+        builder.add_graph(_named_graph())
+        return builder.snapshot_content_id()
+
+    cid = _cid()
+    assert cid.startswith("blake3:")
+    assert cid == _cid()
+
+
+def test_signed_bundle_carries_the_report_under_the_signature() -> None:
+    """A signed feedback bundle still carries the report (tamper-evident, #654)."""
+    import base64
+
+    import gts
+
+    signer = gts.Signer.generate("gmeow-feedback-test")
+    armor = base64.b64encode(signer.public_raw).decode("ascii")
+    sarif = b'{"version":"2.1.0"}'
+
+    signed = compile_gts(
+        _sample_graph(),
+        report_blobs=[(sarif, "application/sarif+json", "gmeow:report/sarif")],
+        signer=signer,
+        public_key_armor=armor,
+    )
+
+    folded = read(signed)
+    assert [d.code for d in folded.diagnostics] == []
+    assert _reps(folded)["gmeow:report/sarif"] == sarif
+
+
 def test_producer_round_trip_isomorphic() -> None:
     """RDF → GTS → fold → N-Quads → RDF reproduces an isomorphic graph."""
     source = _sample_graph()
