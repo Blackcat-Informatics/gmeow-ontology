@@ -20,8 +20,11 @@
 //! the committed artifacts and the drift gate (RDFC-1.0 isomorphism) stays green.
 
 use gmeow_rdf::turtle::{emit_quad, emit_reifier, emit_resource, emit_term, rule_iri};
-use gmeow_rdf::{RdfAnnotation, RdfQuad, RdfReifier, RdfStore, RdfTerm, RdfTriple};
+use gmeow_rdf::{RdfAnnotation, RdfLiteral, RdfQuad, RdfReifier, RdfStore, RdfTerm, RdfTriple};
+use oxigraph::model::vocab::xsd;
+use oxigraph::model::{Literal, Term};
 
+use crate::encode::decode_nemo_term;
 use crate::reason::el::InferredAxiom;
 use crate::reason::ReasonResult;
 
@@ -241,15 +244,30 @@ pub fn build_explanations_ttl(result: &ReasonResult) -> Result<String, String> {
 
 /// Build the object term of a premise triple.
 ///
-/// Premise objects arrive as the engine's N3 display string: an IRI is wrapped
-/// `<iri>` (strip the brackets back to a bare IRI term); anything else (a
-/// literal display form) is kept verbatim as a literal so the proof skeleton
-/// stays parseable.
+/// Premise objects arrive as the engine's N-Triples display string. Re-decode it
+/// to the typed term so each kind round-trips correctly in the proof skeleton: an
+/// IRI (`<iri>`) becomes a bare IRI term, and a literal (`"lex"`, `"lex"@lang`,
+/// `"lex"^^<dt>`) stays a literal — emitting it as an IRI would produce invalid
+/// Turtle. A form the decoder cannot read (it never occurs as a subsumption
+/// premise object) falls back to the bare-IRI unwrap.
 fn premise_object(display: &str) -> RdfTerm {
-    if let Some(inner) = display.strip_prefix('<').and_then(|s| s.strip_suffix('>')) {
-        RdfTerm::iri(inner.to_owned())
+    match decode_nemo_term(display) {
+        Ok(Term::NamedNode(node)) => RdfTerm::iri(node.into_string()),
+        Ok(Term::Literal(literal)) => RdfTerm::literal(rdf_literal_from_oxigraph(&literal)),
+        _ => iri_term(display),
+    }
+}
+
+/// Convert an oxigraph [`Literal`] to the model [`RdfLiteral`], preserving a
+/// language tag or a non-`xsd:string` datatype so [`emit_term`] re-serializes it
+/// to the same Turtle literal form.
+fn rdf_literal_from_oxigraph(literal: &Literal) -> RdfLiteral {
+    if let Some(language) = literal.language() {
+        RdfLiteral::language_tagged(literal.value(), language)
+    } else if literal.datatype() == xsd::STRING {
+        RdfLiteral::simple(literal.value())
     } else {
-        RdfTerm::iri(display.to_owned())
+        RdfLiteral::typed(literal.value(), literal.datatype().as_str())
     }
 }
 
@@ -439,6 +457,26 @@ mod tests {
                 "<http://example.org/B>".to_owned(),
             )],
         }
+    }
+
+    #[test]
+    fn premise_object_preserves_iris_and_literals() {
+        // An IRI premise object round-trips to a bare IRI term.
+        assert_eq!(
+            premise_object("<http://example.org/B>"),
+            RdfTerm::iri("http://example.org/B")
+        );
+        // A typed literal stays a literal — emitting it as an IRI would produce
+        // invalid Turtle in the proof skeleton (#666 / CodeRabbit review).
+        assert_eq!(
+            emit_term(&premise_object(
+                "\"42\"^^<http://www.w3.org/2001/XMLSchema#integer>"
+            )),
+            "\"42\"^^<http://www.w3.org/2001/XMLSchema#integer>"
+        );
+        // Language-tagged and simple (xsd:string) literals likewise round-trip.
+        assert_eq!(emit_term(&premise_object("\"hi\"@en")), "\"hi\"@en");
+        assert_eq!(emit_term(&premise_object("\"plain\"")), "\"plain\"");
     }
 
     fn result_with(inferred: Vec<InferredAxiom>, consistent: bool) -> ReasonResult {
