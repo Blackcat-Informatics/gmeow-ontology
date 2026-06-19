@@ -1,13 +1,23 @@
 """Reasoning pipeline over the GMEOW ontology, via pinned ROBOT (Docker).
 
+**classic-cross-check only.** This module is the lane's ROBOT/Docker reasoning
+plumbing — the *sole* Java+Docker reasoning surface (Principle 18). It is NOT on
+the primary path: ``make check`` and the required ``quality`` gate reason
+natively (``reason-native`` / ``gmeow reason --mode native``, Java/Docker-free),
+and every pytest that drives these functions is ``docker``/``classic_cross_check``
+marked or mocks them out. The only live callers are the classic-cross-check lane
+(``classic_cross_check.py``), the maintainer ``gmeow-dev`` docker subcommands, and
+the divergence-ledger oracle — never normal repo use.
+
 The pipeline always *merges the import closure into a single ontology first*,
 then reasons/validates that product. This is deliberate: ROBOT's
 ``validate-profile`` reports spurious "undeclared entity" violations when terms
 are declared in a sibling imported module rather than the local import closure;
 collapsing to one ontology resolves it (verified against the skeleton).
 
-Reasoner choice follows the plan: ELK for fast incoherence checks in CI,
-HermiT for sound-and-complete OWL 2 DL consistency at release time.
+Reasoner choice follows the plan: ELK for fast incoherence checks, HermiT for
+sound-and-complete OWL 2 DL consistency — both as classic oracles the native
+authority is cross-checked against, not as a gate dependency.
 """
 
 from __future__ import annotations
