@@ -54,14 +54,36 @@ fn strip_angle(s: &str) -> &str {
         .unwrap_or(s)
 }
 
-/// Whether a string is usable as a SARIF `artifactLocation.uri`: a syntactically
-/// valid URI reference, i.e. non-empty, no embedded whitespace, and not a quoted
-/// RDF literal. Composite annotations such as `path <…>` / `value "x"` fail this
-/// and are surfaced as logical locations instead of corrupting the URI.
+/// Whether a string holds a URI *scheme* (`https:`, `gts:`, …) per RFC 3986
+/// (`ALPHA *( ALPHA / DIGIT / "+" / "-" / "." ) ":"`). A repo-relative path
+/// (`core/x.ttl`) has none.
+fn has_uri_scheme(candidate: &str) -> bool {
+    let bytes = candidate.as_bytes();
+    if bytes.first().is_none_or(|b| !b.is_ascii_alphabetic()) {
+        return false;
+    }
+    for (i, &b) in bytes.iter().enumerate() {
+        if b == b':' {
+            return i > 0;
+        }
+        if !(b.is_ascii_alphanumeric() || b == b'+' || b == b'-' || b == b'.') {
+            return false;
+        }
+    }
+    false
+}
+
+/// Whether a string is usable as a SARIF `artifactLocation.uri`: a **repo-relative**
+/// reference — non-empty, no embedded whitespace, not a quoted RDF literal, and
+/// carrying no URI scheme. GitHub code-scanning requires artifact URIs to match
+/// the checkout's `file` scheme, so an absolute ontology IRI (`https://…`) is a
+/// *logical* location, not a physical artifact; composite annotations such as
+/// `path <…>` / `value "x"` likewise fail this and surface as logical locations.
 fn is_artifact_uri(candidate: &str) -> bool {
     !candidate.is_empty()
         && !candidate.starts_with('"')
         && !candidate.chars().any(char::is_whitespace)
+        && !has_uri_scheme(candidate)
 }
 
 /// The artifact URI a location points at: a concrete file path when present,
@@ -492,7 +514,8 @@ fn sarif_location(location: &Location) -> Value {
     // (e.g. a SHACL result `path`/`value`) surfaced rather than dropped.
     let mut logical = sarif_logical_locations(location);
     if let Some(annotation) = location.logical.as_deref() {
-        if !is_artifact_uri(strip_angle(annotation)) {
+        let annotation = strip_angle(annotation);
+        if !is_artifact_uri(annotation) {
             logical.push(json!({ "fullyQualifiedName": annotation }));
         }
     }
@@ -554,8 +577,10 @@ mod tests {
     fn sarif_emits_wire_coords_fingerprint_and_artifacts() {
         let mut finding =
             Finding::new(Severity::Error, "shacl.MinCount", "missing property").with_tool("shacl");
+        // A repo-relative bundle path (the valid physical artifact URI) carrying
+        // the GTS wire coordinates as logical locations.
         finding.add_location(
-            Location::new(None, None, None, Some("gts:quad".to_owned()))
+            Location::new(Some("bundle.gts".to_owned()), None, None, None)
                 .with_gts_quad(42)
                 .with_gts_segment(2),
         );
@@ -571,6 +596,11 @@ mod tests {
             .expect("fingerprint present");
         assert_eq!(fp.len(), 16);
 
+        // The physical artifact URI is the repo-relative bundle path.
+        assert_eq!(
+            result["locations"][0]["physicalLocation"]["artifactLocation"]["uri"],
+            "bundle.gts"
+        );
         // The wire coordinates surface as logical locations + properties.
         let logical = &result["locations"][0]["logicalLocations"];
         assert_eq!(logical[0]["kind"], "gts:quad");
@@ -581,7 +611,7 @@ mod tests {
         // The referenced artifact is listed once at the run level.
         assert_eq!(
             value["runs"][0]["artifacts"][0]["location"]["uri"],
-            "gts:quad"
+            "bundle.gts"
         );
     }
 
@@ -670,15 +700,18 @@ mod tests {
     }
 
     #[test]
-    fn sarif_uris_are_bare_and_annotations_become_logical_locations() {
-        // A focus-node IRI stored bare must emit a valid `artifactLocation.uri`
-        // (no angle brackets — GitHub code-scanning rejects `<https://…>`), while
-        // a non-URI annotation like `path <iri>` must surface as a logical
-        // location instead of corrupting the URI. Regression for #666.
+    fn sarif_artifact_uris_are_repo_relative_and_iris_are_logical() {
+        // GitHub code-scanning requires `artifactLocation.uri` to be a repo-relative
+        // file reference: it rejects angle-bracketed IRIs AND absolute schemes
+        // ("scheme https did not match checkout scheme file"). So the repo `.ttl`
+        // path is the physical artifact, while the focus-node IRI and a SHACL
+        // `path <iri>` annotation are logical locations. Regression for #666.
         let mut finding =
             Finding::new(Severity::Error, "shacl.MinCount", "missing property").with_tool("shacl");
+        // Primary: repo-relative file path (physical) carrying the focus IRI as a
+        // logical anchor.
         finding.add_location(Location::new(
-            None,
+            Some("core/ai/examples/grounded-claim.ttl".to_owned()),
             None,
             None,
             Some("https://blackcatinformatics.ca/gmeow/examples/ai/claim".to_owned()),
@@ -695,9 +728,14 @@ mod tests {
         let value: Value = serde_json::from_str(&to_sarif(&report).unwrap()).unwrap();
         let result = &value["runs"][0]["results"][0];
 
-        // Primary location: a bare-IRI artifact URI, no angle brackets.
+        // Primary physical URI is the repo-relative file, not the absolute IRI.
         assert_eq!(
             result["locations"][0]["physicalLocation"]["artifactLocation"]["uri"],
+            "core/ai/examples/grounded-claim.ttl"
+        );
+        // The focus IRI rides along as a logical location.
+        assert_eq!(
+            result["locations"][0]["logicalLocations"][0]["fullyQualifiedName"],
             "https://blackcatinformatics.ca/gmeow/examples/ai/claim"
         );
         // The composite annotation is a logical location, not a physical URI.
@@ -711,11 +749,42 @@ mod tests {
             "path https://blackcatinformatics.ca/gmeow/groundedIn"
         );
 
-        // No emitted URI anywhere carries an angle bracket.
+        // No emitted artifact URI carries an angle bracket OR an absolute scheme.
         let serialized = to_sarif(&report).unwrap();
         assert!(
-            !serialized.contains("\"uri\": \"<") && !serialized.contains("\"uri\":\"<"),
-            "an angle-bracketed URI leaked into the SARIF output"
+            !serialized.contains("\"uri\": \"<"),
+            "angle-bracketed URI leaked"
         );
+        for run in value["runs"].as_array().unwrap() {
+            for kind in ["results", "artifacts"] {
+                collect_uris(&run[kind]).iter().for_each(|u| {
+                    assert!(
+                        !has_uri_scheme(u),
+                        "absolute-scheme URI leaked into artifactLocation: {u}"
+                    );
+                });
+            }
+        }
+    }
+
+    /// Recursively collect every `"uri"` string value under a JSON node.
+    fn collect_uris(node: &Value) -> Vec<String> {
+        let mut out = Vec::new();
+        match node {
+            Value::Object(map) => {
+                for (k, v) in map {
+                    if k == "uri" {
+                        if let Some(s) = v.as_str() {
+                            out.push(s.to_owned());
+                        }
+                    } else {
+                        out.extend(collect_uris(v));
+                    }
+                }
+            }
+            Value::Array(items) => items.iter().for_each(|v| out.extend(collect_uris(v))),
+            _ => {}
+        }
+        out
     }
 }
