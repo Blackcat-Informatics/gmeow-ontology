@@ -1,14 +1,48 @@
-"""Jena/ROBOT-backed statement checks kept out of pytest."""
+"""Jena/ROBOT-backed statement checks kept out of pytest.
+
+The ``classic-cross-check`` Jena oracle for the **native** RDF 1.2 statement lead
+writer (#667). The committed ``gmeow.rdf12.ttl`` is produced natively by the
+gmeow-rdf Rust codec on the primary path; this lane re-reads it with **Apache
+Jena** and proves the two engines agree by RDF 1.2 graph isomorphism. The lossless
+check therefore binds to Jena directly (:func:`assert_lossless_jena`), NOT to the
+native :func:`gmeow_tools.statement_compile.assert_lossless` — otherwise the
+"oracle" would silently re-run the native engine and prove nothing.
+"""
 
 from __future__ import annotations
 
+from pathlib import Path
+
 from rdflib import RDF, Graph
+from rdflib.compare import graph_diff, isomorphic
 from rdflib.namespace import OWL
 
 from gmeow_tools.config import STATEMENT_RDF12_FILE
 from gmeow_tools.generator import run
-from gmeow_tools.statement_compile import assert_lossless, emit_owl
+from gmeow_tools.rdf12 import normalize_rdf12_to_owl
+from gmeow_tools.statement_compile import emit_owl
 from gmeow_tools.statement_dsl import load_statement_dsl
+
+
+def assert_lossless_jena(owl_graph: Graph, rdf12_path: Path) -> list[str]:
+    """Prove the RDF 1.2 form round-trips to the OWL form **via Jena** (empty == ok).
+
+    The independent Java/Docker oracle: it normalizes the committed
+    (native-gmeow-rdf-written) RDF 1.2 artifact back to OWL normal form with Apache
+    Jena and compares it to the authored OWL graph by isomorphism. Binding to Jena
+    here (not the native codec) is what makes this lane a genuine cross-engine
+    check of the native lead writer (#667).
+    """
+    normalized = normalize_rdf12_to_owl(rdf12_path)
+    if isomorphic(owl_graph, normalized):
+        return []
+    _, only_owl, only_rdf12 = graph_diff(owl_graph, normalized)
+    problems: list[str] = []
+    for triple in sorted(only_owl, key=str):
+        problems.append(f"OWL form has, RDF 1.2 lost: {triple}")
+    for triple in sorted(only_rdf12, key=str):
+        problems.append(f"RDF 1.2 form has, OWL lacks: {triple}")
+    return problems
 
 
 def assert_committed_artifacts_match_dsl() -> None:
@@ -27,9 +61,9 @@ def assert_committed_artifacts_match_dsl() -> None:
 
 
 def assert_committed_rdf12_round_trips_to_owl() -> None:
-    """The committed RDF 1.2 lead artifact normalizes back to the OWL form."""
+    """The committed RDF 1.2 lead artifact normalizes back to the OWL form (Jena)."""
     owl = emit_owl(load_statement_dsl())
-    problems = assert_lossless(owl, STATEMENT_RDF12_FILE)
+    problems = assert_lossless_jena(owl, STATEMENT_RDF12_FILE)
     if problems:
         raise AssertionError(
             "committed RDF 1.2 artifact is not lossless:\n  " + "\n  ".join(problems)
@@ -37,7 +71,7 @@ def assert_committed_rdf12_round_trips_to_owl() -> None:
 
 
 def assert_lossless_gate_detects_a_dropped_annotation() -> None:
-    """The lossless gate must report a deliberately removed annotation."""
+    """The Jena lossless gate must report a deliberately removed annotation."""
     owl = emit_owl(load_statement_dsl())
     dropped = next((t for t in owl if str(t[1]).endswith("/confidence")), None)
     if dropped is None:
@@ -45,7 +79,7 @@ def assert_lossless_gate_detects_a_dropped_annotation() -> None:
             "negative control setup failed: no confidence annotation found"
         )
     owl.remove(dropped)
-    problems = assert_lossless(owl, STATEMENT_RDF12_FILE)
+    problems = assert_lossless_jena(owl, STATEMENT_RDF12_FILE)
     if not problems or not any("confidence" in p for p in problems):
         raise AssertionError("lossless gate did not report the dropped confidence")
 
