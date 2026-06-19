@@ -10,30 +10,6 @@
 
 # --- derivation proof skeletons ---
 [] a gmeow:Derivation ;
-   gmeow:concludes << <http://purl.org/nemo/gufo#isCollectionMemberOf> <http://www.w3.org/2000/01/rdf-schema#subPropertyOf> <http://purl.org/nemo/gufo#isProperPartOf> >> ;
-   gmeow:viaRule <https://blackcatinformatics.ca/gmeow/rule/el%3AsubPropertyOf-transitive> ;
-   gmeow:inferenceKind gmeow:Deduction ;
-   rdfs:label "derivation of an inferred axiom"@en ;
-   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/imports> .
-[] a gmeow:Derivation ;
-   gmeow:concludes << <http://purl.org/nemo/gufo#isComponentOf> <http://www.w3.org/2000/01/rdf-schema#subPropertyOf> <http://purl.org/nemo/gufo#isProperPartOf> >> ;
-   gmeow:viaRule <https://blackcatinformatics.ca/gmeow/rule/el%3AsubPropertyOf-transitive> ;
-   gmeow:inferenceKind gmeow:Deduction ;
-   rdfs:label "derivation of an inferred axiom"@en ;
-   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/imports> .
-[] a gmeow:Derivation ;
-   gmeow:concludes << <http://purl.org/nemo/gufo#isSubCollectionOf> <http://www.w3.org/2000/01/rdf-schema#subPropertyOf> <http://purl.org/nemo/gufo#isProperPartOf> >> ;
-   gmeow:viaRule <https://blackcatinformatics.ca/gmeow/rule/el%3AsubPropertyOf-transitive> ;
-   gmeow:inferenceKind gmeow:Deduction ;
-   rdfs:label "derivation of an inferred axiom"@en ;
-   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/imports> .
-[] a gmeow:Derivation ;
-   gmeow:concludes << <http://purl.org/nemo/gufo#isSubQuantityOf> <http://www.w3.org/2000/01/rdf-schema#subPropertyOf> <http://purl.org/nemo/gufo#isProperPartOf> >> ;
-   gmeow:viaRule <https://blackcatinformatics.ca/gmeow/rule/el%3AsubPropertyOf-transitive> ;
-   gmeow:inferenceKind gmeow:Deduction ;
-   rdfs:label "derivation of an inferred axiom"@en ;
-   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/imports> .
-[] a gmeow:Derivation ;
    gmeow:concludes << <http://data.europa.eu/esco/model#Occupation> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://data.europa.eu/esco/model#Occupation> >> ;
    gmeow:viaRule <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    gmeow:inferenceKind gmeow:Deduction ;
@@ -1755,3 +1731,27 @@
    gmeow:inferenceKind gmeow:Deduction ;
    rdfs:label "derivation of an inferred axiom"@en ;
    gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/alignments> .
+[] a gmeow:Derivation ;
+   gmeow:concludes << <http://purl.org/nemo/gufo#isCollectionMemberOf> <http://www.w3.org/2000/01/rdf-schema#subPropertyOf> <http://purl.org/nemo/gufo#isProperPartOf> >> ;
+   gmeow:viaRule <https://blackcatinformatics.ca/gmeow/rule/el%3AsubPropertyOf-transitive> ;
+   gmeow:inferenceKind gmeow:Deduction ;
+   rdfs:label "derivation of an inferred axiom"@en ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/imports> .
+[] a gmeow:Derivation ;
+   gmeow:concludes << <http://purl.org/nemo/gufo#isComponentOf> <http://www.w3.org/2000/01/rdf-schema#subPropertyOf> <http://purl.org/nemo/gufo#isProperPartOf> >> ;
+   gmeow:viaRule <https://blackcatinformatics.ca/gmeow/rule/el%3AsubPropertyOf-transitive> ;
+   gmeow:inferenceKind gmeow:Deduction ;
+   rdfs:label "derivation of an inferred axiom"@en ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/imports> .
+[] a gmeow:Derivation ;
+   gmeow:concludes << <http://purl.org/nemo/gufo#isSubCollectionOf> <http://www.w3.org/2000/01/rdf-schema#subPropertyOf> <http://purl.org/nemo/gufo#isProperPartOf> >> ;
+   gmeow:viaRule <https://blackcatinformatics.ca/gmeow/rule/el%3AsubPropertyOf-transitive> ;
+   gmeow:inferenceKind gmeow:Deduction ;
+   rdfs:label "derivation of an inferred axiom"@en ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/imports> .
+[] a gmeow:Derivation ;
+   gmeow:concludes << <http://purl.org/nemo/gufo#isSubQuantityOf> <http://www.w3.org/2000/01/rdf-schema#subPropertyOf> <http://purl.org/nemo/gufo#isProperPartOf> >> ;
+   gmeow:viaRule <https://blackcatinformatics.ca/gmeow/rule/el%3AsubPropertyOf-transitive> ;
+   gmeow:inferenceKind gmeow:Deduction ;
+   rdfs:label "derivation of an inferred axiom"@en ;
+   gmeow:inWorld <https://blackcatinformatics.ca/gmeow/graph/imports> .
