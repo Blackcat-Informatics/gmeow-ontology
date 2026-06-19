@@ -1,0 +1,23 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+
+# Maturin build configuration for the gmeow_gts_producer Python extension.
+# Run: VIRTUAL_ENV="$(pwd)/.venv" uvx maturin develop --manifest-path crates/gts-producer/Cargo.toml
+
+[build-system]
+requires = ["maturin>=1.7,<2"]
+build-backend = "maturin"
+
+[project]
+name = "gmeow-gts-producer"
+version = "0.1.0"
+description = "GMEOW Rust-native GTS producer PyO3 bindings (#645)"
+requires-python = ">=3.13"
+license = { text = "AGPL-3.0-only" }
+authors = [{ name = "Blackcat Informatics® Inc." }]
+keywords = ["rdf", "gts", "producer", "gmeow"]
+
+[tool.maturin]
+module-name = "gmeow_gts_producer"
+features = ["pyo3/extension-module"]
+python-requires = ">=3.13"

@@ -1233,6 +1233,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "gmeow-gts-producer"
+version = "0.1.0"
+dependencies = [
+ "ciborium",
+ "gmeow-gts",
+ "gmeow-rdf",
+ "oxigraph",
+ "pyo3",
+]
+
+[[package]]
 name = "gmeow-logic"
 version = "0.1.0"
 dependencies = [

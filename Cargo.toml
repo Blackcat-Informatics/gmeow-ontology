@@ -7,6 +7,7 @@
 # validate plus shared diagnostics/RDF glue.
 members = [
     "crates/diagnostics",
+    "crates/gts-producer",
     "crates/logic",
     "crates/rdf",
     "crates/shacl",
