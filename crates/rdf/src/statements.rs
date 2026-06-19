@@ -25,9 +25,10 @@ use oxigraph::io::RdfFormat;
 use oxigraph::store::Store;
 
 use crate::oxigraph::OxigraphStore;
-use crate::{RdfDiagnostic, RdfStore, RdfTerm};
+use crate::{RdfDiagnostic, RdfLiteral, RdfStore, RdfTerm, RdfTriple};
 
 const OWL_AXIOM: &str = "http://www.w3.org/2002/07/owl#Axiom";
+const XSD_STRING: &str = "http://www.w3.org/2001/XMLSchema#string";
 const OWL_ANNOTATED_SOURCE: &str = "http://www.w3.org/2002/07/owl#annotatedSource";
 const OWL_ANNOTATED_PROPERTY: &str = "http://www.w3.org/2002/07/owl#annotatedProperty";
 const OWL_ANNOTATED_TARGET: &str = "http://www.w3.org/2002/07/owl#annotatedTarget";
@@ -44,14 +45,37 @@ fn load_store(ttl: &str) -> Result<Store, RdfDiagnostic> {
     Ok(store)
 }
 
+/// Drop a redundant `^^xsd:string` datatype so a simple literal serializes bare.
+///
+/// oxigraph (RDF 1.1) types a bare `"x"` as `xsd:string`; the authored OWL graph
+/// (rdflib) keeps it as a plain literal, and rdflib's isomorphism treats the two
+/// as distinct. Jena and pyoxigraph both emit `xsd:string` literals bare — match
+/// that so the round-trip proof against the authored OWL holds. Applied
+/// recursively so triple-term components are normalized too.
+fn simplify_term(term: &RdfTerm) -> RdfTerm {
+    match term {
+        RdfTerm::Literal(literal)
+            if literal.language.is_none() && literal.datatype.as_deref() == Some(XSD_STRING) =>
+        {
+            RdfTerm::literal(RdfLiteral::simple(literal.lexical_form.clone()))
+        }
+        RdfTerm::Triple(triple) => RdfTerm::triple(RdfTriple::new(
+            simplify_term(&triple.subject),
+            triple.predicate.clone(),
+            simplify_term(&triple.object),
+        )),
+        other => other.clone(),
+    }
+}
+
+/// Serialize a term to Turtle, normalizing simple literals first.
+fn emit(term: &RdfTerm) -> String {
+    crate::emit_term(&simplify_term(term))
+}
+
 /// Emit an RDF 1.2 triple term `<<( <s> <p> <o> )>>`.
 fn emit_triple_term(subject: &RdfTerm, predicate: &str, object: &RdfTerm) -> String {
-    format!(
-        "<<( {} <{}> {} )>>",
-        crate::emit_term(subject),
-        predicate,
-        crate::emit_term(object)
-    )
+    format!("<<( {} <{}> {} )>>", emit(subject), predicate, emit(object))
 }
 
 /// Require an IRI term (predicates must be IRIs).
@@ -142,21 +166,21 @@ pub fn project_owl_to_rdf12(owl_ttl: &str) -> Result<String, RdfDiagnostic> {
         // ?s ?p ?o .
         out.push_str(&format!(
             "{} <{}> {} .\n",
-            crate::emit_term(source),
+            emit(source),
             property_iri,
-            crate::emit_term(target)
+            emit(target)
         ));
 
         // ?axiom rdf:reifies <<( ?s ?p ?o )>> ; ?annProp ?annVal ; … .
         let mut annotations: Vec<(String, String)> = acc
             .annotations
             .iter()
-            .map(|(predicate, object)| (predicate.clone(), crate::emit_term(object)))
+            .map(|(predicate, object)| (predicate.clone(), emit(object)))
             .collect();
         annotations.sort();
         let mut line = format!(
             "{} <{}> {}",
-            crate::emit_term(subject),
+            emit(subject),
             RDF_REIFIES,
             emit_triple_term(source, &property_iri, target)
         );
@@ -231,25 +255,20 @@ pub fn normalize_rdf12_to_owl(rdf12_ttl: &str) -> Result<String, RdfDiagnostic> 
         let (s, p, o) = (&reified.subject, &reified.predicate, &reified.object);
 
         // ?s ?p ?o .
-        out.push_str(&format!(
-            "{} <{}> {} .\n",
-            crate::emit_term(s),
-            p,
-            crate::emit_term(o)
-        ));
+        out.push_str(&format!("{} <{}> {} .\n", emit(s), p, emit(o)));
 
         // ?reifier a owl:Axiom ; owl:annotated* … ; ?annProp ?annVal .
         let mut properties: Vec<(String, String)> = vec![
             (RDF_TYPE.to_owned(), format!("<{OWL_AXIOM}>")),
-            (OWL_ANNOTATED_SOURCE.to_owned(), crate::emit_term(s)),
+            (OWL_ANNOTATED_SOURCE.to_owned(), emit(s)),
             (OWL_ANNOTATED_PROPERTY.to_owned(), format!("<{p}>")),
-            (OWL_ANNOTATED_TARGET.to_owned(), crate::emit_term(o)),
+            (OWL_ANNOTATED_TARGET.to_owned(), emit(o)),
         ];
         for (predicate, object) in &acc.annotations {
-            properties.push((predicate.clone(), crate::emit_term(object)));
+            properties.push((predicate.clone(), emit(object)));
         }
         properties.sort();
-        let mut line = crate::emit_term(&acc.subject);
+        let mut line = emit(&acc.subject);
         for (index, (predicate, object)) in properties.iter().enumerate() {
             let sep = if index == 0 { " " } else { " ;\n   " };
             line.push_str(&format!("{sep}<{predicate}> {object}"));

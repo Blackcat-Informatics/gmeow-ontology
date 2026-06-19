@@ -118,7 +118,7 @@ mypy_path = ["crates/logic/python"]
 
 [[tool.mypy.overrides]]
 # Third-party libraries without complete type information.
-module = ["markdown.*", "sssom.*", "owlrl.*", "pyoxigraph.*", "gmeow_diagnostics.*", "gmeow_shacl.*", "gmeow_validate.*", "linkml.*", "linkml_runtime.*", "yaml"]
+module = ["markdown.*", "sssom.*", "owlrl.*", "pyoxigraph.*", "gmeow_diagnostics.*", "gmeow_shacl.*", "gmeow_validate.*", "gmeow_rdf.*", "linkml.*", "linkml_runtime.*", "yaml"]
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]

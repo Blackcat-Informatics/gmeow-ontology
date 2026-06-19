@@ -87,6 +87,9 @@ jobs:
       - name: Build + install gmeow_validate extension (#579 — validation runs through it)
         run: VIRTUAL_ENV="$PWD/.venv" uvx maturin develop --manifest-path crates/validate/Cargo.toml
 
+      - name: Build + install gmeow_rdf extension (#667 — native statement codec)
+        run: VIRTUAL_ENV="$PWD/.venv" uvx maturin develop --manifest-path crates/rdf/Cargo.toml
+
       - name: gmeow_diagnostics extension imports
         run: uv run python -c "import gmeow_diagnostics; print('gmeow_diagnostics at', gmeow_diagnostics.__file__)"
 
@@ -163,6 +166,9 @@ jobs:
 
       - name: Build + install gmeow_validate extension (#579 — validation runs through it)
         run: VIRTUAL_ENV="$PWD/.venv" uvx maturin develop --manifest-path crates/validate/Cargo.toml
+
+      - name: Build + install gmeow_rdf extension (#667 — native statement codec)
+        run: VIRTUAL_ENV="$PWD/.venv" uvx maturin develop --manifest-path crates/rdf/Cargo.toml
 
       # First-class diagnostics (#654): emit the SARIF/JSON/HTML + self-describing
       # .gts feedback bundle. continue-on-error so a validation failure still
@@ -301,6 +307,9 @@ jobs:
       - name: Build + install gmeow_validate extension (#579 — validation runs through it)
         run: VIRTUAL_ENV="$PWD/.venv" uvx maturin develop --manifest-path crates/validate/Cargo.toml
 
+      - name: Build + install gmeow_rdf extension (#667 — native statement codec)
+        run: VIRTUAL_ENV="$PWD/.venv" uvx maturin develop --manifest-path crates/rdf/Cargo.toml
+
       - name: Validate (syntax, lint, SHACL, DSL SHACL)
         run: uv run --package gmeow-dev gmeow-dev validate
 
@@ -376,6 +385,9 @@ jobs:
 
       - name: Build + install gmeow_validate extension (#579 — validation runs through it)
         run: VIRTUAL_ENV="$PWD/.venv" uvx maturin develop --manifest-path crates/validate/Cargo.toml
+
+      - name: Build + install gmeow_rdf extension (#667 — native statement codec)
+        run: VIRTUAL_ENV="$PWD/.venv" uvx maturin develop --manifest-path crates/rdf/Cargo.toml
 
       - name: RDF 1.2 + OWL-form no-drift gate (pyoxigraph cross-check)
         run: uv run --package gmeow-dev gmeow-dev compile-statements-pyoxigraph

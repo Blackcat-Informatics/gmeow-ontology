@@ -17,6 +17,10 @@ pub mod lookaside;
 pub mod model;
 #[cfg(feature = "oxigraph")]
 pub mod oxigraph;
+// PyO3 bindings — the only module that imports pyo3, built only under the
+// `python` feature (maturin). Keeps the kernel rlib PyO3-free for Rust consumers.
+#[cfg(feature = "python")]
+pub mod py;
 #[cfg(feature = "oxigraph")]
 pub mod statements;
 pub mod store;
