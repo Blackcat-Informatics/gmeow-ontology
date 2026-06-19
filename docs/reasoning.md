@@ -48,7 +48,7 @@ GMEOW runs four complementary verification lanes. Each owns a distinct class of 
 | **EL pre-check** | ELK (ROBOT, Docker) | open | fast incoherence / unsatisfiability in the EL fragment | `make reason` |
 | **DL gate** | HermiT (ROBOT, Docker) | open | sound + complete consistency, disjointness contradictions | `make reason-hermit`; `tests/test_reasoning_entailments.py` |
 | **Entailment tests** | `owlrl` (pure-Python OWL 2 RL) | open | positive derivations — property chains, transitivity, sub-property closure | `tests/test_reasoning_entailments.py`, `tests/test_competency.py` |
-| **Closed-world validation** | SHACL (`gmeow_shacl`) + ROBOT `verify` | closed | cardinality, required shapes, display contract, orthogonality data-checks | `make validate`, `make verify`, `tests/test_shapes.py` |
+| **Closed-world validation** | SHACL (`gmeow_shacl`) + native `verify` | closed | cardinality, required shapes, display contract, orthogonality data-checks | `make validate`, `make verify`, `tests/test_shapes.py` |
 
 Reasoning order is **reason first to enrich, then validate the enriched graph**. ELK is an
 *incomplete* pre-check (GMEOW already uses `owl:inverseOf`, `SymmetricProperty`, functional
@@ -80,7 +80,7 @@ gain explicit: it shows the `gmeow:hasAncestor` answer triple is **absent** from
 graph and **present** after materialization — it is entailed by the property chain, authored
 nowhere in the A-Box.
 
-### Lane 4 — closed-world validation (SHACL + ROBOT `verify`)
+### Lane 4 — closed-world validation (SHACL + native `verify`)
 
 Two sub-lanes, both closed-world, for the constraints OWL deliberately cannot enforce:
 
@@ -99,20 +99,22 @@ Two sub-lanes, both closed-world, for the constraints OWL deliberately cannot en
     axes (the closed-world counterpart of the OWL `AllDisjointClasses`, caught without a
     reasoner).
 
-- **ROBOT `verify`, release-grade, reasoned graph.** `make verify` reuses the ELK-reasoned
-  graph already produced by `make reason` (`dist/gmeow-reasoned-elk.ttl`), avoiding a duplicate
-  reasoning pass. It runs the SPARQL **SELECT** "bad-example" queries in `queries/verify/*.rq`
-  over the **materialized** graph — the [OBO QC pattern](http://robot.obolibrary.org/): any
-  returned row is a violation. The underlying reason step uses `--exclude-tautologies structural`,
-  so trivial entailments like `X ⊑ owl:Thing` never trip a query. Unlike the `gmeow_shacl` lane
-  (asserted only), these see the reasoned closure, so they catch problems that appear *after*
-  inference. They currently assert:
+- **Native `verify`, reasoned graph, Java/Docker-free (#695).** `make verify` runs the Rust
+  `verify --mode native`: the native EL/DL reasoner (`crates/logic`) materializes the asserted
+  graph **unioned with** the derived subsumption/type closure into an oxigraph store, then runs
+  the SPARQL **SELECT** "bad-example" queries in `queries/verify/*.rq` (+ per-slice verify
+  queries) over it — the [OBO QC pattern](http://robot.obolibrary.org/): any returned row is a
+  violation, surfaced as an `error` diagnostics finding. Unlike the `gmeow_shacl` lane (asserted
+  only), these see the reasoned closure, so they catch problems that appear *after* inference.
+  They currently assert:
   - every GMEOW class is punned with a gUFO meta-class (meta-grounding completeness);
   - each of the seven identity axes is a member of the disjointness matrix;
   - no class is a subclass — asserted **or inferred** — of two disjoint axes.
 
-  This lane is skipped when the pinned ROBOT image is absent (like the HermiT tests), but never
-  silently passed — CI's reasoning job runs it for real.
+  This lane is now on the required path (the `ontology` CI job) and in `make check`, with no
+  Docker. The classic **ROBOT `verify`** survives only as the `verify --mode docker` oracle in
+  the non-required `classic-cross-check` lane, where `scripts/slme_cross_check.py` proves the two
+  agree.
 
 ## The gUFO grounding reaches outward (foundational bridging)
 
@@ -138,8 +140,8 @@ enforce that contract on data; consumers MUST honour `false` and never surface t
 make validate   # SHACL + syntax + term-annotation lint (pure Python, always-on)
 make reason     # merge → OWL 2 DL profile → ELK incoherence (Docker)
 make reason-hermit  # sound + complete consistency (Docker)
-make verify     # reasoned-graph SPARQL QC — ROBOT verify (Docker)
-uv run pytest   # owlrl entailment tests + SHACL data-shape tests + (Docker) HermiT/verify
+make verify     # reasoned-graph SPARQL QC — native EL/DL closure (Java/Docker-free)
+uv run pytest   # owlrl entailment tests + SHACL data-shape tests + native verify tests
 ```
 
 ## References

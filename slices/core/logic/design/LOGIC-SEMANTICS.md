@@ -17,8 +17,8 @@
 - **Open-world classification and closed-world constraints, co-resident.** Logical structure (what
   follows) is evaluated open-world; constraints (what is ill-formed for a purpose) are evaluated
   closed-world. A model declares which reading applies where, instead of being forced into one.
-  This unifies the OWL lane, the SHACL lane (`shapes/gmeow-shapes.ttl`, pySHACL), and the
-  ROBOT-verify negative-query lane (`queries/verify/*.rq`) into a single semantics.
+  This unifies the OWL lane, the SHACL lane (`shapes/gmeow-shapes.ttl`, `gmeow_shacl`), and the
+  native `verify` negative-query lane (`queries/verify/*.rq`, Java/Docker-free) into a single semantics.
 - **Monotonic and non-monotonic rules.** Datalog-style monotonic derivation *and* defeasible
   defaults, negation-as-failure, and classical negation. Recursion is unrestricted. Existential
   rules (tuple-generating dependencies) permit value invention. Which non-monotonic semantics
