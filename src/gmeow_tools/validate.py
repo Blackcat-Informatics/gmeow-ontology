@@ -536,8 +536,8 @@ def validate_all(
         signature_config: Optional signature/trust policy configuration for the
             GTS verification pre-gate (#646). Keys: ``trusted_signers`` (list of
             strings), ``require_signatures`` (bool), ``require_trusted_signer``
-            (bool), and ``trusted_key`` (optional path string). When omitted,
-            signature verification is disabled.
+            (bool), and ``trusted_key`` (optional armored public key content).
+            When omitted, signature verification is disabled.
     """
     # Ensure the content-addressed cache root exists before Rust needs it.
     _VALIDATION_CACHE_DIR.mkdir(parents=True, exist_ok=True)
