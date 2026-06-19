@@ -125,15 +125,22 @@ pub fn emit_quad(quad: &RdfQuad) -> String {
 
 /// Emit a reifier binding as `<reifier> rdf:reifies << s p o >> ; <pred> <obj> ; … .`
 ///
-/// The reifier subject is emitted as `[]` when it is a blank node (the anonymous
-/// reifier form the artifacts use); a named reifier is emitted as its term. The
-/// caller supplies the trailing annotation predicate/object pairs (rule, world,
-/// inference kind, …) which are folded onto the same reifier subject with the
-/// shared `rdf:reifies` head, so the whole block is one Turtle statement.
+/// A blank-node reifier is emitted as the anonymous `[]` form **only when
+/// annotations are folded onto it** — then the whole binding is one
+/// self-contained Turtle statement, and `[]` correctly mints a fresh, distinct
+/// node per call (the derived-axiom builder reuses the same blank-node *label*
+/// for every reifier, so anonymising is what keeps them apart).
+///
+/// When `annotations` is empty the reifier's annotations are emitted as
+/// *standalone* triples elsewhere (e.g. [`asserted_turtle`]), which reference
+/// the reifier by its blank-node label. Emitting `[]` here would mint a new
+/// anonymous node disconnected from those triples, silently severing the
+/// reifier↔annotation link — so the blank node is emitted by its label instead.
+/// A named reifier is always emitted as its term.
 pub fn emit_reifier(reifier: &RdfReifier, annotations: &[(String, String)]) -> String {
     const RDF_REIFIES: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies";
     let subject = match &reifier.reifier {
-        RdfTerm::BlankNode(_) => "[]".to_owned(),
+        RdfTerm::BlankNode(_) if !annotations.is_empty() => "[]".to_owned(),
         other => emit_term(other),
     };
     let statement = emit_triple_term(&reifier.statement);
@@ -264,6 +271,35 @@ mod tests {
         assert!(out.starts_with("[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << "));
         assert!(out.contains("gmeow.org/ontology#viaRule> <https://gmeow.org/rule/x>"));
         assert!(out.trim_end().ends_with(" ."));
+    }
+
+    #[test]
+    fn emit_reifier_blank_subject_keeps_label_without_annotations() {
+        // With no folded annotations the reifier's annotations are emitted as
+        // standalone triples that reference it by blank-node label, so the
+        // reifier must keep that label (not collapse to an anonymous `[]`),
+        // else the rdf:reifies binding is severed from its annotations. (#666)
+        let triple = RdfTriple::new(
+            iri("http://example.org/s"),
+            "http://example.org/p",
+            iri("http://example.org/o"),
+        );
+        let reifier = RdfReifier::new(RdfTerm::blank_node("r0"), triple);
+
+        let out = emit_reifier(&reifier, &[]);
+        assert!(
+            out.starts_with("_:r0 <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> << "),
+            "blank reifier must keep its label when annotations ride standalone: {out}"
+        );
+
+        // A standalone annotation triple on the same reifier resolves to the
+        // very same blank node, so the link survives serialization.
+        let annotation = RdfAnnotation::new(
+            RdfTerm::blank_node("r0"),
+            "https://gmeow.org/ontology#viaRule",
+            RdfTerm::iri("https://gmeow.org/rule/x"),
+        );
+        assert!(emit_annotation(&annotation).starts_with("_:r0 "));
     }
 
     #[test]
