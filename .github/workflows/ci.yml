@@ -196,6 +196,9 @@ jobs:
   # to the gmeow-gts repo (its `gts` binary is cargo-installed where needed).
   rust:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      checks: write
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
@@ -212,14 +215,38 @@ jobs:
       - name: Cache Cargo dependencies
         uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
 
+      - name: Install cargo-nextest
+        uses: taiki-e/install-action@9e7a663509f6d1b6ed4db66d1898b5f7b5c35c33 # v2
+        with:
+          tool: cargo-nextest
+
       - name: Format gate
         run: cargo fmt --check
 
       - name: Clippy (warnings are errors)
         run: cargo clippy --all-targets -- -D warnings
 
-      - name: Workspace tests (gmeow-logic, gmeow-shacl)
-        run: cargo test
+      - name: Workspace tests (cargo-nextest)
+        run: cargo nextest run --profile ci
+
+      - name: Doctests
+        run: cargo test --doc
+
+      - name: Upload JUnit report
+        if: always()
+        uses: actions/upload-artifact@65c4c7a169443f7e846777990498395000c3b56f # v4
+        with:
+          name: junit-report-rust
+          path: target/nextest/ci/junit.xml
+          if-no-files-found: warn
+
+      - name: Publish test results
+        uses: dorny/test-reporter@31a54ee7fbe75cbf3e19d8b375f537d98d07a1b1 # v2
+        if: always()
+        with:
+          name: Rust Tests
+          path: target/nextest/ci/junit.xml
+          reporter: java-junit
 
   ontology:
     runs-on: ubuntu-latest
