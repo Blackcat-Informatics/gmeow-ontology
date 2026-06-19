@@ -29,12 +29,39 @@ from pathlib import Path
 from gmeow_tools.config import (
     ALIGNMENT_TARGETS,
     DIST_DIR,
+    NAMESPACE,
     LinkPolicy,
 )
 
 
 class LicensePolicyError(RuntimeError):
     """Raised when extraction is attempted from a reference-only source."""
+
+
+def _slme_provenance_ttl(*, source_iri: str, method: str, axiom_count: int) -> str:
+    """Return a deterministic SLME-extraction provenance block (Turtle).
+
+    Reuses the provenance vocabulary (``gmeow:Activity``, ``gmeow:wasGeneratedBy``,
+    ``gmeow:wasDerivedFrom``, ``gmeow:wasAssociatedWith``) — no new terms are minted
+    (this is INSTANCE data, which the annotation contract does not govern). The
+    method/axiom count rides as ``rdfs:comment``. No timestamps are emitted, so the
+    block is a pure function of its inputs (determinism, Principle 4).
+    """
+    return (
+        "\n"
+        "# --- SLME module-extraction provenance (#695; native, deterministic) ---\n"
+        f"@prefix gmeow: <{NAMESPACE}> .\n"
+        "@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n"
+        "\n"
+        "gmeow:activity/slme-extract a gmeow:Activity ;\n"
+        f"    gmeow:wasDerivedFrom <{source_iri}> ;\n"
+        "    gmeow:wasAssociatedWith gmeow:agent/native-slme ;\n"
+        f'    rdfs:comment "SLME method {method}; {axiom_count} axioms"@en .\n'
+        "\n"
+        "<{module_iri}> gmeow:wasGeneratedBy gmeow:activity/slme-extract .\n".format(
+            module_iri=NAMESPACE + "module/slme-extract"
+        )
+    )
 
 
 def guard_importable(target_name: str) -> None:
@@ -94,7 +121,13 @@ def extract_terms(
     result = gmeow_logic.extract_module(
         source.read_text(encoding="utf-8"), list(terms), method
     )
-    output.write_text(result["module_ttl"], encoding="utf-8")
+    target = ALIGNMENT_TARGETS[target_name]
+    provenance = _slme_provenance_ttl(
+        source_iri=target.namespace,
+        method=str(result["method"]),
+        axiom_count=int(result["selected_axiom_count"]),
+    )
+    output.write_text(result["module_ttl"] + provenance, encoding="utf-8")
     return output
 
 

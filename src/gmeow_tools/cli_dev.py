@@ -364,6 +364,7 @@ def feedback(
     and JSON projections as content-addressed blobs, #654). No flag: one fixed
     behavior. The canonical ``gmeow.gts`` is never touched.
     """
+    from gmeow_tools import diagnostics
     from gmeow_tools.diagnostics import (
         emit_legacy_cli,
         report_from_validation_result,
@@ -374,6 +375,28 @@ def feedback(
 
     result = validate_all(timings=timings)
     report = report_from_validation_result(result, tool="validate")
+
+    # Fold the native (Java/Docker-free) reasoning + reasoned-graph verify lanes
+    # into the same report so their findings ride the shared SARIF + self-attesting
+    # .gts feedback bundle (#695). The bundle then carries validation + reasoning +
+    # verify findings, all self-attested.
+    try:
+        from gmeow_tools import reason as reasoning
+
+        report.extend(
+            reasoning.reason_native(output_dir=output_dir, run_box_roles=False)
+        )
+        report.extend(reasoning.verify_native(output_dir=output_dir))
+    except (ImportError, ValueError, RuntimeError, OSError, FileNotFoundError) as exc:
+        report.add(
+            diagnostics.finding(
+                severity="warning",
+                code="feedback.native-skipped",
+                message=f"native reason/verify findings not folded: {exc}",
+                tool="feedback",
+            )
+        )
+
     emit_legacy_cli(report, err_console)
     paths = write_report_artifacts(report, output_dir=output_dir, stem=stem)
     for kind in ("json", "sarif", "html"):

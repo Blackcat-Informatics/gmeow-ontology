@@ -19,17 +19,19 @@ from typing import TYPE_CHECKING
 
 from blake3 import blake3
 from gts import Signer
-from rdflib import Graph, Literal, URIRef
+from rdflib import RDF, XSD, Graph, Literal, URIRef
 
 from gmeow_tools.config import (
     GTS_GRAPH_IMPORTS,
     GTS_GRAPH_METADATA,
+    GTS_GRAPH_VERIFY,
     GTS_SNAPSHOT_FILE,
     MAPPINGS_DIR,
     NAMESPACE,
     PROJECT_ROOT,
     SLICES_DIR,
     STATEMENT_RDF12_FILE,
+    VERIFY_DIR,
 )
 from gmeow_tools.generator import Generator, register
 from gmeow_tools.graph import iter_import_files, iter_module_files
@@ -43,7 +45,7 @@ from gmeow_tools.i18n_catalog import (
 )
 from gmeow_tools.mappings import build_alignment_graph, load_mappings
 from gmeow_tools.self_desc import SELF_DESC_FILE
-from gmeow_tools.slices import discover_slices
+from gmeow_tools.slices import discover_slices, iter_slice_query_files
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -260,6 +262,80 @@ def _metadata_graph() -> Graph:
     return graph
 
 
+def build_verify_attestation_graph(query_names: list[str], report) -> Graph:  # type: ignore[no-untyped-def]
+    """Build the verify-attestation graph from a verify report (pure, deterministic).
+
+    One ``gmeow:QualityAssessment`` per verify query records whether that
+    closed-world integrity constraint passed over the reasoned closure (#695). A
+    query *failed* iff the report carries an ``error`` finding whose ``code`` is
+    ``verify.<stem>`` (the convention the native verify lane emits). Every IRI and
+    literal is a pure function of the inputs — no timestamps, no ordering surprises
+    — so the snapshot stays byte-deterministic.
+
+    Reuses ONLY existing vocabulary (``QualityAssessment``, ``assessedEntity``,
+    ``qualityDimension``, ``qualityDimensionLogicalConsistency``,
+    ``observationResult``, ``wasDerivedFrom``, ``wasGeneratedBy``,
+    ``wasAssociatedWith``, ``Activity``); attestations are INSTANCE data, which the
+    annotation contract does not govern.
+
+    Args:
+        query_names: Repo-relative ``.rq`` paths (one per verify query).
+        report: A diagnostics report with a ``findings`` list of dicts carrying a
+            ``code`` and ``severity`` key.
+
+    Returns:
+        The attestation graph (default graph; the caller names it
+        :data:`~gmeow_tools.config.GTS_GRAPH_VERIFY`).
+    """
+    gmeow = NAMESPACE
+    rdfs = "http://www.w3.org/2000/01/rdf-schema#"
+
+    failed = {
+        finding["code"][len("verify.") :]
+        for finding in report.findings
+        if finding.get("severity") == "error"
+        and str(finding.get("code", "")).startswith("verify.")
+    }
+
+    graph = Graph()
+    graph.bind("gmeow", gmeow)
+    graph.bind("xsd", str(XSD))
+    graph.bind("rdfs", rdfs)
+
+    quality_assessment = URIRef(gmeow + "QualityAssessment")
+    assessed_entity = URIRef(gmeow + "assessedEntity")
+    quality_dimension = URIRef(gmeow + "qualityDimension")
+    logical_consistency = URIRef(gmeow + "qualityDimensionLogicalConsistency")
+    observation_result = URIRef(gmeow + "observationResult")
+    was_derived_from = URIRef(gmeow + "wasDerivedFrom")
+    was_generated_by = URIRef(gmeow + "wasGeneratedBy")
+    was_associated_with = URIRef(gmeow + "wasAssociatedWith")
+    activity_cls = URIRef(gmeow + "Activity")
+
+    ontology_iri = URIRef(NAMESPACE.rstrip("/"))
+    verify_activity = URIRef(gmeow + "activity/native-verify")
+    verify_agent = URIRef(gmeow + "agent/native-verify")
+
+    graph.add((verify_activity, RDF.type, activity_cls))
+    graph.add((verify_activity, was_associated_with, verify_agent))
+
+    for name in query_names:
+        stem = Path(name).stem
+        passed = stem not in failed
+        attestation = URIRef(gmeow + "verify-attestation/" + stem)
+        query_iri = URIRef(gmeow + "verify-query/" + stem)
+        graph.add((attestation, RDF.type, quality_assessment))
+        graph.add((attestation, assessed_entity, ontology_iri))
+        graph.add((attestation, quality_dimension, logical_consistency))
+        graph.add(
+            (attestation, observation_result, Literal(passed, datatype=XSD.boolean))
+        )
+        graph.add((attestation, was_derived_from, query_iri))
+        graph.add((attestation, was_generated_by, verify_activity))
+
+    return graph
+
+
 def build_snapshot_bytes(
     *,
     signer: Signer | None = None,
@@ -300,19 +376,45 @@ def build_snapshot_bytes(
         + _transform_blobs(multilingual_graph)
     )
 
-    return compile_gts(
-        multilingual_graph,
-        STATEMENT_RDF12_FILE,
-        alignment_graph=build_alignment_graph(load_mappings()),
-        extra_named_graphs=[
-            (_imports_graph(), GTS_GRAPH_IMPORTS, "imports"),
-            (_metadata_graph(), GTS_GRAPH_METADATA, "metadata"),
-        ],
-        doc_blobs=blobs,
-        transform=_SNAPSHOT_TRANSFORM,
-        signer=signer,
-        public_key_armor=public_key_armor,
-    )
+    imports = (_imports_graph(), GTS_GRAPH_IMPORTS, "imports")
+    metadata = (_metadata_graph(), GTS_GRAPH_METADATA, "metadata")
+
+    def _compile(extra_named_graphs: list[tuple[Graph, str, str]]) -> bytes:
+        return compile_gts(
+            multilingual_graph,
+            STATEMENT_RDF12_FILE,
+            alignment_graph=build_alignment_graph(load_mappings()),
+            extra_named_graphs=extra_named_graphs,
+            doc_blobs=blobs,
+            transform=_SNAPSHOT_TRANSFORM,
+            signer=signer,
+            public_key_armor=public_key_armor,
+        )
+
+    # Two-pass build so the verify attestation does not need to attest itself
+    # (#695). Pass 1 builds the bundle WITHOUT the verify graph, then the native
+    # verify lane runs its closed-world integrity constraints over that bundle.
+    # This is sound: the verify queries query the default graph + imports and never
+    # touch gmeow:graph/verify, so pass 1's verdict is identical to the final
+    # bundle's. Pass 2 folds the resulting attestation in as gmeow:graph/verify.
+    # The native ext is REQUIRED (regenerate already requires native exts); a
+    # missing ext is a hard failure, not a silent single-pass fallback.
+    pass1_bytes = _compile([imports, metadata])
+
+    import gmeow_logic
+
+    from gmeow_tools import diagnostics
+
+    query_files = sorted(VERIFY_DIR.glob("*.rq")) + iter_slice_query_files("verify")
+    query_names = [str(p.relative_to(PROJECT_ROOT)) for p in query_files]
+    pairs = [
+        (name, p.read_text()) for name, p in zip(query_names, query_files, strict=True)
+    ]
+    report_json = gmeow_logic.verify_native(pass1_bytes, pairs)
+    report = diagnostics.report_from_json(report_json)
+    attestation = build_verify_attestation_graph(query_names, report)
+
+    return _compile([imports, metadata, (attestation, GTS_GRAPH_VERIFY, "verify")])
 
 
 def compile_full_snapshot(
@@ -345,6 +447,9 @@ class GtsSnapshotGenerator(Generator):
             PROJECT_ROOT / "src" / "gmeow_tools" / "bundle.py",
             PROJECT_ROOT / "src" / "gmeow_tools" / "config.py",
             PROJECT_ROOT / "src" / "gmeow_tools" / "graph.py",
+            # The verify attestation (#695) is built here, so this module's bytes
+            # affect the snapshot and must invalidate the drift cache.
+            PROJECT_ROOT / "src" / "gmeow_tools" / "gts_gen.py",
             PROJECT_ROOT / "src" / "gmeow_tools" / "gts_producer.py",
             PROJECT_ROOT / "src" / "gmeow_tools" / "i18n_catalog.py",
             PROJECT_ROOT / "src" / "gmeow_tools" / "mappings.py",
@@ -386,6 +491,9 @@ class GtsSnapshotGenerator(Generator):
             *sorted(SLICES_DIR.glob("*/*/mappings/*.ttl")),
             *sorted(SLICES_DIR.glob("*/*/docs.md")),
             *sorted(p for p in SLICES_DIR.glob("*/*/i18n/*.po") if p.stem != "en"),
+            # verify queries drive the folded-in attestation graph (#695)
+            *sorted(VERIFY_DIR.glob("*.rq")),
+            *iter_slice_query_files("verify"),
             *ontology_docs_cache_inputs(),
             *sorted(doc_files),
         ]

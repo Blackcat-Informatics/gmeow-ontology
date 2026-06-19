@@ -45,6 +45,7 @@ from gmeow_tools.config import (
     REFERENCES_MD_FILE,
     SLICES_DIR,
     STATEMENT_RDF12_FILE,
+    VERIFY_DIR,
 )
 from gmeow_tools.export import Term, collect_terms, curie, fold_meta
 from gmeow_tools.gts_views import FoldView, load_fold
@@ -56,7 +57,12 @@ from gmeow_tools.mapping_dsl import (
     ProjectionCell,
     load_dsl,
 )
-from gmeow_tools.slices import Slice, discover_slices, iter_slice_mapping_files
+from gmeow_tools.slices import (
+    Slice,
+    discover_slices,
+    iter_slice_mapping_files,
+    iter_slice_query_files,
+)
 
 if TYPE_CHECKING:
     from collections.abc import Iterable, Sequence
@@ -1998,6 +2004,7 @@ def _html_shell(title: str, body: str, prefix: str) -> str:
         "nav_reference": html.escape(ontology_docs_template("nav_reference")),
         "nav_external": html.escape(ontology_docs_template("nav_external")),
         "nav_rdf12": html.escape(ontology_docs_template("nav_rdf12")),
+        "nav_integrity": html.escape(ontology_docs_template("nav_integrity")),
         "footer_generated": html.escape(ontology_docs_template("footer_generated")),
         "footer_license": html.escape(ontology_docs_template("footer_license")),
     }
@@ -2015,6 +2022,7 @@ def _html_shell(title: str, body: str, prefix: str) -> str:
     nav_reference = nav["nav_reference"]
     nav_external = nav["nav_external"]
     nav_rdf12 = nav["nav_rdf12"]
+    nav_integrity = nav["nav_integrity"]
     footer_generated = nav["footer_generated"]
     footer_license = nav["footer_license"]
     return f"""<!doctype html>
@@ -2045,6 +2053,7 @@ def _html_shell(title: str, body: str, prefix: str) -> str:
       <a href="{prefix}reference/">{nav_reference}</a>
       <a href="{prefix}external/ontologies/">{nav_external}</a>
       <a href="{prefix}statements/">{nav_rdf12}</a>
+      <a href="{prefix}integrity-constraints/">{nav_integrity}</a>
     </nav>
   </header>
   <main id="content">
@@ -3846,6 +3855,71 @@ def _concern_page(concern: DocConcern) -> Page:
     return Page(Path("concerns") / concern.filename, concern.label, "\n".join(lines))
 
 
+def _verify_query_rationale(text: str) -> str:
+    """Return the leading ``#`` comment block of a verify query as plain prose.
+
+    Reads the contiguous run of ``#`` comment lines at the top of the ``.rq``
+    file, strips the ``# `` prefix, and joins them into a one-line rationale.
+    """
+    lines: list[str] = []
+    for raw in text.splitlines():
+        stripped = raw.strip()
+        if not stripped:
+            if lines:
+                break
+            continue
+        if not stripped.startswith("#"):
+            break
+        lines.append(stripped.lstrip("#").lstrip())
+    return " ".join(lines).strip()
+
+
+def _integrity_constraints_page() -> Page:
+    """Render the closed-world integrity-constraint catalogue (#695).
+
+    Lists every ``queries/verify/*.rq`` plus the per-slice verify queries — the
+    closed-world negative tests GMEOW enforces over its reasoned closure (any row
+    a query returns is a violation). For each query the page shows its name, the
+    leading comment block as the rationale, and the SPARQL itself.
+    """
+    query_files = sorted(VERIFY_DIR.glob("*.rq")) + iter_slice_query_files("verify")
+    lines = [
+        "# Integrity Constraints",
+        "",
+        "These are the closed-world integrity constraints GMEOW enforces over its "
+        "*reasoned closure*. Each is a SPARQL `SELECT` negative test: the reasoner "
+        "materializes the ontology (asserted graph unioned with the native EL/DL "
+        "derived closure), then every query below runs over it. Any row a query "
+        "returns is a violation — the constraint is that each query returns the "
+        "empty set. Unlike the SHACL conformance lane (asserted graph only), these "
+        "checks see inferred axioms and so catch violations that appear only after "
+        "reasoning.",
+        "",
+        f"There are **{len(query_files)}** integrity constraints "
+        f"({len(sorted(VERIFY_DIR.glob('*.rq')))} repository-level plus "
+        f"{len(list(iter_slice_query_files('verify')))} per-slice).",
+        "",
+    ]
+    for query_file in query_files:
+        text = query_file.read_text(encoding="utf-8")
+        stem = query_file.stem
+        rationale = _verify_query_rationale(text)
+        lines.append(f"## `{stem}`")
+        lines.append("")
+        if rationale:
+            lines.append(rationale)
+            lines.append("")
+        lines.append("```sparql")
+        lines.append(text.rstrip())
+        lines.append("```")
+        lines.append("")
+    return Page(
+        Path("integrity-constraints") / "index.md",
+        "Integrity Constraints",
+        "\n".join(lines),
+    )
+
+
 def _statements_page(model: DocsModel) -> Page:
     """Render the RDF 1.2 statement layer summary."""
     annotations = model.view.annotations()
@@ -4000,6 +4074,7 @@ def _all_pages(model: DocsModel) -> list[Page]:
     pages.append(_concern_index(model.concerns))
     pages.extend(_concern_page(concern) for concern in model.concerns)
     pages.append(_statements_page(model))
+    pages.append(_integrity_constraints_page())
     pages.append(_four_boxes_page(model))
     pages.extend(_box_role_pages(model))
     return pages
@@ -4608,4 +4683,7 @@ def ontology_docs_inputs() -> Sequence[Path]:
         *sorted(SLICES_DIR.glob("*/*/docs.md")),
         *sorted(SLICES_DIR.glob("*/*/design/*.md")),
         *sorted(SLICES_DIR.glob("*/*/examples/*.ttl")),
+        # verify queries are rendered into the Integrity Constraints page (#695)
+        *sorted(VERIFY_DIR.glob("*.rq")),
+        *iter_slice_query_files("verify"),
     ]

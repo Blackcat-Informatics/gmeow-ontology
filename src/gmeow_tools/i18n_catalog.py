@@ -79,6 +79,7 @@ _ONTOLOGY_DOCS_TEMPLATES: dict[str, str] = {
     "nav_reference": "Reference",
     "nav_external": "External",
     "nav_rdf12": "RDF 1.2",
+    "nav_integrity": "Integrity Constraints",
     # Generic page titles
     "page_index": "Index",
     "page_getting_started": "Getting Started",
