@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import dataclasses
 import functools
+from pathlib import Path
 from xml.etree import ElementTree as ET
 
 import pytest
@@ -27,6 +28,8 @@ from gmeow_tools.self_desc import (
     load_self_description,
     load_self_description_from_graph,
 )
+
+_CROSSREF_XSD_DIR = Path(__file__).parent / "fixtures" / "crossref"
 
 
 def _parse(xml: str) -> ET.Element:
@@ -52,7 +55,17 @@ def _direct_ai_programs(dataset: ET.Element) -> list[ET.Element]:
 
 @functools.lru_cache(maxsize=1)
 def _crossref_schema() -> xmlschema.XMLSchema:
-    return xmlschema.XMLSchema("https://www.crossref.org/schemas/crossref5.4.0.xsd")
+    return xmlschema.XMLSchema(
+        str(_CROSSREF_XSD_DIR / "crossref5.4.0.xsd"),
+        uri_mapper={
+            "http://www.w3.org/Math/XMLSchema/mathml3/mathml3.xsd": str(
+                _CROSSREF_XSD_DIR / "mathml-stub.xsd"
+            ),
+            "http://www.w3.org/2009/01/xml.xsd": str(
+                _CROSSREF_XSD_DIR / "xml-stub.xsd"
+            ),
+        },
+    )
 
 
 def _validate_against_crossref_schema(xml: str) -> None:
@@ -176,7 +189,6 @@ def test_deposit_carries_access_indicators_license() -> None:
     assert root.find(f".//{{{AI_NS}}}free_to_read") is not None
 
 
-@pytest.mark.network
 def test_deposit_crossmark_disabled_emits_top_level_access_indicators(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -193,7 +205,6 @@ def test_deposit_crossmark_disabled_emits_top_level_access_indicators(
     _validate_against_crossref_schema(xml)
 
 
-@pytest.mark.network
 def test_deposit_crossmark_enabled_emits_nested_access_indicators(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -216,7 +227,6 @@ def test_deposit_crossmark_enabled_emits_nested_access_indicators(
     _validate_against_crossref_schema(xml)
 
 
-@pytest.mark.network
 def test_version_doi_crossmark_enabled_validates(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

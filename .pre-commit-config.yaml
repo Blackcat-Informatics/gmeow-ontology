@@ -24,6 +24,7 @@ repos:
             ontology-docs/.*|
             LICENSE.*|
             tests/fixtures/coverage/external/.*|
+            tests/fixtures/crossref/.*|
             .*\.(tsv|svg)
           )$
       - id: end-of-file-fixer
@@ -52,6 +53,7 @@ repos:
     hooks:
       - id: codespell
         additional_dependencies: ["tomli"]
+        exclude: '^tests/fixtures/crossref/'
 
   - repo: https://github.com/adrienverge/yamllint
     rev: v1.35.1

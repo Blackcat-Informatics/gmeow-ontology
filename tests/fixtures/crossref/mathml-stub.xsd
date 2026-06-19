@@ -1,0 +1,5 @@
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           targetNamespace="http://www.w3.org/1998/Math/MathML"
+           elementFormDefault="qualified">
+  <xs:element name="math" type="xs:anyType"/>
+</xs:schema>
