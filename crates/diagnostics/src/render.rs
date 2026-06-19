@@ -124,6 +124,11 @@ fn nq_escape(value: &str) -> String {
             '\n' => out.push_str("\\n"),
             '\r' => out.push_str("\\r"),
             '\t' => out.push_str("\\t"),
+            // Any remaining C0 control character (U+0000–U+001F) is illegal raw
+            // in an N-Triples/N-Quads STRING_LITERAL_QUOTE and must be escaped as
+            // \uXXXX, else a finding/SHACL message carrying e.g. NUL, backspace,
+            // form-feed, or VT produces a graph rdflib/pyoxigraph reject (#654).
+            c if (c as u32) < 0x20 => out.push_str(&format!("\\u{:04X}", c as u32)),
             c => out.push(c),
         }
     }
@@ -581,6 +586,27 @@ mod tests {
         let nquads = to_gmeow_rdf(&report);
         assert!(nquads.contains("quote \\\" and newline \\n end"));
         assert!(!nquads.contains("quote \" and newline \n"));
+    }
+
+    #[test]
+    fn gmeow_rdf_escapes_c0_control_characters() {
+        // A message carrying raw C0 controls (NUL, backspace, form-feed, VT)
+        // must escape them as \uXXXX so the projection stays valid N-Quads (#654).
+        let mut report = Report::new("validate");
+        report.add_finding(Finding::new(
+            Severity::Error,
+            "ctrl",
+            "nul\u{0}back\u{8}ff\u{c}vt\u{b}",
+        ));
+        let nquads = to_gmeow_rdf(&report);
+
+        // The literal escapes each control as the spec-mandated \uXXXX form.
+        assert!(nquads.contains("nul\\u0000back\\u0008ff\\u000Cvt\\u000B"));
+        // No raw C0 control byte survives anywhere in the serialization.
+        assert!(
+            !nquads.chars().any(|c| (c as u32) < 0x20 && c != '\n'),
+            "raw control character leaked into N-Quads output"
+        );
     }
 
     #[test]
