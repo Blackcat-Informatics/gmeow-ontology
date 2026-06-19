@@ -74,6 +74,12 @@ REGISTRANT_ACRONYM = "BII"
 DATASET_SLUG = "GMEOW"
 #: The dataset's content formats → Crossref ``<format>`` (the published surface).
 DEPOSIT_FORMAT = "Turtle; RDF/XML; N-Triples; JSON-LD; OWL; SHACL; GTS"
+#: Crossmark policy DOI for GMEOW concept/version records. Deposit upload is
+#: disabled until Crossref accepts the policy; the flag below guards emission.
+CROSSMARK_POLICY_DOI = "10.67342/xn9qgdr5mw/v1"
+#: When False (default), emit the current top-level AccessIndicators ai:program.
+#: When True, emit <crossmark> with AccessIndicators nested in <custom_metadata>.
+CROSSMARK_ENABLED = False
 
 
 # --------------------------------------------------------------------------- #

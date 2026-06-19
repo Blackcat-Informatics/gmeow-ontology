@@ -241,10 +241,10 @@ gmeow:eqTemporal017 a gmeow:TermEquivalence ;
 gmeow:eqTemporal018 a gmeow:TermEquivalence ;
     gmeow:alignSubject gmeow:periodPhanerozoic ;
     gmeow:alignPredicate skos:exactMatch ;
-    gmeow:alignObject wd:Q80125 ;
+    gmeow:alignObject wd:Q101313 ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.95 ;
-    gmeow:comment "Wikidata Phanerozoic (Q80125)" ;
+    gmeow:comment "Wikidata Phanerozoic (Q101313)" ;
     gmeow:sssomFile "gmeow-temporal.sssom.tsv" .
 
 gmeow:eqTemporal019 a gmeow:TermEquivalence ;
@@ -381,10 +381,10 @@ gmeow:eqTemporal028 a gmeow:TermEquivalence ;
 gmeow:eqTemporal029 a gmeow:TermEquivalence ;
     gmeow:alignSubject gmeow:datingMethodUraniumLead ;
     gmeow:alignPredicate skos:exactMatch ;
-    gmeow:alignObject wd:Q424428 ;
+    gmeow:alignObject wd:Q1930710 ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.95 ;
-    gmeow:comment "uranium-lead dating (Q424428)" ;
+    gmeow:comment "uranium-lead dating (Q1930710)" ;
     gmeow:sssomFile "gmeow-temporal.sssom.tsv" .
 
 # --------------------------------------------------------------------------- #
@@ -479,10 +479,10 @@ gmeow:eqTemporal038 a gmeow:TermEquivalence ;
 gmeow:eqTemporal039 a gmeow:TermEquivalence ;
     gmeow:alignSubject gmeow:timeScaleTDB ;
     gmeow:alignPredicate skos:exactMatch ;
-    gmeow:alignObject wd:Q1320839 ;
+    gmeow:alignObject wd:Q4866001 ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.95 ;
-    gmeow:comment "Barycentric Dynamical Time (Q1320839)" ;
+    gmeow:comment "Barycentric Dynamical Time (Q4866001)" ;
     gmeow:sssomFile "gmeow-temporal.sssom.tsv" .
 
 # IVOA timescale — direct vocabulary matches (celestial-frame design)
