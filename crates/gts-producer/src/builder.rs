@@ -397,6 +397,7 @@ impl Builder {
     /// carry no name of their own to a named graph. `bnode_scope` scopes blank
     /// nodes to the ingest source so that labels from different sources do not
     /// collapse.
+    #[allow(deprecated)]
     pub fn add_graph(
         &mut self,
         path: &str,
@@ -411,7 +412,7 @@ impl Builder {
         // because the store helper enables blank-node renaming by default. Preserving
         // the source labels is required so that `bnode_scope` can scope them
         // deterministically across multiple ingest calls.
-        for quad in RdfParser::from_format(format).for_slice(&data) {
+        for quad in RdfParser::from_format(format).unchecked().for_slice(&data) {
             let quad = quad?;
             let Some(sid) = self.subject_id(quad.subject, bnode_scope) else {
                 continue;
@@ -432,6 +433,7 @@ impl Builder {
     /// triples populate [`Self::annot`]; remaining triples become base quads.
     /// `graph_name` assigns base triples with no explicit graph name to a named
     /// graph. `bnode_scope` scopes blank-node labels to the ingest source.
+    #[allow(deprecated)]
     pub fn add_rdf12(
         &mut self,
         path: &str,
@@ -443,6 +445,7 @@ impl Builder {
         let default_gid = graph_name.map(|g| self.terms.iri(g));
 
         let statements: Vec<_> = RdfParser::from_format(format)
+            .unchecked()
             .for_slice(&data)
             .collect::<Result<Vec<_>, _>>()?;
 

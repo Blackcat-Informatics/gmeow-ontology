@@ -12,20 +12,29 @@ dictionary:
   binding and the reifier's other triples become ``annot`` rows (§7.3). rdflib 7.6
   has no triple-term API, so the RDF-star source must be read with pyoxigraph.
 
-Both feed :class:`_Builder`, which emits one ``dist``-profile ``snapshot`` (§10).
+Both feed :class:`_PyBuilder`, which emits one ``dist``-profile ``snapshot`` (§10).
 """
 
 from __future__ import annotations
 
+import tempfile
 from collections.abc import Callable
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
+from cryptography.hazmat.primitives import serialization
 from gts import Signer
 from gts.model import XSD_STRING, Quad, Term, TermKind, Triple
 from gts.wire import canonical
 from gts.writer import Writer, term_to_wire
 from rdflib import BNode, Dataset, Graph, Literal, URIRef
+
+from gmeow_tools.config import PROJECT_ROOT
+
+try:
+    import gmeow_gts_producer
+except ImportError:  # pragma: no cover
+    gmeow_gts_producer = None
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -77,7 +86,7 @@ class _Interner:
         )
 
 
-class _Builder:
+class _PyBuilder:
     """Accumulates terms/quads/reifies/annot from one or more RDF sources."""
 
     def __init__(self) -> None:
@@ -394,6 +403,53 @@ def _iter_quads(graph: Graph) -> list[tuple[Node, Node, Node, Node | None]]:
     return [(s, p, o, None) for s, p, o in graph]
 
 
+def _canonical_bytes(graph: Graph) -> bytes:
+    """Return deterministic serialized bytes for an rdflib graph/dataset.
+
+    Plain ``Graph`` instances are canonicalized and emitted as N-Triples;
+    ``Dataset`` instances are emitted as N-Quads so named graphs are preserved.
+    """
+    from rdflib.compare import to_canonical_graph
+
+    canonical = to_canonical_graph(graph)
+    fmt = "nquads" if isinstance(graph, Dataset) else "ntriples"
+    return canonical.serialize(format=fmt).encode("utf-8")
+
+
+def _add_graph_file(
+    builder: Any,
+    graph: Graph,
+    *,
+    graph_name: str | None = None,
+    bnode_scope: str | None = None,
+) -> None:
+    """Canonicalize ``graph`` and feed it to the Rust builder from a temp file."""
+    data = _canonical_bytes(graph)
+    suffix = ".nq" if isinstance(graph, Dataset) else ".nt"
+    with tempfile.NamedTemporaryFile(
+        dir=PROJECT_ROOT,
+        prefix=".gmeow-gts-base-",
+        suffix=suffix,
+        delete=False,
+    ) as tmp:
+        tmp.write(data)
+        tmp_path = tmp.name
+    try:
+        builder.add_graph(tmp_path, graph_name=graph_name, bnode_scope=bnode_scope)
+    finally:
+        Path(tmp_path).unlink(missing_ok=True)
+
+
+def _require_rust() -> Any:
+    """Return the Rust extension module or raise a build-time helper message."""
+    if gmeow_gts_producer is None:
+        raise RuntimeError(
+            "The gmeow_gts_producer Rust extension is not installed. "
+            "Run `make gts-producer-py` to build it."
+        )
+    return gmeow_gts_producer
+
+
 def gts_from_graph(
     graph: Graph,
     *,
@@ -401,7 +457,7 @@ def gts_from_graph(
     transform: list[str] | None = None,
 ) -> bytes:
     """Produce a GTS ``dist`` snapshot from an rdflib graph/dataset (RDF 1.1)."""
-    builder = _Builder()
+    builder = _PyBuilder()
     builder.add_graph(graph)
     return builder.to_gts(profile=profile, transform=transform)
 
@@ -413,7 +469,7 @@ def gts_from_rdf12(
     transform: list[str] | None = None,
 ) -> bytes:
     """Produce a GTS snapshot from an RDF 1.2 artifact (statement layer; pyoxigraph)."""
-    builder = _Builder()
+    builder = _PyBuilder()
     builder.add_rdf12(path)
     return builder.to_gts(profile=profile, transform=transform)
 
@@ -431,7 +487,7 @@ def gts_from_maximal(
     driver skolemizes); every :class:`~gmeow_tools.saturate.DerivedTriple`
     lands as an asserted base triple plus its provenance reifier/annotations.
     """
-    builder = _Builder()
+    builder = _PyBuilder()
     builder.add_graph(base)
     for row in derived:
         s, p, o = row.triple
@@ -473,36 +529,58 @@ def compile_gts(
         FileNotFoundError: if ``rdf12_path`` is given but does not exist (a missing
             statement layer is an error, not a silent RDF-1.1-only fallback).
     """
-    from rdflib.compare import to_canonical_graph
-
     from gmeow_tools.config import GTS_GRAPH_ALIGNMENTS, GTS_GRAPH_STATEMENTS
 
-    builder = _Builder()
-    builder.add_graph(to_canonical_graph(graph), bnode_scope="base")
+    mod = _require_rust()
+    builder = mod.Builder()
+
+    _add_graph_file(builder, graph, graph_name=None, bnode_scope="base")
+
     if rdf12_path is not None:
         if not rdf12_path.exists():
             msg = f"RDF 1.2 statement artifact not found: {rdf12_path}"
             raise FileNotFoundError(msg)
         builder.add_rdf12(
-            rdf12_path, graph_name=GTS_GRAPH_STATEMENTS, bnode_scope="stmt"
+            str(rdf12_path), graph_name=GTS_GRAPH_STATEMENTS, bnode_scope="stmt"
         )
+
     if alignment_graph is not None:
-        builder.add_graph(
-            to_canonical_graph(alignment_graph),
+        _add_graph_file(
+            builder,
+            alignment_graph,
             graph_name=GTS_GRAPH_ALIGNMENTS,
             bnode_scope="align",
         )
+
     for named_graph, graph_name, bnode_scope in extra_named_graphs or ():
-        builder.add_graph(
-            to_canonical_graph(named_graph),
+        _add_graph_file(
+            builder,
+            named_graph,
             graph_name=graph_name,
             bnode_scope=bnode_scope,
         )
-    return builder.to_gts(
-        profile="dist",
-        transform=transform,
-        doc_blobs=doc_blobs,
-        signer=signer,
-        public_key_armor=public_key_armor,
-        rsyncable_threshold=rsyncable_threshold,
+
+    if (signer is None) != (public_key_armor is None):
+        raise ValueError("signer and public_key_armor must be supplied together")
+
+    signer_kid: str | None = None
+    signer_secret: bytes | None = None
+    if signer is not None:
+        signer_kid = signer.kid
+        signer_secret = signer.key.private_bytes(
+            serialization.Encoding.Raw,
+            serialization.PrivateFormat.Raw,
+            serialization.NoEncryption(),
+        )
+
+    return bytes(
+        builder.to_gts(
+            profile="dist",
+            transform=transform,
+            doc_blobs=doc_blobs,
+            signer_kid=signer_kid,
+            signer_secret=signer_secret,
+            public_key_armor=public_key_armor,
+            rsyncable_threshold=rsyncable_threshold,
+        )
     )

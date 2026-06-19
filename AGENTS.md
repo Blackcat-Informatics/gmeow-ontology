@@ -61,6 +61,7 @@ make regenerate      # Rebuild ALL committed generated artifacts (the #279 regis
 make check-generated # Drift + orphan + internal-tag-leak check for every registered generator (parallel by default)
 make constitution-check # Every principle has live enforcement (governance/constitution.ttl, #280)
 make wikidata        # Validate Wikidata QID/PID syntax in the mappings (offline)
+make native-py       # Build and install all Rust-backed Python extensions (diagnostics-py, logic-py, shacl-py, validate-py, gts-producer-py)
 ```
 
 The per-artifact `compile-*` commands were replaced by the unified generator
