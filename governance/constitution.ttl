@@ -278,10 +278,23 @@ meta:gate-reason-native a meta:Gate ;
     meta:cliCommand "reason" .
 
 meta:gate-dl-el-crosscheck a meta:Gate ;
-    rdfs:label "native vs ELK/HermiT divergence ledger (report-only; #666 enforces)"@x-gmeow-english ;
+    rdfs:label "native↔oracle divergence ledger — report-only committed artifact on the primary path; enforcement runs in the classic-cross-check lane (gate-classic-cross-check, #666)"@x-gmeow-english ;
     meta:artifact "src/gmeow_tools/native_reason_gen.py", "generated/logic/dl-el-crosscheck-report.ttl" ;
     meta:symbol "NativeReasoningGenerator" ;
     meta:generator "native-reasoning" .
+
+# #666 — the ENFORCING classic-cross-check lane: the sole Java+Docker surface, a
+# single non-required CI job. Compares the native engine against the legacy
+# oracles (ELK/HermiT subsumption + consistency; owlrl OWL-2-RL closure) and
+# FAILS strictly on any NativeOnly/OracleOnly divergence (DlGap is the only
+# honest-expected, non-failing class). NEVER part of `make check` or the required
+# `quality` gate. Emits agreement + timing through the gmeow-diagnostics SARIF rail.
+meta:gate-classic-cross-check a meta:Gate ;
+    rdfs:label "classic-cross-check lane — native vs ELK/HermiT/owlrl agreement, ENFORCED (non-required Docker/Java oracle lane, #666)"@x-gmeow-english ;
+    meta:artifact "src/gmeow_tools/classic_cross_check.py", "src/gmeow_tools/rl_agreement.py" ;
+    meta:symbol "enforce", "run" ;
+    meta:makeTarget "classic-cross-check" ;
+    meta:cliCommand "classic-cross-check", "classic-cross-check-rl" .
 
 # --------------------------------------------------------------------------- #
 # The principles
@@ -384,4 +397,5 @@ meta:Principle17 a meta:Principle ;
 meta:Principle18 a meta:Principle ;
     meta:number 18 ;
     meta:title "The reference RDF-1.2 stack — complete, coherent, and Docker-free" ;
-    meta:enforcedBy meta:gate-reason-native, meta:gate-dl-el-crosscheck .
+    meta:enforcedBy meta:gate-reason-native, meta:gate-dl-el-crosscheck,
+        meta:gate-classic-cross-check .
