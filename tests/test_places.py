@@ -11,11 +11,11 @@ from __future__ import annotations
 from decimal import Decimal
 from pathlib import Path
 
-import owlrl
 from rdflib import OWL, RDF, RDFS, Graph, Literal, Namespace, URIRef
 from rdflib.namespace import XSD
 
 from gmeow_tools.graph import load_merged_graph
+from gmeow_tools.native_rl import native_rl_closure
 from gmeow_tools.slices import module_path
 from tests._graph_nt import run_shacl
 
@@ -2598,7 +2598,7 @@ def test_coordinate_observation_chain_fires() -> None:
         )
     )
 
-    owlrl.DeductiveClosure(owlrl.OWLRL_Semantics).expand(graph)
+    native_rl_closure(graph)
     assert (
         EX_PLACES.testPlace,
         URIRef(GMEOW + "hasCoordinates"),
@@ -2643,7 +2643,7 @@ def test_geometry_observation_chain_fires() -> None:
         )
     )
 
-    owlrl.DeductiveClosure(owlrl.OWLRL_Semantics).expand(graph)
+    native_rl_closure(graph)
     assert (
         EX_PLACES.testPlace2,
         URIRef(GMEOW + "hasGeometry"),

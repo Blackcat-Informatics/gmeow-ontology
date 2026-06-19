@@ -1097,6 +1097,145 @@ fn compile_logic<'py>(py: Python<'py>, source_ttl: &str) -> PyResult<Bound<'py, 
     Ok(out)
 }
 
+// ── build_divergence_ledger ───────────────────────────────────────────────────
+
+/// Extract a `(subject, object, world)` triple from a Python sequence row.
+///
+/// Accepts any 3-element Python sequence (tuple/list) of strings. A row of the
+/// wrong length or element type is a hard input error (`ValueError`) — a silently
+/// dropped row would corrupt the divergence comparison.
+fn extract_triple(row: &Bound<'_, PyAny>) -> PyResult<(String, String, String)> {
+    let items: Vec<String> = row.extract().map_err(|_| {
+        pyo3::exceptions::PyValueError::new_err(
+            "subsumption row must be a sequence of 3 strings (subject, object, world)",
+        )
+    })?;
+    if items.len() != 3 {
+        return Err(pyo3::exceptions::PyValueError::new_err(format!(
+            "subsumption row must have exactly 3 elements, got {}",
+            items.len()
+        )));
+    }
+    Ok((items[0].clone(), items[1].clone(), items[2].clone()))
+}
+
+/// Serialize one [`crate::reason::ledger::LedgerRow`] to a Python dict.
+fn ledger_row_to_dict(
+    py: Python<'_>,
+    row: &crate::reason::ledger::LedgerRow,
+) -> PyResult<Py<PyAny>> {
+    use crate::reason::ledger::DivergenceKind;
+    let kind = match row.kind {
+        DivergenceKind::Agree => "Agree",
+        DivergenceKind::NativeOnly => "NativeOnly",
+        DivergenceKind::OracleOnly => "OracleOnly",
+        DivergenceKind::DlGap => "DlGap",
+    };
+    let d = PyDict::new(py);
+    d.set_item("kind", kind)?;
+    d.set_item("category", &row.category)?;
+    d.set_item("subject", &row.subject)?;
+    d.set_item("object", &row.object)?;
+    d.set_item("world", &row.world)?;
+    d.set_item("detail", &row.detail)?;
+    Ok(d.into_any().unbind())
+}
+
+/// Build the native↔oracle divergence ledger and classify every row (issue #666
+/// Task 4 — the ENFORCED classic-cross-check lane).
+///
+/// This is the PyO3 surface over the authoritative Rust comparison logic in
+/// [`crate::reason::ledger`]; it does NOT re-implement any comparison. Python owns
+/// the Docker orchestration (running ELK/HermiT) and the enforcement decision;
+/// this function owns the structured classification.
+///
+/// # Arguments
+///
+/// - `native_subsumptions` — native derived subsumptions, each a 3-element
+///   sequence `(subject, object, world)`.
+/// - `elk_subsumptions` — ELK-inferred subsumptions, same shape.
+/// - `native_consistent` — the native DL consistency verdict.
+/// - `native_unsat` — native unsatisfiable-class IRIs.
+/// - `hermit_consistent` — HermiT's consistency verdict, or `None` if HermiT was
+///   not run (recorded as a native-only note, never a divergence).
+/// - `hermit_unsat` — HermiT's unsatisfiable-class IRIs.
+/// - `gaps` — beyond-EL DL gap codes/messages, each a 2-tuple `(code, message)`;
+///   each becomes one honest, non-failing `DlGap` row.
+///
+/// # Returns
+///
+/// A dict with keys:
+/// - `rows` — `list[dict]`, each `{kind, category, subject, object, world, detail}`
+///   where `kind` is one of `"Agree"`, `"NativeOnly"`, `"OracleOnly"`, `"DlGap"`.
+/// - `agree`, `native_only`, `oracle_only`, `dl_gap` — per-kind tallies (int).
+///
+/// # Errors
+///
+/// Raises `ValueError` for a malformed subsumption or gap row.
+#[pyfunction]
+#[pyo3(signature = (
+    native_subsumptions,
+    elk_subsumptions,
+    native_consistent,
+    native_unsat,
+    hermit_consistent,
+    hermit_unsat,
+    gaps
+))]
+#[allow(clippy::too_many_arguments)]
+fn build_divergence_ledger(
+    py: Python<'_>,
+    native_subsumptions: Vec<Bound<'_, PyAny>>,
+    elk_subsumptions: Vec<Bound<'_, PyAny>>,
+    native_consistent: bool,
+    native_unsat: Vec<String>,
+    hermit_consistent: Option<bool>,
+    hermit_unsat: Vec<String>,
+    gaps: Vec<(String, String)>,
+) -> PyResult<Py<PyAny>> {
+    use crate::reason::ledger::{
+        build_ledger, compare_consistency, compare_subsumption, dl_gap_rows,
+    };
+
+    let native: Vec<(String, String, String)> = native_subsumptions
+        .iter()
+        .map(extract_triple)
+        .collect::<PyResult<_>>()?;
+    let elk: Vec<(String, String, String)> = elk_subsumptions
+        .iter()
+        .map(extract_triple)
+        .collect::<PyResult<_>>()?;
+
+    let subsumption_rows = compare_subsumption(&native, &elk);
+    let consistency_rows = compare_consistency(
+        native_consistent,
+        &native_unsat,
+        hermit_consistent,
+        &hermit_unsat,
+    );
+    // The ledger gap-row builder takes RdfLoss; mint one per (code, message).
+    let gap_losses: Vec<gmeow_rdf::RdfLoss> = gaps
+        .iter()
+        .map(|(code, message)| gmeow_rdf::RdfLoss::new(code, message))
+        .collect();
+    let gap_rows = dl_gap_rows(&gap_losses);
+
+    let ledger = build_ledger(subsumption_rows, consistency_rows, gap_rows);
+
+    let rows = PyList::empty(py);
+    for row in &ledger.rows {
+        rows.append(ledger_row_to_dict(py, row)?)?;
+    }
+
+    let out = PyDict::new(py);
+    out.set_item("rows", rows)?;
+    out.set_item("agree", ledger.agree)?;
+    out.set_item("native_only", ledger.native_only)?;
+    out.set_item("oracle_only", ledger.oracle_only)?;
+    out.set_item("dl_gap", ledger.dl_gap)?;
+    Ok(out.into_any().unbind())
+}
+
 // ── reason_native ─────────────────────────────────────────────────────────────
 
 /// Run native OWL-2 reasoning over a `gmeow.gts` bundle (issue #665).
@@ -1199,6 +1338,155 @@ fn reason_native(py: Python<'_>, gts_bytes: &[u8]) -> PyResult<Py<PyAny>> {
     Ok(out.into_any().unbind())
 }
 
+// ── reason_native_artifacts ───────────────────────────────────────────────────
+
+/// Reason a `gmeow.gts` bundle ONCE and emit all three native RDF 1.2 Turtle
+/// artifacts (issue #666 Task 3).
+///
+/// This is the single-call replacement for the retired Python emitters
+/// (`gmeow_tools.reason.build_inferred_closure_ttl` / `build_explanations_ttl` /
+/// `build_dl_el_ledger_ttl`): it runs the native EL/DL reasoning lane
+/// ([`crate::reason::reason_all`]) exactly once and serializes the three
+/// committed artifacts via the gmeow-rdf RDF 1.2 Turtle emitter
+/// ([`crate::reason::artifacts`]). Reasoning runs with the GIL released.
+///
+/// # Arguments
+///
+/// - `gts_bytes` — the serialized `gmeow.gts` bundle bytes (segments allowed).
+/// - `merge` — when true, the inferred-closure artifact prepends the asserted
+///   (told) graph so the document is the union of asserted and derived axioms
+///   (the `--merge` mode). The explanations and ledger artifacts are unaffected.
+///
+/// # Returns
+///
+/// A dict with three string keys:
+/// - `closure` — the told-vs-inferred inferred-closure Turtle.
+/// - `explanations` — the per-axiom proof-skeleton Turtle.
+/// - `ledger` — the report-only native↔oracle DL/EL crosscheck ledger Turtle.
+///
+/// # Errors
+///
+/// Raises `ValueError` if the GTS bundle cannot be read, and `RuntimeError` if
+/// the native reasoning run fails or a derived axiom is missing its rule name
+/// (the no-optionality / honesty invariant — fabricated provenance is never
+/// emitted).
+#[pyfunction]
+#[pyo3(signature = (gts_bytes, merge=false))]
+fn reason_native_artifacts(py: Python<'_>, gts_bytes: &[u8], merge: bool) -> PyResult<Py<PyAny>> {
+    use crate::reason::artifacts::{
+        build_dl_el_ledger_ttl, build_explanations_ttl, build_inferred_closure_ttl,
+    };
+
+    // Distinguish the two failure modes (GTS read = ValueError, reasoning /
+    // emission = RuntimeError) the same way `reason_native` does. The
+    // GtsGraphStore borrows the Graph (not Send), so the graph, store, reasoning,
+    // AND the three serializations all run inside one GIL-released closure.
+    enum ArtifactsError {
+        GtsRead(String),
+        Reason(String),
+    }
+    let bytes = gts_bytes.to_vec();
+    let built: Result<(String, String, String), ArtifactsError> = py.detach(move || {
+        let graph = gmeow_rdf::gts::read_graph(&bytes, true)
+            .map_err(|e| ArtifactsError::GtsRead(format!("GTS read error: {e}")))?;
+        let store = gmeow_rdf::gts::GtsGraphStore::new(&graph);
+        let result = crate::reason::reason_all(&store).map_err(ArtifactsError::Reason)?;
+
+        let merge_store: Option<&dyn gmeow_rdf::RdfStore> = if merge { Some(&store) } else { None };
+        let closure =
+            build_inferred_closure_ttl(&result, merge_store).map_err(ArtifactsError::Reason)?;
+        let explanations = build_explanations_ttl(&result).map_err(ArtifactsError::Reason)?;
+        let ledger = build_dl_el_ledger_ttl(&result);
+        Ok((closure, explanations, ledger))
+    });
+    let (closure, explanations, ledger) = built.map_err(|e| match e {
+        ArtifactsError::GtsRead(m) => pyo3::exceptions::PyValueError::new_err(m),
+        ArtifactsError::Reason(m) => {
+            pyo3::exceptions::PyRuntimeError::new_err(format!("reason error: {m}"))
+        }
+    })?;
+
+    let out = PyDict::new(py);
+    out.set_item("closure", closure)?;
+    out.set_item("explanations", explanations)?;
+    out.set_item("ledger", ledger)?;
+    Ok(out.into_any().unbind())
+}
+
+// ── rl_closure ─────────────────────────────────────────────────────────────────
+
+/// Compute the OWL 2 RL/RDF deductive closure of an RDF graph (issue #666 Task 5).
+///
+/// This is the native, Docker/Java-free **primary** entailment authority that
+/// replaces the `owlrl` deductive-closure baseline the conversion suites called.
+/// The computation is RDF-1.2-first: every quad is encoded into the generic
+/// 4-ary `triple(?s, ?p, ?o, ?w)` relation (predicate-as-DATA), the world axis
+/// threads through unchanged, and the fixed OWL 2 RL rule set
+/// ([`crate::reason::rl::RL_RULES`]) runs through the SAME Nemo chase the EL/DL
+/// lane uses. The per-property ternary `materialize` seam *cannot* express RL's
+/// property-quantifying meta-rules (the predicate is a Nemo symbol there), which
+/// is why this surface uses the generic-triple encoding instead.
+///
+/// # Arguments
+///
+/// - `input` — the source graph as N-Quads (named-graph triples close in their
+///   world) or N-Triples (default-graph triples close in a single sentinel
+///   world). rdflib's `graph.serialize(format="nt")` / `format="nquads"` both
+///   feed this directly.
+///
+/// # Returns
+///
+/// A list of `(subject, predicate, object_nt, world, is_edb)` tuples — the full
+/// closure (asserted + derived). `subject`/`predicate` are bare IRI strings;
+/// `object_nt` is the N3 display form (`<iri>` or a quoted literal); `world` is
+/// the named-graph IRI (the sentinel for default-graph input); `is_edb` is true
+/// for asserted facts. The Python helper folds the derived rows back into the
+/// caller's rdflib graph (see `gmeow_tools.native_rl.native_rl_closure`).
+///
+/// # Errors
+///
+/// Raises `ValueError` on an N-Quads/N-Triples parse error and `RuntimeError`
+/// on a chase or decode failure.
+#[pyfunction]
+fn rl_closure(py: Python<'_>, input: &str) -> PyResult<Vec<Py<PyAny>>> {
+    if input.trim().is_empty() {
+        return Ok(vec![]);
+    }
+
+    // Parse the input as N-Quads (a superset of N-Triples — bare triples land in
+    // the default graph) into an oxigraph store, then close it through the
+    // generic-triple RL chase with the GIL released.
+    let bytes = input.as_bytes().to_vec();
+    let closure: Result<crate::reason::rl::RlClosure, (bool, String)> = py.detach(move || {
+        let store = Store::new().map_err(|e| (false, format!("store creation failed: {e}")))?;
+        store
+            .load_from_reader(RdfFormat::NQuads, bytes.as_slice())
+            .map_err(|e| (true, format!("N-Quads parse error: {e}")))?;
+        let rdf_store = gmeow_rdf::oxigraph::OxigraphStore::new(&store);
+        crate::reason::rl::rl_closure(&rdf_store).map_err(|e| (false, e))
+    });
+    let closure = closure.map_err(|(is_parse, msg)| {
+        if is_parse {
+            pyo3::exceptions::PyValueError::new_err(msg)
+        } else {
+            pyo3::exceptions::PyRuntimeError::new_err(format!("rl_closure error: {msg}"))
+        }
+    })?;
+
+    let mut out: Vec<Py<PyAny>> = Vec::with_capacity(closure.triples.len());
+    for t in &closure.triples {
+        let tup = (
+            t.subject.as_str(),
+            t.predicate.as_str(),
+            t.object.as_str(),
+            t.world.as_str(),
+            t.is_edb,
+        );
+        out.push(tup.into_pyobject(py)?.into_any().unbind());
+    }
+    Ok(out)
+}
+
 #[pymodule]
 fn gmeow_logic(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(materialize, m)?)?;
@@ -1209,6 +1497,9 @@ fn gmeow_logic(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(query, m)?)?;
     m.add_function(wrap_pyfunction!(compile_logic, m)?)?;
     m.add_function(wrap_pyfunction!(reason_native, m)?)?;
+    m.add_function(wrap_pyfunction!(reason_native_artifacts, m)?)?;
+    m.add_function(wrap_pyfunction!(rl_closure, m)?)?;
+    m.add_function(wrap_pyfunction!(build_divergence_ledger, m)?)?;
     Ok(())
 }
 

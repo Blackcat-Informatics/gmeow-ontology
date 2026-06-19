@@ -1,25 +1,34 @@
 """Reasoning pipeline over the GMEOW ontology, via pinned ROBOT (Docker).
 
+**classic-cross-check only.** This module is the lane's ROBOT/Docker reasoning
+plumbing — the *sole* Java+Docker reasoning surface (Principle 18). It is NOT on
+the primary path: ``make check`` and the required ``quality`` gate reason
+natively (``reason-native`` / ``gmeow reason --mode native``, Java/Docker-free),
+and every pytest that drives these functions is ``docker``/``classic_cross_check``
+marked or mocks them out. The only live callers are the classic-cross-check lane
+(``classic_cross_check.py``), the maintainer ``gmeow-dev`` docker subcommands, and
+the divergence-ledger oracle — never normal repo use.
+
 The pipeline always *merges the import closure into a single ontology first*,
 then reasons/validates that product. This is deliberate: ROBOT's
 ``validate-profile`` reports spurious "undeclared entity" violations when terms
 are declared in a sibling imported module rather than the local import closure;
 collapsing to one ontology resolves it (verified against the skeleton).
 
-Reasoner choice follows the plan: ELK for fast incoherence checks in CI,
-HermiT for sound-and-complete OWL 2 DL consistency at release time.
+Reasoner choice follows the plan: ELK for fast incoherence checks, HermiT for
+sound-and-complete OWL 2 DL consistency — both as classic oracles the native
+authority is cross-checked against, not as a gate dependency.
 """
 
 from __future__ import annotations
 
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 from gmeow_tools.config import (
     CATALOG_FILE,
     DIST_DIR,
     GTS_SNAPSHOT_FILE,
-    NAMESPACE,
     ONTOLOGY_FILE,
     PROJECT_ROOT,
     ROBOT_IMAGE,
@@ -42,11 +51,6 @@ FULL_FILE = DIST_DIR / "gmeow-full.ttl"
 INFERRED_CLOSURE_FILE = DIST_DIR / "gmeow-inferred-closure.rdf12.ttl"
 #: Diagnostics-artifact stem for the native lane (JSON / SARIF / HTML).
 NATIVE_REASON_STEM = "gmeow-reason-native"
-
-#: IRI base for a reasoning rule, minted under the gmeow namespace so the
-#: ``gmeow:viaRule`` annotation points at a dereferenceable, namespaced term
-#: rather than a bare rule label.
-_RULE_IRI_BASE = NAMESPACE + "rule/"
 
 
 def _rel(path: Path) -> str:
@@ -371,298 +375,6 @@ def build_full(*, merged: Path = MERGED_FILE, output: Path = FULL_FILE) -> Path:
 # Native reasoning lane (Rust, Java/Docker-free authority)
 # --------------------------------------------------------------------------- #
 
-#: Minimal prefix block for the inferred-closure RDF 1.2 artifact.
-_CLOSURE_PREFIXES = (
-    "@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n"
-    "@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n"
-    "@prefix owl: <http://www.w3.org/2002/07/owl#> .\n"
-    "@prefix prov: <http://www.w3.org/ns/prov#> .\n"
-    f"@prefix gmeow: <{NAMESPACE}> .\n"
-)
-
-#: Banner prepended to the inferred-closure artifact.
-_CLOSURE_BANNER = (
-    "# GMEOW native inferred closure (RDF 1.2).\n"
-    "# The told-vs-inferred derived axioms produced by the native EL/DL\n"
-    "# reasoning lane (gmeow_logic.reason_native, Java/Docker-free). Each\n"
-    "# inferred triple carries an RDF 1.2 reifier annotated with its\n"
-    "# derivation provenance (prov:wasDerivedBy / gmeow:viaRule). DO NOT EDIT.\n"
-)
-
-
-def _iri_term(value: str) -> str:
-    """Normalize a native-engine term into an angle-bracketed full IRI.
-
-    The native engine emits subjects/predicates as bare IRI strings and objects
-    already wrapped in ``<...>``; this collapses both to one ``<iri>`` form.
-    """
-    inner = value[1:-1] if value.startswith("<") and value.endswith(">") else value
-    return f"<{inner}>"
-
-
-def _rule_iri(rule_name: str | None) -> str:
-    """Mint a namespaced, percent-encoded IRI for a reasoning rule label.
-
-    Every *derived* (non-EDB) axiom must be labelled with the rule that produced
-    it. A ``None`` rule name on a derived axiom is an engine-invariant violation,
-    not a recoverable condition, so this fails loudly (no-optionality doctrine)
-    rather than minting a fabricated ``<.../None>`` IRI or silently dropping the
-    derivation's provenance.
-    """
-    from urllib.parse import quote
-
-    if rule_name is None:
-        raise ValueError(
-            "derived axiom has no rule_name; the native engine must label every "
-            "inferred (non-EDB) axiom with the rule that produced it"
-        )
-    return f"<{_RULE_IRI_BASE}{quote(rule_name, safe='')}>"
-
-
-def build_inferred_closure_ttl(
-    result: dict[str, Any], *, merge_asserted_from: bytes | None = None
-) -> str:
-    """Render the native told-vs-inferred closure as an RDF 1.2 Turtle document.
-
-    For every entailment in ``result['inferred']`` whose ``is_edb`` is false (a
-    *derived*, not asserted, axiom) this emits the triple plus an RDF 1.2
-    reifier carrying its derivation provenance: ``prov:wasDerivedBy`` and
-    ``gmeow:viaRule`` (both pointing at the namespaced rule IRI),
-    ``gmeow:inferenceKind gmeow:Deduction``, and ``gmeow:inWorld`` recording the
-    world (named graph) the entailment holds in. The world is carried as an
-    annotation rather than a Turtle named graph so the artifact stays valid
-    Turtle (it parses under ``RdfFormat.TURTLE``).
-
-    This function is pure (dict in, string out) so the Task 5 generator can reuse
-    it without any I/O.
-
-    Args:
-        result: The dict returned by ``gmeow_logic.reason_native``.
-        merge_asserted_from: When given, the asserted GTS bundle bytes; their
-            told graph is prepended so the document is the *union* of asserted
-            and derived axioms (the ``--merge`` mode).
-
-    Returns:
-        A valid RDF 1.2 Turtle document.
-    """
-    parts: list[str] = [_CLOSURE_BANNER, _CLOSURE_PREFIXES]
-
-    if merge_asserted_from is not None:
-        asserted = _asserted_turtle(merge_asserted_from)
-        if asserted:
-            parts.append(
-                "\n# --- asserted (told) graph (union; --merge) ---\n" + asserted
-            )
-
-    parts.append("\n# --- derived (inferred) closure ---\n")
-    for axiom in result.get("inferred", []):
-        if axiom.get("is_edb"):
-            continue
-        subject = _iri_term(axiom["subject"])
-        predicate = _iri_term(axiom["predicate"])
-        obj = _iri_term(axiom["object"])
-        rule_iri = _rule_iri(axiom["rule_name"])
-        world_iri = _iri_term(axiom["world"])
-        parts.append(f"{subject} {predicate} {obj} .\n")
-        parts.append(
-            f"[] rdf:reifies << {subject} {predicate} {obj} >> ;\n"
-            f"   prov:wasDerivedBy {rule_iri} ;\n"
-            f"   gmeow:viaRule {rule_iri} ;\n"
-            f"   gmeow:inferenceKind gmeow:Deduction ;\n"
-            f"   gmeow:inWorld {world_iri} .\n"
-        )
-    return "".join(parts)
-
-
-#: Banner prepended to the proof-skeleton explanations artifact.
-_EXPLANATIONS_BANNER = (
-    "# GMEOW native reasoning explanations (RDF 1.2 proof skeletons).\n"
-    "# For every derived axiom the native EL/DL lane produced, a derivation\n"
-    "# node links the conclusion (an RDF 1.2 reifier) to its premises and the\n"
-    "# rule that fired (gmeow:viaRule). Pure native-lane output. DO NOT EDIT.\n"
-)
-
-#: Banner prepended to the native↔oracle divergence ledger (report-only; #666).
-_LEDGER_BANNER = (
-    "# GMEOW native vs ELK/HermiT DL/EL crosscheck ledger (REPORT-ONLY).\n"
-    "# Built from the native EL/DL reasoning lane ONLY (Java/Docker-free). The\n"
-    "# oracle comparison and divergence ENFORCEMENT are deferred to the\n"
-    "# classic-cross-check lane (#666); this ledger records the native verdict,\n"
-    "# the native-only subsumption entailments, and the beyond-EL gaps. DO NOT\n"
-    "# EDIT.\n"
-)
-
-
-def build_explanations_ttl(result: dict[str, Any]) -> str:
-    """Render an RDF 1.2 proof skeleton for every derived axiom.
-
-    For each entailment in ``result['inferred']`` whose ``is_edb`` is false (a
-    *derived*, not asserted, axiom) this emits a derivation node that links the
-    conclusion triple — carried as an RDF 1.2 reifier (``rdf:reifies``) — to its
-    premises (each premise triple, also reified) via ``gmeow:hasPremise`` and to
-    the rule that fired via ``gmeow:viaRule``. The conclusion reifier is attached
-    with ``gmeow:concludes``. The world the derivation holds in is recorded with
-    ``gmeow:inWorld``. Premises are taken from the entailment's antecedent triples
-    when the native engine supplies them; otherwise the derivation records only
-    the rule and conclusion (a one-step justification skeleton).
-
-    This function is pure (dict in, string out); it parses under
-    ``RdfFormat.TURTLE``. Human-readable literals carry an explicit ``@en`` tag.
-
-    Args:
-        result: The dict returned by ``gmeow_logic.reason_native``.
-
-    Returns:
-        A valid RDF 1.2 Turtle document of proof skeletons.
-    """
-    parts: list[str] = [_EXPLANATIONS_BANNER, _CLOSURE_PREFIXES]
-    parts.append("\n# --- derivation proof skeletons ---\n")
-    for axiom in result.get("inferred", []):
-        if axiom.get("is_edb"):
-            continue
-        subject = _iri_term(axiom["subject"])
-        predicate = _iri_term(axiom["predicate"])
-        obj = _iri_term(axiom["object"])
-        rule_iri = _rule_iri(axiom["rule_name"])
-        world_iri = _iri_term(axiom["world"])
-        conclusion = f"<< {subject} {predicate} {obj} >>"
-        premise_lines = ""
-        for premise in axiom.get("premises", []):
-            p_subject = _iri_term(premise["subject"])
-            p_predicate = _iri_term(premise["predicate"])
-            p_object = _iri_term(premise["object"])
-            premise_lines += (
-                f"   gmeow:hasPremise << {p_subject} {p_predicate} {p_object} >> ;\n"
-            )
-        parts.append(
-            f"[] a gmeow:Derivation ;\n"
-            f"   gmeow:concludes {conclusion} ;\n"
-            f"{premise_lines}"
-            f"   gmeow:viaRule {rule_iri} ;\n"
-            f"   gmeow:inferenceKind gmeow:Deduction ;\n"
-            f'   rdfs:label "derivation of an inferred axiom"@en ;\n'
-            f"   gmeow:inWorld {world_iri} .\n"
-        )
-    return "".join(parts)
-
-
-def build_dl_el_ledger_ttl(result: dict[str, Any]) -> str:
-    """Render the report-only native↔oracle DL/EL crosscheck ledger as Turtle.
-
-    Built from the NATIVE results ONLY (the gate must stay Java/Docker-free): the
-    oracle (ELK/HermiT) comparison and divergence *enforcement* are deferred to
-    the ``classic-cross-check`` lane (#666). The ledger therefore records, for the
-    native EL/DL lane:
-
-    * one ``gmeow:LedgerEntry`` of kind ``gmeow:NativeOnly`` per derived
-      subsumption (``rdfs:subClassOf``) entailment, each annotated with a note
-      that oracle comparison is deferred to ``classic-cross-check`` (#666);
-    * the native consistency verdict (``gmeow:consistent``);
-    * one ``gmeow:DlGap`` resource per beyond-EL gap (its code + message);
-    * the entailment / gap counts;
-    * a top-level ``gmeow:oracleCrosscheck`` note marking the ledger report-only.
-
-    This function is pure (dict in, string out); it parses under
-    ``RdfFormat.TURTLE``. Human-readable literals carry an explicit ``@en`` tag.
-
-    Args:
-        result: The dict returned by ``gmeow_logic.reason_native``.
-
-    Returns:
-        A valid RDF 1.2 Turtle document (the report-only ledger).
-    """
-    deferred_note = "oracle comparison deferred to classic-cross-check #666"
-    parts: list[str] = [_LEDGER_BANNER, _CLOSURE_PREFIXES]
-    parts.append(
-        "\n# --- ledger header (report-only; #666 enforces) ---\n"
-        f"gmeow:dl-el-crosscheck a gmeow:CrosscheckLedger ;\n"
-        f"   gmeow:consistent {'true' if result.get('consistent') else 'false'} ;\n"
-        '   gmeow:oracleCrosscheck "deferred to classic-cross-check (#666); '
-        'ledger is report-only"@en .\n'
-    )
-
-    subsumptions = [
-        axiom
-        for axiom in result.get("inferred", [])
-        if not axiom.get("is_edb")
-        and _iri_term(axiom["predicate"])
-        == "<http://www.w3.org/2000/01/rdf-schema#subClassOf>"
-    ]
-    gaps = result.get("gaps", [])
-
-    parts.append("\n# --- native-only subsumption entailments ---\n")
-    for index, axiom in enumerate(subsumptions):
-        subject = _iri_term(axiom["subject"])
-        obj = _iri_term(axiom["object"])
-        world_iri = _iri_term(axiom["world"])
-        parts.append(
-            f"gmeow:ledger-entry-{index} a gmeow:LedgerEntry ;\n"
-            f"   gmeow:entryKind gmeow:NativeOnly ;\n"
-            f"   gmeow:subsumes << {subject} "
-            f"<http://www.w3.org/2000/01/rdf-schema#subClassOf> {obj} >> ;\n"
-            f"   gmeow:inWorld {world_iri} ;\n"
-            f'   rdfs:comment "{deferred_note}"@en .\n'
-        )
-
-    parts.append("\n# --- beyond-EL DL gaps ---\n")
-    for index, gap in enumerate(gaps):
-        message = _escape_literal(str(gap.get("message", "")))
-        code = _escape_literal(str(gap.get("code", "")))
-        parts.append(
-            f"gmeow:dl-gap-{index} a gmeow:DlGap ;\n"
-            f'   gmeow:gapCode "{code}"@en ;\n'
-            f'   rdfs:comment "{message}"@en .\n'
-        )
-
-    parts.append(
-        "\n# --- counts ---\n"
-        f"gmeow:dl-el-crosscheck gmeow:entailmentCount {len(subsumptions)} ;\n"
-        f"   gmeow:gapCount {len(gaps)} .\n"
-    )
-    return "".join(parts)
-
-
-def _escape_literal(value: str) -> str:
-    """Escape a string for embedding in a double-quoted Turtle literal.
-
-    Backslash is escaped first (so later escapes are not doubled), then the
-    quote and the control characters Turtle forbids raw in a quoted literal —
-    newline, carriage return, and tab — are escaped to their two-character forms.
-    """
-    return (
-        value.replace("\\", "\\\\")
-        .replace('"', '\\"')
-        .replace("\n", "\\n")
-        .replace("\r", "\\r")
-        .replace("\t", "\\t")
-    )
-
-
-def _asserted_turtle(gts_bytes: bytes) -> str:
-    """Serialize the asserted GTS bundle's triples to Turtle (RDF 1.2 / star).
-
-    The bundle's named-graph quads are flattened into the closure document's
-    default graph (the graph component is dropped) so the artifact is a single
-    Turtle document. pyoxigraph serializes and re-parses any RDF-star triple
-    terms the asserted statement layer carries, so the round-trip stays valid
-    under ``RdfFormat.TURTLE``. Uses gts + pyoxigraph (no rdflib; #629).
-    """
-    from io import BytesIO
-
-    import gts as _gts
-    import pyoxigraph
-
-    quads = pyoxigraph.Store()
-    nquads = _gts.to_nquads(_gts.read(gts_bytes))
-    quads.load(nquads.encode("utf-8"), format=pyoxigraph.RdfFormat.N_QUADS)
-    flat = pyoxigraph.Store()
-    flat.extend(
-        pyoxigraph.Quad(quad.subject, quad.predicate, quad.object) for quad in quads
-    )
-    buffer = BytesIO()
-    pyoxigraph.serialize(flat, buffer, format=pyoxigraph.RdfFormat.TURTLE)
-    return buffer.getvalue().decode("utf-8")
-
 
 def reason_native(
     *,
@@ -784,11 +496,14 @@ def reason_native(
             )
 
     output_dir.mkdir(parents=True, exist_ok=True)
-    closure_ttl = build_inferred_closure_ttl(
-        result, merge_asserted_from=(gts_bytes if merge else None)
-    )
+    # The RDF 1.2 closure Turtle is emitted natively (Rust + gmeow-rdf): the
+    # gmeow-logic engine reasons the bundle once and serializes the artifact
+    # through the gmeow-rdf RDF 1.2 Turtle emitter. `--merge` prepends the
+    # asserted (told) graph so the document is the union of asserted and derived
+    # axioms; otherwise it carries only the derived closure.
+    artifacts = gmeow_logic.reason_native_artifacts(gts_bytes, merge)
     (output_dir / "gmeow-inferred-closure.rdf12.ttl").write_text(
-        closure_ttl, encoding="utf-8"
+        artifacts["closure"], encoding="utf-8"
     )
     diagnostics.write_report_artifacts(
         report, output_dir=output_dir, stem=NATIVE_REASON_STEM

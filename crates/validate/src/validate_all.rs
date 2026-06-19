@@ -421,11 +421,20 @@ fn shacl_findings_from_report(
         .iter()
         .map(|result| {
             let mut finding = finding_from_shacl(result);
+            // Attribute the example/DSL source file as the finding's PRIMARY
+            // physical location (a repo-relative path), keeping the focus-node
+            // IRI as that location's logical anchor. SARIF `artifactLocation.uri`
+            // must be repo-relative — an absolute IRI is rejected by GitHub
+            // code-scanning — so the file, not the IRI, is the physical artifact.
             if let Some(origin) = origin {
-                finding.related_locations.push(Location {
-                    path: Some(origin.to_owned()),
-                    ..Location::default()
-                });
+                if let Some(primary) = finding.locations.first_mut() {
+                    primary.path = Some(origin.to_owned());
+                } else {
+                    finding.add_location(Location {
+                        path: Some(origin.to_owned()),
+                        ..Location::default()
+                    });
+                }
             }
             finding
         })

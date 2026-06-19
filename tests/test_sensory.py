@@ -22,12 +22,12 @@ ScalarQuantity). These tests verify:
 
 from __future__ import annotations
 
-import owlrl
 from rdflib import OWL, RDF, RDFS, XSD, Graph, Literal, Namespace, URIRef
 from rdflib.namespace import SKOS
 
 from gmeow_tools.config import NAMESPACE
 from gmeow_tools.graph import load_merged_graph
+from gmeow_tools.native_rl import native_rl_closure
 from gmeow_tools.slices import module_path
 
 GMEOW = Namespace(NAMESPACE)
@@ -97,7 +97,7 @@ def test_sensory_observation_specialises_observation() -> None:
     graph.parse(module_path("sensory"), format="turtle")
     graph.add((EX.so1, RDF.type, GMEOW.SensoryObservation))
 
-    owlrl.DeductiveClosure(owlrl.OWLRL_Semantics).expand(graph)
+    native_rl_closure(graph)
     assert (EX.so1, RDF.type, GMEOW.Observation) in graph
 
 
@@ -109,7 +109,7 @@ def test_sensor_specialises_agent() -> None:
     graph.parse(module_path("sensory"), format="turtle")
     graph.add((EX.sensor1, RDF.type, GMEOW.Sensor))
 
-    owlrl.DeductiveClosure(owlrl.OWLRL_Semantics).expand(graph)
+    native_rl_closure(graph)
     assert (EX.sensor1, RDF.type, GMEOW.Agent) in graph
 
 
@@ -130,7 +130,7 @@ def test_sensory_quantity_inherits_scalar_quantity() -> None:
     graph.parse(module_path("sensory"), format="turtle")
     graph.add((EX.sq1, RDF.type, GMEOW.SensoryQuantity))
 
-    owlrl.DeductiveClosure(owlrl.OWLRL_Semantics).expand(graph)
+    native_rl_closure(graph)
     assert (EX.sq1, RDF.type, GMEOW.ScalarQuantity) in graph
 
 
@@ -184,7 +184,7 @@ def test_sensory_observation_el_axioms() -> None:
     graph.add((EX.room1, RDF.type, GMEOW.Place))
     graph.add((EX.sq2, RDF.type, GMEOW.SensoryQuantity))
 
-    owlrl.DeductiveClosure(owlrl.OWLRL_Semantics).expand(graph)
+    native_rl_closure(graph)
     assert (EX.so2, RDF.type, GMEOW.SensoryObservation) in graph
 
 
@@ -206,7 +206,7 @@ def test_sensory_quantity_frame_inheritance() -> None:
     graph.add((EX.sq3, RDF.type, GMEOW.SensoryQuantity))
     graph.add((EX.frameSI, RDF.type, GMEOW.ReferenceFrame))
 
-    owlrl.DeductiveClosure(owlrl.OWLRL_Semantics).expand(graph)
+    native_rl_closure(graph)
     # isResultOf is inverse of observationResult, so sq3 --isResultOf-- so3
     # Then the chain isResultOf ∘ hasReferenceFrame ⊑ hasReferenceFrame fires.
     assert (EX.sq3, GMEOW.hasReferenceFrame, EX.frameSI) in graph
@@ -230,7 +230,7 @@ def test_has_sensory_quantity_property_chain() -> None:
     graph.add((EX.so4, RDF.type, GMEOW.SensoryObservation))
     graph.add((EX.sq4, RDF.type, GMEOW.SensoryQuantity))
 
-    owlrl.DeductiveClosure(owlrl.OWLRL_Semantics).expand(graph)
+    native_rl_closure(graph)
     assert (EX.room2, GMEOW.hasSensoryQuantity, EX.sq4) in graph
 
 
@@ -268,7 +268,7 @@ def test_contested_sensory_readings_coexist() -> None:
     graph.add((EX.sqB, RDF.type, GMEOW.SensoryQuantity))
     graph.add((EX.sqB, GMEOW.quantityValue, Literal("22.5", datatype=XSD.decimal)))
 
-    owlrl.DeductiveClosure(owlrl.OWLRL_Semantics).expand(graph)
+    native_rl_closure(graph)
     # Both observations survive; neither is contradicted.
     assert (EX.soA, RDF.type, GMEOW.SensoryObservation) in graph
     assert (EX.soB, RDF.type, GMEOW.SensoryObservation) in graph
