@@ -61,3 +61,17 @@ def test_feedback_bundle_is_deterministic() -> None:
 def test_empty_report_bundle_round_trips() -> None:
     bundle = build_feedback_bundle(gmeow_diagnostics.Report("validate"))
     assert verify_feedback_bundle(bundle) is True
+
+
+def test_verify_returns_false_on_garbage_bytes() -> None:
+    """A verifier on a trust boundary must not raise on unreadable input (#654)."""
+    assert verify_feedback_bundle(b"") is False
+    assert verify_feedback_bundle(b"not a gts bundle at all") is False
+    assert verify_feedback_bundle(bytes(range(256))) is False
+
+
+def test_verify_returns_false_on_truncated_bundle() -> None:
+    """A truncated (tampered) bundle is not a valid self-attestation, not a crash."""
+    bundle = build_feedback_bundle(_report())
+    # Lopping off the tail corrupts the frame chain; verification must say False.
+    assert verify_feedback_bundle(bundle[: len(bundle) // 2]) is False

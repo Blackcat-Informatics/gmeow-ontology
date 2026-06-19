@@ -80,20 +80,37 @@ def verify_feedback_bundle(bundle: bytes) -> bool:
 
     Re-derives the snapshot content id from the folded findings graph and checks
     it equals the ``snapshotContentId`` the embedded flat-JSON report recorded.
-    """
-    blobs = read_report_blobs(bundle)
-    flat = blobs.get(REP_FINDINGS)
-    if flat is None:
-        return False
-    stamped = json.loads(flat).get("metadata", {}).get(META_SNAPSHOT_ID)
-    if stamped is None:
-        return False
 
-    folded = gts.read(bundle)
-    dataset = Dataset()
-    nquads = gts.to_nquads(folded)
-    if nquads.strip():
-        dataset.parse(data=nquads, format="nquads")
-    builder = _Builder()
-    builder.add_graph(dataset)
-    return bool(stamped == builder.snapshot_content_id())
+    The bundle is untrusted input: a verifier sits on a trust boundary, so a
+    corrupt or tampered bundle (unreadable bytes, malformed JSON, a non-mapping
+    payload, an unparsable graph) is simply *not a valid self-attestation* and
+    returns ``False`` rather than raising — honoring the boolean contract. This
+    guards external input and does not soften the no-optionality doctrine that
+    governs our own pipeline's report_json.
+    """
+    try:
+        blobs = read_report_blobs(bundle)
+        flat = blobs.get(REP_FINDINGS)
+        if flat is None:
+            return False
+        payload = json.loads(flat)
+        if not isinstance(payload, dict):
+            return False
+        metadata = payload.get("metadata")
+        if not isinstance(metadata, dict):
+            return False
+        stamped = metadata.get(META_SNAPSHOT_ID)
+        if stamped is None:
+            return False
+
+        folded = gts.read(bundle)
+        dataset = Dataset()
+        nquads = gts.to_nquads(folded)
+        if nquads.strip():
+            dataset.parse(data=nquads, format="nquads")
+        builder = _Builder()
+        builder.add_graph(dataset)
+        return bool(stamped == builder.snapshot_content_id())
+    except Exception:
+        # A bundle we cannot read, fold, or parse cannot attest to itself.
+        return False
