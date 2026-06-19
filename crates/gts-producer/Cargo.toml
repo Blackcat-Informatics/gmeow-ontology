@@ -26,3 +26,6 @@ gmeow-rdf = { path = "../rdf", features = ["gts", "oxigraph"] }
 pyo3 = { version = "0.29", features = ["extension-module", "abi3-py313"] }
 # CBOR serialization (used directly for header metadata and deterministic encoding parity).
 ciborium = "0.2"
+
+[dev-dependencies]
+tempfile = "3"

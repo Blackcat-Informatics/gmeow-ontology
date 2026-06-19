@@ -1241,6 +1241,7 @@ dependencies = [
  "gmeow-rdf",
  "oxigraph",
  "pyo3",
+ "tempfile",
 ]
 
 [[package]]
