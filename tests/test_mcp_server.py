@@ -13,6 +13,7 @@ from gmeow_tools.mcp_server import (
     gmeow_constitution,
     gmeow_llms_txt,
     gmeow_lookup_term,
+    gmeow_reason,
     gmeow_validate,
 )
 
@@ -105,6 +106,29 @@ def test_gmeow_lookup_term_not_found() -> None:
     data = _json_response(text)
     assert data["ok"] is False
     assert "not found" in str(data["error"]).lower()
+
+
+# --------------------------------------------------------------------------- #
+# Reasoning
+# --------------------------------------------------------------------------- #
+
+
+def test_gmeow_reason_native() -> None:
+    """The reason tool defaults to native mode and returns a JSON verdict."""
+    text = gmeow_reason()
+    data = _json_response(text)
+    assert "ok" in data
+    assert isinstance(data["ok"], bool)
+    assert data.get("mode") == "native"
+    assert "message" in data
+
+
+def test_gmeow_reason_docker_opt_in() -> None:
+    """The docker mode is reachable and returns a JSON response."""
+    text = gmeow_reason(mode="docker")
+    data = _json_response(text)
+    assert "ok" in data
+    assert isinstance(data["ok"], bool)
 
 
 # --------------------------------------------------------------------------- #
