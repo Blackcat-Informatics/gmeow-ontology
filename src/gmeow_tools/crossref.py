@@ -264,13 +264,12 @@ def _add_crossmark(
     parent: ET.Element, policy_doi: str, license_url: str, start_date: str
 ) -> None:
     """Add a Crossmark block with AccessIndicators nested in custom_metadata."""
-    if not license_url:
-        return
     crossmark = _child(parent, "crossmark")
     _child(crossmark, "crossmark_version", "1")
     _child(crossmark, "crossmark_policy", policy_doi)
-    custom_metadata = _child(crossmark, "custom_metadata")
-    _add_access(custom_metadata, license_url, start_date)
+    if license_url:
+        custom_metadata = _child(crossmark, "custom_metadata")
+        _add_access(custom_metadata, license_url, start_date)
 
 
 def _add_relations(parent: ET.Element, relations: Sequence[_Relation]) -> None:

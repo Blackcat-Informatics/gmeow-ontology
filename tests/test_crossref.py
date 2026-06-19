@@ -245,6 +245,27 @@ def test_crossmark_enabled_without_policy_doi_fails_fast(
         build_deposit_xml(timestamp="20260603120000")
 
 
+def test_crossmark_enabled_without_license_emits_crossmark_not_custom_metadata(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Crossmark core elements are emitted even when no license URL is available."""
+    monkeypatch.setattr(crossref_mod, "CROSSMARK_ENABLED", True)
+    monkeypatch.setattr(crossref_mod, "CROSSMARK_POLICY_DOI", "10.67342/xn9qgdr5mw/v1")
+    meta = dataclasses.replace(load_self_description(), license_uri="")
+    root = _parse(build_deposit_xml(meta=meta, timestamp="20260603120000"))
+    datasets = root.findall(f".//{{{CR_NS}}}dataset")
+    assert datasets
+    for dataset in datasets:
+        crossmark = dataset.find(f"{{{CR_NS}}}crossmark")
+        assert crossmark is not None
+        version = crossmark.find(f"{{{CR_NS}}}crossmark_version")
+        assert version is not None and version.text == "1"
+        policy = crossmark.find(f"{{{CR_NS}}}crossmark_policy")
+        assert policy is not None and policy.text == "10.67342/xn9qgdr5mw/v1"
+        assert crossmark.find(f"{{{CR_NS}}}custom_metadata") is None
+        assert not _direct_ai_programs(dataset), "unexpected top-level ai:program"
+
+
 def test_deposit_carries_registrant_wikidata_institution_id() -> None:
     """BII's QID is emitted through Crossref's native institution metadata."""
     xml = build_deposit_xml()
