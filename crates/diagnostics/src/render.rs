@@ -411,15 +411,40 @@ fn sarif_result(finding: &Finding) -> Value {
             "gmeowFindingHash/v1": stable_fingerprint(finding),
         },
     });
-    let locations: Vec<Value> = finding.locations.iter().map(sarif_location).collect();
+    let mut locations: Vec<Value> = finding.locations.iter().map(sarif_location).collect();
+
+    // GitHub code-scanning requires every `relatedLocations` entry to carry a
+    // `physicalLocation` ("buildRelatedLocations: expected physical location").
+    // A related location that resolves to logical-only (e.g. a SHACL `path`/
+    // `value` annotation, or an absolute IRI) is therefore not emitted as a
+    // related location — its logical entries are folded onto the primary
+    // location so the information survives rather than being dropped.
+    let mut related: Vec<Value> = Vec::new();
+    let mut folded: Vec<Value> = Vec::new();
+    for location in &finding.related_locations {
+        let rendered = sarif_location(location);
+        if rendered.get("physicalLocation").is_some() {
+            related.push(rendered);
+        } else if let Some(logical) = rendered.get("logicalLocations").and_then(Value::as_array) {
+            folded.extend(logical.iter().cloned());
+        }
+    }
+    if !folded.is_empty() {
+        if locations.is_empty() {
+            locations.push(json!({}));
+        }
+        match locations[0]
+            .get_mut("logicalLocations")
+            .and_then(Value::as_array_mut)
+        {
+            Some(existing) => existing.extend(folded),
+            None => locations[0]["logicalLocations"] = json!(folded),
+        }
+    }
+
     if !locations.is_empty() {
         result["locations"] = json!(locations);
     }
-    let related: Vec<Value> = finding
-        .related_locations
-        .iter()
-        .map(sarif_location)
-        .collect();
     if !related.is_empty() {
         result["relatedLocations"] = json!(related);
     }
@@ -733,23 +758,24 @@ mod tests {
             result["locations"][0]["physicalLocation"]["artifactLocation"]["uri"],
             "core/ai/examples/grounded-claim.ttl"
         );
-        // The focus IRI rides along as a logical location.
-        assert_eq!(
-            result["locations"][0]["logicalLocations"][0]["fullyQualifiedName"],
-            "https://blackcatinformatics.ca/gmeow/examples/ai/claim"
-        );
-        // The composite annotation is a logical location, not a physical URI.
-        let related = &result["relatedLocations"][0];
-        assert!(
-            related["physicalLocation"].is_null(),
-            "non-URI annotation must not become a physical artifactLocation"
-        );
-        assert_eq!(
-            related["logicalLocations"][0]["fullyQualifiedName"],
-            "path https://blackcatinformatics.ca/gmeow/groundedIn"
-        );
+        // The focus IRI and the folded `path` annotation ride along as logical
+        // locations on the primary (a logical-only related location would be
+        // rejected by GitHub, so it is folded here rather than emitted).
+        let names: Vec<&str> = result["locations"][0]["logicalLocations"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|l| l["fullyQualifiedName"].as_str().unwrap())
+            .collect();
+        assert!(names.contains(&"https://blackcatinformatics.ca/gmeow/examples/ai/claim"));
+        assert!(names.contains(&"path https://blackcatinformatics.ca/gmeow/groundedIn"));
 
-        // No emitted artifact URI carries an angle bracket OR an absolute scheme.
+        // The only related location was logical-only, so none is emitted — and
+        // every relatedLocation that IS emitted must carry a physicalLocation.
+        assert!(result["relatedLocations"].is_null());
+
+        // No emitted artifact URI carries an angle bracket OR an absolute scheme,
+        // and every relatedLocation across the run has a physicalLocation.
         let serialized = to_sarif(&report).unwrap();
         assert!(
             !serialized.contains("\"uri\": \"<"),
@@ -764,7 +790,69 @@ mod tests {
                     );
                 });
             }
+            for res in run["results"].as_array().unwrap() {
+                if let Some(rels) = res["relatedLocations"].as_array() {
+                    for rel in rels {
+                        assert!(
+                            rel.get("physicalLocation").is_some(),
+                            "relatedLocation without physicalLocation is rejected by code-scanning"
+                        );
+                    }
+                }
+            }
         }
+    }
+
+    #[test]
+    fn logical_only_related_location_is_folded_not_emitted() {
+        // The exact shape a stale validation cache yields: a SHACL finding whose
+        // PRIMARY location is logical-only (the focus IRI) and whose related
+        // locations are the source file (physical) plus a `path <iri>` annotation
+        // (logical-only). GitHub rejects a relatedLocation without a
+        // physicalLocation, so the annotation must fold onto the primary while the
+        // file relatedLocation is kept. Regression for #666.
+        let mut finding =
+            Finding::new(Severity::Error, "shacl.MinCount", "missing property").with_tool("shacl");
+        finding.add_location(Location::new(
+            None,
+            None,
+            None,
+            Some("https://blackcatinformatics.ca/gmeow/examples/ai/claim".to_owned()),
+        ));
+        finding.related_locations.push(Location::new(
+            Some("core/ai/examples/grounded-claim.ttl".to_owned()),
+            None,
+            None,
+            None,
+        ));
+        finding.related_locations.push(Location::new(
+            None,
+            None,
+            None,
+            Some("path https://blackcatinformatics.ca/gmeow/groundedIn".to_owned()),
+        ));
+        let mut report = Report::new("validate");
+        report.add_finding(finding);
+
+        let value: Value = serde_json::from_str(&to_sarif(&report).unwrap()).unwrap();
+        let result = &value["runs"][0]["results"][0];
+
+        // Exactly one relatedLocation survives — the file — and it is physical.
+        let rels = result["relatedLocations"].as_array().unwrap();
+        assert_eq!(rels.len(), 1);
+        assert_eq!(
+            rels[0]["physicalLocation"]["artifactLocation"]["uri"],
+            "core/ai/examples/grounded-claim.ttl"
+        );
+        // The folded annotation lands on the primary location's logicalLocations.
+        let names: Vec<&str> = result["locations"][0]["logicalLocations"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|l| l["fullyQualifiedName"].as_str().unwrap())
+            .collect();
+        assert!(names.contains(&"path https://blackcatinformatics.ca/gmeow/groundedIn"));
+        assert!(names.contains(&"https://blackcatinformatics.ca/gmeow/examples/ai/claim"));
     }
 
     /// Recursively collect every `"uri"` string value under a JSON node.
