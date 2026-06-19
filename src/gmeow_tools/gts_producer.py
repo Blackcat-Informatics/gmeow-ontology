@@ -21,6 +21,7 @@ from collections.abc import Callable
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+from blake3 import blake3
 from gts import Signer
 from gts.model import XSD_STRING, Quad, Term, TermKind, Triple
 from gts.wire import canonical
@@ -307,12 +308,43 @@ class _Builder:
 
     # -- emit -----------------------------------------------------------------
 
+    def _snapshot_payload(self) -> dict[str, object]:
+        """The canonical ``snapshot`` frame payload from the accumulated tables.
+
+        Factored out so the snapshot bytes (and therefore the bundle's graph
+        identity) can be content-addressed independently of any blob frames that
+        ride alongside it — see :meth:`snapshot_content_id`.
+        """
+        terms, quads, reifies, annot = self._canonical_tables()
+        snapshot: dict[str, object] = {
+            "terms": [term_to_wire(t) for t in terms],
+            "quads": [
+                [q[0], q[1], q[2], *([q[3]] if q[3] is not None else [])] for q in quads
+            ],
+        }
+        if reifies:
+            snapshot["reifies"] = {rid: list(spo) for rid, spo in reifies.items()}
+        if annot:
+            snapshot["annot"] = [list(row) for row in annot]
+        return snapshot
+
+    def snapshot_content_id(self) -> str:
+        """A ``blake3:<hex>`` content address of the snapshot payload (#654).
+
+        The diagnostics self-attestation stamps this into the embedded report's
+        metadata so a consumer can prove the report describes THIS bundle's
+        graph. It is a pure function of the snapshot tables and is unaffected by
+        any report/doc blob frames, which ride as separate frames.
+        """
+        return "blake3:" + blake3(canonical(self._snapshot_payload())).hexdigest()
+
     def to_gts(
         self,
         *,
         profile: str = "dist",
         transform: list[str] | None = None,
         doc_blobs: list[tuple[bytes, str, str]] | None = None,
+        report_blobs: list[tuple[bytes, str, str]] | None = None,
         signer: Signer | None = None,
         public_key_armor: str | None = None,
         rsyncable_threshold: int = 65536,
@@ -326,9 +358,19 @@ class _Builder:
         its guide via ``gmeow:guideBlob "blake3:<hex>"`` (the reader keys
         blobs by BLAKE3 of the decoded content).
 
+        ``report_blobs`` (#654): diagnostics report payloads (SARIF, flat JSON,
+        and the ``gmeow:`` RDF projection) carried as ordinary blob frames in
+        the same deterministic order. They are PURELY ADDITIVE — like
+        ``doc_blobs`` they ride ahead of the snapshot and never alter the
+        snapshot frame, so the bundle's graph identity (and the #647 cache key)
+        is byte-identical whether or not a report is embedded. This is the
+        artifact-separation that lets the feedback bundle carry a report while
+        the committed ``gmeow.gts`` never does.
+
         If ``signer`` and ``public_key_armor`` are supplied, a ``meta`` frame
         carrying the file's transport key is emitted first and signed along
-        with every subsequent frame.
+        with every subsequent frame — so an embedded report rides under the
+        signature (tamper-evident attestation).
 
         ``rsyncable_threshold`` (#513): payloads larger than this many bytes
         are compressed with ``zstd-rsyncable`` instead of ``zstd``, improving
@@ -337,7 +379,6 @@ class _Builder:
         if (signer is None) != (public_key_armor is None):
             raise ValueError("signer and public_key_armor must be supplied together")
         base_chain = ["zstd"] if transform is None else transform
-        terms, quads, reifies, annot = self._canonical_tables()
         writer = Writer(profile=profile, signer=signer)
         if signer is not None:
             writer.add_meta(
@@ -355,22 +396,14 @@ class _Builder:
                 return ["zstd-rsyncable"]
             return list(base_chain)
 
+        all_blobs = list(doc_blobs or []) + list(report_blobs or [])
         for data, media_type, rep in sorted(
-            doc_blobs or [], key=lambda row: (row[2], row[0])
+            all_blobs, key=lambda row: (row[2], row[0])
         ):
             writer.add_blob(
                 data, mt=media_type, rep=rep, transform=choose_transform(data)
             )
-        snapshot: dict[str, object] = {
-            "terms": [term_to_wire(t) for t in terms],
-            "quads": [
-                [q[0], q[1], q[2], *([q[3]] if q[3] is not None else [])] for q in quads
-            ],
-        }
-        if reifies:
-            snapshot["reifies"] = {rid: list(spo) for rid, spo in reifies.items()}
-        if annot:
-            snapshot["annot"] = [list(row) for row in annot]
+        snapshot = self._snapshot_payload()
         snapshot_bytes = canonical(snapshot)
         writer.add_frame(
             "snapshot", payload=snapshot, transform=choose_transform(snapshot_bytes)
@@ -447,6 +480,7 @@ def compile_gts(
     extra_named_graphs: Sequence[tuple[Graph, str, str]] | None = None,
     transform: list[str] | None = None,
     doc_blobs: list[tuple[bytes, str, str]] | None = None,
+    report_blobs: list[tuple[bytes, str, str]] | None = None,
     signer: Signer | None = None,
     public_key_armor: str | None = None,
     rsyncable_threshold: int = 65536,
@@ -502,6 +536,7 @@ def compile_gts(
         profile="dist",
         transform=transform,
         doc_blobs=doc_blobs,
+        report_blobs=report_blobs,
         signer=signer,
         public_key_armor=public_key_armor,
         rsyncable_threshold=rsyncable_threshold,

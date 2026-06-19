@@ -105,6 +105,11 @@ jobs:
 
   python-heavy:
     runs-on: ubuntu-latest
+    # security-events: write lets the diagnostics SARIF surface in the Security
+    # tab via github/codeql-action/upload-sarif (#654).
+    permissions:
+      contents: read
+      security-events: write
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
@@ -158,6 +163,20 @@ jobs:
 
       - name: Build + install gmeow_validate extension (#579 — validation runs through it)
         run: VIRTUAL_ENV="$PWD/.venv" uvx maturin develop --manifest-path crates/validate/Cargo.toml
+
+      # First-class diagnostics (#654): emit the SARIF/JSON/HTML + self-describing
+      # .gts feedback bundle. continue-on-error so a validation failure still
+      # uploads the SARIF that explains it.
+      - name: Diagnostics feedback (SARIF/JSON/HTML + .gts)
+        continue-on-error: true
+        run: uv run --package gmeow-dev gmeow-dev feedback
+
+      - name: Upload diagnostics SARIF to code scanning (#654)
+        if: always() && hashFiles('dist/gmeow-feedback.sarif') != ''
+        uses: github/codeql-action/upload-sarif@dd903d2e4f5405488e5ef1422510ee31c8b32357 # v3
+        with:
+          sarif_file: dist/gmeow-feedback.sarif
+          category: gmeow-diagnostics
 
       # CI-only Python tests cover heavyweight generated docs, GTS snapshot
       # determinism, and secondary export surfaces. Keep module scopes together

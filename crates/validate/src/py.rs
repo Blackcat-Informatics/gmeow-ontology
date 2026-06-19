@@ -625,8 +625,11 @@ fn dsl_merge_with_provenance(
 ///
 /// Builds the ontology store once, parses the SHACL shapes once, runs every
 /// validation phase, and returns a dict with `errors`, `warnings`, `timings`,
-/// and `declared_terms`. Optional phases (example coverage/SHACL, DSL SHACL)
-/// are enabled by the corresponding fields in `options`.
+/// `declared_terms`, and `report_json` — the single canonical diagnostics
+/// report serialized to JSON, from which `errors`/`warnings` are derived and
+/// which carries SHACL focus nodes and GTS wire coordinates (#654). Optional
+/// phases (example coverage/SHACL, DSL SHACL) are enabled by the corresponding
+/// fields in `options`.
 #[pyfunction]
 fn validate_all_native(
     py: Python<'_>,
@@ -655,10 +658,15 @@ fn validate_all_native(
     )
     .map_err(pyo3::exceptions::PyValueError::new_err)?;
 
+    let report_json = run
+        .report_json()
+        .map_err(|e| pyo3::exceptions::PyValueError::new_err(format!("serialize report: {e}")))?;
+
     let out = PyDict::new(py);
-    out.set_item("errors", PyList::new(py, &run.errors)?)?;
-    out.set_item("warnings", PyList::new(py, &run.warnings)?)?;
+    out.set_item("errors", PyList::new(py, run.errors())?)?;
+    out.set_item("warnings", PyList::new(py, run.warnings())?)?;
     out.set_item("declared_terms", PyList::new(py, &run.declared_terms)?)?;
+    out.set_item("report_json", report_json)?;
 
     let timings = PyList::empty(py);
     for t in &run.timings {

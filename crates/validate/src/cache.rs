@@ -1,40 +1,45 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Content-addressed validation cache mirroring Python `.cache/validate`.
+//! Content-addressed validation cache under `.cache/validate`.
 //!
-//! The cache persists JSON objects `{"errors": [...], "warnings": [...]}` under
-//! `<project-root>/.cache/validate/<kind>/<key>.json`. Keys are short SHA-256
-//! hashes of NUL-delimited byte parts, matching the Python `_cache_key`
-//! algorithm. Invalidation is purely content-based; there is no TTL.
+//! The cache persists JSON objects `{"findings": [...]}` under
+//! `<project-root>/.cache/validate/<kind>/<key>.json`, where each finding is a
+//! serialized [`gmeow_diagnostics::Finding`] — so the structured SHACL focus
+//! nodes and GTS wire coordinates survive a cache hit, not just a fresh compute
+//! (#654). Keys are short SHA-256 hashes of NUL-delimited byte parts, matching
+//! the Python `_cache_key` algorithm. Invalidation is purely content-based;
+//! there is no TTL. Older `{"errors","warnings"}` entries simply fail to
+//! deserialize and are treated as a miss, so the cache self-heals on upgrade.
 
 use std::fs;
 use std::io::Write;
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicU64, Ordering};
 
+use gmeow_diagnostics::Finding;
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 
 static TMP_COUNTER: AtomicU64 = AtomicU64::new(0);
 
-/// A cached validation result.
-///
-/// Mirrors the JSON schema written by Python's `_write_cached_result`:
-/// `{"errors": [...], "warnings": [...]}`.
-#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+/// A cached validation result: the structured findings produced by one cached
+/// phase. Serialized as `{"findings": [...]}`.
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
 pub struct CachedResult {
-    /// Error diagnostics.
-    pub errors: Vec<String>,
-    /// Warning diagnostics.
-    pub warnings: Vec<String>,
+    /// The structured findings for this phase.
+    pub findings: Vec<Finding>,
 }
 
 impl CachedResult {
+    /// Build a cached result from a slice of findings.
+    pub fn from_findings(findings: Vec<Finding>) -> Self {
+        Self { findings }
+    }
+
     /// Merge another cached result into this one.
     pub fn extend(&mut self, other: CachedResult) {
-        self.errors.extend(other.errors);
-        self.warnings.extend(other.warnings);
+        self.findings.extend(other.findings);
     }
 }
 

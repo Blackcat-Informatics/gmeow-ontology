@@ -357,12 +357,19 @@ def feedback(
     ),
     timings: bool = typer.Option(False, "--timings", help="Record validation timings."),
 ) -> None:
-    """Write first-class diagnostics artifacts for the validation gate."""
+    """Write first-class diagnostics artifacts for the validation gate.
+
+    Always writes ``<stem>.{json,sarif,html}`` AND the self-describing
+    ``<stem>.gts`` feedback bundle (the findings as queryable RDF plus the SARIF
+    and JSON projections as content-addressed blobs, #654). No flag: one fixed
+    behavior. The canonical ``gmeow.gts`` is never touched.
+    """
     from gmeow_tools.diagnostics import (
         emit_legacy_cli,
         report_from_validation_result,
         write_report_artifacts,
     )
+    from gmeow_tools.feedback_bundle import build_feedback_bundle
     from gmeow_tools.validate import validate_all
 
     result = validate_all(timings=timings)
@@ -371,6 +378,12 @@ def feedback(
     paths = write_report_artifacts(report, output_dir=output_dir, stem=stem)
     for kind in ("json", "sarif", "html"):
         console.print(f"[green]wrote[/green] {paths[kind]}")
+
+    # The self-describing feedback bundle: findings RDF + SARIF/JSON blobs.
+    bundle_path = output_dir / f"{stem}.gts"
+    bundle_path.write_bytes(build_feedback_bundle(report))
+    console.print(f"[green]wrote[/green] {bundle_path}")
+
     if result.ok:
         console.print("[green]✓ diagnostics feedback written[/green]")
     else:
