@@ -947,6 +947,7 @@ music = [
 
 [package.dev-dependencies]
 dev = [
+    { name = "cryptography" },
     { name = "mido" },
     { name = "music21" },
     { name = "mypy" },
@@ -984,6 +985,7 @@ provides-extras = ["music"]
 
 [package.metadata.requires-dev]
 dev = [
+    { name = "cryptography", specifier = ">=44.0" },
     { name = "mido", specifier = ">=1.3.3" },
     { name = "music21", specifier = ">=10.3.0" },
     { name = "mypy", specifier = ">=1.14" },
