@@ -216,7 +216,7 @@ jobs:
         uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
 
       - name: Install cargo-nextest
-        uses: taiki-e/install-action@9e7a663509f6d1b6ed4db66d1898b5f7b5c35c33 # v2
+        uses: taiki-e/install-action@b8cecb83565409bcc297b2df6e77f030b2a468d5 # v2
         with:
           tool: cargo-nextest
 
@@ -234,14 +234,14 @@ jobs:
 
       - name: Upload JUnit report
         if: always()
-        uses: actions/upload-artifact@65c4c7a169443f7e846777990498395000c3b56f # v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: junit-report-rust
           path: target/nextest/ci/junit.xml
           if-no-files-found: warn
 
       - name: Publish test results
-        uses: dorny/test-reporter@31a54ee7fbe75cbf3e19d8b375f537d98d07a1b1 # v2
+        uses: dorny/test-reporter@4a2e97665d5fa767581ef38eca97b9694bd4eef4 # v2
         if: always()
         with:
           name: Rust Tests
