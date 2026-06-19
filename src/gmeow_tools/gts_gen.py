@@ -319,6 +319,8 @@ def build_verify_attestation_graph(query_names: list[str], report) -> Graph:  # 
     graph.add((verify_activity, RDF.type, activity_cls))
     graph.add((verify_activity, was_associated_with, verify_agent))
 
+    # Basename uniqueness is enforced by build_snapshot_bytes before this
+    # function is called, so keying attestation IRIs on Path(name).stem is sound.
     for name in query_names:
         stem = Path(name).stem
         passed = stem not in failed
@@ -407,8 +409,28 @@ def build_snapshot_bytes(
 
     query_files = sorted(VERIFY_DIR.glob("*.rq")) + iter_slice_query_files("verify")
     query_names = [str(p.relative_to(PROJECT_ROOT)) for p in query_files]
+    # Guard: stem-collision check — two .rq files with the same basename (e.g.
+    # core queries/verify/foo.rq and a slice slices/g/n/queries/verify/foo.rq)
+    # would silently collapse attestation IRIs and failed-set keys.  Hard-fail
+    # before any attestation data is built so corruption is impossible.
+    stems: dict[str, str] = {}
+    collisions: list[str] = []
+    for name in query_names:
+        stem = Path(name).stem
+        if stem in stems:
+            collisions.append(f"{stems[stem]!r} vs {name!r} (stem {stem!r})")
+        else:
+            stems[stem] = name
+    if collisions:
+        collision_list = "; ".join(sorted(collisions))
+        msg = (
+            f"verify-query basename collision(s) — attestation IRIs would be "
+            f"ambiguous: {collision_list}"
+        )
+        raise ValueError(msg)
     pairs = [
-        (name, p.read_text()) for name, p in zip(query_names, query_files, strict=True)
+        (name, p.read_text(encoding="utf-8"))
+        for name, p in zip(query_names, query_files, strict=True)
     ]
     report_json = gmeow_logic.verify_native(pass1_bytes, pairs)
     report = diagnostics.report_from_json(report_json)
