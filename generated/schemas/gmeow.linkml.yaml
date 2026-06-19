@@ -944,6 +944,9 @@ classes:
   DeterminationStatus:
     class_uri: https://blackcatinformatics.ca/gmeow/DeterminationStatus
     title: Determination Status
+  DiagnosticSeverity:
+    class_uri: https://blackcatinformatics.ca/gmeow/DiagnosticSeverity
+    title: Diagnostic Severity
   Diff:
     class_uri: https://blackcatinformatics.ca/gmeow/Diff
     title: Diff
@@ -1381,6 +1384,16 @@ classes:
     - transactionAmount
     - transactionStatus
     - transactionType
+  Finding:
+    class_uri: https://blackcatinformatics.ca/gmeow/Finding
+    title: Finding
+    is_a: Observation
+    slots:
+    - findingCode
+    - findingLocation
+    - findingMessage
+    - findingSeverity
+    - findingTool
   ForgePlatform:
     class_uri: https://blackcatinformatics.ca/gmeow/ForgePlatform
     title: Forge Platform
@@ -6676,6 +6689,36 @@ slots:
     range: PhysicalObject
     domain: ArchaeologicalFindContext
     multivalued: false
+  findingCode:
+    slot_uri: https://blackcatinformatics.ca/gmeow/findingCode
+    title: finding code
+    range: string
+    domain: Finding
+    multivalued: true
+  findingLocation:
+    slot_uri: https://blackcatinformatics.ca/gmeow/findingLocation
+    title: finding location
+    range: uriorcurie
+    domain: Finding
+    multivalued: true
+  findingMessage:
+    slot_uri: https://blackcatinformatics.ca/gmeow/findingMessage
+    title: finding message
+    range: string
+    domain: Finding
+    multivalued: true
+  findingSeverity:
+    slot_uri: https://blackcatinformatics.ca/gmeow/findingSeverity
+    title: finding severity
+    range: DiagnosticSeverity
+    domain: Finding
+    multivalued: true
+  findingTool:
+    slot_uri: https://blackcatinformatics.ca/gmeow/findingTool
+    title: finding tool
+    range: string
+    domain: Finding
+    multivalued: true
   fingerprint:
     slot_uri: https://blackcatinformatics.ca/gmeow/fingerprint
     title: fingerprint
@@ -6948,6 +6991,12 @@ slots:
     range: GroupOperator
     domain: ConditionGroup
     multivalued: false
+  gtsFrameIndex:
+    slot_uri: https://blackcatinformatics.ca/gmeow/gtsFrameIndex
+    title: GTS frame index
+    range: integer
+    minimum_value: 0
+    multivalued: true
   gtsHeadId:
     slot_uri: https://blackcatinformatics.ca/gmeow/gtsHeadId
     title: GTS head id
@@ -6960,6 +7009,18 @@ slots:
     range: GTSProfile
     domain: GTSSegment
     multivalued: false
+  gtsQuadIndex:
+    slot_uri: https://blackcatinformatics.ca/gmeow/gtsQuadIndex
+    title: GTS quad index
+    range: integer
+    minimum_value: 0
+    multivalued: true
+  gtsReifierId:
+    slot_uri: https://blackcatinformatics.ca/gmeow/gtsReifierId
+    title: GTS reifier id
+    range: integer
+    minimum_value: 0
+    multivalued: true
   gtsSegment:
     slot_uri: https://blackcatinformatics.ca/gmeow/gtsSegment
     title: GTS segment
@@ -6979,6 +7040,12 @@ slots:
     range: GTSDocument
     domain: GTSSegment
     multivalued: false
+  gtsTermId:
+    slot_uri: https://blackcatinformatics.ca/gmeow/gtsTermId
+    title: GTS term id
+    range: integer
+    minimum_value: 0
+    multivalued: true
   guideBlob:
     slot_uri: https://blackcatinformatics.ca/gmeow/guideBlob
     title: guide blob
@@ -14523,6 +14590,21 @@ enums:
       determinationFree:
         meaning: https://blackcatinformatics.ca/gmeow/determinationFree
         title: free
+  DiagnosticSeverityEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/DiagnosticSeverity
+    permissible_values:
+      severityError:
+        meaning: https://blackcatinformatics.ca/gmeow/severityError
+        title: error
+      severityInfo:
+        meaning: https://blackcatinformatics.ca/gmeow/severityInfo
+        title: info
+      severityNote:
+        meaning: https://blackcatinformatics.ca/gmeow/severityNote
+        title: note
+      severityWarning:
+        meaning: https://blackcatinformatics.ca/gmeow/severityWarning
+        title: warning
   DisclosurePolicyEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/DisclosurePolicy
     permissible_values:

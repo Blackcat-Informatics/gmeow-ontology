@@ -738,6 +738,14 @@ export enum DeterminationStatusEnum {
     free = "determinationFree",
 };
 
+export enum DiagnosticSeverityEnum {
+
+    error = "severityError",
+    info = "severityInfo",
+    note = "severityNote",
+    warning = "severityWarning",
+};
+
 export enum DisclosurePolicyEnum {
 
     internal_only = "policyInternalOnly",
@@ -4389,6 +4397,11 @@ export interface DeterminationStatus {
 
 
 
+export interface DiagnosticSeverity {
+}
+
+
+
 export interface Diff extends InformationObject {
     diffFrom?: Commit,
     diffTo?: Commit,
@@ -4855,6 +4868,16 @@ export interface FinancialTransaction extends Event {
     transactionAmount?: MonetaryAmount,
     transactionStatus?: TransactionStatus[],
     transactionType?: TransactionType[],
+}
+
+
+
+export interface Finding extends Observation {
+    findingCode?: string[],
+    findingLocation?: string[],
+    findingMessage?: string[],
+    findingSeverity?: DiagnosticSeverity[],
+    findingTool?: string[],
 }
 
 
