@@ -269,9 +269,9 @@ gmeow reason --mode datalog    # the Datalog projection
 
 OWL projection is consistent with the existing `gmeow project` surface (`cli.py:897`). The Makefile
 aliases keep their meaning, with the native lane promoted to authority: `make reason` (fast ELK
-projected-subset, `Makefile:45`), `make verify` (ROBOT verify negatives, `:54`), `make crosscheck`
-(rdflib/pyoxigraph agreement, no Docker, `:42`), `make check` (fast gate, ELK only, `:141`),
-`make check-docker` (HermiT/Jena, `:147`). The fast gate already excludes Docker reasoners and HermiT
+projected-subset, `Makefile:45`), `make verify` (native EL/DL reasoned-graph negatives, Java/Docker-free), `make crosscheck`
+(rdflib/pyoxigraph agreement, no Docker, `:42`), `make check` (fast gate, native EL/DL reason + verify),
+`make classic-cross-check` (ROBOT/ELK/HermiT/Jena oracle, non-required). The fast gate already excludes Docker reasoners and HermiT
 is already out of the default gate; the native solver becomes `make check`'s reasoning authority, and
 the legacy reasoners remain secondary validators of their projected fragments.
 

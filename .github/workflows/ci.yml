@@ -286,6 +286,9 @@ jobs:
       - name: Constitution check (every principle has live enforcement)
         run: uv run --package gmeow-dev gmeow-dev constitution-check
 
+      - name: Reasoned-graph negative tests (native verify, Docker-free — #695)
+        run: uv run --package gmeow-dev gmeow-dev verify --mode native
+
       - name: Mappings → axioms + linksets, QID syntax
         run: uv run --package gmeow-dev gmeow-dev mappings
 

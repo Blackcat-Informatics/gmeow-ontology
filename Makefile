@@ -12,7 +12,7 @@ TARGET ?= foaf
 MESSAGE ?= "chore: regenerate checked-in artifacts"
 GMEOW_DEV ?= uv run --package gmeow-dev gmeow-dev
 
-.PHONY: help install fmt lint validate crosscheck classic-cross-check reason reason-native reason-hermit explain verify reasoning-cases statements-docker-check extract \
+.PHONY: help install fmt lint validate crosscheck classic-cross-check reason reason-native reason-hermit explain verify verify-docker reasoning-cases statements-docker-check extract \
         mappings wikidata wikidata-live wikidata-coverage wikidata-audit \
         lint-alignment refresh-target-axioms docs docs-full ontology-docs ontology-docs-full quality \
         normalize build project test test-fast test-docker check check-generated release regenerate commit clean clean-docs pull-images \
@@ -60,10 +60,11 @@ reason: reason-native ## OWL consistency reasoning — native, Docker-free autho
 # The authoritative, Docker-free gate is `make reason` (= reason-native).
 classic-cross-check: ## CROSS-CHECK ONLY (Docker/Java oracles) — NOT required for normal repo use (#666).
 	$(GMEOW_DEV) reason --mode docker --reasoner ELK --exclude-tautologies structural
-	$(GMEOW_DEV) verify --reasoner ELK --reasoned-input dist/gmeow-reasoned-elk.ttl
+	$(GMEOW_DEV) verify --mode docker --reasoner ELK --reasoned-input dist/gmeow-reasoned-elk.ttl
 	$(GMEOW_DEV) reason --mode docker --reasoner hermit
 	uv run python scripts/reasoning_cases.py
 	uv run python scripts/statements_docker_check.py
+	uv run python scripts/slme_cross_check.py
 	$(GMEOW_DEV) crosscheck-queries
 	$(GMEOW_DEV) classic-cross-check
 	$(GMEOW_DEV) classic-cross-check-rl
@@ -76,9 +77,12 @@ reason-hermit: ## [lane] Sound + complete consistency check with HermiT (Docker 
 explain: ## [lane] Explain any unsatisfiable classes (HermiT, Docker oracle).
 	$(GMEOW_DEV) explain
 
-verify: ## [lane] Reasoned-graph negative tests (ELK reason + ROBOT verify over queries/verify/, Docker oracle).
+verify: logic-py ## Reasoned-graph negative tests (native EL/DL closure, Java/Docker-free — #695).
+	$(GMEOW_DEV) verify --mode native
+
+verify-docker: ## [lane] Reasoned-graph negative tests (ELK reason + ROBOT verify over queries/verify/, Docker oracle).
 	$(GMEOW_DEV) reason --mode docker --reasoner ELK --exclude-tautologies structural
-	$(GMEOW_DEV) verify --reasoner ELK --reasoned-input dist/gmeow-reasoned-elk.ttl
+	$(GMEOW_DEV) verify --mode docker --reasoner ELK --reasoned-input dist/gmeow-reasoned-elk.ttl
 
 reasoning-cases: ## [lane] HermiT/ELK inconsistency and fixture-coherence cases (Docker oracle).
 	uv run python scripts/reasoning_cases.py
@@ -230,7 +234,7 @@ test-network: ## Run the network tests (LIVE endpoints) — MANUAL only, never i
 	GMEOW_RUN_NETWORK=1 uv run pytest -m network
 
 check: logic-py ## Fast local gate: core ontology + transforms (native EL/DL reasoning — Java/Docker-free; classic-cross-check oracle lane runs separately).
-	$(MAKE) -j$$(nproc 2>/dev/null || echo 4) lint clippy rust-test validate check-generated constitution-check audit wikidata coverage acceptance reason-native mappings-only lint-alignment
+	$(MAKE) -j$$(nproc 2>/dev/null || echo 4) lint clippy rust-test validate check-generated constitution-check audit wikidata coverage acceptance reason-native verify mappings-only lint-alignment
 	uv run pytest -n auto --dist loadscope -m "not ci_only and not docker and not pyoxigraph_ci and not classic_cross_check"
 	$(GMEOW_DEV) compliance-report --from-passing-check
 	@echo "✓ all checks passed (Docker-free, Java-free)"
