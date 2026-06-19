@@ -61,7 +61,7 @@ def _armor_public_key(raw_public: bytes) -> str:
 
 
 def _make_signer() -> tuple[gts.Signer, str, str]:
-    """Return a deterministic signer, its public-key armor, and fingerprint."""
+    """Return a fresh signer, its public-key armor, and fingerprint."""
     private = Ed25519PrivateKey.generate()
     raw = private.public_key().public_bytes(
         serialization.Encoding.Raw, serialization.PublicFormat.Raw
