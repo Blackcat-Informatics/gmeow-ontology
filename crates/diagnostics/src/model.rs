@@ -79,6 +79,13 @@ impl Ord for Severity {
 }
 
 /// A concrete source or logical location for a diagnostic.
+///
+/// Beyond the file `path`/`line`/`column` and a free-form `logical` name, a
+/// location can carry GTS wire coordinates (mirroring `gmeow_rdf::RdfLocation`):
+/// the term-id, quad index, reifier-id, frame index, and segment index that
+/// point a finding back into the exact position inside a GTS bundle. These flow
+/// from the RDF/GTS adapter through the report into SARIF logical locations and
+/// the `gmeow:` RDF projection so every consumer agrees on the same anchor.
 #[derive(Debug, Clone, PartialEq, Eq, Default, Serialize, Deserialize)]
 pub struct Location {
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -89,6 +96,16 @@ pub struct Location {
     pub column: Option<u32>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub logical: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub gts_term_id: Option<u64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub gts_quad_index: Option<u64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub gts_reifier_id: Option<u64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub gts_frame_index: Option<u64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub gts_segment_index: Option<u64>,
 }
 
 impl Location {
@@ -103,7 +120,33 @@ impl Location {
             line,
             column,
             logical,
+            ..Self::default()
         }
+    }
+
+    pub fn with_gts_term(mut self, term_id: u64) -> Self {
+        self.gts_term_id = Some(term_id);
+        self
+    }
+
+    pub fn with_gts_quad(mut self, quad_index: u64) -> Self {
+        self.gts_quad_index = Some(quad_index);
+        self
+    }
+
+    pub fn with_gts_reifier(mut self, reifier_id: u64) -> Self {
+        self.gts_reifier_id = Some(reifier_id);
+        self
+    }
+
+    pub fn with_gts_frame(mut self, frame_index: u64) -> Self {
+        self.gts_frame_index = Some(frame_index);
+        self
+    }
+
+    pub fn with_gts_segment(mut self, segment_index: u64) -> Self {
+        self.gts_segment_index = Some(segment_index);
+        self
     }
 
     pub fn is_empty(&self) -> bool {
@@ -111,6 +154,11 @@ impl Location {
             && self.line.is_none()
             && self.column.is_none()
             && self.logical.is_none()
+            && self.gts_term_id.is_none()
+            && self.gts_quad_index.is_none()
+            && self.gts_reifier_id.is_none()
+            && self.gts_frame_index.is_none()
+            && self.gts_segment_index.is_none()
     }
 
     pub fn display(&self) -> String {
@@ -127,6 +175,21 @@ impl Location {
                 out.push(':');
                 out.push_str(&column.to_string());
             }
+        }
+        if let Some(term_id) = self.gts_term_id {
+            out.push_str(&format!(" term#{term_id}"));
+        }
+        if let Some(quad_index) = self.gts_quad_index {
+            out.push_str(&format!(" quad#{quad_index}"));
+        }
+        if let Some(reifier_id) = self.gts_reifier_id {
+            out.push_str(&format!(" reifier#{reifier_id}"));
+        }
+        if let Some(frame_index) = self.gts_frame_index {
+            out.push_str(&format!(" frame#{frame_index}"));
+        }
+        if let Some(segment_index) = self.gts_segment_index {
+            out.push_str(&format!(" segment#{segment_index}"));
         }
         out
     }
@@ -363,5 +426,38 @@ mod tests {
 
         assert_eq!(normalized.findings[0].severity, Severity::Error);
         assert_eq!(normalized.findings[0].code, "a");
+    }
+
+    #[test]
+    fn location_without_wire_coords_serializes_compactly() {
+        let location = Location::new(Some("a.ttl".to_owned()), Some(3), None, None);
+        let json = serde_json::to_string(&location).expect("serialize");
+        // skip_serializing_if keeps absent wire coords out of the wire form.
+        assert!(!json.contains("gts_"), "unexpected wire keys: {json}");
+        let round: Location = serde_json::from_str(&json).expect("deserialize");
+        assert_eq!(round, location);
+    }
+
+    #[test]
+    fn location_wire_coords_round_trip_and_display() {
+        let location = Location::default()
+            .with_gts_segment(2)
+            .with_gts_quad(42)
+            .with_gts_term(7);
+
+        let json = serde_json::to_string(&location).expect("serialize");
+        let round: Location = serde_json::from_str(&json).expect("deserialize");
+        assert_eq!(round, location);
+        assert_eq!(round.gts_quad_index, Some(42));
+
+        // display() participates in Finding::sort_key, so the coords must render
+        // deterministically in declared order (term, quad, reifier, frame, segment).
+        assert_eq!(location.display(), "<unknown> term#7 quad#42 segment#2");
+        assert!(!location.is_empty());
+    }
+
+    #[test]
+    fn empty_location_stays_empty_with_wire_fields() {
+        assert!(Location::default().is_empty());
     }
 }
