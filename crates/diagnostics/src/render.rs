@@ -402,6 +402,12 @@ fn sarif_rules(report: &Report) -> Vec<Value> {
         .collect()
 }
 
+/// Repo-relative anchor for findings with no specific source file (whole-ontology
+/// lint warnings, legacy message-only findings). GitHub code-scanning rejects a
+/// result with no location, and a location must have a repo-relative
+/// `physicalLocation`, so these are attributed to the ontology root.
+const FALLBACK_ARTIFACT_URI: &str = "ontology/gmeow.ttl";
+
 fn sarif_result(finding: &Finding) -> Value {
     let mut result = json!({
         "ruleId": finding.code,
@@ -411,43 +417,63 @@ fn sarif_result(finding: &Finding) -> Value {
             "gmeowFindingHash/v1": stable_fingerprint(finding),
         },
     });
-    let mut locations: Vec<Value> = finding.locations.iter().map(sarif_location).collect();
 
-    // GitHub code-scanning requires every `relatedLocations` entry to carry a
-    // `physicalLocation` ("buildRelatedLocations: expected physical location").
-    // A related location that resolves to logical-only (e.g. a SHACL `path`/
-    // `value` annotation, or an absolute IRI) is therefore not emitted as a
-    // related location — its logical entries are folded onto the primary
-    // location so the information survives rather than being dropped.
-    let mut related: Vec<Value> = Vec::new();
-    let mut folded: Vec<Value> = Vec::new();
-    for location in &finding.related_locations {
-        let rendered = sarif_location(location);
-        if rendered.get("physicalLocation").is_some() {
-            related.push(rendered);
-        } else if let Some(logical) = rendered.get("logicalLocations").and_then(Value::as_array) {
-            folded.extend(logical.iter().cloned());
-        }
-    }
-    if !folded.is_empty() {
-        if locations.is_empty() {
-            locations.push(json!({}));
-        }
-        match locations[0]
-            .get_mut("logicalLocations")
-            .and_then(Value::as_array_mut)
-        {
-            Some(existing) => existing.extend(folded),
-            None => locations[0]["logicalLocations"] = json!(folded),
+    // GitHub code-scanning requires every result to carry at least one location,
+    // every location (primary AND related) to have a repo-relative
+    // `physicalLocation`, and logical-only locations to be disallowed. So:
+    // render each source location, keep the physical ones, fold all logical
+    // entries (focus IRI, SHACL path/value, GTS wire coords) onto a single
+    // primary location, and synthesize a fallback anchor when no file is known.
+    let rendered: Vec<Value> = finding
+        .locations
+        .iter()
+        .chain(finding.related_locations.iter())
+        .map(sarif_location)
+        .collect();
+    let mut physical: Vec<Value> = rendered
+        .iter()
+        .filter(|loc| loc.get("physicalLocation").is_some())
+        .cloned()
+        .collect();
+    let mut logical: Vec<Value> = Vec::new();
+    for loc in &rendered {
+        if let Some(entries) = loc.get("logicalLocations").and_then(Value::as_array) {
+            for entry in entries {
+                if !logical.contains(entry) {
+                    logical.push(entry.clone());
+                }
+            }
         }
     }
 
-    if !locations.is_empty() {
-        result["locations"] = json!(locations);
+    // The primary location: the first physical one, else the ontology-root
+    // fallback. All gathered logical entries fold onto it.
+    let mut primary = if physical.is_empty() {
+        json!({ "physicalLocation": { "artifactLocation": { "uri": FALLBACK_ARTIFACT_URI } } })
+    } else {
+        physical.remove(0)
+    };
+    if logical.is_empty() {
+        if let Some(obj) = primary.as_object_mut() {
+            obj.remove("logicalLocations");
+        }
+    } else {
+        primary["logicalLocations"] = json!(logical);
     }
-    if !related.is_empty() {
-        result["relatedLocations"] = json!(related);
+    result["locations"] = json!([primary]);
+
+    // Remaining physical locations ride as related locations (their logical
+    // entries already folded onto the primary, so drop them to avoid duplication).
+    if !physical.is_empty() {
+        for related in &mut physical {
+            if let Some(obj) = related.as_object_mut() {
+                obj.remove("logicalLocations");
+                obj.remove("properties");
+            }
+        }
+        result["relatedLocations"] = json!(physical);
     }
+
     if let Some(detail) = &finding.detail {
         result["properties"] = json!({ "detail": detail });
     }
@@ -804,13 +830,13 @@ mod tests {
     }
 
     #[test]
-    fn logical_only_related_location_is_folded_not_emitted() {
+    fn stale_cache_shape_promotes_file_to_primary_and_folds_logicals() {
         // The exact shape a stale validation cache yields: a SHACL finding whose
         // PRIMARY location is logical-only (the focus IRI) and whose related
         // locations are the source file (physical) plus a `path <iri>` annotation
-        // (logical-only). GitHub rejects a relatedLocation without a
-        // physicalLocation, so the annotation must fold onto the primary while the
-        // file relatedLocation is kept. Regression for #666.
+        // (logical-only). GitHub requires the primary location to be physical, so
+        // the file is promoted to primary and every logical entry folds onto it.
+        // Regression for #666.
         let mut finding =
             Finding::new(Severity::Error, "shacl.MinCount", "missing property").with_tool("shacl");
         finding.add_location(Location::new(
@@ -837,14 +863,14 @@ mod tests {
         let value: Value = serde_json::from_str(&to_sarif(&report).unwrap()).unwrap();
         let result = &value["runs"][0]["results"][0];
 
-        // Exactly one relatedLocation survives — the file — and it is physical.
-        let rels = result["relatedLocations"].as_array().unwrap();
-        assert_eq!(rels.len(), 1);
+        // The file is promoted to the (physical) primary location.
         assert_eq!(
-            rels[0]["physicalLocation"]["artifactLocation"]["uri"],
+            result["locations"][0]["physicalLocation"]["artifactLocation"]["uri"],
             "core/ai/examples/grounded-claim.ttl"
         );
-        // The folded annotation lands on the primary location's logicalLocations.
+        // No physical-less location survives, so no relatedLocations are emitted.
+        assert!(result["relatedLocations"].is_null());
+        // Both logical entries fold onto the primary.
         let names: Vec<&str> = result["locations"][0]["logicalLocations"]
             .as_array()
             .unwrap()
@@ -853,6 +879,28 @@ mod tests {
             .collect();
         assert!(names.contains(&"path https://blackcatinformatics.ca/gmeow/groundedIn"));
         assert!(names.contains(&"https://blackcatinformatics.ca/gmeow/examples/ai/claim"));
+    }
+
+    #[test]
+    fn fileless_finding_anchors_to_the_ontology_root() {
+        // A message-only legacy warning (no location at all) must still get a
+        // location with a repo-relative physicalLocation, else code-scanning
+        // rejects it ("expected at least one location"). Regression for #666.
+        let mut report = Report::new("validate");
+        report.add_finding(Finding::new(
+            Severity::Warning,
+            "validate.warning",
+            "class gmeow:Analogy is missing gmeow:howToUse",
+        ));
+        let value: Value = serde_json::from_str(&to_sarif(&report).unwrap()).unwrap();
+        let result = &value["runs"][0]["results"][0];
+        assert_eq!(
+            result["locations"][0]["physicalLocation"]["artifactLocation"]["uri"],
+            "ontology/gmeow.ttl"
+        );
+        assert!(result["locations"]
+            .as_array()
+            .is_some_and(|a| !a.is_empty()));
     }
 
     /// Recursively collect every `"uri"` string value under a JSON node.
