@@ -30,7 +30,6 @@ from __future__ import annotations
 from collections.abc import Sequence
 from pathlib import Path
 
-import gmeow_rdf
 from rdflib import RDF, Graph
 from rdflib.compare import graph_diff, isomorphic
 from rdflib.namespace import OWL
@@ -78,6 +77,11 @@ def _project_to_rdf12(owl_path: Path, output: Path) -> Path:
     The native (no Jena, no Docker, no SPARQL) replacement for the former Jena
     codec on the lead-writer path (#667).
     """
+    # Deferred import: the gmeow_rdf native ext is a hard requirement of the lead
+    # writer, but NOT of this module's pure-rdflib `emit_owl`, which the Jena
+    # oracle lane (statements_docker_check) imports without building the ext (#667).
+    import gmeow_rdf
+
     rdf12 = gmeow_rdf.project_statements_rdf12(owl_path.read_text(encoding="utf-8"))
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(_RDF12_BANNER + rdf12.rstrip("\n") + "\n", encoding="utf-8")
@@ -90,6 +94,10 @@ def _normalize_to_owl_graph(rdf12_path: Path) -> Graph:
     rdflib cannot parse RDF 1.2 triple terms, so the native codec emits the plain
     ``owl:Axiom`` normal form rdflib then parses for the isomorphism comparison.
     """
+    # Deferred import — see _project_to_rdf12 (keeps emit_owl importable in the
+    # Jena oracle lane, which does not build the gmeow_rdf ext; #667).
+    import gmeow_rdf
+
     owl_ttl = gmeow_rdf.normalize_rdf12_to_owl(rdf12_path.read_text(encoding="utf-8"))
     graph = Graph()
     graph.parse(data=owl_ttl, format="turtle")
