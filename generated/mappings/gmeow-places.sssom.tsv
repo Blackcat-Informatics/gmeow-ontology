@@ -168,13 +168,13 @@ gmeow:overlayRegulation	skos:closeMatch	schema:legislation		semapv:ManualMapping
 gmeow:overlayTypeAirway	skos:closeMatch	wd:Q1419606	airway	semapv:ManualMappingCuration	0.85	ICAO airway; AIXM route/airspace type aligned via Wikidata hub.
 gmeow:overlayTypeCivilTimeZone	skos:closeMatch	time:TimeZone		semapv:ManualMappingCuration	0.8	OWL-Time TimeZone is a temporal reference position; GMEOW overlayTypeCivilTimeZone adds the regulatory authority and time-scoped interval, treating the timezone as a government-decreed spatial overlay.
 gmeow:overlayTypeCivilTimeZone	skos:closeMatch	wd:Q12868	time zone	semapv:ManualMappingCuration	0.9	
-gmeow:overlayTypeContiguousZone	skos:closeMatch	wd:Q194341	contiguous zone	semapv:ManualMappingCuration	0.9	UNCLOS Article 33 contiguous zone; aligned to Wikidata.
+gmeow:overlayTypeContiguousZone	skos:closeMatch	wd:Q2166707	contiguous zone	semapv:ManualMappingCuration	0.9	UNCLOS Article 33 contiguous zone; aligned to Wikidata.
 gmeow:overlayTypeContinentalShelf	skos:closeMatch	wd:Q182658	continental shelf	semapv:ManualMappingCuration	0.9	UNCLOS Article 76 continental shelf; aligned to Wikidata.
 gmeow:overlayTypeControlZone	skos:closeMatch	wd:Q1419773	control zone	semapv:ManualMappingCuration	0.85	ICAO control zone (CTR); AIXM airspace type aligned via Wikidata hub.
 gmeow:overlayTypeCustomsZone	skos:closeMatch	wd:Q783930	customs territory	semapv:ManualMappingCuration	0.8	
 gmeow:overlayTypeElectoralDistrict	skos:closeMatch	wd:Q171441	electoral district	semapv:ManualMappingCuration	0.9	
 gmeow:overlayTypeFishingZone	skos:closeMatch	wd:Q1285733	exclusive economic zone	semapv:ManualMappingCuration	0.85	UNCLOS Article 55 defines the EEZ; GMEOW models it as a regulatory overlay with authority, time scope, and deontic rules. Maritime-specific depth bounds use overlayLowerBound / overlayUpperBound.
-gmeow:overlayTypeFlightInformationRegion	skos:closeMatch	wd:Q1419640	flight information region	semapv:ManualMappingCuration	0.85	ICAO flight information region (FIR); AIXM airspace type aligned via Wikidata hub.
+gmeow:overlayTypeFlightInformationRegion	skos:closeMatch	wd:Q1433404	flight information region	semapv:ManualMappingCuration	0.85	ICAO flight information region (FIR); AIXM airspace type aligned via Wikidata hub.
 gmeow:overlayTypeHighSeas	skos:closeMatch	wd:Q165182	high seas	semapv:ManualMappingCuration	0.9	UNCLOS Article 86 high seas; aligned to Wikidata.
 gmeow:overlayTypeMarineProtectedArea	skos:closeMatch	wd:Q1041938	protected area	semapv:ManualMappingCuration	0.85	Marine protected area (IUCN / OSPAR); aligned to Wikidata protected area. Directional lossy: the Wikidata item is broader than marine-only.
 gmeow:overlayTypeNOTAM	skos:closeMatch	wd:Q1067111	NOTAM	semapv:ManualMappingCuration	0.9	Notice to Airmen (NOTAM) — temporary aeronautical information; aligned to Wikidata.
@@ -230,7 +230,7 @@ gmeow:referenceFrameGalactic	skos:closeMatch	ivoa:refframe/galactic		semapv:Manu
 gmeow:referenceFrameGeohash	skos:closeMatch	wd:Q1508087	geohash	semapv:ManualMappingCuration	0.9	
 gmeow:referenceFrameHilbertSpace	skos:closeMatch	wd:Q190056	Hilbert space	semapv:ManualMappingCuration	0.9	
 gmeow:referenceFrameICRS	skos:closeMatch	ivoa:refframe/ICRS		semapv:ManualMappingCuration	0.95	
-gmeow:referenceFrameLatentVectorSpace	skos:closeMatch	wd:Q65054223	latent space	semapv:ManualMappingCuration	0.85	
+gmeow:referenceFrameLatentVectorSpace	skos:closeMatch	wd:Q107154297	latent space	semapv:ManualMappingCuration	0.85	
 gmeow:referenceFrameMGRS	skos:closeMatch	wd:Q1472666	Military Grid Reference System	semapv:ManualMappingCuration	0.9	
 gmeow:referenceFrameMileMarker	skos:closeMatch	wd:Q1617265	linear referencing	semapv:ManualMappingCuration	0.85	Wikidata Q1617265 is the general concept of linear referencing; GMEOW referenceFrameMileMarker is the frame for distance-along-a-line coordinates.
 gmeow:referenceFramePhaseSpace3DOF	skos:closeMatch	wd:Q185821	phase space	semapv:ManualMappingCuration	0.85	
