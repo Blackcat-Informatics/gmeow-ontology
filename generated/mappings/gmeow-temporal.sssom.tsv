@@ -45,7 +45,7 @@ gmeow:calendarPersian	skos:exactMatch	wd:Q181229	semapv:ManualMappingCuration	0.
 gmeow:datingMethodDendrochronology	skos:exactMatch	wd:Q180439	semapv:ManualMappingCuration	0.95	dendrochronology (Q180439)
 gmeow:datingMethodPotassiumArgon	skos:exactMatch	wd:Q899981	semapv:ManualMappingCuration	0.95	potassium-argon dating (Q899981)
 gmeow:datingMethodRadiocarbon	skos:exactMatch	wd:Q180454	semapv:ManualMappingCuration	0.95	radiocarbon dating (Q180454)
-gmeow:datingMethodUraniumLead	skos:exactMatch	wd:Q424428	semapv:ManualMappingCuration	0.95	uranium-lead dating (Q424428)
+gmeow:datingMethodUraniumLead	skos:exactMatch	wd:Q1930710	semapv:ManualMappingCuration	0.95	uranium-lead dating (Q1930710)
 gmeow:edtfValue	skos:relatedMatch	edtf:EDTF	semapv:ManualMappingCuration	0.75	GMEOW stores EDTF as plain literal; the EDTF Ontology treats it as a datatype. Alignment is by reference/convention.
 gmeow:endedAtTime	skos:exactMatch	prov:endedAtTime	semapv:ManualMappingCuration	0.85	the end-boundary twin of eqTemporal053 (PROV activity alignment phase 2)
 gmeow:hasReferenceFrame	skos:closeMatch	time:hasTRS	semapv:ManualMappingCuration	0.85	links a temporal position to its calendar/timescale frame
@@ -73,7 +73,7 @@ gmeow:periodCenozoic	skos:exactMatch	wd:Q40508	semapv:ManualMappingCuration	0.95
 gmeow:periodEnd	skos:closeMatch	time:hasEnd	semapv:ManualMappingCuration	0.85	
 gmeow:periodHolocene	skos:exactMatch	wd:Q201698	semapv:ManualMappingCuration	0.95	Wikidata Holocene (Q201698)
 gmeow:periodPartOf	skos:closeMatch	gts:rank	semapv:ManualMappingCuration	0.6	ICS rank hierarchy — geologic period mereology
-gmeow:periodPhanerozoic	skos:exactMatch	wd:Q80125	semapv:ManualMappingCuration	0.95	Wikidata Phanerozoic (Q80125)
+gmeow:periodPhanerozoic	skos:exactMatch	wd:Q101313	semapv:ManualMappingCuration	0.95	Wikidata Phanerozoic (Q101313)
 gmeow:periodQuaternary	skos:exactMatch	wd:Q25097	semapv:ManualMappingCuration	0.95	Wikidata Quaternary (Q25097)
 gmeow:periodStart	skos:closeMatch	time:hasBeginning	semapv:ManualMappingCuration	0.85	
 gmeow:startedAtTime	skos:exactMatch	prov:startedAtTime	semapv:ManualMappingCuration	0.85	the same start-boundary datum; gmeow's applies to any temporal participant where PROV scopes to Activities — exactMatch on the shared activity use (PROV activity alignment phase 2)
@@ -81,7 +81,7 @@ gmeow:timeScaleGPS	skos:closeMatch	ivoa:timescale/GPS	semapv:ManualMappingCurati
 gmeow:timeScaleTAI	skos:closeMatch	ivoa:timescale/TAI	semapv:ManualMappingCuration	0.95	
 gmeow:timeScaleTAI	skos:exactMatch	wd:Q12149	semapv:ManualMappingCuration	0.95	International Atomic Time (Q12149)
 gmeow:timeScaleTDB	skos:closeMatch	ivoa:timescale/TDB	semapv:ManualMappingCuration	0.95	
-gmeow:timeScaleTDB	skos:exactMatch	wd:Q1320839	semapv:ManualMappingCuration	0.95	Barycentric Dynamical Time (Q1320839)
+gmeow:timeScaleTDB	skos:exactMatch	wd:Q4866001	semapv:ManualMappingCuration	0.95	Barycentric Dynamical Time (Q4866001)
 gmeow:timeScaleTT	skos:closeMatch	ivoa:timescale/TT	semapv:ManualMappingCuration	0.95	
 gmeow:timeScaleTT	skos:exactMatch	wd:Q649548	semapv:ManualMappingCuration	0.95	Terrestrial Time (Q649548)
 gmeow:timeScaleUT1	skos:closeMatch	ivoa:timescale/UT1	semapv:ManualMappingCuration	0.95	

@@ -3,9 +3,12 @@
 from __future__ import annotations
 
 import dataclasses
+import functools
+from pathlib import Path
 from xml.etree import ElementTree as ET
 
 import pytest
+import xmlschema
 from rdflib import Graph, URIRef
 
 from gmeow_tools import crossref as crossref_mod
@@ -26,6 +29,8 @@ from gmeow_tools.self_desc import (
     load_self_description_from_graph,
 )
 
+_CROSSREF_XSD_DIR = Path(__file__).parent / "fixtures" / "crossref"
+
 
 def _parse(xml: str) -> ET.Element:
     return ET.fromstring(xml)
@@ -41,6 +46,31 @@ def _doi_data_for(root: ET.Element, doi: str) -> ET.Element:
         if doi_data.findtext(f"{{{CR_NS}}}doi") == doi:
             return doi_data
     raise AssertionError(f"missing doi_data for {doi}")
+
+
+def _direct_ai_programs(dataset: ET.Element) -> list[ET.Element]:
+    """Return ``ai:program`` elements that are direct children of ``dataset``."""
+    return [child for child in dataset if child.tag == f"{{{AI_NS}}}program"]
+
+
+@functools.lru_cache(maxsize=1)
+def _crossref_schema() -> xmlschema.XMLSchema:
+    return xmlschema.XMLSchema(
+        str(_CROSSREF_XSD_DIR / "crossref5.4.0.xsd"),
+        uri_mapper={
+            "http://www.w3.org/Math/XMLSchema/mathml3/mathml3.xsd": str(
+                _CROSSREF_XSD_DIR / "mathml-stub.xsd"
+            ),
+            "http://www.w3.org/2009/01/xml.xsd": str(
+                _CROSSREF_XSD_DIR / "xml-stub.xsd"
+            ),
+        },
+    )
+
+
+def _validate_against_crossref_schema(xml: str) -> None:
+    """Validate deposit XML against the Crossref 5.4.0 schema."""
+    _crossref_schema().validate(xml)
 
 
 def test_deposit_is_well_formed() -> None:
@@ -157,6 +187,107 @@ def test_deposit_carries_access_indicators_license() -> None:
     assert applies_to == {"tdm", "vor"}
     assert {node.text for node in license_refs} == {load_self_description().license_uri}
     assert root.find(f".//{{{AI_NS}}}free_to_read") is not None
+
+
+def test_deposit_crossmark_disabled_emits_top_level_access_indicators(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """With Crossmark disabled, the license program sits directly under dataset."""
+    monkeypatch.setattr(crossref_mod, "CROSSMARK_ENABLED", False)
+    xml = build_deposit_xml(timestamp="20260603120000")
+    root = _parse(xml)
+    datasets = root.findall(f".//{{{CR_NS}}}dataset")
+    assert datasets
+    for dataset in datasets:
+        assert dataset.find(f"{{{CR_NS}}}crossmark") is None
+        assert _direct_ai_programs(dataset), "expected top-level ai:program"
+        assert dataset.find(f".//{{{AI_NS}}}program") is not None
+    _validate_against_crossref_schema(xml)
+
+
+def test_deposit_crossmark_enabled_emits_nested_access_indicators(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """With Crossmark enabled, the license program is nested in custom_metadata."""
+    monkeypatch.setattr(crossref_mod, "CROSSMARK_ENABLED", True)
+    monkeypatch.setattr(crossref_mod, "CROSSMARK_POLICY_DOI", "10.67342/xn9qgdr5mw/v1")
+    xml = build_deposit_xml(timestamp="20260603120000")
+    root = _parse(xml)
+    datasets = root.findall(f".//{{{CR_NS}}}dataset")
+    assert datasets
+    for dataset in datasets:
+        crossmark = dataset.find(f"{{{CR_NS}}}crossmark")
+        assert crossmark is not None
+        policy = crossmark.find(f"{{{CR_NS}}}crossmark_policy")
+        assert policy is not None and policy.text == "10.67342/xn9qgdr5mw/v1"
+        custom_metadata = crossmark.find(f"{{{CR_NS}}}custom_metadata")
+        assert custom_metadata is not None
+        assert custom_metadata.find(f".//{{{AI_NS}}}program") is not None
+        assert not _direct_ai_programs(dataset), "unexpected top-level ai:program"
+    _validate_against_crossref_schema(xml)
+
+
+def test_version_doi_crossmark_enabled_validates(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Both concept and version records validate when Crossmark is enabled."""
+    monkeypatch.setattr(crossref_mod, "CROSSMARK_ENABLED", True)
+    monkeypatch.setattr(crossref_mod, "CROSSMARK_POLICY_DOI", "10.67342/xn9qgdr5mw/v1")
+    meta = _with_version_doi()
+    xml = build_deposit_xml(meta=meta, timestamp="20260603120000")
+    root = _parse(xml)
+    datasets = root.findall(f".//{{{CR_NS}}}dataset")
+    assert len(datasets) == 2
+    for dataset in datasets:
+        # When enabled, expect nested program under crossmark, not top-level.
+        assert dataset.find(f"{{{CR_NS}}}crossmark") is not None
+        assert not _direct_ai_programs(dataset)
+    _validate_against_crossref_schema(xml)
+
+
+def test_crossmark_enabled_without_policy_doi_fails_fast(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """An empty policy DOI with Crossmark enabled raises instead of falling back."""
+    monkeypatch.setattr(crossref_mod, "CROSSMARK_ENABLED", True)
+    monkeypatch.setattr(crossref_mod, "CROSSMARK_POLICY_DOI", "")
+    with pytest.raises(
+        ValueError,
+        match="CROSSMARK_POLICY_DOI must be non-empty when CROSSMARK_ENABLED is True",
+    ):
+        build_deposit_xml(timestamp="20260603120000")
+
+
+def test_crossmark_enabled_without_license_emits_crossmark_not_custom_metadata(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Crossmark core elements are emitted even when no license URL is available."""
+    monkeypatch.setattr(crossref_mod, "CROSSMARK_ENABLED", True)
+    monkeypatch.setattr(crossref_mod, "CROSSMARK_POLICY_DOI", "10.67342/xn9qgdr5mw/v1")
+    meta = dataclasses.replace(load_self_description(), license_uri="")
+    root = _parse(build_deposit_xml(meta=meta, timestamp="20260603120000"))
+    datasets = root.findall(f".//{{{CR_NS}}}dataset")
+    assert datasets
+    for dataset in datasets:
+        crossmark = dataset.find(f"{{{CR_NS}}}crossmark")
+        assert crossmark is not None
+        version = crossmark.find(f"{{{CR_NS}}}crossmark_version")
+        assert version is not None and version.text == "1"
+        policy = crossmark.find(f"{{{CR_NS}}}crossmark_policy")
+        assert policy is not None and policy.text == "10.67342/xn9qgdr5mw/v1"
+        assert crossmark.find(f"{{{CR_NS}}}custom_metadata") is None
+        assert not _direct_ai_programs(dataset), "unexpected top-level ai:program"
+
+
+def test_deposit_omits_unsupported_non_crossref_fields() -> None:
+    """Do not spoof unavailable metadata just to raise participation metrics."""
+    xml = build_deposit_xml(timestamp="20260603120000")
+    root = _parse(xml)
+    assert root.find(f".//{{{CR_NS}}}subject") is None
+    assert root.find(f".//{{{CR_NS}}}keywords") is None
+    assert root.find(f".//{{{CR_NS}}}collection[@property='crawler-based']") is None
+    assert "similarity-check" not in xml
+    assert "fundref" not in xml
 
 
 def test_deposit_carries_registrant_wikidata_institution_id() -> None:
@@ -278,18 +409,6 @@ def test_citation_list_projects_alignment_targets() -> None:
         gufo.findtext(f"{{{CR_NS}}}unstructured_citation")
         == "gUFO. http://purl.org/nemo/gufo#."
     )
-
-
-def test_deposit_omits_unsupported_crossref_fields() -> None:
-    """Do not spoof unavailable metadata just to raise participation metrics."""
-    xml = build_deposit_xml()
-    root = _parse(xml)
-    assert root.find(f".//{{{CR_NS}}}subject") is None
-    assert root.find(f".//{{{CR_NS}}}keywords") is None
-    assert 'property="crawler-based"' not in xml
-    assert "similarity-check" not in xml
-    assert "Crossmark" not in xml
-    assert "fundref" not in xml
 
 
 def test_lint_passes_on_real_self_description() -> None:

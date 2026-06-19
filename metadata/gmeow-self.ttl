@@ -27,6 +27,8 @@
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/self> ;
     dcterms:license <https://creativecommons.org/licenses/by/4.0/> ;
     foaf:homepage <https://blackcatinformatics.ca/gmeow> ;
+    gmeow:authorityLink wd:Q140287679 ;
+    skos:exactMatch wd:Q140287679 ;
     # Concept DOI — the always-latest citation anchor (FORCE11). It denotes the
     # Work (the lineage / DOI concept record, cf. gmeow:VersionSet), not any one
     # release. Resolves to the concept IRI above. This is the single registered
