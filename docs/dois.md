@@ -114,9 +114,32 @@ documentation until Crossref documents a dataset-valid field for them; the
 deposit must not spoof unrelated fields just to raise a participation-report
 percentage.
 
-Likewise, the deposit intentionally omits Similarity Check URLs, ROR IDs, funder
-registry/award metadata, and Crossmark metadata until those facts or service
-enrollments exist.
+Likewise, the deposit intentionally omits Similarity Check URLs, ROR IDs, and
+funder registry/award metadata until those facts or service enrollments exist.
+The generator is now Crossmark-ready, but Crossmark-enabled deposit upload is
+disabled by default until the registrant explicitly enables it (see
+[Crossmark readiness](#crossmark-readiness) below).
+
+### Crossmark readiness
+
+The deposit generator supports Crossmark once Blackcat's Crossmark policy is
+accepted by Crossref. Until then, production submission remains
+Crossmark-disabled by default. The guard is the constant
+`CROSSMARK_ENABLED` in `src/gmeow_tools/config.py`, which is `False` by
+default; the registrant must set it to `True` before generating a
+Crossmark-enabled deposit.
+
+The schema rule is mutually exclusive:
+
+- When `CROSSMARK_ENABLED` is `True`, the dataset contains a `<crossmark>`
+  element whose `<crossmark_policy>` names the policy DOI, and the
+  AccessIndicators `<ai:program>` is nested inside
+  `<crossmark><custom_metadata>`.
+- When `CROSSMARK_ENABLED` is `False` (the default), the dataset keeps the
+  current top-level `<ai:program>` and emits no `<crossmark>` element.
+
+The generator never emits both forms under the same dataset. The policy DOI
+constant is `CROSSMARK_POLICY_DOI = "10.67342/xn9qgdr5mw/v1"`.
 
 ## FAIR Signposting bridge
 
