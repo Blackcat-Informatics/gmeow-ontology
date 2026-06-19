@@ -98,6 +98,55 @@ impl PyLintConfig {
     }
 }
 
+/// Signature/trust policy configuration for the GTS verification pre-gate.
+///
+/// Mirrors [`crate::validate_all::SignatureConfig`] and is constructed in Python
+/// from a policy TOML or CLI flags, then passed into [`PyValidateOptions`].
+#[pyclass(name = "SignatureConfig", from_py_object)]
+#[derive(Clone)]
+struct PySignatureConfig {
+    trusted_signers: Vec<String>,
+    require_signatures: bool,
+    require_trusted_signer: bool,
+    trusted_key: Option<String>,
+}
+
+#[pymethods]
+impl PySignatureConfig {
+    #[new]
+    #[allow(clippy::too_many_arguments)]
+    #[pyo3(signature = (
+        trusted_signers = None,
+        require_signatures = false,
+        require_trusted_signer = false,
+        trusted_key = None,
+    ))]
+    fn new(
+        trusted_signers: Option<Vec<String>>,
+        require_signatures: bool,
+        require_trusted_signer: bool,
+        trusted_key: Option<String>,
+    ) -> Self {
+        Self {
+            trusted_signers: trusted_signers.unwrap_or_default(),
+            require_signatures,
+            require_trusted_signer,
+            trusted_key,
+        }
+    }
+}
+
+impl PySignatureConfig {
+    fn to_engine(&self) -> crate::validate_all::SignatureConfig {
+        crate::validate_all::SignatureConfig {
+            trusted_signers: self.trusted_signers.clone(),
+            require_signatures: self.require_signatures,
+            require_trusted_signer: self.require_trusted_signer,
+            trusted_key: self.trusted_key.clone(),
+        }
+    }
+}
+
 /// Options for the native validation orchestration.
 ///
 /// Carries the boolean timing flag plus the optional inputs some phases need
@@ -120,6 +169,9 @@ struct PyValidateOptions {
     /// shared store from the bundle instead of from `source_paths`, and the
     /// per-file Turtle phases (syntax check, `owl:sameAs` ban) are skipped.
     gts_bytes: Option<Vec<u8>>,
+    /// Optional signature/trust policy configuration for the GTS verification
+    /// pre-gate (#646). When `None`, signature verification is disabled.
+    signature_config: Option<PySignatureConfig>,
 }
 
 #[pymethods]
@@ -135,6 +187,7 @@ impl PyValidateOptions {
         statement_shapes_ttl = None,
         project_root = None,
         gts_bytes = None,
+        signature_config = None,
     ))]
     fn new(
         timings: bool,
@@ -145,6 +198,7 @@ impl PyValidateOptions {
         statement_shapes_ttl: Option<String>,
         project_root: Option<String>,
         gts_bytes: Option<Vec<u8>>,
+        signature_config: Option<PySignatureConfig>,
     ) -> Self {
         Self {
             timings,
@@ -155,6 +209,7 @@ impl PyValidateOptions {
             statement_shapes_ttl,
             project_root,
             gts_bytes,
+            signature_config,
         }
     }
 }
@@ -170,6 +225,7 @@ impl PyValidateOptions {
             statement_shapes_ttl: self.statement_shapes_ttl.clone(),
             project_root: self.project_root.as_ref().map(PathBuf::from),
             gts_bytes: self.gts_bytes.clone(),
+            signature_config: self.signature_config.as_ref().map(|c| c.to_engine()),
         }
     }
 }
@@ -689,6 +745,7 @@ fn validate_all_native(
 #[pymodule]
 fn gmeow_validate(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyLintConfig>()?;
+    m.add_class::<PySignatureConfig>()?;
     m.add_class::<PyValidateOptions>()?;
     m.add_class::<PyValidationStore>()?;
     m.add_function(wrap_pyfunction!(check_syntax, m)?)?;

@@ -26,6 +26,7 @@ use crate::dsl;
 use crate::findings::finding_from_shacl;
 use crate::gufo::{self, GufoConfig};
 use crate::lint::{self, LintConfig, ModuleSpec};
+use crate::signature;
 use crate::store::{self, parse_file};
 
 /// One per-phase timing record.
@@ -38,6 +39,20 @@ pub struct Timing {
     /// Optional free-form metadata (e.g. number of files processed).
     #[serde(skip_serializing_if = "Option::is_none")]
     pub metadata: Option<String>,
+}
+
+/// Signature/trust policy configuration for the GTS verification pre-gate.
+#[derive(Debug, Clone, Default)]
+pub struct SignatureConfig {
+    /// Signer KIDs or e-mail addresses considered trusted by this deployment.
+    pub trusted_signers: Vec<String>,
+    /// Require at least one signature frame to be present in the bundle.
+    pub require_signatures: bool,
+    /// Require at least one cryptographically valid signature from a trusted signer.
+    pub require_trusted_signer: bool,
+    /// Optional path to an ASCII-armored OpenPGP public key used instead of the
+    /// bundle's embedded `gts:transportKey`.
+    pub trusted_key: Option<String>,
 }
 
 /// Optional/extended inputs for the validation orchestration.
@@ -68,6 +83,10 @@ pub struct ValidateOptions {
     /// shared store from the bundle instead of from `source_paths`, and the
     /// per-file Turtle phases (syntax check, `owl:sameAs` ban) are skipped.
     pub gts_bytes: Option<Vec<u8>>,
+    /// Optional signature/trust policy configuration for the GTS verification
+    /// pre-gate (#646). When `None`, signature verification is disabled and the
+    /// orchestration behaves as before.
+    pub signature_config: Option<SignatureConfig>,
 }
 
 /// The result of one validation phase.
@@ -162,6 +181,32 @@ impl ValidationRun {
         let shapes = timed(&mut timings, "parse-shapes", options, None, || {
             gmeow_shacl::engine::parse_shapes(shapes_ttl)
         })?;
+
+        // Signature/trust verification pre-gate (#646).
+        // Runs after the GTS bundle has been folded into a graph but before any
+        // ontology validation phases, so malformed, unsigned, or untrusted bundles
+        // are rejected early.
+        let mut signature_findings: Vec<Finding> = Vec::new();
+        let mut signature_hard_failures = false;
+        if let (Some(bytes), Some(config)) = (&options.gts_bytes, &options.signature_config) {
+            let (findings, hard) = timed(&mut timings, "signature-verify", options, None, || {
+                signature::verify_gts_bundle(bytes, config)
+            })?;
+            signature_findings.extend(findings);
+            signature_hard_failures = hard;
+        }
+
+        if signature_hard_failures {
+            return Ok(Self {
+                store,
+                shapes,
+                timings,
+                report: build_report(Vec::new(), Vec::new(), signature_findings),
+                declared_terms: Vec::new(),
+            });
+        }
+
+        shacl_findings.extend(signature_findings);
 
         // Phase 1: Turtle syntax check (only meaningful for per-file sources).
         if options.gts_bytes.is_none() {
