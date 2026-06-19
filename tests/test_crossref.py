@@ -232,6 +232,19 @@ def test_version_doi_crossmark_enabled_validates(
     _validate_against_crossref_schema(xml)
 
 
+def test_crossmark_enabled_without_policy_doi_fails_fast(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """An empty policy DOI with Crossmark enabled raises instead of falling back."""
+    monkeypatch.setattr(crossref_mod, "CROSSMARK_ENABLED", True)
+    monkeypatch.setattr(crossref_mod, "CROSSMARK_POLICY_DOI", "")
+    with pytest.raises(
+        ValueError,
+        match="CROSSMARK_POLICY_DOI must be non-empty when CROSSMARK_ENABLED is True",
+    ):
+        build_deposit_xml(timestamp="20260603120000")
+
+
 def test_deposit_carries_registrant_wikidata_institution_id() -> None:
     """BII's QID is emitted through Crossref's native institution metadata."""
     xml = build_deposit_xml()

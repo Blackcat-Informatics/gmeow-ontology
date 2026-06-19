@@ -490,7 +490,14 @@ def build_deposit_xml(
     timestamp = timestamp or default_ts
     batch_id = batch_id or default_batch
     has_version = description.version_doi is not None
-    crossmark_policy = CROSSMARK_POLICY_DOI if CROSSMARK_ENABLED else None
+    if CROSSMARK_ENABLED:
+        if not CROSSMARK_POLICY_DOI.strip():
+            raise ValueError(
+                "CROSSMARK_POLICY_DOI must be non-empty when CROSSMARK_ENABLED is True."
+            )
+        crossmark_policy = CROSSMARK_POLICY_DOI
+    else:
+        crossmark_policy = None
 
     ET.register_namespace("", CR_NS)
     ET.register_namespace("ai", AI_NS)
