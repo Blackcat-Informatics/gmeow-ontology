@@ -2,9 +2,26 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 
 [env]
-# Cargo build scripts must not inherit host-wide C/C++ optimization flags.
-# In particular, aggressive ambient LTO flags can corrupt vendored C archives
-# such as zstd-sys before Rust links test binaries. Keep Rust builds
-# reproducible from the repository inputs instead.
-CFLAGS = { value = "", force = true }
-CXXFLAGS = { value = "", force = true }
+# Build the vendored C deps (zstd-sys, ring) optimized and host-tuned, but pin an
+# explicit instruction floor instead of inheriting host-wide flags. `force = true`
+# overrides any ambient CFLAGS — crucially it strips a host `-flto`, which leaves
+# LLVM IR (not real objects) in vendored `.a` archives and corrupts the link.
+# `-march=x86-64-v3` is a portable AVX2-era floor that stays safe for distributed
+# wheels (both libs runtime-dispatch their SIMD paths, so a higher -march buys
+# almost nothing here); `-mtune=native` schedules for this host without emitting
+# host-only instructions.
+CFLAGS = { value = "-O2 -march=x86-64-v3 -mtune=native", force = true }
+CXXFLAGS = { value = "-O2 -march=x86-64-v3 -mtune=native", force = true }
+
+[target.x86_64-unknown-linux-gnu]
+# Link with the toolchain's BUNDLED rust-lld (no system lld / apt install — the
+# nightly toolchain CI already uses ships it under gcc-ld/). This slashes peak
+# link-step RAM and time on the large `nemo` dependency tree versus the default
+# bfd linker. Nightly gates `link-self-contained=+linker` behind
+# `-Zunstable-options`; the repo is nightly-pinned (nemo needs unstable
+# features), so these flags are always available.
+rustflags = [
+    "-Zunstable-options",
+    "-Clink-self-contained=+linker",
+    "-Clinker-features=+lld",
+]
