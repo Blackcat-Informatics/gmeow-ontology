@@ -169,7 +169,7 @@ Nothing is removed before its replacement is gated. The deprecation order:
 
 1. **HermiT/ELK move from authority to secondary validators.** They already sit outside the fast gate
    (`make check` excludes Docker reasoners; the ROBOT/ELK/HermiT oracle runs in the non-required
-   `make classic-cross-check` lane). `make reason --mode native` and `make verify --mode native` are the
+   `make classic-cross-check` lane). `make reason-native` and `make verify` are the
    authority on the required path; the OWL reasoners validate only their projected fragments.
    With **v5 landed (#505)** the native `logic:` corpus now spans Strata A/B/C (worlds A/B/C, backward
    goals, foundation, profiles, paraconsistency, explanation) — complete enough to *begin* this

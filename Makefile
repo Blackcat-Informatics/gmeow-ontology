@@ -93,7 +93,7 @@ statements-docker-check: ## [lane] Jena/ROBOT-backed statement artifact and reas
 crosscheck: ## [lane] Prove rdflib (legacy engine) and pyoxigraph answer every committed query alike (no Docker).
 	$(GMEOW_DEV) crosscheck-queries
 
-extract: ## [maintainer] Import/extract policy for TARGET (ROBOT/Docker — maintainer-only, NOT normal-use; native SLME port deferred, #666).
+extract: ## [maintainer] Import/extract policy for TARGET (native SLME, Java/Docker-free — maintainer-only, NOT normal-use; #695).
 	$(GMEOW_DEV) extract --target $(TARGET)
 
 
@@ -106,7 +106,7 @@ mappings: ## Build alignment axioms + VoID linksets from SSSOM; validate QID syn
 lint-alignment: ## Lint SSSOM mappings for inverse / domain-range-mismatched targets (offline).
 	$(GMEOW_DEV) lint-alignment
 
-refresh-target-axioms: ## [maintainer] Re-vendor minimal target-axiom snapshots (ROBOT/Docker — maintainer-only, NOT normal-use; #666).
+refresh-target-axioms: ## [maintainer] Re-vendor minimal target-axiom snapshots (pure-Python httpx, Java/Docker-free — maintainer-only, NOT normal-use; #695).
 	$(GMEOW_DEV) refresh-target-axioms --target all
 
 wikidata: ## Validate Wikidata QID/PID syntax in the mappings (offline).
