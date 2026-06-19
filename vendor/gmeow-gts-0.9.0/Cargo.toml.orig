@@ -1,0 +1,78 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: MIT OR Apache-2.0
+
+[package]
+name = "gmeow-gts"
+description = "GTS (Graph Transport Substrate) format engine: CBOR-sequence append-only RDF 1.2 log reader, folder, and verifier"
+version = "0.9.0"
+edition = "2021"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/Blackcat-Informatics/gmeow-gts"
+readme = "README.md"
+keywords = ["rdf", "rdf-12", "cbor", "knowledge-graph", "linked-data"]
+
+[features]
+default = []
+# Enables DuckDB/Parquet relational exports. This feature intentionally adds no
+# Cargo dependencies; it shells out to a `duckdb` binary on PATH at runtime.
+duckdb = []
+# Enables native RDF dataset interop through `oxrdf`'s data-model crate. This is
+# intentionally opt-in so default transport users do not inherit RDF toolkit or
+# graph-store dependencies.
+rdf = ["dep:oxrdf"]
+# Enables an optional Oxigraph in-memory Store adapter. This pulls in Oxigraph
+# only for callers that ask for the store bridge; defaults remain unchanged.
+oxigraph-adapter = ["rdf", "dep:oxigraph"]
+# Enables optional Sophia dataset interop. This pulls in Sophia's in-memory
+# dataset plus N-Quads parser/serializer only for callers that ask for it.
+sophia-adapter = ["dep:sophia_api", "dep:sophia_inmem", "dep:sophia_turtle"]
+# Enables JSON trust-policy file loading for release/profile tooling.
+# This is opt-in so default readers do not inherit serialization deps.
+policy-config = ["dep:serde", "dep:serde_json"]
+# Adds YAML policy files on top of JSON policy loading. Split out so JSON-only
+# release tooling does not inherit a YAML parser.
+policy-config-yaml = ["policy-config", "dep:serde_yaml"]
+
+# The package is named gmeow-gts on crates.io, but the CLI binary keeps the
+# shorter `gts` name for ergonomics.
+[[bin]]
+name = "gts"
+path = "src/bin/gts.rs"
+
+[dependencies]
+# emojihash + randomart visual fingerprints, factored out as a standalone crate
+# (#16). Path for in-repo builds; the version is what `cargo publish` resolves
+# from crates.io, so visual-hashing must be published first.
+visual-hashing = { version = "0.1.1", path = "../visual-hashing" }
+blake3 = "1"
+ciborium = "0.2"
+flate2 = "1"
+# pure-Rust zstd decoder — no C toolchain, wasm-friendly
+ruzstd = "0.8"
+time = { version = "0.3", features = ["formatting", "parsing"] }
+filetime = "0.2"
+# pure-Rust Ed25519 (COSE_Sign1, §9.2) — deterministic per RFC 8032, wasm-friendly
+ed25519-dalek = "2"
+# pure-Rust SHA-1 — only for OpenPGP v4 key fingerprints (RFC 4880 §12.2), not
+# used as a general-purpose hash; wasm-friendly
+sha1 = "0.10"
+# pure-Rust AES-256-GCM (COSE_Encrypt0, §9.3). getrandom is OFF so the wasm32
+# build stays clean; the random-IV nonce comes from `getrandom` below, which is
+# only pulled in on non-wasm targets (the deterministic seal/open paths need no RNG).
+aes-gcm = { version = "0.10", default-features = false, features = ["aes", "alloc"] }
+oxrdf = { version = "0.3.3", default-features = false, features = ["rdf-12"], optional = true }
+oxigraph = { version = "0.5.8", default-features = false, features = ["rdf-12"], optional = true }
+sophia_api = { version = "0.10.0", default-features = false, optional = true }
+sophia_inmem = { version = "0.10.0", default-features = false, optional = true }
+sophia_turtle = { version = "0.10.0", default-features = false, optional = true }
+serde = { version = "1", default-features = false, features = ["derive", "std"], optional = true }
+serde_json = { version = "1", optional = true }
+serde_yaml = { version = "0.9", optional = true }
+
+# The random-IV `encrypt0` convenience needs an OS CSPRNG; restrict it to
+# non-wasm targets so `wasm32-unknown-unknown` never tries to link getrandom.
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+getrandom = "0.2"
+
+[dev-dependencies]
+serde_json = "1"

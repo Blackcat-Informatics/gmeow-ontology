@@ -20,6 +20,8 @@ path = "src/lib.rs"
 oxigraph = { version = "0.5", default-features = false, features = ["rdf-12"] }
 # GTS format engine: the Rust-native producer builds on gmeow_gts::writer::Writer.
 gmeow-gts = "0.9.0"
+# Force zlib backend for flate2 so gzip output matches Python's zlib (byte-identical).
+flate2 = { version = "1", features = ["zlib"], default-features = false }
 # Shared RDF 1.2 kernel: GTS/oxigraph store construction and diagnostics.
 gmeow-rdf = { path = "../rdf", features = ["gts", "oxigraph"] }
 # PyO3 bindings for the Python extension module.
