@@ -1,0 +1,236 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow:   <https://blackcatinformatics.ca/gmeow/> .
+@prefix gufo:    <http://purl.org/nemo/gufo#> .
+@prefix owl:     <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
+
+<https://blackcatinformatics.ca/gmeow/slices/diagnostics>
+    a owl:Ontology ;
+    rdfs:label "GMEOW Diagnostics Module"@x-gmeow-english ;
+    skos:definition "The GMEOW Diagnostics Module — gmeow:Finding as a specialization of gmeow:Observation: a validation, lint, or reasoning diagnostic modelled as a reified observation about an RDF statement, with the tool as gmeow:vantage, the offending statement (located by GTS wire coordinates) as gmeow:observedFeature, and a gmeow:DiagnosticSeverity verdict as gmeow:observationResult. The gmeow: RDF projection of the Rust-owned Finding/Report engine model."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    rdfs:comment """The ontological face of the first-class diagnostics system (#654).
+
+DOCTRINE.
+  * Finding IS an Observation (Principle 9): a diagnostic is not a new kind of thing but the universal claim construct applied to tooling. gmeow:Finding rdfs:subClassOf gmeow:Observation, so the tool is the gmeow:vantage (WHO observed), the offending statement is the gmeow:observedFeature (WHAT), and the severity is the gmeow:observationResult (the verdict). Generic 'all observations about X' queries find diagnostics for free.
+  * Projection, not source (Principle 4): the canonical diagnostics model is the PyO3-free Rust gmeow_diagnostics::Report — it must report on a graph too broken to parse, so it cannot itself be RDF. This vocabulary is one PROJECTION of that report, a sibling of SARIF / flat JSON / HTML / CLI, materialized as a gmeow:graph/diagnostics named graph embedded in the feedback .gts bundle so the report rides with the data it describes and is SPARQL-queryable.
+  * Located by wire coordinates: a finding's gmeow:findingLocation points at the reified statement it concerns (rdf:reifies <<( s p o )>> in the RDF 1.2 form); gmeow:gtsQuadIndex / gmeow:gtsTermId / gmeow:gtsReifierId / gmeow:gtsFrameIndex / gmeow:gtsSegmentIndex pin the exact position inside the GTS bundle, the same coordinates carried in SARIF logicalLocations.
+  * Severity is a value, not a subclass (Principle 9): gmeow:DiagnosticSeverity is an open gufo:QualityValue vocabulary (error · warning · note · info), individuals never subclasses.
+  * Tool provenance reuses agentic (Principle 5 / Principle 6): a finding is gmeow:wasGeneratedBy a gmeow:ToolCall whose gmeow:usedTool is the validator; gmeow:findingTool carries the tool's short name for the flat 80% surface. No forward output property."""@x-gmeow-english ;
+    dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
+
+# =========================================================================== #
+# FINDING — a diagnostic as a reified observation about a statement. The claim
+# construct (gmeow:Observation) applied to tooling: tool = vantage, offending
+# statement = observedFeature, severity = observationResult.
+# =========================================================================== #
+
+gmeow:Finding
+    a owl:Class, gufo:Kind ;
+    rdfs:subClassOf gmeow:Observation ;
+    rdfs:label "Finding"@x-gmeow-english ;
+    skos:definition "A single diagnostic — a validation violation, lint warning, reasoning divergence, or external-tool failure — modelled as a specialization of gmeow:Observation, the universal claim construct. The producing tool is the gmeow:vantage (no diagnostic is privileged; a finding is one tool's perspectival claim, Principle 9), the offending statement or construct is the gmeow:observedFeature (reached via gmeow:findingLocation), and the verdict is a gmeow:DiagnosticSeverity reached via gmeow:findingSeverity. A Finding is the gmeow: RDF projection of one Rust gmeow_diagnostics::Finding; it is never the canonical source (that stays in Rust so it can report on an unparsable graph), only one projection beside SARIF, JSON, HTML, and CLI."@x-gmeow-english ;
+    skos:scopeNote "Finding ⊑ Observation is a real rdfs:subClassOf bridge (unlike the content-mode siblings elsewhere): a diagnostic genuinely IS an observation, so it inherits the vantage / observedFeature / observationResult roles and the EL mediation restrictions. logic:violation and the native↔oracle divergence-ledger entries are restricted Findings; the alignment cell records the equivalence."@x-gmeow-english ;
+    skos:example "ex:f1 a gmeow:Finding ; gmeow:findingSeverity gmeow:severityError ; gmeow:findingCode \"shacl.MinCount\" ; gmeow:vantage ex:shaclTool ."@x-gmeow-english ;
+    gmeow:useWhen "Use to record a diagnostic as a first-class, queryable RDF claim — when a validation/lint/reasoning verdict should ride in the graph (e.g. embedded in a .gts feedback bundle) so it can be joined against the ontology it describes."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid authoring Findings by hand as the source of truth — they are a projection of the Rust report, regenerated, never edited — and avoid using a Finding where a plain SARIF/CLI message suffices and no RDF query over diagnostics is needed."@x-gmeow-english ;
+    gmeow:howToUse "Project one Finding per Rust gmeow_diagnostics::Finding: bind gmeow:findingSeverity, gmeow:findingCode, gmeow:findingMessage, the producing tool via gmeow:vantage (and gmeow:findingTool for the flat name), and gmeow:findingLocation at the reified statement, hanging the GTS wire coordinates on the location node."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> .
+
+gmeow:Finding rdfs:subClassOf
+    [ a owl:Restriction ; owl:onProperty gmeow:findingSeverity ; owl:someValuesFrom gmeow:DiagnosticSeverity ] .
+
+# =========================================================================== #
+# DIAGNOSTIC SEVERITY — an open value vocabulary of verdict grades (individuals,
+# never subclasses). The gufo:QualityValue pattern (gmeow:SeverityLevel kin).
+# =========================================================================== #
+
+gmeow:DiagnosticSeverity
+    a owl:Class, gufo:AbstractIndividualType ;
+    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:label "Diagnostic Severity"@x-gmeow-english ;
+    skos:definition "The grade of a diagnostic — an open value vocabulary spanning error (gate-failing), warning, note, and info: gmeow:severityError, gmeow:severityWarning, gmeow:severityNote, gmeow:severityInfo. Members are individuals, never subclasses (Principle 9); deployments add grades without schema change. Mirrors the SARIF level and the Rust gmeow_diagnostics::Severity enum."@x-gmeow-english ;
+    skos:example "ex:f1 gmeow:findingSeverity gmeow:severityError ."@x-gmeow-english ;
+    gmeow:useWhen "Use as the value vocabulary for a finding's verdict grade — the closed-by-convention set (error, warning, note, info) a gmeow:Finding declares through gmeow:findingSeverity."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid subclassing it to add a grade (the members are individuals) and avoid conflating the grade with the rule code (gmeow:findingCode) or the human message (gmeow:findingMessage)."@x-gmeow-english ;
+    gmeow:howToUse "Reference the seeded DiagnosticSeverity individuals from a gmeow:Finding via gmeow:findingSeverity; map them to SARIF levels (error→error, warning→warning, note/info→note) in the projection layer, not by axiom."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> .
+
+gmeow:severityError
+    a gmeow:DiagnosticSeverity ;
+    rdfs:label "error"@x-gmeow-english ;
+    skos:definition "The error grade — a gate-failing diagnostic: the report is not OK while any finding carries it. Maps to SARIF level \"error\"."@x-gmeow-english .
+gmeow:severityError rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> .
+
+gmeow:severityWarning
+    a gmeow:DiagnosticSeverity ;
+    rdfs:label "warning"@x-gmeow-english ;
+    skos:definition "The warning grade — a non-gate-failing diagnostic worth surfacing. Maps to SARIF level \"warning\"."@x-gmeow-english .
+gmeow:severityWarning rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> .
+
+gmeow:severityNote
+    a gmeow:DiagnosticSeverity ;
+    rdfs:label "note"@x-gmeow-english ;
+    skos:definition "The note grade — an advisory diagnostic. Maps to SARIF level \"note\"."@x-gmeow-english .
+gmeow:severityNote rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> .
+
+gmeow:severityInfo
+    a gmeow:DiagnosticSeverity ;
+    rdfs:label "info"@x-gmeow-english ;
+    skos:definition "The info grade — an informational diagnostic. Maps to SARIF level \"note\" (SARIF has no distinct info level)."@x-gmeow-english .
+gmeow:severityInfo rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> .
+
+# =========================================================================== #
+# FINDING PROPERTIES — severity (⊑ observationResult), location (⊑
+# observedFeature), and the flat datatype surface (code/message/tool).
+# =========================================================================== #
+
+gmeow:findingSeverity
+    a owl:ObjectProperty ;
+    rdfs:subPropertyOf gmeow:observationResult ;
+    rdfs:domain gmeow:Finding ;
+    rdfs:range gmeow:DiagnosticSeverity ;
+    rdfs:label "finding severity"@x-gmeow-english ;
+    skos:definition "The verdict grade of a finding — a gmeow:DiagnosticSeverity individual. A subproperty of gmeow:observationResult: a finding's severity IS its observation result (the value the diagnostic observation produced), so generic observation-result consumers read it by inheritance."@x-gmeow-english ;
+    skos:example "ex:f1 gmeow:findingSeverity gmeow:severityWarning ."@x-gmeow-english ;
+    gmeow:useWhen "Use to grade a gmeow:Finding — pointing it at exactly one gmeow:DiagnosticSeverity so SARIF level, CLI colour, and gate pass/fail all derive from one value."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid pointing it at anything outside the gmeow:DiagnosticSeverity vocabulary and avoid using it for the rule code or message; the result is the grade, not the identity of the rule."@x-gmeow-english ;
+    gmeow:howToUse "Bind one DiagnosticSeverity individual per Finding; read it by inheritance through gmeow:observationResult for cross-slice 'what did this observation conclude' queries."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> .
+
+gmeow:findingLocation
+    a owl:ObjectProperty ;
+    rdfs:subPropertyOf gmeow:observedFeature ;
+    rdfs:domain gmeow:Finding ;
+    rdfs:label "finding location"@x-gmeow-english ;
+    skos:definition "The statement or construct a finding concerns — its observed feature. A subproperty of gmeow:observedFeature, so a finding's location IS what its observation is about. The range is left intentionally open (like gmeow:observedFeature): the value is typically a reified RDF 1.2 statement (rdf:reifies <<( s p o )>>) whose node carries the GTS wire coordinates, but it may be any term, so no range is asserted in the core."@x-gmeow-english ;
+    skos:scopeNote "The location node is the natural carrier of the gmeow:gts* wire coordinates: hang gmeow:gtsQuadIndex / gmeow:gtsTermId / gmeow:gtsReifierId / gmeow:gtsFrameIndex / gmeow:gtsSegmentIndex on the reifier the finding points at, so a consumer resolves the diagnostic to an exact position inside the bundle, matching the SARIF logicalLocations of the same finding."@x-gmeow-english ;
+    skos:example "ex:f1 gmeow:findingLocation ex:stmt1 ."@x-gmeow-english ;
+    gmeow:useWhen "Use to anchor a gmeow:Finding to the statement or term it diagnoses — typically the reified RDF 1.2 statement carrying the GTS wire coordinates."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid constraining its range in the core (per-kind narrowing is SHACL's job) and avoid using it for the verdict (that is gmeow:findingSeverity); the location is WHAT the finding is about."@x-gmeow-english ;
+    gmeow:howToUse "Point the Finding at the reified statement it concerns and hang the gmeow:gts* coordinates on that node; read it by inheritance through gmeow:observedFeature for generic 'all observations about this statement' queries."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> .
+
+gmeow:findingCode
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:Finding ;
+    rdfs:range xsd:string ;
+    rdfs:label "finding code"@x-gmeow-english ;
+    skos:definition "The stable rule identifier of a finding (e.g. \"shacl.MinCountConstraintComponent\", \"validate.error\") — the SARIF ruleId and the key by which findings are grouped and suppressed. Short and stable across runs."@x-gmeow-english ;
+    skos:example "ex:f1 gmeow:findingCode \"shacl.MinCount\" ."@x-gmeow-english ;
+    gmeow:useWhen "Use to carry the stable rule code of a finding so consumers can group, route, and suppress by rule."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid putting the human message here (use gmeow:findingMessage) and avoid run-varying values; the code is the stable rule key."@x-gmeow-english ;
+    gmeow:howToUse "Set it to the Rust finding's code verbatim; it becomes the SARIF ruleId and participates in the partial-fingerprint dedup."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> .
+
+gmeow:findingMessage
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:Finding ;
+    rdfs:range xsd:string ;
+    rdfs:label "finding message"@x-gmeow-english ;
+    skos:definition "The human-readable message of a finding — the one-line description shown in CLI, SARIF, and HTML. Distinct from gmeow:findingCode (the stable rule key): the message explains this occurrence, the code names the rule."@x-gmeow-english ;
+    skos:example "ex:f1 gmeow:findingMessage \"missing required skos:definition\" ."@x-gmeow-english ;
+    gmeow:useWhen "Use to carry the human-readable explanation of a finding for display surfaces."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid overloading it with the rule key (use gmeow:findingCode) or the location text; the message is prose about this occurrence."@x-gmeow-english ;
+    gmeow:howToUse "Set it to the Rust finding's message verbatim; render it as the SARIF result message text."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> .
+
+gmeow:findingTool
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:Finding ;
+    rdfs:range xsd:string ;
+    rdfs:label "finding tool"@x-gmeow-english ;
+    skos:definition "The short name of the tool that produced a finding (e.g. \"shacl\", \"validate\", \"clippy\") — the flat 80% provenance surface. The richer provenance is gmeow:wasGeneratedBy a gmeow:ToolCall whose gmeow:usedTool is the validator agent (the agentic idiom, Principle 5); gmeow:findingTool is the cheap denormalized name, and the tool agent is also the finding's gmeow:vantage."@x-gmeow-english ;
+    skos:example "ex:f1 gmeow:findingTool \"shacl\" ."@x-gmeow-english ;
+    gmeow:useWhen "Use to carry the producing tool's short name on a finding for cheap filtering and SARIF driver attribution."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating it as the full provenance — the auditable record is the gmeow:ToolCall the finding gmeow:wasGeneratedBy — and avoid drift from the tool's gmeow:vantage agent."@x-gmeow-english ;
+    gmeow:howToUse "Set it to the Rust finding's tool name; for full provenance also mint a gmeow:ToolCall and link the finding back with gmeow:wasGeneratedBy."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> .
+
+# --------------------------------------------------------------------------- #
+# GTS wire coordinates — datatype properties hung on a finding's location node
+# (the reified statement) to pin its exact position inside a GTS bundle. Domain
+# is left open: they decorate whatever node gmeow:findingLocation points at.
+# --------------------------------------------------------------------------- #
+
+gmeow:gtsTermId
+    a owl:DatatypeProperty ;
+    rdfs:range xsd:nonNegativeInteger ;
+    rdfs:label "GTS term id"@x-gmeow-english ;
+    skos:definition "The GTS term-id locating the term a finding concerns inside the bundle's term table — one of the wire coordinates that resolve a finding to an exact position, mirrored in the SARIF logicalLocation \"gts:term\"."@x-gmeow-english ;
+    skos:example "ex:stmt1 gmeow:gtsTermId 7 ."@x-gmeow-english ;
+    gmeow:useWhen "Use on a finding's location node to pin the GTS term-id of the term diagnosed."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting it where no GTS bundle backs the finding (file-based findings use line/column instead)."@x-gmeow-english ;
+    gmeow:howToUse "Hang it on the node gmeow:findingLocation points at, matching the value carried in the SARIF logicalLocation and the Rust Location.gts_term_id."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> .
+
+gmeow:gtsQuadIndex
+    a owl:DatatypeProperty ;
+    rdfs:range xsd:nonNegativeInteger ;
+    rdfs:label "GTS quad index"@x-gmeow-english ;
+    skos:definition "The GTS quad index locating the quad a finding concerns inside the bundle's quad table — a wire coordinate mirrored in the SARIF logicalLocation \"gts:quad\"."@x-gmeow-english ;
+    skos:example "ex:stmt1 gmeow:gtsQuadIndex 42 ."@x-gmeow-english ;
+    gmeow:useWhen "Use on a finding's location node to pin the GTS quad index of the statement diagnosed."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting it where no GTS bundle backs the finding."@x-gmeow-english ;
+    gmeow:howToUse "Hang it on the node gmeow:findingLocation points at, matching the Rust Location.gts_quad_index."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> .
+
+gmeow:gtsReifierId
+    a owl:DatatypeProperty ;
+    rdfs:range xsd:nonNegativeInteger ;
+    rdfs:label "GTS reifier id"@x-gmeow-english ;
+    skos:definition "The GTS reifier-id locating the reifier a finding concerns — a wire coordinate mirrored in the SARIF logicalLocation \"gts:reifier\"."@x-gmeow-english ;
+    skos:example "ex:stmt1 gmeow:gtsReifierId 3 ."@x-gmeow-english ;
+    gmeow:useWhen "Use on a finding's location node to pin the GTS reifier-id of the reified statement diagnosed."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting it where no GTS bundle backs the finding."@x-gmeow-english ;
+    gmeow:howToUse "Hang it on the node gmeow:findingLocation points at, matching the Rust Location.gts_reifier_id."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> .
+
+gmeow:gtsFrameIndex
+    a owl:DatatypeProperty ;
+    rdfs:range xsd:nonNegativeInteger ;
+    rdfs:label "GTS frame index"@x-gmeow-english ;
+    skos:definition "The GTS frame index locating the frame a finding concerns inside the bundle — a wire coordinate mirrored in the SARIF logicalLocation \"gts:frame\"."@x-gmeow-english ;
+    skos:example "ex:stmt1 gmeow:gtsFrameIndex 1 ."@x-gmeow-english ;
+    gmeow:useWhen "Use on a finding's location node to pin the GTS frame index of the diagnosed content."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting it where no GTS bundle backs the finding."@x-gmeow-english ;
+    gmeow:howToUse "Hang it on the node gmeow:findingLocation points at, matching the Rust Location.gts_frame_index."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> .
+
+gmeow:gtsSegmentIndex
+    a owl:DatatypeProperty ;
+    rdfs:range xsd:nonNegativeInteger ;
+    rdfs:label "GTS segment index"@x-gmeow-english ;
+    skos:definition "The GTS segment index locating the segment a finding concerns inside the bundle — a wire coordinate mirrored in the SARIF logicalLocation \"gts:segment\"."@x-gmeow-english ;
+    skos:example "ex:stmt1 gmeow:gtsSegmentIndex 2 ."@x-gmeow-english ;
+    gmeow:useWhen "Use on a finding's location node to pin the GTS segment index of the diagnosed content."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting it where no GTS bundle backs the finding."@x-gmeow-english ;
+    gmeow:howToUse "Hang it on the node gmeow:findingLocation points at, matching the Rust Location.gts_segment_index."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> .
+
+# --------------------------------------------------------------------------- #
+# Graph box role coverage (canonical explicit annotations).
+# --------------------------------------------------------------------------- #
+
+<https://blackcatinformatics.ca/gmeow/slices/diagnostics> gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .
+gmeow:Finding gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:DiagnosticSeverity gmeow:graphBoxRole gmeow:boxTBox .
+gmeow:severityError gmeow:graphBoxRole gmeow:boxABox .
+gmeow:severityWarning gmeow:graphBoxRole gmeow:boxABox .
+gmeow:severityNote gmeow:graphBoxRole gmeow:boxABox .
+gmeow:severityInfo gmeow:graphBoxRole gmeow:boxABox .
+gmeow:findingSeverity gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:findingLocation gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:findingCode gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:findingMessage gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:findingTool gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:gtsTermId gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:gtsQuadIndex gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:gtsReifierId gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:gtsFrameIndex gmeow:graphBoxRole gmeow:boxRBox .
+gmeow:gtsSegmentIndex gmeow:graphBoxRole gmeow:boxRBox .

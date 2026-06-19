@@ -1,0 +1,45 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix sh:    <http://www.w3.org/ns/shacl#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
+
+# =========================================================================== #
+# Finding well-formedness (#654): a projected finding carries exactly one
+# severity, exactly one code, and exactly one message — closed-world checks the
+# EL someValuesFrom mediation in module.ttl cannot express.
+# =========================================================================== #
+
+gmeow:FindingShape
+    a sh:NodeShape ;
+    rdfs:label "Finding well-formedness shape"@x-gmeow-english ;
+    skos:definition "SHACL constraints for gmeow:Finding: exactly one gmeow:findingSeverity (a gmeow:DiagnosticSeverity), exactly one xsd:string gmeow:findingCode, and exactly one xsd:string gmeow:findingMessage, so every projected finding is renderable to SARIF/CLI without holes."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
+    sh:targetClass gmeow:Finding ;
+    sh:property [
+        sh:path gmeow:findingSeverity ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:class gmeow:DiagnosticSeverity ;
+        sh:severity sh:Violation ;
+        sh:message "A Finding must carry exactly one gmeow:findingSeverity (a gmeow:DiagnosticSeverity)." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:findingCode ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        sh:severity sh:Violation ;
+        sh:message "A Finding must carry exactly one xsd:string gmeow:findingCode." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:findingMessage ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        sh:severity sh:Violation ;
+        sh:message "A Finding must carry exactly one xsd:string gmeow:findingMessage." ;
+    ] .

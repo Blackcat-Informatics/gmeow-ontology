@@ -1,0 +1,33 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example — a SHACL violation projected as a gmeow:Finding about a
+# reified RDF 1.2 statement, located by GTS wire coordinates. This is the shape
+# the Rust gmeow_diagnostics engine emits into the gmeow:graph/diagnostics named
+# graph embedded in a feedback .gts bundle (#654).
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/diagnostics/> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+
+# --- The tool that produced the finding (its vantage / agent).
+ex:shaclTool a gmeow:SoftwareAgent ;
+    rdfs:label "GMEOW SHACL validator"@x-gmeow-english .
+
+# --- The reified statement the finding is about, pinned by GTS wire coordinates.
+ex:offendingStatement
+    gmeow:gtsQuadIndex 42 ;
+    gmeow:gtsSegmentIndex 2 ;
+    rdfs:label "the quad missing a required skos:definition"@x-gmeow-english .
+
+# --- The finding: a reified observation about that statement (Principle 9).
+ex:missingDefinitionFinding
+    a gmeow:Finding ;
+    gmeow:vantage ex:shaclTool ;
+    gmeow:findingTool "shacl" ;
+    gmeow:findingSeverity gmeow:severityError ;
+    gmeow:findingCode "shacl.MinCountConstraintComponent" ;
+    gmeow:findingMessage "missing required skos:definition" ;
+    gmeow:findingLocation ex:offendingStatement ;
+    rdfs:label "missing skos:definition finding"@x-gmeow-english .
