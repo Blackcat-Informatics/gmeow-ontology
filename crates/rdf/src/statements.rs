@@ -21,11 +21,10 @@
 
 use std::collections::BTreeMap;
 
-use oxigraph::io::RdfFormat;
-use oxigraph::store::Store;
+use oxigraph::io::{RdfFormat, RdfParser};
 
-use crate::oxigraph::OxigraphStore;
-use crate::{RdfDiagnostic, RdfLiteral, RdfStore, RdfTerm, RdfTriple};
+use crate::oxigraph::rdf_quad_from_oxigraph;
+use crate::{RdfDiagnostic, RdfLiteral, RdfQuad, RdfTerm, RdfTriple};
 
 const OWL_AXIOM: &str = "http://www.w3.org/2002/07/owl#Axiom";
 const XSD_STRING: &str = "http://www.w3.org/2001/XMLSchema#string";
@@ -35,14 +34,21 @@ const OWL_ANNOTATED_TARGET: &str = "http://www.w3.org/2002/07/owl#annotatedTarge
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 const RDF_REIFIES: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies";
 
-/// Parse a Turtle document (incl. RDF 1.2 triple terms) into an oxigraph store.
-fn load_store(ttl: &str) -> Result<Store, RdfDiagnostic> {
-    let store =
-        Store::new().map_err(|e| RdfDiagnostic::error("statements-store-create", e.to_string()))?;
-    store
-        .load_from_reader(RdfFormat::Turtle, ttl.as_bytes())
-        .map_err(|e| RdfDiagnostic::error("statements-turtle-parse", e.to_string()))?;
-    Ok(store)
+/// Parse a Turtle document (incl. RDF 1.2 triple terms) into model quads.
+///
+/// Uses oxigraph's streaming `RdfParser`, NOT a `Store`: the `Store` canonicalizes
+/// typed-literal lexical forms (`+00:00` → `Z`, `0.70` → `0.7`), but a faithful
+/// codec must round-trip literals byte-for-byte so the inversion is a pure
+/// serialization-shape change with no value churn into the GTS bundle and the
+/// other derived artifacts.
+fn parse_quads(ttl: &str) -> Result<Vec<RdfQuad>, RdfDiagnostic> {
+    let mut quads = Vec::new();
+    for quad in RdfParser::from_format(RdfFormat::Turtle).for_reader(ttl.as_bytes()) {
+        let quad =
+            quad.map_err(|e| RdfDiagnostic::error("statements-turtle-parse", e.to_string()))?;
+        quads.push(rdf_quad_from_oxigraph(&quad));
+    }
+    Ok(quads)
 }
 
 /// Drop a redundant `^^xsd:string` datatype so a simple literal serializes bare.
@@ -111,12 +117,10 @@ struct AxiomAccum {
 /// Returns an [`RdfDiagnostic`] on a Turtle parse error, a malformed axiom
 /// (missing source/property/target), or a non-IRI annotated property.
 pub fn project_owl_to_rdf12(owl_ttl: &str) -> Result<String, RdfDiagnostic> {
-    let store = load_store(owl_ttl)?;
-    let view = OxigraphStore::new(&store);
+    let quads = parse_quads(owl_ttl)?;
 
     let mut axioms: BTreeMap<String, AxiomAccum> = BTreeMap::new();
-    for quad in view.quads() {
-        let quad = quad?;
+    for quad in &quads {
         let acc = axioms.entry(crate::emit_term(&quad.subject)).or_default();
         if acc.subject.is_none() {
             acc.subject = Some(quad.subject.clone());
@@ -213,12 +217,10 @@ struct ReifierAccum {
 /// Returns an [`RdfDiagnostic`] on a Turtle parse error or an `rdf:reifies` whose
 /// object is not a triple term.
 pub fn normalize_rdf12_to_owl(rdf12_ttl: &str) -> Result<String, RdfDiagnostic> {
-    let store = load_store(rdf12_ttl)?;
-    let view = OxigraphStore::new(&store);
+    let quads = parse_quads(rdf12_ttl)?;
 
     let mut by_subject: BTreeMap<String, ReifierAccum> = BTreeMap::new();
-    for quad in view.quads() {
-        let quad = quad?;
+    for quad in &quads {
         let key = crate::emit_term(&quad.subject);
         let acc = by_subject.entry(key).or_insert_with(|| ReifierAccum {
             subject: quad.subject.clone(),
@@ -301,10 +303,10 @@ gmeow:ax a owl:Axiom ;
     /// Canonical default-graph quad set for isomorphism comparison (named nodes
     /// only, so set equality is exact).
     fn quad_set(ttl: &str) -> BTreeSet<String> {
-        let store = load_store(ttl).expect("parse");
-        let view = OxigraphStore::new(&store);
-        view.quads()
-            .map(|q| crate::emit_quad(&q.expect("quad")))
+        parse_quads(ttl)
+            .expect("parse")
+            .iter()
+            .map(crate::emit_quad)
             .collect()
     }
 
