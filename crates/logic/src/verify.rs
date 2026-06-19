@@ -120,6 +120,10 @@ pub fn verify(edb: &impl RdfStore, queries: &[(String, String)]) -> Result<Repor
             for (var, term) in sol.iter() {
                 binding.push(format!("{}={term}", var.as_str()));
             }
+            // Sort the per-row bindings so the joined detail is independent of the
+            // query engine's variable-projection / iteration order — keeping the
+            // report content hash and the GTS feedback bundle byte-deterministic.
+            binding.sort();
             rows.push(binding.join(", "));
         }
 
