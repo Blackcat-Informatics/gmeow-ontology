@@ -29,6 +29,7 @@ pub mod findings;
 pub mod gufo;
 pub mod lint;
 pub mod model;
+pub mod signature;
 pub mod store;
 pub mod validate_all;
 

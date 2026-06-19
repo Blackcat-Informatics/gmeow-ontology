@@ -26,6 +26,7 @@ use crate::dsl;
 use crate::findings::finding_from_shacl;
 use crate::gufo::{self, GufoConfig};
 use crate::lint::{self, LintConfig, ModuleSpec};
+use crate::signature;
 use crate::store::{self, parse_file};
 
 /// One per-phase timing record.
@@ -180,6 +181,32 @@ impl ValidationRun {
         let shapes = timed(&mut timings, "parse-shapes", options, None, || {
             gmeow_shacl::engine::parse_shapes(shapes_ttl)
         })?;
+
+        // Signature/trust verification pre-gate (#646).
+        // Runs after the GTS bundle has been folded into a graph but before any
+        // ontology validation phases, so malformed, unsigned, or untrusted bundles
+        // are rejected early.
+        let mut signature_findings: Vec<Finding> = Vec::new();
+        let mut signature_hard_failures = false;
+        if let (Some(bytes), Some(config)) = (&options.gts_bytes, &options.signature_config) {
+            let (findings, hard) = timed(&mut timings, "signature-verify", options, None, || {
+                signature::verify_gts_bundle(bytes, config)
+            })?;
+            signature_findings.extend(findings);
+            signature_hard_failures = hard;
+        }
+
+        if signature_hard_failures {
+            return Ok(Self {
+                store,
+                shapes,
+                timings,
+                report: build_report(Vec::new(), Vec::new(), signature_findings),
+                declared_terms: Vec::new(),
+            });
+        }
+
+        shacl_findings.extend(signature_findings);
 
         // Phase 1: Turtle syntax check (only meaningful for per-file sources).
         if options.gts_bytes.is_none() {
