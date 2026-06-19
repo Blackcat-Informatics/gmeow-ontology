@@ -13,9 +13,10 @@ Maintainer-only (#666 / Principle 18)
 ROBOT module-extraction requires Java/Docker, so this is a **maintainer-only**
 tool (``make extract`` / ``make refresh-target-axioms``): it is NOT on the
 normal-use primary path, never part of ``make check`` or the required CI
-``quality`` gate. A native oxigraph SLME port (to drop the Java/Docker dependency
-entirely) is deferred; until then extraction stays a maintainer-run, Docker-gated
-step alongside the ``classic-cross-check`` lane.
+``quality`` gate. Replicating ROBOT's SLME module extraction natively in the Rust
+core (to drop the Java/Docker dependency entirely) is tracked in **#695**; until
+then extraction stays a maintainer-run, Docker-gated step alongside the
+``classic-cross-check`` lane.
 """
 
 from __future__ import annotations
