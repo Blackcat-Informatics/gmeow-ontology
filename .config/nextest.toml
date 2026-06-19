@@ -7,5 +7,5 @@ retries = { backoff = "fixed", count = 2, delay = "1s" }
 
 [profile.ci]
 inherits = "default"
-junit = { path = "target/nextest/ci/junit.xml" }
+junit = { path = "junit.xml" }
 fail-fast = false
