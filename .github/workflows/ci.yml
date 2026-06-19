@@ -241,7 +241,7 @@ jobs:
           if-no-files-found: warn
 
       - name: Publish test results
-        uses: dorny/test-reporter@4a2e97665d5fa767581ef38eca97b9694bd4eef4 # v2
+        uses: dorny/test-reporter@df6247429542221bc30d46a036ee47af1102c451 # v2
         if: always()
         with:
           name: Rust Tests
