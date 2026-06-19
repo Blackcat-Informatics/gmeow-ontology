@@ -585,18 +585,23 @@ def validate_all(
         statement_dsl_dir = str(STATEMENT_DSL_DIR)
 
     config = _lint_config()
-    signature_options = (
-        gmeow_validate.SignatureConfig(
-            trusted_signers=list(signature_config.get("trusted_signers", [])),
+    if signature_config is not None:
+        raw_signers = signature_config.get("trusted_signers", [])
+        trusted_signers = (
+            [str(s) for s in raw_signers] if isinstance(raw_signers, list) else []
+        )
+        raw_key = signature_config.get("trusted_key")
+        trusted_key = raw_key if isinstance(raw_key, str) else None
+        signature_options = gmeow_validate.SignatureConfig(
+            trusted_signers=trusted_signers,
             require_signatures=bool(signature_config.get("require_signatures", False)),
             require_trusted_signer=bool(
                 signature_config.get("require_trusted_signer", False)
             ),
-            trusted_key=signature_config.get("trusted_key"),
+            trusted_key=trusted_key,
         )
-        if signature_config is not None
-        else None
-    )
+    else:
+        signature_options = None
     options = gmeow_validate.ValidateOptions(
         timings=timings,
         sameas_allowlist=[(subject, obj) for subject, obj in _SAMEAS_ALLOWLIST],
