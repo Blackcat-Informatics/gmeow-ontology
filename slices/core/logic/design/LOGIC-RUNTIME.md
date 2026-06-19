@@ -11,6 +11,12 @@
 > [LOGIC-SEMANTICS.md](LOGIC-SEMANTICS.md); the transaction-path execution semantics are in
 > [LOGIC-TRANSACTION.md](LOGIC-TRANSACTION.md); the typed intermediate representation is in
 > [LOGIC-IR.md](LOGIC-IR.md).
+>
+> **Reading the status labels.** Claims that touch implementation are tagged with one of three
+> labels: **Normative semantics** (what the formal model requires of any conforming engine),
+> **Currently implemented subset** (what the runtime evaluates today), and **Required but not yet
+> implemented** (a normative obligation no engine yet discharges). An untagged statement is
+> normative semantics by default.
 
 ## The compiler/runtime split
 
@@ -28,12 +34,12 @@ artifacts, and the preservation judgments (see [LOGIC-IR.md § Lowering and the 
 judgment](LOGIC-IR.md)).
 
 The **reasoning runtime** is the engine layer: it receives the IR and the generated canonical
-artifact, operates the materializer and the goal resolver, constructs and maintains world graphs,
-and produces typed `logic:ReasoningResult` values (see [LOGIC-SEMANTICS.md § The reasoning
-result](LOGIC-SEMANTICS.md)). The runtime is not portable in the same sense — it depends on
-capable solver substrates and is intended for server-side and developer-side use. The split
-ensures that a consumer who needs only compilation (cross-compilation, static projection,
-documentation generation) never takes a dependency on the full solver stack.
+artifact, operates the materializer and the goal resolver, constructs and maintains typed contexts
+realized as named graphs, and produces typed `logic:ReasoningResult` values (see
+[LOGIC-SEMANTICS.md § The reasoning result](LOGIC-SEMANTICS.md)). The runtime is not portable in
+the same sense — it depends on capable solver substrates and is intended for server-side and
+developer-side use. The split ensures that a consumer who needs only compilation (cross-compilation,
+static projection, documentation generation) never takes a dependency on the full solver stack.
 
 Both halves share the same typed IR as their interface. The compiler produces it; the runtime
 consumes it.
@@ -49,17 +55,19 @@ Required solver capabilities:
 
 - load and reason over RDF 1.2 triple terms and reifiers;
 - materialize declared rule consequences (monotonic and stratified non-monotonic), under the
-  declared [semantic profile](LOGIC-SEMANTICS.md#semantic-profiles);
+  reasoning contract declared by the request (see [LOGIC-SEMANTICS.md § The reasoning
+  contract](LOGIC-SEMANTICS.md#the-reasoning-contract));
 - resolve goals by unification and backward chaining, with builtins (cut only in the procedural
-  profile — see [LOGIC-SEMANTICS.md § Cut is procedural](LOGIC-SEMANTICS.md));
+  preset — see [LOGIC-SEMANTICS.md § Cut is procedural](LOGIC-SEMANTICS.md#cut-is-procedural-not-canonical));
 - evaluate closed-world constraints over asserted and derived graphs;
 - carry contextual/temporal/modal/probabilistic scope through inference, and construct
-  hypothesized/counterfactual worlds on demand;
+  hypothesized/counterfactual typed contexts on demand (see
+  [LOGIC-SEMANTICS.md § Worlds, Modality, and Counterfactuals](LOGIC-SEMANTICS.md#worlds-modality-and-counterfactuals--a-typed-context-algebra));
 - treat contradiction paraconsistently and report **contradiction witnesses** rather than only
   failing;
 - **explain** derived triples, refusals, and required shapes with rule and source provenance (see
   [Explanation as projection](#explanation-as-projection-logic-to-prose));
-- support tiered validation profiles, from fast structural checks to deep-reasoning checks (see
+- support tiered validation, from fast structural checks to deep-reasoning checks (see
   [Validator tiers](#validator-tiers));
 - emit stable artifacts suitable for drift detection.
 
@@ -78,11 +86,11 @@ filled by a component optimized for that purpose; the architecture does not conf
 - **Forward materialization / existential rules.** A datalog-plus-existential-rules chase engine
   fills this role, providing the existential-rule substrate: Datalog extensions with datatypes,
   aggregates, stratified negation, and existential variables in rule heads that create fresh
-  objects. This substrate is also the world-construction engine: `logic:` defines the
-  world-construction *protocol* (graph seeding, revision, scoped chase, memoization, provenance
-  capture, and disposal) layered on top of it. The architectural insight that existential chase
-  approximates world construction is a `logic:`-level design choice, not a property the substrate
-  itself ships.
+  objects. This substrate is also the typed-context construction engine: `logic:` defines the
+  typed-context construction *protocol* (graph seeding, revision, scoped chase, memoization,
+  provenance capture, and disposal) layered on top of it. The architectural insight that
+  existential chase approximates typed-context construction is a `logic:`-level design choice,
+  not a property the substrate itself ships.
 - **Backward goal resolution.** A Prolog-grade SLD resolution engine fills this role — unification,
   backward chaining, builtins, and tabling. Cut is confined to the procedural preset. The backward
   engine reads the materialized store as read-only data; it never writes back to it except under
@@ -98,53 +106,69 @@ The materializer role is filled by a Rust-native existential-rule engine (**Nemo
 the backward-resolution role by an embedded Rust Prolog (**Scryer**); storage and SPARQL by a
 Rust-native RDF 1.2 quad store (**oxigraph**). These are conceptual substrate choices — named here
 because the design decisions (asymmetric pipeline, blackboard handoff, Kripke algebra mapped to
-named graphs) are grounded in what those engines commit to. They are not build-time feature flags
-or replaceable components the architecture is neutral about; the seam design is written *for* these
-substrates. External OWL reasoners (e.g. ELK, HermiT) remain available for checking the OWL
-projections of the IR, but they are secondary validators of their projected fragments — not
-authorities over the canonical `logic:` semantics.
+typed named-graph contexts) are grounded in what those engines commit to. They are not build-time
+feature flags or replaceable components the architecture is neutral about; the seam design is
+written *for* these substrates. External OWL reasoners (e.g. ELK, HermiT) remain available for
+checking the OWL projections of the IR, but they are secondary validators of their projected
+fragments — not authorities over the canonical `logic:` semantics.
 
 > Ownership boundary. The existential-rule substrate provides the chase *mechanism* used by
-> `logic:` world construction — it is not, by itself, a world-construction engine. `logic:`
-> defines the world-construction *protocol*: graph seeding, revision, scoped chase, memoization,
-> provenance capture, and disposal. The architectural insight ("existential chase ≈ world
-> construction") is a `logic:`-level design choice layered on that substrate.
+> `logic:` typed-context construction — it is not, by itself, a context-construction engine.
+> `logic:` defines the typed-context construction *protocol*: graph seeding, revision, scoped
+> chase, memoization, provenance capture, and disposal. The architectural insight ("existential
+> chase ≈ context construction") is a `logic:`-level design choice layered on that substrate.
 
 ## The forward materialization ↔ backward resolution seam
 
 The runtime interface between the **materializer** (forward) and the **goal resolver** (backward)
 is an **asymmetric pipeline**: the two components never call each other directly. They communicate
-only through named graphs in the shared quad store, where the graph IRI *is* the world. The
-materializer writes; the goal resolver reads; the quad store is the shared blackboard. The three
-runtime phases map one-to-one to the three
-[strata](LOGIC-SEMANTICS.md#three-strata-two-already-built).
+only through named graphs in the shared quad store, where the graph IRI identifies a typed context.
+The materializer writes; the goal resolver reads; the quad store is the shared blackboard. The
+three runtime phases map one-to-one to the three
+[strata](LOGIC-SEMANTICS.md#three-strata-of-context-reasoning).
 
 **Phase 1 — materialize (forward engine owns it; Strata A and B).** The forward-stratified rules
-— the lowered modal constraints, the frame-indexed worlds, the type-level no-occurrence rules —
-run to fixpoint and write their closure into named graphs. Terminating by construction (finite
-world set; type-level under the no-occurrence gate). The result is a saturated, read-only
-**extensional database (EDB)**.
+— the lowered modal constraints, the frame-indexed contexts, the type-level no-occurrence rules —
+run to fixpoint and write their closure into named graphs. **Normative semantics:** termination
+within this phase is guaranteed only when the contract's `Resource` facet certifies a terminating
+fragment (weakly-acyclic, jointly-acyclic, or other certified-sufficient condition). Stratified
+Datalog rules over a finite domain terminate; existential rules outside a certified acyclicity
+condition do not. The result, when the phase completes, is a saturated, read-only **extensional
+database (EDB)**.
+
+**Currently implemented subset:** Phase 1 runs under stratified negation with the no-occurrence
+gate enforced, which provides the termination guarantee for the type-level fragment currently
+evaluated.
+
+**Required but not yet implemented:** Full existential-rule certification and the runtime
+enforcement of the contract's certified-fragment annotation on Phase 1 termination guarantees.
 
 **Phase 2 — resolve (backward engine owns it; the query / logic-programming layer).** Backward
 goal resolution runs over the materialized store as read-only data. A base predicate is resolved
 by a foreign predicate `in_world(W, S, P, O)` backed by a quad lookup; the Prolog clauses are the
 **intensional database (IDB)**, the recursive, unification-driven part the forward engine cannot
 express. Non-recursive pattern goals route to SPARQL (the fast path); recursive or
-unification-heavy goals go to the backward engine. Termination is the Datalog-fragment guarantee
-plus tabling, with the budget as backstop.
+unification-heavy goals go to the backward engine. **Normative semantics:** termination in Phase 2
+is not automatic — unrestricted recursion, stable-model evaluation, and procedural goal resolution
+can be non-terminating unless the contract certifies a terminating fragment (e.g. Datalog
+restriction, tabling with finite tables, bounded search). The resource budget acts as a backstop,
+returning `evaluation = budget-exhausted` rather than diverging; it does not make the phase
+"terminating by construction."
 
 **Phase 3 — construct (backward engine invokes a transient chase; Stratum C only).** When a
 backward goal reaches a counterfactual predicate — `holds(W_cf, φ)` with
-`W_cf = counterfactualOf(W_base, A)` — the backward engine calls `construct_world(W_base, A,
-W_cf)`. That seeds a fresh, **isolated** named graph from the base world minimally revised to
+`W_cf = counterfactualOf(W_base, A)` — the backward engine calls `construct_context(W_base, A,
+W_cf)`. That seeds a fresh, **isolated** named graph from the base context minimally revised to
 admit `A` (the AGM step, made deterministic by a declared entrenchment ordering — see
 [LOGIC-SEMANTICS.md § Deterministic revision](LOGIC-SEMANTICS.md#deterministic-revision-taming-the-agm-mutation-explosion)),
-runs an **isolated, transient chase** scoped to that world, and only then resolves `φ` inside it.
-The constructed world is per-query and discarded afterward — or memoized (see
+runs an **isolated, transient chase** scoped to that context, and only then resolves `φ` inside
+it. The constructed context is per-query and discarded afterward — or memoized (see
 [Graph versioning](#graph-versioning-and-staleness)). Isolation preserves paraconsistency: a
-counterfactual world is a separate graph; nested counterfactuals are nested transient graphs
-bounded by the depth budget. This is the *only* place generative, undecidable work happens — the
-only place a chase is spawned on the fly, and the only place the governor returns `incomplete`.
+counterfactual context is a separate graph; nested counterfactuals are nested transient graphs
+bounded by the depth budget. This is the *primary* place generative, undecidable work happens —
+the primary place a chase is spawned on the fly, and where the governor returns `incomplete`. The
+resource budget governs termination here; the phase is non-terminating in general outside
+certified fragments.
 
 **Provenance and witnesses cross the seam uniformly** — every derived quad, whether
 materializer-produced, resolver-produced, or built during a Stratum-C chase, carries its rule-IRI
@@ -165,24 +189,30 @@ predicates.
 
 ```text
 Materializer output (per derived quad written to the quad store):
-  graph:           IRI            # the world the quad belongs to
+  graph:           IRI            # the typed context the quad belongs to
   quad:            (S, P, O, G)   # the quad itself (G == graph)
   derivation_id:   IRI            # stable id for this derivation step
   rule_iri:        IRI            # the rule that fired
   source_quad_ids: [IRI]          # the antecedent quads consumed
-  profile:         IRI            # the semantic/decidability profile in force
+  contract_hash:   IRI            # content-addressed hash of the reasoning contract in force
   budget_status:   enum           # ok | partial | exhausted
 
 Goal resolver foreign predicates (read-only over the materialized store):
-  in_world(+W, ?S, ?P, ?O)                  # base-predicate lookup, world-indexed
+  in_world(+W, ?S, ?P, ?O)                  # base-predicate lookup, context-indexed
   derived_by(?QuadId, ?Rule, ?Sources)      # provenance leg for explanations
-  contradiction_witness(+W, ?WitnessGraph)  # within-world inconsistency, as a statement graph
+  contradiction_witness(+W, ?WitnessGraph)  # within-context inconsistency, as a statement graph
 ```
+
+The `contract_hash` field is the content-addressed identity of the `logic:ReasoningContract` in
+force when the quad was derived. Cache validity, provenance attribution, and drift detection all
+key on this hash — not on a profile identifier or opaque mode name. Any change to the contract
+(facet values, resource budget, certified fragment declaration, or solver version) produces a
+distinct hash and invalidates downstream cached results.
 
 **Materialize-back policy.** Resolver-produced answers are, by default, **not** written back into
 the quad store: Phase 2 is a read-only query layer, and its derivations are *virtual* —
 explanations cite them as virtual derivation steps keyed by `derivation_id`, not as stored quads.
-Two explicit exceptions: a Stratum-C constructed world *is* materialized (into its own transient
+Two explicit exceptions: a Stratum-C constructed context *is* materialized (into its own transient
 named graph, under the versioning key below), and a query may request memoization of a recursive
 IDB predicate, which writes a clearly-marked derived graph carrying the same derivation metadata.
 In all cases the rule holds: **no resolver answer is silently promoted to an asserted base fact**,
@@ -190,21 +220,25 @@ and an explanation must be able to cite every step, virtual or materialized.
 
 ## Graph versioning and staleness
 
-Because the solver uses materialized stores, transient worlds, and memoized counterfactuals, stale
-results are a real risk. Every materialized world graph is therefore **content-keyed**, following
-the same content-hash discipline the generator framework uses for drift detection:
+Because the solver uses materialized stores, transient typed contexts, and memoized
+counterfactuals, stale results are a real risk. Every materialized context graph is therefore
+**content-keyed**, following the same content-hash discipline the generator framework uses for
+drift detection:
 
-A materialized world graph is keyed by `(source_graph_hash, rule_set_hash, profile_id,
-solver_version, budget_params)`. A cached counterfactual world is valid **only** for the exact
+A materialized context graph is keyed by `(source_graph_hash, rule_set_hash, contract_hash,
+solver_version, budget_params)`. A cached counterfactual context is valid **only** for the exact
 tuple:
 
 ```text
-(base_world_hash, antecedent_hash, rule_set_hash, entrenchment_hash, profile, solver_version)
+(base_context_hash, antecedent_hash, rule_set_hash, entrenchment_hash, contract_hash, solver_version)
 ```
 
-Any change to a component invalidates the cache entry and forces reconstruction. This is the
-content-hash discipline the generator framework already uses for drift detection, applied to the
-solver's materialized and transient graphs.
+Any change to a component invalidates the cache entry and forces reconstruction. The `contract_hash`
+is the content-addressed identity of the full `logic:ReasoningContract` — including all facet
+selections, resource budget, and the certified-fragment declaration — so any change to reasoning
+configuration produces a new hash and invalidates the entry. This is the content-hash discipline
+the generator framework already uses for drift detection, applied to the solver's materialized and
+transient graphs.
 
 ## Validator tiers
 
@@ -220,12 +254,13 @@ generated artifact passes this tier before it is considered a candidate for rele
 
 **Deep-reasoning tier (opt-in, bounded by contract budget).** This tier engages the full
 solver — Phase-1 materialization, Phase-2 goal resolution, and, where permitted by the contract,
-Phase-3 counterfactual construction. It checks cross-world rigidity, modal consistency, foundation
-discipline violations that require derivation, and the semantic integrity of probabilistic models.
-It produces `logic:ReasoningResult` values with the full status pair (information-status and
-computation-status) described in [LOGIC-SEMANTICS.md § The reasoning result](LOGIC-SEMANTICS.md).
-Budget exhaustion is a normal outcome; the result discloses it explicitly rather than returning a
-false answer.
+Phase-3 counterfactual construction. It checks cross-context rigidity, modal consistency,
+foundation discipline violations that require derivation, and the semantic integrity of
+probabilistic models. It produces `logic:ReasoningResult` values with the full status pair
+(information-status and computation-status) described in
+[LOGIC-SEMANTICS.md § The reasoning result](LOGIC-SEMANTICS.md#the-reasoning-result). Budget
+exhaustion is a normal outcome; the result discloses it explicitly rather than returning a false
+answer.
 
 The structural tier is a prerequisite: the deep-reasoning tier is invoked only on inputs that
 already pass the structural tier. A finding from either tier is a `logic:violation` in the shared
@@ -235,20 +270,26 @@ result format; there is no finding type exclusive to one tier.
 
 When the reasoning contract selects `Evolution = transaction-path` (see
 [LOGIC-TRANSACTION.md](LOGIC-TRANSACTION.md)), the solver evaluates queries over **paths** rather
-than single states. The runtime realizes this by mapping path semantics onto the world-graph layer:
-each state in the path is a named graph in the quad store; elementary transitions (`ins`, `del`)
-advance the path by producing successor named graphs; serial conjunction (⊗) partitions the path
-into prefix and suffix subpaths resolved independently.
+than single states. The runtime realizes this by mapping path semantics onto the typed-context
+layer: each state in the path is a named graph in the quad store; elementary transitions (`ins`,
+`del`) advance the path by producing successor named graphs; serial conjunction (⊗) partitions
+the path into prefix and suffix subpaths resolved independently.
 
 The materialize-back policy is extended: a committed transaction path writes its successor state
 as a named graph with the same derivation metadata as any other materialized graph. A
 *hypothetical* transaction (the sandbox operator of [LOGIC-TRANSACTION.md](LOGIC-TRANSACTION.md))
-uses the same transient named-graph mechanism as a Stratum-C counterfactual world — isolated,
+uses the same transient named-graph mechanism as a Stratum-C counterfactual context — isolated,
 budget-bounded, discarded unless explicitly promoted.
 
-Serializability checking for concurrent transaction paths reuses the contradiction-witness
-machinery: a non-serializable interleaving is a within-world inconsistency in the merged successor
-graph, surfaced as a `contradiction_witness`.
+Serializability checking for concurrent transaction paths produces **history-level findings**,
+not contradiction witnesses. A non-serializable interleaving is a `SerializationAnomaly`: a
+dependency cycle or conflicting-operation pattern in the transaction history that admits no
+equivalent serial execution under the declared isolation policy. The final state after such a
+schedule may be perfectly logically consistent; `SerializationAnomaly` is therefore distinct from
+a contradiction witness (which asserts ⊥ within a context) and is never modelled as one. Lost
+updates, write skew, and read/write anomalies are findings of this kind, described by their
+dependency cycle or violated isolation level — never silently linearized, and never conflated with
+within-context inconsistency.
 
 ## Generated artifacts and the compiler's projection role
 

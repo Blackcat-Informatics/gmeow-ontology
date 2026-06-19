@@ -9,6 +9,12 @@
 > sibling documents below. Where this document states a thesis once, the siblings make it
 > precise — repetition is replaced by cross-reference on purpose.
 
+**Semantic-status convention.** Claims across this design set carry one of three labels:
+**Normative semantics** marks the canonical target — what the logic is defined to mean.
+**Currently implemented subset** marks what the engine realizes today.
+**Required but not yet implemented** marks what is specified or needed but not yet realized.
+These are semantic-status labels, not project-management states.
+
 ## The document set
 
 | Document | Genre | Contents |
@@ -168,7 +174,7 @@ The canonical statement of the doctrine, made once here and referenced elsewhere
 formalism is a *generated, lossy compatibility target* — useful, documented, reproducible, and not
 canonical. OWL DL/EL, Datalog, SHACL, SWRL, N3, Prolog, and SPARQL are projections of the logic;
 the artifact set, drift gates, and preservation contract are specified in
-[LOGIC-RUNTIME.md](LOGIC-RUNTIME.md#generated-artifacts) and
+[LOGIC-RUNTIME.md](LOGIC-RUNTIME.md#generated-artifacts-and-the-compilers-projection-role) and
 [LOGIC-CONFORMANCE.md](LOGIC-CONFORMANCE.md).
 
 The foundation follows the same doctrine, with one careful distinction. **gUFO is the primary
@@ -209,3 +215,20 @@ The end state is not "OWL, but faster." It is:
 This makes GMEOW's logic match the rest of the project: maximal model, maximal linking, explicit
 projection, and no compatibility format — not even OWL, not even gUFO — promoted above the canonical
 source.
+
+### Forthcoming layers
+
+Two design layers are **required but not yet specified** in this set.
+
+The **teleological goal/action semantics** layer will formalize structured goal expressions, goal
+evaluation, and action schemas, and will bridge the intention → plan → action →
+transaction-path chain. The transaction layer handles the state-change mechanics; this forthcoming
+layer authors the goal structure that motivates and evaluates those transactions.
+
+The **multidimensional cognitive-assessment** layer will replace the coarse awareness-to-mastery
+ladder with a contextual assessment construct carrying subject granularity, task, evaluator,
+evidence, scale, interval, and dimensions. A single ordinal score is insufficient to represent
+cognitive competence across contexts; this layer supplies the richer model.
+
+Both are design layers still to be authored; their absence means the corresponding semantics are
+**required but not yet implemented** in the current engine.

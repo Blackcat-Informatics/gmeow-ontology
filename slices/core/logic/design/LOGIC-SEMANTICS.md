@@ -11,6 +11,13 @@
 > [LOGIC-CONTRACT.md](LOGIC-CONTRACT.md); the typed intermediate representation is in
 > [LOGIC-IR.md](LOGIC-IR.md); state-change semantics are in [LOGIC-TRANSACTION.md](LOGIC-TRANSACTION.md);
 > the engine that realizes these semantics is in [LOGIC-RUNTIME.md](LOGIC-RUNTIME.md).
+>
+> **Reading the semantic-status labels.** This document describes the *target architecture*, which is
+> not the same as shipped state. To keep the two from being conflated, claims that touch implementation
+> are tagged with one of three labels: **Normative semantics** (what the formal model requires of any
+> conforming engine), **Currently implemented subset** (what the runtime evaluates today), and
+> **Required but not yet implemented** (a normative obligation no engine yet discharges). An untagged
+> statement is normative semantics by default.
 
 ## The Unified Logic Core
 
@@ -204,7 +211,8 @@ The further governing requirements (the named failure mode this prevents — tre
 metadata as a probability model):
 
 > A declared `logic:probabilityModel` is **required**. A probabilistic query with probabilistic facts
-> but **no** declared model returns the information-status `neither` with a computation-status that
+> but **no** declared model returns `information = not-evaluated` (no probabilistic semantics was
+> available — it is **not** the genuine `neither`) together with `evaluation = unsupported`, which
 > marks the gap — it never silently assumes independence. A `logic:confidence` (or `logic:weight`, or
 > `logic:evidenceStrength`) annotation is **never** read as a probability: a confidence-annotated fact
 > is an asserted (deterministic) fact whose annotation is metadata, so its marginal is `1.0`, not the
@@ -220,41 +228,97 @@ returns the **same typed `logic:ReasoningResult`**. Uniformity is the point: an 
 interpretable apart from the contract it was produced under and the status it carries, so the result
 makes both explicit. A bare "yes" or a bare set of bindings is never the whole result.
 
-A `logic:ReasoningResult` carries **two orthogonal statuses**. They answer different questions and
-must never be collapsed into one another.
+A `logic:ReasoningResult` carries a **compositional status**: a set of **five orthogonal fields**,
+each ranging over its own values. They answer genuinely different questions, and several can hold at
+once — a projection-loss-affected answer can *also* be budget-incomplete, an unsupported contract is
+*also* a non-evaluation of the information. A single collapsed enum cannot express those co-occurring
+conditions and silently forces one to mask another; the compositional shape is **Normative semantics**.
 
-**Information-status — a four-valued (Belnap/FDE) information state, not an absolute truth value.**
-It records what the *model's evidence* says about the queried proposition, and admits the four states
-of a paraconsistent, partial knowledge base:
+**`input` — was the request well-formed?**
+
+- **valid** — the request and its sources parsed and type-checked; reasoning was attempted;
+- **invalid** — the request or its sources were ill-formed and **no** reasoning was attempted (the
+  other four fields are then vacuous).
+
+**`evaluation` — what the engine was able to do.**
+
+- **completed** — evaluation ran to its natural end under the contract;
+- **budget-exhausted** — the resource budget was reached; the answers and witnesses found so far are
+  returned with an honest incompleteness marker, and unprovable-within-budget is **not** falsity;
+- **unsupported** — the requested facet combination (or a missing required model, such as an absent
+  probabilistic dependency model) has no defined semantics; the contract's `unsupported` verdict
+  surfaces here, never as a silent approximation.
+
+**`completeness` — relative to what is the answer complete?**
+
+- **complete-for-fragment** — the answer is complete relative to the certified fragment of the contract;
+- **incomplete** — the search did not exhaust the answer space (e.g. under `budget-exhausted`, or
+  outside any certified fragment);
+- **unknown** — the engine cannot characterize its own completeness for this request.
+
+**`preservation` — what did lowering do to the formulas?** (See the preservation judgment in
+[LOGIC-IR.md](LOGIC-IR.md).)
+
+- **exact** — every construct was carried by the lowering with no loss;
+- **under-approximation** — the evaluated theory is weaker than the source (some consequences dropped);
+- **over-approximation** — the evaluated theory is stronger than the source (some spurious consequences
+  possible);
+- **loss-affected** — a lowering did not preserve every construct, so some formulas were not evaluated
+  by the target at all.
+
+**`information` — a four-valued (Belnap/FDE) information state about the queried proposition, plus an
+explicit non-evaluation.** It records what the *model's evidence* says — *when there were semantics to
+say anything at all*:
 
 - **supported** — there is a proof and no counterproof;
 - **opposed** — there is a counterproof and no proof;
 - **both** — there is a proof *and* a counterproof (a witnessed contradiction within one context);
-- **neither** — there is neither (genuine silence, the open-world default).
+- **neither** — there is **neither** proof nor counterproof: a genuine semantic result, the open-world
+  silence in which the contract *did* run but established nothing either way;
+- **not-evaluated** — **no information semantics were available** to assess the proposition: an
+  `unsupported` contract, or a missing required model (e.g. a probabilistic query with no declared
+  dependency model). This is the field that prevents the most dangerous confusion in the result.
 
-This is deliberately *not* classical true/false: `opposed` is not the negation of `supported`, and
-`neither` is not falsity. Treating "no proof" as "false" is exactly the closed-world collapse the
+> `neither` and `not-evaluated` are **never** interchangeable. `neither` means *the engine looked and
+> found no proof and no counterproof* — a real four-valued answer. `not-evaluated` means *the engine
+> could not look*, because the request had no defined semantics. An unsupported contract, or a missing
+> probabilistic model, yields `information = not-evaluated`, **not** `neither`. Reporting such a gap as
+> `neither` would fabricate a semantic verdict the engine never reached.
+
+`information` is deliberately *not* classical true/false: `opposed` is not the negation of `supported`,
+and `neither` is not falsity. Treating "no proof" as "false" is exactly the closed-world collapse the
 open-world default rejects.
 
-**Computation-status — what the engine was able to do.** It records the epistemic standing of the
-*computation itself*, independent of what the information turned out to be:
-
-- **complete-for-fragment** — the answer is complete relative to the certified fragment of the contract;
-- **incomplete-by-budget** — the resource budget was exhausted; the answers and witnesses found so far
-  are returned with an honest incompleteness marker, and unprovable-within-budget is **not** falsity;
-- **unsupported-by-contract** — the requested facet combination has no defined semantics (the
-  contract's `unsupported` verdict surfaces here, never as a silent approximation);
-- **projection-loss-affected** — the result was produced through a lowering that did not preserve every
-  construct, so some formulas were not evaluated by the target (see the preservation judgment in
-  [LOGIC-IR.md](LOGIC-IR.md));
-- **invalid-input** — the request or its sources were ill-formed and no reasoning was attempted.
-
-Because the two statuses are independent, a result can be, for example, `supported` /
-`incomplete-by-budget` (proof found, but the search did not finish) or `neither` /
-`unsupported-by-contract` (no answer, *because* the engine has no semantics for the request) — and the
+Because the five fields are independent, a result can carry, for example,
+`input=valid · evaluation=budget-exhausted · completeness=incomplete · preservation=exact ·
+information=supported` (proof found, but the search did not finish) or
+`input=valid · evaluation=unsupported · completeness=unknown · preservation=exact ·
+information=not-evaluated` (no semantics for the request, so no information was assessed) — and the
 reader can tell those apart, which a single status word cannot.
 
-Alongside the two statuses, the result carries the full apparatus needed to interpret and audit it:
+### Contract-specific interpretation of `information` (Normative semantics)
+
+The four-valued reading above is the *frame*; each consequence contract refines what `supported`,
+`opposed`, and `neither` mean for it. The engine MUST apply the contract-appropriate rule, never a
+generic one:
+
+- **Stable-model (answer-set) contracts** distinguish **skeptical** from **credulous** support:
+  skeptical-`supported` holds when the proposition is in *every* stable model, credulous-`supported`
+  when it is in *some*. The result records which entailment regime the contract selected; the bare word
+  `supported` is meaningless without it.
+- **Well-founded contracts** distinguish the third truth value **undefined** from ordinary silence:
+  `neither` here means *well-founded `undefined`* (the proposition is in neither the well-founded model
+  nor its complement by the semantics' own assignment), which is a positive verdict of the
+  three-valued model — not the absence of any verdict.
+- **Probabilistic contracts** do **not** convert a probability into `supported`/`opposed` without an
+  **explicit threshold policy**. Absent a declared policy mapping a marginal to a discrete information
+  state, the discrete `information` field stays `neither` (the engine reports the marginal but takes no
+  binary stance); with no probabilistic model at all the field is `not-evaluated`, per the rule above.
+- **FDE / paraconsistent contracts** read `supported` as *evidence for the formula* and `opposed` as
+  *evidence for its explicit negation* — the two are tracked separately, so `both` (evidence for each)
+  and `neither` (evidence for neither) are first-class, not derived from one another.
+
+Alongside the five status fields, the result carries the full apparatus needed to interpret and audit it:
 
 - the **reasoning-contract identity** it was produced under;
 - the **proof** and the **counterproof** (each a content-addressed derivation, or absent);
@@ -264,7 +328,7 @@ Alongside the two statuses, the result carries the full apparatus needed to inte
 - the **consumed budget** against the contract's `Resource` allowance;
 - the **certified fragment** the completeness claim is relative to;
 - the **projection-preservation class** of any lowering it passed through;
-- the **contradiction witnesses** that justify a `both` information-status;
+- the **contradiction witnesses** that justify an `information = both`;
 - the **declared assumptions** the result depends on (closure choices, unique-name policy, entrenchment
   ordering, witness policy) so the result is never silently load-bearing on an unstated convention.
 
@@ -302,17 +366,19 @@ weakly- or jointly-acyclic existential rules, guarded or sticky TGDs — and the
 certifies membership**, flagging violations the same way it flags any structural anti-pattern.
 Because termination is itself undecidable, certification uses *sufficient* acyclicity conditions, not
 a complete test — a known, accepted tradeoff. Inside a certified fragment there is a hard termination
-and complexity guarantee, and the result reports `complete-for-fragment`; outside it, full
-expressivity and an explicit `incomplete-by-budget`.
+and complexity guarantee, and the result reports `completeness = complete-for-fragment`; outside it,
+full expressivity and an explicit `completeness = incomplete` (typically alongside
+`evaluation = budget-exhausted`).
 
 **The canonical engine is sound-but-incomplete under an explicit budget.** Operationally the solver
 runs under stratified evaluation, tabling / SLG-style resolution, and a resource budget — the
 `bounded` value of the contract's `Resource` facet, generalized. When the budget is exhausted it
-returns information-status with computation-status `incomplete-by-budget`, never a false answer.
+returns `evaluation = budget-exhausted` with `completeness = incomplete`, never a false answer.
 Soundness is total; completeness is relative to the budget and the certified fragment. Because
 `logic:` is open-world, paraconsistent, and provenance-carrying, budget exhaustion is a normal state,
 not a crash: the query returns the answers and witnesses found so far plus an explicit incompleteness
-marker, and unprovable-within-budget is **not** false (information-status `neither`, not `opposed`).
+marker, and unprovable-within-budget is **not** false (`information = neither`, not `opposed` — and
+emphatically not `not-evaluated`, since the engine *did* reason, it merely ran out of budget).
 
 OWL 2 DL is decidable but N2EXPTIME-complete, the everyday face of "decidable but intractable."
 `logic:` does not hide that cost behind a silent timeout; it makes the decidability class, the
@@ -378,14 +444,23 @@ must produce exactly the verdicts the external structural checks yield — the c
 specification of the lowering — and they additionally decide cases (cross-world rigidity, type-level
 identity) those checks cannot express.
 
-**The lowering is native and authoritative.** The type-level disciplines derive `logic:violation`
-facts for stereotype cardinality, **MixIden**, **FreeRole**, **MixRig**, and **RelComp** under a
-stratified-negation contract, with absence expressed via negation-as-failure and "two distinct values"
-via an inequality guard. Cross-world rigidity is decided in the same evaluator by a bounded closure
-over the finite materialized world set, emitting a rigidity-violation finding in the failing context.
-The full-provenance findings flow into the shared `logic:ReasoningResult` every downstream consumer
-reads. There is no secondary oracle and no fallback (the no-optionality doctrine); correctness is
-proven end-to-end by the foundation conformance goldens.
+**The lowering target — native and authoritative (Normative semantics).** The type-level disciplines
+derive `logic:violation` facts for stereotype cardinality, **MixIden**, **FreeRole**, **MixRig**, and
+**RelComp** under a stratified-negation contract, with absence expressed via negation-as-failure and
+"two distinct values" via an inequality guard. Cross-world rigidity is decided in the same evaluator by
+a bounded closure over the finite materialized world set, emitting a rigidity-violation finding in the
+failing context. The full-provenance findings flow into the shared `logic:ReasoningResult` every
+downstream consumer reads. There is to be no secondary oracle and no fallback (the no-optionality
+doctrine); correctness is to be proven end-to-end by the foundation conformance goldens.
+
+**Currently implemented subset.** The type-level disciplines (stereotype cardinality, **MixIden**,
+**FreeRole**, **MixRig**, **RelComp**) are evaluated natively under stratified negation, and their
+verdicts are checked against the conformance goldens.
+
+**Required but not yet implemented.** Full cross-world rigidity by bounded closure over the materialized
+world set, and the retirement of every secondary oracle, are normative obligations of the lowering that
+the running engine does not yet wholly discharge; until the foundation conformance goldens cover them
+end-to-end, "native and authoritative" describes the target, not shipped state.
 
 ### Anti-rigidity needs a witness policy
 
@@ -520,10 +595,18 @@ must be made at the inference relation:
 > paraconsistent consequence relation.
 
 A contradiction *across* contexts is therefore never a contradiction *in* the model; only a
-contradiction *within a single context* is a witness-bearing inconsistency, surfaced as the `both`
-information-status of the reasoning result. `gmeow:refuted` encodes settled-false-in-a-context as
+contradiction *within a single context* is a witness-bearing inconsistency, surfaced as
+`information = both` in the reasoning result. `gmeow:refuted` encodes settled-false-in-a-context as
 distinct from silence, and the three-axis orthogonality (`accordingTo` ⟂ `wasAttributedTo` ⟂
 `confidence`) keeps "which context holds it," "who reported it," and "how sure we are" from collapsing.
+
+This is why a context must never be described as simply "consistent." A context is **world-local in its
+entailment scope** — it entails only what its own rules and the *named, typed* accessibility relations
+reaching it license — and, under a paraconsistent consequence contract, it **may be internally
+inconsistent**: a witnessed contradiction is *contained*, surfaced as `information = both` for the
+queries that touch it, and reasoned around. It is not a global inconsistency that trivializes the model,
+and it is not silently repaired into apparent consistency. "Consistent" is the wrong predicate; the
+right ones are *world-local entailment scope* and *contained, witnessed inconsistency*.
 
 ### Deterministic revision: taming the AGM mutation explosion
 
@@ -550,8 +633,9 @@ opts out:
   (`gmeow:SourceTier` / `EvidenceClass`), and the `gmeow:sharpens` poset. The revision retracts the
   *least entrenched* facts first; a total order picks exactly one context.
 - **A genuine tie is not enumerated.** If the order is partial and leaves two minimal revisions
-  incomparable, the solver does **not** branch — it returns information-status `neither` (ambiguous)
-  within budget.
+  incomparable, the solver does **not** branch — it returns `information = neither` (genuinely
+  ambiguous: the revision ran but selected no unique context, so this is a real `neither`, not
+  `not-evaluated`) within budget.
 - **Multi-context quantification is opt-in and budget-capped.** A slice that needs Lewis ties — `C` in
   *every* closest `A`-context (skeptical) or in *some* (credulous) — may request it as a non-default
   contract under a hard branch budget that degrades to an incomplete result on exhaustion. Never the

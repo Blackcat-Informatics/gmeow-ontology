@@ -45,11 +45,12 @@ requires. Named graphs as a bare storage mechanism do not supply semantics; synt
 defined entailment relation is not a logic.
 
 The present design supersedes that framing with the **typed context algebra**: a structured space
-of worlds, each world-locally consistent, with a defined entailment relation indexed to context
-rather than assumed global. Cross-world reasoning — rigidity, modal closure, counterfactual
+of worlds, each world-local in its entailment scope; potentially internally inconsistent under a
+paraconsistent contract, with a defined entailment relation indexed to context rather than assumed
+global. Cross-world reasoning — rigidity, modal closure, counterfactual
 revision — is an explicit closure pass over the finite materialized world set, not an implicit
 union. The semantics of that algebra are given precisely in
-[LOGIC-SEMANTICS.md](LOGIC-SEMANTICS.md#the-typed-context-algebra).
+[LOGIC-SEMANTICS.md](LOGIC-SEMANTICS.md#worlds-modality-and-counterfactuals-a-typed-context-algebra).
 
 ### The third framing: a Datalog/Horn-only intermediate form
 
@@ -100,6 +101,23 @@ equivalence while the source-of-truth boundary moves. A construct authored in bo
 normalize identically or the build fails; neither form is a second source of truth during the
 transition.
 
+## Current-form to target-form reconciliation
+
+The `logic:` design targets a canonical form that differs in specific ways from the vocabulary
+currently implemented in the ontology. This table makes those differences explicit so the gap is
+documented as a design intention, not an oversight. Each row names the conceptual area, describes
+the current-form treatment (what is in the ontology now), and states the target-form treatment
+(what the canonical design requires). The columns do not indicate which is "better" — the target
+column is the direction of travel, and the current column is the honest starting point.
+
+| Conceptual area | Current form | Target form |
+| --- | --- | --- |
+| **Unindexed statement** | A statement asserted without a context index is treated as held according to the universal standpoint — it implicitly propagates as universally true. | Holds in `logic:UnspecifiedStandpoint`: it is unspecified, not universal. Only an explicit assertion indexed to `gmeow:universalStandpoint`, or one that explicitly quantifies over all contexts of a stated type, propagates as universal. Silence about where a statement holds licenses no propagation. |
+| **Claim modality** | A single five-valued standpoint-modality (`unequivocal`, `conceivable`, `refuted`, `probable`, `bullshit`) is treated as canonical; absence of an explicit value implies unequivocal. | Factored into six orthogonal axes — **polarity** (affirm / deny / suspend), **modal force** (necessary / actual / possible / counterfactual), **credence** (graded degree of belief, distinct from probability and confidence), **assertoric force** (assert / conjecture / assume / retract), **truth-directedness** (truth-aimed / truth-indifferent / strategic), and **support-status** (supported / defeated / undetermined). The five-valued surface is a generated convenience view over these axes, produced for consumers that require a single token; it is never the canonical record. |
+| **Credence vs. confidence** | The current epistemics vocabulary correctly distinguishes the two: `credence` is a degree of belief held by an agent about a content; `confidence` is a confidence score attached to a statement or report (a source-level annotation, not an agent's doxastic state). They are not interchangeable. | The target design preserves this distinction. Credence and confidence must not be folded onto a single "confidence axis." In particular, the modal-force factoring for `credence` (see row above) refers specifically to the agent's graded doxastic commitment, which is orthogonal to `logic:confidence` as a source-quality annotation and orthogonal to `logic:probability` as a probabilistic-model quantity. Any design wording that treats credence as merely a synonym for confidence on the same axis is incorrect and should be treated as an editorial error in that document. |
+| **Common Logic dialects** | Described as generated outputs — as projections of the logic engine, not authoring sources. Ingest direction not addressed. | Common Logic (CLIF, CGIF, XCL) is an **interchange surface**: generated from the canonical IR for emission, and may be ingested back into the IR for import. It is never the canonical authoring source for GMEOW itself. The round-trip faithfulness gate in [LOGIC-CONFORMANCE.md](LOGIC-CONFORMANCE.md#common-logic-round-trip-as-a-faithfulness-gate) applies in both directions. |
+| **Context consistency** | Contexts described as "world-locally consistent" — implying each context is internally consistent by design. | A context is **world-local in its entailment scope** (it entails only what its own rules and named accessibility relations license) and is potentially internally inconsistent under a paraconsistent contract. A witnessed contradiction is contained and surfaced as `information = both`; it is not a global inconsistency and is not silently repaired. "Consistent" is the wrong predicate for a context. |
+
 ## The canonical-native endgame
 
 The endgame is a single coherent state toward which every aspect of the design converges. It is
@@ -112,8 +130,10 @@ contextual scope, probabilistic inference, paraconsistency, and metalevel reason
 coherent semantic system, not as a patchwork of separately-managed sublanguages.
 
 **Legacy encodings become generated projections.** OWL 2 DL/EL, Datalog, SHACL, N3, Prolog,
-SPARQL, and the Common Logic dialects (CLIF, CGIF, XCL) are outputs of the logic engine, not
-inputs to it. gUFO, the OWL realization of UFO⁺, is the primary down-projection of the canonical
+and SPARQL are generated outputs of the logic engine, not authoring surfaces. The Common Logic
+dialects (CLIF, CGIF, XCL) are an interchange surface: they are generated from the canonical IR
+and may be ingested into that IR, but Common Logic is never the canonical authoring source for
+GMEOW itself. gUFO, the OWL realization of UFO⁺, is the primary down-projection of the canonical
 foundational theory; BFO, DOLCE, and SUMO are generated bridge views carrying their own
 ontological commitments, documented as such in the loss ledger. None of these is an authoring
 surface in the endgame.
@@ -192,6 +212,42 @@ is recorded in [LOGIC-CONFORMANCE.md](LOGIC-CONFORMANCE.md). Loss ledger entries
 admissions of failure; they are the formal record that the projection doctrine is being applied
 honestly: no compatibility artifact claims more than it preserves.
 
+## Implementation status
+
+The design described in this document set spans three layers of readiness. Readers should
+understand which layer a given feature occupies before treating any claim in these documents as
+a commitment to currently-running behavior.
+
+**Normative semantics.** The formal definitions and design contracts described in
+[LOGIC-SEMANTICS.md](LOGIC-SEMANTICS.md), [LOGIC-CONTRACT.md](LOGIC-CONTRACT.md), and
+[LOGIC-CONFORMANCE.md](LOGIC-CONFORMANCE.md) are normative regardless of what is implemented.
+An implementation is correct to the extent it conforms to these documents; the documents are
+not descriptive summaries of the implementation.
+
+**Currently implemented subset.** The forward materialization stratum (Horn/stratified-NAF via
+Nemo), the foundation lowering to the five OntoUML disciplines, cross-world rigidity evaluation,
+native EL/DL reasoning, the conformance corpus structure, and the derivation-graph golden-fixture
+mechanism are all running. The OWL projection cross-check and the SARIF/divergence-ledger pipeline
+are operational. Common Logic emission (CLIF/CGIF/XCL) is generated from the IR.
+
+**Required but not yet implemented.** Backward goal resolution beyond the `ProceduralPrologProfile`
+prototype, full Stratum C generative counterfactual construction (witness-world building for
+anti-rigidity), probabilistic inference under the `Uncertainty = probabilistic` facet, and complete
+ingestion of Common Logic into the canonical IR are all required by the design but not yet
+operationally complete.
+
+**Required but not yet specified.** Two normative layers are forthcoming and their absence from
+this document set is a recorded gap, not an oversight:
+
+- The **teleological goal and action layer** — the formal treatment of goals, plans, and
+  intentional action in `logic:` — is a forthcoming normative extension. Consumers requiring
+  goal-directed reasoning should treat its absence as a deferral, not as evidence that the design
+  excludes it.
+- The **multidimensional cognitive-assessment model** — factored evaluation of reasoning quality,
+  reliability, calibration, and metacognitive posture across agents — is a forthcoming normative
+  layer. It is architecturally anticipated by the credence/confidence/assertoric-force factoring
+  but has not yet been specified as a stand-alone construct set.
+
 ## Open design tensions
 
 These are genuine, standing conceptual tensions in the design — places where complexity can
@@ -207,7 +263,7 @@ honest.
 | Anti-rigidity witness-world obligation is not fully evaluated | Until Stratum C constructs witness worlds, anti-rigidity is only partially enforced | The `anti_rigidity_policy` field makes the obligation explicit; the gap is named in the loss ledger ([semantics](LOGIC-SEMANTICS.md#anti-rigidity-needs-a-witness-policy)) |
 | Cut changes declarative answers | Prolog profile | Cut is procedural-only, confined to `ProceduralPrologProfile`; loss recorded on projection ([semantics](LOGIC-SEMANTICS.md#cut-is-procedural-not-canonical)) |
 | Confidence mistaken for probability | Weighted/ProbLog-style inference | Four separate predicates; probability only in `ProbabilisticProfile` ([semantics](LOGIC-SEMANTICS.md#confidence-probability-weight-and-evidence)) |
-| Named graph treated as modal semantics | Worlds | World-indexed entailment relation; no implicit dataset-union ([semantics](LOGIC-SEMANTICS.md#inconsistency-across-worlds-and-world-indexed-entailment)) |
+| Named graph treated as modal semantics | Worlds | World-indexed entailment relation; no implicit dataset-union ([semantics](LOGIC-SEMANTICS.md#inconsistency-across-contexts-and-context-indexed-entailment)) |
 | Triple term treated as both quote and assertion | Metalogic | A triple term names a proposition; assertion is via explicit predicates ([semantics](LOGIC-SEMANTICS.md#triple-terms-reifiers-and-assertion)) |
 | Counterfactual revision ties explode | Stratum C | Declared entrenchment ordering; genuine tie yields `unknown`, never branches ([semantics](LOGIC-SEMANTICS.md#deterministic-revision-taming-the-agm-mutation-explosion)) |
 | Undecidability / non-termination | Canonical layer | Decidability is a projection/profile property; budget exhaustion yields `unknown`/`incomplete` ([semantics](LOGIC-SEMANTICS.md#turing-completeness-decidability-and-termination)) |

@@ -218,7 +218,10 @@ each of which a claim selects independently:
 
 - **Polarity** — affirm, deny, or suspend the propositional content.
 - **Modal force** — necessary, actual, possible, or counterfactual (the alethic dimension).
-- **Credence** — graded belief, on the confidence axis, kept distinct from probability and weight.
+- **Credence** — an agent's graded degree of belief in the content. Kept distinct from
+  *confidence* (a source's or report's confidence in a statement), from *probability* (a quantity
+  in a probabilistic model), and from *weight* (a solver ranking) — these are separate axes, not
+  one.
 - **Assertoric force** — assert, conjecture, assume, or retract: the *act-level* commitment, not the
   content.
 - **Truth-directedness** — truth-aimed, truth-indifferent, or strategic: whether the claim is even
@@ -325,18 +328,44 @@ meant to carry:
 - **doc-only** — prose that is explanatory and is *not* to be formalized at all.
 
 Crucially, **deliberate non-assertions are first-class and executable.** A `NonEntailmentObligation`
-records a conclusion the foundation must *never* draw, and it is checked the way any other obligation
-is — the foundation proves it does *not* derive the forbidden fact. Two standing examples:
+records a conclusion the foundation must *never* draw. Because the canonical logic is semi-decidable,
+however, "absence of a proof" is not generally decidable — claiming to have *proved* that the engine
+does not derive a forbidden fact would be an overclaim. A non-entailment obligation is therefore
+**conclusively discharged only when** one of the following conditions holds:
+
+- the check runs within a **certified complete fragment** (e.g., a Datalog stratum or EL profile over
+  which the chase terminates and is complete);
+- a **finite closure** is available (the materialized derivation graph is complete and does not
+  contain the forbidden predicate);
+- a **syntactic dependency / reachability analysis** over the rule heads demonstrates that the
+  forbidden predicate is unreachable — no rule head unifies with it, directly or through any chain
+  of rule applications;
+- a **conservative-extension** proof establishes that the added axioms cannot introduce the forbidden
+  conclusion; or
+- the obligation is **explicitly bounded** to a declared corpus or mutation-test space, and
+  exhaustive checking within that bound is complete.
+
+Outside these conditions the discharge result is **`unknown` / `not-discharged`**, never
+"proved absent." The obligation remains active and is carried forward to the next evaluation cycle
+or stronger fragment.
+
+Two standing examples:
 
 - **intent must not be derived from structural deception** — the presence of a held/projected gap is
   *evidence*, never *entailment*, of deceptive intent; the foundation is obligated not to close that
-  inference automatically.
+  inference automatically. This obligation is enforced by **both**: (1) static taint and reachability
+  analysis over rule heads, which verifies that no rule head chain can unify with the deceptive-intent
+  predicate from structural-gap premises alone; and (2) adversarial conformance fixtures that
+  actively attempt to produce the forbidden conclusion against the live rule set. Both checks must
+  pass; either failure triggers an obligation violation.
 - **counterpart must not become transitive** — cross-world counterpart identity must remain
   non-transitive; the foundation is obligated to block the chaining a careless rule would introduce.
+  This is dischargeable by syntactic reachability over the counterpart rule heads.
 
-A non-entailment is not a comment that the axioms happen to respect; it is an executable obligation
-the foundation is held to, so that the *absence* of an inference is as machine-checked as its
-presence.
+A non-entailment obligation is not a comment that the axioms happen to respect a constraint; it is
+an executable obligation the foundation is held to, with a declared discharge condition. The
+*absence* of an inference is as machine-checked as its presence — within the stated fragment or
+bound, and carried as `unknown` everywhere else.
 
 ## The Ithkuil precision ethos
 

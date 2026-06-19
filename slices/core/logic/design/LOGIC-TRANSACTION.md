@@ -38,13 +38,27 @@ rest of the system is unaffected unless a contract selects `transaction-path`.
 
 ## Elementary updates are supersession, never erasure
 
-The state-changing primitives are `ins` (assert) and `del` (retire). Their meaning is bound by the
-project's suppression doctrine: **a `del` supersedes — it sets the retired fact non-displayable and
-advances the path to a successor state in which the fact no longer holds; it never physically
-erases.** `ins` appends. The store is therefore monotonic and append-only at the substrate, while
-the *path* supplies the before/after that change requires. This is what lets a state-change history
-remain fully auditable: every superseded fact is still recoverable, and the path records exactly
-when and by what step it stopped holding.
+The state-changing primitives are `ins` (assert) and `del` (retire). Three dimensions must be kept
+separate:
+
+- **State validity** — whether a proposition holds in a given state of the path. `del` advances the
+  path to a successor state in which the fact no longer holds; `ins` introduces a fact that holds
+  from the successor state onward.
+- **Historical retention** — whether the prior assertion remains recorded in the store. The project's
+  suppression doctrine governs here: **`del` is a supersession, never a physical erasure.** Every
+  retired assertion version carries `activeInState`, `supersededBy`, `validUntilState`, and
+  `retiredByTransaction` provenance. The store is therefore monotonic and append-only at the
+  substrate; the path supplies the before/after that state change requires.
+- **Displayability / disclosure** — whether a consumer may see an assertion. This is a **separate
+  projection and disclosure policy**, entirely orthogonal to state validity and retention. A fact
+  may be fully valid in the current state yet non-displayable to a given consumer for privacy or
+  access-control reasons. Conversely, a retired assertion may remain displayable in an audit view
+  even though it no longer holds. **`del` does not set `displayable false`** — that would conflate
+  state retirement with a disclosure decision that belongs to the projection layer.
+
+The separation means a state-change history remains fully auditable: every superseded assertion
+version is recoverable, the path records exactly when and by what step it stopped holding, and
+disclosure policy can be applied independently without altering the validity or retention record.
 
 ## The hypothetical operator is not modal possibility
 
@@ -63,9 +77,22 @@ Concurrent Transaction Logic extends the path model to **interleaved** execution
 program. It adds:
 
 - **concurrent composition** — programs that advance together, their elementary steps interleaved;
-- **isolation and serializability** — the question of whether an interleaved execution is
-  equivalent to *some* serial order of the same programs; a schedule that is not serializable is a
-  conflict, surfaced as a finding rather than silently linearized.
+- **isolation level and serializability notion** — the declared policy against which a schedule is
+  evaluated. The serializability notion must be named explicitly: *conflict-serializability*
+  (equivalent final state reachable by some serial order with no conflicting-operation swap),
+  *view-serializability* (same read-from and final-write relationships as some serial order), or
+  *strict / strong strict two-phase locking* (stronger opacity guarantees). These are not
+  equivalent, and the chosen notion is a declared isolation policy, not an implicit assumption.
+- **serializability anomalies as history-level results** — a schedule that does not satisfy the
+  declared notion is described as a `SerializationAnomaly`: a pattern of conflicting operations,
+  read-from edges, and happens-before arcs in the transaction history that admits no equivalent
+  serial execution under the declared policy. Lost updates, write skew, and read/write anomalies
+  are history-level findings of this kind. They do **not** constitute a logical contradiction
+  within a state: the final state after such a schedule can be perfectly logically consistent while
+  still having no equivalent serial execution. A `SerializationAnomaly` is therefore distinct from
+  a contradiction witness (which asserts ⊥ within a state) and must not be modelled as one.
+  Non-serializable schedules are surfaced as findings with the dependency cycle or violated
+  isolation level described; they are never silently linearized.
 
 This is the level at which several agents acting over a shared memory, or parallel plans touching
 overlapping state, are reasoned about.

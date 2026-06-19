@@ -5,12 +5,14 @@
 
 > Status: canonical target architecture for `logic:` conformance. This is the **conformance** member
 > of the [GMEOW Logic document set](LOGIC.md#the-document-set). It defines how correctness is
-> established: the conformance corpus as the enforcement contract, the loss ledger and preservation
-> polarity, the two orthogonal correctness axes, the Common-Logic round-trip faithfulness gate, the
-> divergence ledger as a public benchmark surface, and the design of tests-as-ontology-data. The
-> engine under test is described in [`LOGIC-RUNTIME.md`](LOGIC-RUNTIME.md); the semantics it must
-> satisfy are in [`LOGIC-SEMANTICS.md`](LOGIC-SEMANTICS.md); the typed IR whose preservation each
-> projection reports is specified in [`LOGIC-IR.md`](LOGIC-IR.md).
+> established: the conformance corpus as the enforcement contract, capability-relative conformance
+> and the capability manifest, the loss ledger and multidimensional preservation claims, the two
+> orthogonal correctness axes, the Common-Logic round-trip faithfulness gate, the divergence ledger
+> as a public benchmark surface, the design of tests-as-ontology-data and its isolation rule, and
+> the coherence certificate for paraconsistent systems. The engine under test is described in
+> [`LOGIC-RUNTIME.md`](LOGIC-RUNTIME.md); the semantics it must satisfy are in
+> [`LOGIC-SEMANTICS.md`](LOGIC-SEMANTICS.md); the typed IR whose preservation each projection
+> reports is specified in [`LOGIC-IR.md`](LOGIC-IR.md).
 
 ## The conformance corpus as contract
 
@@ -39,20 +41,51 @@ Cases are organized by category. Each category tests a distinct design invariant
 | Worlds-A | Contested claims coexist in distinct named context graphs without privileging either standpoint |
 | Worlds-B | Type-level modal reasoning generates exactly zero token occurrences (the no-occurrence gate) |
 | Worlds-C | A counterfactual construction does not leak into the base world graph; a genuine tie returns `unknown` |
-| Projections | Each generated projection matches its declared preservation polarity and decidability class |
+| Projections | Each generated projection matches its declared preservation claim and decidability class |
 | Decidability | A contract that falls within a certified fragment receives a `complete-for-fragment` result; a violating one is flagged |
 | Reasoning semantics | Answers under each consequence-facet value match the semantics declared by the contract |
 | Explanation | Every IRI cited in a generated explanation appears in the proof trace — no justification outside the derivation |
 | Paraconsistency | A cross-world contradiction is confined to separate context graphs; a within-world contradiction emits witnesses |
-
-No category is optional for a conforming implementation. An engine that passes some categories while
-skipping others is not a conforming engine; it is a partial prototype.
 
 **Comparison discipline.** No case may depend on iteration order. RDF outputs compare by graph
 isomorphism; verdict and answer outputs compare as canonical sorted structures with normalized
 literals; explanation outputs compare on the set of cited axiom and rule IRIs, never on surface prose.
 The faithful-by-construction property for explanations (defined in
 [`LOGIC-RUNTIME.md`](LOGIC-RUNTIME.md)) is enforced at the IRI skeleton, not at the wording.
+
+## Capability-relative conformance
+
+Not every implementation of `logic:` is a full runtime. A compiler-only surface, a validator-only
+surface, a projection-only transcoder, a lightweight consumer, or a wasm-constrained deployment each
+operates over a proper subset of the full capability space. Requiring every such implementation to
+pass every conformance category would make conformance meaningless as a signal and would falsely
+exclude legitimate specialised implementations.
+
+Conformance is therefore **capability-relative**: a conforming implementation publishes a
+**capability manifest** declaring exactly what it supports and what it does not. The manifest is a
+machine-readable RDF document that asserts, for each recognized capability dimension, one of:
+
+- `logic:conformsTo` — the implementation fully supports this capability and must pass all corpus
+  cases that exercise it;
+- `logic:unsupported` — the implementation explicitly does not support this capability; it must
+  return `unsupported` for any input that requires it, and corpus cases for that capability are
+  excluded from the conformance gate.
+
+Recognized capability dimensions include, without limitation: IR parsing, exact RDF 1.2 projection,
+structural validation, Horn forward-chase materialization, stable-model semantics, backward-goal
+evaluation, generative counterfactuals, transaction execution, and explanation generation.
+
+A conforming implementation **must pass every mandatory corpus case within the capability set it
+claims via `logic:conformsTo`**, and **must return `unsupported` for every case that requires a
+capability it has listed as `logic:unsupported`**. Returning a result for a case whose required
+capability is declared `unsupported` is a conformance failure; returning `unsupported` for a case
+whose required capability is declared `conformsTo` is equally a failure.
+
+**Full-runtime conformance** is a distinguished top-level certification: a full runtime declares
+`logic:conformsTo` for every capability dimension, passes all corpus categories without any
+`unsupported` exclusions, and is the only surface that may carry the full-runtime conformance label.
+A partial implementation that passes all cases within its declared capability set is conforming at
+its surface level, but it is not a full runtime and may not claim that label.
 
 ## The two orthogonal correctness axes
 
@@ -119,17 +152,17 @@ original's?* This is a decidable graph-isomorphism check, not a semantic-equival
 The gate applies per-construct class. A program that uses only the `ExactPreservation` subset of the
 IR must round-trip perfectly through CL. A program that uses constructs the CL projection marks as
 `SoundUnderApproximation` or `unsupported` is checked only on the constructs the projection does
-preserve; the gate does not require that lossy constructs survive. The preservation polarity (defined
+preserve; the gate does not require that lossy constructs survive. The preservation claim (defined
 in the section below) governs which constructs are in scope for the round-trip check.
 
-## The loss ledger and preservation polarity
+## The loss ledger and preservation claims
 
-Every projection from the canonical IR to a target dialect carries a **preservation judgment** — a
+Every projection from the canonical IR to a target dialect carries a **preservation claim** — a
 machine-readable declaration of what the target preserves, what it approximates, and what it cannot
-express. The judgment is not a commentary annotation; it is a typed value that travels with the
+express. The claim is not a commentary annotation; it is a typed structure that travels with the
 generated artifact and is checked by the conformance corpus.
 
-The preservation polarities are:
+The preservation polarity values are:
 
 | Polarity | Meaning |
 | --- | --- |
@@ -140,17 +173,36 @@ The preservation polarities are:
 | `logic:InconsistencyPreserving` | A canonical inconsistency is visible in the projection |
 | `logic:InconsistencyReflecting` | A projection inconsistency implies a canonical inconsistency |
 
-Overclaiming preservation is a conformance failure, treated identically to dropping a fact silently.
-A bridge view between foundational ontologies is typically `ValidationOnly` or carries no
-preservation claim at all; it is never `ExactPreservation` unless a specific subfragment is
-explicitly certified.
+**Polarity values are not mutually exclusive.** A single projection may hold multiple polarity
+properties simultaneously — for example, a projection that drops answers but faithfully reflects
+contradictions is BOTH `SoundUnderApproximation` AND `InconsistencyReflecting`. A projection that
+neither misses nor adds answers within its certified subfragment while also reflecting any
+inconsistency present is simultaneously `ExactPreservation` and `InconsistencyReflecting` for that
+subfragment.
 
-The ledger aggregates these judgments across all projections for a given program, giving the consumer
-a complete picture of which parts of the canonical reasoning are available at each target and under
-which guarantees. A result produced through a lowering that did not preserve every construct carries
-the `projection-loss-affected` computation-status in the reasoning result (as defined in
-[`LOGIC-SEMANTICS.md`](LOGIC-SEMANTICS.md)), and the downstream consumer can inspect the ledger to
-see exactly which formulas were not evaluated.
+The preservation claim is therefore a **structured record**, not a single-valued enumeration. It is
+indexed by:
+
+- **query class** — the class of queries (e.g. ground-atom entailment, conjunctive query, counting
+  query) for which the stated polarity holds;
+- **contract** — the `logic:ReasoningContract` under which the projection was generated; polarity
+  may differ across contracts even for the same projection logic;
+- **construct set** — the subset of canonical IR constructs covered by the claim; constructs outside
+  this set are `unsupported` in the projection.
+
+Each cell of this indexed structure carries the set of applicable polarity values. Overclaiming on
+any cell — asserting `ExactPreservation` for a query class where answers may be missed, or omitting
+`InconsistencyReflecting` where contradictions are faithfully transmitted — is a conformance failure,
+treated identically to dropping a fact silently. A bridge view between foundational ontologies is
+typically `ValidationOnly` for its applicable query class or carries no preservation claim at all;
+it is never `ExactPreservation` unless a specific subfragment is explicitly certified.
+
+The ledger aggregates these structured claims across all projections for a given program, giving the
+consumer a complete picture of which parts of the canonical reasoning are available at each target
+and under which guarantees. A result produced through a lowering that did not preserve every
+construct carries the `projection-loss-affected` computation-status in the reasoning result (as
+defined in [`LOGIC-SEMANTICS.md`](LOGIC-SEMANTICS.md)), and the downstream consumer can inspect the
+ledger to see exactly which formulas were not evaluated.
 
 ## The divergence ledger as a public benchmark surface
 
@@ -164,7 +216,7 @@ The **divergence ledger** is a persistent, public record of such disagreements:
 
 - the input case and the contract under which both engines were run;
 - the canonical engine's output and the external reasoner's output;
-- the declared preservation polarity of each — which one claims to be `ExactPreservation` for this
+- the declared preservation claim of each — which one claims `ExactPreservation` for this
   fragment, which claims only `SoundUnderApproximation`, and which makes no claim;
 - a classification of the divergence: whether it represents a defect in the canonical engine, a
   limitation of the external reasoner, a genuinely unsettled semantic question, or a fragment
@@ -188,6 +240,16 @@ slice carries its conformance and competency questions **as ontology data** — 
 assertions resident in the slice itself, not as external test scripts or prose descriptions. This is
 the same discipline applied everywhere else in GMEOW: declare the structure, generate what can be
 generated, and let the ontology be its own specification.
+
+**Graph isolation rule.** Test individuals, negative fixtures, contradiction witnesses, and
+deliberately-malformed examples MUST reside in dedicated specification or test graphs that are
+**never included in the normal ontology closure**. The production `owl:imports` chain must not reach
+any test graph. This rule prevents conformance artifacts from polluting reasoning over the real
+ontology: a contradiction witness authored to verify paraconsistency handling must not cause the
+ontology itself to appear inconsistent when loaded by a conforming consumer, and a deliberately
+ill-formed individual must not trigger validation failures in a deployment that has nothing to do with
+conformance testing. Graphs that contain test data carry the `logic:TestGraph` type declaration and
+are excluded from the standard bundle by construction.
 
 Three kinds of slice-resident conformance data are defined:
 
@@ -218,11 +280,52 @@ questions, and validation cases is the definition of "this slice works in your i
 Failures are local to the slice that declared them, and the slice author is responsible for keeping
 the declarations honest.
 
+## The coherence certificate
+
+In a paraconsistent system, coherence does not mean the absence of all contradiction. A contract
+may explicitly permit witnessed, disclosed contradictions to coexist in separate context graphs
+without this constituting a defect. Asserting that a paraconsistent bundle is "incoherent" because
+it contains a contradiction witness is a category error; asserting that it is "coherent" in the
+sense of being contradiction-free is false and misleading.
+
+A **coherence certificate** is a bounded, contract-scoped assertion with the following structure:
+
+> No forbidden integrity violation and no undisclosed contradiction was found under contract **C**,
+> over certified fragment **F**, within resource budget **B**, against bundle hash **H**.
+
+Each component of this assertion is load-bearing:
+
+- **Contract C** identifies the `logic:ReasoningContract` that defines what counts as a forbidden
+  violation and what is a permitted disclosed contradiction. A certificate issued under one contract
+  does not transfer to another.
+- **Fragment F** identifies the subset of the bundle that was actually inspected. A certificate
+  over fragment F makes no claim about constructs or graphs outside F.
+- **Budget B** records the resource bound (time, depth, or iteration limit) under which the check
+  ran. A certificate issued at budget B does not certify behaviour beyond that bound.
+- **Bundle hash H** content-addresses the exact artifact that was checked. A certificate is invalid
+  for any bundle whose canonical hash differs from H.
+
+A contradiction that is witnessed, typed, and disclosed in a dedicated test graph under a
+paraconsistent contract is **coherent**: it is exactly the behaviour the contract anticipates and the
+graph isolation rule ensures it does not contaminate the production closure. The certificate's
+assertion "no forbidden integrity violation" is satisfied because the contradiction is not forbidden
+under contract C — it is documented and confined. The certificate therefore does NOT mean "this
+bundle contains no contradiction." It means "every contradiction present is either permitted under
+the contract or has been reported as a violation."
+
+The coherence certificate is the conformance artifact that closes the paraconsistency loop: a bundle
+that passes the paraconsistency corpus category, satisfies the graph isolation rule, and receives a
+coherence certificate under its governing contract is conforming with respect to contradiction
+handling, regardless of how many disclosed contradiction witnesses it contains.
+
 ## Constitutional alignment
 
-One conformance corpus; two orthogonal correctness axes; preservation judgments that travel with
-every generated artifact. The Common-Logic round-trip gate enforces faithfulness from the inside;
-the divergence ledger enforces agreement from the outside; tests-as-ontology-data ensures every
-slice carries its own correctness claims. The design refuses the two failure modes that afflict most
-reasoning systems: the system that is self-consistent but wrong, and the system that is correct at
-one moment but drifts silently thereafter.
+One conformance corpus; capability-relative conformance with a published capability manifest;
+two orthogonal correctness axes; multidimensional preservation claims indexed by query class,
+contract, and construct set. The Common-Logic round-trip gate enforces faithfulness from the inside;
+the divergence ledger enforces agreement from the outside; tests-as-ontology-data with strict graph
+isolation ensures every slice carries its own correctness claims without contaminating the production
+closure; and the coherence certificate gives paraconsistent bundles a precise, contract-scoped
+correctness assertion. The design refuses the two failure modes that afflict most reasoning systems:
+the system that is self-consistent but wrong, and the system that is correct at one moment but drifts
+silently thereafter.
