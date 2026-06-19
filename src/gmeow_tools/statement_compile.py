@@ -4,17 +4,22 @@
 ``statement-dsl/`` (CONSTITUTION Principles 2-4):
 
 * ``statements/gmeow.rdf12.ttl`` — the RDF 1.2 / RDF* serialization, the canonical
-  **lead** artifact (via Apache Jena — the only engine that emits triple terms);
+  **lead** artifact (via the native ``gmeow-rdf`` Rust codec — no Jena, no Docker,
+  no SPARQL engine; #667);
 * ``statements/gmeow-statements.owl.ttl`` — the OWL 2 axiom-annotation form, the
   reasoning-lossless **downcast** the OWL 2 DL reasoners consume.
 
 The OWL form is rendered in pure rdflib (the reifier IRI becomes the named
-``owl:Axiom`` node); the RDF 1.2 form is materialized from it by Jena. Before
-writing anything, the compiler proves the two forms encode the same statement
-metadata by **round-trip isomorphism** (the RDF 1.2 form, normalized back to OWL by
-Jena, must be isomorphic to the OWL form) — a lossy emit can never reach disk
-(CONSTITUTION Principle 7). ``--check`` renders to a temp tree and reports drift
-against the committed artifacts without writing.
+``owl:Axiom`` node); the RDF 1.2 form is materialized from it natively by
+``gmeow_rdf.project_statements_rdf12``. Before writing anything, the compiler
+proves the two forms encode the same statement metadata by **round-trip
+isomorphism** (the RDF 1.2 form, normalized back to OWL by
+``gmeow_rdf.normalize_rdf12_to_owl``, must be isomorphic to the OWL form) — a lossy
+emit can never reach disk (CONSTITUTION Principle 7). Apache Jena survives only as
+a non-required ``classic-cross-check`` oracle
+(:mod:`gmeow_tools.statements_docker_check`).
+``--check`` renders to a temp tree and reports drift against the committed
+artifacts without writing.
 
 This mirrors the mapping compiler's *author once → verified generated downcasts*
 engine (:mod:`gmeow_tools.mapping_compile`), generalized to the metadata layer.
@@ -25,6 +30,7 @@ from __future__ import annotations
 from collections.abc import Sequence
 from pathlib import Path
 
+import gmeow_rdf
 from rdflib import RDF, Graph
 from rdflib.compare import graph_diff, isomorphic
 from rdflib.namespace import OWL
@@ -38,7 +44,6 @@ from gmeow_tools.config import (
 from gmeow_tools.generator import Generator, rdf_compare, register
 from gmeow_tools.graph import bind_prefixes, iter_module_files, load_merged_graph
 from gmeow_tools.mapping_dsl import CompileError
-from gmeow_tools.rdf12 import normalize_rdf12_to_owl, project_owl_to_rdf12
 from gmeow_tools.statement_dsl import StatementDsl, load_statement_dsl
 from gmeow_tools.statement_lint import statement_invariants
 
@@ -51,12 +56,45 @@ _OWL_BANNER = (
     "statements/gmeow.rdf12.ttl.\n"
 )
 
+_RDF12_BANNER = (
+    "# RDF 1.2 / RDF* — GMEOW's canonical statement-level model, the lead\n"
+    "# serialization. Generated natively by `gmeow regenerate` (statements) via the\n"
+    "# gmeow-rdf Rust codec (no Jena, no Docker) from statement-dsl/, together with\n"
+    "# (and verified isomorphic to) the OWL 2 axiom-annotation downcast the reasoner\n"
+    "# consumes (CONSTITUTION Principle 7). DO NOT EDIT — author in statement-dsl/.\n"
+)
+
 
 def _write_ttl(graph: Graph, path: Path, banner: str) -> None:
     """Write a graph as Turtle with a generated banner + a normalized newline."""
     path.parent.mkdir(parents=True, exist_ok=True)
     turtle = graph.serialize(format="turtle").rstrip("\n") + "\n"
     path.write_text(banner + turtle, encoding="utf-8")
+
+
+def _project_to_rdf12(owl_path: Path, output: Path) -> Path:
+    """Project the OWL downcast → the RDF 1.2 lead artifact natively (gmeow-rdf).
+
+    The native (no Jena, no Docker, no SPARQL) replacement for the former Jena
+    codec on the lead-writer path (#667).
+    """
+    rdf12 = gmeow_rdf.project_statements_rdf12(owl_path.read_text(encoding="utf-8"))
+    output.parent.mkdir(parents=True, exist_ok=True)
+    output.write_text(_RDF12_BANNER + rdf12.rstrip("\n") + "\n", encoding="utf-8")
+    return output
+
+
+def _normalize_to_owl_graph(rdf12_path: Path) -> Graph:
+    """Normalize an RDF 1.2 file → the OWL normal form as an rdflib graph (gmeow-rdf).
+
+    rdflib cannot parse RDF 1.2 triple terms, so the native codec emits the plain
+    ``owl:Axiom`` normal form rdflib then parses for the isomorphism comparison.
+    """
+    owl_ttl = gmeow_rdf.normalize_rdf12_to_owl(rdf12_path.read_text(encoding="utf-8"))
+    graph = Graph()
+    graph.parse(data=owl_ttl, format="turtle")
+    bind_prefixes(graph)
+    return graph
 
 
 def _drift(owl_graph: Graph, fresh_rdf12: Path) -> list[str]:
@@ -69,8 +107,8 @@ def _drift(owl_graph: Graph, fresh_rdf12: Path) -> list[str]:
     if not STATEMENT_RDF12_FILE.exists():
         drifted.append(f"{_rel_str(STATEMENT_RDF12_FILE)} (missing committed file)")
     elif not isomorphic(
-        normalize_rdf12_to_owl(STATEMENT_RDF12_FILE),
-        normalize_rdf12_to_owl(fresh_rdf12),
+        _normalize_to_owl_graph(STATEMENT_RDF12_FILE),
+        _normalize_to_owl_graph(fresh_rdf12),
     ):
         drifted.append(_rel_str(STATEMENT_RDF12_FILE))
     return drifted
@@ -122,11 +160,11 @@ def emit_owl(dsl: StatementDsl) -> Graph:
 def assert_lossless(owl_graph: Graph, rdf12_path: Path) -> list[str]:
     """Prove the RDF 1.2 form round-trips to the OWL form (empty == lossless).
 
-    Normalizes the RDF 1.2 file back to OWL normal form via Jena and compares it
-    to the authored OWL graph by isomorphism. A non-empty result lists, with
-    direction, the statement-metadata triples that diverged.
+    Normalizes the RDF 1.2 file back to OWL normal form natively (gmeow-rdf) and
+    compares it to the authored OWL graph by isomorphism. A non-empty result
+    lists, with direction, the statement-metadata triples that diverged.
     """
-    normalized = normalize_rdf12_to_owl(rdf12_path)
+    normalized = _normalize_to_owl_graph(rdf12_path)
     if isomorphic(owl_graph, normalized):
         return []
     _, only_owl, only_rdf12 = graph_diff(owl_graph, normalized)
@@ -186,7 +224,7 @@ class StatementGenerator(Generator):
 
         _write_ttl(owl, owl_tmp, _OWL_BANNER)
 
-        project_owl_to_rdf12(owl_tmp, rdf12_tmp)
+        _project_to_rdf12(owl_tmp, rdf12_tmp)
 
         lossy = assert_lossless(owl, rdf12_tmp)
         if lossy:
@@ -196,15 +234,15 @@ class StatementGenerator(Generator):
             )
 
     def compare(self, fresh: Path, committed: Path) -> list[str]:
-        """Use graph isomorphism for OWL; normalize RDF 1.2 via Jena."""
+        """Use graph isomorphism for OWL; normalize RDF 1.2 natively (gmeow-rdf)."""
         if committed == STATEMENT_OWL_FILE:
             return rdf_compare(fresh, committed)
-        # RDF 1.2: normalize both to OWL via Jena, then isomorphism
+        # RDF 1.2: normalize both to OWL natively (gmeow-rdf), then isomorphism
         if not committed.exists():
             return [f"{_rel_str(committed)} (missing committed file)"]
         try:
-            a = normalize_rdf12_to_owl(committed)
-            b = normalize_rdf12_to_owl(fresh)
+            a = _normalize_to_owl_graph(committed)
+            b = _normalize_to_owl_graph(fresh)
         except Exception as exc:
             return [f"{_rel_str(committed)} (normalization error: {exc})"]
         if not isomorphic(a, b):
