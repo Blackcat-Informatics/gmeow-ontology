@@ -340,10 +340,17 @@ jobs:
       - name: Cache Cargo dependencies
         uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
 
-      - name: Build + install gmeow_shacl + gmeow_validate extensions
+      - name: Build + install native extensions the lane imports
+        # The lane natively reasons (gmeow_logic), classifies the divergence
+        # ledger (gmeow_logic.build_divergence_ledger), validates (gmeow_shacl /
+        # gmeow_validate), and emits the gate-taxonomy SARIF/JSON via
+        # gmeow_diagnostics — all four must be built or `make classic-cross-check`
+        # dies with ModuleNotFoundError after the long Docker image build.
         run: |
+          VIRTUAL_ENV="$PWD/.venv" uvx maturin develop --manifest-path crates/diagnostics/Cargo.toml
           VIRTUAL_ENV="$PWD/.venv" uvx maturin develop --manifest-path crates/shacl/Cargo.toml
           VIRTUAL_ENV="$PWD/.venv" uvx maturin develop --manifest-path crates/validate/Cargo.toml
+          VIRTUAL_ENV="$PWD/.venv" uvx maturin develop --manifest-path crates/logic/Cargo.toml
 
       - name: Build the pinned Jena image (RDF 1.2 engine) + pull ROBOT
         run: |
