@@ -38,7 +38,11 @@ unless they themselves cite an external work; they are cross-references within G
 - W3C. *SWRL: A Semantic Web Rule Language Combining OWL and RuleML* (Member Submission, 2004).
   <https://www.w3.org/submissions/SWRL/>
 - W3C. *RIF (Rule Interchange Format) Overview* (2013). <https://www.w3.org/TR/rif-overview/>
-- ISO/IEC 24707:2018. *Information technology — Common Logic (CL).*
+- ISO/IEC 24707:2018. *Information technology — Common Logic (CL).* Three normative dialects: CLIF
+  (Common Logic Interchange Format — first-order textual syntax), CGIF (Conceptual Graph Interchange
+  Format — graph-based notation), and XCL (XML-based Common Logic notation). Common Logic is
+  operationalized in this design as both a *generated* output dialect (see LOGIC.md) and an
+  *ingested* surface accepted by the reasoning pipeline (see LOGIC-CONFORMANCE.md).
 - ISO/IEC 21838-2:2021. *Basic Formal Ontology (BFO).* See also Arp, Smith & Spear, *Building
   Ontologies with Basic Formal Ontology* (MIT Press, 2015).
 - Berners-Lee, T., Connolly, D., Kagal, L., Scharf, Y. & Hendler, J. (2008). *N3Logic: A logical
@@ -59,7 +63,8 @@ unless they themselves cite an external work; they are cross-references within G
 ## Foundational theory (`intentCitesAsDataSource`)
 
 - Alchourrón, C., Gärdenfors, P. & Makinson, D. (1985). *On the Logic of Theory Change: Partial Meet
-  Contraction and Revision Functions.* Journal of Symbolic Logic 50(2). (AGM belief revision.)
+  Contraction and Revision Functions.* Journal of Symbolic Logic 50(2). (AGM belief revision; the
+  Revision facet of the logic design — see LOGIC-FOUNDATION.md.)
 - Gärdenfors, P. & Makinson, D. (1988). *Revisions of Knowledge Systems Using Epistemic
   Entrenchment.* TARK. (Entrenchment ↔ revision; deterministic revision.)
 - Lewis, D. (1973). *Counterfactuals.* Harvard University Press. (Closeness ordering; ties.)
@@ -71,9 +76,18 @@ unless they themselves cite an external work; they are cross-references within G
   Entscheidungsproblem.* Proc. London Math. Soc. (Undecidability / the halting problem.)
 - Blackburn, P., de Rijke, M. & Venema, Y. (2001). *Modal Logic.* Cambridge University Press. (The
   standard translation of modal logic into first-order logic.)
+- Belnap, N. D. (1977). *A Useful Four-Valued Logic.* In Dunn, J. M. & Epstein, G. (Eds.), *Modern
+  Uses of Multiple-Valued Logic.* Reidel. — Belnap, N. D. (1977). *How a Computer Should Think.* In
+  Ryle, G. (Ed.), *Contemporary Aspects of Philosophy.* Oriel Press. (Four-valued / first-degree
+  entailment (FDE) logic: the four truth-values True, False, Both, Neither underpin the
+  information-status lattice for reasoning results — see LOGIC-SEMANTICS.md.)
 - Gelfond, M. & Lifschitz, V. (1988). *The Stable Model Semantics for Logic Programming.* ICLP.
 - Van Gelder, A., Ross, K. & Schlipf, J. (1991). *The Well-Founded Semantics for General Logic
   Programs.* Journal of the ACM 38(3).
+- Bonner, A. J. & Kifer, M. (1993). *Transaction Logic Programming.* ICLP. — Bonner, A. J. & Kifer,
+  M. (1995). *An Overview of Transaction Logic.* Theoretical Computer Science 133(2). (State-change
+  semantics for sequential and concurrent actions within logic programs; grounds the state-change
+  facet of the transaction layer — see LOGIC-TRANSACTION.md.)
 - Chen, W., Kifer, M. & Warren, D. S. (1993). *HiLog: A Foundation for Higher-Order Logic
   Programming.* Journal of Logic Programming. (Second-order-as-first-order reification.)
 - Kifer, M., Lausen, G. & Wu, J. (1995). *Logical Foundations of Object-Oriented and Frame-Based
@@ -90,6 +104,13 @@ unless they themselves cite an external work; they are cross-references within G
   proof-trace provenance.)
 - de Kleer, J. (1986). *An Assumption-Based TMS.* Artificial Intelligence 28. — Doyle, J. (1979). *A
   Truth Maintenance System.* Artificial Intelligence 12. (Contradiction witnesses / ATMS·JTMS.)
+- Dung, P. M. (1995). *On the Acceptability of Arguments and Its Fundamental Role in Nonmonotonic
+  Reasoning, Logic Programming and n-Person Games.* Artificial Intelligence 77(2). (Abstract
+  argumentation frameworks; acceptability semantics (grounded, preferred, stable extensions) for
+  defeasible inference — see LOGIC-FOUNDATION.md.)
+- Koestler, A. (1967). *The Ghost in the Machine.* Hutchinson. (Holon / holarchy concept: every
+  whole is simultaneously a part of a larger whole; grounds the contextual mereology of the logic
+  layer's module and context hierarchy — see LOGIC-FOUNDATION.md.)
 
 ## Engines and tools (`intentBridgedByReference`)
 

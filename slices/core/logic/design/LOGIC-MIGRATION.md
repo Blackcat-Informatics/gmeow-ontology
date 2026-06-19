@@ -1,207 +1,215 @@
 <!-- SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca> -->
 <!-- SPDX-License-Identifier: CC-BY-4.0 -->
 
-# GMEOW Logic — Migration, MVP Ladder, and Risk Register
+# GMEOW Logic — Design Evolution and Canonical-Native Endgame
 
-> Status: rollout specification for `logic:`. This is the **migration** member of the
-> [GMEOW Logic document set](LOGIC.md#the-document-set). The architecture is maximal by design; this
-> document is the strict ladder that keeps the project from trying to build a universal reasoner all
-> at once, plus the adapter phases, the gates, the deprecation order, and the design-level risk
-> register. Semantics are in [LOGIC-SEMANTICS.md](LOGIC-SEMANTICS.md); the engine is in
-> [LOGIC-RUNTIME.md](LOGIC-RUNTIME.md).
+> Status: canonical design narrative for `logic:`. This is the **design-evolution** member of the
+> [GMEOW Logic document set](LOGIC.md#the-document-set). It accounts for how the current design
+> supersedes its predecessors, identifies the conceptual ordering that governs the design (the spec
+> precedes the realization), and characterizes the canonical-native endgame toward which every
+> aspect of the system converges. Formal semantics are in [LOGIC-SEMANTICS.md](LOGIC-SEMANTICS.md);
+> the engine is in [LOGIC-RUNTIME.md](LOGIC-RUNTIME.md); the reasoning contract and facet algebra
+> are in [LOGIC-CONTRACT.md](LOGIC-CONTRACT.md).
 
-## The MVP ladder
+## How the design supersedes its predecessors
 
-Each phase ships a usable artifact and is gated by the [conformance corpus](LOGIC-CONFORMANCE.md)
-before the next begins. The "excludes on purpose" column is load-bearing: it is what keeps each rung
-small and prevents scope creep into the maximal end-state prematurely.
+The `logic:` design did not emerge complete. It passed through a sequence of framings, each
+adequate for its moment and each superseded — not abandoned — by the next. Understanding that
+sequence is part of understanding why the present design has the shape it does.
 
-| Phase | Deliverable | Excludes on purpose |
-|---|---|---|
-| **v0: IR + projection ledger** | Parse `logic:` into a typed IR; emit OWL/SHACL/Datalog/N3/gUFO projections + the projection report | Native solving |
-| **v1: monotonic core** | RDF 1.2 terms, named graphs/worlds, Horn/Datalog materialization, loss ledger, proof traces | Negation-as-failure, counterfactual construction |
-| **v2: profile certifier** | EL/DL/Datalog/TGD profile-membership checks; the `unknown`/`incomplete` budget marker | Full Prolog-grade search |
-| **v3: modal/foundation lowering** | Rigidity and identity-supply lints lowered into executable rules | General nested modal logic |
-| **v4: backward goals** | Embedded Scryer goal resolution over the materialized EDB | Cut in canonical semantics |
-| **v5: Stratum-C counterfactuals** | Deterministic revision + transient world construction under budget | Multi-world Lewis ties by default |
-| **v6: probabilistic/weighted layer** | Explicit `logic:probability`/`logic:weight` semantics with tests | Treating `logic:confidence` as probability |
+### The first framing: a fixed profile set
 
-The executable-spec authority depends on the rung's kind, and the Rust core must pass the identical
-corpus either way (Principle 7):
+The earliest framing treated reasoning configuration as a small enumerated list of named profiles:
+Horn, stratified-negation, well-founded, stable-model, procedural, probabilistic. That framing was
+practical — profiles map straightforwardly onto available reasoning engines — but it embedded a
+category error. The dimensions along which a reasoning request varies (what entailment relation
+holds, what negation means, what closed-world means, how modality is indexed, whether state
+changes) are mostly orthogonal. Collapsing orthogonal dimensions into a flat list of named points
+makes the unchosen combinations either inexpressible or silently approximated by the nearest named
+point. Silent approximation is exactly what the projection doctrine forbids everywhere else.
 
-- For the **materialization** strata (v1–v3, worlds A/B), the Python oracle implements the rung first
-  as the executable spec; no such rung is "done" until the oracle and the Rust core agree on the
-  corpus.
-- For the **generative** strata (v4 backward goals, v5 counterfactual construction) — where there is
-  no Python materialization oracle to mirror — the Rust engine is the executable spec and the rung is
-  gated by golden answer fixtures (`queries/*.logic` → `expected/answers/*.json`); the Python oracle
-  retains authority for the materialization those strata build on.
+The present design supersedes that framing with the **reasoning contract**: a typed selection of
+values across independent facets, where named profiles survive only as presets — bundles of facet
+values that the system expands before evaluation, not indivisible alternatives. The full facet
+algebra and the compatibility matrix are specified in [LOGIC-CONTRACT.md](LOGIC-CONTRACT.md). No
+facet combination is silently approximated; an unsupported combination yields `unsupported`, never
+a quietly substituted nearby semantics.
 
-The Python oracle is permanent either way (Principle 7).
+### The second framing: a single generalized world
 
-**Status (2026-06): v0–v6 have landed — the migration ladder is complete.** The monotonic core,
-profile certifier, foundation lowering, backward goals, Stratum-C counterfactuals, and the v6
-probabilistic/weighted layer are all merged and gated by the corpus. For the **generative** strata
-(v4 backward goals, v5 counterfactuals, v6 probabilistic marginals) the Rust engine is the executable
-spec and conformance is pinned by golden answer fixtures (`queries/*.logic` →
-`expected/answers/*.json`); the Python oracle remains the authority for materialization (Strata A/B).
-The v5 surface is documented in
-[LOGIC-SEMANTICS.md](LOGIC-SEMANTICS.md#deterministic-revision-taming-the-agm-mutation-explosion) and
-[LOGIC-RUNTIME.md](LOGIC-RUNTIME.md); the corpus lives under `conformance/logic/cases/worlds-C/`.
+The initial materialization model treated the world as a single graph: one RDF dataset, one chase,
+one consistent closure. That framing handled flat, attribution-free derivation, but it could not
+represent standpoint-indexed claims, modal necessity and possibility, counterfactual states that
+must not leak into the base world, or the kind of multi-world reasoning that foundational rigidity
+requires. Named graphs as a bare storage mechanism do not supply semantics; syntax without a
+defined entailment relation is not a logic.
 
-**v6 (probabilistic/weighted layer, #506).** Exact marginal inference by weighted model counting
-under `logic:ProbabilisticProfile`, gated by an **explicitly declared** `logic:ProbabilityModel`
-(`logic:FullIndependence` or a `logic:DependencyModel` carrying an explicit joint). Probabilistic
-facts (`logic:probability`) enter inference only through the declared model; a `logic:confidence`
-annotation is **never** read as a probability, and probabilistic facts with no declared model refuse
-with status `unknown` rather than assuming independence. The evaluator is Rust-native
-(`crates/logic/src/probabilistic.rs`), exposed through `gmeow_logic.query` (each binding carries a
-`probability`); the surface is documented in
-[LOGIC-SEMANTICS.md](LOGIC-SEMANTICS.md#confidence-probability-weight-and-evidence) and the corpus
-lives under `conformance/logic/cases/profiles/probabilistic-*`.
+The present design supersedes that framing with the **typed context algebra**: a structured space
+of worlds, each world-locally consistent, with a defined entailment relation indexed to context
+rather than assumed global. Cross-world reasoning — rigidity, modal closure, counterfactual
+revision — is an explicit closure pass over the finite materialized world set, not an implicit
+union. The semantics of that algebra are given precisely in
+[LOGIC-SEMANTICS.md](LOGIC-SEMANTICS.md#the-typed-context-algebra).
 
-## Adapter phases
+### The third framing: a Datalog/Horn-only intermediate form
 
-`logic:` does not require rewriting the existing model on day one. Two adapter phases run in parallel,
-each letting legacy source coexist with canonical `logic:` source while the source-of-truth boundary
-moves:
+An intermediate framing treated the typed intermediate representation as essentially a Datalog or
+Horn-clause normal form with OWL constructs bolted on. That was a coherent narrowing for the
+materialization strata but conflated the IR with one of its projections. Datalog cannot express
+existential rules (value invention), classical negation, backward goal resolution, or any of the
+contextual/modal/probabilistic scopes that `logic:` requires. If the IR is secretly Datalog, those
+scopes must either be encoded away — hiding their semantics in the representation — or refused.
 
-- **The `owl:*` adapter.** Existing `owl:*` axioms are normalized into the same typed IR as `logic:`
-  axioms, so the OWL projection of `logic:` and the hand-authored OWL agree by round-trip isomorphism
-  (the gate already proven for the statement layer, `statement_compile.py:123-130,194-210`).
-- **The `gufo:` adapter.** Existing `gufo:` stereotype authoring is accepted exactly parallel to the
-  `owl:*` adapter: a slice may declare a `logic:` foundational role, and the gUFO projection generator
-  emits the `gufo:` stereotypes that `reasoning_lint.py` validates. Nothing in the current model
-  breaks.
+The present design supersedes that framing with the **typed full-FOL IR**: a representation that
+captures any `logic:` source construct faithfully, records per-construct preservation judgments,
+and drives projection rather than being produced by it. Datalog materialization, Horn reasoning,
+OWL projection, and N3/SHACL/Prolog targets are all generated from this IR; none is the IR.
+The preservation semantics are specified in [LOGIC-SEMANTICS.md](LOGIC-SEMANTICS.md); the IR
+structure and per-lowering loss judgments are in [LOGIC-IR.md](LOGIC-IR.md).
 
-The adapters are temporary by design — they exist so the migration is incremental, not so the legacy
-forms remain canonical. A construct authored in both `logic:` and a legacy form must normalize
-identically or the build fails.
+### The fourth framing: an externally-hosted secondary oracle
+
+An earlier authority model operated a Python oracle alongside the native solver: the Python
+implementation was the executable specification for materialization strata; the Rust core was
+required to agree with it over a shared corpus. That model served a real purpose — it forced
+explicit cross-verification and made the specification independent of the implementation — and the
+cross-verification discipline it established is preserved in the conformance corpus structure.
+What is superseded is the claim that the oracle is **permanent**: as the native solver acquires
+derivation-graph provenance, the Python oracle's role as authority for each discipline is
+superseded discipline-by-discipline, formalized by derivation-graph golden fixtures that make
+correctness concrete and engine-independent. The foundational lowering oracle, for instance, has
+already been retired; the native derivation graph is the specification for that discipline. The
+conformance contract and preservation polarity per projection are in
+[LOGIC-CONFORMANCE.md](LOGIC-CONFORMANCE.md).
+
+## Design-first ordering
+
+The design is authored as the specification; the realization conforms to it. That ordering is not
+incidental — it is the same canonical-source doctrine applied to logic itself. The `logic:`
+vocabulary, the reasoning contract, the IR, and the conformance corpus are the canonical form; the
+solver is the realization. A realization that passes the corpus inherits the design's guarantees;
+one that diverges from it is wrong, not the design.
+
+This ordering has a direct implication for the OWL-era encodings. `owl:*` and `gufo:` axioms were
+originally authored directly and treated as canonical. In the endgame they are generated
+projections of `logic:` source — exactly as OWL DL output is a projection in any other GMEOW
+slice. The migration from hand-authored OWL to generated OWL is complete when every legacy axiom
+is traceable to a `logic:` source construct and the projection round-trips identically; until then,
+the adapter mechanisms (the `owl:*` normalizer and the `gufo:` projection generator) preserve
+equivalence while the source-of-truth boundary moves. A construct authored in both forms must
+normalize identically or the build fails; neither form is a second source of truth during the
+transition.
+
+## The canonical-native endgame
+
+The endgame is a single coherent state toward which every aspect of the design converges. It is
+not "OWL, but faster," and it is not "more profiles." It is:
+
+**One canonical full-FOL logic.** `logic:` is the sole authoring language for axioms, rules, and
+the foundational ontology. It is Turing-complete, RDF 1.2-native, and expresses every reasoning
+mode GMEOW requires — description logic, logic programming, defeasible defaults, modal necessity,
+contextual scope, probabilistic inference, paraconsistency, and metalevel reasoning — as a single,
+coherent semantic system, not as a patchwork of separately-managed sublanguages.
+
+**Legacy encodings become generated projections.** OWL 2 DL/EL, Datalog, SHACL, N3, Prolog,
+SPARQL, and the Common Logic dialects (CLIF, CGIF, XCL) are outputs of the logic engine, not
+inputs to it. gUFO, the OWL realization of UFO⁺, is the primary down-projection of the canonical
+foundational theory; BFO, DOLCE, and SUMO are generated bridge views carrying their own
+ontological commitments, documented as such in the loss ledger. None of these is an authoring
+surface in the endgame.
+
+**One canonical native solver.** A single solver runs forward and backward chaining over the
+canonical IR; it is the normal authority for derivation, explanation, and query. Classical OWL
+reasoners (operating over the OWL projection) validate the OWL fragment; they are secondary
+validators, not authorities, and their removal from the required path is completed once a
+projection cross-check confirms that native reasoning is equivalent over the fragment they cover.
+
+**Discipline expressed as axioms, not external enforcement.** The OntoUML disciplines that once
+lived as external lint checks — stereotype cardinality, identity overlap, anti-rigidity, relator
+mediation, cross-world rigidity — are lowered into `logic:` rules and evaluated natively. The
+native derivation reproduces the lint verdicts exactly; the lint becomes a regression specification,
+not the enforcement mechanism. Anti-rigidity's witness obligation (the requirement that a world
+exist where the instance lacks the type) belongs to Stratum C counterfactual construction;
+in-world rigidity is evaluated by a bounded closure pass over the materialized world set.
+
+**Projection loss visible and machine-readable.** Every weakening incurred in producing a
+compatibility artifact is recorded in the preservation ledger with its polarity — what is lost,
+in which direction, under which contract. No projection overclaims soundness or completeness.
+
+The endgame is the same doctrine GMEOW applies to facts, applied to axioms and rules: author once
+in the maximal canonical form, project to tractable surfaces for each consumer, make every loss
+explicit and tested, and never promote a compatibility format above the canonical source.
 
 ## Foundation projection and discipline
 
-UFO⁺ is authored canonically in `logic:`; the upper ontologies are generated, and they are **not all
-the same kind of projection**:
+UFO⁺ is authored canonically in `logic:`; the upper ontologies are generated, and they are not
+all the same kind of projection.
 
-- **gUFO** is the **primary generated down-projection** of UFO⁺ — the OWL realization of the same UFO
-  lineage, truth-preserving for the fragment OWL can express, validated by running
-  `src/gmeow_tools/reasoning_lint.py` (and the `imports/gufo.ttl`-shaped checks) as conformance tests
-  over the downcast: it must satisfy every OntoUML anti-pattern check (`exactly_one_stereotype`,
-  `identity_overlap`/MixIden, `anti_rigidity_discipline`/MixRig·FreeRole, `relator_mediation`/RelComp).
-- **BFO, DOLCE, and SUMO** are generated **alignment/bridge views, not truth-preserving projections**,
-  unless a specific subfragment is certified as such in the loss ledger. They carry different
-  ontological commitments; the maximal-source doctrine respects that rather than claiming a shared
-  foundation. A bridge view is labelled in the [preservation ledger](LOGIC-CONFORMANCE.md) so no
-  consumer mistakes it for a sound projection.
+**gUFO** is the primary generated down-projection of UFO⁺ — the OWL realization of the same UFO
+lineage, truth-preserving for the fragment OWL can express, validated by running the full set of
+OntoUML anti-pattern checks over the downcast. The downcast must satisfy all five disciplines:
+stereotype cardinality, identity overlap, anti-rigidity, free-role integrity, and relator
+mediation.
 
-### v3 status: five in-world disciplines lowered; cross-world rigidity decided; witness-world deferred
+**BFO, DOLCE, and SUMO** are generated alignment/bridge views, not truth-preserving projections,
+unless a specific subfragment is certified as such in the loss ledger. They carry different
+ontological commitments; the maximal-source doctrine respects that rather than claiming a shared
+foundation. A bridge view is labelled in [LOGIC-CONFORMANCE.md](LOGIC-CONFORMANCE.md) so no
+consumer mistakes it for a sound projection.
 
-**Implemented in v3 (#503).** The lint-to-axiom move for the OntoUML disciplines is now
-partially complete:
+### Five in-world disciplines lowered; cross-world rigidity evaluated; witness-world construction
 
-- **Five in-world disciplines lowered, evaluated natively (done; oracle retired in #636).** The
-  native Rust evaluator `crates/logic/src/foundation.rs` (exposed as `gmeow_logic.foundation`) derives
-  `?C logic:violation <label>` facts reproducing, class-for-class, the offending sets `reasoning_lint.py`
-  produces — five `logic:violation` labels from four lint checks: `exactly_one_stereotype`
-  (`logic:StereotypeCardinality`), `identity_overlap` (`logic:MixIden`), `anti_rigidity_discipline`
-  (`logic:FreeRole`, `logic:MixRig`), and `relator_mediation` (`logic:RelComp`). The lowering
-  certifies under `logic:StratifiedNAFProfile`. Correctness is proven end-to-end by the foundation
-  conformance goldens through
-  `tests/test_logic_foundation_lint_equivalence.py` (`test_foundation_conformance_cases_are_green`).
-  **`reasoning_lint.py` is now the regression specification for these five disciplines**, not the
-  enforcement mechanism; enforcement is the native lowering materialized over `logic:` facts. The
-  Python oracle (`logic_foundation.py`) that originally hosted the lowering has been deleted (#636,
-  no-optionality doctrine: no Python fallback).
+The lint-to-axiom move for the OntoUML disciplines is complete for the in-world and cross-world
+cases. The native evaluator derives `logic:violation` facts reproducing, class-for-class, the
+offending sets the original lint checks produce — five violation labels from four checks:
+`logic:StereotypeCardinality`, `logic:MixIden`, `logic:FreeRole`, `logic:MixRig`, and
+`logic:RelComp`. The lowering certifies under `logic:StratifiedNAFProfile`. The external lint
+checks are now the regression specification of the lowering; the lowering is the enforcement
+mechanism.
 
-- **Positive cross-world rigidity decided over the materialized world set (done).** This is a
-  further, world-spanning discipline, which the type-only lint cannot express. Because the GMEOW chase is world-local
-  (derived quads stay in their origin world; no cross-world union), rigidity's world-spanning
-  universal quantifier cannot be expressed as an ordinary in-world Datalog rule. It is therefore
-  evaluated in the native `crates/logic/src/foundation.rs` evaluator — a bounded closure pass over the
-  finite materialized world set — emitting `logic:rigidityViolation` quads in the world where rigidity
-  persistence fails. This fires only under `"foundation_lowering": true` and only when at least two
-  worlds are materialized; single-world goldens are byte-identical.
+Cross-world rigidity — the world-spanning universal quantifier that cannot be expressed as an
+ordinary in-world Datalog rule — is evaluated as a bounded closure pass over the finite
+materialized world set, emitting `logic:rigidityViolation` quads in the world where rigidity
+persistence fails. This pass fires only when at least two worlds are materialized.
 
-- **Witness-world construction deferred to #505.** Anti-rigidity formally requires a world of
-  existence where the instance lacks the type. Construction of that counter-world belongs to Stratum C
-  and is tracked in issue #505. The `"anti_rigidity_policy"` `profile.json` field (see
-  [Gates](#gates)) governs only the instance-level obligation/witness facet in the meantime.
+Anti-rigidity's witness obligation — formally requiring a world of existence where the instance
+lacks the type — belongs to counterfactual construction in Stratum C. The
+`"anti_rigidity_policy"` profile field governs only the instance-level obligation facet until
+witness-world construction is in place.
 
-The discipline that today guards meta-grounding is preserved across the lint-to-axiom move: the lowered
-modal (rigidity) and second-order (identity-supply) axioms reproduce, over the downcast, exactly
-the verdicts the lints produce today — the lints are the regression specification of
-the lowering (see [operational semantics](LOGIC-SEMANTICS.md#operational-semantics-modality-and-identity-supply)).
+The operational semantics of the foundation are in
+[LOGIC-SEMANTICS.md](LOGIC-SEMANTICS.md#operational-semantics-modality-and-identity-supply).
 
-## Gates
+## Conformance and the preservation contract
 
-The migration succeeds only if every compatibility surface is tested against the same source of truth,
-reusing the patterns the project already runs. The required tests, mapped to existing patterns:
+The conformance corpus is the executable specification of the entire design. Every reasoning mode,
+every projection, every discipline lowering, every profile, and every design claim in this
+document is either covered by a corpus case or explicitly deferred. Correctness is proven
+end-to-end by the corpus; an implementation that passes the corpus inherits the design's guarantees.
 
-- **IR normalization** for existing OWL and gUFO source (adapter phase);
-- **equivalence** for matching `logic:`, `owl:*`, and `gufo:` source forms — the round-trip
-  isomorphism gate (`statement_compile.py:123-130,194-210`);
-- **two-engine agreement** per projected fragment — the `crosscheck` pattern (native vs
-  ELK/HermiT/Datalog must agree where the projection preserves meaning);
-- **oracle/engine agreement** — the Python oracle and the Rust core must pass one shared,
-  language-neutral conformance corpus identically (the conformance gate; Principle 7);
-- **DL/EL projection** tests for preserved and intentionally narrowed axioms;
-- **loss-ledger** tests for every omitted or weakened construct, including the **preservation
-  polarity** of each projection (see [LOGIC-CONFORMANCE.md](LOGIC-CONFORMANCE.md));
-- **native rule** tests for derived triples (monotonic and non-monotonic, per declared profile);
-- **native constraint** tests for closed-world failures;
-- **logic-programming** tests for backward goal resolution and unification;
-- **explanation faithfulness** tests: every IRI cited in a generated explanation appears in the proof
-  trace or witness graph (grounded, never hallucinated);
-- **fragment certification** tests: a profile declared decidable is statically certified, a violation
-  is flagged, and budget exhaustion returns `unknown`/`incomplete`, never a false answer;
-- **modal/counterfactual conformance** against the slice fixtures (deception held/projected, the Crimea
-  contest, the trust-collapse cascade under the no-occurrence gate, a narrative canon, and a constructed
-  counterfactual that does not leak into its base world);
-- **foundation conformance**: the gUFO downcast passes `reasoning_lint.py` unchanged and every existing
-  `gufo:`-dependent slice stays valid.
+Preservation polarity per projection — what is lost, what is weakened, what is absent by design —
+is recorded in [LOGIC-CONFORMANCE.md](LOGIC-CONFORMANCE.md). Loss ledger entries are not
+admissions of failure; they are the formal record that the projection doctrine is being applied
+honestly: no compatibility artifact claims more than it preserves.
 
-Existing transpiler and statement suites are the model (`tests/test_statements.py`,
-`tests/test_up_projection.py`). The full corpus schema is in [LOGIC-CONFORMANCE.md](LOGIC-CONFORMANCE.md).
+## Open design tensions
 
-## Deprecations
+These are genuine, standing conceptual tensions in the design — places where complexity can
+re-accumulate or the design's claims could be falsified. They are named so the design remains
+honest.
 
-Nothing is removed before its replacement is gated. The deprecation order:
-
-1. **HermiT/ELK move from authority to secondary validators.** They already sit outside the fast gate
-   (`make check` excludes Docker reasoners; the ROBOT/ELK/HermiT oracle runs in the non-required
-   `make classic-cross-check` lane). `make reason-native` and `make verify` are the
-   authority on the required path; the OWL reasoners validate only their projected fragments.
-   With **v5 landed (#505)** the native `logic:` corpus now spans Strata A/B/C (worlds A/B/C, backward
-   goals, foundation, profiles, paraconsistency, explanation) — complete enough to *begin* this
-   demotion. It is **not** done here: the flip still requires a DL/EL **projection cross-check** gate
-   (a dual-run analogous to #578's SHACL cross-check) proving `make reason-native` ≡ ELK on the
-   EL fragment before authority moves. Tracked as its own follow-up epic; the SHACL counterpart is #579
-   (pySHACL/rdflib removal). Apache Jena is on the mid-term removal list (sole RDF-1.2 triple-term
-   serializer today; removal blocked on a Rust/oxigraph serializer).
-2. **The Python solver becomes the oracle, not the engine.** It is retained permanently as the
-   executable spec, but the Rust core carries production workloads.
-3. **`owl:*` and `gufo:` adapter source is retired per slice**, only after that slice's `logic:` form
-   passes the equivalence gate. Retirement is per-slice and reversible until the gate is green.
-
-No deprecation is silent: each is recorded, and any capability dropped from a projection appears in the
-loss ledger with its preservation polarity.
-
-## Design risk register
-
-This architecture is ambitious enough to warrant a standing, design-level risk register. It already
-argues that undecidability is *accepted and managed*; the same honesty applies to the other semantic
-hazards. Each row names the hazard, where it bites, and the mitigation that is already in the design.
-
-| Risk | Where it appears | Mitigation |
-|---|---|---|
-| Cut changes declarative answers | Prolog profile | cut is procedural-only, confined to `ProceduralPrologProfile`; loss recorded on projection ([semantics](LOGIC-SEMANTICS.md#cut-is-procedural-not-canonical)) |
-| Confidence mistaken for probability | weighted/ProbLog-style inference | four separate predicates; probability only in `ProbabilisticProfile` ([semantics](LOGIC-SEMANTICS.md#confidence-probability-weight-and-evidence)) |
-| Named graph treated as modal semantics | worlds | world-indexed entailment relation; no implicit dataset-union ([semantics](LOGIC-SEMANTICS.md#inconsistency-across-worlds-and-world-indexed-entailment)) |
-| Anti-rigidity needs a missing witness world | foundation | witness-obligation policy by default; Stratum C may construct witnesses ([semantics](LOGIC-SEMANTICS.md#anti-rigidity-needs-a-witness-policy)) |
-| Triple term treated as both quote and assertion | metalogic | a triple term names a proposition; assertion is via explicit predicates ([semantics](LOGIC-SEMANTICS.md#triple-terms-reifiers-and-assertion)) |
-| Projection overclaims preservation | loss ledger | preservation polarity per projection ([conformance](LOGIC-CONFORMANCE.md)) |
-| Non-stratified negation loops / multiple models | rules | mandatory semantic-profile declaration; soundness stated relative to it |
-| Counterfactual revision ties explode | Stratum C | declared entrenchment ordering; genuine tie → `unknown`, never branch |
-| Stale materialization or counterfactual cache | Nemo/oxigraph store | content-hash-keyed graph snapshots ([runtime](LOGIC-RUNTIME.md#graph-versioning-and-staleness)) |
-| Undecidability / non-termination | canonical layer | decidability is a projection/profile property; budget → `unknown`/`incomplete` |
-| BFO/DOLCE overclaimed as truth-preserving | foundation projection | bridge views labelled as such; not truth-preserving unless certified per fragment |
+| Tension | Where it bites | What holds it |
+| --- | --- | --- |
+| The facet compatibility matrix is itself a complexity accumulator | Each new facet value multiplies the matrix; unsupported cells must be named, not quietly avoided | The cardinal rule — `unsupported` is always explicit — and the matrix being data, not control flow; new cells are additions, not rewrites ([contract](LOGIC-CONTRACT.md)) |
+| Describing the target-as-shipped | This document describes an endgame; gap between description and realization can widen silently | The conformance corpus is the executable measure of the gap; every uncovered claim is a deferred corpus case, not a silent assumption |
+| Facet orthogonality is asserted, not proven | Two facets declared independent may interact semantically in an uncharted region | The disjointness checks and the compatibility matrix surface violations; the `unsupported` verdict is the safety net |
+| Foundation disciplines as native rules may diverge at scale | The native lowering reproduces lint verdicts on the current corpus; a novel ontology shape could expose a gap | The lint remains the regression specification; a divergence is a defect in the lowering, reported as a conformance failure |
+| Anti-rigidity witness-world obligation is not fully evaluated | Until Stratum C constructs witness worlds, anti-rigidity is only partially enforced | The `anti_rigidity_policy` field makes the obligation explicit; the gap is named in the loss ledger ([semantics](LOGIC-SEMANTICS.md#anti-rigidity-needs-a-witness-policy)) |
+| Cut changes declarative answers | Prolog profile | Cut is procedural-only, confined to `ProceduralPrologProfile`; loss recorded on projection ([semantics](LOGIC-SEMANTICS.md#cut-is-procedural-not-canonical)) |
+| Confidence mistaken for probability | Weighted/ProbLog-style inference | Four separate predicates; probability only in `ProbabilisticProfile` ([semantics](LOGIC-SEMANTICS.md#confidence-probability-weight-and-evidence)) |
+| Named graph treated as modal semantics | Worlds | World-indexed entailment relation; no implicit dataset-union ([semantics](LOGIC-SEMANTICS.md#inconsistency-across-worlds-and-world-indexed-entailment)) |
+| Triple term treated as both quote and assertion | Metalogic | A triple term names a proposition; assertion is via explicit predicates ([semantics](LOGIC-SEMANTICS.md#triple-terms-reifiers-and-assertion)) |
+| Counterfactual revision ties explode | Stratum C | Declared entrenchment ordering; genuine tie yields `unknown`, never branches ([semantics](LOGIC-SEMANTICS.md#deterministic-revision-taming-the-agm-mutation-explosion)) |
+| Undecidability / non-termination | Canonical layer | Decidability is a projection/profile property; budget exhaustion yields `unknown`/`incomplete` ([semantics](LOGIC-SEMANTICS.md#turing-completeness-decidability-and-termination)) |
+| BFO/DOLCE overclaimed as truth-preserving | Foundation projection | Bridge views labelled as such; not truth-preserving unless certified per fragment ([conformance](LOGIC-CONFORMANCE.md)) |
+| Stale materialization or counterfactual cache | World store | Content-hash-keyed graph snapshots ([runtime](LOGIC-RUNTIME.md#graph-versioning-and-staleness)) |
