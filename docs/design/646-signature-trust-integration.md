@@ -75,7 +75,7 @@ When an aborting finding is emitted, `ValidationRun::run` returns early with an 
 
 ## TOML Policy Schema
 
-`gmeow-dev validate` accepts `--trust-policy path/to/policy.toml`. The file is a flat TOML document that maps directly onto `gmeow_gts::policy::TrustPolicy`:
+`gmeow-dev validate` accepts `--trust-policy path/to/policy.toml`. The file is a flat TOML document. The trust fields (`trusted_signers`, `require_trusted_signer`) map onto `gmeow_gts::policy::TrustPolicy`; `trusted_key` is a separate key-resolution option used to supply an out-of-band ASCII-armored OpenPGP public key:
 
 ```toml
 # Optional: list of signer KIDs considered trusted by this deployment.
