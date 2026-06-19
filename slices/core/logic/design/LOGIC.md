@@ -15,8 +15,11 @@
 |---|---|---|
 | `LOGIC.md` (this) | manifesto | vision, doctrine, lineage, target architecture |
 | [`LOGIC-FOUNDATION.md`](LOGIC-FOUNDATION.md) | charter | the `gmeow:logic` upper-ontology charter — the gUFO ⊇ baseline, the criticism ledger, the greenfield feature map, the Ithkuil precision ethos, the four-box organization |
-| [`LOGIC-SEMANTICS.md`](LOGIC-SEMANTICS.md) | formal semantics | the unified core, triple-term/assertion rules, semantic profiles, modality, worlds, decidability |
-| [`LOGIC-RUNTIME.md`](LOGIC-RUNTIME.md) | runtime | solver architecture, the Nemo–Prolog seam, graph versioning, generated artifacts, CLI |
+| [`LOGIC-CONTRACT.md`](LOGIC-CONTRACT.md) | configuration | the reasoning contract — the orthogonal facets a reasoning request selects; named profiles as presets; the compatibility matrix |
+| [`LOGIC-IR.md`](LOGIC-IR.md) | intermediate representation | the typed, full first-order IR every source compiles into and every projection out of; the per-lowering preservation judgment |
+| [`LOGIC-SEMANTICS.md`](LOGIC-SEMANTICS.md) | formal semantics | the unified core, triple-term/assertion rules, the reasoning result, modality, the typed context algebra, decidability |
+| [`LOGIC-TRANSACTION.md`](LOGIC-TRANSACTION.md) | state change | Transaction Logic — path semantics, serial conjunction, updates as supersession, the state-change facet |
+| [`LOGIC-RUNTIME.md`](LOGIC-RUNTIME.md) | runtime | solver architecture, the materialization–resolution seam, graph versioning, generated artifacts, CLI |
 | [`LOGIC-MIGRATION.md`](LOGIC-MIGRATION.md) | rollout | the MVP ladder, adapter phases, gates, deprecations, the design risk register |
 | [`LOGIC-CONFORMANCE.md`](LOGIC-CONFORMANCE.md) | contract | the conformance corpus and the loss-ledger preservation contract |
 | [`LOGIC-REFERENCES.md`](LOGIC-REFERENCES.md) | appendix | external standards, theory, and engines cited — staged for the `metadata/references.ttl` ledger |
@@ -56,6 +59,14 @@ restriction on what can be said. The formal account — the halting problem, dec
 projection, and the certified profiles — is in
 [LOGIC-SEMANTICS.md](LOGIC-SEMANTICS.md#turing-completeness-decidability-and-termination).
 
+A reasoning request is a typed, compositional **reasoning contract** over orthogonal facets —
+consequence relation, negation kind, closure assumption, context indexing, state-change mode,
+uncertainty handling, and so on. Named profiles are presets: bundles of facet values that the
+compiler expands before evaluation, never indivisible alternatives. The contract model supersedes
+any framing in terms of a small fixed set of profiles, because the orthogonal dimensions compose
+in combinations no fixed list can fully anticipate. The full definition of the facets, presets,
+and compatibility matrix is in [LOGIC-CONTRACT.md](LOGIC-CONTRACT.md).
+
 This is the same doctrine GMEOW already applies everywhere else:
 
 - author once in the canonical model;
@@ -82,12 +93,10 @@ inference; Datalog adds recursion but no open-world classification; Prolog adds 
 not RDF-native and has no open-world reading. **No prior system unifies these, and none is RDF
 1.2-native.** GMEOW needs all of them, coherent, in one framework.
 
-Third, **the current Java/Docker reasoning path is expensive.** HermiT sound-and-complete
-consistency over the merged ontology runs ~15 minutes and grows with the ontology; the default
-900s container ceiling sits right at that cliff, so HermiT gets a doubled 1800s ceiling
-(`src/gmeow_tools/reason.py:44-45`, `_HERMIT_TIMEOUT`; gate-health tracked as reasoner timeout gate). HermiT
-and ROBOT are valuable compatibility checkers, but they are too slow and too far from RDF 1.2 to
-be the canonical authority.
+Third, **the current Java/Docker reasoning path is expensive.** A classical DL reasoner's
+sound-and-complete consistency check over the merged ontology runs in the order of minutes and
+grows with the ontology. Such tools are valuable compatibility checkers, but they are too slow
+and too far from RDF 1.2 to be the canonical authority.
 
 ## Lineage and Supersession
 
@@ -108,7 +117,7 @@ restraint we reject; `logic:` subsumes the contribution and discards the restrai
 | F-logic (Flora-2, Ergo) | frame/object reasoning + LP | its own syntax, outside RDF | frame reasoning over native RDF frames |
 | N3 Logic (cwm, EYE) | RDF-native rules, **quoted graphs**, builtins, both chaining directions | pre-RDF-1.2 cited formulae; no contextual/modal scope as data | RDF 1.2 triple terms are the modern cited formula, with full contextual scope |
 | SPARQL | query, CONSTRUCT | a query language, not a logic | query is a *projection* of goal resolution |
-| Common Logic | first-order interchange | no RDF model, no contextual layer | FOL-grade expressivity, RDF 1.2-native, contextualized |
+| Common Logic | first-order interchange | no RDF model, no contextual layer | FOL-grade expressivity, RDF 1.2-native, contextualized — and operationalized as generated *and* ingested CLIF, CGIF, and XCL dialects, not merely cited as an ancestor |
 | gUFO | OWL upper ontology, stereotypes | a *lossy OWL realization of UFO* — drops modality and higher-order types | the full foundational theory; gUFO becomes a projection |
 
 The closest living ancestor is **N3 Logic and the EYE reasoner**: RDF-native rules, quoted graphs
@@ -172,38 +181,6 @@ operational semantics of the foundation are in
 [LOGIC-SEMANTICS.md](LOGIC-SEMANTICS.md#the-logic-foundation-ufo); its rollout and projection
 discipline are in [LOGIC-MIGRATION.md](LOGIC-MIGRATION.md#foundation-projection-and-discipline).
 
-## Concept → Repo Machinery
-
-Every design concept maps to a file or function that hosts or templates it. This is the grounding
-index that keeps the whole design honest; the siblings cite these in context.
-
-| Design concept | Existing machinery to reuse / extend |
-|---|---|
-| Canonical RDF 1.2 lead + lossy downcast + round-trip gate | `StatementGenerator`, `statement_compile.py:123-130,151-210` |
-| RDF 1.2 statement/triple-term authoring form | `dsl/statements/vocabulary.ttl:45-54` (`StatementMetadata`, `reifier`, `qSubject…`) |
-| Compile to typed IR, then project | `LiftMap`/`UpProjection`, `up_projection.py` |
-| Registered generator + drift/orphan gate | `generator.py:49,97,723`; `make check-generated`/`make regenerate` |
-| `logic:` namespace registration | `config.py` `PREFIXES` (add `logic:` beside `gmeow`, `config.py:21-24`) |
-| Loss metadata convention | `gmeow:lossyDrop`, `dsl/mappings/vocabulary.ttl:237`; `mapping_dsl.py:151,493` |
-| Two-engine agreement | `make crosscheck` / `gmeow crosscheck-queries` (`Makefile:42`) |
-| Closed-world validation lanes | `gmeow_shacl` over `shapes/gmeow-shapes.ttl`; native `verify` (`verify --mode native`) over `queries/verify/*.rq` |
-| Monotonic materialization oracle | `owlrl` in `tests/test_reasoning_entailments.py` |
-| Temporal scope | `gmeow temporal` (`cli.py:476`) |
-| Foundation discipline as conformance | `reasoning_lint.py` (MixIden/MixRig/RelComp); `imports/gufo.ttl` |
-| Reified worlds + accessibility | `gmeow:Standpoint` / `gmeow:NarrativeReferenceFrame`; `accordingTo` (index); `sharpens` (accessibility); `standpointModality` (□/◇/□¬) |
-| Type-level counterfactual (no-occurrence gate) | risk slice (`Hazard ⊑ Disposition`, `CausalLink`/`Cascade` over `EventType`); teleology `Goal`/`satisfiedBy`; norms `prescribedConduct` |
-| Belief-world vs asserted-world | deception `heldStandpoint` / `projectedStandpoint` on one `Event` |
-| Deterministic revision (entrenchment) | reuse `gmeow:overrides` / `AuthorityLevel` / `moreSevereThan` / `sharpens` as the tie-break order; tie → `unknown` |
-| Engine pattern (Rust core + Python oracle + corpus gate) | GTS GTS conformance design; `crates/gts/`; pyoxigraph model; Principle 7 |
-| Possible world = named graph | oxigraph quad store; `accordingTo` context; paraconsistency = world-indexed entailment |
-| World construction substrate | Nemo existential rules + acyclicity/termination certification |
-| Backward chaining (Prolog-grade) | embedded Scryer Prolog; magic-sets over Nemo later |
-| Second-order identity supply | OWL punning (class-as-individual) + Flora-2/Ergo HiLog reification |
-| Logic-to-prose explanation source | mandatory annotations (`validate.py` `structural_lint`); `gmeow describe`; markdown datatype |
-| Upper-ontology projection targets | `config.py:560-575` (`gufo`/`dolce`/`bfo` as `"upper"`) |
-| Reasoning cost reality | `reason.py:44-45` (`_HERMIT_TIMEOUT`, reasoner timeout gate) |
-| CLI sub-app + reason modes | `cli.py:332,1168` (`add_typer`); `cli.py:407` (`reason`) |
-
 ## Constitutional Alignment
 
 `logic:` is the project's own doctrine applied to logic and to its foundation. The CONSTITUTION
@@ -222,10 +199,11 @@ The end state is not "OWL, but faster." It is:
   and contextual/modal/temporal/probabilistic/paraconsistent reasoning, RDF 1.2-native;
 - the foundational ontology (UFO⁺) is authored in `logic:`, with its discipline expressed as axioms
   rather than external lint;
-- the native solver is the normal development authority, running forward and backward;
-- OWL, Datalog, SHACL, Prolog, N3, SPARQL, and gUFO are generated lossy projections; BFO, DOLCE,
-  and SUMO are generated bridge views;
-- Jena, ROBOT, ELK, and HermiT are secondary validators for exported subsets;
+- a single canonical native solver is the normal development authority, running forward and backward
+  chaining; classical OWL tools (Jena, ROBOT, ELK, HermiT) operate as secondary validators for
+  exported subsets;
+- OWL, Datalog, SHACL, Prolog, N3, SPARQL, gUFO, and the Common Logic dialects (CLIF, CGIF, XCL)
+  are generated lossy projections; BFO, DOLCE, and SUMO are generated bridge views;
 - projection loss is visible, machine-readable, and tested.
 
 This makes GMEOW's logic match the rest of the project: maximal model, maximal linking, explicit
