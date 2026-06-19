@@ -15,7 +15,7 @@ GMEOW_DEV ?= uv run --package gmeow-dev gmeow-dev
 .PHONY: help install fmt lint validate crosscheck classic-cross-check reason reason-native reason-hermit explain verify reasoning-cases statements-docker-check extract \
         mappings wikidata wikidata-live wikidata-coverage wikidata-audit \
         lint-alignment refresh-target-axioms docs docs-full ontology-docs ontology-docs-full quality \
-        normalize build project test test-fast test-docker check check-docker check-generated release regenerate commit clean clean-docs pull-images \
+        normalize build project test test-fast test-docker check check-generated release regenerate commit clean clean-docs pull-images \
         coverage acceptance crossref constitution-check compliance-report compliance-report-full audit evals-score \
         diagnostics-build diagnostics-test diagnostics-py \
         native-py rust-test logic-build logic-test logic-py conformance \
@@ -48,28 +48,24 @@ validate: diagnostics-py validate-py shacl-py ## Validate syntax, term annotatio
 validate-gts: diagnostics-py validate-py shacl-py ## Validate the committed GTS bundle directly via the gmeow-gts oxigraph adapter (#644).
 	$(GMEOW_DEV) validate --gts generated/dist/gmeow.gts
 
-crosscheck: ## Prove rdflib and pyoxigraph answer every committed query alike (no Docker).
-	$(GMEOW_DEV) crosscheck-queries
-
 reason-native: logic-py ## Native Docker-free EL/DL reasoning authority (reason --mode native).
 	$(GMEOW_DEV) reason --mode native
+
+reason: reason-native ## OWL consistency reasoning — native, Docker-free authority (alias for reason-native).
 
 # === CLASSIC-CROSS-CHECK LANE — the SOLE Java+Docker surface (#666, Principle 18) ===
 # Everything in this block runs the legacy oracles (ELK, HermiT, ROBOT, Jena) and
 # the rdflib engine cross-check. It is CROSS-CHECK ONLY: never part of `make check`,
 # never in the required CI `quality` gate, never required to use the repo normally.
-# The authoritative gate is the native, Docker-free `reason-native` lane.
+# The authoritative, Docker-free gate is `make reason` (= reason-native).
 classic-cross-check: ## CROSS-CHECK ONLY (Docker/Java oracles) — NOT required for normal repo use (#666).
-	$(MAKE) reason
+	$(GMEOW_DEV) reason --mode docker --reasoner ELK --exclude-tautologies structural
 	$(GMEOW_DEV) verify --reasoner ELK --reasoned-input dist/gmeow-reasoned-elk.ttl
-	$(MAKE) reason-hermit
-	$(MAKE) reasoning-cases
-	$(MAKE) statements-docker-check
+	$(GMEOW_DEV) reason --mode docker --reasoner hermit
+	uv run python scripts/reasoning_cases.py
+	uv run python scripts/statements_docker_check.py
 	$(GMEOW_DEV) crosscheck-queries
 	@echo "✓ classic-cross-check (oracle lane) passed — NOT a normal-use requirement"
-
-reason: ## [lane] Merge, validate OWL 2 DL profile, ELK consistency (Docker oracle).
-	$(GMEOW_DEV) reason --mode docker --reasoner ELK --exclude-tautologies structural
 
 reason-hermit: ## [lane] Sound + complete consistency check with HermiT (Docker oracle).
 	$(GMEOW_DEV) reason --mode docker --reasoner hermit
@@ -77,7 +73,8 @@ reason-hermit: ## [lane] Sound + complete consistency check with HermiT (Docker 
 explain: ## [lane] Explain any unsatisfiable classes (HermiT, Docker oracle).
 	$(GMEOW_DEV) explain
 
-verify: reason ## [lane] Reasoned-graph negative tests (ROBOT verify over queries/verify/, Docker oracle).
+verify: ## [lane] Reasoned-graph negative tests (ELK reason + ROBOT verify over queries/verify/, Docker oracle).
+	$(GMEOW_DEV) reason --mode docker --reasoner ELK --exclude-tautologies structural
 	$(GMEOW_DEV) verify --reasoner ELK --reasoned-input dist/gmeow-reasoned-elk.ttl
 
 reasoning-cases: ## [lane] HermiT/ELK inconsistency and fixture-coherence cases (Docker oracle).
@@ -85,6 +82,9 @@ reasoning-cases: ## [lane] HermiT/ELK inconsistency and fixture-coherence cases 
 
 statements-docker-check: ## [lane] Jena/ROBOT-backed statement artifact and reasoning checks (Docker oracle).
 	uv run python scripts/statements_docker_check.py
+
+crosscheck: ## [lane] Prove rdflib (legacy engine) and pyoxigraph answer every committed query alike (no Docker).
+	$(GMEOW_DEV) crosscheck-queries
 
 extract: ## Report import/extract policy for TARGET (refuses reference-only).
 	$(GMEOW_DEV) extract --target $(TARGET)
@@ -215,34 +215,26 @@ build: ## Build serializations and JSON-LD context into dist/.
 project: ## Project GMEOW data to pure schema.org/GeoSPARQL/vCard/FOAF/iCal/OWL-Time profiles (FnO/EDOAL).
 	$(GMEOW_DEV) project
 
-test: native-py ## Run the full test suite (incl. heavy ci_only export tests).
-	uv run pytest -n auto --dist loadscope
+test: native-py ## Run the full test suite (incl. heavy ci_only export tests; excludes the classic-cross-check lane).
+	uv run pytest -n auto --dist loadscope -m "not classic_cross_check"
 
-test-fast: native-py ## Run the fast test suite (excludes ci_only, docker, and CI-only pyoxigraph).
-	uv run pytest -n auto --dist loadscope -m "not ci_only and not docker and not pyoxigraph_ci"
+test-fast: native-py ## Run the fast test suite (excludes ci_only, docker, CI-only pyoxigraph, and the classic-cross-check lane).
+	uv run pytest -n auto --dist loadscope -m "not ci_only and not docker and not pyoxigraph_ci and not classic_cross_check"
 
-test-docker: check-docker ## Compatibility alias for the Docker-backed Make lanes.
+test-docker: classic-cross-check ## Compatibility alias for the classic-cross-check (Docker/Java oracle) lane.
 
 test-network: ## Run the network tests (LIVE endpoints) — MANUAL only, never in CI/check.
 	GMEOW_RUN_NETWORK=1 uv run pytest -m network
 
-check: logic-py ## Fast local gate: core ontology + transforms (native EL/DL reasoning — Java/Docker-free; HermiT/ELK oracle lane runs in its own CI job).
-	$(MAKE) -j$$(nproc 2>/dev/null || echo 4) lint clippy rust-test validate crosscheck check-generated constitution-check audit wikidata coverage acceptance reason-native mappings-only lint-alignment
-	uv run pytest -n auto --dist loadscope -m "not ci_only and not docker and not pyoxigraph_ci"
+check: logic-py ## Fast local gate: core ontology + transforms (native EL/DL reasoning — Java/Docker-free; classic-cross-check oracle lane runs separately).
+	$(MAKE) -j$$(nproc 2>/dev/null || echo 4) lint clippy rust-test validate check-generated constitution-check audit wikidata coverage acceptance reason-native mappings-only lint-alignment
+	uv run pytest -n auto --dist loadscope -m "not ci_only and not docker and not pyoxigraph_ci and not classic_cross_check"
 	$(GMEOW_DEV) compliance-report --from-passing-check
-	@echo "✓ all checks passed"
+	@echo "✓ all checks passed (Docker-free, Java-free)"
 
-check-docker: ## Optional local Docker gate: HermiT, reasoning cases, and Jena statements.
-	$(MAKE) reason
-	$(GMEOW_DEV) verify --reasoner ELK --reasoned-input dist/gmeow-reasoned-elk.ttl
-	$(MAKE) reason-hermit
-	$(MAKE) reasoning-cases
-	$(MAKE) statements-docker-check
-	@echo "✓ all Docker checks passed"
-
-release: ## RDF 1.2 + OWL downcast → reasoned closure (HermiT) + build + regenerate + CrossRef deposit.
+release: ## RDF 1.2 + OWL downcast → native reasoned closure + build + regenerate + CrossRef deposit (Docker-free).
 	$(GMEOW_DEV) regenerate
-	$(GMEOW_DEV) reason --reasoner hermit --full
+	$(GMEOW_DEV) reason --mode native --merge
 	$(GMEOW_DEV) build
 	$(MAKE) compliance-report-full
 	$(GMEOW_DEV) crossref
