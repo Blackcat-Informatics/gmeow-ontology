@@ -177,8 +177,11 @@ def test_deposit_carries_access_indicators_license() -> None:
 
 
 @pytest.mark.network
-def test_deposit_crossmark_disabled_emits_top_level_access_indicators() -> None:
+def test_deposit_crossmark_disabled_emits_top_level_access_indicators(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     """With Crossmark disabled, the license program sits directly under dataset."""
+    monkeypatch.setattr(crossref_mod, "CROSSMARK_ENABLED", False)
     xml = build_deposit_xml(timestamp="20260603120000")
     root = _parse(xml)
     datasets = root.findall(f".//{{{CR_NS}}}dataset")
