@@ -1543,6 +1543,70 @@ fn verify_native(
         .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))
 }
 
+// ── extract_module ──────────────────────────────────────────────────────────────
+
+/// Extract a syntactic-locality module (SLME) from a source ontology (issue #695).
+///
+/// Native, Java/Docker-free replacement for the ROBOT `extract` shell-out. Computes
+/// a *module* of `ontology_ttl` around the seed signature `terms` using ⊥-/⊤-locality
+/// (`method` ∈ `{"STAR", "BOT", "TOP"}`, case-insensitive; unknown → STAR with a
+/// warning). The module is **sound, not necessarily minimal**: any construct that
+/// touches the signature is kept, and constructs not classified by exact locality are
+/// kept conservatively (with a `slme.conservative-keep` warning). It may therefore be
+/// a superset of ROBOT's output — over-extraction is acceptable, under-extraction is
+/// not.
+///
+/// # Arguments
+///
+/// - `ontology_ttl` — the source ontology as Turtle text.
+/// - `terms` — the seed term IRIs (the signature Σ).
+/// - `method` — `"STAR"` (default/unknown), `"BOT"`, or `"TOP"` (case-insensitive).
+///
+/// # Returns
+///
+/// A dict with keys:
+/// - `module_ttl` (str) — the extracted module, deterministic Turtle.
+/// - `selected_axiom_count` (int) — number of top-level (named-subject) kept triples.
+/// - `method` (str) — the normalized method actually used.
+/// - `warnings` (`list[dict]`) — each `{code, message}` from the conservative-keep /
+///   unknown-method findings.
+///
+/// # Errors
+///
+/// Raises `ValueError` if the Turtle source cannot be parsed or the in-memory store
+/// fails to build/iterate.
+#[pyfunction]
+fn extract_module(
+    py: Python<'_>,
+    ontology_ttl: &str,
+    terms: Vec<String>,
+    method: &str,
+) -> PyResult<Py<PyAny>> {
+    // Run the parse + extract with the GIL released; the closure returns the plain
+    // data needed to build the Python dict afterwards (no Python objects cross the
+    // detach boundary, mirroring reason_native).
+    let ttl = ontology_ttl.to_owned();
+    let method_owned = method.to_owned();
+    let result = py
+        .detach(move || crate::slme::extract_module(&ttl, &terms, &method_owned))
+        .map_err(pyo3::exceptions::PyValueError::new_err)?;
+
+    let warnings = PyList::empty(py);
+    for finding in &result.findings {
+        let w = PyDict::new(py);
+        w.set_item("code", finding.code.as_str())?;
+        w.set_item("message", finding.message.as_str())?;
+        warnings.append(w)?;
+    }
+
+    let out = PyDict::new(py);
+    out.set_item("module_ttl", result.module_ttl)?;
+    out.set_item("selected_axiom_count", result.selected_axiom_count)?;
+    out.set_item("method", result.method.as_str())?;
+    out.set_item("warnings", warnings)?;
+    Ok(out.into_any().unbind())
+}
+
 #[pymodule]
 fn gmeow_logic(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(materialize, m)?)?;
@@ -1557,6 +1621,7 @@ fn gmeow_logic(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(rl_closure, m)?)?;
     m.add_function(wrap_pyfunction!(build_divergence_ledger, m)?)?;
     m.add_function(wrap_pyfunction!(verify_native, m)?)?;
+    m.add_function(wrap_pyfunction!(extract_module, m)?)?;
     Ok(())
 }
 

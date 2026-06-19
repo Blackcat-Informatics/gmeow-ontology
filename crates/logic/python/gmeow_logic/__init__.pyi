@@ -143,6 +143,26 @@ def verify_native(gts_bytes: bytes, queries: list[tuple[str, str]]) -> str:
     """
     ...
 
+def extract_module(ontology_ttl: str, terms: list[str], method: str) -> dict[str, Any]:
+    """Extract a syntactic-locality module (SLME) from Turtle (Java/Docker-free; #695).
+
+    Computes a *module* of ``ontology_ttl`` around the seed signature ``terms``
+    using bottom-/top-locality. ``method`` is one of ``"STAR"`` (default/unknown),
+    ``"BOT"``, or ``"TOP"`` (case-insensitive). The module is *sound, not
+    necessarily minimal*: any construct touching the signature is kept, and
+    constructs not classified by exact locality are kept conservatively (with a
+    ``slme.conservative-keep`` warning), so it may be a superset of ROBOT's output.
+
+    Returns a dict with the keys:
+
+    * ``module_ttl`` (str) — the extracted module as deterministic Turtle.
+    * ``selected_axiom_count`` (int) — number of top-level (named-subject) kept triples.
+    * ``method`` (str) — the normalized method actually used.
+    * ``warnings`` — list of ``{code, message}`` dicts (conservative-keep /
+      unknown-method findings).
+    """
+    ...
+
 def certify(rules: str, profile: str) -> dict[str, Any]: ...
 def stable_models(rules: str, input: str) -> dict[str, Any]: ...
 def query(

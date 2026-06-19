@@ -1,4 +1,7 @@
-"""ROBOT-based module extraction with license-policy enforcement.
+"""Native SLME module extraction with license-policy enforcement.
+
+Module extraction is native (Java/Docker-free): it runs the Rust ``gmeow_logic``
+syntactic-locality extractor in-process, replacing the retired ROBOT shell-out.
 
 Extraction *copies* axioms/labels from a source ontology into GMEOW (a CC BY 4.0
 work). That is only permissible for compatibly-licensed sources, so every
@@ -26,11 +29,8 @@ from pathlib import Path
 from gmeow_tools.config import (
     ALIGNMENT_TARGETS,
     DIST_DIR,
-    PROJECT_ROOT,
-    ROBOT_IMAGE,
     LinkPolicy,
 )
-from gmeow_tools.runner import run_container
 
 
 class LicensePolicyError(RuntimeError):
@@ -74,7 +74,8 @@ def extract_terms(
         source: Source ontology file under the repo (e.g. a vendored import).
         terms: Seed term IRIs to extract the module around.
         output: Destination Turtle file.
-        method: ROBOT extract method (``STAR`` SLME by default).
+        method: SLME extraction notion (``STAR`` nested bot/top by default;
+            also ``BOT``/``TOP``, case-insensitive).
 
     Returns:
         The path to the extracted module.
@@ -87,18 +88,13 @@ def extract_terms(
     if not source.exists():
         raise FileNotFoundError(f"extract source not found: {source}")
     output.parent.mkdir(parents=True, exist_ok=True)
-    args = [
-        "robot",
-        "extract",
-        "--method",
-        method,
-        "--input",
-        str(source.relative_to(PROJECT_ROOT)),
-    ]
-    for term in terms:
-        args += ["--term", term]
-    args += ["--output", str(output.relative_to(PROJECT_ROOT))]
-    run_container(ROBOT_IMAGE, args)
+
+    import gmeow_logic
+
+    result = gmeow_logic.extract_module(
+        source.read_text(encoding="utf-8"), list(terms), method
+    )
+    output.write_text(result["module_ttl"], encoding="utf-8")
     return output
 
 
