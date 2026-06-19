@@ -17,6 +17,8 @@ pub mod lookaside;
 pub mod model;
 #[cfg(feature = "oxigraph")]
 pub mod oxigraph;
+#[cfg(feature = "oxigraph")]
+pub mod statements;
 pub mod store;
 pub mod turtle;
 

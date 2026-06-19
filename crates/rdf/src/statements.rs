@@ -1,0 +1,343 @@
+// SPDX-FileCopyrightText: 2026 Blackcat Informatics Inc. <paudley@blackcatinformatics.ca>
+// SPDX-License-Identifier: AGPL-3.0-only
+
+//! Native OWL axiom-annotation ↔ RDF 1.2 statement codec — the **lead** writer.
+//!
+//! Mirrors the two SPARQL CONSTRUCT codecs (`queries/codecs/rdf12-project.rq`
+//! and `rdf12-to-owl.rq`) as pure structural folds over the gmeow-rdf model, so
+//! the RDF 1.2 statement lead artifact (`generated/statements/gmeow.rdf12.ttl`)
+//! is produced with **no Apache Jena, no Docker, and no SPARQL engine**. oxigraph
+//! (the `rdf-12` feature) only *parses* the input Turtle; the projection itself
+//! is a fold over [`crate::RdfStore`] quads into native RDF 1.2 triple terms.
+//!
+//! Both emitters write full-IRI Turtle (no prefix compaction); the drift gate
+//! compares RDFC-1.0 canonical quad sets (graph isomorphism), so banners and
+//! prefixes are immaterial — the triple/reifier/annotation *structure* is what
+//! must round-trip (CONSTITUTION Principle 7, verified by construction).
+//!
+//! The RDF 1.2 triple-term form `<<( s p o )>>` is emitted (matching the SPARQL
+//! codecs and what oxigraph/Jena both parse), not the RDF-star `<< s p o >>`
+//! shorthand the reasoning-closure emitter uses.
+
+use std::collections::BTreeMap;
+
+use oxigraph::io::RdfFormat;
+use oxigraph::store::Store;
+
+use crate::oxigraph::OxigraphStore;
+use crate::{RdfDiagnostic, RdfStore, RdfTerm};
+
+const OWL_AXIOM: &str = "http://www.w3.org/2002/07/owl#Axiom";
+const OWL_ANNOTATED_SOURCE: &str = "http://www.w3.org/2002/07/owl#annotatedSource";
+const OWL_ANNOTATED_PROPERTY: &str = "http://www.w3.org/2002/07/owl#annotatedProperty";
+const OWL_ANNOTATED_TARGET: &str = "http://www.w3.org/2002/07/owl#annotatedTarget";
+const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+const RDF_REIFIES: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies";
+
+/// Parse a Turtle document (incl. RDF 1.2 triple terms) into an oxigraph store.
+fn load_store(ttl: &str) -> Result<Store, RdfDiagnostic> {
+    let store =
+        Store::new().map_err(|e| RdfDiagnostic::error("statements-store-create", e.to_string()))?;
+    store
+        .load_from_reader(RdfFormat::Turtle, ttl.as_bytes())
+        .map_err(|e| RdfDiagnostic::error("statements-turtle-parse", e.to_string()))?;
+    Ok(store)
+}
+
+/// Emit an RDF 1.2 triple term `<<( <s> <p> <o> )>>`.
+fn emit_triple_term(subject: &RdfTerm, predicate: &str, object: &RdfTerm) -> String {
+    format!(
+        "<<( {} <{}> {} )>>",
+        crate::emit_term(subject),
+        predicate,
+        crate::emit_term(object)
+    )
+}
+
+/// Require an IRI term (predicates must be IRIs).
+fn require_iri(term: &RdfTerm, context: &str) -> Result<String, RdfDiagnostic> {
+    match term {
+        RdfTerm::Iri(iri) => Ok(iri.clone()),
+        other => Err(RdfDiagnostic::error(
+            "statements-non-iri",
+            format!("{context} must be an IRI, got {:?}", other.kind()),
+        )),
+    }
+}
+
+/// Accumulated facts for one `owl:Axiom` subject during projection.
+#[derive(Default)]
+struct AxiomAccum {
+    subject: Option<RdfTerm>,
+    is_axiom: bool,
+    source: Option<RdfTerm>,
+    property: Option<RdfTerm>,
+    target: Option<RdfTerm>,
+    annotations: Vec<(String, RdfTerm)>,
+}
+
+/// Project the OWL axiom-annotation downcast → the RDF 1.2 / RDF* lead form.
+///
+/// Mirrors `rdf12-project.rq`: each `owl:Axiom` (with
+/// `owl:annotatedSource`/`Property`/`Target` + annotations) becomes the asserted
+/// base triple plus a reifier `<<( s p o )>>` carrying the annotations.
+///
+/// # Errors
+///
+/// Returns an [`RdfDiagnostic`] on a Turtle parse error, a malformed axiom
+/// (missing source/property/target), or a non-IRI annotated property.
+pub fn project_owl_to_rdf12(owl_ttl: &str) -> Result<String, RdfDiagnostic> {
+    let store = load_store(owl_ttl)?;
+    let view = OxigraphStore::new(&store);
+
+    let mut axioms: BTreeMap<String, AxiomAccum> = BTreeMap::new();
+    for quad in view.quads() {
+        let quad = quad?;
+        let acc = axioms.entry(crate::emit_term(&quad.subject)).or_default();
+        if acc.subject.is_none() {
+            acc.subject = Some(quad.subject.clone());
+        }
+        match quad.predicate.as_str() {
+            RDF_TYPE => {
+                if matches!(&quad.object, RdfTerm::Iri(iri) if iri == OWL_AXIOM) {
+                    acc.is_axiom = true;
+                }
+                // Other rdf:type values are filtered out (NOT IN rdf:type).
+            }
+            OWL_ANNOTATED_SOURCE => acc.source = Some(quad.object.clone()),
+            OWL_ANNOTATED_PROPERTY => acc.property = Some(quad.object.clone()),
+            OWL_ANNOTATED_TARGET => acc.target = Some(quad.object.clone()),
+            other => acc
+                .annotations
+                .push((other.to_owned(), quad.object.clone())),
+        }
+    }
+
+    let mut out = String::new();
+    for acc in axioms.values() {
+        if !acc.is_axiom {
+            continue;
+        }
+        let subject = acc.subject.as_ref().expect("subject seen for accumulator");
+        let missing = |what: &str| {
+            RdfDiagnostic::error(
+                "statements-malformed-axiom",
+                format!("owl:Axiom {} lacks {what}", crate::emit_term(subject)),
+            )
+        };
+        let source = acc
+            .source
+            .as_ref()
+            .ok_or_else(|| missing("owl:annotatedSource"))?;
+        let property = acc
+            .property
+            .as_ref()
+            .ok_or_else(|| missing("owl:annotatedProperty"))?;
+        let target = acc
+            .target
+            .as_ref()
+            .ok_or_else(|| missing("owl:annotatedTarget"))?;
+        let property_iri = require_iri(property, "owl:annotatedProperty")?;
+
+        // ?s ?p ?o .
+        out.push_str(&format!(
+            "{} <{}> {} .\n",
+            crate::emit_term(source),
+            property_iri,
+            crate::emit_term(target)
+        ));
+
+        // ?axiom rdf:reifies <<( ?s ?p ?o )>> ; ?annProp ?annVal ; … .
+        let mut annotations: Vec<(String, String)> = acc
+            .annotations
+            .iter()
+            .map(|(predicate, object)| (predicate.clone(), crate::emit_term(object)))
+            .collect();
+        annotations.sort();
+        let mut line = format!(
+            "{} <{}> {}",
+            crate::emit_term(subject),
+            RDF_REIFIES,
+            emit_triple_term(source, &property_iri, target)
+        );
+        for (predicate, object) in &annotations {
+            line.push_str(&format!(" ;\n   <{predicate}> {object}"));
+        }
+        line.push_str(" .\n");
+        out.push_str(&line);
+    }
+    Ok(out)
+}
+
+/// Accumulated facts for one reifier subject during normalization.
+struct ReifierAccum {
+    subject: RdfTerm,
+    reified: Option<Box<crate::RdfTriple>>,
+    annotations: Vec<(String, RdfTerm)>,
+}
+
+/// Normalize the RDF 1.2 / RDF* lead form → the OWL axiom-annotation normal form.
+///
+/// Mirrors `rdf12-to-owl.rq` (the round-trip inverse): each
+/// `?reifier rdf:reifies <<( s p o )>>` + annotations becomes the asserted base
+/// triple plus the plain `owl:Axiom` reification rdflib can parse (rdflib cannot
+/// parse RDF 1.2 triple terms — this normal form is what the isomorphism check
+/// compares against the authored OWL graph).
+///
+/// # Errors
+///
+/// Returns an [`RdfDiagnostic`] on a Turtle parse error or an `rdf:reifies` whose
+/// object is not a triple term.
+pub fn normalize_rdf12_to_owl(rdf12_ttl: &str) -> Result<String, RdfDiagnostic> {
+    let store = load_store(rdf12_ttl)?;
+    let view = OxigraphStore::new(&store);
+
+    let mut by_subject: BTreeMap<String, ReifierAccum> = BTreeMap::new();
+    for quad in view.quads() {
+        let quad = quad?;
+        let key = crate::emit_term(&quad.subject);
+        let acc = by_subject.entry(key).or_insert_with(|| ReifierAccum {
+            subject: quad.subject.clone(),
+            reified: None,
+            annotations: Vec::new(),
+        });
+        match quad.predicate.as_str() {
+            RDF_REIFIES => match &quad.object {
+                RdfTerm::Triple(triple) => acc.reified = Some(triple.clone()),
+                other => {
+                    return Err(RdfDiagnostic::error(
+                        "statements-reifies-non-triple",
+                        format!(
+                            "rdf:reifies object must be a triple term, got {:?}",
+                            other.kind()
+                        ),
+                    ));
+                }
+            },
+            RDF_TYPE => {} // filtered (NOT IN rdf:type)
+            other => acc
+                .annotations
+                .push((other.to_owned(), quad.object.clone())),
+        }
+    }
+
+    let mut out = String::new();
+    for acc in by_subject.values() {
+        // Non-reifier subjects (bare base triples) are reconstructed from the
+        // triple terms, exactly as rdf12-to-owl.rq does — so they are dropped here.
+        let Some(reified) = &acc.reified else {
+            continue;
+        };
+        let (s, p, o) = (&reified.subject, &reified.predicate, &reified.object);
+
+        // ?s ?p ?o .
+        out.push_str(&format!(
+            "{} <{}> {} .\n",
+            crate::emit_term(s),
+            p,
+            crate::emit_term(o)
+        ));
+
+        // ?reifier a owl:Axiom ; owl:annotated* … ; ?annProp ?annVal .
+        let mut properties: Vec<(String, String)> = vec![
+            (RDF_TYPE.to_owned(), format!("<{OWL_AXIOM}>")),
+            (OWL_ANNOTATED_SOURCE.to_owned(), crate::emit_term(s)),
+            (OWL_ANNOTATED_PROPERTY.to_owned(), format!("<{p}>")),
+            (OWL_ANNOTATED_TARGET.to_owned(), crate::emit_term(o)),
+        ];
+        for (predicate, object) in &acc.annotations {
+            properties.push((predicate.clone(), crate::emit_term(object)));
+        }
+        properties.sort();
+        let mut line = crate::emit_term(&acc.subject);
+        for (index, (predicate, object)) in properties.iter().enumerate() {
+            let sep = if index == 0 { " " } else { " ;\n   " };
+            line.push_str(&format!("{sep}<{predicate}> {object}"));
+        }
+        line.push_str(" .\n");
+        out.push_str(&line);
+    }
+    Ok(out)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::collections::BTreeSet;
+
+    const OWL: &str = r#"
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+gmeow:s gmeow:p gmeow:o .
+gmeow:ax a owl:Axiom ;
+    owl:annotatedSource gmeow:s ;
+    owl:annotatedProperty gmeow:p ;
+    owl:annotatedTarget gmeow:o ;
+    gmeow:accordingTo gmeow:analyst ;
+    gmeow:confidence "0.9"^^xsd:decimal .
+"#;
+
+    /// Canonical default-graph quad set for isomorphism comparison (named nodes
+    /// only, so set equality is exact).
+    fn quad_set(ttl: &str) -> BTreeSet<String> {
+        let store = load_store(ttl).expect("parse");
+        let view = OxigraphStore::new(&store);
+        view.quads()
+            .map(|q| crate::emit_quad(&q.expect("quad")))
+            .collect()
+    }
+
+    #[test]
+    fn project_emits_rdf12_triple_term() {
+        let rdf12 = project_owl_to_rdf12(OWL).expect("project");
+        assert!(
+            rdf12.contains("<http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> <<( "),
+            "expected an rdf:reifies triple term:\n{rdf12}"
+        );
+        // The base triple is asserted alongside the reifier.
+        assert!(rdf12.contains(
+            "<https://blackcatinformatics.ca/gmeow/s> <https://blackcatinformatics.ca/gmeow/p> <https://blackcatinformatics.ca/gmeow/o> ."
+        ));
+    }
+
+    #[test]
+    fn round_trip_is_isomorphic_to_authored_owl() {
+        let rdf12 = project_owl_to_rdf12(OWL).expect("project");
+        let owl_back = normalize_rdf12_to_owl(&rdf12).expect("normalize");
+        assert_eq!(
+            quad_set(&owl_back),
+            quad_set(OWL),
+            "round-trip must reproduce the authored OWL graph"
+        );
+    }
+
+    #[test]
+    fn projection_is_deterministic() {
+        let a = project_owl_to_rdf12(OWL).expect("project a");
+        let b = project_owl_to_rdf12(OWL).expect("project b");
+        assert_eq!(a, b, "projection must be byte-deterministic");
+    }
+
+    #[test]
+    fn dropped_annotation_breaks_the_round_trip() {
+        // Same axiom, but without the confidence annotation.
+        const OWL_MISSING: &str = r#"
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+
+gmeow:s gmeow:p gmeow:o .
+gmeow:ax a owl:Axiom ;
+    owl:annotatedSource gmeow:s ;
+    owl:annotatedProperty gmeow:p ;
+    owl:annotatedTarget gmeow:o ;
+    gmeow:accordingTo gmeow:analyst .
+"#;
+        // The faithful round-trip carries the confidence, so it must NOT match a
+        // graph that lost it (proves annotations flow through, not silently dropped).
+        let rdf12 = project_owl_to_rdf12(OWL).expect("project");
+        let owl_back = normalize_rdf12_to_owl(&rdf12).expect("normalize");
+        assert_ne!(quad_set(&owl_back), quad_set(OWL_MISSING));
+    }
+}
