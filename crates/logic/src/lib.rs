@@ -28,6 +28,7 @@ pub mod scryer_engine;
 pub mod seam;
 pub mod stablemodel;
 pub mod store;
+pub mod verify;
 pub mod versioning;
 pub mod wellfounded;
 

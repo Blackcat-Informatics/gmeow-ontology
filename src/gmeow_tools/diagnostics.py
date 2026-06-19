@@ -51,6 +51,16 @@ def report(tool: str) -> DiagnosticsReport:
     return gmeow_diagnostics.Report(tool)
 
 
+def report_from_json(data: str) -> DiagnosticsReport:
+    """Rehydrate a diagnostics report from its canonical JSON form.
+
+    The inverse of the Rust ``Report`` JSON serialization. Used by native lanes
+    (e.g. ``gmeow_logic.verify_native``) that build the report in Rust and hand
+    Python the JSON string to reconstruct (#695).
+    """
+    return gmeow_diagnostics.Report.from_json(data)
+
+
 def report_from_messages(
     *,
     tool: str,

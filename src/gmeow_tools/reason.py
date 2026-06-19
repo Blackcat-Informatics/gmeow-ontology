@@ -51,6 +51,8 @@ FULL_FILE = DIST_DIR / "gmeow-full.ttl"
 INFERRED_CLOSURE_FILE = DIST_DIR / "gmeow-inferred-closure.rdf12.ttl"
 #: Diagnostics-artifact stem for the native lane (JSON / SARIF / HTML).
 NATIVE_REASON_STEM = "gmeow-reason-native"
+#: Diagnostics-artifact stem for the native reasoned-graph verify lane (#695).
+NATIVE_VERIFY_STEM = "gmeow-verify-native"
 
 
 def _rel(path: Path) -> str:
@@ -507,5 +509,60 @@ def reason_native(
     )
     diagnostics.write_report_artifacts(
         report, output_dir=output_dir, stem=NATIVE_REASON_STEM
+    )
+    return report
+
+
+def verify_native(
+    *,
+    gts: Path = GTS_SNAPSHOT_FILE,
+    queries: Path = VERIFY_DIR,
+    output_dir: Path = DIST_DIR,
+) -> DiagnosticsReport:
+    """Run the native reasoned-graph negative tests (Java/Docker-free, #695).
+
+    The Rust authority (``gmeow_logic.verify_native``) materializes the asserted
+    graph unioned with the native EL/DL derived closure and runs every verify
+    query over it; this thin wrapper does only what belongs to Python: discover
+    the query files (repo + slice layout), hand the Rust core their text, rehydrate
+    the returned diagnostics report, and write its JSON / SARIF / HTML artifacts.
+    It never raises on a violation — the caller inspects ``report.ok``.
+
+    Args:
+        gts: The committed GTS bundle to verify over.
+        queries: Directory of ``*.rq`` SELECT verify queries. When it is the
+            canonical :data:`~gmeow_tools.config.VERIFY_DIR`, the per-slice verify
+            queries (``slices/*/*/queries/verify/``) are appended too.
+        output_dir: Destination directory for the diagnostics artifacts.
+
+    Returns:
+        The diagnostics report (its ``ok`` is false iff any query returned rows).
+
+    Raises:
+        FileNotFoundError: If no verify queries are found.
+    """
+    import gmeow_logic
+
+    from gmeow_tools import diagnostics
+
+    query_files = sorted(queries.glob("*.rq"))
+    if queries == VERIFY_DIR:
+        # Slices carry their own verify queries (slices/*/*/queries/verify/).
+        query_files += iter_slice_query_files("verify")
+    if not query_files:
+        raise FileNotFoundError(f"no verify queries found in {queries}")
+
+    # Pass (repo-relative path, query text): the path anchors each finding's
+    # SARIF physicalLocation; the text is what the native engine evaluates.
+    pairs = [
+        (str(qf.relative_to(PROJECT_ROOT)), qf.read_text(encoding="utf-8"))
+        for qf in query_files
+    ]
+    report_json = gmeow_logic.verify_native(gts.read_bytes(), pairs)
+    report = diagnostics.report_from_json(report_json)
+
+    output_dir.mkdir(parents=True, exist_ok=True)
+    diagnostics.write_report_artifacts(
+        report, output_dir=output_dir, stem=NATIVE_VERIFY_STEM
     )
     return report

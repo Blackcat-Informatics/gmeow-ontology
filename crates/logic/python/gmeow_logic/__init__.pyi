@@ -131,6 +131,18 @@ def build_divergence_ledger(
     """
     ...
 
+def verify_native(gts_bytes: bytes, queries: list[tuple[str, str]]) -> str:
+    """Native reasoned-graph verify over a GTS bundle (Java/Docker-free; #695).
+
+    Materializes the asserted graph unioned with the native EL/DL derived closure
+    and runs each ``(repo_relative_rq_path, sparql_text)`` SELECT query over it;
+    any returned row is a violation. Returns the resulting diagnostics
+    :class:`gmeow_diagnostics.Report` serialized as JSON (rehydrate with
+    ``gmeow_diagnostics.Report.from_json``). ``report.ok`` is false iff any query
+    returned a row.
+    """
+    ...
+
 def certify(rules: str, profile: str) -> dict[str, Any]: ...
 def stable_models(rules: str, input: str) -> dict[str, Any]: ...
 def query(
