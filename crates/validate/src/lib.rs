@@ -25,6 +25,7 @@
 pub mod cache;
 pub mod coverage;
 pub mod dsl;
+pub mod findings;
 pub mod gufo;
 pub mod lint;
 pub mod model;
