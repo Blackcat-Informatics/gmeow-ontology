@@ -378,7 +378,12 @@ def validate(
                 key_path = Path(policy_key)
                 if not key_path.is_absolute():
                     key_path = trust_policy.parent / key_path
-                signature_config["trusted_key"] = str(key_path)
+                try:
+                    signature_config["trusted_key"] = key_path.read_text(
+                        encoding="utf-8"
+                    )
+                except OSError as exc:
+                    raise _fail(f"cannot read trusted key {key_path}: {exc}") from exc
         if trusted_key is not None:
             # CLI --trusted-key takes precedence over any trusted_key path in the
             # policy file. It is read here so the Rust pre-gate receives the raw
