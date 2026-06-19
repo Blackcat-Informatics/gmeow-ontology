@@ -116,7 +116,15 @@ def _logical_only(graph: Graph) -> Graph:
             continue
         if _is_declaration(triple):
             continue
-        if str(p) in _SYMMETRIC_PREDS and str(s) > str(o):
+        # Only canonicalize direction between two NAMED nodes — a blank node's
+        # str() is an unstable per-parse id, so flipping on it would make the
+        # canonicalization non-deterministic and the cross-check flaky.
+        if (
+            str(p) in _SYMMETRIC_PREDS
+            and isinstance(s, URIRef)
+            and isinstance(o, URIRef)
+            and str(s) > str(o)
+        ):
             out.add((o, p, s))
             continue
         out.add(triple)
