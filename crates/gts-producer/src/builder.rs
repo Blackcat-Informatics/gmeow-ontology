@@ -7,8 +7,10 @@ use std::collections::{BTreeMap, BTreeSet, HashMap};
 use std::fs;
 use std::path::Path;
 
+use ciborium::value::{Integer, Value};
 use gmeow_gts::model::{Quad, Term, TermKind, Triple3};
-use gmeow_gts::writer::Writer;
+use gmeow_gts::wire::canonical;
+use gmeow_gts::writer::{digest_string, term_to_wire, FrameOptions, Writer, WriterError};
 use oxigraph::io::{RdfFormat, RdfParser};
 use oxigraph::model::{GraphName, NamedNode, NamedOrBlankNode, Term as OxTerm};
 
@@ -24,6 +26,7 @@ pub enum ProducerError {
     Io(std::io::Error),
     Parse(oxigraph::io::RdfSyntaxError),
     Value(String),
+    Writer(WriterError),
 }
 
 impl std::fmt::Display for ProducerError {
@@ -32,6 +35,7 @@ impl std::fmt::Display for ProducerError {
             Self::Io(e) => write!(f, "I/O error: {e}"),
             Self::Parse(e) => write!(f, "RDF parse error: {e}"),
             Self::Value(msg) => write!(f, "value error: {msg}"),
+            Self::Writer(e) => write!(f, "GTS writer error: {e}"),
         }
     }
 }
@@ -42,6 +46,7 @@ impl std::error::Error for ProducerError {
             Self::Io(e) => Some(e),
             Self::Parse(e) => Some(e),
             Self::Value(_) => None,
+            Self::Writer(e) => Some(e),
         }
     }
 }
@@ -55,6 +60,12 @@ impl From<std::io::Error> for ProducerError {
 impl From<oxigraph::io::RdfSyntaxError> for ProducerError {
     fn from(e: oxigraph::io::RdfSyntaxError) -> Self {
         Self::Parse(e)
+    }
+}
+
+impl From<WriterError> for ProducerError {
+    fn from(e: WriterError) -> Self {
+        Self::Writer(e)
     }
 }
 
@@ -222,6 +233,160 @@ impl Builder {
         if !canonical.annot.is_empty() {
             writer.add_annot(&canonical.annot);
         }
+        Ok(writer.to_bytes())
+    }
+
+    /// Emit a complete GTS file: optional signed meta frame, doc blobs, and a
+    /// single snapshot frame.
+    ///
+    /// Mirrors `src/gmeow_tools/gts_producer.py::_Builder.to_gts`, including
+    /// deterministic blob ordering, `zstd` → `zstd-rsyncable` promotion for
+    /// large payloads, and Ed25519 signing over every framed payload.
+    pub fn to_gts(
+        &self,
+        profile: &str,
+        transform: Option<Vec<String>>,
+        doc_blobs: Option<Vec<(Vec<u8>, String, String)>>,
+        signer: Option<(String, Vec<u8>)>,
+        public_key_armor: Option<&str>,
+        rsyncable_threshold: usize,
+    ) -> Result<Vec<u8>, ProducerError> {
+        let tables = self.canonicalize();
+        let base_chain = transform.unwrap_or_else(|| vec!["zstd".to_string()]);
+        let mut writer = Writer::new(profile);
+
+        // Configure the signer first so the optional transport-key meta frame
+        // is also signed, matching the Python `Writer(profile, signer=signer)`
+        // construction order.
+        if let Some((kid, secret)) = &signer {
+            let secret: [u8; 32] = secret.as_slice().try_into().map_err(|_| {
+                ProducerError::Value("Ed25519 secret key must be 32 bytes".to_string())
+            })?;
+            let signing_key = ed25519_dalek::SigningKey::from_bytes(&secret);
+            writer.sign_with(signing_key, kid);
+        }
+
+        if let Some(armor) = public_key_armor {
+            if signer.is_none() {
+                return Err(ProducerError::Value(
+                    "public_key_armor requires a signer".to_string(),
+                ));
+            }
+            let kid = signer
+                .as_ref()
+                .map(|(kid, _)| kid.clone())
+                .unwrap_or_default();
+            let meta = Value::Map(vec![(
+                Value::Text("gts:transportKey".to_string()),
+                Value::Map(vec![
+                    (Value::Text("kid".to_string()), Value::Text(kid)),
+                    (
+                        Value::Text("gpg".to_string()),
+                        Value::Text(armor.to_string()),
+                    ),
+                ]),
+            )]);
+            writer.add_meta(meta);
+        }
+
+        let choose_transform = |payload: &[u8]| -> Vec<String> {
+            if base_chain == ["zstd"] && payload.len() > rsyncable_threshold {
+                vec!["zstd-rsyncable".to_string()]
+            } else {
+                base_chain.clone()
+            }
+        };
+
+        fn iv(n: i64) -> Value {
+            Value::Integer(Integer::from(n))
+        }
+
+        // Doc blobs are emitted before the snapshot in deterministic order.
+        let mut blobs = doc_blobs.unwrap_or_default();
+        blobs.sort_by(|a, b| {
+            let rep_cmp = a.2.cmp(&b.2);
+            if rep_cmp != std::cmp::Ordering::Equal {
+                return rep_cmp;
+            }
+            a.0.cmp(&b.0)
+        });
+        for (data, media_type, rep) in blobs {
+            let chain = choose_transform(&data);
+            let pub_meta = Value::Map(vec![
+                (
+                    Value::Text("digest".to_string()),
+                    Value::Text(digest_string(&data)),
+                ),
+                (Value::Text("mt".to_string()), Value::Text(media_type)),
+                (Value::Text("rep".to_string()), Value::Text(rep)),
+            ]);
+            writer.add_frame_with_options(
+                "blob",
+                FrameOptions {
+                    raw: Some(data),
+                    transform: chain,
+                    pub_meta: Some(pub_meta),
+                    ..FrameOptions::default()
+                },
+            )?;
+        }
+
+        // Build the single snapshot payload that carries the whole graph.
+        let terms = Value::Array(tables.terms.iter().map(term_to_wire).collect());
+        let quads = Value::Array(
+            tables
+                .quads
+                .iter()
+                .map(|&(s, p, o, g)| {
+                    let mut row = vec![iv(s as i64), iv(p as i64), iv(o as i64)];
+                    if let Some(gv) = g {
+                        row.push(iv(gv as i64));
+                    }
+                    Value::Array(row)
+                })
+                .collect(),
+        );
+        let mut snapshot_entries: Vec<(Value, Value)> = vec![
+            (Value::Text("terms".to_string()), terms),
+            (Value::Text("quads".to_string()), quads),
+        ];
+        if !tables.reifies.is_empty() {
+            let reifies = Value::Map(
+                tables
+                    .reifies
+                    .iter()
+                    .map(|&(rid, (s, p, o))| {
+                        (
+                            iv(rid as i64),
+                            Value::Array(vec![iv(s as i64), iv(p as i64), iv(o as i64)]),
+                        )
+                    })
+                    .collect(),
+            );
+            snapshot_entries.push((Value::Text("reifies".to_string()), reifies));
+        }
+        if !tables.annot.is_empty() {
+            let annot = Value::Array(
+                tables
+                    .annot
+                    .iter()
+                    .map(|&(r, p, v)| Value::Array(vec![iv(r as i64), iv(p as i64), iv(v as i64)]))
+                    .collect(),
+            );
+            snapshot_entries.push((Value::Text("annot".to_string()), annot));
+        }
+        let snapshot = Value::Map(snapshot_entries);
+        let snapshot_bytes = canonical(&snapshot);
+        let snapshot_chain = choose_transform(&snapshot_bytes);
+        writer.add_frame_with_options(
+            "snapshot",
+            FrameOptions {
+                payload: Some(snapshot),
+                transform: snapshot_chain,
+                ..FrameOptions::default()
+            },
+        )?;
+
         Ok(writer.to_bytes())
     }
 
@@ -497,6 +662,8 @@ mod tests {
     use std::io::Write;
     use std::process::Command;
 
+    use ed25519_dalek::SigningKey;
+    use gmeow_gts::cose::{signature_kid, verify_sig, SigStatus};
     use gmeow_gts::model::TermKind;
     use gmeow_gts::reader::read;
     use tempfile::NamedTempFile;
@@ -1179,5 +1346,90 @@ print(json.dumps({
             && t.value.as_deref() == Some("42")
             && t.datatype.is_some()));
         assert!(graph.quads.iter().all(|q| q.3.is_some()));
+    }
+
+    #[test]
+    fn to_gts_with_blobs_and_snapshot() {
+        let mut builder = Builder::new();
+        let rows = vec![AnnotatedRow {
+            subject: TermDesc::Iri("http://example.org/s".to_string()),
+            predicate: TermDesc::Iri("http://example.org/p".to_string()),
+            object: TermDesc::Iri("http://example.org/o".to_string()),
+            reifier: TermDesc::Iri("http://example.org/r".to_string()),
+            annotations: vec![(
+                TermDesc::Iri("http://example.org/source".to_string()),
+                TermDesc::Literal {
+                    value: "derived".to_string(),
+                    datatype: None,
+                    lang: None,
+                },
+            )],
+        }];
+        builder.add_annotated_rows(&rows, None, None).unwrap();
+
+        let blobs = vec![
+            (
+                b"world".to_vec(),
+                "text/plain".to_string(),
+                "en".to_string(),
+            ),
+            (
+                b"hello".to_vec(),
+                "text/plain".to_string(),
+                "en".to_string(),
+            ),
+        ];
+        let bytes = builder
+            .to_gts("dist", None, Some(blobs), None, None, 65536)
+            .unwrap();
+        let mut graph = read(&bytes, false, None);
+
+        assert_eq!(graph.quads.len(), 1);
+        assert_eq!(graph.annotations.len(), 1);
+        assert_eq!(graph.blobs.len(), 2);
+
+        let decoded = graph.decoded_blobs().unwrap();
+        // Sorted by (rep, data): both "en", then "hello" < "world".
+        assert_eq!(decoded[0].1, b"hello");
+        assert_eq!(decoded[1].1, b"world");
+    }
+
+    #[test]
+    fn to_gts_signed_with_ed25519() {
+        let mut builder = Builder::new();
+        let rows = vec![AnnotatedRow {
+            subject: TermDesc::Iri("http://example.org/s".to_string()),
+            predicate: TermDesc::Iri("http://example.org/p".to_string()),
+            object: TermDesc::Iri("http://example.org/o".to_string()),
+            reifier: TermDesc::Iri("http://example.org/r".to_string()),
+            annotations: vec![],
+        }];
+        builder.add_annotated_rows(&rows, None, None).unwrap();
+
+        let secret = [7u8; 32];
+        let signing_key = SigningKey::from_bytes(&secret);
+        let verifying_key = signing_key.verifying_key();
+        let armor = "-----BEGIN PGP PUBLIC KEY BLOCK-----\n\n-----END PGP PUBLIC KEY BLOCK-----";
+        let bytes = builder
+            .to_gts(
+                "dist",
+                None,
+                None,
+                Some(("test-kid".to_string(), secret.to_vec())),
+                Some(armor),
+                65536,
+            )
+            .unwrap();
+        let graph = read(&bytes, false, None);
+
+        assert!(!graph.signatures.is_empty());
+        for sig in &graph.signatures {
+            let cose = sig.cose.as_ref().expect("signature bytes missing");
+            assert_eq!(
+                verify_sig(cose, &sig.frame_id, &verifying_key),
+                SigStatus::Valid
+            );
+            assert_eq!(signature_kid(cose).as_deref(), Some("test-kid"));
+        }
     }
 }

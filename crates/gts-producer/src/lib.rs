@@ -124,6 +124,48 @@ impl PyBuilder {
     fn to_gts_unsigned(&self, profile: &str) -> PyResult<Vec<u8>> {
         self.inner.to_gts_bytes(profile).map_err(into_py_value_err)
     }
+
+    /// Emit a complete GTS file with optional blobs, signing, and transform chain.
+    #[pyo3(signature = (
+        profile = "dist",
+        transform = None,
+        doc_blobs = None,
+        signer_kid = None,
+        signer_secret = None,
+        public_key_armor = None,
+        rsyncable_threshold = 65536
+    ))]
+    #[allow(clippy::too_many_arguments)]
+    fn to_gts(
+        &self,
+        profile: &str,
+        transform: Option<Vec<String>>,
+        doc_blobs: Option<Vec<(Vec<u8>, String, String)>>,
+        signer_kid: Option<String>,
+        signer_secret: Option<Vec<u8>>,
+        public_key_armor: Option<String>,
+        rsyncable_threshold: usize,
+    ) -> PyResult<Vec<u8>> {
+        let signer = match (signer_kid, signer_secret) {
+            (Some(kid), Some(secret)) => Some((kid, secret)),
+            (None, None) => None,
+            _ => {
+                return Err(pyo3::exceptions::PyValueError::new_err(
+                    "signer_kid and signer_secret must be supplied together",
+                ))
+            }
+        };
+        self.inner
+            .to_gts(
+                profile,
+                transform,
+                doc_blobs,
+                signer,
+                public_key_armor.as_deref(),
+                rsyncable_threshold,
+            )
+            .map_err(into_py_value_err)
+    }
 }
 
 fn into_py_value_err(e: ProducerError) -> PyErr {

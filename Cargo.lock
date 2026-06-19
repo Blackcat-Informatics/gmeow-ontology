@@ -1237,6 +1237,7 @@ name = "gmeow-gts-producer"
 version = "0.1.0"
 dependencies = [
  "ciborium",
+ "ed25519-dalek",
  "gmeow-gts",
  "gmeow-rdf",
  "oxigraph",
