@@ -88,8 +88,10 @@ def _fold_description(view: FoldView) -> str:
 _WIKIDATA_PREFIX = "http://www.wikidata.org/entity/"
 
 
-def _fold_wikidata_dataset_links(view: FoldView) -> list[URIRef]:
+def _fold_wikidata_dataset_links(view: FoldView | None) -> list[URIRef]:
     """Wikidata authority/exact-match links for the Work, projected to VoID/DCAT."""
+    if view is None:
+        return []
     work_tid = view.tid_of_iri(ONTOLOGY_IRI)
     if work_tid is None:
         return []
