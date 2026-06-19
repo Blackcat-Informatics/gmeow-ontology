@@ -28,6 +28,7 @@ from gts.model import XSD_STRING, Quad, Term, TermKind, Triple
 from gts.wire import canonical
 from gts.writer import Writer, term_to_wire
 from rdflib import BNode, Dataset, Graph, Literal, URIRef
+from rdflib.compare import to_canonical_graph
 
 from gmeow_tools.config import PROJECT_ROOT
 
@@ -89,11 +90,12 @@ class _Interner:
 class _PyBuilder:
     """Accumulates terms/quads/reifies/annot from one or more RDF sources."""
 
-    def __init__(self) -> None:
+    def __init__(self, *, normalize_xsd_string: bool = False) -> None:
         self.terms = _Interner()
         self.quads: list[Quad] = []
         self.reifies: dict[int, Triple] = {}
         self.annot: list[Triple] = []
+        self._normalize_xsd_string = normalize_xsd_string
 
     # -- rdflib (RDF 1.1) -----------------------------------------------------
 
@@ -129,6 +131,11 @@ class _PyBuilder:
             return self.terms.bnode(str(node), bnode_scope)
         if isinstance(node, Literal):
             dt = str(node.datatype) if node.datatype is not None else None
+            # The Rust producer ingests RDF 1.1 graphs through canonical N-Quads,
+            # where xsd:string is the default datatype and is normalized away.
+            # Normalize here so the legacy Python parity path matches byte-for-byte.
+            if self._normalize_xsd_string and dt == XSD_STRING:
+                dt = None
             return self.terms.literal(str(node), dt, node.language)
         return None  # quoted triples handled via the RDF 1.2 path
 
@@ -583,4 +590,55 @@ def compile_gts(
             public_key_armor=public_key_armor,
             rsyncable_threshold=rsyncable_threshold,
         )
+    )
+
+
+def _compile_gts_legacy(
+    graph: Graph,
+    rdf12_path: Path | None = None,
+    *,
+    alignment_graph: Graph | None = None,
+    extra_named_graphs: Sequence[tuple[Graph, str, str]] | None = None,
+    transform: list[str] | None = None,
+    doc_blobs: list[tuple[bytes, str, str]] | None = None,
+    signer: Signer | None = None,
+    public_key_armor: str | None = None,
+    rsyncable_threshold: int = 65536,
+) -> bytes:
+    """Legacy Python producer path used for byte-parity regression tests (#645).
+
+    This is the original ``compile_gts`` implementation that feeds
+    :class:`_PyBuilder` directly. It remains available so the Rust producer can
+    be validated against the exact historical output on the full GMEOW snapshot.
+    """
+    from gmeow_tools.config import GTS_GRAPH_ALIGNMENTS, GTS_GRAPH_STATEMENTS
+
+    builder = _PyBuilder(normalize_xsd_string=True)
+    builder.add_graph(to_canonical_graph(graph), bnode_scope="base")
+    if rdf12_path is not None:
+        if not rdf12_path.exists():
+            msg = f"RDF 1.2 statement artifact not found: {rdf12_path}"
+            raise FileNotFoundError(msg)
+        builder.add_rdf12(
+            rdf12_path, graph_name=GTS_GRAPH_STATEMENTS, bnode_scope="stmt"
+        )
+    if alignment_graph is not None:
+        builder.add_graph(
+            to_canonical_graph(alignment_graph),
+            graph_name=GTS_GRAPH_ALIGNMENTS,
+            bnode_scope="align",
+        )
+    for named_graph, graph_name, bnode_scope in extra_named_graphs or ():
+        builder.add_graph(
+            to_canonical_graph(named_graph),
+            graph_name=graph_name,
+            bnode_scope=bnode_scope,
+        )
+    return builder.to_gts(
+        profile="dist",
+        transform=transform,
+        doc_blobs=doc_blobs,
+        signer=signer,
+        public_key_armor=public_key_armor,
+        rsyncable_threshold=rsyncable_threshold,
     )

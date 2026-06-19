@@ -185,9 +185,16 @@ impl Builder {
             })
             .collect();
 
-        let mut new_quads: BTreeSet<Quad> = BTreeSet::new();
+        // Sort quads by graph slot first (default graph sentinel -1), then
+        // s/p/o, matching Python `_Builder._canonical_tables`.
+        let mut new_quads: BTreeSet<(i64, usize, usize, usize, Option<usize>)> = BTreeSet::new();
         for (s, p, o, g) in &self.quads {
+            let graph_key = match g {
+                Some(gid) => old_to_new[*gid] as i64,
+                None => -1,
+            };
             new_quads.insert((
+                graph_key,
                 old_to_new[*s],
                 old_to_new[*p],
                 old_to_new[*o],
@@ -210,7 +217,10 @@ impl Builder {
 
         CanonicalTables {
             terms: new_terms,
-            quads: new_quads.into_iter().collect(),
+            quads: new_quads
+                .into_iter()
+                .map(|(_, s, p, o, g)| (s, p, o, g))
+                .collect(),
             reifies: new_reifies.into_iter().collect(),
             annot: new_annot.into_iter().collect(),
         }
