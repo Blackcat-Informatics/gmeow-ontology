@@ -201,13 +201,14 @@ developer command.
 
 ```bash
 make install         # sync the uv environment
-make check           # fast local gate: lint, validate, ELK, mappings, wikidata, fast tests
-make check-docker    # optional Docker gate: HermiT, reasoning cases, Jena statement checks
+make check               # fast local gate: lint, validate, native EL/DL reason + verify, mappings, fast tests
+make classic-cross-check # non-required Docker oracle: ROBOT/ELK/HermiT cross-check of the native work + Jena statements
 ```
 
-`make check` is the normal local gate. Docker-heavy lanes are explicit so routine
-development is not blocked on HermiT/Jena, while CI and release jobs still exercise the
-complete reasoner surface.
+`make check` is the normal local gate — fully Java/Docker-free (native EL/DL
+reasoning and native reasoned-graph verify). The Docker oracle lane is explicit and
+non-required, so routine development and required CI are not blocked on
+ROBOT/HermiT/Jena; the classic reasoners survive only to cross-check the native work.
 
 ## The `gmeow.gts` bundle
 
@@ -272,7 +273,7 @@ hash, text labels, randomart, and valid/invalid/unverified signature counts. See
 | `make validate` | Turtle syntax + term-annotation lint + SHACL (pure Python) |
 | `make reason` | Merge import closure → OWL 2 **DL** profile check → **ELK** consistency (Docker/ROBOT) |
 | `make explain` | Explain unsatisfiable classes with **HermiT** |
-| `make verify` | Reasoned-graph SPARQL QC (ROBOT `verify` over `queries/verify/`) — the closed-world half of the [OWL-infers / SHACL-validates split](./docs/reasoning.md) |
+| `make verify` | Reasoned-graph SPARQL QC (native EL/DL closure over `queries/verify/`, Java/Docker-free) — the closed-world half of the [OWL-infers / SHACL-validates split](./docs/reasoning.md) |
 | `make regenerate` | Rebuild EVERY committed artifact under `generated/` via the registered-generator framework (#279): mappings, projections, statements, schemas, lpg, metadata, apache, the module-status matrix |
 | `make check-generated` | Drift + orphan + internal-tag-leak gate over every registered generator |
 | `make mappings` | SSSOM → OWL/SKOS alignment axioms + VoID linksets; validates Wikidata QID syntax |
@@ -281,7 +282,7 @@ hash, text labels, randomart, and valid/invalid/unverified signature counts. See
 | `make acceptance` | Score full transpile on real external RDF snapshots; hard gates plus honest coverage scoreboard |
 | `make docs` / `docs-full` | Native ontology-docs site into `dist/ontology-docs` / + optional Docker stages |
 | `make build` | All serializations (`ttl`/`rdf`/`nt`/`jsonld`) + JSON-LD context → `dist/` (ephemeral) |
-| `make check-docker` | HermiT, reasoning cases, and Jena-backed statement checks |
+| `make classic-cross-check` | Non-required ROBOT/ELK/HermiT cross-check of the native work + Jena-backed statement checks |
 | `make quality` | OOPS! pitfall scan (network, best-effort) |
 | `make release` | Regenerate + HermiT closure + build + compliance report + CrossRef deposit |
 

@@ -101,7 +101,7 @@ jobs:
       # (AC2/AC4 and the oracle≡engine parity gate run in every CI build).
       - name: Unit tests (pure Python)
         timeout-minutes: 60
-        run: uv run pytest -q -n auto --dist loadscope -m "not ci_only and not docker and not pyoxigraph_ci"
+        run: uv run pytest -q -n auto --dist loadscope -m "not ci_only and not docker and not pyoxigraph_ci and not classic_cross_check"
 
   python-heavy:
     runs-on: ubuntu-latest
@@ -183,7 +183,7 @@ jobs:
       # so expensive module fixtures are not rebuilt once per xdist worker.
       - name: CI-heavy Python tests
         timeout-minutes: 60
-        run: uv run pytest -q -n auto --dist loadscope -m "ci_only and not docker and not pyoxigraph_ci"
+        run: uv run pytest -q -n auto --dist loadscope -m "ci_only and not docker and not pyoxigraph_ci and not classic_cross_check"
 
       # Logic conformance suite: Python oracle self-consistency over the corpus.
       # Verifies that every committed golden artifact matches the live runner
@@ -196,6 +196,9 @@ jobs:
   # to the gmeow-gts repo (its `gts` binary is cargo-installed where needed).
   rust:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      checks: write
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
@@ -212,14 +215,38 @@ jobs:
       - name: Cache Cargo dependencies
         uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
 
+      - name: Install cargo-nextest
+        uses: taiki-e/install-action@b8cecb83565409bcc297b2df6e77f030b2a468d5 # v2
+        with:
+          tool: cargo-nextest
+
       - name: Format gate
         run: cargo fmt --check
 
       - name: Clippy (warnings are errors)
         run: cargo clippy --all-targets -- -D warnings
 
-      - name: Workspace tests (gmeow-logic, gmeow-shacl)
-        run: cargo test
+      - name: Workspace tests (cargo-nextest)
+        run: cargo nextest run --profile ci
+
+      - name: Doctests
+        run: cargo test --doc
+
+      - name: Upload JUnit report
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: junit-report-rust
+          path: target/nextest/ci/junit.xml
+          if-no-files-found: warn
+
+      - name: Publish test results
+        uses: dorny/test-reporter@df6247429542221bc30d46a036ee47af1102c451 # v2
+        if: always()
+        with:
+          name: Rust Tests
+          path: target/nextest/ci/junit.xml
+          reporter: java-junit
 
   ontology:
     runs-on: ubuntu-latest
@@ -286,6 +313,9 @@ jobs:
       - name: Constitution check (every principle has live enforcement)
         run: uv run --package gmeow-dev gmeow-dev constitution-check
 
+      - name: Reasoned-graph negative tests (native verify, Docker-free — #695)
+        run: uv run --package gmeow-dev gmeow-dev verify --mode native
+
       - name: Mappings → axioms + linksets, QID syntax
         run: uv run --package gmeow-dev gmeow-dev mappings
 
@@ -307,60 +337,14 @@ jobs:
       - name: Compliance report (per-principle gate evidence)
         run: uv run --package gmeow-dev gmeow-dev compliance-report --from-passing-check
 
-  # === CLASSIC-CROSS-CHECK LANE (#666, Principle 18) ===
-  # The SOLE Java+Docker surface, consolidated into ONE job: ELK + verify, HermiT,
-  # the Docker reasoning cases, the Jena/ROBOT statement checks, and the rdflib
-  # engine cross-check. It is deliberately ABSENT from the required `quality`
-  # gate's `needs:` list below — it is a separately-observed oracle cross-check,
-  # NEVER a requirement to use the repo. The authoritative gate is the native,
-  # Docker-free reasoning lane. Replaces the former reason / reason-hermit /
-  # reasoning-tests / statements (Jena half) jobs.
-  classic-cross-check:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
-        with:
-          persist-credentials: false
-
-      - name: Set up uv
-        uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39 # v8.2.0
-        with:
-          enable-cache: true
-
-      - name: Sync environment
-        run: uv sync --all-packages --frozen
-
-      # statements_docker_check.py validates the statement DSL through gmeow_shacl
-      # (#578) / gmeow_validate (#579); build those native extensions on the host.
-      - name: Install Rust (nightly, native only)
-        uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8 # nightly
-        with:
-          toolchain: nightly
-
-      - name: Cache Cargo dependencies
-        uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
-
-      - name: Build + install native extensions the lane imports
-        # The lane natively reasons (gmeow_logic), classifies the divergence
-        # ledger (gmeow_logic.build_divergence_ledger), validates (gmeow_shacl /
-        # gmeow_validate), and emits the gate-taxonomy SARIF/JSON via
-        # gmeow_diagnostics — all four must be built or `make classic-cross-check`
-        # dies with ModuleNotFoundError after the long Docker image build.
-        run: |
-          VIRTUAL_ENV="$PWD/.venv" uvx maturin develop --manifest-path crates/diagnostics/Cargo.toml
-          VIRTUAL_ENV="$PWD/.venv" uvx maturin develop --manifest-path crates/shacl/Cargo.toml
-          VIRTUAL_ENV="$PWD/.venv" uvx maturin develop --manifest-path crates/validate/Cargo.toml
-          VIRTUAL_ENV="$PWD/.venv" uvx maturin develop --manifest-path crates/logic/Cargo.toml
-
-      - name: Build the pinned Jena image (RDF 1.2 engine) + pull ROBOT
-        run: |
-          JENA_IMAGE=$(uv run python -c "from gmeow_tools.config import JENA_IMAGE; print(JENA_IMAGE)")
-          docker build -t "$JENA_IMAGE" docker/jena
-          ROBOT_IMAGE=$(uv run python -c "from gmeow_tools.config import ROBOT_IMAGE; print(ROBOT_IMAGE)")
-          docker pull "$ROBOT_IMAGE"
-
-      - name: Classic cross-check lane (ELK / HermiT / ROBOT / Jena / rdflib) — NOT required
-        run: make classic-cross-check
+  # === CLASSIC-CROSS-CHECK LANE (#666/#695, Principle 18) ===
+  # The Java+Docker oracle lane (ELK/HermiT/ROBOT/Jena/rdflib + native-vs-ROBOT
+  # cross-check) lives in its OWN workflow — `.github/workflows/classic-cross-check.yml`
+  # — and runs ONLY on a schedule, via workflow_dispatch, or when the
+  # `classic-cross-check` label is applied to a PR. It is never part of branch
+  # protection, so Docker/Java never executes on a normal PR. The authoritative
+  # gate is the native, Docker-free reasoning lane in the required `quality`
+  # aggregator below.
 
   statements-pyoxigraph:
     runs-on: ubuntu-latest
@@ -404,8 +388,9 @@ jobs:
   # above. `if: always()` guarantees it reports a definite success/failure
   # (never a merge-blocking "skipped") and fails if any parallel job did not.
   #
-  # The `classic-cross-check` job is DELIBERATELY EXCLUDED from `needs:` (#666,
-  # Principle 18): the Docker/Java oracle lane is a separately-observed
+  # The classic-cross-check lane is DELIBERATELY in its own workflow
+  # (.github/workflows/classic-cross-check.yml), NOT in this aggregator's `needs:`
+  # (#666/#695, Principle 18): the Docker/Java oracle lane is a separately-observed
   # cross-check, never a requirement to merge or to use the repo. The required
   # gate stays Docker-free and Java-free. `statements-pyoxigraph` (native, no
   # Docker) remains required.

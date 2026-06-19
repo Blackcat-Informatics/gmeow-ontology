@@ -12,10 +12,14 @@ TARGET ?= foaf
 MESSAGE ?= "chore: regenerate checked-in artifacts"
 GMEOW_DEV ?= uv run --package gmeow-dev gmeow-dev
 
-.PHONY: help install fmt lint validate crosscheck classic-cross-check reason reason-native reason-hermit explain verify reasoning-cases statements-docker-check extract \
+# Optional cargo-nextest partition for sharded CI runs (e.g., count:1/2)
+NEXTEST_PARTITION ?=
+NEXTEST_PARTITION_ARG := $(if $(NEXTEST_PARTITION),--partition $(NEXTEST_PARTITION) --no-tests pass,)
+
+.PHONY: help install fmt lint validate crosscheck classic-cross-check reason reason-native reason-hermit explain verify verify-docker reasoning-cases statements-docker-check extract \
         mappings wikidata wikidata-live wikidata-coverage wikidata-audit \
         lint-alignment refresh-target-axioms docs docs-full ontology-docs ontology-docs-full quality \
-        normalize build project test test-fast test-docker check check-generated release regenerate commit clean clean-docs pull-images \
+        normalize build project test test-fast test-docker check check-generated check-generated-native release regenerate commit clean clean-docs pull-images \
         coverage acceptance crossref constitution-check compliance-report compliance-report-full audit evals-score \
         diagnostics-build diagnostics-test diagnostics-py \
         native-py rust-test logic-build logic-test logic-py conformance \
@@ -60,10 +64,11 @@ reason: reason-native ## OWL consistency reasoning — native, Docker-free autho
 # The authoritative, Docker-free gate is `make reason` (= reason-native).
 classic-cross-check: ## CROSS-CHECK ONLY (Docker/Java oracles) — NOT required for normal repo use (#666).
 	$(GMEOW_DEV) reason --mode docker --reasoner ELK --exclude-tautologies structural
-	$(GMEOW_DEV) verify --reasoner ELK --reasoned-input dist/gmeow-reasoned-elk.ttl
+	$(GMEOW_DEV) verify --mode docker --reasoner ELK --reasoned-input dist/gmeow-reasoned-elk.ttl
 	$(GMEOW_DEV) reason --mode docker --reasoner hermit
 	uv run python scripts/reasoning_cases.py
 	uv run python scripts/statements_docker_check.py
+	uv run python scripts/slme_cross_check.py
 	$(GMEOW_DEV) crosscheck-queries
 	$(GMEOW_DEV) classic-cross-check
 	$(GMEOW_DEV) classic-cross-check-rl
@@ -76,9 +81,12 @@ reason-hermit: ## [lane] Sound + complete consistency check with HermiT (Docker 
 explain: ## [lane] Explain any unsatisfiable classes (HermiT, Docker oracle).
 	$(GMEOW_DEV) explain
 
-verify: ## [lane] Reasoned-graph negative tests (ELK reason + ROBOT verify over queries/verify/, Docker oracle).
+verify: logic-py ## Reasoned-graph negative tests (native EL/DL closure, Java/Docker-free — #695).
+	$(GMEOW_DEV) verify --mode native
+
+verify-docker: ## [lane] Reasoned-graph negative tests (ELK reason + ROBOT verify over queries/verify/, Docker oracle).
 	$(GMEOW_DEV) reason --mode docker --reasoner ELK --exclude-tautologies structural
-	$(GMEOW_DEV) verify --reasoner ELK --reasoned-input dist/gmeow-reasoned-elk.ttl
+	$(GMEOW_DEV) verify --mode docker --reasoner ELK --reasoned-input dist/gmeow-reasoned-elk.ttl
 
 reasoning-cases: ## [lane] HermiT/ELK inconsistency and fixture-coherence cases (Docker oracle).
 	uv run python scripts/reasoning_cases.py
@@ -89,7 +97,7 @@ statements-docker-check: ## [lane] Jena/ROBOT-backed statement artifact and reas
 crosscheck: ## [lane] Prove rdflib (legacy engine) and pyoxigraph answer every committed query alike (no Docker).
 	$(GMEOW_DEV) crosscheck-queries
 
-extract: ## [maintainer] Import/extract policy for TARGET (ROBOT/Docker — maintainer-only, NOT normal-use; native SLME port deferred, #666).
+extract: ## [maintainer] Import/extract policy for TARGET (native SLME, Java/Docker-free — maintainer-only, NOT normal-use; #695).
 	$(GMEOW_DEV) extract --target $(TARGET)
 
 
@@ -102,7 +110,7 @@ mappings: ## Build alignment axioms + VoID linksets from SSSOM; validate QID syn
 lint-alignment: ## Lint SSSOM mappings for inverse / domain-range-mismatched targets (offline).
 	$(GMEOW_DEV) lint-alignment
 
-refresh-target-axioms: ## [maintainer] Re-vendor minimal target-axiom snapshots (ROBOT/Docker — maintainer-only, NOT normal-use; #666).
+refresh-target-axioms: ## [maintainer] Re-vendor minimal target-axiom snapshots (pure-Python httpx, Java/Docker-free — maintainer-only, NOT normal-use; #695).
 	$(GMEOW_DEV) refresh-target-axioms --target all
 
 wikidata: ## Validate Wikidata QID/PID syntax in the mappings (offline).
@@ -150,6 +158,9 @@ normalize: ## Canonicalize the authored ontology sources (rewrites files).
 check-generated: ## Drift + orphan check for all registered generators.
 	$(GMEOW_DEV) check-generated -j $$(nproc 2>/dev/null || echo 4)
 
+check-generated-native: ## Drift check for the required gate — skips the Jena-backed statements lane (Docker/Java-free; statements drift is covered by the native statements-pyoxigraph job + the classic-cross-check oracle).
+	$(GMEOW_DEV) check-generated --skip statements -j $$(nproc 2>/dev/null || echo 4)
+
 constitution-check: ## Every constitutional principle must have live enforcement (#280).
 	$(GMEOW_DEV) constitution-check
 
@@ -169,7 +180,8 @@ diagnostics-build: ## Build the gmeow-diagnostics Rust crate (shared Finding/Rep
 	cargo build -p gmeow-diagnostics
 
 diagnostics-test: ## Run the gmeow-diagnostics unit tests.
-	cargo test -p gmeow-diagnostics
+	cargo nextest run -p gmeow-diagnostics $(NEXTEST_PARTITION_ARG)
+	cargo test --doc -p gmeow-diagnostics
 
 diagnostics-py: ## Build and install the gmeow_diagnostics Python extension (maturin develop).
 	VIRTUAL_ENV="$$(pwd)/.venv" uvx maturin develop --manifest-path crates/diagnostics/Cargo.toml
@@ -178,7 +190,8 @@ logic-build: ## Build the gmeow-logic Rust crate (world-indexed oxigraph store c
 	cargo build -p gmeow-logic
 
 logic-test: ## Run the gmeow-logic unit tests (world-isolation conformance).
-	cargo test -p gmeow-logic
+	cargo nextest run -p gmeow-logic $(NEXTEST_PARTITION_ARG)
+	cargo test --doc -p gmeow-logic
 
 logic-py: ## Build and install the gmeow_logic Python extension (maturin develop).
 	VIRTUAL_ENV="$$(pwd)/.venv" uvx maturin develop --manifest-path crates/logic/Cargo.toml
@@ -187,7 +200,8 @@ shacl-build: ## Build the gmeow-shacl Rust crate (oxigraph SHACL Core validator)
 	cargo build -p gmeow-shacl
 
 shacl-test: ## Run the gmeow-shacl unit + conformance tests.
-	cargo test -p gmeow-shacl
+	cargo nextest run -p gmeow-shacl $(NEXTEST_PARTITION_ARG)
+	cargo test --doc -p gmeow-shacl
 
 shacl-py: ## Build and install the gmeow_shacl Python extension (maturin develop).
 	VIRTUAL_ENV="$$(pwd)/.venv" uvx maturin develop --manifest-path crates/shacl/Cargo.toml
@@ -196,7 +210,8 @@ validate-build: ## Build the gmeow-validate Rust crate (oxigraph validation-path
 	cargo build -p gmeow-validate
 
 validate-test: ## Run the gmeow-validate unit + integration tests.
-	cargo test -p gmeow-validate
+	cargo nextest run -p gmeow-validate $(NEXTEST_PARTITION_ARG)
+	cargo test --doc -p gmeow-validate
 
 validate-py: ## Build and install the gmeow_validate Python extension (maturin develop).
 	VIRTUAL_ENV="$$(pwd)/.venv" uvx maturin develop --manifest-path crates/validate/Cargo.toml
@@ -207,7 +222,8 @@ clippy: ## Run cargo clippy on all Rust targets with warnings as errors.
 native-py: diagnostics-py logic-py shacl-py validate-py ## Build and install all Rust-backed Python extensions.
 
 rust-test: ## Run the Rust workspace tests.
-	cargo test
+	cargo nextest run $(NEXTEST_PARTITION_ARG)
+	cargo test --doc
 
 conformance: logic-py ## Run the logic: conformance suite (oracle ≡ engine, Principle 7 gate).
 	$(GMEOW_DEV) conformance
@@ -230,7 +246,7 @@ test-network: ## Run the network tests (LIVE endpoints) — MANUAL only, never i
 	GMEOW_RUN_NETWORK=1 uv run pytest -m network
 
 check: logic-py ## Fast local gate: core ontology + transforms (native EL/DL reasoning — Java/Docker-free; classic-cross-check oracle lane runs separately).
-	$(MAKE) -j$$(nproc 2>/dev/null || echo 4) lint clippy rust-test validate check-generated constitution-check audit wikidata coverage acceptance reason-native mappings-only lint-alignment
+	$(MAKE) -j$$(nproc 2>/dev/null || echo 4) lint clippy rust-test validate check-generated-native constitution-check audit wikidata coverage acceptance reason-native verify mappings-only lint-alignment
 	uv run pytest -n auto --dist loadscope -m "not ci_only and not docker and not pyoxigraph_ci and not classic_cross_check"
 	$(GMEOW_DEV) compliance-report --from-passing-check
 	@echo "✓ all checks passed (Docker-free, Java-free)"

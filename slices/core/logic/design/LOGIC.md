@@ -186,7 +186,7 @@ index that keeps the whole design honest; the siblings cite these in context.
 | `logic:` namespace registration | `config.py` `PREFIXES` (add `logic:` beside `gmeow`, `config.py:21-24`) |
 | Loss metadata convention | `gmeow:lossyDrop`, `dsl/mappings/vocabulary.ttl:237`; `mapping_dsl.py:151,493` |
 | Two-engine agreement | `make crosscheck` / `gmeow crosscheck-queries` (`Makefile:42`) |
-| Closed-world validation lanes | pySHACL over `shapes/gmeow-shapes.ttl`; ROBOT verify over `queries/verify/*.rq` |
+| Closed-world validation lanes | `gmeow_shacl` over `shapes/gmeow-shapes.ttl`; native `verify` (`verify --mode native`) over `queries/verify/*.rq` |
 | Monotonic materialization oracle | `owlrl` in `tests/test_reasoning_entailments.py` |
 | Temporal scope | `gmeow temporal` (`cli.py:476`) |
 | Foundation discipline as conformance | `reasoning_lint.py` (MixIden/MixRig/RelComp); `imports/gufo.ttl` |

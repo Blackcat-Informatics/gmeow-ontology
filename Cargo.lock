@@ -1239,6 +1239,7 @@ name = "gmeow-logic"
 version = "0.1.0"
 dependencies = [
  "blake3",
+ "gmeow-diagnostics",
  "gmeow-rdf",
  "nemo",
  "oxigraph",
