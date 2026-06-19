@@ -89,7 +89,7 @@ statements-docker-check: ## [lane] Jena/ROBOT-backed statement artifact and reas
 crosscheck: ## [lane] Prove rdflib (legacy engine) and pyoxigraph answer every committed query alike (no Docker).
 	$(GMEOW_DEV) crosscheck-queries
 
-extract: ## Report import/extract policy for TARGET (refuses reference-only).
+extract: ## [maintainer] Import/extract policy for TARGET (ROBOT/Docker — maintainer-only, NOT normal-use; native SLME port deferred, #666).
 	$(GMEOW_DEV) extract --target $(TARGET)
 
 
@@ -102,7 +102,7 @@ mappings: ## Build alignment axioms + VoID linksets from SSSOM; validate QID syn
 lint-alignment: ## Lint SSSOM mappings for inverse / domain-range-mismatched targets (offline).
 	$(GMEOW_DEV) lint-alignment
 
-refresh-target-axioms: ## Re-vendor minimal target-axiom snapshots (IMPORT_OK targets only).
+refresh-target-axioms: ## [maintainer] Re-vendor minimal target-axiom snapshots (ROBOT/Docker — maintainer-only, NOT normal-use; #666).
 	$(GMEOW_DEV) refresh-target-axioms --target all
 
 wikidata: ## Validate Wikidata QID/PID syntax in the mappings (offline).
@@ -255,7 +255,7 @@ commit: regenerate ## Regenerate artifacts, stage them, and commit.
 	fi
 	@git diff --quiet || echo "Warning: unstaged changes remain. Stage them with 'git add' and commit separately if needed."
 
-pull-images: ## Pre-pull the pinned Docker images (ROBOT, Jena).
+pull-images: ## [maintainer] Pre-pull the pinned Docker images for the classic-cross-check lane (ROBOT, Jena; #666).
 	bash scripts/pull-images.sh
 
 clean: ## Remove ephemeral build artifacts.

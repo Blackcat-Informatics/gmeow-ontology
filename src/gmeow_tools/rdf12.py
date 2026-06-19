@@ -15,6 +15,19 @@ optional add-on. A missing Docker / Jena image is a hard failure
 :class:`~gmeow_tools.runner.ToolUnavailableError`): there is no degraded / skip
 mode. The orchestration (emit the OWL form, drive this codec, prove the round-trip
 lossless, gate drift) lives in :mod:`gmeow_tools.statement_compile`.
+
+Two-lane note (#666 / Principle 18)
+-----------------------------------
+This Jena codec is **not** on the normal-use primary path: the Java/Docker
+round-trip + reasoning cross-check it backs runs **only** in the
+``classic-cross-check`` lane (``scripts/statements_docker_check.py``), never in
+``make check`` or the required CI ``quality`` gate. The native, Docker-free
+statement path uses pyoxigraph (:mod:`gmeow_tools.statement_compile_pyoxigraph`,
+the required ``statements-pyoxigraph`` CI job). Making the native
+oxigraph/pyoxigraph writer the **lead** RDF 1.2 producer (so Jena becomes a pure
+lane cross-check and this module can retire) is tracked in **#667** — #666
+relocates Jena's role into the lane but deliberately does not invert producer
+status.
 """
 
 from __future__ import annotations
