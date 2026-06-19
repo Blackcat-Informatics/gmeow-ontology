@@ -930,3 +930,47 @@ def test_dev_validate_require_signed_without_gts_errors(runner: CliRunner) -> No
     result = runner.invoke(dev_app, ["validate", "--require-signed"])
     assert result.exit_code != 0
     assert "--gts" in result.output
+
+
+def test_dev_validate_gts_with_trusted_key_cli_flag(
+    runner: CliRunner, tmp_path: Path
+) -> None:
+    """A signed bundle validates when the signer key is passed via --trusted-key."""
+    signer, armor, _fingerprint = _make_signer()
+    bundle_path = tmp_path / "signed.gts"
+    bundle_path.write_bytes(_build_gts_bytes(_valid_ontology_graph(), signer=signer))
+
+    key_path = tmp_path / "key.asc"
+    key_path.write_text(armor, encoding="utf-8")
+
+    result = runner.invoke(
+        dev_app,
+        ["validate", "--gts", str(bundle_path), "--trusted-key", str(key_path)],
+    )
+    assert result.exit_code == 0, result.output
+    assert "validation passed" in result.output
+
+
+def test_dev_validate_gts_with_untrusted_key_cli_flag_warns(
+    runner: CliRunner, tmp_path: Path
+) -> None:
+    """A wrong --trusted-key cannot verify the signature, but only warns.
+
+    Because --trusted-key alone does not imply --require-signed or
+    require_trusted_signer, validation stays green and surfaces the mismatch
+    as a signature-unavailable warning.
+    """
+    signer, _armor, _fingerprint = _make_signer()
+    _untrusted_signer, untrusted_armor, _fingerprint2 = _make_signer()
+    bundle_path = tmp_path / "signed.gts"
+    bundle_path.write_bytes(_build_gts_bytes(_valid_ontology_graph(), signer=signer))
+
+    key_path = tmp_path / "key.asc"
+    key_path.write_text(untrusted_armor, encoding="utf-8")
+
+    result = runner.invoke(
+        dev_app,
+        ["validate", "--gts", str(bundle_path), "--trusted-key", str(key_path)],
+    )
+    assert result.exit_code == 0, result.output
+    assert "signature(s) unverified" in result.output
