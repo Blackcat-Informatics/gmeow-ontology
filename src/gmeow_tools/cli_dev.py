@@ -9,6 +9,7 @@ subcommands rather than reimplementing any behaviour.
 from __future__ import annotations
 
 import os
+import tomllib
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
@@ -319,12 +320,97 @@ def validate(
         "--gts",
         help="Validate a .gts bundle directly instead of the repo Turtle sources.",
     ),
+    trust_policy: Path | None = typer.Option(  # noqa: B008
+        None,
+        "--trust-policy",
+        help="TOML file with trusted signer KIDs and policy settings.",
+    ),
+    require_signed: bool = typer.Option(
+        False,
+        "--require-signed",
+        help="Fail if the GTS bundle has no valid signature.",
+    ),
+    trusted_key: Path | None = typer.Option(  # noqa: B008
+        None,
+        "--trusted-key",
+        help="Out-of-band armored OpenPGP public key (optional).",
+    ),
 ) -> None:
-    """Validate Turtle syntax, term annotations, and SHACL conformance."""
+    """Validate Turtle syntax, term annotations, and SHACL conformance.
+
+    In normal mode this checks the repository Turtle sources. When ``--gts`` is
+    given, validate a folded GTS bundle directly instead. If any signature or
+    trust flag is supplied with ``--gts``, a signature/trust verification
+    pre-gate runs before ontology validation (#646).
+
+    The pre-gate verifies embedded GTS signatures against the configured trust
+    policy: ``--trust-policy`` loads a TOML file with trusted signer KIDs and
+    optional out-of-band key material; ``--require-signed`` hard-fails bundles
+    with no valid signature; ``--trusted-key`` supplies an armored OpenPGP
+    public key directly and overrides any ``trusted_key`` path in the policy
+    file.
+    """
     from gmeow_tools.diagnostics import emit_legacy_cli, report_from_validation_result
     from gmeow_tools.validate import validate_all
 
-    result = validate_all(timings=timings, gts_input=gts)
+    signature_flags = (
+        trust_policy is not None or require_signed or trusted_key is not None
+    )
+    if signature_flags and gts is None:
+        raise typer.BadParameter(
+            "--trust-policy/--require-signed/--trusted-key require --gts"
+        )
+
+    signature_config: dict[str, object] | None = None
+    if signature_flags:
+        signature_config = {
+            "trusted_signers": [],
+            "require_signatures": require_signed,
+            "require_trusted_signer": False,
+            "trusted_key": None,
+        }
+        if trust_policy is not None:
+            try:
+                policy = tomllib.loads(trust_policy.read_text(encoding="utf-8"))
+            except OSError as exc:
+                raise _fail(
+                    f"cannot read --trust-policy {trust_policy}: {exc}"
+                ) from exc
+            except tomllib.TOMLDecodeError as exc:
+                raise _fail(
+                    f"invalid TOML in --trust-policy {trust_policy}: {exc}"
+                ) from exc
+            signature_config["trusted_signers"] = list(
+                policy.get("trusted_signers", [])
+            )
+            signature_config["require_trusted_signer"] = bool(
+                policy.get("require_trusted_signer", False)
+            )
+            policy_key = policy.get("trusted_key")
+            if policy_key is not None:
+                key_path = Path(policy_key)
+                if not key_path.is_absolute():
+                    key_path = trust_policy.parent / key_path
+                try:
+                    signature_config["trusted_key"] = key_path.read_text(
+                        encoding="utf-8"
+                    )
+                except OSError as exc:
+                    raise _fail(f"cannot read trusted key {key_path}: {exc}") from exc
+        if trusted_key is not None:
+            # CLI --trusted-key takes precedence over any trusted_key path in the
+            # policy file. It is read here so the Rust pre-gate receives the raw
+            # armored key rather than a filesystem path.
+            try:
+                signature_config["trusted_key"] = trusted_key.read_text(
+                    encoding="utf-8"
+                )
+            except OSError as exc:
+                raise _fail(f"cannot read --trusted-key {trusted_key}: {exc}") from exc
+
+    result = validate_all(
+        timings=timings, gts_input=gts, signature_config=signature_config
+    )
     report = report_from_validation_result(result, tool="validate")
     emit_legacy_cli(report, err_console)
     if timings and result.timings:

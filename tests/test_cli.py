@@ -2,13 +2,17 @@
 
 from __future__ import annotations
 
+import base64
 import tomllib
 from pathlib import Path
 from typing import Any
 from unittest.mock import MagicMock, patch
 
+import gts
 import httpx
 import pytest
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 from rdflib import Graph, Literal, Namespace, URIRef
 from rdflib.namespace import DCTERMS, OWL, RDF, RDFS, SKOS
 from typer.testing import CliRunner
@@ -17,6 +21,153 @@ from gmeow_tools.cli import app as public_app
 from gmeow_tools.cli_dev import app as dev_app
 from gmeow_tools.config import GTS_SNAPSHOT_FILE, NAMESPACE, ONTOLOGY_IRI
 from gmeow_tools.gts_producer import compile_gts
+
+_GUFO = Namespace("http://purl.org/nemo/gufo#")
+
+
+def _armor_public_key(raw_public: bytes) -> str:
+    """Build an ASCII-armored OpenPGP v4 Ed25519 public-key certificate.
+
+    The wire format matches the one GPG emits and the Rust ``gmeow_gts``
+    OpenPGP parser accepts, so the same armor works for the Python tests and
+    the Rust pre-gate.
+    """
+    ed25519_algo = 22
+    ed25519_oid = bytes.fromhex("2b06010401da470f01")
+    body = bytearray()
+    body.append(0x04)  # OpenPGP v4
+    body.extend((0).to_bytes(4, "big"))  # creation time
+    body.append(ed25519_algo)
+    body.append(len(ed25519_oid))
+    body.extend(ed25519_oid)
+    mpi_len = 1 + len(raw_public)
+    body.extend((mpi_len * 8).to_bytes(2, "big"))
+    body.append(0x40)
+    body.extend(raw_public)
+
+    # Old-format packet: tag 6, one-octet length.
+    packet = bytearray()
+    packet.append(0x98)
+    packet.append(len(body))
+    packet.extend(body)
+
+    b64 = base64.b64encode(packet).decode("ascii")
+    wrapped = "\n".join(b64[i : i + 64] for i in range(0, len(b64), 64))
+    return (
+        "-----BEGIN PGP PUBLIC KEY BLOCK-----\n\n"
+        f"{wrapped}\n"
+        "-----END PGP PUBLIC KEY BLOCK-----\n"
+    )
+
+
+def _make_signer() -> tuple[gts.Signer, str, str]:
+    """Return a fresh signer, its public-key armor, and fingerprint."""
+    private = Ed25519PrivateKey.generate()
+    raw = private.public_key().public_bytes(
+        serialization.Encoding.Raw, serialization.PublicFormat.Raw
+    )
+    armor = _armor_public_key(raw)
+    fingerprint = gts.openpgp.public_key_fingerprint(armor)
+    return gts.Signer(fingerprint, private), armor, fingerprint
+
+
+def _rdflib_node_to_term(node: URIRef | Literal) -> gts.Term:
+    if isinstance(node, URIRef):
+        return gts.Term(
+            kind=gts.TermKind.IRI,
+            value=str(node),
+            datatype=None,
+            lang=None,
+            reifier=None,
+        )
+    if isinstance(node, Literal):
+        return gts.Term(
+            kind=gts.TermKind.LITERAL,
+            value=str(node),
+            datatype=None,
+            lang=str(node.language) if node.language else None,
+            reifier=None,
+        )
+    raise TypeError(f"unsupported RDF term {node!r}")
+
+
+def _build_gts_bytes(graph: Graph, signer: gts.Signer | None = None) -> bytes:
+    """Serialize a small rdflib Graph into a (possibly signed) GTS bundle."""
+    nodes: list[URIRef | Literal] = []
+    node_to_idx: dict[URIRef | Literal, int] = {}
+
+    def add_node(node: URIRef | Literal) -> None:
+        if node not in node_to_idx:
+            node_to_idx[node] = len(nodes)
+            nodes.append(node)
+
+    quads: list[tuple[int, int, int, int | None]] = []
+    for subject, predicate, obj in graph:
+        assert isinstance(subject, URIRef | Literal)
+        assert isinstance(predicate, URIRef | Literal)
+        assert isinstance(obj, URIRef | Literal)
+        add_node(subject)
+        add_node(predicate)
+        add_node(obj)
+        quads.append(
+            (node_to_idx[subject], node_to_idx[predicate], node_to_idx[obj], None)
+        )
+
+    terms = [_rdflib_node_to_term(n) for n in nodes]
+
+    writer = gts.Writer(profile="dist", signer=signer)
+    writer.add_terms(terms)
+    writer.add_quads(quads)
+    return writer.to_bytes()
+
+
+def _valid_ontology_graph() -> Graph:
+    """A tiny but validation-clean GMEOW ontology graph."""
+    graph = Graph()
+    graph.bind("gufo", _GUFO)
+    gm = Namespace(NAMESPACE)
+    ontology = URIRef(ONTOLOGY_IRI)
+
+    graph.add((ontology, RDF.type, OWL.Ontology))
+    graph.add(
+        (ontology, RDFS.label, Literal("Fixture ontology", lang="x-gmeow-english"))
+    )
+    graph.add(
+        (
+            ontology,
+            SKOS.definition,
+            Literal("A fixture ontology for tests.", lang="x-gmeow-english"),
+        )
+    )
+    graph.add((ontology, RDFS.isDefinedBy, ontology))
+
+    ontology_role = URIRef("https://example.org/ontology-role")
+    graph.add((ontology_role, RDF.type, gm.GraphBoxRole))
+    graph.add((ontology, gm.graphBoxRole, ontology_role))
+
+    term = gm.SampleTerm
+    graph.add((term, RDF.type, OWL.Class))
+    graph.add((term, RDF.type, _GUFO.Kind))
+    graph.add((term, RDFS.label, Literal("sample label", lang="x-gmeow-english")))
+    graph.add(
+        (
+            term,
+            SKOS.definition,
+            Literal("English definition text.", lang="x-gmeow-english"),
+        )
+    )
+    graph.add((term, RDFS.isDefinedBy, URIRef(NAMESPACE + "slices/lifecycle")))
+    graph.add((term, gm.howToUse, Literal("Use it like this.", lang="x-gmeow-english")))
+    graph.add(
+        (term, gm.useWhen, Literal("Use it when testing.", lang="x-gmeow-english"))
+    )
+    graph.add((term, SKOS.example, Literal("Example usage.", lang="x-gmeow-english")))
+
+    term_role = URIRef("https://example.org/term-role")
+    graph.add((term_role, RDF.type, gm.GraphBoxRole))
+    graph.add((term, gm.graphBoxRole, term_role))
+
+    return graph
 
 
 @pytest.fixture
@@ -675,3 +826,151 @@ def test_workspace_declares_separate_dev_package() -> None:
     }
     assert "packages/gmeow-dev" in main["tool"]["uv"]["workspace"]["members"]
     assert dev["project"]["scripts"] == {"gmeow-dev": "gmeow_dev.cli:app"}
+
+
+# --------------------------------------------------------------------------- #
+# GTS signature/trust verification in gmeow-dev validate (#646)
+# --------------------------------------------------------------------------- #
+
+
+def _write_signed_fixture(
+    tmp_path: Path,
+    *,
+    signer: gts.Signer,
+    armor: str,
+    trusted_signers: list[str],
+) -> tuple[Path, Path]:
+    """Write a signed .gts, its public-key armor, and a matching policy file."""
+    graph = _valid_ontology_graph()
+    bundle_path = tmp_path / "signed.gts"
+    bundle_path.write_bytes(_build_gts_bytes(graph, signer=signer))
+
+    key_path = tmp_path / "key.asc"
+    key_path.write_text(armor, encoding="utf-8")
+
+    policy_path = tmp_path / "policy.toml"
+    lines = [
+        f"trusted_signers = {trusted_signers!r}",
+        "require_trusted_signer = true",
+        'trusted_key = "key.asc"',
+    ]
+    policy_path.write_text("\n".join(lines), encoding="utf-8")
+    return bundle_path, policy_path
+
+
+def test_dev_validate_unsigned_gts_passes(runner: CliRunner, tmp_path: Path) -> None:
+    """An unsigned, ontologically valid bundle validates normally."""
+    bundle_path = tmp_path / "unsigned.gts"
+    bundle_path.write_bytes(_build_gts_bytes(_valid_ontology_graph()))
+
+    result = runner.invoke(dev_app, ["validate", "--gts", str(bundle_path)])
+    assert result.exit_code == 0, result.output
+    assert "validation passed" in result.output
+
+
+def test_dev_validate_unsigned_gts_require_signed_fails(
+    runner: CliRunner, tmp_path: Path
+) -> None:
+    """--require-signed aborts an unsigned bundle with signature.missing."""
+    bundle_path = tmp_path / "unsigned.gts"
+    bundle_path.write_bytes(_build_gts_bytes(_valid_ontology_graph()))
+
+    result = runner.invoke(
+        dev_app, ["validate", "--gts", str(bundle_path), "--require-signed"]
+    )
+    assert result.exit_code != 0, result.output
+    assert "no signed frames found" in result.output
+
+
+def test_dev_validate_signed_trusted_gts_passes(
+    runner: CliRunner, tmp_path: Path
+) -> None:
+    """A signed bundle whose signer is in the trust policy passes."""
+    signer, armor, fingerprint = _make_signer()
+    bundle_path, policy_path = _write_signed_fixture(
+        tmp_path,
+        signer=signer,
+        armor=armor,
+        trusted_signers=[fingerprint],
+    )
+
+    result = runner.invoke(
+        dev_app,
+        ["validate", "--gts", str(bundle_path), "--trust-policy", str(policy_path)],
+    )
+    assert result.exit_code == 0, result.output
+    assert "validation passed" in result.output
+
+
+def test_dev_validate_signed_untrusted_gts_fails(
+    runner: CliRunner, tmp_path: Path
+) -> None:
+    """A signed bundle whose signer is not trusted fails with signature.untrusted."""
+    signer, armor, _fingerprint = _make_signer()
+    bundle_path, policy_path = _write_signed_fixture(
+        tmp_path,
+        signer=signer,
+        armor=armor,
+        trusted_signers=["AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"],
+    )
+
+    result = runner.invoke(
+        dev_app,
+        ["validate", "--gts", str(bundle_path), "--trust-policy", str(policy_path)],
+    )
+    assert result.exit_code != 0, result.output
+    assert (
+        "no cryptographically valid signature from a deployment-trusted signer"
+        in result.output
+    )
+
+
+def test_dev_validate_require_signed_without_gts_errors(runner: CliRunner) -> None:
+    """Signature flags are only meaningful together with --gts."""
+    result = runner.invoke(dev_app, ["validate", "--require-signed"])
+    assert result.exit_code != 0
+    assert "--gts" in result.output
+
+
+def test_dev_validate_gts_with_trusted_key_cli_flag(
+    runner: CliRunner, tmp_path: Path
+) -> None:
+    """A signed bundle validates when the signer key is passed via --trusted-key."""
+    signer, armor, _fingerprint = _make_signer()
+    bundle_path = tmp_path / "signed.gts"
+    bundle_path.write_bytes(_build_gts_bytes(_valid_ontology_graph(), signer=signer))
+
+    key_path = tmp_path / "key.asc"
+    key_path.write_text(armor, encoding="utf-8")
+
+    result = runner.invoke(
+        dev_app,
+        ["validate", "--gts", str(bundle_path), "--trusted-key", str(key_path)],
+    )
+    assert result.exit_code == 0, result.output
+    assert "validation passed" in result.output
+
+
+def test_dev_validate_gts_with_untrusted_key_cli_flag_fails(
+    runner: CliRunner, tmp_path: Path
+) -> None:
+    """A wrong --trusted-key cannot verify the signature, so validation fails.
+
+    Gap 2 promoted unresolved signatures from warnings to errors; a mismatched
+    --trusted-key means the signature cannot be resolved and the run hard-fails.
+    """
+    signer, _armor, _fingerprint = _make_signer()
+    _untrusted_signer, untrusted_armor, _fingerprint2 = _make_signer()
+    bundle_path = tmp_path / "signed.gts"
+    bundle_path.write_bytes(_build_gts_bytes(_valid_ontology_graph(), signer=signer))
+
+    key_path = tmp_path / "key.asc"
+    key_path.write_text(untrusted_armor, encoding="utf-8")
+
+    result = runner.invoke(
+        dev_app,
+        ["validate", "--gts", str(bundle_path), "--trusted-key", str(key_path)],
+    )
+    assert result.exit_code == 1, result.output
+    assert "signature(s) unverified" in result.output
+    assert "error(s)" in result.output

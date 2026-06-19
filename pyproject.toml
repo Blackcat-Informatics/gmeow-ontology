@@ -53,6 +53,7 @@ dev = [
     "xmlschema>=4.3",  # Crossref 5.4.0 XSD validation (#693)
     "music21>=10.3.0",
     "mido>=1.3.3",
+    "cryptography>=44.0",  # Ed25519 keys for GTS signature/trust tests (#646)
 ]
 
 [tool.uv.workspace]

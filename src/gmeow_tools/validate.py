@@ -508,7 +508,9 @@ def guide_anchor_lint(
 
 
 def validate_all(
-    timings: bool = False, gts_input: Path | None = None
+    timings: bool = False,
+    gts_input: Path | None = None,
+    signature_config: dict[str, object] | None = None,
 ) -> ValidationResult:
     """Run syntax, structural lint, SHACL, and sameAs-ban checks.
 
@@ -518,6 +520,13 @@ def validate_all(
     runs every phase against the shared store. Python keeps the guide-anchor
     lint (it needs the slice filesystem) and translates the returned dict into
     the existing :class:`ValidationResult` model.
+
+    When ``gts_input`` is provided, the engine validates the folded GTS bundle
+    directly. If ``signature_config`` is also provided, a signature/trust
+    verification pre-gate runs before the ontology phases (#646): it checks
+    embedded GTS signatures against the configured trusted signers, signature
+    requirements, and optional out-of-band armored public key, and aborts with
+    hard failures when the policy is not satisfied.
 
     Args:
         timings: When ``True``, ask the Rust engine to record per-phase wall
@@ -531,6 +540,11 @@ def validate_all(
             Python-side per-file lints (guide-anchor, i18n PO) are likewise
             skipped to mirror the Rust GTS phase set — ``--gts`` differs only in
             input provenance, never in validation semantics.
+        signature_config: Optional signature/trust policy configuration for the
+            GTS verification pre-gate (#646). Keys: ``trusted_signers`` (list of
+            strings), ``require_signatures`` (bool), ``require_trusted_signer``
+            (bool), and ``trusted_key`` (optional armored public key content).
+            When omitted, signature verification is disabled.
     """
     # Ensure the content-addressed cache root exists before Rust needs it.
     _VALIDATION_CACHE_DIR.mkdir(parents=True, exist_ok=True)
@@ -578,6 +592,23 @@ def validate_all(
         statement_dsl_dir = str(STATEMENT_DSL_DIR)
 
     config = _lint_config()
+    if signature_config is not None:
+        raw_signers = signature_config.get("trusted_signers", [])
+        trusted_signers = (
+            [str(s) for s in raw_signers] if isinstance(raw_signers, list) else []
+        )
+        raw_key = signature_config.get("trusted_key")
+        trusted_key = raw_key if isinstance(raw_key, str) else None
+        signature_options = gmeow_validate.SignatureConfig(
+            trusted_signers=trusted_signers,
+            require_signatures=bool(signature_config.get("require_signatures", False)),
+            require_trusted_signer=bool(
+                signature_config.get("require_trusted_signer", False)
+            ),
+            trusted_key=trusted_key,
+        )
+    else:
+        signature_options = None
     options = gmeow_validate.ValidateOptions(
         timings=timings,
         sameas_allowlist=[(subject, obj) for subject, obj in _SAMEAS_ALLOWLIST],
@@ -587,6 +618,7 @@ def validate_all(
         statement_shapes_ttl=statement_shapes_ttl,
         project_root=str(PROJECT_ROOT),
         gts_bytes=gts_bytes,
+        signature_config=signature_options,
     )
 
     report = gmeow_validate.validate_all_native(
