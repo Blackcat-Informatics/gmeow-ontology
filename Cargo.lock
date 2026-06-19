@@ -1226,6 +1226,8 @@ dependencies = [
  "filetime",
  "flate2",
  "getrandom 0.2.17",
+ "oxigraph",
+ "oxrdf 0.3.3",
  "ruzstd",
  "sha1",
  "time",

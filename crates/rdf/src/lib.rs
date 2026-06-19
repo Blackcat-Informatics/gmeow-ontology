@@ -11,6 +11,8 @@
 pub mod diagnostic;
 #[cfg(feature = "gts")]
 pub mod gts;
+#[cfg(feature = "gts")]
+pub mod gts_write;
 pub mod lookaside;
 pub mod model;
 #[cfg(feature = "oxigraph")]
