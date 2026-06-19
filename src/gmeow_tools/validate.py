@@ -521,6 +521,13 @@ def validate_all(
     lint (it needs the slice filesystem) and translates the returned dict into
     the existing :class:`ValidationResult` model.
 
+    When ``gts_input`` is provided, the engine validates the folded GTS bundle
+    directly. If ``signature_config`` is also provided, a signature/trust
+    verification pre-gate runs before the ontology phases (#646): it checks
+    embedded GTS signatures against the configured trusted signers, signature
+    requirements, and optional out-of-band armored public key, and aborts with
+    hard failures when the policy is not satisfied.
+
     Args:
         timings: When ``True``, ask the Rust engine to record per-phase wall
             timings and surface them in :attr:`ValidationResult.timings` for

@@ -336,7 +336,20 @@ def validate(
         help="Out-of-band armored OpenPGP public key (optional).",
     ),
 ) -> None:
-    """Validate Turtle syntax, term annotations, and SHACL conformance."""
+    """Validate Turtle syntax, term annotations, and SHACL conformance.
+
+    In normal mode this checks the repository Turtle sources. When ``--gts`` is
+    given, validate a folded GTS bundle directly instead. If any signature or
+    trust flag is supplied with ``--gts``, a signature/trust verification
+    pre-gate runs before ontology validation (#646).
+
+    The pre-gate verifies embedded GTS signatures against the configured trust
+    policy: ``--trust-policy`` loads a TOML file with trusted signer KIDs and
+    optional out-of-band key material; ``--require-signed`` hard-fails bundles
+    with no valid signature; ``--trusted-key`` supplies an armored OpenPGP
+    public key directly and overrides any ``trusted_key`` path in the policy
+    file.
+    """
     from gmeow_tools.diagnostics import emit_legacy_cli, report_from_validation_result
     from gmeow_tools.validate import validate_all
 
