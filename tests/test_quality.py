@@ -75,7 +75,7 @@ def test_dimension_seeds_exist() -> None:
 
 def test_quality_assessment_specialises_observation() -> None:
     """A QualityAssessment individual is inferred as an Observation."""
-    import owlrl
+    from gmeow_tools.native_rl import native_rl_closure
 
     graph = Graph()
     graph.parse(module_path("quality"), format="turtle")
@@ -84,7 +84,7 @@ def test_quality_assessment_specialises_observation() -> None:
     graph.add((EX.qa1, GM.assessedEntity, EX.place1))
     graph.add((EX.place1, RDF.type, GM.Place))
 
-    owlrl.DeductiveClosure(owlrl.OWLRL_Semantics).expand(graph)
+    native_rl_closure(graph)
     assert (EX.qa1, RDF.type, GM.Observation) in graph
 
 

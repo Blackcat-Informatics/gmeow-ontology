@@ -437,11 +437,30 @@ This extends Principle 17 (native authority) and Principle 13 (the consumer Dock
 authoritative gate; later amendments append the public-receipts, reusable-crate-suite, and
 release-as-evidence clauses (#668/#669/#673).
 
+**Amendment (#666) — the two hard-separated lanes, and the lane enforces.** The split foreshadowed
+above is now realized as two lanes that may not bleed into each other. The **primary** lane —
+`make check`, the required CI `quality` gate, the build, and runtime — is rust-first and carries **no
+Java and no Docker**: native EL/DL reasoning (`reason --mode native`), the native OWL 2 RL closure
+(`reason/rl.rs`, replacing the `owlrl` baselines), native RDF-1.2 emission (`gmeow-rdf`), and native
+SHACL/validation. The **`classic-cross-check`** lane — `make classic-cross-check` and a single,
+deliberately **non-required** CI job — is the *sole* Java+Docker surface: it runs the legacy oracles
+(ELK, HermiT, ROBOT, Jena) and `owlrl`, and it **enforces** agreement, strictly and without a knob —
+any `NativeOnly`/`OracleOnly` divergence (native↔ELK/HermiT subsumption + consistency) or native↔`owlrl`
+RL divergence fails the lane; only a named beyond-EL `DlGap` is honest-expected. The lane MUST NOT be a
+requirement of using the repo normally. The committed `dl-el-crosscheck-report.ttl` stays report-only on
+the primary path (built from native results, Docker-free); enforcement lives only in the lane, which
+emits its agreement + timing data through the `gmeow-diagnostics` SARIF rail (the gate taxonomy this
+issue owns and #662 consumes). Producer inversion of the Jena RDF-1.2 codec is tracked in #667; native
+replication of ROBOT (SLME extraction + verify) in #695 — until then those stay maintainer-only, lane-side.
+
 *Embodied in:* the native reason lane ([`src/gmeow_tools/reason.py`](./src/gmeow_tools/reason.py)),
-the `reason --mode native` CLI command, and the `native-reasoning` registered generator
-([`src/gmeow_tools/native_reason_gen.py`](./src/gmeow_tools/native_reason_gen.py)). *Tested by:* the
-native-reasoning authority gate (`meta:gate-reason-native`) and the report-only native↔oracle
-divergence ledger gate (`meta:gate-dl-el-crosscheck`), whose machine-readable enforcement lives in
+the `reason --mode native` CLI command, the `native-reasoning` registered generator
+([`src/gmeow_tools/native_reason_gen.py`](./src/gmeow_tools/native_reason_gen.py)), and the enforcing
+`classic-cross-check` lane ([`src/gmeow_tools/classic_cross_check.py`](./src/gmeow_tools/classic_cross_check.py),
+[`src/gmeow_tools/rl_agreement.py`](./src/gmeow_tools/rl_agreement.py)). *Tested by:* the
+native-reasoning authority gate (`meta:gate-reason-native`), the report-only native↔oracle
+divergence ledger gate (`meta:gate-dl-el-crosscheck`), and the enforcing classic-cross-check lane gate
+(`meta:gate-classic-cross-check`), whose machine-readable enforcement lives in
 [`governance/constitution.ttl`](./governance/constitution.ttl).
 
 ---

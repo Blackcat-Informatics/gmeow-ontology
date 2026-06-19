@@ -60,6 +60,77 @@ def reason_native(gts_bytes: bytes) -> dict[str, Any]:
     """
     ...
 
+def reason_native_artifacts(gts_bytes: bytes, merge: bool = ...) -> dict[str, str]:
+    """Reason a GTS bundle ONCE and emit the 3 native RDF 1.2 artifacts (#666).
+
+    Runs the native EL/DL reasoning lane exactly once and serializes the three
+    committed artifacts via the gmeow-rdf RDF 1.2 Turtle emitter. Returns a dict
+    with three string keys:
+
+    * ``closure`` — the told-vs-inferred inferred-closure Turtle (per-triple
+      derivation provenance). When ``merge`` is true the asserted (told) graph
+      is prepended so the document is the union of asserted and derived axioms.
+    * ``explanations`` — per-axiom proof-skeleton Turtle (conclusion → premises
+      → firing rule).
+    * ``ledger`` — the report-only native↔oracle DL/EL crosscheck ledger Turtle.
+
+    Raises ``ValueError`` if the GTS bundle cannot be read, ``RuntimeError`` if
+    reasoning fails or a derived axiom is missing its rule name.
+    """
+    ...
+
+def rl_closure(input: str) -> list[tuple[str, str, str, str, bool]]:
+    """Compute the native OWL 2 RL/RDF deductive closure of a graph (#666 Task 5).
+
+    The Docker-free PRIMARY entailment authority that replaces the ``owlrl``
+    baseline. ``input`` is N-Quads (named-graph triples close in their world) or
+    N-Triples (default-graph triples close in a single sentinel world). Computes
+    the closure RDF-1.2-first via the generic 4-ary ``triple(?s,?p,?o,?w)``
+    encoding (predicate-as-DATA) through the Nemo chase.
+
+    Returns a list of ``(subject, predicate, object_nt, world, is_edb)`` tuples —
+    the full closure (asserted + derived). ``subject``/``predicate`` are bare IRI
+    strings; ``object_nt`` is the N-Triples object form (``<iri>`` or a quoted
+    literal); ``world`` is the named-graph IRI; ``is_edb`` is true for asserted
+    facts.
+
+    Raises ``ValueError`` on an N-Quads/N-Triples parse error and ``RuntimeError``
+    on a chase or decode failure.
+    """
+    ...
+
+def build_divergence_ledger(
+    native_subsumptions: list[tuple[str, str, str]],
+    elk_subsumptions: list[tuple[str, str, str]],
+    native_consistent: bool,
+    native_unsat: list[str],
+    hermit_consistent: bool | None,
+    hermit_unsat: list[str],
+    gaps: list[tuple[str, str]],
+) -> dict[str, Any]:
+    """Build the native↔oracle divergence ledger (#666, ENFORCED lane).
+
+    PyO3 surface over the authoritative Rust comparison logic
+    (``crates/logic/src/reason/ledger.rs``); does not re-implement comparison.
+
+    * ``native_subsumptions`` / ``elk_subsumptions`` — each a list of
+      ``(subject, object, world)`` string triples.
+    * ``native_consistent`` / ``hermit_consistent`` — DL consistency verdicts;
+      ``hermit_consistent`` is ``None`` when HermiT was not run (recorded as a
+      native-only note, never a divergence).
+    * ``native_unsat`` / ``hermit_unsat`` — unsatisfiable-class IRIs.
+    * ``gaps`` — list of ``(code, message)`` beyond-EL DL gaps; each becomes one
+      honest, non-failing ``DlGap`` row.
+
+    Returns a dict ``{"rows": [{kind, category, subject, object, world, detail},
+    ...], "agree": int, "native_only": int, "oracle_only": int, "dl_gap": int}``
+    where ``kind`` is one of ``"Agree"``, ``"NativeOnly"``, ``"OracleOnly"``,
+    ``"DlGap"``.
+
+    Raises ``ValueError`` for a malformed subsumption or gap row.
+    """
+    ...
+
 def certify(rules: str, profile: str) -> dict[str, Any]: ...
 def stable_models(rules: str, input: str) -> dict[str, Any]: ...
 def query(

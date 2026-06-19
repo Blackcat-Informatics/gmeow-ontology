@@ -4,8 +4,11 @@ Phase 3 of the reasoning-depth epic (#35) upgrades the competency harness to run
 over a **reasoned (materialized) graph** rather than the asserted one, so the
 queries test what GMEOW *entails*, not merely what is written down (CONSTITUTION
 Principle 7, verified by construction; Principle 8, reasoning-centric). The merged
-graph is closed under OWL 2 RL with ``owlrl`` once and cached — pure-Python and
-Docker-free, the same fast lane as ``tests/test_reasoning_entailments.py``.
+graph is closed under OWL 2 RL with the native ``gmeow_logic`` RL engine
+(``gmeow_tools.native_rl.native_rl_closure``) once and cached — Java/Docker-free,
+the same native primary lane as ``tests/test_reasoning_entailments.py``. The
+legacy ``owlrl`` baseline now lives only in the classic-cross-check lane as the
+agreement oracle (issue #666).
 Entailment is monotonic, so every answer the asserted graph gave is still present;
 reasoning only adds. ``test_competency_ancestry_is_answered_only_by_reasoning``
 makes the gain explicit: a competency answer absent from the asserted graph yet
@@ -17,13 +20,13 @@ from __future__ import annotations
 from datetime import UTC, datetime, timedelta
 from functools import lru_cache
 
-import owlrl
 from rdflib import RDF, Graph, Literal, Namespace
 from rdflib.namespace import XSD
 from rdflib.query import ResultRow
 
 from gmeow_tools.config import COMPETENCY_DIR, NAMESPACE, QC_DIR
 from gmeow_tools.graph import load_merged_graph
+from gmeow_tools.native_rl import native_rl_closure
 from gmeow_tools.slices import module_path
 
 GMEOW = Namespace(NAMESPACE)
@@ -34,7 +37,7 @@ EX = Namespace("https://example.org/test/")
 def _reasoned_graph() -> Graph:
     """The merged ontology closed under OWL 2 RL (materialized once, cached)."""
     graph = load_merged_graph(include_imports=False)
-    owlrl.DeductiveClosure(owlrl.OWLRL_Semantics).expand(graph)
+    native_rl_closure(graph)
     return graph
 
 
@@ -284,7 +287,7 @@ def test_competency_ancestry_is_answered_only_by_reasoning() -> None:
     # ...present once the property chain is materialized.
     reasoned = Graph()
     reasoned += asserted
-    owlrl.DeductiveClosure(owlrl.OWLRL_Semantics).expand(reasoned)
+    native_rl_closure(reasoned)
     assert grandparent in reasoned
     assert bool(reasoned.query(ask))
 
@@ -313,7 +316,7 @@ def test_place_naming_is_entailed_not_asserted() -> None:
     # ...present once the equivalentClass definition is materialized.
     reasoned = Graph()
     reasoned += asserted
-    owlrl.DeductiveClosure(owlrl.OWLRL_Semantics).expand(reasoned)
+    native_rl_closure(reasoned)
     assert classified in reasoned
     # And a name-usage that does NOT name a Place is NOT classified as a PlaceNaming.
     asserted.add((EX.personUsage, RDF.type, GMEOW.NameUsage))
@@ -321,7 +324,7 @@ def test_place_naming_is_entailed_not_asserted() -> None:
     asserted.add((EX.person, RDF.type, GMEOW.Person))
     other = Graph()
     other += asserted
-    owlrl.DeductiveClosure(owlrl.OWLRL_Semantics).expand(other)
+    native_rl_closure(other)
     assert (EX.personUsage, RDF.type, GMEOW.PlaceNaming) not in other
 
 

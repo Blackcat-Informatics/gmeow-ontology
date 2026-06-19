@@ -13,9 +13,11 @@
 //! unsatisfiability ([`dl`]), and the report-only divergence ledger
 //! ([`ledger`]) comparing the native engine against the classic oracles.
 
+pub mod artifacts;
 pub mod dl;
 pub mod el;
 pub mod ledger;
+pub mod rl;
 
 pub use dl::{dl_consistency, DlVerdict, InconsistencyWitness, UnsatClass};
 pub use el::{el_closure, ElClosure, InferredAxiom};
@@ -23,6 +25,7 @@ pub use ledger::{
     build_ledger, compare_consistency, compare_subsumption, dl_gap_rows, DivergenceKind,
     DivergenceLedger, LedgerRow,
 };
+pub use rl::{rl_closure, RlClosure, RlTriple};
 
 use crate::encode::{
     decode_iri_term, decode_nemo_term, decode_string_constant, encode_quad_to_nemo_fact,

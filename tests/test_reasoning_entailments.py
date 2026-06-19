@@ -5,10 +5,12 @@ in Python over the asserted graph into reasoner *theorems*. This module proves
 they actually bite, using two reasoners for the two halves of the OWL-infers /
 SHACL-validates split (Principle 8):
 
-* **owlrl** (pure-Python OWL 2 RL) materializes POSITIVE entailments — derived
-  ancestry, location-through-containment, sub-organization transitivity — fast,
-  Docker-free, on every run. Each test loads the *real authored* module so it
-  pins the shipped axioms, not a hand-built fixture.
+* **native RL** (``gmeow_tools.native_rl.native_rl_closure``, the native
+  ``gmeow_logic`` OWL 2 RL engine) materializes POSITIVE entailments — derived
+  ancestry, location-through-containment, sub-organization transitivity —
+  Java/Docker-free, on every run. Each test loads the *real authored* module so
+  it pins the shipped axioms, not a hand-built fixture. (The legacy ``owlrl``
+  baseline is now the classic-cross-check lane's agreement oracle, issue #666.)
 * The live HermiT/ROBOT inconsistency and fixture-coherence cases run through a
   repo-local script so Make/CI can schedule Docker outside pytest.
   This module keeps Docker-free coverage of the pure entailments and the
@@ -19,12 +21,12 @@ from __future__ import annotations
 
 from functools import cache
 
-import owlrl
 import pytest
 from rdflib import RDF, RDFS, Graph, Namespace
 from rdflib.term import Node
 
 from gmeow_tools import reasoning_cases
+from gmeow_tools.native_rl import native_rl_closure
 from gmeow_tools.slices import module_path
 
 GMEOW = Namespace("https://blackcatinformatics.ca/gmeow/")
@@ -51,7 +53,7 @@ def _materialize(module: str, *abox: tuple[Node, Node, Node]) -> Graph:
         graph.add(triple)
     for triple in abox:
         graph.add(triple)
-    owlrl.DeductiveClosure(owlrl.OWLRL_Semantics).expand(graph)
+    native_rl_closure(graph)
     return graph
 
 

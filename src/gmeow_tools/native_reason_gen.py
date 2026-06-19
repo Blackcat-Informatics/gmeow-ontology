@@ -29,7 +29,6 @@ from pathlib import Path
 import gmeow_logic
 import pyoxigraph
 
-from gmeow_tools import reason
 from gmeow_tools.config import GENERATED_DIR, GTS_SNAPSHOT_FILE, PROJECT_ROOT
 from gmeow_tools.generator import Generator, register
 
@@ -102,12 +101,14 @@ class NativeReasoningGenerator(Generator):
         ELK/HermiT oracle comparison is deferred to ``classic-cross-check``
         (#666), so the ledger is built from native results only.
         """
-        result = gmeow_logic.reason_native(GTS_SNAPSHOT_FILE.read_bytes())
+        rendered = gmeow_logic.reason_native_artifacts(
+            GTS_SNAPSHOT_FILE.read_bytes(), False
+        )
 
         artifacts: dict[Path, str] = {
-            NATIVE_CLOSURE_FILE: reason.build_inferred_closure_ttl(result),
-            NATIVE_EXPLANATIONS_FILE: reason.build_explanations_ttl(result),
-            NATIVE_LEDGER_FILE: reason.build_dl_el_ledger_ttl(result),
+            NATIVE_CLOSURE_FILE: rendered["closure"],
+            NATIVE_EXPLANATIONS_FILE: rendered["explanations"],
+            NATIVE_LEDGER_FILE: rendered["ledger"],
         }
         for committed, content in artifacts.items():
             staged = staging / committed.relative_to(PROJECT_ROOT)

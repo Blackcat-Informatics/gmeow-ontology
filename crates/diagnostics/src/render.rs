@@ -43,13 +43,60 @@ pub fn to_sarif(report: &Report) -> Result<String, serde_json::Error> {
     serde_json::to_string_pretty(&payload)
 }
 
+/// Strip the angle brackets oxigraph's N-Triples `Display` wraps around IRIs.
+/// SARIF `artifactLocation.uri` must be a *bare* URI: GitHub code-scanning
+/// rejects the whole file when a location reads `<https://…>` ("first path
+/// segment in URL cannot contain colon"). RDF terms that are not IRIs (blank
+/// nodes, literals) lack the brackets and pass through unchanged.
+fn strip_angle(s: &str) -> &str {
+    s.strip_prefix('<')
+        .and_then(|inner| inner.strip_suffix('>'))
+        .unwrap_or(s)
+}
+
+/// Whether a string holds a URI *scheme* (`https:`, `gts:`, …) per RFC 3986
+/// (`ALPHA *( ALPHA / DIGIT / "+" / "-" / "." ) ":"`). A repo-relative path
+/// (`core/x.ttl`) has none.
+fn has_uri_scheme(candidate: &str) -> bool {
+    let bytes = candidate.as_bytes();
+    if bytes.first().is_none_or(|b| !b.is_ascii_alphabetic()) {
+        return false;
+    }
+    for (i, &b) in bytes.iter().enumerate() {
+        if b == b':' {
+            return i > 0;
+        }
+        if !(b.is_ascii_alphanumeric() || b == b'+' || b == b'-' || b == b'.') {
+            return false;
+        }
+    }
+    false
+}
+
+/// Whether a string is usable as a SARIF `artifactLocation.uri`: a **repo-relative**
+/// reference — non-empty, no embedded whitespace, not a quoted RDF literal, and
+/// carrying no URI scheme. GitHub code-scanning requires artifact URIs to match
+/// the checkout's `file` scheme, so an absolute ontology IRI (`https://…`) is a
+/// *logical* location, not a physical artifact; composite annotations such as
+/// `path <…>` / `value "x"` likewise fail this and surface as logical locations.
+fn is_artifact_uri(candidate: &str) -> bool {
+    !candidate.is_empty()
+        && !candidate.starts_with('"')
+        && !candidate.chars().any(char::is_whitespace)
+        && !has_uri_scheme(candidate)
+}
+
 /// The artifact URI a location points at: a concrete file path when present,
-/// otherwise the logical name (e.g. a `.gts` segment or focus node).
+/// otherwise a bare-IRI logical anchor (e.g. a `.gts` segment or focus node).
+/// Returns `None` when the only candidate is a non-URI annotation, so the
+/// run-level `artifacts` list never carries an invalid URI.
 fn artifact_uri(location: &Location) -> Option<String> {
     location
         .path
         .as_deref()
         .or(location.logical.as_deref())
+        .map(strip_angle)
+        .filter(|candidate| is_artifact_uri(candidate))
         .map(str::to_owned)
 }
 
@@ -355,6 +402,12 @@ fn sarif_rules(report: &Report) -> Vec<Value> {
         .collect()
 }
 
+/// Repo-relative anchor for findings with no specific source file (whole-ontology
+/// lint warnings, legacy message-only findings). GitHub code-scanning rejects a
+/// result with no location, and a location must have a repo-relative
+/// `physicalLocation`, so these are attributed to the ontology root.
+const FALLBACK_ARTIFACT_URI: &str = "ontology/gmeow.ttl";
+
 fn sarif_result(finding: &Finding) -> Value {
     let mut result = json!({
         "ruleId": finding.code,
@@ -364,18 +417,63 @@ fn sarif_result(finding: &Finding) -> Value {
             "gmeowFindingHash/v1": stable_fingerprint(finding),
         },
     });
-    let locations: Vec<Value> = finding.locations.iter().map(sarif_location).collect();
-    if !locations.is_empty() {
-        result["locations"] = json!(locations);
-    }
-    let related: Vec<Value> = finding
-        .related_locations
+
+    // GitHub code-scanning requires every result to carry at least one location,
+    // every location (primary AND related) to have a repo-relative
+    // `physicalLocation`, and logical-only locations to be disallowed. So:
+    // render each source location, keep the physical ones, fold all logical
+    // entries (focus IRI, SHACL path/value, GTS wire coords) onto a single
+    // primary location, and synthesize a fallback anchor when no file is known.
+    let rendered: Vec<Value> = finding
+        .locations
         .iter()
+        .chain(finding.related_locations.iter())
         .map(sarif_location)
         .collect();
-    if !related.is_empty() {
-        result["relatedLocations"] = json!(related);
+    let mut physical: Vec<Value> = rendered
+        .iter()
+        .filter(|loc| loc.get("physicalLocation").is_some())
+        .cloned()
+        .collect();
+    let mut logical: Vec<Value> = Vec::new();
+    for loc in &rendered {
+        if let Some(entries) = loc.get("logicalLocations").and_then(Value::as_array) {
+            for entry in entries {
+                if !logical.contains(entry) {
+                    logical.push(entry.clone());
+                }
+            }
+        }
     }
+
+    // The primary location: the first physical one, else the ontology-root
+    // fallback. All gathered logical entries fold onto it.
+    let mut primary = if physical.is_empty() {
+        json!({ "physicalLocation": { "artifactLocation": { "uri": FALLBACK_ARTIFACT_URI } } })
+    } else {
+        physical.remove(0)
+    };
+    if logical.is_empty() {
+        if let Some(obj) = primary.as_object_mut() {
+            obj.remove("logicalLocations");
+        }
+    } else {
+        primary["logicalLocations"] = json!(logical);
+    }
+    result["locations"] = json!([primary]);
+
+    // Remaining physical locations ride as related locations (their logical
+    // entries already folded onto the primary, so drop them to avoid duplication).
+    if !physical.is_empty() {
+        for related in &mut physical {
+            if let Some(obj) = related.as_object_mut() {
+                obj.remove("logicalLocations");
+                obj.remove("properties");
+            }
+        }
+        result["relatedLocations"] = json!(physical);
+    }
+
     if let Some(detail) = &finding.detail {
         result["properties"] = json!({ "detail": detail });
     }
@@ -439,26 +537,43 @@ fn sarif_location_properties(location: &Location) -> Option<Value> {
 }
 
 fn sarif_location(location: &Location) -> Value {
-    let mut physical = json!({
-        "artifactLocation": {
-            "uri": location.path.as_deref().or(location.logical.as_deref()).unwrap_or("<unknown>")
+    let mut out = json!({});
+
+    // Physical location: a concrete file path, or a bare-IRI logical anchor.
+    // Only a valid bare URI may become `artifactLocation.uri`; angle-bracketed
+    // N-Triples IRIs and composite annotations are normalised / diverted below.
+    let uri = artifact_uri(location);
+    let has_region = location.line.is_some() || location.column.is_some();
+    if uri.is_some() || has_region {
+        let mut physical = json!({
+            "artifactLocation": { "uri": uri.as_deref().unwrap_or("unknown") }
+        });
+        if has_region {
+            let mut region = json!({});
+            if let Some(line) = location.line {
+                region["startLine"] = json!(line);
+            }
+            if let Some(column) = location.column {
+                region["startColumn"] = json!(column);
+            }
+            physical["region"] = region;
         }
-    });
-    if location.line.is_some() || location.column.is_some() {
-        let mut region = json!({});
-        if let Some(line) = location.line {
-            region["startLine"] = json!(line);
-        }
-        if let Some(column) = location.column {
-            region["startColumn"] = json!(column);
-        }
-        physical["region"] = region;
+        out["physicalLocation"] = physical;
     }
-    let mut out = json!({ "physicalLocation": physical });
-    let logical = sarif_logical_locations(location);
+
+    // Logical locations: the GTS wire coordinates, plus any non-URI annotation
+    // (e.g. a SHACL result `path`/`value`) surfaced rather than dropped.
+    let mut logical = sarif_logical_locations(location);
+    if let Some(annotation) = location.logical.as_deref() {
+        let annotation = strip_angle(annotation);
+        if !is_artifact_uri(annotation) {
+            logical.push(json!({ "fullyQualifiedName": annotation }));
+        }
+    }
     if !logical.is_empty() {
         out["logicalLocations"] = json!(logical);
     }
+
     if let Some(properties) = sarif_location_properties(location) {
         out["properties"] = properties;
     }
@@ -513,8 +628,10 @@ mod tests {
     fn sarif_emits_wire_coords_fingerprint_and_artifacts() {
         let mut finding =
             Finding::new(Severity::Error, "shacl.MinCount", "missing property").with_tool("shacl");
+        // A repo-relative bundle path (the valid physical artifact URI) carrying
+        // the GTS wire coordinates as logical locations.
         finding.add_location(
-            Location::new(None, None, None, Some("gts:quad".to_owned()))
+            Location::new(Some("bundle.gts".to_owned()), None, None, None)
                 .with_gts_quad(42)
                 .with_gts_segment(2),
         );
@@ -530,6 +647,11 @@ mod tests {
             .expect("fingerprint present");
         assert_eq!(fp.len(), 16);
 
+        // The physical artifact URI is the repo-relative bundle path.
+        assert_eq!(
+            result["locations"][0]["physicalLocation"]["artifactLocation"]["uri"],
+            "bundle.gts"
+        );
         // The wire coordinates surface as logical locations + properties.
         let logical = &result["locations"][0]["logicalLocations"];
         assert_eq!(logical[0]["kind"], "gts:quad");
@@ -540,7 +662,7 @@ mod tests {
         // The referenced artifact is listed once at the run level.
         assert_eq!(
             value["runs"][0]["artifacts"][0]["location"]["uri"],
-            "gts:quad"
+            "bundle.gts"
         );
     }
 
@@ -626,5 +748,179 @@ mod tests {
 
         assert!(html.contains("&lt;script&gt;"));
         assert!(!html.contains("<script>"));
+    }
+
+    #[test]
+    fn sarif_artifact_uris_are_repo_relative_and_iris_are_logical() {
+        // GitHub code-scanning requires `artifactLocation.uri` to be a repo-relative
+        // file reference: it rejects angle-bracketed IRIs AND absolute schemes
+        // ("scheme https did not match checkout scheme file"). So the repo `.ttl`
+        // path is the physical artifact, while the focus-node IRI and a SHACL
+        // `path <iri>` annotation are logical locations. Regression for #666.
+        let mut finding =
+            Finding::new(Severity::Error, "shacl.MinCount", "missing property").with_tool("shacl");
+        // Primary: repo-relative file path (physical) carrying the focus IRI as a
+        // logical anchor.
+        finding.add_location(Location::new(
+            Some("core/ai/examples/grounded-claim.ttl".to_owned()),
+            None,
+            None,
+            Some("https://blackcatinformatics.ca/gmeow/examples/ai/claim".to_owned()),
+        ));
+        finding.related_locations.push(Location::new(
+            None,
+            None,
+            None,
+            Some("path https://blackcatinformatics.ca/gmeow/groundedIn".to_owned()),
+        ));
+        let mut report = Report::new("validate");
+        report.add_finding(finding);
+
+        let value: Value = serde_json::from_str(&to_sarif(&report).unwrap()).unwrap();
+        let result = &value["runs"][0]["results"][0];
+
+        // Primary physical URI is the repo-relative file, not the absolute IRI.
+        assert_eq!(
+            result["locations"][0]["physicalLocation"]["artifactLocation"]["uri"],
+            "core/ai/examples/grounded-claim.ttl"
+        );
+        // The focus IRI and the folded `path` annotation ride along as logical
+        // locations on the primary (a logical-only related location would be
+        // rejected by GitHub, so it is folded here rather than emitted).
+        let names: Vec<&str> = result["locations"][0]["logicalLocations"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|l| l["fullyQualifiedName"].as_str().unwrap())
+            .collect();
+        assert!(names.contains(&"https://blackcatinformatics.ca/gmeow/examples/ai/claim"));
+        assert!(names.contains(&"path https://blackcatinformatics.ca/gmeow/groundedIn"));
+
+        // The only related location was logical-only, so none is emitted — and
+        // every relatedLocation that IS emitted must carry a physicalLocation.
+        assert!(result["relatedLocations"].is_null());
+
+        // No emitted artifact URI carries an angle bracket OR an absolute scheme,
+        // and every relatedLocation across the run has a physicalLocation.
+        let serialized = to_sarif(&report).unwrap();
+        assert!(
+            !serialized.contains("\"uri\": \"<"),
+            "angle-bracketed URI leaked"
+        );
+        for run in value["runs"].as_array().unwrap() {
+            for kind in ["results", "artifacts"] {
+                collect_uris(&run[kind]).iter().for_each(|u| {
+                    assert!(
+                        !has_uri_scheme(u),
+                        "absolute-scheme URI leaked into artifactLocation: {u}"
+                    );
+                });
+            }
+            for res in run["results"].as_array().unwrap() {
+                if let Some(rels) = res["relatedLocations"].as_array() {
+                    for rel in rels {
+                        assert!(
+                            rel.get("physicalLocation").is_some(),
+                            "relatedLocation without physicalLocation is rejected by code-scanning"
+                        );
+                    }
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn stale_cache_shape_promotes_file_to_primary_and_folds_logicals() {
+        // The exact shape a stale validation cache yields: a SHACL finding whose
+        // PRIMARY location is logical-only (the focus IRI) and whose related
+        // locations are the source file (physical) plus a `path <iri>` annotation
+        // (logical-only). GitHub requires the primary location to be physical, so
+        // the file is promoted to primary and every logical entry folds onto it.
+        // Regression for #666.
+        let mut finding =
+            Finding::new(Severity::Error, "shacl.MinCount", "missing property").with_tool("shacl");
+        finding.add_location(Location::new(
+            None,
+            None,
+            None,
+            Some("https://blackcatinformatics.ca/gmeow/examples/ai/claim".to_owned()),
+        ));
+        finding.related_locations.push(Location::new(
+            Some("core/ai/examples/grounded-claim.ttl".to_owned()),
+            None,
+            None,
+            None,
+        ));
+        finding.related_locations.push(Location::new(
+            None,
+            None,
+            None,
+            Some("path https://blackcatinformatics.ca/gmeow/groundedIn".to_owned()),
+        ));
+        let mut report = Report::new("validate");
+        report.add_finding(finding);
+
+        let value: Value = serde_json::from_str(&to_sarif(&report).unwrap()).unwrap();
+        let result = &value["runs"][0]["results"][0];
+
+        // The file is promoted to the (physical) primary location.
+        assert_eq!(
+            result["locations"][0]["physicalLocation"]["artifactLocation"]["uri"],
+            "core/ai/examples/grounded-claim.ttl"
+        );
+        // No physical-less location survives, so no relatedLocations are emitted.
+        assert!(result["relatedLocations"].is_null());
+        // Both logical entries fold onto the primary.
+        let names: Vec<&str> = result["locations"][0]["logicalLocations"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|l| l["fullyQualifiedName"].as_str().unwrap())
+            .collect();
+        assert!(names.contains(&"path https://blackcatinformatics.ca/gmeow/groundedIn"));
+        assert!(names.contains(&"https://blackcatinformatics.ca/gmeow/examples/ai/claim"));
+    }
+
+    #[test]
+    fn fileless_finding_anchors_to_the_ontology_root() {
+        // A message-only legacy warning (no location at all) must still get a
+        // location with a repo-relative physicalLocation, else code-scanning
+        // rejects it ("expected at least one location"). Regression for #666.
+        let mut report = Report::new("validate");
+        report.add_finding(Finding::new(
+            Severity::Warning,
+            "validate.warning",
+            "class gmeow:Analogy is missing gmeow:howToUse",
+        ));
+        let value: Value = serde_json::from_str(&to_sarif(&report).unwrap()).unwrap();
+        let result = &value["runs"][0]["results"][0];
+        assert_eq!(
+            result["locations"][0]["physicalLocation"]["artifactLocation"]["uri"],
+            "ontology/gmeow.ttl"
+        );
+        assert!(result["locations"]
+            .as_array()
+            .is_some_and(|a| !a.is_empty()));
+    }
+
+    /// Recursively collect every `"uri"` string value under a JSON node.
+    fn collect_uris(node: &Value) -> Vec<String> {
+        let mut out = Vec::new();
+        match node {
+            Value::Object(map) => {
+                for (k, v) in map {
+                    if k == "uri" {
+                        if let Some(s) = v.as_str() {
+                            out.push(s.to_owned());
+                        }
+                    } else {
+                        out.extend(collect_uris(v));
+                    }
+                }
+            }
+            Value::Array(items) => items.iter().for_each(|v| out.extend(collect_uris(v))),
+            _ => {}
+        }
+        out
     }
 }
