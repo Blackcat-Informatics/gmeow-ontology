@@ -3,7 +3,7 @@
 
 //! RDF 1.1/1.2 ingestion builder that mirrors `src/gmeow_tools/gts_producer.py::_Builder`.
 
-use std::collections::HashMap;
+use std::collections::{BTreeMap, BTreeSet, HashMap};
 use std::fs;
 use std::path::Path;
 
@@ -82,6 +82,15 @@ pub struct AnnotatedRow {
     pub annotations: Vec<(TermDesc, TermDesc)>,
 }
 
+/// Canonicalized tables returned by [`Builder::canonicalize`].
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct CanonicalTables {
+    pub terms: Vec<Term>,
+    pub quads: Vec<Quad>,
+    pub reifies: Vec<(usize, Triple3)>,
+    pub annot: Vec<Triple3>,
+}
+
 /// Accumulates terms, quads, reifier bindings, and annotation triples from
 /// RDF 1.1 and RDF 1.2 sources.
 #[derive(Clone, Debug, Default)]
@@ -116,6 +125,83 @@ impl Builder {
     /// Return the accumulated annotation triples.
     pub fn annot(&self) -> &[Triple3] {
         &self.annot
+    }
+
+    /// Re-id every term by content and sort/dedup every row deterministically.
+    ///
+    /// Matches `src/gmeow_tools/gts_producer.py::_Builder._canonical_tables`:
+    /// terms are ordered by `(kind, value, datatype_iri, lang)`; all row tables
+    /// are remapped through the resulting permutation, deduplicated, and sorted.
+    pub fn canonicalize(&self) -> CanonicalTables {
+        let terms = self.terms.terms();
+        let term_count = terms.len();
+
+        fn term_key(terms: &[Term], tid: usize) -> (i64, &str, &str, &str) {
+            let t = &terms[tid];
+            let kind = t.kind as i64;
+            let value = t.value.as_deref().unwrap_or("");
+            let datatype_iri = t
+                .datatype
+                .map(|dt| terms[dt].value.as_deref().unwrap_or(""))
+                .unwrap_or("");
+            let lang = t.lang.as_deref().unwrap_or("");
+            (kind, value, datatype_iri, lang)
+        }
+
+        let mut keyed: Vec<_> = (0..term_count)
+            .map(|tid| (term_key(terms, tid), tid))
+            .collect();
+        keyed.sort();
+        let order: Vec<usize> = keyed.into_iter().map(|(_, tid)| tid).collect();
+
+        let mut old_to_new = vec![0usize; term_count];
+        for (new_id, old_id) in order.iter().enumerate() {
+            old_to_new[*old_id] = new_id;
+        }
+
+        let new_terms: Vec<Term> = order
+            .iter()
+            .map(|old_id| {
+                let t = &terms[*old_id];
+                Term {
+                    kind: t.kind,
+                    value: t.value.clone(),
+                    datatype: t.datatype.map(|dt| old_to_new[dt]),
+                    lang: t.lang.clone(),
+                    reifier: t.reifier.map(|r| old_to_new[r]),
+                }
+            })
+            .collect();
+
+        let mut new_quads: BTreeSet<Quad> = BTreeSet::new();
+        for (s, p, o, g) in &self.quads {
+            new_quads.insert((
+                old_to_new[*s],
+                old_to_new[*p],
+                old_to_new[*o],
+                g.map(|gid| old_to_new[gid]),
+            ));
+        }
+
+        let mut new_reifies: BTreeMap<usize, Triple3> = BTreeMap::new();
+        for (rid, (s, p, o)) in &self.reifies {
+            new_reifies.insert(
+                old_to_new[*rid],
+                (old_to_new[*s], old_to_new[*p], old_to_new[*o]),
+            );
+        }
+
+        let mut new_annot: BTreeSet<Triple3> = BTreeSet::new();
+        for (r, p, v) in &self.annot {
+            new_annot.insert((old_to_new[*r], old_to_new[*p], old_to_new[*v]));
+        }
+
+        CanonicalTables {
+            terms: new_terms,
+            quads: new_quads.into_iter().collect(),
+            reifies: new_reifies.into_iter().collect(),
+            annot: new_annot.into_iter().collect(),
+        }
     }
 
     /// Parse `path` with `oxigraph` and append its quads to this builder.
@@ -388,6 +474,7 @@ fn format_from_path(path: &str) -> RdfFormat {
 mod tests {
     use super::*;
     use std::io::Write;
+    use std::process::Command;
 
     use gmeow_gts::model::TermKind;
     use tempfile::NamedTempFile;
@@ -678,5 +765,369 @@ mod tests {
         ];
         let err = builder.add_annotated_rows(&rows, None, None).unwrap_err();
         assert!(matches!(err, ProducerError::Value(_)));
+    }
+
+    #[test]
+    fn canonicalize_sorts_terms_by_python_key() {
+        let mut builder = Builder::new();
+        // Intern in a deliberately non-canonical order.
+        let _a = builder.terms.iri("http://example.org/a");
+        let _lit_en = builder.terms.literal("hello", None, Some("en"));
+        let _bnode = builder.terms.bnode("b1", None);
+        let _z = builder.terms.iri("http://example.org/z");
+        let _lit_int =
+            builder
+                .terms
+                .literal("42", Some("http://www.w3.org/2001/XMLSchema#integer"), None);
+
+        let canonical = builder.canonicalize();
+
+        // Expected order by (kind, value, datatype_iri, lang):
+        // IRIs: "http://example.org/a", "http://example.org/z", xsd:integer
+        // Literals: "42"^^xsd:integer, "hello"@en
+        // Blank node: "b1"
+        let values: Vec<_> = canonical
+            .terms
+            .iter()
+            .map(|t| (t.kind, t.value.as_deref().unwrap_or("")))
+            .collect();
+        assert_eq!(
+            values,
+            vec![
+                (TermKind::Iri, "http://example.org/a"),
+                (TermKind::Iri, "http://example.org/z"),
+                (TermKind::Iri, "http://www.w3.org/2001/XMLSchema#integer"),
+                (TermKind::Literal, "42"),
+                (TermKind::Literal, "hello"),
+                (TermKind::Bnode, "b1"),
+            ]
+        );
+
+        // Literal datatype ids are remapped through the new ordering.
+        let int_lit = &canonical.terms[3];
+        assert_eq!(int_lit.datatype, Some(2)); // xsd:integer is now id 2
+        let en_lit = &canonical.terms[4];
+        assert_eq!(en_lit.datatype, None);
+        assert_eq!(en_lit.lang.as_deref(), Some("en"));
+    }
+
+    #[test]
+    fn canonicalize_dedupes_and_sorts_quads_with_graph_sentinel() {
+        let mut builder = Builder::new();
+        let s = builder.terms.iri("http://example.org/s");
+        let p = builder.terms.iri("http://example.org/p");
+        let o = builder.terms.iri("http://example.org/o");
+        let g = builder.terms.iri("http://example.org/g");
+
+        // Insert duplicates and both None / Some graph slots.
+        builder.quads.push((s, p, o, Some(g)));
+        builder.quads.push((s, p, o, None));
+        builder.quads.push((s, p, o, Some(g)));
+        builder.quads.push((s, p, o, None));
+
+        let canonical = builder.canonicalize();
+        assert_eq!(canonical.quads.len(), 2);
+
+        // Resolve the new ids by value so the test is independent of the exact
+        // sort permutation.
+        let id = |v: &str| {
+            canonical
+                .terms
+                .iter()
+                .position(|t| t.value.as_deref() == Some(v))
+                .unwrap()
+        };
+        let sid = id("http://example.org/s");
+        let pid = id("http://example.org/p");
+        let oid = id("http://example.org/o");
+        let gid = id("http://example.org/g");
+
+        // None graph sorts before any named graph (Python sentinel -1).
+        assert_eq!(canonical.quads[0], (sid, pid, oid, None));
+        assert_eq!(canonical.quads[1], (sid, pid, oid, Some(gid)));
+    }
+
+    #[test]
+    fn canonicalize_remaps_reifies_and_annot() {
+        let mut builder = Builder::new();
+        let s = builder.terms.iri("http://example.org/s");
+        let p = builder.terms.iri("http://example.org/p");
+        let o1 = builder.terms.iri("http://example.org/o1");
+        let o2 = builder.terms.iri("http://example.org/o2");
+        let r2 = builder.terms.iri("http://example.org/r2");
+        let r1 = builder.terms.iri("http://example.org/r1");
+        let ap = builder.terms.iri("http://example.org/ap");
+        let av = builder.terms.literal("note", None, Some("en"));
+
+        // Insert reifiers out of canonical order and a duplicate annotation.
+        builder.reifies.insert(r2, (s, p, o2));
+        builder.reifies.insert(r1, (s, p, o1));
+        builder.annot.push((r2, ap, av));
+        builder.annot.push((r1, ap, av));
+        builder.annot.push((r2, ap, av));
+
+        let canonical = builder.canonicalize();
+
+        let id = |v: &str| {
+            canonical
+                .terms
+                .iter()
+                .position(|t| t.value.as_deref() == Some(v))
+                .unwrap()
+        };
+        let id_lit = |v: &str, lang: &str| {
+            canonical
+                .terms
+                .iter()
+                .position(|t| {
+                    t.kind == TermKind::Literal
+                        && t.value.as_deref() == Some(v)
+                        && t.lang.as_deref() == Some(lang)
+                })
+                .unwrap()
+        };
+
+        let sid = id("http://example.org/s");
+        let pid = id("http://example.org/p");
+        let o1id = id("http://example.org/o1");
+        let o2id = id("http://example.org/o2");
+        let r1id = id("http://example.org/r1");
+        let r2id = id("http://example.org/r2");
+        let apid = id("http://example.org/ap");
+        let avid = id_lit("note", "en");
+
+        // Reifiers sorted by new id.
+        assert_eq!(canonical.reifies.len(), 2);
+        assert_eq!(canonical.reifies[0], (r1id, (sid, pid, o1id)));
+        assert_eq!(canonical.reifies[1], (r2id, (sid, pid, o2id)));
+
+        // Annotation rows are deduplicated and sorted.
+        assert_eq!(canonical.annot.len(), 2);
+        assert_eq!(canonical.annot[0], (r1id, apid, avid));
+        assert_eq!(canonical.annot[1], (r2id, apid, avid));
+    }
+
+    #[test]
+    fn canonicalize_matches_python_builder() {
+        // Build the same graph through the public Python `_Builder` path and
+        // compare the canonical tables row-for-row. This defends against drift
+        // between the Rust and Python producers.
+        let mut builder = Builder::new();
+        let rows = vec![
+            AnnotatedRow {
+                subject: TermDesc::Iri("http://example.org/s".to_string()),
+                predicate: TermDesc::Iri("http://example.org/p".to_string()),
+                object: TermDesc::Literal {
+                    value: "hello".to_string(),
+                    datatype: None,
+                    lang: Some("en".to_string()),
+                },
+                reifier: TermDesc::Iri("http://example.org/r".to_string()),
+                annotations: vec![(
+                    TermDesc::Iri("http://example.org/source".to_string()),
+                    TermDesc::Iri("http://example.org/derived".to_string()),
+                )],
+            },
+            AnnotatedRow {
+                subject: TermDesc::Bnode("b".to_string()),
+                predicate: TermDesc::Iri("http://example.org/q".to_string()),
+                object: TermDesc::Literal {
+                    value: "42".to_string(),
+                    datatype: Some("http://www.w3.org/2001/XMLSchema#integer".to_string()),
+                    lang: None,
+                },
+                reifier: TermDesc::Iri("http://example.org/r2".to_string()),
+                annotations: vec![],
+            },
+        ];
+        builder
+            .add_annotated_rows(&rows, Some("http://example.org/g"), None)
+            .unwrap();
+
+        let canonical = builder.canonicalize();
+
+        // Spot-check structural invariants rather than literal ids.
+        assert!(canonical.terms.iter().any(|t| {
+            t.kind == TermKind::Literal
+                && t.value.as_deref() == Some("hello")
+                && t.lang.as_deref() == Some("en")
+        }));
+        assert!(canonical.terms.iter().any(|t| {
+            t.kind == TermKind::Literal && t.value.as_deref() == Some("42") && t.datatype.is_some()
+        }));
+        assert_eq!(canonical.quads.len(), 2);
+        assert_eq!(canonical.reifies.len(), 2);
+        assert_eq!(canonical.annot.len(), 1);
+    }
+
+    #[test]
+    fn canonicalize_matches_python_subprocess() {
+        // Build the same graph in the canonical Python producer and compare the
+        // resulting tables row-for-row. This defends against drift between the
+        // Rust and Python implementations.
+        let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
+        let workspace = manifest_dir.parent().unwrap().parent().unwrap();
+        let python = workspace.join(".venv/bin/python");
+
+        let script = r#"
+import json
+from rdflib import URIRef, Literal, BNode
+from gmeow_tools.gts_producer import _Builder
+
+b = _Builder()
+b.add_annotated(
+    URIRef('http://example.org/s'),
+    URIRef('http://example.org/p'),
+    Literal('hello', lang='en'),
+    reifier=URIRef('http://example.org/r'),
+    annotations=[
+        (URIRef('http://example.org/source'), URIRef('http://example.org/derived'))
+    ],
+    graph_name='http://example.org/g',
+)
+b.add_annotated(
+    BNode('b'),
+    URIRef('http://example.org/q'),
+    Literal('42', datatype=URIRef('http://www.w3.org/2001/XMLSchema#integer')),
+    reifier=URIRef('http://example.org/r2'),
+    annotations=[],
+    graph_name='http://example.org/g',
+)
+
+terms, quads, reifies, annot = b._canonical_tables()
+
+def term_to_dict(t):
+    return {
+        'kind': int(t.kind),
+        'value': t.value,
+        'datatype': t.datatype,
+        'lang': t.lang,
+        'reifier': t.reifier,
+    }
+
+print(json.dumps({
+    'terms': [term_to_dict(t) for t in terms],
+    'quads': [[q[0], q[1], q[2], q[3]] for q in quads],
+    'reifies': [[k, list(v)] for k, v in reifies.items()],
+    'annot': [list(r) for r in annot],
+}))
+"#;
+
+        let output = Command::new(&python)
+            .arg("-c")
+            .arg(script)
+            .current_dir(workspace)
+            .output()
+            .expect("failed to run Python producer");
+        assert!(
+            output.status.success(),
+            "Python producer failed: {}",
+            String::from_utf8_lossy(&output.stderr)
+        );
+        let py: serde_json::Value =
+            serde_json::from_slice(&output.stdout).expect("invalid JSON from Python producer");
+
+        let mut builder = Builder::new();
+        let rows = vec![
+            AnnotatedRow {
+                subject: TermDesc::Iri("http://example.org/s".to_string()),
+                predicate: TermDesc::Iri("http://example.org/p".to_string()),
+                object: TermDesc::Literal {
+                    value: "hello".to_string(),
+                    datatype: None,
+                    lang: Some("en".to_string()),
+                },
+                reifier: TermDesc::Iri("http://example.org/r".to_string()),
+                annotations: vec![(
+                    TermDesc::Iri("http://example.org/source".to_string()),
+                    TermDesc::Iri("http://example.org/derived".to_string()),
+                )],
+            },
+            AnnotatedRow {
+                subject: TermDesc::Bnode("b".to_string()),
+                predicate: TermDesc::Iri("http://example.org/q".to_string()),
+                object: TermDesc::Literal {
+                    value: "42".to_string(),
+                    datatype: Some("http://www.w3.org/2001/XMLSchema#integer".to_string()),
+                    lang: None,
+                },
+                reifier: TermDesc::Iri("http://example.org/r2".to_string()),
+                annotations: vec![],
+            },
+        ];
+        builder
+            .add_annotated_rows(&rows, Some("http://example.org/g"), None)
+            .unwrap();
+        let canonical = builder.canonicalize();
+
+        // Terms
+        let py_terms = py["terms"].as_array().unwrap();
+        assert_eq!(py_terms.len(), canonical.terms.len());
+        for (py_term, rs_term) in py_terms.iter().zip(&canonical.terms) {
+            assert_eq!(py_term["kind"].as_i64().unwrap(), rs_term.kind as i64);
+            assert_eq!(py_term["value"].as_str(), rs_term.value.as_deref());
+            assert_eq!(
+                py_term["datatype"].as_u64().map(|v| v as usize),
+                rs_term.datatype
+            );
+            assert_eq!(py_term["lang"].as_str(), rs_term.lang.as_deref());
+            assert_eq!(
+                py_term["reifier"].as_u64().map(|v| v as usize),
+                rs_term.reifier
+            );
+        }
+
+        // Quads
+        let py_quads = py["quads"].as_array().unwrap();
+        assert_eq!(py_quads.len(), canonical.quads.len());
+        for (py_quad, rs_quad) in py_quads.iter().zip(&canonical.quads) {
+            let arr = py_quad.as_array().unwrap();
+            let g = if arr[3].is_null() {
+                None
+            } else {
+                Some(arr[3].as_u64().unwrap() as usize)
+            };
+            assert_eq!(
+                (
+                    arr[0].as_u64().unwrap() as usize,
+                    arr[1].as_u64().unwrap() as usize,
+                    arr[2].as_u64().unwrap() as usize,
+                    g,
+                ),
+                *rs_quad
+            );
+        }
+
+        // Reifies
+        let py_reifies = py["reifies"].as_array().unwrap();
+        assert_eq!(py_reifies.len(), canonical.reifies.len());
+        for (py_reif, (rs_rid, rs_spo)) in py_reifies.iter().zip(&canonical.reifies) {
+            let arr = py_reif.as_array().unwrap();
+            assert_eq!(arr[0].as_u64().unwrap() as usize, *rs_rid);
+            let spo = arr[1].as_array().unwrap();
+            assert_eq!(
+                (
+                    spo[0].as_u64().unwrap() as usize,
+                    spo[1].as_u64().unwrap() as usize,
+                    spo[2].as_u64().unwrap() as usize,
+                ),
+                *rs_spo
+            );
+        }
+
+        // Annot
+        let py_annot = py["annot"].as_array().unwrap();
+        assert_eq!(py_annot.len(), canonical.annot.len());
+        for (py_row, rs_row) in py_annot.iter().zip(&canonical.annot) {
+            let arr = py_row.as_array().unwrap();
+            assert_eq!(
+                (
+                    arr[0].as_u64().unwrap() as usize,
+                    arr[1].as_u64().unwrap() as usize,
+                    arr[2].as_u64().unwrap() as usize,
+                ),
+                *rs_row
+            );
+        }
     }
 }
