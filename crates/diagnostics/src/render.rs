@@ -95,6 +95,143 @@ fn stable_fingerprint(finding: &Finding) -> String {
     format!("{hash:016x}")
 }
 
+/// The GMEOW namespace IRI prefix.
+const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
+/// The named graph the diagnostics projection lives in.
+const DIAGNOSTICS_GRAPH: &str = "https://blackcatinformatics.ca/gmeow/graph/diagnostics";
+const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+const XSD_NNI: &str = "http://www.w3.org/2001/XMLSchema#nonNegativeInteger";
+
+/// The `gmeow:DiagnosticSeverity` individual IRI for a severity.
+fn severity_individual(severity: crate::model::Severity) -> String {
+    use crate::model::Severity;
+    let local = match severity {
+        Severity::Error => "severityError",
+        Severity::Warning => "severityWarning",
+        Severity::Note => "severityNote",
+        Severity::Info => "severityInfo",
+    };
+    format!("{GMEOW}{local}")
+}
+
+/// Escape a string literal for N-Triples/N-Quads.
+fn nq_escape(value: &str) -> String {
+    let mut out = String::with_capacity(value.len() + 2);
+    for ch in value.chars() {
+        match ch {
+            '\\' => out.push_str("\\\\"),
+            '"' => out.push_str("\\\""),
+            '\n' => out.push_str("\\n"),
+            '\r' => out.push_str("\\r"),
+            '\t' => out.push_str("\\t"),
+            c => out.push(c),
+        }
+    }
+    out
+}
+
+/// Project a report into the `gmeow:` RDF vocabulary as N-Quads, all in the
+/// `gmeow:graph/diagnostics` named graph (#654).
+///
+/// Each finding becomes a `gmeow:Finding` individual carrying `gmeow:findingCode`,
+/// `gmeow:findingMessage`, `gmeow:findingTool`, a `gmeow:findingSeverity`
+/// pointing at the matching `gmeow:DiagnosticSeverity` individual, and one
+/// `gmeow:findingLocation` blank node per location, whose GTS wire coordinates
+/// are hung on it as datatype properties. This is the native in-bundle form of a
+/// report — a projection of the canonical Rust model (Principle 4), SPARQL-
+/// queryable beside the data it describes. N-Quads is used so the output parses
+/// in any RDF tool (pyoxigraph, oxigraph) without TriG/prefix handling. Output
+/// is deterministic: the report is normalized and findings are emitted in sorted
+/// order with content-addressed finding IRIs.
+pub fn to_gmeow_rdf(report: &Report) -> String {
+    let normalized = report.normalized();
+    let graph = format!("<{DIAGNOSTICS_GRAPH}>");
+    let mut lines: Vec<String> = Vec::new();
+
+    let triple = |s: &str, p: &str, o: &str, lines: &mut Vec<String>| {
+        lines.push(format!("{s} <{p}> {o} {graph} ."));
+    };
+
+    for (index, finding) in normalized.findings.iter().enumerate() {
+        let subject = format!(
+            "<{GMEOW}diagnostics/finding/{}-{index}>",
+            stable_fingerprint(finding)
+        );
+        triple(&subject, RDF_TYPE, &format!("<{GMEOW}Finding>"), &mut lines);
+        triple(
+            &subject,
+            &format!("{GMEOW}findingSeverity"),
+            &format!("<{}>", severity_individual(finding.severity)),
+            &mut lines,
+        );
+        triple(
+            &subject,
+            &format!("{GMEOW}findingCode"),
+            &format!("\"{}\"", nq_escape(&finding.code)),
+            &mut lines,
+        );
+        triple(
+            &subject,
+            &format!("{GMEOW}findingMessage"),
+            &format!("\"{}\"", nq_escape(&finding.message)),
+            &mut lines,
+        );
+        if let Some(tool) = &finding.tool {
+            triple(
+                &subject,
+                &format!("{GMEOW}findingTool"),
+                &format!("\"{}\"", nq_escape(tool)),
+                &mut lines,
+            );
+        }
+        for (loc_index, location) in finding.locations.iter().enumerate() {
+            let loc_node = format!("_:loc{index}_{loc_index}");
+            triple(
+                &subject,
+                &format!("{GMEOW}findingLocation"),
+                &loc_node,
+                &mut lines,
+            );
+            let int_prop = |node: &str, local: &str, value: u64, lines: &mut Vec<String>| {
+                triple(
+                    node,
+                    &format!("{GMEOW}{local}"),
+                    &format!("\"{value}\"^^<{XSD_NNI}>"),
+                    lines,
+                );
+            };
+            if let Some(v) = location.gts_term_id {
+                int_prop(&loc_node, "gtsTermId", v, &mut lines);
+            }
+            if let Some(v) = location.gts_quad_index {
+                int_prop(&loc_node, "gtsQuadIndex", v, &mut lines);
+            }
+            if let Some(v) = location.gts_reifier_id {
+                int_prop(&loc_node, "gtsReifierId", v, &mut lines);
+            }
+            if let Some(v) = location.gts_frame_index {
+                int_prop(&loc_node, "gtsFrameIndex", v, &mut lines);
+            }
+            if let Some(v) = location.gts_segment_index {
+                int_prop(&loc_node, "gtsSegmentIndex", v, &mut lines);
+            }
+            if let Some(path) = &location.path {
+                triple(
+                    &loc_node,
+                    &format!("{GMEOW}findingLocationPath"),
+                    &format!("\"{}\"", nq_escape(path)),
+                    &mut lines,
+                );
+            }
+        }
+    }
+    let mut out = lines.join("\n");
+    if !out.is_empty() {
+        out.push('\n');
+    }
+    out
+}
+
 /// Render a compact terminal-safe plain-text report.
 pub fn to_text(report: &Report) -> String {
     let normalized = report.normalized();
@@ -398,6 +535,50 @@ mod tests {
             value["runs"][0]["artifacts"][0]["location"]["uri"],
             "gts:quad"
         );
+    }
+
+    #[test]
+    fn gmeow_rdf_projects_findings_into_the_diagnostics_graph() {
+        let mut finding =
+            Finding::new(Severity::Error, "shacl.MinCount", "missing property").with_tool("shacl");
+        finding.add_location(
+            Location::new(None, None, None, Some("gts:quad".to_owned())).with_gts_quad(42),
+        );
+        let mut report = Report::new("validate");
+        report.add_finding(finding);
+
+        let nquads = to_gmeow_rdf(&report);
+
+        // Every line is in the diagnostics named graph.
+        for line in nquads.lines() {
+            assert!(
+                line.ends_with("<https://blackcatinformatics.ca/gmeow/graph/diagnostics> ."),
+                "line not in diagnostics graph: {line}"
+            );
+        }
+        assert!(nquads.contains("<https://blackcatinformatics.ca/gmeow/Finding>"));
+        assert!(nquads.contains("<https://blackcatinformatics.ca/gmeow/severityError>"));
+        assert!(nquads
+            .contains("<https://blackcatinformatics.ca/gmeow/findingCode> \"shacl.MinCount\""));
+        // The wire coordinate rides on the location node as a typed literal.
+        assert!(nquads.contains(
+            "<https://blackcatinformatics.ca/gmeow/gtsQuadIndex> \"42\"^^<http://www.w3.org/2001/XMLSchema#nonNegativeInteger>"
+        ));
+        // Deterministic: the same report projects identically.
+        assert_eq!(nquads, to_gmeow_rdf(&report));
+    }
+
+    #[test]
+    fn gmeow_rdf_escapes_literals() {
+        let mut report = Report::new("validate");
+        report.add_finding(Finding::new(
+            Severity::Warning,
+            "x",
+            "quote \" and newline \n end",
+        ));
+        let nquads = to_gmeow_rdf(&report);
+        assert!(nquads.contains("quote \\\" and newline \\n end"));
+        assert!(!nquads.contains("quote \" and newline \n"));
     }
 
     #[test]

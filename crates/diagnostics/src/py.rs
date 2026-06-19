@@ -196,6 +196,12 @@ impl PyReport {
         render::to_html(&self.inner)
     }
 
+    /// Project the report into the gmeow: RDF vocabulary as N-Quads, all in the
+    /// gmeow:graph/diagnostics named graph (#654).
+    fn to_gmeow_rdf(&self) -> String {
+        render::to_gmeow_rdf(&self.inner)
+    }
+
     fn render_text(&self) -> String {
         render::to_text(&self.inner)
     }

@@ -90,6 +90,42 @@ def test_facade_uses_report_json_with_wire_coords() -> None:
     assert sarif["runs"][0]["results"][0]["ruleId"] == "shacl.MinCount"
 
 
+def test_gmeow_rdf_projection_parses_in_pyoxigraph() -> None:
+    """The gmeow: RDF projection is valid N-Quads with one Finding per finding."""
+    import pyoxigraph
+
+    report = gmeow_diagnostics.Report("validate")
+    report.add(
+        gmeow_diagnostics.Finding(
+            "error",
+            "shacl.MinCount",
+            "missing property",
+            tool="shacl",
+            logical="gts:quad",
+        )
+    )
+
+    nquads = report.to_gmeow_rdf()
+    quads = list(
+        pyoxigraph.parse(nquads.encode("utf-8"), format=pyoxigraph.RdfFormat.N_QUADS)
+    )
+
+    diagnostics_graph = pyoxigraph.NamedNode(
+        "https://blackcatinformatics.ca/gmeow/graph/diagnostics"
+    )
+    rdf_type = pyoxigraph.NamedNode("http://www.w3.org/1999/02/22-rdf-syntax-ns#type")
+    finding_class = pyoxigraph.NamedNode("https://blackcatinformatics.ca/gmeow/Finding")
+
+    # Everything lands in the diagnostics named graph.
+    assert quads, "projection must emit quads"
+    assert all(q.graph_name == diagnostics_graph for q in quads)
+    # Exactly one gmeow:Finding individual.
+    findings = [
+        q for q in quads if q.predicate == rdf_type and q.object == finding_class
+    ]
+    assert len(findings) == 1
+
+
 def test_write_report_artifacts(tmp_path: Path) -> None:
     report = diagnostics.report_from_messages(
         tool="validate",
