@@ -101,15 +101,19 @@ def _build_gts_bytes(graph: Graph, signer: gts.Signer | None = None) -> bytes:
             node_to_idx[node] = len(nodes)
             nodes.append(node)
 
+    quads: list[tuple[int, int, int, int | None]] = []
     for subject, predicate, obj in graph:
+        assert isinstance(subject, URIRef | Literal)
+        assert isinstance(predicate, URIRef | Literal)
+        assert isinstance(obj, URIRef | Literal)
         add_node(subject)
         add_node(predicate)
         add_node(obj)
+        quads.append(
+            (node_to_idx[subject], node_to_idx[predicate], node_to_idx[obj], None)
+        )
 
     terms = [_rdflib_node_to_term(n) for n in nodes]
-    quads = [
-        (node_to_idx[s], node_to_idx[p], node_to_idx[o], None) for s, p, o in graph
-    ]
 
     writer = gts.Writer(profile="dist", signer=signer)
     writer.add_terms(terms)
