@@ -51,6 +51,27 @@ The harness runs three cell types over `slices/**/tests/*.ttl`:
 **Epistemics tally:** 14 converted (11 structural + 2 competency + 1 T2
 counter-example), 1 partial, 5 retained-with-reason.
 
+## Measured wall-clock
+
+The native harness runs every migrated epistemics assertion — the two competency
+questions (agent kinds + all 48 contribution roles), the structural assertions,
+and the example-conformance pair — under `cargo-nextest` in **0.32 s** (14 cases;
+~3.2 s including the cargo build/link step). `make slicetest`.
+
+For contrast, the pytest lane these assertions were lifted out of is dominated by
+its OWL-2-RL reasoned-graph build: the retained `tests/test_competency.py` plus
+`slices/core/epistemics/tests/test_epistemics.py` together run in **~10 min 22 s**
+(55 tests on this worktree) — almost entirely the reasoned-graph chase
+`tests/test_competency.py` pays. The native competency lane deliberately avoids
+that chase (asserted graph + SPARQL property paths, the `reasoningNone` default),
+which is why it is sub-second.
+
+**Honest scope:** this PR migrates **one** representative slice (epistemics). The
+gate-wide collapse of the ~1,950 rdflib ontology-data tests lands incrementally as
+more slices migrate under #781 — the bulk of that suite still runs today. What
+this PR banks is the end-to-end template plus the sub-second native lane every
+future slice migration inherits.
+
 ## Other slices
 
 No other slice carries declarative test-DSL specs yet (T2 authored only the
