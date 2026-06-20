@@ -1402,6 +1402,7 @@ dependencies = [
  "gmeow-gts",
  "gmeow-rdf",
  "oxigraph",
+ "proptest",
  "pyo3",
  "regex",
 ]
