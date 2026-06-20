@@ -30,11 +30,13 @@ from gmeow_tools.config import (
     GTS_GRAPH_IMPORTS,
     GTS_GRAPH_METADATA,
     GTS_GRAPH_STATEMENTS,
+    GTS_GRAPH_TEST_DSL,
     GTS_GRAPH_VERIFY,
     GTS_SNAPSHOT_FILE,
     NAMESPACE,
     PROJECT_ROOT,
     SLICES_DIR,
+    TEST_DSL_VOCABULARY_FILE,
 )
 from gmeow_tools.graph import iter_import_files, load_merged_graph
 from gmeow_tools.gts_producer import compile_gts
@@ -179,6 +181,7 @@ def test_snapshot_partitions_sources_into_named_graphs() -> None:
         GTS_GRAPH_ALIGNMENTS,
         GTS_GRAPH_IMPORTS,
         GTS_GRAPH_METADATA,
+        GTS_GRAPH_TEST_DSL,
         GTS_GRAPH_VERIFY,
     }
 
@@ -223,6 +226,17 @@ def test_snapshot_partitions_sources_into_named_graphs() -> None:
         if q[3] is not None and g.terms[q[3]].value == GTS_GRAPH_METADATA
     ]
     assert metadata
+
+    # The test-DSL spec-layer vocabulary rides its own named graph so describe
+    # can resolve it, without polluting the reasoned/exported default graph (#783).
+    test_dsl = [
+        q
+        for q in g.quads
+        if q[3] is not None and g.terms[q[3]].value == GTS_GRAPH_TEST_DSL
+    ]
+    test_dsl_graph = Graph()
+    test_dsl_graph.parse(TEST_DSL_VOCABULARY_FILE, format="turtle")
+    assert len(test_dsl) == len(to_canonical_graph(test_dsl_graph))
 
     # the statement layer rides with its reifier machinery intact
     assert g.reifiers and g.annotations

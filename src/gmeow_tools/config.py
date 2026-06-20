@@ -246,6 +246,10 @@ GTS_GRAPH_ALIGNMENTS = NAMESPACE + "graph/alignments"
 GTS_GRAPH_IMPORTS = NAMESPACE + "graph/imports"
 GTS_GRAPH_METADATA = NAMESPACE + "graph/metadata"
 GTS_GRAPH_VERIFY = NAMESPACE + "graph/verify"
+#: The test-DSL spec-layer vocabulary, partitioned out of the reasoned/exported
+#: default graph (it is never owl:imports-ed into the OWL 2 DL core) but folded so
+#: ``gmeow describe`` can resolve its terms offline from the bundle (#783).
+GTS_GRAPH_TEST_DSL = NAMESPACE + "graph/test-dsl"
 
 # IRI-addressable ontology profiles (#330): the root IRI is the CORE profile
 # (generated imports of every tierCore slice); the full aggregation and any
