@@ -924,15 +924,10 @@ version = "1.0.2"
 source = { editable = "." }
 dependencies = [
     { name = "blake3" },
-    { name = "duckdb" },
     { name = "fastmcp" },
     { name = "gmeow-gts" },
     { name = "httpx" },
-    { name = "jsonschema" },
-    { name = "linkml" },
-    { name = "markdown" },
     { name = "pyoxigraph" },
-    { name = "pyyaml" },
     { name = "rdflib" },
     { name = "rich" },
     { name = "sssom" },
@@ -965,17 +960,12 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "blake3", specifier = ">=0.4" },
-    { name = "duckdb", specifier = ">=1.5.3" },
     { name = "fastmcp", specifier = ">=3.4" },
     { name = "gmeow-gts", specifier = ">=0.9.0,<0.10" },
     { name = "httpx", specifier = ">=0.28" },
-    { name = "jsonschema", specifier = ">=4.23" },
-    { name = "linkml", specifier = ">=1.11" },
-    { name = "markdown", specifier = ">=3.10" },
     { name = "mido", marker = "extra == 'music'", specifier = ">=1.3.3" },
     { name = "music21", marker = "extra == 'music'", specifier = ">=10.3.0" },
     { name = "pyoxigraph", specifier = ">=0.5.8" },
-    { name = "pyyaml", specifier = ">=6.0" },
     { name = "rdflib", specifier = ">=7.6" },
     { name = "rich", specifier = ">=13.9" },
     { name = "sssom", specifier = ">=0.4.16" },
@@ -1005,11 +995,23 @@ name = "gmeow-dev"
 version = "1.0.2"
 source = { editable = "packages/gmeow-dev" }
 dependencies = [
+    { name = "duckdb" },
     { name = "gmeow" },
+    { name = "jsonschema" },
+    { name = "linkml" },
+    { name = "markdown" },
+    { name = "pyyaml" },
 ]
 
 [package.metadata]
-requires-dist = [{ name = "gmeow", editable = "." }]
+requires-dist = [
+    { name = "duckdb", specifier = ">=1.5.3" },
+    { name = "gmeow", editable = "." },
+    { name = "jsonschema", specifier = ">=4.23" },
+    { name = "linkml", specifier = ">=1.11" },
+    { name = "markdown", specifier = ">=3.10" },
+    { name = "pyyaml", specifier = ">=6.0" },
+]
 
 [[package]]
 name = "gmeow-gts"

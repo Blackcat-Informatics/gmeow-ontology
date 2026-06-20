@@ -5,7 +5,19 @@ description = "Repository-maintenance CLI for the GMEOW ontology checkout."
 requires-python = ">=3.13"
 license = "AGPL-3.0-only"
 authors = [{ name = "Blackcat Informatics® Inc." }]
-dependencies = ["gmeow==1.0.2"]
+# gmeow-dev is the "needs-the-repo" maintenance CLI: regenerate, build, docs,
+# schema/parquet/evals generation. Beyond the runtime gmeow library it owns the
+# generator-only libraries that the public `gmeow` CLI never imports (#667) —
+# markdown (ontology docs), linkml + PyYAML (schema_compile), duckdb (parquet /
+# gts_db), jsonschema (evals / research_objects).
+dependencies = [
+    "gmeow==1.0.2",
+    "markdown>=3.10",
+    "linkml>=1.11",
+    "PyYAML>=6.0",
+    "duckdb>=1.5.3",
+    "jsonschema>=4.23",
+]
 
 [project.scripts]
 gmeow-dev = "gmeow_dev.cli:app"

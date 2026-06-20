@@ -13,14 +13,14 @@ dependencies = [
     "httpx>=0.28",
     "typer>=0.15",
     "rich>=13.9",
-    "markdown>=3.10",
     "fastmcp>=3.4",
-    "linkml>=1.11",
-    "PyYAML>=6.0",
-    "duckdb>=1.5.3",
-    "jsonschema>=4.23",
     "blake3>=0.4",
     "pyoxigraph>=0.5.8",
+    # markdown / linkml / PyYAML / duckdb / jsonschema are NOT runtime deps: the
+    # public `gmeow` CLI never reaches them (proven by
+    # tests/test_runtime_dep_discipline.py). They power docs / schema / parquet /
+    # evals generation, so they live in gmeow-dev's dependencies — the
+    # "needs-the-repo" maintenance surface (#667, the gmeow vs gmeow-dev razor).
     # the GTS format engine — now an external package (repo: gmeow-gts),
     # resolved from PyPI; the narrow-waist glue (gts_producer/views/db/gen)
     # consumes this published `gts` library.  0.9.0 ships the stable codec
