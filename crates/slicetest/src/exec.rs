@@ -273,7 +273,7 @@ fn run_structural_cell(sa: &StructuralAssertion, slice_dir: &Path) -> Result<(),
 
     let mut sources = vec![paths::module_file(slice_dir)];
     if sa.scope == Scope::ModuleAndExamples {
-        sources.extend(example_ttls(&paths::examples_dir(slice_dir)));
+        sources.extend(example_ttls(&paths::examples_dir(slice_dir))?);
     }
     let store = build_store(&sources)
         .map_err(|e| format!("building scoped store for structural assertion: {e}"))?;
@@ -305,17 +305,27 @@ fn run_ask(store: &Store, query: &str) -> Result<bool, String> {
 
 /// Every `*.ttl` directly under a slice's `examples/` dir (sorted; empty if the
 /// directory is absent).
-fn example_ttls(examples_dir: &Path) -> Vec<PathBuf> {
-    let Ok(entries) = std::fs::read_dir(examples_dir) else {
-        return Vec::new();
+fn example_ttls(examples_dir: &Path) -> Result<Vec<PathBuf>, String> {
+    // An absent examples/ dir is normal (→ no examples). Any OTHER read error
+    // (permissions, I/O) must propagate, not masquerade as "no examples": that
+    // would silently run a scopeModuleAndExamples assertion against module-only
+    // data and could pass spuriously.
+    let entries = match std::fs::read_dir(examples_dir) {
+        Ok(entries) => entries,
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(Vec::new()),
+        Err(e) => return Err(format!("read_dir {}: {e}", examples_dir.display())),
     };
-    let mut files: Vec<PathBuf> = entries
-        .filter_map(Result::ok)
-        .map(|e| e.path())
-        .filter(|p| p.is_file() && p.extension().is_some_and(|x| x == "ttl"))
-        .collect();
+    let mut files: Vec<PathBuf> = Vec::new();
+    for entry in entries {
+        let entry =
+            entry.map_err(|e| format!("read_dir entry under {}: {e}", examples_dir.display()))?;
+        let path = entry.path();
+        if path.is_file() && path.extension().is_some_and(|x| x == "ttl") {
+            files.push(path);
+        }
+    }
     files.sort();
-    files
+    Ok(files)
 }
 
 // ── Example conformance ─────────────────────────────────────────────────────────
