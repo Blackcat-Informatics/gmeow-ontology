@@ -2046,7 +2046,7 @@ def _collect_reasoning() -> DocReasoning | None:
         oracle_note=_one(ledger, "oracleCrosscheck"),
         ledger_by_kind=_histogram(ledger, "entryKind"),
         ledger_by_world=_histogram(ledger, "inWorld"),
-        dl_gap_codes=sorted(_local(o) for o in _objects(ledger, "gapCode")),
+        dl_gap_codes=sorted({_local(o) for o in _objects(ledger, "gapCode")}),
         explanation_count=len(_objects(explanations, "concludes")),
         closure_file=str(NATIVE_CLOSURE_FILE.relative_to(PROJECT_ROOT)),
         explanations_file=str(NATIVE_EXPLANATIONS_FILE.relative_to(PROJECT_ROOT)),
