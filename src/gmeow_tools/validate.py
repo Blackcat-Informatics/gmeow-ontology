@@ -202,7 +202,7 @@ def check_syntax() -> ValidationResult:
 
     Runs through the Rust ``gmeow_validate`` extension (#579): the per-file
     oxigraph parse and the ``"syntax error in {path}: {exc}"`` framing live in
-    Rust now, with no Python pyoxigraph fallback (the extension is a hard
+    Rust now, with no Python fallback (the extension is a hard
     dependency of the validation path).
     """
     report = gmeow_validate.check_syntax([str(p) for p in iter_source_files()])
@@ -241,7 +241,7 @@ def check_sameas_ban(paths: list[Path] | None = None) -> ValidationResult:
 
     The scan runs through the Rust ``gmeow_validate`` extension (#579): the
     per-quad ``owl:sameAs`` check, the namespace/allowlist filtering, and the
-    exact error framing live in Rust. There is no Python pyoxigraph fallback —
+    exact error framing live in Rust. There is no Python fallback —
     the extension is a hard dependency of the validation path.
     """
     if paths is None:

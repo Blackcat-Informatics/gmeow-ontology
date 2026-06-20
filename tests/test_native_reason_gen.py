@@ -5,7 +5,7 @@
 The generator face of the native Docker-free EL/DL reasoning authority: it
 renders 3 committed RDF 1.2 artifacts under ``generated/logic/`` from the single
 ``gmeow_logic.reason_native`` Rust result. Covers registration, output identity,
-and a render → compare round-trip (no drift) using the star-aware pyoxigraph
+and a render → compare round-trip (no drift) using the star-aware gmeow_rdf
 comparator (the artifacts carry ``<< … >>`` triple terms rdflib cannot parse).
 """
 

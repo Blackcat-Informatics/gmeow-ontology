@@ -14,7 +14,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-import pyoxigraph
+import gmeow_rdf
 import pytest
 from rdflib import Graph, URIRef
 
@@ -45,25 +45,25 @@ def test_emits_the_file_family(rights_out: Path) -> None:
 def test_nq_is_valid_rdf12_with_provenance(rights_out: Path) -> None:
     """Every derived triple is reified and mappedFrom-attributed in the .nq."""
     nq = (rights_out / "index.nq").read_bytes()
-    quads = list(pyoxigraph.parse(nq, format=pyoxigraph.RdfFormat.N_QUADS))
+    quads = list(gmeow_rdf.parse(nq, format=gmeow_rdf.RdfFormat.N_QUADS))
     reified = {
         (str(q.object.subject), str(q.object.predicate), str(q.object.object))
         for q in quads
-        if isinstance(q.predicate, pyoxigraph.NamedNode)
+        if isinstance(q.predicate, gmeow_rdf.NamedNode)
         and q.predicate.value == _REIFIES
-        and isinstance(q.object, pyoxigraph.Triple)
+        and isinstance(q.object, gmeow_rdf.Triple)
     }
     assert reified, "no reifier bindings in index.nq"
     mapped_reifiers = {
         str(q.subject)
         for q in quads
-        if isinstance(q.predicate, pyoxigraph.NamedNode)
+        if isinstance(q.predicate, gmeow_rdf.NamedNode)
         and q.predicate.value == _MAPPED_FROM
     }
     reifier_subjects = {
         str(q.subject)
         for q in quads
-        if isinstance(q.predicate, pyoxigraph.NamedNode)
+        if isinstance(q.predicate, gmeow_rdf.NamedNode)
         and q.predicate.value == _REIFIES
     }
     assert reifier_subjects == mapped_reifiers, (
@@ -199,18 +199,18 @@ def test_denied_rows_shrink_e_of_g(
     report = transform(_RIGHTS, out_dir=out)
     assert report.denied_cells == 1
     nq = (out / "index.nq").read_bytes()
-    quads = list(pyoxigraph.parse(nq, format=pyoxigraph.RdfFormat.N_QUADS))
+    quads = list(gmeow_rdf.parse(nq, format=gmeow_rdf.RdfFormat.N_QUADS))
     brand_reifiers = {
         str(q.subject)
         for q in quads
-        if isinstance(q.predicate, pyoxigraph.NamedNode)
+        if isinstance(q.predicate, gmeow_rdf.NamedNode)
         and q.predicate.value == _REIFIES
-        and isinstance(q.object, pyoxigraph.Triple)
+        and isinstance(q.object, gmeow_rdf.Triple)
         and str(q.object.object) == "<https://schema.org/Brand>"
     }
     for q in quads:
         if (
-            isinstance(q.predicate, pyoxigraph.NamedNode)
+            isinstance(q.predicate, gmeow_rdf.NamedNode)
             and q.predicate.value == _MAPPED_FROM
             and str(q.subject) in brand_reifiers
         ):

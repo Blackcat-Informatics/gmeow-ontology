@@ -27,7 +27,7 @@ from collections.abc import Sequence
 from pathlib import Path
 
 import gmeow_logic
-import pyoxigraph
+import gmeow_rdf
 
 from gmeow_tools.config import GENERATED_DIR, GTS_SNAPSHOT_FILE, PROJECT_ROOT
 from gmeow_tools.generator import Generator, register
@@ -54,17 +54,17 @@ def _rel(path: Path) -> str:
 def _canonical_quads(path: Path) -> list[str]:
     """Parse an RDF 1.2 Turtle file and return its canonical quad strings.
 
-    Uses pyoxigraph because the artifacts carry RDF 1.2 triple terms
+    Uses gmeow_rdf because the artifacts carry RDF 1.2 triple terms
     (``<< … >>``), which rdflib's Turtle parser (and therefore the framework's
     rdflib-based ``rdf_compare``) cannot read. The RDFC-1.0 canonicalization
     gives blank-node-stable output, so an isomorphic re-serialization compares
     equal — a foreign serialization of an isomorphic graph is still drift
     (CONSTITUTION Principle 7), exactly like ``rdf_compare`` but star-aware.
     """
-    dataset = pyoxigraph.Dataset()
-    for quad in pyoxigraph.parse(path.read_bytes(), format=pyoxigraph.RdfFormat.TURTLE):
-        dataset.add(pyoxigraph.Quad(quad.subject, quad.predicate, quad.object))
-    dataset.canonicalize(pyoxigraph.CanonicalizationAlgorithm.RDFC_1_0)
+    dataset = gmeow_rdf.Dataset()
+    for quad in gmeow_rdf.parse(path.read_bytes(), format=gmeow_rdf.RdfFormat.TURTLE):
+        dataset.add(gmeow_rdf.Quad(quad.subject, quad.predicate, quad.object))
+    dataset.canonicalize(gmeow_rdf.CanonicalizationAlgorithm.RDFC_1_0)
     return sorted(str(quad) for quad in dataset)
 
 
@@ -116,11 +116,11 @@ class NativeReasoningGenerator(Generator):
             staged.write_text(content, encoding="utf-8")
 
     def compare(self, fresh: Path, committed: Path) -> list[str]:
-        """RDF 1.2 graph-isomorphism drift compare (pyoxigraph, star-aware).
+        """RDF 1.2 graph-isomorphism drift compare (gmeow_rdf, star-aware).
 
         All 3 outputs carry RDF 1.2 triple terms, so the rdflib-based
         ``rdf_compare`` cannot parse them; canonicalized quad-set equality via
-        pyoxigraph is the order- and blank-node-independent equivalent.
+        gmeow_rdf is the order- and blank-node-independent equivalent.
         """
         rel = _rel(committed)
         if not committed.exists():

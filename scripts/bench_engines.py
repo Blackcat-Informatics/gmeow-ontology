@@ -1,4 +1,4 @@
-"""Phase-0 benchmark for the pyoxigraph test-speed work (#242).
+"""Phase-0 benchmark for the gmeow_rdf test-speed work (#242).
 
 Measures the operations that dominate non-Docker test runtime so the speedups
 claimed by this change are grounded in numbers, not vibes. Run with:
@@ -44,8 +44,8 @@ def main() -> None:
         "(a) load_merged_graph (rdflib deep copy)",
         lambda: load_merged_graph(include_imports=False),
     )
-    _time("(b) merged_store (pyoxigraph, cached)", lambda: sparql.merged_store())
-    _time("(c) store_with (fresh pyoxigraph store)", lambda: sparql.store_with())
+    _time("(b) merged_store (gmeow_rdf, cached)", lambda: sparql.merged_store())
+    _time("(c) store_with (fresh gmeow_rdf store)", lambda: sparql.store_with())
 
     fixtures = [
         FIXTURES_DIR / f
@@ -60,7 +60,7 @@ def main() -> None:
     print("\nschema-org CONSTRUCT projection:")
     _time("(d) rdflib .query()", lambda: src.query(query).graph, n=3)
     _time(
-        "(e) pyoxigraph + hand-off to rdflib",
+        "(e) gmeow_rdf + hand-off to rdflib",
         lambda: sparql.construct(store, query),
         n=3,
     )

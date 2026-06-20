@@ -84,26 +84,26 @@ def _skolemized(abox: Graph) -> Graph:
     the skolem IRIs stable across runs. Projection-minted nodes get the same
     treatment.
 
-    Canonicalization runs on **pyoxigraph** (RDFC-1.0, Rust): rdflib's pure-Python
+    Canonicalization runs on **gmeow_rdf** (RDFC-1.0, Rust): rdflib's pure-Python
     ``to_canonical_graph`` is pathologically slow on the blank-node-heavy graphs a
-    real source produces (a paudley transpile spent >10 minutes there). pyoxigraph
+    real source produces (a paudley transpile spent >10 minutes there). gmeow_rdf
     canonicalizes the same graph in well under a second; the cheap O(n) skolemize
     round-trip stays in rdflib.
     """
-    import pyoxigraph
+    import gmeow_rdf
     from rdflib import Literal
 
     # parse() yields Quad objects (default graph for N-Triples), which Dataset
     # accepts directly — no per-triple Quad reconstruction needed.
-    dataset = pyoxigraph.Dataset(
-        pyoxigraph.parse(
+    dataset = gmeow_rdf.Dataset(
+        gmeow_rdf.parse(
             abox.serialize(format="nt", encoding="utf-8"),
-            format=pyoxigraph.RdfFormat.N_TRIPLES,
+            format=gmeow_rdf.RdfFormat.N_TRIPLES,
         )
     )
-    dataset.canonicalize(pyoxigraph.CanonicalizationAlgorithm.UNSTABLE)
+    dataset.canonicalize(gmeow_rdf.CanonicalizationAlgorithm.UNSTABLE)
 
-    # Convert pyoxigraph terms → rdflib DIRECTLY, skolemizing each blank node by
+    # Convert gmeow_rdf terms → rdflib DIRECTLY, skolemizing each blank node by
     # its CANONICAL value. Going through an N-Triples round trip would let rdflib
     # re-randomize the blank-node ids (losing the canonical labels and breaking
     # diffable reruns); this keeps the canonical labels in the skolem IRIs.
@@ -112,11 +112,11 @@ def _skolemized(abox: Graph) -> Graph:
     xsd_string = "http://www.w3.org/2001/XMLSchema#string"
 
     def _to_rdflib(term: object) -> URIRef | Literal:
-        if isinstance(term, pyoxigraph.NamedNode):
+        if isinstance(term, gmeow_rdf.NamedNode):
             return URIRef(term.value)
-        if isinstance(term, pyoxigraph.BlankNode):
+        if isinstance(term, gmeow_rdf.BlankNode):
             return URIRef(skolem + term.value)
-        # pyoxigraph.Literal — always carries an explicit datatype (xsd:string for
+        # gmeow_rdf.Literal — always carries an explicit datatype (xsd:string for
         # a plain string, rdf:langString for a lang literal). Map back to rdflib's
         # convention: a lang tag, a NON-string datatype, or a plain literal (the
         # implicit xsd:string is dropped, matching the .gts and rdflib paths).
@@ -294,7 +294,7 @@ def _serialize_outputs(
     ``base_plus_derived`` is retagged in place for the consumer tiers, and
     finally language-filtered if a selector was requested.
     """
-    import pyoxigraph
+    import gmeow_rdf
     from gts import read, to_nquads
 
     from gmeow_tools.language_tags import retag_graph
@@ -310,7 +310,7 @@ def _serialize_outputs(
     nq_path = out_dir / "index.nq"
     nq_path.write_text(nq_text, encoding="utf-8")
     # RDF 1.2 verification: the trusted parser must accept every line.
-    list(pyoxigraph.parse(nq_text.encode(), format=pyoxigraph.RdfFormat.N_QUADS))
+    list(gmeow_rdf.parse(nq_text.encode(), format=gmeow_rdf.RdfFormat.N_QUADS))
     written.append(nq_path)
 
     # consumer-facing tiers only: retag x-gmeow-* → public BCP-47 across the whole

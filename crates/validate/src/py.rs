@@ -270,17 +270,32 @@ impl PyValidationStore {
         })
     }
 
-    /// Internal protocol: return a transient capsule that borrows the wrapped
-    /// oxigraph store.
+    /// Internal protocol: a capsule exposing the wrapped oxigraph store by
+    /// address.
     ///
-    /// The capsule is consumed immediately by `gmeow_shacl.Shapes.validate_store`
-    /// so the SHACL engine can validate the store directly without an N-Triples
-    /// round-trip. Keeping the capsule alive after the store is dropped is
-    /// undefined behaviour; do not call this directly from Python.
-    fn _store_capsule<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyCapsule>> {
-        let addr = &self.store as *const oxigraph::store::Store as usize;
-        // SAFETY: the capsule borrows `self.store`. It must not outlive `self`.
-        PyCapsule::new_with_value(py, addr, c"gmeow-validation-store")
+    /// The capsule is consumed by `gmeow_shacl.Shapes.validate_store` so the
+    /// SHACL engine can validate the store directly without an N-Triples
+    /// round-trip. Do not call this directly from Python.
+    ///
+    /// The capsule's destructor owns a strong reference to `self`, so the store
+    /// is kept alive for the capsule's entire lifetime — the borrow is *enforced*
+    /// rather than merely assumed, closing the use-after-free a stray Python
+    /// reference to the capsule would otherwise open.
+    fn _store_capsule<'py>(slf: &Bound<'py, Self>) -> PyResult<Bound<'py, PyCapsule>> {
+        let py = slf.py();
+        let addr = &slf.borrow().store as *const oxigraph::store::Store as usize;
+        // Strong ref to the Python store; dropped (under the GIL) only when the
+        // capsule itself is collected, so `self.store` cannot dangle beneath it.
+        let keepalive: Py<Self> = slf.clone().unbind();
+        // SAFETY: the capsule's value is the address of `self.store`, whose
+        // storage is stable for the lifetime of the pyclass instance that
+        // `keepalive` pins. The consumer reads only the value, never the context.
+        PyCapsule::new_with_value_and_destructor(
+            py,
+            addr,
+            c"gmeow-validation-store",
+            move |_addr, _ctx| drop(keepalive),
+        )
     }
 
     /// Validate this store against a parsed SHACL shapes model.

@@ -19,7 +19,7 @@ one ``CoupleRelationship`` per family — rather than fragmenting.
 
 from __future__ import annotations
 
-import pyoxigraph
+import gmeow_rdf
 from rdflib import Graph
 
 from gmeow_tools.config import NAMESPACE
@@ -314,18 +314,18 @@ def apply_reverse(source: Graph) -> Graph:
     place node, a time entity passed through from the source) is given a stable
     label by the transform's RDFC-1.0 canonicalization, so reruns are identical.
     """
-    store = pyoxigraph.Store()
+    store = gmeow_rdf.Store()
     store.bulk_load(
         source.serialize(format="nt").encode(),
-        format=pyoxigraph.RdfFormat.N_TRIPLES,
+        format=gmeow_rdf.RdfFormat.N_TRIPLES,
     )
     out = Graph()
     for query in _reverse_queries():
         result = store.query(query)
         # every _reverse_queries() entry is a CONSTRUCT, so the result is always a
         # triple stream — narrow the union for the serializer (and the type checker).
-        assert isinstance(result, pyoxigraph.QueryTriples)
-        nt = pyoxigraph.serialize(result, format=pyoxigraph.RdfFormat.N_TRIPLES)
+        assert isinstance(result, gmeow_rdf.QueryTriples)
+        nt = gmeow_rdf.serialize(result, format=gmeow_rdf.RdfFormat.N_TRIPLES)
         if nt:
             out.parse(data=nt.decode("utf-8"), format="nt")
     return out

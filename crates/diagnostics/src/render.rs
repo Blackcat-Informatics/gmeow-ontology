@@ -174,7 +174,7 @@ fn nq_escape(value: &str) -> String {
             // Any remaining C0 control character (U+0000–U+001F) is illegal raw
             // in an N-Triples/N-Quads STRING_LITERAL_QUOTE and must be escaped as
             // \uXXXX, else a finding/SHACL message carrying e.g. NUL, backspace,
-            // form-feed, or VT produces a graph rdflib/pyoxigraph reject (#654).
+            // form-feed, or VT produces a graph rdflib/oxigraph reject (#654).
             c if (c as u32) < 0x20 => out.push_str(&format!("\\u{:04X}", c as u32)),
             c => out.push(c),
         }
@@ -192,7 +192,7 @@ fn nq_escape(value: &str) -> String {
 /// are hung on it as datatype properties. This is the native in-bundle form of a
 /// report — a projection of the canonical Rust model (Principle 4), SPARQL-
 /// queryable beside the data it describes. N-Quads is used so the output parses
-/// in any RDF tool (pyoxigraph, oxigraph) without TriG/prefix handling. Output
+/// in any RDF tool (oxigraph, rdflib) without TriG/prefix handling. Output
 /// is deterministic: the report is normalized and findings are emitted in sorted
 /// order with content-addressed finding IRIs.
 pub fn to_gmeow_rdf(report: &Report) -> String {

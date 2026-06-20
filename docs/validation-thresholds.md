@@ -89,7 +89,7 @@ be treated as a regression of the contract, not routine maintenance.
 
 | Gate | Make target (in `make check`) | CI job + step |
 |---|---|---|
-| SHACL | `validate` | `ontology` → "Validate (syntax, lint, SHACL, DSL SHACL)" (also exercised by `python`, `python-heavy`, `statements`, `statements-pyoxigraph`) |
+| SHACL | `validate` | `ontology` → "Validate (syntax, lint, SHACL, DSL SHACL)" (also exercised by `python`, `python-heavy`) |
 | Vendored-entity coverage | `coverage` (`--min-class 0.92 --min-predicate 0.85`) | `ontology` → "Vendored-entity coverage — hard class/predicate floors (#579)" |
 | Slice-example | `validate` (`check_example_coverage`) | `ontology` → "Validate (…)" (same `validate` invocation) |
 | Transpile recall | `acceptance` (`--min-recall 60`) | `ontology` → "Transpile acceptance — hard aggregate recall floor (#579)" |
@@ -112,9 +112,8 @@ part of #579.
 ## CI build cost (#579)
 
 `gmeow_validate` was added as a **3rd nightly-built Rust extension** alongside
-`gmeow_shacl` and `gmeow_logic` across the five validation jobs that exercise the
-validation path: `python`, `python-heavy`, `ontology`, `statements`, and
-`statements-pyoxigraph`. Qualitatively it compiles next to the existing crates in
+`gmeow_shacl` and `gmeow_logic` across the validation jobs that exercise the
+validation path: `python`, `python-heavy`, and `ontology`. Qualitatively it compiles next to the existing crates in
 the same `maturin develop` phase, so the incremental cost is one more crate build
 on the nightly toolchain; wheel/dependency caching via the existing
 `Swatinem/rust-cache` step is already in place to amortize it across runs. No
