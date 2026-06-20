@@ -6,6 +6,7 @@
 from __future__ import annotations
 
 import json
+import re
 import sys
 from pathlib import Path
 
@@ -55,6 +56,61 @@ def test_large_log_is_digested_deterministically() -> None:
     assert len(detail) < len(big)
     # Same input -> identical detail (determinism).
     assert detail == second.findings[0]["detail"]
+
+
+def test_multibyte_log_digest_has_no_negative_elision_or_overlap() -> None:
+    # A multi-byte log whose CHARACTER length exceeds the limit. With a byte
+    # budget this regressed: byte-length triggered the digest while char-index
+    # slicing produced a negative `elided` and overlapping head/tail. The budget
+    # is now character-consistent, so head + tail never overlap and `elided` > 0.
+    raw = "é" * 8000  # 8000 chars, 16000 bytes — char-len > limit (4096)
+    detail = external_tool._digest_detail(raw, external_tool.DEFAULT_DETAIL_LIMIT)
+
+    assert "sha256=" in detail
+    match = re.search(r"(\d+) chars elided", detail)
+    assert match is not None
+    elided = int(match.group(1))
+    assert elided > 0  # never negative (the regression)
+    # head + tail are disjoint slices of `raw`: their lengths + elided == len(raw).
+    head, _, rest = detail.partition("\n... [")
+    tail = rest.split("] ...\n", 1)[1]
+    assert len(head) + len(tail) + elided == len(raw)
+    # And the head/tail genuinely come from the ends of raw (no overlap).
+    assert raw.startswith(head)
+    assert raw.endswith(tail)
+
+
+def test_empty_argv_is_a_finding_not_a_crash() -> None:
+    report = external_tool.run_external_tool("noop", [])
+
+    assert not report.ok
+    assert report.findings[0]["code"] == "external.noop"
+    assert "empty command list" in report.findings[0]["detail"]
+
+
+def test_supplied_env_is_merged_onto_parent_env() -> None:
+    # A partial env must NOT clobber PATH — the child still resolves the binary.
+    report = external_tool.run_external_tool(
+        "probe",
+        [
+            sys.executable,
+            "-c",
+            "import os,sys; sys.exit(0 if os.environ.get('X')=='1' else 4)",
+        ],
+        env={"X": "1"},
+    )
+
+    # exit 0 proves both: the override (X=1) AND the inherited interpreter ran.
+    assert report.ok
+
+
+def test_argv_with_spaces_is_shell_quoted_in_detail() -> None:
+    report = external_tool.to_diagnostics_report(
+        "tool", ["cmd", "a b", "c'd"], 1, "", "boom"
+    )
+    detail = report.findings[0]["detail"]
+    # shlex.join quotes the space- and quote-bearing args.
+    assert "'a b'" in detail
 
 
 def test_small_log_is_kept_verbatim() -> None:

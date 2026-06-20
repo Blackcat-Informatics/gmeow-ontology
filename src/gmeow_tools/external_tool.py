@@ -21,6 +21,8 @@ gate. The caller propagates the tool's own pass/fail as the process exit code.
 from __future__ import annotations
 
 import hashlib
+import os
+import shlex
 import subprocess
 from collections.abc import Mapping, Sequence
 from pathlib import Path
@@ -28,8 +30,10 @@ from pathlib import Path
 from gmeow_tools import diagnostics
 from gmeow_tools.diagnostics import DiagnosticsReport
 
-#: Logs at or under this many bytes are kept verbatim in the finding detail;
-#: larger logs are digested (head + tail + full-content hash).
+#: Logs at or under this many characters are kept verbatim in the finding detail;
+#: larger logs are digested (head + tail + full-content hash). A character budget
+#: (not a byte budget) keeps the limit check consistent with the character-index
+#: slicing below, so the head/tail never overlap on multi-byte text.
 DEFAULT_DETAIL_LIMIT = 4096
 
 
@@ -39,14 +43,18 @@ def _digest_detail(raw: str, limit: int) -> str:
     The digest keeps the first and last halves of the budget and stamps the
     elided middle with the SHA-256 of the *full* original bytes, so two runs with
     identical output produce identical detail (determinism) while an arbitrarily
-    large log stays bounded.
+    large log stays bounded. The limit is a **character** budget so it is
+    consistent with the character-index slicing — with a byte budget, a
+    multi-byte log whose byte-length exceeds the limit but whose char-length does
+    not would yield a negative ``elided`` count and overlapping head/tail.
     """
-    if len(raw.encode("utf-8")) <= limit:
+    if len(raw) <= limit:
         return raw
     digest = hashlib.sha256(raw.encode("utf-8")).hexdigest()
     half = max(limit // 2, 1)
     head = raw[:half]
     tail = raw[-half:]
+    # len(raw) > limit >= 2*half guarantees a non-negative, non-overlapping gap.
     elided = len(raw) - len(head) - len(tail)
     return f"{head}\n... [{elided} chars elided; sha256={digest}] ...\n{tail}"
 
@@ -71,7 +79,7 @@ def to_diagnostics_report(
     if returncode == 0:
         return diagnostics.report(tool)
 
-    sections = [f"$ {' '.join(argv)}", f"exit code: {returncode}"]
+    sections = [f"$ {shlex.join(argv)}", f"exit code: {returncode}"]
     if stdout.strip():
         sections.append("--- stdout ---\n" + stdout.rstrip())
     if stderr.strip():
@@ -100,14 +108,25 @@ def run_external_tool(
 
     Captures stdout/stderr, never raises on a non-zero exit (that is the case it
     exists to represent), and delegates the mapping to :func:`to_diagnostics_report`.
-    A tool that cannot be launched at all (e.g. not installed) is itself an
-    ``external.<name>`` failure, with the launch error preserved as the log.
+    A tool that cannot be launched at all (e.g. not installed, or an empty argv)
+    is itself an ``external.<name>`` failure, with the launch error preserved as
+    the log. A supplied ``env`` is *merged onto* the parent environment (so the
+    child keeps ``PATH`` and friends, then overrides), never a full replacement.
     """
+    if not argv:
+        return to_diagnostics_report(
+            name,
+            argv,
+            returncode=127,
+            stdout="",
+            stderr="empty command list provided",
+            detail_limit=detail_limit,
+        )
     try:
         completed = subprocess.run(
             list(argv),
             cwd=cwd,
-            env=dict(env) if env is not None else None,
+            env={**os.environ, **env} if env is not None else None,
             capture_output=True,
             text=True,
             check=False,
