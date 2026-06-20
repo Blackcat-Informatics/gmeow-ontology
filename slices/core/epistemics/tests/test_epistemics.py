@@ -105,7 +105,9 @@ def test_justification_terms_are_annotated() -> None:
         assert (term, SKOS_DEFINITION, None) in g
         assert (term, RDFS.isDefinedBy, None) in g
 
-    for status in g.subjects(RDF.type, _t("JustificationStatus")):
+    statuses = list(g.subjects(RDF.type, _t("JustificationStatus")))
+    assert statuses, "expected at least one JustificationStatus individual to sweep"
+    for status in statuses:
         assert (status, RDFS.label, None) in g
         assert (status, SKOS_DEFINITION, None) in g
         assert (status, RDFS.isDefinedBy, None) in g
