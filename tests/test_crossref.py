@@ -411,8 +411,17 @@ def test_version_doi_carries_version_scoped_text_mining_urls() -> None:
     }
 
 
-def test_citation_list_projects_alignment_targets() -> None:
+def test_citation_list_projects_alignment_targets(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     """The alignment registry becomes Crossref references."""
+    # Inject a DOI on the gUFO target so the ordering regression check has
+    # both <journal_title> and <doi> children to compare.
+    monkeypatch.setitem(
+        ALIGNMENT_TARGETS,
+        "gufo",
+        dataclasses.replace(ALIGNMENT_TARGETS["gufo"], doi="10.5072/gufo-test"),
+    )
     root = _parse(build_deposit_xml())
     citations = root.findall(f".//{{{CR_NS}}}citation_list/{{{CR_NS}}}citation")
     assert len(citations) == len(ALIGNMENT_TARGETS)
@@ -423,9 +432,12 @@ def test_citation_list_projects_alignment_targets() -> None:
     assert gufo.findtext(f"{{{CR_NS}}}article_title") == "gUFO"
     assert gufo.findtext(f"{{{CR_NS}}}journal_title") == "gUFO"
     assert (
-        gufo.findtext(f"{{{CR_NS}}}unstructured_citation")
-        == "gUFO. http://purl.org/nemo/gufo#."
+        gufo.findtext(f"{{{CR_NS}}}unstructured_citation") == "gUFO. 10.5072/gufo-test."
     )
+    gufo_tags = [child.tag for child in gufo]
+    assert gufo_tags.index(f"{{{CR_NS}}}journal_title") < gufo_tags.index(
+        f"{{{CR_NS}}}doi"
+    ), "journal_title must be emitted before doi"
 
 
 def test_citations_include_container_title() -> None:
