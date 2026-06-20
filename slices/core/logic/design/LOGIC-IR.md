@@ -30,8 +30,8 @@ first-order). This is why the formula core is full-FOL: the core quantifiers are
 higher-order-looking statements are recovered through reification rather than by extending the
 logic.
 
-The earlier framing of the IR as "Datalog plus negation-as-failure" is superseded: that fragment
-is one evaluable subset of the IR, reached by lowering, not the ceiling of what the IR can hold.
+"Datalog plus negation-as-failure" is one evaluable subset of the IR, reached by lowering, not the
+ceiling of what the IR can hold.
 
 ## Node kinds
 
@@ -95,7 +95,7 @@ the target preserves:
   class;
 - **sound but incomplete (under-approximation)** — everything the target entails is canonically
   valid; it may miss answers;
-- **complete but possibly unsound (over-approximation)** — the target will not miss answers; it may
+- **complete but possibly unsound (over-approximation)** — the target does not miss answers; it may
   add some;
 - **validation-only** — the target detects some invalidity but is not an entailment relation;
 - **unsupported** — the construct cannot be expressed in the target at all.

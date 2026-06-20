@@ -62,9 +62,9 @@ projection, and the certified profiles — is in
 A reasoning request is a typed, compositional **reasoning contract** over orthogonal facets —
 consequence relation, negation kind, closure assumption, context indexing, state-change mode,
 uncertainty handling, and so on. Named profiles are presets: bundles of facet values that the
-compiler expands before evaluation, never indivisible alternatives. The contract model supersedes
-any framing in terms of a small fixed set of profiles, because the orthogonal dimensions compose
-in combinations no fixed list can fully anticipate. The full definition of the facets, presets,
+compiler expands before evaluation, never indivisible alternatives. The contract model is canonical
+rather than any small fixed set of profiles, because the orthogonal dimensions compose in
+combinations no fixed list can fully anticipate. The full definition of the facets, presets,
 and compatibility matrix is in [LOGIC-CONTRACT.md](LOGIC-CONTRACT.md).
 
 This is the same doctrine GMEOW already applies everywhere else:

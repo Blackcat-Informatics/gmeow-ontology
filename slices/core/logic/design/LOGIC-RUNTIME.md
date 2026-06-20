@@ -164,11 +164,11 @@ materializer-produced, resolver-produced, or built during a Stratum-C chase, car
 and source-IRIs, so one proof trace (and the prose explanation composed from it) spans both
 components without a seam in the narrative.
 
-Two honest later optimizations, neither required for correctness: **demand-driven materialization**
+Two optimizations, neither required for correctness: **demand-driven materialization**
 (magic-sets over the forward engine) replaces full Phase-1 closure when the base is large and the
 query narrow; and **incremental maintenance** keeps the materialized store fresh under base edits
-without a full re-chase — the harder win, since the forward engine is not incremental, and the
-reason that capability is one the custom solver layer must eventually own.
+without a full re-chase — the harder of the two, since the forward engine is not incremental, so
+that capability belongs to the custom solver layer.
 
 ### The seam data contract
 

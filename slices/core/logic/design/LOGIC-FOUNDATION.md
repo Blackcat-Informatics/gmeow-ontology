@@ -36,7 +36,7 @@ without reasoning and a certified under-approximation only on the fragment OWL c
 
 The doctrine, stated once for the rest of the charter to reference:
 
-> **We adopt gUFO as the floor and WILL NOT inherit its compromises.** gUFO is the *minimum* the
+> **GMEOW adopts gUFO as the floor and does not inherit its compromises.** gUFO is the *minimum* the
 > foundation must cover, never the *ceiling* it may reach. Every gUFO restraint — the OWL 2 DL
 > expressivity cap, the reification tax, the scaled-back event model, the external constraint stack —
 > is a thing `gmeow:logic` is built to escape, not to reproduce.

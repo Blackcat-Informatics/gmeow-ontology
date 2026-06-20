@@ -73,9 +73,8 @@ implemented against rather than only read:
   concerns. The state-change semantics are in [`design/LOGIC-TRANSACTION.md`](./design/LOGIC-TRANSACTION.md).
 - **The foundational ontology (UFO⁺) is authored in `logic:`.** gUFO is the primary generated
   down-projection; BFO, DOLCE, and SUMO are generated bridge views, not truth-preserving
-  projections. The OntoUML disciplines that formerly lived as external lint become actual axioms
-  when the native solver lands; the lint equivalents survive as projection-conformance tests over
-  the gUFO downcast.
+  projections. The OntoUML disciplines are `logic:` rules the native solver evaluates; their
+  equivalents survive as projection-conformance tests over the gUFO downcast.
 - **A single canonical native solver is the normal development authority.** It runs forward
   materialization and backward goal resolution; the classical OWL tools operate as secondary
   validators for exported subsets, not as the authority.
@@ -148,15 +147,15 @@ from modal possibility: it asks whether a program *can execute*, not whether a p
 in some accessible world. Concurrent Transaction Logic extends the path model to interleaved
 execution, surfacing non-serializable schedules as findings.
 
-## Status
+## Constitutional role
 
-Foundation vocabulary fully minted. The `logic:` namespace and the foundational surface are
-declared as standalone terms. The reasoned core is unchanged because the minted terms carry no
-axioms yet. The OntoUML discipline axioms, the native solver that evaluates them, the full
-generator set, and the matching enforcement gates in
-[`governance/constitution.ttl`](../../../governance/constitution.ttl) land as the native engine
-comes online. Until then, Principle 17 is enforced by design-review practice and surfaces as a
-warning, never silently.
+This slice realizes Constitution **Principle 17**: `logic:` is the canonical reasoning language, and
+OWL, RDFS, SHACL, Datalog, Prolog, N3, SPARQL, and the gUFO/BFO/DOLCE upper ontologies are generated
+lossy projections of it. The `logic:` namespace and the UFO⁺ foundational surface are declared as
+standalone terms that add no axioms to the reasoned core until they pass the formalization lifecycle
+([`design/LOGIC-FOUNDATION.md`](./design/LOGIC-FOUNDATION.md)). The OntoUML disciplines are `logic:`
+rules the native solver evaluates, and the matching enforcement gates live in
+[`governance/constitution.ttl`](../../../governance/constitution.ttl).
 
 ## Terms
 

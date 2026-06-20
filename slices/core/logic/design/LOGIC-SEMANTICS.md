@@ -119,11 +119,12 @@ consequence, and procedural search all at once, **every reasoning request is gov
 [LOGIC-CONTRACT.md](LOGIC-CONTRACT.md). Soundness, completeness, and the decidability class are all
 stated *relative to that contract* — a claim of "sound" with no contract in hand is meaningless.
 
-The older notion of a fixed, closed list of six indivisible "profiles" is superseded — and so is the
-intermediate framing of a single `Consequence` facet. **There is no one consequence facet.** What an
-entailment *means* is settled jointly by several orthogonal facets of the contract
-([LOGIC-CONTRACT.md](LOGIC-CONTRACT.md)). The "modes" older drafts crowded into one column are in fact
-values of *different* facets; the table below attributes each to the facet that actually carries it.
+A fixed, closed list of six indivisible "profiles" is not the model, and neither is a single
+`Consequence` facet. **There is no one consequence facet.** What an entailment *means* is settled
+jointly by several orthogonal facets of the contract
+([LOGIC-CONTRACT.md](LOGIC-CONTRACT.md)). The "modes" that a single column would crowd together are
+in fact values of *different* facets; the table below attributes each to the facet that actually
+carries it.
 They compose rather than exclude.
 
 | Facet | Value | Formal meaning | Decidability character |
