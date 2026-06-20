@@ -21,6 +21,10 @@ pub mod oxigraph;
 // `python` feature (maturin). Keeps the kernel rlib PyO3-free for Rust consumers.
 #[cfg(feature = "python")]
 pub mod py;
+// The native oxigraph Store/SPARQL/parse/canonicalize surface for `gmeow_rdf`
+// that replaces the external `pyoxigraph` package (#667). Python-only, like `py`.
+#[cfg(feature = "python")]
+pub mod py_store;
 #[cfg(feature = "oxigraph")]
 pub mod statements;
 pub mod store;

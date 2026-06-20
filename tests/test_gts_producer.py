@@ -254,7 +254,7 @@ def test_producer_default_graph_is_unnamed() -> None:
 
 
 def test_rdf12_producer_reifier_and_annotation(tmp_path: Path) -> None:
-    """The RDF 1.2 path (pyoxigraph) ingests reifier triple-terms + annotations."""
+    """The RDF 1.2 path (gmeow_rdf) ingests reifier triple-terms + annotations."""
     from gmeow_tools.gts_producer import gts_from_rdf12
 
     ttl = (

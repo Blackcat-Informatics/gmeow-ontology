@@ -313,7 +313,7 @@ jobs:
       - name: Validate (syntax, lint, SHACL, DSL SHACL)
         run: uv run --package gmeow-dev gmeow-dev validate
 
-      - name: Engine cross-check (rdflib ≡ pyoxigraph on every query)
+      - name: Engine cross-check (rdflib ≡ gmeow_rdf on every query)
         run: uv run --package gmeow-dev gmeow-dev crosscheck-queries
 
       - name: Full-registry drift gate (statements run natively via gmeow-rdf, #667)

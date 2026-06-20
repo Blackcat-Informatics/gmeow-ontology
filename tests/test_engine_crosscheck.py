@@ -1,7 +1,7 @@
-"""The rdflib ↔ pyoxigraph engine-equivalence gate (#242).
+"""The rdflib ↔ gmeow_rdf engine-equivalence gate (#242).
 
 This is the trust anchor that licenses the rest of the suite (and the projection
-executor) to run on the fast pyoxigraph engine: every committed query must return
+executor) to run on the fast gmeow_rdf engine: every committed query must return
 the same answers under both engines. The negative test proves the gate actually
 fires when the engines would disagree.
 """
@@ -30,7 +30,7 @@ def crosscheck_results() -> list[CrosscheckResult]:
 def test_every_committed_query_agrees_across_engines(
     crosscheck_results: list[CrosscheckResult],
 ) -> None:
-    """rdflib and pyoxigraph return identical answers for every committed query."""
+    """rdflib and gmeow_rdf return identical answers for every committed query."""
     diverged = [r for r in crosscheck_results if not r.agree and not r.skipped]
     assert not diverged, "engine divergence:\n" + "\n".join(
         f"  [{r.form}] {r.name}: {r.detail}" for r in diverged
@@ -53,7 +53,7 @@ def test_crosscheck_detects_a_real_divergence() -> None:
     """A query whose answer depends on a deliberately diverged store fails the gate.
 
     We give the two engines *different* data for the same query: rdflib sees an
-    extra triple pyoxigraph does not. The cross-check must report disagreement —
+    extra triple gmeow_rdf does not. The cross-check must report disagreement —
     proving the gate is not vacuously green.
     """
     query = "SELECT ?s WHERE { ?s a <https://example.org/Widget> }"
@@ -78,6 +78,6 @@ def test_crosscheck_decimal_values_compare_equal() -> None:
             Literal("645.0", datatype=XSD.decimal),
         )
     )
-    store = sparql.store_from_graph(g)  # pyoxigraph canonicalizes to "645"
+    store = sparql.store_from_graph(g)  # gmeow_rdf canonicalizes to "645"
     result = crosscheck_query("synthetic/decimal.rq", query, g, store)
     assert result.agree

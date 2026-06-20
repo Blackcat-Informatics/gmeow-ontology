@@ -30,13 +30,13 @@ ontology/ + slices/          statements rdf12        SSSOM mappings
 ## The rules
 
 1. **One producer.** `compile_gts` is the only code that reads rdflib /
-   pyoxigraph sources for export purposes. It canonicalizes blank nodes,
+   gmeow_rdf sources for export purposes. It canonicalizes blank nodes,
    content-sorts the term table, and partitions sources into named graphs —
    the emitted bytes are a pure function of the inputs (cross-hash-seed
    tested).
 2. **Many shims.** The four data exporters consume the fold through
    `gmeow_tools.gts_views.FoldView` and import **neither rdflib nor
-   pyoxigraph** (`metadata.py` keeps rdflib strictly as the *output
+   gmeow_rdf** (`metadata.py` keeps rdflib strictly as the *output
    serializer* for its freshly built description graphs — the one allowance).
 3. **Sealed by test.** `tests/test_narrow_waist.py` enforces it twice over:
    a behavioral seal (every canonical-source reader monkeypatched to raise;

@@ -9,7 +9,7 @@
 //! rather than building short-lived rdflib graphs.
 //!
 //! Parsing is **lenient** (`.lenient()`), preserving the legacy behavior of
-//! pyoxigraph's default `parse()` exactly (#579 is a no-behavior-change port).
+//! oxigraph's default `parse()` exactly (#579 is a no-behavior-change port).
 //! The real GMEOW ontology carries private-use `@x-gmeow-*` language tags whose
 //! subtag exceeds BCP-47's 8-char limit (e.g. `@x-gmeow-afrikaans`); the strict
 //! parser rejects the whole file on these (`imports/languages-reference.ttl`),
@@ -29,7 +29,7 @@ use crate::model::owl;
 /// string.
 ///
 /// The error string is the `Display` form of the underlying parse error,
-/// matching what the legacy pyoxigraph `parse()` raised as an exception. The
+/// matching what oxigraph's `parse()` raises as an exception. The
 /// caller decides how to frame it (`syntax error in {path}: {err}` etc.).
 ///
 /// # Errors

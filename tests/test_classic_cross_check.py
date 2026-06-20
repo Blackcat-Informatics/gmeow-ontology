@@ -319,9 +319,9 @@ def test_write_told_facts_only_edb(tmp_path: object) -> None:
 
 def test_subsumption_edges_expands_equivalence() -> None:
     """``owl:equivalentClass`` expands into a bidirectional subsumption pair."""
-    import pyoxigraph
+    import gmeow_rdf
 
-    store = pyoxigraph.Store()
+    store = gmeow_rdf.Store()
     store.load(
         (
             b"<http://x/A> "
@@ -329,7 +329,7 @@ def test_subsumption_edges_expands_equivalence() -> None:
             b"<http://x/C> "
             b"<http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://x/A> .\n"
         ),
-        format=pyoxigraph.RdfFormat.N_TRIPLES,
+        format=gmeow_rdf.RdfFormat.N_TRIPLES,
     )
     edges = crosscheck._subsumption_edges(store)
     assert ("http://x/A", "http://x/B") in edges

@@ -20,7 +20,7 @@ import json
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
-import pyoxigraph
+import gmeow_rdf
 from rdflib import Graph
 
 from gmeow_tools import sparql
@@ -82,7 +82,7 @@ def _local(term: object) -> str:
 
 
 def _flat_claims(
-    store: pyoxigraph.Store, report: AuditReport
+    store: gmeow_rdf.Store, report: AuditReport
 ) -> list[dict[str, object]]:
     """Assemble the documented flat-JSON claim objects."""
     flagged = {

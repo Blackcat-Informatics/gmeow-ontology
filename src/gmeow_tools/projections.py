@@ -15,7 +15,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-import pyoxigraph
+import gmeow_rdf
 from rdflib import Graph
 
 from gmeow_tools import sparql
@@ -127,20 +127,20 @@ def _load_projection_query(profile: str) -> str:
 
 def project_graph(
     profile: str,
-    source: Graph | pyoxigraph.Store,
+    source: Graph | gmeow_rdf.Store,
     *,
     selector: LangSelector | None = None,
 ) -> Graph:
     """Run a profile's CONSTRUCT over a source, returning the projection.
 
-    The CONSTRUCT runs on pyoxigraph (~12x faster than rdflib's engine); the
+    The CONSTRUCT runs on gmeow_rdf (~12x faster than rdflib's engine); the
     :mod:`gmeow_tools.engine_crosscheck` gate proves the two engines agree, so the
     output is identical to the former rdflib path.
 
     Args:
         profile: A key of :data:`PROFILES`.
         source: The data to project (ontology + instance data), either a
-            pyoxigraph store (preferred — no copy) or an rdflib graph (loaded into
+            gmeow_rdf store (preferred — no copy) or an rdflib graph (loaded into
             a fresh store).
         selector: Optional language selector for emitted labels/definitions.
 
@@ -151,7 +151,7 @@ def project_graph(
     query = _load_projection_query(profile)
     store = (
         source
-        if isinstance(source, pyoxigraph.Store)
+        if isinstance(source, gmeow_rdf.Store)
         else sparql.store_from_graph(source)
     )
     out = sparql.construct(store, query)
@@ -180,7 +180,7 @@ def _serialize(graph: Graph, path: Path) -> Path:
     return path
 
 
-def _example_store() -> pyoxigraph.Store:
+def _example_store() -> gmeow_rdf.Store:
     """The asserted ontology plus the worked-example fixtures, as a store."""
     paths = [FIXTURES_DIR / fixture for fixture in _EXAMPLE_FIXTURES]
     return sparql.store_with(*paths, include_imports=False)
@@ -282,33 +282,33 @@ def gts_base_graph(gts_path: Path) -> Graph:
     A ``.gts`` is the canonical RDF-1.2 product: base/derived triples *plus* their
     provenance reifiers. This returns just the plain asserted triples — the
     reifier rows (``rdf:reifies``) and the quoted triple-terms are dropped — by
-    routing through pyoxigraph (which parses RDF-1.2 N-Quads that rdflib cannot).
+    routing through gmeow_rdf (which parses RDF-1.2 N-Quads that rdflib cannot).
     """
     import io
 
     import gts
 
     nquads = gts.to_nquads(gts.read(gts_path.read_bytes()))
-    parsed = pyoxigraph.Store()
-    parsed.bulk_load(nquads.encode(), format=pyoxigraph.RdfFormat.N_QUADS)
-    reifies = pyoxigraph.NamedNode(_REIFIES)
-    base = pyoxigraph.Store()
+    parsed = gmeow_rdf.Store()
+    parsed.bulk_load(nquads.encode(), format=gmeow_rdf.RdfFormat.N_QUADS)
+    reifies = gmeow_rdf.NamedNode(_REIFIES)
+    base = gmeow_rdf.Store()
     for quad in parsed:
         # drop reifier rows and any quad with a quoted triple-term endpoint
         # (RDF-1.2 allows them in subject OR object; plain N-Triples / rdflib
         # cannot represent either, so they are not asserted base triples)
         if (
             quad.predicate == reifies
-            or isinstance(quad.subject, pyoxigraph.Triple)
-            or isinstance(quad.object, pyoxigraph.Triple)
+            or isinstance(quad.subject, gmeow_rdf.Triple)
+            or isinstance(quad.object, gmeow_rdf.Triple)
         ):
             continue
-        base.add(pyoxigraph.Quad(quad.subject, quad.predicate, quad.object))
+        base.add(gmeow_rdf.Quad(quad.subject, quad.predicate, quad.object))
     buf = io.BytesIO()
     base.dump(
         buf,
-        format=pyoxigraph.RdfFormat.N_TRIPLES,
-        from_graph=pyoxigraph.DefaultGraph(),
+        format=gmeow_rdf.RdfFormat.N_TRIPLES,
+        from_graph=gmeow_rdf.DefaultGraph(),
     )
     graph = Graph()
     graph.parse(data=buf.getvalue(), format="nt")

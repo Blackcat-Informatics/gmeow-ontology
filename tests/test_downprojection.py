@@ -102,16 +102,14 @@ def test_consumer_tiers_are_bcp47_canonical_keeps_internal(tmp_path: Path) -> No
             if isinstance(o, Literal) and o.language:
                 assert not o.language.startswith("x-gmeow"), f"{tier}: {o.language}"
     # the canonical N-Quads keep the internal tag (the source of truth)
-    import pyoxigraph
+    import gmeow_rdf
 
-    store = pyoxigraph.Store()
-    store.bulk_load(
-        (out / "index.nq").read_bytes(), format=pyoxigraph.RdfFormat.N_QUADS
-    )
+    store = gmeow_rdf.Store()
+    store.bulk_load((out / "index.nq").read_bytes(), format=gmeow_rdf.RdfFormat.N_QUADS)
     internal = {
         q.object.language
         for q in store
-        if isinstance(q.object, pyoxigraph.Literal) and q.object.language
+        if isinstance(q.object, gmeow_rdf.Literal) and q.object.language
     }
     assert any(lang.startswith("x-gmeow") for lang in internal)
 

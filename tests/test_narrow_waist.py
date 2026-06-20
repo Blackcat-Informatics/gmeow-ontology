@@ -8,7 +8,7 @@ Two complementary enforcement layers, so the waist cannot silently regress:
   raise, all five data exporters must still render, proving they need
   nothing but ``generated/dist/gmeow.gts``.
 * **Static seal** — the exporter modules must not import rdflib or
-  pyoxigraph at all (``metadata.py`` keeps rdflib strictly as the OUTPUT
+  gmeow_rdf at all (``metadata.py`` keeps rdflib strictly as the OUTPUT
   serializer for its freshly built description graphs — the one agreed
   allowance — and must not touch the canonical-source loaders).
 
@@ -42,12 +42,12 @@ _SRC = PROJECT_ROOT / "src" / "gmeow_tools"
 
 #: The data exporters: module name → modules that must NOT be imported.
 _SEALED: dict[str, frozenset[str]] = {
-    "export.py": frozenset({"rdflib", "pyoxigraph"}),
-    "schema_compile.py": frozenset({"rdflib", "pyoxigraph"}),
-    "lpg.py": frozenset({"rdflib", "pyoxigraph"}),
-    "parquet_gen.py": frozenset({"rdflib", "pyoxigraph"}),
-    # rdflib allowed as the output serializer; pyoxigraph not at all
-    "metadata.py": frozenset({"pyoxigraph"}),
+    "export.py": frozenset({"rdflib", "gmeow_rdf"}),
+    "schema_compile.py": frozenset({"rdflib", "gmeow_rdf"}),
+    "lpg.py": frozenset({"rdflib", "gmeow_rdf"}),
+    "parquet_gen.py": frozenset({"rdflib", "gmeow_rdf"}),
+    # rdflib allowed as the output serializer; gmeow_rdf not at all
+    "metadata.py": frozenset({"gmeow_rdf"}),
 }
 
 #: Canonical-source readers no exporter may touch (metadata included).
@@ -90,7 +90,7 @@ def _referenced_names(tree: ast.AST) -> set[str]:
 
 
 def test_static_seal_no_rdf_parsers_in_exporters() -> None:
-    """The exporter modules import neither rdflib nor pyoxigraph."""
+    """The exporter modules import neither rdflib nor gmeow_rdf."""
     for module, banned in _SEALED.items():
         tree = ast.parse((_SRC / module).read_text(encoding="utf-8"))
         offending = _imported_modules(tree) & banned
@@ -127,13 +127,12 @@ def test_behavioral_seal_exporters_render_from_snapshot_alone(
     monkeypatch.setattr(graph_mod, "shared_merged_graph", boom)
     monkeypatch.setattr(mappings_mod, "load_mappings", boom)
     monkeypatch.setattr(self_desc_mod, "load_self_description", boom)
-    try:  # pyoxigraph is a dev dependency here, but the seal must not
-        import pyoxigraph  # noqa: F401  # depend on its presence to hold
-    except ImportError:
-        pass
-    else:
-        monkeypatch.setattr("pyoxigraph.Store", boom)
-        monkeypatch.setattr("pyoxigraph.parse", boom)
+    # gmeow_rdf (the native oxigraph binding) is always present, but the seal must
+    # prove the narrow-waist generators never touch the engine at render time.
+    import gmeow_rdf  # noqa: F401
+
+    monkeypatch.setattr("gmeow_rdf.Store", boom)
+    monkeypatch.setattr("gmeow_rdf.parse", boom)
 
     gens = registry()
     for name in ("exports", "metadata", "schemas", "lpg", "parquet"):

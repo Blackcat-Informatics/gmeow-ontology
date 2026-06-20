@@ -41,5 +41,8 @@ fn normalize_rdf12_to_owl(rdf12_ttl: &str) -> PyResult<String> {
 fn gmeow_rdf(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(project_statements_rdf12, m)?)?;
     m.add_function(wrap_pyfunction!(normalize_rdf12_to_owl, m)?)?;
+    // The native oxigraph Store / SPARQL / parse / canonicalize surface that
+    // replaces the external `pyoxigraph` package (#667).
+    crate::py_store::register(m)?;
     Ok(())
 }

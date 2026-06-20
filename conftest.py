@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import os
 
-import pyoxigraph
+import gmeow_rdf
 import pytest
 from rdflib import Graph
 
@@ -34,8 +34,8 @@ def merged_graph() -> Graph:
 
 
 @pytest.fixture(scope="session")
-def merged_store() -> pyoxigraph.Store:
-    """The merged ontology as a shared, read-only pyoxigraph store (query only)."""
+def merged_store() -> gmeow_rdf.Store:
+    """The merged ontology as a shared, read-only gmeow_rdf store (query only)."""
     return sparql.merged_store(include_imports=False)
 
 

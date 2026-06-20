@@ -330,15 +330,15 @@ def test_export_does_not_invent_en_when_bcp47_missing() -> None:
 
 
 def _oxigraph_quads(path: Path) -> set[str]:
-    """Parse with pyoxigraph (the trusted RDF 1.2 path, #177) → quad strings."""
-    import pyoxigraph
+    """Parse with gmeow_rdf (the trusted RDF 1.2 path, #177) → quad strings."""
+    import gmeow_rdf
 
     fmt = (
-        pyoxigraph.RdfFormat.N_QUADS
+        gmeow_rdf.RdfFormat.N_QUADS
         if path.suffix == ".nq"
-        else pyoxigraph.RdfFormat.TRIG
+        else gmeow_rdf.RdfFormat.TRIG
     )
-    return {str(q) for q in pyoxigraph.parse(path.read_bytes(), format=fmt)}
+    return {str(q) for q in gmeow_rdf.parse(path.read_bytes(), format=fmt)}
 
 
 def test_nquads_carries_the_full_statement_layer(tmp_path: Path) -> None:
