@@ -85,7 +85,10 @@ fn to_ntriples(facts: &[Fact]) -> String {
 fn arb_fact() -> impl Strategy<Value = Fact> {
     prop_oneof![
         (0u8..4).prop_map(Fact::Typed),
-        (0u8..4, any::<i32>()).prop_map(|(s, n)| Fact::IntValue(s, n)),
+        // Non-negative only: the shape's `sh:pattern "^[0-9]+$"` rejects a leading
+        // minus sign, so a negative would unintentionally violate the pattern and
+        // contradict this generator's "satisfies datatype + pattern" intent.
+        (0u8..4, 0..i32::MAX).prop_map(|(s, n)| Fact::IntValue(s, n)),
         // Lowercase letters only: no N-Triples escaping needed, and never a valid
         // xsd:integer lexical form (always a datatype + pattern violation).
         (0u8..4, "[a-z]{1,4}").prop_map(|(s, t)| Fact::StrValue(s, t)),
