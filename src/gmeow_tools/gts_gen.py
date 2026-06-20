@@ -155,6 +155,37 @@ def _transform_blobs(_graph: Graph) -> list[tuple[bytes, str, str]]:
     ]
 
 
+def _logic_blobs() -> list[tuple[bytes, str, str]]:
+    """Fold the native-reasoning products into the bundle as canonical blobs (#667).
+
+    The closure / explanations / divergence-ledger are first-class information
+    products (north-star (d) — maximal information flow: nothing produced should
+    terminate on disk only). They are embedded **RDFC-1.0 canonical** (reusing the
+    star-aware canonicalizer the native-reasoning generator drift-gates with), so
+    the bundle bytes are stable regardless of the reasoner's hash-order emission —
+    the human-readable Turtle on disk carries the same triples in a non-canonical
+    form. A repo-free ``gmeow.gts`` consumer reads the reasoning results via
+    :func:`gmeow_tools.bundle.bundled_reasoning` without re-running the engine.
+    """
+    from gmeow_tools.bundle import REP_REASONING
+    from gmeow_tools.native_reason_gen import (
+        NATIVE_CLOSURE_FILE,
+        NATIVE_EXPLANATIONS_FILE,
+        NATIVE_LEDGER_FILE,
+        _canonical_quads,
+    )
+
+    members: list[tuple[str, bytes]] = []
+    for path in (NATIVE_CLOSURE_FILE, NATIVE_EXPLANATIONS_FILE, NATIVE_LEDGER_FILE):
+        if not path.exists():
+            continue
+        canonical = ("\n".join(_canonical_quads(path)) + "\n").encode("utf-8")
+        members.append((path.relative_to(PROJECT_ROOT).as_posix(), canonical))
+    if not members:
+        return []
+    return [(_tar_members(members), "application/x-tar", REP_REASONING)]
+
+
 def _doc_blobs(graph: Graph) -> list[tuple[bytes, str, str]]:
     """Content-addressed slice guides, linked via ``gmeow:guideBlob``."""
     guide_blob = URIRef(NAMESPACE + "guideBlob")
@@ -383,6 +414,7 @@ def build_snapshot_bytes(
         + _project_doc_blobs()
         + _ontology_doc_blobs()
         + _transform_blobs(multilingual_graph)
+        + _logic_blobs()
     )
 
     imports = (_imports_graph(), GTS_GRAPH_IMPORTS, "imports")

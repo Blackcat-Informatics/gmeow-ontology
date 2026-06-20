@@ -8,14 +8,23 @@ fires when the engines would disagree.
 
 from __future__ import annotations
 
+import json
+from pathlib import Path
+
 import pytest
 from rdflib import RDF, XSD, Graph, Literal, URIRef
 
 from gmeow_tools import sparql
 from gmeow_tools.engine_crosscheck import (
+    ENGINE_CROSSCHECK_STEM,
+    RULE_AGREEMENT,
+    RULE_DIVERGENCE,
+    RULE_SKIPPED,
     CrosscheckResult,
+    build_report,
     crosscheck_all,
     crosscheck_query,
+    run,
 )
 
 _WIDGET = URIRef("https://example.org/Widget")
@@ -81,3 +90,73 @@ def test_crosscheck_decimal_values_compare_equal() -> None:
     store = sparql.store_from_graph(g)  # gmeow_rdf canonicalizes to "645"
     result = crosscheck_query("synthetic/decimal.rq", query, g, store)
     assert result.agree
+
+
+# --------------------------------------------------------------------------- #
+# build_report / run — the surface is first-class output, not stdout (#667)
+# --------------------------------------------------------------------------- #
+
+
+def test_build_report_maps_each_outcome_to_its_severity() -> None:
+    """A diverged/skipped/agree triad maps to error/note/info findings (#667)."""
+    results = [
+        CrosscheckResult("audit/a.rq", "SELECT", agree=True),
+        CrosscheckResult("audit/b.rq", "ASK", agree=False, detail="rdflib=1 native=0"),
+        CrosscheckResult(
+            "audit/c.rq",
+            "SELECT",
+            agree=True,
+            detail="both engines rejected: x",
+            skipped=True,
+        ),
+    ]
+    report = build_report(results)
+
+    # The one real divergence is error-severity and fails the surface.
+    assert report.error_count == 1
+    assert not report.ok
+
+    sarif = json.loads(report.to_sarif())
+    sarif_results = sarif["runs"][0]["results"]
+    rule_ids = {r["ruleId"] for r in sarif_results}
+    assert {RULE_AGREEMENT, RULE_DIVERGENCE, RULE_SKIPPED} <= rule_ids
+
+    # The agreement summary counts the surface (1 agreed of 2 checked, 1 skipped).
+    messages = [r["message"]["text"] for r in sarif_results]
+    assert any("1/2 queries agree" in m for m in messages)
+    # The diverged query is named in its finding; agreeing queries are NOT spammed.
+    assert any("audit/b.rq" in m for m in messages)
+    assert sum("audit/a.rq" in m for m in messages) == 0
+
+
+def test_build_report_all_agree_is_ok() -> None:
+    """With no divergence the report is clean (info-only)."""
+    results = [
+        CrosscheckResult("audit/a.rq", "SELECT", agree=True),
+        CrosscheckResult("audit/b.rq", "ASK", agree=True),
+    ]
+    report = build_report(results)
+    assert report.ok
+    assert report.error_count == 0
+
+
+def test_run_writes_artifacts_and_passes_on_the_real_surface(
+    tmp_path: Path,
+) -> None:
+    """``run`` cross-checks the committed queries and writes JSON/SARIF/HTML (#667)."""
+    passed, results, _report = run(output_dir=tmp_path)
+
+    assert passed, "engine cross-check unexpectedly diverged: " + "\n".join(
+        f"  [{r.form}] {r.name}: {r.detail}"
+        for r in results
+        if not r.agree and not r.skipped
+    )
+    for kind in ("json", "sarif", "html"):
+        artifact = tmp_path / f"{ENGINE_CROSSCHECK_STEM}.{kind}"
+        assert artifact.exists(), f"missing {kind} artifact"
+    assert (
+        json.loads(
+            (tmp_path / f"{ENGINE_CROSSCHECK_STEM}.sarif").read_text(encoding="utf-8")
+        )["version"]
+        == "2.1.0"
+    )

@@ -26,7 +26,7 @@ from collections.abc import Iterable
 from dataclasses import dataclass
 from decimal import Decimal, InvalidOperation
 from pathlib import Path
-from typing import cast
+from typing import TYPE_CHECKING, cast
 
 import gmeow_rdf
 from rdflib import BNode, Graph, Literal, URIRef
@@ -37,6 +37,7 @@ from gmeow_tools import sparql
 from gmeow_tools.config import (
     AUDIT_QUERY_DIR,
     COMPETENCY_DIR,
+    DIST_DIR,
     FIXTURES_DIR,
     PROJECTION_QUERY_DIR,
     QC_DIR,
@@ -45,6 +46,20 @@ from gmeow_tools.config import (
 )
 from gmeow_tools.graph import load_merged_graph, shared_merged_graph
 from gmeow_tools.slices import iter_slice_query_files
+
+if TYPE_CHECKING:
+    from gmeow_tools.diagnostics import DiagnosticsReport
+
+#: Diagnostics-artifact stem for the engine cross-check (JSON / SARIF / HTML).
+#: This surface USED to terminate at stdout only; it now emits a first-class
+#: artifact through the diagnostics rail like every other dev-gate surface
+#: (#667 — north-star (d): nothing produced should terminate in stdout).
+ENGINE_CROSSCHECK_STEM = "gmeow-engine-cross-check"
+
+#: Gate taxonomy rule-ids (#662 consumes; #666 owns the semantics).
+RULE_DIVERGENCE = "engine-cross-check/divergence"
+RULE_SKIPPED = "engine-cross-check/skipped"
+RULE_AGREEMENT = "engine-cross-check/agreement"
 
 #: Example instance fixtures the projection CONSTRUCTs need to produce output.
 _PROJECTION_FIXTURES = (
@@ -284,3 +299,90 @@ def crosscheck_all() -> list[CrosscheckResult]:
         return results
     finally:
         sys.setrecursionlimit(old_limit)
+
+
+def build_report(results: list[CrosscheckResult]) -> DiagnosticsReport:
+    """Fold the engine cross-check results into a diagnostics report (#667).
+
+    Every committed query compared across rdflib + gmeow_rdf is carried into the
+    SARIF/JSON/HTML artifact instead of terminating at stdout (north-star (d)).
+    A real divergence is an ``error`` (it FAILS the gate); a both-engines-rejected
+    file is a ``note`` (skipped — recorded, never silently dropped); the agreeing
+    queries fold into a single ``info`` summary rather than one row each, so the
+    artifact stays focused on what diverged.
+    """
+    from gmeow_tools import diagnostics
+
+    diverged = [r for r in results if not r.agree and not r.skipped]
+    skipped = [r for r in results if r.skipped]
+    checked = [r for r in results if not r.skipped]
+    agreed = len(checked) - len(diverged)
+
+    report = diagnostics.report(tool="engine-cross-check")
+
+    # Agreement-matrix summary over the whole committed query surface.
+    report.add(
+        diagnostics.finding(
+            severity="info",
+            code=RULE_AGREEMENT,
+            message=(
+                f"engine cross-check: {agreed}/{len(checked)} queries agree across "
+                f"rdflib + gmeow_rdf ({len(diverged)} diverged, {len(skipped)} skipped)"
+            ),
+            tool="engine-cross-check",
+            tags=["agreement-matrix"],
+        )
+    )
+
+    # One note per skipped file (both engines rejected — recorded, not dropped).
+    for r in skipped:
+        report.add(
+            diagnostics.finding(
+                severity="note",
+                code=RULE_SKIPPED,
+                message=f"{r.name}: both engines rejected ({r.detail})",
+                tool="engine-cross-check",
+                logical=r.name,
+                tags=["skipped", r.form.lower()],
+            )
+        )
+
+    # One error per genuine divergence (these FAIL the gate).
+    for r in diverged:
+        report.add(
+            diagnostics.finding(
+                severity="error",
+                code=RULE_DIVERGENCE,
+                message=f"[{r.form}] {r.name}: {r.detail}",
+                tool="engine-cross-check",
+                logical=r.name,
+                detail=r.detail,
+                tags=["divergence", r.form.lower()],
+            )
+        )
+    return report
+
+
+def run(
+    *,
+    output_dir: Path = DIST_DIR,
+) -> tuple[bool, list[CrosscheckResult], DiagnosticsReport]:
+    """Cross-check every committed query across both engines and write artifacts.
+
+    Returns ``(passed, results, report)``. ``passed`` is False iff any query
+    genuinely diverges (a skipped file is not a divergence). The JSON/SARIF/HTML
+    artifacts are a gate output (under ``output_dir``), NOT a committed
+    drift-gated generator — mirrors :func:`classic_cross_check.run`.
+    """
+    from gmeow_tools import diagnostics
+
+    results = crosscheck_all()
+    report = build_report(results)
+
+    output_dir.mkdir(parents=True, exist_ok=True)
+    diagnostics.write_report_artifacts(
+        report, output_dir=output_dir, stem=ENGINE_CROSSCHECK_STEM
+    )
+
+    passed = not any(not r.agree and not r.skipped for r in results)
+    return passed, results, report
