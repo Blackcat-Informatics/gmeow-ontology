@@ -24,14 +24,14 @@ The approved plan considered two integration options:
 
 **Rationale for choosing Option B:**
 
-1. The installed `gmeow-gts` 0.9.0 API does **not** expose signature verification through `gmeow_gts::reader::read` or `read_with_options`. The reader records signature frames but leaves them as `"unverified"` unless an optional *content* key is supplied for decrypting `COSE_Encrypt0` payloads. Cryptographic signature verification is exposed as a separate high-level API in `gmeow_gts::verify`.
+1. The installed `gmeow-gts` 0.9.2 API does **not** expose signature verification through `gmeow_gts::reader::read` or `read_with_options`. The reader records signature frames but leaves them as `"unverified"` unless an optional *content* key is supplied for decrypting `COSE_Encrypt0` payloads. Cryptographic signature verification is exposed as a separate high-level API in `gmeow_gts::verify`.
 2. Using the existing `verify_file_with_options` helper matches the issue intent (“call `gmeow_gts::reader::read` with signature verification enabled”) with the API that actually exists, without hand-rolling COSE/OpenPGP logic inside `gmeow-validate`.
 3. Keeping `gmeow-rdf` and `gmeow-validate`'s store construction untouched minimizes risk to existing Turtle/GTS validation phases and preserves the content-addressed cache keys derived from `segment_heads`.
 4. The performance cost is acceptable for a validation gate: the bundle is read once for folding and again inside `verify_file_with_options`, which is a small, deterministic replay of a CBOR sequence.
 
 ## Confirmed `gmeow-gts` API Surface
 
-The crate version used by the workspace is **0.9.0** (see `crates/validate/Cargo.toml` and `crates/rdf/Cargo.toml`). The following symbols are confirmed in the installed registry source:
+The crate version used by the workspace is declared in `crates/validate/Cargo.toml` and `crates/rdf/Cargo.toml`. The following symbols are confirmed in the installed registry source:
 
 - `gmeow_gts::reader::read(data, allow_segments, expected_head) -> Graph`
 - `gmeow_gts::reader::read_with_options(data, ReadOptions) -> Graph`
@@ -104,11 +104,11 @@ trusted_key = "keys/gmeow-release-key.asc"
 
 ## API Assumptions and Fallback
 
-The design assumes `gmeow-gts` 0.9.0's `verify_file_with_options` continues to:
+The design assumes `gmeow-gts` 0.9.2's `verify_file_with_options` continues to:
 
 1. Accept an optional `armored_key` and a `TrustPolicy`.
 2. Return a `VerificationResult` with counts and error strings.
 3. Treat invalid/unverified signatures and missing signatures (when `require_signatures` is true) as non-`ok` outcomes.
 4. Evaluate `require_trusted_signer` through `evaluate_profile_policy` and surface `ProfileFinding` errors.
 
-If a future `gmeow-gts` release changes this surface, the fallback is to drop back to the lower-level building blocks still present in every version: fold with `read`, call `extract_transport_key` to resolve the embedded key (or parse an armored key via `gmeow_gts::openpgp::parse_transport_key` if made public), invoke `gmeow_gts::cose::verify_signatures` directly, and then call `signature_trust`/`evaluate_profile_policy` manually. Because 0.9.0 already exposes the high-level helper, the implementation should use it and avoid this fallback path unless necessary.
+If a future `gmeow-gts` release changes this surface, the fallback is to drop back to the lower-level building blocks still present in every version: fold with `read`, call `extract_transport_key` to resolve the embedded key (or parse an armored key via `gmeow_gts::openpgp::parse_transport_key` if made public), invoke `gmeow_gts::cose::verify_signatures` directly, and then call `signature_trust`/`evaluate_profile_policy` manually. Because 0.9.2 already exposes the high-level helper, the implementation should use it and avoid this fallback path unless necessary.
