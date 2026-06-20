@@ -4,10 +4,31 @@ from __future__ import annotations
 
 from rdflib import RDF, URIRef
 
-from gmeow_tools.coverage import run_coverage
+from gmeow_tools.coverage import CoverageReport, run_coverage, to_diagnostics_report
 from gmeow_tools.graph import load_merged_graph
 
 GMEOW = "https://blackcatinformatics.ca/gmeow/"
+
+
+def test_to_diagnostics_report_emits_info_gaps_and_stays_ok() -> None:
+    report = CoverageReport(
+        covered_classes={"https://schema.org/Person"},
+        gap_classes={"https://schema.org/Brand"},
+        covered_predicates={"https://schema.org/name"},
+        gap_predicates={"https://schema.org/award"},
+    )
+
+    diag = to_diagnostics_report(report)
+
+    # Gaps are informational — they never fail the gate.
+    assert diag.ok
+    assert diag.error_count == 0
+    assert diag.warning_count == 0
+    by_code: dict[str, list[str]] = {}
+    for item in diag.findings:
+        by_code.setdefault(item["code"], []).append(item["severity"])
+    assert by_code["coverage.gap-class"] == ["info"]
+    assert by_code["coverage.gap-predicate"] == ["info"]
 
 
 def test_key_entity_kinds_are_covered() -> None:

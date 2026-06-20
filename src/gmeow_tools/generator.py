@@ -35,6 +35,7 @@ from typing import Protocol, runtime_checkable
 from rdflib import Graph
 from rdflib.compare import isomorphic
 
+from gmeow_tools import diagnostics
 from gmeow_tools.config import PROJECT_ROOT, gmeow_temp_dir, sweep_stale_gmeow_temp_dirs
 
 #: Regex that matches a generated-file banner (loose enough to catch old formats).
@@ -340,6 +341,53 @@ def check_all(
         Mapping of generator name to its :class:`RunReport`.
     """
     return _run_generators(names, check=True, jobs=jobs, skip_unchanged=skip_unchanged)
+
+
+def to_diagnostics_report(
+    results: dict[str, RunReport],
+    *,
+    tool: str = "generator",
+) -> diagnostics.DiagnosticsReport:
+    """Project generator ``--check`` results into the diagnostics report (#654).
+
+    Drift, orphans, and problems are all gate-failing ``error`` findings. Each
+    finding's ``tool`` is the *generator name* (``statements``, ``mappings``, …)
+    so SARIF driver attribution stays per-generator, while the stable ``code`` is
+    ``generator.drift`` / ``generator.orphan`` / ``generator.problem``. Because the
+    statement and mapping compilers register as generators, this single mapping
+    also carries their drift — no separate per-compiler fold is needed.
+    """
+    items: list[diagnostics.DiagnosticsFinding] = []
+    for name, run_report in sorted(results.items()):
+        items += [
+            diagnostics.finding(
+                severity="error",
+                code=f"{tool}.drift",
+                message=drift,
+                tool=name,
+            )
+            for drift in run_report.drifted
+        ]
+        items += [
+            diagnostics.finding(
+                severity="error",
+                code=f"{tool}.orphan",
+                message=f"orphaned generated artifact: {orphan}",
+                tool=name,
+                path=orphan,
+            )
+            for orphan in run_report.orphans
+        ]
+        items += [
+            diagnostics.finding(
+                severity="error",
+                code=f"{tool}.problem",
+                message=problem,
+                tool=name,
+            )
+            for problem in run_report.problems
+        ]
+    return diagnostics.report_from_findings(tool=tool, findings=items)
 
 
 # --------------------------------------------------------------------------- #

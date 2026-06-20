@@ -17,7 +17,23 @@ from gmeow_tools.constitution import (
     check_constitution,
     constitution_headings,
     load_manifest,
+    to_diagnostics_report,
 )
+from gmeow_tools.validate import ValidationResult
+
+
+def test_to_diagnostics_report_maps_errors_and_warnings() -> None:
+    result = ValidationResult()
+    result.errors.append("principle 7 has no enforcement")
+    result.warnings.append("principle 13 enforcement is honor-system")
+
+    diag = to_diagnostics_report(result)
+
+    assert diag.error_count == 1
+    assert diag.warning_count == 1
+    codes = {item["code"] for item in diag.findings}
+    assert codes == {"constitution.error", "constitution.warning"}
+
 
 _PREFIXES = """\
 @prefix meta: <https://blackcatinformatics.ca/gmeow/meta#> .

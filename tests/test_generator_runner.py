@@ -7,7 +7,34 @@ from pathlib import Path
 import pytest
 
 from gmeow_tools import generator as generator_mod
-from gmeow_tools.generator import Generator, check_all, regenerate, register, write_text
+from gmeow_tools.generator import (
+    Generator,
+    RunReport,
+    check_all,
+    regenerate,
+    register,
+    to_diagnostics_report,
+    write_text,
+)
+
+
+def test_to_diagnostics_report_attributes_per_generator() -> None:
+    results = {
+        "statements": RunReport(drifted=["generated/x.ttl out of date"]),
+        "mappings": RunReport(orphans=["generated/dead.ttl"], problems=["bad parse"]),
+        "clean": RunReport(),
+    }
+
+    diag = to_diagnostics_report(results)
+
+    # Three failing findings; the clean generator contributes nothing.
+    assert diag.error_count == 3
+    by_tool_code = {(item["tool"], item["code"]) for item in diag.findings}
+    assert ("statements", "generator.drift") in by_tool_code
+    assert ("mappings", "generator.orphan") in by_tool_code
+    assert ("mappings", "generator.problem") in by_tool_code
+    # The per-generator tool is preserved (SARIF driver attribution).
+    assert not any(item["tool"] == "clean" for item in diag.findings)
 
 
 class _DummyGenerator(Generator):

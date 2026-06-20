@@ -126,6 +126,38 @@ def test_gmeow_rdf_projection_parses_in_gmeow_rdf() -> None:
     assert len(findings) == 1
 
 
+def test_report_from_findings_folds_pre_built_findings() -> None:
+    findings = [
+        diagnostics.finding(
+            severity="error",
+            code="surface.bad",
+            message="a real problem",
+            tool="surface",
+        ),
+        diagnostics.finding(
+            severity="warning",
+            code="surface.iffy",
+            message="a softer problem",
+            tool="surface",
+        ),
+    ]
+
+    report = diagnostics.report_from_findings(tool="surface", findings=findings)
+
+    assert report.tool == "surface"
+    assert report.error_count == 1
+    assert report.warning_count == 1
+    codes = {item["code"] for item in report.findings}
+    assert codes == {"surface.bad", "surface.iffy"}
+
+
+def test_report_from_findings_empty_is_ok() -> None:
+    report = diagnostics.report_from_findings(tool="surface", findings=[])
+
+    assert report.ok
+    assert report.finding_count == 0
+
+
 def test_write_report_artifacts(tmp_path: Path) -> None:
     report = diagnostics.report_from_messages(
         tool="validate",

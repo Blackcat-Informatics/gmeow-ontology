@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import os
 import tomllib
+from collections.abc import Callable
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
@@ -397,6 +398,120 @@ def validate(
         raise _fail(f"✗ {len(result.errors)} error(s)")
 
 
+def _surface_reports() -> list[tuple[str, Callable[[], Any]]]:
+    """The ``(label, thunk)`` table of dev-gate surfaces folded into feedback.
+
+    Each thunk re-runs one ``make check`` surface and returns its
+    ``DiagnosticsReport``. The thunks mirror exactly what the corresponding
+    ``make`` targets run (offline lanes only). This table is the single place a
+    migrated surface is registered;
+    ``test_surface_reports_covers_every_migrated_surface`` pins it against
+    ``_EXPECTED_SURFACES`` so the table cannot drift from the documented surface
+    set. (``validate`` + native ``reason``/``verify`` are folded separately in
+    :func:`feedback`; ROBOT and external-tool lanes are a documented follow-up.)
+    """
+
+    def _alignment() -> Any:
+        from gmeow_tools import alignment_lint
+
+        findings = alignment_lint.lint_alignment_directions(allow_network=False)
+        findings += alignment_lint.lint_dc_refinement()
+        return alignment_lint.to_diagnostics_report(findings)
+
+    def _coverage() -> Any:
+        from gmeow_tools import coverage
+
+        return coverage.to_diagnostics_report(coverage.run_coverage())
+
+    def _acceptance() -> Any:
+        from gmeow_tools import acceptance
+
+        results = [acceptance.run_acceptance(p) for p in acceptance.default_corpus()]
+        return acceptance.to_diagnostics_report(results)
+
+    def _wikidata() -> Any:
+        from gmeow_tools import wikidata
+        from gmeow_tools.mappings import collect_wikidata_ids, load_mappings
+
+        report = wikidata.check_syntax(collect_wikidata_ids(load_mappings()))
+        return wikidata.to_diagnostics_report(report)
+
+    def _constitution() -> Any:
+        from gmeow_tools import constitution
+
+        return constitution.to_diagnostics_report(constitution.check_constitution())
+
+    def _box_roles() -> Any:
+        from gmeow_tools import box_roles
+
+        return box_roles.to_diagnostics_report(box_roles.audit_box_roles())
+
+    def _audit() -> Any:
+        from gmeow_tools import audit
+        from gmeow_tools.config import FIXTURES_DIR
+
+        corpus = FIXTURES_DIR / "hallucination-kg.ttl"
+        return audit.to_diagnostics_report(audit.audit_graph([corpus]))
+
+    def _generated() -> Any:
+        from gmeow_tools import generator
+
+        return generator.to_diagnostics_report(
+            generator.check_all(skip_unchanged=False)
+        )
+
+    def _classic_cross_check() -> Any:
+        # The native↔oracle (ELK/HermiT/ROBOT) divergence ledger is already a
+        # Rust-backed DiagnosticsReport (gmeow_logic.build_divergence_ledger →
+        # classic_cross_check.build_report). Folding it carries the classic-oracle
+        # cross-check findings into the bundle. Guarded: it needs the Docker/Java
+        # lane, so on a Docker-less host the fold loop records a visible skip.
+        from gmeow_tools import classic_cross_check as crosscheck
+
+        _passed, _ledger, report = crosscheck.run()
+        return report
+
+    return [
+        ("alignment", _alignment),
+        ("coverage", _coverage),
+        ("acceptance", _acceptance),
+        ("wikidata", _wikidata),
+        ("constitution", _constitution),
+        ("box-roles", _box_roles),
+        ("audit", _audit),
+        ("generated", _generated),
+        ("classic-cross-check", _classic_cross_check),
+    ]
+
+
+def _fold_surfaces(report: Any) -> None:
+    """Fold every migrated dev-gate surface's findings into ``report`` (#654).
+
+    Mutates ``report`` in place. Each surface thunk is guarded: a surface that
+    fails to run leaves a visible ``feedback.<label>-skipped`` *warning* finding
+    rather than aborting the whole bundle. This swallow is correct ONLY because
+    ``feedback`` is an artifact-builder, not a gate — one surface erroring must
+    not blind the bundle to the others, and the skip is surfaced (fix-or-
+    document, hide none), NOT a degraded-fallback path. Per-surface hard gating
+    stays in each surface's own ``make check`` command; ``feedback``'s process
+    exit stays driven solely by the validation result.
+    """
+    from gmeow_tools import diagnostics
+
+    for label, thunk in _surface_reports():
+        try:
+            report.extend(thunk())
+        except Exception as exc:  # artifact-builder: isolate per surface, warn with exc
+            report.add(
+                diagnostics.finding(
+                    severity="warning",
+                    code=f"feedback.{label}-skipped",
+                    message=f"{label} findings not folded: {exc}",
+                    tool="feedback",
+                )
+            )
+
+
 @app.command()
 def feedback(
     output_dir: Path = typer.Option(  # noqa: B008
@@ -411,12 +526,19 @@ def feedback(
     ),
     timings: bool = typer.Option(False, "--timings", help="Record validation timings."),
 ) -> None:
-    """Write first-class diagnostics artifacts for the validation gate.
+    """Write first-class diagnostics artifacts for the whole dev gate.
 
-    Always writes ``<stem>.{json,sarif,html}`` AND the self-describing
-    ``<stem>.gts`` feedback bundle (the findings as queryable RDF plus the SARIF
-    and JSON projections as content-addressed blobs, #654). No flag: one fixed
-    behavior. The canonical ``gmeow.gts`` is never touched.
+    Folds validation, native reason/verify, AND every other migrated ``make
+    check`` surface (alignment, coverage, acceptance, wikidata, constitution,
+    box-roles, audit, generator drift) into ONE report, then writes
+    ``<stem>.{json,sarif,html}`` AND the self-describing ``<stem>.gts`` feedback
+    bundle (the findings as queryable RDF plus the SARIF and JSON projections as
+    content-addressed blobs, #654). No flag: one fixed behavior. The canonical
+    ``gmeow.gts`` is never touched.
+
+    The process **exit code stays driven solely by the validation result** — the
+    bundle carries every surface's findings as an artifact, but per-surface hard
+    gating lives in each surface's own ``make check`` command, not here.
     """
     from gmeow_tools import diagnostics
     from gmeow_tools.diagnostics import (
@@ -450,6 +572,11 @@ def feedback(
                 tool="feedback",
             )
         )
+
+    # Fold every other migrated dev-gate surface (alignment, coverage,
+    # acceptance, wikidata, constitution, box-roles, audit, generator drift) so
+    # the bundle is the complete picture of the gate, not just validation (#654).
+    _fold_surfaces(report)
 
     emit_legacy_cli(report, err_console)
     paths = write_report_artifacts(report, output_dir=output_dir, stem=stem)
