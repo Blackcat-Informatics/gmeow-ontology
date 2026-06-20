@@ -82,16 +82,39 @@ def test_multibyte_log_digest_has_no_negative_elision_or_overlap() -> None:
 
 
 def test_empty_argv_is_a_finding_not_a_crash() -> None:
-    report = external_tool.run_external_tool("noop", [])
+    code, report = external_tool.run_external_tool("noop", [])
 
+    assert code == 127
     assert not report.ok
     assert report.findings[0]["code"] == "external.noop"
     assert "empty command list" in report.findings[0]["detail"]
 
 
+def test_run_external_tool_returns_exact_exit_code() -> None:
+    # The wrapped tool's *exact* exit status is returned, not just pass/fail.
+    code, report = external_tool.run_external_tool(
+        "probe", [sys.executable, "-c", "import sys; sys.exit(3)"]
+    )
+
+    assert code == 3
+    assert not report.ok
+
+
+def test_run_external_tool_timeout_is_a_finding_with_rc_124() -> None:
+    code, report = external_tool.run_external_tool(
+        "slow",
+        [sys.executable, "-c", "import time; time.sleep(5)"],
+        timeout=0.2,
+    )
+
+    assert code == 124
+    assert not report.ok
+    assert "timed out" in report.findings[0]["detail"]
+
+
 def test_supplied_env_is_merged_onto_parent_env() -> None:
     # A partial env must NOT clobber PATH — the child still resolves the binary.
-    report = external_tool.run_external_tool(
+    code, report = external_tool.run_external_tool(
         "probe",
         [
             sys.executable,
@@ -102,6 +125,7 @@ def test_supplied_env_is_merged_onto_parent_env() -> None:
     )
 
     # exit 0 proves both: the override (X=1) AND the inherited interpreter ran.
+    assert code == 0
     assert report.ok
 
 
@@ -124,21 +148,23 @@ def test_small_log_is_kept_verbatim() -> None:
 
 
 def test_run_external_tool_captures_a_real_failure() -> None:
-    report = external_tool.run_external_tool(
+    code, report = external_tool.run_external_tool(
         "probe",
         [sys.executable, "-c", "import sys; sys.stderr.write('nope'); sys.exit(2)"],
     )
 
+    assert code == 2
     assert not report.ok
     assert report.findings[0]["code"] == "external.probe"
     assert "nope" in report.findings[0]["detail"]
 
 
 def test_run_external_tool_missing_binary_is_a_finding_not_a_crash() -> None:
-    report = external_tool.run_external_tool(
+    code, report = external_tool.run_external_tool(
         "ghost", ["this-binary-does-not-exist-xyz"]
     )
 
+    assert code == 127
     assert not report.ok
     assert report.findings[0]["code"] == "external.ghost"
 
@@ -161,8 +187,8 @@ def test_cli_external_tool_failure_exit_code_and_sarif(tmp_path: Path) -> None:
         ],
     )
 
-    # Exit code mirrors the wrapped tool's failure.
-    assert result.exit_code == 1
+    # Exit code mirrors the wrapped tool's EXACT failure code (3, not a generic 1).
+    assert result.exit_code == 3
     sarif = json.loads((tmp_path / "gmeow-feedback.sarif").read_text(encoding="utf-8"))
     assert sarif["runs"][0]["automationDetails"]["id"] == "python"
     assert sarif["runs"][0]["results"][0]["ruleId"] == "external.probe"
@@ -190,7 +216,7 @@ def test_cli_external_tool_category_routes_to_dist_diagnostics_subdir(
         ],
     )
 
-    assert result.exit_code == 1
+    assert result.exit_code == 5
     sarif_path = tmp_path / "diagnostics" / "python" / "gmeow-feedback.sarif"
     assert sarif_path.exists()
     sarif = json.loads(sarif_path.read_text(encoding="utf-8"))

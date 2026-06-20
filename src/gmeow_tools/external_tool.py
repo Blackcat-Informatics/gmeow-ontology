@@ -36,6 +36,20 @@ from gmeow_tools.diagnostics import DiagnosticsReport
 #: slicing below, so the head/tail never overlap on multi-byte text.
 DEFAULT_DETAIL_LIMIT = 4096
 
+#: Wall-clock ceiling for a wrapped tool. A hung tool must not stall a gate
+#: indefinitely; on expiry the run is reported as a finding with rc 124 (the
+#: conventional timeout exit code), not left to hang.
+DEFAULT_TIMEOUT_SECONDS = 600.0
+
+
+def _as_text(value: object) -> str:
+    """Coerce a possibly-``bytes``/``None`` captured stream into text."""
+    if value is None:
+        return ""
+    if isinstance(value, bytes):
+        return value.decode("utf-8", "replace")
+    return str(value)
+
 
 def _digest_detail(raw: str, limit: int) -> str:
     """Return ``raw`` verbatim when small, else a deterministic head/tail digest.
@@ -103,18 +117,21 @@ def run_external_tool(
     cwd: Path | None = None,
     env: Mapping[str, str] | None = None,
     detail_limit: int = DEFAULT_DETAIL_LIMIT,
-) -> DiagnosticsReport:
-    """Run ``argv`` and return its result as a diagnostics report.
+    timeout: float | None = DEFAULT_TIMEOUT_SECONDS,
+) -> tuple[int, DiagnosticsReport]:
+    """Run ``argv`` and return ``(returncode, report)``.
 
-    Captures stdout/stderr, never raises on a non-zero exit (that is the case it
-    exists to represent), and delegates the mapping to :func:`to_diagnostics_report`.
-    A tool that cannot be launched at all (e.g. not installed, or an empty argv)
-    is itself an ``external.<name>`` failure, with the launch error preserved as
-    the log. A supplied ``env`` is *merged onto* the parent environment (so the
-    child keeps ``PATH`` and friends, then overrides), never a full replacement.
+    The return code is the wrapped tool's **exact** exit status, so a caller can
+    mirror it faithfully (not just pass/fail). Captures stdout/stderr and never
+    raises on a non-zero exit (that is the case it exists to represent), delegating
+    the mapping to :func:`to_diagnostics_report`. A tool that cannot be launched
+    (not installed → 127, empty argv → 127) or that hangs past ``timeout`` (→ 124)
+    is itself an ``external.<name>`` failure, with the cause preserved as the log.
+    A supplied ``env`` is *merged onto* the parent environment (so the child keeps
+    ``PATH`` and friends, then overrides), never a full replacement.
     """
     if not argv:
-        return to_diagnostics_report(
+        return 127, to_diagnostics_report(
             name,
             argv,
             returncode=127,
@@ -130,9 +147,23 @@ def run_external_tool(
             capture_output=True,
             text=True,
             check=False,
+            timeout=timeout,
+        )
+    except subprocess.TimeoutExpired as exc:
+        # With text=True the captured streams are str, but the stub types them
+        # loosely; coerce defensively so a bytes payload still renders.
+        partial_out = _as_text(exc.stdout)
+        partial_err = _as_text(exc.stderr)
+        return 124, to_diagnostics_report(
+            name,
+            argv,
+            returncode=124,
+            stdout=partial_out,
+            stderr=partial_err + f"\nprocess timed out after {timeout}s",
+            detail_limit=detail_limit,
         )
     except OSError as exc:
-        return to_diagnostics_report(
+        return 127, to_diagnostics_report(
             name,
             argv,
             returncode=127,
@@ -140,7 +171,7 @@ def run_external_tool(
             stderr=str(exc),
             detail_limit=detail_limit,
         )
-    return to_diagnostics_report(
+    return completed.returncode, to_diagnostics_report(
         name,
         argv,
         returncode=completed.returncode,

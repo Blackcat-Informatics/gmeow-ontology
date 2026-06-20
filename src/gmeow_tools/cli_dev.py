@@ -701,7 +701,7 @@ def external_tool_cmd(
         category=diagnostics_category,
     )
 
-    report = external_tool.run_external_tool(name, command)
+    exit_code, report = external_tool.run_external_tool(name, command)
     report.set_metadata_json("category", json.dumps(config.category))
 
     emit_console(report, config, err_console)
@@ -718,7 +718,11 @@ def external_tool_cmd(
     if report.ok:
         console.print(f"[green]✓ {name} passed[/green]")
     else:
-        raise _fail(f"✗ {name} failed ({report.error_count} error(s))")
+        # Mirror the wrapped tool's exact exit code, not a generic 1, so callers
+        # chaining on $? see the real status. Guard the success codepath: a report
+        # with findings but a 0 exit still fails (use 1).
+        err_console.print(f"[red]✗ {name} failed ({report.error_count} error(s))[/red]")
+        raise typer.Exit(code=exit_code if exit_code != 0 else 1)
 
 
 @app.command(name="constitution-check")
