@@ -15,35 +15,38 @@ retained-with-reason row below.
 
 The harness runs three cell types over `slices/**/tests/*.ttl`:
 
-- `gmeow:CompetencyQuestion` — SPARQL ASK/SELECT over the OWL-2-RL-reasoned
-  merged ontology (the same reasoned-graph lane `tests/test_competency.py` uses).
+- `gmeow:CompetencyQuestion` — SPARQL ASK/SELECT over the merged ontology. By
+  default (`gmeow:reasoningNone`) the *asserted* merged graph, with SPARQL
+  property paths supplying transitive closure at query time; a question may opt
+  into `gmeow:reasoningRdfs` (the merged graph closed under RDFS, computed
+  natively in oxigraph). See `docs/TESTING.md` for the reasoning model.
 - `gmeow:StructuralAssertion` — SPARQL ASK over the slice module (± examples).
 - `gmeow:ExampleConformance` — native SHACL over module + shapes + the example.
 
 ## `slices/core/epistemics`
 
-| Pytest fn | Pytest file | DSL cell IRI | Cell type | Status | Reason if retained | Verified by |
+| Pytest fn | Pytest file | DSL cell IRI | Cell type | Status | Reason if retained | Run by |
 |---|---|---|---|---|---|---|
-| `test_knows_that_subproperty_of_believes` | `tests/test_epistemics.py` | `ex:saKnowsThatSubPropertyOfBelieves` | StructuralAssertion | converted | — | `run_structural_file` |
-| `test_spine_are_object_properties_with_agent_domain` | `tests/test_epistemics.py` | `ex:saSpineObjectPropertiesWithAgentDomain` | StructuralAssertion | converted | — | `run_structural_file` |
-| `test_spine_have_open_range` | `tests/test_epistemics.py` | `ex:saSpineOpenRange` | StructuralAssertion | converted | — | `run_structural_file` |
-| `test_proposition_is_a_social_object` | `tests/test_epistemics.py` | `ex:saPropositionIsSocialObject` | StructuralAssertion | converted | — | `run_structural_file` |
-| `test_spine_properties_are_not_functional` | `tests/test_epistemics.py` | `ex:saSpineNotFunctional` | StructuralAssertion | converted | — | `run_structural_file` |
-| `test_no_factivity_no_truth_bit` | `tests/test_epistemics.py` | `ex:saNoTruthBit` + `ex:saSpineOpenRange` | StructuralAssertion | converted | — | `run_structural_file` |
-| `test_doxastic_standpoint_claim_is_subclass_of_standpoint_claim` | `tests/test_epistemics.py` | `ex:saDoxasticStandpointClaimSubclass` | StructuralAssertion | converted | — | `run_structural_file` |
-| `test_claim_of_belief_is_functional_object_property` | `tests/test_epistemics.py` | `ex:saClaimOfBeliefFunctionalObjectProperty` | StructuralAssertion | converted | — | `run_structural_file` |
-| `test_defeated_by_has_status_range` | `tests/test_epistemics.py` | `ex:saDefeatedByStatusRange` | StructuralAssertion | converted | — | `run_structural_file` |
-| `test_justification_status_individuals_exist` | `tests/test_epistemics.py` | `ex:saJustificationStatusIndividuals` | StructuralAssertion | converted | — | `run_structural_file` |
-| `test_credence_and_confidence_are_distinct` | `tests/test_epistemics.py` | `ex:saCredenceDomainDoxasticState` + `ex:saConfidenceNotConflatedWithCredence` | StructuralAssertion | converted | — | `run_structural_file` |
+| `test_knows_that_subproperty_of_believes` | `tests/test_epistemics.py` | `ex:saKnowsThatSubPropertyOfBelieves` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_spine_are_object_properties_with_agent_domain` | `tests/test_epistemics.py` | `ex:saSpineObjectPropertiesWithAgentDomain` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_spine_have_open_range` | `tests/test_epistemics.py` | `ex:saSpineOpenRange` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_proposition_is_a_social_object` | `tests/test_epistemics.py` | `ex:saPropositionIsSocialObject` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_spine_properties_are_not_functional` | `tests/test_epistemics.py` | `ex:saSpineNotFunctional` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_no_factivity_no_truth_bit` | `tests/test_epistemics.py` | `ex:saNoTruthBit` + `ex:saSpineOpenRange` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_doxastic_standpoint_claim_is_subclass_of_standpoint_claim` | `tests/test_epistemics.py` | `ex:saDoxasticStandpointClaimSubclass` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_claim_of_belief_is_functional_object_property` | `tests/test_epistemics.py` | `ex:saClaimOfBeliefFunctionalObjectProperty` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_defeated_by_has_status_range` | `tests/test_epistemics.py` | `ex:saDefeatedByStatusRange` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_justification_status_individuals_exist` | `tests/test_epistemics.py` | `ex:saJustificationStatusIndividuals` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_credence_and_confidence_are_distinct` | `tests/test_epistemics.py` | `ex:saCredenceDomainDoxasticState` + `ex:saConfidenceNotConflatedWithCredence` | StructuralAssertion | converted | — | `make slicetest` |
 | `test_flagship_example_parses` | `tests/test_epistemics.py` | — | — | **retained** | the flagship references cross-slice classes; the harness's slice-scoped ExampleConformance emits `shacl.ClassConstraintComponent` for the unresolved cross-slice `sh:class` targets. Validated in full by `make validate`. | pytest |
-| `test_justified_by_has_named_domain_and_range` | `tests/test_epistemics.py` | `ex:saJustifiedByDomainRange` + `ex:saJustifiedByNotFunctional` | StructuralAssertion | **partial** | the exact `owl:unionOf` set membership stays in pytest as `test_justified_by_union_membership` (an "these members and no others" check the ASK form can't express) | `run_structural_file` + pytest |
+| `test_justified_by_has_named_domain_and_range` | `tests/test_epistemics.py` | `ex:saJustifiedByDomainRange` + `ex:saJustifiedByNotFunctional` | StructuralAssertion | **partial** | the exact `owl:unionOf` set membership stays in pytest as `test_justified_by_union_membership` (an "these members and no others" check the ASK form can't express) | `make slicetest` + pytest |
 | `test_justification_terms_are_annotated` | `tests/test_epistemics.py` | — | — | **retained** | universal over *dynamically discovered* `JustificationStatus` individuals (open set); backstops the make-validate annotation contract | pytest |
 | `test_every_term_is_annotated` | `tests/test_epistemics.py` | — | — | **retained** | annotation-completeness sweep; backstops the make-validate annotation contract | pytest |
 | `test_suppression_round_trip` | `tests/test_epistemics.py` | — | — | **retained** | numeric credence comparison + temporal tenure navigation; not expressible as a SPARQL ASK | pytest |
 | `test_epistemics_mapping_set_exists_and_has_expected_rows` | `tests/test_epistemics.py` | — | — | **retained** | reads a GENERATED artifact (SSSOM TSV) outside the ontology graph | pytest |
-| `test_competency_agents_query` | `tests/test_competency.py` | `ex:cqAgentKinds` | CompetencyQuestion | converted | — | `run_competency_file` |
-| `test_competency_contribution_roles_query` | `tests/test_competency.py` | `ex:cqContributionRoles` | CompetencyQuestion | converted | — | `run_competency_file` |
-| (T2: the missing-agent counter-example) | `tests/test_epistemics.py` (historical) | `ex:ecDoxasticStateMissingAgent` | ExampleConformance | converted (T2) | — | `run_conformance_file` |
+| `test_competency_agents_query` | `tests/test_competency.py` | `ex:cqAgentKinds` | CompetencyQuestion | converted | — | `make slicetest` |
+| `test_competency_contribution_roles_query` | `tests/test_competency.py` | `ex:cqContributionRoles` | CompetencyQuestion | converted | — | `make slicetest` |
+| (T2: the missing-agent counter-example) | `tests/test_epistemics.py` (historical) | `ex:ecDoxasticStateMissingAgent` | ExampleConformance | converted (T2) | — | `make slicetest` |
 
 **Epistemics tally:** 14 converted (11 structural + 2 competency + 1 T2
 counter-example), 1 partial, 5 retained-with-reason.
@@ -60,12 +63,18 @@ slice spec lights up automatically.
 
 ## Notes / known limitations
 
-- **Competency reasoning cost.** The competency lane closes the merged ontology
-  under OWL 2 RL via the native chase — the *same* chase `tests/test_competency.py`
-  already pays in the gate today (≈4 min cold). It is memoized in a
-  content-addressed disk cache (`crates/slicetest/src/reasoned.rs`), so a
-  `make check` runs it at most once regardless of how many slices carry
-  competency specs.
+- **Competency reasoning cost.** The competency lane defaults to the *asserted*
+  merged graph (`gmeow:reasoningNone`): no materialization, with SPARQL property
+  paths supplying transitive closure at query time — a sub-second graph build
+  (the epistemics competency case runs in ~0.3s). A question that needs
+  type/subsumption entailment opts into `gmeow:reasoningRdfs`, which closes the
+  merged graph under RDFS natively in oxigraph (iterated `CONSTRUCT` to a
+  fixpoint, `crates/slicetest/src/stores.rs`) — seconds, built once per spec file
+  and only when a question in that file requests it. The harness deliberately
+  does **not** run the ~4-minute OWL 2 RL chase `tests/test_competency.py` pays,
+  and carries no `gmeow-logic`/Nemo dependency. Reasoning is monotonic, so the
+  asserted default can only ever *under*-answer — a loud set/count mismatch,
+  never a silent wrong-green. See `docs/TESTING.md`.
 - **`gmeow:saShape` is not yet executed.** No T2 exemplar exercises shape-based
   structural assertions, so `run_structural_cell` hard-fails on `saShape` rather
   than silently passing (no-optionality doctrine). Likewise inline `gmeow:cqQuery`
