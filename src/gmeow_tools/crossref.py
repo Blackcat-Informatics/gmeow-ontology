@@ -323,12 +323,12 @@ def _add_citation_list(parent: ET.Element, citations: Sequence[_Citation]) -> No
             "citation",
             attrs={"key": citation.key, "type": citation.type},
         )
-        if citation.doi:
-            _child(node, "doi", citation.doi)
         # journal_title is a pragmatic Crossref business-rule container for the
         # target name, not a claim that the alignment target is a journal.
         if citation.journal_title:
             _child(node, "journal_title", citation.journal_title)
+        if citation.doi:
+            _child(node, "doi", citation.doi)
         _child(node, "article_title", citation.title)
         _child(node, "unstructured_citation", citation.unstructured)
 
