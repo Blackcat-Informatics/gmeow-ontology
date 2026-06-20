@@ -645,6 +645,82 @@ def feedback(
         raise _fail(f"✗ {len(result.errors)} error(s)")
 
 
+@app.command(name="external-tool")
+def external_tool_cmd(
+    command: list[str] = typer.Argument(  # noqa: B008
+        ...,
+        help="The external command to run, e.g. `mypy src`. Use `--` to separate "
+        "it from this command's own options.",
+    ),
+    name: str = typer.Option(
+        ...,
+        "--name",
+        help="Stable tool name for the external.<name> finding code (e.g. mypy).",
+    ),
+    diagnostics_console: str | None = typer.Option(
+        None, "--diagnostics-console", help="auto|pretty|text|jsonl|silent."
+    ),
+    diagnostics_artifacts: str | None = typer.Option(
+        None, "--diagnostics-artifacts", help="none|all|comma list of json,sarif,html."
+    ),
+    diagnostics_dir: Path | None = typer.Option(  # noqa: B008
+        None, "--diagnostics-dir", help="Output directory (env GMEOW_DIAGNOSTICS_DIR)."
+    ),
+    diagnostics_stem: str | None = typer.Option(
+        None, "--diagnostics-stem", help="Output filename stem."
+    ),
+    diagnostics_category: str | None = typer.Option(
+        None, "--diagnostics-category", help="Stable code-scanning category."
+    ),
+) -> None:
+    """Run an external gate tool and represent a failure as a canonical finding.
+
+    Wraps a tool GMEOW does not own (pre-commit, mypy, pytest, cargo, clippy,
+    maturin) so its raw log rides the same diagnostics rail — projected to the
+    console and written as the selected ``<stem>.{json,sarif,html}`` artifacts
+    under the resolved (optionally category-scoped) directory (#662). The five
+    ``--diagnostics-*`` knobs and ``GMEOW_DIAGNOSTICS_*`` env vars resolve exactly
+    as for ``feedback``.
+
+    The process **exit code mirrors the wrapped tool**: zero when it succeeds,
+    non-zero when it fails — so a CI gate still fails on the underlying tool while
+    the failure is also captured as a finding. Output config governs projection,
+    never the exit code.
+    """
+    import json
+
+    from gmeow_tools import external_tool
+    from gmeow_tools.diagnostics import emit_console, write_report_artifacts
+    from gmeow_tools.diagnostics_config import DiagnosticsConfig
+
+    config = DiagnosticsConfig.resolve(
+        console=diagnostics_console,
+        artifacts=diagnostics_artifacts,
+        directory=diagnostics_dir,
+        stem=diagnostics_stem,
+        category=diagnostics_category,
+    )
+
+    report = external_tool.run_external_tool(name, command)
+    report.set_metadata_json("category", json.dumps(config.category))
+
+    emit_console(report, config, err_console)
+    paths = write_report_artifacts(
+        report,
+        output_dir=config.directory,
+        stem=config.stem,
+        artifacts=config.artifacts,
+    )
+    for kind in ("json", "sarif", "html"):
+        if kind in paths:
+            console.print(f"[green]wrote[/green] {paths[kind]}")
+
+    if report.ok:
+        console.print(f"[green]✓ {name} passed[/green]")
+    else:
+        raise _fail(f"✗ {name} failed ({report.error_count} error(s))")
+
+
 @app.command(name="constitution-check")
 def constitution_check() -> None:
     """Verify every constitutional principle has live enforcement (#280)."""
