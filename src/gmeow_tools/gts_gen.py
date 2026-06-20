@@ -24,7 +24,6 @@ from rdflib import RDF, XSD, Graph, Literal, URIRef
 from gmeow_tools.config import (
     GTS_GRAPH_IMPORTS,
     GTS_GRAPH_METADATA,
-    GTS_GRAPH_TEST_DSL,
     GTS_GRAPH_VERIFY,
     GTS_SNAPSHOT_FILE,
     MAPPINGS_DIR,
@@ -270,22 +269,6 @@ def _metadata_graph() -> Graph:
     return graph
 
 
-def _test_dsl_graph() -> Graph:
-    """Return the test-DSL spec-layer vocabulary, for ``gmeow:graph/test-dsl`` (#783).
-
-    The test DSL is a spec layer: it is never owl:imports-ed into the reasoned
-    OWL 2 DL core, so it rides a dedicated named graph rather than the authored
-    default graph. That keeps it out of the schema/void/reasoning surfaces (which
-    read the default scope only) while still folding it into the bundle so
-    ``gmeow describe`` resolves its terms offline.
-    """
-    from gmeow_tools.config import TEST_DSL_VOCABULARY_FILE
-
-    graph = Graph()
-    graph.parse(TEST_DSL_VOCABULARY_FILE, format="turtle")
-    return graph
-
-
 def build_verify_attestation_graph(query_names: list[str], report) -> Graph:  # type: ignore[no-untyped-def]
     """Build the verify-attestation graph from a verify report (pure, deterministic).
 
@@ -404,7 +387,6 @@ def build_snapshot_bytes(
 
     imports = (_imports_graph(), GTS_GRAPH_IMPORTS, "imports")
     metadata = (_metadata_graph(), GTS_GRAPH_METADATA, "metadata")
-    test_dsl = (_test_dsl_graph(), GTS_GRAPH_TEST_DSL, "test-dsl")
 
     def _compile(extra_named_graphs: list[tuple[Graph, str, str]]) -> bytes:
         return compile_gts(
@@ -426,7 +408,7 @@ def build_snapshot_bytes(
     # bundle's. Pass 2 folds the resulting attestation in as gmeow:graph/verify.
     # The native ext is REQUIRED (regenerate already requires native exts); a
     # missing ext is a hard failure, not a silent single-pass fallback.
-    pass1_bytes = _compile([imports, metadata, test_dsl])
+    pass1_bytes = _compile([imports, metadata])
 
     import gmeow_logic
 
@@ -461,9 +443,7 @@ def build_snapshot_bytes(
     report = diagnostics.report_from_json(report_json)
     attestation = build_verify_attestation_graph(query_names, report)
 
-    return _compile(
-        [imports, metadata, test_dsl, (attestation, GTS_GRAPH_VERIFY, "verify")]
-    )
+    return _compile([imports, metadata, (attestation, GTS_GRAPH_VERIFY, "verify")])
 
 
 def compile_full_snapshot(
@@ -517,7 +497,6 @@ class GtsSnapshotGenerator(Generator):
             ONTOLOGY_FILE,
             PROJECTION_QUERY_DIR,
             SLICES_DIR,
-            TEST_DSL_VOCABULARY_FILE,
         )
         from gmeow_tools.ontology_docs import ontology_docs_cache_inputs
 
@@ -541,8 +520,6 @@ class GtsSnapshotGenerator(Generator):
             *sorted(SLICES_DIR.glob("*/*/mappings/*.ttl")),
             # slice test-DSL specs folded under REP_TESTS for repo-free reads (#783)
             *sorted(SLICES_DIR.glob("*/*/tests/*.ttl")),
-            # test-DSL vocabulary rides the default graph so describe resolves it (#783)
-            TEST_DSL_VOCABULARY_FILE,
             *sorted(SLICES_DIR.glob("*/*/docs.md")),
             *sorted(p for p in SLICES_DIR.glob("*/*/i18n/*.po") if p.stem != "en"),
             # verify queries drive the folded-in attestation graph (#695)

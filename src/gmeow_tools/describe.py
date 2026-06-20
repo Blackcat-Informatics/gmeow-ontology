@@ -86,19 +86,15 @@ def load_graph_from_gts(
 ) -> Graph:
     """Offline mode: read a .gts package into an rdflib Graph.
 
-    Uses the gts package's reader and defaults to the GTS default graph plus the
-    test-DSL spec-layer named graph, which together carry the authored
-    import-free ontology and the describe-resolvable test-DSL vocabulary (#783).
-    Pass ``graph_names`` to flatten a specific named graph such as bundled
-    self-description metadata instead.
+    Uses the gts package's reader and defaults to the GTS default graph, which
+    carries the authored import-free ontology. Pass ``graph_names`` to flatten
+    a specific named graph such as bundled self-description metadata.
     """
     from gts import read
     from gts.nquads import term_token
 
-    from gmeow_tools.config import GTS_GRAPH_TEST_DSL
-
     payload = read(path.read_bytes())
-    scopes = {None, GTS_GRAPH_TEST_DSL} if graph_names is None else graph_names
+    scopes = {None} if graph_names is None else graph_names
     lines: list[str] = []
     for s, p, o, graph_id in payload.quads:
         scope = payload.terms[graph_id].value if graph_id is not None else None
