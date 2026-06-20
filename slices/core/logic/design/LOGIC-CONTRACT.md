@@ -3,7 +3,7 @@
 
 # GMEOW Logic — The Reasoning Contract
 
-> Status: canonical target architecture for GMEOW's reasoning configuration. This document
+> How GMEOW's reasoning configuration is specified. This document
 > defines how a reasoning request is specified. It is a member of the GMEOW Logic design set
 > (see [`LOGIC.md`](LOGIC.md)); the formal semantics each facet selects are made precise in
 > [`LOGIC-SEMANTICS.md`](LOGIC-SEMANTICS.md).

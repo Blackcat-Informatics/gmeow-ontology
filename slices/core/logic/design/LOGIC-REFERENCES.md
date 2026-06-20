@@ -3,7 +3,7 @@
 
 # GMEOW Logic — References
 
-> Status: bibliography appendix for the [GMEOW Logic design set](LOGIC.md#the-document-set). The
+> The bibliography appendix for the [GMEOW Logic design set](LOGIC.md#the-document-set). The
 > `logic:` design relies on a substantial body of external standards, foundational theory, and
 > engines; this appendix names them so the claims in the other documents are *cited*, not merely
 > name-dropped.
@@ -111,6 +111,28 @@ unless they themselves cite an external work; they are cross-references within G
 - Koestler, A. (1967). *The Ghost in the Machine.* Hutchinson. (Holon / holarchy concept: every
   whole is simultaneously a part of a larger whole; grounds the contextual mereology of the logic
   layer's module and context hierarchy — see LOGIC-FOUNDATION.md.)
+- Bratman, M. E. (1987). *Intention, Plans, and Practical Reason.* Harvard University Press. (The
+  belief–desire–intention account: intentions as commitments distinct from desire, and plans as
+  partial, hierarchical structures refined toward action; grounds the commitment-graded modes and
+  goal decomposition of the goal-and-action layer — see LOGIC-TELEOLOGY.md.)
+- von Wright, G. H. (1951). *Deontic Logic.* Mind 60(237). (The modal treatment of obligation,
+  permission, and prohibition; grounds the deontic force that ranges over goals — see
+  LOGIC-TELEOLOGY.md.)
+- Peirce, C. S. (1903). *Pragmatism as a Principle and Method of Right Thinking* (the Harvard
+  Lectures on Pragmatism). (Abduction as a third inference mode beside deduction and induction;
+  grounds the abductive quality criterion of cognitive assessment — see LOGIC-COGNITION.md.)
+- Toulmin, S. (1958). *The Uses of Argument.* Cambridge University Press. (Claim, data, warrant,
+  backing, rebuttal; grounds the warrant-and-defeater structure reasoning quality is judged against
+  — see LOGIC-COGNITION.md.)
+- Pollock, J. L. (1987). *Defeasible Reasoning.* Cognitive Science 11(4). (Rebutting versus
+  undercutting defeaters; grounds the defeater-kind axis of reasoning quality — see
+  LOGIC-COGNITION.md.)
+- Gentner, D. (1983). *Structure-Mapping: A Theoretical Framework for Analogy.* Cognitive Science
+  7(2). (Systematicity as the criterion of a good analogical mapping; grounds the analogical quality
+  criterion — see LOGIC-COGNITION.md.)
+- Brier, G. W. (1950). *Verification of Forecasts Expressed in Terms of Probability.* Monthly Weather
+  Review 78(1). (The Brier score; grounds the calibration-error measurement of cognitive assessment
+  — see LOGIC-COGNITION.md.)
 
 ## Engines and tools (`intentBridgedByReference`)
 
