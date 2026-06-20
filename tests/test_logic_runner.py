@@ -539,19 +539,17 @@ def test_diff_case_passes_for_explanation_case() -> None:
 
 
 def _parse_rdf12_turtle(ttl: str) -> int:
-    """Parse an RDF 1.2 Turtle document with pyoxigraph; return the triple count.
+    """Parse an RDF 1.2 Turtle document with gmeow_rdf; return the triple count.
 
     The native-lane artifacts carry RDF 1.2 ``<< … >>`` triple terms, which
-    rdflib's Turtle parser cannot read — so pyoxigraph (not rdflib) is the only
+    rdflib's Turtle parser cannot read — so gmeow_rdf (not rdflib) is the only
     parser the contract permits here.
     """
-    import pyoxigraph
+    import gmeow_rdf
 
-    dataset = pyoxigraph.Dataset()
-    for quad in pyoxigraph.parse(
-        ttl.encode("utf-8"), format=pyoxigraph.RdfFormat.TURTLE
-    ):
-        dataset.add(pyoxigraph.Quad(quad.subject, quad.predicate, quad.object))
+    dataset = gmeow_rdf.Dataset()
+    for quad in gmeow_rdf.parse(ttl.encode("utf-8"), format=gmeow_rdf.RdfFormat.TURTLE):
+        dataset.add(gmeow_rdf.Quad(quad.subject, quad.predicate, quad.object))
     return len(dataset)
 
 
@@ -664,7 +662,7 @@ def _native_artifacts() -> dict[str, str]:
 
 
 class TestNativeReasonArtifacts:
-    """The native (Rust) RDF-1.2-Turtle artifacts parse under pyoxigraph (#666).
+    """The native (Rust) RDF-1.2-Turtle artifacts parse under gmeow_rdf (#666).
 
     Task 3 moved the closure / explanations / ledger emission off the Python
     primary path into ``gmeow_logic.reason_native_artifacts`` (Rust + the
@@ -713,21 +711,21 @@ class TestNativeReasonArtifacts:
     def test_artifacts_are_byte_regenerable_against_committed(self) -> None:
         """The Rust-emitted artifacts are RDF-isomorphic to the committed files.
 
-        Mirrors ``NativeReasoningGenerator.compare`` (pyoxigraph RDFC-1.0
+        Mirrors ``NativeReasoningGenerator.compare`` (gmeow_rdf RDFC-1.0
         canonical quad-set equality): a fresh native emission must equal the
         committed ``generated/logic/*.ttl`` so the drift gate stays green.
         """
-        import pyoxigraph
+        import gmeow_rdf
 
         from gmeow_tools.config import GENERATED_DIR
 
         def _canon(text: str) -> list[str]:
-            dataset = pyoxigraph.Dataset()
-            for quad in pyoxigraph.parse(
-                text.encode("utf-8"), format=pyoxigraph.RdfFormat.TURTLE
+            dataset = gmeow_rdf.Dataset()
+            for quad in gmeow_rdf.parse(
+                text.encode("utf-8"), format=gmeow_rdf.RdfFormat.TURTLE
             ):
-                dataset.add(pyoxigraph.Quad(quad.subject, quad.predicate, quad.object))
-            dataset.canonicalize(pyoxigraph.CanonicalizationAlgorithm.RDFC_1_0)
+                dataset.add(gmeow_rdf.Quad(quad.subject, quad.predicate, quad.object))
+            dataset.canonicalize(gmeow_rdf.CanonicalizationAlgorithm.RDFC_1_0)
             return sorted(str(quad) for quad in dataset)
 
         artifacts = self._artifacts()

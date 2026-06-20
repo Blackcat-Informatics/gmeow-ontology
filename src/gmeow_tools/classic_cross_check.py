@@ -44,7 +44,7 @@ from collections.abc import Iterable
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
-import pyoxigraph
+import gmeow_rdf
 
 from gmeow_tools.config import DIST_DIR, GTS_SNAPSHOT_FILE
 
@@ -176,7 +176,7 @@ def write_told_facts(native: dict[str, Any], *, path: Path = TOLD_FACTS_FILE) ->
 _OWL_EQUIVALENT_CLASS = "http://www.w3.org/2002/07/owl#equivalentClass"
 
 
-def _subsumption_edges(store: pyoxigraph.Store) -> set[tuple[str, str]]:
+def _subsumption_edges(store: gmeow_rdf.Store) -> set[tuple[str, str]]:
     """Extract named subsumption edges from a store.
 
     Pulls both ``rdfs:subClassOf`` and ``owl:equivalentClass``. The native engine
@@ -201,14 +201,14 @@ def _subsumption_edges(store: pyoxigraph.Store) -> set[tuple[str, str]]:
     """
     edges: set[tuple[str, str]] = set()
     results = store.query(query)
-    assert isinstance(results, pyoxigraph.QuerySolutions)
+    assert isinstance(results, gmeow_rdf.QuerySolutions)
     for solution in results:
         subject = solution["s"]
         predicate = solution["p"]
         obj = solution["o"]
-        assert isinstance(subject, pyoxigraph.NamedNode)
-        assert isinstance(predicate, pyoxigraph.NamedNode)
-        assert isinstance(obj, pyoxigraph.NamedNode)
+        assert isinstance(subject, gmeow_rdf.NamedNode)
+        assert isinstance(predicate, gmeow_rdf.NamedNode)
+        assert isinstance(obj, gmeow_rdf.NamedNode)
         edges.add((subject.value, obj.value))
         if predicate.value == _OWL_EQUIVALENT_CLASS:
             edges.add((obj.value, subject.value))  # equivalence is bidirectional
@@ -218,7 +218,7 @@ def _subsumption_edges(store: pyoxigraph.Store) -> set[tuple[str, str]]:
 def _subclassof_closure(*turtle_paths: Path) -> set[tuple[str, str, str]]:
     """Load the given Turtle files into ONE store and return the closed subsumptions.
 
-    Uses pyoxigraph (no rdflib). Both the ELK-reasoned output AND the told-facts
+    Uses gmeow_rdf (no rdflib). Both the ELK-reasoned output AND the told-facts
     input are loaded so the closure basis includes the asserted equivalences that
     ROBOT collapses away in its reasoned serialization. The native engine emits
     the FULL transitive subsumption closure; ROBOT reason may serialize only the
@@ -227,9 +227,9 @@ def _subclassof_closure(*turtle_paths: Path) -> set[tuple[str, str, str]]:
     ``owl:Thing`` edges are excluded — the comparison key is named-class
     subsumption.
     """
-    store = pyoxigraph.Store()
+    store = gmeow_rdf.Store()
     for path in turtle_paths:
-        store.load(path=str(path), format=pyoxigraph.RdfFormat.TURTLE)
+        store.load(path=str(path), format=gmeow_rdf.RdfFormat.TURTLE)
     edges = _subsumption_edges(store)
     closed = _transitive_closure(edges)
     return {(s, o, CROSSCHECK_WORLD) for (s, o) in closed if s != o}

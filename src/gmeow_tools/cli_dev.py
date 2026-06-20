@@ -598,9 +598,9 @@ def compliance_report_cmd(
 
 @app.command(name="crosscheck-queries")
 def crosscheck_queries() -> None:
-    """Prove rdflib and pyoxigraph answer every committed query identically.
+    """Prove rdflib and gmeow_rdf answer every committed query identically.
 
-    The trust anchor that licenses the test suite to run on the fast pyoxigraph
+    The trust anchor that licenses the test suite to run on the fast gmeow_rdf
     engine: each query under ``queries/`` is executed on the same merged graph
     under both engines and the answers compared by value. Any divergence fails.
     """
@@ -616,10 +616,10 @@ def crosscheck_queries() -> None:
         err_console.print(f"[red]diverge[/red] [{r.form}] {r.name}: {r.detail}")
     if diverged:
         raise _fail(
-            f"✗ {len(diverged)} query/queries diverge between rdflib and pyoxigraph"
+            f"✗ {len(diverged)} query/queries diverge between rdflib and gmeow_rdf"
         )
     console.print(
-        f"[green]✓ {len(checked)} queries agree across rdflib + pyoxigraph"
+        f"[green]✓ {len(checked)} queries agree across rdflib + gmeow_rdf"
         f" ({len(skipped)} skipped)[/green]"
     )
 

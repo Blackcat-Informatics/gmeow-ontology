@@ -10,7 +10,7 @@ RDF parser (CONSTITUTION P13). LOSSLESS: the tables jointly carry every term,
 quad, reifier binding, statement annotation, and inline blob of the fold.
 
 A fold-only shim over the narrow waist (#267): the snapshot is the single
-input; no rdflib, no pyoxigraph. Outputs live under ``dist/parquet/``
+input; no rdflib, no graph engine. Outputs live under ``dist/parquet/``
 (git-ignored, published on release): Parquet bytes embed writer metadata and
 are not guaranteed byte-deterministic across library versions, so drift is
 compared SEMANTICALLY (row counts + content hash via DuckDB) rather than

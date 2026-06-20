@@ -162,7 +162,7 @@ class TestBuildLPG:
     def test_reifiers_excluded_and_become_edge_properties(self) -> None:
         """Reifiers must NOT become nodes; their annotations ride the edge.
 
-        The old pyoxigraph fixture could not express a quoted triple in
+        The old gmeow_rdf fixture could not express a quoted triple in
         synthetic Turtle; the fold path builds one directly via the gts
         Writer — so this now tests the REAL reifier semantics: the binding
         vanishes from the node set and its confidence lands on the edge.

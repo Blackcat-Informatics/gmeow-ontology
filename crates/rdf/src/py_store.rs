@@ -61,6 +61,7 @@ pub enum PyRdfFormat {
     TURTLE,
     N_TRIPLES,
     N_QUADS,
+    TRIG,
 }
 
 impl PyRdfFormat {
@@ -69,6 +70,7 @@ impl PyRdfFormat {
             PyRdfFormat::TURTLE => RdfFormat::Turtle,
             PyRdfFormat::N_TRIPLES => RdfFormat::NTriples,
             PyRdfFormat::N_QUADS => RdfFormat::NQuads,
+            PyRdfFormat::TRIG => RdfFormat::TriG,
         }
     }
 }
@@ -764,14 +766,19 @@ impl PyStore {
         materialize_results(py, results)
     }
 
-    /// Dump the whole store (or one graph) to bytes in `format`.
-    #[pyo3(signature = (format, *, from_graph=None))]
-    fn dump<'py>(
+    /// Dump the whole store (or one graph, via `from_graph`) in `format`. Mirrors
+    /// `pyoxigraph.Store.dump`: when `output` (a file-like with `.write`) is given
+    /// the bytes are written to it and `None` is returned; otherwise the bytes are
+    /// returned directly.
+    #[pyo3(signature = (output=None, format=None, *, from_graph=None))]
+    fn dump(
         &self,
-        py: Python<'py>,
-        format: PyRdfFormat,
+        py: Python<'_>,
+        output: Option<&Bound<'_, PyAny>>,
+        format: Option<PyRdfFormat>,
         from_graph: Option<&Bound<'_, PyAny>>,
-    ) -> PyResult<Bound<'py, PyBytes>> {
+    ) -> PyResult<Option<Py<PyBytes>>> {
+        let format = format.ok_or_else(|| PyValueError::new_err("dump: format is required"))?;
         let ox_format = format.to_ox();
         let mut buf: Vec<u8> = Vec::new();
         if ox_format.supports_datasets() && from_graph.is_none() {
@@ -788,11 +795,26 @@ impl PyStore {
                 )
                 .map_err(|e| PyValueError::new_err(format!("dump error: {e}")))?;
         }
-        Ok(PyBytes::new(py, &buf))
+        match output {
+            Some(output) => {
+                output.call_method1("write", (PyBytes::new(py, &buf),))?;
+                Ok(None)
+            }
+            None => Ok(Some(PyBytes::new(py, &buf).unbind())),
+        }
     }
 
     fn __len__(&self) -> PyResult<usize> {
         self.inner.len().map_err(store_err)
+    }
+
+    /// Iterate the store's quads (a snapshot taken at iteration time).
+    fn __iter__(slf: PyRef<'_, Self>, py: Python<'_>) -> PyResult<Py<PyQuadIter>> {
+        let mut quads = Vec::new();
+        for quad in slf.inner.iter() {
+            quads.push(quad.map_err(store_err)?);
+        }
+        Py::new(py, PyQuadIter { quads, pos: 0 })
     }
 
     /// Internal protocol: a transient capsule borrowing the wrapped oxigraph
@@ -850,21 +872,21 @@ impl PyDataset {
         self.inner.len()
     }
 
-    fn __iter__(slf: PyRef<'_, Self>, py: Python<'_>) -> PyResult<Py<PyDatasetIter>> {
+    fn __iter__(slf: PyRef<'_, Self>, py: Python<'_>) -> PyResult<Py<PyQuadIter>> {
         let quads: Vec<Quad> = slf.inner.iter().map(|q| q.into_owned()).collect();
-        Py::new(py, PyDatasetIter { quads, pos: 0 })
+        Py::new(py, PyQuadIter { quads, pos: 0 })
     }
 }
 
 /// Iterator over a [`PyDataset`]'s quads (snapshot at iteration time).
-#[pyclass(name = "DatasetIter")]
-pub struct PyDatasetIter {
+#[pyclass(name = "QuadIter")]
+pub struct PyQuadIter {
     quads: Vec<Quad>,
     pos: usize,
 }
 
 #[pymethods]
-impl PyDatasetIter {
+impl PyQuadIter {
     fn __iter__(slf: PyRef<'_, Self>) -> PyRef<'_, Self> {
         slf
     }
@@ -901,20 +923,28 @@ fn parse(
         .collect()
 }
 
-/// Serialize `QueryTriples` to a writable `output` (a file-like with `.write`)
-/// in `format`. Mirrors the slice of `pyoxigraph.serialize` the seam uses.
+/// Serialize `QueryTriples` in `format`. Mirrors `pyoxigraph.serialize`: when
+/// `output` (a file-like with `.write`) is given the bytes are written to it and
+/// `None` is returned; when `output` is omitted the serialized `bytes` are
+/// returned directly.
 #[pyfunction]
-#[pyo3(signature = (input, output, format))]
+#[pyo3(signature = (input, output=None, format=None))]
 fn serialize(
     py: Python<'_>,
     input: &PyQueryTriples,
-    output: &Bound<'_, PyAny>,
-    format: PyRdfFormat,
-) -> PyResult<()> {
+    output: Option<&Bound<'_, PyAny>>,
+    format: Option<PyRdfFormat>,
+) -> PyResult<Option<Py<PyBytes>>> {
+    let format = format.ok_or_else(|| PyValueError::new_err("serialize: format is required"))?;
     let bytes = serialize_triples(&input.triples, format.to_ox())
         .map_err(|e| PyValueError::new_err(format!("serialize error: {e}")))?;
-    output.call_method1("write", (PyBytes::new(py, &bytes),))?;
-    Ok(())
+    match output {
+        Some(output) => {
+            output.call_method1("write", (PyBytes::new(py, &bytes),))?;
+            Ok(None)
+        }
+        None => Ok(Some(PyBytes::new(py, &bytes).unbind())),
+    }
 }
 
 // ── Pure-Rust cores (unit-tested without a Python interpreter) ───────────────────
@@ -1032,7 +1062,7 @@ pub fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyQueryBoolean>()?;
     m.add_class::<PyStore>()?;
     m.add_class::<PyDataset>()?;
-    m.add_class::<PyDatasetIter>()?;
+    m.add_class::<PyQuadIter>()?;
     m.add_function(wrap_pyfunction!(parse, m)?)?;
     m.add_function(wrap_pyfunction!(serialize, m)?)?;
     Ok(())

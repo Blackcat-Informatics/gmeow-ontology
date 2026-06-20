@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-import pyoxigraph
+import gmeow_rdf
 from rdflib import RDF, XSD, Graph, Literal, URIRef
 from rdflib.term import Node
 
@@ -44,8 +44,8 @@ _SOURCE_FIXTURES = (
 )
 
 
-def _source() -> pyoxigraph.Store:
-    """The merged ontology + worked-example fixtures as a fast pyoxigraph store."""
+def _source() -> gmeow_rdf.Store:
+    """The merged ontology + worked-example fixtures as a fast gmeow_rdf store."""
     paths = [FIXTURES_DIR / name for name in _SOURCE_FIXTURES]
     return sparql.store_with(*paths, include_imports=False)
 
@@ -586,7 +586,7 @@ def test_qb_projection_well_formed() -> None:
 # --------------------------------------------------------------------------- #
 
 
-def _fixture_store(name: str) -> pyoxigraph.Store:
+def _fixture_store(name: str) -> gmeow_rdf.Store:
     data = Graph().parse(FIXTURES_DIR / name, format="turtle")
     return sparql.store_with(include_imports=False, extra_triples=data)
 

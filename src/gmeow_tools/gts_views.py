@@ -6,7 +6,7 @@
 idioms the exporters actually use — subjects-by-type, object lookup, RDF
 lists, language-boundary text selection, CURIEs — so the exporter ports of the
 narrow-waist parcel port mechanically. This module speaks ONLY ``gts.model``:
-no rdflib, no pyoxigraph (the whole point of the waist).
+no rdflib, no graph engine (the whole point of the waist).
 
 Scopes: every quad-access method takes a ``scope`` — ``DEFAULT`` (the default
 graph: the authored import-free ontology), a named-graph IRI string, or

@@ -181,7 +181,7 @@ _XSD_NS = "http://www.w3.org/2001/XMLSchema#"
 def _fold_value(view: FoldView, tid: int) -> object:
     """Convert a fold term to the lpg scalar form.
 
-    Parity with the old pyoxigraph ``_value_from_term``, including its
+    Parity with the old ``_value_from_term``, including its
     ``_bnode:`` rendering.
     """
     term = view.term(tid)

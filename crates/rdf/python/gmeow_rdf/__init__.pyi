@@ -11,7 +11,7 @@
 
 from __future__ import annotations
 
-from typing import IO
+from typing import IO, overload
 
 # ── Statement codec (crates/rdf/src/py.rs) ──────────────────────────────────────
 
@@ -24,6 +24,7 @@ class RdfFormat:
     TURTLE: RdfFormat
     N_TRIPLES: RdfFormat
     N_QUADS: RdfFormat
+    TRIG: RdfFormat
 
 class CanonicalizationAlgorithm:
     RDFC_1_0: CanonicalizationAlgorithm
@@ -130,8 +131,13 @@ class QueryBoolean:
 
 # ── Store / Dataset ─────────────────────────────────────────────────────────────
 
+class QuadIter:
+    def __iter__(self) -> QuadIter: ...
+    def __next__(self) -> Quad: ...
+
 class Store:
     def __init__(self) -> None: ...
+    def __iter__(self) -> QuadIter: ...
     def load(
         self,
         input: bytes | str | None = ...,
@@ -153,26 +159,37 @@ class Store:
         *,
         substitutions: dict[Variable, _Term] | None = ...,
     ) -> QuerySolutions | QueryTriples | QueryBoolean: ...
+    @overload
     def dump(
         self,
+        output: IO[bytes],
         format: RdfFormat,
         *,
         from_graph: NamedNode | BlankNode | DefaultGraph | None = ...,
+    ) -> None: ...
+    @overload
+    def dump(
+        self,
+        output: None = ...,
+        *,
+        format: RdfFormat,
+        from_graph: NamedNode | BlankNode | DefaultGraph | None = ...,
     ) -> bytes: ...
     def __len__(self) -> int: ...
-
-class DatasetIter:
-    def __iter__(self) -> DatasetIter: ...
-    def __next__(self) -> Quad: ...
 
 class Dataset:
     def __init__(self, quads: object | None = ...) -> None: ...
     def add(self, quad: Quad) -> None: ...
     def canonicalize(self, algorithm: CanonicalizationAlgorithm) -> None: ...
-    def __iter__(self) -> DatasetIter: ...
+    def __iter__(self) -> QuadIter: ...
     def __len__(self) -> int: ...
 
 # ── Module functions ────────────────────────────────────────────────────────────
 
 def parse(input: bytes | str, format: RdfFormat) -> list[Quad]: ...
+@overload
 def serialize(input: QueryTriples, output: IO[bytes], format: RdfFormat) -> None: ...
+@overload
+def serialize(
+    input: QueryTriples, output: None = ..., *, format: RdfFormat
+) -> bytes: ...

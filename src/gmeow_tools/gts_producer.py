@@ -7,10 +7,10 @@ dictionary:
 
 * **rdflib** ``Graph``/``Dataset`` — the RDF 1.1 base graph (IRIs, blank nodes,
   literals, named-graph quads).
-* **pyoxigraph** over an RDF 1.2 artifact (``statements/gmeow.rdf12.ttl``) — the
+* **gmeow_rdf** over an RDF 1.2 artifact (``statements/gmeow.rdf12.ttl``) — the
   statement layer: ``reifier rdf:reifies <<( s p o )>>`` becomes a GTS ``reifies``
   binding and the reifier's other triples become ``annot`` rows (§7.3). rdflib 7.6
-  has no triple-term API, so the RDF-star source must be read with pyoxigraph.
+  has no triple-term API, so the RDF-star source must be read with gmeow_rdf.
 
 Both feed :class:`_Builder`, which emits one ``dist``-profile ``snapshot`` (§10).
 """
@@ -165,7 +165,7 @@ class _Builder:
                 raise ValueError(msg)
             self.annot.append((rid, ap, av))
 
-    # -- pyoxigraph (RDF 1.2 statement layer) ---------------------------------
+    # -- gmeow_rdf (RDF 1.2 statement layer) ---------------------------------
 
     def add_rdf12(
         self,
@@ -179,7 +179,7 @@ class _Builder:
         Base (non-reifier) triples land in ``graph_name`` when given; the
         ``reifies``/``annot`` tables are global (§7.3).
         """
-        import pyoxigraph as ox
+        import gmeow_rdf as ox
 
         default_gid = self.terms.iri(graph_name) if graph_name is not None else None
         statements = list(ox.parse(path.read_bytes(), format=ox.RdfFormat.TURTLE))
@@ -223,11 +223,11 @@ class _Builder:
             else:
                 pending.append((s, p, o))
         # Pass 2: a reifier's other triples are annotations; the rest are base quads.
-        for s, p, o in pending:
+        for ps, pp, po in pending:
             sid, pid, oid = (
-                self._ox(s, bnode_scope),
-                self._ox(p, bnode_scope),
-                self._ox(o, bnode_scope),
+                self._ox(ps, bnode_scope),
+                self._ox(pp, bnode_scope),
+                self._ox(po, bnode_scope),
             )
             if sid is None or pid is None or oid is None:
                 continue
@@ -237,14 +237,14 @@ class _Builder:
                 self.quads.append((sid, pid, oid, default_gid))
 
     def _ox(self, node: object, bnode_scope: str | None = None) -> int | None:
-        import pyoxigraph as ox
+        import gmeow_rdf as ox
 
         if isinstance(node, ox.NamedNode):
             return self.terms.iri(node.value)
         if isinstance(node, ox.BlankNode):
             return self.terms.bnode(node.value, bnode_scope)
         if isinstance(node, ox.Literal):
-            # pyoxigraph always sets a datatype (xsd:string / rdf:langString implied).
+            # gmeow_rdf always sets a datatype (xsd:string / rdf:langString implied).
             if node.language is not None:
                 return self.terms.literal(node.value, None, node.language)
             dt = node.datatype.value
@@ -445,7 +445,7 @@ def gts_from_rdf12(
     profile: str = "dist",
     transform: list[str] | None = None,
 ) -> bytes:
-    """Produce a GTS snapshot from an RDF 1.2 artifact (statement layer; pyoxigraph)."""
+    """Produce a GTS snapshot from an RDF 1.2 artifact (statement layer; gmeow_rdf)."""
     builder = _Builder()
     builder.add_rdf12(path)
     return builder.to_gts(profile=profile, transform=transform)

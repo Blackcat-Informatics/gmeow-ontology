@@ -1,6 +1,6 @@
-"""Cross-check that rdflib and pyoxigraph answer every committed query alike.
+"""Cross-check that rdflib and gmeow_rdf answer every committed query alike.
 
-The test suite trusts pyoxigraph for speed (:mod:`gmeow_tools.sparql`); this gate
+The test suite trusts gmeow_rdf for speed (:mod:`gmeow_tools.sparql`); this gate
 is what *licenses* that trust. Every committed SPARQL query under ``queries/`` is
 run on the same data graph under **both** engines and their answers compared by
 value (CONSTITUTION Principle 7 — verified by construction; it extends the RDF 1.2
@@ -28,7 +28,7 @@ from decimal import Decimal, InvalidOperation
 from pathlib import Path
 from typing import cast
 
-import pyoxigraph
+import gmeow_rdf
 from rdflib import BNode, Graph, Literal, URIRef
 from rdflib.namespace import XSD
 from rdflib.query import ResultRow
@@ -83,7 +83,7 @@ _NUMERIC = frozenset(
 _FORM = re.compile(r"\b(SELECT|ASK|CONSTRUCT|DESCRIBE)\b", re.IGNORECASE)
 
 #: A decimal number token inside a string literal. The two engines render
-#: ``STR(?decimal)`` differently (rdflib keeps trailing zeros, pyoxigraph
+#: ``STR(?decimal)`` differently (rdflib keeps trailing zeros, gmeow_rdf
 #: canonicalizes), so e.g. a constructed ``POINT(-113.924350 ...)`` WKT string
 #: differs only in trailing zeros — value-equal, lexically not. Normalizing each
 #: numeric token consistently on both sides makes them compare equal.
@@ -155,7 +155,7 @@ def _row_keys(
 
 
 def crosscheck_query(
-    name: str, query_text: str, data_graph: Graph, store: pyoxigraph.Store
+    name: str, query_text: str, data_graph: Graph, store: gmeow_rdf.Store
 ) -> CrosscheckResult:
     """Run one query on both engines over the same data and compare by value.
 
@@ -197,7 +197,7 @@ def _run_rdflib(
 ) -> tuple[bool, object, str]:
     # rdflib's pyparsing-based SPARQL parser can RecursionError on very large
     # UNION chains (e.g. the schema-org projection query). The query is valid
-    # SPARQL — pyoxigraph parses it fine — so we temporarily raise the limit.
+    # SPARQL — gmeow_rdf parses it fine — so we temporarily raise the limit.
     old_limit = sys.getrecursionlimit()
     sys.setrecursionlimit(max(old_limit, 2000))
     try:
@@ -214,7 +214,7 @@ def _run_rdflib(
 
 
 def _run_pyox(
-    form: str, query_text: str, store: pyoxigraph.Store
+    form: str, query_text: str, store: gmeow_rdf.Store
 ) -> tuple[bool, object, str]:
     try:
         if form == "CONSTRUCT":
@@ -234,7 +234,7 @@ def _delta(a: object, b: object) -> str:
     return f"rdflib-only={only_a!r} pyox-only={only_b!r}"
 
 
-def _projection_data() -> tuple[Graph, pyoxigraph.Store]:
+def _projection_data() -> tuple[Graph, gmeow_rdf.Store]:
     """The merged ontology plus the projection example fixtures, both engines."""
     graph = load_merged_graph(include_imports=False)
     paths = [
@@ -258,7 +258,7 @@ def crosscheck_all() -> list[CrosscheckResult]:
         base_store = sparql.merged_store(include_imports=False)
         proj_graph, proj_store = _projection_data()
 
-        plan: list[tuple[Path, Graph, pyoxigraph.Store]] = []
+        plan: list[tuple[Path, Graph, gmeow_rdf.Store]] = []
         for directory in (
             AUDIT_QUERY_DIR,
             COMPETENCY_DIR,
