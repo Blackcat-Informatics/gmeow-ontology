@@ -336,7 +336,11 @@ def gmeow_reason(
         except Exception as exc:
             return json.dumps({"ok": False, "error": str(exc)})
         return json.dumps(
-            {"ok": True, "message": f"{reasoner} consistency check passed"}
+            {
+                "ok": True,
+                "mode": "docker",
+                "message": f"{reasoner} consistency check passed",
+            }
         )
 
     return json.dumps(

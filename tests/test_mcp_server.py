@@ -6,6 +6,7 @@ Principle 7 (Verified by construction): every tool and resource is exercised.
 from __future__ import annotations
 
 import json
+from unittest.mock import MagicMock, patch
 
 from gmeow_tools.mcp_server import (
     _expand_curie,
@@ -124,11 +125,24 @@ def test_gmeow_reason_native() -> None:
 
 
 def test_gmeow_reason_docker_opt_in() -> None:
-    """The docker mode is reachable and returns a JSON response."""
-    text = gmeow_reason(mode="docker")
+    """The docker mode invokes the classic reasoning lane and reports success."""
+    mock_merge = MagicMock()
+    mock_validate = MagicMock()
+    mock_reason = MagicMock()
+
+    with (
+        patch("gmeow_tools.reason.merge_release", mock_merge),
+        patch("gmeow_tools.reason.validate_profile", mock_validate),
+        patch("gmeow_tools.reason.reason", mock_reason),
+    ):
+        text = gmeow_reason(mode="docker")
+
     data = _json_response(text)
-    assert "ok" in data
-    assert isinstance(data["ok"], bool)
+    assert data["ok"] is True
+    assert data.get("mode") == "docker"
+    mock_merge.assert_called_once()
+    mock_validate.assert_called_once_with("DL")
+    mock_reason.assert_called_once_with("ELK")
 
 
 # --------------------------------------------------------------------------- #
