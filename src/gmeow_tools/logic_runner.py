@@ -53,7 +53,8 @@ Populated vs deferred (v1 monotonic scope)
 
 Comparison helpers (used by Task 8/9 diff logic)
 -------------------------------------------------
-* :func:`compare_rdf` — blank-node-aware graph isomorphism (reuses rdflib).
+* :func:`compare_rdf` — blank-node-aware graph equality via the in-repo
+  ``gmeow_rdf`` RDFC-1.0 canonicalization (rdflib-free since issue #630).
 * :func:`compare_canonical_json` — sorted-keys canonical JSON equality.
 * :func:`compare_explanation_skeleton` — cited-IRI/rule-IRI set equality,
   ignoring surface prose.
@@ -72,9 +73,6 @@ import logging
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, cast
-
-from rdflib import ConjunctiveGraph, Graph, URIRef
-from rdflib.compare import isomorphic
 
 from gmeow_tools.logic_seam import (
     _ASSERT_RULE_IRI,
@@ -128,8 +126,8 @@ _TARGET_TO_KEY: dict[str, str] = {
     "nemo": "nemo",
 }
 
-#: Which projection targets serialize RDF (re-parsed into an rdflib Graph for the
-#: isomorphism diff); the rest are plain text.
+#: Which projection targets serialize RDF (compared by gmeow_rdf RDFC-1.0
+#: canonical quad-set equality, issue #630); the rest are plain text.
 _RDF_TARGETS: frozenset[str] = frozenset(
     {"owl-dl", "owl-el", "gufo", "canonical-rdf12"}
 )
@@ -163,13 +161,14 @@ class RunnerProjection:
     Attributes:
         target: Short target name (``"owl-dl"``, ``"datalog"``, …).
         content: The serialized artifact string from the Rust compiler.
-        graph: The re-parsed rdflib :class:`~rdflib.Graph` for RDF targets
-            (used for the isomorphism diff), or ``None`` for text targets.
+        is_rdf: ``True`` for the RDF targets whose ``content`` is Turtle compared
+            by gmeow_rdf RDFC-1.0 canonical quad-set equality (issue #630),
+            ``False`` for the plain-text targets (datalog / n3 / nemo).
     """
 
     target: str
     content: str
-    graph: Graph | None
+    is_rdf: bool
 
 
 @dataclass(frozen=True, slots=True)
@@ -178,15 +177,15 @@ class ProjectionOutputs:
 
     Attributes:
         results: The 7 :class:`RunnerProjection` objects (one per back-end).
-        report_graph: The preservation report as an rdflib
-            :class:`~rdflib.Graph`.
+        report_turtle: The preservation report as a Turtle string (compared by
+            gmeow_rdf RDFC-1.0 canonical quad-set equality, issue #630).
         ledger_json: The preservation ledger as a canonical JSON dict.
             Keys are target names; values are ``{preservation, complexity,
             lossy_drops}`` dicts.  Built by the Rust compiler.
     """
 
     results: tuple[RunnerProjection, ...]
-    report_graph: Graph
+    report_turtle: str
     ledger_json: dict[str, dict[str, object]]
 
 
@@ -375,22 +374,33 @@ def _build_projection_outputs(compiled: dict[str, object]) -> ProjectionOutputs:
 
     The Rust compiler (:func:`gmeow_logic.compile_logic`) already ran every
     projection back-end, the overclaim gate, and the preservation ledger; this
-    function only repackages those artifacts for the conformance diff — it
-    re-parses the four RDF artifact strings into rdflib Graphs (for the
-    isomorphism comparison) and the report Turtle into a Graph, and copies the
+    function only repackages those artifacts for the conformance diff — it keeps
+    each RDF artifact string verbatim (validating that it parses under the in-repo
+    ``gmeow_rdf`` kernel, which — unlike rdflib — reads the RDF 1.2 ``<< … >>``
+    triple terms the ``canonical-rdf12`` projection emits), and copies the
     Rust-built ``preservation_ledger`` dict verbatim.
 
     Args:
         compiled: The dict returned by :func:`gmeow_logic.compile_logic`.
 
     Returns:
-        A :class:`ProjectionOutputs` with all 7 results, the report graph, and
+        A :class:`ProjectionOutputs` with all 7 results, the report Turtle, and
         the JSON ledger.
 
     Raises:
         RunnerError: If an artifact key is missing or an RDF artifact cannot be
-            re-parsed (a Rust↔Python contract violation).
+            parsed (a Rust↔Python contract violation).
     """
+    import gmeow_rdf
+
+    def _validate_turtle(content: str, label: str) -> None:
+        try:
+            gmeow_rdf.parse(content.encode("utf-8"), format=gmeow_rdf.RdfFormat.TURTLE)
+        except (ValueError, RuntimeError) as exc:
+            raise RunnerError(
+                f"compile_logic {label} artifact is not parseable Turtle: {exc}"
+            ) from exc
+
     results: list[RunnerProjection] = []
     for target in _PROJECTION_TARGETS:
         key = _TARGET_TO_KEY[target]
@@ -400,24 +410,13 @@ def _build_projection_outputs(compiled: dict[str, object]) -> ProjectionOutputs:
                 f"(missing key {key!r})"
             )
         content = str(compiled[key])
-        graph: Graph | None = None
-        if target in _RDF_TARGETS:
-            graph = Graph()
-            try:
-                graph.parse(data=content, format="turtle")
-            except Exception as exc:
-                raise RunnerError(
-                    f"compile_logic {target!r} artifact is not parseable Turtle: {exc}"
-                ) from exc
-        results.append(RunnerProjection(target=target, content=content, graph=graph))
+        is_rdf = target in _RDF_TARGETS
+        if is_rdf:
+            _validate_turtle(content, repr(target))
+        results.append(RunnerProjection(target=target, content=content, is_rdf=is_rdf))
 
-    report_graph = Graph()
-    try:
-        report_graph.parse(data=str(compiled["report"]), format="turtle")
-    except Exception as exc:
-        raise RunnerError(
-            f"compile_logic projection report is not parseable Turtle: {exc}"
-        ) from exc
+    report_turtle = str(compiled["report"])
+    _validate_turtle(report_turtle, "projection report")
 
     # The preservation ledger is built by the Rust compiler; copy it verbatim
     # (deep-copied to plain dicts/lists so the canonical-JSON comparison is stable).
@@ -438,7 +437,7 @@ def _build_projection_outputs(compiled: dict[str, object]) -> ProjectionOutputs:
 
     return ProjectionOutputs(
         results=tuple(results),
-        report_graph=report_graph,
+        report_turtle=report_turtle,
         ledger_json=ledger_json,
     )
 
@@ -788,7 +787,7 @@ def _materialization_result_from_quad_rows(
 def _materialize_explained_native(
     case_dir: Path,
     nemo_rules: str,
-    input_graph: ConjunctiveGraph,
+    input_nq_text: str,
     semantic_profile_str: str,
     budget: BudgetParams | None,
 ) -> tuple[MaterializationResult, tuple[Explanation, ...]]:
@@ -813,6 +812,10 @@ def _materialize_explained_native(
     repackages them into the runner's seam dataclasses (the explanation rows go
     through the shared :func:`_explanations_from_rows` adapter).
 
+    The world facts are passed through verbatim as the raw ``input.nq`` text
+    (issue #630): ``materialize_explained`` parses N-Quads inside Rust, so the
+    runner no longer round-trips them through an rdflib ``ConjunctiveGraph``.
+
     Returns:
         A ``(MaterializationResult, explanations)`` pair.
 
@@ -827,8 +830,6 @@ def _materialize_explained_native(
             f"Case {case_dir.name}: gmeow_logic native extension is not installed "
             "(materialization is Rust-authoritative since #651) — run 'make logic-py'."
         ) from exc
-
-    input_nq_text = input_graph.serialize(format="nquads")
 
     try:
         result = gmeow_logic.materialize_explained(
@@ -858,7 +859,7 @@ def _materialize_explained_native(
 def _resolve_witnesses(
     case_dir: Path,
     nemo_rules: str,
-    input_graph: ConjunctiveGraph,
+    input_nq_text: str,
     semantic_profile_str: str,
 ) -> dict[str, object]:
     """Resolve the stable-model witnesses for a StableModel case (issue #651).
@@ -879,7 +880,6 @@ def _resolve_witnesses(
             f"Case {case_dir.name}: gmeow_logic native extension is not installed "
             "(stable-model witnesses are Rust-authoritative) — run 'make logic-py'."
         ) from exc
-    input_nq_text = input_graph.serialize(format="nquads")
     try:
         return dict(gmeow_logic.stable_models(nemo_rules, input_nq_text))
     except (ValueError, RuntimeError) as exc:
@@ -983,7 +983,7 @@ def _resolve_answers(
 
 def _materialize_foundation(
     case_dir: Path,
-    input_graph: ConjunctiveGraph,
+    input_nq_text: str,
     profile_data: dict[str, object],
     budget: BudgetParams | None,
 ) -> MaterializationResult:
@@ -996,16 +996,16 @@ def _materialize_foundation(
     (``logic_foundation.py``) is gone — there is no fallback (no-optionality
     doctrine: a missing extension is a hard failure).
 
-    The input world facts (``input.nq``, one named graph per world) are serialized
-    to N-Quads and handed to ``gmeow_logic.foundation``; its full-provenance rows
-    are mapped one-to-one onto :class:`~.logic_seam.DerivedQuad` records and
-    assembled into a :class:`~.logic_seam.MaterializationResult` that every
-    downstream consumer (explanations, verdicts, projections, certification) reads
-    unchanged.
+    The input world facts (the raw ``input.nq`` N-Quads text, one named graph per
+    world) are handed straight to ``gmeow_logic.foundation`` (which parses N-Quads
+    inside Rust, issue #630); its full-provenance rows are mapped one-to-one onto
+    :class:`~.logic_seam.DerivedQuad` records and assembled into a
+    :class:`~.logic_seam.MaterializationResult` that every downstream consumer
+    (explanations, verdicts, projections, certification) reads unchanged.
 
     Args:
         case_dir: The conformance case directory (used only for error messages).
-        input_graph: The parsed world-fact ConjunctiveGraph (from ``input.nq``).
+        input_nq_text: The raw world-fact N-Quads text (from ``input.nq``).
         profile_data: The parsed ``profile.json`` dict; ``anti_rigidity_policy``
             selects the closed witness policy (default ``"witness-obligation"``).
         budget: The parsed budget governor, or ``None`` for unbounded.  The native
@@ -1043,10 +1043,6 @@ def _materialize_foundation(
             f"but the case opts into foundation_lowering — run 'make logic-py' "
             f"first: {exc}"
         ) from exc
-
-    # Serialize the world-fact graph to N-Quads for the native evaluator (one named
-    # graph per world; the same surface the Rust foundation loader expects).
-    input_nq_text = input_graph.serialize(format="nquads")
 
     policy = str(profile_data.get("anti_rigidity_policy", "witness-obligation"))
     try:
@@ -1112,8 +1108,8 @@ def run(case_dir: Path, mode: str = "native") -> RunnerOutputs:
     Args:
         case_dir: Path to the conformance case directory.  Must contain
             ``input.logic.ttl`` and ``profile.json``.  If ``input.nq`` is
-            also present it is loaded as the world-fact ConjunctiveGraph
-            (one named graph per world) before the chase runs.
+            also present its raw N-Quads text (one named graph per world) is
+            fed straight to the native chase before it runs.
         mode: Engine/fragment mode selector.  Only ``"native"`` is supported
             in the v1 monotonic oracle; passing any other value raises
             :class:`RunnerError`.
@@ -1211,25 +1207,19 @@ def run(case_dir: Path, mode: str = "native") -> RunnerOutputs:
     # diff can compare it as a golden artifact.
     certification = _certify_native(nemo_rules, semantic_profile_str, case_dir.name)
 
-    # Build the input ConjunctiveGraph for the materializer.
+    # Read the raw world-fact N-Quads for the materializer (issue #630): the
+    # native materialize / foundation / stable-model engines parse N-Quads INSIDE
+    # Rust, so the runner feeds the raw ``input.nq`` text verbatim — no rdflib
+    # ConjunctiveGraph round-trip (which only ever existed to re-serialize).
     # Projection-only cases carry no named-graph worlds (flat Turtle program);
     # world-indexed cases (worlds-A, worlds-B, paraconsistency, explanation)
     # supply facts as ``input.nq`` (N-Quads, one named graph per world).
-    # If ``input.nq`` is absent the chase runs over an empty graph (zero
+    # If ``input.nq`` is absent the chase runs over the empty string (zero
     # asserted quads → zero derived quads; projections still work unchanged).
-    input_graph: ConjunctiveGraph = ConjunctiveGraph()
     input_nq_path = case_dir / "input.nq"
-    if input_nq_path.exists():
-        try:
-            nq_text = input_nq_path.read_text(encoding="utf-8")
-            if nq_text.strip():
-                import io as _io
-
-                input_graph.parse(_io.StringIO(nq_text), format="nquads")
-        except Exception as exc:
-            raise RunnerError(
-                f"Case {case_dir.name}: cannot parse input.nq: {exc}"
-            ) from exc
+    input_nq_text = (
+        input_nq_path.read_text(encoding="utf-8") if input_nq_path.exists() else ""
+    )
 
     # Optional budget governor (issue #502, Task 5).  Absent ``budget_params``
     # means unbounded (the #501 default): the chase runs to full fixpoint and
@@ -1250,7 +1240,7 @@ def run(case_dir: Path, mode: str = "native") -> RunnerOutputs:
         # ``gmeow_logic.explain`` (see _run_explanations, below).  It is NOT fused —
         # there is no foundation_explained surface and the chase is distinct.
         mat_result = _materialize_foundation(
-            case_dir, input_graph, profile_data, budget
+            case_dir, input_nq_text, profile_data, budget
         )
         # Explanations (over whatever quads exist; empty for projection-only cases).
         explanations = _run_explanations(mat_result)
@@ -1266,7 +1256,7 @@ def run(case_dir: Path, mode: str = "native") -> RunnerOutputs:
         # same content-addressed reifier graph the native query / counterfactual
         # consumers reconstruct.
         mat_result, explanations = _materialize_explained_native(
-            case_dir, nemo_rules, input_graph, semantic_profile_str, budget
+            case_dir, nemo_rules, input_nq_text, semantic_profile_str, budget
         )
 
     # N-Quads serialization
@@ -1300,7 +1290,7 @@ def run(case_dir: Path, mode: str = "native") -> RunnerOutputs:
     # Stable-model witnesses (issue #651): the individual answer sets, surfaced for
     # the ``witnesses.json`` side file. ``{}`` for every single-model profile.
     witnesses = _resolve_witnesses(
-        case_dir, nemo_rules, input_graph, semantic_profile_str
+        case_dir, nemo_rules, input_nq_text, semantic_profile_str
     )
 
     return RunnerOutputs(
@@ -1324,36 +1314,128 @@ def run(case_dir: Path, mode: str = "native") -> RunnerOutputs:
 # --------------------------------------------------------------------------- #
 
 
-def compare_rdf(
-    actual_graph: Graph,
-    expected_graph: Graph,
-) -> list[str]:
-    """Compare two rdflib Graphs by blank-node-aware graph isomorphism.
+def _NT_FORMAT() -> object:  # noqa: N802 — factory mirroring an enum member access
+    """Return the ``gmeow_rdf.RdfFormat.N_TRIPLES`` member.
 
-    Reuses rdflib's :func:`~rdflib.compare.isomorphic` (same function used by
-    :func:`~.generator.rdf_compare`).  Does not compare serialization bytes —
-    only graph structure and named nodes.
+    A tiny accessor so the call sites read ``fmt=_NT_FORMAT()`` without importing
+    ``gmeow_rdf`` at module scope (it is imported lazily inside the helpers, the
+    same hard-fail-on-missing-extension pattern the rest of the runner uses).
+    """
+    import gmeow_rdf
+
+    return gmeow_rdf.RdfFormat.N_TRIPLES
+
+
+def _nquads_by_named_graph(nquads_text: str) -> dict[str, str]:
+    """Group an N-Quads document into per-named-graph N-Triples documents.
+
+    Parses ``nquads_text`` with the in-repo ``gmeow_rdf`` kernel and buckets every
+    quad by its named-graph IRI, re-serializing each world's triples as an
+    N-Triples string (the default graph is dropped — the materialized-corpus
+    comparison asserts only over named worlds, matching issue #501 AC(a)/(b)).
 
     Args:
-        actual_graph: The freshly produced graph.
-        expected_graph: The committed golden graph.
+        nquads_text: The N-Quads document (one named graph per world).
 
     Returns:
-        An empty list on match, or a list of one error string describing the
-        mismatch.
+        A dict mapping each named-graph IRI to that world's N-Triples document.
+
+    Raises:
+        ValueError | RuntimeError: If ``gmeow_rdf`` cannot parse the N-Quads.
     """
-    if isomorphic(actual_graph, expected_graph):
+    import gmeow_rdf
+
+    by_graph: dict[str, list[str]] = {}
+    if not nquads_text.strip():
+        return {}
+    for quad in gmeow_rdf.parse(
+        nquads_text.encode("utf-8"), format=gmeow_rdf.RdfFormat.N_QUADS
+    ):
+        graph_name = quad.graph_name
+        if not isinstance(graph_name, gmeow_rdf.NamedNode):
+            # Default-graph (or blank-node-graph) triples are not part of the
+            # world-indexed comparison surface — skip them, as the prior rdflib
+            # `isinstance(ctx.identifier, URIRef)` filter did.
+            continue
+        triple = gmeow_rdf.Triple(quad.subject, quad.predicate, quad.object)
+        # gmeow_rdf's Triple.__str__ omits the trailing `.`; append it so the
+        # per-world bucket is a valid N-Triples document for the re-parse.
+        line = f"{triple} ."
+        by_graph.setdefault(graph_name.value, []).append(line)
+    return {iri: "".join(s + "\n" for s in lines) for iri, lines in by_graph.items()}
+
+
+def _canonical_quads(text: str, fmt: object) -> list[str]:
+    """Canonicalize a serialized RDF document to a sorted list of N-Quads lines.
+
+    Parses ``text`` with the in-repo ``gmeow_rdf`` kernel (which — unlike rdflib —
+    reads the RDF 1.2 ``<< … >>`` triple terms the ``canonical-rdf12`` projection
+    emits), applies RDFC-1.0 canonical blank-node labelling, and returns the
+    canonicalized quads as a sorted list of their N-Quads strings.  Two RDF
+    documents are graph-isomorphic iff their canonical quad lists are equal — the
+    rdflib-free replacement for ``rdflib.compare.isomorphic`` (issue #630).
+
+    Args:
+        text: The serialized RDF document (Turtle / N-Triples / N-Quads).
+        fmt: The ``gmeow_rdf.RdfFormat`` member for ``text``.
+
+    Returns:
+        The sorted list of canonical N-Quads strings (one per quad).
+    """
+    import gmeow_rdf
+
+    dataset = gmeow_rdf.Dataset()
+    for quad in gmeow_rdf.parse(text.encode("utf-8"), format=fmt):  # type: ignore[arg-type]
+        dataset.add(
+            gmeow_rdf.Quad(quad.subject, quad.predicate, quad.object, quad.graph_name)
+        )
+    dataset.canonicalize(gmeow_rdf.CanonicalizationAlgorithm.RDFC_1_0)
+    return sorted(str(quad) for quad in dataset)
+
+
+def compare_rdf(
+    actual_text: str,
+    expected_text: str,
+    *,
+    fmt: object = None,
+) -> list[str]:
+    """Compare two serialized RDF documents by blank-node-aware graph equality.
+
+    Reimplemented rdflib-free (issue #630): both documents are parsed and RDFC-1.0
+    canonicalized via the in-repo ``gmeow_rdf`` kernel, and their canonical
+    quad-sets compared.  RDFC-1.0 canonicalization makes isomorphic graphs
+    byte-identical, so equal canonical quad lists ⇔ graph isomorphism — the same
+    verdict ``rdflib.compare.isomorphic`` returned, but over the native kernel
+    (which additionally reads the RDF 1.2 ``<< … >>`` triple terms rdflib cannot).
+
+    Args:
+        actual_text: The freshly produced RDF document.
+        expected_text: The committed golden RDF document.
+        fmt: The ``gmeow_rdf.RdfFormat`` member both documents are serialized in.
+            Defaults to ``RdfFormat.TURTLE`` (the projection / report artifact
+            format) when ``None``.
+
+    Returns:
+        An empty list on match, or a list of error strings describing the
+        mismatch (the canonical quads unique to each side).
+    """
+    import gmeow_rdf
+
+    if fmt is None:
+        fmt = gmeow_rdf.RdfFormat.TURTLE
+
+    actual_quads = _canonical_quads(actual_text, fmt)
+    expected_quads = _canonical_quads(expected_text, fmt)
+    if actual_quads == expected_quads:
         return []
-    # Produce a minimal diff: count triples in each and list unique triples
-    actual_only = set(actual_graph) - set(expected_graph)
-    expected_only = set(expected_graph) - set(actual_graph)
-    lines = [
-        f"RDF graph mismatch: {len(actual_graph)} vs {len(expected_graph)} triples"
-    ]
-    for triple in sorted(str(t) for t in actual_only)[:5]:
-        lines.append(f"  actual only: {triple}")
-    for triple in sorted(str(t) for t in expected_only)[:5]:
-        lines.append(f"  expected only: {triple}")
+
+    actual_only = sorted(set(actual_quads) - set(expected_quads))
+    expected_only = sorted(set(expected_quads) - set(actual_quads))
+    lines = [f"RDF graph mismatch: {len(actual_quads)} vs {len(expected_quads)} quads"]
+    for quad in actual_only[:5]:
+        lines.append(f"  actual only: {quad}")
+    for quad in expected_only[:5]:
+        lines.append(f"  expected only: {quad}")
     return lines
 
 
@@ -1549,45 +1631,33 @@ def diff_case(outputs: RunnerOutputs) -> CaseDiffResult:
             expected_path = proj_expected / filename
             pr = proj_by_target.get(target_name)
             if not expected_path.exists():
-                # A missing golden is a hard failure when the runner produced a
-                # non-trivial graph for this target.  Silent skipping would leave
+                # A missing golden is a hard failure when the runner produced an
+                # RDF artifact for this target.  Silent skipping would leave
                 # projections untested (verification-honesty violation).
-                if pr is not None and pr.graph is not None:
+                if pr is not None and pr.is_rdf:
                     diffs.append(
                         f"[{case_id}] projection {target_name}: golden "
                         f"{filename} is missing from expected/projections/ — "
                         f"run `gmeow-dev conformance --update` to generate it"
                     )
                 continue
-            if pr is None or pr.graph is None:
+            if pr is None or not pr.is_rdf:
                 diffs.append(f"[{case_id}] projection {target_name}: no graph produced")
                 continue
-            expected_graph = Graph()
-            try:
-                expected_graph.parse(str(expected_path), format="turtle")
-            except Exception as exc:
-                diffs.append(f"[{case_id}] cannot parse expected {filename}: {exc}")
-                continue
-            rdf_diffs = compare_rdf(pr.graph, expected_graph)
+            expected_text = expected_path.read_text(encoding="utf-8")
+            rdf_diffs = compare_rdf(pr.content, expected_text)
             for d in rdf_diffs:
                 diffs.append(f"[{case_id}] {target_name}: {d}")
 
         # --- Projection report ---
         report_path = proj_expected / "projection-report.ttl"
         if report_path.exists():
-            expected_report = Graph()
-            try:
-                expected_report.parse(str(report_path), format="turtle")
-            except Exception as exc:
-                diffs.append(
-                    f"[{case_id}] cannot parse expected projection-report.ttl: {exc}"
-                )
-            else:
-                rdf_diffs = compare_rdf(
-                    outputs.projections.report_graph, expected_report
-                )
-                for d in rdf_diffs:
-                    diffs.append(f"[{case_id}] projection-report: {d}")
+            expected_report_text = report_path.read_text(encoding="utf-8")
+            rdf_diffs = compare_rdf(
+                outputs.projections.report_turtle, expected_report_text
+            )
+            for d in rdf_diffs:
+                diffs.append(f"[{case_id}] projection-report: {d}")
 
         # --- Preservation ledger JSON ---
         ledger_path = proj_expected / "preservation-ledger.json"
@@ -1690,37 +1760,19 @@ def diff_case(outputs: RunnerOutputs) -> CaseDiffResult:
     mat_path = expected_root / "materialized.nq"
     if mat_path.exists():
         expected_nq_text = mat_path.read_text(encoding="utf-8")
-        # Parse both as ConjunctiveGraphs for isomorphism comparison
-        actual_cg: ConjunctiveGraph = ConjunctiveGraph()
-        expected_cg: ConjunctiveGraph = ConjunctiveGraph()
         try:
-            if outputs.materialized_nquads.strip():
-                import io
-
-                actual_cg.parse(
-                    io.StringIO(outputs.materialized_nquads), format="nquads"
-                )
-            if expected_nq_text.strip():
-                import io
-
-                expected_cg.parse(io.StringIO(expected_nq_text), format="nquads")
-        except Exception as exc:
+            actual_by_graph = _nquads_by_named_graph(outputs.materialized_nquads)
+            expected_by_graph = _nquads_by_named_graph(expected_nq_text)
+        except (ValueError, RuntimeError) as exc:
             diffs.append(f"[{case_id}] materialized.nq parse error: {exc}")
         else:
             # Compare per named graph to detect cross-world leaks (Gap-1 fix).
             # A union comparison would allow a quad in the wrong graph to pass
             # as long as the (S,P,O) triple existed in ANY world — defeating the
-            # world-isolation invariant required by issue #501 AC(a)/(b).
-            actual_graph_iris: set[URIRef] = {
-                ctx.identifier
-                for ctx in actual_cg.contexts()
-                if isinstance(ctx.identifier, URIRef)
-            }
-            expected_graph_iris: set[URIRef] = {
-                ctx.identifier
-                for ctx in expected_cg.contexts()
-                if isinstance(ctx.identifier, URIRef)
-            }
+            # world-isolation invariant required by issue #501 AC(a)/(b).  gmeow_rdf
+            # parses the N-Quads and we group by named-graph IRI (issue #630).
+            actual_graph_iris = set(actual_by_graph)
+            expected_graph_iris = set(expected_by_graph)
             # Report named graphs present on one side but not the other.
             for extra_iri in sorted(actual_graph_iris - expected_graph_iris):
                 diffs.append(
@@ -1732,11 +1784,14 @@ def diff_case(outputs: RunnerOutputs) -> CaseDiffResult:
                     f"[{case_id}] materialized.nq: named graph present in expected"
                     f" but not actual: <{missing_iri}>"
                 )
-            # Per-shared-graph triple comparison using the existing compare_rdf helper.
+            # Per-shared-graph triple comparison via gmeow_rdf canonicalization:
+            # each world's triples are re-serialized as N-Triples and compared.
             for graph_iri in sorted(actual_graph_iris & expected_graph_iris):
-                actual_g: Graph = Graph(store=actual_cg.store, identifier=graph_iri)
-                expected_g: Graph = Graph(store=expected_cg.store, identifier=graph_iri)
-                rdf_diffs = compare_rdf(actual_g, expected_g)
+                rdf_diffs = compare_rdf(
+                    actual_by_graph[graph_iri],
+                    expected_by_graph[graph_iri],
+                    fmt=_NT_FORMAT(),
+                )
                 for d in rdf_diffs:
                     diffs.append(f"[{case_id}] materialized.nq [<{graph_iri}>]: {d}")
 

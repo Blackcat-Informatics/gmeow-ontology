@@ -27,7 +27,7 @@ from rdflib.namespace import SKOS
 
 from gmeow_tools.config import NAMESPACE
 from gmeow_tools.graph import load_merged_graph
-from gmeow_tools.native_rl import native_rl_closure
+from gmeow_tools.native_rl_rdflib import native_rl_closure
 from gmeow_tools.slices import module_path
 
 GMEOW = Namespace(NAMESPACE)
