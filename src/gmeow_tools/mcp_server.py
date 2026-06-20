@@ -293,8 +293,15 @@ def gmeow_reason(
     """Run consistency reasoning over the merged ontology.
 
     Native EL/DL reasoning (Rust, Java/Docker-free) is the default and the
-    authority lane. The classic Docker/Java ELK/HermiT oracle is available as
-    an explicit opt-in via ``mode="docker"``.
+    authority lane. In native mode the reasoner operates over the bundled GTS
+    snapshot with ``merge=False``; if you edit canonical ontology sources in a
+    repo checkout you must call ``gmeow-dev regenerate`` (or equivalent) first
+    before expecting fresh verdicts. The native path intentionally does not run
+    the four-box role audit; use ``gmeow_check_generated`` or
+    ``gmeow_validate`` for that.
+
+    The classic Docker/Java ELK/HermiT oracle is available as an explicit
+    opt-in via ``mode="docker"``.
 
     Args:
         mode: Reasoning backend — ``native`` (default) or ``docker``.
