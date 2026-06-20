@@ -53,6 +53,22 @@ def _direct_ai_programs(dataset: ET.Element) -> list[ET.Element]:
     return [child for child in dataset if child.tag == f"{{{AI_NS}}}program"]
 
 
+def _assert_citations_include_container_title(root: ET.Element) -> None:
+    """Every citation must carry a container title per Crossref business rules."""
+    for citation_list in root.iter(f"{{{CR_NS}}}citation_list"):
+        for citation in citation_list.findall(f"{{{CR_NS}}}citation"):
+            key = citation.attrib["key"]
+            has_container = (
+                citation.find(f"{{{CR_NS}}}issn") is not None
+                or citation.find(f"{{{CR_NS}}}journal_title") is not None
+                or citation.find(f"{{{CR_NS}}}proceedings_title") is not None
+            )
+            assert has_container, (
+                f"citation {key!r} is missing issn, journal_title, and "
+                "proceedings_title"
+            )
+
+
 @functools.lru_cache(maxsize=1)
 def _crossref_schema() -> xmlschema.XMLSchema:
     return xmlschema.XMLSchema(
@@ -405,10 +421,27 @@ def test_citation_list_projects_alignment_targets() -> None:
     gufo = by_key["ref-gufo"]
     assert gufo.attrib["type"] == "web_resource"
     assert gufo.findtext(f"{{{CR_NS}}}article_title") == "gUFO"
+    assert gufo.findtext(f"{{{CR_NS}}}journal_title") == "gUFO"
     assert (
         gufo.findtext(f"{{{CR_NS}}}unstructured_citation")
         == "gUFO. http://purl.org/nemo/gufo#."
     )
+
+
+def test_citations_include_container_title() -> None:
+    """Every citation carries at least one container title element."""
+    root = _parse(build_deposit_xml(timestamp="20260603120000"))
+    _assert_citations_include_container_title(root)
+
+
+def test_citations_include_container_title_crossmark_enabled(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Container title rule holds when Crossmark metadata is enabled."""
+    monkeypatch.setattr(crossref_mod, "CROSSMARK_ENABLED", True)
+    monkeypatch.setattr(crossref_mod, "CROSSMARK_POLICY_DOI", "10.67342/xn9qgdr5mw/v1")
+    root = _parse(build_deposit_xml(timestamp="20260603120000"))
+    _assert_citations_include_container_title(root)
 
 
 def test_lint_passes_on_real_self_description() -> None:
