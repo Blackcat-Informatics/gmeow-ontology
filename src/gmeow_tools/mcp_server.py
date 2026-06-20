@@ -310,7 +310,10 @@ def gmeow_reason(
             report = reasoning.reason_native(merge=False, run_box_roles=False)
         except (ImportError, ValueError, RuntimeError, OSError) as exc:
             return json.dumps({"ok": False, "error": str(exc)})
-        warnings = getattr(report, "warning_count", len(list(report.warnings)))
+        if hasattr(report, "warning_count"):
+            warnings = report.warning_count
+        else:
+            warnings = len(list(report.warnings))
         return json.dumps(
             {
                 "ok": report.ok,
