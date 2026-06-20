@@ -100,6 +100,42 @@ logical-location kind (`gts:term`, `gts:quad`, `gts:reifier`, `gts:frame`, `gts:
 corresponding Rust `Location.gts_*` field, so SARIF, this RDF projection, and the content-addressed
 validation cache all anchor a diagnostic to the same position.
 
+## Dev-gate producers (the feedback fold)
+
+`gmeow-dev feedback` folds **every** GMEOW-owned `make check` surface into one canonical report
+(a few surfaces are folded standalone rather than as literal `make check` targets — `box-roles` is
+a `reason-native` sub-audit and `classic-cross-check` runs its own lane, not under `make check`),
+then writes `dist/gmeow-feedback.{json,sarif,html,gts}` — so the self-attesting bundle is the
+complete picture of the developer gate, not just validation (#654, Principle 5: maximal information
+flow). Each surface owns its own `Severity`/`code` semantics via a `to_diagnostics_report()` function
+(the facade stays surface-agnostic); the table-driven fold in `cli_dev._surface_reports()` adds a
+surface in one row, and `tests/test_feedback_surfaces.py` pins the fold table against the documented
+surface set so the registry of folded surfaces cannot drift unnoticed. The feedback process **exit
+stays driven solely by the validation result** — per-surface hard gating lives in each surface's own
+`make check` command; the bundle carries the rest as an artifact.
+
+| Surface | Stable `code`s | Severity rule |
+|---|---|---|
+| `validate` (SHACL/syntax/lint) | `shacl.*`, `validate.*` | Rust-native; carries GTS wire coords |
+| native `reason` / `verify` | `reason.*`, `verify.*` | folded as `gmeow_diagnostics::Report`s |
+| `alignment` | `alignment.<check>` | maps `AlignmentFinding.severity` (keeps `info`, unlike the legacy gate) |
+| `coverage` | `coverage.gap-class`, `coverage.gap-predicate` | `info` — gaps never fail the gate |
+| `acceptance` | `acceptance.<gate-name>` | failing **hard** gate → `error`; failing **scoreboard** gate → `note` |
+| `wikidata` | `wikidata.qid-syntax`, `wikidata.namespace-misuse` | `error` (misuse kind in `tags`) |
+| `constitution` | `constitution.error`, `constitution.warning` | folds the gate's error/warning strings |
+| `box-roles` | `box-roles.missing`, `box-roles.invalid` | `error` (term source in `path`) |
+| `audit` | `audit.{ungrounded,contradicted,stale}-*`, `audit.shacl-{error,warning}` | heuristic flags → `warning`; SHACL errors → `error` |
+| `generator` | `generator.{drift,orphan,problem}` | `error`; per-finding `tool` = generator name (covers statement + mapping drift) |
+| `classic-cross-check` | `classic-cross-check/{subsumption,consistency}-divergence`, `…/dl-gap` | native↔oracle (ELK/HermiT/ROBOT) divergence ledger, already a Rust-backed report; `NativeOnly`/`OracleOnly` → `error`, `DlGap` → `note` |
+
+**Deferred to [#809](https://github.com/Blackcat-Informatics/gmeow-ontology/issues/809)** (the remaining
+GMEOW-owned `make check` surfaces, tracked, not silently dropped): the mapping-compiler
+(`CompileError` / `projection_lint` / SSSOM / overclaim), statement-compiler (`CompileError` /
+round-trip), and logic-compiler (`gmeow_logic` diagnostic dicts) surfaces; external-tool failures
+(`ruff` / `mypy` / `clippy` / `pre-commit`) wrapped with raw output; and granular per-check
+`constitution.*` codes (today the string-only constitution surface uses `constitution.error` /
+`constitution.warning`).
+
 ## SSSOM alignments (`mappings/equivalences.ttl`)
 
 Authored once and compiled to `mappings/gmeow-diagnostics.sssom.tsv` by `gmeow compile-mappings`

@@ -31,6 +31,7 @@ from pathlib import Path
 from rdflib import RDF, RDFS, Graph, URIRef
 from rdflib.term import Literal
 
+from gmeow_tools import diagnostics
 from gmeow_tools.config import PROJECT_ROOT
 from gmeow_tools.validate import ValidationResult
 
@@ -41,6 +42,11 @@ MAKEFILE = PROJECT_ROOT / "Makefile"
 
 _HEADING = re.compile(r"^## (\d+)\. (.+?)\s*$", re.MULTILINE)
 _MAKE_TARGET = re.compile(r"^([A-Za-z][A-Za-z0-9_-]*):", re.MULTILINE)
+
+#: Canonical bold supersession markers; the gate keeps these in sync with the TTL.
+_SUPERSEDED_MARKER = "**Superseded in part by Principle"
+_EXTENDS_MARKER = "**Extends Principle"
+_PRINCIPLE_REF = re.compile(r"Principle (\d+)")
 
 #: Enforcement classes; Practice is the honor-system kind (warning when alone).
 _ENFORCEMENT_KINDS = ("Lint", "TestSuite", "Shape", "Gate", "Practice")
@@ -67,6 +73,10 @@ class Principle:
     number: int
     title: str
     enforced_by: tuple[URIRef, ...]
+    #: Numbers of later principles that supersede part of this one (P17 over P2/P8/P12).
+    superseded_in_part_by: tuple[int, ...] = ()
+    #: Numbers of earlier principles this one extends (P18 over P17 / P13).
+    extends: tuple[int, ...] = ()
 
 
 @dataclass(slots=True)
@@ -83,6 +93,20 @@ def _strings(graph: Graph, subject: URIRef, predicate: URIRef) -> tuple[str, ...
             str(o) for o in graph.objects(subject, predicate) if isinstance(o, Literal)
         )
     )
+
+
+def _principle_numbers(
+    graph: Graph, subject: URIRef, predicate: URIRef
+) -> tuple[int, ...]:
+    """Resolve ``subject predicate meta:PrincipleN`` objects to sorted ``N`` ints."""
+    numbers: set[int] = set()
+    for obj in graph.objects(subject, predicate):
+        if not isinstance(obj, URIRef):
+            continue
+        number = graph.value(obj, URIRef(META + "number"))
+        if number is not None:
+            numbers.add(int(str(number)))
+    return tuple(sorted(numbers))
 
 
 def load_manifest(path: Path = MANIFEST_FILE) -> Manifest:
@@ -121,6 +145,10 @@ def load_manifest(path: Path = MANIFEST_FILE) -> Manifest:
                 number=int(str(number)) if number is not None else -1,
                 title=str(title) if title is not None else "",
                 enforced_by=enforced,
+                superseded_in_part_by=_principle_numbers(
+                    graph, node, URIRef(META + "supersededInPartBy")
+                ),
+                extends=_principle_numbers(graph, node, URIRef(META + "extends")),
             )
         )
     manifest.principles.sort(key=lambda p: p.number)
@@ -286,6 +314,68 @@ def _check_generator_registry(manifest: Manifest, result: ValidationResult) -> N
         )
 
 
+def _markdown_relations(md_text: str, marker: str) -> dict[int, set[int]]:
+    """Map each principle's heading number to the target numbers named in ``marker``.
+
+    A relation is read from a bold marker line (e.g. ``**Superseded in part by
+    Principle 17:**``) inside that principle's section; the ``from`` number is the
+    enclosing ``## N. Title`` heading, the targets are every ``Principle N`` on the
+    marker line.
+    """
+    headings = list(_HEADING.finditer(md_text))
+    relations: dict[int, set[int]] = {}
+    for index, heading in enumerate(headings):
+        number = int(heading.group(1))
+        end = headings[index + 1].start() if index + 1 < len(headings) else len(md_text)
+        section = md_text[heading.end() : end]
+        for line in section.splitlines():
+            if line.lstrip().startswith(marker):
+                targets = {int(n) for n in _PRINCIPLE_REF.findall(line)}
+                if targets:
+                    relations.setdefault(number, set()).update(targets)
+    return relations
+
+
+def _compare_relation(
+    prop: str,
+    md_relations: dict[int, set[int]],
+    ttl_relations: dict[int, set[int]],
+    result: ValidationResult,
+) -> None:
+    """``meta:<prop>`` in the TTL must equal the markdown markers, both directions."""
+    for number in sorted(set(md_relations) | set(ttl_relations)):
+        md = md_relations.get(number, set())
+        ttl = ttl_relations.get(number, set())
+        if md != ttl:
+            result.errors.append(
+                f"principle {number} meta:{prop} drift: CONSTITUTION.md marker names "
+                f"{sorted(md) or '∅'}, governance/constitution.ttl names "
+                f"{sorted(ttl) or '∅'}"
+            )
+
+
+def _check_supersession(
+    md_text: str, manifest: Manifest, result: ValidationResult
+) -> None:
+    """The bold supersession markers in CONSTITUTION.md must match the TTL relations."""
+    _compare_relation(
+        "supersededInPartBy",
+        _markdown_relations(md_text, _SUPERSEDED_MARKER),
+        {
+            p.number: set(p.superseded_in_part_by)
+            for p in manifest.principles
+            if p.superseded_in_part_by
+        },
+        result,
+    )
+    _compare_relation(
+        "extends",
+        _markdown_relations(md_text, _EXTENDS_MARKER),
+        {p.number: set(p.extends) for p in manifest.principles if p.extends},
+        result,
+    )
+
+
 def check_constitution(
     *,
     manifest_path: Path = MANIFEST_FILE,
@@ -300,12 +390,35 @@ def check_constitution(
         result.errors.append(f"{manifest_path}: does not parse: {exc}")
         return result
     try:
-        headings = constitution_headings(constitution_path)
-    except Exception as exc:
+        constitution_text = constitution_path.read_text(encoding="utf-8")
+    except OSError as exc:
         result.errors.append(f"{constitution_path}: cannot read: {exc}")
         return result
+    headings = {
+        int(number): title for number, title in _HEADING.findall(constitution_text)
+    }
     _check_principle_sync(manifest, headings, result)
     _check_enforcement_coverage(manifest, result)
     _check_references(manifest, root, result)
     _check_generator_registry(manifest, result)
+    _check_supersession(constitution_text, manifest, result)
     return result
+
+
+def to_diagnostics_report(
+    result: ValidationResult,
+    *,
+    tool: str = "constitution",
+) -> diagnostics.DiagnosticsReport:
+    """Project a constitution check into the canonical diagnostics report (#654).
+
+    The constitution gate emits flat error/warning strings, so this folds them
+    through the legacy adapter with the codes ``constitution.error`` /
+    ``constitution.warning``. Granular per-check codes (principle-unenforced,
+    stale-reference, …) are a documented follow-up.
+    """
+    return diagnostics.report_from_messages(
+        tool=tool,
+        errors=result.errors,
+        warnings=result.warnings,
+    )

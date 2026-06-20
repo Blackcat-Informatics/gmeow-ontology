@@ -52,6 +52,16 @@ def test_report_is_valid_turtle_covering_every_principle() -> None:
     assert len(results) == len(load_manifest().principles)
 
 
+def test_report_carries_supersession_edges() -> None:
+    """The report flows the manifest's supersession/extends edges per principle."""
+    graph = _graph(_report())
+    assert (META.Principle2Result, META.supersededInPartBy, META.Principle17) in graph
+    assert (META.Principle8Result, META.supersededInPartBy, META.Principle17) in graph
+    assert (META.Principle12Result, META.supersededInPartBy, META.Principle17) in graph
+    assert (META.Principle18Result, META.extends, META.Principle17) in graph
+    assert (META.Principle18Result, META.extends, META.Principle13) in graph
+
+
 def test_runnable_gates_report_passed_and_failures_propagate() -> None:
     passed_statuses = set(_graph(_report()).objects(None, META.status))
     assert Literal("passed") in passed_statuses

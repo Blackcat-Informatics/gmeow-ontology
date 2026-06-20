@@ -71,6 +71,24 @@ def report_from_messages(
     return gmeow_diagnostics.from_legacy(tool, list(errors), list(warnings))
 
 
+def report_from_findings(
+    *,
+    tool: str,
+    findings: Sequence[DiagnosticsFinding],
+) -> DiagnosticsReport:
+    """Build a diagnostics report from already-constructed native findings.
+
+    The surface-agnostic primitive each dev-gate surface's
+    ``to_diagnostics_report`` reuses: a surface maps its own result into a list
+    of :func:`finding` objects (it owns the severity/code semantics) and folds
+    them here. Keeps the facade free of any per-surface knowledge.
+    """
+    output = report(tool)
+    for item in findings:
+        output.add(item)
+    return output
+
+
 def report_from_validation_result(
     result: Any,
     *,

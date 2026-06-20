@@ -46,7 +46,7 @@ from typing import TYPE_CHECKING
 
 from rdflib import OWL, RDF, RDFS, SKOS, Graph, Literal, Namespace, URIRef
 
-from gmeow_tools import shacl_engine
+from gmeow_tools import diagnostics, shacl_engine
 from gmeow_tools.config import (
     EXTERNAL_FIXTURES_DIR,
     NAMESPACE,
@@ -529,6 +529,38 @@ def corpus_recall_pct(results: Iterable[FileAcceptance]) -> float:
                 total_src += gate.metrics.get("addressable", 0.0)
                 break
     return 100.0 * total_recovered / total_src if total_src else 100.0
+
+
+def to_diagnostics_report(
+    results: list[FileAcceptance],
+    *,
+    tool: str = "acceptance",
+) -> diagnostics.DiagnosticsReport:
+    """Project acceptance results into the canonical diagnostics report (#654).
+
+    Only *failing* gates emit a finding (a passing gate is not a diagnostic).
+    The honest-scoreboard doctrine (#450) drives the severity: a failing **hard**
+    gate is a real ``error`` that blocks the file; a failing **scoreboard** gate
+    (``hard=False``) is "red until coverage closes", so it rides as a ``note``
+    that never fails the gate. The code is ``acceptance.<gate-name>``; the source
+    file is the ``path`` and the gate's detail lines fold into ``detail``.
+    """
+    items: list[diagnostics.DiagnosticsFinding] = []
+    for file_result in results:
+        for gate in file_result.gates:
+            if gate.passed:
+                continue
+            items.append(
+                diagnostics.finding(
+                    severity="error" if gate.hard else "note",
+                    code=f"{tool}.{gate.name}",
+                    message=f"{file_result.source}: {gate.summary}",
+                    tool=tool,
+                    path=file_result.source,
+                    detail="\n".join(gate.detail) if gate.detail else None,
+                )
+            )
+    return diagnostics.report_from_findings(tool=tool, findings=items)
 
 
 def render_report(results: list[FileAcceptance]) -> str:

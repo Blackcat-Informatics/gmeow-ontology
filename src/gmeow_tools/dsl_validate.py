@@ -24,6 +24,7 @@ from gmeow_tools import shacl_engine
 from gmeow_tools.config import (
     MAPPING_DSL_SHAPES_FILE,
     STATEMENT_DSL_SHAPES_FILE,
+    TEST_DSL_SHAPES_FILE,
 )
 from gmeow_tools.shacl_engine import ShaclResult
 
@@ -113,3 +114,16 @@ def validate_statement_dsl(dsl_paths: list[str]) -> list[str]:
         A list of formatted violation strings; empty when conformant.
     """
     return _validate_dsl(dsl_paths, STATEMENT_DSL_SHAPES_FILE)
+
+
+def validate_test_dsl(dsl_paths: list[str]) -> list[str]:
+    """Validate the merged test DSL sources.
+
+    Args:
+        dsl_paths: The test DSL ``.ttl`` source paths to merge and validate
+            (the vocabulary plus every slice-resident ``tests/*.ttl`` fixture).
+
+    Returns:
+        A list of formatted violation strings; empty when conformant.
+    """
+    return _validate_dsl(dsl_paths, TEST_DSL_SHAPES_FILE)

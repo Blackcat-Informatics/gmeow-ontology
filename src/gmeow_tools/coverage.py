@@ -20,6 +20,7 @@ from pathlib import Path
 
 import gmeow_validate
 
+from gmeow_tools import diagnostics
 from gmeow_tools.config import FIXTURES_DIR, NAMESPACE
 from gmeow_tools.mappings import aligned_iris
 
@@ -106,3 +107,38 @@ def analyze(
 def run_coverage(fixtures_dir: Path = FIXTURES_DIR) -> CoverageReport:
     """Run the coverage analysis over the vendored fixtures."""
     return analyze(fixture_paths(fixtures_dir))
+
+
+def to_diagnostics_report(
+    report: CoverageReport,
+    *,
+    tool: str = "coverage",
+) -> diagnostics.DiagnosticsReport:
+    """Project a coverage report into the canonical diagnostics report (#654).
+
+    Coverage gaps are *informational*: an external IRI a fixture uses that GMEOW
+    does not yet align to. They never fail a gate, so each rides as an ``info``
+    finding (the report stays ``ok``). The gap IRI is the finding's ``logical`` so
+    SARIF/HTML consumers can group by term.
+    """
+    items = [
+        diagnostics.finding(
+            severity="info",
+            code=f"{tool}.gap-class",
+            message=f"class used by a fixture but not aligned: {iri}",
+            tool=tool,
+            logical=iri,
+        )
+        for iri in sorted(report.gap_classes)
+    ]
+    items += [
+        diagnostics.finding(
+            severity="info",
+            code=f"{tool}.gap-predicate",
+            message=f"predicate used by a fixture but not aligned: {iri}",
+            tool=tool,
+            logical=iri,
+        )
+        for iri in sorted(report.gap_predicates)
+    ]
+    return diagnostics.report_from_findings(tool=tool, findings=items)
