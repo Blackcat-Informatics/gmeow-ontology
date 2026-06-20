@@ -501,13 +501,7 @@ def _fold_surfaces(report: Any) -> None:
     for label, thunk in _surface_reports():
         try:
             report.extend(thunk())
-        except (
-            ImportError,
-            ValueError,
-            RuntimeError,
-            OSError,
-            FileNotFoundError,
-        ) as exc:
+        except Exception as exc:  # artifact-builder: isolate per surface, warn with exc
             report.add(
                 diagnostics.finding(
                     severity="warning",
