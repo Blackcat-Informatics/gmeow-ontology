@@ -53,6 +53,22 @@ def _direct_ai_programs(dataset: ET.Element) -> list[ET.Element]:
     return [child for child in dataset if child.tag == f"{{{AI_NS}}}program"]
 
 
+def _assert_citations_include_container_title(root: ET.Element) -> None:
+    """Every citation must carry a container title per Crossref business rules."""
+    for citation_list in root.iter(f"{{{CR_NS}}}citation_list"):
+        for citation in citation_list.findall(f"{{{CR_NS}}}citation"):
+            key = citation.attrib["key"]
+            has_container = (
+                citation.find(f"{{{CR_NS}}}issn") is not None
+                or citation.find(f"{{{CR_NS}}}journal_title") is not None
+                or citation.find(f"{{{CR_NS}}}proceedings_title") is not None
+            )
+            assert has_container, (
+                f"citation {key!r} is missing issn, journal_title, and "
+                "proceedings_title"
+            )
+
+
 @functools.lru_cache(maxsize=1)
 def _crossref_schema() -> xmlschema.XMLSchema:
     return xmlschema.XMLSchema(
@@ -395,8 +411,17 @@ def test_version_doi_carries_version_scoped_text_mining_urls() -> None:
     }
 
 
-def test_citation_list_projects_alignment_targets() -> None:
+def test_citation_list_projects_alignment_targets(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     """The alignment registry becomes Crossref references."""
+    # Inject a DOI on the gUFO target so the ordering regression check has
+    # both <journal_title> and <doi> children to compare.
+    monkeypatch.setitem(
+        ALIGNMENT_TARGETS,
+        "gufo",
+        dataclasses.replace(ALIGNMENT_TARGETS["gufo"], doi="10.5072/gufo-test"),
+    )
     root = _parse(build_deposit_xml())
     citations = root.findall(f".//{{{CR_NS}}}citation_list/{{{CR_NS}}}citation")
     assert len(citations) == len(ALIGNMENT_TARGETS)
@@ -405,10 +430,30 @@ def test_citation_list_projects_alignment_targets() -> None:
     gufo = by_key["ref-gufo"]
     assert gufo.attrib["type"] == "web_resource"
     assert gufo.findtext(f"{{{CR_NS}}}article_title") == "gUFO"
+    assert gufo.findtext(f"{{{CR_NS}}}journal_title") == "gUFO"
     assert (
-        gufo.findtext(f"{{{CR_NS}}}unstructured_citation")
-        == "gUFO. http://purl.org/nemo/gufo#."
+        gufo.findtext(f"{{{CR_NS}}}unstructured_citation") == "gUFO. 10.5072/gufo-test."
     )
+    gufo_tags = [child.tag for child in gufo]
+    assert gufo_tags.index(f"{{{CR_NS}}}journal_title") < gufo_tags.index(
+        f"{{{CR_NS}}}doi"
+    ), "journal_title must be emitted before doi"
+
+
+def test_citations_include_container_title() -> None:
+    """Every citation carries at least one container title element."""
+    root = _parse(build_deposit_xml(timestamp="20260603120000"))
+    _assert_citations_include_container_title(root)
+
+
+def test_citations_include_container_title_crossmark_enabled(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Container title rule holds when Crossmark metadata is enabled."""
+    monkeypatch.setattr(crossref_mod, "CROSSMARK_ENABLED", True)
+    monkeypatch.setattr(crossref_mod, "CROSSMARK_POLICY_DOI", "10.67342/xn9qgdr5mw/v1")
+    root = _parse(build_deposit_xml(timestamp="20260603120000"))
+    _assert_citations_include_container_title(root)
 
 
 def test_lint_passes_on_real_self_description() -> None:
