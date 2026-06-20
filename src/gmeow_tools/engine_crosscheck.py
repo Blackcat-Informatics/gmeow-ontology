@@ -166,7 +166,7 @@ def crosscheck_query(
     """
     form = _query_form(query_text)
     a_ok, a_val, a_err = _run_rdflib(form, query_text, data_graph)
-    b_ok, b_val, b_err = _run_pyox(form, query_text, store)
+    b_ok, b_val, b_err = _run_native(form, query_text, store)
 
     if not a_ok and not b_ok:
         return CrosscheckResult(
@@ -181,12 +181,12 @@ def crosscheck_query(
             name,
             form,
             agree=False,
-            detail=f"rdflib_ok={a_ok}({a_err}) pyox_ok={b_ok}({b_err})",
+            detail=f"rdflib_ok={a_ok}({a_err}) native_ok={b_ok}({b_err})",
         )
     if form == "ASK":
         agree = a_val == b_val
         return CrosscheckResult(
-            name, form, agree, "" if agree else f"rdflib={a_val} pyox={b_val}"
+            name, form, agree, "" if agree else f"rdflib={a_val} native={b_val}"
         )
     agree = a_val == b_val
     return CrosscheckResult(name, form, agree, "" if agree else _delta(a_val, b_val))
@@ -213,7 +213,7 @@ def _run_rdflib(
         sys.setrecursionlimit(old_limit)
 
 
-def _run_pyox(
+def _run_native(
     form: str, query_text: str, store: gmeow_rdf.Store
 ) -> tuple[bool, object, str]:
     try:
@@ -231,7 +231,7 @@ def _delta(a: object, b: object) -> str:
     assert isinstance(a, Counter) and isinstance(b, Counter)
     only_a = list((a - b).elements())[:3]
     only_b = list((b - a).elements())[:3]
-    return f"rdflib-only={only_a!r} pyox-only={only_b!r}"
+    return f"rdflib-only={only_a!r} native-only={only_b!r}"
 
 
 def _projection_data() -> tuple[Graph, gmeow_rdf.Store]:

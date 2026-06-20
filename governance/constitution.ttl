@@ -97,7 +97,7 @@ meta:tests-alignment a meta:TestSuite ;
         "tests/test_coreference.py" .
 
 meta:gate-crosscheck a meta:Gate ;
-    rdfs:label "dual-engine query crosscheck (rdflib vs pyoxigraph)"@x-gmeow-english ;
+    rdfs:label "dual-engine query crosscheck (rdflib vs native gmeow_rdf)"@x-gmeow-english ;
     meta:artifact "src/gmeow_tools/engine_crosscheck.py" ;
     meta:makeTarget "crosscheck" ;
     meta:cliCommand "crosscheck-queries" .

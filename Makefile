@@ -94,7 +94,7 @@ reasoning-cases: ## [lane] HermiT/ELK inconsistency and fixture-coherence cases 
 statements-docker-check: ## [lane] Jena/ROBOT-backed statement artifact and reasoning checks (Docker oracle).
 	uv run python scripts/statements_docker_check.py
 
-crosscheck: ## [lane] Prove rdflib (legacy engine) and pyoxigraph answer every committed query alike (no Docker).
+crosscheck: ## [lane] Prove rdflib (legacy engine) and the native gmeow_rdf engine answer every committed query alike (no Docker).
 	$(GMEOW_DEV) crosscheck-queries
 
 extract: ## [maintainer] Import/extract policy for TARGET (native SLME, Java/Docker-free — maintainer-only, NOT normal-use; #695).
