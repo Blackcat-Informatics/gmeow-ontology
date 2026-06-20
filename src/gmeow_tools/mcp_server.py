@@ -287,28 +287,78 @@ def gmeow_check_generated(names: list[str] | None = None) -> str:
 
 
 @mcp.tool()
-def gmeow_reason(reasoner: str = "ELK", profile: str = "DL") -> str:
-    """Run ELK/HermiT consistency check over the merged ontology.
+def gmeow_reason(
+    mode: str = "native", reasoner: str = "ELK", profile: str = "DL"
+) -> str:
+    """Run consistency reasoning over the merged ontology.
+
+    Native EL/DL reasoning (Rust, Java/Docker-free) is the default and the
+    authority lane. In native mode the reasoner operates over the bundled GTS
+    snapshot with ``merge=False``; if you edit canonical ontology sources in a
+    repo checkout you must call ``gmeow-dev regenerate`` (or equivalent) first
+    before expecting fresh verdicts. The native path intentionally does not run
+    the four-box role audit; use ``gmeow_check_generated`` or
+    ``gmeow_validate`` for that.
+
+    The classic Docker/Java ELK/HermiT oracle is available as an explicit
+    opt-in via ``mode="docker"``.
 
     Args:
-        reasoner: Reasoner to use — ``ELK`` (fast) or ``hermit`` (sound+complete).
-        profile: OWL 2 profile to validate against — ``DL``, ``EL``, ``QL``,
-            ``RL``, or ``Full``.
+        mode: Reasoning backend — ``native`` (default) or ``docker``.
+        reasoner: Docker mode only — ``ELK`` (fast) or ``hermit`` (sound+complete).
+        profile: Docker mode only — OWL 2 profile to validate against: ``DL``,
+            ``EL``, ``QL``, ``RL``, or ``Full``.
     """
     from gmeow_tools import reason as reasoning
     from gmeow_tools.runner import ToolExecutionError, ToolUnavailableError
 
-    try:
-        reasoning.merge_release()
-        reasoning.validate_profile(profile)
-        reasoning.reason(reasoner)
-    except ToolUnavailableError as exc:
-        return json.dumps({"ok": False, "error": f"Tool unavailable: {exc}"})
-    except ToolExecutionError as exc:
-        return json.dumps({"ok": False, "error": f"Reasoning failed: {exc.output}"})
-    except Exception as exc:
-        return json.dumps({"ok": False, "error": str(exc)})
-    return json.dumps({"ok": True, "message": f"{reasoner} consistency check passed"})
+    if mode == "native":
+        try:
+            report = reasoning.reason_native(merge=False, run_box_roles=False)
+        except (ImportError, ValueError, RuntimeError, OSError) as exc:
+            return json.dumps({"ok": False, "error": str(exc)})
+        if hasattr(report, "warning_count"):
+            warnings = report.warning_count
+        else:
+            warnings = len(list(report.warnings))
+        return json.dumps(
+            {
+                "ok": report.ok,
+                "mode": "native",
+                "message": (
+                    f"native EL/DL reasoning: {report.error_count} error(s), "
+                    f"{warnings} warning(s)"
+                ),
+                "errors": report.error_count,
+                "warnings": warnings,
+            }
+        )
+
+    if mode == "docker":
+        try:
+            reasoning.merge_release()
+            reasoning.validate_profile(profile)
+            reasoning.reason(reasoner)
+        except ToolUnavailableError as exc:
+            return json.dumps({"ok": False, "error": f"Tool unavailable: {exc}"})
+        except ToolExecutionError as exc:
+            return json.dumps({"ok": False, "error": f"Reasoning failed: {exc.output}"})
+        except Exception as exc:
+            return json.dumps({"ok": False, "error": str(exc)})
+        return json.dumps(
+            {
+                "ok": True,
+                "mode": "docker",
+                "message": f"{reasoner} consistency check passed",
+            }
+        )
+
+    return json.dumps(
+        {
+            "ok": False,
+            "error": f"unknown reasoning mode: {mode!r} (expected native or docker)",
+        }
+    )
 
 
 @mcp.tool()
