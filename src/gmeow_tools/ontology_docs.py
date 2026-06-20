@@ -701,6 +701,32 @@ class Page:
 
 
 @dataclass(slots=True)
+class DocReasoning:
+    """Folded native EL/DL reasoning results for the Logic & Reasoning page (#667).
+
+    A summary-only projection of the three committed native-reasoning artifacts
+    (closure / explanations / divergence ledger) so the page renderer stays pure.
+    Every histogram is a ``(label, count)`` list sorted by ``(-count, label)`` for
+    deterministic output.
+    """
+
+    consistent: bool
+    inferred_axiom_count: int
+    inferred_by_rule: list[tuple[str, int]]
+    inferred_by_world: list[tuple[str, int]]
+    inference_kinds: list[tuple[str, int]]
+    entailment_count: int
+    oracle_note: str
+    ledger_by_kind: list[tuple[str, int]]
+    ledger_by_world: list[tuple[str, int]]
+    dl_gap_codes: list[str]
+    explanation_count: int
+    closure_file: str
+    explanations_file: str
+    ledger_file: str
+
+
+@dataclass(slots=True)
 class DocsModel:
     """The folded data used to render documentation."""
 
@@ -720,6 +746,7 @@ class DocsModel:
     test_specs_by_slice: dict[str, DocTestSpecs]
     recipes: list[DocRecipe]
     learning_paths: list[DocLearningPath]
+    reasoning: DocReasoning | None
 
 
 def _safe_filename(value: str) -> str:
@@ -1947,6 +1974,86 @@ def _collect_concerns(
     return concerns
 
 
+def _collect_reasoning() -> DocReasoning | None:
+    """Fold the three committed native-reasoning artifacts (#667 AC4).
+
+    Reads ``generated/logic/{inferred-closure,reasoning-explanations,
+    dl-el-crosscheck-report}`` — produced by the registered
+    :class:`~gmeow_tools.native_reason_gen.NativeReasoningGenerator`. These carry
+    RDF 1.2 triple terms (``<< … >>``), so they are parsed with ``gmeow_rdf``, not
+    rdflib/FoldView. Node values are read via ``node.value`` (the bare IRI/lexical
+    form) — ``str(node)`` would return the N-Triples form *with* angle brackets.
+
+    Returns ``None`` when the artifacts are absent. This ``| None`` is a bounded
+    graceful-degrade for a DERIVED projection only (docs are not a required runtime
+    dependency, and a partial checkout must still build the site) — NOT unprincipled
+    optionality: the artifacts are committed, drift-gated generator outputs and are
+    present on every gate path, where the test asserts the populated branch so a
+    genuine generator regression still fails CI.
+    """
+    import urllib.parse
+    from collections import Counter
+
+    import gmeow_rdf
+
+    from gmeow_tools.native_reason_gen import (
+        NATIVE_CLOSURE_FILE,
+        NATIVE_EXPLANATIONS_FILE,
+        NATIVE_LEDGER_FILE,
+    )
+
+    paths = (NATIVE_CLOSURE_FILE, NATIVE_EXPLANATIONS_FILE, NATIVE_LEDGER_FILE)
+    if not all(p.exists() for p in paths):
+        return None
+
+    def _quads(path: Path) -> list[object]:
+        return list(
+            gmeow_rdf.parse(path.read_bytes(), format=gmeow_rdf.RdfFormat.TURTLE)
+        )
+
+    def _local(node: object) -> str:
+        # Bare local name of an IRI/literal; url-decode so ``el%3Afoo`` → ``el:foo``.
+        value = urllib.parse.unquote(str(getattr(node, "value", node)))
+        return value.rsplit("/", 1)[-1].rsplit("#", 1)[-1]
+
+    def _objects(quads: list[object], pred_local: str) -> list[object]:
+        out = []
+        for q in quads:
+            pred = q.predicate  # type: ignore[attr-defined]
+            if type(pred).__name__ == "NamedNode" and _local(pred) == pred_local:
+                out.append(q.object)  # type: ignore[attr-defined]
+        return out
+
+    def _histogram(quads: list[object], pred_local: str) -> list[tuple[str, int]]:
+        counts = Counter(_local(o) for o in _objects(quads, pred_local))
+        return sorted(counts.items(), key=lambda item: (-item[1], item[0]))
+
+    def _one(quads: list[object], pred_local: str, default: str = "") -> str:
+        values = [str(getattr(o, "value", o)) for o in _objects(quads, pred_local)]
+        return values[0] if values else default
+
+    closure = _quads(NATIVE_CLOSURE_FILE)
+    explanations = _quads(NATIVE_EXPLANATIONS_FILE)
+    ledger = _quads(NATIVE_LEDGER_FILE)
+
+    return DocReasoning(
+        consistent=_one(ledger, "consistent", "false").strip().lower() == "true",
+        inferred_axiom_count=len(_objects(closure, "wasDerivedBy")),
+        inferred_by_rule=_histogram(closure, "viaRule"),
+        inferred_by_world=_histogram(closure, "inWorld"),
+        inference_kinds=_histogram(closure, "inferenceKind"),
+        entailment_count=int(_one(ledger, "entailmentCount", "0") or "0"),
+        oracle_note=_one(ledger, "oracleCrosscheck"),
+        ledger_by_kind=_histogram(ledger, "entryKind"),
+        ledger_by_world=_histogram(ledger, "inWorld"),
+        dl_gap_codes=sorted({_local(o) for o in _objects(ledger, "gapCode")}),
+        explanation_count=len(_objects(explanations, "concludes")),
+        closure_file=str(NATIVE_CLOSURE_FILE.relative_to(PROJECT_ROOT)),
+        explanations_file=str(NATIVE_EXPLANATIONS_FILE.relative_to(PROJECT_ROOT)),
+        ledger_file=str(NATIVE_LEDGER_FILE.relative_to(PROJECT_ROOT)),
+    )
+
+
 def _load_model(gts_path: Path | None = None) -> DocsModel:
     """Load the folded docs model."""
     view = load_fold(gts_path or GTS_SNAPSHOT_FILE)
@@ -1990,6 +2097,7 @@ def _load_model(gts_path: Path | None = None) -> DocsModel:
         test_specs_by_slice=test_specs_by_slice,
         recipes=_default_recipes(),
         learning_paths=_default_learning_paths(),
+        reasoning=_collect_reasoning(),
     )
 
 
@@ -2225,6 +2333,7 @@ def _html_shell(title: str, body: str, prefix: str) -> str:
         "nav_external": html.escape(ontology_docs_template("nav_external")),
         "nav_rdf12": html.escape(ontology_docs_template("nav_rdf12")),
         "nav_integrity": html.escape(ontology_docs_template("nav_integrity")),
+        "nav_logic": html.escape(ontology_docs_template("nav_logic")),
         "footer_generated": html.escape(ontology_docs_template("footer_generated")),
         "footer_license": html.escape(ontology_docs_template("footer_license")),
     }
@@ -2243,6 +2352,7 @@ def _html_shell(title: str, body: str, prefix: str) -> str:
     nav_external = nav["nav_external"]
     nav_rdf12 = nav["nav_rdf12"]
     nav_integrity = nav["nav_integrity"]
+    nav_logic = nav["nav_logic"]
     footer_generated = nav["footer_generated"]
     footer_license = nav["footer_license"]
     return f"""<!doctype html>
@@ -2274,6 +2384,7 @@ def _html_shell(title: str, body: str, prefix: str) -> str:
       <a href="{prefix}external/ontologies/">{nav_external}</a>
       <a href="{prefix}statements/">{nav_rdf12}</a>
       <a href="{prefix}integrity-constraints/">{nav_integrity}</a>
+      <a href="{prefix}logic/">{nav_logic}</a>
     </nav>
   </header>
   <main id="content">
@@ -4239,6 +4350,129 @@ def _integrity_constraints_page() -> Page:
     )
 
 
+def _logic_reasoning_page(model: DocsModel) -> Page:
+    """Render the Logic & Reasoning surface (#667 acceptance criterion 4).
+
+    Folds the native EL/DL reasoning RESULTS (consistency verdict, inferred-closure
+    summary, the report-only native↔oracle divergence ledger, and the honest
+    beyond-EL DL gaps) into the docs site, and links the canonical ``logic:`` upper
+    ontology. The Java/Docker-free native engine (Principle 17/18) is the authority;
+    the ELK/HermiT oracle comparison is enforced separately in ``classic-cross-check``
+    (#666), so the ledger here is report-only.
+    """
+    rel = Path("logic") / "index.md"
+    vocab_link = _relative_page_link(
+        "the `logic:` vocabulary (GMEOW Logic slice)", Path("slices") / "logic.md", rel
+    )
+    lines = [
+        "# Logic & Reasoning",
+        "",
+        "GMEOW reasons its committed bundle with a native, Java/Docker-free EL/DL "
+        "engine (CONSTITUTION Principle 17/18) — the authority. This page renders "
+        f"that engine's results; the formal terms live in {vocab_link}.",
+        "",
+    ]
+
+    reasoning = model.reasoning
+    if reasoning is None:
+        lines.extend(
+            [
+                "_Native reasoning artifacts are not present in this checkout, so "
+                "the reasoning summary is unavailable. Run `make reason-native` (or "
+                "`gmeow-dev regenerate native-reasoning`) to produce them._",
+                "",
+            ]
+        )
+        return Page(rel, "Logic & Reasoning", "\n".join(lines))
+
+    consistent = "✅ consistent" if reasoning.consistent else "❌ INCONSISTENT"
+    lines.extend(
+        [
+            "## Consistency",
+            "",
+            f"The ontology is **{consistent}** under native EL/DL reasoning.",
+            "",
+            "## Inferred Closure",
+            "",
+            f"Native reasoning derived **{reasoning.inferred_axiom_count}** new "
+            "axioms (the told-vs-inferred closure). Each carries its derivation rule "
+            "and the world it was inferred in.",
+            "",
+            "| Inference rule | Axioms |",
+            "|---|---:|",
+        ]
+    )
+    lines.extend(
+        f"| `{rule}` | {count} |" for rule, count in reasoning.inferred_by_rule
+    )
+    lines.extend(["", "| World | Inferred axioms |", "|---|---:|"])
+    lines.extend(
+        f"| `{world}` | {count} |" for world, count in reasoning.inferred_by_world
+    )
+    kinds = ", ".join(f"{kind} ({count})" for kind, count in reasoning.inference_kinds)
+    lines.extend(
+        [
+            "",
+            f"All derivations are: {kinds}. "
+            f"There are **{reasoning.explanation_count}** per-axiom proof skeletons.",
+            "",
+            "## Divergence Ledger",
+            "",
+            "The native↔oracle agreement matrix (report-only here — the enforcing "
+            "ELK/HermiT comparison runs in the separate `classic-cross-check` lane, "
+            f"#666). Native reasoning made **{reasoning.entailment_count}** "
+            "entailments classified as:",
+            "",
+            "| Entry kind | Count |",
+            "|---|---:|",
+        ]
+    )
+    lines.extend(f"| `{kind}` | {count} |" for kind, count in reasoning.ledger_by_kind)
+    lines.extend(["", "| World | Ledger entries |", "|---|---:|"])
+    lines.extend(
+        f"| `{world}` | {count} |" for world, count in reasoning.ledger_by_world
+    )
+
+    if reasoning.dl_gap_codes:
+        lines.extend(
+            [
+                "",
+                "### Beyond-EL DL Gaps",
+                "",
+                "Honest, expected limits of the native ternary encoding — the OWL "
+                "constructs the EL/DL engine does not entail (never a soundness "
+                "failure). These are the only non-failing divergence class.",
+                "",
+                "| DL gap code |",
+                "|---|",
+                *(f"| `{code}` |" for code in reasoning.dl_gap_codes),
+            ]
+        )
+
+    lines.extend(
+        [
+            "",
+            "<details>",
+            "<summary>Oracle cross-check status</summary>",
+            "",
+            f"{reasoning.oracle_note}",
+            "",
+            "</details>",
+            "",
+            "## Provenance",
+            "",
+            "Rendered from the committed native-reasoning artifacts:",
+            "",
+            f"- {_repo_source_link(Path(reasoning.closure_file))} — inferred closure",
+            f"- {_repo_source_link(Path(reasoning.explanations_file))} — proof "
+            "skeletons",
+            f"- {_repo_source_link(Path(reasoning.ledger_file))} — divergence ledger",
+            "",
+        ]
+    )
+    return Page(rel, "Logic & Reasoning", "\n".join(lines))
+
+
 def _statements_page(model: DocsModel) -> Page:
     """Render the RDF 1.2 statement layer summary."""
     annotations = model.view.annotations()
@@ -4394,6 +4628,7 @@ def _all_pages(model: DocsModel) -> list[Page]:
     pages.extend(_concern_page(concern) for concern in model.concerns)
     pages.append(_statements_page(model))
     pages.append(_integrity_constraints_page())
+    pages.append(_logic_reasoning_page(model))
     pages.append(_four_boxes_page(model))
     pages.extend(_box_role_pages(model))
     return pages
@@ -4985,6 +5220,12 @@ def ontology_docs_inputs() -> Sequence[Path]:
     rebuilt. ``examples/*.ttl`` (rendered verbatim by :func:`_collect_examples`)
     and the vendored ``simple.css`` (copied into every page) were such holes.
     """
+    from gmeow_tools.native_reason_gen import (
+        NATIVE_CLOSURE_FILE,
+        NATIVE_EXPLANATIONS_FILE,
+        NATIVE_LEDGER_FILE,
+    )
+
     return [
         PROJECT_ROOT / "src" / "gmeow_tools" / "ontology_docs.py",
         # The footer cites the concept DOI read from the self-description (via
@@ -5009,4 +5250,8 @@ def ontology_docs_inputs() -> Sequence[Path]:
         # verify queries are rendered into the Integrity Constraints page (#695)
         *sorted(VERIFY_DIR.glob("*.rq")),
         *iter_slice_query_files("verify"),
+        # native-reasoning artifacts rendered into the Logic & Reasoning page (#667)
+        NATIVE_CLOSURE_FILE,
+        NATIVE_EXPLANATIONS_FILE,
+        NATIVE_LEDGER_FILE,
     ]

@@ -14,6 +14,7 @@ import pytest
 import gmeow_tools.ontology_docs as ontology_docs
 from gmeow_tools.config import PROJECT_ROOT
 from gmeow_tools.ontology_docs import (
+    _collect_reasoning,
     build_ontology_docs,
     build_ontology_docs_cached,
     ontology_docs_inputs,
@@ -648,3 +649,71 @@ def test_term_pages_link_to_box_role_pages(ontology_docs_tree: Path) -> None:
     assert "- **Box roles:**" in text
     assert "[RBox role](../boxes/rbox.md)" in text
     assert "[What is this?](../../four-boxes/index.md)" in text
+
+
+# --------------------------------------------------------------------------- #
+# Logic & Reasoning page (#667 — acceptance criterion 4)
+# --------------------------------------------------------------------------- #
+
+
+def test_collect_reasoning_folds_the_committed_artifacts() -> None:
+    """The reasoning collector reads the committed native-reasoning artifacts.
+
+    Asserts the POPULATED branch (the artifacts ARE present on the gate path) so a
+    genuine native-reasoning generator regression still fails CI, not the graceful
+    ``None`` degrade reserved for partial checkouts.
+    """
+    reasoning = _collect_reasoning()
+    assert reasoning is not None, "committed reasoning artifacts must be present"
+    assert reasoning.consistent is True
+    assert reasoning.inferred_axiom_count > 0
+    assert reasoning.entailment_count > 0
+    assert reasoning.inferred_by_rule  # at least one derivation rule
+    # Histograms are deterministic: sorted by (-count, label).
+    counts = [count for _, count in reasoning.inferred_by_rule]
+    assert counts == sorted(counts, reverse=True)
+    # The DL-gap codes are honest beyond-EL limits, sorted.
+    assert reasoning.dl_gap_codes == sorted(reasoning.dl_gap_codes)
+    # Provenance paths point at the committed artifacts.
+    assert reasoning.closure_file.endswith("inferred-closure.rdf12.ttl")
+
+
+def test_ontology_docs_inputs_include_reasoning_artifacts() -> None:
+    """The three reasoning artifacts are drift-tracked docs inputs (#667)."""
+    rel_inputs = {
+        path.relative_to(PROJECT_ROOT).as_posix()
+        for path in ontology_docs_inputs()
+        if path.is_relative_to(PROJECT_ROOT)
+    }
+    assert "generated/logic/inferred-closure.rdf12.ttl" in rel_inputs
+    assert "generated/logic/reasoning-explanations.rdf12.ttl" in rel_inputs
+    assert "generated/logic/dl-el-crosscheck-report.ttl" in rel_inputs
+
+
+def test_logic_reasoning_page_renders_results(ontology_docs_tree: Path) -> None:
+    """The Logic & Reasoning page folds the native reasoning results (#667 AC4)."""
+    page = ontology_docs_tree / "markdown" / "logic" / "index.md"
+    assert page.exists()
+    text = page.read_text(encoding="utf-8")
+
+    # Consistency verdict + inferred-closure summary.
+    assert "# Logic & Reasoning" in text
+    assert "consistent" in text
+    assert "## Inferred Closure" in text
+    # Divergence-ledger surface: entry-kind rows and the beyond-EL DL gaps.
+    assert "## Divergence Ledger" in text
+    assert "NativeOnly" in text
+    assert "reason.dl-gap." in text
+    # Links the canonical logic vocabulary (the GMEOW Logic slice page).
+    assert "logic.md" in text
+    # Provenance to the committed artifacts.
+    assert "inferred-closure.rdf12.ttl" in text
+    # No internal language tags leak into the public page.
+    assert "x-gmeow-" not in text
+
+
+def test_logic_page_has_nav_entry(ontology_docs_tree: Path) -> None:
+    """The primary nav links the Logic & Reasoning page on every site page."""
+    home = (ontology_docs_tree / "site" / "index.html").read_text(encoding="utf-8")
+    assert 'href="logic/"' in home
+    assert "Logic &amp; Reasoning" in home
