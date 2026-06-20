@@ -1,0 +1,238 @@
+@prefix sh:    <http://www.w3.org/ns/shacl#> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
+@prefix owl:   <http://www.w3.org/2002/07/owl#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+
+# =============================================================================
+# SHACL shapes for the GMEOW test DSL (dsl/tests/vocabulary.ttl plus every
+# slice-resident slices/*/*/tests/*.ttl fixture file).
+#
+# These shapes validate the canonical declarative test-fixture source BEFORE the
+# Python loader in gmeow_tools.test_dsl proceeds. Violations surface as
+# structured per-node diagnostics (focus node, path, message, source file).
+# This file is a DSL-specific lint: it never runs against the main data graph
+# (excluded by the dsl_shapes set in gmeow_tools.validate).
+# =============================================================================
+
+# --------------------------------------------------------------------------- #
+# CompetencyQuestion
+# --------------------------------------------------------------------------- #
+
+gmeow:CompetencyQuestionShape
+    a sh:NodeShape ;
+    rdfs:label "Competency question shape"@en ;
+    sh:targetClass gmeow:CompetencyQuestion ;
+    sh:property [
+        sh:path gmeow:cqRationale ;
+        sh:minCount 1 ;
+        sh:datatype xsd:string ;
+        sh:severity sh:Violation ;
+        sh:message "CompetencyQuestion must have at least one gmeow:cqRationale (xsd:string)"
+    ] ;
+    sh:property [
+        sh:path gmeow:cqExpectAsk ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:boolean ;
+        sh:severity sh:Violation ;
+        sh:message "CompetencyQuestion may have at most one gmeow:cqExpectAsk (xsd:boolean)"
+    ] ;
+    sh:property [
+        sh:path gmeow:cqExpectRowCount ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:nonNegativeInteger ;
+        sh:severity sh:Violation ;
+        sh:message "CompetencyQuestion may have at most one gmeow:cqExpectRowCount (xsd:nonNegativeInteger)"
+    ] ;
+    sh:property [
+        sh:path gmeow:cqExactRows ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:boolean ;
+        sh:severity sh:Violation ;
+        sh:message "CompetencyQuestion may have at most one gmeow:cqExactRows (xsd:boolean)"
+    ] ;
+    sh:sparql [
+        sh:severity sh:Violation ;
+        sh:message "CompetencyQuestion needs exactly one of gmeow:cqQuery (inline) or gmeow:cqQueryFile (referenced)" ;
+        sh:select """
+            SELECT $this WHERE {
+                FILTER(
+                    (EXISTS { $this gmeow:cqQuery ?q } && EXISTS { $this gmeow:cqQueryFile ?f }) ||
+                    (!EXISTS { $this gmeow:cqQuery ?q } && !EXISTS { $this gmeow:cqQueryFile ?f })
+                )
+            }
+        """
+    ] ;
+    sh:sparql [
+        sh:severity sh:Violation ;
+        sh:message "CompetencyQuestion needs exactly one expectation: either gmeow:cqExpectAsk (for ASK) XOR at least one SELECT expectation (gmeow:cqExpectRow or gmeow:cqExpectRowCount)" ;
+        sh:select """
+            SELECT $this WHERE {
+                BIND(EXISTS { $this gmeow:cqExpectAsk ?a } AS ?ask)
+                BIND(
+                    (EXISTS { $this gmeow:cqExpectRow ?r } || EXISTS { $this gmeow:cqExpectRowCount ?c })
+                    AS ?select)
+                FILTER( (?ask && ?select) || (!?ask && !?select) )
+            }
+        """
+    ] .
+
+# --------------------------------------------------------------------------- #
+# StructuralAssertion
+# --------------------------------------------------------------------------- #
+
+gmeow:StructuralAssertionShape
+    a sh:NodeShape ;
+    rdfs:label "Structural assertion shape"@en ;
+    sh:targetClass gmeow:StructuralAssertion ;
+    sh:property [
+        sh:path gmeow:saPolarity ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:in ( gmeow:must gmeow:mustNot ) ;
+        sh:severity sh:Violation ;
+        sh:message "StructuralAssertion must have exactly one gmeow:saPolarity in (gmeow:must, gmeow:mustNot)"
+    ] ;
+    sh:property [
+        sh:path gmeow:saScope ;
+        sh:maxCount 1 ;
+        sh:in ( gmeow:scopeModule gmeow:scopeModuleAndExamples ) ;
+        sh:severity sh:Violation ;
+        sh:message "StructuralAssertion may have at most one gmeow:saScope in (gmeow:scopeModule, gmeow:scopeModuleAndExamples)"
+    ] ;
+    sh:sparql [
+        sh:severity sh:Violation ;
+        sh:message "StructuralAssertion needs exactly one of gmeow:saPattern (SPARQL ASK) or gmeow:saShape (sh:NodeShape IRI)" ;
+        sh:select """
+            SELECT $this WHERE {
+                FILTER(
+                    (EXISTS { $this gmeow:saPattern ?p } && EXISTS { $this gmeow:saShape ?s }) ||
+                    (!EXISTS { $this gmeow:saPattern ?p } && !EXISTS { $this gmeow:saShape ?s })
+                )
+            }
+        """
+    ] .
+
+# --------------------------------------------------------------------------- #
+# ExampleConformance
+# --------------------------------------------------------------------------- #
+
+gmeow:ExampleConformanceShape
+    a sh:NodeShape ;
+    rdfs:label "Example conformance shape"@en ;
+    sh:targetClass gmeow:ExampleConformance ;
+    sh:property [
+        sh:path gmeow:exampleFile ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        sh:severity sh:Violation ;
+        sh:message "ExampleConformance must have exactly one gmeow:exampleFile (xsd:string)"
+    ] ;
+    sh:property [
+        sh:path gmeow:expectedOutcome ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:in ( gmeow:conforms gmeow:violates ) ;
+        sh:severity sh:Violation ;
+        sh:message "ExampleConformance must have exactly one gmeow:expectedOutcome in (gmeow:conforms, gmeow:violates)"
+    ] ;
+    sh:sparql [
+        sh:severity sh:Violation ;
+        sh:message "ExampleConformance with gmeow:expectedOutcome gmeow:violates must carry gmeow:expectedViolationCode; gmeow:conforms must NOT" ;
+        sh:select """
+            SELECT $this WHERE {
+                {
+                    $this gmeow:expectedOutcome gmeow:violates .
+                    FILTER NOT EXISTS { $this gmeow:expectedViolationCode ?code }
+                } UNION {
+                    $this gmeow:expectedOutcome gmeow:conforms .
+                    FILTER EXISTS { $this gmeow:expectedViolationCode ?code }
+                }
+            }
+        """
+    ] .
+
+# --------------------------------------------------------------------------- #
+# ExpectedRow / ExpectedCell (SELECT result-set helpers)
+# --------------------------------------------------------------------------- #
+
+gmeow:ExpectedRowShape
+    a sh:NodeShape ;
+    rdfs:label "Expected row shape"@en ;
+    sh:targetClass gmeow:ExpectedRow ;
+    sh:property [
+        sh:path gmeow:rowCell ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "ExpectedRow must have at least one gmeow:rowCell"
+    ] .
+
+gmeow:ExpectedCellShape
+    a sh:NodeShape ;
+    rdfs:label "Expected cell shape"@en ;
+    sh:targetClass gmeow:ExpectedCell ;
+    sh:property [
+        sh:path gmeow:cellVar ;
+        sh:minCount 1 ; sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        sh:severity sh:Violation ;
+        sh:message "ExpectedCell must have exactly one gmeow:cellVar (xsd:string)"
+    ] ;
+    sh:sparql [
+        sh:severity sh:Violation ;
+        sh:message "ExpectedCell needs exactly one of gmeow:cellValueIri or gmeow:cellValueLiteral" ;
+        sh:select """
+            SELECT $this WHERE {
+                FILTER(
+                    (EXISTS { $this gmeow:cellValueIri ?i } && EXISTS { $this gmeow:cellValueLiteral ?l }) ||
+                    (!EXISTS { $this gmeow:cellValueIri ?i } && !EXISTS { $this gmeow:cellValueLiteral ?l })
+                )
+            }
+        """
+    ] .
+
+# --------------------------------------------------------------------------- #
+# Vocabulary annotation completeness (issue #221 discipline).
+# Every term declared in dsl/tests/vocabulary.ttl must carry label, definition,
+# and rdfs:isDefinedBy pointing at the test DSL vocabulary.
+# --------------------------------------------------------------------------- #
+
+gmeow:TestDslVocabularyTermShape
+    a sh:NodeShape ;
+    rdfs:label "Test DSL vocabulary annotation completeness shape"@x-gmeow-english ;
+    sh:target [
+        a sh:SPARQLTarget ;
+        sh:select """
+            SELECT ?this WHERE {
+                ?this a ?t .
+                FILTER(?t IN (
+                    <http://www.w3.org/2002/07/owl#Class>,
+                    <http://www.w3.org/2002/07/owl#ObjectProperty>,
+                    <http://www.w3.org/2002/07/owl#DatatypeProperty>,
+                    <http://www.w3.org/2002/07/owl#AnnotationProperty>,
+                    <http://www.w3.org/2002/07/owl#Ontology>,
+                    <http://www.w3.org/2000/01/rdf-schema#Datatype>
+                ))
+                FILTER(STRSTARTS(STR(?this), "https://blackcatinformatics.ca/gmeow/"))
+            }
+        """ ;
+    ] ;
+    sh:property [
+        sh:path rdfs:label ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "Every test DSL vocabulary term must carry at least one rdfs:label (issue #221)." ;
+    ] ;
+    sh:property [
+        sh:path skos:definition ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "Every test DSL vocabulary term must carry a skos:definition (issue #221)." ;
+    ] ;
+    sh:property [
+        sh:path rdfs:isDefinedBy ;
+        sh:minCount 1 ;
+        sh:hasValue <https://blackcatinformatics.ca/gmeow/test-dsl> ;
+        sh:severity sh:Violation ;
+        sh:message "Every test DSL vocabulary term must declare rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/test-dsl> (issue #221)." ;
+    ] .

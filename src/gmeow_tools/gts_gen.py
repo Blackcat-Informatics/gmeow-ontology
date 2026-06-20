@@ -119,12 +119,14 @@ def _transform_blobs(_graph: Graph) -> list[tuple[bytes, str, str]]:
         REP_DENIED,
         REP_MAPPINGS,
         REP_QUERIES,
+        REP_TESTS,
     )
     from gmeow_tools.config import (
         MAPPING_DSL_DIR,
         PROJECTION_QUERY_DIR,
         SLICES_DIR,
     )
+    from gmeow_tools.slices import iter_slice_test_files
     from gmeow_tools.transform import _denied_cells
 
     sssom = [(p.name, p.read_bytes()) for p in sorted(MAPPINGS_DIR.glob("*.sssom.tsv"))]
@@ -139,11 +141,16 @@ def _transform_blobs(_graph: Graph) -> list[tuple[bytes, str, str]]:
     cells = [
         (p.relative_to(PROJECT_ROOT).as_posix(), p.read_bytes()) for p in cell_paths
     ]
+    tests = [
+        (p.relative_to(PROJECT_ROOT).as_posix(), p.read_bytes())
+        for p in iter_slice_test_files()
+    ]
     denied = sorted(_denied_cells())
     return [
         (_tar_members(sssom), "application/x-tar", REP_MAPPINGS),
         (_tar_members(queries), "application/x-tar", REP_QUERIES),
         (_tar_members(cells), "application/x-tar", REP_CELLS),
+        (_tar_members(tests), "application/x-tar", REP_TESTS),
         (json.dumps(denied).encode("utf-8"), "application/json", REP_DENIED),
     ]
 
@@ -511,6 +518,8 @@ class GtsSnapshotGenerator(Generator):
             *sorted((MAPPING_DSL_DIR / "equivalences").glob("*.ttl")),
             *sorted((MAPPING_DSL_DIR / "projections").glob("*.ttl")),
             *sorted(SLICES_DIR.glob("*/*/mappings/*.ttl")),
+            # slice test-DSL specs folded under REP_TESTS for repo-free reads (#783)
+            *sorted(SLICES_DIR.glob("*/*/tests/*.ttl")),
             *sorted(SLICES_DIR.glob("*/*/docs.md")),
             *sorted(p for p in SLICES_DIR.glob("*/*/i18n/*.po") if p.stem != "en"),
             # verify queries drive the folded-in attestation graph (#695)
