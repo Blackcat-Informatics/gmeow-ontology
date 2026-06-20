@@ -49,6 +49,26 @@ def materialize(
     time_ms: int | None = ...,
     profile: str | None = ...,
 ) -> list[dict[str, Any]]: ...
+def materialize_explained(
+    rules: str,
+    input: str,
+    max_rule_firings: int | None = ...,
+    max_answers: int | None = ...,
+    time_ms: int | None = ...,
+    profile: str | None = ...,
+) -> dict[str, list[dict[str, Any]]]:
+    """Fused materialize + explain in one native call (#630).
+
+    Runs the SAME chase as ``materialize`` and the SAME explanation skeleton as
+    ``explain`` over the in-memory derivation — no Rust→Python→Rust round-trip.
+    Returns a dict with two keys:
+
+    * ``quads`` — the ``list[dict]`` ``materialize`` returns (same keys).
+    * ``explanations`` — the ``list[dict]`` ``explain`` returns (one per quad,
+      in order).
+    """
+    ...
+
 def foundation(
     input: str,
     anti_rigidity_policy: str | None = ...,

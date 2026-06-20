@@ -71,7 +71,7 @@ import json
 import logging
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import cast
+from typing import Any, cast
 
 from rdflib import ConjunctiveGraph, Graph, URIRef
 from rdflib.compare import isomorphic
@@ -502,6 +502,27 @@ def _run_explanations(result: MaterializationResult) -> tuple[Explanation, ...]:
     except (ValueError, RuntimeError) as exc:
         raise RunnerError(f"gmeow_logic.explain failed: {exc}") from exc
 
+    return _explanations_from_rows(rows)
+
+
+def _explanations_from_rows(
+    rows: list[dict[str, Any]],
+) -> tuple[Explanation, ...]:
+    """Build :class:`~.logic_seam.Explanation` objects from native explanation rows.
+
+    Shared by the foundation path (:func:`_run_explanations`, which calls
+    ``gmeow_logic.explain``) and the fused native path
+    (:func:`_materialize_explained_native`, which reads the ``explanations`` key of
+    ``gmeow_logic.materialize_explained``).  The row shape is identical for both —
+    the same Rust serializer (``explain_rows_to_dicts``) produces it — so this is
+    the single Python adapter for the explanation seam.
+
+    Args:
+        rows: The native explanation rows (one dict per quad, in input order).
+
+    Returns:
+        A tuple of :class:`~.logic_seam.Explanation` objects in row order.
+    """
     explanations: list[Explanation] = []
     for row in rows:
         steps = tuple(
@@ -704,71 +725,38 @@ def _bare_iri(term_surface: str) -> str:
     return term_surface
 
 
-def _materialize_native(
-    case_dir: Path,
-    nemo_rules: str,
-    input_graph: ConjunctiveGraph,
+def _materialization_result_from_quad_rows(
+    rows: list[dict[str, object]],
     semantic_profile_str: str,
-    budget: BudgetParams | None,
 ) -> MaterializationResult:
-    """Materialize the forward chase via the native ``gmeow_logic.materialize``.
+    """Assemble a :class:`~.logic_seam.MaterializationResult` from native quad rows.
 
-    This is the Rust-authoritative default path (issue #651): the Python
-    forward-chase oracle (``materialize_program``) is retired. The program's
-    ``% === Rules ===`` projection (with ``#[name("…")]`` provenance annotations)
-    and the world facts (``input.nq`` as N-Quads) are handed to the engine, which
-    routes by ``semantic_profile_str``:
+    Shared by the (former) standalone and the fused native paths: maps each native
+    ``materialize`` quad dict onto a :class:`~.logic_seam.DerivedQuad` (stripping the
+    N3 subject brackets via :func:`_bare_iri`) and computes the aggregate
+    world/budget metadata.
 
-    * PositiveHorn / stratified NAF → the Nemo chase;
-    * WellFounded → the native alternating-fixpoint evaluator;
-    * StableModel → the native cautious (skeptical) materialization;
-    * a declared StratifiedNAF set that fails stratification → asserted-only.
+    Args:
+        rows: The native quad rows (``materialize`` / ``materialize_explained``
+            ``quads`` shape).
+        semantic_profile_str: The profile the run was computed under (stamped on the
+            result artifact).
 
-    Provenance is content-addressed and identical to the foundation path, so the
-    native ``gmeow_logic.explain`` consumes the rows unchanged.
-
-    Raises:
-        RunnerError: If the ``gmeow_logic`` extension is not installed (hard fail,
-            no Python fallback), the NEMO projection fails, or the engine raises.
+    Returns:
+        The assembled :class:`~.logic_seam.MaterializationResult`.
     """
-    try:
-        import gmeow_logic
-    except ImportError as exc:
-        raise RunnerError(
-            f"Case {case_dir.name}: gmeow_logic native extension is not installed "
-            "(materialization is Rust-authoritative since #651) — run 'make logic-py'."
-        ) from exc
-
-    input_nq_text = input_graph.serialize(format="nquads")
-
-    try:
-        rows = gmeow_logic.materialize(
-            nemo_rules,
-            input_nq_text,
-            budget.max_rule_firings if budget else None,
-            budget.max_answers if budget else None,
-            budget.time_ms if budget else None,
-            semantic_profile_str,
-        )
-    except (ValueError, RuntimeError) as exc:
-        # ValueError = input/rule parse error; RuntimeError = chase/provenance/eval
-        # failure. Both must be wrapped so the runner's case-level boundary holds.
-        raise RunnerError(
-            f"Case {case_dir.name}: gmeow_logic.materialize failed: {exc}"
-        ) from exc
-
     quads: list[DerivedQuad] = [
         DerivedQuad(
-            graph=row["graph"],
-            subject=_bare_iri(row["subject"]),
-            predicate=row["predicate"],
-            obj=row["object"],
-            graph_component=row["graph_component"],
-            derivation_id=row["derivation_id"],
-            rule_iri=row["rule_iri"],
-            source_quad_ids=list(row["source_quad_ids"]),
-            profile=row["profile"],
-            budget_status=row["budget_status"],
+            graph=cast("str", row["graph"]),
+            subject=_bare_iri(cast("str", row["subject"])),
+            predicate=cast("str", row["predicate"]),
+            obj=cast("str", row["object"]),
+            graph_component=cast("str", row["graph_component"]),
+            derivation_id=cast("str", row["derivation_id"]),
+            rule_iri=cast("str", row["rule_iri"]),
+            source_quad_ids=list(cast("list[str]", row["source_quad_ids"])),
+            profile=cast("str", row["profile"]),
+            budget_status=cast("str", row["budget_status"]),
         )
         for row in rows
     ]
@@ -795,6 +783,76 @@ def _materialize_native(
         budget_status="exhausted" if exhausted else "ok",
         incomplete=exhausted,
     )
+
+
+def _materialize_explained_native(
+    case_dir: Path,
+    nemo_rules: str,
+    input_graph: ConjunctiveGraph,
+    semantic_profile_str: str,
+    budget: BudgetParams | None,
+) -> tuple[MaterializationResult, tuple[Explanation, ...]]:
+    """Materialize the forward chase AND its explanation skeletons in ONE call.
+
+    This is the fused Rust-authoritative default path (issue #630): a single
+    ``gmeow_logic.materialize_explained`` call runs the same Nemo / native chase as
+    ``gmeow_logic.materialize`` and the same explanation skeleton as
+    ``gmeow_logic.explain`` directly over the in-memory derivation — no
+    Rust→Python→Rust round-trip, no Python payload rebuild.  The program's
+    ``% === Rules ===`` projection (with ``#[name("…")]`` provenance annotations)
+    and the world facts (``input.nq`` as N-Quads) are handed to the engine, which
+    routes by ``semantic_profile_str``:
+
+    * PositiveHorn / stratified NAF → the Nemo chase;
+    * WellFounded → the native alternating-fixpoint evaluator;
+    * StableModel → the native cautious (skeptical) materialization;
+    * a declared StratifiedNAF set that fails stratification → asserted-only.
+
+    The fused result's ``quads`` key is byte-identical to ``materialize`` and its
+    ``explanations`` key is byte-identical to ``explain``; this function only
+    repackages them into the runner's seam dataclasses (the explanation rows go
+    through the shared :func:`_explanations_from_rows` adapter).
+
+    Returns:
+        A ``(MaterializationResult, explanations)`` pair.
+
+    Raises:
+        RunnerError: If the ``gmeow_logic`` extension is not installed (hard fail,
+            no Python fallback), the NEMO projection fails, or the engine raises.
+    """
+    try:
+        import gmeow_logic
+    except ImportError as exc:
+        raise RunnerError(
+            f"Case {case_dir.name}: gmeow_logic native extension is not installed "
+            "(materialization is Rust-authoritative since #651) — run 'make logic-py'."
+        ) from exc
+
+    input_nq_text = input_graph.serialize(format="nquads")
+
+    try:
+        result = gmeow_logic.materialize_explained(
+            nemo_rules,
+            input_nq_text,
+            budget.max_rule_firings if budget else None,
+            budget.max_answers if budget else None,
+            budget.time_ms if budget else None,
+            semantic_profile_str,
+        )
+    except (ValueError, RuntimeError) as exc:
+        # ValueError = input/rule parse error; RuntimeError = chase/provenance/eval
+        # failure. Both must be wrapped so the runner's case-level boundary holds.
+        raise RunnerError(
+            f"Case {case_dir.name}: gmeow_logic.materialize_explained failed: {exc}"
+        ) from exc
+
+    mat_result = _materialization_result_from_quad_rows(
+        cast("list[dict[str, object]]", result["quads"]), semantic_profile_str
+    )
+    explanations = _explanations_from_rows(
+        cast("list[dict[str, object]]", result["explanations"])
+    )
+    return mat_result, explanations
 
 
 def _resolve_witnesses(
@@ -1187,18 +1245,27 @@ def run(case_dir: Path, mode: str = "native") -> RunnerOutputs:
     # Task 2): the Python OntoUML-discipline oracle (``logic_foundation.py``) has
     # been retired — there is no Python fallback (no-optionality doctrine).
     if profile_data.get("foundation_lowering") is True:
+        # The foundation path is a separate chase (``gmeow_logic.foundation``); its
+        # explanations are reconstructed from the resulting quads via
+        # ``gmeow_logic.explain`` (see _run_explanations, below).  It is NOT fused —
+        # there is no foundation_explained surface and the chase is distinct.
         mat_result = _materialize_foundation(
             case_dir, input_graph, profile_data, budget
         )
+        # Explanations (over whatever quads exist; empty for projection-only cases).
+        explanations = _run_explanations(mat_result)
     else:
-        # Rust-authoritative default forward chase (issue #651): the Python oracle
-        # (``materialize_program``) is retired. ``gmeow_logic.materialize`` routes by
-        # the declared semantic profile — the Nemo chase for PositiveHorn / stratified
-        # NAF, and the native well-founded / stable-model evaluators for the
-        # non-stratifiable profiles the Nemo chase rejects. Provenance is the same
-        # content-addressed reifier graph the native explain / query / counterfactual
+        # Rust-authoritative default forward chase (issue #651), FUSED with the
+        # explanation skeleton in one native call (issue #630): the Python oracle
+        # (``materialize_program``) is retired.  ``gmeow_logic.materialize_explained``
+        # routes by the declared semantic profile — the Nemo chase for PositiveHorn /
+        # stratified NAF, and the native well-founded / stable-model evaluators for the
+        # non-stratifiable profiles the Nemo chase rejects — and reconstructs the
+        # explanation skeleton over the SAME in-memory derivation, eliminating the
+        # Rust→Python→Rust materialize-then-explain round-trip.  Provenance is the
+        # same content-addressed reifier graph the native query / counterfactual
         # consumers reconstruct.
-        mat_result = _materialize_native(
+        mat_result, explanations = _materialize_explained_native(
             case_dir, nemo_rules, input_graph, semantic_profile_str, budget
         )
 
@@ -1223,8 +1290,9 @@ def run(case_dir: Path, mode: str = "native") -> RunnerOutputs:
     # (per-target artifact + ledger) inside the builder.
     proj_outputs = _build_projection_outputs(cast("dict[str, object]", compiled))
 
-    # Explanations (over whatever quads exist; empty for projection-only cases)
-    explanations = _run_explanations(mat_result)
+    # ``explanations`` was produced alongside ``mat_result`` above: fused with the
+    # chase on the native path (#630), or via _run_explanations on the foundation
+    # path.  Empty for projection-only cases (no quads).
 
     # Verdicts (v1 minimal)
     verdicts = _build_verdicts(mat_result)

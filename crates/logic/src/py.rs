@@ -582,7 +582,24 @@ fn foundation(
 /// `RuntimeError` for a reconstruction failure (unresolved antecedent, cycle).
 #[pyfunction]
 fn explain(py: Python<'_>, quads: Vec<Bound<'_, PyDict>>) -> PyResult<Vec<Py<PyAny>>> {
-    use crate::explain::{explain_all, Row};
+    let rows = explain_rows_from_dicts(&quads)?;
+    explain_rows_to_dicts(py, &rows)
+}
+
+/// Decode a list of materialize/explain quad dicts into [`crate::explain::Row`]s.
+///
+/// This is the SINGLE decode path used by both the standalone `explain` pyfunction
+/// and the fused `materialize_explained` (issue #630): there is no second,
+/// divergent decoder.  Each dict carries `graph`, `subject`, `predicate`, `obj`
+/// (or `object`), `derivation_id`, `rule_iri`, and `source_quad_ids`.
+///
+/// The `subject` is normalized to a BARE IRI: the materialize seam emits the
+/// subject in N3 display form (`<iri>`), while the explanation reifier recipe wraps
+/// the subject in `<...>` itself, so a doubly-wrapped value would mint the wrong
+/// reifier.  Stripping one outer `<...>` layer mirrors the Python runner's
+/// `_bare_iri` helper exactly; a blank-node / already-bare value passes through.
+fn explain_rows_from_dicts(quads: &[Bound<'_, PyDict>]) -> PyResult<Vec<crate::explain::Row>> {
+    use crate::explain::Row;
 
     fn get_str(d: &Bound<'_, PyDict>, key: &str) -> PyResult<String> {
         let item = d.get_item(key)?.ok_or_else(|| {
@@ -613,7 +630,7 @@ fn explain(py: Python<'_>, quads: Vec<Bound<'_, PyDict>>) -> PyResult<Vec<Py<PyA
     }
 
     let mut rows: Vec<Row> = Vec::with_capacity(quads.len());
-    for d in &quads {
+    for d in quads {
         let sources_item = d.get_item("source_quad_ids")?.ok_or_else(|| {
             pyo3::exceptions::PyValueError::new_err("explain: row missing key \"source_quad_ids\"")
         })?;
@@ -624,7 +641,7 @@ fn explain(py: Python<'_>, quads: Vec<Bound<'_, PyDict>>) -> PyResult<Vec<Py<PyA
         })?;
         rows.push(Row {
             graph: get_str(d, "graph")?,
-            subject: get_str(d, "subject")?,
+            subject: bare_iri(&get_str(d, "subject")?),
             predicate: get_str(d, "predicate")?,
             obj: get_obj_str(d)?,
             derivation_id: get_str(d, "derivation_id")?,
@@ -632,8 +649,28 @@ fn explain(py: Python<'_>, quads: Vec<Bound<'_, PyDict>>) -> PyResult<Vec<Py<PyA
             source_quad_ids,
         });
     }
+    Ok(rows)
+}
 
-    let explanations = explain_all(&rows)
+/// Strip one outer layer of N3 angle brackets from a term surface (the Rust mirror
+/// of the Python runner's `_bare_iri`).  A blank-node (`_:b`) or already-bare value
+/// passes through unchanged.
+fn bare_iri(term_surface: &str) -> String {
+    let bytes = term_surface.as_bytes();
+    if bytes.len() >= 2 && bytes[0] == b'<' && bytes[bytes.len() - 1] == b'>' {
+        term_surface[1..term_surface.len() - 1].to_owned()
+    } else {
+        term_surface.to_owned()
+    }
+}
+
+/// Run [`crate::explain::explain_all`] over `rows` and serialize each
+/// [`crate::explain::Explanation`] to the Python dict shape the runner consumes.
+///
+/// This is the SINGLE serialization path used by both `explain` and
+/// `materialize_explained` (issue #630).
+fn explain_rows_to_dicts(py: Python<'_>, rows: &[crate::explain::Row]) -> PyResult<Vec<Py<PyAny>>> {
+    let explanations = crate::explain::explain_all(rows)
         .map_err(|e| pyo3::exceptions::PyRuntimeError::new_err(format!("explain failed: {e}")))?;
 
     let mut out: Vec<Py<PyAny>> = Vec::with_capacity(explanations.len());
@@ -667,6 +704,78 @@ fn explain(py: Python<'_>, quads: Vec<Bound<'_, PyDict>>) -> PyResult<Vec<Py<PyA
         d.set_item("step_skeleton", steps)?;
         out.push(d.into_any().unbind());
     }
+    Ok(out)
+}
+
+// ── materialize_explained ─────────────────────────────────────────────────────
+
+/// Fuse `materialize` + `explain` into one native call (issue #630).
+///
+/// Runs the EXACT same chase as [`materialize`] and then the EXACT same
+/// explanation skeleton as [`explain`] over the in-memory derivation — with NO
+/// Rust→Python→Rust payload round-trip.  The two halves reuse the shared internals
+/// (no forked chase, no forked explain decode/serialize):
+///
+/// * the chase output is produced by calling [`materialize`] verbatim, so the
+///   `quads` key is byte-identical to what `materialize` returns today;
+/// * the explanation skeleton is produced by decoding those same quad dicts through
+///   [`explain_rows_from_dicts`] and serializing through [`explain_rows_to_dicts`]
+///   — the same two helpers the standalone `explain` pyfunction uses — so the
+///   `explanations` key is byte-identical to what `explain` returns today.
+///
+/// # Returns
+///
+/// A dict with two keys:
+/// * `quads` — the `list[dict]` `materialize` returns (keys: graph, subject,
+///   predicate, object, graph_component, derivation_id, rule_iri, source_quad_ids,
+///   profile, budget_status).
+/// * `explanations` — the `list[dict]` `explain` returns (one per quad, in order).
+///
+/// # Errors
+///
+/// Propagates any error from the chase ([`materialize`]) or the explanation
+/// reconstruction ([`explain_rows_to_dicts`]).
+#[pyfunction]
+#[pyo3(signature = (rules, input, max_rule_firings=None, max_answers=None, time_ms=None, profile=None))]
+fn materialize_explained<'py>(
+    py: Python<'py>,
+    rules: &str,
+    input: &str,
+    max_rule_firings: Option<u64>,
+    max_answers: Option<u64>,
+    time_ms: Option<u64>,
+    profile: Option<&str>,
+) -> PyResult<Bound<'py, PyDict>> {
+    // 1. Run the chase exactly as `materialize` does — same helpers, same output.
+    let quad_objs = materialize(
+        py,
+        rules,
+        input,
+        max_rule_firings,
+        max_answers,
+        time_ms,
+        profile,
+    )?;
+
+    // 2. Decode those same quad dicts into explain Rows (the SAME decoder the
+    //    standalone `explain` pyfunction uses) and run the explanation skeleton —
+    //    no payload is rebuilt in Python, no FFI boundary is recrossed.
+    let quad_dicts: Vec<Bound<'py, PyDict>> = quad_objs
+        .iter()
+        .map(|obj| obj.bind(py).clone().cast_into::<PyDict>())
+        .collect::<Result<_, _>>()
+        .map_err(|e| {
+            pyo3::exceptions::PyRuntimeError::new_err(format!(
+                "materialize_explained: chase row was not a dict: {e}"
+            ))
+        })?;
+    let explanation_rows = explain_rows_from_dicts(&quad_dicts)?;
+    let explanation_objs = explain_rows_to_dicts(py, &explanation_rows)?;
+
+    // 3. Assemble the fused result dict.
+    let out = PyDict::new(py);
+    out.set_item("quads", quad_objs)?;
+    out.set_item("explanations", explanation_objs)?;
     Ok(out)
 }
 
@@ -725,6 +834,8 @@ fn stable_models(py: Python<'_>, rules: &str, input: &str) -> PyResult<Py<PyAny>
 ///
 /// Exposes:
 /// - `materialize(rules, input, max_rule_firings=None, max_answers=None, time_ms=None, profile=None)`
+/// - `materialize_explained(rules, input, …) -> {"quads": [...], "explanations": [...]}`
+///   — the fused chase+explain call (issue #630)
 /// - `foundation(input, anti_rigidity_policy=None) -> list[dict]` (issue #636)
 /// - `explain(quads) -> list[dict]` — cited-IRI explanation skeletons (issue #497)
 /// - `certify(rules, profile) -> dict`
@@ -1310,6 +1421,7 @@ fn extract_module(
 /// to that same submodule object via a Python shim.
 pub fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(materialize, m)?)?;
+    m.add_function(wrap_pyfunction!(materialize_explained, m)?)?;
     m.add_function(wrap_pyfunction!(foundation, m)?)?;
     m.add_function(wrap_pyfunction!(explain, m)?)?;
     m.add_function(wrap_pyfunction!(certify, m)?)?;
