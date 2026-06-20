@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: AGPL-3.0-only
 #
-# Constitution-as-code (#280): the machine-readable principle→enforcement
+# Constitution-as-code: the machine-readable principle→enforcement
 # manifest. CONSTITUTION.md stays the normative prose; THIS file is the
 # falsifiable claim that each principle is actually enforced. The
 # `gmeow constitution-check` gate fails when a principle has no registered
@@ -42,6 +42,10 @@ meta:symbol     a rdfs:Property ; rdfs:comment "Name that must be defined in (on
 meta:makeTarget a rdfs:Property ; rdfs:comment "Target that must exist in the Makefile."@en .
 meta:cliCommand a rdfs:Property ; rdfs:comment "Command that must be registered on the gmeow CLI."@en .
 meta:generator  a rdfs:Property ; rdfs:comment "Registered generator name; the declared set must equal the live registry exactly."@en .
+meta:supersededInPartBy a rdfs:Property ;
+    rdfs:comment "Names a later principle whose framing supersedes part of this one; must match a '**Superseded in part by Principle N**' marker in CONSTITUTION.md."@en .
+meta:extends    a rdfs:Property ;
+    rdfs:comment "Names an earlier principle this one extends; must match an '**Extends Principle N**' marker in CONSTITUTION.md."@en .
 
 # --------------------------------------------------------------------------- #
 # Enforcement mechanisms
@@ -183,43 +187,43 @@ meta:tests-slices a meta:TestSuite ;
     meta:artifact "tests/test_slices.py", "tests/test_profiles.py" .
 
 meta:lint-coequal-facet a meta:Lint ;
-    rdfs:label "annotation-driven identity-axis orthogonality (#281)"@x-gmeow-english ;
+    rdfs:label "annotation-driven identity-axis orthogonality"@x-gmeow-english ;
     meta:artifact "src/gmeow_tools/reasoning_lint.py" ;
     meta:symbol "coequal_facet_orthogonality" .
 
 meta:lint-term-naming a meta:Lint ;
-    rdfs:label "no selector tokens in term local names (#281)"@x-gmeow-english ;
+    rdfs:label "no selector tokens in term local names"@x-gmeow-english ;
     meta:artifact "src/gmeow_tools/validate.py" ;
     meta:symbol "term_naming_lint" .
 
 meta:gate-suppression-injection a meta:Gate ;
-    rdfs:label "suppression guards injected into every projection CONSTRUCT (#282)"@x-gmeow-english ;
+    rdfs:label "suppression guards injected into every projection CONSTRUCT"@x-gmeow-english ;
     meta:artifact "src/gmeow_tools/mapping_compile.py" ;
     meta:symbol "_injected_guards" .
 
 meta:tests-leak-conformance a meta:TestSuite ;
-    rdfs:label "generated per-profile leak-conformance suite (#282)"@x-gmeow-english ;
+    rdfs:label "generated per-profile leak-conformance suite"@x-gmeow-english ;
     meta:artifact "tests/test_suppression_conformance.py" .
 
 meta:shapes-frame-generated a meta:Shape ;
-    rdfs:label "frame-relativity SHACL generated from gmeow:requiresFrame (#283)"@x-gmeow-english ;
+    rdfs:label "frame-relativity SHACL generated from gmeow:requiresFrame"@x-gmeow-english ;
     meta:artifact "src/gmeow_tools/frame_shapes_gen.py", "generated/shapes/frame-shapes.ttl" ;
     meta:symbol "render_frame_shapes" .
 
 meta:lint-frame-completeness a meta:Lint ;
-    rdfs:label "frame-pointing properties demand a requiresFrame declaration (#283)"@x-gmeow-english ;
+    rdfs:label "frame-pointing properties demand a requiresFrame declaration"@x-gmeow-english ;
     meta:artifact "src/gmeow_tools/reasoning_lint.py" ;
     meta:symbol "frame_declaration_completeness" .
 
 meta:gate-compliance-report a meta:Gate ;
-    rdfs:label "machine-readable per-principle compliance report (#285)"@x-gmeow-english ;
+    rdfs:label "machine-readable per-principle compliance report"@x-gmeow-english ;
     meta:artifact "src/gmeow_tools/compliance.py" ;
     meta:symbol "build_report" ;
     meta:cliCommand "compliance-report" ;
     meta:makeTarget "compliance-report" .
 
 meta:gate-claim-audit a meta:Gate ;
-    rdfs:label "the claim audit gates: ungrounded/contradicted/stale, flagged never deleted (#55)"@x-gmeow-english ;
+    rdfs:label "the claim audit gates: ungrounded/contradicted/stale, flagged never deleted"@x-gmeow-english ;
     meta:artifact "src/gmeow_tools/audit.py", "queries/audit",
         "docs/hallucination-resistant-kg.md", "docs/prompts/claim-extraction-v1.md" ;
     meta:symbol "audit_graph" ;
@@ -227,7 +231,7 @@ meta:gate-claim-audit a meta:Gate ;
     meta:makeTarget "audit" .
 
 meta:gate-evals a meta:Gate ;
-    rdfs:label "the claim-extraction eval suite + leaderboard (#298)"@x-gmeow-english ;
+    rdfs:label "the claim-extraction eval suite + leaderboard"@x-gmeow-english ;
     meta:artifact "src/gmeow_tools/evals.py", "evals/rubric.ttl",
         "evals/claim-emission.schema.json" ;
     meta:symbol "score_emissions" .
@@ -237,7 +241,7 @@ meta:tests-claim-pattern a meta:TestSuite ;
     meta:artifact "tests/test_audit.py", "tests/test_evals.py",
         "tests/fixtures/coverage/hallucination-kg.ttl" .
 
-# Principle 17 enforcement — the EPIC (#497) has landed (children #498–#506).
+# Principle 17 enforcement — the logic EPIC has landed.
 # The design-stage `meta:practice-logic-design` placeholder is retired and
 # replaced by the three real gates promised in its retirement comment: the
 # conformance corpus (the native Rust solver ≡ the committed goldens), the
@@ -252,24 +256,24 @@ meta:gate-logic-conformance a meta:Gate ;
     meta:cliCommand "conformance" .
 
 meta:gate-logic-round-trip a meta:Gate ;
-    rdfs:label "logic→OWL DL/EL, Datalog, N3, gUFO projection round-trip isomorphism + preservation ledger (#500)"@x-gmeow-english ;
+    rdfs:label "logic→OWL DL/EL, Datalog, N3, gUFO projection round-trip isomorphism + preservation ledger"@x-gmeow-english ;
     meta:artifact "tests/test_logic_conformance.py", "src/gmeow_tools/logic_projections.py" ;
     meta:symbol "project_nemo", "build_projection_report" .
 
 meta:gate-foundation-conformance a meta:Gate ;
-    rdfs:label "gUFO foundation downcast ≡ reasoning_lint verdicts — native Rust evaluator (#503/#641)"@x-gmeow-english ;
+    rdfs:label "gUFO foundation downcast ≡ reasoning_lint verdicts — native Rust evaluator"@x-gmeow-english ;
     meta:artifact "tests/test_logic_foundation_lint_equivalence.py", "crates/logic/src/foundation.rs" ;
     meta:symbol "evaluate" .
 
 meta:gate-logic-gufo-superset a meta:Gate ;
-    rdfs:label "gmeow:logic ⊇ gUFO floor — every gUFO class has a logic: correspondence (#663)"@x-gmeow-english ;
+    rdfs:label "gmeow:logic ⊇ gUFO floor — every gUFO class has a logic: correspondence"@x-gmeow-english ;
     meta:artifact "tests/test_logic_gufo_superset.py", "src/gmeow_tools/logic_adapter.py" ;
     meta:symbol "_GUFO_CLASS_TO_LOGIC", "test_every_gufo_class_has_logic_correspondence" .
 
-# Principle 18 enforcement — the #665 native reasoning authority. The native
+# Principle 18 enforcement — the native reasoning authority. The native
 # EL/DL lane is the Java/Docker-free authoritative gate; the divergence ledger
 # is built from native results ONLY (report-only) with oracle comparison +
-# enforcement deferred to classic-cross-check (#666).
+# enforcement deferred to classic-cross-check.
 meta:gate-reason-native a meta:Gate ;
     rdfs:label "native Docker-free EL/DL reasoning authority (reason --mode native)"@x-gmeow-english ;
     meta:artifact "src/gmeow_tools/reason.py" ;
@@ -278,19 +282,19 @@ meta:gate-reason-native a meta:Gate ;
     meta:cliCommand "reason" .
 
 meta:gate-dl-el-crosscheck a meta:Gate ;
-    rdfs:label "native↔oracle divergence ledger — report-only committed artifact on the primary path; enforcement runs in the classic-cross-check lane (gate-classic-cross-check, #666)"@x-gmeow-english ;
+    rdfs:label "native↔oracle divergence ledger — report-only committed artifact on the primary path; enforcement runs in the classic-cross-check lane (gate-classic-cross-check)"@x-gmeow-english ;
     meta:artifact "src/gmeow_tools/native_reason_gen.py", "generated/logic/dl-el-crosscheck-report.ttl" ;
     meta:symbol "NativeReasoningGenerator" ;
     meta:generator "native-reasoning" .
 
-# #666 — the ENFORCING classic-cross-check lane: the sole Java+Docker surface, a
+# The ENFORCING classic-cross-check lane: the sole Java+Docker surface, a
 # single non-required CI job. Compares the native engine against the legacy
 # oracles (ELK/HermiT subsumption + consistency; owlrl OWL-2-RL closure) and
 # FAILS strictly on any NativeOnly/OracleOnly divergence (DlGap is the only
 # honest-expected, non-failing class). NEVER part of `make check` or the required
 # `quality` gate. Emits agreement + timing through the gmeow-diagnostics SARIF rail.
 meta:gate-classic-cross-check a meta:Gate ;
-    rdfs:label "classic-cross-check lane — native vs ELK/HermiT/owlrl agreement, ENFORCED (non-required Docker/Java oracle lane, #666)"@x-gmeow-english ;
+    rdfs:label "classic-cross-check lane — native vs ELK/HermiT/owlrl agreement, ENFORCED (non-required Docker/Java oracle lane)"@x-gmeow-english ;
     meta:artifact "src/gmeow_tools/classic_cross_check.py", "src/gmeow_tools/rl_agreement.py" ;
     meta:symbol "enforce", "run" ;
     meta:makeTarget "classic-cross-check" ;
@@ -308,7 +312,8 @@ meta:Principle1 a meta:Principle ;
 meta:Principle2 a meta:Principle ;
     meta:number 2 ;
     meta:title "RDF 1.2 / RDF\\*-first — precisely scoped" ;
-    meta:enforcedBy meta:gate-statements, meta:tests-statements .
+    meta:enforcedBy meta:gate-statements, meta:tests-statements ;
+    meta:supersededInPartBy meta:Principle17 .
 
 meta:Principle3 a meta:Principle ;
     meta:number 3 ;
@@ -340,7 +345,8 @@ meta:Principle8 a meta:Principle ;
     meta:number 8 ;
     meta:title "Reasoning-gated and FAIR" ;
     meta:enforcedBy meta:gate-reasoning, meta:gate-fair-metadata,
-        meta:gate-compliance-report .
+        meta:gate-compliance-report ;
+    meta:supersededInPartBy meta:Principle17 .
 
 meta:Principle9 a meta:Principle ;
     meta:number 9 ;
@@ -365,7 +371,8 @@ meta:Principle12 a meta:Principle ;
     meta:number 12 ;
     meta:title "Compute outside the logic — the solver boundary" ;
     meta:enforcedBy meta:gate-reasoning, meta:lint-reasoning-invariants,
-        meta:tests-reasoning .
+        meta:tests-reasoning ;
+    meta:supersededInPartBy meta:Principle17 .
 
 meta:Principle13 a meta:Principle ;
     meta:number 13 ;
@@ -398,4 +405,5 @@ meta:Principle18 a meta:Principle ;
     meta:number 18 ;
     meta:title "The reference RDF-1.2 stack — complete, coherent, and Docker-free" ;
     meta:enforcedBy meta:gate-reason-native, meta:gate-dl-el-crosscheck,
-        meta:gate-classic-cross-check .
+        meta:gate-classic-cross-check ;
+    meta:extends meta:Principle17, meta:Principle13 .

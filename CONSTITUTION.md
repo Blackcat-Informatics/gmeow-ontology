@@ -37,15 +37,12 @@ seriousness; the AI ecosystem is the home market.
 > **Statement-level metadata — provenance, confidence, temporal scope — is authored as native
 > RDF 1.2 / RDF\* and is the canonical source. The logical TBox stays OWL 2 DL.**
 
-RDF-1.2-first governs the **statement-metadata layer only**. The decidable logical core
-remains OWL 2 DL because RDF 1.2 triple-terms are not OWL 2 DL — and GMEOW never claims
-otherwise. The positioning must never overclaim: "RDF-1.2-first" means the metadata layer, not
-the ontology's logic.
+RDF-1.2-first governs the **statement-metadata layer only**. The positioning must never
+overclaim: "RDF-1.2-first" means the metadata layer, not the ontology's logic.
 
-*Amended by Principle 17:* the logical core itself becomes RDF 1.2-native (`logic:`), with OWL 2
-DL retained as a *generated projection*. Until `logic:` lands, the OWL-2-DL-core scoping above
-describes the implemented state; the never-overclaim rule is unchanged and applies to `logic:` in
-full force.
+**Superseded in part by Principle 17:** the logical core itself becomes RDF 1.2-native (`logic:`),
+with OWL 2 DL retained as a *generated projection*; the never-overclaim rule is unchanged and
+applies to `logic:` in full force.
 
 *Embodied in:* the authored `dsl/statements/` source; [`README.md`](./README.md) § RDF 1.2.
 *Tested by:* the `statements` generator drift gate (`gmeow check-generated`), the RDF 1.2
@@ -139,10 +136,9 @@ catches modelling errors before any consumer sees them; no consumer is ever requ
 or to know that we do (Principle 13). FAIR publication is pursued seriously as scholarly bridge
 and discoverability hygiene; the product it certifies is Principle 14's.
 
-*Amended by Principle 17:* once the native `logic:` solver lands it becomes the reasoning
-authority, and ELK / HermiT become secondary validators of the OWL projection (one fragment among
-several). The commitment that the reasoner is *our* QA and never the consumer's prerequisite is
-unchanged.
+**Superseded in part by Principle 17:** the native `logic:` solver becomes the reasoning authority,
+and ELK / HermiT become secondary validators of the OWL projection (one fragment among several). The
+commitment that the reasoner is *our* QA and never the consumer's prerequisite is unchanged.
 
 **Documentation is a first-class artifact.** Every GMEOW-namespaced class, property, annotation
 property, datatype, individual, and ontology header must carry `rdfs:label`, `skos:definition`,
@@ -207,7 +203,7 @@ health — is redacted by *generalisation*, e.g. publishing a coarser region rat
 coordinates). Erasure is never the tool; the projection is.
 
 *Embodied in:* `gmeow:displayable`, `fnSelectDisplayName` (withhold); `gmeow:coarsenTo` +
-the `gmeow:GranularityLevel` axis, `fnCoarsenToGranularity` (coarsen — #72/#79, aligned to
+the `gmeow:GranularityLevel` axis, `fnCoarsenToGranularity` (coarsen — aligned to
 `dpv:Generalisation`); [`docs/projections.md`](./docs/projections.md);
 [`docs/identity-mapping.md`](./docs/identity-mapping.md);
 [`docs/standpoints.md`](./docs/standpoints.md) (a withdrawn standpoint / closed
@@ -228,7 +224,7 @@ frame-relative; conversion between frames is a computation, not an assertion (Pr
 value asserted without its frame is ill-formed. This is also what makes the model *open*: a new
 realm or system is a new frame filling a fixed profile, never a change to the core.
 
-*Embodied in:* the generalised reference-frame facility (#70); the Location module (#42) for
+*Embodied in:* the generalised reference-frame facility; the Location module for
 spatial frames; the temporal module for calendar/timescale frames; mappings to QUDT/OM for
 measurement frames, FIBO for currency frames, OWL-Time `time:TRS` for temporal reference
 systems, and Lexvo for language frames.
@@ -246,14 +242,14 @@ vector store) the ontology points to **by reference**. GMEOW models the *logic* 
 losslessly (the standpoint precedent — model it, don't collapse it); it never turns the
 triplestore into a calculator or bloats the TBox with derived geometry.
 
-*Scope under Principle 17:* the solver boundary still holds for **domain and numeric** computation
-— geo / datum transforms, RCC-8 / Allen composition, vector and SLAM updates stay in external
-engines by reference, exactly as above. What changes is *logical* expressivity: the reasoning logic
-(`logic:`) is Turing-complete, and "decidable and small" becomes a **projection/profile guarantee**
-rather than a property of the canonical core.
+**Superseded in part by Principle 17:** the solver boundary still holds for **domain and numeric**
+computation — geo / datum transforms, RCC-8 / Allen composition, vector and SLAM updates stay in
+external engines by reference, exactly as above. What changes is *logical* expressivity: the reasoning
+logic (`logic:`) is Turing-complete, and "decidable and small" becomes a **projection/profile
+guarantee** rather than a property of the canonical core.
 
 *Embodied in:* the projection layer; the lossless standpoint projections; the solver boundary of
-the #42 locations epic. *Tested by:* the OWL 2 DL profile gate (ELK / HermiT) staying green as
+the locations epic. *Tested by:* the OWL 2 DL profile gate (ELK / HermiT) staying green as
 expressivity grows.
 
 ## 13. The product is a tool; the ontology is its engine
@@ -276,7 +272,7 @@ is load-bearing for *us* (Principles 7–8) is friction for *them* — it stays 
 
 *Embodied in:* the `gmeow` PyPI client (v0.2.0 spec); `src/gmeow_tools/mcp_server.py`;
 `dist/schemas/` (generated Pydantic / JSON Schema / TypeScript / GraphQL); `dist/llms.txt`;
-the flat-JSON projections (#55). *Tested by:* the quickstart time-to-first-claim gate; the
+the flat-JSON projections. *Tested by:* the quickstart time-to-first-claim gate; the
 schema round-trip tests.
 
 ## 14. Grounded agent memory and claim provenance are the flagship
@@ -298,9 +294,9 @@ copy-pasteable pattern. Contradiction between models or sources surfaces as coex
 standpoint-indexed claims — never adjudicated by rank, exactly as Principle 9 demands for every
 other kind of subject.
 
-*Embodied in:* the AI claim layer (#54); the claim-spine pattern (#55);
-[`docs/GTS-SPEC.md`](https://github.com/Blackcat-Informatics/gmeow-gts/blob/main/docs/GTS-SPEC.md) § 13 (`ai-package` profile) and § 11 (suppression
-frames); the MCP memory tools. *Tested by:* the suppression leak-conformance gates (#282); the
+*Embodied in:* the AI claim layer; the claim-spine pattern;
+the GTS specification (`docs/GTS-SPEC.md`) § 13 (`ai-package` profile) and § 11 (suppression
+frames); the MCP memory tools. *Tested by:* the suppression leak-conformance gates; the
 claim-extraction eval suite; the GTS round-trip gates.
 
 ## 15. Every module earns its consumer
@@ -343,15 +339,15 @@ plainly: it is a deliberate commitment, encoded where it cannot be silently drop
 An extension is the existing slice convention made physical: one directory, one manifest (the
 Principle 15 consumer named in a machine-checked field), compiled, reasoned (extension ∪ core),
 and drift-gated as a unit (Principle 7), and distributable as a signed single-file GTS bundle
-(Principle 14's format, [`docs/GTS-SPEC.md`](https://github.com/Blackcat-Informatics/gmeow-gts/blob/main/docs/GTS-SPEC.md) § 12.1, § 13). This inverts
+(Principle 14's format, the GTS specification (`docs/GTS-SPEC.md`) § 12.1, § 13). This inverts
 "ontology explosion" from threat into growth mechanism: enthusiasm for a new domain has
 somewhere to go that is not the core. Extension *ecosystem* machinery (SDK, catalog,
 submission process) is itself subject to Principle 15 — built when a named external extension
 author exists, not before.
 
-*Embodied in:* the #287 slice architecture (`slices/<group>/<name>/` — the manifest is
+*Embodied in:* the slice architecture (`slices/<group>/<name>/` — the manifest is
 the sole tier truth); `slices/vocabulary.ttl`; the GTS `bundle` profile. *Tested by:* per-extension compile / reason / drift gates;
-the manifest consumer field, checked via the Principle→enforcement manifest (#280).
+the manifest consumer field, checked via the Principle→enforcement manifest.
 
 ## 17. The logic itself is canonical — OWL is a projection of it, not its ceiling
 
@@ -387,7 +383,7 @@ The native `logic:` solver is the **reasoning authority**; ELK, HermiT, and the 
 engines become **secondary validators of their projected fragments**. This supersedes the
 OWL-2-DL-core framing of Principles 2, 8, and 12 (annotated there). Correctness is **verified by
 construction** (Principle 7): the **Rust core is canonical** (oxigraph + Nemo + an embedded Prolog,
-bound by PyO3 — the Principle 13 tool pattern, the #277 model), and every committed conformance
+bound by PyO3 — the Principle 13 tool pattern), and every committed conformance
 golden is the derivation graph it produces. The slow, independent Python oracle is retained as a
 **secondary validator** — it must agree with the Rust core on the shared, language-neutral
 conformance corpus — but it is no longer the spec. The reasoner remains *our* quality assurance,
@@ -398,8 +394,8 @@ anyone else consumes.
 (the reasoning authority) and the Python runner / oracle in
 [`src/gmeow_tools/`](./src/gmeow_tools/), authored from the GMEOW Logic design set
 ([`slices/core/logic/design/LOGIC.md`](./slices/core/logic/design/LOGIC.md) and its semantics /
-runtime / migration / conformance siblings). The EPIC (#497) has landed: its MVP ladder shipped as
-children #498–#506. *Tested by:* the logic conformance corpus (native solver ≡ committed goldens,
+runtime / migration / conformance siblings). The logic EPIC has landed. *Tested by:* the logic
+conformance corpus (native solver ≡ committed goldens,
 Principle 7 — `meta:gate-logic-conformance`), the `logic:` → OWL / Datalog / N3 / gUFO round-trip
 isomorphism gate (`meta:gate-logic-round-trip`), and the foundation-conformance gate (the gUFO
 downcast passes `reasoning_lint.py` unchanged, evaluated natively — `meta:gate-foundation-conformance`).
@@ -428,16 +424,18 @@ they move off the critical path. The committed divergence ledger
 (`generated/logic/dl-el-crosscheck-report.ttl`) is built from the native results **only**: it records
 the native consistency verdict, the native-only subsumption entailments, and the beyond-EL DL gaps,
 and it carries an explicit note that the oracle comparison and divergence *enforcement* run in the
-`classic-cross-check` lane (#666), which is the home of the Java/Docker oracle pass. The
+`classic-cross-check` lane, which is the home of the Java/Docker oracle pass. The
 authoritative gate thus stays green offline, on any machine, with no privileged daemon — and the
 oracle cross-check becomes an independent, separately-scheduled confirmation rather than a
 prerequisite.
 
 This extends Principle 17 (native authority) and Principle 13 (the consumer Docker-free gate) to the
 authoritative gate; later amendments append the public-receipts, reusable-crate-suite, and
-release-as-evidence clauses (#668/#669/#673).
+release-as-evidence clauses.
 
-**Amendment (#666) — the two hard-separated lanes, and the lane enforces.** The split foreshadowed
+**Extends Principle 17 and Principle 13.**
+
+**Amendment — the two hard-separated lanes, and the lane enforces.** The split foreshadowed
 above is now realized as two lanes that may not bleed into each other. The **primary** lane —
 `make check`, the required CI `quality` gate, the build, and runtime — is rust-first and carries **no
 Java and no Docker**: native EL/DL reasoning (`reason --mode native`), the native OWL 2 RL closure
@@ -450,12 +448,12 @@ RL divergence fails the lane; only a named beyond-EL `DlGap` is honest-expected.
 requirement of using the repo normally. The committed `dl-el-crosscheck-report.ttl` stays report-only on
 the primary path (built from native results, Docker-free); enforcement lives only in the lane, which
 emits its agreement + timing data through the `gmeow-diagnostics` SARIF rail (the gate taxonomy this
-issue owns and #662 consumes). Producer inversion of the Jena RDF-1.2 codec is **done** (#667): the
+issue owns). Producer inversion of the Jena RDF-1.2 codec is **done**: the
 statement lead artifact (`generated/statements/gmeow.rdf12.ttl`) is written natively by `gmeow-rdf`
 (`gmeow_rdf.project_statements_rdf12`), so the build / `make check` / `check-generated` / `regenerate`
 carry **zero Java and zero Docker** on the statement path; Jena survives only as the lane-side
 `classic-cross-check` oracle that cross-checks the native artifact by RDF-1.2 graph isomorphism. Native
-replication of ROBOT (SLME extraction + verify) in #695 — until then those stay maintainer-only, lane-side.
+replication of ROBOT (SLME extraction + verify) is future work — until then those stay maintainer-only, lane-side.
 
 *Embodied in:* the native reason lane ([`src/gmeow_tools/reason.py`](./src/gmeow_tools/reason.py)),
 the `reason --mode native` CLI command, the `native-reasoning` registered generator
@@ -494,7 +492,7 @@ can cite them and stay consistent. They are guidance, not commitments.
 
 - **The Profile pattern** — model an open-but-structured facet as a *closed descriptor schema + open
   values + self-description (reflection)*, so extensibility is by construction and a "novel-value" guard
-  can prove it. Concretised in `ontology/modules/profiles.ttl` as `gmeow:Profile` (issue #75), and seen in
+  can prove it. Concretised in `ontology/modules/profiles.ttl` as `gmeow:Profile`, and seen in
   the four-clocks (temporal provenance), the reference-frame Profile (Principle 11), and the temporal
   scale/calendar Profile.
 - **Flat-first, reify-on-demand** — pair a flat shortcut for the common case with a reified relator that

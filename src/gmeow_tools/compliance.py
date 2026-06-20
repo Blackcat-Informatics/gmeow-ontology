@@ -210,6 +210,22 @@ def build_report(
                 f'meta:status "{status}" ; meta:errorCount {errors}'
                 f"{warning_count} ]"
             )
+        relations: list[str] = []
+        if principle.superseded_in_part_by:
+            relations.append(
+                "    meta:supersededInPartBy "
+                + ", ".join(
+                    f"meta:Principle{n}" for n in principle.superseded_in_part_by
+                )
+            )
+        if principle.extends:
+            relations.append(
+                "    meta:extends "
+                + ", ".join(f"meta:Principle{n}" for n in principle.extends)
+            )
+        # Carry the supersession edges through to the report (north-star: maximal
+        # information flow); prepend so the enforcementResults stay block-terminal.
+        body = relations + body
         overall = "failed" if "failed" in statuses else "passed"
         lines.append(f"meta:Principle{principle.number}Result")
         lines.append("    a meta:PrincipleResult ;")
