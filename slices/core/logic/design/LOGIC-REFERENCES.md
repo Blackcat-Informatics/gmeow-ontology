@@ -111,6 +111,27 @@ unless they themselves cite an external work; they are cross-references within G
 - Koestler, A. (1967). *The Ghost in the Machine.* Hutchinson. (Holon / holarchy concept: every
   whole is simultaneously a part of a larger whole; grounds the contextual mereology of the logic
   layer's module and context hierarchy — see LOGIC-FOUNDATION.md.)
+- Bratman, M. E. (1987). *Intention, Plans, and Practical Reason.* Harvard University Press.
+  (Intention as commitment; the intention → plan → action chain — see LOGIC-TELEOLOGY.md.)
+- von Wright, G. H. (1951). *Deontic Logic.* Mind 60(237). (Obligation / permission / prohibition;
+  the deontic-ideal reading of norm and goal prescription — see LOGIC-TELEOLOGY.md.)
+- Rao, A. S. & Georgeff, M. P. (1991). *Modeling Rational Agents within a BDI-Architecture.* KR.
+  (Belief–desire–intention agents; achievement vs maintenance goals — see LOGIC-TELEOLOGY.md.)
+- Dardenne, A., van Lamsweerde, A. & Fickas, S. (1993). *Goal-Directed Requirements Acquisition.*
+  Science of Computer Programming 20 (KAOS). (AND/OR goal refinement and goal-conflict relations —
+  see LOGIC-TELEOLOGY.md.)
+- Peirce, C. S. (1931–1958). *Collected Papers of Charles Sanders Peirce.* Harvard University Press.
+  (The inference tetrad — deduction, induction, abduction — see LOGIC-COGNITION.md.)
+- Toulmin, S. (1958). *The Uses of Argument.* Cambridge University Press. (Claim, warrant, and
+  backing; the structure of a reasoned step — see LOGIC-COGNITION.md.)
+- Pollock, J. L. (1987). *Defeasible Reasoning.* Cognitive Science 11(4). (Rebutting vs undercutting
+  defeaters — see LOGIC-COGNITION.md.)
+- Gentner, D. (1983). *Structure-Mapping: A Theoretical Framework for Analogy.* Cognitive Science
+  7(2). (Analogy as structure-mapping; the systematicity principle — see LOGIC-COGNITION.md.)
+- Kruger, J. & Dunning, D. (1999). *Unskilled and Unaware of It.* Journal of Personality and Social
+  Psychology 77(6). (Miscalibration and overconfidence at low competence — see LOGIC-COGNITION.md.)
+- Brier, G. W. (1950). *Verification of Forecasts Expressed in Terms of Probability.* Monthly Weather
+  Review 78(1). (The calibration / probabilistic-forecast scoring rule — see LOGIC-COGNITION.md.)
 
 ## Engines and tools (`intentBridgedByReference`)
 
