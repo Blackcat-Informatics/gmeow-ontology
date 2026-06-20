@@ -29,6 +29,7 @@ _EXPECTED_SURFACES = {
     "box-roles",
     "audit",
     "generated",
+    "classic-cross-check",
 }
 
 

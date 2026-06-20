@@ -124,11 +124,15 @@ carries the rest as an artifact.
 | `box-roles` | `box-roles.missing`, `box-roles.invalid` | `error` (term source in `path`) |
 | `audit` | `audit.{ungrounded,contradicted,stale}-*`, `audit.shacl-{error,warning}` | heuristic flags → `warning`; SHACL errors → `error` |
 | `generator` | `generator.{drift,orphan,problem}` | `error`; per-finding `tool` = generator name (covers statement + mapping drift) |
+| `classic-cross-check` | `classic-cross-check/{subsumption,consistency}-divergence`, `…/dl-gap` | native↔oracle (ELK/HermiT/ROBOT) divergence ledger, already a Rust-backed report; `NativeOnly`/`OracleOnly` → `error`, `DlGap` → `note` |
 
-**Deferred** (documented, not yet folded): ROBOT raw-output wrapping (ROBOT is now the non-required
-classic-cross-check oracle, #695); external-tool stderr parsing (`ruff`/`mypy`/`clippy`/`pre-commit`);
-and granular per-check `constitution.*` codes (today the string-only constitution surface uses
-`constitution.error` / `constitution.warning`).
+**Deferred to [#809](https://github.com/Blackcat-Informatics/gmeow-ontology/issues/809)** (the remaining
+GMEOW-owned `make check` surfaces, tracked, not silently dropped): the mapping-compiler
+(`CompileError` / `projection_lint` / SSSOM / overclaim), statement-compiler (`CompileError` /
+round-trip), and logic-compiler (`gmeow_logic` diagnostic dicts) surfaces; external-tool failures
+(`ruff` / `mypy` / `clippy` / `pre-commit`) wrapped with raw output; and granular per-check
+`constitution.*` codes (today the string-only constitution surface uses `constitution.error` /
+`constitution.warning`).
 
 ## SSSOM alignments (`mappings/equivalences.ttl`)
 

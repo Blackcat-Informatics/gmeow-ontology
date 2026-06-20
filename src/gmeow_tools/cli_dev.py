@@ -460,6 +460,17 @@ def _surface_reports() -> list[tuple[str, Callable[[], Any]]]:
             generator.check_all(skip_unchanged=False)
         )
 
+    def _classic_cross_check() -> Any:
+        # The native↔oracle (ELK/HermiT/ROBOT) divergence ledger is already a
+        # Rust-backed DiagnosticsReport (gmeow_logic.build_divergence_ledger →
+        # classic_cross_check.build_report). Folding it carries the classic-oracle
+        # cross-check findings into the bundle. Guarded: it needs the Docker/Java
+        # lane, so on a Docker-less host the fold loop records a visible skip.
+        from gmeow_tools import classic_cross_check as crosscheck
+
+        _passed, _ledger, report = crosscheck.run()
+        return report
+
     return [
         ("alignment", _alignment),
         ("coverage", _coverage),
@@ -469,6 +480,7 @@ def _surface_reports() -> list[tuple[str, Callable[[], Any]]]:
         ("box-roles", _box_roles),
         ("audit", _audit),
         ("generated", _generated),
+        ("classic-cross-check", _classic_cross_check),
     ]
 
 
@@ -479,7 +491,7 @@ def _fold_surfaces(report: Any) -> None:
     fails to run leaves a visible ``feedback.<label>-skipped`` *warning* finding
     rather than aborting the whole bundle. This swallow is correct ONLY because
     ``feedback`` is an artifact-builder, not a gate — one surface erroring must
-    not blind the bundle to the other seven, and the skip is surfaced (fix-or-
+    not blind the bundle to the others, and the skip is surfaced (fix-or-
     document, hide none), NOT a degraded-fallback path. Per-surface hard gating
     stays in each surface's own ``make check`` command; ``feedback``'s process
     exit stays driven solely by the validation result.
