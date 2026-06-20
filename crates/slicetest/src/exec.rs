@@ -8,8 +8,9 @@
 //! so one nextest case reports ALL failing cells in that file (each anchored to
 //! its cell IRI) rather than only the first.
 //!
-//! * Competency questions run over the shared OWL-2-RL-reasoned merged ontology
-//!   ([`crate::reasoned`]).
+//! * Competency questions run over the merged ontology ([`crate::stores`]):
+//!   the asserted graph by default, or its RDFS closure when the question sets
+//!   `gmeow:cqReasoning gmeow:reasoningRdfs`.
 //! * Structural assertions run a SPARQL ASK over the slice module alone, or the
 //!   module plus its `examples/`, per `gmeow:saScope`.
 //! * Example-conformance fixtures validate the bound example against the slice
@@ -27,11 +28,11 @@ use gmeow_validate::store::{build_store, parse_file};
 use gmeow_validate::validate_all::{scoped_overlay_insert, scoped_overlay_remove};
 
 use crate::dsl::{
-    self, CompetencyQuestion, ExampleConformance, ExpectedRow, Outcome, Polarity, Scope,
-    StructuralAssertion,
+    self, CompetencyQuestion, ExampleConformance, ExpectedRow, Outcome, Polarity, ReasoningProfile,
+    Scope, StructuralAssertion,
 };
 use crate::paths;
-use crate::reasoned::reasoned_store;
+use crate::stores::{merged_store, rdfs_closed_store};
 
 /// A canonical (variable-name, term-N-Triples) binding set for one result row,
 /// sorted so row identity is independent of projection/iteration order.
@@ -46,14 +47,26 @@ type CanonRow = Vec<(String, String)>;
 /// Returns `Err(String)` aggregating each failing cell's diagnostic.
 pub fn run_competency_file(path: &Path) -> Result<(), String> {
     let spec = dsl::load_spec(path)?;
-    let store = reasoned_store()?;
-    aggregate(
-        path,
-        "competency",
-        spec.competency
-            .iter()
-            .map(|cq| (cq.iri.as_str(), run_competency_cell(&store, cq))),
-    )
+    // The asserted merged graph is the default lane and is always built once.
+    // The RDFS-closed graph is built lazily — only if some question opts into it
+    // via gmeow:cqReasoning gmeow:reasoningRdfs — and then reused across cells.
+    let merged = merged_store()?;
+    let mut rdfs: Option<Store> = None;
+
+    let mut results: Vec<(&str, Result<(), String>)> = Vec::with_capacity(spec.competency.len());
+    for cq in &spec.competency {
+        let store: &Store = match cq.reasoning {
+            ReasoningProfile::None => &merged,
+            ReasoningProfile::Rdfs => {
+                if rdfs.is_none() {
+                    rdfs = Some(rdfs_closed_store()?);
+                }
+                rdfs.as_ref().expect("rdfs store just built")
+            }
+        };
+        results.push((cq.iri.as_str(), run_competency_cell(store, cq)));
+    }
+    aggregate(path, "competency", results.into_iter())
 }
 
 /// Run every structural assertion in a `structural.ttl` spec file.

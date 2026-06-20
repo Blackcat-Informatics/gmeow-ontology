@@ -48,6 +48,8 @@ pub struct CompetencyQuestion {
     pub exact_rows: bool,
     /// `gmeow:cqExpectRow` — enumerated expected SELECT rows.
     pub expected_rows: Vec<ExpectedRow>,
+    /// `gmeow:cqReasoning` — the entailment lane (defaults to [`ReasoningProfile::None`]).
+    pub reasoning: ReasoningProfile,
     pub rationale: Option<String>,
 }
 
@@ -116,18 +118,31 @@ pub enum Outcome {
     Violates,
 }
 
+/// `gmeow:cqReasoning` value — the entailment lane a competency question runs under.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub enum ReasoningProfile {
+    /// `gmeow:reasoningNone` (the default): the asserted merged graph; SPARQL
+    /// property paths supply transitive subclass/subproperty closure.
+    #[default]
+    None,
+    /// `gmeow:reasoningRdfs`: the merged graph closed under RDFS (domain/range
+    /// typing + type/subclass/subproperty propagation).
+    Rdfs,
+}
+
 // ── Introspection queries ──────────────────────────────────────────────────────
 
 const PREFIX: &str = "PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>\n";
 
 const Q_COMPETENCY: &str = "
-SELECT ?cq ?queryFile ?query ?expectAsk ?rowCount ?exactRows ?rationale WHERE {
+SELECT ?cq ?queryFile ?query ?expectAsk ?rowCount ?exactRows ?reasoning ?rationale WHERE {
   ?cq a gmeow:CompetencyQuestion .
   OPTIONAL { ?cq gmeow:cqQueryFile ?queryFile }
   OPTIONAL { ?cq gmeow:cqQuery ?query }
   OPTIONAL { ?cq gmeow:cqExpectAsk ?expectAsk }
   OPTIONAL { ?cq gmeow:cqExpectRowCount ?rowCount }
   OPTIONAL { ?cq gmeow:cqExactRows ?exactRows }
+  OPTIONAL { ?cq gmeow:cqReasoning ?reasoning }
   OPTIONAL { ?cq gmeow:cqRationale ?rationale }
 }";
 
@@ -194,6 +209,14 @@ fn parse_competency(store: &Store) -> Result<Vec<CompetencyQuestion>, String> {
                 expect_row_count: opt_u64(&sol, "rowCount")?,
                 exact_rows: opt_bool(&sol, "exactRows").unwrap_or(false),
                 expected_rows: Vec::new(),
+                reasoning: match sol.get("reasoning").and_then(term_iri) {
+                    None => ReasoningProfile::None, // default
+                    Some(iri) => match local_name(&iri) {
+                        "reasoningNone" => ReasoningProfile::None,
+                        "reasoningRdfs" => ReasoningProfile::Rdfs,
+                        other => return Err(format!("unknown cqReasoning gmeow:{other}")),
+                    },
+                },
                 rationale: opt_string(&sol, "rationale"),
             },
         );

@@ -18,13 +18,13 @@
 //!
 //! * [`dsl`] — load a spec file into an oxigraph store and SPARQL-introspect its
 //!   cells into typed Rust structs.
-//! * [`reasoned`] — the merged ontology closed under OWL 2 RL, built once and
-//!   shared, against which competency questions run (the same reasoned-graph
-//!   lane `tests/test_competency.py` uses).
+//! * [`stores`] — the merged ontology graph competency questions run over: the
+//!   asserted graph (default) and its RDFS closure (opt-in via
+//!   `gmeow:cqReasoning`). See `docs/TESTING.md` for the design.
 //! * [`exec`] — the three cell executors and their per-file aggregators.
 //! * [`paths`] — `CARGO_MANIFEST_DIR`-anchored path resolution.
 
 pub mod dsl;
 pub mod exec;
 pub mod paths;
-pub mod reasoned;
+pub mod stores;

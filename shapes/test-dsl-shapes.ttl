@@ -53,6 +53,13 @@ gmeow:CompetencyQuestionShape
         sh:severity sh:Violation ;
         sh:message "CompetencyQuestion may have at most one gmeow:cqExactRows (xsd:boolean)"
     ] ;
+    sh:property [
+        sh:path gmeow:cqReasoning ;
+        sh:maxCount 1 ;
+        sh:class gmeow:ReasoningProfile ;
+        sh:severity sh:Violation ;
+        sh:message "CompetencyQuestion may have at most one gmeow:cqReasoning (a gmeow:ReasoningProfile)"
+    ] ;
     sh:sparql [
         sh:severity sh:Violation ;
         sh:message "CompetencyQuestion needs exactly one of gmeow:cqQuery (inline) or gmeow:cqQueryFile (referenced)" ;

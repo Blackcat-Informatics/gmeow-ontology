@@ -14,22 +14,19 @@ path = "src/lib.rs"
 
 [dependencies]
 # oxigraph in-memory Store with RDF 1.2 (same version + features as the rest of
-# the workspace): load slice graphs and run the competency/structural SPARQL.
+# the workspace): load slice graphs, run the competency/structural SPARQL, and
+# compute the RDFS closure (CONSTRUCT rules) for the reasoning opt-in lane.
 oxigraph = { version = "0.5", default-features = false, features = ["rdf-12"] }
-# Store construction (build_store/build_store_from_nt), the SHACL Finding bridge
-# (finding_from_shacl -> shacl.<LocalName>), and the scoped-overlay example path.
+# Store construction (build_store), the SHACL Finding bridge (finding_from_shacl
+# -> shacl.<LocalName>), and the scoped-overlay example-conformance path.
 gmeow-validate = { path = "../validate" }
 # SHACL engine: parse_shapes + validate for the ExampleConformance executor.
 gmeow-shacl = { path = "../shacl" }
-# OWL 2 RL closure (rl_closure) for the reasoned competency graph — the same
-# native primary lane tests/test_competency.py reasons over.
-gmeow-logic = { path = "../logic" }
-# Shared RDF 1.2 kernel: OxigraphStore adapter feeding the merged store into
-# rl_closure.
-gmeow-rdf = { path = "../rdf", features = ["gts", "oxigraph"] }
-# SHA-256 for the content-addressed reasoned-closure disk cache key (parity with
-# the validation cache in gmeow-validate).
-sha2 = "0.10"
+
+# NOTE: deliberately NO gmeow-logic / Nemo dependency. Competency reasoning is
+# RDFS-only (computed natively in oxigraph; see src/stores.rs and docs/TESTING.md),
+# which is seconds, not the ~4-minute OWL 2 RL chase — and keeps Nemo out of this
+# crate's build graph entirely.
 
 [dev-dependencies]
 # File-driven test harness: one nextest case per discovered tests/*.ttl spec

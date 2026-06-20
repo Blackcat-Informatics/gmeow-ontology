@@ -1,0 +1,124 @@
+<!-- SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca> -->
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
+
+# Testing
+
+GMEOW's doctrine is "one canonical source, everything else a generated or
+checked projection". Tests follow the same rule: a slice's behavioural tests
+live in its `tests/` directory **as ontology data** in the test-DSL vocabulary
+(`dsl/tests/vocabulary.ttl`), and a native Rust harness executes them. This is
+faster than per-test Python (oxigraph SPARQL, no interpreter per assertion) and
+keeps tests inspectable and projectable like every other GMEOW term.
+
+This document describes the test-DSL, the native harness, and — in detail — the
+**competency-question reasoning model**, which is the one place the harness makes
+a deliberate cost/fidelity trade-off.
+
+## The two test layers
+
+| Layer | Lives in | Runs under | Covers |
+|---|---|---|---|
+| Declarative slice tests | `slices/**/tests/*.ttl` | `crates/slicetest` (cargo-nextest) | structural invariants, competency questions, example conformance |
+| Bespoke Python tests | `tests/`, `slices/**/tests/test_*.py` | pytest | assertions the declarative form can't express (numeric/temporal logic, generated-artifact checks, dynamic-set sweeps) |
+
+The migration of the repetitive rdflib structural/competency tests into the
+declarative layer is tracked in `dsl/tests/MIGRATION-LEDGER.md`. Nothing is
+silently dropped: every former pytest assertion is either converted (with a
+declarative twin that executes) or retained-with-reason in the ledger.
+
+## The declarative test-DSL
+
+A `tests/*.ttl` spec file holds instances of three cell types. The harness
+discovers files by fixed name (`datatest-stable` glob, one nextest case per
+file) and runs every cell in the file, aggregating per-cell failures.
+
+### `gmeow:CompetencyQuestion` — `tests/competency.ttl`
+
+A SPARQL ASK/SELECT plus its expected outcome. The query is inline
+(`gmeow:cqQuery`) or referenced (`gmeow:cqQueryFile`, **repo-root-relative**).
+An ASK pins `gmeow:cqExpectAsk`; a SELECT pins its rows by full enumeration
+(`gmeow:cqExpectRow` + `gmeow:cqExactRows true`, the preferred maximal-fidelity
+form) or, as an escape hatch, a coarse `gmeow:cqExpectRowCount`. Runs over the
+full **merged ontology** (see *Reasoning* below).
+
+### `gmeow:StructuralAssertion` — `tests/structural.ttl`
+
+A MUST / MUST-NOT (`gmeow:saPolarity`) triple pattern (`gmeow:saPattern`, a
+SPARQL ASK) or SHACL shape (`gmeow:saShape`) over a slice's module graph, or the
+module plus its `examples/` (`gmeow:saScope`, default `scopeModuleAndExamples`).
+No reasoning — these constrain the asserted shape of the graph.
+
+### `gmeow:ExampleConformance` — `tests/example-conformance.ttl`
+
+Binds an example file (`gmeow:exampleFile`, **slice-relative**) to its expected
+validation outcome (`gmeow:expectedOutcome` conforms/violates, with
+`gmeow:expectedViolationCode` in the real `shacl.<ConstraintComponentLocalName>`
+form). The harness validates the example against the slice module + shapes via
+the native SHACL engine (`gmeow_validate`) and compares finding codes. This is
+**slice-scoped** — an example that references cross-slice classes is validated in
+full by `make validate`, not here.
+
+## Competency-question reasoning (the D+C model)
+
+Competency questions ask what the ontology can answer ("what kinds of agent does
+GMEOW model?"). The honest version of that question is what GMEOW **entails**,
+not merely what is written down (CONSTITUTION Principle 7/8). But full
+materialized reasoning is expensive, so the harness offers a tiered opt-in rather
+than paying the maximum cost for every question.
+
+### The lanes
+
+`gmeow:cqReasoning` selects the entailment lane (a `gmeow:ReasoningProfile`);
+omitting it means `gmeow:reasoningNone`.
+
+- **`gmeow:reasoningNone` (default) — the asserted merged graph.**
+  No materialization. SPARQL property paths (`rdfs:subClassOf*`,
+  `rdfs:subPropertyOf*`) still compute transitive closure *at query time*, so a
+  "what kinds of X?" question written with a path operator is answered correctly
+  with a sub-second graph build. Both of the epistemics exemplars use this lane:
+  `agents.rq` uses `rdfs:subClassOf*`, and the 48 contribution roles are directly
+  typed, so neither needs materialized entailment.
+
+- **`gmeow:reasoningRdfs` — the merged graph closed under RDFS.**
+  Opt in when the answer depends on entailment a property path can't express:
+  domain/range typing (`rdfs2`/`rdfs3`), `rdf:type` propagation up the class
+  hierarchy (`rdfs9`), and subclass/subproperty/property propagation
+  (`rdfs5`/`rdfs7`/`rdfs11`). The closure is computed **natively in oxigraph** as
+  SPARQL `CONSTRUCT` rules iterated to a fixpoint (`crates/slicetest/src/stores.rs`)
+  — seconds, not minutes. The harness builds it once per spec file, and only if
+  some question in that file requests it.
+
+### Why not full OWL 2 RL
+
+The native OWL 2 RL closure (`gmeow_logic::reason::rl_closure`, the same chase
+`tests/test_competency.py` pays) takes ~4 minutes over the merged ontology — far
+too slow for a routine test lane, and it pulls the Nemo Datalog engine into the
+harness's build graph. RDFS captures the type-and-subsumption entailments
+competency questions actually need at a tiny fraction of the cost, and
+`crates/slicetest` carries **no `gmeow-logic`/Nemo dependency** as a result.
+
+### Why the default is safe
+
+Reasoning is **monotonic** — the reasoned graph is a superset of the asserted
+graph. So for the positive enumeration/ASK questions competency tests use, the
+asserted default can only ever *under*-answer, never over-answer. An under-answer
+against an enumerated, `cqExactRows`, or `cqExpectRowCount` expectation is a
+set/count mismatch — a **loud test failure**, never a silent wrong-green. A
+question that genuinely needs RDFS entailment fails until it sets
+`gmeow:cqReasoning gmeow:reasoningRdfs`; a question that doesn't need it returns
+the same answer either way. If a future question needs entailment beyond RDFS
+(property chains, `someValuesFrom`, `sameAs`), that is a deliberate extension of
+the `gmeow:ReasoningProfile` axis, not an ad-hoc value.
+
+## Running the tests
+
+```sh
+make slicetest      # the native slice-test harness in isolation
+make rust-test      # the whole Rust workspace (includes the harness)
+make test           # the pytest suite
+make check          # the full local gate (lint, clippy, rust-test, validate,
+                    # reasoning, pytest, compliance report) — Docker/Java-free
+```
+
+The harness automatically discovers any `slices/**/tests/*.ttl` that appears, so
+a new slice's declarative specs light up with no harness changes.
