@@ -26,6 +26,7 @@ from gmeow_tools.config import (
     SHAPES_FILE,
     SLICE_VOCABULARY_FILE,
     STATEMENT_DSL_DIR,
+    TEST_DSL_VOCABULARY_FILE,
 )
 from gmeow_tools.graph import iter_module_files
 from gmeow_tools.i18n_catalog import LOCALIZABLE_PREDICATES
@@ -475,6 +476,10 @@ def _docs_allowlist() -> set[str]:
     # Slice DSL terms (manifest fields) are referenced in the CLI roll-up doc.
     if SLICE_VOCABULARY_FILE.exists():
         allowed.update(_subjects(_parse_ttl(SLICE_VOCABULARY_FILE)))
+    # Test-DSL terms (competency/structural/conformance cells) are referenced in
+    # the docs/TESTING.md examples that explain the slice-test harness.
+    if TEST_DSL_VOCABULARY_FILE.exists():
+        allowed.update(_subjects(_parse_ttl(TEST_DSL_VOCABULARY_FILE)))
     # Retired terms intentionally mentioned in migration/retirement prose.
     allowed.update(_RETIRED_DOCS_TERMS)
     return allowed
