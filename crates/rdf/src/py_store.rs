@@ -52,7 +52,7 @@ use pyo3::types::{PyBytes, PyCapsule, PyDict, PyString};
 
 /// The RDF serialization formats the codebase loads/parses/serializes.
 ///
-/// Mirrors `pyoxigraph.RdfFormat`; the members keep the SCREAMING_SNAKE Python
+/// Mirrors the oxigraph Python `RdfFormat`; the members keep the SCREAMING_SNAKE Python
 /// spelling (`RdfFormat.TURTLE`).
 #[pyclass(name = "RdfFormat", eq, eq_int, from_py_object)]
 #[derive(Clone, Copy, PartialEq, Eq)]
@@ -76,7 +76,7 @@ impl PyRdfFormat {
 }
 
 /// The graph canonicalization algorithms. Mirrors
-/// `pyoxigraph.CanonicalizationAlgorithm`.
+/// the oxigraph Python `CanonicalizationAlgorithm`.
 #[pyclass(name = "CanonicalizationAlgorithm", eq, eq_int, from_py_object)]
 #[derive(Clone, Copy, PartialEq, Eq)]
 #[allow(non_camel_case_types)]
@@ -106,7 +106,7 @@ fn hash_str(value: &str) -> u64 {
     hasher.finish()
 }
 
-/// An IRI node. Mirrors `pyoxigraph.NamedNode`.
+/// An IRI node. Mirrors the oxigraph Python `NamedNode`.
 #[pyclass(name = "NamedNode", frozen, skip_from_py_object)]
 #[derive(Clone)]
 pub struct PyNamedNode {
@@ -146,7 +146,7 @@ impl PyNamedNode {
     }
 }
 
-/// A blank node. Mirrors `pyoxigraph.BlankNode`.
+/// A blank node. Mirrors the oxigraph Python `BlankNode`.
 #[pyclass(name = "BlankNode", frozen, skip_from_py_object)]
 #[derive(Clone)]
 pub struct PyBlankNode {
@@ -186,7 +186,7 @@ impl PyBlankNode {
     }
 }
 
-/// An RDF literal. Mirrors `pyoxigraph.Literal`.
+/// An RDF literal. Mirrors the oxigraph Python `Literal`.
 #[pyclass(name = "Literal", frozen, skip_from_py_object)]
 #[derive(Clone)]
 pub struct PyLiteral {
@@ -231,7 +231,7 @@ impl PyLiteral {
     }
 
     /// The datatype IRI (always present — `xsd:string` for a plain literal,
-    /// `rdf:langString` for a language-tagged one), matching pyoxigraph.
+    /// `rdf:langString` for a language-tagged one), matching the oxigraph Python API.
     #[getter]
     fn datatype(&self) -> PyNamedNode {
         PyNamedNode {
@@ -256,7 +256,7 @@ impl PyLiteral {
     }
 }
 
-/// A quoted triple term (RDF 1.2 / RDF-star). Mirrors `pyoxigraph.Triple`.
+/// A quoted triple term (RDF 1.2 / RDF-star). Mirrors the oxigraph Python `Triple`.
 #[pyclass(name = "Triple", frozen, skip_from_py_object)]
 #[derive(Clone)]
 pub struct PyTriple {
@@ -320,7 +320,7 @@ impl PyTriple {
     }
 }
 
-/// An RDF quad. Mirrors `pyoxigraph.Quad`.
+/// An RDF quad. Mirrors the oxigraph Python `Quad`.
 #[pyclass(name = "Quad", frozen, skip_from_py_object)]
 #[derive(Clone)]
 pub struct PyQuad {
@@ -390,7 +390,7 @@ impl PyQuad {
     }
 }
 
-/// A default-graph marker term. Mirrors `pyoxigraph.DefaultGraph`.
+/// A default-graph marker term. Mirrors the oxigraph Python `DefaultGraph`.
 #[pyclass(name = "DefaultGraph", frozen, skip_from_py_object)]
 #[derive(Clone, Default)]
 pub struct PyDefaultGraph;
@@ -416,7 +416,7 @@ impl PyDefaultGraph {
 }
 
 /// A SPARQL variable, used to key query substitutions. Mirrors
-/// `pyoxigraph.Variable`.
+/// the oxigraph Python `Variable`.
 #[pyclass(name = "Variable", frozen, skip_from_py_object)]
 #[derive(Clone)]
 pub struct PyVariable {
@@ -501,6 +501,10 @@ fn extract_term(obj: &Bound<'_, PyAny>) -> PyResult<Term> {
     ))
 }
 
+/// Coerce a Python term to an RDF 1.2 subject. RDF 1.2 (unlike the obsolete
+/// RDF-star) allows triple terms in the OBJECT position only — a subject is an
+/// IRI or blank node, never a quoted triple — which is exactly oxigraph's
+/// `NamedOrBlankNode`. A `Triple` therefore reaches `extract_term`, not here.
 fn extract_subject(obj: &Bound<'_, PyAny>) -> PyResult<NamedOrBlankNode> {
     if let Ok(n) = obj.cast::<PyNamedNode>() {
         return Ok(NamedOrBlankNode::NamedNode(n.get().inner.clone()));
@@ -509,7 +513,8 @@ fn extract_subject(obj: &Bound<'_, PyAny>) -> PyResult<NamedOrBlankNode> {
         return Ok(NamedOrBlankNode::BlankNode(b.get().inner.clone()));
     }
     Err(PyTypeError::new_err(
-        "a subject must be a NamedNode or BlankNode",
+        "a subject must be a NamedNode or BlankNode \
+         (RDF 1.2 triple terms are object-position only)",
     ))
 }
 
@@ -539,7 +544,7 @@ fn extract_graph_name(obj: Option<&Bound<'_, PyAny>>) -> PyResult<GraphName> {
 
 // ── Query result types ──────────────────────────────────────────────────────────
 
-/// SELECT results, materialized. Mirrors `pyoxigraph.QuerySolutions`.
+/// SELECT results, materialized. Mirrors the oxigraph Python `QuerySolutions`.
 #[pyclass(name = "QuerySolutions")]
 pub struct PyQuerySolutions {
     variables: Vec<Variable>,
@@ -580,7 +585,7 @@ impl PyQuerySolutions {
     }
 }
 
-/// A single SELECT solution row. Mirrors `pyoxigraph.QuerySolution`.
+/// A single SELECT solution row. Mirrors the oxigraph Python `QuerySolution`.
 #[pyclass(name = "QuerySolution")]
 pub struct PyQuerySolution {
     variables: Vec<Variable>,
@@ -591,7 +596,7 @@ pub struct PyQuerySolution {
 impl PyQuerySolution {
     /// Look a binding up by variable name (`str`), `Variable`, or position
     /// (`int`). An unbound variable yields `None`; an unknown name is a
-    /// `KeyError`, matching pyoxigraph.
+    /// `KeyError`, matching the oxigraph Python API.
     fn __getitem__(&self, py: Python<'_>, key: &Bound<'_, PyAny>) -> PyResult<Option<Py<PyAny>>> {
         let index = if let Ok(i) = key.extract::<usize>() {
             if i >= self.row.len() {
@@ -620,7 +625,7 @@ impl PyQuerySolution {
     }
 }
 
-/// CONSTRUCT results, materialized. Mirrors `pyoxigraph.QueryTriples`.
+/// CONSTRUCT results, materialized. Mirrors the oxigraph Python `QueryTriples`.
 #[pyclass(name = "QueryTriples")]
 pub struct PyQueryTriples {
     triples: Vec<Triple>,
@@ -659,7 +664,7 @@ impl PyQueryTriples {
     }
 }
 
-/// An ASK result. Mirrors `pyoxigraph.QueryBoolean`.
+/// An ASK result. Mirrors the oxigraph Python `QueryBoolean`.
 #[pyclass(name = "QueryBoolean")]
 pub struct PyQueryBoolean {
     value: bool,
@@ -686,7 +691,7 @@ impl PyQueryBoolean {
 
 // ── Store ────────────────────────────────────────────────────────────────────────
 
-/// An in-memory RDF 1.2 quad store with SPARQL. Mirrors `pyoxigraph.Store`.
+/// An in-memory RDF 1.2 quad store with SPARQL. Mirrors the oxigraph Python `Store`.
 #[pyclass(name = "Store")]
 pub struct PyStore {
     inner: Store,
@@ -767,7 +772,7 @@ impl PyStore {
     }
 
     /// Dump the whole store (or one graph, via `from_graph`) in `format`. Mirrors
-    /// `pyoxigraph.Store.dump`: when `output` (a file-like with `.write`) is given
+    /// the oxigraph Python `Store.dump`: when `output` (a file-like with `.write`) is given
     /// the bytes are written to it and `None` is returned; otherwise the bytes are
     /// returned directly.
     #[pyo3(signature = (output=None, format=None, *, from_graph=None))]
@@ -817,23 +822,38 @@ impl PyStore {
         Py::new(py, PyQuadIter { quads, pos: 0 })
     }
 
-    /// Internal protocol: a transient capsule borrowing the wrapped oxigraph
-    /// store, consumed immediately by `gmeow_shacl.Shapes.validate_store` so the
-    /// SHACL engine validates this store with no N-Triples round-trip. Keeping
-    /// the capsule alive past `self` is undefined behaviour — do not call from
-    /// Python directly. The capsule name and pointee type match exactly what
-    /// `gmeow_shacl` consumes from `gmeow_validate.ValidationStore`.
-    fn _store_capsule<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyCapsule>> {
-        let addr = &self.inner as *const Store as usize;
-        // SAFETY: the capsule borrows `self.inner`; it must not outlive `self`.
-        PyCapsule::new_with_value(py, addr, c"gmeow-validation-store")
+    /// Internal protocol: a capsule exposing the wrapped oxigraph store by
+    /// address, consumed by `gmeow_shacl.Shapes.validate_store` so the SHACL
+    /// engine validates this store with no N-Triples round-trip. Do not call
+    /// from Python directly. The capsule name and pointee type match exactly
+    /// what `gmeow_shacl` consumes from `gmeow_validate.ValidationStore`.
+    ///
+    /// The capsule's destructor owns a strong reference to `self`, so the store
+    /// is kept alive for the capsule's entire lifetime — the borrow is *enforced*
+    /// rather than merely assumed, closing the use-after-free a stray Python
+    /// reference to the capsule would otherwise open.
+    fn _store_capsule<'py>(slf: &Bound<'py, Self>) -> PyResult<Bound<'py, PyCapsule>> {
+        let py = slf.py();
+        let addr = &slf.borrow().inner as *const Store as usize;
+        // Strong ref to the Python `Store`; dropped (under the GIL) only when the
+        // capsule itself is collected, so `self.inner` cannot dangle beneath it.
+        let keepalive: Py<Self> = slf.clone().unbind();
+        // SAFETY: the capsule's value is the address of `self.inner`, whose
+        // storage is stable for the lifetime of the pyclass instance that
+        // `keepalive` pins. The consumer reads only the value, never the context.
+        PyCapsule::new_with_value_and_destructor(
+            py,
+            addr,
+            c"gmeow-validation-store",
+            move |_addr, _ctx| drop(keepalive),
+        )
     }
 }
 
 // ── Dataset (canonicalization) ───────────────────────────────────────────────────
 
 /// An in-memory quad set supporting RDFC-1.0 canonicalization. Mirrors
-/// `pyoxigraph.Dataset`.
+/// the oxigraph Python `Dataset`.
 #[pyclass(name = "Dataset")]
 pub struct PyDataset {
     inner: Dataset,
@@ -903,7 +923,7 @@ impl PyQuadIter {
 
 // ── Module-level functions ──────────────────────────────────────────────────────
 
-/// Parse RDF bytes/str into a list of `Quad`. Mirrors `pyoxigraph.parse`.
+/// Parse RDF bytes/str into a list of `Quad`. Mirrors the oxigraph Python `parse`.
 ///
 /// Unlike `Store.load`, blank-node labels are preserved verbatim (no renaming),
 /// so canonicalization over the parsed quads is meaningful.
@@ -923,7 +943,7 @@ fn parse(
         .collect()
 }
 
-/// Serialize `QueryTriples` in `format`. Mirrors `pyoxigraph.serialize`: when
+/// Serialize `QueryTriples` in `format`. Mirrors the oxigraph Python `serialize`: when
 /// `output` (a file-like with `.write`) is given the bytes are written to it and
 /// `None` is returned; when `output` is omitted the serialized `bytes` are
 /// returned directly.
@@ -1151,6 +1171,32 @@ mod tests {
             matches!(&quads[0].object, Term::Triple(_)),
             "object must be a quoted triple"
         );
+    }
+
+    #[test]
+    fn rdf12_triple_terms_are_object_position_only() {
+        // RDF 1.2 (unlike obsolete RDF-star) permits quoted triples in the OBJECT
+        // slot only; a subject is always a NamedOrBlankNode. This pins the model
+        // that the Python `extract_subject` and the `_Subject` stub rely on — no
+        // subject-position quoted triples.
+        let inner = Triple::new(
+            NamedNode::new("https://example.org/s").unwrap(),
+            NamedNode::new("https://example.org/p").unwrap(),
+            NamedNode::new("https://example.org/o").unwrap(),
+        );
+        let quad = Quad::new(
+            NamedNode::new("https://example.org/r").unwrap(),
+            NamedNode::new("http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies").unwrap(),
+            Term::Triple(Box::new(inner)),
+            GraphName::DefaultGraph,
+        );
+        assert!(
+            matches!(quad.object, Term::Triple(_)),
+            "a quoted triple is a valid object"
+        );
+        // The subject type itself forbids a quoted triple — the compiler enforces
+        // it, and this asserts the constructed value is a plain node.
+        assert!(matches!(quad.subject, NamedOrBlankNode::NamedNode(_)));
     }
 
     #[test]

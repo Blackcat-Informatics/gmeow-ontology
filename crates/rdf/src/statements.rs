@@ -55,7 +55,7 @@ fn parse_quads(ttl: &str) -> Result<Vec<RdfQuad>, RdfDiagnostic> {
 ///
 /// oxigraph (RDF 1.1) types a bare `"x"` as `xsd:string`; the authored OWL graph
 /// (rdflib) keeps it as a plain literal, and rdflib's isomorphism treats the two
-/// as distinct. Jena and pyoxigraph both emit `xsd:string` literals bare — match
+/// as distinct. Jena and oxigraph both emit `xsd:string` literals bare — match
 /// that so the round-trip proof against the authored OWL holds. Applied
 /// recursively so triple-term components are normalized too.
 fn simplify_term(term: &RdfTerm) -> RdfTerm {
