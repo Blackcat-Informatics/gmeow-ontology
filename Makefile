@@ -24,7 +24,7 @@ NEXTEST_PARTITION_ARG := $(if $(NEXTEST_PARTITION),--partition $(NEXTEST_PARTITI
         diagnostics-build diagnostics-test diagnostics-py \
         native-py rust-test logic-build logic-test logic-py conformance \
         shacl-build shacl-test shacl-py \
-        validate-build validate-test validate-py validate-gts rdf-py clippy
+        validate-build validate-test validate-py validate-gts rdf-py clippy slicetest
 
 help: ## Show this help.
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
@@ -224,6 +224,10 @@ native-py: diagnostics-py logic-py shacl-py validate-py rdf-py ## Build and inst
 rust-test: ## Run the Rust workspace tests.
 	cargo nextest run $(NEXTEST_PARTITION_ARG)
 	cargo test --doc
+
+slicetest: ## Run the gmeow-slicetest harness in isolation (executes the slice-resident test-DSL specs; #784). Already covered by rust-test / check via the workspace run.
+	cargo nextest run -p gmeow-slicetest $(NEXTEST_PARTITION_ARG)
+	cargo test --doc -p gmeow-slicetest
 
 conformance: logic-py ## Run the logic: conformance suite (oracle ≡ engine, Principle 7 gate).
 	$(GMEOW_DEV) conformance

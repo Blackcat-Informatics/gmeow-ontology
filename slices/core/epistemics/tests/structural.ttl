@@ -4,13 +4,13 @@
 # Declarative structural assertions for the epistemics slice — the slice-resident
 # test-DSL twin of the MUST / MUST-NOT invariants formerly hand-written in
 # tests/test_epistemics.py. Authored as gmeow: ontology data so the same
-# annotation discipline and the test harness drive the test, not ad-hoc Python.
+# annotation discipline and the native Rust harness (crates/slicetest, #784)
+# drive the test, not ad-hoc Python. Each assertion runs as a SPARQL ASK over the
+# module graph (gmeow:scopeModule). A positive universal over a fixed term set is
+# a single MUST with a conjunctive pattern (every conjunct must match); a
+# negative universal ("no spine property has X") is a MUST-NOT over a VALUES set.
 #
-# Two keystone invariants of the flat, non-factive doxastic spine:
-#   1. (MUST)     gmeow:knowsThat rdfs:subPropertyOf gmeow:believes — the single
-#                 load-bearing axiom that makes knowing entail believing.
-#   2. (MUST-NOT) gmeow:isTrue must not appear in ANY triple position — the slice
-#                 is deliberately non-factive (no truth bit; CONSTITUTION P12).
+# See dsl/tests/MIGRATION-LEDGER.md for the per-test pytest→DSL mapping.
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/epistemics/tests/> .
@@ -38,3 +38,145 @@ ex:saNoTruthBit a gmeow:StructuralAssertion ;
         { ?s ?p <https://blackcatinformatics.ca/gmeow/isTrue> . }
     }""" ;
     gmeow:saRationale "The no-truth-bit invariant: the epistemics slice is deliberately non-factive (CONSTITUTION Principle 12), so gmeow:isTrue MUST NOT appear in any subject, predicate, or object position. Mirrors test_no_factivity_no_truth_bit in test_epistemics.py." .
+
+# --- 3. Doxastic spine: object properties with Agent domain (MUST hold) -------
+ex:saSpineObjectPropertiesWithAgentDomain a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:believes           a owl:ObjectProperty ; rdfs:domain gmeow:Agent .
+    gmeow:doubts             a owl:ObjectProperty ; rdfs:domain gmeow:Agent .
+    gmeow:suspendsJudgementOn a owl:ObjectProperty ; rdfs:domain gmeow:Agent .
+    gmeow:accepts            a owl:ObjectProperty ; rdfs:domain gmeow:Agent .
+    gmeow:knowsThat          a owl:ObjectProperty ; rdfs:domain gmeow:Agent .
+}""" ;
+    gmeow:saRationale "Every property of the flat doxastic spine (believes, doubts, suspendsJudgementOn, accepts, knowsThat) MUST be an owl:ObjectProperty with rdfs:domain gmeow:Agent. Mirrors test_spine_are_object_properties_with_agent_domain." .
+
+# --- 4. Doxastic spine is open-range: NO rdfs:range (MUST-NOT hold) -----------
+ex:saSpineOpenRange a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    VALUES ?p { gmeow:believes gmeow:doubts gmeow:suspendsJudgementOn gmeow:accepts gmeow:knowsThat }
+    ?p rdfs:range ?r .
+}""" ;
+    gmeow:saRationale "The flat spine is open-range (Principle 13): no spine property — including gmeow:knowsThat, which must smuggle in no factivity range — may declare an rdfs:range. Mirrors test_spine_have_open_range and the range clause of test_no_factivity_no_truth_bit." .
+
+# --- 5. Proposition is a SocialObject (MUST hold) ----------------------------
+ex:saPropositionIsSocialObject a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK { gmeow:Proposition rdfs:subClassOf gmeow:SocialObject . }""" ;
+    gmeow:saRationale "A proposition is a social object — the content an agent takes an attitude toward. Mirrors test_proposition_is_a_social_object." .
+
+# --- 6. Doxastic spine is non-functional (MUST-NOT hold) ----------------------
+ex:saSpineNotFunctional a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    VALUES ?p { gmeow:believes gmeow:doubts gmeow:suspendsJudgementOn gmeow:accepts gmeow:knowsThat }
+    ?p a owl:FunctionalProperty .
+}""" ;
+    gmeow:saRationale "An agent holds many attitudes and contested ones coexist (Principle 9), so no doxastic-spine property may be declared owl:FunctionalProperty (the no-functional-declaration invariant, #559). Mirrors test_spine_properties_are_not_functional." .
+
+# --- 7. DoxasticStandpointClaim ⊑ StandpointClaim (MUST hold) -----------------
+ex:saDoxasticStandpointClaimSubclass a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK { gmeow:DoxasticStandpointClaim rdfs:subClassOf gmeow:StandpointClaim . }""" ;
+    gmeow:saRationale "A doxastic standpoint claim is a kind of standpoint claim (#561). Mirrors test_doxastic_standpoint_claim_is_subclass_of_standpoint_claim." .
+
+# --- 8. claimOfBelief is a functional object property (MUST hold) -------------
+ex:saClaimOfBeliefFunctionalObjectProperty a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:claimOfBelief a owl:ObjectProperty , owl:FunctionalProperty ;
+        rdfs:domain gmeow:DoxasticStandpointClaim ;
+        rdfs:range gmeow:DoxasticState .
+}""" ;
+    gmeow:saRationale "gmeow:claimOfBelief is a functional object property from DoxasticStandpointClaim to DoxasticState (#561). Mirrors test_claim_of_belief_is_functional_object_property." .
+
+# --- 9. justifiedBy: named domain/range, non-functional (MUST/-NOT) ----------
+# (The exact owl:unionOf membership of JustificationSubject/JustificationGround
+#  remains a bespoke pytest check — see the ledger.)
+ex:saJustifiedByDomainRange a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:justifiedBy a owl:ObjectProperty ;
+        rdfs:domain gmeow:JustificationSubject ;
+        rdfs:range gmeow:JustificationGround .
+}""" ;
+    gmeow:saRationale "gmeow:justifiedBy is an object property with the schema-friendly named domain JustificationSubject and range JustificationGround (#561). Mirrors the domain/range clauses of test_justified_by_has_named_domain_and_range." .
+
+ex:saJustifiedByNotFunctional a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:justifiedBy a owl:FunctionalProperty . }""" ;
+    gmeow:saRationale "gmeow:justifiedBy is non-functional — multiple grounds may coexist (Principle 9). Mirrors the non-functional clause of test_justified_by_has_named_domain_and_range." .
+
+# --- 10. defeatedBy ranges over JustificationStatus (MUST hold) ---------------
+ex:saDefeatedByStatusRange a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:defeatedBy a owl:ObjectProperty ; rdfs:range gmeow:JustificationStatus .
+}""" ;
+    gmeow:saRationale "gmeow:defeatedBy is an object property ranging over gmeow:JustificationStatus (#561). Mirrors test_defeated_by_has_status_range." .
+
+# --- 11. JustificationStatus individuals exist (MUST hold) --------------------
+ex:saJustificationStatusIndividuals a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    gmeow:justificationStatusGettier  a gmeow:JustificationStatus .
+    gmeow:justificationStatusDefeated a gmeow:JustificationStatus .
+}""" ;
+    gmeow:saRationale "The seeded justification-status individuals (Gettier, Defeated) MUST be typed gmeow:JustificationStatus (#561). Mirrors test_justification_status_individuals_exist." .
+
+# --- 12. credence vs confidence are distinct (MUST / MUST-NOT) ----------------
+ex:saCredenceDomainDoxasticState a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK { gmeow:credence rdfs:domain gmeow:DoxasticState . }""" ;
+    gmeow:saRationale "credence lives on gmeow:DoxasticState (Principle 6). Mirrors the credence-domain clause of test_credence_and_confidence_are_distinct." .
+
+ex:saConfidenceNotConflatedWithCredence a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    { gmeow:confidence rdfs:domain gmeow:DoxasticState . }
+    UNION
+    { gmeow:credence rdfs:subPropertyOf gmeow:confidence . }
+    UNION
+    { gmeow:confidence rdfs:subPropertyOf gmeow:credence . }
+}""" ;
+    gmeow:saRationale "confidence belongs to the statement layer, not the doxastic state: it must NOT carry domain gmeow:DoxasticState in this slice, and neither credence nor confidence subsumes the other (Principle 6). Mirrors the negative clauses of test_credence_and_confidence_are_distinct." .

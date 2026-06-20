@@ -114,6 +114,13 @@ gmeow:ConformanceOutcome a owl:Class ;
     gmeow:avoidWhen "Avoid minting further outcome individuals; the axis is the closed pair gmeow:conforms / gmeow:violates."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/test-dsl> .
 
+gmeow:ReasoningProfile a owl:Class ;
+    rdfs:label "reasoning profile"@x-gmeow-english ;
+    skos:definition "The entailment lane a competency question is evaluated under: the asserted merged graph alone (gmeow:reasoningNone, the default) or the merged graph closed under RDFS (gmeow:reasoningRdfs). The value vocabulary for gmeow:cqReasoning. Deliberately NOT full OWL 2 RL — that closure is a multi-minute chase; RDFS covers the type/subsumption entailments competency questions need at a fraction of the cost."@x-gmeow-english ;
+    gmeow:useWhen "Use as the value type for gmeow:cqReasoning to declare whether a competency question runs over the asserted graph or its RDFS closure."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid minting further profile individuals casually; the axis is the ordered pair gmeow:reasoningNone / gmeow:reasoningRdfs (a heavier OWL profile would be a deliberate future extension, not an ad-hoc value)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/test-dsl> .
+
 # --------------------------------------------------------------------------- #
 # Enumerated individuals
 # --------------------------------------------------------------------------- #
@@ -146,6 +153,16 @@ gmeow:conforms a gmeow:ConformanceOutcome ;
 gmeow:violates a gmeow:ConformanceOutcome ;
     rdfs:label "violates"@x-gmeow-english ;
     skos:definition "The expected validation outcome is a violation: the counter-example file is expected to be rejected, and gmeow:expectedViolationCode names the specific finding code (`shacl.<FullConstraintComponentLocalName>`) that must be reported."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/test-dsl> .
+
+gmeow:reasoningNone a gmeow:ReasoningProfile ;
+    rdfs:label "reasoning: none"@x-gmeow-english ;
+    skos:definition "Evaluate the competency question over the ASSERTED merged ontology, with no materialized entailment — the default. SPARQL property paths (rdfs:subClassOf*, rdfs:subPropertyOf*) still compute transitive closure at query time, so most 'what kinds of X?' questions are answered correctly at no reasoning cost."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/test-dsl> .
+
+gmeow:reasoningRdfs a gmeow:ReasoningProfile ;
+    rdfs:label "reasoning: RDFS"@x-gmeow-english ;
+    skos:definition "Evaluate the competency question over the merged ontology closed under RDFS — the rdfs2/rdfs3 (domain/range typing), rdfs9 (rdf:type propagation up the class hierarchy), and rdfs5/rdfs7/rdfs11 (subproperty/subclass transitivity and property propagation) rules. Opt into this only when the answer depends on entailment a SPARQL property path cannot express. Computed natively in oxigraph via CONSTRUCT rules iterated to fixpoint — not the OWL 2 RL chase."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/test-dsl> .
 
 # --------------------------------------------------------------------------- #
@@ -214,6 +231,16 @@ gmeow:cqExactRows a owl:DatatypeProperty ;
     skos:example "ex:cq gmeow:cqExpectRow ex:row1 ; gmeow:cqExactRows true ."@x-gmeow-english ;
     gmeow:useWhen "Use true when the enumerated rows are the complete expected result (the maximal-fidelity, preferred form); use false for a contains-check that requires those rows to be present but tolerates others."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid leaving it absent on an enumerated SELECT question when you intend an exact match — make the completeness claim explicit with true."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/test-dsl> .
+
+gmeow:cqReasoning a owl:ObjectProperty ;
+    rdfs:range gmeow:ReasoningProfile ;
+    rdfs:label "competency reasoning profile"@x-gmeow-english ;
+    skos:definition "The entailment lane a competency question is evaluated under (a gmeow:ReasoningProfile). Optional; when omitted the default is gmeow:reasoningNone — the ASSERTED merged ontology, over which SPARQL property paths (rdfs:subClassOf*, rdfs:subPropertyOf*) still supply transitive closure at query time. Set gmeow:reasoningRdfs to evaluate over the RDFS closure of the merged graph for questions whose expected answer is entailed (e.g. a type inferred from a property's rdfs:domain), not asserted."@x-gmeow-english ;
+    skos:example "ex:cq gmeow:cqReasoning gmeow:reasoningRdfs ."@x-gmeow-english ;
+    gmeow:useWhen "Use only when a SELECT/ASK answer depends on RDFS entailment the asserted graph does not carry — domain/range typing, rdf:type propagation up the class hierarchy, or subclass/subproperty transitivity that a property path cannot express in the query itself."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for the common case answerable on the asserted graph: every profile above gmeow:reasoningNone closes the graph first, so omitting it keeps the question on the fast default lane. Reasoning is monotonic, so a question that does NOT need entailment returns the same answer either way."@x-gmeow-english ;
+    gmeow:howToUse "Leave it unset for the default (asserted + property paths); set gmeow:reasoningRdfs to opt the single question into the RDFS-closed graph. The harness builds the closure once per spec file and only when some question requests it."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/test-dsl> .
 
 # --------------------------------------------------------------------------- #
