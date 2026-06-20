@@ -1283,8 +1283,12 @@ fn extract_module(
     Ok(out.into_any().unbind())
 }
 
-#[pymodule]
-fn gmeow_logic(m: &Bound<'_, PyModule>) -> PyResult<()> {
+/// Register the `gmeow-logic` surface on a Python module.
+///
+/// Called by the unified `gmeow_native` cdylib (#630) to populate the
+/// `gmeow_native.logic` submodule; the legacy `import gmeow_logic` name resolves
+/// to that same submodule object via a Python shim.
+pub fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(materialize, m)?)?;
     m.add_function(wrap_pyfunction!(foundation, m)?)?;
     m.add_function(wrap_pyfunction!(explain, m)?)?;

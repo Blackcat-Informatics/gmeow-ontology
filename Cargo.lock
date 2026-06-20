@@ -1385,6 +1385,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "gmeow-native"
+version = "0.1.0"
+dependencies = [
+ "gmeow-diagnostics",
+ "gmeow-logic",
+ "gmeow-rdf",
+ "gmeow-shacl",
+ "gmeow-validate",
+ "pyo3",
+]
+
+[[package]]
 name = "gmeow-rdf"
 version = "0.1.0"
 dependencies = [

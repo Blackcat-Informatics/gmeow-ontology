@@ -299,9 +299,13 @@ fn finding_to_dict(py: Python<'_>, finding: &Finding) -> PyResult<Py<PyAny>> {
     Ok(out.into_any().unbind())
 }
 
-/// Python extension module `gmeow_diagnostics`.
-#[pymodule]
-fn gmeow_diagnostics(m: &Bound<'_, PyModule>) -> PyResult<()> {
+/// Register the `gmeow-diagnostics` surface on a Python module.
+///
+/// Called by the unified `gmeow_native` cdylib (#630) to populate the
+/// `gmeow_native.diagnostics` submodule; the legacy `import gmeow_diagnostics`
+/// name resolves to that same submodule object via a Python shim, so `PyReport`
+/// / `PyFinding` are a single shared type across the whole extension.
+pub fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyFinding>()?;
     m.add_class::<PyReport>()?;
     m.add_function(wrap_pyfunction!(from_legacy, m)?)?;

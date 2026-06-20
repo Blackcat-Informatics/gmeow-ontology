@@ -217,13 +217,13 @@ impl PyValidationReport {
     }
 }
 
-/// Python extension module `gmeow_shacl`.
+/// Register the `gmeow-shacl` surface on a Python module.
 ///
 /// Exposes the legacy `validate(shapes_ttl, data_nt)` function and the reusable
 /// `Shapes` / `ValidationReport` wrappers used by the Rust-native orchestration
-/// in `gmeow-validate`.
-#[pymodule]
-fn gmeow_shacl(m: &Bound<'_, PyModule>) -> PyResult<()> {
+/// in `gmeow-validate`. Called by the unified `gmeow_native` cdylib (#630) to
+/// populate the `gmeow_native.shacl` submodule.
+pub fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(validate, m)?)?;
     m.add_class::<PyShapes>()?;
     m.add_class::<PyValidationReport>()?;

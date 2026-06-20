@@ -752,13 +752,13 @@ fn validate_all_native(
     Ok(out.into_any().unbind())
 }
 
-/// Python extension module `gmeow_validate`.
+/// Register the `gmeow-validate` surface on a Python module.
 ///
 /// Exposes the syntax / sameAs lints (Task 1) plus the structural, naming,
 /// ownership, and declared-term lints (Task 2, #579), and the `LintConfig` type
-/// that carries their typed configuration across the FFI boundary.
-#[pymodule]
-fn gmeow_validate(m: &Bound<'_, PyModule>) -> PyResult<()> {
+/// that carries their typed configuration across the FFI boundary. Called by the
+/// unified `gmeow_native` cdylib (#630) to populate `gmeow_native.validate`.
+pub fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyLintConfig>()?;
     m.add_class::<PySignatureConfig>()?;
     m.add_class::<PyValidateOptions>()?;

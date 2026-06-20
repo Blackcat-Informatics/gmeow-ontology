@@ -42,3 +42,9 @@ pub use model::{
 };
 pub use store::{RdfStore, RdfStoreCapabilities, VecRdfStore};
 pub use turtle::{emit_annotation, emit_quad, emit_reifier, emit_resource, emit_term, rule_iri};
+
+// Re-export the module-registration entrypoint (python feature only) so the
+// unified `gmeow_native` cdylib can populate the `gmeow_native.rdf` submodule
+// (#630). Gated, like `py`/`py_store`, so the kernel rlib stays PyO3-free.
+#[cfg(feature = "python")]
+pub use py::register;

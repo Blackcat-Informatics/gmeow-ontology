@@ -37,6 +37,10 @@ pub mod wellfounded;
 // PyO3 Python bindings.
 pub mod py;
 
+// Re-export the module-registration entrypoint so the unified `gmeow_native`
+// cdylib can populate the `gmeow_native.logic` submodule (#630).
+pub use py::register;
+
 // Nemo reasoner bridge.
 pub mod nemo_engine;
 

@@ -35,3 +35,7 @@ pub mod validate_all;
 
 // PyO3 bindings — the only module that imports pyo3.
 pub mod py;
+
+// Re-export the module-registration entrypoint so the unified `gmeow_native`
+// cdylib can populate the `gmeow_native.validate` submodule (#630).
+pub use py::register;
