@@ -20,27 +20,48 @@ pub fn to_json(report: &Report) -> Result<String, serde_json::Error> {
 /// each result carries `logicalLocations` + `properties` for its GTS wire
 /// coordinates, and each result carries a stable `partialFingerprints` value
 /// derived from the deterministic [`Finding::sort_key`] so re-runs dedupe.
+///
+/// When the report carries a `category` metadata key (set by the Python
+/// diagnostics-output config, #662), the run emits run-level
+/// `automationDetails.id` — the stable grouping key GitHub code-scanning keys
+/// per-category SARIF uploads on. Absent the key, no `automationDetails` is
+/// emitted (so existing single-category uploads are unchanged).
 pub fn to_sarif(report: &Report) -> Result<String, serde_json::Error> {
     let normalized = report.normalized();
     let rules = sarif_rules(&normalized);
     let artifacts = sarif_artifacts(&normalized);
     let results: Vec<Value> = normalized.findings.iter().map(sarif_result).collect();
+    let mut run = json!({
+        "tool": {
+            "driver": {
+                "name": normalized.tool,
+                "informationUri": "https://github.com/Blackcat-Informatics/gmeow-ontology",
+                "rules": rules,
+            }
+        },
+        "artifacts": artifacts,
+        "results": results,
+    });
+    if let Some(category) = sarif_category(&normalized) {
+        run["automationDetails"] = json!({ "id": category });
+    }
     let payload = json!({
         "$schema": "https://json.schemastore.org/sarif-2.1.0.json",
         "version": "2.1.0",
-        "runs": [{
-            "tool": {
-                "driver": {
-                    "name": normalized.tool,
-                    "informationUri": "https://github.com/Blackcat-Informatics/gmeow-ontology",
-                    "rules": rules,
-                }
-            },
-            "artifacts": artifacts,
-            "results": results,
-        }]
+        "runs": [run],
     });
     serde_json::to_string_pretty(&payload)
+}
+
+/// The stable code-scanning category for this report, if set: the `category`
+/// metadata value when it is a non-empty JSON string. Any other shape (absent,
+/// null, non-string, empty) yields `None` so the run omits `automationDetails`.
+fn sarif_category(report: &Report) -> Option<&str> {
+    report
+        .metadata
+        .get("category")
+        .and_then(Value::as_str)
+        .filter(|category| !category.is_empty())
 }
 
 /// Strip the angle brackets oxigraph's N-Triples `Display` wraps around IRIs.
@@ -664,6 +685,31 @@ mod tests {
             value["runs"][0]["artifacts"][0]["location"]["uri"],
             "bundle.gts"
         );
+    }
+
+    #[test]
+    fn sarif_emits_automation_details_id_only_when_category_set() {
+        let mut report = Report::new("validate");
+        report.add_finding(Finding::new(Severity::Error, "x", "boom"));
+
+        // No category metadata -> no automationDetails (existing behavior).
+        let value: Value = serde_json::from_str(&to_sarif(&report).unwrap()).unwrap();
+        assert!(value["runs"][0]["automationDetails"].is_null());
+
+        // A non-empty category string -> run-level automationDetails.id.
+        report
+            .metadata
+            .insert("category".to_owned(), json!("ontology"));
+        let value: Value = serde_json::from_str(&to_sarif(&report).unwrap()).unwrap();
+        assert_eq!(value["runs"][0]["automationDetails"]["id"], "ontology");
+
+        // An empty / non-string category is ignored (omitted, not emitted blank).
+        report.metadata.insert("category".to_owned(), json!(""));
+        let value: Value = serde_json::from_str(&to_sarif(&report).unwrap()).unwrap();
+        assert!(value["runs"][0]["automationDetails"].is_null());
+        report.metadata.insert("category".to_owned(), json!(7));
+        let value: Value = serde_json::from_str(&to_sarif(&report).unwrap()).unwrap();
+        assert!(value["runs"][0]["automationDetails"].is_null());
     }
 
     #[test]

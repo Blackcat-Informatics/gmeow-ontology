@@ -520,15 +520,35 @@ def _fold_surfaces(report: Any) -> None:
 
 @app.command()
 def feedback(
-    output_dir: Path = typer.Option(  # noqa: B008
-        PROJECT_ROOT / "dist",
-        "--output-dir",
-        help="Directory for diagnostics artifacts.",
+    diagnostics_console: str | None = typer.Option(
+        None,
+        "--diagnostics-console",
+        help="Console projection: auto|pretty|text|jsonl|silent "
+        "(env GMEOW_DIAGNOSTICS_CONSOLE).",
     ),
-    stem: str = typer.Option(
-        "gmeow-feedback",
-        "--stem",
-        help="Output filename stem for JSON, SARIF, and HTML artifacts.",
+    diagnostics_artifacts: str | None = typer.Option(
+        None,
+        "--diagnostics-artifacts",
+        help="Artifact files to write: none|all|comma list of json,sarif,html "
+        "(env GMEOW_DIAGNOSTICS_ARTIFACTS).",
+    ),
+    diagnostics_dir: Path | None = typer.Option(  # noqa: B008
+        None,
+        "--diagnostics-dir",
+        help="Output directory (env GMEOW_DIAGNOSTICS_DIR). Defaults under dist/; "
+        "CI category runs land under dist/diagnostics/<category>/.",
+    ),
+    diagnostics_stem: str | None = typer.Option(
+        None,
+        "--diagnostics-stem",
+        help="Output filename stem (env GMEOW_DIAGNOSTICS_STEM; "
+        "default gmeow-feedback).",
+    ),
+    diagnostics_category: str | None = typer.Option(
+        None,
+        "--diagnostics-category",
+        help="Stable category for SARIF metadata and CI code-scanning grouping "
+        "(env GMEOW_DIAGNOSTICS_CATEGORY).",
     ),
     timings: bool = typer.Option(False, "--timings", help="Record validation timings."),
 ) -> None:
@@ -536,24 +556,43 @@ def feedback(
 
     Folds validation, native reason/verify, AND every other migrated ``make
     check`` surface (alignment, coverage, acceptance, wikidata, constitution,
-    box-roles, audit, generator drift) into ONE report, then writes
-    ``<stem>.{json,sarif,html}`` AND the self-describing ``<stem>.gts`` feedback
-    bundle (the findings as queryable RDF plus the SARIF and JSON projections as
-    content-addressed blobs, #654). No flag: one fixed behavior. The canonical
-    ``gmeow.gts`` is never touched.
+    box-roles, audit, generator drift) into ONE report, then projects it to the
+    console (per ``--diagnostics-console``) and writes the selected
+    ``<stem>.{json,sarif,html}`` artifacts (per ``--diagnostics-artifacts``) plus
+    the self-describing ``<stem>.gts`` feedback bundle (the findings as queryable
+    RDF plus the SARIF and JSON projections as content-addressed blobs, #654). The
+    canonical ``gmeow.gts`` is never touched.
+
+    All five ``--diagnostics-*`` knobs mirror ``GMEOW_DIAGNOSTICS_*`` env vars
+    (flag > env > default) so Make and CI set policy once (#662). A
+    ``--diagnostics-category`` rides into the SARIF run as ``automationDetails.id``
+    for per-category GitHub code-scanning grouping, and (off a TTY, with no
+    explicit dir) lands artifacts under ``dist/diagnostics/<category>/``.
 
     The process **exit code stays driven solely by the validation result** — the
     bundle carries every surface's findings as an artifact, but per-surface hard
-    gating lives in each surface's own ``make check`` command, not here.
+    gating lives in each surface's own ``make check`` command, not here. ``silent``
+    / ``none`` change what is shown or written, never the exit code.
     """
+    import json
+
     from gmeow_tools import diagnostics
     from gmeow_tools.diagnostics import (
-        emit_legacy_cli,
+        emit_console,
         report_from_validation_result,
         write_report_artifacts,
     )
+    from gmeow_tools.diagnostics_config import DiagnosticsConfig
     from gmeow_tools.feedback_bundle import build_feedback_bundle
     from gmeow_tools.validate import validate_all
+
+    config = DiagnosticsConfig.resolve(
+        console=diagnostics_console,
+        artifacts=diagnostics_artifacts,
+        directory=diagnostics_dir,
+        stem=diagnostics_stem,
+        category=diagnostics_category,
+    )
 
     result = validate_all(timings=timings)
     report = report_from_validation_result(result, tool="validate")
@@ -566,9 +605,9 @@ def feedback(
         from gmeow_tools import reason as reasoning
 
         report.extend(
-            reasoning.reason_native(output_dir=output_dir, run_box_roles=False)
+            reasoning.reason_native(output_dir=config.directory, run_box_roles=False)
         )
-        report.extend(reasoning.verify_native(output_dir=output_dir))
+        report.extend(reasoning.verify_native(output_dir=config.directory))
     except (ImportError, ValueError, RuntimeError, OSError, FileNotFoundError) as exc:
         report.add(
             diagnostics.finding(
@@ -584,13 +623,25 @@ def feedback(
     # the bundle is the complete picture of the gate, not just validation (#654).
     _fold_surfaces(report)
 
-    emit_legacy_cli(report, err_console)
-    paths = write_report_artifacts(report, output_dir=output_dir, stem=stem)
-    for kind in ("json", "sarif", "html"):
-        console.print(f"[green]wrote[/green] {paths[kind]}")
+    # The stable category rides into the report metadata so the Rust SARIF
+    # renderer can emit run-level automationDetails.id (per-category grouping).
+    report.set_metadata_json("category", json.dumps(config.category))
 
-    # The self-describing feedback bundle: findings RDF + SARIF/JSON blobs.
-    bundle_path = output_dir / f"{stem}.gts"
+    emit_console(report, config, err_console)
+    paths = write_report_artifacts(
+        report,
+        output_dir=config.directory,
+        stem=config.stem,
+        artifacts=config.artifacts,
+    )
+    for kind in ("json", "sarif", "html"):
+        if kind in paths:
+            console.print(f"[green]wrote[/green] {paths[kind]}")
+
+    # The self-describing feedback bundle is the canonical record (findings RDF +
+    # SARIF/JSON blobs), not a selectable projection — always written.
+    config.directory.mkdir(parents=True, exist_ok=True)
+    bundle_path = config.directory / f"{config.stem}.gts"
     bundle_path.write_bytes(build_feedback_bundle(report))
     console.print(f"[green]wrote[/green] {bundle_path}")
 
@@ -598,6 +649,86 @@ def feedback(
         console.print("[green]✓ diagnostics feedback written[/green]")
     else:
         raise _fail(f"✗ {len(result.errors)} error(s)")
+
+
+@app.command(name="external-tool")
+def external_tool_cmd(
+    command: list[str] = typer.Argument(  # noqa: B008
+        ...,
+        help="The external command to run, e.g. `mypy src`. Use `--` to separate "
+        "it from this command's own options.",
+    ),
+    name: str = typer.Option(
+        ...,
+        "--name",
+        help="Stable tool name for the external.<name> finding code (e.g. mypy).",
+    ),
+    diagnostics_console: str | None = typer.Option(
+        None, "--diagnostics-console", help="auto|pretty|text|jsonl|silent."
+    ),
+    diagnostics_artifacts: str | None = typer.Option(
+        None, "--diagnostics-artifacts", help="none|all|comma list of json,sarif,html."
+    ),
+    diagnostics_dir: Path | None = typer.Option(  # noqa: B008
+        None, "--diagnostics-dir", help="Output directory (env GMEOW_DIAGNOSTICS_DIR)."
+    ),
+    diagnostics_stem: str | None = typer.Option(
+        None, "--diagnostics-stem", help="Output filename stem."
+    ),
+    diagnostics_category: str | None = typer.Option(
+        None, "--diagnostics-category", help="Stable code-scanning category."
+    ),
+) -> None:
+    """Run an external gate tool and represent a failure as a canonical finding.
+
+    Wraps a tool GMEOW does not own (pre-commit, mypy, pytest, cargo, clippy,
+    maturin) so its raw log rides the same diagnostics rail — projected to the
+    console and written as the selected ``<stem>.{json,sarif,html}`` artifacts
+    under the resolved (optionally category-scoped) directory (#662). The five
+    ``--diagnostics-*`` knobs and ``GMEOW_DIAGNOSTICS_*`` env vars resolve exactly
+    as for ``feedback``.
+
+    The process **exit code mirrors the wrapped tool**: zero when it succeeds,
+    non-zero when it fails — so a CI gate still fails on the underlying tool while
+    the failure is also captured as a finding. Output config governs projection,
+    never the exit code.
+    """
+    import json
+
+    from gmeow_tools import external_tool
+    from gmeow_tools.diagnostics import emit_console, write_report_artifacts
+    from gmeow_tools.diagnostics_config import DiagnosticsConfig
+
+    config = DiagnosticsConfig.resolve(
+        console=diagnostics_console,
+        artifacts=diagnostics_artifacts,
+        directory=diagnostics_dir,
+        stem=diagnostics_stem,
+        category=diagnostics_category,
+    )
+
+    exit_code, report = external_tool.run_external_tool(name, command)
+    report.set_metadata_json("category", json.dumps(config.category))
+
+    emit_console(report, config, err_console)
+    paths = write_report_artifacts(
+        report,
+        output_dir=config.directory,
+        stem=config.stem,
+        artifacts=config.artifacts,
+    )
+    for kind in ("json", "sarif", "html"):
+        if kind in paths:
+            console.print(f"[green]wrote[/green] {paths[kind]}")
+
+    if report.ok:
+        console.print(f"[green]✓ {name} passed[/green]")
+    else:
+        # Mirror the wrapped tool's exact exit code, not a generic 1, so callers
+        # chaining on $? see the real status. Guard the success codepath: a report
+        # with findings but a 0 exit still fails (use 1).
+        err_console.print(f"[red]✗ {name} failed ({report.error_count} error(s))[/red]")
+        raise typer.Exit(code=exit_code if exit_code != 0 else 1)
 
 
 @app.command(name="constitution-check")
