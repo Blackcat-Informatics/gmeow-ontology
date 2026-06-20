@@ -1215,9 +1215,9 @@ dependencies = [
 
 [[package]]
 name = "gmeow-gts"
-version = "0.9.0"
+version = "0.9.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d1040a5e25bb23907cf628346d0d865fd35373037496b72ae2dbac39109102a2"
+checksum = "1b08e33b7c3d66ab966a0e70b2817203fbbeb74a3dbae3c3ebe7adce8239ea5a"
 dependencies = [
  "aes-gcm",
  "blake3",
@@ -1226,6 +1226,7 @@ dependencies = [
  "filetime",
  "flate2",
  "getrandom 0.2.17",
+ "libc",
  "oxigraph",
  "oxrdf 0.3.3",
  "ruzstd",
@@ -4185,9 +4186,9 @@ checksum = "0b928f33d975fc6ad9f86c8f283853ad26bdd5b10b7f1542aa2fa15e2289105a"
 
 [[package]]
 name = "visual-hashing"
-version = "0.1.1"
+version = "0.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d308a95ec0d00b5067d5909da6dbf3fb4c711a30d5e22272fd7f37b75ffd1d94"
+checksum = "a8e9eb59bd68e7b0c5bc6415de31778046f819d98bea6ea8b2926960743b6314"
 dependencies = [
  "blake3",
 ]
