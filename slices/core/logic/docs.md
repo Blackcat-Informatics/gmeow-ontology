@@ -34,14 +34,15 @@ implemented against rather than only read:
 
 | Document | Genre | Contents |
 | --- | --- | --- |
-| [`design/LOGIC.md`](./design/LOGIC.md) | manifesto | vision, doctrine, lineage, target architecture |
+| [`design/LOGIC.md`](./design/LOGIC.md) | manifesto | vision, doctrine, lineage |
 | [`design/LOGIC-FOUNDATION.md`](./design/LOGIC-FOUNDATION.md) | charter | the `gmeow:logic` upper-ontology charter — the gUFO ⊇ baseline, the criticism ledger, the greenfield feature map, the Ithkuil precision ethos, the four-box organization |
 | [`design/LOGIC-CONTRACT.md`](./design/LOGIC-CONTRACT.md) | configuration | the reasoning contract — the orthogonal facets a reasoning request selects; named profiles as presets; the compatibility matrix |
 | [`design/LOGIC-IR.md`](./design/LOGIC-IR.md) | intermediate representation | the typed, full first-order IR every source compiles into and every projection out of; the per-lowering preservation judgment |
 | [`design/LOGIC-SEMANTICS.md`](./design/LOGIC-SEMANTICS.md) | formal semantics | the unified core, triple-term/assertion rules, the reasoning result, modality, the typed context algebra, decidability |
 | [`design/LOGIC-TRANSACTION.md`](./design/LOGIC-TRANSACTION.md) | state change | Transaction Logic — path semantics, serial conjunction, updates as supersession, the state-change facet |
+| [`design/LOGIC-TELEOLOGY.md`](./design/LOGIC-TELEOLOGY.md) | goal/action layer | goals, intentional modes, structured goal expressions, reified goal evaluation, action schemas, goal decomposition and conflict; the intention → plan → action → transaction-path chain |
+| [`design/LOGIC-COGNITION.md`](./design/LOGIC-COGNITION.md) | cognitive assessment | the multidimensional cognitive-assessment construct — factored dimensions of reasoning quality, reliability, calibration, and metacognitive posture; reasoning quality over the inference modes; reliability over the typed reasoning result |
 | [`design/LOGIC-RUNTIME.md`](./design/LOGIC-RUNTIME.md) | runtime | solver architecture, the materialization–resolution seam, graph versioning, generated artifacts |
-| [`design/LOGIC-MIGRATION.md`](./design/LOGIC-MIGRATION.md) | rollout | the MVP ladder, adapter phases, gates, deprecations, the design risk register |
 | [`design/LOGIC-CONFORMANCE.md`](./design/LOGIC-CONFORMANCE.md) | contract | the conformance corpus and the loss-ledger preservation contract |
 | [`design/LOGIC-REFERENCES.md`](./design/LOGIC-REFERENCES.md) | appendix | external standards, theory, and engines cited — staged for the `metadata/references.ttl` ledger |
 
@@ -72,9 +73,8 @@ implemented against rather than only read:
   concerns. The state-change semantics are in [`design/LOGIC-TRANSACTION.md`](./design/LOGIC-TRANSACTION.md).
 - **The foundational ontology (UFO⁺) is authored in `logic:`.** gUFO is the primary generated
   down-projection; BFO, DOLCE, and SUMO are generated bridge views, not truth-preserving
-  projections. The OntoUML disciplines that formerly lived as external lint become actual axioms
-  when the native solver lands; the lint equivalents survive as projection-conformance tests over
-  the gUFO downcast.
+  projections. The OntoUML disciplines are `logic:` rules the native solver evaluates; their
+  equivalents survive as projection-conformance tests over the gUFO downcast.
 - **A single canonical native solver is the normal development authority.** It runs forward
   materialization and backward goal resolution; the classical OWL tools operate as secondary
   validators for exported subsets, not as the authority.
@@ -147,15 +147,15 @@ from modal possibility: it asks whether a program *can execute*, not whether a p
 in some accessible world. Concurrent Transaction Logic extends the path model to interleaved
 execution, surfacing non-serializable schedules as findings.
 
-## Status
+## Constitutional role
 
-Foundation vocabulary fully minted. The `logic:` namespace and the foundational surface are
-declared as standalone terms. The reasoned core is unchanged because the minted terms carry no
-axioms yet. The OntoUML discipline axioms, the native solver that evaluates them, the full
-generator set, and the matching enforcement gates in
-[`governance/constitution.ttl`](../../../governance/constitution.ttl) land as the native engine
-comes online. Until then, Principle 17 is enforced by design-review practice and surfaces as a
-warning, never silently.
+This slice realizes Constitution **Principle 17**: `logic:` is the canonical reasoning language, and
+OWL, RDFS, SHACL, Datalog, Prolog, N3, SPARQL, and the gUFO/BFO/DOLCE upper ontologies are generated
+lossy projections of it. The `logic:` namespace and the UFO⁺ foundational surface are declared as
+standalone terms that add no axioms to the reasoned core until they pass the formalization lifecycle
+([`design/LOGIC-FOUNDATION.md`](./design/LOGIC-FOUNDATION.md)). The OntoUML disciplines are `logic:`
+rules the native solver evaluates, and the matching enforcement gates live in
+[`governance/constitution.ttl`](../../../governance/constitution.ttl).
 
 ## Terms
 

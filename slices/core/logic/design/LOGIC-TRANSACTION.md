@@ -3,7 +3,7 @@
 
 # GMEOW Logic — Transaction Logic
 
-> Status: canonical target architecture for state-change reasoning. Transaction Logic is the
+> The state-change member of the GMEOW Logic design set. Transaction Logic is the
 > meaning of the **Evolution = transaction-path** facet of the reasoning contract
 > ([`LOGIC-CONTRACT.md`](LOGIC-CONTRACT.md)); it is a value of one orthogonal facet, **not** a
 > separate profile. Member of the GMEOW Logic design set ([`LOGIC.md`](LOGIC.md)). The lineage is
