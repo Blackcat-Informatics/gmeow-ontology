@@ -1,16 +1,28 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: AGPL-3.0-only
-"""Epistemics slice — the keystone entailment and the no-truth-bit invariants.
+"""Epistemics slice — the bespoke checks not expressible in the declarative DSL.
 
-These structural assertions guard the minimal core of the epistemics slice: the
-flat, open-range doxastic spine and the single load-bearing axiom
-``gmeow:knowsThat rdfs:subPropertyOf gmeow:believes``. The slice is deliberately
-non-factive — no ``isTrue`` term, no truth datatype, no factivity axiom — so the
-reasoner never promotes justified-true-belief to knowledge (Principle 12).
+Most of this slice's structural invariants — the keystone entailment
+``knowsThat ⊑ believes``, the no-truth-bit rule, the open-range doxastic spine,
+the justification term shapes — were migrated to slice-resident test-DSL data
+and now run in the native Rust slice-test harness (crates/slicetest, #784):
+
+* ``tests/structural.ttl`` — the MUST / MUST-NOT structural assertions,
+* ``tests/competency.ttl`` — the agent-kind and contribution-role competency
+  questions (also covers the global ``tests/test_competency.py`` versions), and
+* ``tests/example-conformance.ttl`` — the flagship example and the
+  missing-agent counter-example.
+
+See ``dsl/tests/MIGRATION-LEDGER.md`` for the per-test mapping. What remains here
+is the genuinely bespoke residue that the declarative DSL cannot express:
+exact ``owl:unionOf`` set membership, the numeric/temporal suppression
+round-trip over example data, the annotation-completeness sweep over
+dynamically-discovered individuals, and a generated-artifact (SSSOM TSV) check.
 """
 
 from __future__ import annotations
 
+import csv
 from pathlib import Path
 
 from rdflib import Graph, Literal, URIRef
@@ -35,52 +47,6 @@ def _graph() -> Graph:
     return g
 
 
-def test_knows_that_subproperty_of_believes() -> None:
-    """The keystone: knowsThat is a subproperty of believes."""
-    g = _graph()
-    assert (_t("knowsThat"), RDFS.subPropertyOf, _t("believes")) in g
-
-
-def test_spine_are_object_properties_with_agent_domain() -> None:
-    g = _graph()
-    for prop in _SPINE:
-        term = _t(prop)
-        assert (term, RDF.type, OWL.ObjectProperty) in g
-        assert (term, RDFS.domain, _t("Agent")) in g
-
-
-def test_spine_have_open_range() -> None:
-    """The flat spine is open-range (Principle 13) — no rdfs:range asserted."""
-    g = _graph()
-    for prop in _SPINE:
-        assert (_t(prop), RDFS.range, None) not in g
-
-
-def test_proposition_is_a_social_object() -> None:
-    g = _graph()
-    assert (_t("Proposition"), RDFS.subClassOf, _t("SocialObject")) in g
-
-
-def test_spine_properties_are_not_functional() -> None:
-    """The doxastic spine is non-functional — an agent holds many attitudes and
-    contested ones coexist (Principle 9); no spine property is declared
-    owl:FunctionalProperty (the no-functional-declaration invariant, #559)."""
-    g = _graph()
-    for prop in _SPINE:
-        assert (_t(prop), RDF.type, OWL.FunctionalProperty) not in g
-
-
-def test_no_factivity_no_truth_bit() -> None:
-    """No isTrue/truth term in ANY triple position, and knowsThat smuggles in no
-    range/factivity."""
-    g = _graph()
-    is_true = _t("isTrue")
-    assert (is_true, None, None) not in g
-    assert (None, is_true, None) not in g
-    assert (None, None, is_true) not in g
-    assert (_t("knowsThat"), RDFS.range, None) not in g
-
-
 def _union_members(g: Graph, expr: Node) -> set[URIRef]:
     """Return the URIs inside an owl:unionOf class expression, if any.
 
@@ -97,37 +63,18 @@ def _union_members(g: Graph, expr: Node) -> set[URIRef]:
     return {member for member in Collection(g, list_node) if isinstance(member, URIRef)}
 
 
-# ---------------------------------------------------------------------------
-# Issue #561 — Epistemic justification terms (Tasks 1 & 2).
-# ---------------------------------------------------------------------------
+def test_justified_by_union_membership() -> None:
+    """The EXACT owl:unionOf membership of justifiedBy's named domain and range.
 
-
-def test_doxastic_standpoint_claim_is_subclass_of_standpoint_claim() -> None:
+    The ObjectProperty / domain / range / non-functional clauses of the former
+    test_justified_by_has_named_domain_and_range migrated to the declarative
+    ex:saJustifiedByDomainRange and ex:saJustifiedByNotFunctional structural
+    assertions. The exact-set membership of the owl:unionOf class expressions —
+    which the test-DSL's ASK patterns cannot express as "these members and no
+    others" — stays here (Principle 9 keeps justifiedBy non-functional so several
+    grounds may coexist).
+    """
     g = _graph()
-    assert (_t("DoxasticStandpointClaim"), RDFS.subClassOf, _t("StandpointClaim")) in g
-
-
-def test_claim_of_belief_is_functional_object_property() -> None:
-    g = _graph()
-    prop = _t("claimOfBelief")
-    assert (prop, RDF.type, OWL.ObjectProperty) in g
-    assert (prop, RDF.type, OWL.FunctionalProperty) in g
-    assert (prop, RDFS.domain, _t("DoxasticStandpointClaim")) in g
-    assert (prop, RDFS.range, _t("DoxasticState")) in g
-
-
-def test_justified_by_has_named_domain_and_range() -> None:
-    g = _graph()
-    prop = _t("justifiedBy")
-    assert (prop, RDF.type, OWL.ObjectProperty) in g
-
-    # Domain/range are now schema-friendly named classes instead of blank unions.
-    assert (prop, RDFS.domain, _t("JustificationSubject")) in g
-    assert (prop, RDFS.range, _t("JustificationGround")) in g
-
-    # justifiedBy is non-functional — multiple grounds may coexist (Principle 9).
-    assert (prop, RDF.type, OWL.FunctionalProperty) not in g
-
     subject_union = _union_members(g, _t("JustificationSubject"))
     assert subject_union == {_t("DoxasticState"), _t("StandpointClaim")}
 
@@ -135,21 +82,14 @@ def test_justified_by_has_named_domain_and_range() -> None:
     assert ground_union == {_t("EvidenceSpan"), _t("Attestation"), _t("DoxasticState")}
 
 
-def test_defeated_by_has_status_range() -> None:
-    g = _graph()
-    prop = _t("defeatedBy")
-    assert (prop, RDF.type, OWL.ObjectProperty) in g
-    assert (prop, RDFS.range, _t("JustificationStatus")) in g
-
-
-def test_justification_status_individuals_exist() -> None:
-    g = _graph()
-    for name in ("justificationStatusGettier", "justificationStatusDefeated"):
-        assert (_t(name), RDF.type, _t("JustificationStatus")) in g
-
-
 def test_justification_terms_are_annotated() -> None:
-    """Annotation-completeness for the new #561 terms (Principle 8)."""
+    """Annotation-completeness for the #561 terms (Principle 8).
+
+    Retained in pytest: the sweep over *dynamically discovered* JustificationStatus
+    individuals (g.subjects(...)) is a universal over an open set the declarative
+    ASK form does not express; it also backstops the make-validate annotation
+    contract for these specific terms.
+    """
     g = _graph()
     for name in (
         "DoxasticStandpointClaim",
@@ -172,7 +112,7 @@ def test_justification_terms_are_annotated() -> None:
 
 
 def test_every_term_is_annotated() -> None:
-    """Annotation-completeness for the slice's own terms (Principle 8)."""
+    """Annotation-completeness for the slice's own core terms (Principle 8)."""
     g = _graph()
     for name in ("Proposition", *_SPINE):
         term = _t(name)
@@ -181,29 +121,26 @@ def test_every_term_is_annotated() -> None:
         assert (term, RDFS.isDefinedBy, None) in g
 
 
-def test_credence_and_confidence_are_distinct() -> None:
-    """credence lives on DoxasticState; confidence belongs to the statement layer.
+def test_flagship_example_parses() -> None:
+    """The flagship epistemic ledger is valid Turtle.
 
-    They are separate terms, neither subsumes the other, and only credence is
-    declared with domain gmeow:DoxasticState in this slice (Principle 6).
+    Retained: the flagship references cross-slice classes, so the harness's
+    slice-scoped ExampleConformance cannot validate it (it would emit
+    shacl.ClassConstraintComponent for the unresolved cross-slice sh:class
+    targets); `make validate` validates it in full against the merged ontology.
     """
-    g = _graph()
-    credence = _t("credence")
-    confidence = _t("confidence")
-    assert credence != confidence
-    assert (credence, RDFS.domain, _t("DoxasticState")) in g
-    assert (confidence, RDFS.domain, _t("DoxasticState")) not in g
-    assert (credence, RDFS.subPropertyOf, confidence) not in g
-    assert (confidence, RDFS.subPropertyOf, credence) not in g
+    g = Graph()
+    flagship = _MODULE.parent / "examples" / "flagship-epistemic-ledger.ttl"
+    g.parse(flagship, format="turtle")
+    assert len(g) > 0
 
 
 def test_suppression_round_trip() -> None:
     """The flagship example retains superseded states and suppresses the tenure.
 
-    A defeater closes the original tenure (endedAtTime) and marks it
-    gmeow:displayable false, while the revised tenure stays open.  Both the
-    original and revised DoxasticState individuals remain in the ledger
-    (Principle 10); the original credence exceeds the revised one.
+    Bespoke: a numeric credence comparison (original > revised) and temporal
+    tenure navigation (endedAtTime, displayable) that the declarative ASK form
+    does not express.
     """
     g = Graph()
     flagship = _MODULE.parent / "examples" / "flagship-epistemic-ledger.ttl"
@@ -247,9 +184,11 @@ def test_suppression_round_trip() -> None:
 
 
 def test_epistemics_mapping_set_exists_and_has_expected_rows() -> None:
-    """The generated SSSOM mapping set for epistemics contains expected subjects."""
-    import csv
+    """The generated SSSOM mapping set for epistemics contains expected subjects.
 
+    Bespoke: reads a GENERATED artifact (a TSV outside the ontology graph), which
+    the graph-oriented test-DSL does not address.
+    """
     mapping = (
         _MODULE.parents[3] / "generated" / "mappings" / "gmeow-epistemics.sssom.tsv"
     )
@@ -270,11 +209,3 @@ def test_epistemics_mapping_set_exists_and_has_expected_rows() -> None:
     assert expected.issubset(subjects), (
         f"Missing subjects in mapping: {expected - subjects}"
     )
-
-
-def test_flagship_example_parses() -> None:
-    """The flagship epistemic ledger is valid Turtle."""
-    g = Graph()
-    flagship = _MODULE.parent / "examples" / "flagship-epistemic-ledger.ttl"
-    g.parse(flagship, format="turtle")
-    assert len(g) > 0

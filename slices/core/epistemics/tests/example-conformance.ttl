@@ -34,3 +34,10 @@ ex:ecDoxasticStateMissingAgent a gmeow:ExampleConformance ;
     gmeow:expectedOutcome gmeow:violates ;
     gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
     gmeow:conformanceRationale "The counter-example declares a gmeow:DoxasticState with no gmeow:epistemicAgent. gmeow:DoxasticStateShape requires sh:minCount 1 on gmeow:epistemicAgent, so validation MUST emit shacl.MinCountConstraintComponent." .
+
+# NOTE: the flagship-epistemic-ledger example is NOT pinned here. The harness's
+# ExampleConformance check is slice-SCOPED (module + slice shapes), and the
+# flagship references cross-slice classes whose sh:class targets are unresolved
+# in that narrow scope (it emits shacl.ClassConstraintComponent). It is validated
+# in full by `make validate` against the merged ontology, and its parse + content
+# are covered by test_flagship_example_parses / test_suppression_round_trip.

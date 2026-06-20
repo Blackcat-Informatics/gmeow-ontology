@@ -404,19 +404,24 @@ mod tests {
             .iter()
             .find(|c| c.iri.ends_with("cqContributionRoles"))
             .expect("cqContributionRoles present");
-        assert_eq!(roles.expect_row_count, Some(48));
-        assert_eq!(
-            roles.expected_rows.len(),
-            2,
-            "two sample rows pre-migration"
-        );
+        // T3 finished the enumeration: the coarse row-count escape hatch is gone,
+        // every one of the 48 roles is pinned, and cqExactRows is set.
+        assert_eq!(roles.expect_row_count, None);
+        assert!(roles.exact_rows);
+        assert_eq!(roles.expected_rows.len(), 48, "all 48 roles enumerated");
     }
 
     #[test]
     fn parses_structural_exemplars() {
         let spec = load_spec(&epistemics_tests_dir().join("structural.ttl"))
             .expect("structural.ttl must parse");
-        assert_eq!(spec.structural.len(), 2);
+        // The T3 migration expanded the two T2 keystones to the full set of
+        // module invariants lifted from test_epistemics.py.
+        assert!(
+            spec.structural.len() >= 13,
+            "the migrated structural invariants are present, got {}",
+            spec.structural.len()
+        );
 
         let must = spec
             .structural
@@ -433,6 +438,14 @@ mod tests {
             .find(|s| s.iri.ends_with("saNoTruthBit"))
             .expect("no-truth-bit present");
         assert_eq!(must_not.polarity, Polarity::MustNot);
+
+        // A migrated MUST-NOT over a VALUES set (the open-range invariant) parses.
+        let open_range = spec
+            .structural
+            .iter()
+            .find(|s| s.iri.ends_with("saSpineOpenRange"))
+            .expect("migrated spine-open-range present");
+        assert_eq!(open_range.polarity, Polarity::MustNot);
     }
 
     #[test]
