@@ -43,11 +43,17 @@ pub fn slices_root() -> PathBuf {
 /// A spec lives at `.../slices/<group>/<name>/tests/<file>.ttl`, so the slice
 /// directory is the spec file's grandparent (`tests/` -> `<name>/`).
 pub fn slice_dir(test_file: &Path) -> PathBuf {
-    test_file
+    let dir = test_file
         .parent() // .../<name>/tests
-        .and_then(Path::parent) // .../<name>
-        .unwrap_or(test_file)
-        .to_path_buf()
+        .and_then(Path::parent); // .../<name>
+                                 // The datatest-stable harness only ever feeds paths matching
+                                 // `.../tests/<file>.ttl`, so a missing grandparent means a caller bug.
+    debug_assert!(
+        dir.is_some(),
+        "slice_dir expects .../<name>/tests/<file>.ttl, got {}",
+        test_file.display()
+    );
+    dir.unwrap_or(test_file).to_path_buf()
 }
 
 /// The slice's canonical module graph (`<slice>/module.ttl`).

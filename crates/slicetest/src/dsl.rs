@@ -269,12 +269,18 @@ fn parse_competency(store: &Store) -> Result<Vec<CompetencyQuestion>, String> {
             .push(ExpectedCell { var, value });
     }
     for (cq, rows) in rows_by_cq {
-        if let Some(question) = by_iri.get_mut(&cq) {
-            question.expected_rows = rows
-                .into_values()
-                .map(|cells| ExpectedRow { cells })
-                .collect();
-        }
+        // A gmeow:cqExpectRow whose ?cq matches no CompetencyQuestion is a spec
+        // typo — fail loudly rather than silently dropping the rows, which could
+        // leave a subset-check question passing against an empty expectation.
+        let Some(question) = by_iri.get_mut(&cq) else {
+            return Err(format!(
+                "gmeow:cqExpectRow references unknown competency question {cq}"
+            ));
+        };
+        question.expected_rows = rows
+            .into_values()
+            .map(|cells| ExpectedRow { cells })
+            .collect();
     }
 
     Ok(by_iri.into_values().collect())
@@ -581,5 +587,23 @@ mod tests {
         let err = parse_competency(&store_from_turtle(ttl))
             .expect_err("malformed boolean must hard-fail");
         assert!(err.contains("xsd:boolean"), "unexpected error: {err}");
+    }
+
+    #[test]
+    fn rejects_expected_rows_for_unknown_competency_question() {
+        // A gmeow:cqExpectRow whose ?cq matches no CompetencyQuestion is a spec
+        // typo; the rows must not be silently dropped.
+        let ttl = "\
+            @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
+            @prefix ex: <https://example.org/> .\n\
+            ex:cqReal a gmeow:CompetencyQuestion ;\n\
+                gmeow:cqQueryFile \"q.rq\" .\n\
+            ex:cqTypo gmeow:cqExpectRow [ gmeow:rowCell [ gmeow:cellVar \"x\" ; gmeow:cellValueLiteral \"v\" ] ] .\n";
+        let err = parse_competency(&store_from_turtle(ttl))
+            .expect_err("orphan expected rows must hard-fail");
+        assert!(
+            err.contains("unknown competency question"),
+            "unexpected error: {err}"
+        );
     }
 }
