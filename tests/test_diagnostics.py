@@ -4,9 +4,13 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass, field
+from html.parser import HTMLParser
+from io import StringIO
 from pathlib import Path
+from typing import Any, cast
 
 import gmeow_diagnostics
+from rich.console import Console
 
 from gmeow_tools import diagnostics
 
@@ -39,6 +43,47 @@ def test_native_report_renders_json_sarif_and_html() -> None:
     assert sarif["version"] == "2.1.0"
     assert sarif["runs"][0]["results"][0]["ruleId"] == "validate.example"
     assert "synthetic warning" in html
+
+
+class _TableParser(HTMLParser):
+    """Counts <tr>/<table> tags so HTML validity is checked structurally."""
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.tr_open = 0
+        self.tr_close = 0
+        self.table_open = 0
+        self.table_close = 0
+
+    def handle_starttag(self, tag: str, attrs: object) -> None:
+        if tag == "tr":
+            self.tr_open += 1
+        elif tag == "table":
+            self.table_open += 1
+
+    def handle_endtag(self, tag: str) -> None:
+        if tag == "tr":
+            self.tr_close += 1
+        elif tag == "table":
+            self.table_close += 1
+
+
+def test_html_is_well_formed_with_one_row_per_finding() -> None:
+    # Criterion #11 asks for HTML *validity*, not just substring presence: parse
+    # the rendered HTML and assert balanced table markup with exactly one data
+    # row per finding (plus the header row).
+    report = gmeow_diagnostics.Report("validate")
+    for i in range(3):
+        report.add(gmeow_diagnostics.Finding("error", f"code.{i}", f"message {i}"))
+
+    parser = _TableParser()
+    parser.feed(report.to_html())
+
+    # Balanced <table> and <tr> tags (well-formed markup).
+    assert parser.table_open == parser.table_close == 1
+    assert parser.tr_open == parser.tr_close
+    # One header row + one row per finding.
+    assert parser.tr_open == 1 + report.finding_count
 
 
 def test_validation_result_facade_preserves_legacy_lists() -> None:
@@ -175,3 +220,91 @@ def test_write_report_artifacts(tmp_path: Path) -> None:
     assert json.loads(paths["json"].read_text(encoding="utf-8"))["tool"] == "validate"
     assert json.loads(paths["sarif"].read_text(encoding="utf-8"))["version"] == "2.1.0"
     assert "synthetic warning" in paths["html"].read_text(encoding="utf-8")
+
+
+def _two_finding_report() -> Any:
+    report = diagnostics.report("validate")
+    report.add(diagnostics.finding(severity="error", code="b.err", message="boom"))
+    report.add(
+        diagnostics.finding(severity="warning", code="a.warn", message="careful")
+    )
+    return report
+
+
+def test_write_report_artifacts_selection_writes_only_requested(tmp_path: Path) -> None:
+    report = _two_finding_report()
+
+    paths = diagnostics.write_report_artifacts(
+        report, output_dir=tmp_path, stem="feedback", artifacts={"json"}
+    )
+
+    assert set(paths) == {"json"}
+    assert sorted(p.name for p in tmp_path.iterdir()) == ["feedback.json"]
+
+
+def test_write_report_artifacts_none_selection_writes_nothing(tmp_path: Path) -> None:
+    report = _two_finding_report()
+
+    paths = diagnostics.write_report_artifacts(
+        report, output_dir=tmp_path, stem="feedback", artifacts=frozenset()
+    )
+
+    assert paths == {}
+    assert list(tmp_path.iterdir()) == []
+
+
+def test_write_report_artifacts_is_byte_identical_on_repeat(tmp_path: Path) -> None:
+    report = _two_finding_report()
+
+    first = diagnostics.write_report_artifacts(
+        report, output_dir=tmp_path, stem="feedback"
+    )
+    digest_one = {k: v.read_bytes() for k, v in first.items()}
+    second = diagnostics.write_report_artifacts(
+        report, output_dir=tmp_path, stem="feedback"
+    )
+    digest_two = {k: v.read_bytes() for k, v in second.items()}
+
+    assert digest_one == digest_two
+
+
+def test_emit_console_silent_prints_nothing() -> None:
+    from gmeow_tools.diagnostics_config import DiagnosticsConfig
+
+    config = DiagnosticsConfig.resolve(console="silent", is_tty=False)
+    console = Console(file=StringIO(), force_terminal=False)
+    diagnostics.emit_console(_two_finding_report(), config, console)
+
+    assert cast(StringIO, console.file).getvalue() == ""
+
+
+def test_emit_console_text_matches_render_text() -> None:
+    from gmeow_tools.diagnostics_config import DiagnosticsConfig
+
+    report = _two_finding_report()
+    config = DiagnosticsConfig.resolve(console="text", is_tty=False)
+    console = Console(file=StringIO(), force_terminal=False, width=200)
+    diagnostics.emit_console(report, config, console)
+
+    rendered = cast(StringIO, console.file).getvalue()
+    assert (
+        report.render_text().strip() in rendered.strip() or report.render_text() == ""
+    )
+
+
+def test_emit_console_jsonl_is_one_valid_json_object_per_finding() -> None:
+    from gmeow_tools.diagnostics_config import DiagnosticsConfig
+
+    report = _two_finding_report()
+    config = DiagnosticsConfig.resolve(console="jsonl", is_tty=False)
+    console = Console(file=StringIO(), force_terminal=False, width=10_000)
+    diagnostics.emit_console(report, config, console)
+
+    lines = [
+        ln for ln in cast(StringIO, console.file).getvalue().splitlines() if ln.strip()
+    ]
+    parsed = [json.loads(ln) for ln in lines]
+    # One object per finding, ordered exactly as the canonical to_json projection.
+    canonical = json.loads(report.to_json())["findings"]
+    assert len(parsed) == len(canonical)
+    assert [item["code"] for item in parsed] == [item["code"] for item in canonical]

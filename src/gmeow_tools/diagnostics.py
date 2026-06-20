@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import json
-from collections.abc import Mapping, Sequence
+from collections.abc import Collection, Mapping, Sequence
 from pathlib import Path
 from typing import Any, cast
 
@@ -11,6 +11,7 @@ import gmeow_diagnostics
 from rich.console import Console
 
 from gmeow_tools.config import PROJECT_ROOT
+from gmeow_tools.diagnostics_config import ConsoleMode, DiagnosticsConfig
 
 DiagnosticsFinding = Any
 DiagnosticsReport = Any
@@ -118,11 +119,56 @@ def report_from_validation_result(
 
 
 def emit_legacy_cli(report_obj: DiagnosticsReport, err_console: Console) -> None:
-    """Print warnings and errors in the existing CLI style."""
+    """Print warnings and errors in the existing CLI style (the ``pretty`` mode)."""
     for warning in list(report_obj.warnings):
         err_console.print(f"[yellow]warning[/yellow] {warning}")
     for error in list(report_obj.errors):
         err_console.print(f"[red]error[/red] {error}")
+
+
+def _findings_as_jsonl(report_obj: DiagnosticsReport) -> list[str]:
+    """The report's findings as compact one-JSON-object-per-line strings.
+
+    Sourced from the Rust-canonical ``report.to_json()`` (already normalized and
+    ordered), not re-serialized field-by-field in Python — so JSONL is a faithful
+    line-framing of the canonical projection and stays deterministic.
+    """
+    payload = json.loads(report_obj.to_json())
+    return [
+        json.dumps(item, sort_keys=True, separators=(",", ":"))
+        for item in payload.get("findings", [])
+    ]
+
+
+def emit_console(
+    report_obj: DiagnosticsReport,
+    config: DiagnosticsConfig,
+    err_console: Console,
+) -> None:
+    """Project a report to the console per the resolved console mode (#662).
+
+    ``auto`` is already collapsed to a concrete mode during
+    :meth:`DiagnosticsConfig.resolve`, so this only ever dispatches on
+    pretty/text/jsonl/silent. ``silent`` prints nothing; an unhandled mode is a
+    hard error (no silent fallback). Text/JSONL are printed with Rich markup and
+    highlighting off so payload characters are emitted verbatim.
+    """
+    mode = config.console
+    if mode is ConsoleMode.SILENT:
+        return
+    if mode is ConsoleMode.PRETTY:
+        emit_legacy_cli(report_obj, err_console)
+        return
+    if mode is ConsoleMode.TEXT:
+        text = report_obj.render_text()
+        if text:
+            err_console.print(text, markup=False, highlight=False)
+        return
+    if mode is ConsoleMode.JSONL:
+        for line in _findings_as_jsonl(report_obj):
+            err_console.print(line, markup=False, highlight=False)
+        return
+    raise ValueError(f"unhandled console mode: {mode}")
 
 
 def write_report_artifacts(
@@ -130,10 +176,28 @@ def write_report_artifacts(
     *,
     output_dir: Path = PROJECT_ROOT / "dist",
     stem: str = "gmeow-feedback",
+    artifacts: Collection[str] | None = None,
 ) -> dict[str, Path]:
-    """Write JSON, SARIF, and HTML artifacts for a diagnostics report."""
-    raw_paths = cast(
-        Mapping[str, str],
-        report_obj.write_artifacts(str(output_dir), stem),
-    )
+    """Write the selected diagnostics artifacts for a report.
+
+    ``artifacts`` selects which projections to write (#662). ``None`` is the
+    maximal default — all of JSON, SARIF, and HTML — preserving the behavior
+    every existing caller relies on. An empty selection writes nothing (and
+    deletes nothing), returning ``{}``. The Rust writer keeps its fixed
+    json/sarif/html order regardless of the selection's order, so output is
+    deterministic.
+    """
+    if artifacts is not None:
+        kinds = sorted(artifacts)
+        if not kinds:
+            return {}
+        raw_paths = cast(
+            Mapping[str, str],
+            report_obj.write_artifacts(str(output_dir), stem, kinds),
+        )
+    else:
+        raw_paths = cast(
+            Mapping[str, str],
+            report_obj.write_artifacts(str(output_dir), stem),
+        )
     return {kind: Path(path) for kind, path in raw_paths.items()}
