@@ -1,0 +1,36 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Declarative example-conformance fixtures for the epistemics slice — the
+# test-DSL twin of "this example must validate, that counter-example must be
+# rejected with THIS code". Both gmeow:exampleFile paths are SLICE-RELATIVE
+# (resolved against slices/core/epistemics/, not the repo root).
+#
+# The pair pins the gmeow:DoxasticStateShape cardinality constraint
+# (gmeow:epistemicAgent, sh:minCount 1):
+#   * the conforming example supplies the agent and validates clean;
+#   * the counter-example omits it and MUST be rejected with
+#     shacl.MinCountConstraintComponent.
+#
+# The expectedViolationCode string was confirmed two ways: (1) by running the
+# native SHACL validator on the counter-example merged with the module + slice
+# shapes — only the epistemicAgent minCount-1 constraint fires; (2) against
+# crates/validate/src/findings.rs (finding_from_shacl builds
+# "shacl.<ConstraintComponentLocalName>"; the unit test at line 221 pins a
+# MinCount violation to exactly "shacl.MinCountConstraintComponent").
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/epistemics/tests/> .
+
+# --- Conforming: the justification-and-defeat worked example -----------------
+ex:ecJustificationConforms a gmeow:ExampleConformance ;
+    gmeow:exampleFile "examples/justification-and-defeat.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "The justification-and-defeat worked example populates every DoxasticState with a gmeow:epistemicAgent, gmeow:doxasticContent, and gmeow:doxasticClaim, so it satisfies gmeow:DoxasticStateShape and validates with no findings." .
+
+# --- Violating: a DoxasticState missing its epistemicAgent -------------------
+ex:ecDoxasticStateMissingAgent a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/doxastic-state-missing-agent.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example declares a gmeow:DoxasticState with no gmeow:epistemicAgent. gmeow:DoxasticStateShape requires sh:minCount 1 on gmeow:epistemicAgent, so validation MUST emit shacl.MinCountConstraintComponent." .
