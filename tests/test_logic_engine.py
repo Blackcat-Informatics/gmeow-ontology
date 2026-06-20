@@ -1,13 +1,22 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: AGPL-3.0-only
-"""Tests for the PyO3 gmeow_logic.materialize binding (issue #499, Task 4).
+"""FFI-contract smoke tests for the PyO3 ``gmeow_logic.materialize`` binding.
 
-Covers:
-* AC#2 — round-trip: every input quad comes back with the correct world and
-  all derivation metadata fields present and well-typed.
-* AC#4 — empty-case oracle parity: materialize on empty input → empty result,
-  and the Python oracle (gmeow_tools.logic_frontend + LogicProgram) also
-  produces an empty canonical output for empty logic source.
+The materialize **engine semantics** — round-trip, per-world mapping, world
+isolation, real provenance (``source_quad_ids`` / ``rule_iri`` / the
+``logic:assert`` sentinel), the empty/whitespace short-circuit, and transitive
+derivation — are pinned natively in
+``crates/logic/src/materialize.rs`` (the ``materialize_core`` ``#[test]`` module,
+issue #786 / T5). They no longer run through Python.
+
+What remains here is intentionally thin:
+
+* one **FFI-marshalling smoke** proving the binding marshals each ``DerivedQuad``
+  into a Python ``dict`` with the full seam field set (the binding's actual job),
+  and
+* the **empty-case oracle parity** check, which exercises the *Python* oracle
+  (``gmeow_tools.logic_frontend`` / ``logic_ir``) rather than the FFI, so it is
+  not subsumed by the native tests.
 
 The native extension is required. Missing ``gmeow_logic`` is a test-environment
 failure, not a skip.
@@ -22,7 +31,6 @@ from tests._required_native import require_gmeow_logic
 gmeow_logic = require_gmeow_logic()
 
 # ── Fixtures ──────────────────────────────────────────────────────────────────
-
 
 # N-Quads covering two distinct named-graph worlds.
 # Each line is a quad: <subject> <predicate> <object> <graph> .
@@ -43,14 +51,7 @@ _TWO_WORLD_NQUADS = (
     f"{_S3} {_P_TYPE} {_O_BAR} {_W_BETA} .\n"
 )
 
-_EXPECTED_SUBJECTS = {
-    "<http://example.org/s/1>",
-    "<http://example.org/s/2>",
-    "<http://example.org/s/3>",
-}
-
-_EXPECTED_WORLDS = {"http://world/Alpha", "http://world/Beta"}
-
+# The full set of seam fields the binding must marshal into every result dict.
 _REQUIRED_META_FIELDS = {
     "graph",
     "subject",
@@ -65,123 +66,31 @@ _REQUIRED_META_FIELDS = {
 }
 
 
-# ── AC#2: round-trip with derivation metadata ────────────────────────────────
+# ── FFI-marshalling smoke ─────────────────────────────────────────────────────
 
 
-def test_materialize_returns_all_input_quads() -> None:
-    """Every input quad must appear in the result (subject round-trips)."""
+def test_materialize_ffi_marshals_quad_dicts() -> None:
+    """The binding returns a list of dicts carrying the full seam field set.
+
+    This is a pure FFI-contract check: it proves the ``DerivedQuad → Python
+    dict`` marshalling is wired correctly (a list of dicts, every required key
+    present, ``source_quad_ids`` list-typed). The *values* and engine behaviour
+    are asserted natively in ``materialize_core``'s ``#[test]`` module.
+    """
     result = gmeow_logic.materialize("", _TWO_WORLD_NQUADS)
     assert isinstance(result, list), f"expected list, got {type(result)}"
     assert len(result) == 3, f"expected 3 quads back, got {len(result)}"
-    returned_subjects = {r["subject"] for r in result}
-    assert returned_subjects == _EXPECTED_SUBJECTS, (
-        f"subject set mismatch: {returned_subjects!r} != {_EXPECTED_SUBJECTS!r}"
-    )
-
-
-def test_materialize_all_metadata_fields_present() -> None:
-    """Every result dict must contain all required metadata fields."""
-    result = gmeow_logic.materialize("", _TWO_WORLD_NQUADS)
     for i, quad_dict in enumerate(result):
+        assert isinstance(quad_dict, dict), f"quad[{i}] is not a dict"
         missing = _REQUIRED_META_FIELDS - set(quad_dict.keys())
         assert not missing, f"quad[{i}] missing metadata fields: {missing!r}"
-
-
-def test_materialize_graph_field_is_correct_world() -> None:
-    """The 'graph' field must match the named-graph IRI in the input quad."""
-    result = gmeow_logic.materialize("", _TWO_WORLD_NQUADS)
-    returned_worlds = {r["graph"] for r in result}
-    assert returned_worlds == _EXPECTED_WORLDS, (
-        f"world set mismatch: {returned_worlds!r} != {_EXPECTED_WORLDS!r}"
-    )
-
-
-def test_materialize_graph_equals_graph_component() -> None:
-    """'graph' and 'graph_component' must be identical on every quad."""
-    result = gmeow_logic.materialize("", _TWO_WORLD_NQUADS)
-    for i, quad_dict in enumerate(result):
-        assert quad_dict["graph"] == quad_dict["graph_component"], (
-            f"quad[{i}]: graph={quad_dict['graph']!r} != "
-            f"graph_component={quad_dict['graph_component']!r}"
-        )
-
-
-def test_materialize_budget_status_is_ok() -> None:
-    """All asserted (input) quads must carry budget_status='ok'."""
-    result = gmeow_logic.materialize("", _TWO_WORLD_NQUADS)
-    for i, quad_dict in enumerate(result):
-        assert quad_dict["budget_status"] == "ok", (
-            f"quad[{i}]: expected budget_status='ok', "
-            f"got {quad_dict['budget_status']!r}"
-        )
-
-
-def test_materialize_derivation_id_is_nonempty_string() -> None:
-    """derivation_id must be a non-empty IRI string on every quad."""
-    result = gmeow_logic.materialize("", _TWO_WORLD_NQUADS)
-    for i, quad_dict in enumerate(result):
-        assert isinstance(quad_dict["derivation_id"], str), (
-            f"quad[{i}]: derivation_id is not a str"
-        )
-        assert quad_dict["derivation_id"], f"quad[{i}]: derivation_id is empty"
-
-
-def test_materialize_rule_iri_is_nonempty_string() -> None:
-    """rule_iri must be a non-empty string on every quad."""
-    result = gmeow_logic.materialize("", _TWO_WORLD_NQUADS)
-    for i, quad_dict in enumerate(result):
-        assert isinstance(quad_dict["rule_iri"], str), (
-            f"quad[{i}]: rule_iri is not a str"
-        )
-        assert quad_dict["rule_iri"], f"quad[{i}]: rule_iri is empty"
-
-
-def test_materialize_source_quad_ids_is_list() -> None:
-    """source_quad_ids must be a list on every quad."""
-    result = gmeow_logic.materialize("", _TWO_WORLD_NQUADS)
-    for i, quad_dict in enumerate(result):
-        got_type = type(quad_dict["source_quad_ids"])
         assert isinstance(quad_dict["source_quad_ids"], list), (
-            f"quad[{i}]: source_quad_ids is not a list, got {got_type}"
+            f"quad[{i}]: source_quad_ids is not a list, "
+            f"got {type(quad_dict['source_quad_ids'])}"
         )
 
 
-def test_materialize_profile_is_nonempty_string() -> None:
-    """profile must be a non-empty string on every quad."""
-    result = gmeow_logic.materialize("", _TWO_WORLD_NQUADS)
-    for i, quad_dict in enumerate(result):
-        assert isinstance(quad_dict["profile"], str), f"quad[{i}]: profile is not a str"
-        assert quad_dict["profile"], f"quad[{i}]: profile is empty"
-
-
-def test_materialize_world_isolation() -> None:
-    """Alpha-world quads must not appear in Beta-world quads."""
-    result = gmeow_logic.materialize("", _TWO_WORLD_NQUADS)
-    alpha_quads = [r for r in result if r["graph"] == "http://world/Alpha"]
-    beta_quads = [r for r in result if r["graph"] == "http://world/Beta"]
-    assert len(alpha_quads) == 2, f"expected 2 Alpha quads, got {len(alpha_quads)}"
-    assert len(beta_quads) == 1, f"expected 1 Beta quad, got {len(beta_quads)}"
-
-    alpha_subjects = {r["subject"] for r in alpha_quads}
-    beta_subjects = {r["subject"] for r in beta_quads}
-    assert not alpha_subjects & beta_subjects, (
-        f"cross-world subject leak: {alpha_subjects & beta_subjects!r}"
-    )
-
-
-# ── AC#4: empty-case oracle parity ───────────────────────────────────────────
-
-
-def test_materialize_empty_input_returns_empty_list() -> None:
-    """materialize on empty input must return an empty list."""
-    result = gmeow_logic.materialize("", "")
-    assert result == [], f"expected [], got {result!r}"
-
-
-def test_materialize_whitespace_only_input_returns_empty_list() -> None:
-    """materialize on whitespace-only input must return an empty list."""
-    result = gmeow_logic.materialize("", "   \n  \t  ")
-    assert result == [], f"expected [], got {result!r}"
+# ── AC#4: empty-case oracle parity (Python oracle, not the FFI) ───────────────
 
 
 def test_empty_case_oracle_parity() -> None:
@@ -190,7 +99,8 @@ def test_empty_case_oracle_parity() -> None:
     The Python oracle (parse_logic_source) raises LogicParseError on empty
     graphs, so the canonical empty-program state is constructed directly
     (zero axioms, rules, profiles).  Both the Rust materialize and the Python
-    oracle must agree: empty in → empty/zero out.
+    oracle must agree: empty in → empty/zero out.  This exercises the Python
+    oracle surface, so it is retained alongside the native engine tests.
     """
     from gmeow_tools.logic_frontend import LogicParseError
     from gmeow_tools.logic_ir import LogicProgram
@@ -229,218 +139,3 @@ def test_empty_case_oracle_parity() -> None:
         from gmeow_tools.logic_frontend import parse_logic_source
 
         parse_logic_source(Graph())
-
-
-# ── AC#5: real inference with transitivity rules ─────────────────────────────
-
-# N-Quads: a subClassOf chain in one world.
-#   Dog subClassOf Mammal (Alpha)
-#   Mammal subClassOf Animal (Alpha)
-_SUBCLASS_PRED = "<https://blackcatinformatics.ca/logic/subClassOf>"
-_DOG = "<http://example.org/Dog>"
-_MAMMAL = "<http://example.org/Mammal>"
-_ANIMAL = "<http://example.org/Animal>"
-_W_ALPHA = "<http://world/Alpha>"
-
-_CHAIN_NQUADS = (
-    f"{_DOG} {_SUBCLASS_PRED} {_MAMMAL} {_W_ALPHA} .\n"
-    f"{_MAMMAL} {_SUBCLASS_PRED} {_ANIMAL} {_W_ALPHA} .\n"
-)
-
-# Transitivity rule in Nemo IRI-predicate syntax.
-# Derives: ?X subClassOf ?Z if ?X subClassOf ?Y and ?Y subClassOf ?Z.
-# The head context uses ?C0 (the context from the first body atom) — Nemo
-# requires every head variable to appear in the body (safety constraint).
-_TRANSITIVITY_RULES = """\
-<https://blackcatinformatics.ca/logic/subClassOf>(?X, ?Z, ?C0) :-
-    <https://blackcatinformatics.ca/logic/subClassOf>(?X, ?Y, ?C0),
-    <https://blackcatinformatics.ca/logic/subClassOf>(?Y, ?Z, ?C1) .
-"""
-
-
-def test_materialize_real_inference_derives_transitive_quad() -> None:
-    """AC#5: transitivity rule fires and the derived quad (Dog, Animal) appears.
-
-    This is the critical witness that the Nemo chase actually runs rules —
-    the Dog → Animal link is not present in the input but must appear in the
-    result after a two-step transitivity derivation.
-    """
-    result = gmeow_logic.materialize(_TRANSITIVITY_RULES, _CHAIN_NQUADS)
-    assert isinstance(result, list)
-
-    # Collect all (subject, object) pairs for the subClassOf predicate
-    sco_pred = "https://blackcatinformatics.ca/logic/subClassOf"
-    sco_pairs = {
-        (r["subject"], r["object"]) for r in result if r["predicate"] == sco_pred
-    }
-
-    # The transitive closure fact: Dog subClassOf Animal
-    expected_subject = "<http://example.org/Dog>"
-    expected_object = "<http://example.org/Animal>"
-    assert (expected_subject, expected_object) in sco_pairs, (
-        f"Expected transitive closure (Dog, Animal) not found in derived facts.\n"
-        f"Derived subClassOf pairs: {sorted(sco_pairs)}"
-    )
-
-
-def test_materialize_inference_world_isolation() -> None:
-    """World isolation holds under real inference: quads stay in the input world.
-
-    The transitivity derivation fires within world Alpha (the world of both
-    EDB facts).  No quads should appear in any other world.
-    """
-    result = gmeow_logic.materialize(_TRANSITIVITY_RULES, _CHAIN_NQUADS)
-    assert isinstance(result, list)
-    assert len(result) > 0, "expected at least some derived quads"
-
-    worlds_found = {r["graph"] for r in result}
-    # All quads must belong to Alpha
-    assert worlds_found == {"http://world/Alpha"}, (
-        f"Expected only world Alpha, got: {worlds_found!r}"
-    )
-
-
-def test_materialize_inference_input_quads_still_present() -> None:
-    """Input (EDB) quads are still present in the result alongside derived quads.
-
-    Nemo returns EDB facts as derived predicates, so the input chain must
-    appear alongside the newly derived transitive quad.
-    """
-    result = gmeow_logic.materialize(_TRANSITIVITY_RULES, _CHAIN_NQUADS)
-    sco_pred = "https://blackcatinformatics.ca/logic/subClassOf"
-    sco_pairs = {
-        (r["subject"], r["object"]) for r in result if r["predicate"] == sco_pred
-    }
-
-    # Both input quads must still be present
-    assert ("<http://example.org/Dog>", "<http://example.org/Mammal>") in sco_pairs, (
-        "Input quad Dog→Mammal missing from derived result"
-    )
-    mammal_animal = ("<http://example.org/Mammal>", "<http://example.org/Animal>")
-    assert mammal_animal in sco_pairs, (
-        "Input quad Mammal→Animal missing from derived result"
-    )
-
-
-# ── AC#6: real provenance on derived quads ────────────────────────────────────
-
-_ASSERT_RULE_IRI = "https://blackcatinformatics.ca/logic/assert"
-_ANON_RULE_IRI = "https://blackcatinformatics.ca/logic/rule/anonymous"
-
-# Named-rule variant: uses #[name("...")] so rule_iri flows through as the IRI.
-_NAMED_RULE_IRI = "https://blackcatinformatics.ca/logic/rules/subClassOf-transitivity"
-_NAMED_TRANSITIVITY_RULES = f"""\
-#[name("{_NAMED_RULE_IRI}")]
-<https://blackcatinformatics.ca/logic/subClassOf>(?X, ?Z, ?C0) :-
-    <https://blackcatinformatics.ca/logic/subClassOf>(?X, ?Y, ?C0),
-    <https://blackcatinformatics.ca/logic/subClassOf>(?Y, ?Z, ?C1) .
-"""
-
-
-def test_derived_quad_has_nonempty_source_quad_ids() -> None:
-    """Task 4 AC: derived quad must carry non-empty source_quad_ids (real antecedents).
-
-    The Dog→Animal transitive closure fact is derived from Dog→Mammal and
-    Mammal→Animal.  Its source_quad_ids must be non-empty, identifying those
-    antecedent quads by their reifier IRIs.
-    """
-    result = gmeow_logic.materialize(_TRANSITIVITY_RULES, _CHAIN_NQUADS)
-    sco_pred = "https://blackcatinformatics.ca/logic/subClassOf"
-
-    # Find the derived Dog→Animal transitive quad (not in input).
-    derived = [
-        r
-        for r in result
-        if r["predicate"] == sco_pred
-        and r["subject"] == "<http://example.org/Dog>"
-        and r["object"] == "<http://example.org/Animal>"
-    ]
-    assert len(derived) == 1, (
-        f"Expected exactly one Dog→Animal derived quad, got {len(derived)}"
-    )
-    dog_animal = derived[0]
-
-    # The derived quad must have real antecedents.
-    assert isinstance(dog_animal["source_quad_ids"], list), (
-        "source_quad_ids must be a list"
-    )
-    assert len(dog_animal["source_quad_ids"]) > 0, (
-        f"Derived Dog→Animal quad has empty source_quad_ids — "
-        f"real provenance antecedents were not populated.\n"
-        f"Full quad: {dog_animal!r}"
-    )
-    # Every source IRI must be a non-empty string (reifier IRI format).
-    for src in dog_animal["source_quad_ids"]:
-        assert isinstance(src, str) and src, (
-            f"source_quad_ids entry is not a non-empty string: {src!r}"
-        )
-
-
-def test_derived_quad_rule_iri_is_not_assert_sentinel() -> None:
-    """Task 4 AC: derived quads must carry the firing rule IRI, not logic:assert.
-
-    Asserted (EDB) facts carry rule_iri = logic:assert.  A derived (IDB) quad
-    — like Dog→Animal — must carry a different rule_iri (the fired rule).
-    """
-    result = gmeow_logic.materialize(_TRANSITIVITY_RULES, _CHAIN_NQUADS)
-    sco_pred = "https://blackcatinformatics.ca/logic/subClassOf"
-
-    derived = [
-        r
-        for r in result
-        if r["predicate"] == sco_pred
-        and r["subject"] == "<http://example.org/Dog>"
-        and r["object"] == "<http://example.org/Animal>"
-    ]
-    assert len(derived) == 1, (
-        f"Expected exactly one Dog→Animal derived quad, got {len(derived)}"
-    )
-    dog_animal = derived[0]
-
-    assert dog_animal["rule_iri"] != _ASSERT_RULE_IRI, (
-        f"Derived quad must NOT carry rule_iri=logic:assert — "
-        f"got {dog_animal['rule_iri']!r} (assert sentinel means the quad was "
-        f"treated as asserted rather than derived)"
-    )
-
-
-def test_named_rule_iri_flows_through_to_derived_quad() -> None:
-    """Task 4 AC: when a rule carries #[name('iri')], that IRI appears in rule_iri.
-
-    Uses _NAMED_TRANSITIVITY_RULES which emits the rule name as a full IRI.
-    The derived Dog→Animal quad must carry exactly that IRI as its rule_iri.
-    """
-    result = gmeow_logic.materialize(_NAMED_TRANSITIVITY_RULES, _CHAIN_NQUADS)
-    sco_pred = "https://blackcatinformatics.ca/logic/subClassOf"
-
-    derived = [
-        r
-        for r in result
-        if r["predicate"] == sco_pred
-        and r["subject"] == "<http://example.org/Dog>"
-        and r["object"] == "<http://example.org/Animal>"
-    ]
-    assert len(derived) == 1, (
-        f"Expected exactly one Dog→Animal derived quad, got {len(derived)}"
-    )
-    dog_animal = derived[0]
-
-    assert dog_animal["rule_iri"] == _NAMED_RULE_IRI, (
-        f"Named-rule IRI did not flow through to derived quad.\n"
-        f"Expected: {_NAMED_RULE_IRI!r}\n"
-        f"Got:      {dog_animal['rule_iri']!r}"
-    )
-
-
-def test_asserted_quads_carry_assert_sentinel_rule_iri() -> None:
-    """Asserted (EDB) quads must carry rule_iri = logic:assert.
-
-    This is the complement of the derived-quad test: input facts must be tagged
-    with the assert sentinel, not with a logic rule IRI.
-    """
-    result = gmeow_logic.materialize("", _TWO_WORLD_NQUADS)
-    for i, quad_dict in enumerate(result):
-        assert quad_dict["rule_iri"] == _ASSERT_RULE_IRI, (
-            f"quad[{i}]: asserted quad should carry rule_iri={_ASSERT_RULE_IRI!r}, "
-            f"got {quad_dict['rule_iri']!r}"
-        )

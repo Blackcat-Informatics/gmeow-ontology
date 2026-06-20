@@ -395,3 +395,319 @@ fn apply_budget(
         })
         .collect()
 }
+
+#[cfg(test)]
+mod tests {
+    //! Native coverage of the materialize engine pipeline (issue #786 / T5).
+    //!
+    //! These are the Rust ports of the engine assertions that previously lived in
+    //! `tests/test_logic_engine.py` and drove `gmeow_logic.materialize` through
+    //! PyO3. They exercise the pure [`materialize_core`] directly — no Python, no
+    //! FFI — so the chase, world mapping, real provenance, and the assert-sentinel
+    //! contract are pinned natively. The PyO3 binding retains only a thin
+    //! marshalling smoke (`tests/test_logic_engine.py`).
+
+    use super::*;
+
+    // ── Fixtures ────────────────────────────────────────────────────────────────
+
+    /// N-Quads covering two distinct named-graph worlds.
+    const TWO_WORLD_NQUADS: &str = concat!(
+        "<http://example.org/s/1> <http://example.org/p/type> <http://example.org/o/Thing> <http://world/Alpha> .\n",
+        "<http://example.org/s/2> <http://example.org/p/name> <http://example.org/o/Foo> <http://world/Alpha> .\n",
+        "<http://example.org/s/3> <http://example.org/p/type> <http://example.org/o/Bar> <http://world/Beta> .\n",
+    );
+
+    /// A subClassOf chain in one world: Dog ⊑ Mammal, Mammal ⊑ Animal (Alpha).
+    const CHAIN_NQUADS: &str = concat!(
+        "<http://example.org/Dog> <https://blackcatinformatics.ca/logic/subClassOf> <http://example.org/Mammal> <http://world/Alpha> .\n",
+        "<http://example.org/Mammal> <https://blackcatinformatics.ca/logic/subClassOf> <http://example.org/Animal> <http://world/Alpha> .\n",
+    );
+
+    /// Transitivity rule in Nemo IRI-predicate syntax.
+    const TRANSITIVITY_RULES: &str = concat!(
+        "<https://blackcatinformatics.ca/logic/subClassOf>(?X, ?Z, ?C0) :-\n",
+        "    <https://blackcatinformatics.ca/logic/subClassOf>(?X, ?Y, ?C0),\n",
+        "    <https://blackcatinformatics.ca/logic/subClassOf>(?Y, ?Z, ?C1) .\n",
+    );
+
+    /// Named-rule variant: `#[name("...")]` makes the rule IRI flow through.
+    const NAMED_RULE_IRI: &str =
+        "https://blackcatinformatics.ca/logic/rules/subClassOf-transitivity";
+    const NAMED_TRANSITIVITY_RULES: &str = concat!(
+        "#[name(\"https://blackcatinformatics.ca/logic/rules/subClassOf-transitivity\")]\n",
+        "<https://blackcatinformatics.ca/logic/subClassOf>(?X, ?Z, ?C0) :-\n",
+        "    <https://blackcatinformatics.ca/logic/subClassOf>(?X, ?Y, ?C0),\n",
+        "    <https://blackcatinformatics.ca/logic/subClassOf>(?Y, ?Z, ?C1) .\n",
+    );
+
+    /// The bare subClassOf predicate IRI (as it appears in `predicate.as_str()`).
+    const SUBCLASS_PRED: &str = "https://blackcatinformatics.ca/logic/subClassOf";
+
+    // ── Helpers ─────────────────────────────────────────────────────────────────
+
+    /// Materialize with the default (no-budget) parameters and unwrap.
+    fn run(rules: &str, input: &str) -> Vec<DerivedQuad> {
+        materialize_core(rules, input, None, None, None).expect("materialize_core must not fail")
+    }
+
+    /// Collect the `(subject, object)` display pairs for the subClassOf predicate.
+    fn sco_pairs(quads: &[DerivedQuad]) -> std::collections::HashSet<(String, String)> {
+        quads
+            .iter()
+            .filter(|q| q.predicate.as_str() == SUBCLASS_PRED)
+            .map(|q| (q.subject.to_string(), q.object.to_string()))
+            .collect()
+    }
+
+    // ── AC#2: round-trip with derivation metadata ────────────────────────────────
+
+    #[test]
+    fn materialize_core_returns_all_input_quads() {
+        let result = run("", TWO_WORLD_NQUADS);
+        assert_eq!(result.len(), 3, "expected 3 quads back");
+        let subjects: std::collections::HashSet<String> =
+            result.iter().map(|q| q.subject.to_string()).collect();
+        let expected: std::collections::HashSet<String> = [
+            "<http://example.org/s/1>",
+            "<http://example.org/s/2>",
+            "<http://example.org/s/3>",
+        ]
+        .iter()
+        .map(|s| s.to_string())
+        .collect();
+        assert_eq!(subjects, expected, "subject set mismatch");
+    }
+
+    #[test]
+    fn materialize_core_graph_is_correct_world() {
+        let result = run("", TWO_WORLD_NQUADS);
+        let worlds: std::collections::HashSet<&str> =
+            result.iter().map(|q| q.graph.as_str()).collect();
+        let expected: std::collections::HashSet<&str> = ["http://world/Alpha", "http://world/Beta"]
+            .into_iter()
+            .collect();
+        assert_eq!(worlds, expected, "world set mismatch");
+    }
+
+    #[test]
+    fn materialize_core_graph_equals_graph_component() {
+        for q in run("", TWO_WORLD_NQUADS) {
+            assert_eq!(
+                q.graph.as_str(),
+                q.graph_component.as_str(),
+                "graph and graph_component must be identical"
+            );
+        }
+    }
+
+    #[test]
+    fn materialize_core_asserted_budget_status_is_ok() {
+        for q in run("", TWO_WORLD_NQUADS) {
+            assert_eq!(
+                q.budget_status,
+                BudgetStatus::Ok,
+                "asserted quad must be Ok"
+            );
+        }
+    }
+
+    #[test]
+    fn materialize_core_derivation_id_is_nonempty() {
+        for q in run("", TWO_WORLD_NQUADS) {
+            assert!(
+                !q.derivation_id.as_str().is_empty(),
+                "derivation_id must be non-empty"
+            );
+        }
+    }
+
+    #[test]
+    fn materialize_core_rule_iri_is_nonempty() {
+        for q in run("", TWO_WORLD_NQUADS) {
+            assert!(!q.rule_iri.is_empty(), "rule_iri must be non-empty");
+        }
+    }
+
+    #[test]
+    fn materialize_core_profile_is_the_asserted_profile() {
+        for q in run("", TWO_WORLD_NQUADS) {
+            assert_eq!(
+                q.profile, ASSERTED_PROFILE,
+                "profile must be the asserted profile"
+            );
+        }
+    }
+
+    #[test]
+    fn materialize_core_required_fields_are_welltyped() {
+        // Every materialized quad must carry non-degenerate values across all the
+        // surface fields the FFI marshals into the Python dict.
+        for q in run("", TWO_WORLD_NQUADS) {
+            assert!(!q.graph.as_str().is_empty());
+            assert!(!q.subject.to_string().is_empty());
+            assert!(!q.predicate.as_str().is_empty());
+            assert!(!q.object.to_string().is_empty());
+            assert!(!q.derivation_id.as_str().is_empty());
+            assert!(!q.rule_iri.is_empty());
+            assert!(!q.profile.is_empty());
+            // Asserted quads carry exactly their own self-reifier as the source.
+            assert_eq!(
+                q.source_quad_ids.len(),
+                1,
+                "asserted quad has one source (self)"
+            );
+            assert!(q.source_quad_ids.iter().all(|s| !s.is_empty()));
+        }
+    }
+
+    #[test]
+    fn materialize_core_world_isolation() {
+        let result = run("", TWO_WORLD_NQUADS);
+        let alpha: Vec<&DerivedQuad> = result
+            .iter()
+            .filter(|q| q.graph.as_str() == "http://world/Alpha")
+            .collect();
+        let beta: Vec<&DerivedQuad> = result
+            .iter()
+            .filter(|q| q.graph.as_str() == "http://world/Beta")
+            .collect();
+        assert_eq!(alpha.len(), 2, "expected 2 Alpha quads");
+        assert_eq!(beta.len(), 1, "expected 1 Beta quad");
+
+        let alpha_subjects: std::collections::HashSet<String> =
+            alpha.iter().map(|q| q.subject.to_string()).collect();
+        let beta_subjects: std::collections::HashSet<String> =
+            beta.iter().map(|q| q.subject.to_string()).collect();
+        assert!(
+            alpha_subjects.is_disjoint(&beta_subjects),
+            "cross-world subject leak detected"
+        );
+    }
+
+    #[test]
+    fn materialize_core_asserted_quads_carry_assert_sentinel() {
+        for q in run("", TWO_WORLD_NQUADS) {
+            assert_eq!(
+                q.rule_iri, ASSERT_RULE_IRI,
+                "asserted quad must carry the logic:assert sentinel"
+            );
+        }
+    }
+
+    // ── AC#4: empty-case ─────────────────────────────────────────────────────────
+
+    #[test]
+    fn materialize_core_empty_input_returns_empty() {
+        assert!(run("", "").is_empty(), "empty input must return no quads");
+    }
+
+    #[test]
+    fn materialize_core_whitespace_input_returns_empty() {
+        assert!(
+            run("", "   \n  \t  ").is_empty(),
+            "whitespace input must return no quads"
+        );
+    }
+
+    // ── AC#5: real inference with transitivity ───────────────────────────────────
+
+    #[test]
+    fn materialize_core_inference_derives_transitive_quad() {
+        let result = run(TRANSITIVITY_RULES, CHAIN_NQUADS);
+        let pairs = sco_pairs(&result);
+        assert!(
+            pairs.contains(&(
+                "<http://example.org/Dog>".to_string(),
+                "<http://example.org/Animal>".to_string()
+            )),
+            "transitive closure (Dog, Animal) not derived; pairs: {pairs:?}"
+        );
+    }
+
+    #[test]
+    fn materialize_core_inference_world_isolation() {
+        let result = run(TRANSITIVITY_RULES, CHAIN_NQUADS);
+        assert!(!result.is_empty(), "expected derived quads");
+        let worlds: std::collections::HashSet<&str> =
+            result.iter().map(|q| q.graph.as_str()).collect();
+        assert_eq!(
+            worlds,
+            ["http://world/Alpha"].into_iter().collect(),
+            "derivation must stay in world Alpha"
+        );
+    }
+
+    #[test]
+    fn materialize_core_inference_input_quads_still_present() {
+        let pairs = sco_pairs(&run(TRANSITIVITY_RULES, CHAIN_NQUADS));
+        assert!(
+            pairs.contains(&(
+                "<http://example.org/Dog>".to_string(),
+                "<http://example.org/Mammal>".to_string()
+            )),
+            "input quad Dog->Mammal missing"
+        );
+        assert!(
+            pairs.contains(&(
+                "<http://example.org/Mammal>".to_string(),
+                "<http://example.org/Animal>".to_string()
+            )),
+            "input quad Mammal->Animal missing"
+        );
+    }
+
+    // ── AC#6: real provenance on derived quads ───────────────────────────────────
+
+    /// Find the single derived Dog->Animal transitive quad.
+    fn dog_animal(quads: &[DerivedQuad]) -> DerivedQuad {
+        let derived: Vec<&DerivedQuad> = quads
+            .iter()
+            .filter(|q| {
+                q.predicate.as_str() == SUBCLASS_PRED
+                    && q.subject.to_string() == "<http://example.org/Dog>"
+                    && q.object.to_string() == "<http://example.org/Animal>"
+            })
+            .collect();
+        assert_eq!(
+            derived.len(),
+            1,
+            "expected exactly one Dog->Animal derived quad"
+        );
+        derived[0].clone()
+    }
+
+    #[test]
+    fn materialize_core_derived_quad_has_nonempty_source_quad_ids() {
+        let result = run(TRANSITIVITY_RULES, CHAIN_NQUADS);
+        let da = dog_animal(&result);
+        assert!(
+            !da.source_quad_ids.is_empty(),
+            "derived quad must carry real antecedents"
+        );
+        assert!(
+            da.source_quad_ids.iter().all(|s| !s.is_empty()),
+            "every source_quad_id must be a non-empty reifier IRI"
+        );
+    }
+
+    #[test]
+    fn materialize_core_derived_rule_iri_is_not_assert_sentinel() {
+        let result = run(TRANSITIVITY_RULES, CHAIN_NQUADS);
+        let da = dog_animal(&result);
+        assert_ne!(
+            da.rule_iri, ASSERT_RULE_IRI,
+            "a derived quad must NOT carry the assert sentinel"
+        );
+    }
+
+    #[test]
+    fn materialize_core_named_rule_iri_flows_through() {
+        let result = run(NAMED_TRANSITIVITY_RULES, CHAIN_NQUADS);
+        let da = dog_animal(&result);
+        assert_eq!(
+            da.rule_iri, NAMED_RULE_IRI,
+            "named-rule IRI must flow through to the derived quad's rule_iri"
+        );
+    }
+}
