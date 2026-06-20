@@ -16,6 +16,7 @@ import re
 from dataclasses import dataclass, field
 from functools import lru_cache
 from pathlib import Path
+from typing import Any
 
 import gmeow_diagnostics
 import gmeow_validate
@@ -131,10 +132,11 @@ class ValidationResult:
     errors: list[str] = field(default_factory=list)
     warnings: list[str] = field(default_factory=list)
     timings: list[dict[str, object]] = field(default_factory=list)
-    #: The single canonical diagnostics report serialized to JSON (#654). The
-    #: Rust orchestration always supplies it; ``errors``/``warnings`` are its
-    #: legacy projection. ``None`` only for hand-built results.
-    report_json: str | None = None
+    #: The single canonical diagnostics report as a LIVE ``gmeow_diagnostics``
+    #: ``Report`` pyclass (#654, #630). The Rust orchestration hands it back
+    #: directly — no JSON round-trip; ``errors``/``warnings`` are its legacy
+    #: projection. ``None`` only for hand-built or cached results.
+    report: Any | None = None
 
     @property
     def ok(self) -> bool:
@@ -622,7 +624,7 @@ def validate_all(
         signature_config=signature_options,
     )
 
-    report = gmeow_validate.validate_all_native(
+    native = gmeow_validate.validate_all_native(
         source_paths,
         shapes_ttl,
         mapping_dsl_dir,
@@ -632,10 +634,10 @@ def validate_all(
     )
 
     result = ValidationResult(
-        errors=list(report["errors"]),
-        warnings=list(report["warnings"]),
-        timings=list(report.get("timings", [])),
-        report_json=report.get("report_json"),
+        errors=list(native["errors"]),
+        warnings=list(native["warnings"]),
+        timings=list(native.get("timings", [])),
+        report=native.get("report"),
     )
 
     # The Python-side per-file lints below validate repo source files (slice
@@ -652,7 +654,7 @@ def validate_all(
         # it when earlier phases already failed (mirrors the original
         # orchestration).
         if result.ok:
-            declared_terms = list(report.get("declared_terms", []))
+            declared_terms = list(native.get("declared_terms", []))
             anchor = guide_anchor_lint(source_paths, declared_terms=declared_terms)
             result.extend(anchor)
             py_errors.extend(anchor.errors)
@@ -688,11 +690,14 @@ def validate_all(
             result.errors.append(message)
             py_errors.append(message)
 
-    # Fold the Python-only lint findings into the single canonical report so
-    # report_json stays the complete source of truth (#654).
-    if result.report_json is not None and (py_errors or py_warnings):
-        merged = gmeow_diagnostics.Report.from_json(result.report_json)
-        merged.extend(gmeow_diagnostics.from_legacy("validate", py_errors, py_warnings))
-        result.report_json = merged.to_json()
+    # Fold the Python-only lint findings straight into the live canonical report
+    # (guide-anchor, i18n PO, test-DSL) so it stays the complete source of truth
+    # (#654) — folded in place, no JSON serialize/deserialize round-trip (#630).
+    # ``errors``/``warnings`` on the result already carry the same findings for
+    # the legacy string surface and the ``ok`` check.
+    if result.report is not None and (py_errors or py_warnings):
+        result.report.extend(
+            gmeow_diagnostics.from_legacy("validate", py_errors, py_warnings)
+        )
 
     return result

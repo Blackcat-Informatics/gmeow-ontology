@@ -409,11 +409,6 @@ impl ValidationRun {
         self.report.legacy_warnings()
     }
 
-    /// The single canonical report serialized to JSON (always available).
-    pub fn report_json(&self) -> Result<String, serde_json::Error> {
-        serde_json::to_string(&self.report.normalized())
-    }
-
     /// Serialize the diagnostic/timing output to JSON.
     ///
     /// The shared [`Store`] and [`gmeow_shacl::shapes::Shapes`] are not
@@ -1043,8 +1038,8 @@ mod tests {
             "unexpected warnings: {:?}",
             run.warnings()
         );
-        // report_json is always available, even on a clean run.
-        assert!(run.report_json().is_ok());
+        // The canonical report is always present, even on a clean run.
+        assert!(run.report.normalized().ok());
         assert_eq!(run.store.len().unwrap(), 1);
 
         let nt = dump_store_to_ntriples(&run.store).expect("store must serialize to N-Triples");

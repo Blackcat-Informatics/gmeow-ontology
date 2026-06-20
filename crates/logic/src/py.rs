@@ -1169,9 +1169,10 @@ fn rl_closure(py: Python<'_>, input: &str) -> PyResult<Vec<Py<PyAny>>> {
 ///
 /// Materializes the asserted graph (flattened) unioned with the native EL/DL
 /// derived edges, runs each `(name, sparql)` SELECT query over it, and returns
-/// the resulting diagnostics report serialized as JSON. Python rehydrates it via
-/// `gmeow_diagnostics.Report.from_json` — returning JSON (rather than a
-/// cross-module pyclass) keeps the two extension modules decoupled.
+/// the resulting diagnostics report as a **live `Report` pyclass** (not a JSON
+/// string). All bindings now share one `Report` type in the `gmeow_native`
+/// cdylib, so handing the live object back eliminates the serialize→`from_json`
+/// round-trip the Python caller used to pay (#630, #695).
 ///
 /// # Arguments
 ///
@@ -1181,20 +1182,20 @@ fn rl_closure(py: Python<'_>, input: &str) -> PyResult<Vec<Py<PyAny>>> {
 ///
 /// # Returns
 ///
-/// The normalized [`gmeow_diagnostics::Report`] as a JSON string. The report's
+/// The normalized [`gmeow_diagnostics::Report`] as a live pyclass. The report's
 /// `ok` is false iff any verify query returned a row.
 ///
 /// # Errors
 ///
-/// Raises `ValueError` if the GTS bundle cannot be read or the report cannot be
-/// serialized, and `RuntimeError` if verify fails (reasoning, a query parse/eval
-/// error, a non-SELECT query, or a derived-edge build error).
+/// Raises `ValueError` if the GTS bundle cannot be read, and `RuntimeError` if
+/// verify fails (reasoning, a query parse/eval error, a non-SELECT query, or a
+/// derived-edge build error).
 #[pyfunction]
 fn verify_native(
     py: Python<'_>,
     gts_bytes: &[u8],
     queries: Vec<(String, String)>,
-) -> PyResult<String> {
+) -> PyResult<Py<gmeow_diagnostics::py::PyReport>> {
     enum VerifyNativeError {
         GtsRead(String),
         Verify(String),
@@ -1213,10 +1214,13 @@ fn verify_native(
             pyo3::exceptions::PyRuntimeError::new_err(format!("verify error: {m}"))
         }
     })?;
-    // Normalize before serializing so the JSON (and any downstream content hash)
-    // is deterministic, matching the diagnostics render::to_json contract.
-    serde_json::to_string(&report.normalized())
-        .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))
+    // Normalize before handing it over so the live report (and any downstream
+    // content hash / render) is deterministic, matching the diagnostics render
+    // contract.
+    Py::new(
+        py,
+        gmeow_diagnostics::py::PyReport::from_engine(report.normalized()),
+    )
 }
 
 // ── extract_module ──────────────────────────────────────────────────────────────

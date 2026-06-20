@@ -558,8 +558,9 @@ def verify_native(
         (str(qf.relative_to(PROJECT_ROOT)), qf.read_text(encoding="utf-8"))
         for qf in query_files
     ]
-    report_json = gmeow_logic.verify_native(gts.read_bytes(), pairs)
-    report = diagnostics.report_from_json(report_json)
+    # verify_native hands back a live diagnostics Report pyclass directly — no
+    # JSON round-trip (#630).
+    report = gmeow_logic.verify_native(gts.read_bytes(), pairs)
 
     output_dir.mkdir(parents=True, exist_ok=True)
     diagnostics.write_report_artifacts(

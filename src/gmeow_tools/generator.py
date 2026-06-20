@@ -157,15 +157,22 @@ def regenerate_order() -> list[str]:
     If generator *A* produces an output that is listed as an input of generator
     *B*, *A* is guaranteed to appear before *B*.
     """
+    # Snapshot the registry once: accessing a generator's ``inputs``/``outputs``
+    # can lazily import sibling modules whose ``@register`` side effects mutate
+    # ``_REGISTRY``, which would otherwise raise "dictionary changed size during
+    # iteration". Computing the whole order over one stable snapshot makes this
+    # deterministic regardless of lazy-registration timing.
+    snapshot = dict(_REGISTRY)
+
     # Map every declared output to the generator that produces it.
     output_to_gen: dict[Path, str] = {}
-    for name, gen in _REGISTRY.items():
+    for name, gen in snapshot.items():
         for out in gen.outputs:
             output_to_gen[out.resolve()] = name
 
     # Build adjacency: name -> set of names it depends on.
-    deps: dict[str, set[str]] = {name: set() for name in _REGISTRY}
-    for name, gen in _REGISTRY.items():
+    deps: dict[str, set[str]] = {name: set() for name in snapshot}
+    for name, gen in snapshot.items():
         for inp in gen.inputs:
             inp_resolved = inp.resolve()
             producer = output_to_gen.get(inp_resolved)
@@ -173,7 +180,7 @@ def regenerate_order() -> list[str]:
                 deps[name].add(producer)
 
     # Kahn's algorithm with deterministic ordering.
-    in_degree = {name: len(deps[name]) for name in _REGISTRY}
+    in_degree = {name: len(deps[name]) for name in snapshot}
     queue = deque(sorted(name for name, deg in in_degree.items() if deg == 0))
     result: list[str] = []
 
@@ -187,9 +194,9 @@ def regenerate_order() -> list[str]:
                     queue.append(other)
         queue = deque(sorted(queue))
 
-    if len(result) != len(_REGISTRY):
+    if len(result) != len(snapshot):
         # Cycle detected — fall back to alphabetical so the gate still runs.
-        return sorted(_REGISTRY.keys())
+        return sorted(snapshot.keys())
 
     return result
 

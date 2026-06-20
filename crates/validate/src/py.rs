@@ -19,6 +19,7 @@
 use std::collections::{BTreeSet, HashSet};
 use std::path::PathBuf;
 
+use gmeow_diagnostics::py::PyReport;
 use pyo3::prelude::*;
 use pyo3::types::{PyCapsule, PyDict, PyList};
 
@@ -696,11 +697,14 @@ fn dsl_merge_with_provenance(
 ///
 /// Builds the ontology store once, parses the SHACL shapes once, runs every
 /// validation phase, and returns a dict with `errors`, `warnings`, `timings`,
-/// `declared_terms`, and `report_json` — the single canonical diagnostics
-/// report serialized to JSON, from which `errors`/`warnings` are derived and
-/// which carries SHACL focus nodes and GTS wire coordinates (#654). Optional
-/// phases (example coverage/SHACL, DSL SHACL) are enabled by the corresponding
-/// fields in `options`.
+/// `declared_terms`, and `report` — the single canonical diagnostics report as a
+/// **live `Report` pyclass** (not a JSON string), from which `errors`/`warnings`
+/// are derived and which carries SHACL focus nodes and GTS wire coordinates
+/// (#654). Returning the live object lets Python fold its filesystem-bound lints
+/// in and render SARIF directly, with no JSON round-trip — sound now that all
+/// bindings share one `Report` type in the `gmeow_native` cdylib (#630).
+/// Optional phases (example coverage/SHACL, DSL SHACL) are enabled by the
+/// corresponding fields in `options`.
 #[pyfunction]
 fn validate_all_native(
     py: Python<'_>,
@@ -729,15 +733,10 @@ fn validate_all_native(
     )
     .map_err(pyo3::exceptions::PyValueError::new_err)?;
 
-    let report_json = run
-        .report_json()
-        .map_err(|e| pyo3::exceptions::PyValueError::new_err(format!("serialize report: {e}")))?;
-
     let out = PyDict::new(py);
     out.set_item("errors", PyList::new(py, run.errors())?)?;
     out.set_item("warnings", PyList::new(py, run.warnings())?)?;
     out.set_item("declared_terms", PyList::new(py, &run.declared_terms)?)?;
-    out.set_item("report_json", report_json)?;
 
     let timings = PyList::empty(py);
     for t in &run.timings {
@@ -748,6 +747,13 @@ fn validate_all_native(
         timings.append(d)?;
     }
     out.set_item("timings", timings)?;
+
+    // Hand Python the single canonical report as a LIVE pyclass, not a JSON
+    // string — Python folds its few filesystem-bound lints straight into it and
+    // renders SARIF/JSON/HTML from it directly. No serialize→`from_json`→
+    // `to_json` round-trip (#630). Built last: it moves `run.report`, after the
+    // borrows above are done.
+    out.set_item("report", Py::new(py, PyReport::from_engine(run.report))?)?;
 
     Ok(out.into_any().unbind())
 }
