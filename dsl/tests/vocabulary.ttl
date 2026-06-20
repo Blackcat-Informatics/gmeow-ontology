@@ -32,7 +32,9 @@
     a owl:Ontology ;
     rdfs:label "GMEOW test DSL vocabulary"@x-gmeow-english ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;
-    rdfs:comment "Authoring vocabulary for slice-resident declarative tests — competency questions, structural assertions, and example-conformance fixtures — read and executed by the GMEOW test harness."@x-gmeow-english .
+    skos:definition "The GMEOW test DSL vocabulary — terms used to author slice-resident declarative test fixtures (competency questions, structural assertions, example-conformance fixtures) as ontology data, read and executed by the GMEOW test harness. A spec layer, never owl:imports-ed into the reasoned OWL 2 DL core."@x-gmeow-english ;
+    rdfs:comment "Authoring vocabulary for slice-resident declarative tests — competency questions, structural assertions, and example-conformance fixtures — read and executed by the GMEOW test harness."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/test-dsl> .
 
 # --------------------------------------------------------------------------- #
 # The three test-cell types

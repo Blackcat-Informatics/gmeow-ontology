@@ -203,6 +203,16 @@ def iter_slice_query_files(kind: str, root: Path = SLICES_DIR) -> list[Path]:
     return sorted(root.glob(f"*/*/queries/{kind}/*.rq"))
 
 
+def iter_slice_test_files(root: Path = SLICES_DIR) -> list[Path]:
+    """Every slice's declarative test-DSL fixture (``slices/*/*/tests/*.ttl``), sorted.
+
+    Non-recursive past ``tests/``: only the fixture Turtle files directly in a
+    slice's ``tests/`` directory are returned, so any ``tests/*.py`` harness code
+    and any ``tests/counter-examples/*.ttl`` data are excluded.
+    """
+    return sorted(root.glob("*/*/tests/*.ttl"))
+
+
 def discover_slices(root: Path = SLICES_DIR) -> dict[str, Slice]:
     """Discover every slice under ``root`` and load its manifest.
 
