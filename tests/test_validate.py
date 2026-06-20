@@ -7,7 +7,7 @@ from pathlib import Path
 import gmeow_validate
 import pytest
 from rdflib import RDFS, Graph, Literal, URIRef
-from rdflib.namespace import OWL, RDF, SKOS
+from rdflib.namespace import OWL, RDF
 
 import gmeow_tools.i18n_lint as i18n_lint_mod
 import gmeow_tools.validate as validate_mod
@@ -28,13 +28,6 @@ from gmeow_tools.validate import (
 # Graph-accepting structural-lint shim: serializes a synthetic rdflib graph to
 # N-Triples and routes it through the graph-free production lint (#579).
 from tests._graph_nt import structural_lint
-
-_TEST_ROLE = URIRef("https://example.org/boxTBox")
-
-
-def _add_test_role(graph: Graph, term: URIRef) -> None:
-    graph.add((_TEST_ROLE, RDF.type, URIRef(NAMESPACE + "GraphBoxRole")))
-    graph.add((term, URIRef(NAMESPACE + "graphBoxRole"), _TEST_ROLE))
 
 
 def test_check_syntax_on_sources() -> None:
@@ -177,108 +170,17 @@ def test_structural_lint_flags_missing_annotations() -> None:
     graph.add((bad, RDFS.subClassOf, OWL.Thing))
     graph.add((bad, RDFS.label, Literal("x")))  # has label, missing definition
     graph.add((bad, RDFS.isDefinedBy, URIRef(NAMESPACE)))
-    graph.add((bad, __import__("rdflib").RDF.type, OWL.Class))
+    graph.add((bad, RDF.type, OWL.Class))
 
     result = structural_lint(graph)
     assert any("skos:definition" in e for e in result.errors)
 
 
-def test_structural_lint_clean_for_well_formed_term() -> None:
-    graph = Graph()
-    good = URIRef(NAMESPACE + "Documented")
-
-    graph.add((good, RDF.type, OWL.Class))
-    graph.add((good, RDFS.label, Literal("Documented")))
-    graph.add((good, SKOS.definition, Literal("A well-formed term.")))
-    graph.add((good, RDFS.isDefinedBy, URIRef(NAMESPACE)))
-    _add_test_role(graph, good)
-
-    assert structural_lint(graph).ok
-
-
-def test_structural_lint_flags_missing_graph_box_role() -> None:
-    graph = Graph()
-    term = URIRef(NAMESPACE + "Documented")
-    graph.add((term, RDF.type, OWL.Class))
-    graph.add((term, RDFS.label, Literal("Documented")))
-    graph.add((term, SKOS.definition, Literal("A well-formed term.")))
-    graph.add((term, RDFS.isDefinedBy, URIRef(NAMESPACE)))
-
-    result = structural_lint(graph)
-    assert not result.ok
-    assert any("gmeow:graphBoxRole" in err for err in result.errors)
-
-
-def test_structural_lint_rejects_untyped_graph_box_role() -> None:
-    graph = Graph()
-    term = URIRef(NAMESPACE + "Documented")
-    graph.add((term, RDF.type, OWL.Class))
-    graph.add((term, RDFS.label, Literal("Documented")))
-    graph.add((term, SKOS.definition, Literal("A well-formed term.")))
-    graph.add((term, RDFS.isDefinedBy, URIRef(NAMESPACE)))
-    graph.add((term, URIRef(NAMESPACE + "graphBoxRole"), _TEST_ROLE))
-
-    result = structural_lint(graph)
-    assert not result.ok
-    assert any("not a gmeow:GraphBoxRole" in err for err in result.errors)
-
-
-def test_structural_lint_accepts_mixed_case_private_language_tag() -> None:
-    graph = Graph()
-    graph.add(
-        (
-            URIRef("https://example.org/name"),
-            URIRef(NAMESPACE + "fullName"),
-            Literal("Japanese", lang="x-GMEOW-Japanese"),
-        )
-    )
-
-    assert structural_lint(graph).ok
-
-
-def test_structural_lint_rejects_external_language_tag_on_gmeow_property() -> None:
-    graph = Graph()
-    graph.add(
-        (
-            URIRef("https://example.org/name"),
-            URIRef(NAMESPACE + "fullName"),
-            Literal("Japanese", lang="ja"),
-        )
-    )
-
-    result = structural_lint(graph)
-    assert not result.ok
-    assert any("external or invalid language tag" in err for err in result.errors)
-
-
-def test_structural_lint_rejects_en_on_gmeow_label() -> None:
-    graph = Graph()
-    term = URIRef(NAMESPACE + "TestTerm")
-
-    graph.add((term, RDF.type, OWL.Class))
-    graph.add((term, RDFS.label, Literal("Name", lang="en")))
-    graph.add((term, SKOS.definition, Literal("A test term.")))
-    graph.add((term, RDFS.isDefinedBy, URIRef(NAMESPACE)))
-    _add_test_role(graph, term)
-
-    result = structural_lint(graph)
-    assert not result.ok
-    assert any(
-        "external language tag 'en'" in err and "label" in err for err in result.errors
-    )
-
-
-def test_structural_lint_accepts_x_gmeow_english_on_label() -> None:
-    graph = Graph()
-    term = URIRef(NAMESPACE + "TestTerm")
-
-    graph.add((term, RDF.type, OWL.Class))
-    graph.add((term, RDFS.label, Literal("Name", lang="x-gmeow-english")))
-    graph.add((term, SKOS.definition, Literal("A test term.", lang="x-gmeow-english")))
-    graph.add((term, RDFS.isDefinedBy, URIRef(NAMESPACE)))
-    _add_test_role(graph, term)
-
-    assert structural_lint(graph).ok
+# The remaining structural-lint cases (graphBoxRole presence/typing, language-tag
+# discipline, well-formed-term clean pass) are exercised natively in
+# crates/validate/src/lint.rs (structural_* #[test]s); this file keeps only the
+# single FFI-contract smoke above, proving the structural_lint binding marshals
+# an rdflib-derived N-Triples graph through the Rust path (#786 / T5 of #781).
 
 
 # --------------------------------------------------------------------------- #
