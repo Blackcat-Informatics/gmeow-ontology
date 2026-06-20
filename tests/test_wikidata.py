@@ -9,6 +9,7 @@ import pytest
 
 from gmeow_tools.wikidata import (
     NamespaceMisuse,
+    SyntaxReport,
     _load_cached,
     _save_cached,
     check_syntax,
@@ -18,7 +19,35 @@ from gmeow_tools.wikidata import (
     is_valid_qid,
     local_name,
     local_name_wdt,
+    to_diagnostics_report,
 )
+
+
+def test_to_diagnostics_report_maps_invalid_and_misuse() -> None:
+    report = SyntaxReport(
+        valid=["Q42"],
+        invalid=["Q0"],
+        misuses=[
+            (
+                "P31",
+                NamespaceMisuse.WD_PROP_SHOULD_BE_WDT,
+                "wd:P31 should be wdt:P31",
+            )
+        ],
+    )
+
+    diag = to_diagnostics_report(report)
+
+    assert diag.error_count == 2  # both invalid id and misuse are gate-failing
+    by_code = {item["code"]: item for item in diag.findings}
+    assert set(by_code) == {"wikidata.qid-syntax", "wikidata.namespace-misuse"}
+    assert by_code["wikidata.namespace-misuse"]["tags"] == ["wd-prop-should-be-wdt"]
+
+
+def test_to_diagnostics_report_clean_report_is_ok() -> None:
+    diag = to_diagnostics_report(SyntaxReport(valid=["Q42"], invalid=[], misuses=[]))
+    assert diag.ok
+    assert diag.finding_count == 0
 
 
 @pytest.mark.parametrize(

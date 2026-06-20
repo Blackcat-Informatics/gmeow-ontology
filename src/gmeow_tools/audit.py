@@ -23,9 +23,17 @@ from typing import TYPE_CHECKING
 import gmeow_rdf
 from rdflib import Graph
 
-from gmeow_tools import sparql
+from gmeow_tools import diagnostics, sparql
 from gmeow_tools.config import AUDIT_QUERY_DIR, NAMESPACE
 from gmeow_tools.validate import run_shacl
+
+#: headline query stem → stable diagnostics rule suffix (all warnings —
+#: heuristic flags, never blocking; see module docstring).
+_HEADLINE_CODES = {
+    "claims-without-evidence": "ungrounded-claim",
+    "claims-contradicted-by-higher-confidence": "contradicted-claim",
+    "stale-source-claims": "stale-source",
+}
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -195,3 +203,49 @@ def render_text(report: AuditReport) -> str:
 def render_json(report: AuditReport) -> str:
     """The documented flat-JSON projection of the audited claims."""
     return json.dumps({"claims": report.claims}, indent=2, sort_keys=True)
+
+
+def to_diagnostics_report(
+    report: AuditReport,
+    *,
+    tool: str = "audit",
+) -> diagnostics.DiagnosticsReport:
+    """Project a claim audit into the canonical diagnostics report (#654).
+
+    The three headline categories (ungrounded / contradicted / stale) are
+    heuristic flags the module never blocks on, so they ride as ``warning``
+    findings; SHACL errors are gate-failing ``error`` findings and SHACL warnings
+    stay warnings. Each headline row's subject IRI is the ``logical`` entity.
+    """
+    items: list[diagnostics.DiagnosticsFinding] = []
+    for stem, suffix in _HEADLINE_CODES.items():
+        for row in report.findings.get(stem, []):
+            subject = row[0] if row else ""
+            items.append(
+                diagnostics.finding(
+                    severity="warning",
+                    code=f"{tool}.{suffix}",
+                    message=" | ".join(row) if row else stem,
+                    tool=tool,
+                    logical=subject or None,
+                )
+            )
+    items += [
+        diagnostics.finding(
+            severity="error",
+            code=f"{tool}.shacl-error",
+            message=message,
+            tool=tool,
+        )
+        for message in report.shacl_errors
+    ]
+    items += [
+        diagnostics.finding(
+            severity="warning",
+            code=f"{tool}.shacl-warning",
+            message=message,
+            tool=tool,
+        )
+        for message in report.shacl_warnings
+    ]
+    return diagnostics.report_from_findings(tool=tool, findings=items)

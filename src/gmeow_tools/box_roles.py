@@ -10,6 +10,7 @@ from pathlib import Path
 from rdflib import RDF, RDFS, Graph, URIRef
 from rdflib.namespace import OWL
 
+from gmeow_tools import diagnostics
 from gmeow_tools.config import (
     MAPPING_DSL_DIR,
     NAMESPACE,
@@ -172,6 +173,34 @@ def render_text(report: BoxRoleAudit) -> str:
 def render_json(report: BoxRoleAudit) -> str:
     """Render the audit as stable JSON."""
     return json.dumps(report.as_dict(), indent=2, sort_keys=True)
+
+
+def to_diagnostics_report(
+    report: BoxRoleAudit,
+    *,
+    tool: str = "box-roles",
+) -> diagnostics.DiagnosticsReport:
+    """Project a box-role audit into the canonical diagnostics report (#654).
+
+    Both missing and invalid role coverage are gate-failing, so every finding
+    is an ``error``. The term's source file rides in ``path`` and the term kind
+    in ``tags`` so SARIF/HTML consumers keep the audit's structure.
+    """
+
+    def _item(finding: RoleFinding, code: str) -> diagnostics.DiagnosticsFinding:
+        message = f"{_curie(URIRef(finding.term))} ({finding.kind}): {finding.message}"
+        return diagnostics.finding(
+            severity="error",
+            code=code,
+            message=message,
+            tool=tool,
+            path=finding.source,
+            tags=[finding.kind],
+        )
+
+    items = [_item(f, f"{tool}.missing") for f in report.missing]
+    items += [_item(f, f"{tool}.invalid") for f in report.invalid]
+    return diagnostics.report_from_findings(tool=tool, findings=items)
 
 
 def _finding_lines(findings: list[RoleFinding], *, limit: int = 50) -> list[str]:
