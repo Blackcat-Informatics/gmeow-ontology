@@ -3,32 +3,31 @@
 
 # GMEOW Logic — Vision and Doctrine
 
-> Status: canonical target architecture for GMEOW's reasoning layer. This is the **manifesto**
-> of the GMEOW Logic design set; it carries the vision, doctrine, lineage, and target
-> architecture. The formal semantics, runtime, rollout, and conformance contract live in the
-> sibling documents below. Where this document states a thesis once, the siblings make it
-> precise — repetition is replaced by cross-reference on purpose.
-
-**Semantic-status convention.** Claims across this design set carry one of three labels:
-**Normative semantics** marks the canonical target — what the logic is defined to mean.
-**Currently implemented subset** marks what the engine realizes today.
-**Required but not yet implemented** marks what is specified or needed but not yet realized.
-These are semantic-status labels, not project-management states.
+> The **manifesto** of the GMEOW Logic design set; it carries the vision, doctrine, and lineage.
+> The formal semantics, runtime, and conformance contract live in the sibling documents below.
+> Where this document states a thesis once, the siblings make it precise — repetition is replaced
+> by cross-reference on purpose.
 
 ## The document set
 
 | Document | Genre | Contents |
 |---|---|---|
-| `LOGIC.md` (this) | manifesto | vision, doctrine, lineage, target architecture |
+| `LOGIC.md` (this) | manifesto | vision, doctrine, lineage |
 | [`LOGIC-FOUNDATION.md`](LOGIC-FOUNDATION.md) | charter | the `gmeow:logic` upper-ontology charter — the gUFO ⊇ baseline, the criticism ledger, the greenfield feature map, the Ithkuil precision ethos, the four-box organization |
 | [`LOGIC-CONTRACT.md`](LOGIC-CONTRACT.md) | configuration | the reasoning contract — the orthogonal facets a reasoning request selects; named profiles as presets; the compatibility matrix |
 | [`LOGIC-IR.md`](LOGIC-IR.md) | intermediate representation | the typed, full first-order IR every source compiles into and every projection out of; the per-lowering preservation judgment |
 | [`LOGIC-SEMANTICS.md`](LOGIC-SEMANTICS.md) | formal semantics | the unified core, triple-term/assertion rules, the reasoning result, modality, the typed context algebra, decidability |
 | [`LOGIC-TRANSACTION.md`](LOGIC-TRANSACTION.md) | state change | Transaction Logic — path semantics, serial conjunction, updates as supersession, the state-change facet |
+| [`LOGIC-TELEOLOGY.md`](LOGIC-TELEOLOGY.md) | goal/action layer | goals, intentional modes, structured goal expressions, reified goal evaluation, action schemas, goal decomposition and conflict; the intention → plan → action → transaction-path chain |
+| [`LOGIC-COGNITION.md`](LOGIC-COGNITION.md) | cognitive assessment | the multidimensional cognitive-assessment construct — factored dimensions of reasoning quality, reliability, calibration, and metacognitive posture; reasoning quality over the inference modes; reliability over the typed reasoning result |
 | [`LOGIC-RUNTIME.md`](LOGIC-RUNTIME.md) | runtime | solver architecture, the materialization–resolution seam, graph versioning, generated artifacts, CLI |
-| [`LOGIC-MIGRATION.md`](LOGIC-MIGRATION.md) | rollout | the MVP ladder, adapter phases, gates, deprecations, the design risk register |
 | [`LOGIC-CONFORMANCE.md`](LOGIC-CONFORMANCE.md) | contract | the conformance corpus and the loss-ledger preservation contract |
 | [`LOGIC-REFERENCES.md`](LOGIC-REFERENCES.md) | appendix | external standards, theory, and engines cited — staged for the `metadata/references.ttl` ledger |
+
+> **Reading this design set.** The declarative present tense is normative: "X is" means a conforming
+> realization implements X, established by the conformance corpus
+> ([`LOGIC-CONFORMANCE.md`](LOGIC-CONFORMANCE.md)). It is not a claim that any particular
+> implementation already realizes X except as the corpus demonstrates.
 
 ## The thesis
 
@@ -68,9 +67,9 @@ projection, and the certified profiles — is in
 A reasoning request is a typed, compositional **reasoning contract** over orthogonal facets —
 consequence relation, negation kind, closure assumption, context indexing, state-change mode,
 uncertainty handling, and so on. Named profiles are presets: bundles of facet values that the
-compiler expands before evaluation, never indivisible alternatives. The contract model supersedes
-any framing in terms of a small fixed set of profiles, because the orthogonal dimensions compose
-in combinations no fixed list can fully anticipate. The full definition of the facets, presets,
+compiler expands before evaluation, never indivisible alternatives. The contract model is canonical
+rather than any small fixed set of profiles, because the orthogonal dimensions compose in
+combinations no fixed list can fully anticipate. The full definition of the facets, presets,
 and compatibility matrix is in [LOGIC-CONTRACT.md](LOGIC-CONTRACT.md).
 
 This is the same doctrine GMEOW already applies everywhere else:
@@ -184,8 +183,8 @@ alignment/bridge views, not truth-preserving projections**, unless a specific su
 certified as such in the loss ledger. They carry genuinely different ontological commitments, and
 the maximal-source doctrine respects that rather than overclaiming a shared foundation. The
 operational semantics of the foundation are in
-[LOGIC-SEMANTICS.md](LOGIC-SEMANTICS.md#the-logic-foundation-ufo); its rollout and projection
-discipline are in [LOGIC-MIGRATION.md](LOGIC-MIGRATION.md#foundation-projection-and-discipline).
+[LOGIC-SEMANTICS.md](LOGIC-SEMANTICS.md#the-logic-foundation-ufo); its projection discipline is in
+[LOGIC-FOUNDATION.md](LOGIC-FOUNDATION.md#foundation-projection-and-discipline).
 
 ## Constitutional Alignment
 
@@ -216,19 +215,14 @@ This makes GMEOW's logic match the rest of the project: maximal model, maximal l
 projection, and no compatibility format — not even OWL, not even gUFO — promoted above the canonical
 source.
 
-### Forthcoming layers
+### The goal/action and cognitive-assessment layers
 
-Two design layers are **required but not yet specified** in this set.
-
-The **teleological goal/action semantics** layer will formalize structured goal expressions, goal
-evaluation, and action schemas, and will bridge the intention → plan → action →
-transaction-path chain. The transaction layer handles the state-change mechanics; this forthcoming
-layer authors the goal structure that motivates and evaluates those transactions.
-
-The **multidimensional cognitive-assessment** layer will replace the coarse awareness-to-mastery
-ladder with a contextual assessment construct carrying subject granularity, task, evaluator,
-evidence, scale, interval, and dimensions. A single ordinal score is insufficient to represent
-cognitive competence across contexts; this layer supplies the richer model.
-
-Both are design layers still to be authored; their absence means the corresponding semantics are
-**required but not yet implemented** in the current engine.
+Two further layers complete the design. The **goal-and-action layer**
+([LOGIC-TELEOLOGY.md](LOGIC-TELEOLOGY.md)) carries structured goal expressions, reified goal
+evaluation, and action schemas, and binds the intention → plan → action → transaction-path chain:
+the transaction layer handles the state-change mechanics, and the goal-and-action layer carries the
+goal structure that motivates and evaluates those transactions. The **cognitive-assessment layer**
+([LOGIC-COGNITION.md](LOGIC-COGNITION.md)) carries a contextual, factored assessment construct —
+subject granularity, task, evaluator, evidence, scale, interval, and independent dimensions — in
+place of a single ordinal competence score, which cannot represent cognitive competence across
+contexts.

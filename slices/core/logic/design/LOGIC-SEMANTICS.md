@@ -3,7 +3,7 @@
 
 # GMEOW Logic — Formal Semantics
 
-> Status: canonical target architecture — the formal-semantics member of the
+> The formal-semantics member of the
 > [GMEOW Logic document set](LOGIC.md#the-document-set). It defines the unified core, the
 > triple-term/assertion rules, the reasoning contract's semantic meaning, the typed reasoning
 > result, the typed context algebra of worlds and modality, the foundation's operational semantics,
@@ -11,13 +11,6 @@
 > [LOGIC-CONTRACT.md](LOGIC-CONTRACT.md); the typed intermediate representation is in
 > [LOGIC-IR.md](LOGIC-IR.md); state-change semantics are in [LOGIC-TRANSACTION.md](LOGIC-TRANSACTION.md);
 > the engine that realizes these semantics is in [LOGIC-RUNTIME.md](LOGIC-RUNTIME.md).
->
-> **Reading the semantic-status labels.** This document describes the *target architecture*, which is
-> not the same as shipped state. To keep the two from being conflated, claims that touch implementation
-> are tagged with one of three labels: **Normative semantics** (what the formal model requires of any
-> conforming engine), **Currently implemented subset** (what the runtime evaluates today), and
-> **Required but not yet implemented** (a normative obligation no engine yet discharges). An untagged
-> statement is normative semantics by default.
 
 ## The Unified Logic Core
 
@@ -126,11 +119,12 @@ consequence, and procedural search all at once, **every reasoning request is gov
 [LOGIC-CONTRACT.md](LOGIC-CONTRACT.md). Soundness, completeness, and the decidability class are all
 stated *relative to that contract* — a claim of "sound" with no contract in hand is meaningless.
 
-The older notion of a fixed, closed list of six indivisible "profiles" is superseded — and so is the
-intermediate framing of a single `Consequence` facet. **There is no one consequence facet.** What an
-entailment *means* is settled jointly by several orthogonal facets of the contract
-([LOGIC-CONTRACT.md](LOGIC-CONTRACT.md)). The "modes" older drafts crowded into one column are in fact
-values of *different* facets; the table below attributes each to the facet that actually carries it.
+A fixed, closed list of six indivisible "profiles" is not the model, and neither is a single
+`Consequence` facet. **There is no one consequence facet.** What an entailment *means* is settled
+jointly by several orthogonal facets of the contract
+([LOGIC-CONTRACT.md](LOGIC-CONTRACT.md)). The "modes" that a single column would crowd together are
+in fact values of *different* facets; the table below attributes each to the facet that actually
+carries it.
 They compose rather than exclude.
 
 | Facet | Value | Formal meaning | Decidability character |
@@ -336,7 +330,7 @@ information=not-evaluated` (no semantics for the request, so no information was 
 information=undetermined` (the search ran out of budget having found neither a proof nor a counterproof,
 so no verdict was reached) — and the reader can tell those apart, which a single status word cannot.
 
-### Contract-specific interpretation of `information` (Normative semantics)
+### Contract-specific interpretation of `information`
 
 The four-valued reading above is the *frame*; each consequence contract refines what `supported`,
 `opposed`, and `neither` mean for it. The engine MUST apply the contract-appropriate rule, never a
@@ -434,9 +428,9 @@ A maximally expressive logic demands a foundational ontology authored *in that l
 from a weaker one. "gUFO" is *gentle* UFO — a deliberately lightweight OWL 2 realization that drops
 the modal distinctions and higher-order types of full UFO to stay inside OWL's decidable ceiling, so
 it embodies the very restraint `logic:` rejects. The foundational theory — **UFO⁺** — is authored
-canonically in the `logic:` namespace; gUFO becomes a generated down-projection (the rollout and the
-gUFO/BFO/DOLCE distinction are in
-[LOGIC-MIGRATION.md](LOGIC-MIGRATION.md#foundation-projection-and-discipline)).
+canonically in the `logic:` namespace; gUFO becomes a generated down-projection (the gUFO/BFO/DOLCE
+distinction is in
+[LOGIC-FOUNDATION.md](LOGIC-FOUNDATION.md#foundation-projection-and-discipline)).
 
 The foundational categories are `logic:` terms in the one namespace: `logic:Kind`, `logic:SubKind`,
 `logic:Phase`, `logic:Role`, `logic:Category`, `logic:Mixin`, `logic:RoleMixin`, `logic:PhaseMixin`,
@@ -488,23 +482,14 @@ must produce exactly the verdicts the external structural checks yield — the c
 specification of the lowering — and they additionally decide cases (cross-world rigidity, type-level
 identity) those checks cannot express.
 
-**The lowering target — native and authoritative (Normative semantics).** The type-level disciplines
+**The lowering target — native and authoritative.** The type-level disciplines
 derive `logic:violation` facts for stereotype cardinality, **MixIden**, **FreeRole**, **MixRig**, and
 **RelComp** under a stratified-negation contract, with absence expressed via negation-as-failure and
 "two distinct values" via an inequality guard. Cross-world rigidity is decided in the same evaluator by
 a bounded closure over the finite materialized world set, emitting a rigidity-violation finding in the
 failing context. The full-provenance findings flow into the shared `logic:ReasoningResult` every
-downstream consumer reads. There is to be no secondary oracle and no fallback (the no-optionality
-doctrine); correctness is to be proven end-to-end by the foundation conformance goldens.
-
-**Currently implemented subset.** The type-level disciplines (stereotype cardinality, **MixIden**,
-**FreeRole**, **MixRig**, **RelComp**) are evaluated natively under stratified negation, and their
-verdicts are checked against the conformance goldens.
-
-**Required but not yet implemented.** Full cross-world rigidity by bounded closure over the materialized
-world set, and the retirement of every secondary oracle, are normative obligations of the lowering that
-the running engine does not yet wholly discharge; until the foundation conformance goldens cover them
-end-to-end, "native and authoritative" describes the target, not shipped state.
+downstream consumer reads. There is no secondary oracle and no fallback (the no-optionality
+doctrine); correctness is proven end-to-end by the foundation conformance goldens.
 
 ### Anti-rigidity needs a witness policy
 
