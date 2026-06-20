@@ -730,10 +730,12 @@ def crosscheck_queries() -> None:
     The trust anchor that licenses the test suite to run on the fast gmeow_rdf
     engine: each query under ``queries/`` is executed on the same merged graph
     under both engines and the answers compared by value. Any divergence fails.
+    The agreement matrix is also written as JSON/SARIF/HTML via the diagnostics
+    rail (#667 — the surface no longer terminates at stdout only).
     """
-    from gmeow_tools.engine_crosscheck import crosscheck_all
+    from gmeow_tools.engine_crosscheck import run
 
-    results = crosscheck_all()
+    _passed, results, _report = run()
     diverged = [r for r in results if not r.agree and not r.skipped]
     skipped = [r for r in results if r.skipped]
     checked = [r for r in results if not r.skipped]
