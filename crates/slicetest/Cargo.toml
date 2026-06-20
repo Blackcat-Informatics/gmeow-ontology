@@ -27,6 +27,9 @@ gmeow-logic = { path = "../logic" }
 # Shared RDF 1.2 kernel: OxigraphStore adapter feeding the merged store into
 # rl_closure.
 gmeow-rdf = { path = "../rdf", features = ["gts", "oxigraph"] }
+# SHA-256 for the content-addressed reasoned-closure disk cache key (parity with
+# the validation cache in gmeow-validate).
+sha2 = "0.10"
 
 [dev-dependencies]
 # File-driven test harness: one nextest case per discovered tests/*.ttl spec

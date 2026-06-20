@@ -24,6 +24,7 @@
 //! * [`exec`] — the three cell executors and their per-file aggregators.
 //! * [`paths`] — `CARGO_MANIFEST_DIR`-anchored path resolution.
 
-// NOTE: `reasoned` and `exec` are introduced in the next commit (Task 3).
 pub mod dsl;
+pub mod exec;
 pub mod paths;
+pub mod reasoned;

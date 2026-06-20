@@ -5,6 +5,16 @@
 slow-timeout = { period = "60s", "terminate-after" = 2, "grace-period" = "30s" }
 retries = { backoff = "fixed", count = 2, delay = "1s" }
 
+# The slice-test competency lane runs the merged ontology's OWL 2 RL closure (the
+# same native chase tests/test_competency.py pays, disk-cached so make check runs
+# it at most once). On a cold cache that single chase is ~4 minutes, far past the
+# 60s default; give it room and do NOT retry (a retry would re-run the whole
+# chase). gmeow-slicetest #784.
+[[profile.default.overrides]]
+filter = 'test(run_competency_file)'
+slow-timeout = { period = "150s", "terminate-after" = 4, "grace-period" = "30s" }
+retries = 0
+
 [profile.ci]
 inherits = "default"
 junit = { path = "junit.xml" }

@@ -6,26 +6,29 @@
 //! `datatest-stable` discovers every slice-resident test-DSL spec file under
 //! `slices/**/tests/` and emits one nextest case PER FILE, run in parallel. Each
 //! of the three cell types has its own fixed-filename glob and executor; the
-//! executor parses the file, enumerates its cells, and runs them all, surfacing
-//! every failing cell in one aggregated error.
+//! executor (in [`gmeow_slicetest::exec`]) parses the file, enumerates its
+//! cells, and runs them all, surfacing every failing cell in one aggregated
+//! error.
 //!
 //! `tests/counter-examples/*.ttl` is excluded structurally: it never matches the
 //! three fixed spec filenames (it is referenced only via `gmeow:exampleFile`).
 
 use datatest_stable::Utf8Path;
 
+use gmeow_slicetest::exec;
+
 fn run_competency_file(path: &Utf8Path) -> datatest_stable::Result<()> {
-    let _ = path; // Task 3 wires the real executor.
+    exec::run_competency_file(path.as_std_path())?;
     Ok(())
 }
 
 fn run_structural_file(path: &Utf8Path) -> datatest_stable::Result<()> {
-    let _ = path; // Task 3 wires the real executor.
+    exec::run_structural_file(path.as_std_path())?;
     Ok(())
 }
 
 fn run_conformance_file(path: &Utf8Path) -> datatest_stable::Result<()> {
-    let _ = path; // Task 3 wires the real executor.
+    exec::run_conformance_file(path.as_std_path())?;
     Ok(())
 }
 
