@@ -403,12 +403,12 @@ def _surface_reports() -> list[tuple[str, Callable[[], Any]]]:
 
     Each thunk re-runs one ``make check`` surface and returns its
     ``DiagnosticsReport``. The thunks mirror exactly what the corresponding
-    ``make`` targets run (offline lanes only). Adding a surface to ``make check``
-    means adding a row here — ``test_feedback_folds_all_surfaces`` guards that
-    this list and the gate stay in sync, so a new surface cannot silently escape
-    the unified bundle. (``validate`` + native ``reason``/``verify`` are folded
-    separately in :func:`feedback`; ROBOT and external-tool lanes are a
-    documented follow-up.)
+    ``make`` targets run (offline lanes only). This table is the single place a
+    migrated surface is registered;
+    ``test_surface_reports_covers_every_migrated_surface`` pins it against
+    ``_EXPECTED_SURFACES`` so the table cannot drift from the documented surface
+    set. (``validate`` + native ``reason``/``verify`` are folded separately in
+    :func:`feedback`; ROBOT and external-tool lanes are a documented follow-up.)
     """
 
     def _alignment() -> Any:

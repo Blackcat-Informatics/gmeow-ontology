@@ -2,10 +2,13 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 """The `gmeow-dev feedback` surface fold loop (#654).
 
-Guards that every migrated `make check` surface is folded into the unified
-feedback report, that a single surface failing is isolated (the bundle still
-self-attests), and — the structural regression this slice exists to prevent —
-that a surface added to the gate cannot silently escape the bundle.
+Guards that the fold table (``_surface_reports()``) stays in sync with the
+expected-surface set (``_EXPECTED_SURFACES``), that a single surface failing
+is isolated (the bundle still self-attests), and — the drift regression this
+slice exists to prevent — that a row added to or removed from the fold table
+without a matching update to the expected set fails the test.  The guard does
+NOT (and cannot, given the non-1:1 surface↔target mapping) derive the surface
+set from the Makefile.
 """
 
 from __future__ import annotations
@@ -36,8 +39,11 @@ _EXPECTED_SURFACES = {
 def test_surface_reports_covers_every_migrated_surface() -> None:
     """The fold table must list exactly the migrated surfaces — no drift.
 
-    If a future surface is wired into `make check` but not added here, this
-    fails: the gate and the unified bundle would otherwise fall out of sync.
+    The test fails if ``_surface_reports()`` and ``_EXPECTED_SURFACES`` fall
+    out of sync: a surface added to or removed from the fold table without a
+    matching update to the expected set is caught here, pinning the two sibling
+    declarations together.  It does not promise that every ``make check``
+    target is present — the surface↔target mapping is not 1:1.
     """
     labels = {label for label, _ in cli_dev._surface_reports()}
     assert labels == _EXPECTED_SURFACES

@@ -102,15 +102,17 @@ validation cache all anchor a diagnostic to the same position.
 
 ## Dev-gate producers (the feedback fold)
 
-`gmeow-dev feedback` folds **every** GMEOW-owned `make check` surface into one canonical report,
+`gmeow-dev feedback` folds **every** GMEOW-owned `make check` surface into one canonical report
+(a few surfaces are folded standalone rather than as literal `make check` targets — `box-roles` is
+a `reason-native` sub-audit and `classic-cross-check` runs its own lane, not under `make check`),
 then writes `dist/gmeow-feedback.{json,sarif,html,gts}` — so the self-attesting bundle is the
 complete picture of the developer gate, not just validation (#654, Principle 5: maximal information
 flow). Each surface owns its own `Severity`/`code` semantics via a `to_diagnostics_report()` function
 (the facade stays surface-agnostic); the table-driven fold in `cli_dev._surface_reports()` adds a
-surface in one row, and `tests/test_feedback_surfaces.py` guards that a surface added to the gate
-cannot silently escape the bundle. The feedback process **exit stays driven solely by the validation
-result** — per-surface hard gating lives in each surface's own `make check` command; the bundle
-carries the rest as an artifact.
+surface in one row, and `tests/test_feedback_surfaces.py` pins the fold table against the documented
+surface set so the registry of folded surfaces cannot drift unnoticed. The feedback process **exit
+stays driven solely by the validation result** — per-surface hard gating lives in each surface's own
+`make check` command; the bundle carries the rest as an artifact.
 
 | Surface | Stable `code`s | Severity rule |
 |---|---|---|
