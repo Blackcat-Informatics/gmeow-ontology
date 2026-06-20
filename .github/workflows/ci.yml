@@ -15,6 +15,18 @@ permissions:
 # The quality gate is split into independent jobs that run in parallel; each
 # restores the uv cache (setup-uv) so `uv sync` is fast. ruff/format live only
 # in the lint job's pre-commit run (not duplicated here).
+#
+# Diagnostics SARIF taxonomy (#662): each job's per-category SARIF is uploaded to
+# code scanning under a category == the JOB name, and its artifacts land under
+# `dist/diagnostics/<category>/`. Wired here: `python-heavy` (the aggregate gate
+# feedback bundle) and `python` (mypy via the external-tool wrapper). Still a
+# documented follow-up — `lint` and `rust` need the native `gmeow_diagnostics`
+# extension / a Python toolchain added to those jobs, and `ontology` a dedicated
+# feedback run; that work is coordinated with #666, which restructures the
+# reason/statements jobs into `native` + `classic-cross-check`. Per the owner's
+# rule, whichever of #662/#666 lands second renames the categories in one place.
+# Uploads are fork-safe: only push + same-repo PRs hit code scanning; fork PRs
+# fall back to a workflow artifact (their token lacks security-events: write).
 jobs:
   lint:
     runs-on: ubuntu-latest
@@ -44,6 +56,11 @@ jobs:
 
   python:
     runs-on: ubuntu-latest
+    # security-events: write lets this job's per-category (python/mypy) SARIF
+    # surface in the Security tab via upload-sarif (#662).
+    permissions:
+      contents: read
+      security-events: write
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
@@ -95,6 +112,42 @@ jobs:
 
       - name: gmeow_shacl extension imports
         run: uv run python -c "import gmeow_shacl; print('gmeow_shacl at', gmeow_shacl.__file__)"
+
+      # Per-category diagnostics (#662): re-run mypy through the external-tool
+      # wrapper purely to emit a `python`-category SARIF of any type errors. The
+      # AUTHORITATIVE mypy gate is the "Type-check (mypy)" step above (which runs
+      # before the native exts, against the stubs); this step is continue-on-error
+      # so it never gates — it only projects findings for code scanning.
+      - name: mypy diagnostics SARIF (per-category python, non-gating)
+        continue-on-error: true
+        env:
+          GMEOW_DIAGNOSTICS_DIR: dist/diagnostics/python
+        run: uv run --package gmeow-dev gmeow-dev external-tool --name mypy --category python -- uv run mypy
+
+      # Upload to code scanning only for push + same-repo PRs (a fork PR's token
+      # lacks security-events: write). Fork PRs fall back to a workflow artifact.
+      - name: Upload python diagnostics SARIF to code scanning (#662)
+        if: >-
+          always()
+          && hashFiles('dist/diagnostics/python/gmeow-feedback.sarif') != ''
+          && (github.event_name == 'push'
+          || github.event.pull_request.head.repo.full_name == github.repository)
+        uses: github/codeql-action/upload-sarif@dd903d2e4f5405488e5ef1422510ee31c8b32357 # v3
+        with:
+          sarif_file: dist/diagnostics/python/gmeow-feedback.sarif
+          category: python
+
+      - name: Upload python diagnostics artifacts (fork-safe fallback, #662)
+        if: >-
+          always()
+          && hashFiles('dist/diagnostics/python/*') != ''
+          && github.event_name == 'pull_request'
+          && github.event.pull_request.head.repo.full_name != github.repository
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: diagnostics-python
+          path: dist/diagnostics/python/
+          if-no-files-found: warn
 
       # Pure-Python tests only. Docker-backed checks run through explicit
       # gmeow/Make lanes in parallel jobs below, not through pytest. Network
@@ -170,19 +223,42 @@ jobs:
       - name: Build + install gmeow_rdf extension (#667 — native statement codec)
         run: VIRTUAL_ENV="$PWD/.venv" uvx maturin develop --manifest-path crates/rdf/Cargo.toml
 
-      # First-class diagnostics (#654): emit the SARIF/JSON/HTML + self-describing
-      # .gts feedback bundle. continue-on-error so a validation failure still
-      # uploads the SARIF that explains it.
-      - name: Diagnostics feedback (SARIF/JSON/HTML + .gts)
+      # First-class diagnostics (#654, #662): emit the per-category SARIF/JSON/HTML
+      # + self-describing .gts bundle for the aggregate gate (validation + native
+      # reasoning + every migrated ontology surface), under dist/diagnostics/<cat>/.
+      # The category is the JOB that runs it. continue-on-error so a gate failure
+      # still produces the SARIF that explains it.
+      - name: Diagnostics feedback (per-category SARIF/JSON/HTML + .gts)
         continue-on-error: true
+        env:
+          GMEOW_DIAGNOSTICS_CATEGORY: python-heavy
+          GMEOW_DIAGNOSTICS_DIR: dist/diagnostics/python-heavy
         run: uv run --package gmeow-dev gmeow-dev feedback
 
-      - name: Upload diagnostics SARIF to code scanning (#654)
-        if: always() && hashFiles('dist/gmeow-feedback.sarif') != ''
+      # Upload to code scanning only for push + same-repo PRs (a fork PR's token
+      # lacks security-events: write). Fork PRs fall back to a workflow artifact.
+      - name: Upload python-heavy diagnostics SARIF to code scanning (#662)
+        if: >-
+          always()
+          && hashFiles('dist/diagnostics/python-heavy/gmeow-feedback.sarif') != ''
+          && (github.event_name == 'push'
+          || github.event.pull_request.head.repo.full_name == github.repository)
         uses: github/codeql-action/upload-sarif@dd903d2e4f5405488e5ef1422510ee31c8b32357 # v3
         with:
-          sarif_file: dist/gmeow-feedback.sarif
-          category: gmeow-diagnostics
+          sarif_file: dist/diagnostics/python-heavy/gmeow-feedback.sarif
+          category: python-heavy
+
+      - name: Upload python-heavy diagnostics artifacts (fork-safe fallback, #662)
+        if: >-
+          always()
+          && hashFiles('dist/diagnostics/python-heavy/*') != ''
+          && github.event_name == 'pull_request'
+          && github.event.pull_request.head.repo.full_name != github.repository
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: diagnostics-python-heavy
+          path: dist/diagnostics/python-heavy/
+          if-no-files-found: warn
 
       # CI-only Python tests cover heavyweight generated docs, GTS snapshot
       # determinism, and secondary export surfaces. Keep module scopes together
