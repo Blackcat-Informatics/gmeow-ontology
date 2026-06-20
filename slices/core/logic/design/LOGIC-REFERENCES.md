@@ -118,6 +118,21 @@ unless they themselves cite an external work; they are cross-references within G
 - von Wright, G. H. (1951). *Deontic Logic.* Mind 60(237). (The modal treatment of obligation,
   permission, and prohibition; grounds the deontic force that ranges over goals — see
   LOGIC-TELEOLOGY.md.)
+- Peirce, C. S. (1903). *Pragmatism as a Principle and Method of Right Thinking* (the Harvard
+  Lectures on Pragmatism). (Abduction as a third inference mode beside deduction and induction;
+  grounds the abductive quality criterion of cognitive assessment — see LOGIC-COGNITION.md.)
+- Toulmin, S. (1958). *The Uses of Argument.* Cambridge University Press. (Claim, data, warrant,
+  backing, rebuttal; grounds the warrant-and-defeater structure reasoning quality is judged against
+  — see LOGIC-COGNITION.md.)
+- Pollock, J. L. (1987). *Defeasible Reasoning.* Cognitive Science 11(4). (Rebutting versus
+  undercutting defeaters; grounds the defeater-kind axis of reasoning quality — see
+  LOGIC-COGNITION.md.)
+- Gentner, D. (1983). *Structure-Mapping: A Theoretical Framework for Analogy.* Cognitive Science
+  7(2). (Systematicity as the criterion of a good analogical mapping; grounds the analogical quality
+  criterion — see LOGIC-COGNITION.md.)
+- Brier, G. W. (1950). *Verification of Forecasts Expressed in Terms of Probability.* Monthly Weather
+  Review 78(1). (The Brier score; grounds the calibration-error measurement of cognitive assessment
+  — see LOGIC-COGNITION.md.)
 
 ## Engines and tools (`intentBridgedByReference`)
 
