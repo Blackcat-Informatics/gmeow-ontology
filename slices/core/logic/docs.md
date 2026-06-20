@@ -73,9 +73,8 @@ implemented against rather than only read:
   concerns. The state-change semantics are in [`design/LOGIC-TRANSACTION.md`](./design/LOGIC-TRANSACTION.md).
 - **The foundational ontology (UFO⁺) is authored in `logic:`.** gUFO is the primary generated
   down-projection; BFO, DOLCE, and SUMO are generated bridge views, not truth-preserving
-  projections. The OntoUML disciplines that formerly lived as external lint become actual axioms
-  when the native solver lands; the lint equivalents survive as projection-conformance tests over
-  the gUFO downcast.
+  projections. The OntoUML disciplines are actual `logic:` axioms evaluated by the native solver;
+  the lint equivalents survive as projection-conformance tests over the gUFO downcast.
 - **A single canonical native solver is the normal development authority.** It runs forward
   materialization and backward goal resolution; the classical OWL tools operate as secondary
   validators for exported subsets, not as the authority.
@@ -147,16 +146,6 @@ The hypothetical operator — testing a transaction without committing its effec
 from modal possibility: it asks whether a program *can execute*, not whether a proposition holds
 in some accessible world. Concurrent Transaction Logic extends the path model to interleaved
 execution, surfacing non-serializable schedules as findings.
-
-## Status
-
-Foundation vocabulary fully minted. The `logic:` namespace and the foundational surface are
-declared as standalone terms. The reasoned core is unchanged because the minted terms carry no
-axioms yet. The OntoUML discipline axioms, the native solver that evaluates them, the full
-generator set, and the matching enforcement gates in
-[`governance/constitution.ttl`](../../../governance/constitution.ttl) land as the native engine
-comes online. Until then, Principle 17 is enforced by design-review practice and surfaces as a
-warning, never silently.
 
 ## Terms
 

@@ -3,9 +3,8 @@
 
 # GMEOW Logic — Conformance Design
 
-> Status: canonical target architecture for `logic:` conformance. This is the **conformance** member
-> of the [GMEOW Logic document set](LOGIC.md#the-document-set). It defines how correctness is
-> established: the conformance corpus as the enforcement contract, capability-relative conformance
+> The **conformance** member of the GMEOW Logic design set: how correctness is established for
+> `logic:`. It defines the conformance corpus as the enforcement contract, capability-relative conformance
 > and the capability manifest, the loss ledger and multidimensional preservation claims, the two
 > orthogonal correctness axes, the Common-Logic round-trip faithfulness gate, the divergence ledger
 > as a public benchmark surface, the design of tests-as-ontology-data and its isolation rule, and
@@ -58,8 +57,8 @@ The faithful-by-construction property for explanations (defined in
 Not every implementation of `logic:` is a full runtime. A compiler-only surface, a validator-only
 surface, a projection-only transcoder, a lightweight consumer, or a wasm-constrained deployment each
 operates over a proper subset of the full capability space. Requiring every such implementation to
-pass every conformance category would make conformance meaningless as a signal and would falsely
-exclude legitimate specialised implementations.
+pass every conformance category makes conformance meaningless as a signal and falsely
+excludes legitimate specialised implementations.
 
 Conformance is therefore **capability-relative**: a conforming implementation publishes a
 **capability manifest** declaring exactly what it supports and what it does not. The manifest is a
@@ -116,8 +115,8 @@ produce for these inputs under these contracts. An engine passes this axis only 
 decisions the authors made without knowing how any engine is implemented.
 
 This axis tells you nothing about regression between versions. A correct engine that is refactored
-to produce the same correct answers will produce a regression-stability signal of zero changes, but
-the correctness axis was what licensed confidence in the correctness to begin with.
+to produce the same correct answers produces a regression-stability signal of zero changes, but
+the correctness axis is what licenses confidence in the correctness to begin with.
 
 **Both axes are required.** Regression-stability without an external correctness corpus means the
 project can only detect *change*, never establish *rightness*. An external corpus without internal
@@ -176,7 +175,7 @@ The preservation polarity values are:
 | --- | --- |
 | `logic:ExactPreservation` | The target answers the same questions as canonical form for the declared query class |
 | `logic:SoundUnderApproximation` | Everything the target entails is canonically valid; it may miss answers |
-| `logic:CompleteOverApproximation` | The target will not miss answers; it may add some |
+| `logic:CompleteOverApproximation` | The target misses no answers; it may add some |
 | `logic:ValidationOnly` | The target detects some invalidity but is not an entailment relation |
 | `logic:InconsistencyPreserving` | A canonical inconsistency is visible in the projection |
 | `logic:InconsistencyReflecting` | A projection inconsistency implies a canonical inconsistency |

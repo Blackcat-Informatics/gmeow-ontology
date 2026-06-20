@@ -3,20 +3,13 @@
 
 # GMEOW Logic — Runtime and Engine Architecture
 
-> Status: target architecture for `logic:`. This is the **runtime** member of the
-> [GMEOW Logic document set](LOGIC.md#the-document-set). It defines the native solver, the
+> The **runtime** member of the GMEOW Logic design set: it defines the native solver, the
 > compiler/runtime split, the forward materialization ↔ backward resolution seam and its data
 > contract, graph versioning, the generated artifacts and their preservation judgments, the
 > prose-explanation surface, and the reasoning command surface. The semantics these realize are in
 > [LOGIC-SEMANTICS.md](LOGIC-SEMANTICS.md); the transaction-path execution semantics are in
 > [LOGIC-TRANSACTION.md](LOGIC-TRANSACTION.md); the typed intermediate representation is in
 > [LOGIC-IR.md](LOGIC-IR.md).
->
-> **Reading the status labels.** Claims that touch implementation are tagged with one of three
-> labels: **Normative semantics** (what the formal model requires of any conforming engine),
-> **Currently implemented subset** (what the runtime evaluates today), and **Required but not yet
-> implemented** (a normative obligation no engine yet discharges). An untagged statement is
-> normative semantics by default.
 
 ## The compiler/runtime split
 
@@ -129,26 +122,22 @@ three runtime phases map one-to-one to the three
 
 **Phase 1 — materialize (forward engine owns it; Strata A and B).** The forward-stratified rules
 — the lowered modal constraints, the frame-indexed contexts, the type-level no-occurrence rules —
-run to fixpoint and write their closure into named graphs. **Normative semantics:** termination
-within this phase is guaranteed only when the contract's `Resource` facet certifies a terminating
-fragment (weakly-acyclic, jointly-acyclic, or other certified-sufficient condition). Stratified
-Datalog rules over a finite domain terminate; existential rules outside a certified acyclicity
-condition do not. The result, when the phase completes, is a saturated, read-only **extensional
-database (EDB)**.
-
-**Currently implemented subset:** Phase 1 runs under stratified negation with the no-occurrence
-gate enforced, which provides the termination guarantee for the type-level fragment currently
-evaluated.
-
-**Required but not yet implemented:** Full existential-rule certification and the runtime
-enforcement of the contract's certified-fragment annotation on Phase 1 termination guarantees.
+run to fixpoint and write their closure into named graphs. Phase 1 runs under stratified negation
+with the no-occurrence gate enforced, which provides the termination guarantee for the type-level
+fragment it evaluates. Beyond that fragment, termination within this phase is guaranteed only when
+the contract's `Resource` facet certifies a terminating fragment (weakly-acyclic, jointly-acyclic,
+or other certified-sufficient condition): stratified Datalog rules over a finite domain terminate;
+existential rules outside a certified acyclicity condition do not. Full existential-rule
+certification and the runtime enforcement of the contract's certified-fragment annotation are the
+mechanism that carries this guarantee. The result, when the phase completes, is a saturated,
+read-only **extensional database (EDB)**.
 
 **Phase 2 — resolve (backward engine owns it; the query / logic-programming layer).** Backward
 goal resolution runs over the materialized store as read-only data. A base predicate is resolved
 by a foreign predicate `in_world(W, S, P, O)` backed by a quad lookup; the Prolog clauses are the
 **intensional database (IDB)**, the recursive, unification-driven part the forward engine cannot
 express. Non-recursive pattern goals route to SPARQL (the fast path); recursive or
-unification-heavy goals go to the backward engine. **Normative semantics:** termination in Phase 2
+unification-heavy goals go to the backward engine. Termination in Phase 2
 is not automatic — unrestricted recursion, stable-model evaluation, and procedural goal resolution
 can be non-terminating unless the contract certifies a terminating fragment (e.g. Datalog
 restriction, tabling with finite tables, bounded search). The resource budget acts as a backstop,
@@ -175,11 +164,11 @@ materializer-produced, resolver-produced, or built during a Stratum-C chase, car
 and source-IRIs, so one proof trace (and the prose explanation composed from it) spans both
 components without a seam in the narrative.
 
-Two honest later optimizations, neither required for correctness: **demand-driven materialization**
+Two honest optimizations, neither required for correctness: **demand-driven materialization**
 (magic-sets over the forward engine) replaces full Phase-1 closure when the base is large and the
 query narrow; and **incremental maintenance** keeps the materialized store fresh under base edits
 without a full re-chase — the harder win, since the forward engine is not incremental, and the
-reason that capability is one the custom solver layer must eventually own.
+reason that capability is one the custom solver layer owns.
 
 ### The seam data contract
 
@@ -309,7 +298,7 @@ generated/foundation/gufo.ttl              # gUFO down-projection of UFO⁺
 ```
 
 The compiler follows the same typed-IR projection pattern the rest of the system uses: compile
-`logic:` (and adapter-phase `owl:*` / `gufo:`) into the one typed IR described in
+`logic:` (and ingested `owl:*` / `gufo:` surfaces) into the one typed IR described in
 [LOGIC-IR.md](LOGIC-IR.md), then emit the canonical artifact and every projection from it. Each
 projection carries the preservation judgment produced by the lowering — exact, sound-but-incomplete,
 complete-but-possibly-unsound, validation-only, or unsupported — and the aggregate of those

@@ -3,9 +3,9 @@
 
 # GMEOW Logic — The Typed Intermediate Representation
 
-> Status: canonical target architecture for the compiler's intermediate representation. The IR is
-> the single typed structure every `logic:` source compiles into and every projection compiles
-> out of. Member of the GMEOW Logic design set ([`LOGIC.md`](LOGIC.md)); the surface profiles that
+> The **intermediate-representation** member of the GMEOW Logic design set: the typed IR every
+> source compiles into and every projection out of. The IR is the single typed structure every
+> `logic:` source compiles into and every projection compiles out of. The surface profiles that
 > select how the IR is evaluated are defined in [`LOGIC-CONTRACT.md`](LOGIC-CONTRACT.md), and the
 > model-theoretic meaning of its constructs in [`LOGIC-SEMANTICS.md`](LOGIC-SEMANTICS.md).
 
@@ -25,7 +25,7 @@ reifies that predicate or type, not over a genuine predicate variable. The objec
 stays first-order — quantifiers range over individuals in the domain of discourse, some of which
 happen to be reified predicates and types — while still expressing what reads as quantification
 over predicates and types. This is a deliberate design choice: a first-order object level with
-reflected types, rather than admitting genuine predicate variables (which would push the IR beyond
+reflected types, rather than admitting genuine predicate variables (which push the IR beyond
 first-order). This is why the formula core is full-FOL: the core quantifiers are first-order, and
 higher-order-looking statements are recovered through reification rather than by extending the
 logic.
@@ -95,7 +95,7 @@ the target preserves:
   class;
 - **sound but incomplete (under-approximation)** — everything the target entails is canonically
   valid; it may miss answers;
-- **complete but possibly unsound (over-approximation)** — the target will not miss answers; it may
+- **complete but possibly unsound (over-approximation)** — the target misses no answers; it may
   add some;
 - **validation-only** — the target detects some invalidity but is not an entailment relation;
 - **unsupported** — the construct cannot be expressed in the target at all.

@@ -3,11 +3,11 @@
 
 # GMEOW Logic — Transaction Logic
 
-> Status: canonical target architecture for state-change reasoning. Transaction Logic is the
+> The **state-change** member of the GMEOW Logic design set: Transaction Logic. It is the
 > meaning of the **Evolution = transaction-path** facet of the reasoning contract
 > ([`LOGIC-CONTRACT.md`](LOGIC-CONTRACT.md)); it is a value of one orthogonal facet, **not** a
-> separate profile. Member of the GMEOW Logic design set ([`LOGIC.md`](LOGIC.md)). The lineage is
-> the Transaction Logic of Bonner and Kifer (see [`LOGIC-REFERENCES.md`](LOGIC-REFERENCES.md)).
+> separate profile. The lineage is the Transaction Logic of Bonner and Kifer (see
+> [`LOGIC-REFERENCES.md`](LOGIC-REFERENCES.md)).
 
 ## Why state change is its own facet
 
@@ -59,7 +59,7 @@ separate:
   projection and disclosure policy**, entirely orthogonal to state validity and retention. A fact
   may be fully valid in the current state yet non-displayable to a given consumer for privacy or
   access-control reasons. Conversely, a retired assertion may remain displayable in an audit view
-  even though it no longer holds. **`del` does not set `displayable false`** — that would conflate
+  even though it no longer holds. **`del` does not set `displayable false`** — doing so conflates
   state retirement with a disclosure decision that belongs to the projection layer.
 
 The separation means a state-change history remains fully auditable: every superseded assertion
@@ -68,13 +68,13 @@ disclosure policy can be applied independently without altering the validity or 
 
 ## The hypothetical operator is not modal possibility
 
-A transaction program can be tested **hypothetically** — executed to see whether it *would*
+A transaction program can be tested **hypothetically** — executed to see whether it *can*
 succeed, with its effects discarded rather than committed. This sandbox operator is a value of the
 Evolution facet's execution semantics. It is **distinct from modal possibility (◇)**: ◇φ asserts
 that φ is possible in some accessible world (an alethic or doxastic claim — see the context algebra
 in [`LOGIC-SEMANTICS.md`](LOGIC-SEMANTICS.md)); the hypothetical operator asserts that a program
 *can execute* from here without committing. The two may share construction machinery, but they are
-separate typed operators with separate meanings, and conflating them would let an execution
+separate typed operators with separate meanings, and conflating them lets an execution
 sandbox masquerade as a statement about what is possible.
 
 ## Concurrent transactions

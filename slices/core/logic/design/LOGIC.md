@@ -3,17 +3,10 @@
 
 # GMEOW Logic — Vision and Doctrine
 
-> Status: canonical target architecture for GMEOW's reasoning layer. This is the **manifesto**
-> of the GMEOW Logic design set; it carries the vision, doctrine, lineage, and target
-> architecture. The formal semantics, runtime, rollout, and conformance contract live in the
+> The **manifesto** of the GMEOW Logic design set: the vision, doctrine, lineage, and end state
+> of GMEOW's reasoning layer. The formal semantics, runtime, and conformance contract live in the
 > sibling documents below. Where this document states a thesis once, the siblings make it
 > precise — repetition is replaced by cross-reference on purpose.
-
-**Semantic-status convention.** Claims across this design set carry one of three labels:
-**Normative semantics** marks the canonical target — what the logic is defined to mean.
-**Currently implemented subset** marks what the engine realizes today.
-**Required but not yet implemented** marks what is specified or needed but not yet realized.
-These are semantic-status labels, not project-management states.
 
 ## The document set
 
@@ -33,10 +26,10 @@ These are semantic-status labels, not project-management states.
 
 ## The thesis
 
-GMEOW must not be limited by the expressivity, serialization assumptions, or runtime cost of
-OWL-era tools. The current stack uses OWL 2 DL/EL, RDF 1.1 compatibility encodings, Jena, ROBOT,
-ELK, HermiT, SHACL, and `owlrl` because those are the available mature tools. That is a
-compatibility position, not the semantic ceiling.
+GMEOW is not limited by the expressivity, serialization assumptions, or runtime cost of
+OWL-era tools. OWL 2 DL/EL, RDF 1.1 compatibility encodings, Jena, ROBOT, ELK, HermiT, SHACL, and
+`owlrl` are mature tools GMEOW projects to. That is a compatibility position, not the semantic
+ceiling.
 
 `logic:` is the canonical reasoning language for GMEOW. It is RDF 1.2-native, not an OWL syntax
 with a new namespace. It accepts **none of its predecessors' restraints** — not OWL's decidability
@@ -86,7 +79,7 @@ This is the same doctrine GMEOW already applies everywhere else:
 
 ## Why This Exists
 
-The current reasoning lane has three structural limits.
+The OWL-era reasoning lane has three structural limits.
 
 First, **OWL is not RDF 1.2.** GMEOW's statement layer is already RDF 1.2-first, but OWL reasoners
 consume an RDF 1.1-compatible downcast. That downcast is useful, but it cannot be the whole
@@ -100,7 +93,7 @@ inference; Datalog adds recursion but no open-world classification; Prolog adds 
 not RDF-native and has no open-world reading. **No prior system unifies these, and none is RDF
 1.2-native.** GMEOW needs all of them, coherent, in one framework.
 
-Third, **the current Java/Docker reasoning path is expensive.** A classical DL reasoner's
+Third, **the Java/Docker reasoning path is expensive.** A classical DL reasoner's
 sound-and-complete consistency check over the merged ontology runs in the order of minutes and
 grows with the ontology. Such tools are valuable compatibility checkers, but they are too slow
 and too far from RDF 1.2 to be the canonical authority.
@@ -216,20 +209,3 @@ The end state is not "OWL, but faster." It is:
 This makes GMEOW's logic match the rest of the project: maximal model, maximal linking, explicit
 projection, and no compatibility format — not even OWL, not even gUFO — promoted above the canonical
 source.
-
-### Forthcoming layers
-
-Two design layers are **required but not yet specified** in this set.
-
-The **teleological goal/action semantics** layer will formalize structured goal expressions, goal
-evaluation, and action schemas, and will bridge the intention → plan → action →
-transaction-path chain. The transaction layer handles the state-change mechanics; this forthcoming
-layer authors the goal structure that motivates and evaluates those transactions.
-
-The **multidimensional cognitive-assessment** layer will replace the coarse awareness-to-mastery
-ladder with a contextual assessment construct carrying subject granularity, task, evaluator,
-evidence, scale, interval, and dimensions. A single ordinal score is insufficient to represent
-cognitive competence across contexts; this layer supplies the richer model.
-
-Both are design layers still to be authored; their absence means the corresponding semantics are
-**required but not yet implemented** in the current engine.

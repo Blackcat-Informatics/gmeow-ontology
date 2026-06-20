@@ -3,10 +3,9 @@
 
 # GMEOW Logic — The Reasoning Contract
 
-> Status: canonical target architecture for GMEOW's reasoning configuration. This document
-> defines how a reasoning request is specified. It is a member of the GMEOW Logic design set
-> (see [`LOGIC.md`](LOGIC.md)); the formal semantics each facet selects are made precise in
-> [`LOGIC-SEMANTICS.md`](LOGIC-SEMANTICS.md).
+> The **configuration** member of the GMEOW Logic design set: how a reasoning request is specified.
+> It is a member of the GMEOW Logic design set (see [`LOGIC.md`](LOGIC.md)); the formal semantics
+> each facet selects are made precise in [`LOGIC-SEMANTICS.md`](LOGIC-SEMANTICS.md).
 
 ## Why a contract, not a profile
 
@@ -148,7 +147,7 @@ and all.
 Not every selection across the facets is implementable, decidable, or coherent. But the set of
 supported selections is **not** held as an enumeration over the facet product. With the facets now
 split — and several of them set-valued, map-valued, or multi-dimensional — that product is far too
-large to list, and listing it would grow combinatorially with every new facet value.
+large to list, and listing it grows combinatorially with every new facet value.
 
 Compatibility is therefore expressed as a **feature model**: a **constraint graph** of *local*
 rules — pairwise and small-clause — relating individual facet values to one another. Each rule is

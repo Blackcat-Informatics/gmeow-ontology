@@ -3,10 +3,9 @@
 
 # GMEOW Logic — Foundation Design Charter (gmeow:logic ⊇ gUFO)
 
-> Status: normative design charter for the `gmeow:logic` upper ontology. This is the **charter**
-> member of the [GMEOW Logic document set](LOGIC.md#the-document-set): it states what the
-> foundation *is*, the documented predecessor weaknesses it refuses to inherit, and the greenfield
-> primitives it declares. Vision and lineage are in [LOGIC.md](LOGIC.md); the formal account of
+> The **charter** of the GMEOW Logic design set: the `gmeow:logic` upper-ontology foundation. It
+> states what the foundation *is*, the documented predecessor weaknesses it refuses to inherit, and
+> the greenfield primitives it declares. Vision and lineage are in [LOGIC.md](LOGIC.md); the formal account of
 > every mechanism named here is in [LOGIC-SEMANTICS.md](LOGIC-SEMANTICS.md); how a reasoning request
 > is configured is in [LOGIC-CONTRACT.md](LOGIC-CONTRACT.md); the typed intermediate representation
 > is in [LOGIC-IR.md](LOGIC-IR.md); state-change semantics are in
@@ -36,7 +35,7 @@ without reasoning and a certified under-approximation only on the fragment OWL c
 
 The doctrine, stated once for the rest of the charter to reference:
 
-> **We adopt gUFO as the floor and WILL NOT inherit its compromises.** gUFO is the *minimum* the
+> **We adopt gUFO as the floor and do not inherit its compromises.** gUFO is the *minimum* the
 > foundation must cover, never the *ceiling* it may reach. Every gUFO restraint — the OWL 2 DL
 > expressivity cap, the reification tax, the scaled-back event model, the external constraint stack —
 > is a thing `gmeow:logic` is built to escape, not to reproduce.
@@ -140,7 +139,7 @@ preset, and it draws the Constitution **Principle 12** line **explicitly**:
 - **Derivational builtins live *in* `logic:`** — string concatenation, date arithmetic, and basic
   math, e.g. `legalAge = year(now) − year(birth)` or `fullName = firstName + " " + lastName`. These
   are the lightweight derivations a foundation genuinely needs and that forcing into an external
-  engine would make absurd.
+  engine makes absurd.
 - **Heavy *domain* computation stays *external* by reference** — geo / datum transforms, RCC-8 /
   Allen relation-algebra composition, SLAM and trajectory updates, n-dimensional vector operations.
   These remain the solver-boundary concern Principle 12 keeps out of the reasoned core.
@@ -330,7 +329,7 @@ meant to carry:
 Crucially, **deliberate non-assertions are first-class and executable.** A `NonEntailmentObligation`
 records a conclusion the foundation must *never* draw. Because the canonical logic is semi-decidable,
 however, "absence of a proof" is not generally decidable — claiming to have *proved* that the engine
-does not derive a forbidden fact would be an overclaim. A non-entailment obligation is therefore
+does not derive a forbidden fact is an overclaim. A non-entailment obligation is therefore
 **conclusively discharged only when** one of the following conditions holds:
 
 - the check runs within a **certified complete fragment** (e.g., a Datalog stratum or EL profile over
@@ -359,7 +358,7 @@ Two standing examples:
   actively attempt to produce the forbidden conclusion against the live rule set. Both checks must
   pass; either failure triggers an obligation violation.
 - **counterpart must not become transitive** — cross-world counterpart identity must remain
-  non-transitive; the foundation is obligated to block the chaining a careless rule would introduce.
+  non-transitive; the foundation is obligated to block the chaining a careless rule could introduce.
   This is dischargeable by syntactic reachability over the counterpart rule heads.
 
 A non-entailment obligation is not a comment that the axioms happen to respect a constraint; it is

@@ -3,10 +3,9 @@
 
 # GMEOW Logic — References
 
-> Status: bibliography appendix for the [GMEOW Logic design set](LOGIC.md#the-document-set). The
-> `logic:` design relies on a substantial body of external standards, foundational theory, and
-> engines; this appendix names them so the claims in the other documents are *cited*, not merely
-> name-dropped.
+> The **references** appendix of the GMEOW Logic design set. The `logic:` design relies on a
+> substantial body of external standards, foundational theory, and engines; this appendix names
+> them so the claims in the other documents are *cited*, not merely name-dropped.
 
 ## Relationship to the citation ledger
 
@@ -14,10 +13,10 @@ Per [`docs/CITATIONS.md`](../../../../docs/CITATIONS.md), the **canonical** cita
 record is the Turtle ledger `metadata/references.ttl`; Markdown, CSL JSON, and BibTeX are generated
 lossy projections (Principle 4). This appendix is therefore a **staging surface**: correct,
 identifiable references with stable URLs that `gmeow references-backfill` harvests from authored
-files, after which precise DOIs and venue metadata are curated into the ledger. When the ledger
-lands, each entry here becomes a `gmeow:CreativeWork` cited by a `gmeow:CitationAct`, with
-`gmeow:viaSelector` pointing at the design file (and section) that cites it. The two groupings below
-map directly to the two citation intents:
+files, from which precise DOIs and venue metadata are curated into the ledger. Each entry here
+is a `gmeow:CreativeWork` cited by a `gmeow:CitationAct`, with `gmeow:viaSelector` pointing at the
+design file (and section) that cites it. The two groupings below map directly to the two citation
+intents:
 
 - **Standards, vocabularies, and engines** → `gmeow:intentBridgedByReference` (aligned to or built
   on, never copied in — Principle 5).
