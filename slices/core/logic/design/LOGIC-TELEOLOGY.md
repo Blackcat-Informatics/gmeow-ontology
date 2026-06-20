@@ -33,6 +33,38 @@ it gives rise to through `gmeow:motivates`. The flat `gmeow:hasGoal` carries the
 `logic:` adds the *reasoning structure* over these holdings — expressions, evaluation, action, and
 decomposition — as values and constructs the engine computes with.
 
+## Canonical representation
+
+Every construct this layer names has one canonical form in the RDF/IR model, so a goal structure is
+data the engine reads and writes rather than prose. A `gmeow:Goal` carries its structure through
+`logic:hasGoalCondition` to a `logic:GoalExpression`; the flat `gmeow:hasGoal` and `gmeow:satisfiedBy`
+edges are the surface views these richer forms generate.
+
+| Construct | Canonical form | Attachment | Identity |
+| --- | --- | --- | --- |
+| goal expression | `logic:GoalExpression`, a typed IR term whose node kind is one of the variants below | `gmeow:Goal —logic:hasGoalCondition→ logic:GoalExpression` | structural: two expressions with the same node kind, operands, and bound situation type are the same term ([LOGIC-IR.md](LOGIC-IR.md)) |
+| goal evaluation | `logic:GoalEvaluation`, a reified node | one per (goal, situation/world, evaluator, time, criterion) | by that tuple of subjects, vantage-indexed via `gmeow:accordingTo` |
+| action schema | `logic:ActionSchema`, a reified type | names precondition, effect, invariant, resource, capability, outcome set, observation, compensation | by IRI |
+| action occurrence | a `gmeow:Event` typed by an `logic:ActionSchema` | `gmeow:Event —logic:instantiatesSchema→ logic:ActionSchema`, linked to its motive by `gmeow:motivates` | by IRI |
+| goal decomposition | `logic:` dependency relations between `gmeow:Goal` individuals | `logic:refinesGoal`, `logic:contributesTo`, `logic:necessaryFor`, `logic:sufficientFor`, grouped by `logic:AndDecomposition` / `logic:OrDecomposition` | relation edges |
+| plan | `logic:Plan`, a transaction program (below) | `logic:Plan —logic:planGoal→ gmeow:Goal`, its steps invoking action schemas | by IRI |
+
+`gmeow:intentionGoal` stays functional and ranges over `gmeow:Goal`: an intentional mode aims at
+exactly one goal, and that goal — not the expression — is what the mode points at. Goal structure
+lives on the goal through `logic:hasGoalCondition`, so the functional edge is untouched. Goal
+decomposition links `gmeow:Goal` individuals through the `logic:` dependency relations above; these
+carry *satisfaction dependency* and are distinct from `gmeow:properPartOf`, which carries structural
+part-hood. A sub-goal may be both a proper part and `logic:necessaryFor` its parent: the flat
+mereology spine is the surface view, and the `logic:` dependency relations are the precise canonical
+form means–end search reads.
+
+A `logic:GoalExpression` is compositional structure carried as a typed IR term: RDF authoring of a
+goal condition compiles into that term, the term serializes back to canonical RDF through the IR's
+term encoding, and structural equality decides expression identity ([LOGIC-IR.md](LOGIC-IR.md)). The
+projections weaken it predictably — OWL and the flat surface carry `gmeow:hasGoal` and a conclusive
+`gmeow:satisfiedBy` but not the expression structure — and each lowering records that loss in the
+preservation ledger ([LOGIC-CONFORMANCE.md](LOGIC-CONFORMANCE.md)).
+
 ## Structured goal expressions
 
 A bare `gmeow:Goal` names a target; a **goal expression** states the structure of that target so the
@@ -51,34 +83,53 @@ engine can evaluate it compositionally. A goal expression is one of:
   which the window closes.
 
 Achievement and maintenance are path properties, evaluated over the ordered states of a transaction
-path ([`LOGIC-TRANSACTION.md`](LOGIC-TRANSACTION.md)); optimization is directed at a measure carried
-under the `Uncertainty` facet of the reasoning contract
-([`LOGIC-CONTRACT.md`](LOGIC-CONTRACT.md)), never folded into a truth value. A goal expression is a
-typed term in the intermediate representation ([`LOGIC-IR.md`](LOGIC-IR.md)), so the same
-construct compiles toward whichever consumer a projection serves and records its loss when a target
-form cannot hold the distinction.
+path ([`LOGIC-TRANSACTION.md`](LOGIC-TRANSACTION.md)); optimization is directed at an **objective
+value** with a stated direction and unit, recorded as a quantity on the evaluation (below), never
+folded into a truth value and never into an uncertainty measure. A goal expression is a typed term in
+the intermediate representation ([`LOGIC-IR.md`](LOGIC-IR.md)), so the same construct compiles toward
+whichever consumer a projection serves and records its loss when a target form cannot hold the
+distinction.
 
-## Goal evaluation is reified; `satisfiedBy` is its conclusive view
+## Goal evaluation is reified and factored
 
-Whether a goal is met is a vantage-indexed claim, never a global verdict. The canonical record is a
-**reified goal evaluation**: a goal, the situation or world it is judged against, the evaluator
-holding the judgment, the time of judgment, the criterion applied, and a status drawn from a fixed
-set — **satisfied**, **partial**, **violated**, **blocked**, **infeasible**, **unknown**, or
-**retired** (the goal it judged is no longer pursued). Two evaluators disagreeing about the same goal are two coexisting evaluations, each
-attributed through `gmeow:accordingTo`; the engine holds both rather than electing a winner.
+Whether a goal is met is a vantage-indexed claim, never a global verdict, and "met" is itself several
+independent questions. The canonical record is a **reified goal evaluation** — `logic:GoalEvaluation`
+— over a goal, the situation or world it is judged against, the evaluator holding the judgment, the
+time of judgment, and the criterion applied. Its outcome is factored into independent axes rather than
+one collapsed label:
 
-The binary `gmeow:satisfiedBy` relation is the **conclusive projection** of this record: it relates a
-goal to a situation exactly when a goal evaluation reaches the *satisfied* status under a stated
-vantage. Authoring the flat relation directly is the common case, and reading it back is the common
-query; the reified evaluation is what carries the partial, blocked, and contested judgments the flat
-relation cannot. The richer record never overrides the flat one — it is the structure the flat
-relation summarizes.
+- **satisfaction status** — `satisfied`, `partial`, `violated`, or `unsatisfied`;
+- **feasibility status** — `feasible`, `blocked`, `infeasible`, or `unknown`;
+- **lifecycle status** — `active`, `retired`, or `superseded`;
+- **evaluation status** — `completed`, `undetermined`, or `unsupported`;
+- **satisfaction degree** — a quantity, for a goal met to a degree rather than crisply.
 
-A partial or graded evaluation carries its degree under the `Uncertainty` facet and through the four
-distinct quantitative predicates the foundation keeps separate —
-`logic:confidence`, `logic:probability`, `logic:weight`, and `logic:evidenceStrength`
-([`LOGIC-SEMANTICS.md`](LOGIC-SEMANTICS.md#confidence-probability-weight-and-evidence)) — so a
-confidence in an evaluation is never mistaken for a probability that the goal obtains.
+The axes vary independently: a goal can be `partial` in satisfaction, `blocked` in feasibility, and
+`active` in lifecycle at once, and the engine records each rather than choosing a single token. A
+maintenance or avoidance goal whose window has not closed has evaluation status `undetermined` —
+holding so far is not conclusive satisfaction; it reaches `completed` only when the window closes
+(satisfied) or the target fails (violated). Two evaluators disagreeing about the same goal are two
+coexisting evaluations, each attributed through `gmeow:accordingTo`; the engine holds both rather than
+electing a winner.
+
+The binary `gmeow:satisfiedBy` relation is the **conclusive projection** of this record, and the
+source-of-truth rule is explicit: evaluations are canonical, and a `gmeow:satisfiedBy` edge is
+generated from each evaluation whose satisfaction status is `satisfied` and whose evaluation status is
+`completed`. A directly authored `gmeow:satisfiedBy` edge — the common authoring case —
+deterministically expands into a default `logic:GoalEvaluation` carrying `satisfied` / `completed`
+status under the asserting vantage. The flat and reified records therefore never disagree: one is
+always derived from the other.
+
+The quantities an evaluation carries are kept apart, because none substitutes for another.
+**Satisfaction degree** (how much of the goal is achieved), **objective value** with an **objective
+direction** and a stated unit or frame (the measured quantity an optimization goal extremizes), and
+**utility or preference** (how desirable an outcome is) are distinct from the uncertainty measures the
+foundation already separates — `logic:confidence`, `logic:probability`, `logic:weight`, and
+`logic:evidenceStrength`
+([`LOGIC-SEMANTICS.md`](LOGIC-SEMANTICS.md#confidence-probability-weight-and-evidence)). An uncertainty
+measure may annotate a satisfaction degree or an objective value, but a confidence in an evaluation is
+never the degree to which the goal is met, and a probability over outcomes is never the objective value
+being optimized.
 
 ## Action: schemas and occurrences
 
@@ -107,6 +158,31 @@ An action schema grounds the elementary state transitions of a transaction path:
 occurrence is the elementary update whose `ins`/`del` effects the path records as supersession
 ([`LOGIC-TRANSACTION.md`](LOGIC-TRANSACTION.md#elementary-updates-are-supersession-never-erasure)).
 The schema names *what an action does*; the path records *that it was done and what changed*.
+
+## Plans and nondeterministic outcomes
+
+A **plan** (`logic:Plan`) is a transaction program whose primitive operations invoke action schemas
+and whose success criterion is a goal expression. As a program it carries the structure a decomposed
+goal alone cannot — ordering and serial composition, guards, branching, concurrency, loops, and
+fallback behaviour — all in the operators of the transaction layer
+([`LOGIC-TRANSACTION.md`](LOGIC-TRANSACTION.md)). A plan whose next action is chosen from what an
+earlier action's observation reveals is a **policy**: a plan whose branches are conditioned on
+observations rather than fixed in advance. Plan adoption and revision are recorded as an intention is
+— a `logic:Plan` is held over an interval and revised by suppression, never mutated.
+
+Because an action schema may have a nondeterministic outcome set, plan success is quantified over
+those outcomes rather than left to the bare executional-success reading of the transaction layer,
+under which the mere existence of one favourable path would count as success. A plan therefore
+declares its success quantification:
+
+- a **weak plan** succeeds when *some* outcome path reaches the goal;
+- a **strong plan** succeeds when *every* outcome path reaches the goal;
+- a **strong-cyclic plan** succeeds when every *fair* execution is guaranteed to reach the goal in
+  finitely many steps, allowing retried loops through recoverable failures.
+
+Compensation is tied to the **realized outcome**, not to the schema as a whole: each branch of a
+nondeterministic outcome set names the compensation that recovers from *it*, so recovery matches what
+actually happened rather than applying one generic undo across every branch.
 
 ## Goal decomposition
 
@@ -154,9 +230,16 @@ obligation, prohibition, permission, or recommendation — issued by a `gmeow:no
 specialization of `gmeow:accordingTo`, so every norm is attributed) and borne by a
 `gmeow:normBearer`. Norms carry a `gmeow:AuthorityLevel` and order one another through
 `gmeow:overrides`, whose precedence is recorded as a `gmeow:PrecedenceTenure` rather than asserted as
-a transitive global fact. Deontic obligation and prohibition are evaluated against the
-deontic-ideal worlds of the typed context algebra: an obligation holds when the goal it prescribes is
-satisfied in every deontically-accessible ideal world, a prohibition when it is satisfied in none.
+a transitive global fact. Deontic obligation and prohibition are evaluated against the deontic-ideal
+worlds of the typed context algebra. Deontic accessibility is **serial**: every context from which an
+obligation is read has at least one accessible ideal world, so the universal condition is never
+vacuously satisfied; a context with no accessible ideal world yields evaluation status `undetermined`,
+not a vacuous obligation. An **obligation** holds when the prescribed goal is satisfied in every
+accessible ideal world. A **prohibition** is the deontic treatment of the goal's *negation*: it holds
+when the goal's negation is supported in every accessible ideal world — which, under the paraconsistent
+and partial-truth readings of the context algebra, is stronger than the goal merely failing to be
+supported, since failure of support and support for the negation are not interchangeable
+([`LOGIC-SEMANTICS.md`](LOGIC-SEMANTICS.md#inconsistency-across-contexts-and-context-indexed-entailment)).
 The dependency points from the norms vocabulary toward this layer — norms range over goals, never the
 reverse — so the goal structure stays free of deontic commitment.
 
@@ -178,6 +261,22 @@ On the foundational spine, a goal is a social object, an intention an intrinsic 
 relator, and the events that satisfy goals are perdurants — the UFO⁺ sorts of
 [`LOGIC-FOUNDATION.md`](LOGIC-FOUNDATION.md), so teleology composes with identity, rigidity, and
 mereology rather than standing beside them.
+
+## Conformance obligations
+
+The conformance corpus ([`LOGIC-CONFORMANCE.md`](LOGIC-CONFORMANCE.md)) carries this layer through
+named cases that pin its distinctions, at least:
+
+- a **conjunctive** goal versus a **disjunctive** goal over the same sub-targets;
+- a **maintenance** goal that fails midway through a path, distinguished from one whose window is
+  still open and so evaluates `undetermined`;
+- a **conditional** goal whose guard situation is false, which prescribes nothing;
+- **partial satisfaction** held apart from low **confidence** in a `satisfied` evaluation;
+- a **weak** plan versus a **strong** plan over the same nondeterministic outcome set;
+- **outcome-specific compensation**, where two outcome branches recover by different actions;
+- a deontic context with **no accessible ideal world**, which evaluates `undetermined` rather than
+  yielding a vacuous obligation;
+- **contested goal evaluations**, where two vantages disagree and both records are retained.
 
 ## Constitutional alignment
 

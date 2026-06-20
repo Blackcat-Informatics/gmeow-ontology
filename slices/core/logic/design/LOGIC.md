@@ -24,6 +24,11 @@
 | [`LOGIC-CONFORMANCE.md`](LOGIC-CONFORMANCE.md) | contract | the conformance corpus and the loss-ledger preservation contract |
 | [`LOGIC-REFERENCES.md`](LOGIC-REFERENCES.md) | appendix | external standards, theory, and engines cited — staged for the `metadata/references.ttl` ledger |
 
+> **Reading this design set.** The declarative present tense is normative: "X is" means a conforming
+> realization implements X, established by the conformance corpus
+> ([`LOGIC-CONFORMANCE.md`](LOGIC-CONFORMANCE.md)). It is not a claim that any particular
+> implementation already realizes X except as the corpus demonstrates.
+
 ## The thesis
 
 GMEOW must not be limited by the expressivity, serialization assumptions, or runtime cost of

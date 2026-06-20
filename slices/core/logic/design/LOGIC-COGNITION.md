@@ -74,6 +74,34 @@ vocabulary of dimensions, extended by naming a new dimension rather than by resh
 the same orthogonal-factorization discipline the foundation applies to claim modality and to
 contextual scope.
 
+## Canonical representation
+
+The assessment construct has one canonical form. A `logic:CognitiveAssessment` is a reified node
+carrying its subjects and values through dedicated properties; the dimension, scale, and level are a
+value vocabulary, not a class hierarchy, so a new dimension is a new individual rather than a schema
+change.
+
+| Element | Canonical form |
+| --- | --- |
+| assessment | `logic:CognitiveAssessment`, a reified node, vantage-indexed via `gmeow:accordingTo` |
+| assessed agent | `logic:assessedAgent → gmeow:Agent` |
+| subject + granularity | `logic:assessmentSubject` with `logic:subjectGranularity` (inference / body-of-reasoning / domain / agent) |
+| task or context | `logic:assessmentContext` |
+| dimension | `logic:assessmentDimension`, an individual of `logic:AssessmentDimension` (the value vocabulary above) |
+| scale + level | `logic:assessmentScale` with `logic:assessmentLevel`, ordinal or continuous on the named scale |
+| evaluator | `logic:assessmentEvaluator` / standpoint, attributed via `gmeow:accordingTo` |
+| evidence | `logic:assessmentEvidence` → the reasoning, results, or record cited |
+| method | `logic:assessmentMethod` |
+| valid interval | `gmeow:duringInterval` (temporal slice) |
+| confidence | `logic:confidence` on the assessment |
+
+The dimensions — awareness, declarative familiarity, conceptual understanding, procedural competence,
+transfer, explanatory ability, calibration, metacognition — are `logic:AssessmentDimension`
+individuals; an assessment names exactly one. Because the assessment is reified, it is itself a
+subject another assessment can range over, with no new machinery. The projections weaken the
+construct predictably, and each lowering records what it drops in the preservation ledger
+([`LOGIC-CONFORMANCE.md`](LOGIC-CONFORMANCE.md)).
+
 ## Reasoning quality over the inference modes
 
 Quality is assessed against the mode of the reasoning being judged, because a good induction and a
@@ -93,16 +121,26 @@ The explanatory, systematicity, and similar scores are solver-layer measurements
 compare reasoning, and they are recorded as annotations on the assessment, never asserted as
 reasoned axioms. They feed an assessment; they are not entailments of one.
 
-## Reliability read off the typed reasoning result
+## Result assurance and reasoner reliability are distinct
 
-A reasoner's reliability for a task is read off the typed reasoning result the logic already
-produces. Every reasoning episode carries that typed result — its consequence relation, its
-information status, its completeness, and the rest of its fields
-([`LOGIC-SEMANTICS.md`](LOGIC-SEMANTICS.md#the-reasoning-result)). Reliability over a body of
-reasoning aggregates these: a reasoner whose results are sound and complete across a task is reliable
-for it; one whose results turn `incomplete` or whose information status turns to contradiction under
-load is not. The reliability dimension of an assessment is therefore grounded in recorded results,
-not in an opinion about the reasoner — the result is the evidence the assessment cites.
+A single reasoning result carries assurance *about that run*; it does not establish that an agent or
+engine is reliable as a disposition. The two are separate constructs.
+
+A **result assurance** (`logic:ResultAssurance`) targets one `logic:ReasoningResult` and reads its
+fields — completion, preservation, the witnesses it carries, and the assumptions it rests on
+([`LOGIC-SEMANTICS.md`](LOGIC-SEMANTICS.md#the-reasoning-result)). The fields are interpreted
+*jointly*: `supported` with `incomplete` is provisional, whereas `supported` with
+complete-for-the-fragment is conclusive within that fragment. A correctly returned `both` is
+high-assurance about a contradictory input, not a defect.
+
+A **reliability assessment** is a `logic:CognitiveAssessment` on the reliability dimension whose
+target is an agent or engine, not a single run. It is relative to a **reference class** — a task,
+domain, or distribution — and rests on *many* results with their expected or observed outcomes; its
+level is a metric over that series (accuracy, soundness-violation rate, recall, calibration,
+robustness) across a stated interval. A reliable reasoner may correctly return `both` when its
+evidence is contradictory, and a completed, exact, internally supported result may still be wrong
+because its premises are wrong or its solver has a systematic defect. Reliability is therefore read
+from the series against the reference class, never from one result's assurance.
 
 ## Calibration and metacognitive posture
 
@@ -118,6 +156,14 @@ either for a probability model or an evidential weight. The credence the agent h
 again: it is the doxastic-commitment axis of the factored claim modality
 ([`LOGIC-FOUNDATION.md`](LOGIC-FOUNDATION.md#factored-claim-modality)), and the cognitive-assessment
 layer reads that factoring rather than restating it.
+
+A calibration assessment names an explicit **forecast protocol**, because "confidence matched against
+frequency" is underdetermined without one. It carries the forecast or credence being scored, the
+corresponding outcome, the mapping from the forecast value to a probability where the forecast is not
+already one, the reference class and observation window over which frequency is measured, the scoring
+rule (a Brier or logarithmic score), and the treatment of censored or unresolved outcomes. Solver
+`logic:weight` and `logic:evidenceStrength` values are not themselves calibratable probabilities;
+they enter a calibration only through a declared mapping to one, never directly.
 
 Metacognitive posture is the second-order content the metacognition vocabulary carries: a
 `gmeow:MetacognitiveState` aimed by `gmeow:metaTarget` at the agent's own reasoning,
@@ -147,6 +193,20 @@ assessment never edits an earlier one: the earlier judgment remains, attributed 
 the trajectory is the ordered series, the same suppression-not-erasure discipline the rest of the
 logic keeps.
 
+## Projection to the coarse knowledge ladder
+
+The cognition vocabulary carries a coarse, monotonic knowledge ladder —
+`gmeow:hasMastered ⊑ gmeow:understands ⊑ gmeow:knowsAbout ⊑ gmeow:isAwareOf`, chained by
+`rdfs:subPropertyOf` so the deeper edge entails every shallower one. That ladder is a **generated
+coarse view** of the multidimensional assessment, not an independent account: each edge is emitted
+from assessments by a declared threshold over the relevant dimensions. `gmeow:isAwareOf` is emitted
+when the awareness dimension clears its threshold, `gmeow:knowsAbout` from declarative familiarity,
+`gmeow:understands` from conceptual understanding, and `gmeow:hasMastered` from procedural competence
+and transfer together. The thresholds are a declared profile, so the ordinal chain is a projection a
+consumer that needs one number can read, while the factored assessment stays the canonical record —
+the ladder never re-establishes mastery, understanding, knowledge, and awareness as a single ordinal
+entailment chain in place of the independent dimensions.
+
 ## Where it connects, and what it is not
 
 The cognitive-assessment layer judges reasoning; it does not perform it. It reads the typed reasoning
@@ -158,6 +218,21 @@ action schema's observation is the seam where executing an action feeds the evid
 cites. On the foundational spine, an assessment is a claim about an agent's intrinsic cognitive
 modes, so it composes with identity, rigidity, and the rest of the UFO⁺ sorts of
 [`LOGIC-FOUNDATION.md`](LOGIC-FOUNDATION.md) rather than standing beside them.
+
+## Conformance obligations
+
+The conformance corpus ([`LOGIC-CONFORMANCE.md`](LOGIC-CONFORMANCE.md)) carries this layer through
+named cases that pin its distinctions, at least:
+
+- a correct `both` reasoning result that yields high **result assurance** and does **not** lower the
+  reasoner's **reliability** assessment;
+- a `completed` result distinguished from an `incomplete` one in result assurance, read jointly with
+  the support field;
+- a **calibration** over an explicit forecast/outcome series with a declared scoring rule and
+  reference class, kept apart from a single confidence value;
+- the **projection** from a multidimensional assessment to the coarse
+  `gmeow:isAwareOf … gmeow:hasMastered` ladder under a declared threshold profile;
+- two coexisting **contested assessments** of one agent on one dimension, both retained.
 
 ## Constitutional alignment
 
