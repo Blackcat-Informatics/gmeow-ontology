@@ -26,10 +26,12 @@ import csv
 import json
 from collections.abc import Iterable, Sequence
 from dataclasses import dataclass, field
+from dataclasses import replace as dataclass_replace
 from functools import lru_cache
 from pathlib import Path
 from typing import TYPE_CHECKING, TypedDict
 
+from gts.model import Graph, TermKind
 from gts.nquads import to_nquads
 from gts.trig import to_trig
 
@@ -784,6 +786,23 @@ def write_nquads(view: FoldView, dist_dir: Path) -> Path:
     return path
 
 
+def _graph_with_public_tags(graph: Graph, tag_map: dict[str, str]) -> Graph:
+    """Return a shallow copy of *graph* with internal language tags remapped.
+
+    Only literal language tags are touched; term ids, quads, reifiers, and
+    annotations are preserved. This keeps the upstream ``gts.trig.to_trig``
+    serializer from emitting internal ``x-gmeow-*`` tags in consumer-facing
+    artifacts (#287, #702).
+    """
+    terms = [
+        dataclass_replace(term, lang=tag_map.get(term.lang, term.lang))
+        if term.kind is TermKind.LITERAL and term.lang is not None
+        else term
+        for term in graph.terms
+    ]
+    return dataclass_replace(graph, terms=terms)
+
+
 def write_trig(
     view: FoldView,
     dist_dir: Path,
@@ -793,14 +812,19 @@ def write_trig(
     """Write the dataset as TriG 1.2 (``gmeow.trig``).
 
     Delegates to ``gts.trig.to_trig``: all serialization logic lives in the
-    upstream gmeow-gts Rust package (#702).
+    upstream gmeow-gts Rust package (#702). Internal language tags are remapped
+    to public BCP-47 before serialization so the published dataset form stays
+    clean (#287).
 
     The ``selector`` parameter is accepted for CLI symmetry but does not alter
     the lossless TriG output.
     """
     _ = selector
     path = dist_dir / "gmeow.trig"
-    path.write_text(to_trig(view.graph), encoding="utf-8")
+    path.write_text(
+        to_trig(_graph_with_public_tags(view.graph, view.tag_map())),
+        encoding="utf-8",
+    )
     return path
 
 
