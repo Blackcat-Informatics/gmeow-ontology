@@ -150,6 +150,18 @@ proptest! {
             .expect("acyclic edges must build a valid ordering");
 
         let entities: Vec<String> = order.entities().iter().cloned().collect();
+
+        // Non-vacuity guard: empty/strict-relation-free edge sets (e.g. all pairs
+        // collapsed by the `Ordering::Equal` filter) leave the asymmetry/transitivity
+        // arms below unreached, passing the property trivially. Require at least one
+        // strict `≻` relation so the order laws are actually exercised.
+        let has_strict = entities.iter().any(|a| {
+            entities
+                .iter()
+                .any(|b| order.compare(a, b) == Some(Ordering::Greater))
+        });
+        prop_assume!(has_strict);
+
         for a in &entities {
             // Irreflexive: an IRI is only ever Equal to itself, never Greater/Less.
             prop_assert_eq!(order.compare(a, a), Some(Ordering::Equal));
