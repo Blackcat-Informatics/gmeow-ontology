@@ -471,6 +471,11 @@ def _surface_reports() -> list[tuple[str, Callable[[], Any]]]:
         _passed, _ledger, report = crosscheck.run()
         return report
 
+    def _engine_cross_check() -> Any:
+        from gmeow_tools import engine_crosscheck
+
+        return engine_crosscheck.build_report(engine_crosscheck.crosscheck_all())
+
     return [
         ("alignment", _alignment),
         ("coverage", _coverage),
@@ -481,6 +486,7 @@ def _surface_reports() -> list[tuple[str, Callable[[], Any]]]:
         ("audit", _audit),
         ("generated", _generated),
         ("classic-cross-check", _classic_cross_check),
+        ("engine-cross-check", _engine_cross_check),
     ]
 
 
