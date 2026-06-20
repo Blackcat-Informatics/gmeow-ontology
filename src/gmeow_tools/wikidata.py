@@ -25,6 +25,7 @@ from pathlib import Path
 
 import httpx
 
+from gmeow_tools import diagnostics
 from gmeow_tools.config import PREFIXES, PROJECT_ROOT
 
 _log = logging.getLogger(__name__)
@@ -167,6 +168,42 @@ def check_syntax(identifiers: list[str]) -> SyntaxReport:
         valid.append(identifier)
 
     return SyntaxReport(valid=valid, invalid=invalid, misuses=misuses)
+
+
+def to_diagnostics_report(
+    report: SyntaxReport,
+    *,
+    tool: str = "wikidata",
+) -> diagnostics.DiagnosticsReport:
+    """Project a Wikidata syntax report into the canonical diagnostics report.
+
+    Both syntactically invalid ids and namespace misuses are gate-failing
+    ``error`` findings (#654). The misuse category (``NamespaceMisuse``) rides in
+    ``tags`` so SARIF/HTML consumers can group by misuse kind, and the offending
+    identifier is the finding's ``logical`` entity.
+    """
+    items = [
+        diagnostics.finding(
+            severity="error",
+            code=f"{tool}.qid-syntax",
+            message=f"invalid Wikidata identifier: {identifier}",
+            tool=tool,
+            logical=identifier,
+        )
+        for identifier in report.invalid
+    ]
+    items += [
+        diagnostics.finding(
+            severity="error",
+            code=f"{tool}.namespace-misuse",
+            message=message,
+            tool=tool,
+            logical=local_id,
+            tags=[misuse.value],
+        )
+        for local_id, misuse, message in report.misuses
+    ]
+    return diagnostics.report_from_findings(tool=tool, findings=items)
 
 
 def check_syntax_iri(
