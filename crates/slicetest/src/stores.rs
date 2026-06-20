@@ -62,9 +62,18 @@ pub fn rdfs_closed_store() -> Result<Store, String> {
 /// The reasoned source-set: `ontology/gmeow.ttl` followed by every slice module,
 /// imports excluded — identical to `iter_source_files(include_imports=False)`.
 fn source_files() -> Result<Vec<PathBuf>, String> {
-    let mut files = vec![paths::repo_root().join("ontology/gmeow.ttl")];
+    // The ontology root is REQUIRED — silently filtering it out would build a
+    // partial merged graph against which competency questions could falsely pass.
+    let root = paths::repo_root().join("ontology/gmeow.ttl");
+    if !root.is_file() {
+        return Err(format!(
+            "missing required ontology root {} — refusing to build a partial merged graph",
+            root.display()
+        ));
+    }
+    let mut files = vec![root];
     files.extend(module_files()?);
-    Ok(files.into_iter().filter(|f| f.is_file()).collect())
+    Ok(files)
 }
 
 /// Every `slices/<group>/<name>/module.ttl`, in sorted (deterministic) order.
@@ -82,12 +91,16 @@ fn module_files() -> Result<Vec<PathBuf>, String> {
 }
 
 fn sorted_subdirs(dir: &std::path::Path) -> Result<Vec<PathBuf>, String> {
-    let mut dirs: Vec<PathBuf> = std::fs::read_dir(dir)
-        .map_err(|e| format!("read_dir {}: {e}", dir.display()))?
-        .filter_map(Result::ok)
-        .map(|entry| entry.path())
-        .filter(|p| p.is_dir())
-        .collect();
+    // Propagate per-entry read errors rather than `filter_map(Result::ok)`: an
+    // unreadable entry must surface, not silently shrink the discovered slice set.
+    let mut dirs: Vec<PathBuf> = Vec::new();
+    for entry in std::fs::read_dir(dir).map_err(|e| format!("read_dir {}: {e}", dir.display()))? {
+        let entry = entry.map_err(|e| format!("read_dir entry under {}: {e}", dir.display()))?;
+        let path = entry.path();
+        if path.is_dir() {
+            dirs.push(path);
+        }
+    }
     dirs.sort();
     Ok(dirs)
 }
