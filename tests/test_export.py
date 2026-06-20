@@ -10,8 +10,10 @@ from __future__ import annotations
 import csv
 import json
 from pathlib import Path
+from unittest.mock import patch
 
 import pytest
+from gts.model import TermKind
 from rdflib import OWL, RDF, RDFS, Graph, Literal, URIRef
 from rdflib.namespace import SKOS
 
@@ -353,12 +355,36 @@ def test_nquads_carries_the_full_statement_layer(tmp_path: Path) -> None:
     assert "<<(" in text  # quoted triple terms survive
 
 
-def test_trig_is_the_same_dataset_as_nquads(tmp_path: Path) -> None:
-    """The TriG partition parses to exactly the N-Quads content (one writer)."""
+def test_write_trig_delegates_to_gts_trig(tmp_path: Path) -> None:
+    """write_trig bottoms out in the upstream gts.trig.to_trig primitive (#702)."""
     view = load_fold()
-    nq = _oxigraph_quads(write_nquads(view, tmp_path))
-    trig = _oxigraph_quads(write_trig(view, tmp_path))
-    assert trig == nq
+    expected = "<<delegate-test>>"
+    with patch("gmeow_tools.export.to_trig", return_value=expected) as mock_to_trig:
+        path = write_trig(view, tmp_path)
+    mock_to_trig.assert_called_once()
+    (graph_arg,), _ = mock_to_trig.call_args
+    # Internal tags are remapped before delegation.
+    assert all(
+        not (
+            term.kind is TermKind.LITERAL
+            and term.lang
+            and term.lang.startswith("x-gmeow-")
+        )
+        for term in graph_arg.terms
+    )
+    assert path.read_text(encoding="utf-8") == expected
+
+
+def test_trig_carries_the_full_statement_layer(tmp_path: Path) -> None:
+    """gmeow.trig is lossless: base quads + reifiers + annotations."""
+    view = load_fold()
+    path = write_trig(view, tmp_path)
+    quads = _oxigraph_quads(path)
+    expected = len(view.graph.quads) + len(view.reifiers()) + len(view.annotations())
+    assert len(quads) == expected
+    text = path.read_text(encoding="utf-8")
+    assert "rdf:reifies" in text  # the RDF 1.2 statement layer
+    assert "<<(" in text  # quoted triple terms survive
 
 
 def test_dataset_forms_remap_internal_language_tags(tmp_path: Path) -> None:

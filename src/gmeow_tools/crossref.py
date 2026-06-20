@@ -113,11 +113,20 @@ class _TdmResource:
 
 @dataclass(frozen=True, slots=True)
 class _Citation:
-    """One Crossref citation-list entry."""
+    """One Crossref citation-list entry.
+
+    Crossref accepts two deposit-time citation shapes: a fully-structured
+    journal-article reference, or a free-text ``unstructured_citation`` (used when
+    a reference cannot be parsed into components). We deposit alignment targets in
+    the latter shape: they are external ontologies, not journal articles. Emitting
+    *partial* structured metadata (``journal_title``/``article_title``) without an
+    ``author`` or ``first_page`` makes Crossref treat the entry as a malformed
+    journal-article citation and reject it ("Either first page or author must be
+    supplied."), so we carry only ``unstructured`` text plus an optional ``doi``.
+    """
 
     key: str
     type: str
-    title: str
     unstructured: str
     doi: str | None = None
 
@@ -322,9 +331,12 @@ def _add_citation_list(parent: ET.Element, citations: Sequence[_Citation]) -> No
             "citation",
             attrs={"key": citation.key, "type": citation.type},
         )
+        # A DOI is the strongest cross-link when an alignment target has one. The
+        # free-text unstructured_citation is the schema-valid, business-rule-safe
+        # carrier for everything else; partial structured metadata (journal_title /
+        # article_title) without author/first_page is rejected at deposit time.
         if citation.doi:
             _child(node, "doi", citation.doi)
-        _child(node, "article_title", citation.title)
         _child(node, "unstructured_citation", citation.unstructured)
 
 
@@ -361,11 +373,13 @@ def _alignment_citations() -> list[_Citation]:
     for key in sorted(ALIGNMENT_TARGETS):
         target = ALIGNMENT_TARGETS[key]
         identifier = target.related_identifier
+        # Deposited as a free-text reference: alignment targets are external
+        # ontologies, not journal articles. The name and resolving identifier ride
+        # the unstructured_citation; a DOI is added structurally when one exists.
         citations.append(
             _Citation(
                 key=f"ref-{key}",
                 type="web_resource",
-                title=target.name,
                 unstructured=f"{target.name}. {identifier}.",
                 doi=target.doi,
             )
@@ -758,5 +772,31 @@ def lint_deposit(meta: SelfDescription | None = None) -> list[str]:
             problems.append(
                 f"deposit citation_list for {location} contains duplicate citation keys"
             )
+        for node in citation_list.findall(f"{{{CR_NS}}}citation"):
+            key = node.get("key") or ""
+            has_doi = node.find(f"{{{CR_NS}}}doi") is not None
+            has_unstructured = (
+                node.find(f"{{{CR_NS}}}unstructured_citation") is not None
+            )
+            # Every citation needs an identifying carrier: a DOI or free text.
+            if not (has_doi or has_unstructured):
+                problems.append(
+                    f"citation {key!r} has neither a doi nor an "
+                    "unstructured_citation (Crossref citation business rule)"
+                )
+            # Partial journal-article structure without author/first_page is
+            # rejected at deposit time ("Either first page or author must be
+            # supplied."). Guard against that shape rather than papering over it.
+            has_author = node.find(f"{{{CR_NS}}}author") is not None
+            has_first_page = node.find(f"{{{CR_NS}}}first_page") is not None
+            article_shaped = (
+                node.find(f"{{{CR_NS}}}journal_title") is not None
+                or node.find(f"{{{CR_NS}}}article_title") is not None
+            )
+            if article_shaped and not (has_author or has_first_page):
+                problems.append(
+                    f"citation {key!r} carries journal_title/article_title without "
+                    "an author or first_page (Crossref rejects this shape)"
+                )
 
     return problems

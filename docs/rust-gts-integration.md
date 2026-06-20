@@ -22,7 +22,7 @@ a folded `.gts` snapshot directly, rather than re-implementing bundle parsing.
 The dependency is declared unconditionally in `crates/validate/Cargo.toml`:
 
 ```toml
-gmeow-gts = { version = "0.9.0", features = ["oxigraph-adapter"] }
+gmeow-gts = { version = "0.9.2", features = ["oxigraph-adapter"] }
 ```
 
 This is a hard dependency, not a feature-gated convenience. The project does
@@ -34,7 +34,7 @@ links the crate unconditionally.
 
 Two distinct things are both named `gmeow-gts`; keep them separate:
 
-- The **library crate** `gmeow-gts` (version `0.9.0`, `oxigraph-adapter`
+- The **library crate** `gmeow-gts` (version `0.9.2`, `oxigraph-adapter`
   feature) — a workspace dependency of `gmeow-validate`. This is what this note
   is about.
 - The **engine binary** `gmeow-gts` — obtained out-of-band via
