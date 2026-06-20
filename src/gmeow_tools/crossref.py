@@ -119,6 +119,7 @@ class _Citation:
     type: str
     title: str
     unstructured: str
+    journal_title: str | None = None
     doi: str | None = None
 
 
@@ -324,6 +325,10 @@ def _add_citation_list(parent: ET.Element, citations: Sequence[_Citation]) -> No
         )
         if citation.doi:
             _child(node, "doi", citation.doi)
+        # journal_title is a pragmatic Crossref business-rule container for the
+        # target name, not a claim that the alignment target is a journal.
+        if citation.journal_title:
+            _child(node, "journal_title", citation.journal_title)
         _child(node, "article_title", citation.title)
         _child(node, "unstructured_citation", citation.unstructured)
 
@@ -361,12 +366,15 @@ def _alignment_citations() -> list[_Citation]:
     for key in sorted(ALIGNMENT_TARGETS):
         target = ALIGNMENT_TARGETS[key]
         identifier = target.related_identifier
+        # journal_title satisfies Crossref's requirement that every citation
+        # contain at least one of issn, journal_title, or proceedings_title.
         citations.append(
             _Citation(
                 key=f"ref-{key}",
                 type="web_resource",
                 title=target.name,
                 unstructured=f"{target.name}. {identifier}.",
+                journal_title=target.name,
                 doi=target.doi,
             )
         )
@@ -758,5 +766,15 @@ def lint_deposit(meta: SelfDescription | None = None) -> list[str]:
             problems.append(
                 f"deposit citation_list for {location} contains duplicate citation keys"
             )
+        for node in citation_list.findall(f"{{{CR_NS}}}citation"):
+            key = node.get("key") or ""
+            has_issn = node.find(f"{{{CR_NS}}}issn") is not None
+            has_journal = node.find(f"{{{CR_NS}}}journal_title") is not None
+            has_proceedings = node.find(f"{{{CR_NS}}}proceedings_title") is not None
+            if not (has_issn or has_journal or has_proceedings):
+                problems.append(
+                    f"citation {key!r} has no issn, journal_title, or "
+                    "proceedings_title (Crossref business rule)"
+                )
 
     return problems
