@@ -296,6 +296,17 @@ meta:gate-classic-cross-check a meta:Gate ;
     meta:makeTarget "classic-cross-check" ;
     meta:cliCommand "classic-cross-check", "classic-cross-check-rl" .
 
+# The executable lane-purity seal (#667): the two-lane separation used to be
+# enforced only by comments in the Makefile and ci.yml plus pytest -m exclusions.
+# This guard statically parses the required CI quality jobs and the Makefile and
+# FAILS if a Docker/Java token reaches the primary path, or if the
+# classic-cross-check workflow ever becomes a required check.
+meta:tests-lane-purity a meta:TestSuite ;
+    rdfs:label "lane-purity seal — required CI jobs + make check carry no Java/Docker (#667)"@x-gmeow-english ;
+    meta:artifact "tests/test_lane_purity.py" ;
+    meta:symbol "test_required_ci_jobs_carry_no_java_or_docker",
+        "test_makefile_required_targets_carry_no_java_or_docker" .
+
 # --------------------------------------------------------------------------- #
 # The principles
 # --------------------------------------------------------------------------- #
@@ -398,4 +409,4 @@ meta:Principle18 a meta:Principle ;
     meta:number 18 ;
     meta:title "The reference RDF-1.2 stack — complete, coherent, and Docker-free" ;
     meta:enforcedBy meta:gate-reason-native, meta:gate-dl-el-crosscheck,
-        meta:gate-classic-cross-check .
+        meta:gate-classic-cross-check, meta:tests-lane-purity .

@@ -463,9 +463,11 @@ the `reason --mode native` CLI command, the `native-reasoning` registered genera
 `classic-cross-check` lane ([`src/gmeow_tools/classic_cross_check.py`](./src/gmeow_tools/classic_cross_check.py),
 [`src/gmeow_tools/rl_agreement.py`](./src/gmeow_tools/rl_agreement.py)). *Tested by:* the
 native-reasoning authority gate (`meta:gate-reason-native`), the report-only native↔oracle
-divergence ledger gate (`meta:gate-dl-el-crosscheck`), and the enforcing classic-cross-check lane gate
-(`meta:gate-classic-cross-check`), whose machine-readable enforcement lives in
-[`governance/constitution.ttl`](./governance/constitution.ttl).
+divergence ledger gate (`meta:gate-dl-el-crosscheck`), the enforcing classic-cross-check lane gate
+(`meta:gate-classic-cross-check`), and the executable lane-purity seal
+([`tests/test_lane_purity.py`](./tests/test_lane_purity.py), `meta:tests-lane-purity`) that statically
+proves the required CI `quality` jobs and `make check` carry no Java and no Docker — whose
+machine-readable enforcement lives in [`governance/constitution.ttl`](./governance/constitution.ttl).
 
 ---
 
