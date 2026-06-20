@@ -33,7 +33,7 @@ pub struct SpecFile {
 }
 
 /// A `gmeow:CompetencyQuestion` cell.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct CompetencyQuestion {
     pub iri: String,
     /// Inline `gmeow:cqQuery` (mutually exclusive with `query_file`).
@@ -54,14 +54,14 @@ pub struct CompetencyQuestion {
 }
 
 /// One enumerated SELECT result row (`gmeow:ExpectedRow`).
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct ExpectedRow {
     /// One cell per projected variable.
     pub cells: Vec<ExpectedCell>,
 }
 
 /// One variable-to-value binding within an [`ExpectedRow`] (`gmeow:ExpectedCell`).
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct ExpectedCell {
     /// The SPARQL variable name, WITHOUT the leading `?`.
     pub var: String,
@@ -199,27 +199,42 @@ fn parse_competency(store: &Store) -> Result<Vec<CompetencyQuestion>, String> {
     let mut by_iri: BTreeMap<String, CompetencyQuestion> = BTreeMap::new();
     for sol in select(store, &with_prefix(Q_COMPETENCY))? {
         let iri = require_iri(&sol, "cq")?;
-        by_iri.insert(
-            iri.clone(),
-            CompetencyQuestion {
-                iri,
-                query_inline: opt_string(&sol, "query"),
-                query_file: opt_string(&sol, "queryFile"),
-                expect_ask: opt_bool(&sol, "expectAsk"),
-                expect_row_count: opt_u64(&sol, "rowCount")?,
-                exact_rows: opt_bool(&sol, "exactRows").unwrap_or(false),
-                expected_rows: Vec::new(),
-                reasoning: match sol.get("reasoning").and_then(term_iri) {
-                    None => ReasoningProfile::None, // default
-                    Some(iri) => match local_name(&iri) {
-                        "reasoningNone" => ReasoningProfile::None,
-                        "reasoningRdfs" => ReasoningProfile::Rdfs,
-                        other => return Err(format!("unknown cqReasoning gmeow:{other}")),
-                    },
+        let candidate = CompetencyQuestion {
+            iri: iri.clone(),
+            query_inline: opt_string(&sol, "query"),
+            query_file: opt_string(&sol, "queryFile"),
+            expect_ask: opt_bool(&sol, "expectAsk")?,
+            expect_row_count: opt_u64(&sol, "rowCount")?,
+            exact_rows: opt_bool(&sol, "exactRows")?.unwrap_or(false),
+            expected_rows: Vec::new(),
+            reasoning: match sol.get("reasoning").and_then(term_iri) {
+                None => ReasoningProfile::None, // default
+                Some(iri) => match local_name(&iri) {
+                    "reasoningNone" => ReasoningProfile::None,
+                    "reasoningRdfs" => ReasoningProfile::Rdfs,
+                    other => return Err(format!("unknown cqReasoning gmeow:{other}")),
                 },
-                rationale: opt_string(&sol, "rationale"),
             },
-        );
+            rationale: opt_string(&sol, "rationale"),
+        };
+        // A multi-valued OPTIONAL (or a duplicated triple) can yield more than one
+        // ?cq solution for the same question. Identical repeats are harmless, but
+        // conflicting scalar fields would otherwise overwrite silently — making the
+        // parsed spec depend on SPARQL solution order. Hard-fail on conflict.
+        match by_iri.entry(iri) {
+            std::collections::btree_map::Entry::Vacant(slot) => {
+                slot.insert(candidate);
+            }
+            std::collections::btree_map::Entry::Occupied(existing) => {
+                if *existing.get() != candidate {
+                    return Err(format!(
+                        "competency question {} has conflicting duplicate definitions \
+                         (multiple solutions with differing scalar fields)",
+                        existing.key()
+                    ));
+                }
+            }
+        }
     }
 
     // 2. Rows: group cells by (cq, row), preserving one cell per variable.
@@ -366,11 +381,21 @@ fn opt_string(sol: &QuerySolution, var: &str) -> Option<String> {
     })
 }
 
-fn opt_bool(sol: &QuerySolution, var: &str) -> Option<bool> {
-    sol.get(var).and_then(|term| match term {
-        Term::Literal(l) => Some(l.value() == "true"),
-        _ => None,
-    })
+fn opt_bool(sol: &QuerySolution, var: &str) -> Result<Option<bool>, String> {
+    match sol.get(var) {
+        None => Ok(None),
+        // xsd:boolean lexical space: true/false plus the 1/0 alternatives. Anything
+        // else is a malformed literal that would silently read as `false` if coerced
+        // — hard-fail instead (a typoed boolean must never quietly weaken a guard).
+        Some(Term::Literal(l)) => match l.value() {
+            "true" | "1" => Ok(Some(true)),
+            "false" | "0" => Ok(Some(false)),
+            other => Err(format!(
+                "?{var} is not an xsd:boolean (true/false): {other:?}"
+            )),
+        },
+        Some(other) => Err(format!("?{var} expected a literal, got {other}")),
+    }
 }
 
 fn opt_u64(sol: &QuerySolution, var: &str) -> Result<Option<u64>, String> {
@@ -494,5 +519,67 @@ mod tests {
             violates.violation_code.as_deref(),
             Some("shacl.MinCountConstraintComponent")
         );
+    }
+
+    /// Load inline Turtle into a store, mirroring the lenient parse the harness uses.
+    fn store_from_turtle(ttl: &str) -> Store {
+        use oxigraph::io::{RdfFormat, RdfParser};
+        let store = Store::new().expect("store");
+        for triple in RdfParser::from_format(RdfFormat::Turtle)
+            .lenient()
+            .for_reader(ttl.as_bytes())
+        {
+            store
+                .insert(&triple.expect("valid turtle"))
+                .expect("insert");
+        }
+        store
+    }
+
+    #[test]
+    fn rejects_conflicting_duplicate_competency_questions() {
+        // Two cqExpectRowCount values for the SAME question yield two ?cq solutions
+        // with conflicting scalar fields. Silently keeping whichever the SPARQL
+        // engine returned last would make the spec solution-order-dependent.
+        let ttl = "\
+            @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
+            @prefix ex: <https://example.org/> .\n\
+            ex:cqDup a gmeow:CompetencyQuestion ;\n\
+                gmeow:cqQueryFile \"q.rq\" ;\n\
+                gmeow:cqExpectRowCount 1, 2 .\n";
+        let err = parse_competency(&store_from_turtle(ttl))
+            .expect_err("conflicting duplicate must hard-fail");
+        assert!(
+            err.contains("conflicting duplicate"),
+            "unexpected error: {err}"
+        );
+    }
+
+    #[test]
+    fn identical_duplicate_competency_solutions_are_harmless() {
+        // A repeated identical scalar (here a duplicated cqQueryFile triple) is not a
+        // conflict — it must parse, collapsing to one question.
+        let ttl = "\
+            @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
+            @prefix ex: <https://example.org/> .\n\
+            ex:cqSame a gmeow:CompetencyQuestion ;\n\
+                gmeow:cqQueryFile \"q.rq\", \"q.rq\" .\n";
+        let spec = parse_competency(&store_from_turtle(ttl)).expect("identical repeat is fine");
+        assert_eq!(spec.len(), 1);
+    }
+
+    #[test]
+    fn rejects_malformed_boolean_literal() {
+        // A typoed boolean must hard-fail, never silently coerce to false (which would
+        // quietly flip cqExactRows from exact-match to subset).
+        let ttl = "\
+            @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
+            @prefix ex: <https://example.org/> .\n\
+            ex:cqBad a gmeow:CompetencyQuestion ;\n\
+                gmeow:cqQueryFile \"q.rq\" ;\n\
+                gmeow:cqExactRows \"ture\" .\n"; // codespell:ignore ture
+        let err = parse_competency(&store_from_turtle(ttl))
+            .expect_err("malformed boolean must hard-fail");
+        assert!(err.contains("xsd:boolean"), "unexpected error: {err}");
     }
 }
