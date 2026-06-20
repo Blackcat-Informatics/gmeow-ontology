@@ -104,14 +104,25 @@ def test_invalid_console_token_hard_fails() -> None:
         DiagnosticsConfig.resolve(console="loud", env={}, is_tty=True)
 
 
-def test_directory_default_is_flat_dist_on_tty() -> None:
-    config = DiagnosticsConfig.resolve(category="lint", env={}, is_tty=True)
+@pytest.mark.parametrize("is_tty", [True, False])
+def test_directory_default_is_flat_dist_without_a_category(is_tty: bool) -> None:
+    # No explicit category -> the flat dist/ aggregate convention is preserved,
+    # regardless of TTY (TTY only governs the console auto mode).
+    config = DiagnosticsConfig.resolve(env={}, is_tty=is_tty)
     assert config.directory == DIST_DIR
 
 
-def test_directory_default_is_category_scoped_off_tty() -> None:
-    config = DiagnosticsConfig.resolve(category="lint", env={}, is_tty=False)
+@pytest.mark.parametrize("is_tty", [True, False])
+def test_directory_is_category_scoped_when_category_explicit(is_tty: bool) -> None:
+    config = DiagnosticsConfig.resolve(category="lint", env={}, is_tty=is_tty)
     assert config.directory == DIST_DIR / "diagnostics" / "lint"
+
+
+def test_directory_is_category_scoped_when_category_from_env() -> None:
+    config = DiagnosticsConfig.resolve(
+        env={"GMEOW_DIAGNOSTICS_CATEGORY": "rust"}, is_tty=True
+    )
+    assert config.directory == DIST_DIR / "diagnostics" / "rust"
 
 
 def test_explicit_directory_flag_wins_in_both_modes(tmp_path: Path) -> None:

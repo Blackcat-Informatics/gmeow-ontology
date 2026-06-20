@@ -142,17 +142,21 @@ class DiagnosticsConfig:
         resolved_stem = _first(stem, env.get("GMEOW_DIAGNOSTICS_STEM"), DEFAULT_STEM)
 
         # Directory precedence: an explicit flag or env dir is used verbatim.
-        # Otherwise the default splits on the TTY signal: a local interactive run
-        # keeps the flat ``dist/`` aggregate convention; a non-interactive (CI)
-        # run lands category outputs under ``dist/diagnostics/<category>/`` so
-        # per-job artifacts never collide.
+        # Otherwise the default is keyed on whether a *category* was explicitly
+        # requested: an aggregate/manual run (no category) keeps the flat
+        # ``dist/`` convention (preserving ``dist/gmeow-feedback.*``), while a
+        # category run (CI per-job, ``--diagnostics-category lint``) lands under
+        # ``dist/diagnostics/<category>/`` so per-job artifacts never collide.
         explicit_dir = directory or _env_path(env.get("GMEOW_DIAGNOSTICS_DIR"))
+        category_explicit = category is not None or bool(
+            env.get("GMEOW_DIAGNOSTICS_CATEGORY")
+        )
         if explicit_dir is not None:
             resolved_dir = explicit_dir
-        elif is_tty:
-            resolved_dir = DIST_DIR
-        else:
+        elif category_explicit:
             resolved_dir = DIST_DIR / "diagnostics" / resolved_category
+        else:
+            resolved_dir = DIST_DIR
 
         return cls(
             console=mode,
