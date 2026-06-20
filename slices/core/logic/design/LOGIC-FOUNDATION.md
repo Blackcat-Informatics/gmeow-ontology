@@ -458,3 +458,38 @@ The foundation declares its charter and vocabulary; the formal meaning of each m
 [LOGIC-SEMANTICS.md](LOGIC-SEMANTICS.md), the configuration of a reasoning request in
 [LOGIC-CONTRACT.md](LOGIC-CONTRACT.md), the typed compilation target in [LOGIC-IR.md](LOGIC-IR.md),
 and state-change semantics in [LOGIC-TRANSACTION.md](LOGIC-TRANSACTION.md).
+
+## Foundation projection and discipline
+
+UFO⁺ is authored canonically in `logic:`; the upper ontologies are generated, and they are not all
+the same kind of projection.
+
+**gUFO** is the primary generated down-projection of UFO⁺ — the OWL realization of the same UFO
+lineage, truth-preserving for the fragment OWL can express, validated by running the full set of
+OntoUML anti-pattern checks over the downcast. The downcast satisfies all five disciplines:
+stereotype cardinality, identity overlap, anti-rigidity, free-role integrity, and relator mediation.
+
+**BFO, DOLCE, and SUMO** are generated alignment/bridge views, not truth-preserving projections,
+unless a specific subfragment is certified as such in the loss ledger. They carry different
+ontological commitments, and the maximal-source doctrine respects that rather than claiming a shared
+foundation. A bridge view is labelled in [LOGIC-CONFORMANCE.md](LOGIC-CONFORMANCE.md) so no consumer
+mistakes it for a sound projection.
+
+### Disciplines as rules; cross-world rigidity; the witness obligation
+
+The OntoUML disciplines are `logic:` rules, not external lint. The native evaluator derives
+`logic:violation` facts reproducing, class-for-class, the offending sets the discipline checks
+describe — five violation labels from four checks: `logic:StereotypeCardinality`, `logic:MixIden`,
+`logic:FreeRole`, `logic:MixRig`, and `logic:RelComp`. The lowering certifies under
+`logic:StratifiedNAFProfile`. The discipline checks are the regression specification of the lowering;
+the lowering is the enforcement mechanism.
+
+Cross-world rigidity — the world-spanning universal quantifier that no ordinary in-world Datalog rule
+expresses — is evaluated as a bounded closure pass over the finite materialized world set, emitting
+`logic:rigidityViolation` quads in the world where rigidity persistence fails. The pass fires when at
+least two worlds are materialized.
+
+Anti-rigidity's witness obligation — a world of existence where the instance lacks the type — belongs
+to counterfactual construction in Stratum C; the `"anti_rigidity_policy"` profile field governs the
+instance-level obligation facet. The operational semantics of the foundation are in
+[LOGIC-SEMANTICS.md](LOGIC-SEMANTICS.md#operational-semantics-modality-and-identity-supply).

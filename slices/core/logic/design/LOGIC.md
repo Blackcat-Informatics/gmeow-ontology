@@ -25,8 +25,9 @@ These are semantic-status labels, not project-management states.
 | [`LOGIC-IR.md`](LOGIC-IR.md) | intermediate representation | the typed, full first-order IR every source compiles into and every projection out of; the per-lowering preservation judgment |
 | [`LOGIC-SEMANTICS.md`](LOGIC-SEMANTICS.md) | formal semantics | the unified core, triple-term/assertion rules, the reasoning result, modality, the typed context algebra, decidability |
 | [`LOGIC-TRANSACTION.md`](LOGIC-TRANSACTION.md) | state change | Transaction Logic — path semantics, serial conjunction, updates as supersession, the state-change facet |
+| [`LOGIC-TELEOLOGY.md`](LOGIC-TELEOLOGY.md) | goal/action layer | goals, intentional modes, structured goal expressions, reified goal evaluation, action schemas, goal decomposition and conflict; the intention → plan → action → transaction-path chain |
+| [`LOGIC-COGNITION.md`](LOGIC-COGNITION.md) | cognitive assessment | the multidimensional cognitive-assessment construct — factored dimensions of reasoning quality, reliability, calibration, and metacognitive posture; reasoning quality over the inference modes; reliability over the typed reasoning result |
 | [`LOGIC-RUNTIME.md`](LOGIC-RUNTIME.md) | runtime | solver architecture, the materialization–resolution seam, graph versioning, generated artifacts, CLI |
-| [`LOGIC-MIGRATION.md`](LOGIC-MIGRATION.md) | rollout | the MVP ladder, adapter phases, gates, deprecations, the design risk register |
 | [`LOGIC-CONFORMANCE.md`](LOGIC-CONFORMANCE.md) | contract | the conformance corpus and the loss-ledger preservation contract |
 | [`LOGIC-REFERENCES.md`](LOGIC-REFERENCES.md) | appendix | external standards, theory, and engines cited — staged for the `metadata/references.ttl` ledger |
 
@@ -184,8 +185,8 @@ alignment/bridge views, not truth-preserving projections**, unless a specific su
 certified as such in the loss ledger. They carry genuinely different ontological commitments, and
 the maximal-source doctrine respects that rather than overclaiming a shared foundation. The
 operational semantics of the foundation are in
-[LOGIC-SEMANTICS.md](LOGIC-SEMANTICS.md#the-logic-foundation-ufo); its rollout and projection
-discipline are in [LOGIC-MIGRATION.md](LOGIC-MIGRATION.md#foundation-projection-and-discipline).
+[LOGIC-SEMANTICS.md](LOGIC-SEMANTICS.md#the-logic-foundation-ufo); its projection discipline is in
+[LOGIC-FOUNDATION.md](LOGIC-FOUNDATION.md#foundation-projection-and-discipline).
 
 ## Constitutional Alignment
 
