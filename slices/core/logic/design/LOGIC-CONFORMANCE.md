@@ -3,7 +3,7 @@
 
 # GMEOW Logic — Conformance Design
 
-> Status: canonical target architecture for `logic:` conformance. This is the **conformance** member
+> The **conformance** member
 > of the [GMEOW Logic document set](LOGIC.md#the-document-set). It defines how correctness is
 > established: the conformance corpus as the enforcement contract, capability-relative conformance
 > and the capability manifest, the loss ledger and multidimensional preservation claims, the two

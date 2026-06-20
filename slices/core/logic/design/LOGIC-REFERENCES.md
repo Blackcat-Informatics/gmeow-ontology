@@ -3,7 +3,7 @@
 
 # GMEOW Logic — References
 
-> Status: bibliography appendix for the [GMEOW Logic design set](LOGIC.md#the-document-set). The
+> The bibliography appendix for the [GMEOW Logic design set](LOGIC.md#the-document-set). The
 > `logic:` design relies on a substantial body of external standards, foundational theory, and
 > engines; this appendix names them so the claims in the other documents are *cited*, not merely
 > name-dropped.

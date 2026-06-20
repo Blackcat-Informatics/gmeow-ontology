@@ -3,23 +3,16 @@
 
 # GMEOW Logic — Vision and Doctrine
 
-> Status: canonical target architecture for GMEOW's reasoning layer. This is the **manifesto**
-> of the GMEOW Logic design set; it carries the vision, doctrine, lineage, and target
-> architecture. The formal semantics, runtime, rollout, and conformance contract live in the
-> sibling documents below. Where this document states a thesis once, the siblings make it
-> precise — repetition is replaced by cross-reference on purpose.
-
-**Semantic-status convention.** Claims across this design set carry one of three labels:
-**Normative semantics** marks the canonical target — what the logic is defined to mean.
-**Currently implemented subset** marks what the engine realizes today.
-**Required but not yet implemented** marks what is specified or needed but not yet realized.
-These are semantic-status labels, not project-management states.
+> The **manifesto** of the GMEOW Logic design set; it carries the vision, doctrine, and lineage.
+> The formal semantics, runtime, and conformance contract live in the sibling documents below.
+> Where this document states a thesis once, the siblings make it precise — repetition is replaced
+> by cross-reference on purpose.
 
 ## The document set
 
 | Document | Genre | Contents |
 |---|---|---|
-| `LOGIC.md` (this) | manifesto | vision, doctrine, lineage, target architecture |
+| `LOGIC.md` (this) | manifesto | vision, doctrine, lineage |
 | [`LOGIC-FOUNDATION.md`](LOGIC-FOUNDATION.md) | charter | the `gmeow:logic` upper-ontology charter — the gUFO ⊇ baseline, the criticism ledger, the greenfield feature map, the Ithkuil precision ethos, the four-box organization |
 | [`LOGIC-CONTRACT.md`](LOGIC-CONTRACT.md) | configuration | the reasoning contract — the orthogonal facets a reasoning request selects; named profiles as presets; the compatibility matrix |
 | [`LOGIC-IR.md`](LOGIC-IR.md) | intermediate representation | the typed, full first-order IR every source compiles into and every projection out of; the per-lowering preservation judgment |
@@ -217,19 +210,14 @@ This makes GMEOW's logic match the rest of the project: maximal model, maximal l
 projection, and no compatibility format — not even OWL, not even gUFO — promoted above the canonical
 source.
 
-### Forthcoming layers
+### The goal/action and cognitive-assessment layers
 
-Two design layers are **required but not yet specified** in this set.
-
-The **teleological goal/action semantics** layer will formalize structured goal expressions, goal
-evaluation, and action schemas, and will bridge the intention → plan → action →
-transaction-path chain. The transaction layer handles the state-change mechanics; this forthcoming
-layer authors the goal structure that motivates and evaluates those transactions.
-
-The **multidimensional cognitive-assessment** layer will replace the coarse awareness-to-mastery
-ladder with a contextual assessment construct carrying subject granularity, task, evaluator,
-evidence, scale, interval, and dimensions. A single ordinal score is insufficient to represent
-cognitive competence across contexts; this layer supplies the richer model.
-
-Both are design layers still to be authored; their absence means the corresponding semantics are
-**required but not yet implemented** in the current engine.
+Two further layers complete the design. The **goal-and-action layer**
+([LOGIC-TELEOLOGY.md](LOGIC-TELEOLOGY.md)) carries structured goal expressions, reified goal
+evaluation, and action schemas, and binds the intention → plan → action → transaction-path chain:
+the transaction layer handles the state-change mechanics, and the goal-and-action layer carries the
+goal structure that motivates and evaluates those transactions. The **cognitive-assessment layer**
+([LOGIC-COGNITION.md](LOGIC-COGNITION.md)) carries a contextual, factored assessment construct —
+subject granularity, task, evaluator, evidence, scale, interval, and independent dimensions — in
+place of a single ordinal competence score, which cannot represent cognitive competence across
+contexts.

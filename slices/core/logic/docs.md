@@ -34,7 +34,7 @@ implemented against rather than only read:
 
 | Document | Genre | Contents |
 | --- | --- | --- |
-| [`design/LOGIC.md`](./design/LOGIC.md) | manifesto | vision, doctrine, lineage, target architecture |
+| [`design/LOGIC.md`](./design/LOGIC.md) | manifesto | vision, doctrine, lineage |
 | [`design/LOGIC-FOUNDATION.md`](./design/LOGIC-FOUNDATION.md) | charter | the `gmeow:logic` upper-ontology charter — the gUFO ⊇ baseline, the criticism ledger, the greenfield feature map, the Ithkuil precision ethos, the four-box organization |
 | [`design/LOGIC-CONTRACT.md`](./design/LOGIC-CONTRACT.md) | configuration | the reasoning contract — the orthogonal facets a reasoning request selects; named profiles as presets; the compatibility matrix |
 | [`design/LOGIC-IR.md`](./design/LOGIC-IR.md) | intermediate representation | the typed, full first-order IR every source compiles into and every projection out of; the per-lowering preservation judgment |

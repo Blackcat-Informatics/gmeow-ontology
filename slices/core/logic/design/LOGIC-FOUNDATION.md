@@ -3,7 +3,7 @@
 
 # GMEOW Logic — Foundation Design Charter (gmeow:logic ⊇ gUFO)
 
-> Status: normative design charter for the `gmeow:logic` upper ontology. This is the **charter**
+> The normative design charter for the `gmeow:logic` upper ontology. This is the **charter**
 > member of the [GMEOW Logic document set](LOGIC.md#the-document-set): it states what the
 > foundation *is*, the documented predecessor weaknesses it refuses to inherit, and the greenfield
 > primitives it declares. Vision and lineage are in [LOGIC.md](LOGIC.md); the formal account of

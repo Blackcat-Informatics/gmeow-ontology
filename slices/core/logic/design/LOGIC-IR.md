@@ -3,7 +3,7 @@
 
 # GMEOW Logic — The Typed Intermediate Representation
 
-> Status: canonical target architecture for the compiler's intermediate representation. The IR is
+> The compiler's intermediate representation. The IR is
 > the single typed structure every `logic:` source compiles into and every projection compiles
 > out of. Member of the GMEOW Logic design set ([`LOGIC.md`](LOGIC.md)); the surface profiles that
 > select how the IR is evaluated are defined in [`LOGIC-CONTRACT.md`](LOGIC-CONTRACT.md), and the
