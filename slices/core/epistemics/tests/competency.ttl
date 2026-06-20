@@ -4,10 +4,11 @@
 # Declarative competency questions authored as slice-resident test-DSL data,
 # executed by the native Rust slice-test harness (crates/slicetest, #784).
 # Two exemplars, both fully-enumerated SELECTs (gmeow:cqExpectRow + gmeow:cqExactRows
-# true): "what kinds of agent?" and "what contribution roles?". Expected rows were
-# MEASURED by running each query over the merged ontology graph closed under OWL 2
-# RL (the same reasoned-graph harness tests/test_competency.py uses), so the
-# answers are entailed, not asserted.
+# true): "what kinds of agent?" and "what contribution roles?". Both run in the
+# default asserted lane (gmeow:reasoningNone): the agent query uses an
+# rdfs:subClassOf* property path and the 48 roles are directly typed, so the
+# expected rows were MEASURED over the asserted merged graph — no OWL 2 RL chase.
+# See docs/TESTING.md.
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/epistemics/tests/> .
@@ -61,10 +62,10 @@ ex:cqAgentRowSoftwareAgent a gmeow:ExpectedRow ;
 # queries/competency/contribution-roles.rq projects ?role a gmeow:ContributionRole.
 # T3 (#784) finishes the enumeration the T2 escape hatch deferred: all 48
 # gmeow:ContributionRole individuals (the CRediT canon plus GMEOW's domain
-# extensions), MEASURED over the reasoned graph, with cqExactRows true.
+# extensions), MEASURED over the asserted merged graph, with cqExactRows true.
 ex:cqContributionRoles a gmeow:CompetencyQuestion ;
     gmeow:cqQueryFile "queries/competency/contribution-roles.rq" ;
-    gmeow:cqRationale "GMEOW must enumerate the contribution roles it supports (the CRediT canon plus GMEOW's domain extensions). The reasoned graph returns exactly 48 gmeow:ContributionRole individuals; T3 enumerates every one (cqExactRows true), replacing the T2 coarse-count escape hatch." ;
+    gmeow:cqRationale "GMEOW must enumerate the contribution roles it supports (the CRediT canon plus GMEOW's domain extensions). The asserted graph returns exactly 48 gmeow:ContributionRole individuals; T3 enumerates every one (cqExactRows true), replacing the T2 coarse-count escape hatch." ;
     gmeow:cqExactRows true ;
     gmeow:cqExpectRow
         ex:cqRoleRowAIAssistant,

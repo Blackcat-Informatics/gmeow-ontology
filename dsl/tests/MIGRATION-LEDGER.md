@@ -79,8 +79,9 @@ epistemics exemplars). Their pytest tests are therefore **retained, pending
 future slice migration** — removing them now would drop coverage with no
 declarative twin to replace it. The ~1,950 ontology-data rdflib tests across the
 remaining slices are migrated in follow-on parcels under epic #781; the harness
-already discovers and runs any `slices/**/tests/*.ttl` that appears, so each new
-slice spec lights up automatically.
+already discovers and runs the three fixed spec filenames (`competency.ttl`,
+`structural.ttl`, `example-conformance.ttl`) under any slice, so each new slice
+spec lights up automatically.
 
 ## Notes / known limitations
 

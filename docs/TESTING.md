@@ -120,5 +120,8 @@ make check          # the full local gate (lint, clippy, rust-test, validate,
                     # reasoning, pytest, compliance report) — Docker/Java-free
 ```
 
-The harness automatically discovers any `slices/**/tests/*.ttl` that appears, so
-a new slice's declarative specs light up with no harness changes.
+The harness automatically discovers the three fixed spec filenames —
+`tests/competency.ttl`, `tests/structural.ttl`, and `tests/example-conformance.ttl`
+— under any slice, so a new slice's declarative specs light up with no harness
+changes. Other filenames under `tests/` (e.g. `tests/counter-examples/*.ttl`,
+referenced only via `gmeow:exampleFile`) are deliberately not auto-executed.
