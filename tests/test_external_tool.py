@@ -10,6 +10,7 @@ import re
 import sys
 from pathlib import Path
 
+import pytest
 from typer.testing import CliRunner
 
 from gmeow_tools import external_tool
@@ -165,6 +166,35 @@ def test_cli_external_tool_failure_exit_code_and_sarif(tmp_path: Path) -> None:
     sarif = json.loads((tmp_path / "gmeow-feedback.sarif").read_text(encoding="utf-8"))
     assert sarif["runs"][0]["automationDetails"]["id"] == "python"
     assert sarif["runs"][0]["results"][0]["ruleId"] == "external.probe"
+
+
+def test_cli_external_tool_category_routes_to_dist_diagnostics_subdir(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # With a category and NO explicit --diagnostics-dir, the external-tool command
+    # auto-routes artifacts under <DIST_DIR>/diagnostics/<category>/ (the CI path).
+    # Monkeypatch DIST_DIR so the test does not write into the real dist/.
+    monkeypatch.setattr("gmeow_tools.diagnostics_config.DIST_DIR", tmp_path)
+    result = runner.invoke(
+        dev_app,
+        [
+            "external-tool",
+            "--name",
+            "probe",
+            "--diagnostics-category",
+            "python",
+            "--",
+            sys.executable,
+            "-c",
+            "import sys; sys.exit(5)",
+        ],
+    )
+
+    assert result.exit_code == 1
+    sarif_path = tmp_path / "diagnostics" / "python" / "gmeow-feedback.sarif"
+    assert sarif_path.exists()
+    sarif = json.loads(sarif_path.read_text(encoding="utf-8"))
+    assert sarif["runs"][0]["automationDetails"]["id"] == "python"
 
 
 def test_cli_external_tool_success_exit_zero(tmp_path: Path) -> None:
