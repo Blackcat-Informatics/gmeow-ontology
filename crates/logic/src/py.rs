@@ -5,111 +5,34 @@
 //!
 //! # Nemo wire-up (issue #501 Task 4)
 //!
-//! `materialize` now drives the full Nemo chase WITH real proof-trace provenance:
+//! `materialize` drives the full Nemo chase WITH real proof-trace provenance. The
+//! engine pipeline itself — parse N-Quads → encode Nemo facts → run the chase →
+//! decode rows to `DerivedQuad`s with real provenance → apply the post-hoc budget
+//! governor — lives in [`crate::materialize`] (pure Rust, natively `#[test]`ed).
+//! This module keeps only the PyO3 marshalling shell:
 //!
-//! 1. Parse input N-Quads into an oxigraph `Store`.
-//! 2. Encode each quad as a Nemo IRI-predicate ground fact:
-//!    `<predicate_iri>(<subject_iri>, <object_term>, "world_iri").`
-//! 3. Concatenate the caller-supplied `.rls` rule text.
-//! 4. Run `run_chase` (GIL released) → `Vec<ChaseRowWithProvenance>`.
-//! 5. Decode each ternary `ChaseRowWithProvenance` back to an oxigraph quad.
-//! 6. Compute real provenance using `mint_reifier` / `mint_derivation_id`:
-//!    - Asserted (EDB) quads: `rule_iri = logic:assert`,
-//!      `source_quad_ids = [self_reifier]`,
-//!      `derivation_id = mint_derivation_id(assert_rule, [self_reifier])`
-//!    - Derived (IDB) quads: `rule_iri` from the firing rule's name (set via
-//!      `#[name("...")]` in the `.rls` source), antecedent reifiers from the
-//!      immediate premise ChaseRows.
-//! 7. Return the quads as Python dicts.
+//! 1. Short-circuit empty input to an empty result.
+//! 2. Route non-stratifiable rule sets to the native evaluators (issue #651).
+//! 3. Delegate to [`crate::materialize::materialize_core`] off the GIL.
+//! 4. Serialize the resulting `DerivedQuad`s to Python dicts.
 //!
 //! Encode/decode helpers (oxigraph term ⇄ Nemo fact string) live in
-//! [`crate::encode`]; this module handles the PyO3 surface and chase wiring.
+//! [`crate::encode`]; this module handles the PyO3 surface.
 
 use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyList};
 
 use oxigraph::io::RdfFormat;
-use oxigraph::model::{GraphName, NamedNode, Term};
+use oxigraph::model::NamedNode;
 use oxigraph::store::Store;
-
-use std::time::Instant;
 
 use crate::certify::certify as certify_rules;
 use crate::dispatch::dispatch_query;
-use crate::encode::{
-    decode_iri_term, decode_nemo_term, decode_string_constant, encode_quad_to_nemo_fact,
-};
-use crate::nemo_engine::{run_chase, ChaseRow, ChaseRowWithProvenance};
-use crate::provenance::{mint_derivation_id, mint_reifier, ASSERT_RULE_IRI, LOGIC_NAMESPACE};
+use crate::materialize::{materialize_core, MaterializeError, ASSERTED_PROFILE};
 use crate::query_ir::{parse_query_program, Budget};
 use crate::rule_ir::{DerivedRow, EvalRule};
-use crate::seam::{BudgetStatus, DerivationId, DerivedQuad, WorldStoreForeign};
+use crate::seam::{DerivedQuad, WorldStoreForeign};
 use crate::store::WorldStore;
-
-// ── Constants ──────────────────────────────────────────────────────────────────
-
-/// The IRI used for the semantic/decidability profile.
-const ASSERTED_PROFILE: &str = "https://blackcatinformatics.ca/logic/PositiveHornProfile";
-
-// ── Provenance helpers ────────────────────────────────────────────────────────
-
-/// Compute the reifier IRI for a decoded quad's (S, P, O) triple.
-///
-/// Uses [`crate::provenance::mint_reifier`] on the already-decoded oxigraph
-/// terms so the result is byte-identical to the Python oracle.
-///
-/// # Errors
-///
-/// Returns an error if subject or object is an RDF-star quoted triple.
-fn reifier_for_quad(
-    subject: &Term,
-    predicate: &NamedNode,
-    object: &Term,
-) -> Result<String, String> {
-    mint_reifier(subject, predicate, object)
-}
-
-/// Compute the reifier IRI for an antecedent ChaseRow.
-///
-/// Decodes the Nemo display-form row (ternary: S, O, world) back to oxigraph
-/// terms and calls `mint_reifier`.  Returns an error if decode fails — a
-/// partial antecedent list would produce a wrong derivation_id, which is
-/// worse than failing loudly.
-fn reifier_for_antecedent_row(row: &ChaseRow) -> Result<String, String> {
-    if row.values.len() != 3 {
-        return Err(format!(
-            "antecedent row has {} values (expected 3): {:?}",
-            row.values.len(),
-            row
-        ));
-    }
-    // predicate: raw IRI string
-    let pred_nn = NamedNode::new(&row.predicate)
-        .map_err(|e| format!("antecedent predicate IRI {:?}: {e}", row.predicate))?;
-    // subject: IRI
-    let subj_iri = decode_iri_term(&row.values[0])?;
-    let subj_nn = NamedNode::new(&subj_iri)
-        .map_err(|e| format!("antecedent subject IRI {subj_iri:?}: {e}"))?;
-    let subj_term = Term::NamedNode(subj_nn);
-    // object: any term
-    let obj_term = decode_nemo_term(&row.values[1])?;
-
-    mint_reifier(&subj_term, &pred_nn, &obj_term)
-}
-
-/// Determine the `rule_iri` for a derived quad's provenance record.
-///
-/// If the trace extracted a rule name (set via `#[name("...")]` in the `.rls`
-/// source), that name is used directly as the rule IRI — `project_nemo` encodes
-/// the rule IRI as the rule name.
-///
-/// Fallback: `logic:rule/anonymous` for unnamed rules.
-fn rule_iri_from_name(rule_name: Option<&str>) -> String {
-    match rule_name {
-        Some(name) if !name.is_empty() => name.to_owned(),
-        _ => format!("{}rule/anonymous", LOGIC_NAMESPACE),
-    }
-}
 
 // ── Non-stratifiable native routing (issue #651) ────────────────────────────────
 //
@@ -329,11 +252,6 @@ fn materialize(
     time_ms: Option<u64>,
     profile: Option<&str>,
 ) -> PyResult<Vec<Py<PyAny>>> {
-    // Start the post-fixpoint wall-clock the instant we enter (the chase itself is
-    // not interruptible; `time_ms` bounds the post-chase decode/bookkeeping — see
-    // the budget-governor docs above and the honesty paragraph in README.md).
-    let budget_active = max_rule_firings.is_some() || max_answers.is_some() || time_ms.is_some();
-    let start = Instant::now();
     // ── Short-circuit: nothing to do ──────────────────────────────────────────
     if input.trim().is_empty() {
         return Ok(vec![]);
@@ -348,264 +266,22 @@ fn materialize(
         return Ok(rows);
     }
 
-    // ── 1. Parse input N-Quads into an oxigraph Store ────────────────────────
-    let store = Store::new().map_err(|e| {
-        pyo3::exceptions::PyRuntimeError::new_err(format!("store creation failed: {e}"))
-    })?;
-    store
-        .load_from_reader(RdfFormat::NQuads, input.as_bytes())
-        .map_err(|e| {
-            pyo3::exceptions::PyValueError::new_err(format!("N-Quads parse error: {e}"))
+    // ── Pure engine pipeline (GIL released) ──────────────────────────────────
+    // The whole parse → encode → chase → decode → budget pipeline is engine work
+    // with no Python contact, so we run it off the GIL. See [`crate::materialize`]
+    // for the implementation and its native `#[test]` coverage; the FFI keeps only
+    // the marshalling shell below.
+    let final_quads = py
+        .detach(|| materialize_core(rules, input, max_rule_firings, max_answers, time_ms))
+        .map_err(|e| match e {
+            MaterializeError::Parse(m) => pyo3::exceptions::PyValueError::new_err(m),
+            MaterializeError::Chase(m) => pyo3::exceptions::PyRuntimeError::new_err(m),
         })?;
 
-    // ── 2. Encode each quad as a Nemo ground-fact line ───────────────────────
-    let mut fact_lines: Vec<String> = Vec::new();
-    for result in store.iter() {
-        let quad = result.map_err(|e| {
-            pyo3::exceptions::PyRuntimeError::new_err(format!("store iteration error: {e}"))
-        })?;
-
-        // Resolve the world IRI (named-graph component).
-        // Default and blank-node graphs are skipped — matching the Python oracle
-        // (_extract_worlds checks `isinstance(graph_id, URIRef)` and skips non-named
-        // graphs).  Fabricating synthetic world IRIs for unnamed graphs would break
-        // the oracle≡engine parity guarantee (AC-d).
-        let world_iri: String = match &quad.graph_name {
-            GraphName::NamedNode(nn) => nn.as_str().to_owned(),
-            GraphName::DefaultGraph | GraphName::BlankNode(_) => continue,
-        };
-
-        let line =
-            encode_quad_to_nemo_fact(&quad.subject, &quad.predicate, &quad.object, &world_iri);
-        fact_lines.push(line);
-    }
-
-    // ── 3. Build the complete .rls program ───────────────────────────────────
-    let edb_block = fact_lines.join("\n");
-    let rls = if rules.trim().is_empty() {
-        edb_block
-    } else {
-        format!("{}\n{}", edb_block, rules)
-    };
-
-    // ── 4. Run the Nemo chase (GIL released) ─────────────────────────────────
-    let rows_with_prov: Vec<ChaseRowWithProvenance> = py
-        .detach(|| run_chase(rls))
-        .map_err(|e| pyo3::exceptions::PyRuntimeError::new_err(format!("chase error: {e}")))?;
-
-    // ── 5. Decode ChaseRows → DerivedQuads with real provenance ──────────────
-    // Carry the EDB/IDB flag alongside each quad so the budget governor can bound
-    // IDB firings (`max_rule_firings`) without re-deriving provenance.
-    let mut derived_quads: Vec<(DerivedQuad, bool)> = Vec::new();
-
-    for (idx, rwp) in rows_with_prov.iter().enumerate() {
-        let row = &rwp.row;
-        let prov = &rwp.provenance;
-
-        // We only handle ternary (arity-3) predicates — the gmeow-logic encoding.
-        if row.values.len() != 3 {
-            continue;
-        }
-
-        // predicate: raw IRI string (Nemo strips angle brackets in Tag::to_string)
-        let predicate_iri = &row.predicate;
-        let predicate_nn = NamedNode::new(predicate_iri.as_str()).map_err(|e| {
-            pyo3::exceptions::PyRuntimeError::new_err(format!(
-                "invalid predicate IRI {predicate_iri:?}: {e}"
-            ))
-        })?;
-
-        // subject: must be an IRI term
-        let subject_iri = decode_iri_term(&row.values[0]).map_err(|e| {
-            pyo3::exceptions::PyRuntimeError::new_err(format!("row[{idx}] subject: {e}"))
-        })?;
-        let subject_nn = NamedNode::new(&subject_iri).map_err(|e| {
-            pyo3::exceptions::PyRuntimeError::new_err(format!(
-                "row[{idx}] subject IRI {subject_iri:?}: {e}"
-            ))
-        })?;
-        let subject_term = Term::NamedNode(subject_nn);
-
-        // object: IRI, typed literal, language literal, or plain literal
-        let object_term = decode_nemo_term(&row.values[1]).map_err(|e| {
-            pyo3::exceptions::PyRuntimeError::new_err(format!("row[{idx}] object: {e}"))
-        })?;
-
-        // context (world): Nemo string constant → strip outer double-quotes
-        let world_str = decode_string_constant(&row.values[2]).map_err(|e| {
-            pyo3::exceptions::PyRuntimeError::new_err(format!("row[{idx}] world: {e}"))
-        })?;
-        let graph_nn = NamedNode::new(&world_str).map_err(|e| {
-            pyo3::exceptions::PyRuntimeError::new_err(format!(
-                "row[{idx}] world IRI {world_str:?}: {e}"
-            ))
-        })?;
-
-        // ── Real provenance computation ───────────────────────────────────────
-        let self_reifier =
-            reifier_for_quad(&subject_term, &predicate_nn, &object_term).map_err(|e| {
-                pyo3::exceptions::PyRuntimeError::new_err(format!("row[{idx}] reifier error: {e}"))
-            })?;
-
-        let (rule_iri, source_quad_ids, derivation_id) = if prov.is_edb {
-            // Asserted (EDB) fact: logic:assert sentinel, self-reifier as source.
-            let rule = ASSERT_RULE_IRI.to_owned();
-            let sources = vec![self_reifier.clone()];
-            let deriv = mint_derivation_id(&rule, &[self_reifier.as_str()]);
-            (rule, sources, deriv)
-        } else {
-            // Derived (IDB) fact: rule IRI from the rule name, antecedents as sources.
-            // Antecedent decode is fallible — a partial list produces a wrong
-            // derivation_id, which is worse than propagating the error.
-            let rule = rule_iri_from_name(prov.rule_name.as_deref());
-            let sources: Vec<String> = prov
-                .antecedent_rows
-                .iter()
-                .map(reifier_for_antecedent_row)
-                .collect::<Result<Vec<_>, _>>()
-                .map_err(|e| {
-                    pyo3::exceptions::PyRuntimeError::new_err(format!(
-                        "row[{idx}] antecedent decode error: {e}"
-                    ))
-                })?;
-            let source_refs: Vec<&str> = sources.iter().map(|s: &String| s.as_str()).collect();
-            let deriv = mint_derivation_id(&rule, &source_refs);
-            (rule, sources, deriv)
-        };
-
-        let is_edb = prov.is_edb;
-        let dq = DerivedQuad {
-            graph: graph_nn.clone(),
-            subject: subject_term,
-            predicate: predicate_nn,
-            object: object_term,
-            graph_component: graph_nn,
-            derivation_id: DerivationId(derivation_id),
-            rule_iri,
-            source_quad_ids,
-            profile: ASSERTED_PROFILE.to_owned(),
-            // Default-path budget status (overwritten below when a ceiling trips).
-            budget_status: BudgetStatus::Ok,
-        };
-        derived_quads.push((dq, is_edb));
-    }
-
-    // ── 6. Post-hoc budget governor (issue #502) ─────────────────────────────
-    // With no budget params (the default), this whole block is skipped, so the
-    // output is byte-identical to pre-#502: chase order, every quad "ok".
-    let final_quads: Vec<DerivedQuad> = if budget_active {
-        apply_budget(derived_quads, max_rule_firings, max_answers, time_ms, start)
-    } else {
-        derived_quads.into_iter().map(|(dq, _edb)| dq).collect()
-    };
-
-    // ── 7. Serialize to Python dicts ─────────────────────────────────────────
+    // ── Serialize to Python dicts ────────────────────────────────────────────
     final_quads
         .iter()
         .map(|dq| derived_quad_to_dict(py, dq))
-        .collect()
-}
-
-/// Canonical sort key for a derived quad: `(graph, subject, predicate, object)`.
-///
-/// This is the deterministic order the budget governor truncates to, so a kept
-/// subset is always a sound *prefix* of a stable ordering — never a fabricated or
-/// reordered result. The key uses the same string surfaces the seam already
-/// projects (`graph`/`subject`/`predicate`/`object` display forms).
-fn budget_sort_key(dq: &DerivedQuad) -> (String, String, String, String) {
-    (
-        dq.graph.as_str().to_owned(),
-        dq.subject.to_string(),
-        dq.predicate.as_str().to_owned(),
-        dq.object.to_string(),
-    )
-}
-
-/// Apply the post-hoc budget ceilings to the materialized quads.
-///
-/// Enforcement (mirrors the Python `materialize_program` ceilings, applied
-/// post-fixpoint — see `gmeow_tools.logic_materialize`):
-/// - **Asserted EDB facts are GIVEN and are NEVER truncated by a derivation
-///   budget.** They are always kept in full; only **derived (IDB)** quads are
-///   bounded. This is the sound-partial contract: a budget bounds derivation
-///   work, not the input. (The Python oracle keeps EDB in a separate list that
-///   the truncation never touches; this mirrors that.)
-/// - `max_rule_firings` and `max_answers` each bound the count of **derived**
-///   quads; the effective derived cap is the minimum of the declared ceilings.
-///   The kept derived set is the canonical-sort PREFIX (by [`budget_sort_key`])
-///   so a truncation is a reproducible, sound subset, identical to the Python
-///   oracle's `(graph, subject, predicate, obj)` prefix.
-/// - `time_ms` bounds the post-fixpoint wall-clock; when exceeded the result is
-///   marked exhausted but never truncated below the count ceilings (we keep the
-///   sound subset computed so far; we never fabricate).
-///
-/// When a ceiling trips, **every kept quad** (EDB and derived alike) is stamped
-/// `BudgetStatus::Exhausted`, matching the Python oracle, which stamps every quad
-/// of an exhausted run so the kept set is unambiguously a sound subset of the
-/// full fixpoint, not the complete answer.
-fn apply_budget(
-    quads: Vec<(DerivedQuad, bool)>,
-    max_rule_firings: Option<u64>,
-    max_answers: Option<u64>,
-    time_ms: Option<u64>,
-    start: Instant,
-) -> Vec<DerivedQuad> {
-    // Split EDB (asserted, always kept) from IDB (derived, bounded by budget).
-    let mut edb: Vec<DerivedQuad> = Vec::new();
-    let mut idb: Vec<DerivedQuad> = Vec::new();
-    for (dq, is_edb) in quads {
-        if is_edb {
-            edb.push(dq);
-        } else {
-            idb.push(dq);
-        }
-    }
-
-    // Deterministic canonical order over the DERIVED quads so a truncation is a
-    // sound prefix identical to the Python oracle's.
-    idb.sort_by_key(budget_sort_key);
-
-    // Effective derived cap = min of the declared count ceilings (each bounds
-    // derived quads). EDB is never counted against either ceiling.
-    let derived_cap: Option<usize> = match (max_rule_firings, max_answers) {
-        (Some(a), Some(b)) => Some((a.min(b)) as usize),
-        (Some(a), None) => Some(a as usize),
-        (None, Some(b)) => Some(b as usize),
-        (None, None) => None,
-    };
-
-    let mut exhausted = false;
-    if let Some(cap) = derived_cap {
-        if idb.len() > cap {
-            idb.truncate(cap);
-            exhausted = true;
-        }
-    }
-
-    // Time ceiling bounds the post-fixpoint work. If exceeded, mark exhausted but
-    // keep whatever sound subset the count ceilings allowed (never fabricate).
-    if let Some(limit) = time_ms {
-        let elapsed_ms = start.elapsed().as_millis() as u64;
-        if elapsed_ms >= limit {
-            exhausted = true;
-        }
-    }
-
-    let status = if exhausted {
-        BudgetStatus::Exhausted
-    } else {
-        BudgetStatus::Ok
-    };
-
-    // Emit EDB (full) + bounded IDB, all stamped with the run status. The kept
-    // set ordering is not contractual (the diff compares quad SETS, not order),
-    // but EDB-then-IDB keeps the output readable.
-    edb.into_iter()
-        .chain(idb)
-        .map(|mut dq| {
-            dq.budget_status = status;
-            dq
-        })
         .collect()
 }
 
@@ -1631,7 +1307,9 @@ fn gmeow_logic(m: &Bound<'_, PyModule>) -> PyResult<()> {
 mod tests {
     use super::*;
     use crate::encode::decode_nemo_term;
+    use crate::materialize::reifier_for_quad;
     use crate::provenance::term_n3;
+    use oxigraph::model::Term;
 
     // ── reifier_for_quad ──────────────────────────────────────────────────────
 

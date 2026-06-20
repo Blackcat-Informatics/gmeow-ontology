@@ -797,6 +797,34 @@ mod tests {
     }
 
     #[test]
+    fn html_emits_one_row_per_finding() {
+        // Well-formedness, not just substring presence: the rendered table must be
+        // balanced and carry exactly one data row per finding plus the header row.
+        // (Ports `tests/test_diagnostics.py::test_html_is_well_formed_with_one_row_per_finding`.)
+        let mut report = Report::new("validate");
+        for i in 0..3 {
+            report.add_finding(Finding::new(
+                Severity::Error,
+                format!("code.{i}"),
+                format!("message {i}"),
+            ));
+        }
+
+        let html = to_html(&report);
+
+        // Balanced, single table.
+        assert_eq!(html.matches("<table>").count(), 1);
+        assert_eq!(html.matches("</table>").count(), 1);
+        // Balanced rows: one header row + one per finding, all closed. Count by
+        // `</tr>` (close tags never carry attributes) and match the
+        // attribute-tolerant `<tr` open prefix, so adding a class/style to a row
+        // start tag later cannot silently break this assertion.
+        let close_rows = html.matches("</tr>").count();
+        assert_eq!(html.matches("<tr").count(), close_rows);
+        assert_eq!(close_rows, 1 + report.findings.len());
+    }
+
+    #[test]
     fn sarif_artifact_uris_are_repo_relative_and_iris_are_logical() {
         // GitHub code-scanning requires `artifactLocation.uri` to be a repo-relative
         // file reference: it rejects angle-bracketed IRIs AND absolute schemes

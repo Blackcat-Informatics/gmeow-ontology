@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass, field
-from html.parser import HTMLParser
 from io import StringIO
 from pathlib import Path
 from typing import Any, cast
@@ -45,45 +44,10 @@ def test_native_report_renders_json_sarif_and_html() -> None:
     assert "synthetic warning" in html
 
 
-class _TableParser(HTMLParser):
-    """Counts <tr>/<table> tags so HTML validity is checked structurally."""
-
-    def __init__(self) -> None:
-        super().__init__()
-        self.tr_open = 0
-        self.tr_close = 0
-        self.table_open = 0
-        self.table_close = 0
-
-    def handle_starttag(self, tag: str, attrs: object) -> None:
-        if tag == "tr":
-            self.tr_open += 1
-        elif tag == "table":
-            self.table_open += 1
-
-    def handle_endtag(self, tag: str) -> None:
-        if tag == "tr":
-            self.tr_close += 1
-        elif tag == "table":
-            self.table_close += 1
-
-
-def test_html_is_well_formed_with_one_row_per_finding() -> None:
-    # Criterion #11 asks for HTML *validity*, not just substring presence: parse
-    # the rendered HTML and assert balanced table markup with exactly one data
-    # row per finding (plus the header row).
-    report = gmeow_diagnostics.Report("validate")
-    for i in range(3):
-        report.add(gmeow_diagnostics.Finding("error", f"code.{i}", f"message {i}"))
-
-    parser = _TableParser()
-    parser.feed(report.to_html())
-
-    # Balanced <table> and <tr> tags (well-formed markup).
-    assert parser.table_open == parser.table_close == 1
-    assert parser.tr_open == parser.tr_close
-    # One header row + one row per finding.
-    assert parser.tr_open == 1 + report.finding_count
+# HTML well-formedness (balanced table, one row per finding) is asserted natively
+# in crates/diagnostics/src/render.rs::html_emits_one_row_per_finding (#786 / T5).
+# The FFI smoke above (test_native_report_renders_json_sarif_and_html) already
+# proves to_html() marshals across the binding.
 
 
 def test_validation_result_facade_preserves_legacy_lists() -> None:
