@@ -122,6 +122,8 @@ def test_gmeow_reason_native() -> None:
     assert isinstance(data["ok"], bool)
     assert data.get("mode") == "native"
     assert "message" in data
+    assert data["ok"] is True
+    assert data.get("errors", -1) == 0
 
 
 def test_gmeow_reason_docker_opt_in() -> None:
