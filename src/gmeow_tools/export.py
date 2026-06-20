@@ -26,11 +26,14 @@ import csv
 import json
 from collections.abc import Iterable, Sequence
 from dataclasses import dataclass, field
+from dataclasses import replace as dataclass_replace
 from functools import lru_cache
 from pathlib import Path
 from typing import TYPE_CHECKING, TypedDict
 
-from gts.nquads import term_token, to_nquads
+from gts.model import Graph, TermKind
+from gts.nquads import to_nquads
+from gts.trig import to_trig
 
 from gmeow_tools.config import (
     DIST_DIR,
@@ -767,7 +770,6 @@ def write_llms_txt(
 # Dataset / semantic-web tiers (#377, #12): still fold-only shims
 # --------------------------------------------------------------------------- #
 
-_RDF_REIFIES = "http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies"
 _SKOS_MATCHES = (_SKOS + "exactMatch", _SKOS + "closeMatch", _SKOS + "relatedMatch")
 
 
@@ -784,6 +786,27 @@ def write_nquads(view: FoldView, dist_dir: Path) -> Path:
     return path
 
 
+def _graph_with_public_tags(graph: Graph, tag_map: dict[str, str]) -> Graph:
+    """Return a shallow copy of *graph* with internal language tags remapped.
+
+    Only literal language tags are touched; term ids, quads, reifiers, and
+    annotations are preserved. This keeps the upstream ``gts.trig.to_trig``
+    serializer from emitting internal ``x-gmeow-*`` tags in consumer-facing
+    artifacts (#287, #702).
+    """
+    terms = [
+        dataclass_replace(term, lang=tag_map[term.lang])
+        if (
+            term.kind is TermKind.LITERAL
+            and term.lang is not None
+            and term.lang in tag_map
+        )
+        else term
+        for term in graph.terms
+    ]
+    return dataclass_replace(graph, terms=terms)
+
+
 def write_trig(
     view: FoldView,
     dist_dir: Path,
@@ -792,47 +815,20 @@ def write_trig(
 ) -> Path:
     """Write the dataset as TriG 1.2 (``gmeow.trig``).
 
-    Same content as ``gmeow.nq`` (LOSSLESS, same term renderer): the default
-    graph carries the authored import-free ontology plus the reifier/annotation
-    statement layer; named graphs become labeled blocks.
+    Delegates to ``gts.trig.to_trig``: all serialization logic lives in the
+    upstream gmeow-gts Rust package (#702). Internal language tags are remapped
+    to public BCP-47 before serialization so the published dataset form stays
+    clean (#287).
 
     The ``selector`` parameter is accepted for CLI symmetry but does not alter
-    the lossless TriG output; all language variants remain present.
+    the lossless TriG output.
     """
     _ = selector
-    g = view.graph
-    lang_map = view.tag_map()
-
-    def tok(tid: int) -> str:
-        return term_token(g, tid, lang_map)
-
-    default_lines: list[str] = []
-    named: dict[str, list[str]] = {}
-    for s, p, o, gname in g.quads:
-        line = f"{tok(s)} {tok(p)} {tok(o)} ."
-        if gname is None:
-            default_lines.append(line)
-        else:
-            named.setdefault(g.terms[gname].value or "", []).append(line)
-    for rid, (s, p, o) in g.reifiers.items():
-        quoted = f"<<( {tok(s)} {tok(p)} {tok(o)} )>>"
-        default_lines.append(f"{tok(rid)} <{_RDF_REIFIES}> {quoted} .")
-    for r, p, v in g.annotations:
-        default_lines.append(f"{tok(r)} {tok(p)} {tok(v)} .")
-
-    blocks = [
-        "# The GMEOW dataset as TriG 1.2 — same content as gmeow.nq (lossless).",
-        "# Default graph: authored import-free ontology + RDF 1.2 statement layer;",
-        "# named graphs: statements / alignments / imports / metadata partitions.",
-        "",
-        *default_lines,
-    ]
-    for graph_iri in sorted(named):
-        blocks += ["", f"<{graph_iri}> {{"]
-        blocks += [f"    {line}" for line in named[graph_iri]]
-        blocks.append("}")
     path = dist_dir / "gmeow.trig"
-    path.write_text("\n".join(blocks) + "\n", encoding="utf-8")
+    path.write_text(
+        to_trig(_graph_with_public_tags(view.graph, view.tag_map())),
+        encoding="utf-8",
+    )
     return path
 
 
