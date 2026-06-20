@@ -1,0 +1,341 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow:   <https://blackcatinformatics.ca/gmeow/> .
+@prefix owl:     <http://www.w3.org/2002/07/owl#> .
+@prefix rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
+@prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+
+# =============================================================================
+# GMEOW test DSL — the canonical authoring vocabulary for slice-resident,
+# declarative test fixtures.
+#
+# GMEOW's doctrine is "one canonical source, everything else a generated/checked
+# projection". A slice's tests/ directory carries its tests AS ONTOLOGY DATA: a
+# competency question is a SPARQL ASK/SELECT plus an expected outcome and a
+# rationale; a structural assertion is a MUST / MUST-NOT triple pattern or SHACL
+# shape over the module; an example conformance binds an example file to its
+# expected validation outcome. Authoring tests as gmeow: data — rather than as
+# ad-hoc Python or shell — makes them inspectable, projectable, and driven by the
+# same annotation discipline as every other GMEOW term.
+#
+# This file is a SPEC LAYER — grounded in the gmeow: namespace and annotated like
+# every GMEOW term, but NOT owl:imports-ed into the reasoned OWL 2 DL core. It is
+# the sibling of statement-dsl/vocabulary.ttl and mapping-dsl/vocabulary.ttl, not
+# of ontology/modules/*. The test harness reads it; the reasoner does not.
+# =============================================================================
+
+<https://blackcatinformatics.ca/gmeow/test-dsl>
+    a owl:Ontology ;
+    rdfs:label "GMEOW test DSL vocabulary"@x-gmeow-english ;
+    dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;
+    rdfs:comment "Authoring vocabulary for slice-resident declarative tests — competency questions, structural assertions, and example-conformance fixtures — read and executed by the GMEOW test harness."@x-gmeow-english .
+
+# --------------------------------------------------------------------------- #
+# The three test-cell types
+# --------------------------------------------------------------------------- #
+
+gmeow:CompetencyQuestion a owl:Class ;
+    rdfs:label "competency question"@x-gmeow-english ;
+    skos:definition "A declarative competency test: a SPARQL ASK or SELECT query (inline via gmeow:cqQuery or referenced via gmeow:cqQueryFile) paired with an expected outcome and a rationale, authored as ontology data resident in a slice's tests/ directory. An ASK question pins gmeow:cqExpectAsk; a SELECT question pins its result set via gmeow:cqExpectRow (preferred) or a coarse gmeow:cqExpectRowCount."@x-gmeow-english ;
+    skos:example "ex:cqHasName a gmeow:CompetencyQuestion ; gmeow:cqQuery \"ASK { ?p gmeow:hasName ?n }\" ; gmeow:cqExpectAsk true ; gmeow:cqRationale \"Every modelled person must expose a name.\" ."@x-gmeow-english ;
+    gmeow:useWhen "Use to pin a question the ontology must be able to answer — a query whose result (a boolean for ASK, a row set for SELECT) is the acceptance criterion for a slice's modelling decisions."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for structural MUST / MUST-NOT invariants over the module graph (use gmeow:StructuralAssertion) and for example-validation outcomes (use gmeow:ExampleConformance); a competency question is about query-answerability, not graph well-formedness."@x-gmeow-english ;
+    gmeow:howToUse "Author one instance per question in the slice's tests/ directory: give it a query (inline gmeow:cqQuery or a repo-root-relative gmeow:cqQueryFile), the expected outcome (gmeow:cqExpectAsk for ASK; enumerated gmeow:cqExpectRow with gmeow:cqExactRows true for SELECT), and a gmeow:cqRationale."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/test-dsl> .
+
+gmeow:StructuralAssertion a owl:Class ;
+    rdfs:label "structural assertion"@x-gmeow-english ;
+    skos:definition "A triple-pattern (expressed as a SPARQL ASK via gmeow:saPattern) or a SHACL shape (referenced via gmeow:saShape) that MUST or MUST-NOT hold over a slice module — optionally including the module's examples/ — as fixed by gmeow:saPolarity and gmeow:saScope. The structural counterpart of a competency question: it constrains the shape of the graph rather than the answer to a query."@x-gmeow-english ;
+    skos:example "ex:saAgentHasName a gmeow:StructuralAssertion ; gmeow:saPolarity gmeow:must ; gmeow:saPattern \"ASK { ?a a gmeow:Agent ; gmeow:hasName ?n }\" ; gmeow:saScope gmeow:scopeModuleAndExamples ; gmeow:saRationale \"Agents must carry a name.\" ."@x-gmeow-english ;
+    gmeow:useWhen "Use to assert a MUST or MUST-NOT invariant about the structure of a slice module's graph — a pattern that has to hold (or must never hold), or a SHACL shape the module must satisfy."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for query-answerability acceptance criteria (use gmeow:CompetencyQuestion) and for per-example expected validation findings (use gmeow:ExampleConformance)."@x-gmeow-english ;
+    gmeow:howToUse "Set gmeow:saPolarity to gmeow:must or gmeow:mustNot, supply EXACTLY ONE of gmeow:saPattern (a SPARQL ASK) or gmeow:saShape (an sh:NodeShape IRI), optionally narrow gmeow:saScope, and add a gmeow:saRationale explaining the invariant."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/test-dsl> .
+
+gmeow:ExampleConformance a owl:Class ;
+    rdfs:label "example conformance"@x-gmeow-english ;
+    skos:definition "An expected validation outcome binding an example or counter-example file (gmeow:exampleFile, slice-relative) to either gmeow:conforms or gmeow:violates a finding code. The fixture that pins what `make validate` is expected to say about a given example: a positive example must conform; a counter-example must violate a named code (gmeow:expectedViolationCode)."@x-gmeow-english ;
+    skos:example "ex:ecBadAgent a gmeow:ExampleConformance ; gmeow:exampleFile \"examples/agent-missing-name.ttl\" ; gmeow:expectedOutcome gmeow:violates ; gmeow:expectedViolationCode \"shacl.MinCountConstraintComponent\" ."@x-gmeow-english ;
+    gmeow:useWhen "Use to pin the expected SHACL/validation outcome for a specific example or counter-example file shipped with a slice — conformance for positive examples, a specific violation code for counter-examples."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for query-answerability (gmeow:CompetencyQuestion) and for graph-wide structural invariants not tied to a single example file (gmeow:StructuralAssertion)."@x-gmeow-english ;
+    gmeow:howToUse "Name the slice-relative gmeow:exampleFile, set gmeow:expectedOutcome to gmeow:conforms (no code) or gmeow:violates with a gmeow:expectedViolationCode in the real `shacl.<FullConstraintComponentLocalName>` form, and optionally add a gmeow:conformanceRationale."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/test-dsl> .
+
+# --------------------------------------------------------------------------- #
+# Expected SELECT result rows / cells (helpers for CompetencyQuestion)
+# --------------------------------------------------------------------------- #
+
+gmeow:ExpectedRow a owl:Class ;
+    rdfs:label "expected row"@x-gmeow-english ;
+    skos:definition "One expected SELECT result row — a helper node grouping the per-variable gmeow:ExpectedCell bindings that together make up a single row of a competency question's expected result set."@x-gmeow-english ;
+    skos:example "ex:row1 a gmeow:ExpectedRow ; gmeow:rowCell ex:cellName ."@x-gmeow-english ;
+    gmeow:useWhen "Use to enumerate one row of the expected result set of a SELECT competency question — attach it to the question via gmeow:cqExpectRow and hang its cells via gmeow:rowCell."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for ASK questions (pin gmeow:cqExpectAsk instead) and as a place to record the variable bindings directly — each binding belongs in its own gmeow:ExpectedCell."@x-gmeow-english ;
+    gmeow:howToUse "Mint one gmeow:ExpectedRow per expected row, give it one gmeow:rowCell per projected variable, and link the rows to the question via gmeow:cqExpectRow; set gmeow:cqExactRows true when the rows are the COMPLETE expected set."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/test-dsl> .
+
+gmeow:ExpectedCell a owl:Class ;
+    rdfs:label "expected cell"@x-gmeow-english ;
+    skos:definition "One variable-to-value binding within a gmeow:ExpectedRow: the SPARQL variable name (gmeow:cellVar, without the leading '?') bound to exactly one of an IRI value (gmeow:cellValueIri) or a literal value (gmeow:cellValueLiteral)."@x-gmeow-english ;
+    skos:example "ex:cellName a gmeow:ExpectedCell ; gmeow:cellVar \"name\" ; gmeow:cellValueLiteral \"Lillith\" ."@x-gmeow-english ;
+    gmeow:useWhen "Use to record the expected bound value of one SELECT variable in one expected row."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid binding both gmeow:cellValueIri and gmeow:cellValueLiteral on the same cell — exactly one is permitted (enforced by SHACL) — and avoid including the leading '?' in gmeow:cellVar."@x-gmeow-english ;
+    gmeow:howToUse "Set gmeow:cellVar to the bare variable name and exactly one of gmeow:cellValueIri (for IRI bindings) or gmeow:cellValueLiteral (for literal bindings); group the cells under a gmeow:ExpectedRow via gmeow:rowCell."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/test-dsl> .
+
+# --------------------------------------------------------------------------- #
+# Enumeration marker classes (the three small controlled vocabularies)
+# --------------------------------------------------------------------------- #
+
+gmeow:AssertionPolarity a owl:Class ;
+    rdfs:label "assertion polarity"@x-gmeow-english ;
+    skos:definition "The polarity of a structural assertion: whether the pattern or shape MUST hold (gmeow:must) or MUST-NOT hold (gmeow:mustNot). The value vocabulary for gmeow:saPolarity."@x-gmeow-english ;
+    gmeow:useWhen "Use as the value type for gmeow:saPolarity to declare whether a structural assertion is a positive (must hold) or negative (must not hold) invariant."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid minting further polarity individuals; the axis is the closed pair gmeow:must / gmeow:mustNot."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/test-dsl> .
+
+gmeow:AssertionScope a owl:Class ;
+    rdfs:label "assertion scope"@x-gmeow-english ;
+    skos:definition "The graph scope a structural assertion is evaluated over: the module alone (gmeow:scopeModule) or the module together with its examples/ (gmeow:scopeModuleAndExamples). The value vocabulary for gmeow:saScope."@x-gmeow-english ;
+    gmeow:useWhen "Use as the value type for gmeow:saScope to narrow whether an assertion is checked against the module graph alone or the module plus its examples/."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid minting further scope individuals; the axis is the closed pair gmeow:scopeModule / gmeow:scopeModuleAndExamples."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/test-dsl> .
+
+gmeow:ConformanceOutcome a owl:Class ;
+    rdfs:label "conformance outcome"@x-gmeow-english ;
+    skos:definition "The expected validation outcome of an example: it conforms (gmeow:conforms) or it violates a constraint (gmeow:violates). The value vocabulary for gmeow:expectedOutcome."@x-gmeow-english ;
+    gmeow:useWhen "Use as the value type for gmeow:expectedOutcome to declare whether an example file is expected to pass validation or to be rejected with a finding."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid minting further outcome individuals; the axis is the closed pair gmeow:conforms / gmeow:violates."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/test-dsl> .
+
+# --------------------------------------------------------------------------- #
+# Enumerated individuals
+# --------------------------------------------------------------------------- #
+
+gmeow:must a gmeow:AssertionPolarity ;
+    rdfs:label "must"@x-gmeow-english ;
+    skos:definition "Positive polarity: the structural assertion's pattern or shape MUST hold over the scoped graph; a run in which it fails to hold is a test failure."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/test-dsl> .
+
+gmeow:mustNot a gmeow:AssertionPolarity ;
+    rdfs:label "must not"@x-gmeow-english ;
+    skos:definition "Negative polarity: the structural assertion's pattern or shape MUST NOT hold over the scoped graph; a run in which it does hold is a test failure."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/test-dsl> .
+
+gmeow:scopeModule a gmeow:AssertionScope ;
+    rdfs:label "scope: module"@x-gmeow-english ;
+    skos:definition "The structural assertion is evaluated over the slice module graph alone, excluding the module's examples/."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/test-dsl> .
+
+gmeow:scopeModuleAndExamples a gmeow:AssertionScope ;
+    rdfs:label "scope: module and examples"@x-gmeow-english ;
+    skos:definition "The structural assertion is evaluated over the slice module graph together with its examples/. The default scope when gmeow:saScope is omitted."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/test-dsl> .
+
+gmeow:conforms a gmeow:ConformanceOutcome ;
+    rdfs:label "conforms"@x-gmeow-english ;
+    skos:definition "The expected validation outcome is conformance: the example file is expected to pass validation with no findings, so no gmeow:expectedViolationCode is permitted."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/test-dsl> .
+
+gmeow:violates a gmeow:ConformanceOutcome ;
+    rdfs:label "violates"@x-gmeow-english ;
+    skos:definition "The expected validation outcome is a violation: the counter-example file is expected to be rejected, and gmeow:expectedViolationCode names the specific finding code (`shacl.<FullConstraintComponentLocalName>`) that must be reported."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/test-dsl> .
+
+# --------------------------------------------------------------------------- #
+# CompetencyQuestion fields
+# --------------------------------------------------------------------------- #
+
+gmeow:cqQuery a owl:DatatypeProperty ;
+    rdfs:range xsd:string ;
+    rdfs:label "competency query"@x-gmeow-english ;
+    skos:definition "The inline SPARQL ASK or SELECT query text of a competency question. Mutually exclusive with gmeow:cqQueryFile: a question carries its query either inline here or by reference, never both."@x-gmeow-english ;
+    skos:example "ex:cq gmeow:cqQuery \"ASK { ?p a gmeow:Person ; gmeow:hasName ?n }\" ."@x-gmeow-english ;
+    gmeow:useWhen "Use for short, self-contained queries that read clearly inline in the test fixture."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for large or shared queries that already live as .rq files (use gmeow:cqQueryFile) and avoid pairing it with gmeow:cqQueryFile on the same question."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/test-dsl> .
+
+gmeow:cqQueryFile a owl:DatatypeProperty ;
+    rdfs:range xsd:string ;
+    rdfs:label "competency query file"@x-gmeow-english ;
+    skos:definition "A REPO-ROOT-RELATIVE path to an existing .rq file holding the competency question's SPARQL query. The base is ALWAYS the repository root — never the slice directory — so that both a shared `queries/competency/<name>.rq` and a slice-local `slices/<group>/<name>/queries/competency/<name>.rq` are addressable unambiguously by the same property. Mutually exclusive with gmeow:cqQuery."@x-gmeow-english ;
+    skos:example "ex:cq gmeow:cqQueryFile \"slices/core/kernel/queries/competency/agent-has-name.rq\" ."@x-gmeow-english ;
+    gmeow:useWhen "Use for queries that already exist as .rq files — shared competency queries under queries/competency/ or slice-local ones under slices/<group>/<name>/queries/competency/."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid a SLICE-RELATIVE path: the base is the repository root, so do NOT write `queries/competency/x.rq` expecting it to resolve inside the slice — write the full repo-root path. Avoid pairing it with gmeow:cqQuery on the same question."@x-gmeow-english ;
+    gmeow:howToUse "Write the path from the REPOSITORY ROOT, e.g. `queries/competency/<name>.rq` for a shared query or `slices/<group>/<name>/queries/competency/<name>.rq` for a slice-local one; the harness resolves it against the repo root in both cases."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/test-dsl> .
+
+gmeow:cqRationale a owl:DatatypeProperty ;
+    rdfs:range xsd:string ;
+    rdfs:label "competency rationale"@x-gmeow-english ;
+    skos:definition "The human-readable rationale for a competency question: why this query and this expected outcome are an acceptance criterion for the slice's modelling decisions."@x-gmeow-english ;
+    skos:example "ex:cq gmeow:cqRationale \"A person with no retrievable name is not usefully modelled.\" ."@x-gmeow-english ;
+    gmeow:useWhen "Use to record the modelling intent a competency question protects, so a reader understands what would be lost if the query stopped answering as expected."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/test-dsl> .
+
+gmeow:cqExpectAsk a owl:DatatypeProperty ;
+    rdfs:range xsd:boolean ;
+    rdfs:label "expected ASK result"@x-gmeow-english ;
+    skos:definition "The expected boolean result of an ASK competency question. Set on ASK questions only; SELECT questions pin their result set via gmeow:cqExpectRow / gmeow:cqExpectRowCount instead."@x-gmeow-english ;
+    skos:example "ex:cq gmeow:cqExpectAsk true ."@x-gmeow-english ;
+    gmeow:useWhen "Use on a competency question whose query is a SPARQL ASK, to pin the expected true/false answer."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid on SELECT questions — enumerate their expected rows with gmeow:cqExpectRow (and gmeow:cqExactRows) or, as an escape hatch, gmeow:cqExpectRowCount."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/test-dsl> .
+
+gmeow:cqExpectRow a owl:ObjectProperty ;
+    rdfs:range gmeow:ExpectedRow ;
+    rdfs:label "expected row"@x-gmeow-english ;
+    skos:definition "Zero or more expected SELECT result rows of a competency question. Each value is a gmeow:ExpectedRow grouping the per-variable cells. The PREFERRED, maximal-fidelity way to pin a SELECT result: enumerate every expected row and set gmeow:cqExactRows true."@x-gmeow-english ;
+    skos:example "ex:cq gmeow:cqExpectRow ex:row1, ex:row2 ; gmeow:cqExactRows true ."@x-gmeow-english ;
+    gmeow:useWhen "Use to pin the expected result set of a SELECT competency question by full enumeration — one gmeow:ExpectedRow per expected row."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid on ASK questions (use gmeow:cqExpectAsk); avoid leaning on gmeow:cqExpectRowCount when full enumeration is feasible — the enumerated form is preferred."@x-gmeow-english ;
+    gmeow:howToUse "Attach one gmeow:ExpectedRow per expected row and set gmeow:cqExactRows true when the enumerated rows are the COMPLETE expected set; leave gmeow:cqExactRows false (or absent) for a contains-check subset."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/test-dsl> .
+
+gmeow:cqExpectRowCount a owl:DatatypeProperty ;
+    rdfs:range xsd:nonNegativeInteger ;
+    rdfs:label "expected row count"@x-gmeow-english ;
+    skos:definition "A COARSE expected row count for a SELECT competency question: how many rows the query is expected to return, without pinning their content. An ESCAPE HATCH for not-yet-fully-migrated competency questions — the PREFERRED form is full enumeration via gmeow:cqExpectRow with gmeow:cqExactRows true."@x-gmeow-english ;
+    skos:example "ex:cq gmeow:cqExpectRowCount 3 ."@x-gmeow-english ;
+    gmeow:useWhen "Use ONLY as a temporary escape hatch when a SELECT question's rows are not yet fully enumerated and a coarse count is the most you can pin today."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid whenever full enumeration is feasible: prefer gmeow:cqExpectRow with gmeow:cqExactRows true, which pins both the count and the content of every row."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/test-dsl> .
+
+gmeow:cqExactRows a owl:DatatypeProperty ;
+    rdfs:range xsd:boolean ;
+    rdfs:label "exact rows"@x-gmeow-english ;
+    skos:definition "Whether the enumerated gmeow:cqExpectRow set is the COMPLETE expected result set (true) or merely a subset / contains-check (false). The true + fully-enumerated form is the preferred, maximal-fidelity way to pin a SELECT result, asserting that the query returns these rows AND NO OTHERS."@x-gmeow-english ;
+    skos:example "ex:cq gmeow:cqExpectRow ex:row1 ; gmeow:cqExactRows true ."@x-gmeow-english ;
+    gmeow:useWhen "Use true when the enumerated rows are the complete expected result (the maximal-fidelity, preferred form); use false for a contains-check that requires those rows to be present but tolerates others."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid leaving it absent on an enumerated SELECT question when you intend an exact match — make the completeness claim explicit with true."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/test-dsl> .
+
+# --------------------------------------------------------------------------- #
+# ExpectedRow / ExpectedCell fields
+# --------------------------------------------------------------------------- #
+
+gmeow:rowCell a owl:ObjectProperty ;
+    rdfs:range gmeow:ExpectedCell ;
+    rdfs:label "row cell"@x-gmeow-english ;
+    skos:definition "Links a gmeow:ExpectedRow to one of its per-variable gmeow:ExpectedCell bindings. A row carries one cell per projected SELECT variable."@x-gmeow-english ;
+    skos:example "ex:row1 gmeow:rowCell ex:cellName, ex:cellAge ."@x-gmeow-english ;
+    gmeow:useWhen "Use to attach the expected per-variable bindings to an expected row — one gmeow:rowCell per projected variable."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/test-dsl> .
+
+gmeow:cellVar a owl:DatatypeProperty ;
+    rdfs:range xsd:string ;
+    rdfs:label "cell variable"@x-gmeow-english ;
+    skos:definition "The SPARQL variable name an expected cell binds, WITHOUT the leading '?' — e.g. \"name\", not \"?name\"."@x-gmeow-english ;
+    skos:example "ex:cellName gmeow:cellVar \"name\" ."@x-gmeow-english ;
+    gmeow:useWhen "Use to name which SELECT variable an expected cell binds the value of."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid including the leading '?': write the bare variable name."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/test-dsl> .
+
+gmeow:cellValueIri a owl:ObjectProperty ;
+    rdfs:label "cell value (IRI)"@x-gmeow-english ;
+    skos:definition "The expected bound value of an expected cell when that value is an IRI. EXACTLY ONE of gmeow:cellValueIri | gmeow:cellValueLiteral is set per cell (enforced by SHACL in the test-DSL shapes)."@x-gmeow-english ;
+    skos:example "ex:cellAgent gmeow:cellValueIri ex:lillith ."@x-gmeow-english ;
+    gmeow:useWhen "Use when the expected binding for the cell's variable is an IRI / resource."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid pairing it with gmeow:cellValueLiteral on the same cell — exactly one value property per cell."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/test-dsl> .
+
+gmeow:cellValueLiteral a owl:DatatypeProperty ;
+    rdfs:range rdfs:Literal ;
+    rdfs:label "cell value (literal)"@x-gmeow-english ;
+    skos:definition "The expected bound value of an expected cell when that value is a literal (a string, number, date, …). EXACTLY ONE of gmeow:cellValueIri | gmeow:cellValueLiteral is set per cell (enforced by SHACL in the test-DSL shapes)."@x-gmeow-english ;
+    skos:example "ex:cellName gmeow:cellValueLiteral \"Lillith\" ."@x-gmeow-english ;
+    gmeow:useWhen "Use when the expected binding for the cell's variable is a literal value."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid pairing it with gmeow:cellValueIri on the same cell — exactly one value property per cell."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/test-dsl> .
+
+# --------------------------------------------------------------------------- #
+# StructuralAssertion fields
+# --------------------------------------------------------------------------- #
+
+gmeow:saPolarity a owl:ObjectProperty ;
+    rdfs:range gmeow:AssertionPolarity ;
+    rdfs:label "assertion polarity"@x-gmeow-english ;
+    skos:definition "The required polarity of a structural assertion — gmeow:must (the pattern/shape must hold) or gmeow:mustNot (it must not hold). Required on every gmeow:StructuralAssertion."@x-gmeow-english ;
+    skos:example "ex:sa gmeow:saPolarity gmeow:mustNot ."@x-gmeow-english ;
+    gmeow:useWhen "Use on every structural assertion to declare whether its pattern or shape is a positive (must hold) or negative (must not hold) invariant."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid omitting it: polarity is required, and an assertion with no polarity is ambiguous about pass vs. fail."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/test-dsl> .
+
+gmeow:saPattern a owl:DatatypeProperty ;
+    rdfs:range xsd:string ;
+    rdfs:label "assertion pattern"@x-gmeow-english ;
+    skos:definition "The triple pattern of a structural assertion, expressed as a SPARQL ASK query whose boolean result is read against gmeow:saPolarity. EXACTLY ONE of gmeow:saPattern | gmeow:saShape is set per assertion."@x-gmeow-english ;
+    skos:example "ex:sa gmeow:saPattern \"ASK { ?a a gmeow:Agent ; gmeow:hasName ?n }\" ."@x-gmeow-english ;
+    gmeow:useWhen "Use to express a structural invariant as a SPARQL ASK pattern over the scoped graph."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid pairing it with gmeow:saShape on the same assertion — exactly one of pattern or shape — and avoid it when a SHACL shape already captures the constraint (use gmeow:saShape)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/test-dsl> .
+
+gmeow:saShape a owl:ObjectProperty ;
+    rdfs:label "assertion shape"@x-gmeow-english ;
+    skos:definition "An IRI referencing a sh:NodeShape that the scoped graph must (or must not) satisfy, per gmeow:saPolarity. EXACTLY ONE of gmeow:saPattern | gmeow:saShape is set per assertion."@x-gmeow-english ;
+    skos:example "ex:sa gmeow:saShape ex:AgentNameShape ."@x-gmeow-english ;
+    gmeow:useWhen "Use to express a structural invariant as conformance (or non-conformance) to a named SHACL node shape, when a shape already captures the constraint more precisely than a triple pattern."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid pairing it with gmeow:saPattern on the same assertion — exactly one of pattern or shape."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/test-dsl> .
+
+gmeow:saScope a owl:ObjectProperty ;
+    rdfs:range gmeow:AssertionScope ;
+    rdfs:label "assertion scope"@x-gmeow-english ;
+    skos:definition "The graph scope a structural assertion is evaluated over — gmeow:scopeModule or gmeow:scopeModuleAndExamples. Optional; when omitted the default semantics are gmeow:scopeModuleAndExamples (the harness applies this default; no owl default is asserted on the property)."@x-gmeow-english ;
+    skos:example "ex:sa gmeow:saScope gmeow:scopeModule ."@x-gmeow-english ;
+    gmeow:useWhen "Use to narrow a structural assertion to the module graph alone (gmeow:scopeModule) when the examples/ should be excluded."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting it just to restate the default: omitting it means gmeow:scopeModuleAndExamples, so set it only to deviate from that default."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/test-dsl> .
+
+gmeow:saRationale a owl:DatatypeProperty ;
+    rdfs:range xsd:string ;
+    rdfs:label "assertion rationale"@x-gmeow-english ;
+    skos:definition "The human-readable rationale for a structural assertion: why this invariant must (or must not) hold over the slice. Optional."@x-gmeow-english ;
+    skos:example "ex:sa gmeow:saRationale \"An agent without a name cannot be cited or credited.\" ."@x-gmeow-english ;
+    gmeow:useWhen "Use to record why a structural invariant matters, so a reader understands the modelling rule it protects."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/test-dsl> .
+
+# --------------------------------------------------------------------------- #
+# ExampleConformance fields
+# --------------------------------------------------------------------------- #
+
+gmeow:exampleFile a owl:DatatypeProperty ;
+    rdfs:range xsd:string ;
+    rdfs:label "example file"@x-gmeow-english ;
+    skos:definition "A SLICE-RELATIVE path to the example or counter-example .ttl file whose validation outcome is being pinned — resolved against the slice directory, NOT the repository root (contrast with gmeow:cqQueryFile, which is repo-root-relative)."@x-gmeow-english ;
+    skos:example "ex:ec gmeow:exampleFile \"examples/agent-missing-name.ttl\" ."@x-gmeow-english ;
+    gmeow:useWhen "Use to name the example or counter-example file a conformance fixture pins, written relative to the slice directory (e.g. `examples/<name>.ttl`)."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid a repo-root-relative path here: this property is SLICE-RELATIVE, unlike gmeow:cqQueryFile. Do not prefix it with `slices/<group>/<name>/`."@x-gmeow-english ;
+    gmeow:howToUse "Write the path relative to the slice directory, typically `examples/<name>.ttl` for a positive example or a counter-example; the harness resolves it inside the owning slice."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/test-dsl> .
+
+gmeow:expectedOutcome a owl:ObjectProperty ;
+    rdfs:range gmeow:ConformanceOutcome ;
+    rdfs:label "expected outcome"@x-gmeow-english ;
+    skos:definition "The expected validation outcome of the bound example file — gmeow:conforms (passes validation) or gmeow:violates (is rejected with a finding). Required on every gmeow:ExampleConformance."@x-gmeow-english ;
+    skos:example "ex:ec gmeow:expectedOutcome gmeow:violates ."@x-gmeow-english ;
+    gmeow:useWhen "Use on every example-conformance fixture to declare whether the example is expected to conform or to violate."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid setting gmeow:expectedViolationCode when the outcome is gmeow:conforms, and avoid omitting the code when it is gmeow:violates."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/test-dsl> .
+
+gmeow:expectedViolationCode a owl:DatatypeProperty ;
+    rdfs:range xsd:string ;
+    rdfs:label "expected violation code"@x-gmeow-english ;
+    skos:definition "The expected validation finding code when gmeow:expectedOutcome is gmeow:violates. Uses the REAL finding-code format `shacl.<FullConstraintComponentLocalName>` — e.g. `shacl.MinCountConstraintComponent`, NOT `shacl.minCount`. Required iff the outcome is gmeow:violates; absent iff gmeow:conforms (enforced by SHACL in the test-DSL shapes)."@x-gmeow-english ;
+    skos:example "ex:ec gmeow:expectedOutcome gmeow:violates ; gmeow:expectedViolationCode \"shacl.MinCountConstraintComponent\" ."@x-gmeow-english ;
+    gmeow:useWhen "Use on a gmeow:violates fixture to pin WHICH finding the counter-example must trigger, in the `shacl.<FullConstraintComponentLocalName>` form."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid the short SHACL form (`shacl.minCount`) — the real code is the full constraint-component local name, e.g. `shacl.MinCountConstraintComponent`. Avoid setting it at all when the outcome is gmeow:conforms."@x-gmeow-english ;
+    gmeow:howToUse "Read the finding code the validator emits — it is `shacl.` followed by the SHACL constraint component's FULL local name (e.g. shacl.MinCountConstraintComponent, shacl.ClassConstraintComponent, shacl.DatatypeConstraintComponent) — and pin that exact string on the violates fixture."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/test-dsl> .
+
+gmeow:conformanceRationale a owl:DatatypeProperty ;
+    rdfs:range xsd:string ;
+    rdfs:label "conformance rationale"@x-gmeow-english ;
+    skos:definition "The human-readable rationale for an example-conformance fixture: why this example is expected to conform, or why the counter-example is expected to violate the named code. Optional."@x-gmeow-english ;
+    skos:example "ex:ec gmeow:conformanceRationale \"This counter-example omits the required name, so MinCount must fire.\" ."@x-gmeow-english ;
+    gmeow:useWhen "Use to record why a particular conformance or violation is the expected outcome, documenting the constraint the fixture guards."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/test-dsl> .
