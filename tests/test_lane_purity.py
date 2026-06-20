@@ -89,9 +89,14 @@ _DOCKER_PATTERNS: tuple[str, ...] = (
 
 
 def _forbidden_hits(text: str) -> set[str]:
-    """Every Docker/Java token found in ``text`` (empty set means clean)."""
-    hits = {pat for pat in _DOCKER_PATTERNS if re.search(pat, text)}
-    hits |= {script for script in _LANE_SCRIPTS if script in text}
+    """Every Docker/Java token found in ``text`` (empty set means clean).
+
+    Matching is case-insensitive: ``--reasoner elk`` and ``--reasoner ELK`` are
+    the same invocation, so a lowercase variant must not slip through.
+    """
+    hits = {pat for pat in _DOCKER_PATTERNS if re.search(pat, text, re.IGNORECASE)}
+    lowered = text.lower()
+    hits |= {script for script in _LANE_SCRIPTS if script.lower() in lowered}
     return hits
 
 
@@ -166,13 +171,15 @@ def test_required_ci_jobs_carry_no_java_or_docker() -> None:
         # `make classic-cross-check`, an oracle `--reasoner` switch — not a bare
         # mention, so the aggregator's "…oracle lane is non-blocking…" log line
         # and the required `crosscheck-queries` CLI command do not false-trip.
+        # Lowercased so `--reasoner ELK` and `--reasoner elk` both trip.
+        lowered_blob = blob.lower()
         oracle_tokens = (
             "make classic-cross-check",
             "--reasoner hermit",
-            "--reasoner ELK",
+            "--reasoner elk",
         )
         for token in oracle_tokens:
-            assert token not in blob, (
+            assert token not in lowered_blob, (
                 f"required CI job {job_name!r} invokes the oracle lane: {token!r}"
             )
 
