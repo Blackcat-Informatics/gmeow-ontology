@@ -190,3 +190,71 @@ meta:Principle1 a meta:Principle ; meta:number 1 ; meta:title "Be good" ;
     result = check_constitution(manifest_path=manifest, constitution_path=constitution)
     assert any("only by review practice" in w for w in result.warnings)
     assert not any("zero registered enforcement" in e for e in result.errors)
+
+
+_SUPERSESSION_MANIFEST = """\
+meta:gate-x a meta:Gate ; meta:artifact "Makefile" .
+meta:Principle1 a meta:Principle ; meta:number 1 ; meta:title "Be good" ;
+    meta:enforcedBy meta:gate-x .
+meta:Principle2 a meta:Principle ; meta:number 2 ; meta:title "Be great" ;
+    meta:enforcedBy meta:gate-x ; meta:supersededInPartBy meta:Principle1 .
+"""
+
+_SUPERSESSION_MD = (
+    "## 1. Be good\n\nprose\n\n"
+    "## 2. Be great\n\n**Superseded in part by Principle 1:** because reasons.\n"
+)
+
+
+def test_supersession_matching_pair_passes(tmp_path: Path) -> None:
+    """A TTL ``meta:supersededInPartBy`` matched by the MD marker raises no error."""
+    manifest, constitution = _write_pair(
+        tmp_path, _SUPERSESSION_MANIFEST, _SUPERSESSION_MD
+    )
+    result = check_constitution(manifest_path=manifest, constitution_path=constitution)
+    assert not any("supersededInPartBy drift" in e for e in result.errors), "\n".join(
+        result.errors
+    )
+
+
+def test_supersession_markdown_only_is_an_error(tmp_path: Path) -> None:
+    """An MD marker with no matching TTL relation fails the gate."""
+    manifest_ttl = _SUPERSESSION_MANIFEST.replace(
+        " ; meta:supersededInPartBy meta:Principle1", ""
+    )
+    manifest, constitution = _write_pair(tmp_path, manifest_ttl, _SUPERSESSION_MD)
+    result = check_constitution(manifest_path=manifest, constitution_path=constitution)
+    assert any(
+        "principle 2 meta:supersededInPartBy drift" in e for e in result.errors
+    ), "\n".join(result.errors)
+
+
+def test_supersession_ttl_only_is_an_error(tmp_path: Path) -> None:
+    """A TTL relation with no matching MD marker fails the gate."""
+    md_without_marker = "## 1. Be good\n\nprose\n\n## 2. Be great\n\nno marker here.\n"
+    manifest, constitution = _write_pair(
+        tmp_path, _SUPERSESSION_MANIFEST, md_without_marker
+    )
+    result = check_constitution(manifest_path=manifest, constitution_path=constitution)
+    assert any(
+        "principle 2 meta:supersededInPartBy drift" in e for e in result.errors
+    ), "\n".join(result.errors)
+
+
+def test_extends_matching_pair_passes(tmp_path: Path) -> None:
+    """A TTL ``meta:extends`` matched by an MD ``Extends Principle N`` marker passes."""
+    manifest_ttl = (
+        'meta:gate-x a meta:Gate ; meta:artifact "Makefile" .\n'
+        'meta:Principle1 a meta:Principle ; meta:number 1 ; meta:title "Be good" ;\n'
+        "    meta:enforcedBy meta:gate-x .\n"
+        'meta:Principle2 a meta:Principle ; meta:number 2 ; meta:title "Be great" ;\n'
+        "    meta:enforcedBy meta:gate-x ; meta:extends meta:Principle1 .\n"
+    )
+    constitution_md = (
+        "## 1. Be good\n\nprose\n\n## 2. Be great\n\n**Extends Principle 1.**\n"
+    )
+    manifest, constitution = _write_pair(tmp_path, manifest_ttl, constitution_md)
+    result = check_constitution(manifest_path=manifest, constitution_path=constitution)
+    assert not any("extends drift" in e for e in result.errors), "\n".join(
+        result.errors
+    )
