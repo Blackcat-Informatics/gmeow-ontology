@@ -110,10 +110,13 @@ fn aggregate<'a>(
     cells: impl Iterator<Item = (&'a str, Result<(), String>)>,
 ) -> Result<(), String> {
     let mut count = 0usize;
-    let failures: Vec<String> = cells
-        .inspect(|_| count += 1)
-        .filter_map(|(iri, result)| result.err().map(|e| format!("  • [{iri}] {e}")))
-        .collect();
+    let mut failures: Vec<String> = Vec::new();
+    for (iri, result) in cells {
+        count += 1;
+        if let Err(e) = result {
+            failures.push(format!("  • [{iri}] {e}"));
+        }
+    }
     if failures.is_empty() {
         return Ok(());
     }

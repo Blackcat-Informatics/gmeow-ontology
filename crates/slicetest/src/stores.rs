@@ -28,6 +28,7 @@
 //! fraction of the cost, and reasoning is monotonic so the asserted default can
 //! only ever under-answer (a loud test failure), never silently mislead.
 
+use std::collections::HashSet;
 use std::path::PathBuf;
 
 use oxigraph::model::{GraphName, Quad, Triple};
@@ -146,7 +147,9 @@ fn rdfs_close(store: &Store) -> Result<(), String> {
     let store_len = |s: &Store| s.len().map_err(|e| format!("store len: {e}"));
     for _ in 0..MAX_ROUNDS {
         let before = store_len(store)?;
-        let mut derived: Vec<Triple> = Vec::new();
+        // Dedupe inferred triples across all rules in the round before inserting;
+        // oxigraph inserts are idempotent, but a HashSet avoids redundant inserts.
+        let mut derived: HashSet<Triple> = HashSet::new();
         for rule in RDFS_RULES {
             derived.extend(construct(store, rule)?);
         }
