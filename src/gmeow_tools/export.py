@@ -795,8 +795,12 @@ def _graph_with_public_tags(graph: Graph, tag_map: dict[str, str]) -> Graph:
     artifacts (#287, #702).
     """
     terms = [
-        dataclass_replace(term, lang=tag_map.get(term.lang, term.lang))
-        if term.kind is TermKind.LITERAL and term.lang is not None
+        dataclass_replace(term, lang=tag_map[term.lang])
+        if (
+            term.kind is TermKind.LITERAL
+            and term.lang is not None
+            and term.lang in tag_map
+        )
         else term
         for term in graph.terms
     ]
