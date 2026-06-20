@@ -101,7 +101,11 @@ output validates against `crossref5.4.0.xsd` + `AccessIndicators.xsd` +
   first-class PID-graph node.
 - **`<citation_list>`** — explicit Crossref references for the same curated
   alignment targets, so reference metadata is available through Crossref's
-  reference channels rather than only through relation metadata.
+  reference channels rather than only through relation metadata. Each entry is
+  deposited as a free-text `unstructured_citation` (plus a `doi` when the target
+  has one): alignment targets are external ontologies, not journal articles, so a
+  partial journal-article citation (`journal_title`/`article_title` without an
+  author or first page) is omitted — Crossref rejects that shape at deposit time.
 - **`<component_list>` seam** — a documented comment marking where future
   per-profile sub-DOIs attach.
 
