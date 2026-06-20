@@ -206,40 +206,66 @@ impl PyReport {
         render::to_text(&self.inner)
     }
 
-    #[pyo3(signature = (directory, stem = "gmeow-feedback".to_owned()))]
+    /// Write the report's projections to `directory/<stem>.<ext>` and return the
+    /// `{kind: path}` map of what was written.
+    ///
+    /// `kinds` selects which projections to write (`#662` artifact selection).
+    /// `None` is a deliberate **maximal default** — write all three, the same as
+    /// before this argument existed — not a back-compat shim; the Python facade
+    /// always passes an explicit, config-resolved selection. The fixed write
+    /// order (`json`, `sarif`, `html`) is preserved regardless of the order in
+    /// `kinds`, so output is deterministic. An unknown kind is a hard error
+    /// (`ValueError`), never a silent skip.
+    #[pyo3(signature = (directory, stem = "gmeow-feedback".to_owned(), kinds = None))]
     fn write_artifacts(
         &self,
         py: Python<'_>,
         directory: String,
         stem: String,
+        kinds: Option<Vec<String>>,
     ) -> PyResult<Py<PyAny>> {
+        let want =
+            kinds.unwrap_or_else(|| vec!["json".to_owned(), "sarif".to_owned(), "html".to_owned()]);
+        for kind in &want {
+            if !matches!(kind.as_str(), "json" | "sarif" | "html") {
+                return Err(pyo3::exceptions::PyValueError::new_err(format!(
+                    "unknown artifact kind: {kind:?} (expected json, sarif, or html)"
+                )));
+            }
+        }
+
         let directory = PathBuf::from(directory);
         fs::create_dir_all(&directory)
             .map_err(|e| pyo3::exceptions::PyOSError::new_err(e.to_string()))?;
 
-        let json_path = directory.join(format!("{stem}.json"));
-        let sarif_path = directory.join(format!("{stem}.sarif"));
-        let html_path = directory.join(format!("{stem}.html"));
-
-        fs::write(
-            &json_path,
-            render::to_json(&self.inner)
-                .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))?,
-        )
-        .map_err(|e| pyo3::exceptions::PyOSError::new_err(e.to_string()))?;
-        fs::write(
-            &sarif_path,
-            render::to_sarif(&self.inner)
-                .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))?,
-        )
-        .map_err(|e| pyo3::exceptions::PyOSError::new_err(e.to_string()))?;
-        fs::write(&html_path, render::to_html(&self.inner))
-            .map_err(|e| pyo3::exceptions::PyOSError::new_err(e.to_string()))?;
-
         let out = PyDict::new(py);
-        out.set_item("json", json_path.to_string_lossy().to_string())?;
-        out.set_item("sarif", sarif_path.to_string_lossy().to_string())?;
-        out.set_item("html", html_path.to_string_lossy().to_string())?;
+        // Fixed order, independent of `kinds` ordering, for deterministic writes.
+        if want.iter().any(|k| k == "json") {
+            let path = directory.join(format!("{stem}.json"));
+            fs::write(
+                &path,
+                render::to_json(&self.inner)
+                    .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))?,
+            )
+            .map_err(|e| pyo3::exceptions::PyOSError::new_err(e.to_string()))?;
+            out.set_item("json", path.to_string_lossy().to_string())?;
+        }
+        if want.iter().any(|k| k == "sarif") {
+            let path = directory.join(format!("{stem}.sarif"));
+            fs::write(
+                &path,
+                render::to_sarif(&self.inner)
+                    .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))?,
+            )
+            .map_err(|e| pyo3::exceptions::PyOSError::new_err(e.to_string()))?;
+            out.set_item("sarif", path.to_string_lossy().to_string())?;
+        }
+        if want.iter().any(|k| k == "html") {
+            let path = directory.join(format!("{stem}.html"));
+            fs::write(&path, render::to_html(&self.inner))
+                .map_err(|e| pyo3::exceptions::PyOSError::new_err(e.to_string()))?;
+            out.set_item("html", path.to_string_lossy().to_string())?;
+        }
         Ok(out.into_any().unbind())
     }
 }
