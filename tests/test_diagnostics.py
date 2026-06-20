@@ -6,7 +6,7 @@ import json
 from dataclasses import dataclass, field
 from io import StringIO
 from pathlib import Path
-from typing import cast
+from typing import Any, cast
 
 import gmeow_diagnostics
 from rich.console import Console
@@ -180,7 +180,7 @@ def test_write_report_artifacts(tmp_path: Path) -> None:
     assert "synthetic warning" in paths["html"].read_text(encoding="utf-8")
 
 
-def _two_finding_report() -> object:
+def _two_finding_report() -> Any:
     report = diagnostics.report("validate")
     report.add(diagnostics.finding(severity="error", code="b.err", message="boom"))
     report.add(

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import json
-from collections.abc import Mapping, Sequence
+from collections.abc import Collection, Mapping, Sequence
 from pathlib import Path
 from typing import Any, cast
 
@@ -176,7 +176,7 @@ def write_report_artifacts(
     *,
     output_dir: Path = PROJECT_ROOT / "dist",
     stem: str = "gmeow-feedback",
-    artifacts: Sequence[str] | frozenset[str] | None = None,
+    artifacts: Collection[str] | None = None,
 ) -> dict[str, Path]:
     """Write the selected diagnostics artifacts for a report.
 
