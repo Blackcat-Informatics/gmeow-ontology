@@ -815,10 +815,13 @@ mod tests {
         // Balanced, single table.
         assert_eq!(html.matches("<table>").count(), 1);
         assert_eq!(html.matches("</table>").count(), 1);
-        // Balanced rows: one header `<tr>` + one per finding, all closed.
-        let open_rows = html.matches("<tr>").count();
-        assert_eq!(open_rows, html.matches("</tr>").count());
-        assert_eq!(open_rows, 1 + report.findings.len());
+        // Balanced rows: one header row + one per finding, all closed. Count by
+        // `</tr>` (close tags never carry attributes) and match the
+        // attribute-tolerant `<tr` open prefix, so adding a class/style to a row
+        // start tag later cannot silently break this assertion.
+        let close_rows = html.matches("</tr>").count();
+        assert_eq!(html.matches("<tr").count(), close_rows);
+        assert_eq!(close_rows, 1 + report.findings.len());
     }
 
     #[test]
