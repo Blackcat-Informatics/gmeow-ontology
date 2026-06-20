@@ -1375,6 +1375,7 @@ dependencies = [
  "gmeow-rdf",
  "nemo",
  "oxigraph",
+ "proptest",
  "pyo3",
  "scryer-prolog",
  "serde_json",
