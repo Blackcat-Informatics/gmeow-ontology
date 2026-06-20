@@ -1,0 +1,85 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Declarative competency questions authored as slice-resident test-DSL data.
+# Two exemplars proving both fidelity tiers of gmeow:CompetencyQuestion:
+#   * a SMALL, fully-enumerated SELECT (gmeow:cqExpectRow + gmeow:cqExactRows true)
+#   * a COARSE SELECT pinned by gmeow:cqExpectRowCount (escape hatch) with two
+#     sample rows, full enumeration deferred to the T3 migration.
+#
+# Both reference real shared .rq files under queries/competency/ via the
+# REPO-ROOT-relative gmeow:cqQueryFile. Expected rows/counts were measured by
+# running each query over the merged ontology graph closed under OWL 2 RL
+# (gmeow_tools.native_rl.native_rl_closure) — the same reasoned-graph harness
+# tests/test_competency.py uses — so the answers are entailed, not asserted.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/epistemics/tests/> .
+
+# --- A. Small, fully-enumerated SELECT: "what kinds of agent?" ----------------
+# queries/competency/agents.rq projects ?agentKind = rdfs:subClassOf* gmeow:Agent.
+# Reasoned-graph result is the complete six-member set below, so cqExactRows true.
+ex:cqAgentKinds a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "queries/competency/agents.rq" ;
+    gmeow:cqRationale "GMEOW must be able to answer 'what kinds of agent does it model?'. The reasoned answer is the complete reflexive-transitive subclass closure of gmeow:Agent: Agent itself plus Builder, Organization, Person, Sensor, and SoftwareAgent." ;
+    gmeow:cqExactRows true ;
+    gmeow:cqExpectRow
+        ex:cqAgentRowAgent ,
+        ex:cqAgentRowBuilder ,
+        ex:cqAgentRowOrganization ,
+        ex:cqAgentRowPerson ,
+        ex:cqAgentRowSensor ,
+        ex:cqAgentRowSoftwareAgent .
+
+ex:cqAgentRowAgent a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ;
+        gmeow:cellVar "agentKind" ;
+        gmeow:cellValueIri gmeow:Agent ] .
+
+ex:cqAgentRowBuilder a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ;
+        gmeow:cellVar "agentKind" ;
+        gmeow:cellValueIri gmeow:Builder ] .
+
+ex:cqAgentRowOrganization a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ;
+        gmeow:cellVar "agentKind" ;
+        gmeow:cellValueIri gmeow:Organization ] .
+
+ex:cqAgentRowPerson a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ;
+        gmeow:cellVar "agentKind" ;
+        gmeow:cellValueIri gmeow:Person ] .
+
+ex:cqAgentRowSensor a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ;
+        gmeow:cellVar "agentKind" ;
+        gmeow:cellValueIri gmeow:Sensor ] .
+
+ex:cqAgentRowSoftwareAgent a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ;
+        gmeow:cellVar "agentKind" ;
+        gmeow:cellValueIri gmeow:SoftwareAgent ] .
+
+# --- B. Coarse SELECT pinned by row count: "what contribution roles?" ---------
+# queries/competency/contribution-roles.rq projects ?role = a gmeow:ContributionRole.
+# Measured 48 rows over the reasoned graph; cqExpectRowCount pins the count with
+# cqExactRows true, plus two sample rows. Full enumeration is left to T3.
+ex:cqContributionRoles a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "queries/competency/contribution-roles.rq" ;
+    gmeow:cqRationale "GMEOW must enumerate the contribution roles it supports (the CRediT canon plus GMEOW's domain extensions). The reasoned graph returns exactly 48 gmeow:ContributionRole individuals; this coarse count plus two sample rows pins the size today — full per-row enumeration is deferred to the T3 runner migration." ;
+    gmeow:cqExpectRowCount 48 ;
+    gmeow:cqExactRows true ;
+    gmeow:cqExpectRow
+        ex:cqRoleRowAuthor ,
+        ex:cqRoleRowSoftware .
+
+ex:cqRoleRowAuthor a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ;
+        gmeow:cellVar "role" ;
+        gmeow:cellValueIri gmeow:roleAuthor ] .
+
+ex:cqRoleRowSoftware a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ;
+        gmeow:cellVar "role" ;
+        gmeow:cellValueIri gmeow:roleSoftware ] .

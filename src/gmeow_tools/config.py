@@ -152,6 +152,8 @@ ORGANIZATION_SHAPES_FILE = SHAPES_DIR / "organization-shapes.ttl"
 MAPPING_DSL_SHAPES_FILE = SHAPES_DIR / "mapping-dsl-shapes.ttl"
 #: SHACL shapes for the statement DSL source (gmeow_tools.dsl_validate).
 STATEMENT_DSL_SHAPES_FILE = SHAPES_DIR / "statement-dsl-shapes.ttl"
+#: SHACL shapes for the test DSL source (gmeow_tools.dsl_validate).
+TEST_DSL_SHAPES_FILE = SHAPES_DIR / "test-dsl-shapes.ttl"
 QUERIES_DIR = PROJECT_ROOT / "queries"
 COMPETENCY_DIR = QUERIES_DIR / "competency"
 QC_DIR = QUERIES_DIR / "qc"
@@ -194,6 +196,13 @@ SLICE_VOCABULARY_FILE = SLICES_DIR / "vocabulary.ttl"
 #: Principles 2-3). The RDF 1.2 form is canonical; the OWL form is the generated,
 #: reasoning-lossless downcast the OWL 2 DL reasoners consume.
 STATEMENT_DSL_DIR = PROJECT_ROOT / "dsl" / "statements"
+#: Single-source test DSL vocabulary (the slice-resident declarative-test
+#: authoring layer — competency questions, structural assertions, example
+#: conformance). The vocabulary lives here; the test fixtures themselves are
+#: slice-resident (``slices/*/*/tests/*.ttl``). A spec layer, never reasoned.
+DSL_TESTS_DIR = PROJECT_ROOT / "dsl" / "tests"
+#: The test DSL authoring vocabulary file (the spec layer it grounds).
+TEST_DSL_VOCABULARY_FILE = DSL_TESTS_DIR / "vocabulary.ttl"
 #: Generated statement-metadata artifacts (committed, like mappings/ — so the
 #: ``compile-statements --check`` no-drift gate has a committed target).
 STATEMENTS_DIR = GENERATED_DIR / "statements"
