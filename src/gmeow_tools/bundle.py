@@ -39,6 +39,7 @@ from gmeow_tools.config import (
 REP_MAPPINGS = "mappings-archive"  # tar of generated/mappings/*.sssom.tsv
 REP_QUERIES = "queries-archive"  # tar of generated/queries/*.rq
 REP_CELLS = "cells-archive"  # tar of the cell/projection TTL sources (repo-rel paths)
+REP_TESTS = "tests-archive"  # tar of the slice test-DSL specs (repo-rel paths, #783)
 REP_DENIED = "transform:denied"  # JSON of the saturation refusal set (alignment lint)
 _GUIDE_BLOB = NAMESPACE + "guideBlob"
 
@@ -105,6 +106,18 @@ def bundled_cells() -> dict[str, bytes]:
     loader can route to exactly the directories it reads in repo mode.
     """
     return _archive(REP_CELLS)
+
+
+def bundled_tests() -> dict[str, bytes]:
+    """Every folded slice test-DSL spec as ``{repo-relative-path: ttl-bytes}`` (#783).
+
+    Keys preserve the repo-relative path (``slices/<g>/<n>/tests/<file>.ttl``) so a
+    loader can route to exactly the slice ``tests/`` directory it reads in repo mode.
+    The archive holds the non-recursive ``tests/*.ttl`` fixtures only (no
+    ``tests/counter-examples/`` data, no ``tests/*.py`` harness code), matching
+    :func:`gmeow_tools.slices.iter_slice_test_files`.
+    """
+    return _archive(REP_TESTS)
 
 
 def _is_slice_mapping(relpath: str) -> bool:

@@ -24,6 +24,7 @@ from gmeow_tools.alignment_lint import (
     AlignmentFinding,
     Severity,
     lint_alignment_directions,
+    to_diagnostics_report,
 )
 from gmeow_tools.config import ALIGNMENT_TARGETS, TARGET_SNAPSHOT_DIR, LinkPolicy
 from gmeow_tools.graph import iter_source_files
@@ -171,6 +172,57 @@ def test_live_target_axioms_have_no_direction_errors() -> None:
         pytest.skip(f"target vocabulary fetch unavailable: {exc}")
     errors = _errors(findings)
     assert not errors, "alignment-direction errors (live):\n" + "\n".join(errors)
+
+
+def test_to_diagnostics_report_carries_every_severity() -> None:
+    """The diagnostics projection keeps ERROR, WARNING, and INFO findings.
+
+    Unlike ``findings_to_result`` (which drops INFO for the legacy gate), the
+    report is the complete picture for the feedback bundle. Codes are
+    ``alignment.<check>`` and the suggestion rides as a suggestion.
+    """
+    findings = [
+        AlignmentFinding(
+            severity=Severity.ERROR,
+            check="inverse-direction",
+            subject_id="gmeow:a",
+            predicate_id="owl:equivalentProperty",
+            object_id="schema:b",
+            message="wrong direction",
+            suggestion="schema:c",
+        ),
+        AlignmentFinding(
+            severity=Severity.WARNING,
+            check="domain-range",
+            subject_id="gmeow:a",
+            predicate_id="skos:closeMatch",
+            object_id="schema:b",
+            message="ambiguous",
+        ),
+        AlignmentFinding(
+            severity=Severity.INFO,
+            check="property-character",
+            subject_id="gmeow:a",
+            predicate_id="skos:closeMatch",
+            object_id="schema:b",
+            message="target axioms unavailable",
+        ),
+    ]
+
+    report = to_diagnostics_report(findings)
+
+    assert report.tool == "alignment"
+    assert report.error_count == 1
+    assert report.warning_count == 1
+    items = {item["code"]: item for item in report.findings}
+    assert set(items) == {
+        "alignment.inverse-direction",
+        "alignment.domain-range",
+        "alignment.property-character",
+    }
+    # INFO survives (it would be dropped by the legacy ValidationResult path).
+    assert items["alignment.property-character"]["severity"] == "info"
+    assert "schema:c" in items["alignment.inverse-direction"]["suggestions"]
 
 
 def test_dc_refinement_lint_runs() -> None:

@@ -1,0 +1,40 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Declarative structural assertions for the epistemics slice — the slice-resident
+# test-DSL twin of the MUST / MUST-NOT invariants formerly hand-written in
+# tests/test_epistemics.py. Authored as gmeow: ontology data so the same
+# annotation discipline and the test harness drive the test, not ad-hoc Python.
+#
+# Two keystone invariants of the flat, non-factive doxastic spine:
+#   1. (MUST)     gmeow:knowsThat rdfs:subPropertyOf gmeow:believes — the single
+#                 load-bearing axiom that makes knowing entail believing.
+#   2. (MUST-NOT) gmeow:isTrue must not appear in ANY triple position — the slice
+#                 is deliberately non-factive (no truth bit; CONSTITUTION P12).
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/epistemics/tests/> .
+
+# --- 1. Keystone entailment: knowsThat ⊑ believes (MUST hold) ----------------
+ex:saKnowsThatSubPropertyOfBelieves a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """ASK {
+        <https://blackcatinformatics.ca/gmeow/knowsThat>
+            <http://www.w3.org/2000/01/rdf-schema#subPropertyOf>
+            <https://blackcatinformatics.ca/gmeow/believes> .
+    }""" ;
+    gmeow:saRationale "The keystone entailment of the epistemics slice: gmeow:knowsThat MUST be a subproperty of gmeow:believes so that knowing a proposition entails believing it. Mirrors test_knows_that_subproperty_of_believes in test_epistemics.py." .
+
+# --- 2. No truth bit: gmeow:isTrue in NO triple position (MUST-NOT hold) ------
+ex:saNoTruthBit a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """ASK {
+        { <https://blackcatinformatics.ca/gmeow/isTrue> ?p ?o . }
+        UNION
+        { ?s <https://blackcatinformatics.ca/gmeow/isTrue> ?o . }
+        UNION
+        { ?s ?p <https://blackcatinformatics.ca/gmeow/isTrue> . }
+    }""" ;
+    gmeow:saRationale "The no-truth-bit invariant: the epistemics slice is deliberately non-factive (CONSTITUTION Principle 12), so gmeow:isTrue MUST NOT appear in any subject, predicate, or object position. Mirrors test_no_factivity_no_truth_bit in test_epistemics.py." .

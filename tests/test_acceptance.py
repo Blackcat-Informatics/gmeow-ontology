@@ -25,11 +25,53 @@ from gmeow_tools.acceptance import (
     default_corpus,
     render_report,
     run_acceptance,
+    to_diagnostics_report,
 )
 from gmeow_tools.config import NAMESPACE
 
 GM = NAMESPACE
 FOAF = "http://xmlns.com/foaf/0.1/"
+
+
+def test_to_diagnostics_report_severity_follows_hard_vs_scoreboard() -> None:
+    """Failing hard gate → error; failing scoreboard gate → note; passing → none."""
+    file_result = FileAcceptance(
+        source="external/site.ttl",
+        source_triples=10,
+        output_triples=20,
+        gates=[
+            GateResult(
+                name="pure-gmeow-intermediate",
+                passed=False,
+                hard=True,
+                summary="foreign residue present",
+                detail=["foaf: 3"],
+            ),
+            GateResult(
+                name="round-trip-superset",
+                passed=False,
+                hard=False,
+                summary="7/10 addressable source triples",
+            ),
+            GateResult(
+                name="size-invariant",
+                passed=True,
+                hard=True,
+                summary="output out-sizes source",
+            ),
+        ],
+    )
+
+    report = to_diagnostics_report([file_result])
+
+    # Only failing gates emit; the passing size-invariant gate produces nothing.
+    assert report.finding_count == 2
+    by_code = {item["code"]: item for item in report.findings}
+    assert by_code["acceptance.pure-gmeow-intermediate"]["severity"] == "error"
+    assert by_code["acceptance.round-trip-superset"]["severity"] == "note"
+    assert "size-invariant" not in {c.split(".", 1)[1] for c in by_code}
+    # The scoreboard note must not fail the gate.
+    assert report.error_count == 1
 
 
 def test_pure_gmeow_gate_passes_on_gmeow_only_draft() -> None:

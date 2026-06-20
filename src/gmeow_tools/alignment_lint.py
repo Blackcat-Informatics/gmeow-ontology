@@ -48,6 +48,7 @@ from rdflib import RDF, RDFS, Graph, URIRef
 from rdflib.collection import Collection
 from rdflib.namespace import OWL
 
+from gmeow_tools import diagnostics
 from gmeow_tools.config import (
     ALIGNMENT_TARGETS,
     MAPPINGS_DIR,
@@ -952,6 +953,34 @@ def findings_to_result(findings: list[AlignmentFinding]) -> ValidationResult:
         elif finding.severity is Severity.WARNING:
             result.warnings.append(finding.render())
     return result
+
+
+def to_diagnostics_report(
+    findings: list[AlignmentFinding],
+    *,
+    tool: str = "alignment",
+) -> diagnostics.DiagnosticsReport:
+    """Project alignment findings into the canonical diagnostics report (#654).
+
+    Unlike :func:`findings_to_result` (which drops ``INFO`` for the legacy
+    error/warning gate), every finding — including informational
+    target-axiom-unavailable notes — rides into the report so the feedback
+    bundle is the complete picture. The stable ``code`` is ``alignment.<check>``
+    (the ``AlignmentFinding.check`` verbatim), and ``Severity`` maps straight
+    through (its values are already ``error``/``warning``/``info``). This surface
+    owns its own severity semantics; the facade stays surface-agnostic.
+    """
+    items = [
+        diagnostics.finding(
+            severity=finding.severity.value,
+            code=f"{tool}.{finding.check}",
+            message=finding.render(),
+            tool=tool,
+            suggestions=[finding.suggestion] if finding.suggestion else None,
+        )
+        for finding in findings
+    ]
+    return diagnostics.report_from_findings(tool=tool, findings=items)
 
 
 # --------------------------------------------------------------------------- #

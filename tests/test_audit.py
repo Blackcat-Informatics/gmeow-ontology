@@ -9,7 +9,12 @@ import json
 
 import pytest
 
-from gmeow_tools.audit import AuditReport, audit_graph, render_json
+from gmeow_tools.audit import (
+    AuditReport,
+    audit_graph,
+    render_json,
+    to_diagnostics_report,
+)
 from gmeow_tools.config import FIXTURES_DIR
 
 _FIXTURE = FIXTURES_DIR / "hallucination-kg.ttl"
@@ -19,6 +24,29 @@ _EX = "https://blackcatinformatics.ca/gmeow/examples/hallucination-kg/"
 @pytest.fixture(scope="module")
 def report() -> AuditReport:
     return audit_graph([_FIXTURE])
+
+
+def test_to_diagnostics_report_maps_headlines_and_shacl() -> None:
+    audit = AuditReport(
+        findings={
+            "claims-without-evidence": [("ex:claim-a", "evidence")],
+            "claims-contradicted-by-higher-confidence": [("ex:claim-b", "x")],
+            "stale-source-claims": [("ex:claim-c", "src")],
+        },
+        shacl_errors=["focus ex:x violates sh:minCount"],
+        shacl_warnings=["focus ex:y soft warning"],
+    )
+
+    diag = to_diagnostics_report(audit)
+
+    by_code: dict[str, str] = {item["code"]: item["severity"] for item in diag.findings}
+    assert by_code["audit.ungrounded-claim"] == "warning"
+    assert by_code["audit.contradicted-claim"] == "warning"
+    assert by_code["audit.stale-source"] == "warning"
+    assert by_code["audit.shacl-error"] == "error"
+    assert by_code["audit.shacl-warning"] == "warning"
+    # Only the SHACL error is gate-failing; the heuristic flags never block.
+    assert diag.error_count == 1
 
 
 def test_the_hallucination_is_flagged_not_deleted(report: AuditReport) -> None:

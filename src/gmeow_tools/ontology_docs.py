@@ -45,6 +45,7 @@ from gmeow_tools.config import (
     REFERENCES_MD_FILE,
     SLICES_DIR,
     STATEMENT_RDF12_FILE,
+    TEST_DSL_VOCABULARY_FILE,
     VERIFY_DIR,
 )
 from gmeow_tools.export import Term, collect_terms, curie, fold_meta
@@ -62,10 +63,14 @@ from gmeow_tools.slices import (
     discover_slices,
     iter_slice_mapping_files,
     iter_slice_query_files,
+    iter_slice_test_files,
 )
 
 if TYPE_CHECKING:
     from collections.abc import Iterable, Sequence
+
+    from rdflib import Graph
+    from rdflib.term import Node
 
 _RDF = "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
 _RDFS = "http://www.w3.org/2000/01/rdf-schema#"
@@ -84,6 +89,12 @@ _SKOS_EXAMPLE = _SKOS + "example"
 _DCT_DESCRIPTION = _DCTERMS + "description"
 _DOCS_CONCERN = NAMESPACE + "docsConcern"
 _DOCS_CONCERN_CLASS = NAMESPACE + "DocumentationConcern"
+# Test-DSL vocabulary (dsl/tests/vocabulary.ttl) — the slice-resident
+# declarative test specs rendered into the per-slice docs (#783).
+_TEST_DSL_COMPETENCY_QUESTION = NAMESPACE + "CompetencyQuestion"
+_TEST_DSL_STRUCTURAL_ASSERTION = NAMESPACE + "StructuralAssertion"
+_TEST_DSL_EXAMPLE_CONFORMANCE = NAMESPACE + "ExampleConformance"
+_TEST_DSL_EXPECTED_ROW = NAMESPACE + "ExpectedRow"
 _GRAPH_BOX_ROLE = NAMESPACE + "graphBoxRole"
 _USE_WHEN = NAMESPACE + "useWhen"
 _AVOID_WHEN = NAMESPACE + "avoidWhen"
@@ -597,6 +608,64 @@ class DocDesignDoc:
 
 
 @dataclass(slots=True)
+class DocCompetencyQuestion:
+    """A slice-resident competency question from the test DSL."""
+
+    iri: str
+    label: str = ""
+    rationale: str = ""
+    query: str = ""
+    query_file: str = ""
+    expect_ask: str = ""
+    expect_row_count: str = ""
+    exact_rows: str = ""
+    rows: list[list[str]] = field(default_factory=list)
+
+
+@dataclass(slots=True)
+class DocStructuralAssertion:
+    """A slice-resident structural assertion from the test DSL."""
+
+    iri: str
+    polarity: str = ""
+    scope: str = ""
+    rationale: str = ""
+    pattern: str = ""
+    shape: str = ""
+
+
+@dataclass(slots=True)
+class DocExampleConformance:
+    """A slice-resident example-conformance fixture from the test DSL."""
+
+    iri: str
+    example_file: str = ""
+    outcome: str = ""
+    violation_code: str = ""
+    rationale: str = ""
+
+
+@dataclass(slots=True)
+class DocTestSpecs:
+    """All declarative test specs discovered in a slice's ``tests/`` directory."""
+
+    slice_name: str
+    source_paths: list[Path]
+    competency_questions: list[DocCompetencyQuestion] = field(default_factory=list)
+    structural_assertions: list[DocStructuralAssertion] = field(default_factory=list)
+    example_conformances: list[DocExampleConformance] = field(default_factory=list)
+
+    @property
+    def is_empty(self) -> bool:
+        """True when the slice declares no test specs at all."""
+        return not (
+            self.competency_questions
+            or self.structural_assertions
+            or self.example_conformances
+        )
+
+
+@dataclass(slots=True)
 class DocRecipe:
     """A task-oriented adoption page backed by one or more examples."""
 
@@ -648,6 +717,7 @@ class DocsModel:
     examples: list[DocExample]
     examples_by_slice: dict[str, list[DocExample]]
     design_docs_by_slice: dict[str, list[DocDesignDoc]]
+    test_specs_by_slice: dict[str, DocTestSpecs]
     recipes: list[DocRecipe]
     learning_paths: list[DocLearningPath]
 
@@ -1283,6 +1353,154 @@ def _collect_design_docs(slices: dict[str, Slice]) -> dict[str, list[DocDesignDo
     return dict(sorted(grouped.items()))
 
 
+def _test_dsl_value(graph: Graph, subject: Node, predicate: str) -> str:
+    """Return a single test-DSL object value as a display string ('' if absent)."""
+    from rdflib import Literal, URIRef
+
+    pred = URIRef(predicate)
+    for obj in sorted(graph.objects(subject, pred), key=str):
+        if isinstance(obj, Literal):
+            return str(obj)
+        if isinstance(obj, URIRef):
+            return curie(str(obj))
+        return str(obj)
+    return ""
+
+
+def _test_dsl_expected_rows(graph: Graph, subject: Node) -> list[list[str]]:
+    """Return enumerated expected SELECT rows as ``var=value`` cell strings.
+
+    Each row is the slice's ``gmeow:cqExpectRow`` target; each cell pairs the
+    ``gmeow:cellVar`` with its IRI or literal value. Rows and cells are sorted
+    deterministically so the rendered docs are drift-stable.
+    """
+    from rdflib import Literal, URIRef
+
+    expect_row = URIRef(NAMESPACE + "cqExpectRow")
+    row_cell = URIRef(NAMESPACE + "rowCell")
+    cell_var = URIRef(NAMESPACE + "cellVar")
+    cell_iri = URIRef(NAMESPACE + "cellValueIri")
+    cell_literal = URIRef(NAMESPACE + "cellValueLiteral")
+    rows: list[list[str]] = []
+    for row in graph.objects(subject, expect_row):
+        cells: list[str] = []
+        for cell in graph.objects(row, row_cell):
+            var = _test_dsl_value(graph, cell, str(cell_var))
+            value = ""
+            for obj in graph.objects(cell, cell_iri):
+                value = curie(str(obj)) if isinstance(obj, URIRef) else str(obj)
+            if not value:
+                for obj in graph.objects(cell, cell_literal):
+                    if isinstance(obj, Literal):
+                        value = str(obj)
+            cells.append(f"?{var} = {value}" if var else value)
+        rows.append(sorted(cells))
+    return sorted(rows)
+
+
+def _collect_test_specs(slices: dict[str, Slice]) -> dict[str, DocTestSpecs]:
+    """Parse each slice's ``tests/*.ttl`` declarative test-DSL fixtures (#783).
+
+    The slice's tests directory carries its competency questions, structural
+    assertions, and example-conformance fixtures as ``gmeow:`` ontology data.
+    They are parsed directly from the slice (not the fold) and rendered into the
+    per-slice docs deterministically (sorted by spec IRI) so the drift gate is
+    stable. The test-DSL vocabulary is merged in only so blank-node helper nodes
+    resolve; it contributes no spec individuals.
+    """
+    from rdflib import RDF, Graph, URIRef
+
+    cq_type = URIRef(_TEST_DSL_COMPETENCY_QUESTION)
+    sa_type = URIRef(_TEST_DSL_STRUCTURAL_ASSERTION)
+    ec_type = URIRef(_TEST_DSL_EXAMPLE_CONFORMANCE)
+    grouped: dict[str, DocTestSpecs] = {}
+    test_files_by_slice: dict[str, list[Path]] = defaultdict(list)
+    for path in iter_slice_test_files():
+        # slices/<group>/<name>/tests/<file>.ttl → slice name is parents[1].name.
+        test_files_by_slice[path.parents[1].name].append(path)
+
+    for slice_entry in sorted(slices.values(), key=lambda s: s.name):
+        test_files = sorted(test_files_by_slice.get(slice_entry.name, []))
+        if not test_files:
+            continue
+        graph = Graph()
+        graph.parse(TEST_DSL_VOCABULARY_FILE, format="turtle")
+        for path in test_files:
+            graph.parse(path, format="turtle")
+
+        specs = DocTestSpecs(
+            slice_name=slice_entry.name,
+            source_paths=[p.relative_to(PROJECT_ROOT) for p in test_files],
+        )
+        for subject in graph.subjects(RDF.type, cq_type):
+            if not isinstance(subject, URIRef):
+                continue
+            specs.competency_questions.append(
+                DocCompetencyQuestion(
+                    iri=str(subject),
+                    label=_test_dsl_value(graph, subject, _RDFS_LABEL),
+                    rationale=_test_dsl_value(
+                        graph, subject, NAMESPACE + "cqRationale"
+                    ),
+                    query=_test_dsl_value(graph, subject, NAMESPACE + "cqQuery"),
+                    query_file=_test_dsl_value(
+                        graph, subject, NAMESPACE + "cqQueryFile"
+                    ),
+                    expect_ask=_test_dsl_value(
+                        graph, subject, NAMESPACE + "cqExpectAsk"
+                    ),
+                    expect_row_count=_test_dsl_value(
+                        graph, subject, NAMESPACE + "cqExpectRowCount"
+                    ),
+                    exact_rows=_test_dsl_value(
+                        graph, subject, NAMESPACE + "cqExactRows"
+                    ),
+                    rows=_test_dsl_expected_rows(graph, subject),
+                )
+            )
+        for subject in graph.subjects(RDF.type, sa_type):
+            if not isinstance(subject, URIRef):
+                continue
+            specs.structural_assertions.append(
+                DocStructuralAssertion(
+                    iri=str(subject),
+                    polarity=_test_dsl_value(graph, subject, NAMESPACE + "saPolarity"),
+                    scope=_test_dsl_value(graph, subject, NAMESPACE + "saScope"),
+                    rationale=_test_dsl_value(
+                        graph, subject, NAMESPACE + "saRationale"
+                    ),
+                    pattern=_test_dsl_value(graph, subject, NAMESPACE + "saPattern"),
+                    shape=_test_dsl_value(graph, subject, NAMESPACE + "saShape"),
+                )
+            )
+        for subject in graph.subjects(RDF.type, ec_type):
+            if not isinstance(subject, URIRef):
+                continue
+            specs.example_conformances.append(
+                DocExampleConformance(
+                    iri=str(subject),
+                    example_file=_test_dsl_value(
+                        graph, subject, NAMESPACE + "exampleFile"
+                    ),
+                    outcome=_test_dsl_value(
+                        graph, subject, NAMESPACE + "expectedOutcome"
+                    ),
+                    violation_code=_test_dsl_value(
+                        graph, subject, NAMESPACE + "expectedViolationCode"
+                    ),
+                    rationale=_test_dsl_value(
+                        graph, subject, NAMESPACE + "conformanceRationale"
+                    ),
+                )
+            )
+        specs.competency_questions.sort(key=lambda q: q.iri)
+        specs.structural_assertions.sort(key=lambda a: a.iri)
+        specs.example_conformances.sort(key=lambda c: c.iri)
+        if not specs.is_empty:
+            grouped[slice_entry.name] = specs
+    return dict(sorted(grouped.items()))
+
+
 def _default_recipes() -> list[DocRecipe]:
     """Return stable task-oriented recipes backed by canonical examples."""
     return [
@@ -1751,6 +1969,7 @@ def _load_model(gts_path: Path | None = None) -> DocsModel:
     slices = discover_slices()
     examples = _collect_examples(slices, terms_by_curie)
     design_docs_by_slice = _collect_design_docs(slices)
+    test_specs_by_slice = _collect_test_specs(slices)
     examples_by_slice: dict[str, list[DocExample]] = defaultdict(list)
     for example in examples:
         examples_by_slice[example.slice_name].append(example)
@@ -1768,6 +1987,7 @@ def _load_model(gts_path: Path | None = None) -> DocsModel:
         examples=examples,
         examples_by_slice=dict(examples_by_slice),
         design_docs_by_slice=design_docs_by_slice,
+        test_specs_by_slice=test_specs_by_slice,
         recipes=_default_recipes(),
         learning_paths=_default_learning_paths(),
     )
@@ -3206,6 +3426,102 @@ def _slice_index(model: DocsModel) -> Page:
     return Page(Path("slices") / "index.md", "Slices", "\n".join(lines))
 
 
+def _test_spec_local(iri: str) -> str:
+    """Return a short, readable identifier for a test-spec individual."""
+    return iri.rsplit("/", 1)[-1].rsplit("#", 1)[-1]
+
+
+def _render_test_specs(specs: DocTestSpecs) -> list[str]:
+    """Render a slice's declarative test specs into a Markdown subsection (#783).
+
+    Mirrors the verify-query / competency rendering style already in this
+    generator: inline SPARQL fenced as ``sparql``, file references as repo-blob
+    links, and a compact bullet list per spec. Rendered deterministically (the
+    specs arrive sorted by IRI) so the docs drift gate is stable.
+    """
+    lines = [
+        "## Competency Questions & Test Specs",
+        "",
+        "This slice carries its tests AS ontology data in its `tests/` directory, "
+        "authored in the GMEOW test DSL. Each spec below is read and executed by "
+        "the test harness; the same annotation discipline that governs every "
+        "GMEOW term governs these tests.",
+        "",
+        "- **Sources:** "
+        + ", ".join(_repo_source_link(path) for path in specs.source_paths),
+        "",
+    ]
+    if specs.competency_questions:
+        lines.extend(["### Competency Questions", ""])
+        for question in specs.competency_questions:
+            local = _test_spec_local(question.iri)
+            heading = (
+                f"`{local}` — {question.label}" if question.label else f"`{local}`"
+            )
+            lines.extend([f"#### {heading}", ""])
+            if question.rationale:
+                lines.extend([f"- **Rationale:** {question.rationale}", ""])
+            if question.query:
+                lines.extend(["```sparql", question.query.rstrip(), "```", ""])
+            elif question.query_file:
+                lines.extend(
+                    [
+                        "- **Query file:** "
+                        + _repo_source_link(Path(question.query_file)),
+                        "",
+                    ]
+                )
+            expected: list[str] = []
+            if question.expect_ask:
+                expected.append(f"ASK = `{question.expect_ask}`")
+            if question.expect_row_count:
+                expected.append(f"row count = `{question.expect_row_count}`")
+            if question.exact_rows:
+                expected.append(f"exact rows = `{question.exact_rows}`")
+            if expected:
+                lines.extend([f"- **Expected:** {'; '.join(expected)}", ""])
+            if question.rows:
+                lines.extend(["- **Expected rows:**", ""])
+                for row in question.rows:
+                    lines.append(f"  - {', '.join(f'`{cell}`' for cell in row)}")
+                lines.append("")
+    if specs.structural_assertions:
+        lines.extend(["### Structural Assertions", ""])
+        for assertion in specs.structural_assertions:
+            lines.extend([f"#### `{_test_spec_local(assertion.iri)}`", ""])
+            facts: list[str] = []
+            if assertion.polarity:
+                facts.append(f"**Polarity:** `{assertion.polarity}`")
+            if assertion.scope:
+                facts.append(f"**Scope:** `{assertion.scope}`")
+            if facts:
+                lines.extend([f"- {' · '.join(facts)}", ""])
+            if assertion.rationale:
+                lines.extend([f"- **Rationale:** {assertion.rationale}", ""])
+            if assertion.pattern:
+                lines.extend(["```sparql", assertion.pattern.rstrip(), "```", ""])
+            elif assertion.shape:
+                lines.extend([f"- **Shape:** `{assertion.shape}`", ""])
+    if specs.example_conformances:
+        lines.extend(
+            [
+                "### Example Conformance",
+                "",
+                "| Example File | Outcome | Violation Code | Rationale |",
+                "|---|---|---|---|",
+            ]
+        )
+        for conformance in specs.example_conformances:
+            lines.append(
+                f"| `{conformance.example_file}` | "
+                f"`{conformance.outcome or '-'}` | "
+                f"`{conformance.violation_code or '-'}` | "
+                f"{_escape_md_cell(_short_text(conformance.rationale) or '-')} |"
+            )
+        lines.append("")
+    return lines
+
+
 def _slice_page(slice_entry: Slice, model: DocsModel) -> Page:
     """Render a slice guide page."""
     guide = slice_entry.path / "docs.md"
@@ -3280,6 +3596,9 @@ def _slice_page(slice_entry: Slice, model: DocsModel) -> Page:
                 f"{_repo_source_link(design_doc.path)} |"
             )
         lines.append("")
+    test_specs = model.test_specs_by_slice.get(slice_entry.name)
+    if test_specs is not None:
+        lines.extend(_render_test_specs(test_specs))
     lines.extend(
         [
             "## Local Map",
@@ -4683,6 +5002,10 @@ def ontology_docs_inputs() -> Sequence[Path]:
         *sorted(SLICES_DIR.glob("*/*/docs.md")),
         *sorted(SLICES_DIR.glob("*/*/design/*.md")),
         *sorted(SLICES_DIR.glob("*/*/examples/*.ttl")),
+        # slice-resident declarative test specs rendered into the per-slice docs,
+        # plus the test-DSL vocabulary they are authored in (#783)
+        TEST_DSL_VOCABULARY_FILE,
+        *iter_slice_test_files(),
         # verify queries are rendered into the Integrity Constraints page (#695)
         *sorted(VERIFY_DIR.glob("*.rq")),
         *iter_slice_query_files("verify"),

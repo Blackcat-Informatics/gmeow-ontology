@@ -1,0 +1,30 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# COUNTER-EXAMPLE (intentionally invalid). Lives under tests/counter-examples/,
+# NEVER under examples/, so the conforming-examples validation gate does NOT load
+# it as data. Its expected validation outcome is pinned by the gmeow:violates
+# fixture ex:ecDoxasticStateMissingAgent in ../example-conformance.ttl.
+#
+# A gmeow:DoxasticState MUST carry exactly one gmeow:epistemicAgent
+# (gmeow:DoxasticStateShape, sh:minCount 1). This individual omits it, so SHACL
+# validation MUST report shacl.MinCountConstraintComponent.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/epistemics/counter/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+
+ex:propIsNoon a gmeow:Proposition ;
+    rdfs:label "the current time is 12:00"@x-gmeow-english .
+
+ex:adaClaim a gmeow:StandpointClaim ;
+    rdfs:label "Ada's standpoint claim that it is noon"@x-gmeow-english ;
+    gmeow:claimModality gmeow:unequivocal .
+
+# Invalid: a DoxasticState with content and claim but NO gmeow:epistemicAgent.
+ex:adaBeliefNoAgent a gmeow:DoxasticState ;
+    rdfs:label "an agent-less doxastic state (counter-example)"@x-gmeow-english ;
+    gmeow:doxasticContent ex:propIsNoon ;
+    gmeow:doxasticClaim ex:adaClaim ;
+    gmeow:credence "0.95"^^xsd:decimal .

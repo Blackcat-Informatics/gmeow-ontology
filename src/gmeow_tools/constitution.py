@@ -31,6 +31,7 @@ from pathlib import Path
 from rdflib import RDF, RDFS, Graph, URIRef
 from rdflib.term import Literal
 
+from gmeow_tools import diagnostics
 from gmeow_tools.config import PROJECT_ROOT
 from gmeow_tools.validate import ValidationResult
 
@@ -402,3 +403,22 @@ def check_constitution(
     _check_generator_registry(manifest, result)
     _check_supersession(constitution_text, manifest, result)
     return result
+
+
+def to_diagnostics_report(
+    result: ValidationResult,
+    *,
+    tool: str = "constitution",
+) -> diagnostics.DiagnosticsReport:
+    """Project a constitution check into the canonical diagnostics report (#654).
+
+    The constitution gate emits flat error/warning strings, so this folds them
+    through the legacy adapter with the codes ``constitution.error`` /
+    ``constitution.warning``. Granular per-check codes (principle-unenforced,
+    stale-reference, …) are a documented follow-up.
+    """
+    return diagnostics.report_from_messages(
+        tool=tool,
+        errors=result.errors,
+        warnings=result.warnings,
+    )
