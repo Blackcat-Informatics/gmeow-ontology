@@ -458,3 +458,36 @@ The foundation declares its charter and vocabulary; the formal meaning of each m
 [LOGIC-SEMANTICS.md](LOGIC-SEMANTICS.md), the configuration of a reasoning request in
 [LOGIC-CONTRACT.md](LOGIC-CONTRACT.md), the typed compilation target in [LOGIC-IR.md](LOGIC-IR.md),
 and state-change semantics in [LOGIC-TRANSACTION.md](LOGIC-TRANSACTION.md).
+
+## Foundation projection and discipline
+
+UFO⁺ is authored in `logic:`; the upper ontologies are generated, and they are not all the same kind
+of projection.
+
+**gUFO is the primary down-projection of UFO⁺** — the OWL realization of the same UFO lineage,
+truth-preserving for the fragment OWL expresses, validated by running the full set of OntoUML
+anti-pattern checks over the downcast. The downcast satisfies all five disciplines: stereotype
+cardinality, identity overlap, anti-rigidity, free-role integrity, and relator mediation.
+
+**BFO, DOLCE, and SUMO are generated alignment/bridge views, not truth-preserving projections**,
+unless a specific subfragment is certified as such in the loss ledger. They carry different
+ontological commitments, and the maximal-source doctrine respects that rather than claiming a shared
+foundation. A bridge view is labelled in [LOGIC-CONFORMANCE.md](LOGIC-CONFORMANCE.md) so no consumer
+mistakes it for a sound projection.
+
+**The OntoUML disciplines are `logic:` rules, not external checks.** The native evaluator derives
+`logic:violation` facts that reproduce, class-for-class, the offending sets the structural checks
+identify — five violation labels from four checks: `logic:StereotypeCardinality`, `logic:MixIden`,
+`logic:FreeRole`, `logic:MixRig`, and `logic:RelComp` — under the stratified-negation preset. The
+structural checks are the regression specification of the lowering; the lowering is the enforcement.
+
+**Cross-world rigidity** — the world-spanning universal quantifier no ordinary in-world Datalog rule
+expresses — is a bounded closure pass over the finite materialized world set, emitting
+`logic:rigidityViolation` in the world where rigidity persistence fails; it ranges over the
+materialized worlds and engages wherever at least two worlds coexist. **Anti-rigidity's witness
+obligation** — a world of existence where the instance lacks the type — is discharged through the
+generative counterfactual construction of the typed context algebra (see
+[LOGIC-SEMANTICS.md § Anti-rigidity needs a witness policy](LOGIC-SEMANTICS.md#anti-rigidity-needs-a-witness-policy)),
+and the anti-rigidity policy a contract declares governs the instance-level obligation. The operational
+semantics of these disciplines are in
+[LOGIC-SEMANTICS.md § Operational semantics](LOGIC-SEMANTICS.md#operational-semantics-modality-and-identity-supply).

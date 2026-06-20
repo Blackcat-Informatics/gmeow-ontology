@@ -434,9 +434,9 @@ A maximally expressive logic demands a foundational ontology authored *in that l
 from a weaker one. "gUFO" is *gentle* UFO — a deliberately lightweight OWL 2 realization that drops
 the modal distinctions and higher-order types of full UFO to stay inside OWL's decidable ceiling, so
 it embodies the very restraint `logic:` rejects. The foundational theory — **UFO⁺** — is authored
-canonically in the `logic:` namespace; gUFO becomes a generated down-projection (the rollout and the
-gUFO/BFO/DOLCE distinction are in
-[LOGIC-MIGRATION.md](LOGIC-MIGRATION.md#foundation-projection-and-discipline)).
+canonically in the `logic:` namespace; gUFO becomes a generated down-projection (the gUFO/BFO/DOLCE
+distinction is in
+[LOGIC-FOUNDATION.md § Foundation projection and discipline](LOGIC-FOUNDATION.md#foundation-projection-and-discipline)).
 
 The foundational categories are `logic:` terms in the one namespace: `logic:Kind`, `logic:SubKind`,
 `logic:Phase`, `logic:Role`, `logic:Category`, `logic:Mixin`, `logic:RoleMixin`, `logic:PhaseMixin`,

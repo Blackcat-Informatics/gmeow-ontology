@@ -34,14 +34,15 @@ implemented against rather than only read:
 
 | Document | Genre | Contents |
 | --- | --- | --- |
-| [`design/LOGIC.md`](./design/LOGIC.md) | manifesto | vision, doctrine, lineage, target architecture |
+| [`design/LOGIC.md`](./design/LOGIC.md) | manifesto | vision, doctrine, lineage, end state |
 | [`design/LOGIC-FOUNDATION.md`](./design/LOGIC-FOUNDATION.md) | charter | the `gmeow:logic` upper-ontology charter — the gUFO ⊇ baseline, the criticism ledger, the greenfield feature map, the Ithkuil precision ethos, the four-box organization |
 | [`design/LOGIC-CONTRACT.md`](./design/LOGIC-CONTRACT.md) | configuration | the reasoning contract — the orthogonal facets a reasoning request selects; named profiles as presets; the compatibility matrix |
 | [`design/LOGIC-IR.md`](./design/LOGIC-IR.md) | intermediate representation | the typed, full first-order IR every source compiles into and every projection out of; the per-lowering preservation judgment |
 | [`design/LOGIC-SEMANTICS.md`](./design/LOGIC-SEMANTICS.md) | formal semantics | the unified core, triple-term/assertion rules, the reasoning result, modality, the typed context algebra, decidability |
 | [`design/LOGIC-TRANSACTION.md`](./design/LOGIC-TRANSACTION.md) | state change | Transaction Logic — path semantics, serial conjunction, updates as supersession, the state-change facet |
+| [`design/LOGIC-TELEOLOGY.md`](./design/LOGIC-TELEOLOGY.md) | goal/action layer | goals, intentional modes, structured goal expressions, reified goal evaluation, action schemas, goal decomposition and conflict; the intention → plan → action → transaction-path chain |
+| [`design/LOGIC-COGNITION.md`](./design/LOGIC-COGNITION.md) | cognitive assessment | the multidimensional cognitive-assessment construct — factored dimensions of reasoning quality, reliability, calibration, and metacognitive posture; reasoning quality over the inference modes; reliability over the typed reasoning result |
 | [`design/LOGIC-RUNTIME.md`](./design/LOGIC-RUNTIME.md) | runtime | solver architecture, the materialization–resolution seam, graph versioning, generated artifacts |
-| [`design/LOGIC-MIGRATION.md`](./design/LOGIC-MIGRATION.md) | rollout | the MVP ladder, adapter phases, gates, deprecations, the design risk register |
 | [`design/LOGIC-CONFORMANCE.md`](./design/LOGIC-CONFORMANCE.md) | contract | the conformance corpus and the loss-ledger preservation contract |
 | [`design/LOGIC-REFERENCES.md`](./design/LOGIC-REFERENCES.md) | appendix | external standards, theory, and engines cited — staged for the `metadata/references.ttl` ledger |
 
