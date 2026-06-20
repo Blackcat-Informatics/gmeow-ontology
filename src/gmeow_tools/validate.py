@@ -88,6 +88,7 @@ def _shapes_turtle(shapes_path: Path) -> str:
     dsl_shapes = {
         "mapping-dsl-shapes.ttl",
         "statement-dsl-shapes.ttl",
+        "test-dsl-shapes.ttl",
         "slice-manifest-shapes.ttl",  # targets manifests, not the data graph
         shapes_path.name,
     }
@@ -670,6 +671,20 @@ def validate_all(
             py_warnings.extend(i18n_report.warnings)
         except Exception as exc:  # pragma: no cover - guard against unknown failures
             message = f"i18n PO lint failed: {exc}"
+            result.errors.append(message)
+            py_errors.append(message)
+
+        # Test-DSL SHACL gate (#783): the slice-resident declarative test
+        # fixtures (slices/*/*/tests/*.ttl) plus their authoring vocabulary are
+        # validated against the test-DSL shapes here, Python-side, since the Rust
+        # engine does not own this lane. A violation is a real validation error.
+        try:
+            from gmeow_tools.mapping_dsl import CompileError
+            from gmeow_tools.test_dsl import load_test_dsl
+
+            load_test_dsl()
+        except CompileError as exc:
+            message = str(exc)
             result.errors.append(message)
             py_errors.append(message)
 
