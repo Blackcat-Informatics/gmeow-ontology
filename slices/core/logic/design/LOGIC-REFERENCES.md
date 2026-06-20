@@ -111,6 +111,13 @@ unless they themselves cite an external work; they are cross-references within G
 - Koestler, A. (1967). *The Ghost in the Machine.* Hutchinson. (Holon / holarchy concept: every
   whole is simultaneously a part of a larger whole; grounds the contextual mereology of the logic
   layer's module and context hierarchy — see LOGIC-FOUNDATION.md.)
+- Bratman, M. E. (1987). *Intention, Plans, and Practical Reason.* Harvard University Press. (The
+  belief–desire–intention account: intentions as commitments distinct from desire, and plans as
+  partial, hierarchical structures refined toward action; grounds the commitment-graded modes and
+  goal decomposition of the goal-and-action layer — see LOGIC-TELEOLOGY.md.)
+- von Wright, G. H. (1951). *Deontic Logic.* Mind 60(237). (The modal treatment of obligation,
+  permission, and prohibition; grounds the deontic force that ranges over goals — see
+  LOGIC-TELEOLOGY.md.)
 
 ## Engines and tools (`intentBridgedByReference`)
 
