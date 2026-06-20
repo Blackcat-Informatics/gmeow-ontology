@@ -40,6 +40,7 @@ REP_MAPPINGS = "mappings-archive"  # tar of generated/mappings/*.sssom.tsv
 REP_QUERIES = "queries-archive"  # tar of generated/queries/*.rq
 REP_CELLS = "cells-archive"  # tar of the cell/projection TTL sources (repo-rel paths)
 REP_TESTS = "tests-archive"  # tar of the slice test-DSL specs (repo-rel paths, #783)
+REP_REASONING = "reasoning-archive"  # tar of canonical reasoning products (#667)
 REP_DENIED = "transform:denied"  # JSON of the saturation refusal set (alignment lint)
 _GUIDE_BLOB = NAMESPACE + "guideBlob"
 
@@ -118,6 +119,19 @@ def bundled_tests() -> dict[str, bytes]:
     :func:`gmeow_tools.slices.iter_slice_test_files`.
     """
     return _archive(REP_TESTS)
+
+
+def bundled_reasoning() -> dict[str, bytes]:
+    """Every folded native-reasoning product as ``{repo-path: nq-bytes}`` (#667).
+
+    The closure / explanations / divergence-ledger the native EL/DL engine derived,
+    embedded RDFC-1.0 canonical so a repo-free ``gmeow.gts`` consumer can read the
+    reasoning results (maximal information flow, north-star (d)) WITHOUT re-running
+    the engine. Keys preserve the repo-relative path
+    (``generated/logic/<file>.ttl``); the bytes are canonical N-Quads (stable
+    regardless of the reasoner's emission order), not the human-readable Turtle.
+    """
+    return _archive(REP_REASONING)
 
 
 def _is_slice_mapping(relpath: str) -> bool:

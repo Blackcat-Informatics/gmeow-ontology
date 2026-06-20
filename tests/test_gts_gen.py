@@ -137,6 +137,51 @@ def test_committed_snapshot_reproduces_from_sources(fresh_snapshot: bytes) -> No
     assert fresh_fold == committed_fold
 
 
+_REASONING_MEMBERS = [
+    "generated/logic/dl-el-crosscheck-report.ttl",
+    "generated/logic/inferred-closure.rdf12.ttl",
+    "generated/logic/reasoning-explanations.rdf12.ttl",
+]
+
+
+@pytest.mark.ci_only
+def test_snapshot_embeds_canonical_reasoning_blobs(fresh_snapshot: bytes) -> None:
+    """The native-reasoning products fold into the bundle as canonical blobs (#667).
+
+    Maximal information flow (north-star (d)): the closure / explanations /
+    divergence-ledger ride the bundle so a repo-free consumer reads them without
+    re-running the engine.
+    """
+    import io
+    import tarfile
+
+    from gmeow_tools.bundle import REP_REASONING
+
+    graph = read(fresh_snapshot)
+    rep_blobs = [
+        graph.blobs[digest]
+        for digest, meta in graph.blob_meta.items()
+        if meta.get("rep") == REP_REASONING
+    ]
+    assert len(rep_blobs) == 1, "exactly one reasoning archive blob"
+    with tarfile.open(fileobj=io.BytesIO(rep_blobs[0]), mode="r") as tar:
+        names = sorted(m.name for m in tar.getmembers() if m.isfile())
+    assert names == _REASONING_MEMBERS
+
+
+def test_bundled_reasoning_is_canonical() -> None:
+    """``bundled_reasoning`` returns RDFC-1.0 canonical bytes per product (#667)."""
+    from gmeow_tools.bundle import bundled_reasoning
+    from gmeow_tools.native_reason_gen import NATIVE_CLOSURE_FILE, _canonical_quads
+
+    arts = bundled_reasoning()
+    assert sorted(arts) == _REASONING_MEMBERS
+    # The embedded bytes are the star-aware RDFC-1.0 canonical form (order-invariant),
+    # so they equal a fresh recompute regardless of the reasoner's emission order.
+    expected = ("\n".join(_canonical_quads(NATIVE_CLOSURE_FILE)) + "\n").encode("utf-8")
+    assert arts["generated/logic/inferred-closure.rdf12.ttl"] == expected
+
+
 def test_committed_snapshot_uses_deterministic_gzip_frames() -> None:
     """The committed bundle avoids zstd byte drift across CI/local codecs."""
     data = GTS_SNAPSHOT_FILE.read_bytes()
