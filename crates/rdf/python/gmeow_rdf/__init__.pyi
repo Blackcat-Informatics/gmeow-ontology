@@ -5,12 +5,13 @@
 # verbatim from crates/rdf/src/py.rs (the statement codec) and
 # crates/rdf/src/py_store.rs (the native oxigraph Store / SPARQL / parse /
 # canonicalize surface, #667) — keep them in lockstep with those files (they are
-# the ABI source of truth). This stub is the in-repo replacement for the external
-# `pyoxigraph` type surface: the term/result/store classes mirror the slice of
-# pyoxigraph the codebase relies on.
+# the ABI source of truth). This stub describes the native `gmeow_rdf` term /
+# result / store surface — the in-repo binding that replaced the external RDF
+# package removed in #667.
 
 from __future__ import annotations
 
+import builtins
 from typing import IO, overload
 
 # ── Statement codec (crates/rdf/src/py.rs) ──────────────────────────────────────
@@ -74,7 +75,9 @@ class Triple:
     @property
     def object(self) -> _Term: ...
     def __hash__(self) -> int: ...
-    def __eq__(self, other: object) -> bool: ...
+    # `object` (the property above) shadows the builtin in class scope, so the
+    # annotation must qualify it — otherwise mypy reads it as `Triple.object`.
+    def __eq__(self, other: builtins.object) -> bool: ...
 
 class DefaultGraph:
     def __init__(self) -> None: ...
@@ -96,7 +99,9 @@ class Quad:
     @property
     def graph_name(self) -> NamedNode | BlankNode | DefaultGraph: ...
     def __hash__(self) -> int: ...
-    def __eq__(self, other: object) -> bool: ...
+    # `object` (the property above) shadows the builtin in class scope, so the
+    # annotation must qualify it — otherwise mypy reads it as `Quad.object`.
+    def __eq__(self, other: builtins.object) -> bool: ...
 
 class Variable:
     def __init__(self, value: str) -> None: ...
@@ -105,7 +110,11 @@ class Variable:
     def __hash__(self) -> int: ...
     def __eq__(self, other: object) -> bool: ...
 
-_Subject = NamedNode | BlankNode | Triple
+# RDF 1.2 (unlike the obsolete RDF-star) permits triple terms in the OBJECT
+# position only: a subject is an IRI or blank node, never a quoted triple. This
+# mirrors oxigraph's `NamedOrBlankNode` subject type — see `extract_subject` in
+# crates/rdf/src/py_store.rs.
+_Subject = NamedNode | BlankNode
 _Term = NamedNode | BlankNode | Literal | Triple
 
 # ── Query results ───────────────────────────────────────────────────────────────

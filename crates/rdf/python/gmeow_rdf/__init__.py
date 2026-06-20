@@ -10,8 +10,9 @@ and the PEP 561 ``py.typed`` marker can ship alongside the extension — see
 the extension's own docstring, matching maturin's generated wrapper.
 """
 
+from . import gmeow_rdf as _ext
 from .gmeow_rdf import *  # noqa: F403
 
-__doc__ = gmeow_rdf.__doc__  # noqa: F405
-if hasattr(gmeow_rdf, "__all__"):  # noqa: F405
-    __all__ = gmeow_rdf.__all__  # noqa: F405
+__doc__ = _ext.__doc__
+if hasattr(_ext, "__all__"):
+    __all__ = _ext.__all__
