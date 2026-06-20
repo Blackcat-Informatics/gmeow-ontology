@@ -1,17 +1,14 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: CC-BY-4.0
 #
-# Declarative competency questions authored as slice-resident test-DSL data.
-# Two exemplars proving both fidelity tiers of gmeow:CompetencyQuestion:
-#   * a SMALL, fully-enumerated SELECT (gmeow:cqExpectRow + gmeow:cqExactRows true)
-#   * a COARSE SELECT pinned by gmeow:cqExpectRowCount (escape hatch) with two
-#     sample rows, full enumeration deferred to the T3 migration.
-#
-# Both reference real shared .rq files under queries/competency/ via the
-# REPO-ROOT-relative gmeow:cqQueryFile. Expected rows/counts were measured by
-# running each query over the merged ontology graph closed under OWL 2 RL
-# (gmeow_tools.native_rl.native_rl_closure) — the same reasoned-graph harness
-# tests/test_competency.py uses — so the answers are entailed, not asserted.
+# Declarative competency questions authored as slice-resident test-DSL data,
+# executed by the native Rust slice-test harness (crates/slicetest, #784).
+# Two exemplars, both fully-enumerated SELECTs (gmeow:cqExpectRow + gmeow:cqExactRows
+# true): "what kinds of agent?" and "what contribution roles?". Both run in the
+# default asserted lane (gmeow:reasoningNone): the agent query uses an
+# rdfs:subClassOf* property path and the 48 roles are directly typed, so the
+# expected rows were MEASURED over the asserted merged graph — no OWL 2 RL chase.
+# See docs/TESTING.md.
 
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/epistemics/tests/> .
@@ -61,25 +58,301 @@ ex:cqAgentRowSoftwareAgent a gmeow:ExpectedRow ;
         gmeow:cellVar "agentKind" ;
         gmeow:cellValueIri gmeow:SoftwareAgent ] .
 
-# --- B. Coarse SELECT pinned by row count: "what contribution roles?" ---------
-# queries/competency/contribution-roles.rq projects ?role = a gmeow:ContributionRole.
-# Measured 48 rows over the reasoned graph; cqExpectRowCount pins the count with
-# cqExactRows true, plus two sample rows. Full enumeration is left to T3.
+# --- B. Fully-enumerated SELECT: "what contribution roles?" -------------------
+# queries/competency/contribution-roles.rq projects ?role a gmeow:ContributionRole.
+# T3 (#784) finishes the enumeration the T2 escape hatch deferred: all 48
+# gmeow:ContributionRole individuals (the CRediT canon plus GMEOW's domain
+# extensions), MEASURED over the asserted merged graph, with cqExactRows true.
 ex:cqContributionRoles a gmeow:CompetencyQuestion ;
     gmeow:cqQueryFile "queries/competency/contribution-roles.rq" ;
-    gmeow:cqRationale "GMEOW must enumerate the contribution roles it supports (the CRediT canon plus GMEOW's domain extensions). The reasoned graph returns exactly 48 gmeow:ContributionRole individuals; this coarse count plus two sample rows pins the size today — full per-row enumeration is deferred to the T3 runner migration." ;
-    gmeow:cqExpectRowCount 48 ;
+    gmeow:cqRationale "GMEOW must enumerate the contribution roles it supports (the CRediT canon plus GMEOW's domain extensions). The asserted graph returns exactly 48 gmeow:ContributionRole individuals; T3 enumerates every one (cqExactRows true), replacing the T2 coarse-count escape hatch." ;
     gmeow:cqExactRows true ;
     gmeow:cqExpectRow
-        ex:cqRoleRowAuthor ,
-        ex:cqRoleRowSoftware .
+        ex:cqRoleRowAIAssistant,
+        ex:cqRoleRowArranger,
+        ex:cqRoleRowAuthor,
+        ex:cqRoleRowBotContributor,
+        ex:cqRoleRowCodeReviewer,
+        ex:cqRoleRowComposer,
+        ex:cqRoleRowConceptualization,
+        ex:cqRoleRowConductor,
+        ex:cqRoleRowCoverArtist,
+        ex:cqRoleRowDataCuration,
+        ex:cqRoleRowDirector,
+        ex:cqRoleRowEditor,
+        ex:cqRoleRowFormalAnalysis,
+        ex:cqRoleRowFundingAcquisition,
+        ex:cqRoleRowIllustrator,
+        ex:cqRoleRowInventor,
+        ex:cqRoleRowInvestigation,
+        ex:cqRoleRowLetterer,
+        ex:cqRoleRowLibrettist,
+        ex:cqRoleRowLLMAssistedEditor,
+        ex:cqRoleRowLyricist,
+        ex:cqRoleRowMasteringEngineer,
+        ex:cqRoleRowMethodology,
+        ex:cqRoleRowMixingEngineer,
+        ex:cqRoleRowNarrator,
+        ex:cqRoleRowOrchestrator,
+        ex:cqRoleRowPerformer,
+        ex:cqRoleRowPhotographer,
+        ex:cqRoleRowProducer,
+        ex:cqRoleRowProjectAdministration,
+        ex:cqRoleRowPublisher,
+        ex:cqRoleRowRecordingEngineer,
+        ex:cqRoleRowReleaser,
+        ex:cqRoleRowRemixer,
+        ex:cqRoleRowResources,
+        ex:cqRoleRowSamplingArtist,
+        ex:cqRoleRowSecurityContact,
+        ex:cqRoleRowSoftware,
+        ex:cqRoleRowSoftwareDeveloper,
+        ex:cqRoleRowSoftwareMaintainer,
+        ex:cqRoleRowSongwriter,
+        ex:cqRoleRowSoundDesigner,
+        ex:cqRoleRowSupervision,
+        ex:cqRoleRowTranslator,
+        ex:cqRoleRowValidation,
+        ex:cqRoleRowVisualization,
+        ex:cqRoleRowWritingOriginalDraft,
+        ex:cqRoleRowWritingReviewEditing .
+
+ex:cqRoleRowAIAssistant a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ;
+        gmeow:cellVar "role" ;
+        gmeow:cellValueIri gmeow:roleAIAssistant ] .
+
+ex:cqRoleRowArranger a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ;
+        gmeow:cellVar "role" ;
+        gmeow:cellValueIri gmeow:roleArranger ] .
 
 ex:cqRoleRowAuthor a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ;
         gmeow:cellVar "role" ;
         gmeow:cellValueIri gmeow:roleAuthor ] .
 
+ex:cqRoleRowBotContributor a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ;
+        gmeow:cellVar "role" ;
+        gmeow:cellValueIri gmeow:roleBotContributor ] .
+
+ex:cqRoleRowCodeReviewer a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ;
+        gmeow:cellVar "role" ;
+        gmeow:cellValueIri gmeow:roleCodeReviewer ] .
+
+ex:cqRoleRowComposer a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ;
+        gmeow:cellVar "role" ;
+        gmeow:cellValueIri gmeow:roleComposer ] .
+
+ex:cqRoleRowConceptualization a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ;
+        gmeow:cellVar "role" ;
+        gmeow:cellValueIri gmeow:roleConceptualization ] .
+
+ex:cqRoleRowConductor a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ;
+        gmeow:cellVar "role" ;
+        gmeow:cellValueIri gmeow:roleConductor ] .
+
+ex:cqRoleRowCoverArtist a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ;
+        gmeow:cellVar "role" ;
+        gmeow:cellValueIri gmeow:roleCoverArtist ] .
+
+ex:cqRoleRowDataCuration a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ;
+        gmeow:cellVar "role" ;
+        gmeow:cellValueIri gmeow:roleDataCuration ] .
+
+ex:cqRoleRowDirector a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ;
+        gmeow:cellVar "role" ;
+        gmeow:cellValueIri gmeow:roleDirector ] .
+
+ex:cqRoleRowEditor a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ;
+        gmeow:cellVar "role" ;
+        gmeow:cellValueIri gmeow:roleEditor ] .
+
+ex:cqRoleRowFormalAnalysis a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ;
+        gmeow:cellVar "role" ;
+        gmeow:cellValueIri gmeow:roleFormalAnalysis ] .
+
+ex:cqRoleRowFundingAcquisition a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ;
+        gmeow:cellVar "role" ;
+        gmeow:cellValueIri gmeow:roleFundingAcquisition ] .
+
+ex:cqRoleRowIllustrator a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ;
+        gmeow:cellVar "role" ;
+        gmeow:cellValueIri gmeow:roleIllustrator ] .
+
+ex:cqRoleRowInventor a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ;
+        gmeow:cellVar "role" ;
+        gmeow:cellValueIri gmeow:roleInventor ] .
+
+ex:cqRoleRowInvestigation a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ;
+        gmeow:cellVar "role" ;
+        gmeow:cellValueIri gmeow:roleInvestigation ] .
+
+ex:cqRoleRowLetterer a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ;
+        gmeow:cellVar "role" ;
+        gmeow:cellValueIri gmeow:roleLetterer ] .
+
+ex:cqRoleRowLibrettist a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ;
+        gmeow:cellVar "role" ;
+        gmeow:cellValueIri gmeow:roleLibrettist ] .
+
+ex:cqRoleRowLLMAssistedEditor a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ;
+        gmeow:cellVar "role" ;
+        gmeow:cellValueIri gmeow:roleLLMAssistedEditor ] .
+
+ex:cqRoleRowLyricist a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ;
+        gmeow:cellVar "role" ;
+        gmeow:cellValueIri gmeow:roleLyricist ] .
+
+ex:cqRoleRowMasteringEngineer a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ;
+        gmeow:cellVar "role" ;
+        gmeow:cellValueIri gmeow:roleMasteringEngineer ] .
+
+ex:cqRoleRowMethodology a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ;
+        gmeow:cellVar "role" ;
+        gmeow:cellValueIri gmeow:roleMethodology ] .
+
+ex:cqRoleRowMixingEngineer a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ;
+        gmeow:cellVar "role" ;
+        gmeow:cellValueIri gmeow:roleMixingEngineer ] .
+
+ex:cqRoleRowNarrator a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ;
+        gmeow:cellVar "role" ;
+        gmeow:cellValueIri gmeow:roleNarrator ] .
+
+ex:cqRoleRowOrchestrator a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ;
+        gmeow:cellVar "role" ;
+        gmeow:cellValueIri gmeow:roleOrchestrator ] .
+
+ex:cqRoleRowPerformer a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ;
+        gmeow:cellVar "role" ;
+        gmeow:cellValueIri gmeow:rolePerformer ] .
+
+ex:cqRoleRowPhotographer a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ;
+        gmeow:cellVar "role" ;
+        gmeow:cellValueIri gmeow:rolePhotographer ] .
+
+ex:cqRoleRowProducer a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ;
+        gmeow:cellVar "role" ;
+        gmeow:cellValueIri gmeow:roleProducer ] .
+
+ex:cqRoleRowProjectAdministration a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ;
+        gmeow:cellVar "role" ;
+        gmeow:cellValueIri gmeow:roleProjectAdministration ] .
+
+ex:cqRoleRowPublisher a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ;
+        gmeow:cellVar "role" ;
+        gmeow:cellValueIri gmeow:rolePublisher ] .
+
+ex:cqRoleRowRecordingEngineer a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ;
+        gmeow:cellVar "role" ;
+        gmeow:cellValueIri gmeow:roleRecordingEngineer ] .
+
+ex:cqRoleRowReleaser a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ;
+        gmeow:cellVar "role" ;
+        gmeow:cellValueIri gmeow:roleReleaser ] .
+
+ex:cqRoleRowRemixer a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ;
+        gmeow:cellVar "role" ;
+        gmeow:cellValueIri gmeow:roleRemixer ] .
+
+ex:cqRoleRowResources a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ;
+        gmeow:cellVar "role" ;
+        gmeow:cellValueIri gmeow:roleResources ] .
+
+ex:cqRoleRowSamplingArtist a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ;
+        gmeow:cellVar "role" ;
+        gmeow:cellValueIri gmeow:roleSamplingArtist ] .
+
+ex:cqRoleRowSecurityContact a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ;
+        gmeow:cellVar "role" ;
+        gmeow:cellValueIri gmeow:roleSecurityContact ] .
+
 ex:cqRoleRowSoftware a gmeow:ExpectedRow ;
     gmeow:rowCell [ a gmeow:ExpectedCell ;
         gmeow:cellVar "role" ;
         gmeow:cellValueIri gmeow:roleSoftware ] .
+
+ex:cqRoleRowSoftwareDeveloper a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ;
+        gmeow:cellVar "role" ;
+        gmeow:cellValueIri gmeow:roleSoftwareDeveloper ] .
+
+ex:cqRoleRowSoftwareMaintainer a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ;
+        gmeow:cellVar "role" ;
+        gmeow:cellValueIri gmeow:roleSoftwareMaintainer ] .
+
+ex:cqRoleRowSongwriter a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ;
+        gmeow:cellVar "role" ;
+        gmeow:cellValueIri gmeow:roleSongwriter ] .
+
+ex:cqRoleRowSoundDesigner a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ;
+        gmeow:cellVar "role" ;
+        gmeow:cellValueIri gmeow:roleSoundDesigner ] .
+
+ex:cqRoleRowSupervision a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ;
+        gmeow:cellVar "role" ;
+        gmeow:cellValueIri gmeow:roleSupervision ] .
+
+ex:cqRoleRowTranslator a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ;
+        gmeow:cellVar "role" ;
+        gmeow:cellValueIri gmeow:roleTranslator ] .
+
+ex:cqRoleRowValidation a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ;
+        gmeow:cellVar "role" ;
+        gmeow:cellValueIri gmeow:roleValidation ] .
+
+ex:cqRoleRowVisualization a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ;
+        gmeow:cellVar "role" ;
+        gmeow:cellValueIri gmeow:roleVisualization ] .
+
+ex:cqRoleRowWritingOriginalDraft a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ;
+        gmeow:cellVar "role" ;
+        gmeow:cellValueIri gmeow:roleWritingOriginalDraft ] .
+
+ex:cqRoleRowWritingReviewEditing a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ;
+        gmeow:cellVar "role" ;
+        gmeow:cellValueIri gmeow:roleWritingReviewEditing ] .

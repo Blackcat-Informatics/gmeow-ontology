@@ -10,6 +10,7 @@ members = [
     "crates/logic",
     "crates/rdf",
     "crates/shacl",
+    "crates/slicetest",
     "crates/validate",
 ]
 resolver = "2"

@@ -60,11 +60,10 @@ def _query_terms_on_graph(filename: str, graph: Graph) -> set[str]:
     return terms
 
 
-def test_competency_agents_query() -> None:
-    results = _query_terms("agents.rq")
-    # Agent and its skeleton subclasses must be returned.
-    for term in ("Agent", "Person", "Organization"):
-        assert NAMESPACE + term in results
+# test_competency_agents_query was migrated to the declarative test-DSL and now
+# runs in the native Rust slice-test harness as ex:cqAgentKinds in
+# slices/core/epistemics/tests/competency.ttl (full 6-row enumeration, exact).
+# See dsl/tests/MIGRATION-LEDGER.md (#784).
 
 
 def test_competency_works_query() -> None:
@@ -357,27 +356,10 @@ def test_competency_citation_intents_query() -> None:
     assert len(terms) >= 10
 
 
-def test_competency_contribution_roles_query() -> None:
-    terms = _query_terms("contribution-roles.rq")
-    for term in (
-        "roleAuthor",
-        "roleConceptualization",
-        "roleDataCuration",
-        "roleFormalAnalysis",
-        "roleFundingAcquisition",
-        "roleInvestigation",
-        "roleMethodology",
-        "roleProjectAdministration",
-        "roleResources",
-        "roleSoftware",
-        "roleSupervision",
-        "roleValidation",
-        "roleVisualization",
-        "roleWritingOriginalDraft",
-        "roleWritingReviewEditing",
-    ):
-        assert NAMESPACE + term in terms
-    assert len(terms) >= 15
+# test_competency_contribution_roles_query was migrated to the declarative
+# test-DSL and now runs in the native Rust slice-test harness as
+# ex:cqContributionRoles in slices/core/epistemics/tests/competency.ttl (full
+# 48-row enumeration, exact). See dsl/tests/MIGRATION-LEDGER.md (#784).
 
 
 def test_competency_evidence_query() -> None:
