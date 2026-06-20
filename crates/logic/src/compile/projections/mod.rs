@@ -3,8 +3,8 @@
 
 //! Projection back-ends: [`LogicProgram`] → each target format.
 //!
-//! A faithful Rust port of `src/gmeow_tools/logic_projections.py` — the
-//! projection phase of the #664 compiler.  Seven targets:
+//! The projection phase of the GMEOW Logic compiler (#664); the Python duplicate
+//! (`logic_projections.py`) was retired in #727.  Seven targets:
 //!
 //! * [`text::project_datalog`], [`text::project_n3`], [`text::project_nemo`] —
 //!   **byte-identical** text targets (the conformance goldens compare bytes).
@@ -43,6 +43,28 @@ pub struct CompiledArtifacts {
     pub nemo: String,
     /// `generated/logic/projection-report.ttl`.
     pub report: String,
+    /// The `% === Rules ===` section of [`nemo`](Self::nemo) — the rule text the
+    /// native reasoning engines (`materialize` / `certify` / `stable_models`)
+    /// consume.  Surfaced so Python no longer re-extracts it from `nemo`.
+    pub nemo_rules: String,
+    /// The preservation ledger: `target -> (preservationKind, complexityClass,
+    /// structural lossy-drop notes)`.  Surfaced as JSON by `compile_logic` so the
+    /// conformance runner no longer rebuilds it from Python `ProjectionResult`s.
+    pub preservation_ledger: Vec<LedgerEntry>,
+}
+
+/// One preservation-ledger row (the per-target metadata the conformance runner
+/// compares against `expected/projections/preservation-ledger.json`).
+#[derive(Debug, Clone)]
+pub struct LedgerEntry {
+    /// Short target name (`"owl-dl"`, `"datalog"`, …).
+    pub target: String,
+    /// The declared preservation kind value string (e.g. `"ExactPreservation"`).
+    pub preservation: String,
+    /// The declared complexity class string.
+    pub complexity: String,
+    /// Structural lossy-drop notes (the `lossy_drops` field of the Python ledger).
+    pub lossy_drops: Vec<String>,
 }
 
 /// Run every projection back-end over `program` and build the report — the full
@@ -68,6 +90,22 @@ pub fn compile_program(program: &LogicProgram) -> Result<CompiledArtifacts, Stri
     let owned: Vec<ProjectionResult> = results.iter().map(|r| (*r).clone()).collect();
     let report = report::build_projection_report(program, &owned).map_err(|e| e.to_string())?;
 
+    // Preservation ledger: per-target (kind, complexity, structural drops).  The
+    // runner compares only the structural `lossy_drops` (not `actual_drops`), so
+    // this mirrors the Python `ledger_json` builder exactly.
+    let preservation_ledger: Vec<LedgerEntry> = owned
+        .iter()
+        .map(|p| LedgerEntry {
+            target: p.target.clone(),
+            preservation: p.preservation.as_str().to_owned(),
+            complexity: p.complexity.clone(),
+            lossy_drops: p.lossy_drops.clone(),
+        })
+        .collect();
+
+    // The rule section of the nemo projection — the reasoning-engine surface.
+    let nemo_rules = text::extract_nemo_rules_section(&nemo.content)?;
+
     Ok(CompiledArtifacts {
         owl_dl: owl_dl.content,
         owl_el: owl_el.content,
@@ -77,6 +115,8 @@ pub fn compile_program(program: &LogicProgram) -> Result<CompiledArtifacts, Stri
         canonical_rdf12: canonical_rdf12.content,
         nemo: nemo.content,
         report,
+        nemo_rules,
+        preservation_ledger,
     })
 }
 
@@ -90,9 +130,8 @@ pub(crate) const XSD_NS: &str = "http://www.w3.org/2001/XMLSchema#";
 
 pub(crate) const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 
-/// The result of running a single projection back-end (port of the Python
-/// `ProjectionResult` dataclass, minus the rdflib `graph` field — RDF content is
-/// re-parsed from `content` for isomorphism checks).
+/// The result of running a single projection back-end (the `ProjectionResult`
+/// value; RDF content is re-parsed from `content` for isomorphism checks).
 #[derive(Debug, Clone)]
 pub struct ProjectionResult {
     /// Short target name (`"owl-dl"`, `"datalog"`, …).
@@ -112,7 +151,7 @@ pub struct ProjectionResult {
 }
 
 /// Per-target metadata: `(preservationKind, complexityClass, structural drops)`.
-/// A verbatim port of `_TARGET_META`.
+/// The per-target metadata table (the loss-ledger source of truth).
 pub(crate) fn target_meta(target: &str) -> (PreservationKind, &'static str, Vec<&'static str>) {
     match target {
         "owl-dl" => (
@@ -198,8 +237,7 @@ pub(crate) fn target_meta(target: &str) -> (PreservationKind, &'static str, Vec<
     }
 }
 
-/// Raised when a projection's declared preservation is stronger than achieved
-/// (port of `OverclaimError`).
+/// Raised when a projection's declared preservation is stronger than achieved.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct OverclaimError(pub String);
 
@@ -235,8 +273,7 @@ pub fn assert_no_overclaim(
 // Shared helpers (used by both text and rdf back-ends)
 // --------------------------------------------------------------------------- //
 
-/// Whether an axiom carries non-trivial contextual scope (port of
-/// `_is_modal_or_scoped`).
+/// Whether an axiom carries non-trivial contextual scope.
 pub(crate) fn is_modal_or_scoped(axiom: &LogicAxiom) -> bool {
     axiom.scope.modality != LogicModality::None
         || axiom.scope.standpoint.is_some()
@@ -245,7 +282,7 @@ pub(crate) fn is_modal_or_scoped(axiom: &LogicAxiom) -> bool {
         || axiom.scope.provenance.is_some()
 }
 
-/// The standard GENERATED header for a target (port of `_generated_banner`).
+/// The standard GENERATED header for a target.
 pub(crate) fn generated_banner(target: &str) -> String {
     format!(
         "# GENERATED by `gmeow logic compile` (logic_projections.py) — DO NOT EDIT.\n\

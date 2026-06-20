@@ -3,10 +3,10 @@
 
 //! Shared oxigraph access helpers for the compiler front-end + adapter.
 //!
-//! These mirror the rdflib idioms the Python compiler relies on — `str(node)`,
+//! These provide the RDF term/graph idioms the compiler relies on — `str(node)`,
 //! `graph.value(s, p)`, `graph.objects(s, p)`, `graph.subjects(p, o)` — over an
 //! oxigraph default-graph [`Store`], so the frontend, adapter, and projections
-//! share one definition of node stringification (the byte-parity surface).
+//! share one definition of node stringification (the golden-pinned surface).
 //!
 //! This is a shared toolkit built up across the #664 tasks; a few helpers
 //! (e.g. [`contains`]) land here for the projection back-ends (Task 4) before

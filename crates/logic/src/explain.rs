@@ -1,9 +1,8 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Faithful-by-construction explanation skeleton emitter — native Rust port of the
-//! Python explanation oracle (`gmeow_tools.logic_explain`, issue #501 Task 6;
-//! retired and replaced by this module under issue #497).
+//! The explanation skeleton emitter (issue #497) — the sole authority; the Python
+//! explanation oracle (`gmeow_tools.logic_explain`) was retired in #497.
 //!
 //! Given a materialization result (a list of derived quads each carrying full seam
 //! provenance), this module reconstructs the derivation tree for a target quad and
@@ -11,9 +10,10 @@
 //! Prose rendering is NOT reproduced here: the conformance gate compares only the
 //! `cited_iris` set and matches explanations by `target_quad_reifier`.
 //!
-//! # Parity is the whole point
+//! # The authoritative recipe
 //!
-//! Every IRI and every ordering decision here mirrors the Python oracle byte-for-byte:
+//! Every IRI and every ordering decision here is golden-pinned (conformance
+//! goldens compare the cited-IRI skeleton):
 //!
 //! 1. **Reifier recipe** — `sha1("<{s}> <{p}> {obj_n3}")` under `{NAMESPACE}reifier/`,
 //!    reusing [`crate::provenance::reifier_from_strings`] (the object N3 string is used

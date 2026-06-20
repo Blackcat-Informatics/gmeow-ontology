@@ -21,6 +21,11 @@ class CompileDiagnostic(TypedDict):
     message: str
     subject: str
 
+class LedgerEntry(TypedDict):
+    preservation: str
+    complexity: str
+    lossy_drops: list[str]
+
 class CompileLogicResult(TypedDict):
     owl_dl: str
     owl_el: str
@@ -30,6 +35,10 @@ class CompileLogicResult(TypedDict):
     canonical_rdf12: str
     nemo: str
     report: str
+    # The `% === Rules ===` section of `nemo` — the reasoning-engine rule surface.
+    nemo_rules: str
+    # Per-target preservation ledger, keyed by target short-name.
+    preservation_ledger: dict[str, LedgerEntry]
     diagnostics: list[CompileDiagnostic]
 
 def materialize(

@@ -769,6 +769,22 @@ fn compile_logic<'py>(py: Python<'py>, source_ttl: &str) -> PyResult<Bound<'py, 
     out.set_item("canonical_rdf12", arts.canonical_rdf12)?;
     out.set_item("nemo", arts.nemo)?;
     out.set_item("report", arts.report)?;
+    // The reasoning-engine rule surface (the `% === Rules ===` section of the nemo
+    // projection) — so the runner stops re-extracting it from `nemo` in Python.
+    out.set_item("nemo_rules", arts.nemo_rules)?;
+    // The preservation ledger as a JSON-able dict, keyed by target name, each value
+    // `{preservation, complexity, lossy_drops}` — the exact shape the conformance
+    // runner compares against `expected/projections/preservation-ledger.json`.
+    let ledger = PyDict::new(py);
+    for entry in &arts.preservation_ledger {
+        let row = PyDict::new(py);
+        row.set_item("preservation", entry.preservation.as_str())?;
+        row.set_item("complexity", entry.complexity.as_str())?;
+        let drops: Vec<&str> = entry.lossy_drops.iter().map(String::as_str).collect();
+        row.set_item("lossy_drops", drops)?;
+        ledger.set_item(entry.target.as_str(), row)?;
+    }
+    out.set_item("preservation_ledger", ledger)?;
     out.set_item("diagnostics", diag_list)?;
     Ok(out)
 }

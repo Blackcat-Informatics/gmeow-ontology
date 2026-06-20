@@ -3,11 +3,12 @@
 
 //! Front-end parser: a `logic:` RDF 1.2 source graph → [`LogicProgram`].
 //!
-//! A faithful Rust port of `src/gmeow_tools/logic_frontend.py`, parsing a
-//! `logic:`-vocabulary RDF graph (Turtle text or a parsed oxigraph [`Store`])
-//! into a typed [`LogicProgram`] plus a list of [`Diagnostic`] messages.
+//! The `logic:` front-end parser (#664); the Python duplicate
+//! (`logic_frontend.py`) was retired in #727.  It parses a `logic:`-vocabulary
+//! RDF graph (Turtle text or a parsed oxigraph [`Store`]) into a typed
+//! [`LogicProgram`] plus a list of [`Diagnostic`] messages.
 //!
-//! # Parse contract (identical to the Python ancestor)
+//! # Parse contract
 //!
 //! * **Fail-soft** on recoverable issues — a malformed axiom, a rule with no
 //!   head, an unrecognised profile IRI — emits a `WARNING` [`Diagnostic`] and is

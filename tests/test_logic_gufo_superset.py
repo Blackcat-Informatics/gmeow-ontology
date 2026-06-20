@@ -28,15 +28,92 @@ from rdflib import RDF, Graph, Literal, Namespace, URIRef
 from rdflib.namespace import OWL
 
 from gmeow_tools.config import IMPORTS_DIR, LOGIC_NAMESPACE, PREFIXES, SLICES_DIR
-from gmeow_tools.logic_adapter import (
-    _GUFO_CLASS_TO_LOGIC,
-    SUPERSEDED,
-)
 
 GUFO = Namespace(PREFIXES["gufo"])
 GMEOW = Namespace(PREFIXES["gmeow"])
 LOGIC = Namespace(LOGIC_NAMESPACE)
 EX = Namespace("https://blackcatinformatics.ca/gmeow/examples/logic/")
+
+
+class _Superseded:
+    """Sentinel: a gUFO class deliberately superseded by logic:Fluent + RDF-1.2.
+
+    Not a faithful 1:1 correspondence target — the gUFO temporary-situation
+    reifiers are replaced by the logic:Fluent edge-property pattern, not mapped to
+    a single logic: class.
+    """
+
+
+SUPERSEDED = _Superseded()
+
+#: The ``gmeow:logic ⊇ gUFO`` coverage map: every gUFO ``owl:Class`` → the
+#: richer ``logic:`` term that subsumes it, or the :data:`SUPERSEDED` sentinel.
+#:
+#: This is a **test-only floor-gate fixture** (issue #663 Task 4), NOT compiler
+#: runtime — the Rust adapter (``crates/logic/src/compile/adapter.rs``)
+#: intentionally does not port it (only the 11-stereotype runtime sort map).  It
+#: was inlined here when the Python compiler duplicate was deleted in #727 so the
+#: floor gate keeps enforcing coverage against ``imports/gufo.ttl`` +
+#: ``slices/core/logic/module.ttl``.
+_GUFO_CLASS_TO_LOGIC: dict[URIRef, str | _Superseded] = {
+    # --- Top of the individual taxonomy ---
+    GUFO.Individual: LOGIC_NAMESPACE + "Individual",
+    GUFO.ConcreteIndividual: LOGIC_NAMESPACE + "ConcreteIndividual",
+    GUFO.AbstractIndividual: LOGIC_NAMESPACE + "AbstractIndividual",
+    # --- Endurants / perdurants / situations (concrete-individual spine) ---
+    GUFO.Endurant: LOGIC_NAMESPACE + "Endurant",
+    GUFO.Event: LOGIC_NAMESPACE + "Event",
+    GUFO.Situation: LOGIC_NAMESPACE + "Situation",
+    GUFO.Participation: LOGIC_NAMESPACE + "Participation",
+    # --- Endurant subkinds: objects vs aspects ---
+    GUFO.Object: LOGIC_NAMESPACE + "Object",
+    GUFO.Aspect: LOGIC_NAMESPACE + "Aspect",
+    GUFO.IntrinsicAspect: LOGIC_NAMESPACE + "Aspect",
+    GUFO.ExtrinsicAspect: LOGIC_NAMESPACE + "Aspect",
+    GUFO.IntrinsicMode: LOGIC_NAMESPACE + "Mode",
+    GUFO.ExtrinsicMode: LOGIC_NAMESPACE + "Mode",
+    GUFO.Quality: LOGIC_NAMESPACE + "Quality",
+    GUFO.QualityValue: LOGIC_NAMESPACE + "QualityValue",
+    GUFO.Relator: LOGIC_NAMESPACE + "Relator",
+    # --- Object aggregation kinds ---
+    GUFO.Collection: LOGIC_NAMESPACE + "Collection",
+    GUFO.FixedCollection: LOGIC_NAMESPACE + "FixedCollection",
+    GUFO.VariableCollection: LOGIC_NAMESPACE + "VariableCollection",
+    GUFO.Quantity: LOGIC_NAMESPACE + "Quantity",
+    GUFO.FunctionalComplex: LOGIC_NAMESPACE + "FunctionalComplex",
+    # --- Type level (higher-order) ---
+    GUFO.Type: LOGIC_NAMESPACE + "Type",
+    GUFO.EndurantType: LOGIC_NAMESPACE + "EndurantType",
+    GUFO.RelationshipType: LOGIC_NAMESPACE + "RelationshipType",
+    GUFO.MaterialRelationshipType: LOGIC_NAMESPACE + "MaterialRelationshipType",
+    GUFO.ComparativeRelationshipType: LOGIC_NAMESPACE + "ComparativeRelationshipType",
+    GUFO.AbstractIndividualType: LOGIC_NAMESPACE + "AbstractIndividualType",
+    GUFO.ConcreteIndividualType: LOGIC_NAMESPACE + "ConcreteIndividualType",
+    GUFO.EventType: LOGIC_NAMESPACE + "Event",
+    GUFO.SituationType: LOGIC_NAMESPACE + "Situation",
+    # --- Endurant-type meta axes (sortality / rigidity) ---
+    GUFO.Sortal: LOGIC_NAMESPACE + "Sortal",
+    GUFO.NonSortal: LOGIC_NAMESPACE + "NonSortal",
+    GUFO.RigidType: LOGIC_NAMESPACE + "RigidType",
+    GUFO.AntiRigidType: LOGIC_NAMESPACE + "AntiRigidType",
+    GUFO.SemiRigidType: LOGIC_NAMESPACE + "SemiRigidType",
+    GUFO.NonRigidType: LOGIC_NAMESPACE + "NonRigidType",
+    # --- The 11 OntoUML stereotypes (superset of the runtime sort map) ---
+    GUFO.Kind: LOGIC_NAMESPACE + "Kind",
+    GUFO.SubKind: LOGIC_NAMESPACE + "SubKind",
+    GUFO.Phase: LOGIC_NAMESPACE + "Phase",
+    GUFO.Role: LOGIC_NAMESPACE + "Role",
+    GUFO.Category: LOGIC_NAMESPACE + "Category",
+    GUFO.Mixin: LOGIC_NAMESPACE + "Mixin",
+    GUFO.RoleMixin: LOGIC_NAMESPACE + "RoleMixin",
+    GUFO.PhaseMixin: LOGIC_NAMESPACE + "PhaseMixin",
+    # --- Superseded temporary-situation reifiers (logic:Fluent + RDF-1.2) ---
+    GUFO.QualityValueAttributionSituation: SUPERSEDED,
+    GUFO.TemporaryConstitutionSituation: SUPERSEDED,
+    GUFO.TemporaryInstantiationSituation: SUPERSEDED,
+    GUFO.TemporaryParthoodSituation: SUPERSEDED,
+    GUFO.TemporaryRelationshipSituation: SUPERSEDED,
+}
 
 GUFO_TTL = IMPORTS_DIR / "gufo.ttl"
 LOGIC_MODULE_TTL = SLICES_DIR / "core" / "logic" / "module.ttl"
@@ -45,8 +122,8 @@ CRITICISM_EXAMPLE_TTL = (
 )
 
 #: The five gUFO temporary-situation reifiers that gmeow:logic deliberately
-#: replaces with logic:Fluent + RDF-1.2 edge properties (see logic_adapter
-#: ``_Superseded``).  The gate pins this exact set so an accidental
+#: replaces with logic:Fluent + RDF-1.2 edge properties (see the inlined
+#: SUPERSEDED sentinel below).  The gate pins this exact set so an accidental
 #: over-supersession (mapping a faithfully-coverable class to SUPERSEDED) fails.
 _EXPECTED_SUPERSEDED: frozenset[URIRef] = frozenset(
     {
@@ -108,8 +185,8 @@ def test_every_gufo_class_has_logic_correspondence() -> None:
     missing = sorted(str(c) for c in classes if c not in _GUFO_CLASS_TO_LOGIC)
     assert not missing, (
         "gmeow:logic ⊇ gUFO floor BREACHED — these gUFO classes have NO entry in "
-        "logic_adapter._GUFO_CLASS_TO_LOGIC (add a faithful logic: target or the "
-        "SUPERSEDED sentinel):\n  " + "\n  ".join(missing)
+        "the inlined _GUFO_CLASS_TO_LOGIC map below (add a faithful logic: target "
+        "or the SUPERSEDED sentinel):\n  " + "\n  ".join(missing)
     )
 
 

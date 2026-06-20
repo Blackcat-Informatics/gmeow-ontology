@@ -2,24 +2,23 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 r"""Rust-fed seam data containers for the Logic runtime.
 
-Rust/Python boundary (issue #651)
----------------------------------
-Rust (``gmeow_logic``) is the **reasoning authority**: ``materialize`` /
-``certify`` / ``explain`` / ``query`` / ``foundation`` / ``stable_models``.
-Python stays for RDF I/O and projection emitters only:
+Rust/Python boundary (issue #651 / #727)
+----------------------------------------
+Rust (``gmeow_logic``) is the **whole logic engine**: the compiler
+(``compile_logic`` — frontend, IR, the seven projections, the preservation
+ledger) AND the reasoning authority (``materialize`` / ``certify`` / ``explain``
+/ ``query`` / ``foundation`` / ``stable_models``).  Python keeps only:
 
-* :mod:`gmeow_tools.logic_frontend` — parse logic (Turtle → IR);
-* :mod:`gmeow_tools.logic_adapter` — OWL/gUFO → IR;
-* :mod:`gmeow_tools.logic_projections` — IR → OWL/Datalog/N3/gUFO/Nemo/
-  canonical-RDF;
 * :mod:`gmeow_tools.logic_seam` (this module) — the Rust-fed dataclass
-  containers the runner builds from the native ``gmeow_logic`` result dicts.
+  containers the runner builds from the native ``gmeow_logic`` result dicts;
+* :mod:`gmeow_tools.logic_runner` — the conformance runner that wires the native
+  surfaces into the runner contract.
 
-There is **no** Python forward-chase oracle or Python certifier — they were
-retired in #651 (the deleted ``logic_materialize`` / ``logic_certify`` modules).
-Parity with the Rust engine is guaranteed by content-addressed
-derivation-graph goldens (#641) plus the conformance suite, not by a Python
-re-implementation.
+The Python compiler duplicate (the frontend / IR / adapter / projection
+modules) was deleted in #727, and the Python forward-chase oracle / certifier
+were retired in #651.  Parity with the Rust engine is guaranteed by
+content-addressed derivation-graph goldens (#641) plus the conformance suite,
+not by a Python re-implementation.
 
 What lives here
 ---------------
@@ -46,10 +45,31 @@ recipe is no longer reproduced in Python.
 from __future__ import annotations
 
 from dataclasses import dataclass
+from enum import StrEnum
 from typing import NamedTuple
 
 from gmeow_tools.config import PREFIXES
-from gmeow_tools.logic_ir import PreservationKind
+
+# --------------------------------------------------------------------------- #
+# Preservation kind (the six logic:PreservationKind named individuals)
+# --------------------------------------------------------------------------- #
+
+
+class PreservationKind(StrEnum):
+    """The six ``logic:PreservationKind`` named individuals (LOGIC-CONFORMANCE.md).
+
+    Local names taken verbatim from ``slices/core/logic/module.ttl`` and mirrored
+    by the Rust ``PreservationKind`` enum.  Lives here (the runtime seam) since the
+    Python compiler IR was deleted in #727; it annotates :class:`LossEntry`.
+    """
+
+    EXACT = "ExactPreservation"
+    SOUND_UNDER = "SoundUnderApproximation"
+    COMPLETE_OVER = "CompleteOverApproximation"
+    VALIDATION_ONLY = "ValidationOnly"
+    INCONSISTENCY_PRESERVING = "InconsistencyPreserving"
+    INCONSISTENCY_REFLECTING = "InconsistencyReflecting"
+
 
 # --------------------------------------------------------------------------- #
 # Namespace constants
@@ -162,7 +182,7 @@ class LossEntry:
     Attributes:
         construct: The IRI or description of the construct that was narrowed.
         reason: Human-readable explanation of why it was narrowed.
-        preservation_kind: The :class:`~.logic_ir.PreservationKind` that applies.
+        preservation_kind: The :class:`PreservationKind` that applies.
     """
 
     construct: str

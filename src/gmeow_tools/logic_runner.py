@@ -2,12 +2,18 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 """Conformance runner for the Logic v1 monotonic core (issue #501, Task 7).
 
-This module is the **conformance runner** — it wires :mod:`~.logic_frontend`,
-:mod:`~.logic_seam` (the Rust-fed seam containers), :mod:`~.logic_projections`,
-and the native ``gmeow_logic`` engine (``materialize`` / ``certify`` /
-``explain``) into the single ``run()`` function required by the runner contract
-in ``conformance/logic/runner/README.md``.  Reasoning is Rust-authoritative
-(#651): there is no Python forward-chase oracle.
+This module is the **conformance runner** — it wires :mod:`~.logic_seam` (the
+Rust-fed seam containers) and the native ``gmeow_logic`` engine
+(``compile_logic`` / ``materialize`` / ``certify`` / ``explain``) into the single
+``run()`` function required by the runner contract in
+``conformance/logic/runner/README.md``.
+
+The whole compiler — frontend (Turtle → IR), the seven projection back-ends, the
+preservation ledger, and the nemo rule extraction — runs in Rust
+(``gmeow_logic.compile_logic``, issue #664/#727): the Python compiler duplicate
+(the frontend / IR / adapter / projection modules) was deleted in #727.
+Reasoning is likewise Rust-authoritative (#651): there is no Python forward-chase
+oracle.
 
 Runner contract
 ---------------
@@ -65,35 +71,68 @@ import json
 import logging
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import cast
 
 from rdflib import ConjunctiveGraph, Graph, URIRef
 from rdflib.compare import isomorphic
 
-from gmeow_tools.logic_frontend import LogicParseError, parse_logic_source
-from gmeow_tools.logic_ir import LogicProgram, SemanticProfileId
-from gmeow_tools.logic_projections import (
-    ProjectionResult,
-    build_projection_report,
-    extract_nemo_rules_section,
-    project_canonical_rdf12,
-    project_datalog,
-    project_gufo,
-    project_n3,
-    project_nemo,
-    project_owl_dl,
-    project_owl_el,
-)
 from gmeow_tools.logic_seam import (
     _ASSERT_RULE_IRI,
     BudgetParams,
     DerivedQuad,
     Explanation,
     ExplanationStep,
-    LossEntry,
     MaterializationResult,
 )
 
 _log = logging.getLogger(__name__)
+
+#: The six ``logic:SemanticProfile`` local names (mirrors the Rust
+#: ``SemanticProfileId`` enum / the ontology's named individuals).  A case's
+#: declared ``semantic_profile`` must be one of these — an unknown localname is a
+#: hard failure (no silent fallback).
+_VALID_SEMANTIC_PROFILES: frozenset[str] = frozenset(
+    {
+        "PositiveHornProfile",
+        "StratifiedNAFProfile",
+        "WellFoundedProfile",
+        "StableModelProfile",
+        "ProceduralPrologProfile",
+        "ProbabilisticProfile",
+    }
+)
+
+#: The semantic-profile string the native materializer / foundation evaluator
+#: stamps on every PositiveHorn run (the committed-golden profile IRI localname).
+_POSITIVE_HORN_PROFILE = "PositiveHornProfile"
+
+#: The seven projection target short-names, in canonical order.
+_PROJECTION_TARGETS: tuple[str, ...] = (
+    "owl-dl",
+    "owl-el",
+    "datalog",
+    "n3",
+    "gufo",
+    "canonical-rdf12",
+    "nemo",
+)
+
+#: Map a projection target short-name to its ``compile_logic`` dict key.
+_TARGET_TO_KEY: dict[str, str] = {
+    "owl-dl": "owl_dl",
+    "owl-el": "owl_el",
+    "datalog": "datalog",
+    "n3": "n3",
+    "gufo": "gufo",
+    "canonical-rdf12": "canonical_rdf12",
+    "nemo": "nemo",
+}
+
+#: Which projection targets serialize RDF (re-parsed into an rdflib Graph for the
+#: isomorphism diff); the rest are plain text.
+_RDF_TARGETS: frozenset[str] = frozenset(
+    {"owl-dl", "owl-el", "gufo", "canonical-rdf12"}
+)
 
 
 # --------------------------------------------------------------------------- #
@@ -114,20 +153,39 @@ class RunnerError(Exception):
 
 
 @dataclass(frozen=True, slots=True)
+class RunnerProjection:
+    """One projection back-end's runner-facing result.
+
+    The compiler runs in Rust (:func:`gmeow_logic.compile_logic`); this is the
+    thin container the runner builds from each artifact string for the
+    conformance diff.
+
+    Attributes:
+        target: Short target name (``"owl-dl"``, ``"datalog"``, …).
+        content: The serialized artifact string from the Rust compiler.
+        graph: The re-parsed rdflib :class:`~rdflib.Graph` for RDF targets
+            (used for the isomorphism diff), or ``None`` for text targets.
+    """
+
+    target: str
+    content: str
+    graph: Graph | None
+
+
+@dataclass(frozen=True, slots=True)
 class ProjectionOutputs:
     """All projection back-end results for one case run.
 
     Attributes:
-        results: The 7 :class:`~.logic_projections.ProjectionResult` objects
-            (one per back-end).
+        results: The 7 :class:`RunnerProjection` objects (one per back-end).
         report_graph: The preservation report as an rdflib
             :class:`~rdflib.Graph`.
         ledger_json: The preservation ledger as a canonical JSON dict.
             Keys are target names; values are ``{preservation, complexity,
-            lossy_drops}`` dicts.
+            lossy_drops}`` dicts.  Built by the Rust compiler.
     """
 
-    results: tuple[ProjectionResult, ...]
+    results: tuple[RunnerProjection, ...]
     report_graph: Graph
     ledger_json: dict[str, dict[str, object]]
 
@@ -139,7 +197,6 @@ class RunnerOutputs:
     Attributes:
         case_dir: The case directory that was run.
         mode: The engine/fragment mode requested (e.g. ``"native"``).
-        program: The parsed :class:`~.logic_ir.LogicProgram`.
 
         materialized: The chase result.  **Populated** for v1 monotonic core.
         materialized_nquads: N-Quads serialization of ``materialized`` (all
@@ -165,8 +222,8 @@ class RunnerOutputs:
             returned by :func:`gmeow_logic.query`.  Empty dict when no queries
             are present.  Implements issue #504 backward goals.
 
-        certification: The static profile/decidability verdict for ``program``
-            against the case's declared profile, as the deterministic sorted-key
+        certification: The static profile/decidability verdict for the compiled
+            program against the case's declared profile, as the sorted-key
             dict produced by the native ``gmeow_logic.certify`` certifier.
             **Populated** for every case (issue #502, Task 5).
 
@@ -183,7 +240,6 @@ class RunnerOutputs:
 
     case_dir: Path
     mode: str
-    program: LogicProgram
 
     # v1 populated outputs
     materialized: MaterializationResult
@@ -314,59 +370,74 @@ def _materialize_to_nquads(result: MaterializationResult) -> str:
 # --------------------------------------------------------------------------- #
 
 
-def _run_projections(
-    program: LogicProgram,
-    materialization_loss_entries: tuple[LossEntry, ...] = (),
-) -> ProjectionOutputs:
-    """Run all 7 projection back-ends and build the preservation ledger.
+def _build_projection_outputs(compiled: dict[str, object]) -> ProjectionOutputs:
+    """Build :class:`ProjectionOutputs` from a ``compile_logic`` result dict.
+
+    The Rust compiler (:func:`gmeow_logic.compile_logic`) already ran every
+    projection back-end, the overclaim gate, and the preservation ledger; this
+    function only repackages those artifacts for the conformance diff — it
+    re-parses the four RDF artifact strings into rdflib Graphs (for the
+    isomorphism comparison) and the report Turtle into a Graph, and copies the
+    Rust-built ``preservation_ledger`` dict verbatim.
 
     Args:
-        program: The compiled logic program to project.
-        materialization_loss_entries: Loss recorded by the materialization phase,
-            folded into the preservation report. The native evaluators apply the
-            declared semantics fully, so this is empty today; threading it keeps the
-            seam contract honest (any future loss-recording path reaches the ledger).
+        compiled: The dict returned by :func:`gmeow_logic.compile_logic`.
 
     Returns:
-        A :class:`ProjectionOutputs` with all 7 results, the report graph,
-        and the JSON ledger.
+        A :class:`ProjectionOutputs` with all 7 results, the report graph, and
+        the JSON ledger.
 
     Raises:
-        RunnerError: If any projection raises unexpectedly.
+        RunnerError: If an artifact key is missing or an RDF artifact cannot be
+            re-parsed (a Rust↔Python contract violation).
     """
+    results: list[RunnerProjection] = []
+    for target in _PROJECTION_TARGETS:
+        key = _TARGET_TO_KEY[target]
+        if key not in compiled:
+            raise RunnerError(
+                f"compile_logic produced no artifact for target {target!r} "
+                f"(missing key {key!r})"
+            )
+        content = str(compiled[key])
+        graph: Graph | None = None
+        if target in _RDF_TARGETS:
+            graph = Graph()
+            try:
+                graph.parse(data=content, format="turtle")
+            except Exception as exc:
+                raise RunnerError(
+                    f"compile_logic {target!r} artifact is not parseable Turtle: {exc}"
+                ) from exc
+        results.append(RunnerProjection(target=target, content=content, graph=graph))
+
+    report_graph = Graph()
     try:
-        r_dl = project_owl_dl(program)
-        r_el = project_owl_el(program)
-        r_datalog = project_datalog(program)
-        r_n3 = project_n3(program)
-        r_gufo = project_gufo(program)
-        r_rdf12 = project_canonical_rdf12(program)
-        r_nemo = project_nemo(program)
+        report_graph.parse(data=str(compiled["report"]), format="turtle")
     except Exception as exc:
-        raise RunnerError(f"Projection failed: {exc}") from exc
+        raise RunnerError(
+            f"compile_logic projection report is not parseable Turtle: {exc}"
+        ) from exc
 
-    all_projections = [r_dl, r_el, r_datalog, r_n3, r_gufo, r_rdf12, r_nemo]
-
-    try:
-        report_graph = build_projection_report(
-            program,
-            all_projections,
-            materialization_loss_entries=list(materialization_loss_entries),
+    # The preservation ledger is built by the Rust compiler; copy it verbatim
+    # (deep-copied to plain dicts/lists so the canonical-JSON comparison is stable).
+    raw_ledger = compiled.get("preservation_ledger")
+    if not isinstance(raw_ledger, dict):
+        raise RunnerError(
+            "compile_logic did not return a preservation_ledger dict "
+            f"(got {type(raw_ledger).__name__})"
         )
-    except Exception as exc:
-        raise RunnerError(f"build_projection_report failed: {exc}") from exc
-
     ledger_json: dict[str, dict[str, object]] = {
-        proj.target: {
-            "preservation": proj.preservation.value,
-            "complexity": proj.complexity,
-            "lossy_drops": list(proj.lossy_drops),
+        str(target): {
+            "preservation": row["preservation"],
+            "complexity": row["complexity"],
+            "lossy_drops": list(row["lossy_drops"]),
         }
-        for proj in all_projections
+        for target, row in raw_ledger.items()
     }
 
     return ProjectionOutputs(
-        results=tuple(all_projections),
+        results=tuple(results),
         report_graph=report_graph,
         ledger_json=ledger_json,
     )
@@ -468,25 +539,27 @@ def _run_explanations(result: MaterializationResult) -> tuple[Explanation, ...]:
 
 
 def _certify_native(
-    program: LogicProgram,
-    declared_profile: SemanticProfileId,
+    nemo_rules: str,
+    declared_profile: str,
     case_label: str,
 ) -> dict[str, object]:
-    """Statically certify ``program`` against ``declared_profile`` via the Rust core.
+    """Statically certify ``nemo_rules`` against ``declared_profile`` via Rust.
 
     The native ``gmeow_logic.certify`` certifier is the sole reasoning authority
     (Principle 17, the "maximally use Rust" doctrine); the Python certifier was
     retired in #651 (parity is now pinned by the conformance ``certification.json``
     goldens + the ``crates/logic/src/certify.rs`` cargo tests).  The engine takes
-    the ``% === Rules ===`` section of ``project_nemo`` (the ground-fact axioms
-    are not certification inputs) plus the declared profile, and returns the
+    the ``% === Rules ===`` section of the nemo projection (the ground-fact axioms
+    are not certification inputs — supplied here as the ``nemo_rules`` key of
+    :func:`gmeow_logic.compile_logic`) plus the declared profile, and returns the
     verdict dict (``certified``, ``decidability_class``, ``profile_id``, sorted
     ``violations``) — the exact shape the conformance ``certification.json``
     golden compares.
 
     Args:
-        program: The parsed logic program IR.
-        declared_profile: The :class:`SemanticProfileId` the case declares.
+        nemo_rules: The ``% === Rules ===`` section of the nemo projection (the
+            ``nemo_rules`` key from :func:`gmeow_logic.compile_logic`).
+        declared_profile: The semantic-profile localname the case declares.
         case_label: Case name for error messages.
 
     Returns:
@@ -505,17 +578,11 @@ def _certify_native(
         ) from exc
 
     try:
-        rules_only = extract_nemo_rules_section(project_nemo(program).content)
-    except (ValueError, RuntimeError) as exc:
-        raise RunnerError(
-            f"Case {case_label}: NEMO projection for certification failed: {exc}"
-        ) from exc
-    try:
-        verdict = gmeow_logic.certify(rules_only, str(declared_profile))
+        verdict = gmeow_logic.certify(nemo_rules, declared_profile)
     except (ValueError, RuntimeError) as exc:
         raise RunnerError(
             f"Case {case_label}: gmeow_logic.certify failed for profile "
-            f"{declared_profile!s}: {exc}"
+            f"{declared_profile}: {exc}"
         ) from exc
     return dict(verdict)
 
@@ -639,7 +706,7 @@ def _bare_iri(term_surface: str) -> str:
 
 def _materialize_native(
     case_dir: Path,
-    program: LogicProgram,
+    nemo_rules: str,
     input_graph: ConjunctiveGraph,
     semantic_profile_str: str,
     budget: BudgetParams | None,
@@ -672,18 +739,11 @@ def _materialize_native(
             "(materialization is Rust-authoritative since #651) — run 'make logic-py'."
         ) from exc
 
-    try:
-        rules_text = extract_nemo_rules_section(project_nemo(program).content)
-    except (ValueError, RuntimeError) as exc:
-        raise RunnerError(
-            f"Case {case_dir.name}: NEMO projection for materialization failed: {exc}"
-        ) from exc
-
     input_nq_text = input_graph.serialize(format="nquads")
 
     try:
         rows = gmeow_logic.materialize(
-            rules_text,
+            nemo_rules,
             input_nq_text,
             budget.max_rule_firings if budget else None,
             budget.max_answers if budget else None,
@@ -739,7 +799,7 @@ def _materialize_native(
 
 def _resolve_witnesses(
     case_dir: Path,
-    program: LogicProgram,
+    nemo_rules: str,
     input_graph: ConjunctiveGraph,
     semantic_profile_str: str,
 ) -> dict[str, object]:
@@ -761,15 +821,9 @@ def _resolve_witnesses(
             f"Case {case_dir.name}: gmeow_logic native extension is not installed "
             "(stable-model witnesses are Rust-authoritative) — run 'make logic-py'."
         ) from exc
-    try:
-        rules_text = extract_nemo_rules_section(project_nemo(program).content)
-    except (ValueError, RuntimeError) as exc:
-        raise RunnerError(
-            f"Case {case_dir.name}: NEMO projection for witnesses failed: {exc}"
-        ) from exc
     input_nq_text = input_graph.serialize(format="nquads")
     try:
-        return dict(gmeow_logic.stable_models(rules_text, input_nq_text))
+        return dict(gmeow_logic.stable_models(nemo_rules, input_nq_text))
     except (ValueError, RuntimeError) as exc:
         raise RunnerError(
             f"Case {case_dir.name}: gmeow_logic.stable_models failed: {exc}"
@@ -976,7 +1030,7 @@ def _materialize_foundation(
         # Foundation cases materialize under PositiveHorn semantics (matching the
         # native evaluator's stamped profile and the committed goldens); the
         # declared StratifiedNAF profile is exercised by the static certifier.
-        profile=str(SemanticProfileId.POSITIVE_HORN),
+        profile=_POSITIVE_HORN_PROFILE,
         loss_entries=(),
         input_quad_count=input_count,
         derived_quad_count=derived_count,
@@ -1041,34 +1095,51 @@ def run(case_dir: Path, mode: str = "native") -> RunnerOutputs:
             f"Case {case_dir.name}: cannot read profile.json: {exc}"
         ) from exc
 
-    # Parse the logic: source
+    # Compile the logic: source in Rust (issue #664/#727): the whole frontend →
+    # IR → 7-projection + report + ledger + nemo-rules pipeline runs in
+    # ``gmeow_logic.compile_logic`` — the Python compiler duplicate was deleted in
+    # #727.  Every downstream artifact (projections, ledger, the nemo rule text
+    # the reasoning engines consume) is read off this single result dict.
+    source_ttl = input_path.read_text(encoding="utf-8")
     try:
-        program, diagnostics = parse_logic_source(input_path)
-    except LogicParseError as exc:
+        import gmeow_logic
+    except ImportError as exc:
         raise RunnerError(
-            f"Case {case_dir.name}: parse_logic_source failed: {exc}"
+            f"Case {case_dir.name}: gmeow_logic native extension is not installed "
+            "(the logic compiler is Rust-authoritative since #664) — "
+            "run 'make logic-py'."
+        ) from exc
+    try:
+        compiled = gmeow_logic.compile_logic(source_ttl)
+    except (ValueError, RuntimeError) as exc:
+        raise RunnerError(
+            f"Case {case_dir.name}: gmeow_logic.compile_logic failed: {exc}"
         ) from exc
 
-    for diag in diagnostics:
+    for diag in compiled.get("diagnostics", []):
         _log.debug(
-            "parse diagnostic [%s] %s: %s", diag.severity, diag.code, diag.message
+            "parse diagnostic [%s] %s: %s",
+            diag["severity"],
+            diag["code"],
+            diag["message"],
         )
+
+    # The ``% === Rules ===`` section of the nemo projection — the reasoning-engine
+    # rule surface (materialize / certify / stable_models all consume it).
+    nemo_rules = str(compiled["nemo_rules"])
 
     # Resolve the semantic profile to use for materialization
     semantic_profile_str = str(
         profile_data.get("semantic_profile", "PositiveHornProfile")
     )
-    # Resolve the declared profile to the typed enum for the certifier.  An
-    # unknown localname is a hard failure (no silent fallback): the case author
-    # must declare a real SemanticProfileId.
-    try:
-        declared_profile = SemanticProfileId(semantic_profile_str)
-    except ValueError as exc:
+    # An unknown localname is a hard failure (no silent fallback): the case author
+    # must declare a real semantic profile.
+    if semantic_profile_str not in _VALID_SEMANTIC_PROFILES:
         raise RunnerError(
             f"Case {case_dir.name}: unknown semantic_profile "
             f"{semantic_profile_str!r} in profile.json — must be one of "
-            f"{[str(p) for p in SemanticProfileId]}"
-        ) from exc
+            f"{sorted(_VALID_SEMANTIC_PROFILES)}"
+        )
 
     # The native engine applies the DECLARED semantics directly (issue #651):
     # PositiveHorn / stratified NAF via the Nemo chase; WellFounded and StableModel
@@ -1080,7 +1151,7 @@ def run(case_dir: Path, mode: str = "native") -> RunnerOutputs:
     # made Rust-authoritative in #497).  Pure analysis over the projected rules;
     # a non-empty ``violations`` list is surfaced (not raised) so the conformance
     # diff can compare it as a golden artifact.
-    certification = _certify_native(program, declared_profile, case_dir.name)
+    certification = _certify_native(nemo_rules, semantic_profile_str, case_dir.name)
 
     # Build the input ConjunctiveGraph for the materializer.
     # Projection-only cases carry no named-graph worlds (flat Turtle program);
@@ -1128,7 +1199,7 @@ def run(case_dir: Path, mode: str = "native") -> RunnerOutputs:
         # content-addressed reifier graph the native explain / query / counterfactual
         # consumers reconstruct.
         mat_result = _materialize_native(
-            case_dir, program, input_graph, semantic_profile_str, budget
+            case_dir, nemo_rules, input_graph, semantic_profile_str, budget
         )
 
     # N-Quads serialization
@@ -1147,8 +1218,10 @@ def run(case_dir: Path, mode: str = "native") -> RunnerOutputs:
     )
     answers = _resolve_answers(case_dir, nquads_str, query_profile, budget)
 
-    # Projections
-    proj_outputs = _run_projections(program, mat_result.loss_entries)
+    # Projections (built from the Rust compile_logic result — issue #727).  The
+    # TypedDict is cast to a plain str-keyed mapping for the dynamic-key reads
+    # (per-target artifact + ledger) inside the builder.
+    proj_outputs = _build_projection_outputs(cast("dict[str, object]", compiled))
 
     # Explanations (over whatever quads exist; empty for projection-only cases)
     explanations = _run_explanations(mat_result)
@@ -1158,12 +1231,13 @@ def run(case_dir: Path, mode: str = "native") -> RunnerOutputs:
 
     # Stable-model witnesses (issue #651): the individual answer sets, surfaced for
     # the ``witnesses.json`` side file. ``{}`` for every single-model profile.
-    witnesses = _resolve_witnesses(case_dir, program, input_graph, semantic_profile_str)
+    witnesses = _resolve_witnesses(
+        case_dir, nemo_rules, input_graph, semantic_profile_str
+    )
 
     return RunnerOutputs(
         case_dir=case_dir,
         mode=mode,
-        program=program,
         materialized=mat_result,
         materialized_nquads=nquads_str,
         projections=proj_outputs,
