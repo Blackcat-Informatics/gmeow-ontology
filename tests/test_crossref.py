@@ -53,19 +53,35 @@ def _direct_ai_programs(dataset: ET.Element) -> list[ET.Element]:
     return [child for child in dataset if child.tag == f"{{{AI_NS}}}program"]
 
 
-def _assert_citations_include_container_title(root: ET.Element) -> None:
-    """Every citation must carry a container title per Crossref business rules."""
+def _assert_citations_are_deposit_safe(root: ET.Element) -> None:
+    """Every citation must be a shape Crossref accepts at deposit time.
+
+    Each entry needs an identifying carrier (a ``doi`` or an
+    ``unstructured_citation``) and must not be a partial journal-article citation
+    (``journal_title``/``article_title`` without ``author`` or ``first_page``),
+    which Crossref rejects with "Either first page or author must be supplied."
+    """
     for citation_list in root.iter(f"{{{CR_NS}}}citation_list"):
         for citation in citation_list.findall(f"{{{CR_NS}}}citation"):
             key = citation.attrib["key"]
-            has_container = (
-                citation.find(f"{{{CR_NS}}}issn") is not None
-                or citation.find(f"{{{CR_NS}}}journal_title") is not None
-                or citation.find(f"{{{CR_NS}}}proceedings_title") is not None
+            has_carrier = (
+                citation.find(f"{{{CR_NS}}}doi") is not None
+                or citation.find(f"{{{CR_NS}}}unstructured_citation") is not None
             )
-            assert has_container, (
-                f"citation {key!r} is missing issn, journal_title, and "
-                "proceedings_title"
+            assert has_carrier, (
+                f"citation {key!r} has neither a doi nor an unstructured_citation"
+            )
+            article_shaped = (
+                citation.find(f"{{{CR_NS}}}journal_title") is not None
+                or citation.find(f"{{{CR_NS}}}article_title") is not None
+            )
+            has_author_or_page = (
+                citation.find(f"{{{CR_NS}}}author") is not None
+                or citation.find(f"{{{CR_NS}}}first_page") is not None
+            )
+            assert not (article_shaped and not has_author_or_page), (
+                f"citation {key!r} is a partial journal-article citation that "
+                "Crossref rejects"
             )
 
 
@@ -415,8 +431,8 @@ def test_citation_list_projects_alignment_targets(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """The alignment registry becomes Crossref references."""
-    # Inject a DOI on the gUFO target so the ordering regression check has
-    # both <journal_title> and <doi> children to compare.
+    # Inject a DOI on the gUFO target so the DOI carrier path is exercised and the
+    # emission order (doi before unstructured_citation) can be checked.
     monkeypatch.setitem(
         ALIGNMENT_TARGETS,
         "gufo",
@@ -429,31 +445,38 @@ def test_citation_list_projects_alignment_targets(
     assert {"ref-bfo", "ref-gufo", "ref-schema"}.issubset(by_key)
     gufo = by_key["ref-gufo"]
     assert gufo.attrib["type"] == "web_resource"
-    assert gufo.findtext(f"{{{CR_NS}}}article_title") == "gUFO"
-    assert gufo.findtext(f"{{{CR_NS}}}journal_title") == "gUFO"
+    # Alignment targets are deposited as free-text references, never as partial
+    # journal-article citations (which Crossref rejects at deposit time).
+    assert gufo.find(f"{{{CR_NS}}}journal_title") is None
+    assert gufo.find(f"{{{CR_NS}}}article_title") is None
+    assert gufo.findtext(f"{{{CR_NS}}}doi") == "10.5072/gufo-test"
     assert (
         gufo.findtext(f"{{{CR_NS}}}unstructured_citation") == "gUFO. 10.5072/gufo-test."
     )
     gufo_tags = [child.tag for child in gufo]
-    assert gufo_tags.index(f"{{{CR_NS}}}journal_title") < gufo_tags.index(
-        f"{{{CR_NS}}}doi"
-    ), "journal_title must be emitted before doi"
+    assert gufo_tags.index(f"{{{CR_NS}}}doi") < gufo_tags.index(
+        f"{{{CR_NS}}}unstructured_citation"
+    ), "doi must be emitted before unstructured_citation"
+    # A DOI-less target carries only the free-text reference.
+    bfo = by_key["ref-bfo"]
+    assert bfo.find(f"{{{CR_NS}}}doi") is None
+    assert bfo.find(f"{{{CR_NS}}}unstructured_citation") is not None
 
 
-def test_citations_include_container_title() -> None:
-    """Every citation carries at least one container title element."""
+def test_citations_are_deposit_safe() -> None:
+    """Every citation is a shape Crossref accepts at deposit time."""
     root = _parse(build_deposit_xml(timestamp="20260603120000"))
-    _assert_citations_include_container_title(root)
+    _assert_citations_are_deposit_safe(root)
 
 
-def test_citations_include_container_title_crossmark_enabled(
+def test_citations_are_deposit_safe_crossmark_enabled(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """Container title rule holds when Crossmark metadata is enabled."""
+    """Deposit-safe citation shape holds when Crossmark metadata is enabled."""
     monkeypatch.setattr(crossref_mod, "CROSSMARK_ENABLED", True)
     monkeypatch.setattr(crossref_mod, "CROSSMARK_POLICY_DOI", "10.67342/xn9qgdr5mw/v1")
     root = _parse(build_deposit_xml(timestamp="20260603120000"))
-    _assert_citations_include_container_title(root)
+    _assert_citations_are_deposit_safe(root)
 
 
 def test_lint_passes_on_real_self_description() -> None:
@@ -466,7 +489,6 @@ def test_lint_identifies_duplicate_citation_list_dataset(
     duplicate = crossref_mod._Citation(
         key="ref-duplicate",
         type="web_resource",
-        title="Duplicate reference",
         unstructured="Duplicate reference. https://example.invalid/.",
     )
     monkeypatch.setattr(
