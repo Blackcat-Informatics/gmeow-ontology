@@ -26,6 +26,7 @@ use pyo3::types::{PyCapsule, PyDict, PyList};
 use crate::coverage;
 use crate::dsl;
 use crate::gufo::{self, GufoConfig};
+use crate::language_tags;
 use crate::lint::{self, LintConfig, LintReport, ModuleSpec};
 use crate::statement;
 use crate::store;
@@ -842,6 +843,44 @@ fn check_statement_invariants(
     Ok(Py::new(py, PyReport::from_engine(report))?.into_any())
 }
 
+/// Return whether `lang` is a GMEOW internal private-use tag (``x-gmeow-*``).
+///
+/// Matches ``^x-gmeow-[a-z0-9\-]+$`` case-insensitively. This is the Rust
+/// authority for the policy defined in ``language_tags.py``.
+#[pyfunction]
+fn is_internal_tag(lang: &str) -> bool {
+    language_tags::is_internal_tag(lang)
+}
+
+/// The shared language-preference sort key.
+///
+/// Returns ``(0, lang.lower())`` for ``x-gmeow-english`` and
+/// ``(1, lang.lower())`` for everything else so the carrier language wins
+/// deterministically. Mirrors ``language_tags.rank_language``.
+#[pyfunction]
+fn rank_language(lang: &str) -> (u8, String) {
+    language_tags::rank_language(lang)
+}
+
+/// Parse RDF bytes and build the ``{internal_tag: bcp47_tag}`` mapping.
+///
+/// `rdf_bytes` is raw RDF data; `format` is a format string accepted by
+/// [`crate::language_tags::load_tag_map`] (``"turtle"``, ``"ntriples"``, etc.).
+/// Maps ambiguous tags (> 1 distinct value) to a ``ValueError``; missing tags
+/// silently skip the individual (SHACL enforces completeness).
+///
+/// Returns a Python ``dict[str, str]``.
+#[pyfunction]
+fn load_tag_map(py: Python<'_>, rdf_bytes: &[u8], format: &str) -> PyResult<Py<PyAny>> {
+    let map = language_tags::load_tag_map(rdf_bytes, format)
+        .map_err(pyo3::exceptions::PyValueError::new_err)?;
+    let d = PyDict::new(py);
+    for (k, v) in &map {
+        d.set_item(k, v)?;
+    }
+    Ok(d.into_any().unbind())
+}
+
 /// Register the `gmeow-validate` surface on a Python module.
 ///
 /// Exposes the syntax / sameAs lints (Task 1) plus the structural, naming,
@@ -854,6 +893,9 @@ pub fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyValidateOptions>()?;
     m.add_class::<PyValidationStore>()?;
     m.add_function(wrap_pyfunction!(annotation_predicates, m)?)?;
+    m.add_function(wrap_pyfunction!(is_internal_tag, m)?)?;
+    m.add_function(wrap_pyfunction!(rank_language, m)?)?;
+    m.add_function(wrap_pyfunction!(load_tag_map, m)?)?;
     m.add_function(wrap_pyfunction!(check_syntax, m)?)?;
     m.add_function(wrap_pyfunction!(check_sameas_ban, m)?)?;
     m.add_function(wrap_pyfunction!(structural_lint, m)?)?;

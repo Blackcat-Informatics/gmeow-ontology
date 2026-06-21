@@ -123,15 +123,15 @@ module = ["markdown.*", "sssom.*", "owlrl.*", "linkml.*", "linkml_runtime.*", "y
 ignore_missing_imports = true
 
 [[tool.mypy.overrides]]
-# The untyped native-extension shims (gmeow_diagnostics / gmeow_shacl /
-# gmeow_validate). Single-cdylib unification (#630) put every legacy-name shim
-# package under mypy_path = crates/native/python, so mypy now *finds* these shim
-# sources — but they only do a runtime `sys.modules` swap and carry no API stub.
+# The untyped native-extension shims (gmeow_diagnostics / gmeow_shacl).
+# Single-cdylib unification (#630) put every legacy-name shim package under
+# mypy_path = crates/native/python, so mypy now *finds* these shim sources —
+# but they only do a runtime `sys.modules` swap and carry no API stub.
 # `follow_imports = skip` makes mypy treat them as `Any` (the pre-#630 behaviour
 # when they were simply not on mypy_path), so call sites type-check unchanged.
-# gmeow_rdf / gmeow_logic are deliberately NOT here: they ship typed stubs
-# (__init__.pyi) beside their shims so their call sites stay fully checked.
-module = ["gmeow_diagnostics.*", "gmeow_shacl.*", "gmeow_validate.*"]
+# gmeow_rdf / gmeow_logic / gmeow_validate are deliberately NOT here: they ship
+# typed stubs (__init__.pyi) beside their shims so their call sites stay checked.
+module = ["gmeow_diagnostics.*", "gmeow_shacl.*"]
 ignore_missing_imports = true
 follow_imports = "skip"
 
