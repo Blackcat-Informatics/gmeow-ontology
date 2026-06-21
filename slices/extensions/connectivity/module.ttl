@@ -1,189 +1,194 @@
-@prefix gmeow:   <https://blackcatinformatics.ca/gmeow/> .
-@prefix gufo:    <http://purl.org/nemo/gufo#> .
-@prefix owl:     <http://www.w3.org/2002/07/owl#> .
-@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
-@prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix gufo: <http://purl.org/nemo/gufo#> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
-<https://blackcatinformatics.ca/gmeow/slices/connectivity>
-    a owl:Ontology ;
-    rdfs:label "GMEOW Connectivity Module"@x-gmeow-english ;
-    skos:definition "The GMEOW Connectivity Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/connectivity> ;
-    rdfs:comment "Universal connectivity, network, and routing constructs — traversable links, reified connections, and route paths. Distinct from mereology (partOf) and RCC-8 adjacency. Part of the Location-as-reference-frame design."@x-gmeow-english;
-    dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
-
-# --------------------------------------------------------------------------- #
-# Connection relator — reified traversable link (flat shortcut: connectsTo)
-# --------------------------------------------------------------------------- #
-
 gmeow:Connection
-    a owl:Class, gufo:Kind ;
-    rdfs:subClassOf gufo:Relator ;
+    a gufo:Kind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/connectivity> ;
     rdfs:label "Connection"@x-gmeow-english ;
+    rdfs:subClassOf gufo:Relator ;
     skos:definition "A reified traversable link between two entities, able to bear its own period, cost, weight, bandwidth, confidence, and standpoint. The flat shortcut is gmeow:connectsTo; promote to Connection when metadata matters."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/connectivity> .
-
-gmeow:connectionSource
-    a owl:ObjectProperty, owl:FunctionalProperty ;
-    rdfs:domain gmeow:Connection ;
-    rdfs:range owl:Thing ;
-    rdfs:label "connection source"@x-gmeow-english ;
-    skos:definition "The source of a reified Connection."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/connectivity> .
-
-gmeow:connectionTarget
-    a owl:ObjectProperty, owl:FunctionalProperty ;
-    rdfs:domain gmeow:Connection ;
-    rdfs:range owl:Thing ;
-    rdfs:label "connection target"@x-gmeow-english ;
-    skos:definition "The target of a reified Connection."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/connectivity> .
-
-# --------------------------------------------------------------------------- #
-# Route — a traversable path through connected entities
-# --------------------------------------------------------------------------- #
+    gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:Route
-    a owl:Class, gufo:Kind ;
-    rdfs:subClassOf gmeow:Entity ;
+    a gufo:Kind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/connectivity> ;
     rdfs:label "Route"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:Entity ;
     skos:definition "A traversable path through a graph of connected entities — a named, typed sequence of linked nodes with a defined start and end. Models transport lines, network paths, citation chains, social paths, and dependency chains. The actual path geometry, ordering, and cost are computed by the solver layer (Principle 12), not asserted as triples."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/connectivity> .
+    gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:RouteKind
-    a owl:Class, gufo:AbstractIndividualType ;
-    rdfs:subClassOf gufo:QualityValue ;
+    a gufo:AbstractIndividualType ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/connectivity> ;
     rdfs:label "Route Kind"@x-gmeow-english ;
+    rdfs:subClassOf gufo:QualityValue ;
     skos:definition "The kind of a route — transit line, flight path, walking path, citation chain, network path, social path, dependency chain. An open value vocabulary (individuals, never subclasses) per Principle 9."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/connectivity> .
+    gmeow:graphBoxRole gmeow:boxTBox .
 
-# Seeds for RouteKind
-gmeow:routeKindTransit      a gmeow:RouteKind ; rdfs:label "transit route"@x-gmeow-english .
-gmeow:routeKindTransit skos:definition "The transit route kind — a classification of a path by the domain in which the path is traversed."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/connectivity> .
-gmeow:routeKindWalking      a gmeow:RouteKind ; rdfs:label "walking route"@x-gmeow-english .
-gmeow:routeKindWalking skos:definition "The walking route kind — a classification of a path by the domain in which the path is traversed."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/connectivity> .
-gmeow:routeKindFlight       a gmeow:RouteKind ; rdfs:label "flight path"@x-gmeow-english .
-gmeow:routeKindFlight skos:definition "The flight route kind — a classification of a path by the domain in which the path is traversed."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/connectivity> .
-gmeow:routeKindNetwork      a gmeow:RouteKind ; rdfs:label "network path"@x-gmeow-english .
-gmeow:routeKindNetwork skos:definition "The network route kind — a classification of a path by the domain in which the path is traversed."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/connectivity> .
-gmeow:routeKindCitation     a gmeow:RouteKind ; rdfs:label "citation chain"@x-gmeow-english .
-gmeow:routeKindCitation skos:definition "The citation route kind — a classification of a path by the domain in which the path is traversed."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/connectivity> .
-gmeow:routeKindSocial       a gmeow:RouteKind ; rdfs:label "social path"@x-gmeow-english .
-gmeow:routeKindSocial skos:definition "The social route kind — a classification of a path by the domain in which the path is traversed."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/connectivity> .
-gmeow:routeKindDependency   a gmeow:RouteKind ; rdfs:label "dependency chain"@x-gmeow-english .
-
-# Route properties
-gmeow:routeKindDependency skos:definition "The dependency route kind — a classification of a path by the domain in which the path is traversed."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/connectivity> .
-gmeow:routeStart
-    a owl:ObjectProperty, owl:FunctionalProperty ;
-    rdfs:domain gmeow:Route ;
+gmeow:connectionSource
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
+    rdfs:domain gmeow:Connection ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/connectivity> ;
+    rdfs:label "connection source"@x-gmeow-english ;
     rdfs:range owl:Thing ;
-    rdfs:label "route start"@x-gmeow-english ;
-    skos:definition "The start of a route."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/connectivity> .
+    skos:definition "The source of a reified Connection."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxRBox .
 
-gmeow:routeEnd
-    a owl:ObjectProperty, owl:FunctionalProperty ;
-    rdfs:domain gmeow:Route ;
+gmeow:connectionTarget
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
+    rdfs:domain gmeow:Connection ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/connectivity> ;
+    rdfs:label "connection target"@x-gmeow-english ;
     rdfs:range owl:Thing ;
-    rdfs:label "route end"@x-gmeow-english ;
-    skos:definition "The end of a route."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/connectivity> .
-
-gmeow:routeVia
-    a owl:ObjectProperty ;
-    rdfs:domain gmeow:Route ;
-    rdfs:range owl:Thing ;
-    rdfs:label "route via"@x-gmeow-english ;
-    skos:definition "An intermediate point that a route passes through. The order of via points is computed by the solver layer (Principle 12), not asserted in the OWL core."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/connectivity> .
-
-gmeow:routeKind
-    a owl:ObjectProperty, owl:FunctionalProperty ;
-    rdfs:domain gmeow:Route ;
-    rdfs:range gmeow:RouteKind ;
-    rdfs:label "route kind"@x-gmeow-english ;
-    skos:definition "The kind of a route (a RouteKind individual)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/connectivity> .
-
-gmeow:hasRouteSegment
-    a owl:ObjectProperty, owl:TransitiveProperty ;
-    rdfs:subPropertyOf gmeow:hasPart ;
-    rdfs:domain gmeow:Route ;
-    rdfs:range gmeow:Route ;
-    rdfs:label "has route segment"@x-gmeow-english ;
-    skos:definition "A sub-route that is part of a larger route. A specialization of the universal gmeow:hasPart spine."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/connectivity> .
+    skos:definition "The target of a reified Connection."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:hasRoute
     a owl:ObjectProperty ;
     rdfs:domain owl:Thing ;
-    rdfs:range gmeow:Route ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/connectivity> ;
     rdfs:label "has route"@x-gmeow-english ;
+    rdfs:range gmeow:Route ;
     skos:definition "Relates a thing to a route that starts from, ends at, or passes through it."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/connectivity> .
+    gmeow:graphBoxRole gmeow:boxRBox .
 
-# --------------------------------------------------------------------------- #
-# Reference Frame Seed — network graph (connectivity spine, Principle 11)
-# --------------------------------------------------------------------------- #
+gmeow:hasRouteSegment
+    a owl:ObjectProperty ,
+        owl:TransitiveProperty ;
+    rdfs:domain gmeow:Route ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/connectivity> ;
+    rdfs:label "has route segment"@x-gmeow-english ;
+    rdfs:range gmeow:Route ;
+    rdfs:subPropertyOf gmeow:hasPart ;
+    skos:definition "A sub-route that is part of a larger route. A specialization of the universal gmeow:hasPart spine."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:referenceFrameNetworkGraph
     a gmeow:ReferenceFrame ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/connectivity> ;
     rdfs:label "Network Graph Reference Frame"@x-gmeow-english ;
-    gmeow:frameRealm gmeow:frameRealmVirtual ;
-    gmeow:hasAxis gmeow:axisScalar ;
+    skos:definition "The network graph reference frame — a named coordinate system or value space together with its axes, origin, and transformation rules (Principle 11)."@x-gmeow-english ;
+    gmeow:determinacyModel gmeow:determinacyCrisp ;
     gmeow:dimensionCount "1"^^xsd:nonNegativeInteger ;
     gmeow:frameKind gmeow:frameKindGrid ;
-    gmeow:requiresHost false ;
-    gmeow:determinacyModel gmeow:determinacyCrisp ;
-    gmeow:hasMetricKind gmeow:metricGraphHops .
-gmeow:referenceFrameNetworkGraph skos:definition "The network graph reference frame — a named coordinate system or value space together with its axes, origin, and transformation rules (Principle 11)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/connectivity> .
+    gmeow:frameRealm gmeow:frameRealmVirtual ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:hasAxis gmeow:axisScalar ;
+    gmeow:hasMetricKind gmeow:metricGraphHops ;
+    gmeow:requiresHost false .
 
-# =========================================================================== #
-# ACCESSIBLE ROUTE KIND (from the accessibility module — slice-dependency doctrine refactor)
-# Value individuals live beside their value class (the vocabulary stays
-# open — Principle 9); this keeps accessibility and connectivity mutually
-# independent sibling extensions.
-# =========================================================================== #
+gmeow:routeEnd
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
+    rdfs:domain gmeow:Route ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/connectivity> ;
+    rdfs:label "route end"@x-gmeow-english ;
+    rdfs:range owl:Thing ;
+    skos:definition "The end of a route."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:routeKind
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
+    rdfs:domain gmeow:Route ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/connectivity> ;
+    rdfs:label "route kind"@x-gmeow-english ;
+    rdfs:range gmeow:RouteKind ;
+    skos:definition "The kind of a route (a RouteKind individual)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
 
 gmeow:routeKindAccessible
     a gmeow:RouteKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/connectivity> ;
     rdfs:label "accessible route"@x-gmeow-english ;
     skos:definition "A route computed to satisfy a set of accessibility needs. The actual path is determined by the solver layer (Principle 12), not asserted in OWL."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/connectivity> .
+    gmeow:graphBoxRole gmeow:boxABox .
 
-# --------------------------------------------------------------------------- #
-# Graph box role coverage (canonical explicit annotations).
-# --------------------------------------------------------------------------- #
+gmeow:routeKindCitation
+    a gmeow:RouteKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/connectivity> ;
+    rdfs:label "citation chain"@x-gmeow-english ;
+    skos:definition "The citation route kind — a classification of a path by the domain in which the path is traversed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
 
-gmeow:Connection gmeow:graphBoxRole gmeow:boxTBox .
-gmeow:Route gmeow:graphBoxRole gmeow:boxTBox .
-gmeow:RouteKind gmeow:graphBoxRole gmeow:boxTBox .
-gmeow:connectionSource gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxRBox .
-gmeow:connectionTarget gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:hasRoute gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:hasRouteSegment gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:referenceFrameNetworkGraph gmeow:graphBoxRole gmeow:boxABox .
-gmeow:routeEnd gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:routeKind gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:routeKindAccessible gmeow:graphBoxRole gmeow:boxABox .
-gmeow:routeKindCitation gmeow:graphBoxRole gmeow:boxABox .
-gmeow:routeKindDependency gmeow:graphBoxRole gmeow:boxABox .
-gmeow:routeKindFlight gmeow:graphBoxRole gmeow:boxABox .
-gmeow:routeKindNetwork gmeow:graphBoxRole gmeow:boxABox .
-gmeow:routeKindSocial gmeow:graphBoxRole gmeow:boxABox .
-gmeow:routeKindTransit gmeow:graphBoxRole gmeow:boxABox .
-gmeow:routeKindWalking gmeow:graphBoxRole gmeow:boxABox .
-gmeow:routeStart gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:routeVia gmeow:graphBoxRole gmeow:boxRBox .
-<https://blackcatinformatics.ca/gmeow/slices/connectivity> gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .
+gmeow:routeKindDependency
+    a gmeow:RouteKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/connectivity> ;
+    rdfs:label "dependency chain"@x-gmeow-english ;
+    skos:definition "The dependency route kind — a classification of a path by the domain in which the path is traversed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:routeKindFlight
+    a gmeow:RouteKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/connectivity> ;
+    rdfs:label "flight path"@x-gmeow-english ;
+    skos:definition "The flight route kind — a classification of a path by the domain in which the path is traversed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:routeKindNetwork
+    a gmeow:RouteKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/connectivity> ;
+    rdfs:label "network path"@x-gmeow-english ;
+    skos:definition "The network route kind — a classification of a path by the domain in which the path is traversed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:routeKindSocial
+    a gmeow:RouteKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/connectivity> ;
+    rdfs:label "social path"@x-gmeow-english ;
+    skos:definition "The social route kind — a classification of a path by the domain in which the path is traversed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:routeKindTransit
+    a gmeow:RouteKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/connectivity> ;
+    rdfs:label "transit route"@x-gmeow-english ;
+    skos:definition "The transit route kind — a classification of a path by the domain in which the path is traversed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:routeKindWalking
+    a gmeow:RouteKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/connectivity> ;
+    rdfs:label "walking route"@x-gmeow-english ;
+    skos:definition "The walking route kind — a classification of a path by the domain in which the path is traversed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:routeStart
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
+    rdfs:domain gmeow:Route ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/connectivity> ;
+    rdfs:label "route start"@x-gmeow-english ;
+    rdfs:range owl:Thing ;
+    skos:definition "The start of a route."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:routeVia
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Route ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/connectivity> ;
+    rdfs:label "route via"@x-gmeow-english ;
+    rdfs:range owl:Thing ;
+    skos:definition "An intermediate point that a route passes through. The order of via points is computed by the solver layer (Principle 12), not asserted in the OWL core."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+<https://blackcatinformatics.ca/gmeow/slices/connectivity>
+    a owl:Ontology ;
+    dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;
+    rdfs:comment "Universal connectivity, network, and routing constructs — traversable links, reified connections, and route paths. Distinct from mereology (partOf) and RCC-8 adjacency. Part of the Location-as-reference-frame design."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/connectivity> ;
+    rdfs:label "GMEOW Connectivity Module"@x-gmeow-english ;
+    skos:definition "The GMEOW Connectivity Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxConfigBox ,
+        gmeow:boxTBox .

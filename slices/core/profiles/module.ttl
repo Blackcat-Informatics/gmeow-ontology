@@ -1,147 +1,142 @@
-@prefix gmeow:   <https://blackcatinformatics.ca/gmeow/> .
-@prefix gufo:    <http://purl.org/nemo/gufo#> .
-@prefix owl:     <http://www.w3.org/2002/07/owl#> .
-@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix gufo: <http://purl.org/nemo/gufo#> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
-<https://blackcatinformatics.ca/gmeow/slices/profiles>
-    a owl:Ontology ;
-    rdfs:label "GMEOW Profile Meta-pattern Module"@x-gmeow-english ;
-    skos:definition "The GMEOW Profile Meta-pattern Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/profiles> ;
-    rdfs:comment "Reusable Profile construct: closed descriptor schema + open values + self-description. Reference-frame, temporal-frame and four-clocks provenance profiles are seeded as worked examples."@x-gmeow-english ;
-    dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
-
-# =========================================================================== #
-# PROFILE META-PATTERN
-# =========================================================================== #
-
 gmeow:Profile
-    a owl:Class, gufo:Kind ;
-    rdfs:subClassOf gmeow:InformationObject, gufo:Object ;
+    a gufo:Kind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/profiles> ;
     rdfs:label "Profile"@x-gmeow-english ;
+    rdfs:subClassOf gufo:Object ,
+        gmeow:InformationObject ;
     skos:definition "A closed descriptor schema for an open-but-structured facet. A Profile self-describes the properties that constitute the facet and the open value vocabularies from which their values are drawn, enabling extensibility-by-construction."@x-gmeow-english ;
     skos:example "ex:profileReferenceFrame a gmeow:Profile ; gmeow:profileAppliesTo gmeow:ReferenceFrame ."@x-gmeow-english ;
-    gmeow:useWhen "Use to declare the closed descriptor schema for an open-but-structured facet — the set of descriptor properties and the open value vocabularies a frame, value, or named slice profile is built from."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid for an ordinary instance of a facet (a Profile describes the schema, not a value of it) and avoid subclassing the facet's open vocabularies into the descriptor — list them with gmeow:profileOpenValue instead."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxConfigBox ,
+        gmeow:boxTBox ;
     gmeow:howToUse "Mint the Profile as an individual, name its target class with gmeow:profileAppliesTo, enumerate descriptor properties with gmeow:profileDescriptor, and the open value classes with gmeow:profileOpenValue; instances reference it via gmeow:hasProfile."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/profiles> .
+    gmeow:useWhen "Use to declare the closed descriptor schema for an open-but-structured facet — the set of descriptor properties and the open value vocabularies a frame, value, or named slice profile is built from."@x-gmeow-english .
 
 gmeow:hasProfile
     a owl:ObjectProperty ;
-    rdfs:range gmeow:Profile ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/profiles> ;
     rdfs:label "has profile"@x-gmeow-english ;
+    rdfs:range gmeow:Profile ;
     skos:definition "Links an entity, value or frame to the Profile that governs its structure."@x-gmeow-english ;
     skos:example "ex:wgs84 gmeow:hasProfile gmeow:profileReferenceFrame ."@x-gmeow-english ;
-    gmeow:useWhen "Use to point an entity, value, or frame at the Profile whose closed descriptor schema governs its structure."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid for naming the class a Profile targets (that is gmeow:profileAppliesTo, asserted on the Profile) and for membership in a named slice profile (that is gmeow:sliceProfile on the slice manifest)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxConfigBox ,
+        gmeow:boxRBox ;
     gmeow:howToUse "Assert gmeow:hasProfile from the instance to a gmeow:Profile individual; tooling then reads the Profile's descriptors to validate which facet properties the instance may carry."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/profiles> .
+    gmeow:useWhen "Use to point an entity, value, or frame at the Profile whose closed descriptor schema governs its structure."@x-gmeow-english .
 
 gmeow:profileAppliesTo
     a owl:ObjectProperty ;
     rdfs:domain gmeow:Profile ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/profiles> ;
     rdfs:label "profile applies to"@x-gmeow-english ;
     skos:definition "The class of entities to which this Profile applies."@x-gmeow-english ;
     skos:example "gmeow:profileReferenceFrame gmeow:profileAppliesTo gmeow:ReferenceFrame ."@x-gmeow-english ;
-    gmeow:useWhen "Use on a Profile to name the class whose instances its descriptor schema governs."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid asserting it on the instances themselves (it is a Profile-level statement) and avoid using it for the per-instance link (that is gmeow:hasProfile)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxConfigBox ,
+        gmeow:boxRBox ;
     gmeow:howToUse "Assert gmeow:profileAppliesTo from the Profile to the target class; an instance of that class then claims conformance with gmeow:hasProfile."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/profiles> .
+    gmeow:useWhen "Use on a Profile to name the class whose instances its descriptor schema governs."@x-gmeow-english .
 
 gmeow:profileDescriptor
     a owl:AnnotationProperty ;
     rdfs:domain gmeow:Profile ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/profiles> ;
     rdfs:label "profile descriptor"@x-gmeow-english ;
     skos:definition "A property that is part of this Profile's closed descriptor schema."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/profiles> .
+    gmeow:graphBoxRole gmeow:boxConfigBox ,
+        gmeow:boxRBox .
 
 gmeow:profileOpenValue
     a owl:ObjectProperty ;
     rdfs:domain gmeow:Profile ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/profiles> ;
     rdfs:label "profile open value"@x-gmeow-english ;
     skos:definition "An open value-vocabulary class (instances are individuals, never subclasses) used by this Profile."@x-gmeow-english ;
     skos:example "gmeow:profileReferenceFrame gmeow:profileOpenValue gmeow:FrameRealm ."@x-gmeow-english ;
-    gmeow:useWhen "Use on a Profile to name an open value-vocabulary class (instances are individuals) whose members supply values for one of the Profile's descriptor properties."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid for a descriptor property itself (that is gmeow:profileDescriptor) and avoid pointing it at a class meant to be extended by subclassing rather than by minting individuals."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxConfigBox ,
+        gmeow:boxRBox ;
     gmeow:howToUse "Assert gmeow:profileOpenValue from the Profile to each open value class; extension then happens by adding individuals to those classes, never by altering the closed descriptor schema."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/profiles> .
-
-# =========================================================================== #
-# SEED PROFILES
-# =========================================================================== #
+    gmeow:useWhen "Use on a Profile to name an open value-vocabulary class (instances are individuals) whose members supply values for one of the Profile's descriptor properties."@x-gmeow-english .
 
 gmeow:profileReferenceFrame
     a gmeow:Profile ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/profiles> ;
     rdfs:label "Reference Frame Profile"@x-gmeow-english ;
     skos:definition "The closed descriptor schema for gmeow:ReferenceFrame instances: realm, axes, dimensionality, kind, host-dependence, determinacy, metric, and transform descriptors."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxConfigBox ;
     gmeow:profileAppliesTo gmeow:ReferenceFrame ;
-    gmeow:profileDescriptor
-        gmeow:frameRealm ,
-        gmeow:hasAxis ,
+    gmeow:profileDescriptor gmeow:determinacyModel ,
         gmeow:dimensionCount ,
         gmeow:frameKind ,
-        gmeow:requiresHost ,
-        gmeow:determinacyModel ,
-        gmeow:parentFrame ,
-        gmeow:transformsTo ,
+        gmeow:frameRealm ,
         gmeow:frameSolver ,
-        gmeow:hasMetricKind ;
-    gmeow:profileOpenValue
-        gmeow:FrameRealm ,
+        gmeow:hasAxis ,
+        gmeow:hasMetricKind ,
+        gmeow:parentFrame ,
+        gmeow:requiresHost ,
+        gmeow:transformsTo ;
+    gmeow:profileOpenValue gmeow:Axis ,
+        gmeow:Determinacy ,
         gmeow:FrameKind ,
-        gmeow:Axis ,
-        gmeow:MetricKind ,
-        gmeow:Determinacy ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/profiles> .
+        gmeow:FrameRealm ,
+        gmeow:MetricKind .
 
 gmeow:profileTemporalFrame
     a gmeow:Profile ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/profiles> ;
     rdfs:label "Temporal Frame Profile"@x-gmeow-english ;
     skos:definition "The closed descriptor schema for gmeow:TemporalFrame instances: the reference-frame spine plus time scale, calendar system, and reference position."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxCBox ,
+        gmeow:boxConfigBox ;
     gmeow:profileAppliesTo gmeow:TemporalFrame ;
-    gmeow:profileDescriptor
-        gmeow:frameRealm ,
-        gmeow:hasAxis ,
+    gmeow:profileDescriptor gmeow:determinacyModel ,
         gmeow:dimensionCount ,
-        gmeow:frameKind ,
-        gmeow:requiresHost ,
-        gmeow:determinacyModel ,
-        gmeow:parentFrame ,
-        gmeow:transformsTo ,
-        gmeow:frameSolver ,
-        gmeow:hasMetricKind ,
-        gmeow:frameTimeScale ,
         gmeow:frameCalendarSystem ,
-        gmeow:frameReferencePosition ;
-    gmeow:profileOpenValue
-        gmeow:TimeScale ,
-        gmeow:CalendarSystem ,
-        gmeow:ReferencePosition ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/profiles> .
+        gmeow:frameKind ,
+        gmeow:frameRealm ,
+        gmeow:frameReferencePosition ,
+        gmeow:frameSolver ,
+        gmeow:frameTimeScale ,
+        gmeow:hasAxis ,
+        gmeow:hasMetricKind ,
+        gmeow:parentFrame ,
+        gmeow:requiresHost ,
+        gmeow:transformsTo ;
+    gmeow:profileOpenValue gmeow:CalendarSystem ,
+        gmeow:ReferencePosition ,
+        gmeow:TimeScale .
 
 gmeow:profileTemporalProvenance
     a gmeow:Profile ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/profiles> ;
     rdfs:label "Temporal Provenance Profile (four clocks)"@x-gmeow-english ;
     skos:definition "The closed descriptor schema for statement-level temporal provenance: valid-from, valid-until, asserted-at, and recorded-no-later-than. Applies to statements, observations, and any resource whose metadata carries these annotation properties."@x-gmeow-english ;
-    gmeow:profileDescriptor
+    gmeow:graphBoxRole gmeow:boxABox ,
+        gmeow:boxCBox ,
+        gmeow:boxConfigBox ;
+    gmeow:profileDescriptor gmeow:assertedAt ,
+        gmeow:recordedNoLaterThan ,
         gmeow:validFrom ,
-        gmeow:validUntil ,
-        gmeow:assertedAt ,
-        gmeow:recordedNoLaterThan ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/profiles> .
+        gmeow:validUntil .
 
-# --------------------------------------------------------------------------- #
-# Graph box role coverage (canonical explicit annotations).
-# --------------------------------------------------------------------------- #
-
-gmeow:Profile gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .
-gmeow:hasProfile gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
-gmeow:profileAppliesTo gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
-gmeow:profileDescriptor gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
-gmeow:profileOpenValue gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
-gmeow:profileReferenceFrame gmeow:graphBoxRole gmeow:boxABox, gmeow:boxConfigBox .
-gmeow:profileTemporalFrame gmeow:graphBoxRole gmeow:boxABox, gmeow:boxCBox, gmeow:boxConfigBox .
-gmeow:profileTemporalProvenance gmeow:graphBoxRole gmeow:boxABox, gmeow:boxCBox, gmeow:boxConfigBox .
-<https://blackcatinformatics.ca/gmeow/slices/profiles> gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .
+<https://blackcatinformatics.ca/gmeow/slices/profiles>
+    a owl:Ontology ;
+    dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;
+    rdfs:comment "Reusable Profile construct: closed descriptor schema + open values + self-description. Reference-frame, temporal-frame and four-clocks provenance profiles are seeded as worked examples."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/profiles> ;
+    rdfs:label "GMEOW Profile Meta-pattern Module"@x-gmeow-english ;
+    skos:definition "The GMEOW Profile Meta-pattern Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxConfigBox ,
+        gmeow:boxTBox .

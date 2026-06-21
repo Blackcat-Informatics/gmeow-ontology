@@ -1,21 +1,1026 @@
-@prefix gmeow:   <https://blackcatinformatics.ca/gmeow/> .
-@prefix gufo:    <http://purl.org/nemo/gufo#> .
-@prefix owl:     <http://www.w3.org/2002/07/owl#> .
-@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
-@prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix gufo: <http://purl.org/nemo/gufo#> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
-# Redeclare gmeow:Agent as an owl:Class early so ROBOT's Turtle parser sees the
-# class declaration before any Phase-D property range uses it. Agent is canonically
-# defined in core.ttl; this local redeclaration is a parse-order guard only.
-gmeow:Agent a owl:Class .
+gmeow:Agent
+    a owl:Class .
+
+gmeow:AuthorIdentity
+    a gufo:Kind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "Author Identity"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:InformationObject ;
+    skos:definition "A recorded author or committer string in a version-control commit — the raw git bytes (Name <email>). This is the immutable historical assertion, independent of the current canonical agent. Superseded identities are retained with gmeow:displayable false rather than deleted (Principle 10)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:Blob
+    a gufo:SubKind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "Blob"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:SourceNode ;
+    skos:definition "A content-addressed blob of raw file content — the leaf of a Merkle source tree, independent of filename or path. Aligned to git blob objects and Software Heritage Content by reference. A Blob is the bytes only; the name is carried by the TreeEntry that points to it."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:Branch
+    a gufo:Kind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "Branch"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:InformationObject ;
+    skos:definition "A mutable pointer to a line of development in a repository — a named reference that advances as new commits are added. An InformationObject, not an Event or Entity."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:BuildActivity
+    a gufo:EventType ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "Build Activity"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:Activity ,
+        [
+            a owl:Restriction ;
+            owl:onProperty gmeow:buildSource ;
+            owl:someValuesFrom [
+                a owl:Class ;
+                owl:unionOf ( gmeow:Commit gmeow:Repository ) ;
+            ] ;
+        ] ,
+        [
+            a owl:Restriction ;
+            owl:onProperty gmeow:buildOutput ;
+            owl:someValuesFrom gmeow:Distribution ;
+        ] ;
+    skos:definition "A software build process that transforms source code into one or more distribution artifacts. The build activity consumes a commit or repository and produces a concrete distribution (tarball, wheel, binary, container image). Aligned to SLSA provenance buildType and PROV-O Activity by reference."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:Builder
+    a gufo:SubKind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "Builder"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:SoftwareAgent ;
+    skos:definition "The build system or agent that performs a BuildActivity — e.g. GitHub Actions, GitLab CI, Jenkins, Buildkite, or a local make invocation. A SoftwareAgent scoped to the build role."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:CodeReview
+    a gufo:EventType ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "Code Review"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:Event ;
+    skos:definition "The event of reviewing code changes for quality, correctness, and policy compliance — an event (not an Activity, because reviewing is observation-like) with a reviewer, a merge request or commit under review, and an outcome. Distinct from gmeow:Review, which is the InformationObject artifact produced by the review. The event type is gmeow:eventTypeCodeReview."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:Commit
+    a gufo:EventType ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "Commit"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:Activity ,
+        [
+            a owl:Restriction ;
+            owl:onProperty gmeow:authoredBy ;
+            owl:someValuesFrom gmeow:Agent ;
+        ] ,
+        [
+            a owl:Restriction ;
+            owl:onProperty gmeow:commitAuthorIdentity ;
+            owl:someValuesFrom gmeow:AuthorIdentity ;
+        ] ,
+        [
+            a owl:Restriction ;
+            owl:onProperty gmeow:commitCommitterIdentity ;
+            owl:someValuesFrom gmeow:AuthorIdentity ;
+        ] ,
+        [
+            a owl:Restriction ;
+            owl:onProperty gmeow:commitTree ;
+            owl:someValuesFrom gmeow:SourceTree ;
+        ] ;
+    skos:definition "A version-control commit — a content-addressed provenance event that records a change to a repository's history. The history facet of the five-facet model; distinct from the project, product, codebase, and repository. Carries author and committer attribution, timestamps, parentage, and a content digest. Aligned to Software Heritage Revision and git commit objects by reference."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:Diff
+    a gufo:Kind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "Diff"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:InformationObject ,
+        [
+            a owl:Restriction ;
+            owl:onProperty gmeow:diffFrom ;
+            owl:someValuesFrom gmeow:Commit ;
+        ] ,
+        [
+            a owl:Restriction ;
+            owl:onProperty gmeow:diffTo ;
+            owl:someValuesFrom gmeow:Commit ;
+        ] ;
+    skos:definition "A patch or diff — an information object describing the changes between two commits (or two trees). Carries textual diff content and references the from- and to- commits."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:Distribution
+    a gufo:Kind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "Distribution"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:InformationObject ;
+    skos:definition "A concrete distribution artifact of a software product — a tarball, wheel, binary, container image, or installer. The physical/bits facet of the release; identified by content digest."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:ForgePlatform
+    a gufo:Kind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "Forge Platform"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:Entity ;
+    skos:definition "A software forge or hosting platform — GitHub, GitLab, SourceHut, Codeberg, Gitea, etc. The platform as an entity, not any particular account or repository on it."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:GovernanceModel
+    a gufo:AbstractIndividualType ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "Governance Model"@x-gmeow-english ;
+    rdfs:subClassOf gufo:QualityValue ;
+    skos:definition "The governance model of a project — a VALUE vocabulary (individuals, never subclasses). Describes how decisions are made and who has authority."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:Issue
+    a gufo:Kind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "Issue"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:InformationObject ;
+    skos:definition "A tracked issue, ticket, or bug report in a software project — an InformationObject that may carry title, body, labels, and state. The event of its creation/closure is a separate gmeow:Event."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:MaintenanceStatus
+    a gufo:AbstractIndividualType ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "Maintenance Status"@x-gmeow-english ;
+    rdfs:subClassOf gufo:QualityValue ;
+    skos:definition "The maintenance status of a software project — a VALUE vocabulary (individuals, never subclasses). Answers the question 'is this maintained?' Standpoint-scoped: one community may judge a project abandoned while another considers it stable (Principle 9)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:Merge
+    a gufo:EventType ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "Merge"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:Activity ;
+    skos:definition "The event of merging one branch of development into another — an activity with a merge-base commit, a source branch or ref, a target branch, and a resulting merge commit. The event type is gmeow:eventTypeMerge."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:MergeRequest
+    a gufo:Kind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "Merge Request"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:InformationObject ;
+    skos:definition "A proposed merge of one branch into another — an InformationObject carrying title, description, source branch, target branch, and review state. Aligned to GitHub Pull Request and GitLab Merge Request by reference."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:Package
+    a gufo:Kind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "Package"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:InformationObject ;
+    skos:definition "A distributable software package — a named, versioned unit of software published through a package ecosystem (npm, PyPI, Cargo, Maven, etc.). The package descriptor, not the concrete distribution artifact."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxConfigBox ,
+        gmeow:boxTBox .
+
+gmeow:Project
+    a gufo:Kind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "Project"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:Entity ;
+    skos:definition "A social object representing an endeavour — an activity with purpose, participants, and duration, independent of any product, repository, or codebase. A project persists, bears identity and PIDs, and participants come and go; it is realised through events (milestones, releases, sprints), not identical to them. Modelled as an endurant (social object), not a perdurant (process)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:Push
+    a gufo:EventType ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "Push"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:Activity ;
+    skos:definition "The event of pushing one or more commits to a remote repository — an activity with a target repository or ref, a pusher, and a timestamp. The event type is gmeow:eventTypePush."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:Ref
+    a gufo:Kind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "Ref"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:InformationObject ;
+    skos:definition "A version-control reference — the generic superclass of Branch and any other named pointer into the commit graph."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:Release
+    a gufo:EventType ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "Release"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:Event ,
+        [
+            a owl:Restriction ;
+            owl:onProperty gmeow:releaseOf ;
+            owl:someValuesFrom gmeow:Project ;
+        ] ;
+    skos:definition "A software release — an event that produces a versioned software product, typically associated with a tag, a DOI, and one or more distribution artifacts. The event facet of the five-facet model; a release is an occurrence, not the product itself."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:Repository
+    a gufo:Kind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "Repository"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:InformationObject ;
+    skos:definition "A version-control repository — the location/hosting facet of a software project. Holds source code history, branches, tags, and refs. Distinct from the project (endeavour), the product (work), the codebase (content), and the history (events). Aligned to Software Heritage Origin and ForgeFed Repository by reference."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:RepositoryType
+    a gufo:AbstractIndividualType ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "Repository Type"@x-gmeow-english ;
+    rdfs:subClassOf gufo:QualityValue ;
+    skos:definition "The version-control system of a repository — a VALUE vocabulary (individuals, never subclasses). The set is open; a new VCS is a fresh individual, not a new class."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:Review
+    a gufo:Kind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "Review"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:InformationObject ;
+    skos:definition "A code review or peer review of a merge request or commit — an InformationObject carrying review text, approval state, and requested changes. The reviewing activity itself is a gmeow:Event with gmeow:Participations."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:SLSALevel
+    a gufo:AbstractIndividualType ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "SLSA Level"@x-gmeow-english ;
+    rdfs:subClassOf gufo:QualityValue ;
+    skos:definition "The SLSA supply-chain level for build provenance — a VALUE vocabulary (individuals, never subclasses). Levels 1–4 correspond to the SLSA specification's incremental integrity guarantees."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:SoftwareName
+    a gufo:SubKind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "Software Name"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:Appellation ;
+    skos:definition "An appellation borne by a software project or product — a project name, product name, codename, or package name. Carries its own gmeow:nameLanguage and gmeow:nameScript so co-equal multilingual names are separate first-class objects."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:SoftwareProduct
+    a gufo:SubKind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "Software Product"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:Work ;
+    skos:definition "A software work as an intellectual creation — the design, functionality, and behaviour of a program, library, or application, independent of any particular source repository, release event, or concrete artifact. The product facet of the five-facet model; distinct from the project (endeavour), the codebase (content), the repository (location), and the history (events). A specialization of gmeow:Work (the WEMI spine)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:SoftwareProject
+    a gufo:SubKind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "Software Project"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:Project ;
+    skos:definition "A project whose endeavour is the collaborative development of software. The social object facet only — distinct from the software product, the source codebase, the version-control repository, and the commit history. Re-parented from gmeow:Work to gmeow:Project (Principle 6: greenfield de-conflation)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:SourceDirectory
+    a gufo:SubKind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "Source Directory"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:SourceTree ;
+    skos:definition "A content-addressed subdirectory within a source tree — a named container of files and nested directories. A specialization of gmeow:SourceTree for nested structure."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxTBox .
+
+gmeow:SourceFile
+    a gufo:SubKind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "Source File"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:SourceNode ;
+    skos:definition "A content-addressed source file — a named blob of text or binary content within a source tree. Aligned to Software Heritage Content and git blob objects by reference."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxTBox .
+
+gmeow:SourceNode
+    a gufo:Kind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "Source Node"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:InformationObject ;
+    skos:definition "A content-addressed node in a source graph — the common kind for all objects that participate in a versioned source tree (files, directories, and recursive tree structures). Aligned to the git object model and Software Heritage object graph by reference."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxTBox .
+
+gmeow:SourceTree
+    a gufo:SubKind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "Source Tree"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:SourceNode ;
+    skos:definition "A content-addressed directory tree of source code — the recursive Merkle structure that represents a snapshot of a project's files and subdirectories at a point in time. Aligned to Software Heritage Directory and git tree objects by reference."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxTBox .
+
+gmeow:TreeEntry
+    a gufo:Kind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "Tree Entry"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:InformationObject ,
+        [
+            a owl:Restriction ;
+            owl:onProperty gmeow:treeEntryName ;
+            owl:someValuesFrom rdfs:Literal ;
+        ] ,
+        [
+            a owl:Restriction ;
+            owl:onProperty gmeow:treeEntryMode ;
+            owl:someValuesFrom rdfs:Literal ;
+        ] ,
+        [
+            a owl:Restriction ;
+            owl:onProperty gmeow:treeEntryObject ;
+            owl:someValuesFrom gmeow:SourceNode ;
+        ] ;
+    skos:definition "A named pointer within a source tree — a file or directory entry carrying a name, a file mode, and a reference to a Blob or SourceTree. Corresponds to a single line in a git tree object. Not content-addressed on its own; it acquires identity only as part of the tree that contains it."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:authorIdentityString
+    a owl:DatatypeProperty ,
+        owl:FunctionalProperty ;
+    rdfs:domain gmeow:AuthorIdentity ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "author identity string"@x-gmeow-english ;
+    rdfs:range rdfs:Literal ;
+    skos:definition "The raw author or committer bytes as they appeared in the commit object, typically 'Name <email>'."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:authorTime
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:Commit ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "author time"@x-gmeow-english ;
+    rdfs:range xsd:dateTime ;
+    skos:definition "The timestamp at which the author created the patch (xsd:dateTime). Distinct from committer-time and push-time (the four-clocks pattern, temporal module)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:authoredBy
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Commit ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "authored by"@x-gmeow-english ;
+    rdfs:range gmeow:Agent ;
+    skos:definition "The agent who authored the changes in a commit — the creative origin of the patch. Distinct from the committer (who applied the commit to the repository). Author and committer may differ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:bugDatabase
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Project ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "bug database"@x-gmeow-english ;
+    skos:definition "The issue/bug tracker of a software project — the doap:bug-database. Non-functional: a project may track issues in several places. Range open (an IRI)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:buildConfigUri
+    a owl:DatatypeProperty ,
+        owl:FunctionalProperty ;
+    rdfs:domain gmeow:BuildActivity ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "build config URI"@x-gmeow-english ;
+    rdfs:range rdfs:Literal ;
+    skos:definition "The URI of the build configuration or workflow file that describes the build process — e.g. the URL of `ci/workflows/release.yml` or a Jenkinsfile."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxConfigBox ,
+        gmeow:boxRBox .
+
+gmeow:buildOutput
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:BuildActivity ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "build output"@x-gmeow-english ;
+    rdfs:range gmeow:Distribution ;
+    skos:definition "The distribution artifact produced by a build activity. Non-functional: a build may produce multiple artifacts (tarball, wheel, binary, container image)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:buildSource
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:BuildActivity ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "build source"@x-gmeow-english ;
+    rdfs:range [
+        a owl:Class ;
+        owl:unionOf ( gmeow:Commit gmeow:Repository ) ;
+    ] ;
+    skos:definition "The source commit or repository that a build activity consumes. Non-functional: a build may consume multiple commits (monorepo) or a repository at a specific ref."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxRBox .
+
+gmeow:canonicalizedIdentity
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:AuthorIdentity ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "canonicalized identity"@x-gmeow-english ;
+    rdfs:range gmeow:Agent ;
+    skos:definition "The current self-asserted agent to which a historical AuthorIdentity is understood to refer. Old and new identities coexist as co-equal standpoints, never merged by identical identity (Principle 9)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:cloneUrl
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:Repository ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "clone URL"@x-gmeow-english ;
+    rdfs:range rdfs:Literal ;
+    skos:definition "A URL from which the repository can be cloned. Non-functional: multiple protocols (https, ssh, git) may be available."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:commitAncestor
+    a owl:ObjectProperty ,
+        owl:TransitiveProperty ;
+    rdfs:domain gmeow:Commit ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "commit ancestor"@x-gmeow-english ;
+    rdfs:range gmeow:Commit ;
+    rdfs:subPropertyOf gmeow:wasDerivedFrom ;
+    skos:definition "The transitive closure of parentCommit — any ancestor commit in the DAG. Transitive, non-simple: kept out of all cardinality / functional axioms to preserve OWL 2 DL regularity. Inverse of gmeow:commitDescendant."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:commitAuthorIdentity
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
+    rdfs:domain gmeow:Commit ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "commit author identity"@x-gmeow-english ;
+    rdfs:range gmeow:AuthorIdentity ;
+    skos:definition "The recorded author identity of a commit — the raw historical bytes. Distinct from gmeow:authoredBy, which points to the canonical agent currently understood to have authored the changes."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:commitCommitterIdentity
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
+    rdfs:domain gmeow:Commit ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "commit committer identity"@x-gmeow-english ;
+    rdfs:range gmeow:AuthorIdentity ;
+    skos:definition "The recorded committer identity of a commit — the raw historical bytes. Distinct from gmeow:committedBy, which points to the canonical agent currently understood to have committed the changes."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:commitDescendant
+    a owl:ObjectProperty ,
+        owl:TransitiveProperty ;
+    rdfs:domain gmeow:Commit ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "commit descendant"@x-gmeow-english ;
+    rdfs:range gmeow:Commit ;
+    owl:inverseOf gmeow:commitAncestor ;
+    skos:definition "The transitive closure of the inverse of parentCommit — any descendant commit in the DAG. Transitive, non-simple: kept out of all cardinality / functional axioms. Inverse of gmeow:commitAncestor."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:commitInRepository
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
+    rdfs:domain gmeow:Commit ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "commit in repository"@x-gmeow-english ;
+    rdfs:range gmeow:Repository ;
+    skos:definition "The repository in which a commit occurred. Functional: a commit belongs to exactly one repository (forks are separate repositories with their own history)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:commitTree
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
+    rdfs:domain gmeow:Commit ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "commit tree"@x-gmeow-english ;
+    rdfs:range gmeow:SourceTree ;
+    skos:definition "The source tree (directory snapshot) that a commit records. Functional: a commit points to exactly one tree."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:committedBy
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Commit ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "committed by"@x-gmeow-english ;
+    rdfs:range gmeow:Agent ;
+    skos:definition "The agent who committed the changes to the repository — the person or process that created the commit object. Distinct from the author (who wrote the patch)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:committerTime
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:Commit ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "committer time"@x-gmeow-english ;
+    rdfs:range xsd:dateTime ;
+    skos:definition "The timestamp at which the committer created the commit object (xsd:dateTime). Distinct from author-time and push-time."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:diffFrom
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
+    rdfs:domain gmeow:Diff ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "diff from"@x-gmeow-english ;
+    rdfs:range gmeow:Commit ;
+    skos:definition "The base commit of a diff — the 'before' state. Functional: a diff has exactly one base commit."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:diffTo
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
+    rdfs:domain gmeow:Diff ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "diff to"@x-gmeow-english ;
+    rdfs:range gmeow:Commit ;
+    skos:definition "The target commit of a diff — the 'after' state. Functional: a diff has exactly one target commit."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:distributionFormat
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:Distribution ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "distribution format"@x-gmeow-english ;
+    rdfs:range rdfs:Literal ;
+    skos:definition "The format of a distribution artifact — e.g. 'tar.gz', 'wheel', 'docker-image', 'exe'."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:downloadPage
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Project ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "download page"@x-gmeow-english ;
+    skos:definition "The download page of a software project — the doap:download-page. Non-functional. Range open (an IRI)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:eventTypeBuild
+    a gmeow:EventType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "build"@x-gmeow-english ;
+    skos:definition "The event of building software from source into distribution artifacts."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:governanceBDFL
+    a gmeow:GovernanceModel ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "BDFL"@x-gmeow-english ;
+    skos:definition "Benevolent dictator for life — a single individual has final decision authority."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:governanceCorporate
+    a gmeow:GovernanceModel ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "corporate"@x-gmeow-english ;
+    skos:definition "Governed by a single company or corporate sponsor."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:governanceDAO
+    a gmeow:GovernanceModel ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "DAO"@x-gmeow-english ;
+    skos:definition "Decentralized autonomous organization — governance via on-chain voting and smart contracts."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:governanceFoundation
+    a gmeow:GovernanceModel ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "foundation"@x-gmeow-english ;
+    skos:definition "Governed by a nonprofit foundation or consortium with formal bylaws."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:governanceMeritocracy
+    a gmeow:GovernanceModel ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "meritocracy"@x-gmeow-english ;
+    skos:definition "Decisions are made by those who have demonstrated contribution and expertise."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:governanceModel
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Project ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "governance model"@x-gmeow-english ;
+    rdfs:range gmeow:GovernanceModel ;
+    skos:definition "The governance model of a project — a value from the open gmeow:GovernanceModel vocabulary (BDFL, foundation, meritocracy, DAO, …). Non-functional: a project may transition models over time."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:hasDistribution
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Package ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "has distribution"@x-gmeow-english ;
+    rdfs:range gmeow:Distribution ;
+    skos:definition "Relates a package to one of its concrete distribution artifacts. Non-functional: a package may have multiple distributions (tarball, wheel, binary, container)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:hasRelease
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Project ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "has release"@x-gmeow-english ;
+    rdfs:range gmeow:Release ;
+    skos:definition "Relates a project to one of its releases. Non-functional: a project has many releases over time."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:hasRepository
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Project ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "has repository"@x-gmeow-english ;
+    rdfs:range gmeow:Repository ;
+    skos:definition "Relates a project to a version-control repository that hosts its codebase. Non-functional: a project may have several repositories (monorepo, mirrors, forks)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:hasSLSALevel
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Attestation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "has SLSA level"@x-gmeow-english ;
+    rdfs:range gmeow:SLSALevel ;
+    skos:definition "The SLSA supply-chain integrity level (1–4) asserted by an attestation. Non-functional: competing assessments from different verifiers coexist (Principle 9)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:hasSoftwareName
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "has software name"@x-gmeow-english ;
+    rdfs:range gmeow:SoftwareName ;
+    rdfs:subPropertyOf gmeow:hasAppellation ;
+    skos:definition "Relates a project or product to a structured gmeow:SoftwareName it bears; the software-scoped specialization of gmeow:hasAppellation. Non-functional — a project may bear many co-equal names; none is primary."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:hostedAt
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Repository ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "hosted at"@x-gmeow-english ;
+    rdfs:range gmeow:ForgePlatform ;
+    skos:definition "The forge or hosting platform where a repository is hosted. Non-functional: a repository may be mirrored on multiple platforms."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:mailmapEntry
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:Agent ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "mailmap entry"@x-gmeow-english ;
+    rdfs:range rdfs:Literal ;
+    skos:definition "The canonical .mailmap line for an agent — typically 'Canonical Name <canonical@example.com>'. This is the source value from which the .mailmap projection is generated (Principle 4)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:maintenanceStatus
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Project ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "maintenance status"@x-gmeow-english ;
+    rdfs:range gmeow:MaintenanceStatus ;
+    skos:definition "The maintenance status of a project — a value from the open gmeow:MaintenanceStatus vocabulary. Non-functional: competing assessments coexist (Principle 9)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:materializationDepth
+    a owl:DatatypeProperty ,
+        owl:FunctionalProperty ;
+    rdfs:domain gmeow:Repository ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "materialization depth"@x-gmeow-english ;
+    rdfs:range xsd:nonNegativeInteger ;
+    skos:definition "The number of levels of Merkle tree to materialise as triples for this repository. 0 = no tree materialisation (commits and refs only); 1 = root tree only; 2 = root tree plus one level of children; etc. Deep traversal of large repositories is left to native git or SWHID APIs. This is a projection boundary, not a deletion (Principle 10)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:mergeBase
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Merge ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "merge base"@x-gmeow-english ;
+    rdfs:range gmeow:Commit ;
+    skos:definition "The common ancestor commit from which a merge operation derives — the best common ancestor of the source and target branches. Non-functional: in complex merge scenarios there may be multiple candidates."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:mergeSource
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Merge ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "merge source"@x-gmeow-english ;
+    rdfs:range gmeow:Ref ;
+    skos:definition "The source ref (branch or tag) being merged in a merge event. Non-functional: octopus merges may have multiple sources."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxRBox .
+
+gmeow:mergeTarget
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
+    rdfs:domain gmeow:Merge ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "merge target"@x-gmeow-english ;
+    rdfs:range gmeow:Ref ;
+    skos:definition "The target ref (branch or tag) into which a merge event merges the source. Functional: a merge has exactly one target ref."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:packageOf
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Package ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "package of"@x-gmeow-english ;
+    rdfs:range gmeow:SoftwareProduct ;
+    skos:definition "Relates a package to the software product it distributes."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxConfigBox ,
+        gmeow:boxRBox .
+
+gmeow:parentCommit
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Commit ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "parent commit"@x-gmeow-english ;
+    rdfs:range gmeow:Commit ;
+    rdfs:subPropertyOf gmeow:commitAncestor ,
+        gmeow:wasDerivedFrom ;
+    skos:definition "A parent commit from which this commit was derived — the provenance spine of the commit DAG. Non-functional: a merge commit has multiple parents; the initial commit has none."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:pointsToCommit
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Ref ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "points to commit"@x-gmeow-english ;
+    rdfs:range gmeow:Commit ;
+    skos:definition "The commit that a ref (branch, tag, or other pointer) currently points to. Non-functional: a ref may point to one commit at a time, but that commit changes as the ref advances."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:programmingLanguage
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Project ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "programming language"@x-gmeow-english ;
+    rdfs:range gmeow:Language ;
+    skos:definition "A programming language a software project is implemented in — a gmeow:Language (the language slice's ProgrammingLanguage). Non-functional: a project uses several. Projects to doap:programming-language / schema:programmingLanguage."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:projectHomepage
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
+    rdfs:domain gmeow:Project ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "project homepage"@x-gmeow-english ;
+    skos:definition "The homepage of a project (project homepage and language) — the doap:homepage / schema:url of a software project. Functional; range open (an IRI)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:projectIdentifier
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:Project ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "project identifier"@x-gmeow-english ;
+    rdfs:range rdfs:Literal ;
+    skos:definition "An identifier for a project as an activity — typically a RAiD (ISO 23527). Distinct from product/release identifiers (DOI, ISO 26324). Non-functional: a project may carry multiple PIDs."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:projectLicense
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Project ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "project license"@x-gmeow-english ;
+    rdfs:range gmeow:License ;
+    skos:definition "The license under which a project releases its software. Non-functional: dual-licensing and license transitions over time are valid."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:pushTarget
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Push ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "push target"@x-gmeow-english ;
+    rdfs:range [
+        a owl:Class ;
+        owl:unionOf ( gmeow:Repository gmeow:Ref ) ;
+    ] ;
+    skos:definition "The repository or ref that a push event targets. Non-functional: a single push operation may target multiple refs in the same repository."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:releaseDoi
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:Release ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "release DOI"@x-gmeow-english ;
+    rdfs:range rdfs:Literal ;
+    skos:definition "The Digital Object Identifier (DOI) assigned to a software release — typically minted through DataCite, Zenodo, or a similar PID registry. Non-functional: a release may carry multiple DOIs from different registrars (Principle 9)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:releaseOf
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
+    rdfs:domain gmeow:Release ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "release of"@x-gmeow-english ;
+    rdfs:range gmeow:Project ;
+    skos:definition "The project that a release belongs to. Functional: one project per release event."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:releaseTag
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Release ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "release tag"@x-gmeow-english ;
+    rdfs:range gmeow:Tag ;
+    skos:definition "The tag associated with a release. Functional: a release is typically cut from exactly one tag."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:releaseVersion
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:Release ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "release version"@x-gmeow-english ;
+    rdfs:range rdfs:Literal ;
+    skos:definition "The version designation of a release — e.g. 'v1.0.0', '2.1.0-beta.3'. Not functional: competing version schemes may coexist (Principle 9)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:repoTypeFossil
+    a gmeow:RepositoryType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "fossil"@x-gmeow-english ;
+    skos:definition "The Fossil distributed version control system with built-in wiki and issue tracking."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:repoTypeGit
+    a gmeow:RepositoryType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "git"@x-gmeow-english ;
+    skos:definition "The Git distributed version control system."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:repoTypeHg
+    a gmeow:RepositoryType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "mercurial"@x-gmeow-english ;
+    skos:definition "The Mercurial distributed version control system."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:repoTypeJJ
+    a gmeow:RepositoryType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "jujutsu"@x-gmeow-english ;
+    skos:definition "The Jujutsu (jj) version control system."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:repoTypePijul
+    a gmeow:RepositoryType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "pijul"@x-gmeow-english ;
+    skos:definition "The Pijul version control system based on patch theory."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:repoTypeSVN
+    a gmeow:RepositoryType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "subversion"@x-gmeow-english ;
+    skos:definition "The Apache Subversion centralized version control system."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:repositoryType
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
+    rdfs:domain gmeow:Repository ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "repository type"@x-gmeow-english ;
+    rdfs:range gmeow:RepositoryType ;
+    skos:definition "The version-control system of a repository — a value from the open gmeow:RepositoryType vocabulary (git, hg, svn, fossil, …). Functional: a repository has exactly one VCS type."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:reviewCommit
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:CodeReview ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "review commit"@x-gmeow-english ;
+    rdfs:range gmeow:Commit ;
+    skos:definition "The specific commit under review in a code review event. Non-functional: a review may span multiple commits."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:reviewOf
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:CodeReview ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "review of"@x-gmeow-english ;
+    rdfs:range gmeow:MergeRequest ;
+    skos:definition "The merge request that a code review event is about. Non-functional: a review event may cover multiple related merge requests."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:slsaLevel1
+    a gmeow:SLSALevel ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "SLSA Level 1"@x-gmeow-english ;
+    skos:definition "Provenance exists — the build process is documented."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:slsaLevel2
+    a gmeow:SLSALevel ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "SLSA Level 2"@x-gmeow-english ;
+    skos:definition "Signed provenance — the build runs in a hosted environment with signed output."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:slsaLevel3
+    a gmeow:SLSALevel ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "SLSA Level 3"@x-gmeow-english ;
+    skos:definition "Hardened build — the build runs in a hardened, hermetic environment with reproducible steps."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:slsaLevel4
+    a gmeow:SLSALevel ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "SLSA Level 4"@x-gmeow-english ;
+    skos:definition "Two-person review + hermetic, reproducible build with comprehensive audit trail."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:statusAbandoned
+    a gmeow:MaintenanceStatus ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "abandoned"@x-gmeow-english ;
+    skos:definition "The project has been abandoned by its maintainers with no successor identified."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:statusActive
+    a gmeow:MaintenanceStatus ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "active"@x-gmeow-english ;
+    skos:definition "The project is under active development with frequent releases."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:statusDeprecated
+    a gmeow:MaintenanceStatus ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "deprecated"@x-gmeow-english ;
+    skos:definition "The project is no longer recommended; users should migrate to a successor."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:statusEOL
+    a gmeow:MaintenanceStatus ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "end of life"@x-gmeow-english ;
+    skos:definition "The project has reached end-of-life; no further updates of any kind are planned."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:statusMaintained
+    a gmeow:MaintenanceStatus ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "maintained"@x-gmeow-english ;
+    skos:definition "The project receives bug fixes and security updates but may not see new features."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:treeEntryMode
+    a owl:DatatypeProperty ,
+        owl:FunctionalProperty ;
+    rdfs:domain gmeow:TreeEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "tree entry mode"@x-gmeow-english ;
+    rdfs:range rdfs:Literal ;
+    skos:definition "The git file mode of a tree entry — e.g. '100644' (regular file), '100755' (executable), '040000' (directory), '160000' (submodule), '120000' (symlink). Functional: one mode per entry."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:treeEntryName
+    a owl:DatatypeProperty ,
+        owl:FunctionalProperty ;
+    rdfs:domain gmeow:TreeEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "tree entry name"@x-gmeow-english ;
+    rdfs:range rdfs:Literal ;
+    skos:definition "The file or directory name of a tree entry — e.g. 'README.md', 'src'. Functional: one name per entry."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:treeEntryObject
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
+    rdfs:domain gmeow:TreeEntry ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "tree entry object"@x-gmeow-english ;
+    rdfs:range gmeow:SourceNode ;
+    skos:definition "The content-addressed object (Blob or SourceTree) that a tree entry points to. Functional: one object per entry."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:webUrl
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:Repository ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "web URL"@x-gmeow-english ;
+    rdfs:range rdfs:Literal ;
+    skos:definition "The human-readable web URL of the repository (e.g. the GitHub project page)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
 
 <https://blackcatinformatics.ca/gmeow/slices/software>
     a owl:Ontology ;
-    rdfs:label "GMEOW Software Module"@x-gmeow-english ;
-    skos:definition "The GMEOW Software Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;
     rdfs:comment """The software slice: a five-facet de-conflation of the project domain.
 
 Project ≠ Product ≠ Codebase ≠ Repository ≠ History.
@@ -35,915 +1040,8 @@ REUSE.
 
 The flat property gmeow:developer is REMOVED (Principle 6 — greenfield); the
 Contribution relator and hasContributor shortcut supersede it."""@x-gmeow-english ;
-    dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
-
-# =========================================================================== #
-# FACET 1 — PROJECT (the endeavour, social object, endurant)
-# =========================================================================== #
-
-gmeow:Project
-    a owl:Class, gufo:Kind ;
-    rdfs:subClassOf gmeow:Entity ;
-    rdfs:label "Project"@x-gmeow-english ;
-    skos:definition "A social object representing an endeavour — an activity with purpose, participants, and duration, independent of any product, repository, or codebase. A project persists, bears identity and PIDs, and participants come and go; it is realised through events (milestones, releases, sprints), not identical to them. Modelled as an endurant (social object), not a perdurant (process)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> .
-
-gmeow:SoftwareProject
-    a owl:Class, gufo:SubKind ;
-    rdfs:subClassOf gmeow:Project ;
-    rdfs:label "Software Project"@x-gmeow-english ;
-    skos:definition "A project whose endeavour is the collaborative development of software. The social object facet only — distinct from the software product, the source codebase, the version-control repository, and the commit history. Re-parented from gmeow:Work to gmeow:Project (Principle 6: greenfield de-conflation)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> .
-
-gmeow:projectIdentifier
-    a owl:DatatypeProperty ;
-    rdfs:domain gmeow:Project ;
-    rdfs:range rdfs:Literal ;
-    rdfs:label "project identifier"@x-gmeow-english ;
-    skos:definition "An identifier for a project as an activity — typically a RAiD (ISO 23527). Distinct from product/release identifiers (DOI, ISO 26324). Non-functional: a project may carry multiple PIDs."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> .
-
-gmeow:projectHomepage
-    a owl:ObjectProperty, owl:FunctionalProperty ;
-    rdfs:domain gmeow:Project ;
-    rdfs:label "project homepage"@x-gmeow-english ;
-    skos:definition "The homepage of a project (project homepage and language) — the doap:homepage / schema:url of a software project. Functional; range open (an IRI)."@x-gmeow-english;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> .
-
-gmeow:bugDatabase
-    a owl:ObjectProperty ;
-    rdfs:domain gmeow:Project ;
-    rdfs:label "bug database"@x-gmeow-english ;
-    skos:definition "The issue/bug tracker of a software project — the doap:bug-database. Non-functional: a project may track issues in several places. Range open (an IRI)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> .
-
-gmeow:downloadPage
-    a owl:ObjectProperty ;
-    rdfs:domain gmeow:Project ;
-    rdfs:label "download page"@x-gmeow-english ;
-    skos:definition "The download page of a software project — the doap:download-page. Non-functional. Range open (an IRI)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> .
-
-gmeow:programmingLanguage
-    a owl:ObjectProperty ;
-    rdfs:domain gmeow:Project ;
-    rdfs:range gmeow:Language ;
-    rdfs:label "programming language"@x-gmeow-english ;
-    skos:definition "A programming language a software project is implemented in — a gmeow:Language (the language slice's ProgrammingLanguage). Non-functional: a project uses several. Projects to doap:programming-language / schema:programmingLanguage."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> .
-
-gmeow:hasRepository
-    a owl:ObjectProperty ;
-    rdfs:domain gmeow:Project ;
-    rdfs:range gmeow:Repository ;
-    rdfs:label "has repository"@x-gmeow-english ;
-    skos:definition "Relates a project to a version-control repository that hosts its codebase. Non-functional: a project may have several repositories (monorepo, mirrors, forks)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> .
-
-gmeow:maintenanceStatus
-    a owl:ObjectProperty ;
-    rdfs:domain gmeow:Project ;
-    rdfs:range gmeow:MaintenanceStatus ;
-    rdfs:label "maintenance status"@x-gmeow-english ;
-    skos:definition "The maintenance status of a project — a value from the open gmeow:MaintenanceStatus vocabulary. Non-functional: competing assessments coexist (Principle 9)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> .
-
-gmeow:governanceModel
-    a owl:ObjectProperty ;
-    rdfs:domain gmeow:Project ;
-    rdfs:range gmeow:GovernanceModel ;
-    rdfs:label "governance model"@x-gmeow-english ;
-    skos:definition "The governance model of a project — a value from the open gmeow:GovernanceModel vocabulary (BDFL, foundation, meritocracy, DAO, …). Non-functional: a project may transition models over time."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> .
-
-gmeow:projectLicense
-    a owl:ObjectProperty ;
-    rdfs:domain gmeow:Project ;
-    rdfs:range gmeow:License ;
-    rdfs:label "project license"@x-gmeow-english ;
-    skos:definition "The license under which a project releases its software. Non-functional: dual-licensing and license transitions over time are valid."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> .
-
-gmeow:hasRelease
-    a owl:ObjectProperty ;
-    rdfs:domain gmeow:Project ;
-    rdfs:range gmeow:Release ;
-    rdfs:label "has release"@x-gmeow-english ;
-    skos:definition "Relates a project to one of its releases. Non-functional: a project has many releases over time."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> .
-
-# =========================================================================== #
-# FACET 2 — PRODUCT / WORK (the released software as a creative work)
-# =========================================================================== #
-
-gmeow:SoftwareProduct
-    a owl:Class, gufo:SubKind ;
-    rdfs:subClassOf gmeow:Work ;
-    rdfs:label "Software Product"@x-gmeow-english ;
-    skos:definition "A software work as an intellectual creation — the design, functionality, and behaviour of a program, library, or application, independent of any particular source repository, release event, or concrete artifact. The product facet of the five-facet model; distinct from the project (endeavour), the codebase (content), the repository (location), and the history (events). A specialization of gmeow:Work (the WEMI spine)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> .
-
-gmeow:Package
-    a owl:Class, gufo:Kind ;
-    rdfs:subClassOf gmeow:InformationObject ;
-    rdfs:label "Package"@x-gmeow-english ;
-    skos:definition "A distributable software package — a named, versioned unit of software published through a package ecosystem (npm, PyPI, Cargo, Maven, etc.). The package descriptor, not the concrete distribution artifact."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> .
-
-gmeow:Distribution
-    a owl:Class, gufo:Kind ;
-    rdfs:subClassOf gmeow:InformationObject ;
-    rdfs:label "Distribution"@x-gmeow-english ;
-    skos:definition "A concrete distribution artifact of a software product — a tarball, wheel, binary, container image, or installer. The physical/bits facet of the release; identified by content digest."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> .
-
-gmeow:packageOf
-    a owl:ObjectProperty ;
-    rdfs:domain gmeow:Package ;
-    rdfs:range gmeow:SoftwareProduct ;
-    rdfs:label "package of"@x-gmeow-english ;
-    skos:definition "Relates a package to the software product it distributes."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> .
-
-gmeow:hasDistribution
-    a owl:ObjectProperty ;
-    rdfs:domain gmeow:Package ;
-    rdfs:range gmeow:Distribution ;
-    rdfs:label "has distribution"@x-gmeow-english ;
-    skos:definition "Relates a package to one of its concrete distribution artifacts. Non-functional: a package may have multiple distributions (tarball, wheel, binary, container)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> .
-
-gmeow:distributionFormat
-    a owl:DatatypeProperty ;
-    rdfs:domain gmeow:Distribution ;
-    rdfs:range rdfs:Literal ;
-    rdfs:label "distribution format"@x-gmeow-english ;
-    skos:definition "The format of a distribution artifact — e.g. 'tar.gz', 'wheel', 'docker-image', 'exe'."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> .
-
-# =========================================================================== #
-# FACET 3 — CODEBASE (content-addressed source)
-# =========================================================================== #
-
-gmeow:SourceNode
-    a owl:Class, gufo:Kind ;
-    rdfs:subClassOf gmeow:InformationObject ;
-    rdfs:label "Source Node"@x-gmeow-english ;
-    skos:definition "A content-addressed node in a source graph — the common kind for all objects that participate in a versioned source tree (files, directories, and recursive tree structures). Aligned to the git object model and Software Heritage object graph by reference."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> .
-
-gmeow:SourceTree
-    a owl:Class, gufo:SubKind ;
-    rdfs:subClassOf gmeow:SourceNode ;
-    rdfs:label "Source Tree"@x-gmeow-english ;
-    skos:definition "A content-addressed directory tree of source code — the recursive Merkle structure that represents a snapshot of a project's files and subdirectories at a point in time. Aligned to Software Heritage Directory and git tree objects by reference."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> .
-
-gmeow:SourceFile
-    a owl:Class, gufo:SubKind ;
-    rdfs:subClassOf gmeow:SourceNode ;
-    rdfs:label "Source File"@x-gmeow-english ;
-    skos:definition "A content-addressed source file — a named blob of text or binary content within a source tree. Aligned to Software Heritage Content and git blob objects by reference."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> .
-
-gmeow:SourceDirectory
-    a owl:Class, gufo:SubKind ;
-    rdfs:subClassOf gmeow:SourceTree ;
-    rdfs:label "Source Directory"@x-gmeow-english ;
-    skos:definition "A content-addressed subdirectory within a source tree — a named container of files and nested directories. A specialization of gmeow:SourceTree for nested structure."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> .
-
-# =========================================================================== #
-# FACET 4 — REPOSITORY (location / hosting)
-# =========================================================================== #
-
-gmeow:Repository
-    a owl:Class, gufo:Kind ;
-    rdfs:subClassOf gmeow:InformationObject ;
-    rdfs:label "Repository"@x-gmeow-english ;
-    skos:definition "A version-control repository — the location/hosting facet of a software project. Holds source code history, branches, tags, and refs. Distinct from the project (endeavour), the product (work), the codebase (content), and the history (events). Aligned to Software Heritage Origin and ForgeFed Repository by reference."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> .
-
-gmeow:repositoryType
-    a owl:ObjectProperty, owl:FunctionalProperty ;
-    rdfs:domain gmeow:Repository ;
-    rdfs:range gmeow:RepositoryType ;
-    rdfs:label "repository type"@x-gmeow-english ;
-    skos:definition "The version-control system of a repository — a value from the open gmeow:RepositoryType vocabulary (git, hg, svn, fossil, …). Functional: a repository has exactly one VCS type."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> .
-
-gmeow:hostedAt
-    a owl:ObjectProperty ;
-    rdfs:domain gmeow:Repository ;
-    rdfs:range gmeow:ForgePlatform ;
-    rdfs:label "hosted at"@x-gmeow-english ;
-    skos:definition "The forge or hosting platform where a repository is hosted. Non-functional: a repository may be mirrored on multiple platforms."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> .
-
-gmeow:cloneUrl
-    a owl:DatatypeProperty ;
-    rdfs:domain gmeow:Repository ;
-    rdfs:range rdfs:Literal ;
-    rdfs:label "clone URL"@x-gmeow-english ;
-    skos:definition "A URL from which the repository can be cloned. Non-functional: multiple protocols (https, ssh, git) may be available."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> .
-
-gmeow:webUrl
-    a owl:DatatypeProperty ;
-    rdfs:domain gmeow:Repository ;
-    rdfs:range rdfs:Literal ;
-    rdfs:label "web URL"@x-gmeow-english ;
-    skos:definition "The human-readable web URL of the repository (e.g. the GitHub project page)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> .
-
-# =========================================================================== #
-# FACET 5 — HISTORY (provenance / events)
-# =========================================================================== #
-
-gmeow:Commit
-    a owl:Class, gufo:EventType ;
-    rdfs:subClassOf gmeow:Activity ;
-    rdfs:label "Commit"@x-gmeow-english ;
-    skos:definition "A version-control commit — a content-addressed provenance event that records a change to a repository's history. The history facet of the five-facet model; distinct from the project, product, codebase, and repository. Carries author and committer attribution, timestamps, parentage, and a content digest. Aligned to Software Heritage Revision and git commit objects by reference."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> .
-
-gmeow:Release
-    a owl:Class, gufo:EventType ;
-    rdfs:subClassOf gmeow:Event ;
-    rdfs:label "Release"@x-gmeow-english ;
-    skos:definition "A software release — an event that produces a versioned software product, typically associated with a tag, a DOI, and one or more distribution artifacts. The event facet of the five-facet model; a release is an occurrence, not the product itself."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> .
-
-gmeow:Branch
-    a owl:Class, gufo:Kind ;
-    rdfs:subClassOf gmeow:InformationObject ;
-    rdfs:label "Branch"@x-gmeow-english ;
-    skos:definition "A mutable pointer to a line of development in a repository — a named reference that advances as new commits are added. An InformationObject, not an Event or Entity."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> .
-
-gmeow:Ref
-    a owl:Class, gufo:Kind ;
-    rdfs:subClassOf gmeow:InformationObject ;
-    rdfs:label "Ref"@x-gmeow-english ;
-    skos:definition "A version-control reference — the generic superclass of Branch and any other named pointer into the commit graph."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> .
-
-gmeow:commitInRepository
-    a owl:ObjectProperty, owl:FunctionalProperty ;
-    rdfs:domain gmeow:Commit ;
-    rdfs:range gmeow:Repository ;
-    rdfs:label "commit in repository"@x-gmeow-english ;
-    skos:definition "The repository in which a commit occurred. Functional: a commit belongs to exactly one repository (forks are separate repositories with their own history)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> .
-
-gmeow:parentCommit
-    a owl:ObjectProperty ;
-    rdfs:subPropertyOf gmeow:wasDerivedFrom, gmeow:commitAncestor ;
-    rdfs:domain gmeow:Commit ;
-    rdfs:range gmeow:Commit ;
-    rdfs:label "parent commit"@x-gmeow-english ;
-    skos:definition "A parent commit from which this commit was derived — the provenance spine of the commit DAG. Non-functional: a merge commit has multiple parents; the initial commit has none."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> .
-
-gmeow:authoredBy
-    a owl:ObjectProperty ;
-    rdfs:domain gmeow:Commit ;
-    rdfs:range gmeow:Agent ;
-    rdfs:label "authored by"@x-gmeow-english ;
-    skos:definition "The agent who authored the changes in a commit — the creative origin of the patch. Distinct from the committer (who applied the commit to the repository). Author and committer may differ."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> .
-
-gmeow:committedBy
-    a owl:ObjectProperty ;
-    rdfs:domain gmeow:Commit ;
-    rdfs:range gmeow:Agent ;
-    rdfs:label "committed by"@x-gmeow-english ;
-    skos:definition "The agent who committed the changes to the repository — the person or process that created the commit object. Distinct from the author (who wrote the patch)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> .
-
-gmeow:authorTime
-    a owl:DatatypeProperty ;
-    rdfs:domain gmeow:Commit ;
-    rdfs:range xsd:dateTime ;
-    rdfs:label "author time"@x-gmeow-english ;
-    skos:definition "The timestamp at which the author created the patch (xsd:dateTime). Distinct from committer-time and push-time (the four-clocks pattern, temporal module)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> .
-
-gmeow:committerTime
-    a owl:DatatypeProperty ;
-    rdfs:domain gmeow:Commit ;
-    rdfs:range xsd:dateTime ;
-    rdfs:label "committer time"@x-gmeow-english ;
-    skos:definition "The timestamp at which the committer created the commit object (xsd:dateTime). Distinct from author-time and push-time."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> .
-
-gmeow:commitTree
-    a owl:ObjectProperty, owl:FunctionalProperty ;
-    rdfs:domain gmeow:Commit ;
-    rdfs:range gmeow:SourceTree ;
-    rdfs:label "commit tree"@x-gmeow-english ;
-    skos:definition "The source tree (directory snapshot) that a commit records. Functional: a commit points to exactly one tree."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> .
-
-gmeow:pointsToCommit
-    a owl:ObjectProperty ;
-    rdfs:domain gmeow:Ref ;
-    rdfs:range gmeow:Commit ;
-    rdfs:label "points to commit"@x-gmeow-english ;
-    skos:definition "The commit that a ref (branch, tag, or other pointer) currently points to. Non-functional: a ref may point to one commit at a time, but that commit changes as the ref advances."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> .
-
-gmeow:releaseOf
-    a owl:ObjectProperty, owl:FunctionalProperty ;
-    rdfs:domain gmeow:Release ;
-    rdfs:range gmeow:Project ;
-    rdfs:label "release of"@x-gmeow-english ;
-    skos:definition "The project that a release belongs to. Functional: one project per release event."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> .
-
-gmeow:releaseVersion
-    a owl:DatatypeProperty ;
-    rdfs:domain gmeow:Release ;
-    rdfs:range rdfs:Literal ;
-    rdfs:label "release version"@x-gmeow-english ;
-    skos:definition "The version designation of a release — e.g. 'v1.0.0', '2.1.0-beta.3'. Not functional: competing version schemes may coexist (Principle 9)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> .
-
-gmeow:releaseTag
-    a owl:ObjectProperty ;
-    rdfs:domain gmeow:Release ;
-    rdfs:range gmeow:Tag ;
-    rdfs:label "release tag"@x-gmeow-english ;
-    skos:definition "The tag associated with a release. Functional: a release is typically cut from exactly one tag."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> .
-
-# =========================================================================== #
-# FORGE / COLLABORATION (lightweight — Event / InformationObject facets)
-# =========================================================================== #
-
-gmeow:ForgePlatform
-    a owl:Class, gufo:Kind ;
-    rdfs:subClassOf gmeow:Entity ;
-    rdfs:label "Forge Platform"@x-gmeow-english ;
-    skos:definition "A software forge or hosting platform — GitHub, GitLab, SourceHut, Codeberg, Gitea, etc. The platform as an entity, not any particular account or repository on it."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> .
-
-gmeow:Issue
-    a owl:Class, gufo:Kind ;
-    rdfs:subClassOf gmeow:InformationObject ;
-    rdfs:label "Issue"@x-gmeow-english ;
-    skos:definition "A tracked issue, ticket, or bug report in a software project — an InformationObject that may carry title, body, labels, and state. The event of its creation/closure is a separate gmeow:Event."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> .
-
-gmeow:MergeRequest
-    a owl:Class, gufo:Kind ;
-    rdfs:subClassOf gmeow:InformationObject ;
-    rdfs:label "Merge Request"@x-gmeow-english ;
-    skos:definition "A proposed merge of one branch into another — an InformationObject carrying title, description, source branch, target branch, and review state. Aligned to GitHub Pull Request and GitLab Merge Request by reference."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> .
-
-gmeow:Review
-    a owl:Class, gufo:Kind ;
-    rdfs:subClassOf gmeow:InformationObject ;
-    rdfs:label "Review"@x-gmeow-english ;
-    skos:definition "A code review or peer review of a merge request or commit — an InformationObject carrying review text, approval state, and requested changes. The reviewing activity itself is a gmeow:Event with gmeow:Participations."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> .
-
-# =========================================================================== #
-# OPEN VALUE VOCABULARIES — individuals, never subclasses (Principle 9)
-# =========================================================================== #
-
-gmeow:RepositoryType
-    a owl:Class, gufo:AbstractIndividualType ;
-    rdfs:subClassOf gufo:QualityValue ;
-    rdfs:label "Repository Type"@x-gmeow-english ;
-    skos:definition "The version-control system of a repository — a VALUE vocabulary (individuals, never subclasses). The set is open; a new VCS is a fresh individual, not a new class."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> .
-
-gmeow:repoTypeGit     a gmeow:RepositoryType ; rdfs:label "git"@x-gmeow-english ;     skos:definition "The Git distributed version control system."@x-gmeow-english .
-gmeow:repoTypeGit rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> .
-gmeow:repoTypeHg      a gmeow:RepositoryType ; rdfs:label "mercurial"@x-gmeow-english ; skos:definition "The Mercurial distributed version control system."@x-gmeow-english .
-gmeow:repoTypeHg rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> .
-gmeow:repoTypeSVN     a gmeow:RepositoryType ; rdfs:label "subversion"@x-gmeow-english ; skos:definition "The Apache Subversion centralized version control system."@x-gmeow-english .
-gmeow:repoTypeSVN rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> .
-gmeow:repoTypeFossil  a gmeow:RepositoryType ; rdfs:label "fossil"@x-gmeow-english ;  skos:definition "The Fossil distributed version control system with built-in wiki and issue tracking."@x-gmeow-english .
-gmeow:repoTypeFossil rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> .
-gmeow:repoTypeJJ      a gmeow:RepositoryType ; rdfs:label "jujutsu"@x-gmeow-english ; skos:definition "The Jujutsu (jj) version control system."@x-gmeow-english .
-gmeow:repoTypeJJ rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> .
-gmeow:repoTypePijul   a gmeow:RepositoryType ; rdfs:label "pijul"@x-gmeow-english ;   skos:definition "The Pijul version control system based on patch theory."@x-gmeow-english .
-gmeow:repoTypePijul rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> .
-
-gmeow:MaintenanceStatus
-    a owl:Class, gufo:AbstractIndividualType ;
-    rdfs:subClassOf gufo:QualityValue ;
-    rdfs:label "Maintenance Status"@x-gmeow-english ;
-    skos:definition "The maintenance status of a software project — a VALUE vocabulary (individuals, never subclasses). Answers the question 'is this maintained?' Standpoint-scoped: one community may judge a project abandoned while another considers it stable (Principle 9)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> .
-
-gmeow:statusActive      a gmeow:MaintenanceStatus ; rdfs:label "active"@x-gmeow-english ;      skos:definition "The project is under active development with frequent releases."@x-gmeow-english .
-gmeow:statusActive rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> .
-gmeow:statusMaintained  a gmeow:MaintenanceStatus ; rdfs:label "maintained"@x-gmeow-english ;  skos:definition "The project receives bug fixes and security updates but may not see new features."@x-gmeow-english .
-gmeow:statusMaintained rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> .
-gmeow:statusDeprecated  a gmeow:MaintenanceStatus ; rdfs:label "deprecated"@x-gmeow-english ;  skos:definition "The project is no longer recommended; users should migrate to a successor."@x-gmeow-english .
-gmeow:statusDeprecated rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> .
-gmeow:statusAbandoned   a gmeow:MaintenanceStatus ; rdfs:label "abandoned"@x-gmeow-english ;   skos:definition "The project has been abandoned by its maintainers with no successor identified."@x-gmeow-english .
-gmeow:statusAbandoned rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> .
-gmeow:statusEOL         a gmeow:MaintenanceStatus ; rdfs:label "end of life"@x-gmeow-english ; skos:definition "The project has reached end-of-life; no further updates of any kind are planned."@x-gmeow-english .
-gmeow:statusEOL rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> .
-
-gmeow:GovernanceModel
-    a owl:Class, gufo:AbstractIndividualType ;
-    rdfs:subClassOf gufo:QualityValue ;
-    rdfs:label "Governance Model"@x-gmeow-english ;
-    skos:definition "The governance model of a project — a VALUE vocabulary (individuals, never subclasses). Describes how decisions are made and who has authority."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> .
-
-gmeow:governanceBDFL        a gmeow:GovernanceModel ; rdfs:label "BDFL"@x-gmeow-english ;        skos:definition "Benevolent dictator for life — a single individual has final decision authority."@x-gmeow-english .
-gmeow:governanceBDFL rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> .
-gmeow:governanceFoundation  a gmeow:GovernanceModel ; rdfs:label "foundation"@x-gmeow-english ;  skos:definition "Governed by a nonprofit foundation or consortium with formal bylaws."@x-gmeow-english .
-gmeow:governanceFoundation rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> .
-gmeow:governanceMeritocracy a gmeow:GovernanceModel ; rdfs:label "meritocracy"@x-gmeow-english ; skos:definition "Decisions are made by those who have demonstrated contribution and expertise."@x-gmeow-english .
-gmeow:governanceMeritocracy rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> .
-gmeow:governanceDAO       a gmeow:GovernanceModel ; rdfs:label "DAO"@x-gmeow-english ;         skos:definition "Decentralized autonomous organization — governance via on-chain voting and smart contracts."@x-gmeow-english .
-gmeow:governanceDAO rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> .
-gmeow:governanceCorporate   a gmeow:GovernanceModel ; rdfs:label "corporate"@x-gmeow-english ;   skos:definition "Governed by a single company or corporate sponsor."@x-gmeow-english .
-
-# =========================================================================== #
-# NAMING — SoftwareName and hasSoftwareName (retained from original module)
-# =========================================================================== #
-gmeow:governanceCorporate rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> .
-
-gmeow:SoftwareName
-    a owl:Class, gufo:SubKind ;
-    rdfs:subClassOf gmeow:Appellation ;
-    rdfs:label "Software Name"@x-gmeow-english ;
-    skos:definition "An appellation borne by a software project or product — a project name, product name, codename, or package name. Carries its own gmeow:nameLanguage and gmeow:nameScript so co-equal multilingual names are separate first-class objects."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> .
-
-gmeow:hasSoftwareName
-    a owl:ObjectProperty ;
-    rdfs:subPropertyOf gmeow:hasAppellation ;
-    rdfs:range gmeow:SoftwareName ;
-    rdfs:label "has software name"@x-gmeow-english ;
-    skos:definition "Relates a project or product to a structured gmeow:SoftwareName it bears; the software-scoped specialization of gmeow:hasAppellation. Non-functional — a project may bear many co-equal names; none is primary."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> .
-
-# =========================================================================== #
-# PHASE B — GIT PROVENANCE DEEPENING (git provenance deepening)
-# Blob / TreeEntry for Merkle structure; Push / Merge / CodeReview / Diff for
-# collaboration events; commitAncestor / commitDescendant for DAG traversal.
-# =========================================================================== #
-
-# --------------------------------------------------------------------------- #
-# Merkle structure — Blob (raw content) and TreeEntry (named pointer)
-# --------------------------------------------------------------------------- #
-
-gmeow:Blob
-    a owl:Class, gufo:SubKind ;
-    rdfs:subClassOf gmeow:SourceNode ;
-    rdfs:label "Blob"@x-gmeow-english ;
-    skos:definition "A content-addressed blob of raw file content — the leaf of a Merkle source tree, independent of filename or path. Aligned to git blob objects and Software Heritage Content by reference. A Blob is the bytes only; the name is carried by the TreeEntry that points to it."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> .
-
-gmeow:TreeEntry
-    a owl:Class, gufo:Kind ;
-    rdfs:subClassOf gmeow:InformationObject ;
-    rdfs:label "Tree Entry"@x-gmeow-english ;
-    skos:definition "A named pointer within a source tree — a file or directory entry carrying a name, a file mode, and a reference to a Blob or SourceTree. Corresponds to a single line in a git tree object. Not content-addressed on its own; it acquires identity only as part of the tree that contains it."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> .
-
-gmeow:treeEntryName
-    a owl:DatatypeProperty, owl:FunctionalProperty ;
-    rdfs:domain gmeow:TreeEntry ;
-    rdfs:range rdfs:Literal ;
-    rdfs:label "tree entry name"@x-gmeow-english ;
-    skos:definition "The file or directory name of a tree entry — e.g. 'README.md', 'src'. Functional: one name per entry."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> .
-
-gmeow:treeEntryMode
-    a owl:DatatypeProperty, owl:FunctionalProperty ;
-    rdfs:domain gmeow:TreeEntry ;
-    rdfs:range rdfs:Literal ;
-    rdfs:label "tree entry mode"@x-gmeow-english ;
-    skos:definition "The git file mode of a tree entry — e.g. '100644' (regular file), '100755' (executable), '040000' (directory), '160000' (submodule), '120000' (symlink). Functional: one mode per entry."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> .
-
-gmeow:treeEntryObject
-    a owl:ObjectProperty, owl:FunctionalProperty ;
-    rdfs:domain gmeow:TreeEntry ;
-    rdfs:range gmeow:SourceNode ;
-    rdfs:label "tree entry object"@x-gmeow-english ;
-    skos:definition "The content-addressed object (Blob or SourceTree) that a tree entry points to. Functional: one object per entry."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> .
-
-# --------------------------------------------------------------------------- #
-# Commit DAG traversal — transitive parent / child
-# --------------------------------------------------------------------------- #
-
-gmeow:commitAncestor
-    a owl:ObjectProperty, owl:TransitiveProperty ;
-    rdfs:subPropertyOf gmeow:wasDerivedFrom ;
-    rdfs:domain gmeow:Commit ;
-    rdfs:range gmeow:Commit ;
-    rdfs:label "commit ancestor"@x-gmeow-english ;
-    skos:definition "The transitive closure of parentCommit — any ancestor commit in the DAG. Transitive, non-simple: kept out of all cardinality / functional axioms to preserve OWL 2 DL regularity. Inverse of gmeow:commitDescendant."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> .
-
-gmeow:commitDescendant
-    a owl:ObjectProperty, owl:TransitiveProperty ;
-    owl:inverseOf gmeow:commitAncestor ;
-    rdfs:domain gmeow:Commit ;
-    rdfs:range gmeow:Commit ;
-    rdfs:label "commit descendant"@x-gmeow-english ;
-    skos:definition "The transitive closure of the inverse of parentCommit — any descendant commit in the DAG. Transitive, non-simple: kept out of all cardinality / functional axioms. Inverse of gmeow:commitAncestor."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> .
-
-# --------------------------------------------------------------------------- #
-# Collaboration events — Push, Merge, CodeReview
-# --------------------------------------------------------------------------- #
-
-gmeow:Push
-    a owl:Class, gufo:EventType ;
-    rdfs:subClassOf gmeow:Activity ;
-    rdfs:label "Push"@x-gmeow-english ;
-    skos:definition "The event of pushing one or more commits to a remote repository — an activity with a target repository or ref, a pusher, and a timestamp. The event type is gmeow:eventTypePush."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> .
-
-gmeow:Merge
-    a owl:Class, gufo:EventType ;
-    rdfs:subClassOf gmeow:Activity ;
-    rdfs:label "Merge"@x-gmeow-english ;
-    skos:definition "The event of merging one branch of development into another — an activity with a merge-base commit, a source branch or ref, a target branch, and a resulting merge commit. The event type is gmeow:eventTypeMerge."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> .
-
-gmeow:CodeReview
-    a owl:Class, gufo:EventType ;
-    rdfs:subClassOf gmeow:Event ;
-    rdfs:label "Code Review"@x-gmeow-english ;
-    skos:definition "The event of reviewing code changes for quality, correctness, and policy compliance — an event (not an Activity, because reviewing is observation-like) with a reviewer, a merge request or commit under review, and an outcome. Distinct from gmeow:Review, which is the InformationObject artifact produced by the review. The event type is gmeow:eventTypeCodeReview."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> .
-
-gmeow:pushTarget
-    a owl:ObjectProperty ;
-    rdfs:domain gmeow:Push ;
-    rdfs:range [ a owl:Class ; owl:unionOf ( gmeow:Repository gmeow:Ref ) ] ;
-    rdfs:label "push target"@x-gmeow-english ;
-    skos:definition "The repository or ref that a push event targets. Non-functional: a single push operation may target multiple refs in the same repository."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> .
-
-gmeow:mergeBase
-    a owl:ObjectProperty ;
-    rdfs:domain gmeow:Merge ;
-    rdfs:range gmeow:Commit ;
-    rdfs:label "merge base"@x-gmeow-english ;
-    skos:definition "The common ancestor commit from which a merge operation derives — the best common ancestor of the source and target branches. Non-functional: in complex merge scenarios there may be multiple candidates."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> .
-
-gmeow:mergeSource
-    a owl:ObjectProperty ;
-    rdfs:domain gmeow:Merge ;
-    rdfs:range gmeow:Ref ;
-    rdfs:label "merge source"@x-gmeow-english ;
-    skos:definition "The source ref (branch or tag) being merged in a merge event. Non-functional: octopus merges may have multiple sources."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> .
-
-gmeow:mergeTarget
-    a owl:ObjectProperty, owl:FunctionalProperty ;
-    rdfs:domain gmeow:Merge ;
-    rdfs:range gmeow:Ref ;
-    rdfs:label "merge target"@x-gmeow-english ;
-    skos:definition "The target ref (branch or tag) into which a merge event merges the source. Functional: a merge has exactly one target ref."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> .
-
-gmeow:reviewOf
-    a owl:ObjectProperty ;
-    rdfs:domain gmeow:CodeReview ;
-    rdfs:range gmeow:MergeRequest ;
-    rdfs:label "review of"@x-gmeow-english ;
-    skos:definition "The merge request that a code review event is about. Non-functional: a review event may cover multiple related merge requests."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> .
-
-gmeow:reviewCommit
-    a owl:ObjectProperty ;
-    rdfs:domain gmeow:CodeReview ;
-    rdfs:range gmeow:Commit ;
-    rdfs:label "review commit"@x-gmeow-english ;
-    skos:definition "The specific commit under review in a code review event. Non-functional: a review may span multiple commits."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> .
-
-# --------------------------------------------------------------------------- #
-# Diff — patch content between two commits
-# --------------------------------------------------------------------------- #
-
-gmeow:Diff
-    a owl:Class, gufo:Kind ;
-    rdfs:subClassOf gmeow:InformationObject ;
-    rdfs:label "Diff"@x-gmeow-english ;
-    skos:definition "A patch or diff — an information object describing the changes between two commits (or two trees). Carries textual diff content and references the from- and to- commits."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> .
-
-gmeow:diffFrom
-    a owl:ObjectProperty, owl:FunctionalProperty ;
-    rdfs:domain gmeow:Diff ;
-    rdfs:range gmeow:Commit ;
-    rdfs:label "diff from"@x-gmeow-english ;
-    skos:definition "The base commit of a diff — the 'before' state. Functional: a diff has exactly one base commit."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> .
-
-gmeow:diffTo
-    a owl:ObjectProperty, owl:FunctionalProperty ;
-    rdfs:domain gmeow:Diff ;
-    rdfs:range gmeow:Commit ;
-    rdfs:label "diff to"@x-gmeow-english ;
-    skos:definition "The target commit of a diff — the 'after' state. Functional: a diff has exactly one target commit."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> .
-
-# --------------------------------------------------------------------------- #
-# Graph-explosion boundary — materialization depth
-# --------------------------------------------------------------------------- #
-
-gmeow:materializationDepth
-    a owl:DatatypeProperty, owl:FunctionalProperty ;
-    rdfs:domain gmeow:Repository ;
-    rdfs:range xsd:nonNegativeInteger ;
-    rdfs:label "materialization depth"@x-gmeow-english ;
-    skos:definition "The number of levels of Merkle tree to materialise as triples for this repository. 0 = no tree materialisation (commits and refs only); 1 = root tree only; 2 = root tree plus one level of children; etc. Deep traversal of large repositories is left to native git or SWHID APIs. This is a projection boundary, not a deletion (Principle 10)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> .
-
-# --------------------------------------------------------------------------- #
-# PHASE C — Verifiable release chain (verifiable-release chain)
-# BuildActivity, Builder, build properties, SLSA level.
-# Reuses Attestation, CryptographicSignature, TransparencyLogEntry from
-# attestation.ttl / trust.ttl / messaging-trust.ttl (Principle 4, 5).
-# --------------------------------------------------------------------------- #
-
-gmeow:BuildActivity
-    a owl:Class, gufo:EventType ;
-    rdfs:subClassOf gmeow:Activity ;
-    rdfs:label "Build Activity"@x-gmeow-english ;
-    skos:definition "A software build process that transforms source code into one or more distribution artifacts. The build activity consumes a commit or repository and produces a concrete distribution (tarball, wheel, binary, container image). Aligned to SLSA provenance buildType and PROV-O Activity by reference."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> .
-
-gmeow:Builder
-    a owl:Class, gufo:SubKind ;
-    rdfs:subClassOf gmeow:SoftwareAgent ;
-    rdfs:label "Builder"@x-gmeow-english ;
-    skos:definition "The build system or agent that performs a BuildActivity — e.g. GitHub Actions, GitLab CI, Jenkins, Buildkite, or a local make invocation. A SoftwareAgent scoped to the build role."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> .
-
-gmeow:buildSource
-    a owl:ObjectProperty ;
-    rdfs:domain gmeow:BuildActivity ;
-    rdfs:range [ a owl:Class ; owl:unionOf ( gmeow:Commit gmeow:Repository ) ] ;
-    rdfs:label "build source"@x-gmeow-english ;
-    skos:definition "The source commit or repository that a build activity consumes. Non-functional: a build may consume multiple commits (monorepo) or a repository at a specific ref."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> .
-
-gmeow:buildOutput
-    a owl:ObjectProperty ;
-    rdfs:domain gmeow:BuildActivity ;
-    rdfs:range gmeow:Distribution ;
-    rdfs:label "build output"@x-gmeow-english ;
-    skos:definition "The distribution artifact produced by a build activity. Non-functional: a build may produce multiple artifacts (tarball, wheel, binary, container image)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> .
-
-gmeow:buildConfigUri
-    a owl:DatatypeProperty, owl:FunctionalProperty ;
-    rdfs:domain gmeow:BuildActivity ;
-    rdfs:range rdfs:Literal ;
-    rdfs:label "build config URI"@x-gmeow-english ;
-    skos:definition "The URI of the build configuration or workflow file that describes the build process — e.g. the URL of `ci/workflows/release.yml` or a Jenkinsfile."@x-gmeow-english;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> .
-
-gmeow:releaseDoi
-    a owl:DatatypeProperty ;
-    rdfs:domain gmeow:Release ;
-    rdfs:range rdfs:Literal ;
-    rdfs:label "release DOI"@x-gmeow-english ;
-    skos:definition "The Digital Object Identifier (DOI) assigned to a software release — typically minted through DataCite, Zenodo, or a similar PID registry. Non-functional: a release may carry multiple DOIs from different registrars (Principle 9)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> .
-
-gmeow:hasSLSALevel
-    a owl:ObjectProperty ;
-    rdfs:domain gmeow:Attestation ;
-    rdfs:range gmeow:SLSALevel ;
-    rdfs:label "has SLSA level"@x-gmeow-english ;
-    skos:definition "The SLSA supply-chain integrity level (1–4) asserted by an attestation. Non-functional: competing assessments from different verifiers coexist (Principle 9)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> .
-
-gmeow:SLSALevel
-    a owl:Class, gufo:AbstractIndividualType ;
-    rdfs:subClassOf gufo:QualityValue ;
-    rdfs:label "SLSA Level"@x-gmeow-english ;
-    skos:definition "The SLSA supply-chain level for build provenance — a VALUE vocabulary (individuals, never subclasses). Levels 1–4 correspond to the SLSA specification's incremental integrity guarantees."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> .
-
-gmeow:slsaLevel1 a gmeow:SLSALevel ; rdfs:label "SLSA Level 1"@x-gmeow-english ; skos:definition "Provenance exists — the build process is documented."@x-gmeow-english .
-gmeow:slsaLevel1 rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> .
-gmeow:slsaLevel2 a gmeow:SLSALevel ; rdfs:label "SLSA Level 2"@x-gmeow-english ; skos:definition "Signed provenance — the build runs in a hosted environment with signed output."@x-gmeow-english .
-gmeow:slsaLevel2 rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> .
-gmeow:slsaLevel3 a gmeow:SLSALevel ; rdfs:label "SLSA Level 3"@x-gmeow-english ; skos:definition "Hardened build — the build runs in a hardened, hermetic environment with reproducible steps."@x-gmeow-english .
-gmeow:slsaLevel3 rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> .
-gmeow:slsaLevel4 a gmeow:SLSALevel ; rdfs:label "SLSA Level 4"@x-gmeow-english ; skos:definition "Two-person review + hermetic, reproducible build with comprehensive audit trail."@x-gmeow-english .
-gmeow:slsaLevel4 rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> .
-
-gmeow:eventTypeBuild a gmeow:EventType ; rdfs:label "build"@x-gmeow-english ; skos:definition "The event of building software from source into distribution artifacts."@x-gmeow-english .
-
-# --------------------------------------------------------------------------- #
-# PHASE D — Author identity over immutable history (immutable-history author identity)
-# AuthorIdentity records the raw bytes that appeared in a commit; canonicalized
-# identity links those bytes to the current self-asserted Agent. Superseded
-# identities carry gmeow:displayable false (Principle 10). The .mailmap file is
-# a generated projection, not canonical source (Principle 4).
-# --------------------------------------------------------------------------- #
-gmeow:eventTypeBuild rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> .
-
-gmeow:AuthorIdentity
-    a owl:Class, gufo:Kind ;
-    rdfs:subClassOf gmeow:InformationObject ;
-    rdfs:label "Author Identity"@x-gmeow-english ;
-    skos:definition "A recorded author or committer string in a version-control commit — the raw git bytes (Name <email>). This is the immutable historical assertion, independent of the current canonical agent. Superseded identities are retained with gmeow:displayable false rather than deleted (Principle 10)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> .
-
-gmeow:commitAuthorIdentity
-    a owl:ObjectProperty, owl:FunctionalProperty ;
-    rdfs:domain gmeow:Commit ;
-    rdfs:range gmeow:AuthorIdentity ;
-    rdfs:label "commit author identity"@x-gmeow-english ;
-    skos:definition "The recorded author identity of a commit — the raw historical bytes. Distinct from gmeow:authoredBy, which points to the canonical agent currently understood to have authored the changes."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> .
-
-gmeow:commitCommitterIdentity
-    a owl:ObjectProperty, owl:FunctionalProperty ;
-    rdfs:domain gmeow:Commit ;
-    rdfs:range gmeow:AuthorIdentity ;
-    rdfs:label "commit committer identity"@x-gmeow-english ;
-    skos:definition "The recorded committer identity of a commit — the raw historical bytes. Distinct from gmeow:committedBy, which points to the canonical agent currently understood to have committed the changes."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> .
-
-gmeow:authorIdentityString
-    a owl:DatatypeProperty, owl:FunctionalProperty ;
-    rdfs:domain gmeow:AuthorIdentity ;
-    rdfs:range rdfs:Literal ;
-    rdfs:label "author identity string"@x-gmeow-english ;
-    skos:definition "The raw author or committer bytes as they appeared in the commit object, typically 'Name <email>'."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> .
-
-gmeow:canonicalizedIdentity
-    a owl:ObjectProperty ;
-    rdfs:domain gmeow:AuthorIdentity ;
-    rdfs:range gmeow:Agent ;
-    rdfs:label "canonicalized identity"@x-gmeow-english ;
-    skos:definition "The current self-asserted agent to which a historical AuthorIdentity is understood to refer. Old and new identities coexist as co-equal standpoints, never merged by identical identity (Principle 9)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> .
-
-gmeow:mailmapEntry
-    a owl:DatatypeProperty ;
-    rdfs:domain gmeow:Agent ;
-    rdfs:range rdfs:Literal ;
-    rdfs:label "mailmap entry"@x-gmeow-english ;
-    skos:definition "The canonical .mailmap line for an agent — typically 'Canonical Name <canonical@example.com>'. This is the source value from which the .mailmap projection is generated (Principle 4)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> .
-
-# =========================================================================== #
-# AXIOMATIZED DOCTRINE — EL someValuesFrom for reasoner visibility
-# =========================================================================== #
-
-gmeow:Commit rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:authoredBy ;           owl:someValuesFrom gmeow:Agent ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:commitAuthorIdentity ;  owl:someValuesFrom gmeow:AuthorIdentity ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:commitCommitterIdentity ; owl:someValuesFrom gmeow:AuthorIdentity ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:commitTree ;           owl:someValuesFrom gmeow:SourceTree ] .
-
-gmeow:Release rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:releaseOf ;       owl:someValuesFrom gmeow:Project ] .
-
-gmeow:TreeEntry rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:treeEntryName ;   owl:someValuesFrom rdfs:Literal ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:treeEntryMode ;   owl:someValuesFrom rdfs:Literal ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:treeEntryObject ; owl:someValuesFrom gmeow:SourceNode ] .
-
-gmeow:Diff rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:diffFrom ;        owl:someValuesFrom gmeow:Commit ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:diffTo ;          owl:someValuesFrom gmeow:Commit ] .
-
-gmeow:BuildActivity rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:buildSource ;     owl:someValuesFrom [ a owl:Class ; owl:unionOf ( gmeow:Commit gmeow:Repository ) ] ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:buildOutput ;     owl:someValuesFrom gmeow:Distribution ] .
-
-# Commit parentCommit is deliberately NOT a FunctionalProperty — merge commits
-# have multiple parents, and the initial commit has zero. The someValuesFrom
-# restriction above is also deliberately omitted for parentCommit to allow
-# the root commit case.
-
-# --------------------------------------------------------------------------- #
-# Graph box role coverage (canonical explicit annotations).
-# --------------------------------------------------------------------------- #
-
-gmeow:AuthorIdentity gmeow:graphBoxRole gmeow:boxTBox .
-gmeow:Blob gmeow:graphBoxRole gmeow:boxTBox .
-gmeow:Branch gmeow:graphBoxRole gmeow:boxTBox .
-gmeow:BuildActivity gmeow:graphBoxRole gmeow:boxTBox .
-gmeow:Builder gmeow:graphBoxRole gmeow:boxTBox .
-gmeow:CodeReview gmeow:graphBoxRole gmeow:boxTBox .
-gmeow:Commit gmeow:graphBoxRole gmeow:boxTBox .
-gmeow:Diff gmeow:graphBoxRole gmeow:boxTBox .
-gmeow:Distribution gmeow:graphBoxRole gmeow:boxTBox .
-gmeow:ForgePlatform gmeow:graphBoxRole gmeow:boxTBox .
-gmeow:GovernanceModel gmeow:graphBoxRole gmeow:boxTBox .
-gmeow:Issue gmeow:graphBoxRole gmeow:boxTBox .
-gmeow:MaintenanceStatus gmeow:graphBoxRole gmeow:boxTBox .
-gmeow:Merge gmeow:graphBoxRole gmeow:boxTBox .
-gmeow:MergeRequest gmeow:graphBoxRole gmeow:boxTBox .
-gmeow:Package gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .
-gmeow:Project gmeow:graphBoxRole gmeow:boxTBox .
-gmeow:Push gmeow:graphBoxRole gmeow:boxTBox .
-gmeow:Ref gmeow:graphBoxRole gmeow:boxTBox .
-gmeow:Release gmeow:graphBoxRole gmeow:boxTBox .
-gmeow:Repository gmeow:graphBoxRole gmeow:boxTBox .
-gmeow:RepositoryType gmeow:graphBoxRole gmeow:boxTBox .
-gmeow:Review gmeow:graphBoxRole gmeow:boxTBox .
-gmeow:SLSALevel gmeow:graphBoxRole gmeow:boxTBox .
-gmeow:SoftwareName gmeow:graphBoxRole gmeow:boxTBox .
-gmeow:SoftwareProduct gmeow:graphBoxRole gmeow:boxTBox .
-gmeow:SoftwareProject gmeow:graphBoxRole gmeow:boxTBox .
-gmeow:SourceDirectory gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxTBox .
-gmeow:SourceFile gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxTBox .
-gmeow:SourceNode gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxTBox .
-gmeow:SourceTree gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxTBox .
-gmeow:TreeEntry gmeow:graphBoxRole gmeow:boxTBox .
-gmeow:authorIdentityString gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:authorTime gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:authoredBy gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:bugDatabase gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:buildConfigUri gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
-gmeow:buildOutput gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:buildSource gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxRBox .
-gmeow:canonicalizedIdentity gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:cloneUrl gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:commitAncestor gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:commitAuthorIdentity gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:commitCommitterIdentity gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:commitDescendant gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:commitInRepository gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:commitTree gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:committedBy gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:committerTime gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:diffFrom gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:diffTo gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:distributionFormat gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:downloadPage gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:eventTypeBuild gmeow:graphBoxRole gmeow:boxABox .
-gmeow:governanceBDFL gmeow:graphBoxRole gmeow:boxABox .
-gmeow:governanceCorporate gmeow:graphBoxRole gmeow:boxABox .
-gmeow:governanceDAO gmeow:graphBoxRole gmeow:boxABox .
-gmeow:governanceFoundation gmeow:graphBoxRole gmeow:boxABox .
-gmeow:governanceMeritocracy gmeow:graphBoxRole gmeow:boxABox .
-gmeow:governanceModel gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:hasDistribution gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:hasRelease gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:hasRepository gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:hasSLSALevel gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:hasSoftwareName gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:hostedAt gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:mailmapEntry gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:maintenanceStatus gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:materializationDepth gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:mergeBase gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:mergeSource gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxRBox .
-gmeow:mergeTarget gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:packageOf gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
-gmeow:parentCommit gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:pointsToCommit gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:programmingLanguage gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:projectHomepage gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:projectIdentifier gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:projectLicense gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:pushTarget gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:releaseDoi gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:releaseOf gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:releaseTag gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:releaseVersion gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:repoTypeFossil gmeow:graphBoxRole gmeow:boxABox .
-gmeow:repoTypeGit gmeow:graphBoxRole gmeow:boxABox .
-gmeow:repoTypeHg gmeow:graphBoxRole gmeow:boxABox .
-gmeow:repoTypeJJ gmeow:graphBoxRole gmeow:boxABox .
-gmeow:repoTypePijul gmeow:graphBoxRole gmeow:boxABox .
-gmeow:repoTypeSVN gmeow:graphBoxRole gmeow:boxABox .
-gmeow:repositoryType gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:reviewCommit gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:reviewOf gmeow:graphBoxRole gmeow:boxRBox .
-<https://blackcatinformatics.ca/gmeow/slices/software> gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .
-gmeow:slsaLevel1 gmeow:graphBoxRole gmeow:boxABox .
-gmeow:slsaLevel2 gmeow:graphBoxRole gmeow:boxABox .
-gmeow:slsaLevel3 gmeow:graphBoxRole gmeow:boxABox .
-gmeow:slsaLevel4 gmeow:graphBoxRole gmeow:boxABox .
-gmeow:statusAbandoned gmeow:graphBoxRole gmeow:boxABox .
-gmeow:statusActive gmeow:graphBoxRole gmeow:boxABox .
-gmeow:statusDeprecated gmeow:graphBoxRole gmeow:boxABox .
-gmeow:statusEOL gmeow:graphBoxRole gmeow:boxABox .
-gmeow:statusMaintained gmeow:graphBoxRole gmeow:boxABox .
-gmeow:treeEntryMode gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:treeEntryName gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:treeEntryObject gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:webUrl gmeow:graphBoxRole gmeow:boxRBox .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/software> ;
+    rdfs:label "GMEOW Software Module"@x-gmeow-english ;
+    skos:definition "The GMEOW Software Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxConfigBox ,
+        gmeow:boxTBox .

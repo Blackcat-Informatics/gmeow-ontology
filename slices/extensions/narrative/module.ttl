@@ -1,16 +1,817 @@
-@prefix gmeow:   <https://blackcatinformatics.ca/gmeow/> .
-@prefix gufo:    <http://purl.org/nemo/gufo#> .
-@prefix owl:     <http://www.w3.org/2002/07/owl#> .
-@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix gufo: <http://purl.org/nemo/gufo#> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
-@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
+
+gmeow:ArcSample
+    a gufo:SubKind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    rdfs:label "Arc Sample"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:Observation ;
+    skos:definition "One reading of a character's state at a narrative position — an observation: vantage = the analyzing model or critic, subject = the frame-scoped character, position = a NarrativePosition (narrative-position axis; discourse-time by default, story-time samples legal and distinct), state = an emotion-type or analogous value by IRI (the affect slice's EmotionType when loaded, EmotionML category IRIs otherwise — soft reference, never dependency). Two analyzers disagreeing about chapter 31 are two coexisting cells (Principle 9). The existing gmeow:CharacterArc is the integrating whole: samples attach via gmeow:arcSample ⊑ gmeow:hasPart, and an arc with no samples stays valid (book-level-only analyses)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:ArcType
+    a gufo:AbstractIndividualType ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    rdfs:label "Arc Type"@x-gmeow-english ;
+    rdfs:subClassOf gufo:QualityValue ;
+    skos:definition "The interpretive type of a character arc — a VALUE vocabulary (individuals, never subclasses). Coming-of-age, redemption, and fall are examples; the set is open."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:CharacterArc
+    a gufo:Kind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    rdfs:label "Character Arc"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:InformationObject ;
+    skos:definition "A first-class interpretive/structural information object describing a character's trajectory through a narrative — a standpoint-scoped analysis, never canonical truth. A gufo:Kind with distinct identity criteria (subject, frame, and type). Cross-continuity variants are linked by counterpartOf, never merged."@x-gmeow-english ;
+    gmeow:frameCardinality "exactly-one" ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:requiresFrame gmeow:arcFrame .
+
+gmeow:ContentSegment
+    rdfs:subClassOf gmeow:NarrativeScope .
+
+gmeow:CreativeWork
+    rdfs:subClassOf gmeow:NarrativeScope .
+
+gmeow:Motif
+    a gufo:Kind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    rdfs:label "Motif"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:SocialObject ;
+    skos:definition "An identity-bearing recurring narrative unit — a theme, leitmotif, symbol, running gag, tale type, or trope ('Melisande's Game', 'the Cassiline vow'). NOT a folksonomy string: a motif carries aliases (names module Appellations), a kind, frame-scoped claims, and occurrences riding the narration seam (gmeow:motifOccursIn ⊑ gmeow:narratedIn, narration seam — inheriting the flat-by-default efficiency discipline). Motif-hood is itself interpretive: one vantage's tag is another's motif, and both readings coexist (Principle 9). Cross-work identity goes through gmeow:counterpartOf or a shared registry anchor (Thompson Motif Index, ATU — alignment window), NEVER string equality. The tags module remains the right home for uncurated labels; the promotion heuristic (tag → motif when recurrence and identity emerge, recorded as an Activity with provenance) lives in docs."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:MotifKind
+    a gufo:AbstractIndividualType ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    rdfs:label "Motif Kind"@x-gmeow-english ;
+    rdfs:subClassOf gufo:QualityValue ;
+    skos:definition "What sort of recurring unit a motif is — an OPEN value vocabulary: theme, leitmotif, symbol, running gag, tale type, trope. Never a tree (Principle 9)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:Myth
+    a gufo:Kind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    rdfs:label "Myth"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:SocialObject ,
+        [
+            a owl:Restriction ;
+            owl:onProperty gmeow:hasMythTelling ;
+            owl:someValuesFrom gmeow:CreativeWork ;
+        ] ;
+    skos:definition "A socially-sustained narrative whose currency is independent of its truth-value — a founding myth, an urban legend, a propaganda narrative, or a debunked claim that persists. GMEOW asserts no truth verdict on a myth (Principle 1); in-myth claims are scoped accordingTo an associated gmeow:NarrativeReferenceFrame. A myth is the abstract narrative (WEMI Work level); concrete tellings are linked via gmeow:hasMythTelling."@x-gmeow-english ;
+    gmeow:frameCardinality "exactly-one" ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:requiresFrame gmeow:mythFrame .
+
+gmeow:NarrationMode
+    a gufo:AbstractIndividualType ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    rdfs:label "Narration Mode"@x-gmeow-english ;
+    rdfs:subClassOf gufo:QualityValue ;
+    skos:definition "HOW a segment carries its content — an OPEN value vocabulary (individuals, never subclasses) seeded with the diegetic-level ladder: narrated (direct), mentioned (referenced without narration), flashback (narrated out of story order), dream (framed as a character's dream), hypothetical (framed as possibility), unreliable (narrator credibility in question — the deception-module boundary,: documented bridge, no axiom coupling)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:NarrationUsage
+    a gufo:Kind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    rdfs:label "Narration Usage"@x-gmeow-english ;
+    rdfs:subClassOf gufo:Relator ;
+    skos:definition "The reified seam link — segment × narrated subject × mode, for when HOW the text carries the content matters: flashback, dream, hypothetical, unreliable narration. Mint one per (segment, subject) pair needing mode/vantage/confidence; the 80% case stays flat gmeow:narrates (efficiency doctrine — reify-on-demand, Principle 4). Whose reading of the mode it is rides the statement layer; competing modes for one narration usage are coexisting relators, none privileged (Principle 9)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:NarrativeFrameLink
+    a gufo:Kind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    rdfs:label "Narrative Frame Link"@x-gmeow-english ;
+    rdfs:subClassOf gufo:Relator ;
+    skos:definition "A reified relator that binds a source narrative frame, a target narrative frame, and the relation type between them into a single node. The canonical form when the specific frame-to-frame relation must itself be a node (e.g. to attach provenance, confidence, temporal scope, or standpoint); the flat shortcuts are gmeow:hasNarrativeFrameRelation and gmeow:relatesToFrame. Structurally the Tagging/NameUsage idiom wearing a different hat."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:NarrativeFrameRelation
+    a gufo:AbstractIndividualType ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    rdfs:label "Narrative Frame Relation"@x-gmeow-english ;
+    rdfs:subClassOf gufo:QualityValue ;
+    skos:definition "The relationship of one narrative frame to another — a value vocabulary (individuals, never subclasses) spanning canon, alternate continuity, expanded universe, fanon, crossover, and adaptation. Non-functional: a frame may hold several relations to another frame from different standpoints."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:NarrativePosition
+    a gufo:Kind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    rdfs:label "Narrative Position"@x-gmeow-english ;
+    rdfs:subClassOf gufo:Object ,
+        gmeow:Entity ;
+    skos:definition "A frame-relative position in a narrative — the narrative analogue of SpatialCoordinates. Carries its frame (mandatory: a position without a frame is the bare-integer anti-pattern this class exists to forbid), an ordinal (chapter_index 31), a label ('Thirty-Three', 'the Longest Night'), or both. Ranges are expressed as paired positions. Comparison, ordering, and discourse↔story reconciliation are solver-layer computations (Principle 12)."@x-gmeow-english ;
+    gmeow:frameCardinality "exactly-one" ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:requiresFrame gmeow:positionFrame .
+
+gmeow:NarrativeReferenceFrame
+    a gufo:SubKind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    rdfs:label "Narrative Reference Frame"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:NarrativeScope ,
+        gmeow:ReferenceFrame ;
+    skos:definition "A canon, continuity, or narrative realm that serves as a reference frame for in-universe facts (locations, dates, events) and functionally as the standpoint under which in-universe claims hold true. The Harry Potter canon, the Marvel Multiverse (Earth-616, MCU, Ultimate), and the Star Wars Legends/Canon split are all narrative reference frames. Ordinary GMEOW entities (Person, Place, Organization, Event) may carry claims according to this frame; cross-continuity variants are linked by counterpartOf, never merged."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:NarrativeRole
+    a gufo:AbstractIndividualType ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    rdfs:label "Narrative Role"@x-gmeow-english ;
+    rdfs:subClassOf gufo:QualityValue ;
+    skos:definition "A character's narratological function — an OPEN value vocabulary (protagonist, antagonist, mentor, foil, narrator, confidant, love interest, trickster, …), Propp/Greimas-informed but never closed: traditions disagree about the role inventory itself (Principle 9). A role is a FUNCTION RELATIVE TO A SCOPE, not an intrinsic property — carried by the RoleInNarrative relator, never by typing the character."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:NarrativeScope
+    a gufo:Category ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    rdfs:label "Narrative Scope"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:Entity ;
+    skos:definition "The umbrella category of things a narrative role can be relative to — a creative work (protagonist of the trilogy), a narrative reference frame (protagonist of the continuity), or a content segment (protagonist of one chapter). A NAMED class (the IntentionalMoment/RiskFactor precedent) so roleScope carries a generator-visible range and the relator-arity gate sees the end. Never instantiated directly."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:NarrativeTimeAxis
+    a gufo:AbstractIndividualType ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    rdfs:label "Narrative Time Axis"@x-gmeow-english ;
+    rdfs:subClassOf gufo:QualityValue ;
+    skos:definition "The axis kind of a narrative time frame — a value vocabulary (individuals, never subclasses) of exactly two members: discourse time (syuzhet, the order of telling) and story time (fabula, the order of happening). Both are first-class and neither wins (Principle 9): the discourse order is not an approximation of the story order, and the story order is not the truth of the discourse order."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:NarrativeTimeFrame
+    a gufo:SubKind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    rdfs:label "Narrative Time Frame"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:ReferenceFrame ;
+    skos:definition "A coordinate system for narrative position — the reference frame in which 'where in the story' is expressed. Exactly one axis kind per frame: discourse time (the order of telling — chapter indices, scene ordinals — owned by the telling work, since different editions may re-segment) or story time (the order of happening in-universe — the fabula — owned by a NarrativeReferenceFrame, since continuities can reorder it). The same diegetic event may carry coexisting positions in a discourse frame and a story frame; their disagreement IS the flashback, made queryable rather than contradictory."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:RoleInNarrative
+    a gufo:Kind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    rdfs:label "Role In Narrative"@x-gmeow-english ;
+    rdfs:subClassOf gufo:Relator ;
+    skos:definition "The reified, interpretive fact that a character bears a narratological role RELATIVE TO A SCOPE — protagonist of the trilogy, of one book, of one chapter are different claims. Vantage-indexed through the statement layer; ensemble works carry coexisting protagonist relators and NO primaryProtagonist exists or ever will (Principle 9). Flat shortcut gmeow:hasNarrativeRole for the 80% single-work case."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:affectedConsumerSurface
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Myth ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    rdfs:label "affected consumer surface"@x-gmeow-english ;
+    rdfs:range gmeow:ProjectionContext ;
+    skos:definition "The projection consumer surfaces that a myth tends to leak into — e.g. Wikipedia, public site, agent memory — so that a correction can be scoped to the surfaces that actually carry the bad claim. Reuses the gmeow:ProjectionContext vocabulary."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:arcEvidence
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:CharacterArc ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    rdfs:label "arc evidence"@x-gmeow-english ;
+    rdfs:range gmeow:InformationObject ;
+    skos:definition "The creative works or content segments that provide evidence for this arc interpretation. Non-functional: an arc may be evidenced by many segments or works."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxRBox .
+
+gmeow:arcFrame
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
+    rdfs:domain gmeow:CharacterArc ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    rdfs:label "arc frame"@x-gmeow-english ;
+    rdfs:range gmeow:NarrativeReferenceFrame ;
+    skos:definition "The narrative reference frame within which this arc is interpreted. Functional: one frame per CharacterArc; cross-continuity arcs are separate instances linked by counterpartOf."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:arcSample
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:CharacterArc ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    rdfs:label "arc sample"@x-gmeow-english ;
+    rdfs:range gmeow:ArcSample ;
+    rdfs:subPropertyOf gmeow:hasPart ;
+    skos:definition "Attaches a sample to its integrating CharacterArc (⊑ gmeow:hasPart — samples are parts of the arc's analysis). Purely ADDITIVE to the existing CharacterArc: arcType and arcEvidence remain the holistic interpretive layer, and an arc with no samples stays valid. NOT functional."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:arcSubject
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
+    rdfs:domain gmeow:CharacterArc ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    rdfs:label "arc subject"@x-gmeow-english ;
+    rdfs:range gmeow:Entity ;
+    skos:definition "The entity whose arc is described — a person, organization, or other narrative entity. Functional: one subject per CharacterArc."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:arcType
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
+    rdfs:domain gmeow:CharacterArc ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    rdfs:label "arc type"@x-gmeow-english ;
+    rdfs:range gmeow:ArcType ;
+    skos:definition "The interpretive type of this character arc — a value from the open gmeow:ArcType vocabulary. Functional: one type per CharacterArc."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:arcTypeComingOfAge
+    a gmeow:ArcType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    rdfs:label "coming-of-age"@x-gmeow-english ;
+    skos:definition "A transition from childhood to maturity."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:arcTypeCorruption
+    a gmeow:ArcType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    rdfs:label "corruption"@x-gmeow-english ;
+    skos:definition "A moral or ethical degradation."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:arcTypeFall
+    a gmeow:ArcType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    rdfs:label "fall"@x-gmeow-english ;
+    skos:definition "A decline from a state of grace, power, or virtue."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:arcTypeQuest
+    a gmeow:ArcType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    rdfs:label "quest"@x-gmeow-english ;
+    skos:definition "A journey toward a goal that transforms the protagonist."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:arcTypeRecovery
+    a gmeow:ArcType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    rdfs:label "recovery"@x-gmeow-english ;
+    skos:definition "A return to health, wholeness, or stability after loss."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:arcTypeRedemption
+    a gmeow:ArcType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    rdfs:label "redemption"@x-gmeow-english ;
+    skos:definition "A moral recovery or atonement for past failings."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:atNarrativePosition
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    rdfs:label "at narrative position"@x-gmeow-english ;
+    rdfs:range gmeow:NarrativePosition ;
+    skos:definition "Anchors a thing — a content segment, a diegetic event, an arc sample, a motif occurrence — to a narrative position. Domain-free: the narration seam (narration seam), arc samples (arc samples), and motif occurrences (motifs) all reuse this one anchor. NOT functional, and deliberately so: the same diegetic event carries coexisting positions in a discourse frame and a story frame, and their disagreement is the flashback made queryable rather than a contradiction (Principle 9)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:axisDiscourseTime
+    a gmeow:NarrativeTimeAxis ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    rdfs:label "discourse time (syuzhet)"@x-gmeow-english ;
+    skos:definition "The discourse-time axis — narrative position in the order of telling: chapter indices, scene ordinals, page positions. Owned by the telling work or expression; a re-segmented edition is a different discourse frame."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:axisStoryTime
+    a gmeow:NarrativeTimeAxis ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    rdfs:label "story time (fabula)"@x-gmeow-english ;
+    skos:definition "The story-time axis — narrative position in the order of happening in-universe: the fabula. Owned by a narrative reference frame; a continuity may reorder story time, and the reordering (a retcon) is a frame-scoped claim revision preserved by suppression (Principle 10)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:contributesToFrame
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:InformationObject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    rdfs:label "contributes to frame"@x-gmeow-english ;
+    rdfs:range gmeow:NarrativeReferenceFrame ;
+    skos:definition "Relates a creative work or content segment to the narrative reference frame it contributes claims to. Broader than gmeow:sourceFor: a segment may contribute to a frame without being the primary source. Non-functional: an information object may contribute to many frames."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:developmentSignalEvent
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:ArcSample ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    rdfs:label "development signal (event)"@x-gmeow-english ;
+    rdfs:range gmeow:Event ;
+    skos:definition "A diegetic event the analyzer cited for this reading — an ordinary gmeow:Event claims-scoped accordingTo its narrative frame (existing doctrine), typically also narrated by the position's segment (narration seam). NOT functional."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:developmentSignalText
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:ArcSample ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    rdfs:label "development signal (text)"@x-gmeow-english ;
+    skos:definition "Prose evidence the analyzer cited for this reading. NOT functional and range-open (localizable prose, the localizable-prose convention)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:discourseTimeOf
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
+    rdfs:domain gmeow:NarrativeTimeFrame ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    rdfs:label "discourse time of"@x-gmeow-english ;
+    rdfs:range gmeow:CreativeWork ;
+    skos:definition "Anchors a discourse-time frame to the creative work (expression or manifestation tier) whose telling order it coordinatizes. Functional: one frame, one telling. Different editions or translations that re-segment the text own different discourse frames; positions do not transfer between them without an explicit mapping claim."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:hasMythTelling
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Myth ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    rdfs:label "has myth telling"@x-gmeow-english ;
+    rdfs:range gmeow:CreativeWork ;
+    skos:definition "Relates a myth to its concrete tellings or expressions — a BookRelease, Article, MediaObject, social post, or other CreativeWork. Non-functional: co-equal tellings coexist; superseded tellings are set gmeow:displayable false (Principle 10)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:hasNarrativeFrameRelation
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:NarrativeReferenceFrame ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    rdfs:label "has narrative frame relation"@x-gmeow-english ;
+    rdfs:range gmeow:NarrativeFrameRelation ;
+    skos:definition "The relationship(s) this narrative frame bears to another frame — canon, alternate continuity, expanded universe, fanon, crossover, adaptation. Non-functional: competing relation claims from different standpoints coexist (Principle 9). Flat shortcut; promote to gmeow:NarrativeFrameLink when the binding between source, target, and relation type must be explicit."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:pairsWith gmeow:NarrativeFrameLink .
+
+gmeow:hasNarrativeRole
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    rdfs:label "has narrative role"@x-gmeow-english ;
+    rdfs:range gmeow:NarrativeRole ;
+    skos:definition "Flat 80% shortcut: the character bears this role in their single obvious work. Domain intentionally open (frame-scoped characters are ordinary entities). Promote to RoleInNarrative when scope, vantage, or evidence must be first-class — and always for ensemble or cross-continuity claims."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:pairsWith gmeow:RoleInNarrative .
+
+gmeow:motifKind
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Motif ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    rdfs:label "motif kind"@x-gmeow-english ;
+    rdfs:range gmeow:MotifKind ;
+    skos:definition "The motif's kind(s). NOT functional — readings coexist (Principle 9). Open vocabulary (sh:nodeKind sh:IRI)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:motifKindLeitmotif
+    a gmeow:MotifKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    rdfs:label "leitmotif"@x-gmeow-english ;
+    skos:definition "The leitmotif kind — a recurring associated figure (the musical sense lands with the music extension's analysis layer)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:motifKindRunningGag
+    a gmeow:MotifKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    rdfs:label "running gag"@x-gmeow-english ;
+    skos:definition "The running-gag motif kind."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:motifKindSymbol
+    a gmeow:MotifKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    rdfs:label "symbol"@x-gmeow-english ;
+    skos:definition "The symbol motif kind — a recurring object or image standing for something."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:motifKindTaleType
+    a gmeow:MotifKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    rdfs:label "tale type"@x-gmeow-english ;
+    skos:definition "The tale-type motif kind — an ATU-style whole-story pattern."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:motifKindTheme
+    a gmeow:MotifKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    rdfs:label "theme"@x-gmeow-english ;
+    skos:definition "The theme motif kind — a recurring idea or argument."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:motifKindTrope
+    a gmeow:MotifKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    rdfs:label "trope"@x-gmeow-english ;
+    skos:definition "The trope motif kind — a recognized convention (DBTropes anchors at alignment time)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:motifOccursIn
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Motif ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    rdfs:label "motif occurs in"@x-gmeow-english ;
+    rdfs:range gmeow:ContentSegment ;
+    rdfs:subPropertyOf gmeow:narratedIn ;
+    skos:definition "An occurrence of the motif in a carrying segment — the narration seam reused (⊑ gmeow:narratedIn, narration seam), inheriting the efficiency discipline: flat by default, promoted to a NarrationUsage only when a vantage disputes the occurrence or a mode matters. NOT functional: 16,002 corpus tag-instances become occurrence edges."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:pairsWith gmeow:NarrationUsage .
+
+gmeow:mythFrame
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
+    rdfs:domain gmeow:Myth ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    rdfs:label "myth frame"@x-gmeow-english ;
+    rdfs:range gmeow:NarrativeReferenceFrame ;
+    skos:definition "The narrative reference frame under which in-myth claims hold true. Functional: one frame per Myth. In-myth claims are scoped accordingTo this frame."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:narratedIn
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    rdfs:label "narrated in"@x-gmeow-english ;
+    rdfs:range gmeow:ContentSegment ;
+    rdfs:subPropertyOf gmeow:narrationLink ;
+    skos:definition "Flat 80% seam link, content-side orientation: the diegetic entity or event appears in the segment. The projection-friendly direction — Wikidata P1441 'present in work' is exactly this edge (SSSOM row deferred to the alignment window). Domain intentionally open. NOT the inverse-axiom twin of gmeow:narrates: no owl:inverseOf is asserted, so EL stays clean and either orientation can be used without entailing the other; consumers query both (the connectsTo convention)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:narrates
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:ContentSegment ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    rdfs:label "narrates"@x-gmeow-english ;
+    rdfs:subPropertyOf gmeow:narrationLink ;
+    skos:definition "Flat 80% seam link: the segment shows, narrates, or mentions the diegetic entity, event, or situation. Range intentionally open (entities, events, situations, motifs). NOT functional: a chapter narrates many things. Promote to a gmeow:NarrationUsage relator ONLY when mode, vantage, or confidence rides on the link (the efficiency doctrine — flat is the default at corpus scale)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:pairsWith gmeow:NarrationUsage .
+
+gmeow:narrationDirect
+    a gmeow:NarrationMode ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    rdfs:label "narrated"@x-gmeow-english ;
+    skos:definition "The segment narrates the content directly, in the story's main register."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:narrationDream
+    a gmeow:NarrationMode ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    rdfs:label "dream"@x-gmeow-english ;
+    skos:definition "The segment frames the content as a character's dream or vision — diegesis one level down."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:narrationFlashback
+    a gmeow:NarrationMode ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    rdfs:label "flashback"@x-gmeow-english ;
+    skos:definition "The segment narrates content from earlier in story time than its discourse position — the two-axes disagreement (narrative-position axis) made a mode."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:narrationHypothetical
+    a gmeow:NarrationMode ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    rdfs:label "hypothetical"@x-gmeow-english ;
+    skos:definition "The segment frames the content as possibility, counterfactual, or speculation within the story."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:narrationLink
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    rdfs:label "narration link"@x-gmeow-english ;
+    skos:definition "The abstract ancestor of the narration seam — any link between carrying text (an InformationObject side: segment, document, panel) and diegetic content (an entity, event, or situation in the story). Never asserted directly: use gmeow:narrates (segment → content) or gmeow:narratedIn (content → segment). Domain- and range-free at this level so media-specific seams (panel, shot, verse) can specialize without re-plumbing."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:narrationMentioned
+    a gmeow:NarrationMode ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    rdfs:label "mentioned"@x-gmeow-english ;
+    skos:definition "The segment references the content without narrating it (reported, recalled, alluded to)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:narrationMode
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:NarrationUsage ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    rdfs:label "narration mode"@x-gmeow-english ;
+    rdfs:range gmeow:NarrationMode ;
+    skos:definition "The mode(s) of this narration usage. At least one (SHACL): if you reified, you had a reason. NOT functional: a flashback can also be a dream; coexisting critical readings ride the statement layer (Principle 9)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:narrationSegment
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
+    rdfs:domain gmeow:NarrationUsage ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    rdfs:label "narration segment"@x-gmeow-english ;
+    rdfs:range gmeow:ContentSegment ;
+    skos:definition "The carrying segment. Functional and mandatory (SHACL)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:narrationSubject
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
+    rdfs:domain gmeow:NarrationUsage ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    rdfs:label "narration subject"@x-gmeow-english ;
+    skos:definition "The narrated diegetic entity, event, or situation. Range intentionally open (the narrates convention). Functional and mandatory (SHACL): one relator per (segment, subject) pair — a chapter narrating four events with modes is four NarrationUsages."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:narrationUnreliable
+    a gmeow:NarrationMode ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    rdfs:label "unreliable"@x-gmeow-english ;
+    skos:definition "The narrator's credibility for this content is in question — the seam's boundary with the deception module: narrator-level held ≠ projected, asserted by a critic's vantage through the statement layer. Documented bridge; no axiom coupling."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:narrativeFrameLinkRelation
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
+    rdfs:domain gmeow:NarrativeFrameLink ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    rdfs:label "narrative frame link relation"@x-gmeow-english ;
+    rdfs:range gmeow:NarrativeFrameRelation ;
+    skos:definition "The relation type (canon, adaptation, crossover, etc.) that holds between the source and target frames in this link. Functional per relator: one relation type per NarrativeFrameLink."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:narrativeFrameLinkSource
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
+    rdfs:domain gmeow:NarrativeFrameLink ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    rdfs:label "narrative frame link source"@x-gmeow-english ;
+    rdfs:range gmeow:NarrativeReferenceFrame ;
+    skos:definition "The source narrative reference frame in a link. Functional per relator: one source per NarrativeFrameLink."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxRBox .
+
+gmeow:narrativeFrameLinkTarget
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
+    rdfs:domain gmeow:NarrativeFrameLink ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    rdfs:label "narrative frame link target"@x-gmeow-english ;
+    rdfs:range gmeow:NarrativeReferenceFrame ;
+    skos:definition "The target narrative reference frame in a link. Functional per relator: one target per NarrativeFrameLink."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:narrativeRoleBearer
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
+    rdfs:domain gmeow:RoleInNarrative ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    rdfs:label "narrative role bearer"@x-gmeow-english ;
+    rdfs:range gmeow:Entity ;
+    skos:definition "The frame-scoped character bearing the role. Functional and mandatory (SHACL)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:narrativeRoleScope
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
+    rdfs:domain gmeow:RoleInNarrative ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    rdfs:label "narrative role scope"@x-gmeow-english ;
+    rdfs:range gmeow:NarrativeScope ;
+    skos:definition "What the role is relative to — a CreativeWork, a NarrativeReferenceFrame, or a ContentSegment (grafted under NarrativeScope below). Functional and mandatory (SHACL): protagonist-of-what is half the claim."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:narrativeRoleValue
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
+    rdfs:domain gmeow:RoleInNarrative ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    rdfs:label "narrative role value"@x-gmeow-english ;
+    rdfs:range gmeow:NarrativeRole ;
+    skos:definition "The role borne. Functional: one relator, one role — a character who is both mentor and foil within one scope bears two relators. Open vocabulary (sh:nodeKind sh:IRI, never sh:in)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:narrativeTimeAxis
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
+    rdfs:domain gmeow:NarrativeTimeFrame ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    rdfs:label "narrative time axis"@x-gmeow-english ;
+    rdfs:range gmeow:NarrativeTimeAxis ;
+    skos:definition "The axis kind of this narrative time frame — discourse time or story time. Functional: a frame measures exactly one axis; a work and its fabula are two frames, not one frame with two moods."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:positionFrame
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
+    rdfs:domain gmeow:NarrativePosition ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    rdfs:label "position frame"@x-gmeow-english ;
+    rdfs:range gmeow:NarrativeTimeFrame ;
+    skos:definition "The narrative time frame in which this position is expressed. Functional and mandatory (SHACL): every narrative position names its frame."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:positionLabel
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:NarrativePosition ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    rdfs:label "position label"@x-gmeow-english ;
+    rdfs:range xsd:string ;
+    skos:definition "A human-oriented label for this position — a chapter title ('Thirty-Three'), a named story moment ('the Longest Night'). Non-functional: co-equal labels coexist (Principle 9). A position must carry an ordinal or a label or both (SHACL)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:positionOrdinal
+    a owl:DatatypeProperty ,
+        owl:FunctionalProperty ;
+    rdfs:domain gmeow:NarrativePosition ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    rdfs:label "position ordinal"@x-gmeow-english ;
+    rdfs:range xsd:integer ;
+    skos:definition "The ordinal coordinate of this position within its frame — a chapter index, scene number, or fabula sequence number. Functional within one position; ordering semantics belong to the frame, and comparisons to the solver layer (Principle 12)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:propagatesFrom
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:CreativeWork ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    rdfs:label "propagates from"@x-gmeow-english ;
+    rdfs:range gmeow:CreativeWork ;
+    rdfs:subPropertyOf gmeow:wasDerivedFrom ;
+    skos:definition "The propagation edge linking one myth telling to the telling it was derived from — reusing the PROV-O lineage spine so myth-spread is not a parallel graph (Principle 4). The propagating agent is a gmeow:Participation with roleDupe (unwitting) or roleDeceiver (knowing)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:recurringRisk
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:Myth ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    rdfs:label "recurring risk"@x-gmeow-english ;
+    rdfs:range xsd:boolean ;
+    skos:definition "A flag indicating that this myth or false claim is a repeat offender — agents and generated reports re-introduce it, so audit tooling can prioritise active correction over one-off debunking."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:relatesToFrame
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:NarrativeReferenceFrame ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    rdfs:label "relates to frame"@x-gmeow-english ;
+    rdfs:range gmeow:NarrativeReferenceFrame ;
+    skos:definition "Relates a narrative reference frame to another narrative reference frame with which it stands in a relationship (the nature of which is given by gmeow:hasNarrativeFrameRelation). Non-functional: a frame may relate to many others, and competing relation claims coexist. Flat shortcut; promote to gmeow:NarrativeFrameLink when the binding between source, target, and relation type must be explicit."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:pairsWith gmeow:NarrativeFrameLink .
+
+gmeow:relationAdaptationOf
+    a gmeow:NarrativeFrameRelation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    rdfs:label "adaptation of"@x-gmeow-english ;
+    skos:definition "A narrative frame that adapts another frame into a different medium or format."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:relationAlternateContinuity
+    a gmeow:NarrativeFrameRelation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    rdfs:label "alternate continuity"@x-gmeow-english ;
+    skos:definition "A divergent continuity that is not the primary canon but is officially recognised (e.g. Marvel Ultimate, Star Wars Legends)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:relationCanon
+    a gmeow:NarrativeFrameRelation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    rdfs:label "canon"@x-gmeow-english ;
+    skos:definition "The authoritative, settled continuity of a narrative frame."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:relationCrossover
+    a gmeow:NarrativeFrameRelation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    rdfs:label "crossover"@x-gmeow-english ;
+    skos:definition "A narrative frame that blends characters or settings from two or more distinct continuities."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:relationExpandedUniverse
+    a gmeow:NarrativeFrameRelation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    rdfs:label "expanded universe"@x-gmeow-english ;
+    skos:definition "Officially licensed material that extends the canon but is not part of the core continuity."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:relationFanon
+    a gmeow:NarrativeFrameRelation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    rdfs:label "fanon"@x-gmeow-english ;
+    skos:definition "Community-generated continuity not officially recognised by the rights-holder."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:roleAntagonist
+    a gmeow:NarrativeRole ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    rdfs:label "antagonist"@x-gmeow-english ;
+    skos:definition "The antagonist role — opposed to a protagonist within the scope."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:roleConfidant
+    a gmeow:NarrativeRole ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    rdfs:label "confidant"@x-gmeow-english ;
+    skos:definition "The confidant role."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:roleFoil
+    a gmeow:NarrativeRole ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    rdfs:label "foil"@x-gmeow-english ;
+    skos:definition "The foil role — a contrast figure for another character."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:roleLoveInterest
+    a gmeow:NarrativeRole ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    rdfs:label "love interest"@x-gmeow-english ;
+    skos:definition "The love-interest role."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:roleMentor
+    a gmeow:NarrativeRole ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    rdfs:label "mentor"@x-gmeow-english ;
+    skos:definition "The mentor role."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:roleNarrator
+    a gmeow:NarrativeRole ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    rdfs:label "narrator"@x-gmeow-english ;
+    skos:definition "The narrator role — the telling voice (its reliability is the narration seam narrationUnreliable axis, not a role variant)."@x-gmeow-english .
+
+gmeow:roleProtagonist
+    a gmeow:NarrativeRole ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    rdfs:label "protagonist"@x-gmeow-english ;
+    skos:definition "The protagonist role — a scope's central agent. Ensemble works carry several coexisting protagonist claims; no primary exists (Principle 9)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:roleTrickster
+    a gmeow:NarrativeRole ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    rdfs:label "trickster"@x-gmeow-english ;
+    skos:definition "The trickster role."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:samplePosition
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
+    rdfs:domain gmeow:ArcSample ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    rdfs:label "sample position"@x-gmeow-english ;
+    rdfs:range gmeow:NarrativePosition ;
+    skos:definition "WHERE in the narrative this sample reads — a frame-carried NarrativePosition (narrative-position axis), never a bare index. Functional and mandatory (SHACL): a sample without a position is not a sample."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:sampleState
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
+    rdfs:domain gmeow:ArcSample ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    rdfs:label "sample state"@x-gmeow-english ;
+    skos:definition "The read state, by IRI — an affect-slice EmotionType when that slice is loaded, an EmotionML category IRI, or another tradition's term (range intentionally open: soft reference, never extension→extension dependency, P16). Functional: one cell, one state — a blended reading at one position is several samples sharing a vantage. The claimModality axiom pattern applies: this plays the observationResult role without the subproperty (QualityValue ⟂ Entity)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:sampleSubject
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
+    rdfs:domain gmeow:ArcSample ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    rdfs:label "sample subject"@x-gmeow-english ;
+    rdfs:subPropertyOf gmeow:observedFeature ;
+    skos:definition "The frame-scoped character (or other diegetic entity) this sample reads (⊑ observedFeature, the observation-spine bridge idiom). Range intentionally open. Functional: one sample, one subject."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:sourceFor
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:CreativeWork ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    rdfs:label "source for"@x-gmeow-english ;
+    rdfs:range gmeow:NarrativeReferenceFrame ;
+    rdfs:subPropertyOf gmeow:contributesToFrame ;
+    skos:definition "Relates a creative work (a BookRelease, SerialInstallment, film, game, or other out-of-universe artifact) to the narrative reference frame it contributes to, witnesses, revises, or serves as a source for. Non-functional: a work may source several frames, and a frame may have many sources. The specific role (source, witness, revision, adaptation) is carried by gmeow:accordingTo on the claim or by a reified relator when needed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxRBox .
+
+gmeow:storyTimeOf
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
+    rdfs:domain gmeow:NarrativeTimeFrame ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    rdfs:label "story time of"@x-gmeow-english ;
+    rdfs:range gmeow:NarrativeReferenceFrame ;
+    skos:definition "Anchors a story-time frame to the narrative reference frame (canon, continuity) whose in-universe chronology it coordinatizes. Functional: one anchoring per frame; competing continuities carry their own story-time frames, and the same event may hold different story positions in each (Principle 9)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
 
 <https://blackcatinformatics.ca/gmeow/slices/narrative>
     a owl:Ontology ;
-    rdfs:label "GMEOW Narrative Module"@x-gmeow-english ;
-    skos:definition "The GMEOW Narrative Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
+    dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;
     rdfs:comment """Narrative reference frames and creative-work sourcing. Part of the Location-as-reference-frame design.
 
 DOCTRINE.
@@ -20,783 +821,8 @@ DOCTRINE.
   * Cross-continuity variants are linked with gmeow:counterpartOf, never merged (Principle 5).
   * Retcons and canon revisions are preserved as coexisting frame-scoped claims with gmeow:supersedes and gmeow:displayable false (Principle 10).
   * No single canon wins (Principle 9): competing continuities coexist as separate NarrativeReferenceFrames that may sharpen one another."""@x-gmeow-english ;
-    dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
-
-# =========================================================================== #
-# CORE CLASSES
-# =========================================================================== #
-
-gmeow:NarrativeReferenceFrame
-    a owl:Class, gufo:SubKind ;
-    rdfs:subClassOf gmeow:ReferenceFrame ;
-    rdfs:label "Narrative Reference Frame"@x-gmeow-english ;
-    skos:definition "A canon, continuity, or narrative realm that serves as a reference frame for in-universe facts (locations, dates, events) and functionally as the standpoint under which in-universe claims hold true. The Harry Potter canon, the Marvel Multiverse (Earth-616, MCU, Ultimate), and the Star Wars Legends/Canon split are all narrative reference frames. Ordinary GMEOW entities (Person, Place, Organization, Event) may carry claims according to this frame; cross-continuity variants are linked by counterpartOf, never merged."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
-
-gmeow:NarrativeFrameRelation
-    a owl:Class, gufo:AbstractIndividualType ;
-    rdfs:subClassOf gufo:QualityValue ;
-    rdfs:label "Narrative Frame Relation"@x-gmeow-english ;
-    skos:definition "The relationship of one narrative frame to another — a value vocabulary (individuals, never subclasses) spanning canon, alternate continuity, expanded universe, fanon, crossover, and adaptation. Non-functional: a frame may hold several relations to another frame from different standpoints."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
-
-gmeow:NarrativeFrameLink
-    a owl:Class, gufo:Kind ;
-    rdfs:subClassOf gufo:Relator ;
-    rdfs:label "Narrative Frame Link"@x-gmeow-english ;
-    skos:definition "A reified relator that binds a source narrative frame, a target narrative frame, and the relation type between them into a single node. The canonical form when the specific frame-to-frame relation must itself be a node (e.g. to attach provenance, confidence, temporal scope, or standpoint); the flat shortcuts are gmeow:hasNarrativeFrameRelation and gmeow:relatesToFrame. Structurally the Tagging/NameUsage idiom wearing a different hat."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
-
-gmeow:CharacterArc
-    a owl:Class, gufo:Kind ;
-    rdfs:subClassOf gmeow:InformationObject ;
-    rdfs:label "Character Arc"@x-gmeow-english ;
-    skos:definition "A first-class interpretive/structural information object describing a character's trajectory through a narrative — a standpoint-scoped analysis, never canonical truth. A gufo:Kind with distinct identity criteria (subject, frame, and type). Cross-continuity variants are linked by counterpartOf, never merged."@x-gmeow-english ;
-    gmeow:requiresFrame gmeow:arcFrame ;
-    gmeow:frameCardinality "exactly-one" ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
-
-# =========================================================================== #
-# PROPERTIES
-# =========================================================================== #
-
-gmeow:sourceFor
-    a owl:ObjectProperty ;
-    rdfs:subPropertyOf gmeow:contributesToFrame ;
-    rdfs:domain gmeow:CreativeWork ;
-    rdfs:range gmeow:NarrativeReferenceFrame ;
-    rdfs:label "source for"@x-gmeow-english ;
-    skos:definition "Relates a creative work (a BookRelease, SerialInstallment, film, game, or other out-of-universe artifact) to the narrative reference frame it contributes to, witnesses, revises, or serves as a source for. Non-functional: a work may source several frames, and a frame may have many sources. The specific role (source, witness, revision, adaptation) is carried by gmeow:accordingTo on the claim or by a reified relator when needed."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
-
-gmeow:contributesToFrame
-    a owl:ObjectProperty ;
-    rdfs:domain gmeow:InformationObject ;
-    rdfs:range gmeow:NarrativeReferenceFrame ;
-    rdfs:label "contributes to frame"@x-gmeow-english ;
-    skos:definition "Relates a creative work or content segment to the narrative reference frame it contributes claims to. Broader than gmeow:sourceFor: a segment may contribute to a frame without being the primary source. Non-functional: an information object may contribute to many frames."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
-
-gmeow:arcSubject
-    a owl:ObjectProperty, owl:FunctionalProperty ;
-    rdfs:domain gmeow:CharacterArc ;
-    rdfs:range gmeow:Entity ;
-    rdfs:label "arc subject"@x-gmeow-english ;
-    skos:definition "The entity whose arc is described — a person, organization, or other narrative entity. Functional: one subject per CharacterArc."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
-
-gmeow:arcFrame
-    a owl:ObjectProperty, owl:FunctionalProperty ;
-    rdfs:domain gmeow:CharacterArc ;
-    rdfs:range gmeow:NarrativeReferenceFrame ;
-    rdfs:label "arc frame"@x-gmeow-english ;
-    skos:definition "The narrative reference frame within which this arc is interpreted. Functional: one frame per CharacterArc; cross-continuity arcs are separate instances linked by counterpartOf."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
-
-gmeow:arcType
-    a owl:ObjectProperty, owl:FunctionalProperty ;
-    rdfs:domain gmeow:CharacterArc ;
-    rdfs:range gmeow:ArcType ;
-    rdfs:label "arc type"@x-gmeow-english ;
-    skos:definition "The interpretive type of this character arc — a value from the open gmeow:ArcType vocabulary. Functional: one type per CharacterArc."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
-
-gmeow:arcEvidence
-    a owl:ObjectProperty ;
-    rdfs:domain gmeow:CharacterArc ;
-    rdfs:range gmeow:InformationObject ;
-    rdfs:label "arc evidence"@x-gmeow-english ;
-    skos:definition "The creative works or content segments that provide evidence for this arc interpretation. Non-functional: an arc may be evidenced by many segments or works."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
-
-gmeow:hasNarrativeFrameRelation
-    a owl:ObjectProperty ;
-    rdfs:domain gmeow:NarrativeReferenceFrame ;
-    rdfs:range gmeow:NarrativeFrameRelation ;
-    rdfs:label "has narrative frame relation"@x-gmeow-english ;
-    skos:definition "The relationship(s) this narrative frame bears to another frame — canon, alternate continuity, expanded universe, fanon, crossover, adaptation. Non-functional: competing relation claims from different standpoints coexist (Principle 9). Flat shortcut; promote to gmeow:NarrativeFrameLink when the binding between source, target, and relation type must be explicit."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
-
-gmeow:relatesToFrame
-    a owl:ObjectProperty ;
-    rdfs:domain gmeow:NarrativeReferenceFrame ;
-    rdfs:range gmeow:NarrativeReferenceFrame ;
-    rdfs:label "relates to frame"@x-gmeow-english ;
-    skos:definition "Relates a narrative reference frame to another narrative reference frame with which it stands in a relationship (the nature of which is given by gmeow:hasNarrativeFrameRelation). Non-functional: a frame may relate to many others, and competing relation claims coexist. Flat shortcut; promote to gmeow:NarrativeFrameLink when the binding between source, target, and relation type must be explicit."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
-
-gmeow:narrativeFrameLinkSource
-    a owl:ObjectProperty, owl:FunctionalProperty ;
-    rdfs:domain gmeow:NarrativeFrameLink ;
-    rdfs:range gmeow:NarrativeReferenceFrame ;
-    rdfs:label "narrative frame link source"@x-gmeow-english ;
-    skos:definition "The source narrative reference frame in a link. Functional per relator: one source per NarrativeFrameLink."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
-
-gmeow:narrativeFrameLinkTarget
-    a owl:ObjectProperty, owl:FunctionalProperty ;
-    rdfs:domain gmeow:NarrativeFrameLink ;
-    rdfs:range gmeow:NarrativeReferenceFrame ;
-    rdfs:label "narrative frame link target"@x-gmeow-english ;
-    skos:definition "The target narrative reference frame in a link. Functional per relator: one target per NarrativeFrameLink."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
-
-gmeow:narrativeFrameLinkRelation
-    a owl:ObjectProperty, owl:FunctionalProperty ;
-    rdfs:domain gmeow:NarrativeFrameLink ;
-    rdfs:range gmeow:NarrativeFrameRelation ;
-    rdfs:label "narrative frame link relation"@x-gmeow-english ;
-    skos:definition "The relation type (canon, adaptation, crossover, etc.) that holds between the source and target frames in this link. Functional per relator: one relation type per NarrativeFrameLink."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
-
-# =========================================================================== #
-# VALUE VOCABULARY SEEDS
-# =========================================================================== #
-
-gmeow:relationCanon
-    a gmeow:NarrativeFrameRelation ;
-    rdfs:label "canon"@x-gmeow-english ;
-    skos:definition "The authoritative, settled continuity of a narrative frame."@x-gmeow-english .
-gmeow:relationCanon rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
-
-gmeow:relationAlternateContinuity
-    a gmeow:NarrativeFrameRelation ;
-    rdfs:label "alternate continuity"@x-gmeow-english ;
-    skos:definition "A divergent continuity that is not the primary canon but is officially recognised (e.g. Marvel Ultimate, Star Wars Legends)."@x-gmeow-english .
-gmeow:relationAlternateContinuity rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
-
-gmeow:relationExpandedUniverse
-    a gmeow:NarrativeFrameRelation ;
-    rdfs:label "expanded universe"@x-gmeow-english ;
-    skos:definition "Officially licensed material that extends the canon but is not part of the core continuity."@x-gmeow-english .
-gmeow:relationExpandedUniverse rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
-
-gmeow:relationFanon
-    a gmeow:NarrativeFrameRelation ;
-    rdfs:label "fanon"@x-gmeow-english ;
-    skos:definition "Community-generated continuity not officially recognised by the rights-holder."@x-gmeow-english .
-gmeow:relationFanon rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
-
-gmeow:relationCrossover
-    a gmeow:NarrativeFrameRelation ;
-    rdfs:label "crossover"@x-gmeow-english ;
-    skos:definition "A narrative frame that blends characters or settings from two or more distinct continuities."@x-gmeow-english .
-gmeow:relationCrossover rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
-
-gmeow:relationAdaptationOf
-    a gmeow:NarrativeFrameRelation ;
-    rdfs:label "adaptation of"@x-gmeow-english ;
-    skos:definition "A narrative frame that adapts another frame into a different medium or format."@x-gmeow-english .
-
-# =========================================================================== #
-# ARC TYPE VALUE VOCABULARY — individuals, never subclasses (Principle 9)
-# =========================================================================== #
-gmeow:relationAdaptationOf rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
-
-gmeow:ArcType
-    a owl:Class, gufo:AbstractIndividualType ;
-    rdfs:subClassOf gufo:QualityValue ;
-    rdfs:label "Arc Type"@x-gmeow-english ;
-    skos:definition "The interpretive type of a character arc — a VALUE vocabulary (individuals, never subclasses). Coming-of-age, redemption, and fall are examples; the set is open."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
-
-# --------------------------------------------------------------------------- #
-# ArcType seeds
-# --------------------------------------------------------------------------- #
-
-gmeow:arcTypeComingOfAge a gmeow:ArcType ; rdfs:label "coming-of-age"@x-gmeow-english ; skos:definition "A transition from childhood to maturity."@x-gmeow-english .
-gmeow:arcTypeComingOfAge rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
-gmeow:arcTypeRedemption   a gmeow:ArcType ; rdfs:label "redemption"@x-gmeow-english ;   skos:definition "A moral recovery or atonement for past failings."@x-gmeow-english .
-gmeow:arcTypeRedemption rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
-gmeow:arcTypeFall         a gmeow:ArcType ; rdfs:label "fall"@x-gmeow-english ;         skos:definition "A decline from a state of grace, power, or virtue."@x-gmeow-english .
-gmeow:arcTypeFall rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
-gmeow:arcTypeCorruption   a gmeow:ArcType ; rdfs:label "corruption"@x-gmeow-english ;   skos:definition "A moral or ethical degradation."@x-gmeow-english .
-gmeow:arcTypeCorruption rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
-gmeow:arcTypeQuest        a gmeow:ArcType ; rdfs:label "quest"@x-gmeow-english ;        skos:definition "A journey toward a goal that transforms the protagonist."@x-gmeow-english .
-gmeow:arcTypeQuest rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
-gmeow:arcTypeRecovery     a gmeow:ArcType ; rdfs:label "recovery"@x-gmeow-english ;     skos:definition "A return to health, wholeness, or stability after loss."@x-gmeow-english .
-
-# =========================================================================== #
-# MYTH — socially-sustained narrative whose currency is independent of truth-value
-# (the design, Deception design context)
-# =========================================================================== #
-gmeow:arcTypeRecovery rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
-
-gmeow:Myth
-    a owl:Class, gufo:Kind ;
-    rdfs:subClassOf gmeow:SocialObject ;
-    rdfs:label "Myth"@x-gmeow-english ;
-    skos:definition "A socially-sustained narrative whose currency is independent of its truth-value — a founding myth, an urban legend, a propaganda narrative, or a debunked claim that persists. GMEOW asserts no truth verdict on a myth (Principle 1); in-myth claims are scoped accordingTo an associated gmeow:NarrativeReferenceFrame. A myth is the abstract narrative (WEMI Work level); concrete tellings are linked via gmeow:hasMythTelling."@x-gmeow-english ;
-    gmeow:requiresFrame gmeow:mythFrame ;
-    gmeow:frameCardinality "exactly-one" ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
-    rdfs:subClassOf
-        [ a owl:Restriction ; owl:onProperty gmeow:hasMythTelling ; owl:someValuesFrom gmeow:CreativeWork ] .
-
-gmeow:hasMythTelling
-    a owl:ObjectProperty ;
-    rdfs:domain gmeow:Myth ;
-    rdfs:range gmeow:CreativeWork ;
-    rdfs:label "has myth telling"@x-gmeow-english ;
-    skos:definition "Relates a myth to its concrete tellings or expressions — a BookRelease, Article, MediaObject, social post, or other CreativeWork. Non-functional: co-equal tellings coexist; superseded tellings are set gmeow:displayable false (Principle 10)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
-
-gmeow:mythFrame
-    a owl:ObjectProperty, owl:FunctionalProperty ;
-    rdfs:domain gmeow:Myth ;
-    rdfs:range gmeow:NarrativeReferenceFrame ;
-    rdfs:label "myth frame"@x-gmeow-english ;
-    skos:definition "The narrative reference frame under which in-myth claims hold true. Functional: one frame per Myth. In-myth claims are scoped accordingTo this frame."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
-
-gmeow:propagatesFrom
-    a owl:ObjectProperty ;
-    rdfs:subPropertyOf gmeow:wasDerivedFrom ;
-    rdfs:domain gmeow:CreativeWork ;
-    rdfs:range gmeow:CreativeWork ;
-    rdfs:label "propagates from"@x-gmeow-english ;
-    skos:definition "The propagation edge linking one myth telling to the telling it was derived from — reusing the PROV-O lineage spine so myth-spread is not a parallel graph (Principle 4). The propagating agent is a gmeow:Participation with roleDupe (unwitting) or roleDeceiver (knowing)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
-
-gmeow:recurringRisk
-    a owl:DatatypeProperty ;
-    rdfs:domain gmeow:Myth ;
-    rdfs:range xsd:boolean ;
-    rdfs:label "recurring risk"@x-gmeow-english ;
-    skos:definition "A flag indicating that this myth or false claim is a repeat offender — agents and generated reports re-introduce it, so audit tooling can prioritise active correction over one-off debunking."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
-
-gmeow:affectedConsumerSurface
-    a owl:ObjectProperty ;
-    rdfs:domain gmeow:Myth ;
-    rdfs:range gmeow:ProjectionContext ;
-    rdfs:label "affected consumer surface"@x-gmeow-english ;
-    skos:definition "The projection consumer surfaces that a myth tends to leak into — e.g. Wikipedia, public site, agent memory — so that a correction can be scoped to the surfaces that actually carry the bad claim. Reuses the gmeow:ProjectionContext vocabulary."@x-gmeow-english;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
-
-# =========================================================================== #
-# NARRATIVE TIME — story-time & discourse-time frames (narrative-position axis, design context)
-#
-# DOCTRINE: the chapter sequence is the syuzhet projection of frame-relative
-# story content. Discourse time (the order of telling: segment ordinals,
-# chapter indices) and story time (the order of happening in-universe: the
-# fabula) are distinct coordinate systems that disagree by design — a
-# flashback is a local inversion between the two axes; a retcon is a
-# frame-scoped story-time remapping, preserved by suppression like every
-# canon revision above. A position without its frame is meaningless: no bare
-# chapter indices. Allen relations between diegetic events are frame-relative
-# claims asserted gmeow:accordingTo the narrative frame via the statement
-# layer — never global facts. Discourse↔story mappings (the flashback
-# structure itself) are expressed as coexisting positions of one event in
-# both frames; a reified mapping construct is deliberately deferred to
-# coordinate with the music extension's TimeMapping (music design) so the repo grows
-# one frame-mapping idiom, not two.
-# =========================================================================== #
-
-gmeow:NarrativeTimeFrame
-    a owl:Class, gufo:SubKind ;
-    rdfs:subClassOf gmeow:ReferenceFrame ;
-    rdfs:label "Narrative Time Frame"@x-gmeow-english ;
-    skos:definition "A coordinate system for narrative position — the reference frame in which 'where in the story' is expressed. Exactly one axis kind per frame: discourse time (the order of telling — chapter indices, scene ordinals — owned by the telling work, since different editions may re-segment) or story time (the order of happening in-universe — the fabula — owned by a NarrativeReferenceFrame, since continuities can reorder it). The same diegetic event may carry coexisting positions in a discourse frame and a story frame; their disagreement IS the flashback, made queryable rather than contradictory."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
-
-gmeow:NarrativeTimeAxis
-    a owl:Class, gufo:AbstractIndividualType ;
-    rdfs:subClassOf gufo:QualityValue ;
-    rdfs:label "Narrative Time Axis"@x-gmeow-english ;
-    skos:definition "The axis kind of a narrative time frame — a value vocabulary (individuals, never subclasses) of exactly two members: discourse time (syuzhet, the order of telling) and story time (fabula, the order of happening). Both are first-class and neither wins (Principle 9): the discourse order is not an approximation of the story order, and the story order is not the truth of the discourse order."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
-
-# Seeds
-gmeow:axisDiscourseTime a gmeow:NarrativeTimeAxis ; rdfs:label "discourse time (syuzhet)"@x-gmeow-english ;
-    skos:definition "The discourse-time axis — narrative position in the order of telling: chapter indices, scene ordinals, page positions. Owned by the telling work or expression; a re-segmented edition is a different discourse frame."@x-gmeow-english .
-gmeow:axisDiscourseTime rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
-gmeow:axisStoryTime     a gmeow:NarrativeTimeAxis ; rdfs:label "story time (fabula)"@x-gmeow-english ;
-    skos:definition "The story-time axis — narrative position in the order of happening in-universe: the fabula. Owned by a narrative reference frame; a continuity may reorder story time, and the reordering (a retcon) is a frame-scoped claim revision preserved by suppression (Principle 10)."@x-gmeow-english .
-gmeow:axisStoryTime rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
-
-gmeow:narrativeTimeAxis
-    a owl:ObjectProperty, owl:FunctionalProperty ;
-    rdfs:domain gmeow:NarrativeTimeFrame ;
-    rdfs:range gmeow:NarrativeTimeAxis ;
-    rdfs:label "narrative time axis"@x-gmeow-english ;
-    skos:definition "The axis kind of this narrative time frame — discourse time or story time. Functional: a frame measures exactly one axis; a work and its fabula are two frames, not one frame with two moods."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
-
-gmeow:discourseTimeOf
-    a owl:ObjectProperty, owl:FunctionalProperty ;
-    rdfs:domain gmeow:NarrativeTimeFrame ;
-    rdfs:range gmeow:CreativeWork ;
-    rdfs:label "discourse time of"@x-gmeow-english ;
-    skos:definition "Anchors a discourse-time frame to the creative work (expression or manifestation tier) whose telling order it coordinatizes. Functional: one frame, one telling. Different editions or translations that re-segment the text own different discourse frames; positions do not transfer between them without an explicit mapping claim."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
-
-gmeow:storyTimeOf
-    a owl:ObjectProperty, owl:FunctionalProperty ;
-    rdfs:domain gmeow:NarrativeTimeFrame ;
-    rdfs:range gmeow:NarrativeReferenceFrame ;
-    rdfs:label "story time of"@x-gmeow-english ;
-    skos:definition "Anchors a story-time frame to the narrative reference frame (canon, continuity) whose in-universe chronology it coordinatizes. Functional: one anchoring per frame; competing continuities carry their own story-time frames, and the same event may hold different story positions in each (Principle 9)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
-
-gmeow:NarrativePosition
-    a owl:Class, gufo:Kind ;
-    rdfs:subClassOf gmeow:Entity, gufo:Object ;
-    rdfs:label "Narrative Position"@x-gmeow-english ;
-    skos:definition "A frame-relative position in a narrative — the narrative analogue of SpatialCoordinates. Carries its frame (mandatory: a position without a frame is the bare-integer anti-pattern this class exists to forbid), an ordinal (chapter_index 31), a label ('Thirty-Three', 'the Longest Night'), or both. Ranges are expressed as paired positions. Comparison, ordering, and discourse↔story reconciliation are solver-layer computations (Principle 12)."@x-gmeow-english ;
-    gmeow:requiresFrame gmeow:positionFrame ;
-    gmeow:frameCardinality "exactly-one" ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
-
-gmeow:positionFrame
-    a owl:ObjectProperty, owl:FunctionalProperty ;
-    rdfs:domain gmeow:NarrativePosition ;
-    rdfs:range gmeow:NarrativeTimeFrame ;
-    rdfs:label "position frame"@x-gmeow-english ;
-    skos:definition "The narrative time frame in which this position is expressed. Functional and mandatory (SHACL): every narrative position names its frame."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
-
-gmeow:positionOrdinal
-    a owl:DatatypeProperty, owl:FunctionalProperty ;
-    rdfs:domain gmeow:NarrativePosition ;
-    rdfs:range xsd:integer ;
-    rdfs:label "position ordinal"@x-gmeow-english ;
-    skos:definition "The ordinal coordinate of this position within its frame — a chapter index, scene number, or fabula sequence number. Functional within one position; ordering semantics belong to the frame, and comparisons to the solver layer (Principle 12)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
-
-gmeow:positionLabel
-    a owl:DatatypeProperty ;
-    rdfs:domain gmeow:NarrativePosition ;
-    rdfs:range xsd:string ;
-    rdfs:label "position label"@x-gmeow-english ;
-    skos:definition "A human-oriented label for this position — a chapter title ('Thirty-Three'), a named story moment ('the Longest Night'). Non-functional: co-equal labels coexist (Principle 9). A position must carry an ordinal or a label or both (SHACL)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
-
-gmeow:atNarrativePosition
-    a owl:ObjectProperty ;
-    rdfs:range gmeow:NarrativePosition ;
-    rdfs:label "at narrative position"@x-gmeow-english ;
-    skos:definition "Anchors a thing — a content segment, a diegetic event, an arc sample, a motif occurrence — to a narrative position. Domain-free: the narration seam (narration seam), arc samples (arc samples), and motif occurrences (motifs) all reuse this one anchor. NOT functional, and deliberately so: the same diegetic event carries coexisting positions in a discourse frame and a story frame, and their disagreement is the flashback made queryable rather than a contradiction (Principle 9)."@x-gmeow-english;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
-
-# =========================================================================== #
-# THE NARRATION SEAM (narration seam, design context)
-#
-# NOnt's reference function: the relation between the carrying text and the
-# story it tells — neither mereology (a narrated event is not part of a
-# chapter) nor participation (a chapter does not take part in a betrayal).
-# "Chapter 31 narrates event E; character C is narrated in segment S."
-#
-# EFFICIENCY DOCTRINE (codified, CI-gated in the consumer child narrative consumer child): the
-# foundation corpus carries 38,413 character-segment links + 23,962 narrated
-# events + 12,354 appearances. Flat quads by default (one statement per
-# link); promote to a reified gmeow:NarrationUsage ONLY when mode, vantage, or
-# confidence rides on the link. Budget arithmetic: flat ≈ 1 quad/link;
-# reified ≈ 6–8 statements/link; full reification of one corpus ≈ 1.5–2M
-# statements. Silent full reification is a defect, not thoroughness.
-#
-# Diegetic events stay ordinary gmeow:Event instances claims-scoped
-# accordingTo their NarrativeReferenceFrame (existing module doctrine) —
-# nothing here asserts real-world occurrence, and the events module's
-# Participation machinery is reused untouched for who-did-what IN the story.
-# Unreliable narration is where narration mode meets the deception module
-#: a narration usage whose mode misleads is narrator-level held≠projected —
-# documented bridge, no axiom coupling.
-# =========================================================================== #
-
-gmeow:narrationLink
-    a owl:ObjectProperty ;
-    rdfs:label "narration link"@x-gmeow-english ;
-    skos:definition "The abstract ancestor of the narration seam — any link between carrying text (an InformationObject side: segment, document, panel) and diegetic content (an entity, event, or situation in the story). Never asserted directly: use gmeow:narrates (segment → content) or gmeow:narratedIn (content → segment). Domain- and range-free at this level so media-specific seams (panel, shot, verse) can specialize without re-plumbing."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
-
-gmeow:narrates
-    a owl:ObjectProperty ;
-    rdfs:subPropertyOf gmeow:narrationLink ;
-    rdfs:domain gmeow:ContentSegment ;
-    rdfs:label "narrates"@x-gmeow-english ;
-    skos:definition "Flat 80% seam link: the segment shows, narrates, or mentions the diegetic entity, event, or situation. Range intentionally open (entities, events, situations, motifs). NOT functional: a chapter narrates many things. Promote to a gmeow:NarrationUsage relator ONLY when mode, vantage, or confidence rides on the link (the efficiency doctrine — flat is the default at corpus scale)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
-
-gmeow:narratedIn
-    a owl:ObjectProperty ;
-    rdfs:subPropertyOf gmeow:narrationLink ;
-    rdfs:range gmeow:ContentSegment ;
-    rdfs:label "narrated in"@x-gmeow-english ;
-    skos:definition "Flat 80% seam link, content-side orientation: the diegetic entity or event appears in the segment. The projection-friendly direction — Wikidata P1441 'present in work' is exactly this edge (SSSOM row deferred to the alignment window). Domain intentionally open. NOT the inverse-axiom twin of gmeow:narrates: no owl:inverseOf is asserted, so EL stays clean and either orientation can be used without entailing the other; consumers query both (the connectsTo convention)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
-
-gmeow:NarrationUsage
-    a owl:Class, gufo:Kind ;
-    rdfs:subClassOf gufo:Relator ;
-    rdfs:label "Narration Usage"@x-gmeow-english ;
-    skos:definition "The reified seam link — segment × narrated subject × mode, for when HOW the text carries the content matters: flashback, dream, hypothetical, unreliable narration. Mint one per (segment, subject) pair needing mode/vantage/confidence; the 80% case stays flat gmeow:narrates (efficiency doctrine — reify-on-demand, Principle 4). Whose reading of the mode it is rides the statement layer; competing modes for one narration usage are coexisting relators, none privileged (Principle 9)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
-
-gmeow:narrationSegment
-    a owl:ObjectProperty, owl:FunctionalProperty ;
-    rdfs:domain gmeow:NarrationUsage ;
-    rdfs:range gmeow:ContentSegment ;
-    rdfs:label "narration segment"@x-gmeow-english ;
-    skos:definition "The carrying segment. Functional and mandatory (SHACL)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
-
-gmeow:narrationSubject
-    a owl:ObjectProperty, owl:FunctionalProperty ;
-    rdfs:domain gmeow:NarrationUsage ;
-    rdfs:label "narration subject"@x-gmeow-english ;
-    skos:definition "The narrated diegetic entity, event, or situation. Range intentionally open (the narrates convention). Functional and mandatory (SHACL): one relator per (segment, subject) pair — a chapter narrating four events with modes is four NarrationUsages."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
-
-gmeow:NarrationMode
-    a owl:Class, gufo:AbstractIndividualType ;
-    rdfs:subClassOf gufo:QualityValue ;
-    rdfs:label "Narration Mode"@x-gmeow-english ;
-    skos:definition "HOW a segment carries its content — an OPEN value vocabulary (individuals, never subclasses) seeded with the diegetic-level ladder: narrated (direct), mentioned (referenced without narration), flashback (narrated out of story order), dream (framed as a character's dream), hypothetical (framed as possibility), unreliable (narrator credibility in question — the deception-module boundary,: documented bridge, no axiom coupling)."@x-gmeow-english;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
-
-gmeow:narrationDirect     a gmeow:NarrationMode ; rdfs:label "narrated"@x-gmeow-english ;
-    skos:definition "The segment narrates the content directly, in the story's main register."@x-gmeow-english .
-gmeow:narrationDirect rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
-gmeow:narrationMentioned    a gmeow:NarrationMode ; rdfs:label "mentioned"@x-gmeow-english ;
-    skos:definition "The segment references the content without narrating it (reported, recalled, alluded to)."@x-gmeow-english .
-gmeow:narrationMentioned rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
-gmeow:narrationFlashback    a gmeow:NarrationMode ; rdfs:label "flashback"@x-gmeow-english ;
-    skos:definition "The segment narrates content from earlier in story time than its discourse position — the two-axes disagreement (narrative-position axis) made a mode."@x-gmeow-english.
-gmeow:narrationFlashback rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
-gmeow:narrationDream        a gmeow:NarrationMode ; rdfs:label "dream"@x-gmeow-english ;
-    skos:definition "The segment frames the content as a character's dream or vision — diegesis one level down."@x-gmeow-english .
-gmeow:narrationDream rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
-gmeow:narrationHypothetical a gmeow:NarrationMode ; rdfs:label "hypothetical"@x-gmeow-english ;
-    skos:definition "The segment frames the content as possibility, counterfactual, or speculation within the story."@x-gmeow-english .
-gmeow:narrationHypothetical rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
-gmeow:narrationUnreliable   a gmeow:NarrationMode ; rdfs:label "unreliable"@x-gmeow-english ;
-    skos:definition "The narrator's credibility for this content is in question — the seam's boundary with the deception module: narrator-level held ≠ projected, asserted by a critic's vantage through the statement layer. Documented bridge; no axiom coupling."@x-gmeow-english.
-gmeow:narrationUnreliable rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
-
-gmeow:narrationMode
-    a owl:ObjectProperty ;
-    rdfs:domain gmeow:NarrationUsage ;
-    rdfs:range gmeow:NarrationMode ;
-    rdfs:label "narration mode"@x-gmeow-english ;
-    skos:definition "The mode(s) of this narration usage. At least one (SHACL): if you reified, you had a reason. NOT functional: a flashback can also be a dream; coexisting critical readings ride the statement layer (Principle 9)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
-
-# =========================================================================== #
-# THE NARRATIVE INTERIOR — arcs, roles, motifs (arc samples / scoped roles / motifs,
-# design context)
-#
-# The remaining interior of the fiction, anchored to what already exists:
-# arc samples observe characters AT narrative positions (narrative-position axis); motif
-# occurrences ride the narration seam (narration seam); narrative roles are
-# interpretive relators with scope. Every reading here is vantage-indexed
-# (P9): who the protagonist is, what a character felt in chapter 31, and
-# whether a string is a motif are claims by someone, coexisting with rivals.
-# Character-as-exemplar composes from the rubrics facility's
-# gmeow:exemplarSubject with ZERO new machinery — fixtures
-# demonstrate it; no axiom here references a norms-slice IRI (P16).
-# =========================================================================== #
-
-# --------------------------------------------------------------------------- #
-# Arc samples (arc samples) — the music PitchTrajectory move: an arc is sampled
-# control points in a frame, not prose
-# --------------------------------------------------------------------------- #
-
-gmeow:ArcSample
-    a owl:Class, gufo:SubKind ;
-    rdfs:subClassOf gmeow:Observation ;
-    rdfs:label "Arc Sample"@x-gmeow-english ;
-    skos:definition "One reading of a character's state at a narrative position — an observation: vantage = the analyzing model or critic, subject = the frame-scoped character, position = a NarrativePosition (narrative-position axis; discourse-time by default, story-time samples legal and distinct), state = an emotion-type or analogous value by IRI (the affect slice's EmotionType when loaded, EmotionML category IRIs otherwise — soft reference, never dependency). Two analyzers disagreeing about chapter 31 are two coexisting cells (Principle 9). The existing gmeow:CharacterArc is the integrating whole: samples attach via gmeow:arcSample ⊑ gmeow:hasPart, and an arc with no samples stays valid (book-level-only analyses)."@x-gmeow-english;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
-
-gmeow:sampleSubject
-    a owl:ObjectProperty, owl:FunctionalProperty ;
-    rdfs:subPropertyOf gmeow:observedFeature ;
-    rdfs:domain gmeow:ArcSample ;
-    rdfs:label "sample subject"@x-gmeow-english ;
-    skos:definition "The frame-scoped character (or other diegetic entity) this sample reads (⊑ observedFeature, the observation-spine bridge idiom). Range intentionally open. Functional: one sample, one subject."@x-gmeow-english;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
-
-gmeow:samplePosition
-    a owl:ObjectProperty, owl:FunctionalProperty ;
-    rdfs:domain gmeow:ArcSample ;
-    rdfs:range gmeow:NarrativePosition ;
-    rdfs:label "sample position"@x-gmeow-english ;
-    skos:definition "WHERE in the narrative this sample reads — a frame-carried NarrativePosition (narrative-position axis), never a bare index. Functional and mandatory (SHACL): a sample without a position is not a sample."@x-gmeow-english;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
-
-gmeow:sampleState
-    a owl:ObjectProperty, owl:FunctionalProperty ;
-    rdfs:domain gmeow:ArcSample ;
-    rdfs:label "sample state"@x-gmeow-english ;
-    skos:definition "The read state, by IRI — an affect-slice EmotionType when that slice is loaded, an EmotionML category IRI, or another tradition's term (range intentionally open: soft reference, never extension→extension dependency, P16). Functional: one cell, one state — a blended reading at one position is several samples sharing a vantage. The claimModality axiom pattern applies: this plays the observationResult role without the subproperty (QualityValue ⟂ Entity)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
-
-gmeow:developmentSignalText
-    a owl:DatatypeProperty ;
-    rdfs:domain gmeow:ArcSample ;
-    rdfs:label "development signal (text)"@x-gmeow-english ;
-    skos:definition "Prose evidence the analyzer cited for this reading. NOT functional and range-open (localizable prose, the localizable-prose convention)."@x-gmeow-english;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
-
-gmeow:developmentSignalEvent
-    a owl:ObjectProperty ;
-    rdfs:domain gmeow:ArcSample ;
-    rdfs:range gmeow:Event ;
-    rdfs:label "development signal (event)"@x-gmeow-english ;
-    skos:definition "A diegetic event the analyzer cited for this reading — an ordinary gmeow:Event claims-scoped accordingTo its narrative frame (existing doctrine), typically also narrated by the position's segment (narration seam). NOT functional."@x-gmeow-english;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
-
-gmeow:arcSample
-    a owl:ObjectProperty ;
-    rdfs:subPropertyOf gmeow:hasPart ;
-    rdfs:domain gmeow:CharacterArc ;
-    rdfs:range gmeow:ArcSample ;
-    rdfs:label "arc sample"@x-gmeow-english ;
-    skos:definition "Attaches a sample to its integrating CharacterArc (⊑ gmeow:hasPart — samples are parts of the arc's analysis). Purely ADDITIVE to the existing CharacterArc: arcType and arcEvidence remain the holistic interpretive layer, and an arc with no samples stays valid. NOT functional."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
-
-# --------------------------------------------------------------------------- #
-# Narrative roles (scoped roles) — dramatis personae as interpretive, scoped relators
-# --------------------------------------------------------------------------- #
-
-gmeow:NarrativeRole
-    a owl:Class, gufo:AbstractIndividualType ;
-    rdfs:subClassOf gufo:QualityValue ;
-    rdfs:label "Narrative Role"@x-gmeow-english ;
-    skos:definition "A character's narratological function — an OPEN value vocabulary (protagonist, antagonist, mentor, foil, narrator, confidant, love interest, trickster, …), Propp/Greimas-informed but never closed: traditions disagree about the role inventory itself (Principle 9). A role is a FUNCTION RELATIVE TO A SCOPE, not an intrinsic property — carried by the RoleInNarrative relator, never by typing the character."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
-
-gmeow:roleProtagonist  a gmeow:NarrativeRole ; rdfs:label "protagonist"@x-gmeow-english ;
-    skos:definition "The protagonist role — a scope's central agent. Ensemble works carry several coexisting protagonist claims; no primary exists (Principle 9)."@x-gmeow-english .
-gmeow:roleProtagonist rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
-gmeow:roleAntagonist   a gmeow:NarrativeRole ; rdfs:label "antagonist"@x-gmeow-english ;
-    skos:definition "The antagonist role — opposed to a protagonist within the scope."@x-gmeow-english .
-gmeow:roleAntagonist rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
-gmeow:roleMentor       a gmeow:NarrativeRole ; rdfs:label "mentor"@x-gmeow-english ;
-    skos:definition "The mentor role."@x-gmeow-english .
-gmeow:roleMentor rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
-gmeow:roleFoil         a gmeow:NarrativeRole ; rdfs:label "foil"@x-gmeow-english ;
-    skos:definition "The foil role — a contrast figure for another character."@x-gmeow-english .
-gmeow:roleFoil rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
-gmeow:roleNarrator     a gmeow:NarrativeRole ; rdfs:label "narrator"@x-gmeow-english ;
-    skos:definition "The narrator role — the telling voice (its reliability is the narration seam narrationUnreliable axis, not a role variant)."@x-gmeow-english.
-gmeow:roleNarrator rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
-gmeow:roleConfidant    a gmeow:NarrativeRole ; rdfs:label "confidant"@x-gmeow-english ;
-    skos:definition "The confidant role."@x-gmeow-english .
-gmeow:roleConfidant rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
-gmeow:roleLoveInterest a gmeow:NarrativeRole ; rdfs:label "love interest"@x-gmeow-english ;
-    skos:definition "The love-interest role."@x-gmeow-english .
-gmeow:roleLoveInterest rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
-gmeow:roleTrickster    a gmeow:NarrativeRole ; rdfs:label "trickster"@x-gmeow-english ;
-    skos:definition "The trickster role."@x-gmeow-english .
-gmeow:roleTrickster rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
-
-gmeow:NarrativeScope
-    a owl:Class, gufo:Category ;
-    rdfs:subClassOf gmeow:Entity ;
-    rdfs:label "Narrative Scope"@x-gmeow-english ;
-    skos:definition "The umbrella category of things a narrative role can be relative to — a creative work (protagonist of the trilogy), a narrative reference frame (protagonist of the continuity), or a content segment (protagonist of one chapter). A NAMED class (the IntentionalMoment/RiskFactor precedent) so roleScope carries a generator-visible range and the relator-arity gate sees the end. Never instantiated directly."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
-
-gmeow:RoleInNarrative
-    a owl:Class, gufo:Kind ;
-    rdfs:subClassOf gufo:Relator ;
-    rdfs:label "Role In Narrative"@x-gmeow-english ;
-    skos:definition "The reified, interpretive fact that a character bears a narratological role RELATIVE TO A SCOPE — protagonist of the trilogy, of one book, of one chapter are different claims. Vantage-indexed through the statement layer; ensemble works carry coexisting protagonist relators and NO primaryProtagonist exists or ever will (Principle 9). Flat shortcut gmeow:hasNarrativeRole for the 80% single-work case."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
-
-gmeow:narrativeRoleBearer
-    a owl:ObjectProperty, owl:FunctionalProperty ;
-    rdfs:domain gmeow:RoleInNarrative ;
-    rdfs:range gmeow:Entity ;
-    rdfs:label "narrative role bearer"@x-gmeow-english ;
-    skos:definition "The frame-scoped character bearing the role. Functional and mandatory (SHACL)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
-
-gmeow:narrativeRoleScope
-    a owl:ObjectProperty, owl:FunctionalProperty ;
-    rdfs:domain gmeow:RoleInNarrative ;
-    rdfs:range gmeow:NarrativeScope ;
-    rdfs:label "narrative role scope"@x-gmeow-english ;
-    skos:definition "What the role is relative to — a CreativeWork, a NarrativeReferenceFrame, or a ContentSegment (grafted under NarrativeScope below). Functional and mandatory (SHACL): protagonist-of-what is half the claim."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
-
-gmeow:narrativeRoleValue
-    a owl:ObjectProperty, owl:FunctionalProperty ;
-    rdfs:domain gmeow:RoleInNarrative ;
-    rdfs:range gmeow:NarrativeRole ;
-    rdfs:label "narrative role value"@x-gmeow-english ;
-    skos:definition "The role borne. Functional: one relator, one role — a character who is both mentor and foil within one scope bears two relators. Open vocabulary (sh:nodeKind sh:IRI, never sh:in)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
-
-gmeow:hasNarrativeRole
-    a owl:ObjectProperty ;
-    rdfs:range gmeow:NarrativeRole ;
-    rdfs:label "has narrative role"@x-gmeow-english ;
-    skos:definition "Flat 80% shortcut: the character bears this role in their single obvious work. Domain intentionally open (frame-scoped characters are ordinary entities). Promote to RoleInNarrative when scope, vantage, or evidence must be first-class — and always for ensemble or cross-continuity claims."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
-
-# The scope graft (extension-side, the Rule ⊑ Norm direction): core classes
-# gain the NarrativeScope superclass here, never edits in core.
-gmeow:CreativeWork rdfs:subClassOf gmeow:NarrativeScope .
-gmeow:ContentSegment rdfs:subClassOf gmeow:NarrativeScope .
-gmeow:NarrativeReferenceFrame rdfs:subClassOf gmeow:NarrativeScope .
-
-# --------------------------------------------------------------------------- #
-# Motifs (motifs) — thematic tags with identity; occurrences ride the seam
-# --------------------------------------------------------------------------- #
-
-gmeow:Motif
-    a owl:Class, gufo:Kind ;
-    rdfs:subClassOf gmeow:SocialObject ;
-    rdfs:label "Motif"@x-gmeow-english ;
-    skos:definition "An identity-bearing recurring narrative unit — a theme, leitmotif, symbol, running gag, tale type, or trope ('Melisande's Game', 'the Cassiline vow'). NOT a folksonomy string: a motif carries aliases (names module Appellations), a kind, frame-scoped claims, and occurrences riding the narration seam (gmeow:motifOccursIn ⊑ gmeow:narratedIn, narration seam — inheriting the flat-by-default efficiency discipline). Motif-hood is itself interpretive: one vantage's tag is another's motif, and both readings coexist (Principle 9). Cross-work identity goes through gmeow:counterpartOf or a shared registry anchor (Thompson Motif Index, ATU — alignment window), NEVER string equality. The tags module remains the right home for uncurated labels; the promotion heuristic (tag → motif when recurrence and identity emerge, recorded as an Activity with provenance) lives in docs."@x-gmeow-english;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
-
-gmeow:MotifKind
-    a owl:Class, gufo:AbstractIndividualType ;
-    rdfs:subClassOf gufo:QualityValue ;
-    rdfs:label "Motif Kind"@x-gmeow-english ;
-    skos:definition "What sort of recurring unit a motif is — an OPEN value vocabulary: theme, leitmotif, symbol, running gag, tale type, trope. Never a tree (Principle 9)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
-
-gmeow:motifKindTheme      a gmeow:MotifKind ; rdfs:label "theme"@x-gmeow-english ;
-    skos:definition "The theme motif kind — a recurring idea or argument."@x-gmeow-english .
-gmeow:motifKindTheme rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
-gmeow:motifKindLeitmotif  a gmeow:MotifKind ; rdfs:label "leitmotif"@x-gmeow-english ;
-    skos:definition "The leitmotif kind — a recurring associated figure (the musical sense lands with the music extension's analysis layer)."@x-gmeow-english .
-gmeow:motifKindLeitmotif rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
-gmeow:motifKindSymbol     a gmeow:MotifKind ; rdfs:label "symbol"@x-gmeow-english ;
-    skos:definition "The symbol motif kind — a recurring object or image standing for something."@x-gmeow-english .
-gmeow:motifKindSymbol rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
-gmeow:motifKindRunningGag a gmeow:MotifKind ; rdfs:label "running gag"@x-gmeow-english ;
-    skos:definition "The running-gag motif kind."@x-gmeow-english .
-gmeow:motifKindRunningGag rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
-gmeow:motifKindTaleType   a gmeow:MotifKind ; rdfs:label "tale type"@x-gmeow-english ;
-    skos:definition "The tale-type motif kind — an ATU-style whole-story pattern."@x-gmeow-english .
-gmeow:motifKindTaleType rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
-gmeow:motifKindTrope      a gmeow:MotifKind ; rdfs:label "trope"@x-gmeow-english ;
-    skos:definition "The trope motif kind — a recognized convention (DBTropes anchors at alignment time)."@x-gmeow-english .
-gmeow:motifKindTrope rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
-
-gmeow:motifKind
-    a owl:ObjectProperty ;
-    rdfs:domain gmeow:Motif ;
-    rdfs:range gmeow:MotifKind ;
-    rdfs:label "motif kind"@x-gmeow-english ;
-    skos:definition "The motif's kind(s). NOT functional — readings coexist (Principle 9). Open vocabulary (sh:nodeKind sh:IRI)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
-
-gmeow:motifOccursIn
-    a owl:ObjectProperty ;
-    rdfs:subPropertyOf gmeow:narratedIn ;
-    rdfs:domain gmeow:Motif ;
-    rdfs:range gmeow:ContentSegment ;
-    rdfs:label "motif occurs in"@x-gmeow-english ;
-    skos:definition "An occurrence of the motif in a carrying segment — the narration seam reused (⊑ gmeow:narratedIn, narration seam), inheriting the efficiency discipline: flat by default, promoted to a NarrationUsage only when a vantage disputes the occurrence or a mode matters. NOT functional: 16,002 corpus tag-instances become occurrence edges."@x-gmeow-english;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> .
-
-# Flat-first/reify-on-demand pairings, machine-usable.
-gmeow:narrates gmeow:pairsWith gmeow:NarrationUsage .
-gmeow:hasNarrativeRole gmeow:pairsWith gmeow:RoleInNarrative .
-gmeow:motifOccursIn gmeow:pairsWith gmeow:NarrationUsage .
-gmeow:hasNarrativeFrameRelation gmeow:pairsWith gmeow:NarrativeFrameLink .
-gmeow:relatesToFrame gmeow:pairsWith gmeow:NarrativeFrameLink .
-
-# --------------------------------------------------------------------------- #
-# Graph box role coverage (canonical explicit annotations).
-# --------------------------------------------------------------------------- #
-
-gmeow:ArcSample gmeow:graphBoxRole gmeow:boxTBox .
-gmeow:ArcType gmeow:graphBoxRole gmeow:boxTBox .
-gmeow:CharacterArc gmeow:graphBoxRole gmeow:boxTBox .
-gmeow:Motif gmeow:graphBoxRole gmeow:boxTBox .
-gmeow:MotifKind gmeow:graphBoxRole gmeow:boxTBox .
-gmeow:Myth gmeow:graphBoxRole gmeow:boxTBox .
-gmeow:NarrationMode gmeow:graphBoxRole gmeow:boxTBox .
-gmeow:NarrationUsage gmeow:graphBoxRole gmeow:boxTBox .
-gmeow:NarrativeFrameLink gmeow:graphBoxRole gmeow:boxTBox .
-gmeow:NarrativeFrameRelation gmeow:graphBoxRole gmeow:boxTBox .
-gmeow:NarrativePosition gmeow:graphBoxRole gmeow:boxTBox .
-gmeow:NarrativeReferenceFrame gmeow:graphBoxRole gmeow:boxTBox .
-gmeow:NarrativeRole gmeow:graphBoxRole gmeow:boxTBox .
-gmeow:NarrativeScope gmeow:graphBoxRole gmeow:boxTBox .
-gmeow:NarrativeTimeAxis gmeow:graphBoxRole gmeow:boxTBox .
-gmeow:NarrativeTimeFrame gmeow:graphBoxRole gmeow:boxTBox .
-gmeow:RoleInNarrative gmeow:graphBoxRole gmeow:boxTBox .
-gmeow:affectedConsumerSurface gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:arcEvidence gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxRBox .
-gmeow:arcFrame gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:arcSample gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:arcSubject gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:arcType gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:arcTypeComingOfAge gmeow:graphBoxRole gmeow:boxABox .
-gmeow:arcTypeCorruption gmeow:graphBoxRole gmeow:boxABox .
-gmeow:arcTypeFall gmeow:graphBoxRole gmeow:boxABox .
-gmeow:arcTypeQuest gmeow:graphBoxRole gmeow:boxABox .
-gmeow:arcTypeRecovery gmeow:graphBoxRole gmeow:boxABox .
-gmeow:arcTypeRedemption gmeow:graphBoxRole gmeow:boxABox .
-gmeow:atNarrativePosition gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:axisDiscourseTime gmeow:graphBoxRole gmeow:boxABox .
-gmeow:axisStoryTime gmeow:graphBoxRole gmeow:boxABox .
-gmeow:contributesToFrame gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:developmentSignalEvent gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:developmentSignalText gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:discourseTimeOf gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:hasMythTelling gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:hasNarrativeFrameRelation gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:hasNarrativeRole gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:motifKind gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:motifKindLeitmotif gmeow:graphBoxRole gmeow:boxABox .
-gmeow:motifKindRunningGag gmeow:graphBoxRole gmeow:boxABox .
-gmeow:motifKindSymbol gmeow:graphBoxRole gmeow:boxABox .
-gmeow:motifKindTaleType gmeow:graphBoxRole gmeow:boxABox .
-gmeow:motifKindTheme gmeow:graphBoxRole gmeow:boxABox .
-gmeow:motifKindTrope gmeow:graphBoxRole gmeow:boxABox .
-gmeow:motifOccursIn gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:mythFrame gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:narratedIn gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:narrates gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:narrationDirect gmeow:graphBoxRole gmeow:boxABox .
-gmeow:narrationDream gmeow:graphBoxRole gmeow:boxABox .
-gmeow:narrationFlashback gmeow:graphBoxRole gmeow:boxABox .
-gmeow:narrationHypothetical gmeow:graphBoxRole gmeow:boxABox .
-gmeow:narrationLink gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:narrationMentioned gmeow:graphBoxRole gmeow:boxABox .
-gmeow:narrationMode gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:narrationSegment gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:narrationSubject gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:narrationUnreliable gmeow:graphBoxRole gmeow:boxABox .
-gmeow:narrativeFrameLinkRelation gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:narrativeFrameLinkSource gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxRBox .
-gmeow:narrativeFrameLinkTarget gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:narrativeRoleBearer gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:narrativeRoleScope gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:narrativeRoleValue gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:narrativeTimeAxis gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:positionFrame gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:positionLabel gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:positionOrdinal gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:propagatesFrom gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:recurringRisk gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:relatesToFrame gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:relationAdaptationOf gmeow:graphBoxRole gmeow:boxABox .
-gmeow:relationAlternateContinuity gmeow:graphBoxRole gmeow:boxABox .
-gmeow:relationCanon gmeow:graphBoxRole gmeow:boxABox .
-gmeow:relationCrossover gmeow:graphBoxRole gmeow:boxABox .
-gmeow:relationExpandedUniverse gmeow:graphBoxRole gmeow:boxABox .
-gmeow:relationFanon gmeow:graphBoxRole gmeow:boxABox .
-gmeow:roleAntagonist gmeow:graphBoxRole gmeow:boxABox .
-gmeow:roleConfidant gmeow:graphBoxRole gmeow:boxABox .
-gmeow:roleFoil gmeow:graphBoxRole gmeow:boxABox .
-gmeow:roleLoveInterest gmeow:graphBoxRole gmeow:boxABox .
-gmeow:roleMentor gmeow:graphBoxRole gmeow:boxABox .
-gmeow:roleProtagonist gmeow:graphBoxRole gmeow:boxABox .
-gmeow:roleTrickster gmeow:graphBoxRole gmeow:boxABox .
-gmeow:samplePosition gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:sampleState gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:sampleSubject gmeow:graphBoxRole gmeow:boxRBox .
-<https://blackcatinformatics.ca/gmeow/slices/narrative> gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .
-gmeow:sourceFor gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxRBox .
-gmeow:storyTimeOf gmeow:graphBoxRole gmeow:boxRBox .
+    rdfs:label "GMEOW Narrative Module"@x-gmeow-english ;
+    skos:definition "The GMEOW Narrative Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxConfigBox ,
+        gmeow:boxTBox .

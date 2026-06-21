@@ -1,16 +1,268 @@
-@prefix gmeow:   <https://blackcatinformatics.ca/gmeow/> .
-@prefix gufo:    <http://purl.org/nemo/gufo#> .
-@prefix owl:     <http://www.w3.org/2002/07/owl#> .
-@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
-@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix gufo: <http://purl.org/nemo/gufo#> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
+
+gmeow:Credential
+    a gufo:Kind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/expertise> ;
+    rdfs:label "Credential"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:Entity ;
+    skos:definition "An educational or occupational credential held by an agent — a degree, certification, badge, license, or other attestation of qualification. Its issuer is gmeow:credentialIssuer, its subject matter is gmeow:credentialFor, and its verification is borne by a gmeow:Attestation (Principle 4)."@x-gmeow-english ;
+    skos:example "ex:rnLicense a gmeow:Credential ; gmeow:credentialIssuer ex:nursingBoard ; gmeow:credentialFor ex:nursing ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for the signed verification envelope (that is a gmeow:Attestation, attestation.ttl — expertise supplies the content, attestation the proof) and for the bare skill or occupation a credential certifies (gmeow:Skill, gmeow:Occupation)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Mint the credential, name its gmeow:credentialIssuer and gmeow:credentialFor, link the holder with gmeow:holdsCredential, and route verification through a gmeow:Attestation rather than re-modelling the signature here (Principle 4)."@x-gmeow-english ;
+    gmeow:useWhen "Use for a degree, certification, badge, or license that qualifies an agent in a skill or occupation — the credential carries the qualification content, an agent holds it via gmeow:holdsCredential."@x-gmeow-english .
+
+gmeow:Skill
+    a gufo:Kind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/expertise> ;
+    rdfs:label "Skill"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:Entity ;
+    skos:definition "A competency or ability an agent possesses — a knowledge, ability, or expertise that can be applied to perform a task. Occupation-independent; aligned to esco:Skill by reference."@x-gmeow-english ;
+    skos:example "ex:welding a gmeow:Skill ; rdfs:label \"arc welding\"@en ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for the agent's leveled standing in the skill (that is gmeow:SkillProficiency) and for an occupation or job role (gmeow:Occupation); a skill is the ability itself, not the rating of it nor the role it serves."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Mint the skill, align it to esco:Skill by reference where one exists, and link agents through gmeow:hasSkill for the flat case or gmeow:SkillProficiency when level, scale, or temporal scope matters."@x-gmeow-english ;
+    gmeow:useWhen "Use to mint a competency or ability an agent can apply to a task — a skill in its own right, independent of any occupation, that an agent reaches via gmeow:hasSkill or a leveled gmeow:SkillProficiency."@x-gmeow-english .
+
+gmeow:SkillProficiency
+    a gufo:Kind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/expertise> ;
+    rdfs:label "Skill Proficiency"@x-gmeow-english ;
+    rdfs:subClassOf gufo:Relator ,
+        [
+            a owl:Restriction ;
+            owl:onProperty gmeow:skillProficiencyAgent ;
+            owl:someValuesFrom gmeow:Agent ;
+        ] ,
+        [
+            a owl:Restriction ;
+            owl:onProperty gmeow:skillProficiencyOf ;
+            owl:someValuesFrom gmeow:Skill ;
+        ] ,
+        [
+            a owl:Restriction ;
+            owl:onProperty gmeow:skillProficiencyLevel ;
+            owl:someValuesFrom gmeow:ProficiencyLevel ;
+        ] ,
+        [
+            a owl:Restriction ;
+            owl:onProperty gmeow:skillProficiencyScale ;
+            owl:someValuesFrom gmeow:ProficiencyScale ;
+        ] ;
+    skos:definition "A reified, leveled proficiency of an agent in a skill — the gufo:Relator binding {agent} × {skill} × {level on a scale} × {interval}, mirroring languages' gmeow:LanguageProficiency. Mint one per (agent, skill) so per-skill levels coexist; the flat gmeow:hasSkill relation states that an agent has a skill, this relator adds the level and the scale."@x-gmeow-english ;
+    skos:example "ex:aliceWeldingProf a gmeow:SkillProficiency ; gmeow:skillProficiencyAgent ex:alice ; gmeow:skillProficiencyOf ex:welding ; gmeow:skillProficiencyLevel gmeow:dreyfusExpert ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for the 80% case where merely having the skill is enough (assert flat gmeow:hasSkill and reify on demand) and for language ratings specifically (use gmeow:LanguageProficiency, which specializes the same machinery)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Mint one relator per (agent, skill), bind the functional roles gmeow:skillProficiencyAgent / gmeow:skillProficiencyOf / gmeow:skillProficiencyLevel / gmeow:skillProficiencyScale and the temporal gmeow:skillProficiencyInterval; carry an avowed-versus-attributed distinction through the statement layer's gmeow:accordingTo, and route any endorsement through a gmeow:Attestation over the relator."@x-gmeow-english ;
+    gmeow:useWhen "Use to promote a flat gmeow:hasSkill to a leveled claim — when the attained level, the scale it is rated on, the temporal scope, or a standpoint (who avows or attributes it) must become first-class; contested levels then coexist as separate standpoint-indexed relators (Principle 9)."@x-gmeow-english .
+
+gmeow:credentialFor
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Credential ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/expertise> ;
+    rdfs:label "credential for"@x-gmeow-english ;
+    skos:definition "The skill or occupation that a credential certifies. Non-functional — a credential may certify several skills or both a skill and an occupation. Profile compliance: the union range (Skill|Occupation) is enforced by SHACL (shapes/expertise-shapes.ttl), not OWL, because owl:unionOf in rdfs:range violates OWL 2 RL/EL."@x-gmeow-english ;
+    skos:example "ex:rnLicense gmeow:credentialFor ex:nursing ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for the issuer (gmeow:credentialIssuer) or the holder (gmeow:holdsCredential); and do not rely on an OWL range to type the value — the Skill|Occupation union is a SHACL shape (shapes/expertise-shapes.ttl), so a bad target is caught there, not by the reasoner."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Point the credential at one or more gmeow:Skill or gmeow:Occupation targets; it is non-functional, so a credential certifying several skills lists them all, and the SHACL shape enforces the union range."@x-gmeow-english ;
+    gmeow:useWhen "Use to name what a credential certifies — a gmeow:Skill, a gmeow:Occupation, or both — when relating the qualification to its subject matter."@x-gmeow-english .
+
+gmeow:credentialIssuer
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
+    rdfs:domain gmeow:Credential ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/expertise> ;
+    rdfs:label "credential issuer"@x-gmeow-english ;
+    rdfs:range gmeow:Organization ;
+    skos:definition "The organization that issued a credential. Functional per credential: one issuer is constitutive of the credential's identity (a different issuer is a different credential, even for the same subject matter)."@x-gmeow-english ;
+    skos:example "ex:rnLicense gmeow:credentialIssuer ex:nursingBoard ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for the holder (gmeow:holdsCredential) or the certified subject matter (gmeow:credentialFor); and avoid two issuers — it is functional, so the same qualification from a different body is a different credential."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Point the credential at one issuing gmeow:Organization; model a jointly-awarded qualification as separate credentials per issuer rather than asserting several issuers on one."@x-gmeow-english ;
+    gmeow:useWhen "Use to name the single organization that issued a credential — the awarding body whose identity is constitutive of which credential this is."@x-gmeow-english .
+
+gmeow:dreyfusAdvancedBeginner
+    a gmeow:ProficiencyLevel ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/expertise> ;
+    rdfs:label "Dreyfus advanced beginner"@x-gmeow-english ;
+    skos:definition "The advanced-beginner level of the Dreyfus scale — beginning to recognise recurring situational elements, still leaning on rules but accumulating practical experience."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:levelScale gmeow:scaleDreyfus .
+
+gmeow:dreyfusCompetent
+    a gmeow:ProficiencyLevel ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/expertise> ;
+    rdfs:label "Dreyfus competent"@x-gmeow-english ;
+    skos:definition "The competent level of the Dreyfus scale — planning deliberately and selecting among situational elements toward a goal, taking responsibility for outcomes."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:levelScale gmeow:scaleDreyfus .
+
+gmeow:dreyfusExpert
+    a gmeow:ProficiencyLevel ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/expertise> ;
+    rdfs:label "Dreyfus expert"@x-gmeow-english ;
+    skos:definition "The expert level of the Dreyfus scale — fluent, intuitive performance in which situation-recognition and response are fused, with deliberation reserved for the genuinely novel."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:levelScale gmeow:scaleDreyfus .
+
+gmeow:dreyfusNovice
+    a gmeow:ProficiencyLevel ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/expertise> ;
+    rdfs:label "Dreyfus novice"@x-gmeow-english ;
+    skos:definition "The novice level of the Dreyfus scale — rule-bound, context-free application of taught procedures, with little situational judgement."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:levelScale gmeow:scaleDreyfus .
+
+gmeow:dreyfusProficient
+    a gmeow:ProficiencyLevel ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/expertise> ;
+    rdfs:label "Dreyfus proficient"@x-gmeow-english ;
+    skos:definition "The proficient level of the Dreyfus scale — perceiving situations holistically and intuitively, while still deciding the response analytically."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:levelScale gmeow:scaleDreyfus .
+
+gmeow:hasOccupation
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Person ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/expertise> ;
+    rdfs:label "has occupation"@x-gmeow-english ;
+    rdfs:range gmeow:Occupation ;
+    skos:definition "Relates a person to an occupation they hold or have held. Non-functional — a person may have several occupations over time."@x-gmeow-english ;
+    skos:example "ex:alice gmeow:hasOccupation ex:nurse ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for an individual competency (that is gmeow:hasSkill) or a qualifying credential (gmeow:holdsCredential); an occupation is the role, not the ability nor the certificate. Avoid forcing one — a person may hold several over time."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Assert the person → occupation triple; record temporal scope with statement-layer gmeow:validFrom/validUntil where the occupation has start and end, and attach external classification codes through gmeow:occupationClassification on the occupation itself."@x-gmeow-english ;
+    gmeow:useWhen "Use to relate a person to an occupation or job role they hold or have held — distinct from the skills that role exercises."@x-gmeow-english .
+
+gmeow:hasSkill
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Agent ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/expertise> ;
+    rdfs:label "has skill"@x-gmeow-english ;
+    rdfs:range gmeow:Skill ;
+    rdfs:subPropertyOf gmeow:knowsAbout ;
+    skos:definition "Relates an agent to a skill it possesses. Non-functional — an agent may have many skills. The leveled, scaled detail is carried by the reified gmeow:SkillProficiency. Sub-property of gmeow:knowsAbout (cognition slice): having a skill in a subject entails knowing about it — the can-do axis touches the knows axis at this one rung, but not at understanding or mastery (Principle 9, the axes stay orthogonal)."@x-gmeow-english ;
+    skos:example "ex:alice gmeow:hasSkill ex:welding ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid when the attained level or its scale matters (promote to gmeow:SkillProficiency, the paired reified form) and avoid reading it as a mastery or understanding claim — it touches gmeow:knowsAbout only at the can-do rung (Principle 9)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Assert the flat triple agent → skill; when level, scale, interval, or a contested standpoint appears, mint a gmeow:SkillProficiency for the same (agent, skill) and let generic consumers still read gmeow:knowsAbout by inheritance."@x-gmeow-english ;
+    gmeow:useWhen "Use as the flat 80% shortcut stating that an agent possesses a skill, when the level, scale, temporal scope, and standpoint do not need to be first-class."@x-gmeow-english .
+
+gmeow:holdsCredential
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Agent ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/expertise> ;
+    rdfs:label "holds credential"@x-gmeow-english ;
+    rdfs:range gmeow:Credential ;
+    skos:definition "Relates an agent to a credential it holds. Non-functional — an agent may hold many credentials, and a single credential may be held by many agents (shared license, group certification)."@x-gmeow-english ;
+    skos:example "ex:alice gmeow:holdsCredential ex:rnLicense ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for the issuing organization (gmeow:credentialIssuer) or the certified subject matter (gmeow:credentialFor), and avoid treating it as proof of validity — verification is a gmeow:Attestation over the credential (Principle 4)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Assert the agent → credential triple; many-to-many is allowed (shared licenses, group certifications), and a signed gmeow:Attestation carries whether the holding is verified rather than this property asserting it."@x-gmeow-english ;
+    gmeow:useWhen "Use to state that an agent holds a credential — a degree, certification, badge, or license — when the bare holding relation is what matters."@x-gmeow-english .
+
+gmeow:occupationClassification
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:Occupation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/expertise> ;
+    rdfs:label "occupation classification"@x-gmeow-english ;
+    rdfs:range xsd:string ;
+    skos:definition "An external classification code for an occupation (ESCO, SOC, O*NET, ISCO, NOC). Non-functional — an occupation may carry codes from several schemes. The scheme is solver-side; the literal is the raw code value (Principle 12)."@x-gmeow-english ;
+    skos:example "ex:nurse gmeow:occupationClassification \"29-1141\" ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid trying to encode the scheme in the property or value (the scheme is solver-side; keep the literal the raw code) and avoid forcing one code — an occupation legitimately carries codes from several schemes at once."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "State the bare code string per scheme on the occupation; let the solver layer map each literal to its classification scheme rather than over-typing the value here (Principle 12)."@x-gmeow-english ;
+    gmeow:useWhen "Use to attach an external occupation-classification code (ESCO, SOC, O*NET, ISCO, NOC) to a gmeow:Occupation as a raw literal — the cross-walk handle a solver resolves to a scheme (Principle 12)."@x-gmeow-english .
+
+gmeow:scaleDreyfus
+    a gmeow:ProficiencyScale ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/expertise> ;
+    rdfs:label "Dreyfus"@x-gmeow-english ;
+    skos:definition "The Dreyfus model of skill acquisition — an ordered skill-proficiency scale (novice ≺ advanced beginner ≺ competent ≺ proficient ≺ expert) describing how an agent's command of a skill deepens from rule-following toward fluent, intuitive mastery as experience accrues."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:skillProficiencyAgent
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
+    rdfs:domain gmeow:SkillProficiency ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/expertise> ;
+    rdfs:label "skill proficiency agent"@x-gmeow-english ;
+    rdfs:range gmeow:Agent ;
+    skos:definition "The agent whose proficiency a skill-proficiency expresses. Functional — constitutive of the proficiency."@x-gmeow-english ;
+    skos:example "ex:aliceWeldingProf gmeow:skillProficiencyAgent ex:alice ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for the skill itself (gmeow:skillProficiencyOf) and for the agent who attributes the rating when that differs (carry the asserter on the statement layer's gmeow:accordingTo); and avoid two agents — it is functional, one per relator."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Bind the bearer agent on the relator; for an avowed claim the agent and the gmeow:accordingTo standpoint coincide, while an attributed claim keeps the asserting standpoint distinct so avowed and attributed levels coexist (Principle 9)."@x-gmeow-english ;
+    gmeow:useWhen "Use to name the single agent a gmeow:SkillProficiency relator is about — the person, organization, or software agent whose level in the skill it records."@x-gmeow-english .
+
+gmeow:skillProficiencyInterval
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:SkillProficiency ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/expertise> ;
+    rdfs:label "skill proficiency interval"@x-gmeow-english ;
+    rdfs:range gmeow:TimeInterval ;
+    skos:definition "The interval over which a skill-proficiency held (proficiency changes over a life). Lighter cases use gmeow:validFrom/validUntil on the statement."@x-gmeow-english ;
+    skos:example "ex:aliceWeldingProf gmeow:skillProficiencyInterval ex:apprenticeshipYears ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for the lighter case where a simple statement-layer gmeow:validFrom/validUntil is enough (reserve the reified interval for when the span needs its own identity) and for the attained level (gmeow:skillProficiencyLevel)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Point the relator at a gmeow:TimeInterval covering the span the level held; model a rise from competent to expert as successive gmeow:SkillProficiency relators, each with its own interval, rather than mutating one."@x-gmeow-english ;
+    gmeow:useWhen "Use to bound a gmeow:SkillProficiency in time when the span over which a level held is itself a first-class gmeow:TimeInterval — a proficiency that rose and then lapsed over a career."@x-gmeow-english .
+
+gmeow:skillProficiencyLevel
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
+    rdfs:domain gmeow:SkillProficiency ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/expertise> ;
+    rdfs:label "skill proficiency level"@x-gmeow-english ;
+    rdfs:range gmeow:ProficiencyLevel ;
+    skos:definition "The attained level of a skill-proficiency (a gmeow:ProficiencyLevel value, e.g. dreyfusExpert, assessedCompetent). Functional."@x-gmeow-english ;
+    skos:example "ex:aliceWeldingProf gmeow:skillProficiencyLevel gmeow:dreyfusExpert ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid naming a level without its scale (a Dreyfus level and an NIH level are not comparable bare — pair it with gmeow:skillProficiencyScale) and avoid minting per-level subclasses; levels are gmeow:ProficiencyLevel individuals (Principle 9). Functional, so one level per relator — a different level is a different proficiency."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Reference one seeded gmeow:ProficiencyLevel individual and always pair it with the gmeow:skillProficiencyScale it sits on; record contested levels as separate standpoint-indexed gmeow:SkillProficiency relators rather than overwriting one."@x-gmeow-english ;
+    gmeow:useWhen "Use to record the attained level of a gmeow:SkillProficiency — a gmeow:ProficiencyLevel value such as dreyfusExpert or assessedCompetent — read against the scale named by gmeow:skillProficiencyScale."@x-gmeow-english .
+
+gmeow:skillProficiencyOf
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
+    rdfs:domain gmeow:SkillProficiency ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/expertise> ;
+    rdfs:label "skill proficiency of"@x-gmeow-english ;
+    rdfs:range gmeow:Skill ;
+    skos:definition "The skill a skill-proficiency concerns. Functional — constitutive."@x-gmeow-english ;
+    skos:example "ex:aliceWeldingProf gmeow:skillProficiencyOf ex:welding ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for the bearing agent (gmeow:skillProficiencyAgent) or the attained level (gmeow:skillProficiencyLevel); and avoid binding two skills — it is functional, so a second skill is a second proficiency relator."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Point the relator at one gmeow:Skill; mint a separate gmeow:SkillProficiency per skill so an agent's per-skill levels each carry their own scale, interval, and standpoint."@x-gmeow-english ;
+    gmeow:useWhen "Use to name the single gmeow:Skill a gmeow:SkillProficiency relator rates — the competency the level is attained in."@x-gmeow-english .
+
+gmeow:skillProficiencyScale
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
+    rdfs:domain gmeow:SkillProficiency ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/expertise> ;
+    rdfs:label "skill proficiency scale"@x-gmeow-english ;
+    rdfs:range gmeow:ProficiencyScale ;
+    skos:definition "The framework/scale a skill-proficiency level is measured on (Dreyfus, NIH, assessed, self-reported) — a gmeow:ProficiencyScale value. Functional."@x-gmeow-english ;
+    skos:example "ex:aliceWeldingProf gmeow:skillProficiencyScale gmeow:scaleDreyfus ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for the attained level itself (gmeow:skillProficiencyLevel) and avoid comparing levels across scales without an explicit alignment; and avoid two scales on one relator — it is functional."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Reference one gmeow:ProficiencyScale individual and keep the level (gmeow:skillProficiencyLevel) consistent with it; for a self-reported versus assessed contrast, mint distinct standpoint-indexed relators each naming their own scale."@x-gmeow-english ;
+    gmeow:useWhen "Use to name the rating framework a gmeow:SkillProficiency level is measured on — Dreyfus, NIH, assessed, self-reported — so the level read against it is meaningful and comparable only within that scale."@x-gmeow-english .
 
 <https://blackcatinformatics.ca/gmeow/slices/expertise>
     a owl:Ontology ;
-    rdfs:label "GMEOW Expertise Module"@x-gmeow-english ;
-    skos:definition "The GMEOW Expertise Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/expertise> ;
+    dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;
     rdfs:comment """Skills, occupations and credentials (the schema.org / ESCO / CTDL / O*NET / SOC superset layer). SKOS concepts are reused as recommended value vocabularies rather than re-grounded.
 
 DOCTRINE.
@@ -19,286 +271,8 @@ DOCTRINE.
   * Credential verification is routed through gmeow:Attestation (attestation.ttl), already aligned to vc:VerifiableCredential; expertise supplies the credential content, attestation the signed envelope (Principle 4).
   * Endorsement of a skill claim is an attestation over a SkillProficiency; contested levels coexist as standpoint-indexed claims (Principle 9).
   * Occupation classification codes (ESCO, SOC, O*NET) are open literal values on gmeow:occupationClassification; resolution is solver-side (Principle 12)."""@x-gmeow-english ;
-    dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
-
-# =========================================================================== #
-# Core classes
-# =========================================================================== #
-
-gmeow:Skill
-    a owl:Class, gufo:Kind ;
-    rdfs:subClassOf gmeow:Entity ;
-    rdfs:label "Skill"@x-gmeow-english ;
-    skos:definition "A competency or ability an agent possesses — a knowledge, ability, or expertise that can be applied to perform a task. Occupation-independent; aligned to esco:Skill by reference."@x-gmeow-english ;
-    skos:example "ex:welding a gmeow:Skill ; rdfs:label \"arc welding\"@en ."@x-gmeow-english ;
-    gmeow:useWhen "Use to mint a competency or ability an agent can apply to a task — a skill in its own right, independent of any occupation, that an agent reaches via gmeow:hasSkill or a leveled gmeow:SkillProficiency."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid for the agent's leveled standing in the skill (that is gmeow:SkillProficiency) and for an occupation or job role (gmeow:Occupation); a skill is the ability itself, not the rating of it nor the role it serves."@x-gmeow-english ;
-    gmeow:howToUse "Mint the skill, align it to esco:Skill by reference where one exists, and link agents through gmeow:hasSkill for the flat case or gmeow:SkillProficiency when level, scale, or temporal scope matters."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/expertise> .
-
-gmeow:Credential
-    a owl:Class, gufo:Kind ;
-    rdfs:subClassOf gmeow:Entity ;
-    rdfs:label "Credential"@x-gmeow-english ;
-    skos:definition "An educational or occupational credential held by an agent — a degree, certification, badge, license, or other attestation of qualification. Its issuer is gmeow:credentialIssuer, its subject matter is gmeow:credentialFor, and its verification is borne by a gmeow:Attestation (Principle 4)."@x-gmeow-english ;
-    skos:example "ex:rnLicense a gmeow:Credential ; gmeow:credentialIssuer ex:nursingBoard ; gmeow:credentialFor ex:nursing ."@x-gmeow-english ;
-    gmeow:useWhen "Use for a degree, certification, badge, or license that qualifies an agent in a skill or occupation — the credential carries the qualification content, an agent holds it via gmeow:holdsCredential."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid for the signed verification envelope (that is a gmeow:Attestation, attestation.ttl — expertise supplies the content, attestation the proof) and for the bare skill or occupation a credential certifies (gmeow:Skill, gmeow:Occupation)."@x-gmeow-english ;
-    gmeow:howToUse "Mint the credential, name its gmeow:credentialIssuer and gmeow:credentialFor, link the holder with gmeow:holdsCredential, and route verification through a gmeow:Attestation rather than re-modelling the signature here (Principle 4)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/expertise> .
-
-gmeow:SkillProficiency
-    a owl:Class, gufo:Kind ;
-    rdfs:subClassOf gufo:Relator ;
-    rdfs:label "Skill Proficiency"@x-gmeow-english ;
-    skos:definition "A reified, leveled proficiency of an agent in a skill — the gufo:Relator binding {agent} × {skill} × {level on a scale} × {interval}, mirroring languages' gmeow:LanguageProficiency. Mint one per (agent, skill) so per-skill levels coexist; the flat gmeow:hasSkill relation states that an agent has a skill, this relator adds the level and the scale."@x-gmeow-english ;
-    skos:example "ex:aliceWeldingProf a gmeow:SkillProficiency ; gmeow:skillProficiencyAgent ex:alice ; gmeow:skillProficiencyOf ex:welding ; gmeow:skillProficiencyLevel gmeow:dreyfusExpert ."@x-gmeow-english ;
-    gmeow:useWhen "Use to promote a flat gmeow:hasSkill to a leveled claim — when the attained level, the scale it is rated on, the temporal scope, or a standpoint (who avows or attributes it) must become first-class; contested levels then coexist as separate standpoint-indexed relators (Principle 9)."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid for the 80% case where merely having the skill is enough (assert flat gmeow:hasSkill and reify on demand) and for language ratings specifically (use gmeow:LanguageProficiency, which specializes the same machinery)."@x-gmeow-english ;
-    gmeow:howToUse "Mint one relator per (agent, skill), bind the functional roles gmeow:skillProficiencyAgent / gmeow:skillProficiencyOf / gmeow:skillProficiencyLevel / gmeow:skillProficiencyScale and the temporal gmeow:skillProficiencyInterval; carry an avowed-versus-attributed distinction through the statement layer's gmeow:accordingTo, and route any endorsement through a gmeow:Attestation over the relator."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/expertise> .
-
-# =========================================================================== #
-# Flat shortcuts
-# =========================================================================== #
-
-gmeow:hasSkill
-    a owl:ObjectProperty ;
-    rdfs:subPropertyOf gmeow:knowsAbout ;
-    rdfs:domain gmeow:Agent ;
-    rdfs:range gmeow:Skill ;
-    rdfs:label "has skill"@x-gmeow-english ;
-    skos:definition "Relates an agent to a skill it possesses. Non-functional — an agent may have many skills. The leveled, scaled detail is carried by the reified gmeow:SkillProficiency. Sub-property of gmeow:knowsAbout (cognition slice): having a skill in a subject entails knowing about it — the can-do axis touches the knows axis at this one rung, but not at understanding or mastery (Principle 9, the axes stay orthogonal)."@x-gmeow-english ;
-    skos:example "ex:alice gmeow:hasSkill ex:welding ."@x-gmeow-english ;
-    gmeow:useWhen "Use as the flat 80% shortcut stating that an agent possesses a skill, when the level, scale, temporal scope, and standpoint do not need to be first-class."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid when the attained level or its scale matters (promote to gmeow:SkillProficiency, the paired reified form) and avoid reading it as a mastery or understanding claim — it touches gmeow:knowsAbout only at the can-do rung (Principle 9)."@x-gmeow-english ;
-    gmeow:howToUse "Assert the flat triple agent → skill; when level, scale, interval, or a contested standpoint appears, mint a gmeow:SkillProficiency for the same (agent, skill) and let generic consumers still read gmeow:knowsAbout by inheritance."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/expertise> .
-
-gmeow:hasOccupation
-    a owl:ObjectProperty ;
-    rdfs:domain gmeow:Person ;
-    rdfs:range gmeow:Occupation ;
-    rdfs:label "has occupation"@x-gmeow-english ;
-    skos:definition "Relates a person to an occupation they hold or have held. Non-functional — a person may have several occupations over time."@x-gmeow-english ;
-    skos:example "ex:alice gmeow:hasOccupation ex:nurse ."@x-gmeow-english ;
-    gmeow:useWhen "Use to relate a person to an occupation or job role they hold or have held — distinct from the skills that role exercises."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid for an individual competency (that is gmeow:hasSkill) or a qualifying credential (gmeow:holdsCredential); an occupation is the role, not the ability nor the certificate. Avoid forcing one — a person may hold several over time."@x-gmeow-english ;
-    gmeow:howToUse "Assert the person → occupation triple; record temporal scope with statement-layer gmeow:validFrom/validUntil where the occupation has start and end, and attach external classification codes through gmeow:occupationClassification on the occupation itself."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/expertise> .
-
-# =========================================================================== #
-# SkillProficiency relator roles (functional, constitutive)
-# =========================================================================== #
-
-gmeow:skillProficiencyAgent
-    a owl:ObjectProperty, owl:FunctionalProperty ;
-    rdfs:domain gmeow:SkillProficiency ;
-    rdfs:range gmeow:Agent ;
-    rdfs:label "skill proficiency agent"@x-gmeow-english ;
-    skos:definition "The agent whose proficiency a skill-proficiency expresses. Functional — constitutive of the proficiency."@x-gmeow-english ;
-    skos:example "ex:aliceWeldingProf gmeow:skillProficiencyAgent ex:alice ."@x-gmeow-english ;
-    gmeow:useWhen "Use to name the single agent a gmeow:SkillProficiency relator is about — the person, organization, or software agent whose level in the skill it records."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid for the skill itself (gmeow:skillProficiencyOf) and for the agent who attributes the rating when that differs (carry the asserter on the statement layer's gmeow:accordingTo); and avoid two agents — it is functional, one per relator."@x-gmeow-english ;
-    gmeow:howToUse "Bind the bearer agent on the relator; for an avowed claim the agent and the gmeow:accordingTo standpoint coincide, while an attributed claim keeps the asserting standpoint distinct so avowed and attributed levels coexist (Principle 9)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/expertise> .
-
-gmeow:skillProficiencyOf
-    a owl:ObjectProperty, owl:FunctionalProperty ;
-    rdfs:domain gmeow:SkillProficiency ;
-    rdfs:range gmeow:Skill ;
-    rdfs:label "skill proficiency of"@x-gmeow-english ;
-    skos:definition "The skill a skill-proficiency concerns. Functional — constitutive."@x-gmeow-english ;
-    skos:example "ex:aliceWeldingProf gmeow:skillProficiencyOf ex:welding ."@x-gmeow-english ;
-    gmeow:useWhen "Use to name the single gmeow:Skill a gmeow:SkillProficiency relator rates — the competency the level is attained in."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid for the bearing agent (gmeow:skillProficiencyAgent) or the attained level (gmeow:skillProficiencyLevel); and avoid binding two skills — it is functional, so a second skill is a second proficiency relator."@x-gmeow-english ;
-    gmeow:howToUse "Point the relator at one gmeow:Skill; mint a separate gmeow:SkillProficiency per skill so an agent's per-skill levels each carry their own scale, interval, and standpoint."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/expertise> .
-
-gmeow:skillProficiencyLevel
-    a owl:ObjectProperty, owl:FunctionalProperty ;
-    rdfs:domain gmeow:SkillProficiency ;
-    rdfs:range gmeow:ProficiencyLevel ;
-    rdfs:label "skill proficiency level"@x-gmeow-english ;
-    skos:definition "The attained level of a skill-proficiency (a gmeow:ProficiencyLevel value, e.g. dreyfusExpert, assessedCompetent). Functional."@x-gmeow-english ;
-    skos:example "ex:aliceWeldingProf gmeow:skillProficiencyLevel gmeow:dreyfusExpert ."@x-gmeow-english ;
-    gmeow:useWhen "Use to record the attained level of a gmeow:SkillProficiency — a gmeow:ProficiencyLevel value such as dreyfusExpert or assessedCompetent — read against the scale named by gmeow:skillProficiencyScale."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid naming a level without its scale (a Dreyfus level and an NIH level are not comparable bare — pair it with gmeow:skillProficiencyScale) and avoid minting per-level subclasses; levels are gmeow:ProficiencyLevel individuals (Principle 9). Functional, so one level per relator — a different level is a different proficiency."@x-gmeow-english ;
-    gmeow:howToUse "Reference one seeded gmeow:ProficiencyLevel individual and always pair it with the gmeow:skillProficiencyScale it sits on; record contested levels as separate standpoint-indexed gmeow:SkillProficiency relators rather than overwriting one."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/expertise> .
-
-gmeow:skillProficiencyScale
-    a owl:ObjectProperty, owl:FunctionalProperty ;
-    rdfs:domain gmeow:SkillProficiency ;
-    rdfs:range gmeow:ProficiencyScale ;
-    rdfs:label "skill proficiency scale"@x-gmeow-english ;
-    skos:definition "The framework/scale a skill-proficiency level is measured on (Dreyfus, NIH, assessed, self-reported) — a gmeow:ProficiencyScale value. Functional."@x-gmeow-english ;
-    skos:example "ex:aliceWeldingProf gmeow:skillProficiencyScale gmeow:scaleDreyfus ."@x-gmeow-english ;
-    gmeow:useWhen "Use to name the rating framework a gmeow:SkillProficiency level is measured on — Dreyfus, NIH, assessed, self-reported — so the level read against it is meaningful and comparable only within that scale."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid for the attained level itself (gmeow:skillProficiencyLevel) and avoid comparing levels across scales without an explicit alignment; and avoid two scales on one relator — it is functional."@x-gmeow-english ;
-    gmeow:howToUse "Reference one gmeow:ProficiencyScale individual and keep the level (gmeow:skillProficiencyLevel) consistent with it; for a self-reported versus assessed contrast, mint distinct standpoint-indexed relators each naming their own scale."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/expertise> .
-
-gmeow:skillProficiencyInterval
-    a owl:ObjectProperty ;
-    rdfs:domain gmeow:SkillProficiency ;
-    rdfs:range gmeow:TimeInterval ;
-    rdfs:label "skill proficiency interval"@x-gmeow-english ;
-    skos:definition "The interval over which a skill-proficiency held (proficiency changes over a life). Lighter cases use gmeow:validFrom/validUntil on the statement."@x-gmeow-english ;
-    skos:example "ex:aliceWeldingProf gmeow:skillProficiencyInterval ex:apprenticeshipYears ."@x-gmeow-english ;
-    gmeow:useWhen "Use to bound a gmeow:SkillProficiency in time when the span over which a level held is itself a first-class gmeow:TimeInterval — a proficiency that rose and then lapsed over a career."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid for the lighter case where a simple statement-layer gmeow:validFrom/validUntil is enough (reserve the reified interval for when the span needs its own identity) and for the attained level (gmeow:skillProficiencyLevel)."@x-gmeow-english ;
-    gmeow:howToUse "Point the relator at a gmeow:TimeInterval covering the span the level held; model a rise from competent to expert as successive gmeow:SkillProficiency relators, each with its own interval, rather than mutating one."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/expertise> .
-
-# =========================================================================== #
-# Credential depth
-# =========================================================================== #
-
-gmeow:holdsCredential
-    a owl:ObjectProperty ;
-    rdfs:domain gmeow:Agent ;
-    rdfs:range gmeow:Credential ;
-    rdfs:label "holds credential"@x-gmeow-english ;
-    skos:definition "Relates an agent to a credential it holds. Non-functional — an agent may hold many credentials, and a single credential may be held by many agents (shared license, group certification)."@x-gmeow-english ;
-    skos:example "ex:alice gmeow:holdsCredential ex:rnLicense ."@x-gmeow-english ;
-    gmeow:useWhen "Use to state that an agent holds a credential — a degree, certification, badge, or license — when the bare holding relation is what matters."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid for the issuing organization (gmeow:credentialIssuer) or the certified subject matter (gmeow:credentialFor), and avoid treating it as proof of validity — verification is a gmeow:Attestation over the credential (Principle 4)."@x-gmeow-english ;
-    gmeow:howToUse "Assert the agent → credential triple; many-to-many is allowed (shared licenses, group certifications), and a signed gmeow:Attestation carries whether the holding is verified rather than this property asserting it."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/expertise> .
-
-gmeow:credentialIssuer
-    a owl:ObjectProperty, owl:FunctionalProperty ;
-    rdfs:domain gmeow:Credential ;
-    rdfs:range gmeow:Organization ;
-    rdfs:label "credential issuer"@x-gmeow-english ;
-    skos:definition "The organization that issued a credential. Functional per credential: one issuer is constitutive of the credential's identity (a different issuer is a different credential, even for the same subject matter)."@x-gmeow-english ;
-    skos:example "ex:rnLicense gmeow:credentialIssuer ex:nursingBoard ."@x-gmeow-english ;
-    gmeow:useWhen "Use to name the single organization that issued a credential — the awarding body whose identity is constitutive of which credential this is."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid for the holder (gmeow:holdsCredential) or the certified subject matter (gmeow:credentialFor); and avoid two issuers — it is functional, so the same qualification from a different body is a different credential."@x-gmeow-english ;
-    gmeow:howToUse "Point the credential at one issuing gmeow:Organization; model a jointly-awarded qualification as separate credentials per issuer rather than asserting several issuers on one."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/expertise> .
-
-gmeow:credentialFor
-    a owl:ObjectProperty ;
-    rdfs:domain gmeow:Credential ;
-    rdfs:label "credential for"@x-gmeow-english ;
-    skos:definition "The skill or occupation that a credential certifies. Non-functional — a credential may certify several skills or both a skill and an occupation. Profile compliance: the union range (Skill|Occupation) is enforced by SHACL (shapes/expertise-shapes.ttl), not OWL, because owl:unionOf in rdfs:range violates OWL 2 RL/EL."@x-gmeow-english ;
-    skos:example "ex:rnLicense gmeow:credentialFor ex:nursing ."@x-gmeow-english ;
-    gmeow:useWhen "Use to name what a credential certifies — a gmeow:Skill, a gmeow:Occupation, or both — when relating the qualification to its subject matter."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid for the issuer (gmeow:credentialIssuer) or the holder (gmeow:holdsCredential); and do not rely on an OWL range to type the value — the Skill|Occupation union is a SHACL shape (shapes/expertise-shapes.ttl), so a bad target is caught there, not by the reasoner."@x-gmeow-english ;
-    gmeow:howToUse "Point the credential at one or more gmeow:Skill or gmeow:Occupation targets; it is non-functional, so a credential certifying several skills lists them all, and the SHACL shape enforces the union range."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/expertise> .
-
-gmeow:occupationClassification
-    a owl:DatatypeProperty ;
-    rdfs:domain gmeow:Occupation ;
-    rdfs:range xsd:string ;
-    rdfs:label "occupation classification"@x-gmeow-english ;
-    skos:definition "An external classification code for an occupation (ESCO, SOC, O*NET, ISCO, NOC). Non-functional — an occupation may carry codes from several schemes. The scheme is solver-side; the literal is the raw code value (Principle 12)."@x-gmeow-english ;
-    skos:example "ex:nurse gmeow:occupationClassification \"29-1141\" ."@x-gmeow-english ;
-    gmeow:useWhen "Use to attach an external occupation-classification code (ESCO, SOC, O*NET, ISCO, NOC) to a gmeow:Occupation as a raw literal — the cross-walk handle a solver resolves to a scheme (Principle 12)."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid trying to encode the scheme in the property or value (the scheme is solver-side; keep the literal the raw code) and avoid forcing one code — an occupation legitimately carries codes from several schemes at once."@x-gmeow-english ;
-    gmeow:howToUse "State the bare code string per scheme on the occupation; let the solver layer map each literal to its classification scheme rather than over-typing the value here (Principle 12)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/expertise> .
-
-# =========================================================================== #
-# AXIOMATIZED DOCTRINE — relator mediation (EL someValuesFrom, open-world)
-# Closed-world cardinality is SHACL's (shapes/expertise-shapes.ttl).
-# =========================================================================== #
-
-gmeow:SkillProficiency rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:skillProficiencyAgent ; owl:someValuesFrom gmeow:Agent ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:skillProficiencyOf ;  owl:someValuesFrom gmeow:Skill ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:skillProficiencyLevel ; owl:someValuesFrom gmeow:ProficiencyLevel ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:skillProficiencyScale ; owl:someValuesFrom gmeow:ProficiencyScale ] .
-
-# =========================================================================== #
-# GENERIC PROFICIENCY VALUE VOCAB — relocated to the KERNEL slice (#556).
-# gmeow:ProficiencyScale / gmeow:ProficiencyLevel / gmeow:ProficiencyModality
-# moved to kernel/module.ttl to break the latent expertise ↔ cognition
-# dependency cycle (Principle 6/16): expertise, languages, and cognition all
-# reuse these value classes, so they belong in the kernel every consumer already
-# depends on. SkillProficiency's roles above still reference gmeow:ProficiencyLevel
-# / gmeow:ProficiencyScale by the same IRI (now kernel-defined); the individuals
-# remain in their DOMAIN slice. The Dreyfus scale + its five levels are a SKILL-
-# acquisition vocabulary, so their domain slice is expertise — declared just
-# below (#584; previously mis-homed in the languages extension). The language
-# scales/levels (CEFR, ILR, ACTFL, NIH, assessed, native, …) stay in languages.
-# =========================================================================== #
-
-# =========================================================================== #
-# VALUE INDIVIDUALS — the Dreyfus model of skill acquisition (scale + 5 levels).
-# Stuart & Hubert Dreyfus's ordered skill-proficiency scale. gmeow:ProficiencyScale
-# / gmeow:ProficiencyLevel are the kernel value classes (above); these individuals
-# live here because Dreyfus is a SKILL scale. Referenced by gmeow:SkillProficiency
-# (gmeow:skillProficiencyLevel / gmeow:skillProficiencyScale) and by the learning
-# slice's gmeow:LearningEvent trajectories (gmeow:fromLevel / gmeow:toLevel, #584).
-# =========================================================================== #
-
-gmeow:scaleDreyfus
-    a gmeow:ProficiencyScale ;
-    rdfs:label "Dreyfus"@x-gmeow-english ;
-    skos:definition "The Dreyfus model of skill acquisition — an ordered skill-proficiency scale (novice ≺ advanced beginner ≺ competent ≺ proficient ≺ expert) describing how an agent's command of a skill deepens from rule-following toward fluent, intuitive mastery as experience accrues."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/expertise> .
-
-gmeow:dreyfusNovice
-    a gmeow:ProficiencyLevel ;
-    rdfs:label "Dreyfus novice"@x-gmeow-english ;
-    gmeow:levelScale gmeow:scaleDreyfus ;
-    skos:definition "The novice level of the Dreyfus scale — rule-bound, context-free application of taught procedures, with little situational judgement."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/expertise> .
-
-gmeow:dreyfusAdvancedBeginner
-    a gmeow:ProficiencyLevel ;
-    rdfs:label "Dreyfus advanced beginner"@x-gmeow-english ;
-    gmeow:levelScale gmeow:scaleDreyfus ;
-    skos:definition "The advanced-beginner level of the Dreyfus scale — beginning to recognise recurring situational elements, still leaning on rules but accumulating practical experience."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/expertise> .
-
-gmeow:dreyfusCompetent
-    a gmeow:ProficiencyLevel ;
-    rdfs:label "Dreyfus competent"@x-gmeow-english ;
-    gmeow:levelScale gmeow:scaleDreyfus ;
-    skos:definition "The competent level of the Dreyfus scale — planning deliberately and selecting among situational elements toward a goal, taking responsibility for outcomes."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/expertise> .
-
-gmeow:dreyfusProficient
-    a gmeow:ProficiencyLevel ;
-    rdfs:label "Dreyfus proficient"@x-gmeow-english ;
-    gmeow:levelScale gmeow:scaleDreyfus ;
-    skos:definition "The proficient level of the Dreyfus scale — perceiving situations holistically and intuitively, while still deciding the response analytically."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/expertise> .
-
-gmeow:dreyfusExpert
-    a gmeow:ProficiencyLevel ;
-    rdfs:label "Dreyfus expert"@x-gmeow-english ;
-    gmeow:levelScale gmeow:scaleDreyfus ;
-    skos:definition "The expert level of the Dreyfus scale — fluent, intuitive performance in which situation-recognition and response are fused, with deliberation reserved for the genuinely novel."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/expertise> .
-
-# --------------------------------------------------------------------------- #
-# Graph box role coverage (canonical explicit annotations).
-# --------------------------------------------------------------------------- #
-
-gmeow:Credential gmeow:graphBoxRole gmeow:boxTBox .
-gmeow:Skill gmeow:graphBoxRole gmeow:boxTBox .
-gmeow:SkillProficiency gmeow:graphBoxRole gmeow:boxTBox .
-gmeow:credentialFor gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:credentialIssuer gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:dreyfusAdvancedBeginner gmeow:graphBoxRole gmeow:boxABox .
-gmeow:dreyfusCompetent gmeow:graphBoxRole gmeow:boxABox .
-gmeow:dreyfusExpert gmeow:graphBoxRole gmeow:boxABox .
-gmeow:dreyfusNovice gmeow:graphBoxRole gmeow:boxABox .
-gmeow:dreyfusProficient gmeow:graphBoxRole gmeow:boxABox .
-gmeow:hasOccupation gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:hasSkill gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:holdsCredential gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:occupationClassification gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:scaleDreyfus gmeow:graphBoxRole gmeow:boxABox .
-gmeow:skillProficiencyAgent gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:skillProficiencyInterval gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:skillProficiencyLevel gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:skillProficiencyOf gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:skillProficiencyScale gmeow:graphBoxRole gmeow:boxRBox .
-<https://blackcatinformatics.ca/gmeow/slices/expertise> gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/expertise> ;
+    rdfs:label "GMEOW Expertise Module"@x-gmeow-english ;
+    skos:definition "The GMEOW Expertise Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxConfigBox ,
+        gmeow:boxTBox .
