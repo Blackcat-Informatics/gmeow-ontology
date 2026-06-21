@@ -331,3 +331,130 @@ fn dependency_change_invalidates_dependent_reasoning_key() {
         "A's reasoning key must change when its dependency B changes semantically"
     );
 }
+
+/// Write a single slice with a fully explicit manifest body (so the manifest's
+/// canonical RDF and comments can be controlled independently of the module).
+/// The module always defines `term` via `rdfs:isDefinedBy slice_iri`.
+fn write_slice_explicit_manifest(
+    parent: &Path,
+    dirname: &str,
+    slice_iri: &str,
+    term: &str,
+    manifest_body: &str,
+) {
+    let dir = parent.join(dirname);
+    std::fs::create_dir_all(&dir).unwrap();
+    std::fs::write(dir.join("manifest.ttl"), manifest_body).unwrap();
+    let module = format!(
+        r#"@prefix gmeow: <{GMEOW}> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+
+<{term}> a owl:Class ;
+    rdfs:isDefinedBy <{slice_iri}> ;
+    rdfs:label "term"@x-gmeow-english .
+"#
+    );
+    std::fs::write(dir.join("module.ttl"), module).unwrap();
+}
+
+/// HIGH-6 — **manifest participates in the semantic (Reason/Shacl) key**: a
+/// manifest comment-only edit leaves the Reason/Shacl key UNCHANGED (manifest is
+/// folded by its *semantic* digest), while a real semantic manifest change (a new
+/// `gmeow:sliceDependsOn`) DOES change the Reason/Shacl key.
+#[test]
+fn manifest_folds_into_semantic_phases() {
+    let a_iri = format!("{GMEOW}slice/alpha");
+    let a_term = format!("{GMEOW}Alpha");
+    let dep_iri = format!("{GMEOW}slice/dep");
+
+    let base_manifest = format!(
+        r#"@prefix gmeow: <{GMEOW}> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+
+<{a_iri}> a gmeow:Slice ;
+    rdfs:label "slice label"@x-gmeow-english ;
+    dcterms:title "Slice title"@x-gmeow-english ;
+    dcterms:creator "Test Author" ;
+    gmeow:sliceTier gmeow:tierCore ;
+    gmeow:sliceConsumer "test"@x-gmeow-english .
+"#
+    );
+
+    // Variant 1: identical canonical RDF, different comment only.
+    let comment_only_manifest = format!("# a different leading comment\n{base_manifest}");
+
+    // Variant 2: a real semantic change — add a gmeow:sliceDependsOn triple.
+    let semantic_change_manifest = format!(
+        r#"@prefix gmeow: <{GMEOW}> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+
+<{a_iri}> a gmeow:Slice ;
+    rdfs:label "slice label"@x-gmeow-english ;
+    dcterms:title "Slice title"@x-gmeow-english ;
+    dcterms:creator "Test Author" ;
+    gmeow:sliceTier gmeow:tierCore ;
+    gmeow:sliceDependsOn <{dep_iri}> ;
+    gmeow:sliceConsumer "test"@x-gmeow-english .
+"#
+    );
+
+    let t_base = TempDir::new().unwrap();
+    write_slice_explicit_manifest(
+        &t_base.path().join("slices").join("core"),
+        "alpha",
+        &a_iri,
+        &a_term,
+        &base_manifest,
+    );
+    let t_comment = TempDir::new().unwrap();
+    write_slice_explicit_manifest(
+        &t_comment.path().join("slices").join("core"),
+        "alpha",
+        &a_iri,
+        &a_term,
+        &comment_only_manifest,
+    );
+    let t_semantic = TempDir::new().unwrap();
+    write_slice_explicit_manifest(
+        &t_semantic.path().join("slices").join("core"),
+        "alpha",
+        &a_iri,
+        &a_term,
+        &semantic_change_manifest,
+    );
+
+    let (cat_base, edges_base) = discover(t_base.path());
+    let (cat_comment, edges_comment) = discover(t_comment.path());
+    let (cat_semantic, edges_semantic) = discover(t_semantic.path());
+    let tc = toolchain();
+
+    for phase in [Phase::Reason, Phase::Shacl] {
+        let base = source_unit_key(phase, &cat_base, &edges_base, &a_iri, &tc).unwrap();
+        let comment = source_unit_key(phase, &cat_comment, &edges_comment, &a_iri, &tc).unwrap();
+        let semantic = source_unit_key(phase, &cat_semantic, &edges_semantic, &a_iri, &tc).unwrap();
+
+        assert_eq!(
+            base.root, comment.root,
+            "phase {phase:?}: a comment-only manifest edit must NOT change the key \
+             (manifest folds by its semantic digest)"
+        );
+        assert_ne!(
+            base.root, semantic.root,
+            "phase {phase:?}: a semantic manifest change (new sliceDependsOn) MUST \
+             change the key (manifest is folded under semantic phases)"
+        );
+    }
+
+    // The byte-sensitive Syntax phase already folded the manifest; a comment-only
+    // manifest edit changes ITS key (manifest is byte-sensitive there).
+    let syntax_base = source_unit_key(Phase::Syntax, &cat_base, &edges_base, &a_iri, &tc).unwrap();
+    let syntax_comment =
+        source_unit_key(Phase::Syntax, &cat_comment, &edges_comment, &a_iri, &tc).unwrap();
+    assert_ne!(
+        syntax_base.root, syntax_comment.root,
+        "Syntax (byte-sensitive) key MUST change on a comment-only manifest edit"
+    );
+}

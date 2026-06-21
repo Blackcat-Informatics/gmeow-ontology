@@ -174,3 +174,79 @@ fn role_classification() {
     assert!(has_module, "module.ttl must be classified as Module");
     assert!(has_docs, "docs.md must be classified as Documentation");
 }
+
+// ── (e) Semantic-digest blank-node determinism ────────────────────────────────
+
+/// A module that uses blank nodes (e.g. an OWL restriction) must produce a STABLE
+/// `semantic_digest` across repeated loads. Oxigraph assigns blank-node labels
+/// non-deterministically at parse time, so the digest must canonicalize blank
+/// nodes (RFC #820 §12 — the semantic Merkle key must be deterministic). A
+/// comment-only edit must NOT change the semantic digest.
+#[test]
+fn semantic_digest_blank_nodes_are_deterministic() {
+    const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
+
+    fn write_slice(dir: &std::path::Path, module_comment: &str) {
+        std::fs::create_dir_all(dir).unwrap();
+        let manifest = format!(
+            r#"@prefix gmeow: <{GMEOW}> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+
+<{GMEOW}slice/bn> a gmeow:Slice ;
+    rdfs:label "bn"@x-gmeow-english ;
+    dcterms:title "bn"@x-gmeow-english ;
+    dcterms:creator "Test" ;
+    gmeow:sliceTier gmeow:tierCore ;
+    gmeow:sliceConsumer "test"@x-gmeow-english .
+"#
+        );
+        std::fs::write(dir.join("manifest.ttl"), manifest).unwrap();
+        // An OWL restriction (blank node) plus a second blank node, so the
+        // parser is forced to mint multiple blank-node labels.
+        let module = format!(
+            r#"{module_comment}@prefix gmeow: <{GMEOW}> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+
+<{GMEOW}Bn> a owl:Class ;
+    rdfs:isDefinedBy <{GMEOW}slice/bn> ;
+    rdfs:subClassOf [ a owl:Restriction ;
+        owl:onProperty <{GMEOW}hasThing> ;
+        owl:someValuesFrom [ a owl:Class ] ] .
+"#
+        );
+        std::fs::write(dir.join("module.ttl"), module).unwrap();
+    }
+
+    fn module_semantic_digest(dir: &std::path::Path) -> String {
+        let rec = SliceCatalog::from_slice_dir(dir).expect("load slice");
+        rec.artifacts
+            .iter()
+            .find(|a| matches!(a.role, ArtifactRole::Module))
+            .and_then(|a| a.semantic_digest.clone())
+            .expect("module must carry a semantic digest")
+    }
+
+    let t1 = tempfile::tempdir().unwrap();
+    let d1 = t1.path().join("bn");
+    write_slice(&d1, "# comment A\n");
+
+    // Repeated load of the SAME directory → identical digest (no parse drift).
+    let a = module_semantic_digest(&d1);
+    let b = module_semantic_digest(&d1);
+    assert_eq!(
+        a, b,
+        "blank-node semantic digest must be stable across repeated loads"
+    );
+
+    // A comment-only edit → identical semantic digest (canonical RDF unchanged).
+    let t2 = tempfile::tempdir().unwrap();
+    let d2 = t2.path().join("bn");
+    write_slice(&d2, "# a totally different comment\n# extra line\n");
+    let c = module_semantic_digest(&d2);
+    assert_eq!(
+        a, c,
+        "comment-only edit must not change the blank-node semantic digest"
+    );
+}

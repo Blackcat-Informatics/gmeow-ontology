@@ -424,15 +424,28 @@ fn hex_sha256(bytes: &[u8]) -> String {
 }
 
 fn compute_semantic_digest(bytes: &[u8], path: &Path) -> Result<String, SliceError> {
-    let store = parse_turtle_to_store(bytes, path)?;
-    let mut nt_buf: Vec<u8> = Vec::new();
-    store
-        .dump_graph_to_writer(GraphNameRef::DefaultGraph, RdfFormat::NTriples, &mut nt_buf)
-        .map_err(|e| SliceError::Parse(format!("N-Triples dump failed: {e}")))?;
+    use oxigraph::model::dataset::CanonicalizationAlgorithm;
+    use oxigraph::model::Dataset;
 
-    // Sort lines for canonical order.
-    let text = String::from_utf8_lossy(&nt_buf);
-    let mut lines: Vec<&str> = text.lines().collect();
+    let store = parse_turtle_to_store(bytes, path)?;
+
+    // Build an in-memory Dataset and canonicalize blank-node labels (RDFC-style)
+    // BEFORE serializing. Parsing assigns blank-node IDs non-deterministically, so
+    // a plain sorted-N-Triples digest would differ run-to-run for any artifact
+    // that uses blank nodes (e.g. SHACL property shapes, OWL restrictions). Blank
+    // node canonicalization makes the *semantic* digest a stable function of the
+    // graph's identity, which is the whole contract of the semantic Merkle cache
+    // (RFC #820 §12 — semantic, path-independent, deterministic keys).
+    let mut dataset = Dataset::new();
+    for quad_result in store.quads_for_pattern(None, None, None, None) {
+        let quad = quad_result.map_err(|e| SliceError::Parse(format!("store iter error: {e}")))?;
+        dataset.insert(&quad);
+    }
+    dataset.canonicalize(CanonicalizationAlgorithm::Unstable);
+
+    // Serialize each canonicalized quad to a stable line and sort for a
+    // deterministic, order-independent canonical form.
+    let mut lines: Vec<String> = dataset.iter().map(|q| q.to_string()).collect();
     lines.sort_unstable();
     let canonical = lines.join("\n");
     Ok(hex_sha256(canonical.as_bytes()))

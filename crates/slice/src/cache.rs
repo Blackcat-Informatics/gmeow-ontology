@@ -121,10 +121,21 @@ impl Phase {
             // Parse / syntax look at every authored artifact's bytes.
             Phase::Parse | Phase::Syntax | Phase::Bundle => true,
             // Reasoning closure = ontology modules + shapes + rules; not docs,
-            // examples, citations, translations, or test/query prose.
-            Phase::Reason => matches!(role, ArtifactRole::Module | ArtifactRole::Shapes),
-            // SHACL = semantic module/data + shapes.
-            Phase::Shacl => matches!(role, ArtifactRole::Module | ArtifactRole::Shapes),
+            // examples, citations, translations, or test/query prose. The
+            // manifest is ALWAYS semantically load-bearing (tier / sliceDependsOn
+            // / profile) and so is folded under the semantic phases too — its
+            // *semantic* digest, so a comment-only manifest edit is still
+            // invisible. (manifest.ttl is RDF, so it always carries a semantic
+            // digest — see catalog.rs `compute_semantic_digest`.)
+            Phase::Reason => matches!(
+                role,
+                ArtifactRole::Module | ArtifactRole::Shapes | ArtifactRole::Manifest
+            ),
+            // SHACL = semantic module/data + shapes + manifest-borne facts.
+            Phase::Shacl => matches!(
+                role,
+                ArtifactRole::Module | ArtifactRole::Shapes | ArtifactRole::Manifest
+            ),
         }
     }
 }

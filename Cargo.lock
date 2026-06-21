@@ -1562,12 +1562,14 @@ dependencies = [
  "gmeow-gts",
  "gmeow-rdf",
  "gmeow-shacl",
+ "gmeow-slice",
  "oxigraph",
  "pyo3",
  "regex",
  "serde",
  "serde_json",
  "sha2",
+ "tempfile",
 ]
 
 [[package]]
