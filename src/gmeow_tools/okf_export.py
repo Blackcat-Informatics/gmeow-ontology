@@ -278,6 +278,25 @@ def write_okf(
     return root
 
 
+def okf_index_records(terms: Sequence[Term]) -> list[dict[str, str]]:
+    """Manifest records for the OKF bundle — one per term, for agent navigation.
+
+    Each record is ``{path, type, title, resource}``: the bundle-relative document
+    path (``gmeow-okf/classes/Foo.md``), the OKF ``type`` string, the term label,
+    and the canonical IRI. Drives the MCP OKF-index resource (#780) without
+    materializing the bundle on disk.
+    """
+    return [
+        {
+            "path": f"{OKF_DIR_NAME}/{_doc_relpath(term)}",
+            "type": _CATEGORY_TYPE[term.category],
+            "title": term.label or term.curie,
+            "resource": term.iri,
+        }
+        for term in terms
+    ]
+
+
 def export_okf_bundle(
     out_dir: Path,
     *,
