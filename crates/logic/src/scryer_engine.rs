@@ -39,7 +39,7 @@
 //! `Machine`/`QueryState` are `!Send`; the engine drives a fresh machine per query on the
 //! calling thread.
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, HashSet};
 use std::sync::{LazyLock, Mutex};
 
 use oxigraph::model::{NamedNode, Term as OxTerm};
@@ -327,10 +327,11 @@ fn prolog_quote(s: &str) -> String {
 /// Collect the distinct variable names appearing in the goal atoms, in first-seen order.
 fn goal_vars(goal: &QGoal) -> Vec<String> {
     let mut vars: Vec<String> = Vec::new();
+    let mut seen: HashSet<&str> = HashSet::new();
     for atom in &goal.atoms {
         for t in &atom.args {
             if let QTerm::Var(v) = t {
-                if !vars.contains(v) {
+                if seen.insert(v.as_str()) {
                     vars.push(v.clone());
                 }
             }

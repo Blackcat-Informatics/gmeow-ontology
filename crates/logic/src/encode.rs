@@ -74,6 +74,24 @@ pub(crate) fn encode_subject(subject: &NamedOrBlankNode) -> String {
     }
 }
 
+/// Escape `\` and `"` in a single pass, producing the same output as
+/// `.replace('\\', "\\\\").replace('"', "\\\"")` but with one allocation.
+#[inline]
+fn escape_backslash_and_quote(s: &str) -> std::borrow::Cow<'_, str> {
+    if !s.contains('\\') && !s.contains('"') {
+        return std::borrow::Cow::Borrowed(s);
+    }
+    let mut out = String::with_capacity(s.len() + 4);
+    for c in s.chars() {
+        match c {
+            '\\' => out.push_str("\\\\"),
+            '"' => out.push_str("\\\""),
+            other => out.push(other),
+        }
+    }
+    std::borrow::Cow::Owned(out)
+}
+
 /// Encode an oxigraph `Literal` as a Nemo constant string.
 ///
 /// - Plain `xsd:string` literal: `"value"`
@@ -106,7 +124,7 @@ pub(crate) fn encode_literal(lit: &Literal) -> String {
     //   2. Double-quote (Nemo string delimiter)
     // Control characters (\n, \r, \t) are accepted raw by Nemo's lexer and
     // are decoded symmetrically by the decode path.
-    let escaped = lit.value().replace('\\', "\\\\").replace('"', "\\\"");
+    let escaped = escape_backslash_and_quote(lit.value());
 
     if let Some(lang) = lit.language() {
         // Language-tagged literal
@@ -138,7 +156,7 @@ pub(crate) fn encode_quad_to_nemo_fact(
     // World IRI is encoded as a Nemo string constant (double-quoted).
     // Escape any backslashes or double-quotes inside the IRI (IRIs don't normally
     // contain these, but be defensive).
-    let world_escaped = world_iri.replace('\\', "\\\\").replace('"', "\\\"");
+    let world_escaped = escape_backslash_and_quote(world_iri);
     format!("{}({}, {}, \"{}\").", pred, subj, obj, world_escaped)
 }
 

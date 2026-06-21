@@ -17,7 +17,7 @@ use std::time::Instant;
 
 use gmeow_diagnostics::{Finding, Location, Report, Severity};
 use gmeow_gts::model::Graph;
-use oxigraph::model::Term;
+use oxigraph::model::{Quad, Term};
 use oxigraph::store::Store;
 use serde::{Deserialize, Serialize};
 
@@ -167,13 +167,27 @@ impl ValidationRun {
             None
         };
 
+        // Parse every source Turtle file exactly once before the timed
+        // store-build phase (#822). The parsed quad lists are reused by:
+        //   • the `build-store` timed phase (fold into oxigraph Store),
+        //   • Phase 1: syntax check (report Err entries),
+        //   • Phase 2: sameAs ban (scan Ok entries).
+        // This eliminates the ~3× redundant parse that existed when each phase
+        // called `parse_file` independently.
+        let parsed_sources: Vec<(PathBuf, Result<Vec<Quad>, String>)> =
+            if options.gts_bytes.is_none() {
+                let paths: Vec<PathBuf> = source_paths.iter().map(PathBuf::from).collect();
+                store::parse_all_files(paths)
+            } else {
+                Vec::new()
+            };
+
         // Build the shared store once.
         let store = timed(&mut timings, "build-store", options, None, || {
             if let Some(graph) = &gts_graph {
                 store::build_store_from_graph(graph)
             } else {
-                let paths: Vec<PathBuf> = source_paths.iter().map(PathBuf::from).collect();
-                store::build_store(&paths)
+                store::build_store_from_parsed(&parsed_sources)
             }
         })?;
 
@@ -211,15 +225,15 @@ impl ValidationRun {
         // Phase 1: Turtle syntax check (only meaningful for per-file sources).
         if options.gts_bytes.is_none() {
             let result = timed(&mut timings, "syntax", options, None, || {
-                check_syntax(source_paths)
+                check_syntax_from_parsed(&parsed_sources)
             })?;
             errors.extend(result.errors);
             warnings.extend(result.warnings);
 
             // Phase 2: owl:sameAs external-entity ban.
             let result = timed(&mut timings, "sameas-ban", options, None, || {
-                check_sameas_ban(
-                    source_paths,
+                check_sameas_ban_from_parsed(
+                    &parsed_sources,
                     &lint_config.namespace,
                     &options.sameas_allowlist,
                 )
@@ -551,37 +565,56 @@ where
     }
 }
 
-/// Phase 1: parse every source Turtle file individually and collect syntax errors.
-fn check_syntax(source_paths: &[String]) -> Result<PhaseResult, String> {
+/// Phase 1: report syntax errors from the already-parsed per-file results.
+///
+/// The quad lists were produced by [`store::parse_all_files`] before the
+/// `build-store` phase.  Any `Err` entry is a file that failed to parse;
+/// `build-store` (`build_store_from_parsed`) will have already returned `Err`
+/// for that case (propagated via `?`), so in practice this function only runs
+/// when all files parsed successfully and always returns an empty error list.
+/// It is kept as a separate timed phase so the phase label and timing structure
+/// remain identical to the original (#822).
+fn check_syntax_from_parsed(
+    parsed: &[(PathBuf, Result<Vec<Quad>, String>)],
+) -> Result<PhaseResult, String> {
     let mut result = PhaseResult::default();
-    for path in source_paths {
-        if let Err(exc) = parse_file(Path::new(path)) {
-            result.errors.push(format!("syntax error in {path}: {exc}"));
+    for (path, parse_result) in parsed {
+        if let Err(exc) = parse_result {
+            result
+                .errors
+                .push(format!("syntax error in {}: {exc}", path.display()));
         }
     }
     Ok(result)
 }
 
-/// Phase 2: scan each source for banned `owl:sameAs` links to external entities.
-fn check_sameas_ban(
-    source_paths: &[String],
+/// Phase 2: scan already-parsed quad lists for banned `owl:sameAs` links.
+///
+/// Operates on the pre-parsed results from [`store::parse_all_files`].  Files
+/// that failed to parse are skipped — they already produced an error in Phase 1
+/// (and caused `build-store` to fail before reaching this phase in practice).
+fn check_sameas_ban_from_parsed(
+    parsed: &[(PathBuf, Result<Vec<Quad>, String>)],
     namespace: &str,
     allowlist: &[(String, String)],
 ) -> Result<PhaseResult, String> {
     let mut result = PhaseResult::default();
-    for path in source_paths {
-        let quads = match parse_file(Path::new(path)) {
+    for (path, parse_result) in parsed {
+        let quads = match parse_result {
             Ok(q) => q,
             Err(exc) => {
-                result.errors.push(format!("failed to parse {path}: {exc}"));
+                result
+                    .errors
+                    .push(format!("failed to parse {}: {exc}", path.display()));
                 continue;
             }
         };
-        for (subject_text, obj) in store::sameas_violations(&quads, namespace, allowlist) {
+        for (subject_text, obj) in store::sameas_violations(quads, namespace, allowlist) {
             result.errors.push(format!(
-                "{path}: banned owl:sameAs to external entity \
+                "{}: banned owl:sameAs to external entity \
                  {subject_text} owl:sameAs {obj} (Principle 5); \
-                 use skos:exactMatch or gmeow:authorityLink"
+                 use skos:exactMatch or gmeow:authorityLink",
+                path.display()
             ));
         }
     }
