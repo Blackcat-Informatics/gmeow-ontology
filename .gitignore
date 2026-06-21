@@ -52,3 +52,5 @@ keys/*.tmp
 crates/native/python/gmeow_native/*.so
 crates/native/python/gmeow_native/*.pyd
 .worktree
+.goals
+.baseline
