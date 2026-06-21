@@ -20,7 +20,7 @@ ex:lillith-benchmark a gmeow:Dataset ;
     gmeow:wasAttributedTo ex:blackcat ;
     gmeow:datePublished "2026-06-12T00:00:00Z"^^xsd:dateTime ;
     gmeow:sourceLocation "https://blackcatinformatics.ca/gmeow/examples/graphrag/lillith-benchmark" ;
-    gmeow:version "1.0.0" ;
+    gmeow:version "1.0.0"^^xsd:string ;
     gmeow:citeAs "Blackcat Informatics® Inc. (2026). Lillith GraphRAG benchmark. https://blackcatinformatics.ca/gmeow/examples/graphrag/lillith-benchmark" .
 
 ex:lillith-license a gmeow:License ;

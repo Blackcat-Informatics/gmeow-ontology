@@ -26,7 +26,7 @@ ex:lillith-benchmark a gmeow:Dataset ;
     gmeow:hasPart ex:corpus-lillith ;
     gmeow:sourceLocation "https://blackcatinformatics.ca/gmeow/examples/graphrag/lillith-benchmark" ;
     gmeow:title "Lillith GraphRAG benchmark"@en ;
-    gmeow:version "1.0.0" ;
+    gmeow:version "1.0.0"^^xsd:string ;
     gmeow:wasAttributedTo ex:blackcat .
 
 ex:lillith-crate a gmeow:Distribution ;
