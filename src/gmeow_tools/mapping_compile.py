@@ -1945,7 +1945,7 @@ def _committed_paths() -> dict[str, Path]:
 
 def _drift(root: Path) -> list[str]:
     """Compare a freshly-rendered tree against the committed artifacts."""
-    from rdflib.compare import isomorphic
+    from gmeow_tools.rdf_canonical import graphs_isomorphic
 
     drifted: list[str] = []
     committed = _committed_paths()
@@ -1956,7 +1956,7 @@ def _drift(root: Path) -> list[str]:
             continue
         if rel.endswith(".ttl"):
             a, b = Graph().parse(path), Graph().parse(fresh)
-            if not isomorphic(a, b):
+            if not graphs_isomorphic(a, b):
                 drifted.append(rel)
         else:
             if path.read_text(encoding="utf-8") != fresh.read_text(encoding="utf-8"):

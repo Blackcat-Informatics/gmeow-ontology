@@ -180,18 +180,12 @@ diagnostics-test: ## Run the gmeow-diagnostics unit tests.
 	cargo nextest run -p gmeow-diagnostics $(NEXTEST_PARTITION_ARG)
 	cargo test --doc -p gmeow-diagnostics
 
-diagnostics-py: ## Build and install the gmeow_diagnostics Python extension (maturin develop).
-	VIRTUAL_ENV="$$(pwd)/.venv" uvx maturin develop --manifest-path crates/diagnostics/Cargo.toml
-
 logic-build: ## Build the gmeow-logic Rust crate (world-indexed oxigraph store core).
 	cargo build -p gmeow-logic
 
 logic-test: ## Run the gmeow-logic unit tests (world-isolation conformance).
 	cargo nextest run -p gmeow-logic $(NEXTEST_PARTITION_ARG)
 	cargo test --doc -p gmeow-logic
-
-logic-py: ## Build and install the gmeow_logic Python extension (maturin develop).
-	VIRTUAL_ENV="$$(pwd)/.venv" uvx maturin develop --manifest-path crates/logic/Cargo.toml
 
 shacl-build: ## Build the gmeow-shacl Rust crate (oxigraph SHACL Core validator).
 	cargo build -p gmeow-shacl
@@ -200,9 +194,6 @@ shacl-test: ## Run the gmeow-shacl unit + conformance tests.
 	cargo nextest run -p gmeow-shacl $(NEXTEST_PARTITION_ARG)
 	cargo test --doc -p gmeow-shacl
 
-shacl-py: ## Build and install the gmeow_shacl Python extension (maturin develop).
-	VIRTUAL_ENV="$$(pwd)/.venv" uvx maturin develop --manifest-path crates/shacl/Cargo.toml
-
 validate-build: ## Build the gmeow-validate Rust crate (oxigraph validation-path lints).
 	cargo build -p gmeow-validate
 
@@ -210,16 +201,17 @@ validate-test: ## Run the gmeow-validate unit + integration tests.
 	cargo nextest run -p gmeow-validate $(NEXTEST_PARTITION_ARG)
 	cargo test --doc -p gmeow-validate
 
-validate-py: ## Build and install the gmeow_validate Python extension (maturin develop).
-	VIRTUAL_ENV="$$(pwd)/.venv" uvx maturin develop --manifest-path crates/validate/Cargo.toml
-
-rdf-py: ## Build and install the gmeow_rdf Python extension (native statement codec; maturin develop).
-	VIRTUAL_ENV="$$(pwd)/.venv" uvx maturin develop --manifest-path crates/rdf/Cargo.toml
-
 clippy: ## Run cargo clippy on all Rust targets with warnings as errors.
 	cargo clippy --all-targets -- -D warnings
 
-native-py: diagnostics-py logic-py shacl-py validate-py rdf-py ## Build and install all Rust-backed Python extensions.
+native-py: ## Build and install the single unified gmeow_native Python extension (maturin develop, #630).
+	VIRTUAL_ENV="$$(pwd)/.venv" uvx maturin develop --manifest-path crates/native/Cargo.toml
+
+# Legacy per-crate target names kept as aliases of the single `native-py` build
+# (the five extensions now fold into one `gmeow_native` cdylib, #630). Docs, CI,
+# and memory still reference these names, so `make logic-py` / `make validate-py`
+# etc. keep working — they all just build the unified extension.
+diagnostics-py logic-py shacl-py validate-py rdf-py: native-py
 
 rust-test: ## Run the Rust workspace tests.
 	cargo nextest run $(NEXTEST_PARTITION_ARG)

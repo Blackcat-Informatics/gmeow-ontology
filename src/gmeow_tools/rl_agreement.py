@@ -180,7 +180,7 @@ def compare(gts: Path = GTS_SNAPSHOT_FILE) -> dict[str, object]:
     """
     import owlrl
 
-    from gmeow_tools.native_rl import native_rl_closure
+    from gmeow_tools.native_rl_rdflib import native_rl_closure
 
     base = _told_graph(gts)
 

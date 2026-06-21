@@ -10,118 +10,50 @@ normal use; the primary path is native and Java/Docker-free.
 
 Architecture
 ------------
-The closure is computed **RDF-1.2-first** by the native Rust engine
-(``gmeow_logic.rl_closure``): every triple is encoded into a generic 4-ary
-``triple(?s, ?p, ?o, ?w)`` Datalog relation (predicate-as-DATA, the world axis
-preserved) and the fixed OWL 2 RL/RDF rule set runs through the Nemo chase. The
-per-property ternary ``materialize`` seam cannot express RL's property-quantifying
-meta-rules (``prp-dom``/``prp-rng``/``prp-trp``/``prp-inv``/``prp-spo*`` etc.),
-so the generic-triple encoding in ``crates/logic/src/reason/rl.rs`` is used.
+The closure is computed **RDF-1.2-first** by the native Rust engine: every triple
+is encoded into a generic 4-ary ``triple(?s, ?p, ?o, ?w)`` Datalog relation
+(predicate-as-DATA, the world axis preserved) and the fixed OWL 2 RL/RDF rule set
+runs through the Nemo chase. The per-property ternary ``materialize`` seam cannot
+express RL's property-quantifying meta-rules (``prp-dom``/``prp-rng``/``prp-trp``/
+``prp-inv``/``prp-spo*`` etc.), so the generic-triple encoding in
+``crates/logic/src/reason/rl.rs`` is used.
 
-This module owns only the rdflib I/O seam: serialize the caller's graph to
-N-Triples, hand it to Rust, and fold the derived triples back into the graph
-in place (exactly the ``owlrl.expand`` contract).
+Rust-first, single FFI boundary (issue #630)
+--------------------------------------------
+This module is the **production reasoning path** and is now a thin shim over the
+native engine: ``gmeow_logic.rl_closure_nt`` returns the full closure already
+**rendered as N-Triples in Rust** (skolem IRI → blank node, literal display,
+de-dup and sort all happen in ``RlClosure::to_ntriples``), so the reasoning path
+no longer re-renders rows in Python. The rdflib I/O adapter the rdflib-native
+callers need (the competency/observation test suites and the ``rl_agreement``
+classic-cross-check oracle) lives in :mod:`gmeow_tools.native_rl_rdflib`; it calls
+``gmeow_logic.rl_closure_quads`` to fold the closure back into a graph with no
+intermediate N-Triples round-trip at all.
 """
 
 from __future__ import annotations
 
-from rdflib import BNode, Graph, Literal, URIRef
-from rdflib.term import Node
 
-#: The sentinel world IRI the Rust engine encodes a default-graph triple under
-#: (mirrors ``crate::reason::rl::DEFAULT_WORLD``). The conversion suites build an
-#: rdflib *default* graph, so the whole closure runs in this single world; the
-#: world component is dropped when folding back into the (un-named) graph.
-DEFAULT_WORLD = "https://blackcatinformatics.ca/gmeow/graph/rl-default"
+def native_rl_closure(serialized: str, *, named_worlds: bool = False) -> str:
+    """Compute the OWL 2 RL closure of a graph natively — the ``owlrl.expand`` twin.
 
-#: Skolem IRI prefix the engine mints for a blank node (mirrors
-#: ``crate::encode::skolem_iri``). A derived triple whose subject/object is one of
-#: these is a blank node in the source graph; we map it back to a fresh BNode so
-#: the rdflib graph never grows a spurious ``http(s)://…/skolem/…`` IRI resource.
-_SKOLEM_PREFIX = "https://blackcatinformatics.ca/gmeow/skolem/"
-
-#: XSD string datatype IRI — rdflib renders a plain ``xsd:string`` literal without
-#: a datatype, so a ``"v"^^<xsd:string>`` from the engine collapses to a plain one.
-_XSD_STRING = "http://www.w3.org/2001/XMLSchema#string"
-
-
-def _parse_object(obj_nt: str, skolems: dict[str, BNode]) -> Node:
-    """Parse an engine object term (N3 display form) back into an rdflib node.
-
-    The engine emits IRIs as ``<iri>``, blank nodes as the skolem IRI form, and
-    literals as ``"v"`` / ``"v"@lang`` / ``"v"^^<dt>``.
-    """
-    if obj_nt.startswith("<") and obj_nt.endswith(">"):
-        inner = obj_nt[1:-1]
-        if inner.startswith(_SKOLEM_PREFIX):
-            return skolems.setdefault(inner, BNode())
-        return URIRef(inner)
-    if obj_nt.startswith('"'):
-        # Find the closing quote (engine display form never escapes it mid-value
-        # in a way that survives to here for the suites' fixtures; honour escapes).
-        body = obj_nt[1:]
-        idx = 0
-        out: list[str] = []
-        while idx < len(body):
-            ch = body[idx]
-            if ch == "\\" and idx + 1 < len(body):
-                nxt = body[idx + 1]
-                escapes = {"\\": "\\", '"': '"', "n": "\n", "r": "\r", "t": "\t"}
-                out.append(escapes.get(nxt, nxt))
-                idx += 2
-                continue
-            if ch == '"':
-                break
-            out.append(ch)
-            idx += 1
-        value = "".join(out)
-        suffix = body[idx + 1 :]
-        if suffix.startswith("@"):
-            return Literal(value, lang=suffix[1:])
-        if suffix.startswith("^^<") and suffix.endswith(">"):
-            dt = suffix[3:-1]
-            if dt == _XSD_STRING:
-                return Literal(value)
-            return Literal(value, datatype=URIRef(dt))
-        return Literal(value)
-    # Bare IRI (subjects/predicates arrive bare; defensive for objects too).
-    if obj_nt.startswith(_SKOLEM_PREFIX):
-        return skolems.setdefault(obj_nt, BNode())
-    return URIRef(obj_nt)
-
-
-def _parse_subject(value: str, skolems: dict[str, BNode]) -> Node:
-    """Parse an engine subject/predicate IRI (bare) back into an rdflib node."""
-    if value.startswith(_SKOLEM_PREFIX):
-        return skolems.setdefault(value, BNode())
-    return URIRef(value)
-
-
-def native_rl_closure(graph: Graph) -> Graph:
-    """Expand ``graph`` under OWL 2 RL in place — the native ``owlrl.expand`` twin.
-
-    Computes the RL deductive closure natively (Rust, Docker/Java-free), then adds
-    every derived triple to ``graph`` in place and returns it (so both the
-    in-place-mutation and returned-graph call styles work). Blank nodes round-trip
-    as blank nodes; literals keep their datatype/language; named graphs (if the
-    caller used a ``Dataset``) are NOT supported here — the suites use a single
-    default graph, which closes in one world.
+    Computes the RL deductive closure natively (Rust, Docker/Java-free) and returns
+    the **full** closure (asserted + derived) as an N-Triples string. Blank nodes
+    round-trip as blank nodes; literals keep their datatype/language. All rendering
+    happens in Rust (``gmeow_logic.rl_closure_nt``); this function only forwards.
 
     Args:
-        graph: The rdflib graph to close (mutated in place).
+        serialized: The source graph as N-Triples (default-graph triples close in
+            one sentinel world) or N-Quads (each named-graph triple closes in its
+            own world).
+        named_worlds: Reserved for the named-graph close. The suites use a single
+            default graph, which closes in one world; the world component is
+            dropped and the result is plain N-Triples.
 
     Returns:
-        The same ``graph`` object, now carrying the RL closure.
+        The full RL closure as an N-Triples string (one canonical line per triple,
+        sorted for determinism), suitable for ``gmeow_rdf.parse`` to fold back.
     """
     import gmeow_logic
 
-    nt = graph.serialize(format="nt")
-    rows = gmeow_logic.rl_closure(nt)
-
-    skolems: dict[str, BNode] = {}
-    for subject, predicate, obj_nt, _world, _is_edb in rows:
-        s = _parse_subject(subject, skolems)
-        p = _parse_subject(predicate, skolems)
-        o = _parse_object(obj_nt, skolems)
-        graph.add((s, p, o))
-    return graph
+    return gmeow_logic.rl_closure_nt(serialized)

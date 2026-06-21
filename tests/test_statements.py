@@ -14,7 +14,7 @@ from pathlib import Path
 
 import gmeow_rdf
 import pytest
-from rdflib import RDF, XSD, Graph, Literal, URIRef
+from rdflib import RDF, Graph, URIRef
 from rdflib.compare import isomorphic
 from rdflib.namespace import OWL
 
@@ -25,19 +25,14 @@ from gmeow_tools.config import (
     STATEMENT_OWL_FILE,
     STATEMENT_RDF12_FILE,
 )
-from gmeow_tools.graph import load_merged_graph
 from gmeow_tools.rdf12 import project_owl_to_rdf12
 from gmeow_tools.runner import ToolUnavailableError
 from gmeow_tools.statement_compile import emit_owl
 from gmeow_tools.statement_dsl import (
-    Annotation,
     QuotedTriple,
-    StatementCell,
-    StatementDsl,
     load_statement_dsl,
     mint_reifier,
 )
-from gmeow_tools.statement_lint import statement_invariants
 
 GM = PREFIXES["gmeow"]
 
@@ -111,71 +106,10 @@ def test_emit_owl_produces_axiom_annotation_form() -> None:
             assert (ax, ann.prop, ann.value) in owl
 
 
-def test_invariants_clean_on_committed_dsl() -> None:
-    dsl = load_statement_dsl()
-    onto = load_merged_graph(include_imports=False)
-    assert statement_invariants(dsl, onto) == []
-
-
-def _cell(
-    prop: URIRef, value: object, *, obj: URIRef | Literal | None = None
-) -> StatementDsl:
-    """A one-cell DSL with a single annotation, for negative invariant tests."""
-    triple = QuotedTriple(
-        subject=URIRef(GM + "examples/s"),
-        predicate=URIRef(GM + "knowsLanguage"),
-        obj=obj if obj is not None else URIRef(GM + "examples/o"),
-    )
-    cell = StatementCell(
-        iri=URIRef(GM + "examples/c1"),
-        label="t",
-        reifier=mint_reifier(triple),
-        triple=triple,
-        annotations=(Annotation(prop=prop, value=value),),  # type: ignore[arg-type]
-    )
-    return StatementDsl(cells=(cell,))
-
-
-def test_invariant_rejects_non_annotation_property() -> None:
-    onto = load_merged_graph(include_imports=False)
-    # gmeow:knowsLanguage is an object property, not an annotation property.
-    dsl = _cell(URIRef(GM + "knowsLanguage"), Literal("x"))
-    problems = statement_invariants(dsl, onto)
-    assert any("owl:AnnotationProperty" in p for p in problems)
-
-
-def test_invariant_rejects_confidence_out_of_range() -> None:
-    onto = load_merged_graph(include_imports=False)
-    dsl = _cell(URIRef(GM + "confidence"), Literal(1.5))
-    problems = statement_invariants(dsl, onto)
-    assert any("outside [0, 1]" in p for p in problems)
-
-
-def test_invariant_rejects_non_owl2_datatype() -> None:
-    onto = load_merged_graph(include_imports=False)
-    # A base-triple literal typed xsd:date is not OWL 2 DL.
-    bad = Literal("1990-05-01", datatype=XSD.date)
-    dsl = _cell(URIRef(GM + "confidence"), Literal(0.9), obj=bad)
-    problems = statement_invariants(dsl, onto)
-    assert any("not an OWL 2 datatype" in p for p in problems)
-
-
-def test_invariant_rejects_undeclared_predicate() -> None:
-    onto = load_merged_graph(include_imports=False)
-    triple = QuotedTriple(
-        subject=URIRef(GM + "examples/s"),
-        predicate=URIRef(GM + "totallyNotARealProperty"),
-        obj=URIRef(GM + "examples/o"),
-    )
-    cell = StatementCell(
-        iri=URIRef(GM + "examples/c1"),
-        label="t",
-        reifier=mint_reifier(triple),
-        triple=triple,
-        annotations=(Annotation(prop=URIRef(GM + "confidence"), value=Literal(0.5)),),
-    )
-    problems = statement_invariants(StatementDsl(cells=(cell,)), onto)
-    assert any("not a declared GMEOW property" in p for p in problems)
+# The statement-invariant checks (annotation-property soundness, confidence range,
+# OWL 2 DL datatypes, predicate/term groundedness, no-preferred-rank) are now native
+# Rust (gmeow_validate.check_statement_invariants); their unit tests live in
+# crates/validate/src/statement.rs (issue #630).
 
 
 # --------------------------------------------------------------------------- #

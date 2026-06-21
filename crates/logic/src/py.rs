@@ -582,7 +582,24 @@ fn foundation(
 /// `RuntimeError` for a reconstruction failure (unresolved antecedent, cycle).
 #[pyfunction]
 fn explain(py: Python<'_>, quads: Vec<Bound<'_, PyDict>>) -> PyResult<Vec<Py<PyAny>>> {
-    use crate::explain::{explain_all, Row};
+    let rows = explain_rows_from_dicts(&quads)?;
+    explain_rows_to_dicts(py, &rows)
+}
+
+/// Decode a list of materialize/explain quad dicts into [`crate::explain::Row`]s.
+///
+/// This is the SINGLE decode path used by both the standalone `explain` pyfunction
+/// and the fused `materialize_explained` (issue #630): there is no second,
+/// divergent decoder.  Each dict carries `graph`, `subject`, `predicate`, `obj`
+/// (or `object`), `derivation_id`, `rule_iri`, and `source_quad_ids`.
+///
+/// The `subject` is normalized to a BARE IRI: the materialize seam emits the
+/// subject in N3 display form (`<iri>`), while the explanation reifier recipe wraps
+/// the subject in `<...>` itself, so a doubly-wrapped value would mint the wrong
+/// reifier.  Stripping one outer `<...>` layer mirrors the Python runner's
+/// `_bare_iri` helper exactly; a blank-node / already-bare value passes through.
+fn explain_rows_from_dicts(quads: &[Bound<'_, PyDict>]) -> PyResult<Vec<crate::explain::Row>> {
+    use crate::explain::Row;
 
     fn get_str(d: &Bound<'_, PyDict>, key: &str) -> PyResult<String> {
         let item = d.get_item(key)?.ok_or_else(|| {
@@ -613,7 +630,7 @@ fn explain(py: Python<'_>, quads: Vec<Bound<'_, PyDict>>) -> PyResult<Vec<Py<PyA
     }
 
     let mut rows: Vec<Row> = Vec::with_capacity(quads.len());
-    for d in &quads {
+    for d in quads {
         let sources_item = d.get_item("source_quad_ids")?.ok_or_else(|| {
             pyo3::exceptions::PyValueError::new_err("explain: row missing key \"source_quad_ids\"")
         })?;
@@ -624,7 +641,7 @@ fn explain(py: Python<'_>, quads: Vec<Bound<'_, PyDict>>) -> PyResult<Vec<Py<PyA
         })?;
         rows.push(Row {
             graph: get_str(d, "graph")?,
-            subject: get_str(d, "subject")?,
+            subject: bare_iri(&get_str(d, "subject")?),
             predicate: get_str(d, "predicate")?,
             obj: get_obj_str(d)?,
             derivation_id: get_str(d, "derivation_id")?,
@@ -632,8 +649,28 @@ fn explain(py: Python<'_>, quads: Vec<Bound<'_, PyDict>>) -> PyResult<Vec<Py<PyA
             source_quad_ids,
         });
     }
+    Ok(rows)
+}
 
-    let explanations = explain_all(&rows)
+/// Strip one outer layer of N3 angle brackets from a term surface (the Rust mirror
+/// of the Python runner's `_bare_iri`).  A blank-node (`_:b`) or already-bare value
+/// passes through unchanged.
+fn bare_iri(term_surface: &str) -> String {
+    let bytes = term_surface.as_bytes();
+    if bytes.len() >= 2 && bytes[0] == b'<' && bytes[bytes.len() - 1] == b'>' {
+        term_surface[1..term_surface.len() - 1].to_owned()
+    } else {
+        term_surface.to_owned()
+    }
+}
+
+/// Run [`crate::explain::explain_all`] over `rows` and serialize each
+/// [`crate::explain::Explanation`] to the Python dict shape the runner consumes.
+///
+/// This is the SINGLE serialization path used by both `explain` and
+/// `materialize_explained` (issue #630).
+fn explain_rows_to_dicts(py: Python<'_>, rows: &[crate::explain::Row]) -> PyResult<Vec<Py<PyAny>>> {
+    let explanations = crate::explain::explain_all(rows)
         .map_err(|e| pyo3::exceptions::PyRuntimeError::new_err(format!("explain failed: {e}")))?;
 
     let mut out: Vec<Py<PyAny>> = Vec::with_capacity(explanations.len());
@@ -667,6 +704,78 @@ fn explain(py: Python<'_>, quads: Vec<Bound<'_, PyDict>>) -> PyResult<Vec<Py<PyA
         d.set_item("step_skeleton", steps)?;
         out.push(d.into_any().unbind());
     }
+    Ok(out)
+}
+
+// ── materialize_explained ─────────────────────────────────────────────────────
+
+/// Fuse `materialize` + `explain` into one native call (issue #630).
+///
+/// Runs the EXACT same chase as [`materialize`] and then the EXACT same
+/// explanation skeleton as [`explain`] over the in-memory derivation — with NO
+/// Rust→Python→Rust payload round-trip.  The two halves reuse the shared internals
+/// (no forked chase, no forked explain decode/serialize):
+///
+/// * the chase output is produced by calling [`materialize`] verbatim, so the
+///   `quads` key is byte-identical to what `materialize` returns today;
+/// * the explanation skeleton is produced by decoding those same quad dicts through
+///   [`explain_rows_from_dicts`] and serializing through [`explain_rows_to_dicts`]
+///   — the same two helpers the standalone `explain` pyfunction uses — so the
+///   `explanations` key is byte-identical to what `explain` returns today.
+///
+/// # Returns
+///
+/// A dict with two keys:
+/// * `quads` — the `list[dict]` `materialize` returns (keys: graph, subject,
+///   predicate, object, graph_component, derivation_id, rule_iri, source_quad_ids,
+///   profile, budget_status).
+/// * `explanations` — the `list[dict]` `explain` returns (one per quad, in order).
+///
+/// # Errors
+///
+/// Propagates any error from the chase ([`materialize`]) or the explanation
+/// reconstruction ([`explain_rows_to_dicts`]).
+#[pyfunction]
+#[pyo3(signature = (rules, input, max_rule_firings=None, max_answers=None, time_ms=None, profile=None))]
+fn materialize_explained<'py>(
+    py: Python<'py>,
+    rules: &str,
+    input: &str,
+    max_rule_firings: Option<u64>,
+    max_answers: Option<u64>,
+    time_ms: Option<u64>,
+    profile: Option<&str>,
+) -> PyResult<Bound<'py, PyDict>> {
+    // 1. Run the chase exactly as `materialize` does — same helpers, same output.
+    let quad_objs = materialize(
+        py,
+        rules,
+        input,
+        max_rule_firings,
+        max_answers,
+        time_ms,
+        profile,
+    )?;
+
+    // 2. Decode those same quad dicts into explain Rows (the SAME decoder the
+    //    standalone `explain` pyfunction uses) and run the explanation skeleton —
+    //    no payload is rebuilt in Python, no FFI boundary is recrossed.
+    let quad_dicts: Vec<Bound<'py, PyDict>> = quad_objs
+        .iter()
+        .map(|obj| obj.bind(py).clone().cast_into::<PyDict>())
+        .collect::<Result<_, _>>()
+        .map_err(|e| {
+            pyo3::exceptions::PyRuntimeError::new_err(format!(
+                "materialize_explained: chase row was not a dict: {e}"
+            ))
+        })?;
+    let explanation_rows = explain_rows_from_dicts(&quad_dicts)?;
+    let explanation_objs = explain_rows_to_dicts(py, &explanation_rows)?;
+
+    // 3. Assemble the fused result dict.
+    let out = PyDict::new(py);
+    out.set_item("quads", quad_objs)?;
+    out.set_item("explanations", explanation_objs)?;
     Ok(out)
 }
 
@@ -725,6 +834,8 @@ fn stable_models(py: Python<'_>, rules: &str, input: &str) -> PyResult<Py<PyAny>
 ///
 /// Exposes:
 /// - `materialize(rules, input, max_rule_firings=None, max_answers=None, time_ms=None, profile=None)`
+/// - `materialize_explained(rules, input, …) -> {"quads": [...], "explanations": [...]}`
+///   — the fused chase+explain call (issue #630)
 /// - `foundation(input, anti_rigidity_policy=None) -> list[dict]` (issue #636)
 /// - `explain(quads) -> list[dict]` — cited-IRI explanation skeletons (issue #497)
 /// - `certify(rules, profile) -> dict`
@@ -769,6 +880,22 @@ fn compile_logic<'py>(py: Python<'py>, source_ttl: &str) -> PyResult<Bound<'py, 
     out.set_item("canonical_rdf12", arts.canonical_rdf12)?;
     out.set_item("nemo", arts.nemo)?;
     out.set_item("report", arts.report)?;
+    // The reasoning-engine rule surface (the `% === Rules ===` section of the nemo
+    // projection) — so the runner stops re-extracting it from `nemo` in Python.
+    out.set_item("nemo_rules", arts.nemo_rules)?;
+    // The preservation ledger as a JSON-able dict, keyed by target name, each value
+    // `{preservation, complexity, lossy_drops}` — the exact shape the conformance
+    // runner compares against `expected/projections/preservation-ledger.json`.
+    let ledger = PyDict::new(py);
+    for entry in &arts.preservation_ledger {
+        let row = PyDict::new(py);
+        row.set_item("preservation", entry.preservation.as_str())?;
+        row.set_item("complexity", entry.complexity.as_str())?;
+        let drops: Vec<&str> = entry.lossy_drops.iter().map(String::as_str).collect();
+        row.set_item("lossy_drops", drops)?;
+        ledger.set_item(entry.target.as_str(), row)?;
+    }
+    out.set_item("preservation_ledger", ledger)?;
     out.set_item("diagnostics", diag_list)?;
     Ok(out)
 }
@@ -1112,23 +1239,20 @@ fn reason_native_artifacts(py: Python<'_>, gts_bytes: &[u8], merge: bool) -> PyR
 ///
 /// # Returns
 ///
-/// A list of `(subject, predicate, object_nt, world, is_edb)` tuples — the full
-/// closure (asserted + derived). `subject`/`predicate` are bare IRI strings;
-/// `object_nt` is the N3 display form (`<iri>` or a quoted literal); `world` is
-/// the named-graph IRI (the sentinel for default-graph input); `is_edb` is true
-/// for asserted facts. The Python helper folds the derived rows back into the
-/// caller's rdflib graph (see `gmeow_tools.native_rl.native_rl_closure`).
+/// The full closure (asserted + derived) as an N-Triples string ([`rl_closure_nt`])
+/// or a list of live `gmeow_rdf.Quad` objects ([`rl_closure_quads`]). Term
+/// rendering — skolem-IRI → blank-node, literal display, de-dup and sort — happens
+/// in Rust ([`crate::reason::rl::RlClosure::to_ntriples`]), so the reasoning path
+/// crosses the FFI boundary exactly once (issue #630; the Python helper no longer
+/// re-renders rows).
 ///
 /// # Errors
 ///
 /// Raises `ValueError` on an N-Quads/N-Triples parse error and `RuntimeError`
 /// on a chase or decode failure.
-#[pyfunction]
-fn rl_closure(py: Python<'_>, input: &str) -> PyResult<Vec<Py<PyAny>>> {
-    if input.trim().is_empty() {
-        return Ok(vec![]);
-    }
-
+///
+/// Compute the OWL 2 RL closure of `input` (the shared core of the two surfaces).
+fn compute_rl_closure(py: Python<'_>, input: &str) -> PyResult<crate::reason::rl::RlClosure> {
     // Parse the input as N-Quads (a superset of N-Triples — bare triples land in
     // the default graph) into an oxigraph store, then close it through the
     // generic-triple RL chase with the GIL released.
@@ -1141,24 +1265,64 @@ fn rl_closure(py: Python<'_>, input: &str) -> PyResult<Vec<Py<PyAny>>> {
         let rdf_store = gmeow_rdf::oxigraph::OxigraphStore::new(&store);
         crate::reason::rl::rl_closure(&rdf_store).map_err(|e| (false, e))
     });
-    let closure = closure.map_err(|(is_parse, msg)| {
+    closure.map_err(|(is_parse, msg)| {
         if is_parse {
             pyo3::exceptions::PyValueError::new_err(msg)
         } else {
             pyo3::exceptions::PyRuntimeError::new_err(format!("rl_closure error: {msg}"))
         }
-    })?;
+    })
+}
 
-    let mut out: Vec<Py<PyAny>> = Vec::with_capacity(closure.triples.len());
-    for t in &closure.triples {
-        let tup = (
-            t.subject.as_str(),
-            t.predicate.as_str(),
-            t.object.as_str(),
-            t.world.as_str(),
-            t.is_edb,
-        );
-        out.push(tup.into_pyobject(py)?.into_any().unbind());
+/// Compute the OWL 2 RL/RDF deductive closure and return it as an N-Triples string.
+///
+/// The native, Docker/Java-free **primary** entailment authority that replaces the
+/// `owlrl` deductive-closure baseline (issue #666 Task 5). See the module note on
+/// [`compute_rl_closure`]; the full closure is rendered to a byte-stable N-Triples
+/// document in Rust. `input` is N-Quads or N-Triples (rdflib's
+/// `graph.serialize(format="nt"|"nquads")` feeds it directly).
+#[pyfunction]
+fn rl_closure_nt(py: Python<'_>, input: &str) -> PyResult<String> {
+    if input.trim().is_empty() {
+        return Ok(String::new());
+    }
+    Ok(compute_rl_closure(py, input)?.to_ntriples())
+}
+
+/// Compute the OWL 2 RL/RDF deductive closure and return live `gmeow_rdf.Quad`s.
+///
+/// The structured twin of [`rl_closure_nt`]: the closure is rendered to N-Triples
+/// in Rust and re-parsed (reusing oxigraph's lossless term parser) into a list of
+/// `gmeow_rdf.Quad` objects, so an rdflib caller folds the closure straight back
+/// into its graph with no intermediate Python-side N-Triples render/parse seam
+/// (issue #630). Blank nodes round-trip as blank nodes; literals keep
+/// datatype/language. All quads land in the default graph (the world axis is
+/// flattened for the single-default-graph close the suites use).
+#[pyfunction]
+fn rl_closure_quads(py: Python<'_>, input: &str) -> PyResult<Vec<Py<PyAny>>> {
+    if input.trim().is_empty() {
+        return Ok(vec![]);
+    }
+    let nt = compute_rl_closure(py, input)?.to_ntriples();
+    // Re-parse the rendered closure with oxigraph so the tricky literal/datatype
+    // and blank-node grammar is decoded by the same engine that serialized it,
+    // then hand each quad to Python as a native `gmeow_rdf.Quad` (#630).
+    let quads = py
+        .detach(move || -> Result<Vec<oxigraph::model::Quad>, String> {
+            let store = Store::new().map_err(|e| format!("store creation failed: {e}"))?;
+            store
+                .load_from_reader(RdfFormat::NTriples, nt.as_bytes())
+                .map_err(|e| format!("RL closure re-parse failed: {e}"))?;
+            store
+                .iter()
+                .collect::<Result<Vec<_>, _>>()
+                .map_err(|e| format!("RL closure store iteration failed: {e}"))
+        })
+        .map_err(pyo3::exceptions::PyRuntimeError::new_err)?;
+
+    let mut out: Vec<Py<PyAny>> = Vec::with_capacity(quads.len());
+    for quad in &quads {
+        out.push(gmeow_rdf::py_store::quad_to_py(py, quad)?);
     }
     Ok(out)
 }
@@ -1169,9 +1333,10 @@ fn rl_closure(py: Python<'_>, input: &str) -> PyResult<Vec<Py<PyAny>>> {
 ///
 /// Materializes the asserted graph (flattened) unioned with the native EL/DL
 /// derived edges, runs each `(name, sparql)` SELECT query over it, and returns
-/// the resulting diagnostics report serialized as JSON. Python rehydrates it via
-/// `gmeow_diagnostics.Report.from_json` — returning JSON (rather than a
-/// cross-module pyclass) keeps the two extension modules decoupled.
+/// the resulting diagnostics report as a **live `Report` pyclass** (not a JSON
+/// string). All bindings now share one `Report` type in the `gmeow_native`
+/// cdylib, so handing the live object back eliminates the serialize→`from_json`
+/// round-trip the Python caller used to pay (#630, #695).
 ///
 /// # Arguments
 ///
@@ -1181,20 +1346,20 @@ fn rl_closure(py: Python<'_>, input: &str) -> PyResult<Vec<Py<PyAny>>> {
 ///
 /// # Returns
 ///
-/// The normalized [`gmeow_diagnostics::Report`] as a JSON string. The report's
+/// The normalized [`gmeow_diagnostics::Report`] as a live pyclass. The report's
 /// `ok` is false iff any verify query returned a row.
 ///
 /// # Errors
 ///
-/// Raises `ValueError` if the GTS bundle cannot be read or the report cannot be
-/// serialized, and `RuntimeError` if verify fails (reasoning, a query parse/eval
-/// error, a non-SELECT query, or a derived-edge build error).
+/// Raises `ValueError` if the GTS bundle cannot be read, and `RuntimeError` if
+/// verify fails (reasoning, a query parse/eval error, a non-SELECT query, or a
+/// derived-edge build error).
 #[pyfunction]
 fn verify_native(
     py: Python<'_>,
     gts_bytes: &[u8],
     queries: Vec<(String, String)>,
-) -> PyResult<String> {
+) -> PyResult<Py<gmeow_diagnostics::py::PyReport>> {
     enum VerifyNativeError {
         GtsRead(String),
         Verify(String),
@@ -1213,10 +1378,13 @@ fn verify_native(
             pyo3::exceptions::PyRuntimeError::new_err(format!("verify error: {m}"))
         }
     })?;
-    // Normalize before serializing so the JSON (and any downstream content hash)
-    // is deterministic, matching the diagnostics render::to_json contract.
-    serde_json::to_string(&report.normalized())
-        .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))
+    // Normalize before handing it over so the live report (and any downstream
+    // content hash / render) is deterministic, matching the diagnostics render
+    // contract.
+    Py::new(
+        py,
+        gmeow_diagnostics::py::PyReport::from_engine(report.normalized()),
+    )
 }
 
 // ── extract_module ──────────────────────────────────────────────────────────────
@@ -1283,9 +1451,14 @@ fn extract_module(
     Ok(out.into_any().unbind())
 }
 
-#[pymodule]
-fn gmeow_logic(m: &Bound<'_, PyModule>) -> PyResult<()> {
+/// Register the `gmeow-logic` surface on a Python module.
+///
+/// Called by the unified `gmeow_native` cdylib (#630) to populate the
+/// `gmeow_native.logic` submodule; the legacy `import gmeow_logic` name resolves
+/// to that same submodule object via a Python shim.
+pub fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(materialize, m)?)?;
+    m.add_function(wrap_pyfunction!(materialize_explained, m)?)?;
     m.add_function(wrap_pyfunction!(foundation, m)?)?;
     m.add_function(wrap_pyfunction!(explain, m)?)?;
     m.add_function(wrap_pyfunction!(certify, m)?)?;
@@ -1294,7 +1467,8 @@ fn gmeow_logic(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(compile_logic, m)?)?;
     m.add_function(wrap_pyfunction!(reason_native, m)?)?;
     m.add_function(wrap_pyfunction!(reason_native_artifacts, m)?)?;
-    m.add_function(wrap_pyfunction!(rl_closure, m)?)?;
+    m.add_function(wrap_pyfunction!(rl_closure_nt, m)?)?;
+    m.add_function(wrap_pyfunction!(rl_closure_quads, m)?)?;
     m.add_function(wrap_pyfunction!(build_divergence_ledger, m)?)?;
     m.add_function(wrap_pyfunction!(verify_native, m)?)?;
     m.add_function(wrap_pyfunction!(extract_module, m)?)?;

@@ -92,7 +92,14 @@ pub struct PyReport {
 }
 
 impl PyReport {
-    fn from_engine(inner: Report) -> Self {
+    /// Wrap an engine [`Report`] in the Python `Report` pyclass.
+    ///
+    /// `pub` so the sibling binding modules (`validate`, `logic`) — now compiled
+    /// into the same `gmeow_native` cdylib, so this is the ONE shared `Report`
+    /// type — can hand Python the canonical report as a **live object** instead
+    /// of a JSON string, eliminating the serialize→`from_json`→`to_json`
+    /// round-trip the orchestration layer used to pay (#630, #654).
+    pub fn from_engine(inner: Report) -> Self {
         Self { inner }
     }
 }
@@ -103,16 +110,6 @@ impl PyReport {
     #[pyo3(signature = (tool = "gmeow".to_owned()))]
     fn new(tool: String) -> Self {
         Self::from_engine(Report::new(tool))
-    }
-
-    /// Deserialize a report from its JSON form (the inverse of `to_json` /
-    /// `ValidationRun.report_json`). This is how Python reconstructs the single
-    /// canonical report produced by the Rust validation orchestration (#654).
-    #[staticmethod]
-    fn from_json(data: String) -> PyResult<Self> {
-        let report: Report = serde_json::from_str(&data)
-            .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))?;
-        Ok(Self::from_engine(report))
     }
 
     fn add(&mut self, finding: PyRef<'_, PyFinding>) {
@@ -299,9 +296,13 @@ fn finding_to_dict(py: Python<'_>, finding: &Finding) -> PyResult<Py<PyAny>> {
     Ok(out.into_any().unbind())
 }
 
-/// Python extension module `gmeow_diagnostics`.
-#[pymodule]
-fn gmeow_diagnostics(m: &Bound<'_, PyModule>) -> PyResult<()> {
+/// Register the `gmeow-diagnostics` surface on a Python module.
+///
+/// Called by the unified `gmeow_native` cdylib (#630) to populate the
+/// `gmeow_native.diagnostics` submodule; the legacy `import gmeow_diagnostics`
+/// name resolves to that same submodule object via a Python shim, so `PyReport`
+/// / `PyFinding` are a single shared type across the whole extension.
+pub fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyFinding>()?;
     m.add_class::<PyReport>()?;
     m.add_function(wrap_pyfunction!(from_legacy, m)?)?;

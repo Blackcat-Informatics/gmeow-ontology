@@ -15,11 +15,18 @@
 
 from typing import Any, TypedDict
 
+from gmeow_rdf import Quad
+
 class CompileDiagnostic(TypedDict):
     severity: str
     code: str
     message: str
     subject: str
+
+class LedgerEntry(TypedDict):
+    preservation: str
+    complexity: str
+    lossy_drops: list[str]
 
 class CompileLogicResult(TypedDict):
     owl_dl: str
@@ -30,6 +37,10 @@ class CompileLogicResult(TypedDict):
     canonical_rdf12: str
     nemo: str
     report: str
+    # The `% === Rules ===` section of `nemo` — the reasoning-engine rule surface.
+    nemo_rules: str
+    # Per-target preservation ledger, keyed by target short-name.
+    preservation_ledger: dict[str, LedgerEntry]
     diagnostics: list[CompileDiagnostic]
 
 def materialize(
@@ -40,6 +51,26 @@ def materialize(
     time_ms: int | None = ...,
     profile: str | None = ...,
 ) -> list[dict[str, Any]]: ...
+def materialize_explained(
+    rules: str,
+    input: str,
+    max_rule_firings: int | None = ...,
+    max_answers: int | None = ...,
+    time_ms: int | None = ...,
+    profile: str | None = ...,
+) -> dict[str, list[dict[str, Any]]]:
+    """Fused materialize + explain in one native call (#630).
+
+    Runs the SAME chase as ``materialize`` and the SAME explanation skeleton as
+    ``explain`` over the in-memory derivation — no Rust→Python→Rust round-trip.
+    Returns a dict with two keys:
+
+    * ``quads`` — the ``list[dict]`` ``materialize`` returns (same keys).
+    * ``explanations`` — the ``list[dict]`` ``explain`` returns (one per quad,
+      in order).
+    """
+    ...
+
 def foundation(
     input: str,
     anti_rigidity_policy: str | None = ...,
@@ -79,8 +110,8 @@ def reason_native_artifacts(gts_bytes: bytes, merge: bool = ...) -> dict[str, st
     """
     ...
 
-def rl_closure(input: str) -> list[tuple[str, str, str, str, bool]]:
-    """Compute the native OWL 2 RL/RDF deductive closure of a graph (#666 Task 5).
+def rl_closure_nt(input: str) -> str:
+    """Compute the native OWL 2 RL/RDF deductive closure as N-Triples (#666 Task 5).
 
     The Docker-free PRIMARY entailment authority that replaces the ``owlrl``
     baseline. ``input`` is N-Quads (named-graph triples close in their world) or
@@ -88,11 +119,23 @@ def rl_closure(input: str) -> list[tuple[str, str, str, str, bool]]:
     the closure RDF-1.2-first via the generic 4-ary ``triple(?s,?p,?o,?w)``
     encoding (predicate-as-DATA) through the Nemo chase.
 
-    Returns a list of ``(subject, predicate, object_nt, world, is_edb)`` tuples —
-    the full closure (asserted + derived). ``subject``/``predicate`` are bare IRI
-    strings; ``object_nt`` is the N-Triples object form (``<iri>`` or a quoted
-    literal); ``world`` is the named-graph IRI; ``is_edb`` is true for asserted
-    facts.
+    Returns the full closure (asserted + derived) rendered as a byte-stable
+    N-Triples document — skolem IRI → blank node, literal display, de-dup and sort
+    all happen in Rust (``RlClosure::to_ntriples``).
+
+    Raises ``ValueError`` on an N-Quads/N-Triples parse error and ``RuntimeError``
+    on a chase or decode failure.
+    """
+    ...
+
+def rl_closure_quads(input: str) -> list[Quad]:
+    """Compute the native OWL 2 RL/RDF closure as live ``gmeow_rdf.Quad`` objects.
+
+    The structured twin of :func:`rl_closure_nt`: the same closure, returned as a
+    list of ``gmeow_rdf.Quad`` so an rdflib adapter folds it straight back into a
+    graph with no intermediate Python-side N-Triples render/parse (issue #630).
+    Blank nodes round-trip as blank nodes; literals keep datatype/language; every
+    quad is in the default graph.
 
     Raises ``ValueError`` on an N-Quads/N-Triples parse error and ``RuntimeError``
     on a chase or decode failure.
@@ -131,15 +174,15 @@ def build_divergence_ledger(
     """
     ...
 
-def verify_native(gts_bytes: bytes, queries: list[tuple[str, str]]) -> str:
+def verify_native(gts_bytes: bytes, queries: list[tuple[str, str]]) -> Any:
     """Native reasoned-graph verify over a GTS bundle (Java/Docker-free; #695).
 
     Materializes the asserted graph unioned with the native EL/DL derived closure
     and runs each ``(repo_relative_rq_path, sparql_text)`` SELECT query over it;
     any returned row is a violation. Returns the resulting diagnostics
-    :class:`gmeow_diagnostics.Report` serialized as JSON (rehydrate with
-    ``gmeow_diagnostics.Report.from_json``). ``report.ok`` is false iff any query
-    returned a row.
+    :class:`gmeow_diagnostics.Report` as a **live pyclass** (one shared ``Report``
+    type across the ``gmeow_native`` cdylib — no JSON round-trip, #630).
+    ``report.ok`` is false iff any query returned a row.
     """
     ...
 

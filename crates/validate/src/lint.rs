@@ -34,9 +34,30 @@ pub struct LintConfig {
     pub selector_tokens: BTreeSet<String>,
     /// Core-slice IRIs — the set whose membership grades a term as Tier-1.
     pub core_slice_iris: HashSet<String>,
-    /// Standard annotation predicates whose literals are policed by Check 2
-    /// (`language_tags._ANNOTATION_PREDICATES`).
+    /// Standard annotation predicates whose literals are policed by Check 2.
+    /// Defaults to [`default_annotation_predicates`] — this crate is the single
+    /// source of truth (#630); Python reads the set from here, it is no longer
+    /// pushed in from `language_tags`.
     pub annotation_predicates: HashSet<String>,
+}
+
+/// The canonical annotation predicates whose literals the Check-2 language-tag
+/// policy polices — `rdfs:label`, `skos:definition`, `rdfs:comment`, `dcterms:title`,
+/// `dcterms:description`. This crate owns the registry (#630); the Python
+/// `language_tags` helpers read it back through the PyO3 `annotation_predicates`
+/// surface rather than maintaining a parallel constant.
+#[must_use]
+pub fn default_annotation_predicates() -> Vec<String> {
+    [
+        "http://www.w3.org/2000/01/rdf-schema#label",
+        "http://www.w3.org/2004/02/skos/core#definition",
+        "http://www.w3.org/2000/01/rdf-schema#comment",
+        "http://purl.org/dc/terms/title",
+        "http://purl.org/dc/terms/description",
+    ]
+    .iter()
+    .map(|s| (*s).to_owned())
+    .collect()
 }
 
 /// The structural kind of a GMEOW term — the priority order is the index here,

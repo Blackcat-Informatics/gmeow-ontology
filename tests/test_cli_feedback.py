@@ -31,7 +31,7 @@ class _FakeValidationResult:
     errors: list[str] = field(default_factory=list)
     warnings: list[str] = field(default_factory=list)
     timings: list[dict[str, object]] = field(default_factory=list)
-    report_json: str | None = None
+    report: object | None = None
 
 
 @pytest.fixture

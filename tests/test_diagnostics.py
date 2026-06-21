@@ -66,16 +66,16 @@ def test_validation_result_facade_preserves_legacy_lists() -> None:
 
 
 @dataclass(slots=True)
-class ReportJsonValidationResult:
+class LiveReportValidationResult:
     errors: list[str] = field(default_factory=list)
     warnings: list[str] = field(default_factory=list)
     timings: list[dict[str, object]] = field(default_factory=list)
-    report_json: str | None = None
+    report: object | None = None
 
 
-def test_facade_uses_report_json_with_wire_coords() -> None:
+def test_facade_uses_live_report_with_wire_coords() -> None:
     # A structured report carrying a GTS wire coordinate, as the Rust
-    # orchestration emits it.
+    # orchestration hands it back — a live Report pyclass, not a JSON string.
     source = gmeow_diagnostics.Report("validate")
     source.add(
         gmeow_diagnostics.Finding(
@@ -85,16 +85,17 @@ def test_facade_uses_report_json_with_wire_coords() -> None:
             logical="gts:quad",
         )
     )
-    result = ReportJsonValidationResult(
+    result = LiveReportValidationResult(
         errors=["missing property"],
         warnings=[],
-        report_json=source.to_json(),
+        report=source,
     )
 
     report = diagnostics.report_from_validation_result(result)
     sarif = json.loads(report.to_sarif())
 
-    # report_json is authoritative: the structured finding survives round-trip.
+    # The live report is authoritative: the structured finding survives — no
+    # JSON round-trip (#630).
     assert report.errors == ["missing property"]
     assert sarif["runs"][0]["results"][0]["ruleId"] == "shacl.MinCount"
 

@@ -3,8 +3,8 @@
 
 //! Typed intermediate representation (IR) for the GMEOW Logic compiler.
 //!
-//! A faithful Rust port of `src/gmeow_tools/logic_ir.py`.  Like its ancestor this
-//! module is **pure data** — no I/O, no graph parsing, no side effects.
+//! The canonical IR (the Python duplicate `logic_ir.py` was retired in #727).
+//! This module is **pure data** — no I/O, no graph parsing, no side effects.
 //!
 //! # Canonicalization contract
 //!
@@ -379,9 +379,9 @@ impl LogicAxiom {
         )
     }
 
-    /// Stable sort key for canonical ordering — a byte-for-byte port of the Python
-    /// `_sort_key`.  Corpus-safety: `negated` is appended only when `true`.  The
-    /// scope is intentionally excluded.
+    /// Stable sort key for canonical ordering — the golden-pinned key format.
+    /// Corpus-safety: `negated` is appended only when `true`.  The scope is
+    /// intentionally excluded.
     pub fn sort_key(&self) -> String {
         let mut base = format!(
             "{}{SEP}{}{SEP}{}{SEP}{}",
@@ -454,7 +454,7 @@ impl LogicRule {
         }
     }
 
-    /// Stable sort key — a byte-for-byte port of the Python `_sort_key`.
+    /// Stable sort key — the golden-pinned key format.
     /// Corpus-safety: the distinct-pairs segment is appended only when non-empty.
     pub fn sort_key(&self) -> String {
         let body_key = self
@@ -517,7 +517,7 @@ impl LogicProfile {
         }
     }
 
-    /// Stable sort key — a byte-for-byte port of the Python `_sort_key`.
+    /// Stable sort key — the golden-pinned key format.
     pub fn sort_key(&self) -> String {
         let compl = match &self.complexity {
             Some(c) => c.label(),

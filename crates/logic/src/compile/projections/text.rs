@@ -4,8 +4,8 @@
 //! Byte-identical text projection back-ends: Datalog, N3, Nemo `.rls`.
 //!
 //! These are compared **byte-for-byte** against the conformance goldens, so every
-//! separator, quote style, and sort order reproduces `logic_projections.py`
-//! exactly.
+//! separator, quote style, and sort order is golden-pinned.  The Python duplicate
+//! was retired in #727; this is the source of truth.
 
 use super::super::ir::{LogicModality, LogicProgram, LogicRule};
 use super::{
@@ -13,7 +13,7 @@ use super::{
     RDFS_NS, RDF_NS, RDF_TYPE,
 };
 
-/// Extract a safe Datalog predicate name from an IRI (port of `_local`).
+/// Extract a safe Datalog predicate name from an IRI (`_local`-style).
 fn datalog_local(iri: &str) -> String {
     for ns in [LOGIC_NS, GMEOW_NS, RDF_NS, OWL_NS, RDFS_NS] {
         if let Some(raw) = iri.strip_prefix(ns) {
@@ -29,7 +29,7 @@ fn datalog_local(iri: &str) -> String {
         .to_owned()
 }
 
-/// Datalog term token for a subject/object (port of `_dl_term`).
+/// Datalog term token for a subject/object (`_dl_term`-style).
 fn dl_term(value: &str, is_literal: bool) -> String {
     if value.starts_with('?') {
         value.to_owned()
@@ -153,7 +153,7 @@ pub fn project_datalog(program: &LogicProgram) -> ProjectionResult {
 // N3
 // --------------------------------------------------------------------------- //
 
-/// N3 term token (port of `_n3_term`).
+/// N3 term token (`_n3_term`-style).
 fn n3_term(value: &str, is_literal: bool) -> String {
     if value.starts_with('?') {
         value.to_owned()
@@ -430,8 +430,8 @@ pub fn project_nemo(program: &LogicProgram) -> Result<ProjectionResult, String> 
     })
 }
 
-/// Extract the `% === Rules ===` section of a `.rls` string (port of
-/// `extract_nemo_rules_section`).
+/// Extract the `% === Rules ===` section of a `.rls` string — the rule text the
+/// native reasoning engines consume.
 ///
 /// # Errors
 ///

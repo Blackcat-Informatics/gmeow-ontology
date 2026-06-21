@@ -66,7 +66,7 @@
 
 use std::collections::HashMap;
 
-use crate::encode::{decode_iri_term, skolem_iri};
+use crate::encode::{decode_iri_term, skolem_iri, SKOLEM_PREFIX};
 use crate::nemo_engine::run_chase;
 use gmeow_rdf::{RdfStore, RdfTerm};
 
@@ -273,6 +273,76 @@ pub struct RlTriple {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct RlClosure {
     pub triples: Vec<RlTriple>,
+}
+
+impl RlClosure {
+    /// Render the full closure as a deterministic N-Triples document.
+    ///
+    /// This is the native replacement for the per-row term rendering the Python
+    /// helper (`gmeow_tools.native_rl`) used to do — moved into Rust so the
+    /// reasoning path crosses the FFI boundary exactly once (issue #630). A
+    /// skolemized blank-node IRI (`{SKOLEM_PREFIX}…`) is mapped back to an
+    /// N-Triples blank-node label so a source blank node round-trips as a blank
+    /// node; every other subject/predicate is a NamedNode and the object is
+    /// already in N-Triples object form (`<iri>` or a quoted literal). The world
+    /// axis is dropped (default-graph N-Triples); lines are de-duplicated and
+    /// sorted for a byte-stable result.
+    #[must_use]
+    pub fn to_ntriples(&self) -> String {
+        let mut lines: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
+        for t in &self.triples {
+            let s = render_nt_resource(&t.subject);
+            let p = render_nt_resource(&t.predicate);
+            let o = render_nt_object(&t.object);
+            lines.insert(format!("{s} {p} {o} ."));
+        }
+        let mut out = String::new();
+        for line in lines {
+            out.push_str(&line);
+            out.push('\n');
+        }
+        out
+    }
+}
+
+/// Render an engine subject/predicate IRI (bare) as an N-Triples term: a skolem
+/// IRI becomes a blank-node label, every other value a NamedNode.
+fn render_nt_resource(value: &str) -> String {
+    if let Some(tail) = value.strip_prefix(SKOLEM_PREFIX) {
+        format!("_:{}", skolem_label(tail))
+    } else {
+        format!("<{value}>")
+    }
+}
+
+/// Render an engine object term (already N-Triples display form) for re-parse. An
+/// IRI object that is a skolem IRI is rewritten to a blank-node label; literals
+/// (the engine emits valid N-Triples literals) pass through verbatim.
+fn render_nt_object(obj_nt: &str) -> String {
+    if let Some(inner) = obj_nt.strip_prefix('<').and_then(|s| s.strip_suffix('>')) {
+        if let Some(tail) = inner.strip_prefix(SKOLEM_PREFIX) {
+            return format!("_:{}", skolem_label(tail));
+        }
+        return obj_nt.to_owned();
+    }
+    // Literal (`"v"`, `"v"@lang`, `"v"^^<dt>`) — already valid N-Triples.
+    obj_nt.to_owned()
+}
+
+/// Derive a syntactically-valid N-Triples blank-node label from a skolem tail
+/// (the identifier after [`SKOLEM_PREFIX`]): prefix `b`, replace any character not
+/// permitted in a label with `_`.
+fn skolem_label(tail: &str) -> String {
+    let mut label = String::with_capacity(tail.len() + 1);
+    label.push('b');
+    for ch in tail.chars() {
+        if ch.is_ascii_alphanumeric() || ch == '_' || ch == '-' {
+            label.push(ch);
+        } else {
+            label.push('_');
+        }
+    }
+    label
 }
 
 /// Escape a value for a Nemo string-literal body (the `quote_string` contract).
@@ -673,6 +743,45 @@ mod tests {
             derived.rule_name.as_deref(),
             Some("rl:cax-sco"),
             "derived triple cites the firing rule"
+        );
+    }
+
+    #[test]
+    fn to_ntriples_renders_blank_literal_dedups_and_sorts() {
+        // The native render that replaced the Python `gmeow_tools.native_rl` row
+        // formatter (#630): skolem IRI → blank-node label, literal pass-through,
+        // de-dup, and byte-stable sort.
+        let lit = |s: &str, p: &str, o: &str| RlTriple {
+            subject: s.to_owned(),
+            predicate: p.to_owned(),
+            object: o.to_owned(),
+            world: W.to_owned(),
+            is_edb: false,
+            rule_name: None,
+        };
+        let closure = RlClosure {
+            triples: vec![
+                lit(B, TYPE, &format!("<{C}>")),
+                lit(A, TYPE, &format!("<{B}>")),
+                // Skolemized blank-node subject + a language-tagged literal object.
+                lit(&format!("{SKOLEM_PREFIX}abc123"), P, "\"hi\"@en"),
+                // Exact duplicate of the first row — must collapse to one line.
+                lit(B, TYPE, &format!("<{C}>")),
+            ],
+        };
+        let nt = closure.to_ntriples();
+        let lines: Vec<&str> = nt.lines().collect();
+        assert_eq!(lines.len(), 3, "deduped to 3 distinct lines: {nt:?}");
+        let mut sorted = lines.clone();
+        sorted.sort_unstable();
+        assert_eq!(lines, sorted, "lines are sorted for determinism");
+        assert!(
+            nt.contains(&format!("_:babc123 <{P}> \"hi\"@en .\n")),
+            "skolem IRI → blank-node label, literal preserved: {nt}"
+        );
+        assert!(
+            nt.contains(&format!("<{A}> <{TYPE}> <{B}> .\n")),
+            "named-node triple rendered verbatim: {nt}"
         );
     }
 }

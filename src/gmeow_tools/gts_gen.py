@@ -444,8 +444,6 @@ def build_snapshot_bytes(
 
     import gmeow_logic
 
-    from gmeow_tools import diagnostics
-
     query_files = sorted(VERIFY_DIR.glob("*.rq")) + iter_slice_query_files("verify")
     query_names = [str(p.relative_to(PROJECT_ROOT)) for p in query_files]
     # Guard: stem-collision check — two .rq files with the same basename (e.g.
@@ -471,8 +469,8 @@ def build_snapshot_bytes(
         (name, p.read_text(encoding="utf-8"))
         for name, p in zip(query_names, query_files, strict=True)
     ]
-    report_json = gmeow_logic.verify_native(pass1_bytes, pairs)
-    report = diagnostics.report_from_json(report_json)
+    # verify_native returns a live diagnostics Report pyclass directly (#630).
+    report = gmeow_logic.verify_native(pass1_bytes, pairs)
     attestation = build_verify_attestation_graph(query_names, report)
 
     return _compile([imports, metadata, (attestation, GTS_GRAPH_VERIFY, "verify")])

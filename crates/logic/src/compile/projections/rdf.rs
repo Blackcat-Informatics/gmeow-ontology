@@ -5,8 +5,8 @@
 //!
 //! These build an oxigraph triple set and serialize to Turtle.  The conformance
 //! goldens compare these targets by **graph isomorphism** (not bytes), so the
-//! serialization need only reproduce the same triples — the structural mapping
-//! from `logic_projections.py` is what must be faithful.
+//! serialization need only reproduce the same triples.  The Python duplicate was
+//! retired in #727; this is the source of truth.
 
 use oxigraph::io::RdfSerializer;
 use oxigraph::model::{GraphName, Literal, NamedNode, NamedOrBlankNode, Quad, Term};
@@ -30,7 +30,7 @@ fn logic(local: &str) -> String {
 }
 
 // --------------------------------------------------------------------------- //
-// Projection-side mapping tables (mirror logic_projections.py)
+// Projection-side mapping tables (the authoritative logic: → OWL/gUFO maps)
 // --------------------------------------------------------------------------- //
 
 /// logic: sort IRI → gUFO class IRI (the 37 faithful down-projection targets).
@@ -276,8 +276,9 @@ pub fn project_owl_dl(program: &LogicProgram) -> Result<ProjectionResult, Overcl
             continue;
         }
         actual_drops.push(format!(
-            "rule head <{}> {:?} not expressible in OWL DL (body complexity)",
-            rule.head.subject, rule.head.predicate
+            "rule head <{}> {} not expressible in OWL DL (body complexity)",
+            rule.head.subject,
+            super::python_repr(&rule.head.predicate)
         ));
     }
 
@@ -605,7 +606,7 @@ fn format_decimal(value: f64) -> String {
 }
 
 /// First 12 hex chars of SHA-256 of `s` — the content-stable reifier key hash
-/// (`hashlib.sha256(sort_key).hexdigest()[:12]` in the Python compiler).
+/// (`sha256(sort_key)[:12]`).
 fn sha256_12(s: &str) -> String {
     use sha2::{Digest, Sha256};
     let digest = Sha256::digest(s.as_bytes());

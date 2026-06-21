@@ -2,12 +2,18 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 """Conformance runner for the Logic v1 monotonic core (issue #501, Task 7).
 
-This module is the **conformance runner** — it wires :mod:`~.logic_frontend`,
-:mod:`~.logic_seam` (the Rust-fed seam containers), :mod:`~.logic_projections`,
-and the native ``gmeow_logic`` engine (``materialize`` / ``certify`` /
-``explain``) into the single ``run()`` function required by the runner contract
-in ``conformance/logic/runner/README.md``.  Reasoning is Rust-authoritative
-(#651): there is no Python forward-chase oracle.
+This module is the **conformance runner** — it wires :mod:`~.logic_seam` (the
+Rust-fed seam containers) and the native ``gmeow_logic`` engine
+(``compile_logic`` / ``materialize`` / ``certify`` / ``explain``) into the single
+``run()`` function required by the runner contract in
+``conformance/logic/runner/README.md``.
+
+The whole compiler — frontend (Turtle → IR), the seven projection back-ends, the
+preservation ledger, and the nemo rule extraction — runs in Rust
+(``gmeow_logic.compile_logic``, issue #664/#727): the Python compiler duplicate
+(the frontend / IR / adapter / projection modules) was deleted in #727.
+Reasoning is likewise Rust-authoritative (#651): there is no Python forward-chase
+oracle.
 
 Runner contract
 ---------------
@@ -47,7 +53,8 @@ Populated vs deferred (v1 monotonic scope)
 
 Comparison helpers (used by Task 8/9 diff logic)
 -------------------------------------------------
-* :func:`compare_rdf` — blank-node-aware graph isomorphism (reuses rdflib).
+* :func:`compare_rdf` — blank-node-aware graph equality via the in-repo
+  ``gmeow_rdf`` RDFC-1.0 canonicalization (rdflib-free since issue #630).
 * :func:`compare_canonical_json` — sorted-keys canonical JSON equality.
 * :func:`compare_explanation_skeleton` — cited-IRI/rule-IRI set equality,
   ignoring surface prose.
@@ -65,35 +72,65 @@ import json
 import logging
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import Any, cast
 
-from rdflib import ConjunctiveGraph, Graph, URIRef
-from rdflib.compare import isomorphic
-
-from gmeow_tools.logic_frontend import LogicParseError, parse_logic_source
-from gmeow_tools.logic_ir import LogicProgram, SemanticProfileId
-from gmeow_tools.logic_projections import (
-    ProjectionResult,
-    build_projection_report,
-    extract_nemo_rules_section,
-    project_canonical_rdf12,
-    project_datalog,
-    project_gufo,
-    project_n3,
-    project_nemo,
-    project_owl_dl,
-    project_owl_el,
-)
 from gmeow_tools.logic_seam import (
     _ASSERT_RULE_IRI,
     BudgetParams,
     DerivedQuad,
     Explanation,
     ExplanationStep,
-    LossEntry,
     MaterializationResult,
 )
 
 _log = logging.getLogger(__name__)
+
+#: The six ``logic:SemanticProfile`` local names (mirrors the Rust
+#: ``SemanticProfileId`` enum / the ontology's named individuals).  A case's
+#: declared ``semantic_profile`` must be one of these — an unknown localname is a
+#: hard failure (no silent fallback).
+_VALID_SEMANTIC_PROFILES: frozenset[str] = frozenset(
+    {
+        "PositiveHornProfile",
+        "StratifiedNAFProfile",
+        "WellFoundedProfile",
+        "StableModelProfile",
+        "ProceduralPrologProfile",
+        "ProbabilisticProfile",
+    }
+)
+
+#: The semantic-profile string the native materializer / foundation evaluator
+#: stamps on every PositiveHorn run (the committed-golden profile IRI localname).
+_POSITIVE_HORN_PROFILE = "PositiveHornProfile"
+
+#: The seven projection target short-names, in canonical order.
+_PROJECTION_TARGETS: tuple[str, ...] = (
+    "owl-dl",
+    "owl-el",
+    "datalog",
+    "n3",
+    "gufo",
+    "canonical-rdf12",
+    "nemo",
+)
+
+#: Map a projection target short-name to its ``compile_logic`` dict key.
+_TARGET_TO_KEY: dict[str, str] = {
+    "owl-dl": "owl_dl",
+    "owl-el": "owl_el",
+    "datalog": "datalog",
+    "n3": "n3",
+    "gufo": "gufo",
+    "canonical-rdf12": "canonical_rdf12",
+    "nemo": "nemo",
+}
+
+#: Which projection targets serialize RDF (compared by gmeow_rdf RDFC-1.0
+#: canonical quad-set equality, issue #630); the rest are plain text.
+_RDF_TARGETS: frozenset[str] = frozenset(
+    {"owl-dl", "owl-el", "gufo", "canonical-rdf12"}
+)
 
 
 # --------------------------------------------------------------------------- #
@@ -114,21 +151,41 @@ class RunnerError(Exception):
 
 
 @dataclass(frozen=True, slots=True)
+class RunnerProjection:
+    """One projection back-end's runner-facing result.
+
+    The compiler runs in Rust (:func:`gmeow_logic.compile_logic`); this is the
+    thin container the runner builds from each artifact string for the
+    conformance diff.
+
+    Attributes:
+        target: Short target name (``"owl-dl"``, ``"datalog"``, …).
+        content: The serialized artifact string from the Rust compiler.
+        is_rdf: ``True`` for the RDF targets whose ``content`` is Turtle compared
+            by gmeow_rdf RDFC-1.0 canonical quad-set equality (issue #630),
+            ``False`` for the plain-text targets (datalog / n3 / nemo).
+    """
+
+    target: str
+    content: str
+    is_rdf: bool
+
+
+@dataclass(frozen=True, slots=True)
 class ProjectionOutputs:
     """All projection back-end results for one case run.
 
     Attributes:
-        results: The 7 :class:`~.logic_projections.ProjectionResult` objects
-            (one per back-end).
-        report_graph: The preservation report as an rdflib
-            :class:`~rdflib.Graph`.
+        results: The 7 :class:`RunnerProjection` objects (one per back-end).
+        report_turtle: The preservation report as a Turtle string (compared by
+            gmeow_rdf RDFC-1.0 canonical quad-set equality, issue #630).
         ledger_json: The preservation ledger as a canonical JSON dict.
             Keys are target names; values are ``{preservation, complexity,
-            lossy_drops}`` dicts.
+            lossy_drops}`` dicts.  Built by the Rust compiler.
     """
 
-    results: tuple[ProjectionResult, ...]
-    report_graph: Graph
+    results: tuple[RunnerProjection, ...]
+    report_turtle: str
     ledger_json: dict[str, dict[str, object]]
 
 
@@ -139,7 +196,6 @@ class RunnerOutputs:
     Attributes:
         case_dir: The case directory that was run.
         mode: The engine/fragment mode requested (e.g. ``"native"``).
-        program: The parsed :class:`~.logic_ir.LogicProgram`.
 
         materialized: The chase result.  **Populated** for v1 monotonic core.
         materialized_nquads: N-Quads serialization of ``materialized`` (all
@@ -165,8 +221,8 @@ class RunnerOutputs:
             returned by :func:`gmeow_logic.query`.  Empty dict when no queries
             are present.  Implements issue #504 backward goals.
 
-        certification: The static profile/decidability verdict for ``program``
-            against the case's declared profile, as the deterministic sorted-key
+        certification: The static profile/decidability verdict for the compiled
+            program against the case's declared profile, as the sorted-key
             dict produced by the native ``gmeow_logic.certify`` certifier.
             **Populated** for every case (issue #502, Task 5).
 
@@ -183,7 +239,6 @@ class RunnerOutputs:
 
     case_dir: Path
     mode: str
-    program: LogicProgram
 
     # v1 populated outputs
     materialized: MaterializationResult
@@ -314,60 +369,75 @@ def _materialize_to_nquads(result: MaterializationResult) -> str:
 # --------------------------------------------------------------------------- #
 
 
-def _run_projections(
-    program: LogicProgram,
-    materialization_loss_entries: tuple[LossEntry, ...] = (),
-) -> ProjectionOutputs:
-    """Run all 7 projection back-ends and build the preservation ledger.
+def _build_projection_outputs(compiled: dict[str, object]) -> ProjectionOutputs:
+    """Build :class:`ProjectionOutputs` from a ``compile_logic`` result dict.
+
+    The Rust compiler (:func:`gmeow_logic.compile_logic`) already ran every
+    projection back-end, the overclaim gate, and the preservation ledger; this
+    function only repackages those artifacts for the conformance diff — it keeps
+    each RDF artifact string verbatim (validating that it parses under the in-repo
+    ``gmeow_rdf`` kernel, which — unlike rdflib — reads the RDF 1.2 ``<< … >>``
+    triple terms the ``canonical-rdf12`` projection emits), and copies the
+    Rust-built ``preservation_ledger`` dict verbatim.
 
     Args:
-        program: The compiled logic program to project.
-        materialization_loss_entries: Loss recorded by the materialization phase,
-            folded into the preservation report. The native evaluators apply the
-            declared semantics fully, so this is empty today; threading it keeps the
-            seam contract honest (any future loss-recording path reaches the ledger).
+        compiled: The dict returned by :func:`gmeow_logic.compile_logic`.
 
     Returns:
-        A :class:`ProjectionOutputs` with all 7 results, the report graph,
-        and the JSON ledger.
+        A :class:`ProjectionOutputs` with all 7 results, the report Turtle, and
+        the JSON ledger.
 
     Raises:
-        RunnerError: If any projection raises unexpectedly.
+        RunnerError: If an artifact key is missing or an RDF artifact cannot be
+            parsed (a Rust↔Python contract violation).
     """
-    try:
-        r_dl = project_owl_dl(program)
-        r_el = project_owl_el(program)
-        r_datalog = project_datalog(program)
-        r_n3 = project_n3(program)
-        r_gufo = project_gufo(program)
-        r_rdf12 = project_canonical_rdf12(program)
-        r_nemo = project_nemo(program)
-    except Exception as exc:
-        raise RunnerError(f"Projection failed: {exc}") from exc
+    import gmeow_rdf
 
-    all_projections = [r_dl, r_el, r_datalog, r_n3, r_gufo, r_rdf12, r_nemo]
+    def _validate_turtle(content: str, label: str) -> None:
+        try:
+            gmeow_rdf.parse(content.encode("utf-8"), format=gmeow_rdf.RdfFormat.TURTLE)
+        except (ValueError, RuntimeError) as exc:
+            raise RunnerError(
+                f"compile_logic {label} artifact is not parseable Turtle: {exc}"
+            ) from exc
 
-    try:
-        report_graph = build_projection_report(
-            program,
-            all_projections,
-            materialization_loss_entries=list(materialization_loss_entries),
+    results: list[RunnerProjection] = []
+    for target in _PROJECTION_TARGETS:
+        key = _TARGET_TO_KEY[target]
+        if key not in compiled:
+            raise RunnerError(
+                f"compile_logic produced no artifact for target {target!r} "
+                f"(missing key {key!r})"
+            )
+        content = str(compiled[key])
+        is_rdf = target in _RDF_TARGETS
+        if is_rdf:
+            _validate_turtle(content, repr(target))
+        results.append(RunnerProjection(target=target, content=content, is_rdf=is_rdf))
+
+    report_turtle = str(compiled["report"])
+    _validate_turtle(report_turtle, "projection report")
+
+    # The preservation ledger is built by the Rust compiler; copy it verbatim
+    # (deep-copied to plain dicts/lists so the canonical-JSON comparison is stable).
+    raw_ledger = compiled.get("preservation_ledger")
+    if not isinstance(raw_ledger, dict):
+        raise RunnerError(
+            "compile_logic did not return a preservation_ledger dict "
+            f"(got {type(raw_ledger).__name__})"
         )
-    except Exception as exc:
-        raise RunnerError(f"build_projection_report failed: {exc}") from exc
-
     ledger_json: dict[str, dict[str, object]] = {
-        proj.target: {
-            "preservation": proj.preservation.value,
-            "complexity": proj.complexity,
-            "lossy_drops": list(proj.lossy_drops),
+        str(target): {
+            "preservation": row["preservation"],
+            "complexity": row["complexity"],
+            "lossy_drops": list(row["lossy_drops"]),
         }
-        for proj in all_projections
+        for target, row in raw_ledger.items()
     }
 
     return ProjectionOutputs(
-        results=tuple(all_projections),
-        report_graph=report_graph,
+        results=tuple(results),
+        report_turtle=report_turtle,
         ledger_json=ledger_json,
     )
 
@@ -431,6 +501,27 @@ def _run_explanations(result: MaterializationResult) -> tuple[Explanation, ...]:
     except (ValueError, RuntimeError) as exc:
         raise RunnerError(f"gmeow_logic.explain failed: {exc}") from exc
 
+    return _explanations_from_rows(rows)
+
+
+def _explanations_from_rows(
+    rows: list[dict[str, Any]],
+) -> tuple[Explanation, ...]:
+    """Build :class:`~.logic_seam.Explanation` objects from native explanation rows.
+
+    Shared by the foundation path (:func:`_run_explanations`, which calls
+    ``gmeow_logic.explain``) and the fused native path
+    (:func:`_materialize_explained_native`, which reads the ``explanations`` key of
+    ``gmeow_logic.materialize_explained``).  The row shape is identical for both —
+    the same Rust serializer (``explain_rows_to_dicts``) produces it — so this is
+    the single Python adapter for the explanation seam.
+
+    Args:
+        rows: The native explanation rows (one dict per quad, in input order).
+
+    Returns:
+        A tuple of :class:`~.logic_seam.Explanation` objects in row order.
+    """
     explanations: list[Explanation] = []
     for row in rows:
         steps = tuple(
@@ -468,25 +559,27 @@ def _run_explanations(result: MaterializationResult) -> tuple[Explanation, ...]:
 
 
 def _certify_native(
-    program: LogicProgram,
-    declared_profile: SemanticProfileId,
+    nemo_rules: str,
+    declared_profile: str,
     case_label: str,
 ) -> dict[str, object]:
-    """Statically certify ``program`` against ``declared_profile`` via the Rust core.
+    """Statically certify ``nemo_rules`` against ``declared_profile`` via Rust.
 
     The native ``gmeow_logic.certify`` certifier is the sole reasoning authority
     (Principle 17, the "maximally use Rust" doctrine); the Python certifier was
     retired in #651 (parity is now pinned by the conformance ``certification.json``
     goldens + the ``crates/logic/src/certify.rs`` cargo tests).  The engine takes
-    the ``% === Rules ===`` section of ``project_nemo`` (the ground-fact axioms
-    are not certification inputs) plus the declared profile, and returns the
+    the ``% === Rules ===`` section of the nemo projection (the ground-fact axioms
+    are not certification inputs — supplied here as the ``nemo_rules`` key of
+    :func:`gmeow_logic.compile_logic`) plus the declared profile, and returns the
     verdict dict (``certified``, ``decidability_class``, ``profile_id``, sorted
     ``violations``) — the exact shape the conformance ``certification.json``
     golden compares.
 
     Args:
-        program: The parsed logic program IR.
-        declared_profile: The :class:`SemanticProfileId` the case declares.
+        nemo_rules: The ``% === Rules ===`` section of the nemo projection (the
+            ``nemo_rules`` key from :func:`gmeow_logic.compile_logic`).
+        declared_profile: The semantic-profile localname the case declares.
         case_label: Case name for error messages.
 
     Returns:
@@ -505,17 +598,11 @@ def _certify_native(
         ) from exc
 
     try:
-        rules_only = extract_nemo_rules_section(project_nemo(program).content)
-    except (ValueError, RuntimeError) as exc:
-        raise RunnerError(
-            f"Case {case_label}: NEMO projection for certification failed: {exc}"
-        ) from exc
-    try:
-        verdict = gmeow_logic.certify(rules_only, str(declared_profile))
+        verdict = gmeow_logic.certify(nemo_rules, declared_profile)
     except (ValueError, RuntimeError) as exc:
         raise RunnerError(
             f"Case {case_label}: gmeow_logic.certify failed for profile "
-            f"{declared_profile!s}: {exc}"
+            f"{declared_profile}: {exc}"
         ) from exc
     return dict(verdict)
 
@@ -637,78 +724,38 @@ def _bare_iri(term_surface: str) -> str:
     return term_surface
 
 
-def _materialize_native(
-    case_dir: Path,
-    program: LogicProgram,
-    input_graph: ConjunctiveGraph,
+def _materialization_result_from_quad_rows(
+    rows: list[dict[str, object]],
     semantic_profile_str: str,
-    budget: BudgetParams | None,
 ) -> MaterializationResult:
-    """Materialize the forward chase via the native ``gmeow_logic.materialize``.
+    """Assemble a :class:`~.logic_seam.MaterializationResult` from native quad rows.
 
-    This is the Rust-authoritative default path (issue #651): the Python
-    forward-chase oracle (``materialize_program``) is retired. The program's
-    ``% === Rules ===`` projection (with ``#[name("…")]`` provenance annotations)
-    and the world facts (``input.nq`` as N-Quads) are handed to the engine, which
-    routes by ``semantic_profile_str``:
+    Shared by the (former) standalone and the fused native paths: maps each native
+    ``materialize`` quad dict onto a :class:`~.logic_seam.DerivedQuad` (stripping the
+    N3 subject brackets via :func:`_bare_iri`) and computes the aggregate
+    world/budget metadata.
 
-    * PositiveHorn / stratified NAF → the Nemo chase;
-    * WellFounded → the native alternating-fixpoint evaluator;
-    * StableModel → the native cautious (skeptical) materialization;
-    * a declared StratifiedNAF set that fails stratification → asserted-only.
+    Args:
+        rows: The native quad rows (``materialize`` / ``materialize_explained``
+            ``quads`` shape).
+        semantic_profile_str: The profile the run was computed under (stamped on the
+            result artifact).
 
-    Provenance is content-addressed and identical to the foundation path, so the
-    native ``gmeow_logic.explain`` consumes the rows unchanged.
-
-    Raises:
-        RunnerError: If the ``gmeow_logic`` extension is not installed (hard fail,
-            no Python fallback), the NEMO projection fails, or the engine raises.
+    Returns:
+        The assembled :class:`~.logic_seam.MaterializationResult`.
     """
-    try:
-        import gmeow_logic
-    except ImportError as exc:
-        raise RunnerError(
-            f"Case {case_dir.name}: gmeow_logic native extension is not installed "
-            "(materialization is Rust-authoritative since #651) — run 'make logic-py'."
-        ) from exc
-
-    try:
-        rules_text = extract_nemo_rules_section(project_nemo(program).content)
-    except (ValueError, RuntimeError) as exc:
-        raise RunnerError(
-            f"Case {case_dir.name}: NEMO projection for materialization failed: {exc}"
-        ) from exc
-
-    input_nq_text = input_graph.serialize(format="nquads")
-
-    try:
-        rows = gmeow_logic.materialize(
-            rules_text,
-            input_nq_text,
-            budget.max_rule_firings if budget else None,
-            budget.max_answers if budget else None,
-            budget.time_ms if budget else None,
-            semantic_profile_str,
-        )
-    except (ValueError, RuntimeError) as exc:
-        # ValueError = input/rule parse error; RuntimeError = chase/provenance/eval
-        # failure. Both must be wrapped so the runner's case-level boundary holds.
-        raise RunnerError(
-            f"Case {case_dir.name}: gmeow_logic.materialize failed: {exc}"
-        ) from exc
-
     quads: list[DerivedQuad] = [
         DerivedQuad(
-            graph=row["graph"],
-            subject=_bare_iri(row["subject"]),
-            predicate=row["predicate"],
-            obj=row["object"],
-            graph_component=row["graph_component"],
-            derivation_id=row["derivation_id"],
-            rule_iri=row["rule_iri"],
-            source_quad_ids=list(row["source_quad_ids"]),
-            profile=row["profile"],
-            budget_status=row["budget_status"],
+            graph=cast("str", row["graph"]),
+            subject=_bare_iri(cast("str", row["subject"])),
+            predicate=cast("str", row["predicate"]),
+            obj=cast("str", row["object"]),
+            graph_component=cast("str", row["graph_component"]),
+            derivation_id=cast("str", row["derivation_id"]),
+            rule_iri=cast("str", row["rule_iri"]),
+            source_quad_ids=list(cast("list[str]", row["source_quad_ids"])),
+            profile=cast("str", row["profile"]),
+            budget_status=cast("str", row["budget_status"]),
         )
         for row in rows
     ]
@@ -737,10 +784,82 @@ def _materialize_native(
     )
 
 
+def _materialize_explained_native(
+    case_dir: Path,
+    nemo_rules: str,
+    input_nq_text: str,
+    semantic_profile_str: str,
+    budget: BudgetParams | None,
+) -> tuple[MaterializationResult, tuple[Explanation, ...]]:
+    """Materialize the forward chase AND its explanation skeletons in ONE call.
+
+    This is the fused Rust-authoritative default path (issue #630): a single
+    ``gmeow_logic.materialize_explained`` call runs the same Nemo / native chase as
+    ``gmeow_logic.materialize`` and the same explanation skeleton as
+    ``gmeow_logic.explain`` directly over the in-memory derivation — no
+    Rust→Python→Rust round-trip, no Python payload rebuild.  The program's
+    ``% === Rules ===`` projection (with ``#[name("…")]`` provenance annotations)
+    and the world facts (``input.nq`` as N-Quads) are handed to the engine, which
+    routes by ``semantic_profile_str``:
+
+    * PositiveHorn / stratified NAF → the Nemo chase;
+    * WellFounded → the native alternating-fixpoint evaluator;
+    * StableModel → the native cautious (skeptical) materialization;
+    * a declared StratifiedNAF set that fails stratification → asserted-only.
+
+    The fused result's ``quads`` key is byte-identical to ``materialize`` and its
+    ``explanations`` key is byte-identical to ``explain``; this function only
+    repackages them into the runner's seam dataclasses (the explanation rows go
+    through the shared :func:`_explanations_from_rows` adapter).
+
+    The world facts are passed through verbatim as the raw ``input.nq`` text
+    (issue #630): ``materialize_explained`` parses N-Quads inside Rust, so the
+    runner no longer round-trips them through an rdflib ``ConjunctiveGraph``.
+
+    Returns:
+        A ``(MaterializationResult, explanations)`` pair.
+
+    Raises:
+        RunnerError: If the ``gmeow_logic`` extension is not installed (hard fail,
+            no Python fallback), the NEMO projection fails, or the engine raises.
+    """
+    try:
+        import gmeow_logic
+    except ImportError as exc:
+        raise RunnerError(
+            f"Case {case_dir.name}: gmeow_logic native extension is not installed "
+            "(materialization is Rust-authoritative since #651) — run 'make logic-py'."
+        ) from exc
+
+    try:
+        result = gmeow_logic.materialize_explained(
+            nemo_rules,
+            input_nq_text,
+            budget.max_rule_firings if budget else None,
+            budget.max_answers if budget else None,
+            budget.time_ms if budget else None,
+            semantic_profile_str,
+        )
+    except (ValueError, RuntimeError) as exc:
+        # ValueError = input/rule parse error; RuntimeError = chase/provenance/eval
+        # failure. Both must be wrapped so the runner's case-level boundary holds.
+        raise RunnerError(
+            f"Case {case_dir.name}: gmeow_logic.materialize_explained failed: {exc}"
+        ) from exc
+
+    mat_result = _materialization_result_from_quad_rows(
+        cast("list[dict[str, object]]", result["quads"]), semantic_profile_str
+    )
+    explanations = _explanations_from_rows(
+        cast("list[dict[str, object]]", result["explanations"])
+    )
+    return mat_result, explanations
+
+
 def _resolve_witnesses(
     case_dir: Path,
-    program: LogicProgram,
-    input_graph: ConjunctiveGraph,
+    nemo_rules: str,
+    input_nq_text: str,
     semantic_profile_str: str,
 ) -> dict[str, object]:
     """Resolve the stable-model witnesses for a StableModel case (issue #651).
@@ -762,14 +881,7 @@ def _resolve_witnesses(
             "(stable-model witnesses are Rust-authoritative) — run 'make logic-py'."
         ) from exc
     try:
-        rules_text = extract_nemo_rules_section(project_nemo(program).content)
-    except (ValueError, RuntimeError) as exc:
-        raise RunnerError(
-            f"Case {case_dir.name}: NEMO projection for witnesses failed: {exc}"
-        ) from exc
-    input_nq_text = input_graph.serialize(format="nquads")
-    try:
-        return dict(gmeow_logic.stable_models(rules_text, input_nq_text))
+        return dict(gmeow_logic.stable_models(nemo_rules, input_nq_text))
     except (ValueError, RuntimeError) as exc:
         raise RunnerError(
             f"Case {case_dir.name}: gmeow_logic.stable_models failed: {exc}"
@@ -871,7 +983,7 @@ def _resolve_answers(
 
 def _materialize_foundation(
     case_dir: Path,
-    input_graph: ConjunctiveGraph,
+    input_nq_text: str,
     profile_data: dict[str, object],
     budget: BudgetParams | None,
 ) -> MaterializationResult:
@@ -884,16 +996,16 @@ def _materialize_foundation(
     (``logic_foundation.py``) is gone — there is no fallback (no-optionality
     doctrine: a missing extension is a hard failure).
 
-    The input world facts (``input.nq``, one named graph per world) are serialized
-    to N-Quads and handed to ``gmeow_logic.foundation``; its full-provenance rows
-    are mapped one-to-one onto :class:`~.logic_seam.DerivedQuad` records and
-    assembled into a :class:`~.logic_seam.MaterializationResult` that every
-    downstream consumer (explanations, verdicts, projections, certification) reads
-    unchanged.
+    The input world facts (the raw ``input.nq`` N-Quads text, one named graph per
+    world) are handed straight to ``gmeow_logic.foundation`` (which parses N-Quads
+    inside Rust, issue #630); its full-provenance rows are mapped one-to-one onto
+    :class:`~.logic_seam.DerivedQuad` records and assembled into a
+    :class:`~.logic_seam.MaterializationResult` that every downstream consumer
+    (explanations, verdicts, projections, certification) reads unchanged.
 
     Args:
         case_dir: The conformance case directory (used only for error messages).
-        input_graph: The parsed world-fact ConjunctiveGraph (from ``input.nq``).
+        input_nq_text: The raw world-fact N-Quads text (from ``input.nq``).
         profile_data: The parsed ``profile.json`` dict; ``anti_rigidity_policy``
             selects the closed witness policy (default ``"witness-obligation"``).
         budget: The parsed budget governor, or ``None`` for unbounded.  The native
@@ -931,10 +1043,6 @@ def _materialize_foundation(
             f"but the case opts into foundation_lowering — run 'make logic-py' "
             f"first: {exc}"
         ) from exc
-
-    # Serialize the world-fact graph to N-Quads for the native evaluator (one named
-    # graph per world; the same surface the Rust foundation loader expects).
-    input_nq_text = input_graph.serialize(format="nquads")
 
     policy = str(profile_data.get("anti_rigidity_policy", "witness-obligation"))
     try:
@@ -976,7 +1084,7 @@ def _materialize_foundation(
         # Foundation cases materialize under PositiveHorn semantics (matching the
         # native evaluator's stamped profile and the committed goldens); the
         # declared StratifiedNAF profile is exercised by the static certifier.
-        profile=str(SemanticProfileId.POSITIVE_HORN),
+        profile=_POSITIVE_HORN_PROFILE,
         loss_entries=(),
         input_quad_count=input_count,
         derived_quad_count=derived_count,
@@ -1000,8 +1108,8 @@ def run(case_dir: Path, mode: str = "native") -> RunnerOutputs:
     Args:
         case_dir: Path to the conformance case directory.  Must contain
             ``input.logic.ttl`` and ``profile.json``.  If ``input.nq`` is
-            also present it is loaded as the world-fact ConjunctiveGraph
-            (one named graph per world) before the chase runs.
+            also present its raw N-Quads text (one named graph per world) is
+            fed straight to the native chase before it runs.
         mode: Engine/fragment mode selector.  Only ``"native"`` is supported
             in the v1 monotonic oracle; passing any other value raises
             :class:`RunnerError`.
@@ -1041,34 +1149,51 @@ def run(case_dir: Path, mode: str = "native") -> RunnerOutputs:
             f"Case {case_dir.name}: cannot read profile.json: {exc}"
         ) from exc
 
-    # Parse the logic: source
+    # Compile the logic: source in Rust (issue #664/#727): the whole frontend →
+    # IR → 7-projection + report + ledger + nemo-rules pipeline runs in
+    # ``gmeow_logic.compile_logic`` — the Python compiler duplicate was deleted in
+    # #727.  Every downstream artifact (projections, ledger, the nemo rule text
+    # the reasoning engines consume) is read off this single result dict.
+    source_ttl = input_path.read_text(encoding="utf-8")
     try:
-        program, diagnostics = parse_logic_source(input_path)
-    except LogicParseError as exc:
+        import gmeow_logic
+    except ImportError as exc:
         raise RunnerError(
-            f"Case {case_dir.name}: parse_logic_source failed: {exc}"
+            f"Case {case_dir.name}: gmeow_logic native extension is not installed "
+            "(the logic compiler is Rust-authoritative since #664) — "
+            "run 'make logic-py'."
+        ) from exc
+    try:
+        compiled = gmeow_logic.compile_logic(source_ttl)
+    except (ValueError, RuntimeError) as exc:
+        raise RunnerError(
+            f"Case {case_dir.name}: gmeow_logic.compile_logic failed: {exc}"
         ) from exc
 
-    for diag in diagnostics:
+    for diag in compiled.get("diagnostics", []):
         _log.debug(
-            "parse diagnostic [%s] %s: %s", diag.severity, diag.code, diag.message
+            "parse diagnostic [%s] %s: %s",
+            diag["severity"],
+            diag["code"],
+            diag["message"],
         )
+
+    # The ``% === Rules ===`` section of the nemo projection — the reasoning-engine
+    # rule surface (materialize / certify / stable_models all consume it).
+    nemo_rules = str(compiled["nemo_rules"])
 
     # Resolve the semantic profile to use for materialization
     semantic_profile_str = str(
         profile_data.get("semantic_profile", "PositiveHornProfile")
     )
-    # Resolve the declared profile to the typed enum for the certifier.  An
-    # unknown localname is a hard failure (no silent fallback): the case author
-    # must declare a real SemanticProfileId.
-    try:
-        declared_profile = SemanticProfileId(semantic_profile_str)
-    except ValueError as exc:
+    # An unknown localname is a hard failure (no silent fallback): the case author
+    # must declare a real semantic profile.
+    if semantic_profile_str not in _VALID_SEMANTIC_PROFILES:
         raise RunnerError(
             f"Case {case_dir.name}: unknown semantic_profile "
             f"{semantic_profile_str!r} in profile.json — must be one of "
-            f"{[str(p) for p in SemanticProfileId]}"
-        ) from exc
+            f"{sorted(_VALID_SEMANTIC_PROFILES)}"
+        )
 
     # The native engine applies the DECLARED semantics directly (issue #651):
     # PositiveHorn / stratified NAF via the Nemo chase; WellFounded and StableModel
@@ -1080,27 +1205,21 @@ def run(case_dir: Path, mode: str = "native") -> RunnerOutputs:
     # made Rust-authoritative in #497).  Pure analysis over the projected rules;
     # a non-empty ``violations`` list is surfaced (not raised) so the conformance
     # diff can compare it as a golden artifact.
-    certification = _certify_native(program, declared_profile, case_dir.name)
+    certification = _certify_native(nemo_rules, semantic_profile_str, case_dir.name)
 
-    # Build the input ConjunctiveGraph for the materializer.
+    # Read the raw world-fact N-Quads for the materializer (issue #630): the
+    # native materialize / foundation / stable-model engines parse N-Quads INSIDE
+    # Rust, so the runner feeds the raw ``input.nq`` text verbatim — no rdflib
+    # ConjunctiveGraph round-trip (which only ever existed to re-serialize).
     # Projection-only cases carry no named-graph worlds (flat Turtle program);
     # world-indexed cases (worlds-A, worlds-B, paraconsistency, explanation)
     # supply facts as ``input.nq`` (N-Quads, one named graph per world).
-    # If ``input.nq`` is absent the chase runs over an empty graph (zero
+    # If ``input.nq`` is absent the chase runs over the empty string (zero
     # asserted quads → zero derived quads; projections still work unchanged).
-    input_graph: ConjunctiveGraph = ConjunctiveGraph()
     input_nq_path = case_dir / "input.nq"
-    if input_nq_path.exists():
-        try:
-            nq_text = input_nq_path.read_text(encoding="utf-8")
-            if nq_text.strip():
-                import io as _io
-
-                input_graph.parse(_io.StringIO(nq_text), format="nquads")
-        except Exception as exc:
-            raise RunnerError(
-                f"Case {case_dir.name}: cannot parse input.nq: {exc}"
-            ) from exc
+    input_nq_text = (
+        input_nq_path.read_text(encoding="utf-8") if input_nq_path.exists() else ""
+    )
 
     # Optional budget governor (issue #502, Task 5).  Absent ``budget_params``
     # means unbounded (the #501 default): the chase runs to full fixpoint and
@@ -1116,19 +1235,28 @@ def run(case_dir: Path, mode: str = "native") -> RunnerOutputs:
     # Task 2): the Python OntoUML-discipline oracle (``logic_foundation.py``) has
     # been retired — there is no Python fallback (no-optionality doctrine).
     if profile_data.get("foundation_lowering") is True:
+        # The foundation path is a separate chase (``gmeow_logic.foundation``); its
+        # explanations are reconstructed from the resulting quads via
+        # ``gmeow_logic.explain`` (see _run_explanations, below).  It is NOT fused —
+        # there is no foundation_explained surface and the chase is distinct.
         mat_result = _materialize_foundation(
-            case_dir, input_graph, profile_data, budget
+            case_dir, input_nq_text, profile_data, budget
         )
+        # Explanations (over whatever quads exist; empty for projection-only cases).
+        explanations = _run_explanations(mat_result)
     else:
-        # Rust-authoritative default forward chase (issue #651): the Python oracle
-        # (``materialize_program``) is retired. ``gmeow_logic.materialize`` routes by
-        # the declared semantic profile — the Nemo chase for PositiveHorn / stratified
-        # NAF, and the native well-founded / stable-model evaluators for the
-        # non-stratifiable profiles the Nemo chase rejects. Provenance is the same
-        # content-addressed reifier graph the native explain / query / counterfactual
+        # Rust-authoritative default forward chase (issue #651), FUSED with the
+        # explanation skeleton in one native call (issue #630): the Python oracle
+        # (``materialize_program``) is retired.  ``gmeow_logic.materialize_explained``
+        # routes by the declared semantic profile — the Nemo chase for PositiveHorn /
+        # stratified NAF, and the native well-founded / stable-model evaluators for the
+        # non-stratifiable profiles the Nemo chase rejects — and reconstructs the
+        # explanation skeleton over the SAME in-memory derivation, eliminating the
+        # Rust→Python→Rust materialize-then-explain round-trip.  Provenance is the
+        # same content-addressed reifier graph the native query / counterfactual
         # consumers reconstruct.
-        mat_result = _materialize_native(
-            case_dir, program, input_graph, semantic_profile_str, budget
+        mat_result, explanations = _materialize_explained_native(
+            case_dir, nemo_rules, input_nq_text, semantic_profile_str, budget
         )
 
     # N-Quads serialization
@@ -1147,23 +1275,27 @@ def run(case_dir: Path, mode: str = "native") -> RunnerOutputs:
     )
     answers = _resolve_answers(case_dir, nquads_str, query_profile, budget)
 
-    # Projections
-    proj_outputs = _run_projections(program, mat_result.loss_entries)
+    # Projections (built from the Rust compile_logic result — issue #727).  The
+    # TypedDict is cast to a plain str-keyed mapping for the dynamic-key reads
+    # (per-target artifact + ledger) inside the builder.
+    proj_outputs = _build_projection_outputs(cast("dict[str, object]", compiled))
 
-    # Explanations (over whatever quads exist; empty for projection-only cases)
-    explanations = _run_explanations(mat_result)
+    # ``explanations`` was produced alongside ``mat_result`` above: fused with the
+    # chase on the native path (#630), or via _run_explanations on the foundation
+    # path.  Empty for projection-only cases (no quads).
 
     # Verdicts (v1 minimal)
     verdicts = _build_verdicts(mat_result)
 
     # Stable-model witnesses (issue #651): the individual answer sets, surfaced for
     # the ``witnesses.json`` side file. ``{}`` for every single-model profile.
-    witnesses = _resolve_witnesses(case_dir, program, input_graph, semantic_profile_str)
+    witnesses = _resolve_witnesses(
+        case_dir, nemo_rules, input_nq_text, semantic_profile_str
+    )
 
     return RunnerOutputs(
         case_dir=case_dir,
         mode=mode,
-        program=program,
         materialized=mat_result,
         materialized_nquads=nquads_str,
         projections=proj_outputs,
@@ -1182,36 +1314,128 @@ def run(case_dir: Path, mode: str = "native") -> RunnerOutputs:
 # --------------------------------------------------------------------------- #
 
 
-def compare_rdf(
-    actual_graph: Graph,
-    expected_graph: Graph,
-) -> list[str]:
-    """Compare two rdflib Graphs by blank-node-aware graph isomorphism.
+def _NT_FORMAT() -> object:  # noqa: N802 — factory mirroring an enum member access
+    """Return the ``gmeow_rdf.RdfFormat.N_TRIPLES`` member.
 
-    Reuses rdflib's :func:`~rdflib.compare.isomorphic` (same function used by
-    :func:`~.generator.rdf_compare`).  Does not compare serialization bytes —
-    only graph structure and named nodes.
+    A tiny accessor so the call sites read ``fmt=_NT_FORMAT()`` without importing
+    ``gmeow_rdf`` at module scope (it is imported lazily inside the helpers, the
+    same hard-fail-on-missing-extension pattern the rest of the runner uses).
+    """
+    import gmeow_rdf
+
+    return gmeow_rdf.RdfFormat.N_TRIPLES
+
+
+def _nquads_by_named_graph(nquads_text: str) -> dict[str, str]:
+    """Group an N-Quads document into per-named-graph N-Triples documents.
+
+    Parses ``nquads_text`` with the in-repo ``gmeow_rdf`` kernel and buckets every
+    quad by its named-graph IRI, re-serializing each world's triples as an
+    N-Triples string (the default graph is dropped — the materialized-corpus
+    comparison asserts only over named worlds, matching issue #501 AC(a)/(b)).
 
     Args:
-        actual_graph: The freshly produced graph.
-        expected_graph: The committed golden graph.
+        nquads_text: The N-Quads document (one named graph per world).
 
     Returns:
-        An empty list on match, or a list of one error string describing the
-        mismatch.
+        A dict mapping each named-graph IRI to that world's N-Triples document.
+
+    Raises:
+        ValueError | RuntimeError: If ``gmeow_rdf`` cannot parse the N-Quads.
     """
-    if isomorphic(actual_graph, expected_graph):
+    import gmeow_rdf
+
+    by_graph: dict[str, list[str]] = {}
+    if not nquads_text.strip():
+        return {}
+    for quad in gmeow_rdf.parse(
+        nquads_text.encode("utf-8"), format=gmeow_rdf.RdfFormat.N_QUADS
+    ):
+        graph_name = quad.graph_name
+        if not isinstance(graph_name, gmeow_rdf.NamedNode):
+            # Default-graph (or blank-node-graph) triples are not part of the
+            # world-indexed comparison surface — skip them, as the prior rdflib
+            # `isinstance(ctx.identifier, URIRef)` filter did.
+            continue
+        triple = gmeow_rdf.Triple(quad.subject, quad.predicate, quad.object)
+        # gmeow_rdf's Triple.__str__ omits the trailing `.`; append it so the
+        # per-world bucket is a valid N-Triples document for the re-parse.
+        line = f"{triple} ."
+        by_graph.setdefault(graph_name.value, []).append(line)
+    return {iri: "".join(s + "\n" for s in lines) for iri, lines in by_graph.items()}
+
+
+def _canonical_quads(text: str, fmt: object) -> list[str]:
+    """Canonicalize a serialized RDF document to a sorted list of N-Quads lines.
+
+    Parses ``text`` with the in-repo ``gmeow_rdf`` kernel (which — unlike rdflib —
+    reads the RDF 1.2 ``<< … >>`` triple terms the ``canonical-rdf12`` projection
+    emits), applies RDFC-1.0 canonical blank-node labelling, and returns the
+    canonicalized quads as a sorted list of their N-Quads strings.  Two RDF
+    documents are graph-isomorphic iff their canonical quad lists are equal — the
+    rdflib-free replacement for ``rdflib.compare.isomorphic`` (issue #630).
+
+    Args:
+        text: The serialized RDF document (Turtle / N-Triples / N-Quads).
+        fmt: The ``gmeow_rdf.RdfFormat`` member for ``text``.
+
+    Returns:
+        The sorted list of canonical N-Quads strings (one per quad).
+    """
+    import gmeow_rdf
+
+    dataset = gmeow_rdf.Dataset()
+    for quad in gmeow_rdf.parse(text.encode("utf-8"), format=fmt):  # type: ignore[arg-type]
+        dataset.add(
+            gmeow_rdf.Quad(quad.subject, quad.predicate, quad.object, quad.graph_name)
+        )
+    dataset.canonicalize(gmeow_rdf.CanonicalizationAlgorithm.RDFC_1_0)
+    return sorted(str(quad) for quad in dataset)
+
+
+def compare_rdf(
+    actual_text: str,
+    expected_text: str,
+    *,
+    fmt: object = None,
+) -> list[str]:
+    """Compare two serialized RDF documents by blank-node-aware graph equality.
+
+    Reimplemented rdflib-free (issue #630): both documents are parsed and RDFC-1.0
+    canonicalized via the in-repo ``gmeow_rdf`` kernel, and their canonical
+    quad-sets compared.  RDFC-1.0 canonicalization makes isomorphic graphs
+    byte-identical, so equal canonical quad lists ⇔ graph isomorphism — the same
+    verdict ``rdflib.compare.isomorphic`` returned, but over the native kernel
+    (which additionally reads the RDF 1.2 ``<< … >>`` triple terms rdflib cannot).
+
+    Args:
+        actual_text: The freshly produced RDF document.
+        expected_text: The committed golden RDF document.
+        fmt: The ``gmeow_rdf.RdfFormat`` member both documents are serialized in.
+            Defaults to ``RdfFormat.TURTLE`` (the projection / report artifact
+            format) when ``None``.
+
+    Returns:
+        An empty list on match, or a list of error strings describing the
+        mismatch (the canonical quads unique to each side).
+    """
+    import gmeow_rdf
+
+    if fmt is None:
+        fmt = gmeow_rdf.RdfFormat.TURTLE
+
+    actual_quads = _canonical_quads(actual_text, fmt)
+    expected_quads = _canonical_quads(expected_text, fmt)
+    if actual_quads == expected_quads:
         return []
-    # Produce a minimal diff: count triples in each and list unique triples
-    actual_only = set(actual_graph) - set(expected_graph)
-    expected_only = set(expected_graph) - set(actual_graph)
-    lines = [
-        f"RDF graph mismatch: {len(actual_graph)} vs {len(expected_graph)} triples"
-    ]
-    for triple in sorted(str(t) for t in actual_only)[:5]:
-        lines.append(f"  actual only: {triple}")
-    for triple in sorted(str(t) for t in expected_only)[:5]:
-        lines.append(f"  expected only: {triple}")
+
+    actual_only = sorted(set(actual_quads) - set(expected_quads))
+    expected_only = sorted(set(expected_quads) - set(actual_quads))
+    lines = [f"RDF graph mismatch: {len(actual_quads)} vs {len(expected_quads)} quads"]
+    for quad in actual_only[:5]:
+        lines.append(f"  actual only: {quad}")
+    for quad in expected_only[:5]:
+        lines.append(f"  expected only: {quad}")
     return lines
 
 
@@ -1407,45 +1631,33 @@ def diff_case(outputs: RunnerOutputs) -> CaseDiffResult:
             expected_path = proj_expected / filename
             pr = proj_by_target.get(target_name)
             if not expected_path.exists():
-                # A missing golden is a hard failure when the runner produced a
-                # non-trivial graph for this target.  Silent skipping would leave
+                # A missing golden is a hard failure when the runner produced an
+                # RDF artifact for this target.  Silent skipping would leave
                 # projections untested (verification-honesty violation).
-                if pr is not None and pr.graph is not None:
+                if pr is not None and pr.is_rdf:
                     diffs.append(
                         f"[{case_id}] projection {target_name}: golden "
                         f"{filename} is missing from expected/projections/ — "
                         f"run `gmeow-dev conformance --update` to generate it"
                     )
                 continue
-            if pr is None or pr.graph is None:
+            if pr is None or not pr.is_rdf:
                 diffs.append(f"[{case_id}] projection {target_name}: no graph produced")
                 continue
-            expected_graph = Graph()
-            try:
-                expected_graph.parse(str(expected_path), format="turtle")
-            except Exception as exc:
-                diffs.append(f"[{case_id}] cannot parse expected {filename}: {exc}")
-                continue
-            rdf_diffs = compare_rdf(pr.graph, expected_graph)
+            expected_text = expected_path.read_text(encoding="utf-8")
+            rdf_diffs = compare_rdf(pr.content, expected_text)
             for d in rdf_diffs:
                 diffs.append(f"[{case_id}] {target_name}: {d}")
 
         # --- Projection report ---
         report_path = proj_expected / "projection-report.ttl"
         if report_path.exists():
-            expected_report = Graph()
-            try:
-                expected_report.parse(str(report_path), format="turtle")
-            except Exception as exc:
-                diffs.append(
-                    f"[{case_id}] cannot parse expected projection-report.ttl: {exc}"
-                )
-            else:
-                rdf_diffs = compare_rdf(
-                    outputs.projections.report_graph, expected_report
-                )
-                for d in rdf_diffs:
-                    diffs.append(f"[{case_id}] projection-report: {d}")
+            expected_report_text = report_path.read_text(encoding="utf-8")
+            rdf_diffs = compare_rdf(
+                outputs.projections.report_turtle, expected_report_text
+            )
+            for d in rdf_diffs:
+                diffs.append(f"[{case_id}] projection-report: {d}")
 
         # --- Preservation ledger JSON ---
         ledger_path = proj_expected / "preservation-ledger.json"
@@ -1548,37 +1760,19 @@ def diff_case(outputs: RunnerOutputs) -> CaseDiffResult:
     mat_path = expected_root / "materialized.nq"
     if mat_path.exists():
         expected_nq_text = mat_path.read_text(encoding="utf-8")
-        # Parse both as ConjunctiveGraphs for isomorphism comparison
-        actual_cg: ConjunctiveGraph = ConjunctiveGraph()
-        expected_cg: ConjunctiveGraph = ConjunctiveGraph()
         try:
-            if outputs.materialized_nquads.strip():
-                import io
-
-                actual_cg.parse(
-                    io.StringIO(outputs.materialized_nquads), format="nquads"
-                )
-            if expected_nq_text.strip():
-                import io
-
-                expected_cg.parse(io.StringIO(expected_nq_text), format="nquads")
-        except Exception as exc:
+            actual_by_graph = _nquads_by_named_graph(outputs.materialized_nquads)
+            expected_by_graph = _nquads_by_named_graph(expected_nq_text)
+        except (ValueError, RuntimeError) as exc:
             diffs.append(f"[{case_id}] materialized.nq parse error: {exc}")
         else:
             # Compare per named graph to detect cross-world leaks (Gap-1 fix).
             # A union comparison would allow a quad in the wrong graph to pass
             # as long as the (S,P,O) triple existed in ANY world — defeating the
-            # world-isolation invariant required by issue #501 AC(a)/(b).
-            actual_graph_iris: set[URIRef] = {
-                ctx.identifier
-                for ctx in actual_cg.contexts()
-                if isinstance(ctx.identifier, URIRef)
-            }
-            expected_graph_iris: set[URIRef] = {
-                ctx.identifier
-                for ctx in expected_cg.contexts()
-                if isinstance(ctx.identifier, URIRef)
-            }
+            # world-isolation invariant required by issue #501 AC(a)/(b).  gmeow_rdf
+            # parses the N-Quads and we group by named-graph IRI (issue #630).
+            actual_graph_iris = set(actual_by_graph)
+            expected_graph_iris = set(expected_by_graph)
             # Report named graphs present on one side but not the other.
             for extra_iri in sorted(actual_graph_iris - expected_graph_iris):
                 diffs.append(
@@ -1590,11 +1784,14 @@ def diff_case(outputs: RunnerOutputs) -> CaseDiffResult:
                     f"[{case_id}] materialized.nq: named graph present in expected"
                     f" but not actual: <{missing_iri}>"
                 )
-            # Per-shared-graph triple comparison using the existing compare_rdf helper.
+            # Per-shared-graph triple comparison via gmeow_rdf canonicalization:
+            # each world's triples are re-serialized as N-Triples and compared.
             for graph_iri in sorted(actual_graph_iris & expected_graph_iris):
-                actual_g: Graph = Graph(store=actual_cg.store, identifier=graph_iri)
-                expected_g: Graph = Graph(store=expected_cg.store, identifier=graph_iri)
-                rdf_diffs = compare_rdf(actual_g, expected_g)
+                rdf_diffs = compare_rdf(
+                    actual_by_graph[graph_iri],
+                    expected_by_graph[graph_iri],
+                    fmt=_NT_FORMAT(),
+                )
                 for d in rdf_diffs:
                     diffs.append(f"[{case_id}] materialized.nq [<{graph_iri}>]: {d}")
 

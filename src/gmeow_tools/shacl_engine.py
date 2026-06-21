@@ -63,18 +63,21 @@ _BOX_LABELS = {
 
 
 def gmeow_shacl_version() -> str:
-    """Return the installed ``gmeow_shacl`` version for cache salting (#578).
+    """Return the installed native-extension version for cache salting (#578).
+
+    The SHACL engine now ships inside the single unified ``gmeow_native`` cdylib
+    (#630); its distribution version salts the validation cache.
 
     Raises:
         RuntimeError: If the extension is not installed (hard-fail, never a
             silent fallback — the validation path requires it).
     """
     try:
-        return metadata.version("gmeow-shacl")
+        return metadata.version("gmeow-native")
     except metadata.PackageNotFoundError as exc:  # pragma: no cover - env error
         raise RuntimeError(
-            "gmeow_shacl extension not installed — run `make shacl-py` "
-            "(uvx maturin develop --manifest-path crates/shacl/Cargo.toml)"
+            "gmeow_native extension not installed — run `make native-py` "
+            "(uvx maturin develop --manifest-path crates/native/Cargo.toml)"
         ) from exc
 
 

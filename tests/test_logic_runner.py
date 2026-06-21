@@ -19,8 +19,8 @@ import functools
 import json
 from pathlib import Path
 
+import gmeow_rdf
 import pytest
-from rdflib import RDF, Graph, Namespace
 
 from gmeow_tools.logic_runner import (
     RunnerError,
@@ -34,6 +34,10 @@ from gmeow_tools.logic_runner import (
     discover_cases,
     run,
 )
+
+#: N-Triples format member, for the ``compare_rdf`` unit tests that feed
+#: N-Triples strings (rather than the default Turtle).
+_NT = gmeow_rdf.RdfFormat.N_TRIPLES
 
 # --------------------------------------------------------------------------- #
 # Repository paths
@@ -67,59 +71,76 @@ _PROJECTION_CASE_IDS = [c.name for c in _ALL_PROJECTION_CASES]
 
 
 class TestCompareRdf:
-    """Unit tests for :func:`compare_rdf`."""
+    """Unit tests for :func:`compare_rdf` (gmeow_rdf canonicalization, #630).
+
+    ``compare_rdf`` is rdflib-free since #630: it takes two serialized RDF
+    documents (Turtle by default) and compares their gmeow_rdf RDFC-1.0 canonical
+    quad-sets, so the inputs here are N-Triples / Turtle strings, not rdflib
+    Graphs.
+    """
 
     def test_identical_graphs_match(self) -> None:
         """Two identical graphs must produce an empty diff list."""
-        ex = Namespace("https://example.org/")
-        g1 = Graph()
-        g2 = Graph()
-        g1.add((ex.A, RDF.type, ex.B))
-        g2.add((ex.A, RDF.type, ex.B))
-        result = compare_rdf(g1, g2)
+        nt = (
+            "<https://example.org/A> "
+            "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type> "
+            "<https://example.org/B> .\n"
+        )
+        result = compare_rdf(nt, nt, fmt=_NT)
         assert result == [], f"Expected empty diff for identical graphs, got: {result}"
 
     def test_isomorphic_blank_node_graphs_match(self) -> None:
         """Two isomorphic graphs (same structure, different BNode IDs) must match."""
-        from rdflib.term import BNode
-
-        ex = Namespace("https://example.org/")
-        g1 = Graph()
-        g2 = Graph()
-        b1 = BNode("x")
-        b2 = BNode("y")
-        g1.add((ex.A, ex.rel, b1))
-        g1.add((b1, ex.label, ex.val))
-        g2.add((ex.A, ex.rel, b2))
-        g2.add((b2, ex.label, ex.val))
-        result = compare_rdf(g1, g2)
+        g1 = (
+            "<https://example.org/A> <https://example.org/rel> _:x .\n"
+            "_:x <https://example.org/label> <https://example.org/val> .\n"
+        )
+        g2 = (
+            "<https://example.org/A> <https://example.org/rel> _:y .\n"
+            "_:y <https://example.org/label> <https://example.org/val> .\n"
+        )
+        result = compare_rdf(g1, g2, fmt=_NT)
         assert result == [], f"Expected empty diff for isomorphic graphs, got: {result}"
 
     def test_differing_graphs_fail(self) -> None:
         """Two graphs with different content must produce a non-empty diff list."""
-        ex = Namespace("https://example.org/")
-        g1 = Graph()
-        g2 = Graph()
-        g1.add((ex.A, RDF.type, ex.B))
-        g2.add((ex.A, RDF.type, ex.C))  # different object
-        result = compare_rdf(g1, g2)
+        g1 = (
+            "<https://example.org/A> "
+            "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type> "
+            "<https://example.org/B> .\n"
+        )
+        g2 = (
+            "<https://example.org/A> "
+            "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type> "
+            "<https://example.org/C> .\n"  # different object
+        )
+        result = compare_rdf(g1, g2, fmt=_NT)
         assert len(result) > 0, "Expected non-empty diff for different graphs"
 
     def test_empty_vs_nonempty_fails(self) -> None:
         """An empty graph vs non-empty must fail."""
-        ex = Namespace("https://example.org/")
-        g1 = Graph()
-        g2 = Graph()
-        g2.add((ex.A, RDF.type, ex.B))
-        result = compare_rdf(g1, g2)
+        g2 = (
+            "<https://example.org/A> "
+            "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type> "
+            "<https://example.org/B> .\n"
+        )
+        result = compare_rdf("", g2, fmt=_NT)
         assert len(result) > 0
 
     def test_empty_vs_empty_passes(self) -> None:
         """Two empty graphs are isomorphic."""
-        g1 = Graph()
-        g2 = Graph()
-        result = compare_rdf(g1, g2)
+        result = compare_rdf("", "", fmt=_NT)
         assert result == []
+
+    def test_rdf12_triple_terms_compare(self) -> None:
+        """RDF 1.2 ``<< … >>`` triple terms (rdflib cannot parse) compare equal."""
+        ttl = (
+            "@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n"
+            "<https://example.org/r> rdf:reifies "
+            "<<( <https://example.org/s> <https://example.org/p> "
+            "<https://example.org/o> )>> .\n"
+        )
+        assert compare_rdf(ttl, ttl) == []
 
 
 # --------------------------------------------------------------------------- #
@@ -412,9 +433,8 @@ class TestRunSmokeProjectionCases:
         if not expected_path.exists():
             pytest.skip(f"No committed projection-report.ttl for {case_dir.name}")
         outputs = run(case_dir, mode="native")
-        expected_graph = Graph()
-        expected_graph.parse(str(expected_path), format="turtle")
-        diffs = compare_rdf(outputs.projections.report_graph, expected_graph)
+        expected_text = expected_path.read_text(encoding="utf-8")
+        diffs = compare_rdf(outputs.projections.report_turtle, expected_text)
         assert diffs == [], (
             f"{case_dir.name}: projection-report.ttl mismatch:\n" + "\n".join(diffs)
         )
@@ -436,10 +456,9 @@ class TestRunSmokeProjectionCases:
             if not golden_path.exists():
                 continue
             pr = proj_by_target[target_name]
-            assert pr.graph is not None, f"{target_name}: no graph produced"
-            expected_graph = Graph()
-            expected_graph.parse(str(golden_path), format="turtle")
-            diffs = compare_rdf(pr.graph, expected_graph)
+            assert pr.is_rdf, f"{target_name}: not an RDF target"
+            expected_text = golden_path.read_text(encoding="utf-8")
+            diffs = compare_rdf(pr.content, expected_text)
             assert diffs == [], f"{case_dir.name}/{target_name}: {'\n'.join(diffs)}"
 
 
@@ -620,22 +639,18 @@ class TestVerifyNative:
         """A query that returns rows over the bundle yields an error report."""
         import gmeow_logic
 
-        from gmeow_tools import diagnostics
         from gmeow_tools.config import GTS_SNAPSHOT_FILE
 
         if not GTS_SNAPSHOT_FILE.exists():
             pytest.skip("GTS snapshot not present in this checkout")
 
         # Every class is a row → guaranteed non-empty → a "violation" by the
-        # negative-test convention; exercises the PyO3 + from_json violation path.
+        # negative-test convention; exercises the PyO3 live-report violation path.
         tripping = (
             "queries/verify/_synthetic-every-class.rq",
             "SELECT ?c WHERE { ?c a <http://www.w3.org/2002/07/owl#Class> }",
         )
-        report_json = gmeow_logic.verify_native(
-            GTS_SNAPSHOT_FILE.read_bytes(), [tripping]
-        )
-        report = diagnostics.report_from_json(report_json)
+        report = gmeow_logic.verify_native(GTS_SNAPSHOT_FILE.read_bytes(), [tripping])
         assert not report.ok, "a returned row must fail the report"
         assert report.error_count >= 1
         codes = {f["code"] for f in report.findings}
