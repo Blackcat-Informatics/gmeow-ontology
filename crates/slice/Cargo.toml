@@ -28,6 +28,7 @@ spargebra = { version = "0.4", features = ["sparql-12"] }
 # lockfile resolution.
 petgraph = { version = "0.8", default-features = false }
 sha2 = "0.10"
+hex = "0.4"
 serde = { version = "1", features = ["derive"] }
 
 [dev-dependencies]

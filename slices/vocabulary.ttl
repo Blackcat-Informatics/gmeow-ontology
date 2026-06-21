@@ -122,6 +122,48 @@ gmeow:builtAgainstCore a owl:DatatypeProperty ;
 # --------------------------------------------------------------------------- #
 
 # --------------------------------------------------------------------------- #
+# Computed slice-analysis vocabulary (S7 — analysis graph emitter)
+# --------------------------------------------------------------------------- #
+
+gmeow:computedSliceDependency a owl:Class ;
+    rdfs:label "computed slice dependency"@x-gmeow-english ;
+    skos:definition "A computed cross-slice dependency edge produced by the analysis graph emitter. Never authored; always in the gmeow:graph/slice-analysis named graph. Carries dependencyStatus, dependencyEvidence, dependencyFromSlice, dependencyToSlice, bundleContentId, and toolchain provenance."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slice-dsl> .
+
+gmeow:dependencyStatus a owl:DatatypeProperty ;
+    rdfs:label "dependency status"@x-gmeow-english ;
+    rdfs:domain gmeow:computedSliceDependency ;
+    rdfs:range xsd:string ;
+    skos:definition "The reconciliation verdict for a computed slice dependency: matched (declared and evidenced), undeclared (evidenced but missing from sliceDependsOn), stale (declared but no evidence), or forbidden (violates the tier model — core→extension or extension→extension)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slice-dsl> .
+
+gmeow:dependencyEvidence a owl:DatatypeProperty ;
+    rdfs:label "dependency evidence"@x-gmeow-english ;
+    rdfs:domain gmeow:computedSliceDependency ;
+    rdfs:range xsd:string ;
+    skos:definition "A human-readable summary of the evidence that produced this computed dependency edge: the referenced terms and the artifact paths that triggered the cross-slice reference."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slice-dsl> .
+
+gmeow:computedProfileMembership a owl:DatatypeProperty ;
+    rdfs:label "computed profile membership"@x-gmeow-english ;
+    rdfs:domain gmeow:Slice ;
+    rdfs:range xsd:string ;
+    skos:definition "The computed profile membership of a slice, derived by the analysis graph emitter from the dependency closure. Emitted into gmeow:graph/slice-analysis; never authored. Complements the authored gmeow:sliceProfile."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slice-dsl> .
+
+gmeow:termCoverage a owl:DatatypeProperty ;
+    rdfs:label "term coverage"@x-gmeow-english ;
+    rdfs:domain gmeow:Slice ;
+    rdfs:range xsd:integer ;
+    skos:definition "The number of vocabulary terms owned by a slice, as computed by the analysis graph emitter. Emitted into gmeow:graph/slice-analysis as an integer; never authored."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slice-dsl> .
+
+gmeow:graph
+    rdfs:label "GMEOW named graph registry"@x-gmeow-english ;
+    skos:definition "Namespace for named graph IRIs used in GMEOW. Sub-IRIs (e.g. gmeow:graph/slice-analysis) identify specific generated named graphs."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slice-dsl> .
+
+# --------------------------------------------------------------------------- #
 # Graph box role coverage (canonical explicit annotations).
 # --------------------------------------------------------------------------- #
 
@@ -136,3 +178,8 @@ gmeow:sliceProfile gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
 gmeow:sliceTier gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
 gmeow:tierCore gmeow:graphBoxRole gmeow:boxABox, gmeow:boxConfigBox .
 gmeow:tierExtension gmeow:graphBoxRole gmeow:boxABox, gmeow:boxConfigBox .
+gmeow:computedSliceDependency gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .
+gmeow:computedProfileMembership gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
+gmeow:dependencyEvidence gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
+gmeow:dependencyStatus gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
+gmeow:termCoverage gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
