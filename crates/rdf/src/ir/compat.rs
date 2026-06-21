@@ -31,7 +31,7 @@ use crate::{
     RdfTerm, RdfTriple,
 };
 
-use super::dataset::{QuadIds, RdfDataset, TermRef};
+use super::dataset::{QuadHandle, QuadIds, RdfDataset, TermRef};
 use super::term::TermId;
 
 impl RdfDataset {
@@ -94,14 +94,20 @@ impl RdfDataset {
         }
     }
 
-    /// Resolve one ID-native quad row to an owned [`RdfQuad`].
-    fn to_owned_quad(&self, q: QuadIds) -> RdfQuad {
+    /// Resolve one ID-native quad row to an owned [`RdfQuad`], attaching the quad's
+    /// source location (by its FROZEN ordinal) so consumers reading through the
+    /// bridge — diagnostics/SARIF, validate lints — see the same positions the IR
+    /// holds. Without this the bridge silently dropped every location.
+    fn to_owned_quad(&self, frozen_index: usize, q: QuadIds) -> RdfQuad {
         let mut quad = RdfQuad::new(
             self.to_owned_term(q.s),
             self.iri_string(q.p),
             self.to_owned_term(q.o),
         );
         quad.graph_name = q.g.map(|g| self.to_owned_term(g));
+        if let Some(loc) = self.location_of(QuadHandle::from_index(frozen_index as u32)) {
+            quad = quad.with_location(loc.clone());
+        }
         quad
     }
 
@@ -137,7 +143,11 @@ impl RdfDataset {
 /// `RdfDataset` are local to this crate.
 impl RdfStore for &RdfDataset {
     fn quads(&self) -> Box<dyn Iterator<Item = Result<RdfQuad, RdfDiagnostic>> + '_> {
-        Box::new(RdfDataset::quads(self).map(move |q| Ok(self.to_owned_quad(q))))
+        Box::new(
+            RdfDataset::quads(self)
+                .enumerate()
+                .map(move |(i, q)| Ok(self.to_owned_quad(i, q))),
+        )
     }
 
     fn reifiers(&self) -> Box<dyn Iterator<Item = Result<RdfReifier, RdfDiagnostic>> + '_> {
@@ -249,6 +259,31 @@ mod tests {
         let caps = RdfStore::capabilities(&store);
         assert!(caps.reifiers);
         assert!(caps.annotations);
+    }
+
+    #[test]
+    fn adapter_threads_quad_location() {
+        // A location attached at build time must survive across the compat bridge:
+        // the owned `RdfQuad` carries it. Previously the bridge dropped it.
+        let mut b = RdfDatasetBuilder::new();
+        let (s, p, o) = (iri(&mut b, "s"), iri(&mut b, "p"), iri(&mut b, "o"));
+        let h = b.next_quad_handle();
+        b.push_quad(s, p, o, None);
+        b.attach_location(h, crate::RdfLocation::logical("slice:example"));
+        let ds = b.freeze().expect("valid");
+
+        let store = ds.as_ref();
+        let quads: Vec<_> = RdfStore::quads(&store)
+            .collect::<Result<_, _>>()
+            .expect("ok");
+        assert_eq!(
+            quads[0]
+                .location
+                .as_ref()
+                .and_then(|l| l.logical.as_deref()),
+            Some("slice:example"),
+            "the bridge must thread the quad's IR location into the owned model"
+        );
     }
 
     #[test]

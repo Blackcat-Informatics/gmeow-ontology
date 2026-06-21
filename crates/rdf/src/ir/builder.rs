@@ -262,17 +262,49 @@ impl RdfDatasetBuilder {
     fn materialize(self) -> RdfDataset {
         let RdfDatasetBuilder {
             interner,
-            mut quads,
+            quads,
             mut reifiers,
             mut annotations,
-            mut locations,
+            locations,
             ..
         } = self;
 
         // Deterministic, reproducible frozen order: sort by id tuples. Terms keep
         // their interning (allocation) order, which is itself deterministic for a
         // fixed push sequence.
-        quads.sort_unstable();
+        //
+        // A `QuadHandle` addresses a quad by its FROZEN ordinal, but locations are
+        // pushed keyed by the *push-order* ordinal. Sorting the quads moves each one
+        // to a new position, so every location handle must be remapped to its quad's
+        // post-sort index — otherwise `location_of` returns a *different* quad's
+        // location, an LSP break for any consumer reading through the compat bridge.
+        let mut indexed: Vec<(QuadRow, u32)> = quads
+            .into_iter()
+            .enumerate()
+            .map(|(push, row)| (row, push as u32))
+            .collect();
+        indexed.sort_unstable_by_key(|(row, _)| *row);
+        let mut push_to_frozen: HashMap<u32, u32> = HashMap::with_capacity(indexed.len());
+        let quads: Vec<QuadRow> = indexed
+            .into_iter()
+            .enumerate()
+            .map(|(frozen, (row, push))| {
+                push_to_frozen.insert(push, frozen as u32);
+                row
+            })
+            .collect();
+        // Remap each location's handle from push ordinal → frozen ordinal. A handle
+        // whose push ordinal never materialized (e.g. attached then a duplicate
+        // quad was pushed) is dropped: its quad collapsed into a surviving row that
+        // carries its own handle.
+        let mut locations: Vec<(QuadHandle, RdfLocation)> = locations
+            .into_iter()
+            .filter_map(|(handle, loc)| {
+                push_to_frozen
+                    .get(&(handle.index() as u32))
+                    .map(|&frozen| (QuadHandle::from_index(frozen), loc))
+            })
+            .collect();
         reifiers.sort_unstable();
         annotations.sort_unstable();
         locations.sort_unstable_by_key(|(handle, _)| *handle);

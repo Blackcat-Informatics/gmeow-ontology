@@ -209,8 +209,31 @@ impl RdfDataset {
         self.annotations.iter().copied()
     }
 
+    /// The reifier resources bound to a triple term (C0.4). Several reifiers MAY
+    /// bind one triple, so this yields zero or more. Linear scan over the reifier
+    /// table — the single source for "who reifies this statement", used by the
+    /// SARIF/annotation threading and validate lints instead of re-deriving it.
+    pub fn reifiers_of(&self, triple: TermId) -> impl Iterator<Item = TermId> + '_ {
+        self.reifiers
+            .iter()
+            .filter(move |(_, t)| *t == triple)
+            .map(|(r, _)| *r)
+    }
+
+    /// The `(predicate, object)` statement annotations attached to a reifier
+    /// resource (RDF 1.2 annotation syntax). Linear scan over the annotation table
+    /// — the single source for a reified statement's annotation triples (e.g.
+    /// confidence, provenance, x-gmeow tags).
+    pub fn annotations_of(&self, reifier: TermId) -> impl Iterator<Item = (TermId, TermId)> + '_ {
+        self.annotations
+            .iter()
+            .filter(move |(r, _, _)| *r == reifier)
+            .map(|(_, p, o)| (*p, *o))
+    }
+
     /// The source location attached to a quad, if any. `O(log n)` binary search over
-    /// the handle-sorted sparse table.
+    /// the handle-sorted sparse table. The handle addresses the quad's FROZEN
+    /// ordinal (the position it occupies in [`quads`](Self::quads)).
     pub fn location_of(&self, handle: QuadHandle) -> Option<&RdfLocation> {
         self.locations
             .binary_search_by_key(&handle, |(h, _)| *h)
@@ -310,6 +333,66 @@ mod tests {
         );
         // The middle quad has no location.
         assert!(ds.location_of(QuadHandle::from_index(1)).is_none());
+    }
+
+    #[test]
+    fn location_follows_quad_through_freeze_sort() {
+        // Push quads in an order that does NOT match the frozen sort order, attach a
+        // location to one of them, and assert the location follows that quad to its
+        // post-sort position. This is the handle/sort remap — an LSP correctness
+        // guard: before the remap, `location_of` returned a *different* quad's
+        // location once the sort reordered the rows.
+        let mut b = RdfDatasetBuilder::new();
+        let s = iri(&mut b, "s");
+        let p = iri(&mut b, "p");
+        let o0 = iri(&mut b, "o0");
+        let o1 = iri(&mut b, "o1");
+        let o2 = iri(&mut b, "o2");
+
+        // Push in DESCENDING object order; the frozen order is ascending, so push
+        // order and frozen order genuinely differ.
+        let h_o2 = b.next_quad_handle();
+        b.push_quad(s, p, o2, None);
+        b.push_quad(s, p, o1, None);
+        b.push_quad(s, p, o0, None);
+        b.attach_location(h_o2, RdfLocation::logical("loc-o2"));
+
+        let ds = b.freeze().expect("valid");
+        let frozen_o2 = ds.quads().position(|q| q.o == o2).expect("o2 present");
+        assert_eq!(
+            ds.location_of(QuadHandle::from_index(frozen_o2 as u32))
+                .and_then(|l| l.logical.as_deref()),
+            Some("loc-o2"),
+            "location must follow the o2 quad to its frozen position"
+        );
+        // The o0 quad (which sorts first) carries no location.
+        let frozen_o0 = ds.quads().position(|q| q.o == o0).unwrap();
+        assert!(ds
+            .location_of(QuadHandle::from_index(frozen_o0 as u32))
+            .is_none());
+    }
+
+    #[test]
+    fn reifiers_of_and_annotations_of() {
+        let mut b = RdfDatasetBuilder::new();
+        let s = iri(&mut b, "s");
+        let p = iri(&mut b, "p");
+        let o = iri(&mut b, "o");
+        let triple = b.intern_triple(s, p, o);
+        let r1 = iri(&mut b, "r1");
+        let r2 = iri(&mut b, "r2");
+        let ap = iri(&mut b, "ap");
+        let ao = iri(&mut b, "ao");
+        b.push_reifier(r1, triple);
+        b.push_reifier(r2, triple);
+        b.push_annotation(r1, ap, ao);
+        let ds = b.freeze().expect("valid");
+
+        let reifiers: std::collections::BTreeSet<_> = ds.reifiers_of(triple).collect();
+        assert_eq!(reifiers, [r1, r2].into_iter().collect());
+        let anns: Vec<_> = ds.annotations_of(r1).collect();
+        assert_eq!(anns, vec![(ap, ao)]);
+        assert_eq!(ds.annotations_of(r2).count(), 0);
     }
 
     #[test]
