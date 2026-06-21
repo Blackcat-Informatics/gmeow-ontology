@@ -473,6 +473,11 @@ impl StreamingSink for SinkImporter {
             representation,
             decoded_len: None,
             metadata,
+            // The streaming sink delivers a blob's digest + metadata, not its
+            // payload. The content digest above is the blob_id reference; richer
+            // origin (segment-head) enrichment for the streaming path is a
+            // follow-up — the folded read path (`gts::blob_records`) populates it.
+            origin: None,
         });
     }
 

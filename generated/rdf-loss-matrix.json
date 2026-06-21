@@ -4,7 +4,7 @@
     "from": "rdf-1.2-dataset",
     "to": "gts",
     "intentional": true,
-    "note": "`RdfLookaside` blob records carry blob metadata but not the actual blob bytes, so the GTS writer cannot preserve blob payloads."
+    "note": "Blob payloads are preserved as content-addressed references (the blob_id digest plus the origin file id), never materialized into the RDF IR, which must stay value-light for arbitrarily large payloads (e.g. multi-terabyte data dumps). A destination GTS carries the reference; the payload bytes are streamed origin->destination on demand (deferred materialization)."
   },
   {
     "code": "bnode-scope-flatten",

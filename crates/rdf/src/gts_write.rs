@@ -336,8 +336,12 @@ fn apply_lookaside(state: &InternState, graph: &mut Graph, lookaside: RdfLookasi
         });
     }
 
-    // Blobs cannot be preserved because `RdfBlobRecord` carries metadata only,
-    // not the decoded bytes required by the GTS writer.
+    // Blobs travel by content-addressed reference, not by value. The RDF IR
+    // never holds payload bytes (a blob may be a multi-terabyte data dump), so
+    // the destination is not re-inlined here: the `RdfBlobRecord` carries the
+    // blob_id digest + origin, and a streaming materializer copies the bytes
+    // origin→destination on demand (deferred — see the `blob-bytes-absent`
+    // intentional loss in `crate::loss`).
 }
 
 fn term_id_by_display(state: &InternState, label: &str) -> Option<usize> {

@@ -206,6 +206,26 @@ pub struct RdfSegmentRecord {
     pub tail: usize,
 }
 
+/// Where a blob's payload bytes can be fetched from.
+///
+/// The payload is **never** held in the RDF IR — it may be arbitrarily large
+/// (multi-terabyte data dumps). This content-addressed reference — the blob_id
+/// digest (on [`RdfBlobRecord`]) plus the origin file identity here — is what a
+/// streaming materializer uses to copy bytes origin→destination on demand.
+#[derive(Debug, Clone, PartialEq, Eq, Default)]
+pub struct RdfBlobOrigin {
+    /// Origin file identity: the GTS segment-head id(s) (hex) the blob was read
+    /// from. A folded read records the file-level segment set; the originating
+    /// frame index is not recoverable from a fold and is intentionally omitted.
+    pub source_segments: Vec<String>,
+}
+
+/// A content-addressed reference to a blob that travels with an RDF store.
+///
+/// Carries the blob_id ([`digest`](Self::digest)) and declared metadata — but
+/// **never** the payload bytes (gmeow-gts#214 made the bytes reachable; the IR
+/// deliberately does not materialize them). The bytes are recovered by streaming
+/// from [`origin`](Self::origin) when a destination is materialized.
 #[derive(Debug, Clone, PartialEq)]
 pub struct RdfBlobRecord {
     pub digest: String,
@@ -213,6 +233,9 @@ pub struct RdfBlobRecord {
     pub representation: Option<String>,
     pub decoded_len: Option<usize>,
     pub metadata: BTreeMap<String, RdfMetadataValue>,
+    /// Content-addressed origin for streaming the payload on demand. `None` when
+    /// the source file identity is unknown (e.g. a hand-built store).
+    pub origin: Option<RdfBlobOrigin>,
 }
 
 #[derive(Debug, Clone, PartialEq)]

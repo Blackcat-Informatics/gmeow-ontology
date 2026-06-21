@@ -42,8 +42,8 @@ pub use ir::{
 #[cfg(feature = "gts")]
 pub use ir::{import_gts_events, import_gts_graph};
 pub use lookaside::{
-    RdfBlobRecord, RdfLookaside, RdfLookasideKind, RdfLookasideResource, RdfMetadataEntry,
-    RdfMetadataValue, RdfOpaqueNodeRecord, RdfSegmentRecord, RdfSignatureRecord,
+    RdfBlobOrigin, RdfBlobRecord, RdfLookaside, RdfLookasideKind, RdfLookasideResource,
+    RdfMetadataEntry, RdfMetadataValue, RdfOpaqueNodeRecord, RdfSegmentRecord, RdfSignatureRecord,
     RdfSuppressionRecord,
 };
 pub use loss::{

@@ -8,10 +8,10 @@ use gmeow_gts::model::{Graph, TermKind};
 
 use crate::ir::gts_resolve::{predicate_from_id, term_from_id, triple_from_ids};
 use crate::{
-    RdfAnnotation, RdfBlobRecord, RdfDiagnostic, RdfLocation, RdfLookaside, RdfLookasideKind,
-    RdfLookasideResource, RdfMetadataEntry, RdfMetadataValue, RdfOpaqueNodeRecord, RdfQuad,
-    RdfReifier, RdfSegmentRecord, RdfSignatureRecord, RdfStore, RdfStoreCapabilities,
-    RdfSuppressionRecord,
+    RdfAnnotation, RdfBlobOrigin, RdfBlobRecord, RdfDiagnostic, RdfLocation, RdfLookaside,
+    RdfLookasideKind, RdfLookasideResource, RdfMetadataEntry, RdfMetadataValue,
+    RdfOpaqueNodeRecord, RdfQuad, RdfReifier, RdfSegmentRecord, RdfSignatureRecord, RdfStore,
+    RdfStoreCapabilities, RdfSuppressionRecord,
 };
 
 /// RDF store view over a folded GTS graph.
@@ -199,6 +199,10 @@ fn segment_records(graph: &Graph) -> Vec<RdfSegmentRecord> {
 
 fn blob_records(graph: &Graph) -> Vec<RdfBlobRecord> {
     let blob_meta = blob_metadata_index(graph);
+    // Origin file identity (segment heads) shared by every blob read from this
+    // folded graph. Computed once; the fold does not retain per-blob frame
+    // provenance, so the reference is file-level.
+    let origin = blob_origin(graph);
     graph
         .blobs
         .iter()
@@ -208,11 +212,32 @@ fn blob_records(graph: &Graph) -> Vec<RdfBlobRecord> {
                 digest: digest.clone(),
                 media_type: metadata_text(&metadata, "mt"),
                 representation: metadata_text(&metadata, "rep"),
-                decoded_len: entry.decoded_len().ok(),
+                // `cached_bytes` measures only an already-decoded entry; it never
+                // forces a lazy decode. A transformed (Lazy) blob — potentially
+                // multi-terabyte — therefore reports `None` rather than decoding
+                // the whole payload just to learn its length.
+                decoded_len: entry.cached_bytes().map(<[u8]>::len),
                 metadata,
+                origin: origin.clone(),
             }
         })
         .collect()
+}
+
+/// The content-addressed origin reference for blobs in this folded graph: the
+/// file-level segment-head ids (hex). `None` when the graph declares no segment
+/// heads (e.g. a hand-built graph).
+fn blob_origin(graph: &Graph) -> Option<RdfBlobOrigin> {
+    if graph.segment_heads.is_empty() {
+        return None;
+    }
+    Some(RdfBlobOrigin {
+        source_segments: graph
+            .segment_heads
+            .iter()
+            .map(|head| hex_bytes(head))
+            .collect(),
+    })
 }
 
 fn resource_records(graph: &Graph) -> Vec<RdfLookasideResource> {
@@ -490,6 +515,27 @@ mod tests {
         graph.segment_profiles.push("rdf12".to_owned());
         graph.quads.push((0, 1, 2, Some(3)));
         graph
+    }
+
+    #[test]
+    fn blob_is_preserved_as_content_addressed_reference() {
+        // A blob read from a GTS graph is preserved as a content-addressed
+        // reference: the blob_id digest + an origin file id — never the payload
+        // bytes (which may be multi-terabyte). This is the by-reference model
+        // behind the `blob-bytes-absent` intentional loss.
+        let mut graph = Graph::default();
+        graph.segment_heads.push(vec![0xab, 0xcd]);
+        graph.set_blob("blake3:deadbeef".to_owned(), b"payload".to_vec());
+
+        let store = GtsGraphStore::new(&graph);
+        let lookaside = store.lookaside();
+        assert_eq!(lookaside.blobs.len(), 1);
+        let blob = &lookaside.blobs[0];
+        // blob_id reference.
+        assert_eq!(blob.digest, "blake3:deadbeef");
+        // origin file reference (segment-head hex).
+        let origin = blob.origin.as_ref().expect("origin reference present");
+        assert_eq!(origin.source_segments, vec!["abcd".to_owned()]);
     }
 
     #[test]
