@@ -143,7 +143,15 @@ impl SinkImporter {
                     .with_gts_term(gts_id),
             ));
         }
-        let Some(term) = self.raw_terms.get(&(segment_index, gts_id)) else {
+        // MOVE the raw term out: it resolves at most once (every later reference
+        // hits the `remaps` cache above), so taking ownership lets interning
+        // mutably borrow `self.builder` without a borrow conflict AND without
+        // cloning the term's owned strings. A (pathological) cyclic reference now
+        // surfaces as a dangling-term-ref — the term is already removed — rather
+        // than the nesting-limit; both are hard failures and a GTS Writer never
+        // emits cycles. The streaming path is the scope-correct authority, not the
+        // zero-alloc one (that is the `import_graph` contract).
+        let Some(term) = self.raw_terms.remove(&(segment_index, gts_id)) else {
             return Err(RdfDiagnostic::error(
                 "rdf-ir-dangling-term-ref",
                 format!(
@@ -157,11 +165,6 @@ impl SinkImporter {
                     .with_gts_term(gts_id),
             ));
         };
-        // Clone the small scalar fields out so we no longer borrow `self.raw_terms`
-        // while we intern (which mutably borrows `self.builder`). The owned strings
-        // are cloned here; the streaming path is the scope-correct authority, not
-        // the zero-alloc one (that is the `import_graph` contract).
-        let term = term.clone();
         let our_id = self.intern_raw_term(segment_index, gts_id, &term, depth)?;
         self.remaps.insert((segment_index, gts_id), our_id);
         Ok(our_id)

@@ -210,9 +210,14 @@ impl RdfDataset {
     }
 
     /// The reifier resources bound to a triple term (C0.4). Several reifiers MAY
-    /// bind one triple, so this yields zero or more. Linear scan over the reifier
-    /// table — the single source for "who reifies this statement", used by the
-    /// SARIF/annotation threading and validate lints instead of re-deriving it.
+    /// bind one triple, so this yields zero or more — the single source for "who
+    /// reifies this statement", used by the SARIF/annotation threading and validate
+    /// lints instead of re-deriving it.
+    ///
+    /// A **linear** scan: the reifier table is sorted by `(reifier, triple)`, so the
+    /// `triple` argument is the *secondary* key — entries for one triple are not
+    /// contiguous and a binary search does not apply. The table is small (a few
+    /// bindings per statement), so this is not a hot path.
     pub fn reifiers_of(&self, triple: TermId) -> impl Iterator<Item = TermId> + '_ {
         self.reifiers
             .iter()
@@ -221,13 +226,18 @@ impl RdfDataset {
     }
 
     /// The `(predicate, object)` statement annotations attached to a reifier
-    /// resource (RDF 1.2 annotation syntax). Linear scan over the annotation table
-    /// — the single source for a reified statement's annotation triples (e.g.
-    /// confidence, provenance, x-gmeow tags).
+    /// resource (RDF 1.2 annotation syntax) — the single source for a reified
+    /// statement's annotation triples (e.g. confidence, provenance, x-gmeow tags).
+    ///
+    /// `O(log n)` to locate the run: annotations are frozen sorted by
+    /// `(reifier, predicate, object)`, so all entries for one reifier are
+    /// contiguous — `partition_point` finds the start, then a `take_while` walks the
+    /// run.
     pub fn annotations_of(&self, reifier: TermId) -> impl Iterator<Item = (TermId, TermId)> + '_ {
-        self.annotations
+        let start = self.annotations.partition_point(|(r, _, _)| *r < reifier);
+        self.annotations[start..]
             .iter()
-            .filter(move |(r, _, _)| *r == reifier)
+            .take_while(move |(r, _, _)| *r == reifier)
             .map(|(_, p, o)| (*p, *o))
     }
 

@@ -1109,11 +1109,13 @@ fn check_citation_business_rules(xml: &str, problems: &mut Vec<String>) {
         if let Some(cit_end) = rest.find("</citation>") {
             let block = &rest[..cit_end + "</citation>".len()];
 
-            // Extract key
-            let key = rest
+            // Extract this citation's key — scoped to `block`, NOT `rest`: a
+            // (currently impossible) keyless citation must not borrow a LATER
+            // citation's key from the remaining XML and mis-attribute the problem.
+            let key = block
                 .find("key=\"")
                 .and_then(|kp| {
-                    let after = &rest[kp + 5..];
+                    let after = &block[kp + 5..];
                     after.find('"').map(|qe| after[..qe].to_string())
                 })
                 .unwrap_or_default();
