@@ -64,3 +64,11 @@ scryer-prolog = { git = "https://github.com/mthom/scryer-prolog", branch = "mast
 [dev-dependencies]
 proptest = "1"
 serde_json = "1"
+# Acceleration-program baselines (#630, Phase 0). Light feature set: criterion's
+# plotters/rayon defaults are off so `make bench` builds fast; the cargo-bench
+# stdout summary is all the baseline needs.
+criterion = { version = "0.5", default-features = false, features = ["cargo_bench_support"] }
+
+[[bench]]
+name = "foundation"
+harness = false
