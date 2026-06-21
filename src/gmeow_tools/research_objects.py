@@ -537,6 +537,7 @@ def build_croissant(g: Graph, ds: DatasetMeta) -> dict[str, object]:
             "encodingFormat": "text/plain",
             "contentUrl": str(content_url),
         }
+        # `_documents` uses `dict[str, object]`; "digests" is really `dict[str, str]`.
         digests: dict[str, str] = doc["digests"]  # type: ignore[assignment]
         if "sha256" in digests:
             file_object["sha256"] = digests["sha256"]
@@ -728,6 +729,7 @@ def build_ro_crate_metadata(
             "@type": "File",
             "name": str(doc["name"]),
         }
+        # `_documents` uses `dict[str, object]`; "digests" is really `dict[str, str]`.
         digests: dict[str, str] = doc["digests"]  # type: ignore[assignment]
         primary = _primary_digest(digests)
         if primary:
@@ -889,6 +891,7 @@ def build_frictionless(g: Graph, ds: DatasetMeta) -> dict[str, object]:
             "path": str(doc["contentUrl"] or doc["iri"]),
             "title": str(doc["name"]),
         }
+        # `_documents` uses `dict[str, object]`; "digests" is really `dict[str, str]`.
         digests: dict[str, str] = doc["digests"]  # type: ignore[assignment]
         primary = _primary_digest(digests)
         if primary:
