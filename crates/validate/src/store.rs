@@ -98,8 +98,14 @@ pub fn load_sources_into_store(paths: &[PathBuf]) -> Result<Store, String> {
 ///
 /// This function does not fail; parse failures are captured as `Err` entries in
 /// the returned `Vec` so the caller can produce per-file diagnostics.
-pub fn parse_all_files(paths: &[PathBuf]) -> Vec<(PathBuf, Result<Vec<Quad>, String>)> {
-    paths.iter().map(|p| (p.clone(), parse_file(p))).collect()
+pub fn parse_all_files(paths: Vec<PathBuf>) -> Vec<(PathBuf, Result<Vec<Quad>, String>)> {
+    paths
+        .into_iter()
+        .map(|p| {
+            let res = parse_file(&p);
+            (p, res)
+        })
+        .collect()
 }
 
 /// Build an oxigraph [`Store`] from already-parsed quad lists.
@@ -327,7 +333,7 @@ mod tests {
             "@prefix ex: <https://example.org/> .\nex:c ex:p ex:d .\n",
         );
         let paths = vec![a.clone(), b.clone()];
-        let parsed = parse_all_files(&paths);
+        let parsed = parse_all_files(paths);
         std::fs::remove_file(&a).ok();
         std::fs::remove_file(&b).ok();
 

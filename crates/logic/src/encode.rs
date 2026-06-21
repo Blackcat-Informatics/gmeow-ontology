@@ -77,8 +77,11 @@ pub(crate) fn encode_subject(subject: &NamedOrBlankNode) -> String {
 /// Escape `\` and `"` in a single pass, producing the same output as
 /// `.replace('\\', "\\\\").replace('"', "\\\"")` but with one allocation.
 #[inline]
-fn escape_backslash_and_quote(s: &str) -> String {
-    let mut out = String::with_capacity(s.len());
+fn escape_backslash_and_quote(s: &str) -> std::borrow::Cow<'_, str> {
+    if !s.contains('\\') && !s.contains('"') {
+        return std::borrow::Cow::Borrowed(s);
+    }
+    let mut out = String::with_capacity(s.len() + 4);
     for c in s.chars() {
         match c {
             '\\' => out.push_str("\\\\"),
@@ -86,7 +89,7 @@ fn escape_backslash_and_quote(s: &str) -> String {
             other => out.push(other),
         }
     }
-    out
+    std::borrow::Cow::Owned(out)
 }
 
 /// Encode an oxigraph `Literal` as a Nemo constant string.

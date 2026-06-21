@@ -177,7 +177,7 @@ impl ValidationRun {
         let parsed_sources: Vec<(PathBuf, Result<Vec<Quad>, String>)> =
             if options.gts_bytes.is_none() {
                 let paths: Vec<PathBuf> = source_paths.iter().map(PathBuf::from).collect();
-                store::parse_all_files(&paths)
+                store::parse_all_files(paths)
             } else {
                 Vec::new()
             };
@@ -609,12 +609,12 @@ fn check_sameas_ban_from_parsed(
                 continue;
             }
         };
-        let path_str = path.display().to_string();
         for (subject_text, obj) in store::sameas_violations(quads, namespace, allowlist) {
             result.errors.push(format!(
-                "{path_str}: banned owl:sameAs to external entity \
+                "{}: banned owl:sameAs to external entity \
                  {subject_text} owl:sameAs {obj} (Principle 5); \
-                 use skos:exactMatch or gmeow:authorityLink"
+                 use skos:exactMatch or gmeow:authorityLink",
+                path.display()
             ));
         }
     }
