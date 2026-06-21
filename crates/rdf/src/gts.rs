@@ -6,14 +6,13 @@ use std::collections::BTreeMap;
 use ciborium::value::Value;
 use gmeow_gts::model::{Graph, TermKind};
 
+use crate::ir::gts_resolve::{predicate_from_id, term_from_id, triple_from_ids};
 use crate::{
-    RdfAnnotation, RdfBlobRecord, RdfDiagnostic, RdfLiteral, RdfLocation, RdfLookaside,
+    RdfAnnotation, RdfBlobOrigin, RdfBlobRecord, RdfDiagnostic, RdfLocation, RdfLookaside,
     RdfLookasideKind, RdfLookasideResource, RdfMetadataEntry, RdfMetadataValue,
     RdfOpaqueNodeRecord, RdfQuad, RdfReifier, RdfSegmentRecord, RdfSignatureRecord, RdfStore,
-    RdfStoreCapabilities, RdfSuppressionRecord, RdfTerm, RdfTriple,
+    RdfStoreCapabilities, RdfSuppressionRecord,
 };
-
-const MAX_GTS_TERM_NESTING_DEPTH: usize = 16;
 
 /// RDF store view over a folded GTS graph.
 #[derive(Debug, Clone, Copy)]
@@ -200,6 +199,10 @@ fn segment_records(graph: &Graph) -> Vec<RdfSegmentRecord> {
 
 fn blob_records(graph: &Graph) -> Vec<RdfBlobRecord> {
     let blob_meta = blob_metadata_index(graph);
+    // Origin file identity (segment heads) shared by every blob read from this
+    // folded graph. Computed once; the fold does not retain per-blob frame
+    // provenance, so the reference is file-level.
+    let origin = blob_origin(graph);
     graph
         .blobs
         .iter()
@@ -209,11 +212,32 @@ fn blob_records(graph: &Graph) -> Vec<RdfBlobRecord> {
                 digest: digest.clone(),
                 media_type: metadata_text(&metadata, "mt"),
                 representation: metadata_text(&metadata, "rep"),
-                decoded_len: entry.decoded_len().ok(),
+                // `cached_bytes` measures only an already-decoded entry; it never
+                // forces a lazy decode. A transformed (Lazy) blob — potentially
+                // multi-terabyte — therefore reports `None` rather than decoding
+                // the whole payload just to learn its length.
+                decoded_len: entry.cached_bytes().map(<[u8]>::len),
                 metadata,
+                origin: origin.clone(),
             }
         })
         .collect()
+}
+
+/// The content-addressed origin reference for blobs in this folded graph: the
+/// file-level segment-head ids (hex). `None` when the graph declares no segment
+/// heads (e.g. a hand-built graph).
+fn blob_origin(graph: &Graph) -> Option<RdfBlobOrigin> {
+    if graph.segment_heads.is_empty() {
+        return None;
+    }
+    Some(RdfBlobOrigin {
+        source_segments: graph
+            .segment_heads
+            .iter()
+            .map(|head| hex_bytes(head))
+            .collect(),
+    })
 }
 
 fn resource_records(graph: &Graph) -> Vec<RdfLookasideResource> {
@@ -403,151 +427,6 @@ fn quad_from_ids(
     Ok(quad)
 }
 
-fn triple_from_ids(
-    graph: &Graph,
-    s: usize,
-    p: usize,
-    o: usize,
-    location: RdfLocation,
-) -> Result<RdfTriple, RdfDiagnostic> {
-    triple_from_ids_depth(graph, s, p, o, location, 0)
-}
-
-fn triple_from_ids_depth(
-    graph: &Graph,
-    s: usize,
-    p: usize,
-    o: usize,
-    location: RdfLocation,
-    depth: usize,
-) -> Result<RdfTriple, RdfDiagnostic> {
-    let subject = term_from_id_depth(graph, s, location.clone(), depth)?;
-    let predicate = predicate_from_id_depth(graph, p, location.clone(), depth)?;
-    let object = term_from_id_depth(graph, o, location.clone(), depth)?;
-    Ok(RdfTriple::new(subject, predicate, object).with_location(location))
-}
-
-fn predicate_from_id(
-    graph: &Graph,
-    term_id: usize,
-    location: RdfLocation,
-) -> Result<String, RdfDiagnostic> {
-    predicate_from_id_depth(graph, term_id, location, 0)
-}
-
-fn predicate_from_id_depth(
-    graph: &Graph,
-    term_id: usize,
-    location: RdfLocation,
-    depth: usize,
-) -> Result<String, RdfDiagnostic> {
-    match term_from_id_depth(graph, term_id, location.clone(), depth)? {
-        RdfTerm::Iri(iri) => Ok(iri),
-        other => Err(RdfDiagnostic::error(
-            "gts-predicate-not-iri",
-            format!("GTS predicate term must be an IRI, got {:?}", other.kind()),
-        )
-        .with_location(location.with_gts_term(term_id))),
-    }
-}
-
-fn term_from_id(
-    graph: &Graph,
-    term_id: usize,
-    location: RdfLocation,
-) -> Result<RdfTerm, RdfDiagnostic> {
-    term_from_id_depth(graph, term_id, location, 0)
-}
-
-fn term_from_id_depth(
-    graph: &Graph,
-    term_id: usize,
-    location: RdfLocation,
-    depth: usize,
-) -> Result<RdfTerm, RdfDiagnostic> {
-    if depth > MAX_GTS_TERM_NESTING_DEPTH {
-        return Err(RdfDiagnostic::error(
-            "gts-term-nesting-limit",
-            "GTS term nesting depth limit exceeded",
-        )
-        .with_location(location.with_gts_term(term_id)));
-    }
-    let term = graph.terms.get(term_id).ok_or_else(|| {
-        RdfDiagnostic::error(
-            "gts-term-out-of-range",
-            format!("GTS term id {term_id} is out of range"),
-        )
-        .with_location(location.clone().with_gts_term(term_id))
-    })?;
-    match term.kind {
-        TermKind::Iri => {
-            let Some(iri) = term.value.as_deref().filter(|value| !value.is_empty()) else {
-                return Err(RdfDiagnostic::error(
-                    "gts-iri-missing-value",
-                    "GTS IRI term requires a non-empty value",
-                )
-                .with_location(location.with_gts_term(term_id)));
-            };
-            Ok(RdfTerm::iri(iri))
-        }
-        TermKind::Bnode => Ok(RdfTerm::blank_node(
-            term.value
-                .clone()
-                .unwrap_or_else(|| format!("gts_bnode_{term_id}")),
-        )),
-        TermKind::Literal => {
-            let datatype = match term.datatype {
-                Some(datatype_id) => {
-                    match term_from_id_depth(graph, datatype_id, location.clone(), depth + 1)? {
-                        RdfTerm::Iri(iri) => Some(iri),
-                        other => {
-                            return Err(RdfDiagnostic::error(
-                                "gts-literal-datatype-not-iri",
-                                format!(
-                                    "GTS literal datatype must resolve to an IRI, got {:?}",
-                                    other.kind()
-                                ),
-                            )
-                            .with_location(location.with_gts_term(datatype_id)));
-                        }
-                    }
-                }
-                None => None,
-            };
-            Ok(RdfTerm::literal(RdfLiteral {
-                lexical_form: term.value.clone().unwrap_or_default(),
-                datatype,
-                language: term.lang.clone(),
-                direction: None,
-            }))
-        }
-        TermKind::Triple => {
-            let Some(reifier_id) = term.reifier else {
-                return Err(RdfDiagnostic::error(
-                    "gts-unbound-triple-term",
-                    "GTS triple term has no reifier binding",
-                )
-                .with_location(location.with_gts_term(term_id)));
-            };
-            let Some((s, p, o)) = graph.reifier(reifier_id) else {
-                return Err(RdfDiagnostic::error(
-                    "gts-missing-reifier-binding",
-                    format!("GTS triple term references missing reifier {reifier_id}"),
-                )
-                .with_location(location.with_gts_term(term_id).with_gts_reifier(reifier_id)));
-            };
-            Ok(RdfTerm::triple(triple_from_ids_depth(
-                graph,
-                s,
-                p,
-                o,
-                location.with_gts_reifier(reifier_id),
-                depth + 1,
-            )?))
-        }
-    }
-}
-
 #[cfg(feature = "oxigraph")]
 pub fn flattened_oxigraph_store_from_bytes(
     bytes: &[u8],
@@ -591,6 +470,7 @@ pub fn flattened_oxigraph_store_from_graph(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::RdfTerm;
     use gmeow_gts::model::{Term, TermKind};
     use gmeow_gts::writer::Writer;
 
@@ -601,6 +481,7 @@ mod tests {
             value: Some("https://example.org/s".to_owned()),
             datatype: None,
             lang: None,
+            direction: None,
             reifier: None,
         });
         graph.terms.push(Term {
@@ -608,6 +489,7 @@ mod tests {
             value: Some("https://example.org/p".to_owned()),
             datatype: None,
             lang: None,
+            direction: None,
             reifier: None,
         });
         graph.terms.push(Term {
@@ -615,6 +497,7 @@ mod tests {
             value: Some("hallo".to_owned()),
             datatype: None,
             lang: Some("x-gmeow-afrikaans".to_owned()),
+            direction: None,
             reifier: None,
         });
         graph.terms.push(Term {
@@ -622,6 +505,7 @@ mod tests {
             value: Some("https://example.org/graph".to_owned()),
             datatype: None,
             lang: None,
+            direction: None,
             reifier: None,
         });
         graph.meta.push((
@@ -631,6 +515,27 @@ mod tests {
         graph.segment_profiles.push("rdf12".to_owned());
         graph.quads.push((0, 1, 2, Some(3)));
         graph
+    }
+
+    #[test]
+    fn blob_is_preserved_as_content_addressed_reference() {
+        // A blob read from a GTS graph is preserved as a content-addressed
+        // reference: the blob_id digest + an origin file id — never the payload
+        // bytes (which may be multi-terabyte). This is the by-reference model
+        // behind the `blob-bytes-absent` intentional loss.
+        let mut graph = Graph::default();
+        graph.segment_heads.push(vec![0xab, 0xcd]);
+        graph.set_blob("blake3:deadbeef".to_owned(), b"payload".to_vec());
+
+        let store = GtsGraphStore::new(&graph);
+        let lookaside = store.lookaside();
+        assert_eq!(lookaside.blobs.len(), 1);
+        let blob = &lookaside.blobs[0];
+        // blob_id reference.
+        assert_eq!(blob.digest, "blake3:deadbeef");
+        // origin file reference (segment-head hex).
+        let origin = blob.origin.as_ref().expect("origin reference present");
+        assert_eq!(origin.source_segments, vec!["abcd".to_owned()]);
     }
 
     #[test]
@@ -669,6 +574,7 @@ mod tests {
             value: None,
             datatype: None,
             lang: None,
+            direction: None,
             reifier: Some(0),
         });
         graph.terms.push(Term {
@@ -676,6 +582,7 @@ mod tests {
             value: Some("https://example.org/p".to_owned()),
             datatype: None,
             lang: None,
+            direction: None,
             reifier: None,
         });
         graph.terms.push(Term {
@@ -683,6 +590,7 @@ mod tests {
             value: Some("https://example.org/o".to_owned()),
             datatype: None,
             lang: None,
+            direction: None,
             reifier: None,
         });
         graph.reifiers.push((0, (0, 1, 2)));
@@ -701,6 +609,7 @@ mod tests {
                 value: value.map(str::to_owned),
                 datatype: None,
                 lang: None,
+                direction: None,
                 reifier: None,
             });
 

@@ -18,6 +18,10 @@ from typing import IO, overload
 
 def project_statements_rdf12(owl_ttl: str) -> str: ...
 def normalize_rdf12_to_owl(rdf12_ttl: str) -> str: ...
+def loss_matrix_json() -> str: ...
+def canonicalize_turtle(
+    turtle_bytes: bytes, extra_prefixes: list[tuple[str, str]] = ...
+) -> bytes: ...
 
 # ── Serialization / canonicalization enums ──────────────────────────────────────
 
@@ -202,3 +206,58 @@ def serialize(input: QueryTriples, output: IO[bytes], format: RdfFormat) -> None
 def serialize(
     input: QueryTriples, output: None = ..., *, format: RdfFormat
 ) -> bytes: ...
+
+# ── RDF → GTS producer (crates/rdf/src/py_gts.rs, #819 Task 8) ───────────────────
+
+#: A `(data, media_type, rep)` content-addressed blob row.
+_BlobRow = tuple[bytes, str, str]
+#: A `(data, format, graph_name, scope)` named-graph ingest row.
+_NamedGraphRow = tuple[bytes, RdfFormat, str | None, str | None]
+
+def gts_from_quads(
+    data: bytes,
+    *,
+    format: RdfFormat,
+    profile: str = ...,
+    transform: list[str] | None = ...,
+) -> bytes: ...
+def gts_from_rdf12_bytes(
+    data: bytes,
+    *,
+    format: RdfFormat,
+    profile: str = ...,
+    transform: list[str] | None = ...,
+) -> bytes: ...
+def compile_gts_native(
+    base_data: bytes,
+    base_format: RdfFormat,
+    *,
+    base_scope: str | None = ...,
+    rdf12_data: bytes | None = ...,
+    rdf12_format: RdfFormat | None = ...,
+    rdf12_graph_name: str | None = ...,
+    rdf12_scope: str | None = ...,
+    named_graphs: list[_NamedGraphRow] | None = ...,
+    transform: list[str] | None = ...,
+    doc_blobs: list[_BlobRow] | None = ...,
+    report_blobs: list[_BlobRow] | None = ...,
+    signer_secret: bytes | None = ...,
+    signer_kid: str | None = ...,
+    public_key_armor: str | None = ...,
+    rsyncable_threshold: int = ...,
+) -> bytes: ...
+def snapshot_content_id_native(data: bytes, *, format: RdfFormat) -> str: ...
+def feedback_bundle_native(
+    data: bytes,
+    *,
+    format: RdfFormat,
+    report_blobs: list[_BlobRow] | None = ...,
+) -> bytes: ...
+
+# A Python handle to a frozen, immutable RDF 1.2 dataset (#819 C7 foundation).
+class RdfDataset:
+    def __init__(self, data: bytes | str, format: RdfFormat) -> None: ...
+    def quad_count(self) -> int: ...
+    def term_count(self) -> int: ...
+    def __len__(self) -> int: ...
+    def to_gts(self, profile: str = ...) -> bytes: ...

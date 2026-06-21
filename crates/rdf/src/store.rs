@@ -60,7 +60,15 @@ pub trait RdfStore {
     }
 }
 
-/// Simple owned in-memory RDF store for tests and small generated projections.
+/// A simple owned in-memory [`RdfStore`] — a **test-only fixture** (#819 C8).
+///
+/// The immutable value-interned `RdfDataset` is the sole PRODUCTION working
+/// store; it feeds every consumer as an `RdfStore` through the compat bridge
+/// (`&RdfDataset: impl RdfStore`). `VecRdfStore` has **zero production
+/// construction sites** — it survives only as an ergonomic owned builder for
+/// unit/integration tests across `gmeow-rdf` and `gmeow-logic`. C8's goal (no
+/// owned-string store competing with the IR in production) is thus met; retiring
+/// this fixture from the ~65 test sites is a mechanical follow-up.
 #[derive(Debug, Clone, Default)]
 pub struct VecRdfStore {
     pub quads: Vec<RdfQuad>,

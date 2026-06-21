@@ -12,25 +12,27 @@ dictionary:
   binding and the reifier's other triples become ``annot`` rows (§7.3). rdflib 7.6
   has no triple-term API, so the RDF-star source must be read with gmeow_rdf.
 
-Both feed :class:`_Builder`, which emits one ``dist``-profile ``snapshot`` (§10).
+The GTS BYTES are produced in Rust (#819 Task 8): :class:`_Builder` is a thin
+glue layer that lowers rdflib sources to ``gmeow_rdf.Quad`` lists and hands them
+to the native ``gmeow_rdf`` producer (``compile_gts_native`` /
+``gts_from_*_native``), which authors the single ``dist``-profile ``snapshot``
+frame (§10). The snapshot payload is byte-identical to the historical Python
+encoder; only the zstd codec differs (codec-skew), so the committed ``gmeow.gts``
+folds identically while its compressed head-id may drift.
 """
 
 from __future__ import annotations
 
-from collections.abc import Callable
-from pathlib import Path
 from typing import TYPE_CHECKING
 
-from blake3 import blake3
-from gts import Signer
-from gts.model import XSD_STRING, Quad, Term, TermKind, Triple
-from gts.wire import canonical
-from gts.writer import Writer, term_to_wire
-from rdflib import BNode, Dataset, Graph, Literal, URIRef
+import gmeow_rdf as ox
+from rdflib import Dataset, Graph, URIRef
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
+    from pathlib import Path
 
+    from gts import Signer
     from rdflib.term import Node
 
     from gmeow_tools.saturate import DerivedTriple
@@ -38,54 +40,69 @@ if TYPE_CHECKING:
 _RDF_REIFIES = "http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies"
 
 
-class _Interner:
-    """Assigns stable, append-order term-ids and de-duplicates terms (§7.2)."""
+def _nquads_bytes(graph: Graph) -> bytes:
+    """Serialize an rdflib ``Graph``/``Dataset`` to N-Quads bytes for native ingest.
 
-    def __init__(self) -> None:
-        self.terms: list[Term] = []
-        self._index: dict[tuple[object, ...], int] = {}
+    Lowering to text (not ``gmeow_rdf.Quad`` objects) is deliberate: the strict
+    ``gmeow_rdf.Literal`` constructor rejects the ontology's private-use language
+    tags (``@x-gmeow-*``), whereas the native producer parses these bytes with the
+    LENIENT oxigraph parser — preserving every tag verbatim, exactly as the prior
+    rdflib→``gts.model.Term`` ingest did. Quoted-triple components in the base
+    graph are not representable in N-Quads and never occur here (they ride the RDF
+    1.2 statement path); a Dataset's named graphs survive as the quad graph slot.
+    """
+    fmt = "nquads" if isinstance(graph, Dataset) else "nt"
+    data = graph.serialize(format=fmt, encoding="utf-8")
+    return data if isinstance(data, bytes) else data.encode("utf-8")
 
-    def _intern(self, key: tuple[object, ...], make: Callable[[], Term]) -> int:
-        existing = self._index.get(key)
-        if existing is not None:
-            return existing
-        tid = len(self.terms)
-        self.terms.append(make())
-        self._index[key] = tid
-        return tid
 
-    def iri(self, iri: str) -> int:
-        return self._intern(("iri", iri), lambda: Term(TermKind.IRI, iri))
+def _signer_parts(
+    signer: Signer | None, public_key_armor: str | None
+) -> tuple[bytes | None, str | None, str | None]:
+    """Extract the 32 raw Ed25519 secret bytes + kid from a ``gts.Signer``.
 
-    def bnode(self, label: str, scope: str | None = None) -> int:
-        """Intern a blank node, optionally scoped to an ingest source.
+    The native producer signs with the raw key (matching ``gts.crypto.sign_id``),
+    so the armored OpenPGP secret never crosses the FFI. ``signer`` xor
+    ``public_key_armor`` is rejected by the native side (no-optionality).
+    """
+    if signer is None:
+        return None, None, public_key_armor
+    from cryptography.hazmat.primitives import serialization
 
-        Sources are canonicalized INDEPENDENTLY, so two different
-        existential nodes in different sources can carry the same canonical
-        label — scoping prevents them collapsing into one term. ``None``
-        (single-source builders) preserves the raw label.
-        """
-        value = label if scope is None else f"{scope}-{label}"
-        return self._intern(
-            ("bnode", scope, label), lambda: Term(TermKind.BNODE, value)
-        )
+    raw = signer.key.private_bytes(
+        serialization.Encoding.Raw,
+        serialization.PrivateFormat.Raw,
+        serialization.NoEncryption(),
+    )
+    return raw, signer.kid, public_key_armor
 
-    def literal(self, lex: str, datatype: str | None, lang: str | None) -> int:
-        dt_id = self.iri(datatype) if datatype is not None else None
-        key = ("lit", lex, datatype or "", lang or "")
-        return self._intern(
-            key, lambda: Term(TermKind.LITERAL, lex, datatype=dt_id, lang=lang)
-        )
+
+def _nt_term(node: Node) -> str:
+    """An rdflib node's N-Triples token (IRI / blank node / literal)."""
+    return node.n3()
+
+
+def _reifies_nt(s: Node, p: Node, o: Node, reifier: URIRef) -> str:
+    """The RDF 1.2 ``reifier rdf:reifies <<( s p o )>>`` N-Triples line."""
+    triple_term = f"<<( {_nt_term(s)} {_nt_term(p)} {_nt_term(o)} )>>"
+    return f"{_nt_term(reifier)} <{_RDF_REIFIES}> {triple_term} ."
 
 
 class _Builder:
-    """Accumulates terms/quads/reifies/annot from one or more RDF sources."""
+    """Glue that accumulates rdflib sources and emits GTS bytes via Rust.
+
+    Each rdflib source is serialized to N-Quads bytes and handed to the native
+    ``gmeow_rdf`` producer, which parses leniently, interns, content-sorts, and
+    authors the snapshot frame. This class holds NO encoding logic of its own.
+    """
 
     def __init__(self) -> None:
-        self.terms = _Interner()
-        self.quads: list[Quad] = []
-        self.reifies: dict[int, Triple] = {}
-        self.annot: list[Triple] = []
+        self._base_data: bytes = b""
+        self._named_graphs: list[tuple[bytes, str | None, str | None]] = []
+        self._rdf12: tuple[bytes, str | None, str | None] | None = None
+        # Programmatic statement layer (the maximal/annotated path, #34), built as
+        # RDF 1.2 N-Triples lines because rdflib 7.6 has no triple-term API.
+        self._statement_lines: list[str] = []
 
     # -- rdflib (RDF 1.1) -----------------------------------------------------
 
@@ -99,30 +116,14 @@ class _Builder:
         """Ingest an rdflib ``Graph``/``Dataset`` base graph.
 
         ``graph_name`` assigns rows that carry no name of their own to a named
-        graph — the snapshot's source-partitioning hook, so consumers can
-        scope to exactly the layer they need.
+        graph — the snapshot's source-partitioning hook, so consumers can scope
+        to exactly the layer they need.
         """
-        default_gid = self.terms.iri(graph_name) if graph_name is not None else None
-        for s, p, o, name in _iter_quads(graph):
-            sid, pid, oid = (
-                self._rdflib(s, bnode_scope),
-                self._rdflib(p, bnode_scope),
-                self._rdflib(o, bnode_scope),
-            )
-            gid = self._rdflib(name, bnode_scope) if name is not None else default_gid
-            if sid is None or pid is None or oid is None:
-                continue
-            self.quads.append((sid, pid, oid, gid))
-
-    def _rdflib(self, node: Node, bnode_scope: str | None = None) -> int | None:
-        if isinstance(node, URIRef):
-            return self.terms.iri(str(node))
-        if isinstance(node, BNode):
-            return self.terms.bnode(str(node), bnode_scope)
-        if isinstance(node, Literal):
-            dt = str(node.datatype) if node.datatype is not None else None
-            return self.terms.literal(str(node), dt, node.language)
-        return None  # quoted triples handled via the RDF 1.2 path
+        data = _nquads_bytes(graph)
+        if graph_name is None and bnode_scope is None:
+            self._base_data += data
+        else:
+            self._named_graphs.append((data, graph_name, bnode_scope))
 
     def add_annotated(
         self,
@@ -137,33 +138,18 @@ class _Builder:
     ) -> None:
         """Add an asserted triple PLUS its RDF 1.2 statement-layer rows.
 
-        The base triple stays a plain quad (consumers ignorant of RDF 1.2
-        still parse it); the reifier binds it in ``reifies`` and carries the
-        ``annotations`` rows (§7.3) — the transpiler's inline-provenance
-        emission path (#34).
+        The base triple stays a plain quad (consumers ignorant of RDF 1.2 still
+        parse it); the reifier binds it in ``reifies`` and carries the
+        ``annotations`` rows (§7.3) — the transpiler's inline-provenance emission
+        path (#34). ``graph_name``/``bnode_scope`` are accepted for signature
+        compatibility; the maximal path uses neither.
         """
-        sid, pid, oid = (
-            self._rdflib(s, bnode_scope),
-            self._rdflib(p, bnode_scope),
-            self._rdflib(o, bnode_scope),
-        )
-        if sid is None or pid is None or oid is None:
-            msg = f"unsupported node in annotated triple: ({s!r}, {p!r}, {o!r})"
-            raise ValueError(msg)
-        gid = self.terms.iri(graph_name) if graph_name is not None else None
-        self.quads.append((sid, pid, oid, gid))
-        rid = self.terms.iri(str(reifier))
-        existing = self.reifies.get(rid)
-        if existing is not None and existing != (sid, pid, oid):
-            msg = f"conflicting reifier rebind for {reifier!r}"
-            raise ValueError(msg)
-        self.reifies[rid] = (sid, pid, oid)
+        self._base_data += f"{_nt_term(s)} {_nt_term(p)} {_nt_term(o)} .\n".encode()
+        self._statement_lines.append(_reifies_nt(s, p, o, reifier))
         for ann_p, ann_v in annotations:
-            ap, av = self._rdflib(ann_p, bnode_scope), self._rdflib(ann_v, bnode_scope)
-            if ap is None or av is None:
-                msg = f"unsupported annotation node on {reifier!r}"
-                raise ValueError(msg)
-            self.annot.append((rid, ap, av))
+            self._statement_lines.append(
+                f"{_nt_term(reifier)} {_nt_term(ann_p)} {_nt_term(ann_v)} ."
+            )
 
     # -- gmeow_rdf (RDF 1.2 statement layer) ---------------------------------
 
@@ -177,166 +163,29 @@ class _Builder:
         """Ingest an RDF 1.2 artifact: ``rdf:reifies`` triple-terms + annotations.
 
         Base (non-reifier) triples land in ``graph_name`` when given; the
-        ``reifies``/``annot`` tables are global (§7.3).
+        ``reifies``/``annot`` tables are global (§7.3). The native producer does
+        the parsing + two-pass reifier/annotation classification.
         """
-        import gmeow_rdf as ox
+        self._rdf12 = (path.read_bytes(), graph_name, bnode_scope)
 
-        default_gid = self.terms.iri(graph_name) if graph_name is not None else None
-        statements = list(ox.parse(path.read_bytes(), format=ox.RdfFormat.TURTLE))
-        reifier_ids: set[int] = set()
-        pending: list[tuple[object, object, object]] = []
-        # Pass 1: reifies bindings establish which subjects are reifiers.
-        for st in statements:
-            s, p, o = st.subject, st.predicate, st.object
-            if (
-                isinstance(p, ox.NamedNode)
-                and p.value == _RDF_REIFIES
-                and isinstance(o, ox.Triple)
-            ):
-                rid = self._ox(s, bnode_scope)
-                qs, qp, qo = (
-                    self._ox(o.subject, bnode_scope),
-                    self._ox(o.predicate, bnode_scope),
-                    self._ox(o.object, bnode_scope),
-                )
-                if (
-                    rid is not None
-                    and qs is not None
-                    and qp is not None
-                    and qo is not None
-                ):
-                    reifier_ids.add(rid)
-                    existing = self.reifies.get(rid)
-                    if existing is not None and existing != (qs, qp, qo):
-                        # The canonical artifact demands clean input: with
-                        # content-sorted emission, "first wins" would be
-                        # order-defined — so a conflicting rebind is an error
-                        # here, never a silent pick (the READER's tolerance
-                        # rule, §7.8, is for foreign files, not our producer).
-                        term = self.terms.terms[rid]
-                        msg = (
-                            "conflicting reifier rebind for "
-                            f"{term.value!r} ({term.kind.name})"
-                        )
-                        raise ValueError(msg)
-                    self.reifies[rid] = (qs, qp, qo)
-            else:
-                pending.append((s, p, o))
-        # Pass 2: a reifier's other triples are annotations; the rest are base quads.
-        for ps, pp, po in pending:
-            sid, pid, oid = (
-                self._ox(ps, bnode_scope),
-                self._ox(pp, bnode_scope),
-                self._ox(po, bnode_scope),
-            )
-            if sid is None or pid is None or oid is None:
-                continue
-            if sid in reifier_ids:
-                self.annot.append((sid, pid, oid))
-            else:
-                self.quads.append((sid, pid, oid, default_gid))
-
-    def _ox(self, node: object, bnode_scope: str | None = None) -> int | None:
-        import gmeow_rdf as ox
-
-        if isinstance(node, ox.NamedNode):
-            return self.terms.iri(node.value)
-        if isinstance(node, ox.BlankNode):
-            return self.terms.bnode(node.value, bnode_scope)
-        if isinstance(node, ox.Literal):
-            # gmeow_rdf always sets a datatype (xsd:string / rdf:langString implied).
-            if node.language is not None:
-                return self.terms.literal(node.value, None, node.language)
-            dt = node.datatype.value
-            return self.terms.literal(
-                node.value, None if dt == XSD_STRING else dt, None
-            )
-        return None
-
-    # -- canonical finalize ----------------------------------------------------
-
-    def _canonical_tables(
-        self,
-    ) -> tuple[list[Term], list[Quad], dict[int, Triple], list[Triple]]:
-        """Re-id every term by content and sort every row (determinism).
-
-        Interning order is ingestion order — which for rdflib sources is
-        process-unstable. Term-ids in the emitted snapshot must be a pure
-        function of CONTENT, so: sort terms by (kind, value, datatype-IRI,
-        lang) — IRIs first, so every literal's datatype IRI precedes it
-        (§7.5's already-introduced rule holds by construction) — remap all
-        tables through the permutation, then sort and de-duplicate rows
-        (the folded graph is a set, §7.8).
-        """
-        terms = self.terms.terms
-
-        def key(tid: int) -> tuple[int, str, str, str]:
-            t = terms[tid]
-            dt = terms[t.datatype].value or "" if t.datatype is not None else ""
-            return (int(t.kind), t.value or "", dt, t.lang or "")
-
-        order = sorted(range(len(terms)), key=key)
-        remap = {old_id: new_id for new_id, old_id in enumerate(order)}
-
-        def remap_term(t: Term) -> Term:
-            return Term(
-                kind=t.kind,
-                value=t.value,
-                datatype=remap[t.datatype] if t.datatype is not None else None,
-                lang=t.lang,
-                reifier=remap[t.reifier] if t.reifier is not None else None,
-            )
-
-        new_terms = [remap_term(terms[old_id]) for old_id in order]
-        new_quads = sorted(
-            {
-                (remap[s], remap[p], remap[o], remap[g] if g is not None else None)
-                for s, p, o, g in self.quads
-            },
-            key=lambda q: (-1 if q[3] is None else q[3], q[0], q[1], q[2]),
-        )
-        # CBOR canonical encoding sorts map keys at emit, so dict order
-        # never reaches the bytes — sorted by NEW id for inspection sanity.
-        new_reifies = {
-            remap[rid]: (remap[s], remap[p], remap[o])
-            for rid, (s, p, o) in sorted(
-                self.reifies.items(), key=lambda item: remap[item[0]]
-            )
-        }
-        new_annot = sorted({(remap[r], remap[p], remap[v]) for r, p, v in self.annot})
-        return new_terms, new_quads, new_reifies, new_annot
+    def _statement_bytes(self) -> bytes | None:
+        """The accumulated programmatic statement layer as RDF 1.2 N-Triples."""
+        if not self._statement_lines:
+            return None
+        return ("\n".join(self._statement_lines) + "\n").encode("utf-8")
 
     # -- emit -----------------------------------------------------------------
-
-    def _snapshot_payload(self) -> dict[str, object]:
-        """The canonical ``snapshot`` frame payload from the accumulated tables.
-
-        Factored out so the snapshot bytes (and therefore the bundle's graph
-        identity) can be content-addressed independently of any blob frames that
-        ride alongside it — see :meth:`snapshot_content_id`.
-        """
-        terms, quads, reifies, annot = self._canonical_tables()
-        snapshot: dict[str, object] = {
-            "terms": [term_to_wire(t) for t in terms],
-            "quads": [
-                [q[0], q[1], q[2], *([q[3]] if q[3] is not None else [])] for q in quads
-            ],
-        }
-        if reifies:
-            snapshot["reifies"] = {rid: list(spo) for rid, spo in reifies.items()}
-        if annot:
-            snapshot["annot"] = [list(row) for row in annot]
-        return snapshot
 
     def snapshot_content_id(self) -> str:
         """A ``blake3:<hex>`` content address of the snapshot payload (#654).
 
-        The diagnostics self-attestation stamps this into the embedded report's
-        metadata so a consumer can prove the report describes THIS bundle's
-        graph. It is a pure function of the snapshot tables and is unaffected by
-        any report/doc blob frames, which ride as separate frames.
+        Mirrors the native producer's content id over the SAME accumulated base
+        graph. Used by the diagnostics self-attestation (only ever called on a
+        base-graph-only builder, the feedback-bundle case).
         """
-        return "blake3:" + blake3(canonical(self._snapshot_payload())).hexdigest()
+        return ox.snapshot_content_id_native(
+            self._base_data, format=ox.RdfFormat.N_QUADS
+        )
 
     def to_gts(
         self,
@@ -351,80 +200,50 @@ class _Builder:
     ) -> bytes:
         """Emit a single ``dist`` snapshot frame from the accumulated tables.
 
-        ``doc_blobs`` (#325): content-addressed documentation payloads —
-        ``(data, media_type, rep)`` rows, emitted as blob frames AHEAD of the
-        snapshot frame in a deterministic (rep, digest) order so the bytes
-        stay a pure function of the inputs. The graph links each slice to
-        its guide via ``gmeow:guideBlob "blake3:<hex>"`` (the reader keys
-        blobs by BLAKE3 of the decoded content).
-
-        ``report_blobs`` (#654): diagnostics report payloads (SARIF, flat JSON,
-        and the ``gmeow:`` RDF projection) carried as ordinary blob frames in
-        the same deterministic order. They are PURELY ADDITIVE — like
-        ``doc_blobs`` they ride ahead of the snapshot and never alter the
-        snapshot frame, so the bundle's graph identity (and the #647 cache key)
-        is byte-identical whether or not a report is embedded. This is the
-        artifact-separation that lets the feedback bundle carry a report while
-        the committed ``gmeow.gts`` never does.
+        ``doc_blobs`` (#325) and ``report_blobs`` (#654) ride as content-addressed
+        blob frames AHEAD of the snapshot in a deterministic (rep, digest) order,
+        so the bytes stay a pure function of the inputs. They are purely additive
+        and never alter the snapshot frame, so the bundle's graph identity is
+        unaffected by an embedded report.
 
         If ``signer`` and ``public_key_armor`` are supplied, a ``meta`` frame
-        carrying the file's transport key is emitted first and signed along
-        with every subsequent frame — so an embedded report rides under the
-        signature (tamper-evident attestation).
-
-        ``rsyncable_threshold`` (#513): payloads larger than this many bytes
-        are compressed with ``zstd-rsyncable`` instead of ``zstd``, improving
-        rsync/Git delta compression at a small size cost.
+        carrying the transport key is emitted first and signed along with every
+        subsequent frame (tamper-evident attestation). ``rsyncable_threshold``
+        (#513) selects ``zstd-rsyncable`` for payloads larger than it.
         """
         if (signer is None) != (public_key_armor is None):
             raise ValueError("signer and public_key_armor must be supplied together")
-        base_chain = ["zstd"] if transform is None else transform
-        writer = Writer(profile=profile, signer=signer)
-        if signer is not None:
-            writer.add_meta(
-                {
-                    "gts:transportKey": {
-                        "kid": signer.kid,
-                        "gpg": public_key_armor,
-                    }
-                }
-            )
+        secret, kid, armor = _signer_parts(signer, public_key_armor)
 
-        def choose_transform(payload_bytes: bytes) -> list[str]:
-            """Use zstd-rsyncable for large payloads to improve delta compression."""
-            if base_chain == ["zstd"] and len(payload_bytes) > rsyncable_threshold:
-                return ["zstd-rsyncable"]
-            return list(base_chain)
-
-        all_blobs = list(doc_blobs or []) + list(report_blobs or [])
-        for data, media_type, rep in sorted(
-            all_blobs, key=lambda row: (row[2], row[0])
-        ):
-            writer.add_blob(
-                data, mt=media_type, rep=rep, transform=choose_transform(data)
-            )
-        snapshot = self._snapshot_payload()
-        snapshot_bytes = canonical(snapshot)
-        writer.add_frame(
-            "snapshot", payload=snapshot, transform=choose_transform(snapshot_bytes)
+        # The programmatic statement layer (maximal/annotated, #34) is the RDF 1.2
+        # rdf12 source when no file-based one was supplied; both never coexist.
+        statement = self._statement_bytes()
+        rdf12_data = self._rdf12[0] if self._rdf12 is not None else statement
+        rdf12_format = (
+            ox.RdfFormat.TURTLE if self._rdf12 is not None else ox.RdfFormat.N_TRIPLES
         )
-        return writer.to_bytes()
-
-
-def _iter_quads(graph: Graph) -> list[tuple[Node, Node, Node, Node | None]]:
-    """Yield (s, p, o, graph-name) rows; the default graph has a ``None`` name."""
-    if isinstance(graph, Dataset):
-        rows: list[tuple[Node, Node, Node, Node | None]] = []
-        default_id = graph.default_graph.identifier
-        for s, p, o, ctx in graph.quads((None, None, None, None)):
-            name = ctx.identifier if isinstance(ctx, Graph) else ctx
-            if name == default_id:
-                name = None
-            elif not isinstance(name, URIRef | BNode):
-                continue  # skip quads with an unsupported (non-IRI/bnode) graph name
-            rows.append((s, p, o, name))
-        return rows
-    return [(s, p, o, None) for s, p, o in graph]
+        rdf12_graph_name = self._rdf12[1] if self._rdf12 is not None else None
+        rdf12_scope = self._rdf12[2] if self._rdf12 is not None else None
+        return ox.compile_gts_native(
+            self._base_data,
+            ox.RdfFormat.N_QUADS,
+            base_scope=None,
+            rdf12_data=rdf12_data,
+            rdf12_format=rdf12_format if rdf12_data is not None else None,
+            rdf12_graph_name=rdf12_graph_name,
+            rdf12_scope=rdf12_scope,
+            named_graphs=[
+                (data, ox.RdfFormat.N_QUADS, name, scope)
+                for data, name, scope in self._named_graphs
+            ],
+            transform=transform,
+            doc_blobs=doc_blobs,
+            report_blobs=report_blobs,
+            signer_secret=secret,
+            signer_kid=kid,
+            public_key_armor=armor,
+            rsyncable_threshold=rsyncable_threshold,
+        )
 
 
 def gts_from_graph(
@@ -434,9 +253,10 @@ def gts_from_graph(
     transform: list[str] | None = None,
 ) -> bytes:
     """Produce a GTS ``dist`` snapshot from an rdflib graph/dataset (RDF 1.1)."""
-    builder = _Builder()
-    builder.add_graph(graph)
-    return builder.to_gts(profile=profile, transform=transform)
+    fmt = ox.RdfFormat.N_QUADS if isinstance(graph, Dataset) else ox.RdfFormat.N_TRIPLES
+    return ox.gts_from_quads(
+        _nquads_bytes(graph), format=fmt, profile=profile, transform=transform
+    )
 
 
 def gts_from_rdf12(
@@ -446,9 +266,12 @@ def gts_from_rdf12(
     transform: list[str] | None = None,
 ) -> bytes:
     """Produce a GTS snapshot from an RDF 1.2 artifact (statement layer; gmeow_rdf)."""
-    builder = _Builder()
-    builder.add_rdf12(path)
-    return builder.to_gts(profile=profile, transform=transform)
+    return ox.gts_from_rdf12_bytes(
+        path.read_bytes(),
+        format=ox.RdfFormat.TURTLE,
+        profile=profile,
+        transform=transform,
+    )
 
 
 def gts_from_maximal(
@@ -461,8 +284,8 @@ def gts_from_maximal(
     """Produce the transpiler's MAXIMAL(G) snapshot (#34).
 
     ``base`` carries the canonical A-Box (assumed bnode-free — the transform
-    driver skolemizes); every :class:`~gmeow_tools.saturate.DerivedTriple`
-    lands as an asserted base triple plus its provenance reifier/annotations.
+    driver skolemizes); every :class:`~gmeow_tools.saturate.DerivedTriple` lands
+    as an asserted base triple plus its provenance reifier/annotations.
     """
     builder = _Builder()
     builder.add_graph(base)
@@ -491,11 +314,10 @@ def compile_gts(
     graph, the RDF 1.2 statement layer in ``gmeow:graph/statements`` (its
     reifies/annot tables are global), the SSSOM alignment axioms in
     ``gmeow:graph/alignments``, and any additional explicitly named graphs
-    supplied by the caller. rdflib blank-node labels are per-process UUIDs,
-    so rdflib sources are canonicalized
-    (:func:`rdflib.compare.to_canonical_graph`) — together with the
-    content-sorted term table this makes the emitted bytes a pure function
-    of the inputs (the drift-gate requirement).
+    supplied by the caller. rdflib blank-node labels are per-process UUIDs, so
+    rdflib sources are canonicalized (:func:`rdflib.compare.to_canonical_graph`)
+    — together with the content-sorted term table this makes the emitted snapshot
+    payload a pure function of the inputs (the drift-gate requirement).
 
     If ``signer`` and ``public_key_armor`` are supplied, the snapshot is signed
     and the armored transport public key is embedded in the first ``meta`` frame.

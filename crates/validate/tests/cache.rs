@@ -231,6 +231,7 @@ fn build_gts_graph_with_triples(triples: &[(&str, &str, &str)]) -> gmeow_gts::mo
                 value: Some(s.to_string()),
                 datatype: None,
                 lang: None,
+                direction: None,
                 reifier: None,
             });
             id
@@ -242,6 +243,7 @@ fn build_gts_graph_with_triples(triples: &[(&str, &str, &str)]) -> gmeow_gts::mo
                 value: Some(p.to_string()),
                 datatype: None,
                 lang: None,
+                direction: None,
                 reifier: None,
             });
             id
@@ -253,6 +255,7 @@ fn build_gts_graph_with_triples(triples: &[(&str, &str, &str)]) -> gmeow_gts::mo
                 value: Some(o.to_string()),
                 datatype: None,
                 lang: None,
+                direction: None,
                 reifier: None,
             });
             id
@@ -552,6 +555,7 @@ fn gts_validate_uses_cache_when_configured() {
             value: Some(iri.clone()),
             datatype: None,
             lang: None,
+            direction: None,
             reifier: None,
         });
     }
@@ -563,6 +567,7 @@ fn gts_validate_uses_cache_when_configured() {
             value: Some(value.to_string()),
             datatype: None,
             lang: None,
+            direction: None,
             reifier: None,
         });
         id

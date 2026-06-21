@@ -1,186 +1,195 @@
-@prefix gmeow:   <https://blackcatinformatics.ca/gmeow/> .
-@prefix gufo:    <http://purl.org/nemo/gufo#> .
-@prefix owl:     <http://www.w3.org/2002/07/owl#> .
-@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix gufo: <http://purl.org/nemo/gufo#> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
-@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
-
-<https://blackcatinformatics.ca/gmeow/slices/provenance>
-    a owl:Ontology ;
-    rdfs:label "GMEOW Provenance Module"@x-gmeow-english ;
-    skos:definition "The GMEOW Provenance Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/provenance> ;
-    rdfs:comment "Activities, attribution, and the cross-cutting statement-level annotation properties (confidence, importance, mapping provenance) used across every slice (the PROV-O superset layer)."@x-gmeow-english ;
-    dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
 
 gmeow:Activity
-    a owl:Class, gufo:EventType ;
-    rdfs:subClassOf gmeow:Event ;
+    a gufo:EventType ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/provenance> ;
     rdfs:label "Activity"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:Event ;
     skos:definition "Something that occurs over a period of time and acts upon or with entities — creating, transforming, using, or attributing them. The provenance-layer specialization of gmeow:Event: the occurrent that gmeow:wasGeneratedBy points to and that gmeow:wasAssociatedWith ties to its performing agent."@x-gmeow-english ;
     skos:example "ex:import2026 a gmeow:Activity ; gmeow:wasAssociatedWith ex:vcardImporter ."@x-gmeow-english ;
-    gmeow:useWhen "Use as the occurrent that produced, transformed, used, or attributed an entity — the activity end of gmeow:wasGeneratedBy and the domain of gmeow:wasAssociatedWith."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid for the enduring product of the activity (that is a gmeow:Entity reached via gmeow:wasGeneratedBy) and for a generic happening with no provenance role; use gmeow:Event directly when no agent, generation, or attribution is at stake."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxTBox ;
     gmeow:howToUse "Type the occurrent as gmeow:Activity (or a specialization such as gmeow:ImportActivity), link its performer with gmeow:wasAssociatedWith and its products with the inverse of gmeow:wasGeneratedBy; carry the time the activity occurred on the event, and statement-level confidence on the derivation claims it produces."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/provenance> .
+    gmeow:useWhen "Use as the occurrent that produced, transformed, used, or attributed an entity — the activity end of gmeow:wasGeneratedBy and the domain of gmeow:wasAssociatedWith."@x-gmeow-english .
 
 gmeow:ImportActivity
-    a owl:Class, gufo:EventType ;
-    rdfs:subClassOf gmeow:Activity ;
+    a gufo:EventType ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/provenance> ;
     rdfs:label "Import Activity"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:Activity ;
     skos:definition "An activity that ingested an external source artifact (an import envelope such as a vCard file) and recorded the claims it carried. Carries the ingestion (transaction) time — when the system learned the claims, distinct from when they were asserted or when they hold."@x-gmeow-english ;
     skos:example "ex:import2026 a gmeow:ImportActivity ; gmeow:ingestedAt \"2026-06-15T09:00:00Z\"^^xsd:dateTime ."@x-gmeow-english ;
-    gmeow:useWhen "Use when modeling the ingestion of an external source — a vCard, mbox, or feed pulled in — so the transaction time and the source mapping become first-class and auditable."@x-gmeow-english ;
+    gmeow:avoidForConsumer gmeow:consumerPublicSite ,
+        gmeow:consumerWikidata ;
     gmeow:avoidWhen "Avoid for in-system derivations that produce no external-source envelope (use a plain gmeow:Activity with gmeow:wasDerivedFrom) and for the moment a fact was asserted by an observer (that is statement-level gmeow:assertedAt, not ingestion)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxTBox ;
     gmeow:howToUse "Type the import as gmeow:ImportActivity, stamp it with gmeow:ingestedAt, tie it to its software agent with gmeow:wasAssociatedWith, and record per-claim gmeow:mappedFrom / gmeow:importanceLevel on the statements it generated; the ingested claims point back via gmeow:wasGeneratedBy."@x-gmeow-english ;
-    gmeow:useForConsumer gmeow:consumerInternalArchive,
-        gmeow:consumerAgentMemory ;
-    gmeow:avoidForConsumer gmeow:consumerWikidata,
-        gmeow:consumerPublicSite ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/provenance> .
-
-gmeow:ingestedAt
-    a owl:DatatypeProperty, owl:FunctionalProperty ;
-    rdfs:domain gmeow:ImportActivity ;
-    rdfs:range xsd:dateTime ;
-    rdfs:label "ingested at"@x-gmeow-english ;
-    skos:definition "When an import activity recorded its claims into the system — the transaction time. Distinct from gmeow:assertedAt (observation) and gmeow:validFrom/validUntil (validity)."@x-gmeow-english ;
-    skos:example "ex:import2026 gmeow:ingestedAt \"2026-06-15T09:00:00Z\"^^xsd:dateTime ."@x-gmeow-english ;
-    gmeow:useWhen "Use to stamp a gmeow:ImportActivity with its transaction time — the instant the system learned the claims — so bitemporal queries can separate when-learned from when-asserted and when-valid."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid for the observation time of a claim (statement-level gmeow:assertedAt) or the time a fact holds in the world (gmeow:validFrom / gmeow:validUntil); collapsing the three temporal axes defeats the bitemporal model."@x-gmeow-english ;
-    gmeow:howToUse "Attach exactly one xsd:dateTime to the gmeow:ImportActivity (it is functional); pair it with gmeow:wasAssociatedWith for the importing agent, and let the ingested claims carry their own gmeow:assertedAt on the statement layer."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/provenance> .
-
-gmeow:wasAttributedTo
-    a owl:ObjectProperty ;
-    rdfs:domain gmeow:Entity ;
-    rdfs:range gmeow:Agent ;
-    rdfs:label "was attributed to"@x-gmeow-english ;
-    skos:definition "Ascribes responsibility for an enduring entity to an agent — authorship, ownership, or accountability. The endurant counterpart of gmeow:wasAssociatedWith (which ties an activity to its performer): attribution lands on the gmeow:Entity, association on the gmeow:Activity."@x-gmeow-english ;
-    skos:example "ex:report gmeow:wasAttributedTo ex:lillith ."@x-gmeow-english ;
-    gmeow:useWhen "Use to ascribe responsibility for an enduring entity — a document, dataset, or artifact — to the agent who authored, owns, or is accountable for it."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid for the agent who performed an activity (use gmeow:wasAssociatedWith) and for nuanced credit needing role, share, or period — promote to a Contribution relator rather than flattening it onto this binary link."@x-gmeow-english ;
-    gmeow:howToUse "Relate the gmeow:Entity to its responsible gmeow:Agent; when the attribution itself is uncertain or sourced, carry gmeow:confidence and the asserting source on the statement layer, and reify to a Contribution relator when role or credit share matters (P3)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/provenance> .
-gmeow:wasAttributedTo gmeow:docsConcern gmeow:concernProvenanceEvidence, gmeow:concernStatementMetadata .
-
-gmeow:wasAssociatedWith
-    a owl:ObjectProperty ;
-    rdfs:domain gmeow:Activity ;
-    rdfs:range gmeow:Agent ;
-    rdfs:label "was associated with"@x-gmeow-english ;
-    skos:definition "Relates an activity to an agent associated with carrying it out — e.g. the software agent that ran an import. (Activity→Agent; the counterpart of gmeow:wasAttributedTo, which ascribes an endurant Entity to an agent.)"@x-gmeow-english ;
-    skos:example "ex:import2026 gmeow:wasAssociatedWith ex:vcardImporter ."@x-gmeow-english ;
-    gmeow:useWhen "Use to tie an activity to the agent that carried it out — the software agent that ran an import, the person who performed a transformation — the activity-side companion of gmeow:wasAttributedTo."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid for ascribing an enduring product to its author (use gmeow:wasAttributedTo on the gmeow:Entity) and for a role richer than bare association — promote to a participation relator when capacity or responsibility share matters."@x-gmeow-english ;
-    gmeow:howToUse "Relate the gmeow:Activity to its performing gmeow:Agent; record the activity's products through the inverse of gmeow:wasGeneratedBy and its time on the event, so performer, product, and timing stay separable."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/provenance> .
-
-gmeow:wasDerivedFrom
-    a owl:ObjectProperty ;
-    rdfs:label "was derived from"@x-gmeow-english ;
-    skos:definition "Relates a derived thing to the thing it was derived from — e.g. a text extraction, summary, or embedding to its source; a commit to its parent commit; a trajectory to its sample stream. The derivation's confidence and generating agent are recorded with gmeow:confidence and gmeow:wasGeneratedBy. Domain-free so that events, endurants, and information objects may all participate in derivation chains."@x-gmeow-english ;
-    skos:example "ex:summary gmeow:wasDerivedFrom ex:report ."@x-gmeow-english ;
-    gmeow:useWhen "Use to link a derived artifact to its source — a summary, text extraction, or embedding to the document it came from, a commit to its parent — building the derivation chain that lets consumers trace a value back to its origin."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid for the activity that did the deriving (use gmeow:wasGeneratedBy → gmeow:Activity) and for mere topical aboutness (use gmeow:hasAboutness); derivation asserts genealogical descent, not subject matter."@x-gmeow-english ;
-    gmeow:howToUse "Point the derived thing at its source; carry the derivation's gmeow:confidence and lossiness on the statement layer (a summary is a lossy projection of its source), and attach gmeow:wasGeneratedBy to name the generating activity and, through it, the agent."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/provenance> .
-gmeow:wasDerivedFrom gmeow:docsConcern gmeow:concernProvenanceEvidence .
+    gmeow:useForConsumer gmeow:consumerAgentMemory ,
+        gmeow:consumerInternalArchive ;
+    gmeow:useWhen "Use when modeling the ingestion of an external source — a vCard, mbox, or feed pulled in — so the transaction time and the source mapping become first-class and auditable."@x-gmeow-english .
 
 gmeow:Summary
-    a owl:Class, gufo:Kind ;
-    rdfs:subClassOf gmeow:InformationObject ;
+    a gufo:Kind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/provenance> ;
     rdfs:label "Summary"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:InformationObject ;
     skos:definition "A condensed account derived from a source information object (often machine-generated), linked to its source by gmeow:wasDerivedFrom. A lossy projection of its source: the source remains canonical and the summary is the reduced view."@x-gmeow-english ;
     skos:example "ex:summary a gmeow:Summary ; gmeow:wasDerivedFrom ex:report ."@x-gmeow-english ;
-    gmeow:useWhen "Use for a condensed, lossy account derived from a source information object — a machine- or human-written abstract whose source stays canonical and whose lineage must be recoverable."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid for a verbatim slice of the source text (use gmeow:TextExtraction) and for an independently authored work that merely covers the same topic; a Summary asserts derivation from a specific source."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxTBox ;
     gmeow:howToUse "Type the condensed object as gmeow:Summary and link it to its source with gmeow:wasDerivedFrom; record the generating model via gmeow:wasGeneratedBy and the summarization confidence and lossiness on the statement layer."@x-gmeow-english ;
-    gmeow:useForConsumer gmeow:consumerAgentMemory,
+    gmeow:useForConsumer gmeow:consumerAgentMemory ,
         gmeow:consumerResearchQueue ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/provenance> .
+    gmeow:useWhen "Use for a condensed, lossy account derived from a source information object — a machine- or human-written abstract whose source stays canonical and whose lineage must be recoverable."@x-gmeow-english .
 
 gmeow:TextExtraction
-    a owl:Class, gufo:SubKind ;
-    rdfs:subClassOf gmeow:Document ;
+    a gufo:SubKind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/provenance> ;
     rdfs:label "Text Extraction"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:Document ;
     skos:definition "The text content extracted from a source object (e.g. a PDF attachment), linked to its source by gmeow:wasDerivedFrom. A faithful (ideally verbatim) rendering of the source's textual content, distinct from a gmeow:Summary, which condenses and is therefore lossy."@x-gmeow-english ;
     skos:example "ex:pdfText a gmeow:TextExtraction ; gmeow:wasDerivedFrom ex:pdfAttachment ."@x-gmeow-english ;
-    gmeow:useWhen "Use for the text content pulled verbatim out of a source object — OCR or extraction from a PDF, image, or binary attachment — whose lineage to that source must be recorded."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid for a condensed or paraphrased account (use gmeow:Summary) and for the source document itself; a TextExtraction is the derived text view, not the original artifact."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxTBox ;
     gmeow:howToUse "Type the extracted text as gmeow:TextExtraction, link it to its source with gmeow:wasDerivedFrom, and name the extracting activity via gmeow:wasGeneratedBy; record extraction confidence (OCR quality) on the statement layer."@x-gmeow-english ;
-    gmeow:useForConsumer gmeow:consumerInternalArchive,
-        gmeow:consumerAgentMemory ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/provenance> .
-
-gmeow:wasGeneratedBy
-    a owl:ObjectProperty ;
-    rdfs:domain gmeow:Entity ;
-    rdfs:range gmeow:Activity ;
-    rdfs:label "was generated by"@x-gmeow-english ;
-    skos:definition "Relates an entity to the activity that produced it — the generation link from an enduring product back to its occurrent cause. The performing agent is reached transitively through the activity's gmeow:wasAssociatedWith, keeping who-did-it separable from what-happened."@x-gmeow-english ;
-    skos:example "ex:summary gmeow:wasGeneratedBy ex:summarizationRun ."@x-gmeow-english ;
-    gmeow:useWhen "Use to link an enduring product to the gmeow:Activity that produced it — a summary to its summarization run, a commit to its build — so the occurrent cause and its timing and agent become recoverable."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid for the source the product was derived from (use gmeow:wasDerivedFrom, entity→entity) and for naming the agent directly; reach the agent through the activity's gmeow:wasAssociatedWith rather than collapsing activity and agent."@x-gmeow-english ;
-    gmeow:howToUse "Point the gmeow:Entity at its generating gmeow:Activity; put the time on the activity (event), the performer on gmeow:wasAssociatedWith, and the source lineage on gmeow:wasDerivedFrom, so generation, derivation, and association stay three distinct facets."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/provenance> .
-gmeow:wasGeneratedBy gmeow:docsConcern gmeow:concernProvenanceEvidence .
-
-# --------------------------------------------------------------------------- #
-# Cross-cutting statement-level annotation properties. These annotate axioms /
-# statements (the RDF-star / OWL-axiom-annotation layer) rather than describing
-# individuals, so they are annotation properties. Reused by every slice.
-# --------------------------------------------------------------------------- #
+    gmeow:useForConsumer gmeow:consumerAgentMemory ,
+        gmeow:consumerInternalArchive ;
+    gmeow:useWhen "Use for the text content pulled verbatim out of a source object — OCR or extraction from a PDF, image, or binary attachment — whose lineage to that source must be recorded."@x-gmeow-english .
 
 gmeow:confidence
     a owl:AnnotationProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/provenance> ;
     rdfs:label "confidence"@x-gmeow-english ;
     skos:definition "Confidence in a claim, in the closed interval [0,1], attached to the statement it qualifies."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/provenance> .
-gmeow:confidence gmeow:docsConcern gmeow:concernStatementMetadata, gmeow:concernProvenanceEvidence .
+    gmeow:docsConcern gmeow:concernProvenanceEvidence ,
+        gmeow:concernStatementMetadata ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxRBox .
 
 gmeow:importanceLevel
     a owl:AnnotationProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/provenance> ;
     rdfs:label "importance level"@x-gmeow-english ;
     skos:definition "Relative import/source importance of a claim on a 0–10 scale; projection takes the maximum across imports."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/provenance> .
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxRBox .
+
+gmeow:ingestedAt
+    a owl:DatatypeProperty ,
+        owl:FunctionalProperty ;
+    rdfs:domain gmeow:ImportActivity ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/provenance> ;
+    rdfs:label "ingested at"@x-gmeow-english ;
+    rdfs:range xsd:dateTime ;
+    skos:definition "When an import activity recorded its claims into the system — the transaction time. Distinct from gmeow:assertedAt (observation) and gmeow:validFrom/validUntil (validity)."@x-gmeow-english ;
+    skos:example "ex:import2026 gmeow:ingestedAt \"2026-06-15T09:00:00Z\"^^xsd:dateTime ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for the observation time of a claim (statement-level gmeow:assertedAt) or the time a fact holds in the world (gmeow:validFrom / gmeow:validUntil); collapsing the three temporal axes defeats the bitemporal model."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxRBox ;
+    gmeow:howToUse "Attach exactly one xsd:dateTime to the gmeow:ImportActivity (it is functional); pair it with gmeow:wasAssociatedWith for the importing agent, and let the ingested claims carry their own gmeow:assertedAt on the statement layer."@x-gmeow-english ;
+    gmeow:useWhen "Use to stamp a gmeow:ImportActivity with its transaction time — the instant the system learned the claims — so bitemporal queries can separate when-learned from when-asserted and when-valid."@x-gmeow-english .
 
 gmeow:mappedFrom
     a owl:AnnotationProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/provenance> ;
     rdfs:label "mapped from"@x-gmeow-english ;
     skos:definition "The source property a claim was derived from during ingestion, recorded for mapping-step audit."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/provenance> .
-
-# --- DC provenance --------------------------------------------- #
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxRBox .
 
 gmeow:provenance
     a owl:DatatypeProperty ;
     rdfs:domain gmeow:Entity ;
-    rdfs:range rdfs:Literal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/provenance> ;
     rdfs:label "provenance"@x-gmeow-english ;
+    rdfs:range rdfs:Literal ;
     skos:definition "A free-text statement of any changes in ownership and custody of a resource since its creation that are significant for its authenticity, integrity, and interpretation (the dcterms:provenance idiom). A prose escape hatch — prefer the structured derivation, generation, and attribution links when the custody chain can be modelled as graph relations."@x-gmeow-english ;
     skos:example "ex:report gmeow:provenance \"Donated 1998; held by the city archive since 2004.\" ."@x-gmeow-english ;
-    gmeow:useWhen "Use for a human-readable custody/ownership narrative that resists structured modelling — provenance prose imported from a catalogue record or curator's note."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid when the custody chain can be expressed structurally; prefer gmeow:wasDerivedFrom, gmeow:wasGeneratedBy, and gmeow:wasAttributedTo so the lineage is queryable rather than locked in a literal."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxRBox ;
     gmeow:howToUse "Attach the prose to the gmeow:Entity as a literal; where parts of the narrative can be lifted into structured derivation, generation, or attribution links, model those and reserve this property for the irreducible remainder."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/provenance> .
+    gmeow:useWhen "Use for a human-readable custody/ownership narrative that resists structured modelling — provenance prose imported from a catalogue record or curator's note."@x-gmeow-english .
 
-# --------------------------------------------------------------------------- #
-# Graph box role coverage (canonical explicit annotations).
-# --------------------------------------------------------------------------- #
+gmeow:wasAssociatedWith
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Activity ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/provenance> ;
+    rdfs:label "was associated with"@x-gmeow-english ;
+    rdfs:range gmeow:Agent ;
+    skos:definition "Relates an activity to an agent associated with carrying it out — e.g. the software agent that ran an import. (Activity→Agent; the counterpart of gmeow:wasAttributedTo, which ascribes an endurant Entity to an agent.)"@x-gmeow-english ;
+    skos:example "ex:import2026 gmeow:wasAssociatedWith ex:vcardImporter ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for ascribing an enduring product to its author (use gmeow:wasAttributedTo on the gmeow:Entity) and for a role richer than bare association — promote to a participation relator when capacity or responsibility share matters."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxRBox ;
+    gmeow:howToUse "Relate the gmeow:Activity to its performing gmeow:Agent; record the activity's products through the inverse of gmeow:wasGeneratedBy and its time on the event, so performer, product, and timing stay separable."@x-gmeow-english ;
+    gmeow:useWhen "Use to tie an activity to the agent that carried it out — the software agent that ran an import, the person who performed a transformation — the activity-side companion of gmeow:wasAttributedTo."@x-gmeow-english .
 
-gmeow:Activity gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxTBox .
-gmeow:ImportActivity gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxTBox .
-gmeow:Summary gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxTBox .
-gmeow:TextExtraction gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxTBox .
-gmeow:confidence gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxRBox .
-gmeow:importanceLevel gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxRBox .
-gmeow:ingestedAt gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxRBox .
-gmeow:mappedFrom gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxRBox .
-gmeow:provenance gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxRBox .
-<https://blackcatinformatics.ca/gmeow/slices/provenance> gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxConfigBox, gmeow:boxTBox .
-gmeow:wasAssociatedWith gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxRBox .
-gmeow:wasAttributedTo gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxRBox .
-gmeow:wasDerivedFrom gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxRBox .
-gmeow:wasGeneratedBy gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxRBox .
+gmeow:wasAttributedTo
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Entity ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/provenance> ;
+    rdfs:label "was attributed to"@x-gmeow-english ;
+    rdfs:range gmeow:Agent ;
+    skos:definition "Ascribes responsibility for an enduring entity to an agent — authorship, ownership, or accountability. The endurant counterpart of gmeow:wasAssociatedWith (which ties an activity to its performer): attribution lands on the gmeow:Entity, association on the gmeow:Activity."@x-gmeow-english ;
+    skos:example "ex:report gmeow:wasAttributedTo ex:lillith ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for the agent who performed an activity (use gmeow:wasAssociatedWith) and for nuanced credit needing role, share, or period — promote to a Contribution relator rather than flattening it onto this binary link."@x-gmeow-english ;
+    gmeow:docsConcern gmeow:concernProvenanceEvidence ,
+        gmeow:concernStatementMetadata ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxRBox ;
+    gmeow:howToUse "Relate the gmeow:Entity to its responsible gmeow:Agent; when the attribution itself is uncertain or sourced, carry gmeow:confidence and the asserting source on the statement layer, and reify to a Contribution relator when role or credit share matters (P3)."@x-gmeow-english ;
+    gmeow:useWhen "Use to ascribe responsibility for an enduring entity — a document, dataset, or artifact — to the agent who authored, owns, or is accountable for it."@x-gmeow-english .
+
+gmeow:wasDerivedFrom
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/provenance> ;
+    rdfs:label "was derived from"@x-gmeow-english ;
+    skos:definition "Relates a derived thing to the thing it was derived from — e.g. a text extraction, summary, or embedding to its source; a commit to its parent commit; a trajectory to its sample stream. The derivation's confidence and generating agent are recorded with gmeow:confidence and gmeow:wasGeneratedBy. Domain-free so that events, endurants, and information objects may all participate in derivation chains."@x-gmeow-english ;
+    skos:example "ex:summary gmeow:wasDerivedFrom ex:report ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for the activity that did the deriving (use gmeow:wasGeneratedBy → gmeow:Activity) and for mere topical aboutness (use gmeow:hasAboutness); derivation asserts genealogical descent, not subject matter."@x-gmeow-english ;
+    gmeow:docsConcern gmeow:concernProvenanceEvidence ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxRBox ;
+    gmeow:howToUse "Point the derived thing at its source; carry the derivation's gmeow:confidence and lossiness on the statement layer (a summary is a lossy projection of its source), and attach gmeow:wasGeneratedBy to name the generating activity and, through it, the agent."@x-gmeow-english ;
+    gmeow:useWhen "Use to link a derived artifact to its source — a summary, text extraction, or embedding to the document it came from, a commit to its parent — building the derivation chain that lets consumers trace a value back to its origin."@x-gmeow-english .
+
+gmeow:wasGeneratedBy
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Entity ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/provenance> ;
+    rdfs:label "was generated by"@x-gmeow-english ;
+    rdfs:range gmeow:Activity ;
+    skos:definition "Relates an entity to the activity that produced it — the generation link from an enduring product back to its occurrent cause. The performing agent is reached transitively through the activity's gmeow:wasAssociatedWith, keeping who-did-it separable from what-happened."@x-gmeow-english ;
+    skos:example "ex:summary gmeow:wasGeneratedBy ex:summarizationRun ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for the source the product was derived from (use gmeow:wasDerivedFrom, entity→entity) and for naming the agent directly; reach the agent through the activity's gmeow:wasAssociatedWith rather than collapsing activity and agent."@x-gmeow-english ;
+    gmeow:docsConcern gmeow:concernProvenanceEvidence ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxRBox ;
+    gmeow:howToUse "Point the gmeow:Entity at its generating gmeow:Activity; put the time on the activity (event), the performer on gmeow:wasAssociatedWith, and the source lineage on gmeow:wasDerivedFrom, so generation, derivation, and association stay three distinct facets."@x-gmeow-english ;
+    gmeow:useWhen "Use to link an enduring product to the gmeow:Activity that produced it — a summary to its summarization run, a commit to its build — so the occurrent cause and its timing and agent become recoverable."@x-gmeow-english .
+
+<https://blackcatinformatics.ca/gmeow/slices/provenance>
+    a owl:Ontology ;
+    dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;
+    rdfs:comment "Activities, attribution, and the cross-cutting statement-level annotation properties (confidence, importance, mapping provenance) used across every slice (the PROV-O superset layer)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/provenance> ;
+    rdfs:label "GMEOW Provenance Module"@x-gmeow-english ;
+    skos:definition "The GMEOW Provenance Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxConfigBox ,
+        gmeow:boxTBox .

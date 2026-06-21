@@ -1,19 +1,142 @@
-# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
-# SPDX-License-Identifier: CC-BY-4.0
-
-@prefix gmeow:   <https://blackcatinformatics.ca/gmeow/> .
-@prefix gufo:    <http://purl.org/nemo/gufo#> .
-@prefix owl:     <http://www.w3.org/2002/07/owl#> .
-@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
-@prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix gufo: <http://purl.org/nemo/gufo#> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
+
+gmeow:Concept
+    a gufo:Kind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/concepts> ;
+    rdfs:label "Concept"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:SocialObject ;
+    skos:definition "A category, schema, or abstraction held by an agent — a socially sustained cognitive representation. This is NOT the gUFO universal (which belongs to the gufo meta-level); a gmeow:Concept is a representational object sustained by agent usage and standpoint-indexed categorization claims."@x-gmeow-english ;
+    skos:example "ex:mammal a gmeow:Concept ; rdfs:label \"mammal\"@en ."@x-gmeow-english ;
+    skos:scopeNote "The distinction from gufo:Universal is explicit: GMEOW Concepts live in the domain of socially sustained representations, not in the foundational ontology layer."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using it as a gufo:Universal replacement (the gUFO universal is meta-level); avoid asserting one concept as the privileged or primary category for an entity when competing categorizations coexist (Principle 9)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Mint the concept as a gmeow:SocialObject, link entities via gmeow:instanceOfConcept for the flat case, and promote to a gmeow:ConceptCategorization when vantage, typicality, temporal scope, or provenance must be explicit."@x-gmeow-english ;
+    gmeow:useWhen "Use to model a category, schema, frame, or abstraction that agents hold and apply to entities, when the concept itself — its intension, structure, change over time, or standpoint-indexed application — matters."@x-gmeow-english .
+
+gmeow:ConceptCategorization
+    a gufo:SubKind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/concepts> ;
+    rdfs:label "Concept Categorization"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:StandpointClaim ,
+        [
+            a owl:Restriction ;
+            owl:onProperty gmeow:observedFeature ;
+            owl:someValuesFrom gmeow:Entity ;
+        ] ,
+        [
+            a owl:Restriction ;
+            owl:onProperty gmeow:observationResult ;
+            owl:someValuesFrom gmeow:Concept ;
+        ] ;
+    skos:definition "A standpoint-indexed claim that an entity is categorized under a concept — the reified form of gmeow:instanceOfConcept. The vantage is the agent or standpoint making the categorization; the observedFeature is the categorized entity; the observationResult is the gmeow:Concept. Typicality, confidence, and accordingTo are reused from the standpoint and provenance layers."@x-gmeow-english ;
+    skos:example "ex:whaleCategorization a gmeow:ConceptCategorization ; gmeow:vantage ex:marineBiologist ; gmeow:observedFeature ex:whale ; gmeow:observationResult ex:mammal ; gmeow:typicality \"0.95\"^^xsd:decimal ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for the flat case where an entity is simply under a concept with no need for vantage or typicality; do not mint both a flat shortcut and a reified claim for the same holding without reason (Principle 4)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxTBox ;
+    gmeow:howToUse "Mint one ConceptCategorization per (vantage, entity, concept) tuple; bind the entity via gmeow:observedFeature and the concept via gmeow:observationResult; add gmeow:typicality for graded membership and gmeow:accordingTo / gmeow:confidence from the statement/provenance layers."@x-gmeow-english ;
+    gmeow:useWhen "Use when a categorization is perspectival, graded, time-scoped, or must carry provenance — the promotion target from the flat gmeow:instanceOfConcept shortcut."@x-gmeow-english .
+
+gmeow:ConceptTenure
+    a gufo:SituationType ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/concepts> ;
+    rdfs:label "Concept Tenure"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:TimeScopedRelation ,
+        [
+            a owl:Restriction ;
+            owl:onProperty gmeow:conceptHoldsFor ;
+            owl:someValuesFrom gmeow:Concept ;
+        ] ,
+        [
+            a owl:Restriction ;
+            owl:onProperty gmeow:duringInterval ;
+            owl:someValuesFrom gmeow:TimeInterval ;
+        ] ;
+    skos:definition "The reified, time-scoped fact that a concept had a particular intension over an interval — conceptual change made first-class. When an agent community revises the definition or applicability of a concept, the old intension is retained as a closed tenure suppressed with gmeow:displayable false, never deleted (Principle 10). Carries its scope via gmeow:duringInterval (temporal module) and links to the concept via gmeow:conceptHoldsFor."@x-gmeow-english ;
+    skos:example "ex:mammalTenure a gmeow:ConceptTenure ; gmeow:conceptHoldsFor ex:mammal ; gmeow:duringInterval ex:preDnaEra ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for timeless concept hierarchies and for the lightweight case where a bare categorization claim with validFrom/validUntil suffices; reify on demand (Principle 4)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Mint one ConceptTenure per concept-intension interval; bind the concept with gmeow:conceptHoldsFor and the interval with gmeow:duringInterval. On revision, close the interval with gmeow:endedAtTime and set gmeow:displayable false on the tenure; mint a new tenure for the revised intension."@x-gmeow-english ;
+    gmeow:useWhen "Use when the change of a concept's intension, usage, or applicability over time is itself the fact of interest — conceptual drift, definition revision, or paradigm shift."@x-gmeow-english .
+
+gmeow:composedOf
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Concept ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/concepts> ;
+    rdfs:label "composed of"@x-gmeow-english ;
+    rdfs:range gmeow:Concept ;
+    skos:definition "A compound concept is composed of one or more constituent concepts. Non-functional: a compound may have several decomposition schemes that coexist (Principle 9)."@x-gmeow-english ;
+    skos:example "ex:internalCombustionEngine gmeow:composedOf ex:piston , ex:cylinder ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using it for class-level mereological parts of physical objects (use gmeow:hasPart / domain-specific component relations) and avoid asserting a single privileged decomposition when several are valid."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Point the compound concept at each constituent concept; treat each decomposition scheme as a separate set of claims when they coexist."@x-gmeow-english ;
+    gmeow:useWhen "Use to model the internal structure of a compound concept — the concepts it is built from."@x-gmeow-english .
+
+gmeow:conceptHoldsFor
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
+    rdfs:domain gmeow:ConceptTenure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/concepts> ;
+    rdfs:label "concept holds for"@x-gmeow-english ;
+    rdfs:range gmeow:Concept ;
+    skos:definition "Relates a gmeow:ConceptTenure to the gmeow:Concept whose intension it time-scopes. Functional: one tenure records the intension of exactly one concept; a concept may have many tenures over time."@x-gmeow-english ;
+    skos:example "ex:mammalTenure gmeow:conceptHoldsFor ex:mammal ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using it outside a ConceptTenure; for the categorization link use gmeow:observedFeature / gmeow:observationResult."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Set exactly once per ConceptTenure, pairing it with gmeow:duringInterval."@x-gmeow-english ;
+    gmeow:useWhen "Use to bind a ConceptTenure to the concept whose intension was held over the interval."@x-gmeow-english .
+
+gmeow:instanceOfConcept
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Entity ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/concepts> ;
+    rdfs:label "instance of concept"@x-gmeow-english ;
+    rdfs:range gmeow:Concept ;
+    skos:definition "A flat shortcut asserting that an entity is categorized under a concept — the cheap 80% surface paired with the reified gmeow:ConceptCategorization claim. Non-functional: an entity may instantiate many concepts, and competing categorizations coexist (Principle 9)."@x-gmeow-english ;
+    skos:example "ex:whale gmeow:instanceOfConcept ex:mammal ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid when the categorization is contested, standpoint-indexed, graded, or time-scoped — promote to gmeow:ConceptCategorization instead (Principle 4)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Point the entity at a gmeow:Concept; for a graded or perspectival claim, mint a gmeow:ConceptCategorization with gmeow:vantage, gmeow:observedFeature, gmeow:observationResult, and optional gmeow:typicality."@x-gmeow-english ;
+    gmeow:pairsWith gmeow:ConceptCategorization ;
+    gmeow:useWhen "Use for the common case where an entity is simply categorized under a concept and no vantage, typicality, or temporal scope needs to be first-class."@x-gmeow-english .
+
+gmeow:subsumes
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Concept ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/concepts> ;
+    rdfs:label "subsumes"@x-gmeow-english ;
+    rdfs:range gmeow:Concept ;
+    skos:definition "A broader concept subsumes a narrower concept. Non-functional, not transitive at the core: a concept hierarchy may be polyhierarchical and source-specific, and any transitive closure is computed by the solver layer (Principle 12). The bridge to skos:broader is authored in the mapping DSL, not as an OWL axiom."@x-gmeow-english ;
+    skos:example "ex:animal gmeow:subsumes ex:mammal ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid declaring it transitive in OWL (transitive closure is solver work) and avoid asserting skos:broader as an axiom here; the skos mapping lives in the mapping DSL."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Point the broader concept at the narrower concept; for SKOS exports, rely on the mapping projection."@x-gmeow-english ;
+    gmeow:useWhen "Use to assert a broader/narrower relation between two gmeow:Concept individuals when the concept structure itself is being modelled."@x-gmeow-english .
+
+gmeow:typicality
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:ConceptCategorization ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/concepts> ;
+    rdfs:label "typicality"@x-gmeow-english ;
+    rdfs:range xsd:decimal ;
+    skos:definition "A graded degree of membership in [0,1] for a prototype-theoretic concept, attached to a reified gmeow:ConceptCategorization. Non-functional: multiple sources may report typicality, and those reports coexist (Principle 9). Solver-layer prototype-theoretic typicality; it is not a reasoner entailment."@x-gmeow-english ;
+    skos:example "ex:whaleCategorization gmeow:typicality \"0.95\"^^xsd:decimal ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid on the flat gmeow:instanceOfConcept shortcut (promote to a ConceptCategorization first) and avoid conflating it with gmeow:confidence (our certainty about the claim) or gmeow:claimModality (the standpoint's qualitative stance)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Attach one or more xsd:decimal values in [0,1] to a gmeow:ConceptCategorization; pair with gmeow:claimModality on the linked StandpointClaim for qualitative categorization stance."@x-gmeow-english ;
+    gmeow:useWhen "Use to record graded membership of an entity under a prototype-theoretic concept when the degree itself is first-class."@x-gmeow-english .
 
 <https://blackcatinformatics.ca/gmeow/slices/concepts>
     a owl:Ontology ;
-    rdfs:label "GMEOW Concepts Module"@x-gmeow-english ;
-    skos:definition "The GMEOW Concepts Module — categories, schemas, and abstractions held by agents; vantage-indexed categorization; graded membership; concept structure; and conceptual change."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/concepts> ;
+    dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;
     rdfs:comment """Categories and schemas as socially sustained representations.
 
 DOCTRINE.
@@ -22,143 +145,8 @@ DOCTRINE.
   * Standpoint-indexed (Principle 9): a categorization claim is a gmeow:StandpointClaim whose vantage names the agent/standpoint, observedFeature is the categorized entity, and observationResult is the concept. Competing categorizations coexist; there is no primary or winning category.
   * Conceptual change as tenure (Principle 10): a concept's intension over an interval is a gmeow:ConceptTenure, a time-scoped relation reusing temporal:gmeow:duringInterval. Revised intensions close the old tenure (endedAtTime, displayable false) rather than deleting it.  # codespell:ignore
   * SKOS bridge in mappings, not axioms: broader/narrower links between concepts are asserted as gmeow:subsumes; the projection to skos:broader lives in the mapping DSL, never as an OWL axiom here."""@x-gmeow-english ;
-    dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
-
-# =========================================================================== #
-# CONCEPT — a socially sustained representational category (not the gUFO universal).
-# =========================================================================== #
-
-gmeow:Concept
-    a owl:Class, gufo:Kind ;
-    rdfs:subClassOf gmeow:SocialObject ;
-    rdfs:label "Concept"@x-gmeow-english ;
-    skos:definition "A category, schema, or abstraction held by an agent — a socially sustained cognitive representation. This is NOT the gUFO universal (which belongs to the gufo meta-level); a gmeow:Concept is a representational object sustained by agent usage and standpoint-indexed categorization claims."@x-gmeow-english ;
-    skos:scopeNote "The distinction from gufo:Universal is explicit: GMEOW Concepts live in the domain of socially sustained representations, not in the foundational ontology layer."@x-gmeow-english ;
-    skos:example "ex:mammal a gmeow:Concept ; rdfs:label \"mammal\"@en ."@x-gmeow-english ;
-    gmeow:useWhen "Use to model a category, schema, frame, or abstraction that agents hold and apply to entities, when the concept itself — its intension, structure, change over time, or standpoint-indexed application — matters."@x-gmeow-english ;  # codespell:ignore
-    gmeow:avoidWhen "Avoid using it as a gufo:Universal replacement (the gUFO universal is meta-level); avoid asserting one concept as the privileged or primary category for an entity when competing categorizations coexist (Principle 9)."@x-gmeow-english ;
-    gmeow:howToUse "Mint the concept as a gmeow:SocialObject, link entities via gmeow:instanceOfConcept for the flat case, and promote to a gmeow:ConceptCategorization when vantage, typicality, temporal scope, or provenance must be explicit."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/concepts> .
-
-# =========================================================================== #
-# FLAT CATEGORIZATION SPINE — entity to concept shortcut (Principle 4).
-# =========================================================================== #
-
-gmeow:instanceOfConcept
-    a owl:ObjectProperty ;
-    rdfs:domain gmeow:Entity ;
-    rdfs:range gmeow:Concept ;
-    rdfs:label "instance of concept"@x-gmeow-english ;
-    skos:definition "A flat shortcut asserting that an entity is categorized under a concept — the cheap 80% surface paired with the reified gmeow:ConceptCategorization claim. Non-functional: an entity may instantiate many concepts, and competing categorizations coexist (Principle 9)."@x-gmeow-english ;
-    skos:example "ex:whale gmeow:instanceOfConcept ex:mammal ."@x-gmeow-english ;
-    gmeow:useWhen "Use for the common case where an entity is simply categorized under a concept and no vantage, typicality, or temporal scope needs to be first-class."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid when the categorization is contested, standpoint-indexed, graded, or time-scoped — promote to gmeow:ConceptCategorization instead (Principle 4)."@x-gmeow-english ;
-    gmeow:howToUse "Point the entity at a gmeow:Concept; for a graded or perspectival claim, mint a gmeow:ConceptCategorization with gmeow:vantage, gmeow:observedFeature, gmeow:observationResult, and optional gmeow:typicality."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/concepts> .
-
-# =========================================================================== #
-# REIFIED CATEGORIZATION TIER — vantage-indexed claim that an entity falls under a concept.
-# =========================================================================== #
-
-gmeow:ConceptCategorization
-    a owl:Class, gufo:SubKind ;
-    rdfs:subClassOf gmeow:StandpointClaim ;
-    rdfs:label "Concept Categorization"@x-gmeow-english ;
-    skos:definition "A standpoint-indexed claim that an entity is categorized under a concept — the reified form of gmeow:instanceOfConcept. The vantage is the agent or standpoint making the categorization; the observedFeature is the categorized entity; the observationResult is the gmeow:Concept. Typicality, confidence, and accordingTo are reused from the standpoint and provenance layers."@x-gmeow-english ;
-    skos:example "ex:whaleCategorization a gmeow:ConceptCategorization ; gmeow:vantage ex:marineBiologist ; gmeow:observedFeature ex:whale ; gmeow:observationResult ex:mammal ; gmeow:typicality \"0.95\"^^xsd:decimal ."@x-gmeow-english ;
-    gmeow:useWhen "Use when a categorization is perspectival, graded, time-scoped, or must carry provenance — the promotion target from the flat gmeow:instanceOfConcept shortcut."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid for the flat case where an entity is simply under a concept with no need for vantage or typicality; do not mint both a flat shortcut and a reified claim for the same holding without reason (Principle 4)."@x-gmeow-english ;
-    gmeow:howToUse "Mint one ConceptCategorization per (vantage, entity, concept) tuple; bind the entity via gmeow:observedFeature and the concept via gmeow:observationResult; add gmeow:typicality for graded membership and gmeow:accordingTo / gmeow:confidence from the statement/provenance layers."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/concepts> .
-
-gmeow:ConceptCategorization rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:observedFeature ; owl:someValuesFrom gmeow:Entity ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:observationResult ; owl:someValuesFrom gmeow:Concept ] .
-
-gmeow:typicality
-    a owl:DatatypeProperty ;
-    rdfs:domain gmeow:ConceptCategorization ;
-    rdfs:range xsd:decimal ;
-    rdfs:label "typicality"@x-gmeow-english ;
-    skos:definition "A graded degree of membership in [0,1] for a prototype-theoretic concept, attached to a reified gmeow:ConceptCategorization. Non-functional: multiple sources may report typicality, and those reports coexist (Principle 9). Solver-layer prototype-theoretic typicality; it is not a reasoner entailment."@x-gmeow-english ;
-    skos:example "ex:whaleCategorization gmeow:typicality \"0.95\"^^xsd:decimal ."@x-gmeow-english ;
-    gmeow:useWhen "Use to record graded membership of an entity under a prototype-theoretic concept when the degree itself is first-class."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid on the flat gmeow:instanceOfConcept shortcut (promote to a ConceptCategorization first) and avoid conflating it with gmeow:confidence (our certainty about the claim) or gmeow:claimModality (the standpoint's qualitative stance)."@x-gmeow-english ;
-    gmeow:howToUse "Attach one or more xsd:decimal values in [0,1] to a gmeow:ConceptCategorization; pair with gmeow:claimModality on the linked StandpointClaim for qualitative categorization stance."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/concepts> .
-
-# =========================================================================== #
-# CONCEPT STRUCTURE — broader/narrower and compound-composition relations.
-# =========================================================================== #
-
-gmeow:subsumes
-    a owl:ObjectProperty ;
-    rdfs:domain gmeow:Concept ;
-    rdfs:range gmeow:Concept ;
-    rdfs:label "subsumes"@x-gmeow-english ;
-    skos:definition "A broader concept subsumes a narrower concept. Non-functional, not transitive at the core: a concept hierarchy may be polyhierarchical and source-specific, and any transitive closure is computed by the solver layer (Principle 12). The bridge to skos:broader is authored in the mapping DSL, not as an OWL axiom."@x-gmeow-english ;
-    skos:example "ex:animal gmeow:subsumes ex:mammal ."@x-gmeow-english ;
-    gmeow:useWhen "Use to assert a broader/narrower relation between two gmeow:Concept individuals when the concept structure itself is being modelled."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid declaring it transitive in OWL (transitive closure is solver work) and avoid asserting skos:broader as an axiom here; the skos mapping lives in the mapping DSL."@x-gmeow-english ;
-    gmeow:howToUse "Point the broader concept at the narrower concept; for SKOS exports, rely on the mapping projection."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/concepts> .
-
-gmeow:composedOf
-    a owl:ObjectProperty ;
-    rdfs:domain gmeow:Concept ;
-    rdfs:range gmeow:Concept ;
-    rdfs:label "composed of"@x-gmeow-english ;
-    skos:definition "A compound concept is composed of one or more constituent concepts. Non-functional: a compound may have several decomposition schemes that coexist (Principle 9)."@x-gmeow-english ;
-    skos:example "ex:internalCombustionEngine gmeow:composedOf ex:piston , ex:cylinder ."@x-gmeow-english ;
-    gmeow:useWhen "Use to model the internal structure of a compound concept — the concepts it is built from."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid using it for class-level mereological parts of physical objects (use gmeow:hasPart / domain-specific component relations) and avoid asserting a single privileged decomposition when several are valid."@x-gmeow-english ;
-    gmeow:howToUse "Point the compound concept at each constituent concept; treat each decomposition scheme as a separate set of claims when they coexist."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/concepts> .
-
-# =========================================================================== #
-# CONCEPT TENURE — conceptual change as a time-scoped relation.
-# =========================================================================== #
-
-gmeow:ConceptTenure
-    a owl:Class, gufo:SituationType ;
-    rdfs:subClassOf gmeow:TimeScopedRelation ;
-    rdfs:label "Concept Tenure"@x-gmeow-english ;
-    skos:definition "The reified, time-scoped fact that a concept had a particular intension over an interval — conceptual change made first-class. When an agent community revises the definition or applicability of a concept, the old intension is retained as a closed tenure suppressed with gmeow:displayable false, never deleted (Principle 10). Carries its scope via gmeow:duringInterval (temporal module) and links to the concept via gmeow:conceptHoldsFor."@x-gmeow-english ;  # codespell:ignore
-    skos:example "ex:mammalTenure a gmeow:ConceptTenure ; gmeow:conceptHoldsFor ex:mammal ; gmeow:duringInterval ex:preDnaEra ."@x-gmeow-english ;
-    gmeow:useWhen "Use when the change of a concept's intension, usage, or applicability over time is itself the fact of interest — conceptual drift, definition revision, or paradigm shift."@x-gmeow-english ;  # codespell:ignore
-    gmeow:avoidWhen "Avoid for timeless concept hierarchies and for the lightweight case where a bare categorization claim with validFrom/validUntil suffices; reify on demand (Principle 4)."@x-gmeow-english ;
-    gmeow:howToUse "Mint one ConceptTenure per concept-intension interval; bind the concept with gmeow:conceptHoldsFor and the interval with gmeow:duringInterval. On revision, close the interval with gmeow:endedAtTime and set gmeow:displayable false on the tenure; mint a new tenure for the revised intension."@x-gmeow-english ;  # codespell:ignore
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/concepts> .
-
-gmeow:ConceptTenure rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:conceptHoldsFor ; owl:someValuesFrom gmeow:Concept ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:duringInterval ; owl:someValuesFrom gmeow:TimeInterval ] .
-
-gmeow:conceptHoldsFor
-    a owl:ObjectProperty, owl:FunctionalProperty ;
-    rdfs:domain gmeow:ConceptTenure ;
-    rdfs:range gmeow:Concept ;
-    rdfs:label "concept holds for"@x-gmeow-english ;
-    skos:definition "Relates a gmeow:ConceptTenure to the gmeow:Concept whose intension it time-scopes. Functional: one tenure records the intension of exactly one concept; a concept may have many tenures over time."@x-gmeow-english ;  # codespell:ignore
-    skos:example "ex:mammalTenure gmeow:conceptHoldsFor ex:mammal ."@x-gmeow-english ;
-    gmeow:useWhen "Use to bind a ConceptTenure to the concept whose intension was held over the interval."@x-gmeow-english ;  # codespell:ignore
-    gmeow:avoidWhen "Avoid using it outside a ConceptTenure; for the categorization link use gmeow:observedFeature / gmeow:observationResult."@x-gmeow-english ;
-    gmeow:howToUse "Set exactly once per ConceptTenure, pairing it with gmeow:duringInterval."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/concepts> .
-
-# --- Flat-first / reify-on-demand pairings --- #
-gmeow:instanceOfConcept gmeow:pairsWith gmeow:ConceptCategorization .
-
-# --------------------------------------------------------------------------- #
-# Graph box role coverage (canonical explicit annotations).
-# --------------------------------------------------------------------------- #
-
-gmeow:Concept gmeow:graphBoxRole gmeow:boxTBox .
-gmeow:ConceptCategorization gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxTBox .
-gmeow:ConceptTenure gmeow:graphBoxRole gmeow:boxTBox .
-gmeow:composedOf gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:conceptHoldsFor gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:instanceOfConcept gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:subsumes gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:typicality gmeow:graphBoxRole gmeow:boxRBox .
-<https://blackcatinformatics.ca/gmeow/slices/concepts> gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/concepts> ;
+    rdfs:label "GMEOW Concepts Module"@x-gmeow-english ;
+    skos:definition "The GMEOW Concepts Module — categories, schemas, and abstractions held by agents; vantage-indexed categorization; graded membership; concept structure; and conceptual change."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxConfigBox ,
+        gmeow:boxTBox .

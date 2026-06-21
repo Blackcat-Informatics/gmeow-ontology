@@ -1,18 +1,494 @@
-@prefix gmeow:   <https://blackcatinformatics.ca/gmeow/> .
-@prefix gufo:    <http://purl.org/nemo/gufo#> .
-@prefix owl:     <http://www.w3.org/2002/07/owl#> .
-@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
-@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
-@prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix gufo: <http://purl.org/nemo/gufo#> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
-@prefix ontolex: <http://www.w3.org/ns/lemon/ontolex#> .
+
+gmeow:DerivationKind
+    a gufo:AbstractIndividualType ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> ;
+    rdfs:label "Derivation Kind"@x-gmeow-english ;
+    rdfs:subClassOf gufo:QualityValue ;
+    skos:definition "The kind of etymological derivation — a value, never an Entity subclass. Open-ended: new historical-linguistic frameworks may introduce further derivation types without ontology modification."@x-gmeow-english ;
+    skos:example "ex:derivationBlending a gmeow:DerivationKind ; rdfs:label \"blending\"@en ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid creating per-kind subclasses (kinds are individuals) and avoid using it for the derivation claim itself (that is gmeow:EtymologicalDerivation)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Reference the seeded derivation-kind individuals from a derivation; extend the axis for a new historical-linguistic framework by minting a fresh gmeow:DerivationKind individual rather than a subclass."@x-gmeow-english ;
+    gmeow:useWhen "Use as the value vocabulary for the etymological-derivation-kind axis — the seeded kinds (inheritance, borrowing, calque, semantic shift, …) referenced from a derivation via gmeow:derivationKind."@x-gmeow-english .
+
+gmeow:EtymologicalDerivation
+    a gufo:SubKind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> ;
+    rdfs:label "Etymological Derivation"@x-gmeow-english ;
+    rdfs:subClassOf gufo:Relator ,
+        gmeow:Observation ,
+        [
+            a owl:Restriction ;
+            owl:onProperty gmeow:derivationSource ;
+            owl:someValuesFrom gmeow:InformationObject ;
+        ] ,
+        [
+            a owl:Restriction ;
+            owl:onProperty gmeow:derivationTarget ;
+            owl:someValuesFrom gmeow:InformationObject ;
+        ] ,
+        [
+            a owl:Restriction ;
+            owl:onProperty gmeow:derivationKind ;
+            owl:someValuesFrom gmeow:DerivationKind ;
+        ] ;
+    skos:definition "A provenance-rich claim about historical derivation between lexical items or forms. Not a flat property — a full relator carrying standpoint (accordingTo), confidence, determinacy, and temporal scope (Principle 9). Multiple derivations for the same target coexist without privilege; a superseded derivation is suppressed with displayable false, never erased (Principle 10). Follows the LanguageState / KinRelationship pattern as an Observation + Relator."@x-gmeow-english ;
+    skos:example "ex:etym1 a gmeow:EtymologicalDerivation ; gmeow:derivationSource ex:oldEnglishWaeter ; gmeow:derivationTarget ex:wordWater ; gmeow:derivationKind gmeow:derivationInheritance ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid recording etymology as a single flat property or text blob, and avoid deleting a discredited derivation — competing derivations coexist, and a superseded one is suppressed with gmeow:displayable false (Principle 10)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Mint the relator, name source/target/kind (all required by the someValuesFrom axioms), attach supporting attestations via gmeow:derivationEvidence, and carry standpoint and confidence on the observation spine."@x-gmeow-english ;
+    gmeow:useWhen "Use for a historical-derivation claim between lexical items or forms — borrowing, inheritance, semantic shift — that must carry standpoint, confidence, and temporal scope rather than a flat origin string."@x-gmeow-english .
+
+gmeow:LexicalForm
+    a gufo:Kind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> ;
+    rdfs:label "Lexical Form"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:InformationObject ;
+    skos:definition "A concrete form of a lexical item — written, spoken, signed, rendered, reconstructed, normalized, transliterated, or translated. The surface representation is carried by gmeow:formRepresentation; the kind of form is a gmeow:LexicalFormType value. A single lexical item may have many coexisting forms (Principle 9). Aligns to OntoLex Form by reference."@x-gmeow-english ;
+    skos:example "ex:waterWritten a gmeow:LexicalForm ; gmeow:formRepresentation \"water\" ; gmeow:formType gmeow:formWritten ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for the abstract lexeme itself (that is gmeow:LexicalItem) and avoid collapsing two genuinely different representations into one form — a different representation is a different form."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Mint the form, set its string via gmeow:formRepresentation, classify it with gmeow:formType, link it back with gmeow:formOf (inverse of gmeow:hasLexicalForm), and record its transliteration scheme where applicable."@x-gmeow-english ;
+    gmeow:useWhen "Use for a concrete surface realization of a lexical item — a written string, an IPA transcription, a signed form, a reconstructed shape — bearing its representation and its form type."@x-gmeow-english .
+
+gmeow:LexicalFormType
+    a gufo:AbstractIndividualType ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> ;
+    rdfs:label "Lexical Form Type"@x-gmeow-english ;
+    rdfs:subClassOf gufo:QualityValue ;
+    skos:definition "The kind of a lexical form — a value, never an Entity subclass. The seed list is an anchor, not a fence; new analytical frameworks may introduce further form types without ontology modification."@x-gmeow-english ;
+    skos:example "ex:formGlossed a gmeow:LexicalFormType ; rdfs:label \"glossed\"@en ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid creating per-kind subclasses (kinds are individuals) and avoid using it for the form itself (that is gmeow:LexicalForm)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Reference the seeded form-type individuals from a form; extend the axis for a new analytical framework by minting a fresh gmeow:LexicalFormType individual rather than a subclass."@x-gmeow-english ;
+    gmeow:useWhen "Use as the value vocabulary for the lexical-form-kind axis — the seeded modalities (written, spoken, signed, reconstructed, …) referenced from a form via gmeow:formType."@x-gmeow-english .
+
+gmeow:LexicalItem
+    a gufo:Kind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> ;
+    rdfs:label "Lexical Item"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:InformationObject ;
+    skos:definition "The abstract lexical or constructional object: a word, morpheme, phrase, idiom, symbol, sign, or construction. Carries no surface form itself; forms are linked via gmeow:hasLexicalForm. Aligns to OntoLex LexicalEntry by reference, but is broader than names (which are modeled in the names module as Appellation)."@x-gmeow-english ;
+    skos:example "ex:wordWater a gmeow:LexicalItem ; gmeow:lexicalItemLanguage ex:english ; gmeow:hasLexicalForm ex:waterWritten ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for a concrete surface form (that is gmeow:LexicalForm) and for a proper-name appellation (use the names slice's Appellation, which is the specialized onomastic construct)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Mint the item, fix its language with gmeow:lexicalItemLanguage, and attach concrete forms with gmeow:hasLexicalForm; model translation equivalents as separate items linked rather than as one polyglot item."@x-gmeow-english ;
+    gmeow:useWhen "Use for the abstract word, morpheme, phrase, idiom, symbol, sign, or construction itself — the lexical entry that carries no surface string but is realized by one or more forms."@x-gmeow-english .
+
+gmeow:UsageAttestation
+    a gufo:SubKind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> ;
+    rdfs:label "Usage Attestation"@x-gmeow-english ;
+    rdfs:subClassOf gufo:Relator ,
+        gmeow:Observation ,
+        [
+            a owl:Restriction ;
+            owl:onProperty gmeow:attestedForm ;
+            owl:someValuesFrom gmeow:LexicalForm ;
+        ] ,
+        [
+            a owl:Restriction ;
+            owl:onProperty gmeow:attestedInSource ;
+            owl:someValuesFrom gmeow:CreativeWork ;
+        ] ;
+    skos:definition "An evidence node recording that a lexical form, reading, inscription, symbol, construction, or usage was observed in a source or context. Evidence, not truth: an attestation records that something was seen, not that a proposed interpretation is correct (Principle 12). Follows the LanguageState / KinRelationship pattern as an Observation + Relator. Mediates between an attested form, a source, a context, and optionally a time interval."@x-gmeow-english ;
+    skos:example "ex:att1 a gmeow:UsageAttestation ; gmeow:attestedForm ex:waterWritten ; gmeow:attestedInSource ex:oed ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using it to assert that an analysis is correct (it records observation, not truth) and avoid flattening it to a bare property — the relator must carry source, context, and standpoint."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxTBox ;
+    gmeow:howToUse "Mint the relator, name the form with gmeow:attestedForm and the source with gmeow:attestedInSource (both required by the someValuesFrom axiom), add context/carrier/interval as available, and carry confidence and standpoint on the observation spine."@x-gmeow-english ;
+    gmeow:useWhen "Use to record that a form was OBSERVED in a source or context — an evidence node, not a truth claim about whether an interpretation is correct."@x-gmeow-english .
+
+gmeow:attestationInterval
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
+    rdfs:domain gmeow:UsageAttestation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> ;
+    rdfs:label "attestation interval"@x-gmeow-english ;
+    rdfs:range gmeow:TimeInterval ;
+    skos:definition "The time interval over which the attested usage is asserted to have been observed — e.g. a corpus span, an inscription period, or a community usage era. A relator carries its period this way rather than via statement-level validFrom/validUntil alone."@x-gmeow-english ;
+    skos:example "ex:att1 gmeow:attestationInterval ex:lateMedievalSpan ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid more than one interval per attestation (it is functional) and avoid using bare statement-level validFrom/validUntil when the period belongs to the relator itself."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxRBox ;
+    gmeow:howToUse "Point gmeow:attestationInterval once at a gmeow:TimeInterval carrying its temporal frame; reify a separate attestation when a genuinely distinct span must be recorded."@x-gmeow-english ;
+    gmeow:useWhen "Use on a UsageAttestation to carry the time span over which the usage was observed — a corpus span, inscription period, or usage era — as a first-class interval on the relator."@x-gmeow-english .
+
+gmeow:attestedForm
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
+    rdfs:domain gmeow:UsageAttestation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> ;
+    rdfs:label "attested form"@x-gmeow-english ;
+    rdfs:range gmeow:LexicalForm ;
+    rdfs:subPropertyOf gmeow:observedFeature ;
+    skos:definition "The lexical form that a usage attestation observes. Functional per relator: one attested form per UsageAttestation."@x-gmeow-english ;
+    skos:example "ex:att1 gmeow:attestedForm ex:waterWritten ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid more than one attested form per attestation (it is functional; mint a separate attestation per form) and avoid naming the source here (that is gmeow:attestedInSource)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Assert gmeow:attestedForm once from the relator to its gmeow:LexicalForm; it specializes gmeow:observedFeature, so generic observation queries find it by inheritance."@x-gmeow-english ;
+    gmeow:useWhen "Use on a UsageAttestation to name the single lexical form it records as observed — the observation's feature of interest."@x-gmeow-english .
+
+gmeow:attestedInContext
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:UsageAttestation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> ;
+    rdfs:label "attested in context"@x-gmeow-english ;
+    rdfs:range gmeow:Entity ;
+    skos:definition "The corpus, platform, community, dataset, inscription, or broader context in which the attested form was observed. NON-FUNCTIONAL: a form may be attested in multiple contexts simultaneously, and context assignments are standpoint-scoped."@x-gmeow-english ;
+    skos:example "ex:att1 gmeow:attestedInContext ex:chaucerCorpus ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating context as the asserting standpoint (it is deliberately not subsumed under vantage — context is where it was seen, not who claims it) and avoid using it for the bibliographic source (gmeow:attestedInSource)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxRBox ;
+    gmeow:howToUse "Point gmeow:attestedInContext at one or more gmeow:Entity contexts; multiple coexisting contexts on one attestation are expected, and the asserting standpoint stays on the vantage axis."@x-gmeow-english ;
+    gmeow:useWhen "Use on a UsageAttestation to name the corpus, platform, community, dataset, or inscription context in which the form was observed."@x-gmeow-english .
+
+gmeow:attestedInLanguage
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:UsageAttestation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> ;
+    rdfs:label "attested in language"@x-gmeow-english ;
+    rdfs:range gmeow:Language ;
+    skos:definition "The language, variety, or state in which the attested form was observed. NON-FUNCTIONAL: a multilingual source may attest the same form in multiple language contexts, or different standpoints may assign different language classifications to the same attestation."@x-gmeow-english ;
+    skos:example "ex:att1 gmeow:attestedInLanguage ex:middleEnglish ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid forcing a single language (it is non-functional; a multilingual source may attest several) and avoid confusing the attestation's observed language with the item's fixed gmeow:lexicalItemLanguage."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Point gmeow:attestedInLanguage at one or more gmeow:Language individuals; competing standpoint-specific language classifications of the same attestation coexist."@x-gmeow-english ;
+    gmeow:useWhen "Use on a UsageAttestation to record the language, variety, or state in which the form was observed."@x-gmeow-english .
+
+gmeow:attestedInSource
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:UsageAttestation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> ;
+    rdfs:label "attested in source"@x-gmeow-english ;
+    rdfs:range gmeow:CreativeWork ;
+    skos:definition "The bibliographic or documentary source in which the attested form was observed. NON-FUNCTIONAL: an attestation may be supported by multiple sources, and competing source attributions coexist (Principle 9). Targets a CreativeWork (the retired Source Kind was greenfield-refactored in source/claim refactor)."@x-gmeow-english ;
+    skos:example "ex:att1 gmeow:attestedInSource ex:oed ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid forcing a single source (it is non-functional; an attestation may cite several) and avoid naming the physical artifact here (that is gmeow:attestedOnCarrier) or the corpus/community context (gmeow:attestedInContext)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxRBox ;
+    gmeow:howToUse "Point gmeow:attestedInSource at one or more gmeow:CreativeWork sources (required by the someValuesFrom axiom); competing source attributions coexist."@x-gmeow-english ;
+    gmeow:useWhen "Use on a UsageAttestation to name the bibliographic or documentary source — a CreativeWork — in which the form was observed."@x-gmeow-english .
+
+gmeow:attestedOnCarrier
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:UsageAttestation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> ;
+    rdfs:label "attested on carrier"@x-gmeow-english ;
+    rdfs:range gmeow:PhysicalObject ;
+    skos:definition "The physical archaeological carrier on which an attested form was observed — a tablet, ostracon, seal, coin, manuscript, or wall. NON-FUNCTIONAL: an attestation may reference multiple carriers (e.g. duplicate impressions), and competing carrier attributions coexist (Principle 9). This is the language-facing hook from UsageAttestation to archaeological evidence."@x-gmeow-english ;
+    skos:example "ex:att1 gmeow:attestedOnCarrier ex:tabletK1234 ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using it for the bibliographic source (gmeow:attestedInSource) or the abstract context (gmeow:attestedInContext), and avoid forcing one carrier — duplicate impressions coexist, so keep it non-functional."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Point gmeow:attestedOnCarrier at one or more gmeow:PhysicalObject carriers; multiple carriers for one attestation are expected for duplicate or recut inscriptions."@x-gmeow-english ;
+    gmeow:useWhen "Use on a UsageAttestation to name the physical carrier — tablet, ostracon, seal, coin, manuscript, wall — on which the form was observed, the hook to archaeological evidence."@x-gmeow-english .
+
+gmeow:derivationAffixation
+    a gmeow:DerivationKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> ;
+    rdfs:label "affixation"@x-gmeow-english ;
+    skos:definition "Formation of a lexical item by attaching a bound morpheme to a stem."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:derivationBackFormation
+    a gmeow:DerivationKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> ;
+    rdfs:label "back-formation"@x-gmeow-english ;
+    skos:definition "Creation of a new lexical item by removing a supposed affix from an existing form."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:derivationBorrowing
+    a gmeow:DerivationKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> ;
+    rdfs:label "borrowing"@x-gmeow-english ;
+    skos:definition "Adoption of a lexical item from a donor language into a recipient language."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:derivationCalque
+    a gmeow:DerivationKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> ;
+    rdfs:label "calque"@x-gmeow-english ;
+    skos:definition "Loan translation: borrowing of semantic structure mapped onto native morphological material."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:derivationClipping
+    a gmeow:DerivationKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> ;
+    rdfs:label "clipping"@x-gmeow-english ;
+    skos:definition "Shortening of a lexical item by omitting one or more syllables."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:derivationCompounding
+    a gmeow:DerivationKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> ;
+    rdfs:label "compounding"@x-gmeow-english ;
+    skos:definition "Formation of a lexical item by combining two or more existing lexical items."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:derivationEvidence
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:EtymologicalDerivation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> ;
+    rdfs:label "derivation evidence"@x-gmeow-english ;
+    rdfs:range gmeow:Entity ;
+    skos:definition "The usage attestations, sources, or other evidence supporting a derivation claim. NON-FUNCTIONAL: a derivation may be supported by multiple evidence nodes, and evidence assessments vary by standpoint."@x-gmeow-english ;
+    skos:example "ex:etym1 gmeow:derivationEvidence ex:att1 ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating the evidence as proof of correctness (it supports, not settles, the claim) and avoid forcing a single evidence node — derivations may rest on several, so keep it non-functional."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxRBox ;
+    gmeow:howToUse "Point gmeow:derivationEvidence at gmeow:UsageAttestation nodes, sources, or other gmeow:Entity evidence; carry the confidence the evidence warrants on the observation spine."@x-gmeow-english ;
+    gmeow:useWhen "Use on an EtymologicalDerivation to attach the usage attestations, sources, or other evidence that support the derivation claim."@x-gmeow-english .
+
+gmeow:derivationFolkEtymology
+    a gmeow:DerivationKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> ;
+    rdfs:label "folk etymology"@x-gmeow-english ;
+    skos:definition "Popular reinterpretation of an opaque form as semantically transparent."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:derivationInheritance
+    a gmeow:DerivationKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> ;
+    rdfs:label "inheritance"@x-gmeow-english ;
+    skos:definition "Direct transmission of a lexical item from an ancestor language without structural change."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:derivationKind
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:EtymologicalDerivation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> ;
+    rdfs:label "derivation kind"@x-gmeow-english ;
+    rdfs:range gmeow:DerivationKind ;
+    skos:definition "The kind(s) of etymological derivation claimed — borrowing, calque, semantic shift, sound change, etc. NON-FUNCTIONAL: a single derivation may be classified as both borrowing and reanalysis by different analytical standpoints (Principle 9)."@x-gmeow-english ;
+    skos:example "ex:etym1 gmeow:derivationKind gmeow:derivationBorrowing ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid minting a per-kind subclass (kinds are values) and avoid forcing a single classification — competing analytical kinds for one derivation coexist, so keep it non-functional."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Point gmeow:derivationKind at one or more gmeow:DerivationKind individuals (at least one is required by the someValuesFrom axiom); standpoint-specific kind classifications coexist."@x-gmeow-english ;
+    gmeow:useWhen "Use on an EtymologicalDerivation to classify the kind(s) of derivation claimed via a gmeow:DerivationKind value — borrowing, calque, semantic shift, sound change, and so on."@x-gmeow-english .
+
+gmeow:derivationReanalysis
+    a gmeow:DerivationKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> ;
+    rdfs:label "reanalysis"@x-gmeow-english ;
+    skos:definition "Reinterpretation of the morphological structure of a lexical item by speakers."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:derivationReconstruction
+    a gmeow:DerivationKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> ;
+    rdfs:label "reconstruction"@x-gmeow-english ;
+    skos:definition "Hypothesised ancestral form derived by historical-comparative methods."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:derivationSemanticShift
+    a gmeow:DerivationKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> ;
+    rdfs:label "semantic shift"@x-gmeow-english ;
+    skos:definition "Change in the meaning of a lexical item while its form remains stable."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:derivationSoundChange
+    a gmeow:DerivationKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> ;
+    rdfs:label "sound change"@x-gmeow-english ;
+    skos:definition "Systematic phonological alteration affecting a lexical item within a language community."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:derivationSource
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
+    rdfs:domain gmeow:EtymologicalDerivation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> ;
+    rdfs:label "derivation source"@x-gmeow-english ;
+    rdfs:range gmeow:InformationObject ;
+    rdfs:subPropertyOf gmeow:observedFeature ;
+    skos:definition "The ancestor lexical item or form from which the target is derived. Functional per relator: one source per EtymologicalDerivation (a derivation with multiple sources is modeled as multiple derivations)."@x-gmeow-english ;
+    skos:example "ex:etym1 gmeow:derivationSource ex:oldEnglishWaeter ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid naming multiple sources on one derivation (it is functional; a multi-source etymology is several derivations) and avoid swapping it with gmeow:derivationTarget — direction is ancestor to descendant."@x-gmeow-english ;
+    gmeow:howToUse "Assert gmeow:derivationSource once from the relator to its ancestor (required by the someValuesFrom axiom); it specializes gmeow:observedFeature, so the ancestor surfaces in generic observation queries."@x-gmeow-english ;
+    gmeow:useWhen "Use on an EtymologicalDerivation to name the single ancestor lexical item or form from which the target descends."@x-gmeow-english .
+
+gmeow:derivationSpellingChange
+    a gmeow:DerivationKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> ;
+    rdfs:label "spelling change"@x-gmeow-english ;
+    skos:definition "Orthographic reform or convention shift altering the written form without phonological change."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:derivationTarget
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
+    rdfs:domain gmeow:EtymologicalDerivation ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> ;
+    rdfs:label "derivation target"@x-gmeow-english ;
+    rdfs:range gmeow:InformationObject ;
+    rdfs:subPropertyOf gmeow:observedFeature ;
+    skos:definition "The descendant lexical item or form that is derived from the source. Functional per relator: one target per EtymologicalDerivation."@x-gmeow-english ;
+    skos:example "ex:etym1 gmeow:derivationTarget ex:wordWater ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid naming more than one target (it is functional) and avoid swapping it with gmeow:derivationSource — the target is the descendant, the source the ancestor."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Assert gmeow:derivationTarget once from the relator to its descendant (required by the someValuesFrom axiom); it specializes gmeow:observedFeature for generic observation queries."@x-gmeow-english ;
+    gmeow:useWhen "Use on an EtymologicalDerivation to name the single descendant lexical item or form derived from the source."@x-gmeow-english .
+
+gmeow:derivationUnknownOrigin
+    a gmeow:DerivationKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> ;
+    rdfs:label "unknown origin"@x-gmeow-english ;
+    skos:definition "No satisfactory etymological account is available for the lexical item."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:formNormalized
+    a gmeow:LexicalFormType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> ;
+    rdfs:label "normalized"@x-gmeow-english ;
+    skos:definition "Lexical form in a normalised or canonical orthographic shape."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:formOf
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:LexicalForm ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> ;
+    rdfs:label "form of"@x-gmeow-english ;
+    rdfs:range gmeow:LexicalItem ;
+    owl:inverseOf gmeow:hasLexicalForm ;
+    skos:definition "The lexical item that a form is a form of — the inverse of gmeow:hasLexicalForm."@x-gmeow-english ;
+    skos:example "ex:waterWritten gmeow:formOf ex:wordWater ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting both directions redundantly; prefer gmeow:hasLexicalForm from the item and read gmeow:formOf as its inverse."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Assert gmeow:formOf from the gmeow:LexicalForm to its gmeow:LexicalItem when the form is the natural subject; tooling reads it as the inverse of gmeow:hasLexicalForm."@x-gmeow-english ;
+    gmeow:useWhen "Use from a form's side to name the lexical item it realizes — the natural direction in form-rooted data or projections."@x-gmeow-english .
+
+gmeow:formReconstructed
+    a gmeow:LexicalFormType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> ;
+    rdfs:label "reconstructed"@x-gmeow-english ;
+    skos:definition "Lexical form hypothesised by historical-comparative reconstruction."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:formRendered
+    a gmeow:LexicalFormType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> ;
+    rdfs:label "rendered"@x-gmeow-english ;
+    skos:definition "Lexical form in a specific rendering or typographic presentation."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:formRepresentation
+    a owl:DatatypeProperty ,
+        owl:FunctionalProperty ;
+    rdfs:domain gmeow:LexicalForm ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> ;
+    rdfs:label "form representation"@x-gmeow-english ;
+    rdfs:range rdfs:Literal ;
+    skos:definition "The actual string or value of a lexical form — the written text, IPA transcription, sign notation, or reconstructed string. Functional: one representation per form instance (a different representation is a different form)."@x-gmeow-english ;
+    skos:example "ex:waterIpa gmeow:formRepresentation \"ˈwɔːtə\" ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid giving one form two representations (it is functional; a different string is a different form) and avoid storing the form-kind here (that is gmeow:formType)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Assert gmeow:formRepresentation once per gmeow:LexicalForm with the surface literal; carry the modality via gmeow:formType and any transliteration scheme via gmeow:formTransliterationScheme."@x-gmeow-english ;
+    gmeow:useWhen "Use to carry the actual surface string of a lexical form — its written text, IPA transcription, sign notation, or reconstructed shape."@x-gmeow-english .
+
+gmeow:formSigned
+    a gmeow:LexicalFormType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> ;
+    rdfs:label "signed"@x-gmeow-english ;
+    skos:definition "Lexical form represented in sign-language or gestural modality."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:formSpoken
+    a gmeow:LexicalFormType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> ;
+    rdfs:label "spoken"@x-gmeow-english ;
+    skos:definition "Lexical form represented in spoken or auditory modality."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:formTranslated
+    a gmeow:LexicalFormType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> ;
+    rdfs:label "translated"@x-gmeow-english ;
+    skos:definition "Lexical form representing a translation equivalent."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:formTransliterated
+    a gmeow:LexicalFormType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> ;
+    rdfs:label "transliterated"@x-gmeow-english ;
+    skos:definition "Lexical form rendered through a transliteration scheme."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:formTransliterationScheme
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:LexicalForm ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> ;
+    rdfs:label "form transliteration scheme"@x-gmeow-english ;
+    rdfs:range gmeow:TransliterationScheme ;
+    skos:definition "The transliteration scheme applied to produce this form, when applicable. NON-FUNCTIONAL: a form may be the product of multiple schemes in different analytical standpoints. Reuses the existing TransliterationScheme value vocabulary from the languages module."@x-gmeow-english ;
+    skos:example "ex:mosulPinyin gmeow:formTransliterationScheme ex:pinyin ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting it on forms that are not transliterations, and avoid forcing one scheme — a form may result from several schemes under different standpoints, so keep it non-functional."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Point gmeow:formTransliterationScheme at a gmeow:TransliterationScheme individual reused from the languages slice; pair with gmeow:formType gmeow:formTransliterated."@x-gmeow-english ;
+    gmeow:useWhen "Use on a transliterated form to name the transliteration scheme that produced it."@x-gmeow-english .
+
+gmeow:formType
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:LexicalForm ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> ;
+    rdfs:label "form type"@x-gmeow-english ;
+    rdfs:range gmeow:LexicalFormType ;
+    skos:definition "The kind(s) of a lexical form — written, spoken, signed, reconstructed, etc. NON-FUNCTIONAL: a single form may be classified as both spoken and written by different standpoints, or as both reconstructed and normalized in different analytical frames."@x-gmeow-english ;
+    skos:example "ex:waterWritten gmeow:formType gmeow:formWritten ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid minting a per-kind subclass (kinds are values) and avoid forcing a single classification — a form may be both reconstructed and normalized under different frames, so keep it non-functional."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Point gmeow:formType at one or more gmeow:LexicalFormType individuals; competing standpoint-specific classifications coexist on the same form."@x-gmeow-english ;
+    gmeow:useWhen "Use to classify a lexical form's modality or analytical kind via a gmeow:LexicalFormType value — written, spoken, signed, reconstructed, normalized, and so on."@x-gmeow-english .
+
+gmeow:formWritten
+    a gmeow:LexicalFormType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> ;
+    rdfs:label "written"@x-gmeow-english ;
+    skos:definition "Lexical form represented in written modality."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:hasLexicalForm
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:LexicalItem ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> ;
+    rdfs:label "has lexical form"@x-gmeow-english ;
+    rdfs:range gmeow:LexicalForm ;
+    skos:definition "The concrete form(s) of a lexical item. NON-FUNCTIONAL: a single item may have many forms (written, spoken, reconstructed, etc.), and competing form claims from different standpoints coexist (Principle 9)."@x-gmeow-english ;
+    skos:example "ex:wordWater gmeow:hasLexicalForm ex:waterWritten , ex:waterIpa ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid forcing a single form (it is non-functional; many forms of one item coexist) and avoid stating it from the form's side, where gmeow:formOf is the natural inverse."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Assert gmeow:hasLexicalForm from the item to each gmeow:LexicalForm; read gmeow:formOf as its inverse from the form back to the item."@x-gmeow-english ;
+    gmeow:useWhen "Use to link a lexical item to its concrete surface forms — written, spoken, signed, reconstructed, and so on."@x-gmeow-english .
+
+gmeow:lexicalItemLanguage
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
+    rdfs:domain gmeow:LexicalItem ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> ;
+    rdfs:label "lexical item language"@x-gmeow-english ;
+    rdfs:range gmeow:Language ;
+    skos:definition "The primary language of a lexical item. Functional: one language per item (polyglot items are modeled as separate items linked by translation)."@x-gmeow-english ;
+    skos:example "ex:wordWater gmeow:lexicalItemLanguage ex:english ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting more than one language (it is functional) — model a polyglot or borrowed item as separate items per language linked by an EtymologicalDerivation or translation."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Assert gmeow:lexicalItemLanguage once from the item to a gmeow:Language individual from the languages slice; mint a distinct item for each language a form belongs to."@x-gmeow-english ;
+    gmeow:useWhen "Use to fix the single primary language, variety, or state of a lexical item."@x-gmeow-english .
 
 <https://blackcatinformatics.ca/gmeow/slices/lexicon>
     a owl:Ontology ;
-    rdfs:label "GMEOW Lexicon Module"@x-gmeow-english ;
-    skos:definition "The GMEOW Lexicon Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> ;
+    dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;
     rdfs:comment """Lexical items, forms, usage attestations, and etymological
     derivations — the lexical and constructional layer of GMEOW. Models words,
     morphemes, phrases, idioms, symbols, and constructions as first-class
@@ -21,496 +497,9 @@
     Etymology is modeled as a graph of provenance-rich, standpointed claims,
     not as a flat origin string (Principle 9). Aligns to OntoLex-Lemon by
     reference (Principle 5). Builds on the language-state/variety layer in
-     and the universal observation stack (standpoint facility)."""@x-gmeow-english;
-    dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
-
-# =========================================================================== #
-# CORE CLASSES
-# =========================================================================== #
-
-gmeow:LexicalItem
-    a owl:Class, gufo:Kind ;
-    rdfs:subClassOf gmeow:InformationObject ;
-    rdfs:label "Lexical Item"@x-gmeow-english ;
-    skos:definition "The abstract lexical or constructional object: a word, morpheme, phrase, idiom, symbol, sign, or construction. Carries no surface form itself; forms are linked via gmeow:hasLexicalForm. Aligns to OntoLex LexicalEntry by reference, but is broader than names (which are modeled in the names module as Appellation)."@x-gmeow-english ;
-    skos:example "ex:wordWater a gmeow:LexicalItem ; gmeow:lexicalItemLanguage ex:english ; gmeow:hasLexicalForm ex:waterWritten ."@x-gmeow-english ;
-    gmeow:useWhen "Use for the abstract word, morpheme, phrase, idiom, symbol, sign, or construction itself — the lexical entry that carries no surface string but is realized by one or more forms."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid for a concrete surface form (that is gmeow:LexicalForm) and for a proper-name appellation (use the names slice's Appellation, which is the specialized onomastic construct)."@x-gmeow-english ;
-    gmeow:howToUse "Mint the item, fix its language with gmeow:lexicalItemLanguage, and attach concrete forms with gmeow:hasLexicalForm; model translation equivalents as separate items linked rather than as one polyglot item."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> .
-
-gmeow:LexicalForm
-    a owl:Class, gufo:Kind ;
-    rdfs:subClassOf gmeow:InformationObject ;
-    rdfs:label "Lexical Form"@x-gmeow-english ;
-    skos:definition "A concrete form of a lexical item — written, spoken, signed, rendered, reconstructed, normalized, transliterated, or translated. The surface representation is carried by gmeow:formRepresentation; the kind of form is a gmeow:LexicalFormType value. A single lexical item may have many coexisting forms (Principle 9). Aligns to OntoLex Form by reference."@x-gmeow-english ;
-    skos:example "ex:waterWritten a gmeow:LexicalForm ; gmeow:formRepresentation \"water\" ; gmeow:formType gmeow:formWritten ."@x-gmeow-english ;
-    gmeow:useWhen "Use for a concrete surface realization of a lexical item — a written string, an IPA transcription, a signed form, a reconstructed shape — bearing its representation and its form type."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid for the abstract lexeme itself (that is gmeow:LexicalItem) and avoid collapsing two genuinely different representations into one form — a different representation is a different form."@x-gmeow-english ;
-    gmeow:howToUse "Mint the form, set its string via gmeow:formRepresentation, classify it with gmeow:formType, link it back with gmeow:formOf (inverse of gmeow:hasLexicalForm), and record its transliteration scheme where applicable."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> .
-
-gmeow:UsageAttestation
-    a owl:Class, gufo:SubKind ;
-    rdfs:subClassOf gmeow:Observation, gufo:Relator ;
-    rdfs:label "Usage Attestation"@x-gmeow-english ;
-    skos:definition "An evidence node recording that a lexical form, reading, inscription, symbol, construction, or usage was observed in a source or context. Evidence, not truth: an attestation records that something was seen, not that a proposed interpretation is correct (Principle 12). Follows the LanguageState / KinRelationship pattern as an Observation + Relator. Mediates between an attested form, a source, a context, and optionally a time interval."@x-gmeow-english ;
-    skos:example "ex:att1 a gmeow:UsageAttestation ; gmeow:attestedForm ex:waterWritten ; gmeow:attestedInSource ex:oed ."@x-gmeow-english ;
-    gmeow:useWhen "Use to record that a form was OBSERVED in a source or context — an evidence node, not a truth claim about whether an interpretation is correct."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid using it to assert that an analysis is correct (it records observation, not truth) and avoid flattening it to a bare property — the relator must carry source, context, and standpoint."@x-gmeow-english ;
-    gmeow:howToUse "Mint the relator, name the form with gmeow:attestedForm and the source with gmeow:attestedInSource (both required by the someValuesFrom axiom), add context/carrier/interval as available, and carry confidence and standpoint on the observation spine."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> .
-
-# EL axiomatisation: every UsageAttestation mediates at least one form and one source.
-gmeow:UsageAttestation rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:attestedForm ;     owl:someValuesFrom gmeow:LexicalForm ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:attestedInSource ; owl:someValuesFrom gmeow:CreativeWork ] .
-
-gmeow:EtymologicalDerivation
-    a owl:Class, gufo:SubKind ;
-    rdfs:subClassOf gmeow:Observation, gufo:Relator ;
-    rdfs:label "Etymological Derivation"@x-gmeow-english ;
-    skos:definition "A provenance-rich claim about historical derivation between lexical items or forms. Not a flat property — a full relator carrying standpoint (accordingTo), confidence, determinacy, and temporal scope (Principle 9). Multiple derivations for the same target coexist without privilege; a superseded derivation is suppressed with displayable false, never erased (Principle 10). Follows the LanguageState / KinRelationship pattern as an Observation + Relator."@x-gmeow-english ;
-    skos:example "ex:etym1 a gmeow:EtymologicalDerivation ; gmeow:derivationSource ex:oldEnglishWaeter ; gmeow:derivationTarget ex:wordWater ; gmeow:derivationKind gmeow:derivationInheritance ."@x-gmeow-english ;
-    gmeow:useWhen "Use for a historical-derivation claim between lexical items or forms — borrowing, inheritance, semantic shift — that must carry standpoint, confidence, and temporal scope rather than a flat origin string."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid recording etymology as a single flat property or text blob, and avoid deleting a discredited derivation — competing derivations coexist, and a superseded one is suppressed with gmeow:displayable false (Principle 10)."@x-gmeow-english ;
-    gmeow:howToUse "Mint the relator, name source/target/kind (all required by the someValuesFrom axioms), attach supporting attestations via gmeow:derivationEvidence, and carry standpoint and confidence on the observation spine."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> .
-
-# EL axiomatisation: every EtymologicalDerivation mediates at least one source, one target, and one kind.
-gmeow:EtymologicalDerivation rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:derivationSource ; owl:someValuesFrom gmeow:InformationObject ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:derivationTarget ; owl:someValuesFrom gmeow:InformationObject ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:derivationKind ;  owl:someValuesFrom gmeow:DerivationKind ] .
-
-# =========================================================================== #
-# PROPERTIES — LexicalItem
-# =========================================================================== #
-
-gmeow:hasLexicalForm
-    a owl:ObjectProperty ;
-    rdfs:domain gmeow:LexicalItem ;
-    rdfs:range gmeow:LexicalForm ;
-    rdfs:label "has lexical form"@x-gmeow-english ;
-    skos:definition "The concrete form(s) of a lexical item. NON-FUNCTIONAL: a single item may have many forms (written, spoken, reconstructed, etc.), and competing form claims from different standpoints coexist (Principle 9)."@x-gmeow-english ;
-    skos:example "ex:wordWater gmeow:hasLexicalForm ex:waterWritten , ex:waterIpa ."@x-gmeow-english ;
-    gmeow:useWhen "Use to link a lexical item to its concrete surface forms — written, spoken, signed, reconstructed, and so on."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid forcing a single form (it is non-functional; many forms of one item coexist) and avoid stating it from the form's side, where gmeow:formOf is the natural inverse."@x-gmeow-english ;
-    gmeow:howToUse "Assert gmeow:hasLexicalForm from the item to each gmeow:LexicalForm; read gmeow:formOf as its inverse from the form back to the item."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> .
-
-gmeow:lexicalItemLanguage
-    a owl:ObjectProperty, owl:FunctionalProperty ;
-    rdfs:domain gmeow:LexicalItem ;
-    rdfs:range gmeow:Language ;
-    rdfs:label "lexical item language"@x-gmeow-english ;
-    skos:definition "The primary language of a lexical item. Functional: one language per item (polyglot items are modeled as separate items linked by translation)."@x-gmeow-english ;
-    skos:example "ex:wordWater gmeow:lexicalItemLanguage ex:english ."@x-gmeow-english ;
-    gmeow:useWhen "Use to fix the single primary language, variety, or state of a lexical item."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid asserting more than one language (it is functional) — model a polyglot or borrowed item as separate items per language linked by an EtymologicalDerivation or translation."@x-gmeow-english ;
-    gmeow:howToUse "Assert gmeow:lexicalItemLanguage once from the item to a gmeow:Language individual from the languages slice; mint a distinct item for each language a form belongs to."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> .
-
-# =========================================================================== #
-# PROPERTIES — LexicalForm
-# =========================================================================== #
-
-gmeow:formRepresentation
-    a owl:DatatypeProperty, owl:FunctionalProperty ;
-    rdfs:domain gmeow:LexicalForm ;
-    rdfs:range rdfs:Literal ;
-    rdfs:label "form representation"@x-gmeow-english ;
-    skos:definition "The actual string or value of a lexical form — the written text, IPA transcription, sign notation, or reconstructed string. Functional: one representation per form instance (a different representation is a different form)."@x-gmeow-english ;
-    skos:example "ex:waterIpa gmeow:formRepresentation \"ˈwɔːtə\" ."@x-gmeow-english ;
-    gmeow:useWhen "Use to carry the actual surface string of a lexical form — its written text, IPA transcription, sign notation, or reconstructed shape."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid giving one form two representations (it is functional; a different string is a different form) and avoid storing the form-kind here (that is gmeow:formType)."@x-gmeow-english ;
-    gmeow:howToUse "Assert gmeow:formRepresentation once per gmeow:LexicalForm with the surface literal; carry the modality via gmeow:formType and any transliteration scheme via gmeow:formTransliterationScheme."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> .
-
-gmeow:formType
-    a owl:ObjectProperty ;
-    rdfs:domain gmeow:LexicalForm ;
-    rdfs:range gmeow:LexicalFormType ;
-    rdfs:label "form type"@x-gmeow-english ;
-    skos:definition "The kind(s) of a lexical form — written, spoken, signed, reconstructed, etc. NON-FUNCTIONAL: a single form may be classified as both spoken and written by different standpoints, or as both reconstructed and normalized in different analytical frames."@x-gmeow-english ;
-    skos:example "ex:waterWritten gmeow:formType gmeow:formWritten ."@x-gmeow-english ;
-    gmeow:useWhen "Use to classify a lexical form's modality or analytical kind via a gmeow:LexicalFormType value — written, spoken, signed, reconstructed, normalized, and so on."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid minting a per-kind subclass (kinds are values) and avoid forcing a single classification — a form may be both reconstructed and normalized under different frames, so keep it non-functional."@x-gmeow-english ;
-    gmeow:howToUse "Point gmeow:formType at one or more gmeow:LexicalFormType individuals; competing standpoint-specific classifications coexist on the same form."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> .
-
-gmeow:formOf
-    a owl:ObjectProperty ;
-    owl:inverseOf gmeow:hasLexicalForm ;
-    rdfs:domain gmeow:LexicalForm ;
-    rdfs:range gmeow:LexicalItem ;
-    rdfs:label "form of"@x-gmeow-english ;
-    skos:definition "The lexical item that a form is a form of — the inverse of gmeow:hasLexicalForm."@x-gmeow-english ;
-    skos:example "ex:waterWritten gmeow:formOf ex:wordWater ."@x-gmeow-english ;
-    gmeow:useWhen "Use from a form's side to name the lexical item it realizes — the natural direction in form-rooted data or projections."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid asserting both directions redundantly; prefer gmeow:hasLexicalForm from the item and read gmeow:formOf as its inverse."@x-gmeow-english ;
-    gmeow:howToUse "Assert gmeow:formOf from the gmeow:LexicalForm to its gmeow:LexicalItem when the form is the natural subject; tooling reads it as the inverse of gmeow:hasLexicalForm."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> .
-
-gmeow:formTransliterationScheme
-    a owl:ObjectProperty ;
-    rdfs:domain gmeow:LexicalForm ;
-    rdfs:range gmeow:TransliterationScheme ;
-    rdfs:label "form transliteration scheme"@x-gmeow-english ;
-    skos:definition "The transliteration scheme applied to produce this form, when applicable. NON-FUNCTIONAL: a form may be the product of multiple schemes in different analytical standpoints. Reuses the existing TransliterationScheme value vocabulary from the languages module."@x-gmeow-english ;
-    skos:example "ex:mosulPinyin gmeow:formTransliterationScheme ex:pinyin ."@x-gmeow-english ;
-    gmeow:useWhen "Use on a transliterated form to name the transliteration scheme that produced it."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid asserting it on forms that are not transliterations, and avoid forcing one scheme — a form may result from several schemes under different standpoints, so keep it non-functional."@x-gmeow-english ;
-    gmeow:howToUse "Point gmeow:formTransliterationScheme at a gmeow:TransliterationScheme individual reused from the languages slice; pair with gmeow:formType gmeow:formTransliterated."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> .
-
-# =========================================================================== #
-# PROPERTIES — UsageAttestation
-# =========================================================================== #
-
-gmeow:attestedForm
-    a owl:ObjectProperty, owl:FunctionalProperty ;
-    rdfs:domain gmeow:UsageAttestation ;
-    rdfs:range gmeow:LexicalForm ;
-    rdfs:label "attested form"@x-gmeow-english ;
-    skos:definition "The lexical form that a usage attestation observes. Functional per relator: one attested form per UsageAttestation."@x-gmeow-english ;
-    skos:example "ex:att1 gmeow:attestedForm ex:waterWritten ."@x-gmeow-english ;
-    gmeow:useWhen "Use on a UsageAttestation to name the single lexical form it records as observed — the observation's feature of interest."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid more than one attested form per attestation (it is functional; mint a separate attestation per form) and avoid naming the source here (that is gmeow:attestedInSource)."@x-gmeow-english ;
-    gmeow:howToUse "Assert gmeow:attestedForm once from the relator to its gmeow:LexicalForm; it specializes gmeow:observedFeature, so generic observation queries find it by inheritance."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> .
-
-gmeow:attestedInLanguage
-    a owl:ObjectProperty ;
-    rdfs:domain gmeow:UsageAttestation ;
-    rdfs:range gmeow:Language ;
-    rdfs:label "attested in language"@x-gmeow-english ;
-    skos:definition "The language, variety, or state in which the attested form was observed. NON-FUNCTIONAL: a multilingual source may attest the same form in multiple language contexts, or different standpoints may assign different language classifications to the same attestation."@x-gmeow-english ;
-    skos:example "ex:att1 gmeow:attestedInLanguage ex:middleEnglish ."@x-gmeow-english ;
-    gmeow:useWhen "Use on a UsageAttestation to record the language, variety, or state in which the form was observed."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid forcing a single language (it is non-functional; a multilingual source may attest several) and avoid confusing the attestation's observed language with the item's fixed gmeow:lexicalItemLanguage."@x-gmeow-english ;
-    gmeow:howToUse "Point gmeow:attestedInLanguage at one or more gmeow:Language individuals; competing standpoint-specific language classifications of the same attestation coexist."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> .
-
-gmeow:attestedInSource
-    a owl:ObjectProperty ;
-    rdfs:domain gmeow:UsageAttestation ;
-    rdfs:range gmeow:CreativeWork ;
-    rdfs:label "attested in source"@x-gmeow-english ;
-    skos:definition "The bibliographic or documentary source in which the attested form was observed. NON-FUNCTIONAL: an attestation may be supported by multiple sources, and competing source attributions coexist (Principle 9). Targets a CreativeWork (the retired Source Kind was greenfield-refactored in source/claim refactor)."@x-gmeow-english;
-    skos:example "ex:att1 gmeow:attestedInSource ex:oed ."@x-gmeow-english ;
-    gmeow:useWhen "Use on a UsageAttestation to name the bibliographic or documentary source — a CreativeWork — in which the form was observed."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid forcing a single source (it is non-functional; an attestation may cite several) and avoid naming the physical artifact here (that is gmeow:attestedOnCarrier) or the corpus/community context (gmeow:attestedInContext)."@x-gmeow-english ;
-    gmeow:howToUse "Point gmeow:attestedInSource at one or more gmeow:CreativeWork sources (required by the someValuesFrom axiom); competing source attributions coexist."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> .
-
-gmeow:attestedInContext
-    a owl:ObjectProperty ;
-    rdfs:domain gmeow:UsageAttestation ;
-    rdfs:range gmeow:Entity ;
-    rdfs:label "attested in context"@x-gmeow-english ;
-    skos:definition "The corpus, platform, community, dataset, inscription, or broader context in which the attested form was observed. NON-FUNCTIONAL: a form may be attested in multiple contexts simultaneously, and context assignments are standpoint-scoped."@x-gmeow-english ;
-    skos:example "ex:att1 gmeow:attestedInContext ex:chaucerCorpus ."@x-gmeow-english ;
-    gmeow:useWhen "Use on a UsageAttestation to name the corpus, platform, community, dataset, or inscription context in which the form was observed."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid treating context as the asserting standpoint (it is deliberately not subsumed under vantage — context is where it was seen, not who claims it) and avoid using it for the bibliographic source (gmeow:attestedInSource)."@x-gmeow-english ;
-    gmeow:howToUse "Point gmeow:attestedInContext at one or more gmeow:Entity contexts; multiple coexisting contexts on one attestation are expected, and the asserting standpoint stays on the vantage axis."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> .
-
-gmeow:attestedOnCarrier
-    a owl:ObjectProperty ;
-    rdfs:domain gmeow:UsageAttestation ;
-    rdfs:range gmeow:PhysicalObject ;
-    rdfs:label "attested on carrier"@x-gmeow-english ;
-    skos:definition "The physical archaeological carrier on which an attested form was observed — a tablet, ostracon, seal, coin, manuscript, or wall. NON-FUNCTIONAL: an attestation may reference multiple carriers (e.g. duplicate impressions), and competing carrier attributions coexist (Principle 9). This is the language-facing hook from UsageAttestation to archaeological evidence."@x-gmeow-english;
-    skos:example "ex:att1 gmeow:attestedOnCarrier ex:tabletK1234 ."@x-gmeow-english ;
-    gmeow:useWhen "Use on a UsageAttestation to name the physical carrier — tablet, ostracon, seal, coin, manuscript, wall — on which the form was observed, the hook to archaeological evidence."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid using it for the bibliographic source (gmeow:attestedInSource) or the abstract context (gmeow:attestedInContext), and avoid forcing one carrier — duplicate impressions coexist, so keep it non-functional."@x-gmeow-english ;
-    gmeow:howToUse "Point gmeow:attestedOnCarrier at one or more gmeow:PhysicalObject carriers; multiple carriers for one attestation are expected for duplicate or recut inscriptions."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> .
-
-gmeow:attestationInterval
-    a owl:ObjectProperty, owl:FunctionalProperty ;
-    rdfs:domain gmeow:UsageAttestation ;
-    rdfs:range gmeow:TimeInterval ;
-    rdfs:label "attestation interval"@x-gmeow-english ;
-    skos:definition "The time interval over which the attested usage is asserted to have been observed — e.g. a corpus span, an inscription period, or a community usage era. A relator carries its period this way rather than via statement-level validFrom/validUntil alone."@x-gmeow-english ;
-    skos:example "ex:att1 gmeow:attestationInterval ex:lateMedievalSpan ."@x-gmeow-english ;
-    gmeow:useWhen "Use on a UsageAttestation to carry the time span over which the usage was observed — a corpus span, inscription period, or usage era — as a first-class interval on the relator."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid more than one interval per attestation (it is functional) and avoid using bare statement-level validFrom/validUntil when the period belongs to the relator itself."@x-gmeow-english ;
-    gmeow:howToUse "Point gmeow:attestationInterval once at a gmeow:TimeInterval carrying its temporal frame; reify a separate attestation when a genuinely distinct span must be recorded."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> .
-
-# =========================================================================== #
-# PROPERTIES — EtymologicalDerivation
-# =========================================================================== #
-
-gmeow:derivationSource
-    a owl:ObjectProperty, owl:FunctionalProperty ;
-    rdfs:domain gmeow:EtymologicalDerivation ;
-    rdfs:range gmeow:InformationObject ;
-    rdfs:label "derivation source"@x-gmeow-english ;
-    skos:definition "The ancestor lexical item or form from which the target is derived. Functional per relator: one source per EtymologicalDerivation (a derivation with multiple sources is modeled as multiple derivations)."@x-gmeow-english ;
-    skos:example "ex:etym1 gmeow:derivationSource ex:oldEnglishWaeter ."@x-gmeow-english ;
-    gmeow:useWhen "Use on an EtymologicalDerivation to name the single ancestor lexical item or form from which the target descends."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid naming multiple sources on one derivation (it is functional; a multi-source etymology is several derivations) and avoid swapping it with gmeow:derivationTarget — direction is ancestor to descendant."@x-gmeow-english ;
-    gmeow:howToUse "Assert gmeow:derivationSource once from the relator to its ancestor (required by the someValuesFrom axiom); it specializes gmeow:observedFeature, so the ancestor surfaces in generic observation queries."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> .
-
-gmeow:derivationTarget
-    a owl:ObjectProperty, owl:FunctionalProperty ;
-    rdfs:domain gmeow:EtymologicalDerivation ;
-    rdfs:range gmeow:InformationObject ;
-    rdfs:label "derivation target"@x-gmeow-english ;
-    skos:definition "The descendant lexical item or form that is derived from the source. Functional per relator: one target per EtymologicalDerivation."@x-gmeow-english ;
-    skos:example "ex:etym1 gmeow:derivationTarget ex:wordWater ."@x-gmeow-english ;
-    gmeow:useWhen "Use on an EtymologicalDerivation to name the single descendant lexical item or form derived from the source."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid naming more than one target (it is functional) and avoid swapping it with gmeow:derivationSource — the target is the descendant, the source the ancestor."@x-gmeow-english ;
-    gmeow:howToUse "Assert gmeow:derivationTarget once from the relator to its descendant (required by the someValuesFrom axiom); it specializes gmeow:observedFeature for generic observation queries."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> .
-
-gmeow:derivationKind
-    a owl:ObjectProperty ;
-    rdfs:domain gmeow:EtymologicalDerivation ;
-    rdfs:range gmeow:DerivationKind ;
-    rdfs:label "derivation kind"@x-gmeow-english ;
-    skos:definition "The kind(s) of etymological derivation claimed — borrowing, calque, semantic shift, sound change, etc. NON-FUNCTIONAL: a single derivation may be classified as both borrowing and reanalysis by different analytical standpoints (Principle 9)."@x-gmeow-english ;
-    skos:example "ex:etym1 gmeow:derivationKind gmeow:derivationBorrowing ."@x-gmeow-english ;
-    gmeow:useWhen "Use on an EtymologicalDerivation to classify the kind(s) of derivation claimed via a gmeow:DerivationKind value — borrowing, calque, semantic shift, sound change, and so on."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid minting a per-kind subclass (kinds are values) and avoid forcing a single classification — competing analytical kinds for one derivation coexist, so keep it non-functional."@x-gmeow-english ;
-    gmeow:howToUse "Point gmeow:derivationKind at one or more gmeow:DerivationKind individuals (at least one is required by the someValuesFrom axiom); standpoint-specific kind classifications coexist."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> .
-
-gmeow:derivationEvidence
-    a owl:ObjectProperty ;
-    rdfs:domain gmeow:EtymologicalDerivation ;
-    rdfs:range gmeow:Entity ;
-    rdfs:label "derivation evidence"@x-gmeow-english ;
-    skos:definition "The usage attestations, sources, or other evidence supporting a derivation claim. NON-FUNCTIONAL: a derivation may be supported by multiple evidence nodes, and evidence assessments vary by standpoint."@x-gmeow-english ;
-    skos:example "ex:etym1 gmeow:derivationEvidence ex:att1 ."@x-gmeow-english ;
-    gmeow:useWhen "Use on an EtymologicalDerivation to attach the usage attestations, sources, or other evidence that support the derivation claim."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid treating the evidence as proof of correctness (it supports, not settles, the claim) and avoid forcing a single evidence node — derivations may rest on several, so keep it non-functional."@x-gmeow-english ;
-    gmeow:howToUse "Point gmeow:derivationEvidence at gmeow:UsageAttestation nodes, sources, or other gmeow:Entity evidence; carry the confidence the evidence warrants on the observation spine."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> .
-
-# =========================================================================== #
-# VALUE VOCABULARIES
-# =========================================================================== #
-
-gmeow:LexicalFormType
-    a owl:Class, gufo:AbstractIndividualType ;
-    rdfs:subClassOf gufo:QualityValue ;
-    rdfs:label "Lexical Form Type"@x-gmeow-english ;
-    skos:definition "The kind of a lexical form — a value, never an Entity subclass. The seed list is an anchor, not a fence; new analytical frameworks may introduce further form types without ontology modification."@x-gmeow-english ;
-    skos:example "ex:formGlossed a gmeow:LexicalFormType ; rdfs:label \"glossed\"@en ."@x-gmeow-english ;
-    gmeow:useWhen "Use as the value vocabulary for the lexical-form-kind axis — the seeded modalities (written, spoken, signed, reconstructed, …) referenced from a form via gmeow:formType."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid creating per-kind subclasses (kinds are individuals) and avoid using it for the form itself (that is gmeow:LexicalForm)."@x-gmeow-english ;
-    gmeow:howToUse "Reference the seeded form-type individuals from a form; extend the axis for a new analytical framework by minting a fresh gmeow:LexicalFormType individual rather than a subclass."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> .
-
-gmeow:formWritten
-    a gmeow:LexicalFormType ;
-    rdfs:label "written"@x-gmeow-english ;
-    skos:definition "Lexical form represented in written modality."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> .
-gmeow:formSpoken
-    a gmeow:LexicalFormType ;
-    rdfs:label "spoken"@x-gmeow-english ;
-    skos:definition "Lexical form represented in spoken or auditory modality."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> .
-gmeow:formSigned
-    a gmeow:LexicalFormType ;
-    rdfs:label "signed"@x-gmeow-english ;
-    skos:definition "Lexical form represented in sign-language or gestural modality."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> .
-gmeow:formRendered
-    a gmeow:LexicalFormType ;
-    rdfs:label "rendered"@x-gmeow-english ;
-    skos:definition "Lexical form in a specific rendering or typographic presentation."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> .
-gmeow:formReconstructed
-    a gmeow:LexicalFormType ;
-    rdfs:label "reconstructed"@x-gmeow-english ;
-    skos:definition "Lexical form hypothesised by historical-comparative reconstruction."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> .
-gmeow:formNormalized
-    a gmeow:LexicalFormType ;
-    rdfs:label "normalized"@x-gmeow-english ;
-    skos:definition "Lexical form in a normalised or canonical orthographic shape."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> .
-gmeow:formTransliterated
-    a gmeow:LexicalFormType ;
-    rdfs:label "transliterated"@x-gmeow-english ;
-    skos:definition "Lexical form rendered through a transliteration scheme."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> .
-gmeow:formTranslated
-    a gmeow:LexicalFormType ;
-    rdfs:label "translated"@x-gmeow-english ;
-    skos:definition "Lexical form representing a translation equivalent."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> .
-
-gmeow:DerivationKind
-    a owl:Class, gufo:AbstractIndividualType ;
-    rdfs:subClassOf gufo:QualityValue ;
-    rdfs:label "Derivation Kind"@x-gmeow-english ;
-    skos:definition "The kind of etymological derivation — a value, never an Entity subclass. Open-ended: new historical-linguistic frameworks may introduce further derivation types without ontology modification."@x-gmeow-english ;
-    skos:example "ex:derivationBlending a gmeow:DerivationKind ; rdfs:label \"blending\"@en ."@x-gmeow-english ;
-    gmeow:useWhen "Use as the value vocabulary for the etymological-derivation-kind axis — the seeded kinds (inheritance, borrowing, calque, semantic shift, …) referenced from a derivation via gmeow:derivationKind."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid creating per-kind subclasses (kinds are individuals) and avoid using it for the derivation claim itself (that is gmeow:EtymologicalDerivation)."@x-gmeow-english ;
-    gmeow:howToUse "Reference the seeded derivation-kind individuals from a derivation; extend the axis for a new historical-linguistic framework by minting a fresh gmeow:DerivationKind individual rather than a subclass."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> .
-
-gmeow:derivationInheritance
-    a gmeow:DerivationKind ;
-    rdfs:label "inheritance"@x-gmeow-english ;
-    skos:definition "Direct transmission of a lexical item from an ancestor language without structural change."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> .
-gmeow:derivationBorrowing
-    a gmeow:DerivationKind ;
-    rdfs:label "borrowing"@x-gmeow-english ;
-    skos:definition "Adoption of a lexical item from a donor language into a recipient language."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> .
-gmeow:derivationCalque
-    a gmeow:DerivationKind ;
-    rdfs:label "calque"@x-gmeow-english ;
-    skos:definition "Loan translation: borrowing of semantic structure mapped onto native morphological material."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> .
-gmeow:derivationSemanticShift
-    a gmeow:DerivationKind ;
-    rdfs:label "semantic shift"@x-gmeow-english ;
-    skos:definition "Change in the meaning of a lexical item while its form remains stable."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> .
-gmeow:derivationSoundChange
-    a gmeow:DerivationKind ;
-    rdfs:label "sound change"@x-gmeow-english ;
-    skos:definition "Systematic phonological alteration affecting a lexical item within a language community."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> .
-gmeow:derivationSpellingChange
-    a gmeow:DerivationKind ;
-    rdfs:label "spelling change"@x-gmeow-english ;
-    skos:definition "Orthographic reform or convention shift altering the written form without phonological change."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> .
-gmeow:derivationCompounding
-    a gmeow:DerivationKind ;
-    rdfs:label "compounding"@x-gmeow-english ;
-    skos:definition "Formation of a lexical item by combining two or more existing lexical items."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> .
-gmeow:derivationAffixation
-    a gmeow:DerivationKind ;
-    rdfs:label "affixation"@x-gmeow-english ;
-    skos:definition "Formation of a lexical item by attaching a bound morpheme to a stem."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> .
-gmeow:derivationClipping
-    a gmeow:DerivationKind ;
-    rdfs:label "clipping"@x-gmeow-english ;
-    skos:definition "Shortening of a lexical item by omitting one or more syllables."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> .
-gmeow:derivationBackFormation
-    a gmeow:DerivationKind ;
-    rdfs:label "back-formation"@x-gmeow-english ;
-    skos:definition "Creation of a new lexical item by removing a supposed affix from an existing form."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> .
-gmeow:derivationReanalysis
-    a gmeow:DerivationKind ;
-    rdfs:label "reanalysis"@x-gmeow-english ;
-    skos:definition "Reinterpretation of the morphological structure of a lexical item by speakers."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> .
-gmeow:derivationFolkEtymology
-    a gmeow:DerivationKind ;
-    rdfs:label "folk etymology"@x-gmeow-english ;
-    skos:definition "Popular reinterpretation of an opaque form as semantically transparent."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> .
-gmeow:derivationUnknownOrigin
-    a gmeow:DerivationKind ;
-    rdfs:label "unknown origin"@x-gmeow-english ;
-    skos:definition "No satisfactory etymological account is available for the lexical item."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> .
-gmeow:derivationReconstruction
-    a gmeow:DerivationKind ;
-    rdfs:label "reconstruction"@x-gmeow-english ;
-    skos:definition "Hypothesised ancestral form derived by historical-comparative methods."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> .
-
-# =========================================================================== #
-# CROSS-CUTTING REUSE DECLARATION
-#
-# The following properties are already defined in other modules and are reused
-# here without redefinition. They are listed for documentation only.
-#
-#   gmeow:confidence         (provenance.ttl) — epistemic confidence [0,1].
-#   gmeow:accordingTo        (standpoint.ttl) — standpoint axis.
-#   gmeow:validFrom          (temporal.ttl)   — validity start.
-#   gmeow:validUntil         (temporal.ttl)   — validity end.
-#   gmeow:assertedAt         (temporal.ttl)   — assertion time.
-#   gmeow:displayable        (core.ttl)       — suppression, never erasure (P10).
-#   gmeow:wasDerivedFrom     (provenance.ttl) — derivation provenance.
-#   gmeow:wasAttributedTo    (provenance.ttl) — attribution.
-#   gmeow:hasDeterminacy     (core.ttl)       — ontic determinacy.
-#   gmeow:sourceLocation     (sources.ttl)    — provenance URL/path.
-#   gmeow:contentDigest      (sources.ttl)    — byte-exact artifact identity.
-#
-# No new properties are minted for these axes — the lexicon module reuses
-# the existing cross-cutting vocabulary (Principle 4: one canonical source).
-# =========================================================================== #
-
-# =========================================================================== #
-# OBSERVATION-SPINE BRIDGES (slice-dependency doctrine dependency refactor)
-# Declared HERE, in the slice that owns these properties: a dependent slice
-# knows the core observation spine; the spine never knows the slice. The
-# super-properties (observedFeature / vantage / observationResult) live in
-# the observations module.
-# =========================================================================== #
-# Lexicon bridges (declared here because the super-properties live here).
-# Note: attestedInContext is deliberately NOT subsumed under vantage;
-# context (corpus, platform, community) is not the asserting standpoint.
-gmeow:attestedForm       rdfs:subPropertyOf gmeow:observedFeature .
-gmeow:derivationTarget   rdfs:subPropertyOf gmeow:observedFeature .
-gmeow:derivationSource   rdfs:subPropertyOf gmeow:observedFeature .
-
-# --------------------------------------------------------------------------- #
-# Graph box role coverage (canonical explicit annotations).
-# --------------------------------------------------------------------------- #
-
-gmeow:DerivationKind gmeow:graphBoxRole gmeow:boxTBox .
-gmeow:EtymologicalDerivation gmeow:graphBoxRole gmeow:boxTBox .
-gmeow:LexicalForm gmeow:graphBoxRole gmeow:boxTBox .
-gmeow:LexicalFormType gmeow:graphBoxRole gmeow:boxTBox .
-gmeow:LexicalItem gmeow:graphBoxRole gmeow:boxTBox .
-gmeow:UsageAttestation gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxTBox .
-gmeow:attestationInterval gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxRBox .
-gmeow:attestedForm gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:attestedInContext gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxRBox .
-gmeow:attestedInLanguage gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:attestedInSource gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxRBox .
-gmeow:attestedOnCarrier gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:derivationAffixation gmeow:graphBoxRole gmeow:boxABox .
-gmeow:derivationBackFormation gmeow:graphBoxRole gmeow:boxABox .
-gmeow:derivationBorrowing gmeow:graphBoxRole gmeow:boxABox .
-gmeow:derivationCalque gmeow:graphBoxRole gmeow:boxABox .
-gmeow:derivationClipping gmeow:graphBoxRole gmeow:boxABox .
-gmeow:derivationCompounding gmeow:graphBoxRole gmeow:boxABox .
-gmeow:derivationEvidence gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxRBox .
-gmeow:derivationFolkEtymology gmeow:graphBoxRole gmeow:boxABox .
-gmeow:derivationInheritance gmeow:graphBoxRole gmeow:boxABox .
-gmeow:derivationKind gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:derivationReanalysis gmeow:graphBoxRole gmeow:boxABox .
-gmeow:derivationReconstruction gmeow:graphBoxRole gmeow:boxABox .
-gmeow:derivationSemanticShift gmeow:graphBoxRole gmeow:boxABox .
-gmeow:derivationSoundChange gmeow:graphBoxRole gmeow:boxABox .
-gmeow:derivationSpellingChange gmeow:graphBoxRole gmeow:boxABox .
-gmeow:derivationTarget gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:derivationUnknownOrigin gmeow:graphBoxRole gmeow:boxABox .
-gmeow:formNormalized gmeow:graphBoxRole gmeow:boxABox .
-gmeow:formOf gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:formReconstructed gmeow:graphBoxRole gmeow:boxABox .
-gmeow:formRendered gmeow:graphBoxRole gmeow:boxABox .
-gmeow:formRepresentation gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:formSigned gmeow:graphBoxRole gmeow:boxABox .
-gmeow:formSpoken gmeow:graphBoxRole gmeow:boxABox .
-gmeow:formTranslated gmeow:graphBoxRole gmeow:boxABox .
-gmeow:formTransliterated gmeow:graphBoxRole gmeow:boxABox .
-gmeow:formTransliterationScheme gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:formType gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:formWritten gmeow:graphBoxRole gmeow:boxABox .
-gmeow:hasLexicalForm gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:lexicalItemLanguage gmeow:graphBoxRole gmeow:boxRBox .
-<https://blackcatinformatics.ca/gmeow/slices/lexicon> gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .
+     and the universal observation stack (standpoint facility)."""@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> ;
+    rdfs:label "GMEOW Lexicon Module"@x-gmeow-english ;
+    skos:definition "The GMEOW Lexicon Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxConfigBox ,
+        gmeow:boxTBox .

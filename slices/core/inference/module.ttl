@@ -1,19 +1,319 @@
-# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
-# SPDX-License-Identifier: CC-BY-4.0
-
-@prefix gmeow:   <https://blackcatinformatics.ca/gmeow/> .
-@prefix gufo:    <http://purl.org/nemo/gufo#> .
-@prefix owl:     <http://www.w3.org/2002/07/owl#> .
-@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
-@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix gufo: <http://purl.org/nemo/gufo#> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
+
+gmeow:Analogy
+    a gufo:Kind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
+    rdfs:label "Analogy"@x-gmeow-english ;
+    rdfs:subClassOf gufo:Relator ;
+    skos:definition "A reified analogical mapping — the source-to-target structure-mapping (Gentner) that warrants an analogical inference: it mediates a source domain (gmeow:analogicalSource), a target domain (gmeow:analogicalTarget), and the element-pair correspondences (gmeow:hasCorrespondence) holding between them, scored by structural consistency (gmeow:systematicity, solver-layer). The warrant of an analogical gmeow:InferenceCommitment points at an Analogy. Rival mappings compete; best-analogy selection is solver-layer like IBE, never an asserted isBest bit."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:Correspondence
+    a gufo:Kind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
+    rdfs:label "Correspondence"@x-gmeow-english ;
+    rdfs:subClassOf gufo:Relator ;
+    skos:definition "A single mapped element-pair within an gmeow:Analogy — the reified relation that one source element (gmeow:correspondingSource) plays the same structural role as one target element (gmeow:correspondingTarget). Reached from its analogy via gmeow:hasCorrespondence. The atom of structure-mapping: an analogy's systematicity is the structural consistency of its set of Correspondences."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:DefeaterKind
+    a gufo:AbstractIndividualType ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
+    rdfs:label "Defeater Kind"@x-gmeow-english ;
+    rdfs:subClassOf gufo:QualityValue ;
+    skos:definition "The Pollock kind of a defeater — a value vocabulary (individuals, never subclasses): gmeow:defeaterRebutting (attacks the conclusion directly, giving reason to believe its negation) and gmeow:defeaterUndercutting (attacks the inferential link, removing the warrant without asserting the negation). Carried as a gmeow:defeaterKind value on a defeating gmeow:StandpointClaim."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:InferenceCommitment
+    a gufo:Kind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
+    rdfs:label "Inference Commitment"@x-gmeow-english ;
+    rdfs:subClassOf gufo:Relator ;
+    skos:definition "The endurant, structured argument relation an inference instantiates — the reified Toulmin/Peircean commitment mediating its premises (gmeow:premise), its single conclusion (gmeow:conclusion, a gmeow:StandpointClaim), its warrant (gmeow:warrant), its mode (gmeow:inferenceModeOf), and its defeaters (gmeow:hasDefeater). A relator, not a process (the gmeow:Commitment idiom): the occurrent reasoning episode that bears it is the gmeow:InferenceProcess reached by gmeow:hasInferenceCommitment. Reifying is the on-demand tier; the flat 80% case hangs gmeow:inferredFrom + gmeow:inferenceMode directly on the conclusion-claim. Retained as audit when its conclusion is suppressed (belief revision), never erased (Principle 10)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:InferenceMode
+    a gufo:AbstractIndividualType ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
+    rdfs:label "Inference Mode"@x-gmeow-english ;
+    rdfs:subClassOf gufo:QualityValue ;
+    skos:definition "The Peircean mode of an inference — a closed-but-open value vocabulary (individuals, never subclasses; the gmeow:StandpointModality idiom): gmeow:modeDeduction, gmeow:modeInduction, gmeow:modeAbduction, gmeow:modeAnalogical. The mode rides as a gmeow:inferenceMode value on the claim (or gmeow:inferenceModeOf on the commitment), never as a subclass of gmeow:InferenceCommitment (Principle 9: no overtyping). The modes differ by warrant and default modality, not by subsumption."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:InferenceProcess
+    a gufo:EventType ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
+    rdfs:label "Inference Process"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:MentalProcess ;
+    skos:definition "The occurrent reasoning episode — inference as it unfolds in time, drawing a conclusion from premises. The perdurant face of inference: a gmeow:MentalProcess borne by exactly one gmeow:experiencer and carrying gmeow:mentalProcessType gmeow:processReasoning, the reparenting hook the mentation slice reserves. It gmeow:producesMentalMoment the belief it creates and reaches its argument structure via gmeow:hasInferenceCommitment. Distinct from the endurant gmeow:InferenceCommitment (the argument relation it instantiates) — keeping the gUFO endurant/occurrent split clean."@x-gmeow-english ;
+    skos:scopeNote "The occurrent kind of an inference is recorded as gmeow:mentalProcessType gmeow:processReasoning, NOT as a dedicated gmeow:EventType value: an 'eventTypeInference' individual was deliberately NOT minted (Principle 4 — one canonical source), since processReasoning already names this occurrent fact on the mentation spine."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:InferenceTenure
+    a gufo:SituationType ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
+    rdfs:label "Inference Tenure"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:TimeScopedRelation ;
+    skos:definition "The reified, time-scoped fact that an gmeow:InferenceCommitment's conclusion was held over an interval — opened when the conclusion is accepted and closed when a defeater fires, never deleted (Principle 10). Belief revision is the closing of a tenure (and gmeow:displayable false on the conclusion-claim), not the erasure of the commitment, which survives as audit. Carries its interval via gmeow:duringInterval (temporal module). Use only when the adoption / retraction of the conclusion is itself worth modelling; the common case is a bare claim with its modality."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:analogicalSource
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Analogy ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
+    rdfs:label "analogical source"@x-gmeow-english ;
+    skos:definition "The source (base) domain of a gmeow:Analogy — the familiar structure whose relations are mapped onto the target. NOT functional."@x-gmeow-english ;
+    skos:scopeNote "Range is intentionally OPEN (a source may be any entity, situation, or domain)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxRBox .
+
+gmeow:analogicalTarget
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Analogy ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
+    rdfs:label "analogical target"@x-gmeow-english ;
+    skos:definition "The target domain of a gmeow:Analogy — the less-familiar structure that inherits relations from the source via the correspondences. NOT functional."@x-gmeow-english ;
+    skos:scopeNote "Range is intentionally OPEN (a target may be any entity, situation, or domain)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:candidateHypothesis
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:InferenceCommitment ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
+    rdfs:label "candidate hypothesis"@x-gmeow-english ;
+    rdfs:range gmeow:StandpointClaim ;
+    skos:definition "A candidate explanation considered by an abductive gmeow:InferenceCommitment — one of the competing hypotheses (gmeow:competesWith) among which the inference selects the best. NOT functional: inference-to-the-best-explanation weighs several. The winner's gmeow:claimModality is promoted conceivable->probable; the losers are suppressed (gmeow:displayable false), never erased."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:competesWith
+    a owl:ObjectProperty ,
+        owl:SymmetricProperty ;
+    rdfs:domain gmeow:StandpointClaim ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
+    rdfs:label "competes with"@x-gmeow-english ;
+    rdfs:range gmeow:StandpointClaim ;
+    skos:definition "Relates two rival gmeow:StandpointClaim hypotheses that cannot both be accepted as the best explanation — the competition abductive (and analogical) selection resolves. Symmetric: competition is mutual. Irreflexivity (a claim never competes with itself) is enforced by SHACL, not OWL, keeping the DL profile clean (the deception discipline — doctrine in SHACL, not axioms)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:conclusion
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
+    rdfs:domain gmeow:InferenceCommitment ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
+    rdfs:label "conclusion"@x-gmeow-english ;
+    rdfs:range gmeow:StandpointClaim ;
+    skos:definition "The single conclusion of a reified gmeow:InferenceCommitment — the gmeow:StandpointClaim the argument establishes (vantage = the reasoner, observedFeature = the concluded proposition). Functional: one commitment, one conclusion; an argument with two conclusions is two commitments (SHACL enforces exactly one)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:correspondingSource
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
+    rdfs:domain gmeow:Correspondence ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
+    rdfs:label "corresponding source"@x-gmeow-english ;
+    skos:definition "The source-domain element of a gmeow:Correspondence — one half of a mapped pair. Functional: a correspondence maps exactly one source element to one target element."@x-gmeow-english ;
+    skos:scopeNote "Range is intentionally OPEN (the element may be any entity or relation in the source domain)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxRBox .
+
+gmeow:correspondingTarget
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
+    rdfs:domain gmeow:Correspondence ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
+    rdfs:label "corresponding target"@x-gmeow-english ;
+    skos:definition "The target-domain element of a gmeow:Correspondence — the other half of a mapped pair. Functional: exactly one target element per correspondence."@x-gmeow-english ;
+    skos:scopeNote "Range is intentionally OPEN (the element may be any entity or relation in the target domain)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:defeaterKind
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:StandpointClaim ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
+    rdfs:label "defeater kind"@x-gmeow-english ;
+    rdfs:range gmeow:DefeaterKind ;
+    skos:definition "The Pollock kind of a defeating gmeow:StandpointClaim — gmeow:defeaterRebutting (attacks the conclusion) or gmeow:defeaterUndercutting (attacks the inferential link). NOT functional: a single claim may defeat in more than one way."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:defeaterRebutting
+    a gmeow:DefeaterKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
+    rdfs:label "rebutting"@x-gmeow-english ;
+    skos:definition "A rebutting defeater (Pollock) — gives positive reason to believe the negation of the conclusion, attacking the conclusion directly."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:defeaterUndercutting
+    a gmeow:DefeaterKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
+    rdfs:label "undercutting"@x-gmeow-english ;
+    skos:definition "An undercutting defeater (Pollock) — attacks the inferential link, removing the warrant's support without asserting the conclusion's negation (the premises no longer license the conclusion)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:explains
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:StandpointClaim ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
+    rdfs:label "explains"@x-gmeow-english ;
+    skos:definition "Relates a candidate hypothesis (a gmeow:StandpointClaim) to an explanandum it would account for — the explanatory link a solver back-checks (does the hypothesis, with the background, entail the explanandum?). NOT functional."@x-gmeow-english ;
+    skos:scopeNote "Range is intentionally OPEN (it points at whatever the explanandum is). The back-check is solver-layer (Principle 12)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:explanandum
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:InferenceCommitment ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
+    rdfs:label "explanandum"@x-gmeow-english ;
+    skos:definition "The fact to be explained by an abductive gmeow:InferenceCommitment — the surprising observation the inference seeks the best explanation of. NOT functional."@x-gmeow-english ;
+    skos:scopeNote "Range is intentionally OPEN (an observation, a claim, or a proposition)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:explanatoryScore
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:StandpointClaim ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
+    rdfs:label "explanatory score"@x-gmeow-english ;
+    rdfs:range xsd:decimal ;
+    skos:definition "A solver-computed score of how well a candidate hypothesis explains its explanandum (simplicity, scope, coherence) — the basis on which inference-to-the-best-explanation ranks rivals. A solver-layer value (Principle 12), not an asserted truth: there is no isBest bit; the ranking promotes the winner's modality and suppresses the losers. NOT functional."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:hasCorrespondence
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Analogy ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
+    rdfs:label "has correspondence"@x-gmeow-english ;
+    rdfs:range gmeow:Correspondence ;
+    skos:definition "Relates a gmeow:Analogy to one of its element-pair gmeow:Correspondence relations — the reified mapped pairs whose structural consistency is the analogy's gmeow:systematicity. NOT functional: an analogy holds many correspondences."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:hasDefeater
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:InferenceCommitment ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
+    rdfs:label "has defeater"@x-gmeow-english ;
+    rdfs:range gmeow:StandpointClaim ;
+    skos:definition "Relates a reified gmeow:InferenceCommitment to a defeating gmeow:StandpointClaim — a consideration that, once accepted, withdraws support for the conclusion. NOT functional: a commitment may face several defeaters. A fired defeater closes the gmeow:InferenceTenure and sets the conclusion-claim gmeow:displayable false; the commitment is retained as audit (Principle 10). The defeating claim carries its Pollock kind via gmeow:defeaterKind."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:hasInferenceCommitment
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:InferenceProcess ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
+    rdfs:label "has inference commitment"@x-gmeow-english ;
+    rdfs:range gmeow:InferenceCommitment ;
+    skos:definition "Relates an occurrent gmeow:InferenceProcess (the reasoning episode) to the endurant gmeow:InferenceCommitment (the argument structure) it instantiates — the bridge across the gUFO endurant/occurrent divide that keeps the two faces of inference distinct yet linked. NOT functional: one reasoning episode may settle several arguments."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:inferenceMode
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:StandpointClaim ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
+    rdfs:label "inference mode"@x-gmeow-english ;
+    rdfs:range gmeow:InferenceMode ;
+    skos:definition "The Peircean mode by which a gmeow:StandpointClaim was reached — a gmeow:InferenceMode value (gmeow:modeDeduction / modeInduction / modeAbduction / modeAnalogical). NOT functional: a claim independently reached by parallel modes carries several. The flat counterpart of gmeow:inferenceModeOf on the reified commitment."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:inferenceModeOf
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
+    rdfs:domain gmeow:InferenceCommitment ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
+    rdfs:label "inference mode of"@x-gmeow-english ;
+    rdfs:range gmeow:InferenceMode ;
+    skos:definition "The Peircean mode of a reified gmeow:InferenceCommitment — a gmeow:InferenceMode value. Functional: a commitment has exactly one mode (a step that is both inductive and abductive is two commitments). The reified counterpart of the flat gmeow:inferenceMode; the value scopes the abduction / analogy SHACL shapes."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:inferredFrom
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:StandpointClaim ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
+    rdfs:label "inferred from"@x-gmeow-english ;
+    skos:definition "Relates a concluded gmeow:StandpointClaim to a premise it was inferred from — the flat, reification-free shortcut (the 80% case). NOT functional: a conclusion may rest on several premises. When the full argument structure matters, reify with a gmeow:InferenceCommitment (gmeow:pairsWith) whose gmeow:premise / gmeow:conclusion carry the same content."@x-gmeow-english ;
+    skos:scopeNote "Range is intentionally OPEN: a premise may be another gmeow:StandpointClaim, a gmeow:Proposition, an observation, or any reified statement. Mirrors the open-range precedent of gmeow:observedFeature."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:pairsWith gmeow:InferenceCommitment .
+
+gmeow:modeAbduction
+    a gmeow:InferenceMode ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
+    rdfs:label "abduction"@x-gmeow-english ;
+    skos:definition "Abductive inference — inference to the best explanation: construct candidate hypotheses (gmeow:candidateHypothesis) for an explanandum, back-check them (gmeow:explains), and rank by gmeow:explanatoryScore. Not truth-preserving; defeasible; default modality gmeow:conceivable, promoted to gmeow:probable for the winner; rivals genuinely compete (gmeow:competesWith)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:modeAnalogical
+    a gmeow:InferenceMode ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
+    rdfs:label "analogical"@x-gmeow-english ;
+    skos:definition "Analogical inference — source-to-target structure-mapping (Gentner): transfer relational structure from a familiar source to a target via a gmeow:Analogy, scored by gmeow:systematicity. Not truth-preserving; defeasible; default modality gmeow:conceivable, promoted to gmeow:probable for the best mapping; rival mappings compete."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:modeDeduction
+    a gmeow:InferenceMode ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
+    rdfs:label "deduction"@x-gmeow-english ;
+    skos:definition "Deductive inference — truth-preserving derivation under a monotonic profile (a logic: proof-trace, Nemo / Scryer): if the premises hold, the conclusion holds. Non-defeasible; default modality gmeow:unequivocal. At the logic: derivation layer the mode is read off the profile and never separately tagged (Principle 4); gmeow:modeDeduction is the legitimate way to record, at the epistemic / memory layer, that the agent reached this by deduction."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:modeInduction
+    a gmeow:InferenceMode ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
+    rdfs:label "induction"@x-gmeow-english ;
+    skos:definition "Inductive inference — generalisation over a sample, warranted by gmeow:evidenceStrength (logic:). Not truth-preserving; defeasible; default modality gmeow:probable; competing generalisations may rival it."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:premise
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:InferenceCommitment ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
+    rdfs:label "premise"@x-gmeow-english ;
+    skos:definition "A premise of a reified gmeow:InferenceCommitment — an input from which its conclusion is drawn. NOT functional: an argument has one or more premises (SHACL requires at least one, and that no premise equals the conclusion)."@x-gmeow-english ;
+    skos:scopeNote "Range is intentionally OPEN (a premise may be a claim, a proposition, or any reified statement), mirroring gmeow:inferredFrom."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:systematicity
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:Analogy ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
+    rdfs:label "systematicity"@x-gmeow-english ;
+    rdfs:range xsd:decimal ;
+    skos:definition "A solver-computed measure of a gmeow:Analogy's structural consistency (Gentner's systematicity principle: deep, interconnected relational mappings beat shallow attribute matches) — the basis on which the best analogy is selected. A solver-layer value (Principle 12); best-analogy selection promotes the winner's modality and suppresses rival mappings, never an asserted isBest bit. NOT functional."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:tenureOf
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
+    rdfs:domain gmeow:InferenceTenure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
+    rdfs:label "tenure of"@x-gmeow-english ;
+    rdfs:range gmeow:InferenceCommitment ;
+    skos:definition "Relates a gmeow:InferenceTenure to the gmeow:InferenceCommitment whose conclusion it time-scopes — opened when the conclusion is accepted, closed (an gmeow:endedAtTime on its gmeow:duringInterval) when a defeater fires. Functional: one tenure tracks one commitment; the commitment survives the closing as audit (the gmeow:StandpointTenure → gmeow:standpointClaim idiom, applied to inference)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:warrant
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:InferenceCommitment ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
+    rdfs:label "warrant"@x-gmeow-english ;
+    skos:definition "The warrant of a reified gmeow:InferenceCommitment — the Toulmin licence authorising the step from premises to conclusion. For a deductive commitment it points at the logic: rule or proof-trace; for an inductive one, the statistical licence; for an abductive one, the explanatory licence; for an analogical one, the gmeow:Analogy (structure-mapping). NOT functional."@x-gmeow-english ;
+    skos:scopeNote "Range is intentionally OPEN: the warrant may be a logic: derivation, an gmeow:Analogy, an evidence object, or a textual rule. The substrate coupling to logic: is by reference (no asserted triples into logic:)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxRBox .
 
 <https://blackcatinformatics.ca/gmeow/slices/inference>
     a owl:Ontology ;
-    rdfs:label "GMEOW Inference Module"@x-gmeow-english ;
-    skos:definition "The GMEOW Inference Module — Peirce's tetrad (deduction, induction, abduction, analogy) as the epistemic face of a logic: derivation: what an agent believes when it accepts a reasoning step's conclusion."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
+    dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;
     rdfs:comment """Inference as the EPISTEMIC FACE of a logic: derivation — what an agent believes when it accepts a reasoning step's conclusion. The conclusion of every inference is an ordinary gmeow:StandpointClaim (vantage = the reasoner, observedFeature = the concluded proposition, gmeow:claimModality = the mode's default).
 
 DOCTRINE.
@@ -30,335 +330,8 @@ DOCTRINE.
   * eventTypeInference DROPPED (Principle 4): gmeow:InferenceProcess carrying gmeow:mentalProcessType gmeow:processReasoning is the single canonical occurrent marker; a parallel gmeow:EventType value would be a second canonical source for the same fact.
 
 ALIGNMENT (by reference — see mappings/equivalences.ttl). PROV-O (InferenceProcess ~ prov:Activity, inferredFrom ~ prov:wasDerivedFrom); CRMinf (InferenceCommitment ~ I1_Argumentation / I5_Inference_Making, StandpointModality ~ I6_Belief_Value); analogy ~ Gentner structure-mapping engine; AIF / Toulmin / Peirce in prose."""@x-gmeow-english ;
-    dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
-
-# =========================================================================== #
-# Classes
-# =========================================================================== #
-
-gmeow:InferenceProcess
-    a owl:Class, gufo:EventType ;
-    rdfs:subClassOf gmeow:MentalProcess ;
-    rdfs:label "Inference Process"@x-gmeow-english ;
-    skos:definition "The occurrent reasoning episode — inference as it unfolds in time, drawing a conclusion from premises. The perdurant face of inference: a gmeow:MentalProcess borne by exactly one gmeow:experiencer and carrying gmeow:mentalProcessType gmeow:processReasoning, the reparenting hook the mentation slice reserves. It gmeow:producesMentalMoment the belief it creates and reaches its argument structure via gmeow:hasInferenceCommitment. Distinct from the endurant gmeow:InferenceCommitment (the argument relation it instantiates) — keeping the gUFO endurant/occurrent split clean."@x-gmeow-english ;
-    skos:scopeNote "The occurrent kind of an inference is recorded as gmeow:mentalProcessType gmeow:processReasoning, NOT as a dedicated gmeow:EventType value: an 'eventTypeInference' individual was deliberately NOT minted (Principle 4 — one canonical source), since processReasoning already names this occurrent fact on the mentation spine."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> .
-
-gmeow:InferenceCommitment
-    a owl:Class, gufo:Kind ;
-    rdfs:subClassOf gufo:Relator ;
-    rdfs:label "Inference Commitment"@x-gmeow-english ;
-    skos:definition "The endurant, structured argument relation an inference instantiates — the reified Toulmin/Peircean commitment mediating its premises (gmeow:premise), its single conclusion (gmeow:conclusion, a gmeow:StandpointClaim), its warrant (gmeow:warrant), its mode (gmeow:inferenceModeOf), and its defeaters (gmeow:hasDefeater). A relator, not a process (the gmeow:Commitment idiom): the occurrent reasoning episode that bears it is the gmeow:InferenceProcess reached by gmeow:hasInferenceCommitment. Reifying is the on-demand tier; the flat 80% case hangs gmeow:inferredFrom + gmeow:inferenceMode directly on the conclusion-claim. Retained as audit when its conclusion is suppressed (belief revision), never erased (Principle 10)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> .
-
-gmeow:Analogy
-    a owl:Class, gufo:Kind ;
-    rdfs:subClassOf gufo:Relator ;
-    rdfs:label "Analogy"@x-gmeow-english ;
-    skos:definition "A reified analogical mapping — the source-to-target structure-mapping (Gentner) that warrants an analogical inference: it mediates a source domain (gmeow:analogicalSource), a target domain (gmeow:analogicalTarget), and the element-pair correspondences (gmeow:hasCorrespondence) holding between them, scored by structural consistency (gmeow:systematicity, solver-layer). The warrant of an analogical gmeow:InferenceCommitment points at an Analogy. Rival mappings compete; best-analogy selection is solver-layer like IBE, never an asserted isBest bit."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> .
-
-gmeow:Correspondence
-    a owl:Class, gufo:Kind ;
-    rdfs:subClassOf gufo:Relator ;
-    rdfs:label "Correspondence"@x-gmeow-english ;
-    skos:definition "A single mapped element-pair within an gmeow:Analogy — the reified relation that one source element (gmeow:correspondingSource) plays the same structural role as one target element (gmeow:correspondingTarget). Reached from its analogy via gmeow:hasCorrespondence. The atom of structure-mapping: an analogy's systematicity is the structural consistency of its set of Correspondences."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> .
-
-gmeow:InferenceMode
-    a owl:Class, gufo:AbstractIndividualType ;
-    rdfs:subClassOf gufo:QualityValue ;
-    rdfs:label "Inference Mode"@x-gmeow-english ;
-    skos:definition "The Peircean mode of an inference — a closed-but-open value vocabulary (individuals, never subclasses; the gmeow:StandpointModality idiom): gmeow:modeDeduction, gmeow:modeInduction, gmeow:modeAbduction, gmeow:modeAnalogical. The mode rides as a gmeow:inferenceMode value on the claim (or gmeow:inferenceModeOf on the commitment), never as a subclass of gmeow:InferenceCommitment (Principle 9: no overtyping). The modes differ by warrant and default modality, not by subsumption."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> .
-
-gmeow:DefeaterKind
-    a owl:Class, gufo:AbstractIndividualType ;
-    rdfs:subClassOf gufo:QualityValue ;
-    rdfs:label "Defeater Kind"@x-gmeow-english ;
-    skos:definition "The Pollock kind of a defeater — a value vocabulary (individuals, never subclasses): gmeow:defeaterRebutting (attacks the conclusion directly, giving reason to believe its negation) and gmeow:defeaterUndercutting (attacks the inferential link, removing the warrant without asserting the negation). Carried as a gmeow:defeaterKind value on a defeating gmeow:StandpointClaim."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> .
-
-gmeow:InferenceTenure
-    a owl:Class, gufo:SituationType ;
-    rdfs:subClassOf gmeow:TimeScopedRelation ;
-    rdfs:label "Inference Tenure"@x-gmeow-english ;
-    skos:definition "The reified, time-scoped fact that an gmeow:InferenceCommitment's conclusion was held over an interval — opened when the conclusion is accepted and closed when a defeater fires, never deleted (Principle 10). Belief revision is the closing of a tenure (and gmeow:displayable false on the conclusion-claim), not the erasure of the commitment, which survives as audit. Carries its interval via gmeow:duringInterval (temporal module). Use only when the adoption / retraction of the conclusion is itself worth modelling; the common case is a bare claim with its modality."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> .
-
-# =========================================================================== #
-# Properties — flat spine (the 80% case, on the conclusion-claim)
-# =========================================================================== #
-
-gmeow:inferredFrom
-    a owl:ObjectProperty ;
-    rdfs:domain gmeow:StandpointClaim ;
-    rdfs:label "inferred from"@x-gmeow-english ;
-    skos:definition "Relates a concluded gmeow:StandpointClaim to a premise it was inferred from — the flat, reification-free shortcut (the 80% case). NOT functional: a conclusion may rest on several premises. When the full argument structure matters, reify with a gmeow:InferenceCommitment (gmeow:pairsWith) whose gmeow:premise / gmeow:conclusion carry the same content."@x-gmeow-english ;
-    skos:scopeNote "Range is intentionally OPEN: a premise may be another gmeow:StandpointClaim, a gmeow:Proposition, an observation, or any reified statement. Mirrors the open-range precedent of gmeow:observedFeature."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> .
-gmeow:inferredFrom gmeow:pairsWith gmeow:InferenceCommitment .
-
-gmeow:inferenceMode
-    a owl:ObjectProperty ;
-    rdfs:domain gmeow:StandpointClaim ;
-    rdfs:range gmeow:InferenceMode ;
-    rdfs:label "inference mode"@x-gmeow-english ;
-    skos:definition "The Peircean mode by which a gmeow:StandpointClaim was reached — a gmeow:InferenceMode value (gmeow:modeDeduction / modeInduction / modeAbduction / modeAnalogical). NOT functional: a claim independently reached by parallel modes carries several. The flat counterpart of gmeow:inferenceModeOf on the reified commitment."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> .
-
-# =========================================================================== #
-# Properties — occurrent-to-commitment bridge
-# =========================================================================== #
-
-gmeow:hasInferenceCommitment
-    a owl:ObjectProperty ;
-    rdfs:domain gmeow:InferenceProcess ;
-    rdfs:range gmeow:InferenceCommitment ;
-    rdfs:label "has inference commitment"@x-gmeow-english ;
-    skos:definition "Relates an occurrent gmeow:InferenceProcess (the reasoning episode) to the endurant gmeow:InferenceCommitment (the argument structure) it instantiates — the bridge across the gUFO endurant/occurrent divide that keeps the two faces of inference distinct yet linked. NOT functional: one reasoning episode may settle several arguments."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> .
-
-# =========================================================================== #
-# Properties — reified relator slots (on gmeow:InferenceCommitment)
-# =========================================================================== #
-
-gmeow:premise
-    a owl:ObjectProperty ;
-    rdfs:domain gmeow:InferenceCommitment ;
-    rdfs:label "premise"@x-gmeow-english ;
-    skos:definition "A premise of a reified gmeow:InferenceCommitment — an input from which its conclusion is drawn. NOT functional: an argument has one or more premises (SHACL requires at least one, and that no premise equals the conclusion)."@x-gmeow-english ;
-    skos:scopeNote "Range is intentionally OPEN (a premise may be a claim, a proposition, or any reified statement), mirroring gmeow:inferredFrom."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> .
-
-gmeow:conclusion
-    a owl:ObjectProperty, owl:FunctionalProperty ;
-    rdfs:domain gmeow:InferenceCommitment ;
-    rdfs:range gmeow:StandpointClaim ;
-    rdfs:label "conclusion"@x-gmeow-english ;
-    skos:definition "The single conclusion of a reified gmeow:InferenceCommitment — the gmeow:StandpointClaim the argument establishes (vantage = the reasoner, observedFeature = the concluded proposition). Functional: one commitment, one conclusion; an argument with two conclusions is two commitments (SHACL enforces exactly one)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> .
-
-gmeow:inferenceModeOf
-    a owl:ObjectProperty, owl:FunctionalProperty ;
-    rdfs:domain gmeow:InferenceCommitment ;
-    rdfs:range gmeow:InferenceMode ;
-    rdfs:label "inference mode of"@x-gmeow-english ;
-    skos:definition "The Peircean mode of a reified gmeow:InferenceCommitment — a gmeow:InferenceMode value. Functional: a commitment has exactly one mode (a step that is both inductive and abductive is two commitments). The reified counterpart of the flat gmeow:inferenceMode; the value scopes the abduction / analogy SHACL shapes."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> .
-
-gmeow:warrant
-    a owl:ObjectProperty ;
-    rdfs:domain gmeow:InferenceCommitment ;
-    rdfs:label "warrant"@x-gmeow-english ;
-    skos:definition "The warrant of a reified gmeow:InferenceCommitment — the Toulmin licence authorising the step from premises to conclusion. For a deductive commitment it points at the logic: rule or proof-trace; for an inductive one, the statistical licence; for an abductive one, the explanatory licence; for an analogical one, the gmeow:Analogy (structure-mapping). NOT functional."@x-gmeow-english ;
-    skos:scopeNote "Range is intentionally OPEN: the warrant may be a logic: derivation, an gmeow:Analogy, an evidence object, or a textual rule. The substrate coupling to logic: is by reference (no asserted triples into logic:)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> .
-
-# =========================================================================== #
-# Properties — abduction / inference-to-best-explanation (mode: modeAbduction)
-# =========================================================================== #
-
-gmeow:explanandum
-    a owl:ObjectProperty ;
-    rdfs:domain gmeow:InferenceCommitment ;
-    rdfs:label "explanandum"@x-gmeow-english ;
-    skos:definition "The fact to be explained by an abductive gmeow:InferenceCommitment — the surprising observation the inference seeks the best explanation of. NOT functional."@x-gmeow-english ;
-    skos:scopeNote "Range is intentionally OPEN (an observation, a claim, or a proposition)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> .
-
-gmeow:explains
-    a owl:ObjectProperty ;
-    rdfs:domain gmeow:StandpointClaim ;
-    rdfs:label "explains"@x-gmeow-english ;
-    skos:definition "Relates a candidate hypothesis (a gmeow:StandpointClaim) to an explanandum it would account for — the explanatory link a solver back-checks (does the hypothesis, with the background, entail the explanandum?). NOT functional."@x-gmeow-english ;
-    skos:scopeNote "Range is intentionally OPEN (it points at whatever the explanandum is). The back-check is solver-layer (Principle 12)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> .
-
-gmeow:candidateHypothesis
-    a owl:ObjectProperty ;
-    rdfs:domain gmeow:InferenceCommitment ;
-    rdfs:range gmeow:StandpointClaim ;
-    rdfs:label "candidate hypothesis"@x-gmeow-english ;
-    skos:definition "A candidate explanation considered by an abductive gmeow:InferenceCommitment — one of the competing hypotheses (gmeow:competesWith) among which the inference selects the best. NOT functional: inference-to-the-best-explanation weighs several. The winner's gmeow:claimModality is promoted conceivable->probable; the losers are suppressed (gmeow:displayable false), never erased."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> .
-
-gmeow:competesWith
-    a owl:ObjectProperty, owl:SymmetricProperty ;
-    rdfs:domain gmeow:StandpointClaim ;
-    rdfs:range gmeow:StandpointClaim ;
-    rdfs:label "competes with"@x-gmeow-english ;
-    skos:definition "Relates two rival gmeow:StandpointClaim hypotheses that cannot both be accepted as the best explanation — the competition abductive (and analogical) selection resolves. Symmetric: competition is mutual. Irreflexivity (a claim never competes with itself) is enforced by SHACL, not OWL, keeping the DL profile clean (the deception discipline — doctrine in SHACL, not axioms)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> .
-
-gmeow:explanatoryScore
-    a owl:DatatypeProperty ;
-    rdfs:domain gmeow:StandpointClaim ;
-    rdfs:range xsd:decimal ;
-    rdfs:label "explanatory score"@x-gmeow-english ;
-    skos:definition "A solver-computed score of how well a candidate hypothesis explains its explanandum (simplicity, scope, coherence) — the basis on which inference-to-the-best-explanation ranks rivals. A solver-layer value (Principle 12), not an asserted truth: there is no isBest bit; the ranking promotes the winner's modality and suppresses the losers. NOT functional."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> .
-
-# =========================================================================== #
-# Properties — analogy / structure-mapping (mode: modeAnalogical)
-# =========================================================================== #
-
-gmeow:analogicalSource
-    a owl:ObjectProperty ;
-    rdfs:domain gmeow:Analogy ;
-    rdfs:label "analogical source"@x-gmeow-english ;
-    skos:definition "The source (base) domain of a gmeow:Analogy — the familiar structure whose relations are mapped onto the target. NOT functional."@x-gmeow-english ;
-    skos:scopeNote "Range is intentionally OPEN (a source may be any entity, situation, or domain)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> .
-
-gmeow:analogicalTarget
-    a owl:ObjectProperty ;
-    rdfs:domain gmeow:Analogy ;
-    rdfs:label "analogical target"@x-gmeow-english ;
-    skos:definition "The target domain of a gmeow:Analogy — the less-familiar structure that inherits relations from the source via the correspondences. NOT functional."@x-gmeow-english ;
-    skos:scopeNote "Range is intentionally OPEN (a target may be any entity, situation, or domain)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> .
-
-gmeow:hasCorrespondence
-    a owl:ObjectProperty ;
-    rdfs:domain gmeow:Analogy ;
-    rdfs:range gmeow:Correspondence ;
-    rdfs:label "has correspondence"@x-gmeow-english ;
-    skos:definition "Relates a gmeow:Analogy to one of its element-pair gmeow:Correspondence relations — the reified mapped pairs whose structural consistency is the analogy's gmeow:systematicity. NOT functional: an analogy holds many correspondences."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> .
-
-gmeow:correspondingSource
-    a owl:ObjectProperty, owl:FunctionalProperty ;
-    rdfs:domain gmeow:Correspondence ;
-    rdfs:label "corresponding source"@x-gmeow-english ;
-    skos:definition "The source-domain element of a gmeow:Correspondence — one half of a mapped pair. Functional: a correspondence maps exactly one source element to one target element."@x-gmeow-english ;
-    skos:scopeNote "Range is intentionally OPEN (the element may be any entity or relation in the source domain)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> .
-
-gmeow:correspondingTarget
-    a owl:ObjectProperty, owl:FunctionalProperty ;
-    rdfs:domain gmeow:Correspondence ;
-    rdfs:label "corresponding target"@x-gmeow-english ;
-    skos:definition "The target-domain element of a gmeow:Correspondence — the other half of a mapped pair. Functional: exactly one target element per correspondence."@x-gmeow-english ;
-    skos:scopeNote "Range is intentionally OPEN (the element may be any entity or relation in the target domain)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> .
-
-gmeow:systematicity
-    a owl:DatatypeProperty ;
-    rdfs:domain gmeow:Analogy ;
-    rdfs:range xsd:decimal ;
-    rdfs:label "systematicity"@x-gmeow-english ;
-    skos:definition "A solver-computed measure of a gmeow:Analogy's structural consistency (Gentner's systematicity principle: deep, interconnected relational mappings beat shallow attribute matches) — the basis on which the best analogy is selected. A solver-layer value (Principle 12); best-analogy selection promotes the winner's modality and suppresses rival mappings, never an asserted isBest bit. NOT functional."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> .
-
-# =========================================================================== #
-# Properties — defeasibility & belief revision
-# =========================================================================== #
-
-gmeow:hasDefeater
-    a owl:ObjectProperty ;
-    rdfs:domain gmeow:InferenceCommitment ;
-    rdfs:range gmeow:StandpointClaim ;
-    rdfs:label "has defeater"@x-gmeow-english ;
-    skos:definition "Relates a reified gmeow:InferenceCommitment to a defeating gmeow:StandpointClaim — a consideration that, once accepted, withdraws support for the conclusion. NOT functional: a commitment may face several defeaters. A fired defeater closes the gmeow:InferenceTenure and sets the conclusion-claim gmeow:displayable false; the commitment is retained as audit (Principle 10). The defeating claim carries its Pollock kind via gmeow:defeaterKind."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> .
-
-gmeow:defeaterKind
-    a owl:ObjectProperty ;
-    rdfs:domain gmeow:StandpointClaim ;
-    rdfs:range gmeow:DefeaterKind ;
-    rdfs:label "defeater kind"@x-gmeow-english ;
-    skos:definition "The Pollock kind of a defeating gmeow:StandpointClaim — gmeow:defeaterRebutting (attacks the conclusion) or gmeow:defeaterUndercutting (attacks the inferential link). NOT functional: a single claim may defeat in more than one way."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> .
-
-gmeow:tenureOf
-    a owl:ObjectProperty, owl:FunctionalProperty ;
-    rdfs:domain gmeow:InferenceTenure ;
-    rdfs:range gmeow:InferenceCommitment ;
-    rdfs:label "tenure of"@x-gmeow-english ;
-    skos:definition "Relates a gmeow:InferenceTenure to the gmeow:InferenceCommitment whose conclusion it time-scopes — opened when the conclusion is accepted, closed (an gmeow:endedAtTime on its gmeow:duringInterval) when a defeater fires. Functional: one tenure tracks one commitment; the commitment survives the closing as audit (the gmeow:StandpointTenure → gmeow:standpointClaim idiom, applied to inference)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> .
-
-# =========================================================================== #
-# Value individuals — gmeow:InferenceMode (Peirce's tetrad)
-# =========================================================================== #
-
-gmeow:modeDeduction
-    a gmeow:InferenceMode ;
-    rdfs:label "deduction"@x-gmeow-english ;
-    skos:definition "Deductive inference — truth-preserving derivation under a monotonic profile (a logic: proof-trace, Nemo / Scryer): if the premises hold, the conclusion holds. Non-defeasible; default modality gmeow:unequivocal. At the logic: derivation layer the mode is read off the profile and never separately tagged (Principle 4); gmeow:modeDeduction is the legitimate way to record, at the epistemic / memory layer, that the agent reached this by deduction."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> .
-
-gmeow:modeInduction
-    a gmeow:InferenceMode ;
-    rdfs:label "induction"@x-gmeow-english ;
-    skos:definition "Inductive inference — generalisation over a sample, warranted by gmeow:evidenceStrength (logic:). Not truth-preserving; defeasible; default modality gmeow:probable; competing generalisations may rival it."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> .
-
-gmeow:modeAbduction
-    a gmeow:InferenceMode ;
-    rdfs:label "abduction"@x-gmeow-english ;
-    skos:definition "Abductive inference — inference to the best explanation: construct candidate hypotheses (gmeow:candidateHypothesis) for an explanandum, back-check them (gmeow:explains), and rank by gmeow:explanatoryScore. Not truth-preserving; defeasible; default modality gmeow:conceivable, promoted to gmeow:probable for the winner; rivals genuinely compete (gmeow:competesWith)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> .
-
-gmeow:modeAnalogical
-    a gmeow:InferenceMode ;
-    rdfs:label "analogical"@x-gmeow-english ;
-    skos:definition "Analogical inference — source-to-target structure-mapping (Gentner): transfer relational structure from a familiar source to a target via a gmeow:Analogy, scored by gmeow:systematicity. Not truth-preserving; defeasible; default modality gmeow:conceivable, promoted to gmeow:probable for the best mapping; rival mappings compete."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> .
-
-# =========================================================================== #
-# Value individuals — gmeow:DefeaterKind (Pollock)
-# =========================================================================== #
-
-gmeow:defeaterRebutting
-    a gmeow:DefeaterKind ;
-    rdfs:label "rebutting"@x-gmeow-english ;
-    skos:definition "A rebutting defeater (Pollock) — gives positive reason to believe the negation of the conclusion, attacking the conclusion directly."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> .
-
-gmeow:defeaterUndercutting
-    a gmeow:DefeaterKind ;
-    rdfs:label "undercutting"@x-gmeow-english ;
-    skos:definition "An undercutting defeater (Pollock) — attacks the inferential link, removing the warrant's support without asserting the conclusion's negation (the premises no longer license the conclusion)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> .
-
-# --------------------------------------------------------------------------- #
-# Graph box role coverage (canonical explicit annotations).
-# --------------------------------------------------------------------------- #
-
-gmeow:Analogy gmeow:graphBoxRole gmeow:boxTBox .
-gmeow:Correspondence gmeow:graphBoxRole gmeow:boxTBox .
-gmeow:DefeaterKind gmeow:graphBoxRole gmeow:boxTBox .
-gmeow:InferenceCommitment gmeow:graphBoxRole gmeow:boxTBox .
-gmeow:InferenceMode gmeow:graphBoxRole gmeow:boxTBox .
-gmeow:InferenceProcess gmeow:graphBoxRole gmeow:boxTBox .
-gmeow:InferenceTenure gmeow:graphBoxRole gmeow:boxTBox .
-gmeow:analogicalSource gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxRBox .
-gmeow:analogicalTarget gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:candidateHypothesis gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:competesWith gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:conclusion gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:correspondingSource gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxRBox .
-gmeow:correspondingTarget gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:defeaterKind gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:defeaterRebutting gmeow:graphBoxRole gmeow:boxABox .
-gmeow:defeaterUndercutting gmeow:graphBoxRole gmeow:boxABox .
-gmeow:explains gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:explanandum gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:explanatoryScore gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:hasCorrespondence gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:hasDefeater gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:hasInferenceCommitment gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:inferenceMode gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:inferenceModeOf gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:inferredFrom gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:modeAbduction gmeow:graphBoxRole gmeow:boxABox .
-gmeow:modeAnalogical gmeow:graphBoxRole gmeow:boxABox .
-gmeow:modeDeduction gmeow:graphBoxRole gmeow:boxABox .
-gmeow:modeInduction gmeow:graphBoxRole gmeow:boxABox .
-gmeow:premise gmeow:graphBoxRole gmeow:boxRBox .
-<https://blackcatinformatics.ca/gmeow/slices/inference> gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .
-gmeow:systematicity gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:tenureOf gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:warrant gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxRBox .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
+    rdfs:label "GMEOW Inference Module"@x-gmeow-english ;
+    skos:definition "The GMEOW Inference Module — Peirce's tetrad (deduction, induction, abduction, analogy) as the epistemic face of a logic: derivation: what an agent believes when it accepts a reasoning step's conclusion."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxConfigBox ,
+        gmeow:boxTBox .

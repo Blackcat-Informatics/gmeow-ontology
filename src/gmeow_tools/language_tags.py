@@ -10,19 +10,16 @@ canonical authored literals use internal tags; public projections emit BCP-47.
 
 from __future__ import annotations
 
-import re
 from collections.abc import Iterable
 from dataclasses import dataclass
 from functools import lru_cache
 
+import gmeow_validate
 from rdflib import RDF, Graph, Literal, URIRef
 
 from gmeow_tools.config import NAMESPACE
 
 GM = URIRef(NAMESPACE)
-
-#: GMEOW-internal language tag pattern (BCP-47 private-use subtag).
-_INTERNAL_TAG_RE = re.compile(r"^x-gmeow-[a-z0-9\-]+$", re.IGNORECASE)
 
 
 @lru_cache(maxsize=1)
@@ -33,44 +30,21 @@ def _annotation_predicates() -> frozenset[URIRef]:
     through the native ``gmeow_validate.annotation_predicates`` surface so there is
     a single source of truth instead of a parallel Python constant.
     """
-    import gmeow_validate
-
     return frozenset(URIRef(p) for p in gmeow_validate.annotation_predicates())
 
 
 def is_internal_tag(lang: str | None) -> bool:
-    """Return whether *lang* is a GMEOW internal private-use tag."""
+    """Return whether *lang* is a GMEOW internal private-use tag.
+
+    Delegates to the Rust authority in ``gmeow_validate`` (#819 Task 10).
+    """
     if lang is None:
         return False
-    return bool(_INTERNAL_TAG_RE.match(lang))
-
-
-def _language_tag_iri() -> URIRef:
-    return URIRef(NAMESPACE + "languageTag")
-
-
-def _bcp47_tag_iri() -> URIRef:
-    return URIRef(NAMESPACE + "bcp47Tag")
+    return gmeow_validate.is_internal_tag(lang)
 
 
 def _language_class_iri() -> URIRef:
     return URIRef(NAMESPACE + "Language")
-
-
-def _formal_language_class_iri() -> URIRef:
-    return URIRef(NAMESPACE + "FormalLanguage")
-
-
-def _programming_language_class_iri() -> URIRef:
-    return URIRef(NAMESPACE + "ProgrammingLanguage")
-
-
-class _MissingTagError(ValueError):
-    """Raised when a required language tag property is absent."""
-
-
-class _AmbiguousTagError(ValueError):
-    """Raised when a language tag property has more than one distinct value."""
 
 
 def load_tag_map(
@@ -84,6 +58,12 @@ def load_tag_map(
     queried directly and a seen-set deduplicates shared individuals.
     Returns ``{internal_tag: bcp47_tag}``.
 
+    When the default ``classes`` are used (all three language classes), delegates
+    to the Rust authority ``gmeow_validate.load_tag_map`` via N-Triples
+    serialization (#819 Task 10).  When an explicit ``classes`` list is provided
+    (e.g. the inverse-map path) the rdflib scan path is used, because the Rust
+    function always scans all three classes.
+
     Args:
         graph: An rdflib graph containing GMEOW language individuals.
         classes: Restrict the scan to these language classes (default: all
@@ -94,22 +74,25 @@ def load_tag_map(
     Returns:
         A dict mapping internal tag strings to BCP-47 tag strings.
     """
-    tag_prop = _language_tag_iri()
-    bcp_prop = _bcp47_tag_iri()
-    lang_classes = classes or [
-        _language_class_iri(),
-        _formal_language_class_iri(),
-        _programming_language_class_iri(),
-    ]
+    if classes is None:
+        # Fast path: delegate to Rust (serialise once, parse once).
+        nt_bytes = graph.serialize(format="ntriples").encode()
+        return gmeow_validate.load_tag_map(nt_bytes, "ntriples")
+
+    # Restricted-class path (used by load_inverse_tag_map).
+    return _load_tag_map_python(graph, classes)
+
+
+def _load_tag_map_python(graph: Graph, classes: list[URIRef]) -> dict[str, str]:
+    """Pure-Python restricted-class tag-map scan (used by the inverse-map path).
+
+    The Rust function always scans all three language classes; when a subset is
+    needed (e.g. ``gmeow:Language`` only for the inverse map), this path is used.
+    """
+    tag_prop = URIRef(NAMESPACE + "languageTag")
+    bcp_prop = URIRef(NAMESPACE + "bcp47Tag")
 
     def _single_value(subject: URIRef, predicate: URIRef) -> str:
-        """Return the single lexical value for *predicate* on *subject*.
-
-        ``rdflib.Graph.value`` is non-deterministic when multiple objects exist,
-        so we collect all literal values, deduplicate by lexical form, and
-        require exactly one distinct value. This keeps retagging deterministic
-        and surfaces conflicting BCP-47 tags immediately.
-        """
         values = sorted(
             {
                 str(obj)
@@ -128,7 +111,7 @@ def load_tag_map(
 
     tag_map: dict[str, str] = {}
     seen: set[URIRef] = set()
-    for cls in lang_classes:
+    for cls in classes:
         for lang in graph.subjects(RDF.type, cls):
             if not isinstance(lang, URIRef) or lang in seen:
                 continue
@@ -137,11 +120,17 @@ def load_tag_map(
                 int_val = _single_value(lang, tag_prop)
                 bcp_val = _single_value(lang, bcp_prop)
             except _MissingTagError:
-                # Skip language-like individuals that are missing one of the
-                # required tags; the ontology/SHACL layers enforce completeness.
                 continue
             tag_map[int_val] = bcp_val
     return tag_map
+
+
+class _MissingTagError(ValueError):
+    """Raised when a required language tag property is absent."""
+
+
+class _AmbiguousTagError(ValueError):
+    """Raised when a language tag property has more than one distinct value."""
 
 
 @lru_cache(maxsize=1)
@@ -186,9 +175,10 @@ def rank_language(lang: str | None) -> tuple[int, str]:
     order — never graph order. One function, used by BOTH the rdflib path
     (:func:`public_literal`) and the GTS fold view (#267 narrow waist), so
     their selections agree by construction.
+
+    Delegates to the Rust authority in ``gmeow_validate`` (#819 Task 10).
     """
-    norm = (lang or "").lower()
-    return (0 if norm == "x-gmeow-english" else 1, norm)
+    return gmeow_validate.rank_language(lang or "")
 
 
 def public_literal(

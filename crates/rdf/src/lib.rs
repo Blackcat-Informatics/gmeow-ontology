@@ -13,7 +13,11 @@ pub mod diagnostic;
 pub mod gts;
 #[cfg(feature = "gts")]
 pub mod gts_write;
+// The immutable, value-interned RDF 1.2 dataset IR (#819 C1).
+pub mod ir;
 pub mod lookaside;
+// The machine-readable RDF↔GTS loss ledger and its drift-gated matrix (#819 C0).
+pub mod loss;
 pub mod model;
 #[cfg(feature = "oxigraph")]
 pub mod oxigraph;
@@ -25,16 +29,36 @@ pub mod py;
 // that replaces the external `pyoxigraph` package (#667). Python-only, like `py`.
 #[cfg(feature = "python")]
 pub mod py_store;
+// The native `RDF → GTS` producer surface (snapshot author + compile_gts) and the
+// `PyRdfDataset` Arc handle (#819 Task 8 / C7). Python-only; needs `gts`, which the
+// `python` feature now implies.
+#[cfg(feature = "python")]
+pub mod py_gts;
+#[cfg(feature = "python")]
+pub mod py_gts_dataset;
 #[cfg(feature = "oxigraph")]
 pub mod statements;
 pub mod store;
 pub mod turtle;
+// Canonical, review-friendly Turtle serializer over the IR (#819 Task 9): the
+// native replacement for rdflib `longturtle` in `gmeow normalize`.
+#[cfg(feature = "oxigraph")]
+pub mod turtle_normalize;
 
 pub use diagnostic::{RdfDiagnostic, RdfLocation, RdfLoss, RdfSeverity};
+pub use ir::{
+    dataset_diff, datasets_isomorphic, BlankScope, DatasetDiff, QuadHandle, QuadIds, QuadRef,
+    RdfBundle, RdfDataset, RdfDatasetBuilder, RdfEnvelope, RdfEventSink, TermId, TermRef,
+};
+#[cfg(feature = "gts")]
+pub use ir::{import_gts_events, import_gts_graph};
 pub use lookaside::{
-    RdfBlobRecord, RdfLookaside, RdfLookasideKind, RdfLookasideResource, RdfMetadataEntry,
-    RdfMetadataValue, RdfOpaqueNodeRecord, RdfSegmentRecord, RdfSignatureRecord,
+    RdfBlobOrigin, RdfBlobRecord, RdfLookaside, RdfLookasideKind, RdfLookasideResource,
+    RdfMetadataEntry, RdfMetadataValue, RdfOpaqueNodeRecord, RdfSegmentRecord, RdfSignatureRecord,
     RdfSuppressionRecord,
+};
+pub use loss::{
+    gts_to_rdf_loss_ledger, loss_matrix_json, rdf_to_gts_loss_ledger, LossEntry, LossLedger,
 };
 pub use model::{
     RdfAnnotation, RdfLiteral, RdfQuad, RdfReifier, RdfTerm, RdfTermKind, RdfTextDirection,

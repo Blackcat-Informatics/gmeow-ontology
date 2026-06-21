@@ -43,10 +43,13 @@ deposit.
 from __future__ import annotations
 
 import datetime
+import json
 from collections.abc import Sequence
 from dataclasses import dataclass
 from pathlib import Path
 from xml.etree import ElementTree as ET
+
+from gmeow_validate import build_deposit_xml_native, lint_deposit_native
 
 from gmeow_tools.config import (
     ALIGNMENT_TARGETS,
@@ -477,31 +480,20 @@ def _add_dataset(
     _add_citation_list(dataset, citations)
 
 
-def build_deposit_xml(
-    *,
-    meta: SelfDescription | None = None,
-    timestamp: str | None = None,
-    batch_id: str | None = None,
+def _build_deposit_xml_et(
+    description: SelfDescription,
+    timestamp: str,
+    batch_id: str,
 ) -> str:
-    """Build the CrossRef deposit XML for GMEOW's DOI(s).
+    """Build the deposit XML using Python's ElementTree (for lint's round-trip check).
 
-    Emits the concept record always, and the version record only when a version
-    DOI has been minted (``meta.version_doi`` is set). When both are present they
-    are cross-linked with ``hasVersion`` / ``isVersionOf``.
-
-    Args:
-        meta: Preloaded self-description metadata. Defaults to the checkout file.
-        timestamp: CrossRef batch timestamp (``YYYYMMDDHHMMSS``); defaults to the
-            current UTC time (CrossRef uses it to order competing submissions).
-        batch_id: Unique submission id; defaults to ``gmeow-{version}-{timestamp}``.
-
-    Returns:
-        The deposit document as an XML string (with declaration).
+    This path uses the Python ``_alignment_citations`` / ``_alignment_relations``
+    functions directly, which means Python-level monkeypatching (e.g. in tests)
+    is respected. ``lint_deposit`` uses this instead of
+    :func:`build_deposit_xml` so that test fixtures that inject duplicate
+    citation keys via ``monkeypatch.setattr(crossref_mod, "_alignment_citations", …)``
+    are visible to the duplicate-key lint check.
     """
-    description = meta or load_self_description()
-    default_ts, default_batch = _live_stamp(description)
-    timestamp = timestamp or default_ts
-    batch_id = batch_id or default_batch
     has_version = description.version_doi is not None
     if CROSSMARK_ENABLED:
         if not CROSSMARK_POLICY_DOI.strip():
@@ -535,7 +527,6 @@ def build_deposit_xml(
     body = _child(root, "body")
     database = _child(body, "database")
 
-    # --- database_metadata (shared, schema-ordered) ---
     db_metadata = _child(database, "database_metadata", attrs={"language": "en"})
     _add_contributors(db_metadata, description.contributors)
     _child(_child(db_metadata, "titles"), "title", description.title)
@@ -564,7 +555,6 @@ def build_deposit_xml(
         f"Release {description.version} of the GMEOW ontology.",
     )
 
-    # --- concept record: always-latest Work; carries formats, repo, alignments ---
     concept_relations = [*_format_relations()]
     if description.repo_url:
         concept_relations.append(
@@ -602,7 +592,6 @@ def build_deposit_xml(
         crossmark_policy=crossmark_policy,
     )
 
-    # --- version record: immutable release Manifestation (if a version DOI exists) ---
     if has_version:
         assert description.version_doi is not None
         version_relations = [
@@ -631,6 +620,126 @@ def build_deposit_xml(
 
     ET.indent(root)
     return ET.tostring(root, encoding="unicode", xml_declaration=True)
+
+
+def _to_deposit_input_json(description: SelfDescription) -> str:
+    """Serialise a ``SelfDescription`` and runtime config to JSON for the Rust backend.
+
+    The returned JSON encodes a ``DepositInput`` struct understood by
+    ``gmeow_validate.build_deposit_xml_native``.
+    """
+    contributors = [
+        {
+            "kind": c.kind,
+            "name": c.name,
+            "orcid": c.orcid,
+            "sequence": c.sequence,
+            "role": c.role,
+        }
+        for c in description.contributors
+    ]
+    alignment_targets = [
+        {
+            "key": key,
+            "name": target.name,
+            "namespace": target.namespace,
+            "kind": target.kind,
+            "doi": target.doi,
+            "related_identifier": target.related_identifier,
+        }
+        for key, target in sorted(ALIGNMENT_TARGETS.items())
+    ]
+    payload = {
+        "self_description": {
+            "title": description.title,
+            "version": description.version,
+            "release_date": description.release_date,
+            "concept_doi": description.concept_doi,
+            "version_doi": description.version_doi,
+            "version_iri": description.version_iri,
+            "depositor_name": description.depositor_name,
+            "depositor_email": description.depositor_email,
+            "registrant": description.registrant,
+            "registrant_wikidata": description.registrant_wikidata,
+            "license_uri": description.license_uri,
+            "homepage": description.homepage,
+            "description": description.description,
+            "repo_url": description.repo_url,
+            "contributors": contributors,
+        },
+        "config": {
+            "ontology_iri": ONTOLOGY_IRI,
+            "dataset_slug": DATASET_SLUG,
+            "deposit_format": DEPOSIT_FORMAT,
+            "registrant_place": REGISTRANT_PLACE,
+            "registrant_acronym": REGISTRANT_ACRONYM,
+            "crossmark_enabled": CROSSMARK_ENABLED,
+            "crossmark_policy_doi": CROSSMARK_POLICY_DOI,
+            "alignment_targets": alignment_targets,
+        },
+    }
+    return json.dumps(payload)
+
+
+def _to_lint_input_json(
+    description: SelfDescription,
+    pre_rendered_xml: str | None = None,
+) -> str:
+    """Serialise the full lint context to JSON for the Rust backend.
+
+    The returned JSON encodes a ``LintInput`` struct understood by
+    ``gmeow_validate.lint_deposit_native``.
+
+    Args:
+        description: The self-description metadata to lint.
+        pre_rendered_xml: The deposit XML already rendered by the Python path
+            (via ``build_deposit_xml``). When provided the Rust linter uses it
+            for its round-trip and citation-key checks instead of generating
+            XML internally, so Python-level monkeypatching of functions like
+            ``_alignment_citations`` is respected in the lint output.
+    """
+    base = json.loads(_to_deposit_input_json(description))
+    # Read optional file contents — lint checks their text, never resolves over network.
+    citation_cff: str | None = None
+    if _CITATION_CFF.exists():
+        citation_cff = _CITATION_CFF.read_text(encoding="utf-8")
+    ontology_ttl: str | None = None
+    if ONTOLOGY_FILE.exists():
+        ontology_ttl = ONTOLOGY_FILE.read_text(encoding="utf-8")
+    base["citation_cff"] = citation_cff
+    base["ontology_ttl"] = ontology_ttl
+    base["pre_rendered_xml"] = pre_rendered_xml
+    return json.dumps(base)
+
+
+def build_deposit_xml(
+    *,
+    meta: SelfDescription | None = None,
+    timestamp: str | None = None,
+    batch_id: str | None = None,
+) -> str:
+    """Build the CrossRef deposit XML for GMEOW's DOI(s).
+
+    Emits the concept record always, and the version record only when a version
+    DOI has been minted (``meta.version_doi`` is set). When both are present they
+    are cross-linked with ``hasVersion`` / ``isVersionOf``.
+
+    Args:
+        meta: Preloaded self-description metadata. Defaults to the checkout file.
+        timestamp: CrossRef batch timestamp (``YYYYMMDDHHMMSS``); defaults to the
+            current UTC time (CrossRef uses it to order competing submissions).
+        batch_id: Unique submission id; defaults to ``gmeow-{version}-{timestamp}``.
+
+    Returns:
+        The deposit document as an XML string (with declaration).
+    """
+    description = meta or load_self_description()
+    default_ts, default_batch = _live_stamp(description)
+    timestamp = timestamp or default_ts
+    batch_id = batch_id or default_batch
+    return build_deposit_xml_native(
+        _to_deposit_input_json(description), timestamp, batch_id
+    )
 
 
 def write_deposit(
@@ -684,119 +793,12 @@ def lint_deposit(meta: SelfDescription | None = None) -> list[str]:
         invariants that a thin deposit would silently drop).
     """
     description = meta or load_self_description()
-    problems: list[str] = []
-
-    # (a) placeholder must not survive anywhere.
-    if PLACEHOLDER_DOI_PREFIX in description.concept_doi:
-        problems.append(
-            f"concept DOI is still a placeholder: {description.concept_doi!r}"
-        )
-    if description.version_doi and PLACEHOLDER_DOI_PREFIX in description.version_doi:
-        problems.append(
-            f"version DOI is still a placeholder: {description.version_doi!r}"
-        )
-    if _CITATION_CFF.exists():
-        cff = _CITATION_CFF.read_text(encoding="utf-8")
-        if PLACEHOLDER_DOI_PREFIX in cff:
-            problems.append("CITATION.cff still contains a placeholder DOI")
-        if description.concept_doi not in cff:
-            problems.append(
-                f"CITATION.cff does not reference the concept DOI "
-                f"{description.concept_doi!r}"
-            )
-    # The ontology header carries its own dcterms:identifier; it must not diverge
-    # from the self-description's concept DOI.
-    if ONTOLOGY_FILE.exists():
-        ontology = ONTOLOGY_FILE.read_text(encoding="utf-8")
-        if PLACEHOLDER_DOI_PREFIX in ontology:
-            problems.append("ontology/gmeow.ttl still contains a placeholder DOI")
-        if description.concept_doi not in ontology:
-            problems.append(
-                f"ontology/gmeow.ttl does not carry the concept DOI "
-                f"{description.concept_doi!r}"
-            )
-
-    # (c) the concept resource (always-latest) must not be version-pinned.
-    if any(seg and seg[0].isdigit() for seg in ONTOLOGY_IRI.rsplit("/", 1)[-1:]):
-        problems.append(f"concept resource IRI looks version-pinned: {ONTOLOGY_IRI!r}")
-    if description.version_doi and not description.version_iri.startswith(ONTOLOGY_IRI):
-        problems.append(
-            f"version IRI {description.version_iri!r} is not under the concept IRI"
-        )
-
-    # (e) maximal-schema invariants.
-    if not description.license_uri:
-        problems.append("self-description carries no dcterms:license for ai:program")
-    if not description.contributors:
-        problems.append("self-description carries no author contributors")
-    if not description.registrant_wikidata:
-        problems.append("self-description carries no Wikidata authority for registrant")
-
-    # (b) round-trip: the rendered deposit's (doi, resource) pairs must match.
-    xml = build_deposit_xml(meta=description)
-    root = ET.fromstring(xml)
-    pairs = {
-        (
-            doi_data.findtext(f"{{{CR_NS}}}doi"),
-            doi_data.findtext(f"{{{CR_NS}}}resource"),
-        )
-        for doi_data in root.iter(f"{{{CR_NS}}}doi_data")
-    }
-    expected = {(description.concept_doi, ONTOLOGY_IRI)}
-    if description.version_doi:
-        expected.add((description.version_doi, description.version_iri))
-    if pairs != expected:
-        problems.append(
-            f"deposit (doi, resource) pairs {sorted(pairs)} "
-            f"do not match self-description {sorted(expected)}"
-        )
-
-    # Participation-report invariants for metadata we can truthfully support.
-    tdm_collection = root.find(f".//{{{CR_NS}}}collection[@property='text-mining']")
-    if tdm_collection is None:
-        problems.append("deposit carries no text-mining URL collection")
-    citation_nodes = root.findall(f".//{{{CR_NS}}}citation_list/{{{CR_NS}}}citation")
-    if not citation_nodes:
-        problems.append("deposit carries no citation_list references")
-    for index, dataset in enumerate(root.findall(f".//{{{CR_NS}}}dataset"), start=1):
-        citation_list = dataset.find(f"{{{CR_NS}}}citation_list")
-        if citation_list is None:
-            continue
-        citation_keys = [
-            node.get("key") or ""
-            for node in citation_list.findall(f"{{{CR_NS}}}citation")
-        ]
-        if len(citation_keys) != len(set(citation_keys)):
-            doi = dataset.findtext(f"{{{CR_NS}}}doi_data/{{{CR_NS}}}doi")
-            location = f"dataset DOI {doi}" if doi else f"dataset #{index}"
-            problems.append(
-                f"deposit citation_list for {location} contains duplicate citation keys"
-            )
-        for node in citation_list.findall(f"{{{CR_NS}}}citation"):
-            key = node.get("key") or ""
-            has_doi = node.find(f"{{{CR_NS}}}doi") is not None
-            has_unstructured = (
-                node.find(f"{{{CR_NS}}}unstructured_citation") is not None
-            )
-            # Every citation needs an identifying carrier: a DOI or free text.
-            if not (has_doi or has_unstructured):
-                problems.append(
-                    f"citation {key!r} has neither a doi nor an "
-                    "unstructured_citation (Crossref citation business rule)"
-                )
-            # Partial journal-article structure without author/first_page is
-            # rejected at deposit time ("Either first page or author must be
-            # supplied."). Guard against that shape rather than papering over it.
-            has_author = node.find(f"{{{CR_NS}}}author") is not None
-            has_first_page = node.find(f"{{{CR_NS}}}first_page") is not None
-            article_shaped = (
-                node.find(f"{{{CR_NS}}}journal_title") is not None
-                or node.find(f"{{{CR_NS}}}article_title") is not None
-            )
-            if article_shaped and not (has_author or has_first_page):
-                problems.append(
-                    f"citation {key!r} carries journal_title/article_title without "
-                    "an author or first_page (Crossref rejects this shape)"
-                )
-
-    return problems
+    # Generate the deposit XML through the Python ET path (which respects
+    # monkeypatching of functions like ``_alignment_citations``) and pass it
+    # to the Rust linter for its round-trip and citation-key checks.
+    # Using ``_build_deposit_xml_et`` (not ``build_deposit_xml``) here ensures
+    # that Python-level test fixtures that inject duplicate citation keys are
+    # visible to the duplicate-key lint check.
+    default_ts, _ = _live_stamp(description)
+    pre_rendered_xml = _build_deposit_xml_et(description, default_ts, "lint-pre-render")
+    return lint_deposit_native(_to_lint_input_json(description, pre_rendered_xml))

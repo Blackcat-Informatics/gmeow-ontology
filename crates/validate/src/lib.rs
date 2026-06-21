@@ -27,12 +27,15 @@ pub mod coverage;
 pub mod dsl;
 pub mod findings;
 pub mod gufo;
+pub mod language_tags;
 pub mod lint;
 pub mod model;
 pub mod signature;
 pub mod statement;
 pub mod store;
 pub mod validate_all;
+
+pub mod crossref;
 
 // PyO3 bindings — the only module that imports pyo3.
 pub mod py;

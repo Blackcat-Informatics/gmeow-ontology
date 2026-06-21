@@ -48,6 +48,14 @@ fn add_engine_submodule(
     register: impl FnOnce(&Bound<'_, PyModule>) -> PyResult<()>,
 ) -> PyResult<()> {
     let sub = PyModule::new(py, name)?;
+    // `PyModule::new` sets no `__file__`. The legacy import-name shims
+    // (`gmeow_logic`, `gmeow_rdf`, …) swap themselves in `sys.modules` for this
+    // submodule object, so it must satisfy `module.__file__` introspection — a CI
+    // import smoke test exercises exactly `gmeow_logic.__file__`. Borrow the
+    // parent cdylib's `__file__` (the installed `.so`).
+    if let Ok(file) = parent.getattr("__file__") {
+        sub.setattr("__file__", file)?;
+    }
     register(&sub)?;
     parent.add_submodule(&sub)?;
     sys_modules.set_item(format!("gmeow_native.{name}"), &sub)?;

@@ -1,19 +1,354 @@
-# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
-# SPDX-License-Identifier: CC-BY-4.0
-
-@prefix gmeow:   <https://blackcatinformatics.ca/gmeow/> .
-@prefix gufo:    <http://purl.org/nemo/gufo#> .
-@prefix owl:     <http://www.w3.org/2002/07/owl#> .
-@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
-@prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix gufo: <http://purl.org/nemo/gufo#> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
+
+gmeow:Attestation
+    rdfs:subClassOf gmeow:JustificationGround .
+
+gmeow:DoxasticStandpointClaim
+    a gufo:SubKind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
+    rdfs:label "doxastic standpoint claim"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:StandpointClaim ;
+    skos:definition "A StandpointClaim that explicitly reports a held DoxasticState — the reified, vantage-indexed claim that an agent is in a particular believing mode toward a proposition. It carries the qualitative claimModality of the belief and links to the underlying DoxasticState via gmeow:claimOfBelief, so the holding can be justified or defeated in this module (Principles 9, 15)."@x-gmeow-english ;
+    skos:example "ex:aliceRoundClaim a gmeow:DoxasticStandpointClaim ; gmeow:vantage ex:alice ; gmeow:observedFeature ex:earthIsRound ; gmeow:claimOfBelief ex:aliceBelievesRound ; gmeow:claimModality gmeow:unequivocal ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid when the flat doxastic spine suffices; do not mint both a flat believes statement and a DoxasticStandpointClaim for the same holding without a clear reason (Principle 4)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Mint one DoxasticStandpointClaim per (agent, proposition, belief-modality) tuple; set its vantage to the agent, observedFeature to the proposition, claimModality to the qualitative belief value, and claimOfBelief to the underlying DoxasticState. Justification and defeat are modeled via gmeow:justifiedBy and gmeow:defeatedBy in this module."@x-gmeow-english ;
+    gmeow:useWhen "Use when a belief report must be a first-class StandpointClaim that can be justified, defeated, or standpoint-indexed independently of the flat gmeow:believes / gmeow:knowsThat spine (Principle 9)."@x-gmeow-english .
+
+gmeow:DoxasticState
+    a gufo:Kind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
+    rdfs:label "Doxastic State"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:JustificationGround ,
+        gmeow:JustificationSubject ,
+        gmeow:MentalMoment ,
+        [
+            a owl:Restriction ;
+            owl:onProperty gmeow:epistemicAgent ;
+            owl:someValuesFrom gmeow:Agent ;
+        ] ,
+        [
+            a owl:Restriction ;
+            owl:onProperty gmeow:doxasticContent ;
+            owl:someValuesFrom gmeow:Proposition ;
+        ] ,
+        [
+            a owl:Restriction ;
+            owl:onProperty gmeow:doxasticClaim ;
+            owl:someValuesFrom gmeow:StandpointClaim ;
+        ] ;
+    skos:definition "An agent's intrinsic believing mode toward a proposition — the reified, first-class mental moment that grounds the flat doxastic spine (gmeow:believes, gmeow:knowsThat). A sibling of cognition:CognitiveState (knowing) and teleology:IntentionalMode (desiring/intending) under kernel:MentalMoment, so an agent's whole endurant mental life is queryable as one family (Principle 15). Inheres in exactly one agent via epistemicAgent and is directed at exactly one Proposition via doxasticContent; its qualitative belief value is carried by a linked StandpointClaim (doxasticClaim → claimModality), and its graded strength by credence [0,1]. Never instantiated directly when the flat spine suffices (Principle 4)."@x-gmeow-english ;
+    skos:example "ex:aliceBelievesRound a gmeow:DoxasticState ; gmeow:epistemicAgent ex:alice ; gmeow:doxasticContent ex:earthIsRound ; gmeow:doxasticClaim ex:aliceRoundClaim ; gmeow:credence \"0.92\"^^xsd:decimal ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for the 80% case where an agent simply believes a proposition — use the flat gmeow:believes / gmeow:knowsThat spine and carry modality on the statement layer; avoid double-typing a belief as both a flat relation and a DoxasticState for the same holding (Principle 12)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Mint one DoxasticState per (agent, proposition, claim-modality) tuple; link it via gmeow:doxasticClaim to a StandpointClaim whose vantage is the agent, observedFeature is the proposition, and claimModality carries the qualitative value; attach credence for graded strength and a DoxasticTenure when belief revision history matters."@x-gmeow-english ;
+    gmeow:pairsWith gmeow:DoxasticTenure ;
+    gmeow:useWhen "Use when an agent's belief toward a proposition must be first-class — when credence, temporal scope (via DoxasticTenure), standpoint modality, or the mental moment itself needs to be queried or revised (Principle 15)."@x-gmeow-english .
+
+gmeow:DoxasticTenure
+    a gufo:SituationType ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
+    rdfs:label "Doxastic Tenure"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:TimeScopedRelation ,
+        [
+            a owl:Restriction ;
+            owl:onProperty gmeow:tenureOfDoxasticState ;
+            owl:someValuesFrom gmeow:DoxasticState ;
+        ] ,
+        [
+            a owl:Restriction ;
+            owl:onProperty gmeow:duringInterval ;
+            owl:someValuesFrom gmeow:TimeInterval ;
+        ] ;
+    skos:definition "The reified, time-scoped fact that a DoxasticState was held over an interval — the belief-revision history construct. Opened when the belief is adopted; closed (endedAtTime on the duringInterval) and suppressed with displayable false when the belief is revised or retracted. The old DoxasticState is retained as audit, never deleted (Principle 10). Carries its interval via gmeow:duringInterval (temporal module) and links to the scoped DoxasticState via tenureOfDoxasticState."@x-gmeow-english ;
+    skos:example "ex:aliceRoundTenure a gmeow:DoxasticTenure ; gmeow:tenureOfDoxasticState ex:aliceBelievesRound ; gmeow:duringInterval ex:2019to2024 ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for the lightweight case where a bare gmeow:believes statement with validFrom/validUntil suffices; reify on demand (Principle 4)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Mint one DoxasticTenure per DoxasticState adoption interval; point it at the DoxasticState via tenureOfDoxasticState and at a TimeInterval via duringInterval. On revision, close the interval with endedAtTime and set displayable false on the tenure; mint a new DoxasticState and tenure for the revised belief."@x-gmeow-english ;
+    gmeow:useWhen "Use when the adoption, revision, or retraction of a belief over time is itself the fact of interest — the heavy form for belief-revision history."@x-gmeow-english .
+
+gmeow:EvidenceSpan
+    rdfs:subClassOf gmeow:JustificationGround .
+
+gmeow:JustificationGround
+    a gufo:Category ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
+    rdfs:label "Justification Ground"@x-gmeow-english ;
+    rdfs:subClassOf owl:Thing ;
+    owl:equivalentClass [
+        a owl:Class ;
+        owl:unionOf ( gmeow:EvidenceSpan gmeow:Attestation gmeow:DoxasticState ) ;
+    ] ;
+    skos:definition "The class of things that can serve as a justification basis — an evidence span, an attestation, or a further doxastic state. Introduced as a named superclass so that schema projections can assign a single range to gmeow:justifiedBy instead of losing a blank-node owl:unionOf."@x-gmeow-english ;
+    skos:example "ex:aliceBelievesRound gmeow:justifiedBy ex:photoEvidence , ex:expertAttestation , ex:bobBelievesRound ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting it as an independent kind of entity; it is a schema-friendly union category whose instances are always EvidenceSpans, Attestations, or DoxasticStates."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Let instances be typed as gmeow:EvidenceSpan, gmeow:Attestation, or gmeow:DoxasticState; the explicit subClassOf axioms make them gmeow:JustificationGrounds for downstream schemas."@x-gmeow-english ;
+    gmeow:useWhen "Use as the range of gmeow:justifiedBy when projecting the ontology into schema languages that cannot consume a blank-node owl:unionOf."@x-gmeow-english .
+
+gmeow:JustificationStatus
+    a gufo:AbstractIndividualType ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
+    rdfs:label "Justification Status"@x-gmeow-english ;
+    rdfs:subClassOf gufo:QualityValue ;
+    skos:definition "A value vocabulary for justification-defeat states of a doxastic state or standpoint-claim — solver-set flags such as Gettier-case, defeated, undercut, and rebutted. These are quality values (gufo:QualityValue) attached via gmeow:defeatedBy; the reasoner never infers them (Principle 12)."@x-gmeow-english ;
+    skos:example "ex:aliceBelievesRound gmeow:defeatedBy gmeow:justificationStatusGettier ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using it as a global truth predicate or letting the reasoner promote/derogate statuses; it is a solver annotation only."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Reference one of the seeded individuals from a defeatedBy link on a gmeow:DoxasticState or gmeow:StandpointClaim; align undercut/rebutted with the inference slice's Pollock defeater kinds (gmeow:defeaterUndercutting / gmeow:defeaterRebutting)."@x-gmeow-english ;
+    gmeow:useWhen "Use as the value vocabulary when a solver marks a gmeow:DoxasticState or gmeow:StandpointClaim with a justification-defeat status."@x-gmeow-english .
+
+gmeow:JustificationSubject
+    a gufo:Category ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
+    rdfs:label "Justification Subject"@x-gmeow-english ;
+    rdfs:subClassOf owl:Thing ;
+    owl:equivalentClass [
+        a owl:Class ;
+        owl:unionOf ( gmeow:DoxasticState gmeow:StandpointClaim ) ;
+    ] ;
+    skos:definition "The class of things that can carry justification or defeat relations — a doxastic state or a standpoint claim. Introduced as a named superclass so that schema projections (LinkML, TypeScript, GraphQL) can assign a single domain to gmeow:justifiedBy and gmeow:defeatedBy instead of losing a blank-node owl:unionOf."@x-gmeow-english ;
+    skos:example "ex:aliceBelievesRound a gmeow:DoxasticState ; gmeow:justifiedBy ex:photoEvidence . ex:aliceRoundClaim a gmeow:StandpointClaim ; gmeow:defeatedBy gmeow:justificationStatusGettier ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting it as an independent kind of entity; it is a schema-friendly union category whose instances are always DoxasticStates or StandpointClaims."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Let instances be typed as gmeow:DoxasticState or gmeow:StandpointClaim; the explicit subClassOf axioms make them gmeow:JustificationSubjects for downstream schemas."@x-gmeow-english ;
+    gmeow:useWhen "Use as the domain of gmeow:justifiedBy and gmeow:defeatedBy when projecting the ontology into schema languages that cannot consume a blank-node owl:unionOf."@x-gmeow-english .
+
+gmeow:Proposition
+    a gufo:Kind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
+    rdfs:label "Proposition"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:SocialObject ;
+    skos:definition "A truth-apt content — a described state of affairs that can be held true or false, the object of a doxastic attitude (gmeow:believes, gmeow:knowsThat). Existing by social convention like every description, it is a gmeow:SocialObject. A Proposition asserts nothing by itself: that an agent holds it, and with what modality, is a vantage-indexed claim (Principle 9). It is the doxastic sibling of gmeow:Goal (teleology): a belief and a goal may share the SAME proposition but differ in direction of fit — a belief has mind-to-world fit (it aims to be true to the world), a goal has world-to-mind fit (it aims to make the world true to it)."@x-gmeow-english ;
+    skos:example "ex:earthIsRound a gmeow:Proposition ; rdfs:label \"the Earth is round\"@en ."@x-gmeow-english ;
+    skos:scopeNote "Direction-of-fit bridge (documentation only — no axiom, no teleology dependency): belief --mind-to-world--> Proposition <--world-to-mind-- Goal. There is deliberately NO gmeow:Goal rdfs:subClassOf gmeow:Proposition; subsumption would erase the direction-of-fit distinction, so the link stays by reference."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting the proposition as a global fact (it asserts nothing by itself — that an agent holds it, and how, is a vantage-indexed claim, never a factive knowledge verdict); avoid subsuming a gmeow:Goal under it, which would erase the direction-of-fit distinction."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Mint the Proposition once, link agents to it through the flat doxastic spine (gmeow:believes, gmeow:doubts, gmeow:accepts, gmeow:knowsThat), and carry how-strongly / from-whose-vantage on gmeow:standpointModality and gmeow:accordingTo of the holding statement; a co-aimed goal references the same proposition rather than subclassing it."@x-gmeow-english ;
+    gmeow:useWhen "Use to mint a truth-apt content as its own object — the thing an agent believes, doubts, accepts, or knows-that — so the same proposition can be held by several agents with different modalities, each holding indexed to a vantage (Principle 9)."@x-gmeow-english .
+
+gmeow:StandpointClaim
+    rdfs:subClassOf gmeow:JustificationSubject .
+
+gmeow:accepts
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Agent ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
+    rdfs:label "accepts"@x-gmeow-english ;
+    skos:definition "An agent pragmatically accepts a proposition — takes it on as a working premise for reasoning or action — WITHOUT thereby believing it true. Acceptance is the stance behind 'assume for the sake of argument' and policy defaults; it entails NEITHER belief NOR truth, and is deliberately not a subproperty of gmeow:believes. Range OPEN. Non-functional. Most prior ontologies conflate acceptance with belief; GMEOW keeps them distinct (Principle 1)."@x-gmeow-english ;
+    skos:example "ex:alice gmeow:accepts ex:earthIsRound ."@x-gmeow-english ;
+    skos:scopeNote "accepts is not a subproperty of believes and entails no truth: a premise accepted for argument is neither believed nor asserted true."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using it where the agent genuinely holds the proposition true (use gmeow:believes — acceptance is deliberately not a subproperty of belief and entails neither belief nor truth) and never read it as a factive knowledge verdict; it is the working-premise stance, not a held belief."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Point the agent at the proposition or reified statement it works from; keep gmeow:accepts strictly separate from gmeow:believes so the projection layer never silently promotes an accepted premise to a believed or known one (Principle 1)."@x-gmeow-english ;
+    gmeow:useWhen "Use to record a pragmatic stance — a premise taken on for argument, a policy default, an 'assume for the sake of argument' — that the agent works from WITHOUT thereby believing it true."@x-gmeow-english .
+
+gmeow:believes
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Agent ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
+    rdfs:label "believes"@x-gmeow-english ;
+    skos:definition "An agent holds a proposition to be true — the base doxastic attitude. Range is intentionally OPEN: the object may be a gmeow:Proposition, a reified statement, or any claim the agent holds (the five-minute-gate shortcut, Principle 13); the typed content link arrives at the reified doxastic state (DoxasticState). Non-functional — an agent holds many beliefs, and contested beliefs coexist (Principle 9). How strongly, and from whose vantage, rides gmeow:standpointModality and gmeow:accordingTo on the statement, never a truth bit here."@x-gmeow-english ;
+    skos:example "ex:alice gmeow:believes ex:earthIsRound ."@x-gmeow-english ;
+    skos:scopeNote "believes is documented — not axiomatised — as riding gmeow:accordingTo on the statement (an owl:ObjectProperty cannot rdfs:subPropertyOf an owl:AnnotationProperty in OWL 2 DL; the gmeow:vantage / gmeow:accordingTo precedent). Realised in the projection layer."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid reading it as a global truth claim — believing is one agent's held attitude, never a factive knowledge verdict; for a merely entertained premise use gmeow:accepts (no belief), for the justified case use gmeow:knowsThat, and never force one belief to win in a merge (it is non-functional)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Point the agent at a gmeow:Proposition or reified statement; carry strength and frame on gmeow:standpointModality / gmeow:accordingTo of the statement, and promote to the reified doxastic state (DoxasticState) only when credence, justification, or the mental moment must be first-class."@x-gmeow-english ;
+    gmeow:pairsWith gmeow:DoxasticState ;
+    gmeow:useWhen "Use to record that an agent holds a proposition (or any reified statement / claim) to be true — the base doxastic attitude and the cheap 80% surface; how strongly and from whose vantage ride gmeow:standpointModality and gmeow:accordingTo on the holding statement."@x-gmeow-english .
+
+gmeow:claimOfBelief
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
+    rdfs:domain gmeow:DoxasticStandpointClaim ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
+    rdfs:label "claim of belief"@x-gmeow-english ;
+    rdfs:range gmeow:DoxasticState ;
+    skos:definition "Relates a DoxasticStandpointClaim to the DoxasticState it reports — the held believing mode that the claim is about. Functional: one such claim reports exactly one held doxastic state."@x-gmeow-english ;
+    skos:example "ex:aliceRoundClaim gmeow:claimOfBelief ex:aliceBelievesRound ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using it outside a DoxasticStandpointClaim; for the flat spine, link the agent directly to the proposition with gmeow:believes or gmeow:knowsThat."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Set exactly once per DoxasticStandpointClaim, pointing to the DoxasticState whose agent, proposition, and claimModality match the claim's vantage, observedFeature, and modality."@x-gmeow-english ;
+    gmeow:useWhen "Use to bind a DoxasticStandpointClaim to the reified DoxasticState whose belief it reports."@x-gmeow-english .
+
+gmeow:credence
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:DoxasticState ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
+    rdfs:label "credence"@x-gmeow-english ;
+    rdfs:range xsd:decimal ;
+    skos:definition "A graded degree-of-belief in the closed interval [0,1], attached to a DoxasticState. Non-functional: an agent's credence may be reported by multiple sources or updated over time, and those reports coexist (Principle 9). Distinct from gmeow:confidence (our certainty about a statement, in the provenance/statement layer) and from claimModality (qualitative standpoint belief value on the linked StandpointClaim)."@x-gmeow-english ;
+    skos:example "ex:aliceBelievesRound gmeow:credence \"0.92\"^^xsd:decimal ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for the flat gmeow:believes spine (use gmeow:standpointModality on the statement instead) and avoid conflating it with gmeow:confidence or gmeow:claimModality."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Attach one or more xsd:decimal values in [0,1] to a DoxasticState; pair with doxasticClaim carrying claimModality for the qualitative side."@x-gmeow-english ;
+    gmeow:useWhen "Use to record a numeric degree-of-belief on a reified DoxasticState when graded strength is itself first-class."@x-gmeow-english .
+
+gmeow:defeatedBy
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:JustificationSubject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
+    rdfs:label "defeated by"@x-gmeow-english ;
+    rdfs:range gmeow:JustificationStatus ;
+    skos:definition "A doxastic state or standpoint-claim is marked with a justification-defeat status — a solver-set flag such as Gettier-case or defeated. Non-functional: a state or claim may carry several defeat markers over time, and old markers are suppressed rather than erased (Principle 10). This is a solver annotation only; the reasoner never promotes or retracts it (Principle 12)."@x-gmeow-english ;
+    skos:example "ex:aliceBelievesRound gmeow:defeatedBy gmeow:justificationStatusGettier ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid treating it as a reasoner-entailed truth bit or as a deletion signal; it is a solver annotation and should be paired with gmeow:displayable false for suppressed defeated claims rather than erasing them."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Point from a gmeow:DoxasticState or gmeow:StandpointClaim at one or more gmeow:JustificationStatus individuals; update by minting a new status link and suppressing the old one with gmeow:displayable false (Principle 10)."@x-gmeow-english ;
+    gmeow:useWhen "Use to flag that a reified gmeow:DoxasticState or gmeow:StandpointClaim has a known justification problem (Gettier case, defeated, undercut, rebutted) as determined by the solver layer."@x-gmeow-english .
+
+gmeow:doubts
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Agent ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
+    rdfs:label "doubts"@x-gmeow-english ;
+    skos:definition "An agent holds a proposition in doubt — a low-credence, unsettled doxastic attitude: weaker than believing, and distinct from settled disbelief (a refuted gmeow:standpointModality on the statement). Range OPEN, like gmeow:believes. Non-functional."@x-gmeow-english ;
+    skos:example "ex:alice gmeow:doubts ex:earthIsRound ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for settled disbelief (that is a refuted gmeow:standpointModality on the statement, a standpoint's explicit denial, never a factive knowledge verdict) and for full agnostic withholding (use gmeow:suspendsJudgementOn); doubt is a leaning, not a balanced suspension."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Point the agent at the proposition or reified statement; if the doubt hardens into denial, model that as a refuted gmeow:standpointModality on a StandpointClaim rather than overloading gmeow:doubts, and let competing attitudes coexist (it is non-functional)."@x-gmeow-english ;
+    gmeow:useWhen "Use to record an agent's low-credence, unsettled leaning against a proposition — weaker than belief and not yet settled disbelief — when the wavering itself is what you want to capture."@x-gmeow-english .
+
+gmeow:doxasticClaim
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
+    rdfs:domain gmeow:DoxasticState ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
+    rdfs:label "doxastic claim"@x-gmeow-english ;
+    rdfs:range gmeow:StandpointClaim ;
+    skos:definition "The StandpointClaim that carries the qualitative belief value (claimModality) for a DoxasticState. Reuses the existing standpoint vocabulary without domain-clashing claimModality (whose domain is StandpointClaim) onto DoxasticState (Principle 6). The claim's vantage is the believing agent, its observedFeature is the proposition, and its claimModality is the qualitative value (unequivocal, probable, conceivable, refuted, bullshit)."@x-gmeow-english ;
+    skos:example "ex:aliceBelievesRound gmeow:doxasticClaim ex:aliceRoundClaim . ex:aliceRoundClaim a gmeow:StandpointClaim ; gmeow:vantage ex:alice ; gmeow:observedFeature ex:earthIsRound ; gmeow:claimModality gmeow:unequivocal ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting claimModality directly on a DoxasticState — its domain is StandpointClaim; use this bridge instead."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxRBox ;
+    gmeow:howToUse "Set exactly once per DoxasticState, pointing to a StandpointClaim whose vantage and observedFeature match the doxastic state's agent and proposition."@x-gmeow-english ;
+    gmeow:useWhen "Use when the reified doxastic state needs a qualitative standpoint modality; the linked StandpointClaim carries claimModality."@x-gmeow-english .
+
+gmeow:doxasticContent
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
+    rdfs:domain gmeow:DoxasticState ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
+    rdfs:label "doxastic content"@x-gmeow-english ;
+    rdfs:range gmeow:Proposition ;
+    skos:definition "The Proposition that is the content of a DoxasticState — what the agent believes. Functional and constitutive: one doxastic state is directed at exactly one proposition."@x-gmeow-english ;
+    skos:example "ex:aliceBelievesRound gmeow:doxasticContent ex:earthIsRound ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for the flat spine: gmeow:believes already points from agent to proposition directly."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Set exactly once per DoxasticState, pairing it with epistemicAgent and doxasticClaim."@x-gmeow-english ;
+    gmeow:useWhen "Use to bind a DoxasticState to the truth-apt proposition it is about."@x-gmeow-english .
+
+gmeow:epistemicAgent
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
+    rdfs:domain gmeow:DoxasticState ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
+    rdfs:label "epistemic agent"@x-gmeow-english ;
+    rdfs:range gmeow:Agent ;
+    skos:definition "The agent in whom a DoxasticState inheres — the believer. Functional and constitutive: one doxastic state is the believing mode of exactly one agent."@x-gmeow-english ;
+    skos:example "ex:aliceBelievesRound gmeow:epistemicAgent ex:alice ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid as a generic agent link; it names a constitutive role of the reified doxastic state."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Set exactly once per DoxasticState, pairing it with doxasticContent and doxasticClaim."@x-gmeow-english ;
+    gmeow:useWhen "Use to bind a DoxasticState to the agent whose believing mode it is."@x-gmeow-english .
+
+gmeow:justificationStatusDefeated
+    a gmeow:JustificationStatus ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
+    rdfs:label "defeated"@x-gmeow-english ;
+    skos:definition "A generic defeated marker — the justification for the target doxastic state or standpoint-claim has been undermined by some defeater. A solver-set flag only; never reasoner-promoted."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:justificationStatusGettier
+    a gmeow:JustificationStatus ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
+    rdfs:label "Gettier case"@x-gmeow-english ;
+    skos:definition "A Gettier-case marker — the subject has a justified true belief that falls short of knowledge because the justification is defective or accidentally related to the truth. A solver-set flag only; never reasoner-promoted."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:justificationStatusRebutted
+    a gmeow:JustificationStatus ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
+    rdfs:label "rebutted"@x-gmeow-english ;
+    skos:definition "A rebutting justification-defeat marker — positive reason has been given to believe the negation of the target doxastic state or standpoint-claim, attacking the conclusion directly. Aligns with gmeow:defeaterRebutting in the inference slice. A solver-set flag only; never reasoner-promoted."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:justificationStatusUndercut
+    a gmeow:JustificationStatus ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
+    rdfs:label "undercut"@x-gmeow-english ;
+    skos:definition "An undercutting justification-defeat marker — the inferential or evidential link supporting the target is attacked, removing the warrant without asserting the target's negation. Aligns with gmeow:defeaterUndercutting in the inference slice. A solver-set flag only; never reasoner-promoted."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:justifiedBy
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:JustificationSubject ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
+    rdfs:label "justified by"@x-gmeow-english ;
+    rdfs:range gmeow:JustificationGround ;
+    skos:definition "A doxastic state or standpoint-claim is justified by some evidence span, attestation, or further doxastic state — the basing / available-evidence relation. Non-functional: a single state or claim may be supported by several independent grounds, and competing justifications coexist (Principle 9). This property models only that the ground is available as a basis; it does NOT assert that the basis is adequate, and it never promotes justified-true-belief to knowledge — adequacy and Gettier verdicts are solver work (Principle 12)."@x-gmeow-english ;
+    skos:example "ex:aliceBelievesRound gmeow:justifiedBy ex:photoEvidence , ex:expertAttestation ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid reading it as an adequacy verdict or as a reasoner entailment that the belief counts as knowledge; avoid using it on the flat gmeow:believes / gmeow:knowsThat spine (promote to the reified tier first)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Point from a gmeow:DoxasticState or gmeow:StandpointClaim at one or more gmeow:EvidenceSpan, gmeow:Attestation, or gmeow:DoxasticState individuals; let the solver decide whether the basis is adequate, and let multiple bases coexist."@x-gmeow-english ;
+    gmeow:useWhen "Use to record that a reified gmeow:DoxasticState or gmeow:StandpointClaim has some evidence span, attestation, or supporting doxastic state as a justification basis — the available-evidence / basing structure."@x-gmeow-english .
+
+gmeow:knowsThat
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Agent ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
+    rdfs:label "knows that"@x-gmeow-english ;
+    rdfs:subPropertyOf gmeow:believes ;
+    skos:definition "An agent knows that a proposition holds — justified, standpoint-true belief held from a vantage. THE KEYSTONE: gmeow:knowsThat rdfs:subPropertyOf gmeow:believes, so asserting knowsThat materialises believes (knowledge entails belief); the reverse never holds. knowsThat is NON-FACTIVE: it carries no truth commitment and no isTrue axiom — it is a vantage-indexed CLAIM that (belief and truth-per-frame and justification) holds, never a global verdict. The reasoner never promotes justified-true-belief to knowledge; that judgement, and any Gettier defeater, is solver work (Principle 12). Range OPEN, like gmeow:believes. Justification grounds are modeled in this module via gmeow:justifiedBy and gmeow:defeatedBy."@x-gmeow-english ;
+    skos:example "ex:alice gmeow:knowsThat ex:earthIsRound ."@x-gmeow-english ;
+    skos:scopeNote "No factive knows: unlike SUMO/CYC knows, asserting gmeow:knowsThat commits the proposition true in NO global model — truth is per-frame (gmeow:standpointModality / gmeow:claimModality, standpoint slice). The only entailment is the safe one: knowsThat implies believes."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid reading it as a factive 'knows X is true' verdict — it is NON-FACTIVE, a vantage-indexed claim with no isTrue axiom; promotion of justified-true-belief to knowledge and any Gettier defeater is solver work (Principle 12), never a reasoner entailment, and truth stays per-frame on gmeow:standpointModality / gmeow:claimModality."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Point the agent at the proposition or reified statement; carry truth-per-frame on gmeow:standpointModality / gmeow:accordingTo of the holding statement, model justification grounds via gmeow:justifiedBy and gmeow:defeatedBy declared in this module, and rely only on the safe entailment knowsThat ⊑ believes — never on a global truth bit."@x-gmeow-english ;
+    gmeow:useWhen "Use to record justified, standpoint-true belief held from a vantage — the keystone knowledge-that attitude; asserting it materialises gmeow:believes (knowledge entails belief), so reach for it only when the holding is justified, not merely held."@x-gmeow-english .
+
+gmeow:suspendsJudgementOn
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Agent ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
+    rdfs:label "suspends judgement on"@x-gmeow-english ;
+    skos:definition "An agent neither believes nor disbelieves a proposition — a third, agnostic doxastic stance (withholding), distinct from doubt (a leaning) and from silence (no recorded attitude). Range OPEN. Non-functional."@x-gmeow-english ;
+    skos:example "ex:alice gmeow:suspendsJudgementOn ex:earthIsRound ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for a directional leaning against the proposition (use gmeow:doubts) and for an unexamined gap where the agent simply has no recorded view; suspension is a held stance, never an absence and never a factive knowledge verdict about the proposition's truth."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Point the agent at the proposition or reified statement to assert the withholding explicitly; keep it distinct from doubt and from silence, and let it coexist with other agents' attitudes on the same proposition (it is non-functional)."@x-gmeow-english ;
+    gmeow:useWhen "Use to record an explicit agnostic stance — the agent has considered the proposition and withholds, neither believing nor disbelieving it — so suspension is distinguishable from mere silence (no recorded attitude)."@x-gmeow-english .
+
+gmeow:tenureOfDoxasticState
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
+    rdfs:domain gmeow:DoxasticTenure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
+    rdfs:label "tenure of doxastic state"@x-gmeow-english ;
+    rdfs:range gmeow:DoxasticState ;
+    skos:definition "Relates a DoxasticTenure to the DoxasticState whose holding interval it records. Functional: one tenure scopes one doxastic state; a revised belief gets a new DoxasticState and a new tenure, while the old state and closed tenure remain as audit (Principle 10)."@x-gmeow-english ;
+    skos:example "ex:aliceRoundTenure gmeow:tenureOfDoxasticState ex:aliceBelievesRound ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for the interval (use duringInterval) and avoid pointing at more than one doxastic state per tenure."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Set exactly once per DoxasticTenure, pairing it with duringInterval."@x-gmeow-english ;
+    gmeow:useWhen "Use to bind a DoxasticTenure to the DoxasticState it time-scopes."@x-gmeow-english .
 
 <https://blackcatinformatics.ca/gmeow/slices/epistemics>
     a owl:Ontology ;
-    rdfs:label "GMEOW Epistemics Module"@x-gmeow-english ;
-    skos:definition "The GMEOW Epistemics Module — propositional epistemic relations: an agent's attitudes toward propositions/claims (belief, doubt, suspension, pragmatic acceptance, and non-factive knowledge-that)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
+    dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;
     rdfs:comment """The propositional companion to the cognition slice (objectual, agent to entity): epistemics relates an agent to a PROPOSITION, not to an entity.
 
 DOCTRINE.
@@ -23,355 +358,8 @@ DOCTRINE.
   * Justification hook: gmeow:justifiedBy links a DoxasticState to its supporting EvidenceSpan, Attestation, or DoxasticState. Full inferential argumentation remains in the inference slice; the lightweight hook lives in this module.
   * believes is documented — never axiomatised — as riding gmeow:accordingTo on the statement (an owl:ObjectProperty cannot subproperty an owl:AnnotationProperty in OWL 2 DL; the gmeow:vantage / gmeow:accordingTo precedent). The bridge is realised in the projection layer.
   * Acceptance is not belief: gmeow:accepts is pragmatic (a premise taken on for argument) and entails neither belief nor truth (Principle 1)."""@x-gmeow-english ;
-    dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
-
-# =========================================================================== #
-# Propositional content — the truth-apt object of a doxastic attitude. Sibling
-# of gmeow:Goal (teleology): both are SocialObjects describing a state of
-# affairs; they differ in DIRECTION OF FIT, never by subsumption.
-# =========================================================================== #
-
-gmeow:Proposition
-    a owl:Class, gufo:Kind ;
-    rdfs:subClassOf gmeow:SocialObject ;
-    rdfs:label "Proposition"@x-gmeow-english ;
-    skos:definition "A truth-apt content — a described state of affairs that can be held true or false, the object of a doxastic attitude (gmeow:believes, gmeow:knowsThat). Existing by social convention like every description, it is a gmeow:SocialObject. A Proposition asserts nothing by itself: that an agent holds it, and with what modality, is a vantage-indexed claim (Principle 9). It is the doxastic sibling of gmeow:Goal (teleology): a belief and a goal may share the SAME proposition but differ in direction of fit — a belief has mind-to-world fit (it aims to be true to the world), a goal has world-to-mind fit (it aims to make the world true to it)."@x-gmeow-english ;
-    skos:scopeNote "Direction-of-fit bridge (documentation only — no axiom, no teleology dependency): belief --mind-to-world--> Proposition <--world-to-mind-- Goal. There is deliberately NO gmeow:Goal rdfs:subClassOf gmeow:Proposition; subsumption would erase the direction-of-fit distinction, so the link stays by reference."@x-gmeow-english ;
-    skos:example "ex:earthIsRound a gmeow:Proposition ; rdfs:label \"the Earth is round\"@en ."@x-gmeow-english ;
-    gmeow:useWhen "Use to mint a truth-apt content as its own object — the thing an agent believes, doubts, accepts, or knows-that — so the same proposition can be held by several agents with different modalities, each holding indexed to a vantage (Principle 9)."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid asserting the proposition as a global fact (it asserts nothing by itself — that an agent holds it, and how, is a vantage-indexed claim, never a factive knowledge verdict); avoid subsuming a gmeow:Goal under it, which would erase the direction-of-fit distinction."@x-gmeow-english ;
-    gmeow:howToUse "Mint the Proposition once, link agents to it through the flat doxastic spine (gmeow:believes, gmeow:doubts, gmeow:accepts, gmeow:knowsThat), and carry how-strongly / from-whose-vantage on gmeow:standpointModality and gmeow:accordingTo of the holding statement; a co-aimed goal references the same proposition rather than subclassing it."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> .
-
-# =========================================================================== #
-# The flat doxastic spine — agent to proposition attitudes (Principle 4).
-# Domain gmeow:Agent; range OPEN (the standpoint tenurePosition / observations
-# observedFeature precedent), so the 80% case points cheaply at any reified
-# statement or claim (Principle 13). Typed content (range gmeow:Proposition)
-# arrives only at the reified tier (doxasticContent).
-# =========================================================================== #
-
-gmeow:believes
-    a owl:ObjectProperty ;
-    rdfs:domain gmeow:Agent ;
-    rdfs:label "believes"@x-gmeow-english ;
-    skos:definition "An agent holds a proposition to be true — the base doxastic attitude. Range is intentionally OPEN: the object may be a gmeow:Proposition, a reified statement, or any claim the agent holds (the five-minute-gate shortcut, Principle 13); the typed content link arrives at the reified doxastic state (DoxasticState). Non-functional — an agent holds many beliefs, and contested beliefs coexist (Principle 9). How strongly, and from whose vantage, rides gmeow:standpointModality and gmeow:accordingTo on the statement, never a truth bit here."@x-gmeow-english ;
-    skos:scopeNote "believes is documented — not axiomatised — as riding gmeow:accordingTo on the statement (an owl:ObjectProperty cannot rdfs:subPropertyOf an owl:AnnotationProperty in OWL 2 DL; the gmeow:vantage / gmeow:accordingTo precedent). Realised in the projection layer."@x-gmeow-english ;
-    skos:example "ex:alice gmeow:believes ex:earthIsRound ."@x-gmeow-english ;
-    gmeow:useWhen "Use to record that an agent holds a proposition (or any reified statement / claim) to be true — the base doxastic attitude and the cheap 80% surface; how strongly and from whose vantage ride gmeow:standpointModality and gmeow:accordingTo on the holding statement."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid reading it as a global truth claim — believing is one agent's held attitude, never a factive knowledge verdict; for a merely entertained premise use gmeow:accepts (no belief), for the justified case use gmeow:knowsThat, and never force one belief to win in a merge (it is non-functional)."@x-gmeow-english ;
-    gmeow:howToUse "Point the agent at a gmeow:Proposition or reified statement; carry strength and frame on gmeow:standpointModality / gmeow:accordingTo of the statement, and promote to the reified doxastic state (DoxasticState) only when credence, justification, or the mental moment must be first-class."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> .
-
-gmeow:doubts
-    a owl:ObjectProperty ;
-    rdfs:domain gmeow:Agent ;
-    rdfs:label "doubts"@x-gmeow-english ;
-    skos:definition "An agent holds a proposition in doubt — a low-credence, unsettled doxastic attitude: weaker than believing, and distinct from settled disbelief (a refuted gmeow:standpointModality on the statement). Range OPEN, like gmeow:believes. Non-functional."@x-gmeow-english ;
-    skos:example "ex:alice gmeow:doubts ex:earthIsRound ."@x-gmeow-english ;
-    gmeow:useWhen "Use to record an agent's low-credence, unsettled leaning against a proposition — weaker than belief and not yet settled disbelief — when the wavering itself is what you want to capture."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid for settled disbelief (that is a refuted gmeow:standpointModality on the statement, a standpoint's explicit denial, never a factive knowledge verdict) and for full agnostic withholding (use gmeow:suspendsJudgementOn); doubt is a leaning, not a balanced suspension."@x-gmeow-english ;
-    gmeow:howToUse "Point the agent at the proposition or reified statement; if the doubt hardens into denial, model that as a refuted gmeow:standpointModality on a StandpointClaim rather than overloading gmeow:doubts, and let competing attitudes coexist (it is non-functional)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> .
-
-gmeow:suspendsJudgementOn
-    a owl:ObjectProperty ;
-    rdfs:domain gmeow:Agent ;
-    rdfs:label "suspends judgement on"@x-gmeow-english ;
-    skos:definition "An agent neither believes nor disbelieves a proposition — a third, agnostic doxastic stance (withholding), distinct from doubt (a leaning) and from silence (no recorded attitude). Range OPEN. Non-functional."@x-gmeow-english ;
-    skos:example "ex:alice gmeow:suspendsJudgementOn ex:earthIsRound ."@x-gmeow-english ;
-    gmeow:useWhen "Use to record an explicit agnostic stance — the agent has considered the proposition and withholds, neither believing nor disbelieving it — so suspension is distinguishable from mere silence (no recorded attitude)."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid for a directional leaning against the proposition (use gmeow:doubts) and for an unexamined gap where the agent simply has no recorded view; suspension is a held stance, never an absence and never a factive knowledge verdict about the proposition's truth."@x-gmeow-english ;
-    gmeow:howToUse "Point the agent at the proposition or reified statement to assert the withholding explicitly; keep it distinct from doubt and from silence, and let it coexist with other agents' attitudes on the same proposition (it is non-functional)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> .
-
-gmeow:accepts
-    a owl:ObjectProperty ;
-    rdfs:domain gmeow:Agent ;
-    rdfs:label "accepts"@x-gmeow-english ;
-    skos:definition "An agent pragmatically accepts a proposition — takes it on as a working premise for reasoning or action — WITHOUT thereby believing it true. Acceptance is the stance behind 'assume for the sake of argument' and policy defaults; it entails NEITHER belief NOR truth, and is deliberately not a subproperty of gmeow:believes. Range OPEN. Non-functional. Most prior ontologies conflate acceptance with belief; GMEOW keeps them distinct (Principle 1)."@x-gmeow-english ;
-    skos:scopeNote "accepts is not a subproperty of believes and entails no truth: a premise accepted for argument is neither believed nor asserted true."@x-gmeow-english ;
-    skos:example "ex:alice gmeow:accepts ex:earthIsRound ."@x-gmeow-english ;
-    gmeow:useWhen "Use to record a pragmatic stance — a premise taken on for argument, a policy default, an 'assume for the sake of argument' — that the agent works from WITHOUT thereby believing it true."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid using it where the agent genuinely holds the proposition true (use gmeow:believes — acceptance is deliberately not a subproperty of belief and entails neither belief nor truth) and never read it as a factive knowledge verdict; it is the working-premise stance, not a held belief."@x-gmeow-english ;
-    gmeow:howToUse "Point the agent at the proposition or reified statement it works from; keep gmeow:accepts strictly separate from gmeow:believes so the projection layer never silently promotes an accepted premise to a believed or known one (Principle 1)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> .
-
-gmeow:knowsThat
-    a owl:ObjectProperty ;
-    rdfs:subPropertyOf gmeow:believes ;
-    rdfs:domain gmeow:Agent ;
-    rdfs:label "knows that"@x-gmeow-english ;
-    skos:definition "An agent knows that a proposition holds — justified, standpoint-true belief held from a vantage. THE KEYSTONE: gmeow:knowsThat rdfs:subPropertyOf gmeow:believes, so asserting knowsThat materialises believes (knowledge entails belief); the reverse never holds. knowsThat is NON-FACTIVE: it carries no truth commitment and no isTrue axiom — it is a vantage-indexed CLAIM that (belief and truth-per-frame and justification) holds, never a global verdict. The reasoner never promotes justified-true-belief to knowledge; that judgement, and any Gettier defeater, is solver work (Principle 12). Range OPEN, like gmeow:believes. Justification grounds are modeled in this module via gmeow:justifiedBy and gmeow:defeatedBy."@x-gmeow-english ;
-    skos:scopeNote "No factive knows: unlike SUMO/CYC knows, asserting gmeow:knowsThat commits the proposition true in NO global model — truth is per-frame (gmeow:standpointModality / gmeow:claimModality, standpoint slice). The only entailment is the safe one: knowsThat implies believes."@x-gmeow-english ;
-    skos:example "ex:alice gmeow:knowsThat ex:earthIsRound ."@x-gmeow-english ;
-    gmeow:useWhen "Use to record justified, standpoint-true belief held from a vantage — the keystone knowledge-that attitude; asserting it materialises gmeow:believes (knowledge entails belief), so reach for it only when the holding is justified, not merely held."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid reading it as a factive 'knows X is true' verdict — it is NON-FACTIVE, a vantage-indexed claim with no isTrue axiom; promotion of justified-true-belief to knowledge and any Gettier defeater is solver work (Principle 12), never a reasoner entailment, and truth stays per-frame on gmeow:standpointModality / gmeow:claimModality."@x-gmeow-english ;
-    gmeow:howToUse "Point the agent at the proposition or reified statement; carry truth-per-frame on gmeow:standpointModality / gmeow:accordingTo of the holding statement, model justification grounds via gmeow:justifiedBy and gmeow:defeatedBy declared in this module, and rely only on the safe entailment knowsThat ⊑ believes — never on a global truth bit."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> .
-
-# =========================================================================== #
-# REIFIED DOXASTIC TIER — the agent's believing mode as a first-class mental
-# moment (issue #560). Flat-first still wins: use believes/knowsThat for the
-# cheap case; promote to DoxasticState when credence, temporal scope, or the
-# mental moment itself must be queryable.
-# =========================================================================== #
-
-gmeow:DoxasticState
-    a owl:Class, gufo:Kind ;
-    rdfs:subClassOf gmeow:MentalMoment ;
-    rdfs:label "Doxastic State"@x-gmeow-english ;
-    skos:definition "An agent's intrinsic believing mode toward a proposition — the reified, first-class mental moment that grounds the flat doxastic spine (gmeow:believes, gmeow:knowsThat). A sibling of cognition:CognitiveState (knowing) and teleology:IntentionalMode (desiring/intending) under kernel:MentalMoment, so an agent's whole endurant mental life is queryable as one family (Principle 15). Inheres in exactly one agent via epistemicAgent and is directed at exactly one Proposition via doxasticContent; its qualitative belief value is carried by a linked StandpointClaim (doxasticClaim → claimModality), and its graded strength by credence [0,1]. Never instantiated directly when the flat spine suffices (Principle 4)."@x-gmeow-english ;
-    skos:example "ex:aliceBelievesRound a gmeow:DoxasticState ; gmeow:epistemicAgent ex:alice ; gmeow:doxasticContent ex:earthIsRound ; gmeow:doxasticClaim ex:aliceRoundClaim ; gmeow:credence \"0.92\"^^xsd:decimal ."@x-gmeow-english ;
-    gmeow:useWhen "Use when an agent's belief toward a proposition must be first-class — when credence, temporal scope (via DoxasticTenure), standpoint modality, or the mental moment itself needs to be queried or revised (Principle 15)."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid for the 80% case where an agent simply believes a proposition — use the flat gmeow:believes / gmeow:knowsThat spine and carry modality on the statement layer; avoid double-typing a belief as both a flat relation and a DoxasticState for the same holding (Principle 12)."@x-gmeow-english ;
-    gmeow:howToUse "Mint one DoxasticState per (agent, proposition, claim-modality) tuple; link it via gmeow:doxasticClaim to a StandpointClaim whose vantage is the agent, observedFeature is the proposition, and claimModality carries the qualitative value; attach credence for graded strength and a DoxasticTenure when belief revision history matters."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> .
-
-gmeow:DoxasticState rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:epistemicAgent ; owl:someValuesFrom gmeow:Agent ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:doxasticContent ; owl:someValuesFrom gmeow:Proposition ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:doxasticClaim ; owl:someValuesFrom gmeow:StandpointClaim ] .
-
-gmeow:epistemicAgent
-    a owl:ObjectProperty, owl:FunctionalProperty ;
-    rdfs:domain gmeow:DoxasticState ;
-    rdfs:range gmeow:Agent ;
-    rdfs:label "epistemic agent"@x-gmeow-english ;
-    skos:definition "The agent in whom a DoxasticState inheres — the believer. Functional and constitutive: one doxastic state is the believing mode of exactly one agent."@x-gmeow-english ;
-    skos:example "ex:aliceBelievesRound gmeow:epistemicAgent ex:alice ."@x-gmeow-english ;
-    gmeow:useWhen "Use to bind a DoxasticState to the agent whose believing mode it is."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid as a generic agent link; it names a constitutive role of the reified doxastic state."@x-gmeow-english ;
-    gmeow:howToUse "Set exactly once per DoxasticState, pairing it with doxasticContent and doxasticClaim."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> .
-
-gmeow:doxasticContent
-    a owl:ObjectProperty, owl:FunctionalProperty ;
-    rdfs:domain gmeow:DoxasticState ;
-    rdfs:range gmeow:Proposition ;
-    rdfs:label "doxastic content"@x-gmeow-english ;
-    skos:definition "The Proposition that is the content of a DoxasticState — what the agent believes. Functional and constitutive: one doxastic state is directed at exactly one proposition."@x-gmeow-english ;
-    skos:example "ex:aliceBelievesRound gmeow:doxasticContent ex:earthIsRound ."@x-gmeow-english ;
-    gmeow:useWhen "Use to bind a DoxasticState to the truth-apt proposition it is about."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid for the flat spine: gmeow:believes already points from agent to proposition directly."@x-gmeow-english ;
-    gmeow:howToUse "Set exactly once per DoxasticState, pairing it with epistemicAgent and doxasticClaim."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> .
-
-gmeow:doxasticClaim
-    a owl:ObjectProperty, owl:FunctionalProperty ;
-    rdfs:domain gmeow:DoxasticState ;
-    rdfs:range gmeow:StandpointClaim ;
-    rdfs:label "doxastic claim"@x-gmeow-english ;
-    skos:definition "The StandpointClaim that carries the qualitative belief value (claimModality) for a DoxasticState. Reuses the existing standpoint vocabulary without domain-clashing claimModality (whose domain is StandpointClaim) onto DoxasticState (Principle 6). The claim's vantage is the believing agent, its observedFeature is the proposition, and its claimModality is the qualitative value (unequivocal, probable, conceivable, refuted, bullshit)."@x-gmeow-english ;
-    skos:example "ex:aliceBelievesRound gmeow:doxasticClaim ex:aliceRoundClaim . ex:aliceRoundClaim a gmeow:StandpointClaim ; gmeow:vantage ex:alice ; gmeow:observedFeature ex:earthIsRound ; gmeow:claimModality gmeow:unequivocal ."@x-gmeow-english ;
-    gmeow:useWhen "Use when the reified doxastic state needs a qualitative standpoint modality; the linked StandpointClaim carries claimModality."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid asserting claimModality directly on a DoxasticState — its domain is StandpointClaim; use this bridge instead."@x-gmeow-english ;
-    gmeow:howToUse "Set exactly once per DoxasticState, pointing to a StandpointClaim whose vantage and observedFeature match the doxastic state's agent and proposition."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> .
-
-gmeow:credence
-    a owl:DatatypeProperty ;
-    rdfs:domain gmeow:DoxasticState ;
-    rdfs:range xsd:decimal ;
-    rdfs:label "credence"@x-gmeow-english ;
-    skos:definition "A graded degree-of-belief in the closed interval [0,1], attached to a DoxasticState. Non-functional: an agent's credence may be reported by multiple sources or updated over time, and those reports coexist (Principle 9). Distinct from gmeow:confidence (our certainty about a statement, in the provenance/statement layer) and from claimModality (qualitative standpoint belief value on the linked StandpointClaim)."@x-gmeow-english ;
-    skos:example "ex:aliceBelievesRound gmeow:credence \"0.92\"^^xsd:decimal ."@x-gmeow-english ;
-    gmeow:useWhen "Use to record a numeric degree-of-belief on a reified DoxasticState when graded strength is itself first-class."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid for the flat gmeow:believes spine (use gmeow:standpointModality on the statement instead) and avoid conflating it with gmeow:confidence or gmeow:claimModality."@x-gmeow-english ;
-    gmeow:howToUse "Attach one or more xsd:decimal values in [0,1] to a DoxasticState; pair with doxasticClaim carrying claimModality for the qualitative side."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> .
-
-# =========================================================================== #
-# DOXASTIC TENURE — belief-revision history as a time-scoped relation (issue
-# #560). Revision closes the tenure (endedAtTime) and suppresses it with
-# displayable false; the DoxasticState is retained, never deleted.
-# =========================================================================== #
-
-gmeow:DoxasticTenure
-    a owl:Class, gufo:SituationType ;
-    rdfs:subClassOf gmeow:TimeScopedRelation ;
-    rdfs:label "Doxastic Tenure"@x-gmeow-english ;
-    skos:definition "The reified, time-scoped fact that a DoxasticState was held over an interval — the belief-revision history construct. Opened when the belief is adopted; closed (endedAtTime on the duringInterval) and suppressed with displayable false when the belief is revised or retracted. The old DoxasticState is retained as audit, never deleted (Principle 10). Carries its interval via gmeow:duringInterval (temporal module) and links to the scoped DoxasticState via tenureOfDoxasticState."@x-gmeow-english ;
-    skos:example "ex:aliceRoundTenure a gmeow:DoxasticTenure ; gmeow:tenureOfDoxasticState ex:aliceBelievesRound ; gmeow:duringInterval ex:2019to2024 ."@x-gmeow-english ;
-    gmeow:useWhen "Use when the adoption, revision, or retraction of a belief over time is itself the fact of interest — the heavy form for belief-revision history."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid for the lightweight case where a bare gmeow:believes statement with validFrom/validUntil suffices; reify on demand (Principle 4)."@x-gmeow-english ;
-    gmeow:howToUse "Mint one DoxasticTenure per DoxasticState adoption interval; point it at the DoxasticState via tenureOfDoxasticState and at a TimeInterval via duringInterval. On revision, close the interval with endedAtTime and set displayable false on the tenure; mint a new DoxasticState and tenure for the revised belief."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> .
-
-gmeow:DoxasticTenure rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:tenureOfDoxasticState ; owl:someValuesFrom gmeow:DoxasticState ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:duringInterval ; owl:someValuesFrom gmeow:TimeInterval ] .
-
-gmeow:tenureOfDoxasticState
-    a owl:ObjectProperty, owl:FunctionalProperty ;
-    rdfs:domain gmeow:DoxasticTenure ;
-    rdfs:range gmeow:DoxasticState ;
-    rdfs:label "tenure of doxastic state"@x-gmeow-english ;
-    skos:definition "Relates a DoxasticTenure to the DoxasticState whose holding interval it records. Functional: one tenure scopes one doxastic state; a revised belief gets a new DoxasticState and a new tenure, while the old state and closed tenure remain as audit (Principle 10)."@x-gmeow-english ;
-    skos:example "ex:aliceRoundTenure gmeow:tenureOfDoxasticState ex:aliceBelievesRound ."@x-gmeow-english ;
-    gmeow:useWhen "Use to bind a DoxasticTenure to the DoxasticState it time-scopes."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid for the interval (use duringInterval) and avoid pointing at more than one doxastic state per tenure."@x-gmeow-english ;
-    gmeow:howToUse "Set exactly once per DoxasticTenure, pairing it with duringInterval."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> .
-
-# =========================================================================== #
-# DOXASTIC STANDPOINT CLAIM — reified report of a held DoxasticState (#561).
-# A StandpointClaim whose observedFeature is a Proposition and whose
-# claimOfBelief points to the underlying DoxasticState that carries the
-# qualitative claimModality. This is the promotion target when the claim
-# itself must be justified or defeated in this module.
-# =========================================================================== #
-
-gmeow:DoxasticStandpointClaim
-    a owl:Class, gufo:SubKind ;
-    rdfs:subClassOf gmeow:StandpointClaim ;
-    rdfs:label "doxastic standpoint claim"@x-gmeow-english ;
-    skos:definition "A StandpointClaim that explicitly reports a held DoxasticState — the reified, vantage-indexed claim that an agent is in a particular believing mode toward a proposition. It carries the qualitative claimModality of the belief and links to the underlying DoxasticState via gmeow:claimOfBelief, so the holding can be justified or defeated in this module (Principles 9, 15)."@x-gmeow-english ;
-    skos:example "ex:aliceRoundClaim a gmeow:DoxasticStandpointClaim ; gmeow:vantage ex:alice ; gmeow:observedFeature ex:earthIsRound ; gmeow:claimOfBelief ex:aliceBelievesRound ; gmeow:claimModality gmeow:unequivocal ."@x-gmeow-english ;
-    gmeow:useWhen "Use when a belief report must be a first-class StandpointClaim that can be justified, defeated, or standpoint-indexed independently of the flat gmeow:believes / gmeow:knowsThat spine (Principle 9)."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid when the flat doxastic spine suffices; do not mint both a flat believes statement and a DoxasticStandpointClaim for the same holding without a clear reason (Principle 4)."@x-gmeow-english ;
-    gmeow:howToUse "Mint one DoxasticStandpointClaim per (agent, proposition, belief-modality) tuple; set its vantage to the agent, observedFeature to the proposition, claimModality to the qualitative belief value, and claimOfBelief to the underlying DoxasticState. Justification and defeat are modeled via gmeow:justifiedBy and gmeow:defeatedBy in this module."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> .
-
-gmeow:claimOfBelief
-    a owl:ObjectProperty, owl:FunctionalProperty ;
-    rdfs:domain gmeow:DoxasticStandpointClaim ;
-    rdfs:range gmeow:DoxasticState ;
-    rdfs:label "claim of belief"@x-gmeow-english ;
-    skos:definition "Relates a DoxasticStandpointClaim to the DoxasticState it reports — the held believing mode that the claim is about. Functional: one such claim reports exactly one held doxastic state."@x-gmeow-english ;
-    skos:example "ex:aliceRoundClaim gmeow:claimOfBelief ex:aliceBelievesRound ."@x-gmeow-english ;
-    gmeow:useWhen "Use to bind a DoxasticStandpointClaim to the reified DoxasticState whose belief it reports."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid using it outside a DoxasticStandpointClaim; for the flat spine, link the agent directly to the proposition with gmeow:believes or gmeow:knowsThat."@x-gmeow-english ;
-    gmeow:howToUse "Set exactly once per DoxasticStandpointClaim, pointing to the DoxasticState whose agent, proposition, and claimModality match the claim's vantage, observedFeature, and modality."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> .
-
-# =========================================================================== #
-# EPISTEMIC JUSTIFICATION — what a doxastic state or standpoint-claim is
-# justified or defeated by (#561). These properties model only the basing
-# relation and available-evidence structure; the adequacy verdict (and any
-# Gettier case) is solver work, never a reasoner entailment (Principle 12).
-# =========================================================================== #
-
-gmeow:JustificationSubject
-    a owl:Class, gufo:Category ;
-    rdfs:subClassOf owl:Thing ;
-    owl:equivalentClass [ a owl:Class ; owl:unionOf ( gmeow:DoxasticState gmeow:StandpointClaim ) ] ;
-    rdfs:label "Justification Subject"@x-gmeow-english ;
-    skos:definition "The class of things that can carry justification or defeat relations — a doxastic state or a standpoint claim. Introduced as a named superclass so that schema projections (LinkML, TypeScript, GraphQL) can assign a single domain to gmeow:justifiedBy and gmeow:defeatedBy instead of losing a blank-node owl:unionOf."@x-gmeow-english ;
-    skos:example "ex:aliceBelievesRound a gmeow:DoxasticState ; gmeow:justifiedBy ex:photoEvidence . ex:aliceRoundClaim a gmeow:StandpointClaim ; gmeow:defeatedBy gmeow:justificationStatusGettier ."@x-gmeow-english ;
-    gmeow:useWhen "Use as the domain of gmeow:justifiedBy and gmeow:defeatedBy when projecting the ontology into schema languages that cannot consume a blank-node owl:unionOf."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid asserting it as an independent kind of entity; it is a schema-friendly union category whose instances are always DoxasticStates or StandpointClaims."@x-gmeow-english ;
-    gmeow:howToUse "Let instances be typed as gmeow:DoxasticState or gmeow:StandpointClaim; the explicit subClassOf axioms make them gmeow:JustificationSubjects for downstream schemas."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> .
-
-gmeow:JustificationGround
-    a owl:Class, gufo:Category ;
-    rdfs:subClassOf owl:Thing ;
-    owl:equivalentClass [ a owl:Class ; owl:unionOf ( gmeow:EvidenceSpan gmeow:Attestation gmeow:DoxasticState ) ] ;
-    rdfs:label "Justification Ground"@x-gmeow-english ;
-    skos:definition "The class of things that can serve as a justification basis — an evidence span, an attestation, or a further doxastic state. Introduced as a named superclass so that schema projections can assign a single range to gmeow:justifiedBy instead of losing a blank-node owl:unionOf."@x-gmeow-english ;
-    skos:example "ex:aliceBelievesRound gmeow:justifiedBy ex:photoEvidence , ex:expertAttestation , ex:bobBelievesRound ."@x-gmeow-english ;
-    gmeow:useWhen "Use as the range of gmeow:justifiedBy when projecting the ontology into schema languages that cannot consume a blank-node owl:unionOf."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid asserting it as an independent kind of entity; it is a schema-friendly union category whose instances are always EvidenceSpans, Attestations, or DoxasticStates."@x-gmeow-english ;
-    gmeow:howToUse "Let instances be typed as gmeow:EvidenceSpan, gmeow:Attestation, or gmeow:DoxasticState; the explicit subClassOf axioms make them gmeow:JustificationGrounds for downstream schemas."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> .
-
-gmeow:DoxasticState rdfs:subClassOf gmeow:JustificationSubject , gmeow:JustificationGround .
-gmeow:StandpointClaim rdfs:subClassOf gmeow:JustificationSubject .
-gmeow:EvidenceSpan rdfs:subClassOf gmeow:JustificationGround .
-gmeow:Attestation rdfs:subClassOf gmeow:JustificationGround .
-
-gmeow:justifiedBy
-    a owl:ObjectProperty ;
-    rdfs:domain gmeow:JustificationSubject ;
-    rdfs:range gmeow:JustificationGround ;
-    rdfs:label "justified by"@x-gmeow-english ;
-    skos:definition "A doxastic state or standpoint-claim is justified by some evidence span, attestation, or further doxastic state — the basing / available-evidence relation. Non-functional: a single state or claim may be supported by several independent grounds, and competing justifications coexist (Principle 9). This property models only that the ground is available as a basis; it does NOT assert that the basis is adequate, and it never promotes justified-true-belief to knowledge — adequacy and Gettier verdicts are solver work (Principle 12)."@x-gmeow-english ;
-    skos:example "ex:aliceBelievesRound gmeow:justifiedBy ex:photoEvidence , ex:expertAttestation ."@x-gmeow-english ;
-    gmeow:useWhen "Use to record that a reified gmeow:DoxasticState or gmeow:StandpointClaim has some evidence span, attestation, or supporting doxastic state as a justification basis — the available-evidence / basing structure."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid reading it as an adequacy verdict or as a reasoner entailment that the belief counts as knowledge; avoid using it on the flat gmeow:believes / gmeow:knowsThat spine (promote to the reified tier first)."@x-gmeow-english ;
-    gmeow:howToUse "Point from a gmeow:DoxasticState or gmeow:StandpointClaim at one or more gmeow:EvidenceSpan, gmeow:Attestation, or gmeow:DoxasticState individuals; let the solver decide whether the basis is adequate, and let multiple bases coexist."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> .
-
-gmeow:defeatedBy
-    a owl:ObjectProperty ;
-    rdfs:domain gmeow:JustificationSubject ;
-    rdfs:range gmeow:JustificationStatus ;
-    rdfs:label "defeated by"@x-gmeow-english ;
-    skos:definition "A doxastic state or standpoint-claim is marked with a justification-defeat status — a solver-set flag such as Gettier-case or defeated. Non-functional: a state or claim may carry several defeat markers over time, and old markers are suppressed rather than erased (Principle 10). This is a solver annotation only; the reasoner never promotes or retracts it (Principle 12)."@x-gmeow-english ;
-    skos:example "ex:aliceBelievesRound gmeow:defeatedBy gmeow:justificationStatusGettier ."@x-gmeow-english ;
-    gmeow:useWhen "Use to flag that a reified gmeow:DoxasticState or gmeow:StandpointClaim has a known justification problem (Gettier case, defeated, undercut, rebutted) as determined by the solver layer."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid treating it as a reasoner-entailed truth bit or as a deletion signal; it is a solver annotation and should be paired with gmeow:displayable false for suppressed defeated claims rather than erasing them."@x-gmeow-english ;
-    gmeow:howToUse "Point from a gmeow:DoxasticState or gmeow:StandpointClaim at one or more gmeow:JustificationStatus individuals; update by minting a new status link and suppressing the old one with gmeow:displayable false (Principle 10)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> .
-
-gmeow:JustificationStatus
-    a owl:Class, gufo:AbstractIndividualType ;
-    rdfs:subClassOf gufo:QualityValue ;
-    rdfs:label "Justification Status"@x-gmeow-english ;
-    skos:definition "A value vocabulary for justification-defeat states of a doxastic state or standpoint-claim — solver-set flags such as Gettier-case, defeated, undercut, and rebutted. These are quality values (gufo:QualityValue) attached via gmeow:defeatedBy; the reasoner never infers them (Principle 12)."@x-gmeow-english ;
-    skos:example "ex:aliceBelievesRound gmeow:defeatedBy gmeow:justificationStatusGettier ."@x-gmeow-english ;
-    gmeow:useWhen "Use as the value vocabulary when a solver marks a gmeow:DoxasticState or gmeow:StandpointClaim with a justification-defeat status."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid using it as a global truth predicate or letting the reasoner promote/derogate statuses; it is a solver annotation only."@x-gmeow-english ;
-    gmeow:howToUse "Reference one of the seeded individuals from a defeatedBy link on a gmeow:DoxasticState or gmeow:StandpointClaim; align undercut/rebutted with the inference slice's Pollock defeater kinds (gmeow:defeaterUndercutting / gmeow:defeaterRebutting)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> .
-
-gmeow:justificationStatusGettier
-    a gmeow:JustificationStatus ;
-    rdfs:label "Gettier case"@x-gmeow-english ;
-    skos:definition "A Gettier-case marker — the subject has a justified true belief that falls short of knowledge because the justification is defective or accidentally related to the truth. A solver-set flag only; never reasoner-promoted."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> .
-
-gmeow:justificationStatusDefeated
-    a gmeow:JustificationStatus ;
-    rdfs:label "defeated"@x-gmeow-english ;
-    skos:definition "A generic defeated marker — the justification for the target doxastic state or standpoint-claim has been undermined by some defeater. A solver-set flag only; never reasoner-promoted."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> .
-
-gmeow:justificationStatusUndercut
-    a gmeow:JustificationStatus ;
-    rdfs:label "undercut"@x-gmeow-english ;
-    skos:definition "An undercutting justification-defeat marker — the inferential or evidential link supporting the target is attacked, removing the warrant without asserting the target's negation. Aligns with gmeow:defeaterUndercutting in the inference slice. A solver-set flag only; never reasoner-promoted."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> .
-
-gmeow:justificationStatusRebutted
-    a gmeow:JustificationStatus ;
-    rdfs:label "rebutted"@x-gmeow-english ;
-    skos:definition "A rebutting justification-defeat marker — positive reason has been given to believe the negation of the target doxastic state or standpoint-claim, attacking the conclusion directly. Aligns with gmeow:defeaterRebutting in the inference slice. A solver-set flag only; never reasoner-promoted."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> .
-
-# --- Flat-first / reify-on-demand pairings --- #
-gmeow:believes   gmeow:pairsWith gmeow:DoxasticState .
-gmeow:DoxasticState gmeow:pairsWith gmeow:DoxasticTenure .
-
-# --------------------------------------------------------------------------- #
-# Graph box role coverage (canonical explicit annotations).
-# --------------------------------------------------------------------------- #
-
-gmeow:DoxasticState gmeow:graphBoxRole gmeow:boxTBox .
-gmeow:DoxasticTenure gmeow:graphBoxRole gmeow:boxTBox .
-gmeow:Proposition gmeow:graphBoxRole gmeow:boxTBox .
-gmeow:accepts gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:believes gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:credence gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:doubts gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:doxasticClaim gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxRBox .
-gmeow:doxasticContent gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:epistemicAgent gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:knowsThat gmeow:graphBoxRole gmeow:boxRBox .
-<https://blackcatinformatics.ca/gmeow/slices/epistemics> gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .
-gmeow:suspendsJudgementOn gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:tenureOfDoxasticState gmeow:graphBoxRole gmeow:boxRBox .
-
-# --- Four-box policy additions (issue four-box-validation-policy) ---
-gmeow:DoxasticStandpointClaim gmeow:graphBoxRole gmeow:boxTBox .
-gmeow:JustificationGround gmeow:graphBoxRole gmeow:boxTBox .
-gmeow:JustificationStatus gmeow:graphBoxRole gmeow:boxTBox .
-gmeow:JustificationSubject gmeow:graphBoxRole gmeow:boxTBox .
-gmeow:claimOfBelief gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:defeatedBy gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:justifiedBy gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:justificationStatusDefeated gmeow:graphBoxRole gmeow:boxABox .
-gmeow:justificationStatusGettier gmeow:graphBoxRole gmeow:boxABox .
-gmeow:justificationStatusRebutted gmeow:graphBoxRole gmeow:boxABox .
-gmeow:justificationStatusUndercut gmeow:graphBoxRole gmeow:boxABox .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
+    rdfs:label "GMEOW Epistemics Module"@x-gmeow-english ;
+    skos:definition "The GMEOW Epistemics Module — propositional epistemic relations: an agent's attitudes toward propositions/claims (belief, doubt, suspension, pragmatic acceptance, and non-factive knowledge-that)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxConfigBox ,
+        gmeow:boxTBox .

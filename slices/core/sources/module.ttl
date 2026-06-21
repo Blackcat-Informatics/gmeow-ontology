@@ -1,74 +1,65 @@
-@prefix gmeow:   <https://blackcatinformatics.ca/gmeow/> .
-@prefix gufo:    <http://purl.org/nemo/gufo#> .
-@prefix owl:     <http://www.w3.org/2002/07/owl#> .
-@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
-@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
+
+gmeow:contentDigest
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sources> ;
+    rdfs:label "content digest"@x-gmeow-english ;
+    rdfs:range rdfs:Literal ;
+    skos:definition "A content hash of an object's bytes (e.g. \"blake3:…\", \"sha256:…\", \"git:…\") — the reliable identity by content (two objects with the same bytes are the same object, regardless of path, name, or mtime). Domain-free: applies to creative works, source files, commits, distributions, and any other content-addressable artifact. Not functional: an object may carry digests under several algorithms."@x-gmeow-english ;
+    skos:example "ex:report gmeow:contentDigest \"blake3:af1349b9f5f9a1a6a0404dea36dcc949\" ."@x-gmeow-english ;
+    skos:scopeNote "Typically asserted on a Manifestation, Item, SourceFile, Commit, or Distribution."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using a path, filename, or URL as identity (that is gmeow:sourceLocation, audit-only) and avoid making it functional — one artifact may legitimately carry digests under several algorithms."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Assert gmeow:contentDigest with an algorithm-prefixed literal (\"blake3:…\", \"sha256:…\", \"git:…\") on any content-addressable artifact; multiple algorithm digests coexist, and consumers deduplicate by matching digests."@x-gmeow-english ;
+    gmeow:useWhen "Use to record a content hash of an artifact's bytes — the reliable by-content identity, since two objects with the same bytes are the same object regardless of path, name, or mtime."@x-gmeow-english .
+
+gmeow:sourceLocation
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:CreativeWork ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sources> ;
+    rdfs:label "source location"@x-gmeow-english ;
+    rdfs:range rdfs:Literal ;
+    skos:definition "Where the source artifact came from — a file path, original filename, or URL. Provenance/audit only; carries no reliable identity."@x-gmeow-english ;
+    skos:example "ex:report gmeow:sourceLocation \"/imports/2026/report.pdf\" ."@x-gmeow-english ;
+    skos:scopeNote "Typically asserted on a Manifestation or Item."@x-gmeow-english ;
+    gmeow:avoidForConsumer gmeow:consumerPublicSite ;
+    gmeow:avoidWhen "Avoid relying on it for identity or deduplication (paths and URLs are unstable; use gmeow:contentDigest) and avoid treating it as the citation locator into the work (that is the Selector in the citations slice)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxRBox ;
+    gmeow:howToUse "Assert gmeow:sourceLocation on the Manifestation or Item alongside gmeow:contentDigest; read the location as audit trail and the digest as the authoritative identity."@x-gmeow-english ;
+    gmeow:useWhen "Use to record where a source artifact came from — its file path, original filename, or URL — for provenance and audit."@x-gmeow-english .
+
+gmeow:sourceModifiedAt
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:CreativeWork ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sources> ;
+    rdfs:label "source modified at"@x-gmeow-english ;
+    rdfs:range xsd:dateTime ;
+    skos:definition "The last-modification time of the source artifact itself (e.g. a file mtime). A terminus-ante-quem on the recording of the claims this source carries — NOT valid-time (tenure) and NOT observation-time. Advisory and resettable; the reliable identity is gmeow:contentDigest. NOT functional: because a source is identified by its content digest, copies/syncs of the same bytes may legitimately report different modification times, which must coexist rather than force an inconsistency."@x-gmeow-english ;
+    skos:example "ex:report gmeow:sourceModifiedAt \"2026-06-15T12:00:00Z\"^^xsd:dateTime ."@x-gmeow-english ;
+    skos:scopeNote "Typically asserted on a Manifestation or Item."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using it as valid-time/tenure or as observation-time (those are temporal-slice and observation constructs) and avoid treating it as identity — gmeow:contentDigest is the reliable identity; keep it non-functional so copies' differing mtimes coexist."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxRBox ;
+    gmeow:howToUse "Assert gmeow:sourceModifiedAt on the Manifestation or Item; pair it with gmeow:recordedNoLaterThan so the carrier's mtime bounds the recording of its claims, and with gmeow:contentDigest for stable identity."@x-gmeow-english ;
+    gmeow:useWhen "Use to record the last-modification time of a source artifact (a file mtime) as a terminus-ante-quem on when the claims it carries were recorded."@x-gmeow-english .
 
 <https://blackcatinformatics.ca/gmeow/slices/sources>
     a owl:Ontology ;
-    rdfs:label "GMEOW Sources Module"@x-gmeow-english ;
-    skos:definition "The GMEOW Sources Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sources> ;
+    dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;
     rdfs:comment """Sources, citations, and the evidence layer — a cross-cutting facility
 (reused by genealogy and every other slice) for evidence-based, source-cited claims.
 Refactored in source/claim refactor: the anti-rigid Source Kind is retired; source-hood is mediated by
 CitationAct or borne as SourceRole. The Citation locator is retired in favor of Selector
 (in the citations module). Carrier metadata now applies to Manifestation/Item."""@x-gmeow-english ;
-    dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
-
-# Carrier metadata — when a creative work is an import "envelope" (a file carrying a
-# bundle of claims), these describe the artifact itself, not the claims. The
-# carrier's modification time is a terminus-ante-quem on the recording of its
-# claims (see gmeow:recordedNoLaterThan), never their tenure or observation time.
-# Re-homed from the retired gmeow:Source Kind to CreativeWork (source/claim refactor);
-# typically asserted on Manifestation or Item.
-
-gmeow:sourceModifiedAt
-    a owl:DatatypeProperty ;
-    rdfs:domain gmeow:CreativeWork ;
-    rdfs:range xsd:dateTime ;
-    rdfs:label "source modified at"@x-gmeow-english ;
-    skos:definition "The last-modification time of the source artifact itself (e.g. a file mtime). A terminus-ante-quem on the recording of the claims this source carries — NOT valid-time (tenure) and NOT observation-time. Advisory and resettable; the reliable identity is gmeow:contentDigest. NOT functional: because a source is identified by its content digest, copies/syncs of the same bytes may legitimately report different modification times, which must coexist rather than force an inconsistency."@x-gmeow-english ;
-    skos:scopeNote "Typically asserted on a Manifestation or Item."@x-gmeow-english ;
-    skos:example "ex:report gmeow:sourceModifiedAt \"2026-06-15T12:00:00Z\"^^xsd:dateTime ."@x-gmeow-english ;
-    gmeow:useWhen "Use to record the last-modification time of a source artifact (a file mtime) as a terminus-ante-quem on when the claims it carries were recorded."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid using it as valid-time/tenure or as observation-time (those are temporal-slice and observation constructs) and avoid treating it as identity — gmeow:contentDigest is the reliable identity; keep it non-functional so copies' differing mtimes coexist."@x-gmeow-english ;
-    gmeow:howToUse "Assert gmeow:sourceModifiedAt on the Manifestation or Item; pair it with gmeow:recordedNoLaterThan so the carrier's mtime bounds the recording of its claims, and with gmeow:contentDigest for stable identity."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sources> .
-
-gmeow:contentDigest
-    a owl:DatatypeProperty ;
-    rdfs:range rdfs:Literal ;
-    rdfs:label "content digest"@x-gmeow-english ;
-    skos:definition "A content hash of an object's bytes (e.g. \"blake3:…\", \"sha256:…\", \"git:…\") — the reliable identity by content (two objects with the same bytes are the same object, regardless of path, name, or mtime). Domain-free: applies to creative works, source files, commits, distributions, and any other content-addressable artifact. Not functional: an object may carry digests under several algorithms."@x-gmeow-english ;
-    skos:scopeNote "Typically asserted on a Manifestation, Item, SourceFile, Commit, or Distribution."@x-gmeow-english ;
-    skos:example "ex:report gmeow:contentDigest \"blake3:af1349b9f5f9a1a6a0404dea36dcc949\" ."@x-gmeow-english ;
-    gmeow:useWhen "Use to record a content hash of an artifact's bytes — the reliable by-content identity, since two objects with the same bytes are the same object regardless of path, name, or mtime."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid using a path, filename, or URL as identity (that is gmeow:sourceLocation, audit-only) and avoid making it functional — one artifact may legitimately carry digests under several algorithms."@x-gmeow-english ;
-    gmeow:howToUse "Assert gmeow:contentDigest with an algorithm-prefixed literal (\"blake3:…\", \"sha256:…\", \"git:…\") on any content-addressable artifact; multiple algorithm digests coexist, and consumers deduplicate by matching digests."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sources> .
-
-gmeow:sourceLocation
-    a owl:DatatypeProperty ;
-    rdfs:domain gmeow:CreativeWork ;
-    rdfs:range rdfs:Literal ;
-    rdfs:label "source location"@x-gmeow-english ;
-    skos:definition "Where the source artifact came from — a file path, original filename, or URL. Provenance/audit only; carries no reliable identity."@x-gmeow-english ;
-    skos:scopeNote "Typically asserted on a Manifestation or Item."@x-gmeow-english ;
-    skos:example "ex:report gmeow:sourceLocation \"/imports/2026/report.pdf\" ."@x-gmeow-english ;
-    gmeow:useWhen "Use to record where a source artifact came from — its file path, original filename, or URL — for provenance and audit."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid relying on it for identity or deduplication (paths and URLs are unstable; use gmeow:contentDigest) and avoid treating it as the citation locator into the work (that is the Selector in the citations slice)."@x-gmeow-english ;
-    gmeow:howToUse "Assert gmeow:sourceLocation on the Manifestation or Item alongside gmeow:contentDigest; read the location as audit trail and the digest as the authoritative identity."@x-gmeow-english ;
-    gmeow:avoidForConsumer gmeow:consumerPublicSite ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sources> .
-
-# --------------------------------------------------------------------------- #
-# Graph box role coverage (canonical explicit annotations).
-# --------------------------------------------------------------------------- #
-
-gmeow:contentDigest gmeow:graphBoxRole gmeow:boxRBox .
-<https://blackcatinformatics.ca/gmeow/slices/sources> gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxConfigBox, gmeow:boxTBox .
-gmeow:sourceLocation gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxRBox .
-gmeow:sourceModifiedAt gmeow:graphBoxRole gmeow:boxCBox, gmeow:boxRBox .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sources> ;
+    rdfs:label "GMEOW Sources Module"@x-gmeow-english ;
+    skos:definition "The GMEOW Sources Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ,
+        gmeow:boxConfigBox ,
+        gmeow:boxTBox .

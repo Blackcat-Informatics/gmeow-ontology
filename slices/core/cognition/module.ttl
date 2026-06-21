@@ -1,18 +1,349 @@
-# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
-# SPDX-License-Identifier: CC-BY-4.0
-
-@prefix gmeow:   <https://blackcatinformatics.ca/gmeow/> .
-@prefix gufo:    <http://purl.org/nemo/gufo#> .
-@prefix owl:     <http://www.w3.org/2002/07/owl#> .
-@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix gufo: <http://purl.org/nemo/gufo#> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
+
+gmeow:CognitiveState
+    a gufo:Kind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/cognition> ;
+    rdfs:label "Cognitive State"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:MentalMoment ;
+    skos:definition "An agent's intrinsic knowing mode toward a subject — the mental moment grounding the knowledge spectrum and the reified gmeow:KnowledgeProficiency. The agent-side 'knowing' sibling of epistemics' doxastic states and teleology's gmeow:IntentionalMode, all gathered under gmeow:MentalMoment (kernel) so an agent's whole mental life is queryable as one family (Principle 15). Inheres in exactly one agent. NOTE: a CognitiveState (mode) and a gmeow:KnowledgeProficiency (relator) for the same knowing relation are DIFFERENT individuals — never double-typed (Principle 12)."@x-gmeow-english ;
+    skos:example "ex:lillithKnowsPython a gmeow:CognitiveState ; gmeow:inheresIn ex:lillith ."@x-gmeow-english ;
+    gmeow:avoidForConsumer gmeow:consumerFoafExport ,
+        gmeow:consumerSchemaOrgJsonLd ;
+    gmeow:avoidWhen "Avoid double-typing the same knowing relation as both a CognitiveState (mode) and a gmeow:KnowledgeProficiency (relator) — they are different individuals (Principle 12); avoid it for the flat 80% case (use the gmeow:isAwareOf … gmeow:hasMastered spectrum) and for a reasoning EPISODE that unfolds in time (that is a gmeow:MentalProcess, mentation)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Mint one CognitiveState inhering in the agent; carry the depth as the flat spectrum or promote to a gmeow:KnowledgeProficiency relator when level/scale/interval/standpoint matter, and let the mentation slice's gmeow:producesMentalMoment (new belief) or gmeow:realizesMentalMoment (manifest capacity) bridge a knowing-process to the moment it settles."@x-gmeow-english ;
+    gmeow:useForConsumer gmeow:consumerAgentMemory ,
+        gmeow:consumerInternalArchive ,
+        gmeow:consumerResearchQueue ;
+    gmeow:useWhen "Use to type an agent's intrinsic knowing mode as a first-class mental moment — the endurant state that grounds the knowledge spectrum and is queried alongside doxastic and conative modes under gmeow:MentalMoment (Principle 15)."@x-gmeow-english .
+
+gmeow:KnowledgeLevel
+    a gufo:AbstractIndividualType ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/cognition> ;
+    rdfs:label "Knowledge Level"@x-gmeow-english ;
+    rdfs:subClassOf gufo:QualityValue ;
+    skos:definition "The graded epistemic depth of a knowledge-proficiency — an OPEN, ordered value vocabulary (knowledgeAware ≺ knowledgeKnowsAbout ≺ knowledgeUnderstands ≺ knowledgeMastered), the kernel GranularityLevel pattern. Ordinally parallels the flat knowledge spectrum (gmeow:isAwareOf … gmeow:hasMastered) but as reusable values on the reified relator. gmeow:deeperThan is transitive ON LEVELS ONLY; the boundaries are deliberately vague (only the order is asserted)."@x-gmeow-english ;
+    skos:example "gmeow:knowledgeUnderstands a gmeow:KnowledgeLevel ; gmeow:deeperThan gmeow:knowledgeKnowsAbout ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid minting per-level subclasses (levels are individuals, the kernel GranularityLevel idiom) and avoid reading the order as crisp cutoffs; only the order is asserted, the boundaries are deliberately vague. Reach for the generic gmeow:ProficiencyLevel only when rating on a non-knowledge framework."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Reference the four seeded gmeow:KnowledgeLevel individuals from gmeow:knowledgeProficiencyLevel, order them with gmeow:deeperThan, and read gmeow:pairsWith to tie each to its flat-spectrum sibling; extend with new individuals if a domain needs a finer rung."@x-gmeow-english ;
+    gmeow:useWhen "Use as the value vocabulary for the depth role of a gmeow:KnowledgeProficiency relator — the ordinal rung (aware ≺ knows-about ≺ understands ≺ mastered) read on the native gmeow:scaleKnowledgeDepth, the reified parallel of the flat spectrum."@x-gmeow-english .
+
+gmeow:KnowledgeProficiency
+    a gufo:Kind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/cognition> ;
+    rdfs:label "Knowledge Proficiency"@x-gmeow-english ;
+    rdfs:subClassOf gufo:Relator ,
+        [
+            a owl:Restriction ;
+            owl:onProperty gmeow:knowledgeProficiencyAgent ;
+            owl:someValuesFrom gmeow:Agent ;
+        ] ,
+        [
+            a owl:Restriction ;
+            owl:onProperty gmeow:knowledgeProficiencySubject ;
+            owl:someValuesFrom gmeow:Entity ;
+        ] ,
+        [
+            a owl:Restriction ;
+            owl:onProperty gmeow:knowledgeProficiencyLevel ;
+            owl:someValuesFrom gmeow:KnowledgeLevel ;
+        ] ,
+        [
+            a owl:Restriction ;
+            owl:onProperty gmeow:knowledgeProficiencyScale ;
+            owl:someValuesFrom gmeow:ProficiencyScale ;
+        ] ;
+    skos:definition "A reified, leveled depth-of-knowledge of an agent toward a subject — the gufo:Relator binding {agent} × {subject} × {level on a scale} × {interval}, mirroring expertise's gmeow:SkillProficiency. Founded on the gmeow:CognitiveState mode (documentation, not an axiom — Principle 12); the mode and this relator are DIFFERENT individuals, never double-typed. Flat-first: the four-level knowledge spectrum (gmeow:isAwareOf … gmeow:hasMastered) is the cheap surface; promote to a KnowledgeProficiency when level, scale, temporal scope, or standpoint matters. Suppression not deletion (Principle 10): lapsed knowledge is recorded as a closed interval / gmeow:displayable false, never deleted. Boundaries, documented WITHOUT axiom bridges (Principle 9): cognition (knowing, objectual) ⊥ epistemics (believing, propositional); cognition ⊥ expertise (knowing ⊥ can-do — gmeow:hasSkill ⊑ gmeow:knowsAbout touches the axes at one rung only)."@x-gmeow-english ;
+    skos:example "ex:lillithPythonKP a gmeow:KnowledgeProficiency ; gmeow:knowledgeProficiencyAgent ex:lillith ; gmeow:knowledgeProficiencySubject ex:python ; gmeow:knowledgeProficiencyLevel gmeow:knowledgeUnderstands ; gmeow:knowledgeProficiencyScale gmeow:scaleKnowledgeDepth ."@x-gmeow-english ;
+    gmeow:avoidForConsumer gmeow:consumerFoafExport ,
+        gmeow:consumerSchemaOrgJsonLd ;
+    gmeow:avoidWhen "Avoid for the 80% case where an agent simply knows a subject to some depth — assert the flat gmeow:isAwareOf … gmeow:hasMastered spectrum and promote only when context must be first-class; avoid double-typing it with the gmeow:CognitiveState mode (different individuals, Principle 12); avoid it for the can-do axis (that is expertise's gmeow:SkillProficiency)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Mint one KnowledgeProficiency per (agent, subject, level, scale) tuple, binding the five roles (gmeow:knowledgeProficiencyAgent / …Subject / …Level / …Scale / …Interval); read gmeow:pairsWith from the flat spectrum properties to surface the promotion path in gmeow describe, and carry contested or attributed depth on the statement layer via gmeow:accordingTo."@x-gmeow-english ;
+    gmeow:useForConsumer gmeow:consumerAgentMemory ,
+        gmeow:consumerInternalArchive ,
+        gmeow:consumerResearchQueue ;
+    gmeow:useWhen "Use when a depth-of-knowledge fact needs its own level, rating scale, temporal scope, or standpoint to be first-class — the reify-on-demand promotion of the flat knowledge spectrum (Principle 4), and the construct that records lapsed knowledge by closing its interval rather than deleting it (Principle 10)."@x-gmeow-english .
+
+gmeow:attendsTo
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Agent ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/cognition> ;
+    rdfs:label "attends to"@x-gmeow-english ;
+    rdfs:range gmeow:Entity ;
+    skos:definition "Directed attention or salience of an agent toward a subject — what the agent is currently focused on. NOT a goal: an attentional pull, not a teleology:Desire — the axes stay orthogonal and are never bridged by axiom (Principle 9). Whose attention it is rides gmeow:accordingTo on the statement (self-attributed vs observer-attributed coexist)."@x-gmeow-english ;
+    skos:example "ex:lillith gmeow:attendsTo ex:currentTask ."@x-gmeow-english ;
+    skos:scopeNote "Boundary: attention/interest (cognition) ⊥ intention (teleology). attendsTo / interestedIn / curiousAbout are attentional-affective pulls toward a subject; a teleology:Desire/Intention is a goal-directed conative mode aimed at a state of affairs. No owl:subPropertyOf or owl:disjointWith ties them — the separation is conceptual, enforced by review (Principle 9)."@x-gmeow-english ;
+    gmeow:avoidForConsumer gmeow:consumerFoafExport ,
+        gmeow:consumerSchemaOrgJsonLd ;
+    gmeow:avoidWhen "Avoid using it for a wanted goal or intention (that is the teleology slice — attention is an attentional pull, not a conative mode, and the axes are never bridged by axiom, Principle 9) and avoid it for sustained motivational orientation (use gmeow:interestedIn)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Assert gmeow:attendsTo from agent to subject; carry whose-attention and when on the statement layer via gmeow:accordingTo (self- vs observer-attributed coexist), and keep it distinct from teleology goals by review, not axiom."@x-gmeow-english ;
+    gmeow:useForConsumer gmeow:consumerAgentMemory ,
+        gmeow:consumerInternalArchive ;
+    gmeow:useWhen "Use to record what an agent is currently focused on — directed attention or salience toward a subject, the recall/salience surface the agent-memory flagship reads (Principle 15)."@x-gmeow-english .
+
+gmeow:curiousAbout
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Agent ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/cognition> ;
+    rdfs:label "curious about"@x-gmeow-english ;
+    rdfs:range gmeow:Entity ;
+    rdfs:subPropertyOf gmeow:interestedIn ;
+    skos:definition "An exploratory, knowledge-seeking orientation toward a subject — interest aimed at closing a knowledge gap. A specialization of gmeow:interestedIn (curiosity is interest with an epistemic appetite). Still an attentional pull, not a teleology:Desire (Principle 9)."@x-gmeow-english ;
+    skos:example "ex:lillith gmeow:curiousAbout ex:categoryTheory ."@x-gmeow-english ;
+    gmeow:avoidForConsumer gmeow:consumerFoafExport ,
+        gmeow:consumerSchemaOrgJsonLd ;
+    gmeow:avoidWhen "Avoid it for sustained interest with no epistemic drive (use the parent gmeow:interestedIn), for actual attained knowledge (the gmeow:isAwareOf … gmeow:hasMastered spectrum), and for a goal (teleology); curiosity is still an attentional pull, not a conative mode (Principle 9)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Assert gmeow:curiousAbout from agent to subject; it entails gmeow:interestedIn by subproperty, and pairs naturally with the knowledge spectrum to model an agent curious about a subject it is only gmeow:isAwareOf."@x-gmeow-english ;
+    gmeow:useForConsumer gmeow:consumerAgentMemory ,
+        gmeow:consumerInternalArchive ,
+        gmeow:consumerResearchQueue ;
+    gmeow:useWhen "Use for interest with an epistemic appetite — a knowledge-seeking orientation aimed at closing a gap — when the curiosity flavour matters beyond plain gmeow:interestedIn."@x-gmeow-english .
+
+gmeow:deeperThan
+    a owl:ObjectProperty ,
+        owl:TransitiveProperty ;
+    rdfs:domain gmeow:KnowledgeLevel ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/cognition> ;
+    rdfs:label "deeper than"@x-gmeow-english ;
+    rdfs:range gmeow:KnowledgeLevel ;
+    skos:definition "Orders the knowledge-depth axis: relates a knowledge level to a shallower one it surpasses (knowledgeMastered gmeow:deeperThan knowledgeUnderstands). Transitive ON LEVELS ONLY (the gmeow:coarserThan / gmeow:moreSevereThan pattern) — KnowledgeProficiency relators are never ordered by it."@x-gmeow-english ;
+    skos:example "gmeow:knowledgeMastered gmeow:deeperThan gmeow:knowledgeUnderstands ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting it between gmeow:KnowledgeProficiency relators (only the levels are ordered, never the relators) and avoid using it to order ratings on a foreign scale (Bloom's, SOLO); cross-framework correspondence is a soft ledger, not this transitive order."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Assert gmeow:deeperThan from the deeper level to the shallower one and let transitivity build the four-rung ladder; query a relator's gmeow:knowledgeProficiencyLevel against this order to find every proficiency at or above a depth."@x-gmeow-english ;
+    gmeow:useWhen "Use to order two gmeow:KnowledgeLevel values so 'at or above a target depth' is well-defined for queries over reified proficiencies — the knowledge-axis analogue of the kernel gmeow:coarserThan ladder."@x-gmeow-english .
+
+gmeow:hasMastered
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Agent ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/cognition> ;
+    rdfs:label "has mastered"@x-gmeow-english ;
+    rdfs:range gmeow:Entity ;
+    rdfs:subPropertyOf gmeow:understands ;
+    skos:definition "Deepest level of the knowledge spectrum: the agent has expert command of the subject and can extend, teach or innovate on it. Entails gmeow:understands (and transitively gmeow:knowsAbout and gmeow:isAwareOf)."@x-gmeow-english ;
+    skos:example "ex:lillith gmeow:hasMastered ex:owlReasoning ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid when comprehension stops short of expert command (use gmeow:understands) and avoid using it for demonstrated skill — mastery of a subject and the competence to perform a task are orthogonal (gmeow:hasSkill)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Assert gmeow:hasMastered from the agent to the subject; it entails every shallower level, so one assertion answers awareness, familiarity, and comprehension queries alike. Carry contested or attributed depth on the statement layer."@x-gmeow-english ;
+    gmeow:pairsWith gmeow:KnowledgeProficiency ;
+    gmeow:useWhen "Use for the deepest objectual knowledge relation — expert command of a subject sufficient to extend, teach, or innovate on it."@x-gmeow-english .
+
+gmeow:interestedIn
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Agent ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/cognition> ;
+    rdfs:label "interested in"@x-gmeow-english ;
+    rdfs:range gmeow:Entity ;
+    skos:definition "A motivational orientation of an agent toward a subject — sustained interest that makes the subject worth attending to. An attentional/affective pull, NOT a teleology:Desire (a wanted goal); the boundary is documented, never an axiom (Principle 9). Whose interest it is rides gmeow:accordingTo on the statement."@x-gmeow-english ;
+    skos:example "ex:lillith gmeow:interestedIn ex:ontologyEngineering ."@x-gmeow-english ;
+    gmeow:avoidForConsumer gmeow:consumerFoafExport ,
+        gmeow:consumerSchemaOrgJsonLd ;
+    gmeow:avoidWhen "Avoid using it for a wanted goal (that is the teleology slice — interest is an affective pull, not a conative mode, never bridged by axiom, Principle 9); when the interest is specifically knowledge-seeking, use the narrower gmeow:curiousAbout."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Assert gmeow:interestedIn from agent to subject (gmeow:curiousAbout specializes it for epistemic appetite); carry whose-interest on the statement layer via gmeow:accordingTo, and keep the boundary with teleology desire by review."@x-gmeow-english ;
+    gmeow:useForConsumer gmeow:consumerAgentMemory ,
+        gmeow:consumerInternalArchive ;
+    gmeow:useWhen "Use for an agent's sustained motivational orientation toward a subject — durable interest that makes the subject worth attending to, broader than the momentary focus of gmeow:attendsTo."@x-gmeow-english .
+
+gmeow:isAwareOf
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Agent ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/cognition> ;
+    rdfs:label "is aware of"@x-gmeow-english ;
+    rdfs:range gmeow:Entity ;
+    skos:definition "Faintest level of the knowledge spectrum: the agent has encountered the subject and knows it exists, without necessarily knowing facts about it. Entailed by every deeper level (knowsAbout, understands, hasMastered) and by gmeow:hasSkill."@x-gmeow-english ;
+    skos:example "ex:lillith gmeow:isAwareOf ex:quantumComputing ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting it directly when a deeper level holds (assert that level and let it entail this one), avoid it for propositional belief about a claim (that is the epistemics slice), and avoid it for the 'can do' axis (that is gmeow:hasSkill)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Assert the deepest level that truly holds and read the shallower ones by subproperty entailment; carry whose-knowledge and how-deep as a vantage-indexed claim on the statement layer when it is contested or attributed."@x-gmeow-english ;
+    gmeow:pairsWith gmeow:KnowledgeProficiency ;
+    gmeow:useWhen "Use for the shallowest objectual knowledge relation — the agent has merely encountered a subject and knows it exists — or to query every agent at that depth or deeper, since the deeper levels entail it."@x-gmeow-english .
+
+gmeow:knowledgeAware
+    a gmeow:KnowledgeLevel ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/cognition> ;
+    rdfs:label "knowledge: aware"@x-gmeow-english ;
+    skos:definition "Faintest depth: bare awareness — knows the subject exists. Pairs with the gmeow:isAwareOf spectrum level."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:knowledgeKnowsAbout
+    a gmeow:KnowledgeLevel ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/cognition> ;
+    rdfs:label "knowledge: knows about"@x-gmeow-english ;
+    skos:definition "Familiarity — knows facts about the subject and can describe it. Pairs with the gmeow:knowsAbout spectrum level."@x-gmeow-english ;
+    gmeow:deeperThan gmeow:knowledgeAware ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:knowledgeMastered
+    a gmeow:KnowledgeLevel ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/cognition> ;
+    rdfs:label "knowledge: mastered"@x-gmeow-english ;
+    skos:definition "Deepest depth: expert command — can extend, teach, or innovate on the subject. Pairs with the gmeow:hasMastered spectrum level."@x-gmeow-english ;
+    gmeow:deeperThan gmeow:knowledgeUnderstands ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:knowledgeProficiencyAgent
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
+    rdfs:domain gmeow:KnowledgeProficiency ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/cognition> ;
+    rdfs:label "knowledge proficiency agent"@x-gmeow-english ;
+    rdfs:range gmeow:Agent ;
+    skos:definition "The agent whose depth of knowledge a knowledge-proficiency expresses. Functional — constitutive of the proficiency."@x-gmeow-english ;
+    skos:example "ex:lillithPythonKP gmeow:knowledgeProficiencyAgent ex:lillith ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using it as a generic agent link (the flat spectrum's domain is already the agent) and avoid attaching it to anything but a gmeow:KnowledgeProficiency; it names a relator player, not a direct fact."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Set gmeow:knowledgeProficiencyAgent once per relator (functional, constitutive), pairing it with gmeow:knowledgeProficiencySubject to fix the two essential players of the knowing relation."@x-gmeow-english ;
+    gmeow:useWhen "Use to bind the agent player of a gmeow:KnowledgeProficiency relator — whose knowing the proficiency reifies."@x-gmeow-english .
+
+gmeow:knowledgeProficiencyInterval
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:KnowledgeProficiency ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/cognition> ;
+    rdfs:label "knowledge proficiency interval"@x-gmeow-english ;
+    rdfs:range gmeow:TimeInterval ;
+    skos:definition "The interval over which a knowledge-proficiency held; closing it (rather than deleting) records lapsed knowledge (Principle 10). Non-functional. Lighter cases use gmeow:validFrom/validUntil on the statement."@x-gmeow-english ;
+    skos:example "ex:lillithPythonKP gmeow:knowledgeProficiencyInterval ex:2020to2024 ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid it for the lighter case where a single validity span suffices (use gmeow:validFrom / gmeow:validUntil on the statement instead) and avoid ever deleting a relator to express forgetting — close the interval or set gmeow:displayable false."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Point gmeow:knowledgeProficiencyInterval at a gmeow:TimeInterval (non-functional — several spans may attach); close the interval to suppress lapsed knowledge while keeping what the agent knew when as a query (Principle 10)."@x-gmeow-english ;
+    gmeow:useWhen "Use to bind the temporal-scope player of a gmeow:KnowledgeProficiency relator when the period a depth held is itself first-class — and to record lapsed knowledge by CLOSING the interval rather than deleting the proficiency (Principle 10)."@x-gmeow-english .
+
+gmeow:knowledgeProficiencyLevel
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
+    rdfs:domain gmeow:KnowledgeProficiency ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/cognition> ;
+    rdfs:label "knowledge proficiency level"@x-gmeow-english ;
+    rdfs:range gmeow:KnowledgeLevel ;
+    skos:definition "The attained ordinal depth of a knowledge-proficiency (a gmeow:KnowledgeLevel: knowledgeAware ≺ knowledgeKnowsAbout ≺ knowledgeUnderstands ≺ knowledgeMastered). Functional."@x-gmeow-english ;
+    skos:example "ex:lillithPythonKP gmeow:knowledgeProficiencyLevel gmeow:knowledgeUnderstands ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid pointing it at a gmeow:ProficiencyScale (that is the scale role) and avoid ordering relators by it; only the gmeow:KnowledgeLevel values are ordered, by gmeow:deeperThan — relators are never ordered by it."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Set gmeow:knowledgeProficiencyLevel once per relator (functional) to a gmeow:KnowledgeLevel individual, and pair it with gmeow:knowledgeProficiencyScale so the level is read against the right framework (native, Bloom's, SOLO, Dreyfus)."@x-gmeow-english ;
+    gmeow:useWhen "Use to bind the attained-depth player of a gmeow:KnowledgeProficiency relator — a gmeow:KnowledgeLevel value on whichever gmeow:knowledgeProficiencyScale the relator cites."@x-gmeow-english .
+
+gmeow:knowledgeProficiencyScale
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
+    rdfs:domain gmeow:KnowledgeProficiency ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/cognition> ;
+    rdfs:label "knowledge proficiency scale"@x-gmeow-english ;
+    rdfs:range gmeow:ProficiencyScale ;
+    skos:definition "The framework a knowledge-proficiency level is measured on (the native gmeow:KnowledgeLevel scale, or Bloom's revised / SOLO / Dreyfus as alternates) — a gmeow:ProficiencyScale value (kernel). Functional."@x-gmeow-english ;
+    skos:example "ex:lillithPythonKP gmeow:knowledgeProficiencyScale gmeow:scaleKnowledgeDepth ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid pointing it at a gmeow:KnowledgeLevel (that is the level role) and avoid enforcing one canonical framework; no taxonomy is privileged (Principle 6), and cross-framework correspondence is a soft ledger, not an axiom (Principle 12)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Set gmeow:knowledgeProficiencyScale once per relator (functional) to a gmeow:ProficiencyScale individual; pair it with gmeow:knowledgeProficiencyLevel and read the level against this scale — the alignment ledger handles any cross-scale reading solver-side."@x-gmeow-english ;
+    gmeow:useWhen "Use to bind the rating-framework player of a gmeow:KnowledgeProficiency relator — the gmeow:ProficiencyScale (kernel) its level is read against, defaulting to the native gmeow:scaleKnowledgeDepth and switching to Bloom's revised / SOLO / Dreyfus when a stated taxonomy is cited."@x-gmeow-english .
+
+gmeow:knowledgeProficiencySubject
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
+    rdfs:domain gmeow:KnowledgeProficiency ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/cognition> ;
+    rdfs:label "knowledge proficiency subject"@x-gmeow-english ;
+    rdfs:range gmeow:Entity ;
+    skos:definition "The subject a knowledge-proficiency concerns (open range gmeow:Entity: a topic, person, place, or event). Functional — constitutive."@x-gmeow-english ;
+    skos:example "ex:lillithPythonKP gmeow:knowledgeProficiencySubject ex:python ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using it for a proposition the agent believes (that is the epistemics slice — cognition is objectual, not propositional) and avoid attaching it outside a gmeow:KnowledgeProficiency relator."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Set gmeow:knowledgeProficiencySubject once per relator (functional), pairing it with gmeow:knowledgeProficiencyAgent; keep the subject a distinct entity, never a claim about it."@x-gmeow-english ;
+    gmeow:useWhen "Use to bind the subject player of a gmeow:KnowledgeProficiency relator — the topic, person, place, or event the knowing is directed at (open range gmeow:Entity)."@x-gmeow-english .
+
+gmeow:knowledgeUnderstands
+    a gmeow:KnowledgeLevel ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/cognition> ;
+    rdfs:label "knowledge: understands"@x-gmeow-english ;
+    skos:definition "Working comprehension — can reason with and apply the subject. Pairs with the gmeow:understands spectrum level."@x-gmeow-english ;
+    gmeow:deeperThan gmeow:knowledgeKnowsAbout ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:knowsAbout
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Agent ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/cognition> ;
+    rdfs:label "knows about"@x-gmeow-english ;
+    rdfs:range gmeow:Entity ;
+    rdfs:subPropertyOf gmeow:isAwareOf ;
+    skos:definition "Second level of the knowledge spectrum: the agent knows facts about the subject and can describe it — familiarity, not yet working comprehension. The exactMatch anchor for schema:knowsAbout. Entails gmeow:isAwareOf; entailed by gmeow:understands, gmeow:hasMastered and gmeow:hasSkill."@x-gmeow-english ;
+    skos:example "ex:lillith gmeow:knowsAbout ex:rdfSemantics ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid when the agent genuinely comprehends and can apply the subject (use gmeow:understands) and avoid conflating descriptive familiarity with the 'can do' competence axis (gmeow:hasSkill)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Assert gmeow:knowsAbout from the agent to the subject; it entails gmeow:isAwareOf automatically, and is itself entailed when a deeper level or a skill is asserted."@x-gmeow-english ;
+    gmeow:pairsWith gmeow:KnowledgeProficiency ;
+    gmeow:useWhen "Use when the agent knows facts about a subject and can describe it — familiarity beyond mere awareness — and as the schema:knowsAbout export anchor."@x-gmeow-english .
+
+gmeow:remembers
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Agent ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/cognition> ;
+    rdfs:label "remembers"@x-gmeow-english ;
+    rdfs:range gmeow:Entity ;
+    rdfs:subPropertyOf gmeow:isAwareOf ;
+    skos:definition "Objectual memory-of: an agent remembers a SUBJECT (a person, place, topic, or event it has encountered). Sub-property of gmeow:isAwareOf — remembering a subject entails awareness of it. Distinct from gmeow:MemoryItem (the ai slice), which is a remembered CLAIM (propositional); this is remembering the thing, not a proposition about it. Bridge, documented NOT axiomatised (Principle 9): an agent's gmeow:remembers edges are typically backed by gmeow:MemoryItem observations about the subject and surfaced by the flagship's recall — see gmeow:memoryOf. Forgetting is suppression (gmeow:displayable false / closed scope), never deletion (Principle 10)."@x-gmeow-english ;
+    skos:example "ex:lillith gmeow:remembers ex:firstConference ."@x-gmeow-english ;
+    skos:scopeNote "Boundary: objectual gmeow:remembers (a remembered subject) ⊥ propositional gmeow:MemoryItem (a remembered claim, ai slice). The link is a documented bridge through gmeow:memoryOf, not an axiom; cognition asserts no dependency on the ai slice (Principle 9)."@x-gmeow-english ;
+    gmeow:avoidForConsumer gmeow:consumerFoafExport ,
+        gmeow:consumerSchemaOrgJsonLd ;
+    gmeow:avoidWhen "Avoid it for a remembered CLAIM or proposition (that is gmeow:MemoryItem, the ai slice — this is remembering the thing, not a fact about it) and avoid DELETING a remembers edge to model forgetting; suppress it with gmeow:displayable false or a closed scope (Principle 10)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Assert gmeow:remembers from agent to subject (it entails gmeow:isAwareOf); bridge to backing gmeow:MemoryItem observations through gmeow:memoryOf as documentation (no axiom, no ai-slice dependency), and model forgetting as suppression, never deletion."@x-gmeow-english ;
+    gmeow:useForConsumer gmeow:consumerAgentMemory ,
+        gmeow:consumerInternalArchive ;
+    gmeow:useWhen "Use for objectual memory — an agent remembering a SUBJECT (a person, place, topic, or event it has encountered), the recall surface the agent-memory flagship reads (Principle 15); it entails gmeow:isAwareOf by subproperty."@x-gmeow-english .
+
+gmeow:scaleBloomRevised
+    a gmeow:ProficiencyScale ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/cognition> ;
+    rdfs:label "Bloom's revised taxonomy"@x-gmeow-english ;
+    skos:definition "An alternate knowledge-depth framework — Anderson & Krathwohl's revised Bloom's taxonomy (remember ≺ understand ≺ apply ≺ analyze ≺ evaluate ≺ create). Reused as a gmeow:ProficiencyScale; its correspondence to the native gmeow:KnowledgeLevel axis is recorded (softly) in the alignment ledger, not axiomatised."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:scaleKnowledgeDepth
+    a gmeow:ProficiencyScale ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/cognition> ;
+    rdfs:label "knowledge depth"@x-gmeow-english ;
+    skos:definition "The native knowledge-depth scale: the framework on which the four ordinal gmeow:KnowledgeLevel values (knowledgeAware ≺ knowledgeKnowsAbout ≺ knowledgeUnderstands ≺ knowledgeMastered) are read. The default gmeow:knowledgeProficiencyScale when a proficiency is stated in GMEOW's own terms rather than an external taxonomy."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:scaleSOLO
+    a gmeow:ProficiencyScale ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/cognition> ;
+    rdfs:label "SOLO taxonomy"@x-gmeow-english ;
+    skos:definition "An alternate knowledge-depth framework — Biggs & Collis's Structure of Observed Learning Outcomes (prestructural ≺ unistructural ≺ multistructural ≺ relational ≺ extended-abstract). Reused as a gmeow:ProficiencyScale; correspondence to the native axis lives in the alignment ledger, not as an axiom."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:understands
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Agent ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/cognition> ;
+    rdfs:label "understands"@x-gmeow-english ;
+    rdfs:range gmeow:Entity ;
+    rdfs:subPropertyOf gmeow:knowsAbout ;
+    skos:definition "Third level of the knowledge spectrum: the agent comprehends the subject and can reason with and apply it, beyond reciting facts. Entails gmeow:knowsAbout (and transitively gmeow:isAwareOf); entailed by gmeow:hasMastered."@x-gmeow-english ;
+    skos:example "ex:lillith gmeow:understands ex:descriptionLogic ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid when only descriptive familiarity holds (use gmeow:knowsAbout), when expert command holds (use gmeow:hasMastered), and avoid reading comprehension as competency — gmeow:hasSkill is the orthogonal 'can do' axis."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Assert gmeow:understands from the agent to the subject; it entails the two shallower levels and is entailed by gmeow:hasMastered, so a single assertion materialises the whole tail."@x-gmeow-english ;
+    gmeow:pairsWith gmeow:KnowledgeProficiency ;
+    gmeow:useWhen "Use when the agent comprehends a subject and can reason with and apply it, beyond merely reciting facts about it."@x-gmeow-english .
 
 <https://blackcatinformatics.ca/gmeow/slices/cognition>
     a owl:Ontology ;
-    rdfs:label "GMEOW Cognition Module"@x-gmeow-english ;
-    skos:definition "The GMEOW Cognition Module — an agent's objectual cognitive relations to subjects, beginning with the graded knowledge spectrum (issue: core/cognition slice)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/cognition> ;
+    dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;
     rdfs:comment """An agent's COGNITIVE relations to a subject — how an agent stands toward the things it knows, attends to, and grasps. The objectual companion to the standpoint slice (which carries PROPOSITIONAL attitudes toward claims): cognition relates an agent to an entity, not to a proposition.
 
 This minimal core seeds the slice with one axis — the knowledge spectrum — and is deliberately small; belief, justification, and knowledge-that (the propositional epistemic relations) belong to the sibling epistemics slice, not here.
@@ -23,370 +354,8 @@ DOCTRINE.
   * Comprehension is NOT competency. The spectrum is the 'knows' axis; gmeow:hasSkill (expertise slice) is the 'can do' axis. A skill entails knowing about its subject (gmeow:hasSkill ⊑ gmeow:knowsAbout, asserted by the expertise slice), but neither understanding nor mastery — the axes stay orthogonal and are never silently bridged (Principle 9).
   * Whose knowledge it is, and how deep, is a vantage-indexed claim through the statement layer (Principle 9): knowledge attributed to an agent by an observer and knowledge avowed by the agent coexist; a contested depth is two coexisting claims, never a global verdict.
   * Range is open (gmeow:Entity): an agent may know a topic, a person, a place, or an event."""@x-gmeow-english ;
-    dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
-
-# =========================================================================== #
-# Knowledge spectrum — an agent's epistemic depth toward a subject
-# =========================================================================== #
-#
-# Four ordinal levels, chained by rdfs:subPropertyOf so each deeper level
-# ENTAILS every shallower one:
-#
-#     hasMastered ⊑ understands ⊑ knowsAbout ⊑ isAwareOf
-#
-# Domain gmeow:Agent, range gmeow:Entity (open). The order is asserted; the
-# boundaries are vague.
-
-gmeow:isAwareOf
-    a owl:ObjectProperty ;
-    rdfs:domain gmeow:Agent ;
-    rdfs:range gmeow:Entity ;
-    rdfs:label "is aware of"@x-gmeow-english ;
-    skos:definition "Faintest level of the knowledge spectrum: the agent has encountered the subject and knows it exists, without necessarily knowing facts about it. Entailed by every deeper level (knowsAbout, understands, hasMastered) and by gmeow:hasSkill."@x-gmeow-english ;
-    skos:example "ex:lillith gmeow:isAwareOf ex:quantumComputing ."@x-gmeow-english ;
-    gmeow:useWhen "Use for the shallowest objectual knowledge relation — the agent has merely encountered a subject and knows it exists — or to query every agent at that depth or deeper, since the deeper levels entail it."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid asserting it directly when a deeper level holds (assert that level and let it entail this one), avoid it for propositional belief about a claim (that is the epistemics slice), and avoid it for the 'can do' axis (that is gmeow:hasSkill)."@x-gmeow-english ;
-    gmeow:howToUse "Assert the deepest level that truly holds and read the shallower ones by subproperty entailment; carry whose-knowledge and how-deep as a vantage-indexed claim on the statement layer when it is contested or attributed."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/cognition> .
-
-gmeow:knowsAbout
-    a owl:ObjectProperty ;
-    rdfs:subPropertyOf gmeow:isAwareOf ;
-    rdfs:domain gmeow:Agent ;
-    rdfs:range gmeow:Entity ;
-    rdfs:label "knows about"@x-gmeow-english ;
-    skos:definition "Second level of the knowledge spectrum: the agent knows facts about the subject and can describe it — familiarity, not yet working comprehension. The exactMatch anchor for schema:knowsAbout. Entails gmeow:isAwareOf; entailed by gmeow:understands, gmeow:hasMastered and gmeow:hasSkill."@x-gmeow-english ;
-    skos:example "ex:lillith gmeow:knowsAbout ex:rdfSemantics ."@x-gmeow-english ;
-    gmeow:useWhen "Use when the agent knows facts about a subject and can describe it — familiarity beyond mere awareness — and as the schema:knowsAbout export anchor."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid when the agent genuinely comprehends and can apply the subject (use gmeow:understands) and avoid conflating descriptive familiarity with the 'can do' competence axis (gmeow:hasSkill)."@x-gmeow-english ;
-    gmeow:howToUse "Assert gmeow:knowsAbout from the agent to the subject; it entails gmeow:isAwareOf automatically, and is itself entailed when a deeper level or a skill is asserted."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/cognition> .
-
-gmeow:understands
-    a owl:ObjectProperty ;
-    rdfs:subPropertyOf gmeow:knowsAbout ;
-    rdfs:domain gmeow:Agent ;
-    rdfs:range gmeow:Entity ;
-    rdfs:label "understands"@x-gmeow-english ;
-    skos:definition "Third level of the knowledge spectrum: the agent comprehends the subject and can reason with and apply it, beyond reciting facts. Entails gmeow:knowsAbout (and transitively gmeow:isAwareOf); entailed by gmeow:hasMastered."@x-gmeow-english ;
-    skos:example "ex:lillith gmeow:understands ex:descriptionLogic ."@x-gmeow-english ;
-    gmeow:useWhen "Use when the agent comprehends a subject and can reason with and apply it, beyond merely reciting facts about it."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid when only descriptive familiarity holds (use gmeow:knowsAbout), when expert command holds (use gmeow:hasMastered), and avoid reading comprehension as competency — gmeow:hasSkill is the orthogonal 'can do' axis."@x-gmeow-english ;
-    gmeow:howToUse "Assert gmeow:understands from the agent to the subject; it entails the two shallower levels and is entailed by gmeow:hasMastered, so a single assertion materialises the whole tail."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/cognition> .
-
-gmeow:hasMastered
-    a owl:ObjectProperty ;
-    rdfs:subPropertyOf gmeow:understands ;
-    rdfs:domain gmeow:Agent ;
-    rdfs:range gmeow:Entity ;
-    rdfs:label "has mastered"@x-gmeow-english ;
-    skos:definition "Deepest level of the knowledge spectrum: the agent has expert command of the subject and can extend, teach or innovate on it. Entails gmeow:understands (and transitively gmeow:knowsAbout and gmeow:isAwareOf)."@x-gmeow-english ;
-    skos:example "ex:lillith gmeow:hasMastered ex:owlReasoning ."@x-gmeow-english ;
-    gmeow:useWhen "Use for the deepest objectual knowledge relation — expert command of a subject sufficient to extend, teach, or innovate on it."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid when comprehension stops short of expert command (use gmeow:understands) and avoid using it for demonstrated skill — mastery of a subject and the competence to perform a task are orthogonal (gmeow:hasSkill)."@x-gmeow-english ;
-    gmeow:howToUse "Assert gmeow:hasMastered from the agent to the subject; it entails every shallower level, so one assertion answers awareness, familiarity, and comprehension queries alike. Carry contested or attributed depth on the statement layer."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/cognition> .
-
-# =========================================================================== #
-# COGNITIVE STATE — the agent-side knowing mode (an intrinsic mental moment)
-# =========================================================================== #
-
-gmeow:CognitiveState
-    a owl:Class, gufo:Kind ;
-    rdfs:subClassOf gmeow:MentalMoment ;
-    rdfs:label "Cognitive State"@x-gmeow-english ;
-    skos:definition "An agent's intrinsic knowing mode toward a subject — the mental moment grounding the knowledge spectrum and the reified gmeow:KnowledgeProficiency. The agent-side 'knowing' sibling of epistemics' doxastic states and teleology's gmeow:IntentionalMode, all gathered under gmeow:MentalMoment (kernel) so an agent's whole mental life is queryable as one family (Principle 15). Inheres in exactly one agent. NOTE: a CognitiveState (mode) and a gmeow:KnowledgeProficiency (relator) for the same knowing relation are DIFFERENT individuals — never double-typed (Principle 12)."@x-gmeow-english ;
-    skos:example "ex:lillithKnowsPython a gmeow:CognitiveState ; gmeow:inheresIn ex:lillith ."@x-gmeow-english ;
-    gmeow:useWhen "Use to type an agent's intrinsic knowing mode as a first-class mental moment — the endurant state that grounds the knowledge spectrum and is queried alongside doxastic and conative modes under gmeow:MentalMoment (Principle 15)."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid double-typing the same knowing relation as both a CognitiveState (mode) and a gmeow:KnowledgeProficiency (relator) — they are different individuals (Principle 12); avoid it for the flat 80% case (use the gmeow:isAwareOf … gmeow:hasMastered spectrum) and for a reasoning EPISODE that unfolds in time (that is a gmeow:MentalProcess, mentation)."@x-gmeow-english ;
-    gmeow:howToUse "Mint one CognitiveState inhering in the agent; carry the depth as the flat spectrum or promote to a gmeow:KnowledgeProficiency relator when level/scale/interval/standpoint matter, and let the mentation slice's gmeow:producesMentalMoment (new belief) or gmeow:realizesMentalMoment (manifest capacity) bridge a knowing-process to the moment it settles."@x-gmeow-english ;
-    gmeow:useForConsumer gmeow:consumerInternalArchive,
-        gmeow:consumerAgentMemory,
-        gmeow:consumerResearchQueue ;
-    gmeow:avoidForConsumer gmeow:consumerSchemaOrgJsonLd,
-        gmeow:consumerFoafExport ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/cognition> .
-
-# =========================================================================== #
-# KNOWLEDGE PROFICIENCY — the reified, leveled relator (mirrors SkillProficiency)
-# Flat-first: the spectrum above is the cheap surface; promote to this relator
-# when level, scale, temporal scope, or standpoint matters (Principle 4).
-# =========================================================================== #
-
-gmeow:KnowledgeProficiency
-    a owl:Class, gufo:Kind ;
-    rdfs:subClassOf gufo:Relator ;
-    rdfs:label "Knowledge Proficiency"@x-gmeow-english ;
-    skos:definition "A reified, leveled depth-of-knowledge of an agent toward a subject — the gufo:Relator binding {agent} × {subject} × {level on a scale} × {interval}, mirroring expertise's gmeow:SkillProficiency. Founded on the gmeow:CognitiveState mode (documentation, not an axiom — Principle 12); the mode and this relator are DIFFERENT individuals, never double-typed. Flat-first: the four-level knowledge spectrum (gmeow:isAwareOf … gmeow:hasMastered) is the cheap surface; promote to a KnowledgeProficiency when level, scale, temporal scope, or standpoint matters. Suppression not deletion (Principle 10): lapsed knowledge is recorded as a closed interval / gmeow:displayable false, never deleted. Boundaries, documented WITHOUT axiom bridges (Principle 9): cognition (knowing, objectual) ⊥ epistemics (believing, propositional); cognition ⊥ expertise (knowing ⊥ can-do — gmeow:hasSkill ⊑ gmeow:knowsAbout touches the axes at one rung only)."@x-gmeow-english ;
-    skos:example "ex:lillithPythonKP a gmeow:KnowledgeProficiency ; gmeow:knowledgeProficiencyAgent ex:lillith ; gmeow:knowledgeProficiencySubject ex:python ; gmeow:knowledgeProficiencyLevel gmeow:knowledgeUnderstands ; gmeow:knowledgeProficiencyScale gmeow:scaleKnowledgeDepth ."@x-gmeow-english ;
-    gmeow:useWhen "Use when a depth-of-knowledge fact needs its own level, rating scale, temporal scope, or standpoint to be first-class — the reify-on-demand promotion of the flat knowledge spectrum (Principle 4), and the construct that records lapsed knowledge by closing its interval rather than deleting it (Principle 10)."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid for the 80% case where an agent simply knows a subject to some depth — assert the flat gmeow:isAwareOf … gmeow:hasMastered spectrum and promote only when context must be first-class; avoid double-typing it with the gmeow:CognitiveState mode (different individuals, Principle 12); avoid it for the can-do axis (that is expertise's gmeow:SkillProficiency)."@x-gmeow-english ;
-    gmeow:howToUse "Mint one KnowledgeProficiency per (agent, subject, level, scale) tuple, binding the five roles (gmeow:knowledgeProficiencyAgent / …Subject / …Level / …Scale / …Interval); read gmeow:pairsWith from the flat spectrum properties to surface the promotion path in gmeow describe, and carry contested or attributed depth on the statement layer via gmeow:accordingTo."@x-gmeow-english ;
-    gmeow:useForConsumer gmeow:consumerInternalArchive,
-        gmeow:consumerAgentMemory,
-        gmeow:consumerResearchQueue ;
-    gmeow:avoidForConsumer gmeow:consumerSchemaOrgJsonLd,
-        gmeow:consumerFoafExport ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/cognition> .
-
-# --- KnowledgeProficiency relator roles (functional, constitutive; interval non-functional) --- #
-
-gmeow:knowledgeProficiencyAgent
-    a owl:ObjectProperty, owl:FunctionalProperty ;
-    rdfs:domain gmeow:KnowledgeProficiency ;
-    rdfs:range gmeow:Agent ;
-    rdfs:label "knowledge proficiency agent"@x-gmeow-english ;
-    skos:definition "The agent whose depth of knowledge a knowledge-proficiency expresses. Functional — constitutive of the proficiency."@x-gmeow-english ;
-    skos:example "ex:lillithPythonKP gmeow:knowledgeProficiencyAgent ex:lillith ."@x-gmeow-english ;
-    gmeow:useWhen "Use to bind the agent player of a gmeow:KnowledgeProficiency relator — whose knowing the proficiency reifies."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid using it as a generic agent link (the flat spectrum's domain is already the agent) and avoid attaching it to anything but a gmeow:KnowledgeProficiency; it names a relator player, not a direct fact."@x-gmeow-english ;
-    gmeow:howToUse "Set gmeow:knowledgeProficiencyAgent once per relator (functional, constitutive), pairing it with gmeow:knowledgeProficiencySubject to fix the two essential players of the knowing relation."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/cognition> .
-
-gmeow:knowledgeProficiencySubject
-    a owl:ObjectProperty, owl:FunctionalProperty ;
-    rdfs:domain gmeow:KnowledgeProficiency ;
-    rdfs:range gmeow:Entity ;
-    rdfs:label "knowledge proficiency subject"@x-gmeow-english ;
-    skos:definition "The subject a knowledge-proficiency concerns (open range gmeow:Entity: a topic, person, place, or event). Functional — constitutive."@x-gmeow-english ;
-    skos:example "ex:lillithPythonKP gmeow:knowledgeProficiencySubject ex:python ."@x-gmeow-english ;
-    gmeow:useWhen "Use to bind the subject player of a gmeow:KnowledgeProficiency relator — the topic, person, place, or event the knowing is directed at (open range gmeow:Entity)."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid using it for a proposition the agent believes (that is the epistemics slice — cognition is objectual, not propositional) and avoid attaching it outside a gmeow:KnowledgeProficiency relator."@x-gmeow-english ;
-    gmeow:howToUse "Set gmeow:knowledgeProficiencySubject once per relator (functional), pairing it with gmeow:knowledgeProficiencyAgent; keep the subject a distinct entity, never a claim about it."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/cognition> .
-
-gmeow:knowledgeProficiencyLevel
-    a owl:ObjectProperty, owl:FunctionalProperty ;
-    rdfs:domain gmeow:KnowledgeProficiency ;
-    rdfs:range gmeow:KnowledgeLevel ;
-    rdfs:label "knowledge proficiency level"@x-gmeow-english ;
-    skos:definition "The attained ordinal depth of a knowledge-proficiency (a gmeow:KnowledgeLevel: knowledgeAware ≺ knowledgeKnowsAbout ≺ knowledgeUnderstands ≺ knowledgeMastered). Functional."@x-gmeow-english ;
-    skos:example "ex:lillithPythonKP gmeow:knowledgeProficiencyLevel gmeow:knowledgeUnderstands ."@x-gmeow-english ;
-    gmeow:useWhen "Use to bind the attained-depth player of a gmeow:KnowledgeProficiency relator — a gmeow:KnowledgeLevel value on whichever gmeow:knowledgeProficiencyScale the relator cites."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid pointing it at a gmeow:ProficiencyScale (that is the scale role) and avoid ordering relators by it; only the gmeow:KnowledgeLevel values are ordered, by gmeow:deeperThan — relators are never ordered by it."@x-gmeow-english ;
-    gmeow:howToUse "Set gmeow:knowledgeProficiencyLevel once per relator (functional) to a gmeow:KnowledgeLevel individual, and pair it with gmeow:knowledgeProficiencyScale so the level is read against the right framework (native, Bloom's, SOLO, Dreyfus)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/cognition> .
-
-gmeow:knowledgeProficiencyScale
-    a owl:ObjectProperty, owl:FunctionalProperty ;
-    rdfs:domain gmeow:KnowledgeProficiency ;
-    rdfs:range gmeow:ProficiencyScale ;
-    rdfs:label "knowledge proficiency scale"@x-gmeow-english ;
-    skos:definition "The framework a knowledge-proficiency level is measured on (the native gmeow:KnowledgeLevel scale, or Bloom's revised / SOLO / Dreyfus as alternates) — a gmeow:ProficiencyScale value (kernel). Functional."@x-gmeow-english ;
-    skos:example "ex:lillithPythonKP gmeow:knowledgeProficiencyScale gmeow:scaleKnowledgeDepth ."@x-gmeow-english ;
-    gmeow:useWhen "Use to bind the rating-framework player of a gmeow:KnowledgeProficiency relator — the gmeow:ProficiencyScale (kernel) its level is read against, defaulting to the native gmeow:scaleKnowledgeDepth and switching to Bloom's revised / SOLO / Dreyfus when a stated taxonomy is cited."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid pointing it at a gmeow:KnowledgeLevel (that is the level role) and avoid enforcing one canonical framework; no taxonomy is privileged (Principle 6), and cross-framework correspondence is a soft ledger, not an axiom (Principle 12)."@x-gmeow-english ;
-    gmeow:howToUse "Set gmeow:knowledgeProficiencyScale once per relator (functional) to a gmeow:ProficiencyScale individual; pair it with gmeow:knowledgeProficiencyLevel and read the level against this scale — the alignment ledger handles any cross-scale reading solver-side."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/cognition> .
-
-gmeow:knowledgeProficiencyInterval
-    a owl:ObjectProperty ;
-    rdfs:domain gmeow:KnowledgeProficiency ;
-    rdfs:range gmeow:TimeInterval ;
-    rdfs:label "knowledge proficiency interval"@x-gmeow-english ;
-    skos:definition "The interval over which a knowledge-proficiency held; closing it (rather than deleting) records lapsed knowledge (Principle 10). Non-functional. Lighter cases use gmeow:validFrom/validUntil on the statement."@x-gmeow-english ;
-    skos:example "ex:lillithPythonKP gmeow:knowledgeProficiencyInterval ex:2020to2024 ."@x-gmeow-english ;
-    gmeow:useWhen "Use to bind the temporal-scope player of a gmeow:KnowledgeProficiency relator when the period a depth held is itself first-class — and to record lapsed knowledge by CLOSING the interval rather than deleting the proficiency (Principle 10)."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid it for the lighter case where a single validity span suffices (use gmeow:validFrom / gmeow:validUntil on the statement instead) and avoid ever deleting a relator to express forgetting — close the interval or set gmeow:displayable false."@x-gmeow-english ;
-    gmeow:howToUse "Point gmeow:knowledgeProficiencyInterval at a gmeow:TimeInterval (non-functional — several spans may attach); close the interval to suppress lapsed knowledge while keeping what the agent knew when as a query (Principle 10)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/cognition> .
-
-# --- Relator mediation (EL someValuesFrom, open-world; closed-world cardinality is SHACL's) --- #
-
-gmeow:KnowledgeProficiency rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:knowledgeProficiencyAgent ;   owl:someValuesFrom gmeow:Agent ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:knowledgeProficiencySubject ; owl:someValuesFrom gmeow:Entity ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:knowledgeProficiencyLevel ;   owl:someValuesFrom gmeow:KnowledgeLevel ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:knowledgeProficiencyScale ;   owl:someValuesFrom gmeow:ProficiencyScale ] .
-
-# =========================================================================== #
-# KNOWLEDGE LEVEL — the ordinal depth axis (the kernel GranularityLevel idiom).
-# Four ordinal levels parallel to the flat spectrum but reusable as relator
-# values; gmeow:deeperThan is transitive ON LEVELS ONLY. Boundaries are vague —
-# only the order is asserted (Principle 12).
-# =========================================================================== #
-
-gmeow:KnowledgeLevel
-    a owl:Class, gufo:AbstractIndividualType ;
-    rdfs:subClassOf gufo:QualityValue ;
-    rdfs:label "Knowledge Level"@x-gmeow-english ;
-    skos:definition "The graded epistemic depth of a knowledge-proficiency — an OPEN, ordered value vocabulary (knowledgeAware ≺ knowledgeKnowsAbout ≺ knowledgeUnderstands ≺ knowledgeMastered), the kernel GranularityLevel pattern. Ordinally parallels the flat knowledge spectrum (gmeow:isAwareOf … gmeow:hasMastered) but as reusable values on the reified relator. gmeow:deeperThan is transitive ON LEVELS ONLY; the boundaries are deliberately vague (only the order is asserted)."@x-gmeow-english ;
-    skos:example "gmeow:knowledgeUnderstands a gmeow:KnowledgeLevel ; gmeow:deeperThan gmeow:knowledgeKnowsAbout ."@x-gmeow-english ;
-    gmeow:useWhen "Use as the value vocabulary for the depth role of a gmeow:KnowledgeProficiency relator — the ordinal rung (aware ≺ knows-about ≺ understands ≺ mastered) read on the native gmeow:scaleKnowledgeDepth, the reified parallel of the flat spectrum."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid minting per-level subclasses (levels are individuals, the kernel GranularityLevel idiom) and avoid reading the order as crisp cutoffs; only the order is asserted, the boundaries are deliberately vague. Reach for the generic gmeow:ProficiencyLevel only when rating on a non-knowledge framework."@x-gmeow-english ;
-    gmeow:howToUse "Reference the four seeded gmeow:KnowledgeLevel individuals from gmeow:knowledgeProficiencyLevel, order them with gmeow:deeperThan, and read gmeow:pairsWith to tie each to its flat-spectrum sibling; extend with new individuals if a domain needs a finer rung."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/cognition> .
-
-gmeow:deeperThan
-    a owl:ObjectProperty, owl:TransitiveProperty ;
-    rdfs:domain gmeow:KnowledgeLevel ;
-    rdfs:range gmeow:KnowledgeLevel ;
-    rdfs:label "deeper than"@x-gmeow-english ;
-    skos:definition "Orders the knowledge-depth axis: relates a knowledge level to a shallower one it surpasses (knowledgeMastered gmeow:deeperThan knowledgeUnderstands). Transitive ON LEVELS ONLY (the gmeow:coarserThan / gmeow:moreSevereThan pattern) — KnowledgeProficiency relators are never ordered by it."@x-gmeow-english ;
-    skos:example "gmeow:knowledgeMastered gmeow:deeperThan gmeow:knowledgeUnderstands ."@x-gmeow-english ;
-    gmeow:useWhen "Use to order two gmeow:KnowledgeLevel values so 'at or above a target depth' is well-defined for queries over reified proficiencies — the knowledge-axis analogue of the kernel gmeow:coarserThan ladder."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid asserting it between gmeow:KnowledgeProficiency relators (only the levels are ordered, never the relators) and avoid using it to order ratings on a foreign scale (Bloom's, SOLO); cross-framework correspondence is a soft ledger, not this transitive order."@x-gmeow-english ;
-    gmeow:howToUse "Assert gmeow:deeperThan from the deeper level to the shallower one and let transitivity build the four-rung ladder; query a relator's gmeow:knowledgeProficiencyLevel against this order to find every proficiency at or above a depth."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/cognition> .
-
-gmeow:knowledgeMastered a gmeow:KnowledgeLevel ; rdfs:label "knowledge: mastered"@x-gmeow-english ;
-    gmeow:deeperThan gmeow:knowledgeUnderstands ;
-    skos:definition "Deepest depth: expert command — can extend, teach, or innovate on the subject. Pairs with the gmeow:hasMastered spectrum level."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/cognition> .
-
-gmeow:knowledgeUnderstands a gmeow:KnowledgeLevel ; rdfs:label "knowledge: understands"@x-gmeow-english ;
-    gmeow:deeperThan gmeow:knowledgeKnowsAbout ;
-    skos:definition "Working comprehension — can reason with and apply the subject. Pairs with the gmeow:understands spectrum level."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/cognition> .
-
-gmeow:knowledgeKnowsAbout a gmeow:KnowledgeLevel ; rdfs:label "knowledge: knows about"@x-gmeow-english ;
-    gmeow:deeperThan gmeow:knowledgeAware ;
-    skos:definition "Familiarity — knows facts about the subject and can describe it. Pairs with the gmeow:knowsAbout spectrum level."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/cognition> .
-
-gmeow:knowledgeAware a gmeow:KnowledgeLevel ; rdfs:label "knowledge: aware"@x-gmeow-english ;
-    skos:definition "Faintest depth: bare awareness — knows the subject exists. Pairs with the gmeow:isAwareOf spectrum level."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/cognition> .
-
-# --- Flat-first / reify-on-demand pairings (machine-usable, kernel gmeow:pairsWith) --- #
-gmeow:isAwareOf   gmeow:pairsWith gmeow:KnowledgeProficiency .
-gmeow:knowsAbout  gmeow:pairsWith gmeow:KnowledgeProficiency .
-gmeow:understands gmeow:pairsWith gmeow:KnowledgeProficiency .
-gmeow:hasMastered gmeow:pairsWith gmeow:KnowledgeProficiency .
-
-# =========================================================================== #
-# ATTENTION, INTEREST, AND OBJECTUAL MEMORY — the further cognitive relations.
-# An agent records not only WHAT it knows but what it attends to, is curious
-# about, and remembers about a subject (the agent-memory flagship, Principle 15).
-# All Agent → Entity (open range), vantage-indexable via the statement layer.
-# Boundaries are documented WITHOUT axiom bridges (Principle 9).
-# =========================================================================== #
-
-gmeow:attendsTo
-    a owl:ObjectProperty ;
-    rdfs:domain gmeow:Agent ;
-    rdfs:range gmeow:Entity ;
-    rdfs:label "attends to"@x-gmeow-english ;
-    skos:definition "Directed attention or salience of an agent toward a subject — what the agent is currently focused on. NOT a goal: an attentional pull, not a teleology:Desire — the axes stay orthogonal and are never bridged by axiom (Principle 9). Whose attention it is rides gmeow:accordingTo on the statement (self-attributed vs observer-attributed coexist)."@x-gmeow-english ;
-    skos:example "ex:lillith gmeow:attendsTo ex:currentTask ."@x-gmeow-english ;
-    gmeow:useWhen "Use to record what an agent is currently focused on — directed attention or salience toward a subject, the recall/salience surface the agent-memory flagship reads (Principle 15)."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid using it for a wanted goal or intention (that is the teleology slice — attention is an attentional pull, not a conative mode, and the axes are never bridged by axiom, Principle 9) and avoid it for sustained motivational orientation (use gmeow:interestedIn)."@x-gmeow-english ;
-    gmeow:howToUse "Assert gmeow:attendsTo from agent to subject; carry whose-attention and when on the statement layer via gmeow:accordingTo (self- vs observer-attributed coexist), and keep it distinct from teleology goals by review, not axiom."@x-gmeow-english ;
-    gmeow:useForConsumer gmeow:consumerInternalArchive,
-        gmeow:consumerAgentMemory ;
-    gmeow:avoidForConsumer gmeow:consumerSchemaOrgJsonLd,
-        gmeow:consumerFoafExport ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/cognition> .
-
-gmeow:interestedIn
-    a owl:ObjectProperty ;
-    rdfs:domain gmeow:Agent ;
-    rdfs:range gmeow:Entity ;
-    rdfs:label "interested in"@x-gmeow-english ;
-    skos:definition "A motivational orientation of an agent toward a subject — sustained interest that makes the subject worth attending to. An attentional/affective pull, NOT a teleology:Desire (a wanted goal); the boundary is documented, never an axiom (Principle 9). Whose interest it is rides gmeow:accordingTo on the statement."@x-gmeow-english ;
-    skos:example "ex:lillith gmeow:interestedIn ex:ontologyEngineering ."@x-gmeow-english ;
-    gmeow:useWhen "Use for an agent's sustained motivational orientation toward a subject — durable interest that makes the subject worth attending to, broader than the momentary focus of gmeow:attendsTo."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid using it for a wanted goal (that is the teleology slice — interest is an affective pull, not a conative mode, never bridged by axiom, Principle 9); when the interest is specifically knowledge-seeking, use the narrower gmeow:curiousAbout."@x-gmeow-english ;
-    gmeow:howToUse "Assert gmeow:interestedIn from agent to subject (gmeow:curiousAbout specializes it for epistemic appetite); carry whose-interest on the statement layer via gmeow:accordingTo, and keep the boundary with teleology desire by review."@x-gmeow-english ;
-    gmeow:useForConsumer gmeow:consumerInternalArchive,
-        gmeow:consumerAgentMemory ;
-    gmeow:avoidForConsumer gmeow:consumerSchemaOrgJsonLd,
-        gmeow:consumerFoafExport ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/cognition> .
-
-gmeow:curiousAbout
-    a owl:ObjectProperty ;
-    rdfs:subPropertyOf gmeow:interestedIn ;
-    rdfs:domain gmeow:Agent ;
-    rdfs:range gmeow:Entity ;
-    rdfs:label "curious about"@x-gmeow-english ;
-    skos:definition "An exploratory, knowledge-seeking orientation toward a subject — interest aimed at closing a knowledge gap. A specialization of gmeow:interestedIn (curiosity is interest with an epistemic appetite). Still an attentional pull, not a teleology:Desire (Principle 9)."@x-gmeow-english ;
-    skos:example "ex:lillith gmeow:curiousAbout ex:categoryTheory ."@x-gmeow-english ;
-    gmeow:useWhen "Use for interest with an epistemic appetite — a knowledge-seeking orientation aimed at closing a gap — when the curiosity flavour matters beyond plain gmeow:interestedIn."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid it for sustained interest with no epistemic drive (use the parent gmeow:interestedIn), for actual attained knowledge (the gmeow:isAwareOf … gmeow:hasMastered spectrum), and for a goal (teleology); curiosity is still an attentional pull, not a conative mode (Principle 9)."@x-gmeow-english ;
-    gmeow:howToUse "Assert gmeow:curiousAbout from agent to subject; it entails gmeow:interestedIn by subproperty, and pairs naturally with the knowledge spectrum to model an agent curious about a subject it is only gmeow:isAwareOf."@x-gmeow-english ;
-    gmeow:useForConsumer gmeow:consumerInternalArchive,
-        gmeow:consumerAgentMemory,
-        gmeow:consumerResearchQueue ;
-    gmeow:avoidForConsumer gmeow:consumerSchemaOrgJsonLd,
-        gmeow:consumerFoafExport ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/cognition> .
-
-gmeow:remembers
-    a owl:ObjectProperty ;
-    rdfs:subPropertyOf gmeow:isAwareOf ;
-    rdfs:domain gmeow:Agent ;
-    rdfs:range gmeow:Entity ;
-    rdfs:label "remembers"@x-gmeow-english ;
-    skos:definition "Objectual memory-of: an agent remembers a SUBJECT (a person, place, topic, or event it has encountered). Sub-property of gmeow:isAwareOf — remembering a subject entails awareness of it. Distinct from gmeow:MemoryItem (the ai slice), which is a remembered CLAIM (propositional); this is remembering the thing, not a proposition about it. Bridge, documented NOT axiomatised (Principle 9): an agent's gmeow:remembers edges are typically backed by gmeow:MemoryItem observations about the subject and surfaced by the flagship's recall — see gmeow:memoryOf. Forgetting is suppression (gmeow:displayable false / closed scope), never deletion (Principle 10)."@x-gmeow-english ;
-    skos:example "ex:lillith gmeow:remembers ex:firstConference ."@x-gmeow-english ;
-    gmeow:useWhen "Use for objectual memory — an agent remembering a SUBJECT (a person, place, topic, or event it has encountered), the recall surface the agent-memory flagship reads (Principle 15); it entails gmeow:isAwareOf by subproperty."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid it for a remembered CLAIM or proposition (that is gmeow:MemoryItem, the ai slice — this is remembering the thing, not a fact about it) and avoid DELETING a remembers edge to model forgetting; suppress it with gmeow:displayable false or a closed scope (Principle 10)."@x-gmeow-english ;
-    gmeow:howToUse "Assert gmeow:remembers from agent to subject (it entails gmeow:isAwareOf); bridge to backing gmeow:MemoryItem observations through gmeow:memoryOf as documentation (no axiom, no ai-slice dependency), and model forgetting as suppression, never deletion."@x-gmeow-english ;
-    gmeow:useForConsumer gmeow:consumerInternalArchive,
-        gmeow:consumerAgentMemory ;
-    gmeow:avoidForConsumer gmeow:consumerSchemaOrgJsonLd,
-        gmeow:consumerFoafExport ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/cognition> .
-
-# Boundaries between the cognitive relations and neighbouring slices — documented,
-# never bridged by axiom (Principle 9).
-gmeow:attendsTo skos:scopeNote "Boundary: attention/interest (cognition) ⊥ intention (teleology). attendsTo / interestedIn / curiousAbout are attentional-affective pulls toward a subject; a teleology:Desire/Intention is a goal-directed conative mode aimed at a state of affairs. No owl:subPropertyOf or owl:disjointWith ties them — the separation is conceptual, enforced by review (Principle 9)."@x-gmeow-english .
-gmeow:remembers skos:scopeNote "Boundary: objectual gmeow:remembers (a remembered subject) ⊥ propositional gmeow:MemoryItem (a remembered claim, ai slice). The link is a documented bridge through gmeow:memoryOf, not an axiom; cognition asserts no dependency on the ai slice (Principle 9)."@x-gmeow-english .
-
-# =========================================================================== #
-# PROFICIENCY SCALES — the native knowledge-depth axis and its alternates.
-# A gmeow:KnowledgeProficiency carries both a gmeow:KnowledgeLevel (the ordinal
-# depth) and a gmeow:ProficiencyScale (the framework it is read against). The
-# native scale is the four-level depth axis; Bloom's revised taxonomy, SOLO, and
-# Dreyfus (gmeow:scaleDreyfus, declared in the languages extension) are alternate
-# frameworks reused via the same gmeow:ProficiencyScale class — NO canonical
-# framework is enforced (Principle 6). The cross-scale correspondence is recorded
-# in the alignment ledger (mappings/equivalences.ttl), never as an OWL axiom.
-# =========================================================================== #
-
-gmeow:scaleKnowledgeDepth a gmeow:ProficiencyScale ;
-    rdfs:label "knowledge depth"@x-gmeow-english ;
-    skos:definition "The native knowledge-depth scale: the framework on which the four ordinal gmeow:KnowledgeLevel values (knowledgeAware ≺ knowledgeKnowsAbout ≺ knowledgeUnderstands ≺ knowledgeMastered) are read. The default gmeow:knowledgeProficiencyScale when a proficiency is stated in GMEOW's own terms rather than an external taxonomy."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/cognition> .
-
-gmeow:scaleBloomRevised a gmeow:ProficiencyScale ;
-    rdfs:label "Bloom's revised taxonomy"@x-gmeow-english ;
-    skos:definition "An alternate knowledge-depth framework — Anderson & Krathwohl's revised Bloom's taxonomy (remember ≺ understand ≺ apply ≺ analyze ≺ evaluate ≺ create). Reused as a gmeow:ProficiencyScale; its correspondence to the native gmeow:KnowledgeLevel axis is recorded (softly) in the alignment ledger, not axiomatised."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/cognition> .
-
-gmeow:scaleSOLO a gmeow:ProficiencyScale ;
-    rdfs:label "SOLO taxonomy"@x-gmeow-english ;
-    skos:definition "An alternate knowledge-depth framework — Biggs & Collis's Structure of Observed Learning Outcomes (prestructural ≺ unistructural ≺ multistructural ≺ relational ≺ extended-abstract). Reused as a gmeow:ProficiencyScale; correspondence to the native axis lives in the alignment ledger, not as an axiom."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/cognition> .
-
-# --------------------------------------------------------------------------- #
-# Graph box role coverage (canonical explicit annotations).
-# --------------------------------------------------------------------------- #
-
-gmeow:CognitiveState gmeow:graphBoxRole gmeow:boxTBox .
-gmeow:KnowledgeLevel gmeow:graphBoxRole gmeow:boxTBox .
-gmeow:KnowledgeProficiency gmeow:graphBoxRole gmeow:boxTBox .
-gmeow:attendsTo gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:curiousAbout gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:deeperThan gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:hasMastered gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:interestedIn gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:isAwareOf gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:knowledgeAware gmeow:graphBoxRole gmeow:boxABox .
-gmeow:knowledgeKnowsAbout gmeow:graphBoxRole gmeow:boxABox .
-gmeow:knowledgeMastered gmeow:graphBoxRole gmeow:boxABox .
-gmeow:knowledgeProficiencyAgent gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:knowledgeProficiencyInterval gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:knowledgeProficiencyLevel gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:knowledgeProficiencyScale gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:knowledgeProficiencySubject gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:knowledgeUnderstands gmeow:graphBoxRole gmeow:boxABox .
-gmeow:knowsAbout gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:remembers gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:scaleBloomRevised gmeow:graphBoxRole gmeow:boxABox .
-gmeow:scaleKnowledgeDepth gmeow:graphBoxRole gmeow:boxABox .
-gmeow:scaleSOLO gmeow:graphBoxRole gmeow:boxABox .
-<https://blackcatinformatics.ca/gmeow/slices/cognition> gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .
-gmeow:understands gmeow:graphBoxRole gmeow:boxRBox .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/cognition> ;
+    rdfs:label "GMEOW Cognition Module"@x-gmeow-english ;
+    skos:definition "The GMEOW Cognition Module — an agent's objectual cognitive relations to subjects, beginning with the graded knowledge spectrum (issue: core/cognition slice)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxConfigBox ,
+        gmeow:boxTBox .

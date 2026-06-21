@@ -1,18 +1,493 @@
-@prefix gmeow:   <https://blackcatinformatics.ca/gmeow/> .
-@prefix gufo:    <http://purl.org/nemo/gufo#> .
-@prefix owl:     <http://www.w3.org/2002/07/owl#> .
-@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
-@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
-@prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix fno: <https://w3id.org/function/ontology#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix gufo: <http://purl.org/nemo/gufo#> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
-@prefix fno:     <https://w3id.org/function/ontology#> .
+
+gmeow:NotationProjectionProfile
+    a gufo:SubKind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> ;
+    rdfs:label "Notation Projection Profile"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:Profile ;
+    skos:definition "A closed descriptor schema for the lossy projection from frame-relative content to one notation system. Declares representable parameters, incurred losses, and the FnO projection function that performs the render (Principles 4, 11, 12)."@x-gmeow-english ;
+    skos:example "ex:staffProfile a gmeow:NotationProjectionProfile ; gmeow:notationSystemOf ex:westernStaff ; gmeow:declaredLoss ex:lossMicrotiming ."@x-gmeow-english ;
+    gmeow:avoidForConsumer gmeow:consumerWikidata ;
+    gmeow:avoidWhen "Avoid using it as the rendered output itself or as canonical data; the profile DESCRIBES the projection (its representable parameters, declared losses, and FnO function), it does not hold the projected surface form."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxConfigBox ,
+        gmeow:boxTBox ;
+    gmeow:howToUse "Mint one profile per notation system, name the system with gmeow:notationSystemOf, enumerate gmeow:representableParameter and gmeow:declaredLoss so the completeness gate sees every parameter as represented or accounted-for, and bind the render via gmeow:projectionFunction."@x-gmeow-english ;
+    gmeow:useForConsumer gmeow:consumerInternalArchive ,
+        gmeow:consumerResearchQueue ;
+    gmeow:useWhen "Use to declare, per notation system, exactly which canonical parameters its surface form can carry and which it drops — the explicit ledger that makes a notation's lossiness queryable rather than implicit (every notation is a lossy render, never the canonical object)."@x-gmeow-english .
+
+gmeow:NotationSystem
+    a gufo:SubKind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> ;
+    rdfs:label "Notation System"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:SymbolicSystem ;
+    skos:definition "A structured symbolic system with defined rules for representing information in a specific domain — mathematical notation, musical notation, stenography, phonetic transcription, or cryptographic encoding. Distinguished from a language by lacking independent generative syntax/semantics; parasitic on or encoding for an existing language or domain (Principle 9)."@x-gmeow-english ;
+    skos:example "ex:ipa a gmeow:NotationSystem ; gmeow:notationSystemKind gmeow:symbolicKindTranscription ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for a system with independent generative syntax and semantics (that is gmeow:Language / gmeow:FormalLanguage) and for loose conventions that do not rise to a defined notation; reserve the projection-profile machinery for declaring the losses, not this bare type."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Type the system as NotationSystem, tag its domain with gmeow:notationSystemKind, link the language or domain it serves via gmeow:notationSystemFor, and attach a gmeow:NotationProjectionProfile to declare what the surface form represents and loses."@x-gmeow-english ;
+    gmeow:useWhen "Use for a structured, rule-governed symbol system that renders content of an existing language or domain into a surface form — IPA, Western staff notation, Morse, a stenographic system — every one of which is a lossy projection of underlying frame-relative content."@x-gmeow-english .
+
+gmeow:NotationSystemUsage
+    a gufo:SubKind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> ;
+    rdfs:label "Notation System Usage"@x-gmeow-english ;
+    rdfs:subClassOf gufo:Relator ,
+        gmeow:Observation ,
+        [
+            a owl:Restriction ;
+            owl:onProperty gmeow:notationUsageTarget ;
+            owl:someValuesFrom gmeow:Entity ;
+        ] ,
+        [
+            a owl:Restriction ;
+            owl:onProperty gmeow:notationUsageNotationSystem ;
+            owl:someValuesFrom gmeow:NotationSystem ;
+        ] ,
+        [
+            a owl:Restriction ;
+            owl:onProperty gmeow:notationUsageRole ;
+            owl:someValuesFrom gmeow:NotationUsageRole ;
+        ] ,
+        [
+            a owl:Restriction ;
+            owl:onProperty gmeow:notationUsageInterval ;
+            owl:someValuesFrom gmeow:TimeInterval ;
+        ] ;
+    skos:definition "A reified, role- and period-scoped use of a notation system by an entity — an observation in the universal claim stack (observation-spine bridge): the gufo:Relator binding {entity} × {notation system} × {role} × {period}, mirroring names' NameUsage and languages' WritingSystemUsage. Lets a language use IPA for phonetic transcription, a musical work use Western staff notation, or a text use Morse code for encoding, each co-equally and standpoint-scoped."@x-gmeow-english ;
+    skos:example "ex:u a gmeow:NotationSystemUsage ; gmeow:notationUsageTarget ex:english ; gmeow:notationUsageNotationSystem ex:ipa ; gmeow:notationUsageRole gmeow:notationRoleTranscription ; gmeow:notationUsageInterval ex:since1888 ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid when a plain unscoped link suffices (use the flat gmeow:hasNotationSystem) and avoid stuffing the canonical content itself into the relator; the usage records THAT a notation is used, not the rendered surface form, which is a separate lossy projection."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Mint the relator and fill its four functional roles — gmeow:notationUsageTarget, gmeow:notationUsageNotationSystem, gmeow:notationUsageRole, gmeow:notationUsageInterval — then attach standpoint and confidence from the observation spine; pairs with gmeow:hasNotationSystem as the flat shortcut."@x-gmeow-english ;
+    gmeow:useWhen "Use when a notation system's use by an entity must be first-class — carrying role, period, standpoint, or confidence — so a language using IPA, a work using staff notation, and a text using Morse coexist co-equally without any one being privileged (the reify-on-demand half of the flat hasNotationSystem)."@x-gmeow-english .
+
+gmeow:NotationUsageRole
+    a gufo:AbstractIndividualType ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> ;
+    rdfs:label "Notation Usage Role"@x-gmeow-english ;
+    rdfs:subClassOf gufo:QualityValue ;
+    skos:definition "The role a notation system plays in a specific usage — a value, never an Entity subclass. Open-ended: new analytical frameworks may introduce further roles without ontology modification."@x-gmeow-english ;
+    skos:example "ex:u gmeow:notationUsageRole gmeow:notationRoleEncoding ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid minting per-role subclasses (roles are individuals) and avoid using a role to record the system's domain kind — that is gmeow:SymbolicSystemKind, an orthogonal axis (the same notation may play different roles in different usages)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Reference a seeded role individual from a gmeow:NotationSystemUsage via gmeow:notationUsageRole; add new individuals, not subclasses, when an analytical frame needs a finer role."@x-gmeow-english ;
+    gmeow:useWhen "Use as the value vocabulary for the function a notation serves in a particular use — transcription, encoding, representation, communication, expression, shorthand, cipher — referenced from a NotationSystemUsage via gmeow:notationUsageRole."@x-gmeow-english .
+
+gmeow:ProjectionFunction
+    a gufo:AbstractIndividualType ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> ;
+    rdfs:label "Projection Function"@x-gmeow-english ;
+    rdfs:subClassOf fno:Function ;
+    skos:definition "An FnO function that renders canonical frame-relative content to a notation system (Principle 12)."@x-gmeow-english ;
+    skos:example "ex:renderStaff a gmeow:ProjectionFunction ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting the function's output as canonical data and avoid hand-encoding the render math in the ontology; the function is a solver-layer reference (P12), declared here, executed there."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Type the function as ProjectionFunction (an fno:Function), reference it from a profile via gmeow:projectionFunction, and declare its input through gmeow:projectableExpression; the solver supplies the implementation."@x-gmeow-english ;
+    gmeow:useWhen "Use to type the executable FnO function that performs a notation render — the solver-layer object a projection profile points at to actually turn canonical content into a surface form."@x-gmeow-english .
+
+gmeow:ProjectionLoss
+    a gufo:AbstractIndividualType ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> ;
+    rdfs:label "Projection Loss"@x-gmeow-english ;
+    rdfs:subClassOf gufo:QualityValue ;
+    skos:definition "A kind of information loss incurred when canonical content is projected to a notation system. An open value vocabulary of individuals; never subclassed (Principle 9)."@x-gmeow-english ;
+    skos:example "ex:lossMicrotiming a gmeow:ProjectionLoss ; gmeow:accountsForParameter ex:microtiming ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid minting per-loss subclasses (losses are individuals) and avoid using a loss to record a parameter the notation DOES carry — that is gmeow:representableParameter, its complement."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Mint each loss as an individual, attach it to a profile via gmeow:declaredLoss, and point gmeow:accountsForParameter at the canonical parameter it omits or approximates so the completeness gate can reconcile it."@x-gmeow-english ;
+    gmeow:useWhen "Use as the value vocabulary for naming a specific kind of loss a notation incurs — quantization to 12-EDO, dropped microtiming, collapsed standpoint — so the lossiness of a projection profile is enumerable and gate-checkable."@x-gmeow-english .
+
+gmeow:SymbolicSystem
+    a gufo:Kind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> ;
+    rdfs:label "Symbolic System"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:InformationObject ;
+    skos:definition "A system of symbols, signs, or conventions used for communication, representation, or expression. Broad umbrella covering notation systems, gesture systems, emoji conventions, platform conventions, and other non-linguistic symbol systems. NOT a language by default; a standpointed claim may classify a symbolic system as a language (Principle 9)."@x-gmeow-english ;
+    skos:example "ex:morse a gmeow:SymbolicSystem ; gmeow:symbolicSystemKind gmeow:symbolicKindEncoding ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for a natural or formal language (use gmeow:Language / gmeow:FormalLanguage) and avoid asserting bare gmeow:SymbolicSystem when the structured gmeow:NotationSystem subkind applies; never silently treat the system as a language — that is a standpointed claim, not a default."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Type the system as SymbolicSystem (or the NotationSystem subkind), tag its domain with gmeow:symbolicSystemKind, and route any language-classification through the standpoint layer rather than asserting it globally."@x-gmeow-english ;
+    gmeow:useWhen "Use as the broad umbrella for any convention-bearing symbol system that is not itself a language — gesture systems, emoji conventions, platform conventions, and the parent domain when a fact ranges over symbol systems generally rather than the narrower structured-notation subkind."@x-gmeow-english .
+
+gmeow:SymbolicSystemKind
+    a gufo:AbstractIndividualType ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> ;
+    rdfs:label "Symbolic System Kind"@x-gmeow-english ;
+    rdfs:subClassOf gufo:QualityValue ;
+    skos:definition "The domain or kind of a symbolic or notation system — a value, never an Entity subclass. The seed list is an anchor, not a fence; new domains may introduce further kinds without ontology modification."@x-gmeow-english ;
+    skos:example "ex:abc a gmeow:SymbolicSystem ; gmeow:symbolicSystemKind gmeow:symbolicKindMusical ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid minting per-kind subclasses (kinds are individuals on an open vocabulary) and avoid using a kind to record the role a notation plays in a particular use — that is gmeow:NotationUsageRole, a distinct axis."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Reference a seeded kind individual from a system via gmeow:symbolicSystemKind (or gmeow:notationSystemKind); add new individuals, not subclasses, when a domain needs a finer kind."@x-gmeow-english ;
+    gmeow:useWhen "Use as the value vocabulary for the domain axis of a symbol system — mathematical, musical, stenographic, cryptographic, emoji, gesture, and so on — referenced from a system via gmeow:symbolicSystemKind."@x-gmeow-english .
+
+gmeow:accountsForParameter
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:ProjectionLoss ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> ;
+    rdfs:label "accounts for parameter"@x-gmeow-english ;
+    rdfs:range owl:Thing ;
+    skos:definition "The parameter whose omission or approximation is explained by this ProjectionLoss. Used by completeness gates to ensure every parameter is representable or accounted for. Range is open in core; domain slices restrict it."@x-gmeow-english ;
+    skos:example "ex:lossMicrotiming gmeow:accountsForParameter ex:microtiming ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using it for a parameter the notation represents (that is gmeow:representableParameter) and avoid leaving a declared loss without an accounted parameter, which defeats the gate."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Point each gmeow:ProjectionLoss at the parameter it explains via gmeow:accountsForParameter; domain slices restrict its open range to their parameter vocabulary."@x-gmeow-english ;
+    gmeow:useWhen "Use on a gmeow:ProjectionLoss to name the canonical parameter it omits or approximates — the link that lets the completeness gate pair every dropped parameter with an explicit loss."@x-gmeow-english .
+
+gmeow:declaredLoss
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:NotationProjectionProfile ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> ;
+    rdfs:label "declared loss"@x-gmeow-english ;
+    rdfs:range gmeow:ProjectionLoss ;
+    skos:definition "A loss that this notation system incurs when rendering canonical frame-relative content (e.g. quantization to 12-EDO, dropping microtiming)."@x-gmeow-english ;
+    skos:example "ex:staffProfile gmeow:declaredLoss ex:lossMicrotiming ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using it for a parameter the notation carries faithfully (that is gmeow:representableParameter) and avoid declaring a loss without pointing its gmeow:accountsForParameter at the parameter it omits."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Attach each gmeow:ProjectionLoss to the profile via gmeow:declaredLoss and link the loss to the omitted parameter with gmeow:accountsForParameter so the completeness gate can reconcile it."@x-gmeow-english ;
+    gmeow:useWhen "Use on a projection profile to declare a kind of information the notation drops or approximates when rendering canonical content — the explicit ledger entry that makes the projection's lossiness queryable rather than silent."@x-gmeow-english .
+
+gmeow:hasNotationProjectionProfile
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:NotationSystem ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> ;
+    rdfs:label "has notation projection profile"@x-gmeow-english ;
+    rdfs:range gmeow:NotationProjectionProfile ;
+    owl:inverseOf gmeow:notationSystemOf ;
+    skos:definition "Links a notation system to its GMEOW projection profile. Non-functional: a future notation system may have co-existing profiles for different consumer contexts."@x-gmeow-english ;
+    skos:example "ex:westernStaff gmeow:hasNotationProjectionProfile ex:staffProfile ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting it directly when gmeow:notationSystemOf is the natural direction (assert that and read this as its inverse) and avoid assuming a single profile — different consumer contexts may carry co-existing profiles."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxConfigBox ,
+        gmeow:boxRBox ;
+    gmeow:howToUse "Prefer asserting gmeow:notationSystemOf on the profile and reading gmeow:hasNotationProjectionProfile as its inverse; reach for it explicitly only in notation-rooted traversals."@x-gmeow-english ;
+    gmeow:useWhen "Use from a notation system to reach its projection profile(s) — the notation-rooted inverse of gmeow:notationSystemOf, natural when traversing from the surface form to its loss ledger."@x-gmeow-english .
+
+gmeow:hasNotationSystem
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Language ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> ;
+    rdfs:label "has notation system"@x-gmeow-english ;
+    rdfs:range gmeow:NotationSystem ;
+    skos:definition "A notation system used by a language — e.g. IPA for phonetic transcription, a stenographic system for shorthand. NON-FUNCTIONAL: a language may use many notation systems, and different standpoints may assign different notations (Principle 9)."@x-gmeow-english ;
+    skos:example "ex:english gmeow:hasNotationSystem ex:ipa ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid when the use must carry a role, period, or competing standpoints; promote to a gmeow:NotationSystemUsage relator there. Avoid making it functional — a language legitimately uses many notations."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Assert language gmeow:hasNotationSystem notation for the simple case; when the binding needs scoping, mint a gmeow:NotationSystemUsage instead and read this flat link as its projection (gmeow:pairsWith)."@x-gmeow-english ;
+    gmeow:useWhen "Use as the flat shortcut linking a language to a notation system it uses, when no role, period, standpoint, or confidence needs to be first-class — the unscoped half of the flat-first/reify-on-demand pair."@x-gmeow-english .
+
+gmeow:notationRoleCipher
+    a gmeow:NotationUsageRole ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> ;
+    rdfs:label "cipher"@x-gmeow-english ;
+    skos:definition "Using a notation to conceal or encrypt information."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:notationRoleCommunication
+    a gmeow:NotationUsageRole ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> ;
+    rdfs:label "communication"@x-gmeow-english ;
+    skos:definition "Using a notation as a medium of communication between agents."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:notationRoleEncoding
+    a gmeow:NotationUsageRole ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> ;
+    rdfs:label "encoding"@x-gmeow-english ;
+    skos:definition "Using a notation to map information into a different representation or signal system."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:notationRoleExpression
+    a gmeow:NotationUsageRole ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> ;
+    rdfs:label "expression"@x-gmeow-english ;
+    skos:definition "Using a notation for artistic, emotional, or creative expression."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:notationRoleRepresentation
+    a gmeow:NotationUsageRole ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> ;
+    rdfs:label "representation"@x-gmeow-english ;
+    skos:definition "Using a notation to represent domain-specific objects, relations, or structures."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:notationRoleShorthand
+    a gmeow:NotationUsageRole ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> ;
+    rdfs:label "shorthand"@x-gmeow-english ;
+    skos:definition "Using a notation for abbreviated or rapid recording of language or information."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:notationRoleTranscription
+    a gmeow:NotationUsageRole ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> ;
+    rdfs:label "transcription"@x-gmeow-english ;
+    skos:definition "Using a notation to record spoken or signed language in a structured form."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:notationSystemFor
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:NotationSystem ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> ;
+    rdfs:label "notation system for"@x-gmeow-english ;
+    rdfs:range gmeow:Language ;
+    skos:definition "The language(s) a notation system is used for or parasitic on. NON-FUNCTIONAL: a notation may serve multiple languages (e.g. IPA), and domain-specific notations (mathematical, musical) may have no single language target."@x-gmeow-english ;
+    skos:example "ex:ipa gmeow:notationSystemFor ex:english, ex:french ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for domain-specific notations (mathematical, musical) that have no single language target — leave it unasserted there — and avoid making it functional, since one notation may serve many languages."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Assert notation gmeow:notationSystemFor language; this is the language-targeted complement of gmeow:hasNotationSystem, used when the notation is the natural subject of the statement."@x-gmeow-english ;
+    gmeow:useWhen "Use to record which language(s) a notation system encodes or is parasitic on — the notation-rooted inverse direction, natural when describing the notation rather than the language."@x-gmeow-english .
+
+gmeow:notationSystemKind
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:NotationSystem ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> ;
+    rdfs:label "notation system kind"@x-gmeow-english ;
+    rdfs:range gmeow:SymbolicSystemKind ;
+    rdfs:subPropertyOf gmeow:symbolicSystemKind ;
+    skos:definition "The kind(s) of a notation system (gmeow:SymbolicSystemKind values). Subproperty of symbolicSystemKind for convenience; non-functional."@x-gmeow-english ;
+    skos:example "ex:ipa gmeow:notationSystemKind gmeow:symbolicKindTranscription ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid on a plain gmeow:SymbolicSystem that is not a notation system (use gmeow:symbolicSystemKind there) and avoid treating it as functional; multiple domains are stated as multiple values."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Point the notation system at one or more seeded gmeow:SymbolicSystemKind individuals; the generic gmeow:symbolicSystemKind follows by inheritance for consumers that query the broader axis."@x-gmeow-english ;
+    gmeow:useWhen "Use to tag a thing already typed gmeow:NotationSystem with its domain kind(s) — the narrower, intent-revealing form of gmeow:symbolicSystemKind for the structured-notation subkind."@x-gmeow-english .
+
+gmeow:notationSystemOf
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
+    rdfs:domain gmeow:NotationProjectionProfile ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> ;
+    rdfs:label "notation system of"@x-gmeow-english ;
+    rdfs:range gmeow:NotationSystem ;
+    skos:definition "The notation system that this projection profile describes. Functional: one notation system per projection profile."@x-gmeow-english ;
+    skos:example "ex:staffProfile gmeow:notationSystemOf ex:westernStaff ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting more than one notation system per profile (it is functional — a different system needs its own profile) and avoid pointing it at the canonical content being projected."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Set exactly one gmeow:notationSystemOf on each profile; read the reverse direction through its inverse gmeow:hasNotationProjectionProfile when starting from the notation system."@x-gmeow-english ;
+    gmeow:useWhen "Use to name the single notation system a gmeow:NotationProjectionProfile describes — the anchor that ties a loss/parameter ledger to the concrete surface form it characterizes."@x-gmeow-english .
+
+gmeow:notationUsageInterval
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
+    rdfs:domain gmeow:NotationSystemUsage ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> ;
+    rdfs:label "notation usage interval"@x-gmeow-english ;
+    rdfs:range gmeow:TimeInterval ;
+    skos:definition "The time interval over which the notation usage is asserted to hold. Functional per relator: one interval per NotationSystemUsage."@x-gmeow-english ;
+    skos:example "ex:u gmeow:notationUsageInterval ex:since1888 ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting more than one interval per relator (it is functional — a changed period is a new usage) and avoid putting raw dates here; point at a gmeow:TimeInterval."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Set exactly one gmeow:notationUsageInterval on each usage relator, pointing at a gmeow:TimeInterval, alongside the target, notation-system, and role roles."@x-gmeow-english ;
+    gmeow:useWhen "Use inside a gmeow:NotationSystemUsage relator to scope the single period over which the notation usage is asserted to hold — the temporal frame of this observation."@x-gmeow-english .
+
+gmeow:notationUsageNotationSystem
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
+    rdfs:domain gmeow:NotationSystemUsage ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> ;
+    rdfs:label "notation usage notation system"@x-gmeow-english ;
+    rdfs:range gmeow:NotationSystem ;
+    skos:definition "The notation system being used. Functional per relator: one notation system per NotationSystemUsage."@x-gmeow-english ;
+    skos:example "ex:u gmeow:notationUsageNotationSystem ex:ipa ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting more than one notation system per relator (it is functional — a second notation means a second usage) and avoid using it outside a NotationSystemUsage relator."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Set exactly one gmeow:notationUsageNotationSystem on each usage relator, pointing at the gmeow:NotationSystem, alongside the target, role, and interval roles."@x-gmeow-english ;
+    gmeow:useWhen "Use inside a gmeow:NotationSystemUsage relator to name the single notation system being used in this scoped, standpointed binding."@x-gmeow-english .
+
+gmeow:notationUsageRole
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
+    rdfs:domain gmeow:NotationSystemUsage ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> ;
+    rdfs:label "notation usage role"@x-gmeow-english ;
+    rdfs:range gmeow:NotationUsageRole ;
+    skos:definition "The role the notation plays in this usage — transcription, encoding, representation, communication, expression, shorthand, cipher. Functional per relator: one role per NotationSystemUsage."@x-gmeow-english ;
+    skos:example "ex:u gmeow:notationUsageRole gmeow:notationRoleTranscription ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting more than one role per relator (it is functional — distinct roles are distinct usages) and avoid confusing the role with the system's domain kind (gmeow:notationSystemKind)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Set exactly one gmeow:notationUsageRole on each usage relator, pointing at a seeded gmeow:NotationUsageRole individual, alongside the target, notation-system, and interval roles."@x-gmeow-english ;
+    gmeow:useWhen "Use inside a gmeow:NotationSystemUsage relator to name the single function the notation serves here — transcription, encoding, cipher, and so on — drawn from gmeow:NotationUsageRole."@x-gmeow-english .
+
+gmeow:notationUsageTarget
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
+    rdfs:domain gmeow:NotationSystemUsage ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> ;
+    rdfs:label "notation usage target"@x-gmeow-english ;
+    rdfs:range gmeow:Entity ;
+    rdfs:subPropertyOf gmeow:observedFeature ;
+    skos:definition "The entity that uses the notation system — a language, lexical form, expression, work, or information object. Functional per relator: one target per NotationSystemUsage."@x-gmeow-english ;
+    skos:example "ex:u gmeow:notationUsageTarget ex:english ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting more than one target per relator (it is functional — mint a second usage instead) and avoid using it outside a NotationSystemUsage; for the unscoped language case use the flat gmeow:hasNotationSystem."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Set exactly one gmeow:notationUsageTarget on each usage relator alongside its notation-system, role, and interval roles; the observation spine reads it as the observed feature."@x-gmeow-english ;
+    gmeow:useWhen "Use inside a gmeow:NotationSystemUsage relator to name the single entity doing the using — the observed feature of this notation observation, subsumed under gmeow:observedFeature."@x-gmeow-english .
+
+gmeow:projectableExpression
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:NotationProjectionProfile ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> ;
+    rdfs:label "projectable expression"@x-gmeow-english ;
+    rdfs:range owl:Thing ;
+    skos:definition "A solver-bound input property: the entity being projected through a NotationProjectionProfile. Used by FnO projection functions to declare their input type; not asserted as canonical data (Principle 12). Range is open in core; domain slices restrict it."@x-gmeow-english ;
+    skos:example "ex:staffProfile gmeow:projectableExpression ex:musicalExpression ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting it as canonical content (it is a solver-layer input declaration, P12) and avoid confusing it with the parameters a profile represents or loses; this names the whole projected expression, not its parameters."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Declare the input type on the profile via gmeow:projectableExpression so the gmeow:projectionFunction knows what it consumes; domain slices restrict its open range to their expression types."@x-gmeow-english ;
+    gmeow:useWhen "Use on a projection profile to declare the type of canonical entity the FnO projection function takes as input — the solver-bound hook that names what gets rendered, without asserting the input as stored data."@x-gmeow-english .
+
+gmeow:projectionFunction
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:NotationProjectionProfile ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> ;
+    rdfs:label "projection function"@x-gmeow-english ;
+    rdfs:range gmeow:ProjectionFunction ;
+    skos:definition "An FnO function reference that renders canonical content to this notation system (Principle 12)."@x-gmeow-english ;
+    skos:example "ex:staffProfile gmeow:projectionFunction ex:renderStaff ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid encoding the render logic in the ontology or treating the function's output as canonical data; this property references a solver-layer function, it does not execute or store its result."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Point the profile at a gmeow:ProjectionFunction via gmeow:projectionFunction and declare the function's input through gmeow:projectableExpression; the solver supplies the implementation."@x-gmeow-english ;
+    gmeow:useWhen "Use on a projection profile to bind the FnO function that actually performs the render from canonical content to this notation's surface form — the executable hook the solver layer invokes (P12)."@x-gmeow-english .
+
+gmeow:representableParameter
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:NotationProjectionProfile ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> ;
+    rdfs:label "representable parameter"@x-gmeow-english ;
+    rdfs:range owl:Thing ;
+    skos:definition "A parameter that this notation system can represent without loss (e.g. pitch in a 12-EDO-aware staff notation). Range is kept open in the core framework; domain-specific slices restrict it to their parameter vocabularies."@x-gmeow-english ;
+    skos:example "ex:staffProfile gmeow:representableParameter ex:pitch ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using it for a parameter the notation drops or approximates (that is gmeow:declaredLoss with gmeow:accountsForParameter) and avoid leaving a known parameter neither represented nor accounted-for — the gate flags that gap."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "List each losslessly-carried parameter on the profile via gmeow:representableParameter; domain slices restrict its open range to their own parameter vocabulary."@x-gmeow-english ;
+    gmeow:useWhen "Use on a projection profile to enumerate a canonical parameter the notation carries faithfully — pitch, duration, dynamics — so the completeness gate can confirm every parameter is either represented here or accounted for as a loss."@x-gmeow-english .
+
+gmeow:smuflCodepoint
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:NotationSystem ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> ;
+    rdfs:label "SMuFL codepoint"@x-gmeow-english ;
+    rdfs:range xsd:string ;
+    skos:definition "A Unicode codepoint reference in the Standard Music Font Layout (SMuFL) specification that identifies a glyph used by this notation system. Multiple codepoints may be asserted as multiple triples."@x-gmeow-english ;
+    skos:example "ex:westernStaff gmeow:smuflCodepoint \"U+E050\" ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using it for non-SMuFL or non-musical glyph references and avoid treating a single triple as exhaustive — a notation system carries many codepoints, one per glyph."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Attach each SMuFL codepoint string (e.g. \"U+E050\") to the gmeow:NotationSystem via gmeow:smuflCodepoint; repeat the triple for each glyph the system uses."@x-gmeow-english ;
+    gmeow:useWhen "Use to record the SMuFL Unicode codepoint(s) for glyphs a music notation system uses, so a renderer can map canonical content to concrete font glyphs; assert several as several triples."@x-gmeow-english .
+
+gmeow:symbolicKindCommunicationConvention
+    a gmeow:SymbolicSystemKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> ;
+    rdfs:label "communication convention"@x-gmeow-english ;
+    skos:definition "A broad social or cultural convention for communication that does not rise to the level of a full language or notation system."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:symbolicKindCryptographic
+    a gmeow:SymbolicSystemKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> ;
+    rdfs:label "cryptographic"@x-gmeow-english ;
+    skos:definition "A transform scheme for concealing or securing information through encryption or encoding."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:symbolicKindEmoji
+    a gmeow:SymbolicSystemKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> ;
+    rdfs:label "emoji"@x-gmeow-english ;
+    skos:definition "A convention-based system of pictographic symbols used in digital communication."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:symbolicKindEncoding
+    a gmeow:SymbolicSystemKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> ;
+    rdfs:label "encoding"@x-gmeow-english ;
+    skos:definition "A scheme for mapping information from one representation to another."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:symbolicKindGesture
+    a gmeow:SymbolicSystemKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> ;
+    rdfs:label "gesture"@x-gmeow-english ;
+    skos:definition "A system of physical gestures or movements used for communication or expression."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:symbolicKindMathematical
+    a gmeow:SymbolicSystemKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> ;
+    rdfs:label "mathematical"@x-gmeow-english ;
+    skos:definition "A notation system for representing mathematical objects, relations, and proofs."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:symbolicKindMusical
+    a gmeow:SymbolicSystemKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> ;
+    rdfs:label "musical"@x-gmeow-english ;
+    skos:definition "A notation system for representing musical structure, performance, or sound."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:symbolicKindPlatformConvention
+    a gmeow:SymbolicSystemKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> ;
+    rdfs:label "platform convention"@x-gmeow-english ;
+    skos:definition "A symbol or communication convention specific to a platform, community, or digital environment."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:symbolicKindStenographic
+    a gmeow:SymbolicSystemKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> ;
+    rdfs:label "stenographic"@x-gmeow-english ;
+    skos:definition "A shorthand notation system for rapid recording of spoken language."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:symbolicKindTranscription
+    a gmeow:SymbolicSystemKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> ;
+    rdfs:label "transcription"@x-gmeow-english ;
+    skos:definition "A notation system for recording spoken or signed language in a structured visual form."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:symbolicSystemKind
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:SymbolicSystem ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> ;
+    rdfs:label "symbolic system kind"@x-gmeow-english ;
+    rdfs:range gmeow:SymbolicSystemKind ;
+    skos:definition "The kind(s) of a symbolic system (gmeow:SymbolicSystemKind values). Non-functional — a system may serve multiple domains simultaneously."@x-gmeow-english ;
+    skos:example "ex:braille gmeow:symbolicSystemKind gmeow:symbolicKindTranscription, gmeow:symbolicKindEncoding ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid using it for the role a notation plays in a particular use (that is gmeow:notationUsageRole) and avoid making it functional; a system serving multiple domains states multiple kinds rather than collapsing them."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Point the system at one or more seeded gmeow:SymbolicSystemKind individuals; for a system already typed gmeow:NotationSystem prefer the gmeow:notationSystemKind subproperty so the narrower domain is explicit."@x-gmeow-english ;
+    gmeow:useWhen "Use to tag a symbolic system with the domain(s) it serves — mathematical, musical, stenographic, emoji, gesture — asserting as many as apply, since one system may span several."@x-gmeow-english .
+
+gmeow:writingSystemAsNotation
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:WritingSystem ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> ;
+    rdfs:label "writing system as notation"@x-gmeow-english ;
+    rdfs:range gmeow:NotationSystem ;
+    skos:definition "When a writing system is also a notation system — e.g. Braille as a tactile notation, or a bespoke conlang script that doubles as a featural notation. NON-FUNCTIONAL: a writing system may be classified as a notation by some standpoints and not by others (Principle 9)."@x-gmeow-english ;
+    skos:example "ex:braille gmeow:writingSystemAsNotation ex:brailleNotation ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid asserting it as a global fact when only some standpoints treat the script as a notation; route the contested classification through the standpoint layer, and never make it functional."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Link the gmeow:WritingSystem to the gmeow:NotationSystem it doubles as; keep any disputed classification standpoint-scoped per Principle 9 rather than baking it into the core graph."@x-gmeow-english ;
+    gmeow:useWhen "Use to bridge a writing system to its notation-system facet when a script doubles as a notation — Braille as a tactile notation, a featural conlang script — so both classifications are recorded without identity clash."@x-gmeow-english .
 
 <https://blackcatinformatics.ca/gmeow/slices/notation>
     a owl:Ontology ;
-    rdfs:label "GMEOW Notation and Symbolic Systems Module"@x-gmeow-english ;
-    skos:definition "The GMEOW Notation and Symbolic Systems Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> ;
+    dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;
     rdfs:comment """Symbolic systems, notation systems, and their usage — the
     representational layer beneath and alongside natural/formal languages.
     Models mathematical notation, musical notation, emoji conventions, gesture
@@ -20,531 +495,9 @@
     symbol systems as first-class information objects. A symbolic system is
     NOT a language by default; a standpointed claim may reclassify it
     (Principle 9). Builds on the languages module and the lexicon
-    module."""@x-gmeow-english;
-    dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
-
-# =========================================================================== #
-# CORE CLASSES
-# =========================================================================== #
-
-gmeow:SymbolicSystem
-    a owl:Class, gufo:Kind ;
-    rdfs:subClassOf gmeow:InformationObject ;
-    rdfs:label "Symbolic System"@x-gmeow-english ;
-    skos:definition "A system of symbols, signs, or conventions used for communication, representation, or expression. Broad umbrella covering notation systems, gesture systems, emoji conventions, platform conventions, and other non-linguistic symbol systems. NOT a language by default; a standpointed claim may classify a symbolic system as a language (Principle 9)."@x-gmeow-english ;
-    skos:example "ex:morse a gmeow:SymbolicSystem ; gmeow:symbolicSystemKind gmeow:symbolicKindEncoding ."@x-gmeow-english ;
-    gmeow:useWhen "Use as the broad umbrella for any convention-bearing symbol system that is not itself a language — gesture systems, emoji conventions, platform conventions, and the parent domain when a fact ranges over symbol systems generally rather than the narrower structured-notation subkind."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid for a natural or formal language (use gmeow:Language / gmeow:FormalLanguage) and avoid asserting bare gmeow:SymbolicSystem when the structured gmeow:NotationSystem subkind applies; never silently treat the system as a language — that is a standpointed claim, not a default."@x-gmeow-english ;
-    gmeow:howToUse "Type the system as SymbolicSystem (or the NotationSystem subkind), tag its domain with gmeow:symbolicSystemKind, and route any language-classification through the standpoint layer rather than asserting it globally."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> .
-
-gmeow:NotationSystem
-    a owl:Class, gufo:SubKind ;
-    rdfs:subClassOf gmeow:SymbolicSystem ;
-    rdfs:label "Notation System"@x-gmeow-english ;
-    skos:definition "A structured symbolic system with defined rules for representing information in a specific domain — mathematical notation, musical notation, stenography, phonetic transcription, or cryptographic encoding. Distinguished from a language by lacking independent generative syntax/semantics; parasitic on or encoding for an existing language or domain (Principle 9)."@x-gmeow-english ;
-    skos:example "ex:ipa a gmeow:NotationSystem ; gmeow:notationSystemKind gmeow:symbolicKindTranscription ."@x-gmeow-english ;
-    gmeow:useWhen "Use for a structured, rule-governed symbol system that renders content of an existing language or domain into a surface form — IPA, Western staff notation, Morse, a stenographic system — every one of which is a lossy projection of underlying frame-relative content."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid for a system with independent generative syntax and semantics (that is gmeow:Language / gmeow:FormalLanguage) and for loose conventions that do not rise to a defined notation; reserve the projection-profile machinery for declaring the losses, not this bare type."@x-gmeow-english ;
-    gmeow:howToUse "Type the system as NotationSystem, tag its domain with gmeow:notationSystemKind, link the language or domain it serves via gmeow:notationSystemFor, and attach a gmeow:NotationProjectionProfile to declare what the surface form represents and loses."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> .
-
-gmeow:NotationSystemUsage
-    a owl:Class, gufo:SubKind ;
-    rdfs:subClassOf gmeow:Observation, gufo:Relator ;
-    rdfs:label "Notation System Usage"@x-gmeow-english ;
-    skos:definition "A reified, role- and period-scoped use of a notation system by an entity — an observation in the universal claim stack (observation-spine bridge): the gufo:Relator binding {entity} × {notation system} × {role} × {period}, mirroring names' NameUsage and languages' WritingSystemUsage. Lets a language use IPA for phonetic transcription, a musical work use Western staff notation, or a text use Morse code for encoding, each co-equally and standpoint-scoped."@x-gmeow-english;
-    skos:example "ex:u a gmeow:NotationSystemUsage ; gmeow:notationUsageTarget ex:english ; gmeow:notationUsageNotationSystem ex:ipa ; gmeow:notationUsageRole gmeow:notationRoleTranscription ; gmeow:notationUsageInterval ex:since1888 ."@x-gmeow-english ;
-    gmeow:useWhen "Use when a notation system's use by an entity must be first-class — carrying role, period, standpoint, or confidence — so a language using IPA, a work using staff notation, and a text using Morse coexist co-equally without any one being privileged (the reify-on-demand half of the flat hasNotationSystem)."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid when a plain unscoped link suffices (use the flat gmeow:hasNotationSystem) and avoid stuffing the canonical content itself into the relator; the usage records THAT a notation is used, not the rendered surface form, which is a separate lossy projection."@x-gmeow-english ;
-    gmeow:howToUse "Mint the relator and fill its four functional roles — gmeow:notationUsageTarget, gmeow:notationUsageNotationSystem, gmeow:notationUsageRole, gmeow:notationUsageInterval — then attach standpoint and confidence from the observation spine; pairs with gmeow:hasNotationSystem as the flat shortcut."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> .
-
-# EL axiomatisation: every NotationSystemUsage mediates at least one target, one notation system, one role, and one interval.
-gmeow:NotationSystemUsage rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:notationUsageTarget ; owl:someValuesFrom gmeow:Entity ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:notationUsageNotationSystem ; owl:someValuesFrom gmeow:NotationSystem ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:notationUsageRole ; owl:someValuesFrom gmeow:NotationUsageRole ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:notationUsageInterval ; owl:someValuesFrom gmeow:TimeInterval ] .
-
-# =========================================================================== #
-# PROPERTIES — SymbolicSystem / NotationSystem
-# =========================================================================== #
-
-gmeow:symbolicSystemKind
-    a owl:ObjectProperty ;
-    rdfs:domain gmeow:SymbolicSystem ;
-    rdfs:range gmeow:SymbolicSystemKind ;
-    rdfs:label "symbolic system kind"@x-gmeow-english ;
-    skos:definition "The kind(s) of a symbolic system (gmeow:SymbolicSystemKind values). Non-functional — a system may serve multiple domains simultaneously."@x-gmeow-english ;
-    skos:example "ex:braille gmeow:symbolicSystemKind gmeow:symbolicKindTranscription, gmeow:symbolicKindEncoding ."@x-gmeow-english ;
-    gmeow:useWhen "Use to tag a symbolic system with the domain(s) it serves — mathematical, musical, stenographic, emoji, gesture — asserting as many as apply, since one system may span several."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid using it for the role a notation plays in a particular use (that is gmeow:notationUsageRole) and avoid making it functional; a system serving multiple domains states multiple kinds rather than collapsing them."@x-gmeow-english ;
-    gmeow:howToUse "Point the system at one or more seeded gmeow:SymbolicSystemKind individuals; for a system already typed gmeow:NotationSystem prefer the gmeow:notationSystemKind subproperty so the narrower domain is explicit."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> .
-
-gmeow:notationSystemKind
-    a owl:ObjectProperty ;
-    rdfs:subPropertyOf gmeow:symbolicSystemKind ;
-    rdfs:domain gmeow:NotationSystem ;
-    rdfs:range gmeow:SymbolicSystemKind ;
-    rdfs:label "notation system kind"@x-gmeow-english ;
-    skos:definition "The kind(s) of a notation system (gmeow:SymbolicSystemKind values). Subproperty of symbolicSystemKind for convenience; non-functional."@x-gmeow-english ;
-    skos:example "ex:ipa gmeow:notationSystemKind gmeow:symbolicKindTranscription ."@x-gmeow-english ;
-    gmeow:useWhen "Use to tag a thing already typed gmeow:NotationSystem with its domain kind(s) — the narrower, intent-revealing form of gmeow:symbolicSystemKind for the structured-notation subkind."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid on a plain gmeow:SymbolicSystem that is not a notation system (use gmeow:symbolicSystemKind there) and avoid treating it as functional; multiple domains are stated as multiple values."@x-gmeow-english ;
-    gmeow:howToUse "Point the notation system at one or more seeded gmeow:SymbolicSystemKind individuals; the generic gmeow:symbolicSystemKind follows by inheritance for consumers that query the broader axis."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> .
-
-gmeow:hasNotationSystem
-    a owl:ObjectProperty ;
-    rdfs:domain gmeow:Language ;
-    rdfs:range gmeow:NotationSystem ;
-    rdfs:label "has notation system"@x-gmeow-english ;
-    skos:definition "A notation system used by a language — e.g. IPA for phonetic transcription, a stenographic system for shorthand. NON-FUNCTIONAL: a language may use many notation systems, and different standpoints may assign different notations (Principle 9)."@x-gmeow-english ;
-    skos:example "ex:english gmeow:hasNotationSystem ex:ipa ."@x-gmeow-english ;
-    gmeow:useWhen "Use as the flat shortcut linking a language to a notation system it uses, when no role, period, standpoint, or confidence needs to be first-class — the unscoped half of the flat-first/reify-on-demand pair."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid when the use must carry a role, period, or competing standpoints; promote to a gmeow:NotationSystemUsage relator there. Avoid making it functional — a language legitimately uses many notations."@x-gmeow-english ;
-    gmeow:howToUse "Assert language gmeow:hasNotationSystem notation for the simple case; when the binding needs scoping, mint a gmeow:NotationSystemUsage instead and read this flat link as its projection (gmeow:pairsWith)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> .
-
-gmeow:notationSystemFor
-    a owl:ObjectProperty ;
-    rdfs:domain gmeow:NotationSystem ;
-    rdfs:range gmeow:Language ;
-    rdfs:label "notation system for"@x-gmeow-english ;
-    skos:definition "The language(s) a notation system is used for or parasitic on. NON-FUNCTIONAL: a notation may serve multiple languages (e.g. IPA), and domain-specific notations (mathematical, musical) may have no single language target."@x-gmeow-english ;
-    skos:example "ex:ipa gmeow:notationSystemFor ex:english, ex:french ."@x-gmeow-english ;
-    gmeow:useWhen "Use to record which language(s) a notation system encodes or is parasitic on — the notation-rooted inverse direction, natural when describing the notation rather than the language."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid for domain-specific notations (mathematical, musical) that have no single language target — leave it unasserted there — and avoid making it functional, since one notation may serve many languages."@x-gmeow-english ;
-    gmeow:howToUse "Assert notation gmeow:notationSystemFor language; this is the language-targeted complement of gmeow:hasNotationSystem, used when the notation is the natural subject of the statement."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> .
-
-gmeow:writingSystemAsNotation
-    a owl:ObjectProperty ;
-    rdfs:domain gmeow:WritingSystem ;
-    rdfs:range gmeow:NotationSystem ;
-    rdfs:label "writing system as notation"@x-gmeow-english ;
-    skos:definition "When a writing system is also a notation system — e.g. Braille as a tactile notation, or a bespoke conlang script that doubles as a featural notation. NON-FUNCTIONAL: a writing system may be classified as a notation by some standpoints and not by others (Principle 9)."@x-gmeow-english ;
-    skos:example "ex:braille gmeow:writingSystemAsNotation ex:brailleNotation ."@x-gmeow-english ;
-    gmeow:useWhen "Use to bridge a writing system to its notation-system facet when a script doubles as a notation — Braille as a tactile notation, a featural conlang script — so both classifications are recorded without identity clash."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid asserting it as a global fact when only some standpoints treat the script as a notation; route the contested classification through the standpoint layer, and never make it functional."@x-gmeow-english ;
-    gmeow:howToUse "Link the gmeow:WritingSystem to the gmeow:NotationSystem it doubles as; keep any disputed classification standpoint-scoped per Principle 9 rather than baking it into the core graph."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> .
-
-# =========================================================================== #
-# PROPERTIES — NotationSystemUsage (functional relator roles)
-# =========================================================================== #
-
-gmeow:notationUsageTarget
-    a owl:ObjectProperty, owl:FunctionalProperty ;
-    rdfs:domain gmeow:NotationSystemUsage ;
-    rdfs:range gmeow:Entity ;
-    rdfs:label "notation usage target"@x-gmeow-english ;
-    skos:definition "The entity that uses the notation system — a language, lexical form, expression, work, or information object. Functional per relator: one target per NotationSystemUsage."@x-gmeow-english ;
-    skos:example "ex:u gmeow:notationUsageTarget ex:english ."@x-gmeow-english ;
-    gmeow:useWhen "Use inside a gmeow:NotationSystemUsage relator to name the single entity doing the using — the observed feature of this notation observation, subsumed under gmeow:observedFeature."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid asserting more than one target per relator (it is functional — mint a second usage instead) and avoid using it outside a NotationSystemUsage; for the unscoped language case use the flat gmeow:hasNotationSystem."@x-gmeow-english ;
-    gmeow:howToUse "Set exactly one gmeow:notationUsageTarget on each usage relator alongside its notation-system, role, and interval roles; the observation spine reads it as the observed feature."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> .
-
-gmeow:notationUsageNotationSystem
-    a owl:ObjectProperty, owl:FunctionalProperty ;
-    rdfs:domain gmeow:NotationSystemUsage ;
-    rdfs:range gmeow:NotationSystem ;
-    rdfs:label "notation usage notation system"@x-gmeow-english ;
-    skos:definition "The notation system being used. Functional per relator: one notation system per NotationSystemUsage."@x-gmeow-english ;
-    skos:example "ex:u gmeow:notationUsageNotationSystem ex:ipa ."@x-gmeow-english ;
-    gmeow:useWhen "Use inside a gmeow:NotationSystemUsage relator to name the single notation system being used in this scoped, standpointed binding."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid asserting more than one notation system per relator (it is functional — a second notation means a second usage) and avoid using it outside a NotationSystemUsage relator."@x-gmeow-english ;
-    gmeow:howToUse "Set exactly one gmeow:notationUsageNotationSystem on each usage relator, pointing at the gmeow:NotationSystem, alongside the target, role, and interval roles."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> .
-
-gmeow:notationUsageRole
-    a owl:ObjectProperty, owl:FunctionalProperty ;
-    rdfs:domain gmeow:NotationSystemUsage ;
-    rdfs:range gmeow:NotationUsageRole ;
-    rdfs:label "notation usage role"@x-gmeow-english ;
-    skos:definition "The role the notation plays in this usage — transcription, encoding, representation, communication, expression, shorthand, cipher. Functional per relator: one role per NotationSystemUsage."@x-gmeow-english ;
-    skos:example "ex:u gmeow:notationUsageRole gmeow:notationRoleTranscription ."@x-gmeow-english ;
-    gmeow:useWhen "Use inside a gmeow:NotationSystemUsage relator to name the single function the notation serves here — transcription, encoding, cipher, and so on — drawn from gmeow:NotationUsageRole."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid asserting more than one role per relator (it is functional — distinct roles are distinct usages) and avoid confusing the role with the system's domain kind (gmeow:notationSystemKind)."@x-gmeow-english ;
-    gmeow:howToUse "Set exactly one gmeow:notationUsageRole on each usage relator, pointing at a seeded gmeow:NotationUsageRole individual, alongside the target, notation-system, and interval roles."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> .
-
-gmeow:notationUsageInterval
-    a owl:ObjectProperty, owl:FunctionalProperty ;
-    rdfs:domain gmeow:NotationSystemUsage ;
-    rdfs:range gmeow:TimeInterval ;
-    rdfs:label "notation usage interval"@x-gmeow-english ;
-    skos:definition "The time interval over which the notation usage is asserted to hold. Functional per relator: one interval per NotationSystemUsage."@x-gmeow-english ;
-    skos:example "ex:u gmeow:notationUsageInterval ex:since1888 ."@x-gmeow-english ;
-    gmeow:useWhen "Use inside a gmeow:NotationSystemUsage relator to scope the single period over which the notation usage is asserted to hold — the temporal frame of this observation."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid asserting more than one interval per relator (it is functional — a changed period is a new usage) and avoid putting raw dates here; point at a gmeow:TimeInterval."@x-gmeow-english ;
-    gmeow:howToUse "Set exactly one gmeow:notationUsageInterval on each usage relator, pointing at a gmeow:TimeInterval, alongside the target, notation-system, and role roles."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> .
-
-# =========================================================================== #
-# VALUE VOCABULARIES
-# =========================================================================== #
-
-gmeow:SymbolicSystemKind
-    a owl:Class, gufo:AbstractIndividualType ;
-    rdfs:subClassOf gufo:QualityValue ;
-    rdfs:label "Symbolic System Kind"@x-gmeow-english ;
-    skos:definition "The domain or kind of a symbolic or notation system — a value, never an Entity subclass. The seed list is an anchor, not a fence; new domains may introduce further kinds without ontology modification."@x-gmeow-english ;
-    skos:example "ex:abc a gmeow:SymbolicSystem ; gmeow:symbolicSystemKind gmeow:symbolicKindMusical ."@x-gmeow-english ;
-    gmeow:useWhen "Use as the value vocabulary for the domain axis of a symbol system — mathematical, musical, stenographic, cryptographic, emoji, gesture, and so on — referenced from a system via gmeow:symbolicSystemKind."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid minting per-kind subclasses (kinds are individuals on an open vocabulary) and avoid using a kind to record the role a notation plays in a particular use — that is gmeow:NotationUsageRole, a distinct axis."@x-gmeow-english ;
-    gmeow:howToUse "Reference a seeded kind individual from a system via gmeow:symbolicSystemKind (or gmeow:notationSystemKind); add new individuals, not subclasses, when a domain needs a finer kind."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> .
-
-gmeow:symbolicKindMathematical
-    a gmeow:SymbolicSystemKind ;
-    rdfs:label "mathematical"@x-gmeow-english ;
-    skos:definition "A notation system for representing mathematical objects, relations, and proofs."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> .
-
-gmeow:symbolicKindMusical
-    a gmeow:SymbolicSystemKind ;
-    rdfs:label "musical"@x-gmeow-english ;
-    skos:definition "A notation system for representing musical structure, performance, or sound."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> .
-
-gmeow:symbolicKindStenographic
-    a gmeow:SymbolicSystemKind ;
-    rdfs:label "stenographic"@x-gmeow-english ;
-    skos:definition "A shorthand notation system for rapid recording of spoken language."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> .
-
-gmeow:symbolicKindCryptographic
-    a gmeow:SymbolicSystemKind ;
-    rdfs:label "cryptographic"@x-gmeow-english ;
-    skos:definition "A transform scheme for concealing or securing information through encryption or encoding."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> .
-
-gmeow:symbolicKindTranscription
-    a gmeow:SymbolicSystemKind ;
-    rdfs:label "transcription"@x-gmeow-english ;
-    skos:definition "A notation system for recording spoken or signed language in a structured visual form."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> .
-
-gmeow:symbolicKindEncoding
-    a gmeow:SymbolicSystemKind ;
-    rdfs:label "encoding"@x-gmeow-english ;
-    skos:definition "A scheme for mapping information from one representation to another."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> .
-
-gmeow:symbolicKindGesture
-    a gmeow:SymbolicSystemKind ;
-    rdfs:label "gesture"@x-gmeow-english ;
-    skos:definition "A system of physical gestures or movements used for communication or expression."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> .
-
-gmeow:symbolicKindEmoji
-    a gmeow:SymbolicSystemKind ;
-    rdfs:label "emoji"@x-gmeow-english ;
-    skos:definition "A convention-based system of pictographic symbols used in digital communication."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> .
-
-gmeow:symbolicKindPlatformConvention
-    a gmeow:SymbolicSystemKind ;
-    rdfs:label "platform convention"@x-gmeow-english ;
-    skos:definition "A symbol or communication convention specific to a platform, community, or digital environment."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> .
-
-gmeow:symbolicKindCommunicationConvention
-    a gmeow:SymbolicSystemKind ;
-    rdfs:label "communication convention"@x-gmeow-english ;
-    skos:definition "A broad social or cultural convention for communication that does not rise to the level of a full language or notation system."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> .
-
-gmeow:NotationUsageRole
-    a owl:Class, gufo:AbstractIndividualType ;
-    rdfs:subClassOf gufo:QualityValue ;
-    rdfs:label "Notation Usage Role"@x-gmeow-english ;
-    skos:definition "The role a notation system plays in a specific usage — a value, never an Entity subclass. Open-ended: new analytical frameworks may introduce further roles without ontology modification."@x-gmeow-english ;
-    skos:example "ex:u gmeow:notationUsageRole gmeow:notationRoleEncoding ."@x-gmeow-english ;
-    gmeow:useWhen "Use as the value vocabulary for the function a notation serves in a particular use — transcription, encoding, representation, communication, expression, shorthand, cipher — referenced from a NotationSystemUsage via gmeow:notationUsageRole."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid minting per-role subclasses (roles are individuals) and avoid using a role to record the system's domain kind — that is gmeow:SymbolicSystemKind, an orthogonal axis (the same notation may play different roles in different usages)."@x-gmeow-english ;
-    gmeow:howToUse "Reference a seeded role individual from a gmeow:NotationSystemUsage via gmeow:notationUsageRole; add new individuals, not subclasses, when an analytical frame needs a finer role."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> .
-
-gmeow:notationRoleTranscription
-    a gmeow:NotationUsageRole ;
-    rdfs:label "transcription"@x-gmeow-english ;
-    skos:definition "Using a notation to record spoken or signed language in a structured form."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> .
-
-gmeow:notationRoleEncoding
-    a gmeow:NotationUsageRole ;
-    rdfs:label "encoding"@x-gmeow-english ;
-    skos:definition "Using a notation to map information into a different representation or signal system."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> .
-
-gmeow:notationRoleRepresentation
-    a gmeow:NotationUsageRole ;
-    rdfs:label "representation"@x-gmeow-english ;
-    skos:definition "Using a notation to represent domain-specific objects, relations, or structures."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> .
-
-gmeow:notationRoleCommunication
-    a gmeow:NotationUsageRole ;
-    rdfs:label "communication"@x-gmeow-english ;
-    skos:definition "Using a notation as a medium of communication between agents."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> .
-
-gmeow:notationRoleExpression
-    a gmeow:NotationUsageRole ;
-    rdfs:label "expression"@x-gmeow-english ;
-    skos:definition "Using a notation for artistic, emotional, or creative expression."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> .
-
-gmeow:notationRoleShorthand
-    a gmeow:NotationUsageRole ;
-    rdfs:label "shorthand"@x-gmeow-english ;
-    skos:definition "Using a notation for abbreviated or rapid recording of language or information."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> .
-
-gmeow:notationRoleCipher
-    a gmeow:NotationUsageRole ;
-    rdfs:label "cipher"@x-gmeow-english ;
-    skos:definition "Using a notation to conceal or encrypt information."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> .
-
-# =========================================================================== #
-# CROSS-CUTTING REUSE DECLARATION
-# =========================================================================== #
-
-# The following properties and classes are defined in other modules and are
-# reused here without redefinition. They are listed for documentation only.
-#
-#   gmeow:Language           (languages.ttl)   — natural/formal language
-#   gmeow:FormalLanguage     (languages.ttl)   — grammar-defined language
-#   gmeow:WritingSystem      (languages.ttl)   — script system
-#   gmeow:Entity             (entities.ttl)    — universal entity class
-#   gmeow:InformationObject  (core.ttl)        — information-object kind
-#   gmeow:TimeInterval       (temporal.ttl)    — temporal interval
-#   gmeow:confidence         (provenance.ttl)  — epistemic confidence [0,1]
-#   gmeow:accordingTo        (standpoint.ttl)  — standpoint axis
-#   gmeow:validFrom          (temporal.ttl)    — validity start
-#   gmeow:validUntil         (temporal.ttl)    — validity end
-#   gmeow:displayable        (core.ttl)        — suppression, never erasure (P10)
-
-# =========================================================================== #
-# OBSERVATION-SPINE BRIDGES (slice-dependency doctrine dependency refactor)
-# Declared HERE, in the slice that owns these properties: a dependent slice
-# knows the core observation spine; the spine never knows the slice. The
-# super-properties (observedFeature / vantage / observationResult) live in
-# the observations module.
-# =========================================================================== #
-# Notation bridges (declared here because the super-properties live here).
-# Only notationUsageTarget is subsumed under observedFeature because its
-# domain (NotationSystemUsage) is a subclass of Observation. hasNotationSystem
-# and notationSystemFor have domain Language / NotationSystem respectively,
-# which are NOT subclasses of Observation, so they cannot be subproperties.
-gmeow:notationUsageTarget   rdfs:subPropertyOf gmeow:observedFeature .
-
-
-# =========================================================================== #
-# NOTATION PROJECTION FRAMEWORK — issue #318
-#
-# Every notation is a directional, lossy projection from frame-relative
-# canonical content to a concrete symbol system. A NotationProjectionProfile
-# declares, per notation system, which parameters it can represent and which
-# losses it incurs. Encoding formats are notation systems too — each is a
-# lossy render, not the canonical object (Principles 4, 11, 12).
-# =========================================================================== #
-
-# --------------------------------------------------------------------------- #
-# CLASSES
-# --------------------------------------------------------------------------- #
-
-gmeow:NotationProjectionProfile
-    a owl:Class, gufo:SubKind ;
-    rdfs:subClassOf gmeow:Profile ;
-    rdfs:label "Notation Projection Profile"@x-gmeow-english ;
-    skos:definition "A closed descriptor schema for the lossy projection from frame-relative content to one notation system. Declares representable parameters, incurred losses, and the FnO projection function that performs the render (Principles 4, 11, 12)."@x-gmeow-english ;
-    skos:example "ex:staffProfile a gmeow:NotationProjectionProfile ; gmeow:notationSystemOf ex:westernStaff ; gmeow:declaredLoss ex:lossMicrotiming ."@x-gmeow-english ;
-    gmeow:useWhen "Use to declare, per notation system, exactly which canonical parameters its surface form can carry and which it drops — the explicit ledger that makes a notation's lossiness queryable rather than implicit (every notation is a lossy render, never the canonical object)."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid using it as the rendered output itself or as canonical data; the profile DESCRIBES the projection (its representable parameters, declared losses, and FnO function), it does not hold the projected surface form."@x-gmeow-english ;
-    gmeow:howToUse "Mint one profile per notation system, name the system with gmeow:notationSystemOf, enumerate gmeow:representableParameter and gmeow:declaredLoss so the completeness gate sees every parameter as represented or accounted-for, and bind the render via gmeow:projectionFunction."@x-gmeow-english ;
-    gmeow:useForConsumer gmeow:consumerInternalArchive,
-        gmeow:consumerResearchQueue ;
-    gmeow:avoidForConsumer gmeow:consumerWikidata ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> .
-
-gmeow:ProjectionLoss
-    a owl:Class, gufo:AbstractIndividualType ;
-    rdfs:subClassOf gufo:QualityValue ;
-    rdfs:label "Projection Loss"@x-gmeow-english ;
-    skos:definition "A kind of information loss incurred when canonical content is projected to a notation system. An open value vocabulary of individuals; never subclassed (Principle 9)."@x-gmeow-english ;
-    skos:example "ex:lossMicrotiming a gmeow:ProjectionLoss ; gmeow:accountsForParameter ex:microtiming ."@x-gmeow-english ;
-    gmeow:useWhen "Use as the value vocabulary for naming a specific kind of loss a notation incurs — quantization to 12-EDO, dropped microtiming, collapsed standpoint — so the lossiness of a projection profile is enumerable and gate-checkable."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid minting per-loss subclasses (losses are individuals) and avoid using a loss to record a parameter the notation DOES carry — that is gmeow:representableParameter, its complement."@x-gmeow-english ;
-    gmeow:howToUse "Mint each loss as an individual, attach it to a profile via gmeow:declaredLoss, and point gmeow:accountsForParameter at the canonical parameter it omits or approximates so the completeness gate can reconcile it."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> .
-
-gmeow:ProjectionFunction
-    a owl:Class, gufo:AbstractIndividualType ;
-    rdfs:subClassOf fno:Function ;
-    rdfs:label "Projection Function"@x-gmeow-english ;
-    skos:definition "An FnO function that renders canonical frame-relative content to a notation system (Principle 12)."@x-gmeow-english ;
-    skos:example "ex:renderStaff a gmeow:ProjectionFunction ."@x-gmeow-english ;
-    gmeow:useWhen "Use to type the executable FnO function that performs a notation render — the solver-layer object a projection profile points at to actually turn canonical content into a surface form."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid asserting the function's output as canonical data and avoid hand-encoding the render math in the ontology; the function is a solver-layer reference (P12), declared here, executed there."@x-gmeow-english ;
-    gmeow:howToUse "Type the function as ProjectionFunction (an fno:Function), reference it from a profile via gmeow:projectionFunction, and declare its input through gmeow:projectableExpression; the solver supplies the implementation."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> .
-
-# --------------------------------------------------------------------------- #
-# OBJECT PROPERTIES
-# --------------------------------------------------------------------------- #
-
-gmeow:notationSystemOf
-    a owl:ObjectProperty, owl:FunctionalProperty ;
-    rdfs:domain gmeow:NotationProjectionProfile ;
-    rdfs:range gmeow:NotationSystem ;
-    rdfs:label "notation system of"@x-gmeow-english ;
-    skos:definition "The notation system that this projection profile describes. Functional: one notation system per projection profile."@x-gmeow-english ;
-    skos:example "ex:staffProfile gmeow:notationSystemOf ex:westernStaff ."@x-gmeow-english ;
-    gmeow:useWhen "Use to name the single notation system a gmeow:NotationProjectionProfile describes — the anchor that ties a loss/parameter ledger to the concrete surface form it characterizes."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid asserting more than one notation system per profile (it is functional — a different system needs its own profile) and avoid pointing it at the canonical content being projected."@x-gmeow-english ;
-    gmeow:howToUse "Set exactly one gmeow:notationSystemOf on each profile; read the reverse direction through its inverse gmeow:hasNotationProjectionProfile when starting from the notation system."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> .
-
-gmeow:hasNotationProjectionProfile
-    a owl:ObjectProperty ;
-    owl:inverseOf gmeow:notationSystemOf ;
-    rdfs:domain gmeow:NotationSystem ;
-    rdfs:range gmeow:NotationProjectionProfile ;
-    rdfs:label "has notation projection profile"@x-gmeow-english ;
-    skos:definition "Links a notation system to its GMEOW projection profile. Non-functional: a future notation system may have co-existing profiles for different consumer contexts."@x-gmeow-english ;
-    skos:example "ex:westernStaff gmeow:hasNotationProjectionProfile ex:staffProfile ."@x-gmeow-english ;
-    gmeow:useWhen "Use from a notation system to reach its projection profile(s) — the notation-rooted inverse of gmeow:notationSystemOf, natural when traversing from the surface form to its loss ledger."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid asserting it directly when gmeow:notationSystemOf is the natural direction (assert that and read this as its inverse) and avoid assuming a single profile — different consumer contexts may carry co-existing profiles."@x-gmeow-english ;
-    gmeow:howToUse "Prefer asserting gmeow:notationSystemOf on the profile and reading gmeow:hasNotationProjectionProfile as its inverse; reach for it explicitly only in notation-rooted traversals."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> .
-
-gmeow:representableParameter
-    a owl:ObjectProperty ;
-    rdfs:domain gmeow:NotationProjectionProfile ;
-    rdfs:range owl:Thing ;
-    rdfs:label "representable parameter"@x-gmeow-english ;
-    skos:definition "A parameter that this notation system can represent without loss (e.g. pitch in a 12-EDO-aware staff notation). Range is kept open in the core framework; domain-specific slices restrict it to their parameter vocabularies."@x-gmeow-english ;
-    skos:example "ex:staffProfile gmeow:representableParameter ex:pitch ."@x-gmeow-english ;
-    gmeow:useWhen "Use on a projection profile to enumerate a canonical parameter the notation carries faithfully — pitch, duration, dynamics — so the completeness gate can confirm every parameter is either represented here or accounted for as a loss."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid using it for a parameter the notation drops or approximates (that is gmeow:declaredLoss with gmeow:accountsForParameter) and avoid leaving a known parameter neither represented nor accounted-for — the gate flags that gap."@x-gmeow-english ;
-    gmeow:howToUse "List each losslessly-carried parameter on the profile via gmeow:representableParameter; domain slices restrict its open range to their own parameter vocabulary."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> .
-
-gmeow:declaredLoss
-    a owl:ObjectProperty ;
-    rdfs:domain gmeow:NotationProjectionProfile ;
-    rdfs:range gmeow:ProjectionLoss ;
-    rdfs:label "declared loss"@x-gmeow-english ;
-    skos:definition "A loss that this notation system incurs when rendering canonical frame-relative content (e.g. quantization to 12-EDO, dropping microtiming)."@x-gmeow-english ;
-    skos:example "ex:staffProfile gmeow:declaredLoss ex:lossMicrotiming ."@x-gmeow-english ;
-    gmeow:useWhen "Use on a projection profile to declare a kind of information the notation drops or approximates when rendering canonical content — the explicit ledger entry that makes the projection's lossiness queryable rather than silent."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid using it for a parameter the notation carries faithfully (that is gmeow:representableParameter) and avoid declaring a loss without pointing its gmeow:accountsForParameter at the parameter it omits."@x-gmeow-english ;
-    gmeow:howToUse "Attach each gmeow:ProjectionLoss to the profile via gmeow:declaredLoss and link the loss to the omitted parameter with gmeow:accountsForParameter so the completeness gate can reconcile it."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> .
-
-gmeow:accountsForParameter
-    a owl:ObjectProperty ;
-    rdfs:domain gmeow:ProjectionLoss ;
-    rdfs:range owl:Thing ;
-    rdfs:label "accounts for parameter"@x-gmeow-english ;
-    skos:definition "The parameter whose omission or approximation is explained by this ProjectionLoss. Used by completeness gates to ensure every parameter is representable or accounted for. Range is open in core; domain slices restrict it."@x-gmeow-english ;
-    skos:example "ex:lossMicrotiming gmeow:accountsForParameter ex:microtiming ."@x-gmeow-english ;
-    gmeow:useWhen "Use on a gmeow:ProjectionLoss to name the canonical parameter it omits or approximates — the link that lets the completeness gate pair every dropped parameter with an explicit loss."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid using it for a parameter the notation represents (that is gmeow:representableParameter) and avoid leaving a declared loss without an accounted parameter, which defeats the gate."@x-gmeow-english ;
-    gmeow:howToUse "Point each gmeow:ProjectionLoss at the parameter it explains via gmeow:accountsForParameter; domain slices restrict its open range to their parameter vocabulary."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> .
-
-gmeow:projectionFunction
-    a owl:ObjectProperty ;
-    rdfs:domain gmeow:NotationProjectionProfile ;
-    rdfs:range gmeow:ProjectionFunction ;
-    rdfs:label "projection function"@x-gmeow-english ;
-    skos:definition "An FnO function reference that renders canonical content to this notation system (Principle 12)."@x-gmeow-english ;
-    skos:example "ex:staffProfile gmeow:projectionFunction ex:renderStaff ."@x-gmeow-english ;
-    gmeow:useWhen "Use on a projection profile to bind the FnO function that actually performs the render from canonical content to this notation's surface form — the executable hook the solver layer invokes (P12)."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid encoding the render logic in the ontology or treating the function's output as canonical data; this property references a solver-layer function, it does not execute or store its result."@x-gmeow-english ;
-    gmeow:howToUse "Point the profile at a gmeow:ProjectionFunction via gmeow:projectionFunction and declare the function's input through gmeow:projectableExpression; the solver supplies the implementation."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> .
-
-gmeow:projectableExpression
-    a owl:ObjectProperty ;
-    rdfs:domain gmeow:NotationProjectionProfile ;
-    rdfs:range owl:Thing ;
-    rdfs:label "projectable expression"@x-gmeow-english ;
-    skos:definition "A solver-bound input property: the entity being projected through a NotationProjectionProfile. Used by FnO projection functions to declare their input type; not asserted as canonical data (Principle 12). Range is open in core; domain slices restrict it."@x-gmeow-english ;
-    skos:example "ex:staffProfile gmeow:projectableExpression ex:musicalExpression ."@x-gmeow-english ;
-    gmeow:useWhen "Use on a projection profile to declare the type of canonical entity the FnO projection function takes as input — the solver-bound hook that names what gets rendered, without asserting the input as stored data."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid asserting it as canonical content (it is a solver-layer input declaration, P12) and avoid confusing it with the parameters a profile represents or loses; this names the whole projected expression, not its parameters."@x-gmeow-english ;
-    gmeow:howToUse "Declare the input type on the profile via gmeow:projectableExpression so the gmeow:projectionFunction knows what it consumes; domain slices restrict its open range to their expression types."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> .
-
-# --------------------------------------------------------------------------- #
-# DATATYPE PROPERTIES
-# --------------------------------------------------------------------------- #
-
-gmeow:smuflCodepoint
-    a owl:DatatypeProperty ;
-    rdfs:domain gmeow:NotationSystem ;
-    rdfs:range xsd:string ;
-    rdfs:label "SMuFL codepoint"@x-gmeow-english ;
-    skos:definition "A Unicode codepoint reference in the Standard Music Font Layout (SMuFL) specification that identifies a glyph used by this notation system. Multiple codepoints may be asserted as multiple triples."@x-gmeow-english ;
-    skos:example "ex:westernStaff gmeow:smuflCodepoint \"U+E050\" ."@x-gmeow-english ;
-    gmeow:useWhen "Use to record the SMuFL Unicode codepoint(s) for glyphs a music notation system uses, so a renderer can map canonical content to concrete font glyphs; assert several as several triples."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid using it for non-SMuFL or non-musical glyph references and avoid treating a single triple as exhaustive — a notation system carries many codepoints, one per glyph."@x-gmeow-english ;
-    gmeow:howToUse "Attach each SMuFL codepoint string (e.g. \"U+E050\") to the gmeow:NotationSystem via gmeow:smuflCodepoint; repeat the triple for each glyph the system uses."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> .
-
-# --------------------------------------------------------------------------- #
-# Graph box role coverage (canonical explicit annotations).
-# --------------------------------------------------------------------------- #
-
-gmeow:NotationProjectionProfile gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .
-gmeow:NotationSystem gmeow:graphBoxRole gmeow:boxTBox .
-gmeow:NotationSystemUsage gmeow:graphBoxRole gmeow:boxTBox .
-gmeow:NotationUsageRole gmeow:graphBoxRole gmeow:boxTBox .
-gmeow:ProjectionFunction gmeow:graphBoxRole gmeow:boxTBox .
-gmeow:ProjectionLoss gmeow:graphBoxRole gmeow:boxTBox .
-gmeow:SymbolicSystem gmeow:graphBoxRole gmeow:boxTBox .
-gmeow:SymbolicSystemKind gmeow:graphBoxRole gmeow:boxTBox .
-gmeow:accountsForParameter gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:declaredLoss gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:hasNotationProjectionProfile gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxRBox .
-gmeow:hasNotationSystem gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:notationRoleCipher gmeow:graphBoxRole gmeow:boxABox .
-gmeow:notationRoleCommunication gmeow:graphBoxRole gmeow:boxABox .
-gmeow:notationRoleEncoding gmeow:graphBoxRole gmeow:boxABox .
-gmeow:notationRoleExpression gmeow:graphBoxRole gmeow:boxABox .
-gmeow:notationRoleRepresentation gmeow:graphBoxRole gmeow:boxABox .
-gmeow:notationRoleShorthand gmeow:graphBoxRole gmeow:boxABox .
-gmeow:notationRoleTranscription gmeow:graphBoxRole gmeow:boxABox .
-gmeow:notationSystemFor gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:notationSystemKind gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:notationSystemOf gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:notationUsageInterval gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:notationUsageNotationSystem gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:notationUsageRole gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:notationUsageTarget gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:projectableExpression gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:projectionFunction gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:representableParameter gmeow:graphBoxRole gmeow:boxRBox .
-<https://blackcatinformatics.ca/gmeow/slices/notation> gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .
-gmeow:smuflCodepoint gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:symbolicKindCommunicationConvention gmeow:graphBoxRole gmeow:boxABox .
-gmeow:symbolicKindCryptographic gmeow:graphBoxRole gmeow:boxABox .
-gmeow:symbolicKindEmoji gmeow:graphBoxRole gmeow:boxABox .
-gmeow:symbolicKindEncoding gmeow:graphBoxRole gmeow:boxABox .
-gmeow:symbolicKindGesture gmeow:graphBoxRole gmeow:boxABox .
-gmeow:symbolicKindMathematical gmeow:graphBoxRole gmeow:boxABox .
-gmeow:symbolicKindMusical gmeow:graphBoxRole gmeow:boxABox .
-gmeow:symbolicKindPlatformConvention gmeow:graphBoxRole gmeow:boxABox .
-gmeow:symbolicKindStenographic gmeow:graphBoxRole gmeow:boxABox .
-gmeow:symbolicKindTranscription gmeow:graphBoxRole gmeow:boxABox .
-gmeow:symbolicSystemKind gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:writingSystemAsNotation gmeow:graphBoxRole gmeow:boxRBox .
+    module."""@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notation> ;
+    rdfs:label "GMEOW Notation and Symbolic Systems Module"@x-gmeow-english ;
+    skos:definition "The GMEOW Notation and Symbolic Systems Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxConfigBox ,
+        gmeow:boxTBox .
