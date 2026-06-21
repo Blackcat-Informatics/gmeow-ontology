@@ -331,6 +331,19 @@ gmeow:bibliographicCitation
     gmeow:howToUse "Carry the citation string on gmeow:bibliographicCitation for the flat case; promote to the structured citation relator when authorship, role, and credit must be first-class."@x-gmeow-english ;
     gmeow:useWhen "Use for a preformatted bibliographic reference string for a creative work — a human-readable citation captured verbatim."@x-gmeow-english .
 
+gmeow:citeAs
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:Dataset ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
+    rdfs:label "cite as"@x-gmeow-english ;
+    rdfs:range rdfs:Literal ;
+    skos:definition "A recommended bibliographic citation string for a dataset, as used by Croissant and DataCite exports."@x-gmeow-english ;
+    skos:example "ex:dataset gmeow:citeAs \"Blackcat Informatics® Inc. (2026). Lillith GraphRAG benchmark. https://blackcatinformatics.ca/gmeow/examples/graphrag/lillith-benchmark\" ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid it for structured citation metadata with individual agents and roles — use the citation-and-credit constructs."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Carry the citation string on gmeow:citeAs of a gmeow:Dataset; projections copy it to croissant:citeAs / datacite:recommendedCitation."@x-gmeow-english ;
+    gmeow:useWhen "Use for a preformatted citation string for a dataset — the human-readable reference to include in bibliographies."@x-gmeow-english .
+
 gmeow:caption
     a owl:DatatypeProperty ;
     rdfs:domain gmeow:MediaObject ;
@@ -826,6 +839,19 @@ gmeow:title
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Carry the title string on gmeow:title; when richer metadata is later needed, mint gmeow:CreativeWorkTitle objects and link them via gmeow:hasTitle (the flat/reified pair)."@x-gmeow-english ;
     gmeow:useWhen "Use for the 80% case of a single plain title on a creative work — the flat literal shortcut when no language, script, or statement-level title metadata is needed."@x-gmeow-english .
+
+gmeow:version
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:Dataset ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
+    rdfs:label "version"@x-gmeow-english ;
+    rdfs:range xsd:string ;
+    skos:definition "The version tag of a dataset, such as a SemVer or release identifier."@x-gmeow-english ;
+    skos:example "ex:dataset gmeow:version \"1.0.0\"^^xsd:string ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid it for ordered version lineages of multiple releases — use the versions module's VersionSet / VersionMembership."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxCBox ;
+    gmeow:howToUse "Carry the version string on gmeow:version of a gmeow:Dataset, typically a SemVer tag or release label."@x-gmeow-english ;
+    gmeow:useWhen "Use for the version identifier of a published dataset — the release tag consumers cite."@x-gmeow-english .
 
 gmeow:transcript
     a owl:DatatypeProperty ;
