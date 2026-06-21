@@ -241,7 +241,7 @@ pub fn emit_analysis_graph(
     for slice_iri in &all_slices {
         let count = term_count_of(slice_iri);
         writeln!(body, "<{slice_iri}>").unwrap();
-        writeln!(body, "    <{TERM_COVERAGE}> {count}^^xsd:integer .").unwrap();
+        writeln!(body, "    <{TERM_COVERAGE}> \"{count}\"^^xsd:integer .").unwrap();
         writeln!(body).unwrap();
     }
 
@@ -454,8 +454,62 @@ mod tests {
         let result = emit_analysis_graph(&edges, "", &[], &tc(), |_| 2, term_count).unwrap();
         assert!(result.turtle_body.contains(TERM_COVERAGE));
         assert!(
-            result.turtle_body.contains("7^^xsd:integer")
-                || result.turtle_body.contains("3^^xsd:integer")
+            result.turtle_body.contains("\"7\"^^xsd:integer")
+                || result.turtle_body.contains("\"3\"^^xsd:integer")
+        );
+    }
+
+    /// Verify that the Turtle body emitted by `emit_analysis_graph` is
+    /// syntactically valid Turtle by driving it through oxigraph's streaming
+    /// parser.  This catches any `^^`-suffix bugs where the lexical form is
+    /// not quoted (e.g. `7^^xsd:integer` instead of `"7"^^xsd:integer`).
+    #[test]
+    fn emitted_turtle_is_valid() {
+        use oxigraph::io::{RdfFormat, RdfParser};
+
+        let edges = vec![
+            make_edge(
+                "https://blackcatinformatics.ca/gmeow/sliceA",
+                "https://blackcatinformatics.ca/gmeow/sliceB",
+                EdgeKind::Ontology,
+                ReconciliationStatus::Matched,
+            ),
+            make_edge(
+                "https://blackcatinformatics.ca/gmeow/sliceC",
+                "https://blackcatinformatics.ca/gmeow/sliceB",
+                EdgeKind::Shape,
+                ReconciliationStatus::Undeclared,
+            ),
+        ];
+        let term_count = |iri: &SliceIri| -> usize {
+            if iri.ends_with("sliceA") {
+                7
+            } else if iri.ends_with("sliceC") {
+                0
+            } else {
+                3
+            }
+        };
+        let result =
+            emit_analysis_graph(&edges, "", &["abc", "def"], &tc(), |_| 2, term_count).unwrap();
+
+        // Drive the streaming parser over the emitted body.  Any Turtle syntax
+        // error (including an un-quoted typed-literal like `7^^xsd:integer`)
+        // will produce a parse error and the collect() will panic with a
+        // descriptive message including the offending source.
+        let turtle = &result.turtle_body;
+        let triples: Vec<_> = RdfParser::from_format(RdfFormat::Turtle)
+            .for_reader(turtle.as_bytes())
+            .collect::<Result<_, _>>()
+            .unwrap_or_else(|e| {
+                panic!("emitted Turtle is not valid:\n{e}\n\n--- emitted body ---\n{turtle}")
+            });
+
+        // Sanity: at least the graph-level provenance node + per-slice + per-edge triples.
+        assert!(
+            triples.len() >= 4,
+            "expected at least 4 triples, got {}: \n{turtle}",
+            triples.len()
         );
     }
 
