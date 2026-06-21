@@ -1534,6 +1534,7 @@ dependencies = [
  "oxigraph",
  "serde",
  "sha2",
+ "spargebra 0.4.6",
  "tempfile",
 ]
 

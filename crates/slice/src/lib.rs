@@ -7,7 +7,13 @@
 pub mod artifact;
 pub mod catalog;
 pub mod error;
+pub mod ownership;
 
 pub use artifact::{ArtifactRecord, ArtifactRole};
 pub use catalog::{ManifestView, SliceCatalog, SliceRecord, SliceTier};
 pub use error::SliceError;
+pub use ownership::{
+    ArtifactEvidence, DependencyEdge, EdgeEvidence, EdgeKind, OwnershipAnalyzer,
+    OwnershipDiagnostic, OwnershipReport, OwnershipStatus, ReconciliationStatus, SliceIri,
+    TermOwnership,
+};
