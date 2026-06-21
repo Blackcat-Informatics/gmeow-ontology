@@ -1865,7 +1865,7 @@ export enum NarrativeRoleEnum {
     foil = "roleFoil",
     love_interest = "roleLoveInterest",
     mentor = "roleMentor",
-    narrator = "roleNarrator",
+    narrating_voice = "roleNarratingVoice",
     protagonist = "roleProtagonist",
     trickster = "roleTrickster",
 };
@@ -4645,6 +4645,7 @@ export interface EtymologicalDerivation {
     derivationEvidence?: Entity[],
     derivationKind?: DerivationKind[],
     derivationTarget?: InformationObject,
+    etymonSource?: InformationObject,
 }
 
 
@@ -5652,7 +5653,7 @@ export interface MaintenanceStatus {
 
 export interface Manifestation extends CreativeWork {
     embodies?: Expression[],
-    exemplifiedBy?: Document[],
+    exemplifiedBy?: Item[],
     hasManifestationFormat?: ManifestationFormat,
 }
 
@@ -7489,6 +7490,7 @@ export interface Stream extends Entity {
 
 export interface StyleGuide extends InformationObject {
     styleGuideFor?: string[],
+    voiceExemplifiedBy?: Document[],
 }
 
 

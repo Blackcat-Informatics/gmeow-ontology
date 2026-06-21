@@ -93,7 +93,7 @@ def test_etymological_derivation_is_observation_relator() -> None:
 
 def test_derivation_source_target_are_functional() -> None:
     g = _graph()
-    assert (GM.derivationSource, RDF.type, OWL.FunctionalProperty) in g
+    assert (GM.etymonSource, RDF.type, OWL.FunctionalProperty) in g
     assert (GM.derivationTarget, RDF.type, OWL.FunctionalProperty) in g
 
 

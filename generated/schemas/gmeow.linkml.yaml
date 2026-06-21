@@ -1184,6 +1184,7 @@ classes:
     - derivationEvidence
     - derivationKind
     - derivationTarget
+    - etymonSource
   EvaluationVerdict:
     class_uri: https://blackcatinformatics.ca/gmeow/EvaluationVerdict
     title: Evaluation Verdict
@@ -3655,6 +3656,7 @@ classes:
     is_a: InformationObject
     slots:
     - styleGuideFor
+    - voiceExemplifiedBy
   Summary:
     class_uri: https://blackcatinformatics.ca/gmeow/Summary
     title: Summary
@@ -6331,6 +6333,12 @@ slots:
     range: uriorcurie
     domain: Agent
     multivalued: true
+  etymonSource:
+    slot_uri: https://blackcatinformatics.ca/gmeow/etymonSource
+    title: etymon source
+    range: InformationObject
+    domain: EtymologicalDerivation
+    multivalued: false
   eulerOrder:
     slot_uri: https://blackcatinformatics.ca/gmeow/eulerOrder
     title: Euler order
@@ -6513,7 +6521,7 @@ slots:
   exemplifiedBy:
     slot_uri: https://blackcatinformatics.ca/gmeow/exemplifiedBy
     title: exemplified by
-    range: Document
+    range: Item
     domain: Manifestation
     multivalued: true
   exemplifies:
@@ -12775,6 +12783,12 @@ slots:
     range: string
     domain: VirtualLocation
     multivalued: true
+  voiceExemplifiedBy:
+    slot_uri: https://blackcatinformatics.ca/gmeow/voiceExemplifiedBy
+    title: voice exemplified by
+    range: Document
+    domain: StyleGuide
+    multivalued: true
   voiceMetricStructure:
     slot_uri: https://blackcatinformatics.ca/gmeow/voiceMetricStructure
     title: voice metric structure
@@ -17132,9 +17146,9 @@ enums:
       roleMentor:
         meaning: https://blackcatinformatics.ca/gmeow/roleMentor
         title: mentor
-      roleNarrator:
-        meaning: https://blackcatinformatics.ca/gmeow/roleNarrator
-        title: narrator
+      roleNarratingVoice:
+        meaning: https://blackcatinformatics.ca/gmeow/roleNarratingVoice
+        title: narrating voice
       roleProtagonist:
         meaning: https://blackcatinformatics.ca/gmeow/roleProtagonist
         title: protagonist
