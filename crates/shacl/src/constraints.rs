@@ -506,8 +506,16 @@ fn eval_constraint<G: ShaclDataGraph>(
         }
 
         // ── Pattern (per value node) ───────────────────────────────────────────
-        Constraint::Pattern { regex, flags } => {
-            let compiled = build_regex(regex, flags.as_deref());
+        Constraint::Pattern {
+            regex,
+            flags,
+            compiled,
+        } => {
+            // Compile at most once per Constraint instance (across all focus
+            // nodes and value nodes) using the OnceLock cache.  Behaviour is
+            // identical to the per-call path: Err ⇒ violation on every value.
+            let compiled: &Result<regex::Regex, String> =
+                compiled.get_or_init(|| build_regex(regex, flags.as_deref()));
             let mut results = Vec::new();
             let focus = value_nodes
                 .first()
@@ -519,7 +527,7 @@ fn eval_constraint<G: ShaclDataGraph>(
                     Term::NamedNode(nn) => Some(nn.as_str().to_owned()),
                     _ => None,
                 };
-                let violates = match (&compiled, &lexical) {
+                let violates = match (compiled, &lexical) {
                     (Err(_), _) => true,   // bad regex → violation on every value node
                     (Ok(_), None) => true, // blank node → violation
                     (Ok(re), Some(lex)) => !re.is_match(lex),
@@ -1141,6 +1149,7 @@ mod tests {
     use oxigraph::io::RdfFormat;
     use oxigraph::model::{Literal, NamedNode};
     use oxigraph::store::Store;
+    use std::sync::{Arc, OnceLock};
 
     const EX: &str = "http://example.org/ns#";
     const XSD: &str = "http://www.w3.org/2001/XMLSchema#";
@@ -1627,6 +1636,7 @@ mod tests {
             vec![Constraint::Pattern {
                 regex: "^[A-Z]+$".to_owned(),
                 flags: None,
+                compiled: Arc::new(OnceLock::new()),
             }],
         );
         assert!(validate_shape(&store, &ex("a"), &shape).is_empty());
@@ -1641,6 +1651,7 @@ mod tests {
             vec![Constraint::Pattern {
                 regex: "^[A-Z]+$".to_owned(),
                 flags: None,
+                compiled: Arc::new(OnceLock::new()),
             }],
         );
         let results = validate_shape(&store, &ex("a"), &shape);
@@ -1657,6 +1668,7 @@ mod tests {
             vec![Constraint::Pattern {
                 regex: "^[A-Z]+$".to_owned(),
                 flags: Some("i".to_owned()),
+                compiled: Arc::new(OnceLock::new()),
             }],
         );
         // With flag "i", lowercase should now pass.

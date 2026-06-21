@@ -9,6 +9,7 @@
 //! complex path forms, …) cause a hard `Err` rather than a silent skip.
 
 use std::collections::HashSet;
+use std::sync::{Arc, OnceLock};
 
 use oxigraph::model::{NamedNode, NamedNodeRef, NamedOrBlankNodeRef, Term};
 use oxigraph::store::Store;
@@ -84,6 +85,12 @@ pub enum Constraint {
         regex: String,
         /// Optional regex flags (e.g. `"i"`).
         flags: Option<String>,
+        /// Once-compiled regex cache: the pattern is compiled at most once per
+        /// `Constraint` instance regardless of how many focus nodes are validated.
+        /// `Arc` makes the field `Clone`; `OnceLock` makes it `Send + Sync`.
+        /// `Err(String)` stores the compilation error so per-value violation
+        /// semantics (bad regex → violation, not hard abort) are preserved.
+        compiled: Arc<OnceLock<Result<regex::Regex, String>>>,
     },
     /// `sh:minLength 3`
     MinLength(u64),
@@ -815,6 +822,7 @@ impl<'s> Parser<'s> {
             constraints.push(Constraint::Pattern {
                 regex,
                 flags: flags_val.clone(),
+                compiled: Arc::new(OnceLock::new()),
             });
         }
 
@@ -1516,7 +1524,7 @@ mod tests {
         let shapes = from_store(&store).expect("parse must succeed");
         let ps = &shapes.node_shapes[0].property_shapes[0];
         let pat = ps.constraints.iter().find_map(|c| match c {
-            Constraint::Pattern { regex, flags } => Some((regex, flags)),
+            Constraint::Pattern { regex, flags, .. } => Some((regex, flags)),
             _ => None,
         });
         assert!(pat.is_some(), "expected Pattern constraint");
