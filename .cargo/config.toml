@@ -24,4 +24,14 @@ rustflags = [
     "-Zunstable-options",
     "-Clink-self-contained=+linker",
     "-Clinker-features=+lld",
+    # Give first-party Rust the SAME portable instruction floor the vendored C
+    # deps already get via CFLAGS above. Without this, rustc targets baseline
+    # x86-64 (SSE2 only) and our hot loops never autovectorize, while zstd/ring
+    # run AVX2. `x86-64-v3` is the portable AVX2-era floor that is safe for
+    # distributed wheels (matches the CFLAGS contract). For host-tuned LOCAL
+    # builds, `make dev` / `make bench` export RUSTFLAGS with `target-cpu=native`
+    # (which fully REPLACES this list, so those targets re-state the lld flags).
+    # The portable floor stays the committed default, so any wheel/CI build with
+    # no extra flags ships correctly — the host-only case is the opt-in.
+    "-Ctarget-cpu=x86-64-v3",
 ]
