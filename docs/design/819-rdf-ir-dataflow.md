@@ -427,3 +427,82 @@ machine-readable loss ledger (`crates/rdf/src/loss.rs`, rendered to
 - A lazy oxigraph backend **SHALL** be keyed by projection policy. A single unqualified cache
   **MUST NOT** be shared across policies, because the two projections carry incompatible
   dataset semantics.
+
+## Appendix Z — PR implementation status & C5 spike finding (paudley/819-rdf-ir-dataflow)
+
+This appendix records the state of each child as delivered on the
+`paudley/819-rdf-ir-dataflow` branch, and the **C5 feasibility spike** result the
+RFC required as C5's first deliverable.
+
+### Delivered
+
+- **C0/C1/C2** — semantic contract + loss ledger; immutable value-interned
+  `Arc<RdfDataset>` with zero-alloc iteration; GTS event-sink + consuming-graph
+  importers.
+- **Loss ledger flips** — gmeow-gts 0.9.4 (`Term.direction` #212, reifier-id-keyed
+  `Graph.reifiers` #213, `decoded_blobs` #214) let *literal base direction* and
+  *multiple reifiers per (s,p,o)* round-trip losslessly. Blobs are an intentional
+  **by-reference** entry: the IR holds the content-addressed `blob_id` digest +
+  origin (never the payload — blobs may be multi-terabyte); payload streaming
+  origin→destination is a follow-up.
+- **C3 bridge** — the `&RdfDataset: impl RdfStore` compat adapter now threads each
+  quad's source **location** into the owned model and remaps location
+  `QuadHandle`s across the freeze-time sort (two LSP-correctness fixes), and the
+  IR gains `reifiers_of`/`annotations_of` accessors.
+- **C4** — the SHACL Core engine is generic over a `ShaclDataGraph` trait with an
+  IR-native backend; `validate_rdf_store` runs on the IR with no whole-store
+  oxigraph materialization (oxigraph retained only for SHACL-SPARQL). Conformance
+  is held by a 16-case oxigraph-vs-IR differential equivalence test.
+- **C6** — `RdfEventSink`, the ID-addressed evented OUTPUT dual of the import sink.
+- **Tasks 8–11 (Python→Rust cutovers)** — GTS production (incl. the signed
+  `gmeow.gts`), canonical Turtle normalization (a native IR serializer that
+  improves on rdflib `longturtle`), the language-tag policy core, and Crossref
+  deposit-XML are all Rust-authored now (with byte-identity or isomorphism gates).
+- **Task 12 (SARIF/annotation threading)** — IR source locations thread
+  end-to-end into SARIF `physicalLocation`; the SARIF normalizer contract
+  (repo-relative URIs, no angle brackets, related-locations carry
+  physicalLocation, fallback anchor) is locked by regression tests.
+
+### C5 spike finding — typed Nemo bridge IS feasible (implementation deferred)
+
+Investigated the pinned Nemo rev (`4415bc2`). The path the logic crate uses today
+(`nemo::api::{load_string, reason}`, `crates/logic/src/nemo_engine.rs`) is
+**string-based**: quads are encoded as Nemo fact *strings* concatenated into the
+`.rls` program text. But a **typed** path is reachable:
+
+- `nemo::rule_model::pipeline::state::add_fact(Fact)` accepts a typed `Fact`, and
+  the typed `Fact`/`Atom`/`AnyDataValue` types are already imported in
+  `nemo_engine.rs` (used for tracing). A `Program` can therefore be built
+  **programmatically** with typed facts instead of parsing fact strings — the
+  basis for a `TermId ↔ AnyDataValue` typed-EDB injection.
+- Fact-handle provenance already works: `engine.trace()` yields per-fact
+  derivation provenance, which `run_chase` already consumes.
+
+**Verdict:** the typed `TermId ↔ AnyDataValue` EDB bridge is **feasible** (no
+upstream Nemo change required — the API exists), but implementing it is a real
+refactor of `run_chase`/`encode` to construct the `Program` programmatically, in
+the nightly-gated `crates/logic`. It is therefore scheduled as a follow-up rather
+than landed in this PR.
+
+**Documented fallback boundary (current behavior):** facts are encoded as strings
+in the `.rls` program over IR/oxigraph-derived terms, and provenance is recovered
+via `engine.trace()`. The explanation **cited-IRI string skeleton** (the
+conformance contract) is unchanged; resolving those cited IRIs to `TermId`
+against the materialized dataset rides with the typed-bridge implementation.
+
+### Deferred (with reason)
+
+- **C7 (remove text-exchange FFI)** — the foundation (`PyRdfDataset`, an
+  `Arc<RdfDataset>` Python handle) shipped in Task 8, but full removal is blocked
+  by the **rdflib-based Python validation/DSL pipeline**: callers hold rdflib
+  graphs, so passing the IR handle still requires an rdflib→N-Triples→IR
+  conversion — the seam moves, it is not removed. True removal needs the Python
+  pipeline (audit/acceptance/dsl_validate/sparql) to go rdflib-free over the IR, a
+  separate effort.
+- **C5 typed-bridge implementation** — feasible (above), deferred as a follow-up.
+- **Sub-file SARIF `region` line/col** — gated on oxigraph 0.5's parser, which
+  exposes source positions only on the *error* path, not for successfully parsed
+  triples. The `RdfLocation`/builder/renderer plumbing is ready; a positional
+  parser is the unblock.
+- **Validate lints reading `annotations_of` from the IR** — the lints run on
+  `oxigraph::Store` today; porting them to read the IR accessors is C4-class work.
