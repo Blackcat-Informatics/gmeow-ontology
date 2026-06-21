@@ -286,6 +286,177 @@ artifacts; packaging: raw bytes + metadata; docs: Markdown + translations + term
 comment-only change must not force a new reasoning closure (but *should* change the
 source-complete bundle).
 
+## S0 — Frozen Semantic Contract
+
+**Status: FROZEN (this child, S0).** This section is the authoritative,
+implementation-binding contract for #820. Children S1–S8 realize it; they may
+add, but must not contradict, anything fixed here. Where the surrounding RFC
+sketches the architecture, this section *decides* it.
+
+### S0.1 The five separated concerns (frozen)
+
+A scalar `SliceId` column is **not** a provenance model. These five concerns are
+permanently distinct; no implementation may collapse any pair into one field:
+
+| # | Concern | Question it answers | Carrier |
+| - | --- | --- | --- |
+| 1 | **Source origin** | which physical unit/artifact asserted this occurrence? | `AssertionOccurrence` (`UnitId` + `ArtifactId`) |
+| 2 | **Semantic ownership** | which slice *defines* this vocabulary term (`rdfs:isDefinedBy`)? | `DefinitionRecord` (`TermId` → `SliceId`) |
+| 3 | **Artifact membership** | which packaged artifact is this (module/shape/mapping/query/…)? | `ArtifactId` + artifact role |
+| 4 | **Evaluation scope** | over which graph was this result computed? | `Attribution{ role: EvaluationScope }` |
+| 5 | **Derivation support** | which rule applications / premises justify this derived fact? | `RuleApplication` (OR of supports) |
+
+Ownership (2) is an *authored declaration* and is never trusted as physical
+provenance (1): load origin is always retained even when `rdfs:isDefinedBy` is
+wrong.
+
+### S0.2 Identifier types (frozen)
+
+```rust
+pub struct UnitId(u32);        // a compilation/source unit
+pub struct ArtifactId(u32);    // a packaged artifact within a unit
+pub struct OriginSetId(u32);   // an interned set of origins (set-valued datasets)
+```
+
+All three are **opaque `u32` newtypes** owned by the generic RDF kernel
+(`gmeow-rdf`); the kernel never learns what a slice is. The slice layer
+interprets a unit's *kind*:
+
+```rust
+enum UnitKind { Slice(SliceId), RootOntology, Import, Generated, RuntimeInput }
+```
+
+`UnitKind` is **total over every build input**: the root ontology, OWL imports,
+generated graphs, and runtime input are each an explicit non-slice unit. There
+is no `Unknown` variant — an unattributable origin is a **hard failure**
+(no-optionality / hard-fail), not a sixth enum case.
+
+### S0.3 Record types (frozen)
+
+```rust
+struct AssertionOccurrence { quad: QuadId, unit: UnitId, artifact: ArtifactId, location: Option<LocationId> }
+struct DefinitionRecord    { term: TermId, slice: SliceId, evidence: AssertionOccurrenceId }
+struct RuleApplication     { rule: RuleId, premises: Box<[FactId]>, rule_unit: Option<UnitId> }
+struct Attribution         { unit: UnitId, role: AttributionRole, evidence: Box<[LocationId]> }
+enum   AttributionRole {
+    AssertionOrigin, DefinitionOwner, ShapeOwner, RuleOwner,
+    FocusOrigin, ValueOrigin, DerivationSupport, EvaluationScope,
+}
+```
+
+The canonical dataset (#819) is **set-valued**: identical quads authored by two
+slices collapse to one `QuadId`, so identity cannot hold origin — *occurrences*
+do, and the **same quad keeps multiple `AssertionOccurrence`s** (one per
+asserting unit). A fact's support is an **OR of `RuleApplication`s plus
+assertion occurrences**, never a flattened contributing-slice set; the displayed
+"contributing slices" is a lazily computed union of provenance leaves.
+
+### S0.4 Authored-vs-generated classification (frozen)
+
+Every `UnitKind::Slice` artifact is **authored**; every `RootOntology` /
+`Import` / `Generated` / `RuntimeInput` unit (and any computed
+`gmeow:graph/slice-analysis` output) is **generated**. The two are never
+interchangeable: generated analysis facts must **never** become inputs to their
+own dependency computation (two-pass attestation — build authored bundle first,
+compute analysis against that immutable input, attach in a second pass).
+
+### S0.5 Persistent-vs-runtime ID rule (frozen)
+
+Numeric interner IDs (`UnitId`/`ArtifactId`/`OriginSetId`/`TermId`/`QuadId`/…)
+are **runtime-only**. They MUST NOT enter any persistent derivation identity,
+content-addressed cache key, serialized provenance, or RDF output. Persistent
+derivation identity hashes the **rule IRI + premise reifier IRIs** (per
+`crates/logic/src/provenance.rs`); persistent attribution serializes the
+**public slice IRI**, via `gmeow:attributedToSlice` / `gmeow:shapeSlice` /
+`gmeow:contributingSlice` — never a graph-local numeric `SliceId`. Cache keys
+are **path-independent**: moving `slices/core/x` to another group changes no
+semantic ID, dependency result, or cache key.
+
+### S0.6 Required slice anatomy & artifact roles (frozen)
+
+A slice is an artifact **catalog**, not a monolithic parsed object. The closed
+role set, plus an **open `Other(IRI)`** escape for third-party / forward
+compatibility:
+
+```rust
+enum ArtifactRole {
+    Manifest, Module, Shapes, Mapping, CompetencyQuery, VerifyQuery,
+    TestDsl, Example, CounterExample, Documentation,
+    TranslationCatalog, Citation, Other(IRI),
+}
+```
+
+The catalog preserves **both** the verbatim manifest RDF graph (every unknown
+triple, every literal's language/datatype identity) **and** a validated typed
+projection; the inventory includes translations (`i18n/*.po`). Consumer crates
+compile only the roles they understand — the catalog parses no SHACL / test-DSL
+/ SPARQL into one struct, so the layering cycle of §3 cannot form (enforced by
+the S0 crate-layering gate, below).
+
+### S0.7 `SegmentUnitMap` set semantics (frozen)
+
+GTS segmentation is a packaging optimization, never slice identity. The mapping
+is **set-valued in both directions**:
+
+```text
+segment ↔ zero or more compilation units
+slice   ↔ one or more segments
+```
+
+The invariant `one segment == one slice` is **rejected**. Semantic provenance
+must survive concatenation, compaction, resegmentation, a slice split across
+segments, and global generated segments with no owning slice. `SegmentUnitMap`
+is a metadata-backed *set*; `RdfSegmentRecord.slice_iri` (single-valued) is
+insufficient and is replaced.
+
+### S0.8 Manifest datatype contract (frozen — resolves §4's discrepancy)
+
+The §4 discrepancy — discovery coerces any RDF literal to a plain string while
+`shapes/slice-manifest-shapes.ttl` declared consumer literals `xsd:string`
+though every committed manifest uses *language-tagged* literals — is resolved
+here authoritatively, and encoded in `shapes/slice-manifest-shapes.ttl` by this
+child. Manifest literals split into exactly two classes, by the lang-tag
+discipline:
+
+- **PROSE (human-facing, localizable) → `sh:nodeKind sh:Literal` +
+  `sh:languageIn ( "x-gmeow-english" )`, NEVER `@en`.**
+  Properties: `gmeow:sliceConsumer`, `dcterms:title`, `rdfs:label`. These are
+  translatable sentences/labels and carry the `@x-gmeow-english` source tag
+  (every committed manifest already does).
+- **TOKEN / proper-name (programmatic or proper noun) → plain `xsd:string`,
+  NEVER lang-tagged.**
+  Properties: `gmeow:sliceProfile`, `gmeow:providesSubcommand`,
+  `gmeow:builtAgainstCore`, and **`dcterms:creator`**. A `providesSubcommand`
+  is a dispatch token; a `sliceProfile` names an OWL composition IRI + GTS tag;
+  a `dcterms:creator` is a **legal-entity / personal proper name** projected
+  verbatim into `CITATION.cff`. A proper name is not translatable prose, so
+  tagging it `@x-gmeow-english` would be a category error **and** would
+  hard-fail validation against the existing untagged manifests — therefore
+  `dcterms:creator` is frozen as a **plain token literal**, deliberately set
+  apart from the PROSE properties.
+
+The Python loader (`src/gmeow_tools/slices.py::_strings`) keeps its
+string-returning contract: it is a documented **lexical projection** that
+accepts either class and drops the language/datatype identity. Preserving that
+identity end-to-end is the native catalog's job (S1), not the structural Python
+view's.
+
+### S0.9 The crate-layering gate (frozen — delivered by this child)
+
+The Rust-side twin of Principle 16, enforced now (not deferred):
+
+- **Kernel purity** — `gmeow-rdf` (the generic RDF-1.2 narrow waist) has
+  **zero** first-party (`gmeow-*` path) dependencies. A registry crate such as
+  `gmeow-gts` (published, no `path`) is an external boundary, not an internal
+  layering edge, and is excluded by construction.
+- **Acyclic layering** — the first-party crate dependency graph is a **DAG**;
+  any cycle is a hard error (the monolithic-compiler trap of §3).
+
+Implementation: `src/gmeow_tools/crate_layering.py::check_crate_layering`,
+surfaced as `gmeow-dev crate-check` and `make crate-check`, wired into
+`make check`, and registered in `governance/constitution.ttl`
+(`meta:gate-crate-layering`) under Principle 16.
+
 ## Epic decomposition
 
 | Child | Scope |

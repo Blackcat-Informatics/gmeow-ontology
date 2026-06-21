@@ -441,6 +441,13 @@ def _surface_reports() -> list[tuple[str, Callable[[], Any]]]:
 
         return constitution.to_diagnostics_report(constitution.check_constitution())
 
+    def _crate_layering() -> Any:
+        from gmeow_tools import crate_layering
+
+        return crate_layering.to_diagnostics_report(
+            crate_layering.check_crate_layering()
+        )
+
     def _box_roles() -> Any:
         from gmeow_tools import box_roles
 
@@ -482,6 +489,7 @@ def _surface_reports() -> list[tuple[str, Callable[[], Any]]]:
         ("acceptance", _acceptance),
         ("wikidata", _wikidata),
         ("constitution", _constitution),
+        ("crate-layering", _crate_layering),
         ("box-roles", _box_roles),
         ("audit", _audit),
         ("generated", _generated),
@@ -1251,6 +1259,30 @@ def lint_alignment(
     console.print(
         f"[green]✓ alignment directions OK[/green] "
         f"({len(warnings)} warning(s), {len(infos)} skipped)"
+    )
+
+
+@app.command(name="crate-check")
+def crate_check() -> None:
+    """Verify the Rust crate layering: kernel purity + an acyclic crate DAG (#820 S0).
+
+    ``gmeow-rdf`` (the generic RDF-1.2 narrow waist) must carry ZERO first-party
+    (``gmeow-*`` path) dependencies, and the first-party crate dependency graph
+    must be acyclic. This is the Rust-side twin of Principle 16 — slice / domain
+    semantics layer ABOVE the kernel, never inside it.
+    """
+    from gmeow_tools.crate_layering import check_crate_layering
+
+    report = check_crate_layering()
+    for message in report.errors:
+        err_console.print(f"[red]error[/red] {message}")
+    for message in report.warnings:
+        err_console.print(f"[yellow]warning[/yellow] {message}")
+    if not report.ok:
+        raise _fail(f"✗ {len(report.errors)} crate-layering violation(s)")
+    console.print(
+        f"[green]✓ crate layering OK[/green] "
+        f"({len(report.edges)} crates, kernel pure, DAG acyclic)"
     )
 
 

@@ -21,7 +21,8 @@ from gmeow_tools import cli_dev, diagnostics
 from gmeow_tools.feedback_bundle import build_feedback_bundle, verify_feedback_bundle
 
 #: The migrated surfaces this slice folds (alignment, coverage, acceptance,
-#: wikidata, constitution, box-roles, audit, generator drift, engine cross-check).
+#: wikidata, constitution, crate-layering, box-roles, audit, generator drift,
+#: engine cross-check).
 #: validate + native reason/verify are folded separately in `feedback` itself.
 _EXPECTED_SURFACES = {
     "alignment",
@@ -29,6 +30,7 @@ _EXPECTED_SURFACES = {
     "acceptance",
     "wikidata",
     "constitution",
+    "crate-layering",
     "box-roles",
     "audit",
     "generated",
