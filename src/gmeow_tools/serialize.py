@@ -13,10 +13,10 @@ import tempfile
 from pathlib import Path
 
 from rdflib import Graph
-from rdflib.compare import isomorphic
 
 from gmeow_tools.config import DIST_DIR
 from gmeow_tools.graph import bind_prefixes
+from gmeow_tools.rdf_canonical import graphs_isomorphic
 
 #: (serializer, parser) format names keyed by output file extension. The two
 #: differ for RDF/XML: ``pretty-xml`` is serialize-only; parsing uses ``xml``.
@@ -59,7 +59,7 @@ def serialize_graph(
             # original after re-parsing is a defect.
             check = Graph()
             check.parse(out, format=reader)
-            if not isomorphic(graph, check):
+            if not graphs_isomorphic(graph, check):
                 raise ValueError(f"round-trip failed isomorphism for {ext}: {out}")
             staged[ext] = out
 

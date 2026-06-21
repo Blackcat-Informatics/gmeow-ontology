@@ -31,7 +31,7 @@ from collections.abc import Sequence
 from pathlib import Path
 
 from rdflib import RDF, Graph
-from rdflib.compare import graph_diff, isomorphic
+from rdflib.compare import graph_diff
 from rdflib.namespace import OWL
 
 from gmeow_tools.config import (
@@ -43,6 +43,7 @@ from gmeow_tools.config import (
 from gmeow_tools.generator import Generator, rdf_compare, register
 from gmeow_tools.graph import bind_prefixes, iter_module_files, load_merged_graph
 from gmeow_tools.mapping_dsl import CompileError
+from gmeow_tools.rdf_canonical import graphs_isomorphic
 from gmeow_tools.statement_dsl import StatementDsl, load_statement_dsl
 from gmeow_tools.statement_lint import statement_invariants
 
@@ -110,11 +111,13 @@ def _drift(owl_graph: Graph, fresh_rdf12: Path) -> list[str]:
     drifted: list[str] = []
     if not STATEMENT_OWL_FILE.exists():
         drifted.append(f"{_rel_str(STATEMENT_OWL_FILE)} (missing committed file)")
-    elif not isomorphic(Graph().parse(STATEMENT_OWL_FILE, format="turtle"), owl_graph):
+    elif not graphs_isomorphic(
+        Graph().parse(STATEMENT_OWL_FILE, format="turtle"), owl_graph
+    ):
         drifted.append(_rel_str(STATEMENT_OWL_FILE))
     if not STATEMENT_RDF12_FILE.exists():
         drifted.append(f"{_rel_str(STATEMENT_RDF12_FILE)} (missing committed file)")
-    elif not isomorphic(
+    elif not graphs_isomorphic(
         _normalize_to_owl_graph(STATEMENT_RDF12_FILE),
         _normalize_to_owl_graph(fresh_rdf12),
     ):
@@ -173,7 +176,7 @@ def assert_lossless(owl_graph: Graph, rdf12_path: Path) -> list[str]:
     lists, with direction, the statement-metadata triples that diverged.
     """
     normalized = _normalize_to_owl_graph(rdf12_path)
-    if isomorphic(owl_graph, normalized):
+    if graphs_isomorphic(owl_graph, normalized):
         return []
     _, only_owl, only_rdf12 = graph_diff(owl_graph, normalized)
     problems: list[str] = []
@@ -253,6 +256,6 @@ class StatementGenerator(Generator):
             b = _normalize_to_owl_graph(fresh)
         except Exception as exc:
             return [f"{_rel_str(committed)} (normalization error: {exc})"]
-        if not isomorphic(a, b):
+        if not graphs_isomorphic(a, b):
             return [f"{_rel_str(committed)}"]
         return []

@@ -33,10 +33,10 @@ from pathlib import Path
 from typing import Protocol, runtime_checkable
 
 from rdflib import Graph
-from rdflib.compare import isomorphic
 
 from gmeow_tools import diagnostics
 from gmeow_tools.config import PROJECT_ROOT, gmeow_temp_dir, sweep_stale_gmeow_temp_dirs
+from gmeow_tools.rdf_canonical import graphs_isomorphic
 
 #: Regex that matches a generated-file banner (loose enough to catch old formats).
 _GENERATED_MARKER = re.compile(r"GENERATED\s+by\s+gmeow", re.IGNORECASE)
@@ -834,6 +834,6 @@ def rdf_compare(fresh: Path, committed: Path) -> list[str]:
         b = Graph().parse(committed, format="turtle")
     except Exception as exc:
         return [f"{rel} (parse error: {exc})"]
-    if not isomorphic(a, b):
+    if not graphs_isomorphic(a, b):
         return [f"{rel}"]
     return []
