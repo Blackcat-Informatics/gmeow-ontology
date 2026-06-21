@@ -1,0 +1,30 @@
+[
+  {
+    "code": "blob-bytes-absent",
+    "from": "rdf-1.2-dataset",
+    "to": "gts",
+    "intentional": true,
+    "note": "`RdfLookaside` blob records carry blob metadata but not the actual blob bytes, so the GTS writer cannot preserve blob payloads."
+  },
+  {
+    "code": "bnode-scope-flatten",
+    "from": "gts",
+    "to": "rdf-1.2-dataset",
+    "intentional": true,
+    "note": "`gmeow_gts::reader::read()` folds all segments into one term table, collapsing per-segment blank-node scope; the distinct scopes are recovered only via the streaming-event importer."
+  },
+  {
+    "code": "direction-dropped",
+    "from": "rdf-1.2-dataset",
+    "to": "gts",
+    "intentional": true,
+    "note": "The GTS term schema has no literal base-direction field, so the writer drops a literal's base direction (`gmeow_gts` stores only lexical form, datatype, and language tag)."
+  },
+  {
+    "code": "multi-reifier-collapsed",
+    "from": "rdf-1.2-dataset",
+    "to": "gts",
+    "intentional": true,
+    "note": "RDF 1.2 permits several explicit reifiers for one (s,p,o), but the current GTS writer rejects a second distinct explicit reifier for the same triple content (`rdf-conflicting-reifier`)."
+  }
+]

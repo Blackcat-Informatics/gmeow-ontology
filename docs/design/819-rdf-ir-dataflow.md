@@ -293,3 +293,102 @@ hard-fail (malformed structure fails at freeze; orphan references rejected);
 one-PR-at-a-time (decomposed; lands child by child). The best version of this design is an
 immutable, RDF-semantics-defined dataset IR with GTS as an efficient transport ingress,
 native consumers on IDs, and explicit compatibility backends at the edges.
+
+## Appendix C0 — Ratified semantic decisions (normative)
+
+This appendix **ratifies** the C0 semantic contract sketched in
+[Identity & invariants](#the-ir--an-immutable-value-interned-rdfdataset). The bullets above
+are descriptive; the rules below are **normative**. Conforming implementations of the
+`gmeow-rdf` IR **MUST** obey them. Keywords (MUST, MUST NOT, SHALL, MAY) are used per
+RFC 2119. Each conversion loss permitted by these rules is enumerated in the
+machine-readable loss ledger (`crates/rdf/src/loss.rs`, rendered to
+`generated/rdf-loss-matrix.json`); the loss codes referenced below are the stable contract.
+
+### C0.1 Literal identity
+
+- The IR **SHALL** define literal identity itself; oxigraph (or any external store) is
+  **NOT** the identity oracle. An external store **MAY** canonicalize typed-literal lexical
+  forms; the IR **MUST NOT** adopt that canonicalization as identity.
+- A literal with no explicit datatype **SHALL** be expanded to its default datatype at
+  intern time: a plain literal expands to `xsd:string`, and a language-tagged literal
+  expands to `rdf:langString`. After expansion every literal **MUST** carry an explicit
+  datatype in its identity key.
+- Language tags **SHALL** be lowercased for the identity key (BCP 47 case-insensitive
+  comparison). The original-cased tag **MAY** be retained for emission but **MUST NOT**
+  affect identity.
+- A literal's **base direction** (`ltr` / `rtl`, RDF 1.2) **SHALL** participate in the
+  identity key. Two literals that differ only in base direction are **distinct**.
+- The **lexical spelling** of a literal **SHALL** be preserved verbatim; the IR **MUST NOT**
+  rewrite lexical forms (no number/date canonicalization at intern).
+
+### C0.2 Blank-node scope
+
+- Blank-node scope **SHALL** participate in the interning key. Two blank nodes from
+  different scopes are **distinct** even when they share a label; two blank nodes in the
+  same scope with the same label are the **same** node.
+- GTS term IDs are segment-local compression artifacts and **SHALL NOT** be treated as
+  identity. On import, segment-local IDs **MUST** be discarded and terms **MUST** be
+  remapped through RDF value identity.
+- A non-streaming GTS read (`gmeow_gts::reader::read()`) folds all segments into one term
+  table and therefore collapses per-segment blank-node scope. This is an intentional,
+  enumerated loss (`bnode-scope-flatten`); per-segment scope is recoverable **only** via the
+  streaming-event importer, which **MUST** preserve segment boundaries.
+
+### C0.3 Triple terms (RDF 1.2 quoted triples)
+
+- A triple term **SHALL** be identified **structurally** by its resolved `(s, p, o)`. Two
+  triple terms with equal resolved components are the **same** term.
+- Triple-term reference cycles **MUST** be rejected before freeze. No consumer **SHALL** ever
+  observe a dataset containing a triple-term cycle.
+
+### C0.4 Reifiers
+
+- Reifier resources **SHALL** be stored separately from the triple terms they describe.
+- Many reifiers **MAY** point to one triple term; the IR **MUST** permit several distinct
+  reifiers for the same `(s, p, o)`.
+- The current GTS writer rejects a second distinct explicit reifier for the same `(s, p, o)`
+  (`rdf-conflicting-reifier`). Projecting an IR dataset that uses multiple reifiers per
+  triple to GTS is therefore an intentional, enumerated loss (`multi-reifier-collapsed`)
+  until the GTS schema is extended. Fidelity **SHALL NOT** be claimed for such a projection.
+
+### C0.5 Duplicate quads
+
+- The dataset is a **set** of quads. Duplicate quads (and duplicate annotations)
+  **SHALL** collapse to a single member at freeze. Quad multiplicity is **NOT** semantically
+  significant and **MUST NOT** be preserved.
+
+### C0.6 Dataset vs. envelope split
+
+- The hot dataset (terms, quads, reifiers, annotations, named graphs, sparse source
+  locations) **SHALL** be kept distinct from the transport envelope (`RdfLookaside`: blobs,
+  signatures, suppressions, opaque frames, segment ledgers). They are two **separate**
+  round-trip promises and **MUST NOT** be conflated.
+- `RdfLookaside` blob records carry blob metadata but **not** the blob bytes. Projecting blob
+  payloads to GTS is therefore impossible today; this is an intentional, enumerated loss
+  (`blob-bytes-absent`).
+
+### C0.7 Literal base direction → GTS
+
+- The GTS term schema has no literal base-direction field. The GTS writer **SHALL** drop a
+  literal's base direction; the lexical form, datatype, and language tag are preserved. This
+  is an intentional, enumerated loss (`direction-dropped`). RDF 1.2 fidelity **SHALL NOT** be
+  claimed for any conversion whose loss ledger is non-empty; "fidelity" is asserted **only**
+  where the relevant ledger (`LossLedger::is_empty`) is empty.
+
+### C0.8 `TermId` lifetime
+
+- `TermId` is **local to one frozen `RdfDataset`**. It **SHALL NOT** be persisted,
+  serialized, or compared across datasets, and it is **NOT** merge-stable. Any consumer
+  needing a durable identifier **MUST** resolve the term to its RDF value rather than
+  retaining a `TermId`.
+
+### C0.9 Graph policy
+
+- Two projection policies are defined and **SHALL** be selected explicitly:
+  - `PreserveNamedGraphs` (**default**): named graphs are retained; the quad's graph name is
+    part of its identity.
+  - `FlattenToDefaultGraph` (**opt-in**): all quads are projected into the default graph;
+    graph-name distinctions are intentionally discarded.
+- A lazy oxigraph backend **SHALL** be keyed by projection policy. A single unqualified cache
+  **MUST NOT** be shared across policies, because the two projections carry incompatible
+  dataset semantics.

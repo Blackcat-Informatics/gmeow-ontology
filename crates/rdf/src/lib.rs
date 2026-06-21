@@ -14,6 +14,8 @@ pub mod gts;
 #[cfg(feature = "gts")]
 pub mod gts_write;
 pub mod lookaside;
+// The machine-readable RDF↔GTS loss ledger and its drift-gated matrix (#819 C0).
+pub mod loss;
 pub mod model;
 #[cfg(feature = "oxigraph")]
 pub mod oxigraph;
@@ -35,6 +37,9 @@ pub use lookaside::{
     RdfBlobRecord, RdfLookaside, RdfLookasideKind, RdfLookasideResource, RdfMetadataEntry,
     RdfMetadataValue, RdfOpaqueNodeRecord, RdfSegmentRecord, RdfSignatureRecord,
     RdfSuppressionRecord,
+};
+pub use loss::{
+    gts_to_rdf_loss_ledger, loss_matrix_json, rdf_to_gts_loss_ledger, LossEntry, LossLedger,
 };
 pub use model::{
     RdfAnnotation, RdfLiteral, RdfQuad, RdfReifier, RdfTerm, RdfTermKind, RdfTextDirection,
