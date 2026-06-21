@@ -31,4 +31,7 @@ gmeow-diagnostics = { path = "../diagnostics" }
 gmeow-shacl = { path = "../shacl" }
 gmeow-validate = { path = "../validate" }
 gmeow-logic = { path = "../logic" }
+# `gmeow-slice` needs its `python` feature so its `register` fn (the SliceCatalog
+# discovery + ownership analyzer surface) is compiled in (#820 S8).
+gmeow-slice = { path = "../slice", features = ["python"] }
 pyo3 = { version = "0.29", features = ["extension-module", "abi3-py313"] }

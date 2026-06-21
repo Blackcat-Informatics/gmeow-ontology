@@ -3,9 +3,11 @@
 """slice fix-deps — propose manifest dependency edits as a reviewable patch.
 
 Computes undeclared/stale dependencies by invoking the native ownership
-analyzer (via :mod:`gmeow_tools.slices`) and emits a unified diff against
-each affected ``slices/*/manifest.ttl``.  By default the patch is printed to
-stdout; nothing is written.  Pass ``--apply`` to apply the changes in-place.
+analyzer (the authoritative ``gmeow_slice`` PyO3 binding — the native
+``SliceCatalog`` + ``OwnershipAnalyzer``, #820 S8) and emits a unified diff
+against each affected ``slices/*/manifest.ttl``.  By default the patch is
+printed to stdout; nothing is written.  Pass ``--apply`` to apply the changes
+in-place.
 
 Two-pass contract (RFC #820 §11 / S7):
 1. The ownership analyzer reads authored manifests (immutable input).
@@ -156,13 +158,14 @@ def compute_fix_deps(
 
     Never writes computed analysis triples into manifests.
     """
-    # Lazy import the native Rust extension.
+    # Lazy import the native Rust extension (the unified gmeow_native cdylib's
+    # `slice` submodule, aliased via the gmeow_slice shim — #820 S8).
     try:
-        import gmeow_slice  # type: ignore[import-not-found]
+        import gmeow_slice
     except ModuleNotFoundError as exc:
         raise RuntimeError(
             "gmeow-slice native extension not found; "
-            "run `cargo build -p gmeow-slice` and install the extension"
+            "run `make native-py` to build and install the unified extension"
         ) from exc
 
     # Discover slices using the native catalog.

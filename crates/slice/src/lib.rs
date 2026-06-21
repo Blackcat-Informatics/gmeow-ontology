@@ -11,6 +11,12 @@ pub mod catalog;
 pub mod error;
 pub mod ownership;
 
+#[cfg(feature = "python")]
+pub mod py;
+
+#[cfg(feature = "python")]
+pub use py::register;
+
 pub use analysis::{
     bundle_content_id, emit_analysis_graph, is_forbidden_edge, AnalysisError, AnalysisGraph,
     ANALYSIS_GRAPH_IRI, COMPUTED_PROFILE_MEMBERSHIP, COMPUTED_SLICE_DEPENDENCY,
