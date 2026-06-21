@@ -66,14 +66,16 @@ fn synthetic_ttl(n: usize) -> String {
 
 /// Write `count` synthetic Turtle files to temp dir and return their paths.
 ///
-/// Each file contains `triples_per_file` triples. Files are uniquely named
-/// with a bench-specific prefix to avoid collisions with concurrent tests.
+/// Each file contains `triples_per_file` triples. Files are named with the
+/// bench process id plus index/count so concurrent bench processes (e.g.
+/// parallel worktrees) never collide in the shared temp dir.
 fn write_bench_files(count: usize, triples_per_file: usize) -> Vec<PathBuf> {
     let ttl = synthetic_ttl(triples_per_file);
+    let pid = std::process::id();
     (0..count)
         .map(|i| {
-            let path =
-                std::env::temp_dir().join(format!("gmeow_bench_validate_all_{i}_{count}.ttl"));
+            let path = std::env::temp_dir()
+                .join(format!("gmeow_bench_validate_all_{pid}_{i}_{count}.ttl"));
             std::fs::write(&path, &ttl).expect("write bench Turtle file");
             path
         })
