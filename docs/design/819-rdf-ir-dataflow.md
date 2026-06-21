@@ -504,8 +504,17 @@ against the materialized dataset rides with the typed-bridge implementation.
   exposes source positions only on the *error* path, not for successfully parsed
   triples. The `RdfLocation`/builder/renderer plumbing is ready; a positional
   parser is the unblock.
-- **Validate lints reading `annotations_of` from the IR** — the lints run on
-  `oxigraph::Store` today; porting them to read the IR accessors is C4-class work.
+- **Annotation threading — DATA path done, LINT-consumer is the follow-up.**
+  RDF 1.2 statement annotations already flow through the whole pipeline at the
+  data level: the IR carries them (`reifiers`/`annotations` tables, with
+  multi-reifier now *preserved*), `gts_write` writes them into the GTS bundle's
+  `annot` frames, and the reader folds them back. The IR exposes the efficient
+  read surface — `reifiers_of` (linear; small table) and `annotations_of`
+  (`O(log n)`, contiguous run) — tested and ready. The one un-done piece is the
+  validate **lints auto-consuming** those accessors to enrich diagnostics; the
+  lints run on `oxigraph::Store` today, so wiring them to read the IR accessors
+  is C4-class work (port the lints to the IR), tracked as a follow-up. This is a
+  gated consumer, not a data-flow gap.
 - **C8 (delete the owned `RdfStore` shim)** — the production goal is **met**: the
   IR is the sole production working store, and `VecRdfStore` has zero production
   construction sites. It is retained, clearly marked, only as a test-only owned
