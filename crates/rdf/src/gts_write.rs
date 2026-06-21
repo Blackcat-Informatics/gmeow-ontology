@@ -228,9 +228,11 @@ fn intern_literal(
         None
     };
 
-    // gmeow-gts does not store language direction; drop it. The lexical form,
-    // datatype, and language tag are preserved.
+    // RDF 1.2 literal base direction now round-trips through GTS (gmeow-gts#212):
+    // map the IR's RdfTextDirection onto the GTS Term.direction string. Lexical
+    // form, datatype, language tag, and direction are all preserved.
     let lang = literal.language.clone();
+    let direction = literal.direction.map(|d| d.as_str().to_string());
 
     let id = push_term(
         state,
@@ -240,7 +242,7 @@ fn intern_literal(
             value: Some(literal.lexical_form.clone()),
             datatype,
             lang,
-            direction: None,
+            direction,
             reifier: None,
         },
     );
@@ -380,7 +382,7 @@ mod tests {
     use super::*;
     use crate::{
         RdfAnnotation, RdfLiteral, RdfMetadataEntry, RdfMetadataValue, RdfQuad, RdfReifier,
-        RdfSuppressionRecord, RdfTerm, RdfTriple, VecRdfStore,
+        RdfSuppressionRecord, RdfTerm, RdfTextDirection, RdfTriple, VecRdfStore,
     };
 
     fn roundtrip_store(store: &VecRdfStore, profile: &str) -> Graph {
@@ -408,6 +410,28 @@ mod tests {
             "gmeow-rdf-test",
             "<https://example.org/s> <https://example.org/p> <https://example.org/o> .",
         );
+    }
+
+    #[test]
+    fn direction_roundtrips_through_gts() {
+        // RDF 1.2 directional language-tagged literal (gmeow-gts#212): the base
+        // direction must survive RDF IR -> GTS -> read. This proves the retired
+        // `direction-dropped` loss is genuinely gone, not merely undocumented.
+        let mut lit = RdfLiteral::language_tagged("\u{645}\u{631}\u{62d}\u{628}\u{627}", "ar");
+        lit.direction = Some(RdfTextDirection::Rtl);
+        let store = VecRdfStore::with_quads(vec![RdfQuad::new(
+            RdfTerm::iri("https://example.org/s"),
+            "https://example.org/p",
+            RdfTerm::literal(lit),
+        )]);
+        let graph = roundtrip_store(&store, "gmeow-rdf-test");
+        let lit_term = graph
+            .terms
+            .iter()
+            .find(|t| t.kind == TermKind::Literal)
+            .expect("literal term present after read");
+        assert_eq!(lit_term.direction.as_deref(), Some("rtl"));
+        assert_eq!(lit_term.lang.as_deref(), Some("ar"));
     }
 
     #[test]

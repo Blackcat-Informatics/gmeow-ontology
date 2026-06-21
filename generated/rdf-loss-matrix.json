@@ -14,13 +14,6 @@
     "note": "`gmeow_gts::reader::read()` folds all segments into one term table, collapsing per-segment blank-node scope; the distinct scopes are recovered only via the streaming-event importer."
   },
   {
-    "code": "direction-dropped",
-    "from": "rdf-1.2-dataset",
-    "to": "gts",
-    "intentional": true,
-    "note": "The GTS term schema has no literal base-direction field, so the writer drops a literal's base direction (`gmeow_gts` stores only lexical form, datatype, and language tag)."
-  },
-  {
     "code": "multi-reifier-collapsed",
     "from": "rdf-1.2-dataset",
     "to": "gts",

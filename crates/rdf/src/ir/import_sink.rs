@@ -262,7 +262,7 @@ impl SinkImporter {
             lexical_form: term.value.clone().unwrap_or_default(),
             datatype,
             language: term.lang.clone(),
-            direction: None,
+            direction: super::gts_resolve::parse_gts_direction(term.direction.as_deref())?,
         })
     }
 

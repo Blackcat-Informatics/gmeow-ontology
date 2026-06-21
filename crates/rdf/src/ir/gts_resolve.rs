@@ -27,12 +27,32 @@
 
 use gmeow_gts::model::{Graph, TermKind};
 
-use crate::{RdfDiagnostic, RdfLiteral, RdfLocation, RdfTerm, RdfTriple};
+use crate::{RdfDiagnostic, RdfLiteral, RdfLocation, RdfTerm, RdfTextDirection, RdfTriple};
 
 /// Depth bound for resolving nested quoted-triple terms. A cyclic or absurdly
 /// nested triple term hard-fails rather than recursing without bound. Shared by the
 /// eager resolver here and the move-based importer in [`super::import_graph`].
 pub(crate) const MAX_GTS_TERM_NESTING_DEPTH: usize = 16;
+
+/// Parse a GTS literal base-direction string (`"ltr"`/`"rtl"`, gmeow-gts#212)
+/// into the IR's [`RdfTextDirection`]. `None` is legitimate absence; an
+/// unrecognized non-empty value is a hard error rather than a silent drop —
+/// the GTS round-trip is ours, so a malformed direction is corrupt input, not
+/// an intentional loss. Shared by all three decode paths (eager resolver,
+/// consuming `import_graph`, streaming `import_sink`).
+pub(crate) fn parse_gts_direction(
+    value: Option<&str>,
+) -> Result<Option<RdfTextDirection>, RdfDiagnostic> {
+    match value {
+        None => Ok(None),
+        Some("ltr") => Ok(Some(RdfTextDirection::Ltr)),
+        Some("rtl") => Ok(Some(RdfTextDirection::Rtl)),
+        Some(other) => Err(RdfDiagnostic::error(
+            "gts-invalid-direction",
+            format!("unrecognized GTS literal base direction {other:?}"),
+        )),
+    }
+}
 
 /// Resolve a graph term id into an [`RdfTerm`], cloning the borrowed strings.
 pub(crate) fn term_from_id(
@@ -152,7 +172,7 @@ fn term_from_id_depth(
                 lexical_form: term.value.clone().unwrap_or_default(),
                 datatype,
                 language: term.lang.clone(),
-                direction: None,
+                direction: parse_gts_direction(term.direction.as_deref())?,
             }))
         }
         TermKind::Triple => {

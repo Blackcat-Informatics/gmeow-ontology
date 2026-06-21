@@ -84,15 +84,6 @@ impl LossLedger {
 pub fn rdf_to_gts_loss_ledger() -> LossLedger {
     LossLedger::from_entries(vec![
         LossEntry {
-            code: "direction-dropped",
-            from: "rdf-1.2-dataset",
-            to: "gts",
-            intentional: true,
-            note: "The GTS term schema has no literal base-direction field, so the writer \
-                   drops a literal's base direction (`gmeow_gts` stores only lexical form, \
-                   datatype, and language tag).",
-        },
-        LossEntry {
             code: "multi-reifier-collapsed",
             from: "rdf-1.2-dataset",
             to: "gts",
@@ -203,11 +194,12 @@ mod tests {
     use super::*;
     use std::path::PathBuf;
 
-    /// The four intentional loss codes this ledger is required to enumerate.
-    const EXPECTED_CODES: [&str; 4] = [
+    /// The intentional loss codes this ledger is required to enumerate.
+    /// `direction-dropped` was retired once gmeow-gts#212 added `Term.direction`
+    /// and the writer/reader began round-tripping literal base direction.
+    const EXPECTED_CODES: [&str; 3] = [
         "blob-bytes-absent",
         "bnode-scope-flatten",
-        "direction-dropped",
         "multi-reifier-collapsed",
     ];
 
@@ -231,7 +223,7 @@ mod tests {
     }
 
     #[test]
-    fn all_four_intentional_codes_present() {
+    fn all_intentional_codes_present() {
         let codes = matrix_codes();
         for expected in EXPECTED_CODES {
             assert!(
