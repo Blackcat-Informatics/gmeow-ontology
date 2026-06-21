@@ -58,5 +58,8 @@ pub fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     // The native oxigraph Store / SPARQL / parse / canonicalize surface that
     // replaces the external `pyoxigraph` package (#667).
     crate::py_store::register(m)?;
+    // The native RDF → GTS producer surface (snapshot author + compile_gts) and
+    // the `PyRdfDataset` Arc handle (#819 Task 8 / C7).
+    crate::py_gts::register(m)?;
     Ok(())
 }

@@ -965,7 +965,7 @@ requires-dist = [
     { name = "blake3", specifier = ">=0.4" },
     { name = "duckdb", specifier = ">=1.5.3" },
     { name = "fastmcp", specifier = ">=3.4" },
-    { name = "gmeow-gts", specifier = ">=0.9.2,<0.10" },
+    { name = "gmeow-gts", specifier = ">=0.9.4,<0.10" },
     { name = "httpx", specifier = ">=0.28" },
     { name = "jsonschema", specifier = ">=4.23" },
     { name = "linkml", specifier = ">=1.11" },
@@ -1009,7 +1009,7 @@ requires-dist = [{ name = "gmeow", editable = "." }]
 
 [[package]]
 name = "gmeow-gts"
-version = "0.9.2"
+version = "0.9.4"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "blake3" },
@@ -1017,9 +1017,9 @@ dependencies = [
     { name = "cryptography" },
     { name = "zstandard" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/dc/a3/c79ef0c6cd6222b6c9b36e8867af36ee6f1088cfc0aec5272fd753919d96/gmeow_gts-0.9.2.tar.gz", hash = "sha256:300de0f0082f0d30cb30ade905a21a6d73e1a5dcfe6830550b525b2635cd4fa7", size = 150431, upload-time = "2026-06-19T21:28:07.816Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/23/13/0a459a1a1c81a50276166e97ee0b2e85767485c48fd1aa0f533b3395f852/gmeow_gts-0.9.4.tar.gz", hash = "sha256:af5ac00410618e91b148ba457a7cdb078aa62ef0555403571d78cef8825e3240", size = 151438, upload-time = "2026-06-21T04:11:41.094Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/61/d4/3aa5f28511b071d59fef6bb69011e69b3276e08cab246a672d4c865549ae/gmeow_gts-0.9.2-py3-none-any.whl", hash = "sha256:c10e36aec538f1a65fa2e299f29aeb541f0b6dfe1157a1a5e19204c399dde8b3", size = 95971, upload-time = "2026-06-19T21:28:06.311Z" },
+    { url = "https://files.pythonhosted.org/packages/de/7d/e0f81c0756da114b017bf6f5410c2a1ad82ef39367fc13d601bd04fb5cee/gmeow_gts-0.9.4-py3-none-any.whl", hash = "sha256:a743ca73213770490307ffad70323db82b2b940525eb2066f321563be6dbef45", size = 96525, upload-time = "2026-06-21T04:11:39.692Z" },
 ]
 
 [[package]]

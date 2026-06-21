@@ -29,6 +29,13 @@ pub mod py;
 // that replaces the external `pyoxigraph` package (#667). Python-only, like `py`.
 #[cfg(feature = "python")]
 pub mod py_store;
+// The native `RDF → GTS` producer surface (snapshot author + compile_gts) and the
+// `PyRdfDataset` Arc handle (#819 Task 8 / C7). Python-only; needs `gts`, which the
+// `python` feature now implies.
+#[cfg(feature = "python")]
+pub mod py_gts;
+#[cfg(feature = "python")]
+pub mod py_gts_dataset;
 #[cfg(feature = "oxigraph")]
 pub mod statements;
 pub mod store;

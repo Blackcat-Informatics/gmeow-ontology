@@ -1484,6 +1484,7 @@ version = "0.1.0"
 dependencies = [
  "ciborium",
  "criterion",
+ "ed25519-dalek",
  "gmeow-gts",
  "oxigraph",
  "proptest",

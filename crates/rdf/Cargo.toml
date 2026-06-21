@@ -27,7 +27,9 @@ oxigraph = ["dep:oxigraph"]
 # (gmeow-logic / gmeow-shacl / gmeow-validate); only maturin enables it. This is
 # the standard extension-module switch, not a degraded fallback — the Rust
 # functionality is identical with or without it (#648, #667).
-python = ["dep:pyo3", "oxigraph"]
+# `python` builds the GTS producer + statement-codec surface, so it pulls in the
+# `gts` feature (gmeow-gts) and the Ed25519 signer the snapshot signing path uses.
+python = ["dep:pyo3", "gts", "oxigraph", "dep:ed25519-dalek"]
 
 [dependencies]
 ciborium = { version = "0.2", optional = true }
@@ -36,6 +38,9 @@ oxigraph = { version = "0.5", default-features = false, features = ["rdf-12"], o
 # pyo3 is pulled ONLY by the `python` feature (maturin). Same version/abi3 as the
 # sibling extension crates (validate/shacl/logic/diagnostics).
 pyo3 = { version = "0.29", features = ["extension-module", "abi3-py313"], optional = true }
+# The snapshot signing path constructs a SigningKey from the 32 raw Ed25519 bytes
+# the Python `gts.Signer` carries; same major as gmeow-gts links. python-only.
+ed25519-dalek = { version = "2", optional = true }
 
 [dev-dependencies]
 ciborium = "0.2"
