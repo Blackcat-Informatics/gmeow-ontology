@@ -77,31 +77,66 @@ overwhelmingly at the **Python compatibility boundary**, not in Rust. Ranked by 
 
 ## Architecture
 
-### Ring-fence oxigraph into one backend module, single required backend
+### Ring-fence oxigraph — by CRATE boundary, not directory convention
 
-Collapse every `use oxigraph` into one `crates/rdf/src/backend/oxigraph/` module; the rest of the crate
-talks to it only through traits. oxigraph becomes a swappable backend, and the trait seam IS what native
-parsers/SPARQL and the C-ABI plug into.
+A **crate boundary is stronger than a `mod` convention** (it makes leaking an oxigraph type a
+compile error, not a lint). Split the workspace:
 
-- **Already partly there:** oxigraph is `optional`; `oxigraph.rs`/`statements.rs`/`turtle_normalize.rs`/
-  the `gts.rs` flatten bridge are gated. Gaps: `gts`/`python` features transitively pull oxigraph; the
-  `py_store.rs`/`py_gts.rs`/`py_gts_dataset.rs` leaks import oxigraph types while gated only on `python`;
-  there is no parser-backend or query-backend trait yet.
-- **Trait seam:** `Dataset` (read) + `DatasetMut` (write) + `TermFactory`, and the backends
-  `RdfParserBackend` / `SparqlEngine` / `MutableStore` / `RdfSerializer`. oxigraph implements them;
-  native impls implement the SAME traits and replace oxigraph at conformance parity.
-- **No-optionality reconciliation:** the ring-fence is **DIP code isolation**; "builds without oxigraph"
-  is a **CI hygiene check** proving no oxigraph type leaks past the traits — NOT a shipped degraded mode.
-  Exactly ONE backend is wired and **required** at any time; missing it is a HARD FAIL, never a silent
-  no-SPARQL mode. oxigraph is **removed at parity**, not left as a parallel optional.
+```text
+gmeow-rdf-core       IR, values, diagnostics, the DatasetView interfaces — NO backend, never names oxigraph
+gmeow-rdf-oxigraph   the oxigraph parser/query/store adapter — the ONLY crate that names oxigraph
+gmeow-rdf-events     the permissive ingestion protocol (zero deps; see the seam section)
+purrdf-python        standalone PyO3 extension + the gmeow_rdf.compat.rdflib package
+rdf-capi             LATER — only after the API stabilizes
+```
 
-### Zero-copy oxigraph bridge
+The crate split dissolves today's feature leaks (the `gts`/`python` features transitively pulling
+oxigraph; `py_store`/`py_gts` importing oxigraph types): `gmeow-rdf-core` simply has no oxigraph in its
+dependency graph, full stop.
 
-Both sides speak borrowed references: the IR resolves `TermId -> TermRef<'_>` (borrows `&str` from the
-intern table); oxigraph exposes `QuadRef<'a>`/`TermRef<'a>`/`*Ref` borrowing `&str`. The bridge maps IR
-refs → oxigraph `*Ref` over the **same backing bytes** — no intermediate owned `RdfQuad`/`oxrdf::Quad`
-on ingress. Replaces the owned `rdf_quad_from_oxigraph`/`oxigraph_quad_from_rdf` conversions and kills
-the `GTS → RdfQuad (clone) → oxigraph (clone again)` double-tax flagged in #819.
+**Reconcile with the EXISTING abstraction — do NOT add a parallel trait family.** `gmeow-rdf` already
+has an `RdfStore` trait (boxed iterators of OWNED quads). The new traits must **replace it under a
+migration plan**, not sit beside it. Define exactly two layers:
+
+- **`DatasetView`** — a static, **allocation-free** read interface for Rust internals (borrowed
+  `TermRef`/`QuadRef`, `quads_for_pattern`); the hot path. Generalizes/replaces today's owned-quad
+  `RdfStore`.
+- **An object-safe ERASED adapter** (`&mut dyn …`) for runtime backends + the parser/format registry.
+
+Migration: port `RdfStore` consumers (compat bridge, SHACL/validate/logic) to `DatasetView`, then
+delete `RdfStore`. The write side (`DatasetMut`) + `RdfParserBackend`/`SparqlEngine`/`RdfSerializer` +
+`TermFactory` layer on top.
+
+**Graph position needs an explicit match type** — `Option<TermId>` cannot distinguish "any graph" from
+"the default graph". Storage/quads keep `Option<TermId> g` (`None` = default graph), but *matching* uses:
+
+```rust
+enum GraphMatch { Any, Default, Named(TermId) }
+```
+
+**Specify BEFORE implementing P2** (the backend contract, not afterthoughts): query-result ownership +
+cursor lifetime; SPARQL UPDATE + transaction semantics; cancellation; the backend error model;
+capability negotiation (extend `RdfStoreCapabilities`); thread-safety per handle; and whether backend
+selection is **compile-time** (features) or **runtime** (registry) — that answer decides whether the
+erased layer is mandatory.
+
+**No-optionality reconciliation:** the ring-fence is **DIP code isolation**; "builds without the
+oxigraph crate" is a **CI hygiene check** (`gmeow-rdf-core` compiles + core tests pass with no oxigraph
+in the graph) — NOT a shipped degraded mode. Exactly ONE backend is wired and **required**; missing it
+is a HARD FAIL. oxigraph is **removed at parity**, not left as a parallel optional.
+
+### Borrowed-conversion bridge to oxigraph (zero *intermediate* allocation — not end-to-end zero-copy)
+
+The IR resolves `TermId -> TermRef<'_>` (borrows `&str` from the intern table) and oxigraph exposes
+borrowed `QuadRef<'a>`/`*Ref`; the bridge maps IR refs → oxigraph `*Ref` over the **same backing
+bytes**, so **no intermediate owned `RdfQuad`/`oxrdf::Quad` is allocated** on ingress. That replaces the
+owned `rdf_quad_from_oxigraph`/`oxigraph_quad_from_rdf` conversions and kills the
+`GTS → RdfQuad (clone) → oxigraph (clone again)` double-tax flagged in #819.
+
+**It is NOT an end-to-end zero-copy store path:** oxigraph still copies/encodes terms into its own
+internal indexes on `insert`, and scoped blank-node qualification (`BlankScope::qualify_label`) may
+construct a new identifier string. Call it a **borrowed-conversion / zero-intermediate-allocation
+bridge**, not a zero-copy store.
 
 ### Cross-repo split: gts owns syntax, gmeow-rdf owns semantics
 
@@ -224,9 +259,11 @@ over the Kotlin engine), C/C++ (Redland/Serd), C#/.NET (dotNetRDF), Ruby (RDF.rb
 
 Ground: `crates/rdf/src/ir/{term,builder,dataset}.rs`. Today — AoS `InternedTerm` enum, per-term
 `Box<str>`, an intern `HashMap<InternedTerm, TermId>` that **double-stores** every term (`builder.rs:55`),
-`u32` `TermId`, a `Box<[QuadRow]>` sorted+deduped at freeze, **no permutation indexes** (iterate-only),
-sparse handle-keyed locations. Every change is **criterion-gated** (`benches/ir_layout.rs`, #630
-baselines) and keeps the conformance corpus green (LSP).
+`u32` `TermId`, a `Box<[QuadRow]>` sorted+deduped at freeze — **and the builder also holds each quad
+twice** (a `Vec<QuadRow>` plus a parallel `HashSet<QuadRow>` for dedup, `builder.rs`; an unacknowledged
+build-time cost), **no permutation indexes** (iterate-only), sparse handle-keyed locations. Every change
+is **criterion-gated** (`benches/ir_layout.rs`, #630 baselines) and keeps the conformance corpus green
+(LSP). Benchmarks must include the builder's quad Vec+HashSet duplication, not just the term double-store.
 
 ### Optimizations
 
@@ -238,9 +275,14 @@ baselines) and keeps the conformance corpus green (LSP).
    **The biggest ingestion + memory win.**
 3. **SoA term columns** — split the enum into a `kind: u8` + typed columns; removes max-variant bloat.
    Decided by `benches/ir_layout.rs`.
-4. **Lazy permutation indexes at freeze** — `OnceLock<Box<[u32]>>` per non-free permutation (ordinal
-   indirection, 4 B/quad). SPOG is free (quads already sorted). Build POS/OSP/graph-orders on first use.
-   Yields `quads_for_pattern` and `term_id_by_value`. Turns the iterate-only IR queryable.
+4. **Lazy permutation indexes (access-pattern-driven)** — `OnceLock<Box<[u32]>>` per permutation (ordinal
+   indirection, 4 B/quad). SPOG is free (quads already sorted); build POS/OSP/graph-orders **on observed
+   access, NOT all at freeze** — six full ordinal arrays cost ~**24 B/quad if all warm**. Yields
+   `quads_for_pattern`. Benchmark **cold-index construction, warm queries, peak memory, and concurrent
+   first access**. **Term-lookup hazard:** `term_id_by_value(TermRef)` is conceptually UNSAFE — a
+   `TermRef`'s literal-datatype and triple-component ids are local to *another* dataset. Accept a
+   **dataset-independent `TermValueRef`** (or a resolver-bound key) instead, so the lookup can't smuggle
+   foreign ids.
 5. **Sparse location remap** — remap only located quads at freeze (today `push_to_frozen` covers all).
 
 ### Enhancements
@@ -249,28 +291,51 @@ baselines) and keeps the conformance corpus green (LSP).
   SPARQL / rdflib `Graph` stop linear-scanning.
 - **COW suppression-delta** (below) — mutability without abandoning the frozen-share model; dogfoods
   GTS's append+suppression semantics.
-- **BLAKE3 content hash at freeze** — `.cache/validate` key, dedup, GTS content-addressing.
+- **Content hash at freeze — TWO distinct hashes, do not conflate.** A BLAKE3 over the frozen tables is
+  a *representation* hash (cheap, but term order is ingestion-dependent and blank-node labels are NOT
+  isomorphism-invariant — so it is not canonical); a *semantic* content hash requires RDFC-1.0
+  canonicalization first. Offer both, labelled: representation hash for `.cache/validate`/identical-build
+  dedup; RDFC-canonical hash for isomorphism/semantic identity + GTS content-addressing.
 - **Lazy literal value-space cache** — parse lexical→typed once; serves FILTER + `Literal.toPython()`.
 - **Sparse term metadata side-tables** — prefix/namespace hints, `@x-gmeow-*` lang tags, provenance.
 
 ### Lazy quad-index design (spec)
 
 `indexes: QuadIndexes` on `RdfDataset`, one `OnceLock<Box<[u32]>>` per permutation, ordinal-indirection
-arrays. SPOG free (the table is sorted); lazily build POS/OSP and GSPO/GPOS/GOSP when `caps.named_graphs`.
-`quads_for_pattern(s?,p?,o?,g?)` uses a static bound-set→permutation→`partition_point` table, residual
-filter, zero-alloc. The same machinery yields `term_id_by_value(TermRef) -> Option<TermId>` — the
-primitive the COW delta needs. `OnceLock` keeps the dataset `Send+Sync`. Defer per-predicate
-cardinalities to the SPARQL round.
+arrays (4 B/quad each). SPOG free (the table is sorted); build POS/OSP and GSPO/GPOS/GOSP **on observed
+access**, not eagerly — all six warm ≈ 24 B/quad. `quads_for_pattern` takes `GraphMatch` (Any vs Default
+vs Named — `Option<TermId>` can't express that) and uses a static bound-set→permutation→`partition_point`
+table, residual filter, zero-alloc. The value→id primitive the COW delta needs is
+**`term_id_by_value(TermValueRef) -> Option<TermId>`** — keyed on a **dataset-independent `TermValueRef`**
+(NOT `TermRef`, whose datatype/triple ids are foreign-dataset-local). `OnceLock` keeps the dataset
+`Send+Sync`. Benchmark cold construction, warm queries, peak memory, concurrent first access. Defer
+per-predicate cardinalities to the SPARQL round.
 
 ### COW suppression-delta design (spec)
 
+**A measured hypothesis, not an assumed win** — benchmark it against BOTH the current oxigraph store AND
+a simpler hash-indexed mutable store before committing; COW is not inherently optimal for high-churn
+RDFLib workloads.
+
 `MutableDataset { base: Arc<RdfDataset>, added: DeltaBuilder, suppressed: HashSet<QuadKey> }`. Effective
 quads = `(base ∪ added) − suppressed` — GTS's append+suppression model in memory; `freeze()` =
-compaction. Two-tier term ids (`< base.term_count()` resolve in base; `≥` resolve in the delta's
-interner; existing terms resolved via `term_id_by_value`, a miss mints a delta id). `DatasetMut` impl:
-`insert`/`remove`/`contains`/`quads_for_pattern`. Many deltas branch cheaply off one shared base `Arc`;
-`should_compact()` signals re-freeze. The rdflib `Graph` facade AND the native `MutableStore` both bind
-to `DatasetMut` — so this one delta is the substrate that finally lets oxigraph's store be dropped.
+compaction.
+
+**Term identity uses TAGGED handles, not a numeric threshold** — a two-tier numeric `TermId` would break
+the invariant that a `TermId` belongs to one frozen dataset. Use `enum MutTermId { Base(TermId),
+Delta(DeltaTermId) }`; existing terms resolve via `term_id_by_value(TermValueRef)` (a miss mints a
+`Delta` id).
+
+**Mutation rules (specify explicitly):** insert of a *suppressed base* quad **un-suppresses** it; remove
+of a *delta-added* quad removes it from `added`; remove of a *base* quad creates a suppression;
+reinsert-after-removal is consistent with both. **`freeze()` remaps everything** — terms, reifiers,
+annotations, graph names, locations, and metadata — not only quads. Branching and compaction **invalidate
+no externally-visible handles**.
+
+`DatasetMut` impl: `insert`/`remove`/`contains`/`quads_for_pattern`. Many deltas branch cheaply off one
+shared base `Arc`; `should_compact()` signals re-freeze. The rdflib `Graph` facade AND the native
+`MutableStore` both bind to `DatasetMut` — the substrate that *could* let oxigraph's store be dropped, if
+the benchmarks bear it out.
 
 ## Rust-idiomatic surfaces (committed)
 
@@ -302,33 +367,60 @@ a criterion baseline before/after.
   `RdfParserBackend`/`SparqlEngine`/`MutableStore`/`RdfSerializer`; sole `use oxigraph` in
   `backend/oxigraph/`; fix leaks; decouple `gts`/`python` from oxigraph; `--no-default-features` hygiene
   build.
-- **P3 — IR perf: `NonZeroU32` + arena/store-once interner [∥].** Measure-gated.
-- **P4 — Lazy quad indexes + `term_id_by_value` [needs P3].** Queryable IR.
-- **P5 — COW suppression-delta + `DatasetMut` [needs P2, P4].** The mutability substrate.
+- **P3 — IR perf [∥; SPLIT into measure-gated steps]:** **P3a** `NonZeroU32` `TermId` + compile-time
+  `size_of!` assertions; **P3b** arena / string-range term representation; **P3c** store-once hash table
+  (drops the term double-store *and* the builder's quad `Vec`+`HashSet` dedup duplication); **P3d** SoA
+  columns — **only if the bench justifies it**. Each step independently criterion-gated.
+- **P4 — Lazy quad indexes + `term_id_by_value(TermValueRef)` + `GraphMatch` [needs P3a].**
+  Access-pattern-driven build; the value lookup keys on a dataset-independent `TermValueRef`.
+- **P5 — COW suppression-delta + `DatasetMut` [needs P2, P4].** Tagged `Base`/`Delta` handles; explicit
+  mutation rules; `freeze` remaps all tables. **A measured hypothesis** — benchmark vs the oxigraph store
+  AND a simple hash-indexed mutable store.
 - **P6 — `gmeow-rdf-events` ingestion protocol crate [needs P2].** New standalone permissive crate (NOT
   a `StreamingSink` rename); rename the existing frozen-dataset visitor `RdfDatasetVisitor`. Object-safe
   sink + generic & erased source; forward-reference + `finish()` resolution; specified scope/ID/cancel/
-  nesting/diagnostic semantics. `RdfDatasetBuilder` impls the sink; GTS reader (via adapter) + frozen-IR
-  replay as sources.
+  nesting/diagnostic semantics.
 - **P7 — rust-isms surface + `no_std` readiness [folds into P2–P6].**
-- **P8 — `rdf-capi` semantic C-ABI + wasm [needs P2,P4,P5].** (spec below)
-- **P9 — M1 term-facade rdflib compat shim [needs P5 + XSD value space + P2].** (spec below)
+- **P9 — M1 term-facade rdflib compat shim [needs P5 + XSD value space + P2].** (spec below) — ships
+  BEFORE the C-ABI: a stable Python beta is the prerequisite for stabilizing the C-ABI surface.
+- **P8 — `rdf-capi` semantic C-ABI [needs a STABLE Python beta — i.e. after P9].** (spec below)
+- **P10 — WASM build [needs P2/P4/P5; SEPARATE from P8].** Different ownership/packaging/async-I/O/JS-API
+  concerns; needs neither the C-ABI nor `no_std`. Its own parcel.
 
-**Parallelism:** P0/P1/P3 are three concurrent worktrees; P2 after P1; P4 after P3; P5 needs P2+P4; P6
-after P2; P8 after P2/4/5; P9 after P5. P7 rides along.
+**Parallelism:** P0/P1/P3a are concurrent worktrees; P2 after P1; P4 after P3a; P5 needs P2+P4; P6 after
+P2; P9 after P5; **P8 (C-ABI) only after a stable Python beta (P9)**; P10 (WASM) after P2/4/5, parallel
+to P8/P9. P7 rides along.
 
-### P8 spec — `rdf-capi` (the gmeow-rdf semantic C-ABI, distinct from `libgts`)
+### P8 spec — `rdf-capi`/`libpurrdf` (the gmeow-rdf semantic C-ABI) — AFTER a stable Python beta
 
-`crates/rdf-capi`, `cdylib`+`staticlib`, `extern "C"`, `cbindgen` header `purrdf.h`, `cargo-c`; parallel
-wasm32 (in-memory only). Opaque handles `PurrdfDataset*` (frozen, `Send+Sync`), `PurrdfGraph*` (COW
-delta, single-threaded mutable), `PurrdfCursor*` (holds an `Arc` clone so it can't dangle), `PurrdfError*`.
-**Terms cross as N-Triples byte slices** (cheapest lossless cross-ABI form; reuses `Display`/`FromStr`).
-Surface: `purrdf_abi_version`/`purrdf_capabilities`; `purrdf_parse`/`purrdf_serialize` (format_id = OCP
-codec registry); `purrdf_graph_from_dataset`/`_insert`/`_remove`/`_freeze`; `purrdf_quads_for_pattern` +
-`purrdf_cursor_next`; `purrdf_query` returning SPARQL-JSON bytes (oxigraph-backed behind the seam). FFI
-contracts: `catch_unwind` everywhere, `int32` status + out-params, `*_free` for every buffer/error,
-documented thread-safety, SemVer-frozen ABI (the one sanctioned no-backwards-compat exception). Composes
-`libgts` for transport rather than duplicating it.
+`crates/rdf-capi`, `cdylib`+`staticlib`, `extern "C"`, `cbindgen` header `purrdf.h`, `cargo-c`. Opaque
+handles `PurrdfDataset*` (frozen, `Send+Sync`), `PurrdfGraph*` (COW delta, single-threaded mutable),
+`PurrdfCursor*` (holds an `Arc` clone so it can't dangle), `PurrdfError*`.
+
+**One shared library, not two.** A language shim must NOT have to coordinate two native `.so`s. The
+high-level **`libpurrdf` internally reuses the permissive `gmeow-gts` Rust crate** (statically), while
+**`libgts` remains independently usable** for gts-only consumers. Shims link `libpurrdf` alone.
+
+**Term crossing — offer several representations, NOT only N-Triples bytes** (re-parsing N-Triples on
+every cursor row is not the cheapest path):
+
+- opaque, **cursor-scoped term handles** or **structured term views** (kind tag + parts) for hot iteration;
+- **borrowed UTF-8 slices with documented lifetimes** (valid until the next `cursor_next`/free);
+- a **row cursor** for SELECT results (column-addressed), not row re-serialization;
+- N-Triples and SPARQL-JSON **convenience** functions for the simple/robust path.
+
+Surface: `purrdf_abi_version`/`purrdf_capabilities`; `purrdf_parse`/`purrdf_serialize` (format_id = the
+media-type registry); `purrdf_graph_from_dataset`/`_insert`/`_remove`/`_freeze`; `purrdf_quads_for_pattern`
+(takes `GraphMatch`) + `purrdf_cursor_next`; `purrdf_query` (row cursor + SPARQL-JSON convenience). FFI
+contracts: `catch_unwind` everywhere, `int32` status + out-params, `*_free` for every buffer/error/cursor,
+documented thread-safety per handle, **SemVer-frozen ABI** (the one sanctioned no-backwards-compat
+exception). Gated on a stable Python beta so the surface is proven before it is frozen.
+
+### P10 spec — WASM build (separate parcel)
+
+`wasm32`, in-memory only (oxigraph RocksDB and `crates/logic` don't compile to wasm). **Not** a C-ABI
+consumer and **not** dependent on `no_std`: WASM has its own ownership model, packaging (npm/ESM), async
+I/O, and idiomatic JS API (RDF/JS `DataFactory`/Stream). Its own parcel, parallel to the C-ABI.
 
 ### P9 spec — the rdflib compat shim (`gmeow_rdf.compat.rdflib`), LSP-critical
 
