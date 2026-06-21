@@ -27,7 +27,6 @@ from rdflib import RDF, URIRef
 
 from gmeow_tools.config import NAMESPACE, ONTOLOGY_IRI
 from gmeow_tools.graph import iter_source_files, load_merged_graph
-from gmeow_tools.language_tags import _ANNOTATION_PREDICATES
 from gmeow_tools.slices import discover_slices, iter_slice_module_files
 from gmeow_tools.validate import (
     _SELECTOR_TOKENS,
@@ -48,12 +47,13 @@ def _golden(name: str) -> dict[str, list[str]]:
 def _lint_config() -> gmeow_validate.LintConfig:
     slices = discover_slices()
     core = [s.iri for s in slices.values() if s.tier == "core"]
+    # annotation_predicates omitted — LintConfig defaults to the canonical Rust
+    # registry (the single source of truth since #630), exactly as production does.
     return gmeow_validate.LintConfig(
         str(NAMESPACE),
         str(ONTOLOGY_IRI),
         sorted(_SELECTOR_TOKENS),
         core,
-        sorted(str(p) for p in _ANNOTATION_PREDICATES),
     )
 
 

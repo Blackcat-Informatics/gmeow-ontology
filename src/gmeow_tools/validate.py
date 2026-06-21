@@ -52,12 +52,11 @@ def _lint_config() -> gmeow_validate.LintConfig:
     """Build the typed Rust lint config from the Python single-source constants.
 
     Carries ``config.NAMESPACE``/``config.ONTOLOGY_IRI``, the P9 selector
-    tokens, the core-slice IRIs (the Tier-1 grading set), and the standard
-    annotation predicates the Check-2 language-tag policy polices (#579). The
-    Rust engine owns the lint logic; Python owns the registry and constants.
+    tokens, and the core-slice IRIs (the Tier-1 grading set). The annotation
+    predicates the Check-2 language-tag policy polices are NOT passed: the Rust
+    engine owns that registry now (#630) and ``LintConfig`` defaults to its own
+    canonical set, so there is no Python-side constant to push.
     """
-    from gmeow_tools.language_tags import _ANNOTATION_PREDICATES
-
     core_slice_iris = [
         s.iri  # type: ignore[attr-defined]
         for s in _discover_slices_cached().values()
@@ -68,7 +67,6 @@ def _lint_config() -> gmeow_validate.LintConfig:
         str(ONTOLOGY_IRI),
         sorted(_SELECTOR_TOKENS),
         core_slice_iris,
-        sorted(str(p) for p in _ANNOTATION_PREDICATES),
     )
 
 

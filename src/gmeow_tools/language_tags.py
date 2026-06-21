@@ -15,8 +15,7 @@ from collections.abc import Iterable
 from dataclasses import dataclass
 from functools import lru_cache
 
-from rdflib import RDF, RDFS, Graph, Literal, URIRef
-from rdflib.namespace import DCTERMS, SKOS
+from rdflib import RDF, Graph, Literal, URIRef
 
 from gmeow_tools.config import NAMESPACE
 
@@ -25,16 +24,18 @@ GM = URIRef(NAMESPACE)
 #: GMEOW-internal language tag pattern (BCP-47 private-use subtag).
 _INTERNAL_TAG_RE = re.compile(r"^x-gmeow-[a-z0-9\-]+$", re.IGNORECASE)
 
-#: Standard annotation predicates whose literals are subject to the policy.
-_ANNOTATION_PREDICATES: frozenset[URIRef] = frozenset(
-    {
-        RDFS.label,
-        SKOS.definition,
-        RDFS.comment,
-        DCTERMS.title,
-        DCTERMS.description,
-    }
-)
+
+@lru_cache(maxsize=1)
+def _annotation_predicates() -> frozenset[URIRef]:
+    """Standard annotation predicates whose literals are subject to the policy.
+
+    The registry is owned by the Rust validate crate (#630); this reads it back
+    through the native ``gmeow_validate.annotation_predicates`` surface so there is
+    a single source of truth instead of a parallel Python constant.
+    """
+    import gmeow_validate
+
+    return frozenset(URIRef(p) for p in gmeow_validate.annotation_predicates())
 
 
 def is_internal_tag(lang: str | None) -> bool:
@@ -290,7 +291,7 @@ def check_annotation_literal(
     if ns.startswith(NAMESPACE):
         return None
 
-    if predicate not in _ANNOTATION_PREDICATES:
+    if predicate not in _annotation_predicates():
         return None
 
     return (
@@ -610,7 +611,9 @@ def filter_graph(
     """
     if tag_map is None:
         tag_map = _default_tag_map()
-    target_preds = set(predicates) if predicates is not None else _ANNOTATION_PREDICATES
+    target_preds = (
+        set(predicates) if predicates is not None else _annotation_predicates()
+    )
 
     # Group language-tagged objects by (s, p).
     grouped: dict[tuple[URIRef, URIRef], list[Literal]] = {}

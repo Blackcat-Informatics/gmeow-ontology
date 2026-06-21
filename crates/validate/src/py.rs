@@ -63,21 +63,40 @@ struct PyLintConfig {
 #[pymethods]
 impl PyLintConfig {
     #[new]
+    #[pyo3(signature = (
+        namespace,
+        ontology_iri,
+        selector_tokens,
+        core_slice_iris,
+        annotation_predicates = None,
+    ))]
     fn new(
         namespace: String,
         ontology_iri: String,
         selector_tokens: Vec<String>,
         core_slice_iris: Vec<String>,
-        annotation_predicates: Vec<String>,
+        annotation_predicates: Option<Vec<String>>,
     ) -> Self {
         Self {
             namespace,
             ontology_iri,
             selector_tokens,
             core_slice_iris,
-            annotation_predicates,
+            // The annotation-predicate registry is owned by this crate (#630):
+            // when the caller omits it, fall back to the canonical Rust set.
+            annotation_predicates: annotation_predicates
+                .unwrap_or_else(crate::lint::default_annotation_predicates),
         }
     }
+}
+
+/// The canonical annotation predicates the Check-2 language-tag policy polices.
+///
+/// This crate is the single source of truth (#630); the Python `language_tags`
+/// helpers read the set from here instead of maintaining a parallel constant.
+#[pyfunction]
+fn annotation_predicates() -> Vec<String> {
+    crate::lint::default_annotation_predicates()
 }
 
 impl PyLintConfig {
@@ -834,6 +853,7 @@ pub fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PySignatureConfig>()?;
     m.add_class::<PyValidateOptions>()?;
     m.add_class::<PyValidationStore>()?;
+    m.add_function(wrap_pyfunction!(annotation_predicates, m)?)?;
     m.add_function(wrap_pyfunction!(check_syntax, m)?)?;
     m.add_function(wrap_pyfunction!(check_sameas_ban, m)?)?;
     m.add_function(wrap_pyfunction!(structural_lint, m)?)?;
