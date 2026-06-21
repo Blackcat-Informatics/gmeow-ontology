@@ -27,7 +27,7 @@ NATIVE_RUSTFLAGS := -Zunstable-options -Clink-self-contained=+linker -Clinker-fe
 
 .PHONY: help install fmt lint validate crosscheck classic-cross-check reason reason-native reason-hermit explain verify verify-docker reasoning-cases statements-docker-check extract \
         mappings wikidata wikidata-live wikidata-coverage wikidata-audit \
-        lint-alignment refresh-target-axioms docs docs-full ontology-docs ontology-docs-full quality \
+        lint-alignment crate-check refresh-target-axioms docs docs-full ontology-docs ontology-docs-full quality \
         normalize build project test test-fast test-docker check check-generated release regenerate commit clean clean-docs pull-images \
         coverage acceptance crossref constitution-check compliance-report compliance-report-full audit evals-score \
         diagnostics-build diagnostics-test diagnostics-py \
@@ -119,6 +119,9 @@ mappings: ## Build alignment axioms + VoID linksets from SSSOM; validate QID syn
 
 lint-alignment: ## Lint SSSOM mappings for inverse / domain-range-mismatched targets (offline).
 	$(GMEOW_DEV) lint-alignment
+
+crate-check: ## Verify Rust crate layering: gmeow-rdf kernel purity + acyclic crate DAG (#820 S0).
+	$(GMEOW_DEV) crate-check
 
 refresh-target-axioms: ## [maintainer] Re-vendor minimal target-axiom snapshots (pure-Python httpx, Java/Docker-free — maintainer-only, NOT normal-use; #695).
 	$(GMEOW_DEV) refresh-target-axioms --target all
@@ -258,7 +261,7 @@ test-network: ## Run the network tests (LIVE endpoints) — MANUAL only, never i
 	GMEOW_RUN_NETWORK=1 uv run pytest -m network
 
 check: logic-py rdf-py ## Fast local gate: core ontology + transforms (native EL/DL reasoning — Java/Docker-free; classic-cross-check oracle lane runs separately).
-	$(MAKE) -j$$(nproc 2>/dev/null || echo 4) lint clippy rust-test validate check-generated constitution-check audit wikidata coverage acceptance reason-native verify mappings-only lint-alignment
+	$(MAKE) -j$$(nproc 2>/dev/null || echo 4) lint clippy rust-test validate check-generated constitution-check crate-check audit wikidata coverage acceptance reason-native verify mappings-only lint-alignment
 	uv run pytest -n auto --dist loadscope -m "not ci_only and not docker and not classic_cross_check"
 	$(GMEOW_DEV) compliance-report --from-passing-check
 	@echo "✓ all checks passed (Docker-free, Java-free)"

@@ -186,6 +186,13 @@ meta:tests-slices a meta:TestSuite ;
     rdfs:label "slice anatomy and profile tests"@x-gmeow-english ;
     meta:artifact "tests/test_slices.py", "tests/test_profiles.py" .
 
+meta:gate-crate-layering a meta:Gate ;
+    rdfs:label "Rust crate layering: gmeow-rdf kernel purity + acyclic crate DAG"@x-gmeow-english ;
+    meta:artifact "src/gmeow_tools/crate_layering.py" ;
+    meta:symbol "check_crate_layering" ;
+    meta:cliCommand "crate-check" ;
+    meta:makeTarget "crate-check" .
+
 meta:lint-coequal-facet a meta:Lint ;
     rdfs:label "annotation-driven identity-axis orthogonality"@x-gmeow-english ;
     meta:artifact "src/gmeow_tools/reasoning_lint.py" ;
@@ -393,7 +400,8 @@ meta:Principle15 a meta:Principle ;
 meta:Principle16 a meta:Principle ;
     meta:number 16 ;
     meta:title "A small core; everything else a published extension" ;
-    meta:enforcedBy meta:gate-core-profile, meta:tests-slices .
+    meta:enforcedBy meta:gate-core-profile, meta:tests-slices,
+        meta:gate-crate-layering .
 
 meta:Principle17 a meta:Principle ;
     meta:number 17 ;
