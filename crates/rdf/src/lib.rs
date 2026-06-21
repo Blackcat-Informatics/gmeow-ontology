@@ -8,6 +8,8 @@
 //! LOGIC. It models RDF 1.2 terms directly, preserves source/location context
 //! where adapters can provide it, and keeps reporting structured but SARIF-free.
 
+pub mod bundle;
+pub mod content_store;
 pub mod diagnostic;
 #[cfg(feature = "gts")]
 pub mod gts;
@@ -49,10 +51,15 @@ pub mod turtle;
 #[cfg(feature = "oxigraph")]
 pub mod turtle_normalize;
 
+pub use bundle::{
+    ArtifactIndex, ArtifactRecord, BundleError, RdfBundle, SegmentUnitMap, UnitCatalog,
+    UnitMetadata,
+};
+pub use content_store::{Bytes, ContentDigest, ContentStore, ContentStoreError};
 pub use diagnostic::{RdfDiagnostic, RdfLocation, RdfLoss, RdfSeverity};
 pub use ir::{
-    dataset_diff, datasets_isomorphic, BlankScope, DatasetDiff, QuadHandle, QuadIds, QuadRef,
-    RdfBundle, RdfDataset, RdfDatasetBuilder, RdfEnvelope, RdfEventSink, TermId, TermRef,
+    dataset_diff, datasets_isomorphic, BlankScope, DatasetDiff, GtsBundle, QuadHandle, QuadIds,
+    QuadRef, RdfDataset, RdfDatasetBuilder, RdfEnvelope, RdfEventSink, TermId, TermRef,
 };
 #[cfg(feature = "gts")]
 pub use ir::{import_gts_events, import_gts_graph};
