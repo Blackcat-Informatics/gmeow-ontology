@@ -54,5 +54,73 @@ fn bench_validate(c: &mut Criterion) {
     group.finish();
 }
 
-criterion_group!(benches, bench_validate);
+/// Build a 40-class rdfs:subClassOf chain + 3000 typed focus nodes as N-Triples.
+///
+/// This generates a significant enough workload for rayon to show a speedup:
+/// 3000 focus nodes >> the RAYON_THRESHOLD of 500, so the parallel path is taken.
+fn large_hierarchy_inputs() -> (String, String) {
+    // Shape: one NodeShape targeting ex:C0 with sh:pattern + sh:minCount constraints.
+    // Pattern forces per-node regex evaluation (nontrivial per-focus work).
+    let shapes_ttl = r#"
+@prefix sh:   <http://www.w3.org/ns/shacl#> .
+@prefix ex:   <http://example.org/ns#> .
+@prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+
+ex:HierarchyShape a sh:NodeShape ;
+    sh:targetClass ex:C0 ;
+    sh:property [
+        sh:path ex:label ;
+        sh:minCount 1 ;
+        sh:pattern "^item-[0-9]+" ;
+    ] ;
+    sh:property [
+        sh:path ex:value ;
+        sh:datatype xsd:integer ;
+    ] .
+"#
+    .to_owned();
+
+    // 40-class chain: C39 subClassOf C38 subClassOf … C1 subClassOf C0
+    let mut nt = String::with_capacity(1_200_000);
+    let ex = "http://example.org/ns#";
+    let rdf_type = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+    let sub_class_of = "http://www.w3.org/2000/01/rdf-schema#subClassOf";
+
+    for i in 1..40_usize {
+        nt.push_str(&format!(
+            "<{ex}C{i}> <{sub_class_of}> <{ex}C{}>  .\n",
+            i - 1
+        ));
+    }
+
+    // 3000 typed nodes: spread across leaf class C39 (all reachable via closure)
+    for i in 0..3000_usize {
+        nt.push_str(&format!("<{ex}item{i}> <{rdf_type}> <{ex}C39> .\n"));
+        nt.push_str(&format!("<{ex}item{i}> <{ex}label> \"item-{i}\" .\n"));
+        nt.push_str(&format!(
+            "<{ex}item{i}> <{ex}value> \"{i}\"^^<http://www.w3.org/2001/XMLSchema#integer> .\n"
+        ));
+    }
+
+    (nt, shapes_ttl)
+}
+
+fn bench_validate_large(c: &mut Criterion) {
+    let (data_nt, shapes_ttl) = large_hierarchy_inputs();
+
+    let mut group = c.benchmark_group("shacl_validate");
+    group.sample_size(20); // Fewer samples: each iteration is ~10–50ms
+    group.bench_function("large_hierarchy", |b| {
+        b.iter(|| {
+            let report = validate_graphs(&data_nt, &shapes_ttl)
+                .expect("large_hierarchy: validation must not error");
+            std::hint::black_box(report);
+        });
+    });
+    group.finish();
+}
+
+criterion_group!(benches, bench_validate, bench_validate_large);
 criterion_main!(benches);
