@@ -1494,6 +1494,7 @@ dependencies = [
  "gmeow-logic",
  "gmeow-rdf",
  "gmeow-shacl",
+ "gmeow-slice",
  "gmeow-validate",
  "pyo3",
 ]
@@ -1534,6 +1535,7 @@ dependencies = [
  "hex",
  "oxigraph",
  "petgraph",
+ "pyo3",
  "serde",
  "sha2",
  "spargebra 0.4.6",
