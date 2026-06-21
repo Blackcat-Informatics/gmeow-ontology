@@ -521,3 +521,74 @@ against the materialized dataset rides with the typed-bridge implementation.
   fixture across ~65 unit/integration sites in `gmeow-rdf`/`gmeow-logic`; retiring
   it from those tests (incl. the nightly-gated logic suite) is a mechanical
   follow-up, not a production concern.
+
+### CodeRabbit review (PR #825) — fixes applied + remaining deferrals
+
+Correctness fixes landed in this review pass (all gated):
+
+- **BlankScope preserved across the owned/oxigraph boundaries.** The compat bridge
+  (`ir/compat.rs`) and the SHACL IR→oxigraph conversion (`shacl/src/data.rs`) now
+  scope-qualify a non-default blank label via the shared `BlankScope::qualify_label`
+  helper (`ir/term.rs`): default scope keeps the bare label (byte-unchanged for real
+  single-scope data), a non-default scope `n` renders `"{label}.s{n}"`, so two
+  same-label blanks from different scopes no longer conflate.
+- **Directional literals round-trip through canonical Turtle.** `turtle_normalize.rs`
+  threads `direction` into `literal()` and emits the RDF 1.2 `"text"@lang--ltr`/`--rtl`
+  syntax; oxigraph 0.5's Turtle parser round-trips it, so the isomorphism gate holds
+  (regression test added).
+- **Hard-fail on conflicting language tags.** `validate/src/language_tags.rs` now
+  returns an `Err` when two `gmeow:Language` individuals map one internal tag to
+  different `bcp47Tag`s (identical duplicates remain harmless); the 206-entry parity
+  output is unchanged.
+- **Crossref malformed-date is a validation error, not a panic.** `crossref.rs`
+  validates `release_date`'s `YYYY-MM-DD` shape once in `build_deposit_xml` (which
+  already returns `Result`) and `build_date` is now total; valid-input output is
+  byte-identical (parity preserved).
+- **Move optimization completed + stale docstring fixed.** `ir/import_sink.rs` passes
+  the just-`remove()`d `Term` BY VALUE into `intern_raw_term`/`literal_from_term` and
+  MOVES its owned strings; the `literal_from_term` docstring now states that GTS
+  *does* carry base direction (gmeow-gts 0.9.4 `Term.direction`).
+- **Base direction requires a language tag.** `parse_gts_direction` (shared by all
+  three decode paths) now takes the language and hard-fails
+  (`gts-direction-without-language`) on a direction without a non-empty language,
+  per RDF 1.2.
+- **Subject-kind check tightened correctly.** `ir/validate.rs` splits the old
+  "non-literal subject" check: an ASSERTED subject (quad subject / reifier resource /
+  annotation reifier) must be IRI/blank — a quoted-triple subject there is rejected
+  (`rdf-ir-triple-subject`) before it can reach an `unreachable!` in the owned /
+  oxigraph conversions — while the subject position *inside* a quoted triple still
+  legitimately accepts a NESTED triple term (`<< <<s p o>> p2 o2 >>`), which the
+  oxigraph materializer already turns into a totally-handled `Err` rather than a panic.
+- **Citation `gmeow:Selector` definition** de-garbled to one clear sentence.
+
+Remaining deferrals (genuine heavy lifts, with reason):
+
+- **Blob *reference* carry-forward on GTS export (`gts_write.rs::apply_lookaside`)** —
+  blocked UPSTREAM: `gmeow_gts::model::BlobEntry` is byte-bearing by construction
+  (`Bytes(..)`/`Lazy { raw, .. }`) and has **no reference-only variant** that could
+  carry just the `RdfBlobRecord` digest + origin. We cannot emit a byte-less blob
+  reference into `graph.blobs` without materializing payload bytes (which the IR
+  deliberately never holds — blobs may be multi-terabyte). The reference therefore
+  round-trips out of band (the `blob-bytes-absent` intentional-loss entry); carrying
+  it inline is unblocked only by a new gmeow-gts reference-only blob-entry API.
+- **Reifier/annotation tables in the DIRECT `&RdfDataset` SHACL backend** —
+  `quads_for_pattern` scans only the quad table, so a hand-built IR holding reifiers
+  /annotations in the typed tables would not surface them as `rdf:reifies`/annotation
+  quads to a *direct* `validate_with(&&RdfDataset)`. The PRODUCTION path is unaffected:
+  `validate_rdf_store` → `dataset_from_rdf_store` already projects reifiers as
+  `rdf:reifies` quads and annotations as plain triples before validation, so the
+  typed tables are empty there. Exposing the typed tables as synthetic default-graph
+  quads inside the hot pattern-scan loop is the follow-up for the direct-backend case.
+- **`datasets_isomorphic` completeness (`ir/compare.rs`)** — the hash-refinement
+  oracle is sound on the POSITIVE side and conservative on collision: when two blanks
+  share a refined signature (a symmetric blank graph the hash cannot split) it returns
+  `false` rather than guessing, so it can FALSE-NEGATIVE on a genuinely-isomorphic
+  symmetric graph. Real importer-equivalence graphs (OWL restrictions, RDF lists)
+  carry distinguishing IRIs in their closure and do not collide, so no current gate
+  false-negatives; a complete RDFC-1.0 backtracking pass is the deferred follow-up for
+  pathological symmetric inputs.
+
+SHACL-SPARQL store caching (CodeRabbit "re-materializes per call") WAS fixed in this
+pass, not deferred: `CachedIrDataGraph` (`shacl/src/data.rs`) wraps `&RdfDataset` with
+a `OnceLock<Store>` so `validate_rdf_store` materializes the SPARQL store at most once
+per validation, shared across every `sh:sparql` target/constraint.

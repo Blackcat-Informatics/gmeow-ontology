@@ -297,8 +297,8 @@ impl<'a> Renderer<'a> {
                 lexical,
                 datatype,
                 language,
-                ..
-            } => self.literal(lexical, datatype, language),
+                direction,
+            } => self.literal(lexical, datatype, language, direction),
             TermRef::Blank { .. } => {
                 if self.is_inline_bnode(id) {
                     if let Some(list) = self.try_collection(id) {
@@ -420,9 +420,20 @@ impl<'a> Renderer<'a> {
         format!("<{}>", escape_iri(iri))
     }
 
-    fn literal(&self, lexical: &str, datatype: TermId, language: Option<&str>) -> String {
+    fn literal(
+        &self,
+        lexical: &str,
+        datatype: TermId,
+        language: Option<&str>,
+        direction: Option<crate::RdfTextDirection>,
+    ) -> String {
         if let Some(lang) = language {
-            return format!("{}@{}", quote(lexical), lang);
+            // RDF 1.2 base direction renders as `"text"@lang--ltr` / `--rtl`; a base
+            // direction requires a language tag, so it only appears on this branch.
+            return match direction {
+                Some(dir) => format!("{}@{}--{}", quote(lexical), lang, dir.as_str()),
+                None => format!("{}@{}", quote(lexical), lang),
+            };
         }
         let dt = self.iri_of(datatype);
         if dt == xsd("string") {
@@ -716,6 +727,30 @@ mod tests {
         assert!(out.contains("ex:typed \"hi\" "), "{out}");
         assert!(out.contains("ex:lang \"bonjour\"@fr "), "{out}");
         assert!(iso(src, &out));
+    }
+
+    #[test]
+    fn directional_literal_round_trips() {
+        // RDF 1.2 base direction must survive normalize: render `@lang--dir` and stay
+        // isomorphic to the input (oxigraph's Turtle parser round-trips the `--dir`
+        // form at ingest, so the isomorphism gate holds).
+        let src = r#"
+            @prefix ex: <http://example.org/> .
+            ex:s ex:rtl "مرحبا"@ar--rtl ;
+                 ex:ltr "hello"@en--ltr .
+        "#;
+        let out = norm(src);
+        assert!(
+            out.contains("\"مرحبا\"@ar--rtl"),
+            "rtl direction rendered:\n{out}"
+        );
+        assert!(
+            out.contains("\"hello\"@en--ltr"),
+            "ltr direction rendered:\n{out}"
+        );
+        assert!(iso(src, &out), "directional literal preserved:\n{out}");
+        // Idempotent: re-normalizing the output is byte-identical.
+        assert_eq!(out, norm(&out), "idempotent");
     }
 
     #[test]

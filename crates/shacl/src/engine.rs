@@ -238,10 +238,12 @@ pub fn validate_rdf_store(
     shapes: &Shapes,
 ) -> Result<ValidationReport, String> {
     let dataset = dataset_from_rdf_store(data)?;
-    // `ShaclDataGraph` is implemented for `&RdfDataset`; the engine reads pattern
-    // lookups directly from the frozen IR, with no whole-store oxigraph
-    // materialization (SPARQL paths materialize lazily, on demand only).
-    let reference: &gmeow_rdf::RdfDataset = &dataset;
+    // The engine reads pattern lookups directly from the frozen IR, with no
+    // whole-store oxigraph materialization. SHACL-SPARQL paths materialize lazily and
+    // — via `CachedIrDataGraph` — AT MOST ONCE per validation, shared across every
+    // `sh:sparql` target/constraint (rather than re-materializing the whole store per
+    // SPARQL call as the bare `&RdfDataset` backend would).
+    let reference = crate::data::CachedIrDataGraph::new(&dataset);
     Ok(validate_with(&reference, shapes))
 }
 

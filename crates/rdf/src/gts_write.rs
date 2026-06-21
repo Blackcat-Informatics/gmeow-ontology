@@ -336,12 +336,17 @@ fn apply_lookaside(state: &InternState, graph: &mut Graph, lookaside: RdfLookasi
         });
     }
 
-    // Blobs travel by content-addressed reference, not by value. The RDF IR
-    // never holds payload bytes (a blob may be a multi-terabyte data dump), so
-    // the destination is not re-inlined here: the `RdfBlobRecord` carries the
-    // blob_id digest + origin, and a streaming materializer copies the bytes
-    // origin→destination on demand (deferred — see the `blob-bytes-absent`
-    // intentional loss in `crate::loss`).
+    // Blobs travel by content-addressed reference, not by value. The RDF IR never
+    // holds payload bytes (a blob may be a multi-terabyte data dump), so we cannot
+    // re-emit a `BlobEntry` here: `gmeow_gts::model::BlobEntry` is byte-bearing by
+    // construction (`Bytes(..)` / `Lazy { raw, .. }`) — it has NO byte-less
+    // reference variant that could carry only the `RdfBlobRecord`'s digest + origin.
+    // The blob *reference* therefore round-trips out of band (the loss ledger's
+    // `blob-bytes-absent` entry, intentional), and a future deferred-materialization
+    // path streams bytes origin→destination on demand. Carrying the bare reference
+    // through `graph.blobs` is blocked until gmeow-gts grows a reference-only blob
+    // entry — see `docs/design/819-rdf-ir-dataflow.md` Appendix Z.
+    let _ = lookaside.blobs;
 }
 
 fn term_id_by_display(state: &InternState, label: &str) -> Option<usize> {

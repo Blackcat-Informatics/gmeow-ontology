@@ -165,23 +165,28 @@ impl SinkImporter {
                     .with_gts_term(gts_id),
             ));
         };
-        let our_id = self.intern_raw_term(segment_index, gts_id, &term, depth)?;
+        let our_id = self.intern_raw_term(segment_index, gts_id, term, depth)?;
         self.remaps.insert((segment_index, gts_id), our_id);
         Ok(our_id)
     }
 
     /// Intern one already-located raw term, recursing (inner-first) for quoted
     /// triples through their reifier binding.
+    ///
+    /// Takes the raw [`Term`] BY VALUE (it was just `remove()`d from `raw_terms`,
+    /// so the sink uniquely owns it) and MOVES its owned strings (`value` / `lang` /
+    /// `direction`) into the interner instead of cloning — completing the
+    /// no-clone path the streaming design promises.
     fn intern_raw_term(
         &mut self,
         segment_index: usize,
         gts_id: usize,
-        term: &Term,
+        term: Term,
         depth: usize,
     ) -> Result<TermId, RdfDiagnostic> {
         let our_id = match term.kind {
             TermKind::Iri => {
-                let Some(iri) = term.value.clone().filter(|value| !value.is_empty()) else {
+                let Some(iri) = term.value.filter(|value| !value.is_empty()) else {
                     return Err(RdfDiagnostic::error(
                         "rdf-ir-iri-missing-value",
                         "GTS IRI term requires a non-empty value",
@@ -200,7 +205,6 @@ impl SinkImporter {
             TermKind::Bnode => {
                 let label = term
                     .value
-                    .clone()
                     .unwrap_or_else(|| format!("gts_bnode_{segment_index}_{gts_id}"));
                 let scope = BlankScope(segment_index as u32 + 1);
                 self.builder.intern_blank(label, scope)
@@ -232,12 +236,14 @@ impl SinkImporter {
     /// Build an [`RdfLiteral`] from a GTS literal term, resolving its datatype id
     /// THROUGH the segment's terms (phase 2).
     ///
-    /// GTS cannot carry RDF 1.2 base direction (its `Term` has no direction slot),
-    /// so `direction` is always `None` on this path — a known projection limit.
+    /// GTS *does* carry RDF 1.2 base direction (`gmeow-gts`'s `Term` has a
+    /// `direction: Option<String>` slot), so it is read here via
+    /// [`parse_gts_direction`](super::gts_resolve::parse_gts_direction) and preserved
+    /// onto the literal — direction is NOT a projection loss on this path.
     fn literal_from_term(
         &mut self,
         segment_index: usize,
-        term: &Term,
+        term: Term,
         depth: usize,
     ) -> Result<RdfLiteral, RdfDiagnostic> {
         let datatype = match term.datatype {
@@ -261,11 +267,17 @@ impl SinkImporter {
             }
             None => None,
         };
+        // Parse direction (which requires the language tag) BEFORE moving the owned
+        // `value`/`lang`/`direction` strings out of the term.
+        let direction = super::gts_resolve::parse_gts_direction(
+            term.direction.as_deref(),
+            term.lang.as_deref(),
+        )?;
         Ok(RdfLiteral {
-            lexical_form: term.value.clone().unwrap_or_default(),
+            lexical_form: term.value.unwrap_or_default(),
             datatype,
-            language: term.lang.clone(),
-            direction: super::gts_resolve::parse_gts_direction(term.direction.as_deref())?,
+            language: term.lang,
+            direction,
         })
     }
 

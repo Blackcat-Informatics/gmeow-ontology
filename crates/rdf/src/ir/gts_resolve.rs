@@ -40,18 +40,33 @@ pub(crate) const MAX_GTS_TERM_NESTING_DEPTH: usize = 16;
 /// the GTS round-trip is ours, so a malformed direction is corrupt input, not
 /// an intentional loss. Shared by all three decode paths (eager resolver,
 /// consuming `import_graph`, streaming `import_sink`).
+///
+/// RDF 1.2 admits a base direction ONLY on a language-tagged string, so `language`
+/// MUST be present (non-empty) whenever a direction is given; a direction without a
+/// language tag hard-fails (`gts-direction-without-language`) rather than silently
+/// producing an ill-formed literal.
 pub(crate) fn parse_gts_direction(
     value: Option<&str>,
+    language: Option<&str>,
 ) -> Result<Option<RdfTextDirection>, RdfDiagnostic> {
-    match value {
-        None => Ok(None),
-        Some("ltr") => Ok(Some(RdfTextDirection::Ltr)),
-        Some("rtl") => Ok(Some(RdfTextDirection::Rtl)),
-        Some(other) => Err(RdfDiagnostic::error(
-            "gts-invalid-direction",
-            format!("unrecognized GTS literal base direction {other:?}"),
-        )),
+    let direction = match value {
+        None => return Ok(None),
+        Some("ltr") => RdfTextDirection::Ltr,
+        Some("rtl") => RdfTextDirection::Rtl,
+        Some(other) => {
+            return Err(RdfDiagnostic::error(
+                "gts-invalid-direction",
+                format!("unrecognized GTS literal base direction {other:?}"),
+            ))
+        }
+    };
+    if language.is_none_or(str::is_empty) {
+        return Err(RdfDiagnostic::error(
+            "gts-direction-without-language",
+            "an RDF 1.2 literal base direction requires a non-empty language tag",
+        ));
     }
+    Ok(Some(direction))
 }
 
 /// Resolve a graph term id into an [`RdfTerm`], cloning the borrowed strings.
@@ -172,7 +187,7 @@ fn term_from_id_depth(
                 lexical_form: term.value.clone().unwrap_or_default(),
                 datatype,
                 language: term.lang.clone(),
-                direction: parse_gts_direction(term.direction.as_deref())?,
+                direction: parse_gts_direction(term.direction.as_deref(), term.lang.as_deref())?,
             }))
         }
         TermKind::Triple => {
@@ -199,5 +214,42 @@ fn term_from_id_depth(
                 depth + 1,
             )?))
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn direction_without_language_is_rejected() {
+        // RDF 1.2 admits a base direction only on a language-tagged string.
+        let err = parse_gts_direction(Some("ltr"), None)
+            .expect_err("direction without a language tag must hard-fail");
+        assert_eq!(err.code, "gts-direction-without-language");
+        let err = parse_gts_direction(Some("rtl"), Some(""))
+            .expect_err("direction with an empty language tag must hard-fail");
+        assert_eq!(err.code, "gts-direction-without-language");
+    }
+
+    #[test]
+    fn direction_with_language_round_trips() {
+        assert_eq!(
+            parse_gts_direction(Some("ltr"), Some("en")).unwrap(),
+            Some(RdfTextDirection::Ltr)
+        );
+        assert_eq!(
+            parse_gts_direction(Some("rtl"), Some("ar")).unwrap(),
+            Some(RdfTextDirection::Rtl)
+        );
+        assert_eq!(parse_gts_direction(None, Some("en")).unwrap(), None);
+        assert_eq!(parse_gts_direction(None, None).unwrap(), None);
+    }
+
+    #[test]
+    fn unrecognized_direction_is_rejected() {
+        let err = parse_gts_direction(Some("sideways"), Some("en"))
+            .expect_err("unknown direction must hard-fail");
+        assert_eq!(err.code, "gts-invalid-direction");
     }
 }

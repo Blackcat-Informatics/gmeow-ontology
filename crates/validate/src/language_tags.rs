@@ -155,6 +155,19 @@ fn build_tag_map(dataset: &gmeow_rdf::RdfDataset) -> Result<HashMap<String, Stri
         }
         let int_val = int_vals.into_iter().next().unwrap();
         let bcp_val = bcp_vals.into_iter().next().unwrap();
+        // Two `gmeow:Language` individuals sharing one internal `languageTag` but
+        // mapping it to DIFFERENT `bcp47Tag`s is a nondeterministic conflict; per the
+        // no-optionality/hard-fail doctrine, reject it rather than silently letting
+        // the last writer win. (A repeated tag→SAME bcp47Tag is a harmless duplicate.)
+        if let Some(existing) = tag_map.get(&int_val) {
+            if existing != &bcp_val {
+                return Err(format!(
+                    "conflicting bcp47Tag for internal languageTag {int_val:?}: \
+                     {existing:?} vs {bcp_val:?}; the tag-map projection requires a \
+                     single canonical bcp47Tag per internal tag"
+                ));
+            }
+        }
         tag_map.insert(int_val, bcp_val);
     }
 
@@ -281,6 +294,46 @@ gmeow:English a gmeow:Language ;
     gmeow:bcp47Tag "en" .
 "#;
         assert!(load_tag_map(ttl.as_bytes(), "turtle").is_err());
+    }
+
+    #[test]
+    fn load_tag_map_conflicting_duplicate_err() {
+        // Two individuals mapping the SAME internal tag to DIFFERENT bcp47Tags is a
+        // nondeterministic conflict and must hard-fail, not silently last-writer-win.
+        let ttl = r#"
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+
+gmeow:English a gmeow:Language ;
+    gmeow:languageTag "x-gmeow-english" ;
+    gmeow:bcp47Tag "en" .
+
+gmeow:EnglishAlt a gmeow:Language ;
+    gmeow:languageTag "x-gmeow-english" ;
+    gmeow:bcp47Tag "en-GB" .
+"#;
+        let err = load_tag_map(ttl.as_bytes(), "turtle").expect_err("conflict must error");
+        assert!(err.contains("conflicting bcp47Tag"), "{err}");
+    }
+
+    #[test]
+    fn load_tag_map_duplicate_identical_ok() {
+        // The SAME internal tag → SAME bcp47Tag from two individuals is a harmless
+        // duplicate, not a conflict.
+        let ttl = r#"
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+
+gmeow:English a gmeow:Language ;
+    gmeow:languageTag "x-gmeow-english" ;
+    gmeow:bcp47Tag "en" .
+
+gmeow:EnglishCopy a gmeow:Language ;
+    gmeow:languageTag "x-gmeow-english" ;
+    gmeow:bcp47Tag "en" .
+"#;
+        let map = load_tag_map(ttl.as_bytes(), "turtle").expect("identical duplicate ok");
+        assert_eq!(map.get("x-gmeow-english"), Some(&"en".to_owned()));
     }
 
     #[test]

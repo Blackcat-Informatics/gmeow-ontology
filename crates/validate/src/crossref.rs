@@ -373,10 +373,36 @@ fn build_contributors(contributors: &[ContributorInput]) -> Node {
     node
 }
 
+/// Validate that `date` is an `xsd:date`-shaped `YYYY-MM-DD` string (the only shape
+/// `build_date` can split into year/month/day). Returns a precise error otherwise so
+/// the deposit-XML builder hard-fails instead of panicking on an out-of-range index.
+fn validate_iso_date(date: &str) -> Result<(), String> {
+    let parts: Vec<&str> = date.splitn(3, '-').collect();
+    let well_formed = parts.len() == 3
+        && parts[0].len() == 4
+        && parts[1].len() == 2
+        && parts[2].len() == 2
+        && parts.iter().all(|p| p.bytes().all(|b| b.is_ascii_digit()));
+    if well_formed {
+        Ok(())
+    } else {
+        Err(format!(
+            "release_date {date:?} is not a well-formed YYYY-MM-DD date; \
+             the Crossref deposit requires an xsd:date-shaped release_date"
+        ))
+    }
+}
+
 /// Returns a `database_date` wrapper containing `date_name` with month/day/year.
+///
+/// Callers MUST have validated `iso_date` via [`validate_iso_date`] first (the
+/// deposit-XML builder does); the defensive fallbacks here keep this total even if a
+/// future caller forgets.
 fn build_date(date_name: &str, iso_date: &str) -> Node {
     let parts: Vec<&str> = iso_date.splitn(3, '-').collect();
-    let (year, month, day) = (parts[0], parts[1], parts[2]);
+    let year = parts.first().copied().unwrap_or_default();
+    let month = parts.get(1).copied().unwrap_or_default();
+    let day = parts.get(2).copied().unwrap_or_default();
     let date_elem = cr(date_name)
         .with_attr("media_type", "online")
         .push(cr("month").with_text(month))
@@ -722,6 +748,12 @@ pub fn build_deposit_xml(json: &str, timestamp: &str, batch_id: &str) -> Result<
     let input: DepositInput = serde_json::from_str(json).map_err(|e| e.to_string())?;
     let sd = &input.self_description;
     let config = &input.config;
+
+    // `release_date` feeds every `build_date` element (publication_date /
+    // update_date). Validate its `YYYY-MM-DD` shape ONCE here — where the function
+    // already returns a `Result` — so a malformed date surfaces as a validation
+    // error rather than panicking deep in node construction (no-optionality/hard-fail).
+    validate_iso_date(&sd.release_date)?;
 
     let crossmark_policy: Option<String> = if config.crossmark_enabled {
         if config.crossmark_policy_doi.trim().is_empty() {
@@ -1143,6 +1175,25 @@ fn check_citation_business_rules(xml: &str, problems: &mut Vec<String>) {
             rest = &rest[cit_end + "</citation>".len()..];
         } else {
             break;
+        }
+    }
+}
+
+#[cfg(test)]
+mod date_tests {
+    use super::validate_iso_date;
+
+    #[test]
+    fn accepts_well_formed_iso_date() {
+        assert!(validate_iso_date("2026-06-21").is_ok());
+    }
+
+    #[test]
+    fn rejects_malformed_dates() {
+        // A malformed release_date must surface as an Err, never an out-of-range panic.
+        for bad in ["2026", "2026-06", "not-a-date", "2026/06/21", "26-6-1", ""] {
+            let err = validate_iso_date(bad).expect_err("malformed date must be rejected");
+            assert!(err.contains("YYYY-MM-DD"), "{err}");
         }
     }
 }

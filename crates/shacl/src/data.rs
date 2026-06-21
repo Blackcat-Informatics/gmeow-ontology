@@ -204,16 +204,71 @@ impl ShaclDataGraph for &RdfDataset {
 
     fn sparql_store(&self) -> Cow<'_, Store> {
         // SHACL-SPARQL genuinely needs an oxigraph SPARQL engine; the IR cannot
-        // answer arbitrary SPARQL itself. Materialize the WHOLE dataset into a
-        // Store ONCE, here, only when a SPARQL path actually asks for it. Flatten
-        // named graphs to the default graph to match the engine's
-        // FlattenToDefaultGraph data policy.
-        let store = gmeow_rdf::oxigraph::store_from_rdf_store(
-            self,
-            gmeow_rdf::oxigraph::GraphPolicy::FlattenToDefaultGraph,
-        )
-        .expect("IR dataset must materialize into an oxigraph Store for SPARQL");
+        // answer arbitrary SPARQL itself. Materialize the WHOLE dataset into a Store.
+        //
+        // NOTE: this bare `&RdfDataset` backend has nowhere to cache the Store, so it
+        // re-materializes per call. The engine drives validation through
+        // [`CachedIrDataGraph`] (see `validate_rdf_store`), which materializes ONCE
+        // per validation and shares the Store across every SPARQL target/constraint;
+        // this impl remains correct for any direct `validate_with(&&RdfDataset)` user.
+        let store = materialize_sparql_store(self);
         Cow::Owned(store)
+    }
+}
+
+/// Materialize a frozen IR dataset into an oxigraph [`Store`] for SHACL-SPARQL,
+/// flattening named graphs to the default graph to match the engine's
+/// `FlattenToDefaultGraph` data policy. Shared by both IR backends.
+fn materialize_sparql_store(dataset: &RdfDataset) -> Store {
+    gmeow_rdf::oxigraph::store_from_rdf_store(
+        &dataset,
+        gmeow_rdf::oxigraph::GraphPolicy::FlattenToDefaultGraph,
+    )
+    .expect("IR dataset must materialize into an oxigraph Store for SPARQL")
+}
+
+/// An IR-native [`ShaclDataGraph`] that owns a borrow of the frozen dataset PLUS a
+/// per-validation cache of the materialized SPARQL [`Store`].
+///
+/// The SHACL engine asks for [`ShaclDataGraph::sparql_store`] once per `sh:sparql`
+/// target/constraint. The bare `&RdfDataset` backend re-materializes the whole store
+/// every time; this wrapper materializes it AT MOST ONCE per validation (lazily, only
+/// if a SPARQL path is actually reached) via a [`OnceLock`], then hands every later
+/// SPARQL evaluation the same store. Pattern lookups delegate to the underlying IR
+/// backend unchanged.
+pub struct CachedIrDataGraph<'a> {
+    dataset: &'a RdfDataset,
+    store: std::sync::OnceLock<Store>,
+}
+
+impl<'a> CachedIrDataGraph<'a> {
+    /// Wrap a borrowed frozen dataset with a lazily-populated SPARQL-store cache.
+    pub fn new(dataset: &'a RdfDataset) -> Self {
+        Self {
+            dataset,
+            store: std::sync::OnceLock::new(),
+        }
+    }
+}
+
+impl ShaclDataGraph for CachedIrDataGraph<'_> {
+    fn quads_for_pattern(
+        &self,
+        subject: Option<&Term>,
+        predicate: Option<&Term>,
+        object: Option<&Term>,
+        graph: GraphFilter,
+    ) -> Vec<Quad> {
+        // Delegate to the IR-native pattern lookup; no materialization.
+        ShaclDataGraph::quads_for_pattern(&self.dataset, subject, predicate, object, graph)
+    }
+
+    fn sparql_store(&self) -> Cow<'_, Store> {
+        // Materialize ONCE per validation; every later SPARQL path reuses it.
+        let store = self
+            .store
+            .get_or_init(|| materialize_sparql_store(self.dataset));
+        Cow::Borrowed(store)
     }
 }
 
@@ -230,7 +285,12 @@ impl ShaclDataGraph for &RdfDataset {
 fn term_ref_to_oxigraph(dataset: &RdfDataset, term: TermRef<'_>) -> Term {
     match term {
         TermRef::Iri(iri) => Term::NamedNode(NamedNode::new_unchecked(iri)),
-        TermRef::Blank { label, .. } => Term::BlankNode(BlankNode::new_unchecked(label)),
+        TermRef::Blank { label, scope } => {
+            // Qualify the label by scope so two same-label blanks from different
+            // BlankScopes never conflate in SHACL queries (C0.2); the DEFAULT scope
+            // keeps the bare label so real single-scope data is byte-unchanged.
+            Term::BlankNode(BlankNode::new_unchecked(scope.qualify_label(label)))
+        }
         TermRef::Literal {
             lexical,
             datatype,

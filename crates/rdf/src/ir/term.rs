@@ -58,6 +58,27 @@ pub struct BlankScope(pub u32);
 impl BlankScope {
     /// The default/global blank-node scope.
     pub const DEFAULT: Self = Self(0);
+
+    /// The raw scope ordinal.
+    #[inline]
+    pub fn ordinal(self) -> u32 {
+        self.0
+    }
+
+    /// Render a blank node's owned-model label, qualifying it deterministically by
+    /// scope so two same-label blanks from DIFFERENT scopes never collapse into one
+    /// owned blank for legacy consumers (compat bridge / oxigraph / SHACL).
+    ///
+    /// The DEFAULT scope keeps the bare label verbatim, so real single-scope data is
+    /// byte-unchanged; a non-default scope `n` qualifies as `"{label}.s{n}"` (C0.2).
+    #[inline]
+    pub fn qualify_label(self, label: &str) -> std::borrow::Cow<'_, str> {
+        if self == Self::DEFAULT {
+            std::borrow::Cow::Borrowed(label)
+        } else {
+            std::borrow::Cow::Owned(format!("{label}.s{}", self.0))
+        }
+    }
 }
 
 impl Default for BlankScope {

@@ -120,8 +120,10 @@ impl GraphInterner {
         // MOVE the lexical form and language tag out.
         let lexical_form = std::mem::take(&mut self.terms[gts_id].value).unwrap_or_default();
         let language = std::mem::take(&mut self.terms[gts_id].lang);
-        let direction =
-            super::gts_resolve::parse_gts_direction(self.terms[gts_id].direction.as_deref())?;
+        let direction = super::gts_resolve::parse_gts_direction(
+            self.terms[gts_id].direction.as_deref(),
+            language.as_deref(),
+        )?;
         Ok(self.builder.intern_literal(RdfLiteral {
             lexical_form,
             datatype,

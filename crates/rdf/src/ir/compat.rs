@@ -51,7 +51,7 @@ impl RdfDataset {
     fn to_owned_term(&self, id: TermId) -> RdfTerm {
         match self.resolve(id) {
             TermRef::Iri(iri) => RdfTerm::iri(iri),
-            TermRef::Blank { label, .. } => RdfTerm::blank_node(label),
+            TermRef::Blank { label, scope } => RdfTerm::blank_node(scope.qualify_label(label)),
             TermRef::Literal {
                 lexical,
                 datatype,

@@ -48,7 +48,7 @@ pub(crate) fn validate(builder: &RdfDatasetBuilder) -> Result<(), RdfDiagnostic>
             check_id_in_range(g, term_count, || quad_ref_ctx(i, "graph"))?;
         }
 
-        require_non_literal_subject(builder, q.s, || quad_ref_ctx(i, "subject"))?;
+        require_asserted_subject(builder, q.s, || quad_ref_ctx(i, "subject"))?;
         require_iri_predicate(builder, q.p, || quad_ref_ctx(i, "predicate"))?;
         if let Some(g) = q.g {
             require_graph_name(builder, g, || quad_ref_ctx(i, "graph"))?;
@@ -59,7 +59,7 @@ pub(crate) fn validate(builder: &RdfDatasetBuilder) -> Result<(), RdfDiagnostic>
     for (i, (reifier, triple)) in builder.reifier_rows().iter().enumerate() {
         check_id_in_range(*reifier, term_count, || format!("reifier #{i} resource"))?;
         check_id_in_range(*triple, term_count, || format!("reifier #{i} target"))?;
-        require_non_literal_subject(builder, *reifier, || format!("reifier #{i} resource"))?;
+        require_asserted_subject(builder, *reifier, || format!("reifier #{i} resource"))?;
         if !matches!(builder.term(*triple), InternedTerm::Triple { .. }) {
             return Err(diag(
                 "rdf-ir-reifier-not-triple",
@@ -77,7 +77,7 @@ pub(crate) fn validate(builder: &RdfDatasetBuilder) -> Result<(), RdfDiagnostic>
         check_id_in_range(*p, term_count, || format!("annotation #{i} predicate"))?;
         check_id_in_range(*o, term_count, || format!("annotation #{i} object"))?;
         require_iri_predicate(builder, *p, || format!("annotation #{i} predicate"))?;
-        require_non_literal_subject(builder, *reifier, || format!("annotation #{i} reifier"))?;
+        require_asserted_subject(builder, *reifier, || format!("annotation #{i} reifier"))?;
     }
 
     Ok(())
@@ -97,7 +97,7 @@ fn validate_triple_terms(
             check_id_in_range(s, term_count, || format!("triple term #{raw} subject"))?;
             check_id_in_range(p, term_count, || format!("triple term #{raw} predicate"))?;
             check_id_in_range(o, term_count, || format!("triple term #{raw} object"))?;
-            require_non_literal_subject(builder, s, || format!("triple term #{raw} subject"))?;
+            require_triple_component_subject(builder, s, || format!("triple term #{raw} subject"))?;
             require_iri_predicate(builder, p, || format!("triple term #{raw} predicate"))?;
         }
     }
@@ -185,8 +185,41 @@ fn check_id_in_range(
     Ok(())
 }
 
-/// A subject (and any reifier resource) MUST NOT be a literal.
-fn require_non_literal_subject(
+/// An ASSERTED subject-like position — a quad subject, a reifier resource, an
+/// annotation reifier — MUST be an IRI or a blank node. A literal there is illegal,
+/// and a triple term there is illegal too: an asserted statement cannot have a quoted
+/// triple as its subject (only an IRI/blank can be asserted about). This is also the
+/// downstream contract: the owned-model / oxigraph conversions assume an asserted
+/// subject is IRI/blank, so admitting a triple term here would let it reach an
+/// `unreachable!` panic. (A triple term nested as the SUBJECT *inside* another quoted
+/// triple is a different, legal position — see [`require_triple_component_subject`].)
+fn require_asserted_subject(
+    builder: &RdfDatasetBuilder,
+    id: TermId,
+    ctx: impl FnOnce() -> String,
+) -> Result<(), RdfDiagnostic> {
+    match builder.term(id) {
+        InternedTerm::Iri(_) | InternedTerm::Blank { .. } => Ok(()),
+        InternedTerm::Literal(_) => Err(diag(
+            "rdf-ir-literal-subject",
+            format!("{} must not be a literal", ctx()),
+        )),
+        InternedTerm::Triple { .. } => Err(diag(
+            "rdf-ir-triple-subject",
+            format!(
+                "{} must be an IRI or blank node; an asserted statement cannot have a \
+                 quoted triple as its subject",
+                ctx()
+            ),
+        )),
+    }
+}
+
+/// The subject position WITHIN a quoted triple term MUST NOT be a literal, but MAY be
+/// a nested triple term (RDF-star admits `<< <<s p o>> p2 o2 >>`). Reject only the
+/// literal case; nested triple subjects are legal and the downstream conversions
+/// handle them recursively.
+fn require_triple_component_subject(
     builder: &RdfDatasetBuilder,
     id: TermId,
     ctx: impl FnOnce() -> String,
@@ -308,6 +341,20 @@ mod tests {
         b.push_quad(s_lit, p, o, None);
         let err = b.freeze().expect_err("literal subject must fail");
         assert_eq!(err.code, "rdf-ir-literal-subject");
+    }
+
+    /// Gate 3: a triple term in subject position hard-fails. RDF 1.2 admits a triple
+    /// term only in object position; a triple subject would otherwise reach the owned
+    /// / oxigraph boundaries that assume an IRI/blank subject and panic there.
+    #[test]
+    fn freeze_err_on_triple_term_subject() {
+        let mut b = RdfDatasetBuilder::new();
+        let (s, p, o) = (iri(&mut b, "s"), iri(&mut b, "p"), iri(&mut b, "o"));
+        let triple = b.intern_triple(s, p, o);
+        // Use the triple term as the SUBJECT of an asserted quad.
+        b.push_quad(triple, p, o, None);
+        let err = b.freeze().expect_err("triple-term subject must fail");
+        assert_eq!(err.code, "rdf-ir-triple-subject");
     }
 
     /// Gate 3: a cyclic triple term hard-fails. We build a self-referential triple by
