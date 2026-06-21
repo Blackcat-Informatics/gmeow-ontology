@@ -21,7 +21,7 @@
 //! containing cut that arrives under a non-procedural profile is hard-rejected before
 //! any engine is invoked.
 
-use std::collections::{BTreeMap, BTreeSet};
+use std::collections::{BTreeMap, BTreeSet, HashSet};
 
 use oxigraph::model::NamedNode;
 
@@ -156,10 +156,11 @@ pub fn fast_path(
     // Collect the distinct variable names that appear in the goal atoms (left-to-right,
     // first-seen order) for the SELECT clause.
     let mut goal_vars: Vec<String> = Vec::new();
+    let mut goal_vars_seen: HashSet<String> = HashSet::new();
     for atom in &program.goal.atoms {
         for t in &atom.args {
             if let QTerm::Var(v) = t {
-                if !goal_vars.contains(v) {
+                if goal_vars_seen.insert(v.clone()) {
                     goal_vars.push(v.clone());
                 }
             }
