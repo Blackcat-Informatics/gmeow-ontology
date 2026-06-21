@@ -506,3 +506,9 @@ against the materialized dataset rides with the typed-bridge implementation.
   parser is the unblock.
 - **Validate lints reading `annotations_of` from the IR** — the lints run on
   `oxigraph::Store` today; porting them to read the IR accessors is C4-class work.
+- **C8 (delete the owned `RdfStore` shim)** — the production goal is **met**: the
+  IR is the sole production working store, and `VecRdfStore` has zero production
+  construction sites. It is retained, clearly marked, only as a test-only owned
+  fixture across ~65 unit/integration sites in `gmeow-rdf`/`gmeow-logic`; retiring
+  it from those tests (incl. the nightly-gated logic suite) is a mechanical
+  follow-up, not a production concern.
