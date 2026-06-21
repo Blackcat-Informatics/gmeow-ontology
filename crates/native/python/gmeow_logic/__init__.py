@@ -14,4 +14,9 @@ import sys
 
 from gmeow_native import logic as _module
 
+# PyO3 submodules carry no `__file__`. The legacy top-level name is expected to be
+# locatable (CI imports it and reads `__file__`, and tooling/tracebacks expect it),
+# so point the submodule at this shim before swapping it in.
+_module.__file__ = __file__
+
 sys.modules[__name__] = _module
