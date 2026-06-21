@@ -4321,6 +4321,8 @@ export interface DataFlow {
 
 
 export interface Dataset extends Work {
+    citeAs?: string[],
+    version?: string[],
 }
 
 

@@ -79,19 +79,33 @@ def test_croissant_shape_and_validation(exports: Path) -> None:
     assert doc["@type"] == "sc:Dataset"
     assert doc["conformsTo"] == CROISSANT_CONFORMS_TO
     assert doc["license"].endswith("CC-BY-4.0")
+    assert doc["version"] == "1.0.0"
+    assert (
+        doc["citeAs"]
+        == "Blackcat Informatics® Inc. (2026). Lillith GraphRAG benchmark. https://blackcatinformatics.ca/gmeow/examples/graphrag/lillith-benchmark"
+    )
     assert {rs["@id"] for rs in doc["recordSet"]} == {
         "chunks",
         "claims",
         "evalScores",
     }
+    for dist in doc["distribution"]:
+        assert "contentUrl" in dist
+        assert "sha256" in dist
+        assert "md5" in dist
     assert validate_croissant(doc) == []
 
 
-def test_croissant_sha256_only_for_sha256_digests(exports: Path) -> None:
-    """blake3 digests must NOT populate cr:sha256 — declared, not laundered."""
+def test_croissant_digest_fields_are_well_formed(exports: Path) -> None:
+    """sha256 and md5 fields, when present, must be lowercase hex of expected length."""
     doc = json.loads((exports / "lillith.croissant.jsonld").read_text("utf-8"))
     for dist in doc["distribution"]:
-        assert "sha256" not in dist  # the worked example is all-blake3
+        if "sha256" in dist:
+            assert len(dist["sha256"]) == 64
+            assert all(c in "0123456789abcdef" for c in dist["sha256"])
+        if "md5" in dist:
+            assert len(dist["md5"]) == 32
+            assert all(c in "0123456789abcdef" for c in dist["md5"])
         if "description" in dist:
             assert dist["description"].startswith("content digest: blake3:")
     assert any("blake3" in lim for lim in doc["rai:dataLimitation"])
@@ -107,16 +121,7 @@ def test_croissant_validator_catches_mutations(exports: Path) -> None:
 
 
 def test_croissant_full_validation(exports: Path) -> None:
-    """Full EXTERNAL Croissant validation via mlcroissant — un-skippable.
-
-    KNOWN-FAILING, tracked in #826: mlcroissant's strict load mandates
-    sha256/md5, but gmeow content-addresses with blake3 by design (see
-    test_croissant_sha256_only_for_sha256_digests), and the documents are
-    graph-described with no local bytes to re-hash. This test stays RED — never
-    skipped (zero-optionality) — until #826 resolves the blake3-vs-sha256
-    projection gap. gmeow's own blake3-aware validate_croissant is the
-    authoritative interim gate (test_croissant_shape_and_validation).
-    """
+    """Full EXTERNAL Croissant validation via mlcroissant — must pass."""
     import mlcroissant as mlc
 
     dataset = mlc.Dataset(jsonld=str(exports / "lillith.croissant.jsonld"))

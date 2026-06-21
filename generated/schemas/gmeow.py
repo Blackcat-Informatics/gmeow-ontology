@@ -58523,6 +58523,12 @@ class Dataset(Work):
          'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
          'title': 'Dataset'})
 
+    citeAs: Optional[list[str]] = Field(default=None, title="cite as", json_schema_extra = { "linkml_meta": {'domain': 'Dataset',
+         'domain_of': ['Dataset'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/citeAs'} })
+    version: Optional[list[str]] = Field(default=None, title="version", json_schema_extra = { "linkml_meta": {'domain': 'Dataset',
+         'domain_of': ['Dataset'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/version'} })
     contentLanguage: Optional[list[Language]] = Field(default=None, title="content language", json_schema_extra = { "linkml_meta": {'domain': 'Work',
          'domain_of': ['Work'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/contentLanguage'} })

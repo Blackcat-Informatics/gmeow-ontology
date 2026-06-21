@@ -30563,6 +30563,15 @@
                   "null"
                 ]
               },
+              "citeAs": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
               "cites": {
                 "items": {
                   "$ref": "#/$defs/CreativeWork"
@@ -31379,6 +31388,15 @@
                 ]
               },
               "usageInfo": {
+                "items": {
+                  "type": "string"
+                },
+                "type": [
+                  "array",
+                  "null"
+                ]
+              },
+              "version": {
                 "items": {
                   "type": "string"
                 },
