@@ -290,8 +290,11 @@ def _digest_map(g: Graph, doc: Node) -> dict[str, str]:
 
     Each value is expected to be ``algorithm:hex``. Unprefixed values are kept
     under the key ``"digest"`` for backward compatibility. When several values
-    share the same algorithm, the first one encountered is kept.
+    share the same algorithm, a conflicting value raises ``ValueError``;
+    identical duplicates are ignored.
     """
+    if doc is None:
+        raise ValueError("_digest_map: doc cannot be None")
     digests: dict[str, str] = {}
     for value in g.objects(doc, _CONTENT_DIGEST):
         raw = str(value)
@@ -303,6 +306,8 @@ def _digest_map(g: Graph, doc: Node) -> dict[str, str]:
             hex_value = raw
         if key not in digests:
             digests[key] = hex_value
+        elif digests[key] != hex_value:
+            raise ValueError(f"_digest_map: conflicting {key} digests for {doc}")
     return digests
 
 
@@ -522,21 +527,23 @@ def build_croissant(g: Graph, ds: DatasetMeta) -> dict[str, object]:
     """Build the Croissant 1.0 JSON-LD document for a GMEOW dataset."""
     distributions: list[dict[str, object]] = []
     for doc in _documents(g):
+        content_url = doc["contentUrl"]
+        if not content_url:
+            raise ValueError(f"build_croissant: missing contentUrl for {doc['iri']}")
         file_object: dict[str, object] = {
             "@type": "cr:FileObject",
             "@id": str(doc["iri"]),
             "name": str(doc["name"]),
             "encodingFormat": "text/plain",
+            "contentUrl": str(content_url),
         }
-        if doc["contentUrl"]:
-            file_object["contentUrl"] = str(doc["contentUrl"])
         digests: dict[str, str] = doc["digests"]  # type: ignore[assignment]
         if "sha256" in digests:
             file_object["sha256"] = digests["sha256"]
         if "md5" in digests:
             file_object["md5"] = digests["md5"]
         extra = [
-            f"{algo}:{value}" if algo else value
+            value if algo == "digest" else f"{algo}:{value}"
             for algo, value in digests.items()
             if algo not in {"sha256", "md5"}
         ]
@@ -608,25 +615,28 @@ def validate_croissant(doc: dict[str, object]) -> list[str]:
         if not isinstance(dist, dict) or not dist.get("@id"):
             problems.append("croissant: distribution entry without @id")
             continue
-        file_ids.add(str(dist["@id"]))
+        dist_id = str(dist["@id"])
+        file_ids.add(dist_id)
         if dist.get("@type") != "cr:FileObject":
-            problems.append(f"croissant: {dist['@id']} is not a cr:FileObject")
+            problems.append(f"croissant: {dist_id} is not a cr:FileObject")
+        if not dist.get("contentUrl"):
+            problems.append(f"croissant: {dist_id} missing contentUrl")
         sha = dist.get("sha256")
         md5 = dist.get("md5")
         if sha is None and md5 is None:
-            problems.append(f"croissant: {dist['@id']} needs sha256 or md5")
+            problems.append(f"croissant: {dist_id} needs sha256 or md5")
         if sha is not None and (
             not isinstance(sha, str)
             or len(sha) != 64
             or any(c not in "0123456789abcdef" for c in sha)
         ):
-            problems.append(f"croissant: {dist['@id']} sha256 is not 64-hex")
+            problems.append(f"croissant: {dist_id} sha256 is not 64-hex")
         if md5 is not None and (
             not isinstance(md5, str)
             or len(md5) != 32
             or any(c not in "0123456789abcdef" for c in md5)
         ):
-            problems.append(f"croissant: {dist['@id']} md5 is not 32-hex")
+            problems.append(f"croissant: {dist_id} md5 is not 32-hex")
     for rs in _as_list(doc.get("recordSet")):
         if not isinstance(rs, dict):
             continue
