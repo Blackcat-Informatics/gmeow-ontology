@@ -51,6 +51,27 @@ impl RdfLocation {
         }
     }
 
+    /// A source-file (physical) location, by repo-relative path. Pair with
+    /// [`with_line`](Self::with_line)/[`with_column`](Self::with_column) for a
+    /// sub-file position. This is the file-level anchor that threads into a SARIF
+    /// `physicalLocation` (#819 Task 12).
+    pub fn file(path: impl Into<String>) -> Self {
+        Self {
+            path: Some(path.into()),
+            ..Self::default()
+        }
+    }
+
+    pub fn with_line(mut self, line: u32) -> Self {
+        self.line = Some(line);
+        self
+    }
+
+    pub fn with_column(mut self, column: u32) -> Self {
+        self.column = Some(column);
+        self
+    }
+
     pub fn with_gts_term(mut self, term_id: usize) -> Self {
         self.gts_term_id = Some(term_id);
         self
