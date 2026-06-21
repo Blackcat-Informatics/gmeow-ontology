@@ -516,6 +516,33 @@ def export(
 
 
 @app.command()
+def okf(
+    out: Path = typer.Option(  # noqa: B008
+        _DEFAULT_OUT_ROOT / "okf", "--out", "-o", help="Output bundle directory."
+    ),
+    file: Path | None = typer.Option(  # noqa: B008
+        None, "--gts", help="GTS snapshot to export (default: bundled snapshot)."
+    ),
+    lang: str | None = _lang_option(),
+) -> None:
+    """Export the OKF (Open Knowledge Format) agent-facing bundle from a snapshot.
+
+    Writes one Markdown concept document per class/property/individual (YAML
+    frontmatter + ``[label](path)`` links), conforming to the ``okf:`` profile
+    that ``gts from-okf`` folds. A LOSSY projection (SKOS/OBO/ShEx slot): the flat
+    term surface only — OWL axioms and the statement layer stay in the canonical
+    GTS/OWL source. Runs from the bundled snapshot alone (no repo).
+    """
+    from gmeow_tools.okf_export import export_okf_bundle
+
+    view = _bundle_view(file)
+    selector = _resolve_lang(lang, view)
+    out.mkdir(parents=True, exist_ok=True)
+    root = export_okf_bundle(out, view=view, selector=selector)
+    console.print(f"[green]wrote[/green] {root}")
+
+
+@app.command()
 def docs(
     directory: Path = typer.Option(  # noqa: B008
         ..., "--directory", "-d", help="Output directory for the docs tree."
