@@ -447,3 +447,86 @@ fn semantic_vs_nonsemantic() {
             if *from_slice == iri("sliceC") && *to_slice == iri("sliceA")
     )));
 }
+
+// ── Test 6: declared-but-unowned term ────────────────────────────────────────
+//
+// A term typed as owl:Class in a slice's module.ttl but with NO
+// rdfs:isDefinedBy must yield OwnershipStatus::Unowned + an
+// OwnershipDiagnostic::Unowned, and must NOT prevent Validated terms from
+// being so (regression guard for the dead-code fix in Phase 2).
+
+#[test]
+fn declared_but_unowned_term() {
+    let tmp = TempDir::new().unwrap();
+    let root = tmp.path();
+
+    // Slice A: termWithOwner has rdfs:isDefinedBy → sliceA (Validated).
+    //          termNoOwner is an owl:Class but has NO rdfs:isDefinedBy (Unowned).
+    write(
+        root,
+        "slices/grpA/sliceA/manifest.ttl",
+        &manifest("sliceA", &[]),
+    );
+    // Use a helper string to avoid Turtle string-literal double-quotes inside
+    // a Rust format string (the @x-gmeow-english lang-tag follows the closing
+    // quote of the Turtle literal and would close the Rust string early).
+    let module_ttl = format!(
+        concat!(
+            "@prefix gmeow: <{ns}> .\n",
+            "@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n",
+            "@prefix owl: <http://www.w3.org/2002/07/owl#> .\n\n",
+            "gmeow:termWithOwner a owl:Class ;\n",
+            "    rdfs:isDefinedBy gmeow:sliceA ;\n",
+            "    rdfs:label \"owned\"@x-gmeow-english .\n\n",
+            "gmeow:termNoOwner a owl:Class ;\n",
+            "    rdfs:label \"orphan\"@x-gmeow-english .\n",
+        ),
+        ns = NS,
+    );
+    write(root, "slices/grpA/sliceA/module.ttl", &module_ttl);
+
+    let catalog = SliceCatalog::discover(root).unwrap();
+    let report = OwnershipAnalyzer::new(&catalog).analyze();
+
+    // termWithOwner must be Validated.
+    let owned = &report.ownership[&nn("termWithOwner")];
+    assert_eq!(
+        owned.status,
+        OwnershipStatus::Validated,
+        "termWithOwner must be Validated"
+    );
+
+    // termNoOwner must be Unowned.
+    let unowned = report
+        .ownership
+        .get(&nn("termNoOwner"))
+        .expect("termNoOwner must appear in the ownership table even without rdfs:isDefinedBy");
+    assert_eq!(
+        unowned.status,
+        OwnershipStatus::Unowned,
+        "termNoOwner has no rdfs:isDefinedBy — must be Unowned"
+    );
+    assert!(
+        unowned.declared_owner.is_empty(),
+        "Unowned term has no declared owner"
+    );
+    assert!(
+        unowned.physical_origin.is_none(),
+        "Unowned term has no physical origin"
+    );
+
+    // An OwnershipDiagnostic::Unowned must be emitted for termNoOwner.
+    assert!(
+        report.diagnostics.iter().any(|d| matches!(
+            d,
+            OwnershipDiagnostic::Unowned { term } if *term == nn("termNoOwner")
+        )),
+        "expected an OwnershipDiagnostic::Unowned for termNoOwner"
+    );
+
+    // has_ownership_defect reflects the Unowned term.
+    assert!(
+        report.has_ownership_defect(),
+        "report with an Unowned term must report has_ownership_defect"
+    );
+}

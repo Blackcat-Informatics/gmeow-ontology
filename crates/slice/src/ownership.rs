@@ -41,6 +41,20 @@ use crate::catalog::{SliceCatalog, SliceRecord};
 const GMEOW_NS: &str = "https://blackcatinformatics.ca/gmeow/";
 const RDFS_IS_DEFINED_BY: &str = "http://www.w3.org/2000/01/rdf-schema#isDefinedBy";
 const GMEOW_SLICE_DEPENDS_ON: &str = "https://blackcatinformatics.ca/gmeow/sliceDependsOn";
+const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+
+/// The `rdf:type` object IRIs whose subjects are considered declared vocabulary
+/// terms subject to ownership checking.  Subjects in GMEOW_NS typed with any of
+/// these are "declared terms" even when they have no `rdfs:isDefinedBy`.
+const VOCAB_TERM_TYPES: &[&str] = &[
+    "http://www.w3.org/2002/07/owl#Class",
+    "http://www.w3.org/2002/07/owl#ObjectProperty",
+    "http://www.w3.org/2002/07/owl#DatatypeProperty",
+    "http://www.w3.org/2002/07/owl#AnnotationProperty",
+    "http://www.w3.org/1999/02/22-rdf-syntax-ns#Property",
+    "http://www.w3.org/2000/01/rdf-schema#Class",
+    "http://www.w3.org/2000/01/rdf-schema#Datatype",
+];
 
 /// A slice IRI (the public, persistent identity of a compilation unit). Never a
 /// graph-local numeric ID (S0.5: persistent attribution serializes the public
@@ -201,6 +215,11 @@ pub enum OwnershipDiagnostic {
         from_slice: SliceIri,
         to_slice: SliceIri,
     },
+    /// A vocabulary term in the GMEOW namespace (typed as an OWL/RDFS concept)
+    /// has no `rdfs:isDefinedBy` declaration in any slice.  Non-fatal: the term
+    /// is recorded in the ownership table with `OwnershipStatus::Unowned` and
+    /// surfaced as a diagnostic, but does not by itself fail validation.
+    Unowned { term: NamedNode },
     /// A SPARQL query artifact failed to parse and was skipped.
     UnparseableQuery {
         slice: SliceIri,
@@ -259,6 +278,11 @@ impl<'a> OwnershipAnalyzer<'a> {
         // isDefinedBy occurrence (its raw load origin, per RFC §10 step 2/4).
         let mut claims: BTreeMap<NamedNode, BTreeSet<SliceIri>> = BTreeMap::new();
         let mut physical: BTreeMap<NamedNode, ArtifactEvidence> = BTreeMap::new();
+        // `declared_terms` = every GMEOW subject typed as an OWL/RDFS vocabulary
+        // construct (owl:Class, owl:ObjectProperty, …) in any ownership-bearing
+        // artifact.  Terms here but absent from `claims` have no rdfs:isDefinedBy
+        // and are emitted as OwnershipStatus::Unowned.
+        let mut declared_terms: BTreeSet<NamedNode> = BTreeSet::new();
 
         for record in self.catalog.records() {
             let slice_iri = record.manifest.slice_iri.clone();
@@ -270,6 +294,7 @@ impl<'a> OwnershipAnalyzer<'a> {
                 let Some(store) = parse_rdf_artifact(artifact) else {
                     continue;
                 };
+                // Collect rdfs:isDefinedBy claims.
                 for (subject, owner) in collect_is_defined_by(&store) {
                     // Only GMEOW vocabulary terms are owned.
                     if !subject.as_str().starts_with(GMEOW_NS) {
@@ -289,49 +314,84 @@ impl<'a> OwnershipAnalyzer<'a> {
                         raw_digest: artifact.raw_digest.clone(),
                     });
                 }
+                // Collect declared vocabulary terms (typed subjects in GMEOW_NS).
+                for term in collect_declared_terms(&store) {
+                    declared_terms.insert(term);
+                }
             }
         }
 
         // ── Phase 2: validate ownership ─────────────────────────────────────
+        //
+        // Iterate over the UNION of `declared_terms` (typed as OWL/RDFS vocab
+        // constructs) and `claims` (terms with rdfs:isDefinedBy).  Terms that
+        // are declared but have no rdfs:isDefinedBy yield OwnershipStatus::Unowned.
         let mut ownership: HashMap<NamedNode, TermOwnership> = HashMap::new();
-        for (term, owners) in &claims {
-            let owners_vec: Vec<SliceIri> = owners.iter().cloned().collect();
-            let physical_origin = physical.get(term).cloned();
-            let declared_owner = owners_vec.first().cloned().unwrap_or_default();
+        let all_terms: BTreeSet<NamedNode> = declared_terms
+            .iter()
+            .chain(claims.keys())
+            .cloned()
+            .collect();
+        for term in &all_terms {
+            let owners_opt = claims.get(term);
+            if let Some(owners) = owners_opt {
+                // Term has at least one rdfs:isDefinedBy claim.
+                let owners_vec: Vec<SliceIri> = owners.iter().cloned().collect();
+                let physical_origin = physical.get(term).cloned();
+                let declared_owner = owners_vec.first().cloned().unwrap_or_default();
 
-            let status = if owners_vec.len() > 1 {
-                diagnostics.push(OwnershipDiagnostic::Conflict {
-                    term: term.clone(),
-                    claimants: owners_vec.clone(),
-                });
-                OwnershipStatus::Conflict(owners_vec.clone())
-            } else {
-                match &physical_origin {
-                    Some(origin) if origin.slice == declared_owner => OwnershipStatus::Validated,
-                    Some(origin) => {
-                        diagnostics.push(OwnershipDiagnostic::Mismatch {
-                            term: term.clone(),
-                            declared: declared_owner.clone(),
-                            physical: origin.slice.clone(),
-                        });
-                        OwnershipStatus::Mismatch {
-                            declared: declared_owner.clone(),
-                            physical: origin.slice.clone(),
+                let status = if owners_vec.len() > 1 {
+                    diagnostics.push(OwnershipDiagnostic::Conflict {
+                        term: term.clone(),
+                        claimants: owners_vec.clone(),
+                    });
+                    OwnershipStatus::Conflict(owners_vec.clone())
+                } else {
+                    match &physical_origin {
+                        Some(origin) if origin.slice == declared_owner => {
+                            OwnershipStatus::Validated
                         }
+                        Some(origin) => {
+                            diagnostics.push(OwnershipDiagnostic::Mismatch {
+                                term: term.clone(),
+                                declared: declared_owner.clone(),
+                                physical: origin.slice.clone(),
+                            });
+                            OwnershipStatus::Mismatch {
+                                declared: declared_owner.clone(),
+                                physical: origin.slice.clone(),
+                            }
+                        }
+                        // Both maps were populated in lockstep from isDefinedBy
+                        // triples so `physical` is always Some here; the None arm
+                        // is structurally unreachable but kept for exhaustiveness.
+                        None => OwnershipStatus::Unowned,
                     }
-                    None => OwnershipStatus::Unowned,
-                }
-            };
+                };
 
-            ownership.insert(
-                term.clone(),
-                TermOwnership {
-                    term: term.clone(),
-                    declared_owner,
-                    physical_origin,
-                    status,
-                },
-            );
+                ownership.insert(
+                    term.clone(),
+                    TermOwnership {
+                        term: term.clone(),
+                        declared_owner,
+                        physical_origin,
+                        status,
+                    },
+                );
+            } else {
+                // Term is declared (typed as OWL/RDFS construct) but has NO
+                // rdfs:isDefinedBy in any slice — genuinely Unowned.
+                diagnostics.push(OwnershipDiagnostic::Unowned { term: term.clone() });
+                ownership.insert(
+                    term.clone(),
+                    TermOwnership {
+                        term: term.clone(),
+                        declared_owner: String::new(),
+                        physical_origin: None,
+                        status: OwnershipStatus::Unowned,
+                    },
+                );
+            }
         }
 
         // ── Phase 3: validated owner map (only Validated terms drive deps) ──
@@ -553,6 +613,34 @@ fn collect_is_defined_by(store: &Store) -> Vec<(NamedNode, SliceIri)> {
         };
         if let Term::NamedNode(owner) = &quad.object {
             out.push((subject, owner.as_str().to_string()));
+        }
+    }
+    out
+}
+
+/// Collect every GMEOW-namespaced subject typed as an OWL/RDFS vocabulary
+/// construct (`owl:Class`, `owl:ObjectProperty`, etc.) in the given store.
+/// These are "declared terms" that must have an `rdfs:isDefinedBy` or they will
+/// be flagged as `OwnershipStatus::Unowned`.
+fn collect_declared_terms(store: &Store) -> BTreeSet<NamedNode> {
+    let rdf_type = NamedNode::new(RDF_TYPE).expect("static IRI");
+    let mut out = BTreeSet::new();
+    for type_iri in VOCAB_TERM_TYPES {
+        let type_node = NamedNode::new(*type_iri).expect("static IRI");
+        for quad in store
+            .quads_for_pattern(
+                None,
+                Some(rdf_type.as_ref()),
+                Some(type_node.as_ref().into()),
+                None,
+            )
+            .flatten()
+        {
+            if let NamedOrBlankNode::NamedNode(subject) = &quad.subject {
+                if subject.as_str().starts_with(GMEOW_NS) {
+                    out.insert(subject.clone());
+                }
+            }
         }
     }
     out
