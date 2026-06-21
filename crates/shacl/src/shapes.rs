@@ -9,12 +9,32 @@
 //! complex path forms, …) cause a hard `Err` rather than a silent skip.
 
 use std::collections::HashSet;
+use std::sync::{Arc, OnceLock};
 
 use oxigraph::model::{NamedNode, NamedNodeRef, NamedOrBlankNodeRef, Term};
+use oxigraph::sparql::PreparedSparqlQuery;
 use oxigraph::store::Store;
 
 use crate::model::{gmeow, rdf, rdfs, sh};
 use crate::report::Severity;
+
+// ── Pre-parsed SPARQL query wrapper ───────────────────────────────────────────
+
+/// A thin `Debug`-capable wrapper around [`PreparedSparqlQuery`].
+///
+/// `PreparedSparqlQuery` does not implement `Debug`, but our shape types require
+/// it (via `#[derive(Debug)]` on [`Constraint`] and [`Target`]).  We supply a
+/// minimal `Debug` that just prints the type name, which is sufficient for
+/// diagnostics — the full query text is always retained in the `select: String`
+/// sibling field.
+#[derive(Clone)]
+pub struct DebugPreparedQuery(pub PreparedSparqlQuery);
+
+impl std::fmt::Debug for DebugPreparedQuery {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str("PreparedSparqlQuery { .. }")
+    }
+}
 
 // ── Public types ───────────────────────────────────────────────────────────────
 
@@ -58,7 +78,16 @@ pub enum Target {
     /// The shape node is itself an `rdfs:Class` → implicit class target.
     ImplicitClass(Term),
     /// `sh:target [ rdf:type sh:SPARQLTarget ; sh:select "SELECT ?this …" ]`
-    Sparql(String),
+    ///
+    /// The query is pre-parsed once at shape-load time. `select` is retained for
+    /// error messages; `parsed` is the ready-to-execute form (cheaply `Arc`-cloned
+    /// per evaluation call so `substitute_variable` can consume it).
+    Sparql {
+        /// The SPARQL SELECT query text (for error messages).
+        select: String,
+        /// Pre-parsed query, shared across all invocations via `Arc`.
+        parsed: Arc<DebugPreparedQuery>,
+    },
 }
 
 /// A single SHACL constraint on a shape or property shape.
@@ -84,6 +113,12 @@ pub enum Constraint {
         regex: String,
         /// Optional regex flags (e.g. `"i"`).
         flags: Option<String>,
+        /// Once-compiled regex cache: the pattern is compiled at most once per
+        /// `Constraint` instance regardless of how many focus nodes are validated.
+        /// `Arc` makes the field `Clone`; `OnceLock` makes it `Send + Sync`.
+        /// `Err(String)` stores the compilation error so per-value violation
+        /// semantics (bad regex → violation, not hard abort) are preserved.
+        compiled: Arc<OnceLock<Result<regex::Regex, String>>>,
     },
     /// `sh:minLength 3`
     MinLength(u64),
@@ -110,9 +145,15 @@ pub enum Constraint {
     /// The constraint blank node carries its own optional `sh:message` and
     /// `sh:severity` overrides; missing values fall back to the shape defaults
     /// at evaluation time.
+    ///
+    /// The query is pre-parsed once at shape-load time. `select` is retained for
+    /// error messages; `parsed` is the ready-to-execute form (cheaply `Arc`-cloned
+    /// per focus node so `substitute_variable` can consume it).
     Sparql {
-        /// The SPARQL SELECT query text.
+        /// The SPARQL SELECT query text (for error messages).
         select: String,
+        /// Pre-parsed query, shared across all focus-node evaluations via `Arc`.
+        parsed: Arc<DebugPreparedQuery>,
         /// Optional per-constraint message override (from `sh:message` on the
         /// constraint blank node).
         message: Option<String>,
@@ -665,13 +706,29 @@ impl<'s> Parser<'s> {
             let select = format!("{}{raw_select}", self.prefix_header(&[id, &t_node]));
 
             // Parse-time query validation (hard-fail on unparsable queries).
-            let _ = oxigraph::sparql::SparqlEvaluator::new()
+            // The parsed form is stored on the Target so it can be reused on
+            // every eval call without re-parsing.
+            let parsed = oxigraph::sparql::SparqlEvaluator::new()
                 .parse_query(&select)
                 .map_err(|e| {
                     format!("sh:SPARQLTarget on shape {id} has an unparsable sh:select query: {e}")
                 })?;
 
-            targets.push(Target::Sparql(select));
+            // SHACL-SPARQL requires a SELECT; ASK/CONSTRUCT/DESCRIBE parse but
+            // cannot bind ?this and would panic at eval — reject at the boundary.
+            if !matches!(
+                spargebra::SparqlParser::new().parse_query(&select),
+                Ok(spargebra::Query::Select { .. })
+            ) {
+                return Err(format!(
+                    "sh:SPARQLTarget on shape {id} must be a SELECT query (ASK/CONSTRUCT/DESCRIBE are not valid SHACL-SPARQL)"
+                ));
+            }
+
+            targets.push(Target::Sparql {
+                select,
+                parsed: Arc::new(DebugPreparedQuery(parsed)),
+            });
         }
 
         Ok(targets)
@@ -815,6 +872,7 @@ impl<'s> Parser<'s> {
             constraints.push(Constraint::Pattern {
                 regex,
                 flags: flags_val.clone(),
+                compiled: Arc::new(OnceLock::new()),
             });
         }
 
@@ -870,13 +928,26 @@ impl<'s> Parser<'s> {
             let select = format!("{}{raw_select}", self.prefix_header(&[id, &c_node]));
 
             // Parse-time query validation (hard-fail on unparsable queries).
-            let _ = oxigraph::sparql::SparqlEvaluator::new()
+            // The parsed form is stored on the Constraint so it can be reused on
+            // every focus-node evaluation without re-parsing.
+            let parsed = oxigraph::sparql::SparqlEvaluator::new()
                 .parse_query(&select)
                 .map_err(|e| {
                     format!(
                         "sh:sparql constraint on shape {id} has an unparsable sh:select query: {e}"
                     )
                 })?;
+
+            // SHACL-SPARQL requires a SELECT; ASK/CONSTRUCT/DESCRIBE parse but
+            // cannot bind ?this and would panic at eval — reject at the boundary.
+            if !matches!(
+                spargebra::SparqlParser::new().parse_query(&select),
+                Ok(spargebra::Query::Select { .. })
+            ) {
+                return Err(format!(
+                    "sh:sparql constraint on shape {id} must be a SELECT query (ASK/CONSTRUCT/DESCRIBE are not valid SHACL-SPARQL)"
+                ));
+            }
 
             // Optional per-constraint sh:message override.
             let mut messages: Vec<String> = self
@@ -900,6 +971,7 @@ impl<'s> Parser<'s> {
 
             constraints.push(Constraint::Sparql {
                 select,
+                parsed: Arc::new(DebugPreparedQuery(parsed)),
                 message,
                 severity,
             });
@@ -1405,6 +1477,57 @@ mod tests {
         );
     }
 
+    // ── Test 4c: sh:SPARQLTarget with an ASK query → Err at parse time ───────────
+
+    #[test]
+    fn test_sparql_target_ask_query_rejected() {
+        let ttl = format!(
+            r#"{PREFIXES}
+            ex:AskShape a sh:NodeShape ;
+                sh:target [
+                    a sh:SPARQLTarget ;
+                    sh:select "ASK {{ ?this a <http://example.org/ns#Foo> }}" ;
+                ] ;
+                sh:property [ sh:path ex:p ; sh:minCount 1 ] .
+        "#
+        );
+        let store = load_store(&ttl);
+        let result = from_store(&store);
+        assert!(
+            result.is_err(),
+            "a non-SELECT sh:SPARQLTarget must be rejected at shape-load, got {result:?}"
+        );
+        assert!(
+            result.unwrap_err().contains("SELECT"),
+            "error should explain that a SELECT is required"
+        );
+    }
+
+    // ── Test 4d: sh:sparql constraint with a CONSTRUCT query → Err at parse time ──
+
+    #[test]
+    fn test_sparql_constraint_construct_query_rejected() {
+        let ttl = format!(
+            r#"{PREFIXES}
+            ex:ConstructShape a sh:NodeShape ;
+                sh:targetClass ex:Foo ;
+                sh:sparql [
+                    sh:select "CONSTRUCT {{ ?this a <http://example.org/ns#Bar> }} WHERE {{ ?this a <http://example.org/ns#Foo> }}" ;
+                ] .
+        "#
+        );
+        let store = load_store(&ttl);
+        let result = from_store(&store);
+        assert!(
+            result.is_err(),
+            "a non-SELECT sh:sparql constraint must be rejected at shape-load, got {result:?}"
+        );
+        assert!(
+            result.unwrap_err().contains("SELECT"),
+            "error should explain that a SELECT is required"
+        );
+    }
+
     // ── Test 5: sh:qualifiedValueShape → Err ──────────────────────────────────
 
     #[test]
@@ -1516,7 +1639,7 @@ mod tests {
         let shapes = from_store(&store).expect("parse must succeed");
         let ps = &shapes.node_shapes[0].property_shapes[0];
         let pat = ps.constraints.iter().find_map(|c| match c {
-            Constraint::Pattern { regex, flags } => Some((regex, flags)),
+            Constraint::Pattern { regex, flags, .. } => Some((regex, flags)),
             _ => None,
         });
         assert!(pat.is_some(), "expected Pattern constraint");
