@@ -15,3 +15,6 @@ pub mod render;
 pub mod py;
 
 pub use model::{Finding, Location, Report, Rule, Severity};
+// Re-export the module-registration entrypoint so the unified `gmeow_native`
+// cdylib can populate the `gmeow_native.diagnostics` submodule (#630).
+pub use py::register;

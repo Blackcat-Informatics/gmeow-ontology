@@ -46,9 +46,9 @@ keys/*.secret.asc
 keys/*.secret
 keys/*.tmp
 
-# maturin editable-install artifacts (the compiled extension is built, never committed)
-crates/logic/python/gmeow_logic/*.so
-crates/logic/python/gmeow_logic/*.pyd
-crates/rdf/python/gmeow_rdf/*.so
-crates/rdf/python/gmeow_rdf/*.pyd
+# maturin editable-install artifacts (the compiled extension is built, never
+# committed). The five extensions now fold into the single gmeow_native cdylib
+# (#630); only its build artifacts land in the python package dir.
+crates/native/python/gmeow_native/*.so
+crates/native/python/gmeow_native/*.pyd
 .worktree

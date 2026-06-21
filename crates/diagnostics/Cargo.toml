@@ -12,7 +12,9 @@ readme = "README.md"
 keywords = ["diagnostics", "sarif", "validation", "reporting", "gmeow"]
 
 [lib]
-crate-type = ["rlib", "cdylib"]
+# rlib-only: this crate no longer ships a standalone PyO3 extension. Its bindings
+# are linked into the single `gmeow_native` cdylib (crates/native, #630).
+crate-type = ["rlib"]
 path = "src/lib.rs"
 
 [dependencies]

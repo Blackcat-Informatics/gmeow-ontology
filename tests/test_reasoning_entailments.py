@@ -26,7 +26,7 @@ from rdflib import RDF, RDFS, Graph, Namespace
 from rdflib.term import Node
 
 from gmeow_tools import reasoning_cases
-from gmeow_tools.native_rl import native_rl_closure
+from gmeow_tools.native_rl_rdflib import native_rl_closure
 from gmeow_tools.slices import module_path
 
 GMEOW = Namespace("https://blackcatinformatics.ca/gmeow/")

@@ -8,6 +8,9 @@
 members = [
     "crates/diagnostics",
     "crates/logic",
+    # The single PyO3 cdylib: all five engine crates fold into `gmeow_native` so
+    # the diagnostics `Report`/`Finding` pyclasses are ONE shared type (#630).
+    "crates/native",
     "crates/rdf",
     "crates/shacl",
     "crates/slicetest",

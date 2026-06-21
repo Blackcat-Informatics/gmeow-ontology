@@ -1,0 +1,37 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+
+# Maturin build configuration for the single unified `gmeow_native` PyO3
+# extension (#630). One cdylib folds in all five engine crates so the
+# diagnostics Report/Finding pyclasses are a single shared type.
+#
+# Run: uvx maturin develop (from crates/native/) or: make native-py (repo root).
+#
+# The legacy import names (gmeow_rdf, gmeow_diagnostics, gmeow_shacl,
+# gmeow_validate, gmeow_logic) are thin Python shims under `python/` that alias
+# themselves to the matching `gmeow_native.<name>` submodule; maturin installs
+# them via python-source.
+
+[build-system]
+requires = ["maturin>=1.7,<2"]
+build-backend = "maturin"
+
+[project]
+name = "gmeow-native"
+version = "0.1.0"
+description = "GMEOW unified PyO3 extension: rdf + diagnostics + shacl + validate + logic in one cdylib (#630)"
+requires-python = ">=3.13"
+license = { text = "AGPL-3.0-only" }
+authors = [{ name = "Blackcat Informatics® Inc." }]
+keywords = ["pyo3", "rdf", "shacl", "validation", "reasoning", "gmeow"]
+
+[tool.maturin]
+module-name = "gmeow_native"
+features = ["pyo3/extension-module"]
+python-requires = ">=3.13"
+# Mixed Rust/Python layout: ship the legacy-name shim packages (gmeow_rdf,
+# gmeow_diagnostics, gmeow_shacl, gmeow_validate, gmeow_logic) plus the hand-
+# written type stubs (__init__.pyi) and PEP 561 py.typed markers alongside the
+# compiled extension, so mypy type-checks every call site and `import gmeow_*`
+# resolves to the matching gmeow_native submodule object.
+python-source = "python"

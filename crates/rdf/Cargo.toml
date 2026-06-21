@@ -12,7 +12,10 @@ readme = "README.md"
 keywords = ["rdf", "rdf-12", "gts", "oxigraph", "diagnostics"]
 
 [lib]
-crate-type = ["rlib", "cdylib"]
+# rlib-only: this crate no longer ships a standalone PyO3 extension. Under the
+# `python` feature its bindings are linked into the single `gmeow_native` cdylib
+# (crates/native, #630); without it the kernel rlib stays PyO3-free.
+crate-type = ["rlib"]
 path = "src/lib.rs"
 
 [features]

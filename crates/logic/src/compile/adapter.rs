@@ -3,14 +3,15 @@
 
 //! OWL/gUFO adapter: normalize legacy `owl:*` / `gufo:` source into the IR.
 //!
-//! A faithful Rust port of `src/gmeow_tools/logic_adapter.py`.  It accepts legacy
+//! The OWL/gUFO adapter (#664); the Python duplicate (`logic_adapter.py`) was
+//! retired in #727.  It accepts legacy
 //! RDF that uses `owl:*` structural vocabulary and/or `gufo:` stereotypes and
 //! normalizes it into the same [`LogicProgram`] IR the `logic:` front-end
 //! produces, enabling the **round-trip isomorphism gate** ([`assert_ir_isomorphic`]):
 //! a construct authored in `logic:` and an equivalent construct in
 //! `owl:*`/`gufo:` form must normalize to identical IR.
 //!
-//! # Adapter contract (identical to the Python ancestor)
+//! # Adapter contract
 //!
 //! * **Fail-soft** on unrecognised constructs (blank-node restrictions, unmapped
 //!   `owl:` predicates) — emit a [`Diagnostic`] and skip; nothing is silently lost.
@@ -55,7 +56,7 @@ fn logic(local: &str) -> String {
 }
 
 // --------------------------------------------------------------------------- //
-// Mapping tables (verbatim from logic_adapter.py)
+// Mapping tables (the authoritative owl/gufo → logic: maps)
 // --------------------------------------------------------------------------- //
 
 /// gUFO stereotype local name → `logic:` sort local name (`rdf:type` assertions).

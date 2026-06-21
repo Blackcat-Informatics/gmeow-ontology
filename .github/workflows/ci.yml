@@ -89,23 +89,14 @@ jobs:
       - name: Cache Cargo dependencies
         uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
 
-      - name: Build + install gmeow_diagnostics extension (#654)
-        run: VIRTUAL_ENV="$PWD/.venv" uvx maturin develop --manifest-path crates/diagnostics/Cargo.toml
-
-      - name: Build + install gmeow_logic extension (AC2 / AC4)
-        run: VIRTUAL_ENV="$PWD/.venv" uvx maturin develop --manifest-path crates/logic/Cargo.toml
+      - name: Build + install the unified gmeow_native extension (#630)
+        # One cdylib folds in rdf + diagnostics + shacl + validate + logic, so the
+        # diagnostics Report/Finding pyclasses are a single shared type. The legacy
+        # import names (gmeow_logic etc.) are Python shims aliasing the submodules.
+        run: VIRTUAL_ENV="$PWD/.venv" uvx maturin develop --manifest-path crates/native/Cargo.toml
 
       - name: gmeow_logic extension imports (AC2/AC4 are now un-skippable)
         run: uv run python -c "import gmeow_logic; print('gmeow_logic at', gmeow_logic.__file__)"
-
-      - name: Build + install gmeow_shacl extension (#576)
-        run: VIRTUAL_ENV="$PWD/.venv" uvx maturin develop --manifest-path crates/shacl/Cargo.toml
-
-      - name: Build + install gmeow_validate extension (#579 — validation runs through it)
-        run: VIRTUAL_ENV="$PWD/.venv" uvx maturin develop --manifest-path crates/validate/Cargo.toml
-
-      - name: Build + install gmeow_rdf extension (#667 — native statement codec)
-        run: VIRTUAL_ENV="$PWD/.venv" uvx maturin develop --manifest-path crates/rdf/Cargo.toml
 
       - name: gmeow_diagnostics extension imports
         run: uv run python -c "import gmeow_diagnostics; print('gmeow_diagnostics at', gmeow_diagnostics.__file__)"
@@ -205,23 +196,13 @@ jobs:
       - name: Cache Cargo dependencies
         uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
 
-      - name: Build + install gmeow_diagnostics extension (#654)
-        run: VIRTUAL_ENV="$PWD/.venv" uvx maturin develop --manifest-path crates/diagnostics/Cargo.toml
-
-      - name: Build + install gmeow_shacl extension (#578 — validation runs through it)
-        run: VIRTUAL_ENV="$PWD/.venv" uvx maturin develop --manifest-path crates/shacl/Cargo.toml
-
+      # One cdylib folds in rdf + diagnostics + shacl + validate + logic (#630).
       # The logic conformance suite below resolves backward goals through the
-      # gmeow_logic native engine (#504). Without it the goal-* cases fail with
-      # "No module named 'gmeow_logic'" and the Principle-7 gate is vacuous.
-      - name: Build + install gmeow_logic extension (#504 — conformance resolves goals through it)
-        run: VIRTUAL_ENV="$PWD/.venv" uvx maturin develop --manifest-path crates/logic/Cargo.toml
-
-      - name: Build + install gmeow_validate extension (#579 — validation runs through it)
-        run: VIRTUAL_ENV="$PWD/.venv" uvx maturin develop --manifest-path crates/validate/Cargo.toml
-
-      - name: Build + install gmeow_rdf extension (#667 — native statement codec)
-        run: VIRTUAL_ENV="$PWD/.venv" uvx maturin develop --manifest-path crates/rdf/Cargo.toml
+      # gmeow_logic native engine (#504); validation runs through gmeow_shacl /
+      # gmeow_validate (#578/#579); the statement codec is gmeow_rdf (#667) — all
+      # now live in the single gmeow_native extension.
+      - name: Build + install the unified gmeow_native extension (#630)
+        run: VIRTUAL_ENV="$PWD/.venv" uvx maturin develop --manifest-path crates/native/Cargo.toml
 
       # First-class diagnostics (#654, #662): emit the per-category SARIF/JSON/HTML
       # + self-describing .gts bundle for the aggregate gate (validation + native
@@ -371,20 +352,11 @@ jobs:
       - name: Cache Cargo dependencies
         uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
 
-      - name: Build + install gmeow_diagnostics extension (#654)
-        run: VIRTUAL_ENV="$PWD/.venv" uvx maturin develop --manifest-path crates/diagnostics/Cargo.toml
-
-      - name: Build + install gmeow_shacl extension (#578 — validate runs through it)
-        run: VIRTUAL_ENV="$PWD/.venv" uvx maturin develop --manifest-path crates/shacl/Cargo.toml
-
-      - name: Build + install gmeow_logic extension (#664 — logic generator imports it)
-        run: VIRTUAL_ENV="$PWD/.venv" uvx maturin develop --manifest-path crates/logic/Cargo.toml
-
-      - name: Build + install gmeow_validate extension (#579 — validation runs through it)
-        run: VIRTUAL_ENV="$PWD/.venv" uvx maturin develop --manifest-path crates/validate/Cargo.toml
-
-      - name: Build + install gmeow_rdf extension (#667 — native statement codec)
-        run: VIRTUAL_ENV="$PWD/.venv" uvx maturin develop --manifest-path crates/rdf/Cargo.toml
+      # One cdylib folds in rdf + diagnostics + shacl + validate + logic (#630):
+      # the logic generator (#664), SHACL/validate orchestration (#578/#579), and
+      # statement codec (#667) all now live in the single gmeow_native extension.
+      - name: Build + install the unified gmeow_native extension (#630)
+        run: VIRTUAL_ENV="$PWD/.venv" uvx maturin develop --manifest-path crates/native/Cargo.toml
 
       - name: Validate (syntax, lint, SHACL, DSL SHACL)
         run: uv run --package gmeow-dev gmeow-dev validate

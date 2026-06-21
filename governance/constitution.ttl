@@ -257,7 +257,7 @@ meta:gate-logic-conformance a meta:Gate ;
 
 meta:gate-logic-round-trip a meta:Gate ;
     rdfs:label "logic→OWL DL/EL, Datalog, N3, gUFO projection round-trip isomorphism + preservation ledger"@x-gmeow-english ;
-    meta:artifact "tests/test_logic_conformance.py", "src/gmeow_tools/logic_projections.py" ;
+    meta:artifact "tests/test_logic_conformance.py", "crates/logic/src/compile/projections/text.rs", "crates/logic/src/compile/projections/report.rs" ;
     meta:symbol "project_nemo", "build_projection_report" .
 
 meta:gate-foundation-conformance a meta:Gate ;
@@ -267,7 +267,7 @@ meta:gate-foundation-conformance a meta:Gate ;
 
 meta:gate-logic-gufo-superset a meta:Gate ;
     rdfs:label "gmeow:logic ⊇ gUFO floor — every gUFO class has a logic: correspondence"@x-gmeow-english ;
-    meta:artifact "tests/test_logic_gufo_superset.py", "src/gmeow_tools/logic_adapter.py" ;
+    meta:artifact "tests/test_logic_gufo_superset.py", "crates/logic/src/compile/adapter.rs" ;
     meta:symbol "_GUFO_CLASS_TO_LOGIC", "test_every_gufo_class_has_logic_correspondence" .
 
 # Principle 18 enforcement — the native reasoning authority. The native

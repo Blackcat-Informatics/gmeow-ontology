@@ -52,16 +52,6 @@ def report(tool: str) -> DiagnosticsReport:
     return gmeow_diagnostics.Report(tool)
 
 
-def report_from_json(data: str) -> DiagnosticsReport:
-    """Rehydrate a diagnostics report from its canonical JSON form.
-
-    The inverse of the Rust ``Report`` JSON serialization. Used by native lanes
-    (e.g. ``gmeow_logic.verify_native``) that build the report in Rust and hand
-    Python the JSON string to reconstruct (#695).
-    """
-    return gmeow_diagnostics.Report.from_json(data)
-
-
 def report_from_messages(
     *,
     tool: str,
@@ -95,17 +85,18 @@ def report_from_validation_result(
     *,
     tool: str = "validate",
 ) -> DiagnosticsReport:
-    """Build a diagnostics report from a ``ValidationResult`` without changing it.
+    """Build a diagnostics report from a ``ValidationResult``.
 
-    When the result carries ``report_json`` — the single canonical report the
-    Rust validation orchestration always emits (#654) — that report IS the
-    source: it preserves SHACL focus nodes and GTS wire coordinates. A
-    hand-built result without ``report_json`` (e.g. in tests, or a sub-lint)
-    falls back to its legacy error/warning strings.
+    When the result carries a live ``report`` — the single canonical ``Report``
+    pyclass the Rust validation orchestration hands back directly (#654, #630) —
+    that report IS the source: it preserves SHACL focus nodes and GTS wire
+    coordinates, and is returned as-is (timings metadata is stamped onto it). A
+    hand-built or cached result without a ``report`` (e.g. in tests, or a
+    sub-lint) falls back to its legacy error/warning strings.
     """
-    report_json = getattr(result, "report_json", None)
-    if report_json:
-        output = gmeow_diagnostics.Report.from_json(report_json)
+    live = getattr(result, "report", None)
+    if live is not None:
+        output = live
     else:
         output = report_from_messages(
             tool=tool,

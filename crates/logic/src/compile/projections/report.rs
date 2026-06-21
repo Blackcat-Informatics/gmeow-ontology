@@ -4,7 +4,8 @@
 //! Projection report: the preservation loss ledger
 //! (`generated/logic/projection-report.ttl`).
 //!
-//! A faithful Rust port of `build_projection_report`.  Emits, per target, a
+//! The preservation-loss-ledger emitter (`build_projection_report`); the Python
+//! duplicate was retired in #727.  Emits, per target, a
 //! `logic:ProjectionTarget` node with `logic:preservationKind`,
 //! `logic:complexityClass`, and aggregated `gmeow:lossyDrop` records; runs the
 //! overclaim gate per target so an overclaim blocks serialization (red build).

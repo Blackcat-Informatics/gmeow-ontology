@@ -25,3 +25,8 @@ pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 // PyO3 bindings — native targets only (pyo3 cannot link into wasm32).
 #[cfg(not(target_arch = "wasm32"))]
 pub mod py;
+
+// Re-export the module-registration entrypoint so the unified `gmeow_native`
+// cdylib can populate the `gmeow_native.shacl` submodule (#630).
+#[cfg(not(target_arch = "wasm32"))]
+pub use py::register;

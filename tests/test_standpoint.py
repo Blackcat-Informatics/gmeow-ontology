@@ -22,13 +22,8 @@ from rdflib import OWL, RDF, RDFS, SKOS, Graph, Namespace, URIRef
 from gmeow_tools.config import PROJECTION_QUERY_DIR, STATEMENT_RDF12_FILE
 from gmeow_tools.graph import load_merged_graph
 from gmeow_tools.statement_dsl import (
-    Annotation,
-    QuotedTriple,
-    StatementCell,
-    StatementDsl,
     load_statement_dsl,
 )
-from gmeow_tools.statement_lint import no_preferred_rank, statement_invariants
 from tests._graph_nt import run_shacl
 
 GMEOW = "https://blackcatinformatics.ca/gmeow/"
@@ -186,10 +181,6 @@ def test_contested_places_cannot_force_inconsistency() -> None:
 # --------------------------------------------------------------------------- #
 
 
-def test_committed_statement_invariants_are_clean() -> None:
-    assert statement_invariants(load_statement_dsl(), _graph()) == []
-
-
 def test_crimea_pair_coexists_in_the_dsl() -> None:
     """Both Crimea claims are authored, each standpoint-indexed, neither privileged."""
     cells = {c.iri: c for c in load_statement_dsl().cells}
@@ -215,19 +206,6 @@ def test_two_clocks_stay_distinct() -> None:
     assert ann[GM.validFrom] != ann[GM.assertedAt]
     # And it records the standpoint's modal force as conceivable (◊), not settled.
     assert ann[GM.standpointModality] == GM.conceivable
-
-
-def test_no_preferred_rank_lint_rejects_a_primary_annotation() -> None:
-    """The DSL lint refuses any preferred/primary selector annotation (Principle 9)."""
-    cell = StatementCell(
-        iri=URIRef(GMEOW + "examples/bad-primary-claim"),
-        label="a claim crowning a single winner",
-        reifier=URIRef(GMEOW + "examples/bad-primary-claim"),
-        triple=QuotedTriple(EX.crimea, GM.containedInPlace, EX.russia),
-        annotations=(Annotation(GM.primaryStandpoint, EX.standpointRu),),
-    )
-    problems = no_preferred_rank(StatementDsl(cells=(cell,)))
-    assert problems and "preferred/primary" in problems[0]
 
 
 def test_rdf12_artifact_carries_the_standpoint_axis() -> None:

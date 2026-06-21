@@ -75,7 +75,7 @@ def test_dimension_seeds_exist() -> None:
 
 def test_quality_assessment_specialises_observation() -> None:
     """A QualityAssessment individual is inferred as an Observation."""
-    from gmeow_tools.native_rl import native_rl_closure
+    from gmeow_tools.native_rl_rdflib import native_rl_closure
 
     graph = Graph()
     graph.parse(module_path("quality"), format="turtle")

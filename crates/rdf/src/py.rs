@@ -36,9 +36,12 @@ fn normalize_rdf12_to_owl(rdf12_ttl: &str) -> PyResult<String> {
     statements::normalize_rdf12_to_owl(rdf12_ttl).map_err(|e| PyValueError::new_err(e.to_string()))
 }
 
-/// The `gmeow_rdf` extension module.
-#[pymodule]
-fn gmeow_rdf(m: &Bound<'_, PyModule>) -> PyResult<()> {
+/// Register the `gmeow-rdf` surface on a Python module.
+///
+/// Called by the unified `gmeow_native` cdylib (#630) to populate the
+/// `gmeow_native.rdf` submodule; the legacy `import gmeow_rdf` name resolves to
+/// that same submodule object via a Python shim.
+pub fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(project_statements_rdf12, m)?)?;
     m.add_function(wrap_pyfunction!(normalize_rdf12_to_owl, m)?)?;
     // The native oxigraph Store / SPARQL / parse / canonicalize surface that

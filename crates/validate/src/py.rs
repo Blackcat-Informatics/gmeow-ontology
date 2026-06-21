@@ -19,6 +19,7 @@
 use std::collections::{BTreeSet, HashSet};
 use std::path::PathBuf;
 
+use gmeow_diagnostics::py::PyReport;
 use pyo3::prelude::*;
 use pyo3::types::{PyCapsule, PyDict, PyList};
 
@@ -26,6 +27,7 @@ use crate::coverage;
 use crate::dsl;
 use crate::gufo::{self, GufoConfig};
 use crate::lint::{self, LintConfig, LintReport, ModuleSpec};
+use crate::statement;
 use crate::store;
 use crate::validate_all::{self, ValidateOptions};
 
@@ -61,21 +63,40 @@ struct PyLintConfig {
 #[pymethods]
 impl PyLintConfig {
     #[new]
+    #[pyo3(signature = (
+        namespace,
+        ontology_iri,
+        selector_tokens,
+        core_slice_iris,
+        annotation_predicates = None,
+    ))]
     fn new(
         namespace: String,
         ontology_iri: String,
         selector_tokens: Vec<String>,
         core_slice_iris: Vec<String>,
-        annotation_predicates: Vec<String>,
+        annotation_predicates: Option<Vec<String>>,
     ) -> Self {
         Self {
             namespace,
             ontology_iri,
             selector_tokens,
             core_slice_iris,
-            annotation_predicates,
+            // The annotation-predicate registry is owned by this crate (#630):
+            // when the caller omits it, fall back to the canonical Rust set.
+            annotation_predicates: annotation_predicates
+                .unwrap_or_else(crate::lint::default_annotation_predicates),
         }
     }
+}
+
+/// The canonical annotation predicates the Check-2 language-tag policy polices.
+///
+/// This crate is the single source of truth (#630); the Python `language_tags`
+/// helpers read the set from here instead of maintaining a parallel constant.
+#[pyfunction]
+fn annotation_predicates() -> Vec<String> {
+    crate::lint::default_annotation_predicates()
 }
 
 impl PyLintConfig {
@@ -696,11 +717,14 @@ fn dsl_merge_with_provenance(
 ///
 /// Builds the ontology store once, parses the SHACL shapes once, runs every
 /// validation phase, and returns a dict with `errors`, `warnings`, `timings`,
-/// `declared_terms`, and `report_json` — the single canonical diagnostics
-/// report serialized to JSON, from which `errors`/`warnings` are derived and
-/// which carries SHACL focus nodes and GTS wire coordinates (#654). Optional
-/// phases (example coverage/SHACL, DSL SHACL) are enabled by the corresponding
-/// fields in `options`.
+/// `declared_terms`, and `report` — the single canonical diagnostics report as a
+/// **live `Report` pyclass** (not a JSON string), from which `errors`/`warnings`
+/// are derived and which carries SHACL focus nodes and GTS wire coordinates
+/// (#654). Returning the live object lets Python fold its filesystem-bound lints
+/// in and render SARIF directly, with no JSON round-trip — sound now that all
+/// bindings share one `Report` type in the `gmeow_native` cdylib (#630).
+/// Optional phases (example coverage/SHACL, DSL SHACL) are enabled by the
+/// corresponding fields in `options`.
 #[pyfunction]
 fn validate_all_native(
     py: Python<'_>,
@@ -729,15 +753,10 @@ fn validate_all_native(
     )
     .map_err(pyo3::exceptions::PyValueError::new_err)?;
 
-    let report_json = run
-        .report_json()
-        .map_err(|e| pyo3::exceptions::PyValueError::new_err(format!("serialize report: {e}")))?;
-
     let out = PyDict::new(py);
     out.set_item("errors", PyList::new(py, run.errors())?)?;
     out.set_item("warnings", PyList::new(py, run.warnings())?)?;
     out.set_item("declared_terms", PyList::new(py, &run.declared_terms)?)?;
-    out.set_item("report_json", report_json)?;
 
     let timings = PyList::empty(py);
     for t in &run.timings {
@@ -749,20 +768,92 @@ fn validate_all_native(
     }
     out.set_item("timings", timings)?;
 
+    // Hand Python the single canonical report as a LIVE pyclass, not a JSON
+    // string — Python folds its few filesystem-bound lints straight into it and
+    // renders SARIF/JSON/HTML from it directly. No serialize→`from_json`→
+    // `to_json` round-trip (#630). Built last: it moves `run.report`, after the
+    // borrows above are done.
+    out.set_item("report", Py::new(py, PyReport::from_engine(run.report))?)?;
+
     Ok(out.into_any().unbind())
 }
 
-/// Python extension module `gmeow_validate`.
+/// Load a Turtle string into `store` (lenient parsing, matching the rest of the
+/// validation path), mapping a parse failure to a Python `ValueError`.
+fn insert_turtle(store: &oxigraph::store::Store, ttl: &str) -> PyResult<()> {
+    use oxigraph::io::{RdfFormat, RdfParser};
+    for triple in RdfParser::from_format(RdfFormat::Turtle)
+        .lenient()
+        .for_reader(ttl.as_bytes())
+    {
+        let triple = triple.map_err(|e| {
+            pyo3::exceptions::PyValueError::new_err(format!("Turtle parse error: {e}"))
+        })?;
+        store
+            .insert(&triple)
+            .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))?;
+    }
+    Ok(())
+}
+
+/// Load an N-Triples string into `store` (lenient parsing), mapping a parse
+/// failure to a Python `ValueError`.
+fn insert_ntriples(store: &oxigraph::store::Store, data_nt: &str) -> PyResult<()> {
+    use oxigraph::io::{RdfFormat, RdfParser};
+    for triple in RdfParser::from_format(RdfFormat::NTriples)
+        .lenient()
+        .for_reader(data_nt.as_bytes())
+    {
+        let triple = triple.map_err(|e| {
+            pyo3::exceptions::PyValueError::new_err(format!("N-Triples parse error: {e}"))
+        })?;
+        store
+            .insert(&triple)
+            .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))?;
+    }
+    Ok(())
+}
+
+/// The statement-metadata invariants over the emitted OWL downcast + ontology
+/// (mirrors `statement_lint.statement_invariants`, #630 Gap B3).
+///
+/// `statement_owl_ttl` is the `statement_compile.emit_owl` output as Turtle;
+/// `ontology_nt` is the merged ontology as N-Triples. Both are loaded into ONE
+/// oxigraph store (their default-graph union), the four invariants run natively,
+/// and the violations are returned as a single canonical `Report` pyclass (every
+/// finding is an `Error` — each currently blocks the compile with `CompileError`).
+/// Returning the live `Report` lets Python join the messages, render SARIF, or
+/// fold the findings in without a JSON round-trip (#630/#654).
+#[pyfunction]
+fn check_statement_invariants(
+    py: Python<'_>,
+    statement_owl_ttl: &str,
+    ontology_nt: &str,
+) -> PyResult<Py<PyAny>> {
+    let store = oxigraph::store::Store::new()
+        .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))?;
+    insert_turtle(&store, statement_owl_ttl)?;
+    insert_ntriples(&store, ontology_nt)?;
+
+    let mut report = gmeow_diagnostics::Report::new("statement");
+    for finding in statement::check_statement_invariants(&store) {
+        report.add_finding(finding);
+    }
+    Ok(Py::new(py, PyReport::from_engine(report))?.into_any())
+}
+
+/// Register the `gmeow-validate` surface on a Python module.
 ///
 /// Exposes the syntax / sameAs lints (Task 1) plus the structural, naming,
 /// ownership, and declared-term lints (Task 2, #579), and the `LintConfig` type
-/// that carries their typed configuration across the FFI boundary.
-#[pymodule]
-fn gmeow_validate(m: &Bound<'_, PyModule>) -> PyResult<()> {
+/// that carries their typed configuration across the FFI boundary. Called by the
+/// unified `gmeow_native` cdylib (#630) to populate `gmeow_native.validate`.
+pub fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyLintConfig>()?;
     m.add_class::<PySignatureConfig>()?;
     m.add_class::<PyValidateOptions>()?;
     m.add_class::<PyValidationStore>()?;
+    m.add_function(wrap_pyfunction!(annotation_predicates, m)?)?;
     m.add_function(wrap_pyfunction!(check_syntax, m)?)?;
     m.add_function(wrap_pyfunction!(check_sameas_ban, m)?)?;
     m.add_function(wrap_pyfunction!(structural_lint, m)?)?;
@@ -788,5 +879,6 @@ fn gmeow_validate(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(merge_to_ntriples, m)?)?;
     m.add_function(wrap_pyfunction!(dsl_merge_with_provenance, m)?)?;
     m.add_function(wrap_pyfunction!(validate_all_native, m)?)?;
+    m.add_function(wrap_pyfunction!(check_statement_invariants, m)?)?;
     Ok(())
 }

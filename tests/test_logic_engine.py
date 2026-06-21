@@ -14,9 +14,11 @@ What remains here is intentionally thin:
 * one **FFI-marshalling smoke** proving the binding marshals each ``DerivedQuad``
   into a Python ``dict`` with the full seam field set (the binding's actual job),
   and
-* the **empty-case oracle parity** check, which exercises the *Python* oracle
-  (``gmeow_tools.logic_frontend`` / ``logic_ir``) rather than the FFI, so it is
-  not subsumed by the native tests.
+* the **empty-case contract**: ``materialize`` on empty input yields zero quads,
+  and ``compile_logic`` rejects an empty/whitespace source (fail-fast). The Python
+  logic oracle (``logic_frontend`` / ``logic_ir``) was deleted in #664/#727 — the
+  compiler is Rust-authoritative — so the empty case is a native FFI contract, not
+  a Python-oracle parity check.
 
 The native extension is required. Missing ``gmeow_logic`` is a test-environment
 failure, not a skip.
@@ -90,52 +92,26 @@ def test_materialize_ffi_marshals_quad_dicts() -> None:
         )
 
 
-# ── AC#4: empty-case oracle parity (Python oracle, not the FFI) ───────────────
+# ── AC#4: empty-case contract (native; the Python oracle was deleted) ──────────
 
 
-def test_empty_case_oracle_parity() -> None:
-    """AC#4: empty materialize output == empty LogicProgram canonical output.
+def test_empty_case_trivial() -> None:
+    """AC#4: empty materialize input → empty result (the trivial zero case).
 
-    The Python oracle (parse_logic_source) raises LogicParseError on empty
-    graphs, so the canonical empty-program state is constructed directly
-    (zero axioms, rules, profiles).  Both the Rust materialize and the Python
-    oracle must agree: empty in → empty/zero out.  This exercises the Python
-    oracle surface, so it is retained alongside the native engine tests.
+    The logic compiler is Rust-authoritative since #664/#727 (the Python oracle
+    was deleted); the empty/trivial contract is simply: empty materialize input
+    yields zero materialized quads.
     """
-    from gmeow_tools.logic_frontend import LogicParseError
-    from gmeow_tools.logic_ir import LogicProgram
-
-    # Rust side: empty input → empty result list.
     rust_result = gmeow_logic.materialize("", "")
     assert rust_result == [], "Rust materialize: empty input must return empty list"
-
-    # Python oracle side: an empty graph raises LogicParseError; the canonical
-    # empty LogicProgram (no axioms/rules/profiles) represents the zero state.
-    empty_program = LogicProgram(axioms=(), rules=(), profiles=())
-    canonical = empty_program.canonical()
-
-    assert canonical["axioms"] == [], (
-        f"oracle: empty LogicProgram should have no axioms, got {canonical['axioms']!r}"
-    )
-    assert canonical["rules"] == [], (
-        f"oracle: empty LogicProgram should have no rules, got {canonical['rules']!r}"
-    )
-    assert canonical["profiles"] == [], (
-        f"oracle: empty LogicProgram should have no profiles, "
-        f"got {canonical['profiles']!r}"
-    )
-
-    # The parity assertion: both sides agree on the empty/trivial case.
-    # Rust: 0 materialized quads.  Python: 0 axioms, 0 rules, 0 profiles.
     assert len(rust_result) == 0
-    assert len(canonical["axioms"]) == 0
-    assert len(canonical["rules"]) == 0
-    assert len(canonical["profiles"]) == 0
 
-    # Confirm the oracle would raise on empty graph input (fail-fast contract).
-    from rdflib import Graph
 
-    with pytest.raises(LogicParseError, match="empty"):
-        from gmeow_tools.logic_frontend import parse_logic_source
+def test_compile_logic_empty_source_rejected() -> None:
+    """The Rust compiler rejects an empty/whitespace-only source (fail-fast).
 
-        parse_logic_source(Graph())
+    Mirrors the historical oracle fail-fast contract: there is no silent
+    empty-program fallback — a source with no logic: vocabulary is a hard error.
+    """
+    with pytest.raises(ValueError):
+        gmeow_logic.compile_logic("")
