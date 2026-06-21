@@ -47,6 +47,7 @@
 use std::collections::HashSet;
 
 use oxigraph::model::{NamedNode, Term};
+use rayon::prelude::*;
 
 use crate::provenance::{mint_derivation_id, mint_reifier};
 use crate::store::WorldStore;
@@ -1341,7 +1342,10 @@ pub fn evaluate(
     let mut worlds = store.worlds();
     worlds.sort();
 
-    let mut all: Vec<FoundationQuad> = Vec::new();
+    // Build the per-world initial fact sets (IRI validation + deterministic sort).
+    // This is done sequentially because `store.quads_in_world` takes a shared ref
+    // and the error path must abort early.
+    let mut world_inputs: Vec<(String, Vec<Fact>)> = Vec::with_capacity(worlds.len());
     for world in &worlds {
         let raw = store.quads_in_world(world);
         // Foundation facts are all-IRI triples; object is an IRI string (oxigraph
@@ -1375,8 +1379,36 @@ pub fn evaluate(
         // Sort the initial facts by N3 key so insertion order is deterministic and
         // independent of oxigraph's internal iteration order.
         initial.sort_by_key(Fact::key);
-        let world_quads = chase_world(world, &initial)?;
-        all.extend(world_quads);
+        world_inputs.push((world.clone(), initial));
+    }
+
+    // Chase each world.  When there are multiple worlds each with enough facts to
+    // amortize rayon thread-pool overhead, run in parallel — each `chase_world`
+    // call is a pure function (read-only rules, no shared mutable state) that
+    // produces its own Vec<FoundationQuad>.  Single-world inputs (and the common
+    // case of tiny conformance cases) fall through to the sequential path.
+    //
+    // Threshold: parallel when worlds > 1 AND total facts > 500.  Below that the
+    // thread-pool spin-up cost exceeds the chase cost on these small inputs.
+    let total_facts: usize = world_inputs.iter().map(|(_, f)| f.len()).sum();
+    let use_parallel = world_inputs.len() > 1 && total_facts > 500;
+
+    let mut all: Vec<FoundationQuad> = Vec::new();
+    if use_parallel {
+        // Parallel: collect results indexed by world position so output order is
+        // identical to the sequential case (worlds were sorted above).
+        let results: Vec<Result<Vec<FoundationQuad>, String>> = world_inputs
+            .par_iter()
+            .map(|(world_iri, initial)| chase_world(world_iri, initial))
+            .collect();
+        for r in results {
+            all.extend(r?);
+        }
+    } else {
+        for (world_iri, initial) in &world_inputs {
+            let world_quads = chase_world(world_iri, initial)?;
+            all.extend(world_quads);
+        }
     }
 
     // Cross-world post-passes operate over the union of all materialized quads.

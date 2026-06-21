@@ -35,6 +35,11 @@ gmeow-rdf = { path = "../rdf", features = ["oxigraph", "gts", "python"] }
 gmeow-diagnostics = { path = "../diagnostics" }
 serde_json = "1"
 blake3 = "1"
+# rayon: data-parallel iterators for foundation multi-world chase (#822).
+# Worlds are independent: each `chase_world` call is pure and produces its own
+# Vec<FoundationQuad> with no shared mutable state.  Only invoked when
+# store.worlds().len() > 1 to avoid thread-pool overhead for single-world inputs.
+rayon = "1"
 sha1 = "0.10"
 # sha2: the canonical-rdf12 projection mints content-stable reifier IRIs as
 # sha256(sort_key)[:12], matching the Python compiler byte-for-byte.
