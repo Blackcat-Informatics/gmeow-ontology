@@ -31,7 +31,7 @@ lint_deposit_legacy = _legacy_mod.lint_deposit_legacy
 
 from gmeow_tools.config import ALIGNMENT_TARGETS  # noqa: E402
 from gmeow_tools.crossref import build_deposit_xml, lint_deposit  # noqa: E402
-from gmeow_tools.self_desc import load_self_description  # noqa: E402
+from gmeow_tools.self_desc import SelfDescription, load_self_description  # noqa: E402
 
 # Fixed stable inputs so the parity tests are deterministic (the live
 # timestamp/batch_id path is covered by
@@ -40,12 +40,12 @@ FIXED_TIMESTAMP = "20240115120000"
 FIXED_BATCH_ID = "test-batch-001"
 
 
-def _meta_concept_only():
+def _meta_concept_only() -> SelfDescription:
     """Real self-description with version_doi forced to None (concept-only)."""
     return dataclasses.replace(load_self_description(), version_doi=None)
 
 
-def _meta_with_version():
+def _meta_with_version() -> SelfDescription:
     """Real self-description with a synthetic version DOI (two-record deposit)."""
     return dataclasses.replace(load_self_description(), version_doi="10.67342/v010")
 
