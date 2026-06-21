@@ -103,14 +103,19 @@ fn instances_of_class<G: ShaclDataGraph>(
     >,
 ) -> Vec<Term> {
     let rdf_type = Term::NamedNode(rdf::TYPE.into_owned());
-    let classes = closure_memo
-        .entry(class_iri.clone())
-        .or_insert_with(|| subclass_closure(data, class_iri));
+    // Compute the subclass closure at most once per class IRI; clone the key only
+    // on a memo miss (insert requires ownership), never on a hit.
+    if !closure_memo.contains_key(class_iri) {
+        let closure = subclass_closure(data, class_iri);
+        closure_memo.insert(class_iri.clone(), closure);
+    }
+    let classes = &closure_memo[class_iri];
     let mut seen = std::collections::HashSet::new();
     let mut result = Vec::new();
-    for class in classes.clone() {
+    // Iterate the memoized set by reference — never clone the whole HashSet per call.
+    for class in classes {
         for quad in
-            data.quads_for_pattern(None, Some(&rdf_type), Some(&class), GraphFilter::AnyGraph)
+            data.quads_for_pattern(None, Some(&rdf_type), Some(class), GraphFilter::AnyGraph)
         {
             let t = Term::from(quad.subject);
             if seen.insert(t.clone()) {
