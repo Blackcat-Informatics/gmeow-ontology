@@ -48,3 +48,58 @@ codegen-units = 256
 [profile.release.package.nemo-physical]
 opt-level = 2
 codegen-units = 256
+
+# === First-party release tuning (#630 acceleration, Phase 1) ===
+# Our own crates carry the runtime hot paths (logic chase, SHACL evaluation,
+# validation lints). The default release profile splits each crate into 16
+# codegen units, which forfeits cross-function inlining WITHIN the crate.
+# codegen-units = 1 lets LLVM optimize each of our crates as a single unit.
+#
+# This is scoped to FIRST-PARTY crates via per-package overrides on purpose:
+#   * nemo / nemo-physical keep their 256-unit caps (their build-RAM budget,
+#     historically ~64 GB, is the reason the overrides above exist);
+#   * third-party deps (oxigraph, scryer, regex, …) keep the default 16 units,
+#     so neither their build RAM nor build time regresses.
+# Net effect: only the crates we actually wrote get the tighter codegen, so the
+# CI nemo build budget is untouched.
+#
+# NOTE: workspace-wide LTO is deliberately NOT enabled here. Unlike codegen-units,
+# `lto` is a profile-global setting that cannot be scoped away from nemo, and its
+# link-step RAM on the nemo graph is unverified against the 16 GB `ubuntu-latest`
+# wheel runner. It is deferred to a separately-measured follow-up (plan Phase 1
+# fallback: enable `lto = "thin"` only once peak link RSS is confirmed in budget).
+[profile.release.package.gmeow-logic]
+codegen-units = 1
+
+[profile.release.package.gmeow-shacl]
+codegen-units = 1
+
+[profile.release.package.gmeow-validate]
+codegen-units = 1
+
+[profile.release.package.gmeow-rdf]
+codegen-units = 1
+
+[profile.release.package.gmeow-diagnostics]
+codegen-units = 1
+
+[profile.release.package.gmeow-native]
+codegen-units = 1
+
+[profile.release.package.gmeow-slicetest]
+codegen-units = 1
+
+# `cargo bench` (used by `make bench`) runs under the `bench` profile, which
+# inherits the BASE release settings but NOT the per-package overrides above —
+# Cargo profile overrides are per-profile and are not inherited. Mirror the two
+# RAM-critical nemo caps so a local benchmark build does not rebuild nemo at the
+# default opt-3 / 16-unit settings (the very thing the release caps above avoid).
+# Our own crates bench at the release base (opt-level 3); criterion deltas across
+# phases are relative, so codegen-units fidelity to the wheel is not required here.
+[profile.bench.package.nemo]
+opt-level = 2
+codegen-units = 256
+
+[profile.bench.package.nemo-physical]
+opt-level = 2
+codegen-units = 256
