@@ -42,6 +42,6 @@
       "hash": "blake3:aa20bb31cc42dd53ee64ff750086119722a833b944c055d166e277f388a499b0"
     }
   ],
-  "notes": "Generated lossy projection of canonical GMEOW data; drops: reified relators (Copyright, roles, memberships) flatten or vanish; RDF 1.2 statement annotations (confidence, accordingTo, the four clocks) are dropped; standpoint indexing is dropped — contested claims appear without their vantage; blake3 content digests cannot fill sha256-only slots; the verbatim digest is preserved where the format allows.",
+  "notes": "Generated lossy projection of canonical GMEOW data; drops: reified relators (Copyright, roles, memberships) flatten or vanish; RDF 1.2 statement annotations (confidence, accordingTo, the four clocks) are dropped; standpoint indexing is dropped — contested claims appear without their vantage; blake3 remains the internal canonical content digest; sha256/md5 are projected where supplied and the format allows.",
   "version": "1.0.0"
 }

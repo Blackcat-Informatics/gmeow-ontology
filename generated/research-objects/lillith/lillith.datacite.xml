@@ -20,7 +20,7 @@
   </rightsList>
   <descriptions>
     <description descriptionType="Abstract">A worked GraphRAG benchmark dataset: a content-addressed corpus, its chunking, embeddings, vector index, retrieval events, and model-extracted entity/relationship descriptions — every artifact attributed and confidence-weighted, published as a research object.</description>
-    <description descriptionType="TechnicalInfo">Generated lossy projection of canonical GMEOW instance data. Drops: reified relators (Copyright, roles, memberships) flatten or vanish; RDF 1.2 statement annotations (confidence, accordingTo, the four clocks) are dropped; standpoint indexing is dropped — contested claims appear without their vantage; blake3 content digests cannot fill sha256-only slots; the verbatim digest is preserved where the format allows.</description>
+    <description descriptionType="TechnicalInfo">Generated lossy projection of canonical GMEOW instance data. Drops: reified relators (Copyright, roles, memberships) flatten or vanish; RDF 1.2 statement annotations (confidence, accordingTo, the four clocks) are dropped; standpoint indexing is dropped — contested claims appear without their vantage; blake3 remains the internal canonical content digest; sha256/md5 are projected where supplied and the format allows.</description>
   </descriptions>
   <relatedIdentifiers>
     <relatedIdentifier relatedIdentifierType="URL" relationType="IsDescribedBy">https://blackcatinformatics.ca/gmeow/examples/graphrag/lillith-benchmark</relatedIdentifier>
