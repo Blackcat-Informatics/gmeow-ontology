@@ -188,6 +188,44 @@ def _logic_blobs() -> list[tuple[bytes, str, str]]:
     return [(_tar_members(members), "application/x-tar", REP_REASONING)]
 
 
+def _okf_blobs(snapshot_bytes: bytes) -> list[tuple[bytes, str, str]]:
+    """Fold the OKF (Open Knowledge Format) agent bundle into the snapshot (#780).
+
+    The bundle is derived from ``snapshot_bytes`` — the freshly-compiled pass-1
+    snapshot — NOT from the committed on-disk snapshot. Building off the fresh
+    fold is what keeps the blob drift-stable in a single regenerate cycle: the
+    OKF surface reflects exactly the vocabulary it ships beside, with no one-cycle
+    lag (the same reason the verify attestation is derived from pass 1).
+
+    A LOSSY projection (SKOS/OBO/ShEx slot): the flat term surface only — the OWL
+    axioms and the statement/reification layer stay in the canonical GTS/OWL
+    source. Read back repo-free via :func:`gmeow_tools.bundle.bundled_okf`.
+    """
+    import gts
+
+    from gmeow_tools.bundle import REP_OKF
+    from gmeow_tools.export import collect_terms, fold_meta
+    from gmeow_tools.gts_views import FoldView
+    from gmeow_tools.language_tags import resolve_lang_input
+    from gmeow_tools.okf_export import OKF_DIR_NAME, write_okf
+
+    view = FoldView(gts.read(snapshot_bytes))
+    selector = resolve_lang_input(None, view.tag_map())
+    title, version = fold_meta(view)
+    terms = collect_terms(view, selector=selector)
+    with tempfile.TemporaryDirectory(dir=PROJECT_ROOT, prefix=".gmeow-tmp-okf-") as tmp:
+        tmp_path = Path(tmp)
+        root = tmp_path / OKF_DIR_NAME
+        root.mkdir(parents=True)
+        write_okf(terms, root, title=title, version=version)
+        members = [
+            (p.relative_to(tmp_path).as_posix(), p.read_bytes())
+            for p in sorted(root.rglob("*"))
+            if p.is_file()
+        ]
+    return [(_tar_members(members), "application/x-tar", REP_OKF)]
+
+
 def _doc_blobs(graph: Graph) -> list[tuple[bytes, str, str]]:
     """Content-addressed slice guides, linked via ``gmeow:guideBlob``."""
     guide_blob = URIRef(NAMESPACE + "guideBlob")
@@ -552,13 +590,16 @@ def build_snapshot_bytes(
     # native RdfBundle. Repo-free consumers recover each by role + logical path.
     slice_artifacts = _slice_artifact_rows()
 
-    def _compile(extra_named_graphs: list[tuple[Graph, str, str]]) -> bytes:
+    def _compile(
+        extra_named_graphs: list[tuple[Graph, str, str]],
+        extra_blobs: Sequence[tuple[bytes, str, str]] = (),
+    ) -> bytes:
         return compile_gts(
             multilingual_graph,
             STATEMENT_RDF12_FILE,
             alignment_graph=build_alignment_graph(load_mappings()),
             extra_named_graphs=extra_named_graphs,
-            doc_blobs=blobs,
+            doc_blobs=[*blobs, *extra_blobs],
             slice_artifacts=slice_artifacts,
             transform=_SNAPSHOT_TRANSFORM,
             signer=signer,
@@ -574,6 +615,12 @@ def build_snapshot_bytes(
     # The native ext is REQUIRED (regenerate already requires native exts); a
     # missing ext is a hard failure, not a silent single-pass fallback.
     pass1_bytes = _compile([imports, metadata])
+
+    # The OKF agent bundle (#780) is derived from the fresh pass-1 fold, so it is
+    # drift-stable in one cycle (it reflects exactly the vocabulary it folds beside,
+    # like the verify attestation). It rides the final pass only — it is not needed
+    # by the verify lane and cannot exist in pass 1 (it is built from pass 1).
+    okf_blobs = _okf_blobs(pass1_bytes)
 
     import gmeow_logic
 
@@ -619,7 +666,8 @@ def build_snapshot_bytes(
             metadata,
             (attestation, GTS_GRAPH_VERIFY, "verify"),
             (slice_analysis, GTS_GRAPH_SLICE_ANALYSIS, "slice-analysis"),
-        ]
+        ],
+        extra_blobs=okf_blobs,
     )
 
 
@@ -659,6 +707,7 @@ class GtsSnapshotGenerator(Generator):
             PROJECT_ROOT / "src" / "gmeow_tools" / "gts_producer.py",
             PROJECT_ROOT / "src" / "gmeow_tools" / "i18n_catalog.py",
             PROJECT_ROOT / "src" / "gmeow_tools" / "mappings.py",
+            PROJECT_ROOT / "src" / "gmeow_tools" / "okf_export.py",
             PROJECT_ROOT / "src" / "gmeow_tools" / "ontology_docs.py",
             PROJECT_ROOT / "src" / "gmeow_tools" / "self_desc.py",
             PROJECT_ROOT / "src" / "gmeow_tools" / "slices.py",
