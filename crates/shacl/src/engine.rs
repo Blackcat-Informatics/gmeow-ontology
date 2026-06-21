@@ -161,7 +161,7 @@ fn resolve_focus_nodes<G: ShaclDataGraph>(
             // SHACL-SPARQL needs an oxigraph query engine; obtain it via the
             // data graph's SPARQL store (cheap borrow for Store, one-time
             // materialization for the IR backend).
-            // Query parseability is guaranteed at shapes-parse time, so .expect() is correct.
+            // SELECT-form is enforced at shape-load (shapes.rs rejects non-SELECT), so the only Err here is an impossible-by-construction runtime failure; .expect() documents that invariant.
             Target::Sparql { parsed, .. } => {
                 crate::sparql::eval_target(&data.sparql_store(), &parsed.0).expect(
                     "SPARQLTarget query execution failed (parseability checked at parse time)",

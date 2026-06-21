@@ -867,7 +867,7 @@ fn eval_constraint<G: ShaclDataGraph>(
         //
         // The constraint blank node may carry its own sh:message / sh:severity;
         // those override the shape-level defaults at eval time.
-        // Query parseability is guaranteed at shapes-parse time, so .expect() is correct.
+        // SELECT-form is enforced at shape-load (shapes.rs rejects non-SELECT), so the only Err here is an impossible-by-construction runtime failure; .expect() documents that invariant.
         // `parsed` is an Arc<PreparedSparqlQuery>; eval_sparql_constraint clones it
         // cheaply (Arc clone) then substitutes ?this for this focus node.
         Constraint::Sparql {

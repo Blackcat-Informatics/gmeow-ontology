@@ -1522,6 +1522,7 @@ dependencies = [
  "proptest",
  "pyo3",
  "regex",
+ "spargebra 0.4.6",
 ]
 
 [[package]]

@@ -714,6 +714,17 @@ impl<'s> Parser<'s> {
                     format!("sh:SPARQLTarget on shape {id} has an unparsable sh:select query: {e}")
                 })?;
 
+            // SHACL-SPARQL requires a SELECT; ASK/CONSTRUCT/DESCRIBE parse but
+            // cannot bind ?this and would panic at eval — reject at the boundary.
+            if !matches!(
+                spargebra::SparqlParser::new().parse_query(&select),
+                Ok(spargebra::Query::Select { .. })
+            ) {
+                return Err(format!(
+                    "sh:SPARQLTarget on shape {id} must be a SELECT query (ASK/CONSTRUCT/DESCRIBE are not valid SHACL-SPARQL)"
+                ));
+            }
+
             targets.push(Target::Sparql {
                 select,
                 parsed: Arc::new(DebugPreparedQuery(parsed)),
@@ -926,6 +937,17 @@ impl<'s> Parser<'s> {
                         "sh:sparql constraint on shape {id} has an unparsable sh:select query: {e}"
                     )
                 })?;
+
+            // SHACL-SPARQL requires a SELECT; ASK/CONSTRUCT/DESCRIBE parse but
+            // cannot bind ?this and would panic at eval — reject at the boundary.
+            if !matches!(
+                spargebra::SparqlParser::new().parse_query(&select),
+                Ok(spargebra::Query::Select { .. })
+            ) {
+                return Err(format!(
+                    "sh:sparql constraint on shape {id} must be a SELECT query (ASK/CONSTRUCT/DESCRIBE are not valid SHACL-SPARQL)"
+                ));
+            }
 
             // Optional per-constraint sh:message override.
             let mut messages: Vec<String> = self
@@ -1452,6 +1474,57 @@ mod tests {
         assert!(
             err.contains("unparsable") || err.contains("parse") || err.contains("syntax"),
             "error message should indicate a query parse failure, got: {err}"
+        );
+    }
+
+    // ── Test 4c: sh:SPARQLTarget with an ASK query → Err at parse time ───────────
+
+    #[test]
+    fn test_sparql_target_ask_query_rejected() {
+        let ttl = format!(
+            r#"{PREFIXES}
+            ex:AskShape a sh:NodeShape ;
+                sh:target [
+                    a sh:SPARQLTarget ;
+                    sh:select "ASK {{ ?this a <http://example.org/ns#Foo> }}" ;
+                ] ;
+                sh:property [ sh:path ex:p ; sh:minCount 1 ] .
+        "#
+        );
+        let store = load_store(&ttl);
+        let result = from_store(&store);
+        assert!(
+            result.is_err(),
+            "a non-SELECT sh:SPARQLTarget must be rejected at shape-load, got {result:?}"
+        );
+        assert!(
+            result.unwrap_err().contains("SELECT"),
+            "error should explain that a SELECT is required"
+        );
+    }
+
+    // ── Test 4d: sh:sparql constraint with a CONSTRUCT query → Err at parse time ──
+
+    #[test]
+    fn test_sparql_constraint_construct_query_rejected() {
+        let ttl = format!(
+            r#"{PREFIXES}
+            ex:ConstructShape a sh:NodeShape ;
+                sh:targetClass ex:Foo ;
+                sh:sparql [
+                    sh:select "CONSTRUCT {{ ?this a <http://example.org/ns#Bar> }} WHERE {{ ?this a <http://example.org/ns#Foo> }}" ;
+                ] .
+        "#
+        );
+        let store = load_store(&ttl);
+        let result = from_store(&store);
+        assert!(
+            result.is_err(),
+            "a non-SELECT sh:sparql constraint must be rejected at shape-load, got {result:?}"
+        );
+        assert!(
+            result.unwrap_err().contains("SELECT"),
+            "error should explain that a SELECT is required"
         );
     }
 
