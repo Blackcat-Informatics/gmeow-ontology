@@ -157,3 +157,12 @@ def check_statement_invariants(
     statement_owl_ttl: str,
     ontology_nt: str,
 ) -> Any: ...
+
+# ── CrossRef deposit-XML (Task 11, #819) ─────────────────────────────────────
+
+def build_deposit_xml_native(
+    self_description_json: str,
+    timestamp: str,
+    batch_id: str,
+) -> str: ...
+def lint_deposit_native(self_description_json: str) -> list[str]: ...

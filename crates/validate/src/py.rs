@@ -24,6 +24,7 @@ use pyo3::prelude::*;
 use pyo3::types::{PyCapsule, PyDict, PyList};
 
 use crate::coverage;
+use crate::crossref;
 use crate::dsl;
 use crate::gufo::{self, GufoConfig};
 use crate::language_tags;
@@ -881,6 +882,33 @@ fn load_tag_map(py: Python<'_>, rdf_bytes: &[u8], format: &str) -> PyResult<Py<P
     Ok(d.into_any().unbind())
 }
 
+/// Build the CrossRef deposit XML from a JSON-serialised ``DepositInput``.
+///
+/// The JSON string is produced by the Python helper
+/// ``crossref._to_deposit_input_json``, which bundles the ``SelfDescription``
+/// and all ``config.py`` constants the generator needs. Returns the deposit
+/// document as a UTF-8 string (with XML declaration).
+#[pyfunction]
+fn build_deposit_xml_native(
+    self_description_json: String,
+    timestamp: String,
+    batch_id: String,
+) -> PyResult<String> {
+    crossref::build_deposit_xml(&self_description_json, &timestamp, &batch_id)
+        .map_err(pyo3::exceptions::PyValueError::new_err)
+}
+
+/// Return DOI consistency problems from a JSON-serialised ``LintInput``.
+///
+/// The JSON string is produced by the Python helper
+/// ``crossref._to_lint_input_json``, which bundles the ``SelfDescription``,
+/// config constants, and the pre-read CITATION.cff / ontology-file texts so
+/// the Rust side never does I/O. Returns ``[]`` when the deposit is sound.
+#[pyfunction]
+fn lint_deposit_native(self_description_json: String) -> PyResult<Vec<String>> {
+    crossref::lint_deposit(&self_description_json).map_err(pyo3::exceptions::PyValueError::new_err)
+}
+
 /// Register the `gmeow-validate` surface on a Python module.
 ///
 /// Exposes the syntax / sameAs lints (Task 1) plus the structural, naming,
@@ -922,5 +950,7 @@ pub fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(dsl_merge_with_provenance, m)?)?;
     m.add_function(wrap_pyfunction!(validate_all_native, m)?)?;
     m.add_function(wrap_pyfunction!(check_statement_invariants, m)?)?;
+    m.add_function(wrap_pyfunction!(build_deposit_xml_native, m)?)?;
+    m.add_function(wrap_pyfunction!(lint_deposit_native, m)?)?;
     Ok(())
 }

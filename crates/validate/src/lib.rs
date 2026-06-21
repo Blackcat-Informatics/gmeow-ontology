@@ -35,6 +35,8 @@ pub mod statement;
 pub mod store;
 pub mod validate_all;
 
+pub mod crossref;
+
 // PyO3 bindings — the only module that imports pyo3.
 pub mod py;
 
