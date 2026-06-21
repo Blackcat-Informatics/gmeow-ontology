@@ -158,8 +158,8 @@ DECLARED_DROPS: tuple[str, ...] = (
     "RDF 1.2 statement annotations (confidence, accordingTo, the four clocks)"
     " are dropped",
     "standpoint indexing is dropped — contested claims appear without their vantage",
-    "blake3 content digests cannot fill sha256-only slots; the verbatim"
-    " digest is preserved where the format allows",
+    "blake3 remains the internal canonical content digest; sha256/md5 are"
+    " projected where supplied and the format allows",
 )
 
 _FRICTIONLESS_SCHEMA_FILE = (
