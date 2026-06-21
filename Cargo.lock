@@ -1531,6 +1531,7 @@ name = "gmeow-slice"
 version = "0.1.0"
 dependencies = [
  "gmeow-rdf",
+ "hex",
  "oxigraph",
  "petgraph",
  "serde",

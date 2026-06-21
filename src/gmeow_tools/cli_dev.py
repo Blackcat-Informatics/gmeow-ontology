@@ -3145,5 +3145,57 @@ def export_xliff(
     write_xliff_export(iter_po_catalogs(root), output)
 
 
+@app.command(name="slice-fix-deps")
+def slice_fix_deps(
+    apply: bool = typer.Option(
+        False,
+        "--apply",
+        help="Apply the proposed changes in-place (default: print patch only).",
+    ),
+    slices_dir: Path = typer.Option(  # noqa: B008
+        None,
+        "--slices-dir",
+        help="Path to the slices/ directory (default: PROJECT_ROOT/slices).",
+    ),
+) -> None:
+    """Propose manifest dependency edits as a reviewable unified diff.
+
+    Computes undeclared/stale gmeow:sliceDependsOn entries by running the
+    native ownership analyzer, then emits a unified diff for each affected
+    manifest.ttl.
+
+    By default: prints the patch to stdout, writes nothing.
+    With --apply: writes the patched files in-place.
+
+    The analysis result (gmeow:graph/slice-analysis) is NEVER written into
+    authored manifests — only gmeow:sliceDependsOn additions/removals.
+    """
+    from gmeow_tools.slice_fix_deps import compute_fix_deps
+
+    root = slices_dir or (PROJECT_ROOT / "slices")
+    if not root.is_dir():
+        raise _fail(f"slices directory not found: {root}")
+
+    try:
+        diffs = compute_fix_deps(root, apply=apply)
+    except RuntimeError as exc:
+        raise _fail(str(exc)) from exc
+
+    if not diffs:
+        console.print("[green]✓[/green] No dependency changes needed.")
+        return
+
+    for diff in diffs:
+        console.print(diff, highlight=False)
+
+    if apply:
+        console.print(f"[green]✓[/green] Applied {len(diffs)} manifest patch(es).")
+    else:
+        console.print(
+            f"[yellow]→[/yellow] {len(diffs)} manifest(s) need changes. "
+            "Run with --apply to apply."
+        )
+
+
 if __name__ == "__main__":  # pragma: no cover
     app()

@@ -151,6 +151,11 @@ pub enum ReconciliationStatus {
     Undeclared,
     /// Declared in `gmeow:sliceDependsOn` but no semantic evidence was found.
     Stale,
+    /// A computed dependency edge that violates the tier model: a core slice
+    /// depending on an extension, or an extension depending on another extension
+    /// (Principle 16 / RFC §10).  Never produced by the analyzer itself;
+    /// assigned by the analysis graph emitter after tier resolution.
+    Forbidden,
 }
 
 /// A single computed cross-slice dependency edge with retained evidence.
