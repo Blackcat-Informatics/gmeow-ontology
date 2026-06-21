@@ -168,6 +168,41 @@ benchmark-selected layouts and operational requirements:
 - Literal zero-copy across *every* backend is not a realistic contract: external engines
   (oxigraph, Nemo) own their own term representations.
 
+#### Layout decision — bench-driven, not asserted (C1 Task 7)
+
+The benchmark gate above is now realized by `crates/rdf/benches/ir_layout.rs` (the
+`make bench` lane; excluded from `make check`). It builds a deterministic, representative
+few-thousand-quad dataset (IRIs, blanks across scopes, typed + language-tagged literals, a
+named graph, reifiers + annotations, nested triple terms) and reports the operational
+metrics the gate demands **beyond quads/sec**:
+
+- **Total allocated bytes, allocation count, and an allocator high-water mark** for one full
+  *build* (intern + push + freeze), one full AoS *iteration*, and one full *resolution* pass.
+  These come from a process-global counting `#[global_allocator]` (the same pattern as
+  `tests/ir_zero_alloc.rs`, extended with byte and net-live high-water tracking) whose
+  thread-local counters are snapshotted around each measured region and printed as deltas. A
+  true peak-RSS read is impractical in-process, so the high-water mark of net-live allocated
+  bytes approximates peak memory — stated, not hidden.
+- **Index-build cost:** there is no standalone secondary index in the shipped dataset today.
+  The only non-linear structure is the sparse, handle-sorted source-location table built at
+  freeze, so its build cost is already folded into the *build* group rather than benched as a
+  separate pass; the bench notes this explicitly.
+- **Layout comparison, measured head-to-head on the SAME frozen quads:** the bench builds a
+  bench-local **structure-of-arrays** (`{ s, p, o, g: Vec<…> }`) shim and a bench-local
+  **predicate-grouped adjacency** shim and benchmarks the identical iteration on all three, so
+  the choice is *measured*. The shims are measurement-only and are NOT wired into the real
+  dataset.
+
+**Decision: the array-of-structures `QuadRow` layout (`Box<[QuadRow]>`) is retained** as the
+shipped layout. The harness measures AoS vs SoA vs predicate-adjacency, so the choice is
+bench-driven, not asserted. AoS keeps the quad row a contiguous `Copy` value that the resolved
+hot path (`quad_refs()`/`resolve()`) borrows directly, confirms the zero-allocation iteration
+and resolution requirements operationally (both regions report **0 allocations**), and the
+predicate-adjacency shim is materially slower to iterate. The SoA shim's narrow edge on the
+pure ID-fold micro-iteration is recorded by the bench as standing evidence: if a future
+ID-native consumer makes that edge material under a real workload, this harness is the
+instrument to revisit the decision against, rather than re-asserting it.
+
 ### ID-native consumers
 
 - **SHACL** — the expensive seam is that `validate_rdf_store` materializes the *entire*

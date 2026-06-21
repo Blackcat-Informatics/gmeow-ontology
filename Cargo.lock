@@ -1448,6 +1448,7 @@ name = "gmeow-rdf"
 version = "0.1.0"
 dependencies = [
  "ciborium",
+ "criterion",
  "gmeow-gts",
  "oxigraph",
  "proptest",

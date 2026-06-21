@@ -44,3 +44,15 @@ gmeow-gts = "0.9.2"
 # round-trips drive the identical engine the production codecs use.
 oxigraph = { version = "0.5", default-features = false, features = ["rdf-12"] }
 proptest = "1"
+# Acceleration-program baselines (#630/#819 C1 Task 7); light feature set matching
+# the sibling crates (logic/shacl/validate): criterion's plotters/rayon defaults are
+# off so `make bench` builds fast and the cargo-bench stdout summary is all we need.
+criterion = { version = "0.5", default-features = false, features = ["cargo_bench_support"] }
+
+[[bench]]
+# IR layout / operational-metrics harness: AoS-vs-SoA(-vs-predicate-adjacency)
+# iteration + allocated-bytes/count/peak reporting. Satisfies the #819 RFC gate
+# "Layout is chosen by benchmark, not asserted". `make bench` lane only — excluded
+# from `make check`.
+name = "ir_layout"
+harness = false
