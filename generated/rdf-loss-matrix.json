@@ -12,12 +12,5 @@
     "to": "rdf-1.2-dataset",
     "intentional": true,
     "note": "`gmeow_gts::reader::read()` folds all segments into one term table, collapsing per-segment blank-node scope; the distinct scopes are recovered only via the streaming-event importer."
-  },
-  {
-    "code": "multi-reifier-collapsed",
-    "from": "rdf-1.2-dataset",
-    "to": "gts",
-    "intentional": true,
-    "note": "RDF 1.2 permits several explicit reifiers for one (s,p,o), but the current GTS writer rejects a second distinct explicit reifier for the same triple content (`rdf-conflicting-reifier`)."
   }
 ]

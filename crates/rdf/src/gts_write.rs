@@ -86,9 +86,11 @@ pub fn to_gts(store: &impl RdfStore, profile: &str) -> Result<Vec<u8>, RdfDiagno
 struct InternState {
     terms: Vec<Term>,
     index: HashMap<RdfTerm, usize>,
-    /// Triple component ids → reifier term id. Reifiers are IRI/blank-node
-    /// terms that already exist in `terms`.
-    reifier_map: HashMap<Triple3, usize>,
+    /// Triple component ids → reifier term ids. RDF 1.2 permits several distinct
+    /// explicit reifiers for one (s,p,o) (gmeow-gts#213); they are all retained.
+    /// A nested triple term reuses the first-bound reifier for its single
+    /// `Term.reifier` slot. Reifiers are IRI/blank-node terms already in `terms`.
+    reifier_map: HashMap<Triple3, Vec<usize>>,
 }
 
 impl InternState {
@@ -124,18 +126,13 @@ fn bind_explicit_reifier(
     let p = intern_iri(state, &reifier.statement.predicate)?;
     let o = intern_term(state, &reifier.statement.object)?;
 
-    if let Some(existing) = state.reifier_map.get(&(s, p, o)) {
-        if *existing != rid {
-            return Err(RdfDiagnostic::error(
-                "rdf-conflicting-reifier",
-                format!(
-                    "triple ({s},{p},{o}) is already reified by term {existing}; \
-                     cannot rebind to {rid}"
-                ),
-            ));
-        }
-    } else {
-        state.reifier_map.insert((s, p, o), rid);
+    // RDF 1.2 allows several distinct explicit reifiers for the same triple
+    // content (gmeow-gts#213); record each one, deduplicating only an identical
+    // (rid, (s,p,o)) pair. Every distinct reifier is emitted as its own
+    // `graph.reifiers` row below, so no binding is collapsed.
+    let bound = state.reifier_map.entry((s, p, o)).or_default();
+    if !bound.contains(&rid) {
+        bound.push(rid);
     }
 
     Ok(())
@@ -258,11 +255,16 @@ fn intern_triple_term(
     let p = intern_iri(state, &triple.predicate)?;
     let o = intern_term_depth(state, &triple.object, depth + 1)?;
 
-    let reifier_id = if let Some(&rid) = state.reifier_map.get(&(s, p, o)) {
+    let reifier_id = if let Some(rid) = state
+        .reifier_map
+        .get(&(s, p, o))
+        .and_then(|rids| rids.first())
+        .copied()
+    {
         rid
     } else {
         let rid = create_anonymous_reifier(state);
-        state.reifier_map.insert((s, p, o), rid);
+        state.reifier_map.entry((s, p, o)).or_default().push(rid);
         rid
     };
 
@@ -481,6 +483,34 @@ mod tests {
         assert!(nquads.contains("http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies"));
         assert!(nquads.contains("https://example.org/confidence"));
         assert!(nquads.contains("0.9"));
+    }
+
+    #[test]
+    fn two_reifiers_same_triple_both_survive() {
+        // RDF 1.2 permits several distinct explicit reifiers for one (s,p,o).
+        // gmeow-gts#213 lets the writer keep both, so `multi-reifier-collapsed`
+        // is no longer a loss: both bindings must survive the round-trip.
+        let statement = RdfTriple::new(
+            RdfTerm::iri("https://example.org/s"),
+            "https://example.org/p",
+            RdfTerm::iri("https://example.org/o"),
+        );
+        let store = VecRdfStore {
+            reifiers: vec![
+                RdfReifier::new(RdfTerm::blank_node("r1"), statement.clone()),
+                RdfReifier::new(RdfTerm::blank_node("r2"), statement.clone()),
+            ],
+            ..VecRdfStore::default()
+        };
+        let graph = roundtrip_store(&store, "gmeow-rdf-test");
+        // Two distinct reifier rows over the same triple content survive.
+        assert_eq!(graph.reifiers.len(), 2);
+        let rids: std::collections::BTreeSet<usize> =
+            graph.reifiers.iter().map(|(rid, _)| *rid).collect();
+        assert_eq!(rids.len(), 2, "the two reifiers must be distinct");
+        let triples: std::collections::BTreeSet<Triple3> =
+            graph.reifiers.iter().map(|(_, t)| *t).collect();
+        assert_eq!(triples.len(), 1, "both reify the same (s,p,o)");
     }
 
     #[test]

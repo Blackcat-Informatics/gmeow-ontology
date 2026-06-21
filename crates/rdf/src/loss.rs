@@ -82,25 +82,14 @@ impl LossLedger {
 
 /// The intentional losses incurred projecting the RDF 1.2 dataset IR → GTS.
 pub fn rdf_to_gts_loss_ledger() -> LossLedger {
-    LossLedger::from_entries(vec![
-        LossEntry {
-            code: "multi-reifier-collapsed",
-            from: "rdf-1.2-dataset",
-            to: "gts",
-            intentional: true,
-            note: "RDF 1.2 permits several explicit reifiers for one (s,p,o), but the current \
-                   GTS writer rejects a second distinct explicit reifier for the same triple \
-                   content (`rdf-conflicting-reifier`).",
-        },
-        LossEntry {
-            code: "blob-bytes-absent",
-            from: "rdf-1.2-dataset",
-            to: "gts",
-            intentional: true,
-            note: "`RdfLookaside` blob records carry blob metadata but not the actual blob \
+    LossLedger::from_entries(vec![LossEntry {
+        code: "blob-bytes-absent",
+        from: "rdf-1.2-dataset",
+        to: "gts",
+        intentional: true,
+        note: "`RdfLookaside` blob records carry blob metadata but not the actual blob \
                    bytes, so the GTS writer cannot preserve blob payloads.",
-        },
-    ])
+    }])
 }
 
 /// The intentional losses incurred reading GTS → the RDF 1.2 dataset IR.
@@ -195,13 +184,10 @@ mod tests {
     use std::path::PathBuf;
 
     /// The intentional loss codes this ledger is required to enumerate.
-    /// `direction-dropped` was retired once gmeow-gts#212 added `Term.direction`
-    /// and the writer/reader began round-tripping literal base direction.
-    const EXPECTED_CODES: [&str; 3] = [
-        "blob-bytes-absent",
-        "bnode-scope-flatten",
-        "multi-reifier-collapsed",
-    ];
+    /// `direction-dropped` was retired by gmeow-gts#212 (`Term.direction`) and
+    /// `multi-reifier-collapsed` by gmeow-gts#213 (reifier-id-keyed
+    /// `Graph.reifiers`); both now round-trip losslessly.
+    const EXPECTED_CODES: [&str; 2] = ["blob-bytes-absent", "bnode-scope-flatten"];
 
     fn matrix_codes() -> Vec<String> {
         let mut codes: Vec<String> = Vec::new();
