@@ -13,6 +13,8 @@ pub mod diagnostic;
 pub mod gts;
 #[cfg(feature = "gts")]
 pub mod gts_write;
+// The immutable, value-interned RDF 1.2 dataset IR (#819 C1).
+pub mod ir;
 pub mod lookaside;
 // The machine-readable RDF↔GTS loss ledger and its drift-gated matrix (#819 C0).
 pub mod loss;
@@ -33,6 +35,7 @@ pub mod store;
 pub mod turtle;
 
 pub use diagnostic::{RdfDiagnostic, RdfLocation, RdfLoss, RdfSeverity};
+pub use ir::{BlankScope, RdfDatasetBuilder, TermId};
 pub use lookaside::{
     RdfBlobRecord, RdfLookaside, RdfLookasideKind, RdfLookasideResource, RdfMetadataEntry,
     RdfMetadataValue, RdfOpaqueNodeRecord, RdfSegmentRecord, RdfSignatureRecord,
