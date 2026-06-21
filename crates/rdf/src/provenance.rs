@@ -145,6 +145,84 @@ impl fmt::Display for OriginKind {
     }
 }
 
+// ─── Attribution types ────────────────────────────────────────────────────────
+
+/// The role of a compilation unit in a structured attribution (S0.3 / §9).
+///
+/// A single diagnostic or SHACL result can involve multiple compilation units
+/// in **different** roles: the shape owner is distinct from the data origin, the
+/// rule owner is distinct from the focus node origin, and so on. A scalar
+/// `SliceId` field cannot represent this; `AttributionRole` keeps the roles
+/// distinct and auditable.
+///
+/// These variants are kernel-generic — no GMEOW-specific concept here. The slice
+/// layer interprets which `UnitId` maps to which slice IRI.
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub enum AttributionRole {
+    /// The unit that asserted the RDF data from which the finding originates.
+    AssertionOrigin,
+    /// The unit that defines (via `rdfs:isDefinedBy`) the vocabulary term at
+    /// issue.
+    DefinitionOwner,
+    /// The unit that owns the SHACL shape that triggered the result.
+    ShapeOwner,
+    /// The unit that owns the logic rule that produced a derived fact.
+    RuleOwner,
+    /// The unit that asserted the focus node of a SHACL result.
+    FocusOrigin,
+    /// The unit that contributed the offending value in a SHACL result.
+    ValueOrigin,
+    /// The unit that contributed a premise fact to a derivation.
+    DerivationSupport,
+    /// The unit that defines the evaluation scope over which a result was
+    /// computed (e.g. the graph/profile being validated).
+    EvaluationScope,
+}
+
+impl AttributionRole {
+    /// A stable lowercase string identifier for the role (used in SARIF
+    /// properties and RDF projections — must never change once published).
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            Self::AssertionOrigin => "assertion-origin",
+            Self::DefinitionOwner => "definition-owner",
+            Self::ShapeOwner => "shape-owner",
+            Self::RuleOwner => "rule-owner",
+            Self::FocusOrigin => "focus-origin",
+            Self::ValueOrigin => "value-origin",
+            Self::DerivationSupport => "derivation-support",
+            Self::EvaluationScope => "evaluation-scope",
+        }
+    }
+}
+
+impl fmt::Display for AttributionRole {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(self.as_str())
+    }
+}
+
+/// A structured attribution: which compilation unit played which role in
+/// producing a finding, derivation, or SHACL result (S0.3 / §9).
+///
+/// At serialization boundaries (`gmeow-validate`, SARIF, RDF projection) the
+/// `unit` field is resolved to a public slice IRI via the `UnitInterner`; the
+/// numeric id MUST NOT enter any persistent serialization (S0.5).
+///
+/// An optional `evidence` string carries a human-readable provenance note (e.g.
+/// the literal location string or a term IRI that provides the evidence for the
+/// attribution).
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct Attribution {
+    /// The compilation unit (resolved to an IRI only at the output boundary).
+    /// Runtime-only per S0.5.
+    pub unit: UnitId,
+    /// The role this unit plays in the attribution.
+    pub role: AttributionRole,
+    /// Optional provenance note (human-readable; does NOT enter fingerprints).
+    pub evidence: Option<String>,
+}
+
 // ─── Record types ────────────────────────────────────────────────────────────
 
 /// One physical assertion: the pair `(unit, artifact)` that asserted the quad
@@ -937,5 +1015,100 @@ mod tests {
         // A different singleton set must produce a new id.
         let id_3 = prov.intern_origin_set(vec![(u0, a0)]);
         assert_ne!(id_1, id_3, "distinct sets must have distinct OriginSetIds");
+    }
+
+    // ── Attribution types ─────────────────────────────────────────────────────
+
+    #[test]
+    fn attribution_role_as_str_is_stable() {
+        // Stable string identifiers must never change once published (S0.5 / §9).
+        assert_eq!(
+            AttributionRole::AssertionOrigin.as_str(),
+            "assertion-origin"
+        );
+        assert_eq!(
+            AttributionRole::DefinitionOwner.as_str(),
+            "definition-owner"
+        );
+        assert_eq!(AttributionRole::ShapeOwner.as_str(), "shape-owner");
+        assert_eq!(AttributionRole::RuleOwner.as_str(), "rule-owner");
+        assert_eq!(AttributionRole::FocusOrigin.as_str(), "focus-origin");
+        assert_eq!(AttributionRole::ValueOrigin.as_str(), "value-origin");
+        assert_eq!(
+            AttributionRole::DerivationSupport.as_str(),
+            "derivation-support"
+        );
+        assert_eq!(
+            AttributionRole::EvaluationScope.as_str(),
+            "evaluation-scope"
+        );
+    }
+
+    #[test]
+    fn attribution_role_display_matches_as_str() {
+        for role in [
+            AttributionRole::AssertionOrigin,
+            AttributionRole::DefinitionOwner,
+            AttributionRole::ShapeOwner,
+            AttributionRole::RuleOwner,
+            AttributionRole::FocusOrigin,
+            AttributionRole::ValueOrigin,
+            AttributionRole::DerivationSupport,
+            AttributionRole::EvaluationScope,
+        ] {
+            assert_eq!(role.to_string(), role.as_str());
+        }
+    }
+
+    #[test]
+    fn attribution_construction_and_equality() {
+        let u0 = UnitId::from_index(0);
+        let u1 = UnitId::from_index(1);
+
+        let a1 = Attribution {
+            unit: u0,
+            role: AttributionRole::ShapeOwner,
+            evidence: Some("shapes/core/epistemics/shapes.ttl".to_owned()),
+        };
+        let a1b = Attribution {
+            unit: u0,
+            role: AttributionRole::ShapeOwner,
+            evidence: Some("shapes/core/epistemics/shapes.ttl".to_owned()),
+        };
+        let a2 = Attribution {
+            unit: u1,
+            role: AttributionRole::FocusOrigin,
+            evidence: None,
+        };
+
+        assert_eq!(a1, a1b, "same fields → equal");
+        assert_ne!(a1, a2, "different unit/role → not equal");
+    }
+
+    #[test]
+    fn attribution_vec_carries_multiple_roles() {
+        // A single finding can carry multiple attributions with different roles.
+        // This is the core of §9: structured attribution, not a scalar slice field.
+        let u_shape = UnitId::from_index(0);
+        let u_data = UnitId::from_index(1);
+
+        let attributions = [
+            Attribution {
+                unit: u_shape,
+                role: AttributionRole::ShapeOwner,
+                evidence: None,
+            },
+            Attribution {
+                unit: u_data,
+                role: AttributionRole::FocusOrigin,
+                evidence: Some("http://example.org/FocusNode".to_owned()),
+            },
+        ];
+
+        assert_eq!(attributions.len(), 2);
+        assert_eq!(attributions[0].role, AttributionRole::ShapeOwner);
+        assert_eq!(attributions[1].role, AttributionRole::FocusOrigin);
+        // The two attributions reference different units (cross-slice).
+        assert_ne!(attributions[0].unit, attributions[1].unit);
     }
 }
