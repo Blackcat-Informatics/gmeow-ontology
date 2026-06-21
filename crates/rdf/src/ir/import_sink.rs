@@ -14,11 +14,33 @@
 //! ingestion path for blank-node scope (see `docs/design/819-rdf-ir-dataflow.md`,
 //! *Appendix C0.2* and the `bnode-scope-flatten` loss code).
 //!
-//! Every `StreamingSink` method returns `()` (it cannot signal failure inline), so
-//! a referential error during a `quad`/`reifier`/`annotation` callback is recorded
-//! as a deferred [`RdfDiagnostic`] in `self.error` and surfaced AFTER the reader
-//! returns. Per the no-optionality / hard-fail doctrine, a dangling term reference
-//! is an `Err`, never a silent skip.
+//! # Two-phase resolution (event-order independence)
+//!
+//! `gmeow_gts::writer::Writer::deterministic` emits frames in the order `terms →
+//! quads → reifies → annot`, and the reader dispatches frames in stream order. A
+//! quoted-triple `Term` therefore arrives (in the `terms` frame) carrying only its
+//! `reifier` id — the `reifies` frame that binds that reifier to the triple's
+//! `(s, p, o)` arrives **later**. A single-pass importer that resolves a triple
+//! term the instant its `term` event fires cannot succeed: the binding is not yet
+//! known (`rdf-ir-missing-reifier-binding`).
+//!
+//! This importer is therefore **two-phase**:
+//!
+//! 1. **Streaming phase** (during `read_to_sink`): record RAW per-segment
+//!    descriptors — for each gts term id its kind plus, for triple terms, the
+//!    reifier id linking it to its components — and RAW reifier bindings and
+//!    quad / reifier / annotation rows as gts-id rows. Nothing is resolved or
+//!    failed eagerly on a not-yet-known binding.
+//! 2. **Resolution phase** (after `read_to_sink` returns, before `freeze`): now
+//!    that every `term` and `reifies` event has been seen, resolve each gts term
+//!    to a [`TermId`] — non-triple terms intern directly; triple terms resolve
+//!    their now-complete `(s, p, o)` recursively, inner-first, depth-bounded by
+//!    [`MAX_GTS_TERM_NESTING_DEPTH`] — then push the raw quad / reifier /
+//!    annotation rows through the per-segment remap.
+//!
+//! Per the no-optionality / hard-fail doctrine, a *genuinely* dangling term id or
+//! reifier binding — one still unresolved after ALL events are seen — is an `Err`,
+//! never a silent skip. Only the merely out-of-order case now resolves.
 
 use std::collections::HashMap;
 
@@ -40,18 +62,30 @@ use crate::{
 const MAX_GTS_TERM_NESTING_DEPTH: usize = 16;
 
 /// A [`StreamingSink`] that folds GTS events into the immutable IR with per-segment
-/// blank-node scope isolation.
+/// blank-node scope isolation, two-phase so it is independent of `term`/`reifier`/
+/// `quad` event order (see the module docs).
 struct SinkImporter {
     /// The fallible IR builder we intern terms and push structure into.
     builder: RdfDatasetBuilder,
-    /// Per-segment map from GTS segment-local term id → our [`TermId`]. The outer
-    /// index IS the `segment_index`; the map is grown on demand so a sparse or
-    /// out-of-order segment stream still resolves correctly.
-    remaps: Vec<HashMap<usize, TermId>>,
+    /// RAW per-segment terms recorded during the streaming phase, keyed by
+    /// `(segment_index, gts_term_id)`. Resolved to [`TermId`]s in phase 2. The
+    /// streaming callbacks cannot resolve a quoted-triple term yet (its reifier
+    /// binding may arrive later), so each term is stashed verbatim.
+    raw_terms: HashMap<(usize, usize), Term>,
+    /// Per-segment map from GTS segment-local term id → our [`TermId`], populated
+    /// during phase-2 resolution. The key is `(segment_index, gts_term_id)`.
+    remaps: HashMap<(usize, usize), TermId>,
     /// Per-segment reifier bindings (`(segment_index, reifier gts-id) → (s, p, o)
-    /// gts-ids`), so a Triple term delivered later can recover its components
-    /// THROUGH the segment's remap.
+    /// gts-ids`), recorded from `reifier` events so a Triple term delivered earlier
+    /// (or later) can recover its components THROUGH the segment's remap in phase 2.
     reifier_bindings: HashMap<(usize, usize), gmeow_gts::model::Triple3>,
+    /// RAW quad rows `(segment_index, (s, p, o, g) gts-ids)`, resolved in phase 2.
+    raw_quads: Vec<(usize, Quad)>,
+    /// RAW reifier rows `(segment_index, reifier gts-id, (s, p, o) gts-ids)`,
+    /// resolved in phase 2 to bind the reifier resource to the interned triple.
+    raw_reifiers: Vec<(usize, usize, gmeow_gts::model::Triple3)>,
+    /// RAW annotation rows `(segment_index, (r, p, v) gts-ids)`, resolved in phase 2.
+    raw_annotations: Vec<(usize, gmeow_gts::model::Triple3)>,
     /// Out-of-band material accumulated from blob / signature / suppression /
     /// segment-head / opaque events.
     lookaside: RdfLookaside,
@@ -64,8 +98,12 @@ impl SinkImporter {
     fn new() -> Self {
         Self {
             builder: RdfDatasetBuilder::new(),
-            remaps: Vec::new(),
+            raw_terms: HashMap::new(),
+            remaps: HashMap::new(),
             reifier_bindings: HashMap::new(),
+            raw_quads: Vec::new(),
+            raw_reifiers: Vec::new(),
+            raw_annotations: Vec::new(),
             lookaside: RdfLookaside::default(),
             error: None,
         }
@@ -78,78 +116,244 @@ impl SinkImporter {
         }
     }
 
-    /// Ensure `remaps[segment_index]` exists.
-    fn segment_map(&mut self, segment_index: usize) -> &mut HashMap<usize, TermId> {
-        if self.remaps.len() <= segment_index {
-            self.remaps.resize_with(segment_index + 1, HashMap::new);
-        }
-        &mut self.remaps[segment_index]
-    }
-
-    /// Resolve a GTS segment-local term id THROUGH the segment's remap, failing if
-    /// the id was never introduced by a `term` callback (a dangling reference).
-    fn resolve(
-        &self,
+    /// Resolve a GTS segment-local term id to its interned [`TermId`], resolving it
+    /// (and any nested quoted triples) on demand if not yet interned. Fails if the
+    /// id was never introduced by a `term` event (a genuinely dangling reference).
+    ///
+    /// This is the phase-2 primitive: it is memoizing (through `self.remaps`) and
+    /// depth-bounded against cyclic quoted triples.
+    fn resolve_term(
+        &mut self,
         segment_index: usize,
         gts_id: usize,
         role: &str,
+        depth: usize,
     ) -> Result<TermId, RdfDiagnostic> {
-        self.remaps
-            .get(segment_index)
-            .and_then(|map| map.get(&gts_id).copied())
-            .ok_or_else(|| {
-                RdfDiagnostic::error(
-                    "rdf-ir-dangling-term-ref",
-                    format!(
-                        "GTS {role} references segment-{segment_index} term id {gts_id}, \
-                         which no `term` event introduced"
-                    ),
-                )
-                .with_location(
-                    RdfLocation::logical("gts:sink")
-                        .with_gts_segment(segment_index)
-                        .with_gts_term(gts_id),
-                )
-            })
+        if let Some(&id) = self.remaps.get(&(segment_index, gts_id)) {
+            return Ok(id);
+        }
+        if depth > MAX_GTS_TERM_NESTING_DEPTH {
+            return Err(RdfDiagnostic::error(
+                "rdf-ir-term-nesting-limit",
+                "GTS triple-term nesting depth limit exceeded",
+            )
+            .with_location(
+                RdfLocation::logical("gts:sink")
+                    .with_gts_segment(segment_index)
+                    .with_gts_term(gts_id),
+            ));
+        }
+        let Some(term) = self.raw_terms.get(&(segment_index, gts_id)) else {
+            return Err(RdfDiagnostic::error(
+                "rdf-ir-dangling-term-ref",
+                format!(
+                    "GTS {role} references segment-{segment_index} term id {gts_id}, \
+                     which no `term` event introduced"
+                ),
+            )
+            .with_location(
+                RdfLocation::logical("gts:sink")
+                    .with_gts_segment(segment_index)
+                    .with_gts_term(gts_id),
+            ));
+        };
+        // Clone the small scalar fields out so we no longer borrow `self.raw_terms`
+        // while we intern (which mutably borrows `self.builder`). The owned strings
+        // are cloned here; the streaming path is the scope-correct authority, not
+        // the zero-alloc one (that is the `import_graph` contract).
+        let term = term.clone();
+        let our_id = self.intern_raw_term(segment_index, gts_id, &term, depth)?;
+        self.remaps.insert((segment_index, gts_id), our_id);
+        Ok(our_id)
     }
-}
 
-/// Build an [`RdfLiteral`] from a GTS literal term, resolving its datatype id
-/// THROUGH the current segment's already-interned terms.
-///
-/// GTS cannot carry RDF 1.2 base direction (its `Term` has no direction slot), so
-/// `direction` is always `None` on this path — a known, ledgered projection limit.
-fn literal_from_term(
-    importer: &SinkImporter,
-    segment_index: usize,
-    term: &Term,
-) -> Result<RdfLiteral, RdfDiagnostic> {
-    let datatype = match term.datatype {
-        Some(dt_gts_id) => {
-            let dt_id = importer.resolve(segment_index, dt_gts_id, "literal datatype")?;
-            match importer.builder.term(dt_id) {
-                super::term::InternedTerm::Iri(iri) => Some(iri.to_string()),
-                other => {
+    /// Intern one already-located raw term, recursing (inner-first) for quoted
+    /// triples through their reifier binding.
+    fn intern_raw_term(
+        &mut self,
+        segment_index: usize,
+        gts_id: usize,
+        term: &Term,
+        depth: usize,
+    ) -> Result<TermId, RdfDiagnostic> {
+        let our_id = match term.kind {
+            TermKind::Iri => {
+                let Some(iri) = term.value.clone().filter(|value| !value.is_empty()) else {
                     return Err(RdfDiagnostic::error(
-                        "rdf-ir-literal-datatype-not-iri",
-                        format!("GTS literal datatype must resolve to an IRI, got {other:?}"),
+                        "rdf-ir-iri-missing-value",
+                        "GTS IRI term requires a non-empty value",
                     )
                     .with_location(
                         RdfLocation::logical("gts:sink")
                             .with_gts_segment(segment_index)
-                            .with_gts_term(dt_gts_id),
+                            .with_gts_term(gts_id),
                     ));
+                };
+                self.builder.intern_iri(iri)
+            }
+            // Per-segment scope isolation (C0.2): scope = segment_index + 1 so the
+            // SAME blank label in different segments interns to DISTINCT ids, while
+            // scope 0 stays reserved for the default/global scope.
+            TermKind::Bnode => {
+                let label = term
+                    .value
+                    .clone()
+                    .unwrap_or_else(|| format!("gts_bnode_{segment_index}_{gts_id}"));
+                let scope = BlankScope(segment_index as u32 + 1);
+                self.builder.intern_blank(label, scope)
+            }
+            TermKind::Literal => {
+                let literal = self.literal_from_term(segment_index, term, depth)?;
+                self.builder.intern_literal(literal)
+            }
+            TermKind::Triple => {
+                let Some(reifier_gts_id) = term.reifier else {
+                    return Err(RdfDiagnostic::error(
+                        "rdf-ir-unbound-triple-term",
+                        "GTS triple term has no reifier binding",
+                    )
+                    .with_location(
+                        RdfLocation::logical("gts:sink")
+                            .with_gts_segment(segment_index)
+                            .with_gts_term(gts_id),
+                    ));
+                };
+                let (s, p, o) =
+                    self.resolve_triple_components(segment_index, reifier_gts_id, depth + 1)?;
+                self.builder.intern_triple(s, p, o)
+            }
+        };
+        Ok(our_id)
+    }
+
+    /// Build an [`RdfLiteral`] from a GTS literal term, resolving its datatype id
+    /// THROUGH the segment's terms (phase 2).
+    ///
+    /// GTS cannot carry RDF 1.2 base direction (its `Term` has no direction slot),
+    /// so `direction` is always `None` on this path — a known projection limit.
+    fn literal_from_term(
+        &mut self,
+        segment_index: usize,
+        term: &Term,
+        depth: usize,
+    ) -> Result<RdfLiteral, RdfDiagnostic> {
+        let datatype = match term.datatype {
+            Some(dt_gts_id) => {
+                let dt_id =
+                    self.resolve_term(segment_index, dt_gts_id, "literal datatype", depth + 1)?;
+                match self.builder.term(dt_id) {
+                    super::term::InternedTerm::Iri(iri) => Some(iri.to_string()),
+                    other => {
+                        return Err(RdfDiagnostic::error(
+                            "rdf-ir-literal-datatype-not-iri",
+                            format!("GTS literal datatype must resolve to an IRI, got {other:?}"),
+                        )
+                        .with_location(
+                            RdfLocation::logical("gts:sink")
+                                .with_gts_segment(segment_index)
+                                .with_gts_term(dt_gts_id),
+                        ));
+                    }
                 }
             }
+            None => None,
+        };
+        Ok(RdfLiteral {
+            lexical_form: term.value.clone().unwrap_or_default(),
+            datatype,
+            language: term.lang.clone(),
+            direction: None,
+        })
+    }
+
+    /// Resolve the `(s, p, o)` of the triple a reifier binds, THROUGH this
+    /// segment's terms, with a depth bound against cyclic quoted triples. The
+    /// reifier binding MUST exist by phase 2 (all `reifies` events are in); a
+    /// missing binding here is a genuine dangling reference, hence an `Err`.
+    fn resolve_triple_components(
+        &mut self,
+        segment_index: usize,
+        reifier: usize,
+        depth: usize,
+    ) -> Result<(TermId, TermId, TermId), RdfDiagnostic> {
+        if depth > MAX_GTS_TERM_NESTING_DEPTH {
+            return Err(RdfDiagnostic::error(
+                "rdf-ir-term-nesting-limit",
+                "GTS triple-term nesting depth limit exceeded",
+            )
+            .with_location(
+                RdfLocation::logical("gts:sink")
+                    .with_gts_segment(segment_index)
+                    .with_gts_reifier(reifier),
+            ));
         }
-        None => None,
-    };
-    Ok(RdfLiteral {
-        lexical_form: term.value.clone().unwrap_or_default(),
-        datatype,
-        language: term.lang.clone(),
-        direction: None,
-    })
+        let Some(&(s, p, o)) = self.reifier_bindings.get(&(segment_index, reifier)) else {
+            return Err(RdfDiagnostic::error(
+                "rdf-ir-missing-reifier-binding",
+                format!(
+                    "GTS triple term references reifier {reifier} in segment \
+                     {segment_index} with no recorded binding"
+                ),
+            )
+            .with_location(
+                RdfLocation::logical("gts:sink")
+                    .with_gts_segment(segment_index)
+                    .with_gts_reifier(reifier),
+            ));
+        };
+        let s = self.resolve_term(segment_index, s, "reified subject", depth)?;
+        let p = self.resolve_term(segment_index, p, "reified predicate", depth)?;
+        let o = self.resolve_term(segment_index, o, "reified object", depth)?;
+        Ok((s, p, o))
+    }
+
+    /// Phase 2: resolve every recorded term and push every recorded row, after the
+    /// reader has delivered ALL `term` / `reifies` / `quad` / `annot` events.
+    fn finish(&mut self) -> Result<(), RdfDiagnostic> {
+        // Resolve every introduced term (idempotent through `remaps`). Iterate in a
+        // deterministic order so the interner's allocation order — and thus the
+        // frozen term order — is reproducible for a fixed event stream.
+        let mut keys: Vec<(usize, usize)> = self.raw_terms.keys().copied().collect();
+        keys.sort_unstable();
+        for (segment_index, gts_id) in keys {
+            self.resolve_term(segment_index, gts_id, "term", 0)?;
+        }
+
+        // Quads.
+        let raw_quads = std::mem::take(&mut self.raw_quads);
+        for (segment_index, (s, p, o, g)) in raw_quads {
+            let s = self.resolve_term(segment_index, s, "quad subject", 0)?;
+            let p = self.resolve_term(segment_index, p, "quad predicate", 0)?;
+            let o = self.resolve_term(segment_index, o, "quad object", 0)?;
+            let g = match g {
+                Some(g) => Some(self.resolve_term(segment_index, g, "quad graph name", 0)?),
+                None => None,
+            };
+            self.builder.push_quad(s, p, o, g);
+        }
+
+        // Reifier bindings: bind the reifier resource to the interned triple term.
+        let raw_reifiers = std::mem::take(&mut self.raw_reifiers);
+        for (segment_index, reifier, (s, p, o)) in raw_reifiers {
+            let reifier_id = self.resolve_term(segment_index, reifier, "reifier", 0)?;
+            let s = self.resolve_term(segment_index, s, "reified subject", 0)?;
+            let p = self.resolve_term(segment_index, p, "reified predicate", 0)?;
+            let o = self.resolve_term(segment_index, o, "reified object", 0)?;
+            let triple_term = self.builder.intern_triple(s, p, o);
+            self.builder.push_reifier(reifier_id, triple_term);
+        }
+
+        // Annotations `(reifier, predicate, object)`.
+        let raw_annotations = std::mem::take(&mut self.raw_annotations);
+        for (segment_index, (r, p, v)) in raw_annotations {
+            let r = self.resolve_term(segment_index, r, "annotation reifier", 0)?;
+            let p = self.resolve_term(segment_index, p, "annotation predicate", 0)?;
+            let v = self.resolve_term(segment_index, v, "annotation object", 0)?;
+            self.builder.push_annotation(r, p, v);
+        }
+
+        Ok(())
+    }
 }
 
 fn hex_bytes(bytes: &[u8]) -> String {
@@ -198,133 +402,37 @@ impl StreamingSink for SinkImporter {
         if self.error.is_some() {
             return;
         }
-        let our_id = match term.kind {
-            TermKind::Iri => {
-                let Some(iri) = term.value.clone().filter(|value| !value.is_empty()) else {
-                    self.fail(
-                        RdfDiagnostic::error(
-                            "rdf-ir-iri-missing-value",
-                            "GTS IRI term requires a non-empty value",
-                        )
-                        .with_location(
-                            RdfLocation::logical("gts:sink")
-                                .with_gts_segment(segment_index)
-                                .with_gts_term(gts_term_id),
-                        ),
-                    );
-                    return;
-                };
-                self.builder.intern_iri(iri)
-            }
-            // Per-segment scope isolation (C0.2): scope = segment_index + 1 so the
-            // SAME blank label in different segments interns to DISTINCT ids, while
-            // scope 0 stays reserved for the default/global scope.
-            TermKind::Bnode => {
-                let label = term
-                    .value
-                    .clone()
-                    .unwrap_or_else(|| format!("gts_bnode_{segment_index}_{gts_term_id}"));
-                let scope = BlankScope(segment_index as u32 + 1);
-                self.builder.intern_blank(label, scope)
-            }
-            TermKind::Literal => match literal_from_term(self, segment_index, term) {
-                Ok(literal) => self.builder.intern_literal(literal),
-                Err(diagnostic) => {
-                    self.fail(diagnostic);
-                    return;
-                }
-            },
-            TermKind::Triple => {
-                let Some(reifier_gts_id) = term.reifier else {
-                    self.fail(
-                        RdfDiagnostic::error(
-                            "rdf-ir-unbound-triple-term",
-                            "GTS triple term has no reifier binding",
-                        )
-                        .with_location(
-                            RdfLocation::logical("gts:sink")
-                                .with_gts_segment(segment_index)
-                                .with_gts_term(gts_term_id),
-                        ),
-                    );
-                    return;
-                };
-                // The reifier names the (s, p, o) of this quoted triple. By the
-                // time a `term` of kind Triple is delivered, its reifier and the
-                // triple's components have already been delivered as terms in this
-                // segment, so they are present in the segment remap. We resolve the
-                // (s, p, o) THROUGH the reifier event recorded earlier.
-                match self.resolve_triple_components(segment_index, reifier_gts_id, 0) {
-                    Ok((s, p, o)) => self.builder.intern_triple(s, p, o),
-                    Err(diagnostic) => {
-                        self.fail(diagnostic);
-                        return;
-                    }
-                }
-            }
-        };
-        self.segment_map(segment_index).insert(gts_term_id, our_id);
+        // Streaming phase: stash the raw term verbatim. A quoted-triple term cannot
+        // be resolved yet — its reifier binding may arrive in a later frame — so we
+        // defer ALL resolution to phase 2, where every event has been seen.
+        self.raw_terms
+            .insert((segment_index, gts_term_id), term.clone());
     }
 
     fn quad(&mut self, segment_index: usize, quad: Quad) {
         if self.error.is_some() {
             return;
         }
-        let (s, p, o, g) = quad;
-        let resolved = (|| {
-            let s = self.resolve(segment_index, s, "quad subject")?;
-            let p = self.resolve(segment_index, p, "quad predicate")?;
-            let o = self.resolve(segment_index, o, "quad object")?;
-            let g = match g {
-                Some(g) => Some(self.resolve(segment_index, g, "quad graph name")?),
-                None => None,
-            };
-            Ok::<_, RdfDiagnostic>((s, p, o, g))
-        })();
-        match resolved {
-            Ok((s, p, o, g)) => self.builder.push_quad(s, p, o, g),
-            Err(diagnostic) => self.fail(diagnostic),
-        }
+        self.raw_quads.push((segment_index, quad));
     }
 
     fn reifier(&mut self, segment_index: usize, reifier: usize, triple: gmeow_gts::model::Triple3) {
         if self.error.is_some() {
             return;
         }
-        // Record the reifier → (s, p, o) binding for this segment so a later
-        // Triple term can resolve its components, and bind the reifier resource to
-        // the interned triple term in the IR.
-        self.reifier_bindings_insert(segment_index, reifier, triple);
-
-        let resolved = (|| {
-            let reifier_id = self.resolve(segment_index, reifier, "reifier")?;
-            let (s, p, o) = self.resolve_triple_components(segment_index, reifier, 0)?;
-            Ok::<_, RdfDiagnostic>((reifier_id, s, p, o))
-        })();
-        match resolved {
-            Ok((reifier_id, s, p, o)) => {
-                let triple_term = self.builder.intern_triple(s, p, o);
-                self.builder.push_reifier(reifier_id, triple_term);
-            }
-            Err(diagnostic) => self.fail(diagnostic),
-        }
+        // Record the reifier → (s, p, o) binding for this segment so a Triple term
+        // (delivered in any order) can resolve its components in phase 2, and stash
+        // the row so the reifier resource is bound to the interned triple in phase 2.
+        self.reifier_bindings
+            .insert((segment_index, reifier), triple);
+        self.raw_reifiers.push((segment_index, reifier, triple));
     }
 
     fn annotation(&mut self, segment_index: usize, annotation: gmeow_gts::model::Triple3) {
         if self.error.is_some() {
             return;
         }
-        let (r, p, v) = annotation;
-        let resolved = (|| {
-            let r = self.resolve(segment_index, r, "annotation reifier")?;
-            let p = self.resolve(segment_index, p, "annotation predicate")?;
-            let v = self.resolve(segment_index, v, "annotation object")?;
-            Ok::<_, RdfDiagnostic>((r, p, v))
-        })();
-        match resolved {
-            Ok((r, p, v)) => self.builder.push_annotation(r, p, v),
-            Err(diagnostic) => self.fail(diagnostic),
-        }
+        self.raw_annotations.push((segment_index, annotation));
     }
 
     fn suppression(&mut self, _segment_index: usize, suppression: &Suppression) {
@@ -422,58 +530,6 @@ impl StreamingSink for SinkImporter {
 }
 
 impl SinkImporter {
-    /// Per-segment reifier bindings (`reifier gts-id → (s, p, o) gts-ids`), so a
-    /// Triple term delivered later can recover its components. Stored on the
-    /// importer as a side table keyed by `(segment_index, reifier)`.
-    fn reifier_bindings_insert(
-        &mut self,
-        segment_index: usize,
-        reifier: usize,
-        triple: gmeow_gts::model::Triple3,
-    ) {
-        self.reifier_bindings
-            .insert((segment_index, reifier), triple);
-    }
-
-    /// Resolve the `(s, p, o)` of the triple a reifier binds, THROUGH this
-    /// segment's remap, with a depth bound against cyclic quoted triples.
-    fn resolve_triple_components(
-        &self,
-        segment_index: usize,
-        reifier: usize,
-        depth: usize,
-    ) -> Result<(TermId, TermId, TermId), RdfDiagnostic> {
-        if depth > MAX_GTS_TERM_NESTING_DEPTH {
-            return Err(RdfDiagnostic::error(
-                "rdf-ir-term-nesting-limit",
-                "GTS triple-term nesting depth limit exceeded",
-            )
-            .with_location(
-                RdfLocation::logical("gts:sink")
-                    .with_gts_segment(segment_index)
-                    .with_gts_reifier(reifier),
-            ));
-        }
-        let Some(&(s, p, o)) = self.reifier_bindings.get(&(segment_index, reifier)) else {
-            return Err(RdfDiagnostic::error(
-                "rdf-ir-missing-reifier-binding",
-                format!(
-                    "GTS triple term references reifier {reifier} in segment \
-                     {segment_index} with no recorded binding"
-                ),
-            )
-            .with_location(
-                RdfLocation::logical("gts:sink")
-                    .with_gts_segment(segment_index)
-                    .with_gts_reifier(reifier),
-            ));
-        };
-        let s = self.resolve(segment_index, s, "reified subject")?;
-        let p = self.resolve(segment_index, p, "reified predicate")?;
-        let o = self.resolve(segment_index, o, "reified object")?;
-        Ok((s, p, o))
-    }
-
     /// Ensure a [`RdfSegmentRecord`] exists for `segment_index`, returning it.
     fn ensure_segment_record(&mut self, segment_index: usize) -> &mut RdfSegmentRecord {
         if let Some(position) = self
@@ -504,9 +560,11 @@ impl SinkImporter {
 ///
 /// Drives [`gmeow_gts::reader::read_to_sink`] with `allow_segments = true` so a
 /// multi-segment file is delivered as per-segment events (the only place segment
-/// identity survives). Any reader diagnostic or dangling term reference is a HARD
-/// failure (`Err`); on success the interned terms are frozen via
-/// [`RdfDatasetBuilder::freeze`] and paired with the accumulated envelope.
+/// identity survives). Resolution is **two-phase** (see the module docs) so a
+/// quoted-triple term is resolved regardless of whether its `reifies` binding
+/// arrived before or after the term itself. Any reader diagnostic or genuinely
+/// dangling term reference is a HARD failure (`Err`); on success the interned terms
+/// are frozen via [`RdfDatasetBuilder::freeze`] and paired with the envelope.
 pub fn import_gts_events(bytes: &[u8]) -> Result<RdfBundle, RdfDiagnostic> {
     let mut importer = SinkImporter::new();
     let _ = gmeow_gts::reader::read_to_sink(bytes, true, None, &mut importer);
@@ -514,6 +572,10 @@ pub fn import_gts_events(bytes: &[u8]) -> Result<RdfBundle, RdfDiagnostic> {
     if let Some(error) = importer.error {
         return Err(error);
     }
+
+    // Phase 2: now that ALL term / reifier / quad / annotation events are seen,
+    // resolve every term and push every row.
+    importer.finish()?;
 
     let lookaside = importer.lookaside;
     let dataset = importer.builder.freeze()?;
@@ -525,7 +587,7 @@ mod tests {
     use super::*;
     use crate::ir::term::InternedTerm;
     use crate::ir::TermId;
-    use gmeow_gts::model::Term;
+    use gmeow_gts::model::{Graph, Term, Term as GtsTerm, TermKind as GtsKind};
     use gmeow_gts::writer::Writer;
 
     fn iri_term(value: &str) -> Term {
@@ -546,6 +608,18 @@ mod tests {
             lang: None,
             reifier: None,
         }
+    }
+
+    /// Drive the streaming events then run phase 2, returning the importer for
+    /// post-resolution assertions (the public `import_gts_events` does both phases
+    /// from bytes; this exercises the hand-ordered direct-sink path).
+    fn finish_direct(mut importer: SinkImporter) -> SinkImporter {
+        if importer.error.is_none() {
+            if let Err(diagnostic) = importer.finish() {
+                importer.fail(diagnostic);
+            }
+        }
+        importer
     }
 
     /// Resolve `our_id` back to its interned blank `(label, scope)` for assertions.
@@ -579,16 +653,17 @@ mod tests {
         importer.term(1, 2, &blank_term("b1"));
         importer.quad(1, (0, 1, 2, None));
 
+        let mut importer = finish_direct(importer);
         assert!(
             importer.error.is_none(),
             "no error expected: {:?}",
             importer.error
         );
 
-        let seg0_s = importer.remaps[0][&0];
-        let seg1_s = importer.remaps[1][&0];
-        let seg0_b1 = importer.remaps[0][&2];
-        let seg1_b1 = importer.remaps[1][&2];
+        let seg0_s = importer.remaps[&(0, 0)];
+        let seg1_s = importer.remaps[&(1, 0)];
+        let seg0_b1 = importer.remaps[&(0, 2)];
+        let seg1_b1 = importer.remaps[&(1, 2)];
 
         // The shared IRI interns to ONE id across both segments (value identity).
         assert_eq!(seg0_s, seg1_s, "ex:s is the same node across segments");
@@ -605,14 +680,17 @@ mod tests {
         assert_eq!(scope0, BlankScope(1), "segment 0 → scope 1");
         assert_eq!(scope1, BlankScope(2), "segment 1 → scope 2");
 
-        let dataset = importer.builder.freeze().expect("freeze");
+        let dataset = std::mem::take(&mut importer.builder)
+            .freeze()
+            .expect("freeze");
         // 2 quads, distinct blanks: ex:s, ex:p, b1@s0, ex:p2, b1@s1 = 5 terms.
         assert_eq!(dataset.quad_count(), 2);
         assert_eq!(dataset.term_count(), 5);
     }
 
     /// A quad that references a GTS term id no `term` event introduced MUST surface
-    /// as a hard `Err` (no silent skip).
+    /// as a hard `Err` (no silent skip), even though resolution is now deferred to
+    /// phase 2.
     #[test]
     fn gate2_unknown_term_reference_is_err_direct() {
         let mut importer = SinkImporter::new();
@@ -620,6 +698,7 @@ mod tests {
         importer.term(0, 1, &iri_term("http://example.org/p"));
         // Object id 9 was never introduced.
         importer.quad(0, (0, 1, 9, None));
+        let importer = finish_direct(importer);
         assert!(
             importer.error.is_some(),
             "dangling reference must defer an error"
@@ -647,10 +726,13 @@ mod tests {
             },
         );
         importer.quad(0, (0, 1, 2, None));
-        assert!(importer.error.is_none());
+        let mut importer = finish_direct(importer);
+        assert!(importer.error.is_none(), "{:?}", importer.error);
 
-        let lit_id = importer.remaps[0][&2];
-        let dataset = importer.builder.freeze().expect("freeze");
+        let lit_id = importer.remaps[&(0, 2)];
+        let dataset = std::mem::take(&mut importer.builder)
+            .freeze()
+            .expect("freeze");
         match dataset.resolve(lit_id) {
             crate::ir::TermRef::Literal {
                 lexical,
@@ -667,7 +749,7 @@ mod tests {
     }
 
     /// A nested quoted-triple term survives the sink path: the inner triple is an
-    /// object position of the outer triple.
+    /// object position of the outer triple. (Hand-ordered direct-sink events.)
     #[test]
     fn nested_triple_term_survives_sink_path() {
         let mut importer = SinkImporter::new();
@@ -705,11 +787,14 @@ mod tests {
             },
         );
         importer.quad(0, (0, 5, 7, None));
+        let mut importer = finish_direct(importer);
         assert!(importer.error.is_none(), "{:?}", importer.error);
 
-        let inner = importer.remaps[0][&4];
-        let outer = importer.remaps[0][&7];
-        let dataset = importer.builder.freeze().expect("freeze");
+        let inner = importer.remaps[&(0, 4)];
+        let outer = importer.remaps[&(0, 7)];
+        let dataset = std::mem::take(&mut importer.builder)
+            .freeze()
+            .expect("freeze");
         match dataset.resolve(outer) {
             crate::ir::TermRef::Triple { o, .. } => {
                 assert_eq!(o, inner, "outer triple's object IS the inner triple term");
@@ -729,13 +814,182 @@ mod tests {
         importer.term(0, 4, &iri_term("http://example.org/r2"));
         importer.reifier(0, 3, (0, 1, 2));
         importer.reifier(0, 4, (0, 1, 2));
-        assert!(importer.error.is_none());
+        let mut importer = finish_direct(importer);
+        assert!(importer.error.is_none(), "{:?}", importer.error);
 
-        let dataset = importer.builder.freeze().expect("freeze");
+        let dataset = std::mem::take(&mut importer.builder)
+            .freeze()
+            .expect("freeze");
         let reifiers: Vec<_> = dataset.reifiers().collect();
         assert_eq!(reifiers.len(), 2, "two distinct reifiers survive");
         // Both bind the same interned triple term.
         assert_eq!(reifiers[0].1, reifiers[1].1, "same triple term bound twice");
+    }
+
+    /// REAL Writer-serialized quoted triple `<<ex:s ex:p ex:o>>`, used as the
+    /// OBJECT of an outer quad AND as a reifier target, round-trips through bytes.
+    ///
+    /// This is the regression the two-phase importer fixes: `Writer::deterministic`
+    /// emits the `terms` frame (carrying the triple term) BEFORE the `reifies`
+    /// frame that binds its components, so the single-pass importer failed with
+    /// `rdf-ir-missing-reifier-binding`. The two-phase importer resolves it.
+    #[test]
+    fn writer_quoted_triple_roundtrips_through_bytes() {
+        let mut graph = Graph::default();
+        graph.terms.push(iri("http://example.org/s")); // 0
+        graph.terms.push(iri("http://example.org/p")); // 1
+        graph.terms.push(iri("http://example.org/o")); // 2
+        graph.terms.push(iri("http://example.org/stmt")); // 3 reifier resource
+        graph.reifiers.push((3, (0, 1, 2)));
+        graph.terms.push(GtsTerm {
+            kind: GtsKind::Triple,
+            value: None,
+            datatype: None,
+            lang: None,
+            reifier: Some(3),
+        }); // 4 quoted triple <<ex:s ex:p ex:o>>
+        graph.terms.push(iri("http://example.org/asserts")); // 5
+                                                             // Outer quad: (ex:s ex:asserts <<ex:s ex:p ex:o>>) — the quoted triple
+                                                             // sits in OBJECT position.
+        graph.quads.push((0, 5, 4, None));
+
+        let bytes = Writer::deterministic(&graph, "gmeow-rdf-test")
+            .expect("deterministic writer")
+            .to_bytes();
+
+        let bundle = import_gts_events(&bytes).expect("quoted-triple round-trip");
+        let dataset = &bundle.dataset;
+
+        // The outer quad's object must be the quoted triple, with the right (s,p,o).
+        let quad = dataset
+            .quad_refs()
+            .find(|q| matches!(q.o, crate::ir::TermRef::Triple { .. }))
+            .expect("a quad whose object is the quoted triple");
+        let crate::ir::TermRef::Triple { s, p, o } = quad.o else {
+            unreachable!("filtered for Triple above");
+        };
+        let iri_of = |id: TermId| match dataset.resolve(id) {
+            crate::ir::TermRef::Iri(iri) => iri.to_owned(),
+            other => panic!("expected IRI, got {other:?}"),
+        };
+        assert_eq!(iri_of(s), "http://example.org/s");
+        assert_eq!(iri_of(p), "http://example.org/p");
+        assert_eq!(iri_of(o), "http://example.org/o");
+
+        // The reifier resource ex:stmt binds the SAME interned triple term.
+        let reifiers: Vec<_> = dataset.reifiers().collect();
+        assert_eq!(reifiers.len(), 1, "one reifier binding survives the bytes");
+        let crate::ir::TermRef::Triple {
+            s: rs,
+            p: rp,
+            o: ro,
+        } = dataset.resolve(reifiers[0].1)
+        else {
+            panic!("reifier must bind a triple term");
+        };
+        assert_eq!(
+            (rs, rp, ro),
+            (s, p, o),
+            "reifier binds the SAME quoted triple"
+        );
+    }
+
+    /// REAL Writer-serialized NESTED quoted triple `<< <<ex:a ex:b ex:c>> ex:p ex:o >>`.
+    /// The 0.9.2 `Writer::deterministic` DOES support nested triple terms (it emits
+    /// all terms in one `terms` frame and all reifier bindings in one `reifies`
+    /// frame, regardless of nesting), so this exercises inner-first resolution from
+    /// real bytes.
+    #[test]
+    fn writer_nested_quoted_triple_roundtrips_through_bytes() {
+        let mut graph = Graph::default();
+        graph.terms.push(iri("http://example.org/a")); // 0
+        graph.terms.push(iri("http://example.org/b")); // 1
+        graph.terms.push(iri("http://example.org/c")); // 2
+        graph.terms.push(iri("http://example.org/r0")); // 3 inner reifier resource
+        graph.reifiers.push((3, (0, 1, 2)));
+        graph.terms.push(GtsTerm {
+            kind: GtsKind::Triple,
+            value: None,
+            datatype: None,
+            lang: None,
+            reifier: Some(3),
+        }); // 4 inner <<ex:a ex:b ex:c>>
+        graph.terms.push(iri("http://example.org/p")); // 5
+        graph.terms.push(iri("http://example.org/o")); // 6
+        graph.terms.push(iri("http://example.org/r1")); // 7 outer reifier resource
+                                                        // Outer triple: << <<ex:a ex:b ex:c>> ex:p ex:o >> — inner triple (id 4) is
+                                                        // the SUBJECT of the outer triple.
+        graph.reifiers.push((7, (4, 5, 6)));
+        graph.terms.push(GtsTerm {
+            kind: GtsKind::Triple,
+            value: None,
+            datatype: None,
+            lang: None,
+            reifier: Some(7),
+        }); // 8 outer << <<...>> ex:p ex:o >>
+        graph.terms.push(iri("http://example.org/says")); // 9
+        graph.quads.push((0, 9, 8, None));
+
+        let bytes = Writer::deterministic(&graph, "gmeow-rdf-test")
+            .expect("deterministic writer")
+            .to_bytes();
+
+        let bundle = import_gts_events(&bytes).expect("nested quoted-triple round-trip");
+        let dataset = &bundle.dataset;
+
+        let quad = dataset
+            .quad_refs()
+            .find(|q| matches!(q.o, crate::ir::TermRef::Triple { .. }))
+            .expect("a quad whose object is the outer quoted triple");
+        let crate::ir::TermRef::Triple { s: outer_s, .. } = quad.o else {
+            unreachable!("filtered for Triple above");
+        };
+        // The outer triple's SUBJECT is itself a quoted triple <<ex:a ex:b ex:c>>.
+        let iri_of = |id: TermId| match dataset.resolve(id) {
+            crate::ir::TermRef::Iri(iri) => iri.to_owned(),
+            other => panic!("expected IRI, got {other:?}"),
+        };
+        match dataset.resolve(outer_s) {
+            crate::ir::TermRef::Triple { s, p, o } => {
+                assert_eq!(iri_of(s), "http://example.org/a");
+                assert_eq!(iri_of(p), "http://example.org/b");
+                assert_eq!(iri_of(o), "http://example.org/c");
+            }
+            other => panic!("outer triple subject must be the inner triple, got {other:?}"),
+        }
+    }
+
+    /// A genuinely DANGLING reifier binding — a triple term whose reifier no
+    /// `reifies` event ever bound — is STILL a hard `Err` after ALL events are
+    /// seen (no-optionality). This distinguishes a truly missing binding from a
+    /// merely out-of-order one (which now resolves).
+    #[test]
+    fn dangling_reifier_binding_is_err_after_all_events() {
+        let mut importer = SinkImporter::new();
+        importer.term(0, 0, &iri_term("http://example.org/s"));
+        importer.term(0, 1, &iri_term("http://example.org/asserts"));
+        // Triple term bound to reifier id 99, which NO `reifies` event ever supplies.
+        importer.term(
+            0,
+            2,
+            &Term {
+                kind: TermKind::Triple,
+                value: None,
+                datatype: None,
+                lang: None,
+                reifier: Some(99),
+            },
+        );
+        importer.quad(0, (0, 1, 2, None));
+        let importer = finish_direct(importer);
+        assert!(
+            importer.error.is_some(),
+            "a genuinely dangling reifier binding must STILL fail after phase 2"
+        );
+        assert_eq!(
+            importer.error.unwrap().code,
+            "rdf-ir-missing-reifier-binding"
+        );
     }
 
     /// GATE 2 (b) — REAL multi-segment GTS bytes. Two `Writer::deterministic`
@@ -744,8 +998,6 @@ mod tests {
     /// `import_gts_events` MUST preserve scope: distinct `b1`, shared `ex:s`.
     #[test]
     fn gate2_multi_segment_blank_scope_isolation_roundtrip() {
-        use gmeow_gts::model::{Graph, Term as GtsTerm, TermKind as GtsKind};
-
         fn segment(predicate: &str) -> Graph {
             let mut graph = Graph::default();
             graph.terms.push(GtsTerm {
@@ -818,5 +1070,16 @@ mod tests {
     fn import_rejects_malformed_bytes() {
         let err = import_gts_events(b"not a valid gts file").expect_err("must fail");
         assert_eq!(err.code, "rdf-ir-gts-fold-diagnostic");
+    }
+
+    /// Small helper: an IRI `gmeow_gts` `Term`.
+    fn iri(value: &str) -> GtsTerm {
+        GtsTerm {
+            kind: GtsKind::Iri,
+            value: Some(value.to_owned()),
+            datatype: None,
+            lang: None,
+            reifier: None,
+        }
     }
 }

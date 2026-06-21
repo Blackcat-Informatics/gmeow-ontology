@@ -173,6 +173,49 @@ fn blank_free_segment() -> Graph {
     g
 }
 
+/// A single-segment, blank-FREE graph that DOES carry quoted-triple terms — both a
+/// flat `<<ex:s ex:p ex:o>>` (in object position, also reified) and a NESTED
+/// `<< <<ex:s ex:p ex:o>> ex:says ex:o2 >>`. The reifier bindings are emitted in a
+/// separate `reifies` frame AFTER the `terms` frame, so the event path must be
+/// order-independent (the two-phase fix) to import this at all. Blank-free, so the
+/// two paths must be exactly isomorphic INCLUDING the quoted triples.
+fn blank_free_triples_segment() -> Graph {
+    let mut g = Graph::default();
+    g.terms.push(iri("http://example.org/s")); // 0
+    g.terms.push(iri("http://example.org/p")); // 1
+    g.terms.push(iri("http://example.org/o")); // 2
+    g.terms.push(iri("http://example.org/r0")); // 3 inner reifier resource
+    g.reifiers.push((3, (0, 1, 2)));
+    g.terms.push(Term {
+        kind: TermKind::Triple,
+        value: None,
+        datatype: None,
+        lang: None,
+        reifier: Some(3),
+    }); // 4 inner <<ex:s ex:p ex:o>>
+    g.terms.push(iri("http://example.org/asserts")); // 5
+                                                     // Quad with the flat quoted triple in OBJECT position: (ex:s ex:asserts <<...>>).
+    g.quads.push((0, 5, 4, None));
+
+    g.terms.push(iri("http://example.org/says")); // 6
+    g.terms.push(iri("http://example.org/o2")); // 7
+    g.terms.push(iri("http://example.org/r1")); // 8 outer reifier resource
+                                                // Outer triple << <<ex:s ex:p ex:o>> ex:says ex:o2 >> — inner triple (4) is the
+                                                // SUBJECT.
+    g.reifiers.push((8, (4, 6, 7)));
+    g.terms.push(Term {
+        kind: TermKind::Triple,
+        value: None,
+        datatype: None,
+        lang: None,
+        reifier: Some(8),
+    }); // 9 outer << <<...>> ex:says ex:o2 >>
+    g.terms.push(iri("http://example.org/states")); // 10
+                                                    // Quad with the NESTED quoted triple in object position.
+    g.quads.push((0, 10, 9, None));
+    g
+}
+
 /// A single-segment graph WITH blanks (for the count + non-blank equality fixture).
 fn blanks_segment() -> Graph {
     let mut g = Graph::default();
@@ -225,6 +268,53 @@ fn graph_and_event_paths_are_isomorphic_blank_free() {
         quad_value_multiset(graph_ds),
         quad_value_multiset(events_ds),
         "blank-free datasets are structurally isomorphic across import paths"
+    );
+}
+
+/// Blank-FREE single-segment input WITH (nested) quoted-triple terms:
+/// `import_gts_graph(read(bytes))` and `import_gts_events(bytes)` produce
+/// structurally ISOMORPHIC datasets, INCLUDING the quoted triples. This is the
+/// regression the two-phase event-sink importer fixes — `Writer::deterministic`
+/// emits the `reifies` frame (the triple bindings) AFTER the `terms` frame, so the
+/// old single-pass event path failed on Writer-serialized quoted triples and this
+/// fixture had to be triple-free. The IR is the equality oracle.
+#[test]
+fn graph_and_event_paths_are_isomorphic_blank_free_with_triples() {
+    let bytes = to_bytes(&blank_free_triples_segment());
+
+    let folded = gmeow_gts::reader::read(&bytes, true, None);
+    let via_graph = import_gts_graph(folded).expect("graph-path import");
+    let via_events = import_gts_events(&bytes).expect("event-path import (two-phase)");
+
+    let graph_ds = &via_graph.dataset;
+    let events_ds = &via_events.dataset;
+
+    assert_eq!(
+        graph_ds.quad_count(),
+        events_ds.quad_count(),
+        "both paths import the same number of quads (incl. quoted-triple objects)"
+    );
+    assert_eq!(
+        graph_ds.term_count(),
+        events_ds.term_count(),
+        "blank-free terms (IRIs + structural quoted triples) → same term count"
+    );
+    assert_eq!(
+        quad_value_multiset(graph_ds),
+        quad_value_multiset(events_ds),
+        "blank-free datasets are isomorphic across paths, INCLUDING nested quoted triples"
+    );
+
+    // Sanity: the event path really did materialize quoted triples (not skip them).
+    assert!(
+        events_ds
+            .quad_refs()
+            .any(|q| matches!(q.o, TermRef::Triple { .. })),
+        "the event path must carry quoted-triple objects"
+    );
+    assert!(
+        events_ds.capabilities().quoted_triples,
+        "the frozen event-path dataset reports quoted-triple capability"
     );
 }
 
