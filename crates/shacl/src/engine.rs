@@ -152,13 +152,16 @@ fn resolve_focus_nodes<G: ShaclDataGraph>(
                     vec![]
                 }
             }
-            // sh:SPARQLTarget: execute the pre-validated SELECT and collect ?this.
+            // sh:SPARQLTarget: execute the pre-parsed SELECT and collect ?this.
             // SHACL-SPARQL needs an oxigraph query engine; obtain it via the
             // data graph's SPARQL store (cheap borrow for Store, one-time
             // materialization for the IR backend).
             // Query parseability is guaranteed at shapes-parse time, so .expect() is correct.
-            Target::Sparql(select) => crate::sparql::eval_target(&data.sparql_store(), select)
-                .expect("SPARQLTarget query execution failed (parseability checked at parse time)"),
+            Target::Sparql { parsed, .. } => {
+                crate::sparql::eval_target(&data.sparql_store(), &parsed.0).expect(
+                    "SPARQLTarget query execution failed (parseability checked at parse time)",
+                )
+            }
         };
         for node in candidates {
             if seen.insert(node.clone()) {

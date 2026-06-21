@@ -12,10 +12,29 @@ use std::collections::HashSet;
 use std::sync::{Arc, OnceLock};
 
 use oxigraph::model::{NamedNode, NamedNodeRef, NamedOrBlankNodeRef, Term};
+use oxigraph::sparql::PreparedSparqlQuery;
 use oxigraph::store::Store;
 
 use crate::model::{gmeow, rdf, rdfs, sh};
 use crate::report::Severity;
+
+// ── Pre-parsed SPARQL query wrapper ───────────────────────────────────────────
+
+/// A thin `Debug`-capable wrapper around [`PreparedSparqlQuery`].
+///
+/// `PreparedSparqlQuery` does not implement `Debug`, but our shape types require
+/// it (via `#[derive(Debug)]` on [`Constraint`] and [`Target`]).  We supply a
+/// minimal `Debug` that just prints the type name, which is sufficient for
+/// diagnostics — the full query text is always retained in the `select: String`
+/// sibling field.
+#[derive(Clone)]
+pub struct DebugPreparedQuery(pub PreparedSparqlQuery);
+
+impl std::fmt::Debug for DebugPreparedQuery {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str("PreparedSparqlQuery { .. }")
+    }
+}
 
 // ── Public types ───────────────────────────────────────────────────────────────
 
@@ -59,7 +78,16 @@ pub enum Target {
     /// The shape node is itself an `rdfs:Class` → implicit class target.
     ImplicitClass(Term),
     /// `sh:target [ rdf:type sh:SPARQLTarget ; sh:select "SELECT ?this …" ]`
-    Sparql(String),
+    ///
+    /// The query is pre-parsed once at shape-load time. `select` is retained for
+    /// error messages; `parsed` is the ready-to-execute form (cheaply `Arc`-cloned
+    /// per evaluation call so `substitute_variable` can consume it).
+    Sparql {
+        /// The SPARQL SELECT query text (for error messages).
+        select: String,
+        /// Pre-parsed query, shared across all invocations via `Arc`.
+        parsed: Arc<DebugPreparedQuery>,
+    },
 }
 
 /// A single SHACL constraint on a shape or property shape.
@@ -117,9 +145,15 @@ pub enum Constraint {
     /// The constraint blank node carries its own optional `sh:message` and
     /// `sh:severity` overrides; missing values fall back to the shape defaults
     /// at evaluation time.
+    ///
+    /// The query is pre-parsed once at shape-load time. `select` is retained for
+    /// error messages; `parsed` is the ready-to-execute form (cheaply `Arc`-cloned
+    /// per focus node so `substitute_variable` can consume it).
     Sparql {
-        /// The SPARQL SELECT query text.
+        /// The SPARQL SELECT query text (for error messages).
         select: String,
+        /// Pre-parsed query, shared across all focus-node evaluations via `Arc`.
+        parsed: Arc<DebugPreparedQuery>,
         /// Optional per-constraint message override (from `sh:message` on the
         /// constraint blank node).
         message: Option<String>,
@@ -672,13 +706,18 @@ impl<'s> Parser<'s> {
             let select = format!("{}{raw_select}", self.prefix_header(&[id, &t_node]));
 
             // Parse-time query validation (hard-fail on unparsable queries).
-            let _ = oxigraph::sparql::SparqlEvaluator::new()
+            // The parsed form is stored on the Target so it can be reused on
+            // every eval call without re-parsing.
+            let parsed = oxigraph::sparql::SparqlEvaluator::new()
                 .parse_query(&select)
                 .map_err(|e| {
                     format!("sh:SPARQLTarget on shape {id} has an unparsable sh:select query: {e}")
                 })?;
 
-            targets.push(Target::Sparql(select));
+            targets.push(Target::Sparql {
+                select,
+                parsed: Arc::new(DebugPreparedQuery(parsed)),
+            });
         }
 
         Ok(targets)
@@ -878,7 +917,9 @@ impl<'s> Parser<'s> {
             let select = format!("{}{raw_select}", self.prefix_header(&[id, &c_node]));
 
             // Parse-time query validation (hard-fail on unparsable queries).
-            let _ = oxigraph::sparql::SparqlEvaluator::new()
+            // The parsed form is stored on the Constraint so it can be reused on
+            // every focus-node evaluation without re-parsing.
+            let parsed = oxigraph::sparql::SparqlEvaluator::new()
                 .parse_query(&select)
                 .map_err(|e| {
                     format!(
@@ -908,6 +949,7 @@ impl<'s> Parser<'s> {
 
             constraints.push(Constraint::Sparql {
                 select,
+                parsed: Arc::new(DebugPreparedQuery(parsed)),
                 message,
                 severity,
             });

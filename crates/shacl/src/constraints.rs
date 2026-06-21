@@ -868,17 +868,20 @@ fn eval_constraint<G: ShaclDataGraph>(
         // The constraint blank node may carry its own sh:message / sh:severity;
         // those override the shape-level defaults at eval time.
         // Query parseability is guaranteed at shapes-parse time, so .expect() is correct.
+        // `parsed` is an Arc<PreparedSparqlQuery>; eval_sparql_constraint clones it
+        // cheaply (Arc clone) then substitutes ?this for this focus node.
         Constraint::Sparql {
-            select,
+            parsed,
             message: cmsg,
             severity: csev,
+            ..
         } => {
             let sev = csev.unwrap_or(severity);
             let msg = cmsg.clone().or_else(|| message.clone());
             crate::sparql::eval_sparql_constraint(
                 &store.sparql_store(),
                 focus_node,
-                select,
+                &parsed.0,
                 NamedNode::from(sh::SPARQL_CONSTRAINT_COMPONENT),
                 &source_shape,
                 sev,
