@@ -5,205 +5,356 @@
 
 Tracking epic: [#820](https://github.com/Blackcat-Informatics/gmeow-ontology/issues/820).
 Parent: [#672](https://github.com/Blackcat-Informatics/gmeow-ontology/issues/672)
-(META-EPIC — the reference RDF-1.2 stack). **Hard dependency:
-[#819](https://github.com/Blackcat-Informatics/gmeow-ontology/issues/819)** (interned
-id-graph IR) — the `SliceId` provenance column rides on `RdfGraph`. Assumes the
-fully-Rust end-state ([#630](https://github.com/Blackcat-Informatics/gmeow-ontology/issues/630)).
+(META-EPIC — the reference RDF-1.2 stack). **Coordinates with
+[#819](https://github.com/Blackcat-Informatics/gmeow-ontology/issues/819)** (the immutable
+value-interned `RdfDataset`): #820 adds a *generic provenance sidecar* on that dataset —
+it does **not** put slice semantics into the RDF kernel. Assumes the fully-Rust end-state
+([#630](https://github.com/Blackcat-Informatics/gmeow-ontology/issues/630)).
 
 This is a design RFC. No engine code lands with this document; the architecture is
-realized through the staged children S1–S7 below.
+realized through the staged children S0–S8 below. **S0 (a semantic RFC + crate-layering
+gate) is a mandatory first child.**
 
 ## Context
 
-A **slice** (`slices/<group>/<name>/`) is the atomic unit of the GMEOW ontology, and it
-is a far richer object than its raw triples. Beyond the terms in `module.ttl`, a slice
-carries:
+A **slice** (`slices/<group>/<name>/`) is the authoring and policy unit, but current Rust
+ingestion reduces slices to *paths* and merges their modules into one provenance-free
+oxigraph store (`crates/validate/src/store.rs:71-87`, `crates/slicetest/src/stores.rs:47`).
+Only `docs.md` survives the GTS fold; tier/deps/creators/title/profiles/consumers are
+never embedded (`gts_gen.py:193-200`). `RdfSegmentRecord`
+(`crates/rdf/src/lookaside.rs:199-207`) has no slice field; the slice-ownership lint
+(`crates/validate/src/lint.rs:696-729`) derives the slice IRI from the *filesystem path*
+and discards its per-slice store; and no `slice` channel exists in `RdfLocation`,
+`Location`/`Finding`, `ValidationResult`, or logic provenance.
 
-- **Identity & governance** (`manifest.ttl`, the sole tier truth): IRI, `gmeow:sliceTier`
-  (core/extension), `gmeow:sliceDependsOn`, `gmeow:sliceConsumer` (Principle 15),
-  `gmeow:sliceProfile`, `gmeow:providesSubcommand`, `gmeow:builtAgainstCore`.
-- **Citation**: `dcterms:title`, `dcterms:creator`, optional per-slice DOI → projected to
-  `CITATION.cff`.
-- **Validation**: SHACL `shapes.ttl`; the 3-cell test-DSL (`tests/competency.ttl`,
-  `tests/structural.ttl`, `tests/example-conformance.ttl`) with per-competency reasoning
-  lane (`gmeow:cqReasoning`).
-- **Alignment**: `mappings/` (compiled to SSSOM).
-- **Worked data**: `examples/`, `fixtures/`.
-- **Queries**: `queries/competency/`, `queries/verify/` (ROBOT QC).
-- **Docs**: `docs.md`.
+**The central architectural correction (from review):**
 
-The slice meta-ontology itself (`gmeow:Slice`, `gmeow:SliceTier`, and the predicates
-above) is defined in `slices/vocabulary.ttl` and structurally validated by
-`shapes/slice-manifest-shapes.ttl`.
+> A `SliceId` column is not, by itself, a provenance model.
 
-**The engine sees almost none of this.** As slices flow into the Rust engine, their
-identity and metadata are flattened away:
+The strongest form of #820 is **not** "a `SliceId` attached to every RDF row." It is a
+**content-addressed compilation-unit catalog** whose source artifacts, semantic
+assertions, derivations, diagnostics, and bundle resources stay connected through the
+Rust pipeline. Five concerns that a scalar column conflates must be kept distinct:
 
-- `discover_slices()` (`src/gmeow_tools/slices.py`) reads the full manifest into a `Slice`
-  dataclass, then `build_store` / `load_sources_into_store`
-  (`crates/validate/src/store.rs:71-87`, `crates/slicetest/src/stores.rs:47`) **merges
-  every `module.ttl` into one oxigraph default graph with zero slice provenance** — it is
-  impossible to ask "which triples came from which slice?" at validation time.
-- Only `docs.md` survives the GTS fold (as a guide blob). Tier, dependencies, creators,
-  title, profiles, and consumers are **never embedded** in the bundle or the engine
-  (`gts_gen.py:193-200,541`).
-- GTS *segments* exist but are a size/streaming optimization; `RdfSegmentRecord`
-  (`crates/rdf/src/lookaside.rs:199-207`) has **no slice field**, and there is no
-  segment→slice map.
-- The slice-ownership lint (`crates/validate/src/lint.rs:696-729`) derives the slice IRI
-  from the **filesystem path** (not the manifest), builds a per-slice store, uses it once,
-  and discards it — it never retains a `slice → terms` map.
-- **No `slice` field exists anywhere** in `RdfLocation` (`crates/rdf/src/diagnostic.rs`),
-  `Location`/`Finding`/`Report` (`crates/diagnostics/src/model.rs`), `ValidationResult`
-  (`crates/shacl/src/report.rs`), or logic provenance
-  (`crates/logic/src/provenance.rs`). A derived axiom cannot record which slices its
-  premises came from; a SHACL violation cannot name its owning slice; a diagnostic cannot
-  attribute itself to a slice.
+| Concern | Question it answers |
+| --- | --- |
+| **Source origin** | which physical unit/artifact/file asserted this occurrence? |
+| **Semantic ownership** | which slice *defines* this vocabulary term (`rdfs:isDefinedBy`)? |
+| **Artifact membership** | which packaged artifact (module/shape/mapping/query/…) is this? |
+| **Evaluation scope** | over which graph was this result computed? |
+| **Derivation support** | which rule applications / premises justify this derived fact? |
 
-**Intended outcome:** the slice becomes a first-class, persistent, flowing **compilation
-unit** in the Rust engine — carrying its full payload, attributing every engine output
-back to its slice, and letting the engine compile/reason/validate/project per-slice and
-write derived per-slice facts back. This realizes the maximal-information-flow north star:
-every product a slice carries persists through the pipeline rather than being flattened on
-entry.
+Conflating them makes diagnostics misleading and incremental deletion incorrect.
 
 ## Target architecture
 
-### 1. Native slice model (`crates/slice`)
+### 1. Generic provenance in the RDF kernel; slice semantics layered above
 
-A new kernel-level crate owning the **full slice payload** as a Rust type, with native
-discovery that replaces `src/gmeow_tools/slices.py`:
+`gmeow-rdf` is the generic RDF-1.2 narrow waist (GTS ↔ oxigraph ↔ future stores ↔ SHACL ↔
+validation ↔ logic). It must **not** gain a GMEOW-specific `SliceId`. Instead it gains a
+neutral provenance vocabulary:
+
+```rust
+pub struct UnitId(u32);        // a compilation/source unit (opaque to the kernel)
+pub struct ArtifactId(u32);    // a packaged artifact within a unit
+pub struct OriginSetId(u32);   // interned set of origins (set-valued datasets)
+```
+
+The slice layer (`gmeow-slice`) interprets units:
+
+```rust
+enum UnitKind { Slice(SliceId), RootOntology, Import, Generated, RuntimeInput }
+```
+
+This is required because the real source set includes the **root ontology and imports**
+beyond slice modules, and the bundle also contains statement, alignment, metadata, import,
+and verification *products*. The provenance gate therefore becomes (replacing "every quad
+has ≥1 SliceId"):
+
+- Every **assertion occurrence** has exactly one `UnitId` and `ArtifactId`.
+- Every **semantic quad** has at least one assertion occurrence *or* a derivation.
+- Every **GMEOW vocabulary definition** has exactly one *validated* owner slice.
+- No GMEOW build artifact may retain an `Unknown` origin (root/import/generated/runtime
+  are explicitly representable as non-slice units).
+
+### 2. Separate quad identity, assertion occurrence, definition ownership, derivation
+
+The canonical `RdfDataset` (#819) is **set-valued**: the same quad authored by two slices
+collapses to one `QuadId` (the GTS producer already sorts and dedups equal quads). So
+identity cannot hold origin — *occurrences* must:
 
 ```text
-Slice {
-    iri, name, group, tier, depends_on, consumers, profiles,
-    subcommands, built_against_core, title, creators, doi?,
-    module:   RdfGraph-fragment,           // the terms
-    shapes:   Option<ShapesPayload>,
-    tests:    TestDsl { competency, structural, example_conformance },
-    mappings: Vec<MappingPayload>,
-    examples: Vec<ExamplePayload>,
-    queries:  { competency, verify },
-    docs:     Option<MarkdownBlob>,
+QuadId
+  ├── assertion occurrences → UnitId + ArtifactId + source Location
+  └── derivations           → RuleApplication + premise FactIds
+TermId
+  ├── optional definition owner (a slice)
+  └── usage occurrences (derived from quads)
+```
+
+```rust
+struct AssertionOccurrence { quad: QuadId, unit: UnitId, artifact: ArtifactId, location: Option<LocationId> }
+struct DefinitionRecord    { term: TermId, slice: SliceId, evidence: AssertionOccurrenceId }
+struct RuleApplication     { rule: RuleId, premises: Box<[FactId]>, rule_unit: Option<UnitId> }
+```
+
+This encodes the facts a scalar column gets wrong: `rdfs:isDefinedBy` is an *authored
+ownership declaration*, not trustworthy physical provenance (load origin is always
+retained even when `isDefinedBy` is wrong); an IRI term is owned by one slice but *used* by
+many; literals and external RDF terms generally have **no** owning slice; and one semantic
+quad may have multiple physical files/locations (today's single-coordinate `RdfLocation`
+cannot represent duplicate occurrences on its own).
+
+### 3. The slice model is an artifact catalog, not a monolithic compiler object
+
+`gmeow-slice` owns package structure but must **not** parse SHACL, test-DSL, mappings, and
+SPARQL into one enormous `Slice` struct (that creates dependency cycles between
+`gmeow-slice`, `gmeow-rdf`, `gmeow-shacl`, `gmeow-slicetest`, and the mapping compiler).
+Prefer a catalog of typed-but-unparsed artifacts; consumer crates compile what they
+understand:
+
+```text
+SliceCatalog → SliceRecord
+    ├── typed manifest view
+    ├── preserved manifest RDF graph (verbatim)
+    └── ArtifactId[] { role, logical path, media type, raw digest, optional semantic digest, content ref }
+```
+
+Roles: `Manifest, Module, Shapes, Mapping, CompetencyQuery, VerifyQuery, TestDsl, Example,
+CounterExample, Documentation, TranslationCatalog, Citation, Other(IRI)`. The open
+`Other(IRI)` role is essential for third-party slices and forward compatibility.
+
+### 4. Preserve the manifest as RDF, not only as known Rust fields
+
+Today's Python loader extracts known fields into plain strings, discarding literal
+language/datatype identity and all unknown triples. The Rust model retains **both** the
+complete manifest graph (or canonical manifest bytes) **and** a validated typed projection.
+Otherwise "full manifest payload" silently loses labels, definitions, identifiers
+(the vocabulary uses `dcterms:identifier` for a DOI — absent from today's `Slice` struct),
+custom publisher metadata, and future extension properties. The artifact inventory must
+also include **translations** (`i18n/*.po`), which the current payload list omits.
+
+**S0 contract discrepancy to resolve (do not freeze into Rust):** discovery accepts any
+RDF literal and coerces to a plain string, while `shapes/slice-manifest-shapes.ttl`
+declares fields such as `gmeow:sliceConsumer` to be `xsd:string` — yet existing manifests
+use *language-tagged* consumer literals. S0 must define the authoritative manifest datatype
+contract.
+
+### 5. GTS segment alignment is a packaging optimization, not slice identity
+
+A GTS segment is a transport/append-log scope; term IDs are segment-local, blank nodes are
+segment-scoped, and the fold unions segments by RDF value. **Reject** the invariant
+`one segment == one slice`. Use:
+
+```text
+segment ↔ zero or more compilation units
+slice   ↔ one or more segments
+```
+
+"Slice-affine segments" can remain the canonical GMEOW packaging layout, but semantic
+provenance must survive concatenation, compaction, resegmentation, a slice split across
+segments, and global generated segments with no owning slice. Therefore
+`RdfSegmentRecord.slice_iri` is too restrictive — use a metadata-backed `SegmentUnitMap`
+(a *set*; note `gmeow:sliceProfile` is multi-valued, and the current record carries only
+index/head/one-profile/streaming state).
+
+### 6. A real bundle content store before promising full-payload round-trip
+
+The lookaside resource model is close to the needed artifact index (kind, path, media
+type, digest, graph name, metadata) but its **blob record carries no bytes** — so the
+current RDF→GTS writer states blobs cannot be preserved. The shared model becomes:
+
+```text
+RdfBundle
+├── dataset:    RdfDataset          // #819 — the hot graph
+├── provenance: DatasetProvenance   // units, occurrences, definitions, derivations
+├── units:      UnitCatalog
+├── artifacts:  ArtifactIndex
+└── blobs:      ContentStore        // actual bytes, content-addressed
+```
+
+An interned RDF graph alone cannot carry mappings, queries, Markdown, PO catalogs,
+examples, or exact source manifests — so this is coordinated with #819's `RdfBundle`
+(dataset + envelope) split. Replace the current project-wide **tar aggregates** (mappings,
+queries, DSL cells, tests folded into shared tar blobs) with **individually indexed,
+content-addressed artifacts** where possible — global archives make one changed test or
+mapping invalidate and retransmit unrelated slices.
+
+### 7. Fact provenance is an OR of rule applications, not a flattened slice set
+
+A "contributing slice set" is only a *summary*. If an inferred fact has two proofs —
+`{A,B}` and `{C}` — flattening to `{A,B,C}` cannot answer whether the fact survives
+removal of A, B, or C. Exact incremental deletion needs the alternative derivations (a
+truth-maintenance structure):
+
+```text
+Fact = OR( asserted-in-A, asserted-in-B, RuleApplication(AND premise₁, premise₂, …), … )
+```
+
+The displayed "contributing slices" is then a *lazily computed union of provenance leaves*.
+This is a real engine capability beyond today's single immediate-antecedent
+`ChaseProvenance` record, so reasoning is split: **S6a** = phase-level caching + incremental
+parse/validate/project; **S6b** = exact incremental reasoning backed by complete
+justification / truth maintenance. S6b's correctness must **not** depend on a flattened
+set. Persistent **derivation identity stays independent of runtime IDs**: current
+derivation IDs hash the rule IRI + premise reifier IRIs (`crates/logic/src/provenance.rs`);
+numeric interner IDs must never enter those hashes.
+
+### 8. Distinguish source units from execution units
+
+A slice is an excellent *source and attribution* unit, but not always the correct isolated
+*reasoner* unit: the manifest vocabulary says core slices reason as one union and
+extensions reason as extension-plus-core, and competency questions deliberately run over
+the full merged ontology. Use three levels:
+
+```text
+Source unit:  one slice                              (parse, lint, inventory, hash)
+Link unit:    dependency strongly-connected component (reason mutually-dependent core together)
+Product unit: dependency-closed profile / bundle      (validate full composition)
+```
+
+Build one reusable **core reasoning baseline**, evaluate each extension over core+extension,
+validate both intrinsic slice composition and full profile composition — and **keep output
+attribution at slice granularity even when execution occurs over an SCC**.
+
+### 9. Structured attribution roles, not a scalar `slice` field
+
+A single diagnostic can involve the slice owning the *shape*, the slice asserting the
+*focus node*, the slice defining the *result path*, the slice owning the *rule*, several
+slices *supporting a derivation*, and an external runtime-data unit that is not a slice.
+So attribution is a structured relation, not a field:
+
+```rust
+struct Attribution { unit: UnitId, role: AttributionRole, evidence: Box<[LocationId]> }
+enum AttributionRole {
+    AssertionOrigin, DefinitionOwner, ShapeOwner, RuleOwner,
+    FocusOrigin, ValueOrigin, DerivationSupport, EvaluationScope,
 }
 ```
 
-Discovery globs `slices/*/*/manifest.ttl`, parses the manifest natively (the
-`gmeow:Slice` vocabulary), and resolves the fixed slice anatomy. The slice catalogue
-(`SliceId → Slice`) is built once and shared by reference across the engine.
+For SHACL, adding a `slice` to `ValidationResult` is inadequate: a result has focus node,
+optional path/value, component, source shape — but no source-assertion or evaluation-scope
+info, and a `minCount` violation has **no offending data quad at all** (its attribution
+comes from evaluation scope + shape owner). At serialization: SARIF carries slice IRIs in
+`properties` / logical locations; RDF links the **public slice IRI**, never the graph-local
+numeric `SliceId`; use `gmeow:attributedToSlice`, `gmeow:shapeSlice`,
+`gmeow:contributingSlice` rather than an ambiguous `gmeow:sliceId`. The SARIF **fingerprint
+is versioned** to include canonical attribution roles and slice IRIs where they
+distinguish otherwise-identical findings (today it uses only severity/code/primary
+location/message).
 
-### 2. SliceId carriage on the #819 id-graph
+### 10. Define the dependency algorithm before implementing write-back
 
-Extend the interned `RdfGraph` (#819) with a **slice-provenance column**:
+The "actual cross-slice reference graph" needs a normative definition. Classify edges by
+source artifact (`Ontology, Shape, Mapping, Query, Test, Example, Documentation,
+Generated`). For RDF artifacts, scan **subject, predicate, object, datatype IRI, graph
+name, nested triple-term components, and reifier/annotation rows**. **Parse** SPARQL and
+mappings — do not text-search. Each computed edge retains evidence
+(`from, to, artifact role, referenced term, source occurrence/location, dependency kind`).
+Only edge kinds defined as *semantic* reconcile with `gmeow:sliceDependsOn` (a
+documentation link must not silently become a build dependency). The native ownership
+analyzer (replacing the path-derived lint) must: (1) discover the slice IRI **from the
+manifest**, (2) attach manifest identity as load origin, (3) derive declared term ownership
+from `rdfs:isDefinedBy`, (4) compare declared ownership against physical origin, (5) build
+dependencies only from *validated* ownership data.
 
-- A `SliceId` interning table (`slices: Vec<SliceMeta>`, `HashMap<SliceIri, SliceId>`).
-- A per-quad slice column `quad_slices: Vec<SliceSet>` (and, where useful, per-term).
-  Attribution sources:
-  - **Vocabulary triples** → the `rdfs:isDefinedBy <slice>` already authored on every term.
-  - **Instance / example triples** → load-origin (which slice file they were read from).
-  - **Derived triples** → the **set of contributing slices**, computed from the slice
-    columns of the premises. Cross-slice derivation thereby becomes a first-class,
-    queryable signal.
-- An invariant (hard-fail, per no-optionality): every quad resolves to at least one
-  `SliceId`; an orphan triple is an error, not a silent default.
+### 11. Keep computed write-back separate from authored declarations
 
-### 3. Slice-aligned GTS segments
+Computed edges must **not** be written back as ordinary `gmeow:sliceDependsOn` (an authored
+declaration) — that makes reconciliation self-satisfying and renders stale declarations
+indistinguishable from observations. Write into a separate named graph
+`gmeow:graph/slice-analysis` with distinct predicates:
+`gmeow:computedSliceDependency`, `gmeow:dependencyStatus`, `gmeow:dependencyEvidence`,
+`gmeow:computedProfileMembership`, `gmeow:termCoverage`. The analysis graph records the
+source bundle content ID, toolchain/version, generation activity, evidence links, and
+whether each edge is *matched / undeclared / stale / forbidden*. Follow the repo's existing
+**two-pass attestation** pattern (build authored bundle → compute analysis against that
+immutable input → attach analysis in a second pass) so it never attests itself. Persist
+analysis automatically; editing `manifest.ttl` is a separate explicit
+`gmeow slice fix-deps --apply` producing a reviewable patch.
 
-Make the GTS fold partition by slice so the bundle round-trips slice structure:
+### 12. Semantic, phase-specific, path-independent cache keys
 
-- One segment (or a stable segment range) per slice; `RdfSegmentRecord` gains
-  `slice_iri`, and the bundle carries a `segment → slice` map.
-- Per-slice lookaside metadata keyed by slice IRI (replacing today's segment-number /
-  file-level keying, `crates/rdf/src/gts.rs:95-119`).
-- **The full manifest payload is embedded as slice records** in the bundle — making it
-  self-describing and repo-free (the "bundle is the useful surface" doctrine): governance,
-  citation, tests, mappings, queries, docs all travel with the GTS.
-
-### 4. Slice-attributed outputs
-
-Add a `slice` channel through every output model so results attribute back to their slice:
-
-- `RdfLocation` / `Location` gain a `slice: Option<SliceId>` (resolvable to IRI/name).
-- `Finding` / `ValidationResult` name the owning slice of the focus node / shape.
-- Logic provenance records the **contributing slice set** of each derivation (alongside
-  the existing content-addressed reifier/derivation IRIs).
-- Rendering emits `gmeow:sliceId` into the SARIF/RDF projections
-  (`crates/diagnostics/src/render.rs`).
-
-### 5. Slice as a compilation unit
-
-The engine treats each slice as a unit it can build independently and incrementally:
-
-- Compile / reason / validate / project **per-slice against core**.
-- A **content-addressed per-slice cache** keyed on the slice's term-closure + its
-  dependency set, so an unchanged slice is not recompiled.
-- Incremental composition: rebuilding one slice does not force a full-ontology rebuild;
-  the merged view is recomposed from cached per-slice artifacts.
-
-### 6. Bidirectional write-back, ontology-native
-
-The engine does not just read slices — it augments them. It computes derived per-slice
-facts and persists them back, **expressed in the `gmeow:Slice` vocabulary itself** (not a
-side-channel):
-
-- The **actual** cross-slice reference graph (what the module *really* references) vs the
-  *declared* `gmeow:sliceDependsOn` — e.g. a computed `gmeow:sliceActuallyReferences`.
-- Per-slice **term coverage** (defined vs referenced vs exemplified).
-- **Profile closures** (the dependency-closed membership the slice contributes to).
-- **Cross-slice-derivation edges** surfaced from §2's contributing-slice sets.
-
-This **replaces** the path-derived slice-ownership lint with a manifest-driven, native
-check, and **subsumes the Python slice gate** (Constitution Principles 15 & 16) with a
-native check that is strictly more accurate (it catches IRI/path mismatches the current
-path-derivation cannot).
+The current cache hashes physical relative paths, file sizes, and raw bytes — which
+conflicts with the doctrine that the group path carries no semantics (moving
+`slices/core/x` to another group must not invalidate its semantic compilation). Use a
+Merkle-style key over: raw artifact digest, semantic RDF digest, manifest digest,
+dependency output digests, phase configuration, compiler/rule version, reasoning profile.
+Different phases select different roots — reasoning: semantic module + dependency closure +
+rules; SHACL: semantic module/data + shapes + config; tests: compiled graph + test/query
+artifacts; packaging: raw bytes + metadata; docs: Markdown + translations + term index. A
+comment-only change must not force a new reasoning closure (but *should* change the
+source-complete bundle).
 
 ## Epic decomposition
 
 | Child | Scope |
 | ----- | ----- |
-| **S1** | Native Rust slice model + discovery (`crates/slice`), full-payload `Slice` struct; parity with `slices.py`. |
-| **S2** | `SliceId` interning + slice-provenance column on the #819 `RdfGraph`; populate from `rdfs:isDefinedBy` + load-origin; derived-triple slice-set attribution. |
-| **S3** | Slice-aligned GTS segments + `RdfSegmentRecord.slice_iri` + per-slice lookaside; embed full manifest payload in the bundle. |
-| **S4** | Slice-attributed outputs: `slice` field through diagnostics/SHACL/logic provenance + SARIF/RDF render. |
-| **S5** | Slice-as-compilation-unit: per-slice compile/reason/validate/project + content-addressed per-slice cache + incremental composition. |
-| **S6** | Bidirectional write-back: computed reference graph, coverage, profile closures, cross-slice-derivation edges in the `gmeow:Slice` vocabulary; replace path-derived ownership lint; subsume the Python slice gate. |
-| **S7** | Retire Python slice plumbing (`slices.py`, `gts_gen` slice rollup, `validate_all` module_specs path) as callers move to the Rust model. |
+| **S0** | Semantic RFC + crate-layering gate (mandatory first): unit/origin/ownership/derivation semantics, authored-vs-generated data, persistent-vs-runtime IDs, required anatomy, authoritative manifest datatype contract. |
+| **S1** | Native slice catalog + artifact inventory: manifest-based discovery, raw manifest preservation, typed view, normalized logical paths, content digests, unknown-artifact preservation. *(Can precede #819 C1.)* |
+| **S2** | Generic provenance sidecar on #819: `UnitId`/`ArtifactId`/`OriginSetId`, assertion occurrences, origin-set interning, definition-owner table — no GMEOW slice semantics in the base dataset. *(Waits on #819 C1.)* |
+| **S3** | Self-describing bundle resource layer: content store, artifact index, manifest graph, GTS mapping. Slice-affine segments are an optimization, not the attribution source. |
+| **S4** | Native ownership + dependency analyzer: evidence-bearing dependency graph, exact declared-vs-computed reconciliation, profile closure, path-independent ownership. *(Lands before cache composition — its closure defines invalidation.)* |
+| **S5** | Structured attribution through SHACL, diagnostics, logic, SARIF, and RDF (`Attribution`/`AttributionRole`). |
+| **S6a** | Phase-specific Merkle cache + SCC/profile composition. |
+| **S6b** | Exact incremental reasoning: alternative derivations / truth maintenance; add/change/delete parity. |
+| **S7** | Generated slice-analysis graph + explicit `gmeow slice fix-deps` manifest-fix command (two-pass attestation). |
+| **S8** | Retire Python discovery, rollup, and `module_specs` plumbing. |
 
-Ordering: S1 → S2 (S2 needs #819 C1) → S3/S4 parallel → S5 → S6 → S7 (gated on the
-Python cutover progressing).
+Ordering: S1 may proceed before #819 C1; S2 waits on the ID-addressed dataset; S3 and S5
+proceed in parallel once S2's IDs + bundle boundary are fixed; S4 lands before cache
+composition.
 
 ## Critical files / anchors
 
 - Slice meta-ontology & gates: `slices/vocabulary.ttl`,
   `shapes/slice-manifest-shapes.ttl`.
-- Python plumbing to replace: `src/gmeow_tools/slices.py`, `gts_gen.py`,
-  `gts_producer.py`, `crates/validate/src/validate_all.rs` (module_specs path).
-- Carriage surfaces: `crates/rdf/src/lookaside.rs` (`RdfSegmentRecord`, `RdfLookaside`),
-  `crates/rdf/src/diagnostic.rs` (`RdfLocation`), `crates/rdf/src/gts.rs`,
-  `crates/rdf/src/gts_write.rs`.
-- Output models: `crates/diagnostics/src/model.rs` (`Location`/`Finding`/`Report`),
-  `crates/diagnostics/src/render.rs`, `crates/shacl/src/report.rs` (`ValidationResult`),
-  `crates/logic/src/provenance.rs`.
-- Ingestion: `crates/validate/src/store.rs`, `crates/validate/src/lint.rs`
-  (`slice_ownership_lint`), `crates/slicetest/src/stores.rs`.
+- Python plumbing to replace: `src/gmeow_tools/slices.py`, `gts_gen.py`, `gts_producer.py`,
+  `crates/validate/src/validate_all.rs` (module_specs), `crates/validate/src/lint.rs`
+  (`slice_ownership_lint`).
+- Carriage surfaces: `crates/rdf/src/lookaside.rs` (`RdfSegmentRecord`, blob records),
+  `crates/rdf/src/diagnostic.rs` (`RdfLocation`), `crates/rdf/src/gts.rs`, `gts_write.rs`.
+- Output models: `crates/diagnostics/src/model.rs`, `render.rs`,
+  `crates/shacl/src/report.rs` (`ValidationResult`), `crates/logic/src/provenance.rs`
+  (`ChaseProvenance`, derivation IDs).
 
-## Verification
+## Verification — stronger acceptance gates
 
-1. **Provenance-completeness gate**: every quad in the merged id-graph resolves to ≥1
-   `SliceId`; no orphan triples (hard-fail).
-2. **Round-trip**: slice payload → GTS → reload preserves the full manifest payload and
-   slice partitioning (extend `crates/rdf/tests/proptest_roundtrip.rs`).
-3. **Declared-vs-computed dependencies**: the computed cross-slice reference graph (S6)
-   reconciles with declared `gmeow:sliceDependsOn`, replacing the Python slice gate with a
-   native check that catches IRI/path mismatches the current path-derived lint cannot.
-4. **Incremental parity**: a per-slice incremental rebuild equals a full rebuild (golden
-   parity); the logic derivation-graph goldens are unchanged.
-5. Stay green: `make check`, `make test`.
+Provenance gate (replaces "every quad has ≥1 SliceId"):
+
+- Every assertion occurrence has exactly one source unit and artifact.
+- Every semantic quad has at least one assertion occurrence *or* derivation.
+- Duplicate equal quads from two slices **retain both origins** after RDF-set dedup.
+- Every GMEOW vocabulary definition has exactly one validated owner.
+- Root ontology, imports, generated graphs, and runtime input are explicitly representable
+  as non-slice units.
+
+Tests:
+
+- Renaming/moving a slice directory changes **no** semantic IDs, dependency results, or
+  compilation cache keys.
+- Unknown manifest triples and literal language/datatype identity survive bundle
+  round-trip.
+- Every authored slice artifact is recoverable **repo-free** by role, logical path, digest,
+  and bytes.
+- Resegmenting a GTS bundle leaves slice identity, artifacts, provenance, and RDF semantics
+  unchanged.
+- Removing one slice **preserves** a derived fact when an alternative proof remains.
+- Incremental add / modify / delete equals a clean rebuild across cyclic core dependencies
+  and extension-plus-core products.
+- A cross-slice SHACL result records distinct **shape-owner** and **data-origin**
+  attributions.
+- An absence-based (`minCount`) SHACL result has a valid **evaluation-scope** attribution
+  even without an offending quad.
+- Generated analysis facts never become inputs to their own dependency computation.
+- Bundle loading rejects digest mismatches, duplicate logical artifact paths, absolute
+  paths, `..` traversal, and conflicting manifests for one slice IRI.
+- Stay green: `make check`, `make test`, logic derivation-graph goldens.
 
 ## Doctrines honored
 
-Maximal information flow (carry every slice product through the pipeline);
-bundle-is-the-useful-surface (self-describing, repo-free bundle); greenfield /
-no-backcompat (manifest-driven ownership replaces path-derivation, no fallback);
-no-optionality / hard-fail (orphan triple = hard fail); one-PR-at-a-time (decomposed; lands
-slice by slice).
+Maximal information flow; bundle-is-the-useful-surface (self-describing, repo-free,
+per-artifact content-addressed); greenfield / no-backcompat (manifest-driven ownership
+replaces path-derivation); no-optionality / hard-fail (unknown origin, digest mismatch, and
+malformed structure all fail). The strongest form of #820 is a **content-addressed
+compilation-unit catalog**, not a `SliceId` on every RDF row.
