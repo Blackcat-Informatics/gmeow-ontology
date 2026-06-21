@@ -59,3 +59,7 @@ criterion = { version = "0.5", default-features = false, features = ["cargo_benc
 [[bench]]
 name = "lint"
 harness = false
+
+[[bench]]
+name = "validate_all"
+harness = false

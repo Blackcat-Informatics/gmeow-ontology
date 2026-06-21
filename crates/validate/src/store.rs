@@ -86,6 +86,51 @@ pub fn load_sources_into_store(paths: &[PathBuf]) -> Result<Store, String> {
     Ok(store)
 }
 
+/// Parse every source file in `paths` exactly once, returning the per-file
+/// results in the same order as `paths`.
+///
+/// This is the parse-once primitive for the validation orchestration: the
+/// caller passes the results to the syntax check, the `owl:sameAs` ban, and
+/// the store-build phase so each file is read and parsed only once instead of
+/// once per phase (#822).
+///
+/// # Errors
+///
+/// This function does not fail; parse failures are captured as `Err` entries in
+/// the returned `Vec` so the caller can produce per-file diagnostics.
+pub fn parse_all_files(paths: &[PathBuf]) -> Vec<(PathBuf, Result<Vec<Quad>, String>)> {
+    paths.iter().map(|p| (p.clone(), parse_file(p))).collect()
+}
+
+/// Build an oxigraph [`Store`] from already-parsed quad lists.
+///
+/// Accepts the output of [`parse_all_files`] and folds every successful
+/// per-file quad list into a single [`Store`].  A parse failure propagates
+/// immediately with the same `"syntax error in {path}: {msg}"` format that
+/// [`load_sources_into_store`] uses, preserving identical error messages for
+/// the `build-store` phase (#822).
+///
+/// # Errors
+///
+/// Returns `Err(message)` if any entry in `parsed` is an `Err`, or if a store
+/// insert fails.
+pub fn build_store_from_parsed(
+    parsed: &[(PathBuf, Result<Vec<Quad>, String>)],
+) -> Result<Store, String> {
+    let store = Store::new().map_err(|e| format!("store creation failed: {e}"))?;
+    for (path, result) in parsed {
+        let quads = result
+            .as_ref()
+            .map_err(|e| format!("syntax error in {}: {e}", path.display()))?;
+        for quad in quads {
+            store
+                .insert(quad)
+                .map_err(|e| format!("store insert failed for {}: {e}", path.display()))?;
+        }
+    }
+    Ok(store)
+}
+
 /// Render a subject term the way the legacy Python `_ox_term_display` did:
 /// NamedNode → its value; BlankNode → `_:b`.
 ///
@@ -269,6 +314,56 @@ mod tests {
         std::fs::remove_file(&a).ok();
         std::fs::remove_file(&b).ok();
         assert_eq!(store.len().unwrap(), 2);
+    }
+
+    #[test]
+    fn parse_all_files_and_build_store_from_parsed() {
+        let a = write_tmp(
+            "gmeow_validate_store_parsed_a.ttl",
+            "@prefix ex: <https://example.org/> .\nex:a ex:p ex:b .\n",
+        );
+        let b = write_tmp(
+            "gmeow_validate_store_parsed_b.ttl",
+            "@prefix ex: <https://example.org/> .\nex:c ex:p ex:d .\n",
+        );
+        let paths = vec![a.clone(), b.clone()];
+        let parsed = parse_all_files(&paths);
+        std::fs::remove_file(&a).ok();
+        std::fs::remove_file(&b).ok();
+
+        assert_eq!(parsed.len(), 2);
+        assert!(parsed[0].1.is_ok(), "first file must parse");
+        assert!(parsed[1].1.is_ok(), "second file must parse");
+
+        let store = build_store_from_parsed(&parsed).expect("store must build from parsed quads");
+        assert_eq!(store.len().unwrap(), 2);
+    }
+
+    #[test]
+    fn build_store_from_parsed_propagates_parse_error() {
+        let good = write_tmp(
+            "gmeow_validate_parsed_err_good.ttl",
+            "@prefix ex: <https://example.org/> .\nex:a ex:p ex:b .\n",
+        );
+        // Capture the path string before writing (we'll feed a pre-built Err).
+        let bad_path = std::env::temp_dir().join("gmeow_validate_parsed_err_bad.ttl");
+        let parsed: Vec<(PathBuf, Result<Vec<Quad>, String>)> = vec![
+            (good.clone(), parse_file(&good)),
+            (bad_path.clone(), Err("parse failed".to_owned())),
+        ];
+        std::fs::remove_file(&good).ok();
+
+        let result = build_store_from_parsed(&parsed);
+        assert!(result.is_err(), "Err entry must propagate");
+        let msg = result.err().unwrap();
+        assert!(
+            msg.contains("syntax error in"),
+            "error must use 'syntax error in' format; got: {msg}"
+        );
+        assert!(
+            msg.contains("gmeow_validate_parsed_err_bad.ttl"),
+            "error must name the bad file; got: {msg}"
+        );
     }
 
     #[test]
