@@ -167,7 +167,7 @@ impl RdfStore for &RdfDataset {
 
     // `lookaside()` intentionally inherits the trait default (an empty
     // `RdfLookaside`): the dataset alone is the hot graph; out-of-band material
-    // lives in the `RdfBundle`'s envelope, not in a bare dataset (C0.6).
+    // lives in the `GtsBundle`'s envelope, not in a bare dataset (C0.6).
 
     fn len_hint(&self) -> Option<usize> {
         Some(self.quad_count())

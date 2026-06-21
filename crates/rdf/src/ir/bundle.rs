@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! The `RdfBundle` — the frozen hot graph paired with its out-of-band envelope
+//! The `GtsBundle` — the frozen hot graph paired with its out-of-band envelope
 //! (#819 C2).
 //!
 //! An [`RdfDataset`] is the immutable, value-interned RDF 1.2 graph: the *hot*
@@ -10,7 +10,7 @@
 //! suppression overlays, opaque nodes, signatures — lives in the [`RdfEnvelope`],
 //! keyed through the crate's existing [`RdfLookaside`] (`store.rs`).
 //!
-//! Both [`RdfBundle`] and [`RdfEnvelope`] are `#[non_exhaustive]`: #820 extends the
+//! Both [`GtsBundle`] and [`RdfEnvelope`] are `#[non_exhaustive]`: #820 extends the
 //! envelope additively with provenance / units / artifacts / blob fields, and a
 //! `#[non_exhaustive]` struct lets those land without a breaking change. Consumers
 //! therefore construct these only through the provided constructors.
@@ -26,14 +26,14 @@ use crate::RdfLookaside;
 /// carries everything that travels alongside it but is not a triple (C0.6).
 #[non_exhaustive]
 #[derive(Debug, Clone)]
-pub struct RdfBundle {
+pub struct GtsBundle {
     /// The immutable, value-interned RDF 1.2 dataset — the hot graph.
     pub dataset: Arc<RdfDataset>,
     /// Out-of-band material that travels with the dataset (C0.6).
     pub envelope: RdfEnvelope,
 }
 
-impl RdfBundle {
+impl GtsBundle {
     /// Pair a frozen dataset with its envelope.
     pub fn new(dataset: Arc<RdfDataset>, envelope: RdfEnvelope) -> Self {
         Self { dataset, envelope }
@@ -76,7 +76,7 @@ mod tests {
         b.push_quad(s, p, o, None);
         let dataset = b.freeze().expect("valid");
 
-        let bundle = RdfBundle::new(dataset, RdfEnvelope::default());
+        let bundle = GtsBundle::new(dataset, RdfEnvelope::default());
         assert_eq!(bundle.dataset.quad_count(), 1);
         assert!(bundle.envelope.lookaside.is_empty());
     }

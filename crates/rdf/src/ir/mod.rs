@@ -40,7 +40,7 @@ pub mod term;
 pub mod validate;
 
 pub use builder::RdfDatasetBuilder;
-pub use bundle::{RdfBundle, RdfEnvelope};
+pub use bundle::{GtsBundle, RdfEnvelope};
 pub use compare::{dataset_diff, datasets_isomorphic, DatasetDiff};
 pub use dataset::{QuadHandle, QuadIds, QuadRef, RdfDataset, TermRef};
 pub use event_sink::RdfEventSink;

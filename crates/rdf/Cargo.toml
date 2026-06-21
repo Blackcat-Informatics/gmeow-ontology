@@ -33,6 +33,9 @@ python = ["dep:pyo3", "gts", "oxigraph", "dep:ed25519-dalek"]
 
 [dependencies]
 ciborium = { version = "0.2", optional = true }
+# Content-addressed blob store (#820 S3): SHA-256 over blob bytes. Same crate the
+# sibling crates (slice/validate/logic) link, no extra features needed.
+sha2 = "0.10"
 gmeow-gts = { version = "0.9.4", optional = true }
 oxigraph = { version = "0.5", default-features = false, features = ["rdf-12"], optional = true }
 # pyo3 is pulled ONLY by the `python` feature (maturin). Same version/abi3 as the

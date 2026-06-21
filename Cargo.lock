@@ -1509,6 +1509,7 @@ dependencies = [
  "oxigraph",
  "proptest",
  "pyo3",
+ "sha2",
 ]
 
 [[package]]
