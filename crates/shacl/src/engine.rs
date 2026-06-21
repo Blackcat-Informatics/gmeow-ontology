@@ -91,15 +91,29 @@ pub(crate) fn subclass_closure<G: ShaclDataGraph>(
 
 /// Collect subjects that are SHACL instances of `class_iri`: nodes with an
 /// `rdf:type` to `class_iri` or to any asserted (transitive) subclass of it.
+///
+/// `closure_memo` is a per-`validate_with` call cache keyed by class IRI; the
+/// subclass BFS is performed at most once per distinct class across all shapes.
 fn instances_of_class<G: ShaclDataGraph>(
     data: &G,
     class_iri: &oxigraph::model::NamedNode,
+    closure_memo: &mut std::collections::HashMap<
+        oxigraph::model::NamedNode,
+        std::collections::HashSet<Term>,
+    >,
 ) -> Vec<Term> {
     let rdf_type = Term::NamedNode(rdf::TYPE.into_owned());
-    let classes = subclass_closure(data, class_iri);
+    // Compute the subclass closure at most once per class IRI; clone the key only
+    // on a memo miss (insert requires ownership), never on a hit.
+    if !closure_memo.contains_key(class_iri) {
+        let closure = subclass_closure(data, class_iri);
+        closure_memo.insert(class_iri.clone(), closure);
+    }
+    let classes = &closure_memo[class_iri];
     let mut seen = std::collections::HashSet::new();
     let mut result = Vec::new();
-    for class in &classes {
+    // Iterate the memoized set by reference — never clone the whole HashSet per call.
+    for class in classes {
         for quad in
             data.quads_for_pattern(None, Some(&rdf_type), Some(class), GraphFilter::AnyGraph)
         {
@@ -115,31 +129,44 @@ fn instances_of_class<G: ShaclDataGraph>(
 /// Resolve the focus node set for a single shape from its target declarations.
 ///
 /// Results are deduped by `Term` identity and sorted for a stable order.
-fn resolve_focus_nodes<G: ShaclDataGraph>(data: &G, targets: &[Target]) -> Vec<Term> {
+///
+/// `closure_memo` is threaded through to [`instances_of_class`] so the subclass
+/// BFS is performed at most once per class IRI per `validate_with` call.
+fn resolve_focus_nodes<G: ShaclDataGraph>(
+    data: &G,
+    targets: &[Target],
+    closure_memo: &mut std::collections::HashMap<
+        oxigraph::model::NamedNode,
+        std::collections::HashSet<Term>,
+    >,
+) -> Vec<Term> {
     let mut seen = std::collections::HashSet::new();
     let mut nodes: Vec<Term> = Vec::new();
 
     for target in targets {
         let candidates: Vec<Term> = match target {
-            Target::Class(class_iri) => instances_of_class(data, class_iri),
+            Target::Class(class_iri) => instances_of_class(data, class_iri, closure_memo),
             Target::SubjectsOf(pred) => subjects_of(data, pred),
             Target::ObjectsOf(pred) => objects_of(data, pred),
             Target::Node(t) => vec![t.clone()],
             Target::ImplicitClass(t) => {
                 // Same semantics as Class: subjects of (?, rdf:type, t)
                 if let Term::NamedNode(nn) = t {
-                    instances_of_class(data, nn)
+                    instances_of_class(data, nn, closure_memo)
                 } else {
                     vec![]
                 }
             }
-            // sh:SPARQLTarget: execute the pre-validated SELECT and collect ?this.
+            // sh:SPARQLTarget: execute the pre-parsed SELECT and collect ?this.
             // SHACL-SPARQL needs an oxigraph query engine; obtain it via the
             // data graph's SPARQL store (cheap borrow for Store, one-time
             // materialization for the IR backend).
-            // Query parseability is guaranteed at shapes-parse time, so .expect() is correct.
-            Target::Sparql(select) => crate::sparql::eval_target(&data.sparql_store(), select)
-                .expect("SPARQLTarget query execution failed (parseability checked at parse time)"),
+            // SELECT-form is enforced at shape-load (shapes.rs rejects non-SELECT), so the only Err here is an impossible-by-construction runtime failure; .expect() documents that invariant.
+            Target::Sparql { parsed, .. } => {
+                crate::sparql::eval_target(&data.sparql_store(), &parsed.0).expect(
+                    "SPARQLTarget query execution failed (parseability checked at parse time)",
+                )
+            }
         };
         for node in candidates {
             if seen.insert(node.clone()) {
@@ -173,13 +200,21 @@ pub fn validate(data: &Store, shapes: &Shapes) -> ValidationReport {
 /// conformance is identical by construction across backends.
 pub fn validate_with<G: ShaclDataGraph>(data: &G, shapes: &Shapes) -> ValidationReport {
     let mut all_results = Vec::new();
+    // Per-call subclass-closure memo: keyed by class IRI, value is the full
+    // transitive closure of asserted rdfs:subClassOf edges below that class.
+    // Shared across all shapes in this validation run; each distinct class IRI
+    // is BFS-walked AT MOST ONCE regardless of how many shapes target it.
+    let mut closure_memo: std::collections::HashMap<
+        oxigraph::model::NamedNode,
+        std::collections::HashSet<Term>,
+    > = std::collections::HashMap::new();
 
     for shape in &shapes.node_shapes {
         if shape.deactivated {
             continue;
         }
 
-        let focus_nodes = resolve_focus_nodes(data, &shape.targets);
+        let focus_nodes = resolve_focus_nodes(data, &shape.targets, &mut closure_memo);
 
         for focus in &focus_nodes {
             let results = crate::constraints::validate_shape(data, focus, shape);

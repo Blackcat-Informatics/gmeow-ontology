@@ -22,6 +22,12 @@ path = "src/lib.rs"
 # rdflib/pySHACL cannot represent). default-features off drops the rocksdb
 # C/C++ backend we never use.
 oxigraph = { version = "0.5", default-features = false, features = ["rdf-12"] }
+# spargebra is oxigraph's SPARQL algebra (re-pinned to oxigraph's transitive
+# version, 0.4.x). Used at shape-load to reject non-SELECT SHACL-SPARQL queries
+# (ASK/CONSTRUCT/DESCRIBE) — they parse but cannot bind ?this and would panic at
+# eval. Use spargebra::SparqlParser to parse and match Query::Select (the
+# oxigraph::sparql::Query re-export is deprecated under clippy -D warnings).
+spargebra = "0.4"
 # sh:pattern regex constraint.
 regex = "1"
 # Shared PyO3-free RDF 1.2 kernel and GTS/oxigraph adapter boundary (#648).

@@ -9,7 +9,7 @@
 //! node and maps each solution row to a [`ValidationResult`].
 
 use oxigraph::model::{NamedNode, Term, Variable};
-use oxigraph::sparql::{QueryResults, SparqlEvaluator};
+use oxigraph::sparql::{PreparedSparqlQuery, QueryResults};
 use oxigraph::store::Store;
 
 use crate::report::{Severity, ValidationResult};
@@ -24,15 +24,17 @@ use crate::report::{Severity, ValidationResult};
 /// The returned [`Vec<Term>`] is deduplicated and sorted by string
 /// representation so the focus-node set is deterministic across runs.
 ///
+/// `prepared` is a pre-parsed query (parsed once at shape-load time). It is
+/// cheaply cloned here so `.on_store()` can consume it.
+///
 /// # Errors
 ///
-/// Returns `Err(String)` if the query cannot be parsed, if execution fails,
-/// if the result is not a SELECT (`Boolean` / `Graph` are rejected), or if
-/// any solution row has no `?this` binding.
-pub fn eval_target(store: &Store, select: &str) -> Result<Vec<Term>, String> {
-    let results = SparqlEvaluator::new()
-        .parse_query(select)
-        .map_err(|e| format!("SPARQLTarget query parse error: {e}"))?
+/// Returns `Err(String)` if execution fails, if the result is not a SELECT
+/// (`Boolean` / `Graph` are rejected), or if any solution row has no `?this`
+/// binding.
+pub fn eval_target(store: &Store, prepared: &PreparedSparqlQuery) -> Result<Vec<Term>, String> {
+    let results = prepared
+        .clone()
         .on_store(store)
         .execute()
         .map_err(|e| format!("SPARQLTarget query evaluation error: {e}"))?;
@@ -84,17 +86,19 @@ pub fn eval_target(store: &Store, select: &str) -> Result<Vec<Term>, String> {
 /// `component`, `source_shape`, `severity`, and `message` are taken from the
 /// caller (the shape evaluator) and are the same for every row.
 ///
+/// `prepared` is a pre-parsed query (parsed once at shape-load time). It is
+/// cloned here so `substitute_variable` can consume it per focus-node call.
+///
 /// Results are returned in solution order; the caller (engine) is responsible
 /// for deterministic sorting of the final report.
 ///
 /// # Errors
 ///
-/// Returns `Err(String)` if the query cannot be parsed, if execution fails,
-/// or if the result is not a SELECT.
+/// Returns `Err(String)` if execution fails or if the result is not a SELECT.
 pub fn eval_sparql_constraint(
     store: &Store,
     focus: &Term,
-    select: &str,
+    prepared: &PreparedSparqlQuery,
     component: NamedNode,
     source_shape: &Term,
     severity: Severity,
@@ -103,9 +107,8 @@ pub fn eval_sparql_constraint(
     let this_var =
         Variable::new("this").map_err(|e| format!("variable 'this' parse error: {e}"))?;
 
-    let results = SparqlEvaluator::new()
-        .parse_query(select)
-        .map_err(|e| format!("SPARQLConstraint query parse error: {e}"))?
+    let results = prepared
+        .clone()
         .substitute_variable(this_var, focus.clone())
         .on_store(store)
         .execute()
@@ -150,6 +153,7 @@ pub fn eval_sparql_constraint(
 #[cfg(test)]
 mod tests {
     use oxigraph::model::{GraphName, NamedNode, NamedOrBlankNode, Quad};
+    use oxigraph::sparql::SparqlEvaluator;
     use oxigraph::store::Store;
 
     use super::*;
@@ -182,6 +186,13 @@ mod tests {
         named("http://www.w3.org/ns/shacl#SPARQLConstraintComponent")
     }
 
+    /// Helper: parse a SPARQL query string into a `PreparedSparqlQuery`.
+    fn parse(select: &str) -> PreparedSparqlQuery {
+        SparqlEvaluator::new()
+            .parse_query(select)
+            .expect("test query must be valid SPARQL")
+    }
+
     // ── eval_target ───────────────────────────────────────────────────────────
 
     /// A store with two <Foo> instances; the target query must return exactly
@@ -194,8 +205,8 @@ mod tests {
             "<http://example.org/c> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://example.org/Bar> .",
         ]);
 
-        let select = "SELECT ?this WHERE { ?this <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://example.org/Foo> }";
-        let nodes = eval_target(&store, select).expect("eval_target must succeed");
+        let prepared = parse("SELECT ?this WHERE { ?this <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://example.org/Foo> }");
+        let nodes = eval_target(&store, &prepared).expect("eval_target must succeed");
 
         assert_eq!(nodes.len(), 2, "exactly two Foo instances");
         assert!(
@@ -224,9 +235,10 @@ mod tests {
     fn eval_target_deduplicates() {
         // VALUES produces the same IRI twice; dedup must collapse it.
         let store = Store::new().expect("in-memory store");
-        let select =
-            "SELECT ?this WHERE { VALUES ?this { <http://example.org/x> <http://example.org/x> } }";
-        let nodes = eval_target(&store, select).expect("eval_target must succeed");
+        let prepared = parse(
+            "SELECT ?this WHERE { VALUES ?this { <http://example.org/x> <http://example.org/x> } }",
+        );
+        let nodes = eval_target(&store, &prepared).expect("eval_target must succeed");
         assert_eq!(
             nodes.len(),
             1,
@@ -234,17 +246,15 @@ mod tests {
         );
     }
 
-    /// A malformed query string must return Err.
+    /// Querying with a malformed SPARQL string must fail at parse time (before
+    /// `eval_target` is called).  This test verifies the parse step itself.
     #[test]
-    fn eval_target_parse_error() {
-        let store = Store::new().expect("in-memory store");
-        let result = eval_target(&store, "SELECT ?this WHERE {");
-        assert!(result.is_err(), "malformed query must return Err");
-        let msg = result.unwrap_err();
-        assert!(
-            msg.contains("parse error") || msg.contains("Parse") || msg.contains("syntax"),
-            "error message must mention parse: {msg}"
-        );
+    fn sparql_parse_error_before_eval_target() {
+        let result = SparqlEvaluator::new().parse_query("SELECT ?this WHERE {");
+        assert!(result.is_err(), "malformed query must fail to parse");
+        // Verify the error is non-empty; the exact format is owned by spargebra.
+        let msg = result.err().unwrap().to_string();
+        assert!(!msg.is_empty(), "error message must be non-empty");
     }
 
     // ── eval_sparql_constraint ────────────────────────────────────────────────
@@ -266,14 +276,14 @@ mod tests {
             ))
             .expect("insert");
 
-        let select = "SELECT $this WHERE { $this <http://example.org/self> $this }";
+        let prepared = parse("SELECT $this WHERE { $this <http://example.org/self> $this }");
 
         // Focus = the self-referencing node → one result
         let focus_self = Term::NamedNode(self_iri);
         let results = eval_sparql_constraint(
             &store,
             &focus_self,
-            select,
+            &prepared,
             dummy_component(),
             &dummy_shape(),
             Severity::Violation,
@@ -295,7 +305,7 @@ mod tests {
         let results_other = eval_sparql_constraint(
             &store,
             &focus_other,
-            select,
+            &prepared,
             dummy_component(),
             &dummy_shape(),
             Severity::Violation,
@@ -309,20 +319,11 @@ mod tests {
         );
     }
 
-    /// A malformed constraint query must return Err.
+    /// Querying with a malformed SPARQL string must fail at parse time (before
+    /// `eval_sparql_constraint` is called).  This test verifies the parse step itself.
     #[test]
-    fn eval_sparql_constraint_parse_error() {
-        let store = Store::new().expect("in-memory store");
-        let focus = named_term("http://example.org/x");
-        let result = eval_sparql_constraint(
-            &store,
-            &focus,
-            "SELECT $this WHERE {",
-            dummy_component(),
-            &dummy_shape(),
-            Severity::Violation,
-            None,
-        );
-        assert!(result.is_err(), "malformed query must return Err");
+    fn sparql_parse_error_before_eval_constraint() {
+        let result = SparqlEvaluator::new().parse_query("SELECT $this WHERE {");
+        assert!(result.is_err(), "malformed query must fail to parse");
     }
 }
