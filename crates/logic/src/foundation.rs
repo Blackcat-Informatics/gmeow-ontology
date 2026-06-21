@@ -62,7 +62,7 @@ const LOGIC_NS: &str = "https://blackcatinformatics.ca/logic/";
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 
 /// Sentinel rule IRI stamped on asserted (input) quads (`logic:assert`).
-const ASSERT_RULE_IRI: &str = "https://blackcatinformatics.ca/logic/assert";
+pub const ASSERT_RULE_IRI: &str = "https://blackcatinformatics.ca/logic/assert";
 
 /// Rule IRI stamped on every in-world foundation rule firing.  The foundation
 /// rules carry no `scope.provenance`, so the Python chase stamps them all with
@@ -769,6 +769,26 @@ fn fact_reifier(fact: &Fact) -> Result<String, String> {
     mint_reifier(&s, &p, &o)
 }
 
+/// The content-addressed reifier IRI of a materialized [`FoundationQuad`].
+///
+/// `subject`/`predicate` are bare IRIs and `object` is already in canonical N3 form
+/// (`<iri>`), so this delegates to the byte-identical
+/// [`crate::provenance::reifier_from_strings`] recipe (the same one the explanation
+/// engine and `mint_reifier` agree on). This is the fact's persistent, runtime-id
+/// independent identity — the key under which the derivation graph records it.
+///
+/// # Errors
+///
+/// Never fails today (the inputs are validated IRIs + an N3 object), but returns a
+/// `Result` to keep the call site uniform with the other provenance helpers.
+pub fn quad_reifier(quad: &FoundationQuad) -> Result<String, String> {
+    Ok(crate::provenance::reifier_from_strings(
+        &quad.subject,
+        &quad.predicate,
+        &quad.object,
+    ))
+}
+
 /// Reifier IRI for an explicit `(s, p, o)` IRI triple — used by the cross-world passes.
 fn triple_reifier(s: &str, p: &str, o: &str) -> Result<String, String> {
     let sn = Term::NamedNode(NamedNode::new(s).map_err(|e| format!("invalid subject IRI: {e}"))?);
@@ -1427,6 +1447,33 @@ pub fn evaluate(
         ))
     });
     Ok(all)
+}
+
+/// Evaluate the foundation disciplines and fold the result into a truth-maintenance
+/// [`crate::derivation_graph::DerivationGraph`] (issue #820, S6b).
+///
+/// This is the chase→derivation-graph wiring: it runs [`evaluate`] (which preserves
+/// #824's per-world parallel chase and deterministic world/index-ordered fold) and
+/// then records each materialized quad as one justification —
+/// [`crate::derivation_graph::from_foundation_quads`]. Because `evaluate` returns the
+/// quads in canonical content order, and `from_foundation_quads` keys everything by
+/// content-addressed reifier IRIs (never numeric runtime ids), the resulting graph
+/// is byte-stable across runs and interner-id assignments.
+///
+/// The self-attestation guard is inherited: a derived quad that referenced its own
+/// reifier as a source would be rejected here (it never should — that is a malformed
+/// chase).
+///
+/// # Errors
+///
+/// Returns `Err` for any error from [`evaluate`] or for a self-referential derived
+/// quad (self-attestation).
+pub fn derivation_graph(
+    store: &WorldStore,
+    policy: AntiRigidityPolicy,
+) -> Result<crate::derivation_graph::DerivationGraph, String> {
+    let quads = evaluate(store, policy)?;
+    crate::derivation_graph::from_foundation_quads(&quads)
 }
 
 /// The semantic-profile IRI stamped on every emitted quad (exposed for the PyO3 seam).
