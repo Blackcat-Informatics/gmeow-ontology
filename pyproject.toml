@@ -53,6 +53,7 @@ dev = [
     "music21>=10.3.0",
     "mido>=1.3.3",
     "cryptography>=44.0",  # Ed25519 keys for GTS signature/trust tests (#646)
+    "mlcroissant>=1.0",  # Croissant JSON-LD validation — un-skippable (no importorskip)
 ]
 
 [tool.uv.workspace]
@@ -119,7 +120,7 @@ mypy_path = ["crates/native/python"]
 
 [[tool.mypy.overrides]]
 # Third-party libraries without complete type information.
-module = ["markdown.*", "sssom.*", "owlrl.*", "linkml.*", "linkml_runtime.*", "yaml"]
+module = ["markdown.*", "sssom.*", "owlrl.*", "linkml.*", "linkml_runtime.*", "yaml", "mlcroissant.*"]
 ignore_missing_imports = true
 
 [[tool.mypy.overrides]]

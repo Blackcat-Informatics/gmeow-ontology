@@ -11,8 +11,8 @@ from __future__ import annotations
 
 from fractions import Fraction
 from pathlib import Path
-from typing import Any
 
+import music21
 import pytest
 from rdflib import RDF, Namespace, URIRef
 from typer.testing import CliRunner
@@ -103,7 +103,6 @@ def test_gts_round_trip(tmp_path: Path) -> None:
 
 def test_musicxml_renders_and_music21_parses(tmp_path: Path) -> None:
     """The MusicXML renderer emits a file music21 can ingest."""
-    music21: Any = pytest.importorskip("music21", reason="music21 not installed")
     piece = _make_piece()
     profile = get_profile("musicxml")
     xml = musicxml.render(piece, profile)
@@ -141,7 +140,6 @@ def test_scl_format() -> None:
 
 def test_abc_round_trip_via_music21(tmp_path: Path) -> None:
     """ABC notation renders and music21 parses it back to three notes."""
-    music21: Any = pytest.importorskip("music21", reason="music21 not installed")
     piece = _make_piece()
     profile = get_profile("abc")
     abc_str = abc.render(piece, profile)
@@ -199,7 +197,6 @@ def test_loss_manifest_completeness() -> None:
 
 def test_import_provenance_and_lint(tmp_path: Path) -> None:
     """MusicXML import produces a GTS + provenance manifest and rejects non-XML."""
-    pytest.importorskip("music21", reason="music21 not installed")
     piece = _make_piece()
     profile = get_profile("musicxml")
     xml = musicxml.render(piece, profile)
