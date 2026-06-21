@@ -27,7 +27,7 @@ gmeow:EtymologicalDerivation
         gmeow:Observation ,
         [
             a owl:Restriction ;
-            owl:onProperty gmeow:derivationSource ;
+            owl:onProperty gmeow:etymonSource ;
             owl:someValuesFrom gmeow:InformationObject ;
         ] ,
         [
@@ -41,7 +41,7 @@ gmeow:EtymologicalDerivation
             owl:someValuesFrom gmeow:DerivationKind ;
         ] ;
     skos:definition "A provenance-rich claim about historical derivation between lexical items or forms. Not a flat property — a full relator carrying standpoint (accordingTo), confidence, determinacy, and temporal scope (Principle 9). Multiple derivations for the same target coexist without privilege; a superseded derivation is suppressed with displayable false, never erased (Principle 10). Follows the LanguageState / KinRelationship pattern as an Observation + Relator."@x-gmeow-english ;
-    skos:example "ex:etym1 a gmeow:EtymologicalDerivation ; gmeow:derivationSource ex:oldEnglishWaeter ; gmeow:derivationTarget ex:wordWater ; gmeow:derivationKind gmeow:derivationInheritance ."@x-gmeow-english ;
+    skos:example "ex:etym1 a gmeow:EtymologicalDerivation ; gmeow:etymonSource ex:oldEnglishWaeter ; gmeow:derivationTarget ex:wordWater ; gmeow:derivationKind gmeow:derivationInheritance ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid recording etymology as a single flat property or text blob, and avoid deleting a discredited derivation — competing derivations coexist, and a superseded one is suppressed with gmeow:displayable false (Principle 10)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     gmeow:howToUse "Mint the relator, name source/target/kind (all required by the someValuesFrom axioms), attach supporting attestations via gmeow:derivationEvidence, and carry standpoint and confidence on the observation spine."@x-gmeow-english ;
@@ -306,19 +306,20 @@ gmeow:derivationSoundChange
     skos:definition "Systematic phonological alteration affecting a lexical item within a language community."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 
-gmeow:derivationSource
+gmeow:etymonSource
     a owl:FunctionalProperty ,
         owl:ObjectProperty ;
     rdfs:domain gmeow:EtymologicalDerivation ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/lexicon> ;
-    rdfs:label "derivation source"@x-gmeow-english ;
+    rdfs:label "etymon source"@x-gmeow-english ;
     rdfs:range gmeow:InformationObject ;
     rdfs:subPropertyOf gmeow:observedFeature ;
-    skos:definition "The ancestor lexical item or form from which the target is derived. Functional per relator: one source per EtymologicalDerivation (a derivation with multiple sources is modeled as multiple derivations)."@x-gmeow-english ;
-    skos:example "ex:etym1 gmeow:derivationSource ex:oldEnglishWaeter ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid naming multiple sources on one derivation (it is functional; a multi-source etymology is several derivations) and avoid swapping it with gmeow:derivationTarget — direction is ancestor to descendant."@x-gmeow-english ;
-    gmeow:howToUse "Assert gmeow:derivationSource once from the relator to its ancestor (required by the someValuesFrom axiom); it specializes gmeow:observedFeature, so the ancestor surfaces in generic observation queries."@x-gmeow-english ;
-    gmeow:useWhen "Use on an EtymologicalDerivation to name the single ancestor lexical item or form from which the target descends."@x-gmeow-english .
+    skos:definition "The etymon — the ancestor lexical item or form from which the target is derived. Functional per relator: one source per EtymologicalDerivation (a derivation with multiple sources is modeled as multiple derivations). Distinct from gmeow:derivationSource (creative-works), which names the source work of a CreativeDerivation."@x-gmeow-english ;
+    skos:example "ex:etym1 gmeow:etymonSource ex:oldEnglishWaeter ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid naming multiple etymons on one derivation (it is functional; a multi-source etymology is several derivations) and avoid swapping it with gmeow:derivationTarget — direction is ancestor to descendant."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Assert gmeow:etymonSource once from the relator to its ancestor (required by the someValuesFrom axiom); it specializes gmeow:observedFeature, so the ancestor surfaces in generic observation queries."@x-gmeow-english ;
+    gmeow:useWhen "Use on an EtymologicalDerivation to name the single ancestor lexical item or form (the etymon) from which the target descends."@x-gmeow-english .
 
 gmeow:derivationSpellingChange
     a gmeow:DerivationKind ;
@@ -337,7 +338,7 @@ gmeow:derivationTarget
     rdfs:subPropertyOf gmeow:observedFeature ;
     skos:definition "The descendant lexical item or form that is derived from the source. Functional per relator: one target per EtymologicalDerivation."@x-gmeow-english ;
     skos:example "ex:etym1 gmeow:derivationTarget ex:wordWater ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid naming more than one target (it is functional) and avoid swapping it with gmeow:derivationSource — the target is the descendant, the source the ancestor."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid naming more than one target (it is functional) and avoid swapping it with gmeow:etymonSource — the target is the descendant, the etymon the ancestor."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Assert gmeow:derivationTarget once from the relator to its descendant (required by the someValuesFrom axiom); it specializes gmeow:observedFeature for generic observation queries."@x-gmeow-english ;
     gmeow:useWhen "Use on an EtymologicalDerivation to name the single descendant lexical item or form derived from the source."@x-gmeow-english .

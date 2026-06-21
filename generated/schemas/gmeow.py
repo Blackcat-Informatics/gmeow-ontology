@@ -1798,7 +1798,7 @@ class NarrativeRoleEnum(str, Enum):
     foil = "roleFoil"
     love_interest = "roleLoveInterest"
     mentor = "roleMentor"
-    narrator = "roleNarrator"
+    narrating_voice = "roleNarratingVoice"
     protagonist = "roleProtagonist"
     trickster = "roleTrickster"
 
@@ -5473,6 +5473,9 @@ class EtymologicalDerivation(ConfiguredBaseModel):
     derivationTarget: Optional[InformationObject] = Field(default=None, title="derivation target", json_schema_extra = { "linkml_meta": {'domain': 'EtymologicalDerivation',
          'domain_of': ['EtymologicalDerivation'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/derivationTarget'} })
+    etymonSource: Optional[InformationObject] = Field(default=None, title="etymon source", json_schema_extra = { "linkml_meta": {'domain': 'EtymologicalDerivation',
+         'domain_of': ['EtymologicalDerivation'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/etymonSource'} })
 
 
 class EvaluationVerdict(ConfiguredBaseModel):
@@ -21823,7 +21826,7 @@ class Manifestation(CreativeWork):
     embodies: Optional[list[Expression]] = Field(default=None, title="embodies", json_schema_extra = { "linkml_meta": {'domain': 'Manifestation',
          'domain_of': ['Manifestation'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/embodies'} })
-    exemplifiedBy: Optional[list[Document]] = Field(default=None, title="exemplified by", json_schema_extra = { "linkml_meta": {'domain': 'Manifestation',
+    exemplifiedBy: Optional[list[Item]] = Field(default=None, title="exemplified by", json_schema_extra = { "linkml_meta": {'domain': 'Manifestation',
          'domain_of': ['Manifestation'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/exemplifiedBy'} })
     hasManifestationFormat: Optional[ManifestationFormat] = Field(default=None, title="has manifestation format", json_schema_extra = { "linkml_meta": {'domain': 'Manifestation',
@@ -22142,7 +22145,7 @@ class BookRelease(Manifestation):
     embodies: Optional[list[Expression]] = Field(default=None, title="embodies", json_schema_extra = { "linkml_meta": {'domain': 'Manifestation',
          'domain_of': ['Manifestation'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/embodies'} })
-    exemplifiedBy: Optional[list[Document]] = Field(default=None, title="exemplified by", json_schema_extra = { "linkml_meta": {'domain': 'Manifestation',
+    exemplifiedBy: Optional[list[Item]] = Field(default=None, title="exemplified by", json_schema_extra = { "linkml_meta": {'domain': 'Manifestation',
          'domain_of': ['Manifestation'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/exemplifiedBy'} })
     hasManifestationFormat: Optional[ManifestationFormat] = Field(default=None, title="has manifestation format", json_schema_extra = { "linkml_meta": {'domain': 'Manifestation',
@@ -22464,7 +22467,7 @@ class GTSDocument(Manifestation):
     embodies: Optional[list[Expression]] = Field(default=None, title="embodies", json_schema_extra = { "linkml_meta": {'domain': 'Manifestation',
          'domain_of': ['Manifestation'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/embodies'} })
-    exemplifiedBy: Optional[list[Document]] = Field(default=None, title="exemplified by", json_schema_extra = { "linkml_meta": {'domain': 'Manifestation',
+    exemplifiedBy: Optional[list[Item]] = Field(default=None, title="exemplified by", json_schema_extra = { "linkml_meta": {'domain': 'Manifestation',
          'domain_of': ['Manifestation'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/exemplifiedBy'} })
     hasManifestationFormat: Optional[ManifestationFormat] = Field(default=None, title="has manifestation format", json_schema_extra = { "linkml_meta": {'domain': 'Manifestation',
@@ -22798,7 +22801,7 @@ class GTSSegment(Manifestation):
     embodies: Optional[list[Expression]] = Field(default=None, title="embodies", json_schema_extra = { "linkml_meta": {'domain': 'Manifestation',
          'domain_of': ['Manifestation'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/embodies'} })
-    exemplifiedBy: Optional[list[Document]] = Field(default=None, title="exemplified by", json_schema_extra = { "linkml_meta": {'domain': 'Manifestation',
+    exemplifiedBy: Optional[list[Item]] = Field(default=None, title="exemplified by", json_schema_extra = { "linkml_meta": {'domain': 'Manifestation',
          'domain_of': ['Manifestation'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/exemplifiedBy'} })
     hasManifestationFormat: Optional[ManifestationFormat] = Field(default=None, title="has manifestation format", json_schema_extra = { "linkml_meta": {'domain': 'Manifestation',
@@ -23516,7 +23519,7 @@ class MediaObject(Manifestation):
     embodies: Optional[list[Expression]] = Field(default=None, title="embodies", json_schema_extra = { "linkml_meta": {'domain': 'Manifestation',
          'domain_of': ['Manifestation'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/embodies'} })
-    exemplifiedBy: Optional[list[Document]] = Field(default=None, title="exemplified by", json_schema_extra = { "linkml_meta": {'domain': 'Manifestation',
+    exemplifiedBy: Optional[list[Item]] = Field(default=None, title="exemplified by", json_schema_extra = { "linkml_meta": {'domain': 'Manifestation',
          'domain_of': ['Manifestation'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/exemplifiedBy'} })
     hasManifestationFormat: Optional[ManifestationFormat] = Field(default=None, title="has manifestation format", json_schema_extra = { "linkml_meta": {'domain': 'Manifestation',
@@ -37481,7 +37484,7 @@ class Recording(Manifestation):
     embodies: Optional[list[Expression]] = Field(default=None, title="embodies", json_schema_extra = { "linkml_meta": {'domain': 'Manifestation',
          'domain_of': ['Manifestation'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/embodies'} })
-    exemplifiedBy: Optional[list[Document]] = Field(default=None, title="exemplified by", json_schema_extra = { "linkml_meta": {'domain': 'Manifestation',
+    exemplifiedBy: Optional[list[Item]] = Field(default=None, title="exemplified by", json_schema_extra = { "linkml_meta": {'domain': 'Manifestation',
          'domain_of': ['Manifestation'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/exemplifiedBy'} })
     hasManifestationFormat: Optional[ManifestationFormat] = Field(default=None, title="has manifestation format", json_schema_extra = { "linkml_meta": {'domain': 'Manifestation',
@@ -42403,7 +42406,7 @@ class ScoreEdition(Manifestation):
     embodies: Optional[list[Expression]] = Field(default=None, title="embodies", json_schema_extra = { "linkml_meta": {'domain': 'Manifestation',
          'domain_of': ['Manifestation'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/embodies'} })
-    exemplifiedBy: Optional[list[Document]] = Field(default=None, title="exemplified by", json_schema_extra = { "linkml_meta": {'domain': 'Manifestation',
+    exemplifiedBy: Optional[list[Item]] = Field(default=None, title="exemplified by", json_schema_extra = { "linkml_meta": {'domain': 'Manifestation',
          'domain_of': ['Manifestation'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/exemplifiedBy'} })
     hasManifestationFormat: Optional[ManifestationFormat] = Field(default=None, title="has manifestation format", json_schema_extra = { "linkml_meta": {'domain': 'Manifestation',
@@ -44298,7 +44301,7 @@ class SerialInstallment(Manifestation):
     embodies: Optional[list[Expression]] = Field(default=None, title="embodies", json_schema_extra = { "linkml_meta": {'domain': 'Manifestation',
          'domain_of': ['Manifestation'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/embodies'} })
-    exemplifiedBy: Optional[list[Document]] = Field(default=None, title="exemplified by", json_schema_extra = { "linkml_meta": {'domain': 'Manifestation',
+    exemplifiedBy: Optional[list[Item]] = Field(default=None, title="exemplified by", json_schema_extra = { "linkml_meta": {'domain': 'Manifestation',
          'domain_of': ['Manifestation'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/exemplifiedBy'} })
     hasManifestationFormat: Optional[ManifestationFormat] = Field(default=None, title="has manifestation format", json_schema_extra = { "linkml_meta": {'domain': 'Manifestation',
@@ -50245,6 +50248,9 @@ class StyleGuide(InformationObject):
     styleGuideFor: Optional[list[str]] = Field(default=None, title="style guide for", json_schema_extra = { "linkml_meta": {'domain': 'StyleGuide',
          'domain_of': ['StyleGuide'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/styleGuideFor'} })
+    voiceExemplifiedBy: Optional[list[Document]] = Field(default=None, title="voice exemplified by", json_schema_extra = { "linkml_meta": {'domain': 'StyleGuide',
+         'domain_of': ['StyleGuide'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/voiceExemplifiedBy'} })
     contributesToFrame: Optional[list[NarrativeReferenceFrame]] = Field(default=None, title="contributes to frame", json_schema_extra = { "linkml_meta": {'domain': 'InformationObject',
          'domain_of': ['InformationObject'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/contributesToFrame'} })
@@ -56275,7 +56281,7 @@ class WebPage(Manifestation):
     embodies: Optional[list[Expression]] = Field(default=None, title="embodies", json_schema_extra = { "linkml_meta": {'domain': 'Manifestation',
          'domain_of': ['Manifestation'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/embodies'} })
-    exemplifiedBy: Optional[list[Document]] = Field(default=None, title="exemplified by", json_schema_extra = { "linkml_meta": {'domain': 'Manifestation',
+    exemplifiedBy: Optional[list[Item]] = Field(default=None, title="exemplified by", json_schema_extra = { "linkml_meta": {'domain': 'Manifestation',
          'domain_of': ['Manifestation'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/exemplifiedBy'} })
     hasManifestationFormat: Optional[ManifestationFormat] = Field(default=None, title="has manifestation format", json_schema_extra = { "linkml_meta": {'domain': 'Manifestation',
@@ -56600,7 +56606,7 @@ class ProfilePage(WebPage):
     embodies: Optional[list[Expression]] = Field(default=None, title="embodies", json_schema_extra = { "linkml_meta": {'domain': 'Manifestation',
          'domain_of': ['Manifestation'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/embodies'} })
-    exemplifiedBy: Optional[list[Document]] = Field(default=None, title="exemplified by", json_schema_extra = { "linkml_meta": {'domain': 'Manifestation',
+    exemplifiedBy: Optional[list[Item]] = Field(default=None, title="exemplified by", json_schema_extra = { "linkml_meta": {'domain': 'Manifestation',
          'domain_of': ['Manifestation'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/exemplifiedBy'} })
     hasManifestationFormat: Optional[ManifestationFormat] = Field(default=None, title="has manifestation format", json_schema_extra = { "linkml_meta": {'domain': 'Manifestation',
@@ -56919,7 +56925,7 @@ class WebSite(Manifestation):
     embodies: Optional[list[Expression]] = Field(default=None, title="embodies", json_schema_extra = { "linkml_meta": {'domain': 'Manifestation',
          'domain_of': ['Manifestation'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/embodies'} })
-    exemplifiedBy: Optional[list[Document]] = Field(default=None, title="exemplified by", json_schema_extra = { "linkml_meta": {'domain': 'Manifestation',
+    exemplifiedBy: Optional[list[Item]] = Field(default=None, title="exemplified by", json_schema_extra = { "linkml_meta": {'domain': 'Manifestation',
          'domain_of': ['Manifestation'],
          'slot_uri': 'https://blackcatinformatics.ca/gmeow/exemplifiedBy'} })
     hasManifestationFormat: Optional[ManifestationFormat] = Field(default=None, title="has manifestation format", json_schema_extra = { "linkml_meta": {'domain': 'Manifestation',

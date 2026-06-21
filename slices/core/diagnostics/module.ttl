@@ -141,17 +141,10 @@ gmeow:gtsReifierId
     gmeow:howToUse "Hang it on the node gmeow:findingLocation points at, matching the Rust Location.gts_reifier_id."@x-gmeow-english ;
     gmeow:useWhen "Use on a finding's location node to pin the GTS reifier-id of the reified statement diagnosed."@x-gmeow-english .
 
-gmeow:gtsSegmentIndex
-    a owl:DatatypeProperty ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
-    rdfs:label "GTS segment index"@x-gmeow-english ;
-    rdfs:range xsd:nonNegativeInteger ;
-    skos:definition "The GTS segment index locating the segment a finding concerns inside the bundle — a wire coordinate mirrored in the SARIF logicalLocation \"gts:segment\"."@x-gmeow-english ;
-    skos:example "ex:stmt1 gmeow:gtsSegmentIndex 2 ."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid asserting it where no GTS bundle backs the finding."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxRBox ;
-    gmeow:howToUse "Hang it on the node gmeow:findingLocation points at, matching the Rust Location.gts_segment_index."@x-gmeow-english ;
-    gmeow:useWhen "Use on a finding's location node to pin the GTS segment index of the diagnosed content."@x-gmeow-english .
+# gmeow:gtsSegmentIndex is owned by the gts slice (functional, domain gmeow:GTSSegment;
+# the index that, over the segment heads, IS a document's composite identity — spec §3.1).
+# A finding's location node REFERENCES it as a wire coordinate ("the segment this finding
+# concerns is at index N"); diagnostics does not redeclare it (single-owner invariant, #329).
 
 gmeow:gtsTermId
     a owl:DatatypeProperty ;

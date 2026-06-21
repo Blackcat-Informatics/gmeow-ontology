@@ -328,11 +328,11 @@ gmeow:StyleGuide
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "Style Guide"@x-gmeow-english ;
     rdfs:subClassOf gmeow:InformationObject ;
-    skos:definition "The voice payload of a persona or register — prose whose REGISTER IS THE CONTENT. The prose-voice doctrine (gap analysis): voice documents attach byte-perfect via gmeow:exemplifiedBy (content-digested Documents carrying gmeow:hasAboutness gmeow:aboutnessEnacts — the document does not describe the voice, it IS the voice), never shredded into pseudo-quantified style triples. Style dimensions, when stated, are prose."@x-gmeow-english ;
-    skos:example "ex:clinicalVoice a gmeow:StyleGuide ; gmeow:styleGuideFor ex:drChen ; gmeow:exemplifiedBy ex:sampleNote ."@x-gmeow-english ;
+    skos:definition "The voice payload of a persona or register — prose whose REGISTER IS THE CONTENT. The prose-voice doctrine (gap analysis): voice documents attach byte-perfect via gmeow:voiceExemplifiedBy (content-digested Documents carrying gmeow:hasAboutness gmeow:aboutnessEnacts — the document does not describe the voice, it IS the voice), never shredded into pseudo-quantified style triples. Style dimensions, when stated, are prose."@x-gmeow-english ;
+    skos:example "ex:clinicalVoice a gmeow:StyleGuide ; gmeow:styleGuideFor ex:drChen ; gmeow:voiceExemplifiedBy ex:sampleNote ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid shredding voice into pseudo-quantified style triples (style dimensions, when stated, are prose) and avoid an exemplar document that merely describes the voice — it must enact it (gmeow:aboutnessEnacts)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
-    gmeow:howToUse "Mint the guide, name what it voices with gmeow:styleGuideFor, and attach byte-perfect enacting documents via gmeow:exemplifiedBy (each carrying gmeow:contentDigest and gmeow:hasAboutness gmeow:aboutnessEnacts)."@x-gmeow-english ;
+    gmeow:howToUse "Mint the guide, name what it voices with gmeow:styleGuideFor, and attach byte-perfect enacting documents via gmeow:voiceExemplifiedBy (each carrying gmeow:contentDigest and gmeow:hasAboutness gmeow:aboutnessEnacts)."@x-gmeow-english ;
     gmeow:useWhen "Use for the voice payload of a persona or register — prose whose register IS the content, exemplified byte-perfect by enacting documents."@x-gmeow-english .
 
 gmeow:activatedIn
@@ -741,16 +741,17 @@ gmeow:exemplarSubject
     gmeow:howToUse "Point gmeow:exemplarSubject at the bearer entity; combine it with the citation Selector when both the instance span and its bearer matter."@x-gmeow-english ;
     gmeow:useWhen "Use to name the entity whose pattern an exemplar evidences — a character whose conduct across the cited work is the example, an organization, a person."@x-gmeow-english .
 
-gmeow:exemplifiedBy
+gmeow:voiceExemplifiedBy
     a owl:ObjectProperty ;
     rdfs:domain gmeow:StyleGuide ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
-    rdfs:label "exemplified by"@x-gmeow-english ;
+    rdfs:label "voice exemplified by"@x-gmeow-english ;
     rdfs:range gmeow:Document ;
-    skos:definition "A document whose prose EXEMPLIFIES the voice — byte-perfect, carrying gmeow:contentDigest (SHACL: an undigested exemplar can drift silently) and gmeow:hasAboutness gmeow:aboutnessEnacts (it does not describe the voice, it performs it). NOT functional: several exemplifying documents coexist."@x-gmeow-english ;
-    skos:example "ex:clinicalVoice gmeow:exemplifiedBy ex:sampleNote ."@x-gmeow-english ;
+    skos:definition "A document whose prose EXEMPLIFIES the voice — byte-perfect, carrying gmeow:contentDigest (SHACL: an undigested exemplar can drift silently) and gmeow:hasAboutness gmeow:aboutnessEnacts (it does not describe the voice, it performs it). NOT functional: several exemplifying documents coexist. Distinct from gmeow:exemplifiedBy (creative-works), the WEMI Manifestation→Item copy relation."@x-gmeow-english ;
+    skos:example "ex:clinicalVoice gmeow:voiceExemplifiedBy ex:sampleNote ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid an undigested exemplar (it can drift silently — SHACL requires gmeow:contentDigest) and avoid one that merely describes the voice; it must carry gmeow:hasAboutness gmeow:aboutnessEnacts."@x-gmeow-english ;
-    gmeow:howToUse "Assert gmeow:exemplifiedBy from the gmeow:StyleGuide to each gmeow:Document; ensure every exemplar carries a gmeow:contentDigest and gmeow:aboutnessEnacts."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Assert gmeow:voiceExemplifiedBy from the gmeow:StyleGuide to each gmeow:Document; ensure every exemplar carries a gmeow:contentDigest and gmeow:aboutnessEnacts."@x-gmeow-english ;
     gmeow:useWhen "Use to attach a document whose prose EXEMPLIFIES a style guide's voice — byte-perfect, enacting the voice rather than describing it."@x-gmeow-english .
 
 gmeow:exprLangCedar
@@ -1271,7 +1272,7 @@ gmeow:styleGuideFor
     skos:example "ex:clinicalVoice gmeow:styleGuideFor ex:drChen ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid a guide that voices nothing (at least one target is required — a style guide for nothing is just a document) and avoid forcing one target; it may voice a persona and its register at once."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
-    gmeow:howToUse "Assert gmeow:styleGuideFor from the gmeow:StyleGuide to its gmeow:Persona and/or gmeow:Register; attach the voice payload via gmeow:exemplifiedBy."@x-gmeow-english ;
+    gmeow:howToUse "Assert gmeow:styleGuideFor from the gmeow:StyleGuide to its gmeow:Persona and/or gmeow:Register; attach the voice payload via gmeow:voiceExemplifiedBy."@x-gmeow-english ;
     gmeow:useWhen "Use on a StyleGuide to name what it voices — a gmeow:Persona or a gmeow:Register."@x-gmeow-english .
 
 gmeow:systemIssuer

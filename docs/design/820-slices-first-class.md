@@ -470,7 +470,7 @@ surfaced as `gmeow-dev crate-check` and `make crate-check`, wired into
 | **S6a** | Phase-specific Merkle cache + SCC/profile composition. |
 | **S6b** | Exact incremental reasoning: alternative derivations / truth maintenance; add/change/delete parity. |
 | **S7** | Generated slice-analysis graph + explicit `gmeow slice fix-deps` manifest-fix command (two-pass attestation). |
-| **S8** | Retire Python discovery, rollup, and `module_specs` plumbing. |
+| **S8** | Retire Python discovery, rollup, and `module_specs` plumbing. **✅ ownership plumbing done (#830):** the native `gmeow_slice.OwnershipAnalyzer` is the sole authoritative `make validate` ownership source; the path-derived `slice_ownership_lint` (Rust engine + PyO3 binding + Python wrapper) and the `module_specs` `ValidateOptions` field/phase are deleted. Restored the per-term single-owner invariant for the 4 colliding terms first (merge `gtsSegmentIndex`; rename `etymonSource`/`voiceExemplifiedBy`/`roleNarratingVoice`). |
 
 Ordering: S1 may proceed before #819 C1; S2 waits on the ID-addressed dataset; S3 and S5
 proceed in parallel once S2's IDs + bundle boundary are fixed; S4 lands before cache
@@ -480,9 +480,11 @@ composition.
 
 - Slice meta-ontology & gates: `slices/vocabulary.ttl`,
   `shapes/slice-manifest-shapes.ttl`.
-- Python plumbing to replace: `src/gmeow_tools/slices.py`, `gts_gen.py`, `gts_producer.py`,
-  `crates/validate/src/validate_all.rs` (module_specs), `crates/validate/src/lint.rs`
-  (`slice_ownership_lint`).
+- Python plumbing to replace: `src/gmeow_tools/slices.py`, `gts_gen.py`, `gts_producer.py`.
+  Ownership plumbing **retired (#830)**: `crates/validate/src/validate_all.rs` (`module_specs`)
+  and `crates/validate/src/lint.rs` (`slice_ownership_lint`) are deleted; ownership is sourced
+  from the native `gmeow_slice.OwnershipAnalyzer` and folded in `src/gmeow_tools/validate.py`
+  via `native_ownership_errors()`.
 - Carriage surfaces: `crates/rdf/src/lookaside.rs` (`RdfSegmentRecord`, blob records),
   `crates/rdf/src/diagnostic.rs` (`RdfLocation`), `crates/rdf/src/gts.rs`, `gts_write.rs`.
 - Output models: `crates/diagnostics/src/model.rs`, `render.rs`,

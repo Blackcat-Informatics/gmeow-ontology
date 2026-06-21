@@ -10206,7 +10206,7 @@
               },
               "exemplifiedBy": {
                 "items": {
-                  "$ref": "#/$defs/Document"
+                  "$ref": "#/$defs/Item"
                 },
                 "type": [
                   "array",
@@ -39169,6 +39169,16 @@
                     "type": "null"
                   }
                 ]
+              },
+              "etymonSource": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/InformationObject"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
               }
             },
             "title": "EtymologicalDerivation",
@@ -48884,7 +48894,7 @@
               },
               "exemplifiedBy": {
                 "items": {
-                  "$ref": "#/$defs/Document"
+                  "$ref": "#/$defs/Item"
                 },
                 "type": [
                   "array",
@@ -49866,7 +49876,7 @@
               },
               "exemplifiedBy": {
                 "items": {
-                  "$ref": "#/$defs/Document"
+                  "$ref": "#/$defs/Item"
                 },
                 "type": [
                   "array",
@@ -74186,7 +74196,7 @@
               },
               "exemplifiedBy": {
                 "items": {
-                  "$ref": "#/$defs/Document"
+                  "$ref": "#/$defs/Item"
                 },
                 "type": [
                   "array",
@@ -76364,7 +76374,7 @@
               },
               "exemplifiedBy": {
                 "items": {
-                  "$ref": "#/$defs/Document"
+                  "$ref": "#/$defs/Item"
                 },
                 "type": [
                   "array",
@@ -90642,7 +90652,7 @@
               "roleFoil",
               "roleLoveInterest",
               "roleMentor",
-              "roleNarrator",
+              "roleNarratingVoice",
               "roleProtagonist",
               "roleTrickster"
             ],
@@ -114685,7 +114695,7 @@
               },
               "exemplifiedBy": {
                 "items": {
-                  "$ref": "#/$defs/Document"
+                  "$ref": "#/$defs/Item"
                 },
                 "type": [
                   "array",
@@ -121939,7 +121949,7 @@
               },
               "exemplifiedBy": {
                 "items": {
-                  "$ref": "#/$defs/Document"
+                  "$ref": "#/$defs/Item"
                 },
                 "type": [
                   "array",
@@ -132806,7 +132816,7 @@
               },
               "exemplifiedBy": {
                 "items": {
-                  "$ref": "#/$defs/Document"
+                  "$ref": "#/$defs/Item"
                 },
                 "type": [
                   "array",
@@ -138456,7 +138466,7 @@
               },
               "exemplifiedBy": {
                 "items": {
-                  "$ref": "#/$defs/Document"
+                  "$ref": "#/$defs/Item"
                 },
                 "type": [
                   "array",
@@ -152908,6 +152918,15 @@
                   {
                     "type": "null"
                   }
+                ]
+              },
+              "voiceExemplifiedBy": {
+                "items": {
+                  "$ref": "#/$defs/Document"
+                },
+                "type": [
+                  "array",
+                  "null"
                 ]
               },
               "wasAttributedTo": {
@@ -169320,7 +169339,7 @@
               },
               "exemplifiedBy": {
                 "items": {
-                  "$ref": "#/$defs/Document"
+                  "$ref": "#/$defs/Item"
                 },
                 "type": [
                   "array",
@@ -170292,7 +170311,7 @@
               },
               "exemplifiedBy": {
                 "items": {
-                  "$ref": "#/$defs/Document"
+                  "$ref": "#/$defs/Item"
                 },
                 "type": [
                   "array",

@@ -85,9 +85,9 @@ def test_expression_machinery_is_open_and_plural() -> None:
 def test_style_guide_voice_doctrine() -> None:
     g = _graph()
     assert (GM.StyleGuide, RDFS.subClassOf, GM.InformationObject) in g
-    assert (GM.exemplifiedBy, RDFS.range, GM.Document) in g
+    assert (GM.voiceExemplifiedBy, RDFS.range, GM.Document) in g
     assert g.value(GM.styleGuideFor, RDFS.range) is None
-    for prop in (GM.styleGuideFor, GM.exemplifiedBy):
+    for prop in (GM.styleGuideFor, GM.voiceExemplifiedBy):
         assert (prop, RDF.type, OWL.FunctionalProperty) not in g, prop
 
 

@@ -149,7 +149,7 @@ the design's territory; documented boundary, no axiom coupling).
 - **The same-norms invariant is a query, not a shape**
   (`registers-norm-divergence.rq`): divergence is legal (P9) — the query
   makes it visible. Test-proven in both directions.
-- **The voice payload is byte-perfect**: `StyleGuide` + `exemplifiedBy` →
+- **The voice payload is byte-perfect**: `StyleGuide` + `voiceExemplifiedBy` →
   content-digested `Document`s carrying `hasAboutness aboutnessEnacts` —
   the document does not describe the voice, it *is* the voice; an
   undigested exemplar is a SHACL violation (silent drift).
@@ -293,9 +293,9 @@ functional, mandatory bearer; `personaRegister` draws ≥1 register from the nam
 `activatedIn` names the activation `Condition` or situation; `expressesNorm` makes the same-norms
 invariant queryable rather than a shape (divergence is legal).
 
-### gmeow:StyleGuide · gmeow:styleGuideFor · gmeow:exemplifiedBy
+### gmeow:StyleGuide · gmeow:styleGuideFor · gmeow:voiceExemplifiedBy
 
 `StyleGuide` is the voice payload of a persona or register — prose whose register IS the content.
-`styleGuideFor` names what it voices (a `Persona` and/or `Register`). `exemplifiedBy` attaches
+`styleGuideFor` names what it voices (a `Persona` and/or `Register`). `voiceExemplifiedBy` attaches
 byte-perfect content-digested `Document`s that carry `aboutnessEnacts` — the document does not
 describe the voice, it is the voice; an undigested exemplar is a SHACL violation.

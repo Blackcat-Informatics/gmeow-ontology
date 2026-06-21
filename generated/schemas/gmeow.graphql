@@ -1865,7 +1865,7 @@ enum NarrativeRoleEnum
     roleFoil
     roleLoveInterest
     roleMentor
-    roleNarrator
+    roleNarratingVoice
     roleProtagonist
     roleTrickster
   }
@@ -4648,7 +4648,7 @@ type BookRelease
     title: [String]
     transcriptionOf: [CreativeWork]
     embodies: [Expression]
-    exemplifiedBy: [Document]
+    exemplifiedBy: [Item]
     hasManifestationFormat: ManifestationFormat
   }
 
@@ -8098,6 +8098,7 @@ type EtymologicalDerivation
     derivationEvidence: [Entity]
     derivationKind: [DerivationKind]
     derivationTarget: InformationObject
+    etymonSource: InformationObject
   }
 
 type EvaluationVerdict
@@ -9875,7 +9876,7 @@ type GTSDocument
     title: [String]
     transcriptionOf: [CreativeWork]
     embodies: [Expression]
-    exemplifiedBy: [Document]
+    exemplifiedBy: [Item]
     hasManifestationFormat: ManifestationFormat
     gtsSegment: [GTSSegment]
   }
@@ -9988,7 +9989,7 @@ type GTSSegment
     title: [String]
     transcriptionOf: [CreativeWork]
     embodies: [Expression]
-    exemplifiedBy: [Document]
+    exemplifiedBy: [Item]
     hasManifestationFormat: ManifestationFormat
     gtsHeadId: String
     gtsProfile: GTSProfile
@@ -12404,7 +12405,7 @@ type Manifestation
     title: [String]
     transcriptionOf: [CreativeWork]
     embodies: [Expression]
-    exemplifiedBy: [Document]
+    exemplifiedBy: [Item]
     hasManifestationFormat: ManifestationFormat
   }
 
@@ -12655,7 +12656,7 @@ type MediaObject
     title: [String]
     transcriptionOf: [CreativeWork]
     embodies: [Expression]
-    exemplifiedBy: [Document]
+    exemplifiedBy: [Item]
     hasManifestationFormat: ManifestationFormat
     caption: [String]
     captureDevice: [PhysicalObject]
@@ -17225,7 +17226,7 @@ type ProfilePage
     title: [String]
     transcriptionOf: [CreativeWork]
     embodies: [Expression]
-    exemplifiedBy: [Document]
+    exemplifiedBy: [Item]
     hasManifestationFormat: ManifestationFormat
     pageOfSite: [WebSite]
     pagePrincipalSubject: Entity
@@ -18084,7 +18085,7 @@ type Recording
     title: [String]
     transcriptionOf: [CreativeWork]
     embodies: [Expression]
-    exemplifiedBy: [Document]
+    exemplifiedBy: [Item]
     hasManifestationFormat: ManifestationFormat
   }
 
@@ -19308,7 +19309,7 @@ type ScoreEdition
     title: [String]
     transcriptionOf: [CreativeWork]
     embodies: [Expression]
-    exemplifiedBy: [Document]
+    exemplifiedBy: [Item]
     hasManifestationFormat: ManifestationFormat
   }
 
@@ -19985,7 +19986,7 @@ type SerialInstallment
     title: [String]
     transcriptionOf: [CreativeWork]
     embodies: [Expression]
-    exemplifiedBy: [Document]
+    exemplifiedBy: [Item]
     hasManifestationFormat: ManifestationFormat
   }
 
@@ -21703,6 +21704,7 @@ type StyleGuide
     detectedMediaType: [String]
     writtenInLanguage: [Language]
     styleGuideFor: [String]
+    voiceExemplifiedBy: [Document]
   }
 
 type Summary
@@ -23739,7 +23741,7 @@ type WebPage
     title: [String]
     transcriptionOf: [CreativeWork]
     embodies: [Expression]
-    exemplifiedBy: [Document]
+    exemplifiedBy: [Item]
     hasManifestationFormat: ManifestationFormat
     pageOfSite: [WebSite]
     pagePrincipalSubject: Entity
@@ -23849,7 +23851,7 @@ type WebSite
     title: [String]
     transcriptionOf: [CreativeWork]
     embodies: [Expression]
-    exemplifiedBy: [Document]
+    exemplifiedBy: [Item]
     hasManifestationFormat: ManifestationFormat
   }
 
