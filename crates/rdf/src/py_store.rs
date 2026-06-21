@@ -451,6 +451,24 @@ impl PyVariable {
     }
 }
 
+/// Build a Python `Quad` object from an oxigraph [`Quad`].
+///
+/// Cross-crate constructor for the engine crates that produce quads natively (the
+/// RL closure in `gmeow-logic`, issue #630): they assemble an oxigraph `Quad` and
+/// hand Python a live `gmeow_rdf.Quad` directly, so the closure result never makes
+/// a round-trip through an intermediate N-Triples string the Python side has to
+/// re-parse. The returned object is the same `PyQuad` the parser/SPARQL surface
+/// yields, so downstream code (rdflib adapters, comparators) treats it uniformly.
+pub fn quad_to_py(py: Python<'_>, quad: &Quad) -> PyResult<Py<PyAny>> {
+    Ok(Py::new(
+        py,
+        PyQuad {
+            inner: quad.clone(),
+        },
+    )?
+    .into_any())
+}
+
 // ── Term ⇄ Python conversions ────────────────────────────────────────────────────
 
 fn term_to_py(py: Python<'_>, term: &Term) -> PyResult<Py<PyAny>> {

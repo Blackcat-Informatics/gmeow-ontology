@@ -1239,23 +1239,20 @@ fn reason_native_artifacts(py: Python<'_>, gts_bytes: &[u8], merge: bool) -> PyR
 ///
 /// # Returns
 ///
-/// A list of `(subject, predicate, object_nt, world, is_edb)` tuples — the full
-/// closure (asserted + derived). `subject`/`predicate` are bare IRI strings;
-/// `object_nt` is the N3 display form (`<iri>` or a quoted literal); `world` is
-/// the named-graph IRI (the sentinel for default-graph input); `is_edb` is true
-/// for asserted facts. The Python helper folds the derived rows back into the
-/// caller's rdflib graph (see `gmeow_tools.native_rl.native_rl_closure`).
+/// The full closure (asserted + derived) as an N-Triples string ([`rl_closure_nt`])
+/// or a list of live `gmeow_rdf.Quad` objects ([`rl_closure_quads`]). Term
+/// rendering — skolem-IRI → blank-node, literal display, de-dup and sort — happens
+/// in Rust ([`crate::reason::rl::RlClosure::to_ntriples`]), so the reasoning path
+/// crosses the FFI boundary exactly once (issue #630; the Python helper no longer
+/// re-renders rows).
 ///
 /// # Errors
 ///
 /// Raises `ValueError` on an N-Quads/N-Triples parse error and `RuntimeError`
 /// on a chase or decode failure.
-#[pyfunction]
-fn rl_closure(py: Python<'_>, input: &str) -> PyResult<Vec<Py<PyAny>>> {
-    if input.trim().is_empty() {
-        return Ok(vec![]);
-    }
-
+///
+/// Compute the OWL 2 RL closure of `input` (the shared core of the two surfaces).
+fn compute_rl_closure(py: Python<'_>, input: &str) -> PyResult<crate::reason::rl::RlClosure> {
     // Parse the input as N-Quads (a superset of N-Triples — bare triples land in
     // the default graph) into an oxigraph store, then close it through the
     // generic-triple RL chase with the GIL released.
@@ -1268,24 +1265,64 @@ fn rl_closure(py: Python<'_>, input: &str) -> PyResult<Vec<Py<PyAny>>> {
         let rdf_store = gmeow_rdf::oxigraph::OxigraphStore::new(&store);
         crate::reason::rl::rl_closure(&rdf_store).map_err(|e| (false, e))
     });
-    let closure = closure.map_err(|(is_parse, msg)| {
+    closure.map_err(|(is_parse, msg)| {
         if is_parse {
             pyo3::exceptions::PyValueError::new_err(msg)
         } else {
             pyo3::exceptions::PyRuntimeError::new_err(format!("rl_closure error: {msg}"))
         }
-    })?;
+    })
+}
 
-    let mut out: Vec<Py<PyAny>> = Vec::with_capacity(closure.triples.len());
-    for t in &closure.triples {
-        let tup = (
-            t.subject.as_str(),
-            t.predicate.as_str(),
-            t.object.as_str(),
-            t.world.as_str(),
-            t.is_edb,
-        );
-        out.push(tup.into_pyobject(py)?.into_any().unbind());
+/// Compute the OWL 2 RL/RDF deductive closure and return it as an N-Triples string.
+///
+/// The native, Docker/Java-free **primary** entailment authority that replaces the
+/// `owlrl` deductive-closure baseline (issue #666 Task 5). See the module note on
+/// [`compute_rl_closure`]; the full closure is rendered to a byte-stable N-Triples
+/// document in Rust. `input` is N-Quads or N-Triples (rdflib's
+/// `graph.serialize(format="nt"|"nquads")` feeds it directly).
+#[pyfunction]
+fn rl_closure_nt(py: Python<'_>, input: &str) -> PyResult<String> {
+    if input.trim().is_empty() {
+        return Ok(String::new());
+    }
+    Ok(compute_rl_closure(py, input)?.to_ntriples())
+}
+
+/// Compute the OWL 2 RL/RDF deductive closure and return live `gmeow_rdf.Quad`s.
+///
+/// The structured twin of [`rl_closure_nt`]: the closure is rendered to N-Triples
+/// in Rust and re-parsed (reusing oxigraph's lossless term parser) into a list of
+/// `gmeow_rdf.Quad` objects, so an rdflib caller folds the closure straight back
+/// into its graph with no intermediate Python-side N-Triples render/parse seam
+/// (issue #630). Blank nodes round-trip as blank nodes; literals keep
+/// datatype/language. All quads land in the default graph (the world axis is
+/// flattened for the single-default-graph close the suites use).
+#[pyfunction]
+fn rl_closure_quads(py: Python<'_>, input: &str) -> PyResult<Vec<Py<PyAny>>> {
+    if input.trim().is_empty() {
+        return Ok(vec![]);
+    }
+    let nt = compute_rl_closure(py, input)?.to_ntriples();
+    // Re-parse the rendered closure with oxigraph so the tricky literal/datatype
+    // and blank-node grammar is decoded by the same engine that serialized it,
+    // then hand each quad to Python as a native `gmeow_rdf.Quad` (#630).
+    let quads = py
+        .detach(move || -> Result<Vec<oxigraph::model::Quad>, String> {
+            let store = Store::new().map_err(|e| format!("store creation failed: {e}"))?;
+            store
+                .load_from_reader(RdfFormat::NTriples, nt.as_bytes())
+                .map_err(|e| format!("RL closure re-parse failed: {e}"))?;
+            store
+                .iter()
+                .collect::<Result<Vec<_>, _>>()
+                .map_err(|e| format!("RL closure store iteration failed: {e}"))
+        })
+        .map_err(pyo3::exceptions::PyRuntimeError::new_err)?;
+
+    let mut out: Vec<Py<PyAny>> = Vec::with_capacity(quads.len());
+    for quad in &quads {
+        out.push(gmeow_rdf::py_store::quad_to_py(py, quad)?);
     }
     Ok(out)
 }
@@ -1430,7 +1467,8 @@ pub fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(compile_logic, m)?)?;
     m.add_function(wrap_pyfunction!(reason_native, m)?)?;
     m.add_function(wrap_pyfunction!(reason_native_artifacts, m)?)?;
-    m.add_function(wrap_pyfunction!(rl_closure, m)?)?;
+    m.add_function(wrap_pyfunction!(rl_closure_nt, m)?)?;
+    m.add_function(wrap_pyfunction!(rl_closure_quads, m)?)?;
     m.add_function(wrap_pyfunction!(build_divergence_ledger, m)?)?;
     m.add_function(wrap_pyfunction!(verify_native, m)?)?;
     m.add_function(wrap_pyfunction!(extract_module, m)?)?;

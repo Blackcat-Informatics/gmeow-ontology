@@ -24,8 +24,12 @@ path = "src/lib.rs"
 # layer is built on. One in-memory store, one code path — correct dependency.
 oxigraph = { version = "0.5", default-features = false, features = ["rdf-12"] }
 # Shared RDF 1.2 adapter boundary for loading GTS/oxigraph/sidecar-aware stores
-# into world-indexed logic stores (#648, supports #630/#667).
-gmeow-rdf = { path = "../rdf", features = ["oxigraph", "gts"] }
+# into world-indexed logic stores (#648, supports #630/#667). The `python`
+# feature exposes `gmeow_rdf::py_store::quad_to_py`, so the native RL closure
+# returns live `gmeow_rdf.Quad` objects directly instead of an N-Triples string
+# the Python adapter would have to re-parse (#630 seam removal). `gmeow-logic` is
+# only ever built as a PyO3 extension submodule, so this adds no non-Python path.
+gmeow-rdf = { path = "../rdf", features = ["oxigraph", "gts", "python"] }
 # First-class diagnostics model (Finding/Report) so the native verify lane builds
 # its findings in Rust and hands Python a report via JSON (#695).
 gmeow-diagnostics = { path = "../diagnostics" }
