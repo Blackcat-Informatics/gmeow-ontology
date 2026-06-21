@@ -31,16 +31,17 @@
     },
     {
       "name": "handbook",
-      "path": "https://blackcatinformatics.ca/gmeow/examples/ai/handbook",
+      "path": "https://blackcatinformatics.ca/gmeow/examples/graphrag/facilities-handbook-2026",
       "title": "facilities handbook, 2026 edition",
       "hash": "blake3:9f8e7d6c5b4a39281706f5e4d3c2b1a09f8e7d6c5b4a39281706f5e4d3c2b1a0"
     },
     {
       "name": "mail-archive",
-      "path": "https://blackcatinformatics.ca/gmeow/examples/graphrag/mail-archive",
+      "path": "https://blackcatinformatics.ca/gmeow/examples/graphrag/list-archive-2025",
       "title": "list archive, 2025",
       "hash": "blake3:aa20bb31cc42dd53ee64ff750086119722a833b944c055d166e277f388a499b0"
     }
   ],
-  "notes": "Generated lossy projection of canonical GMEOW data; drops: reified relators (Copyright, roles, memberships) flatten or vanish; RDF 1.2 statement annotations (confidence, accordingTo, the four clocks) are dropped; standpoint indexing is dropped — contested claims appear without their vantage; blake3 content digests cannot fill sha256-only slots; the verbatim digest is preserved where the format allows."
+  "notes": "Generated lossy projection of canonical GMEOW data; drops: reified relators (Copyright, roles, memberships) flatten or vanish; RDF 1.2 statement annotations (confidence, accordingTo, the four clocks) are dropped; standpoint indexing is dropped — contested claims appear without their vantage; blake3 remains the internal canonical content digest; sha256/md5 are projected where supplied and the format allows.",
+  "version": "1.0.0"
 }

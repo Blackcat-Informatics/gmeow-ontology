@@ -85,6 +85,8 @@ _WAS_DERIVED_FROM = _g("wasDerivedFrom")
 _DATE_PUBLISHED = _g("datePublished")
 _SOURCE_LOCATION = _g("sourceLocation")
 _CONTENT_DIGEST = _g("contentDigest")
+_VERSION = _g("version")
+_CITE_AS = _g("citeAs")
 _CHUNK_OF = _g("chunkOf")
 _SPAN_START = _g("spanStart")
 _SPAN_END = _g("spanEnd")
@@ -123,6 +125,7 @@ CROISSANT_CONTEXT: dict[str, object] = {
     "fileObject": "cr:fileObject",
     "recordSet": "cr:recordSet",
     "sha256": "cr:sha256",
+    "md5": "cr:md5",
 }
 
 RO_CRATE_CONTEXT = "https://w3id.org/ro/crate/1.1/context"
@@ -155,8 +158,8 @@ DECLARED_DROPS: tuple[str, ...] = (
     "RDF 1.2 statement annotations (confidence, accordingTo, the four clocks)"
     " are dropped",
     "standpoint indexing is dropped — contested claims appear without their vantage",
-    "blake3 content digests cannot fill sha256-only slots; the verbatim"
-    " digest is preserved where the format allows",
+    "blake3 remains the internal canonical content digest; sha256/md5 are"
+    " projected where supplied and the format allows",
 )
 
 _FRICTIONLESS_SCHEMA_FILE = (
@@ -216,6 +219,8 @@ class DatasetMeta:
     creator: str
     date_published: str
     landing_page: str
+    version: str | None = None
+    cite_as: str | None = None
 
     @property
     def publication_year(self) -> str:
@@ -264,6 +269,8 @@ def dataset_meta(g: Graph) -> DatasetMeta:
         )
         raise ValueError(msg)
     creator_node = g.value(ds, _WAS_ATTRIBUTED_TO)
+    version = _text(g, ds, _VERSION) or None
+    cite_as = _text(g, ds, _CITE_AS) or None
     return DatasetMeta(
         iri=str(ds),
         title=_text(g, ds, _TITLE) or _label(g, ds),
@@ -273,19 +280,63 @@ def dataset_meta(g: Graph) -> DatasetMeta:
         creator=_label(g, creator_node) if creator_node else "",
         date_published=date_published,
         landing_page=_text(g, ds, _SOURCE_LOCATION) or str(ds),
+        version=version,
+        cite_as=cite_as,
     )
 
 
-def _documents(g: Graph) -> list[dict[str, str]]:
+def _digest_map(g: Graph, doc: Node) -> dict[str, str]:
+    """Collect all ``gmeow:contentDigest`` values for ``doc``.
+
+    Each value is expected to be ``algorithm:hex``. Unprefixed values are kept
+    under the key ``"digest"`` for backward compatibility. When several values
+    share the same algorithm, a conflicting value raises ``ValueError``;
+    identical duplicates are ignored.
+    """
+    if doc is None:
+        raise ValueError("_digest_map: doc cannot be None")
+    digests: dict[str, str] = {}
+    for value in g.objects(doc, _CONTENT_DIGEST):
+        raw = str(value)
+        if ":" in raw:
+            algorithm, _, hex_value = raw.partition(":")
+            key = algorithm
+        else:
+            key = "digest"
+            hex_value = raw
+        if key not in digests:
+            digests[key] = hex_value
+        elif digests[key] != hex_value:
+            raise ValueError(f"_digest_map: conflicting {key} digests for {doc}")
+    return digests
+
+
+def _primary_digest(digests: dict[str, str]) -> str:
+    """Best-effort single digest for formats that only accept one value.
+
+    Prefers blake3, then sha256, then md5, then any available value.
+    The returned string preserves the ``algorithm:hex`` form when an algorithm
+    prefix is known, matching the historical verbatim ``gmeow:contentDigest``
+    value used by RO-Crate and Frictionless.
+    """
+    for algo in ("blake3", "sha256", "md5"):
+        if algo in digests:
+            return f"{algo}:{digests[algo]}"
+    for algo, value in digests.items():
+        return value if algo == "digest" else f"{algo}:{value}"
+    return ""
+
+
+def _documents(g: Graph) -> list[dict[str, object]]:
     """Every gmeow:Document with identity columns, sorted by IRI."""
-    out: list[dict[str, str]] = []
+    out: list[dict[str, object]] = []
     for doc in sorted(set(g.subjects(RDF.type, _DOCUMENT)), key=str):
         out.append(
             {
                 "iri": str(doc),
                 "name": _label(g, doc),
                 "contentUrl": _text(g, doc, _SOURCE_LOCATION),
-                "digest": _text(g, doc, _CONTENT_DIGEST),
+                "digests": _digest_map(g, doc),
             }
         )
     return out
@@ -476,20 +527,30 @@ def build_croissant(g: Graph, ds: DatasetMeta) -> dict[str, object]:
     """Build the Croissant 1.0 JSON-LD document for a GMEOW dataset."""
     distributions: list[dict[str, object]] = []
     for doc in _documents(g):
+        content_url = doc["contentUrl"]
+        if not content_url:
+            raise ValueError(f"build_croissant: missing contentUrl for {doc['iri']}")
         file_object: dict[str, object] = {
             "@type": "cr:FileObject",
-            "@id": doc["iri"],
-            "name": doc["name"],
+            "@id": str(doc["iri"]),
+            "name": str(doc["name"]),
             "encodingFormat": "text/plain",
+            "contentUrl": str(content_url),
         }
-        if doc["contentUrl"]:
-            file_object["contentUrl"] = doc["contentUrl"]
-        digest = doc["digest"]
-        if digest.startswith("sha256:"):
-            file_object["sha256"] = digest.removeprefix("sha256:")
-        elif digest:
+        # `_documents` uses `dict[str, object]`; "digests" is really `dict[str, str]`.
+        digests: dict[str, str] = doc["digests"]  # type: ignore[assignment]
+        if "sha256" in digests:
+            file_object["sha256"] = digests["sha256"]
+        if "md5" in digests:
+            file_object["md5"] = digests["md5"]
+        extra = [
+            value if algo == "digest" else f"{algo}:{value}"
+            for algo, value in digests.items()
+            if algo not in {"sha256", "md5"}
+        ]
+        if extra:
             # blake3 cannot fill cr:sha256 — keep it findable, declared below.
-            file_object["description"] = f"content digest: {digest}"
+            file_object["description"] = "content digest: " + ", ".join(extra)
         distributions.append(file_object)
 
     tools = [
@@ -518,6 +579,10 @@ def build_croissant(g: Graph, ds: DatasetMeta) -> dict[str, object]:
         "rai:machineAnnotationTools": tools,
         "rai:dataLimitation": limitations,
     }
+    if ds.version:
+        result["version"] = ds.version
+    if ds.cite_as:
+        result["citeAs"] = ds.cite_as
     return result
 
 
@@ -551,16 +616,28 @@ def validate_croissant(doc: dict[str, object]) -> list[str]:
         if not isinstance(dist, dict) or not dist.get("@id"):
             problems.append("croissant: distribution entry without @id")
             continue
-        file_ids.add(str(dist["@id"]))
+        dist_id = str(dist["@id"])
+        file_ids.add(dist_id)
         if dist.get("@type") != "cr:FileObject":
-            problems.append(f"croissant: {dist['@id']} is not a cr:FileObject")
+            problems.append(f"croissant: {dist_id} is not a cr:FileObject")
+        if not dist.get("contentUrl"):
+            problems.append(f"croissant: {dist_id} missing contentUrl")
         sha = dist.get("sha256")
+        md5 = dist.get("md5")
+        if sha is None and md5 is None:
+            problems.append(f"croissant: {dist_id} needs sha256 or md5")
         if sha is not None and (
             not isinstance(sha, str)
             or len(sha) != 64
             or any(c not in "0123456789abcdef" for c in sha)
         ):
-            problems.append(f"croissant: {dist['@id']} sha256 is not 64-hex")
+            problems.append(f"croissant: {dist_id} sha256 is not 64-hex")
+        if md5 is not None and (
+            not isinstance(md5, str)
+            or len(md5) != 32
+            or any(c not in "0123456789abcdef" for c in md5)
+        ):
+            problems.append(f"croissant: {dist_id} md5 is not 32-hex")
     for rs in _as_list(doc.get("recordSet")):
         if not isinstance(rs, dict):
             continue
@@ -648,14 +725,17 @@ def build_ro_crate_metadata(
         )
     for doc in _documents(g):
         entity: dict[str, object] = {
-            "@id": doc["iri"],
+            "@id": str(doc["iri"]),
             "@type": "File",
-            "name": doc["name"],
+            "name": str(doc["name"]),
         }
-        if doc["digest"]:
-            entity["identifier"] = doc["digest"]  # verbatim blake3:/sha256:
+        # `_documents` uses `dict[str, object]`; "digests" is really `dict[str, str]`.
+        digests: dict[str, str] = doc["digests"]  # type: ignore[assignment]
+        primary = _primary_digest(digests)
+        if primary:
+            entity["identifier"] = primary  # best-effort single digest
         if doc["contentUrl"]:
-            entity["contentUrl"] = doc["contentUrl"]
+            entity["contentUrl"] = str(doc["contentUrl"])
         entities.append(entity)
     for agent in _agents(g):
         app: dict[str, object] = {
@@ -807,14 +887,17 @@ def build_frictionless(g: Graph, ds: DatasetMeta) -> dict[str, object]:
     resources: list[dict[str, object]] = []
     for doc in _documents(g):
         resource: dict[str, object] = {
-            "name": _slug(doc["iri"]).lower().replace("_", "-"),
-            "path": doc["contentUrl"] or doc["iri"],
-            "title": doc["name"],
+            "name": _slug(str(doc["iri"])).lower().replace("_", "-"),
+            "path": str(doc["contentUrl"] or doc["iri"]),
+            "title": str(doc["name"]),
         }
-        if doc["digest"]:
-            resource["hash"] = doc["digest"]  # verbatim, algorithm-prefixed
+        # `_documents` uses `dict[str, object]`; "digests" is really `dict[str, str]`.
+        digests: dict[str, str] = doc["digests"]  # type: ignore[assignment]
+        primary = _primary_digest(digests)
+        if primary:
+            resource["hash"] = primary  # best-effort single digest
         resources.append(resource)
-    return {
+    package: dict[str, object] = {
         "name": _slug(ds.iri).lower().replace("_", "-"),
         "title": ds.title,
         "description": ds.description,
@@ -829,6 +912,9 @@ def build_frictionless(g: Graph, ds: DatasetMeta) -> dict[str, object]:
         + "; ".join(DECLARED_DROPS)
         + ".",
     }
+    if ds.version:
+        package["version"] = ds.version
+    return package
 
 
 def validate_frictionless(doc: dict[str, object]) -> list[str]:

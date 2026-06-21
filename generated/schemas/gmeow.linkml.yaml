@@ -893,6 +893,9 @@ classes:
     class_uri: https://blackcatinformatics.ca/gmeow/Dataset
     title: Dataset
     is_a: Work
+    slots:
+    - citeAs
+    - version
   DatingMethod:
     class_uri: https://blackcatinformatics.ca/gmeow/DatingMethod
     title: Dating Method
@@ -5084,6 +5087,12 @@ slots:
     range: CitationIntent
     domain: CitationAct
     multivalued: false
+  citeAs:
+    slot_uri: https://blackcatinformatics.ca/gmeow/citeAs
+    title: cite as
+    range: string
+    domain: Dataset
+    multivalued: true
   citedEntity:
     slot_uri: https://blackcatinformatics.ca/gmeow/citedEntity
     title: cited entity
@@ -12708,6 +12717,12 @@ slots:
     title: verified by
     range: Agent
     domain: VerificationResult
+    multivalued: true
+  version:
+    slot_uri: https://blackcatinformatics.ca/gmeow/version
+    title: version
+    range: string
+    domain: Dataset
     multivalued: true
   versionFingerprint:
     slot_uri: https://blackcatinformatics.ca/gmeow/versionFingerprint

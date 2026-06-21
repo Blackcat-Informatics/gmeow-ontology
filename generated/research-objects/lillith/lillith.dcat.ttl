@@ -54,7 +54,10 @@ gmeow:fixtureSessionTake3Recording prov:wasGeneratedBy gmeow:fixtureSessionTake3
     dcat:distribution <https://blackcatinformatics.ca/gmeow/examples/graphrag/mail-archive> .
 
 <https://blackcatinformatics.ca/gmeow/examples/graphrag/mail-archive> a dcat:Distribution ;
-    spdx:checksum <https://blackcatinformatics.ca/gmeow/examples/graphrag/mail-archive-checksum> .
+    spdx:checksum <https://blackcatinformatics.ca/gmeow/examples/graphrag/mail-archive-checksum> ;
+    dcat:downloadURL "https://blackcatinformatics.ca/gmeow/examples/graphrag/list-archive-2025" .
 
 <https://blackcatinformatics.ca/gmeow/examples/graphrag/mail-archive-checksum> a spdx:Checksum ;
-    spdx:checksumValue "blake3:aa20bb31cc42dd53ee64ff750086119722a833b944c055d166e277f388a499b0" .
+    spdx:checksumValue "blake3:aa20bb31cc42dd53ee64ff750086119722a833b944c055d166e277f388a499b0",
+        "md5:cec9e36b1db871d2575ef8d6a4b23015",
+        "sha256:9a1db2371ff810323b9187139fe012a30fc6b2cc879cabccfaefe30f727a9c62" .

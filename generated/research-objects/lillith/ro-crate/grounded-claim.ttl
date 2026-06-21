@@ -47,7 +47,10 @@ ex:goal-answer-faithfully a gmeow:Goal ;
 
 ex:handbook a gmeow:Document ;
     rdfs:label "facilities handbook, 2026 edition"@en ;
-    gmeow:contentDigest "blake3:9f8e7d6c5b4a39281706f5e4d3c2b1a09f8e7d6c5b4a39281706f5e4d3c2b1a0" .
+    gmeow:contentDigest "blake3:9f8e7d6c5b4a39281706f5e4d3c2b1a09f8e7d6c5b4a39281706f5e4d3c2b1a0",
+        "md5:7b14f3681bed923ac3ddf9af885a5086",
+        "sha256:45441a53c39d0908231f626f36c99661e78108aca3cb8271e9085d732cb1f3f6" ;
+    gmeow:sourceLocation "https://blackcatinformatics.ca/gmeow/examples/graphrag/facilities-handbook-2026" .
 
 ex:prompt-extract a gmeow:Prompt ;
     gmeow:contentDigest "blake3:00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff" ;

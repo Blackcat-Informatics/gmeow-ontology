@@ -19,12 +19,14 @@ ex:pipeline-run a gmeow:BuildActivity ;
 
 ex:lillith-benchmark a gmeow:Dataset ;
     rdfs:label "Lillith GraphRAG benchmark"@en ;
+    gmeow:citeAs "Blackcat Informatics® Inc. (2026). Lillith GraphRAG benchmark. https://blackcatinformatics.ca/gmeow/examples/graphrag/lillith-benchmark" ;
     gmeow:datePublished "2026-06-12T00:00:00+00:00"^^xsd:dateTime ;
     gmeow:description "A worked GraphRAG benchmark dataset: a content-addressed corpus, its chunking, embeddings, vector index, retrieval events, and model-extracted entity/relationship descriptions — every artifact attributed and confidence-weighted, published as a research object."@en ;
     gmeow:hasLicense ex:lillith-license ;
     gmeow:hasPart ex:corpus-lillith ;
     gmeow:sourceLocation "https://blackcatinformatics.ca/gmeow/examples/graphrag/lillith-benchmark" ;
     gmeow:title "Lillith GraphRAG benchmark"@en ;
+    gmeow:version "1.0.0"^^xsd:string ;
     gmeow:wasAttributedTo ex:blackcat .
 
 ex:lillith-crate a gmeow:Distribution ;
