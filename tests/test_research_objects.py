@@ -88,10 +88,15 @@ def test_croissant_shape_and_validation(exports: Path) -> None:
 
 
 def test_croissant_sha256_only_for_sha256_digests(exports: Path) -> None:
-    """blake3 digests must NOT populate cr:sha256 — declared, not laundered."""
+    """blake3 digests must NOT populate cr:sha256; declared sha256/md5 may."""
     doc = json.loads((exports / "lillith.croissant.jsonld").read_text("utf-8"))
     for dist in doc["distribution"]:
-        assert "sha256" not in dist  # the worked example is all-blake3
+        if "sha256" in dist:
+            assert len(dist["sha256"]) == 64
+            assert all(c in "0123456789abcdef" for c in dist["sha256"])
+        if "md5" in dist:
+            assert len(dist["md5"]) == 32
+            assert all(c in "0123456789abcdef" for c in dist["md5"])
         if "description" in dist:
             assert dist["description"].startswith("content digest: blake3:")
     assert any("blake3" in lim for lim in doc["rai:dataLimitation"])

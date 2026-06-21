@@ -7085,6 +7085,8 @@ type Dataset
     quotedText: [String]
     quotesContent: [Entity]
     realizedThrough: [Expression]
+    citeAs: [String]
+    version: [String]
   }
 
 type DatingMethod

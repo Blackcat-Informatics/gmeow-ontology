@@ -81,7 +81,10 @@ ex:index-lillith a gmeow:VectorIndex ;
 
 ex:mail-archive a gmeow:Document ;
     rdfs:label "list archive, 2025"@en ;
-    gmeow:contentDigest "blake3:aa20bb31cc42dd53ee64ff750086119722a833b944c055d166e277f388a499b0" .
+    gmeow:contentDigest "blake3:aa20bb31cc42dd53ee64ff750086119722a833b944c055d166e277f388a499b0",
+        "md5:cec9e36b1db871d2575ef8d6a4b23015",
+        "sha256:9a1db2371ff810323b9187139fe012a30fc6b2cc879cabccfaefe30f727a9c62" ;
+    gmeow:sourceLocation "https://blackcatinformatics.ca/gmeow/examples/graphrag/list-archive-2025" .
 
 ex:desc-buildsys a gmeow:ExtractedEntity ;
     rdfs:label "extracted: 'the build system'"@en ;

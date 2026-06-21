@@ -1763,13 +1763,13 @@
         <https://blackcatinformatics.ca/gmeow.nt>,
         <https://blackcatinformatics.ca/gmeow.rdf>,
         <https://blackcatinformatics.ca/gmeow.ttl> ;
-    void:entities 4412 ;
+    void:entities 4414 ;
     void:exampleResource gmeow:Person ;
     void:feature <http://www.w3.org/ns/formats/JSON-LD>,
         <http://www.w3.org/ns/formats/N-Triples>,
         <http://www.w3.org/ns/formats/RDF_XML>,
         <http://www.w3.org/ns/formats/Turtle> ;
-    void:properties 1527 ;
+    void:properties 1529 ;
     void:subset <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-0.1-96e2e0-owl_equivalentClass>,
         <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-0.1-96e2e0-owl_equivalentProperty>,
         <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-0.1-96e2e0-skos_broadMatch>,
@@ -1999,7 +1999,7 @@
         <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-wiki-630ef1-skos_relatedMatch>,
         <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-www.discogs.com-4b9508-skos_relatedMatch>,
         <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-www.onetcenter.org-49e491-skos_relatedMatch> ;
-    void:triples 37433 ;
+    void:triples 37455 ;
     void:uriSpace "https://blackcatinformatics.ca/gmeow/" ;
     void:vocabulary faldo:,
         cc:,

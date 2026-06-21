@@ -129,13 +129,15 @@
       "@id": "https://blackcatinformatics.ca/gmeow/examples/ai/handbook",
       "@type": "File",
       "name": "facilities handbook, 2026 edition",
-      "identifier": "blake3:9f8e7d6c5b4a39281706f5e4d3c2b1a09f8e7d6c5b4a39281706f5e4d3c2b1a0"
+      "identifier": "blake3:9f8e7d6c5b4a39281706f5e4d3c2b1a09f8e7d6c5b4a39281706f5e4d3c2b1a0",
+      "contentUrl": "https://blackcatinformatics.ca/gmeow/examples/graphrag/facilities-handbook-2026"
     },
     {
       "@id": "https://blackcatinformatics.ca/gmeow/examples/graphrag/mail-archive",
       "@type": "File",
       "name": "list archive, 2025",
-      "identifier": "blake3:aa20bb31cc42dd53ee64ff750086119722a833b944c055d166e277f388a499b0"
+      "identifier": "blake3:aa20bb31cc42dd53ee64ff750086119722a833b944c055d166e277f388a499b0",
+      "contentUrl": "https://blackcatinformatics.ca/gmeow/examples/graphrag/list-archive-2025"
     },
     {
       "@id": "https://blackcatinformatics.ca/gmeow/evals/harness",
