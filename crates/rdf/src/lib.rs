@@ -40,6 +40,10 @@ pub mod py_gts_dataset;
 pub mod statements;
 pub mod store;
 pub mod turtle;
+// Canonical, review-friendly Turtle serializer over the IR (#819 Task 9): the
+// native replacement for rdflib `longturtle` in `gmeow normalize`.
+#[cfg(feature = "oxigraph")]
+pub mod turtle_normalize;
 
 pub use diagnostic::{RdfDiagnostic, RdfLocation, RdfLoss, RdfSeverity};
 pub use ir::{

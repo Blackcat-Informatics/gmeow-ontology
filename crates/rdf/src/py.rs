@@ -46,6 +46,23 @@ fn loss_matrix_json() -> String {
     loss::loss_matrix_json()
 }
 
+/// Canonical, review-friendly Turtle serialization over the gmeow-rdf IR (#819
+/// Task 9) — the native replacement for rdflib `longturtle` in `gmeow normalize`.
+///
+/// `extra_prefixes` is the project's standard prefix set; only prefixes the
+/// document actually uses appear in the header. The output is a pure function of
+/// the graph (RDFC-aware blank handling), so re-running is idempotent.
+#[pyfunction]
+#[pyo3(signature = (turtle_bytes, extra_prefixes=Vec::new()))]
+fn canonicalize_turtle(
+    turtle_bytes: &[u8],
+    extra_prefixes: Vec<(String, String)>,
+) -> PyResult<Vec<u8>> {
+    crate::turtle_normalize::canonical_turtle(turtle_bytes, &extra_prefixes)
+        .map(String::into_bytes)
+        .map_err(PyValueError::new_err)
+}
+
 /// Register the `gmeow-rdf` surface on a Python module.
 ///
 /// Called by the unified `gmeow_native` cdylib (#630) to populate the
@@ -55,6 +72,7 @@ pub fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(project_statements_rdf12, m)?)?;
     m.add_function(wrap_pyfunction!(normalize_rdf12_to_owl, m)?)?;
     m.add_function(wrap_pyfunction!(loss_matrix_json, m)?)?;
+    m.add_function(wrap_pyfunction!(canonicalize_turtle, m)?)?;
     // The native oxigraph Store / SPARQL / parse / canonicalize surface that
     // replaces the external `pyoxigraph` package (#667).
     crate::py_store::register(m)?;
