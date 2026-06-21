@@ -35,7 +35,9 @@ pub mod store;
 pub mod turtle;
 
 pub use diagnostic::{RdfDiagnostic, RdfLocation, RdfLoss, RdfSeverity};
-pub use ir::{BlankScope, RdfDatasetBuilder, TermId};
+pub use ir::{
+    BlankScope, QuadHandle, QuadIds, QuadRef, RdfDataset, RdfDatasetBuilder, TermId, TermRef,
+};
 pub use lookaside::{
     RdfBlobRecord, RdfLookaside, RdfLookasideKind, RdfLookasideResource, RdfMetadataEntry,
     RdfMetadataValue, RdfOpaqueNodeRecord, RdfSegmentRecord, RdfSignatureRecord,
