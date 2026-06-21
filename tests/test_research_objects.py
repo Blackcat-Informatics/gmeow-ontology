@@ -96,8 +96,8 @@ def test_croissant_shape_and_validation(exports: Path) -> None:
     assert validate_croissant(doc) == []
 
 
-def test_croissant_sha256_only_for_sha256_digests(exports: Path) -> None:
-    """blake3 digests must NOT populate cr:sha256; declared sha256/md5 may."""
+def test_croissant_digest_fields_are_well_formed(exports: Path) -> None:
+    """sha256 and md5 fields, when present, must be lowercase hex of expected length."""
     doc = json.loads((exports / "lillith.croissant.jsonld").read_text("utf-8"))
     for dist in doc["distribution"]:
         if "sha256" in dist:
