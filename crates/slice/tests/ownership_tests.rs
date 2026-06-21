@@ -1,0 +1,402 @@
+// SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+// SPDX-License-Identifier: AGPL-3.0-only
+
+//! Hermetic acceptance tests for the native ownership + dependency analyzer
+//! (RFC #820 §10 / S4). Each test builds minimal slice directories on disk
+//! under a `tempfile::TempDir`, discovers them via [`SliceCatalog::discover`],
+//! and asserts on the [`OwnershipReport`].
+
+use std::path::Path;
+
+use oxigraph::model::NamedNode;
+use tempfile::TempDir;
+
+use gmeow_slice::{
+    EdgeKind, OwnershipAnalyzer, OwnershipDiagnostic, OwnershipStatus, ReconciliationStatus,
+    SliceCatalog,
+};
+
+const NS: &str = "https://blackcatinformatics.ca/gmeow/";
+
+// ── Fixture helpers ───────────────────────────────────────────────────────────
+
+/// Write a file, creating parent directories as needed.
+fn write(root: &Path, rel: &str, content: &str) {
+    let path = root.join(rel);
+    std::fs::create_dir_all(path.parent().unwrap()).unwrap();
+    std::fs::write(&path, content).unwrap();
+}
+
+/// A minimal valid `manifest.ttl` for a slice with the given IRI suffix and
+/// optional `gmeow:sliceDependsOn` targets (IRI suffixes).
+fn manifest(slice: &str, depends_on: &[&str]) -> String {
+    let mut deps = String::new();
+    for d in depends_on {
+        deps.push_str(&format!("    gmeow:sliceDependsOn gmeow:{d} ;\n"));
+    }
+    format!(
+        "@prefix gmeow: <{NS}> .\n\
+         @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\
+         @prefix dcterms: <http://purl.org/dc/terms/> .\n\n\
+         gmeow:{slice} a gmeow:Slice ;\n\
+         {deps}    rdfs:label \"{slice}\"@x-gmeow-english ;\n\
+         dcterms:title \"{slice} slice\"@x-gmeow-english .\n"
+    )
+}
+
+/// Build a full slice IRI from a local-name suffix.
+fn iri(suffix: &str) -> String {
+    format!("{NS}{suffix}")
+}
+
+fn nn(suffix: &str) -> NamedNode {
+    NamedNode::new(iri(suffix)).unwrap()
+}
+
+// ── Test 1: single validated owner ────────────────────────────────────────────
+
+#[test]
+fn single_validated_owner() {
+    let tmp = TempDir::new().unwrap();
+    let root = tmp.path();
+
+    // Slice A defines term T via rdfs:isDefinedBy → sliceA.
+    write(
+        root,
+        "slices/grpA/sliceA/manifest.ttl",
+        &manifest("sliceA", &[]),
+    );
+    write(
+        root,
+        "slices/grpA/sliceA/module.ttl",
+        &format!(
+            "@prefix gmeow: <{NS}> .\n\
+             @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\
+             @prefix owl: <http://www.w3.org/2002/07/owl#> .\n\n\
+             gmeow:termT a owl:Class ;\n\
+             rdfs:isDefinedBy gmeow:sliceA ;\n\
+             rdfs:label \"term T\"@x-gmeow-english .\n"
+        ),
+    );
+
+    // Slice B references term T in its module (a dependency on A).
+    write(
+        root,
+        "slices/grpB/sliceB/manifest.ttl",
+        &manifest("sliceB", &["sliceA"]),
+    );
+    write(
+        root,
+        "slices/grpB/sliceB/module.ttl",
+        &format!(
+            "@prefix gmeow: <{NS}> .\n\
+             @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\
+             @prefix owl: <http://www.w3.org/2002/07/owl#> .\n\n\
+             gmeow:termU a owl:Class ;\n\
+             rdfs:isDefinedBy gmeow:sliceB ;\n\
+             rdfs:subClassOf gmeow:termT .\n"
+        ),
+    );
+
+    let catalog = SliceCatalog::discover(root).unwrap();
+    let report = OwnershipAnalyzer::new(&catalog).analyze();
+
+    // Exactly ONE validated owner for T.
+    let t = &report.ownership[&nn("termT")];
+    assert_eq!(t.declared_owner, iri("sliceA"));
+    assert_eq!(t.status, OwnershipStatus::Validated);
+    assert!(t.physical_origin.is_some());
+    assert_eq!(t.physical_origin.as_ref().unwrap().slice, iri("sliceA"));
+
+    // No conflict / mismatch diagnostics.
+    assert!(
+        !report.has_ownership_defect(),
+        "expected no ownership defect"
+    );
+
+    // B → A edge exists, semantic (Ontology), declared → Matched.
+    let edge = report
+        .edges
+        .iter()
+        .find(|e| e.from_slice == iri("sliceB") && e.to_slice == iri("sliceA"))
+        .expect("expected a sliceB → sliceA edge");
+    assert_eq!(edge.edge_kind, EdgeKind::Ontology);
+    assert_eq!(edge.reconciliation, ReconciliationStatus::Matched);
+    assert!(
+        edge.evidence
+            .iter()
+            .any(|ev| ev.referenced_term == nn("termT")),
+        "edge must carry termT as evidence"
+    );
+}
+
+// ── Test 2: ownership conflict ────────────────────────────────────────────────
+
+#[test]
+fn ownership_conflict() {
+    let tmp = TempDir::new().unwrap();
+    let root = tmp.path();
+
+    // Both A and B claim isDefinedBy for term T.
+    write(
+        root,
+        "slices/grpA/sliceA/manifest.ttl",
+        &manifest("sliceA", &[]),
+    );
+    write(
+        root,
+        "slices/grpA/sliceA/module.ttl",
+        &format!(
+            "@prefix gmeow: <{NS}> .\n\
+             @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\
+             @prefix owl: <http://www.w3.org/2002/07/owl#> .\n\n\
+             gmeow:termT a owl:Class ; rdfs:isDefinedBy gmeow:sliceA .\n"
+        ),
+    );
+    write(
+        root,
+        "slices/grpB/sliceB/manifest.ttl",
+        &manifest("sliceB", &[]),
+    );
+    write(
+        root,
+        "slices/grpB/sliceB/module.ttl",
+        &format!(
+            "@prefix gmeow: <{NS}> .\n\
+             @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\
+             @prefix owl: <http://www.w3.org/2002/07/owl#> .\n\n\
+             gmeow:termT a owl:Class ; rdfs:isDefinedBy gmeow:sliceB .\n"
+        ),
+    );
+
+    let catalog = SliceCatalog::discover(root).unwrap();
+    let report = OwnershipAnalyzer::new(&catalog).analyze();
+
+    let t = &report.ownership[&nn("termT")];
+    match &t.status {
+        OwnershipStatus::Conflict(claimants) => {
+            assert!(claimants.contains(&iri("sliceA")));
+            assert!(claimants.contains(&iri("sliceB")));
+        }
+        other => panic!("expected Conflict, got {other:?}"),
+    }
+    assert!(report.has_ownership_defect());
+    assert!(report.diagnostics.iter().any(|d| matches!(
+        d,
+        OwnershipDiagnostic::Conflict { term, .. } if *term == nn("termT")
+    )));
+}
+
+// ── Test 3: parsed (not textual) edges ────────────────────────────────────────
+
+#[test]
+fn parsed_not_textual_edges() {
+    let tmp = TempDir::new().unwrap();
+    let root = tmp.path();
+
+    // Slice A owns termT.
+    write(
+        root,
+        "slices/grpA/sliceA/manifest.ttl",
+        &manifest("sliceA", &[]),
+    );
+    write(
+        root,
+        "slices/grpA/sliceA/module.ttl",
+        &format!(
+            "@prefix gmeow: <{NS}> .\n\
+             @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\
+             @prefix owl: <http://www.w3.org/2002/07/owl#> .\n\n\
+             gmeow:termT a owl:Property ; rdfs:isDefinedBy gmeow:sliceA .\n\
+             gmeow:termGhost a owl:Property ; rdfs:isDefinedBy gmeow:sliceA .\n"
+        ),
+    );
+
+    // Slice B has a SPARQL query that:
+    //  - uses gmeow:termT as a predicate (a real term reference), and
+    //  - mentions gmeow:termGhost ONLY inside a string literal (must NOT count).
+    write(
+        root,
+        "slices/grpB/sliceB/manifest.ttl",
+        &manifest("sliceB", &["sliceA"]),
+    );
+    write(
+        root,
+        "slices/grpB/sliceB/queries/competency/q.rq",
+        &format!(
+            "PREFIX gmeow: <{NS}>\n\
+             SELECT ?s ?label WHERE {{\n\
+             ?s gmeow:termT ?o .\n\
+             BIND(\"see <{NS}termGhost> for details\" AS ?label)\n\
+             }}\n"
+        ),
+    );
+
+    let catalog = SliceCatalog::discover(root).unwrap();
+    let report = OwnershipAnalyzer::new(&catalog).analyze();
+
+    // Exactly one B → A query edge, with termT as evidence.
+    let edge = report
+        .edges
+        .iter()
+        .find(|e| {
+            e.from_slice == iri("sliceB")
+                && e.to_slice == iri("sliceA")
+                && e.edge_kind == EdgeKind::Query
+        })
+        .expect("expected a sliceB → sliceA Query edge");
+
+    let referenced: Vec<&NamedNode> = edge.evidence.iter().map(|e| &e.referenced_term).collect();
+    assert!(
+        referenced.contains(&&nn("termT")),
+        "termT (a parsed predicate) must be evidence"
+    );
+    assert!(
+        !referenced.contains(&&nn("termGhost")),
+        "termGhost (only in a string literal) must NOT be evidence"
+    );
+}
+
+// ── Test 4: path independence ─────────────────────────────────────────────────
+
+#[test]
+fn path_independence() {
+    // Build the SAME logical slice content at two different filesystem layouts.
+    fn build(root: &Path, group: &str) {
+        write(
+            root,
+            &format!("slices/{group}/sliceA/manifest.ttl"),
+            &manifest("sliceA", &[]),
+        );
+        write(
+            root,
+            &format!("slices/{group}/sliceA/module.ttl"),
+            &format!(
+                "@prefix gmeow: <{NS}> .\n\
+                 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\
+                 @prefix owl: <http://www.w3.org/2002/07/owl#> .\n\n\
+                 gmeow:termT a owl:Class ; rdfs:isDefinedBy gmeow:sliceA .\n"
+            ),
+        );
+    }
+
+    let tmp1 = TempDir::new().unwrap();
+    let tmp2 = TempDir::new().unwrap();
+    build(tmp1.path(), "core");
+    build(tmp2.path(), "extensions/deeply/nested");
+
+    let r1 = OwnershipAnalyzer::new(&SliceCatalog::discover(tmp1.path()).unwrap()).analyze();
+    let r2 = OwnershipAnalyzer::new(&SliceCatalog::discover(tmp2.path()).unwrap()).analyze();
+
+    // Ownership tables are identical (term IRIs, owners, status — all
+    // path-independent). physical_origin.logical_path is slice-relative, so it
+    // too is identical across the differing group paths.
+    let o1 = &r1.ownership[&nn("termT")];
+    let o2 = &r2.ownership[&nn("termT")];
+    assert_eq!(o1.declared_owner, o2.declared_owner);
+    assert_eq!(o1.status, o2.status);
+    assert_eq!(o1.physical_origin, o2.physical_origin);
+    assert_eq!(o1, o2);
+}
+
+// ── Test 5: semantic vs non-semantic edges ────────────────────────────────────
+
+#[test]
+fn semantic_vs_nonsemantic() {
+    let tmp = TempDir::new().unwrap();
+    let root = tmp.path();
+
+    // Slice A owns termT.
+    write(
+        root,
+        "slices/grpA/sliceA/manifest.ttl",
+        &manifest("sliceA", &[]),
+    );
+    write(
+        root,
+        "slices/grpA/sliceA/module.ttl",
+        &format!(
+            "@prefix gmeow: <{NS}> .\n\
+             @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\
+             @prefix owl: <http://www.w3.org/2002/07/owl#> .\n\n\
+             gmeow:termT a owl:Class ; rdfs:isDefinedBy gmeow:sliceA .\n"
+        ),
+    );
+
+    // Slice B references termT ONLY in documentation (non-semantic) — and does
+    // NOT declare sliceDependsOn. A documentation cross-ref must NOT become a
+    // reconcilable build dependency.
+    write(
+        root,
+        "slices/grpB/sliceB/manifest.ttl",
+        &manifest("sliceB", &[]),
+    );
+    write(
+        root,
+        "slices/grpB/sliceB/docs.md",
+        &format!("# Slice B\nSee [termT]({NS}termT) in slice A.\n"),
+    );
+
+    // Slice C references termT in its ontology module (semantic) but does NOT
+    // declare sliceDependsOn → an Undeclared semantic edge.
+    write(
+        root,
+        "slices/grpC/sliceC/manifest.ttl",
+        &manifest("sliceC", &[]),
+    );
+    write(
+        root,
+        "slices/grpC/sliceC/module.ttl",
+        &format!(
+            "@prefix gmeow: <{NS}> .\n\
+             @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\
+             @prefix owl: <http://www.w3.org/2002/07/owl#> .\n\n\
+             gmeow:termC a owl:Class ; rdfs:isDefinedBy gmeow:sliceC ;\n\
+             rdfs:subClassOf gmeow:termT .\n"
+        ),
+    );
+
+    let catalog = SliceCatalog::discover(root).unwrap();
+    let report = OwnershipAnalyzer::new(&catalog).analyze();
+
+    // The documentation edge B → A (if recorded at all) is NON-semantic and
+    // never reconciles / never produces an UndeclaredDependency diagnostic.
+    if let Some(doc_edge) = report
+        .edges
+        .iter()
+        .find(|e| e.from_slice == iri("sliceB") && e.to_slice == iri("sliceA"))
+    {
+        assert_eq!(doc_edge.edge_kind, EdgeKind::Documentation);
+        assert!(!doc_edge.edge_kind.is_semantic());
+        // Non-semantic edges carry Undeclared (evidence-only), never Matched.
+        assert_ne!(doc_edge.reconciliation, ReconciliationStatus::Matched);
+    }
+    // No UndeclaredDependency diagnostic for the documentation edge.
+    assert!(
+        !report.diagnostics.iter().any(|d| matches!(
+            d,
+            OwnershipDiagnostic::UndeclaredDependency { from_slice, to_slice, .. }
+                if *from_slice == iri("sliceB") && *to_slice == iri("sliceA")
+        )),
+        "a documentation cross-ref must not yield an UndeclaredDependency"
+    );
+
+    // The ontology edge C → A IS semantic and, being undeclared, yields an
+    // UndeclaredDependency diagnostic.
+    let onto_edge = report
+        .edges
+        .iter()
+        .find(|e| {
+            e.from_slice == iri("sliceC")
+                && e.to_slice == iri("sliceA")
+                && e.edge_kind == EdgeKind::Ontology
+        })
+        .expect("expected a sliceC → sliceA Ontology edge");
+    assert!(onto_edge.edge_kind.is_semantic());
+    assert_eq!(onto_edge.reconciliation, ReconciliationStatus::Undeclared);
+    assert!(report.diagnostics.iter().any(|d| matches!(
+        d,
+        OwnershipDiagnostic::UndeclaredDependency { from_slice, to_slice, .. }
+            if *from_slice == iri("sliceC") && *to_slice == iri("sliceA")
+    )));
+}

@@ -17,6 +17,10 @@ path = "src/lib.rs"
 [dependencies]
 gmeow-rdf = { path = "../rdf", features = ["oxigraph"] }
 oxigraph = { version = "0.5", default-features = false, features = ["rdf-12"] }
+# SPARQL algebra parser — competency/verify queries are PARSED (RFC §10),
+# never text-searched, to extract referenced term IRIs. Version aligns with the
+# oxigraph 0.5 transitive resolution already pinned in the workspace lockfile.
+spargebra = { version = "0.4", features = ["sparql-12"] }
 sha2 = "0.10"
 serde = { version = "1", features = ["derive"] }
 
