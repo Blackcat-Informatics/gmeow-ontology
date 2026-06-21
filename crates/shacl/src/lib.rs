@@ -11,6 +11,7 @@
 //! delegated to oxigraph's SPARQL 1.1 engine (#577).
 
 pub mod constraints;
+pub mod data;
 pub mod engine;
 pub mod model;
 pub mod path;

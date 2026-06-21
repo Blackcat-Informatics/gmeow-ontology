@@ -11,23 +11,27 @@ use oxigraph::io::{RdfFormat, RdfParser};
 use oxigraph::model::Term;
 use oxigraph::store::Store;
 
-use gmeow_rdf::oxigraph::{store_from_rdf_store, GraphPolicy};
-use gmeow_rdf::RdfStore;
+use gmeow_rdf::ir::RdfDatasetBuilder;
+use gmeow_rdf::{RdfStore, RdfTerm};
 
+use crate::data::{GraphFilter, ShaclDataGraph};
 use crate::model::{rdf, rdfs};
 use crate::report::ValidationReport;
 use crate::shapes::{Shapes, Target};
 
 // ── Target resolution helpers ─────────────────────────────────────────────────
 
-/// Collect distinct subjects of `(?, pred, ?)` in the default graph.
-fn subjects_of(data: &Store, pred: &oxigraph::model::NamedNode) -> Vec<Term> {
+/// Build the oxigraph `Term` pattern for a predicate IRI.
+fn predicate_pattern(pred: &oxigraph::model::NamedNode) -> Term {
+    Term::NamedNode(pred.clone())
+}
+
+/// Collect distinct subjects of `(?, pred, ?)` across all graphs.
+fn subjects_of<G: ShaclDataGraph>(data: &G, pred: &oxigraph::model::NamedNode) -> Vec<Term> {
+    let pred_term = predicate_pattern(pred);
     let mut seen = std::collections::HashSet::new();
     let mut result = Vec::new();
-    for quad in data
-        .quads_for_pattern(None, Some(pred.as_ref()), None, None)
-        .flatten()
-    {
+    for quad in data.quads_for_pattern(None, Some(&pred_term), None, GraphFilter::AnyGraph) {
         let t = Term::from(quad.subject);
         if seen.insert(t.clone()) {
             result.push(t);
@@ -36,14 +40,12 @@ fn subjects_of(data: &Store, pred: &oxigraph::model::NamedNode) -> Vec<Term> {
     result
 }
 
-/// Collect distinct objects of `(?, pred, ?)` in the default graph.
-fn objects_of(data: &Store, pred: &oxigraph::model::NamedNode) -> Vec<Term> {
+/// Collect distinct objects of `(?, pred, ?)` across all graphs.
+fn objects_of<G: ShaclDataGraph>(data: &G, pred: &oxigraph::model::NamedNode) -> Vec<Term> {
+    let pred_term = predicate_pattern(pred);
     let mut seen = std::collections::HashSet::new();
     let mut result = Vec::new();
-    for quad in data
-        .quads_for_pattern(None, Some(pred.as_ref()), None, None)
-        .flatten()
-    {
+    for quad in data.quads_for_pattern(None, Some(&pred_term), None, GraphFilter::AnyGraph) {
         let t = quad.object;
         if seen.insert(t.clone()) {
             result.push(t);
@@ -61,25 +63,23 @@ fn objects_of(data: &Store, pred: &oxigraph::model::NamedNode) -> Vec<Term> {
 /// read `rdfs:subClassOf` triples that exist and materialize nothing. (The
 /// "no-inference contract" means no reasoner is run, not that asserted subclass
 /// edges are ignored.) See #599.
-pub(crate) fn subclass_closure(
-    data: &Store,
+pub(crate) fn subclass_closure<G: ShaclDataGraph>(
+    data: &G,
     class_iri: &oxigraph::model::NamedNode,
 ) -> std::collections::HashSet<Term> {
+    let sub_class_of = Term::NamedNode(rdfs::SUB_CLASS_OF.into_owned());
     let mut closure = std::collections::HashSet::new();
     let start = Term::NamedNode(class_iri.clone());
     closure.insert(start.clone());
     let mut frontier = vec![start];
     while let Some(superclass) = frontier.pop() {
         // Any X with `X rdfs:subClassOf superclass` is a subclass to descend into.
-        for quad in data
-            .quads_for_pattern(
-                None,
-                Some(rdfs::SUB_CLASS_OF),
-                Some(superclass.as_ref()),
-                None,
-            )
-            .flatten()
-        {
+        for quad in data.quads_for_pattern(
+            None,
+            Some(&sub_class_of),
+            Some(&superclass),
+            GraphFilter::AnyGraph,
+        ) {
             let sub = Term::from(quad.subject);
             if closure.insert(sub.clone()) {
                 frontier.push(sub);
@@ -91,14 +91,17 @@ pub(crate) fn subclass_closure(
 
 /// Collect subjects that are SHACL instances of `class_iri`: nodes with an
 /// `rdf:type` to `class_iri` or to any asserted (transitive) subclass of it.
-fn instances_of_class(data: &Store, class_iri: &oxigraph::model::NamedNode) -> Vec<Term> {
+fn instances_of_class<G: ShaclDataGraph>(
+    data: &G,
+    class_iri: &oxigraph::model::NamedNode,
+) -> Vec<Term> {
+    let rdf_type = Term::NamedNode(rdf::TYPE.into_owned());
     let classes = subclass_closure(data, class_iri);
     let mut seen = std::collections::HashSet::new();
     let mut result = Vec::new();
     for class in &classes {
-        for quad in data
-            .quads_for_pattern(None, Some(rdf::TYPE), Some(class.as_ref()), None)
-            .flatten()
+        for quad in
+            data.quads_for_pattern(None, Some(&rdf_type), Some(class), GraphFilter::AnyGraph)
         {
             let t = Term::from(quad.subject);
             if seen.insert(t.clone()) {
@@ -112,7 +115,7 @@ fn instances_of_class(data: &Store, class_iri: &oxigraph::model::NamedNode) -> V
 /// Resolve the focus node set for a single shape from its target declarations.
 ///
 /// Results are deduped by `Term` identity and sorted for a stable order.
-fn resolve_focus_nodes(data: &Store, targets: &[Target]) -> Vec<Term> {
+fn resolve_focus_nodes<G: ShaclDataGraph>(data: &G, targets: &[Target]) -> Vec<Term> {
     let mut seen = std::collections::HashSet::new();
     let mut nodes: Vec<Term> = Vec::new();
 
@@ -131,8 +134,11 @@ fn resolve_focus_nodes(data: &Store, targets: &[Target]) -> Vec<Term> {
                 }
             }
             // sh:SPARQLTarget: execute the pre-validated SELECT and collect ?this.
+            // SHACL-SPARQL needs an oxigraph query engine; obtain it via the
+            // data graph's SPARQL store (cheap borrow for Store, one-time
+            // materialization for the IR backend).
             // Query parseability is guaranteed at shapes-parse time, so .expect() is correct.
-            Target::Sparql(select) => crate::sparql::eval_target(data, select)
+            Target::Sparql(select) => crate::sparql::eval_target(&data.sparql_store(), select)
                 .expect("SPARQLTarget query execution failed (parseability checked at parse time)"),
         };
         for node in candidates {
@@ -157,6 +163,15 @@ fn resolve_focus_nodes(data: &Store, targets: &[Target]) -> Vec<Term> {
 /// by `(focus_node, source_constraint_component, source_shape, result_path,
 /// value)` so reports are identical across runs.
 pub fn validate(data: &Store, shapes: &Shapes) -> ValidationReport {
+    validate_with(data, shapes)
+}
+
+/// Validate any [`ShaclDataGraph`] backend against `shapes`.
+///
+/// This is the single, backend-generic engine core: [`validate`] (oxigraph
+/// [`Store`]) and [`validate_rdf_store`] (the IR backend) both bottom out here, so
+/// conformance is identical by construction across backends.
+pub fn validate_with<G: ShaclDataGraph>(data: &G, shapes: &Shapes) -> ValidationReport {
     let mut all_results = Vec::new();
 
     for shape in &shapes.node_shapes {
@@ -205,24 +220,103 @@ pub fn validate(data: &Store, shapes: &Shapes) -> ValidationReport {
     }
 }
 
-/// Validate any [`gmeow_rdf::RdfStore`] against parsed SHACL shapes.
+/// Validate any [`gmeow_rdf::RdfStore`] against parsed SHACL shapes, IR-natively.
 ///
-/// The source store is materialized into oxigraph through the shared RDF 1.2
-/// adapter boundary. Named graphs are flattened so GTS bundle partitions behave
-/// like the repository's Turtle source merge, which loads all inputs into one
-/// default graph.
+/// The source store is frozen into an immutable [`gmeow_rdf::RdfDataset`] (the RDF
+/// IR) and the generic engine reads pattern lookups DIRECTLY from the IR — there is
+/// no whole-store oxigraph materialization on this path (SHACL-SPARQL constraints,
+/// if any, lazily materialize a query store on demand only). Named graphs are
+/// flattened so GTS bundle partitions behave like the repository's Turtle source
+/// merge, which loads all inputs into one default graph.
 ///
 /// # Errors
 ///
-/// Returns an error string if the source store cannot be materialized into
-/// oxigraph.
+/// Returns an error string if the source store cannot be frozen into the IR
+/// (e.g. a malformed term the builder rejects).
 pub fn validate_rdf_store(
     data: &impl RdfStore,
     shapes: &Shapes,
 ) -> Result<ValidationReport, String> {
-    let data = store_from_rdf_store(data, GraphPolicy::FlattenToDefaultGraph)
-        .map_err(|e| e.to_string())?;
-    Ok(validate(&data, shapes))
+    let dataset = dataset_from_rdf_store(data)?;
+    // `ShaclDataGraph` is implemented for `&RdfDataset`; the engine reads pattern
+    // lookups directly from the frozen IR, with no whole-store oxigraph
+    // materialization (SPARQL paths materialize lazily, on demand only).
+    let reference: &gmeow_rdf::RdfDataset = &dataset;
+    Ok(validate_with(&reference, shapes))
+}
+
+/// Build a frozen [`gmeow_rdf::RdfDataset`] from any [`RdfStore`], flattening
+/// every quad into the default graph and materializing reifier bindings as
+/// `rdf:reifies` triples and statement annotations as plain triples — exactly the
+/// shape `store_from_rdf_store` produces, so the IR backend sees the same graph the
+/// oxigraph oracle does.
+fn dataset_from_rdf_store(
+    data: &impl RdfStore,
+) -> Result<std::sync::Arc<gmeow_rdf::RdfDataset>, String> {
+    let mut builder = RdfDatasetBuilder::new();
+
+    for quad in data.quads() {
+        let quad = quad.map_err(|e| e.to_string())?;
+        let s = intern_term(&mut builder, &quad.subject)?;
+        let p = builder.intern_iri(quad.predicate.clone());
+        let o = intern_term(&mut builder, &quad.object)?;
+        // FlattenToDefaultGraph: drop the source graph name.
+        builder.push_quad(s, p, o, None);
+    }
+
+    // Reifiers → `(reifier, rdf:reifies, <<triple>>)` triples.
+    for reifier in data.reifiers() {
+        let reifier = reifier.map_err(|e| e.to_string())?;
+        let subject = intern_term(&mut builder, &reifier.reifier)?;
+        let predicate = builder.intern_iri(RDF_REIFIES.to_owned());
+        let st = &reifier.statement;
+        let st_s = intern_term(&mut builder, &st.subject)?;
+        let st_p = builder.intern_iri(st.predicate.clone());
+        let st_o = intern_term(&mut builder, &st.object)?;
+        let triple = builder.intern_triple(st_s, st_p, st_o);
+        builder.push_quad(subject, predicate, triple, None);
+    }
+
+    // Annotations → `(reifier, predicate, object)` triples.
+    for annotation in data.annotations() {
+        let annotation = annotation.map_err(|e| e.to_string())?;
+        let subject = intern_term(&mut builder, &annotation.reifier)?;
+        let predicate = builder.intern_iri(annotation.predicate.clone());
+        let object = intern_term(&mut builder, &annotation.object)?;
+        builder.push_quad(subject, predicate, object, None);
+    }
+
+    builder.freeze().map_err(|e| e.to_string())
+}
+
+/// The `rdf:reifies` predicate IRI, used to project reifier bindings into the
+/// quad table so SHACL's reifier-shape lookups can find them.
+const RDF_REIFIES: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies";
+
+/// Intern one owned-model [`RdfTerm`] into the IR builder, recursing through triple
+/// terms. The interner applies the C0.1 literal-identity policy itself.
+fn intern_term(
+    builder: &mut RdfDatasetBuilder,
+    term: &RdfTerm,
+) -> Result<gmeow_rdf::TermId, String> {
+    match term {
+        RdfTerm::Iri(iri) => Ok(builder.intern_iri(iri.clone())),
+        RdfTerm::BlankNode(label) => {
+            Ok(builder.intern_blank(label.clone(), gmeow_rdf::BlankScope::DEFAULT))
+        }
+        RdfTerm::Literal(literal) => Ok(builder.intern_literal(gmeow_rdf::RdfLiteral {
+            lexical_form: literal.lexical_form.clone(),
+            datatype: literal.datatype.clone(),
+            language: literal.language.clone(),
+            direction: literal.direction,
+        })),
+        RdfTerm::Triple(triple) => {
+            let s = intern_term(builder, &triple.subject)?;
+            let p = builder.intern_iri(triple.predicate.clone());
+            let o = intern_term(builder, &triple.object)?;
+            Ok(builder.intern_triple(s, p, o))
+        }
+    }
 }
 
 /// Parse a SHACL shapes graph from a Turtle string.
