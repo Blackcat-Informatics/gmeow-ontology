@@ -27,6 +27,7 @@ use crate::coverage;
 use crate::dsl;
 use crate::gufo::{self, GufoConfig};
 use crate::lint::{self, LintConfig, LintReport, ModuleSpec};
+use crate::statement;
 use crate::store;
 use crate::validate_all::{self, ValidateOptions};
 
@@ -758,6 +759,70 @@ fn validate_all_native(
     Ok(out.into_any().unbind())
 }
 
+/// Load a Turtle string into `store` (lenient parsing, matching the rest of the
+/// validation path), mapping a parse failure to a Python `ValueError`.
+fn insert_turtle(store: &oxigraph::store::Store, ttl: &str) -> PyResult<()> {
+    use oxigraph::io::{RdfFormat, RdfParser};
+    for triple in RdfParser::from_format(RdfFormat::Turtle)
+        .lenient()
+        .for_reader(ttl.as_bytes())
+    {
+        let triple = triple.map_err(|e| {
+            pyo3::exceptions::PyValueError::new_err(format!("Turtle parse error: {e}"))
+        })?;
+        store
+            .insert(&triple)
+            .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))?;
+    }
+    Ok(())
+}
+
+/// Load an N-Triples string into `store` (lenient parsing), mapping a parse
+/// failure to a Python `ValueError`.
+fn insert_ntriples(store: &oxigraph::store::Store, data_nt: &str) -> PyResult<()> {
+    use oxigraph::io::{RdfFormat, RdfParser};
+    for triple in RdfParser::from_format(RdfFormat::NTriples)
+        .lenient()
+        .for_reader(data_nt.as_bytes())
+    {
+        let triple = triple.map_err(|e| {
+            pyo3::exceptions::PyValueError::new_err(format!("N-Triples parse error: {e}"))
+        })?;
+        store
+            .insert(&triple)
+            .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))?;
+    }
+    Ok(())
+}
+
+/// The statement-metadata invariants over the emitted OWL downcast + ontology
+/// (mirrors `statement_lint.statement_invariants`, #630 Gap B3).
+///
+/// `statement_owl_ttl` is the `statement_compile.emit_owl` output as Turtle;
+/// `ontology_nt` is the merged ontology as N-Triples. Both are loaded into ONE
+/// oxigraph store (their default-graph union), the four invariants run natively,
+/// and the violations are returned as a single canonical `Report` pyclass (every
+/// finding is an `Error` — each currently blocks the compile with `CompileError`).
+/// Returning the live `Report` lets Python join the messages, render SARIF, or
+/// fold the findings in without a JSON round-trip (#630/#654).
+#[pyfunction]
+fn check_statement_invariants(
+    py: Python<'_>,
+    statement_owl_ttl: &str,
+    ontology_nt: &str,
+) -> PyResult<Py<PyAny>> {
+    let store = oxigraph::store::Store::new()
+        .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))?;
+    insert_turtle(&store, statement_owl_ttl)?;
+    insert_ntriples(&store, ontology_nt)?;
+
+    let mut report = gmeow_diagnostics::Report::new("statement");
+    for finding in statement::check_statement_invariants(&store) {
+        report.add_finding(finding);
+    }
+    Ok(Py::new(py, PyReport::from_engine(report))?.into_any())
+}
+
 /// Register the `gmeow-validate` surface on a Python module.
 ///
 /// Exposes the syntax / sameAs lints (Task 1) plus the structural, naming,
@@ -794,5 +859,6 @@ pub fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(merge_to_ntriples, m)?)?;
     m.add_function(wrap_pyfunction!(dsl_merge_with_provenance, m)?)?;
     m.add_function(wrap_pyfunction!(validate_all_native, m)?)?;
+    m.add_function(wrap_pyfunction!(check_statement_invariants, m)?)?;
     Ok(())
 }

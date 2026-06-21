@@ -30,6 +30,7 @@ pub mod gufo;
 pub mod lint;
 pub mod model;
 pub mod signature;
+pub mod statement;
 pub mod store;
 pub mod validate_all;
 

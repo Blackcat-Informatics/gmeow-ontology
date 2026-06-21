@@ -268,8 +268,9 @@ def check_sameas_ban(paths: list[Path] | None = None) -> ValidationResult:
 def term_naming_lint(source_paths: list[str]) -> ValidationResult:
     """Principle 9 by annotation (#281): no selector names on ontology terms.
 
-    Extends :func:`gmeow_tools.statement_lint.no_preferred_rank` from
-    statement-annotation properties to every GMEOW term local name: a
+    Extends the statement layer's native ``no_preferred_rank`` invariant
+    (``gmeow_validate.check_statement_invariants``) from statement-annotation
+    properties to every GMEOW term local name: a
     camelCase token of ``primary``/``preferred``/``default``/``main`` marks a
     selector that would privilege one co-equal claim over another. Legitimate
     value-vocabulary names (``scriptRolePrimary``, ``sourceTierPrimary``)

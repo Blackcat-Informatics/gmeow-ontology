@@ -6,9 +6,9 @@ instance *is* — via ``rdfs:subClassOf`` into the gUFO individual taxonomy
 **stereotype** — the type's identity/rigidity status — via ``rdf:type`` into the
 gUFO ``gufo:EndurantType`` / ``gufo:EventType`` / ``gufo:SituationType`` taxonomy
 (OWL 2 punning; see ``imports/gufo.ttl`` ~line 1427). This module checks the
-structural discipline the stereotype facet licenses, exactly the role
-:mod:`gmeow_tools.statement_lint` plays for the statement layer and
-:mod:`gmeow_tools.projection_lint` for the projection stack.
+structural discipline the stereotype facet licenses, exactly the role the
+native ``gmeow_validate.check_statement_invariants`` engine plays for the
+statement layer and :mod:`gmeow_tools.projection_lint` for the projection stack.
 
 The reasoning logic itself lives in the Rust ``gmeow_validate`` extension (#579):
 the transitive ``rdfs:subClassOf`` closure, the ``owl:AllDisjointClasses`` /
