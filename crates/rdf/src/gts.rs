@@ -6,14 +6,13 @@ use std::collections::BTreeMap;
 use ciborium::value::Value;
 use gmeow_gts::model::{Graph, TermKind};
 
+use crate::ir::gts_resolve::{predicate_from_id, term_from_id, triple_from_ids};
 use crate::{
-    RdfAnnotation, RdfBlobRecord, RdfDiagnostic, RdfLiteral, RdfLocation, RdfLookaside,
-    RdfLookasideKind, RdfLookasideResource, RdfMetadataEntry, RdfMetadataValue,
-    RdfOpaqueNodeRecord, RdfQuad, RdfReifier, RdfSegmentRecord, RdfSignatureRecord, RdfStore,
-    RdfStoreCapabilities, RdfSuppressionRecord, RdfTerm, RdfTriple,
+    RdfAnnotation, RdfBlobRecord, RdfDiagnostic, RdfLocation, RdfLookaside, RdfLookasideKind,
+    RdfLookasideResource, RdfMetadataEntry, RdfMetadataValue, RdfOpaqueNodeRecord, RdfQuad,
+    RdfReifier, RdfSegmentRecord, RdfSignatureRecord, RdfStore, RdfStoreCapabilities,
+    RdfSuppressionRecord,
 };
-
-const MAX_GTS_TERM_NESTING_DEPTH: usize = 16;
 
 /// RDF store view over a folded GTS graph.
 #[derive(Debug, Clone, Copy)]
@@ -403,151 +402,6 @@ fn quad_from_ids(
     Ok(quad)
 }
 
-fn triple_from_ids(
-    graph: &Graph,
-    s: usize,
-    p: usize,
-    o: usize,
-    location: RdfLocation,
-) -> Result<RdfTriple, RdfDiagnostic> {
-    triple_from_ids_depth(graph, s, p, o, location, 0)
-}
-
-fn triple_from_ids_depth(
-    graph: &Graph,
-    s: usize,
-    p: usize,
-    o: usize,
-    location: RdfLocation,
-    depth: usize,
-) -> Result<RdfTriple, RdfDiagnostic> {
-    let subject = term_from_id_depth(graph, s, location.clone(), depth)?;
-    let predicate = predicate_from_id_depth(graph, p, location.clone(), depth)?;
-    let object = term_from_id_depth(graph, o, location.clone(), depth)?;
-    Ok(RdfTriple::new(subject, predicate, object).with_location(location))
-}
-
-fn predicate_from_id(
-    graph: &Graph,
-    term_id: usize,
-    location: RdfLocation,
-) -> Result<String, RdfDiagnostic> {
-    predicate_from_id_depth(graph, term_id, location, 0)
-}
-
-fn predicate_from_id_depth(
-    graph: &Graph,
-    term_id: usize,
-    location: RdfLocation,
-    depth: usize,
-) -> Result<String, RdfDiagnostic> {
-    match term_from_id_depth(graph, term_id, location.clone(), depth)? {
-        RdfTerm::Iri(iri) => Ok(iri),
-        other => Err(RdfDiagnostic::error(
-            "gts-predicate-not-iri",
-            format!("GTS predicate term must be an IRI, got {:?}", other.kind()),
-        )
-        .with_location(location.with_gts_term(term_id))),
-    }
-}
-
-fn term_from_id(
-    graph: &Graph,
-    term_id: usize,
-    location: RdfLocation,
-) -> Result<RdfTerm, RdfDiagnostic> {
-    term_from_id_depth(graph, term_id, location, 0)
-}
-
-fn term_from_id_depth(
-    graph: &Graph,
-    term_id: usize,
-    location: RdfLocation,
-    depth: usize,
-) -> Result<RdfTerm, RdfDiagnostic> {
-    if depth > MAX_GTS_TERM_NESTING_DEPTH {
-        return Err(RdfDiagnostic::error(
-            "gts-term-nesting-limit",
-            "GTS term nesting depth limit exceeded",
-        )
-        .with_location(location.with_gts_term(term_id)));
-    }
-    let term = graph.terms.get(term_id).ok_or_else(|| {
-        RdfDiagnostic::error(
-            "gts-term-out-of-range",
-            format!("GTS term id {term_id} is out of range"),
-        )
-        .with_location(location.clone().with_gts_term(term_id))
-    })?;
-    match term.kind {
-        TermKind::Iri => {
-            let Some(iri) = term.value.as_deref().filter(|value| !value.is_empty()) else {
-                return Err(RdfDiagnostic::error(
-                    "gts-iri-missing-value",
-                    "GTS IRI term requires a non-empty value",
-                )
-                .with_location(location.with_gts_term(term_id)));
-            };
-            Ok(RdfTerm::iri(iri))
-        }
-        TermKind::Bnode => Ok(RdfTerm::blank_node(
-            term.value
-                .clone()
-                .unwrap_or_else(|| format!("gts_bnode_{term_id}")),
-        )),
-        TermKind::Literal => {
-            let datatype = match term.datatype {
-                Some(datatype_id) => {
-                    match term_from_id_depth(graph, datatype_id, location.clone(), depth + 1)? {
-                        RdfTerm::Iri(iri) => Some(iri),
-                        other => {
-                            return Err(RdfDiagnostic::error(
-                                "gts-literal-datatype-not-iri",
-                                format!(
-                                    "GTS literal datatype must resolve to an IRI, got {:?}",
-                                    other.kind()
-                                ),
-                            )
-                            .with_location(location.with_gts_term(datatype_id)));
-                        }
-                    }
-                }
-                None => None,
-            };
-            Ok(RdfTerm::literal(RdfLiteral {
-                lexical_form: term.value.clone().unwrap_or_default(),
-                datatype,
-                language: term.lang.clone(),
-                direction: None,
-            }))
-        }
-        TermKind::Triple => {
-            let Some(reifier_id) = term.reifier else {
-                return Err(RdfDiagnostic::error(
-                    "gts-unbound-triple-term",
-                    "GTS triple term has no reifier binding",
-                )
-                .with_location(location.with_gts_term(term_id)));
-            };
-            let Some((s, p, o)) = graph.reifier(reifier_id) else {
-                return Err(RdfDiagnostic::error(
-                    "gts-missing-reifier-binding",
-                    format!("GTS triple term references missing reifier {reifier_id}"),
-                )
-                .with_location(location.with_gts_term(term_id).with_gts_reifier(reifier_id)));
-            };
-            Ok(RdfTerm::triple(triple_from_ids_depth(
-                graph,
-                s,
-                p,
-                o,
-                location.with_gts_reifier(reifier_id),
-                depth + 1,
-            )?))
-        }
-    }
-}
-
 #[cfg(feature = "oxigraph")]
 pub fn flattened_oxigraph_store_from_bytes(
     bytes: &[u8],
@@ -591,6 +445,7 @@ pub fn flattened_oxigraph_store_from_graph(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::RdfTerm;
     use gmeow_gts::model::{Term, TermKind};
     use gmeow_gts::writer::Writer;
 

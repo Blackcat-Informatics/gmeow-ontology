@@ -14,6 +14,15 @@
 pub mod builder;
 pub mod bundle;
 pub mod dataset;
+// The shared GTS term resolver (#819 C2): the single home of the eager
+// `&Graph` → `RdfTerm` traversal used by `crate::gts::GtsGraphStore`. Gated on
+// `gts`, like its only consumers.
+#[cfg(feature = "gts")]
+pub(crate) mod gts_resolve;
+// The consuming `Graph`-by-value importer (#819 C2.b): moves owned term strings
+// into the interner, recording the `bnode-scope-flatten` loss.
+#[cfg(feature = "gts")]
+pub mod import_graph;
 // The authoritative GTS ingestion path needs `gmeow-gts`/`ciborium`, both gated
 // behind the `gts` feature (#819 C2.a).
 #[cfg(feature = "gts")]
@@ -24,6 +33,8 @@ pub mod validate;
 pub use builder::RdfDatasetBuilder;
 pub use bundle::{RdfBundle, RdfEnvelope};
 pub use dataset::{QuadHandle, QuadIds, QuadRef, RdfDataset, TermRef};
+#[cfg(feature = "gts")]
+pub use import_graph::import_gts_graph;
 #[cfg(feature = "gts")]
 pub use import_sink::import_gts_events;
 pub use term::{BlankScope, TermId};

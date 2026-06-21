@@ -36,7 +36,7 @@ pub mod turtle;
 
 pub use diagnostic::{RdfDiagnostic, RdfLocation, RdfLoss, RdfSeverity};
 #[cfg(feature = "gts")]
-pub use ir::import_gts_events;
+pub use ir::{import_gts_events, import_gts_graph};
 pub use ir::{
     BlankScope, QuadHandle, QuadIds, QuadRef, RdfBundle, RdfDataset, RdfDatasetBuilder,
     RdfEnvelope, TermId, TermRef,
