@@ -21,6 +21,12 @@ oxigraph = { version = "0.5", default-features = false, features = ["rdf-12"] }
 # never text-searched, to extract referenced term IRIs. Version aligns with the
 # oxigraph 0.5 transitive resolution already pinned in the workspace lockfile.
 spargebra = { version = "0.4", features = ["sparql-12"] }
+# Strongly-connected-component computation over the S4 dependency graph
+# (RFC §8 link units). `petgraph` is a published registry crate (no `path`),
+# so it is an external boundary, not a first-party layering edge — the
+# crate-layering gate (S0.9) is unaffected. Version aligns with the workspace
+# lockfile resolution.
+petgraph = { version = "0.8", default-features = false }
 sha2 = "0.10"
 serde = { version = "1", features = ["derive"] }
 

@@ -1,0 +1,333 @@
+// SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+// SPDX-License-Identifier: AGPL-3.0-only
+
+//! Acceptance tests for the phase-specific Merkle cache + SCC/profile
+//! composition (RFC #820 §12 / §8, child S6a). All fixtures are hermetic
+//! (`tempfile`); no repository state is read.
+
+use std::path::Path;
+
+use tempfile::TempDir;
+
+use crate::cache::{
+    dependency_closure, link_units, product_unit, source_unit_key, Phase, ToolchainContext,
+};
+use crate::catalog::SliceCatalog;
+use crate::ownership::OwnershipAnalyzer;
+
+const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
+
+fn toolchain() -> ToolchainContext {
+    ToolchainContext::new("gmeow-logic v1", "native")
+}
+
+/// Write a minimal slice directory under `parent/<dirname>/`. The manifest
+/// declares `slice_iri`, tier core, and (optionally) `gmeow:sliceDependsOn`
+/// targets. The module defines `term` via `rdfs:isDefinedBy slice_iri` and
+/// references each `dep_term` (so the dependency analyzer derives an edge).
+fn write_slice(
+    parent: &Path,
+    dirname: &str,
+    slice_iri: &str,
+    term: &str,
+    deps: &[(&str, &str)], // (dep_slice_iri, dep_term_iri)
+    module_comment: &str,
+) {
+    let dir = parent.join(dirname);
+    std::fs::create_dir_all(&dir).unwrap();
+
+    let depends_on: String = deps
+        .iter()
+        .map(|(dep_iri, _)| format!("    gmeow:sliceDependsOn <{dep_iri}> ;\n"))
+        .collect();
+
+    // Content is keyed on the slice IRI, NEVER the directory name, so a copy at a
+    // different path is byte-identical (the rename-invariance fixture relies on
+    // this).
+    let manifest = format!(
+        r#"@prefix gmeow: <{GMEOW}> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+
+<{slice_iri}> a gmeow:Slice ;
+    rdfs:label "slice label"@x-gmeow-english ;
+    dcterms:title "Slice title"@x-gmeow-english ;
+    dcterms:creator "Test Author" ;
+    gmeow:sliceTier gmeow:tierCore ;
+{depends_on}    gmeow:sliceConsumer "test"@x-gmeow-english .
+"#
+    );
+    std::fs::write(dir.join("manifest.ttl"), manifest).unwrap();
+
+    // Module: define `term`, reference each dep term. A leading comment lets the
+    // raw bytes vary while the canonical RDF stays identical.
+    let refs: String = deps
+        .iter()
+        .enumerate()
+        .map(|(i, (_, dep_term))| format!("<{term}> gmeow:refP{i} <{dep_term}> .\n"))
+        .collect();
+    let module = format!(
+        r#"{module_comment}@prefix gmeow: <{GMEOW}> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+
+<{term}> a owl:Class ;
+    rdfs:isDefinedBy <{slice_iri}> ;
+    rdfs:label "term"@x-gmeow-english .
+{refs}"#
+    );
+    std::fs::write(dir.join("module.ttl"), module).unwrap();
+}
+
+fn discover(root: &Path) -> (SliceCatalog, Vec<crate::ownership::DependencyEdge>) {
+    let catalog = SliceCatalog::discover(root).unwrap();
+    let report = OwnershipAnalyzer::new(&catalog).analyze();
+    (catalog, report.edges)
+}
+
+/// Acceptance 1 — **rename invariance**: building keys for a fixture slice, then
+/// for a byte-identical copy at a *different directory path*, yields identical
+/// per-phase keys. Moving the slice's directory changes NO cache key.
+#[test]
+fn rename_invariance_all_phases() {
+    let a_iri = format!("{GMEOW}slice/alpha");
+    let a_term = format!("{GMEOW}Alpha");
+
+    // Layout 1: slices/core/alpha
+    let t1 = TempDir::new().unwrap();
+    let core1 = t1.path().join("slices").join("core");
+    write_slice(&core1, "alpha", &a_iri, &a_term, &[], "# comment v1\n");
+
+    // Layout 2: a totally different group path — slices/zztop/renamed
+    let t2 = TempDir::new().unwrap();
+    let zz = t2.path().join("slices").join("zztop");
+    write_slice(&zz, "renamed", &a_iri, &a_term, &[], "# comment v1\n");
+
+    let (cat1, edges1) = discover(t1.path());
+    let (cat2, edges2) = discover(t2.path());
+    let tc = toolchain();
+
+    for phase in [
+        Phase::Parse,
+        Phase::Syntax,
+        Phase::Shacl,
+        Phase::Reason,
+        Phase::Bundle,
+    ] {
+        let k1 = source_unit_key(phase, &cat1, &edges1, &a_iri, &tc).unwrap();
+        let k2 = source_unit_key(phase, &cat2, &edges2, &a_iri, &tc).unwrap();
+        assert_eq!(
+            k1.root, k2.root,
+            "phase {phase:?} key changed across a directory rename"
+        );
+    }
+}
+
+/// Acceptance 2 — **comment-only invariance of the reasoning key**: changing a
+/// comment in a module (raw bytes differ, canonical RDF identical) leaves the
+/// REASONING-phase key unchanged, while the SYNTAX (byte-sensitive) key changes.
+#[test]
+fn comment_only_invariance_reasoning_key() {
+    let a_iri = format!("{GMEOW}slice/alpha");
+    let a_term = format!("{GMEOW}Alpha");
+
+    let t1 = TempDir::new().unwrap();
+    let core1 = t1.path().join("slices").join("core");
+    write_slice(
+        &core1,
+        "alpha",
+        &a_iri,
+        &a_term,
+        &[],
+        "# original comment\n",
+    );
+
+    let t2 = TempDir::new().unwrap();
+    let core2 = t2.path().join("slices").join("core");
+    write_slice(
+        &core2,
+        "alpha",
+        &a_iri,
+        &a_term,
+        &[],
+        "# a COMPLETELY different comment line\n# with an extra line too\n",
+    );
+
+    let (cat1, edges1) = discover(t1.path());
+    let (cat2, edges2) = discover(t2.path());
+    let tc = toolchain();
+
+    let reason_before = source_unit_key(Phase::Reason, &cat1, &edges1, &a_iri, &tc).unwrap();
+    let reason_after = source_unit_key(Phase::Reason, &cat2, &edges2, &a_iri, &tc).unwrap();
+    assert_eq!(
+        reason_before.root, reason_after.root,
+        "reasoning key changed on a comment-only edit (canonical RDF identical)"
+    );
+
+    let syntax_before = source_unit_key(Phase::Syntax, &cat1, &edges1, &a_iri, &tc).unwrap();
+    let syntax_after = source_unit_key(Phase::Syntax, &cat2, &edges2, &a_iri, &tc).unwrap();
+    assert_ne!(
+        syntax_before.root, syntax_after.root,
+        "syntax (byte-sensitive) key did NOT change on a raw-bytes edit"
+    );
+}
+
+/// Acceptance 3 — **SCC grouping**: A↔B mutually dependent and C→A yields one
+/// link unit {A,B} and a singleton {C}; A and B remain individually nameable.
+#[test]
+fn scc_grouping_cycle_and_singleton() {
+    let a_iri = format!("{GMEOW}slice/aaa");
+    let b_iri = format!("{GMEOW}slice/bbb");
+    let c_iri = format!("{GMEOW}slice/ccc");
+    let a_term = format!("{GMEOW}Aaa");
+    let b_term = format!("{GMEOW}Bbb");
+    let c_term = format!("{GMEOW}Ccc");
+
+    let t = TempDir::new().unwrap();
+    let core = t.path().join("slices").join("core");
+    // A depends on B, B depends on A → cycle. C depends on A.
+    write_slice(&core, "aaa", &a_iri, &a_term, &[(&b_iri, &b_term)], "# a\n");
+    write_slice(&core, "bbb", &b_iri, &b_term, &[(&a_iri, &a_term)], "# b\n");
+    write_slice(&core, "ccc", &c_iri, &c_term, &[(&a_iri, &a_term)], "# c\n");
+
+    let (catalog, edges) = discover(t.path());
+    let units = link_units(&catalog, &edges);
+
+    // Find the cyclic unit and the singleton.
+    let cycle = units
+        .iter()
+        .find(|u| u.is_cycle())
+        .expect("expected one SCC cycle");
+    assert_eq!(cycle.members.len(), 2);
+    assert!(cycle.contains(&a_iri) && cycle.contains(&b_iri));
+
+    let singleton = units
+        .iter()
+        .find(|u| u.members == vec![c_iri.clone()])
+        .expect("expected a singleton link unit {C}");
+    assert!(singleton.contains(&c_iri));
+    assert!(!singleton.is_cycle());
+
+    // A and B remain individually nameable within the link unit.
+    assert!(cycle.contains(&a_iri));
+    assert!(cycle.contains(&b_iri));
+}
+
+/// Acceptance 4 — **profile closure**: a product unit for a slice with deps
+/// yields the dependency-closed set (transitive closure).
+#[test]
+fn profile_closure_transitive() {
+    let a_iri = format!("{GMEOW}slice/aaa");
+    let b_iri = format!("{GMEOW}slice/bbb");
+    let c_iri = format!("{GMEOW}slice/ccc");
+    let a_term = format!("{GMEOW}Aaa");
+    let b_term = format!("{GMEOW}Bbb");
+    let c_term = format!("{GMEOW}Ccc");
+
+    let t = TempDir::new().unwrap();
+    let core = t.path().join("slices").join("core");
+    // A → B → C (a transitive chain).
+    write_slice(&core, "aaa", &a_iri, &a_term, &[(&b_iri, &b_term)], "# a\n");
+    write_slice(&core, "bbb", &b_iri, &b_term, &[(&c_iri, &c_term)], "# b\n");
+    write_slice(&core, "ccc", &c_iri, &c_term, &[], "# c\n");
+
+    let (catalog, edges) = discover(t.path());
+
+    let closure = dependency_closure(&catalog, &edges, std::slice::from_ref(&a_iri));
+    assert!(closure.contains(&a_iri));
+    assert!(closure.contains(&b_iri));
+    assert!(
+        closure.contains(&c_iri),
+        "transitive dep C must be in closure"
+    );
+    assert_eq!(closure.len(), 3);
+
+    let product = product_unit(&catalog, &edges, std::slice::from_ref(&a_iri));
+    assert_eq!(product.seeds, vec![a_iri.clone()]);
+    assert_eq!(product.closure.len(), 3);
+
+    // C alone closes to just {C}.
+    let c_closure = dependency_closure(&catalog, &edges, std::slice::from_ref(&c_iri));
+    assert_eq!(c_closure, vec![c_iri.clone()]);
+}
+
+/// Extra guard: a dependency-output digest change DOES invalidate the
+/// dependent's reasoning key (Merkle composition), while a comment-only change
+/// to that dependency does not.
+#[test]
+fn dependency_change_invalidates_dependent_reasoning_key() {
+    let a_iri = format!("{GMEOW}slice/aaa");
+    let b_iri = format!("{GMEOW}slice/bbb");
+    let a_term = format!("{GMEOW}Aaa");
+    let b_term = format!("{GMEOW}Bbb");
+    let b_term2 = format!("{GMEOW}BbbExtra");
+
+    // Baseline: A depends on B; B defines one term.
+    let t1 = TempDir::new().unwrap();
+    let core1 = t1.path().join("slices").join("core");
+    write_slice(
+        &core1,
+        "aaa",
+        &a_iri,
+        &a_term,
+        &[(&b_iri, &b_term)],
+        "# a\n",
+    );
+    write_slice(&core1, "bbb", &b_iri, &b_term, &[], "# b\n");
+
+    // Variant: B's module gains a real (canonical) triple defining an extra term.
+    let t2 = TempDir::new().unwrap();
+    let core2 = t2.path().join("slices").join("core");
+    write_slice(
+        &core2,
+        "aaa",
+        &a_iri,
+        &a_term,
+        &[(&b_iri, &b_term)],
+        "# a\n",
+    );
+    {
+        let dir = core2.join("bbb");
+        std::fs::create_dir_all(&dir).unwrap();
+        let manifest = format!(
+            r#"@prefix gmeow: <{GMEOW}> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+
+<{b_iri}> a gmeow:Slice ;
+    rdfs:label "slice bbb"@x-gmeow-english ;
+    dcterms:title "Slice bbb"@x-gmeow-english ;
+    dcterms:creator "Test Author" ;
+    gmeow:sliceTier gmeow:tierCore ;
+    gmeow:sliceConsumer "test"@x-gmeow-english .
+"#
+        );
+        std::fs::write(dir.join("manifest.ttl"), manifest).unwrap();
+        let module = format!(
+            r#"# b
+@prefix gmeow: <{GMEOW}> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+
+<{b_term}> a owl:Class ;
+    rdfs:isDefinedBy <{b_iri}> ;
+    rdfs:label "term"@x-gmeow-english .
+<{b_term2}> a owl:Class ;
+    rdfs:isDefinedBy <{b_iri}> ;
+    rdfs:label "extra"@x-gmeow-english .
+"#
+        );
+        std::fs::write(dir.join("module.ttl"), module).unwrap();
+    }
+
+    let (cat1, edges1) = discover(t1.path());
+    let (cat2, edges2) = discover(t2.path());
+    let tc = toolchain();
+
+    let a_before = source_unit_key(Phase::Reason, &cat1, &edges1, &a_iri, &tc).unwrap();
+    let a_after = source_unit_key(Phase::Reason, &cat2, &edges2, &a_iri, &tc).unwrap();
+    assert_ne!(
+        a_before.root, a_after.root,
+        "A's reasoning key must change when its dependency B changes semantically"
+    );
+}

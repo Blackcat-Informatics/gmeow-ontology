@@ -1532,6 +1532,7 @@ version = "0.1.0"
 dependencies = [
  "gmeow-rdf",
  "oxigraph",
+ "petgraph",
  "serde",
  "sha2",
  "spargebra 0.4.6",
