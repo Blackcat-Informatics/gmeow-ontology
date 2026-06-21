@@ -432,6 +432,24 @@ def slice_ownership_lint(root: Path | None = None) -> ValidationResult:
     )
 
 
+def native_ownership_errors(root: Path | None = None) -> list[str]:
+    """Per-term ownership errors from the native ``gmeow_slice`` analyzer (#820 S8).
+
+    The Rust ``OwnershipAnalyzer`` discovers each slice from its manifest, maps
+    every term to its declared owner (``rdfs:isDefinedBy``) and physical origin,
+    and reports ``Conflict`` (a term claimed by more than one slice), ``Mismatch``
+    (declared owner ≠ physical slice — the foreign/root ``isDefinedBy`` case), and
+    ``Unowned``. This is a strict superset of the retired path-derived
+    ``slice_ownership_lint`` (#329) and is the authoritative ownership-validation
+    source for ``make validate``.
+    """
+    import gmeow_slice
+
+    base = root if root is not None else SLICES_DIR
+    catalog = gmeow_slice.SliceCatalog.discover(str(base))
+    return list(gmeow_slice.OwnershipAnalyzer(catalog).analyze().ownership_errors())
+
+
 _ANCHOR_PATTERN = re.compile(r"^###\s+`?gmeow:([A-Za-z][A-Za-z0-9]*)`?", re.MULTILINE)
 # Term headings at the wrong depth are malformed anchors, not invisible ones —
 # the canonical Tier-2 anchor shape is exactly `### gmeow:Term`.
@@ -585,10 +603,10 @@ def validate_all(
     else:
         mapping_shapes_ttl = _dsl_shapes_turtle(MAPPING_DSL_SHAPES_FILE)
         statement_shapes_ttl = _dsl_shapes_turtle(STATEMENT_DSL_SHAPES_FILE)
-        module_specs = [
-            (str(module), f"{NAMESPACE}slices/{module.parent.name}")
-            for module in iter_slice_module_files()
-        ]
+        # Ownership is sourced from the native gmeow_slice OwnershipAnalyzer
+        # (folded in below), not the Rust validate engine's path-derived phase —
+        # so we withhold module_specs and that phase no-ops (#820 S8).
+        module_specs = []
         slices_dir_opt = str(SLICES_DIR)
         mapping_dsl_dir = str(MAPPING_DSL_DIR)
         statement_dsl_dir = str(STATEMENT_DSL_DIR)
@@ -648,6 +666,15 @@ def validate_all(
     py_errors: list[str] = []
     py_warnings: list[str] = []
     if gts_input is None:
+        # Ownership gate (#820 S8): the authoritative ownership-validation source
+        # is the native gmeow_slice OwnershipAnalyzer, which subsumes the retired
+        # path-derived slice_ownership_lint (Conflict + Mismatch + Unowned, #329)
+        # over the manifest-discovered slice catalog. Folded into the canonical
+        # report alongside the other Python-side gate findings.
+        ownership_errors = native_ownership_errors()
+        result.errors.extend(ownership_errors)
+        py_errors.extend(ownership_errors)
+
         # Guide-anchor lint stays Python-side: it resolves markdown anchors in
         # slice docs.md against the declared GMEOW terms returned by Rust. Skip
         # it when earlier phases already failed (mirrors the original
