@@ -285,6 +285,67 @@ def _ontology_doc_blobs() -> list[tuple[bytes, str, str]]:
     return [(_tar_members(members), "application/x-tar", "ontology-docs")]
 
 
+#: The ontology-artifact roles folded per-slice into the self-describing S3
+#: bundle as content-addressed blobs (#820 S3, gap G4). These are the SMALL text
+#: artifacts; large external DATA blobs stay by-reference and are NEVER embedded
+#: here (blob-by-reference doctrine).
+#:
+#: ``Documentation`` (``docs.md``) is DELIBERATELY excluded: it is already embedded
+#: by :func:`_doc_blobs` as a content-addressed blob linked from the graph via
+#: ``gmeow:guideBlob``. Re-embedding it here would create a SECOND blob channel for
+#: the same bytes (greenfield: one content-addressed embedding, no parallel
+#: channels). The S3 channel therefore covers the artifacts NOT already folded
+#: per-file: module / shapes / manifest.
+_S3_ARTIFACT_ROLES = frozenset({"Module", "Shapes", "Manifest"})
+
+
+def _slice_artifact_rows() -> list[tuple[str, str, str, str, bytes]]:
+    """Per-slice ontology artifacts for the self-describing S3 ``RdfBundle``.
+
+    Each row is ``(slice_iri, slice_name, role, logical_path, content)`` built
+    from the authoritative native ``gmeow_slice.SliceCatalog`` (the same catalog
+    that drives ownership analysis). ``logical_path`` is the REPO-relative path
+    (``slices/<group>/<name>/<file>``) so every artifact has a globally-unique
+    bundle path (the bundle hard-fails on a duplicate). Bytes come from the
+    catalog's own content cache — no second disk read.
+
+    The native producer assembles these into an :class:`RdfBundle`, calls
+    ``validate()`` (hard-fail), and folds each one in as a content-addressed blob.
+    """
+    import gmeow_slice
+
+    catalog = gmeow_slice.SliceCatalog.discover(str(SLICES_DIR))
+    repo_slices_prefix = SLICES_DIR.relative_to(PROJECT_ROOT).as_posix()
+    rows: list[tuple[str, str, str, str, bytes]] = []
+    for record in catalog.records():
+        manifest = record.manifest
+        slice_iri = manifest.slice_iri
+        slice_name = manifest.label or manifest.title or slice_iri
+        for art in record.artifacts:
+            if art.role not in _S3_ARTIFACT_ROLES:
+                continue
+            rel_dir = _slice_rel_dir(slice_iri)
+            logical_path = f"{repo_slices_prefix}/{rel_dir}/{art.logical_path}"
+            rows.append((slice_iri, slice_name, art.role, logical_path, art.content))
+    # Deterministic order: by logical path (the bundle's unique key).
+    rows.sort(key=lambda r: r[3])
+    return rows
+
+
+def _slice_rel_dir(slice_iri: str) -> str:
+    """The ``<group>/<name>`` directory tail of a discovered slice.
+
+    Resolved from the Python slice discovery (which records each slice's on-disk
+    group/name), keyed by IRI — so the bundle's repo-relative artifact paths match
+    the real tree exactly.
+    """
+    entry = discover_slices().get(slice_iri)
+    if entry is None:  # pragma: no cover - catalog/discovery divergence is a bug
+        msg = f"slice IRI {slice_iri!r} not found in Python slice discovery"
+        raise ValueError(msg)
+    return f"{entry.group}/{entry.name}"
+
+
 def _imports_graph() -> Graph:
     """Return the vendored gUFO/import closure only, for ``gmeow:graph/imports``."""
     graph = Graph()
@@ -420,6 +481,11 @@ def build_snapshot_bytes(
     imports = (_imports_graph(), GTS_GRAPH_IMPORTS, "imports")
     metadata = (_metadata_graph(), GTS_GRAPH_METADATA, "metadata")
 
+    # Self-describing S3 bundle (#820 gap G4): per-slice ontology artifacts ride
+    # the bundle as content-addressed blobs, assembled + validated through the
+    # native RdfBundle. Repo-free consumers recover each by role + logical path.
+    slice_artifacts = _slice_artifact_rows()
+
     def _compile(extra_named_graphs: list[tuple[Graph, str, str]]) -> bytes:
         return compile_gts(
             multilingual_graph,
@@ -427,6 +493,7 @@ def build_snapshot_bytes(
             alignment_graph=build_alignment_graph(load_mappings()),
             extra_named_graphs=extra_named_graphs,
             doc_blobs=blobs,
+            slice_artifacts=slice_artifacts,
             transform=_SNAPSHOT_TRANSFORM,
             signer=signer,
             public_key_armor=public_key_armor,

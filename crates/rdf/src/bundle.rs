@@ -291,6 +291,11 @@ pub enum BundleError {
         /// The colliding path.
         path: String,
     },
+    /// Two artifact records share one [`ArtifactId`].
+    DuplicateArtifactId {
+        /// The colliding artifact id.
+        id: ArtifactId,
+    },
     /// An artifact's logical path is absolute (starts with `/`).
     AbsolutePath {
         /// The offending path.
@@ -324,6 +329,9 @@ impl fmt::Display for BundleError {
             ),
             Self::DuplicateLogicalPath { path } => {
                 write!(f, "duplicate logical artifact path: {path}")
+            }
+            Self::DuplicateArtifactId { id } => {
+                write!(f, "duplicate artifact id: {id}")
             }
             Self::AbsolutePath { path } => {
                 write!(f, "absolute artifact path is not allowed: {path}")
@@ -452,14 +460,21 @@ impl RdfBundle {
         // 1. Every stored blob hashes to its key.
         self.blobs.verify_all()?;
 
-        // 2. Artifact paths: no duplicates, no absolute, no `..`; blob present.
+        // 2. Artifact paths: no duplicates, no absolute, no `..`; blob present;
+        //    and no two records may share one `ArtifactId`.
         let mut seen: HashMap<&str, ()> = HashMap::new();
+        let mut seen_ids: HashMap<ArtifactId, ()> = HashMap::new();
         for record in self.artifacts.records() {
             let path = record.logical_path.as_str();
             check_logical_path(path)?;
             if seen.insert(path, ()).is_some() {
                 return Err(BundleError::DuplicateLogicalPath {
                     path: path.to_string(),
+                });
+            }
+            if seen_ids.insert(record.artifact_id, ()).is_some() {
+                return Err(BundleError::DuplicateArtifactId {
+                    id: record.artifact_id,
                 });
             }
             if !self.blobs.contains(&record.blob_id) {
@@ -698,6 +713,22 @@ mod tests {
         assert!(matches!(
             bundle.validate(),
             Err(BundleError::DuplicateLogicalPath { .. })
+        ));
+    }
+
+    #[test]
+    fn reject_duplicate_artifact_ids() {
+        let mut prov = DatasetProvenance::new();
+        let unit = prov.register_unit("u", OriginKind::Source);
+        let a0 = prov.register_artifact("a");
+        let mut bundle = RdfBundle::new(tiny_dataset(), prov);
+        bundle.add_unit(unit, UnitMetadata::new("iri", "u"));
+        // Two records with DISTINCT logical paths but the SAME ArtifactId.
+        bundle.add_artifact(a0, unit, "first.ttl", "Module", b"x".to_vec());
+        bundle.add_artifact(a0, unit, "second.ttl", "Shapes", b"y".to_vec());
+        assert!(matches!(
+            bundle.validate(),
+            Err(BundleError::DuplicateArtifactId { .. })
         ));
     }
 

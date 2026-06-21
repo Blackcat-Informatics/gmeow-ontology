@@ -120,6 +120,14 @@ impl PyArtifactRecord {
     fn semantic_digest(&self) -> Option<String> {
         self.inner.semantic_digest.clone()
     }
+
+    /// The raw artifact bytes (content cache). Exposed so the GTS producer can
+    /// fold each ontology artifact into the self-describing S3 bundle as a
+    /// content-addressed blob without a second disk read (#820 S3).
+    #[getter]
+    fn content<'py>(&self, py: Python<'py>) -> Bound<'py, pyo3::types::PyBytes> {
+        pyo3::types::PyBytes::new(py, &self.inner.content)
+    }
 }
 
 // ── ManifestView ───────────────────────────────────────────────────────────────

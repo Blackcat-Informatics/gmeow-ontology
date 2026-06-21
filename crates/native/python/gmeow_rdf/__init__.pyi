@@ -211,6 +211,8 @@ def serialize(
 
 #: A `(data, media_type, rep)` content-addressed blob row.
 _BlobRow = tuple[bytes, str, str]
+#: A `(slice_iri, slice_name, role, logical_path, content)` row (#820 S3).
+_SliceArtifactRow = tuple[str, str, str, str, bytes]
 #: A `(data, format, graph_name, scope)` named-graph ingest row.
 _NamedGraphRow = tuple[bytes, RdfFormat, str | None, str | None]
 
@@ -241,6 +243,7 @@ def compile_gts_native(
     transform: list[str] | None = ...,
     doc_blobs: list[_BlobRow] | None = ...,
     report_blobs: list[_BlobRow] | None = ...,
+    slice_artifacts: list[_SliceArtifactRow] | None = ...,
     signer_secret: bytes | None = ...,
     signer_kid: str | None = ...,
     public_key_armor: str | None = ...,
