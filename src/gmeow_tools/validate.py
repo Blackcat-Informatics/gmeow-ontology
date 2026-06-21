@@ -39,10 +39,7 @@ from gmeow_tools.config import (
     STATEMENT_DSL_SHAPES_FILE,
 )
 from gmeow_tools.graph import iter_source_files
-from gmeow_tools.slices import (
-    iter_slice_module_files,
-    iter_slice_shape_files,
-)
+from gmeow_tools.slices import iter_slice_shape_files
 
 #: CamelCase tokens that mark a selector privileging one co-equal claim (P9).
 _SELECTOR_TOKENS = frozenset({"primary", "preferred", "default", "main"})
@@ -404,34 +401,6 @@ def run_shacl(data_nt: str, *, shapes_path: Path = SHAPES_FILE) -> ValidationRes
     return result
 
 
-def slice_ownership_lint(root: Path | None = None) -> ValidationResult:
-    """Enforce the per-term ownership convention (#329, Principles 15-16).
-
-    Every ``rdfs:isDefinedBy`` asserted on a GMEOW-namespaced subject inside a
-    slice module must point at the *containing slice's IRI* — equality, not
-    mere presence. This makes the one-defining-slice rule machine-checked on
-    every term and keeps ownership honest through merges and GTS composition
-    (a term claiming a foreign owner, or the retired root-pointing form, is an
-    error).
-
-    Routed through the Rust ``gmeow_validate.slice_ownership_lint`` engine
-    (#579): each module is parsed ALONE in Rust and its GMEOW subjects'
-    ``rdfs:isDefinedBy`` objects are equality-checked against the owning slice
-    IRI. Python supplies the ``(module_path, expected_slice_iri)`` registry —
-    the slice-IRI derivation (``NAMESPACE + slices/<dir>``) stays here so the
-    file→slice convention is owned in one place.
-    """
-    modules = iter_slice_module_files(root) if root else iter_slice_module_files()
-    module_specs = [
-        (str(module), f"{NAMESPACE}slices/{module.parent.name}") for module in modules
-    ]
-    report = gmeow_validate.slice_ownership_lint(module_specs, _lint_config())
-    return ValidationResult(
-        errors=list(report["errors"]),
-        warnings=list(report["warnings"]),
-    )
-
-
 def native_ownership_errors(root: Path | None = None) -> list[str]:
     """Per-term ownership errors from the native ``gmeow_slice`` analyzer (#820 S8).
 
@@ -589,12 +558,12 @@ def validate_all(
 
     # GTS mode validates a folded graph, so only the store-based phases apply
     # (structural lint, term-naming, reasoning/gUFO invariants, merged SHACL).
-    # The source-layout phases — slice-ownership, example coverage, per-example
-    # SHACL, and the mapping/statement DSL SHACL — validate the repo source tree,
-    # not a bundle, so we withhold their filesystem inputs; the Rust engine skips
-    # any phase whose inputs are absent (#644).
+    # The source-layout phases — example coverage, per-example SHACL, and the
+    # mapping/statement DSL SHACL — validate the repo source tree, not a bundle,
+    # so we withhold their filesystem inputs; the Rust engine skips any phase
+    # whose inputs are absent (#644). Ownership is sourced from the native
+    # gmeow_slice OwnershipAnalyzer (folded in below), independent of mode.
     if gts_input is not None:
-        module_specs: list[tuple[str, str]] = []
         slices_dir_opt: str | None = None
         mapping_shapes_ttl: str | None = None
         statement_shapes_ttl: str | None = None
@@ -603,10 +572,6 @@ def validate_all(
     else:
         mapping_shapes_ttl = _dsl_shapes_turtle(MAPPING_DSL_SHAPES_FILE)
         statement_shapes_ttl = _dsl_shapes_turtle(STATEMENT_DSL_SHAPES_FILE)
-        # Ownership is sourced from the native gmeow_slice OwnershipAnalyzer
-        # (folded in below), not the Rust validate engine's path-derived phase —
-        # so we withhold module_specs and that phase no-ops (#820 S8).
-        module_specs = []
         slices_dir_opt = str(SLICES_DIR)
         mapping_dsl_dir = str(MAPPING_DSL_DIR)
         statement_dsl_dir = str(STATEMENT_DSL_DIR)
@@ -632,7 +597,6 @@ def validate_all(
     options = gmeow_validate.ValidateOptions(
         timings=timings,
         sameas_allowlist=[(subject, obj) for subject, obj in _SAMEAS_ALLOWLIST],
-        module_specs=module_specs,
         slices_dir=slices_dir_opt,
         mapping_shapes_ttl=mapping_shapes_ttl,
         statement_shapes_ttl=statement_shapes_ttl,

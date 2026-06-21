@@ -187,6 +187,53 @@ fn ownership_conflict() {
     )));
 }
 
+// ── Test 2b: ownership mismatch (declared owner ≠ physical slice) ──────────────
+
+#[test]
+fn ownership_mismatch() {
+    let tmp = TempDir::new().unwrap();
+    let root = tmp.path();
+
+    // Slice A is the only physical slice, but its module declares term T as
+    // owned by a DIFFERENT/foreign slice IRI (gmeow:sliceElsewhere). The
+    // declared owner therefore disagrees with the physical origin (sliceA).
+    write(
+        root,
+        "slices/grpA/sliceA/manifest.ttl",
+        &manifest("sliceA", &[]),
+    );
+    write(
+        root,
+        "slices/grpA/sliceA/module.ttl",
+        &format!(
+            "@prefix gmeow: <{NS}> .\n\
+             @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\
+             @prefix owl: <http://www.w3.org/2002/07/owl#> .\n\n\
+             gmeow:termT a owl:Class ; rdfs:isDefinedBy gmeow:sliceElsewhere .\n"
+        ),
+    );
+
+    let catalog = SliceCatalog::discover(root).unwrap();
+    let report = OwnershipAnalyzer::new(&catalog).analyze();
+
+    let t = &report.ownership[&nn("termT")];
+    match &t.status {
+        OwnershipStatus::Mismatch { declared, physical } => {
+            assert_eq!(*declared, iri("sliceElsewhere"));
+            assert_eq!(*physical, iri("sliceA"));
+        }
+        other => panic!("expected Mismatch, got {other:?}"),
+    }
+    assert!(report.has_ownership_defect());
+    assert!(report.diagnostics.iter().any(|d| matches!(
+        d,
+        OwnershipDiagnostic::Mismatch { term, declared, physical }
+            if *term == nn("termT")
+                && *declared == iri("sliceElsewhere")
+                && *physical == iri("sliceA")
+    )));
+}
+
 // ── Test 3: parsed (not textual) edges ────────────────────────────────────────
 
 #[test]

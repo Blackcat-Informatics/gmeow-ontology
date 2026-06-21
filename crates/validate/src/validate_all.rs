@@ -25,7 +25,7 @@ use crate::cache::{CachedResult, ValidationCache};
 use crate::dsl;
 use crate::findings::finding_from_shacl;
 use crate::gufo::{self, GufoConfig};
-use crate::lint::{self, LintConfig, ModuleSpec};
+use crate::lint::{self, LintConfig};
 use crate::signature;
 use crate::store::{self, parse_file};
 
@@ -63,9 +63,6 @@ pub struct ValidateOptions {
     /// `(subject_display, object)` pairs allowed to use `owl:sameAs` with an
     /// external entity (mirrors `config._SAMEAS_ALLOWLIST`).
     pub sameas_allowlist: Vec<(String, String)>,
-    /// `(module_path, expected_slice_iri)` pairs for the slice-ownership lint
-    /// (mirrors the registry Python builds in `slice_ownership_lint`).
-    pub module_specs: Vec<(String, String)>,
     /// Path to the `slices/` directory. When provided, example coverage and
     /// per-example SHACL validation are run in Rust.
     pub slices_dir: Option<String>,
@@ -272,13 +269,6 @@ impl ValidationRun {
                 warnings: report.warnings,
             }
         });
-        errors.extend(result.errors);
-        warnings.extend(result.warnings);
-
-        // Phase 5: slice-ownership lint.
-        let result = timed(&mut timings, "slice-ownership-lint", options, None, || {
-            check_slice_ownership(&options.module_specs, lint_config)
-        })?;
         errors.extend(result.errors);
         warnings.extend(result.warnings);
 
@@ -619,29 +609,6 @@ fn check_sameas_ban_from_parsed(
         }
     }
     Ok(result)
-}
-
-/// Phase 5: build per-module stores and run the slice-ownership lint.
-fn check_slice_ownership(
-    module_specs: &[(String, String)],
-    lint_config: &LintConfig,
-) -> Result<PhaseResult, String> {
-    let mut modules: Vec<(ModuleSpec, Store)> = Vec::new();
-    for (module_path, expected_slice_iri) in module_specs {
-        let store = store::build_store(&[PathBuf::from(module_path)])?;
-        modules.push((
-            ModuleSpec {
-                module_path: module_path.clone(),
-                expected_slice_iri: expected_slice_iri.clone(),
-            },
-            store,
-        ));
-    }
-    let report = lint::slice_ownership_lint(&modules, lint_config);
-    Ok(PhaseResult {
-        errors: report.errors,
-        warnings: report.warnings,
-    })
 }
 
 /// Phase 9: every slice must ship at least one `examples/*.ttl` file.
