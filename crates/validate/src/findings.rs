@@ -167,6 +167,52 @@ mod tests {
     use oxigraph::model::{NamedNode, Term};
 
     #[test]
+    fn ir_quad_location_threads_end_to_end_into_sarif() {
+        // The full #819 Task 12 chain: a source location attached to a quad in the
+        // immutable IR survives (a) the compat bridge that resolves the frozen quad
+        // to the owned model (Commit 4), (b) the RdfLocation -> diagnostics Location
+        // bridge here, and (c) the SARIF renderer — surfacing as a repo-relative
+        // physicalLocation. No single layer's test crosses all three.
+        use gmeow_rdf::ir::RdfDatasetBuilder;
+        use gmeow_rdf::RdfStore;
+
+        let mut b = RdfDatasetBuilder::new();
+        let s = b.intern_iri("https://example.org/s".to_owned());
+        let p = b.intern_iri("https://example.org/p".to_owned());
+        let o = b.intern_iri("https://example.org/o".to_owned());
+        let handle = b.next_quad_handle();
+        b.push_quad(s, p, o, None);
+        b.attach_location(
+            handle,
+            RdfLocation::file("slices/core/x/module.ttl").with_line(12),
+        );
+        let dataset = b.freeze().expect("valid");
+
+        // Read the quad back THROUGH the compat bridge — it carries the IR location.
+        let store = dataset.as_rdf_store();
+        let quad = RdfStore::quads(&store).next().expect("a quad").expect("ok");
+        let rdf_location = quad
+            .location
+            .expect("the bridge threads the quad's IR location into the owned model");
+
+        // RdfLocation -> diagnostics Location -> Finding -> SARIF.
+        let mut finding = Finding::new(Severity::Error, "validate.x", "boom");
+        finding.add_location(location_from_rdf(&rdf_location));
+        let mut report = gmeow_diagnostics::Report::new("validate");
+        report.add_finding(finding);
+        let sarif = gmeow_diagnostics::render::to_sarif(&report).expect("sarif");
+
+        assert!(
+            sarif.contains("\"uri\": \"slices/core/x/module.ttl\""),
+            "IR file location must reach the SARIF physicalLocation:\n{sarif}"
+        );
+        assert!(
+            sarif.contains("\"startLine\": 12"),
+            "IR line must reach the SARIF region:\n{sarif}"
+        );
+    }
+
+    #[test]
     fn rdf_diagnostic_carries_wire_coordinates_into_finding() {
         let diagnostic = RdfDiagnostic::error("gts.fold", "unexpected reifier")
             .with_location(RdfLocation::logical("gts:quad").with_gts_quad(42));

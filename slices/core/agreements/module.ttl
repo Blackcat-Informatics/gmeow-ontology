@@ -1,82 +1,81 @@
-@prefix gmeow:   <https://blackcatinformatics.ca/gmeow/> .
-@prefix gufo:    <http://purl.org/nemo/gufo#> .
-@prefix owl:     <http://www.w3.org/2002/07/owl#> .
-@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix gufo: <http://purl.org/nemo/gufo#> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
-<https://blackcatinformatics.ca/gmeow/slices/agreements>
-    a owl:Ontology ;
-    rdfs:label "GMEOW Agreements Module"@x-gmeow-english ;
-    skos:definition "The GMEOW Agreements Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agreements> ;
-    rdfs:comment "Legal agreements and contracts, modeled as relators binding their parties."@x-gmeow-english ;
-    dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
-
 gmeow:Agreement
-    a owl:Class, gufo:Kind ;
-    rdfs:subClassOf gufo:Relator ;
+    a gufo:Kind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agreements> ;
     rdfs:label "Agreement"@x-gmeow-english ;
+    rdfs:subClassOf gufo:Relator ;
     skos:definition "A mutual understanding between two or more agents that creates obligations or rights, reified as a relator connecting its parties."@x-gmeow-english ;
     skos:example "ex:partnership a gmeow:Agreement ; gmeow:hasParty ex:lillith, ex:vendor ."@x-gmeow-english ;
-    gmeow:useWhen "Use for the binding object itself — the reified relationship between two or more agents that creates obligations or rights, and the thing on which other relators (Membership, KinRelationship) are founded via gmeow:foundedOn."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid for the teleological bond of being committed toward someone (that is the teleology module's gmeow:Commitment) and for the agreement's title or document; mint a gmeow:Contract when legal enforceability is the point."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
     gmeow:howToUse "Mint one Agreement relator, bind every bound agent with gmeow:hasParty, and link the per-direction teleological promises as gmeow:Commitment moments; ground dependent relators on it with gmeow:foundedOn rather than re-stating the parties."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agreements> .
-
-gmeow:Contract
-    a owl:Class, gufo:SubKind ;
-    rdfs:subClassOf gmeow:Agreement ;
-    rdfs:label "Contract"@x-gmeow-english ;
-    skos:definition "A legally enforceable agreement — an Agreement whose obligations are backed by a legal order, distinguished from a bare understanding only by that enforceability."@x-gmeow-english ;
-    skos:example "ex:supplyContract a gmeow:Contract ; gmeow:hasParty ex:buyer, ex:supplier ."@x-gmeow-english ;
-    gmeow:useWhen "Use when an agreement's obligations are backed by a legal order and enforceability is the distinguishing fact — a supply contract, a licence, an employment agreement."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid for a non-binding understanding or informal arrangement (use the parent gmeow:Agreement) and for the teleological promise itself (gmeow:Commitment); the legal-document wrapper and clauses live in their own constructs, not on this class."@x-gmeow-english ;
-    gmeow:howToUse "Type the relator as Contract, bind the parties with gmeow:hasParty, and ground dependent relators on it with gmeow:foundedOn; carry the validity window and the title on the relator rather than overloading the type."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agreements> .
+    gmeow:useWhen "Use for the binding object itself — the reified relationship between two or more agents that creates obligations or rights, and the thing on which other relators (Membership, KinRelationship) are founded via gmeow:foundedOn."@x-gmeow-english .
 
 gmeow:AgreementName
-    a owl:Class, gufo:SubKind ;
-    rdfs:subClassOf gmeow:Appellation ;
+    a gufo:SubKind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agreements> ;
     rdfs:label "Agreement Name"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:Appellation ;
     skos:definition "An appellation borne by an agreement — a formal title, short name, or multilingual version of a contract or legal instrument. Carries its own gmeow:nameLanguage and gmeow:nameScript so co-equal multilingual names are separate first-class objects."@x-gmeow-english ;
     skos:example "ex:nafta a gmeow:AgreementName ; gmeow:nameLanguage ex:english ."@x-gmeow-english ;
-    gmeow:useWhen "Use to name an agreement as a first-class appellation — a formal title, short name, or one of several co-equal multilingual versions of a contract or legal instrument."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid folding the title into a bare label on the Agreement when language or script matters, and avoid privileging one multilingual version over its co-equal siblings; each name is its own object with its own gmeow:nameLanguage and gmeow:nameScript."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
     gmeow:howToUse "Mint one AgreementName per co-equal title, set gmeow:nameLanguage and gmeow:nameScript on each, and attach them to the agreement through the appellation-bearing construct rather than as a single privileged string."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agreements> .
+    gmeow:useWhen "Use to name an agreement as a first-class appellation — a formal title, short name, or one of several co-equal multilingual versions of a contract or legal instrument."@x-gmeow-english .
 
-gmeow:hasParty
-    a owl:ObjectProperty ;
-    rdfs:domain gmeow:Agreement ;
-    rdfs:range gmeow:Agent ;
-    rdfs:label "has party"@x-gmeow-english ;
-    skos:definition "Relates an agreement to an agent that is bound by it. NOT functional: an agreement binds two or more parties, and each is attached by a separate gmeow:hasParty statement."@x-gmeow-english ;
-    skos:example "ex:partnership gmeow:hasParty ex:lillith ."@x-gmeow-english ;
-    gmeow:useWhen "Use to attach each agent bound by an agreement or contract — the parties the relator mediates, repeated once per party."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid for the direction of a teleological promise (a Commitment carries its committed agent and beneficiary separately) and for an agent merely mentioned in the agreement; only the agents actually bound are parties, and the property is non-functional."@x-gmeow-english ;
-    gmeow:howToUse "Attach one gmeow:Agent per gmeow:hasParty statement; where the per-party direction of obligation matters, model each side as a gmeow:Commitment moment rather than overloading this membership-style link."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agreements> .
+gmeow:Contract
+    a gufo:SubKind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agreements> ;
+    rdfs:label "Contract"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:Agreement ;
+    skos:definition "A legally enforceable agreement — an Agreement whose obligations are backed by a legal order, distinguished from a bare understanding only by that enforceability."@x-gmeow-english ;
+    skos:example "ex:supplyContract a gmeow:Contract ; gmeow:hasParty ex:buyer, ex:supplier ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for a non-binding understanding or informal arrangement (use the parent gmeow:Agreement) and for the teleological promise itself (gmeow:Commitment); the legal-document wrapper and clauses live in their own constructs, not on this class."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Type the relator as Contract, bind the parties with gmeow:hasParty, and ground dependent relators on it with gmeow:foundedOn; carry the validity window and the title on the relator rather than overloading the type."@x-gmeow-english ;
+    gmeow:useWhen "Use when an agreement's obligations are backed by a legal order and enforceability is the distinguishing fact — a supply contract, a licence, an employment agreement."@x-gmeow-english .
 
 gmeow:foundedOn
     a owl:ObjectProperty ;
     rdfs:domain gufo:Relator ;
-    rdfs:range gmeow:Agreement ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agreements> ;
     rdfs:label "founded on"@x-gmeow-english ;
+    rdfs:range gmeow:Agreement ;
     skos:definition "The agreement or contract that grounds this relator — in UFO terms, the set of commitments on which the relator is founded. Reusable across any relator (Membership, KinRelationship, etc.). NOT functional: a single relator may be founded on more than one agreement."@x-gmeow-english ;
     skos:example "ex:boardSeat gmeow:foundedOn ex:partnership ."@x-gmeow-english ;
-    gmeow:useWhen "Use to record the UFO commitment-grounding of any relator — the agreement or contract whose commitments bring a Membership, KinRelationship, or other relator into being."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid for the agreement's own parties (use gmeow:hasParty) and for the teleological goal of the bond (that rides the gmeow:Commitment); this property records what grounds the relator, not what it aims at."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Point the dependent relator at the gmeow:Agreement (or gmeow:Contract) it rests on; let the agreement carry the parties via gmeow:hasParty rather than re-stating them on the grounded relator."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agreements> .
+    gmeow:useWhen "Use to record the UFO commitment-grounding of any relator — the agreement or contract whose commitments bring a Membership, KinRelationship, or other relator into being."@x-gmeow-english .
 
-# --------------------------------------------------------------------------- #
-# Graph box role coverage (canonical explicit annotations).
-# --------------------------------------------------------------------------- #
+gmeow:hasParty
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Agreement ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agreements> ;
+    rdfs:label "has party"@x-gmeow-english ;
+    rdfs:range gmeow:Agent ;
+    skos:definition "Relates an agreement to an agent that is bound by it. NOT functional: an agreement binds two or more parties, and each is attached by a separate gmeow:hasParty statement."@x-gmeow-english ;
+    skos:example "ex:partnership gmeow:hasParty ex:lillith ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for the direction of a teleological promise (a Commitment carries its committed agent and beneficiary separately) and for an agent merely mentioned in the agreement; only the agents actually bound are parties, and the property is non-functional."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Attach one gmeow:Agent per gmeow:hasParty statement; where the per-party direction of obligation matters, model each side as a gmeow:Commitment moment rather than overloading this membership-style link."@x-gmeow-english ;
+    gmeow:useWhen "Use to attach each agent bound by an agreement or contract — the parties the relator mediates, repeated once per party."@x-gmeow-english .
 
-gmeow:Agreement gmeow:graphBoxRole gmeow:boxTBox .
-gmeow:AgreementName gmeow:graphBoxRole gmeow:boxTBox .
-gmeow:Contract gmeow:graphBoxRole gmeow:boxTBox .
-gmeow:foundedOn gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:hasParty gmeow:graphBoxRole gmeow:boxRBox .
-<https://blackcatinformatics.ca/gmeow/slices/agreements> gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .
+<https://blackcatinformatics.ca/gmeow/slices/agreements>
+    a owl:Ontology ;
+    dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;
+    rdfs:comment "Legal agreements and contracts, modeled as relators binding their parties."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/agreements> ;
+    rdfs:label "GMEOW Agreements Module"@x-gmeow-english ;
+    skos:definition "The GMEOW Agreements Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxConfigBox ,
+        gmeow:boxTBox .

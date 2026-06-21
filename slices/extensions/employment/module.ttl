@@ -1,15 +1,198 @@
-@prefix gmeow:   <https://blackcatinformatics.ca/gmeow/> .
-@prefix gufo:    <http://purl.org/nemo/gufo#> .
-@prefix owl:     <http://www.w3.org/2002/07/owl#> .
-@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix gufo: <http://purl.org/nemo/gufo#> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
+
+gmeow:Employment
+    a gufo:SubKind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/employment> ;
+    rdfs:label "Employment"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:Membership ,
+        [
+            a owl:Restriction ;
+            owl:onProperty gmeow:employmentType ;
+            owl:someValuesFrom gmeow:EmploymentType ;
+        ] ,
+        [
+            a owl:Restriction ;
+            owl:onProperty gmeow:membershipMember ;
+            owl:someValuesFrom gmeow:Agent ;
+        ] ,
+        [
+            a owl:Restriction ;
+            owl:onProperty gmeow:membershipOrganization ;
+            owl:someValuesFrom gmeow:Organization ;
+        ] ;
+    skos:definition "A reified employment relationship between an agent and an organization, optionally founded on an employment contract and bearing a role, compensation, and employment type over a period. A specialization of gmeow:Membership: the employment-specific facets (compensation, seniority, employment type) are added here; the structural spine (member, organization, role, period) is inherited."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:EmploymentType
+    a gufo:AbstractIndividualType ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/employment> ;
+    rdfs:label "Employment Type"@x-gmeow-english ;
+    rdfs:subClassOf gufo:QualityValue ;
+    skos:definition "The kind of employment — a VALUE, never an Employment subclass. The set is open; a kind not among the seeds is a FRESH gmeow:EmploymentType individual carrying rdfs:label. Pointed at by gmeow:employmentType."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:SeniorityLevel
+    a gufo:AbstractIndividualType ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/employment> ;
+    rdfs:label "Seniority Level"@x-gmeow-english ;
+    rdfs:subClassOf gufo:QualityValue ;
+    skos:definition "The seniority or rank of an employment — a VALUE, never an Employment subclass. The set is open; a level not among the seeds is a FRESH gmeow:SeniorityLevel individual carrying rdfs:label. Pointed at by gmeow:employmentSeniority. Orthogonal to employment type and role."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:employmentCompensation
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Employment ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/employment> ;
+    rdfs:label "employment compensation"@x-gmeow-english ;
+    rdfs:range gmeow:MonetaryAmount ;
+    skos:definition "The monetary compensation of an employment, expressed as a MonetaryAmount with explicit currency frame (Principle 11). Non-functional: a single employment may have several compensation figures over time (raises, bonuses, multi-currency arrangements), recorded as co-equal standpoint-indexed claims."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:employmentInterval
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:Employment ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/employment> ;
+    rdfs:label "employment interval"@x-gmeow-english ;
+    rdfs:range gmeow:TimeInterval ;
+    skos:definition "The time interval over which the employment holds. A relator carries its period this way (matching gmeow:participationInterval, gmeow:membershipInterval) rather than via gmeow:duringInterval, which is reserved for gufo:Situation-based time-scoped relations. Open-ended (no end instant) when the employment is current."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:employmentOccupation
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
+    rdfs:domain gmeow:Employment ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/employment> ;
+    rdfs:label "employment occupation"@x-gmeow-english ;
+    rdfs:range gmeow:Occupation ;
+    skos:definition "The occupation associated with this employment, drawn from an open vocabulary such as ESCO or SOC. Functional: an employment maps to one canonical occupation; an agent with several occupations has several employment records."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:employmentRole
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
+    rdfs:domain gmeow:Employment ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/employment> ;
+    rdfs:label "employment role"@x-gmeow-english ;
+    rdfs:range gmeow:Role ;
+    rdfs:subPropertyOf gmeow:hasRole ;
+    skos:definition "The role borne by this employment — a job title, position, or function. Functional: an employment has one canonical role at a time; a change of role is a new employment record or a standpoint-indexed claim. Specializes gmeow:hasRole."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:employmentSeniority
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
+    rdfs:domain gmeow:Employment ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/employment> ;
+    rdfs:label "employment seniority"@x-gmeow-english ;
+    rdfs:range gmeow:SeniorityLevel ;
+    skos:definition "The seniority level of an employment — one of the open gmeow:SeniorityLevel values. Functional: an employment has one canonical seniority at a time; a promotion is a new employment record or a standpoint-indexed claim. Orthogonal to employment type and role."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:employmentType
+    a owl:FunctionalProperty ,
+        owl:ObjectProperty ;
+    rdfs:domain gmeow:Employment ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/employment> ;
+    rdfs:label "employment type"@x-gmeow-english ;
+    rdfs:range gmeow:EmploymentType ;
+    skos:definition "The kind of employment — one of the open gmeow:EmploymentType values. Functional: an employment has one canonical type at a time; a change of type is a new employment record or a standpoint-indexed claim."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:employmentTypeApprentice
+    a gmeow:EmploymentType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/employment> ;
+    rdfs:label "apprentice"@x-gmeow-english ;
+    skos:definition "Employment as an apprentice, combining work with structured training."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:employmentTypeContract
+    a gmeow:EmploymentType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/employment> ;
+    rdfs:label "contract"@x-gmeow-english ;
+    skos:definition "Employment under a fixed-term contract."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:employmentTypeFreelance
+    a gmeow:EmploymentType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/employment> ;
+    rdfs:label "freelance"@x-gmeow-english ;
+    skos:definition "Self-employed or independent contractor work."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:employmentTypeFullTime
+    a gmeow:EmploymentType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/employment> ;
+    rdfs:label "full-time"@x-gmeow-english ;
+    skos:definition "Employment for the full ordinary duration of working hours."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:employmentTypeIntern
+    a gmeow:EmploymentType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/employment> ;
+    rdfs:label "intern"@x-gmeow-english ;
+    skos:definition "Employment as an intern or trainee."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:employmentTypePartTime
+    a gmeow:EmploymentType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/employment> ;
+    rdfs:label "part-time"@x-gmeow-english ;
+    skos:definition "Employment for less than the full ordinary duration of working hours."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:employmentTypeVolunteer
+    a gmeow:EmploymentType ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/employment> ;
+    rdfs:label "volunteer"@x-gmeow-english ;
+    skos:definition "Unpaid voluntary work."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:seniorityEntry
+    a gmeow:SeniorityLevel ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/employment> ;
+    rdfs:label "entry-level"@x-gmeow-english ;
+    skos:definition "An entry-level or junior position."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:seniorityExecutive
+    a gmeow:SeniorityLevel ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/employment> ;
+    rdfs:label "executive"@x-gmeow-english ;
+    skos:definition "An executive or C-level position."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:seniorityLead
+    a gmeow:SeniorityLevel ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/employment> ;
+    rdfs:label "lead"@x-gmeow-english ;
+    skos:definition "A lead or principal position."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:seniorityMid
+    a gmeow:SeniorityLevel ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/employment> ;
+    rdfs:label "mid-level"@x-gmeow-english ;
+    skos:definition "A mid-level position."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:senioritySenior
+    a gmeow:SeniorityLevel ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/employment> ;
+    rdfs:label "senior"@x-gmeow-english ;
+    skos:definition "A senior-level position."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
 
 <https://blackcatinformatics.ca/gmeow/slices/employment>
     a owl:Ontology ;
-    rdfs:label "GMEOW Employment Module"@x-gmeow-english ;
-    skos:definition "The GMEOW Employment Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/employment> ;
+    dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;
     rdfs:comment """Employment relationships, compensation, and career events (the ResumeRDF / Europass / schema.org / ESCO / CTDL superset layer).
 
 STANDPOINT DOCTRINE. Contested facts in the employment slice — disputed tenure, rival role claims, contested termination — are standpoint-indexed claims that COEXIST, none privileged (Principle 9). A contested employment is two gmeow:accordingTo-annotated gmeow:memberOf base triples, or two reified gmeow:Employment relators each carrying gmeow:accordingTo. A withdrawn employment record is modelled with gmeow:displayable false, never deletion (Principle 10). There is NO employment-specific dispute mechanism, no primaryEmployment, no preferredJob — only the cross-cutting standpoint facility.
@@ -22,153 +205,8 @@ DOCTRINE.
   * Seniority is an open value vocabulary, orthogonal to employment type and role.
   * Flat-first, reify on demand: a flat gmeow:memberOf covers the 80% case; promote to gmeow:Employment when type, compensation, seniority, or provenance matters.
   * Reuse: Membership, Role, Occupation, Agreement, Event/Participation, MonetaryAmount, Credential, Skill, LanguageProficiency."""@x-gmeow-english ;
-    dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
-
-# =========================================================================== #
-# Employment — the reified employment relationship
-# =========================================================================== #
-
-gmeow:Employment
-    a owl:Class, gufo:SubKind ;
-    rdfs:subClassOf gmeow:Membership ;
-    rdfs:label "Employment"@x-gmeow-english ;
-    skos:definition "A reified employment relationship between an agent and an organization, optionally founded on an employment contract and bearing a role, compensation, and employment type over a period. A specialization of gmeow:Membership: the employment-specific facets (compensation, seniority, employment type) are added here; the structural spine (member, organization, role, period) is inherited."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/employment> .
-
-# =========================================================================== #
-# Employment type — an OPEN value vocabulary (gufo:QualityValue).
-# =========================================================================== #
-
-gmeow:EmploymentType
-    a owl:Class, gufo:AbstractIndividualType ;
-    rdfs:subClassOf gufo:QualityValue ;
-    rdfs:label "Employment Type"@x-gmeow-english ;
-    skos:definition "The kind of employment — a VALUE, never an Employment subclass. The set is open; a kind not among the seeds is a FRESH gmeow:EmploymentType individual carrying rdfs:label. Pointed at by gmeow:employmentType."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/employment> .
-
-gmeow:employmentTypeFullTime    a gmeow:EmploymentType ; rdfs:label "full-time"@x-gmeow-english ;    skos:definition "Employment for the full ordinary duration of working hours."@x-gmeow-english .
-gmeow:employmentTypeFullTime rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/employment> .
-gmeow:employmentTypePartTime    a gmeow:EmploymentType ; rdfs:label "part-time"@x-gmeow-english ;    skos:definition "Employment for less than the full ordinary duration of working hours."@x-gmeow-english .
-gmeow:employmentTypePartTime rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/employment> .
-gmeow:employmentTypeContract    a gmeow:EmploymentType ; rdfs:label "contract"@x-gmeow-english ;    skos:definition "Employment under a fixed-term contract."@x-gmeow-english .
-gmeow:employmentTypeContract rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/employment> .
-gmeow:employmentTypeIntern      a gmeow:EmploymentType ; rdfs:label "intern"@x-gmeow-english ;      skos:definition "Employment as an intern or trainee."@x-gmeow-english .
-gmeow:employmentTypeIntern rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/employment> .
-gmeow:employmentTypeFreelance   a gmeow:EmploymentType ; rdfs:label "freelance"@x-gmeow-english ;   skos:definition "Self-employed or independent contractor work."@x-gmeow-english .
-gmeow:employmentTypeFreelance rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/employment> .
-gmeow:employmentTypeVolunteer   a gmeow:EmploymentType ; rdfs:label "volunteer"@x-gmeow-english ;   skos:definition "Unpaid voluntary work."@x-gmeow-english .
-gmeow:employmentTypeVolunteer rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/employment> .
-gmeow:employmentTypeApprentice  a gmeow:EmploymentType ; rdfs:label "apprentice"@x-gmeow-english ;  skos:definition "Employment as an apprentice, combining work with structured training."@x-gmeow-english .
-
-# =========================================================================== #
-# Seniority level — an OPEN value vocabulary (gufo:QualityValue).
-# =========================================================================== #
-gmeow:employmentTypeApprentice rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/employment> .
-
-gmeow:SeniorityLevel
-    a owl:Class, gufo:AbstractIndividualType ;
-    rdfs:subClassOf gufo:QualityValue ;
-    rdfs:label "Seniority Level"@x-gmeow-english ;
-    skos:definition "The seniority or rank of an employment — a VALUE, never an Employment subclass. The set is open; a level not among the seeds is a FRESH gmeow:SeniorityLevel individual carrying rdfs:label. Pointed at by gmeow:employmentSeniority. Orthogonal to employment type and role."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/employment> .
-
-gmeow:seniorityEntry     a gmeow:SeniorityLevel ; rdfs:label "entry-level"@x-gmeow-english ;     skos:definition "An entry-level or junior position."@x-gmeow-english .
-gmeow:seniorityEntry rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/employment> .
-gmeow:seniorityMid      a gmeow:SeniorityLevel ; rdfs:label "mid-level"@x-gmeow-english ;       skos:definition "A mid-level position."@x-gmeow-english .
-gmeow:seniorityMid rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/employment> .
-gmeow:senioritySenior   a gmeow:SeniorityLevel ; rdfs:label "senior"@x-gmeow-english ;          skos:definition "A senior-level position."@x-gmeow-english .
-gmeow:senioritySenior rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/employment> .
-gmeow:seniorityLead     a gmeow:SeniorityLevel ; rdfs:label "lead"@x-gmeow-english ;            skos:definition "A lead or principal position."@x-gmeow-english .
-gmeow:seniorityLead rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/employment> .
-gmeow:seniorityExecutive a gmeow:SeniorityLevel ; rdfs:label "executive"@x-gmeow-english ;      skos:definition "An executive or C-level position."@x-gmeow-english .
-
-# =========================================================================== #
-# Properties
-# =========================================================================== #
-gmeow:seniorityExecutive rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/employment> .
-
-gmeow:employmentType
-    a owl:ObjectProperty, owl:FunctionalProperty ;
-    rdfs:domain gmeow:Employment ;
-    rdfs:range gmeow:EmploymentType ;
-    rdfs:label "employment type"@x-gmeow-english ;
-    skos:definition "The kind of employment — one of the open gmeow:EmploymentType values. Functional: an employment has one canonical type at a time; a change of type is a new employment record or a standpoint-indexed claim."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/employment> .
-
-gmeow:employmentCompensation
-    a owl:ObjectProperty ;
-    rdfs:domain gmeow:Employment ;
-    rdfs:range gmeow:MonetaryAmount ;
-    rdfs:label "employment compensation"@x-gmeow-english ;
-    skos:definition "The monetary compensation of an employment, expressed as a MonetaryAmount with explicit currency frame (Principle 11). Non-functional: a single employment may have several compensation figures over time (raises, bonuses, multi-currency arrangements), recorded as co-equal standpoint-indexed claims."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/employment> .
-
-gmeow:employmentSeniority
-    a owl:ObjectProperty, owl:FunctionalProperty ;
-    rdfs:domain gmeow:Employment ;
-    rdfs:range gmeow:SeniorityLevel ;
-    rdfs:label "employment seniority"@x-gmeow-english ;
-    skos:definition "The seniority level of an employment — one of the open gmeow:SeniorityLevel values. Functional: an employment has one canonical seniority at a time; a promotion is a new employment record or a standpoint-indexed claim. Orthogonal to employment type and role."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/employment> .
-
-gmeow:employmentRole
-    a owl:ObjectProperty, owl:FunctionalProperty ;
-    rdfs:subPropertyOf gmeow:hasRole ;
-    rdfs:domain gmeow:Employment ;
-    rdfs:range gmeow:Role ;
-    rdfs:label "employment role"@x-gmeow-english ;
-    skos:definition "The role borne by this employment — a job title, position, or function. Functional: an employment has one canonical role at a time; a change of role is a new employment record or a standpoint-indexed claim. Specializes gmeow:hasRole."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/employment> .
-
-gmeow:employmentOccupation
-    a owl:ObjectProperty, owl:FunctionalProperty ;
-    rdfs:domain gmeow:Employment ;
-    rdfs:range gmeow:Occupation ;
-    rdfs:label "employment occupation"@x-gmeow-english ;
-    skos:definition "The occupation associated with this employment, drawn from an open vocabulary such as ESCO or SOC. Functional: an employment maps to one canonical occupation; an agent with several occupations has several employment records."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/employment> .
-
-gmeow:employmentInterval
-    a owl:ObjectProperty ;
-    rdfs:domain gmeow:Employment ;
-    rdfs:range gmeow:TimeInterval ;
-    rdfs:label "employment interval"@x-gmeow-english ;
-    skos:definition "The time interval over which the employment holds. A relator carries its period this way (matching gmeow:participationInterval, gmeow:membershipInterval) rather than via gmeow:duringInterval, which is reserved for gufo:Situation-based time-scoped relations. Open-ended (no end instant) when the employment is current."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/employment> .
-
-# =========================================================================== #
-# AXIOMATIZED DOCTRINE — relator mediation (EL someValuesFrom, open-world).
-# Closed-world cardinality is SHACL's (gmeow-shapes.ttl).
-# =========================================================================== #
-
-gmeow:Employment rdfs:subClassOf
-    [ a owl:Restriction ; owl:onProperty gmeow:employmentType ; owl:someValuesFrom gmeow:EmploymentType ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:membershipMember ; owl:someValuesFrom gmeow:Agent ] ,
-    [ a owl:Restriction ; owl:onProperty gmeow:membershipOrganization ; owl:someValuesFrom gmeow:Organization ] .
-
-# --------------------------------------------------------------------------- #
-# Graph box role coverage (canonical explicit annotations).
-# --------------------------------------------------------------------------- #
-
-gmeow:Employment gmeow:graphBoxRole gmeow:boxTBox .
-gmeow:EmploymentType gmeow:graphBoxRole gmeow:boxTBox .
-gmeow:SeniorityLevel gmeow:graphBoxRole gmeow:boxTBox .
-gmeow:employmentCompensation gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:employmentInterval gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:employmentOccupation gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:employmentRole gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:employmentSeniority gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:employmentType gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:employmentTypeApprentice gmeow:graphBoxRole gmeow:boxABox .
-gmeow:employmentTypeContract gmeow:graphBoxRole gmeow:boxABox .
-gmeow:employmentTypeFreelance gmeow:graphBoxRole gmeow:boxABox .
-gmeow:employmentTypeFullTime gmeow:graphBoxRole gmeow:boxABox .
-gmeow:employmentTypeIntern gmeow:graphBoxRole gmeow:boxABox .
-gmeow:employmentTypePartTime gmeow:graphBoxRole gmeow:boxABox .
-gmeow:employmentTypeVolunteer gmeow:graphBoxRole gmeow:boxABox .
-gmeow:seniorityEntry gmeow:graphBoxRole gmeow:boxABox .
-gmeow:seniorityExecutive gmeow:graphBoxRole gmeow:boxABox .
-gmeow:seniorityLead gmeow:graphBoxRole gmeow:boxABox .
-gmeow:seniorityMid gmeow:graphBoxRole gmeow:boxABox .
-gmeow:senioritySenior gmeow:graphBoxRole gmeow:boxABox .
-<https://blackcatinformatics.ca/gmeow/slices/employment> gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/employment> ;
+    rdfs:label "GMEOW Employment Module"@x-gmeow-english ;
+    skos:definition "The GMEOW Employment Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxConfigBox ,
+        gmeow:boxTBox .

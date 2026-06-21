@@ -1,8 +1,10 @@
 """Canonical Turtle serialization for stable, review-friendly diffs.
 
 OWL-heavy ontologies edited in Protégé or by hand produce noisy diffs (reordered
-triples, churned blank-node ids). Re-serializing each source through rdflib's
-``longturtle`` canonical form makes diffs reflect real semantic changes only.
+triples, churned blank-node ids). Re-serializing each source through the native
+``gmeow_rdf`` canonical Turtle form (#819 Task 9) makes diffs reflect real
+semantic changes only — it is the rdflib-free replacement for ``longturtle``,
+serialized over the gmeow-rdf IR (oxigraph is only the ingest-edge parser).
 
 This is an explicit, opt-in step (``gmeow normalize``); it is not part of the
 ``check`` gate, since it rewrites the authored files.
@@ -12,13 +14,18 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from rdflib import Graph
+import gmeow_rdf
 
-from gmeow_tools.graph import bind_prefixes, iter_source_files
+from gmeow_tools.config import PREFIXES
+from gmeow_tools.graph import iter_source_files
+
+# The canonical GMEOW prefix registry, as the (prefix, namespace) pairs the
+# native serializer abbreviates with (only the ones a file uses are emitted).
+_EXTRA_PREFIXES: list[tuple[str, str]] = sorted(PREFIXES.items())
 
 
 def canonicalize(path: Path) -> bool:
-    """Rewrite one Turtle file in canonical ``longturtle`` form.
+    """Rewrite one Turtle file in native canonical form.
 
     Args:
         path: The Turtle file to normalize in place.
@@ -26,13 +33,11 @@ def canonicalize(path: Path) -> bool:
     Returns:
         ``True`` if the file content changed, ``False`` otherwise.
     """
-    graph = Graph().parse(path, format="turtle")
-    bind_prefixes(graph)
-    canonical = graph.serialize(format="longturtle")
-    before = path.read_text(encoding="utf-8")
+    before = path.read_bytes()
+    canonical = gmeow_rdf.canonicalize_turtle(before, _EXTRA_PREFIXES)
     if before == canonical:
         return False
-    path.write_text(canonical, encoding="utf-8")
+    path.write_bytes(canonical)
     return True
 
 

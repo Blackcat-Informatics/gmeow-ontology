@@ -1,143 +1,128 @@
-@prefix gmeow:   <https://blackcatinformatics.ca/gmeow/> .
-@prefix gufo:    <http://purl.org/nemo/gufo#> .
-@prefix owl:     <http://www.w3.org/2002/07/owl#> .
-@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix gufo: <http://purl.org/nemo/gufo#> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
-<https://blackcatinformatics.ca/gmeow/slices/entities>
-    a owl:Ontology ;
-    rdfs:label "GMEOW Entities Module"@x-gmeow-english ;
-    skos:definition "The GMEOW Entities Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/entities> ;
-    rdfs:comment "Person, organization, group and software-agent descriptions, plus naming (the FOAF / schema.org superset layer)."@x-gmeow-english ;
-    dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> .
-
-gmeow:Person
-    a owl:Class, gufo:Kind ;
-    rdfs:subClassOf gmeow:Agent ;
-    rdfs:label "Person"@x-gmeow-english ;
-    skos:definition "An individual human being, living or deceased."@x-gmeow-english ;
-    skos:example "ex:lillith a gmeow:Person ; gmeow:hasName ex:lillithName ; gmeow:nationality ex:canada ."@x-gmeow-english ;
-    gmeow:useWhen "Use for an individual human being who acts, authors, or is described — the human specialization of gmeow:Agent that supplies its own principle of identity (gufo:Kind)."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid for non-human actors (use gmeow:SoftwareAgent), for collectives (use gmeow:Group or gmeow:Organization), and for a merely named human role; Person is disjoint with Organization and SoftwareAgent."@x-gmeow-english ;
-    gmeow:howToUse "Type the human as gmeow:Person, carry their name through the structured gmeow:hasName / gmeow:PersonName apparatus (names module) rather than the flat gmeow:name literal, and attach nationality, contributions, and contacts through their dedicated properties and role relators."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/entities> .
-
-gmeow:Organization
-    a owl:Class, gufo:Kind ;
-    rdfs:subClassOf gmeow:Agent ;
-    rdfs:label "Organization"@x-gmeow-english ;
-    skos:definition "A structured group of agents — a company, institution, association, or governmental body — able to act as a single agent."@x-gmeow-english ;
-    skos:example "ex:blackcat a gmeow:Organization ; gmeow:hasOrganizationName ex:blackcatLegalName ."@x-gmeow-english ;
-    gmeow:useWhen "Use for a formally structured collective that acts as one agent — a company, institution, association, or governmental body — when its internal structure and capacity to bear responsibility matter."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid for an informal, structure-free collection of agents (use gmeow:Group instead) and for an individual human (use gmeow:Person); Organization is disjoint with Person and SoftwareAgent."@x-gmeow-english ;
-    gmeow:howToUse "Type the body as gmeow:Organization, name it through gmeow:hasOrganizationName / gmeow:OrganizationName (names module) rather than the flat gmeow:name literal, and model departments and membership through the part/whole spine (gmeow:subOrganizationOf) and role relators."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/entities> .
-
 gmeow:Group
-    a owl:Class, gufo:Kind ;
-    rdfs:subClassOf gmeow:Entity, gufo:Collection ;
+    a gufo:Kind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/entities> ;
     rdfs:label "Group"@x-gmeow-english ;
+    rdfs:subClassOf gufo:Collection ,
+        gmeow:Entity ;
     skos:definition "A collection of agents treated as a unit without the formal structure of an organization."@x-gmeow-english ;
     skos:example "ex:researchTeam a gmeow:Group ; gmeow:hasMember ex:lillith, ex:patrick ."@x-gmeow-english ;
-    gmeow:useWhen "Use for an informal collection of agents treated as a unit but lacking organizational structure — a research team, an audience, a working set of contributors."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid for a formally constituted body that acts as one agent (use gmeow:Organization) and for a single agent; Group is deliberately NOT asserted disjoint with Organization, since a structured collective is arguably also a group."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
     gmeow:howToUse "Type the collection as gmeow:Group (a gufo:Collection) and relate its agents through gmeow:hasMember / gmeow:memberOf; promote to gmeow:Organization only when formal structure and single-agent responsibility must be modelled."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/entities> .
+    gmeow:useWhen "Use for an informal collection of agents treated as a unit but lacking organizational structure — a research team, an audience, a working set of contributors."@x-gmeow-english .
+
+gmeow:Organization
+    a gufo:Kind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/entities> ;
+    rdfs:label "Organization"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:Agent ;
+    skos:definition "A structured group of agents — a company, institution, association, or governmental body — able to act as a single agent."@x-gmeow-english ;
+    skos:example "ex:blackcat a gmeow:Organization ; gmeow:hasOrganizationName ex:blackcatLegalName ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for an informal, structure-free collection of agents (use gmeow:Group instead) and for an individual human (use gmeow:Person); Organization is disjoint with Person and SoftwareAgent."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Type the body as gmeow:Organization, name it through gmeow:hasOrganizationName / gmeow:OrganizationName (names module) rather than the flat gmeow:name literal, and model departments and membership through the part/whole spine (gmeow:subOrganizationOf) and role relators."@x-gmeow-english ;
+    gmeow:useWhen "Use for a formally structured collective that acts as one agent — a company, institution, association, or governmental body — when its internal structure and capacity to bear responsibility matter."@x-gmeow-english .
+
+gmeow:Person
+    a gufo:Kind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/entities> ;
+    rdfs:label "Person"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:Agent ;
+    skos:definition "An individual human being, living or deceased."@x-gmeow-english ;
+    skos:example "ex:lillith a gmeow:Person ; gmeow:hasName ex:lillithName ; gmeow:nationality ex:canada ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for non-human actors (use gmeow:SoftwareAgent), for collectives (use gmeow:Group or gmeow:Organization), and for a merely named human role; Person is disjoint with Organization and SoftwareAgent."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
+    gmeow:howToUse "Type the human as gmeow:Person, carry their name through the structured gmeow:hasName / gmeow:PersonName apparatus (names module) rather than the flat gmeow:name literal, and attach nationality, contributions, and contacts through their dedicated properties and role relators."@x-gmeow-english ;
+    gmeow:useWhen "Use for an individual human being who acts, authors, or is described — the human specialization of gmeow:Agent that supplies its own principle of identity (gufo:Kind)."@x-gmeow-english .
 
 gmeow:SoftwareAgent
-    a owl:Class, gufo:Kind ;
-    rdfs:subClassOf gmeow:Agent ;
+    a gufo:Kind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/entities> ;
     rdfs:label "Software Agent"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:Agent ;
     skos:definition "A software process or autonomous program that acts on behalf of a person or organization."@x-gmeow-english ;
     skos:example "ex:lillithBot a gmeow:SoftwareAgent ; gmeow:name \"Lillith\"@en ."@x-gmeow-english ;
-    gmeow:useWhen "Use for a non-human actor — a software process, bot, model invocation, or autonomous program — that acts, authors, or bears provenance on behalf of a person or organization."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid for a human actor (use gmeow:Person) and for a passive software artifact that carries content without acting (use gmeow:InformationObject or a software-document class); SoftwareAgent is disjoint with Person and Organization."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox ;
     gmeow:howToUse "Type the actor as gmeow:SoftwareAgent and link it as the agent of its acts through provenance and contribution relators (e.g. the agentic slice's ModelInvocation idiom); attach a flat gmeow:name and its owning principal rather than the structured person-name apparatus."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/entities> .
-
-# Naming (datatype properties).
-
-gmeow:name
-    a owl:DatatypeProperty ;
-    rdfs:domain gmeow:Entity ;
-    rdfs:range rdfs:Literal ;
-    rdfs:label "name"@x-gmeow-english ;
-    skos:definition "A simple label by which an entity is known — the rdfs:label tier, for entities that do not need the full naming apparatus (organizations, software agents, sources, keys). Persons' names are modelled as gmeow:PersonName (names module); a flat given/family ('First Last') rendering is produced by downcasting that structured model in the projection layer, not stored here. Carries no precedence over an entity's other names. Language-tag the literal where applicable."@x-gmeow-english ;
-    skos:example "ex:blackcat gmeow:name \"Blackcat Informatics Inc.\"@en ."@x-gmeow-english ;
-    gmeow:useWhen "Use for the simple, flat label of an entity that does not need the structured naming apparatus — an organization, software agent, source, or key — when one plain language-tagged string suffices."@x-gmeow-english ;
-    gmeow:avoidWhen "Avoid for a person (model with gmeow:hasName / gmeow:PersonName and downcast at projection time) and whenever audience, register, period, or standpoint must travel with the name (promote to gmeow:Appellation / gmeow:NameUsage); gmeow:name carries no precedence over an entity's other names."@x-gmeow-english ;
-    gmeow:howToUse "Attach one or more language-tagged literals; it is non-functional, so several co-equal names coexist. For person names downcast the structured model in the projection layer rather than storing a flat string here."@x-gmeow-english ;
-    gmeow:useForConsumer gmeow:consumerFoafExport,
-        gmeow:consumerSchemaOrgJsonLd,
-        gmeow:consumerPublicSite ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/entities> .
+    gmeow:useWhen "Use for a non-human actor — a software process, bot, model invocation, or autonomous program — that acts, authors, or bears provenance on behalf of a person or organization."@x-gmeow-english .
 
 gmeow:description
     a owl:DatatypeProperty ;
     rdfs:domain gmeow:Entity ;
-    rdfs:range rdfs:Literal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/entities> ;
     rdfs:label "description"@x-gmeow-english ;
+    rdfs:range rdfs:Literal ;
     skos:definition "A free-text note or description about an entity — the unstructured NOTE field (a biography, a remark, an annotation). Genuinely flat: unlike names, dates or roles, a note has no structure to reify. Distinct from skos:definition, which documents ontology TERMS rather than instances. Language-tag the literal where applicable; non-functional."@x-gmeow-english ;
     skos:example "ex:lillith gmeow:description \"Open-source contributor and maintainer.\"@en ."@x-gmeow-english ;
-    gmeow:useWhen "Use for an unstructured free-text note about an instance — a biography, remark, or annotation that genuinely has no structure to reify."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid for content that does have structure to model (names, dates, roles, contributions — use the dedicated relators) and for documenting an ontology TERM (use skos:definition); a description is an instance-level note, not a term definition."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Attach one or more language-tagged literals; it is non-functional, so notes in several languages or from several sources coexist. Reach for a relator instead the moment the note carries facts that other constructs already model."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/entities> .
+    gmeow:useWhen "Use for an unstructured free-text note about an instance — a biography, remark, or annotation that genuinely has no structure to reify."@x-gmeow-english .
 
 gmeow:hasWebPage
     a owl:ObjectProperty ;
     rdfs:domain gmeow:Entity ;
-    rdfs:range gmeow:WebPage ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/entities> ;
     rdfs:label "has web page"@x-gmeow-english ;
+    rdfs:range gmeow:WebPage ;
     skos:definition "Relates an entity to a web page representing it — a homepage, a profile page, a project site. The structured form of a 'website / URL' field: the page is a first-class gmeow:WebPage (documents module) whose IRI is its URL, so it can itself carry a title, language, and rights. Non-functional — an entity may have several pages."@x-gmeow-english ;
     skos:example "ex:blackcat gmeow:hasWebPage <https://blackcatinformatics.ca> ."@x-gmeow-english ;
-    gmeow:useWhen "Use to link an entity to a web page that represents it — a homepage, profile, or project site — when the page should be a first-class resource that can itself bear a title, language, or rights."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid storing a website as a bare string literal (mint the page as a gmeow:WebPage whose IRI is its URL) and avoid it for a contact channel that is not a web page (use gmeow:ContactPoint); it is non-functional, so multiple pages coexist."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Point the entity at a gmeow:WebPage (documents module) whose IRI is the URL, then hang the page's own title, language, and rights on that resource rather than on the entity."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/entities> .
+    gmeow:useWhen "Use to link an entity to a web page that represents it — a homepage, profile, or project site — when the page should be a first-class resource that can itself bear a title, language, or rights."@x-gmeow-english .
+
+gmeow:name
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:Entity ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/entities> ;
+    rdfs:label "name"@x-gmeow-english ;
+    rdfs:range rdfs:Literal ;
+    skos:definition "A simple label by which an entity is known — the rdfs:label tier, for entities that do not need the full naming apparatus (organizations, software agents, sources, keys). Persons' names are modelled as gmeow:PersonName (names module); a flat given/family ('First Last') rendering is produced by downcasting that structured model in the projection layer, not stored here. Carries no precedence over an entity's other names. Language-tag the literal where applicable."@x-gmeow-english ;
+    skos:example "ex:blackcat gmeow:name \"Blackcat Informatics Inc.\"@en ."@x-gmeow-english ;
+    gmeow:avoidWhen "Avoid for a person (model with gmeow:hasName / gmeow:PersonName and downcast at projection time) and whenever audience, register, period, or standpoint must travel with the name (promote to gmeow:Appellation / gmeow:NameUsage); gmeow:name carries no precedence over an entity's other names."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
+    gmeow:howToUse "Attach one or more language-tagged literals; it is non-functional, so several co-equal names coexist. For person names downcast the structured model in the projection layer rather than storing a flat string here."@x-gmeow-english ;
+    gmeow:useForConsumer gmeow:consumerFoafExport ,
+        gmeow:consumerPublicSite ,
+        gmeow:consumerSchemaOrgJsonLd ;
+    gmeow:useWhen "Use for the simple, flat label of an entity that does not need the structured naming apparatus — an organization, software agent, source, or key — when one plain language-tagged string suffices."@x-gmeow-english .
 
 gmeow:nationality
     a owl:ObjectProperty ;
     rdfs:domain gmeow:Person ;
-    rdfs:range gmeow:Place ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/entities> ;
     rdfs:label "nationality"@x-gmeow-english ;
+    rdfs:range gmeow:Place ;
     skos:definition "The country of a person's nationality (schema:nationality) — a gmeow:Place. The legal/national-identity bond, distinct from where a person currently lives. Non-functional: a person may hold several nationalities; contested cases are standpoint-indexed claims (Principle 9)."@x-gmeow-english ;
     skos:example "ex:lillith gmeow:nationality ex:canada ."@x-gmeow-english ;
-    gmeow:useWhen "Use to record a person's legal national-identity bond to a country — the schema:nationality relation, pointing at a gmeow:Place."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid for where a person currently lives or is located (model residence/location separately); nationality is the legal bond, not the dwelling place."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox ;
     gmeow:howToUse "Point the person at a country gmeow:Place; it is non-functional, so multiple nationalities coexist, and a contested nationality is carried as a gmeow:accordingTo-indexed standpoint claim rather than a single asserted fact (Principle 9)."@x-gmeow-english ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/entities> .
+    gmeow:useWhen "Use to record a person's legal national-identity bond to a country — the schema:nationality relation, pointing at a gmeow:Place."@x-gmeow-english .
 
-# =========================================================================== #
-# AXIOMATIZED DOCTRINE (relator-mediation doctrine) — principal ultimate Kinds are pairwise disjoint.
-#
-# By UFO, distinct gufo:Kind classes each supply their own principle of identity, so an
-# individual instantiates exactly one ultimate Kind. We assert that disjointness
-# over the CORE, unarguably mutually-exclusive top-level sortals (cross-module —
-# the IRIs resolve after merge). A person is not an organization, a place, a key,
-# a name, a language or a writing system; software agents are distinct from human
-# persons. Deliberately EXCLUDED: gmeow:Group (a structured organization is
-# arguably a group) and the gmeow:InformationObject document / message / source
-# family (a Source may legitimately also be a Document / CreativeWork) — asserting
-# those disjoint would turn benign overlap into an inconsistency, which Principle 9
-# forbids. Add only disjointness that is TRUE.
-[] a owl:AllDisjointClasses ;
-    owl:members ( gmeow:Person gmeow:Organization gmeow:SoftwareAgent
-                  gmeow:Location gmeow:ContactPoint gmeow:CryptographicKey
-                  gmeow:Appellation gmeow:Language gmeow:WritingSystem ) .
+<https://blackcatinformatics.ca/gmeow/slices/entities>
+    a owl:Ontology ;
+    dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;
+    rdfs:comment "Person, organization, group and software-agent descriptions, plus naming (the FOAF / schema.org superset layer)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/entities> ;
+    rdfs:label "GMEOW Entities Module"@x-gmeow-english ;
+    skos:definition "The GMEOW Entities Module — classes, properties, and individuals of the GMEOW super-vocabulary."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxConfigBox ,
+        gmeow:boxTBox .
 
-# --------------------------------------------------------------------------- #
-# Graph box role coverage (canonical explicit annotations).
-# --------------------------------------------------------------------------- #
-
-gmeow:Group gmeow:graphBoxRole gmeow:boxTBox .
-gmeow:Organization gmeow:graphBoxRole gmeow:boxTBox .
-gmeow:Person gmeow:graphBoxRole gmeow:boxTBox .
-gmeow:SoftwareAgent gmeow:graphBoxRole gmeow:boxTBox .
-gmeow:description gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:hasWebPage gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:name gmeow:graphBoxRole gmeow:boxRBox .
-gmeow:nationality gmeow:graphBoxRole gmeow:boxRBox .
-<https://blackcatinformatics.ca/gmeow/slices/entities> gmeow:graphBoxRole gmeow:boxConfigBox, gmeow:boxTBox .
+_:b0
+    a owl:AllDisjointClasses ;
+    owl:members ( gmeow:Person gmeow:Organization gmeow:SoftwareAgent gmeow:Location gmeow:ContactPoint gmeow:CryptographicKey gmeow:Appellation gmeow:Language gmeow:WritingSystem ) .

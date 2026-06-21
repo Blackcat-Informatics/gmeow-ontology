@@ -117,7 +117,7 @@ meta:gate-fair-metadata a meta:Gate ;
 
 meta:lint-no-preferred-rank a meta:Lint ;
     rdfs:label "no preferredRank / primary* selector annotations"@x-gmeow-english ;
-    meta:artifact "src/gmeow_tools/statement_lint.py" ;
+    meta:artifact "crates/validate/src/statement.rs" ;
     meta:symbol "no_preferred_rank" .
 
 meta:tests-identity-orthogonality a meta:TestSuite ;

@@ -8,11 +8,9 @@
 
 use std::collections::HashSet;
 
-use oxigraph::model::{
-    GraphNameRef, NamedNode, NamedOrBlankNode, NamedOrBlankNodeRef, Term, Triple,
-};
-use oxigraph::store::Store;
+use oxigraph::model::{NamedNode, NamedOrBlankNode, Term, Triple};
 
+use crate::data::{GraphFilter, ShaclDataGraph};
 use crate::model::{gmeow, rdf, sh};
 use crate::path;
 use crate::report::ValidationResult;
@@ -26,7 +24,11 @@ use crate::shapes::{Constraint, NodeKindValue, Path, PropertyShape, Shape};
 /// `sh:and`, `sh:or`, `sh:xone`, and `sh:node` constraints.
 ///
 /// A `deactivated` shape produces no results.
-pub fn validate_shape(store: &Store, focus: &Term, shape: &Shape) -> Vec<ValidationResult> {
+pub fn validate_shape<G: ShaclDataGraph>(
+    store: &G,
+    focus: &Term,
+    shape: &Shape,
+) -> Vec<ValidationResult> {
     if shape.deactivated {
         return vec![];
     }
@@ -53,14 +55,14 @@ pub fn validate_shape(store: &Store, focus: &Term, shape: &Shape) -> Vec<Validat
 
 /// Returns `true` iff the focus node produces zero validation results against
 /// the shape (i.e., it fully conforms).
-pub fn conforms(store: &Store, focus: &Term, shape: &Shape) -> bool {
+pub fn conforms<G: ShaclDataGraph>(store: &G, focus: &Term, shape: &Shape) -> bool {
     validate_shape(store, focus, shape).is_empty()
 }
 
 // ── Property shape evaluator ───────────────────────────────────────────────────
 
-fn eval_property_shape(
-    store: &Store,
+fn eval_property_shape<G: ShaclDataGraph>(
+    store: &G,
     focus: &Term,
     ps: &PropertyShape,
     parent_shape: &Shape,
@@ -119,8 +121,8 @@ fn eval_property_shape(
     results
 }
 
-struct ReifierEvalContext<'a> {
-    store: &'a Store,
+struct ReifierEvalContext<'a, G: ShaclDataGraph> {
+    store: &'a G,
     focus: &'a Term,
     value_nodes: &'a [Term],
     ps: &'a PropertyShape,
@@ -130,7 +132,7 @@ struct ReifierEvalContext<'a> {
     path_term: &'a Term,
 }
 
-fn eval_reifier_shapes(ctx: ReifierEvalContext<'_>) -> Vec<ValidationResult> {
+fn eval_reifier_shapes<G: ShaclDataGraph>(ctx: ReifierEvalContext<'_, G>) -> Vec<ValidationResult> {
     let ReifierEvalContext {
         store,
         focus,
@@ -224,15 +226,17 @@ fn triple_term(focus: &Term, predicate: &NamedNode, value: &Term) -> Option<Term
     ))))
 }
 
-fn reifiers_for(store: &Store, triple_term: &Term) -> Vec<Term> {
+fn reifiers_for<G: ShaclDataGraph>(store: &G, triple_term: &Term) -> Vec<Term> {
+    let reifies = Term::NamedNode(rdf::REIFIES.into_owned());
     let reifiers: Vec<Term> = store
         .quads_for_pattern(
             None,
-            Some(rdf::REIFIES),
-            Some(triple_term.as_ref()),
-            Some(GraphNameRef::DefaultGraph),
+            Some(&reifies),
+            Some(triple_term),
+            GraphFilter::DefaultGraph,
         )
-        .filter_map(|q| q.ok().map(|q| Term::from(q.subject)))
+        .into_iter()
+        .map(|q| Term::from(q.subject))
         .collect();
     let reifiers_set: HashSet<Term> = reifiers.into_iter().collect();
     let mut reifiers: Vec<Term> = reifiers_set.into_iter().collect();
@@ -240,7 +244,7 @@ fn reifiers_for(store: &Store, triple_term: &Term) -> Vec<Term> {
     reifiers
 }
 
-fn path_box_roles(store: &Store, path: &Path) -> Vec<NamedNode> {
+fn path_box_roles<G: ShaclDataGraph>(store: &G, path: &Path) -> Vec<NamedNode> {
     let predicate = match path {
         Path::Predicate(predicate) => predicate,
         Path::Inverse(inner) => match inner.as_ref() {
@@ -248,14 +252,17 @@ fn path_box_roles(store: &Store, path: &Path) -> Vec<NamedNode> {
             _ => return vec![],
         },
     };
+    let predicate_term = Term::NamedNode(predicate.clone());
+    let box_role = Term::NamedNode(gmeow::GRAPH_BOX_ROLE.into_owned());
     let mut roles: Vec<NamedNode> = store
         .quads_for_pattern(
-            Some(NamedOrBlankNodeRef::NamedNode(predicate.as_ref())),
-            Some(gmeow::GRAPH_BOX_ROLE),
+            Some(&predicate_term),
+            Some(&box_role),
             None,
-            Some(GraphNameRef::DefaultGraph),
+            GraphFilter::DefaultGraph,
         )
-        .filter_map(|q| match q.ok()?.object {
+        .into_iter()
+        .filter_map(|q| match q.object {
             Term::NamedNode(node) => Some(node),
             _ => None,
         })
@@ -288,8 +295,8 @@ fn merge_box_roles(left: &[NamedNode], right: &[NamedNode]) -> Vec<NamedNode> {
 /// (SHACL-AF spec: `$this` = focus node, not value node).
 ///
 /// `path` is `None` for node-level constraints, `Some` for property shapes.
-fn eval_constraint(
-    store: &Store,
+fn eval_constraint<G: ShaclDataGraph>(
+    store: &G,
     focus_node: &Term,
     value_nodes: &[Term],
     constraint: &Constraint,
@@ -861,7 +868,7 @@ fn eval_constraint(
             let sev = csev.unwrap_or(severity);
             let msg = cmsg.clone().or_else(|| message.clone());
             crate::sparql::eval_sparql_constraint(
-                store,
+                &store.sparql_store(),
                 focus_node,
                 select,
                 NamedNode::from(sh::SPARQL_CONSTRAINT_COMPONENT),
@@ -883,27 +890,19 @@ fn eval_constraint(
 /// derived from asserted `rdfs:subClassOf` edges (as returned by
 /// [`crate::engine::subclass_closure`]).  The caller hoists the closure
 /// computation once before the per-value-node loop to avoid O(N×M) BFS cost.
-fn is_shacl_instance(
-    store: &Store,
+fn is_shacl_instance<G: ShaclDataGraph>(
+    store: &G,
     value: &Term,
     closure: &std::collections::HashSet<Term>,
 ) -> bool {
-    let Some(subj_ref) = term_as_subject_ref(value) else {
+    if !matches!(value, Term::NamedNode(_) | Term::BlankNode(_)) {
         return false;
-    };
-    store
-        .quads_for_pattern(Some(subj_ref), Some(rdf::TYPE), None, None)
-        .flatten()
-        .any(|q| closure.contains(&q.object))
-}
-
-/// Convert a `Term` to a subject ref, or `None` for literals.
-fn term_as_subject_ref(term: &Term) -> Option<NamedOrBlankNodeRef<'_>> {
-    match term {
-        Term::NamedNode(n) => Some(NamedOrBlankNodeRef::NamedNode(n.as_ref())),
-        Term::BlankNode(b) => Some(NamedOrBlankNodeRef::BlankNode(b.as_ref())),
-        _ => None,
     }
+    let rdf_type = Term::NamedNode(rdf::TYPE.into_owned());
+    store
+        .quads_for_pattern(Some(value), Some(&rdf_type), None, GraphFilter::AnyGraph)
+        .into_iter()
+        .any(|q| closure.contains(&q.object))
 }
 
 /// `xsd:integer` lexical space: optional sign then one-or-more ASCII digits.
@@ -1141,6 +1140,7 @@ mod tests {
     use crate::report::Severity;
     use oxigraph::io::RdfFormat;
     use oxigraph::model::{Literal, NamedNode};
+    use oxigraph::store::Store;
 
     const EX: &str = "http://example.org/ns#";
     const XSD: &str = "http://www.w3.org/2001/XMLSchema#";

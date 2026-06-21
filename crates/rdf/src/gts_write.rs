@@ -86,9 +86,11 @@ pub fn to_gts(store: &impl RdfStore, profile: &str) -> Result<Vec<u8>, RdfDiagno
 struct InternState {
     terms: Vec<Term>,
     index: HashMap<RdfTerm, usize>,
-    /// Triple component ids → reifier term id. Reifiers are IRI/blank-node
-    /// terms that already exist in `terms`.
-    reifier_map: HashMap<Triple3, usize>,
+    /// Triple component ids → reifier term ids. RDF 1.2 permits several distinct
+    /// explicit reifiers for one (s,p,o) (gmeow-gts#213); they are all retained.
+    /// A nested triple term reuses the first-bound reifier for its single
+    /// `Term.reifier` slot. Reifiers are IRI/blank-node terms already in `terms`.
+    reifier_map: HashMap<Triple3, Vec<usize>>,
 }
 
 impl InternState {
@@ -124,18 +126,13 @@ fn bind_explicit_reifier(
     let p = intern_iri(state, &reifier.statement.predicate)?;
     let o = intern_term(state, &reifier.statement.object)?;
 
-    if let Some(existing) = state.reifier_map.get(&(s, p, o)) {
-        if *existing != rid {
-            return Err(RdfDiagnostic::error(
-                "rdf-conflicting-reifier",
-                format!(
-                    "triple ({s},{p},{o}) is already reified by term {existing}; \
-                     cannot rebind to {rid}"
-                ),
-            ));
-        }
-    } else {
-        state.reifier_map.insert((s, p, o), rid);
+    // RDF 1.2 allows several distinct explicit reifiers for the same triple
+    // content (gmeow-gts#213); record each one, deduplicating only an identical
+    // (rid, (s,p,o)) pair. Every distinct reifier is emitted as its own
+    // `graph.reifiers` row below, so no binding is collapsed.
+    let bound = state.reifier_map.entry((s, p, o)).or_default();
+    if !bound.contains(&rid) {
+        bound.push(rid);
     }
 
     Ok(())
@@ -187,6 +184,7 @@ fn intern_term_depth(
                     value: Some(iri.clone()),
                     datatype: None,
                     lang: None,
+                    direction: None,
                     reifier: None,
                 },
             );
@@ -201,6 +199,7 @@ fn intern_term_depth(
                     value: Some(label.clone()),
                     datatype: None,
                     lang: None,
+                    direction: None,
                     reifier: None,
                 },
             );
@@ -226,9 +225,11 @@ fn intern_literal(
         None
     };
 
-    // gmeow-gts does not store language direction; drop it. The lexical form,
-    // datatype, and language tag are preserved.
+    // RDF 1.2 literal base direction now round-trips through GTS (gmeow-gts#212):
+    // map the IR's RdfTextDirection onto the GTS Term.direction string. Lexical
+    // form, datatype, language tag, and direction are all preserved.
     let lang = literal.language.clone();
+    let direction = literal.direction.map(|d| d.as_str().to_string());
 
     let id = push_term(
         state,
@@ -238,6 +239,7 @@ fn intern_literal(
             value: Some(literal.lexical_form.clone()),
             datatype,
             lang,
+            direction,
             reifier: None,
         },
     );
@@ -253,11 +255,16 @@ fn intern_triple_term(
     let p = intern_iri(state, &triple.predicate)?;
     let o = intern_term_depth(state, &triple.object, depth + 1)?;
 
-    let reifier_id = if let Some(&rid) = state.reifier_map.get(&(s, p, o)) {
+    let reifier_id = if let Some(rid) = state
+        .reifier_map
+        .get(&(s, p, o))
+        .and_then(|rids| rids.first())
+        .copied()
+    {
         rid
     } else {
         let rid = create_anonymous_reifier(state);
-        state.reifier_map.insert((s, p, o), rid);
+        state.reifier_map.entry((s, p, o)).or_default().push(rid);
         rid
     };
 
@@ -269,6 +276,7 @@ fn intern_triple_term(
             value: None,
             datatype: None,
             lang: None,
+            direction: None,
             reifier: Some(reifier_id),
         },
     );
@@ -283,6 +291,7 @@ fn create_anonymous_reifier(state: &mut InternState) -> usize {
         value: Some(label.clone()),
         datatype: None,
         lang: None,
+        direction: None,
         reifier: None,
     });
     state.index.insert(RdfTerm::BlankNode(label), id);
@@ -327,8 +336,17 @@ fn apply_lookaside(state: &InternState, graph: &mut Graph, lookaside: RdfLookasi
         });
     }
 
-    // Blobs cannot be preserved because `RdfBlobRecord` carries metadata only,
-    // not the decoded bytes required by the GTS writer.
+    // Blobs travel by content-addressed reference, not by value. The RDF IR never
+    // holds payload bytes (a blob may be a multi-terabyte data dump), so we cannot
+    // re-emit a `BlobEntry` here: `gmeow_gts::model::BlobEntry` is byte-bearing by
+    // construction (`Bytes(..)` / `Lazy { raw, .. }`) — it has NO byte-less
+    // reference variant that could carry only the `RdfBlobRecord`'s digest + origin.
+    // The blob *reference* therefore round-trips out of band (the loss ledger's
+    // `blob-bytes-absent` entry, intentional), and a future deferred-materialization
+    // path streams bytes origin→destination on demand. Carrying the bare reference
+    // through `graph.blobs` is blocked until gmeow-gts grows a reference-only blob
+    // entry — see `docs/design/819-rdf-ir-dataflow.md` Appendix Z.
+    let _ = lookaside.blobs;
 }
 
 fn term_id_by_display(state: &InternState, label: &str) -> Option<usize> {
@@ -375,7 +393,7 @@ mod tests {
     use super::*;
     use crate::{
         RdfAnnotation, RdfLiteral, RdfMetadataEntry, RdfMetadataValue, RdfQuad, RdfReifier,
-        RdfSuppressionRecord, RdfTerm, RdfTriple, VecRdfStore,
+        RdfSuppressionRecord, RdfTerm, RdfTextDirection, RdfTriple, VecRdfStore,
     };
 
     fn roundtrip_store(store: &VecRdfStore, profile: &str) -> Graph {
@@ -403,6 +421,28 @@ mod tests {
             "gmeow-rdf-test",
             "<https://example.org/s> <https://example.org/p> <https://example.org/o> .",
         );
+    }
+
+    #[test]
+    fn direction_roundtrips_through_gts() {
+        // RDF 1.2 directional language-tagged literal (gmeow-gts#212): the base
+        // direction must survive RDF IR -> GTS -> read. This proves the retired
+        // `direction-dropped` loss is genuinely gone, not merely undocumented.
+        let mut lit = RdfLiteral::language_tagged("\u{645}\u{631}\u{62d}\u{628}\u{627}", "ar");
+        lit.direction = Some(RdfTextDirection::Rtl);
+        let store = VecRdfStore::with_quads(vec![RdfQuad::new(
+            RdfTerm::iri("https://example.org/s"),
+            "https://example.org/p",
+            RdfTerm::literal(lit),
+        )]);
+        let graph = roundtrip_store(&store, "gmeow-rdf-test");
+        let lit_term = graph
+            .terms
+            .iter()
+            .find(|t| t.kind == TermKind::Literal)
+            .expect("literal term present after read");
+        assert_eq!(lit_term.direction.as_deref(), Some("rtl"));
+        assert_eq!(lit_term.lang.as_deref(), Some("ar"));
     }
 
     #[test]
@@ -452,6 +492,34 @@ mod tests {
         assert!(nquads.contains("http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies"));
         assert!(nquads.contains("https://example.org/confidence"));
         assert!(nquads.contains("0.9"));
+    }
+
+    #[test]
+    fn two_reifiers_same_triple_both_survive() {
+        // RDF 1.2 permits several distinct explicit reifiers for one (s,p,o).
+        // gmeow-gts#213 lets the writer keep both, so `multi-reifier-collapsed`
+        // is no longer a loss: both bindings must survive the round-trip.
+        let statement = RdfTriple::new(
+            RdfTerm::iri("https://example.org/s"),
+            "https://example.org/p",
+            RdfTerm::iri("https://example.org/o"),
+        );
+        let store = VecRdfStore {
+            reifiers: vec![
+                RdfReifier::new(RdfTerm::blank_node("r1"), statement.clone()),
+                RdfReifier::new(RdfTerm::blank_node("r2"), statement.clone()),
+            ],
+            ..VecRdfStore::default()
+        };
+        let graph = roundtrip_store(&store, "gmeow-rdf-test");
+        // Two distinct reifier rows over the same triple content survive.
+        assert_eq!(graph.reifiers.len(), 2);
+        let rids: std::collections::BTreeSet<usize> =
+            graph.reifiers.iter().map(|(rid, _)| *rid).collect();
+        assert_eq!(rids.len(), 2, "the two reifiers must be distinct");
+        let triples: std::collections::BTreeSet<Triple3> =
+            graph.reifiers.iter().map(|(_, t)| *t).collect();
+        assert_eq!(triples.len(), 1, "both reify the same (s,p,o)");
     }
 
     #[test]
