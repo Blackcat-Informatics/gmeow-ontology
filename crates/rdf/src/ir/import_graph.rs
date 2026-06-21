@@ -281,6 +281,7 @@ mod tests {
             value: Some(value.to_owned()),
             datatype: None,
             lang: None,
+            direction: None,
             reifier: None,
         }
     }
@@ -291,6 +292,7 @@ mod tests {
             value: Some(label.to_owned()),
             datatype: None,
             lang: None,
+            direction: None,
             reifier: None,
         }
     }
@@ -373,6 +375,7 @@ mod tests {
             value: None,
             datatype: None,
             lang: None,
+            direction: None,
             reifier: Some(3),
         }); // 4 inner triple term
         graph.terms.push(iri_term("http://example.org/asserts")); // 5
@@ -383,6 +386,7 @@ mod tests {
             value: None,
             datatype: None,
             lang: None,
+            direction: None,
             reifier: Some(6),
         }); // 7 outer triple term
         graph.quads.push((0, 5, 7, None));
@@ -406,6 +410,7 @@ mod tests {
             value: None,
             datatype: None,
             lang: None,
+            direction: None,
             reifier: Some(0),
         }); // 0
         graph.terms.push(iri_term("http://example.org/p")); // 1
@@ -425,6 +430,7 @@ mod tests {
             value: Some("Bonjour".to_owned()),
             datatype: None,
             lang: Some("FR".to_owned()),
+            direction: None,
             reifier: None,
         });
         graph.quads.push((0, 1, 2, None));

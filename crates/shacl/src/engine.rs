@@ -367,6 +367,7 @@ mod tests {
                 value: Some(value.to_owned()),
                 datatype: None,
                 lang: None,
+                direction: None,
                 reifier: None,
             });
         }

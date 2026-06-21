@@ -244,6 +244,7 @@ mod tests {
             value: Some("https://example.org/a".to_string()),
             datatype: None,
             lang: None,
+            direction: None,
             reifier: None,
         });
         graph.terms.push(Term {
@@ -251,6 +252,7 @@ mod tests {
             value: Some("https://example.org/p".to_string()),
             datatype: None,
             lang: None,
+            direction: None,
             reifier: None,
         });
         graph.terms.push(Term {
@@ -258,6 +260,7 @@ mod tests {
             value: Some("https://example.org/b".to_string()),
             datatype: None,
             lang: None,
+            direction: None,
             reifier: None,
         });
         graph.quads.push((0, 1, 2, None));
@@ -345,6 +348,7 @@ mod tests {
                 value: Some("https://example.org/a".to_string()),
                 datatype: None,
                 lang: None,
+                direction: None,
                 reifier: None,
             },
             Term {
@@ -352,6 +356,7 @@ mod tests {
                 value: Some("https://example.org/p".to_string()),
                 datatype: None,
                 lang: None,
+                direction: None,
                 reifier: None,
             },
             Term {
@@ -359,6 +364,7 @@ mod tests {
                 value: Some("https://example.org/b".to_string()),
                 datatype: None,
                 lang: None,
+                direction: None,
                 reifier: None,
             },
         ]);

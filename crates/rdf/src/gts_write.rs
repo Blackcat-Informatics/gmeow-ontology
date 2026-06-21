@@ -187,6 +187,7 @@ fn intern_term_depth(
                     value: Some(iri.clone()),
                     datatype: None,
                     lang: None,
+                    direction: None,
                     reifier: None,
                 },
             );
@@ -201,6 +202,7 @@ fn intern_term_depth(
                     value: Some(label.clone()),
                     datatype: None,
                     lang: None,
+                    direction: None,
                     reifier: None,
                 },
             );
@@ -238,6 +240,7 @@ fn intern_literal(
             value: Some(literal.lexical_form.clone()),
             datatype,
             lang,
+            direction: None,
             reifier: None,
         },
     );
@@ -269,6 +272,7 @@ fn intern_triple_term(
             value: None,
             datatype: None,
             lang: None,
+            direction: None,
             reifier: Some(reifier_id),
         },
     );
@@ -283,6 +287,7 @@ fn create_anonymous_reifier(state: &mut InternState) -> usize {
         value: Some(label.clone()),
         datatype: None,
         lang: None,
+        direction: None,
         reifier: None,
     });
     state.index.insert(RdfTerm::BlankNode(label), id);

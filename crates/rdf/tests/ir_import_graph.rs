@@ -136,6 +136,7 @@ fn iri(value: &str) -> Term {
         value: Some(value.to_owned()),
         datatype: None,
         lang: None,
+        direction: None,
         reifier: None,
     }
 }
@@ -156,6 +157,7 @@ fn blank_free_segment() -> Graph {
         value: Some("Bonjour".to_owned()),
         datatype: None,
         lang: Some("fr".to_owned()),
+        direction: None,
         reifier: None,
     }); // 4 language-tagged literal
     g.terms
@@ -165,6 +167,7 @@ fn blank_free_segment() -> Graph {
         value: Some("42".to_owned()),
         datatype: Some(5),
         lang: None,
+        direction: None,
         reifier: None,
     }); // 6 typed literal
 
@@ -193,6 +196,7 @@ fn blank_free_triples_segment() -> Graph {
         value: None,
         datatype: None,
         lang: None,
+        direction: None,
         reifier: Some(3),
     }); // 4 inner <<ex:s ex:p ex:o>>
     g.terms.push(iri("http://example.org/asserts")); // 5
@@ -210,6 +214,7 @@ fn blank_free_triples_segment() -> Graph {
         value: None,
         datatype: None,
         lang: None,
+        direction: None,
         reifier: Some(8),
     }); // 9 outer << <<...>> ex:says ex:o2 >>
     g.terms.push(iri("http://example.org/states")); // 10
@@ -228,6 +233,7 @@ fn blanks_segment() -> Graph {
         value: Some("b1".to_owned()),
         datatype: None,
         lang: None,
+        direction: None,
         reifier: None,
     }); // 2 blank
     g.quads.push((0, 1, 2, None));
@@ -422,6 +428,7 @@ fn import_moves_long_iri_string_not_clone() {
         value: Some(long),
         datatype: None,
         lang: None,
+        direction: None,
         reifier: None,
     });
     graph.terms.push(iri("http://example.org/p"));

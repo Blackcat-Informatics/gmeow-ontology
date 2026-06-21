@@ -344,6 +344,7 @@ mod tests {
             value: Some("https://example.org/a".to_string()),
             datatype: None,
             lang: None,
+            direction: None,
             reifier: None,
         });
         graph.terms.push(Term {
@@ -351,6 +352,7 @@ mod tests {
             value: Some("https://example.org/p".to_string()),
             datatype: None,
             lang: None,
+            direction: None,
             reifier: None,
         });
         graph.terms.push(Term {
@@ -358,6 +360,7 @@ mod tests {
             value: Some("https://example.org/b".to_string()),
             datatype: None,
             lang: None,
+            direction: None,
             reifier: None,
         });
         graph.quads.push((0, 1, 2, None));
@@ -386,6 +389,7 @@ mod tests {
                 value: Some(value.to_string()),
                 datatype: None,
                 lang: None,
+                direction: None,
                 reifier: None,
             });
         }
@@ -394,6 +398,7 @@ mod tests {
             value: Some("hallo".to_string()),
             datatype: None,
             lang: Some("x-gmeow-afrikaans".to_string()),
+            direction: None,
             reifier: None,
         });
         graph.terms.push(Term {
@@ -401,6 +406,7 @@ mod tests {
             value: Some("https://blackcatinformatics.ca/gmeow/graph/metadata".to_string()),
             datatype: None,
             lang: None,
+            direction: None,
             reifier: None,
         });
         // Object (term 2) carries the private lang tag; quad lives in named graph (term 3).
@@ -469,6 +475,7 @@ mod tests {
             value: Some("https://example.org/s".to_owned()),
             datatype: None,
             lang: None,
+            direction: None,
             reifier: None,
         });
         graph.terms.push(Term {
@@ -476,6 +483,7 @@ mod tests {
             value: Some("https://example.org/p".to_owned()),
             datatype: None,
             lang: None,
+            direction: None,
             reifier: None,
         });
         graph.terms.push(Term {
@@ -483,6 +491,7 @@ mod tests {
             value: Some("https://example.org/o".to_owned()),
             datatype: None,
             lang: None,
+            direction: None,
             reifier: None,
         });
         graph.quads.push((0, 1, 2, None));
@@ -514,6 +523,7 @@ mod tests {
                 value: Some(iri.to_owned()),
                 datatype: None,
                 lang: None,
+                direction: None,
                 reifier: None,
             });
         }

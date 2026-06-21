@@ -596,6 +596,7 @@ mod tests {
             value: Some(value.to_owned()),
             datatype: None,
             lang: None,
+            direction: None,
             reifier: None,
         }
     }
@@ -606,6 +607,7 @@ mod tests {
             value: Some(label.to_owned()),
             datatype: None,
             lang: None,
+            direction: None,
             reifier: None,
         }
     }
@@ -722,6 +724,7 @@ mod tests {
                 value: Some("Bonjour".to_owned()),
                 datatype: None,
                 lang: Some("FR".to_owned()),
+                direction: None,
                 reifier: None,
             },
         );
@@ -769,6 +772,7 @@ mod tests {
                 value: None,
                 datatype: None,
                 lang: None,
+                direction: None,
                 reifier: Some(3),
             },
         );
@@ -783,6 +787,7 @@ mod tests {
                 value: None,
                 datatype: None,
                 lang: None,
+                direction: None,
                 reifier: Some(6),
             },
         );
@@ -846,6 +851,7 @@ mod tests {
             value: None,
             datatype: None,
             lang: None,
+            direction: None,
             reifier: Some(3),
         }); // 4 quoted triple <<ex:s ex:p ex:o>>
         graph.terms.push(iri("http://example.org/asserts")); // 5
@@ -912,6 +918,7 @@ mod tests {
             value: None,
             datatype: None,
             lang: None,
+            direction: None,
             reifier: Some(3),
         }); // 4 inner <<ex:a ex:b ex:c>>
         graph.terms.push(iri("http://example.org/p")); // 5
@@ -925,6 +932,7 @@ mod tests {
             value: None,
             datatype: None,
             lang: None,
+            direction: None,
             reifier: Some(7),
         }); // 8 outer << <<...>> ex:p ex:o >>
         graph.terms.push(iri("http://example.org/says")); // 9
@@ -977,6 +985,7 @@ mod tests {
                 value: None,
                 datatype: None,
                 lang: None,
+                direction: None,
                 reifier: Some(99),
             },
         );
@@ -1005,6 +1014,7 @@ mod tests {
                 value: Some("http://example.org/s".to_owned()),
                 datatype: None,
                 lang: None,
+                direction: None,
                 reifier: None,
             });
             graph.terms.push(GtsTerm {
@@ -1012,6 +1022,7 @@ mod tests {
                 value: Some(predicate.to_owned()),
                 datatype: None,
                 lang: None,
+                direction: None,
                 reifier: None,
             });
             graph.terms.push(GtsTerm {
@@ -1019,6 +1030,7 @@ mod tests {
                 value: Some("b1".to_owned()),
                 datatype: None,
                 lang: None,
+                direction: None,
                 reifier: None,
             });
             graph.quads.push((0, 1, 2, None));
@@ -1079,6 +1091,7 @@ mod tests {
             value: Some(value.to_owned()),
             datatype: None,
             lang: None,
+            direction: None,
             reifier: None,
         }
     }

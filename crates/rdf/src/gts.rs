@@ -456,6 +456,7 @@ mod tests {
             value: Some("https://example.org/s".to_owned()),
             datatype: None,
             lang: None,
+            direction: None,
             reifier: None,
         });
         graph.terms.push(Term {
@@ -463,6 +464,7 @@ mod tests {
             value: Some("https://example.org/p".to_owned()),
             datatype: None,
             lang: None,
+            direction: None,
             reifier: None,
         });
         graph.terms.push(Term {
@@ -470,6 +472,7 @@ mod tests {
             value: Some("hallo".to_owned()),
             datatype: None,
             lang: Some("x-gmeow-afrikaans".to_owned()),
+            direction: None,
             reifier: None,
         });
         graph.terms.push(Term {
@@ -477,6 +480,7 @@ mod tests {
             value: Some("https://example.org/graph".to_owned()),
             datatype: None,
             lang: None,
+            direction: None,
             reifier: None,
         });
         graph.meta.push((
@@ -524,6 +528,7 @@ mod tests {
             value: None,
             datatype: None,
             lang: None,
+            direction: None,
             reifier: Some(0),
         });
         graph.terms.push(Term {
@@ -531,6 +536,7 @@ mod tests {
             value: Some("https://example.org/p".to_owned()),
             datatype: None,
             lang: None,
+            direction: None,
             reifier: None,
         });
         graph.terms.push(Term {
@@ -538,6 +544,7 @@ mod tests {
             value: Some("https://example.org/o".to_owned()),
             datatype: None,
             lang: None,
+            direction: None,
             reifier: None,
         });
         graph.reifiers.push((0, (0, 1, 2)));
@@ -556,6 +563,7 @@ mod tests {
                 value: value.map(str::to_owned),
                 datatype: None,
                 lang: None,
+                direction: None,
                 reifier: None,
             });
 
