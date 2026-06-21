@@ -33,6 +33,9 @@ pub mod import_graph;
 // behind the `gts` feature (#819 C2.a).
 #[cfg(feature = "gts")]
 pub mod import_sink;
+// Evented, ID-addressed OUTPUT of a frozen dataset (#819 C6): the dual of the
+// import sink, for chase / SHACL-result / projection consumers.
+pub mod event_sink;
 pub mod term;
 pub mod validate;
 
@@ -40,6 +43,7 @@ pub use builder::RdfDatasetBuilder;
 pub use bundle::{RdfBundle, RdfEnvelope};
 pub use compare::{dataset_diff, datasets_isomorphic, DatasetDiff};
 pub use dataset::{QuadHandle, QuadIds, QuadRef, RdfDataset, TermRef};
+pub use event_sink::RdfEventSink;
 #[cfg(feature = "gts")]
 pub use import_graph::import_gts_graph;
 #[cfg(feature = "gts")]
