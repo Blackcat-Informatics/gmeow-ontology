@@ -111,65 +111,98 @@ the `GTS → RdfQuad (clone) → oxigraph (clone again)` double-tax flagged in #
   where AGPL can't — directly serving the ecosystem-reach goal.
 - **gmeow-rdf (AGPL)** — semantics: events → interned IR, the XSD value space, RDFC-1.0
   canonicalization, RDF-1.2 reification meaning, SHACL/logic, the SPARQL bridge.
-- **Connecting seam = `RdfEventSource`/`RdfEventSink`** — the #819-blessed generalization of gts's
-  existing `StreamingSink` (format-neutral: it already carries term/quad/reifier/annotation *values*, not
-  CBOR framing). Every gts parser emits the same events; `RdfDatasetBuilder` (which *is* the sink)
-  ingests parsed-Turtle identically to parsed-GTS-binary. The seam vocabulary + traits live in the
-  **permissive** crate (AGPL may depend on Apache, not vice-versa), so a `parse-Turtle → serialize-NQ`
-  path is pure-gts with no AGPL code.
+- **Connecting seam = the `gmeow-rdf-events` ingestion protocol** — a tiny standalone permissive crate
+  (MIT/Apache, zero deps), NOT coupled into the container product. gts, gmeow-rdf, and every parser
+  depend on it. It is a *richer, fallible ingestion protocol* (scopes, errors, cancellation, parser
+  hints, batching, forward references) — **distinct** from the existing infallible frozen-dataset output
+  visitor (which is renamed `RdfDatasetVisitor`). Every parser emits these events; `RdfDatasetBuilder`
+  consumes them, so a `parse-Turtle → serialize-NQ` path is pure-gts with no AGPL code. (Full protocol
+  below.)
 - **Doctrine refinement:** the narrow-waist "one producer, no re-parse" rule governs **export**, not
   **ingress** — parsers-as-ingress in gts do not violate it.
 
-### GTS is lossless — a hard invariant
+### GTS is lossless — *RDF-1.2 semantic* losslessness (precise)
 
-Per `.goals` maximal-information-flow, GTS carries full fidelity; information is trimmed ONLY at
-exit-gate projections to genuinely-lossy external formats (Turtle-1.1 without triple terms, sheet music,
-CITATION.cff, …) — only the *projection* is lossy and ledgered, never GTS itself. Current status: met —
-the loss matrix lists only `blob-bytes-absent` (recoverable by-reference) and `bnode-scope-flatten`
-(flat-`read()` only; the streaming path is lossless); `direction-dropped`/`multi-reifier-collapsed` were
-flipped (gmeow-gts #212/#213/#214 closed). The loss ledger accounts for **exit-gate projections**, not
-the container.
+"Lossless" means the **RDF-1.2 abstract graph** is preserved with full fidelity — terms, quads,
+reifiers, annotations, base direction, datatypes, language tags. It does **NOT** promise concrete-syntax
+round-trip fidelity: prefix bindings, `@base`, and lexical formatting (whitespace, literal spelling,
+numeric formatting) are **droppable syntactic hints**, not semantic content — dropping them is not a
+loss. *Semantic* loss occurs only at exit-gate projections to genuinely-lossy external formats
+(Turtle-1.1 without triple terms, sheet music, CITATION.cff, …) and is ledgered there, never in the
+container. Per the loss matrix the only remaining entries are `blob-bytes-absent` (recoverable
+by-reference) and `bnode-scope-flatten` (flat-`read()` only; the streaming path is lossless); the
+RDF-1.2 fidelity defects `direction-dropped`/`multi-reifier-collapsed` are closed
+(gmeow-gts #212/#213/#214).
 
-### `RdfEventSource` / `RdfEventSink` contract (the gts↔rdf seam)
+### The ingestion event protocol (`gmeow-rdf-events`) — a protocol, not a trait rename
 
-Defined in gmeow-gts (permissive). ID-addressed, term-before-reference. Sketch:
+**Two distinct protocols; do not conflate them.** The existing `ir/event_sink.rs` `RdfEventSink`/`emit()`
+is an **infallible output visitor** over an already-frozen dataset (term-before-reference by
+construction, no scopes, no errors). **Rename it `RdfDatasetVisitor`** (a.k.a. `FrozenDatasetSink`). The
+**ingestion** protocol is a different, richer, *fallible* thing and lives in its own **tiny permissive
+crate `gmeow-rdf-events`** (MIT/Apache, zero deps) — owned by neither the container (gts) nor the engine
+(gmeow-rdf); both depend on it, as does every parser.
+
+Value types: `ScopeId`, `EventTermId`, `TextDirection`, `EventTerm<'a>` (Iri/Blank/Literal/Triple),
+**`EventTriple { s, p, o }`** (a *reified statement* — a triple, NOT a quad), `EventQuad { s,p,o,g }`.
 
 ```rust
-// gmeow-gts (permissive): vocabulary + traits
-pub struct ScopeId(u32);        // a document/segment boundary for blank-node identity
-pub struct EventTermId(u32);    // SCOPE-LOCAL handle, NOT identity — the sink re-interns by value
-pub enum TextDirection { Ltr, Rtl }
-pub enum EventTerm<'a> {
-    Iri(&'a str),
-    Blank { label: &'a str },                       // identity = (label, current scope)
-    Literal { lexical: &'a str, datatype: EventTermId,
-              language: Option<&'a str>, direction: Option<TextDirection> },  // RDF-1.2 base dir
-    Triple { s: EventTermId, p: EventTermId, o: EventTermId },                // RDF-1.2 triple term
-}
-pub struct EventQuad { s: EventTermId, p: EventTermId, o: EventTermId, g: Option<EventTermId> }
+// gmeow-rdf-events (permissive, standalone): the ingestion protocol
+pub struct EventTriple { pub s: EventTermId, pub p: EventTermId, pub o: EventTermId } // reified statement
+pub struct EventQuad   { pub s: EventTermId, pub p: EventTermId, pub o: EventTermId, pub g: Option<EventTermId> }
+
+// Object-SAFE (no generic methods; a CONCRETE error type) so `&mut dyn RdfEventSink` works for registries.
 pub trait RdfEventSink {
-    type Error;
-    fn term(&mut self, scope: ScopeId, id: EventTermId, t: EventTerm<'_>) -> Result<ControlFlow<()>, Self::Error>;
-    fn quad (&mut self, scope: ScopeId, q: EventQuad) -> Result<ControlFlow<()>, Self::Error>;
-    fn quads(&mut self, scope: ScopeId, q: &[EventQuad]) -> Result<ControlFlow<()>, Self::Error> { /* default loop */ }
-    fn reifier   (&mut self, scope: ScopeId, r: EventTermId, t: EventQuad) -> Result<ControlFlow<()>, Self::Error>;
-    fn annotation(&mut self, scope: ScopeId, r: EventTermId, p: EventTermId, o: EventTermId) -> Result<ControlFlow<()>, Self::Error>;
-    // lifecycle + lossy-droppable syntactic hints + diagnostics (default no-op)
-    fn open_scope (&mut self, _: ScopeId) -> Result<ControlFlow<()>, Self::Error> { Ok(Continue(())) }
-    fn close_scope(&mut self, _: ScopeId) -> Result<ControlFlow<()>, Self::Error> { Ok(Continue(())) }
-    fn prefix(&mut self, _p: &str, _iri: &str) -> Result<ControlFlow<()>, Self::Error> { Ok(Continue(())) }
-    fn base  (&mut self, _iri: &str)            -> Result<ControlFlow<()>, Self::Error> { Ok(Continue(())) }
+    fn term      (&mut self, scope: ScopeId, id: EventTermId, t: EventTerm<'_>) -> Result<ControlFlow<()>, EventError>;
+    fn quad      (&mut self, scope: ScopeId, q: EventQuad)    -> Result<ControlFlow<()>, EventError>;
+    fn quads     (&mut self, scope: ScopeId, q: &[EventQuad]) -> Result<ControlFlow<()>, EventError> { /* default loop */ }
+    fn reifier   (&mut self, scope: ScopeId, r: EventTermId, t: EventTriple) -> Result<ControlFlow<()>, EventError>;
+    fn annotation(&mut self, scope: ScopeId, r: EventTermId, p: EventTermId, o: EventTermId) -> Result<ControlFlow<()>, EventError>;
+    fn open_scope (&mut self, _: ScopeId) -> Result<ControlFlow<()>, EventError> { Ok(Continue(())) }
+    fn close_scope(&mut self, _: ScopeId) -> Result<ControlFlow<()>, EventError> { Ok(Continue(())) }
+    fn prefix  (&mut self, _p: &str, _iri: &str)              -> Result<ControlFlow<()>, EventError> { Ok(Continue(())) } // droppable hint
+    fn base    (&mut self, _iri: &str)                        -> Result<ControlFlow<()>, EventError> { Ok(Continue(())) } // droppable hint
+    fn location(&mut self, _id: EventTermId, _span: SourceSpan)-> Result<ControlFlow<()>, EventError> { Ok(Continue(())) } // droppable hint
+    fn finish  (&mut self) -> Result<(), EventError>;   // resolve forward refs; error on any unresolved
 }
-pub trait RdfEventSource { type Error; fn drive<S: RdfEventSink>(self, s: &mut S) -> Result<(), /* … */>; }
+pub trait RdfEventSource {
+    fn drive<S: RdfEventSink>(self, sink: &mut S) -> Result<(), EventError> where Self: Sized; // zero-cost hot path
+    fn drive_erased(&mut self, sink: &mut dyn RdfEventSink) -> Result<(), EventError>;          // for runtime registries
+    fn declares_before_reference(&self) -> bool { false } // capability; bounded-memory sinks require true
+}
 ```
 
-Rules: IDs are compression handles, not identity (sink re-interns by value, as `ir/import_sink.rs` does
-today); blank-node identity = `(label, ScopeId)`; triple terms recurse; base `direction` is carried;
-the literal event carries `lexical: &str` + a `datatype` term-id (gts validates the lexical form — the
-*value space* is the sink's job, gmeow-rdf); `prefix`/`base`/`location` are lossy-droppable hints
-(serializers + the rdflib `NamespaceManager` capture them); `ControlFlow` = cancel, `Err` = malformed.
-Sources: gts-binary reader · every format parser · frozen-IR replay. Sinks: `RdfDatasetBuilder` (freeze)
-· format serializers · the oxigraph bridge.
+**Forward references are ALLOWED (the key correction).** The current GTS event order can emit a triple
+term *before* the reifier binding that resolves it, so a strict term-before-reference replacement would
+need an adapter or a new versioned GTS contract. Instead the protocol **permits forward references**: a
+`term`/`quad`/`reifier` MAY reference an `EventTermId` not yet declared, and the sink resolves them in
+**`finish()`** — the existing two-phase `ir/import_sink.rs` resolution IS this step. A source MAY
+advertise `declares_before_reference()`; bounded-memory sinks (no buffering) require it, and a
+re-ordering adapter bridges the current GTS order to that guarantee.
+
+**Specified semantics (no longer hand-waved):**
+
+- *ID reuse:* an `EventTermId` is declared at most once per scope; redeclaration is a protocol error.
+- *Scope lifecycle:* `open_scope`/`close_scope`; ids are scope-local; closing seals that scope's
+  blank-node identity; referencing a closed scope's id is an error.
+- *Forward references:* permitted; any id still unresolved at `finish()` is a diagnostic + error.
+- *Cancellation / partial state:* `ControlFlow::Break` stops the source; the sink's accumulated state is
+  **partial and MUST NOT be frozen** — no dataset is produced from a cancelled or errored run
+  (no-degraded-fallback).
+- *Nesting limit:* triple-term nesting depth is bounded (configurable; exceeding = diagnostic + error) —
+  a DoS guard on adversarial input.
+- *Diagnostic locations:* `location`/spans are droppable hints the sink MAY record (`RdfLocation`-style).
+- *Object-safety:* generic `drive<S>` is the hot path; `drive_erased`/`&mut dyn RdfEventSink` is
+  MANDATORY for the runtime format/parser **registry** — the generic form cannot be used behind `dyn`.
+
+**Ill-typed literals are PRESERVED + FLAGGED, never auto-rejected.** RDFLib keeps a literal whose lexical
+form is invalid for its datatype and records the ill-typed state; purrdf does the same — the gts XSD
+lexical layer validates and emits a *diagnostic*, the literal is preserved verbatim
+(lexical+datatype+lang), and the value space records "ill-typed". Rejecting the RDF on a bad lexical form
+would itself be a fidelity loss.
+
+Sources: GTS reader (via the re-ordering adapter or two-phase `finish`) · every format parser ·
+frozen-IR replay. Sinks: `RdfDatasetBuilder` (freeze) · format serializers · the oxigraph bridge.
 
 ### Multi-ecosystem — build on gmeow-gts's existing reach, two ABIs not one
 
@@ -272,8 +305,11 @@ a criterion baseline before/after.
 - **P3 — IR perf: `NonZeroU32` + arena/store-once interner [∥].** Measure-gated.
 - **P4 — Lazy quad indexes + `term_id_by_value` [needs P3].** Queryable IR.
 - **P5 — COW suppression-delta + `DatasetMut` [needs P2, P4].** The mutability substrate.
-- **P6 — `RdfEventSource`/`RdfEventSink` seam [needs P2].** Generalize `StreamingSink`; builder = sink;
-  GTS reader + frozen-IR replay as sources.
+- **P6 — `gmeow-rdf-events` ingestion protocol crate [needs P2].** New standalone permissive crate (NOT
+  a `StreamingSink` rename); rename the existing frozen-dataset visitor `RdfDatasetVisitor`. Object-safe
+  sink + generic & erased source; forward-reference + `finish()` resolution; specified scope/ID/cancel/
+  nesting/diagnostic semantics. `RdfDatasetBuilder` impls the sink; GTS reader (via adapter) + frozen-IR
+  replay as sources.
 - **P7 — rust-isms surface + `no_std` readiness [folds into P2–P6].**
 - **P8 — `rdf-capi` semantic C-ABI + wasm [needs P2,P4,P5].** (spec below)
 - **P9 — M1 term-facade rdflib compat shim [needs P5 + XSD value space + P2].** (spec below)
@@ -341,15 +377,18 @@ Pure-Python facade over the native ext; absorbs rdflib's idioms so the greenfiel
 
 To bring gmeow-gts "up to snuff" for purrdf:
 
-1. **`RdfEventSource`/`RdfEventSink`** — generalize `StreamingSink` into the public, format-neutral,
-   RDF-1.2-faithful event contract (the seam every codec emits into).
-2. **Turtle + TriG codec** — parse + serialize, RDF-1.2-first, via the event contract (TriG-write exists;
-   add Turtle + the read side).
-3. **N-Triples codec** — parse + serialize via the event contract (the triple subset of N-Quads).
+1. **Depend on the standalone `gmeow-rdf-events` protocol crate** (defined above; NOT inside the gts
+   container product), and implement an `RdfEventSource` over the GTS reader against it — including a
+   **re-ordering adapter** (or a `declares_before_reference` mode) so the current forward-reference GTS
+   order can feed bounded-memory sinks. Rename the existing frozen-dataset visitor `RdfDatasetVisitor`.
+2. **Turtle + TriG codec** — parse + serialize, RDF-1.2-first, emitting the event protocol (TriG-write
+   exists; add Turtle + the read side).
+3. **N-Triples codec** — parse + serialize via the protocol (the triple subset of N-Quads).
 4. **RDF/XML codec** — parse + serialize; net-new (XML namespaces, `rdf:parseType`, collections,
    reification). The largest format gap.
 5. **XSD lexical-form validation/canonicalization layer** — the syntax-side datatype lexical checks the
-   parsers need (the lexical half of the split; the value space stays in gmeow-rdf).
+   parsers need (the lexical half of the split; value space stays in gmeow-rdf). **Validate + FLAG, never
+   reject:** ill-typed literals are preserved verbatim and surfaced as diagnostics (RDFLib parity).
 6. **Expose the format codec set through the `libgts` C-ABI** — format-parametric parse/serialize + a
    media-type/format registry, beyond today's GTS↔N-Quads.
 
