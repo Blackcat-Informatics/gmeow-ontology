@@ -220,6 +220,32 @@ impl Rule {
     }
 }
 
+/// The role of a compilation unit in a diagnostic attribution (§9 / S5).
+///
+/// This mirrors `gmeow_rdf::provenance::AttributionRole` but uses owned strings
+/// so `gmeow-diagnostics` remains dep-free of `gmeow-rdf` (the layering rule:
+/// diagnostics must not import the RDF kernel). The canonical string form is
+/// identical to `AttributionRole::as_str()`.
+///
+/// The `UnitId`→slice-IRI resolution happens in `gmeow-validate` (which has
+/// access to both the provenance interners and the diagnostics model); by the
+/// time an `Attribution` reaches `DiagnosticAttribution` the IRI is already
+/// resolved and the numeric id is discarded (S0.5).
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct DiagnosticAttribution {
+    /// The public slice IRI — never a numeric unit id (S0.5).
+    pub slice_iri: String,
+    /// The role this slice played (mirrors `AttributionRole::as_str()`).
+    ///
+    /// Known values: `"assertion-origin"`, `"definition-owner"`,
+    /// `"shape-owner"`, `"rule-owner"`, `"focus-origin"`, `"value-origin"`,
+    /// `"derivation-support"`, `"evaluation-scope"`.
+    pub role: String,
+    /// Optional provenance note (human-readable; does NOT enter fingerprints).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub evidence: Option<String>,
+}
+
 /// One normalized diagnostic emitted by any GMEOW tool.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Finding {
@@ -238,6 +264,12 @@ pub struct Finding {
     pub tags: Vec<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub detail: Option<String>,
+    /// Structured slice attributions for this finding (§9 / S5).
+    ///
+    /// Records which slices (by public IRI, never numeric id) played which roles
+    /// in producing this finding. Empty when no attribution context is available.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub attributions: Vec<DiagnosticAttribution>,
 }
 
 impl Finding {
@@ -252,6 +284,7 @@ impl Finding {
             suggestions: Vec::new(),
             tags: Vec::new(),
             detail: None,
+            attributions: Vec::new(),
         }
     }
 

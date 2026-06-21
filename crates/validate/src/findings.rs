@@ -259,6 +259,7 @@ mod tests {
             source_box_roles: Vec::new(),
             path_box_roles: Vec::new(),
             result_box_roles: Vec::new(),
+            attributions: vec![],
         };
 
         let finding = finding_from_shacl(&result);

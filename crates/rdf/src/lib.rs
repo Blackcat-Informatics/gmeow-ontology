@@ -76,8 +76,9 @@ pub use model::{
     RdfTriple,
 };
 pub use provenance::{
-    check_provenance, ArtifactId, ArtifactInterner, AssertionOccurrence, DatasetProvenance,
-    OriginKind, OriginSetId, OriginSetInterner, ProvenanceError, UnitId, UnitInterner,
+    check_provenance, ArtifactId, ArtifactInterner, AssertionOccurrence, Attribution,
+    AttributionRole, DatasetProvenance, OriginKind, OriginSetId, OriginSetInterner,
+    ProvenanceError, UnitId, UnitInterner,
 };
 pub use store::{RdfStore, RdfStoreCapabilities, VecRdfStore};
 pub use turtle::{emit_annotation, emit_quad, emit_reifier, emit_resource, emit_term, rule_iri};
