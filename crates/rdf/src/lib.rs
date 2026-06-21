@@ -35,12 +35,12 @@ pub mod store;
 pub mod turtle;
 
 pub use diagnostic::{RdfDiagnostic, RdfLocation, RdfLoss, RdfSeverity};
+pub use ir::{
+    dataset_diff, datasets_isomorphic, BlankScope, DatasetDiff, QuadHandle, QuadIds, QuadRef,
+    RdfBundle, RdfDataset, RdfDatasetBuilder, RdfEnvelope, TermId, TermRef,
+};
 #[cfg(feature = "gts")]
 pub use ir::{import_gts_events, import_gts_graph};
-pub use ir::{
-    BlankScope, QuadHandle, QuadIds, QuadRef, RdfBundle, RdfDataset, RdfDatasetBuilder,
-    RdfEnvelope, TermId, TermRef,
-};
 pub use lookaside::{
     RdfBlobRecord, RdfLookaside, RdfLookasideKind, RdfLookasideResource, RdfMetadataEntry,
     RdfMetadataValue, RdfOpaqueNodeRecord, RdfSegmentRecord, RdfSignatureRecord,

@@ -23,7 +23,9 @@ use std::collections::BTreeMap;
 
 use gmeow_gts::model::{Graph, Term, TermKind};
 use gmeow_gts::writer::Writer;
-use gmeow_rdf::{import_gts_events, import_gts_graph, RdfDataset, TermId, TermRef};
+use gmeow_rdf::{
+    datasets_isomorphic, import_gts_events, import_gts_graph, RdfDataset, TermId, TermRef,
+};
 
 // --- Bytes-counting thread-local allocator ---------------------------------
 //
@@ -269,6 +271,11 @@ fn graph_and_event_paths_are_isomorphic_blank_free() {
         quad_value_multiset(events_ds),
         "blank-free datasets are structurally isomorphic across import paths"
     );
+    // Task 6: the blank-aware IR-direct comparator is now the equality oracle.
+    assert!(
+        datasets_isomorphic(graph_ds, events_ds),
+        "datasets_isomorphic agrees the blank-free paths are isomorphic"
+    );
 }
 
 /// Blank-FREE single-segment input WITH (nested) quoted-triple terms:
@@ -304,6 +311,12 @@ fn graph_and_event_paths_are_isomorphic_blank_free_with_triples() {
         quad_value_multiset(events_ds),
         "blank-free datasets are isomorphic across paths, INCLUDING nested quoted triples"
     );
+    // Task 6: the IR-direct comparator confirms isomorphism through the quoted-triple
+    // structure too (it canonicalizes triple terms recursively).
+    assert!(
+        datasets_isomorphic(graph_ds, events_ds),
+        "datasets_isomorphic agrees, including nested quoted triples"
+    );
 
     // Sanity: the event path really did materialize quoted triples (not skip them).
     assert!(
@@ -318,10 +331,11 @@ fn graph_and_event_paths_are_isomorphic_blank_free_with_triples() {
     );
 }
 
-/// Single-segment input WITH blanks: the two paths assign different blank SCOPES, so
-/// full isomorphism is not asserted here (the public blank-aware structural
-/// comparator lands in Task 6). We assert the weaker, exact invariants: equal quad
-/// count and equal NON-blank term values.
+/// Single-segment input WITH blanks: the two paths assign different blank SCOPES (the
+/// graph path flattens to 0, the event path uses per-segment scope). Task 6's
+/// blank-aware structural comparator now resolves the bijection, so we assert FULL
+/// isomorphism via `datasets_isomorphic` — and keep the exact non-blank invariants as
+/// a finer-grained guard.
 #[test]
 fn graph_and_event_paths_agree_on_non_blank_terms() {
     let bytes = to_bytes(&blanks_segment());
@@ -334,6 +348,13 @@ fn graph_and_event_paths_agree_on_non_blank_terms() {
         via_graph.dataset.quad_count(),
         via_events.dataset.quad_count(),
         "equal quad count with blanks"
+    );
+
+    // Task 6: full blank-aware isomorphism — the comparator resolves the differing
+    // blank scopes via bijection, something the multiset oracle could not.
+    assert!(
+        datasets_isomorphic(&via_graph.dataset, &via_events.dataset),
+        "blank-aware comparator proves the two import paths are isomorphic"
     );
 
     // The non-blank object/subject/predicate values match; only the blank's SCOPE
