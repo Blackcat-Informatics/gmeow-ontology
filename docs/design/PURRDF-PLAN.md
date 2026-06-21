@@ -299,9 +299,23 @@ documented thread-safety, SemVer-frozen ABI (the one sanctioned no-backwards-com
 Pure-Python facade over the native ext; absorbs rdflib's idioms so the greenfield core stays clean.
 
 - **Terms as `str` subclasses:** `URIRef(str)`, `BNode(str)`, `Variable(str)`; **`Literal(str)`** with
-  `.datatype`/`.language`, `.value`/`.toPython()` (the rdf-side XSD value space), and **value-based,
-  datatype-aware `__eq__`/ordering** — NOT plain str equality. Mirroring rdflib's exact comparison +
-  total-order rules is the deepest LSP risk; rdflib's own Literal tests are the acceptance gate.
+  `.datatype`/`.language` and `.value`/`.toPython()` (the rdf-side XSD value space).
+- **Match RDFLib's equality model EXACTLY — and put it in the SHIM, not the IR.** In RDFLib 7.6:
+  `Literal.__eq__` is **RDF term equality** over `(lexical, datatype, language)` — and **`__hash__`
+  follows `__eq__`**, so it hashes over that same triple; `Literal.eq()` is the separate
+  **value-space** (interpreted) equality; ordering is yet another combination (value comparison →
+  datatype ordering → language ordering → lexical fallback). `__eq__` is therefore **NOT value-based** —
+  getting it wrong silently corrupts every dict/set in downstream code. The deepest LSP risk; gated by
+  RDFLib's own `Literal` tests.
+- **The `xsd:string`-expansion conflict (must resolve):** the native IR expands a plain literal to
+  `xsd:string` (C0.1), but RDFLib keeps `datatype=None` distinct from an explicit `xsd:string` under
+  `==` (a documented open RDFLib issue). **Do NOT distort the native RDF-1.2 model to match.** The shim
+  resolves it by ONE of: (a) **preserve RDFLib constructor/syntax provenance** (was-explicit-datatype,
+  original lexical/lang casing) as **shim-side metadata outside the IR** (the sparse term-metadata
+  side-table pattern) so it reproduces RDFLib `==`/hash exactly while the IR stays value-interned and
+  correct — *recommended*; (b) deliberately diverge and document the incompatibility; (c) keep separate
+  native-correct vs RDFLib-compatible term representations at the boundary. All RDFLib historical
+  behaviours live in the shim, never the core.
 - **`Graph` (mutable)** backed by the native COW delta via PyO3: `add/remove/set/value`,
   `triples((s,p,o))` with `None` → `quads_for_pattern`, the accessor family, `__contains__/__len__/
   __iter__`, algebra (`+ - * ^`, `+=`/`-=`), `transitive_*`, `Collection`. `parse`/`serialize` route
