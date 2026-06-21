@@ -12,10 +12,18 @@
 //! GTS-bundle bridge arrives in later tasks (C2+).
 
 pub mod builder;
+pub mod bundle;
 pub mod dataset;
+// The authoritative GTS ingestion path needs `gmeow-gts`/`ciborium`, both gated
+// behind the `gts` feature (#819 C2.a).
+#[cfg(feature = "gts")]
+pub mod import_sink;
 pub mod term;
 pub mod validate;
 
 pub use builder::RdfDatasetBuilder;
+pub use bundle::{RdfBundle, RdfEnvelope};
 pub use dataset::{QuadHandle, QuadIds, QuadRef, RdfDataset, TermRef};
+#[cfg(feature = "gts")]
+pub use import_sink::import_gts_events;
 pub use term::{BlankScope, TermId};
