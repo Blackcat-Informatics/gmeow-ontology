@@ -2,22 +2,5 @@
 % Datalog projection of the canonical logic: program.
 
 % === Ground facts (axioms) ===
-defaultClosure("https://blackcatinformatics.ca/logic/PositiveHornProfile", "https://blackcatinformatics.ca/logic/OpenWorldClosure", "default").
-expandsToFacet("https://blackcatinformatics.ca/logic/PositiveHornProfile", "https://blackcatinformatics.ca/logic/CertifiedFragmentResource", "default").
-expandsToFacet("https://blackcatinformatics.ca/logic/PositiveHornProfile", "https://blackcatinformatics.ca/logic/HornFragment", "default").
-expandsToFacet("https://blackcatinformatics.ca/logic/PositiveHornProfile", "https://blackcatinformatics.ca/logic/LeastModelSemantics", "default").
-expandsToFacet("https://blackcatinformatics.ca/logic/PositiveHornProfile", "https://blackcatinformatics.ca/logic/MonotonicRevision", "default").
-expandsToFacet("https://blackcatinformatics.ca/logic/PositiveHornProfile", "https://blackcatinformatics.ca/logic/OpenWorldClosure", "default").
-expandsToFacet("https://blackcatinformatics.ca/logic/ProbabilisticProfile", "https://blackcatinformatics.ca/logic/ProbabilisticMeasure", "default").
-expandsToFacet("https://blackcatinformatics.ca/logic/ProceduralPrologProfile", "https://blackcatinformatics.ca/logic/BudgetBoundedResource", "default").
-expandsToFacet("https://blackcatinformatics.ca/logic/ProceduralPrologProfile", "https://blackcatinformatics.ca/logic/HornFragment", "default").
-expandsToFacet("https://blackcatinformatics.ca/logic/ProceduralPrologProfile", "https://blackcatinformatics.ca/logic/ProceduralExecution", "default").
-expandsToFacet("https://blackcatinformatics.ca/logic/StableModelProfile", "https://blackcatinformatics.ca/logic/DefaultNegation", "default").
-expandsToFacet("https://blackcatinformatics.ca/logic/StableModelProfile", "https://blackcatinformatics.ca/logic/StableModelSemantics", "default").
-expandsToFacet("https://blackcatinformatics.ca/logic/StratifiedNAFProfile", "https://blackcatinformatics.ca/logic/DefaultNegation", "default").
-expandsToFacet("https://blackcatinformatics.ca/logic/StratifiedNAFProfile", "https://blackcatinformatics.ca/logic/HornFragment", "default").
-expandsToFacet("https://blackcatinformatics.ca/logic/StratifiedNAFProfile", "https://blackcatinformatics.ca/logic/LeastModelSemantics", "default").
-expandsToFacet("https://blackcatinformatics.ca/logic/WellFoundedProfile", "https://blackcatinformatics.ca/logic/DefaultNegation", "default").
-expandsToFacet("https://blackcatinformatics.ca/logic/WellFoundedProfile", "https://blackcatinformatics.ca/logic/WellFoundedSemantics", "default").
 
 % === Rules ===

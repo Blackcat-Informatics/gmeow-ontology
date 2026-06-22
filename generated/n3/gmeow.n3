@@ -9,22 +9,5 @@
 # N3 projection of the canonical logic: program.
 
 # === Axioms ===
-<https://blackcatinformatics.ca/logic/PositiveHornProfile> <https://blackcatinformatics.ca/logic/defaultClosure> <https://blackcatinformatics.ca/logic/OpenWorldClosure> .
-<https://blackcatinformatics.ca/logic/PositiveHornProfile> <https://blackcatinformatics.ca/logic/expandsToFacet> <https://blackcatinformatics.ca/logic/CertifiedFragmentResource> .
-<https://blackcatinformatics.ca/logic/PositiveHornProfile> <https://blackcatinformatics.ca/logic/expandsToFacet> <https://blackcatinformatics.ca/logic/HornFragment> .
-<https://blackcatinformatics.ca/logic/PositiveHornProfile> <https://blackcatinformatics.ca/logic/expandsToFacet> <https://blackcatinformatics.ca/logic/LeastModelSemantics> .
-<https://blackcatinformatics.ca/logic/PositiveHornProfile> <https://blackcatinformatics.ca/logic/expandsToFacet> <https://blackcatinformatics.ca/logic/MonotonicRevision> .
-<https://blackcatinformatics.ca/logic/PositiveHornProfile> <https://blackcatinformatics.ca/logic/expandsToFacet> <https://blackcatinformatics.ca/logic/OpenWorldClosure> .
-<https://blackcatinformatics.ca/logic/ProbabilisticProfile> <https://blackcatinformatics.ca/logic/expandsToFacet> <https://blackcatinformatics.ca/logic/ProbabilisticMeasure> .
-<https://blackcatinformatics.ca/logic/ProceduralPrologProfile> <https://blackcatinformatics.ca/logic/expandsToFacet> <https://blackcatinformatics.ca/logic/BudgetBoundedResource> .
-<https://blackcatinformatics.ca/logic/ProceduralPrologProfile> <https://blackcatinformatics.ca/logic/expandsToFacet> <https://blackcatinformatics.ca/logic/HornFragment> .
-<https://blackcatinformatics.ca/logic/ProceduralPrologProfile> <https://blackcatinformatics.ca/logic/expandsToFacet> <https://blackcatinformatics.ca/logic/ProceduralExecution> .
-<https://blackcatinformatics.ca/logic/StableModelProfile> <https://blackcatinformatics.ca/logic/expandsToFacet> <https://blackcatinformatics.ca/logic/DefaultNegation> .
-<https://blackcatinformatics.ca/logic/StableModelProfile> <https://blackcatinformatics.ca/logic/expandsToFacet> <https://blackcatinformatics.ca/logic/StableModelSemantics> .
-<https://blackcatinformatics.ca/logic/StratifiedNAFProfile> <https://blackcatinformatics.ca/logic/expandsToFacet> <https://blackcatinformatics.ca/logic/DefaultNegation> .
-<https://blackcatinformatics.ca/logic/StratifiedNAFProfile> <https://blackcatinformatics.ca/logic/expandsToFacet> <https://blackcatinformatics.ca/logic/HornFragment> .
-<https://blackcatinformatics.ca/logic/StratifiedNAFProfile> <https://blackcatinformatics.ca/logic/expandsToFacet> <https://blackcatinformatics.ca/logic/LeastModelSemantics> .
-<https://blackcatinformatics.ca/logic/WellFoundedProfile> <https://blackcatinformatics.ca/logic/expandsToFacet> <https://blackcatinformatics.ca/logic/DefaultNegation> .
-<https://blackcatinformatics.ca/logic/WellFoundedProfile> <https://blackcatinformatics.ca/logic/expandsToFacet> <https://blackcatinformatics.ca/logic/WellFoundedSemantics> .
 
 # === Rules ===
