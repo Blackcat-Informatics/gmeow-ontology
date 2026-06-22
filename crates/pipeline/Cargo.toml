@@ -34,6 +34,9 @@ gmeow-logic = { path = "../logic" }
 # The `mappings` stage wires the slice-resident SSSOM + FnO emitters directly
 # (gmeow_slice::emit_sssom_sets / emit_fno) — the SSSOM/FnO halves are Rust.
 gmeow-slice = { path = "../slice" }
+# The `docs_render` stage wires the typed documentation model + RDF projection
+# (gmeow_docs::DocsModel::discover / to_gmeow_rdf / render_site) — no port (#853).
+gmeow-docs = { path = "../docs" }
 # The DAG loader reads the dogfooded build graph from the same lenient oxigraph
 # Turtle parser the slice crate uses (accepts @x-gmeow-* language tags). Mirror
 # the slice/rdf crates' exact oxigraph build for a clean lockfile resolution.
