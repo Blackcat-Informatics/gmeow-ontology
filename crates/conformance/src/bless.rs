@@ -131,15 +131,21 @@ pub fn write_expected(case_dir: &Path, out: &CaseOutputs) -> Result<(), String> 
         }
     }
 
-    // Explanation skeletons + witnesses are NOT regenerated — log it (no silent cap).
+    // Explanation .md files — refresh existing goldens; seed new ones in init mode.
     if !out.explanations.is_empty() {
-        eprintln!(
-            "[bless] {}: {} explanation skeleton(s) NOT regenerated (content-hash-named, \
-             prose-bearing; the gate compares the cited-IRI skeleton against the existing \
-             goldens). Author explanation/*.md manually for brand-new cases.",
-            out.case_id,
-            out.explanations.len()
-        );
+        let expl_dir = expected.join("explanation");
+        if init {
+            mkdirs(&expl_dir)?;
+        }
+        for expl in &out.explanations {
+            let hash = expl
+                .target_quad_reifier
+                .rsplit('/')
+                .next()
+                .unwrap_or(&expl.target_quad_reifier);
+            let path = expl_dir.join(format!("{hash}.md"));
+            write_if(init, &path, |p| write_text(p, &expl.markdown))?;
+        }
     }
 
     Ok(())

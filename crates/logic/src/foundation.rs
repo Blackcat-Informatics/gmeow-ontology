@@ -44,6 +44,7 @@
 //! returns `Err`).  A malformed inequality guard (an unbound guard variable) is a
 //! hard error.  There is no silent default and no degraded fallback.
 
+use std::collections::HashMap;
 use std::collections::HashSet;
 
 use oxigraph::model::{NamedNode, Term};
@@ -808,6 +809,11 @@ fn triple_reifier(s: &str, p: &str, o: &str) -> Result<String, String> {
 struct FactStore {
     facts: Vec<Fact>,
     keys: HashSet<(String, String, String)>,
+    /// Predicate → row indices into `facts`, in insertion order.  Maintained in
+    /// lockstep with `facts` so each bucket's order equals insertion order; this
+    /// lets the join scan only the rows for a constant-predicate atom while
+    /// returning exactly the subsequence (same relative order) a full scan would.
+    predicate_index: HashMap<String, Vec<usize>>,
 }
 
 impl FactStore {
@@ -815,6 +821,7 @@ impl FactStore {
         Self {
             facts: Vec::new(),
             keys: HashSet::new(),
+            predicate_index: HashMap::new(),
         }
     }
 
@@ -825,13 +832,31 @@ impl FactStore {
             return false;
         }
         self.keys.insert(key);
+        let idx = self.facts.len();
         self.facts.push(fact);
+        // Push the new row index in lockstep with `facts`, preserving insertion
+        // order within the predicate bucket. Clone the predicate only on first
+        // occurrence to avoid a heap allocation for repeat predicates.
+        let pred = &self.facts[idx].predicate;
+        if let Some(bucket) = self.predicate_index.get_mut(pred.as_str()) {
+            bucket.push(idx);
+        } else {
+            self.predicate_index.insert(pred.clone(), vec![idx]);
+        }
         true
     }
 
     /// Whether a fact with this key exists.
     fn contains_key(&self, key: &(String, String, String)) -> bool {
         self.keys.contains(key)
+    }
+
+    /// Row indices (into `facts`, insertion-ordered) of facts with predicate
+    /// `pred`; empty slice if none.
+    fn facts_for_predicate(&self, pred: &str) -> &[usize] {
+        self.predicate_index
+            .get(pred)
+            .map_or(&[][..], Vec::as_slice)
     }
 }
 
@@ -852,6 +877,34 @@ impl Solution {
             .find(|(k, _)| *k == var_name)
             .map(|(_, v)| v.as_str())
     }
+}
+
+/// A candidate derivation within a single chase round.
+///
+/// `sorted_sources` is a sorted copy of `sources` used ONLY for the deterministic
+/// tiebreak comparison.  The emitted [`FoundationQuad`] always uses `sources` in its
+/// original body-order for `source_quad_ids`; the sorted copy never appears in output.
+///
+/// Winner selection uses a **quality-ordered total-order** over same-head candidates:
+/// `(max_src_depth, sum_src_depth, sorted_sources)` — smaller wins.  This prefers the
+/// most-direct (shallowest) derivation, tiebreaks toward asserted-rooted proofs (lower
+/// depth sum), and uses lex-min sorted reifiers as the final content-addressed
+/// tiebreaker, making the winner fully independent of firing-enumeration order.
+#[derive(Clone)]
+struct RoundCandidate {
+    head: Fact,
+    /// Reifiers of matched body facts, in body (scan) order — goes into `source_quad_ids`.
+    sources: Vec<String>,
+    /// Sorted copy of `sources`, used only for deterministic winner comparison.
+    sorted_sources: Vec<String>,
+    /// Content-addressed derivation IRI: `mint_derivation_id(ANON_RULE_IRI, &src_refs)`.
+    deriv: String,
+    /// Maximum derivation depth across the matched source facts.  Depth 0 = asserted.
+    /// `depth = 1 + max(depth[source])` for this candidate; minimised first by the tiebreak.
+    max_src_depth: u32,
+    /// Sum of derivation depths across the matched source facts.  Smaller = closer to
+    /// asserted axioms (tiebreak level 2, after `max_src_depth`).
+    sum_src_depth: u64,
 }
 
 /// Ground a term pattern under bindings to its IRI string, or `None` if an unbound var.
@@ -978,11 +1031,115 @@ fn distinct_pairs_satisfied(
     Ok(true)
 }
 
-/// Join all body atoms against the fact store (semi-naive).
+/// Whether a positive atom's binding to fact `f` is restricted to a delta scan.
 ///
-/// Returns the candidate solutions whose positive body fully matches, whose NAF
-/// literals all fail (no matching fact), and at least one of whose positive sources
-/// is in `delta` (the semi-naive condition).  Mirrors `_join_body_atoms`.
+/// In a delta-position scan we walk only the rows in the predicate bucket whose key
+/// is in `delta`; in a full-store scan we walk the whole bucket.  Both walk the
+/// insertion-ordered bucket so the matched subsequence (and thus `source_keys`
+/// order) is identical to a full scan filtered after the fact.
+enum Scan {
+    /// Bind `a_p` to facts whose key is **in** `delta` (the "new at p" position).
+    Delta,
+    /// Bind to **any** fact in the full store (no delta constraint).
+    Full,
+    /// Bind only to facts whose key is **not** in `delta` (the "old after p"
+    /// positions, j > p, that keep each delta-touching solution produced once).
+    OldOnly,
+}
+
+/// Extend each partial solution by matching `atom` against the store under `scan`.
+///
+/// Uses the predicate index for the constant-predicate case (every foundation rule)
+/// and intersects the bucket with `delta` membership for the [`Scan::Delta`] /
+/// [`Scan::OldOnly`] positions.  Walks the bucket in insertion order so the produced
+/// solutions (and their `source_keys`) match a full insertion-ordered scan.
+fn extend_solutions(
+    atom: &Atom,
+    store: &FactStore,
+    delta: &HashSet<(String, String, String)>,
+    scan: &Scan,
+    solutions: &[Solution],
+) -> Vec<Solution> {
+    let in_delta = |f: &Fact| delta.contains(&f.key());
+    let keep = |f: &Fact| match scan {
+        Scan::Delta => in_delta(f),
+        Scan::Full => true,
+        Scan::OldOnly => !in_delta(f),
+    };
+    let mut next: Vec<Solution> = Vec::new();
+    for sol in solutions {
+        match &atom.predicate {
+            TermPat::Const(p) => {
+                // Constant predicate: scan only the predicate's (insertion-ordered)
+                // bucket, gated by the delta membership the scan mode requires.
+                for &i in store.facts_for_predicate(p) {
+                    let f = &store.facts[i];
+                    if !keep(f) {
+                        continue;
+                    }
+                    if let Some(mut merged) = match_atom(atom, f, sol) {
+                        merged.source_keys.push(f.key());
+                        next.push(merged);
+                    }
+                }
+            }
+            TermPat::Var(_) => {
+                // Variable predicate: full scan (no foundation rule hits this, but it
+                // must remain correct), gated by the same delta membership.
+                for f in &store.facts {
+                    if !keep(f) {
+                        continue;
+                    }
+                    if let Some(mut merged) = match_atom(atom, f, sol) {
+                        merged.source_keys.push(f.key());
+                        next.push(merged);
+                    }
+                }
+            }
+        }
+    }
+    next
+}
+
+/// Join all body atoms against the fact store with **true semi-naive** delta×full
+/// evaluation.
+///
+/// Instead of computing the full join and discarding non-delta solutions at the end,
+/// this enumerates, for each positive body atom position `p`, the term
+///
+/// ```text
+///   a_p  ∈ delta          (new at p)
+///   a_j  ∈ full store      for j < p   (any binding before p)
+///   a_j  ∈ store \ delta   for j > p   (old after p)
+/// ```
+///
+/// The disjoint "new at p, old after p" decomposition produces every delta-touching
+/// solution **exactly once** — at its *first* (lowest-index) delta position — so the
+/// union over `p` needs no further deduplication.  A round whose `delta` equals the
+/// whole store (the per-stratum first round) degenerates to the full join, as
+/// required for correctness.
+///
+/// NAF literals are filtered after the positive join, and the union over positions is
+/// concatenated in increasing `p` order (so within a fixed `p` the source-key order
+/// is the insertion-ordered scan order).  Mirrors `_join_body_atoms` semantically —
+/// the *answer set* (head facts derived over the whole chase) is identical.
+///
+/// When multiple firings within a single round derive the same head `(s, p, o)` with
+/// different source sets, the winner is chosen by a **quality-ordered total-order**
+/// tiebreak — smaller tuple wins, independent of firing-enumeration order:
+///
+/// 1. **Fewest derivation steps** (`max_src_depth`) — prefer the candidate whose
+///    deepest source fact has the lowest depth (asserted facts have depth 0, so a
+///    derivation grounded directly in assertions scores 0 here).
+/// 2. **Asserted-rooted preference** (`sum_src_depth`) — tiebreak on the sum of
+///    source-fact depths; a derivation rooted closer to asserted axioms scores lower.
+/// 3. **Lexicographically-minimal sorted source reifiers** (`sorted_sources`) — the
+///    final content-addressed tiebreaker that guarantees a unique winner.
+///
+/// Because all three comparison fields are deterministically computable from the
+/// content-addressed source reifiers and depth counts, the winning provenance is
+/// entirely **independent of firing-enumeration order** — multiple valid derivations
+/// of the same head always collapse to the same winner.
 fn join_body(
     rule: &Rule,
     store: &FactStore,
@@ -991,26 +1148,43 @@ fn join_body(
     let positive: Vec<&Atom> = rule.body.iter().filter(|a| !a.negated).collect();
     let negated: Vec<&Atom> = rule.body.iter().filter(|a| a.negated).collect();
 
-    let mut solutions: Vec<Solution> = vec![Solution {
+    let empty = Solution {
         bindings: Vec::new(),
         source_keys: Vec::new(),
-    }];
+    };
 
-    for atom in positive {
-        let mut next: Vec<Solution> = Vec::new();
-        for sol in &solutions {
-            for f in &store.facts {
-                if let Some(mut merged) = match_atom(atom, f, sol) {
-                    merged.source_keys.push(f.key());
-                    next.push(merged);
+    let mut solutions: Vec<Solution> = if positive.is_empty() {
+        // Zero positive atoms: the empty solution is the only candidate.  It touches
+        // no facts, so it never satisfies the semi-naive delta condition — emit it
+        // only in a "full" round (delta == whole store covers the legitimate first
+        // round; otherwise an empty-body rule has nothing new to fire on).  This
+        // matches the old end-filter, where an empty source_keys list never passed
+        // `any(|k| delta.contains(k))`.
+        Vec::new()
+    } else {
+        // True semi-naive: union over the delta position p of
+        //   { a_p ∈ delta, a_{<p} ∈ full, a_{>p} ∈ store \ delta }.
+        let k = positive.len();
+        let mut all: Vec<Solution> = Vec::new();
+        for p in 0..k {
+            let mut partial: Vec<Solution> = vec![empty.clone()];
+            for (j, atom) in positive.iter().enumerate() {
+                let scan = if j < p {
+                    Scan::Full
+                } else if j == p {
+                    Scan::Delta
+                } else {
+                    Scan::OldOnly
+                };
+                partial = extend_solutions(atom, store, delta, &scan, &partial);
+                if partial.is_empty() {
+                    break;
                 }
             }
+            all.extend(partial);
         }
-        solutions = next;
-        if solutions.is_empty() {
-            break;
-        }
-    }
+        all
+    };
 
     // NAF filter: drop any binding whose grounded negated atoms still match a fact.
     if !negated.is_empty() {
@@ -1021,26 +1195,36 @@ fn join_body(
         });
     }
 
-    // Semi-naive filter: at least one source key must be in the delta.
     solutions
-        .into_iter()
-        .filter(|sol| sol.source_keys.iter().any(|k| delta.contains(k)))
-        .collect()
 }
 
 // ── Per-world chase ──────────────────────────────────────────────────────────────
 
 /// Run the stratified semi-naive chase in one world, producing asserted + derived
 /// quads with full provenance.  Mirrors `_chase_world` with `enable_naf=True`.
+///
+/// # Winner selection (quality-ordered total-order tiebreak)
+///
+/// When multiple rule firings in the same round derive the same head `(s, p, o)`, the
+/// winner is chosen by comparing `(max_src_depth, sum_src_depth, sorted_sources)` —
+/// smaller wins.  This prefers the most-direct derivation (fewest steps from asserted
+/// facts), tiebreaks toward asserted-rooted proofs, and uses lex-min sorted reifiers
+/// as a final content-addressed guarantee.  The comparison is **independent of
+/// firing-enumeration order** by construction.
 fn chase_world(world_iri: &str, initial: &[Fact]) -> Result<Vec<FoundationQuad>, String> {
     let mut store = FactStore::new();
     for f in initial {
         store.insert(f.clone());
     }
 
+    // Per-fact derivation-depth map: depth 0 for every asserted (initial) fact;
+    // derived facts get depth = 1 + max(source depths) when committed.
+    let mut depth: HashMap<(String, String, String), u32> = HashMap::new();
+
     // Asserted quads: source = [self reifier], rule = logic:assert.
     let mut out: Vec<FoundationQuad> = Vec::with_capacity(initial.len());
     for f in initial {
+        depth.insert(f.key(), 0); // asserted facts have depth 0
         let reifier = fact_reifier(f)?;
         let deriv = mint_derivation_id(ASSERT_RULE_IRI, &[reifier.as_str()]);
         out.push(FoundationQuad {
@@ -1062,7 +1246,10 @@ fn chase_world(world_iri: &str, initial: &[Fact]) -> Result<Vec<FoundationQuad>,
         let mut delta: HashSet<(String, String, String)> = store.keys.clone();
 
         loop {
-            let mut new_delta: HashSet<(String, String, String)> = HashSet::new();
+            // Per-round canonical-winner map: keyed by head key, holds the candidate
+            // chosen by a quality-ordered total-order tiebreak (see struct doc).
+            // This makes provenance selection independent of firing-enumeration order.
+            let mut round: HashMap<(String, String, String), RoundCandidate> = HashMap::new();
 
             for rule in stratum.iter() {
                 for sol in join_body(rule, &store, &delta) {
@@ -1082,36 +1269,90 @@ fn chase_world(world_iri: &str, initial: &[Fact]) -> Result<Vec<FoundationQuad>,
                     };
                     let key = head.key();
                     if store.contains_key(&key) {
-                        continue; // first-wins dedup
+                        continue; // a prior round already derived it; earlier round wins
                     }
 
                     // Provenance: reifiers of the matched positive body facts.  All
                     // foundation terms are IRIs, so every source is included (the
                     // Python filter to URIRef subj/pred never drops any here).
                     let mut sources: Vec<String> = Vec::with_capacity(sol.source_keys.len());
+                    // Compute depth fields from source fact keys.  Every source fact was
+                    // already committed (asserted or a prior-round winner), so its depth
+                    // entry is always present.  The `unwrap_or(&0)` is a defensive guard
+                    // only — a missing entry would indicate a chase-ordering bug, NOT a
+                    // legitimate absent depth (we never silently mask that by choosing 0).
+                    let mut max_sd: u32 = 0;
+                    let mut sum_sd: u64 = 0;
                     for sk in &sol.source_keys {
                         // sk holds the bare (s, p, o) IRIs of a matched body fact.
                         sources.push(triple_reifier(&sk.0, &sk.1, &sk.2)?);
+                        let d = *depth.get(sk).unwrap_or(&0);
+                        max_sd = max_sd.max(d);
+                        sum_sd = sum_sd.saturating_add(u64::from(d));
                     }
                     let src_refs: Vec<&str> = sources.iter().map(String::as_str).collect();
                     let deriv = mint_derivation_id(ANON_RULE_IRI, &src_refs);
+                    let mut sorted_sources = sources.clone();
+                    sorted_sources.sort();
 
-                    store.insert(head.clone());
-                    new_delta.insert(key);
-                    derived.push(FoundationQuad {
-                        graph: world_iri.to_owned(),
-                        subject: head.subject,
-                        predicate: head.predicate,
-                        object: n3(&head.object),
-                        rule_iri: ANON_RULE_IRI.to_owned(),
-                        source_quad_ids: sources,
-                        derivation_id: deriv,
-                    });
+                    // Quality-ordered total-order tiebreak:
+                    //   (max_src_depth, sum_src_depth, sorted_sources) — smaller wins.
+                    // Level 1: fewest derivation steps (most direct).
+                    // Level 2: asserted-rooted preference (lower depth sum).
+                    // Level 3: lex-min sorted reifiers (content-addressed final key).
+                    let candidate = RoundCandidate {
+                        head,
+                        sources,
+                        sorted_sources,
+                        deriv,
+                        max_src_depth: max_sd,
+                        sum_src_depth: sum_sd,
+                    };
+                    round
+                        .entry(key)
+                        .and_modify(|existing| {
+                            let cand_key = (
+                                candidate.max_src_depth,
+                                candidate.sum_src_depth,
+                                &candidate.sorted_sources,
+                            );
+                            let exist_key = (
+                                existing.max_src_depth,
+                                existing.sum_src_depth,
+                                &existing.sorted_sources,
+                            );
+                            if cand_key < exist_key {
+                                *existing = candidate.clone();
+                            }
+                        })
+                        .or_insert(candidate);
                 }
             }
 
-            if new_delta.is_empty() {
+            if round.is_empty() {
                 break; // fixpoint
+            }
+
+            // Commit all winners from this round (commit order doesn't matter; final
+            // output is canonically sorted at the call site).
+            let mut new_delta: HashSet<(String, String, String)> =
+                HashSet::with_capacity(round.len());
+            for (key, c) in round {
+                // Record the winner's depth: 1 + max(source depths).
+                // Empty source sets (zero positive body atoms) get depth 1 by convention.
+                let winner_depth = c.max_src_depth.saturating_add(1);
+                depth.insert(key.clone(), winner_depth);
+                store.insert(c.head.clone());
+                derived.push(FoundationQuad {
+                    graph: world_iri.to_owned(),
+                    subject: c.head.subject,
+                    predicate: c.head.predicate,
+                    object: n3(&c.head.object),
+                    rule_iri: ANON_RULE_IRI.to_owned(),
+                    source_quad_ids: c.sources,
+                    derivation_id: c.deriv,
+                });
+                new_delta.insert(key);
             }
             delta = new_delta;
         }

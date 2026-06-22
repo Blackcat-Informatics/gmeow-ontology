@@ -77,3 +77,15 @@ criterion = { version = "0.5", default-features = false, features = ["cargo_benc
 [[bench]]
 name = "foundation"
 harness = false
+
+[[bench]]
+name = "graph"
+harness = false
+
+[[bench]]
+name = "probabilistic"
+harness = false
+
+[[bench]]
+name = "reduct"
+harness = false
