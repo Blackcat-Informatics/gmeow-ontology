@@ -169,6 +169,7 @@ def _body(term: Term, by_curie: dict[str, Term]) -> str:
         lines += [term.definition, ""]
 
     def section(heading: str, items: Sequence[str]) -> None:
+        """Append a ``## heading`` block with a bullet per item (skip if empty)."""
         if not items:
             return
         lines.append(f"## {heading}")
@@ -262,12 +263,14 @@ def write_okf(
         if not members:
             continue
         entries = [(m.label or m.curie, f"{_slug(m.curie)}.md") for m in members]
-        idx = _index_doc(f"GMEOW {category}es", entries)
+        # _CATEGORY_DIR already holds the correct English plural ("classes",
+        # "properties", "individuals") — reuse it rather than re-pluralize.
+        idx = _index_doc(f"GMEOW {_CATEGORY_DIR[category]}", entries)
         (root / _CATEGORY_DIR[category] / "index.md").write_text(idx, encoding="utf-8")
 
     # Root index — links to each category index, carrying the lossy declaration.
     root_entries = [
-        (f"{title} — {category}es", f"{_CATEGORY_DIR[category]}/index.md")
+        (f"{title} — {_CATEGORY_DIR[category]}", f"{_CATEGORY_DIR[category]}/index.md")
         for category in ("class", "property", "individual")
         if by_category[category]
     ]

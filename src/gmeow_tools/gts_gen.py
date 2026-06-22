@@ -218,9 +218,13 @@ def _okf_blobs(snapshot_bytes: bytes) -> list[tuple[bytes, str, str]]:
         root = tmp_path / OKF_DIR_NAME
         root.mkdir(parents=True)
         write_okf(terms, root, title=title, version=version)
+        # Sort by the POSIX arcname (not the Path object) for platform-independent
+        # ordering; _tar_members re-sorts by arcname too, so this is belt-and-braces.
         members = [
             (p.relative_to(tmp_path).as_posix(), p.read_bytes())
-            for p in sorted(root.rglob("*"))
+            for p in sorted(
+                root.rglob("*"), key=lambda p: p.relative_to(tmp_path).as_posix()
+            )
             if p.is_file()
         ]
     return [(_tar_members(members), "application/x-tar", REP_OKF)]
