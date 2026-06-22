@@ -120,6 +120,9 @@ mappings: ## Build alignment axioms + VoID linksets from SSSOM; validate QID syn
 lint-alignment: ## Lint SSSOM mappings for inverse / domain-range-mismatched targets (offline).
 	$(GMEOW_DEV) lint-alignment
 
+doc-lint: ## Lint the rust-rendered ontology-docs site for dangling links + coverage gaps (#853).
+	$(GMEOW_DEV) doc-lint
+
 crate-check: ## Verify Rust crate layering: gmeow-rdf kernel purity + acyclic crate DAG (#820 S0).
 	$(GMEOW_DEV) crate-check
 
@@ -265,7 +268,7 @@ test-network: ## Run the network tests (LIVE endpoints) — MANUAL only, never i
 	GMEOW_RUN_NETWORK=1 uv run pytest -m network
 
 check: logic-py rdf-py ## Fast local gate: core ontology + transforms (native EL/DL reasoning — Java/Docker-free; classic-cross-check oracle lane runs separately).
-	$(MAKE) -j$$(nproc 2>/dev/null || echo 4) lint clippy rust-test validate check-generated constitution-check crate-check audit wikidata coverage acceptance reason-native verify mappings-only lint-alignment
+	$(MAKE) -j$$(nproc 2>/dev/null || echo 4) lint clippy rust-test validate check-generated constitution-check crate-check audit wikidata coverage acceptance reason-native verify mappings-only lint-alignment doc-lint
 	uv run pytest -n auto --dist loadscope -m "not ci_only and not docker and not classic_cross_check"
 	$(GMEOW_DEV) compliance-report --from-passing-check
 	@echo "✓ all checks passed (Docker-free, Java-free)"

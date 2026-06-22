@@ -1262,6 +1262,33 @@ def lint_alignment(
     )
 
 
+@app.command(name="doc-lint")
+def doc_lint() -> None:
+    """Lint the rust-rendered ontology-docs site for integrity + coverage (#853 T5).
+
+    Builds the native ``gmeow_docs`` documentation set from the slice catalog and
+    runs its lint, emitting a shared ``gmeow:Finding`` report. ERRORS are integrity
+    defects (dangling internal links, broken in-page anchors) — a dangling link is
+    always a render bug and fails the gate. WARNINGS are coverage gaps (terms
+    missing a definition or label on the vocabulary surface) and do not fail.
+    """
+    import gmeow_docs as _docs  # legacy-name shim → gmeow_native.docs submodule
+
+    docset = _docs.DocSet.from_root(str(PROJECT_ROOT))
+    report = docset.lint()
+
+    text = report.render_text()
+    if text.strip():
+        console.print(text)
+
+    if report.error_count > 0:
+        raise _fail(
+            f"✗ doc-lint: {report.error_count} error(s), "
+            f"{report.warning_count} warning(s)"
+        )
+    console.print(f"[green]✓ doc-lint OK[/green] ({report.warning_count} warning(s))")
+
+
 @app.command(name="crate-check")
 def crate_check() -> None:
     """Verify the Rust crate layering: kernel purity + an acyclic crate DAG (#820 S0).

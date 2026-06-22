@@ -18,10 +18,11 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from blake3 import blake3
-from gmeow_rdf.compat.rdflib import RDF, XSD, Graph, Literal, URIRef
+from gmeow_rdf.compat.rdflib import RDF, XSD, ConjunctiveGraph, Graph, Literal, URIRef
 from gts import Signer
 
 from gmeow_tools.config import (
+    GTS_GRAPH_DOCUMENTATION,
     GTS_GRAPH_IMPORTS,
     GTS_GRAPH_METADATA,
     GTS_GRAPH_SLICE_ANALYSIS,
@@ -522,6 +523,41 @@ def build_slice_analysis_graph(authored_graph: Graph) -> Graph:
     return graph
 
 
+def build_documentation_graph() -> Graph:
+    """Build the self-hosting ``gmeow:graph/documentation`` named graph (#853 T5).
+
+    The native ``gmeow_docs`` renderer projects the typed documentation model
+    into the ``gmeow:`` vocabulary as deterministic N-Quads (``gmeow:Documented*``
+    resources for every term/slice/concern/mapping-set). Folding that projection
+    into the bundle dogfoods the doc model: the documentation surface is itself
+    SPARQL-queryable RDF beside the ontology it describes (Principle 4).
+
+    The Rust projection emits a single named graph
+    (:data:`~gmeow_tools.config.GTS_GRAPH_DOCUMENTATION`); we parse it as N-Quads
+    and return the resulting triples so the caller can re-name them onto that one
+    graph in the ``_compile`` list, matching the slice-analysis fold pattern.
+
+    Returns:
+        The documentation named graph (the caller names it
+        :data:`~gmeow_tools.config.GTS_GRAPH_DOCUMENTATION`).
+    """
+    import gmeow_docs as _docs  # legacy-name shim → gmeow_native.docs submodule
+
+    docset = _docs.DocSet.from_root(str(PROJECT_ROOT))
+    nquads = docset.to_gmeow_rdf()
+    graph = Graph()
+    if nquads:
+        # The rust projection emits a single named graph as N-Quads; a plain
+        # ``Graph`` only retains default-graph triples, so parse via a
+        # ``ConjunctiveGraph`` and lift the named-graph triples onto the graph the
+        # ``_compile`` caller re-names to ``GTS_GRAPH_DOCUMENTATION``.
+        conjunctive = ConjunctiveGraph()
+        conjunctive.parse(data=nquads, format="nquads")
+        for triple in conjunctive:
+            graph.add(triple)
+    return graph
+
+
 def build_snapshot_bytes(
     *,
     signer: Signer | None = None,
@@ -641,12 +677,18 @@ def build_snapshot_bytes(
     # self-attestation guard input (it must not contain the analysis-graph IRI).
     slice_analysis = build_slice_analysis_graph(multilingual_graph)
 
+    # Self-hosting documentation named graph (#853 T5): the native gmeow_docs
+    # renderer's RDF projection of the typed doc model, folded so the docs surface
+    # is itself SPARQL-queryable RDF beside the ontology it describes.
+    documentation = build_documentation_graph()
+
     return _compile(
         [
             imports,
             metadata,
             (attestation, GTS_GRAPH_VERIFY, "verify"),
             (slice_analysis, GTS_GRAPH_SLICE_ANALYSIS, "slice-analysis"),
+            (documentation, GTS_GRAPH_DOCUMENTATION, "documentation"),
         ],
         extra_blobs=okf_blobs,
     )

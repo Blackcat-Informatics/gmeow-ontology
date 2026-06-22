@@ -20,6 +20,8 @@ use pyo3::types::{PyBytes, PyDict, PyList};
 
 use crate::model::DocsModel;
 use crate::render::{self, Site};
+use crate::{lint, rdf};
+use gmeow_diagnostics::py::PyReport;
 
 /// Build the documentation model from the repo `root` and return it as a
 /// deterministic JSON string.
@@ -39,12 +41,17 @@ fn model_json(root: String) -> PyResult<String> {
 #[pyclass(name = "DocSet", skip_from_py_object)]
 pub struct DocSet {
     inner: Site,
+    /// The typed model the site was rendered from, retained so the RDF
+    /// projection and lint surfaces operate on the SAME source of truth the
+    /// `files()` tree was built from (no re-discovery).
+    model: DocsModel,
 }
 
 impl DocSet {
-    /// Wrap an engine [`Site`] in the Python `DocSet` pyclass.
-    pub fn from_engine(inner: Site) -> Self {
-        Self { inner }
+    /// Wrap an engine [`Site`] + its source [`DocsModel`] in the `DocSet`
+    /// pyclass.
+    pub fn from_engine(inner: Site, model: DocsModel) -> Self {
+        Self { inner, model }
     }
 }
 
@@ -56,7 +63,8 @@ impl DocSet {
     fn from_root(root: String) -> PyResult<Self> {
         let model = DocsModel::discover(Path::new(&root))
             .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))?;
-        Ok(Self::from_engine(render::render_site(&model)))
+        let site = render::render_site(&model);
+        Ok(Self::from_engine(site, model))
     }
 
     /// The full rendered tree as a Python `dict[str, bytes]` (site-relative path
@@ -88,6 +96,26 @@ impl DocSet {
             written.append(path.to_string_lossy().to_string())?;
         }
         Ok(written.into_any().unbind())
+    }
+
+    /// Project the documentation model into the `gmeow:` RDF vocabulary as
+    /// deterministic N-Quads in the `gmeow:graph/documentation` named graph.
+    ///
+    /// This is the in-bundle, SPARQL-queryable form of the docs surface (#853
+    /// T5): the `gts` snapshot generator folds it beside the ontology it
+    /// describes. A pure function of the retained model.
+    fn to_gmeow_rdf(&self) -> String {
+        rdf::to_gmeow_rdf(&self.model)
+    }
+
+    /// Lint the rendered site + model and return the shared diagnostics
+    /// [`Report`](gmeow_diagnostics::py::PyReport) pyclass.
+    ///
+    /// Errors are integrity defects (dangling links / broken anchors);
+    /// warnings are coverage gaps. The caller (`doc-lint`) fails the gate when
+    /// `error_count > 0`.
+    fn lint(&self) -> PyReport {
+        PyReport::from_engine(lint::lint(&self.model, &self.inner))
     }
 }
 
