@@ -192,7 +192,16 @@ class Literal(Identifier):
             dt = URIRef(datatype)
         else:
             dt = datatype
-        if isinstance(lexical_or_value, str):
+        if isinstance(lexical_or_value, Literal):
+            # Re-wrapping an existing literal: inherit its lang/datatype unless the
+            # caller explicitly overrode them. Literal subclasses str, so without
+            # this branch the bare-str case below would silently drop them
+            # (RDFLib preserves them — parity).
+            lexical = str(lexical_or_value)
+            if lang is None and dt is None:
+                lang = lexical_or_value._language
+                dt = lexical_or_value._datatype
+        elif isinstance(lexical_or_value, str):
             lexical = str(lexical_or_value)
         else:
             inferred_lexical, inferred_dt = _infer_typed(lexical_or_value)
