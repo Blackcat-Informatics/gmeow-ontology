@@ -28,6 +28,12 @@ python = ["dep:pyo3"]
 # The RDF 1.2 kernel: stages exchange an in-memory dataset / bundle and stamp
 # provenance through this crate; the content store backs the pipeline cache.
 gmeow-rdf = { path = "../rdf", features = ["oxigraph"] }
+# The `reason` stage wires the native EL/DL reasoner + artifact builders directly
+# (gmeow_logic::reason::reason_all + reason::artifacts) — no Python, no PyO3.
+gmeow-logic = { path = "../logic" }
+# The `mappings` stage wires the slice-resident SSSOM + FnO emitters directly
+# (gmeow_slice::emit_sssom_sets / emit_fno) — the SSSOM/FnO halves are Rust.
+gmeow-slice = { path = "../slice" }
 # The DAG loader reads the dogfooded build graph from the same lenient oxigraph
 # Turtle parser the slice crate uses (accepts @x-gmeow-* language tags). Mirror
 # the slice/rdf crates' exact oxigraph build for a clean lockfile resolution.

@@ -1561,7 +1561,9 @@ dependencies = [
 name = "gmeow-pipeline"
 version = "0.1.0"
 dependencies = [
+ "gmeow-logic",
  "gmeow-rdf",
+ "gmeow-slice",
  "oxigraph",
  "petgraph",
  "pyo3",
