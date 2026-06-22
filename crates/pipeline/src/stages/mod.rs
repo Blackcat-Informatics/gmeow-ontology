@@ -18,6 +18,7 @@ use std::sync::Arc;
 
 use crate::registry::StageRegistry;
 
+pub mod catalog;
 pub mod docs_render;
 pub mod gts_compose;
 pub mod gts_sink;
@@ -37,4 +38,5 @@ pub fn register_default(registry: &mut StageRegistry) {
     registry.register("mappings", Arc::new(mappings::MappingsStage));
     registry.register("docs_render", Arc::new(docs_render::DocsRenderStage::new()));
     registry.register("gts_sink", Arc::new(gts_sink::GtsSinkStage::new()));
+    registry.register("catalog", Arc::new(catalog::CatalogStage));
 }
