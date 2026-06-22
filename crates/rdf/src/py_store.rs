@@ -758,6 +758,13 @@ impl PyStore {
         Ok(())
     }
 
+    /// Remove a single quad. No-op if the quad is absent (matches the RDFLib
+    /// `Graph.remove` contract, which silently ignores misses).
+    fn remove(&self, quad: &PyQuad) -> PyResult<()> {
+        self.inner.remove(&quad.inner).map_err(store_err)?;
+        Ok(())
+    }
+
     /// Run a SPARQL query. Returns `QuerySolutions` (SELECT), `QueryTriples`
     /// (CONSTRUCT/DESCRIBE), or `QueryBoolean` (ASK). Optional `substitutions`
     /// is a `{Variable: term}` mapping applied natively (never string-spliced).

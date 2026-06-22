@@ -186,18 +186,14 @@ class Graph:
     def remove(self, triple: _Pattern) -> None:
         """Remove every triple matching the (possibly wildcard) pattern."""
         s, p, o = triple
-        survivors = [
-            t
-            for t in self
-            if not (
-                (s is None or t[0] == s)
-                and (p is None or t[1] == p)
-                and (o is None or t[2] == o)
+        # Snapshot matches first — deleting while iterating the store is unsafe.
+        matched = list(self.triples((s, p, o)))
+        for ms, mp, mo in matched:
+            self._store.remove(
+                gmeow_rdf.Quad(
+                    _native_subject(ms), _native_predicate(mp), to_native(mo)
+                )
             )
-        ]
-        self._store = gmeow_rdf.Store()
-        for t in survivors:
-            self.add(t)
 
     def set(self, triple: tuple[Identifier, Identifier, Identifier]) -> None:
         """Replace all ``(s, p, *)`` objects with this single triple's object."""
