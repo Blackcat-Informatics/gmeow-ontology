@@ -427,6 +427,97 @@ fn explain_with_index(
     })
 }
 
+/// Render a full Markdown explanation file for `expl`.
+///
+/// Produces the exact byte format used by the `conformance/logic/cases/*/expected/explanation/`
+/// goldens: a cited-IRI HTML comment skeleton, a step-skeleton HTML comment, a prose header,
+/// and an indented DFS-ordered proof tree. No trailing blank line — the file ends with the
+/// final triple line's trailing `\n`.
+pub fn render_markdown(expl: &Explanation) -> String {
+    let mut out = String::new();
+
+    // ── cited-iri-skeleton comment ────────────────────────────────────────────
+    out.push_str("<!-- cited-iri-skeleton\n");
+    for iri in &expl.cited_iris {
+        out.push_str("  ");
+        out.push_str(iri);
+        out.push('\n');
+    }
+    out.push_str("-->\n");
+    out.push('\n');
+
+    // ── step-skeleton comment ─────────────────────────────────────────────────
+    out.push_str("<!-- step-skeleton\n");
+    for step in &expl.step_skeleton {
+        out.push_str("  step derivation=");
+        out.push_str(&step.derivation_id);
+        out.push('\n');
+        out.push_str("    rule=");
+        out.push_str(&step.rule_iri);
+        out.push('\n');
+        for term in &step.term_iris {
+            out.push_str("    term=");
+            out.push_str(term);
+            out.push('\n');
+        }
+    }
+    out.push_str("-->\n");
+    out.push('\n');
+
+    // ── prose header ──────────────────────────────────────────────────────────
+    out.push_str("# Explanation for `<");
+    out.push_str(&expl.target_quad_reifier);
+    out.push_str(">`\n");
+    out.push('\n');
+    out.push_str("**World:** `<");
+    out.push_str(&expl.world_iri);
+    out.push_str(">`\n");
+    out.push_str("**Target derivation:** `<");
+    out.push_str(&expl.target_derivation_id);
+    out.push_str(">`\n");
+    out.push('\n');
+
+    // ── prose tree (DFS order) ────────────────────────────────────────────────
+    for step in &expl.step_skeleton {
+        let ind = "  ".repeat(step.depth as usize);
+        let tind = "  ".repeat(step.depth as usize + 1);
+
+        if step.is_asserted {
+            out.push_str(&ind);
+            out.push_str("**Asserted fact** (input \u{2014} `<");
+            out.push_str(&step.quad_reifier);
+            out.push_str(">`):\n");
+        } else {
+            out.push_str(&ind);
+            out.push_str("**Derived** by rule `<");
+            out.push_str(&step.rule_iri);
+            out.push_str(">`:\n");
+        }
+
+        out.push_str(&tind);
+        out.push('`');
+        out.push('<');
+        out.push_str(&step.subject_iri);
+        out.push('>');
+        out.push('`');
+        out.push(' ');
+        out.push('`');
+        out.push('<');
+        out.push_str(&step.predicate_iri);
+        out.push('>');
+        out.push('`');
+        out.push(' ');
+        out.push('`');
+        out.push_str(&step.obj_n3);
+        out.push('`');
+        out.push_str(" *(in `<");
+        out.push_str(&step.graph_iri);
+        out.push_str(">`)*\n");
+    }
+
+    out
+}
+
 /// Assert that every cited IRI in `explanation` is present in the full proof trace
 /// built from ALL `rows`.  Mirrors `assert_explanation_faithful`.
 ///
