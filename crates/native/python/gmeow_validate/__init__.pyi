@@ -152,6 +152,10 @@ def check_statement_invariants(
     statement_owl_ttl: str,
     ontology_nt: str,
 ) -> Any: ...
+def check_statement_lossless(
+    authored_owl_ttl: str,
+    normalized_owl_ttl: str,
+) -> Any: ...
 
 # ── CrossRef deposit-XML (Task 11, #819) ─────────────────────────────────────
 

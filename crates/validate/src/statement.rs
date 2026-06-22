@@ -33,6 +33,8 @@
 //! bindings adapt it to Python.
 
 use oxigraph::model::{Literal, NamedNode, NamedOrBlankNode, Term};
+use std::collections::BTreeSet;
+
 use oxigraph::store::Store;
 
 use crate::model::{owl, rdf};
@@ -266,6 +268,59 @@ pub fn check_statement_invariants(store: &Store) -> Vec<gmeow_diagnostics::Findi
             .with_tool("statement")
         })
         .collect()
+}
+
+/// The diagnostic code for the RDF-1.2 ↔ OWL round-trip lossless check (#809).
+const LOSSLESS_CODE: &str = "statement-compile.lossless-round-trip";
+
+/// Prove the RDF 1.2 lead artifact round-trips to the OWL downcast losslessly.
+///
+/// `authored` is the OWL graph emitted from the statement DSL; `normalized` is
+/// the RDF 1.2 lead artifact normalized back to the OWL normal form (both via the
+/// `gmeow-rdf` native codec). The OWL downcast reuses each cell's reifier IRI as a
+/// **named** `owl:Axiom` node — there are no blank nodes — so graph isomorphism
+/// reduces to ground triple-set equality, and any asymmetry is a lossy round-trip.
+///
+/// This mirrors `statement_compile.assert_lossless`, but the divergence is computed
+/// natively over oxigraph quad sets (RUST-FIRST) instead of rdflib `graph_diff`. An
+/// empty result == lossless; otherwise each diverging triple is one error finding,
+/// directioned exactly as the Python emitter framed it.
+pub fn check_statement_lossless(
+    authored: &Store,
+    normalized: &Store,
+) -> Vec<gmeow_diagnostics::Finding> {
+    let owl_triples = triple_set(authored);
+    let rdf12_triples = triple_set(normalized);
+
+    let mut findings = Vec::new();
+    for triple in owl_triples.difference(&rdf12_triples) {
+        findings.push(lossless_finding(format!(
+            "OWL form has, RDF 1.2 lost: {triple}"
+        )));
+    }
+    for triple in rdf12_triples.difference(&owl_triples) {
+        findings.push(lossless_finding(format!(
+            "RDF 1.2 form has, OWL lacks: {triple}"
+        )));
+    }
+    findings
+}
+
+/// Every triple in `store`, each rendered as a canonical `subject predicate object`
+/// N-Triples string. A `BTreeSet` makes membership/difference deterministic and the
+/// diff order stable (sort-every-aggregate).
+fn triple_set(store: &Store) -> BTreeSet<String> {
+    store
+        .iter()
+        .filter_map(Result::ok)
+        .map(|quad| format!("{} {} {}", quad.subject, quad.predicate, quad.object))
+        .collect()
+}
+
+/// Build one `statement-compile.lossless-round-trip` error finding.
+fn lossless_finding(message: String) -> gmeow_diagnostics::Finding {
+    gmeow_diagnostics::Finding::new(gmeow_diagnostics::Severity::Error, LOSSLESS_CODE, message)
+        .with_tool("statement-compile")
 }
 
 /// Every annProperty must be an `owl:AnnotationProperty`; confidence ∈ [0, 1]
@@ -538,6 +593,38 @@ mod tests {
             .into_iter()
             .map(|f| f.message)
             .collect()
+    }
+
+    #[test]
+    fn lossless_identical_graphs_have_no_findings() {
+        let ttl = format!(
+            "{PREFIXES}gmeow:Alice gmeow:knows gmeow:Bob .\n\
+             <https://blackcatinformatics.ca/gmeow/reifier/x> a owl:Axiom ;\n\
+               owl:annotatedSource gmeow:Alice ;\n\
+               owl:annotatedProperty gmeow:knows ;\n\
+               owl:annotatedTarget gmeow:Bob ;\n\
+               gmeow:confidence \"0.9\"^^xsd:decimal .\n"
+        );
+        let findings = check_statement_lossless(&store_from(&ttl), &store_from(&ttl));
+        assert!(findings.is_empty(), "identical graphs are lossless");
+    }
+
+    #[test]
+    fn lossless_divergence_is_directioned() {
+        let owl = format!("{PREFIXES}gmeow:Alice gmeow:knows gmeow:Bob .\n");
+        let rdf12 = format!("{PREFIXES}gmeow:Alice gmeow:knows gmeow:Carol .\n");
+        let findings = check_statement_lossless(&store_from(&owl), &store_from(&rdf12));
+
+        assert_eq!(findings.len(), 2);
+        assert!(findings.iter().all(|f| f.code == LOSSLESS_CODE));
+        assert!(findings
+            .iter()
+            .any(|f| f.message.starts_with("OWL form has, RDF 1.2 lost:")
+                && f.message.contains("Bob")));
+        assert!(findings
+            .iter()
+            .any(|f| f.message.starts_with("RDF 1.2 form has, OWL lacks:")
+                && f.message.contains("Carol")));
     }
 
     #[test]

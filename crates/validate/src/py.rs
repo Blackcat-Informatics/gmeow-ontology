@@ -813,6 +813,33 @@ fn check_statement_invariants(
     Ok(Py::new(py, PyReport::from_engine(report))?.into_any())
 }
 
+/// Native RDF-1.2 ↔ OWL round-trip lossless check (#809).
+///
+/// `authored_owl_ttl` is the OWL downcast emitted from the statement DSL;
+/// `normalized_owl_ttl` is the RDF 1.2 lead artifact normalized back to the OWL
+/// normal form (via `gmeow_rdf.normalize_rdf12_to_owl`). Returns a `Report` whose
+/// findings are the diverging triples (empty == lossless); the divergence is
+/// computed natively over oxigraph quad sets, not rdflib `graph_diff`.
+#[pyfunction]
+fn check_statement_lossless(
+    py: Python<'_>,
+    authored_owl_ttl: &str,
+    normalized_owl_ttl: &str,
+) -> PyResult<Py<PyAny>> {
+    let authored = oxigraph::store::Store::new()
+        .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))?;
+    insert_turtle(&authored, authored_owl_ttl)?;
+    let normalized = oxigraph::store::Store::new()
+        .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))?;
+    insert_turtle(&normalized, normalized_owl_ttl)?;
+
+    let mut report = gmeow_diagnostics::Report::new("statement-compile");
+    for finding in statement::check_statement_lossless(&authored, &normalized) {
+        report.add_finding(finding);
+    }
+    Ok(Py::new(py, PyReport::from_engine(report))?.into_any())
+}
+
 /// Return whether `lang` is a GMEOW internal private-use tag (``x-gmeow-*``).
 ///
 /// Matches ``^x-gmeow-[a-z0-9\-]+$`` case-insensitively. This is the Rust
@@ -918,6 +945,7 @@ pub fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(dsl_merge_with_provenance, m)?)?;
     m.add_function(wrap_pyfunction!(validate_all_native, m)?)?;
     m.add_function(wrap_pyfunction!(check_statement_invariants, m)?)?;
+    m.add_function(wrap_pyfunction!(check_statement_lossless, m)?)?;
     m.add_function(wrap_pyfunction!(build_deposit_xml_native, m)?)?;
     m.add_function(wrap_pyfunction!(lint_deposit_native, m)?)?;
     Ok(())
