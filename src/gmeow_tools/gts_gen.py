@@ -40,10 +40,8 @@ from gmeow_tools.graph import iter_import_files, iter_module_files
 from gmeow_tools.gts_producer import compile_gts
 from gmeow_tools.i18n_catalog import (
     discover_doc_languages,
-    load_ontology_docs_template_catalog,
     merge_all_markdown,
     merge_terms,
-    translated_ontology_docs_templates,
 )
 from gmeow_tools.mappings import build_alignment_graph, load_mappings
 from gmeow_tools.self_desc import SELF_DESC_FILE
@@ -294,38 +292,17 @@ def _project_doc_blobs() -> list[tuple[bytes, str, str]]:
 
 
 def _ontology_doc_blobs() -> list[tuple[bytes, str, str]]:
-    """A deterministic tar archive of the ontology docs tree (#440).
+    """Return a deterministic tar archive of the ontology docs tree.
 
-    English content remains at ``x-gmeow-english/``.  For every other
-    discovered language a separate tree is rendered with translated ontology-docs
-    template strings.
+    Rendered by the rust-first gmeow_native.docs renderer (#853).
     """
-    from gmeow_tools.ontology_docs import build_ontology_docs, cached_ontology_docs_tree
+    import gmeow_docs as _docs  # legacy-name shim → gmeow_native.docs submodule
 
+    # TODO(#853 Task 7): per-language trees via the Rust i18n path
+    docset = _docs.DocSet.from_root(str(PROJECT_ROOT))
     members: list[tuple[str, bytes]] = []
-
-    def add_tree(tree_root: Path, lang: str) -> None:
-        for source in sorted(
-            p for p in tree_root.rglob("*") if p.is_file() and _is_project_doc_path(p)
-        ):
-            arcname = f"x-gmeow-{lang}/{source.relative_to(tree_root).as_posix()}"
-            members.append((arcname, source.read_bytes()))
-
-    en_tree = cached_ontology_docs_tree()
-    add_tree(en_tree, "english")
-
-    for lang in discover_doc_languages(PROJECT_ROOT):
-        catalog = load_ontology_docs_template_catalog(lang, root=PROJECT_ROOT)
-        if not catalog:
-            continue
-        with tempfile.TemporaryDirectory(
-            dir=PROJECT_ROOT, prefix=".gmeow-tmp-odoc-"
-        ) as tmp:
-            tmp_path = Path(tmp)
-            with translated_ontology_docs_templates(catalog):
-                build_ontology_docs(tmp_path)
-            add_tree(tmp_path, lang)
-
+    for path, data in sorted(docset.files().items()):
+        members.append((f"x-gmeow-english/{path}", bytes(data)))
     return [(_tar_members(members), "application/x-tar", "ontology-docs")]
 
 
@@ -712,7 +689,12 @@ class GtsSnapshotGenerator(Generator):
             PROJECT_ROOT / "src" / "gmeow_tools" / "i18n_catalog.py",
             PROJECT_ROOT / "src" / "gmeow_tools" / "mappings.py",
             PROJECT_ROOT / "src" / "gmeow_tools" / "okf_export.py",
-            PROJECT_ROOT / "src" / "gmeow_tools" / "ontology_docs.py",
+            # The ontology-docs tree is now rendered by the rust-first
+            # gmeow_native.docs renderer (#853); track the crate's sources,
+            # templates, and assets so a renderer change invalidates the cache.
+            *sorted((PROJECT_ROOT / "crates" / "docs" / "src").glob("**/*.rs")),
+            *sorted((PROJECT_ROOT / "crates" / "docs" / "templates").glob("**/*")),
+            *sorted((PROJECT_ROOT / "crates" / "docs" / "assets").glob("**/*")),
             PROJECT_ROOT / "src" / "gmeow_tools" / "self_desc.py",
             PROJECT_ROOT / "src" / "gmeow_tools" / "slices.py",
             PROJECT_ROOT / "src" / "gmeow_tools" / "transform.py",
@@ -728,7 +710,13 @@ class GtsSnapshotGenerator(Generator):
             PROJECTION_QUERY_DIR,
             SLICES_DIR,
         )
-        from gmeow_tools.ontology_docs import ontology_docs_cache_inputs
+
+        # The DATA inputs whose content reaches the rendered ontology-docs tree
+        # (slices, examples, self-description, native-reasoning artifacts, …).
+        # The rust-first renderer's own sources/templates/assets are tracked
+        # separately in `sources`; the obsolete Python-renderer modules
+        # (`_ONTOLOGY_DOCS_RENDERER_INPUTS`) are intentionally dropped (#853).
+        from gmeow_tools.ontology_docs import ontology_docs_inputs
 
         doc_files = [
             p
@@ -755,7 +743,7 @@ class GtsSnapshotGenerator(Generator):
             # verify queries drive the folded-in attestation graph (#695)
             *sorted(VERIFY_DIR.glob("*.rq")),
             *iter_slice_query_files("verify"),
-            *ontology_docs_cache_inputs(),
+            *ontology_docs_inputs(),
             *sorted(doc_files),
         ]
 

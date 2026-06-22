@@ -148,7 +148,9 @@ ignore_missing_imports = true
 # when they were simply not on mypy_path), so call sites type-check unchanged.
 # gmeow_rdf / gmeow_logic / gmeow_validate are deliberately NOT here: they ship
 # typed stubs (__init__.pyi) beside their shims so their call sites stay checked.
-module = ["gmeow_diagnostics.*", "gmeow_shacl.*"]
+# gmeow_docs (#853) carries no API stub yet (the typed renderer surface lands in
+# Task 6); skip it for now, like the other stub-less shims.
+module = ["gmeow_diagnostics.*", "gmeow_shacl.*", "gmeow_docs.*"]
 ignore_missing_imports = true
 follow_imports = "skip"
 
