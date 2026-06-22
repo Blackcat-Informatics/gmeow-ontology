@@ -784,7 +784,7 @@ fn render_one(
         if !meta.trailer.is_empty() {
             // Refused/deferred mappings kept IN the artifact: a second '#' makes
             // each trailer line a YAML-invisible comment (`emit_sssom`).
-            for line in meta.trailer.split('\n') {
+            for line in meta.trailer.lines() {
                 lines.push(format!("# #{}", line.strip_prefix('#').unwrap_or(line)));
             }
         }
