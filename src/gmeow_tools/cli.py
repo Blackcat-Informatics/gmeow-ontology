@@ -389,7 +389,10 @@ def project(
 def transpile(
     source: Path = typer.Argument(  # noqa: B008
         ...,
-        help="A non-GMEOW source RDF file (Turtle), or '-' to read it from stdin.",
+        help=(
+            "A non-GMEOW source RDF file (Turtle), an OKF bundle directory, "
+            "or '-' to read Turtle from stdin."
+        ),
     ),
     out: Path | None = typer.Option(  # noqa: B008
         None, "-o", "--out", help="Output directory (default dist/transpile/<stem>/)."
@@ -424,6 +427,30 @@ def transpile(
         unknown = sorted(set(names) - set(PROFILES))
         if unknown:
             raise _fail(f"unknown projection profile(s): {', '.join(unknown)}")
+
+    # An OKF bundle directory is ingested through the Rust `gts from-okf` codec,
+    # then lifted like any other consumer source (#780).
+    if str(source) != "-" and source.is_dir():
+        from gmeow_tools.okf_import import OkfBinaryNotFoundError, transpile_okf
+
+        try:
+            okf_result = transpile_okf(
+                source, out_dir=out, profiles=names, selector=selector
+            )
+        except OkfBinaryNotFoundError as exc:
+            raise _fail(str(exc)) from exc
+        except (OSError, ValueError, RuntimeError) as exc:
+            raise _fail(str(exc)) from exc
+        err_console.print(
+            f"[green]lifted[/green] {okf_result.lift.lifted} okf facts · "
+            f"[yellow]retained[/yellow] {okf_result.lift.retained} okf annotation(s) · "
+            f"[cyan]subjects[/cyan] {okf_result.lift.subjects}",
+        )
+        err_console.print(f"[green]draft[/green] {okf_result.draft_path}")
+        for path in okf_result.transform.written:
+            err_console.print(f"[green]wrote[/green] {path}")
+        return
+
     try:
         if str(source) == "-":
             graph, stem = _read_turtle(source)
@@ -513,6 +540,33 @@ def export(
     ]
     for path in written:
         console.print(f"[green]wrote[/green] {path}")
+
+
+@app.command()
+def okf(
+    out: Path = typer.Option(  # noqa: B008
+        _DEFAULT_OUT_ROOT / "okf", "--out", "-o", help="Output bundle directory."
+    ),
+    file: Path | None = typer.Option(  # noqa: B008
+        None, "--gts", help="GTS snapshot to export (default: bundled snapshot)."
+    ),
+    lang: str | None = _lang_option(),
+) -> None:
+    """Export the OKF (Open Knowledge Format) agent-facing bundle from a snapshot.
+
+    Writes one Markdown concept document per class/property/individual (YAML
+    frontmatter + ``[label](path)`` links), conforming to the ``okf:`` profile
+    that ``gts from-okf`` folds. A LOSSY projection (SKOS/OBO/ShEx slot): the flat
+    term surface only — OWL axioms and the statement layer stay in the canonical
+    GTS/OWL source. Runs from the bundled snapshot alone (no repo).
+    """
+    from gmeow_tools.okf_export import export_okf_bundle
+
+    view = _bundle_view(file)
+    selector = _resolve_lang(lang, view)
+    out.mkdir(parents=True, exist_ok=True)
+    root = export_okf_bundle(out, view=view, selector=selector)
+    console.print(f"[green]wrote[/green] {root}")
 
 
 @app.command()

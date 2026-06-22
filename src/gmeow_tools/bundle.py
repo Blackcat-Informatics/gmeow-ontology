@@ -41,6 +41,7 @@ REP_QUERIES = "queries-archive"  # tar of generated/queries/*.rq
 REP_CELLS = "cells-archive"  # tar of the cell/projection TTL sources (repo-rel paths)
 REP_TESTS = "tests-archive"  # tar of the slice test-DSL specs (repo-rel paths, #783)
 REP_REASONING = "reasoning-archive"  # tar of canonical reasoning products (#667)
+REP_OKF = "okf-export"  # tar of the OKF (Open Knowledge Format) bundle (#780)
 REP_DENIED = "transform:denied"  # JSON of the saturation refusal set (alignment lint)
 _GUIDE_BLOB = NAMESPACE + "guideBlob"
 
@@ -132,6 +133,18 @@ def bundled_reasoning() -> dict[str, bytes]:
     regardless of the reasoner's emission order), not the human-readable Turtle.
     """
     return _archive(REP_REASONING)
+
+
+def bundled_okf() -> dict[str, bytes]:
+    """Every folded OKF document as ``{bundle-relative-path: md-bytes}`` (#780).
+
+    Keys preserve the bundle-relative path (``gmeow-okf/classes/Foo.md``,
+    ``gmeow-okf/index.md``) so a repo-free consumer can serve or re-materialize
+    the OKF agent surface — and feed it to ``gts from-okf`` — straight from the
+    wheel. The bundle is a LOSSY projection (the flat term surface); the GTS/OWL
+    source stays canonical. Empty when unbundled.
+    """
+    return _archive(REP_OKF)
 
 
 def _is_slice_mapping(relpath: str) -> bool:
