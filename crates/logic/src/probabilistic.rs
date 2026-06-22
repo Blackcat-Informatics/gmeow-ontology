@@ -34,6 +34,7 @@
 //! [`ProbStatus::Unknown`]) rather than silently assuming independence.
 
 use std::collections::{BTreeMap, BTreeSet, HashSet};
+use std::simd::{cmp::SimdPartialEq, Select, Simd};
 
 use crate::profile_gate::is_probabilistic_profile;
 use crate::query_ir::{QAtom, QBodyLit, QGoal, QProbModel, QProgram, QRule, QTerm};
@@ -245,15 +246,18 @@ pub fn evaluate(
 /// scalar product order) are **byte-identical** to the previous materialize-all
 /// implementation — the only change is when, not how, each subset is built.
 ///
-/// ## SIMD assessed and declined
+/// ## SIMD (`std::simd`) — vertical-lane vectorization
 /// The per-subset weight is `∏ p_i (in subset) · ∏ (1 − p_i) (out of subset)`,
-/// accumulated as a sequential scalar `f64` in index order `i = 0..n`. The
-/// probabilistic marginals are **exact-tested** (`assert_eq!(.., Some(0.75))` plus
-/// the `conformance/logic/cases/profiles/probabilistic-*` goldens), so vectorizing
-/// this product (`std::simd`) is NOT byte-safe: a SIMD reduction reassociates the
-/// multiplies and drifts the last ULP, breaking byte-identical output. The real,
-/// byte-safe win here is dropping the upfront `2^N Vec<Fact>` allocation via
-/// on-demand mask materialization (`push_facts_for_mask`), streamed through `sink`.
+/// accumulated as a sequential scalar `f64` in index order `i = 0..n`.
+/// [`power_set_weights`] vectorizes this **vertically**: each SIMD lane carries
+/// one mask's running product, advancing four masks in lock-step over the same
+/// sequential `i = 0..n` loop. Because there is no horizontal cross-lane
+/// reduction (which would reassociate a single product and drift the last ULP),
+/// every lane reproduces the exact scalar multiply order — so the marginals stay
+/// the same as the exact-tested goldens (`assert_eq!(.., Some(0.75))` and the
+/// `conformance/logic/cases/profiles/probabilistic-*` cases). On-demand mask
+/// materialization (`push_facts_for_mask`, streamed through `sink`) still avoids
+/// the upfront `2^N Vec<Fact>` allocation.
 fn for_each_choice(program: &QProgram, sink: &mut dyn FnMut(&[Fact], f64)) -> Result<(), String> {
     // Independent probabilistic facts (always present; under a dependency model
     // they are the facts OUTSIDE the correlated set). Each fact must be declared
@@ -354,6 +358,11 @@ fn for_each_choice(program: &QProgram, sink: &mut dyn FnMut(&[Fact], f64)) -> Re
     }
 }
 
+/// SIMD lane width for the power-set weight computation. `f64x4` is the widest
+/// width that maps to a single AVX/AVX2 register on the portable `x86-64-v3`
+/// floor this crate targets (4×f64 = 256 bits = one YMM register).
+const LANES: usize = 4;
+
 /// The power set of `items` as `(u64 mask, product weight)`, one entry per subset:
 /// `weight = ∏_{i in subset} p_i · ∏_{i not in subset} (1 − p_i)`.
 ///
@@ -361,27 +370,78 @@ fn for_each_choice(program: &QProgram, sink: &mut dyn FnMut(&[Fact], f64)) -> Re
 /// empty. Only the `2^N` masks + weights are allocated here — the `Vec<Fact>` for
 /// each subset is built on demand by [`push_facts_for_mask`], not up front.
 ///
-/// The weight is accumulated as a sequential scalar `f64` in index order
-/// `i = 0..n` (`weight *= p` / `weight *= 1.0 - p`), bit-identical to the historical
-/// implementation. `1.0 - *p` is precomputed once per item (`q_i`) — multiplying the
-/// same values in the same order is bit-identical.
+/// # Vectorization (`std::simd`)
+///
+/// This is a *vertical* SIMD over masks: lane `j ∈ 0..LANES` holds the running
+/// product for mask `base + j`. The masks of `LANES` consecutive subsets are
+/// processed together. For each item `i` (outer, sequential `i = 0..n`) every
+/// lane multiplies its product by `p_i` if bit `i` is set in that lane's mask,
+/// else by `q_i = 1 − p_i`. The choice is a SIMD `select` over a per-lane mask
+/// vector built from `(base + j) & (1<<i)`.
+///
+/// Because the per-item loop `i = 0..n` is still sequential and identical across
+/// all lanes, **each lane's product is the same sequence of multiplies, in the
+/// same order, as the historical scalar loop** — the only thing SIMD changes is
+/// that four masks' products advance in step. There is **no horizontal reduction
+/// across lanes** (that would reassociate a single product and drift the ULP);
+/// every lane is an independent, in-order product. The blend chooses between two
+/// already-computed scalars per lane, it does not sum across lanes. So the result
+/// is expected to be bit-identical to the scalar product — see the analysis in
+/// the PR/report.
 fn power_set_weights(items: &[(Fact, f64)]) -> Vec<(u64, f64)> {
     let n = items.len();
-    // Precompute the complement `1 - p_i` once per item; the value and the order
-    // it is multiplied in are unchanged, so the product stays bit-identical.
+    // Precompute the complement `1 - p_i` once per item; same value, same order.
+    let p: Vec<f64> = items.iter().map(|(_, p)| *p).collect();
     let q: Vec<f64> = items.iter().map(|(_, p)| 1.0 - *p).collect();
-    let mut out = Vec::with_capacity(1usize << n);
-    for mask in 0u64..(1u64 << n) {
+
+    let total: u64 = 1u64 << n; // number of subsets (n ≤ MAX_INDEPENDENT_FACTS = 20)
+    let mut out: Vec<(u64, f64)> = Vec::with_capacity(total as usize);
+
+    // ── Vectorized body: process LANES consecutive masks at a time ────────────
+    let chunks = total / LANES as u64; // number of full SIMD chunks
+    for c in 0..chunks {
+        let base = c * LANES as u64;
+        // Per-lane mask values: [base, base+1, base+2, base+3].
+        let mut lane_masks = [0u64; LANES];
+        for (j, m) in lane_masks.iter_mut().enumerate() {
+            *m = base + j as u64;
+        }
+        let masks_v: Simd<u64, LANES> = Simd::from_array(lane_masks);
+
+        // Running product per lane, in-order over i = 0..n (one multiply per item).
+        let mut weight_v: Simd<f64, LANES> = Simd::splat(1.0_f64);
+        for i in 0..n {
+            // bit_v[lane] = (mask_lane >> i) & 1  ; compare == 1 → SIMD bool mask.
+            let bit_v = (masks_v >> Simd::splat(i as u64)) & Simd::splat(1u64);
+            let set_mask = bit_v.simd_eq(Simd::splat(1u64));
+            // Choose p_i where bit set, q_i where clear — both lanes multiply by a
+            // single scalar broadcast, so each lane's product order is unchanged.
+            let factor = set_mask.select(Simd::splat(p[i]), Simd::splat(q[i]));
+            weight_v *= factor;
+        }
+
+        let weights = weight_v.to_array();
+        for (j, w) in weights.iter().enumerate() {
+            out.push((base + j as u64, *w));
+        }
+    }
+
+    // ── Scalar tail: the remaining masks (total not a multiple of LANES) ──────
+    // Same in-order i = 0..n product as the vector lanes. With n ≥ 2 the count
+    // 2^n is a multiple of 4 so this never runs; for n = 0 (1 mask) and n = 1
+    // (2 masks) the whole computation falls through to here.
+    for mask in (chunks * LANES as u64)..total {
         let mut weight = 1.0_f64;
-        for (i, (_, p)) in items.iter().enumerate() {
+        for i in 0..n {
             if mask & (1 << i) != 0 {
-                weight *= *p;
+                weight *= p[i];
             } else {
                 weight *= q[i];
             }
         }
         out.push((mask, weight));
     }
+
     out
 }
 
