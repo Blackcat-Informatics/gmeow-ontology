@@ -18,6 +18,7 @@ use std::sync::Arc;
 
 use crate::registry::StageRegistry;
 
+pub mod gts_compose;
 pub mod source_load;
 pub mod statements;
 
@@ -27,4 +28,5 @@ pub mod statements;
 pub fn register_default(registry: &mut StageRegistry) {
     registry.register("source_load", Arc::new(source_load::SourceLoadStage));
     registry.register("statements", Arc::new(statements::StatementsStage));
+    registry.register("gts_compose", Arc::new(gts_compose::GtsComposeStage::new()));
 }
