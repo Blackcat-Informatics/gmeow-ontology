@@ -14,6 +14,8 @@
 use std::collections::BTreeMap;
 use std::path::Path;
 
+use serde::{Deserialize, Serialize};
+
 use crate::error::PipelineError;
 
 /// The GMEOW namespace prefix that every pipeline term lives under.
@@ -96,7 +98,7 @@ impl StageKind {
 /// produced. The digest is the cache key contribution downstream stages fold in
 /// (Merkle composition, #861 P2); richer dataset / bundle handles are attached
 /// to this struct as later parcels wire the in-memory dataflow.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct StageProduct {
     /// The id of the stage that produced this.
     pub stage_id: String,

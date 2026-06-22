@@ -41,11 +41,13 @@ pub mod stages;
 #[cfg(feature = "python")]
 pub mod py;
 
+pub use cache::PipelineCache;
 pub use error::PipelineError;
 pub use graph::StageGraph;
 pub use loader::{bind, PipelineSpec, StageSpec};
 pub use node::{Stage, StageInput, StageKind, StageOutput, StageProduct};
 pub use registry::{default_registry, StageRegistry};
+pub use scheduler::{run, RunContext, RunResult, ENGINE_LOCK};
 
 #[cfg(feature = "python")]
 pub use py::register;

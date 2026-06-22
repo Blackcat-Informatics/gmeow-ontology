@@ -36,8 +36,13 @@ oxigraph = { version = "0.5", default-features = false, features = ["rdf-12"] }
 # a published registry crate (no `path`), so it is an external boundary, not a
 # first-party layering edge — the crate-layering gate (#820 S0) is unaffected.
 petgraph = { version = "0.8", default-features = false }
+# Level-parallel scheduling: independent stages within a topological level run
+# concurrently; only Reason stages serialize under the process-wide ENGINE_LOCK.
+rayon = "1"
 sha2 = "0.10"
 serde = { version = "1", features = ["derive"] }
+# Stage products are serialized to bytes for the content-addressed cache.
+serde_json = "1"
 # pyo3 is pulled ONLY by the `python` feature (maturin builds the unified
 # `gmeow_native` cdylib). Same version/abi3 as the other engine crates.
 pyo3 = { version = "0.29", features = ["extension-module", "abi3-py313"], optional = true }

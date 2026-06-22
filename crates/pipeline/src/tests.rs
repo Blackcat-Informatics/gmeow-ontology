@@ -1,16 +1,20 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! P1 unit tests: DAG validation (cycle / completeness / sink / engine-lock),
-//! registry binding agreement, and the dogfooded-DAG Turtle round-trip.
+//! Unit tests. P1: DAG validation (cycle / completeness / sink / engine-lock),
+//! registry binding agreement, the dogfooded-DAG Turtle round-trip. P2: the
+//! self-verifying cache, provenance stamping, and scheduler determinism.
 
+use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
 
-use crate::cache::stage_key;
+use crate::cache::{stage_key, PipelineCache};
 use crate::error::PipelineError;
 use crate::loader::{bind, PipelineSpec, StageSpec};
 use crate::node::{Stage, StageInput, StageKind, StageOutput, StageProduct};
+use crate::provenance::register_stage_unit;
 use crate::registry::StageRegistry;
+use crate::scheduler::{run, RunContext};
 
 fn spec(id: &str, kind: StageKind, consumes: &[&str]) -> StageSpec {
     StageSpec {
@@ -280,4 +284,183 @@ fn stage_key_is_deterministic_and_order_sensitive() {
 
     let k5 = stage_key("s", "v1", &["aa".into(), "bb".into()], Some("src"));
     assert_ne!(k1, k5, "source digest changes the key");
+}
+
+// ── P2: content-addressed self-verifying cache ───────────────────────────────
+
+#[test]
+fn cache_round_trips() {
+    let dir = tempfile::tempdir().unwrap();
+    let mut c = PipelineCache::open(dir.path().join("c")).unwrap();
+    assert!(c.is_empty());
+    let p = StageProduct::new("s", "abc123");
+    c.put("key1", &p).unwrap();
+    assert_eq!(c.len(), 1);
+    assert_eq!(c.get("key1").unwrap(), Some(p));
+    assert_eq!(c.get("absent").unwrap(), None);
+
+    // Reopening the same dir recovers the index (persistence).
+    let c2 = PipelineCache::open(dir.path().join("c")).unwrap();
+    assert_eq!(c2.get("key1").unwrap().unwrap().digest, "abc123");
+}
+
+#[test]
+fn cache_hard_fails_on_corruption() {
+    let dir = tempfile::tempdir().unwrap();
+    let cdir = dir.path().join("c");
+    let mut c = PipelineCache::open(&cdir).unwrap();
+    c.put("key1", &StageProduct::new("s", "abc123")).unwrap();
+
+    // Corrupt the blob: append a byte so its re-hash no longer matches the index.
+    let blobs = cdir.join("blobs");
+    for entry in std::fs::read_dir(&blobs).unwrap() {
+        let path = entry.unwrap().path();
+        let mut bytes = std::fs::read(&path).unwrap();
+        bytes.push(b'!');
+        std::fs::write(&path, bytes).unwrap();
+    }
+    // No silent repair — a corrupt entry is a hard failure.
+    assert!(matches!(
+        c.get("key1"),
+        Err(PipelineError::CacheMismatch { .. })
+    ));
+}
+
+// ── P2: provenance stamping ──────────────────────────────────────────────────
+
+#[test]
+fn provenance_stamps_kind_derived_origin() {
+    use gmeow_rdf::provenance::{DatasetProvenance, OriginKind};
+    let mut prov = DatasetProvenance::new();
+    let load = register_stage_unit(&mut prov, "stage-source-load", StageKind::SourceLoad);
+    let reason = register_stage_unit(&mut prov, "stage-reason", StageKind::Reason);
+    assert_eq!(prov.unit_kind(load), Some(&OriginKind::Source));
+    assert_eq!(prov.unit_kind(reason), Some(&OriginKind::Generated));
+    // Idempotent: re-registering the same id returns the same unit.
+    let load2 = register_stage_unit(&mut prov, "stage-source-load", StageKind::SourceLoad);
+    assert_eq!(load, load2);
+}
+
+// ── P2: scheduler — a stage that hashes its upstream (deterministic) ─────────
+
+/// A synthetic stage whose product digest is a pure function of its id and its
+/// (sorted) upstream digests, with a run counter to observe cache hits.
+struct ComputeStage {
+    id: String,
+    kind: StageKind,
+    consumes: Vec<String>,
+    runs: Arc<AtomicUsize>,
+}
+
+impl Stage for ComputeStage {
+    fn id(&self) -> &str {
+        &self.id
+    }
+    fn kind(&self) -> StageKind {
+        self.kind
+    }
+    fn consumes(&self) -> &[String] {
+        &self.consumes
+    }
+    fn impl_version(&self) -> &str {
+        "v1"
+    }
+    fn run(&self, input: StageInput<'_>) -> Result<StageOutput, PipelineError> {
+        self.runs.fetch_add(1, Ordering::SeqCst);
+        let mut ups: Vec<String> = input.upstream.values().map(|p| p.digest.clone()).collect();
+        ups.sort();
+        let mut fields: Vec<&[u8]> = vec![self.id.as_bytes()];
+        for u in &ups {
+            fields.push(u.as_bytes());
+        }
+        let digest = crate::cache::content_digest(&fields);
+        Ok(StageOutput {
+            product: StageProduct::new(self.id.clone(), digest),
+        })
+    }
+}
+
+fn compute_registry(spec: &PipelineSpec, runs: &Arc<AtomicUsize>) -> StageRegistry {
+    let mut r = StageRegistry::new();
+    for s in &spec.stages {
+        r.register(
+            s.impl_key.clone(),
+            Arc::new(ComputeStage {
+                id: s.id.clone(),
+                kind: s.kind,
+                consumes: s.consumes.clone(),
+                runs: Arc::clone(runs),
+            }) as Arc<dyn Stage>,
+        );
+    }
+    r
+}
+
+/// A diamond with a Reason node, exercising ENGINE_LOCK + parallel levels.
+fn reason_diamond() -> PipelineSpec {
+    PipelineSpec {
+        id: "p".to_string(),
+        stages: vec![
+            spec("source", StageKind::SourceLoad, &[]),
+            spec("a", StageKind::Transform, &["source"]),
+            spec("r", StageKind::Reason, &["source"]),
+            spec("sink", StageKind::Sink, &["a", "r"]),
+        ],
+    }
+}
+
+#[test]
+fn scheduler_runs_diamond_and_caches() {
+    let s = reason_diamond();
+    let g = s.validate().unwrap();
+    let runs = Arc::new(AtomicUsize::new(0));
+    let reg = compute_registry(&s, &runs);
+    let bound = bind(&s, &g, &reg).unwrap();
+
+    let dir = tempfile::tempdir().unwrap();
+    let mut ctx = RunContext::open(dir.path(), 4).unwrap();
+
+    let first = run(&g, &bound, &mut ctx).unwrap();
+    assert_eq!(first.products.len(), 4);
+    assert_eq!(
+        runs.load(Ordering::SeqCst),
+        4,
+        "cold cache runs every stage"
+    );
+
+    // Provenance stamped one unit per stage.
+    // Second run with the warm cache recomputes nothing.
+    let second = run(&g, &bound, &mut ctx).unwrap();
+    assert_eq!(
+        runs.load(Ordering::SeqCst),
+        4,
+        "warm cache short-circuits every stage"
+    );
+    assert_eq!(
+        first.combined_digest, second.combined_digest,
+        "warm-cache run is identical"
+    );
+}
+
+#[test]
+fn scheduler_is_order_independent() {
+    let s = reason_diamond();
+    let g = s.validate().unwrap();
+
+    // jobs=1 (sequential) vs jobs=8 (parallel), each with a FRESH cold cache so
+    // every stage actually computes — the combined digest must be identical.
+    let run_with = |jobs: usize| {
+        let runs = Arc::new(AtomicUsize::new(0));
+        let reg = compute_registry(&s, &runs);
+        let bound = bind(&s, &g, &reg).unwrap();
+        let dir = tempfile::tempdir().unwrap();
+        let mut ctx = RunContext::open(dir.path(), jobs).unwrap();
+        run(&g, &bound, &mut ctx).unwrap().combined_digest
+    };
+
+    assert_eq!(
+        run_with(1),
+        run_with(8),
+        "the combined digest is independent of completion order / parallelism"
+    );
 }

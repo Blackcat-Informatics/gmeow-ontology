@@ -8,10 +8,10 @@
 //! `RootOntology`) and a `UnitId`, so the composed bundle records which stage
 //! authored every quad. Maps a [`StageKind`] to its canonical `OriginKind`.
 //!
-//! P1 ships the kind → origin mapping; the occurrence recording lands in P2
-//! when stages produce real quads.
+//! P2 registers one provenance unit per stage with the kind-derived origin; the
+//! per-quad occurrence recording is wired in P3, when stages emit real quads.
 
-use gmeow_rdf::provenance::OriginKind;
+use gmeow_rdf::provenance::{DatasetProvenance, OriginKind, UnitId};
 
 use crate::node::StageKind;
 
@@ -30,4 +30,15 @@ pub fn origin_kind(kind: StageKind) -> OriginKind {
         | StageKind::ExportLeaf
         | StageKind::Sink => OriginKind::Generated,
     }
+}
+
+/// Register one provenance unit for a stage, named by its id and carrying the
+/// kind-derived [`OriginKind`]. Returns the interned [`UnitId`] the stage stamps
+/// onto every quad it emits (idempotent: re-registering the same id is a no-op).
+pub fn register_stage_unit(
+    prov: &mut DatasetProvenance,
+    stage_id: &str,
+    kind: StageKind,
+) -> UnitId {
+    prov.register_unit(stage_id, origin_kind(kind))
 }
