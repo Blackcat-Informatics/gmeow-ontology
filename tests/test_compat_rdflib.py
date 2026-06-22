@@ -159,6 +159,7 @@ def test_sparql_select_ask_construct_and_resultrow() -> None:
     ]
     assert bool(g.query("ASK { ?s a ?t }")) is True
     cg = g.query("CONSTRUCT { ?s a ?t } WHERE { ?s a ?t }")
+    assert cg.graph is not None
     assert len(cg.graph) == 2
 
 

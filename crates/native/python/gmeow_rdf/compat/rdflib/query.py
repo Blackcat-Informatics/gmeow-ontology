@@ -11,7 +11,7 @@ for ASK).
 from __future__ import annotations
 
 from collections.abc import Iterator
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from .term import Identifier
 
@@ -86,8 +86,12 @@ class Result:
         self.graph = graph
         self.askAnswer = ask
 
-    def __iter__(self) -> Iterator[object]:
-        """Iterate SELECT rows, CONSTRUCT triples, or yield the ASK boolean once."""
+    def __iter__(self) -> Iterator[Any]:
+        """Iterate SELECT rows, CONSTRUCT triples, or yield the ASK boolean once.
+
+        Yields ``Any`` — matching RDFLib's duck-typed query results — so callers
+        can use ``row["var"]`` / ``row.var`` / triple-unpacking without casts.
+        """
         if self.type == "ASK":
             yield bool(self.askAnswer)
         elif self.type == "CONSTRUCT" or self.type == "DESCRIBE":
