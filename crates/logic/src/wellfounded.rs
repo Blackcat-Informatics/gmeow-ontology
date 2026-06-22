@@ -105,6 +105,28 @@ pub(crate) fn materialize(
     Ok(out)
 }
 
+/// Benchmarking shim: run the well-founded materializer over a pre-built store + rules.
+///
+/// Accepts a reference to a [`crate::store::WorldStore`] (already populated, built once
+/// outside `b.iter`) and a Nemo `.rls` rule string.  Parses the rules, calls
+/// [`materialize`], and returns the number of output rows.  Used by `benches/reduct.rs`
+/// to exercise `rule_ir::least_model_of_reduct` through the public API with N-Quad
+/// loading amortised outside the hot loop.  Not part of the production surface.
+///
+/// # Errors
+///
+/// Propagates errors from rule parsing or `materialize`.
+#[doc(hidden)]
+pub fn bench_wf_materialize(
+    store: &crate::store::WorldStore,
+    rules_text: &str,
+) -> Result<usize, String> {
+    use crate::rule_ir::parse_eval_rules;
+    let rules = parse_eval_rules(rules_text)?;
+    let rows = materialize(store, &rules)?;
+    Ok(rows.len())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

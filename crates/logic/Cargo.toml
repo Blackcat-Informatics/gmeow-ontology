@@ -85,3 +85,7 @@ harness = false
 [[bench]]
 name = "probabilistic"
 harness = false
+
+[[bench]]
+name = "reduct"
+harness = false
