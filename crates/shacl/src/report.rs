@@ -16,6 +16,8 @@ use oxigraph::model::{
 };
 use oxigraph::store::Store;
 
+use gmeow_rdf::provenance::Attribution;
+
 use crate::model::{rdf, sh, xsd};
 
 // ── Severity ──────────────────────────────────────────────────────────────────
@@ -77,6 +79,13 @@ pub struct ValidationResult {
     pub path_box_roles: Vec<NamedNode>,
     /// Deterministic union of source/path/component roles relevant to this result.
     pub result_box_roles: Vec<NamedNode>,
+    /// Structured slice attributions for this result (§9 / S5).
+    ///
+    /// Records which compilation units (identified by their runtime `UnitId`,
+    /// resolved to public slice IRIs at the serialization boundary) played which
+    /// roles in producing this result. An empty vec means no attribution context
+    /// is available (e.g. in legacy or unit-test scenarios).
+    pub attributions: Vec<Attribution>,
 }
 
 impl ValidationResult {
@@ -407,6 +416,7 @@ mod tests {
             source_box_roles: vec![],
             path_box_roles: vec![],
             result_box_roles: vec![],
+            attributions: vec![],
         }
     }
 
@@ -512,5 +522,130 @@ mod tests {
     #[test]
     fn severity_from_iri_unknown_returns_none() {
         assert!(Severity::from_iri("http://example.org/Unknown").is_none());
+    }
+
+    // ── S5 attribution tests ──────────────────────────────────────────────────
+
+    /// Test 1: Cross-slice SHACL distinct roles.
+    ///
+    /// A SHACL result where the SHAPE is owned by slice A and the FOCUS NODE
+    /// data is asserted by slice B. The result records TWO attributions:
+    /// `ShapeOwner = A`, `FocusOrigin = B` — distinct units with distinct roles.
+    #[test]
+    fn cross_slice_shacl_distinct_roles() {
+        use gmeow_rdf::provenance::{Attribution, AttributionRole, UnitInterner};
+
+        let mut interner = UnitInterner::new();
+        let unit_a = interner.intern("https://example.org/slices/core/shapes"); // slice A — owns the shape
+        let unit_b = interner.intern("https://example.org/slices/ext/data"); // slice B — asserts the focus node
+
+        let mut result = make_result();
+        // Apply two attributions with different roles and different units.
+        result.attributions = vec![
+            Attribution {
+                unit: unit_a,
+                role: AttributionRole::ShapeOwner,
+                evidence: Some("slices/core/epistemics/shapes.ttl".to_owned()),
+            },
+            Attribution {
+                unit: unit_b,
+                role: AttributionRole::FocusOrigin,
+                evidence: Some("http://example.org/focusA".to_owned()),
+            },
+        ];
+
+        assert_eq!(result.attributions.len(), 2, "must carry two attributions");
+
+        // The two attributions must reference different units.
+        assert_ne!(
+            result.attributions[0].unit, result.attributions[1].unit,
+            "shape-owner and focus-origin units must be distinct (cross-slice)"
+        );
+
+        // The roles must be distinct.
+        assert_ne!(
+            result.attributions[0].role, result.attributions[1].role,
+            "roles must differ"
+        );
+        assert_eq!(result.attributions[0].role, AttributionRole::ShapeOwner);
+        assert_eq!(result.attributions[1].role, AttributionRole::FocusOrigin);
+    }
+
+    /// Test 2: Absence-based violation (`sh:minCount`) attribution.
+    ///
+    /// A `minCount` violation has NO offending data quad — there is no value to
+    /// attribute. The result still carries EvaluationScope + ShapeOwner
+    /// attributions. `AssertionOrigin` / `FocusOrigin` / `ValueOrigin` are NOT
+    /// required (and not asserted here).
+    #[test]
+    fn absence_based_violation_carries_scope_and_shape_attributions() {
+        use gmeow_rdf::provenance::{Attribution, AttributionRole, UnitInterner};
+        use oxigraph::model::NamedNode;
+
+        let mut interner = UnitInterner::new();
+        let unit_shape = interner.intern("https://example.org/slices/core/shapes"); // owns the sh:minCount shape
+        let unit_scope = interner.intern("https://example.org/slices/core/profile"); // defines the evaluation scope
+
+        let min_count_result = ValidationResult {
+            focus_node: Term::NamedNode(NamedNode::new_unchecked("http://example.org/subjectX")),
+            // minCount: no result_path (not path-scoped here for simplicity).
+            result_path: None,
+            // No offending value — absence-based.
+            value: None,
+            source_constraint_component: NamedNode::new_unchecked(
+                "http://www.w3.org/ns/shacl#MinCountConstraintComponent",
+            ),
+            source_shape: Term::NamedNode(NamedNode::new_unchecked(
+                "http://example.org/RequiredPropertyShape",
+            )),
+            severity: Severity::Violation,
+            message: Some("missing required property".to_owned()),
+            source_box_roles: vec![],
+            path_box_roles: vec![],
+            result_box_roles: vec![],
+            // ShapeOwner + EvaluationScope — no AssertionOrigin (nothing was asserted).
+            attributions: vec![
+                Attribution {
+                    unit: unit_shape,
+                    role: AttributionRole::ShapeOwner,
+                    evidence: None,
+                },
+                Attribution {
+                    unit: unit_scope,
+                    role: AttributionRole::EvaluationScope,
+                    evidence: None,
+                },
+            ],
+        };
+
+        // No value (absence-based) — this is the critical invariant.
+        assert!(
+            min_count_result.value.is_none(),
+            "minCount violation must have no offending value"
+        );
+        // No AssertionOrigin — nothing was asserted.
+        assert!(
+            !min_count_result
+                .attributions
+                .iter()
+                .any(|a| a.role == AttributionRole::AssertionOrigin),
+            "absence-based violation must not carry AssertionOrigin"
+        );
+        // Shape owner is present.
+        assert!(
+            min_count_result
+                .attributions
+                .iter()
+                .any(|a| a.role == AttributionRole::ShapeOwner),
+            "must carry ShapeOwner attribution"
+        );
+        // Evaluation scope is present.
+        assert!(
+            min_count_result
+                .attributions
+                .iter()
+                .any(|a| a.role == AttributionRole::EvaluationScope),
+            "must carry EvaluationScope attribution"
+        );
     }
 }

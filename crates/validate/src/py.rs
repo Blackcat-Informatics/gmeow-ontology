@@ -28,7 +28,7 @@ use crate::crossref;
 use crate::dsl;
 use crate::gufo::{self, GufoConfig};
 use crate::language_tags;
-use crate::lint::{self, LintConfig, LintReport, ModuleSpec};
+use crate::lint::{self, LintConfig, LintReport};
 use crate::statement;
 use crate::store;
 use crate::validate_all::{self, ValidateOptions};
@@ -181,7 +181,6 @@ impl PySignatureConfig {
 struct PyValidateOptions {
     timings: bool,
     sameas_allowlist: Vec<(String, String)>,
-    module_specs: Vec<(String, String)>,
     slices_dir: Option<String>,
     mapping_shapes_ttl: Option<String>,
     statement_shapes_ttl: Option<String>,
@@ -204,7 +203,6 @@ impl PyValidateOptions {
     #[pyo3(signature = (
         timings = false,
         sameas_allowlist = None,
-        module_specs = None,
         slices_dir = None,
         mapping_shapes_ttl = None,
         statement_shapes_ttl = None,
@@ -215,7 +213,6 @@ impl PyValidateOptions {
     fn new(
         timings: bool,
         sameas_allowlist: Option<Vec<(String, String)>>,
-        module_specs: Option<Vec<(String, String)>>,
         slices_dir: Option<String>,
         mapping_shapes_ttl: Option<String>,
         statement_shapes_ttl: Option<String>,
@@ -226,7 +223,6 @@ impl PyValidateOptions {
         Self {
             timings,
             sameas_allowlist: sameas_allowlist.unwrap_or_default(),
-            module_specs: module_specs.unwrap_or_default(),
             slices_dir,
             mapping_shapes_ttl,
             statement_shapes_ttl,
@@ -242,7 +238,6 @@ impl PyValidateOptions {
         ValidateOptions {
             timings: self.timings,
             sameas_allowlist: self.sameas_allowlist.clone(),
-            module_specs: self.module_specs.clone(),
             slices_dir: self.slices_dir.clone(),
             mapping_shapes_ttl: self.mapping_shapes_ttl.clone(),
             statement_shapes_ttl: self.statement_shapes_ttl.clone(),
@@ -380,32 +375,6 @@ fn term_naming_lint(
     }
     let store = build_store_or_err(&source_paths)?;
     let report = lint::term_naming_lint(&store, &cfg.to_engine());
-    lint_report_dict(py, report)
-}
-
-/// Slice-ownership lint (mirrors `validate.slice_ownership_lint`).
-///
-/// `module_specs` is a list of `(module_path, expected_slice_iri)` pairs; each
-/// module is parsed ALONE so a term's ownership claim is checked against its own
-/// containing slice (#329).
-#[pyfunction]
-fn slice_ownership_lint(
-    py: Python<'_>,
-    module_specs: Vec<(String, String)>,
-    cfg: PyLintConfig,
-) -> PyResult<Py<PyAny>> {
-    let mut modules: Vec<(ModuleSpec, oxigraph::store::Store)> = Vec::new();
-    for (module_path, expected_slice_iri) in module_specs {
-        let store = build_store_or_err(std::slice::from_ref(&module_path))?;
-        modules.push((
-            ModuleSpec {
-                module_path,
-                expected_slice_iri,
-            },
-            store,
-        ));
-    }
-    let report = lint::slice_ownership_lint(&modules, &cfg.to_engine());
     lint_report_dict(py, report)
 }
 
@@ -928,7 +897,6 @@ pub fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(check_sameas_ban, m)?)?;
     m.add_function(wrap_pyfunction!(structural_lint, m)?)?;
     m.add_function(wrap_pyfunction!(term_naming_lint, m)?)?;
-    m.add_function(wrap_pyfunction!(slice_ownership_lint, m)?)?;
     m.add_function(wrap_pyfunction!(typed_terms, m)?)?;
     m.add_function(wrap_pyfunction!(declared_terms, m)?)?;
     m.add_function(wrap_pyfunction!(reasoning_invariants, m)?)?;

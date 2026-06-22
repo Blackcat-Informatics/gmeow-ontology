@@ -31,9 +31,14 @@ use super::term::{BlankScope, InternedTerm, TermId};
 pub struct QuadHandle(u32);
 
 impl QuadHandle {
-    /// Construct a handle from a quad ordinal. Crate-internal: only the builder
-    /// mints handles, in deduplicated push order.
-    pub(crate) fn from_index(index: u32) -> Self {
+    /// Construct a handle from a quad ordinal.
+    ///
+    /// Public so that provenance sidecars (e.g. `DatasetProvenance` in the
+    /// `gmeow-validate` crate) can mint handles that correspond to a parallel
+    /// quad sequence before or without a frozen `RdfDataset` being available.
+    /// Within `gmeow-rdf` itself only the builder mints handles in deduplicated
+    /// push order.
+    pub fn from_index(index: u32) -> Self {
         Self(index)
     }
 

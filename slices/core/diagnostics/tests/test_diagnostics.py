@@ -31,19 +31,23 @@ _SEVERITY_INDIVIDUALS = (
     "severityNote",
     "severityInfo",
 )
+# The four wire coordinates this slice OWNS (open-domain datatype properties a
+# finding's location node carries). The fifth coordinate a finding may carry —
+# gmeow:gtsSegmentIndex — is owned by the gts slice (functional, domain GTSSegment;
+# the index that IS a document's composite identity, spec §3.1) and only REFERENCED
+# here, so it is not in the locally-declared sets (single-owner invariant, #329).
 _WIRE_COORDS = (
     "gtsTermId",
     "gtsQuadIndex",
     "gtsReifierId",
     "gtsFrameIndex",
-    "gtsSegmentIndex",
 )
 _DATATYPE_PROPS = ("findingCode", "findingMessage", "findingTool", *_WIRE_COORDS)
 
-# Every locally-declared term (16 total): the Finding class, the
+# Every locally-declared term (15 total): the Finding class, the
 # DiagnosticSeverity class, the 4 severity individuals, the 2 observation
-# subproperties (findingSeverity / findingLocation), and the 3 + 5 datatype
-# properties (code/message/tool + the 5 wire coordinates).
+# subproperties (findingSeverity / findingLocation), and the 3 + 4 datatype
+# properties (code/message/tool + the 4 diagnostics-owned wire coordinates).
 _DECLARED_TERMS = (
     "Finding",
     "DiagnosticSeverity",

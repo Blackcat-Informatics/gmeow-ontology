@@ -73,7 +73,7 @@ ex:persona a gmeow:Persona ;
 
 ex:styleGuide a gmeow:StyleGuide ;
     gmeow:styleGuideFor ex:persona ;
-    gmeow:exemplifiedBy ex:voiceDoc .
+    gmeow:voiceExemplifiedBy ex:voiceDoc .
 
 ex:voiceDoc a gmeow:Document ;
     gmeow:contentDigest "blake3:coverage" ;

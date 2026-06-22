@@ -186,6 +186,85 @@ fn mixiden_kind_under_kind() {
     );
 }
 
+// ── S6b: chase → derivation graph wiring (#820) ─────────────────────────────────
+
+#[test]
+fn derivation_graph_chase_wiring_and_survival() {
+    use crate::derivation_graph::FactKey;
+    use std::collections::BTreeSet;
+
+    // Same fixture as `mixiden_kind_under_kind`: a single-world schema whose facts
+    // are all asserted by that one world, plus derived helper/violation facts.
+    let base = "https://example.org/foundation/dg-wiring";
+    let nq = format!(
+        "<{base}/Animal> <{RDF_TYPE_P}> <{LOGIC}Kind> <{base}/schema> .\n\
+         <{base}/Dog> <{RDF_TYPE_P}> <{LOGIC}Kind> <{base}/schema> .\n\
+         <{base}/Dog> <{LOGIC}subClassOf> <{base}/Animal> <{base}/schema> .\n"
+    );
+    let store = store_from(&nq);
+    let quads =
+        evaluate(&store, AntiRigidityPolicy::WitnessObligation).expect("evaluate must succeed");
+    let graph = super::derivation_graph(&store, AntiRigidityPolicy::WitnessObligation)
+        .expect("derivation_graph must succeed");
+
+    // The graph records exactly one fact per materialized quad reifier.
+    let reifiers: BTreeSet<FactKey> = quads
+        .iter()
+        .map(|q| FactKey(super::quad_reifier(q).unwrap()))
+        .collect();
+    assert_eq!(
+        graph.len(),
+        reifiers.len(),
+        "one fact per materialized quad"
+    );
+
+    // With nothing removed, every materialized fact is derivable (every derived
+    // fact's premises trace back to the asserted base in the same world).
+    let all = graph.all_derivable();
+    assert_eq!(
+        all, reifiers,
+        "full closure derives every materialized quad"
+    );
+
+    // The derived MixIden violation fact is present and is derivable (not asserted).
+    let viol = FoundationQuad {
+        graph: format!("{base}/schema"),
+        subject: format!("{base}/Dog"),
+        predicate: format!("{LOGIC}violation"),
+        object: format!("<{LOGIC}MixIden>"),
+        rule_iri: String::new(),
+        source_quad_ids: vec![],
+        derivation_id: String::new(),
+    };
+    let viol_key = FactKey(super::quad_reifier(&viol).unwrap());
+    assert!(
+        all.contains(&viol_key),
+        "the MixIden violation must be derivable"
+    );
+
+    // Remove the sole asserting world unit → the whole closure collapses (no base
+    // assertion survives, so nothing — derived or asserted — remains derivable).
+    let mut removed_units = BTreeSet::new();
+    removed_units.insert(crate::derivation_graph::UnitKey(format!("{base}/schema")));
+    let surviving = graph.survives(&removed_units, &BTreeSet::new());
+    assert!(
+        surviving.is_empty(),
+        "removing the only asserting world collapses the whole closure, got {} facts",
+        surviving.len()
+    );
+
+    // Determinism: a second run over a freshly-built store yields an identical graph
+    // (content-addressed, runtime-id independent — preserves #824's order-stable fold).
+    let store2 = store_from(&nq);
+    let graph2 = super::derivation_graph(&store2, AntiRigidityPolicy::WitnessObligation)
+        .expect("second derivation_graph must succeed");
+    assert_eq!(
+        graph, graph2,
+        "derivation graph must be deterministic across runs"
+    );
+    assert_eq!(graph.content_digest(), graph2.content_digest());
+}
+
 // ── Discipline: FreeRole (bare Role) ────────────────────────────────────────────
 
 #[test]

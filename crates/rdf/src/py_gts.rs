@@ -40,9 +40,20 @@ use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 use pyo3::types::{PyBytes, PyList};
 
+use crate::bundle::{RdfBundle, UnitMetadata};
+use crate::ir::{RdfDataset, RdfDatasetBuilder};
+use crate::provenance::{DatasetProvenance, OriginKind};
 use crate::py_store::{parse_quads, PyRdfFormat};
 
 const RDF_REIFIES: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies";
+
+/// The `rep`-label prefix every S3 slice-artifact blob carries (#820 S3). A blob
+/// authored from the slice catalog rides ahead of the snapshot with
+/// `rep == "slice-artifact:{role}:{logical_path}"`, so a repo-free consumer can
+/// recover each ontology artifact by role + logical path + content digest. This
+/// is the SAME content-addressed blob channel `doc_blobs` use — never a parallel
+/// one (greenfield, one embedding).
+const SLICE_ARTIFACT_REP_PREFIX: &str = "slice-artifact:";
 const XSD_STRING: &str = "http://www.w3.org/2001/XMLSchema#string";
 const DEFAULT_RSYNCABLE_THRESHOLD: usize = 65536;
 
@@ -430,6 +441,170 @@ struct BlobRow {
     rep: String,
 }
 
+/// One slice artifact row passed from Python (`gts_gen.py` via `gmeow_slice`):
+/// `(slice_iri, slice_name, role, logical_path, content)`. `logical_path` is the
+/// repo-relative path (e.g. `slices/core/epistemics/module.ttl`) and is the
+/// bundle's normalized artifact path. Only the small ontology text artifacts
+/// (module / shapes / docs / manifest) are passed here; the large external DATA
+/// blobs (`graph.blobs`) STAY by-reference and never travel this channel
+/// (blob-by-reference doctrine, gmeow-gts#248).
+struct SliceArtifactRow {
+    slice_iri: String,
+    slice_name: String,
+    role: String,
+    logical_path: String,
+    content: Vec<u8>,
+}
+
+/// Intern an oxigraph subject/blank node into the IR builder.
+fn intern_ir_subject(
+    b: &mut RdfDatasetBuilder,
+    s: &oxigraph::model::NamedOrBlankNode,
+) -> crate::ir::TermId {
+    use crate::ir::BlankScope;
+    use oxigraph::model::NamedOrBlankNode;
+    match s {
+        NamedOrBlankNode::NamedNode(n) => b.intern_iri(n.as_str().to_string()),
+        NamedOrBlankNode::BlankNode(bn) => {
+            b.intern_blank(bn.as_str().to_string(), BlankScope::DEFAULT)
+        }
+    }
+}
+
+/// Intern an oxigraph object term into the IR builder (recursive for triple terms).
+fn intern_ir_object(b: &mut RdfDatasetBuilder, o: &oxigraph::model::Term) -> crate::ir::TermId {
+    use crate::{RdfLiteral, RdfTextDirection};
+    use oxigraph::model::{BaseDirection, Term as OxTerm};
+    match o {
+        OxTerm::NamedNode(n) => b.intern_iri(n.as_str().to_string()),
+        OxTerm::BlankNode(bn) => {
+            use crate::ir::BlankScope;
+            b.intern_blank(bn.as_str().to_string(), BlankScope::DEFAULT)
+        }
+        OxTerm::Literal(l) => {
+            let direction = l.direction().map(|d| match d {
+                BaseDirection::Ltr => RdfTextDirection::Ltr,
+                BaseDirection::Rtl => RdfTextDirection::Rtl,
+            });
+            b.intern_literal(RdfLiteral {
+                lexical_form: l.value().to_string(),
+                datatype: Some(l.datatype().as_str().to_string()),
+                language: l.language().map(str::to_string),
+                direction,
+            })
+        }
+        OxTerm::Triple(t) => {
+            let s = intern_ir_subject(b, &t.subject);
+            let p = b.intern_iri(t.predicate.as_str().to_string());
+            let inner_o = intern_ir_object(b, &t.object);
+            b.intern_triple(s, p, inner_o)
+        }
+    }
+}
+
+/// Build a frozen [`RdfDataset`] from a flat oxigraph quad list. Used so the
+/// production [`RdfBundle`] carries the actual hot graph (not a placeholder) while
+/// it gates the artifact index.
+fn dataset_from_ox_quads(quads: &[Quad]) -> Result<std::sync::Arc<RdfDataset>, String> {
+    use crate::ir::BlankScope;
+    use oxigraph::model::GraphName;
+
+    let mut b = RdfDatasetBuilder::new();
+    for q in quads {
+        let s = intern_ir_subject(&mut b, &q.subject);
+        let p = b.intern_iri(q.predicate.as_str().to_string());
+        let o = intern_ir_object(&mut b, &q.object);
+        let g = match &q.graph_name {
+            GraphName::DefaultGraph => None,
+            GraphName::NamedNode(n) => Some(b.intern_iri(n.as_str().to_string())),
+            GraphName::BlankNode(bn) => {
+                Some(b.intern_blank(bn.as_str().to_string(), BlankScope::DEFAULT))
+            }
+        };
+        b.push_quad(s, p, o, g);
+    }
+    b.freeze()
+        .map_err(|e| format!("bundle dataset freeze failed: {e}"))
+}
+
+/// Assemble the self-describing S3 [`RdfBundle`] from the slice-artifact rows and
+/// the parsed base graph, hard-fail `validate()` it, and return the artifact bytes
+/// as content-addressed [`BlobRow`]s to embed (#820 S3, gap G4).
+///
+/// One [`UnitId`] per slice (metadata = slice IRI + name), one content-addressed
+/// `ArtifactRecord` per ontology artifact, every blob inserted into the bundle's
+/// `ContentStore`. The producer emits a SINGLE `snapshot` frame, so every unit is
+/// associated with that one snapshot segment (segment 0) — set-valued and never
+/// assuming one-segment == one-slice. The blob rows ride the SAME channel
+/// `doc_blobs` use; the bundle's `dataset` carries the real hot graph.
+fn assemble_slice_bundle(
+    base_quads: &[Quad],
+    rows: &[SliceArtifactRow],
+) -> Result<Vec<BlobRow>, String> {
+    const SNAPSHOT_SEGMENT: usize = 0;
+
+    let dataset = dataset_from_ox_quads(base_quads)?;
+    let provenance = DatasetProvenance::new();
+    let mut bundle = RdfBundle::new(dataset, provenance);
+
+    let mut blob_rows: Vec<BlobRow> = Vec::with_capacity(rows.len());
+    for row in rows {
+        // One UnitId per slice (idempotent intern); metadata = IRI + name.
+        let unit = bundle
+            .provenance
+            .register_unit(row.slice_iri.clone(), OriginKind::Source);
+        bundle.add_unit(
+            unit,
+            UnitMetadata::new(row.slice_iri.clone(), row.slice_name.clone()),
+        );
+        // One content-addressed artifact per ontology file (bytes → ContentStore).
+        let artifact = bundle
+            .provenance
+            .register_artifact(row.logical_path.clone());
+        bundle.add_artifact(
+            artifact,
+            unit,
+            row.logical_path.clone(),
+            row.role.clone(),
+            row.content.clone(),
+        );
+        // Every unit lives in the single snapshot segment (set-valued S0.7).
+        bundle.associate_segment(SNAPSHOT_SEGMENT, unit);
+
+        // The SAME content-addressed blob channel doc_blobs ride: rep encodes
+        // role + logical path so a repo-free consumer recovers each artifact.
+        blob_rows.push(BlobRow {
+            data: row.content.clone(),
+            media_type: media_type_for(&row.logical_path),
+            rep: format!(
+                "{SLICE_ARTIFACT_REP_PREFIX}{}:{}",
+                row.role, row.logical_path
+            ),
+        });
+    }
+
+    // HARD-fail on any structural violation BEFORE serialization (no-optionality).
+    bundle.validate().map_err(|e| e.to_string())?;
+    Ok(blob_rows)
+}
+
+/// Infer a stable MIME type for a slice artifact path (mirrors the slice catalog's
+/// `infer_media_type`, kept local to avoid a kernel→slice dependency edge).
+fn media_type_for(path: &str) -> String {
+    let ext = path.rsplit('.').next().unwrap_or("");
+    match ext {
+        "ttl" => "text/turtle",
+        "nt" => "application/n-triples",
+        "nq" => "application/n-quads",
+        "sparql" | "rq" => "application/sparql-query",
+        "md" => "text/markdown",
+        "yaml" | "yml" | "cff" => "application/yaml",
+        "json" => "application/json",
+        _ => "application/octet-stream",
+    }
+    .to_string()
+}
+
 /// Choose `zstd-rsyncable` for large payloads when the base chain is the default
 /// `["zstd"]` (`_Builder.to_gts.choose_transform`).
 fn choose_transform(base_chain: &[String], payload_len: usize, threshold: usize) -> Vec<String> {
@@ -536,6 +711,38 @@ fn blob_rows_from_py(blobs: Option<&Bound<'_, PyList>>) -> PyResult<Vec<BlobRow>
             data,
             media_type,
             rep,
+        });
+    }
+    Ok(out)
+}
+
+/// Parse the slice-artifact rows passed from Python: each is the tuple
+/// `(slice_iri, slice_name, role, logical_path, content)`.
+fn slice_artifact_rows_from_py(
+    rows: Option<&Bound<'_, PyList>>,
+) -> PyResult<Vec<SliceArtifactRow>> {
+    let Some(rows) = rows else {
+        return Ok(Vec::new());
+    };
+    let mut out = Vec::with_capacity(rows.len());
+    for item in rows.iter() {
+        let (slice_iri, slice_name, role, logical_path, content): (
+            String,
+            String,
+            String,
+            String,
+            Vec<u8>,
+        ) = item.extract().map_err(|_| {
+            PyValueError::new_err(
+                "slice artifact rows must be (slice_iri, slice_name, role, logical_path, content)",
+            )
+        })?;
+        out.push(SliceArtifactRow {
+            slice_iri,
+            slice_name,
+            role,
+            logical_path,
+            content,
         });
     }
     Ok(out)
@@ -723,6 +930,7 @@ type NamedGraphRow<'py> = (
     transform=None,
     doc_blobs=None,
     report_blobs=None,
+    slice_artifacts=None,
     signer_secret=None,
     signer_kid=None,
     public_key_armor=None,
@@ -742,6 +950,7 @@ fn compile_gts_native(
     transform: Option<Vec<String>>,
     doc_blobs: Option<&Bound<'_, PyList>>,
     report_blobs: Option<&Bound<'_, PyList>>,
+    slice_artifacts: Option<&Bound<'_, PyList>>,
     signer_secret: Option<&Bound<'_, PyBytes>>,
     signer_kid: Option<String>,
     public_key_armor: Option<String>,
@@ -766,11 +975,24 @@ fn compile_gts_native(
         builder.add_quads(&ox, graph_name.as_deref(), scope.as_deref());
     }
 
+    // S3 (#820, gap G4): assemble the self-describing RdfBundle from the slice
+    // catalog rows, hard-fail `validate()`, and fold each ontology artifact in as
+    // a content-addressed blob through the SAME channel doc_blobs ride. The base
+    // graph is the bundle's hot dataset. Large external DATA blobs (graph.blobs)
+    // are NOT passed here and STAY by-reference (blob-by-reference doctrine).
+    let mut all_doc_blobs = blob_rows_from_py(doc_blobs)?;
+    let slice_rows = slice_artifact_rows_from_py(slice_artifacts)?;
+    if !slice_rows.is_empty() {
+        let bundle_blobs =
+            assemble_slice_bundle(&base, &slice_rows).map_err(PyValueError::new_err)?;
+        all_doc_blobs.extend(bundle_blobs);
+    }
+
     let bytes = emit_gts(
         &builder,
         "dist",
         transform,
-        blob_rows_from_py(doc_blobs)?,
+        all_doc_blobs,
         blob_rows_from_py(report_blobs)?,
         secret_array(signer_secret)?,
         signer_kid,

@@ -145,7 +145,7 @@ ex:descendantWord a gmeow:LexicalItem ;
     gmeow:lexicalItemLanguage ex:akkadian .
 
 ex:derivation1 a gmeow:EtymologicalDerivation ;
-    gmeow:derivationSource ex:ancestorWord ;
+    gmeow:etymonSource ex:ancestorWord ;
     gmeow:derivationTarget ex:descendantWord ;
     gmeow:derivationKind gmeow:derivationBorrowing ;
     gmeow:derivationEvidence ex:carrierAttestation ;

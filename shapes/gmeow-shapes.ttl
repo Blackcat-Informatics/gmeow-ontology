@@ -3830,7 +3830,7 @@ gmeow:StyleGuideShape
         sh:message "A StyleGuide must voice at least one gmeow:styleGuideFor target (a Persona or a Register) — a style guide for nothing is just a document." ;
     ] ;
     sh:property [
-        sh:path gmeow:exemplifiedBy ;
+        sh:path gmeow:voiceExemplifiedBy ;
         sh:node [
             sh:property [
                 sh:path gmeow:contentDigest ;
@@ -3840,7 +3840,7 @@ gmeow:StyleGuideShape
             ] ;
         ] ;
         sh:severity sh:Violation ;
-        sh:message "Every gmeow:exemplifiedBy document must carry a gmeow:contentDigest (byte-perfect voice doctrine)." ;
+        sh:message "Every gmeow:voiceExemplifiedBy document must carry a gmeow:contentDigest (byte-perfect voice doctrine)." ;
     ] .
 
 gmeow:OrganizationCurrencyShape

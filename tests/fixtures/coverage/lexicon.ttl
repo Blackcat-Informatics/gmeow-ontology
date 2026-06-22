@@ -67,7 +67,7 @@ ex:alJabrWritten a gmeow:LexicalForm ;
     gmeow:formOf ex:alJabr .
 
 ex:derivationAlgebraBorrowing a gmeow:EtymologicalDerivation ;
-    gmeow:derivationSource ex:alJabr ;
+    gmeow:etymonSource ex:alJabr ;
     gmeow:derivationTarget ex:algebra ;
     gmeow:derivationKind gmeow:derivationBorrowing ;
     gmeow:confidence 0.85 .
@@ -81,7 +81,7 @@ ex:ax-derivation-borrowing a owl:Axiom ;
     gmeow:validFrom "0800-01-01T00:00:00Z"^^xsd:dateTime .
 
 ex:derivationAlgebraReanalysis a gmeow:EtymologicalDerivation ;
-    gmeow:derivationSource ex:algebra ;
+    gmeow:etymonSource ex:algebra ;
     gmeow:derivationTarget ex:algebra ;
     gmeow:derivationKind gmeow:derivationReanalysis ;
     gmeow:confidence 0.30 .

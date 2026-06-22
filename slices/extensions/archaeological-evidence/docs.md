@@ -147,7 +147,7 @@ An etymological claim may cite a `gmeow:UsageAttestation` (or the
 
 ```turtle
 ex:derivation a gmeow:EtymologicalDerivation ;
-    gmeow:derivationSource ex:ancestorWord ;
+    gmeow:etymonSource ex:ancestorWord ;
     gmeow:derivationTarget ex:descendantWord ;
     gmeow:derivationKind gmeow:derivationBorrowing ;
     gmeow:derivationEvidence ex:attestation ;

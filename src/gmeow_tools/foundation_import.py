@@ -59,7 +59,7 @@ ROLE_SEEDS = {
     "antagonist": GM.roleAntagonist,
     "mentor": GM.roleMentor,
     "foil": GM.roleFoil,
-    "narrator": GM.roleNarrator,
+    "narrator": GM.roleNarratingVoice,
     "confidant": GM.roleConfidant,
     "love interest": GM.roleLoveInterest,
     "trickster": GM.roleTrickster,

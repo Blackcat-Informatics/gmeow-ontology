@@ -24,10 +24,12 @@ from gts import Signer
 from gmeow_tools.config import (
     GTS_GRAPH_IMPORTS,
     GTS_GRAPH_METADATA,
+    GTS_GRAPH_SLICE_ANALYSIS,
     GTS_GRAPH_VERIFY,
     GTS_SNAPSHOT_FILE,
     MAPPINGS_DIR,
     NAMESPACE,
+    ONTOLOGY_IRI,
     PROJECT_ROOT,
     SLICES_DIR,
     STATEMENT_RDF12_FILE,
@@ -186,6 +188,48 @@ def _logic_blobs() -> list[tuple[bytes, str, str]]:
     return [(_tar_members(members), "application/x-tar", REP_REASONING)]
 
 
+def _okf_blobs(snapshot_bytes: bytes) -> list[tuple[bytes, str, str]]:
+    """Fold the OKF (Open Knowledge Format) agent bundle into the snapshot (#780).
+
+    The bundle is derived from ``snapshot_bytes`` — the freshly-compiled pass-1
+    snapshot — NOT from the committed on-disk snapshot. Building off the fresh
+    fold is what keeps the blob drift-stable in a single regenerate cycle: the
+    OKF surface reflects exactly the vocabulary it ships beside, with no one-cycle
+    lag (the same reason the verify attestation is derived from pass 1).
+
+    A LOSSY projection (SKOS/OBO/ShEx slot): the flat term surface only — the OWL
+    axioms and the statement/reification layer stay in the canonical GTS/OWL
+    source. Read back repo-free via :func:`gmeow_tools.bundle.bundled_okf`.
+    """
+    import gts
+
+    from gmeow_tools.bundle import REP_OKF
+    from gmeow_tools.export import collect_terms, fold_meta
+    from gmeow_tools.gts_views import FoldView
+    from gmeow_tools.language_tags import resolve_lang_input
+    from gmeow_tools.okf_export import OKF_DIR_NAME, write_okf
+
+    view = FoldView(gts.read(snapshot_bytes))
+    selector = resolve_lang_input(None, view.tag_map())
+    title, version = fold_meta(view)
+    terms = collect_terms(view, selector=selector)
+    with tempfile.TemporaryDirectory(dir=PROJECT_ROOT, prefix=".gmeow-tmp-okf-") as tmp:
+        tmp_path = Path(tmp)
+        root = tmp_path / OKF_DIR_NAME
+        root.mkdir(parents=True)
+        write_okf(terms, root, title=title, version=version)
+        # Sort by the POSIX arcname (not the Path object) for platform-independent
+        # ordering; _tar_members re-sorts by arcname too, so this is belt-and-braces.
+        members = [
+            (p.relative_to(tmp_path).as_posix(), p.read_bytes())
+            for p in sorted(
+                root.rglob("*"), key=lambda p: p.relative_to(tmp_path).as_posix()
+            )
+            if p.is_file()
+        ]
+    return [(_tar_members(members), "application/x-tar", REP_OKF)]
+
+
 def _doc_blobs(graph: Graph) -> list[tuple[bytes, str, str]]:
     """Content-addressed slice guides, linked via ``gmeow:guideBlob``."""
     guide_blob = URIRef(NAMESPACE + "guideBlob")
@@ -285,6 +329,67 @@ def _ontology_doc_blobs() -> list[tuple[bytes, str, str]]:
     return [(_tar_members(members), "application/x-tar", "ontology-docs")]
 
 
+#: The ontology-artifact roles folded per-slice into the self-describing S3
+#: bundle as content-addressed blobs (#820 S3, gap G4). These are the SMALL text
+#: artifacts; large external DATA blobs stay by-reference and are NEVER embedded
+#: here (blob-by-reference doctrine).
+#:
+#: ``Documentation`` (``docs.md``) is DELIBERATELY excluded: it is already embedded
+#: by :func:`_doc_blobs` as a content-addressed blob linked from the graph via
+#: ``gmeow:guideBlob``. Re-embedding it here would create a SECOND blob channel for
+#: the same bytes (greenfield: one content-addressed embedding, no parallel
+#: channels). The S3 channel therefore covers the artifacts NOT already folded
+#: per-file: module / shapes / manifest.
+_S3_ARTIFACT_ROLES = frozenset({"Module", "Shapes", "Manifest"})
+
+
+def _slice_artifact_rows() -> list[tuple[str, str, str, str, bytes]]:
+    """Per-slice ontology artifacts for the self-describing S3 ``RdfBundle``.
+
+    Each row is ``(slice_iri, slice_name, role, logical_path, content)`` built
+    from the authoritative native ``gmeow_slice.SliceCatalog`` (the same catalog
+    that drives ownership analysis). ``logical_path`` is the REPO-relative path
+    (``slices/<group>/<name>/<file>``) so every artifact has a globally-unique
+    bundle path (the bundle hard-fails on a duplicate). Bytes come from the
+    catalog's own content cache — no second disk read.
+
+    The native producer assembles these into an :class:`RdfBundle`, calls
+    ``validate()`` (hard-fail), and folds each one in as a content-addressed blob.
+    """
+    import gmeow_slice
+
+    catalog = gmeow_slice.SliceCatalog.discover(str(SLICES_DIR))
+    repo_slices_prefix = SLICES_DIR.relative_to(PROJECT_ROOT).as_posix()
+    rows: list[tuple[str, str, str, str, bytes]] = []
+    for record in catalog.records():
+        manifest = record.manifest
+        slice_iri = manifest.slice_iri
+        slice_name = manifest.label or manifest.title or slice_iri
+        for art in record.artifacts:
+            if art.role not in _S3_ARTIFACT_ROLES:
+                continue
+            rel_dir = _slice_rel_dir(slice_iri)
+            logical_path = f"{repo_slices_prefix}/{rel_dir}/{art.logical_path}"
+            rows.append((slice_iri, slice_name, art.role, logical_path, art.content))
+    # Deterministic order: by logical path (the bundle's unique key).
+    rows.sort(key=lambda r: r[3])
+    return rows
+
+
+def _slice_rel_dir(slice_iri: str) -> str:
+    """The ``<group>/<name>`` directory tail of a discovered slice.
+
+    Resolved from the Python slice discovery (which records each slice's on-disk
+    group/name), keyed by IRI — so the bundle's repo-relative artifact paths match
+    the real tree exactly.
+    """
+    entry = discover_slices().get(slice_iri)
+    if entry is None:  # pragma: no cover - catalog/discovery divergence is a bug
+        msg = f"slice IRI {slice_iri!r} not found in Python slice discovery"
+        raise ValueError(msg)
+    return f"{entry.group}/{entry.name}"
+
+
 def _imports_graph() -> Graph:
     """Return the vendored gUFO/import closure only, for ``gmeow:graph/imports``."""
     graph = Graph()
@@ -376,6 +481,70 @@ def build_verify_attestation_graph(query_names: list[str], report) -> Graph:  # 
     return graph
 
 
+def _ontology_version(authored_graph: Graph) -> str:
+    """The authored ontology version (``owl:versionInfo``), for toolchain stamping.
+
+    Read from the authored base graph so the analysis-graph toolchain stamp is a
+    pure, deterministic function of the committed sources (the drift gate forbids
+    any runtime-varying input). A missing version is a hard failure, never a
+    silent default.
+    """
+    from rdflib import OWL
+
+    onto = URIRef(ONTOLOGY_IRI)
+    for value in authored_graph.objects(onto, OWL.versionInfo):
+        return str(value)
+    msg = f"authored ontology {ONTOLOGY_IRI} has no owl:versionInfo"
+    raise ValueError(msg)
+
+
+def build_slice_analysis_graph(authored_graph: Graph) -> Graph:
+    """Build the computed ``gmeow:graph/slice-analysis`` named graph (#820 S7, G5).
+
+    Two-pass attestation: the native ownership analyzer runs over the AUTHORED
+    slice catalog (``slices/`` only — never the generated bundle), and its
+    evidence-bearing dependency edges are serialized by the native emitter into a
+    separate named graph. ``authored_graph`` is the authored base graph, serialized
+    to N-Triples to feed the emitter's self-attestation guard: the emitter
+    HARD-FAILS if that text contains the analysis-graph IRI (the analysis graph
+    must never be consumed as its own input). The analysis graph is therefore
+    always a SEPARATE named graph, never folded into the default authored graph.
+
+    The toolchain stamp is deterministic: ``compiler_version`` is the authored
+    ``owl:versionInfo`` and ``reasoning_profile`` is the producer's active bundle
+    profile id (``"dist"`` — the profile :func:`compile_gts` compiles with), so
+    the snapshot stays byte-reproducible for the drift gate.
+
+    Returns:
+        The slice-analysis named graph (the caller names it
+        :data:`~gmeow_tools.config.GTS_GRAPH_SLICE_ANALYSIS`).
+
+    Raises:
+        ValueError: on any native emission failure, notably the self-attestation
+            guard violation — never a silent empty graph.
+    """
+    import gmeow_slice
+
+    # Discover AUTHORED slices only (slices/), never the generated bundle — the
+    # analysis output must not feed back into the catalog/ownership computation.
+    catalog = gmeow_slice.SliceCatalog.discover(str(SLICES_DIR))
+    analyzer = gmeow_slice.OwnershipAnalyzer(catalog)
+
+    # The authored base graph as text for the emitter's self-attestation guard.
+    # N-Triples is deterministic and IRI-explicit (the guard substring-matches the
+    # analysis-graph IRI, which authored sources never contain).
+    authored_input_text = authored_graph.serialize(format="nt")
+
+    turtle_body = analyzer.analysis_graph_turtle(
+        authored_input_text,
+        _ontology_version(authored_graph),
+        "dist",
+    )
+    graph = Graph()
+    graph.parse(data=turtle_body, format="turtle")
+    return graph
+
+
 def build_snapshot_bytes(
     *,
     signer: Signer | None = None,
@@ -420,13 +589,22 @@ def build_snapshot_bytes(
     imports = (_imports_graph(), GTS_GRAPH_IMPORTS, "imports")
     metadata = (_metadata_graph(), GTS_GRAPH_METADATA, "metadata")
 
-    def _compile(extra_named_graphs: list[tuple[Graph, str, str]]) -> bytes:
+    # Self-describing S3 bundle (#820 gap G4): per-slice ontology artifacts ride
+    # the bundle as content-addressed blobs, assembled + validated through the
+    # native RdfBundle. Repo-free consumers recover each by role + logical path.
+    slice_artifacts = _slice_artifact_rows()
+
+    def _compile(
+        extra_named_graphs: list[tuple[Graph, str, str]],
+        extra_blobs: Sequence[tuple[bytes, str, str]] = (),
+    ) -> bytes:
         return compile_gts(
             multilingual_graph,
             STATEMENT_RDF12_FILE,
             alignment_graph=build_alignment_graph(load_mappings()),
             extra_named_graphs=extra_named_graphs,
-            doc_blobs=blobs,
+            doc_blobs=[*blobs, *extra_blobs],
+            slice_artifacts=slice_artifacts,
             transform=_SNAPSHOT_TRANSFORM,
             signer=signer,
             public_key_armor=public_key_armor,
@@ -441,6 +619,12 @@ def build_snapshot_bytes(
     # The native ext is REQUIRED (regenerate already requires native exts); a
     # missing ext is a hard failure, not a silent single-pass fallback.
     pass1_bytes = _compile([imports, metadata])
+
+    # The OKF agent bundle (#780) is derived from the fresh pass-1 fold, so it is
+    # drift-stable in one cycle (it reflects exactly the vocabulary it folds beside,
+    # like the verify attestation). It rides the final pass only — it is not needed
+    # by the verify lane and cannot exist in pass 1 (it is built from pass 1).
+    okf_blobs = _okf_blobs(pass1_bytes)
 
     import gmeow_logic
 
@@ -473,7 +657,22 @@ def build_snapshot_bytes(
     report = gmeow_logic.verify_native(pass1_bytes, pairs)
     attestation = build_verify_attestation_graph(query_names, report)
 
-    return _compile([imports, metadata, (attestation, GTS_GRAPH_VERIFY, "verify")])
+    # Computed slice-analysis named graph (#820 S7, gap G5): the native ownership
+    # analyzer's evidence-bearing dependency graph, emitted by the native S7
+    # emitter as a SEPARATE named graph. The analyzer reads AUTHORED slices only;
+    # the authored base graph (multilingual_graph) is serialized as the emitter's
+    # self-attestation guard input (it must not contain the analysis-graph IRI).
+    slice_analysis = build_slice_analysis_graph(multilingual_graph)
+
+    return _compile(
+        [
+            imports,
+            metadata,
+            (attestation, GTS_GRAPH_VERIFY, "verify"),
+            (slice_analysis, GTS_GRAPH_SLICE_ANALYSIS, "slice-analysis"),
+        ],
+        extra_blobs=okf_blobs,
+    )
 
 
 def compile_full_snapshot(
@@ -512,6 +711,7 @@ class GtsSnapshotGenerator(Generator):
             PROJECT_ROOT / "src" / "gmeow_tools" / "gts_producer.py",
             PROJECT_ROOT / "src" / "gmeow_tools" / "i18n_catalog.py",
             PROJECT_ROOT / "src" / "gmeow_tools" / "mappings.py",
+            PROJECT_ROOT / "src" / "gmeow_tools" / "okf_export.py",
             PROJECT_ROOT / "src" / "gmeow_tools" / "ontology_docs.py",
             PROJECT_ROOT / "src" / "gmeow_tools" / "self_desc.py",
             PROJECT_ROOT / "src" / "gmeow_tools" / "slices.py",

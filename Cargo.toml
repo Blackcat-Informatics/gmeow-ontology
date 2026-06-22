@@ -13,6 +13,7 @@ members = [
     "crates/native",
     "crates/rdf",
     "crates/shacl",
+    "crates/slice",
     "crates/slicetest",
     "crates/validate",
 ]
@@ -84,6 +85,9 @@ codegen-units = 1
 codegen-units = 1
 
 [profile.release.package.gmeow-native]
+codegen-units = 1
+
+[profile.release.package.gmeow-slice]
 codegen-units = 1
 
 [profile.release.package.gmeow-slicetest]

@@ -97,7 +97,17 @@ class Slice:
 
 
 def _strings(graph: Graph, subject: URIRef, predicate: URIRef) -> tuple[str, ...]:
-    """All literal values of ``predicate`` on ``subject``, as plain strings."""
+    """All literal values of ``predicate`` on ``subject``, as plain strings.
+
+    This is a deliberate *lexical projection*: it accepts any RDF literal —
+    PROSE properties carry ``@x-gmeow-english`` and TOKEN properties are plain
+    ``xsd:string`` (the #820 S0 manifest datatype contract, enforced by
+    ``shapes/slice-manifest-shapes.ttl``) — and returns its lexical form, so the
+    structural loader stays agnostic to the literal's language/datatype identity.
+    Preserving that identity end-to-end is the job of the native catalog (S1),
+    not of this Python structural view, which intentionally keeps the same
+    string-returning contract its callers already rely on.
+    """
     values = (o for o in graph.objects(subject, predicate) if isinstance(o, Literal))
     return tuple(sorted(str(o) for o in values))
 

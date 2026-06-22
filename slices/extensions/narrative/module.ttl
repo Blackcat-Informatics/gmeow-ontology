@@ -739,11 +739,12 @@ gmeow:roleMentor
     skos:definition "The mentor role."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox .
 
-gmeow:roleNarrator
+gmeow:roleNarratingVoice
     a gmeow:NarrativeRole ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/narrative> ;
-    rdfs:label "narrator"@x-gmeow-english ;
-    skos:definition "The narrator role — the telling voice (its reliability is the narration seam narrationUnreliable axis, not a role variant)."@x-gmeow-english .
+    rdfs:label "narrating voice"@x-gmeow-english ;
+    skos:definition "The narrator role — the telling voice within a narrative frame (its reliability is the narration seam narrationUnreliable axis, not a role variant). Distinct from gmeow:roleNarrator (creative-works), the ContributionRole of an agent who narrated or performed a spoken-word rendition."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
 
 gmeow:roleProtagonist
     a gmeow:NarrativeRole ;

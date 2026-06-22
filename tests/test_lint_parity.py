@@ -1,10 +1,10 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: AGPL-3.0-only
 
-"""Durable parity guard for the Rust structural / naming / ownership lints (#579).
+"""Durable parity guard for the Rust structural / naming lints (#579).
 
 The goldens under ``tests/fixtures/lint-golden/`` were captured from the *original*
-pure-Python ``structural_lint`` / ``term_naming_lint`` / ``slice_ownership_lint``
+pure-Python ``structural_lint`` / ``term_naming_lint``
 over the real merged graph BEFORE the Rust port. This test asserts the Rust path
 reproduces each golden EXACTLY — so the behavior is pinned independently of the
 Python lint bodies, and the guard survives Task 5's deletion of those bodies.
@@ -27,10 +27,9 @@ from gmeow_rdf.compat.rdflib import RDF, URIRef
 
 from gmeow_tools.config import NAMESPACE, ONTOLOGY_IRI
 from gmeow_tools.graph import iter_source_files, load_merged_graph
-from gmeow_tools.slices import discover_slices, iter_slice_module_files
+from gmeow_tools.slices import discover_slices
 from gmeow_tools.validate import (
     _SELECTOR_TOKENS,
-    slice_ownership_lint,
     structural_lint,
     term_naming_lint,
 )
@@ -88,17 +87,6 @@ def test_term_naming_lint_rust_matches_golden() -> None:
     )
 
 
-def test_slice_ownership_lint_rust_matches_golden() -> None:
-    specs = [
-        (str(module), f"{NAMESPACE}slices/{module.parent.name}")
-        for module in iter_slice_module_files()
-    ]
-    report = gmeow_validate.slice_ownership_lint(specs, _lint_config())
-    _assert_matches_golden(
-        "slice_ownership_lint", list(report["errors"]), list(report["warnings"])
-    )
-
-
 def _declared_terms_from_rdflib() -> set[str]:
     """Independent live enumeration of declared GMEOW terms, via rdflib.
 
@@ -152,8 +140,3 @@ def test_structural_lint_wrapper_matches_golden() -> None:
 def test_term_naming_lint_wrapper_matches_golden() -> None:
     result = term_naming_lint(_source_paths())
     _assert_matches_golden("term_naming_lint", result.errors, result.warnings)
-
-
-def test_slice_ownership_lint_wrapper_matches_golden() -> None:
-    result = slice_ownership_lint()
-    _assert_matches_golden("slice_ownership_lint", result.errors, result.warnings)

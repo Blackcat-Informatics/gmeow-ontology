@@ -171,6 +171,7 @@ fn eval_reifier_shapes<G: ShaclDataGraph>(ctx: ReifierEvalContext<'_, G>) -> Vec
                 source_box_roles: vec![],
                 path_box_roles: vec![],
                 result_box_roles: vec![],
+                attributions: vec![],
             };
             result.apply_box_roles(&source_roles, path_roles);
             results.push(result);
@@ -201,6 +202,7 @@ fn eval_reifier_shapes<G: ShaclDataGraph>(ctx: ReifierEvalContext<'_, G>) -> Vec
                         source_box_roles: vec![],
                         path_box_roles: vec![],
                         result_box_roles: vec![],
+                        attributions: vec![],
                     };
                     let inner_source_roles =
                         merge_box_roles(&source_roles, &inner.source_box_roles);
@@ -324,6 +326,7 @@ fn eval_constraint<G: ShaclDataGraph>(
                 source_box_roles: vec![],
                 path_box_roles: vec![],
                 result_box_roles: vec![],
+                attributions: vec![],
             }
         };
         ($component:expr, $focus:expr, $value:expr) => {
@@ -338,6 +341,7 @@ fn eval_constraint<G: ShaclDataGraph>(
                 source_box_roles: vec![],
                 path_box_roles: vec![],
                 result_box_roles: vec![],
+                attributions: vec![],
             }
         };
     }
@@ -390,6 +394,7 @@ fn eval_constraint<G: ShaclDataGraph>(
                         source_box_roles: vec![],
                         path_box_roles: vec![],
                         result_box_roles: vec![],
+                        attributions: vec![],
                     });
                 }
             }
@@ -418,6 +423,7 @@ fn eval_constraint<G: ShaclDataGraph>(
                         source_box_roles: vec![],
                         path_box_roles: vec![],
                         result_box_roles: vec![],
+                        attributions: vec![],
                     });
                 }
             }
@@ -446,6 +452,7 @@ fn eval_constraint<G: ShaclDataGraph>(
                         source_box_roles: vec![],
                         path_box_roles: vec![],
                         result_box_roles: vec![],
+                        attributions: vec![],
                     });
                 }
             }
@@ -472,6 +479,7 @@ fn eval_constraint<G: ShaclDataGraph>(
                         source_box_roles: vec![],
                         path_box_roles: vec![],
                         result_box_roles: vec![],
+                        attributions: vec![],
                     });
                 }
             }
@@ -499,6 +507,7 @@ fn eval_constraint<G: ShaclDataGraph>(
                     source_box_roles: vec![],
                     path_box_roles: vec![],
                     result_box_roles: vec![],
+                    attributions: vec![],
                 }]
             } else {
                 vec![]
@@ -546,6 +555,7 @@ fn eval_constraint<G: ShaclDataGraph>(
                         source_box_roles: vec![],
                         path_box_roles: vec![],
                         result_box_roles: vec![],
+                        attributions: vec![],
                     });
                 }
             }
@@ -579,6 +589,7 @@ fn eval_constraint<G: ShaclDataGraph>(
                         source_box_roles: vec![],
                         path_box_roles: vec![],
                         result_box_roles: vec![],
+                        attributions: vec![],
                     });
                 }
             }
@@ -618,6 +629,7 @@ fn eval_constraint<G: ShaclDataGraph>(
                         source_box_roles: vec![],
                         path_box_roles: vec![],
                         result_box_roles: vec![],
+                        attributions: vec![],
                     });
                 }
             }
@@ -652,6 +664,7 @@ fn eval_constraint<G: ShaclDataGraph>(
                         source_box_roles: vec![],
                         path_box_roles: vec![],
                         result_box_roles: vec![],
+                        attributions: vec![],
                     });
                 }
             }
@@ -683,6 +696,7 @@ fn eval_constraint<G: ShaclDataGraph>(
                         source_box_roles: vec![],
                         path_box_roles: vec![],
                         result_box_roles: vec![],
+                        attributions: vec![],
                     });
                 }
             }
@@ -716,6 +730,7 @@ fn eval_constraint<G: ShaclDataGraph>(
                         source_box_roles: vec![],
                         path_box_roles: vec![],
                         result_box_roles: vec![],
+                        attributions: vec![],
                     });
                 }
             }
@@ -747,6 +762,7 @@ fn eval_constraint<G: ShaclDataGraph>(
                         source_box_roles: vec![],
                         path_box_roles: vec![],
                         result_box_roles: vec![],
+                        attributions: vec![],
                     });
                 }
             }
@@ -774,6 +790,7 @@ fn eval_constraint<G: ShaclDataGraph>(
                         source_box_roles: vec![],
                         path_box_roles: vec![],
                         result_box_roles: vec![],
+                        attributions: vec![],
                     });
                 }
             }
@@ -801,6 +818,7 @@ fn eval_constraint<G: ShaclDataGraph>(
                         source_box_roles: vec![],
                         path_box_roles: vec![],
                         result_box_roles: vec![],
+                        attributions: vec![],
                     });
                 }
             }
@@ -828,6 +846,7 @@ fn eval_constraint<G: ShaclDataGraph>(
                         source_box_roles: vec![],
                         path_box_roles: vec![],
                         result_box_roles: vec![],
+                        attributions: vec![],
                     });
                 }
             }
@@ -854,6 +873,7 @@ fn eval_constraint<G: ShaclDataGraph>(
                         source_box_roles: vec![],
                         path_box_roles: vec![],
                         result_box_roles: vec![],
+                        attributions: vec![],
                     });
                 }
             }

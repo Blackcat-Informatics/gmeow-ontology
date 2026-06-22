@@ -36,6 +36,6 @@ ex:ontosForm a gmeow:LexicalForm ;
 
 # --- The etymology: a typed derivation (borrowing) from Greek into English.
 ex:etymology a gmeow:EtymologicalDerivation ;
-    gmeow:derivationSource ex:greekOntos ;
+    gmeow:etymonSource ex:greekOntos ;
     gmeow:derivationTarget ex:ontology ;
     gmeow:derivationKind   gmeow:derivationBorrowing .
