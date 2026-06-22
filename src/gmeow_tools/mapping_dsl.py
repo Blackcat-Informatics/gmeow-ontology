@@ -342,7 +342,13 @@ def _order_binds(binds: Iterable[Bind]) -> tuple[Bind, ...]:
     (composed) bind always sorts last.
     """
     items = list(binds)
-    by_var = {b.var: b for b in items}
+    by_var: dict[str, Bind] = {}
+    for b in items:
+        if b.var in by_var:
+            # Two binds claiming one variable is never well-formed: silently
+            # keeping the last would drop a declaration. Fail closed.
+            raise CompileError(f"duplicate BIND/mint variable ?{b.var}")
+        by_var[b.var] = b
     own = set(by_var)
     deps = {b.var: (_expr_vars(b.expr) & own) - {b.var} for b in items}
     placed: set[str] = set()
@@ -350,8 +356,12 @@ def _order_binds(binds: Iterable[Bind]) -> tuple[Bind, ...]:
     ordered: list[Bind] = []
     while remaining:
         ready = sorted(v for v in remaining if deps[v] <= placed)
-        if not ready:  # dependency cycle — break it deterministically by name
-            ready = sorted(remaining)
+        if not ready:
+            # A dependency cycle has no valid emission order — breaking it by
+            # name would emit a BIND before the variable it references. Fail
+            # closed rather than produce silently-wrong SPARQL.
+            cycle = ", ".join(f"?{v}" for v in sorted(remaining))
+            raise CompileError(f"cyclic BIND/mint dependency among {cycle}")
         for var in ready:
             ordered.append(by_var[var])
             placed.add(var)

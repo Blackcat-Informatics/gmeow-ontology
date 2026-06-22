@@ -245,6 +245,42 @@ def test_render_expr_unknown_operator_raises() -> None:
         render_expr(Expr(op=URIRef("urn:opNope"), args=()))
 
 
+def test_order_binds_rejects_duplicate_variable() -> None:
+    """Two BIND/mint declarations claiming one variable fail closed (no silent drop)."""
+    from gmeow_tools.mapping_dsl import Bind, _order_binds
+
+    binds = [
+        Bind(var="x", expr=Expr(const=URIRef("urn:a"))),
+        Bind(var="x", expr=Expr(const=URIRef("urn:b"))),
+    ]
+    with pytest.raises(CompileError, match="duplicate BIND/mint variable"):
+        _order_binds(binds)
+
+
+def test_order_binds_rejects_dependency_cycle() -> None:
+    """A bind cycle has no valid emission order and fails closed (no name-break)."""
+    from gmeow_tools.mapping_dsl import Bind, _order_binds
+
+    binds = [
+        Bind(var="a", expr=Expr(var="b")),
+        Bind(var="b", expr=Expr(var="a")),
+    ]
+    with pytest.raises(CompileError, match="cyclic BIND/mint dependency"):
+        _order_binds(binds)
+
+
+def test_order_binds_orders_dependencies_before_dependents() -> None:
+    """A well-formed set still topo-sorts: a referenced var precedes its user."""
+    from gmeow_tools.mapping_dsl import Bind, _order_binds
+
+    binds = [
+        Bind(var="composed", expr=Expr(op=URIRef("urn:op"), args=(Expr(var="base"),))),
+        Bind(var="base", expr=Expr(const=URIRef("urn:seed"))),
+    ]
+    ordered = [b.var for b in _order_binds(binds)]
+    assert ordered == ["base", "composed"]
+
+
 def test_sparql_string_escapes_control_chars() -> None:
     """String constants with newlines/tabs/quotes stay valid one-line literals."""
     from gmeow_tools.mapping_dsl import sparql_string
