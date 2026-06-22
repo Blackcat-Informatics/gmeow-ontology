@@ -4,13 +4,13 @@
 % === Ground facts (axioms) ===
 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>(<https://example.org/decidability/budget-exhaustion/Node>, <https://blackcatinformatics.ca/logic/Kind>, "default").
 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>(<https://example.org/decidability/budget-exhaustion/ruleTcBase>, <https://blackcatinformatics.ca/logic/Rule>, "default").
-<https://blackcatinformatics.ca/logic/body>(<https://example.org/decidability/budget-exhaustion/ruleTcBase>, <n86ceae32171c466e95aa81f4e56b9bfcb2>, "default").
-<https://blackcatinformatics.ca/logic/head>(<https://example.org/decidability/budget-exhaustion/ruleTcBase>, <n86ceae32171c466e95aa81f4e56b9bfcb1>, "default").
+<https://blackcatinformatics.ca/logic/body>(<https://example.org/decidability/budget-exhaustion/ruleTcBase>, <c14n3>, "default").
+<https://blackcatinformatics.ca/logic/head>(<https://example.org/decidability/budget-exhaustion/ruleTcBase>, <c14n2>, "default").
 <https://blackcatinformatics.ca/logic/provenance>(<https://example.org/decidability/budget-exhaustion/ruleTcBase>, <https://example.org/decidability/budget-exhaustion/ruleTcBase>, "default").
 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>(<https://example.org/decidability/budget-exhaustion/ruleTcStep>, <https://blackcatinformatics.ca/logic/Rule>, "default").
-<https://blackcatinformatics.ca/logic/body>(<https://example.org/decidability/budget-exhaustion/ruleTcStep>, <n86ceae32171c466e95aa81f4e56b9bfcb4>, "default").
-<https://blackcatinformatics.ca/logic/body>(<https://example.org/decidability/budget-exhaustion/ruleTcStep>, <n86ceae32171c466e95aa81f4e56b9bfcb5>, "default").
-<https://blackcatinformatics.ca/logic/head>(<https://example.org/decidability/budget-exhaustion/ruleTcStep>, <n86ceae32171c466e95aa81f4e56b9bfcb3>, "default").
+<https://blackcatinformatics.ca/logic/body>(<https://example.org/decidability/budget-exhaustion/ruleTcStep>, <c14n0>, "default").
+<https://blackcatinformatics.ca/logic/body>(<https://example.org/decidability/budget-exhaustion/ruleTcStep>, <c14n4>, "default").
+<https://blackcatinformatics.ca/logic/head>(<https://example.org/decidability/budget-exhaustion/ruleTcStep>, <c14n1>, "default").
 <https://blackcatinformatics.ca/logic/provenance>(<https://example.org/decidability/budget-exhaustion/ruleTcStep>, <https://example.org/decidability/budget-exhaustion/ruleTcStep>, "default").
 
 % === Rules ===

@@ -5,12 +5,12 @@
 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>(<https://example.org/paraconsistency/cross-world-isolation/NormativeFact>, <https://blackcatinformatics.ca/logic/Kind>, "default").
 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>(<https://example.org/paraconsistency/cross-world-isolation/Severity>, <https://blackcatinformatics.ca/logic/Kind>, "default").
 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>(<https://example.org/paraconsistency/cross-world-isolation/ruleHighSeverity>, <https://blackcatinformatics.ca/logic/Rule>, "default").
-<https://blackcatinformatics.ca/logic/body>(<https://example.org/paraconsistency/cross-world-isolation/ruleHighSeverity>, <n15e23db4f8ec41089e8f44c4fbd61e0db2>, "default").
-<https://blackcatinformatics.ca/logic/head>(<https://example.org/paraconsistency/cross-world-isolation/ruleHighSeverity>, <n15e23db4f8ec41089e8f44c4fbd61e0db1>, "default").
+<https://blackcatinformatics.ca/logic/body>(<https://example.org/paraconsistency/cross-world-isolation/ruleHighSeverity>, <c14n3>, "default").
+<https://blackcatinformatics.ca/logic/head>(<https://example.org/paraconsistency/cross-world-isolation/ruleHighSeverity>, <c14n2>, "default").
 <https://blackcatinformatics.ca/logic/provenance>(<https://example.org/paraconsistency/cross-world-isolation/ruleHighSeverity>, <https://example.org/paraconsistency/cross-world-isolation/ruleHighSeverity>, "default").
 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>(<https://example.org/paraconsistency/cross-world-isolation/ruleLowSeverity>, <https://blackcatinformatics.ca/logic/Rule>, "default").
-<https://blackcatinformatics.ca/logic/body>(<https://example.org/paraconsistency/cross-world-isolation/ruleLowSeverity>, <n15e23db4f8ec41089e8f44c4fbd61e0db4>, "default").
-<https://blackcatinformatics.ca/logic/head>(<https://example.org/paraconsistency/cross-world-isolation/ruleLowSeverity>, <n15e23db4f8ec41089e8f44c4fbd61e0db3>, "default").
+<https://blackcatinformatics.ca/logic/body>(<https://example.org/paraconsistency/cross-world-isolation/ruleLowSeverity>, <c14n1>, "default").
+<https://blackcatinformatics.ca/logic/head>(<https://example.org/paraconsistency/cross-world-isolation/ruleLowSeverity>, <c14n0>, "default").
 <https://blackcatinformatics.ca/logic/provenance>(<https://example.org/paraconsistency/cross-world-isolation/ruleLowSeverity>, <https://example.org/paraconsistency/cross-world-isolation/ruleLowSeverity>, "default").
 
 % === Rules ===

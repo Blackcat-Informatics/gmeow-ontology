@@ -4,18 +4,18 @@
 % === Ground facts (axioms) ===
 type("https://example.org/decidability/stratified-certifies/Node", "https://blackcatinformatics.ca/logic/Kind", "default").
 type("https://example.org/decidability/stratified-certifies/ruleIsolated", "https://blackcatinformatics.ca/logic/Rule", "default").
-body("https://example.org/decidability/stratified-certifies/ruleIsolated", "n639571224f0e4fb1b0127ff95e76c9e3b7", "default").
-head("https://example.org/decidability/stratified-certifies/ruleIsolated", "n639571224f0e4fb1b0127ff95e76c9e3b6", "default").
-negatedBody("https://example.org/decidability/stratified-certifies/ruleIsolated", "n639571224f0e4fb1b0127ff95e76c9e3b8", "default").
+body("https://example.org/decidability/stratified-certifies/ruleIsolated", "c14n6", "default").
+head("https://example.org/decidability/stratified-certifies/ruleIsolated", "c14n2", "default").
+negatedBody("https://example.org/decidability/stratified-certifies/ruleIsolated", "c14n5", "default").
 provenance("https://example.org/decidability/stratified-certifies/ruleIsolated", "https://example.org/decidability/stratified-certifies/ruleIsolated", "default").
 type("https://example.org/decidability/stratified-certifies/ruleReachableBase", "https://blackcatinformatics.ca/logic/Rule", "default").
-body("https://example.org/decidability/stratified-certifies/ruleReachableBase", "n639571224f0e4fb1b0127ff95e76c9e3b2", "default").
-head("https://example.org/decidability/stratified-certifies/ruleReachableBase", "n639571224f0e4fb1b0127ff95e76c9e3b1", "default").
+body("https://example.org/decidability/stratified-certifies/ruleReachableBase", "c14n7", "default").
+head("https://example.org/decidability/stratified-certifies/ruleReachableBase", "c14n1", "default").
 provenance("https://example.org/decidability/stratified-certifies/ruleReachableBase", "https://example.org/decidability/stratified-certifies/ruleReachableBase", "default").
 type("https://example.org/decidability/stratified-certifies/ruleReachableStep", "https://blackcatinformatics.ca/logic/Rule", "default").
-body("https://example.org/decidability/stratified-certifies/ruleReachableStep", "n639571224f0e4fb1b0127ff95e76c9e3b4", "default").
-body("https://example.org/decidability/stratified-certifies/ruleReachableStep", "n639571224f0e4fb1b0127ff95e76c9e3b5", "default").
-head("https://example.org/decidability/stratified-certifies/ruleReachableStep", "n639571224f0e4fb1b0127ff95e76c9e3b3", "default").
+body("https://example.org/decidability/stratified-certifies/ruleReachableStep", "c14n0", "default").
+body("https://example.org/decidability/stratified-certifies/ruleReachableStep", "c14n3", "default").
+head("https://example.org/decidability/stratified-certifies/ruleReachableStep", "c14n4", "default").
 provenance("https://example.org/decidability/stratified-certifies/ruleReachableStep", "https://example.org/decidability/stratified-certifies/ruleReachableStep", "default").
 
 % === Rules ===

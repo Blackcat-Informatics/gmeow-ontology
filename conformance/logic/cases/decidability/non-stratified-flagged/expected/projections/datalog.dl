@@ -4,13 +4,13 @@
 % === Ground facts (axioms) ===
 type("https://example.org/decidability/non-stratified-flagged/Position", "https://blackcatinformatics.ca/logic/Kind", "default").
 type("https://example.org/decidability/non-stratified-flagged/ruleLose", "https://blackcatinformatics.ca/logic/Rule", "default").
-body("https://example.org/decidability/non-stratified-flagged/ruleLose", "n718cc38247d44906ab36e7fb67964b0fb5", "default").
-head("https://example.org/decidability/non-stratified-flagged/ruleLose", "n718cc38247d44906ab36e7fb67964b0fb4", "default").
+body("https://example.org/decidability/non-stratified-flagged/ruleLose", "c14n4", "default").
+head("https://example.org/decidability/non-stratified-flagged/ruleLose", "c14n2", "default").
 provenance("https://example.org/decidability/non-stratified-flagged/ruleLose", "https://example.org/decidability/non-stratified-flagged/ruleLose", "default").
 type("https://example.org/decidability/non-stratified-flagged/ruleWin", "https://blackcatinformatics.ca/logic/Rule", "default").
-body("https://example.org/decidability/non-stratified-flagged/ruleWin", "n718cc38247d44906ab36e7fb67964b0fb2", "default").
-head("https://example.org/decidability/non-stratified-flagged/ruleWin", "n718cc38247d44906ab36e7fb67964b0fb1", "default").
-negatedBody("https://example.org/decidability/non-stratified-flagged/ruleWin", "n718cc38247d44906ab36e7fb67964b0fb3", "default").
+body("https://example.org/decidability/non-stratified-flagged/ruleWin", "c14n0", "default").
+head("https://example.org/decidability/non-stratified-flagged/ruleWin", "c14n1", "default").
+negatedBody("https://example.org/decidability/non-stratified-flagged/ruleWin", "c14n3", "default").
 provenance("https://example.org/decidability/non-stratified-flagged/ruleWin", "https://example.org/decidability/non-stratified-flagged/ruleWin", "default").
 
 % === Rules ===

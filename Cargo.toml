@@ -6,6 +6,8 @@
 # `cargo install gmeow-gts`. The ontology Rust workspace keeps logic + shacl +
 # validate plus shared diagnostics/RDF glue.
 members = [
+    # Native logic-conformance harness (#785): datatest-stable over the corpus.
+    "crates/conformance",
     "crates/diagnostics",
     "crates/logic",
     # The single PyO3 cdylib: all five engine crates fold into `gmeow_native` so
@@ -91,6 +93,9 @@ codegen-units = 1
 codegen-units = 1
 
 [profile.release.package.gmeow-slicetest]
+codegen-units = 1
+
+[profile.release.package.gmeow-conformance]
 codegen-units = 1
 
 # `cargo bench` (used by `make bench`) runs under the `bench` profile, which

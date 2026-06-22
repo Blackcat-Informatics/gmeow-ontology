@@ -11,8 +11,8 @@
 # === Axioms ===
 <https://example.org/profiles/positive-horn/Person> a <https://blackcatinformatics.ca/logic/Kind> .
 <https://example.org/profiles/positive-horn/ruleAncestor> a <https://blackcatinformatics.ca/logic/Rule> .
-<https://example.org/profiles/positive-horn/ruleAncestor> <https://blackcatinformatics.ca/logic/body> <n2ae5ac8c590c4ee89156e90482610b2fb2> .
-<https://example.org/profiles/positive-horn/ruleAncestor> <https://blackcatinformatics.ca/logic/head> <n2ae5ac8c590c4ee89156e90482610b2fb1> .
+<https://example.org/profiles/positive-horn/ruleAncestor> <https://blackcatinformatics.ca/logic/body> <c14n1> .
+<https://example.org/profiles/positive-horn/ruleAncestor> <https://blackcatinformatics.ca/logic/head> <c14n0> .
 <https://example.org/profiles/positive-horn/ruleAncestor> <https://blackcatinformatics.ca/logic/provenance> <https://example.org/profiles/positive-horn/ruleAncestor> .
 
 # === Rules ===

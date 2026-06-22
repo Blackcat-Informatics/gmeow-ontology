@@ -3,9 +3,9 @@
 """Correctness tests for the foundation-lowering conformance cases (issue #503, Task 5).
 
 These tests are independent of the conformance gate's diff-against-golden machinery.
-The gate (``gmeow-dev conformance``) generates goldens from ``logic_runner.run`` and
-then diffs ``run`` output against them, so a golden trivially diff-passes regardless
-of whether it is *correct*.  This module instead PARSES each committed
+The native gate (the ``gmeow-conformance`` datatest harness) runs the engine and
+diffs its output against the committed goldens, so a golden trivially diff-passes
+regardless of whether it is *correct*.  This module instead PARSES each committed
 ``expected/materialized.nq`` and asserts the discipline-fact set it contains is
 EXACTLY the lint-faithful set hand-computed per :mod:`gmeow_tools.reasoning_lint`.
 
@@ -22,9 +22,8 @@ The expected sets below are the verdicts :mod:`reasoning_lint` produces over the
 equivalent gUFO schema (cross-checked against the lint in development); the
 ``mixrig-kind-under-role`` case in particular asserts the MixRig catch (AC#3).
 
-A second test re-runs ``diff_case(run(case_dir))`` per case and asserts zero diffs,
-pinning the goldens to the runner oracle. The native logic engine is required;
-missing ``gmeow_logic`` is a test-environment failure, not a skip.
+The runner-vs-golden diff that formerly lived here is now enforced natively by the
+``gmeow-conformance`` datatest harness (crates/conformance) under cargo-nextest.
 """
 
 from __future__ import annotations
@@ -32,10 +31,6 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
-
-from gmeow_tools.logic_runner import diff_case
-from gmeow_tools.logic_runner import run as logic_run
-from tests._required_native import require_gmeow_logic
 
 # --------------------------------------------------------------------------- #
 # Constants
@@ -216,10 +211,10 @@ def test_mixrig_ac3_is_caught() -> None:
     assert mixrig in actual
 
 
-@pytest.mark.parametrize("case", _CASES)
-def test_runner_diff_against_golden_is_clean(case: str) -> None:
-    """``diff_case(run(case))`` reports zero diffs — goldens pinned to the oracle."""
-    require_gmeow_logic()
-    case_dir = _FOUNDATION_ROOT / case
-    result = diff_case(logic_run(case_dir))
-    assert result.passed, f"{case}: diff_case reported:\n" + "\n".join(result.diffs)
+# NOTE: the runner-vs-golden diff (formerly
+# ``test_runner_diff_against_golden_is_clean``, which called
+# ``logic_runner.diff_case(run(case))``) is now enforced natively by the
+# `gmeow-conformance` datatest harness (crates/conformance), which runs + diffs
+# every foundation case under cargo-nextest. The hand-computed lint-faithful
+# assertions above remain here because they verify the goldens are *correct* (not
+# merely self-consistent with the runner), a property the diff gate cannot give.

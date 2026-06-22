@@ -4,13 +4,13 @@
 % === Ground facts (axioms) ===
 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>(<https://example.org/decidability/non-stratified-flagged/Position>, <https://blackcatinformatics.ca/logic/Kind>, "default").
 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>(<https://example.org/decidability/non-stratified-flagged/ruleLose>, <https://blackcatinformatics.ca/logic/Rule>, "default").
-<https://blackcatinformatics.ca/logic/body>(<https://example.org/decidability/non-stratified-flagged/ruleLose>, <nf80ca256d558428491ea6ed2ab4629b8b5>, "default").
-<https://blackcatinformatics.ca/logic/head>(<https://example.org/decidability/non-stratified-flagged/ruleLose>, <nf80ca256d558428491ea6ed2ab4629b8b4>, "default").
+<https://blackcatinformatics.ca/logic/body>(<https://example.org/decidability/non-stratified-flagged/ruleLose>, <c14n4>, "default").
+<https://blackcatinformatics.ca/logic/head>(<https://example.org/decidability/non-stratified-flagged/ruleLose>, <c14n2>, "default").
 <https://blackcatinformatics.ca/logic/provenance>(<https://example.org/decidability/non-stratified-flagged/ruleLose>, <https://example.org/decidability/non-stratified-flagged/ruleLose>, "default").
 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>(<https://example.org/decidability/non-stratified-flagged/ruleWin>, <https://blackcatinformatics.ca/logic/Rule>, "default").
-<https://blackcatinformatics.ca/logic/body>(<https://example.org/decidability/non-stratified-flagged/ruleWin>, <nf80ca256d558428491ea6ed2ab4629b8b2>, "default").
-<https://blackcatinformatics.ca/logic/head>(<https://example.org/decidability/non-stratified-flagged/ruleWin>, <nf80ca256d558428491ea6ed2ab4629b8b1>, "default").
-<https://blackcatinformatics.ca/logic/negatedBody>(<https://example.org/decidability/non-stratified-flagged/ruleWin>, <nf80ca256d558428491ea6ed2ab4629b8b3>, "default").
+<https://blackcatinformatics.ca/logic/body>(<https://example.org/decidability/non-stratified-flagged/ruleWin>, <c14n0>, "default").
+<https://blackcatinformatics.ca/logic/head>(<https://example.org/decidability/non-stratified-flagged/ruleWin>, <c14n1>, "default").
+<https://blackcatinformatics.ca/logic/negatedBody>(<https://example.org/decidability/non-stratified-flagged/ruleWin>, <c14n3>, "default").
 <https://blackcatinformatics.ca/logic/provenance>(<https://example.org/decidability/non-stratified-flagged/ruleWin>, <https://example.org/decidability/non-stratified-flagged/ruleWin>, "default").
 
 % === Rules ===

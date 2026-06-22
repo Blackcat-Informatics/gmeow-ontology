@@ -5,8 +5,8 @@
 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>(<https://example.org/worlds-A/contested-standpoint/State>, <https://blackcatinformatics.ca/logic/Kind>, "default").
 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>(<https://example.org/worlds-A/contested-standpoint/TerritorialClaimant>, <https://blackcatinformatics.ca/logic/Kind>, "default").
 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>(<https://example.org/worlds-A/contested-standpoint/ruleSovereigntyClaimant>, <https://blackcatinformatics.ca/logic/Rule>, "default").
-<https://blackcatinformatics.ca/logic/body>(<https://example.org/worlds-A/contested-standpoint/ruleSovereigntyClaimant>, <nd8c72a20e97c4c3a95ccb4a0ad149961b2>, "default").
-<https://blackcatinformatics.ca/logic/head>(<https://example.org/worlds-A/contested-standpoint/ruleSovereigntyClaimant>, <nd8c72a20e97c4c3a95ccb4a0ad149961b1>, "default").
+<https://blackcatinformatics.ca/logic/body>(<https://example.org/worlds-A/contested-standpoint/ruleSovereigntyClaimant>, <c14n1>, "default").
+<https://blackcatinformatics.ca/logic/head>(<https://example.org/worlds-A/contested-standpoint/ruleSovereigntyClaimant>, <c14n0>, "default").
 <https://blackcatinformatics.ca/logic/provenance>(<https://example.org/worlds-A/contested-standpoint/ruleSovereigntyClaimant>, <https://example.org/worlds-A/contested-standpoint/ruleSovereigntyClaimant>, "default").
 
 % === Rules ===

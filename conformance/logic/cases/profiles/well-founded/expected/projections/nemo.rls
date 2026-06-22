@@ -4,9 +4,9 @@
 % === Ground facts (axioms) ===
 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>(<https://example.org/profiles/well-founded/Position>, <https://blackcatinformatics.ca/logic/Kind>, "default").
 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>(<https://example.org/profiles/well-founded/ruleWin>, <https://blackcatinformatics.ca/logic/Rule>, "default").
-<https://blackcatinformatics.ca/logic/body>(<https://example.org/profiles/well-founded/ruleWin>, <n5b42bc908255497b97e9b40d42edd7cdb2>, "default").
-<https://blackcatinformatics.ca/logic/head>(<https://example.org/profiles/well-founded/ruleWin>, <n5b42bc908255497b97e9b40d42edd7cdb1>, "default").
-<https://blackcatinformatics.ca/logic/negatedBody>(<https://example.org/profiles/well-founded/ruleWin>, <n5b42bc908255497b97e9b40d42edd7cdb3>, "default").
+<https://blackcatinformatics.ca/logic/body>(<https://example.org/profiles/well-founded/ruleWin>, <c14n1>, "default").
+<https://blackcatinformatics.ca/logic/head>(<https://example.org/profiles/well-founded/ruleWin>, <c14n2>, "default").
+<https://blackcatinformatics.ca/logic/negatedBody>(<https://example.org/profiles/well-founded/ruleWin>, <c14n0>, "default").
 <https://blackcatinformatics.ca/logic/provenance>(<https://example.org/profiles/well-founded/ruleWin>, <https://example.org/profiles/well-founded/ruleWin>, "default").
 
 % === Rules ===

@@ -4,14 +4,14 @@
 % === Ground facts (axioms) ===
 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>(<https://example.org/profiles/stable-model/Candidate>, <https://blackcatinformatics.ca/logic/Kind>, "default").
 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>(<https://example.org/profiles/stable-model/ruleInSet>, <https://blackcatinformatics.ca/logic/Rule>, "default").
-<https://blackcatinformatics.ca/logic/body>(<https://example.org/profiles/stable-model/ruleInSet>, <n3aede6393ceb4bb7bc4240e965919b7eb2>, "default").
-<https://blackcatinformatics.ca/logic/head>(<https://example.org/profiles/stable-model/ruleInSet>, <n3aede6393ceb4bb7bc4240e965919b7eb1>, "default").
-<https://blackcatinformatics.ca/logic/negatedBody>(<https://example.org/profiles/stable-model/ruleInSet>, <n3aede6393ceb4bb7bc4240e965919b7eb3>, "default").
+<https://blackcatinformatics.ca/logic/body>(<https://example.org/profiles/stable-model/ruleInSet>, <c14n1>, "default").
+<https://blackcatinformatics.ca/logic/head>(<https://example.org/profiles/stable-model/ruleInSet>, <c14n0>, "default").
+<https://blackcatinformatics.ca/logic/negatedBody>(<https://example.org/profiles/stable-model/ruleInSet>, <c14n2>, "default").
 <https://blackcatinformatics.ca/logic/provenance>(<https://example.org/profiles/stable-model/ruleInSet>, <https://example.org/profiles/stable-model/ruleInSet>, "default").
 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>(<https://example.org/profiles/stable-model/ruleOutSet>, <https://blackcatinformatics.ca/logic/Rule>, "default").
-<https://blackcatinformatics.ca/logic/body>(<https://example.org/profiles/stable-model/ruleOutSet>, <n3aede6393ceb4bb7bc4240e965919b7eb5>, "default").
-<https://blackcatinformatics.ca/logic/head>(<https://example.org/profiles/stable-model/ruleOutSet>, <n3aede6393ceb4bb7bc4240e965919b7eb4>, "default").
-<https://blackcatinformatics.ca/logic/negatedBody>(<https://example.org/profiles/stable-model/ruleOutSet>, <n3aede6393ceb4bb7bc4240e965919b7eb6>, "default").
+<https://blackcatinformatics.ca/logic/body>(<https://example.org/profiles/stable-model/ruleOutSet>, <c14n5>, "default").
+<https://blackcatinformatics.ca/logic/head>(<https://example.org/profiles/stable-model/ruleOutSet>, <c14n4>, "default").
+<https://blackcatinformatics.ca/logic/negatedBody>(<https://example.org/profiles/stable-model/ruleOutSet>, <c14n3>, "default").
 <https://blackcatinformatics.ca/logic/provenance>(<https://example.org/profiles/stable-model/ruleOutSet>, <https://example.org/profiles/stable-model/ruleOutSet>, "default").
 
 % === Rules ===
