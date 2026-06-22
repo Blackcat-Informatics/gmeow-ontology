@@ -483,6 +483,30 @@ def _surface_reports() -> list[tuple[str, Callable[[], Any]]]:
 
         return engine_crosscheck.build_report(engine_crosscheck.crosscheck_all())
 
+    def _logic_compile() -> Any:
+        from gmeow_tools import logic_compile
+
+        return logic_compile.compile_diagnostics_report()
+
+    def _statement_compile() -> Any:
+        from gmeow_tools import statement_compile
+
+        return statement_compile.compile_diagnostics_report()
+
+    def _mapping_compile() -> Any:
+        from gmeow_tools import mapping_compile
+
+        return mapping_compile.compile_diagnostics_report()
+
+    def _slice_ownership() -> Any:
+        # The FULL native slice-ownership report (#809): ownership-defect errors
+        # PLUS the dependency-observation warnings that `make validate` keeps out
+        # of its focused gate. Folding it here carries those previously-dropped
+        # warnings, structured, into SARIF/JSON/HTML + gmeow.gts.
+        from gmeow_tools import validate
+
+        return validate.native_ownership_report()
+
     return [
         ("alignment", _alignment),
         ("coverage", _coverage),
@@ -495,6 +519,10 @@ def _surface_reports() -> list[tuple[str, Callable[[], Any]]]:
         ("generated", _generated),
         ("classic-cross-check", _classic_cross_check),
         ("engine-cross-check", _engine_cross_check),
+        ("logic-compile", _logic_compile),
+        ("statement-compile", _statement_compile),
+        ("mapping-compile", _mapping_compile),
+        ("slice-ownership", _slice_ownership),
     ]
 
 
