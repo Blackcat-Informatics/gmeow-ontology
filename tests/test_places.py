@@ -21,6 +21,7 @@ from tests._graph_nt import run_shacl
 
 GMEOW = "https://blackcatinformatics.ca/gmeow/"
 GUFO = "http://purl.org/nemo/gufo#"
+LOGIC = "https://blackcatinformatics.ca/logic/"
 GEO = "http://www.opengis.net/ont/geosparql#"
 EX_PLACES = Namespace("https://blackcatinformatics.ca/gmeow/examples/places/")
 COVERAGE_FIXTURES = Path(__file__).parent / "fixtures" / "coverage"
@@ -66,7 +67,7 @@ def test_place_kind_is_value_not_subclass() -> None:
     assert (
         URIRef(GMEOW + "PlaceType"),
         RDFS.subClassOf,
-        URIRef(GUFO + "QualityValue"),
+        URIRef(LOGIC + "QualityValue"),
     ) in graph
     place_type = URIRef(GMEOW + "placeType")
     assert (place_type, RDF.type, OWL.ObjectProperty) in graph
@@ -579,7 +580,7 @@ def test_metric_kind_is_value_not_subclass() -> None:
     assert (
         URIRef(GMEOW + "MetricKind"),
         RDFS.subClassOf,
-        URIRef(GUFO + "QualityValue"),
+        URIRef(LOGIC + "QualityValue"),
     ) in graph
     for metric in (
         "metricGeodesic",
@@ -854,7 +855,7 @@ def test_geometry_type_is_value_not_subclass() -> None:
     assert (
         URIRef(GMEOW + "GeometryType"),
         RDFS.subClassOf,
-        URIRef(GUFO + "QualityValue"),
+        URIRef(LOGIC + "QualityValue"),
     ) in graph
     for gt in (
         "geometryTypePoint",
@@ -1677,7 +1678,7 @@ def test_virtual_location_type_is_value_not_subclass() -> None:
     assert (
         URIRef(GMEOW + "VirtualLocationType"),
         RDFS.subClassOf,
-        URIRef(GUFO + "QualityValue"),
+        URIRef(LOGIC + "QualityValue"),
     ) in graph
     vlt = URIRef(GMEOW + "virtualLocationType")
     assert (vlt, RDF.type, OWL.ObjectProperty) in graph
@@ -1756,7 +1757,7 @@ def test_network_address_type_is_value_not_subclass() -> None:
     assert (
         URIRef(GMEOW + "NetworkAddressType"),
         RDFS.subClassOf,
-        URIRef(GUFO + "QualityValue"),
+        URIRef(LOGIC + "QualityValue"),
     ) in graph
     for ind in (
         "networkAddressTypeIPv4",
@@ -1952,7 +1953,7 @@ def test_celestial_object_type_is_value_not_subclass() -> None:
     assert (
         URIRef(GMEOW + "CelestialObjectType"),
         RDFS.subClassOf,
-        URIRef(GUFO + "QualityValue"),
+        URIRef(LOGIC + "QualityValue"),
     ) in graph
     celestial_type = URIRef(GMEOW + "celestialObjectType")
     assert (celestial_type, RDF.type, OWL.ObjectProperty) in graph
@@ -1981,7 +1982,7 @@ def test_reference_position_and_timescale_are_values() -> None:
     assert (
         URIRef(GMEOW + "CelestialReferenceOrigin"),
         RDFS.subClassOf,
-        URIRef(GUFO + "QualityValue"),
+        URIRef(LOGIC + "QualityValue"),
     ) in graph
     for ind in (
         "refOriginTopocentric",
@@ -2116,7 +2117,7 @@ def test_sequence_feature_type_is_value_not_subclass() -> None:
     assert (
         URIRef(GMEOW + "SequenceFeatureType"),
         RDFS.subClassOf,
-        URIRef(GUFO + "QualityValue"),
+        URIRef(LOGIC + "QualityValue"),
     ) in graph
     for sft in (
         "sequenceFeatureTypeGene",
@@ -2140,7 +2141,7 @@ def test_strand_orientation_values() -> None:
     assert (
         URIRef(GMEOW + "StrandOrientation"),
         RDFS.subClassOf,
-        URIRef(GUFO + "QualityValue"),
+        URIRef(LOGIC + "QualityValue"),
     ) in graph
     for strand in ("strandForward", "strandReverse", "strandBoth"):
         assert (
@@ -2310,7 +2311,7 @@ def test_geocode_class_grounding() -> None:
     graph = _graph()
     geocode = URIRef(GMEOW + "Geocode")
     assert (geocode, RDF.type, OWL.Class) in graph
-    assert (geocode, RDF.type, URIRef(GUFO + "Kind")) in graph
+    assert (geocode, RDF.type, URIRef(LOGIC + "Kind")) in graph
     assert (geocode, RDFS.subClassOf, URIRef(GMEOW + "Entity")) in graph
 
 
@@ -2792,7 +2793,7 @@ def test_land_tenure_type_is_value_vocabulary() -> None:
     assert (
         URIRef(GMEOW + "LandTenureType"),
         RDFS.subClassOf,
-        URIRef(GUFO + "QualityValue"),
+        URIRef(LOGIC + "QualityValue"),
     ) in graph
     for ind in (
         "tenureTypeOwnership",
@@ -2886,7 +2887,7 @@ def test_cadastral_reference_type_is_value_vocabulary() -> None:
     assert (
         URIRef(GMEOW + "CadastralReferenceType"),
         RDFS.subClassOf,
-        URIRef(GUFO + "QualityValue"),
+        URIRef(LOGIC + "QualityValue"),
     ) in graph
     for ind in (
         "referenceTypeParcelId",

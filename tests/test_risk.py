@@ -4,7 +4,7 @@
 
 Counterfactual causal structure without counterfactual machinery: cascades
 relate event TYPES, never instances — the no-occurrence gate makes that
-executable. Hazard is GMEOW's first gufo:Disposition use; causal links are
+executable. Hazard is GMEOW's first logic:Disposition use; causal links are
 standpoint-indexed claims; severity is the fourth ordered-vocabulary use;
 Mitigation bridges to the deontic and procedural worlds by deliberately open
 range (the tenurePosition precedent — no extension→extension dependency).
@@ -24,6 +24,7 @@ from tests._graph_nt import run_shacl
 GMEOW = "https://blackcatinformatics.ca/gmeow/"
 GM = Namespace(GMEOW)
 GUFO = Namespace("http://purl.org/nemo/gufo#")
+LOGIC = Namespace("https://blackcatinformatics.ca/logic/")
 
 FIXTURES = Path(__file__).parent / "fixtures" / "shapes"
 
@@ -44,11 +45,11 @@ def _fixture(name: str) -> Graph:
 
 
 def test_hazard_is_a_disposition() -> None:
-    """First gufo:Disposition use in GMEOW — a hazard that never manifests
+    """First logic:Disposition use in GMEOW — a hazard that never manifests
     is fully real."""
     g = _graph()
-    assert (GM.Hazard, RDF.type, GUFO.Kind) in g
-    assert (GM.Hazard, RDFS.subClassOf, GUFO.Disposition) in g
+    assert (GM.Hazard, RDF.type, LOGIC.Kind) in g
+    assert (GM.Hazard, RDFS.subClassOf, LOGIC.Disposition) in g
     assert (GM.Hazard, RDFS.subClassOf, GM.RiskFactor) in g
     assert (GM.hazardBearer, RDF.type, OWL.FunctionalProperty) in g
     assert (GM.manifestedAsType, RDFS.range, GM.EventType) in g
@@ -76,7 +77,7 @@ def test_type_level_links_are_never_transitive() -> None:
 
 def test_causal_link_constituents() -> None:
     g = _graph()
-    assert (GM.CausalLink, RDFS.subClassOf, GUFO.Relator) in g
+    assert (GM.CausalLink, RDFS.subClassOf, LOGIC.Relator) in g
     assert (GM.CausalLink, RDFS.subClassOf, GM.RiskFactor) in g
     functional = (GM.linkAntecedent, GM.linkConsequent, GM.causalModality)
     for prop in functional:
@@ -116,7 +117,7 @@ def test_mitigation_measure_is_range_open() -> None:
     g = _graph()
     assert g.value(GM.mitigationMeasure, RDFS.range) is None
     assert (GM.mitigationCounters, RDFS.range, GM.RiskFactor) in g
-    assert (GM.RiskFactor, RDF.type, GUFO.Category) in g
+    assert (GM.RiskFactor, RDF.type, LOGIC.Category) in g
     assert (GM.RiskFactor, RDFS.subClassOf, GM.Entity) in g
 
 
