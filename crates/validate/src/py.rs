@@ -23,6 +23,7 @@ use gmeow_diagnostics::py::PyReport;
 use pyo3::prelude::*;
 use pyo3::types::{PyCapsule, PyDict, PyList};
 
+use crate::constitution;
 use crate::coverage;
 use crate::crossref;
 use crate::dsl;
@@ -841,6 +842,26 @@ fn check_statement_lossless(
     Ok(Py::new(py, PyReport::from_engine(report))?.into_any())
 }
 
+/// Native constitution enforcement-coverage check → diagnostics `Report` (#809).
+///
+/// Parses the manifest Turtle (`governance/constitution.ttl`) into a Store and
+/// runs the graph-resident enforcement-coverage check, emitting granular
+/// `constitution.{principle-unenforced,honor-system,orphaned-enforcement,
+/// undeclared-enforcement}` findings. The non-graph constitution checks remain in
+/// Python (they introspect the filesystem / Typer app / generator registry).
+#[pyfunction]
+fn constitution_enforcement_report(py: Python<'_>, manifest_ttl: &str) -> PyResult<Py<PyAny>> {
+    let store = oxigraph::store::Store::new()
+        .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))?;
+    insert_turtle(&store, manifest_ttl)?;
+
+    let mut report = gmeow_diagnostics::Report::new("constitution");
+    for finding in constitution::check_enforcement_coverage(&store) {
+        report.add_finding(finding);
+    }
+    Ok(Py::new(py, PyReport::from_engine(report))?.into_any())
+}
+
 /// Native slice-ownership analysis projected into a diagnostics `Report` (#809).
 ///
 /// Discovers the slice catalog under `slices_root`, runs the native `gmeow-slice`
@@ -970,6 +991,7 @@ pub fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(check_statement_invariants, m)?)?;
     m.add_function(wrap_pyfunction!(check_statement_lossless, m)?)?;
     m.add_function(wrap_pyfunction!(slice_ownership_report, m)?)?;
+    m.add_function(wrap_pyfunction!(constitution_enforcement_report, m)?)?;
     m.add_function(wrap_pyfunction!(build_deposit_xml_native, m)?)?;
     m.add_function(wrap_pyfunction!(lint_deposit_native, m)?)?;
     Ok(())

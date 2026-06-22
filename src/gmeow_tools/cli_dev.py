@@ -439,7 +439,7 @@ def _surface_reports() -> list[tuple[str, Callable[[], Any]]]:
     def _constitution() -> Any:
         from gmeow_tools import constitution
 
-        return constitution.to_diagnostics_report(constitution.check_constitution())
+        return constitution.constitution_report()
 
     def _crate_layering() -> Any:
         from gmeow_tools import crate_layering

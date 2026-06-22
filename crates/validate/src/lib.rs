@@ -23,6 +23,7 @@
 //! dependency.
 
 pub mod cache;
+pub mod constitution;
 pub mod coverage;
 pub mod dsl;
 pub mod findings;
