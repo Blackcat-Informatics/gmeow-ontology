@@ -10,6 +10,7 @@ pub mod cache;
 pub mod catalog;
 pub mod error;
 pub mod fix_deps;
+pub mod fno_emit;
 pub mod mapping_emit;
 pub mod ownership;
 

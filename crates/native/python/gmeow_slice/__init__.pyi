@@ -103,3 +103,14 @@ def emit_sssom(root: str) -> dict[str, str]:
     and ``metadata/gmeow-self.ttl`` for the version + release date.
     """
     ...
+
+def emit_fno(root: str) -> str:
+    """Emit the FnO function catalog from the repo at ``root``.
+
+    Returns the ``functions.fno.ttl`` graph as full-IRI N-Triples text,
+    graph-isomorphic to the historical Python emitter (#848). Sources every input
+    natively from ``root``: the projection functions + cells from the
+    ``dsl/mappings/`` tree + slice mapping artifacts, and each input predicate's
+    ``rdfs:range`` from ``ontology/gmeow.ttl`` + slice module artifacts.
+    """
+    ...

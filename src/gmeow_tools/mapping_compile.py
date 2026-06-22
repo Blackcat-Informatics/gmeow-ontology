@@ -70,8 +70,6 @@ from gmeow_tools.projection_lint import (
 from gmeow_tools.slices import iter_slice_mapping_files
 
 GM = Namespace(PREFIXES["gmeow"])
-FNO = Namespace(PREFIXES["fno"])
-FNOM = Namespace(PREFIXES["fnom"])
 ALIGN = Namespace(PREFIXES["align"])
 EDOAL = Namespace(PREFIXES["edoal"])
 DCTERMS = Namespace(PREFIXES["dcterms"])
@@ -173,144 +171,33 @@ def _local(iri: URIRef) -> str:
     return text[cut + 1 :] if cut >= 0 else text
 
 
-def _param_iri(predicate: URIRef) -> URIRef:
-    local = _local(predicate)
-    return URIRef(GM + "param" + local[:1].upper() + local[1:])
-
-
-def _output_iri(fn: URIRef) -> URIRef:
-    local = _local(fn)
-    stem = local[2:] if local.startswith("fn") else local
-    return URIRef(GM + "out" + stem)
-
-
 def emit_fno(dsl: Dsl, onto: Graph) -> Graph:
-    """Render the FnO function catalog; param fno:type derived from rdfs:range."""
+    """Render the FnO function catalog (param fno:type derived from rdfs:range).
+
+    FnO emission is now wholly native (#848): the entire emitter lives in the Rust
+    slice framework (``gmeow_slice.emit_fno`` → ``crates/slice/src/fno_emit.rs``),
+    which sources every input from the repo itself — the projection functions +
+    cells from the slice ``mappings/*.ttl`` artifacts and the shared
+    ``dsl/mappings/`` tree, and each input predicate's ``rdfs:range`` from
+    ``ontology/gmeow.ttl`` + the slice ``module.ttl`` artifacts (the
+    ``load_merged_graph`` source set). Python passes only the repo root; the ``dsl``
+    and ``onto`` arguments are accepted for call-site compatibility but are no
+    longer read (the native emitter rediscovers the same sources). The fail-closed
+    ``fno:type`` guard (an input predicate with no ontology range is a hard error)
+    is reproduced natively.
+
+    The native emitter returns the FnO graph as full-IRI N-Triples; this wrapper
+    re-parses it into a fresh rdflib :class:`Graph` (so the downstream
+    ``projection_lint`` reads + the Turtle writer are unchanged) and binds the
+    canonical prefixes as the old code did. The result is graph-isomorphic to the
+    historical Python emitter.
+    """
+    del dsl, onto  # Sourced natively from PROJECT_ROOT; see the docstring.
+    ntriples = gmeow_slice.emit_fno(str(PROJECT_ROOT))
     graph = Graph()
+    graph.parse(data=ntriples, format="nt")
     bind_prefixes(graph)
-    onto_iri = URIRef(ONTOLOGY_IRI)
-    doc = URIRef(ONTOLOGY_IRI + "/projections/functions")
-    graph.add((doc, RDF.type, URIRef(PREFIXES["owl"] + "Ontology")))
-    graph.add(
-        (
-            doc,
-            RDFS.label,
-            Literal("GMEOW projection functions (FnO)", lang="x-gmeow-english"),
-        )
-    )
-    graph.add((doc, DCTERMS.isPartOf, onto_iri))
-    graph.add((doc, RDFS.comment, Literal(_GENERATED_BANNER, lang="x-gmeow-english")))
-
-    # Which profiles use each transform (+ ALL cells per (transform, profile) — a
-    # transform can fan out to several cells, e.g. fnHonorificToAffix → prefix and
-    # suffix — so the fnom mapping must aggregate every cell's var bindings).
-    used_by: dict[URIRef, list[str]] = {}
-    transform_cells: dict[tuple[URIRef, str], list[ProjectionCell]] = {}
-    for cell in dsl.projections:
-        for b in cell.bindings:
-            if b.transform is not None:
-                used_by.setdefault(b.transform, [])
-                if b.profile not in used_by[b.transform]:
-                    used_by[b.transform].append(b.profile)
-                transform_cells.setdefault((b.transform, b.profile), []).append(cell)
-
-    params_emitted: dict[URIRef, URIRef] = {}
-    for fn_iri in sorted(dsl.functions, key=str):
-        fn = dsl.functions[fn_iri]
-        graph.add((fn_iri, RDF.type, FNO.Function))
-        graph.add((fn_iri, RDF.type, GM.ProjectionFunction))
-        graph.add((fn_iri, RDFS.label, Literal(fn.label, lang="x-gmeow-english")))
-        if fn.description:
-            graph.add(
-                (
-                    fn_iri,
-                    SKOS.definition,
-                    Literal(fn.description, lang="x-gmeow-english"),
-                )
-            )
-        profiles = used_by.get(fn_iri) or ["schema-org"]
-        graph.add(
-            (
-                fn_iri,
-                RDFS.seeAlso,
-                URIRef(f"{ONTOLOGY_IRI}/queries/projections/{profiles[0]}.rq"),
-            )
-        )
-        # expects (required first, then optional), each param derives fno:type.
-        expects: list[URIRef] = []
-        for predicate, required in [
-            *[(p, True) for p in fn.inputs],
-            *[(p, False) for p in fn.optional_inputs],
-        ]:
-            param = _param_iri(predicate)
-            # The derived fno:type is the whole point — refuse to emit a param
-            # whose source predicate has no ontology range (the type mismatch
-            # bug class would otherwise move from "wrong type" to "missing type").
-            rng = onto.value(predicate, RDFS.range)
-            if not isinstance(rng, URIRef):
-                raise CompileError(
-                    f"{fn_iri}: input {predicate} has no rdfs:range — "
-                    "cannot derive its fno:type"
-                )
-            prior = params_emitted.get(param)
-            if prior is not None and prior != predicate:
-                raise CompileError(
-                    f"param IRI collision: {param} is minted from both "
-                    f"{prior} and {predicate}"
-                )
-            expects.append(param)
-            if param not in params_emitted:
-                params_emitted[param] = predicate
-                graph.add((param, RDF.type, FNO.Parameter))
-                graph.add((param, FNO.predicate, predicate))
-                graph.add((param, FNO.type, rng))
-                graph.add((param, FNO.required, Literal(required)))
-        _attach_list(graph, fn_iri, FNO.expects, expects)
-        out = _output_iri(fn_iri)
-        graph.add((out, RDF.type, FNO.Output))
-        graph.add((out, FNO.predicate, fn.output))
-        graph.add((out, FNO.type, fn.output_type))
-        _attach_list(graph, fn_iri, FNO.returns, [out])
-
-    _emit_fnom(graph, dsl, used_by, transform_cells)
     return graph
-
-
-def _camel(text: str) -> str:
-    return "".join(p.capitalize() for p in text.replace("_", "-").split("-"))
-
-
-def _impl_iri(profile: str) -> URIRef:
-    return URIRef(GM + "impl" + _camel(profile))
-
-
-def _var_for_predicate(cell: ProjectionCell, predicate: URIRef) -> str | None:
-    """The SPARQL object variable an atom binds for ``predicate`` (or None).
-
-    Matches a plain-predicate atom, and an alternation-path atom one of whose
-    alternatives is the predicate (e.g. ``hasAppellation`` inside
-    ``hasAppellation|hasName`` → the appellation variable).
-    """
-    for atom in _flatten_atoms(cell.pattern.atoms):
-        if atom.object_var is None:
-            continue
-        if atom.predicate == predicate or predicate in atom.path_alts:
-            return atom.object_var
-    return None
-
-
-def _output_var(cell: ProjectionCell) -> str | None:
-    """The SPARQL variable a cell's output value binds to.
-
-    The pattern's ``value`` for a single-value projection; for a structural
-    (templateAtoms) transform with no value var, the last derived ``BIND`` var
-    (the composed/retagged literal — e.g. the WKT, the address label).
-    """
-    if cell.pattern.value is not None:
-        return cell.pattern.value
-    if cell.pattern.binds:
-        return cell.pattern.binds[-1].var
-    return None
 
 
 def _stable_bnode(label: str) -> BNode:
@@ -325,104 +212,6 @@ def _stable_bnode(label: str) -> BNode:
     """
     safe = "".join(c if c.isalnum() else "_" for c in label)
     return BNode(f"n_{safe}")
-
-
-def _emit_fnom(
-    graph: Graph,
-    dsl: Dsl,
-    used_by: dict[URIRef, list[str]],
-    transform_cells: dict[tuple[URIRef, str], list[ProjectionCell]],
-) -> None:
-    """Emit fno:Implementation + fno:Mapping linking each function to its SPARQL.
-
-    The FnO mapping vocabulary (fnom) makes the function self-describing about HOW
-    it executes: one fno:Implementation per profile .rq, and one fno:Mapping per
-    (function, profile) binding each parameter/output to the SPARQL variable that
-    realises it (a PropertyParameterMapping — a SPARQL var is a named property).
-    A transform may fan out to several cells in a profile (e.g. honorific →
-    prefix and suffix), so the bindings are aggregated across every such cell.
-    """
-    impl_emitted: set[str] = set()
-    for fn_iri in sorted(dsl.functions, key=str):
-        fn = dsl.functions[fn_iri]
-        out_node = _output_iri(fn_iri)
-        for profile in used_by.get(fn_iri, []):
-            impl = _impl_iri(profile)
-            if profile not in impl_emitted:
-                impl_emitted.add(profile)
-                graph.add((impl, RDF.type, FNO.Implementation))
-                graph.add(
-                    (impl, DCTERMS["format"], Literal("application/sparql-query"))
-                )
-                graph.add(
-                    (
-                        impl,
-                        RDFS.seeAlso,
-                        URIRef(f"{ONTOLOGY_IRI}/queries/projections/{profile}.rq"),
-                    )
-                )
-            cells = transform_cells.get((fn_iri, profile), [])
-            # Aggregate every cell's parameter/output variable bindings.
-            param_vars: dict[URIRef, set[str]] = {}
-            out_vars: set[str] = set()
-            for cell in cells:
-                for predicate in (*fn.inputs, *fn.optional_inputs):
-                    var = _var_for_predicate(cell, predicate)
-                    if var is not None:
-                        param_vars.setdefault(_param_iri(predicate), set()).add(var)
-                out_var = _output_var(cell)
-                if out_var is not None:
-                    out_vars.add(out_var)
-
-            fn_local = _local(fn_iri)
-            mapping = _stable_bnode(f"mapping-{fn_local}-{profile}")
-            graph.add((mapping, RDF.type, FNO.Mapping))
-            # Label from the *neutral* function local name + profile — never
-            # ``fn.label``, which may embed one profile's target term (e.g.
-            # "… → schema:birthDate") and mislead when the function is reused
-            # across profiles (vCard/FOAF).
-            graph.add(
-                (
-                    mapping,
-                    RDFS.label,
-                    Literal(
-                        f"{fn_local} → {profile} (FnO mapping)", lang="x-gmeow-english"
-                    ),
-                )
-            )
-            graph.add((mapping, FNO.function, fn_iri))
-            graph.add((mapping, FNO.implementation, impl))
-            for param in sorted(param_vars, key=str):
-                for var in sorted(param_vars[param]):
-                    pmap = _stable_bnode(
-                        f"param-{fn_local}-{profile}-{_local(param)}-{var}"
-                    )
-                    graph.add((pmap, RDF.type, FNOM.PropertyParameterMapping))
-                    graph.add(
-                        (
-                            pmap,
-                            RDFS.label,
-                            Literal(
-                                f"{_local(param)} ↦ ?{var}", lang="x-gmeow-english"
-                            ),
-                        )
-                    )
-                    graph.add((pmap, FNOM.functionParameter, param))
-                    graph.add((pmap, FNOM.implementationProperty, Literal(var)))
-                    graph.add((mapping, FNO.parameterMapping, pmap))
-            for var in sorted(out_vars):
-                rmap = _stable_bnode(f"return-{fn_local}-{profile}-{var}")
-                graph.add((rmap, RDF.type, FNOM.DefaultReturnMapping))
-                graph.add(
-                    (
-                        rmap,
-                        RDFS.label,
-                        Literal(f"{fn_local} output ↦ ?{var}", lang="x-gmeow-english"),
-                    )
-                )
-                graph.add((rmap, FNOM.functionOutput, out_node))
-                graph.add((rmap, FNOM.implementationProperty, Literal(var)))
-                graph.add((mapping, FNO.returnMapping, rmap))
 
 
 def _attach_list(

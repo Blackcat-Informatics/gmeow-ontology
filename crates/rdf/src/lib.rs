@@ -11,6 +11,10 @@
 pub mod bundle;
 pub mod content_store;
 pub mod diagnostic;
+// Native FnO (W3C Function Ontology) typed catalog model + serializer (#848).
+// PyO3-free; the `gmeow-slice` FnO emitter builds a `FnoCatalog` from the slice
+// framework and serializes it here, replacing rdflib `emit_fno`/`_emit_fnom`.
+pub mod fno;
 #[cfg(feature = "gts")]
 pub mod gts;
 #[cfg(feature = "gts")]
@@ -65,6 +69,10 @@ pub use bundle::{
 };
 pub use content_store::{Bytes, ContentDigest, ContentStore, ContentStoreError};
 pub use diagnostic::{RdfDiagnostic, RdfLocation, RdfLoss, RdfSeverity};
+pub use fno::{
+    to_ntriples as fno_to_ntriples, to_quads as fno_to_quads, FnFunction, FnImpl, FnMapping,
+    FnOutput, FnParam, FnParamMapping, FnReturnMapping, FnoCatalog,
+};
 pub use ir::{
     dataset_diff, datasets_isomorphic, BlankScope, DatasetDiff, GtsBundle, QuadHandle, QuadIds,
     QuadRef, RdfDataset, RdfDatasetBuilder, RdfEnvelope, RdfEventSink, TermId, TermRef,

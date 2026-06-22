@@ -38,6 +38,7 @@ use crate::artifact::{ArtifactRecord, ArtifactRole};
 use crate::cache::ToolchainContext;
 use crate::catalog::{ManifestView, SliceCatalog, SliceRecord, SliceTier};
 use crate::fix_deps::{compute_fix_deps, ManifestPatch};
+use crate::fno_emit::emit_fno as emit_fno_text;
 use crate::mapping_emit::emit_sssom_sets;
 use crate::ownership::{
     DependencyEdge, OwnershipAnalyzer, OwnershipDiagnostic, OwnershipReport, OwnershipStatus,
@@ -618,9 +619,32 @@ fn emit_sssom<'py>(py: Python<'py>, root: &str) -> PyResult<Bound<'py, PyDict>> 
     Ok(dict)
 }
 
+/// Emit the FnO function catalog (`generated/projections/functions.fno.ttl`) from
+/// the repo at `root`, returning its N-Triples text.
+///
+/// The whole FnO emitter is now native (#848): Python passes only the repo root,
+/// and the emitter sources every input — the projection functions + cells from the
+/// `dsl/mappings/` tree + slice mapping artifacts, and each input predicate's
+/// `rdfs:range` from `ontology/gmeow.ttl` + slice module artifacts — natively. The
+/// returned text is full-IRI N-Triples; the Python caller re-parses it into a fresh
+/// rdflib `Graph` (so the downstream `projection_lint` + the Turtle writer are
+/// unchanged), and the result is graph-isomorphic to the historical Python emitter.
+///
+/// # Errors
+///
+/// Raises `ValueError` on any missing/unparsable required source, a malformed
+/// function declaration, or — the fail-closed `fno:type` guard — an input predicate
+/// with no ontology `rdfs:range` (no degraded fallback).
+#[pyfunction]
+fn emit_fno(root: &str) -> PyResult<String> {
+    emit_fno_text(Path::new(root))
+        .map_err(|e| PyValueError::new_err(format!("FnO emission failed: {e}")))
+}
+
 /// Register the `gmeow_slice` engine surface into the given module.
 pub fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(emit_sssom, m)?)?;
+    m.add_function(wrap_pyfunction!(emit_fno, m)?)?;
     m.add_class::<PyArtifactRecord>()?;
     m.add_class::<PyManifestView>()?;
     m.add_class::<PySliceRecord>()?;
