@@ -1,0 +1,38 @@
+---
+source: crates/docs/tests/render_golden.rs
+expression: "to_markdown(&model, &Page::LearningPath(slug))"
+---
+# Audit AI and Graph\-RAG Pipelines
+
+`audit-ai-or-graph-rag` · learning path
+
+| Field | Value |
+| --- | --- |
+| Audience | Developers recording extracted facts, chunks, and tools\. |
+
+## Goal
+
+Connect generated claims to source chunks, evidence spans, tools, model context, and provenance before consumers see them\.
+
+## Recipes
+
+- [Model Graph\-RAG Dataset Lineage](../../recipes/graph-rag-dataset-lineage/index.md)
+
+## Terms used
+
+- [`gmeow:Chunk`](../../terms/chunk/index.md)
+- [`gmeow:Dataset`](../../terms/dataset/index.md)
+- [`gmeow:EvidenceSpan`](../../terms/evidencespan/index.md)
+- [`gmeow:ExtractedEntity`](../../terms/extractedentity/index.md)
+- [`gmeow:usedModel`](../../terms/usedmodel/index.md)
+
+## Example files
+
+- `slices/core/ai/examples/grounded-claim.ttl`
+- `slices/extensions/agentic/examples/agent-trajectory.ttl`
+- `slices/extensions/graphrag/examples/lillith-dataset.ttl`
+- `slices/extensions/graphrag/examples/lillith-pipeline.ttl`
+
+## Projects toward
+
+`dcat`, `prov`, `schema`

@@ -1262,6 +1262,33 @@ def lint_alignment(
     )
 
 
+@app.command(name="doc-lint")
+def doc_lint() -> None:
+    """Lint the rust-rendered ontology-docs site for integrity + coverage (#853 T5).
+
+    Builds the native ``gmeow_docs`` documentation set from the slice catalog and
+    runs its lint, emitting a shared ``gmeow:Finding`` report. ERRORS are integrity
+    defects (dangling internal links, broken in-page anchors) — a dangling link is
+    always a render bug and fails the gate. WARNINGS are coverage gaps (terms
+    missing a definition or label on the vocabulary surface) and do not fail.
+    """
+    import gmeow_docs as _docs  # legacy-name shim → gmeow_native.docs submodule
+
+    docset = _docs.DocSet.from_root(str(PROJECT_ROOT))
+    report = docset.lint()
+
+    text = report.render_text()
+    if text.strip():
+        console.print(text)
+
+    if report.error_count > 0:
+        raise _fail(
+            f"✗ doc-lint: {report.error_count} error(s), "
+            f"{report.warning_count} warning(s)"
+        )
+    console.print(f"[green]✓ doc-lint OK[/green] ({report.warning_count} warning(s))")
+
+
 @app.command(name="crate-check")
 def crate_check() -> None:
     """Verify the Rust crate layering: kernel purity + an acyclic crate DAG (#820 S0).
@@ -2020,17 +2047,6 @@ def export(
 
 
 @app.command()
-def docs() -> None:
-    """Generate the native static ontology documentation site (#440)."""
-    from gmeow_tools.config import PROJECT_ROOT
-    from gmeow_tools.ontology_docs import build_ontology_docs
-
-    out = PROJECT_ROOT / "ontology-docs"
-    build_ontology_docs(out)
-    console.print(f"[green]✓[/green] ontology docs → {out}")
-
-
-@app.command()
 def quality(
     foops_url: str = typer.Option(
         "", "--foops-url", help="Published ontology URL to assess with FOOPS!."
@@ -2239,8 +2255,8 @@ def describe(
         raise typer.Exit(code=code)
 
 
-@app.command(name="create-docs")
-def create_docs_cmd(
+@app.command(name="extract-docs")
+def extract_docs(
     gts_file: Path | None = typer.Argument(  # noqa: B008
         None,
         help="GTS file to project (default: bundled gmeow.gts).",
@@ -2258,12 +2274,12 @@ def create_docs_cmd(
     ),
     lang: str | None = _lang_option(),
 ) -> None:
-    """Emit a browsable Markdown docs tree from a GTS snapshot (#439).
+    """Extract the stored Markdown docs tree from a GTS snapshot (#439).
 
-    The tree includes per-term reference pages, slice guides, project doctrine
-    docs, ontology web docs (#440), an alignment summary, and a statement-layer
-    summary. All content is extracted from the bundled offline snapshot or any
-    other ``.gts`` file.
+    The tree (per-term reference pages, slice guides, project doctrine docs,
+    ontology web docs, an alignment summary, and a statement-layer summary) is
+    read verbatim from the ``ontology-docs`` blob baked into the bundle — it is
+    never re-rendered here. Run ``regenerate gts`` to refresh the stored tree.
     """
     from gmeow_tools.config import GTS_SNAPSHOT_FILE
     from gmeow_tools.create_docs import create_docs

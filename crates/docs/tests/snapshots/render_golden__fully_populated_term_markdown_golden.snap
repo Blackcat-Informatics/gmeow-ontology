@@ -1,0 +1,30 @@
+---
+source: crates/docs/tests/render_golden.rs
+expression: "to_markdown(&model, &Page::Term(slug))"
+---
+# analysis frame
+
+`gmeow:analysisFrame` · Property
+
+| Field | Value |
+| --- | --- |
+| CURIE | `gmeow:analysisFrame` |
+| IRI | `https://blackcatinformatics.ca/gmeow/analysisFrame` |
+| Category | Property |
+| Slice | [GMEOW Music — frame\-relative content, lossy notation projections](../../slices/music/index.md) |
+
+## Definition
+
+The music\-theory reference frame in which the analysis result is expressed — orthogonal to the analyst vantage \(Principle 11\)\.
+
+## Super\-properties
+
+- [`gmeow:hasReferenceFrame`](../hasreferenceframe/index.md)
+
+## Domain
+
+- [`gmeow:MusicAnalysisClaim`](../musicanalysisclaim/index.md)
+
+## Range
+
+- [`gmeow:ReferenceFrame`](../referenceframe/index.md)

@@ -1,0 +1,32 @@
+---
+source: crates/docs/tests/render_golden.rs
+expression: "to_markdown(&model, &Page::Landing)"
+---
+# GMEOW Ontology Documentation
+
+Version **3**.
+
+This site documents **2153** vocabulary terms across **74** slices.
+
+## Vocabulary by category
+
+| Category | Terms |
+| --- | --- |
+| [Classes](classes/index.md) | 648 |
+| [Properties](properties/index.md) | 1501 |
+| [Individuals](individuals/index.md) | 3 |
+| [Datatypes](datatypes/index.md) | 1 |
+
+## Browse
+
+- [All slices](slices/index.md) — the 74 compilation units.
+- [Concerns](concerns/index.md) — 7 cross-cutting design concerns.
+- [Linkages](linkages/index.md) — 1381 term equivalences to external vocabularies.
+- [Examples](examples/index.md) — 94 worked examples.
+- [External ontologies](external-ontologies/index.md) — 1206 external terms referenced.
+- [Integrity constraints](integrity-constraints/index.md)
+- [Recipes](recipes/index.md) — 6 task-oriented adoption recipes.
+- [Learning paths](learning-paths/index.md) — 5 curated adoption journeys.
+- [What is this?](four-boxes/index.md) — the ABox/TBox/RBox/CBox/ConfigBox doctrine.
+- [Getting started](getting-started/index.md)
+- [About](about/index.md)

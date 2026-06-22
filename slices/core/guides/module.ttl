@@ -1,0 +1,284 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow:   <https://blackcatinformatics.ca/gmeow/> .
+@prefix gufo:    <http://purl.org/nemo/gufo#> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
+@prefix owl:     <http://www.w3.org/2002/07/owl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+
+# ── Vocabulary (TBox) ──────────────────────────────────────────────────────────
+
+gmeow:Recipe
+    a gufo:AbstractIndividualType ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/guides> ;
+    rdfs:label "Recipe"@x-gmeow-english ;
+    rdfs:subClassOf gufo:QualityValue ;
+    skos:definition "A task-oriented adoption recipe: a short, goal-named guide that shows how to model one recurring modelling task in GMEOW (for example, representing a person's coexisting names, or keeping contested facts side by side), backed by one or more canonical example files and the vocabulary terms they exercise. A Recipe is curated pedagogy, not an axiom over the modelled domain; it sequences existing examples and terms for a developer adopting GMEOW."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:LearningPath
+    a gufo:AbstractIndividualType ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/guides> ;
+    rdfs:label "Learning Path"@x-gmeow-english ;
+    rdfs:subClassOf gufo:QualityValue ;
+    skos:definition "A curated adoption journey for a named audience: an ordered itinerary that sequences recipes, canonical example files, and vocabulary terms so a developer learns to model a whole area (a person, a contested claim, web structured data, an offline GTS distribution, a graph-RAG pipeline) end to end, and sees which external vocabularies the native model projects toward. A LearningPath is curated pedagogy layered over the existing slices, never a new axiom."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:guideGoal
+    a owl:DatatypeProperty ;
+    rdfs:domain [ a owl:Class ; owl:unionOf ( gmeow:Recipe gmeow:LearningPath ) ] ;
+    rdfs:range rdfs:Literal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/guides> ;
+    rdfs:label "guide goal"@x-gmeow-english ;
+    skos:definition "The prose goal of a recipe or learning path — the modelling outcome the guide helps a developer achieve, stated as the thing they will be able to represent after following it."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:learningAudience
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:LearningPath ;
+    rdfs:range rdfs:Literal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/guides> ;
+    rdfs:label "learning audience"@x-gmeow-english ;
+    skos:definition "The intended audience of a learning path — a short description of the developer the path is written for (for example, developers importing contact or biography data, or developers recording extracted facts and tools)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:usesExamplePath
+    a owl:DatatypeProperty ;
+    rdfs:domain [ a owl:Class ; owl:unionOf ( gmeow:Recipe gmeow:LearningPath ) ] ;
+    rdfs:range rdfs:Literal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/guides> ;
+    rdfs:label "uses example path"@x-gmeow-english ;
+    skos:definition "A slice-relative path string naming a canonical example file the guide builds on. Carried as a string (not an object reference) because the target is a worked-example file on disk, identified by its documentation-relative path rather than by an IRI; non-functional, since a guide sequences several examples."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:usesTerm
+    a owl:ObjectProperty ;
+    rdfs:domain [ a owl:Class ; owl:unionOf ( gmeow:Recipe gmeow:LearningPath ) ] ;
+    rdfs:range rdfs:Resource ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/guides> ;
+    rdfs:label "uses term"@x-gmeow-english ;
+    skos:definition "Relates a recipe or learning path to a GMEOW vocabulary term it exercises — the load-bearing classes and properties a developer touches when following the guide. The range is left open (rdfs:Resource) because a guide may point at any documented term across any slice; non-functional, since a guide exercises several terms."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:includesRecipe
+    a owl:ObjectProperty ;
+    rdfs:domain gmeow:LearningPath ;
+    rdfs:range gmeow:Recipe ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/guides> ;
+    rdfs:label "includes recipe"@x-gmeow-english ;
+    skos:definition "Relates a learning path to a recipe it folds in as a station along the journey — the task-oriented guide a learner completes as one step of the broader path. Non-functional, since a path may include several recipes."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:adoptionTarget
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:LearningPath ;
+    rdfs:range rdfs:Literal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/guides> ;
+    rdfs:label "adoption target"@x-gmeow-english ;
+    skos:definition "An external-vocabulary prefix string a learning path projects toward — the broad consumer vocabulary (for example schema, foaf, prov, dcat) a developer should inspect the native GMEOW model's projection against. Non-functional, since a path may target several external vocabularies."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:followsGuidePath
+    a owl:DatatypeProperty ;
+    rdfs:domain gmeow:Recipe ;
+    rdfs:range rdfs:Literal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/guides> ;
+    rdfs:label "follows guide path"@x-gmeow-english ;
+    skos:definition "A documentation-relative path string naming a follow-on page a developer should read after a recipe — the deeper slice or topic guide that continues the story. Carried as a string because it names a documentation page by path rather than by IRI; non-functional, since a recipe may suggest several follow-on pages."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:guideTitle
+    a owl:DatatypeProperty ;
+    rdfs:domain [ a owl:Class ; owl:unionOf ( gmeow:Recipe gmeow:LearningPath ) ] ;
+    rdfs:range rdfs:Literal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/guides> ;
+    rdfs:label "guide title"@x-gmeow-english ;
+    skos:definition "The human-readable title of a recipe or learning path — the headline a developer sees in the docs index, distinct from the stable slug used to identify the guide."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:guideSlug
+    a owl:DatatypeProperty ;
+    rdfs:domain [ a owl:Class ; owl:unionOf ( gmeow:Recipe gmeow:LearningPath ) ] ;
+    rdfs:range rdfs:Literal ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/guides> ;
+    rdfs:label "guide slug"@x-gmeow-english ;
+    skos:definition "The stable, filesystem-safe slug that identifies a recipe or learning path — the kebab-case key used to derive its documentation page URL and to cross-reference it from a learning path's included recipes."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+# ── Recipes (ABox) ─────────────────────────────────────────────────────────────
+
+gmeow:recipePersonNamesAndDisplay
+    a gmeow:Recipe ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/guides> ;
+    rdfs:label "Model Person Names Without a Preferred-Name Slot"@x-gmeow-english ;
+    skos:definition "Adoption recipe: represent coexisting names, pronouns, aliases, usage contexts, and display suppression without asserting one global winner, backed by the person-names example."@x-gmeow-english ;
+    gmeow:guideSlug "person-names-and-display" ;
+    gmeow:guideTitle "Model Person Names Without a Preferred-Name Slot"@x-gmeow-english ;
+    gmeow:guideGoal "Represent coexisting names, pronouns, aliases, usage contexts, and display suppression without asserting one global winner."@x-gmeow-english ;
+    gmeow:usesExamplePath "slices/core/names/examples/person-names.ttl" ;
+    gmeow:usesTerm gmeow:Person , gmeow:PersonName , gmeow:NameUsage , gmeow:displayable ;
+    gmeow:followsGuidePath "slices/names.md" , "slices/standpoint.md" ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:recipeContestedOrAttributedFacts
+    a gmeow:Recipe ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/guides> ;
+    rdfs:label "Model Contested or Attributed Facts"@x-gmeow-english ;
+    skos:definition "Adoption recipe: keep incompatible claims side by side by recording standpoint, vantage, modality, and evidence on the claim rather than on a single global fact slot."@x-gmeow-english ;
+    gmeow:guideSlug "contested-or-attributed-facts" ;
+    gmeow:guideTitle "Model Contested or Attributed Facts"@x-gmeow-english ;
+    gmeow:guideGoal "Keep incompatible claims side by side by recording standpoint, vantage, modality, and evidence on the claim rather than on a single global fact slot."@x-gmeow-english ;
+    gmeow:usesExamplePath "slices/core/standpoint/examples/contested-authorship.ttl" ;
+    gmeow:usesTerm gmeow:StandpointClaim , gmeow:vantage , gmeow:claimModality , gmeow:accordingTo ;
+    gmeow:followsGuidePath "slices/standpoint.md" , "statements/index.md" ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:recipeEventsAndParticipants
+    a gmeow:Recipe ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/guides> ;
+    rdfs:label "Model Events and Participants"@x-gmeow-english ;
+    skos:definition "Adoption recipe: describe an event, participant roles, time, place, and source evidence without collapsing participation into a flat string."@x-gmeow-english ;
+    gmeow:guideSlug "events-and-participants" ;
+    gmeow:guideTitle "Model Events and Participants"@x-gmeow-english ;
+    gmeow:guideGoal "Describe an event, participant roles, time, place, and source evidence without collapsing participation into a flat string."@x-gmeow-english ;
+    gmeow:usesExamplePath "slices/core/events/examples/wedding.ttl" ;
+    gmeow:usesTerm gmeow:Event , gmeow:Participation , gmeow:TimeInterval , gmeow:Place ;
+    gmeow:followsGuidePath "slices/events.md" , "slices/temporal.md" ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:recipeDocumentsAndSchemaOrg
+    a gmeow:Recipe ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/guides> ;
+    rdfs:label "Publish Documents for Schema.org Consumers"@x-gmeow-english ;
+    skos:definition "Adoption recipe: start with native document and web-presence facts, then inspect which facts project to schema.org and where projection is lossy."@x-gmeow-english ;
+    gmeow:guideSlug "documents-and-schema-org" ;
+    gmeow:guideTitle "Publish Documents for Schema.org Consumers"@x-gmeow-english ;
+    gmeow:guideGoal "Start with native document and web-presence facts, then inspect which facts project to schema.org and where projection is lossy."@x-gmeow-english ;
+    gmeow:usesExamplePath "slices/core/documents/examples/web-presence.ttl" ;
+    gmeow:usesTerm gmeow:Document , gmeow:webUrl , gmeow:Entity ;
+    gmeow:followsGuidePath "slices/documents.md" , "linkages/index.md" ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:recipeOfflineGtsDistribution
+    a gmeow:Recipe ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/guides> ;
+    rdfs:label "Describe Offline GTS Distribution"@x-gmeow-english ;
+    skos:definition "Adoption recipe: treat a GTS file as a first-class graph object with segments, profiles, chain heads, opaque frames, codecs, and compaction lineage."@x-gmeow-english ;
+    gmeow:guideSlug "offline-gts-distribution" ;
+    gmeow:guideTitle "Describe Offline GTS Distribution"@x-gmeow-english ;
+    gmeow:guideGoal "Treat a GTS file as a first-class graph object with segments, profiles, chain heads, opaque frames, codecs, and compaction lineage."@x-gmeow-english ;
+    gmeow:usesExamplePath "slices/core/gts/examples/dist-package.ttl" ;
+    gmeow:usesTerm gmeow:GTSDocument , gmeow:GTSProfile , gmeow:GTSSegment ;
+    gmeow:followsGuidePath "slices/gts.md" ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:recipeGraphRagDatasetLineage
+    a gmeow:Recipe ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/guides> ;
+    rdfs:label "Model Graph-RAG Dataset Lineage"@x-gmeow-english ;
+    skos:definition "Adoption recipe: connect sources, chunks, extracted entities, evidence spans, and pipeline provenance so retrieval artifacts remain auditable."@x-gmeow-english ;
+    gmeow:guideSlug "graph-rag-dataset-lineage" ;
+    gmeow:guideTitle "Model Graph-RAG Dataset Lineage"@x-gmeow-english ;
+    gmeow:guideGoal "Connect sources, chunks, extracted entities, evidence spans, and pipeline provenance so retrieval artifacts remain auditable."@x-gmeow-english ;
+    gmeow:usesExamplePath "slices/extensions/graphrag/examples/lillith-dataset.ttl" , "slices/extensions/graphrag/examples/lillith-pipeline.ttl" ;
+    gmeow:usesTerm gmeow:Dataset , gmeow:Chunk , gmeow:ExtractedEntity , gmeow:EvidenceSpan ;
+    gmeow:followsGuidePath "slices/graphrag.md" , "slices/provenance.md" ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+# ── Learning paths (ABox) ──────────────────────────────────────────────────────
+
+gmeow:pathModelAPerson
+    a gmeow:LearningPath ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/guides> ;
+    rdfs:label "Model a Person Without Flattening Identity"@x-gmeow-english ;
+    skos:definition "Learning path for developers importing contact, profile, or biography data: start with a person, add names and contact points, then keep authority links and display choices separate from identity."@x-gmeow-english ;
+    gmeow:guideSlug "model-a-person" ;
+    gmeow:guideTitle "Model a Person Without Flattening Identity"@x-gmeow-english ;
+    gmeow:learningAudience "Developers importing contact, profile, or biography data."@x-gmeow-english ;
+    gmeow:guideGoal "Start with a person, add names and contact points, then keep authority links and display choices separate from identity."@x-gmeow-english ;
+    gmeow:includesRecipe gmeow:recipePersonNamesAndDisplay ;
+    gmeow:usesExamplePath "slices/core/entities/examples/agent-sortals.ttl" , "slices/core/names/examples/person-names.ttl" , "slices/core/contacts/examples/contact-points.ttl" , "slices/core/coreference/examples/authority-links.ttl" ;
+    gmeow:usesTerm gmeow:Person , gmeow:PersonName , gmeow:NameUsage , gmeow:ContactPoint , gmeow:displayable ;
+    gmeow:adoptionTarget "schema" , "foaf" , "vcard" , "wikidata" ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:pathModelAContestedClaim
+    a gmeow:LearningPath ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/guides> ;
+    rdfs:label "Model a Contested or Attributed Claim"@x-gmeow-english ;
+    skos:definition "Learning path for developers handling evidence, provenance, or disagreement: represent claims by vantage and evidence rather than overwriting facts into a single global truth slot."@x-gmeow-english ;
+    gmeow:guideSlug "model-a-contested-claim" ;
+    gmeow:guideTitle "Model a Contested or Attributed Claim"@x-gmeow-english ;
+    gmeow:learningAudience "Developers handling evidence, provenance, or disagreement."@x-gmeow-english ;
+    gmeow:guideGoal "Represent claims by vantage and evidence rather than overwriting facts into a single global truth slot."@x-gmeow-english ;
+    gmeow:includesRecipe gmeow:recipeContestedOrAttributedFacts ;
+    gmeow:usesExamplePath "slices/core/standpoint/examples/contested-authorship.ttl" , "slices/core/evidence/examples/notability-assessment.ttl" , "slices/core/provenance/examples/import-lineage.ttl" , "slices/core/attestation/examples/software-release.ttl" ;
+    gmeow:usesTerm gmeow:StandpointClaim , gmeow:Evidence , gmeow:Attestation , gmeow:accordingTo , gmeow:confidence ;
+    gmeow:adoptionTarget "prov" , "crminf" , "wikidata" ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:pathPublishWebStructuredData
+    a gmeow:LearningPath ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/guides> ;
+    rdfs:label "Publish Web Structured Data"@x-gmeow-english ;
+    skos:definition "Learning path for developers projecting native GMEOW into web-facing JSON-LD: model documents, events, people, and organizations natively, then inspect which fields project cleanly to broad consumers."@x-gmeow-english ;
+    gmeow:guideSlug "publish-web-structured-data" ;
+    gmeow:guideTitle "Publish Web Structured Data"@x-gmeow-english ;
+    gmeow:learningAudience "Developers projecting native GMEOW into web-facing JSON-LD."@x-gmeow-english ;
+    gmeow:guideGoal "Model documents, events, people, and organizations natively, then inspect which fields project cleanly to broad consumers."@x-gmeow-english ;
+    gmeow:includesRecipe gmeow:recipeDocumentsAndSchemaOrg , gmeow:recipeEventsAndParticipants ;
+    gmeow:usesExamplePath "slices/core/documents/examples/web-presence.ttl" , "slices/core/events/examples/wedding.ttl" , "slices/core/organization/examples/post-and-membership.ttl" , "slices/core/places/examples/located-place.ttl" ;
+    gmeow:usesTerm gmeow:Document , gmeow:Event , gmeow:Participation , gmeow:Organization , gmeow:Place ;
+    gmeow:adoptionTarget "schema" , "prov" , "geo" , "org" ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:pathShipOfflineGtsDocs
+    a gmeow:LearningPath ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/guides> ;
+    rdfs:label "Ship Offline GTS Documentation"@x-gmeow-english ;
+    skos:definition "Learning path for developers distributing GMEOW snapshots or local docs: treat the distribution file, embedded docs, profiles, segments, codecs, and lineage as first-class graph facts."@x-gmeow-english ;
+    gmeow:guideSlug "ship-offline-gts-docs" ;
+    gmeow:guideTitle "Ship Offline GTS Documentation"@x-gmeow-english ;
+    gmeow:learningAudience "Developers distributing GMEOW snapshots or local docs."@x-gmeow-english ;
+    gmeow:guideGoal "Treat the distribution file, embedded docs, profiles, segments, codecs, and lineage as first-class graph facts."@x-gmeow-english ;
+    gmeow:includesRecipe gmeow:recipeOfflineGtsDistribution ;
+    gmeow:usesExamplePath "slices/core/gts/examples/dist-package.ttl" , "slices/core/provenance/examples/import-lineage.ttl" , "slices/core/rights/examples/licensed-dataset.ttl" ;
+    gmeow:usesTerm gmeow:GTSDocument , gmeow:GTSProfile , gmeow:GTSSegment , gmeow:usesTransformCodec ;
+    gmeow:adoptionTarget "dcat" , "void" , "spdx" ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:pathAuditAiOrGraphRag
+    a gmeow:LearningPath ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/guides> ;
+    rdfs:label "Audit AI and Graph-RAG Pipelines"@x-gmeow-english ;
+    skos:definition "Learning path for developers recording extracted facts, chunks, and tools: connect generated claims to source chunks, evidence spans, tools, model context, and provenance before consumers see them."@x-gmeow-english ;
+    gmeow:guideSlug "audit-ai-or-graph-rag" ;
+    gmeow:guideTitle "Audit AI and Graph-RAG Pipelines"@x-gmeow-english ;
+    gmeow:learningAudience "Developers recording extracted facts, chunks, and tools."@x-gmeow-english ;
+    gmeow:guideGoal "Connect generated claims to source chunks, evidence spans, tools, model context, and provenance before consumers see them."@x-gmeow-english ;
+    gmeow:includesRecipe gmeow:recipeGraphRagDatasetLineage ;
+    gmeow:usesExamplePath "slices/core/ai/examples/grounded-claim.ttl" , "slices/extensions/graphrag/examples/lillith-dataset.ttl" , "slices/extensions/graphrag/examples/lillith-pipeline.ttl" , "slices/extensions/agentic/examples/agent-trajectory.ttl" ;
+    gmeow:usesTerm gmeow:Dataset , gmeow:Chunk , gmeow:ExtractedEntity , gmeow:EvidenceSpan , gmeow:usedModel ;
+    gmeow:adoptionTarget "prov" , "dcat" , "schema" ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+# ── Ontology header ────────────────────────────────────────────────────────────
+
+<https://blackcatinformatics.ca/gmeow/slices/guides>
+    a owl:Ontology ;
+    dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;
+    rdfs:comment """The pedagogy and adoption-guides slice: it dogfoods the curated recipes and learning paths that were formerly hardcoded in the documentation tooling, modelling them as gmeow:Recipe and gmeow:LearningPath individuals so they are authored-once GMEOW data sourced through the slice catalog rather than literals embedded in a Python module.
+
+DOCTRINE.
+  * Curated pedagogy, not domain axioms: a Recipe / LearningPath sequences EXISTING examples and terms for a developer adopting GMEOW; nothing here asserts a fact about the modelled world. The guides layer is pure documentation structure.
+  * By reference (Principle 5): a guide names the example files and follow-on pages it builds on by slice-relative / documentation-relative PATH STRINGS and points at vocabulary terms by IRI; it never copies their content.
+  * Authored once (Principle 4): each recipe and path is authored here once and projected outward by the documentation renderer into the recipes/, learning-paths/, and four-boxes/ pages, replacing the retired hardcoded tooling defaults."""@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/guides> ;
+    rdfs:label "GMEOW Guides Module"@x-gmeow-english ;
+    skos:definition "The GMEOW Guides Module — task-oriented adoption recipes (gmeow:Recipe) and curated learning paths (gmeow:LearningPath) that sequence canonical examples, vocabulary terms, and follow-on reading for a developer adopting GMEOW, dogfooded as authored-once GMEOW individuals."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxConfigBox ,
+        gmeow:boxTBox .

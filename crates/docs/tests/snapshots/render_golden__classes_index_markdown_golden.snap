@@ -1,0 +1,10 @@
+---
+source: crates/docs/tests/render_golden.rs
+expression: header
+---
+# Classes
+
+648 term(s).
+
+| Term | Definition |
+| --- | --- |

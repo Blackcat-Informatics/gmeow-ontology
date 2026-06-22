@@ -1,0 +1,40 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+
+[package]
+name = "gmeow-docs"
+description = "GMEOW typed documentation model built from the slice catalog, exposed to Python via PyO3 (#853)"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+readme = "README.md"
+keywords = ["documentation", "ontology", "slices", "rdf", "gmeow"]
+
+[lib]
+# rlib-only: this crate does NOT ship a standalone PyO3 extension. Its bindings
+# are linked into the single `gmeow_native` cdylib (crates/native, #630).
+crate-type = ["rlib"]
+path = "src/lib.rs"
+
+[dependencies]
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+pyo3 = { version = "0.29", features = ["extension-module", "abi3-py313"] }
+gmeow-rdf = { path = "../rdf", features = ["oxigraph"] }
+# Pure-Rust catalog only: the `python` feature is NOT enabled here (we consume the
+# Rust SliceCatalog/ownership surface, not gmeow-slice's own PyO3 register fn).
+gmeow-slice = { path = "../slice" }
+gmeow-diagnostics = { path = "../diagnostics" }
+# Term extraction parses each slice's module.ttl with the SAME lenient oxigraph
+# Turtle parser the slice crate uses (accepts @x-gmeow-* language tags). Mirror
+# the slice/rdf crates' exact oxigraph build for a clean lockfile resolution.
+oxigraph = { version = "0.5", default-features = false, features = ["rdf-12"] }
+# Static-site renderers (T1, #853). minijinja is a pure-Rust template engine (no
+# build scripts, deterministic rendering); pulldown-cmark converts the per-page
+# Markdown body to HTML. Both are self-contained — no network assets are pulled.
+minijinja = "2"
+pulldown-cmark = { version = "0.13", default-features = false, features = ["html"] }
+
+[dev-dependencies]
+insta = { version = "1.48", features = ["json"] }

@@ -1,0 +1,28 @@
+---
+source: crates/docs/tests/render_golden.rs
+expression: "to_markdown(&model, &Page::Concern(slug))"
+---
+# disclosure and suppression
+
+`gmeow:concernDisclosure`
+
+## Definition
+
+Projection\-time withholding, coarsening, sensitivity, and display control\.
+
+## Terms \(7\)
+
+- [`gmeow:StandpointTenure`](../../terms/standpointtenure/index.md)
+- [`gmeow:coarsenTo`](../../terms/coarsento/index.md)
+- [`gmeow:displayable`](../../terms/displayable/index.md)
+- [`gmeow:hasDisclosurePolicy`](../../terms/hasdisclosurepolicy/index.md)
+- [`gmeow:hasGranularity`](../../terms/hasgranularity/index.md)
+- [`gmeow:hasSensitivity`](../../terms/hassensitivity/index.md)
+- [`gmeow:validUntil`](../../terms/validuntil/index.md)
+
+## Slices \(4\)
+
+- [GMEOW Core Module](../../slices/kernel/index.md)
+- [GMEOW Names Module](../../slices/names/index.md)
+- [GMEOW Standpoint Module](../../slices/standpoint/index.md)
+- [GMEOW Temporal — intervals, instants, temporal frames, time\-scoped relations](../../slices/temporal/index.md)

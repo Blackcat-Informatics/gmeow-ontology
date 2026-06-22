@@ -569,8 +569,8 @@ def okf(
     console.print(f"[green]wrote[/green] {root}")
 
 
-@app.command()
-def docs(
+@app.command(name="extract-docs")
+def extract_docs(
     directory: Path = typer.Option(  # noqa: B008
         ..., "--directory", "-d", help="Output directory for the docs tree."
     ),
@@ -585,7 +585,11 @@ def docs(
     ),
     lang: str | None = _lang_option(),
 ) -> None:
-    """Emit a browsable Markdown docs tree from a GTS snapshot."""
+    """Extract the stored Markdown docs tree from a GTS snapshot.
+
+    The browsable tree is read verbatim from the ``ontology-docs`` blob baked
+    into the bundle — it is never re-rendered here.
+    """
     from gmeow_tools.create_docs import create_docs
 
     view = _bundle_view(file)

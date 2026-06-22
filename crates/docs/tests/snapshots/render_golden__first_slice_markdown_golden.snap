@@ -1,0 +1,116 @@
+---
+source: crates/docs/tests/render_golden.rs
+expression: "to_markdown(&model, &Page::Slice(slug))"
+---
+# GMEOW Accessibility Module
+
+`https://blackcatinformatics.ca/gmeow/slices/accessibility`
+
+| Field | Value |
+| --- | --- |
+| Tier | Extension |
+| Creators | Blackcat Informatics® Inc\. |
+| Consumers | Accessibility facets over places and routes; the schema\.org accessibility projection\. |
+
+## Artifacts
+
+### Documentation
+
+| Path | Media type | Digest |
+| --- | --- | --- |
+| `docs.md` | `text/markdown` | `f656971f578a` |
+
+### Examples
+
+| Path | Media type | Digest |
+| --- | --- | --- |
+| `examples/location-access.ttl` | `text/turtle` | `d51813f45761` |
+
+### Manifest
+
+| Path | Media type | Digest |
+| --- | --- | --- |
+| `manifest.ttl` | `text/turtle` | `266cbc93bb4a` |
+
+### Mappings
+
+| Path | Media type | Digest |
+| --- | --- | --- |
+| `mappings/equivalences.ttl` | `text/turtle` | `bf3738f94306` |
+
+### Module
+
+| Path | Media type | Digest |
+| --- | --- | --- |
+| `module.ttl` | `text/turtle` | `d95a3f16d179` |
+
+## Terms \(9\)
+
+- [`gmeow:AccessibilityAssertion`](../../terms/accessibilityassertion/index.md) — Class
+- [`gmeow:AccessibilityFacet`](../../terms/accessibilityfacet/index.md) — Class
+- [`gmeow:AccessibilityPolarity`](../../terms/accessibilitypolarity/index.md) — Class
+- [`gmeow:assertionFacet`](../../terms/assertionfacet/index.md) — Property
+- [`gmeow:assertionPolarity`](../../terms/assertionpolarity/index.md) — Property
+- [`gmeow:assertionSubject`](../../terms/assertionsubject/index.md) — Property
+- [`gmeow:hasAccessibilityFeature`](../../terms/hasaccessibilityfeature/index.md) — Property
+- [`gmeow:hasAccessibilityNeed`](../../terms/hasaccessibilityneed/index.md) — Property
+- [`gmeow:hasBarrier`](../../terms/hasbarrier/index.md) — Property
+
+## Linkages \(14\)
+
+| Subject | Predicate | External object | Conf. |
+| --- | --- | --- | --- |
+| [`gmeow:AccessibilityAssertion`](../../terms/accessibilityassertion/index.md) | `http://www.w3.org/2004/02/skos/core#closeMatch` | [http://www\.w3\.org/ns/sosa/Observation](http://www\.w3\.org/ns/sosa/Observation) | 0.70 |
+| `gmeow:facetAuditory` | `http://www.w3.org/2004/02/skos/core#closeMatch` | [http://hl7\.org/fhir/sid/icf\#b2](http://hl7\.org/fhir/sid/icf\#b2) | 0.80 |
+| `gmeow:facetAuditory` | `http://www.w3.org/2004/02/skos/core#closeMatch` | [http://hl7\.org/fhir/sid/icf\#e125](http://hl7\.org/fhir/sid/icf\#e125) | 0.80 |
+| `gmeow:facetClearance` | `http://www.w3.org/2004/02/skos/core#closeMatch` | [http://hl7\.org/fhir/sid/icf\#d4](http://hl7\.org/fhir/sid/icf\#d4) | 0.70 |
+| `gmeow:facetCognitive` | `http://www.w3.org/2004/02/skos/core#closeMatch` | [http://hl7\.org/fhir/sid/icf\#b1](http://hl7\.org/fhir/sid/icf\#b1) | 0.80 |
+| `gmeow:facetCognitive` | `http://www.w3.org/2004/02/skos/core#closeMatch` | [http://hl7\.org/fhir/sid/icf\#e140](http://hl7\.org/fhir/sid/icf\#e140) | 0.70 |
+| `gmeow:facetLifeSupport` | `http://www.w3.org/2004/02/skos/core#closeMatch` | [http://hl7\.org/fhir/sid/icf\#e5](http://hl7\.org/fhir/sid/icf\#e5) | 0.70 |
+| `gmeow:facetStepFree` | `http://www.w3.org/2004/02/skos/core#closeMatch` | [http://hl7\.org/fhir/sid/icf\#d4](http://hl7\.org/fhir/sid/icf\#d4) | 0.80 |
+| `gmeow:facetVisual` | `http://www.w3.org/2004/02/skos/core#closeMatch` | [http://hl7\.org/fhir/sid/icf\#b2](http://hl7\.org/fhir/sid/icf\#b2) | 0.80 |
+| `gmeow:facetVisual` | `http://www.w3.org/2004/02/skos/core#closeMatch` | [http://hl7\.org/fhir/sid/icf\#e135](http://hl7\.org/fhir/sid/icf\#e135) | 0.80 |
+| `gmeow:facetWheelchair` | `http://www.w3.org/2004/02/skos/core#closeMatch` | [http://hl7\.org/fhir/sid/icf\#d4](http://hl7\.org/fhir/sid/icf\#d4) | 0.80 |
+| `gmeow:facetWheelchair` | `http://www.w3.org/2004/02/skos/core#closeMatch` | [http://hl7\.org/fhir/sid/icf\#e115](http://hl7\.org/fhir/sid/icf\#e115) | 0.80 |
+| [`gmeow:hasAccessibilityFeature`](../../terms/hasaccessibilityfeature/index.md) | `http://www.w3.org/2004/02/skos/core#closeMatch` | [https://schema\.org/accessibilityFeature](https://schema\.org/accessibilityFeature) | 0.80 |
+| [`gmeow:hasBarrier`](../../terms/hasbarrier/index.md) | `http://www.w3.org/2004/02/skos/core#closeMatch` | [https://schema\.org/accessibilityHazard](https://schema\.org/accessibilityHazard) | 0.75 |
+
+## Examples \(1\)
+
+### Location Access
+
+`examples/location-access.ttl`
+
+```turtle
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example: accessibility as MATCHABLE facets. One open vocabulary of
+# gmeow:AccessibilityFacets (wheelchair, step-free, visual, auditory, cognitive …)
+# is used across three relations: what a location HAS
+# (gmeow:hasAccessibilityFeature), what it lacks as a gmeow:hasBarrier, and what an
+# agent NEEDS (gmeow:hasAccessibilityNeed). Because need and feature draw on the
+# same vocabulary, "Dana needs wheelchair access" and "the library has wheelchair
+# access" MATCH directly. A reified gmeow:AccessibilityAssertion records who
+# claims which facet, with a gmeow:assertionPolarity (feature / barrier / limited).
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/accessibility/> .
+
+# --- A location with a feature and a barrier (facets are per-location facts).
+ex:library a gmeow:Place ;
+    gmeow:name                    "City Library"@x-gmeow-english ;
+    gmeow:hasAccessibilityFeature gmeow:facetWheelchair ;
+    gmeow:hasBarrier              gmeow:facetVisual .
+
+# --- An agent's need, drawn from the SAME facet vocabulary → directly matchable
+#     against the library's feature.
+ex:dana a gmeow:Person ;
+    gmeow:name               "Dana Reyes"@x-gmeow-english ;
+    gmeow:hasAccessibilityNeed gmeow:facetWheelchair .
+
+# --- A reified assertion: a surveyor claims the library is step-free (a feature).
+ex:assertion a gmeow:AccessibilityAssertion ;
+    gmeow:assertionSubject  ex:library ;
+    gmeow:assertionFacet    gmeow:facetStepFree ;
+    gmeow:assertionPolarity gmeow:polarityFeature .
+```

@@ -120,6 +120,9 @@ mappings: ## Build alignment axioms + VoID linksets from SSSOM; validate QID syn
 lint-alignment: ## Lint SSSOM mappings for inverse / domain-range-mismatched targets (offline).
 	$(GMEOW_DEV) lint-alignment
 
+doc-lint: ## Lint the rust-rendered ontology-docs site for dangling links + coverage gaps (#853).
+	$(GMEOW_DEV) doc-lint
+
 crate-check: ## Verify Rust crate layering: gmeow-rdf kernel purity + acyclic crate DAG (#820 S0).
 	$(GMEOW_DEV) crate-check
 
@@ -152,15 +155,19 @@ acceptance: ## Score the full transpile against external/ snapshots; hard aggreg
 crossref: ## Generate the CrossRef DOI deposit XML.
 	$(GMEOW_DEV) crossref
 
-docs: ontology-docs ## Alias for ontology-docs.
+docs: docs-gen ## Alias for docs-gen.
 
-ontology-docs: ## Generate the unified ontology-docs site into ontology-docs/.
-	$(GMEOW_DEV) docs
+docs-gen: ## Regenerate gmeow.gts docs and extract the browsable tree into ontology-docs/.
+	$(GMEOW_DEV) regenerate gts
+	$(GMEOW_DEV) extract-docs --directory ontology-docs --force generated/dist/gmeow.gts
+
+ontology-docs: ## Extract the unified ontology-docs site from the bundle into ontology-docs/.
+	$(GMEOW_DEV) extract-docs --directory ontology-docs --force generated/dist/gmeow.gts
 
 docs-full: ontology-docs-full ## Alias for ontology-docs-full.
 
-ontology-docs-full: ## Generate ontology-docs including optional Docker stages into dist/ontology-docs.
-	uv run python -c "from gmeow_tools.config import PROJECT_ROOT; from gmeow_tools.ontology_docs import build_ontology_docs; build_ontology_docs(PROJECT_ROOT / 'dist' / 'ontology-docs')"
+ontology-docs-full: ## Extract the unified ontology-docs site from the bundle into dist/ontology-docs.
+	$(GMEOW_DEV) extract-docs --directory dist/ontology-docs --force generated/dist/gmeow.gts
 
 quality: ## Run OOPS! pitfall scan (network, best-effort).
 	$(GMEOW_DEV) quality
@@ -261,7 +268,7 @@ test-network: ## Run the network tests (LIVE endpoints) — MANUAL only, never i
 	GMEOW_RUN_NETWORK=1 uv run pytest -m network
 
 check: logic-py rdf-py ## Fast local gate: core ontology + transforms (native EL/DL reasoning — Java/Docker-free; classic-cross-check oracle lane runs separately).
-	$(MAKE) -j$$(nproc 2>/dev/null || echo 4) lint clippy rust-test validate check-generated constitution-check crate-check audit wikidata coverage acceptance reason-native verify mappings-only lint-alignment
+	$(MAKE) -j$$(nproc 2>/dev/null || echo 4) lint clippy rust-test validate check-generated constitution-check crate-check audit wikidata coverage acceptance reason-native verify mappings-only lint-alignment doc-lint
 	uv run pytest -n auto --dist loadscope -m "not ci_only and not docker and not classic_cross_check"
 	$(GMEOW_DEV) compliance-report --from-passing-check
 	@echo "✓ all checks passed (Docker-free, Java-free)"

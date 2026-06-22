@@ -18,10 +18,11 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from blake3 import blake3
-from gmeow_rdf.compat.rdflib import RDF, XSD, Graph, Literal, URIRef
+from gmeow_rdf.compat.rdflib import RDF, XSD, ConjunctiveGraph, Graph, Literal, URIRef
 from gts import Signer
 
 from gmeow_tools.config import (
+    GTS_GRAPH_DOCUMENTATION,
     GTS_GRAPH_IMPORTS,
     GTS_GRAPH_METADATA,
     GTS_GRAPH_SLICE_ANALYSIS,
@@ -40,10 +41,8 @@ from gmeow_tools.graph import iter_import_files, iter_module_files
 from gmeow_tools.gts_producer import compile_gts
 from gmeow_tools.i18n_catalog import (
     discover_doc_languages,
-    load_ontology_docs_template_catalog,
     merge_all_markdown,
     merge_terms,
-    translated_ontology_docs_templates,
 )
 from gmeow_tools.mappings import build_alignment_graph, load_mappings
 from gmeow_tools.self_desc import SELF_DESC_FILE
@@ -294,38 +293,23 @@ def _project_doc_blobs() -> list[tuple[bytes, str, str]]:
 
 
 def _ontology_doc_blobs() -> list[tuple[bytes, str, str]]:
-    """A deterministic tar archive of the ontology docs tree (#440).
+    """Return a deterministic tar archive of the ontology docs tree.
 
-    English content remains at ``x-gmeow-english/``.  For every other
-    discovered language a separate tree is rendered with translated ontology-docs
-    template strings.
+    Rendered by the rust-first gmeow_native.docs renderer (#853).
     """
-    from gmeow_tools.ontology_docs import build_ontology_docs, cached_ontology_docs_tree
+    import gmeow_docs as _docs  # legacy-name shim → gmeow_native.docs submodule
 
+    docset = _docs.DocSet.from_root(str(PROJECT_ROOT))
     members: list[tuple[str, bytes]] = []
-
-    def add_tree(tree_root: Path, lang: str) -> None:
-        for source in sorted(
-            p for p in tree_root.rglob("*") if p.is_file() and _is_project_doc_path(p)
-        ):
-            arcname = f"x-gmeow-{lang}/{source.relative_to(tree_root).as_posix()}"
-            members.append((arcname, source.read_bytes()))
-
-    en_tree = cached_ontology_docs_tree()
-    add_tree(en_tree, "english")
-
-    for lang in discover_doc_languages(PROJECT_ROOT):
-        catalog = load_ontology_docs_template_catalog(lang, root=PROJECT_ROOT)
-        if not catalog:
-            continue
-        with tempfile.TemporaryDirectory(
-            dir=PROJECT_ROOT, prefix=".gmeow-tmp-odoc-"
-        ) as tmp:
-            tmp_path = Path(tmp)
-            with translated_ontology_docs_templates(catalog):
-                build_ontology_docs(tmp_path)
-            add_tree(tmp_path, lang)
-
+    # The English carrier always renders under the historical x-gmeow-english/
+    # prefix; each translation language renders under its internal x-gmeow-* tag
+    # (e.g. fr → x-gmeow-french), which is the prefix the docs consumer
+    # (create_docs) selects on.
+    for lang in docset.languages():
+        prefix = docset.archive_prefix(lang)
+        tree = docset.files() if lang == "english" else docset.files_for_lang(lang)
+        for path, data in sorted(tree.items()):
+            members.append((f"{prefix}/{path}", bytes(data)))
     return [(_tar_members(members), "application/x-tar", "ontology-docs")]
 
 
@@ -545,6 +529,41 @@ def build_slice_analysis_graph(authored_graph: Graph) -> Graph:
     return graph
 
 
+def build_documentation_graph() -> Graph:
+    """Build the self-hosting ``gmeow:graph/documentation`` named graph (#853 T5).
+
+    The native ``gmeow_docs`` renderer projects the typed documentation model
+    into the ``gmeow:`` vocabulary as deterministic N-Quads (``gmeow:Documented*``
+    resources for every term/slice/concern/mapping-set). Folding that projection
+    into the bundle dogfoods the doc model: the documentation surface is itself
+    SPARQL-queryable RDF beside the ontology it describes (Principle 4).
+
+    The Rust projection emits a single named graph
+    (:data:`~gmeow_tools.config.GTS_GRAPH_DOCUMENTATION`); we parse it as N-Quads
+    and return the resulting triples so the caller can re-name them onto that one
+    graph in the ``_compile`` list, matching the slice-analysis fold pattern.
+
+    Returns:
+        The documentation named graph (the caller names it
+        :data:`~gmeow_tools.config.GTS_GRAPH_DOCUMENTATION`).
+    """
+    import gmeow_docs as _docs  # legacy-name shim → gmeow_native.docs submodule
+
+    docset = _docs.DocSet.from_root(str(PROJECT_ROOT))
+    nquads = docset.to_gmeow_rdf()
+    graph = Graph()
+    if nquads:
+        # The rust projection emits a single named graph as N-Quads; a plain
+        # ``Graph`` only retains default-graph triples, so parse via a
+        # ``ConjunctiveGraph`` and lift the named-graph triples onto the graph the
+        # ``_compile`` caller re-names to ``GTS_GRAPH_DOCUMENTATION``.
+        conjunctive = ConjunctiveGraph()
+        conjunctive.parse(data=nquads, format="nquads")
+        for triple in conjunctive:
+            graph.add(triple)
+    return graph
+
+
 def build_snapshot_bytes(
     *,
     signer: Signer | None = None,
@@ -664,12 +683,18 @@ def build_snapshot_bytes(
     # self-attestation guard input (it must not contain the analysis-graph IRI).
     slice_analysis = build_slice_analysis_graph(multilingual_graph)
 
+    # Self-hosting documentation named graph (#853 T5): the native gmeow_docs
+    # renderer's RDF projection of the typed doc model, folded so the docs surface
+    # is itself SPARQL-queryable RDF beside the ontology it describes.
+    documentation = build_documentation_graph()
+
     return _compile(
         [
             imports,
             metadata,
             (attestation, GTS_GRAPH_VERIFY, "verify"),
             (slice_analysis, GTS_GRAPH_SLICE_ANALYSIS, "slice-analysis"),
+            (documentation, GTS_GRAPH_DOCUMENTATION, "documentation"),
         ],
         extra_blobs=okf_blobs,
     )
@@ -682,6 +707,67 @@ def compile_full_snapshot(
 ) -> bytes:
     """Compatibility release entry point for the unified ``gmeow.gts`` bundle."""
     return build_snapshot_bytes(signer=signer, public_key_armor=public_key_armor)
+
+
+def _ontology_docs_inputs() -> list[Path]:
+    """Canonical DATA sources that drive the rendered ontology-docs tree.
+
+    Must list EVERY file whose content reaches the rendered docs — the docs
+    fold into the GTS bundle (#bundle), and the drift gate skips regeneration
+    when this hash is unchanged. An omission here is silent staleness: a
+    rendered input changes, the hash does not, the committed snapshot is never
+    rebuilt.
+
+    The rust-first ``gmeow_native.docs`` renderer's own sources, templates,
+    and assets are tracked separately in :pyattr:`implementation_paths`; the
+    retired Python renderer (``ontology_docs.py``) and its vendored
+    ``simple.css`` are intentionally dropped (#853).
+    """
+    from gmeow_tools.config import (
+        MAPPING_DSL_DIR,
+        REFERENCES_MD_FILE,
+        SLICES_DIR,
+        TEST_DSL_VOCABULARY_FILE,
+        VERIFY_DIR,
+    )
+    from gmeow_tools.native_reason_gen import (
+        NATIVE_CLOSURE_FILE,
+        NATIVE_EXPLANATIONS_FILE,
+        NATIVE_LEDGER_FILE,
+    )
+    from gmeow_tools.slices import (
+        iter_slice_mapping_files,
+        iter_slice_query_files,
+        iter_slice_test_files,
+    )
+
+    return [
+        # The footer cites the concept DOI read from the self-description (via
+        # _citation_doi → self_desc); both the data and its loader feed the output.
+        Path(__file__).with_name("self_desc.py"),
+        PROJECT_ROOT / "metadata" / "gmeow-self.ttl",
+        PROJECT_ROOT / "docs" / "four-boxes.md",
+        GTS_SNAPSHOT_FILE,
+        REFERENCES_MD_FILE,
+        STATEMENT_RDF12_FILE,
+        *sorted(MAPPING_DSL_DIR.rglob("*.ttl")),
+        *iter_slice_mapping_files(),
+        *sorted(SLICES_DIR.glob("*/*/manifest.ttl")),
+        *sorted(SLICES_DIR.glob("*/*/docs.md")),
+        *sorted(SLICES_DIR.glob("*/*/design/*.md")),
+        *sorted(SLICES_DIR.glob("*/*/examples/*.ttl")),
+        # slice-resident declarative test specs rendered into the per-slice docs,
+        # plus the test-DSL vocabulary they are authored in (#783)
+        TEST_DSL_VOCABULARY_FILE,
+        *iter_slice_test_files(),
+        # verify queries are rendered into the Integrity Constraints page (#695)
+        *sorted(VERIFY_DIR.glob("*.rq")),
+        *iter_slice_query_files("verify"),
+        # native-reasoning artifacts rendered into the Logic & Reasoning page (#667)
+        NATIVE_CLOSURE_FILE,
+        NATIVE_EXPLANATIONS_FILE,
+        NATIVE_LEDGER_FILE,
+    ]
 
 
 @register
@@ -712,7 +798,12 @@ class GtsSnapshotGenerator(Generator):
             PROJECT_ROOT / "src" / "gmeow_tools" / "i18n_catalog.py",
             PROJECT_ROOT / "src" / "gmeow_tools" / "mappings.py",
             PROJECT_ROOT / "src" / "gmeow_tools" / "okf_export.py",
-            PROJECT_ROOT / "src" / "gmeow_tools" / "ontology_docs.py",
+            # The ontology-docs tree is now rendered by the rust-first
+            # gmeow_native.docs renderer (#853); track the crate's sources,
+            # templates, and assets so a renderer change invalidates the cache.
+            *sorted((PROJECT_ROOT / "crates" / "docs" / "src").glob("**/*.rs")),
+            *sorted((PROJECT_ROOT / "crates" / "docs" / "templates").glob("**/*")),
+            *sorted((PROJECT_ROOT / "crates" / "docs" / "assets").glob("**/*")),
             PROJECT_ROOT / "src" / "gmeow_tools" / "self_desc.py",
             PROJECT_ROOT / "src" / "gmeow_tools" / "slices.py",
             PROJECT_ROOT / "src" / "gmeow_tools" / "transform.py",
@@ -728,7 +819,6 @@ class GtsSnapshotGenerator(Generator):
             PROJECTION_QUERY_DIR,
             SLICES_DIR,
         )
-        from gmeow_tools.ontology_docs import ontology_docs_cache_inputs
 
         doc_files = [
             p
@@ -755,7 +845,7 @@ class GtsSnapshotGenerator(Generator):
             # verify queries drive the folded-in attestation graph (#695)
             *sorted(VERIFY_DIR.glob("*.rq")),
             *iter_slice_query_files("verify"),
-            *ontology_docs_cache_inputs(),
+            *_ontology_docs_inputs(),
             *sorted(doc_files),
         ]
 

@@ -9,6 +9,8 @@ members = [
     # Native logic-conformance harness (#785): datatest-stable over the corpus.
     "crates/conformance",
     "crates/diagnostics",
+    # Rust-owned typed documentation model built from the slice catalog (#853).
+    "crates/docs",
     "crates/logic",
     # The single PyO3 cdylib: all five engine crates fold into `gmeow_native` so
     # the diagnostics `Report`/`Finding` pyclasses are ONE shared type (#630).
@@ -84,6 +86,9 @@ codegen-units = 1
 codegen-units = 1
 
 [profile.release.package.gmeow-diagnostics]
+codegen-units = 1
+
+[profile.release.package.gmeow-docs]
 codegen-units = 1
 
 [profile.release.package.gmeow-native]

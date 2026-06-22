@@ -1,0 +1,18 @@
+---
+source: crates/docs/tests/render_golden.rs
+expression: head
+---
+# Linkages
+
+**1381** term equivalences across **54** mapping set(s), cross-walking GMEOW terms to external vocabularies.
+
+## mapsetAccessibility
+
+| Field | Value |
+| --- | --- |
+| CURIE | `gmeow:mapsetAccessibility` |
+| Set ID | `https://blackcatinformatics.ca/gmeow/mappings/accessibility` |
+| SSSOM file | `gmeow-accessibility.sssom.tsv` |
+| License | [https://creativecommons\.org/licenses/by/4\.0/](https://creativecommons\.org/licenses/by/4\.0/) |
+| Owner slice | [GMEOW Accessibility Module](../slices/accessibility/index.md) |
+| Equivalences | 14 |

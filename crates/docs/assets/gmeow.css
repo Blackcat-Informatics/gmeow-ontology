@@ -1,0 +1,183 @@
+/* SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+ * SPDX-License-Identifier: AGPL-3.0-only
+ *
+ * Self-contained theme for the GMEOW static documentation site (#853, T1).
+ * No external fonts, no network assets — accessible contrast, responsive layout.
+ */
+
+:root {
+  --bg: #fbfbfd;
+  --surface: #ffffff;
+  --ink: #16202a;
+  --ink-soft: #4b5563;
+  --rule: #dfe4ea;
+  --accent: #1d4ed8;
+  --accent-soft: #eef2ff;
+  --code-bg: #f3f4f6;
+  --sidebar: #f5f6f8;
+  --radius: 8px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 16px;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  line-height: 1.6;
+}
+
+a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+a:hover,
+a:focus {
+  text-decoration: underline;
+}
+
+.site-header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--rule);
+  padding: 0.85rem 1.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.75rem 1.25rem;
+}
+
+.site-header .brand {
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: var(--ink);
+}
+
+.site-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1rem;
+  font-size: 0.95rem;
+}
+
+.layout {
+  display: block;
+  max-width: 64rem;
+  margin: 0 auto;
+  padding: 1.75rem 1.5rem 4rem;
+}
+
+main {
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  padding: 1.5rem 1.75rem;
+}
+
+main h1 {
+  margin-top: 0;
+  font-size: 1.85rem;
+  line-height: 1.2;
+}
+
+main h2 {
+  margin-top: 2rem;
+  font-size: 1.3rem;
+  border-bottom: 1px solid var(--rule);
+  padding-bottom: 0.3rem;
+}
+
+main h3 {
+  margin-top: 1.5rem;
+  font-size: 1.1rem;
+}
+
+code,
+pre {
+  font-family: ui-monospace, "SFMono-Regular", "Cascadia Code", Menlo, monospace;
+  font-size: 0.92em;
+}
+
+code {
+  background: var(--code-bg);
+  padding: 0.1rem 0.32rem;
+  border-radius: 4px;
+}
+
+pre {
+  background: var(--code-bg);
+  padding: 0.85rem 1rem;
+  border-radius: var(--radius);
+  overflow-x: auto;
+}
+
+pre code {
+  background: none;
+  padding: 0;
+}
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 1rem 0;
+}
+
+th,
+td {
+  border-bottom: 1px solid var(--rule);
+  padding: 0.5rem 0.6rem;
+  text-align: left;
+  vertical-align: top;
+}
+
+th {
+  background: var(--sidebar);
+  font-weight: 600;
+}
+
+blockquote {
+  margin: 1rem 0;
+  padding: 0.5rem 1rem;
+  border-left: 4px solid var(--accent);
+  background: var(--accent-soft);
+  color: var(--ink-soft);
+}
+
+.badge {
+  display: inline-block;
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 0.12rem 0.5rem;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+ul,
+ol {
+  padding-left: 1.4rem;
+}
+
+.site-footer {
+  max-width: 64rem;
+  margin: 0 auto;
+  padding: 1.25rem 1.5rem 2.5rem;
+  color: var(--ink-soft);
+  font-size: 0.85rem;
+}
+
+@media (max-width: 40rem) {
+  main {
+    padding: 1.1rem 1rem;
+  }
+  .layout {
+    padding: 1.1rem 0.85rem 3rem;
+  }
+}

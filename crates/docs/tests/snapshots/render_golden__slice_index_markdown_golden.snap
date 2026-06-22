@@ -1,0 +1,11 @@
+---
+source: crates/docs/tests/render_golden.rs
+expression: head
+---
+# Slices
+
+74 compilation unit(s).
+
+## Dependency graph
+
+![Slice dependency graph](../diagrams/slices.svg)
