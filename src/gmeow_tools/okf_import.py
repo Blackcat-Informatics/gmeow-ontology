@@ -127,8 +127,10 @@ def okf_dir_to_graph(okf_dir: Path, *, gts_bin: Path | None = None) -> Graph:
     binary = gts_bin if gts_bin is not None else find_gts_binary()
     from gmeow_tools.describe import load_graph_from_gts
 
+    # System temp, not PROJECT_ROOT: this is the consumer runtime path
+    # (`gmeow transpile <okfdir>`), which must work from a read-only install.
     prefix = ".gmeow-tmp-okfin-"
-    with tempfile.TemporaryDirectory(dir=PROJECT_ROOT, prefix=prefix) as tmp:
+    with tempfile.TemporaryDirectory(prefix=prefix) as tmp:
         out = Path(tmp) / "from-okf.gts"
         proc = subprocess.run(
             [str(binary), "from-okf", str(okf_dir), "-o", str(out)],

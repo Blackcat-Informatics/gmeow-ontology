@@ -389,7 +389,10 @@ def project(
 def transpile(
     source: Path = typer.Argument(  # noqa: B008
         ...,
-        help="A non-GMEOW source RDF file (Turtle), or '-' to read it from stdin.",
+        help=(
+            "A non-GMEOW source RDF file (Turtle), an OKF bundle directory, "
+            "or '-' to read Turtle from stdin."
+        ),
     ),
     out: Path | None = typer.Option(  # noqa: B008
         None, "-o", "--out", help="Output directory (default dist/transpile/<stem>/)."
