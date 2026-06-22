@@ -170,6 +170,59 @@ fn probabilistic_measure_without_model_is_unsupported() {
 }
 
 #[test]
+fn paraconsistent_valuation_under_counterfactual_revision_is_a_hard_compile_failure() {
+    // Forbidden combo (RuleNoParaconsistentCounterfactualRevision), exercised end-to-end
+    // through the front-end: a gap/glut-admitting admissible valuation cannot coexist with
+    // counterfactual entrenchment revision. The closest-world generator that builds the
+    // counterfactual states is undefined over gappy/glutty valuations, so the compile Report
+    // must be not ok — never a silent approximation.
+    let (_, diags) = parse(
+        "ex:ParaCfContract a logic:ReasoningContract ;
+            logic:admissibleValuation logic:AdmitAllFour ;
+            logic:revision logic:EntrenchmentRevision .
+         logic:AdmitAllFour a logic:AdmissibleValuationPolicy .
+         logic:EntrenchmentRevision a logic:RevisionPolicy .",
+    );
+    assert!(
+        diags
+            .iter()
+            .any(|d| d.code == "UNSUPPORTED_CONTRACT" && d.severity == Severity::Error),
+        "paraconsistent valuation under counterfactual revision must be a hard error; got: {diags:?}"
+    );
+    let report = diagnostics_report(&diags);
+    assert!(
+        !report.ok(),
+        "an unsupported contract must make the compile report not ok"
+    );
+}
+
+#[test]
+fn closed_world_closure_under_counterfactual_revision_is_a_hard_compile_failure() {
+    // Forbidden combo (RuleNoClosedWorldInCounterfactual), exercised end-to-end: a
+    // closed-world (negation-by-absence) default closure cannot coexist with counterfactual
+    // entrenchment revision, whose generated states are open-ended. Reading absence as
+    // falsehood inside them is unsound, so the compile Report must be not ok.
+    let (_, diags) = parse(
+        "ex:CwaCfContract a logic:ReasoningContract ;
+            logic:defaultClosure logic:ClosedWorldClosure ;
+            logic:revision logic:EntrenchmentRevision .
+         logic:ClosedWorldClosure a logic:ClosureValue .
+         logic:EntrenchmentRevision a logic:RevisionPolicy .",
+    );
+    assert!(
+        diags
+            .iter()
+            .any(|d| d.code == "UNSUPPORTED_CONTRACT" && d.severity == Severity::Error),
+        "closed-world closure under counterfactual revision must be a hard error; got: {diags:?}"
+    );
+    let report = diagnostics_report(&diags);
+    assert!(
+        !report.ok(),
+        "an unsupported contract must make the compile report not ok"
+    );
+}
+
+#[test]
 fn probabilistic_measure_with_declared_model_is_supported() {
     // With a declared logic:ProbabilityModel the probabilistic measure is fine.
     let (_, diags) = parse(

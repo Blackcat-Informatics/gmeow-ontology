@@ -1,5 +1,5 @@
 {
-  "semantic_profile": "PositiveHornProfile",
+  "reasoning_contract": {"preset": "PositiveHornProfile"},
   "counterfactual_profile": "LewisCredulousProfile",
   "world_types": ["counterfactual"],
   "mode": "native"

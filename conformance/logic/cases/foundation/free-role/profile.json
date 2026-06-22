@@ -1,5 +1,5 @@
 {
-  "semantic_profile": "StratifiedNAFProfile",
+  "reasoning_contract": {"preset": "StratifiedNAFProfile"},
   "world_types": ["epistemic"],
   "mode": "native",
   "expected_decidability_class": "terminating/PTIME-data",
