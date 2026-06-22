@@ -30,6 +30,11 @@ gmeow-diagnostics = { path = "../diagnostics" }
 # Turtle parser the slice crate uses (accepts @x-gmeow-* language tags). Mirror
 # the slice/rdf crates' exact oxigraph build for a clean lockfile resolution.
 oxigraph = { version = "0.5", default-features = false, features = ["rdf-12"] }
+# Static-site renderers (T1, #853). minijinja is a pure-Rust template engine (no
+# build scripts, deterministic rendering); pulldown-cmark converts the per-page
+# Markdown body to HTML. Both are self-contained — no network assets are pulled.
+minijinja = "2"
+pulldown-cmark = { version = "0.13", default-features = false, features = ["html"] }
 
 [dev-dependencies]
 insta = { version = "1.48", features = ["json"] }

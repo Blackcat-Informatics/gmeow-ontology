@@ -11,10 +11,13 @@
 //! analyzer.
 //!
 //! The model in [`model`] is PyO3-free so every consumer (renderers, lint,
-//! diagram, bundle) shares one source of truth. Python bindings are kept in
-//! [`py`]; renderers/lint/svg/i18n arrive in later tasks of #853.
+//! diagram, bundle) shares one source of truth. The [`render`] module turns the
+//! model into a deterministic static-site tree (Markdown + self-contained HTML).
+//! Python bindings are kept in [`py`]; lint/svg/search/i18n arrive in later
+//! tasks of #853.
 
 pub mod model;
+pub mod render;
 
 // PyO3 bindings — the only module that imports pyo3.
 pub mod py;
@@ -22,6 +25,7 @@ pub mod py;
 pub use model::{
     DocArtifact, DocDependencyEdge, DocSlice, DocTerm, DocTermCategory, DocsError, DocsModel,
 };
+pub use render::{render_site, to_html, to_markdown, Page, Site};
 // Re-export the module-registration entrypoint so the unified `gmeow_native`
 // cdylib can populate the `gmeow_native.docs` submodule (#630).
 pub use py::register;

@@ -1,0 +1,24 @@
+---
+source: crates/docs/tests/render_golden.rs
+expression: "to_markdown(&model, &Page::Landing)"
+---
+# GMEOW Ontology Documentation
+
+Version **1**.
+
+This site documents **2142** vocabulary terms across **73** slices.
+
+## Vocabulary by category
+
+| Category | Terms |
+| --- | --- |
+| [Classes](classes/index.md) | 646 |
+| [Properties](properties/index.md) | 1492 |
+| [Individuals](individuals/index.md) | 3 |
+| [Datatypes](datatypes/index.md) | 1 |
+
+## Browse
+
+- [All slices](slices/index.md) — the 73 compilation units.
+- [Getting started](getting-started/index.md)
+- [About](about/index.md)

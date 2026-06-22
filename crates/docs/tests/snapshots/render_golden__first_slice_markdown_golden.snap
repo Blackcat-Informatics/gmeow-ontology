@@ -1,0 +1,57 @@
+---
+source: crates/docs/tests/render_golden.rs
+expression: "to_markdown(&model, &Page::Slice(slug))"
+---
+# GMEOW Accessibility Module
+
+`https://blackcatinformatics.ca/gmeow/slices/accessibility`
+
+| Field | Value |
+| --- | --- |
+| Tier | Extension |
+| Creators | Blackcat Informatics® Inc\. |
+| Consumers | Accessibility facets over places and routes; the schema\.org accessibility projection\. |
+
+## Artifacts
+
+### Documentation
+
+| Path | Media type | Digest |
+| --- | --- | --- |
+| `docs.md` | `text/markdown` | `f656971f578a` |
+
+### Examples
+
+| Path | Media type | Digest |
+| --- | --- | --- |
+| `examples/location-access.ttl` | `text/turtle` | `d51813f45761` |
+
+### Manifest
+
+| Path | Media type | Digest |
+| --- | --- | --- |
+| `manifest.ttl` | `text/turtle` | `266cbc93bb4a` |
+
+### Mappings
+
+| Path | Media type | Digest |
+| --- | --- | --- |
+| `mappings/equivalences.ttl` | `text/turtle` | `bf3738f94306` |
+
+### Module
+
+| Path | Media type | Digest |
+| --- | --- | --- |
+| `module.ttl` | `text/turtle` | `d95a3f16d179` |
+
+## Terms \(9\)
+
+- [`gmeow:AccessibilityAssertion`](../../terms/accessibilityassertion/index.md) — Class
+- [`gmeow:AccessibilityFacet`](../../terms/accessibilityfacet/index.md) — Class
+- [`gmeow:AccessibilityPolarity`](../../terms/accessibilitypolarity/index.md) — Class
+- [`gmeow:assertionFacet`](../../terms/assertionfacet/index.md) — Property
+- [`gmeow:assertionPolarity`](../../terms/assertionpolarity/index.md) — Property
+- [`gmeow:assertionSubject`](../../terms/assertionsubject/index.md) — Property
+- [`gmeow:hasAccessibilityFeature`](../../terms/hasaccessibilityfeature/index.md) — Property
+- [`gmeow:hasAccessibilityNeed`](../../terms/hasaccessibilityneed/index.md) — Property
+- [`gmeow:hasBarrier`](../../terms/hasbarrier/index.md) — Property
