@@ -2534,7 +2534,9 @@ def logic_compile(
         except (ValueError, RuntimeError) as exc:
             raise _fail(f"✗ logic: compile failed: {exc}") from exc
 
-        for diag in compiled.get("diagnostics", []):
+        # Parse diagnostics now arrive as a native ``gmeow_diagnostics`` Report
+        # (#856); each finding dict carries the canonical ``logic-compile.<code>``.
+        for diag in compiled["diagnostics_report"].findings:
             err_console.print(
                 f"[yellow]{diag['severity']}[/yellow] "
                 f"[{diag['code']}] {diag['message']}"
