@@ -109,6 +109,13 @@ logic:Discipline
     rdfs:label "Discipline"@x-gmeow-english ;
     skos:definition "A named OntoUML structural discipline a class can violate: the closed vocabulary of anti-patterns the foundation lowering checks (stereotype cardinality, identity overlap, free role, mixed rigidity, relator completeness). Its named individuals are the labels a logic:violation fact points at; the set is closed so a misspelt label names no declared discipline and is rejected rather than silently accepted."@x-gmeow-english .
 
+logic:Disposition
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Disposition"@x-gmeow-english ;
+    skos:definition "A bearer-held tendency, power, or liability to manifest events of a characteristic type when triggered — a fragility, a solubility, a hazard's potential to harm — which remains fully real even while it never manifests. gUFO has no Disposition class and models such tendencies as a gufo:IntrinsicMode; logic: subsumes that by carrying the disposition as first-class, so an unmanifested tendency needs no counterfactual reification. A logic:Mode whose manifestations are logic:Events of the characteristic type (stated in prose, not as a subclass edge); the bearer relation is asserted with a domain property (Principle 5), never gufo:inheresIn."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
 logic:Endurant
     a owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;

@@ -1417,6 +1417,14 @@ class LearningEventTypeEnum(str, Enum):
     unlearning = "learningUnlearning"
 
 
+class LearningPathEnum(str, Enum):
+    Audit_AI_and_Graph_RAG_Pipelines = "pathAuditAiOrGraphRag"
+    Model_a_Contested_or_Attributed_Claim = "pathModelAContestedClaim"
+    Model_a_Person_Without_Flattening_Identity = "pathModelAPerson"
+    Publish_Web_Structured_Data = "pathPublishWebStructuredData"
+    Ship_Offline_GTS_Documentation = "pathShipOfflineGtsDocs"
+
+
 class LedgerAccountTypeEnum(str, Enum):
     asset = "ledgerAccountTypeAsset"
     equity = "ledgerAccountTypeEquity"
@@ -2379,6 +2387,15 @@ class RealizationModeEnum(str, Enum):
     notated = "realizationModeNotated"
     oral = "realizationModeOral"
     performed = "realizationModePerformed"
+
+
+class RecipeEnum(str, Enum):
+    Model_Contested_or_Attributed_Facts = "recipeContestedOrAttributedFacts"
+    Publish_Documents_for_SchemaFULL_STOPorg_Consumers = "recipeDocumentsAndSchemaOrg"
+    Model_Events_and_Participants = "recipeEventsAndParticipants"
+    Model_Graph_RAG_Dataset_Lineage = "recipeGraphRagDatasetLineage"
+    Describe_Offline_GTS_Distribution = "recipeOfflineGtsDistribution"
+    Model_Person_Names_Without_a_Preferred_Name_Slot = "recipePersonNamesAndDisplay"
 
 
 class RecordingEnum(str, Enum):
@@ -19429,6 +19446,22 @@ class LearningEventType(ConfiguredBaseModel):
          'title': 'Learning Event Type'})
 
     pass
+
+
+class LearningPath(ConfiguredBaseModel):
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'https://blackcatinformatics.ca/gmeow/LearningPath',
+         'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
+         'title': 'Learning Path'})
+
+    adoptionTarget: Optional[list[str]] = Field(default=None, title="adoption target", json_schema_extra = { "linkml_meta": {'domain': 'LearningPath',
+         'domain_of': ['LearningPath'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/adoptionTarget'} })
+    includesRecipe: Optional[list[Recipe]] = Field(default=None, title="includes recipe", json_schema_extra = { "linkml_meta": {'domain': 'LearningPath',
+         'domain_of': ['LearningPath'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/includesRecipe'} })
+    learningAudience: Optional[list[str]] = Field(default=None, title="learning audience", json_schema_extra = { "linkml_meta": {'domain': 'LearningPath',
+         'domain_of': ['LearningPath'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/learningAudience'} })
 
 
 class LedgerAccount(InformationObject):
@@ -37474,6 +37507,16 @@ class RealizationMode(ConfiguredBaseModel):
          'title': 'Realization Mode'})
 
     pass
+
+
+class Recipe(ConfiguredBaseModel):
+    linkml_meta: ClassVar[LinkMLMeta] = LinkMLMeta({'class_uri': 'https://blackcatinformatics.ca/gmeow/Recipe',
+         'from_schema': 'https://blackcatinformatics.ca/gmeow/linkml',
+         'title': 'Recipe'})
+
+    followsGuidePath: Optional[list[str]] = Field(default=None, title="follows guide path", json_schema_extra = { "linkml_meta": {'domain': 'Recipe',
+         'domain_of': ['Recipe'],
+         'slot_uri': 'https://blackcatinformatics.ca/gmeow/followsGuidePath'} })
 
 
 class Recording(Manifestation):
@@ -62560,6 +62603,7 @@ LanguageVariety.model_rebuild()
 LanguageVarietyKind.model_rebuild()
 LanguageVersion.model_rebuild()
 LearningEventType.model_rebuild()
+LearningPath.model_rebuild()
 LedgerAccount.model_rebuild()
 LedgerAccountType.model_rebuild()
 LedgerEvent.model_rebuild()
@@ -62746,6 +62790,7 @@ QualityDimension.model_rebuild()
 Quantity.model_rebuild()
 QuestionType.model_rebuild()
 RealizationMode.model_rebuild()
+Recipe.model_rebuild()
 Recording.model_rebuild()
 RecurrenceRule.model_rebuild()
 Ref.model_rebuild()

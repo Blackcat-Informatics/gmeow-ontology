@@ -1913,6 +1913,13 @@ classes:
   LearningEventType:
     class_uri: https://blackcatinformatics.ca/gmeow/LearningEventType
     title: Learning Event Type
+  LearningPath:
+    class_uri: https://blackcatinformatics.ca/gmeow/LearningPath
+    title: Learning Path
+    slots:
+    - adoptionTarget
+    - includesRecipe
+    - learningAudience
   LedgerAccount:
     class_uri: https://blackcatinformatics.ca/gmeow/LedgerAccount
     title: Ledger Account
@@ -3096,6 +3103,11 @@ classes:
   RealizationMode:
     class_uri: https://blackcatinformatics.ca/gmeow/RealizationMode
     title: Realization Mode
+  Recipe:
+    class_uri: https://blackcatinformatics.ca/gmeow/Recipe
+    title: Recipe
+    slots:
+    - followsGuidePath
   Recording:
     class_uri: https://blackcatinformatics.ca/gmeow/Recording
     title: Recording
@@ -4209,6 +4221,12 @@ slots:
     title: adjacent to
     range: Location
     domain: Location
+    multivalued: true
+  adoptionTarget:
+    slot_uri: https://blackcatinformatics.ca/gmeow/adoptionTarget
+    title: adoption target
+    range: string
+    domain: LearningPath
     multivalued: true
   affectedConsumerSurface:
     slot_uri: https://blackcatinformatics.ca/gmeow/affectedConsumerSurface
@@ -6778,6 +6796,12 @@ slots:
     range: ProcedureStep
     domain: ControlFlow
     multivalued: true
+  followsGuidePath:
+    slot_uri: https://blackcatinformatics.ca/gmeow/followsGuidePath
+    title: follows guide path
+    range: string
+    domain: Recipe
+    multivalued: true
   forQuery:
     slot_uri: https://blackcatinformatics.ca/gmeow/forQuery
     title: for query
@@ -7067,6 +7091,21 @@ slots:
     slot_uri: https://blackcatinformatics.ca/gmeow/guideBlob
     title: guide blob
     range: string
+  guideGoal:
+    slot_uri: https://blackcatinformatics.ca/gmeow/guideGoal
+    title: guide goal
+    range: string
+    multivalued: true
+  guideSlug:
+    slot_uri: https://blackcatinformatics.ca/gmeow/guideSlug
+    title: guide slug
+    range: string
+    multivalued: true
+  guideTitle:
+    slot_uri: https://blackcatinformatics.ca/gmeow/guideTitle
+    title: guide title
+    range: string
+    multivalued: true
   hasAboutness:
     slot_uri: https://blackcatinformatics.ca/gmeow/hasAboutness
     title: has aboutness
@@ -8266,6 +8305,12 @@ slots:
     range: TemporalFrame
     domain: Instant
     multivalued: true
+  includesRecipe:
+    slot_uri: https://blackcatinformatics.ca/gmeow/includesRecipe
+    title: includes recipe
+    range: Recipe
+    domain: LearningPath
+    multivalued: true
   indexAlgorithm:
     slot_uri: https://blackcatinformatics.ca/gmeow/indexAlgorithm
     title: index algorithm
@@ -8757,6 +8802,12 @@ slots:
     title: learner
     range: Agent
     domain: Teaching
+    multivalued: true
+  learningAudience:
+    slot_uri: https://blackcatinformatics.ca/gmeow/learningAudience
+    title: learning audience
+    range: string
+    domain: LearningPath
     multivalued: true
   learningType:
     slot_uri: https://blackcatinformatics.ca/gmeow/learningType
@@ -12647,11 +12698,21 @@ slots:
     range: string
     domain: EmailMessage
     multivalued: true
+  usesExamplePath:
+    slot_uri: https://blackcatinformatics.ca/gmeow/usesExamplePath
+    title: uses example path
+    range: string
+    multivalued: true
   usesScale:
     slot_uri: https://blackcatinformatics.ca/gmeow/usesScale
     title: uses scale
     range: ScoreScale
     multivalued: false
+  usesTerm:
+    slot_uri: https://blackcatinformatics.ca/gmeow/usesTerm
+    title: uses term
+    range: string
+    multivalued: true
   usesTransformCodec:
     slot_uri: https://blackcatinformatics.ca/gmeow/usesTransformCodec
     title: uses transform codec
@@ -16221,6 +16282,24 @@ enums:
       learningUnlearning:
         meaning: https://blackcatinformatics.ca/gmeow/learningUnlearning
         title: unlearning
+  LearningPathEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/LearningPath
+    permissible_values:
+      pathAuditAiOrGraphRag:
+        meaning: https://blackcatinformatics.ca/gmeow/pathAuditAiOrGraphRag
+        title: Audit AI and Graph-RAG Pipelines
+      pathModelAContestedClaim:
+        meaning: https://blackcatinformatics.ca/gmeow/pathModelAContestedClaim
+        title: Model a Contested or Attributed Claim
+      pathModelAPerson:
+        meaning: https://blackcatinformatics.ca/gmeow/pathModelAPerson
+        title: Model a Person Without Flattening Identity
+      pathPublishWebStructuredData:
+        meaning: https://blackcatinformatics.ca/gmeow/pathPublishWebStructuredData
+        title: Publish Web Structured Data
+      pathShipOfflineGtsDocs:
+        meaning: https://blackcatinformatics.ca/gmeow/pathShipOfflineGtsDocs
+        title: Ship Offline GTS Documentation
   LedgerAccountTypeEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/LedgerAccountType
     permissible_values:
@@ -18592,6 +18671,27 @@ enums:
       realizationModePerformed:
         meaning: https://blackcatinformatics.ca/gmeow/realizationModePerformed
         title: performed
+  RecipeEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/Recipe
+    permissible_values:
+      recipeContestedOrAttributedFacts:
+        meaning: https://blackcatinformatics.ca/gmeow/recipeContestedOrAttributedFacts
+        title: Model Contested or Attributed Facts
+      recipeDocumentsAndSchemaOrg:
+        meaning: https://blackcatinformatics.ca/gmeow/recipeDocumentsAndSchemaOrg
+        title: Publish Documents for Schema.org Consumers
+      recipeEventsAndParticipants:
+        meaning: https://blackcatinformatics.ca/gmeow/recipeEventsAndParticipants
+        title: Model Events and Participants
+      recipeGraphRagDatasetLineage:
+        meaning: https://blackcatinformatics.ca/gmeow/recipeGraphRagDatasetLineage
+        title: Model Graph-RAG Dataset Lineage
+      recipeOfflineGtsDistribution:
+        meaning: https://blackcatinformatics.ca/gmeow/recipeOfflineGtsDistribution
+        title: Describe Offline GTS Distribution
+      recipePersonNamesAndDisplay:
+        meaning: https://blackcatinformatics.ca/gmeow/recipePersonNamesAndDisplay
+        title: Model Person Names Without a Preferred-Name Slot
   RecordingEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/Recording
     permissible_values:

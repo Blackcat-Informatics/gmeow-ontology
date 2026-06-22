@@ -1449,6 +1449,15 @@ enum LearningEventTypeEnum
     learningUnlearning
   }
 
+enum LearningPathEnum
+  {
+    pathAuditAiOrGraphRag
+    pathModelAContestedClaim
+    pathModelAPerson
+    pathPublishWebStructuredData
+    pathShipOfflineGtsDocs
+  }
+
 enum LedgerAccountTypeEnum
   {
     ledgerAccountTypeAsset
@@ -2498,6 +2507,16 @@ enum RealizationModeEnum
     realizationModeNotated
     realizationModeOral
     realizationModePerformed
+  }
+
+enum RecipeEnum
+  {
+    recipeContestedOrAttributedFacts
+    recipeDocumentsAndSchemaOrg
+    recipeEventsAndParticipants
+    recipeGraphRagDatasetLineage
+    recipeOfflineGtsDistribution
+    recipePersonNamesAndDisplay
   }
 
 enum RecordingEnum
@@ -11513,6 +11532,13 @@ type LearningEventType
   {
   }
 
+type LearningPath
+  {
+    adoptionTarget: [String]
+    includesRecipe: [Recipe]
+    learningAudience: [String]
+  }
+
 type LedgerAccount
   {
     acquireLicensePage: [String]
@@ -17979,6 +18005,11 @@ type ReadingOrder
 
 type RealizationMode
   {
+  }
+
+type Recipe
+  {
+    followsGuidePath: [String]
   }
 
 type Recording

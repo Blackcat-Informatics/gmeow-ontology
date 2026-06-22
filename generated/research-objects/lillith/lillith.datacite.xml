@@ -13,7 +13,7 @@
   <publicationYear>2026</publicationYear>
   <resourceType resourceTypeGeneral="Dataset">Research-object benchmark dataset</resourceType>
   <dates>
-    <date dateType="Issued">2026-06-12T00:00:00+00:00</date>
+    <date dateType="Issued">2026-06-12T00:00:00Z</date>
   </dates>
   <rightsList>
     <rights rightsURI="https://spdx.org/licenses/CC-BY-4.0" rightsIdentifier="CC-BY-4.0" rightsIdentifierScheme="SPDX">CC-BY-4.0</rights>

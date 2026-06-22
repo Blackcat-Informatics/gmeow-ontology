@@ -1449,6 +1449,15 @@ export enum LearningEventTypeEnum {
     unlearning = "learningUnlearning",
 };
 
+export enum LearningPathEnum {
+
+    Audit_AI_and_Graph_RAG_Pipelines = "pathAuditAiOrGraphRag",
+    Model_a_Contested_or_Attributed_Claim = "pathModelAContestedClaim",
+    Model_a_Person_Without_Flattening_Identity = "pathModelAPerson",
+    Publish_Web_Structured_Data = "pathPublishWebStructuredData",
+    Ship_Offline_GTS_Documentation = "pathShipOfflineGtsDocs",
+};
+
 export enum LedgerAccountTypeEnum {
 
     asset = "ledgerAccountTypeAsset",
@@ -2498,6 +2507,16 @@ export enum RealizationModeEnum {
     notated = "realizationModeNotated",
     oral = "realizationModeOral",
     performed = "realizationModePerformed",
+};
+
+export enum RecipeEnum {
+
+    Model_Contested_or_Attributed_Facts = "recipeContestedOrAttributedFacts",
+    Publish_Documents_for_SchemaFULL_STOPorg_Consumers = "recipeDocumentsAndSchemaOrg",
+    Model_Events_and_Participants = "recipeEventsAndParticipants",
+    Model_Graph_RAG_Dataset_Lineage = "recipeGraphRagDatasetLineage",
+    Describe_Offline_GTS_Distribution = "recipeOfflineGtsDistribution",
+    Model_Person_Names_Without_a_Preferred_Name_Slot = "recipePersonNamesAndDisplay",
 };
 
 export enum RecordingEnum {
@@ -5497,6 +5516,14 @@ export interface LearningEventType {
 
 
 
+export interface LearningPath {
+    adoptionTarget?: string[],
+    includesRecipe?: Recipe[],
+    learningAudience?: string[],
+}
+
+
+
 export interface LedgerAccount extends InformationObject {
     ledgerAccountCurrency?: ReferenceFrame[],
     ledgerAccountHolder?: Agent[],
@@ -6831,6 +6858,12 @@ export interface ReadingOrder extends Standpoint {
 
 
 export interface RealizationMode {
+}
+
+
+
+export interface Recipe {
+    followsGuidePath?: string[],
 }
 
 

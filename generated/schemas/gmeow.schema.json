@@ -67280,6 +67280,53 @@
             "title": "LearningEventTypeEnum",
             "type": "string"
         },
+        "LearningPath": {
+            "additionalProperties": false,
+            "description": "",
+            "properties": {
+                "adoptionTarget": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "includesRecipe": {
+                    "items": {
+                        "$ref": "#/$defs/Recipe"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "learningAudience": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                }
+            },
+            "title": "LearningPath",
+            "type": "object"
+        },
+        "LearningPathEnum": {
+            "description": "",
+            "enum": [
+                "pathAuditAiOrGraphRag",
+                "pathModelAContestedClaim",
+                "pathModelAPerson",
+                "pathPublishWebStructuredData",
+                "pathShipOfflineGtsDocs"
+            ],
+            "title": "LearningPathEnum",
+            "type": "string"
+        },
         "LedgerAccount": {
             "additionalProperties": false,
             "description": "",
@@ -121669,6 +121716,36 @@
                 "realizationModePerformed"
             ],
             "title": "RealizationModeEnum",
+            "type": "string"
+        },
+        "Recipe": {
+            "additionalProperties": false,
+            "description": "",
+            "properties": {
+                "followsGuidePath": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                }
+            },
+            "title": "Recipe",
+            "type": "object"
+        },
+        "RecipeEnum": {
+            "description": "",
+            "enum": [
+                "recipeContestedOrAttributedFacts",
+                "recipeDocumentsAndSchemaOrg",
+                "recipeEventsAndParticipants",
+                "recipeGraphRagDatasetLineage",
+                "recipeOfflineGtsDistribution",
+                "recipePersonNamesAndDisplay"
+            ],
+            "title": "RecipeEnum",
             "type": "string"
         },
         "Recording": {

@@ -1,47 +1,50 @@
-@prefix ev: <https://blackcatinformatics.ca/gmeow/evals/> .
-@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
-@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+<https://blackcatinformatics.ca/gmeow/evals/assessment-reference-baseline-abstention-quality>
+    a <https://blackcatinformatics.ca/gmeow/Assessment> ;
+    <https://blackcatinformatics.ca/gmeow/assessmentCriterion> <https://blackcatinformatics.ca/gmeow/evals/crit-abstention> ;
+    <https://blackcatinformatics.ca/gmeow/assessmentRubric> <https://blackcatinformatics.ca/gmeow/evals/rubric> ;
+    <https://blackcatinformatics.ca/gmeow/assessmentScoreValue> "1"^^<http://www.w3.org/2001/XMLSchema#decimal> ;
+    <https://blackcatinformatics.ca/gmeow/assessmentTarget> <https://blackcatinformatics.ca/gmeow/evals/model-reference-baseline> ;
+    <https://blackcatinformatics.ca/gmeow/vantage> <https://blackcatinformatics.ca/gmeow/evals/harness> .
 
-ev:assessment-reference-baseline-abstention-quality a gmeow:Assessment ;
-    gmeow:assessmentCriterion ev:crit-abstention ;
-    gmeow:assessmentRubric ev:rubric ;
-    gmeow:assessmentScoreValue 1.0 ;
-    gmeow:assessmentTarget ev:model-reference-baseline ;
-    gmeow:vantage ev:harness .
+<https://blackcatinformatics.ca/gmeow/evals/assessment-reference-baseline-calibration>
+    a <https://blackcatinformatics.ca/gmeow/Assessment> ;
+    <https://blackcatinformatics.ca/gmeow/assessmentCriterion> <https://blackcatinformatics.ca/gmeow/evals/crit-calibration> ;
+    <https://blackcatinformatics.ca/gmeow/assessmentRubric> <https://blackcatinformatics.ca/gmeow/evals/rubric> ;
+    <https://blackcatinformatics.ca/gmeow/assessmentScoreValue> 0.66 ;
+    <https://blackcatinformatics.ca/gmeow/assessmentTarget> <https://blackcatinformatics.ca/gmeow/evals/model-reference-baseline> ;
+    <https://blackcatinformatics.ca/gmeow/vantage> <https://blackcatinformatics.ca/gmeow/evals/harness> .
 
-ev:assessment-reference-baseline-calibration a gmeow:Assessment ;
-    gmeow:assessmentCriterion ev:crit-calibration ;
-    gmeow:assessmentRubric ev:rubric ;
-    gmeow:assessmentScoreValue 0.66 ;
-    gmeow:assessmentTarget ev:model-reference-baseline ;
-    gmeow:vantage ev:harness .
+<https://blackcatinformatics.ca/gmeow/evals/assessment-reference-baseline-grounding-precision>
+    a <https://blackcatinformatics.ca/gmeow/Assessment> ;
+    <https://blackcatinformatics.ca/gmeow/assessmentCriterion> <https://blackcatinformatics.ca/gmeow/evals/crit-grounding-precision> ;
+    <https://blackcatinformatics.ca/gmeow/assessmentRubric> <https://blackcatinformatics.ca/gmeow/evals/rubric> ;
+    <https://blackcatinformatics.ca/gmeow/assessmentScoreValue> 0.6 ;
+    <https://blackcatinformatics.ca/gmeow/assessmentTarget> <https://blackcatinformatics.ca/gmeow/evals/model-reference-baseline> ;
+    <https://blackcatinformatics.ca/gmeow/vantage> <https://blackcatinformatics.ca/gmeow/evals/harness> .
 
-ev:assessment-reference-baseline-grounding-precision a gmeow:Assessment ;
-    gmeow:assessmentCriterion ev:crit-grounding-precision ;
-    gmeow:assessmentRubric ev:rubric ;
-    gmeow:assessmentScoreValue 0.6 ;
-    gmeow:assessmentTarget ev:model-reference-baseline ;
-    gmeow:vantage ev:harness .
+<https://blackcatinformatics.ca/gmeow/evals/assessment-reference-baseline-grounding-recall>
+    a <https://blackcatinformatics.ca/gmeow/Assessment> ;
+    <https://blackcatinformatics.ca/gmeow/assessmentCriterion> <https://blackcatinformatics.ca/gmeow/evals/crit-grounding-recall> ;
+    <https://blackcatinformatics.ca/gmeow/assessmentRubric> <https://blackcatinformatics.ca/gmeow/evals/rubric> ;
+    <https://blackcatinformatics.ca/gmeow/assessmentScoreValue> "1"^^<http://www.w3.org/2001/XMLSchema#decimal> ;
+    <https://blackcatinformatics.ca/gmeow/assessmentTarget> <https://blackcatinformatics.ca/gmeow/evals/model-reference-baseline> ;
+    <https://blackcatinformatics.ca/gmeow/vantage> <https://blackcatinformatics.ca/gmeow/evals/harness> .
 
-ev:assessment-reference-baseline-grounding-recall a gmeow:Assessment ;
-    gmeow:assessmentCriterion ev:crit-grounding-recall ;
-    gmeow:assessmentRubric ev:rubric ;
-    gmeow:assessmentScoreValue 1.0 ;
-    gmeow:assessmentTarget ev:model-reference-baseline ;
-    gmeow:vantage ev:harness .
+<https://blackcatinformatics.ca/gmeow/evals/assessment-reference-baseline-hallucination-resistance>
+    a <https://blackcatinformatics.ca/gmeow/Assessment> ;
+    <https://blackcatinformatics.ca/gmeow/assessmentCriterion> <https://blackcatinformatics.ca/gmeow/evals/crit-hallucination> ;
+    <https://blackcatinformatics.ca/gmeow/assessmentRubric> <https://blackcatinformatics.ca/gmeow/evals/rubric> ;
+    <https://blackcatinformatics.ca/gmeow/assessmentScoreValue> 0.6 ;
+    <https://blackcatinformatics.ca/gmeow/assessmentTarget> <https://blackcatinformatics.ca/gmeow/evals/model-reference-baseline> ;
+    <https://blackcatinformatics.ca/gmeow/vantage> <https://blackcatinformatics.ca/gmeow/evals/harness> .
 
-ev:assessment-reference-baseline-hallucination-resistance a gmeow:Assessment ;
-    gmeow:assessmentCriterion ev:crit-hallucination ;
-    gmeow:assessmentRubric ev:rubric ;
-    gmeow:assessmentScoreValue 0.6 ;
-    gmeow:assessmentTarget ev:model-reference-baseline ;
-    gmeow:vantage ev:harness .
+<https://blackcatinformatics.ca/gmeow/evals/assessment-reference-baseline-schema-validity>
+    a <https://blackcatinformatics.ca/gmeow/Assessment> ;
+    <https://blackcatinformatics.ca/gmeow/assessmentCriterion> <https://blackcatinformatics.ca/gmeow/evals/crit-schema-validity> ;
+    <https://blackcatinformatics.ca/gmeow/assessmentRubric> <https://blackcatinformatics.ca/gmeow/evals/rubric> ;
+    <https://blackcatinformatics.ca/gmeow/assessmentScoreValue> 0.8333 ;
+    <https://blackcatinformatics.ca/gmeow/assessmentTarget> <https://blackcatinformatics.ca/gmeow/evals/model-reference-baseline> ;
+    <https://blackcatinformatics.ca/gmeow/vantage> <https://blackcatinformatics.ca/gmeow/evals/harness> .
 
-ev:assessment-reference-baseline-schema-validity a gmeow:Assessment ;
-    gmeow:assessmentCriterion ev:crit-schema-validity ;
-    gmeow:assessmentRubric ev:rubric ;
-    gmeow:assessmentScoreValue 0.8333 ;
-    gmeow:assessmentTarget ev:model-reference-baseline ;
-    gmeow:vantage ev:harness .
-
-ev:model-reference-baseline a gmeow:SoftwareAgent .
+<https://blackcatinformatics.ca/gmeow/evals/model-reference-baseline>
+    a <https://blackcatinformatics.ca/gmeow/SoftwareAgent> .
