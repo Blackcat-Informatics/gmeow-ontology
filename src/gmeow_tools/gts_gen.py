@@ -709,6 +709,67 @@ def compile_full_snapshot(
     return build_snapshot_bytes(signer=signer, public_key_armor=public_key_armor)
 
 
+def _ontology_docs_inputs() -> list[Path]:
+    """Canonical DATA sources that drive the rendered ontology-docs tree.
+
+    Must list EVERY file whose content reaches the rendered docs — the docs
+    fold into the GTS bundle (#bundle), and the drift gate skips regeneration
+    when this hash is unchanged. An omission here is silent staleness: a
+    rendered input changes, the hash does not, the committed snapshot is never
+    rebuilt.
+
+    The rust-first ``gmeow_native.docs`` renderer's own sources, templates,
+    and assets are tracked separately in :pyattr:`implementation_paths`; the
+    retired Python renderer (``ontology_docs.py``) and its vendored
+    ``simple.css`` are intentionally dropped (#853).
+    """
+    from gmeow_tools.config import (
+        MAPPING_DSL_DIR,
+        REFERENCES_MD_FILE,
+        SLICES_DIR,
+        TEST_DSL_VOCABULARY_FILE,
+        VERIFY_DIR,
+    )
+    from gmeow_tools.native_reason_gen import (
+        NATIVE_CLOSURE_FILE,
+        NATIVE_EXPLANATIONS_FILE,
+        NATIVE_LEDGER_FILE,
+    )
+    from gmeow_tools.slices import (
+        iter_slice_mapping_files,
+        iter_slice_query_files,
+        iter_slice_test_files,
+    )
+
+    return [
+        # The footer cites the concept DOI read from the self-description (via
+        # _citation_doi → self_desc); both the data and its loader feed the output.
+        Path(__file__).with_name("self_desc.py"),
+        PROJECT_ROOT / "metadata" / "gmeow-self.ttl",
+        PROJECT_ROOT / "docs" / "four-boxes.md",
+        GTS_SNAPSHOT_FILE,
+        REFERENCES_MD_FILE,
+        STATEMENT_RDF12_FILE,
+        *sorted(MAPPING_DSL_DIR.rglob("*.ttl")),
+        *iter_slice_mapping_files(),
+        *sorted(SLICES_DIR.glob("*/*/manifest.ttl")),
+        *sorted(SLICES_DIR.glob("*/*/docs.md")),
+        *sorted(SLICES_DIR.glob("*/*/design/*.md")),
+        *sorted(SLICES_DIR.glob("*/*/examples/*.ttl")),
+        # slice-resident declarative test specs rendered into the per-slice docs,
+        # plus the test-DSL vocabulary they are authored in (#783)
+        TEST_DSL_VOCABULARY_FILE,
+        *iter_slice_test_files(),
+        # verify queries are rendered into the Integrity Constraints page (#695)
+        *sorted(VERIFY_DIR.glob("*.rq")),
+        *iter_slice_query_files("verify"),
+        # native-reasoning artifacts rendered into the Logic & Reasoning page (#667)
+        NATIVE_CLOSURE_FILE,
+        NATIVE_EXPLANATIONS_FILE,
+        NATIVE_LEDGER_FILE,
+    ]
+
+
 @register
 class GtsSnapshotGenerator(Generator):
     """Emit the byte-deterministic unified GTS bundle."""
@@ -759,13 +820,6 @@ class GtsSnapshotGenerator(Generator):
             SLICES_DIR,
         )
 
-        # The DATA inputs whose content reaches the rendered ontology-docs tree
-        # (slices, examples, self-description, native-reasoning artifacts, …).
-        # The rust-first renderer's own sources/templates/assets are tracked
-        # separately in `sources`; the obsolete Python-renderer modules
-        # (`_ONTOLOGY_DOCS_RENDERER_INPUTS`) are intentionally dropped (#853).
-        from gmeow_tools.ontology_docs import ontology_docs_inputs
-
         doc_files = [
             p
             for p in (PROJECT_ROOT / "docs").rglob("*")
@@ -791,7 +845,7 @@ class GtsSnapshotGenerator(Generator):
             # verify queries drive the folded-in attestation graph (#695)
             *sorted(VERIFY_DIR.glob("*.rq")),
             *iter_slice_query_files("verify"),
-            *ontology_docs_inputs(),
+            *_ontology_docs_inputs(),
             *sorted(doc_files),
         ]
 

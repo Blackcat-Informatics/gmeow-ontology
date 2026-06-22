@@ -13,10 +13,12 @@ htmlcov/
 # Ephemeral build products (published on release, never committed).
 # Committed generated artifacts live under generated/ (#287) — one root,
 # every path owned by a registered generator.
-# Exception (#440): ontology-docs/ at the repository root is a committed
-# generated artifact owned by the ontology-docs registered generator.
+# ontology-docs/ is on-demand `extract-docs`/`make docs-gen` output rendered
+# from the rust-first gmeow_native.docs renderer; it is never committed (#853).
 /dist/
 /dist/i18n/
+/dist/ontology-docs/
+/ontology-docs/
 /docs/_generated/
 /llms.txt
 
