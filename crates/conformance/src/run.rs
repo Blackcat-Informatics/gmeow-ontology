@@ -44,11 +44,14 @@ pub struct RunnerQuad {
 }
 
 /// One explanation skeleton, keyed by its target quad reifier (the match key the
-/// `expected/explanation/*.md` goldens use). Prose is not reproduced.
+/// `expected/explanation/*.md` goldens use).
 #[derive(Debug, Clone)]
 pub struct ExplanationOut {
     pub target_quad_reifier: String,
     pub cited_iris: BTreeSet<String>,
+    /// Full Markdown rendering of this explanation, suitable for writing to
+    /// `expected/explanation/{hash}.md`.
+    pub markdown: String,
 }
 
 /// The projection artifacts for one case.
@@ -302,9 +305,13 @@ fn run_explanations(case_id: &str, quads: &[RunnerQuad]) -> Result<Vec<Explanati
         explain_all(&rows).map_err(|e| format!("case {case_id}: explain failed: {e}"))?;
     Ok(explanations
         .into_iter()
-        .map(|e| ExplanationOut {
-            target_quad_reifier: e.target_quad_reifier,
-            cited_iris: e.cited_iris,
+        .map(|e| {
+            let markdown = gmeow_logic::explain::render_markdown(&e);
+            ExplanationOut {
+                target_quad_reifier: e.target_quad_reifier,
+                cited_iris: e.cited_iris,
+                markdown,
+            }
         })
         .collect())
 }
