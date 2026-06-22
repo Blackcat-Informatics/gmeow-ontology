@@ -832,14 +832,17 @@ impl FactStore {
             return false;
         }
         self.keys.insert(key);
-        let predicate = fact.predicate.clone();
+        let idx = self.facts.len();
         self.facts.push(fact);
         // Push the new row index in lockstep with `facts`, preserving insertion
-        // order within the predicate bucket.
-        self.predicate_index
-            .entry(predicate)
-            .or_default()
-            .push(self.facts.len() - 1);
+        // order within the predicate bucket. Clone the predicate only on first
+        // occurrence to avoid a heap allocation for repeat predicates.
+        let pred = &self.facts[idx].predicate;
+        if let Some(bucket) = self.predicate_index.get_mut(pred.as_str()) {
+            bucket.push(idx);
+        } else {
+            self.predicate_index.insert(pred.clone(), vec![idx]);
+        }
         true
     }
 
