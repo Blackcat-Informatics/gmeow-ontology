@@ -69,7 +69,7 @@ struct DepProposal {
 /// Returns a [`SliceError`] on any manifest read/parse failure, or if a patched
 /// manifest fails its post-edit re-parse validation — no silent skips.
 pub fn compute_fix_deps(catalog: &SliceCatalog) -> Result<Vec<ManifestPatch>, SliceError> {
-    let report = OwnershipAnalyzer::new(catalog).analyze();
+    let report = OwnershipAnalyzer::new(catalog).analyze()?;
 
     // Group undeclared/stale semantic edges by depending slice, deduped.
     let mut proposals: BTreeMap<SliceIri, DepProposal> = BTreeMap::new();

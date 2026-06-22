@@ -35,6 +35,7 @@ use oxigraph::store::Store;
 
 use crate::artifact::{ArtifactRecord, ArtifactRole};
 use crate::catalog::{SliceCatalog, SliceRecord};
+use crate::error::SliceError;
 
 // ── Namespace constants ───────────────────────────────────────────────────────
 
@@ -268,7 +269,7 @@ impl<'a> OwnershipAnalyzer<'a> {
 
     /// Run the full analysis: build the validated ownership table, then derive
     /// the evidence-bearing dependency graph from *validated* ownership only.
-    pub fn analyze(&self) -> OwnershipReport {
+    pub fn analyze(&self) -> Result<OwnershipReport, SliceError> {
         let mut diagnostics = Vec::new();
 
         // ── Phase 1: declared ownership (rdfs:isDefinedBy), per slice ────────
@@ -291,9 +292,7 @@ impl<'a> OwnershipAnalyzer<'a> {
                 if !is_ownership_bearing(&artifact.role) {
                     continue;
                 }
-                let Some(store) = parse_rdf_artifact(artifact) else {
-                    continue;
-                };
+                let store = parse_rdf_artifact(artifact)?;
                 // Collect rdfs:isDefinedBy claims.
                 for (subject, owner) in collect_is_defined_by(&store) {
                     // Only GMEOW vocabulary terms are owned.
@@ -409,7 +408,7 @@ impl<'a> OwnershipAnalyzer<'a> {
         let mut declared_deps: BTreeMap<SliceIri, BTreeSet<SliceIri>> = BTreeMap::new();
         for record in self.catalog.records() {
             let from = record.manifest.slice_iri.clone();
-            let targets = collect_slice_depends_on(record);
+            let targets = collect_slice_depends_on(record)?;
             if !targets.is_empty() {
                 declared_deps.entry(from).or_default().extend(targets);
             }
@@ -551,11 +550,11 @@ impl<'a> OwnershipAnalyzer<'a> {
                 .then_with(|| a.edge_kind.cmp(&b.edge_kind))
         });
 
-        OwnershipReport {
+        Ok(OwnershipReport {
             ownership,
             edges,
             diagnostics,
-        }
+        })
     }
 }
 
@@ -587,16 +586,27 @@ fn edge_kind_for_role(role: &ArtifactRole) -> Option<EdgeKind> {
 
 /// Parse an RDF artifact's bytes into an oxigraph store (lenient for
 /// `@x-gmeow-*` language tags). Returns `None` on parse failure.
-fn parse_rdf_artifact(artifact: &ArtifactRecord) -> Option<Store> {
-    let store = Store::new().ok()?;
+fn parse_rdf_artifact(artifact: &ArtifactRecord) -> Result<Store, SliceError> {
+    // A malformed ownership-bearing artifact must FAIL LOUDLY, never be silently
+    // dropped — a swallowed parse error would hide a term from the
+    // one-validated-owner gate and miscompute the dependency graph
+    // (no-optionality / hard-fail doctrine, #820).
+    let store = Store::new()
+        .map_err(|e| SliceError::Parse(format!("store init for {}: {e}", artifact.logical_path)))?;
     for quad in RdfParser::from_format(RdfFormat::Turtle)
         .lenient()
         .for_reader(artifact.content.as_slice())
     {
-        let quad = quad.ok()?;
-        store.insert(&quad).ok()?;
+        let quad =
+            quad.map_err(|e| SliceError::Parse(format!("parse {}: {e}", artifact.logical_path)))?;
+        store.insert(&quad).map_err(|e| {
+            SliceError::Parse(format!(
+                "insert into store from {}: {e}",
+                artifact.logical_path
+            ))
+        })?;
     }
-    Some(store)
+    Ok(store)
 }
 
 /// Collect all `subject rdfs:isDefinedBy owner` pairs (owner must be a NamedNode).
@@ -651,7 +661,7 @@ fn collect_declared_terms(store: &Store) -> BTreeSet<NamedNode> {
 /// whose subject is some *other* resource in the manifest (e.g. a blank-node
 /// description or an unrelated IRI) is never picked up — only edges authored on
 /// the slice itself reconcile against computed dependencies (#820 G8 MED).
-fn collect_slice_depends_on(record: &SliceRecord) -> BTreeSet<SliceIri> {
+fn collect_slice_depends_on(record: &SliceRecord) -> Result<BTreeSet<SliceIri>, SliceError> {
     let mut out = BTreeSet::new();
     // The manifest is preserved as an IR dataset; re-derive its named-node
     // objects of gmeow:sliceDependsOn. We parse the manifest artifact directly
@@ -661,13 +671,11 @@ fn collect_slice_depends_on(record: &SliceRecord) -> BTreeSet<SliceIri> {
         .iter()
         .find(|a| a.role == ArtifactRole::Manifest)
     else {
-        return out;
+        return Ok(out);
     };
-    let Some(store) = parse_rdf_artifact(manifest_artifact) else {
-        return out;
-    };
+    let store = parse_rdf_artifact(manifest_artifact)?;
     let Ok(subject) = NamedNode::new(&record.manifest.slice_iri) else {
-        return out;
+        return Ok(out);
     };
     let pred = NamedNode::new(GMEOW_SLICE_DEPENDS_ON).expect("static IRI");
     for quad in store
@@ -683,16 +691,23 @@ fn collect_slice_depends_on(record: &SliceRecord) -> BTreeSet<SliceIri> {
             out.insert(target.as_str().to_string());
         }
     }
-    out
+    Ok(out)
 }
 
 /// Extract every NamedNode IRI that appears anywhere in an RDF artifact:
 /// subject, predicate, object, datatype IRI, graph name, and nested
 /// triple-term components (RFC §10). Literal lexical forms are *not* mined for
 /// IRIs — only the datatype IRI of a literal counts.
+///
+/// This is a **best-effort cross-reference scan** that runs over heterogeneous
+/// artifacts (a Documentation `docs.md` or Example is not RDF and legitimately
+/// yields no IRIs). It deliberately tolerates a parse failure: any artifact that
+/// is *required* to be valid RDF (an ownership-bearing module/shapes/manifest)
+/// is already hard-validated in Phase 1 / `collect_slice_depends_on`, so a
+/// parse failure here only means "this non-RDF artifact contributes no edges".
 fn extract_rdf_iris(artifact: &ArtifactRecord) -> BTreeSet<NamedNode> {
     let mut out = BTreeSet::new();
-    let Some(store) = parse_rdf_artifact(artifact) else {
+    let Ok(store) = parse_rdf_artifact(artifact) else {
         return out;
     };
     for quad in store.iter().flatten() {

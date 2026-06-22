@@ -124,10 +124,21 @@ def _first_party_deps(manifest: dict[str, object]) -> set[str]:
     deps: set[str] = set()
     for table in _iter_dep_tables(manifest):
         for dep_name, spec in table.items():
-            if not dep_name.startswith(_FIRST_PARTY_PREFIX):
+            # A ``package = "gmeow-..."`` rename means the REAL crate is the
+            # renamed package, not the table key; a first-party edge hidden
+            # behind a rename is still a real layering edge (#820 S0). Resolve
+            # the effective crate name before the first-party / path checks.
+            effective = dep_name
+            has_path = False
+            if isinstance(spec, dict):
+                package = spec.get("package")
+                if isinstance(package, str):
+                    effective = package
+                has_path = isinstance(spec.get("path"), str)
+            if not effective.startswith(_FIRST_PARTY_PREFIX):
                 continue
-            if isinstance(spec, dict) and isinstance(spec.get("path"), str):
-                deps.add(dep_name)
+            if has_path:
+                deps.add(effective)
     return deps
 
 

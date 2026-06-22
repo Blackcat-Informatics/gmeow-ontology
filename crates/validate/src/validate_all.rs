@@ -609,7 +609,10 @@ fn merged_shacl_merkle_root(slices_dir: &str) -> Result<String, String> {
         .map_err(|e| format!("merged-SHACL Merkle key: slice catalog discovery failed: {e}"))?;
     // S4 dependency edges (the same edges the ownership/dependency analyzer
     // produces) drive the Merkle dependency composition.
-    let edges = OwnershipAnalyzer::new(&catalog).analyze().edges;
+    let edges = OwnershipAnalyzer::new(&catalog)
+        .analyze()
+        .map_err(|e| format!("merged-SHACL Merkle key: ownership analysis failed: {e}"))?
+        .edges;
     let toolchain = merged_shacl_toolchain();
     // Seeds = every slice IRI; the product closes over deps but the union of all
     // slices already covers the whole composition.

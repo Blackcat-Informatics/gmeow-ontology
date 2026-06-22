@@ -502,8 +502,10 @@ impl PyOwnershipAnalyzer {
     /// all authored artifact raw digests are captured here too, so the
     /// PyO3-free analysis-graph emitter can be driven entirely from owned data.
     #[new]
-    fn new(catalog: &PySliceCatalog) -> PyOwnershipAnalyzer {
-        let report = OwnershipAnalyzer::new(&catalog.inner).analyze();
+    fn new(catalog: &PySliceCatalog) -> PyResult<PyOwnershipAnalyzer> {
+        let report = OwnershipAnalyzer::new(&catalog.inner)
+            .analyze()
+            .map_err(|e| PyValueError::new_err(format!("ownership analysis failed: {e}")))?;
         let mut tier_of: HashMap<SliceIri, u8> = HashMap::new();
         let mut raw_digests: Vec<String> = Vec::new();
         for record in catalog.inner.records() {
@@ -516,11 +518,11 @@ impl PyOwnershipAnalyzer {
             }
         }
         raw_digests.sort_unstable();
-        PyOwnershipAnalyzer {
+        Ok(PyOwnershipAnalyzer {
             report,
             tier_of,
             raw_digests,
-        }
+        })
     }
 
     /// Return the computed [`PyOwnershipReport`].

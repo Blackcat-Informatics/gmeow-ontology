@@ -81,7 +81,7 @@ fn write_slice(
 
 fn discover(root: &Path) -> (SliceCatalog, Vec<crate::ownership::DependencyEdge>) {
     let catalog = SliceCatalog::discover(root).unwrap();
-    let report = OwnershipAnalyzer::new(&catalog).analyze();
+    let report = OwnershipAnalyzer::new(&catalog).analyze().unwrap();
     (catalog, report.edges)
 }
 

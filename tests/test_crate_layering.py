@@ -109,6 +109,43 @@ def test_dangling_path_edge_fails(tmp_path: Path) -> None:
     assert any("not a crates/* member" in e for e in report.errors)
 
 
+def test_renamed_package_path_dep_is_first_party(tmp_path: Path) -> None:
+    """A first-party path dep hidden behind a ``package = "gmeow-..."`` rename is
+    still a real layering edge — a kernel that pulls it in is impure (#820 S0).
+
+    The table key (``aliased``) does NOT start with ``gmeow-``; only the renamed
+    ``package`` reveals the real crate. Keying on the table key alone would let a
+    kernel-purity / cycle bypass slip through.
+    """
+    crates = tmp_path / "crates"
+    crates.mkdir(parents=True)
+    _write_crate(crates, "gmeow-diagnostics", {})
+    kernel_dir = crates / "gmeow-rdf"
+    kernel_dir.mkdir()
+    renamed_dep = (
+        'aliased = { path = "../gmeow-diagnostics", package = "gmeow-diagnostics" }'
+    )
+    (kernel_dir / "Cargo.toml").write_text(
+        "\n".join(
+            [
+                "[package]",
+                'name = "gmeow-rdf"',
+                'version = "0.1.0"',
+                "",
+                "[dependencies]",
+                renamed_dep,
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    report = check_crate_layering(crates)
+    # The renamed edge is resolved to the real crate and the kernel is impure.
+    assert not report.ok
+    assert any("ZERO first-party" in e for e in report.errors)
+    assert report.edges["gmeow-rdf"] == {"gmeow-diagnostics"}
+
+
 def test_diagnostics_projection_carries_errors(tmp_path: Path) -> None:
     """The diagnostics projection emits one finding per violation."""
     crates = tmp_path / "crates"

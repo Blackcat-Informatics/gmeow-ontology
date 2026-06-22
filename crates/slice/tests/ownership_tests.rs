@@ -99,7 +99,7 @@ fn single_validated_owner() {
     );
 
     let catalog = SliceCatalog::discover(root).unwrap();
-    let report = OwnershipAnalyzer::new(&catalog).analyze();
+    let report = OwnershipAnalyzer::new(&catalog).analyze().unwrap();
 
     // Exactly ONE validated owner for T.
     let t = &report.ownership[&nn("termT")];
@@ -170,7 +170,7 @@ fn ownership_conflict() {
     );
 
     let catalog = SliceCatalog::discover(root).unwrap();
-    let report = OwnershipAnalyzer::new(&catalog).analyze();
+    let report = OwnershipAnalyzer::new(&catalog).analyze().unwrap();
 
     let t = &report.ownership[&nn("termT")];
     match &t.status {
@@ -214,7 +214,7 @@ fn ownership_mismatch() {
     );
 
     let catalog = SliceCatalog::discover(root).unwrap();
-    let report = OwnershipAnalyzer::new(&catalog).analyze();
+    let report = OwnershipAnalyzer::new(&catalog).analyze().unwrap();
 
     let t = &report.ownership[&nn("termT")];
     match &t.status {
@@ -280,7 +280,7 @@ fn parsed_not_textual_edges() {
     );
 
     let catalog = SliceCatalog::discover(root).unwrap();
-    let report = OwnershipAnalyzer::new(&catalog).analyze();
+    let report = OwnershipAnalyzer::new(&catalog).analyze().unwrap();
 
     // Exactly one B → A query edge, with termT as evidence.
     let edge = report
@@ -332,8 +332,12 @@ fn path_independence() {
     build(tmp1.path(), "core");
     build(tmp2.path(), "extensions/deeply/nested");
 
-    let r1 = OwnershipAnalyzer::new(&SliceCatalog::discover(tmp1.path()).unwrap()).analyze();
-    let r2 = OwnershipAnalyzer::new(&SliceCatalog::discover(tmp2.path()).unwrap()).analyze();
+    let r1 = OwnershipAnalyzer::new(&SliceCatalog::discover(tmp1.path()).unwrap())
+        .analyze()
+        .unwrap();
+    let r2 = OwnershipAnalyzer::new(&SliceCatalog::discover(tmp2.path()).unwrap())
+        .analyze()
+        .unwrap();
 
     // Ownership tables are identical (term IRIs, owners, status — all
     // path-independent). physical_origin.logical_path is slice-relative, so it
@@ -404,7 +408,7 @@ fn semantic_vs_nonsemantic() {
     );
 
     let catalog = SliceCatalog::discover(root).unwrap();
-    let report = OwnershipAnalyzer::new(&catalog).analyze();
+    let report = OwnershipAnalyzer::new(&catalog).analyze().unwrap();
 
     // The documentation edge B → A (if recorded at all) is NON-semantic and
     // never reconciles / never produces an UndeclaredDependency diagnostic.
@@ -486,7 +490,7 @@ fn declared_but_unowned_term() {
     write(root, "slices/grpA/sliceA/module.ttl", &module_ttl);
 
     let catalog = SliceCatalog::discover(root).unwrap();
-    let report = OwnershipAnalyzer::new(&catalog).analyze();
+    let report = OwnershipAnalyzer::new(&catalog).analyze().unwrap();
 
     // termWithOwner must be Validated.
     let owned = &report.ownership[&nn("termWithOwner")];
@@ -528,5 +532,36 @@ fn declared_but_unowned_term() {
     assert!(
         report.has_ownership_defect(),
         "report with an Unowned term must report has_ownership_defect"
+    );
+}
+
+// ── Hard-fail on a malformed ownership-bearing artifact (G9, no-optionality) ───
+
+#[test]
+fn malformed_artifact_hard_fails_analysis() {
+    // A slice whose module.ttl is malformed RDF must make analyze() return Err,
+    // never silently drop the artifact (which would hide its terms from the
+    // one-validated-owner gate). No-optionality / hard-fail doctrine (#820).
+    let tmp = TempDir::new().unwrap();
+    let root = tmp.path();
+
+    write(
+        root,
+        "slices/grpA/sliceA/manifest.ttl",
+        &manifest("sliceA", &[]),
+    );
+    // Broken Turtle: an unterminated triple / garbage that no parser accepts.
+    write(
+        root,
+        "slices/grpA/sliceA/module.ttl",
+        "@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
+         gmeow:Broken a gmeow:Class  <<< not turtle at all ;;;\n",
+    );
+
+    let catalog = SliceCatalog::discover(root).unwrap();
+    let result = OwnershipAnalyzer::new(&catalog).analyze();
+    assert!(
+        result.is_err(),
+        "a malformed ownership artifact must hard-fail analysis, not be silently skipped"
     );
 }
