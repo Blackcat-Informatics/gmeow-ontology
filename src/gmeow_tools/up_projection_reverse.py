@@ -20,7 +20,7 @@ one ``CoupleRelationship`` per family — rather than fragmenting.
 from __future__ import annotations
 
 import gmeow_rdf
-from rdflib import Graph
+from gmeow_rdf.compat.rdflib import Graph
 
 from gmeow_tools.config import NAMESPACE
 

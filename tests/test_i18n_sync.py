@@ -5,8 +5,8 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
-from rdflib import Graph, Literal, URIRef
-from rdflib.namespace import OWL, RDF, RDFS, SKOS
+from gmeow_rdf.compat.rdflib import Graph, Literal, URIRef
+from gmeow_rdf.compat.rdflib.namespace import OWL, RDF, RDFS, SKOS
 from typer.testing import CliRunner
 
 from gmeow_tools.cli_dev import app as dev_app

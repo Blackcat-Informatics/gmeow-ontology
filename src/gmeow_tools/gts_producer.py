@@ -26,14 +26,14 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 import gmeow_rdf as ox
-from rdflib import Dataset, Graph, URIRef
+from gmeow_rdf.compat.rdflib import Dataset, Graph, URIRef
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
     from pathlib import Path
 
+    from gmeow_rdf.compat.rdflib.term import Node
     from gts import Signer
-    from rdflib.term import Node
 
     from gmeow_tools.saturate import DerivedTriple
 
@@ -340,7 +340,7 @@ def compile_gts(
         FileNotFoundError: if ``rdf12_path`` is given but does not exist (a missing
             statement layer is an error, not a silent RDF-1.1-only fallback).
     """
-    from rdflib.compare import to_canonical_graph
+    from gmeow_rdf.compat.rdflib.compare import to_canonical_graph
 
     from gmeow_tools.config import GTS_GRAPH_ALIGNMENTS, GTS_GRAPH_STATEMENTS
 

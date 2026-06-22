@@ -12,7 +12,7 @@ from pathlib import Path
 
 import gmeow_rdf
 import pytest
-from rdflib import Graph
+from gmeow_rdf.compat.rdflib import Graph
 
 from gmeow_tools.config import PREFIXES
 from gmeow_tools.graph import iter_source_files

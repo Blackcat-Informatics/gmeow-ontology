@@ -18,8 +18,8 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from blake3 import blake3
+from gmeow_rdf.compat.rdflib import RDF, XSD, Graph, Literal, URIRef
 from gts import Signer
-from rdflib import RDF, XSD, Graph, Literal, URIRef
 
 from gmeow_tools.config import (
     GTS_GRAPH_IMPORTS,

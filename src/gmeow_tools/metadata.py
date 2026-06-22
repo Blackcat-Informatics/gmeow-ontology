@@ -16,8 +16,8 @@ from collections.abc import Sequence
 from dataclasses import dataclass
 from pathlib import Path
 
-from rdflib import RDF, RDFS, Graph, Literal, URIRef
-from rdflib.namespace import DCAT, DCTERMS, FOAF, SKOS, VOID, XSD
+from gmeow_rdf.compat.rdflib import RDF, RDFS, Graph, Literal, URIRef
+from gmeow_rdf.compat.rdflib.namespace import DCAT, DCTERMS, FOAF, SKOS, VOID, XSD
 
 from gmeow_tools.config import (
     ALIGNMENT_TARGETS,

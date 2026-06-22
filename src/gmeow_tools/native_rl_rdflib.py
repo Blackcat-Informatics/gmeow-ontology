@@ -1,79 +1,57 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: AGPL-3.0-only
-"""rdflib I/O adapter for the native OWL 2 RL closure (issue #630).
+"""Graph I/O adapter for the native OWL 2 RL closure (issue #630).
 
 The production reasoning core (:mod:`gmeow_tools.native_rl`) is rdflib-free. This
-module is the **caller-boundary adapter** for the rdflib-native consumers — the
-competency/observation test suites and the ``rl_agreement`` classic-cross-check
-oracle, which build, mutate and SPARQL-query rdflib graphs and compare against
-``owlrl`` (itself rdflib-based).
+module is the **caller-boundary adapter** for the graph-native consumers — the
+competency/observation suites (which use the native ``gmeow_rdf.compat.rdflib``
+``Graph``) and the ``rl_agreement`` classic-cross-check oracle (which uses the
+upstream rdflib ``Graph`` to compare against ``owlrl``).
 
-Single FFI boundary (issue #630)
---------------------------------
-The closure is computed by **one** native call, ``gmeow_logic.rl_closure_quads``,
-which parses the serialized graph, runs the OWL 2 RL chase, and returns the full
-closure as live ``gmeow_rdf.Quad`` objects — there is no intermediate N-Triples
-string the Python side renders and re-parses (the old Rust→Python→Rust seam is
-gone). The adapter serializes the caller's rdflib graph once, hands the bytes to
-Rust, and folds the returned quads back into the graph in place — the exact
-``owlrl.DeductiveClosure(...).expand(graph)`` contract.
+It is **engine-agnostic**: the closure is computed by one native call over the
+graph's N-Triples serialization and folded back in via the graph's own ``parse``
+— so any graph that can ``serialize``/``parse`` N-Triples works, whether it is the
+native compat ``Graph`` or upstream rdflib's. No per-term construction is needed,
+so neither term model leaks into this module.
 """
 
 from __future__ import annotations
 
-from rdflib import BNode, Graph, Literal, URIRef
-from rdflib.term import Node
-
-#: XSD string datatype IRI — rdflib renders a plain ``xsd:string`` literal without
-#: a datatype, so a ``"v"^^<xsd:string>`` from the engine collapses to a plain one.
-_XSD_STRING = "http://www.w3.org/2001/XMLSchema#string"
+from typing import Protocol
 
 
-def native_rl_closure(graph: Graph) -> Graph:
+class _GraphIO(Protocol):
+    """A graph that can round-trip N-Triples (compat ``Graph`` or rdflib's)."""
+
+    def serialize(self, *, format: str) -> str | bytes:
+        """Serialize the graph in ``format``."""
+        ...
+
+    def parse(self, *, data: str | bytes, format: str) -> object:
+        """Parse ``data`` (in ``format``) into the graph, merging triples."""
+        ...
+
+
+def native_rl_closure[Graph: _GraphIO](graph: Graph) -> Graph:
     """Expand ``graph`` under OWL 2 RL in place — the native ``owlrl.expand`` twin.
 
     Computes the RL deductive closure via a single native call
-    (``gmeow_logic.rl_closure_quads``), then adds every closed triple to ``graph``
-    in place and returns it (so both the in-place-mutation and returned-graph call
-    styles work). Blank nodes round-trip as blank nodes; literals keep their
-    datatype/language; named graphs (if the caller used a ``Dataset``) are NOT
-    supported here — the suites use a single default graph, which closes in one
-    world.
+    (``gmeow_logic.rl_closure_nt``) over the graph's N-Triples form, then merges
+    the closed N-Triples back into ``graph`` via its own ``parse`` (so both the
+    in-place-mutation and returned-graph call styles work, on either engine). The
+    suites use a single default graph, which closes in one world.
 
     Args:
-        graph: The rdflib graph to close (mutated in place).
+        graph: The graph to close (mutated in place).
 
     Returns:
         The same ``graph`` object, now carrying the RL closure.
     """
     import gmeow_logic
-    import gmeow_rdf
 
-    nt = graph.serialize(format="nt")
-    quads = gmeow_logic.rl_closure_quads(nt)
-    if not quads:
-        return graph
-
-    bnodes: dict[str, BNode] = {}
-
-    def _to_rdflib(term: object) -> Node:
-        if isinstance(term, gmeow_rdf.NamedNode):
-            return URIRef(term.value)
-        if isinstance(term, gmeow_rdf.BlankNode):
-            return bnodes.setdefault(term.value, BNode())
-        if isinstance(term, gmeow_rdf.Literal):
-            lang = term.language
-            if lang is not None:
-                return Literal(term.value, lang=lang)
-            dt = term.datatype.value
-            if dt == _XSD_STRING:
-                return Literal(term.value)
-            return Literal(term.value, datatype=URIRef(dt))
-        raise TypeError(f"unexpected gmeow_rdf term in RL closure: {term!r}")
-
-    for quad in quads:
-        s = _to_rdflib(quad.subject)
-        p = _to_rdflib(quad.predicate)
-        o = _to_rdflib(quad.object)
-        graph.add((s, p, o))
+    serialized = graph.serialize(format="nt")
+    text = serialized.decode("utf-8") if isinstance(serialized, bytes) else serialized
+    closure = gmeow_logic.rl_closure_nt(text)
+    if closure.strip():
+        graph.parse(data=closure, format="nt")
     return graph

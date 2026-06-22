@@ -15,8 +15,8 @@ from __future__ import annotations
 
 from itertools import combinations
 
-from rdflib import OWL, RDF, RDFS, Graph, Namespace, URIRef
-from rdflib.query import ResultRow
+from gmeow_rdf.compat.rdflib import OWL, RDF, RDFS, Graph, Namespace, URIRef
+from gmeow_rdf.compat.rdflib.query import ResultRow
 
 from gmeow_tools.graph import load_merged_graph
 

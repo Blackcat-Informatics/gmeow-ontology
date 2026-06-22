@@ -32,10 +32,10 @@ from functools import lru_cache
 from pathlib import Path
 
 import sssom
-from rdflib import RDF, RDFS, SKOS, BNode, Graph, Literal, URIRef
-from rdflib.collection import Collection
-from rdflib.namespace import Namespace
-from rdflib.term import Node
+from gmeow_rdf.compat.rdflib import RDF, RDFS, SKOS, BNode, Graph, Literal, URIRef
+from gmeow_rdf.compat.rdflib.collection import Collection
+from gmeow_rdf.compat.rdflib.namespace import Namespace
+from gmeow_rdf.compat.rdflib.term import Node
 from sssom.validators import validate
 
 from gmeow_tools.config import (

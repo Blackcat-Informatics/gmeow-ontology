@@ -1446,9 +1446,9 @@ dependencies = [
 
 [[package]]
 name = "gmeow-gts"
-version = "0.9.4"
+version = "0.9.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7e730bfcf048ad9768bdbce8a8f1376b75a196ed9c9b0b4c472ae007145c73e0"
+checksum = "25834808a9d4b44e78c73c4e4c4f0efde8b5ca6b37fca3ba282918cc861c62b5"
 dependencies = [
  "aes-gcm",
  "blake3",
@@ -1460,7 +1460,13 @@ dependencies = [
  "libc",
  "oxigraph",
  "oxrdf 0.3.3",
+ "oxrdfxml 0.2.3",
+ "oxsdatatypes",
+ "oxttl 0.2.3",
  "ruzstd",
+ "serde",
+ "serde_json",
+ "serde_yaml",
  "sha1 0.11.0",
  "time",
  "visual-hashing",
@@ -3830,6 +3836,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "serde_yaml"
+version = "0.9.34+deprecated"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6a8b1a1a2ebf674015cc02edccce75287f1a0130d394307b36743c2f5d504b47"
+dependencies = [
+ "indexmap",
+ "itoa",
+ "ryu",
+ "serde",
+ "unsafe-libyaml",
+]
+
+[[package]]
 name = "servo_arc"
 version = "0.4.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4563,6 +4582,12 @@ dependencies = [
  "crypto-common 0.1.7",
  "subtle",
 ]
+
+[[package]]
+name = "unsafe-libyaml"
+version = "0.2.11"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "673aac59facbab8a9007c7f6108d11f63b603f7cabff99fabf650fea5c32b861"
 
 [[package]]
 name = "untrusted"

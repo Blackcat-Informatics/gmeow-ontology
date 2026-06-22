@@ -33,7 +33,7 @@ import time
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
-from rdflib import Graph, URIRef
+from gmeow_rdf.compat.rdflib import Graph, URIRef
 
 from gmeow_tools.config import DIST_DIR, NAMESPACE, PREFIXES
 from gmeow_tools.graph import bind_prefixes, load_merged_graph
@@ -50,7 +50,7 @@ if TYPE_CHECKING:
     from collections.abc import Sequence
     from pathlib import Path
 
-    from rdflib.term import Node
+    from gmeow_rdf.compat.rdflib.term import Node
 
     from gmeow_tools.language_tags import LangSelector
 
@@ -91,7 +91,7 @@ def _skolemized(abox: Graph) -> Graph:
     round-trip stays in rdflib.
     """
     import gmeow_rdf
-    from rdflib import Literal
+    from gmeow_rdf.compat.rdflib import Literal
 
     # parse() yields Quad objects (default graph for N-Triples), which Dataset
     # accepts directly — no per-triple Quad reconstruction needed.
@@ -183,7 +183,7 @@ def _materialize_claims(abox: Graph) -> Graph:
     own vocabulary (#552, option 1). The result is projection INPUT only; it is
     never asserted into the output base, so the claim stays a claim.
     """
-    from rdflib import RDF
+    from gmeow_rdf.compat.rdflib import RDF
 
     sm = URIRef(NAMESPACE + "StatementMetadata")
     q_subj = URIRef(NAMESPACE + "qSubject")
@@ -473,7 +473,7 @@ def vocab_coverage(maximal: Graph, target: Graph) -> str:
         raise ValueError(msg)
 
     def vocab_terms(g: Graph) -> set[str]:
-        from rdflib import RDF as _RDF
+        from gmeow_rdf.compat.rdflib import RDF as _RDF
 
         terms = {str(p) for p in g.predicates()}
         terms.update(

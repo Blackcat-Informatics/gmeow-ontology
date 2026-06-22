@@ -833,6 +833,72 @@ fn gts_from_rdf12_bytes(
     Ok(PyBytes::new(py, &bytes).unbind())
 }
 
+/// Build a `dist`-profile GTS snapshot from serialized RDF bytes — the shared
+/// front half of the JSON-LD-star / RDF-XML serializers. RDF-1.1 quads only
+/// (the compat `Graph` facade carries no quoted-triple terms).
+fn rdf_to_gts_snapshot(data: &Bound<'_, PyBytes>, format: PyRdfFormat) -> PyResult<Vec<u8>> {
+    let ox_quads = parse_rdf(data, format)?;
+    let mut builder = SnapshotBuilder::default();
+    builder.add_quads(&ox_quads, None, None);
+    emit_gts(
+        &builder,
+        "dist",
+        None,
+        Vec::new(),
+        Vec::new(),
+        None,
+        None,
+        None,
+        DEFAULT_RSYNCABLE_THRESHOLD,
+    )
+    .map_err(PyValueError::new_err)
+}
+
+/// Serialize RDF bytes to **JSON-LD-star** (RDF-1.2-faithful) via the gmeow-gts
+/// codec: RDF → GTS snapshot → `gmeow_gts::yamlld::to_json_ld_string`. This is the
+/// RDF-1.2-first JSON-LD form the published `*.jsonld` artifacts now emit (#834).
+#[pyfunction]
+#[pyo3(signature = (data, *, format))]
+fn to_json_ld(data: &Bound<'_, PyBytes>, format: PyRdfFormat) -> PyResult<String> {
+    let gts_bytes = rdf_to_gts_snapshot(data, format)?;
+    let graph = gmeow_gts::reader::read(&gts_bytes, false, None);
+    gmeow_gts::yamlld::to_json_ld_string(&graph)
+        .map_err(|e| PyValueError::new_err(format!("json-ld-star serialization error: {e}")))
+}
+
+/// Parse **JSON-LD-star** text into N-Quads bytes, via the gmeow-gts codec:
+/// `gmeow_gts::from_yamlld::from_json_ld` → GTS → N-Quads.
+#[pyfunction]
+fn from_json_ld(py: Python<'_>, text: &str) -> PyResult<Py<PyBytes>> {
+    let gts_bytes = gmeow_gts::from_yamlld::from_json_ld(text)
+        .map_err(|e| PyValueError::new_err(format!("json-ld-star parse error: {e}")))?;
+    let graph = gmeow_gts::reader::read(&gts_bytes, false, None);
+    let nquads = gmeow_gts::nquads::to_nquads(&graph);
+    Ok(PyBytes::new(py, nquads.as_bytes()).unbind())
+}
+
+/// Serialize RDF bytes to **RDF/XML** via the gmeow-gts codec: RDF → GTS snapshot
+/// → `gmeow_gts::rdf_codecs::to_rdf_xml`.
+#[pyfunction]
+#[pyo3(signature = (data, *, format))]
+fn to_rdf_xml(data: &Bound<'_, PyBytes>, format: PyRdfFormat) -> PyResult<String> {
+    let gts_bytes = rdf_to_gts_snapshot(data, format)?;
+    let graph = gmeow_gts::reader::read(&gts_bytes, false, None);
+    gmeow_gts::rdf_codecs::to_rdf_xml(&graph)
+        .map_err(|e| PyValueError::new_err(format!("rdf/xml serialization error: {e}")))
+}
+
+/// Parse **RDF/XML** text into N-Quads bytes, via the gmeow-gts codec:
+/// `gmeow_gts::rdf_codecs::from_rdf_xml` → GTS → N-Quads.
+#[pyfunction]
+fn from_rdf_xml(py: Python<'_>, text: &str) -> PyResult<Py<PyBytes>> {
+    let gts_bytes = gmeow_gts::rdf_codecs::from_rdf_xml(text)
+        .map_err(|e| PyValueError::new_err(format!("rdf/xml parse error: {e}")))?;
+    let graph = gmeow_gts::reader::read(&gts_bytes, false, None);
+    let nquads = gmeow_gts::nquads::to_nquads(&graph);
+    Ok(PyBytes::new(py, nquads.as_bytes()).unbind())
+}
+
 /// One named-graph ingest row passed from Python: `(data, format, graph_name, scope)`.
 /// `graph_name`/`scope` may be `None` (the default graph / un-scoped blank nodes).
 type NamedGraphRow<'py> = (
@@ -992,6 +1058,10 @@ pub fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(compile_gts_native, m)?)?;
     m.add_function(wrap_pyfunction!(snapshot_content_id_native, m)?)?;
     m.add_function(wrap_pyfunction!(feedback_bundle_native, m)?)?;
+    m.add_function(wrap_pyfunction!(to_json_ld, m)?)?;
+    m.add_function(wrap_pyfunction!(from_json_ld, m)?)?;
+    m.add_function(wrap_pyfunction!(to_rdf_xml, m)?)?;
+    m.add_function(wrap_pyfunction!(from_rdf_xml, m)?)?;
     crate::py_gts_dataset::register(m)?;
     Ok(())
 }

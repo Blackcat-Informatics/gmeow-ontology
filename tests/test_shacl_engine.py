@@ -11,7 +11,7 @@ fine in tests) and serialize it before handing it to ``validate_nt``.
 from __future__ import annotations
 
 import pytest
-from rdflib import RDF, Graph, Literal, URIRef
+from gmeow_rdf.compat.rdflib import RDF, Graph, Literal, URIRef
 
 from gmeow_tools import shacl_engine as se
 

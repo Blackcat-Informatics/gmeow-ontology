@@ -25,10 +25,10 @@ from __future__ import annotations
 import csv
 from pathlib import Path
 
-from rdflib import Graph, Literal, URIRef
-from rdflib.collection import Collection
-from rdflib.namespace import OWL, RDF, RDFS
-from rdflib.term import Node
+from gmeow_rdf.compat.rdflib import Graph, Literal, URIRef
+from gmeow_rdf.compat.rdflib.collection import Collection
+from gmeow_rdf.compat.rdflib.namespace import OWL, RDF, RDFS
+from gmeow_rdf.compat.rdflib.term import Node
 
 GMEOW = "https://blackcatinformatics.ca/gmeow/"
 SKOS_DEFINITION = URIRef("http://www.w3.org/2004/02/skos/core#definition")

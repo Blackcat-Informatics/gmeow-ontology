@@ -20,8 +20,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from xml.sax.saxutils import escape
 
-from rdflib import Graph, Literal, Namespace, URIRef
-from rdflib.namespace import DCTERMS, RDFS, SKOS
+from gmeow_rdf.compat.rdflib import Graph, Literal, Namespace, URIRef
+from gmeow_rdf.compat.rdflib.namespace import DCTERMS, RDFS, SKOS
 
 from gmeow_tools.config import NAMESPACE, PREFIXES, PROJECT_ROOT
 from gmeow_tools.i18n_sync import PoEntry, PoParseError, parse_po

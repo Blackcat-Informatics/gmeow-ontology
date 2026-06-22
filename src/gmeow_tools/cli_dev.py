@@ -25,7 +25,7 @@ from gmeow_tools.projections import PROFILES as _PROFILES
 from gmeow_tools.slices import Slice
 
 if TYPE_CHECKING:
-    from rdflib import Graph
+    from gmeow_rdf.compat.rdflib import Graph
 
     from gmeow_tools.language_tags import LangSelector
 
@@ -99,7 +99,7 @@ def _read_turtle(source: Path) -> tuple[Graph, str]:
     """
     import sys
 
-    from rdflib import Graph
+    from gmeow_rdf.compat.rdflib import Graph
 
     graph = Graph()
     stdin = str(source) == "-"
@@ -1156,9 +1156,9 @@ def temporal(
     timeline, interval overlap, and the bitemporal four-clocks query. Parameters
     are bound safely (rdflib initBindings), never interpolated.
     """
-    from rdflib import Literal, URIRef
-    from rdflib.namespace import XSD
-    from rdflib.util import guess_format
+    from gmeow_rdf.compat.rdflib import Literal, URIRef
+    from gmeow_rdf.compat.rdflib.namespace import XSD
+    from gmeow_rdf.compat.rdflib.util import guess_format
 
     from gmeow_tools.graph import load_merged_graph
     from gmeow_tools.temporal_query import TEMPORAL_QUERIES, run_temporal_query
@@ -1352,8 +1352,8 @@ def mappings() -> None:
     alignments.serialize(destination=DIST_DIR / "gmeow-alignments.ttl", format="turtle")
     linksets = build_linksets(loaded)
     linksets.serialize(destination=DIST_DIR / "gmeow-linksets.ttl", format="turtle")
-    from rdflib import RDF
-    from rdflib.namespace import VOID
+    from gmeow_rdf.compat.rdflib import RDF
+    from gmeow_rdf.compat.rdflib.namespace import VOID
 
     n_links = len(set(linksets.subjects(RDF.type, VOID.Linkset)))
     console.print(
@@ -1651,7 +1651,7 @@ def normalize() -> None:
 @app.command()
 def build() -> None:
     """Build serializations, OWL-native syntaxes, and JSON-LD context into dist/."""
-    from rdflib import Graph
+    from gmeow_rdf.compat.rdflib import Graph
 
     from gmeow_tools import reason as reasoning
     from gmeow_tools.jsonld_context import write_context
@@ -1778,7 +1778,7 @@ def transform(
     stdin when <abox> is '-', so ``gmeow up-project src | gmeow transform -``
     streams the two halves.
     """
-    from rdflib import Graph
+    from gmeow_rdf.compat.rdflib import Graph
 
     from gmeow_tools.transform import (
         TransformAbortedError,
@@ -2813,7 +2813,7 @@ def extract_catalog(
         terms_only: Only extract ontology term strings, skip Markdown docs and
             templates.
     """
-    from rdflib import Graph, Literal, URIRef
+    from gmeow_rdf.compat.rdflib import Graph, Literal, URIRef
 
     from gmeow_tools.graph import load_merged_graph
     from gmeow_tools.i18n_catalog import (

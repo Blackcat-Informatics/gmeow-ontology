@@ -24,7 +24,7 @@ from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
 import jsonschema
-from rdflib import Graph
+from gmeow_rdf.compat.rdflib import Graph
 
 from gmeow_tools.config import EVALS_DIR, GENERATED_EVALS_DIR, PROJECT_ROOT
 from gmeow_tools.generator import Generator, register
@@ -89,7 +89,7 @@ class Scorecard:
 
 def _corpus_texts() -> dict[str, tuple[str, str]]:
     """SourceLocation → (text, declared digest) from the corpus manifest."""
-    from rdflib import URIRef
+    from gmeow_rdf.compat.rdflib import URIRef
 
     ns = "https://blackcatinformatics.ca/gmeow/"
     graph = Graph().parse(_CORPUS_FILE, format="turtle")

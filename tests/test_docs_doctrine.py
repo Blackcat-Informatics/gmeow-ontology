@@ -14,8 +14,8 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
-from rdflib import RDF, RDFS, Graph, Literal, Namespace, URIRef
-from rdflib.namespace import OWL, SKOS
+from gmeow_rdf.compat.rdflib import RDF, RDFS, Graph, Literal, Namespace, URIRef
+from gmeow_rdf.compat.rdflib.namespace import OWL, SKOS
 
 from gmeow_tools.describe import build_card, render_card, resolve_term
 from gmeow_tools.graph import load_merged_graph
@@ -332,8 +332,8 @@ def test_describe_fails_gracefully_on_missing_gts(tmp_path: Path) -> None:
 
 def test_compile_gts_embeds_doc_blobs_round_trip() -> None:
     from blake3 import blake3
+    from gmeow_rdf.compat.rdflib import Literal
     from gts import read, to_nquads
-    from rdflib import Literal
 
     from gmeow_tools.gts_producer import compile_gts
 

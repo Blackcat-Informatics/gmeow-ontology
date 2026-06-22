@@ -13,9 +13,9 @@ from pathlib import Path
 from unittest.mock import patch
 
 import pytest
+from gmeow_rdf.compat.rdflib import OWL, RDF, RDFS, Graph, Literal, URIRef
+from gmeow_rdf.compat.rdflib.namespace import SKOS
 from gts.model import TermKind
-from rdflib import OWL, RDF, RDFS, Graph, Literal, URIRef
-from rdflib.namespace import SKOS
 
 from gmeow_tools.config import NAMESPACE, ONTOLOGY_IRI
 from gmeow_tools.export import (

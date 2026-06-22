@@ -11,8 +11,8 @@ from __future__ import annotations
 from decimal import Decimal
 from pathlib import Path
 
-from rdflib import OWL, RDF, RDFS, Graph, Literal, Namespace, URIRef
-from rdflib.namespace import XSD
+from gmeow_rdf.compat.rdflib import OWL, RDF, RDFS, Graph, Literal, Namespace, URIRef
+from gmeow_rdf.compat.rdflib.namespace import XSD
 
 from gmeow_tools.graph import load_merged_graph
 from gmeow_tools.native_rl_rdflib import native_rl_closure
@@ -1405,7 +1405,7 @@ def test_no_unsafe_motion_property_chains() -> None:
 
 def test_location_stream_to_trajectory_derivation() -> None:
     """A Trajectory derived from a Stream of LocationStates loads and passes SHACL."""
-    from rdflib import Namespace
+    from gmeow_rdf.compat.rdflib import Namespace
 
     ex_str = Namespace("https://blackcatinformatics.ca/gmeow/examples/places/")
     g = Graph().parse(COVERAGE_FIXTURES / "places-streaming.ttl", format="turtle")
@@ -1604,7 +1604,7 @@ def test_no_preferred_or_primary_capacity_term() -> None:
 def test_contested_capacity_claims_coexist() -> None:
     """Two contradictory Capacity measurements on the same location load,
     SHACL-pass, and are BOTH retained — neither is the ground truth (P9)."""
-    from rdflib import Namespace
+    from gmeow_rdf.compat.rdflib import Namespace
 
     ex_cap = Namespace("https://blackcatinformatics.ca/gmeow/examples/places/")
     g = Graph().parse(COVERAGE_FIXTURES / "places-capacity.ttl", format="turtle")
@@ -1616,7 +1616,7 @@ def test_contested_capacity_claims_coexist() -> None:
 
 def test_superseded_capacity_suppressed() -> None:
     """A superseded capacity is retained with displayable false (P10)."""
-    from rdflib import Namespace
+    from gmeow_rdf.compat.rdflib import Namespace
 
     ex_cap = Namespace("https://blackcatinformatics.ca/gmeow/examples/places/")
     g = Graph().parse(COVERAGE_FIXTURES / "places-capacity.ttl", format="turtle")
@@ -1631,7 +1631,7 @@ def test_superseded_capacity_suppressed() -> None:
 
 def test_occupancy_with_unit_asserted() -> None:
     """An Occupancy measurement carries a scalar quantity with a QUDT unit."""
-    from rdflib import Namespace
+    from gmeow_rdf.compat.rdflib import Namespace
 
     ex_cap = Namespace("https://blackcatinformatics.ca/gmeow/examples/places/")
     g = Graph().parse(COVERAGE_FIXTURES / "places-capacity.ttl", format="turtle")
@@ -1649,7 +1649,7 @@ def test_occupancy_with_unit_asserted() -> None:
 
 def test_storage_capacity_in_bytes() -> None:
     """A StorageLocation can have a capacity in bytes (QUDT BYTE unit)."""
-    from rdflib import Namespace
+    from gmeow_rdf.compat.rdflib import Namespace
 
     ex_cap = Namespace("https://blackcatinformatics.ca/gmeow/examples/places/")
     g = Graph().parse(COVERAGE_FIXTURES / "places-capacity.ttl", format="turtle")
@@ -1819,7 +1819,7 @@ def test_internet_root_frame_is_topological() -> None:
 
 def test_virtual_location_types_coexist() -> None:
     """A VirtualLocation may have multiple virtualLocationType values (P9)."""
-    from rdflib import Namespace
+    from gmeow_rdf.compat.rdflib import Namespace
 
     ex_vl = Namespace("https://blackcatinformatics.ca/gmeow/examples/places/")
     g = Graph().parse(COVERAGE_FIXTURES / "places-virtual.ttl", format="turtle")
@@ -1834,7 +1834,7 @@ def test_virtual_location_types_coexist() -> None:
 
 def test_network_addresses_in_different_frames_coexist() -> None:
     """A VirtualLocation may have NetworkAddresses in different frames (P9)."""
-    from rdflib import Namespace
+    from gmeow_rdf.compat.rdflib import Namespace
 
     ex_vl = Namespace("https://blackcatinformatics.ca/gmeow/examples/places/")
     g = Graph().parse(COVERAGE_FIXTURES / "places-virtual.ttl", format="turtle")
@@ -1852,7 +1852,7 @@ def test_network_addresses_in_different_frames_coexist() -> None:
 
 def test_superseded_network_address_suppressed() -> None:
     """A superseded network address is retained with displayable false (P10)."""
-    from rdflib import Namespace
+    from gmeow_rdf.compat.rdflib import Namespace
 
     ex_vl = Namespace("https://blackcatinformatics.ca/gmeow/examples/places/")
     g = Graph().parse(COVERAGE_FIXTURES / "places-virtual.ttl", format="turtle")
@@ -1867,7 +1867,7 @@ def test_superseded_network_address_suppressed() -> None:
 
 def test_contested_dns_names_coexist() -> None:
     """Two standpoint-indexed DNS names for the same virtual location coexist (P9)."""
-    from rdflib import Namespace
+    from gmeow_rdf.compat.rdflib import Namespace
 
     ex_vl = Namespace("https://blackcatinformatics.ca/gmeow/examples/places/")
     g = Graph().parse(COVERAGE_FIXTURES / "places-virtual.ttl", format="turtle")

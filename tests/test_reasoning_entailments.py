@@ -22,8 +22,8 @@ from __future__ import annotations
 from functools import cache
 
 import pytest
-from rdflib import RDF, RDFS, Graph, Namespace
-from rdflib.term import Node
+from gmeow_rdf.compat.rdflib import RDF, RDFS, Graph, Namespace
+from gmeow_rdf.compat.rdflib.term import Node
 
 from gmeow_tools import reasoning_cases
 from gmeow_tools.native_rl_rdflib import native_rl_closure

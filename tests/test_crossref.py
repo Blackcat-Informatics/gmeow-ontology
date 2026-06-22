@@ -9,7 +9,7 @@ from xml.etree import ElementTree as ET
 
 import pytest
 import xmlschema
-from rdflib import Graph, URIRef
+from gmeow_rdf.compat.rdflib import Graph, URIRef
 
 from gmeow_tools import crossref as crossref_mod
 from gmeow_tools.config import ALIGNMENT_TARGETS, ONTOLOGY_IRI

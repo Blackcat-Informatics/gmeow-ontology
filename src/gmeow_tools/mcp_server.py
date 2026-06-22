@@ -14,7 +14,7 @@ import json
 from typing import Any
 
 from fastmcp import FastMCP
-from rdflib import OWL, RDF, RDFS, SKOS, URIRef
+from gmeow_rdf.compat.rdflib import OWL, RDF, RDFS, SKOS, URIRef
 
 from gmeow_tools.config import NAMESPACE, PREFIXES, PROJECT_ROOT
 from gmeow_tools.export import collect_terms
@@ -163,7 +163,7 @@ _ALIGN_TAGS: dict[str, str] = {
 
 def _describe_node(graph: Any, node: Any) -> str:
     """Return a CURIE or description of a class expression node."""
-    from rdflib import BNode
+    from gmeow_rdf.compat.rdflib import BNode
 
     if isinstance(node, URIRef):
         return _compact(str(node))

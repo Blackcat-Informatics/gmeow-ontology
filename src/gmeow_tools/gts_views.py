@@ -34,8 +34,8 @@ if TYPE_CHECKING:
     from collections.abc import Iterable
     from pathlib import Path
 
+    from gmeow_rdf.compat.rdflib import Literal
     from gts.model import Quad, Triple
-    from rdflib import Literal
 
 #: Scope sentinel: every graph in the snapshot.
 ALL: Final = "__all__"
@@ -340,7 +340,7 @@ class FoldView:
         self, s_tid: int, p_iri: str, scope: str | None = DEFAULT
     ) -> list[Literal]:
         """Objects of ``(s, p)`` as rdflib Literals for language selection."""
-        from rdflib import Literal
+        from gmeow_rdf.compat.rdflib import Literal
 
         return [
             Literal(self.lex(o), lang=self.lang(o))

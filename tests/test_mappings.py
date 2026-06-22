@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 import pytest
-from rdflib import RDF, URIRef
-from rdflib.namespace import VOID
+from gmeow_rdf.compat.rdflib import RDF, URIRef
+from gmeow_rdf.compat.rdflib.namespace import VOID
 
 from gmeow_tools.mappings import (
     MappingError,

@@ -22,8 +22,17 @@ ScalarQuantity). These tests verify:
 
 from __future__ import annotations
 
-from rdflib import OWL, RDF, RDFS, XSD, Graph, Literal, Namespace, URIRef
-from rdflib.namespace import SKOS
+from gmeow_rdf.compat.rdflib import (
+    OWL,
+    RDF,
+    RDFS,
+    XSD,
+    Graph,
+    Literal,
+    Namespace,
+    URIRef,
+)
+from gmeow_rdf.compat.rdflib.namespace import SKOS
 
 from gmeow_tools.config import NAMESPACE
 from gmeow_tools.graph import load_merged_graph

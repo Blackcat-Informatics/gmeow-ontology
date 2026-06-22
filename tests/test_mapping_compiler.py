@@ -7,9 +7,9 @@ import sys
 from pathlib import Path
 
 import pytest
-from rdflib import RDF, RDFS, BNode, Graph, URIRef
-from rdflib.namespace import Namespace
-from rdflib.plugins.sparql import prepareQuery
+from gmeow_rdf.compat.rdflib import RDF, RDFS, BNode, Graph, URIRef
+from gmeow_rdf.compat.rdflib.namespace import Namespace
+from gmeow_rdf.compat.rdflib.plugins.sparql import prepareQuery
 
 from gmeow_tools.config import MAPPING_DSL_DIR, MAPPINGS_DIR, PREFIXES, PROJECT_ROOT
 from gmeow_tools.graph import load_merged_graph
@@ -229,7 +229,7 @@ def test_sssom_roundtrips_to_committed() -> None:
 
 def test_malformed_expression_raises() -> None:
     """An expression node with neither a variable nor an operator is rejected."""
-    from rdflib import BNode
+    from gmeow_rdf.compat.rdflib import BNode
 
     from gmeow_tools.mapping_dsl import _expr
 
@@ -300,7 +300,7 @@ def test_fno_emit_rejects_param_iri_collision() -> None:
 
 def test_edoal_traversal_uses_compose_inverse() -> None:
     """Multi-hop traversals derive an EDOAL relation path (compose/inverse)."""
-    from rdflib.collection import Collection
+    from gmeow_rdf.compat.rdflib.collection import Collection
 
     graph = emit_edoal(load_dsl(), "schema-org")
     birth = sub_org = None
@@ -342,7 +342,7 @@ def test_edoal_has_no_orphan_relation_nodes() -> None:
 
 
 def test_render_expr_extensions() -> None:
-    from rdflib import Literal
+    from gmeow_rdf.compat.rdflib import Literal
 
     from gmeow_tools.mapping_dsl import Expr
 
@@ -374,7 +374,7 @@ def test_retagging_uses_dedicated_bcp47_tag() -> None:
 
 
 def test_render_path_extensions() -> None:
-    from rdflib.collection import Collection
+    from gmeow_rdf.compat.rdflib.collection import Collection
 
     from gmeow_tools.mapping_dsl import _render_path
 

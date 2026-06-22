@@ -11,8 +11,8 @@ from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 
-from rdflib import RDF, Graph, Literal, Namespace, URIRef
-from rdflib.namespace import DCTERMS, RDFS, SKOS
+from gmeow_rdf.compat.rdflib import RDF, Graph, Literal, Namespace, URIRef
+from gmeow_rdf.compat.rdflib.namespace import DCTERMS, RDFS, SKOS
 
 GMEOW = Namespace("https://blackcatinformatics.ca/gmeow/")
 FOAF = Namespace("http://xmlns.com/foaf/0.1/")

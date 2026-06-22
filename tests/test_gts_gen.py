@@ -18,12 +18,12 @@ from collections.abc import Mapping
 from pathlib import Path
 
 import pytest
+from gmeow_rdf.compat.rdflib import RDF, Graph, Literal, URIRef
+from gmeow_rdf.compat.rdflib.compare import to_canonical_graph
+from gmeow_rdf.compat.rdflib.namespace import RDFS
 from gts import read
 from gts.model import TermKind
 from gts.wire import iter_items, unwrap_header
-from rdflib import RDF, Graph, Literal, URIRef
-from rdflib.compare import to_canonical_graph
-from rdflib.namespace import RDFS
 
 from gmeow_tools.config import (
     GTS_GRAPH_ALIGNMENTS,

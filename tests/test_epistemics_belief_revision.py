@@ -5,8 +5,8 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
-from rdflib import OWL, RDF, RDFS, Graph, Literal, Namespace
-from rdflib.namespace import XSD
+from gmeow_rdf.compat.rdflib import OWL, RDF, RDFS, Graph, Literal, Namespace
+from gmeow_rdf.compat.rdflib.namespace import XSD
 
 GMEOW = Namespace("https://blackcatinformatics.ca/gmeow/")
 EX = Namespace("https://blackcatinformatics.ca/gmeow/examples/epistemics/")

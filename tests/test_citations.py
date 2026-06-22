@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import re
 
-from rdflib import OWL, RDF, RDFS, Graph, Literal, Namespace, URIRef
+from gmeow_rdf.compat.rdflib import OWL, RDF, RDFS, Graph, Literal, Namespace, URIRef
 
 from gmeow_tools.graph import load_merged_graph
 from tests._graph_nt import run_shacl
@@ -243,7 +243,7 @@ def test_canonical_description_is_standardized() -> None:
     added; the manifest tier is the sole source of slice truth.
     """
     import yaml
-    from rdflib.namespace import DCTERMS
+    from gmeow_rdf.compat.rdflib.namespace import DCTERMS
 
     from gmeow_tools.config import (
         ALIGNMENT_TARGETS,

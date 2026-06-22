@@ -26,7 +26,7 @@ from gmeow_tools.config import GTS_GRAPH_METADATA, GTS_SNAPSHOT_FILE, NAMESPACE
 from gmeow_tools.gts_views import FoldView
 
 if TYPE_CHECKING:
-    from rdflib import Graph
+    from gmeow_rdf.compat.rdflib import Graph
 
     from gmeow_tools.language_tags import LangSelector
 
@@ -113,7 +113,7 @@ def _read_turtle(source: Path) -> tuple[Graph, str]:
     """
     import sys
 
-    from rdflib import Graph
+    from gmeow_rdf.compat.rdflib import Graph
 
     graph = Graph()
     stdin = str(source) == "-"

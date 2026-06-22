@@ -9,8 +9,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from rdflib import Graph, Namespace, URIRef
-from rdflib.namespace import OWL, RDF, RDFS
+from gmeow_rdf.compat.rdflib import Graph, Namespace, URIRef
+from gmeow_rdf.compat.rdflib.namespace import OWL, RDF, RDFS
 
 from gmeow_tools.graph import load_merged_graph
 from tests._graph_nt import run_shacl

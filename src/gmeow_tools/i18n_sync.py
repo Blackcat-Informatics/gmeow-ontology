@@ -17,7 +17,7 @@ import re
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from rdflib import Graph, Literal, URIRef
+from gmeow_rdf.compat.rdflib import Graph, Literal, URIRef
 
 __all__ = [
     "PoEntry",

@@ -16,7 +16,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 import gmeow_rdf
-from rdflib import Graph
+from gmeow_rdf.compat.rdflib import Graph
 
 from gmeow_tools import sparql
 from gmeow_tools.config import DIST_DIR, FIXTURES_DIR, PREFIXES, PROJECTION_QUERY_DIR
@@ -261,7 +261,7 @@ def project_file(
     selector: LangSelector | None = None,
 ) -> Path:
     """Project an input data file to one profile (ontology merged in for context)."""
-    from rdflib.util import guess_format
+    from gmeow_rdf.compat.rdflib.util import guess_format
 
     data = Graph().parse(input_path, format=guess_format(str(input_path)) or "turtle")
     store = sparql.store_with(include_imports=False, extra_triples=data)
@@ -341,7 +341,7 @@ def project_gts_subset(
     predicate is in the view's namespaces, or when it types a subject into a
     class of those namespaces (``rdf:type`` to a kept class).
     """
-    from rdflib import RDF, URIRef
+    from gmeow_rdf.compat.rdflib import RDF, URIRef
 
     base = gts_base_graph(gts_path)
     namespaces = _view_namespaces(view)

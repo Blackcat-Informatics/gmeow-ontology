@@ -13,7 +13,7 @@ refines confidence and provenance across every realm. These tests verify:
 
 from __future__ import annotations
 
-from rdflib import OWL, RDF, RDFS, Graph, Namespace, URIRef
+from gmeow_rdf.compat.rdflib import OWL, RDF, RDFS, Graph, Namespace, URIRef
 
 from gmeow_tools.graph import load_merged_graph
 from gmeow_tools.slices import module_path

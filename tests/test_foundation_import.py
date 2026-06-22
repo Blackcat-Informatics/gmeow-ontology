@@ -19,8 +19,8 @@ import json
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
-from rdflib import RDF, Graph, Namespace
-from rdflib.query import ResultRow
+from gmeow_rdf.compat.rdflib import RDF, Graph, Namespace
+from gmeow_rdf.compat.rdflib.query import ResultRow
 
 from gmeow_tools.foundation_import import (
     PROJECTIONS,

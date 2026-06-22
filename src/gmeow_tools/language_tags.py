@@ -15,7 +15,7 @@ from dataclasses import dataclass
 from functools import lru_cache
 
 import gmeow_validate
-from rdflib import RDF, Graph, Literal, URIRef
+from gmeow_rdf.compat.rdflib import RDF, Graph, Literal, URIRef
 
 from gmeow_tools.config import NAMESPACE
 

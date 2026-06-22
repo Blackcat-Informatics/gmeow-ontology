@@ -10,8 +10,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from rdflib import RDF, RDFS, SKOS, Graph, Literal, URIRef
-from rdflib.namespace import OWL
+from gmeow_rdf.compat.rdflib import RDF, RDFS, SKOS, Graph, Literal, URIRef
+from gmeow_rdf.compat.rdflib.namespace import OWL
 
 from gmeow_tools.config import (
     MAPPING_DSL_DIR,

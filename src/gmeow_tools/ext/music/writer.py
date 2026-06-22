@@ -4,8 +4,8 @@
 
 from __future__ import annotations
 
-from rdflib import Graph, Literal, Namespace, URIRef
-from rdflib.namespace import RDFS
+from gmeow_rdf.compat.rdflib import Graph, Literal, Namespace, URIRef
+from gmeow_rdf.compat.rdflib.namespace import RDFS
 
 from gmeow_tools.ext.music.model import Piece, PitchValue
 

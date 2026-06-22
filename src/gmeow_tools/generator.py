@@ -32,7 +32,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Protocol, runtime_checkable
 
-from rdflib import Graph
+from gmeow_rdf.compat.rdflib import Graph
 
 from gmeow_tools import diagnostics
 from gmeow_tools.config import PROJECT_ROOT, gmeow_temp_dir, sweep_stale_gmeow_temp_dirs

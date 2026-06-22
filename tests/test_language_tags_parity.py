@@ -99,7 +99,7 @@ def test_rank_language_english_wins() -> None:
 
 def test_load_tag_map_native_agrees_with_python_small() -> None:
     """Native load_tag_map agrees with Python on a minimal hand-crafted graph."""
-    from rdflib import Graph
+    from gmeow_rdf.compat.rdflib import Graph
 
     ttl = """
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .

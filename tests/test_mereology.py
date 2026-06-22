@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from rdflib import OWL, RDF, RDFS, Graph, Namespace
-from rdflib.term import Node
+from gmeow_rdf.compat.rdflib import OWL, RDF, RDFS, Graph, Namespace
+from gmeow_rdf.compat.rdflib.term import Node
 
 from gmeow_tools.graph import load_merged_graph
 from gmeow_tools.native_rl_rdflib import native_rl_closure

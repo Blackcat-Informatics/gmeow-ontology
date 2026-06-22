@@ -14,7 +14,7 @@ from pathlib import Path
 
 import music21
 import pytest
-from rdflib import RDF, Namespace, URIRef
+from gmeow_rdf.compat.rdflib import RDF, Namespace, URIRef
 from typer.testing import CliRunner
 
 from gmeow_tools.ext.music import importer, reader, writer

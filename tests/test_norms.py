@@ -17,8 +17,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from rdflib import OWL, RDF, RDFS, Graph, Namespace
-from rdflib.query import ResultRow
+from gmeow_rdf.compat.rdflib import OWL, RDF, RDFS, Graph, Namespace
+from gmeow_rdf.compat.rdflib.query import ResultRow
 
 from gmeow_tools.config import COMPETENCY_DIR
 from gmeow_tools.graph import load_merged_graph

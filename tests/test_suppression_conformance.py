@@ -35,7 +35,7 @@ tests over this generated suite.
 from __future__ import annotations
 
 import pytest
-from rdflib import Graph
+from gmeow_rdf.compat.rdflib import Graph
 
 from gmeow_tools.config import FIXTURES_DIR, PROJECTION_QUERY_DIR
 from gmeow_tools.graph import load_merged_graph

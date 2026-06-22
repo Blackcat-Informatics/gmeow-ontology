@@ -1,7 +1,7 @@
 """Tests for generalized reference frames (Issue #70)."""
 
-from rdflib import Graph, Literal, Namespace
-from rdflib.namespace import RDF, XSD
+from gmeow_rdf.compat.rdflib import Graph, Literal, Namespace
+from gmeow_rdf.compat.rdflib.namespace import RDF, XSD
 
 from tests._graph_nt import run_shacl
 

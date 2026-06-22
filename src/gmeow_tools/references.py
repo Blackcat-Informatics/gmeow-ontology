@@ -20,9 +20,9 @@ from pathlib import Path
 from typing import cast
 from urllib.parse import quote, urlparse
 
-from rdflib import RDF, RDFS, Graph, Literal, Namespace, URIRef
-from rdflib.namespace import DCTERMS
-from rdflib.term import Node
+from gmeow_rdf.compat.rdflib import RDF, RDFS, Graph, Literal, Namespace, URIRef
+from gmeow_rdf.compat.rdflib.namespace import DCTERMS
+from gmeow_rdf.compat.rdflib.term import Node
 
 from gmeow_tools.config import (
     DIST_DIR,

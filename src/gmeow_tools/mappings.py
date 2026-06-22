@@ -21,8 +21,8 @@ from collections import defaultdict
 from dataclasses import dataclass
 from pathlib import Path
 
-from rdflib import RDF, RDFS, Graph, Literal, URIRef
-from rdflib.namespace import OWL, VOID
+from gmeow_rdf.compat.rdflib import RDF, RDFS, Graph, Literal, URIRef
+from gmeow_rdf.compat.rdflib.namespace import OWL, VOID
 
 from gmeow_tools.config import (
     MAPPINGS_DIR,

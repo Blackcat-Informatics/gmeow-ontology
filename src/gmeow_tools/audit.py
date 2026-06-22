@@ -21,7 +21,7 @@ from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
 import gmeow_rdf
-from rdflib import Graph
+from gmeow_rdf.compat.rdflib import Graph
 
 from gmeow_tools import diagnostics, sparql
 from gmeow_tools.config import AUDIT_QUERY_DIR, NAMESPACE
