@@ -4,55 +4,56 @@
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
 gmeow:Analogy
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
     rdfs:label "Analogy"@x-gmeow-english ;
-    rdfs:subClassOf gufo:Relator ;
+    rdfs:subClassOf logic:Relator ;
     skos:definition "A reified analogical mapping — the source-to-target structure-mapping (Gentner) that warrants an analogical inference: it mediates a source domain (gmeow:analogicalSource), a target domain (gmeow:analogicalTarget), and the element-pair correspondences (gmeow:hasCorrespondence) holding between them, scored by structural consistency (gmeow:systematicity, solver-layer). The warrant of an analogical gmeow:InferenceCommitment points at an Analogy. Rival mappings compete; best-analogy selection is solver-layer like IBE, never an asserted isBest bit."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:Correspondence
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
     rdfs:label "Correspondence"@x-gmeow-english ;
-    rdfs:subClassOf gufo:Relator ;
+    rdfs:subClassOf logic:Relator ;
     skos:definition "A single mapped element-pair within an gmeow:Analogy — the reified relation that one source element (gmeow:correspondingSource) plays the same structural role as one target element (gmeow:correspondingTarget). Reached from its analogy via gmeow:hasCorrespondence. The atom of structure-mapping: an analogy's systematicity is the structural consistency of its set of Correspondences."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:DefeaterKind
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
     rdfs:label "Defeater Kind"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The Pollock kind of a defeater — a value vocabulary (individuals, never subclasses): gmeow:defeaterRebutting (attacks the conclusion directly, giving reason to believe its negation) and gmeow:defeaterUndercutting (attacks the inferential link, removing the warrant without asserting the negation). Carried as a gmeow:defeaterKind value on a defeating gmeow:StandpointClaim."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:InferenceCommitment
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
     rdfs:label "Inference Commitment"@x-gmeow-english ;
-    rdfs:subClassOf gufo:Relator ;
+    rdfs:subClassOf logic:Relator ;
     skos:definition "The endurant, structured argument relation an inference instantiates — the reified Toulmin/Peircean commitment mediating its premises (gmeow:premise), its single conclusion (gmeow:conclusion, a gmeow:StandpointClaim), its warrant (gmeow:warrant), its mode (gmeow:inferenceModeOf), and its defeaters (gmeow:hasDefeater). A relator, not a process (the gmeow:Commitment idiom): the occurrent reasoning episode that bears it is the gmeow:InferenceProcess reached by gmeow:hasInferenceCommitment. Reifying is the on-demand tier; the flat 80% case hangs gmeow:inferredFrom + gmeow:inferenceMode directly on the conclusion-claim. Retained as audit when its conclusion is suppressed (belief revision), never erased (Principle 10)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:InferenceMode
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
     rdfs:label "Inference Mode"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The Peircean mode of an inference — a closed-but-open value vocabulary (individuals, never subclasses; the gmeow:StandpointModality idiom): gmeow:modeDeduction, gmeow:modeInduction, gmeow:modeAbduction, gmeow:modeAnalogical. The mode rides as a gmeow:inferenceMode value on the claim (or gmeow:inferenceModeOf on the commitment), never as a subclass of gmeow:InferenceCommitment (Principle 9: no overtyping). The modes differ by warrant and default modality, not by subsumption."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:InferenceProcess
-    a gufo:EventType ,
+    a logic:Event ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
     rdfs:label "Inference Process"@x-gmeow-english ;
@@ -62,7 +63,7 @@ gmeow:InferenceProcess
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:InferenceTenure
-    a gufo:SituationType ,
+    a logic:Situation ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inference> ;
     rdfs:label "Inference Tenure"@x-gmeow-english ;

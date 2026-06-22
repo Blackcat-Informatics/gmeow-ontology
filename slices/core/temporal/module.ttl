@@ -6,14 +6,15 @@
 @prefix time: <http://www.w3.org/2006/time#> .
 @prefix unit: <http://qudt.org/vocab/unit/> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
 gmeow:CalendarSystem
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
     rdfs:label "Calendar System"@x-gmeow-english ;
-    rdfs:subClassOf gufo:Object ,
+    rdfs:subClassOf logic:Object ,
         gmeow:Entity ;
     skos:definition "The rules mapping a time scale to human-readable dates. Co-equal: Gregorian is one peer among Julian, Hebrew, Islamic, Chinese, Persian, Ethiopian, Coptic, ISO week, and others (Principle 9)."@x-gmeow-english ;
     skos:example "ex:myCalendar a gmeow:CalendarSystem ; rdfs:label \"Hebrew calendar\"@en ."@x-gmeow-english ;
@@ -23,11 +24,11 @@ gmeow:CalendarSystem
     gmeow:useWhen "Use to name the calendar reckoning a date is expressed in when a frame must record more than a bare scale — Gregorian, Julian, Hebrew, Islamic, and the rest are co-equal peers (P9)."@x-gmeow-english .
 
 gmeow:DatingMethod
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
     rdfs:label "Dating Method"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ,
+    rdfs:subClassOf logic:QualityValue ,
         gmeow:ObservationMethod ;
     skos:definition "The method used to derive a temporal measurement — radiocarbon, dendrochronology, thermoluminescence, etc. A value, never a subclass. Specialises gmeow:ObservationMethod for the temporal dating domain."@x-gmeow-english ;
     skos:example "ex:myMethod a gmeow:DatingMethod ; rdfs:label \"varve chronology\"@en ."@x-gmeow-english ;
@@ -37,11 +38,11 @@ gmeow:DatingMethod
     gmeow:useWhen "Use as the value vocabulary for how a temporal measurement was derived — radiocarbon, dendrochronology, U-Pb, stratigraphic correlation — referenced via gmeow:measurementMethod."@x-gmeow-english .
 
 gmeow:Instant
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
     rdfs:label "Instant"@x-gmeow-english ;
-    rdfs:subClassOf gufo:AbstractIndividual ;
+    rdfs:subClassOf logic:AbstractIndividual ;
     skos:definition "A zero-duration point in time, distinct from a TimeInterval. Carries a crisp instantValue (xsd:dateTime) and/or an edtfValue (EDTF literal) relative to a TemporalFrame."@x-gmeow-english ;
     skos:example "ex:birthInstant a gmeow:Instant ; gmeow:instantValue \"1804-07-12T00:00:00Z\"^^xsd:dateTime ; gmeow:inTemporalFrame gmeow:temporalFrameUTCGregorian ; gmeow:hasGranularity gmeow:granularityDay ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid for an inline timestamp that needs no facets (use gmeow:atTime or gmeow:startedAtTime) and for a bounded span (use gmeow:TimeInterval); an Instant is the heavyweight, facet-bearing point."@x-gmeow-english ;
@@ -52,11 +53,11 @@ gmeow:Instant
     gmeow:useWhen "Use for a zero-duration point that must itself bear a frame, a granularity, a determinacy, or an EDTF approximation — the reified point that a gmeow:TimeInterval endpoint or a gmeow:NamedPeriod boundary references."@x-gmeow-english .
 
 gmeow:NamedPeriod
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
     rdfs:label "Named Period"@x-gmeow-english ;
-    rdfs:subClassOf gufo:Object ,
+    rdfs:subClassOf logic:Object ,
         gmeow:Entity ;
     skos:definition "A named stretch of time with defined bounds — a geologic era, historical dynasty, artistic period, fiscal year, or any other culturally salient temporal division."@x-gmeow-english ;
     skos:example "ex:victorianEra a gmeow:NamedPeriod ; gmeow:periodType gmeow:periodTypeHistoricalEra ; gmeow:periodPartOf ex:nineteenthCentury ."@x-gmeow-english ;
@@ -66,11 +67,11 @@ gmeow:NamedPeriod
     gmeow:useWhen "Use for a culturally or scientifically salient, named division of time that is referenced as an entity — a geologic epoch, dynasty, artistic period, or fiscal year — rather than an ad-hoc interval between two timestamps."@x-gmeow-english .
 
 gmeow:PeriodType
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
     rdfs:label "Period Type"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The kind of a named period (geologic eon, era, period, epoch, age; historical dynasty, era; fiscal year). A value, never a subclass."@x-gmeow-english ;
     skos:example "ex:myType a gmeow:PeriodType ; rdfs:label \"artistic movement\"@en ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid modelling a period kind as a subclass of gmeow:NamedPeriod (kinds are individuals) and avoid using it for the period's bounds; the type names the category, not the extent."@x-gmeow-english ;
@@ -79,11 +80,11 @@ gmeow:PeriodType
     gmeow:useWhen "Use as the value vocabulary for classifying a gmeow:NamedPeriod by its defining domain — geologic rank, historical kind, fiscal kind — referenced through gmeow:periodType."@x-gmeow-english .
 
 gmeow:ReferencePosition
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
     rdfs:label "Reference Position"@x-gmeow-english ;
-    rdfs:subClassOf gufo:Object ,
+    rdfs:subClassOf logic:Object ,
         gmeow:Entity ;
     skos:definition "The spatial locus, observatory, timezone, or planetary body relative to which a time is expressed — e.g. an observatory longitude for local sidereal time, an IANA timezone for civil time, or a planet for planetary calendars."@x-gmeow-english ;
     skos:example "ex:torontoTZ a gmeow:ReferencePosition ; rdfs:label \"America/Toronto\"@en ."@x-gmeow-english ;
@@ -93,11 +94,11 @@ gmeow:ReferencePosition
     gmeow:useWhen "Use when a frame's time depends on a place — an IANA timezone for civil offset, an observatory longitude for sidereal time, a planetary body for an off-Earth calendar."@x-gmeow-english .
 
 gmeow:TemporalFrame
-    a gufo:SubKind ,
+    a logic:SubKind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
     rdfs:label "Temporal Frame"@x-gmeow-english ;
-    rdfs:subClassOf gufo:Object ,
+    rdfs:subClassOf logic:Object ,
         gmeow:ReferenceFrame ;
     skos:definition "A reference system for expressing time — the temporal counterpart of gmeow:ReferenceFrame. Decomposed into a TimeScale, an optional CalendarSystem, and an optional ReferencePosition. Every crisp instant or interval is asserted relative to a TemporalFrame (Principle 11)."@x-gmeow-english ;
     skos:example "ex:myFrame a gmeow:TemporalFrame ; gmeow:frameTimeScale gmeow:timeScaleUTC ; gmeow:frameCalendarSystem gmeow:calendarGregorian ."@x-gmeow-english ;
@@ -108,11 +109,11 @@ gmeow:TemporalFrame
     gmeow:useWhen "Use to name the time-reckoning system a dateTime is expressed in — the scale/calendar/position bundle every crisp instant or interval points at to satisfy the frame-relativity gate (P11)."@x-gmeow-english .
 
 gmeow:TemporalMeasurement
-    a gufo:SubKind ,
+    a logic:SubKind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
     rdfs:label "Temporal Measurement"@x-gmeow-english ;
-    rdfs:subClassOf gufo:Relator ,
+    rdfs:subClassOf logic:Relator ,
         gmeow:Measurement ,
         [
             a owl:Restriction ;
@@ -133,11 +134,11 @@ gmeow:TemporalMeasurement
     gmeow:useWhen "Use when a date or age is a measured, method-bearing, uncertain claim by some vantage — a radiocarbon date, a dendro count, an ICS boundary age — rather than a self-evident timestamp."@x-gmeow-english .
 
 gmeow:TimeInterval
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
     rdfs:label "Time Interval"@x-gmeow-english ;
-    rdfs:subClassOf gufo:AbstractIndividual ;
+    rdfs:subClassOf logic:AbstractIndividual ;
     skos:definition "A bounded stretch of time, optionally open-ended, delimited by a start and/or end instant."@x-gmeow-english ;
     skos:example "ex:tenureInterval a gmeow:TimeInterval ; gmeow:startedAtTime \"2019-03-01T00:00:00Z\"^^xsd:dateTime ; gmeow:hasTemporalFrame gmeow:temporalFrameUTCGregorian ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid for a zero-duration point (use gmeow:Instant) and for the lightweight case where a statement merely holds over a period — there the RDF-star gmeow:validFrom/gmeow:validUntil clocks suffice without minting an interval."@x-gmeow-english ;
@@ -148,11 +149,11 @@ gmeow:TimeInterval
     gmeow:useWhen "Use for a first-class bounded stretch of time that must itself bear properties — a frame, a granularity, Allen relations to other intervals, or the scope of a gmeow:TimeScopedRelation; the reify-on-demand sibling of the validFrom/validUntil statement-layer clocks."@x-gmeow-english .
 
 gmeow:TimeScale
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
     rdfs:label "Time Scale"@x-gmeow-english ;
-    rdfs:subClassOf gufo:Object ,
+    rdfs:subClassOf logic:Object ,
         gmeow:Entity ;
     skos:definition "The atomic progression of time — TAI, TT, UTC, GPS, UT1, TDB, etc. A time scale is independent of any calendar or geographic reference position."@x-gmeow-english ;
     skos:example "ex:myScale a gmeow:TimeScale ; rdfs:label \"Coordinated Universal Time (UTC)\"@en ."@x-gmeow-english ;
@@ -162,11 +163,11 @@ gmeow:TimeScale
     gmeow:useWhen "Use to name the underlying tick rate and epoch of a temporal frame — the answer to 'which clock', held separately from 'which calendar' and 'where'."@x-gmeow-english .
 
 gmeow:TimeScopedRelation
-    a gufo:SituationType ,
+    a logic:Situation ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/temporal> ;
     rdfs:label "Time-Scoped Relation"@x-gmeow-english ;
-    rdfs:subClassOf gufo:Situation ;
+    rdfs:subClassOf logic:Situation ;
     skos:definition "A reified relationship that holds only over a particular time interval — the base for residence, tenure, and membership-over-time situations."@x-gmeow-english ;
     skos:example "ex:lillithAtAcme a gmeow:TimeScopedRelation ; gmeow:duringInterval ex:tenureInterval ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid for a relationship that holds timelessly, and for the light case where a single statement just needs validity bounds — there annotate the triple with gmeow:validFrom/gmeow:validUntil rather than reifying a situation."@x-gmeow-english ;

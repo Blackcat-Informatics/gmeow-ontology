@@ -149,7 +149,7 @@ expression: summary
       "category": "Class",
       "owner_slice": "https://blackcatinformatics.ca/gmeow/slices/kernel",
       "parents": [
-        "http://purl.org/nemo/gufo#QualityValue"
+        "https://blackcatinformatics.ca/logic/QualityValue"
       ],
       "domain": [],
       "range": []
@@ -185,7 +185,7 @@ expression: summary
   "linkage_count": 1381,
   "example_count": 94,
   "concern_count": 7,
-  "external_term_count": 1206,
+  "external_term_count": 1213,
   "sample_mapping_set": {
     "iri": "https://blackcatinformatics.ca/gmeow/mapsetAccessibility",
     "curie": "gmeow:mapsetAccessibility",

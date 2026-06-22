@@ -28,6 +28,7 @@ from tests._graph_nt import run_shacl
 GMEOW = "https://blackcatinformatics.ca/gmeow/"
 GM = Namespace(GMEOW)
 GUFO = Namespace("http://purl.org/nemo/gufo#")
+LOGIC = Namespace("https://blackcatinformatics.ca/logic/")
 EX = Namespace("https://example.org/shapes/")
 
 FIXTURES = Path(__file__).parent / "fixtures" / "shapes"
@@ -53,8 +54,8 @@ def test_register_spine_lives_in_names_core() -> None:
     so address and expression draw from one vocabulary (the dependency
     direction requires the umbrella below its consumers)."""
     g = _graph()
-    assert (GM.Register, RDF.type, GUFO.AbstractIndividualType) in g
-    assert (GM.Register, RDFS.subClassOf, GUFO.QualityValue) in g
+    assert (GM.Register, RDF.type, LOGIC.AbstractIndividualType) in g
+    assert (GM.Register, RDFS.subClassOf, LOGIC.QualityValue) in g
     assert (GM.NameRegister, RDFS.subClassOf, GM.Register) in g
     # A names-core seed and a persona-facing seed are both Registers.
     assert (GM.registerFormal, RDF.type, GM.NameRegister) in g

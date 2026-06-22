@@ -4,14 +4,15 @@
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
 gmeow:Axis
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
     rdfs:label "Axis"@x-gmeow-english ;
-    rdfs:subClassOf gufo:Object ,
+    rdfs:subClassOf logic:Object ,
         gmeow:Entity ;
     skos:definition "A coordinate axis or dimension of a reference frame (e.g. X, Y, Z, latitude, longitude, elevation, time)."@x-gmeow-english ;
     skos:example "ex:xAxis a gmeow:Axis ; gmeow:hasCoordinateMatrix \"[[1,0,0]]\" ."@x-gmeow-english ;
@@ -21,7 +22,7 @@ gmeow:Axis
     gmeow:useWhen "Use for a coordinate axis or dimension of a reference frame (X, Y, Z, latitude, time, a joint angle)."@x-gmeow-english .
 
 gmeow:BiologicalSequenceLocation
-    a gufo:SubKind ,
+    a logic:SubKind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
     rdfs:label "Biological Sequence Location"@x-gmeow-english ;
@@ -34,7 +35,7 @@ gmeow:BiologicalSequenceLocation
     gmeow:useWhen "Use for a sequence-level container locus — a chromosome, contig, scaffold, or the sequence itself — that hosts feature annotations."@x-gmeow-english .
 
 gmeow:CadastralReference
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
     rdfs:label "Cadastral Reference"@x-gmeow-english ;
@@ -47,11 +48,11 @@ gmeow:CadastralReference
     gmeow:useWhen "Use for a structured land-administration identifier — parcel number, folio, title, lot, or survey-plan reference issued by a registry."@x-gmeow-english .
 
 gmeow:CadastralReferenceType
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
     rdfs:label "Cadastral Reference Type"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The kind of a cadastral reference (parcel identifier, folio number, title number, lot number, survey plan reference, etc.). A value, not a subclass: the set is open-ended and they share all of CadastralReference's structure, so a new kind is a new individual, not a new class (Principle 9)."@x-gmeow-english ;
     skos:example "ex:referenceTypeStrataPlan a gmeow:CadastralReferenceType ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid subclassing CadastralReference for a new kind (Principle 9)."@x-gmeow-english ;
@@ -60,7 +61,7 @@ gmeow:CadastralReferenceType
     gmeow:useWhen "Use to mint a new kind of cadastral reference as an individual on the open value vocabulary."@x-gmeow-english .
 
 gmeow:Capacity
-    a gufo:SubKind ,
+    a logic:SubKind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
     rdfs:label "Capacity"@x-gmeow-english ;
@@ -73,11 +74,11 @@ gmeow:Capacity
     gmeow:useWhen "Use to reify the maximum number of entities a location can hold, as a Measurement; contested capacities coexist as standpoint-indexed instances."@x-gmeow-english .
 
 gmeow:CelestialCoordinates
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
     rdfs:label "Celestial Coordinates"@x-gmeow-english ;
-    rdfs:subClassOf gufo:Object ,
+    rdfs:subClassOf logic:Object ,
         gmeow:Entity ;
     skos:definition "A point on the celestial sphere expressed as right ascension, declination, and an optional epoch — frame-relative per Principle 11. The reference frame (ICRS, FK5, Galactic, etc.) is declared via gmeow:coordinateFrame."@x-gmeow-english ;
     skos:example "ex:vegaCoords a gmeow:CelestialCoordinates ; gmeow:rightAscension 279.23 ; gmeow:declination 38.78 ; gmeow:coordinateFrame gmeow:referenceFrameICRS ."@x-gmeow-english ;
@@ -87,7 +88,7 @@ gmeow:CelestialCoordinates
     gmeow:useWhen "Use for a point on the celestial sphere — right ascension, declination, optional epoch — when the sky frame (ICRS, FK5, Galactic) is explicit."@x-gmeow-english .
 
 gmeow:CelestialLocation
-    a gufo:SubKind ,
+    a logic:SubKind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
     rdfs:label "Celestial Location"@x-gmeow-english ;
@@ -100,11 +101,11 @@ gmeow:CelestialLocation
     gmeow:useWhen "Use for an astronomical locus — a sky position, solar-system body, spacecraft, or deep-sky object — typed by gmeow:celestialObjectType."@x-gmeow-english .
 
 gmeow:CelestialObjectType
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
     rdfs:label "Celestial Object Type"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The kind of an astronomical object (star, galaxy, nebula, planet, asteroid, spacecraft, etc.). A value, not a CelestialLocation subclass: the set is open-ended (IVOA object-type vocabulary lists ~100 types) and they share the same structure."@x-gmeow-english ;
     skos:example "ex:celestialObjectTypeQuasar a gmeow:CelestialObjectType ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid subclassing CelestialLocation per object kind (Principle 9)."@x-gmeow-english ;
@@ -113,11 +114,11 @@ gmeow:CelestialObjectType
     gmeow:useWhen "Use to mint or reference a kind of astronomical object (the IVOA object-type superset) as a value individual."@x-gmeow-english .
 
 gmeow:CelestialReferenceOrigin
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
     rdfs:label "Celestial Reference Origin"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The origin of a celestial coordinate system (topocentric, geocentric, barycentric, heliocentric, etc.). A value vocabulary aligned to IVOA refposition."@x-gmeow-english ;
     skos:example "ex:refOriginHeliocentric a gmeow:CelestialReferenceOrigin ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid encoding the origin as a frame subclass (Principle 9)."@x-gmeow-english ;
@@ -126,7 +127,7 @@ gmeow:CelestialReferenceOrigin
     gmeow:useWhen "Use to mint or reference the origin of a celestial coordinate system (topocentric, geocentric, barycentric, heliocentric), aligned to IVOA refposition."@x-gmeow-english .
 
 gmeow:ContainmentTenure
-    a gufo:SituationType ,
+    a logic:Situation ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
     rdfs:label "Containment Tenure"@x-gmeow-english ;
@@ -149,7 +150,7 @@ gmeow:ContainmentTenure
     gmeow:useWhen "Use to reify time-scoped place-in-place containment for boundary changes, re-organisations, or disputed parallel parents."@x-gmeow-english .
 
 gmeow:CoordinateObservation
-    a gufo:SubKind ,
+    a logic:SubKind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
     rdfs:label "Coordinate Observation"@x-gmeow-english ;
@@ -175,11 +176,11 @@ gmeow:CoordinateObservation
     gmeow:useWhen "Use to reify a survey that assigned coordinates or geometry to a place, so multiple surveys (GPS 2023, LiDAR 2024) coexist as standpoint-indexed observations."@x-gmeow-english .
 
 gmeow:FrameKind
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
     rdfs:label "Frame Kind"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The structural type of a reference frame (e.g. geodetic, Cartesian, polar, grid, narrative)."@x-gmeow-english ;
     skos:example "ex:frameKindGrid a gmeow:FrameKind ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid encoding the kind as a ReferenceFrame subclass (Principle 9)."@x-gmeow-english ;
@@ -188,11 +189,11 @@ gmeow:FrameKind
     gmeow:useWhen "Use to name the structural type of a reference frame (geodetic, Cartesian, polar, grid, narrative) as a value individual."@x-gmeow-english .
 
 gmeow:FrameRealm
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
     rdfs:label "Frame Realm"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The physical, virtual, or conceptual domain of a reference frame (e.g. terrestrial, indoor, celestial, virtual, measurement, currency, temporal, colourspace, linguistic)."@x-gmeow-english ;
     skos:example "ex:frameRealmTerrestrial a gmeow:FrameRealm ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid encoding the realm as a ReferenceFrame subclass (Principle 9)."@x-gmeow-english ;
@@ -201,7 +202,7 @@ gmeow:FrameRealm
     gmeow:useWhen "Use to name the physical, virtual, or conceptual domain of a reference frame (terrestrial, celestial, currency, temporal, …) as a value individual."@x-gmeow-english .
 
 gmeow:GeoCoordinates
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
     rdfs:label "Geo Coordinates"@x-gmeow-english ;
@@ -217,7 +218,7 @@ gmeow:GeoCoordinates
     gmeow:useWhen "Use for a geographic point value — latitude, longitude, optional elevation — as the result of a coordinate observation or the target of gmeow:hasCoordinates."@x-gmeow-english .
 
 gmeow:Geocode
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
     rdfs:label "Geocode"@x-gmeow-english ;
@@ -231,11 +232,11 @@ gmeow:Geocode
     gmeow:useWhen "Use for an alternative geocoding identifier — Plus Code, what3words, geohash, MGRS, UN/LOCODE, mile-marker — carried in its own reference frame."@x-gmeow-english .
 
 gmeow:Geometry
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
     rdfs:label "Geometry"@x-gmeow-english ;
-    rdfs:subClassOf gufo:Object ,
+    rdfs:subClassOf logic:Object ,
         gmeow:Entity ;
     skos:definition "The spatial extent of a place — a point, line, or polygon — carrying a Well-Known Text (WKT) serialization for shapes richer than a single point (the GeoSPARQL geo:Geometry superset)."@x-gmeow-english ;
     skos:example "ex:shape a gmeow:Geometry ; gmeow:geometryType gmeow:geometryTypePolygon ; gmeow:asWKT \"POLYGON((...))\" ."@x-gmeow-english ;
@@ -248,11 +249,11 @@ gmeow:Geometry
     gmeow:useWhen "Use for the spatial extent of a place richer than a point — a line or polygon — serialized as WKT or GeoJSON."@x-gmeow-english .
 
 gmeow:GeometryType
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
     rdfs:label "Geometry Type"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The structural kind of a geometry (point, line, polygon, multipoint, multilinestring, multipolygon). A value vocabulary (individuals, never subclasses) aligned by reference to GeoSPARQL simple-features (sf:Point, sf:LineString, sf:Polygon, etc.)."@x-gmeow-english ;
     skos:example "ex:geometryTypeCircle a gmeow:GeometryType ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid subclassing Geometry for a shape kind (it is a value, Principle 9)."@x-gmeow-english ;
@@ -261,7 +262,7 @@ gmeow:GeometryType
     gmeow:useWhen "Use to mint or reference a structural geometry kind (point, line, polygon, multi*) aligned to GeoSPARQL simple features."@x-gmeow-english .
 
 gmeow:JurisdictionTenure
-    a gufo:SituationType ,
+    a logic:Situation ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
     rdfs:label "Jurisdiction Tenure"@x-gmeow-english ;
@@ -284,7 +285,7 @@ gmeow:JurisdictionTenure
     gmeow:useWhen "Use to reify a time-scoped sovereignty/administrative-jurisdiction fact when period, standpoint, or contestation matter."@x-gmeow-english .
 
 gmeow:LandTenure
-    a gufo:SituationType ,
+    a logic:Situation ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
     rdfs:label "Land Tenure"@x-gmeow-english ;
@@ -307,11 +308,11 @@ gmeow:LandTenure
     gmeow:useWhen "Use to reify a time-scoped property right (ownership, lease, easement, mortgage, usufruct) a party holds over a place, bridging to the rights slice."@x-gmeow-english .
 
 gmeow:LandTenureType
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
     rdfs:label "Land Tenure Type"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The kind of a land tenure (ownership, leasehold, easement, mortgage, usufruct, freehold, crown lease, etc.). A value, not a subclass: the set is open-ended and they share all of LandTenure's structure, so a new kind is a new individual, not a new class (Principle 9)."@x-gmeow-english ;
     skos:example "ex:tenureTypeCommonhold a gmeow:LandTenureType ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid subclassing LandTenure for a new kind (Principle 9)."@x-gmeow-english ;
@@ -320,11 +321,11 @@ gmeow:LandTenureType
     gmeow:useWhen "Use to mint a new kind of land tenure as an individual on the open value vocabulary."@x-gmeow-english .
 
 gmeow:Location
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
     rdfs:label "Location"@x-gmeow-english ;
-    rdfs:subClassOf gufo:Object ,
+    rdfs:subClassOf logic:Object ,
         gmeow:Entity ;
     skos:definition "A locus where an entity can be situated, reside, or occur — a geographic place, an online (virtual) location, a digital storage location, or an astronomical/celestial position."@x-gmeow-english ;
     skos:example "ex:office a gmeow:Location ; gmeow:containedInLocation ex:building ."@x-gmeow-english ;
@@ -334,11 +335,11 @@ gmeow:Location
     gmeow:useWhen "Use as the umbrella domain for anything an entity can be situated at — geographic, virtual, storage, or celestial — when the kind of locus is not yet committed."@x-gmeow-english .
 
 gmeow:LocationState
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
     rdfs:label "Location State"@x-gmeow-english ;
-    rdfs:subClassOf gufo:Object ,
+    rdfs:subClassOf logic:Object ,
         gmeow:Entity ;
     skos:definition "The state of a moving entity at a specific point or period in time, including its location, velocity, and pose (position + orientation)."@x-gmeow-english ;
     skos:example "ex:s1 a gmeow:LocationState ; gmeow:stateOf ex:rover ; gmeow:stateAtInstant ex:t1 ; gmeow:stateReferenceFrame ex:siteGrid ."@x-gmeow-english ;
@@ -349,11 +350,11 @@ gmeow:LocationState
     gmeow:useWhen "Use for the state of a moving entity at an instant or interval — its location, pose, and velocity in an explicit frame."@x-gmeow-english .
 
 gmeow:MetricKind
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
     rdfs:label "Metric Kind"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The computational method by which distance or dissimilarity is measured in a reference frame — geodesic (curved surface), Euclidean (straight-line in Cartesian space), cosine (angular similarity in latent vector space), edit-distance (Levenshtein / sequence alignment), or graph-hops (shortest-path in a network). A value vocabulary (individuals, never subclasses) per Principle 9."@x-gmeow-english ;
     skos:example "ex:metricGeodesic a gmeow:MetricKind ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid materialising the computed distances as triples (the metric declares the method; the solver computes, Principle 12) and avoid subclassing for a new metric."@x-gmeow-english ;
@@ -362,7 +363,7 @@ gmeow:MetricKind
     gmeow:useWhen "Use to name how distance or dissimilarity is computed in a frame — geodesic, Euclidean, cosine, edit-distance, graph-hops — as a value individual."@x-gmeow-english .
 
 gmeow:NetworkAddress
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
     rdfs:label "Network Address"@x-gmeow-english ;
@@ -377,11 +378,11 @@ gmeow:NetworkAddress
     gmeow:useWhen "Use to promote a virtual location's address to a frame-relative coordinate when the IP/MAC/DNS/URL/port/BGP-AS value needs an explicit frame, provenance, confidence, or standpoint."@x-gmeow-english .
 
 gmeow:NetworkAddressType
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
     rdfs:label "Network Address Type"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The kind of a network address (IPv4, IPv6, MAC, DNS, URL, port, BGP-AS). A value, not a subclass: the set is open-ended and they share all of NetworkAddress's structure, so a new kind is a new individual, not a new class (Principle 9)."@x-gmeow-english ;
     skos:example "ex:networkAddressTypeIPv4 a gmeow:NetworkAddressType ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid subclassing NetworkAddress for a new scheme (the schemes share structure; a new scheme is a new individual, Principle 9)."@x-gmeow-english ;
@@ -390,7 +391,7 @@ gmeow:NetworkAddressType
     gmeow:useWhen "Use to mint a new kind of network address as an individual on the open value vocabulary."@x-gmeow-english .
 
 gmeow:Occupancy
-    a gufo:SubKind ,
+    a logic:SubKind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
     rdfs:label "Occupancy"@x-gmeow-english ;
@@ -403,11 +404,11 @@ gmeow:Occupancy
     gmeow:useWhen "Use to reify the current number of entities at a location, as a Measurement (sensor reading, manual count, or solver-derived)."@x-gmeow-english .
 
 gmeow:Orientation
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
     rdfs:label "Orientation"@x-gmeow-english ;
-    rdfs:subClassOf gufo:Object ,
+    rdfs:subClassOf logic:Object ,
         gmeow:Entity ;
     skos:definition "The rotational component of a pose, expressed as co-equal optional facets: quaternion (x, y, z, w), Euler angles (yaw, pitch, roll plus order), or compass angles (heading, bearing). No single representation is privileged; multiple representations may coexist for the same pose. Aligns by reference to IEEE 1872-2015 pos:OrientationMeasure."@x-gmeow-english ;
     skos:example "ex:ori a gmeow:Orientation ; gmeow:quaternionX 0.0 ; gmeow:quaternionY 0.0 ; gmeow:quaternionZ 0.0 ; gmeow:quaternionW 1.0 ."@x-gmeow-english ;
@@ -417,7 +418,7 @@ gmeow:Orientation
     gmeow:useWhen "Use for the rotational component of a pose, in any of the co-equal facets — quaternion, Euler angles, or compass heading/bearing."@x-gmeow-english .
 
 gmeow:Place
-    a gufo:SubKind ,
+    a logic:SubKind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
     rdfs:label "Place"@x-gmeow-english ;
@@ -430,11 +431,11 @@ gmeow:Place
     gmeow:useWhen "Use for a geographic locus at ANY granularity — country, region, city, building, floor, room — letting gmeow:placeType say which."@x-gmeow-english .
 
 gmeow:PlaceType
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
     rdfs:label "Place Type"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The kind of a geographic place (country, region, city, building, room, …). Modelled as a value, not a Place subclass: the set of kinds is open-ended (GeoNames lists ~600 feature codes) and they share all of Place's structure, so a new kind is a new individual, not a new class."@x-gmeow-english ;
     skos:example "ex:placeTypeHamletPlace a gmeow:PlaceType ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid subclassing Place for a granularity or feature kind (the kind is a gmeow:placeType value, never a class)."@x-gmeow-english ;
@@ -443,11 +444,11 @@ gmeow:PlaceType
     gmeow:useWhen "Use to mint a new kind of geographic place (the GeoNames feature-code superset) as an individual on the open value vocabulary."@x-gmeow-english .
 
 gmeow:Pose
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
     rdfs:label "Pose"@x-gmeow-english ;
-    rdfs:subClassOf gufo:Object ,
+    rdfs:subClassOf logic:Object ,
         gmeow:Entity ;
     skos:definition "A frame-relative position and orientation of an object — a 6-DOF pose. A pose consists of a position (spatial coordinates in a reference frame) and an orientation (quaternion, Euler angles, heading/bearing, or a homogeneous transform matrix). Aligns by reference to IEEE 1872-2015 pos:QuantitativePose and structurally to OGC GeoPose 1.0."@x-gmeow-english ;
     skos:example "ex:roverPose a gmeow:Pose ; gmeow:hasPosePosition ex:pos ; gmeow:hasPoseOrientation ex:ori ; gmeow:poseFrame ex:siteGrid ."@x-gmeow-english ;
@@ -459,7 +460,7 @@ gmeow:Pose
     gmeow:useWhen "Use for a frame-relative 6-DOF position-plus-orientation of an object (IEEE 1872 / OGC GeoPose alignment)."@x-gmeow-english .
 
 gmeow:ProximityMeasurement
-    a gufo:SubKind ,
+    a logic:SubKind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
     rdfs:label "Proximity Measurement"@x-gmeow-english ;
@@ -472,11 +473,11 @@ gmeow:ProximityMeasurement
     gmeow:useWhen "Use to reify a measured distance, dissimilarity, or proximity between two entities in a frame that declares its metric kind."@x-gmeow-english .
 
 gmeow:ReferenceFrame
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
     rdfs:label "Reference Frame"@x-gmeow-english ;
-    rdfs:subClassOf gufo:Object ,
+    rdfs:subClassOf logic:Object ,
         gmeow:Entity ;
     skos:definition "A reference system (such as a coordinate system, datum, grid, or platform space) relative to which locations, coordinates, or measurements are expressed."@x-gmeow-english ;
     skos:example "ex:siteGrid a gmeow:ReferenceFrame ; gmeow:frameRealm gmeow:frameRealmTerrestrial ; gmeow:frameKind gmeow:frameKindGrid ."@x-gmeow-english ;
@@ -486,7 +487,7 @@ gmeow:ReferenceFrame
     gmeow:useWhen "Use for any reference system — coordinate system, datum, grid, or platform space — relative to which coordinates and measurements are expressed (Principle 11)."@x-gmeow-english .
 
 gmeow:RegulatoryOverlay
-    a gufo:SituationType ,
+    a logic:Situation ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
     rdfs:label "Regulatory Overlay"@x-gmeow-english ;
@@ -509,11 +510,11 @@ gmeow:RegulatoryOverlay
     gmeow:useWhen "Use to reify a time-scoped fact that a specific regulation (zoning, protected area, restricted airspace, sanctions, tax/electoral/postal/time/maritime/aviation zone) applies over a place."@x-gmeow-english .
 
 gmeow:RegulatoryOverlayType
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
     rdfs:label "Regulatory Overlay Type"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The kind of a regulatory overlay (zoning, protected area, restricted airspace, sanctions, tax district, electoral district, postal zone, civil-time zone, …). A value, not a subclass: the set is open-ended and they share all of RegulatoryOverlay's structure, so a new kind is a new individual, not a new class (Principle 9)."@x-gmeow-english ;
     skos:example "ex:overlayTypeFloodZone a gmeow:RegulatoryOverlayType ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid subclassing RegulatoryOverlay for a new kind (Principle 9)."@x-gmeow-english ;
@@ -522,11 +523,11 @@ gmeow:RegulatoryOverlayType
     gmeow:useWhen "Use to mint a new kind of regulatory overlay as an individual on the open value vocabulary (zoning, maritime, aviation, …)."@x-gmeow-english .
 
 gmeow:SequenceCoordinates
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
     rdfs:label "Sequence Coordinates"@x-gmeow-english ;
-    rdfs:subClassOf gufo:Object ,
+    rdfs:subClassOf logic:Object ,
         gmeow:Entity ;
     skos:definition "Frame-relative coordinates on a biological sequence: a start position, an end position, and a strand orientation, all expressed relative to an explicit reference assembly (Principle 11)."@x-gmeow-english ;
     skos:example "ex:brca1Coords a gmeow:SequenceCoordinates ; gmeow:sequenceStart 43044295 ; gmeow:sequenceEnd 43125483 ; gmeow:inReferenceAssembly gmeow:referenceFrameGRCh38 ."@x-gmeow-english ;
@@ -537,11 +538,11 @@ gmeow:SequenceCoordinates
     gmeow:useWhen "Use for frame-relative coordinates on a biological sequence — start, end, and strand in an explicit reference assembly (FALDO alignment)."@x-gmeow-english .
 
 gmeow:SequenceFeature
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
     rdfs:label "Sequence Feature"@x-gmeow-english ;
-    rdfs:subClassOf gufo:Object ,
+    rdfs:subClassOf logic:Object ,
         gmeow:Entity ;
     skos:definition "A feature or annotation on a biological sequence — a range with start, end, strand, and type, expressed in a reference assembly frame. The first-class entity that carries the coordinates and type; linked to a BiologicalSequenceLocation via gmeow:hasSequenceFeature."@x-gmeow-english ;
     skos:example "ex:brca1 a gmeow:SequenceFeature ; gmeow:sequenceFeatureType gmeow:sequenceFeatureTypeGene ; gmeow:hasSequenceCoordinates ex:brca1Coords ."@x-gmeow-english ;
@@ -551,11 +552,11 @@ gmeow:SequenceFeature
     gmeow:useWhen "Use for a feature/annotation on a biological sequence — a gene, exon, SNP, or CDS with start, end, strand, and type in an assembly frame."@x-gmeow-english .
 
 gmeow:SequenceFeatureType
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
     rdfs:label "Sequence Feature Type"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The kind of a sequence feature (gene, exon, intron, CDS, SNP, chromosome, etc.). A value, not a subclass: the set is open-ended (Sequence Ontology lists ~2000 types) and they share all of SequenceFeature's structure, so a new kind is a new individual, not a new class (Principle 9)."@x-gmeow-english ;
     skos:example "ex:sequenceFeatureTypePromoter a gmeow:SequenceFeatureType ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid subclassing SequenceFeature per type (Principle 9)."@x-gmeow-english ;
@@ -564,11 +565,11 @@ gmeow:SequenceFeatureType
     gmeow:useWhen "Use to mint or reference a kind of sequence feature (the Sequence Ontology superset) as a value individual."@x-gmeow-english .
 
 gmeow:SpatialCoordinates
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
     rdfs:label "Spatial Coordinates"@x-gmeow-english ;
-    rdfs:subClassOf gufo:Object ,
+    rdfs:subClassOf logic:Object ,
         gmeow:Entity ;
     skos:definition "A set of coordinate values representing a position in a specific coordinate reference frame."@x-gmeow-english ;
     skos:example "ex:pos a gmeow:SpatialCoordinates ; gmeow:coordinateFrame gmeow:referenceFrameWGS84 ."@x-gmeow-english ;
@@ -580,7 +581,7 @@ gmeow:SpatialCoordinates
     gmeow:useWhen "Use for a position expressed as coordinate values in a specific reference frame — the general frame-relative coordinate carrier."@x-gmeow-english .
 
 gmeow:SpatialMeasurement
-    a gufo:SubKind ,
+    a logic:SubKind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
     rdfs:label "Spatial Measurement"@x-gmeow-english ;
@@ -603,7 +604,7 @@ gmeow:SpatialMeasurement
     gmeow:useWhen "Use as the parent for any reified measurement assigning a spatial property — coordinates, geometry, pose, extent — realising Principle 3 for space."@x-gmeow-english .
 
 gmeow:StorageLocation
-    a gufo:SubKind ,
+    a logic:SubKind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
     rdfs:label "Storage Location"@x-gmeow-english ;
@@ -616,11 +617,11 @@ gmeow:StorageLocation
     gmeow:useWhen "Use for where digital bytes reside — a cloud folder, object-store bucket, filesystem path, content-addressed store, or physical disk — as the structured form of gmeow:storedIn."@x-gmeow-english .
 
 gmeow:StorageMedium
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
     rdfs:label "Storage Medium"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The kind of medium a storage location uses (cloud service, local filesystem, object store, content-addressed store, physical disk, removable media). A value, not a StorageLocation subclass: the kinds share the same structure (path, service, holder, physical place)."@x-gmeow-english ;
     skos:example "ex:storageMediumTape a gmeow:StorageMedium ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid subclassing StorageLocation per medium (the kinds share structure; a new medium is a new individual)."@x-gmeow-english ;
@@ -629,11 +630,11 @@ gmeow:StorageMedium
     gmeow:useWhen "Use to mint a new storage-medium kind as an individual on the open value vocabulary."@x-gmeow-english .
 
 gmeow:StrandOrientation
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
     rdfs:label "Strand Orientation"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The strand direction of a feature on a double-stranded biological sequence (forward / Watson, reverse / Crick, or both). A value, not a subclass: the set is closed and they share the same structure."@x-gmeow-english ;
     skos:example "ex:strandForward a gmeow:StrandOrientation ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid subclassing for strand direction (the set is closed and shares structure)."@x-gmeow-english ;
@@ -642,11 +643,11 @@ gmeow:StrandOrientation
     gmeow:useWhen "Use to reference the strand direction of a sequence feature (forward/Watson, reverse/Crick, or both) as a value individual."@x-gmeow-english .
 
 gmeow:Trajectory
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
     rdfs:label "Trajectory"@x-gmeow-english ;
-    rdfs:subClassOf gufo:Object ,
+    rdfs:subClassOf logic:Object ,
         gmeow:Entity ;
     skos:definition "A continuous path of motion representing the space-time history of a moving entity."@x-gmeow-english ;
     skos:example "ex:path a gmeow:Trajectory ; gmeow:trajectoryOf ex:rover ; gmeow:trajectoryReferenceFrame ex:siteGrid ."@x-gmeow-english ;
@@ -657,7 +658,7 @@ gmeow:Trajectory
     gmeow:useWhen "Use for the continuous space-time path of a moving entity, sampled by LocationStates."@x-gmeow-english .
 
 gmeow:Utilization
-    a gufo:SubKind ,
+    a logic:SubKind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
     rdfs:label "Utilization"@x-gmeow-english ;
@@ -670,7 +671,7 @@ gmeow:Utilization
     gmeow:useWhen "Use to reify the occupancy-to-capacity ratio at a location, as a Measurement."@x-gmeow-english .
 
 gmeow:VirtualLocation
-    a gufo:SubKind ,
+    a logic:SubKind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
     rdfs:label "Virtual Location"@x-gmeow-english ;
@@ -683,11 +684,11 @@ gmeow:VirtualLocation
     gmeow:useWhen "Use for a non-geographic locus reachable online — a conference room, chat space, website, or social-media page — typed by gmeow:virtualLocationType."@x-gmeow-english .
 
 gmeow:VirtualLocationType
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/places> ;
     rdfs:label "Virtual Location Type"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The kind of a virtual location (video conference, chat space, metaverse room, website, social media page, …). A value, not a subclass: the set is open-ended and they share all of VirtualLocation's structure, so a new kind is a new individual, not a new class (Principle 9)."@x-gmeow-english ;
     skos:example "ex:virtualLocationTypeWebinar a gmeow:VirtualLocationType ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid creating a VirtualLocation subclass for a new kind (the kinds share all structure; a new kind is a new individual, Principle 9)."@x-gmeow-english ;

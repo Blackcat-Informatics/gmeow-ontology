@@ -4,8 +4,8 @@ The quality module adds a cross-cutting ISO 19157 / W3C DQV-aligned layer that
 refines confidence and provenance across every realm. These tests verify:
 
 1. The TBox is well-formed (classes, properties, value vocabularies).
-2. QualityAssessment is a gufo:SubKind of Observation.
-3. QualityDimension is a gufo:AbstractIndividualType / QualityValue.
+2. QualityAssessment is a logic:SubKind of Observation.
+3. QualityDimension is a logic:AbstractIndividualType / logic:QualityValue.
 4. assessedEntity bridges to the universal Observation stack.
 5. All seven ISO 19157 + lineage seeds exist.
 6. No preferred/primary quality term is declared (Principle 9).
@@ -21,6 +21,7 @@ from gmeow_tools.slices import module_path
 GMEOW = "https://blackcatinformatics.ca/gmeow/"
 GM = Namespace(GMEOW)
 GUFO = Namespace("http://purl.org/nemo/gufo#")
+LOGIC = Namespace("https://blackcatinformatics.ca/logic/")
 EX = Namespace("https://example.org/test/")
 
 
@@ -31,15 +32,15 @@ def _graph() -> Graph:
 def test_quality_assessment_class_structure() -> None:
     g = _graph()
     assert (GM.QualityAssessment, RDF.type, OWL.Class) in g
-    assert (GM.QualityAssessment, RDF.type, URIRef(GUFO + "SubKind")) in g
+    assert (GM.QualityAssessment, RDF.type, LOGIC.SubKind) in g
     assert (GM.QualityAssessment, RDFS.subClassOf, GM.Observation) in g
 
 
 def test_quality_dimension_class_structure() -> None:
     g = _graph()
     assert (GM.QualityDimension, RDF.type, OWL.Class) in g
-    assert (GM.QualityDimension, RDF.type, URIRef(GUFO + "AbstractIndividualType")) in g
-    assert (GM.QualityDimension, RDFS.subClassOf, URIRef(GUFO + "QualityValue")) in g
+    assert (GM.QualityDimension, RDF.type, LOGIC.AbstractIndividualType) in g
+    assert (GM.QualityDimension, RDFS.subClassOf, LOGIC.QualityValue) in g
 
 
 def test_assessed_entity_property_structure() -> None:

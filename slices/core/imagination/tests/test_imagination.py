@@ -32,7 +32,6 @@ from gmeow_rdf.compat.rdflib import Graph, URIRef
 from gmeow_rdf.compat.rdflib.namespace import OWL, RDF, RDFS
 
 GMEOW = "https://blackcatinformatics.ca/gmeow/"
-GUFO = "http://purl.org/nemo/gufo#"
 LOGIC = "https://blackcatinformatics.ca/logic/"
 SKOS_DEFINITION = URIRef("http://www.w3.org/2004/02/skos/core#definition")
 SLICE_IRI = URIRef("https://blackcatinformatics.ca/gmeow/slices/imagination")
@@ -67,11 +66,6 @@ def _t(name: str) -> URIRef:
     return URIRef(GMEOW + name)
 
 
-def _gufo(name: str) -> URIRef:
-    """A gufo-namespaced term URI."""
-    return URIRef(GUFO + name)
-
-
 def _graph() -> Graph:
     g = Graph()
     g.parse(_MODULE, format="turtle")
@@ -102,14 +96,15 @@ def test_spine_is_flat_and_decoupled() -> None:
 
 
 def test_content_origin_is_an_abstract_individual_type() -> None:
-    """ContentOrigin is an owl:Class, a gufo:AbstractIndividualType, and a
-    subclass of gufo:QualityValue — the value-vocabulary genus shared with
-    gmeow:MentalProcessType and gmeow:QuestionType."""
+    """ContentOrigin is an owl:Class, a logic:AbstractIndividualType, and a
+    subclass of logic:QualityValue — the value-vocabulary genus shared with
+    gmeow:MentalProcessType and gmeow:QuestionType.
+    After #694 migration: stereotype namespace is logic: not gufo:."""
     g = _graph()
     co = _t("ContentOrigin")
     assert (co, RDF.type, OWL.Class) in g
-    assert (co, RDF.type, _gufo("AbstractIndividualType")) in g
-    assert (co, RDFS.subClassOf, _gufo("QualityValue")) in g
+    assert (co, RDF.type, URIRef(LOGIC + "AbstractIndividualType")) in g
+    assert (co, RDFS.subClassOf, URIRef(LOGIC + "QualityValue")) in g
 
 
 def test_content_origin_individuals_are_seeded() -> None:
@@ -179,15 +174,44 @@ def test_no_new_content_class() -> None:
 
 def test_by_reference_no_logic_triples() -> None:
     """By-reference discipline (Principle 5): the module asserts NO triple whose
-    subject, predicate, or object lives in the logic: namespace — logic:World is
-    named in prose only, so the slice stays DL-clean standalone and depends only
-    on what it asserts."""
+    subject, predicate, or object lives in the logic: namespace, EXCEPT for the
+    stereotype vocabulary introduced by the #694 migration.
+
+    Stereotype triples (logic:Kind, logic:AbstractIndividualType, logic:QualityValue,
+    etc.) are identity/rigidity typing, NOT modal-world dependencies — they replace
+    the former gufo: stereotype namespace and are explicitly permitted.  logic:World
+    and any other non-stereotype logic: terms remain prose-only."""
+    # The set of logic: stereotype IRIs that are explicitly allowed after the
+    # #694 gufo→logic migration.  Any logic: node NOT in this set is still
+    # forbidden (worlds, modal-logic terms, etc. stay prose-only).
+    _logic_stereotypes = frozenset(
+        URIRef(LOGIC + n)
+        for n in (
+            "Kind",
+            "SubKind",
+            "Phase",
+            "Role",
+            "Category",
+            "Mixin",
+            "RoleMixin",
+            "PhaseMixin",
+            "Event",
+            "Situation",
+            "AbstractIndividualType",
+            "Relator",
+            "QualityValue",
+            "Mode",
+            "Disposition",
+        )
+    )
     g = _graph()
     for s, p, o in g:
         for node in (s, p, o):
-            if isinstance(node, URIRef):
-                assert not str(node).startswith(LOGIC), (
-                    f"asserted logic: triple via {node}"
+            if isinstance(node, URIRef) and str(node).startswith(LOGIC):
+                assert node in _logic_stereotypes, (
+                    f"non-stereotype logic: triple via {node} — "
+                    "only stereotype vocabulary is permitted; "
+                    "logic:World and modal-logic terms must stay prose-only"
                 )
 
 

@@ -4,7 +4,7 @@
 
 The mention/use distinction (describes vs enacts) is the fourth domain-free
 epistemic axis alongside granularity, determinacy, and sensitivity. This module
-pins that as a structural invariant: AboutnessMode is a universal gUFO
+pins that as a structural invariant: AboutnessMode is a universal logic:
 QualityValue, hasAboutness is a domain-free non-functional AnnotationProperty
 (the accordingTo pattern — statement-layer cells stay DL-clean, P3)
 orthogonal to every other kernel axis, and the two seeds span the mention/use
@@ -23,6 +23,7 @@ from gmeow_tools.graph import load_merged_graph
 GMEOW = "https://blackcatinformatics.ca/gmeow/"
 GM = Namespace(GMEOW)
 GUFO = Namespace("http://purl.org/nemo/gufo#")
+LOGIC = Namespace("https://blackcatinformatics.ca/logic/")
 
 
 def _graph() -> Graph:
@@ -32,8 +33,8 @@ def _graph() -> Graph:
 def test_aboutness_class_structure() -> None:
     g = _graph()
     assert (GM.AboutnessMode, RDF.type, OWL.Class) in g
-    assert (GM.AboutnessMode, RDF.type, GUFO.AbstractIndividualType) in g
-    assert (GM.AboutnessMode, RDFS.subClassOf, GUFO.QualityValue) in g
+    assert (GM.AboutnessMode, RDF.type, LOGIC.AbstractIndividualType) in g
+    assert (GM.AboutnessMode, RDFS.subClassOf, LOGIC.QualityValue) in g
 
 
 def test_has_aboutness_property_structure() -> None:

@@ -25,7 +25,7 @@ from tests._graph_nt import run_shacl
 
 GMEOW = "https://blackcatinformatics.ca/gmeow/"
 GM = Namespace(GMEOW)
-GUFO = Namespace("http://purl.org/nemo/gufo#")
+LOGIC = Namespace("https://blackcatinformatics.ca/logic/")
 EX_EVENTS = Namespace("https://blackcatinformatics.ca/gmeow/examples/events/")
 SHAPES_FIXTURES = Path(__file__).parent / "fixtures" / "shapes"
 COVERAGE_FIXTURES = Path(__file__).parent / "fixtures" / "coverage"
@@ -47,7 +47,7 @@ def _fixture(name: str) -> Graph:
 def test_event_is_grounded_in_gufo_event() -> None:
     g = _graph()
     assert (GM.Event, RDF.type, OWL.Class) in g
-    assert (GM.Event, RDFS.subClassOf, GUFO.Event) in g
+    assert (GM.Event, RDFS.subClassOf, LOGIC.Event) in g
     # The former top occurrences re-parent onto the universal Event.
     assert (GM.Activity, RDFS.subClassOf, GM.Event) in g
     assert (GM.LifeEvent, RDFS.subClassOf, GM.Event) in g
@@ -55,7 +55,7 @@ def test_event_is_grounded_in_gufo_event() -> None:
 
 def test_participation_is_a_gufo_relator() -> None:
     g = _graph()
-    assert (GM.Participation, RDFS.subClassOf, GUFO.Relator) in g
+    assert (GM.Participation, RDFS.subClassOf, LOGIC.Relator) in g
     assert (GM.Participation, RDF.type, OWL.Class) in g
 
 

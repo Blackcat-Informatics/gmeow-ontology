@@ -62,7 +62,7 @@ def test_missing_stereotype_is_flagged() -> None:
     graph = Graph()
     graph.add((URIRef(NAMESPACE + "Bare"), RDF.type, OWL.Class))
     problems = exactly_one_stereotype(graph)
-    assert any("carries no gUFO meta-class" in p for p in problems)
+    assert any("carries no stereotype" in p for p in problems)
 
 
 def test_kind_under_kind_is_flagged_mixiden() -> None:

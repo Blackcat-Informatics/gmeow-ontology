@@ -1,6 +1,6 @@
 """Tests for the cross-cutting temporal facility introduced by the email slice.
 
-The temporal module reifies time-scoped relations as gufo:Situation subclasses
+The temporal module reifies time-scoped relations as logic:Situation subclasses
 (so residence and tenure hold over an interval), and offers validFrom/validUntil
 as lighter-weight RDF-star annotations. These structural assertions guard the
 pattern that later slices (calendar, projects) will reuse.
@@ -15,6 +15,7 @@ from gmeow_tools.graph import load_merged_graph
 
 GMEOW = "https://blackcatinformatics.ca/gmeow/"
 GUFO = "http://purl.org/nemo/gufo#"
+LOGIC = "https://blackcatinformatics.ca/logic/"
 
 
 def _graph() -> Graph:
@@ -22,12 +23,12 @@ def _graph() -> Graph:
     return load_merged_graph(include_imports=True)
 
 
-def test_time_scoped_relation_is_a_gufo_situation() -> None:
+def test_time_scoped_relation_is_a_logic_situation() -> None:
     graph = _graph()
     assert (
         URIRef(GMEOW + "TimeScopedRelation"),
         RDFS.subClassOf,
-        URIRef(GUFO + "Situation"),
+        URIRef(LOGIC + "Situation"),
     ) in graph
 
 
@@ -62,12 +63,12 @@ def test_validity_predicates_are_annotation_properties() -> None:
         ) in graph
 
 
-def test_instant_subclasses_gufo_abstract_individual() -> None:
+def test_instant_subclasses_logic_abstract_individual() -> None:
     graph = _graph()
     assert (
         URIRef(GMEOW + "Instant"),
         RDFS.subClassOf,
-        URIRef(GUFO + "AbstractIndividual"),
+        URIRef(LOGIC + "AbstractIndividual"),
     ) in graph
 
 
@@ -99,11 +100,11 @@ def test_time_interval_can_have_temporal_frame() -> None:
     ) in graph
 
 
-def test_temporal_measurement_is_gufo_relator() -> None:
+def test_temporal_measurement_is_logic_relator() -> None:
     # — TemporalMeasurement re-parented under Observation/Measurement.
     graph = _graph()
     assert (
         URIRef(GMEOW + "TemporalMeasurement"),
         RDFS.subClassOf,
-        URIRef(GUFO + "Relator"),
+        URIRef(LOGIC + "Relator"),
     ) in graph
