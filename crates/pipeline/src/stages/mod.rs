@@ -27,6 +27,7 @@ pub mod gts_sink;
 pub mod lpg;
 pub mod mappings;
 pub mod matrix;
+pub mod metadata;
 pub mod profiles;
 pub mod reason;
 pub mod references;
@@ -48,6 +49,7 @@ pub fn register_default(registry: &mut StageRegistry) {
     registry.register("profiles", Arc::new(profiles::ProfilesStage));
     registry.register("frame_shapes", Arc::new(frame_shapes::FrameShapesStage));
     registry.register("matrix", Arc::new(matrix::MatrixStage));
+    registry.register("metadata", Arc::new(metadata::MetadataStage));
     registry.register("apache", Arc::new(apache::ApacheStage));
     registry.register("lpg", Arc::new(lpg::LpgStage));
     registry.register("references", Arc::new(references::ReferencesStage));

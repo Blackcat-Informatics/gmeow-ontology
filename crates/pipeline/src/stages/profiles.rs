@@ -34,15 +34,16 @@ const SLICE_DEPENDS_ON: &str = "https://blackcatinformatics.ca/gmeow/sliceDepend
 const TIER_CORE: &str = "https://blackcatinformatics.ca/gmeow/tierCore";
 
 /// One slice's profile-relevant manifest facts.
-struct SliceMeta {
+pub(crate) struct SliceMeta {
     iri: String,
     is_core: bool,
-    profiles: Vec<String>,
-    depends_on: Vec<String>,
+    pub(crate) profiles: Vec<String>,
+    pub(crate) depends_on: Vec<String>,
 }
 
-/// Render every profile document under `root`: `{filename → Turtle}`.
-pub fn render_profiles(root: &Path) -> Result<BTreeMap<String, String>, PipelineError> {
+/// Discover every slice's profile-relevant manifest facts, keyed by slice IRI.
+/// Shared with the `metadata` stage (DCAT profile membership, #330).
+pub(crate) fn discover_slices(root: &Path) -> Result<BTreeMap<String, SliceMeta>, PipelineError> {
     let mut slices: BTreeMap<String, SliceMeta> = BTreeMap::new();
     for module in module_files(root)? {
         let manifest = module.with_file_name("manifest.ttl");
@@ -52,6 +53,12 @@ pub fn render_profiles(root: &Path) -> Result<BTreeMap<String, String>, Pipeline
         let meta = parse_manifest(&manifest)?;
         slices.insert(meta.iri.clone(), meta);
     }
+    Ok(slices)
+}
+
+/// Render every profile document under `root`: `{filename → Turtle}`.
+pub fn render_profiles(root: &Path) -> Result<BTreeMap<String, String>, PipelineError> {
+    let slices = discover_slices(root)?;
 
     let mut out: BTreeMap<String, String> = BTreeMap::new();
 
@@ -92,7 +99,9 @@ pub fn render_profiles(root: &Path) -> Result<BTreeMap<String, String>, Pipeline
 }
 
 /// Profile name → sorted member IRIs (from `gmeow:sliceProfile` declarations).
-fn group_named_profiles(slices: &BTreeMap<String, SliceMeta>) -> BTreeMap<String, Vec<String>> {
+pub(crate) fn group_named_profiles(
+    slices: &BTreeMap<String, SliceMeta>,
+) -> BTreeMap<String, Vec<String>> {
     let mut out: BTreeMap<String, Vec<String>> = BTreeMap::new();
     for s in slices.values() {
         for name in &s.profiles {
@@ -108,7 +117,7 @@ fn group_named_profiles(slices: &BTreeMap<String, SliceMeta>) -> BTreeMap<String
 
 /// Members + every slice reachable through `sliceDependsOn`, sorted. Hard-fails
 /// if a chain escapes the registry or a profile has no members (#330).
-fn dependency_closure(
+pub(crate) fn dependency_closure(
     name: &str,
     members: &[String],
     slices: &BTreeMap<String, SliceMeta>,
