@@ -2020,17 +2020,6 @@ def export(
 
 
 @app.command()
-def docs() -> None:
-    """Generate the native static ontology documentation site (#440)."""
-    from gmeow_tools.config import PROJECT_ROOT
-    from gmeow_tools.ontology_docs import build_ontology_docs
-
-    out = PROJECT_ROOT / "ontology-docs"
-    build_ontology_docs(out)
-    console.print(f"[green]✓[/green] ontology docs → {out}")
-
-
-@app.command()
 def quality(
     foops_url: str = typer.Option(
         "", "--foops-url", help="Published ontology URL to assess with FOOPS!."
@@ -2239,8 +2228,8 @@ def describe(
         raise typer.Exit(code=code)
 
 
-@app.command(name="create-docs")
-def create_docs_cmd(
+@app.command(name="extract-docs")
+def extract_docs(
     gts_file: Path | None = typer.Argument(  # noqa: B008
         None,
         help="GTS file to project (default: bundled gmeow.gts).",
@@ -2258,12 +2247,12 @@ def create_docs_cmd(
     ),
     lang: str | None = _lang_option(),
 ) -> None:
-    """Emit a browsable Markdown docs tree from a GTS snapshot (#439).
+    """Extract the stored Markdown docs tree from a GTS snapshot (#439).
 
-    The tree includes per-term reference pages, slice guides, project doctrine
-    docs, ontology web docs (#440), an alignment summary, and a statement-layer
-    summary. All content is extracted from the bundled offline snapshot or any
-    other ``.gts`` file.
+    The tree (per-term reference pages, slice guides, project doctrine docs,
+    ontology web docs, an alignment summary, and a statement-layer summary) is
+    read verbatim from the ``ontology-docs`` blob baked into the bundle — it is
+    never re-rendered here. Run ``regenerate gts`` to refresh the stored tree.
     """
     from gmeow_tools.config import GTS_SNAPSHOT_FILE
     from gmeow_tools.create_docs import create_docs

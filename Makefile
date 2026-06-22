@@ -152,15 +152,19 @@ acceptance: ## Score the full transpile against external/ snapshots; hard aggreg
 crossref: ## Generate the CrossRef DOI deposit XML.
 	$(GMEOW_DEV) crossref
 
-docs: ontology-docs ## Alias for ontology-docs.
+docs: docs-gen ## Alias for docs-gen.
 
-ontology-docs: ## Generate the unified ontology-docs site into ontology-docs/.
-	$(GMEOW_DEV) docs
+docs-gen: ## Regenerate gmeow.gts docs and extract the browsable tree into ontology-docs/.
+	$(GMEOW_DEV) regenerate gts
+	$(GMEOW_DEV) extract-docs --directory ontology-docs --force generated/dist/gmeow.gts
+
+ontology-docs: ## Extract the unified ontology-docs site from the bundle into ontology-docs/.
+	$(GMEOW_DEV) extract-docs --directory ontology-docs --force generated/dist/gmeow.gts
 
 docs-full: ontology-docs-full ## Alias for ontology-docs-full.
 
-ontology-docs-full: ## Generate ontology-docs including optional Docker stages into dist/ontology-docs.
-	uv run python -c "from gmeow_tools.config import PROJECT_ROOT; from gmeow_tools.ontology_docs import build_ontology_docs; build_ontology_docs(PROJECT_ROOT / 'dist' / 'ontology-docs')"
+ontology-docs-full: ## Extract the unified ontology-docs site from the bundle into dist/ontology-docs.
+	$(GMEOW_DEV) extract-docs --directory dist/ontology-docs --force generated/dist/gmeow.gts
 
 quality: ## Run OOPS! pitfall scan (network, best-effort).
 	$(GMEOW_DEV) quality
