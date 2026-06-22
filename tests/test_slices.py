@@ -146,6 +146,10 @@ class TestDependencyRule:
 
 class TestOwnershipGate:
     def test_repo_is_clean(self) -> None:
-        from gmeow_tools.validate import native_ownership_errors
+        from gmeow_tools.validate import native_ownership_report
 
-        assert native_ownership_errors() == []
+        # The committed slices have no ownership DEFECTS (conflict/mismatch/
+        # unowned) — the gate is green. Dependency observations may surface as
+        # non-gating warnings, so assert on error_count, not total findings.
+        report = native_ownership_report()
+        assert report.error_count == 0

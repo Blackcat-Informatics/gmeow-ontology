@@ -23,12 +23,14 @@ use gmeow_diagnostics::py::PyReport;
 use pyo3::prelude::*;
 use pyo3::types::{PyCapsule, PyDict, PyList};
 
+use crate::constitution;
 use crate::coverage;
 use crate::crossref;
 use crate::dsl;
 use crate::gufo::{self, GufoConfig};
 use crate::language_tags;
 use crate::lint::{self, LintConfig, LintReport};
+use crate::slice_ownership;
 use crate::statement;
 use crate::store;
 use crate::validate_all::{self, ValidateOptions};
@@ -813,6 +815,75 @@ fn check_statement_invariants(
     Ok(Py::new(py, PyReport::from_engine(report))?.into_any())
 }
 
+/// Native RDF-1.2 ↔ OWL round-trip lossless check (#809).
+///
+/// `authored_owl_ttl` is the OWL downcast emitted from the statement DSL;
+/// `normalized_owl_ttl` is the RDF 1.2 lead artifact normalized back to the OWL
+/// normal form (via `gmeow_rdf.normalize_rdf12_to_owl`). Returns a `Report` whose
+/// findings are the diverging triples (empty == lossless); the divergence is
+/// computed natively over oxigraph quad sets, not rdflib `graph_diff`.
+#[pyfunction]
+fn check_statement_lossless(
+    py: Python<'_>,
+    authored_owl_ttl: &str,
+    normalized_owl_ttl: &str,
+) -> PyResult<Py<PyAny>> {
+    let authored = oxigraph::store::Store::new()
+        .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))?;
+    insert_turtle(&authored, authored_owl_ttl)?;
+    let normalized = oxigraph::store::Store::new()
+        .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))?;
+    insert_turtle(&normalized, normalized_owl_ttl)?;
+
+    let mut report = gmeow_diagnostics::Report::new("statement-compile");
+    for finding in statement::check_statement_lossless(&authored, &normalized) {
+        report.add_finding(finding);
+    }
+    Ok(Py::new(py, PyReport::from_engine(report))?.into_any())
+}
+
+/// Native constitution enforcement-coverage check → diagnostics `Report` (#809).
+///
+/// Parses the manifest Turtle (`governance/constitution.ttl`) into a Store and
+/// runs the graph-resident enforcement-coverage check, emitting granular
+/// `constitution.{principle-unenforced,honor-system,orphaned-enforcement,
+/// undeclared-enforcement}` findings. The non-graph constitution checks remain in
+/// Python (they introspect the filesystem / Typer app / generator registry).
+#[pyfunction]
+fn constitution_enforcement_report(py: Python<'_>, manifest_ttl: &str) -> PyResult<Py<PyAny>> {
+    let store = oxigraph::store::Store::new()
+        .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))?;
+    insert_turtle(&store, manifest_ttl)?;
+
+    let mut report = gmeow_diagnostics::Report::new("constitution");
+    for finding in constitution::check_enforcement_coverage(&store) {
+        report.add_finding(finding);
+    }
+    Ok(Py::new(py, PyReport::from_engine(report))?.into_any())
+}
+
+/// Native slice-ownership analysis projected into a diagnostics `Report` (#809).
+///
+/// Discovers the slice catalog under `slices_root`, runs the native `gmeow-slice`
+/// ownership + dependency analysis, and projects the structured `OwnershipReport`
+/// into canonical findings — replacing the old `ownership_errors() -> list[str]`
+/// collapse. Ownership defects (conflict / mismatch / unowned) are error findings
+/// (the validate gate); dependency observations are warnings (previously dropped).
+#[pyfunction]
+fn slice_ownership_report(py: Python<'_>, slices_root: &str) -> PyResult<Py<PyAny>> {
+    let catalog = gmeow_slice::SliceCatalog::discover(std::path::Path::new(slices_root))
+        .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))?;
+    let analysis = gmeow_slice::OwnershipAnalyzer::new(&catalog)
+        .analyze()
+        .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))?;
+
+    let mut report = gmeow_diagnostics::Report::new("slice-ownership");
+    for finding in slice_ownership::ownership_findings(&analysis) {
+        report.add_finding(finding);
+    }
+    Ok(Py::new(py, PyReport::from_engine(report))?.into_any())
+}
+
 /// Return whether `lang` is a GMEOW internal private-use tag (``x-gmeow-*``).
 ///
 /// Matches ``^x-gmeow-[a-z0-9\-]+$`` case-insensitively. This is the Rust
@@ -918,6 +989,9 @@ pub fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(dsl_merge_with_provenance, m)?)?;
     m.add_function(wrap_pyfunction!(validate_all_native, m)?)?;
     m.add_function(wrap_pyfunction!(check_statement_invariants, m)?)?;
+    m.add_function(wrap_pyfunction!(check_statement_lossless, m)?)?;
+    m.add_function(wrap_pyfunction!(slice_ownership_report, m)?)?;
+    m.add_function(wrap_pyfunction!(constitution_enforcement_report, m)?)?;
     m.add_function(wrap_pyfunction!(build_deposit_xml_native, m)?)?;
     m.add_function(wrap_pyfunction!(lint_deposit_native, m)?)?;
     Ok(())

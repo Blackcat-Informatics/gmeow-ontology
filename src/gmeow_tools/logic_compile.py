@@ -25,16 +25,20 @@ CLI face of the #500 logic compiler (Task 4).
 from __future__ import annotations
 
 import logging
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from pathlib import Path
-from typing import cast
+from typing import Any, cast
 
 import gmeow_logic
 
+from gmeow_tools import diagnostics
 from gmeow_tools.config import GENERATED_DIR, PROJECT_ROOT, SLICES_DIR
 from gmeow_tools.generator import Generator, rdf_compare, register
 
 log = logging.getLogger(__name__)
+
+#: Canonical tool/code namespace for this surface's diagnostics (#809).
+TOOL = "logic-compile"
 
 # --------------------------------------------------------------------------- #
 # Canonical input + output paths
@@ -59,6 +63,70 @@ def _rel_str(path: Path) -> str:
         return str(path.relative_to(PROJECT_ROOT))
     except ValueError:
         return str(path)
+
+
+# --------------------------------------------------------------------------- #
+# Canonical diagnostics surface (#809)
+# --------------------------------------------------------------------------- #
+
+
+def to_diagnostics_report(
+    result: Mapping[str, Any],
+    *,
+    tool: str = TOOL,
+) -> diagnostics.DiagnosticsReport:
+    """Forward the Rust compiler's parse diagnostics into canonical findings.
+
+    ``gmeow_logic.compile_logic`` already produces ``result["diagnostics"]`` as
+    structured ``{severity, code, message, subject}`` dicts in Rust (#664). This
+    is a thin Python *surface* (``.goals`` RUST-FIRST/PYTHON-SURFACE): each dict
+    is forwarded verbatim into the Rust ``diagnostics.finding`` model — no
+    message re-flattening, full fidelity. ``subject`` (an IRI, empty when absent)
+    maps to the finding's ``logical`` grouping key; the severity string is passed
+    through to the Rust ``Severity`` parser, which rejects any unknown value.
+    """
+    findings = [
+        diagnostics.finding(
+            severity=diag["severity"],
+            code=f"{tool}.{diag['code']}",
+            message=diag["message"],
+            tool=tool,
+            logical=(diag.get("subject") or None),
+        )
+        for diag in result.get("diagnostics", [])
+    ]
+    return diagnostics.report_from_findings(tool=tool, findings=findings)
+
+
+def compile_diagnostics_report(
+    *,
+    tool: str = TOOL,
+) -> diagnostics.DiagnosticsReport:
+    """Compile the logic: source and project its diagnostics into a report.
+
+    The dev-gate surface entry point (folded into the feedback bundle, #809): it
+    runs the native compile and forwards the parse diagnostics. A hard compile
+    failure (the Rust overclaim / rule-safety gate raising ``ValueError``) is
+    itself surfaced as a single ``logic-compile.failed`` error finding so the
+    failure reaches SARIF/JSON/HTML instead of terminating on stderr.
+    """
+    source_ttl = LOGIC_SOURCE_FILE.read_text(encoding="utf-8")
+    try:
+        result = gmeow_logic.compile_logic(source_ttl)
+    except ValueError as exc:
+        return diagnostics.report_from_findings(
+            tool=tool,
+            findings=[
+                diagnostics.finding(
+                    severity="error",
+                    code=f"{tool}.failed",
+                    message=f"logic: compile failed: {exc}",
+                    tool=tool,
+                    path=_rel_str(LOGIC_SOURCE_FILE),
+                )
+            ],
+        )
+    return to_diagnostics_report(result, tool=tool)
 
 
 # --------------------------------------------------------------------------- #

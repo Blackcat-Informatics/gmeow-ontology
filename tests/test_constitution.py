@@ -19,20 +19,19 @@ from gmeow_tools.constitution import (
     load_manifest,
     to_diagnostics_report,
 )
-from gmeow_tools.validate import ValidationResult
 
 
-def test_to_diagnostics_report_maps_errors_and_warnings() -> None:
-    result = ValidationResult()
-    result.errors.append("principle 7 has no enforcement")
-    result.warnings.append("principle 13 enforcement is honor-system")
+def test_constitution_report_uses_granular_codes() -> None:
+    """The canonical report carries per-check codes, not the legacy roll-up (#809)."""
+    report = to_diagnostics_report()  # rebuilt from the committed constitution
 
-    diag = to_diagnostics_report(result)
-
-    assert diag.error_count == 1
-    assert diag.warning_count == 1
-    codes = {item["code"] for item in diag.findings}
-    assert codes == {"constitution.error", "constitution.warning"}
+    assert report.error_count == 0, "\n".join(report.errors)
+    codes = {item["code"] for item in report.findings}
+    # The legacy bounded roll-up is retired …
+    assert "constitution.error" not in codes
+    assert "constitution.warning" not in codes
+    # … replaced by granular per-check codes (honor-system principles 1/6/15).
+    assert "constitution.honor-system" in codes
 
 
 _PREFIXES = """\
