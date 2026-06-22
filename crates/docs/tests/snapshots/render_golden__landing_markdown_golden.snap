@@ -4,7 +4,7 @@ expression: "to_markdown(&model, &Page::Landing)"
 ---
 # GMEOW Ontology Documentation
 
-Version **1**.
+Version **2**.
 
 This site documents **2142** vocabulary terms across **73** slices.
 
@@ -20,5 +20,10 @@ This site documents **2142** vocabulary terms across **73** slices.
 ## Browse
 
 - [All slices](slices/index.md) — the 73 compilation units.
+- [Concerns](concerns/index.md) — 7 cross-cutting design concerns.
+- [Linkages](linkages/index.md) — 1381 term equivalences to external vocabularies.
+- [Examples](examples/index.md) — 93 worked examples.
+- [External ontologies](external-ontologies/index.md) — 1205 external terms referenced.
+- [Integrity constraints](integrity-constraints/index.md)
 - [Getting started](getting-started/index.md)
 - [About](about/index.md)

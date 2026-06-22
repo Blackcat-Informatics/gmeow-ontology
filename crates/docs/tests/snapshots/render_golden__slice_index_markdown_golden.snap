@@ -6,7 +6,6 @@ expression: head
 
 73 compilation unit(s).
 
-| Slice | Tier | IRI |
-| --- | --- | --- |
-| [GMEOW Accessibility Module](accessibility/index.md) | Extension | `https://blackcatinformatics.ca/gmeow/slices/accessibility` |
-| [GMEOW Accounts Module](accounts/index.md) | Core | `https://blackcatinformatics.ca/gmeow/slices/accounts` |
+## Dependency graph
+
+![Slice dependency graph](../diagrams/slices.svg)

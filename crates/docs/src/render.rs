@@ -25,7 +25,8 @@ use std::collections::BTreeMap;
 use minijinja::{context, Environment};
 use pulldown_cmark::{html as cmark_html, Options, Parser};
 
-use crate::model::{DocSlice, DocTerm, DocTermCategory, DocsModel};
+use crate::model::{DocConcern, DocSlice, DocTerm, DocTermCategory, DocsModel};
+use crate::svg;
 
 /// The GMEOW vocabulary namespace (mirrors `model.rs`).
 const GMEOW_NS: &str = "https://blackcatinformatics.ca/gmeow/";
@@ -61,6 +62,19 @@ pub enum Page {
     SliceIndex,
     /// A single slice page (`slices/<slug>/index`).
     Slice(String),
+    /// The linkages (term equivalences) index (`linkages/index`).
+    LinkageIndex,
+    /// The worked-examples index (`examples/index`).
+    ExampleIndex,
+    /// The concerns index (`concerns/index`).
+    ConcernIndex,
+    /// A single concern page (`concerns/<slug>/index`).
+    Concern(String),
+    /// The external-ontologies index (`external-ontologies/index`).
+    ExternalIndex,
+    /// The integrity-constraints (verify queries) index
+    /// (`integrity-constraints/index`).
+    IntegrityIndex,
 }
 
 impl Page {
@@ -76,6 +90,12 @@ impl Page {
             Page::Term(slug) => format!("terms/{slug}"),
             Page::SliceIndex => "slices".to_string(),
             Page::Slice(slug) => format!("slices/{slug}"),
+            Page::LinkageIndex => "linkages".to_string(),
+            Page::ExampleIndex => "examples".to_string(),
+            Page::ConcernIndex => "concerns".to_string(),
+            Page::Concern(slug) => format!("concerns/{slug}"),
+            Page::ExternalIndex => "external-ontologies".to_string(),
+            Page::IntegrityIndex => "integrity-constraints".to_string(),
         }
     }
 
@@ -110,6 +130,17 @@ impl Page {
                 .find(|s| slice_slug(s) == *slug)
                 .map(slice_display)
                 .unwrap_or_else(|| slug.clone()),
+            Page::LinkageIndex => "Linkages".to_string(),
+            Page::ExampleIndex => "Examples".to_string(),
+            Page::ConcernIndex => "Concerns".to_string(),
+            Page::Concern(slug) => model
+                .concerns
+                .iter()
+                .find(|c| concern_slug(c) == *slug)
+                .map(concern_display)
+                .unwrap_or_else(|| slug.clone()),
+            Page::ExternalIndex => "External ontologies".to_string(),
+            Page::IntegrityIndex => "Integrity constraints".to_string(),
         }
     }
 }
@@ -137,6 +168,40 @@ pub fn render_site(model: &DocsModel) -> Site {
     }
     files.insert(CSS_PATH.to_string(), CSS.as_bytes().to_vec());
 
+    // Deterministic SVG diagrams (pure functions of the model).
+    files.insert(
+        "diagrams/slices.svg".to_string(),
+        svg::slice_dependency_svg(model).into_bytes(),
+    );
+    files.insert(
+        "diagrams/concerns.svg".to_string(),
+        svg::concern_overview_svg(model).into_bytes(),
+    );
+    for slice in &model.slices {
+        files.insert(
+            format!("diagrams/slices/{}.svg", slice_slug(slice)),
+            svg::slice_local_svg(model, &slice.iri).into_bytes(),
+        );
+    }
+
+    // Static indexes (deterministic, pure functions of the model).
+    files.insert(
+        "search-index.json".to_string(),
+        search_index_json(model).into_bytes(),
+    );
+    files.insert(
+        "llms-docs.txt".to_string(),
+        llms_docs_txt(model).into_bytes(),
+    );
+
+    // Casefolded slash-namespace aliases (tiny redirect pages).
+    for (alias_dir, target_dir) in term_aliases(model) {
+        files.insert(
+            join(&alias_dir, "index.html"),
+            alias_redirect_html(&alias_dir, &target_dir).into_bytes(),
+        );
+    }
+
     Site { files }
 }
 
@@ -148,6 +213,11 @@ fn pages(model: &DocsModel) -> Vec<Page> {
         Page::About,
         Page::Changelog,
         Page::SliceIndex,
+        Page::LinkageIndex,
+        Page::ExampleIndex,
+        Page::ConcernIndex,
+        Page::ExternalIndex,
+        Page::IntegrityIndex,
     ];
     // Category indexes only for categories that have at least one term, in a
     // fixed order.
@@ -170,6 +240,9 @@ fn pages(model: &DocsModel) -> Vec<Page> {
     for slice in &model.slices {
         pages.push(Page::Slice(slice_slug(slice)));
     }
+    for concern in &model.concerns {
+        pages.push(Page::Concern(concern_slug(concern)));
+    }
     pages
 }
 
@@ -186,6 +259,12 @@ pub fn to_markdown(model: &DocsModel, page: &Page) -> String {
         Page::Term(slug) => md_term(model, slug),
         Page::SliceIndex => md_slice_index(model),
         Page::Slice(slug) => md_slice(model, slug),
+        Page::LinkageIndex => md_linkage_index(model),
+        Page::ExampleIndex => md_example_index(model),
+        Page::ConcernIndex => md_concern_index(model),
+        Page::Concern(slug) => md_concern(model, slug),
+        Page::ExternalIndex => md_external_index(model),
+        Page::IntegrityIndex => md_integrity_index(model),
     }
 }
 
@@ -243,6 +322,45 @@ fn md_landing(model: &DocsModel) -> String {
             "- [All slices]({}index.md) — the {} compilation units.",
             rel(&from, &Page::SliceIndex.dir()),
             model.slices.len()
+        ),
+    );
+    push_line(
+        &mut out,
+        &format!(
+            "- [Concerns]({}index.md) — {} cross-cutting design concerns.",
+            rel(&from, &Page::ConcernIndex.dir()),
+            model.concerns.len()
+        ),
+    );
+    push_line(
+        &mut out,
+        &format!(
+            "- [Linkages]({}index.md) — {} term equivalences to external vocabularies.",
+            rel(&from, &Page::LinkageIndex.dir()),
+            model.linkages.len()
+        ),
+    );
+    push_line(
+        &mut out,
+        &format!(
+            "- [Examples]({}index.md) — {} worked examples.",
+            rel(&from, &Page::ExampleIndex.dir()),
+            model.examples.len()
+        ),
+    );
+    push_line(
+        &mut out,
+        &format!(
+            "- [External ontologies]({}index.md) — {} external terms referenced.",
+            rel(&from, &Page::ExternalIndex.dir()),
+            model.external_terms.len()
+        ),
+    );
+    push_line(
+        &mut out,
+        &format!(
+            "- [Integrity constraints]({}index.md)",
+            rel(&from, &Page::IntegrityIndex.dir())
         ),
     );
     push_line(
@@ -473,6 +591,16 @@ fn md_slice_index(model: &DocsModel) -> String {
         &format!("{} compilation unit(s).", model.slices.len()),
     );
 
+    heading(&mut out, 2, "Dependency graph");
+    push_line(
+        &mut out,
+        &format!(
+            "![Slice dependency graph]({}diagrams/slices.svg)",
+            root_href(&from)
+        ),
+    );
+    blank(&mut out);
+
     push_line(&mut out, "| Slice | Tier | IRI |");
     push_line(&mut out, "| --- | --- | --- |");
     // model.slices is already sorted by IRI.
@@ -586,6 +714,430 @@ fn md_slice(model: &DocsModel, slug: &str) -> String {
         blank(&mut out);
     }
 
+    // Linkages whose subject is owned by this slice.
+    let mut slice_links: Vec<&crate::model::DocLinkage> = model
+        .linkages
+        .iter()
+        .filter(|l| l.owner_slice == slice.iri)
+        .collect();
+    slice_links.sort_by(|a, b| {
+        a.subject_curie
+            .cmp(&b.subject_curie)
+            .then_with(|| a.object.cmp(&b.object))
+    });
+    if !slice_links.is_empty() {
+        heading(&mut out, 2, &format!("Linkages ({})", slice_links.len()));
+        push_line(
+            &mut out,
+            "| Subject | Predicate | External object | Conf. |",
+        );
+        push_line(&mut out, "| --- | --- | --- | --- |");
+        for link in slice_links {
+            push_line(
+                &mut out,
+                &format!(
+                    "| {} | `{}` | [{}]({}) | {} |",
+                    subject_link(model, &from, link),
+                    code_escape(&link.predicate),
+                    md_escape(&link.object),
+                    md_escape(&link.object),
+                    confidence_cell(link.confidence),
+                ),
+            );
+        }
+        blank(&mut out);
+    }
+
+    // Worked examples owned by this slice — rendered IN FULL.
+    let mut slice_examples: Vec<&crate::model::DocExample> = model
+        .examples
+        .iter()
+        .filter(|e| e.slice == slice.iri)
+        .collect();
+    slice_examples.sort_by(|a, b| a.logical_path.cmp(&b.logical_path));
+    if !slice_examples.is_empty() {
+        heading(&mut out, 2, &format!("Examples ({})", slice_examples.len()));
+        for example in slice_examples {
+            heading(&mut out, 3, &example.title);
+            line(
+                &mut out,
+                &format!("`{}`", code_escape(&example.logical_path)),
+            );
+            fenced(&mut out, "turtle", &example.text);
+        }
+    }
+
+    out
+}
+
+// ── Linkage / example / concern / external / integrity pages ──────────────────
+
+fn md_linkage_index(model: &DocsModel) -> String {
+    let from = Page::LinkageIndex.dir();
+    let mut out = String::new();
+    heading(&mut out, 1, "Linkages");
+    line(
+        &mut out,
+        &format!(
+            "**{}** term equivalences across **{}** mapping set(s), cross-walking GMEOW terms to \
+             external vocabularies.",
+            model.linkages.len(),
+            model.mapping_sets.len()
+        ),
+    );
+
+    for set in &model.mapping_sets {
+        heading(&mut out, 2, &set_display(set));
+        push_line(&mut out, "| Field | Value |");
+        push_line(&mut out, "| --- | --- |");
+        push_line(
+            &mut out,
+            &format!("| CURIE | `{}` |", code_escape(&set.curie)),
+        );
+        if let Some(id) = &set.set_id {
+            push_line(&mut out, &format!("| Set ID | `{}` |", code_escape(id)));
+        }
+        if let Some(file) = &set.sssom_file {
+            push_line(
+                &mut out,
+                &format!("| SSSOM file | `{}` |", code_escape(file)),
+            );
+        }
+        if let Some(license) = &set.license {
+            push_line(
+                &mut out,
+                &format!(
+                    "| License | [{}]({}) |",
+                    md_escape(license),
+                    md_escape(license)
+                ),
+            );
+        }
+        push_line(
+            &mut out,
+            &format!(
+                "| Owner slice | {} |",
+                slice_link(model, &from, &set.owner_slice)
+            ),
+        );
+        push_line(
+            &mut out,
+            &format!("| Equivalences | {} |", set.equivalence_count),
+        );
+        blank(&mut out);
+
+        if let Some(comment) = &set.comment {
+            line(&mut out, &md_escape(&one_line(comment)));
+        }
+
+        let mut links: Vec<&crate::model::DocLinkage> = model
+            .linkages
+            .iter()
+            .filter(|l| l.mapping_set.as_deref() == Some(set.iri.as_str()))
+            .collect();
+        links.sort_by(|a, b| {
+            a.subject_curie
+                .cmp(&b.subject_curie)
+                .then_with(|| a.object.cmp(&b.object))
+        });
+        if !links.is_empty() {
+            push_line(
+                &mut out,
+                "| Subject | Predicate | External object | Justification | Conf. |",
+            );
+            push_line(&mut out, "| --- | --- | --- | --- | --- |");
+            for link in links {
+                push_line(
+                    &mut out,
+                    &format!(
+                        "| {} | `{}` | [{}]({}) | {} | {} |",
+                        subject_link(model, &from, link),
+                        code_escape(&link.predicate),
+                        md_escape(&link.object),
+                        md_escape(&link.object),
+                        link.justification
+                            .as_deref()
+                            .map(|j| format!("`{}`", code_escape(j)))
+                            .unwrap_or_default(),
+                        confidence_cell(link.confidence),
+                    ),
+                );
+            }
+            blank(&mut out);
+        }
+    }
+
+    // Any linkages not attached to a known mapping set (defensive completeness).
+    let mut orphans: Vec<&crate::model::DocLinkage> = model
+        .linkages
+        .iter()
+        .filter(|l| {
+            l.mapping_set
+                .as_deref()
+                .map(|m| !model.mapping_sets.iter().any(|s| s.iri == m))
+                .unwrap_or(true)
+        })
+        .collect();
+    orphans.sort_by(|a, b| {
+        a.subject_curie
+            .cmp(&b.subject_curie)
+            .then_with(|| a.object.cmp(&b.object))
+    });
+    if !orphans.is_empty() {
+        heading(&mut out, 2, "Other equivalences");
+        push_line(
+            &mut out,
+            "| Subject | Predicate | External object | Conf. |",
+        );
+        push_line(&mut out, "| --- | --- | --- | --- |");
+        for link in orphans {
+            push_line(
+                &mut out,
+                &format!(
+                    "| {} | `{}` | [{}]({}) | {} |",
+                    subject_link(model, &from, link),
+                    code_escape(&link.predicate),
+                    md_escape(&link.object),
+                    md_escape(&link.object),
+                    confidence_cell(link.confidence),
+                ),
+            );
+        }
+        blank(&mut out);
+    }
+
+    out
+}
+
+fn md_example_index(model: &DocsModel) -> String {
+    let from = Page::ExampleIndex.dir();
+    let mut out = String::new();
+    heading(&mut out, 1, "Examples");
+    line(
+        &mut out,
+        &format!(
+            "**{}** worked example(s). Each example's Turtle source is shown in full on its \
+             owning slice page.",
+            model.examples.len()
+        ),
+    );
+
+    // Group examples by slice (model.examples is slice/path-sorted).
+    let mut by_slice: BTreeMap<String, Vec<&crate::model::DocExample>> = BTreeMap::new();
+    for example in &model.examples {
+        by_slice
+            .entry(example.slice.clone())
+            .or_default()
+            .push(example);
+    }
+    for (slice_iri, mut examples) in by_slice {
+        examples.sort_by(|a, b| a.logical_path.cmp(&b.logical_path));
+        heading(&mut out, 2, &slice_name(model, &slice_iri));
+        let slice_href = model
+            .slices
+            .iter()
+            .find(|s| s.iri == slice_iri)
+            .map(|s| rel(&from, &Page::Slice(slice_slug(s)).dir()));
+        for example in examples {
+            match &slice_href {
+                Some(href) => push_line(
+                    &mut out,
+                    &format!(
+                        "- [{}]({}index.md) — `{}`",
+                        md_escape(&example.title),
+                        href,
+                        code_escape(&example.logical_path)
+                    ),
+                ),
+                None => push_line(
+                    &mut out,
+                    &format!(
+                        "- {} — `{}`",
+                        md_escape(&example.title),
+                        code_escape(&example.logical_path)
+                    ),
+                ),
+            }
+        }
+        blank(&mut out);
+    }
+    out
+}
+
+fn md_concern_index(model: &DocsModel) -> String {
+    let from = Page::ConcernIndex.dir();
+    let mut out = String::new();
+    heading(&mut out, 1, "Concerns");
+    line(
+        &mut out,
+        &format!(
+            "**{}** cross-cutting documentation concern(s). Concerns group vocabulary terms by \
+             the design question they answer, across slice boundaries.",
+            model.concerns.len()
+        ),
+    );
+
+    heading(&mut out, 2, "By term count");
+    push_line(
+        &mut out,
+        &format!(
+            "![Concerns by term count]({}diagrams/concerns.svg)",
+            root_href(&from)
+        ),
+    );
+    blank(&mut out);
+
+    push_line(&mut out, "| Concern | Terms | Slices |");
+    push_line(&mut out, "| --- | --- | --- |");
+    for concern in &model.concerns {
+        let href = rel(&from, &Page::Concern(concern_slug(concern)).dir());
+        push_line(
+            &mut out,
+            &format!(
+                "| [{}]({}index.md) | {} | {} |",
+                md_escape(&concern_display(concern)),
+                href,
+                concern.terms.len(),
+                concern.slices.len(),
+            ),
+        );
+    }
+    blank(&mut out);
+    out
+}
+
+fn md_concern(model: &DocsModel, slug: &str) -> String {
+    let Some(concern) = model.concerns.iter().find(|c| concern_slug(c) == slug) else {
+        let mut out = String::new();
+        heading(&mut out, 1, slug);
+        line(&mut out, "Concern not found.");
+        return out;
+    };
+    let from = Page::Concern(slug.to_string()).dir();
+
+    let mut out = String::new();
+    heading(&mut out, 1, &concern_display(concern));
+    line(&mut out, &format!("`{}`", code_escape(&concern.curie)));
+
+    if let Some(def) = &concern.definition {
+        heading(&mut out, 2, "Definition");
+        line(&mut out, &md_escape(def));
+    }
+
+    if !concern.terms.is_empty() {
+        heading(&mut out, 2, &format!("Terms ({})", concern.terms.len()));
+        for curie in &concern.terms {
+            push_line(&mut out, &format!("- {}", curie_link(model, &from, curie)));
+        }
+        blank(&mut out);
+    }
+
+    if !concern.slices.is_empty() {
+        heading(&mut out, 2, &format!("Slices ({})", concern.slices.len()));
+        for slice_iri in &concern.slices {
+            push_line(
+                &mut out,
+                &format!("- {}", slice_link(model, &from, slice_iri)),
+            );
+        }
+        blank(&mut out);
+    }
+    out
+}
+
+fn md_external_index(model: &DocsModel) -> String {
+    let from = Page::ExternalIndex.dir();
+    let mut out = String::new();
+    heading(&mut out, 1, "External ontologies");
+    line(
+        &mut out,
+        &format!(
+            "**{}** external term(s) referenced across **{}** namespace(s). These are the \
+             non-GMEOW IRIs GMEOW terms link to (via mappings) or inherit from / constrain (via \
+             domain, range, super-class edges).",
+            model.external_terms.len(),
+            namespace_count(model),
+        ),
+    );
+
+    // Group by namespace (deterministic: external_terms is IRI-sorted).
+    let mut by_ns: BTreeMap<String, Vec<&crate::model::DocExternalTerm>> = BTreeMap::new();
+    for term in &model.external_terms {
+        by_ns.entry(term.namespace.clone()).or_default().push(term);
+    }
+    for (namespace, terms) in by_ns {
+        heading(&mut out, 2, &namespace);
+        push_line(&mut out, "| External term | Referenced by | Via |");
+        push_line(&mut out, "| --- | --- | --- |");
+        for term in terms {
+            let referencers = term
+                .referenced_by
+                .iter()
+                .map(|c| curie_link(model, &from, c))
+                .collect::<Vec<_>>()
+                .join(", ");
+            push_line(
+                &mut out,
+                &format!(
+                    "| [{}]({}) | {} | {} |",
+                    md_escape(&term.iri),
+                    md_escape(&term.iri),
+                    referencers,
+                    md_escape(&term.via_predicate.join(", ")),
+                ),
+            );
+        }
+        blank(&mut out);
+    }
+    out
+}
+
+fn md_integrity_index(model: &DocsModel) -> String {
+    let from = Page::IntegrityIndex.dir();
+    let mut out = String::new();
+    heading(&mut out, 1, "Integrity constraints");
+    line(
+        &mut out,
+        "Per-slice SPARQL verification queries. Each query asserts an integrity constraint the \
+         slice's data must satisfy; a non-empty result is a violation.",
+    );
+
+    let mut any = false;
+    for slice in &model.slices {
+        let mut queries: Vec<&crate::model::DocArtifact> = slice
+            .artifacts
+            .iter()
+            .filter(|a| a.role == gmeow_slice::ArtifactRole::VerifyQuery)
+            .collect();
+        queries.sort_by(|a, b| a.logical_path.cmp(&b.logical_path));
+        if queries.is_empty() {
+            continue;
+        }
+        any = true;
+        heading(&mut out, 2, &slice_display(slice));
+        let href = rel(&from, &Page::Slice(slice_slug(slice)).dir());
+        line(&mut out, &format!("[Slice page]({href}index.md)"));
+        for query in queries {
+            heading(&mut out, 3, &query.logical_path);
+            // The query text is not carried on DocArtifact (by-reference); note the
+            // path and digest so the constraint is locatable in the slice tree.
+            push_line(
+                &mut out,
+                &format!(
+                    "- Path: `{}`  ·  digest `{}`",
+                    code_escape(&query.logical_path),
+                    code_escape(&short_digest(&query.raw_digest)),
+                ),
+            );
+            blank(&mut out);
+        }
+    }
+    if !any {
+        line(
+            &mut out,
+            "No verification queries are declared in any slice.",
+        );
+    }
     out
 }
 
@@ -611,6 +1163,10 @@ pub fn to_html(model: &DocsModel, page: &Page) -> String {
             &Page::Category(DocTermCategory::Property).dir(),
             "Properties",
         ),
+        nav_item(&root, &Page::ConcernIndex.dir(), "Concerns"),
+        nav_item(&root, &Page::LinkageIndex.dir(), "Linkages"),
+        nav_item(&root, &Page::ExampleIndex.dir(), "Examples"),
+        nav_item(&root, &Page::ExternalIndex.dir(), "External"),
         nav_item(&root, &Page::GettingStarted.dir(), "Getting started"),
         nav_item(&root, &Page::About.dir(), "About"),
     ];
@@ -683,6 +1239,11 @@ pub fn slice_slug(slice: &DocSlice) -> String {
     slugify(local_name(&slice.iri))
 }
 
+/// A filesystem-safe slug from a concern IRI's last path segment.
+pub fn concern_slug(concern: &DocConcern) -> String {
+    slugify(local_name(&concern.iri))
+}
+
 /// The local name of an IRI: the tail after the last `/` or `#`.
 fn local_name(iri: &str) -> &str {
     let cut = iri.rfind(['/', '#']).map(|i| i + 1).unwrap_or(0);
@@ -739,6 +1300,26 @@ fn slice_link(model: &DocsModel, from: &str, iri: &str) -> String {
         return format!("[{}]({}index.md)", md_escape(&slice_display(slice)), href);
     }
     format!("`{}`", code_escape(iri))
+}
+
+/// A link from a term CURIE to its term page, or a plain `code` CURIE when the
+/// term is not documented.
+fn curie_link(model: &DocsModel, from: &str, curie: &str) -> String {
+    if let Some(term) = model.terms.iter().find(|t| t.curie == curie) {
+        let href = rel(from, &Page::Term(term_slug(term)).dir());
+        return format!("[`{}`]({}index.md)", code_escape(curie), href);
+    }
+    format!("`{}`", code_escape(curie))
+}
+
+/// A link from a linkage's subject (its `subject_curie`/`subject` IRI) to the
+/// term page, falling back to the CURIE in a code span.
+fn subject_link(model: &DocsModel, from: &str, link: &crate::model::DocLinkage) -> String {
+    if let Some(term) = model.terms.iter().find(|t| t.iri == link.subject) {
+        let href = rel(from, &Page::Term(term_slug(term)).dir());
+        return format!("[`{}`]({}index.md)", code_escape(&link.subject_curie), href);
+    }
+    format!("`{}`", code_escape(&link.subject_curie))
 }
 
 // ── Path helpers ──────────────────────────────────────────────────────────────
@@ -799,6 +1380,46 @@ fn slice_display(slice: &DocSlice) -> String {
         .clone()
         .or_else(|| slice.label.clone())
         .unwrap_or_else(|| local_name(&slice.iri).to_string())
+}
+
+/// The display name for a concern: its label, else its IRI local name.
+fn concern_display(concern: &DocConcern) -> String {
+    concern
+        .label
+        .clone()
+        .unwrap_or_else(|| local_name(&concern.iri).to_string())
+}
+
+/// The display name for a mapping set: its set-id tail / label, else local name.
+fn set_display(set: &crate::model::DocMappingSet) -> String {
+    local_name(&set.iri).to_string()
+}
+
+/// The display name for a slice IRI (looked up in the model), else its local name.
+fn slice_name(model: &DocsModel, iri: &str) -> String {
+    model
+        .slices
+        .iter()
+        .find(|s| s.iri == iri)
+        .map(slice_display)
+        .unwrap_or_else(|| local_name(iri).to_string())
+}
+
+/// A table cell for an optional confidence value (one decimal, or em-dash).
+fn confidence_cell(confidence: Option<f64>) -> String {
+    match confidence {
+        Some(c) => format!("{c:.2}"),
+        None => "—".to_string(),
+    }
+}
+
+/// The number of distinct external namespaces in the model.
+fn namespace_count(model: &DocsModel) -> usize {
+    let mut set: std::collections::BTreeSet<&str> = std::collections::BTreeSet::new();
+    for term in &model.external_terms {
+        set.insert(term.namespace.as_str());
+    }
+    set.len()
 }
 
 /// The slice tier as a stable name.
@@ -910,6 +1531,33 @@ fn blank(out: &mut String) {
     }
 }
 
+/// Push a fenced code block. The fence length adapts so a body that itself
+/// contains backtick runs cannot break out (CommonMark info-string rule). The
+/// body is emitted verbatim — inside a fenced block no escaping is needed.
+fn fenced(out: &mut String, lang: &str, body: &str) {
+    // Find the longest run of backticks in the body and use one more.
+    let mut longest = 0usize;
+    let mut current = 0usize;
+    for ch in body.chars() {
+        if ch == '`' {
+            current += 1;
+            longest = longest.max(current);
+        } else {
+            current = 0;
+        }
+    }
+    let fence = "`".repeat(longest.max(2) + 1);
+    out.push_str(&fence);
+    out.push_str(lang);
+    out.push('\n');
+    out.push_str(body);
+    if !body.ends_with('\n') {
+        out.push('\n');
+    }
+    out.push_str(&fence);
+    out.push_str("\n\n");
+}
+
 /// Collapse a definition to a single line: newlines/tabs → spaces, runs
 /// collapsed. Pipes are NOT touched here ([`md_escape`] handles table-cell
 /// escaping at emission).
@@ -967,6 +1615,156 @@ fn md_escape(text: &str) -> String {
         }
     }
     out
+}
+
+// ── Static indexes (search-index.json, llms-docs.txt) ──────────────────────────
+
+/// A single search record. Serialized as a deterministic JSON array element.
+#[derive(serde::Serialize)]
+struct SearchRecord {
+    /// The record kind (`term`, `slice`, `concern`, `mappingSet`).
+    kind: &'static str,
+    /// The CURIE for terms / mapping sets, else the IRI.
+    id: String,
+    /// The display label.
+    label: String,
+    /// The definition / comment, if any.
+    definition: Option<String>,
+    /// The site-relative URL of the record's HTML page.
+    url: String,
+}
+
+/// Build the deterministic `search-index.json`: one record per term, slice,
+/// concern, and mapping set, sorted by URL. A pure function of the model.
+pub fn search_index_json(model: &DocsModel) -> String {
+    let mut records: Vec<SearchRecord> = Vec::new();
+
+    for term in &model.terms {
+        records.push(SearchRecord {
+            kind: "term",
+            id: term.curie.clone(),
+            label: term.label.clone().unwrap_or_else(|| term.curie.clone()),
+            definition: term.definition.clone(),
+            url: format!("{}/index.html", Page::Term(term_slug(term)).dir()),
+        });
+    }
+    for slice in &model.slices {
+        records.push(SearchRecord {
+            kind: "slice",
+            id: slice.iri.clone(),
+            label: slice_display(slice),
+            definition: None,
+            url: format!("{}/index.html", Page::Slice(slice_slug(slice)).dir()),
+        });
+    }
+    for concern in &model.concerns {
+        records.push(SearchRecord {
+            kind: "concern",
+            id: concern.curie.clone(),
+            label: concern_display(concern),
+            definition: concern.definition.clone(),
+            url: format!("{}/index.html", Page::Concern(concern_slug(concern)).dir()),
+        });
+    }
+    for set in &model.mapping_sets {
+        records.push(SearchRecord {
+            kind: "mappingSet",
+            id: set.curie.clone(),
+            label: set_display(set),
+            definition: set.comment.clone(),
+            url: format!("{}/index.html", Page::LinkageIndex.dir()),
+        });
+    }
+
+    records.sort_by(|a, b| {
+        a.url
+            .cmp(&b.url)
+            .then_with(|| a.kind.cmp(b.kind))
+            .then_with(|| a.id.cmp(&b.id))
+    });
+    // serde_json with pretty printing is deterministic for a Vec.
+    serde_json::to_string_pretty(&records).expect("search records serialize")
+}
+
+/// Build the deterministic `llms-docs.txt`: an LLM-friendly plaintext dump —
+/// a header (title + version + counts) then one sorted line per term:
+/// `curie — label: definition (category, owner slice)`.
+pub fn llms_docs_txt(model: &DocsModel) -> String {
+    let mut out = String::new();
+    out.push_str(&format!("# {}\n", model.title));
+    out.push_str(&format!("# version: {}\n", model.version));
+    out.push_str(&format!(
+        "# terms: {}  slices: {}  concerns: {}  linkages: {}\n",
+        model.terms.len(),
+        model.slices.len(),
+        model.concerns.len(),
+        model.linkages.len(),
+    ));
+    out.push('\n');
+
+    // Terms are already IRI-sorted; emit by (curie, iri) for a stable, readable
+    // ordering keyed on the human identifier.
+    let mut terms: Vec<&DocTerm> = model.terms.iter().collect();
+    terms.sort_by(|a, b| a.curie.cmp(&b.curie).then_with(|| a.iri.cmp(&b.iri)));
+    for term in terms {
+        let label = term.label.as_deref().unwrap_or("");
+        let def = term.definition.as_deref().map(one_line).unwrap_or_default();
+        let slice = local_name(&term.owner_slice);
+        out.push_str(&format!(
+            "{} — {}: {} ({}, {})\n",
+            term.curie,
+            label,
+            def,
+            category_singular(term.category),
+            slice,
+        ));
+    }
+    out
+}
+
+// ── Casefolded slash-namespace aliases ─────────────────────────────────────────
+
+/// For every term whose canonical slug differs from a casefolded form of its
+/// local name, return `(alias_dir, target_dir)` pairs for tiny redirect pages.
+///
+/// Deterministic: derived purely from sorted terms; aliases that collide with a
+/// canonical slug or with each other are skipped (first-wins, sorted) so two
+/// terms never fight over the same alias directory.
+fn term_aliases(model: &DocsModel) -> Vec<(String, String)> {
+    // All canonical slugs, so an alias never shadows a real term page.
+    let canonical: std::collections::BTreeSet<String> = model.terms.iter().map(term_slug).collect();
+
+    let mut seen_aliases: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
+    let mut out: Vec<(String, String)> = Vec::new();
+
+    // model.terms is IRI-sorted → first-wins is deterministic.
+    for term in &model.terms {
+        let canonical_slug = term_slug(term);
+        let alias = local_name(&term.iri).to_ascii_lowercase();
+        if alias.is_empty() || alias == canonical_slug {
+            continue;
+        }
+        if canonical.contains(&alias) || !seen_aliases.insert(alias.clone()) {
+            continue;
+        }
+        out.push((format!("terms/{alias}"), format!("terms/{canonical_slug}")));
+    }
+    out.sort();
+    out
+}
+
+/// A tiny redirect HTML page (meta refresh + canonical link + JS fallback) from
+/// an alias directory to the canonical term directory.
+fn alias_redirect_html(alias_dir: &str, target_dir: &str) -> String {
+    let href = rel(alias_dir, target_dir);
+    let target = format!("{href}index.html");
+    format!(
+        "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"utf-8\" />\n\
+         <meta http-equiv=\"refresh\" content=\"0; url={target}\" />\n\
+         <link rel=\"canonical\" href=\"{target}\" />\n<title>Redirecting…</title>\n\
+         </head>\n<body>\n<p>Redirecting to <a href=\"{target}\">{target}</a>.</p>\n\
+         </body>\n</html>\n"
+    )
 }
 
 #[cfg(test)]

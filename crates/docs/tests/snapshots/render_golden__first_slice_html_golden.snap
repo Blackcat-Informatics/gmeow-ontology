@@ -18,6 +18,10 @@ expression: "to_html(&model, &Page::Slice(slug))"
       <a href="../../slices/index.html">Slices</a>
       <a href="../../classes/index.html">Classes</a>
       <a href="../../properties/index.html">Properties</a>
+      <a href="../../concerns/index.html">Concerns</a>
+      <a href="../../linkages/index.html">Linkages</a>
+      <a href="../../examples/index.html">Examples</a>
+      <a href="../../external-ontologies/index.html">External</a>
       <a href="../../getting-started/index.html">Getting started</a>
       <a href="../../about/index.html">About</a>
     </nav>
@@ -64,11 +68,63 @@ expression: "to_html(&model, &Page::Slice(slug))"
 <li><a href="../../terms/hasaccessibilityneed/index.html"><code>gmeow:hasAccessibilityNeed</code></a> — Property</li>
 <li><a href="../../terms/hasbarrier/index.html"><code>gmeow:hasBarrier</code></a> — Property</li>
 </ul>
+<h2>Linkages (14)</h2>
+<table><thead><tr><th>Subject</th><th>Predicate</th><th>External object</th><th>Conf.</th></tr></thead><tbody>
+<tr><td><a href="../../terms/accessibilityassertion/index.html"><code>gmeow:AccessibilityAssertion</code></a></td><td><code>http://www.w3.org/2004/02/skos/core#closeMatch</code></td><td><a href="http://www.w3.org/ns/sosa/Observation">http://www.w3.org/ns/sosa/Observation</a></td><td>0.70</td></tr>
+<tr><td><code>gmeow:facetAuditory</code></td><td><code>http://www.w3.org/2004/02/skos/core#closeMatch</code></td><td><a href="http://hl7.org/fhir/sid/icf#b2">http://hl7.org/fhir/sid/icf#b2</a></td><td>0.80</td></tr>
+<tr><td><code>gmeow:facetAuditory</code></td><td><code>http://www.w3.org/2004/02/skos/core#closeMatch</code></td><td><a href="http://hl7.org/fhir/sid/icf#e125">http://hl7.org/fhir/sid/icf#e125</a></td><td>0.80</td></tr>
+<tr><td><code>gmeow:facetClearance</code></td><td><code>http://www.w3.org/2004/02/skos/core#closeMatch</code></td><td><a href="http://hl7.org/fhir/sid/icf#d4">http://hl7.org/fhir/sid/icf#d4</a></td><td>0.70</td></tr>
+<tr><td><code>gmeow:facetCognitive</code></td><td><code>http://www.w3.org/2004/02/skos/core#closeMatch</code></td><td><a href="http://hl7.org/fhir/sid/icf#b1">http://hl7.org/fhir/sid/icf#b1</a></td><td>0.80</td></tr>
+<tr><td><code>gmeow:facetCognitive</code></td><td><code>http://www.w3.org/2004/02/skos/core#closeMatch</code></td><td><a href="http://hl7.org/fhir/sid/icf#e140">http://hl7.org/fhir/sid/icf#e140</a></td><td>0.70</td></tr>
+<tr><td><code>gmeow:facetLifeSupport</code></td><td><code>http://www.w3.org/2004/02/skos/core#closeMatch</code></td><td><a href="http://hl7.org/fhir/sid/icf#e5">http://hl7.org/fhir/sid/icf#e5</a></td><td>0.70</td></tr>
+<tr><td><code>gmeow:facetStepFree</code></td><td><code>http://www.w3.org/2004/02/skos/core#closeMatch</code></td><td><a href="http://hl7.org/fhir/sid/icf#d4">http://hl7.org/fhir/sid/icf#d4</a></td><td>0.80</td></tr>
+<tr><td><code>gmeow:facetVisual</code></td><td><code>http://www.w3.org/2004/02/skos/core#closeMatch</code></td><td><a href="http://hl7.org/fhir/sid/icf#b2">http://hl7.org/fhir/sid/icf#b2</a></td><td>0.80</td></tr>
+<tr><td><code>gmeow:facetVisual</code></td><td><code>http://www.w3.org/2004/02/skos/core#closeMatch</code></td><td><a href="http://hl7.org/fhir/sid/icf#e135">http://hl7.org/fhir/sid/icf#e135</a></td><td>0.80</td></tr>
+<tr><td><code>gmeow:facetWheelchair</code></td><td><code>http://www.w3.org/2004/02/skos/core#closeMatch</code></td><td><a href="http://hl7.org/fhir/sid/icf#d4">http://hl7.org/fhir/sid/icf#d4</a></td><td>0.80</td></tr>
+<tr><td><code>gmeow:facetWheelchair</code></td><td><code>http://www.w3.org/2004/02/skos/core#closeMatch</code></td><td><a href="http://hl7.org/fhir/sid/icf#e115">http://hl7.org/fhir/sid/icf#e115</a></td><td>0.80</td></tr>
+<tr><td><a href="../../terms/hasaccessibilityfeature/index.html"><code>gmeow:hasAccessibilityFeature</code></a></td><td><code>http://www.w3.org/2004/02/skos/core#closeMatch</code></td><td><a href="https://schema.org/accessibilityFeature">https://schema.org/accessibilityFeature</a></td><td>0.80</td></tr>
+<tr><td><a href="../../terms/hasbarrier/index.html"><code>gmeow:hasBarrier</code></a></td><td><code>http://www.w3.org/2004/02/skos/core#closeMatch</code></td><td><a href="https://schema.org/accessibilityHazard">https://schema.org/accessibilityHazard</a></td><td>0.75</td></tr>
+</tbody></table>
+<h2>Examples (1)</h2>
+<h3>Location Access</h3>
+<p><code>examples/location-access.ttl</code></p>
+<pre><code class="language-turtle"># SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. &lt;paudley@blackcatinformatics.ca&gt;
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example: accessibility as MATCHABLE facets. One open vocabulary of
+# gmeow:AccessibilityFacets (wheelchair, step-free, visual, auditory, cognitive …)
+# is used across three relations: what a location HAS
+# (gmeow:hasAccessibilityFeature), what it lacks as a gmeow:hasBarrier, and what an
+# agent NEEDS (gmeow:hasAccessibilityNeed). Because need and feature draw on the
+# same vocabulary, "Dana needs wheelchair access" and "the library has wheelchair
+# access" MATCH directly. A reified gmeow:AccessibilityAssertion records who
+# claims which facet, with a gmeow:assertionPolarity (feature / barrier / limited).
+@prefix gmeow: &lt;https://blackcatinformatics.ca/gmeow/&gt; .
+@prefix ex:    &lt;https://blackcatinformatics.ca/gmeow/examples/accessibility/&gt; .
+
+# --- A location with a feature and a barrier (facets are per-location facts).
+ex:library a gmeow:Place ;
+    gmeow:name                    "City Library"@x-gmeow-english ;
+    gmeow:hasAccessibilityFeature gmeow:facetWheelchair ;
+    gmeow:hasBarrier              gmeow:facetVisual .
+
+# --- An agent's need, drawn from the SAME facet vocabulary → directly matchable
+#     against the library's feature.
+ex:dana a gmeow:Person ;
+    gmeow:name               "Dana Reyes"@x-gmeow-english ;
+    gmeow:hasAccessibilityNeed gmeow:facetWheelchair .
+
+# --- A reified assertion: a surveyor claims the library is step-free (a feature).
+ex:assertion a gmeow:AccessibilityAssertion ;
+    gmeow:assertionSubject  ex:library ;
+    gmeow:assertionFacet    gmeow:facetStepFree ;
+    gmeow:assertionPolarity gmeow:polarityFeature .
+</code></pre>
 
     </main>
   </div>
   <footer class="site-footer">
-    <p>GMEOW Ontology Documentation · version 1 · generated by gmeow-docs.</p>
+    <p>GMEOW Ontology Documentation · version 2 · generated by gmeow-docs.</p>
   </footer>
 </body>
 </html>

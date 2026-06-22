@@ -15,7 +15,10 @@
 use std::collections::BTreeMap;
 use std::path::PathBuf;
 
-use gmeow_docs::{DocSlice, DocTerm, DocTermCategory, DocsModel};
+use gmeow_docs::{
+    DocConcern, DocExample, DocExternalTerm, DocLinkage, DocMappingSet, DocSlice, DocTerm,
+    DocTermCategory, DocsModel,
+};
 use serde::Serialize;
 
 /// The repo root is two levels above this crate's manifest dir
@@ -53,6 +56,29 @@ struct ModelSummary {
     /// Three fully serialized terms (first Class, first Property, first
     /// Individual by IRI), locking the `DocTerm` shape.
     sample_terms: Vec<DocTerm>,
+
+    // ── New (T2) collections: counts + one sample each, to lock the shapes ──
+    /// Number of mapping sets.
+    mapping_set_count: usize,
+    /// Number of linkages (term equivalences).
+    linkage_count: usize,
+    /// Number of worked examples.
+    example_count: usize,
+    /// Number of documentation concerns.
+    concern_count: usize,
+    /// Number of external (non-GMEOW) terms referenced.
+    external_term_count: usize,
+    /// ONE fully serialized mapping set (first by IRI).
+    sample_mapping_set: Option<DocMappingSet>,
+    /// ONE fully serialized linkage (first by sort).
+    sample_linkage: Option<DocLinkage>,
+    /// ONE example (first by sort) with its `text` truncated to a small prefix
+    /// so the golden stays KB-sized while still locking the field shape.
+    sample_example: Option<DocExample>,
+    /// ONE fully serialized concern (first by IRI).
+    sample_concern: Option<DocConcern>,
+    /// ONE fully serialized external term (first by IRI).
+    sample_external_term: Option<DocExternalTerm>,
 }
 
 impl ModelSummary {
@@ -81,6 +107,22 @@ impl ModelSummary {
         .flatten()
         .collect();
 
+        // One example, with its full Turtle text truncated to a small prefix so
+        // the golden stays KB-sized (the field shape is still locked).
+        let sample_example = model.examples.first().cloned().map(|mut e| {
+            const CAP: usize = 200;
+            if e.text.len() > CAP {
+                // Truncate on a char boundary.
+                let mut end = CAP;
+                while !e.text.is_char_boundary(end) {
+                    end -= 1;
+                }
+                e.text.truncate(end);
+                e.text.push_str("…[truncated]");
+            }
+            e
+        });
+
         Self {
             title: model.title.clone(),
             version: model.version.clone(),
@@ -91,6 +133,16 @@ impl ModelSummary {
             slice_iris: model.slices.iter().map(|s| s.iri.clone()).collect(),
             sample_slice,
             sample_terms,
+            mapping_set_count: model.mapping_sets.len(),
+            linkage_count: model.linkages.len(),
+            example_count: model.examples.len(),
+            concern_count: model.concerns.len(),
+            external_term_count: model.external_terms.len(),
+            sample_mapping_set: model.mapping_sets.first().cloned(),
+            sample_linkage: model.linkages.first().cloned(),
+            sample_example,
+            sample_concern: model.concerns.first().cloned(),
+            sample_external_term: model.external_terms.first().cloned(),
         }
     }
 }

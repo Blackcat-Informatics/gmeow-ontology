@@ -45,6 +45,26 @@ const RDF_PROPERTY: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#Property"
 const OWL_NAMED_INDIVIDUAL: &str = "http://www.w3.org/2002/07/owl#NamedIndividual";
 const RDFS_DATATYPE: &str = "http://www.w3.org/2000/01/rdf-schema#Datatype";
 
+// ── GMEOW-vocabulary predicates / classes used by the linkage / concern surfaces ─
+
+const GMEOW_MAPPING_SET: &str = "https://blackcatinformatics.ca/gmeow/MappingSet";
+const GMEOW_TERM_EQUIVALENCE: &str = "https://blackcatinformatics.ca/gmeow/TermEquivalence";
+const GMEOW_DOCUMENTATION_CONCERN: &str =
+    "https://blackcatinformatics.ca/gmeow/DocumentationConcern";
+
+const GMEOW_SSSOM_FILE: &str = "https://blackcatinformatics.ca/gmeow/sssomFile";
+const GMEOW_SET_ID: &str = "https://blackcatinformatics.ca/gmeow/setId";
+const GMEOW_LICENSE: &str = "https://blackcatinformatics.ca/gmeow/license";
+const GMEOW_SET_COMMENT: &str = "https://blackcatinformatics.ca/gmeow/setComment";
+
+const GMEOW_ALIGN_SUBJECT: &str = "https://blackcatinformatics.ca/gmeow/alignSubject";
+const GMEOW_ALIGN_PREDICATE: &str = "https://blackcatinformatics.ca/gmeow/alignPredicate";
+const GMEOW_ALIGN_OBJECT: &str = "https://blackcatinformatics.ca/gmeow/alignObject";
+const GMEOW_JUSTIFICATION: &str = "https://blackcatinformatics.ca/gmeow/justification";
+const GMEOW_CONFIDENCE: &str = "https://blackcatinformatics.ca/gmeow/confidence";
+
+const GMEOW_DOCS_CONCERN: &str = "https://blackcatinformatics.ca/gmeow/docsConcern";
+
 /// An error building the documentation model.
 #[derive(Debug)]
 pub enum DocsError {
@@ -208,9 +228,107 @@ pub struct DocDependencyEdge {
     pub reconciliation: String,
 }
 
+/// A mapping set (`gmeow:MappingSet`) owned by a slice's `mappings/` artifact.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+pub struct DocMappingSet {
+    /// The mapping-set IRI (`a gmeow:MappingSet`).
+    pub iri: String,
+    /// The compact CURIE.
+    pub curie: String,
+    /// `gmeow:setId`.
+    pub set_id: Option<String>,
+    /// `gmeow:sssomFile` — the compiled SSSOM filename.
+    pub sssom_file: Option<String>,
+    /// `gmeow:license`.
+    pub license: Option<String>,
+    /// `gmeow:setComment`.
+    pub comment: Option<String>,
+    /// The slice IRI that owns the mapping artifact.
+    pub owner_slice: String,
+    /// The number of `DocLinkage` equivalences in this set.
+    pub equivalence_count: usize,
+}
+
+/// A single term equivalence (`gmeow:TermEquivalence`) — a cross-walk from a
+/// GMEOW term to an external IRI via a SKOS-style alignment predicate.
+///
+/// `confidence` is an `f64`, so this type is `PartialEq` but not `Eq`.
+#[derive(Debug, Clone, PartialEq, Serialize)]
+pub struct DocLinkage {
+    /// The mapping-set IRI this equivalence belongs to (by `gmeow:sssomFile`).
+    pub mapping_set: Option<String>,
+    /// `gmeow:alignSubject` — the GMEOW term IRI.
+    pub subject: String,
+    /// The subject as a CURIE.
+    pub subject_curie: String,
+    /// `gmeow:alignPredicate` — e.g. `skos:closeMatch`.
+    pub predicate: String,
+    /// `gmeow:alignObject` — the external IRI.
+    pub object: String,
+    /// `gmeow:justification`.
+    pub justification: Option<String>,
+    /// `gmeow:confidence` (a literal `xsd:decimal`/`xsd:double`), if present.
+    pub confidence: Option<f64>,
+    /// The slice IRI that owns the mapping artifact.
+    pub owner_slice: String,
+}
+
+/// A worked example carried IN FULL (examples are small Turtle text, not blobs;
+/// their source must be shown).
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+pub struct DocExample {
+    /// The slice IRI that owns the example.
+    pub slice: String,
+    /// The logical path within the slice directory.
+    pub logical_path: String,
+    /// A human title (an `rdfs:label` if any subject carries one, else derived
+    /// from the filename).
+    pub title: String,
+    /// The Turtle source, carried in full.
+    pub text: String,
+    /// GMEOW CURIEs referenced anywhere in the example (sorted, deduped).
+    pub terms_referenced: Vec<String>,
+}
+
+/// A documentation concern (`gmeow:DocumentationConcern`) and the terms that
+/// declare it via `gmeow:docsConcern`.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+pub struct DocConcern {
+    /// The concern IRI.
+    pub iri: String,
+    /// The compact CURIE.
+    pub curie: String,
+    /// `rdfs:label`.
+    pub label: Option<String>,
+    /// `skos:definition` (falling back to `rdfs:comment`).
+    pub definition: Option<String>,
+    /// CURIEs of terms annotated with this concern (sorted, deduped).
+    pub terms: Vec<String>,
+    /// Slice IRIs whose terms declare this concern (sorted, deduped).
+    pub slices: Vec<String>,
+}
+
+/// An external (non-GMEOW) term referenced by the ontology — via a linkage
+/// object or a term domain/range/parent edge — grouped for an overview.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+pub struct DocExternalTerm {
+    /// The external IRI.
+    pub iri: String,
+    /// The namespace prefix (the IRI up to and including the last `/` or `#`).
+    pub namespace: String,
+    /// GMEOW CURIEs that reference this external IRI (sorted, deduped).
+    pub referenced_by: Vec<String>,
+    /// The predicates the reference travels over (`alignObject`, `subClassOf`,
+    /// `domain`, `range`), sorted/deduped.
+    pub via_predicate: Vec<String>,
+}
+
 /// The complete typed documentation model — one source of truth for every
 /// renderer. All collections are sorted by a stable key.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+///
+/// Holds [`DocLinkage`] (with an `f64` confidence), so this type is `PartialEq`
+/// but not `Eq`.
+#[derive(Debug, Clone, PartialEq, Serialize)]
 pub struct DocsModel {
     /// A fixed human title for the documentation surface.
     pub title: String,
@@ -222,11 +340,21 @@ pub struct DocsModel {
     pub terms: Vec<DocTerm>,
     /// All cross-slice dependency edges (sorted by from/to/kind).
     pub dependency_edges: Vec<DocDependencyEdge>,
+    /// All mapping sets (sorted by IRI).
+    pub mapping_sets: Vec<DocMappingSet>,
+    /// All term equivalences / linkages (sorted by subject/predicate/object).
+    pub linkages: Vec<DocLinkage>,
+    /// All worked examples (sorted by slice/logical-path).
+    pub examples: Vec<DocExample>,
+    /// All documentation concerns (sorted by IRI).
+    pub concerns: Vec<DocConcern>,
+    /// All external (non-GMEOW) terms referenced (sorted by IRI).
+    pub external_terms: Vec<DocExternalTerm>,
 }
 
 impl DocsModel {
     /// The model schema version. Bump when the serialized shape changes.
-    pub const VERSION: &'static str = "1";
+    pub const VERSION: &'static str = "2";
 
     /// Build the documentation model from a discovered catalog and a computed
     /// ownership report.
@@ -276,12 +404,83 @@ impl DocsModel {
                 .then_with(|| a.kind.cmp(&b.kind))
         });
 
+        // ── Mapping sets + linkages (parsed from each slice's Mapping artifacts) ─
+        let mut mapping_sets: Vec<DocMappingSet> = Vec::new();
+        let mut linkages: Vec<DocLinkage> = Vec::new();
+        for record in catalog.records() {
+            let owner = &record.manifest.slice_iri;
+            for artifact in &record.artifacts {
+                if artifact.role != ArtifactRole::Mapping {
+                    continue;
+                }
+                let Ok(store) = parse_turtle_lenient(&artifact.content) else {
+                    continue;
+                };
+                let (sets, links) = extract_mappings(&store, owner);
+                mapping_sets.extend(sets);
+                linkages.extend(links);
+            }
+        }
+        // Resolve each linkage's mapping_set IRI from its sssom_file, then count.
+        let set_by_file: BTreeMap<String, String> = mapping_sets
+            .iter()
+            .filter_map(|s| s.sssom_file.clone().map(|f| (f, s.iri.clone())))
+            .collect();
+        for link in &mut linkages {
+            if let Some(file) = link.mapping_set.clone() {
+                link.mapping_set = set_by_file.get(&file).cloned().or(Some(file));
+            }
+        }
+        for set in &mut mapping_sets {
+            set.equivalence_count = linkages
+                .iter()
+                .filter(|l| l.mapping_set.as_deref() == Some(set.iri.as_str()))
+                .count();
+        }
+        mapping_sets.sort_by(|a, b| a.iri.cmp(&b.iri));
+        mapping_sets.dedup_by(|a, b| a.iri == b.iri);
+        linkages.sort_by(|a, b| {
+            a.subject
+                .cmp(&b.subject)
+                .then_with(|| a.predicate.cmp(&b.predicate))
+                .then_with(|| a.object.cmp(&b.object))
+                .then_with(|| a.owner_slice.cmp(&b.owner_slice))
+        });
+
+        // ── Examples (carried in full from each slice's Example artifacts) ──────
+        let mut examples: Vec<DocExample> = Vec::new();
+        for record in catalog.records() {
+            let owner = &record.manifest.slice_iri;
+            for artifact in &record.artifacts {
+                if artifact.role != ArtifactRole::Example {
+                    continue;
+                }
+                examples.push(extract_example(artifact, owner));
+            }
+        }
+        examples.sort_by(|a, b| {
+            a.slice
+                .cmp(&b.slice)
+                .then_with(|| a.logical_path.cmp(&b.logical_path))
+        });
+
+        // ── Concerns (collected from module graphs via gmeow:docsConcern) ──────
+        let concerns = extract_concerns(catalog);
+
+        // ── External terms (linkage objects + non-GMEOW term edges) ────────────
+        let external_terms = extract_external_terms(&terms, &linkages);
+
         Self {
             title: "GMEOW Ontology Documentation".to_string(),
             version: Self::VERSION.to_string(),
             slices,
             terms,
             dependency_edges,
+            mapping_sets,
+            linkages,
+            examples,
+            concerns,
+            external_terms,
         }
     }
 
@@ -384,6 +583,318 @@ fn extract_terms(store: &Store, owner_slice: &str) -> Vec<DocTerm> {
         });
     }
     terms
+}
+
+/// Extract mapping sets + term equivalences from a `mappings/*.ttl` store.
+fn extract_mappings(store: &Store, owner_slice: &str) -> (Vec<DocMappingSet>, Vec<DocLinkage>) {
+    let mut sets = Vec::new();
+    for iri in subjects_of_type(store, GMEOW_MAPPING_SET) {
+        sets.push(DocMappingSet {
+            curie: to_curie(&iri),
+            set_id: first_literal(store, &iri, GMEOW_SET_ID),
+            sssom_file: first_literal(store, &iri, GMEOW_SSSOM_FILE),
+            license: first_literal(store, &iri, GMEOW_LICENSE),
+            comment: first_literal(store, &iri, GMEOW_SET_COMMENT),
+            owner_slice: owner_slice.to_string(),
+            equivalence_count: 0,
+            iri,
+        });
+    }
+
+    let mut links = Vec::new();
+    for iri in subjects_of_type(store, GMEOW_TERM_EQUIVALENCE) {
+        let Some(subject) = named_objects(store, &iri, GMEOW_ALIGN_SUBJECT)
+            .into_iter()
+            .next()
+        else {
+            continue;
+        };
+        let Some(predicate) = named_objects(store, &iri, GMEOW_ALIGN_PREDICATE)
+            .into_iter()
+            .next()
+        else {
+            continue;
+        };
+        let Some(object) = named_objects(store, &iri, GMEOW_ALIGN_OBJECT)
+            .into_iter()
+            .next()
+        else {
+            continue;
+        };
+        // The justification is usually a NamedNode (semapv:…); accept literal too.
+        let justification = named_objects(store, &iri, GMEOW_JUSTIFICATION)
+            .into_iter()
+            .next()
+            .map(|j| to_curie(&j))
+            .or_else(|| first_literal(store, &iri, GMEOW_JUSTIFICATION));
+        let confidence =
+            first_literal(store, &iri, GMEOW_CONFIDENCE).and_then(|v| v.trim().parse::<f64>().ok());
+        links.push(DocLinkage {
+            mapping_set: first_literal(store, &iri, GMEOW_SSSOM_FILE),
+            subject_curie: to_curie(&subject),
+            subject,
+            predicate: to_curie(&predicate),
+            object,
+            justification,
+            confidence,
+            owner_slice: owner_slice.to_string(),
+        });
+    }
+    (sets, links)
+}
+
+/// Extract a single example, carrying its Turtle source in full.
+fn extract_example(artifact: &ArtifactRecord, owner_slice: &str) -> DocExample {
+    let text = String::from_utf8_lossy(&artifact.content).into_owned();
+    let logical_path = artifact.logical_path.clone();
+
+    // Title: first rdfs:label on any subject, else the filename stem.
+    let title = parse_turtle_lenient(&artifact.content)
+        .ok()
+        .and_then(|store| {
+            store
+                .quads_for_pattern(
+                    None,
+                    Some(named(RDFS_LABEL).as_ref()),
+                    None,
+                    Some(GraphNameRef::DefaultGraph),
+                )
+                .flatten()
+                .filter_map(|q| match q.object {
+                    Term::Literal(lit) => Some(lit.value().to_string()),
+                    _ => None,
+                })
+                .min()
+        })
+        .unwrap_or_else(|| filename_title(&logical_path));
+
+    // Terms referenced: every gmeow: CURIE appearing as a NamedNode anywhere.
+    let mut terms_referenced: Vec<String> = parse_turtle_lenient(&artifact.content)
+        .ok()
+        .map(|store| {
+            let mut set: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
+            for quad in store.iter().flatten() {
+                if let NamedOrBlankNode::NamedNode(s) = &quad.subject {
+                    if s.as_str().starts_with(GMEOW_NS) {
+                        set.insert(to_curie(s.as_str()));
+                    }
+                }
+                if let Term::NamedNode(o) = &quad.object {
+                    if o.as_str().starts_with(GMEOW_NS) {
+                        set.insert(to_curie(o.as_str()));
+                    }
+                }
+            }
+            set.into_iter().collect()
+        })
+        .unwrap_or_default();
+    terms_referenced.sort();
+    terms_referenced.dedup();
+
+    DocExample {
+        slice: owner_slice.to_string(),
+        logical_path,
+        title,
+        text,
+        terms_referenced,
+    }
+}
+
+/// A human title derived from a logical path's filename stem (kebab → Title).
+fn filename_title(logical_path: &str) -> String {
+    let stem = logical_path
+        .rsplit('/')
+        .next()
+        .unwrap_or(logical_path)
+        .trim_end_matches(".ttl")
+        .trim_end_matches(".trig")
+        .trim_end_matches(".nq");
+    let mut out = String::with_capacity(stem.len());
+    let mut new_word = true;
+    for ch in stem.chars() {
+        if ch == '-' || ch == '_' {
+            out.push(' ');
+            new_word = true;
+        } else if new_word {
+            out.extend(ch.to_uppercase());
+            new_word = false;
+        } else {
+            out.push(ch);
+        }
+    }
+    if out.is_empty() {
+        stem.to_string()
+    } else {
+        out
+    }
+}
+
+/// Collect documentation concerns from every module graph: the concern
+/// individuals (`a gmeow:DocumentationConcern`) and the terms that declare each
+/// via `gmeow:docsConcern`.
+fn extract_concerns(catalog: &SliceCatalog) -> Vec<DocConcern> {
+    // First pass: concern identity (label/definition), keyed by IRI.
+    let mut iri_label: BTreeMap<String, Option<String>> = BTreeMap::new();
+    let mut iri_def: BTreeMap<String, Option<String>> = BTreeMap::new();
+    // Second pass aggregates: concern IRI → (terms curies, slice iris).
+    let mut concern_terms: BTreeMap<String, std::collections::BTreeSet<String>> = BTreeMap::new();
+    let mut concern_slices: BTreeMap<String, std::collections::BTreeSet<String>> = BTreeMap::new();
+
+    for record in catalog.records() {
+        let owner = &record.manifest.slice_iri;
+        for artifact in &record.artifacts {
+            if artifact.role != ArtifactRole::Module {
+                continue;
+            }
+            let Ok(store) = parse_turtle_lenient(&artifact.content) else {
+                continue;
+            };
+            for iri in subjects_of_type(&store, GMEOW_DOCUMENTATION_CONCERN) {
+                iri_label
+                    .entry(iri.clone())
+                    .or_insert_with(|| first_literal(&store, &iri, RDFS_LABEL));
+                iri_def.entry(iri.clone()).or_insert_with(|| {
+                    first_literal(&store, &iri, SKOS_DEFINITION)
+                        .or_else(|| first_literal(&store, &iri, RDFS_COMMENT))
+                });
+                concern_terms.entry(iri.clone()).or_default();
+                concern_slices.entry(iri).or_default();
+            }
+            // Every `term gmeow:docsConcern concern` edge.
+            for quad in store
+                .quads_for_pattern(
+                    None,
+                    Some(named(GMEOW_DOCS_CONCERN).as_ref()),
+                    None,
+                    Some(GraphNameRef::DefaultGraph),
+                )
+                .flatten()
+            {
+                let (NamedOrBlankNode::NamedNode(subject), Term::NamedNode(concern)) =
+                    (&quad.subject, &quad.object)
+                else {
+                    continue;
+                };
+                let concern = concern.as_str().to_string();
+                if subject.as_str().starts_with(GMEOW_NS) {
+                    concern_terms
+                        .entry(concern.clone())
+                        .or_default()
+                        .insert(to_curie(subject.as_str()));
+                }
+                concern_slices
+                    .entry(concern)
+                    .or_default()
+                    .insert(owner.clone());
+            }
+        }
+    }
+
+    let mut concerns: Vec<DocConcern> = iri_label
+        .keys()
+        .map(|iri| {
+            let terms: Vec<String> = concern_terms
+                .get(iri)
+                .map(|s| s.iter().cloned().collect())
+                .unwrap_or_default();
+            let slices: Vec<String> = concern_slices
+                .get(iri)
+                .map(|s| s.iter().cloned().collect())
+                .unwrap_or_default();
+            DocConcern {
+                curie: to_curie(iri),
+                label: iri_label.get(iri).cloned().flatten(),
+                definition: iri_def.get(iri).cloned().flatten(),
+                terms,
+                slices,
+                iri: iri.clone(),
+            }
+        })
+        .collect();
+    concerns.sort_by(|a, b| a.iri.cmp(&b.iri));
+    concerns
+}
+
+/// Derive the external-term overview: every non-GMEOW IRI referenced by a
+/// linkage object or by a term's parents / domain / range, grouped by namespace.
+fn extract_external_terms(terms: &[DocTerm], linkages: &[DocLinkage]) -> Vec<DocExternalTerm> {
+    // external IRI → (referencing gmeow curies, predicates)
+    let mut by_iri: BTreeMap<
+        String,
+        (
+            std::collections::BTreeSet<String>,
+            std::collections::BTreeSet<String>,
+        ),
+    > = BTreeMap::new();
+
+    let mut record = |iri: &str, by: &str, via: &str| {
+        if iri.starts_with(GMEOW_NS) || !is_external_iri(iri) {
+            return;
+        }
+        let entry = by_iri.entry(iri.to_string()).or_default();
+        entry.0.insert(by.to_string());
+        entry.1.insert(via.to_string());
+    };
+
+    for link in linkages {
+        record(&link.object, &link.subject_curie, "alignObject");
+    }
+    for term in terms {
+        for parent in &term.parents {
+            record(parent, &term.curie, "subClassOf");
+        }
+        for d in &term.domain {
+            record(d, &term.curie, "domain");
+        }
+        for r in &term.range {
+            record(r, &term.curie, "range");
+        }
+    }
+
+    let mut out: Vec<DocExternalTerm> = by_iri
+        .into_iter()
+        .map(|(iri, (referenced_by, via_predicate))| DocExternalTerm {
+            namespace: namespace_of(&iri),
+            iri,
+            referenced_by: referenced_by.into_iter().collect(),
+            via_predicate: via_predicate.into_iter().collect(),
+        })
+        .collect();
+    out.sort_by(|a, b| a.iri.cmp(&b.iri));
+    out
+}
+
+/// Whether an IRI is an http(s) external reference (excludes bnodes / non-IRIs).
+fn is_external_iri(iri: &str) -> bool {
+    iri.starts_with("http://") || iri.starts_with("https://")
+}
+
+/// The namespace of an IRI: everything up to and including the last `/` or `#`.
+fn namespace_of(iri: &str) -> String {
+    match iri.rfind(['/', '#']) {
+        Some(i) => iri[..=i].to_string(),
+        None => iri.to_string(),
+    }
+}
+
+/// All NamedNode subjects of `?s a <type>` in the default graph (sorted, deduped).
+fn subjects_of_type(store: &Store, type_iri: &str) -> Vec<String> {
+    let mut out: Vec<String> = store
+        .quads_for_pattern(
+            None,
+            Some(named(RDF_TYPE).as_ref()),
+            Some(named(type_iri).as_ref().into()),
+            Some(GraphNameRef::DefaultGraph),
+        )
+        .flatten()
+        .filter_map(|q| match q.subject {
+            NamedOrBlankNode::NamedNode(n) => Some(n.as_str().to_string()),
+            _ => None,
+        })
+        .collect();
+    out.sort();
+    out.dedup();
+    out
 }
 
 /// Map an `rdf:type` object IRI to a documented term category.

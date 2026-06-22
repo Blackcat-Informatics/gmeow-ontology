@@ -12,7 +12,11 @@
 
 use std::collections::BTreeSet;
 
-use gmeow_docs::render::{render_site, term_slug, to_html, to_markdown, Page};
+use gmeow_docs::render::{
+    concern_slug, llms_docs_txt, render_site, search_index_json, term_slug, to_html, to_markdown,
+    Page,
+};
+use gmeow_docs::svg;
 use gmeow_docs::{DocTermCategory, DocsModel};
 
 use std::path::PathBuf;
@@ -106,6 +110,88 @@ fn first_slice_html_golden() {
 }
 
 #[test]
+fn linkage_index_markdown_golden() {
+    // The linkage index is large (54 mapping sets); lock the header region plus
+    // the first mapping set's heading block (the deterministic, low-churn part).
+    let model = model();
+    let md = to_markdown(&model, &Page::LinkageIndex);
+    let head: String = md.lines().take(14).collect::<Vec<_>>().join("\n");
+    insta::assert_snapshot!(head);
+}
+
+#[test]
+fn first_concern_markdown_golden() {
+    // The first concern by IRI (model.concerns is IRI-sorted) — a deterministic,
+    // small page exercising definition + member terms + slices.
+    let model = model();
+    let slug = concern_slug(&model.concerns[0]);
+    insta::assert_snapshot!(to_markdown(&model, &Page::Concern(slug)));
+}
+
+#[test]
+fn slice_dependency_svg_golden() {
+    // The SVG is large (a node per slice). Lock its structural head (the SVG
+    // open tag, title, marker defs, and the first node) rather than every node —
+    // determinism is asserted separately by `svg_is_pure`.
+    let model = model();
+    let svg_doc = svg::slice_dependency_svg(&model);
+    let head: String = svg_doc.lines().take(12).collect::<Vec<_>>().join("\n");
+    insta::assert_snapshot!(head);
+}
+
+#[test]
+fn concern_overview_svg_golden() {
+    // The concern overview is small (7 concerns); lock it in full.
+    let model = model();
+    insta::assert_snapshot!(svg::concern_overview_svg(&model));
+}
+
+#[test]
+fn svg_is_pure() {
+    let model = model();
+    assert_eq!(
+        svg::slice_dependency_svg(&model),
+        svg::slice_dependency_svg(&model)
+    );
+    assert_eq!(
+        svg::concern_overview_svg(&model),
+        svg::concern_overview_svg(&model)
+    );
+}
+
+#[test]
+fn search_index_json_golden() {
+    // Do NOT snapshot the whole ~2.4k-record index: lock its record count plus
+    // the first and last records (URL-sorted) so the format + ordering are pinned.
+    let model = model();
+    let json = search_index_json(&model);
+    let records: Vec<serde_json::Value> =
+        serde_json::from_str(&json).expect("search index is valid JSON array");
+    let summary = serde_json::json!({
+        "record_count": records.len(),
+        "first": records.first(),
+        "last": records.last(),
+    });
+    insta::assert_json_snapshot!(summary);
+}
+
+#[test]
+fn llms_docs_txt_golden() {
+    // Lock the header (title/version/counts) plus one representative term line,
+    // not the whole ~2k-line dump.
+    let model = model();
+    let txt = llms_docs_txt(&model);
+    let header: String = txt.lines().take(4).collect::<Vec<_>>().join("\n");
+    // A deterministic sample line: the first non-empty, non-comment line.
+    let sample = txt
+        .lines()
+        .find(|l| !l.is_empty() && !l.starts_with('#'))
+        .unwrap_or("")
+        .to_string();
+    insta::assert_snapshot!(format!("{header}\n---\n{sample}"));
+}
+
+#[test]
 fn render_site_is_byte_stable() {
     let model = model();
     let a = render_site(&model);
@@ -115,6 +201,16 @@ fn render_site_is_byte_stable() {
     assert!(a.files.contains_key("assets/gmeow.css"));
     assert!(a.files.contains_key("index.md"));
     assert!(a.files.contains_key("index.html"));
+    // The T2 surfaces: diagrams, static indexes, and the new section pages.
+    assert!(a.files.contains_key("diagrams/slices.svg"));
+    assert!(a.files.contains_key("diagrams/concerns.svg"));
+    assert!(a.files.contains_key("search-index.json"));
+    assert!(a.files.contains_key("llms-docs.txt"));
+    assert!(a.files.contains_key("linkages/index.html"));
+    assert!(a.files.contains_key("examples/index.html"));
+    assert!(a.files.contains_key("concerns/index.html"));
+    assert!(a.files.contains_key("external-ontologies/index.html"));
+    assert!(a.files.contains_key("integrity-constraints/index.html"));
 }
 
 #[test]
