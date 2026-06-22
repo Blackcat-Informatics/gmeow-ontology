@@ -21,6 +21,7 @@
 //! twice is byte-identical.
 
 use std::collections::BTreeMap;
+use std::sync::OnceLock;
 
 use minijinja::{context, Environment};
 use pulldown_cmark::{html as cmark_html, Options, Parser};
@@ -1501,6 +1502,20 @@ pub fn to_html(model: &DocsModel, page: &Page) -> String {
     to_html_lang(model, page, ENGLISH)
 }
 
+/// Lazily-initialized minijinja [`Environment`] with the [`SHELL`] template
+/// compiled once for the lifetime of the process. Avoids rebuilding and
+/// recompiling the template on every [`to_html_lang`] call.
+static SHELL_ENV: OnceLock<Environment<'static>> = OnceLock::new();
+
+fn shell_env() -> &'static Environment<'static> {
+    SHELL_ENV.get_or_init(|| {
+        let mut env = Environment::new();
+        env.add_template("shell", SHELL)
+            .expect("embedded shell template is valid");
+        env
+    })
+}
+
 /// Render a page to a complete, self-contained HTML document: the page's
 /// Markdown body converted to HTML and injected into the minijinja shell, with
 /// the UI-chrome nav labels resolved for `lang` (English fallback). The `model`
@@ -1588,10 +1603,7 @@ pub fn to_html_lang(model: &DocsModel, page: &Page, lang: &str) -> String {
         nav_item(&root, &Page::About.dir(), &label("page_about", "About")),
     ];
 
-    let mut env = Environment::new();
-    env.add_template("shell", SHELL)
-        .expect("embedded shell template is valid");
-    let tmpl = env
+    let tmpl = shell_env()
         .get_template("shell")
         .expect("shell template registered");
     tmpl.render(context! {
