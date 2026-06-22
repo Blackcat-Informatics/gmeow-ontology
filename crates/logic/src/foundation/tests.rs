@@ -536,13 +536,13 @@ fn provenance_isclass_derivation_matches_recipe() {
         &format!("<{honors}>"),
     );
 
-    // The single source is the reifier of hasMetaClass(HonorsStudent, SubKind).
-    let expected_source = triple_reifier(
-        &honors,
-        &format!("{LOGIC}hasMetaClass"),
-        &format!("{LOGIC}SubKind"),
-    )
-    .unwrap();
+    // The quality-ordered tiebreak (most-direct derivation) now selects the single
+    // asserted `subClassOf(HonorsStudent, Student)` fact as the source for
+    // `isClass(HonorsStudent)`, rather than the previously-selected
+    // `hasMetaClass(HonorsStudent, SubKind)` derived fact.  The shallower derivation
+    // (depth-1 asserted source) wins over the depth-2 chain through hasMetaClass.
+    let student = format!("{base}/Student");
+    let expected_source = triple_reifier(&honors, &format!("{LOGIC}subClassOf"), &student).unwrap();
     let expected_deriv = mint_derivation_id(ANON_RULE_IRI, &[expected_source.as_str()]);
 
     assert_eq!(
@@ -552,17 +552,18 @@ fn provenance_isclass_derivation_matches_recipe() {
     assert_eq!(
         is_class.source_quad_ids,
         vec![expected_source.clone()],
-        "isClass source must be the hasMetaClass reifier"
+        "isClass source must be the subClassOf reifier (quality-ordered tiebreak: \
+         most-direct / shallowest derivation wins)"
     );
     assert_eq!(
         is_class.derivation_id, expected_deriv,
-        "isClass derivation_id must equal mint_derivation_id(anon, [hasMetaClass reifier]); \
-         this is the captured golden c42fdeaffa9a306d4dbdf207299be6b2a2f4e3f4"
+        "isClass derivation_id must equal mint_derivation_id(anon, [subClassOf reifier]); \
+         this is the captured golden 86f96b359743809b25d976426054cbe3d13283d1"
     );
-    // Pin the captured golden value too (from the live Python oracle).
+    // Pin the captured golden value too (quality-ordered tiebreak authority).
     assert_eq!(
         is_class.derivation_id,
-        "https://blackcatinformatics.ca/gmeow/derivation/c42fdeaffa9a306d4dbdf207299be6b2a2f4e3f4"
+        "https://blackcatinformatics.ca/gmeow/derivation/86f96b359743809b25d976426054cbe3d13283d1"
     );
 }
 
@@ -676,4 +677,187 @@ fn golden_quad_sets_match_for_single_world_cases() {
             "quad set mismatch for case {name}"
         );
     }
+}
+
+// ── Determinism / quality-ordered tiebreak test ───────────────────────────────
+
+/// Verify that the per-round winner-selection tiebreak is quality-ordered and
+/// independent of the order in which candidates are folded into the round map.
+///
+/// The total order is `(max_src_depth, sum_src_depth, sorted_sources)` — smaller wins.
+/// This test proves:
+///   1. **Depth dominates lex order**: a shallower (lower max-depth) candidate beats a
+///      deeper one even when the deeper one has a lexicographically smaller sorted_sources.
+///   2. **Sum-depth tiebreaks at equal max-depth**: among candidates with the same
+///      max-depth, the one closer to asserted axioms (lower sum) wins.
+///   3. **Lex-min sorted_sources as final tiebreaker** (all depth fields equal).
+///   4. **All three levels are enumeration-order-independent**: forward, reverse, and a
+///      permuted order must all yield the same winner for each level.
+///
+/// Self-contained — no STRATA or WorldStore dependency.
+#[test]
+fn first_wins_tiebreak_prefers_most_direct_derivation_order_independent() {
+    /// A minimal stand-in for [`RoundCandidate`]'s comparison key.
+    #[derive(Clone, Debug, PartialEq, Eq)]
+    struct FakeCand {
+        max_depth: u32,
+        sum_depth: u64,
+        sorted_sources: Vec<String>,
+        label: &'static str, // for assertion messages only
+    }
+
+    /// Fold a slice of candidates using the same `and_modify` logic as `chase_world`,
+    /// returning a clone of the winning candidate.
+    fn fold(cands: &[FakeCand]) -> FakeCand {
+        let mut winner: Option<FakeCand> = None;
+        for c in cands {
+            match &winner {
+                None => winner = Some(c.clone()),
+                Some(w) => {
+                    let c_key = (c.max_depth, c.sum_depth, &c.sorted_sources);
+                    let w_key = (w.max_depth, w.sum_depth, &w.sorted_sources);
+                    if c_key < w_key {
+                        winner = Some(c.clone());
+                    }
+                }
+            }
+        }
+        winner.unwrap()
+    }
+
+    // ── Level 1: depth dominates lex order ──────────────────────────────────
+    //
+    // `shallow` has max_depth=1, `deep` has max_depth=2 but a lex-smaller sorted_sources.
+    // Expected winner: `shallow` (depth beats lex).
+    let shallow = FakeCand {
+        max_depth: 1,
+        sum_depth: 1,
+        sorted_sources: vec!["urn:z".to_owned()], // lex-larger
+        label: "shallow",
+    };
+    let deep = FakeCand {
+        max_depth: 2,
+        sum_depth: 2,
+        sorted_sources: vec!["urn:a".to_owned()], // lex-smaller — but loses on depth
+        label: "deep",
+    };
+    let pool1 = vec![shallow.clone(), deep.clone()];
+    let pool1_rev = vec![deep.clone(), shallow.clone()];
+    assert_eq!(fold(&pool1).label, "shallow", "fwd: depth must beat lex");
+    assert_eq!(
+        fold(&pool1_rev).label,
+        "shallow",
+        "rev: depth must beat lex"
+    );
+
+    // ── Level 2: sum-depth tiebreak at equal max-depth ───────────────────────
+    //
+    // `asserted_rooted` has max=1, sum=1; `chain_rooted` has max=1, sum=3.
+    // Both have the same max-depth; sum-depth picks `asserted_rooted`.
+    let asserted_rooted = FakeCand {
+        max_depth: 1,
+        sum_depth: 1,
+        sorted_sources: vec!["urn:m".to_owned()], // lex-larger
+        label: "asserted_rooted",
+    };
+    let chain_rooted = FakeCand {
+        max_depth: 1,
+        sum_depth: 3,
+        sorted_sources: vec!["urn:a".to_owned()], // lex-smaller — but loses on sum
+        label: "chain_rooted",
+    };
+    let pool2 = vec![asserted_rooted.clone(), chain_rooted.clone()];
+    let pool2_rev = vec![chain_rooted.clone(), asserted_rooted.clone()];
+    assert_eq!(
+        fold(&pool2).label,
+        "asserted_rooted",
+        "fwd: sum-depth must beat lex at equal max-depth"
+    );
+    assert_eq!(
+        fold(&pool2_rev).label,
+        "asserted_rooted",
+        "rev: sum-depth must beat lex at equal max-depth"
+    );
+
+    // ── Level 3: lex-min sorted_sources as final tiebreaker ─────────────────
+    //
+    // All three candidates have the same max-depth and sum-depth; only lex order decides.
+    let cands3: Vec<FakeCand> = vec![
+        FakeCand {
+            max_depth: 0,
+            sum_depth: 0,
+            sorted_sources: vec!["urn:a".to_owned(), "urn:c".to_owned()],
+            label: "ac",
+        },
+        FakeCand {
+            max_depth: 0,
+            sum_depth: 0,
+            sorted_sources: vec!["urn:a".to_owned(), "urn:b".to_owned()], // ← lex smallest
+            label: "ab",
+        },
+        FakeCand {
+            max_depth: 0,
+            sum_depth: 0,
+            sorted_sources: vec!["urn:b".to_owned(), "urn:d".to_owned()],
+            label: "bd",
+        },
+    ];
+    let cands3_rev: Vec<FakeCand> = cands3.iter().cloned().rev().collect();
+    let cands3_perm: Vec<FakeCand> = vec![cands3[2].clone(), cands3[0].clone(), cands3[1].clone()];
+    assert_eq!(
+        fold(&cands3).label,
+        "ab",
+        "fwd: lex-min must win when depths equal"
+    );
+    assert_eq!(
+        fold(&cands3_rev).label,
+        "ab",
+        "rev: lex-min must win when depths equal"
+    );
+    assert_eq!(
+        fold(&cands3_perm).label,
+        "ab",
+        "perm: lex-min must win when depths equal"
+    );
+
+    // ── Combined: depth 1 shallower beats lex-smaller depth 2, order-independent ─
+    //
+    // Three candidates with mixed depth and lex order; expected winner is the sole
+    // depth-1 candidate (smallest max-depth), regardless of enumeration order.
+    let c_depth1 = FakeCand {
+        max_depth: 1,
+        sum_depth: 1,
+        sorted_sources: vec!["urn:z1".to_owned()], // lex-largest
+        label: "depth1",
+    };
+    let c_depth2a = FakeCand {
+        max_depth: 2,
+        sum_depth: 2,
+        sorted_sources: vec!["urn:a1".to_owned()], // lex-smallest — but depth 2
+        label: "depth2a",
+    };
+    let c_depth2b = FakeCand {
+        max_depth: 2,
+        sum_depth: 3,
+        sorted_sources: vec!["urn:b1".to_owned()],
+        label: "depth2b",
+    };
+    let pool4 = vec![c_depth1.clone(), c_depth2a.clone(), c_depth2b.clone()];
+    let pool4_rev: Vec<FakeCand> = pool4.iter().cloned().rev().collect();
+    let pool4_perm: Vec<FakeCand> = vec![c_depth2b.clone(), c_depth1.clone(), c_depth2a.clone()];
+    assert_eq!(
+        fold(&pool4).label,
+        "depth1",
+        "combined fwd: shallowest wins"
+    );
+    assert_eq!(
+        fold(&pool4_rev).label,
+        "depth1",
+        "combined rev: shallowest wins"
+    );
+    assert_eq!(
+        fold(&pool4_perm).label,
+        "depth1",
+        "combined perm: shallowest wins"
+    );
 }

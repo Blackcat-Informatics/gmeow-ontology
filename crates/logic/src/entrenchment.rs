@@ -324,29 +324,64 @@ impl Entrenchment {
 // ── Graph helpers ────────────────────────────────────────────────────────────
 
 /// Transitively close a set of `(from, to)` edges into a `from → {reachable}` map.
+///
+/// Lowered to dense `u32` node ids + `Vec<u64>` bitsets (#823): every endpoint is
+/// interned, adjacency becomes a `Vec<BitSet>`, and transitive reachability is a
+/// DFS over set bits with bit-parallel [`crate::dense::BitSet::union_with`]. The
+/// boundary maps every node back to its IRI, so the returned
+/// `BTreeMap<String, BTreeSet<String>>` is byte-identical to the prior
+/// `String`-keyed traversal: the reachable set is the transitive successors
+/// (NOT including the start unless reached through a cycle), and only nodes with a
+/// non-empty reachable set are included.
+#[allow(clippy::needless_range_loop)] // Warshall: `i` indexes both contains(k) and union_with, which iter_mut() can't express
 fn closure(edges: &BTreeSet<(String, String)>) -> BTreeMap<String, BTreeSet<String>> {
-    let mut adj: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
-    for (a, b) in edges {
-        adj.entry(a.clone()).or_default().insert(b.clone());
+    use crate::dense::{BitSet, DenseInterner};
+
+    // Intern every endpoint and build dense `u32` adjacency.
+    let mut interner = DenseInterner::new();
+    // Collect interned edges first so the node count is known before sizing bitsets.
+    let interned: Vec<(u32, u32)> = edges
+        .iter()
+        .map(|(a, b)| (interner.intern(a), interner.intern(b)))
+        .collect();
+    let n = interner.len();
+    let mut adj: Vec<BitSet> = (0..n).map(|_| BitSet::with_capacity(n)).collect();
+    for &(a, b) in &interned {
+        adj[a as usize].insert(b as usize);
     }
-    let mut closed: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
-    let nodes: BTreeSet<&String> = edges.iter().flat_map(|(a, b)| [a, b]).collect();
-    for start in nodes {
-        let mut seen: BTreeSet<String> = BTreeSet::new();
-        let mut stack: Vec<String> = adj.get(start).into_iter().flatten().cloned().collect();
-        while let Some(cur) = stack.pop() {
-            if !seen.insert(cur.clone()) {
-                continue;
-            }
-            if let Some(next) = adj.get(&cur) {
-                for n in next {
-                    stack.push(n.clone());
+
+    // Bit-parallel transitive closure via Warshall's algorithm: for each
+    // intermediate node `k`, every node `i` that can reach `k` absorbs the full
+    // reachable set of `k` in one word-parallel union. Exactly N outer iterations
+    // (O(N³/64)), eliminating the variable number of fixpoint rounds. The result
+    // is byte-identical: `reach[v]` is the set of transitive successors of `v`,
+    // and `v` enters its own set iff it lies on a cycle — unchanged semantics.
+    let mut reach: Vec<BitSet> = adj.clone();
+    for k in 0..n {
+        if !reach[k].is_empty() {
+            let reach_k = reach[k].clone(); // clone to satisfy the borrow checker (i may equal k)
+            for i in 0..n {
+                if reach[i].contains(k) {
+                    reach[i].union_with(&reach_k);
                 }
             }
         }
-        if !seen.is_empty() {
-            closed.insert(start.clone(), seen);
+    }
+
+    // Boundary: map each non-empty reachable set back to IRIs. `BitSet::iter` is
+    // ascending by id, and ids were assigned in `edges` (sorted) order, but the
+    // BTreeMap/BTreeSet re-sort by IRI exactly as the prior implementation did.
+    let mut closed: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
+    for (start, bits) in reach.iter().enumerate() {
+        if bits.is_empty() {
+            continue;
         }
+        let start_iri = interner.resolve(start as u32);
+        let reachable: BTreeSet<String> = bits
+            .iter()
+            .map(|id| interner.resolve(id as u32).to_owned())
+            .collect();
+        closed.insert(start_iri.to_owned(), reachable);
     }
     closed
 }
