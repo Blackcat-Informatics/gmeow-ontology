@@ -424,6 +424,30 @@ def transpile(
         unknown = sorted(set(names) - set(PROFILES))
         if unknown:
             raise _fail(f"unknown projection profile(s): {', '.join(unknown)}")
+
+    # An OKF bundle directory is ingested through the Rust `gts from-okf` codec,
+    # then lifted like any other consumer source (#780).
+    if str(source) != "-" and source.is_dir():
+        from gmeow_tools.okf_import import OkfBinaryNotFoundError, transpile_okf
+
+        try:
+            okf_result = transpile_okf(
+                source, out_dir=out, profiles=names, selector=selector
+            )
+        except OkfBinaryNotFoundError as exc:
+            raise _fail(str(exc)) from exc
+        except (OSError, ValueError, RuntimeError) as exc:
+            raise _fail(str(exc)) from exc
+        err_console.print(
+            f"[green]lifted[/green] {okf_result.lift.lifted} okf facts · "
+            f"[yellow]retained[/yellow] {okf_result.lift.retained} okf annotation(s) · "
+            f"[cyan]subjects[/cyan] {okf_result.lift.subjects}",
+        )
+        err_console.print(f"[green]draft[/green] {okf_result.draft_path}")
+        for path in okf_result.transform.written:
+            err_console.print(f"[green]wrote[/green] {path}")
+        return
+
     try:
         if str(source) == "-":
             graph, stem = _read_turtle(source)
