@@ -234,7 +234,7 @@ def compile_diagnostics_report(
                 onto.serialize(format="nt"),
             )
         )
-        with tempfile.TemporaryDirectory() as tmp:
+        with tempfile.TemporaryDirectory(dir=PROJECT_ROOT) as tmp:
             owl_tmp = Path(tmp) / "owl.ttl"
             rdf12_tmp = Path(tmp) / "rdf12.ttl"
             _write_ttl(owl, owl_tmp, _OWL_BANNER)
