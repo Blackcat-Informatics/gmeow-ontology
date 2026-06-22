@@ -23,6 +23,7 @@ pub mod docs_render;
 pub mod gts_compose;
 pub mod gts_sink;
 pub mod mappings;
+pub mod profiles;
 pub mod reason;
 pub mod source_load;
 pub mod statements;
@@ -39,4 +40,5 @@ pub fn register_default(registry: &mut StageRegistry) {
     registry.register("docs_render", Arc::new(docs_render::DocsRenderStage::new()));
     registry.register("gts_sink", Arc::new(gts_sink::GtsSinkStage::new()));
     registry.register("catalog", Arc::new(catalog::CatalogStage));
+    registry.register("profiles", Arc::new(profiles::ProfilesStage));
 }
