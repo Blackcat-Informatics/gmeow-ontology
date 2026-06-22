@@ -8,7 +8,7 @@ so Make/CI can schedule them independently.
 
 from __future__ import annotations
 
-from rdflib import RDF, Graph, Namespace
+from gmeow_rdf.compat.rdflib import RDF, Graph, Namespace
 
 from gmeow_tools.config import (
     DIST_DIR,

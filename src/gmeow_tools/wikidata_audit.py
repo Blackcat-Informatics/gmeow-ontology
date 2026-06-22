@@ -9,7 +9,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from rdflib import Graph, URIRef
+from gmeow_rdf.compat.rdflib import Graph, URIRef
 
 from gmeow_tools.config import PREFIXES
 from gmeow_tools.graph import iter_module_files

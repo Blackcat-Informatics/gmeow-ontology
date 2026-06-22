@@ -24,9 +24,9 @@ from pathlib import Path
 
 import cbor2
 import zstandard
+from gmeow_rdf.compat.rdflib import BNode, Dataset, Graph, Literal, URIRef
+from gmeow_rdf.compat.rdflib.namespace import RDFS, XSD
 from gts import Signer, read, to_nquads
-from rdflib import BNode, Dataset, Graph, Literal, URIRef
-from rdflib.namespace import RDFS, XSD
 
 from gmeow_tools import gts_producer as native
 

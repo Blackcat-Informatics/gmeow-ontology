@@ -26,8 +26,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 
-from rdflib import RDF, Graph, Literal, URIRef
-from rdflib.namespace import DCTERMS, RDFS
+from gmeow_rdf.compat.rdflib import RDF, Graph, Literal, URIRef
+from gmeow_rdf.compat.rdflib.namespace import DCTERMS, RDFS
 
 from gmeow_tools.config import NAMESPACE, SLICES_DIR
 

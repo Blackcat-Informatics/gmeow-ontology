@@ -8,7 +8,7 @@ script/language attributions coexist without a single winner (Principle 9).
 
 from __future__ import annotations
 
-from rdflib import OWL, RDF, RDFS, Graph, Namespace
+from gmeow_rdf.compat.rdflib import OWL, RDF, RDFS, Graph, Namespace
 
 from gmeow_tools.graph import load_merged_graph
 

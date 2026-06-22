@@ -44,7 +44,16 @@ from functools import cache
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from rdflib import OWL, RDF, RDFS, SKOS, Graph, Literal, Namespace, URIRef
+from gmeow_rdf.compat.rdflib import (
+    OWL,
+    RDF,
+    RDFS,
+    SKOS,
+    Graph,
+    Literal,
+    Namespace,
+    URIRef,
+)
 
 from gmeow_tools import diagnostics, shacl_engine
 from gmeow_tools.config import (
@@ -57,7 +66,7 @@ from gmeow_tools.language_tags import retag_literal
 if TYPE_CHECKING:
     from collections.abc import Iterable
 
-    from rdflib.term import Node
+    from gmeow_rdf.compat.rdflib.term import Node
 
 #: Namespaces that may appear in the pure-GMEOW draft besides GMEOW itself: the
 #: structural RDF/RDFS/OWL terms the claim reification and typing use.

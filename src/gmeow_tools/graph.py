@@ -10,8 +10,9 @@ from __future__ import annotations
 
 from functools import lru_cache
 from pathlib import Path
+from typing import Protocol
 
-from rdflib import Graph
+from gmeow_rdf.compat.rdflib import Graph
 
 from gmeow_tools.config import (
     IMPORTS_DIR,
@@ -19,6 +20,14 @@ from gmeow_tools.config import (
     PREFIXES,
 )
 from gmeow_tools.slices import iter_slice_module_files
+
+
+class _Bindable(Protocol):
+    """A graph that can bind a prefix — the compat ``Graph`` or upstream rdflib's."""
+
+    def bind(self, prefix: str | None, namespace: object, *, replace: bool) -> None:
+        """Bind ``prefix`` to ``namespace``."""
+        ...
 
 
 def iter_module_files(root: Path | None = None) -> list[Path]:
@@ -70,8 +79,8 @@ def iter_source_files(
     return [f for f in files if f.exists()]
 
 
-def bind_prefixes(graph: Graph) -> None:
-    """Bind the canonical GMEOW prefix registry onto a graph."""
+def bind_prefixes(graph: _Bindable) -> None:
+    """Bind the canonical GMEOW prefix registry onto a graph (either engine)."""
     for prefix, namespace in PREFIXES.items():
         graph.bind(prefix, namespace, replace=True)
 

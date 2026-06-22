@@ -20,9 +20,9 @@ from __future__ import annotations
 from datetime import UTC, datetime, timedelta
 from functools import lru_cache
 
-from rdflib import RDF, Graph, Literal, Namespace
-from rdflib.namespace import XSD
-from rdflib.query import ResultRow
+from gmeow_rdf.compat.rdflib import RDF, Graph, Literal, Namespace
+from gmeow_rdf.compat.rdflib.namespace import XSD
+from gmeow_rdf.compat.rdflib.query import ResultRow
 
 from gmeow_tools.config import COMPETENCY_DIR, NAMESPACE, QC_DIR
 from gmeow_tools.graph import load_merged_graph

@@ -9,11 +9,11 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 import gts
+from gmeow_rdf.compat.rdflib import BNode, Graph, Literal, Namespace, URIRef
+from gmeow_rdf.compat.rdflib.namespace import RDFS
+from gmeow_rdf.compat.rdflib.term import Node
 from gts.model import Graph as GTSGraph
 from gts.model import TermKind
-from rdflib import BNode, Graph, Literal, Namespace, URIRef
-from rdflib.namespace import RDFS
-from rdflib.term import Node
 
 from gmeow_tools.ext.music.model import (
     Piece,

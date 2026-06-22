@@ -25,6 +25,7 @@ from collections import Counter
 from collections.abc import Iterable
 from dataclasses import dataclass
 from decimal import Decimal, InvalidOperation
+from functools import lru_cache
 from pathlib import Path
 from typing import TYPE_CHECKING, cast
 
@@ -44,8 +45,24 @@ from gmeow_tools.config import (
     TEMPORAL_QUERY_DIR,
     VERIFY_DIR,
 )
-from gmeow_tools.graph import load_merged_graph, shared_merged_graph
+from gmeow_tools.graph import iter_source_files
 from gmeow_tools.slices import iter_slice_query_files
+
+
+@lru_cache(maxsize=2)
+def _rdflib_merged_graph(include_imports: bool) -> Graph:
+    """The merged ontology parsed into a REAL rdflib graph (the oracle engine).
+
+    This gate compares upstream rdflib's SPARQL engine against gmeow_rdf, so the
+    rdflib side MUST query a genuine rdflib graph — not the native compat ``Graph``
+    that :func:`gmeow_tools.graph.load_merged_graph` now returns (whose ``.query``
+    runs oxigraph, which would make the cross-check vacuous).
+    """
+    graph = Graph()
+    for source in iter_source_files(include_imports=include_imports):
+        graph.parse(source, format="turtle")
+    return graph
+
 
 if TYPE_CHECKING:
     from gmeow_tools.diagnostics import DiagnosticsReport
@@ -159,7 +176,11 @@ def _term_key(term: object) -> object:
     return ("other", str(term))
 
 
-def _triple_keys(graph: Graph) -> Counter[tuple[object, object, object]]:
+def _triple_keys(
+    graph: Iterable[tuple[object, object, object]],
+) -> Counter[tuple[object, object, object]]:
+    # Accepts either engine's graph: the rdflib oracle's CONSTRUCT result OR the
+    # gmeow_rdf compat graph from sparql.construct — both iterate (s, p, o).
     return Counter((_term_key(s), _term_key(p), _term_key(o)) for s, p, o in graph)
 
 
@@ -251,7 +272,9 @@ def _delta(a: object, b: object) -> str:
 
 def _projection_data() -> tuple[Graph, gmeow_rdf.Store]:
     """The merged ontology plus the projection example fixtures, both engines."""
-    graph = load_merged_graph(include_imports=False)
+    graph = Graph()
+    for source in iter_source_files(include_imports=False):
+        graph.parse(source, format="turtle")
     paths = [
         FIXTURES_DIR / f for f in _PROJECTION_FIXTURES if (FIXTURES_DIR / f).exists()
     ]
@@ -269,7 +292,7 @@ def crosscheck_all() -> list[CrosscheckResult]:
     old_limit = sys.getrecursionlimit()
     sys.setrecursionlimit(3000)
     try:
-        base_graph = shared_merged_graph(include_imports=False)
+        base_graph = _rdflib_merged_graph(include_imports=False)
         base_store = sparql.merged_store(include_imports=False)
         proj_graph, proj_store = _projection_data()
 

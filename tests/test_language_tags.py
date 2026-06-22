@@ -5,8 +5,8 @@
 from __future__ import annotations
 
 import pytest
-from rdflib import Graph, Literal, Namespace
-from rdflib.namespace import RDF, RDFS, SKOS
+from gmeow_rdf.compat.rdflib import Graph, Literal, Namespace
+from gmeow_rdf.compat.rdflib.namespace import RDF, RDFS, SKOS
 
 from gmeow_tools.export import marked
 from gmeow_tools.language_tags import (

@@ -12,6 +12,13 @@ import json
 from pathlib import Path
 
 import pytest
+
+# The engine-equivalence gate compares REAL upstream rdflib against gmeow_rdf — it
+# is the one place that legitimately uses rdflib (the independent oracle). With
+# rdflib dropped from the runtime (purrdf P0, #834) it is installed only via the
+# `.[crosscheck]` extra, so skip-collect this whole module when rdflib is absent.
+pytest.importorskip("rdflib")
+
 from rdflib import RDF, XSD, Graph, Literal, URIRef
 
 from gmeow_tools import sparql

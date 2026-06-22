@@ -4,7 +4,7 @@
 
 from __future__ import annotations
 
-from rdflib import RDF, XSD, BNode, Graph, Literal, URIRef
+from gmeow_rdf.compat.rdflib import RDF, XSD, BNode, Graph, Literal, URIRef
 
 from gmeow_tools import sparql
 from gmeow_tools.config import FIXTURES_DIR

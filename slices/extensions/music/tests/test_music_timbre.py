@@ -5,8 +5,8 @@ Principles 4, 5, 9, 12, 16.
 
 from __future__ import annotations
 
-from rdflib import OWL, RDF, RDFS, Graph, Namespace
-from rdflib.namespace import SKOS
+from gmeow_rdf.compat.rdflib import OWL, RDF, RDFS, Graph, Namespace
+from gmeow_rdf.compat.rdflib.namespace import SKOS
 
 from gmeow_tools.config import NAMESPACE
 from gmeow_tools.graph import load_merged_graph

@@ -33,7 +33,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from rdflib import Graph
+from gmeow_rdf.compat.rdflib import Graph
 
 from gmeow_tools.config import JENA_IMAGE, PROJECT_ROOT, QUERIES_DIR
 from gmeow_tools.graph import bind_prefixes

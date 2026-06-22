@@ -12,7 +12,7 @@ re-introduce the gamed metric.
 
 from __future__ import annotations
 
-from rdflib import RDF, Graph, Literal, URIRef
+from gmeow_rdf.compat.rdflib import RDF, Graph, Literal, URIRef
 
 from gmeow_tools.acceptance import (
     FileAcceptance,
@@ -137,7 +137,7 @@ def test_round_trip_excludes_external_linkage_from_headline() -> None:
     """owl:sameAs to the outside world is external linkage — out of the headline."""
     source = Graph()
     a = URIRef("https://ex.org/a")
-    from rdflib import OWL
+    from gmeow_rdf.compat.rdflib import OWL
 
     source.add((a, OWL.sameAs, URIRef("https://www.wikidata.org/entity/Q1")))
     source.add((a, URIRef(FOAF + "name"), Literal("Ada")))

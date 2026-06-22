@@ -25,8 +25,8 @@ from collections.abc import Iterator
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from rdflib import RDF, Graph, Namespace, URIRef
-from rdflib.term import Node
+from gmeow_rdf.compat.rdflib import RDF, Graph, Namespace, URIRef
+from gmeow_rdf.compat.rdflib.term import Node
 
 from gmeow_tools.config import (
     FIXTURES_DIR,

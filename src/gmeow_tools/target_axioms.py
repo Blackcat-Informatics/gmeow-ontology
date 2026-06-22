@@ -44,9 +44,9 @@ from dataclasses import dataclass
 from pathlib import Path
 
 import httpx
-from rdflib import RDF, RDFS, Graph, Literal, URIRef
-from rdflib.namespace import OWL
-from rdflib.term import Node
+from gmeow_rdf.compat.rdflib import RDF, RDFS, Graph, Literal, URIRef
+from gmeow_rdf.compat.rdflib.namespace import OWL
+from gmeow_rdf.compat.rdflib.term import Node
 
 from gmeow_tools.config import (
     ALIGNMENT_TARGETS,

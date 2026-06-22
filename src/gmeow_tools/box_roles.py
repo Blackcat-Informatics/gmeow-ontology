@@ -7,8 +7,8 @@ from collections import Counter
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from rdflib import RDF, RDFS, Graph, URIRef
-from rdflib.namespace import OWL
+from gmeow_rdf.compat.rdflib import RDF, RDFS, Graph, URIRef
+from gmeow_rdf.compat.rdflib.namespace import OWL
 
 from gmeow_tools import diagnostics
 from gmeow_tools.config import (

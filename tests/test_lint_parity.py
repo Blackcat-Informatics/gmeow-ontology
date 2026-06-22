@@ -23,7 +23,7 @@ import json
 from pathlib import Path
 
 import gmeow_validate
-from rdflib import RDF, URIRef
+from gmeow_rdf.compat.rdflib import RDF, URIRef
 
 from gmeow_tools.config import NAMESPACE, ONTOLOGY_IRI
 from gmeow_tools.graph import iter_source_files, load_merged_graph

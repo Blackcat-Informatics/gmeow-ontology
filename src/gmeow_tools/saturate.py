@@ -31,8 +31,8 @@ import hashlib
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
-from rdflib import OWL, RDF, Graph, Literal, URIRef
-from rdflib.namespace import SKOS, XSD
+from gmeow_rdf.compat.rdflib import OWL, RDF, Graph, Literal, URIRef
+from gmeow_rdf.compat.rdflib.namespace import SKOS, XSD
 
 from gmeow_tools.alignment_lint import (
     STRONG_CLASS_PREDICATES,
@@ -45,7 +45,7 @@ if TYPE_CHECKING:
     from collections.abc import Iterable, Sequence
     from pathlib import Path
 
-    from rdflib.term import Node
+    from gmeow_rdf.compat.rdflib.term import Node
 
     from gmeow_tools.mapping_compile import SuppressionVocab
 

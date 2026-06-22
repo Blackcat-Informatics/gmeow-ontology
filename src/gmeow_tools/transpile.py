@@ -25,7 +25,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
-from rdflib import RDF, Graph, URIRef
+from gmeow_rdf.compat.rdflib import RDF, Graph, URIRef
 
 from gmeow_tools.config import DIST_DIR
 from gmeow_tools.graph import bind_prefixes

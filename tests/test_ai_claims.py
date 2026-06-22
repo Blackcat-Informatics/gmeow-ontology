@@ -10,8 +10,8 @@ exist, and the tombstone tests keep PR #388's mistakes buried.
 
 from __future__ import annotations
 
-from rdflib import RDF, RDFS, Graph, URIRef
-from rdflib.namespace import OWL
+from gmeow_rdf.compat.rdflib import RDF, RDFS, Graph, URIRef
+from gmeow_rdf.compat.rdflib.namespace import OWL
 
 from gmeow_tools.config import FIXTURES_DIR, NAMESPACE
 from gmeow_tools.graph import load_merged_graph

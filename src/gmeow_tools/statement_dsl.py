@@ -22,9 +22,9 @@ from dataclasses import dataclass
 from hashlib import sha1
 from pathlib import Path
 
-from rdflib import RDF, RDFS, Graph, Literal, URIRef
-from rdflib.namespace import Namespace
-from rdflib.term import Node
+from gmeow_rdf.compat.rdflib import RDF, RDFS, Graph, Literal, URIRef
+from gmeow_rdf.compat.rdflib.namespace import Namespace
+from gmeow_rdf.compat.rdflib.term import Node
 
 from gmeow_tools.config import NAMESPACE, PREFIXES, STATEMENT_DSL_DIR
 from gmeow_tools.dsl_validate import validate_statement_dsl

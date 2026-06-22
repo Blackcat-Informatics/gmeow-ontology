@@ -29,9 +29,9 @@ from __future__ import annotations
 from dataclasses import dataclass
 from functools import cache
 
-from rdflib import Graph
-from rdflib.query import ResultRow
-from rdflib.term import Identifier
+from gmeow_rdf.compat.rdflib import Graph
+from gmeow_rdf.compat.rdflib.query import ResultRow
+from gmeow_rdf.compat.rdflib.term import Identifier
 
 from gmeow_tools.config import TEMPORAL_QUERY_DIR
 

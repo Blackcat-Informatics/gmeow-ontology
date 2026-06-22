@@ -16,7 +16,7 @@ from pathlib import Path
 
 import gmeow_rdf
 import pytest
-from rdflib import Graph, URIRef
+from gmeow_rdf.compat.rdflib import Graph, URIRef
 
 from gmeow_tools.config import EXTERNAL_FIXTURES_DIR, FIXTURES_DIR, NAMESPACE
 from gmeow_tools.transform import TransformAbortedError, transform, vocab_coverage
@@ -110,7 +110,7 @@ def test_claim_layer_projects_back_to_source_vocab(tmp_path: Path) -> None:
     asserted G. P(G) still reproduces the source's own vocab term by projecting
     over the materialized claim layer (#552 option 1) — the round trip hands back
     what came in — WITHOUT asserting the claimed gmeow term itself."""
-    from rdflib import RDF
+    from gmeow_rdf.compat.rdflib import RDF
 
     from gmeow_tools.transform import transform_graph
 

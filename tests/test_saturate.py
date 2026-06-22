@@ -11,7 +11,7 @@ every derived triple carries its ``gmeow:mappedFrom`` audit annotation.
 from __future__ import annotations
 
 import pytest
-from rdflib import OWL, RDF, Graph, Literal, URIRef
+from gmeow_rdf.compat.rdflib import OWL, RDF, Graph, Literal, URIRef
 
 from gmeow_tools.config import FIXTURES_DIR, NAMESPACE
 from gmeow_tools.graph import load_merged_graph

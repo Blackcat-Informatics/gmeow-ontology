@@ -17,7 +17,7 @@ from fractions import Fraction
 from pathlib import Path
 
 import pytest
-from rdflib import Graph, Namespace, URIRef
+from gmeow_rdf.compat.rdflib import Graph, Namespace, URIRef
 from typer.testing import CliRunner
 
 from gmeow_tools.ext.music import writer

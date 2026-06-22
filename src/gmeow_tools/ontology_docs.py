@@ -69,8 +69,8 @@ from gmeow_tools.slices import (
 if TYPE_CHECKING:
     from collections.abc import Iterable, Sequence
 
-    from rdflib import Graph
-    from rdflib.term import Node
+    from gmeow_rdf.compat.rdflib import Graph
+    from gmeow_rdf.compat.rdflib.term import Node
 
 _RDF = "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
 _RDFS = "http://www.w3.org/2000/01/rdf-schema#"
@@ -1382,7 +1382,7 @@ def _collect_design_docs(slices: dict[str, Slice]) -> dict[str, list[DocDesignDo
 
 def _test_dsl_value(graph: Graph, subject: Node, predicate: str) -> str:
     """Return a single test-DSL object value as a display string ('' if absent)."""
-    from rdflib import Literal, URIRef
+    from gmeow_rdf.compat.rdflib import Literal, URIRef
 
     pred = URIRef(predicate)
     for obj in sorted(graph.objects(subject, pred), key=str):
@@ -1401,7 +1401,7 @@ def _test_dsl_expected_rows(graph: Graph, subject: Node) -> list[list[str]]:
     ``gmeow:cellVar`` with its IRI or literal value. Rows and cells are sorted
     deterministically so the rendered docs are drift-stable.
     """
-    from rdflib import Literal, URIRef
+    from gmeow_rdf.compat.rdflib import Literal, URIRef
 
     expect_row = URIRef(NAMESPACE + "cqExpectRow")
     row_cell = URIRef(NAMESPACE + "rowCell")
@@ -1435,7 +1435,7 @@ def _collect_test_specs(slices: dict[str, Slice]) -> dict[str, DocTestSpecs]:
     stable. The test-DSL vocabulary is merged in only so blank-node helper nodes
     resolve; it contributes no spec individuals.
     """
-    from rdflib import RDF, Graph, URIRef
+    from gmeow_rdf.compat.rdflib import RDF, Graph, URIRef
 
     cq_type = URIRef(_TEST_DSL_COMPETENCY_QUESTION)
     sa_type = URIRef(_TEST_DSL_STRUCTURAL_ASSERTION)

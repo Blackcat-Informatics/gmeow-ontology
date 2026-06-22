@@ -22,16 +22,16 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from blake3 import blake3
+from gmeow_rdf.compat.rdflib import BNode, Dataset, Graph, Literal, URIRef
 from gts import Signer
 from gts.model import XSD_STRING, Quad, Term, TermKind, Triple
 from gts.wire import canonical
 from gts.writer import Writer, term_to_wire
-from rdflib import BNode, Dataset, Graph, Literal, URIRef
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
-    from rdflib.term import Node
+    from gmeow_rdf.compat.rdflib.term import Node
 
     from gmeow_tools.saturate import DerivedTriple
 
@@ -507,7 +507,7 @@ def compile_gts(
         FileNotFoundError: if ``rdf12_path`` is given but does not exist (a missing
             statement layer is an error, not a silent RDF-1.1-only fallback).
     """
-    from rdflib.compare import to_canonical_graph
+    from gmeow_rdf.compat.rdflib.compare import to_canonical_graph
 
     from gmeow_tools.config import GTS_GRAPH_ALIGNMENTS, GTS_GRAPH_STATEMENTS
 

@@ -17,7 +17,7 @@ the independent oracle); everything else compares natively through here.
 
 from __future__ import annotations
 
-from rdflib import Graph
+from gmeow_rdf.compat.rdflib import Graph
 
 
 def _canonical_quads(nt: str) -> list[str]:

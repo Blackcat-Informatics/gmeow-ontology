@@ -4,8 +4,8 @@
 
 from __future__ import annotations
 
-from rdflib import RDF, BNode, Graph, Literal, URIRef
-from rdflib.term import Node
+from gmeow_rdf.compat.rdflib import RDF, BNode, Graph, Literal, URIRef
+from gmeow_rdf.compat.rdflib.term import Node
 
 from gmeow_tools.config import FIXTURES_DIR
 from gmeow_tools.up_projection import (

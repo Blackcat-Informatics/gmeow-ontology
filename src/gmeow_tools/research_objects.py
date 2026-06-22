@@ -39,7 +39,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 from xml.etree import ElementTree as ET
 
-from rdflib import RDF, RDFS, Graph, URIRef
+from gmeow_rdf.compat.rdflib import RDF, RDFS, Graph, URIRef
 
 from gmeow_tools.config import (
     DIST_DIR,
@@ -53,7 +53,7 @@ from gmeow_tools.generator import Generator, GeneratorError, _rel, register, wri
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
-    from rdflib.term import Node
+    from gmeow_rdf.compat.rdflib.term import Node
 
 # --------------------------------------------------------------------------- #
 # Vocabulary handles (instance-data properties read by every builder)

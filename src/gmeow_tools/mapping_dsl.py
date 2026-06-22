@@ -19,10 +19,10 @@ from dataclasses import dataclass, field
 from functools import lru_cache
 from pathlib import Path
 
-from rdflib import RDF, RDFS, SKOS, Graph, Literal, URIRef
-from rdflib.collection import Collection
-from rdflib.namespace import Namespace
-from rdflib.term import Node
+from gmeow_rdf.compat.rdflib import RDF, RDFS, SKOS, Graph, Literal, URIRef
+from gmeow_rdf.compat.rdflib.collection import Collection
+from gmeow_rdf.compat.rdflib.namespace import Namespace
+from gmeow_rdf.compat.rdflib.term import Node
 
 from gmeow_tools.config import MAPPING_DSL_DIR, PREFIXES
 from gmeow_tools.dsl_validate import validate_mapping_dsl

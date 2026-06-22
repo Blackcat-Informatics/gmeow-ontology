@@ -22,8 +22,8 @@ from __future__ import annotations
 import re
 from pathlib import Path
 
-from rdflib import RDF, RDFS, Graph, URIRef
-from rdflib.namespace import Namespace
+from gmeow_rdf.compat.rdflib import RDF, RDFS, Graph, URIRef
+from gmeow_rdf.compat.rdflib.namespace import Namespace
 
 from gmeow_tools.config import (
     MAPPING_DSL_DIR,
