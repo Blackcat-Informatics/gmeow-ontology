@@ -156,6 +156,7 @@ def check_statement_lossless(
     authored_owl_ttl: str,
     normalized_owl_ttl: str,
 ) -> Any: ...
+def slice_ownership_report(slices_root: str) -> Any: ...
 
 # ── CrossRef deposit-XML (Task 11, #819) ─────────────────────────────────────
 

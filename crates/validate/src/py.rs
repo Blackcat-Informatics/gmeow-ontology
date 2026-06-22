@@ -29,6 +29,7 @@ use crate::dsl;
 use crate::gufo::{self, GufoConfig};
 use crate::language_tags;
 use crate::lint::{self, LintConfig, LintReport};
+use crate::slice_ownership;
 use crate::statement;
 use crate::store;
 use crate::validate_all::{self, ValidateOptions};
@@ -840,6 +841,28 @@ fn check_statement_lossless(
     Ok(Py::new(py, PyReport::from_engine(report))?.into_any())
 }
 
+/// Native slice-ownership analysis projected into a diagnostics `Report` (#809).
+///
+/// Discovers the slice catalog under `slices_root`, runs the native `gmeow-slice`
+/// ownership + dependency analysis, and projects the structured `OwnershipReport`
+/// into canonical findings — replacing the old `ownership_errors() -> list[str]`
+/// collapse. Ownership defects (conflict / mismatch / unowned) are error findings
+/// (the validate gate); dependency observations are warnings (previously dropped).
+#[pyfunction]
+fn slice_ownership_report(py: Python<'_>, slices_root: &str) -> PyResult<Py<PyAny>> {
+    let catalog = gmeow_slice::SliceCatalog::discover(std::path::Path::new(slices_root))
+        .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))?;
+    let analysis = gmeow_slice::OwnershipAnalyzer::new(&catalog)
+        .analyze()
+        .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))?;
+
+    let mut report = gmeow_diagnostics::Report::new("slice-ownership");
+    for finding in slice_ownership::ownership_findings(&analysis) {
+        report.add_finding(finding);
+    }
+    Ok(Py::new(py, PyReport::from_engine(report))?.into_any())
+}
+
 /// Return whether `lang` is a GMEOW internal private-use tag (``x-gmeow-*``).
 ///
 /// Matches ``^x-gmeow-[a-z0-9\-]+$`` case-insensitively. This is the Rust
@@ -946,6 +969,7 @@ pub fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(validate_all_native, m)?)?;
     m.add_function(wrap_pyfunction!(check_statement_invariants, m)?)?;
     m.add_function(wrap_pyfunction!(check_statement_lossless, m)?)?;
+    m.add_function(wrap_pyfunction!(slice_ownership_report, m)?)?;
     m.add_function(wrap_pyfunction!(build_deposit_xml_native, m)?)?;
     m.add_function(wrap_pyfunction!(lint_deposit_native, m)?)?;
     Ok(())

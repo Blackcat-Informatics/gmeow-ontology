@@ -401,22 +401,21 @@ def run_shacl(data_nt: str, *, shapes_path: Path = SHAPES_FILE) -> ValidationRes
     return result
 
 
-def native_ownership_errors(root: Path | None = None) -> list[str]:
-    """Per-term ownership errors from the native ``gmeow_slice`` analyzer (#820 S8).
+def native_ownership_report(root: Path | None = None) -> Any:
+    """Slice-ownership analysis as a canonical diagnostics ``Report`` (#809).
 
-    The Rust ``OwnershipAnalyzer`` discovers each slice from its manifest, maps
-    every term to its declared owner (``rdfs:isDefinedBy``) and physical origin,
-    and reports ``Conflict`` (a term claimed by more than one slice), ``Mismatch``
-    (declared owner ≠ physical slice — the foreign/root ``isDefinedBy`` case), and
-    ``Unowned``. This is a strict superset of the retired path-derived
-    ``slice_ownership_lint`` (#329) and is the authoritative ownership-validation
-    source for ``make validate``.
+    The native ``gmeow_validate.slice_ownership_report`` discovers each slice from
+    its manifest, runs the Rust ``OwnershipAnalyzer`` (term → declared owner via
+    ``rdfs:isDefinedBy`` + physical origin), and projects the structured
+    ``OwnershipReport`` into canonical findings — replacing the retired
+    ``ownership_errors() -> list[str]`` collapse (``.goals`` MAXIMAL INFORMATION
+    FLOW): ownership **defects** (``Conflict`` / ``Mismatch`` / ``Unowned``, #329)
+    are error findings that keep the gate failing, while dependency
+    **observations** (undeclared / stale / unparsable-query) — previously dropped
+    at the string boundary — are now carried as structured warnings.
     """
-    import gmeow_slice
-
     base = root if root is not None else SLICES_DIR
-    catalog = gmeow_slice.SliceCatalog.discover(str(base))
-    return list(gmeow_slice.OwnershipAnalyzer(catalog).analyze().ownership_errors())
+    return gmeow_validate.slice_ownership_report(str(base))
 
 
 _ANCHOR_PATTERN = re.compile(r"^###\s+`?gmeow:([A-Za-z][A-Za-z0-9]*)`?", re.MULTILINE)
@@ -630,12 +629,16 @@ def validate_all(
     py_errors: list[str] = []
     py_warnings: list[str] = []
     if gts_input is None:
-        # Ownership gate (#820 S8): the authoritative ownership-validation source
-        # is the native gmeow_slice OwnershipAnalyzer, which subsumes the retired
-        # path-derived slice_ownership_lint (Conflict + Mismatch + Unowned, #329)
-        # over the manifest-discovered slice catalog. Folded into the canonical
-        # report alongside the other Python-side gate findings.
-        ownership_errors = native_ownership_errors()
+        # Ownership gate (#820 S8 / #809): the authoritative ownership-validation
+        # source is the native gmeow_slice OwnershipAnalyzer (Conflict + Mismatch +
+        # Unowned, #329). `make validate` stays a focused GATE — it folds only the
+        # ownership-DEFECT errors here, exactly as before. The full STRUCTURED
+        # report (those errors PLUS the dependency-observation warnings that the
+        # old list[str] path dropped entirely) is surfaced separately, with full
+        # fidelity, on the `slice-ownership` feedback surface (#809) → SARIF +
+        # gmeow.gts — so the previously-trimmed information now reaches a shippable
+        # surface without flooding the gate.
+        ownership_errors = list(native_ownership_report().errors)
         result.errors.extend(ownership_errors)
         py_errors.extend(ownership_errors)
 
