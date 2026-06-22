@@ -77,14 +77,18 @@ _LANE_SCRIPTS: tuple[str, ...] = (
 )
 
 #: A `docker` command (run/pull/build/image/compose), the `--mode docker` switch,
-#: and the two pinned oracle images. Deliberately NOT a bare `java`: the `rust`
-#: CI job legitimately uses `reporter: java-junit` and `junit.xml`, which name a
-#: report format, not the JVM.
+#: the two pinned oracle images, and actual JVM execution. Deliberately NOT a
+#: bare `java`: the `rust` CI job legitimately uses `reporter: java-junit` and
+#: `junit.xml`, which name a report format, not the JVM. We therefore match only
+#: a launched JVM (`java -jar`/`java -cp`), the compiler (`javac`), or the build
+#: tool (`gradle`/`gradlew`) — an actual invocation, never the substring `java`.
 _DOCKER_PATTERNS: tuple[str, ...] = (
     r"\bdocker\s+(?:run|pull|build|image|compose)\b",
     r"--mode\s+docker",
     r"obolibrary/robot",
     r"stain/jena",
+    r"\bjava\s+-(?:jar|cp)\b",
+    r"\b(?:javac|gradlew?)\b",
 )
 
 
@@ -200,8 +204,9 @@ def test_classic_cross_check_workflow_is_never_required() -> None:
     if "pull_request" in triggers:
         jobs = ccc["jobs"]
         assert isinstance(jobs, dict)
-        assert any("label" in str(job.get("if", "")) for job in jobs.values()), (
-            "pull_request-triggered oracle lane must gate its job(s) on a label"
+        assert all("label" in str(job.get("if", "")) for job in jobs.values()), (
+            "EVERY pull_request-triggered oracle-lane job must gate on a label "
+            "(a single ungated job would run Docker/Java on every PR)"
         )
 
     # And it is structurally absent from the required aggregator's needs: a
