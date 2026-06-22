@@ -33,11 +33,32 @@ logic:AbstractIndividualType
     skos:definition "A logic:Type whose instances are logic:AbstractIndividuals — the type whose extension (via logic:instanceOf) is drawn from individuals outside spacetime (numbers, sets, logic:QualityValues). The counterpart of gufo:AbstractIndividualType. Stated in prose, not as a subclass edge. Contrast logic:ConcreteIndividualType, whose instances are located in spacetime."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
+logic:AdmissibleValuationPolicy
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Admissible Valuation Policy"@x-gmeow-english ;
+    skos:definition "The facet value class of the admissible-valuation (gap/glut) policy: which of the four Belnap values a valuation is ALLOWED to assign. Single-valued on a ReasoningContract. Forbidding the gap, the glut, or both carves the classic sub-logics out of the same logic:BelnapBilattice algebra — it is a FORMAL ERROR to reduce the FDE↔LP difference to the designated-value set, because the two differ precisely in this admissible-valuation set, not in their designated values."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:AdmitAllFour
+    a owl:NamedIndividual ,
+        logic:AdmissibleValuationPolicy ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Admit All Four"@x-gmeow-english ;
+    skos:definition "The admissible-valuation policy that permits all four Belnap values — true, false, both (glut), and neither (gap). It carves out First-Degree Entailment (FDE): a valuation may leave an atom under-determined (gap) or over-determined (glut). Reducing the FDE↔LP difference to the designated-value set is a formal error — FDE differs from LP by admitting the gap, not by its designated values."@x-gmeow-english .
+
 logic:AntiRigidType
     a owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Anti-Rigid Type"@x-gmeow-english ;
     skos:definition "A logic:Type that applies contingently to EVERY one of its instances — for each instance there is a world of existence in which it lacks the type (the anti-rigidity witness; logic:rigidlyAppliesTo holds for none of its instances). The counterpart of gufo:AntiRigidType; the meta-type whose instances are the anti-rigid sorts: logic:Phase and logic:Role (each a logic:AntiRigidType and a logic:Sortal), logic:RoleMixin and logic:PhaseMixin (each a logic:AntiRigidType and a logic:NonSortal). Stated in prose, not as a subclass edge. The discipline that anti-rigid instantiation owes a witness is logic:dischargeObligation. Contrast logic:RigidType."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:ArgumentationSemantics
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Argumentation Semantics"@x-gmeow-english ;
+    skos:definition "The facet value class of the argumentation facet: how conflicts among defeasible arguments are resolved. Single-valued on a ReasoningContract. Its individuals range from no argumentation through the grounded and preferred Dung semantics to a policy-specific resolution."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 logic:Aspect
@@ -47,6 +68,20 @@ logic:Aspect
     skos:definition "A moment (trope): an endurant that exists only by inhering in a bearer on which it existentially depends — a colour, a belief, a marriage's commitment. The counterpart of gufo:Aspect, covering its intrinsic/extrinsic split (gufo:IntrinsicAspect inheres in a single bearer, gufo:ExtrinsicAspect depends on several): logic: carries that distinction on the inherence/dependence relation rather than as separate classes. The dependent counterpart of logic:Substantial. Qualities and modes are aspects (stated in prose, not as a subclass edge)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
+logic:BelnapBilattice
+    a owl:NamedIndividual ,
+        logic:TruthAlgebra ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Belnap Bilattice"@x-gmeow-english ;
+    skos:definition "The four-valued Belnap truth algebra with the values true, false, both (over-determined / glut) and neither (under-determined / gap). The richest truth algebra a ReasoningContract may select; the classic sub-logics (FDE, LP, K3, classical) are carved out of this same algebra by the admissible-valuation policy and the designated-value set, which vary independently of the algebra."@x-gmeow-english .
+
+logic:BudgetBoundedResource
+    a owl:NamedIndividual ,
+        logic:ResourcePolicy ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Budget-Bounded Resource"@x-gmeow-english ;
+    skos:definition "The resource execution policy that runs under a declared resource budget or bound: on exhaustion the engine returns a budget-exhausted, incomplete result — sound but incomplete — and never a false answer. The bounded counterpart of logic:CertifiedFragmentResource; a contract may carry both, since resource is an execution policy holding several independent properties together rather than a single complete-vs-bounded toggle."@x-gmeow-english .
+
 logic:Builtin
     a owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
@@ -54,11 +89,60 @@ logic:Builtin
     skos:definition "A native computational primitive usable in rule bodies under logic:ProceduralPrologProfile: the registry entry for a derivational builtin such as string concatenation, date arithmetic, or basic math (criticism 8, LOGIC-FOUNDATION.md §OWL 2 criticisms). Builtins are the lightweight derivations a foundation genuinely needs (Principle 12, in-logic); heavy domain computation — geo/datum transforms, relation-algebra composition, vector operations — stays external by reference. The registry is declared here; builtin execution is seamed to the compiler/engine (#664/#665)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
+logic:CanonicalProjection
+    a owl:NamedIndividual ,
+        logic:ProjectionTarget ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Canonical Projection"@x-gmeow-english ;
+    skos:definition "The projection-target value requesting the answer be rendered in the canonical logic: surface — the orthogonal, lossless form GMEOW reasons over, before any down-projection. The default output request; it never alters which entailments hold."@x-gmeow-english .
+
 logic:Category
     a owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Category"@x-gmeow-english ;
     skos:definition "A rigid non-sortal that classifies instances of several different Kinds by shared essential properties without itself supplying a principle of identity: it dispersively spans Kinds rather than carrying its own identity criterion. Rigid but identity-dispersive; the rigid counterpart of the anti-rigid RoleMixin and PhaseMixin."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:CertifiedFragmentResource
+    a owl:NamedIndividual ,
+        logic:ResourcePolicy ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Certified-Fragment Resource"@x-gmeow-english ;
+    skos:definition "The resource execution policy that requires the rule set to lie within a certified-complete, terminating fragment: it guarantees hard termination and a complexity bound, and the result reports complete-for-fragment. The certified counterpart of logic:BudgetBoundedResource; because resource is an execution policy holding independent properties together, a contract may require both a certified fragment and a budget at once."@x-gmeow-english .
+
+logic:ClassicalModelSemantics
+    a owl:NamedIndividual ,
+        logic:ModelSemantics ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Classical Model Semantics"@x-gmeow-english ;
+    skos:definition "The model-semantics facet value selecting classical first-order entailment: truth in every model. Single-valued on a ReasoningContract; contrast the least-model, well-founded, and stable-model values that select a distinguished model or model set for rule programs."@x-gmeow-english .
+
+logic:ClassicalTwoValued
+    a owl:NamedIndividual ,
+        logic:TruthAlgebra ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Classical Two-Valued"@x-gmeow-english ;
+    skos:definition "The two-valued truth algebra with only true and false. The degenerate truth algebra a ReasoningContract selects when neither gluts nor gaps are needed; equivalent to selecting the Belnap algebra with logic:ForbidGapAndGlut, offered as a direct value for the common classical case."@x-gmeow-english .
+
+logic:ClosedWorldClosure
+    a owl:NamedIndividual ,
+        logic:ClosureValue ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Closed-World Closure"@x-gmeow-english ;
+    skos:definition "The closed-world value of the closure map: for the predicate or context key it is bound to, the materialized extension is complete and absence may be read as falsity. Realized within a logic:WorldBoundary by the built-in SHACL (the CWA lane); it is the per-key value of the closure map, never a global flag — open-world is the default for unlisted keys."@x-gmeow-english .
+
+logic:ClosureEntry
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Closure Entry"@x-gmeow-english ;
+    skos:definition "A reified entry of the Closure facet map: it binds a predicate or context key (logic:closureKey) to an open- or closed-world value (logic:closureValue). The Closure facet is a map, not a global flag; WorldBoundary-scoped closed-world is the per-key value, open-world the default for unlisted keys."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:ClosureValue
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Closure Value"@x-gmeow-english ;
+    skos:definition "The facet value class of a single closure setting — open-world or closed-world. It is the per-key value of the closure map (carried as the map default via logic:defaultClosure or as the value of a logic:ClosureEntry), not the closure facet itself, which is a map keyed by predicate or context."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 logic:Collection
@@ -68,11 +152,25 @@ logic:Collection
     skos:definition "A plurality individuated by its members, where the members are themselves the relevant units of the whole — a deck of cards, a committee, a playlist. The counterpart of gufo:Collection; members relate to it via logic:memberOf rather than logic:properPartOf. Contrast logic:Quantity, which is individuated by constitution rather than by member count."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
+logic:CommonLogicProjection
+    a owl:NamedIndividual ,
+        logic:ProjectionTarget ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Common Logic Projection"@x-gmeow-english ;
+    skos:definition "The projection-target value requesting the answer be rendered to the ISO Common Logic surface. One of several output targets a single contract may name at once; like every projection target it is a rendering request and never alters which entailments hold."@x-gmeow-english .
+
 logic:ComparativeRelationshipType
     a owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Comparative Relationship Type"@x-gmeow-english ;
     skos:definition "A logic:RelationshipType whose instances are comparative relations grounded directly in the qualities of their relata, with NO mediating relator (heavier-than, older-than, the same colour as). The counterpart of gufo:ComparativeRelationshipType; the relation holds in virtue of the relata's logic:Quality values standing in an ordering within a logic:QualitySpace, not in virtue of any logic:Relator. Stated in prose, not as a subclass edge. Contrast logic:MaterialRelationshipType, which is relator-founded."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:CompatibilityRule
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Compatibility Rule"@x-gmeow-english ;
+    skos:definition "A single local rule of the reasoning-contract feature model (constraint graph): it states that two facet values require each other, exclude each other, or together demand a particular resource value or decidability class. The supported-contract set is computed from these rules — a contract is supported iff it violates none. Authored canonically in crates/logic (Rust) and projected here as documentation; the projection is lossy (Principle 17)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 logic:CompleteOverApproximation
@@ -96,12 +194,61 @@ logic:ConcreteIndividualType
     skos:definition "A logic:Type whose instances are logic:ConcreteIndividuals — the type whose extension (via logic:instanceOf) is drawn from individuals located in spacetime (endurants and perdurants). The counterpart of gufo:ConcreteIndividualType; the umbrella over logic:EndurantType together with the type-of-perdurants. Stated in prose, not as a subclass edge. Contrast logic:AbstractIndividualType."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
+logic:ContextAxis
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Context Axis"@x-gmeow-english ;
+    skos:definition "The facet value class of one index axis of the multi-dimensional context facet. Context is multi-dimensional: a single result may be indexed simultaneously by world, standpoint, time, and path. Each logic:ContextAxis individual names one such axis; they coexist on one result rather than being alternative values of one slot."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:DatalogFragment
+    a owl:NamedIndividual ,
+        logic:FormulaFragment ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Datalog Fragment"@x-gmeow-english ;
+    skos:definition "The formula-fragment facet value selecting the function-free, range-restricted Datalog class of formulae. Single-valued on a ReasoningContract; the decidable, terminating fragment more restrictive than logic:HornFragment (no function symbols) and the projection target for which least-model semantics is PTIME-data."@x-gmeow-english .
+
+logic:DatalogProjection
+    a owl:NamedIndividual ,
+        logic:ProjectionTarget ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Datalog Projection"@x-gmeow-english ;
+    skos:definition "The projection-target value requesting the answer be rendered to a Datalog surface. One of several output targets a single contract may name at once; like every projection target it is a rendering request and never alters which entailments hold."@x-gmeow-english .
+
+logic:DefaultNegation
+    a owl:NamedIndividual ,
+        logic:NegationOperator ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Default Negation"@x-gmeow-english ;
+    skos:definition "The negation-as-failure operator: a body literal that holds when its atom is not derivable. One member of the negation-operator set facet (which may also include logic:ExplicitNegation); a program using it requires at least the stratified-negation reading of the model-semantics facet rather than positive-Horn least-model semantics."@x-gmeow-english .
+
 logic:DependencyModel
     a owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Dependency Model"@x-gmeow-english ;
     rdfs:subClassOf logic:ProbabilityModel ;
     skos:definition "A probability model carrying an EXPLICIT joint distribution over a correlated set of logic:probability facts: where logic:FullIndependence factorizes as a product, a dependency model substitutes a declared joint table (logic:correlates names the correlated facts; logic:jointOutcome enumerates the joint outcomes with their logic:jointProbability). Facts outside the correlated set remain independent and factorize as usual. The declared joint outcomes must be exhaustive and sum to one."@x-gmeow-english .
+
+logic:DesignateTrueAndBoth
+    a owl:NamedIndividual ,
+        logic:DesignatedValueSet ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Designate True And Both"@x-gmeow-english ;
+    skos:definition "The designated-value set that counts both true and both (the glut) as designated — i.e. as holding for the purpose of consequence. The designated set shared by FDE and LP in their standard presentations; what distinguishes FDE from LP is the admissible-valuation policy, not this designated set, so it is a formal error to attribute the FDE↔LP difference to the designated values."@x-gmeow-english .
+
+logic:DesignateTrueOnly
+    a owl:NamedIndividual ,
+        logic:DesignatedValueSet ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Designate True Only"@x-gmeow-english ;
+    skos:definition "The designated-value set that counts only true as designated. The designated set of K3 and classical logic; combined with the admissible-valuation policy and truth algebra it fixes which logic a contract selects, the three components varying independently."@x-gmeow-english .
+
+logic:DesignatedValueSet
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Designated Value Set"@x-gmeow-english ;
+    skos:definition "The facet value class of the designated-value set: which truth values count as designated (as holding) for the purpose of consequence. Single-valued on a ReasoningContract. It is one of the three independent components — truth algebra, admissible-valuation policy, designated values — that together separate FDE, LP, K3 and classical logic; collapsing any two of them erases exactly the choices that distinguish those logics."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
 
 logic:Discipline
     a owl:Class ;
@@ -130,11 +277,32 @@ logic:EndurantType
     skos:definition "A logic:Type whose instances are logic:Endurants — the type whose extension (via logic:instanceOf) is drawn from continuants. The counterpart of gufo:EndurantType; the type-of-endurants branch under which the sortal and non-sortal foundation meta-types (logic:Kind, logic:Phase, logic:Role, logic:Category, …) ultimately fall. Stated in prose, not as a subclass edge. Contrast logic:Event and logic:Situation, which carry gUFO's EventType/SituationType roles per the down-projection."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
+logic:EntrenchmentRevision
+    a owl:NamedIndividual ,
+        logic:RevisionPolicy ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Entrenchment Revision"@x-gmeow-english ;
+    skos:definition "The revision-policy value under which conflicting information is absorbed by an AGM-style belief revision driven by a declared epistemic-entrenchment ordering: the least entrenched beliefs are surrendered to restore consistency. Contrast logic:MonotonicRevision (nothing retracted) and logic:TruthMaintenanceRevision (justification-tracked retraction)."@x-gmeow-english .
+
+logic:EqualityPolicy
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Equality Policy"@x-gmeow-english ;
+    skos:definition "The facet value class of the equality facet: when two terms are taken to denote one entity. Single-valued on a ReasoningContract. Its individuals range from RDF equality through explicit (asserted) equality to an optional unique-name assumption."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
 logic:Event
     a owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Event"@x-gmeow-english ;
     skos:definition "A perdurant occurrence that happens in time and is composed of temporal parts: an action, a process, a happening that unfolds and is complete once it has occurred. Tokens it as an occurrence rather than an endurant; in the type-level world strata (risk, teleology, norms) the no-occurrence gate keeps reasoning over Event *types* without entailing any Event instance."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:EvolutionMode
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Evolution Mode"@x-gmeow-english ;
+    skos:definition "The facet value class of the evolution facet: whether and how state changes over the course of reasoning. Single-valued on a ReasoningContract. Its individuals range from the static (one-state) default through state-transition to the Transaction-Logic transaction-path semantics; evolution is independent of the model-semantics facet, which is why state-change reasoning is a facet value, never a parallel profile."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 logic:ExactPreservation
@@ -143,6 +311,34 @@ logic:ExactPreservation
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Exact Preservation"@x-gmeow-english ;
     skos:definition "The projection yields the same answers as the canonical model for the declared query class: neither misses canonical answers nor adds spurious ones. The strongest preservation polarity, claimable only for a certified subfragment."@x-gmeow-english .
+
+logic:ExistentialRulesFragment
+    a owl:NamedIndividual ,
+        logic:FormulaFragment ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Existential Rules Fragment"@x-gmeow-english ;
+    skos:definition "The formula-fragment facet value selecting the existential-rules (tuple-generating-dependency / Datalog±) class, admitting existential quantifiers in rule heads. Single-valued on a ReasoningContract; more expressive than logic:DatalogFragment (value invention) and the fragment over which acyclicity or guardedness conditions buy back decidability."@x-gmeow-english .
+
+logic:ExplicitEqualityPolicy
+    a owl:NamedIndividual ,
+        logic:EqualityPolicy ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Explicit Equality Policy"@x-gmeow-english ;
+    skos:definition "The equality-policy value under which two terms are one only when their identity is explicitly asserted (e.g. via owl:sameAs-style equality facts): no implicit unification beyond what is declared. Contrast logic:RdfEqualityPolicy (RDF node identity) and logic:UniqueNameEqualityPolicy (distinct names denote distinct entities)."@x-gmeow-english .
+
+logic:ExplicitNegation
+    a owl:NamedIndividual ,
+        logic:NegationOperator ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Explicit Negation"@x-gmeow-english ;
+    skos:definition "The strong (explicit) negation operator: an atom is asserted false, distinct from being merely not derivable. One member of the negation-operator set facet — a program may legitimately use explicit negation and logic:DefaultNegation together — which records the permitted operator set, not a single chosen operator."@x-gmeow-english .
+
+logic:FOLFragment
+    a owl:NamedIndividual ,
+        logic:FormulaFragment ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "FOL Fragment"@x-gmeow-english ;
+    skos:definition "The formula-fragment facet value selecting unrestricted first-order formulae. Single-valued on a ReasoningContract; the most expressive (and only semi-decidable) fragment, against which the Horn, Datalog, and existential-rules values are the decidability-bought restrictions."@x-gmeow-english .
 
 logic:FixedCollection
     a owl:Class ;
@@ -156,6 +352,34 @@ logic:Fluent
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Fluent"@x-gmeow-english ;
     skos:definition "A value or relation indexed to time (and world): a time-varying property whose truth changes across moments — an object's location, an account's balance, a temperature reading. The native temporal-fluent construct of the four-dimensional treatment (criticism 3), pairing with Principle-11 frame-relativity so each temporal value lives in an explicit reference system rather than as a bare literal."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:ForbidGap
+    a owl:NamedIndividual ,
+        logic:AdmissibleValuationPolicy ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Forbid Gap"@x-gmeow-english ;
+    skos:definition "The admissible-valuation policy that forbids the neither gap while admitting the both glut — every atom is at least true or false, but may be both. It carves out the Logic of Paradox (LP). FDE and LP share the designated set true,both; LP differs from FDE by forbidding the gap, not by its designated values — reducing the FDE↔LP difference to designated values is a formal error."@x-gmeow-english .
+
+logic:ForbidGapAndGlut
+    a owl:NamedIndividual ,
+        logic:AdmissibleValuationPolicy ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Forbid Gap And Glut"@x-gmeow-english ;
+    skos:definition "The admissible-valuation policy that forbids both the neither gap and the both glut, leaving exactly true and false. It carves classical logic out of the Belnap algebra; combined with logic:DesignateTrueOnly it recovers ordinary two-valued entailment."@x-gmeow-english .
+
+logic:ForbidGlut
+    a owl:NamedIndividual ,
+        logic:AdmissibleValuationPolicy ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Forbid Glut"@x-gmeow-english ;
+    skos:definition "The admissible-valuation policy that forbids the both glut while admitting the neither gap — every atom is at most true or false, but may be neither. It carves out Strong Kleene logic (K3), the dual restriction to logic:ForbidGap; the difference between K3 and the gap-admitting logics lies in this admissible-valuation set, not in the designated values."@x-gmeow-english .
+
+logic:FormulaFragment
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Formula Fragment"@x-gmeow-english ;
+    skos:definition "The facet value class of the formula-fragment facet: the syntactic class of formulae a rule set is admitted from. Single-valued on a ReasoningContract. Its individuals range from unrestricted first-order through Horn and Datalog to existential rules, fixing both expressivity and the decidability ceiling."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 logic:FreeRole
@@ -178,6 +402,27 @@ logic:FunctionalComplex
     rdfs:label "Functional Complex"@x-gmeow-english ;
     skos:definition "A whole whose parts play distinct functional roles — a car (engine, wheels, chassis), an organism (organs), an organization (departments): a complex object, not a mere collection of like members. The counterpart of gufo:FunctionalComplex; its parts relate to it via logic:properPartOf (mereological parthood) rather than logic:memberOf, and each part contributes a different function. Stated in prose, not as a subclass edge. Contrast logic:Collection (uniform members) and logic:Quantity (homogeneous stuff)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:FuzzyMeasure
+    a owl:NamedIndividual ,
+        logic:UncertaintyMeasure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Fuzzy Measure"@x-gmeow-english ;
+    skos:definition "The uncertainty measure carrying fuzzy (degree-of-truth) membership values. One member of the uncertainty-measure set facet, which may carry several measures at once; distinct from logic:ProbabilisticMeasure (a calibrated probability) and logic:WeightedRankingMeasure (a solver preference order)."@x-gmeow-english .
+
+logic:GroundedArgumentation
+    a owl:NamedIndividual ,
+        logic:ArgumentationSemantics ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Grounded Argumentation"@x-gmeow-english ;
+    skos:definition "The grounded Dung argumentation semantics: the unique, sceptical, least fixed point of the characteristic function — an argument is accepted only when every attack on it is defeated by an accepted argument. The argumentation-facet value that resolves conflict deterministically; contrast logic:PreferredArgumentation, which admits multiple maximal admissible sets."@x-gmeow-english .
+
+logic:HornFragment
+    a owl:NamedIndividual ,
+        logic:FormulaFragment ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Horn Fragment"@x-gmeow-english ;
+    skos:definition "The formula-fragment facet value selecting Horn clauses (at most one positive literal per clause). Single-valued on a ReasoningContract; the rule fragment over which least-model semantics is well-defined and, for the function-free case, terminating — the base on which the positive-Horn, stratified-negation and procedural presets build."@x-gmeow-english .
 
 logic:InconsistencyPreserving
     a owl:NamedIndividual ,
@@ -212,6 +457,13 @@ logic:Kind
     rdfs:label "Kind"@x-gmeow-english ;
     skos:definition "A rigid sortal that supplies a principle of identity to its instances and applies necessarily across every world in which an instance exists: an ultimate sortal under which an object falls for its whole existence. Every object instantiates exactly one ultimate Kind. Rigid (rigidlyAppliesTo) and identity-supplying (suppliesIdentity); contrast the anti-rigid Role and Phase."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:LeastModelSemantics
+    a owl:NamedIndividual ,
+        logic:ModelSemantics ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Least Model Semantics"@x-gmeow-english ;
+    skos:definition "The model-semantics facet value selecting the unique least Herbrand model of a positive (or stratified) program. Single-valued on a ReasoningContract; the monotonic semantics underlying the positive-Horn and stratified-negation presets, contrasted with the well-founded and stable-model values for unstratified negation."@x-gmeow-english .
 
 logic:MaterialRelationshipType
     a owl:Class ;
@@ -248,6 +500,34 @@ logic:Mode
     skos:definition "An aspect that is NOT directly measurable in a quality space — a belief, a skill, an intention, a symptom — whether intrinsic to a single bearer or relational across several. The counterpart of gufo:IntrinsicMode and gufo:ExtrinsicMode generalized: a logic:Aspect lacking a quality value (stated in prose, not as a subclass edge). Contrast logic:Quality, which is measurable."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
+logic:ModelSemantics
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Model Semantics"@x-gmeow-english ;
+    skos:definition "The facet value class of the model-semantics facet: which models of a program are selected as authoritative. Single-valued on a ReasoningContract. Its individuals are classical entailment, the least model, the well-founded model, and the stable models — the choice that settles which entailments hold over a rule program."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:MonotonicRevision
+    a owl:NamedIndividual ,
+        logic:RevisionPolicy ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Monotonic Revision"@x-gmeow-english ;
+    skos:definition "The revision-policy value under which new information only adds conclusions and never retracts them: there is nothing to revise because no conclusion is ever defeated. The degenerate revision policy of monotonic reasoning (the positive-Horn preset), contrasted with logic:EntrenchmentRevision and logic:TruthMaintenanceRevision, which absorb defeating information."@x-gmeow-english .
+
+logic:NoArgumentation
+    a owl:NamedIndividual ,
+        logic:ArgumentationSemantics ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "No Argumentation"@x-gmeow-english ;
+    skos:definition "The argumentation-facet value selecting no argumentation layer: conflicts are not resolved by an argumentation semantics. The default for contracts whose conflict resolution is handled by the model semantics or revision policy alone, contrasted with the grounded, preferred, and policy-specific argumentation values."@x-gmeow-english .
+
+logic:NoUncertainty
+    a owl:NamedIndividual ,
+        logic:UncertaintyMeasure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "No Uncertainty"@x-gmeow-english ;
+    skos:definition "The uncertainty-measure value carrying no graded belief: reasoning is categorical. The default of the uncertainty set facet (the empty selection), contrasted with logic:ProbabilisticMeasure, logic:WeightedRankingMeasure, and logic:FuzzyMeasure, any combination of which may be in force at once."@x-gmeow-english .
+
 logic:NonRigidType
     a owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
@@ -269,12 +549,33 @@ logic:Object
     skos:definition "A substantial endurant that bears its own principle of identity and does not inhere in another individual — a person, an organization, a physical artefact. The counterpart of gufo:Object: an independent endurant, contrasted with the aspects that existentially depend on it. Every Object is a logic:Substantial and a logic:Endurant (stated in prose, not as a subclass edge)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
+logic:OpenWorldClosure
+    a owl:NamedIndividual ,
+        logic:ClosureValue ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Open-World Closure"@x-gmeow-english ;
+    skos:definition "The open-world value of the closure map: for the predicate or context key it is bound to, absence of a fact means unknown rather than false. The default for any key not explicitly closed; the closure facet is a map, so this value is read per key, with logic:ClosedWorldClosure applied only inside a logic:WorldBoundary."@x-gmeow-english .
+
+logic:OwlProjection
+    a owl:NamedIndividual ,
+        logic:ProjectionTarget ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "OWL Projection"@x-gmeow-english ;
+    skos:definition "The projection-target value requesting the answer be rendered to an OWL surface (e.g. an EL or DL profile). One of several output targets a single contract may name at once; like every projection target it is a rendering request and never alters which entailments hold."@x-gmeow-english .
+
 logic:Participation
     a owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Participation"@x-gmeow-english ;
     skos:definition "The reified involvement of an endurant in a perdurant — an actor's participation in an event, a reactant's participation in a reaction. The counterpart of gufo:Participation: a relator-like reified link binding a logic:Endurant to the logic:Perdurant it takes part in, so the role and temporal scope of the involvement can be carried on the participation itself."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:PathContextAxis
+    a owl:NamedIndividual ,
+        logic:ContextAxis ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Path Context Axis"@x-gmeow-english ;
+    skos:definition "The path index axis of the multi-dimensional context facet: a truth is relative to a transaction or execution path. One of several context axes that coexist on a single result — world, standpoint, time, and path index the same result simultaneously rather than being alternative values of one slot."@x-gmeow-english .
 
 logic:Perdurant
     a owl:Class ;
@@ -297,12 +598,32 @@ logic:PhaseMixin
     skos:definition "An anti-rigid non-sortal that abstracts an intrinsically-determined phase shared across instances of several Kinds — living thing (a person or an animal in its living phase). Anti-rigid and identity-dispersive: a Phase generalized to span multiple Kinds without supplying identity."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
+logic:PolicySpecificArgumentation
+    a owl:NamedIndividual ,
+        logic:ArgumentationSemantics ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Policy-Specific Argumentation"@x-gmeow-english ;
+    skos:definition "The argumentation-facet value selecting a domain- or policy-specific conflict-resolution semantics rather than a standard Dung semantics — e.g. a declared preference or priority ordering proper to a normative or legal register. Contrast logic:GroundedArgumentation and logic:PreferredArgumentation, the standard abstract-argumentation semantics."@x-gmeow-english .
+
 logic:PositiveHornProfile
     a owl:NamedIndividual ,
-        logic:SemanticProfile ;
+        logic:ReasoningPreset ;
+    logic:expandsToFacet logic:CertifiedFragmentResource ,
+        logic:HornFragment ,
+        logic:LeastModelSemantics ,
+        logic:MonotonicRevision ,
+        logic:OpenWorldClosure ;
+    logic:defaultClosure logic:OpenWorldClosure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Positive Horn Profile"@x-gmeow-english ;
     skos:definition "The monotonic Horn-rule semantics: least-model semantics over positive (negation-free) rules, always terminating for the function-free fragment. The base case against which every richer profile adds expressivity and cost."@x-gmeow-english .
+
+logic:PreferredArgumentation
+    a owl:NamedIndividual ,
+        logic:ArgumentationSemantics ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Preferred Argumentation"@x-gmeow-english ;
+    skos:definition "The preferred Dung argumentation semantics: acceptance over the maximal (with respect to set inclusion) admissible sets of arguments. The credulous counterpart of logic:GroundedArgumentation — a framework may have several preferred extensions, so it admits genuine choice where the grounded semantics is uniquely sceptical."@x-gmeow-english .
 
 logic:PreservationKind
     a owl:Class ;
@@ -310,9 +631,17 @@ logic:PreservationKind
     rdfs:label "Preservation Kind"@x-gmeow-english ;
     skos:definition "The polarity of guarantee a reasoning projection makes about its answers relative to the canonical logic: model: the answer-preservation classification recorded in the loss ledger for each projection, distinct from and complementary to the complexity/decidability class. Its individuals range from exact preservation through sound under-approximation and complete over-approximation to validation-only and the two inconsistency-direction kinds."@x-gmeow-english .
 
+logic:ProbabilisticMeasure
+    a owl:NamedIndividual ,
+        logic:UncertaintyMeasure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Probabilistic Measure"@x-gmeow-english ;
+    skos:definition "The uncertainty measure carrying calibrated probabilities, requiring a declared logic:ProbabilityModel. One member of the uncertainty-measure set facet (it may coexist with logic:WeightedRankingMeasure or logic:FuzzyMeasure); it is a measure carried alongside the chosen model semantics, never a model-semantics value of its own, and never the default reading of a logic:confidence number."@x-gmeow-english .
+
 logic:ProbabilisticProfile
     a owl:NamedIndividual ,
-        logic:SemanticProfile ;
+        logic:ReasoningPreset ;
+    logic:expandsToFacet logic:ProbabilisticMeasure ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Probabilistic Profile"@x-gmeow-english ;
     skos:definition "Probabilistic inference over logic:probability, ProbLog-style: requires an explicit independence or dependency model. Probabilistic inference is available only in this profile — it is not the default reading of every confidence number, and a logic:confidence annotation is never interpreted as a probability unless an explicit mapping to logic:probability is declared."@x-gmeow-english .
@@ -323,9 +652,19 @@ logic:ProbabilityModel
     rdfs:label "Probability Model"@x-gmeow-english ;
     skos:definition "A declared independence or dependency model governing probabilistic inference for a rule set or world. Probabilistic inference under logic:ProbabilisticProfile is available ONLY when such a model is declared via logic:probabilityModel: the model fixes the joint distribution over the logic:probability facts so that marginals are well-defined. Absent a declared model the profile refuses to infer probabilities — it never silently assumes independence, because treating un-modelled confidence metadata as a probability model is the named failure mode this vocabulary exists to prevent."@x-gmeow-english .
 
+logic:ProceduralExecution
+    a owl:NamedIndividual ,
+        logic:ResourcePolicy ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Procedural Execution"@x-gmeow-english ;
+    skos:definition "The operational-execution property of a resource policy: SLD search control (cut) and builtins are permitted — an operational rather than purely declarative reading. This is the facet that licenses cut; cut-confinement (the AC-2 seal) is decided on it, never on the budget/bound property: a budget-bounded contract does not, by that fact alone, license cut. Only the procedural preset expands to it, but a contract assembled directly with this facet licenses cut even without the ProceduralPrologProfile preset name."@x-gmeow-english .
+
 logic:ProceduralPrologProfile
     a owl:NamedIndividual ,
-        logic:SemanticProfile ;
+        logic:ReasoningPreset ;
+    logic:expandsToFacet logic:BudgetBoundedResource ,
+        logic:HornFragment ,
+        logic:ProceduralExecution ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Procedural Prolog Profile"@x-gmeow-english ;
     skos:definition "SLD resolution with cut and builtins: an operational, not purely declarative, semantics in which procedural search control (cut) and order-sensitive evaluation are permitted. Cut lives only here; artifacts using it must not project as declarative rules without recording the loss, because cut can change a program's answer set and defeats faithful-by-construction explanation."@x-gmeow-english .
@@ -335,6 +674,13 @@ logic:Process
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Process"@x-gmeow-english ;
     skos:definition "A perdurant with internal dynamics: an occurrent composed of sub-processes and phases that unfold over its temporal extent — a manufacturing run, a negotiation, a fermentation. A logic:Perdurant richer than a punctual event (stated in prose, not as a subclass edge); part of the native four-dimensional treatment that restores the UFO-B account gUFO scales back (criticism 3)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:ProjectionTarget
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Projection Target"@x-gmeow-english ;
+    skos:definition "The facet value class of a projection target: a surface the answer is rendered to. The projection facet is an output request that may name one or more targets (canonical, OWL, Datalog, Common Logic, validation-only) at once; it is a standing request, not a semantic selection, and never alters which entailments hold."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 logic:Quality
@@ -365,6 +711,28 @@ logic:Quantity
     skos:definition "An amount of stuff individuated by its constitution rather than by a count of members — a portion of water, a lump of clay, a quantity of gold. The counterpart of gufo:Quantity; its identity tracks the matter that constitutes it (maximally self-connected portions of a substance), not a number of discrete units. Contrast logic:Collection, individuated by its members."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
+logic:RdfEqualityPolicy
+    a owl:NamedIndividual ,
+        logic:EqualityPolicy ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "RDF Equality Policy"@x-gmeow-english ;
+    skos:definition "The equality-policy value under which term identity is RDF node identity — two IRIs are equal exactly when they are the same node, and distinct IRIs are not assumed to co-refer absent an asserted equality. The baseline graph reading; contrast logic:ExplicitEqualityPolicy and logic:UniqueNameEqualityPolicy."@x-gmeow-english .
+
+logic:ReasoningContract
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Reasoning Contract"@x-gmeow-english ;
+    skos:definition "A compositional specification of the reasoning semantics a rule set is interpreted under: an independent selection across orthogonal facets (formula fragment, model semantics, truth/inconsistency semantics, negation operators, closure, context, evolution, uncertainty, argumentation, revision, equality) plus two standing requests (resource policy, projection targets). The canonical form GMEOW reasons over; the historical named profiles are presets that expand to a full facet selection. Replaces the single monolithic semantic-profile axis: 'sound' is meaningless until the full contract is fixed."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:ReasoningPreset
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Reasoning Preset"@x-gmeow-english ;
+    rdfs:subClassOf logic:ReasoningContract ;
+    skos:definition "A named ReasoningContract that fixes a common, supported facet selection — sugar the compiler expands to the full facet bundle before reasoning. The historical profile names (positive-Horn, stratified-negation, well-founded, stable-model, procedural, probabilistic) survive only as presets, not as indivisible alternatives."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
 logic:RelComp
     a owl:NamedIndividual ,
         logic:Discipline ;
@@ -384,6 +752,20 @@ logic:Relator
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Relator"@x-gmeow-english ;
     skos:definition "A truthmaker of a material relation: an objectified relationship — a marriage, an employment, an enrolment — that mediates two or more relata and existentially depends on each of them. A Relator must mediate at least two distinct entities (the relator-mediation discipline, RelComp); the relation it grounds holds in virtue of the Relator existing."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:ResourcePolicy
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Resource Policy"@x-gmeow-english ;
+    skos:definition "The facet value class of the resource facet: the engine's execution discipline. It is a structured execution policy holding several independent properties together — whether a certified-complete, terminating fragment is required AND what budget or bound applies — not a single complete-vs-bounded toggle, and not a semantic selection. A contract may carry both a certified-fragment requirement and a budget at once."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:RevisionPolicy
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Revision Policy"@x-gmeow-english ;
+    skos:definition "The facet value class of the revision facet: how a body of conclusions absorbs change. Single-valued on a ReasoningContract. Its individuals range from monotonic (nothing retracted) through entrenchment-ordered belief revision to truth-maintenance."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 logic:RigidType
@@ -407,11 +789,33 @@ logic:RoleMixin
     skos:definition "An anti-rigid non-sortal that abstracts a relationally-acquired property shared across instances of several Kinds — customer (a person or an organization), insured party. Anti-rigid and identity-dispersive: a Role generalized to span multiple Kinds without supplying identity."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
-logic:SemanticProfile
-    a owl:Class ;
+logic:RuleNoClosedWorldInCounterfactual
+    a owl:NamedIndividual ,
+        logic:CompatibilityRule ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
-    rdfs:label "Semantic Profile"@x-gmeow-english ;
-    skos:definition "The named semantics that governs a rule set's interpretation. Because logic: admits monotonic Horn rules, negation-as-failure, well-founded and stable-model semantics, and procedural Prolog all at once, 'sound' is meaningless until the profile is named — so every rule set must declare one, and soundness, completeness, and decidability class are all stated relative to it."@x-gmeow-english .
+    rdfs:label "Rule: No Closed-World Closure In Counterfactual States"@x-gmeow-english ;
+    skos:definition "The compatibility rule forbidding logic:ClosedWorldClosure — whether the contract's logic:defaultClosure or any per-key closure entry value — together with counterfactual entrenchment revision (logic:EntrenchmentRevision is the contract-internal indicator that counterfactual closest-world states are generated). The counterfactual states are open-ended, so reading absence as falsehood inside them is unsound; a contract that names both is unsupported. Authored canonically in crates/logic (Rust); this individual is a lossy documentation projection (Principle 17)."@x-gmeow-english .
+
+logic:RuleNoParaconsistentCounterfactualRevision
+    a owl:NamedIndividual ,
+        logic:CompatibilityRule ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Rule: No Paraconsistent Truth Under Counterfactual Revision"@x-gmeow-english ;
+    skos:definition "The compatibility rule forbidding a paraconsistent valuation — a gap/glut-admitting logic:admissibleValuation (logic:AdmitAllFour, logic:ForbidGap, or logic:ForbidGlut) OR the logic:BelnapBilattice truth algebra — together with counterfactual entrenchment revision (logic:EntrenchmentRevision, the contract-internal indicator of counterfactual closest-world generation). The closest-world selection that generates the counterfactual states is not defined over gappy or glutty valuations; a contract that names both is unsupported. Authored canonically in crates/logic (Rust); this individual is a lossy documentation projection (Principle 17)."@x-gmeow-english .
+
+logic:RuleNoProbabilisticStableModel
+    a owl:NamedIndividual ,
+        logic:CompatibilityRule ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Rule: No Probabilistic Measure Over Stable-Model Semantics"@x-gmeow-english ;
+    skos:definition "The compatibility rule forbidding logic:ProbabilisticMeasure in the uncertainty-measure set together with logic:StableModelSemantics as the model semantics. A calibrated probability mass is not well-defined over the multiple incomparable answer sets the stable-model semantics admits; a contract that names both is unsupported. Authored canonically in crates/logic (Rust); this individual is a lossy documentation projection (Principle 17)."@x-gmeow-english .
+
+logic:RuleProbabilisticRequiresModel
+    a owl:NamedIndividual ,
+        logic:CompatibilityRule ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Rule: Probabilistic Measure Requires A Declared Probability Model"@x-gmeow-english ;
+    skos:definition "The graph-dependent compatibility rule requiring that whenever a contract carries logic:ProbabilisticMeasure, the source graph declares a logic:ProbabilityModel (via logic:probabilityModel or an individual typed logic:ProbabilityModel). Absent a declared model the contract is unsupported: a probabilistic measure is never inferred from confidence metadata and independence is never silently assumed. Because it inspects the surrounding graph it is enforced in the front-end rather than the contract-internal rule table; authored canonically in crates/logic (Rust), projected here lossily (Principle 17)."@x-gmeow-english .
 
 logic:SemiRigidType
     a owl:Class ;
@@ -443,10 +847,40 @@ logic:SoundUnderApproximation
 
 logic:StableModelProfile
     a owl:NamedIndividual ,
-        logic:SemanticProfile ;
+        logic:ReasoningPreset ;
+    logic:expandsToFacet logic:DefaultNegation ,
+        logic:StableModelSemantics ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Stable Model Profile"@x-gmeow-english ;
     skos:definition "Answer-set / stable-model semantics: a program may have several stable models (possibly none), and entailment is over those models. NP-hard in the worst case; the profile that admits genuine non-determinism and disjunctive reasoning."@x-gmeow-english .
+
+logic:StableModelSemantics
+    a owl:NamedIndividual ,
+        logic:ModelSemantics ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Stable Model Semantics"@x-gmeow-english ;
+    skos:definition "The model-semantics facet value selecting answer-set (stable-model) semantics: a program may have several stable models, or none, and entailment is taken over that model set. Single-valued on a ReasoningContract; the non-deterministic, NP-hard semantics for unstratified negation, contrasted with the unique well-founded model and the unique least model."@x-gmeow-english .
+
+logic:StandpointContextAxis
+    a owl:NamedIndividual ,
+        logic:ContextAxis ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Standpoint Context Axis"@x-gmeow-english ;
+    skos:definition "The standpoint index axis of the multi-dimensional context facet: a truth is relative to a standpoint (a perspective in the sharpening poset). One of several context axes that coexist on a single result — world, standpoint, time, and path index the same result simultaneously rather than being alternative values of one slot."@x-gmeow-english .
+
+logic:StateTransitionEvolution
+    a owl:NamedIndividual ,
+        logic:EvolutionMode ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "State-Transition Evolution"@x-gmeow-english ;
+    skos:definition "The evolution-facet value under which state changes across discrete transitions between successive states, each a configuration reasoned over in turn. The state-change mode between the static default and the full transaction-path semantics; independent of the model-semantics facet."@x-gmeow-english .
+
+logic:StaticEvolution
+    a owl:NamedIndividual ,
+        logic:EvolutionMode ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Static Evolution"@x-gmeow-english ;
+    skos:definition "The evolution-facet value under which no state change occurs — reasoning is over a single, degenerate one-state path. The default evolution mode; contrast logic:StateTransitionEvolution and logic:TransactionPathEvolution."@x-gmeow-english .
 
 logic:StereotypeCardinality
     a owl:NamedIndividual ,
@@ -457,7 +891,10 @@ logic:StereotypeCardinality
 
 logic:StratifiedNAFProfile
     a owl:NamedIndividual ,
-        logic:SemanticProfile ;
+        logic:ReasoningPreset ;
+    logic:expandsToFacet logic:DefaultNegation ,
+        logic:HornFragment ,
+        logic:LeastModelSemantics ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Stratified Negation-As-Failure Profile"@x-gmeow-english ;
     skos:definition "Negation-as-failure under stratification: a unique perfect model with PTIME data complexity, where negated literals are evaluated only over strata already settled. Adds well-behaved negation without the multiple models of the stable-model semantics."@x-gmeow-english .
@@ -476,12 +913,54 @@ logic:Substantial
     skos:definition "An endurant that does NOT inhere in another individual: an independent bearer that can exist on its own and onto which aspects inhere. The complement of logic:Aspect within the endurant category; every logic:Object is a Substantial (stated in prose, not as a subclass edge)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
+logic:TimeContextAxis
+    a owl:NamedIndividual ,
+        logic:ContextAxis ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Time Context Axis"@x-gmeow-english ;
+    skos:definition "The time index axis of the multi-dimensional context facet: a truth is relative to a time (a narrative or temporal reference frame). One of several context axes that coexist on a single result — world, standpoint, time, and path index the same result simultaneously rather than being alternative values of one slot."@x-gmeow-english .
+
+logic:TransactionPathEvolution
+    a owl:NamedIndividual ,
+        logic:EvolutionMode ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Transaction-Path Evolution"@x-gmeow-english ;
+    skos:definition "The evolution-facet value selecting the Transaction-Logic state-change semantics of LOGIC-TRANSACTION.md — serial conjunction (⊗), executional entailment over a path of states, and elementary updates as supersession. It is a facet value, never a seventh profile, and is independent of the model-semantics facet; its full semantics land in issue #711."@x-gmeow-english .
+
+logic:TruthAlgebra
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Truth Algebra"@x-gmeow-english ;
+    skos:definition "The facet value class of the truth algebra: the lattice of truth values over which valuations range. Single-valued on a ReasoningContract. It is one of the three independent components of the truth/inconsistency facet — algebra, admissible-valuation policy, designated values — that together separate FDE, LP, K3 and classical logic; its values are the four-valued Belnap bilattice and the classical two-valued algebra."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:TruthMaintenanceRevision
+    a owl:NamedIndividual ,
+        logic:RevisionPolicy ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Truth-Maintenance Revision"@x-gmeow-english ;
+    skos:definition "The revision-policy value under which derived conclusions are tracked by their justifications, so retracting a premise automatically retracts the conclusions that depended on it (a truth-maintenance system). The dependency-directed counterpart of logic:EntrenchmentRevision; contrast logic:MonotonicRevision, which never retracts."@x-gmeow-english .
+
 logic:Type
     a owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Type"@x-gmeow-english ;
     skos:definition "A universal: a type whose instances share a common feature, reified as a first-order individual so it can itself be the object of logic:instanceOf and carry a logic:orderedType. The counterpart of gufo:Type; first-order (its instances are logic:Individuals, logic:orderedType 1) or higher-order (its instances are themselves types). The root of the type taxonomy, complementing logic:Individual; every foundation sort (logic:Kind, logic:Role, …) and every meta-type below is a logic:Type."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:UncertaintyMeasure
+    a owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Uncertainty Measure"@x-gmeow-english ;
+    skos:definition "The facet value class of the uncertainty facet: how graded belief is carried. Set-valued on a ReasoningContract — several measures (probabilistic, weighted/ranking, fuzzy) may be in force on the same result at once, or none. Its individuals record the measures in force, not a single chosen one."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:UniqueNameEqualityPolicy
+    a owl:NamedIndividual ,
+        logic:EqualityPolicy ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Unique-Name Equality Policy"@x-gmeow-english ;
+    skos:definition "The equality-policy value imposing the unique-name assumption: distinct names denote distinct entities unless equality is explicitly asserted. The optional strengthening of logic:RdfEqualityPolicy; contrast logic:ExplicitEqualityPolicy, which neither assumes distinctness nor unifies beyond what is declared."@x-gmeow-english .
 
 logic:ValidationOnly
     a owl:NamedIndividual ,
@@ -490,6 +969,13 @@ logic:ValidationOnly
     rdfs:label "Validation Only"@x-gmeow-english ;
     skos:definition "The projection detects some invalidity but is not an entailment relation: it can flag ill-formedness without computing canonical consequences. The honest label for bridge views (e.g. BFO/DOLCE) that constrain but do not reason; they carry this or no preservation claim, never logic:ExactPreservation."@x-gmeow-english .
 
+logic:ValidationOnlyProjection
+    a owl:NamedIndividual ,
+        logic:ProjectionTarget ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Validation-Only Projection"@x-gmeow-english ;
+    skos:definition "The projection-target value requesting a validation-only surface: it detects ill-formedness without computing canonical consequences (the honest output for bridge views that constrain but do not reason). One of several output targets a single contract may name at once; it never alters which entailments hold."@x-gmeow-english .
+
 logic:VariableCollection
     a owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
@@ -497,12 +983,28 @@ logic:VariableCollection
     skos:definition "A logic:Collection whose membership may change over time while the collection retains its identity — a club whose roster gains and loses members, a playlist edited over the years. The counterpart of gufo:VariableCollection. Stated in prose, not as a subclass edge. Its time-varying logic:memberOf is naturally carried as a logic:Fluent (membership indexed to time/world) rather than as the static membership of a logic:FixedCollection — the four-dimensional treatment of changing membership."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
+logic:WeightedRankingMeasure
+    a owl:NamedIndividual ,
+        logic:UncertaintyMeasure ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Weighted Ranking Measure"@x-gmeow-english ;
+    skos:definition "The uncertainty measure carrying weighted or ranking preferences over derivations. One member of the uncertainty-measure set facet (it may coexist with logic:ProbabilisticMeasure or logic:FuzzyMeasure); distinct from a calibrated probability — a ranking weight carries no probabilistic meaning unless one is separately declared."@x-gmeow-english .
+
 logic:WellFoundedProfile
     a owl:NamedIndividual ,
-        logic:SemanticProfile ;
+        logic:ReasoningPreset ;
+    logic:expandsToFacet logic:DefaultNegation ,
+        logic:WellFoundedSemantics ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Well-Founded Profile"@x-gmeow-english ;
     skos:definition "The well-founded semantics: a three-valued (true/false/undefined), total, polynomial-time semantics for normal logic programs that assigns a unique well-founded model even with unstratified negation, leaving genuinely circular literals undefined rather than branching."@x-gmeow-english .
+
+logic:WellFoundedSemantics
+    a owl:NamedIndividual ,
+        logic:ModelSemantics ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Well-Founded Semantics"@x-gmeow-english ;
+    skos:definition "The model-semantics facet value selecting the well-founded semantics: a unique, three-valued (true/false/undefined), total, polynomial-time model for normal programs, leaving genuinely circular literals undefined rather than branching. Single-valued on a ReasoningContract; the deterministic counterpart of the non-deterministic logic:StableModelSemantics for unstratified negation."@x-gmeow-english .
 
 logic:World
     a owl:Class ;
@@ -517,11 +1019,30 @@ logic:WorldBoundary
     skos:definition "A scoped region within which the closed-world assumption applies: it demarcates where what is not derivable may be read as false, leaving the rest of the model under the open-world assumption. The scoping construct of the hybrid open/closed feature (LOGIC-FOUNDATION.md §Greenfield feature map): the closed-world (CWA) lane realized by the built-in SHACL is confined to what a WorldBoundary encloses, while logic: outside it stays open-world. Enforcement is seamed to the engine (#665)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
+logic:WorldContextAxis
+    a owl:NamedIndividual ,
+        logic:ContextAxis ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "World Context Axis"@x-gmeow-english ;
+    skos:definition "The world index axis of the multi-dimensional context facet: a truth is relative to a logic:World (a Kripke-style possible world in the materialized contextual index). One of several context axes that coexist on a single result — world, standpoint, time, and path index the same result simultaneously rather than being alternative values of one slot."@x-gmeow-english .
+
 logic:accessibleFrom
     a owl:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "accessible from"@x-gmeow-english ;
     skos:definition "The Kripke accessibility relation between worlds: relates a world to a world from which it is reachable, generalizing the standpoint sharpening poset. The modal operators are the standard translation over this relation — necessity is truth in every accessible world, possibility truth in some. Evaluation is bounded universal quantification because the world set is the finite, materialized contextual index, not the unbounded space of all logically possible worlds."@x-gmeow-english .
+
+logic:admissibleValuation
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "admissible valuation"@x-gmeow-english ;
+    skos:definition "Relates a logic:ReasoningContract to the logic:AdmissibleValuationPolicy it selects — the gap/glut policy fixing which Belnap values a valuation may assign. Single-valued on the contract. Domain logic:ReasoningContract, range logic:AdmissibleValuationPolicy (stated here in prose, matching the module's domain/range convention). It is one of the three independent truth-facet components and must not be conflated with logic:designatedValues."@x-gmeow-english .
+
+logic:argumentation
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "argumentation"@x-gmeow-english ;
+    skos:definition "Relates a logic:ReasoningContract to the logic:ArgumentationSemantics it selects — how conflicts among defeasible arguments are resolved. Single-valued on the contract. Domain logic:ReasoningContract, range logic:ArgumentationSemantics (stated in prose, matching the module's domain/range convention)."@x-gmeow-english .
 
 logic:asymmetricProperty
     a owl:Class ;
@@ -561,6 +1082,25 @@ logic:closedUnder
     skos:definition "Declares a predicate or shape closed within a logic:WorldBoundary: the closed-world-assumption toggle that says, for the named predicate inside the boundary, that the materialized extension is complete and absence may be read as falsity. The per-predicate CWA switch of the hybrid open/closed construct, enforced by the built-in SHACL (the CWA lane); outside any boundary, or for predicates not closed under one, the open-world reading holds. Enforcement is seamed to the engine (#665)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
+logic:closureEntry
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "closure entry"@x-gmeow-english ;
+    skos:definition "Relates a logic:ReasoningContract to a logic:ClosureEntry — a per-key override of the closure map binding a predicate or context key to an open- or closed-world value. The closure facet is a map, not a global flag: logic:defaultClosure gives the default for unlisted keys, while each logic:closureEntry overrides one key. Domain logic:ReasoningContract, range logic:ClosureEntry (stated in prose, matching the module's convention)."@x-gmeow-english .
+
+logic:closureKey
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "closure key"@x-gmeow-english ;
+    rdfs:range xsd:string ;
+    skos:definition "Relates a logic:ClosureEntry to the predicate-or-context key it scopes: the string key whose closure value the entry fixes. Domain logic:ClosureEntry (stated in prose, matching the module's convention); range xsd:string. The key together with logic:closureValue forms one binding of the closure map."@x-gmeow-english .
+
+logic:closureValue
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "closure value"@x-gmeow-english ;
+    skos:definition "Relates a logic:ClosureEntry to the logic:ClosureValue (open- or closed-world) it assigns to its key. Domain logic:ClosureEntry, range logic:ClosureValue (stated in prose, matching the module's convention). Together with logic:closureKey it forms one binding of the closure map."@x-gmeow-english .
+
 logic:complexityClass
     a owl:DatatypeProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
@@ -572,6 +1112,12 @@ logic:confidence
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "confidence"@x-gmeow-english ;
     skos:definition "Epistemic confidence assigned to a statement by a source or process — how sure the asserter is. Normatively distinct from logic:probability: a confidence score is NOT a probability and MUST NOT be interpreted as one unless an explicit mapping to logic:probability is declared. Also distinct from logic:weight (a solver ranking) and logic:evidenceStrength (evidential warrant)."@x-gmeow-english .
+
+logic:contextAxis
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "context axis"@x-gmeow-english ;
+    skos:definition "Relates a logic:ReasoningContract to a logic:ContextAxis its results are indexed by. The context facet is multi-dimensional, so a contract may carry several logic:contextAxis values (world, standpoint, time, path) that coexist on one result rather than being alternative values of one slot. Domain logic:ReasoningContract, range logic:ContextAxis (stated in prose, matching the module's convention)."@x-gmeow-english .
 
 logic:correlates
     a owl:ObjectProperty ;
@@ -586,6 +1132,18 @@ logic:counterfactualOf
     rdfs:label "counterfactual of"@x-gmeow-english ;
     skos:definition "Relates a constructed counterfactual world to the base world it minimally revises: the surface for Lewis/Stalnaker counterfactuals, where the antecedent-world is computed by a revision rule rather than asserted and its contents must not leak into the base graph. Closeness is declared data (a generalized sharpening poset), not a fixed semantics; under the default Deterministic Revision Profile a declared entrenchment ordering yields a single revised world, and a genuine tie returns unknown rather than branching."@x-gmeow-english .
 
+logic:defaultClosure
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "default closure"@x-gmeow-english ;
+    skos:definition "Relates a logic:ReasoningContract to the logic:ClosureValue that is the default of its closure map — the open- or closed-world reading applied to any predicate or context key not overridden by a logic:closureEntry. The closure facet is a map; this is its default, normally open-world, with closed-world confined to keys inside a logic:WorldBoundary. Domain logic:ReasoningContract, range logic:ClosureValue (stated in prose, matching the module's convention)."@x-gmeow-english .
+
+logic:designatedValues
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "designated values"@x-gmeow-english ;
+    skos:definition "Relates a logic:ReasoningContract to the logic:DesignatedValueSet it selects — which truth values count as holding for consequence. Single-valued on the contract. Domain logic:ReasoningContract, range logic:DesignatedValueSet (stated in prose, matching the module's convention). One of the three independent truth-facet components; it must not be conflated with logic:admissibleValuation, since FDE and LP share a designated set and differ only in their admissible valuations."@x-gmeow-english .
+
 logic:dischargeObligation
     a owl:ObjectProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
@@ -599,11 +1157,35 @@ logic:distinctBody
     rdfs:label "distinct body"@x-gmeow-english ;
     skos:definition "Relates a logic:Rule to an inequality body guard: a reified node carrying rdf:subject and rdf:object (two rule variables, and — unlike logic:body — no rdf:predicate) that must bind to DISTINCT values for the rule to fire, projecting to the Datalog/Nemo inequality constraint ?A != ?B. Parallel to logic:negatedBody as an additive rule-structural surface: it lets a rule detect 'at least two distinct values' (e.g. a class carrying more than one stereotype, or a relator mediating two distinct relata) that set-semantic Datalog cannot otherwise express. An inequality guard introduces no negative dependency edge, so it leaves a rule's stratification class unchanged (issue #503)."@x-gmeow-english .
 
+logic:equalityPolicy
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "equality policy"@x-gmeow-english ;
+    skos:definition "Relates a logic:ReasoningContract to the logic:EqualityPolicy it selects — when two terms denote one entity. Single-valued on the contract. Domain logic:ReasoningContract, range logic:EqualityPolicy (stated in prose, matching the module's convention)."@x-gmeow-english .
+
 logic:evidenceStrength
     a owl:DatatypeProperty ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "evidence strength"@x-gmeow-english ;
     skos:definition "Evidential support for a statement, provenance-derived and reusing the evidence-slice warrant axes (source tier, evidence class): how well-warranted a claim is by its evidence. Normatively distinct from logic:probability, logic:confidence, and logic:weight — an evidential warrant is not a calibrated probability, an asserter's confidence, or a solver ranking, and is not interchangeable with any of them."@x-gmeow-english .
+
+logic:evolution
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "evolution"@x-gmeow-english ;
+    skos:definition "Relates a logic:ReasoningContract to the logic:EvolutionMode it selects — whether and how state changes. Single-valued on the contract. Domain logic:ReasoningContract, range logic:EvolutionMode (stated in prose, matching the module's convention). Evolution is independent of the model-semantics facet, which is why state-change reasoning (logic:TransactionPathEvolution) is a facet value, never a parallel profile."@x-gmeow-english .
+
+logic:expandsToFacet
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "expands to facet"@x-gmeow-english ;
+    skos:definition "Links a logic:ReasoningPreset to a facet value it expands to. A preset's full facet selection is the set of its logic:expandsToFacet values plus any facet-specific properties; the compiler expands the preset to this bundle before reasoning, so a preset reference and its expanded facet set are interchangeable. Domain logic:ReasoningPreset (stated in prose, matching the module's convention)."@x-gmeow-english .
+
+logic:formulaFragment
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "formula fragment"@x-gmeow-english ;
+    skos:definition "Relates a logic:ReasoningContract to the logic:FormulaFragment it selects — the syntactic class of admitted formulae. Single-valued on the contract. Domain logic:ReasoningContract, range logic:FormulaFragment (stated in prose, matching the module's convention)."@x-gmeow-english .
 
 logic:instanceOf
     a owl:ObjectProperty ;
@@ -654,12 +1236,24 @@ logic:memberOf
     skos:definition "The member-collection relation: relates a member to a logic:Collection it belongs to, where the members are the relevant units of the whole. Distinct from logic:partOf and logic:properPartOf: collection membership is not mereological parthood — a team member is a member of, not a proper part of, the team, and membership does not inherit parthood's transitivity through the collection."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
 
+logic:modelSemantics
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "model semantics"@x-gmeow-english ;
+    skos:definition "Relates a logic:ReasoningContract to the logic:ModelSemantics it selects — which models are authoritative. Single-valued on the contract. Domain logic:ReasoningContract, range logic:ModelSemantics (stated in prose, matching the module's convention). Probabilistic reasoning is never a value here — graded belief is carried on logic:uncertaintyMeasure alongside whatever model semantics is in force."@x-gmeow-english .
+
 logic:negatedBody
     a owl:ObjectProperty ;
     rdfs:comment "Negation-as-failure body atom of a logic:Rule. Default-absent: a positive Horn rule has only logic:body atoms and no logic:negatedBody, so the existing positive corpus is unaffected."@x-gmeow-english ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "negated body"@x-gmeow-english ;
     skos:definition "Relates a logic:Rule to a negated (negation-as-failure) body atom: the antecedent literal that must NOT be derivable for the rule to fire. Parallel to logic:body (the positive antecedent atoms) but read under closed-world negation, so a rule with any logic:negatedBody atom requires at least logic:StratifiedNAFProfile rather than logic:PositiveHornProfile. The atom itself is a reified rdf:subject/rdf:predicate/rdf:object triple exactly as for logic:body; only its polarity differs."@x-gmeow-english .
+
+logic:negationOperator
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "negation operator"@x-gmeow-english ;
+    skos:definition "Relates a logic:ReasoningContract to a logic:NegationOperator its programs may use. Set-valued on the contract: a program may legitimately use explicit (strong) negation and negation-as-failure together, so this records the permitted operator set, not a single chosen operator. Domain logic:ReasoningContract, range logic:NegationOperator (stated in prose, matching the module's convention)."@x-gmeow-english .
 
 logic:orderedType
     a owl:DatatypeProperty ;
@@ -703,6 +1297,12 @@ logic:probabilityModel
     rdfs:range logic:ProbabilityModel ;
     skos:definition "Links a rule set or world to the logic:ProbabilityModel that governs its probabilistic inference. Required for any probabilistic query under logic:ProbabilisticProfile: with no logic:probabilityModel declared, probabilistic inference returns unknown rather than assuming independence over the logic:probability facts."@x-gmeow-english .
 
+logic:projectionTarget
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "projection target"@x-gmeow-english ;
+    skos:definition "Relates a logic:ReasoningContract to a logic:ProjectionTarget it requests the answer be rendered to. A standing output request, possibly naming several targets at once (canonical, OWL, Datalog, Common Logic, validation-only); it is not a semantic selection and never alters which entailments hold. Domain logic:ReasoningContract, range logic:ProjectionTarget (stated in prose, matching the module's convention)."@x-gmeow-english .
+
 logic:properPartOf
     a owl:ObjectProperty ,
         logic:asymmetricProperty ,
@@ -712,6 +1312,18 @@ logic:properPartOf
     rdfs:label "proper part of"@x-gmeow-english ;
     skos:definition "STRICT parthood: relates an entity to a whole it is part of but NOT identical to. Transitive, asymmetric, and irreflexive — a genuine strict partial order (proper-part-of, ancestor). This exact combination is illegal in OWL 2 DL, which globally forbids a property being both transitive and asymmetric (criticism 7, LOGIC-FOUNDATION.md §OWL 2 criticisms); logic: imposes no such global restriction and reasons over it completely, recovering decidability by projection rather than by crippling the canon. The deliberate OWL-2-criticism demonstrator."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox .
+
+logic:resourcePolicy
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "resource policy"@x-gmeow-english ;
+    skos:definition "Relates a logic:ReasoningContract to the logic:ResourcePolicy it requests — the engine's execution discipline. A standing request, not a semantic selection; the resource policy holds several independent properties together (a certified-fragment requirement AND a budget), so a contract may carry both logic:CertifiedFragmentResource and logic:BudgetBoundedResource. Domain logic:ReasoningContract, range logic:ResourcePolicy (stated in prose, matching the module's convention)."@x-gmeow-english .
+
+logic:revision
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "revision"@x-gmeow-english ;
+    skos:definition "Relates a logic:ReasoningContract to the logic:RevisionPolicy it selects — how change is absorbed. Single-valued on the contract. Domain logic:ReasoningContract, range logic:RevisionPolicy (stated in prose, matching the module's convention)."@x-gmeow-english .
 
 logic:rigidityViolation
     a owl:ObjectProperty ;
@@ -744,6 +1356,18 @@ logic:transitiveProperty
     rdfs:label "transitive property"@x-gmeow-english ;
     skos:definition "The logic: property-characteristic marker for transitivity: a property P such that P(a,b) ∧ P(b,c) entails P(a,c). The logic: analogue of owl:TransitiveProperty, minted standalone so logic: can combine it with logic:asymmetricProperty — a combination OWL 2 DL forbids globally (criticism 7) but logic: reasons over fully."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
+
+logic:truthAlgebra
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "truth algebra"@x-gmeow-english ;
+    skos:definition "Relates a logic:ReasoningContract to the logic:TruthAlgebra it selects — the lattice of truth values over which valuations range. Single-valued on the contract. Domain logic:ReasoningContract, range logic:TruthAlgebra (stated in prose, matching the module's convention). One of the three independent truth-facet components, selected separately from logic:admissibleValuation and logic:designatedValues."@x-gmeow-english .
+
+logic:uncertaintyMeasure
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "uncertainty measure"@x-gmeow-english ;
+    skos:definition "Relates a logic:ReasoningContract to a logic:UncertaintyMeasure it carries — how graded belief is recorded. Set-valued on the contract: probabilistic, weighted/ranking, and fuzzy measures may coexist on the same result, so this records the set of measures in force, not one. Domain logic:ReasoningContract, range logic:UncertaintyMeasure (stated in prose, matching the module's convention)."@x-gmeow-english .
 
 logic:violation
     a owl:ObjectProperty ;

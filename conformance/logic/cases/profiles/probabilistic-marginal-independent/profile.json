@@ -1,5 +1,5 @@
 {
-  "semantic_profile": "ProbabilisticProfile",
+  "reasoning_contract": {"preset": "ProbabilisticProfile"},
   "world_types": ["epistemic"],
   "mode": "native"
 }

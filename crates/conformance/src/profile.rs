@@ -3,11 +3,12 @@
 
 //! `profile.json` parsing and validation.
 //!
-//! A case's `profile.json` declares the semantic profile to evaluate under, plus
-//! optional governor / foundation / counterfactual / certification knobs. This
-//! module parses it into a typed [`Profile`] with **strict, hard-fail**
-//! validation (no-optionality doctrine): an unknown `semantic_profile`, a
-//! malformed `budget_params`, or a non-object profile is an error, never a
+//! A case's `profile.json` declares the reasoning preset to evaluate under (since
+//! #767, nested under `reasoning_contract.preset`), plus optional governor /
+//! foundation / counterfactual / certification knobs. This module parses it into a
+//! typed [`Profile`] with **strict, hard-fail** validation (no-optionality
+//! doctrine): an unknown preset, a malformed `budget_params`, a non-object profile,
+//! or a surviving retired top-level `semantic_profile` key is an error, never a
 //! silently-coerced default. Mirrors the validation in the retired Python
 //! `logic_runner.run` / `_parse_budget_params`.
 
@@ -43,7 +44,9 @@ pub struct BudgetParams {
 /// A parsed, validated `profile.json`.
 #[derive(Debug, Clone)]
 pub struct Profile {
-    /// The declared semantic profile (validated ∈ [`VALID_SEMANTIC_PROFILES`]).
+    /// The declared reasoning preset, read from `reasoning_contract.preset`
+    /// (validated ∈ [`VALID_SEMANTIC_PROFILES`]). The field keeps its historical
+    /// name because the runner uses it as the profile/preset name downstream.
     pub semantic_profile: String,
     /// The optional budget governor (`None` ⇒ unbounded). `Some` iff the
     /// `budget_params` key is present — this doubles as the diff-phase
@@ -60,6 +63,12 @@ pub struct Profile {
     pub counterfactual_profile: Option<String>,
     /// Whether certification is required/compared (`"certify": true`).
     pub certify: bool,
+    /// Whether the case asserts the contract is an UNSUPPORTED facet combination
+    /// (`"expect_unsupported": true`, #767 Gap 2). When set, the runner requires
+    /// the compile to emit an `UNSUPPORTED_CONTRACT` `Severity::Error` diagnostic
+    /// and short-circuits BEFORE evaluating/certifying/materializing — the
+    /// "unsupported is a hard stop" guarantee, pinned at the corpus level.
+    pub expect_unsupported: bool,
 }
 
 impl Profile {
@@ -81,19 +90,26 @@ pub fn parse_profile(case_id: &str, value: &Value) -> Result<Profile, String> {
         .as_object()
         .ok_or_else(|| format!("case {case_id}: profile.json must be a JSON object"))?;
 
-    let semantic_profile = match obj.get("semantic_profile") {
+    // Greenfield #767 (no shim): the preset is carried under the nested
+    // `reasoning_contract` object as `preset`. A surviving top-level
+    // `semantic_profile` key is the retired surface and is a HARD failure — never
+    // a silent fallback or dual-read.
+    if obj.contains_key("semantic_profile") {
+        return Err(format!(
+            "case {case_id}: profile.json uses the retired top-level semantic_profile key; \
+             migrate to reasoning_contract.preset (#767)"
+        ));
+    }
+
+    let semantic_profile = match obj.get("reasoning_contract") {
+        // Absent contract ⇒ default preset (the minimal-profile path).
         None => DEFAULT_SEMANTIC_PROFILE.to_string(),
-        Some(v) => v
-            .as_str()
-            .ok_or_else(|| {
-                format!("case {case_id}: profile.json semantic_profile must be a string")
-            })?
-            .to_string(),
+        Some(rc) => parse_reasoning_contract(case_id, rc)?,
     };
     if !VALID_SEMANTIC_PROFILES.contains(&semantic_profile.as_str()) {
         return Err(format!(
-            "case {case_id}: unknown semantic_profile {semantic_profile:?} in profile.json — \
-             must be one of {VALID_SEMANTIC_PROFILES:?}"
+            "case {case_id}: unknown reasoning_contract.preset {semantic_profile:?} in \
+             profile.json — must be one of {VALID_SEMANTIC_PROFILES:?}"
         ));
     }
 
@@ -116,6 +132,11 @@ pub fn parse_profile(case_id: &str, value: &Value) -> Result<Profile, String> {
 
     let certify = obj.get("certify").and_then(Value::as_bool).unwrap_or(false);
 
+    // `expect_unsupported` opts in only on a strict boolean `true` (parallel to
+    // `foundation_lowering` — never auto-gated, never silently coerced from a
+    // truthy non-bool).
+    let expect_unsupported = obj.get("expect_unsupported").and_then(Value::as_bool) == Some(true);
+
     Ok(Profile {
         semantic_profile,
         budget_params,
@@ -123,7 +144,47 @@ pub fn parse_profile(case_id: &str, value: &Value) -> Result<Profile, String> {
         anti_rigidity_policy,
         counterfactual_profile,
         certify,
+        expect_unsupported,
     })
+}
+
+/// Parse and validate the nested `reasoning_contract` object (#767), returning its
+/// `preset` local name (the value the runner uses as the profile name).
+///
+/// Hard-fail (no-optionality discipline): `reasoning_contract` MUST be a JSON object
+/// carrying a string `preset` and no other keys. A non-object contract, a missing or
+/// non-string `preset`, or any unknown key is an error (the `preset` value is itself
+/// range-checked against [`VALID_SEMANTIC_PROFILES`] by the caller).
+fn parse_reasoning_contract(case_id: &str, value: &Value) -> Result<String, String> {
+    let obj = value.as_object().ok_or_else(|| {
+        format!("case {case_id}: profile.json reasoning_contract must be a JSON object")
+    })?;
+
+    // Only `preset` is allowed for now (keeps the surface closed; new facets are an
+    // explicit extension, never a silently-tolerated key).
+    const ALLOWED: [&str; 1] = ["preset"];
+    let mut unknown: Vec<&str> = obj
+        .keys()
+        .map(String::as_str)
+        .filter(|k| !ALLOWED.contains(k))
+        .collect();
+    unknown.sort_unstable();
+    if !unknown.is_empty() {
+        return Err(format!(
+            "case {case_id}: profile.json reasoning_contract has unknown key(s) {unknown:?}; \
+             allowed keys are {ALLOWED:?}"
+        ));
+    }
+
+    let preset = obj.get("preset").ok_or_else(|| {
+        format!(
+            "case {case_id}: profile.json reasoning_contract is missing the required preset key"
+        )
+    })?;
+    let preset = preset.as_str().ok_or_else(|| {
+        format!("case {case_id}: profile.json reasoning_contract.preset must be a string")
+    })?;
+    Ok(preset.to_string())
 }
 
 /// Parse the optional `budget_params` object (mirrors
@@ -209,21 +270,95 @@ mod tests {
         assert_eq!(p.anti_rigidity_policy, DEFAULT_ANTI_RIGIDITY_POLICY);
         assert!(p.counterfactual_profile.is_none());
         assert!(!p.certify);
+        assert!(!p.expect_unsupported);
         assert_eq!(p.query_profile(), DEFAULT_SEMANTIC_PROFILE);
     }
 
     #[test]
-    fn each_valid_semantic_profile_parses() {
+    fn expect_unsupported_round_trips() {
+        // #767 Gap 2: an `expect_unsupported: true` case opts into the unsupported
+        // short-circuit; a strict bool `true` is required (parallel to
+        // foundation_lowering).
+        assert!(
+            parse_profile("c", &json!({ "expect_unsupported": true }))
+                .unwrap()
+                .expect_unsupported
+        );
+        // Absent ⇒ false.
+        assert!(!parse_profile("c", &json!({})).unwrap().expect_unsupported);
+        // A non-true value (string, 1) does NOT opt in.
+        assert!(
+            !parse_profile("c", &json!({ "expect_unsupported": "true" }))
+                .unwrap()
+                .expect_unsupported
+        );
+        assert!(
+            !parse_profile("c", &json!({ "expect_unsupported": 1 }))
+                .unwrap()
+                .expect_unsupported
+        );
+    }
+
+    #[test]
+    fn each_valid_preset_parses() {
         for name in VALID_SEMANTIC_PROFILES {
-            let p = parse_profile("c", &json!({ "semantic_profile": name })).expect("ok");
+            let p = parse_profile("c", &json!({ "reasoning_contract": { "preset": name } }))
+                .expect("ok");
             assert_eq!(p.semantic_profile, name);
         }
     }
 
     #[test]
-    fn unknown_semantic_profile_hard_fails() {
-        let err = parse_profile("c", &json!({ "semantic_profile": "NopeProfile" })).unwrap_err();
-        assert!(err.contains("unknown semantic_profile"));
+    fn unknown_preset_hard_fails() {
+        let err = parse_profile(
+            "c",
+            &json!({ "reasoning_contract": { "preset": "NopeProfile" } }),
+        )
+        .unwrap_err();
+        assert!(err.contains("unknown reasoning_contract.preset"), "{err}");
+    }
+
+    #[test]
+    fn legacy_top_level_semantic_profile_is_a_hard_error() {
+        // Greenfield #767 (no shim): the retired top-level key is rejected outright,
+        // even when its value would otherwise be a valid preset.
+        let err =
+            parse_profile("c", &json!({ "semantic_profile": "PositiveHornProfile" })).unwrap_err();
+        assert!(
+            err.contains("retired top-level semantic_profile key"),
+            "{err}"
+        );
+        assert!(err.contains("reasoning_contract.preset"), "{err}");
+    }
+
+    #[test]
+    fn reasoning_contract_missing_preset_is_a_hard_error() {
+        let err = parse_profile("c", &json!({ "reasoning_contract": {} })).unwrap_err();
+        assert!(err.contains("missing the required preset key"), "{err}");
+    }
+
+    #[test]
+    fn reasoning_contract_non_string_preset_is_a_hard_error() {
+        let err =
+            parse_profile("c", &json!({ "reasoning_contract": { "preset": 7 } })).unwrap_err();
+        assert!(err.contains("preset must be a string"), "{err}");
+    }
+
+    #[test]
+    fn reasoning_contract_non_object_is_a_hard_error() {
+        let err = parse_profile("c", &json!({ "reasoning_contract": "PositiveHornProfile" }))
+            .unwrap_err();
+        assert!(err.contains("must be a JSON object"), "{err}");
+    }
+
+    #[test]
+    fn reasoning_contract_unknown_key_is_a_hard_error() {
+        let err = parse_profile(
+            "c",
+            &json!({ "reasoning_contract": { "preset": "PositiveHornProfile", "nope": 1 } }),
+        )
+        .unwrap_err();
+        assert!(err.contains("unknown key"), "{err}");
     }
 
     #[test]
@@ -293,7 +428,7 @@ mod tests {
     fn counterfactual_profile_overrides_query_profile() {
         let p = parse_profile(
             "c",
-            &json!({ "semantic_profile": "PositiveHornProfile",
+            &json!({ "reasoning_contract": { "preset": "PositiveHornProfile" },
                      "counterfactual_profile": "LewisCredulousProfile" }),
         )
         .expect("ok");

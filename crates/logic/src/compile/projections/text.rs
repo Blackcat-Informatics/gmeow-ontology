@@ -9,8 +9,8 @@
 
 use super::super::ir::{LogicModality, LogicProgram, LogicRule};
 use super::{
-    is_modal_or_scoped, python_repr, target_meta, ProjectionResult, GMEOW_NS, LOGIC_NS, OWL_NS,
-    RDFS_NS, RDF_NS, RDF_TYPE,
+    contract_drop_notes, is_modal_or_scoped, python_repr, target_meta, ProjectionResult, GMEOW_NS,
+    LOGIC_NS, OWL_NS, RDFS_NS, RDF_NS, RDF_TYPE,
 };
 
 /// Extract a safe Datalog predicate name from an IRI (`_local`-style).
@@ -145,7 +145,7 @@ pub fn project_datalog(program: &LogicProgram) -> ProjectionResult {
         preservation: kind,
         complexity: cx.to_owned(),
         lossy_drops: drops.into_iter().map(str::to_owned).collect(),
-        actual_drops: Vec::new(),
+        actual_drops: contract_drop_notes(program, "Datalog"),
     }
 }
 
@@ -250,7 +250,7 @@ pub fn project_n3(program: &LogicProgram) -> ProjectionResult {
         preservation: kind,
         complexity: cx.to_owned(),
         lossy_drops: drops.into_iter().map(str::to_owned).collect(),
-        actual_drops: Vec::new(),
+        actual_drops: contract_drop_notes(program, "N3"),
     }
 }
 

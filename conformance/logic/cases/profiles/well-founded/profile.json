@@ -1,5 +1,5 @@
 {
-  "semantic_profile": "WellFoundedProfile",
+  "reasoning_contract": {"preset": "WellFoundedProfile"},
   "world_types": ["epistemic"],
   "mode": "native",
   "expected_decidability_class": "three-valued/PTIME",

@@ -17,7 +17,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;
 
-use gmeow_logic::compile::frontend::parse_logic_str;
+use gmeow_logic::compile::frontend::{parse_logic_str, Diagnostic, Severity};
 use gmeow_logic::compile::projections::compile_program;
 use gmeow_logic::explain::{explain_all, Row};
 use gmeow_logic::foundation::{evaluate as foundation_evaluate, AntiRigidityPolicy};
@@ -112,8 +112,43 @@ pub fn run_case(case_dir: &Path) -> Result<CaseOutputs, String> {
     // ── Compile (frontend → IR → projections + nemo rules + ledger) ──────────
     let source = std::fs::read_to_string(case_dir.join("input.logic.ttl"))
         .map_err(|e| prefix(format!("cannot read input.logic.ttl: {e}")))?;
-    let (program, _diagnostics) = parse_logic_str(&source, None)
+    // `parse_logic_str` returns `Err` only on a hard Turtle PARSE failure; a
+    // semantic `Severity::Error` diagnostic (e.g. an UNSUPPORTED_CONTRACT forbidden
+    // facet combination) is carried INSIDE the diagnostics vec with `Ok((..))`. The
+    // harness must respect those errors rather than silently proceed to evaluate —
+    // otherwise the "unsupported is a hard stop" guarantee is unpinned (#767 Gap 2).
+    let (program, diagnostics) = parse_logic_str(&source, None)
         .map_err(|e| prefix(format!("compile parse failed: {}", e.0)))?;
+
+    // ── Unsupported-contract firewall (#767 Gap 2) ────────────────────────────
+    // An `expect_unsupported` case asserts the contract authors a forbidden facet
+    // combination: require the compile to have flagged it (UNSUPPORTED_CONTRACT
+    // Severity::Error) and short-circuit WITHOUT evaluating/certifying/materializing.
+    if profile.expect_unsupported {
+        if !has_unsupported_contract_error(&diagnostics) {
+            return Err(prefix(format!(
+                "profile.json declares \"expect_unsupported\": true but the compile produced \
+                 no UNSUPPORTED_CONTRACT Severity::Error — the engine accepted the contract. \
+                 Diagnostics: {diagnostics:?}"
+            )));
+        }
+        // The program must not proceed: return empty outputs so the diff phase sees
+        // no goldens to compare (an expect_unsupported case carries no expected/ tree).
+        return Ok(empty_outputs(case_id));
+    }
+
+    // A non-`expect_unsupported` case that nonetheless emits ANY Severity::Error
+    // diagnostic is a silent-run hole: hard-fail so it can never evaluate as if the
+    // contract were sound. (All committed supported presets compile clean.)
+    if let Some(first) = first_error(&diagnostics) {
+        return Err(prefix(format!(
+            "compile emitted a Severity::Error diagnostic but the case does not declare \
+             \"expect_unsupported\": true — refusing to evaluate an unsound program. \
+             First error [{}]: {}",
+            first.code, first.message
+        )));
+    }
+
     let arts = compile_program(&program).map_err(|e| prefix(format!("compile failed: {e}")))?;
     let nemo_rules = arts.nemo_rules.clone();
 
@@ -174,6 +209,52 @@ pub fn run_case(case_dir: &Path) -> Result<CaseOutputs, String> {
         incomplete,
         answers,
     })
+}
+
+/// Whether `diags` carries at least one `Severity::Error` diagnostic, returning
+/// the first one. (`parse_logic_str` keeps semantic errors INSIDE the vec rather
+/// than returning `Err`, so the harness inspects them explicitly.)
+fn first_error(diags: &[Diagnostic]) -> Option<&Diagnostic> {
+    diags.iter().find(|d| d.severity == Severity::Error)
+}
+
+/// Whether the compile flagged an `UNSUPPORTED_CONTRACT` `Severity::Error` — the
+/// forbidden-facet-combination firewall verdict an `expect_unsupported` case asserts.
+fn has_unsupported_contract_error(diags: &[Diagnostic]) -> bool {
+    diags
+        .iter()
+        .any(|d| d.severity == Severity::Error && d.code == "UNSUPPORTED_CONTRACT")
+}
+
+/// The empty [`CaseOutputs`] an `expect_unsupported` case returns: the program is
+/// never evaluated, so there are no quads, projections, verdicts, or answers. The
+/// diff phase finds no goldens to compare (the case carries no `expected/` tree),
+/// so the case passes purely on the verified unsupported verdict.
+fn empty_outputs(case_id: String) -> CaseOutputs {
+    let mut rdf = BTreeMap::new();
+    for target in RDF_TARGETS {
+        rdf.insert(target.to_string(), String::new());
+    }
+    let mut text = BTreeMap::new();
+    for target in ["datalog", "n3", "nemo"] {
+        text.insert(target.to_string(), String::new());
+    }
+    CaseOutputs {
+        case_id,
+        materialized_nquads: String::new(),
+        projections: ProjectionOutputs {
+            rdf,
+            report_turtle: String::new(),
+            ledger: serde_json::json!({}),
+            text,
+        },
+        explanations: Vec::new(),
+        verdicts: serde_json::json!({}),
+        certification: serde_json::json!({}),
+        budget_status: "ok".to_string(),
+        incomplete: false,
+        answers: BTreeMap::new(),
+    }
 }
 
 /// Read an optional sibling file, returning the empty string when absent.
@@ -472,3 +553,94 @@ fn is_asserted(quad: &RunnerQuad) -> bool {
 // `datatest-stable` harness (`tests/conformance.rs`), which runs AND diffs every
 // case in parallel (~3s). A separate serial smoke test here would only duplicate
 // that coverage at ~11s of gate time, so it is intentionally omitted (gate-perf).
+//
+// The diagnostic-gating firewall (#767 Gap 2) IS unit-tested below because its
+// negative branches (a supported contract under `expect_unsupported`, an
+// un-declared compile error) are not exercisable through the committed corpus —
+// every committed `expected/`-bearing case is a supported preset, so a smoke test
+// over a tiny synthetic case dir is the only way to pin those refusals.
+
+#[cfg(test)]
+mod gating_tests {
+    use super::*;
+
+    /// A throwaway case directory under the system temp dir, removed on drop.
+    struct TmpCase(std::path::PathBuf);
+    impl TmpCase {
+        fn new(tag: &str) -> Self {
+            let dir = std::env::temp_dir()
+                .join("category")
+                .join(format!("gmeow-run-gate-{tag}-{}", std::process::id()));
+            std::fs::create_dir_all(&dir).expect("mkdir case dir");
+            Self(dir)
+        }
+        fn write(&self, name: &str, body: &str) {
+            std::fs::write(self.0.join(name), body).expect("write case file");
+        }
+    }
+    impl Drop for TmpCase {
+        fn drop(&mut self) {
+            let _ = std::fs::remove_dir_all(&self.0);
+        }
+    }
+
+    /// A `logic:ReasoningContract` authoring the forbidden probabilistic +
+    /// stable-model combination (RuleNoProbabilisticStableModel).
+    const UNSUPPORTED_TTL: &str = "\
+        @prefix logic: <https://blackcatinformatics.ca/logic/> .\n\
+        @prefix ex: <https://example.org/g/> .\n\
+        ex:C a logic:ReasoningContract ;\n\
+            logic:modelSemantics logic:StableModelSemantics ;\n\
+            logic:uncertaintyMeasure logic:ProbabilisticMeasure .\n\
+        ex:m a logic:ProbabilityModel .\n";
+
+    /// A clean, supported positive-Horn domain axiom (no contract, no error).
+    const SUPPORTED_TTL: &str = "\
+        @prefix logic: <https://blackcatinformatics.ca/logic/> .\n\
+        @prefix ex: <https://example.org/g/> .\n\
+        ex:Bird logic:subClassOf ex:Animal .\n";
+
+    #[test]
+    fn expect_unsupported_with_forbidden_combo_short_circuits_to_empty() {
+        let case = TmpCase::new("ok");
+        case.write("input.logic.ttl", UNSUPPORTED_TTL);
+        case.write(
+            "profile.json",
+            r#"{"reasoning_contract":{"preset":"StableModelProfile"},"expect_unsupported":true,"mode":"native"}"#,
+        );
+        let out = run_case(&case.0).expect("expect_unsupported case must pass");
+        // The program was never evaluated: no quads, no answers, empty verdicts.
+        assert!(out.materialized_nquads.is_empty());
+        assert!(out.answers.is_empty());
+        assert_eq!(out.verdicts, serde_json::json!({}));
+    }
+
+    #[test]
+    fn expect_unsupported_but_supported_contract_hard_fails() {
+        // The case CLAIMS unsupported but the engine accepts the contract: refuse.
+        let case = TmpCase::new("claim");
+        case.write("input.logic.ttl", SUPPORTED_TTL);
+        case.write(
+            "profile.json",
+            r#"{"expect_unsupported":true,"mode":"native"}"#,
+        );
+        let err = run_case(&case.0).unwrap_err();
+        assert!(err.contains("expect_unsupported"), "{err}");
+        assert!(err.contains("no UNSUPPORTED_CONTRACT"), "{err}");
+    }
+
+    #[test]
+    fn undeclared_compile_error_hard_fails() {
+        // A forbidden combo WITHOUT expect_unsupported must surface as a hard
+        // failure (the silent-run hole #767 Gap 2 closes), never a silent evaluate.
+        let case = TmpCase::new("silent");
+        case.write("input.logic.ttl", UNSUPPORTED_TTL);
+        case.write(
+            "profile.json",
+            r#"{"reasoning_contract":{"preset":"StableModelProfile"},"mode":"native"}"#,
+        );
+        let err = run_case(&case.0).unwrap_err();
+        assert!(err.contains("Severity::Error"), "{err}");
+        assert!(err.contains("UNSUPPORTED_CONTRACT"), "{err}");
+    }
+}

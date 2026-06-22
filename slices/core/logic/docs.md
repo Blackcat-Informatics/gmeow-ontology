@@ -174,10 +174,12 @@ and the wider superset spine
 **Foundation relations.** `rigidlyAppliesTo`/`suppliesIdentity`/`mediates`/`instanceOf`/`orderedType`
 and the mereology properties (`partOf`/`properPartOf`/`memberOf`/`temporalPartOf`).
 
-**Semantic profiles (as presets).** `SemanticProfile` and its named individuals — `PositiveHornProfile`,
+**Reasoning contract and presets.** A `ReasoningContract` is an independent selection across the
+orthogonal reasoning facets (formula fragment, model semantics, negation, truth algebra, closure,
+revision, resource policy, …). The six historical profile names — `PositiveHornProfile`,
 `StratifiedNAFProfile`, `WellFoundedProfile`, `StableModelProfile`, `ProceduralPrologProfile`,
-`ProbabilisticProfile` — are the historical profile names preserved as preset bundles of reasoning-contract
-facet values, documented term-by-term in [`module.ttl`](./module.ttl).
+`ProbabilisticProfile` — survive as `ReasoningPreset` named individuals: sugar that `logic:expandsToFacet`
+expands into a full contract facet bundle, documented term-by-term in [`module.ttl`](./module.ttl).
 
 **World/modal terms.** `World`/`accessibleFrom`/`counterfactualOf` and the typed context
 algebra described above.

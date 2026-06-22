@@ -13,8 +13,9 @@ use oxigraph::model::{GraphName, Literal, NamedNode, NamedOrBlankNode, Quad, Ter
 
 use super::super::ir::{LogicModality, LogicProgram};
 use super::{
-    assert_no_overclaim, generated_banner, is_modal_or_scoped, target_meta, OverclaimError,
-    ProjectionResult, GMEOW_NS, LOGIC_NS, OWL_NS, RDFS_NS, RDF_NS, RDF_TYPE, XSD_NS,
+    assert_no_overclaim, contract_drop_notes, generated_banner, is_modal_or_scoped, target_meta,
+    OverclaimError, ProjectionResult, GMEOW_NS, LOGIC_NS, OWL_NS, RDFS_NS, RDF_NS, RDF_TYPE,
+    XSD_NS,
 };
 
 const GUFO_NS: &str = "http://purl.org/nemo/gufo#";
@@ -27,6 +28,21 @@ fn owl(local: &str) -> String {
 }
 fn logic(local: &str) -> String {
     format!("{LOGIC_NS}{local}")
+}
+
+/// Resolve a facet *value* to its emitted IRI. The open facet-value vocabulary
+/// (#767, Gap 3) admits values that are already full custom IRIs (not under the
+/// `logic:` namespace); these must be emitted verbatim, not re-prefixed (which
+/// would yield a corrupt `…/logic/https://…`). A bare local name is prefixed under
+/// the `logic:` namespace. This is symmetric with the front-end storage convention
+/// (`strip_prefix(LOGIC_NAMESPACE).unwrap_or(full_iri)`), so a custom IRI
+/// round-trips identically.
+fn facet_value_iri(value: &str) -> String {
+    if value.starts_with("http://") || value.starts_with("https://") {
+        value.to_owned()
+    } else {
+        logic(value)
+    }
 }
 
 // --------------------------------------------------------------------------- //
@@ -282,6 +298,7 @@ pub fn project_owl_dl(program: &LogicProgram) -> Result<ProjectionResult, Overcl
         ));
     }
 
+    actual_drops.extend(contract_drop_notes(program, "OWL 2 DL"));
     rdf_result("owl-dl", g, "OWL 2 DL", actual_drops)
 }
 
@@ -356,6 +373,7 @@ pub fn project_owl_el(program: &LogicProgram) -> Result<ProjectionResult, Overcl
         ));
     }
 
+    actual_drops.extend(contract_drop_notes(program, "OWL 2 EL"));
     rdf_result("owl-el", g, "OWL 2 EL", actual_drops)
 }
 
@@ -411,6 +429,7 @@ pub fn project_gufo(program: &LogicProgram) -> Result<ProjectionResult, Overclai
         ));
     }
 
+    actual_drops.extend(contract_drop_notes(program, "the gUFO bridge"));
     rdf_result("gufo", g, "gUFO bridge", actual_drops)
 }
 
@@ -485,17 +504,15 @@ pub fn project_canonical_rdf12(program: &LogicProgram) -> Result<ProjectionResul
         }
     }
 
-    // Profiles.
-    for profile in &program.profiles {
-        let pid = logic(profile.profile_id.as_str());
-        g.add_iri(&pid, RDF_TYPE, &logic("SemanticProfile"));
-        if let Some(c) = &profile.complexity {
-            g.add_lit(
-                &pid,
-                &logic("complexityClass"),
-                Literal::new_simple_literal(c.label()),
-            );
-        }
+    // Reasoning contracts (#767). LOSSLESS projection: every contract — whether
+    // it carries a preset or only direct facets — is emitted in full as DIRECT
+    // facet properties on its subject node, so a re-parse through
+    // `extract_contracts` reconstructs the byte-identical `ReasoningContract`
+    // (same `sort_key()`).  The values are emitted as plain `logic:<Value>` IRIs;
+    // the parser routes them by the FACET PROPERTY (not the value's rdf:type), so
+    // the projection need not (and does not) re-emit each value's facet-class type.
+    for (idx, contract) in program.contracts.iter().enumerate() {
+        project_contract(&mut g, idx, contract);
     }
 
     // Rules as logic:Rule nodes with classic reification for head/body.
@@ -573,6 +590,97 @@ pub fn project_canonical_rdf12(program: &LogicProgram) -> Result<ProjectionResul
     }
 
     rdf_result("canonical-rdf12", g, "Canonical RDF 1.2", Vec::new())
+}
+
+/// Project a single [`ReasoningContract`] losslessly as DIRECT facet properties.
+///
+/// The subject node is the preset's IRI when the contract carries a preset (typed
+/// `logic:ReasoningPreset`), else a deterministic, content-free contract node
+/// `logic:contract/_NNNNNN` (typed `logic:ReasoningContract`) minted from the
+/// contract's canonical position — exactly the `rule/_NNNNNN` scheme used for
+/// anonymous rule nodes above.  Because the program's `contracts` vector is
+/// canonically sorted, `idx` is a stable function of the program content.
+///
+/// Every facet selection is emitted as the SAME direct facet property the
+/// front-end (`extract_contracts`) reads, so the projection round-trips:
+/// single-valued → one `logic:<facetProp> logic:<Value>` triple; set-valued →
+/// one triple per member; closure map → a `logic:ClosureEntry` node per entry
+/// (`logic:closureKey` string + `logic:closureValue logic:<Value>`) plus the
+/// `logic:defaultClosure logic:<Value>` default; complexity →
+/// `logic:complexityClass`.
+fn project_contract(
+    g: &mut TripleSink,
+    idx: usize,
+    contract: &super::super::ir::ReasoningContract,
+) {
+    let node = match contract.preset {
+        Some(preset) => {
+            let pid = logic(preset.as_str());
+            g.add_iri(&pid, RDF_TYPE, &logic("ReasoningPreset"));
+            pid
+        }
+        None => {
+            let node = format!("{LOGIC_NS}contract/_{:06}", idx + 1);
+            g.add_iri(&node, RDF_TYPE, &logic("ReasoningContract"));
+            node
+        }
+    };
+
+    // Single-valued facets: (property local name, value).
+    let singletons: [(&str, &Option<String>); 10] = [
+        ("formulaFragment", &contract.formula_fragment),
+        ("modelSemantics", &contract.model_semantics),
+        ("truthAlgebra", &contract.truth_algebra),
+        ("admissibleValuation", &contract.admissible_valuation),
+        ("designatedValues", &contract.designated_values),
+        ("evolution", &contract.evolution),
+        ("argumentation", &contract.argumentation),
+        ("revision", &contract.revision),
+        ("equalityPolicy", &contract.equality_policy),
+        ("defaultClosure", &contract.default_closure),
+    ];
+    for (prop, value) in singletons {
+        if let Some(v) = value {
+            g.add_iri(&node, &logic(prop), &facet_value_iri(v));
+        }
+    }
+
+    // Set-valued facets: (property local name, sorted member set).
+    let sets: [(&str, &std::collections::BTreeSet<String>); 5] = [
+        ("negationOperator", &contract.negation_operators),
+        ("contextAxis", &contract.context_axes),
+        ("uncertaintyMeasure", &contract.uncertainty_measures),
+        ("resourcePolicy", &contract.resource_policies),
+        ("projectionTarget", &contract.projection_targets),
+    ];
+    for (prop, members) in sets {
+        for member in members {
+            g.add_iri(&node, &logic(prop), &facet_value_iri(member));
+        }
+    }
+
+    // Closure map: one logic:ClosureEntry node per binding (BTreeMap ⇒ sorted),
+    // each carrying its key string + closure value individual.
+    for (i, (key, val)) in contract.closure_entries.iter().enumerate() {
+        let entry = format!("{node}/closureEntry/{i:04}");
+        g.add_iri(&node, &logic("closureEntry"), &entry);
+        g.add_iri(&entry, RDF_TYPE, &logic("ClosureEntry"));
+        g.add_lit(
+            &entry,
+            &logic("closureKey"),
+            Literal::new_simple_literal(key),
+        );
+        g.add_iri(&entry, &logic("closureValue"), &facet_value_iri(val));
+    }
+
+    // Carried decidability data.
+    if let Some(c) = &contract.complexity {
+        g.add_lit(
+            &node,
+            &logic("complexityClass"),
+            Literal::new_simple_literal(c.label()),
+        );
+    }
 }
 
 /// Add a reified `rdf:subject`/`rdf:object` term: a `?`-variable is emitted as a

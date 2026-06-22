@@ -282,6 +282,31 @@ pub(crate) fn is_modal_or_scoped(axiom: &LogicAxiom) -> bool {
         || axiom.scope.provenance.is_some()
 }
 
+/// Per-contract `actual_drops` notes for a LOSSY down-projection target (#767,
+/// Task 6).  A reasoning contract is reasoning-configuration metadata; the lossy
+/// rule/axiom surfaces (OWL-DL, OWL-EL, gUFO, Datalog, N3) carry no facet
+/// vocabulary, so each contract a program declares is recorded as an explicit
+/// drop rather than silently discarded.  The canonical RDF 1.2 target preserves
+/// contracts losslessly and must NOT call this; the Nemo target consumes the
+/// contract as the engine-selecting input (it is not encoded in the `.rls`).
+pub(crate) fn contract_drop_notes(program: &LogicProgram, target_label: &str) -> Vec<String> {
+    program
+        .contracts
+        .iter()
+        .map(|contract| {
+            let label = match contract.preset {
+                Some(preset) => format!("preset logic:{}", preset.as_str()),
+                None => "an anonymous faceted contract".to_owned(),
+            };
+            format!(
+                "reasoning contract ({label}) is not representable in {target_label}; \
+                 the full facet selection is dropped (preserved only in the canonical \
+                 RDF 1.2 projection)"
+            )
+        })
+        .collect()
+}
+
 /// The standard GENERATED header for a target.
 pub(crate) fn generated_banner(target: &str) -> String {
     format!(
