@@ -686,127 +686,209 @@ fn escape_attr(value: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::model::{Finding, Location, Report, Severity};
+    use crate::model::{DiagnosticAttribution, Finding, Location, Report, Severity};
 
-    #[test]
-    fn sarif_has_expected_version_and_result() {
-        let mut finding = Finding::new(Severity::Error, "validate.missing", "missing term");
-        finding.add_location(Location::new(
-            Some("slices/core/example/module.ttl".to_owned()),
-            Some(12),
-            Some(3),
-            None,
-        ));
-        let mut report = Report::new("validate");
-        report.add_finding(finding);
+    // ── Fixtures ─────────────────────────────────────────────────────────────
+    //
+    // The renderers are pure functions of the `Report` and the fingerprint is a
+    // content hash (see `sarif_fingerprint_is_deterministic_and_distinct`), so
+    // every output is fully deterministic — the `.snap` goldens carry it verbatim
+    // with no redaction. One rich fixture exercises the union of structural
+    // features so a single whole-output snapshot per renderer subsumes the old
+    // field-level `assert_eq!(value["runs"][0]...)` spot-checks.
 
-        let value: Value = serde_json::from_str(&to_sarif(&report).unwrap()).unwrap();
-
-        assert_eq!(value["version"], "2.1.0");
-        assert_eq!(value["runs"][0]["results"][0]["ruleId"], "validate.missing");
-        assert_eq!(
-            value["runs"][0]["results"][0]["locations"][0]["physicalLocation"]["region"]
-                ["startLine"],
-            12
-        );
-    }
-
-    #[test]
-    fn sarif_emits_wire_coords_fingerprint_and_artifacts() {
-        let mut finding =
+    /// A multi-finding report exercising: GTS wire coordinates (quad + segment)
+    /// on a `.gts` bundle, a repo-relative `.ttl` with a focus-IRI logical anchor
+    /// plus a logical-only related `path <iri>` that folds onto the primary
+    /// (#666), two attributions (sorted by role then sliceIri), a `category`
+    /// (yielding run-level `automationDetails.id`), and a fileless legacy warning
+    /// (anchored to the ontology root).
+    fn comprehensive_report() -> Report {
+        let mut wire =
             Finding::new(Severity::Error, "shacl.MinCount", "missing property").with_tool("shacl");
-        // A repo-relative bundle path (the valid physical artifact URI) carrying
-        // the GTS wire coordinates as logical locations.
-        finding.add_location(
+        wire.add_location(
             Location::new(Some("bundle.gts".to_owned()), None, None, None)
                 .with_gts_quad(42)
                 .with_gts_segment(2),
         );
-        let mut report = Report::new("validate");
-        report.add_finding(finding);
 
-        let value: Value = serde_json::from_str(&to_sarif(&report).unwrap()).unwrap();
-        let result = &value["runs"][0]["results"][0];
+        let mut anchored =
+            Finding::new(Severity::Error, "shacl.MinCount", "missing property").with_tool("shacl");
+        anchored.add_location(Location::new(
+            Some("core/ai/examples/grounded-claim.ttl".to_owned()),
+            Some(12),
+            Some(3),
+            Some("https://blackcatinformatics.ca/gmeow/examples/ai/claim".to_owned()),
+        ));
+        anchored.related_locations.push(Location::new(
+            None,
+            None,
+            None,
+            Some("path https://blackcatinformatics.ca/gmeow/groundedIn".to_owned()),
+        ));
+        anchored.attributions.push(DiagnosticAttribution {
+            slice_iri: "https://blackcatinformatics.ca/gmeow/slices/core/shapes".to_owned(),
+            role: "shape-owner".to_owned(),
+            evidence: Some("slices/core/shapes/shapes.ttl".to_owned()),
+        });
+        anchored.attributions.push(DiagnosticAttribution {
+            slice_iri: "https://blackcatinformatics.ca/gmeow/slices/ext/data".to_owned(),
+            role: "focus-origin".to_owned(),
+            evidence: None,
+        });
 
-        // partialFingerprints is stable and present for code-scanning dedup.
-        let fp = result["partialFingerprints"]["gmeowFindingHash/v2"]
-            .as_str()
-            .expect("fingerprint present");
-        assert_eq!(fp.len(), 16);
-
-        // The physical artifact URI is the repo-relative bundle path.
-        assert_eq!(
-            result["locations"][0]["physicalLocation"]["artifactLocation"]["uri"],
-            "bundle.gts"
+        let fileless = Finding::new(
+            Severity::Warning,
+            "validate.warning",
+            "class gmeow:Analogy is missing gmeow:howToUse",
         );
-        // The wire coordinates surface as logical locations + properties.
-        let logical = &result["locations"][0]["logicalLocations"];
-        assert_eq!(logical[0]["kind"], "gts:quad");
-        assert_eq!(logical[0]["name"], "quad#42");
-        assert_eq!(result["locations"][0]["properties"]["gts.quadIndex"], 42);
-        assert_eq!(result["locations"][0]["properties"]["gts.segmentIndex"], 2);
 
-        // The referenced artifact is listed once at the run level.
-        assert_eq!(
-            value["runs"][0]["artifacts"][0]["location"]["uri"],
-            "bundle.gts"
-        );
-    }
-
-    #[test]
-    fn sarif_emits_automation_details_id_only_when_category_set() {
         let mut report = Report::new("validate");
-        report.add_finding(Finding::new(Severity::Error, "x", "boom"));
-
-        // No category metadata -> no automationDetails (existing behavior).
-        let value: Value = serde_json::from_str(&to_sarif(&report).unwrap()).unwrap();
-        assert!(value["runs"][0]["automationDetails"].is_null());
-
-        // A non-empty category string -> run-level automationDetails.id.
         report
             .metadata
             .insert("category".to_owned(), json!("ontology"));
-        let value: Value = serde_json::from_str(&to_sarif(&report).unwrap()).unwrap();
-        assert_eq!(value["runs"][0]["automationDetails"]["id"], "ontology");
+        report.add_finding(wire);
+        report.add_finding(anchored);
+        report.add_finding(fileless);
+        report
+    }
 
-        // An empty / non-string category is ignored (omitted, not emitted blank).
+    /// The exact shape a stale validation cache yields: a SHACL finding whose
+    /// PRIMARY location is logical-only (the focus IRI) and whose related
+    /// locations are the source file (physical) plus a `path <iri>` annotation
+    /// (logical-only). GitHub requires the primary to be physical, so the file is
+    /// promoted to primary and every logical entry folds onto it (#666).
+    fn stale_cache_report() -> Report {
+        let mut finding =
+            Finding::new(Severity::Error, "shacl.MinCount", "missing property").with_tool("shacl");
+        finding.add_location(Location::new(
+            None,
+            None,
+            None,
+            Some("https://blackcatinformatics.ca/gmeow/examples/ai/claim".to_owned()),
+        ));
+        finding.related_locations.push(Location::new(
+            Some("core/ai/examples/grounded-claim.ttl".to_owned()),
+            None,
+            None,
+            None,
+        ));
+        finding.related_locations.push(Location::new(
+            None,
+            None,
+            None,
+            Some("path https://blackcatinformatics.ca/gmeow/groundedIn".to_owned()),
+        ));
+        let mut report = Report::new("validate");
+        report.add_finding(finding);
+        report
+    }
+
+    // ── Whole-output snapshot goldens (T8, #789) ─────────────────────────────
+
+    #[test]
+    fn sarif_full_snapshot() {
+        let value: Value =
+            serde_json::from_str(&to_sarif(&comprehensive_report()).unwrap()).unwrap();
+        insta::assert_json_snapshot!(value);
+    }
+
+    #[test]
+    fn json_full_snapshot() {
+        let value: Value =
+            serde_json::from_str(&to_json(&comprehensive_report()).unwrap()).unwrap();
+        insta::assert_json_snapshot!(value);
+    }
+
+    #[test]
+    fn gmeow_rdf_full_snapshot() {
+        insta::assert_snapshot!(to_gmeow_rdf(&comprehensive_report()));
+    }
+
+    #[test]
+    fn text_full_snapshot() {
+        insta::assert_snapshot!(to_text(&comprehensive_report()));
+    }
+
+    #[test]
+    fn html_full_snapshot() {
+        insta::assert_snapshot!(to_html(&comprehensive_report()));
+    }
+
+    #[test]
+    fn sarif_stale_cache_primary_promotion_snapshot() {
+        let value: Value = serde_json::from_str(&to_sarif(&stale_cache_report()).unwrap()).unwrap();
+        insta::assert_json_snapshot!(value);
+    }
+
+    // ── Semantic invariants (properties a snapshot cannot express) ───────────
+
+    #[test]
+    fn sarif_emits_no_absolute_or_angle_bracket_uris() {
+        // #666 code-scanning contract, asserted as a property over the whole rich
+        // report (not a single field): NO artifactLocation.uri is angle-bracketed
+        // or absolute-scheme, and every emitted relatedLocation carries a
+        // physicalLocation (a logical-only related location is rejected by GitHub).
+        let serialized = to_sarif(&comprehensive_report()).unwrap();
+        assert!(
+            !serialized.contains("\"uri\": \"<"),
+            "angle-bracketed URI leaked"
+        );
+        let value: Value = serde_json::from_str(&serialized).unwrap();
+        for run in value["runs"].as_array().unwrap() {
+            for kind in ["results", "artifacts"] {
+                collect_uris(&run[kind]).iter().for_each(|u| {
+                    assert!(
+                        !has_uri_scheme(u),
+                        "absolute-scheme URI leaked into artifactLocation: {u}"
+                    );
+                });
+            }
+            for res in run["results"].as_array().unwrap() {
+                if let Some(rels) = res["relatedLocations"].as_array() {
+                    for rel in rels {
+                        assert!(
+                            rel.get("physicalLocation").is_some(),
+                            "relatedLocation without physicalLocation is rejected by code-scanning"
+                        );
+                    }
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn sarif_automation_details_omitted_without_category() {
+        // The positive (category -> automationDetails.id) is locked by the SARIF
+        // snapshot; here we pin the negatives a snapshot of "null" expresses
+        // weakly: no metadata, empty string, and a non-string all omit the key.
+        let mut report = Report::new("validate");
+        report.add_finding(Finding::new(Severity::Error, "x", "boom"));
+        let value: Value = serde_json::from_str(&to_sarif(&report).unwrap()).unwrap();
+        assert!(value["runs"][0]["automationDetails"].is_null());
+
         report.metadata.insert("category".to_owned(), json!(""));
         let value: Value = serde_json::from_str(&to_sarif(&report).unwrap()).unwrap();
         assert!(value["runs"][0]["automationDetails"].is_null());
+
         report.metadata.insert("category".to_owned(), json!(7));
         let value: Value = serde_json::from_str(&to_sarif(&report).unwrap()).unwrap();
         assert!(value["runs"][0]["automationDetails"].is_null());
     }
 
     #[test]
-    fn gmeow_rdf_projects_findings_into_the_diagnostics_graph() {
-        let mut finding =
-            Finding::new(Severity::Error, "shacl.MinCount", "missing property").with_tool("shacl");
-        finding.add_location(
-            Location::new(None, None, None, Some("gts:quad".to_owned())).with_gts_quad(42),
-        );
-        let mut report = Report::new("validate");
-        report.add_finding(finding);
-
-        let nquads = to_gmeow_rdf(&report);
-
-        // Every line is in the diagnostics named graph.
+    fn gmeow_rdf_projects_into_the_diagnostics_graph() {
+        // Every projected line lands in the diagnostics named graph, and the
+        // projection is deterministic. (Specific triples are locked by the
+        // gmeow_rdf snapshot; this asserts the graph-containment invariant.)
+        let nquads = to_gmeow_rdf(&comprehensive_report());
         for line in nquads.lines() {
             assert!(
                 line.ends_with("<https://blackcatinformatics.ca/gmeow/graph/diagnostics> ."),
                 "line not in diagnostics graph: {line}"
             );
         }
-        assert!(nquads.contains("<https://blackcatinformatics.ca/gmeow/Finding>"));
-        assert!(nquads.contains("<https://blackcatinformatics.ca/gmeow/severityError>"));
-        assert!(nquads
-            .contains("<https://blackcatinformatics.ca/gmeow/findingCode> \"shacl.MinCount\""));
-        // The wire coordinate rides on the location node as a typed literal.
-        assert!(nquads.contains(
-            "<https://blackcatinformatics.ca/gmeow/gtsQuadIndex> \"42\"^^<http://www.w3.org/2001/XMLSchema#nonNegativeInteger>"
-        ));
-        // Deterministic: the same report projects identically.
-        assert_eq!(nquads, to_gmeow_rdf(&report));
+        assert_eq!(nquads, to_gmeow_rdf(&comprehensive_report()));
     }
 
     #[test]
@@ -833,10 +915,7 @@ mod tests {
             "nul\u{0}back\u{8}ff\u{c}vt\u{b}",
         ));
         let nquads = to_gmeow_rdf(&report);
-
-        // The literal escapes each control as the spec-mandated \uXXXX form.
         assert!(nquads.contains("nul\\u0000back\\u0008ff\\u000Cvt\\u000B"));
-        // No raw C0 control byte survives anywhere in the serialization.
         assert!(
             !nquads.chars().any(|c| (c as u32) < 0x20 && c != '\n'),
             "raw control character leaked into N-Quads output"
@@ -852,21 +931,39 @@ mod tests {
     }
 
     #[test]
+    fn sarif_fingerprint_is_role_sensitive() {
+        // Two otherwise-identical findings that differ only in attribution role
+        // must produce DIFFERENT fingerprints (v2 contract).
+        let make_finding = |role: &str| {
+            let mut f = Finding::new(Severity::Error, "shacl.MinCount", "missing property");
+            f.attributions.push(DiagnosticAttribution {
+                slice_iri: "https://blackcatinformatics.ca/gmeow/slices/core/epistemics".to_owned(),
+                role: role.to_owned(),
+                evidence: None,
+            });
+            f
+        };
+        let fp_shape = stable_fingerprint(&make_finding("shape-owner"));
+        let fp_focus = stable_fingerprint(&make_finding("focus-origin"));
+        let fp_scope = stable_fingerprint(&make_finding("evaluation-scope"));
+        assert_ne!(fp_shape, fp_focus);
+        assert_ne!(fp_shape, fp_scope);
+        assert_ne!(fp_focus, fp_scope);
+    }
+
+    #[test]
     fn html_escapes_messages() {
         let mut report = Report::new("validate");
         report.add_finding(Finding::new(Severity::Warning, "x", "<script>"));
-
         let html = to_html(&report);
-
         assert!(html.contains("&lt;script&gt;"));
         assert!(!html.contains("<script>"));
     }
 
     #[test]
     fn html_emits_one_row_per_finding() {
-        // Well-formedness, not just substring presence: the rendered table must be
-        // balanced and carry exactly one data row per finding plus the header row.
-        // (Ports `tests/test_diagnostics.py::test_html_is_well_formed_with_one_row_per_finding`.)
+        // Well-formedness: the rendered table is balanced and carries exactly one
+        // data row per finding plus the header row.
         let mut report = Report::new("validate");
         for i in 0..3 {
             report.add_finding(Finding::new(
@@ -875,172 +972,12 @@ mod tests {
                 format!("message {i}"),
             ));
         }
-
         let html = to_html(&report);
-
-        // Balanced, single table.
         assert_eq!(html.matches("<table>").count(), 1);
         assert_eq!(html.matches("</table>").count(), 1);
-        // Balanced rows: one header row + one per finding, all closed. Count by
-        // `</tr>` (close tags never carry attributes) and match the
-        // attribute-tolerant `<tr` open prefix, so adding a class/style to a row
-        // start tag later cannot silently break this assertion.
         let close_rows = html.matches("</tr>").count();
         assert_eq!(html.matches("<tr").count(), close_rows);
         assert_eq!(close_rows, 1 + report.findings.len());
-    }
-
-    #[test]
-    fn sarif_artifact_uris_are_repo_relative_and_iris_are_logical() {
-        // GitHub code-scanning requires `artifactLocation.uri` to be a repo-relative
-        // file reference: it rejects angle-bracketed IRIs AND absolute schemes
-        // ("scheme https did not match checkout scheme file"). So the repo `.ttl`
-        // path is the physical artifact, while the focus-node IRI and a SHACL
-        // `path <iri>` annotation are logical locations. Regression for #666.
-        let mut finding =
-            Finding::new(Severity::Error, "shacl.MinCount", "missing property").with_tool("shacl");
-        // Primary: repo-relative file path (physical) carrying the focus IRI as a
-        // logical anchor.
-        finding.add_location(Location::new(
-            Some("core/ai/examples/grounded-claim.ttl".to_owned()),
-            None,
-            None,
-            Some("https://blackcatinformatics.ca/gmeow/examples/ai/claim".to_owned()),
-        ));
-        finding.related_locations.push(Location::new(
-            None,
-            None,
-            None,
-            Some("path https://blackcatinformatics.ca/gmeow/groundedIn".to_owned()),
-        ));
-        let mut report = Report::new("validate");
-        report.add_finding(finding);
-
-        let value: Value = serde_json::from_str(&to_sarif(&report).unwrap()).unwrap();
-        let result = &value["runs"][0]["results"][0];
-
-        // Primary physical URI is the repo-relative file, not the absolute IRI.
-        assert_eq!(
-            result["locations"][0]["physicalLocation"]["artifactLocation"]["uri"],
-            "core/ai/examples/grounded-claim.ttl"
-        );
-        // The focus IRI and the folded `path` annotation ride along as logical
-        // locations on the primary (a logical-only related location would be
-        // rejected by GitHub, so it is folded here rather than emitted).
-        let names: Vec<&str> = result["locations"][0]["logicalLocations"]
-            .as_array()
-            .unwrap()
-            .iter()
-            .map(|l| l["fullyQualifiedName"].as_str().unwrap())
-            .collect();
-        assert!(names.contains(&"https://blackcatinformatics.ca/gmeow/examples/ai/claim"));
-        assert!(names.contains(&"path https://blackcatinformatics.ca/gmeow/groundedIn"));
-
-        // The only related location was logical-only, so none is emitted — and
-        // every relatedLocation that IS emitted must carry a physicalLocation.
-        assert!(result["relatedLocations"].is_null());
-
-        // No emitted artifact URI carries an angle bracket OR an absolute scheme,
-        // and every relatedLocation across the run has a physicalLocation.
-        let serialized = to_sarif(&report).unwrap();
-        assert!(
-            !serialized.contains("\"uri\": \"<"),
-            "angle-bracketed URI leaked"
-        );
-        for run in value["runs"].as_array().unwrap() {
-            for kind in ["results", "artifacts"] {
-                collect_uris(&run[kind]).iter().for_each(|u| {
-                    assert!(
-                        !has_uri_scheme(u),
-                        "absolute-scheme URI leaked into artifactLocation: {u}"
-                    );
-                });
-            }
-            for res in run["results"].as_array().unwrap() {
-                if let Some(rels) = res["relatedLocations"].as_array() {
-                    for rel in rels {
-                        assert!(
-                            rel.get("physicalLocation").is_some(),
-                            "relatedLocation without physicalLocation is rejected by code-scanning"
-                        );
-                    }
-                }
-            }
-        }
-    }
-
-    #[test]
-    fn stale_cache_shape_promotes_file_to_primary_and_folds_logicals() {
-        // The exact shape a stale validation cache yields: a SHACL finding whose
-        // PRIMARY location is logical-only (the focus IRI) and whose related
-        // locations are the source file (physical) plus a `path <iri>` annotation
-        // (logical-only). GitHub requires the primary location to be physical, so
-        // the file is promoted to primary and every logical entry folds onto it.
-        // Regression for #666.
-        let mut finding =
-            Finding::new(Severity::Error, "shacl.MinCount", "missing property").with_tool("shacl");
-        finding.add_location(Location::new(
-            None,
-            None,
-            None,
-            Some("https://blackcatinformatics.ca/gmeow/examples/ai/claim".to_owned()),
-        ));
-        finding.related_locations.push(Location::new(
-            Some("core/ai/examples/grounded-claim.ttl".to_owned()),
-            None,
-            None,
-            None,
-        ));
-        finding.related_locations.push(Location::new(
-            None,
-            None,
-            None,
-            Some("path https://blackcatinformatics.ca/gmeow/groundedIn".to_owned()),
-        ));
-        let mut report = Report::new("validate");
-        report.add_finding(finding);
-
-        let value: Value = serde_json::from_str(&to_sarif(&report).unwrap()).unwrap();
-        let result = &value["runs"][0]["results"][0];
-
-        // The file is promoted to the (physical) primary location.
-        assert_eq!(
-            result["locations"][0]["physicalLocation"]["artifactLocation"]["uri"],
-            "core/ai/examples/grounded-claim.ttl"
-        );
-        // No physical-less location survives, so no relatedLocations are emitted.
-        assert!(result["relatedLocations"].is_null());
-        // Both logical entries fold onto the primary.
-        let names: Vec<&str> = result["locations"][0]["logicalLocations"]
-            .as_array()
-            .unwrap()
-            .iter()
-            .map(|l| l["fullyQualifiedName"].as_str().unwrap())
-            .collect();
-        assert!(names.contains(&"path https://blackcatinformatics.ca/gmeow/groundedIn"));
-        assert!(names.contains(&"https://blackcatinformatics.ca/gmeow/examples/ai/claim"));
-    }
-
-    #[test]
-    fn fileless_finding_anchors_to_the_ontology_root() {
-        // A message-only legacy warning (no location at all) must still get a
-        // location with a repo-relative physicalLocation, else code-scanning
-        // rejects it ("expected at least one location"). Regression for #666.
-        let mut report = Report::new("validate");
-        report.add_finding(Finding::new(
-            Severity::Warning,
-            "validate.warning",
-            "class gmeow:Analogy is missing gmeow:howToUse",
-        ));
-        let value: Value = serde_json::from_str(&to_sarif(&report).unwrap()).unwrap();
-        let result = &value["runs"][0]["results"][0];
-        assert_eq!(
-            result["locations"][0]["physicalLocation"]["artifactLocation"]["uri"],
-            "ontology/gmeow.ttl"
-        );
-        assert!(result["locations"]
-            .as_array()
-            .is_some_and(|a| !a.is_empty()));
     }
 
     /// Recursively collect every `"uri"` string value under a JSON node.
@@ -1062,97 +999,5 @@ mod tests {
             _ => {}
         }
         out
-    }
-
-    /// Test 3: SARIF fingerprint role sensitivity.
-    ///
-    /// Two otherwise-identical findings that differ only in their attribution
-    /// roles must produce DIFFERENT fingerprints (v2 contract).
-    #[test]
-    fn sarif_fingerprint_is_role_sensitive() {
-        use crate::model::DiagnosticAttribution;
-
-        let make_finding = |role: &str| {
-            let mut f = Finding::new(Severity::Error, "shacl.MinCount", "missing property");
-            f.attributions.push(DiagnosticAttribution {
-                slice_iri: "https://blackcatinformatics.ca/gmeow/slices/core/epistemics".to_owned(),
-                role: role.to_owned(),
-                evidence: None,
-            });
-            f
-        };
-
-        let finding_shape = make_finding("shape-owner");
-        let finding_focus = make_finding("focus-origin");
-        let finding_scope = make_finding("evaluation-scope");
-
-        // Same slice IRI, same severity/code/message/location — only role differs.
-        let fp_shape = stable_fingerprint(&finding_shape);
-        let fp_focus = stable_fingerprint(&finding_focus);
-        let fp_scope = stable_fingerprint(&finding_scope);
-
-        assert_ne!(
-            fp_shape, fp_focus,
-            "shape-owner vs focus-origin must produce different fingerprints"
-        );
-        assert_ne!(
-            fp_shape, fp_scope,
-            "shape-owner vs evaluation-scope must produce different fingerprints"
-        );
-        assert_ne!(
-            fp_focus, fp_scope,
-            "focus-origin vs evaluation-scope must produce different fingerprints"
-        );
-
-        // Self-consistency: same finding always produces the same fingerprint.
-        assert_eq!(
-            stable_fingerprint(&finding_shape),
-            stable_fingerprint(&finding_shape),
-            "fingerprint must be deterministic"
-        );
-    }
-
-    /// SARIF output carries `gmeow.attributions` in result properties when
-    /// attributions are present.
-    #[test]
-    fn sarif_result_properties_carry_attributions() {
-        use crate::model::DiagnosticAttribution;
-        use serde_json::Value;
-
-        let mut finding = Finding::new(Severity::Error, "shacl.MinCount", "missing property");
-        finding.attributions.push(DiagnosticAttribution {
-            slice_iri: "https://blackcatinformatics.ca/gmeow/slices/core/shapes".to_owned(),
-            role: "shape-owner".to_owned(),
-            evidence: Some("slices/core/shapes/shapes.ttl".to_owned()),
-        });
-        finding.attributions.push(DiagnosticAttribution {
-            slice_iri: "https://blackcatinformatics.ca/gmeow/slices/ext/data".to_owned(),
-            role: "focus-origin".to_owned(),
-            evidence: None,
-        });
-        let mut report = Report::new("shacl");
-        report.add_finding(finding);
-
-        let value: Value = serde_json::from_str(&to_sarif(&report).unwrap()).unwrap();
-        let result = &value["runs"][0]["results"][0];
-
-        let attrs = result["properties"]["gmeow.attributions"]
-            .as_array()
-            .expect("gmeow.attributions must be present as an array");
-
-        assert_eq!(attrs.len(), 2, "two attributions expected");
-
-        // Sorted by (role, sliceIri): focus-origin before shape-owner.
-        assert_eq!(attrs[0]["role"], "focus-origin");
-        assert_eq!(
-            attrs[0]["sliceIri"],
-            "https://blackcatinformatics.ca/gmeow/slices/ext/data"
-        );
-        assert!(
-            attrs[0]["evidence"].is_null(),
-            "focus-origin has no evidence"
-        );
-        assert_eq!(attrs[1]["role"], "shape-owner");
-        assert_eq!(attrs[1]["evidence"], "slices/core/shapes/shapes.ttl");
     }
 }

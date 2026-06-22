@@ -1466,6 +1466,7 @@ dependencies = [
 name = "gmeow-diagnostics"
 version = "0.1.0"
 dependencies = [
+ "insta",
  "pyo3",
  "serde",
  "serde_json",

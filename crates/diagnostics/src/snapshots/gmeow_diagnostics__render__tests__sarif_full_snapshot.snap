@@ -1,0 +1,147 @@
+---
+source: crates/diagnostics/src/render.rs
+expression: value
+---
+{
+  "$schema": "https://json.schemastore.org/sarif-2.1.0.json",
+  "runs": [
+    {
+      "artifacts": [
+        {
+          "location": {
+            "uri": "bundle.gts"
+          }
+        },
+        {
+          "location": {
+            "uri": "core/ai/examples/grounded-claim.ttl"
+          }
+        }
+      ],
+      "automationDetails": {
+        "id": "ontology"
+      },
+      "results": [
+        {
+          "level": "error",
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "gts:quad/42",
+                  "kind": "gts:quad",
+                  "name": "quad#42"
+                },
+                {
+                  "fullyQualifiedName": "gts:segment/2",
+                  "kind": "gts:segment",
+                  "name": "segment#2"
+                }
+              ],
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "bundle.gts"
+                }
+              },
+              "properties": {
+                "gts.quadIndex": 42,
+                "gts.segmentIndex": 2
+              }
+            }
+          ],
+          "message": {
+            "text": "missing property"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "1dd8166d263293b6"
+          },
+          "ruleId": "shacl.MinCount"
+        },
+        {
+          "level": "error",
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "https://blackcatinformatics.ca/gmeow/examples/ai/claim"
+                },
+                {
+                  "fullyQualifiedName": "path https://blackcatinformatics.ca/gmeow/groundedIn"
+                }
+              ],
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "core/ai/examples/grounded-claim.ttl"
+                },
+                "region": {
+                  "startColumn": 3,
+                  "startLine": 12
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "missing property"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "9f37721a7334a69c"
+          },
+          "properties": {
+            "gmeow.attributions": [
+              {
+                "role": "focus-origin",
+                "sliceIri": "https://blackcatinformatics.ca/gmeow/slices/ext/data"
+              },
+              {
+                "evidence": "slices/core/shapes/shapes.ttl",
+                "role": "shape-owner",
+                "sliceIri": "https://blackcatinformatics.ca/gmeow/slices/core/shapes"
+              }
+            ]
+          },
+          "ruleId": "shacl.MinCount"
+        },
+        {
+          "level": "warning",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "ontology/gmeow.ttl"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "class gmeow:Analogy is missing gmeow:howToUse"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "5bf7402afe63c0fc"
+          },
+          "ruleId": "validate.warning"
+        }
+      ],
+      "tool": {
+        "driver": {
+          "informationUri": "https://github.com/Blackcat-Informatics/gmeow-ontology",
+          "name": "validate",
+          "rules": [
+            {
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "id": "shacl.MinCount"
+            },
+            {
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "id": "validate.warning"
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "version": "2.1.0"
+}

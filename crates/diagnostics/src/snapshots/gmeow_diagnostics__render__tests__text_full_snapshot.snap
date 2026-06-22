@@ -1,0 +1,7 @@
+---
+source: crates/diagnostics/src/render.rs
+expression: to_text(&comprehensive_report())
+---
+error shacl.MinCount: missing property (bundle.gts quad#42 segment#2)
+error shacl.MinCount: missing property (core/ai/examples/grounded-claim.ttl:12:3)
+warning validate.warning: class gmeow:Analogy is missing gmeow:howToUse

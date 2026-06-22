@@ -1,0 +1,61 @@
+---
+source: crates/diagnostics/src/render.rs
+expression: value
+---
+{
+  "findings": [
+    {
+      "code": "shacl.MinCount",
+      "locations": [
+        {
+          "gts_quad_index": 42,
+          "gts_segment_index": 2,
+          "path": "bundle.gts"
+        }
+      ],
+      "message": "missing property",
+      "severity": "error",
+      "tool": "shacl"
+    },
+    {
+      "attributions": [
+        {
+          "evidence": "slices/core/shapes/shapes.ttl",
+          "role": "shape-owner",
+          "slice_iri": "https://blackcatinformatics.ca/gmeow/slices/core/shapes"
+        },
+        {
+          "role": "focus-origin",
+          "slice_iri": "https://blackcatinformatics.ca/gmeow/slices/ext/data"
+        }
+      ],
+      "code": "shacl.MinCount",
+      "locations": [
+        {
+          "column": 3,
+          "line": 12,
+          "logical": "https://blackcatinformatics.ca/gmeow/examples/ai/claim",
+          "path": "core/ai/examples/grounded-claim.ttl"
+        }
+      ],
+      "message": "missing property",
+      "related_locations": [
+        {
+          "logical": "path https://blackcatinformatics.ca/gmeow/groundedIn"
+        }
+      ],
+      "severity": "error",
+      "tool": "shacl"
+    },
+    {
+      "code": "validate.warning",
+      "message": "class gmeow:Analogy is missing gmeow:howToUse",
+      "severity": "warning",
+      "tool": "validate"
+    }
+  ],
+  "metadata": {
+    "category": "ontology"
+  },
+  "tool": "validate"
+}

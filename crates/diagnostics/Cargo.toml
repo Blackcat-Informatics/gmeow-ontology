@@ -21,3 +21,10 @@ path = "src/lib.rs"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 pyo3 = { version = "0.29", features = ["extension-module", "abi3-py313"] }
+
+[dev-dependencies]
+# insta: whole-output snapshot goldens for the five renderers (T8, #789). The
+# renderers are pure functions of the Report and the fingerprint is a content
+# hash, so the output is fully deterministic — snapshots carry it verbatim, no
+# redaction. Pinned to match crates/docs / crates/logic.
+insta = { version = "1.48", features = ["json"] }
