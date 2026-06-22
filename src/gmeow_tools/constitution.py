@@ -28,6 +28,7 @@ from dataclasses import dataclass, field
 from functools import lru_cache
 from pathlib import Path
 
+import gmeow_validate
 from gmeow_rdf.compat.rdflib import RDF, RDFS, Graph, URIRef
 from gmeow_rdf.compat.rdflib.term import Literal
 
@@ -214,57 +215,62 @@ def _registered_generators() -> frozenset[str]:
     return frozenset(registry())
 
 
+def _emit(
+    report: diagnostics.DiagnosticsReport,
+    *,
+    severity: str,
+    code: str,
+    message: str,
+    logical: str | None = None,
+) -> None:
+    """Add one granular ``constitution.<code>`` finding to the report (#809)."""
+    report.add(
+        diagnostics.finding(
+            severity=severity,
+            code=f"constitution.{code}",
+            message=message,
+            tool="constitution",
+            logical=logical,
+        )
+    )
+
+
 def _check_principle_sync(
-    manifest: Manifest, headings: dict[int, str], result: ValidationResult
+    manifest: Manifest, headings: dict[int, str], report: diagnostics.DiagnosticsReport
 ) -> None:
     """Manifest principles and CONSTITUTION.md headings must agree exactly."""
     declared = {p.number: p for p in manifest.principles}
     for number in sorted(set(headings) - set(declared)):
-        result.errors.append(
-            f"principle {number} ({headings[number]!r}) has no manifest entry "
-            f"in governance/constitution.ttl"
+        _emit(
+            report,
+            severity="error",
+            code="missing-manifest-entry",
+            message=f"principle {number} ({headings[number]!r}) has no manifest "
+            f"entry in governance/constitution.ttl",
         )
     for number in sorted(set(declared) - set(headings)):
-        result.errors.append(
-            f"manifest declares principle {number} "
-            f"({declared[number].title!r}) absent from CONSTITUTION.md"
+        _emit(
+            report,
+            severity="error",
+            code="absent-from-constitution",
+            message=f"manifest declares principle {number} "
+            f"({declared[number].title!r}) absent from CONSTITUTION.md",
         )
     for number in sorted(set(declared) & set(headings)):
         if declared[number].title != headings[number]:
-            result.errors.append(
-                f"principle {number} title drift: manifest says "
+            _emit(
+                report,
+                severity="error",
+                code="title-drift",
+                message=f"principle {number} title drift: manifest says "
                 f"{declared[number].title!r}, CONSTITUTION.md says "
-                f"{headings[number]!r}"
+                f"{headings[number]!r}",
             )
 
 
-def _check_enforcement_coverage(manifest: Manifest, result: ValidationResult) -> None:
-    """Every principle enforced; honor-system-only is visible; no orphans."""
-    cited: set[URIRef] = set()
-    for principle in manifest.principles:
-        known = [e for e in principle.enforced_by if e in manifest.enforcements]
-        for missing in set(principle.enforced_by) - set(known):
-            result.errors.append(
-                f"principle {principle.number} cites undeclared enforcement {missing}"
-            )
-        cited.update(known)
-        if not known:
-            result.errors.append(
-                f"principle {principle.number} ({principle.title!r}) has zero "
-                f"registered enforcement"
-            )
-        elif all(manifest.enforcements[e].kind == "Practice" for e in known):
-            result.warnings.append(
-                f"principle {principle.number} ({principle.title!r}) is enforced "
-                f"only by review practice (honor system)"
-            )
-    for orphan in sorted(set(manifest.enforcements) - cited):
-        result.errors.append(
-            f"orphaned enforcement {orphan} maps to no principle — why does it exist?"
-        )
-
-
-def _check_references(manifest: Manifest, root: Path, result: ValidationResult) -> None:
+def _check_references(
+    manifest: Manifest, root: Path, report: diagnostics.DiagnosticsReport
+) -> None:
     """Every cited artifact / symbol / make target / CLI command must exist."""
     makefile = root / MAKEFILE.name
     make_targets = (
@@ -277,40 +283,66 @@ def _check_references(manifest: Manifest, root: Path, result: ValidationResult) 
         name = enforcement.iri.removeprefix(META)
         for artifact in enforcement.artifacts:
             if not (root / artifact).exists():
-                result.errors.append(
-                    f"{name}: cited artifact {artifact!r} does not exist"
+                _emit(
+                    report,
+                    severity="error",
+                    code="stale-artifact",
+                    message=f"{name}: cited artifact {artifact!r} does not exist",
+                    logical=str(enforcement.iri),
                 )
         for symbol in enforcement.symbols:
             if not _symbol_defined(symbol, enforcement.artifacts, root):
-                result.errors.append(
-                    f"{name}: symbol {symbol!r} not found in any cited artifact"
+                _emit(
+                    report,
+                    severity="error",
+                    code="stale-symbol",
+                    message=f"{name}: symbol {symbol!r} not found in any "
+                    f"cited artifact",
+                    logical=str(enforcement.iri),
                 )
         for target in enforcement.make_targets:
             if target not in make_targets:
-                result.errors.append(
-                    f"{name}: Makefile target {target!r} does not exist"
+                _emit(
+                    report,
+                    severity="error",
+                    code="stale-make-target",
+                    message=f"{name}: Makefile target {target!r} does not exist",
+                    logical=str(enforcement.iri),
                 )
         for command in enforcement.cli_commands:
             if command not in cli_commands:
-                result.errors.append(
-                    f"{name}: gmeow CLI command {command!r} is not registered"
+                _emit(
+                    report,
+                    severity="error",
+                    code="stale-cli-command",
+                    message=f"{name}: gmeow CLI command {command!r} is not registered",
+                    logical=str(enforcement.iri),
                 )
 
 
-def _check_generator_registry(manifest: Manifest, result: ValidationResult) -> None:
+def _check_generator_registry(
+    manifest: Manifest, report: diagnostics.DiagnosticsReport
+) -> None:
     """The declared generator set must equal the live registry exactly."""
     declared: set[str] = set()
     for enforcement in manifest.enforcements.values():
         declared.update(enforcement.generators)
     live = _registered_generators()
     for missing in sorted(live - declared):
-        result.errors.append(
-            f"generator {missing!r} is registered but not constitutionally "
-            f"declared (add it to governance/constitution.ttl)"
+        _emit(
+            report,
+            severity="error",
+            code="generator-undeclared",
+            message=f"generator {missing!r} is registered but not constitutionally "
+            f"declared (add it to governance/constitution.ttl)",
         )
     for stale in sorted(declared - live):
-        result.errors.append(
-            f"manifest declares generator {stale!r} which is not in the live registry"
+        _emit(
+            report,
+            severity="error",
+            code="generator-stale",
+            message=f"manifest declares generator {stale!r} which is not in the "
+            f"live registry",
         )
 
 
@@ -340,22 +372,25 @@ def _compare_relation(
     prop: str,
     md_relations: dict[int, set[int]],
     ttl_relations: dict[int, set[int]],
-    result: ValidationResult,
+    report: diagnostics.DiagnosticsReport,
 ) -> None:
     """``meta:<prop>`` in the TTL must equal the markdown markers, both directions."""
     for number in sorted(set(md_relations) | set(ttl_relations)):
         md = md_relations.get(number, set())
         ttl = ttl_relations.get(number, set())
         if md != ttl:
-            result.errors.append(
-                f"principle {number} meta:{prop} drift: CONSTITUTION.md marker names "
-                f"{sorted(md) or '∅'}, governance/constitution.ttl names "
-                f"{sorted(ttl) or '∅'}"
+            _emit(
+                report,
+                severity="error",
+                code="relation-drift",
+                message=f"principle {number} meta:{prop} drift: CONSTITUTION.md "
+                f"marker names {sorted(md) or '∅'}, "
+                f"governance/constitution.ttl names {sorted(ttl) or '∅'}",
             )
 
 
 def _check_supersession(
-    md_text: str, manifest: Manifest, result: ValidationResult
+    md_text: str, manifest: Manifest, report: diagnostics.DiagnosticsReport
 ) -> None:
     """The bold supersession markers in CONSTITUTION.md must match the TTL relations."""
     _compare_relation(
@@ -366,14 +401,68 @@ def _check_supersession(
             for p in manifest.principles
             if p.superseded_in_part_by
         },
-        result,
+        report,
     )
     _compare_relation(
         "extends",
         _markdown_relations(md_text, _EXTENDS_MARKER),
         {p.number: set(p.extends) for p in manifest.principles if p.extends},
-        result,
+        report,
     )
+
+
+def constitution_report(
+    *,
+    manifest_path: Path = MANIFEST_FILE,
+    constitution_path: Path = CONSTITUTION_FILE,
+    root: Path = PROJECT_ROOT,
+) -> diagnostics.DiagnosticsReport:
+    """Run every constitution-as-code check into one granular diagnostics report.
+
+    RUST-FIRST/PYTHON-SURFACE (#809): the graph-resident **enforcement-coverage**
+    check (principle-unenforced / honor-system / orphaned-enforcement /
+    undeclared-enforcement) runs natively in Rust over a ``gmeow_rdf`` Store
+    (``gmeow_validate.constitution_enforcement_report``). The other checks are
+    inherently Python-introspection — they probe the filesystem, parse Python
+    ASTs, introspect the Typer app, and read the live generator registry, none of
+    which is RDF — so they stay in Python but emit *granular* ``constitution.*``
+    findings through the same canonical (Rust-owned) ``Finding`` model.
+    """
+    report = diagnostics.report("constitution")
+    try:
+        manifest = load_manifest(manifest_path)
+    except Exception as exc:
+        _emit(
+            report,
+            severity="error",
+            code="manifest-parse",
+            message=f"{manifest_path}: does not parse: {exc}",
+        )
+        return report
+    try:
+        constitution_text = constitution_path.read_text(encoding="utf-8")
+    except OSError as exc:
+        _emit(
+            report,
+            severity="error",
+            code="constitution-unreadable",
+            message=f"{constitution_path}: cannot read: {exc}",
+        )
+        return report
+    headings = {
+        int(number): title for number, title in _HEADING.findall(constitution_text)
+    }
+    _check_principle_sync(manifest, headings, report)
+    # Enforcement coverage — native Rust over the manifest graph (#809).
+    report.extend(
+        gmeow_validate.constitution_enforcement_report(
+            manifest_path.read_text(encoding="utf-8")
+        )
+    )
+    _check_references(manifest, root, report)
+    _check_generator_registry(manifest, report)
+    _check_supersession(constitution_text, manifest, report)
+    return report
 
 
 def check_constitution(
@@ -382,43 +471,32 @@ def check_constitution(
     constitution_path: Path = CONSTITUTION_FILE,
     root: Path = PROJECT_ROOT,
 ) -> ValidationResult:
-    """Run every constitution-as-code check; errors mean the build fails."""
-    result = ValidationResult()
-    try:
-        manifest = load_manifest(manifest_path)
-    except Exception as exc:
-        result.errors.append(f"{manifest_path}: does not parse: {exc}")
-        return result
-    try:
-        constitution_text = constitution_path.read_text(encoding="utf-8")
-    except OSError as exc:
-        result.errors.append(f"{constitution_path}: cannot read: {exc}")
-        return result
-    headings = {
-        int(number): title for number, title in _HEADING.findall(constitution_text)
-    }
-    _check_principle_sync(manifest, headings, result)
-    _check_enforcement_coverage(manifest, result)
-    _check_references(manifest, root, result)
-    _check_generator_registry(manifest, result)
-    _check_supersession(constitution_text, manifest, result)
-    return result
+    """Run every constitution-as-code check; errors mean the build fails.
+
+    A thin string view over :func:`constitution_report` (the granular canonical
+    report) for the gate / ``ok`` check / legacy string consumers.
+    """
+    report = constitution_report(
+        manifest_path=manifest_path,
+        constitution_path=constitution_path,
+        root=root,
+    )
+    return ValidationResult(
+        errors=list(report.errors),
+        warnings=list(report.warnings),
+    )
 
 
 def to_diagnostics_report(
-    result: ValidationResult,
+    result: ValidationResult | None = None,
     *,
     tool: str = "constitution",
 ) -> diagnostics.DiagnosticsReport:
-    """Project a constitution check into the canonical diagnostics report (#654).
+    """Return the granular constitution diagnostics report (#809).
 
-    The constitution gate emits flat error/warning strings, so this folds them
-    through the legacy adapter with the codes ``constitution.error`` /
-    ``constitution.warning``. Granular per-check codes (principle-unenforced,
-    stale-reference, …) are a documented follow-up.
+    Supersedes the legacy ``constitution.error`` / ``constitution.warning`` roll-up:
+    the canonical report now carries per-check codes (``principle-unenforced``,
+    ``stale-artifact``, ``title-drift``, …). The ``result`` argument is ignored —
+    the report is rebuilt from source so it never drifts from a stale snapshot.
     """
-    return diagnostics.report_from_messages(
-        tool=tool,
-        errors=result.errors,
-        warnings=result.warnings,
-    )
+    return constitution_report()

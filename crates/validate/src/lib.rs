@@ -23,6 +23,7 @@
 //! dependency.
 
 pub mod cache;
+pub mod constitution;
 pub mod coverage;
 pub mod dsl;
 pub mod findings;
@@ -31,6 +32,7 @@ pub mod language_tags;
 pub mod lint;
 pub mod model;
 pub mod signature;
+pub mod slice_ownership;
 pub mod statement;
 pub mod store;
 pub mod validate_all;

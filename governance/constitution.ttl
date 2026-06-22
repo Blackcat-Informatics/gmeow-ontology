@@ -409,9 +409,19 @@ meta:Principle17 a meta:Principle ;
     meta:enforcedBy meta:gate-logic-conformance, meta:gate-logic-round-trip,
         meta:gate-foundation-conformance, meta:gate-logic-gufo-superset .
 
+# The executable lane-purity seal (#667): the two-lane split (primary lane
+# Java/Docker-free; classic-cross-check the SOLE oracle lane) is enforced by an
+# actual test, not convention. FAILS if a Docker/Java token reaches the primary
+# path, or if the classic-cross-check workflow ever becomes a required check.
+meta:tests-lane-purity a meta:TestSuite ;
+    rdfs:label "lane-purity seal — required CI jobs + make check carry no Java/Docker (#667)"@x-gmeow-english ;
+    meta:artifact "tests/test_lane_purity.py" ;
+    meta:symbol "test_required_ci_jobs_carry_no_java_or_docker",
+        "test_makefile_required_targets_carry_no_java_or_docker" .
+
 meta:Principle18 a meta:Principle ;
     meta:number 18 ;
     meta:title "The reference RDF-1.2 stack — complete, coherent, and Docker-free" ;
     meta:enforcedBy meta:gate-reason-native, meta:gate-dl-el-crosscheck,
-        meta:gate-classic-cross-check ;
+        meta:gate-classic-cross-check, meta:tests-lane-purity ;
     meta:extends meta:Principle17, meta:Principle13 .
