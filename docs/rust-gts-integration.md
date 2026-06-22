@@ -22,7 +22,7 @@ a folded `.gts` snapshot directly, rather than re-implementing bundle parsing.
 The dependency is declared unconditionally in `crates/validate/Cargo.toml`:
 
 ```toml
-gmeow-gts = { version = "0.9.2", features = ["oxigraph-adapter"] }
+gmeow-gts = "0.9.5"
 ```
 
 This is a hard dependency, not a feature-gated convenience. The project does
@@ -34,9 +34,8 @@ links the crate unconditionally.
 
 Two distinct things are both named `gmeow-gts`; keep them separate:
 
-- The **library crate** `gmeow-gts` (version `0.9.2`, `oxigraph-adapter`
-  feature) — a workspace dependency of `gmeow-validate`. This is what this note
-  is about.
+- The **library crate** `gmeow-gts` (version `0.9.5`) — a direct dependency of
+  `gmeow-validate`. This is what this note is about.
 - The **engine binary** `gmeow-gts` — obtained out-of-band via
   `cargo install gmeow-gts` and developed in its own repository
   ([Blackcat-Informatics/gmeow-gts](https://github.com/Blackcat-Informatics/gmeow-gts)).
@@ -117,10 +116,10 @@ gmeow validate --gts generated/dist/gmeow.gts
 Under the hood, `validate_all(gts_input=...)` is a thin Python wrapper over the
 Rust-native orchestration `gmeow_validate.validate_all_native` (#634). The Rust
 engine builds the ontology store once, parses the SHACL shapes once, and runs
-every phase against that shared store. The `oxigraph-adapter` feature of
-`gmeow-gts` is what lets the decoded bundle triples land directly in the same
+every phase against that shared store. `gmeow-gts` decodes and verifies the
+bundle; `gmeow-rdf` then materializes its N-Quads projection into the same
 Oxigraph in-memory store (with RDF 1.2 features enabled) that the rest of the
-validator already uses — there is no intermediate re-serialization.
+validator already uses.
 
 In GTS mode the store is built from the bundle rather than from individual
 source files, so the engine skips the phases that only make sense for a source
