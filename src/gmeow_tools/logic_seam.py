@@ -10,15 +10,17 @@ ledger) AND the reasoning authority (``materialize`` / ``certify`` / ``explain``
 / ``query`` / ``foundation`` / ``stable_models``).  Python keeps only:
 
 * :mod:`gmeow_tools.logic_seam` (this module) — the Rust-fed dataclass
-  containers the runner builds from the native ``gmeow_logic`` result dicts;
-* :mod:`gmeow_tools.logic_runner` — the conformance runner that wires the native
-  surfaces into the runner contract.
+  containers built from the native ``gmeow_logic`` result dicts.
 
 The Python compiler duplicate (the frontend / IR / adapter / projection
-modules) was deleted in #727, and the Python forward-chase oracle / certifier
-were retired in #651.  Parity with the Rust engine is guaranteed by
-content-addressed derivation-graph goldens (#641) plus the conformance suite,
-not by a Python re-implementation.
+modules) was deleted in #727, the Python forward-chase oracle / certifier were
+retired in #651, and the Python conformance runner (``logic_runner``) was retired
+in #785 — the logic conformance gate is now the native Rust ``gmeow-conformance``
+datatest harness (``crates/conformance``), which drives the same ``gmeow_logic``
+cores directly and diffs against the committed goldens under cargo-nextest.
+Parity with the Rust engine is guaranteed by content-addressed derivation-graph
+goldens (#641) plus that native conformance suite, not by a Python
+re-implementation.
 
 What lives here
 ---------------
