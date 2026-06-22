@@ -42,6 +42,10 @@ pub mod py_store;
 pub mod py_gts;
 #[cfg(feature = "python")]
 pub mod py_gts_dataset;
+// The native SSSOM codec surface for `gmeow_rdf` (parse + validate + RDF
+// serialize), replacing the `sssom` PyPI package (#848). Python-only, like `py`.
+#[cfg(feature = "python")]
+pub mod py_sssom;
 #[cfg(feature = "oxigraph")]
 pub mod statements;
 // Native SSSOM (Simple Standard for Sharing Ontology Mappings) TSV codec +
