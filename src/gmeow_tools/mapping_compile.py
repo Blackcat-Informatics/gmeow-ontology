@@ -37,6 +37,7 @@ from gmeow_rdf.compat.rdflib.collection import Collection
 from gmeow_rdf.compat.rdflib.namespace import Namespace
 from gmeow_rdf.compat.rdflib.term import Node
 
+from gmeow_tools import diagnostics
 from gmeow_tools.config import (
     MAPPING_DSL_DIR,
     MAPPINGS_DIR,
@@ -1537,6 +1538,43 @@ def _run_invariants(root: Path) -> list[str]:
         *fno_reference_integrity(proj),
         *projection_spec_drift(proj, queries, maps),
     ]
+
+
+#: Canonical tool/code namespace for this surface's diagnostics (#809).
+TOOL = "mapping-compile"
+
+
+def compile_diagnostics_report(
+    *,
+    tool: str = TOOL,
+) -> diagnostics.DiagnosticsReport:
+    """Surface the mapping **DSL/compile** diagnostics as canonical findings (#809).
+
+    Deliberately scoped to the DSL → artifact compile path: it loads the mapping
+    DSL and builds the artifacts, mapping any ``CompileError`` (a malformed cell,
+    missing binding, or unresolved value pattern) to a ``mapping-compile.dsl-error``
+    finding. It does NOT run the FnO ``projection_lint`` trio or ``_validate_sssom``
+    — those graph/SSSOM checks are being subsumed natively into ``gmeow-rdf`` by
+    #848, so wrapping the current Python would only churn code #848 deletes; their
+    Findings are tracked in #854 to ride #848's native SSSOM/FnO core. The
+    mapping DSL compiler itself is still Python, so this surface is an honest thin
+    forward into the Rust ``diagnostics.finding`` model until that too is subsumed.
+    """
+    report = diagnostics.report(tool)
+    try:
+        dsl = load_dsl()
+        onto = load_merged_graph(include_imports=False)
+        _artifacts(dsl, onto)
+    except CompileError as exc:
+        report.add(
+            diagnostics.finding(
+                severity="error",
+                code=f"{tool}.dsl-error",
+                message=str(exc),
+                tool=tool,
+            )
+        )
+    return report
 
 
 def _committed_paths() -> dict[str, Path]:
