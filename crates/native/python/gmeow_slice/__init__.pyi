@@ -91,3 +91,15 @@ class OwnershipAnalyzer:
         compiler_version: str,
         reasoning_profile: str,
     ) -> str: ...
+
+# ── Module-level functions ─────────────────────────────────────────────────────
+
+def emit_sssom(root: str) -> dict[str, str]:
+    """Emit every SSSOM TSV from the repo at ``root``.
+
+    Returns ``{sssom_file: tsv_text}`` (bare file names), byte-identical to the
+    historical Python emitter (#848). Sources every input natively from ``root``:
+    slice mapping artifacts, the shared ``dsl/mappings/`` tree, the prefix map,
+    and ``metadata/gmeow-self.ttl`` for the version + release date.
+    """
+    ...

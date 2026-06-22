@@ -31,12 +31,14 @@ use std::path::Path;
 
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
+use pyo3::types::PyDict;
 
 use crate::analysis::emit_analysis_graph;
 use crate::artifact::{ArtifactRecord, ArtifactRole};
 use crate::cache::ToolchainContext;
 use crate::catalog::{ManifestView, SliceCatalog, SliceRecord, SliceTier};
 use crate::fix_deps::{compute_fix_deps, ManifestPatch};
+use crate::mapping_emit::emit_sssom_sets;
 use crate::ownership::{
     DependencyEdge, OwnershipAnalyzer, OwnershipDiagnostic, OwnershipReport, OwnershipStatus,
     ReconciliationStatus, SliceIri,
@@ -590,8 +592,35 @@ impl PyOwnershipAnalyzer {
     }
 }
 
+// ── SSSOM emission ───────────────────────────────────────────────────────────
+
+/// Emit every SSSOM TSV from the repo at `root`, returning `{sssom_file → tsv}`.
+///
+/// This is the native, byte-parity replacement for the Python
+/// `mapping_compile.emit_sssom` (#848): Python passes only the repo root, and the
+/// emitter sources every input — slice mapping artifacts, the shared
+/// `dsl/mappings/` tree, the prefix map, and the self-description version/date —
+/// natively. Keys are bare file names (e.g. `gmeow-accessibility.sssom.tsv`).
+///
+/// # Errors
+///
+/// Raises `ValueError` on any missing/unparsable required source (no degraded
+/// fallback): a malformed Turtle source, a self-description lacking the
+/// Manifestation version/date, or an I/O failure.
+#[pyfunction]
+fn emit_sssom<'py>(py: Python<'py>, root: &str) -> PyResult<Bound<'py, PyDict>> {
+    let sets = emit_sssom_sets(Path::new(root))
+        .map_err(|e| PyValueError::new_err(format!("SSSOM emission failed: {e}")))?;
+    let dict = PyDict::new(py);
+    for (file, text) in sets {
+        dict.set_item(file, text)?;
+    }
+    Ok(dict)
+}
+
 /// Register the `gmeow_slice` engine surface into the given module.
 pub fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
+    m.add_function(wrap_pyfunction!(emit_sssom, m)?)?;
     m.add_class::<PyArtifactRecord>()?;
     m.add_class::<PyManifestView>()?;
     m.add_class::<PySliceRecord>()?;

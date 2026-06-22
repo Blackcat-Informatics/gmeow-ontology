@@ -31,6 +31,7 @@ from functools import lru_cache
 from pathlib import Path
 
 import gmeow_rdf
+import gmeow_slice
 from gmeow_rdf.compat.rdflib import RDF, RDFS, SKOS, BNode, Graph, Literal, URIRef
 from gmeow_rdf.compat.rdflib.collection import Collection
 from gmeow_rdf.compat.rdflib.namespace import Namespace
@@ -53,7 +54,6 @@ from gmeow_tools.mapping_dsl import (
     CompileError,
     Dsl,
     MappingPattern,
-    MappingSet,
     OptionalGroup,
     ProfileBinding,
     ProjectionCell,
@@ -67,7 +67,6 @@ from gmeow_tools.projection_lint import (
     fno_type_mismatches,
     projection_spec_drift,
 )
-from gmeow_tools.self_desc import load_self_description
 from gmeow_tools.slices import iter_slice_mapping_files
 
 GM = Namespace(PREFIXES["gmeow"])
@@ -686,140 +685,31 @@ def _edoal_target(b: ProfileBinding) -> tuple[URIRef | None, str]:
 
 
 # --------------------------------------------------------------------------- #
-# SSSOM emitter
+# SSSOM emitter (native)
 # --------------------------------------------------------------------------- #
-
-_DEFAULT_JUSTIFICATION = URIRef(PREFIXES["semapv"] + "ManualMappingCuration")
-
-
-def _conf(value: float | None) -> str:
-    if value is None:
-        return ""
-    return f"{value:g}" if value != int(value) else f"{value:.1f}"
-
-
-#: SSSOM columns in canonical order; labels are emitted only when populated.
-_SSSOM_ORDER = (
-    "subject_id",
-    "subject_label",
-    "predicate_id",
-    "object_id",
-    "object_label",
-    "mapping_justification",
-    "confidence",
-    "comment",
-)
-_SSSOM_ALWAYS = frozenset(
-    {
-        "subject_id",
-        "predicate_id",
-        "object_id",
-        "mapping_justification",
-        "confidence",
-        "comment",
-    }
-)
-
-
-def _sssom_header(meta: MappingSet | None, prefixes: list[str]) -> list[str]:
-    """The SSSOM YAML metadata header: set id, license, provenance, curie_map."""
-    _meta = load_self_description()
-    lines: list[str] = []
-    if meta is not None and meta.set_id:
-        lines.append(f"# mapping_set_id: {meta.set_id}")
-        lines.append(f"# mapping_set_version: {_meta.version}")
-        lines.append(f"# license: {meta.license}")
-    lines.append("# mapping_tool: gmeow regenerate (mappings)")
-    lines.append(f"# mapping_tool_version: {_meta.version}")
-    lines.append(f"# mapping_date: {_meta.release_date}")
-    if meta is not None and meta.comment:
-        # Collapse any whitespace run (incl. the newlines of a multi-line Turtle
-        # """...""" source literal) to single spaces, so the comment stays on one
-        # SSSOM header line regardless of how it is wrapped in the DSL source.
-        comment = " ".join(meta.comment.split())
-        # JSON-quoted = a valid YAML double-quoted scalar: prose with ": "
-        # sequences must not break the sssom-py metadata parse.
-        lines.append(f"# comment: {json.dumps(comment)}")
-    lines.append("# curie_map:")
-    for prefix in prefixes:
-        lines.append(f"#   {prefix}: {PREFIXES[prefix]}")
-    return lines
-
-
-def _sssom_id(node: URIRef) -> str:
-    """Return a SSSOM-safe identifier: CURIE when possible, bare URI otherwise.
-
-    The DSL ``curie()`` helper falls back to Turtle angle-bracket syntax for
-    unregistered namespaces, but SSSOM TSV expects bare absolute URIs, so any
-    surrounding ``<...>`` is stripped here.
-    """
-    return curie(node).strip("<>")
 
 
 def emit_sssom(dsl: Dsl) -> dict[str, str]:
     """Render every SSSOM TSV file from the term-equivalence cells.
+
+    SSSOM emission is now wholly native (#848): the entire emitter lives in the
+    Rust slice framework (``gmeow_slice.emit_sssom`` →
+    ``crates/slice/src/mapping_emit.rs``), which sources every input from the repo
+    itself — the slice ``mappings/*.ttl`` artifacts, the shared ``dsl/mappings/``
+    tree, the curated prefix registry, and ``metadata/gmeow-self.ttl`` for the
+    version + release date. Python passes only the repo root; the ``dsl`` argument
+    is accepted for call-site compatibility but is no longer read (the native
+    emitter rediscovers the same sources). The result is byte-identical to the
+    historical Python emitter.
 
     SSSOM rows are owned exclusively by gmeow:TermEquivalence cells (a 1:1 with
     the rows). Each file carries deterministic provenance metadata + a curie_map
     of the prefixes it uses; subject_label/object_label columns appear only when a
     row populates them.
     """
-    rows: dict[str, list[dict[str, str]]] = {}
-    for eq in dsl.equivalences:
-        rows.setdefault(eq.sssom_file, []).append(
-            {
-                "subject_id": _sssom_id(eq.subject),
-                "subject_label": eq.subject_label,
-                "predicate_id": _sssom_id(eq.predicate),
-                "object_id": _sssom_id(eq.obj),
-                "object_label": eq.object_label,
-                "mapping_justification": _sssom_id(
-                    eq.justification or _DEFAULT_JUSTIFICATION
-                ),
-                "confidence": _conf(eq.confidence),
-                "comment": eq.comment,
-            }
-        )
-
-    out: dict[str, str] = {}
-    for file, file_rows in rows.items():
-        meta = dsl.mapping_sets.get(file)
-        columns = [
-            c
-            for c in _SSSOM_ORDER
-            if c in _SSSOM_ALWAYS or any(r[c] for r in file_rows)
-        ]
-        used_prefixes = sorted(
-            {
-                tok.split(":", 1)[0]
-                for r in file_rows
-                for tok in (
-                    r["subject_id"],
-                    r["predicate_id"],
-                    r["object_id"],
-                    r["mapping_justification"],
-                )
-                if ":" in tok and tok.split(":", 1)[0] in PREFIXES
-            }
-        )
-        lines = _sssom_header(meta, used_prefixes)
-        if meta is not None and meta.trailer:
-            # Refused/deferred mappings are provenance worth keeping IN the
-            # artifact, but sssom-py reads every leading "#" line as YAML
-            # metadata and treats trailing "#" lines as malformed rows. The
-            # extra "#" makes each line a YAML comment: human-readable,
-            # parser-invisible, spec-conformant.
-            lines.extend(
-                "# #" + line.removeprefix("#") for line in meta.trailer.splitlines()
-            )
-        lines.append("\t".join(columns))
-        for r in sorted(
-            file_rows,
-            key=lambda r: (r["subject_id"], r["predicate_id"], r["object_id"]),
-        ):
-            lines.append("\t".join(r[c] for c in columns))
-        out[file] = "\n".join(lines) + "\n"
-    return out
+    del dsl  # Sourced natively from PROJECT_ROOT; see the docstring.
+    result = gmeow_slice.emit_sssom(str(PROJECT_ROOT))
+    return dict(result)
 
 
 # --------------------------------------------------------------------------- #
