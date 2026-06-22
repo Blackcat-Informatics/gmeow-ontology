@@ -23,6 +23,7 @@ from tests._graph_nt import run_shacl
 
 GM = Namespace(NAMESPACE)
 GUFO = Namespace("http://purl.org/nemo/gufo#")
+LOGIC = Namespace("https://blackcatinformatics.ca/logic/")
 SCHEMA = Namespace("https://schema.org/")
 EX = Namespace("https://example.org/disclosure/")
 
@@ -50,17 +51,19 @@ def _projection_source() -> Graph:
 
 
 def test_projection_context_class_structure() -> None:
+    """After #694 migration: gufo: stereotype → logic: stereotype."""
     g = _graph()
     assert (GM.ProjectionContext, RDF.type, OWL.Class) in g
-    assert (GM.ProjectionContext, RDF.type, GUFO.AbstractIndividualType) in g
-    assert (GM.ProjectionContext, RDFS.subClassOf, GUFO.QualityValue) in g
+    assert (GM.ProjectionContext, RDF.type, LOGIC.AbstractIndividualType) in g
+    assert (GM.ProjectionContext, RDFS.subClassOf, LOGIC.QualityValue) in g
 
 
 def test_disclosure_policy_class_structure() -> None:
+    """After #694 migration: gufo: stereotype → logic: stereotype."""
     g = _graph()
     assert (GM.DisclosurePolicy, RDF.type, OWL.Class) in g
-    assert (GM.DisclosurePolicy, RDF.type, GUFO.AbstractIndividualType) in g
-    assert (GM.DisclosurePolicy, RDFS.subClassOf, GUFO.QualityValue) in g
+    assert (GM.DisclosurePolicy, RDF.type, LOGIC.AbstractIndividualType) in g
+    assert (GM.DisclosurePolicy, RDFS.subClassOf, LOGIC.QualityValue) in g
 
 
 def test_eligible_for_consumer_property_structure() -> None:

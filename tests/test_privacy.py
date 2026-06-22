@@ -24,6 +24,7 @@ GM = Namespace(NAMESPACE)
 ODRL = Namespace("http://www.w3.org/ns/odrl/2/")
 EX = Namespace("https://example.org/privacy/")
 GUFO = Namespace("http://purl.org/nemo/gufo#")
+LOGIC = Namespace("https://blackcatinformatics.ca/logic/")
 
 SHAPES_FIXTURES = Path(__file__).parent / "fixtures" / "shapes"
 COVERAGE_FIXTURES = Path(__file__).parent / "fixtures" / "coverage"
@@ -49,10 +50,11 @@ def _projection_source() -> Graph:
 
 
 def test_sensitivity_level_class_structure() -> None:
+    """After #694 migration: gufo: stereotype → logic: stereotype."""
     g = _graph()
     assert (GM.SensitivityLevel, RDF.type, OWL.Class) in g
-    assert (GM.SensitivityLevel, RDF.type, GUFO.AbstractIndividualType) in g
-    assert (GM.SensitivityLevel, RDFS.subClassOf, GUFO.QualityValue) in g
+    assert (GM.SensitivityLevel, RDF.type, LOGIC.AbstractIndividualType) in g
+    assert (GM.SensitivityLevel, RDFS.subClassOf, LOGIC.QualityValue) in g
 
 
 def test_has_sensitivity_property_structure() -> None:

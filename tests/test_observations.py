@@ -24,13 +24,15 @@ from gmeow_tools.slices import module_path
 
 GMEOW = Namespace(NAMESPACE)
 GUFO = Namespace("http://purl.org/nemo/gufo#")
+LOGIC = Namespace("https://blackcatinformatics.ca/logic/")
 EX = Namespace("https://example.org/test/")
 
 
 def test_observation_class_exists() -> None:
+    """After #694 migration: gufo:Relator → logic:Relator."""
     graph = load_merged_graph(include_imports=False)
     assert (GMEOW.Observation, RDF.type, OWL.Class) in graph
-    assert (GMEOW.Observation, RDFS.subClassOf, GUFO.Relator) in graph
+    assert (GMEOW.Observation, RDFS.subClassOf, LOGIC.Relator) in graph
 
 
 def test_observation_properties_exist() -> None:
