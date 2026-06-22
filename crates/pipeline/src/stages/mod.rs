@@ -18,11 +18,13 @@ use std::sync::Arc;
 
 use crate::registry::StageRegistry;
 
+pub mod source_load;
 pub mod statements;
 
 /// Register every production stage into `registry` under its `gmeow:stageImpl`
 /// key. The single inventory the loader and `run_pipeline` (P6) share. Stages
 /// land here as P3–P5 implement them.
 pub fn register_default(registry: &mut StageRegistry) {
+    registry.register("source_load", Arc::new(source_load::SourceLoadStage));
     registry.register("statements", Arc::new(statements::StatementsStage));
 }
