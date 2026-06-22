@@ -27,7 +27,11 @@ python = ["dep:pyo3"]
 [dependencies]
 # The RDF 1.2 kernel: stages exchange an in-memory dataset / bundle and stamp
 # provenance through this crate; the content store backs the pipeline cache.
-gmeow-rdf = { path = "../rdf", features = ["oxigraph"] }
+gmeow-rdf = { path = "../rdf", features = ["oxigraph", "gts"] }
+# The export leaf reads the folded gts Graph model directly and reuses the
+# gmeow-gts N-Quads/TriG serializers (the lossless dataset forms) + the columnar
+# blob model for the parquet leaf (#861 P4). Same pin as gmeow-rdf links.
+gmeow-gts = "0.9.5"
 # The `reason` stage wires the native EL/DL reasoner + artifact builders directly
 # (gmeow_logic::reason::reason_all + reason::artifacts) — no Python, no PyO3.
 gmeow-logic = { path = "../logic" }
@@ -55,6 +59,12 @@ sha1 = "0.10"
 # blake3 for the eval span verifier's current-content digest (mirrors the
 # Python `_current_digest`); the corpus digests pin the scored source version.
 blake3 = "1"
+# The parquet leaf (#861 P4) writes the 5 dictionary-encoded gts_db tables as
+# columnar Parquet. arrow builds the in-memory record batches; parquet serializes
+# them. Deterministic: fixed row order, no writer timestamps in metadata.
+arrow-array = "56"
+arrow-schema = "56"
+parquet = { version = "56", default-features = false, features = ["arrow", "snap"] }
 serde = { version = "1", features = ["derive"] }
 # Stage products are serialized to bytes for the content-addressed cache.
 serde_json = "1"
@@ -64,3 +74,7 @@ pyo3 = { version = "0.29", features = ["extension-module", "abi3-py313"], option
 
 [dev-dependencies]
 tempfile = "3"
+# The parquet leaf's round-trip test re-reads written bytes through the parquet
+# reader, which takes a `ChunkReader` — `bytes::Bytes` is the simplest in-memory
+# one (already in the tree as a parquet dependency).
+bytes = "1"
