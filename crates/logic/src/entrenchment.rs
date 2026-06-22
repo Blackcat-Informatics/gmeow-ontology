@@ -333,6 +333,7 @@ impl Entrenchment {
 /// `String`-keyed traversal: the reachable set is the transitive successors
 /// (NOT including the start unless reached through a cycle), and only nodes with a
 /// non-empty reachable set are included.
+#[allow(clippy::needless_range_loop)] // Warshall: `i` indexes both contains(k) and union_with, which iter_mut() can't express
 fn closure(edges: &BTreeSet<(String, String)>) -> BTreeMap<String, BTreeSet<String>> {
     use crate::dense::{BitSet, DenseInterner};
 
@@ -349,26 +350,20 @@ fn closure(edges: &BTreeSet<(String, String)>) -> BTreeMap<String, BTreeSet<Stri
         adj[a as usize].insert(b as usize);
     }
 
-    // Bit-parallel transitive closure via fixpoint: `reach[v]` starts as the
-    // direct successors of `v`, then repeatedly unions in the reachable set of
-    // every direct successor (word-wise `|=`) until nothing changes. This is the
-    // full transitive closure per node — identical to the prior per-start DFS,
-    // and the start enters its own `reach` set exactly when it lies on a cycle.
+    // Bit-parallel transitive closure via Warshall's algorithm: for each
+    // intermediate node `k`, every node `i` that can reach `k` absorbs the full
+    // reachable set of `k` in one word-parallel union. Exactly N outer iterations
+    // (O(N³/64)), eliminating the variable number of fixpoint rounds. The result
+    // is byte-identical: `reach[v]` is the set of transitive successors of `v`,
+    // and `v` enters its own set iff it lies on a cycle — unchanged semantics.
     let mut reach: Vec<BitSet> = adj.clone();
-    let mut changed = true;
-    while changed {
-        changed = false;
-        for v in 0..n {
-            // Snapshot the direct successors of `v` to drive the union: unioning
-            // in `reach[succ]` for each `succ ∈ adj[v]`. Successors of `v` never
-            // change, so iterating the (fixed) adjacency is stable.
-            let mut acc = reach[v].clone();
-            for succ in adj[v].iter() {
-                acc.union_with(&reach[succ]);
-            }
-            if acc != reach[v] {
-                reach[v] = acc;
-                changed = true;
+    for k in 0..n {
+        if !reach[k].is_empty() {
+            let reach_k = reach[k].clone(); // clone to satisfy the borrow checker (i may equal k)
+            for i in 0..n {
+                if reach[i].contains(k) {
+                    reach[i].union_with(&reach_k);
+                }
             }
         }
     }

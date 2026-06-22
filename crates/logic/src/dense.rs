@@ -99,10 +99,8 @@ impl BitSet {
     /// Whether bit `i` is set.
     ///
     /// Part of the complete `BitSet` contract (#823) and exercised by the unit
-    /// tests; the bit-parallel fixpoint closure reads whole words via
-    /// [`BitSet::union_with`]/[`BitSet::iter`] rather than per-bit, so the membership
-    /// test has no in-tree caller in non-test builds today.
-    #[allow(dead_code)]
+    /// tests; backs the Warshall closure's membership test (`reach[i].contains(k)`)
+    /// in [`crate::entrenchment`].
     pub(crate) fn contains(&self, i: usize) -> bool {
         let w = i / 64;
         w < self.words.len() && (self.words[w] >> (i % 64)) & 1 == 1
