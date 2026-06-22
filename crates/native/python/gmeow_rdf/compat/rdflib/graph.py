@@ -96,8 +96,16 @@ def _rebuild_graph(
     return graph
 
 
-def _term_n3(term: Identifier) -> str:
-    """Return a term's SPARQL/N3 form (delegating to its ``n3`` method)."""
+def _term_n3(term: Any) -> str:
+    """Return a term's SPARQL/N3 form (delegating to its ``n3`` method).
+
+    Raw Python values (int/str/bool/float) are coerced to a typed ``Literal``
+    so they serialize as proper RDF literals rather than ``<bare>`` IRIs.
+    """
+    if not isinstance(term, Identifier):
+        from .term import Literal
+
+        term = Literal(term)
     n3 = getattr(term, "n3", None)
     if callable(n3):
         result = n3()
@@ -113,7 +121,12 @@ def _inject_bindings(query_text: str, bindings: dict[str, Identifier]) -> str:
     clause = f" VALUES ({names}) {{ ({values}) }} "
     lowered = query_text.lower()
     where = lowered.find("where")
-    brace = query_text.find("{", where if where != -1 else 0)
+    if where == -1:
+        raise ValueError(
+            "initBindings/VALUES injection requires a WHERE clause; "
+            "got a query with none (e.g. a WHERE-less CONSTRUCT)."
+        )
+    brace = query_text.find("{", where)
     if brace == -1:
         return query_text
     return query_text[: brace + 1] + clause + query_text[brace + 1 :]
