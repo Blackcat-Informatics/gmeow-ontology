@@ -2150,6 +2150,37 @@ export enum PhysicalObjectEnum {
     number_1959_Les_Paul_fixture = "fixture1959LesPaul",
 };
 
+export enum PipelineEnum {
+
+    GMEOW_build_pipeline = "pipeline-build",
+};
+
+export enum PipelineStageEnum {
+
+    docs_render = "stage-docs-render",
+    exportCOLON_apache_headers = "stage-export-apache",
+    exportCOLON_catalog = "stage-export-catalog",
+    exportCOLON_evals = "stage-export-evals",
+    exportCOLON_flat_views = "stage-export-exports",
+    exportCOLON_frame_shapes = "stage-export-frame-shapes",
+    exportCOLON_logic = "stage-export-logic",
+    exportCOLON_LPG = "stage-export-lpg",
+    exportCOLON_matrix = "stage-export-matrix",
+    exportCOLON_metadata = "stage-export-metadata",
+    exportCOLON_OKF = "stage-export-okf",
+    exportCOLON_parquet = "stage-export-parquet",
+    exportCOLON_profiles = "stage-export-profiles",
+    exportCOLON_references = "stage-export-references",
+    exportCOLON_research_objects = "stage-export-research-objects",
+    exportCOLON_schemas = "stage-export-schemas",
+    gts_compose = "stage-gts-compose",
+    gts_sink = "stage-gts-sink",
+    mappings = "stage-mappings",
+    reason = "stage-reason",
+    source_load = "stage-source-load",
+    statements = "stage-statements",
+};
+
 export enum PitchAnchorEnum {
 
     A415_Baroque_anchor = "pitchAnchorA415",
@@ -2946,6 +2977,17 @@ export enum SourceTierEnum {
 export enum SpectrumEnum {
 
     example_spectrum = "spectrumExample",
+};
+
+export enum StageKindEnum {
+
+    docs_render = "kindDocsRender",
+    export_leaf = "kindExportLeaf",
+    reason = "kindReason",
+    sink = "kindSink",
+    source_load = "kindSourceLoad",
+    transform = "kindTransform",
+    validate = "kindValidate",
 };
 
 export enum StandpointEnum {
@@ -6494,6 +6536,23 @@ export interface PhysicalObject extends Entity {
 
 
 
+export interface Pipeline extends SocialObject {
+    hasStage?: PipelineStage[],
+}
+
+
+
+export interface PipelineStage extends SocialObject {
+    carriesEngineLock?: boolean[],
+    dataflowConsumes?: PipelineStage[],
+    dataflowProduces?: PipelineStage[],
+    producesFormat?: string[],
+    stageImpl?: string[],
+    stageKind?: StageKind[],
+}
+
+
+
 export interface PitchAnchor extends Entity {
     anchorDegree?: number,
     anchorFrequency?: number,
@@ -7447,6 +7506,11 @@ export interface SpatialMeasurement extends Measurement {
 
 
 export interface Spectrum extends InformationObject {
+}
+
+
+
+export interface StageKind {
 }
 
 

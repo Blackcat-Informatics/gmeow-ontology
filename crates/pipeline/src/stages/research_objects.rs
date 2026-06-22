@@ -254,6 +254,19 @@ fn canonical_datetime(lex: &str) -> String {
     }
 }
 
+/// The JSON / JSON-LD / XML / HTML canonical form of an xsd:dateTime: a trailing
+/// `+00:00` UTC offset collapses to `Z`. The CI-canonical artifacts emit `Z`;
+/// a locally-regenerated fold may carry `+00:00` (Python isoformat). Normalizing
+/// here makes the text outputs byte-identical to the committed artifacts whether
+/// the input `gmeow.gts` carries `…+00:00` or `…Z`.
+fn json_datetime(lex: &str) -> String {
+    if let Some(stripped) = lex.strip_suffix("+00:00") {
+        format!("{stripped}Z")
+    } else {
+        lex.to_string()
+    }
+}
+
 // ── DatasetMeta ────────────────────────────────────────────────────────────────
 
 struct DatasetMeta {
@@ -292,7 +305,16 @@ fn dataset_meta(store: &Store) -> Result<DatasetMeta, PipelineError> {
             "dataset descriptor {ds} has a gmeow:License without a gmeow:spdxLicenseId"
         )));
     }
-    let date_published = text(store, &ds, &g("datePublished"));
+    // Canonicalize the UTC offset to `Z` for the JSON / JSON-LD / XML / HTML
+    // emitters (datapackage `created`, croissant/ro-crate `datePublished`,
+    // datacite `<date>`, ro-crate-preview HTML). The fold may carry the lexical
+    // dateTime as either `…+00:00` (local Python isoformat) or `…Z` (the
+    // CI-canonical form); collapsing `+00:00` → `Z` here makes these text
+    // outputs byte-identical to the committed artifacts regardless of which
+    // form the input `gmeow.gts` happens to use. The `.ttl` outputs are
+    // serialized through the rdflib-faithful path (which uses the raw lexical
+    // form via `canonical_lexical`) and are unaffected by this field.
+    let date_published = json_datetime(&text(store, &ds, &g("datePublished")));
     let year_ok =
         date_published.len() >= 4 && date_published.chars().take(4).all(|c| c.is_ascii_digit());
     if !year_ok {
@@ -460,11 +482,15 @@ fn activities(store: &Store) -> Vec<Action> {
             let participant = value_node(store, &act, &g("hasParticipant")).unwrap_or_default();
             let end_time = {
                 let t = text(store, &act, &g("ingestedAt"));
-                if t.is_empty() {
+                let raw = if t.is_empty() {
                     text(store, &act, &g("eventTime"))
                 } else {
                     t
-                }
+                };
+                // Emitted as JSON `endTime`; canonicalize the UTC offset to `Z`
+                // (see `json_datetime`) so the text output matches the committed
+                // artifact regardless of the fold's `+00:00`/`Z` lexical form.
+                json_datetime(&raw)
             };
             Action {
                 name: label(store, &act),
@@ -1322,410 +1348,6 @@ fn build_datacite_xml(ds: &DatasetMeta) -> Vec<u8> {
     x.out.into_bytes()
 }
 
-// ── rdflib-compatible Turtle serialization ─────────────────────────────────────
-//
-// A faithful port of rdflib 7.6 `TurtleSerializer` (the committed `.ttl` bytes were
-// produced by it). Operates over an in-memory triple set built from oxigraph terms.
-
-/// A serializable RDF term (subject/predicate/object) keyed for rdflib-compatible
-/// ordering. rdflib `Node.__lt__`: BNode < URIRef < Literal; within a kind, by the
-/// comparison value (URIRef/BNode by string; Literal by `(value, language, datatype)`
-/// — for our corpus the lexical value suffices to order distinct literals).
-#[derive(Clone, PartialEq, Eq)]
-enum RT {
-    Iri(String),
-    Blank(String),
-    /// Literal: canonical lexical, optional language, optional datatype IRI.
-    Lit {
-        lexical: String,
-        language: Option<String>,
-        datatype: Option<String>,
-    },
-}
-
-impl RT {
-    fn sort_key(&self) -> (u8, String, String, String) {
-        match self {
-            RT::Blank(b) => (0, b.clone(), String::new(), String::new()),
-            RT::Iri(i) => (1, i.clone(), String::new(), String::new()),
-            RT::Lit {
-                lexical,
-                language,
-                datatype,
-            } => (
-                2,
-                lexical.clone(),
-                language.clone().unwrap_or_default(),
-                datatype.clone().unwrap_or_default(),
-            ),
-        }
-    }
-}
-
-impl PartialOrd for RT {
-    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        Some(self.cmp(other))
-    }
-}
-impl Ord for RT {
-    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-        self.sort_key().cmp(&other.sort_key())
-    }
-}
-
-fn rt_from_subject(t: &oxigraph::model::NamedOrBlankNode) -> RT {
-    match t {
-        oxigraph::model::NamedOrBlankNode::NamedNode(n) => RT::Iri(n.as_str().to_string()),
-        oxigraph::model::NamedOrBlankNode::BlankNode(b) => RT::Blank(b.as_str().to_string()),
-    }
-}
-
-fn rt_from_term(t: &Term) -> RT {
-    match t {
-        Term::NamedNode(n) => RT::Iri(n.as_str().to_string()),
-        Term::BlankNode(b) => RT::Blank(b.as_str().to_string()),
-        Term::Literal(l) => RT::Lit {
-            lexical: canonical_lexical(l),
-            language: l.language().map(|s| s.to_string()),
-            datatype: {
-                let dt = l.datatype().as_str().to_string();
-                // rdflib stores a plain (untyped/lang) literal's datatype as None.
-                if dt == format!("{XSD}string") || l.language().is_some() {
-                    None
-                } else {
-                    Some(dt)
-                }
-            },
-        },
-        Term::Triple(_) => RT::Iri(String::new()),
-    }
-}
-
-/// An in-memory triple set rendered as rdflib-compatible Turtle.
-struct TurtleGraph {
-    /// subject → predicate → sorted objects.
-    by_subject: BTreeMap<RT, BTreeMap<String, BTreeSet<RT>>>,
-    /// number of times each term appears as an object.
-    references: BTreeMap<RT, usize>,
-    /// distinct subjects (insertion irrelevant — ordering is computed).
-    subjects: BTreeSet<RT>,
-}
-
-impl TurtleGraph {
-    fn new() -> Self {
-        Self {
-            by_subject: BTreeMap::new(),
-            references: BTreeMap::new(),
-            subjects: BTreeSet::new(),
-        }
-    }
-
-    fn insert(&mut self, s: RT, p: String, o: RT) {
-        *self.references.entry(o.clone()).or_default() += 1;
-        self.subjects.insert(s.clone());
-        self.by_subject
-            .entry(s)
-            .or_default()
-            .entry(p)
-            .or_default()
-            .insert(o);
-    }
-
-    fn insert_triple(&mut self, t: &oxigraph::model::Triple) {
-        let s = rt_from_subject(&t.subject);
-        let p = t.predicate.as_str().to_string();
-        let o = rt_from_term(&t.object);
-        self.insert(s, p, o);
-    }
-
-    /// rdflib `orderSubjects`: topClasses (none configured here) first, then the
-    /// remaining subjects sorted by `(is_bnode, ref_count, subject)`.
-    fn order_subjects(&self) -> Vec<RT> {
-        let mut recursable: Vec<(bool, usize, RT)> = self
-            .subjects
-            .iter()
-            .map(|s| {
-                let is_bnode = matches!(s, RT::Blank(_));
-                let refs = self.references.get(s).copied().unwrap_or(0);
-                (is_bnode, refs, s.clone())
-            })
-            .collect();
-        recursable.sort_by(|a, b| a.0.cmp(&b.0).then(a.1.cmp(&b.1)).then(a.2.cmp(&b.2)));
-        recursable.into_iter().map(|(_, _, s)| s).collect()
-    }
-
-    fn serialize(&self, prefixes: &[(&str, &str)]) -> String {
-        let nm = NsManager::new(prefixes);
-        let subjects = self.order_subjects();
-
-        let mut body = String::new();
-        let mut first = true;
-        for subject in &subjects {
-            // Each top-level subject statement; blank-only nesting is not present in
-            // this corpus (no inline bnodes appear in the committed outputs).
-            if !first {
-                body.push('\n');
-            }
-            first = false;
-            self.statement(subject, &nm, &mut body);
-        }
-
-        let mut header = String::new();
-        let mut used: Vec<(String, String)> = nm
-            .used
-            .borrow()
-            .iter()
-            .map(|p| (p.clone(), nm.ns_of(p)))
-            .collect();
-        used.sort();
-        for (p, ns) in &used {
-            header.push_str(&format!("@prefix {p}: <{ns}> .\n"));
-        }
-        if header.is_empty() {
-            body
-        } else {
-            format!("{header}\n{body}")
-        }
-    }
-
-    fn statement(&self, subject: &RT, nm: &NsManager, out: &mut String) {
-        out.push_str(&self.term_label(subject, nm, false));
-        self.predicate_list(subject, nm, out);
-        out.push_str(" .\n");
-    }
-
-    fn predicate_list(&self, subject: &RT, nm: &NsManager, out: &mut String) {
-        let Some(props) = self.by_subject.get(subject) else {
-            return;
-        };
-        let order = sort_properties(props);
-        for (i, pred) in order.iter().enumerate() {
-            if i == 0 {
-                out.push(' ');
-            } else {
-                out.push_str(" ;\n    ");
-            }
-            // verb
-            let vstr = if pred == RDF_TYPE {
-                "a".to_string()
-            } else {
-                nm.qname(pred, true)
-            };
-            out.push_str(&vstr);
-            // object list
-            let objs: Vec<&RT> = props[pred].iter().collect();
-            for (oi, obj) in objs.iter().enumerate() {
-                if oi == 0 {
-                    out.push(' ');
-                    out.push_str(&self.term_label(obj, nm, false));
-                } else {
-                    out.push_str(",\n        ");
-                    out.push_str(&self.term_label(obj, nm, false));
-                }
-            }
-        }
-    }
-
-    /// rdflib `label(node, position)`: IRIs → qname or `<iri>`; literals → `_literal_n3`.
-    fn term_label(&self, node: &RT, nm: &NsManager, is_verb: bool) -> String {
-        match node {
-            RT::Iri(iri) => nm.qname(iri, is_verb),
-            RT::Blank(b) => format!("_:{b}"),
-            RT::Lit {
-                lexical,
-                language,
-                datatype,
-            } => literal_n3(lexical, language.as_deref(), datatype.as_deref(), nm),
-        }
-    }
-}
-
-/// rdflib `sortProperties`: `rdf:type` then `rdfs:label` first (predicateOrder),
-/// then the remaining predicates sorted by IRI.
-fn sort_properties(props: &BTreeMap<String, BTreeSet<RT>>) -> Vec<String> {
-    let mut order: Vec<String> = Vec::new();
-    let mut seen: BTreeSet<String> = BTreeSet::new();
-    for p in [RDF_TYPE, RDFS_LABEL] {
-        if props.contains_key(p) && seen.insert(p.to_string()) {
-            order.push(p.to_string());
-        }
-    }
-    let mut rest: Vec<String> = props.keys().cloned().collect();
-    rest.sort();
-    for p in rest {
-        if seen.insert(p.clone()) {
-            order.push(p);
-        }
-    }
-    order
-}
-
-/// rdflib `Literal._literal_n3(use_plain=True)`: native syntax for the plainly
-/// renderable datatypes (integer/decimal/double/boolean), language tags, bare
-/// strings, else `"lexical"^^<datatype-or-qname>`.
-fn literal_n3(
-    lexical: &str,
-    language: Option<&str>,
-    datatype: Option<&str>,
-    nm: &NsManager,
-) -> String {
-    if let Some(lang) = language {
-        return format!("{}@{}", quote(lexical), lang);
-    }
-    let Some(dt) = datatype else {
-        return quote(lexical);
-    };
-    // rdflib's `preprocessTriple` calls `get_pname(datatype)` for EVERY datatyped
-    // literal, binding that datatype's prefix into the header even when the literal
-    // renders in plain (use_plain) form (so e.g. `xsd` appears whenever any decimal
-    // is present, though `1.0` itself is rendered bare).
-    nm.register(dt);
-    // Plain (use_plain) datatypes rdflib renders without quotes/datatype.
-    if dt == format!("{XSD}integer") && is_int(lexical) {
-        return lexical.to_string();
-    }
-    if dt == format!("{XSD}decimal") && is_decimal(lexical) {
-        return lexical.to_string();
-    }
-    if dt == format!("{XSD}double") && is_double(lexical) {
-        return lexical.to_string();
-    }
-    if dt == format!("{XSD}boolean") && (lexical == "true" || lexical == "false") {
-        return lexical.to_string();
-    }
-    format!("{}^^{}", quote(lexical), nm.qname(dt, false))
-}
-
-fn is_int(v: &str) -> bool {
-    let s = v.strip_prefix(['+', '-']).unwrap_or(v);
-    !s.is_empty() && s.bytes().all(|b| b.is_ascii_digit())
-}
-fn is_decimal(v: &str) -> bool {
-    let s = v.strip_prefix(['+', '-']).unwrap_or(v);
-    match s.split_once('.') {
-        Some((a, b)) => {
-            !(a.is_empty() && b.is_empty())
-                && a.bytes().all(|c| c.is_ascii_digit())
-                && b.bytes().all(|c| c.is_ascii_digit())
-        }
-        None => false,
-    }
-}
-fn is_double(v: &str) -> bool {
-    let lower = v.to_ascii_lowercase();
-    lower.contains('e') && lower.parse::<f64>().is_ok()
-}
-
-/// rdflib `Literal._quote_encode` for a one-line string: `\ " \n \r \t` escaped.
-fn quote(value: &str) -> String {
-    if value.contains('\n') || value.contains('\r') || value.contains("\"\"\"") {
-        let escaped = value.replace('\\', "\\\\").replace('"', "\\\"");
-        return format!("\"\"\"{escaped}\"\"\"");
-    }
-    let mut out = String::with_capacity(value.len() + 2);
-    out.push('"');
-    for c in value.chars() {
-        match c {
-            '"' => out.push_str("\\\""),
-            '\\' => out.push_str("\\\\"),
-            '\n' => out.push_str("\\n"),
-            '\r' => out.push_str("\\r"),
-            '\t' => out.push_str("\\t"),
-            c => out.push(c),
-        }
-    }
-    out.push('"');
-    out
-}
-
-/// Namespace manager: chooses a qname for an IRI from the bound prefixes, recording
-/// which prefixes were actually used (so only those appear in the header).
-struct NsManager {
-    /// Bound prefixes, longest-namespace-first for greedy matching.
-    binds: Vec<(String, String)>,
-    used: std::cell::RefCell<BTreeSet<String>>,
-}
-
-impl NsManager {
-    fn new(prefixes: &[(&str, &str)]) -> Self {
-        let mut binds: Vec<(String, String)> = prefixes
-            .iter()
-            .map(|(p, n)| (p.to_string(), n.to_string()))
-            .collect();
-        binds.sort_by(|a, b| b.1.len().cmp(&a.1.len()).then(a.0.cmp(&b.0)));
-        Self {
-            binds,
-            used: std::cell::RefCell::new(BTreeSet::new()),
-        }
-    }
-
-    fn ns_of(&self, prefix: &str) -> String {
-        self.binds
-            .iter()
-            .find(|(p, _)| p == prefix)
-            .map(|(_, n)| n.clone())
-            .unwrap_or_default()
-    }
-
-    /// Record the bound prefix for `iri`'s namespace as used (rdflib's `get_pname`
-    /// side effect), without emitting a qname. Used for datatypes rendered plain.
-    fn register(&self, iri: &str) {
-        for (prefix, ns) in &self.binds {
-            if let Some(local) = iri.strip_prefix(ns.as_str()) {
-                if is_valid_local(local) {
-                    self.used.borrow_mut().insert(prefix.clone());
-                    return;
-                }
-            }
-        }
-    }
-
-    /// rdflib `get_pname`: compute the prefixed name, recording the prefix as used;
-    /// fall back to `<iri>` n3 form if no prefix produces a valid local name.
-    fn qname(&self, iri: &str, _is_verb: bool) -> String {
-        for (prefix, ns) in &self.binds {
-            if let Some(local) = iri.strip_prefix(ns.as_str()) {
-                if is_valid_local(local) {
-                    self.used.borrow_mut().insert(prefix.clone());
-                    return format!("{prefix}:{local}");
-                }
-            }
-        }
-        format!("<{}>", escape_iri(iri))
-    }
-}
-
-/// Whether `local` is a valid Turtle PN_LOCAL the way rdflib's split accepts it
-/// for these IRIs: non-empty, no `/` `#` `:`, not ending in `.`, hyphens/digits OK.
-fn is_valid_local(local: &str) -> bool {
-    if local.is_empty() || local.ends_with('.') {
-        return false;
-    }
-    if local.contains(['/', '#']) {
-        return false;
-    }
-    // First char cannot be a digit or `-` in PN_LOCAL? rdflib's compute_qname uses a
-    // looser split (it allows leading digits/hyphens via PN_LOCAL rules in 7.x). The
-    // corpus locals (`mail-archive`, `claim-close-2200`, `chunk-7`) all qualify.
-    local
-        .chars()
-        .all(|c| c.is_ascii_alphanumeric() || matches!(c, '_' | '-' | '.' | '%'))
-}
-
-fn escape_iri(iri: &str) -> String {
-    let mut out = String::with_capacity(iri.len());
-    for c in iri.chars() {
-        match c {
-            '<' | '>' | '"' | '{' | '}' | '|' | '^' | '`' | '\\' => {
-                out.push_str(&format!("\\u{:04X}", c as u32));
-            }
-            c if (c as u32) <= 0x20 => out.push_str(&format!("\\u{:04X}", c as u32)),
-            c => out.push(c),
-        }
-    }
-    out
-}
-
 // ── source-Turtle → rdflib-Turtle (with x-gmeow language retag) ────────────────
 
 /// Load the internal→BCP-47 language-tag map from the ontology's language-tag table
@@ -1770,502 +1392,68 @@ fn load_tag_map(root: &Path) -> Result<BTreeMap<String, String>, PipelineError> 
 }
 
 /// Parse a source Turtle file, retag `@x-gmeow-*` literal language tags to their
-/// public BCP-47 form, and re-serialize as rdflib-compatible Turtle. Prefixes come
-/// from the source file's own `@prefix` declarations (rdflib carries them on parse),
-/// plus the rdflib default `rdf`/`rdfs`/`xsd`/`owl`/`xml` bindings where used.
+/// public BCP-47 form, and re-serialize through the canonical Turtle serializer.
+///
+/// This is the byte-for-byte mirror of the canonical Python path
+/// (`research_objects.export_research_objects`): the source A-Box is parsed with
+/// the native store (oxigraph — which canonicalizes literals exactly as the
+/// published artifacts require, e.g. decimal `1.0` → `"1"^^xsd:decimal`), its
+/// `@x-gmeow-*` literal language tags retag to public BCP-47, and the result is
+/// rendered with an EMPTY prefix set: fully-expanded full IRIs, no `@prefix`
+/// header (matching the committed RO-Crate A-Box copies).
 fn serialize_source_turtle(
     bytes: &[u8],
-    _path: &str,
+    path: &str,
     tag_map: &BTreeMap<String, String>,
 ) -> Result<String, PipelineError> {
-    // oxigraph CANONICALIZES literals at parse (positiveInteger → integer,
-    // decimal `1.0` → `1`), losing exactly the lexical/datatype info rdflib's
-    // serializer preserves. Parse the source ourselves (these example A-Boxes are
-    // flat Turtle: no blank nodes, lists, or multi-line strings) so the original
-    // datatype and lexical survive into the rdflib-style canonicalization below.
-    let prefixes = collect_source_prefixes(bytes);
-    let mut ns_map: BTreeMap<String, String> = prefixes.iter().cloned().collect::<BTreeMap<_, _>>();
-    // rdflib's NamespaceManager pre-binds these standard prefixes.
-    for (p, n) in [
-        ("rdf", "http://www.w3.org/1999/02/22-rdf-syntax-ns#"),
-        ("rdfs", "http://www.w3.org/2000/01/rdf-schema#"),
-        ("xsd", XSD),
-        ("owl", "http://www.w3.org/2002/07/owl#"),
-        ("xml", "http://www.w3.org/XML/1998/namespace"),
-    ] {
-        ns_map.entry(p.to_string()).or_insert_with(|| n.to_string());
-    }
+    let store =
+        Store::new().map_err(|e| PipelineError::Parse(format!("store creation failed: {e}")))?;
+    parse_into(&store, bytes, path)?;
 
-    let triples = parse_flat_turtle(bytes, &ns_map)?;
-
-    // Header prefixes rdflib emits: the source-declared set + the standard pre-binds,
-    // filtered to those actually used (the serializer records usage).
-    let mut header_prefixes: Vec<(String, String)> = prefixes.clone();
-    for (p, ns) in [
-        ("rdf", "http://www.w3.org/1999/02/22-rdf-syntax-ns#"),
-        ("rdfs", "http://www.w3.org/2000/01/rdf-schema#"),
-        ("xsd", XSD),
-        ("owl", "http://www.w3.org/2002/07/owl#"),
-        ("xml", "http://www.w3.org/XML/1998/namespace"),
-    ] {
-        if !header_prefixes.iter().any(|(_, n)| n == ns) {
-            header_prefixes.push((p.to_string(), ns.to_string()));
-        }
-    }
-
-    let mut graph = TurtleGraph::new();
-    for (s, p, o) in triples {
-        graph.insert(s, p, retag_term(o, tag_map));
-    }
-    let prefix_refs: Vec<(&str, &str)> = header_prefixes
-        .iter()
-        .map(|(p, n)| (p.as_str(), n.as_str()))
-        .collect();
-    Ok(graph
-        .serialize(&prefix_refs)
-        .trim_end_matches('\n')
-        .to_string()
-        + "\n")
-}
-
-/// A focused Turtle parser for the flat example A-Boxes: `@prefix` headers, then
-/// `subject pred obj (, obj)* (; pred obj)* .` statements. Literals keep their
-/// ORIGINAL datatype + lexical (no oxigraph canonicalization), with rdflib's literal
-/// canonicalization (decimal/dateTime) applied so the rendered form matches.
-fn parse_flat_turtle(
-    bytes: &[u8],
-    ns_map: &BTreeMap<String, String>,
-) -> Result<Vec<(RT, String, RT)>, PipelineError> {
-    let text = String::from_utf8_lossy(bytes);
-    // Strip comments (no `#` appears inside the IRIs/literals of these files at the
-    // start-of-token boundary we care about; but `#` does appear inside `<...>` IRIs,
-    // so only strip a `#` that is NOT inside `<...>` or `"..."`).
-    let mut body = String::new();
-    for line in text.lines() {
-        body.push_str(&strip_line_comment(line));
-        body.push('\n');
-    }
-    let toks = tokenize_turtle(&body);
-    let mut triples: Vec<(RT, String, RT)> = Vec::new();
-    let mut i = 0usize;
-    while i < toks.len() {
-        // Skip @prefix declarations: `@prefix p: <ns> .`
-        if toks[i] == "@prefix" {
-            while i < toks.len() && toks[i] != "." {
-                i += 1;
-            }
-            i += 1; // skip "."
-            continue;
-        }
-        // subject
-        let subj = resolve_node(&toks[i], ns_map)?;
-        i += 1;
-        loop {
-            // predicate
-            let pred = if toks[i] == "a" {
-                RDF_TYPE.to_string()
-            } else {
-                match resolve_node(&toks[i], ns_map)? {
-                    RT::Iri(iri) => iri,
-                    _ => {
-                        return Err(PipelineError::Parse(format!(
-                            "non-IRI predicate token: {}",
-                            toks[i]
-                        )))
-                    }
-                }
-            };
-            i += 1;
-            loop {
-                let obj = resolve_object(&toks[i], ns_map)?;
-                triples.push((subj.clone(), pred.clone(), obj));
-                i += 1;
-                match toks[i].as_str() {
-                    "," => {
-                        i += 1;
-                        continue;
-                    }
-                    _ => break,
-                }
-            }
-            match toks[i].as_str() {
-                ";" => {
-                    i += 1;
-                    // Trailing `;` before `.`
-                    if toks[i] == "." {
-                        break;
-                    }
-                    continue;
-                }
-                "." => break,
-                other => {
-                    return Err(PipelineError::Parse(format!(
-                        "unexpected token after object: {other}"
-                    )))
-                }
-            }
-        }
-        i += 1; // skip "."
-    }
-    Ok(triples)
-}
-
-/// Strip a `#` line comment that is not inside `<...>` or `"..."`.
-fn strip_line_comment(line: &str) -> String {
-    let mut out = String::with_capacity(line.len());
-    let mut in_iri = false;
-    let mut in_str = false;
-    let mut chars = line.chars().peekable();
-    while let Some(c) = chars.next() {
-        match c {
-            '<' if !in_str => {
-                in_iri = true;
-                out.push(c);
-            }
-            '>' if in_iri => {
-                in_iri = false;
-                out.push(c);
-            }
-            '"' if !in_iri => {
-                in_str = !in_str;
-                out.push(c);
-            }
-            '\\' if in_str => {
-                out.push(c);
-                if let Some(n) = chars.next() {
-                    out.push(n);
-                }
-            }
-            '#' if !in_iri && !in_str => break,
-            c => out.push(c),
-        }
-    }
-    out
-}
-
-/// Tokenize flat Turtle into IRIs/prefixed-names/literals and the `, ; . a @prefix`
-/// punctuation. Literals keep their full `"lex"`, `"lex"@lang`, `"lex"^^dt` token.
-fn tokenize_turtle(body: &str) -> Vec<String> {
-    let mut toks: Vec<String> = Vec::new();
-    let chars: Vec<char> = body.chars().collect();
-    let mut i = 0usize;
-    while i < chars.len() {
-        let c = chars[i];
-        if c.is_whitespace() {
-            i += 1;
-            continue;
-        }
-        match c {
-            ',' | ';' | '.' => {
-                // A `.` that is part of a number/decimal is captured by the literal/
-                // number scan below; a standalone `.`/`,`/`;` is punctuation.
-                toks.push(c.to_string());
-                i += 1;
-            }
-            '<' => {
-                let start = i;
-                i += 1;
-                while i < chars.len() && chars[i] != '>' {
-                    i += 1;
-                }
-                i += 1; // include '>'
-                toks.push(chars[start..i].iter().collect());
-            }
-            '"' => {
-                let start = i;
-                i += 1;
-                while i < chars.len() {
-                    if chars[i] == '\\' {
-                        i += 2;
-                        continue;
-                    }
-                    if chars[i] == '"' {
-                        i += 1;
-                        break;
-                    }
-                    i += 1;
-                }
-                // optional @lang or ^^datatype suffix
-                if i < chars.len() && chars[i] == '@' {
-                    i += 1;
-                    while i < chars.len() && (chars[i].is_ascii_alphanumeric() || chars[i] == '-') {
-                        i += 1;
-                    }
-                } else if i + 1 < chars.len() && chars[i] == '^' && chars[i + 1] == '^' {
-                    i += 2;
-                    if i < chars.len() && chars[i] == '<' {
-                        while i < chars.len() && chars[i] != '>' {
-                            i += 1;
-                        }
-                        i += 1;
-                    } else {
-                        while i < chars.len()
-                            && !chars[i].is_whitespace()
-                            && !matches!(chars[i], ',' | ';' | '.')
-                        {
-                            i += 1;
-                        }
-                    }
-                }
-                toks.push(chars[start..i].iter().collect());
-            }
-            c if c.is_ascii_digit() || c == '+' || c == '-' => {
-                // A bare number (integer/decimal/double).
-                let start = i;
-                i += 1;
-                while i < chars.len()
-                    && (chars[i].is_ascii_digit()
-                        || matches!(chars[i], '.' | 'e' | 'E' | '+' | '-'))
-                {
-                    // A `.` immediately followed by non-digit ends the number (it is the
-                    // statement terminator) — but bare decimals here always have a digit.
-                    if chars[i] == '.' && (i + 1 >= chars.len() || !chars[i + 1].is_ascii_digit()) {
-                        break;
-                    }
-                    i += 1;
-                }
-                toks.push(chars[start..i].iter().collect());
-            }
-            _ => {
-                // prefixed name or keyword (`a`, `@prefix`, `prefix:local`, `true`/`false`).
-                let start = i;
-                while i < chars.len()
-                    && !chars[i].is_whitespace()
-                    && !matches!(chars[i], ',' | ';' | '<' | '"')
-                {
-                    // stop at a `.` that terminates a statement (prefixed names contain
-                    // `.` rarely; the corpus has none, so treat `.` as a terminator).
-                    if chars[i] == '.' {
-                        break;
-                    }
-                    i += 1;
-                }
-                toks.push(chars[start..i].iter().collect());
-            }
-        }
-    }
-    toks
-}
-
-/// Resolve a subject/predicate node token (`<iri>` or `prefix:local`) to an IRI/blank.
-fn resolve_node(tok: &str, ns_map: &BTreeMap<String, String>) -> Result<RT, PipelineError> {
-    if let Some(inner) = tok.strip_prefix('<').and_then(|t| t.strip_suffix('>')) {
-        return Ok(RT::Iri(inner.to_string()));
-    }
-    if let Some((prefix, local)) = tok.split_once(':') {
-        if let Some(ns) = ns_map.get(prefix) {
-            return Ok(RT::Iri(format!("{ns}{local}")));
-        }
-    }
-    Err(PipelineError::Parse(format!(
-        "unresolved node token: {tok}"
-    )))
-}
-
-/// Resolve an object token (IRI, prefixed name, bare number, boolean, or literal).
-fn resolve_object(tok: &str, ns_map: &BTreeMap<String, String>) -> Result<RT, PipelineError> {
-    if tok.starts_with('<') || (tok.contains(':') && !tok.starts_with('"')) {
-        return resolve_node(tok, ns_map);
-    }
-    if tok == "true" || tok == "false" {
-        return Ok(RT::Lit {
-            lexical: tok.to_string(),
-            language: None,
-            datatype: Some(format!("{XSD}boolean")),
-        });
-    }
-    if tok.starts_with('"') {
-        return Ok(parse_literal_token(tok, ns_map));
-    }
-    // Bare number: integer, decimal (has `.`), or double (has `e`).
-    let lower = tok.to_ascii_lowercase();
-    let dt = if lower.contains('e') {
-        format!("{XSD}double")
-    } else if tok.contains('.') {
-        format!("{XSD}decimal")
-    } else {
-        format!("{XSD}integer")
-    };
-    Ok(canonicalize_literal(tok.to_string(), None, Some(dt)))
-}
-
-/// Parse a quoted literal token (`"lex"`, `"lex"@lang`, `"lex"^^dt`).
-fn parse_literal_token(tok: &str, ns_map: &BTreeMap<String, String>) -> RT {
-    // Find the closing quote (respecting escapes).
-    let bytes: Vec<char> = tok.chars().collect();
-    let mut j = 1usize;
-    while j < bytes.len() {
-        if bytes[j] == '\\' {
-            j += 2;
-            continue;
-        }
-        if bytes[j] == '"' {
-            break;
-        }
-        j += 1;
-    }
-    let raw: String = bytes[1..j].iter().collect();
-    let lexical = unescape_turtle_string(&raw);
-    let suffix: String = bytes[j + 1..].iter().collect();
-    if let Some(lang) = suffix.strip_prefix('@') {
-        return RT::Lit {
-            lexical,
-            language: Some(lang.to_string()),
-            datatype: None,
+    // Re-emit each triple as N-Triples, retagging `@x-gmeow-*` literal language
+    // tags to their public BCP-47 form on the way through.
+    let mut nt = String::new();
+    for quad in store.iter() {
+        let quad = quad.map_err(|e| PipelineError::Parse(format!("{path}: store iter: {e}")))?;
+        let object = match quad.object {
+            Term::Literal(lit) => Term::Literal(retag_ox_literal(lit, tag_map)),
+            other => other,
         };
+        let triple = oxigraph::model::Triple::new(quad.subject, quad.predicate, object);
+        nt.push_str(&triple.to_string());
+        nt.push_str(" .\n");
     }
-    if let Some(dt_tok) = suffix.strip_prefix("^^") {
-        let dt = if let Some(inner) = dt_tok.strip_prefix('<').and_then(|t| t.strip_suffix('>')) {
-            inner.to_string()
-        } else if let Some((prefix, local)) = dt_tok.split_once(':') {
-            ns_map
-                .get(prefix)
-                .map(|ns| format!("{ns}{local}"))
-                .unwrap_or_else(|| dt_tok.to_string())
-        } else {
-            dt_tok.to_string()
-        };
-        return canonicalize_literal(lexical, None, Some(dt));
-    }
-    // Bare string → rdflib treats as xsd:string (rendered plain, no datatype).
-    RT::Lit {
-        lexical,
-        language: None,
-        datatype: None,
-    }
+
+    let out = gmeow_rdf::turtle_normalize::canonical_turtle(nt.as_bytes(), &[])
+        .map_err(PipelineError::Parse)?;
+    Ok(out.trim_end_matches('\n').to_string() + "\n")
 }
 
-/// Apply rdflib's parse-time literal canonicalization for the datatypes that need it
-/// (xsd:dateTime `Z` → `+00:00`; xsd:decimal needs a digit on both sides of `.`).
-fn canonicalize_literal(lexical: String, language: Option<String>, datatype: Option<String>) -> RT {
-    let dt = datatype.as_deref().unwrap_or("");
-    let lexical = if dt == format!("{XSD}dateTime") {
-        canonical_datetime(&lexical)
-    } else if dt == format!("{XSD}decimal") {
-        canonical_decimal(&lexical)
-    } else {
-        lexical
-    };
-    RT::Lit {
-        lexical,
-        language,
-        datatype,
-    }
-}
-
-/// rdflib decimal canonical lexical: ensure a digit before and after the `.`.
-fn canonical_decimal(lex: &str) -> String {
-    let (sign, body) = match lex.strip_prefix('-') {
-        Some(b) => ("-", b),
-        None => ("", lex.strip_prefix('+').unwrap_or(lex)),
-    };
-    let with_dot = if let Some((int_part, frac)) = body.split_once('.') {
-        let int_part = if int_part.is_empty() { "0" } else { int_part };
-        let frac = if frac.is_empty() { "0" } else { frac };
-        format!("{int_part}.{frac}")
-    } else {
-        format!("{body}.0")
-    };
-    format!("{sign}{with_dot}")
-}
-
-/// Unescape a Turtle string literal body (`\" \\ \n \r \t \uXXXX`).
-fn unescape_turtle_string(raw: &str) -> String {
-    let mut out = String::with_capacity(raw.len());
-    let mut chars = raw.chars();
-    while let Some(c) = chars.next() {
-        if c != '\\' {
-            out.push(c);
-            continue;
-        }
-        match chars.next() {
-            Some('n') => out.push('\n'),
-            Some('r') => out.push('\r'),
-            Some('t') => out.push('\t'),
-            Some('"') => out.push('"'),
-            Some('\\') => out.push('\\'),
-            Some('\'') => out.push('\''),
-            Some('u') => {
-                let hex: String = chars.by_ref().take(4).collect();
-                if let Ok(cp) = u32::from_str_radix(&hex, 16) {
-                    if let Some(ch) = char::from_u32(cp) {
-                        out.push(ch);
-                    }
-                }
-            }
-            Some('U') => {
-                let hex: String = chars.by_ref().take(8).collect();
-                if let Ok(cp) = u32::from_str_radix(&hex, 16) {
-                    if let Some(ch) = char::from_u32(cp) {
-                        out.push(ch);
-                    }
-                }
-            }
-            Some(other) => {
-                out.push('\\');
-                out.push(other);
-            }
-            None => out.push('\\'),
-        }
-    }
-    out
-}
-
-fn retag_term(term: RT, tag_map: &BTreeMap<String, String>) -> RT {
-    if let RT::Lit {
-        lexical,
-        language: Some(lang),
-        datatype,
-    } = &term
-    {
+/// Retag an oxigraph literal's `@x-gmeow-*` language tag to its public BCP-47 form.
+fn retag_ox_literal(lit: OxLiteral, tag_map: &BTreeMap<String, String>) -> OxLiteral {
+    if let Some(lang) = lit.language() {
         if let Some(ext) = tag_map.get(lang) {
-            return RT::Lit {
-                lexical: lexical.clone(),
-                language: Some(ext.clone()),
-                datatype: datatype.clone(),
-            };
+            // `new_language_tagged_literal_unchecked` keeps the public tag verbatim;
+            // the validating constructor rejects the longer `x-gmeow-*` source tags.
+            return OxLiteral::new_language_tagged_literal_unchecked(lit.value(), ext.clone());
         }
     }
-    term
-}
-
-/// Parse the `@prefix p: <ns> .` lines from a Turtle source header.
-fn collect_source_prefixes(bytes: &[u8]) -> Vec<(String, String)> {
-    let text = String::from_utf8_lossy(bytes);
-    let mut out: Vec<(String, String)> = Vec::new();
-    for line in text.lines() {
-        let line = line.trim();
-        let Some(rest) = line.strip_prefix("@prefix") else {
-            continue;
-        };
-        let rest = rest.trim();
-        // `p: <ns> .`
-        let Some(colon) = rest.find(':') else {
-            continue;
-        };
-        let prefix = rest[..colon].trim().to_string();
-        let after = rest[colon + 1..].trim();
-        let Some(lt) = after.find('<') else { continue };
-        let Some(gt) = after[lt..].find('>') else {
-            continue;
-        };
-        let ns = after[lt + 1..lt + gt].to_string();
-        out.push((prefix, ns));
-    }
-    out
+    lit
 }
 
 // ── render: the committed artifact map ─────────────────────────────────────────
 
 /// The canonical GMEOW prefix subset the projected `dcat.ttl` binds & uses.
 fn dcat_prefixes() -> Vec<(&'static str, &'static str)> {
+    // Declaration order is load-bearing: the serializer emits used prefixes in this
+    // order, matching the committed `dcat.ttl` header byte-for-byte.
     vec![
-        ("dcat", "http://www.w3.org/ns/dcat#"),
-        ("dcterms", "http://purl.org/dc/terms/"),
         ("gmeow", NS),
+        ("xsd", XSD),
+        ("dcat", "http://www.w3.org/ns/dcat#"),
         ("prov", "http://www.w3.org/ns/prov#"),
         ("spdx", "http://spdx.org/rdf/terms#"),
-        ("xsd", XSD),
+        ("dcterms", "http://purl.org/dc/terms/"),
     ]
 }
 
@@ -2355,14 +1543,22 @@ fn render_dcat(root: &Path) -> Result<String, PipelineError> {
             ))
         }
     };
-    let mut graph = TurtleGraph::new();
+    let mut nt = String::new();
     for t in triples {
         let t = t.map_err(|e| PipelineError::Parse(format!("dcat.rq triple: {e}")))?;
-        graph.insert_triple(&t);
+        nt.push_str(&t.to_string());
+        nt.push_str(" .\n");
     }
+    // The canonical Turtle serializer binds only the prefixes the graph actually
+    // uses, in `dcat_prefixes` declaration order (matching the committed header).
+    let prefixes: Vec<(String, String)> = dcat_prefixes()
+        .into_iter()
+        .map(|(p, n)| (p.to_string(), n.to_string()))
+        .collect();
+    let body = gmeow_rdf::turtle_normalize::canonical_turtle(nt.as_bytes(), &prefixes)
+        .map_err(PipelineError::Parse)?;
     let banner = "# GENERATED by gmeow research-objects — DO NOT EDIT.\n# https://github.com/Blackcat-Informatics/gmeow-ontology\n\n";
-    let body = graph.serialize(&dcat_prefixes());
-    Ok(format!("{banner}{body}"))
+    Ok(format!("{banner}{}\n", body.trim_end_matches('\n')))
 }
 
 // ── Stage impl ───────────────────────────────────────────────────────────────

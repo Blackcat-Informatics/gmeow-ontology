@@ -2150,6 +2150,37 @@ enum PhysicalObjectEnum
     fixture1959LesPaul
   }
 
+enum PipelineEnum
+  {
+    pipeline__HYPHEN_MINUS__build
+  }
+
+enum PipelineStageEnum
+  {
+    stage__HYPHEN_MINUS__docs__HYPHEN_MINUS__render
+    stage__HYPHEN_MINUS__export__HYPHEN_MINUS__apache
+    stage__HYPHEN_MINUS__export__HYPHEN_MINUS__catalog
+    stage__HYPHEN_MINUS__export__HYPHEN_MINUS__evals
+    stage__HYPHEN_MINUS__export__HYPHEN_MINUS__exports
+    stage__HYPHEN_MINUS__export__HYPHEN_MINUS__frame__HYPHEN_MINUS__shapes
+    stage__HYPHEN_MINUS__export__HYPHEN_MINUS__logic
+    stage__HYPHEN_MINUS__export__HYPHEN_MINUS__lpg
+    stage__HYPHEN_MINUS__export__HYPHEN_MINUS__matrix
+    stage__HYPHEN_MINUS__export__HYPHEN_MINUS__metadata
+    stage__HYPHEN_MINUS__export__HYPHEN_MINUS__okf
+    stage__HYPHEN_MINUS__export__HYPHEN_MINUS__parquet
+    stage__HYPHEN_MINUS__export__HYPHEN_MINUS__profiles
+    stage__HYPHEN_MINUS__export__HYPHEN_MINUS__references
+    stage__HYPHEN_MINUS__export__HYPHEN_MINUS__research__HYPHEN_MINUS__objects
+    stage__HYPHEN_MINUS__export__HYPHEN_MINUS__schemas
+    stage__HYPHEN_MINUS__gts__HYPHEN_MINUS__compose
+    stage__HYPHEN_MINUS__gts__HYPHEN_MINUS__sink
+    stage__HYPHEN_MINUS__mappings
+    stage__HYPHEN_MINUS__reason
+    stage__HYPHEN_MINUS__source__HYPHEN_MINUS__load
+    stage__HYPHEN_MINUS__statements
+  }
+
 enum PitchAnchorEnum
   {
     pitchAnchorA415
@@ -2946,6 +2977,17 @@ enum SourceTierEnum
 enum SpectrumEnum
   {
     spectrumExample
+  }
+
+enum StageKindEnum
+  {
+    kindDocsRender
+    kindExportLeaf
+    kindReason
+    kindSink
+    kindSourceLoad
+    kindTransform
+    kindValidate
   }
 
 enum StandpointEnum
@@ -16617,6 +16659,129 @@ type PhysicalObject
     carrierType: [PhysicalCarrierType]
   }
 
+type Pipeline
+  {
+    acquireLicensePage: [String]
+    attributionText: [String]
+    attributionUrl: [String]
+    authorityLink: [String]
+    cites: [CreativeWork]
+    conditionsOfAccess: [String]
+    counterpartOf: [Entity]
+    depictedIn: [MediaObject]
+    description: [String]
+    existenceInterval: [TimeInterval]
+    hasAccessibilityNeed: [AccessibilityFacet]
+    hasAppellation: [Appellation]
+    hasAttestation: [Attestation]
+    hasCopyright: [Copyright]
+    hasCreationEvent: [Event]
+    hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
+    hasIdentifier: [Identifier]
+    hasLicense: [License]
+    hasLogo: [MediaObject]
+    hasPose: [Pose]
+    hasReply: [Comment]
+    hasRightsStatement: [RightsStatement]
+    hasSensoryObservation: [SensoryObservation]
+    hasSensoryQuantity: [SensoryQuantity]
+    hasSpatialMeasurement: [SpatialMeasurement]
+    hasStream: [Stream]
+    hasTag: [Tag]
+    hasTrademark: [Trademark]
+    hasVersion: [Entity]
+    hasVoice: [Voice]
+    hasWebPage: [WebPage]
+    instanceOfConcept: [Concept]
+    isAbout: [Entity]
+    isAccessibleForFree: [Boolean]
+    isReferencedBy: [Entity]
+    isResultOf: [Observation]
+    locatedAt: [Location]
+    mediaType: String
+    mentionedIn: [Note]
+    name: [String]
+    ownedBy: [Agent]
+    provenance: [String]
+    proximity: [ProximityMeasurement]
+    references: [Entity]
+    storedIn: [StorageLocation]
+    supersededBy: [Entity]
+    supersedes: [Entity]
+    usageInfo: [String]
+    versionFingerprint: [String]
+    versionLabel: [String]
+    versionOf: Entity
+    wasAttributedTo: [Agent]
+    wasGeneratedBy: [Activity]
+    hasStage: [PipelineStage]
+  }
+
+type PipelineStage
+  {
+    acquireLicensePage: [String]
+    attributionText: [String]
+    attributionUrl: [String]
+    authorityLink: [String]
+    cites: [CreativeWork]
+    conditionsOfAccess: [String]
+    counterpartOf: [Entity]
+    depictedIn: [MediaObject]
+    description: [String]
+    existenceInterval: [TimeInterval]
+    hasAccessibilityNeed: [AccessibilityFacet]
+    hasAppellation: [Appellation]
+    hasAttestation: [Attestation]
+    hasCopyright: [Copyright]
+    hasCreationEvent: [Event]
+    hasDestructionEvent: [Event]
+    hasDirectReply: [Comment]
+    hasIdentifier: [Identifier]
+    hasLicense: [License]
+    hasLogo: [MediaObject]
+    hasPose: [Pose]
+    hasReply: [Comment]
+    hasRightsStatement: [RightsStatement]
+    hasSensoryObservation: [SensoryObservation]
+    hasSensoryQuantity: [SensoryQuantity]
+    hasSpatialMeasurement: [SpatialMeasurement]
+    hasStream: [Stream]
+    hasTag: [Tag]
+    hasTrademark: [Trademark]
+    hasVersion: [Entity]
+    hasVoice: [Voice]
+    hasWebPage: [WebPage]
+    instanceOfConcept: [Concept]
+    isAbout: [Entity]
+    isAccessibleForFree: [Boolean]
+    isReferencedBy: [Entity]
+    isResultOf: [Observation]
+    locatedAt: [Location]
+    mediaType: String
+    mentionedIn: [Note]
+    name: [String]
+    ownedBy: [Agent]
+    provenance: [String]
+    proximity: [ProximityMeasurement]
+    references: [Entity]
+    storedIn: [StorageLocation]
+    supersededBy: [Entity]
+    supersedes: [Entity]
+    usageInfo: [String]
+    versionFingerprint: [String]
+    versionLabel: [String]
+    versionOf: Entity
+    wasAttributedTo: [Agent]
+    wasGeneratedBy: [Activity]
+    carriesEngineLock: [Boolean]
+    dataflowConsumes: [PipelineStage]
+    dataflowProduces: [PipelineStage]
+    producesFormat: [String]
+    stageImpl: [String]
+    stageKind: [StageKind]
+  }
+
 type PitchAnchor
   {
     acquireLicensePage: [String]
@@ -22041,6 +22206,10 @@ type Spectrum
     contributesToFrame: [NarrativeReferenceFrame]
     detectedMediaType: [String]
     writtenInLanguage: [Language]
+  }
+
+type StageKind
+  {
   }
 
 type Standpoint
