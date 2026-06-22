@@ -29,6 +29,7 @@ pub mod mappings;
 pub mod matrix;
 pub mod profiles;
 pub mod reason;
+pub mod references;
 pub mod source_load;
 pub mod statements;
 
@@ -49,4 +50,5 @@ pub fn register_default(registry: &mut StageRegistry) {
     registry.register("matrix", Arc::new(matrix::MatrixStage));
     registry.register("apache", Arc::new(apache::ApacheStage));
     registry.register("lpg", Arc::new(lpg::LpgStage));
+    registry.register("references", Arc::new(references::ReferencesStage));
 }
