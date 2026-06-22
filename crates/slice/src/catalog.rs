@@ -238,6 +238,8 @@ fn find_slice_iri(store: &Store) -> Result<String, SliceError> {
     let gmeow_slice = oxigraph::model::NamedNode::new(GMEOW_SLICE_CLASS)
         .map_err(|e| SliceError::InvalidManifest(format!("invalid gmeow:Slice IRI: {e}")))?;
 
+    let mut subjects: Vec<String> = Vec::new();
+
     for quad in store.quads_for_pattern(
         None,
         Some(rdf_type.as_ref()),
@@ -246,12 +248,24 @@ fn find_slice_iri(store: &Store) -> Result<String, SliceError> {
     ) {
         let quad = quad.map_err(|e| SliceError::Parse(e.to_string()))?;
         if let oxigraph::model::NamedOrBlankNode::NamedNode(nn) = &quad.subject {
-            return Ok(nn.as_str().to_string());
+            subjects.push(nn.as_str().to_string());
         }
     }
-    Err(SliceError::InvalidManifest(
-        "no `a gmeow:Slice` triple found in manifest.ttl".to_string(),
-    ))
+
+    match subjects.len() {
+        0 => Err(SliceError::InvalidManifest(
+            "no `a gmeow:Slice` triple found in manifest.ttl".to_string(),
+        )),
+        1 => Ok(subjects.remove(0)),
+        _ => {
+            subjects.sort();
+            Err(SliceError::InvalidManifest(format!(
+                "manifest.ttl declares {} `a gmeow:Slice` subjects (must be exactly one): {}",
+                subjects.len(),
+                subjects.join(", ")
+            )))
+        }
+    }
 }
 
 fn literal_value(term: &Term) -> String {
@@ -423,11 +437,35 @@ fn hex_sha256(bytes: &[u8]) -> String {
     format!("{digest:x}")
 }
 
+/// Select the oxigraph `RdfFormat` for a given file path based on its extension.
+fn rdf_format_for_path(path: &Path) -> RdfFormat {
+    match path.extension().and_then(|e| e.to_str()) {
+        Some("nt") => RdfFormat::NTriples,
+        Some("nq") => RdfFormat::NQuads,
+        Some("trig") => RdfFormat::TriG,
+        _ => RdfFormat::Turtle,
+    }
+}
+
+fn parse_rdf_to_store(bytes: &[u8], path: &Path) -> Result<Store, SliceError> {
+    let format = rdf_format_for_path(path);
+    let store =
+        Store::new().map_err(|e| SliceError::Parse(format!("store creation failed: {e}")))?;
+    for quad in RdfParser::from_format(format).lenient().for_reader(bytes) {
+        let quad = quad
+            .map_err(|e| SliceError::Parse(format!("syntax error in {}: {e}", path.display())))?;
+        store
+            .insert(&quad)
+            .map_err(|e| SliceError::Parse(format!("store insert failed: {e}")))?;
+    }
+    Ok(store)
+}
+
 fn compute_semantic_digest(bytes: &[u8], path: &Path) -> Result<String, SliceError> {
     use oxigraph::model::dataset::CanonicalizationAlgorithm;
     use oxigraph::model::Dataset;
 
-    let store = parse_turtle_to_store(bytes, path)?;
+    let store = parse_rdf_to_store(bytes, path)?;
 
     // Build an in-memory Dataset and canonicalize blank-node labels (RDFC-style)
     // BEFORE serializing. Parsing assigns blank-node IDs non-deterministically, so
@@ -530,4 +568,78 @@ fn find_slice_dirs_inner(dir: &Path, out: &mut Vec<PathBuf>) -> Result<(), Slice
         }
     }
     Ok(())
+}
+
+// ── Tests ─────────────────────────────────────────────────────────────────────
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// Fix 1: a manifest declaring two `a gmeow:Slice` subjects must hard-fail
+    /// with `SliceError::InvalidManifest` naming both subjects.
+    #[test]
+    fn find_slice_iri_rejects_multiple_slice_subjects() {
+        let ttl = r#"
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+
+<https://example.org/slice/alpha> a gmeow:Slice .
+<https://example.org/slice/beta>  a gmeow:Slice .
+"#;
+        let path = Path::new("manifest.ttl");
+        let store =
+            parse_turtle_to_store(ttl.as_bytes(), path).expect("should parse without error");
+        let result = find_slice_iri(&store);
+        match result {
+            Err(SliceError::InvalidManifest(msg)) => {
+                assert!(
+                    msg.contains("https://example.org/slice/alpha"),
+                    "error message must name first subject, got: {msg}"
+                );
+                assert!(
+                    msg.contains("https://example.org/slice/beta"),
+                    "error message must name second subject, got: {msg}"
+                );
+                assert!(
+                    msg.contains('2') || msg.contains("two"),
+                    "error message must state the count, got: {msg}"
+                );
+            }
+            other => panic!("expected InvalidManifest error, got: {other:?}"),
+        }
+    }
+
+    /// Fix 2: an N-Triples artifact produces a correct, non-empty semantic
+    /// digest that equals the digest of the same triples written as Turtle.
+    #[test]
+    fn compute_semantic_digest_handles_nt_artifacts() {
+        // The same single triple expressed in two formats.
+        let turtle_bytes = br#"
+@prefix ex: <https://example.org/> .
+ex:subject ex:predicate ex:object .
+"#;
+        let nt_bytes = b"<https://example.org/subject> <https://example.org/predicate> <https://example.org/object> .\n";
+
+        let ttl_path = Path::new("data.ttl");
+        let nt_path = Path::new("data.nt");
+
+        let digest_ttl = compute_semantic_digest(turtle_bytes, ttl_path)
+            .expect("Turtle semantic digest must not fail");
+        let digest_nt = compute_semantic_digest(nt_bytes, nt_path)
+            .expect("N-Triples semantic digest must not fail");
+
+        assert!(
+            !digest_ttl.is_empty(),
+            "Turtle semantic digest must not be empty"
+        );
+        assert!(
+            !digest_nt.is_empty(),
+            "N-Triples semantic digest must not be empty"
+        );
+        assert_eq!(
+            digest_ttl, digest_nt,
+            "Turtle and N-Triples digests for identical triples must match"
+        );
+    }
 }
