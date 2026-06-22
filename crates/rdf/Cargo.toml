@@ -20,7 +20,7 @@ path = "src/lib.rs"
 
 [features]
 default = ["gts"]
-gts = ["dep:ciborium", "dep:gmeow-gts", "dep:oxigraph", "oxigraph", "gmeow-gts/oxigraph-adapter"]
+gts = ["dep:ciborium", "dep:gmeow-gts", "oxigraph"]
 oxigraph = ["dep:oxigraph"]
 # `python` builds the `gmeow_rdf` PyO3 extension (the native statement codec).
 # It is OFF by default so the kernel rlib stays PyO3-free for its Rust consumers
