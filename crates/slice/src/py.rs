@@ -36,6 +36,7 @@ use crate::analysis::emit_analysis_graph;
 use crate::artifact::{ArtifactRecord, ArtifactRole};
 use crate::cache::ToolchainContext;
 use crate::catalog::{ManifestView, SliceCatalog, SliceRecord, SliceTier};
+use crate::fix_deps::{compute_fix_deps, ManifestPatch};
 use crate::ownership::{
     DependencyEdge, OwnershipAnalyzer, OwnershipDiagnostic, OwnershipReport, OwnershipStatus,
     ReconciliationStatus, SliceIri,
@@ -196,6 +197,8 @@ impl PyManifestView {
 pub struct PySliceRecord {
     manifest: PyManifestView,
     artifacts: Vec<PyArtifactRecord>,
+    slice_dir: String,
+    manifest_path: String,
 }
 
 impl PySliceRecord {
@@ -209,6 +212,8 @@ impl PySliceRecord {
                 .iter()
                 .map(|a| PyArtifactRecord { inner: a.clone() })
                 .collect(),
+            slice_dir: rec.slice_dir.to_string_lossy().to_string(),
+            manifest_path: rec.manifest_path().to_string_lossy().to_string(),
         }
     }
 }
@@ -225,6 +230,19 @@ impl PySliceRecord {
     #[getter]
     fn artifacts(&self) -> Vec<PyArtifactRecord> {
         self.artifacts.clone()
+    }
+
+    /// The on-disk slice directory this record was discovered from. Authoritative
+    /// — no scan or substring match is needed to locate the slice's files (#820 G8).
+    #[getter]
+    fn slice_dir(&self) -> String {
+        self.slice_dir.clone()
+    }
+
+    /// The on-disk path to this slice's `manifest.ttl` (= `slice_dir`/manifest.ttl).
+    #[getter]
+    fn manifest_path(&self) -> String {
+        self.manifest_path.clone()
     }
 }
 
@@ -265,6 +283,51 @@ impl PySliceCatalog {
             .filter(|r| matches!(r.manifest.tier, Some(SliceTier::Core)))
             .map(|r| r.manifest.slice_iri.clone())
             .collect()
+    }
+
+    /// Compute the RDF-aware `gmeow:sliceDependsOn` reconciliation patches for
+    /// every manifest with undeclared (add) or stale (remove) semantic edges
+    /// (#820 G8). Each result carries the manifest path, original text, and the
+    /// surgically-patched, re-parse-validated text. Hard-fails (`ValueError`) on
+    /// any manifest read/parse error or post-patch validation failure — no silent
+    /// skips, no wrong-manifest matching, no malformed Turtle.
+    fn fix_deps(&self) -> PyResult<Vec<PyManifestPatch>> {
+        let patches = compute_fix_deps(&self.inner)
+            .map_err(|e| PyValueError::new_err(format!("slice fix-deps failed: {e}")))?;
+        Ok(patches
+            .into_iter()
+            .map(|p| PyManifestPatch { inner: p })
+            .collect())
+    }
+}
+
+// ── ManifestPatch ──────────────────────────────────────────────────────────────
+
+/// One computed manifest patch: the on-disk path plus original and patched text.
+#[pyclass(name = "ManifestPatch", module = "gmeow_slice", skip_from_py_object)]
+#[derive(Clone)]
+pub struct PyManifestPatch {
+    inner: ManifestPatch,
+}
+
+#[pymethods]
+impl PyManifestPatch {
+    /// The on-disk path to the patched `manifest.ttl`.
+    #[getter]
+    fn manifest_path(&self) -> String {
+        self.inner.manifest_path.clone()
+    }
+
+    /// The original (authored) manifest Turtle text.
+    #[getter]
+    fn original_text(&self) -> String {
+        self.inner.original_text.clone()
+    }
+
+    /// The patched manifest Turtle text (well-formed, re-parse validated).
+    #[getter]
+    fn patched_text(&self) -> String {
+        self.inner.patched_text.clone()
     }
 }
 
@@ -531,6 +594,7 @@ pub fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyManifestView>()?;
     m.add_class::<PySliceRecord>()?;
     m.add_class::<PySliceCatalog>()?;
+    m.add_class::<PyManifestPatch>()?;
     m.add_class::<PyDependencyEdge>()?;
     m.add_class::<PyOwnershipReport>()?;
     m.add_class::<PyOwnershipAnalyzer>()?;

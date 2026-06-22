@@ -9,6 +9,7 @@ pub mod artifact;
 pub mod cache;
 pub mod catalog;
 pub mod error;
+pub mod fix_deps;
 pub mod ownership;
 
 #[cfg(feature = "python")]
@@ -29,6 +30,7 @@ pub use cache::{
 };
 pub use catalog::{ManifestView, SliceCatalog, SliceRecord, SliceTier};
 pub use error::SliceError;
+pub use fix_deps::{compute_fix_deps, ManifestPatch};
 pub use ownership::{
     ArtifactEvidence, DependencyEdge, EdgeEvidence, EdgeKind, OwnershipAnalyzer,
     OwnershipDiagnostic, OwnershipReport, OwnershipStatus, ReconciliationStatus, SliceIri,

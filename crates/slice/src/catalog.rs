@@ -78,9 +78,18 @@ pub struct SliceRecord {
     pub manifest_graph: Arc<RdfDataset>,
     /// All artifacts discovered under the slice directory.
     pub artifacts: Vec<ArtifactRecord>,
+    /// The on-disk slice directory the record was loaded from. Retained so the
+    /// authoritative `manifest.ttl` path is known without any scan/substring
+    /// match (#820 G8: the discover walk already knows it).
+    pub slice_dir: PathBuf,
 }
 
 impl SliceRecord {
+    /// The on-disk path to this slice's `manifest.ttl`.
+    pub fn manifest_path(&self) -> PathBuf {
+        self.slice_dir.join("manifest.ttl")
+    }
+
     /// Find an artifact by role and logical path.
     pub fn find_artifact(&self, role: &ArtifactRole, path: &str) -> Option<&ArtifactRecord> {
         self.artifacts
@@ -132,6 +141,7 @@ impl SliceCatalog {
             manifest,
             manifest_graph,
             artifacts,
+            slice_dir: dir.to_path_buf(),
         })
     }
 

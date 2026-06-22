@@ -646,7 +646,11 @@ fn collect_declared_terms(store: &Store) -> BTreeSet<NamedNode> {
     out
 }
 
-/// Collect the `gmeow:sliceDependsOn` targets declared in a slice's manifest.
+/// Collect the `gmeow:sliceDependsOn` targets declared in a slice's manifest,
+/// scoped to the manifest's own slice subject ONLY. A `sliceDependsOn` triple
+/// whose subject is some *other* resource in the manifest (e.g. a blank-node
+/// description or an unrelated IRI) is never picked up — only edges authored on
+/// the slice itself reconcile against computed dependencies (#820 G8 MED).
 fn collect_slice_depends_on(record: &SliceRecord) -> BTreeSet<SliceIri> {
     let mut out = BTreeSet::new();
     // The manifest is preserved as an IR dataset; re-derive its named-node
@@ -662,9 +666,17 @@ fn collect_slice_depends_on(record: &SliceRecord) -> BTreeSet<SliceIri> {
     let Some(store) = parse_rdf_artifact(manifest_artifact) else {
         return out;
     };
+    let Ok(subject) = NamedNode::new(&record.manifest.slice_iri) else {
+        return out;
+    };
     let pred = NamedNode::new(GMEOW_SLICE_DEPENDS_ON).expect("static IRI");
     for quad in store
-        .quads_for_pattern(None, Some(pred.as_ref()), None, None)
+        .quads_for_pattern(
+            Some(subject.as_ref().into()),
+            Some(pred.as_ref()),
+            None,
+            None,
+        )
         .flatten()
     {
         if let Term::NamedNode(target) = &quad.object {

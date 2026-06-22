@@ -151,6 +151,91 @@ def test_native_binding_catalog_and_analyzer(tmp_path: Path) -> None:
     assert edge.reconciliation == "undeclared"
 
 
+def _apply_unified_diffs(root: Path, diffs: list[str]) -> None:
+    """Re-derive patched files by running compute_fix_deps(apply=True) again.
+
+    (Applying difflib output by hand is brittle; the apply path writes the native
+    patched_text directly, so this helper just re-runs with apply=True.)
+    """
+    compute_fix_deps(root, apply=True)
+
+
+def _native_discovers(root: Path) -> bool:
+    """Return True iff the native catalog re-discovers (re-parses) every manifest
+    under `root` without error — the authoritative well-formedness check.
+
+    The native Turtle parser is the one that matters (it is lenient on
+    `@x-gmeow-*` language tags, unlike rdflib), and discovery parses each
+    manifest.ttl. A malformed terminator would make discovery raise.
+    """
+    import gmeow_slice
+
+    try:
+        catalog = gmeow_slice.SliceCatalog.discover(str(root))
+    except Exception:
+        return False
+    return len(catalog.records()) > 0
+
+
+def test_fix_deps_removes_terminal_dot_stale_dependency(tmp_path: Path) -> None:
+    """Removing a STALE dependency that is the LAST predicate (terminal `.`) must
+    leave well-formed Turtle (the CodeRabbit terminal-`.` regression).
+
+    sliceB declares a dependency on sliceA as its terminal predicate, but its
+    module references NO sliceA term → the declaration is stale and must be
+    removed without breaking Turtle termination.
+    """
+    # sliceA defines termA; sliceB declares sliceA dep but never uses it.
+    _write(tmp_path, "core/sliceA/manifest.ttl", _manifest("sliceA"))
+    _write(tmp_path, "core/sliceA/module.ttl", _module("sliceA", defines="termA"))
+    # Manifest where sliceDependsOn is the LAST predicate (terminal `.`).
+    stale_manifest = (
+        f"@prefix gmeow: <{_NS}> .\n"
+        "@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n"
+        "@prefix dcterms: <http://purl.org/dc/terms/> .\n\n"
+        f"<{_NS}slices/sliceB> a gmeow:Slice ;\n"
+        "    gmeow:sliceTier gmeow:tierCore ;\n"
+        f'    rdfs:label "sliceB"@x-gmeow-english ;\n'
+        f'    dcterms:title "sliceB"@x-gmeow-english ;\n'
+        f"    gmeow:sliceDependsOn <{_NS}slices/sliceA> .\n"
+    )
+    _write(tmp_path, "core/sliceB/manifest.ttl", stale_manifest)
+    # sliceB's module defines termB but does NOT reference termA → dep is stale.
+    _write(tmp_path, "core/sliceB/module.ttl", _module("sliceB", defines="termB"))
+
+    diffs = compute_fix_deps(tmp_path, apply=False)
+    assert diffs, "expected a stale-dependency removal proposal"
+    # Apply and confirm the patched manifest is well-formed Turtle with the dep gone.
+    _apply_unified_diffs(tmp_path, diffs)
+    patched = (tmp_path / "core/sliceB/manifest.ttl").read_text(encoding="utf-8")
+    assert _native_discovers(tmp_path), (
+        f"patched manifest must be well-formed:\n{patched}"
+    )
+    assert "sliceDependsOn" not in patched, "stale dependency must be removed"
+    # The previous predicate must now carry the terminal `.`.
+    assert patched.rstrip().endswith("."), "manifest must remain terminated"
+
+
+def test_fix_deps_add_produces_wellformed_parseable_turtle(tmp_path: Path) -> None:
+    """An UNDECLARED edge add yields well-formed Turtle parseable by oxigraph that
+    declares the new dependency on the correct (depending) manifest."""
+    _build_two_slices(tmp_path)
+    diffs = compute_fix_deps(tmp_path, apply=False)
+    assert diffs
+    _apply_unified_diffs(tmp_path, diffs)
+    patched = (tmp_path / "core/sliceB/manifest.ttl").read_text(encoding="utf-8")
+    assert _native_discovers(tmp_path), (
+        f"patched manifest must be well-formed:\n{patched}"
+    )
+    assert f"<{_NS}slices/sliceA>" in patched
+    # Re-running fix-deps is now idempotent: the dependency is declared.
+    assert compute_fix_deps(tmp_path, apply=False) == [], (
+        "after applying, the slice set is fully declared — no further edits"
+    )
+    # No duplicate sliceDependsOn lines were introduced.
+    assert patched.count("sliceDependsOn") == 1
+
+
 def test_native_binding_detects_cross_slice_conflict(tmp_path: Path) -> None:
     """Two slices each declaring isDefinedBy for the SAME term is a Conflict.
 
