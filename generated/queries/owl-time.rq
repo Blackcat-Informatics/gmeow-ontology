@@ -4,151 +4,47 @@ PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX time: <http://www.w3.org/2006/time#>
 
 CONSTRUCT {
-    ?beforeA time:intervalBefore ?beforeB .
-    ?afterA time:intervalAfter ?afterB .
-    ?meetsA time:intervalMeets ?meetsB .
-    ?metByA time:intervalMetBy ?metByB .
-    ?overlapsA time:intervalOverlaps ?overlapsB .
-    ?overlappedByA time:intervalOverlappedBy ?overlappedByB .
-    ?startsA time:intervalStarts ?startsB .
-    ?startedByA time:intervalStartedBy ?startedByB .
-    ?duringA time:intervalDuring ?duringB .
-    ?containsA time:intervalContains ?containsB .
-    ?finishesA time:intervalFinishes ?finishesB .
-    ?finishedByA time:intervalFinishedBy ?finishedByB .
-    ?coincidesWithA time:intervalEquals ?coincidesWithB .
-    ?intBeforeA time:intervalBefore ?intBeforeB .
-    ?intAfterA time:intervalAfter ?intAfterB .
-    ?intMeetsA time:intervalMeets ?intMeetsB .
-    ?intMetByA time:intervalMetBy ?intMetByB .
-    ?intOverlapsA time:intervalOverlaps ?intOverlapsB .
-    ?intOverlappedByA time:intervalOverlappedBy ?intOverlappedByB .
-    ?intStartsA time:intervalStarts ?intStartsB .
-    ?intStartedByA time:intervalStartedBy ?intStartedByB .
-    ?intDuringA time:intervalDuring ?intDuringB .
-    ?intContainsA time:intervalContains ?intContainsB .
-    ?intFinishesA time:intervalFinishes ?intFinishesB .
-    ?intFinishedByA time:intervalFinishedBy ?intFinishedByB .
-    ?intCoincidesA time:intervalEquals ?intCoincidesB .
-    ?tbiv time:hasBeginning ?tbInstant .
-    ?tbInstant a time:Instant .
-    ?tbInstant time:inXSDDateTime ?tbStart .
-    ?teiv time:hasEnd ?teInstant .
-    ?teInstant a time:Instant .
-    ?teInstant time:inXSDDateTime ?teEnd .
     ?tpEvent time:hasTime ?tpInstant .
     ?tpInstant a time:Instant .
     ?tpInstant time:inXSDDateTime ?tpWhen .
+    ?teiv time:hasEnd ?teInstant .
+    ?teInstant a time:Instant .
+    ?teInstant time:inXSDDateTime ?teEnd .
+    ?tbiv time:hasBeginning ?tbInstant .
+    ?tbInstant a time:Instant .
+    ?tbInstant time:inXSDDateTime ?tbStart .
+    ?intCoincidesA time:intervalEquals ?intCoincidesB .
+    ?intFinishedByA time:intervalFinishedBy ?intFinishedByB .
+    ?intFinishesA time:intervalFinishes ?intFinishesB .
+    ?intContainsA time:intervalContains ?intContainsB .
+    ?intDuringA time:intervalDuring ?intDuringB .
+    ?intStartedByA time:intervalStartedBy ?intStartedByB .
+    ?intStartsA time:intervalStarts ?intStartsB .
+    ?intOverlappedByA time:intervalOverlappedBy ?intOverlappedByB .
+    ?intOverlapsA time:intervalOverlaps ?intOverlapsB .
+    ?intMetByA time:intervalMetBy ?intMetByB .
+    ?intMeetsA time:intervalMeets ?intMeetsB .
+    ?intAfterA time:intervalAfter ?intAfterB .
+    ?intBeforeA time:intervalBefore ?intBeforeB .
+    ?coincidesWithA time:intervalEquals ?coincidesWithB .
+    ?finishedByA time:intervalFinishedBy ?finishedByB .
+    ?finishesA time:intervalFinishes ?finishesB .
+    ?containsA time:intervalContains ?containsB .
+    ?duringA time:intervalDuring ?duringB .
+    ?startedByA time:intervalStartedBy ?startedByB .
+    ?startsA time:intervalStarts ?startsB .
+    ?overlappedByA time:intervalOverlappedBy ?overlappedByB .
+    ?overlapsA time:intervalOverlaps ?overlapsB .
+    ?metByA time:intervalMetBy ?metByB .
+    ?meetsA time:intervalMeets ?meetsB .
+    ?afterA time:intervalAfter ?afterB .
+    ?beforeA time:intervalBefore ?beforeB .
 }
 WHERE {
     {
-        ?beforeA gmeow:before ?beforeB .
-        FILTER NOT EXISTS { ?beforeA gmeow:displayable false . }
-    }
-    UNION {
-        ?afterA gmeow:after ?afterB .
-        FILTER NOT EXISTS { ?afterA gmeow:displayable false . }
-    }
-    UNION {
-        ?meetsA gmeow:meets ?meetsB .
-        FILTER NOT EXISTS { ?meetsA gmeow:displayable false . }
-    }
-    UNION {
-        ?metByA gmeow:metBy ?metByB .
-        FILTER NOT EXISTS { ?metByA gmeow:displayable false . }
-    }
-    UNION {
-        ?overlapsA gmeow:overlaps ?overlapsB .
-        FILTER NOT EXISTS { ?overlapsA gmeow:displayable false . }
-    }
-    UNION {
-        ?overlappedByA gmeow:overlappedBy ?overlappedByB .
-        FILTER NOT EXISTS { ?overlappedByA gmeow:displayable false . }
-    }
-    UNION {
-        ?startsA gmeow:starts ?startsB .
-        FILTER NOT EXISTS { ?startsA gmeow:displayable false . }
-    }
-    UNION {
-        ?startedByA gmeow:startedBy ?startedByB .
-        FILTER NOT EXISTS { ?startedByA gmeow:displayable false . }
-    }
-    UNION {
-        ?duringA gmeow:during ?duringB .
-        FILTER NOT EXISTS { ?duringA gmeow:displayable false . }
-    }
-    UNION {
-        ?containsA gmeow:contains ?containsB .
-        FILTER NOT EXISTS { ?containsA gmeow:displayable false . }
-    }
-    UNION {
-        ?finishesA gmeow:finishes ?finishesB .
-        FILTER NOT EXISTS { ?finishesA gmeow:displayable false . }
-    }
-    UNION {
-        ?finishedByA gmeow:finishedBy ?finishedByB .
-        FILTER NOT EXISTS { ?finishedByA gmeow:displayable false . }
-    }
-    UNION {
-        ?coincidesWithA gmeow:coincidesWith ?coincidesWithB .
-        FILTER NOT EXISTS { ?coincidesWithA gmeow:displayable false . }
-    }
-    UNION {
-        ?intBeforeA gmeow:intervalBefore ?intBeforeB .
-        FILTER NOT EXISTS { ?intBeforeA gmeow:displayable false . }
-    }
-    UNION {
-        ?intAfterA gmeow:intervalAfter ?intAfterB .
-        FILTER NOT EXISTS { ?intAfterA gmeow:displayable false . }
-    }
-    UNION {
-        ?intMeetsA gmeow:intervalMeets ?intMeetsB .
-        FILTER NOT EXISTS { ?intMeetsA gmeow:displayable false . }
-    }
-    UNION {
-        ?intMetByA gmeow:intervalMetBy ?intMetByB .
-        FILTER NOT EXISTS { ?intMetByA gmeow:displayable false . }
-    }
-    UNION {
-        ?intOverlapsA gmeow:intervalOverlaps ?intOverlapsB .
-        FILTER NOT EXISTS { ?intOverlapsA gmeow:displayable false . }
-    }
-    UNION {
-        ?intOverlappedByA gmeow:intervalOverlappedBy ?intOverlappedByB .
-        FILTER NOT EXISTS { ?intOverlappedByA gmeow:displayable false . }
-    }
-    UNION {
-        ?intStartsA gmeow:intervalStarts ?intStartsB .
-        FILTER NOT EXISTS { ?intStartsA gmeow:displayable false . }
-    }
-    UNION {
-        ?intStartedByA gmeow:intervalStartedBy ?intStartedByB .
-        FILTER NOT EXISTS { ?intStartedByA gmeow:displayable false . }
-    }
-    UNION {
-        ?intDuringA gmeow:intervalDuring ?intDuringB .
-        FILTER NOT EXISTS { ?intDuringA gmeow:displayable false . }
-    }
-    UNION {
-        ?intContainsA gmeow:intervalContains ?intContainsB .
-        FILTER NOT EXISTS { ?intContainsA gmeow:displayable false . }
-    }
-    UNION {
-        ?intFinishesA gmeow:intervalFinishes ?intFinishesB .
-        FILTER NOT EXISTS { ?intFinishesA gmeow:displayable false . }
-    }
-    UNION {
-        ?intFinishedByA gmeow:intervalFinishedBy ?intFinishedByB .
-        FILTER NOT EXISTS { ?intFinishedByA gmeow:displayable false . }
-    }
-    UNION {
-        ?intCoincidesA gmeow:intervalCoincidesWith ?intCoincidesB .
-        FILTER NOT EXISTS { ?intCoincidesA gmeow:displayable false . }
-    }
-    UNION {
-        ?tbiv gmeow:startedAtTime ?tbStart .
-        BIND ( IRI(CONCAT(STR(?tbiv), "-beginning")) AS ?tbInstant )
-        FILTER NOT EXISTS { ?tbiv gmeow:displayable false . }
+        ?tpEvent gmeow:eventTime ?tpWhen .
+        BIND ( IRI(CONCAT(STR(?tpEvent), "-instant")) AS ?tpInstant )
+        FILTER NOT EXISTS { ?tpEvent gmeow:displayable false . }
     }
     UNION {
         ?teiv gmeow:endedAtTime ?teEnd .
@@ -156,8 +52,112 @@ WHERE {
         FILTER NOT EXISTS { ?teiv gmeow:displayable false . }
     }
     UNION {
-        ?tpEvent gmeow:eventTime ?tpWhen .
-        BIND ( IRI(CONCAT(STR(?tpEvent), "-instant")) AS ?tpInstant )
-        FILTER NOT EXISTS { ?tpEvent gmeow:displayable false . }
+        ?tbiv gmeow:startedAtTime ?tbStart .
+        BIND ( IRI(CONCAT(STR(?tbiv), "-beginning")) AS ?tbInstant )
+        FILTER NOT EXISTS { ?tbiv gmeow:displayable false . }
+    }
+    UNION {
+        ?intCoincidesA gmeow:intervalCoincidesWith ?intCoincidesB .
+        FILTER NOT EXISTS { ?intCoincidesA gmeow:displayable false . }
+    }
+    UNION {
+        ?intFinishedByA gmeow:intervalFinishedBy ?intFinishedByB .
+        FILTER NOT EXISTS { ?intFinishedByA gmeow:displayable false . }
+    }
+    UNION {
+        ?intFinishesA gmeow:intervalFinishes ?intFinishesB .
+        FILTER NOT EXISTS { ?intFinishesA gmeow:displayable false . }
+    }
+    UNION {
+        ?intContainsA gmeow:intervalContains ?intContainsB .
+        FILTER NOT EXISTS { ?intContainsA gmeow:displayable false . }
+    }
+    UNION {
+        ?intDuringA gmeow:intervalDuring ?intDuringB .
+        FILTER NOT EXISTS { ?intDuringA gmeow:displayable false . }
+    }
+    UNION {
+        ?intStartedByA gmeow:intervalStartedBy ?intStartedByB .
+        FILTER NOT EXISTS { ?intStartedByA gmeow:displayable false . }
+    }
+    UNION {
+        ?intStartsA gmeow:intervalStarts ?intStartsB .
+        FILTER NOT EXISTS { ?intStartsA gmeow:displayable false . }
+    }
+    UNION {
+        ?intOverlappedByA gmeow:intervalOverlappedBy ?intOverlappedByB .
+        FILTER NOT EXISTS { ?intOverlappedByA gmeow:displayable false . }
+    }
+    UNION {
+        ?intOverlapsA gmeow:intervalOverlaps ?intOverlapsB .
+        FILTER NOT EXISTS { ?intOverlapsA gmeow:displayable false . }
+    }
+    UNION {
+        ?intMetByA gmeow:intervalMetBy ?intMetByB .
+        FILTER NOT EXISTS { ?intMetByA gmeow:displayable false . }
+    }
+    UNION {
+        ?intMeetsA gmeow:intervalMeets ?intMeetsB .
+        FILTER NOT EXISTS { ?intMeetsA gmeow:displayable false . }
+    }
+    UNION {
+        ?intAfterA gmeow:intervalAfter ?intAfterB .
+        FILTER NOT EXISTS { ?intAfterA gmeow:displayable false . }
+    }
+    UNION {
+        ?intBeforeA gmeow:intervalBefore ?intBeforeB .
+        FILTER NOT EXISTS { ?intBeforeA gmeow:displayable false . }
+    }
+    UNION {
+        ?coincidesWithA gmeow:coincidesWith ?coincidesWithB .
+        FILTER NOT EXISTS { ?coincidesWithA gmeow:displayable false . }
+    }
+    UNION {
+        ?finishedByA gmeow:finishedBy ?finishedByB .
+        FILTER NOT EXISTS { ?finishedByA gmeow:displayable false . }
+    }
+    UNION {
+        ?finishesA gmeow:finishes ?finishesB .
+        FILTER NOT EXISTS { ?finishesA gmeow:displayable false . }
+    }
+    UNION {
+        ?containsA gmeow:contains ?containsB .
+        FILTER NOT EXISTS { ?containsA gmeow:displayable false . }
+    }
+    UNION {
+        ?duringA gmeow:during ?duringB .
+        FILTER NOT EXISTS { ?duringA gmeow:displayable false . }
+    }
+    UNION {
+        ?startedByA gmeow:startedBy ?startedByB .
+        FILTER NOT EXISTS { ?startedByA gmeow:displayable false . }
+    }
+    UNION {
+        ?startsA gmeow:starts ?startsB .
+        FILTER NOT EXISTS { ?startsA gmeow:displayable false . }
+    }
+    UNION {
+        ?overlappedByA gmeow:overlappedBy ?overlappedByB .
+        FILTER NOT EXISTS { ?overlappedByA gmeow:displayable false . }
+    }
+    UNION {
+        ?overlapsA gmeow:overlaps ?overlapsB .
+        FILTER NOT EXISTS { ?overlapsA gmeow:displayable false . }
+    }
+    UNION {
+        ?metByA gmeow:metBy ?metByB .
+        FILTER NOT EXISTS { ?metByA gmeow:displayable false . }
+    }
+    UNION {
+        ?meetsA gmeow:meets ?meetsB .
+        FILTER NOT EXISTS { ?meetsA gmeow:displayable false . }
+    }
+    UNION {
+        ?afterA gmeow:after ?afterB .
+        FILTER NOT EXISTS { ?afterA gmeow:displayable false . }
+    }
+    UNION {
+        ?beforeA gmeow:before ?beforeB .
+        FILTER NOT EXISTS { ?beforeA gmeow:displayable false . }
     }
 }

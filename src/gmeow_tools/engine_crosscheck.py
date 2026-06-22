@@ -30,6 +30,20 @@ from pathlib import Path
 from typing import TYPE_CHECKING, cast
 
 import gmeow_rdf
+
+# The native side returns the purrdf compat term types (str subclasses that are
+# *siblings*, not subclasses, of real rdflib's). _term_key compares both engines'
+# results, so it must recognise both families or every native URI/Literal would
+# fall through to the ("other", …) bucket and spuriously diverge from the oracle.
+from gmeow_rdf.compat.rdflib.term import (
+    BNode as _CompatBNode,
+)
+from gmeow_rdf.compat.rdflib.term import (
+    Literal as _CompatLiteral,
+)
+from gmeow_rdf.compat.rdflib.term import (
+    URIRef as _CompatURIRef,
+)
 from rdflib import BNode, Graph, Literal, URIRef
 from rdflib.namespace import XSD
 from rdflib.query import ResultRow
@@ -94,8 +108,13 @@ _PROJECTION_FIXTURES = (
 
 #: Numeric datatypes whose lexical form differs across engines but whose value
 #: does not — compared as :class:`~decimal.Decimal` so ``645.0 == 645``.
+# Datatype IRIs compared as bare strings: the native side's datatype is a purrdf
+# compat URIRef whose set membership against real rdflib URIRefs fails (real's
+# __eq__ rejects the sibling type, so `compat in {real}` is False despite equal
+# hashes). Comparing str(datatype) sidesteps the cross-family equality asymmetry.
 _NUMERIC = frozenset(
-    {
+    str(dt)
+    for dt in (
         XSD.decimal,
         XSD.integer,
         XSD.double,
@@ -109,7 +128,26 @@ _NUMERIC = frozenset(
         XSD.negativeInteger,
         XSD.unsignedLong,
         XSD.unsignedInt,
-    }
+    )
+)
+_XSD_STRING = str(XSD.string)
+
+#: Temporal datatypes whose lexical form may carry a timezone. rdflib serializes
+#: UTC as ``+00:00`` while gmeow_rdf (oxigraph) emits the equivalent ``Z`` — the
+#: same instant, two spellings. Folding the UTC suffix makes them compare equal.
+_TEMPORAL = frozenset(
+    str(dt)
+    for dt in (
+        XSD.dateTime,
+        XSD.dateTimeStamp,
+        XSD.date,
+        XSD.time,
+        XSD.gYear,
+        XSD.gYearMonth,
+        XSD.gMonth,
+        XSD.gMonthDay,
+        XSD.gDay,
+    )
 )
 
 _FORM = re.compile(r"\b(SELECT|ASK|CONSTRUCT|DESCRIBE)\b", re.IGNORECASE)
@@ -125,6 +163,13 @@ _NUM_TOKEN = re.compile(r"-?\d+\.\d+")
 def _canon_numbers(text: str) -> str:
     """Canonicalize decimal-number tokens inside a string (engine-stable)."""
     return _NUM_TOKEN.sub(lambda m: str(Decimal(m.group()).normalize()), text)
+
+
+def _canon_timezone(lexical: str) -> str:
+    """Fold an explicit UTC offset (``+00:00``/``-00:00``) to ``Z`` (engine-stable)."""
+    if lexical.endswith(("+00:00", "-00:00")):
+        return f"{lexical[:-6]}Z"
+    return lexical
 
 
 @dataclass(frozen=True, slots=True)
@@ -153,14 +198,19 @@ def _term_key(term: object) -> object:
     """A value-based, engine-stable comparison key for one term."""
     if term is None:
         return None
-    if isinstance(term, URIRef | BNode):
+    if isinstance(term, URIRef | BNode | _CompatURIRef | _CompatBNode):
         # A URI compares by its IRI string. Blank-node *labels* are not engine-
         # stable, so blank nodes compare by kind only — sound here because the
         # committed queries return no blank nodes (and none in a row position).
-        return ("uri", str(term)) if isinstance(term, URIRef) else ("bnode",)
-    if isinstance(term, Literal):
+        return (
+            ("uri", str(term))
+            if isinstance(term, URIRef | _CompatURIRef)
+            else ("bnode",)
+        )
+    if isinstance(term, Literal | _CompatLiteral):
         datatype = term.datatype
-        if datatype in _NUMERIC:
+        dt_str = str(datatype) if datatype is not None else None
+        if dt_str in _NUMERIC:
             try:
                 return ("num", Decimal(str(term)))
             except (InvalidOperation, ValueError):
@@ -169,10 +219,11 @@ def _term_key(term: object) -> object:
             return ("lang", _canon_numbers(str(term)), term.language.lower())
         # A plain literal (datatype None) and an xsd:string literal mean the same
         # thing; the two engines disagree on which to emit, so fold them together.
-        dt_key = (
-            "str" if (datatype is None or datatype == XSD.string) else str(datatype)
-        )
-        return ("lit", _canon_numbers(str(term)), dt_key)
+        dt_key = "str" if (dt_str is None or dt_str == _XSD_STRING) else dt_str
+        lexical = _canon_numbers(str(term))
+        if dt_str in _TEMPORAL:
+            lexical = _canon_timezone(lexical)
+        return ("lit", lexical, dt_key)
     return ("other", str(term))
 
 

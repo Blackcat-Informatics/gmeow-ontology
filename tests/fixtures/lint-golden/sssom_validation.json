@@ -1,0 +1,402 @@
+{
+  "_comment": "Golden snapshot of sssom-py (0.4.x) validation behaviour, captured by tests/_gen_sssom_golden.py via tests/_sssom_oracle.py BEFORE the native Rust validator replaces the sssom dependency (#848). The native validator must reproduce this exactly. Regenerate with: uv run python tests/_gen_sssom_golden.py",
+  "default_validation_types": [
+    "JsonSchema",
+    "PrefixMapCompleteness",
+    "StrictCurieFormat"
+  ],
+  "corpus": {
+    "gmeow-accessibility.sssom.tsv": [],
+    "gmeow-agentic.sssom.tsv": [],
+    "gmeow-aggregation.sssom.tsv": [],
+    "gmeow-ai.sssom.tsv": [],
+    "gmeow-archaeological-evidence.sssom.tsv": [],
+    "gmeow-attestation.sssom.tsv": [],
+    "gmeow-awareness.sssom.tsv": [],
+    "gmeow-calendar.sssom.tsv": [],
+    "gmeow-citations.sssom.tsv": [],
+    "gmeow-classes.sssom.tsv": [],
+    "gmeow-cognition.sssom.tsv": [],
+    "gmeow-concepts.sssom.tsv": [],
+    "gmeow-connectivity.sssom.tsv": [],
+    "gmeow-coreference.sssom.tsv": [],
+    "gmeow-creative-works.sssom.tsv": [],
+    "gmeow-deception.sssom.tsv": [],
+    "gmeow-determinacy.sssom.tsv": [],
+    "gmeow-diagnostics.sssom.tsv": [],
+    "gmeow-dublin-core.sssom.tsv": [],
+    "gmeow-email.sssom.tsv": [],
+    "gmeow-employment.sssom.tsv": [],
+    "gmeow-epistemics.sssom.tsv": [],
+    "gmeow-events.sssom.tsv": [],
+    "gmeow-evidence.sssom.tsv": [],
+    "gmeow-fibo.sssom.tsv": [],
+    "gmeow-foundational.sssom.tsv": [],
+    "gmeow-gender.sssom.tsv": [],
+    "gmeow-genealogy.sssom.tsv": [],
+    "gmeow-graphrag.sssom.tsv": [],
+    "gmeow-gts.sssom.tsv": [],
+    "gmeow-images.sssom.tsv": [],
+    "gmeow-imagination.sssom.tsv": [],
+    "gmeow-inference.sssom.tsv": [],
+    "gmeow-inquiry.sssom.tsv": [],
+    "gmeow-iso4217.sssom.tsv": [],
+    "gmeow-languages.sssom.tsv": [],
+    "gmeow-learning.sssom.tsv": [],
+    "gmeow-lexicon.sssom.tsv": [],
+    "gmeow-lifecycle.sssom.tsv": [],
+    "gmeow-mentation.sssom.tsv": [],
+    "gmeow-music.sssom.tsv": [],
+    "gmeow-names.sssom.tsv": [],
+    "gmeow-narrative.sssom.tsv": [],
+    "gmeow-norms.sssom.tsv": [],
+    "gmeow-notation.sssom.tsv": [],
+    "gmeow-notes.sssom.tsv": [],
+    "gmeow-observations.sssom.tsv": [],
+    "gmeow-places.sssom.tsv": [],
+    "gmeow-privacy.sssom.tsv": [],
+    "gmeow-procedures.sssom.tsv": [],
+    "gmeow-properties.sssom.tsv": [],
+    "gmeow-provenance.sssom.tsv": [],
+    "gmeow-quality.sssom.tsv": [],
+    "gmeow-qudt.sssom.tsv": [],
+    "gmeow-rights.sssom.tsv": [],
+    "gmeow-schema-org-finance.sssom.tsv": [],
+    "gmeow-sensory-environment.sssom.tsv": [],
+    "gmeow-sensory.sssom.tsv": [],
+    "gmeow-sexuality.sssom.tsv": [],
+    "gmeow-software.sssom.tsv": [],
+    "gmeow-standpoint.sssom.tsv": [],
+    "gmeow-tags.sssom.tsv": [],
+    "gmeow-temporal.sssom.tsv": [],
+    "gmeow-trust.sssom.tsv": [],
+    "gmeow-versions.sssom.tsv": [],
+    "gmeow-wikidata.sssom.tsv": []
+  },
+  "negatives": {
+    "confidence-too-high.sssom.tsv": [
+      {
+        "severity": "ERROR",
+        "type": "jsonschema validation",
+        "message": "1.5 is greater than the maximum of 1.0 in /mappings/0/confidence",
+        "instance": {
+          "mapping_set_id": "https://blackcatinformatics.ca/gmeow/mappings/accessibility",
+          "license": "https://creativecommons.org/licenses/by/4.0/",
+          "mappings": [
+            {
+              "predicate_id": "skos:closeMatch",
+              "mapping_justification": "semapv:ManualMappingCuration",
+              "subject_id": "gmeow:AccessibilityAssertion",
+              "object_id": "sosa:Observation",
+              "confidence": 1.5,
+              "comment": "sosa:Observation is the generic observation class; gmeow:AccessibilityAssertion is a specialised gufo:Relator for accessibility claims. Both carry provenance and result."
+            },
+            {
+              "predicate_id": "skos:closeMatch",
+              "mapping_justification": "semapv:ManualMappingCuration",
+              "subject_id": "gmeow:facetAuditory",
+              "object_id": "fhir:sid/icf#b2",
+              "object_label": "Sensory functions and pain",
+              "confidence": 0.8,
+              "comment": "ICF b2 covers sensory functions including hearing."
+            },
+            {
+              "predicate_id": "skos:closeMatch",
+              "mapping_justification": "semapv:ManualMappingCuration",
+              "subject_id": "gmeow:facetAuditory",
+              "object_id": "fhir:sid/icf#e125",
+              "object_label": "Products and technology for communication",
+              "confidence": 0.8,
+              "comment": "ICF e125 covers assistive products for communication including hearing aids and induction loops."
+            },
+            {
+              "predicate_id": "skos:closeMatch",
+              "mapping_justification": "semapv:ManualMappingCuration",
+              "subject_id": "gmeow:facetClearance",
+              "object_id": "fhir:sid/icf#d4",
+              "object_label": "Mobility",
+              "confidence": 0.7,
+              "comment": "ICF d4 (Mobility) encompasses the spatial requirements for physical clearance."
+            },
+            {
+              "predicate_id": "skos:closeMatch",
+              "mapping_justification": "semapv:ManualMappingCuration",
+              "subject_id": "gmeow:facetCognitive",
+              "object_id": "fhir:sid/icf#b1",
+              "object_label": "Mental functions",
+              "confidence": 0.8,
+              "comment": "ICF b1 covers mental functions including cognitive processes."
+            },
+            {
+              "predicate_id": "skos:closeMatch",
+              "mapping_justification": "semapv:ManualMappingCuration",
+              "subject_id": "gmeow:facetCognitive",
+              "object_id": "fhir:sid/icf#e140",
+              "object_label": "Products and technology for education",
+              "confidence": 0.7,
+              "comment": "ICF e140 covers assistive products for learning and education, relevant to cognitive access."
+            },
+            {
+              "predicate_id": "skos:closeMatch",
+              "mapping_justification": "semapv:ManualMappingCuration",
+              "subject_id": "gmeow:facetLifeSupport",
+              "object_id": "fhir:sid/icf#e5",
+              "object_label": "Services, systems and policies",
+              "confidence": 0.7,
+              "comment": "ICF e5 covers services, systems and policies including health and medical services relevant to life-support access."
+            },
+            {
+              "predicate_id": "skos:closeMatch",
+              "mapping_justification": "semapv:ManualMappingCuration",
+              "subject_id": "gmeow:facetStepFree",
+              "object_id": "fhir:sid/icf#d4",
+              "object_label": "Mobility",
+              "confidence": 0.8,
+              "comment": "ICF d4 (Mobility) encompasses step-free locomotion."
+            },
+            {
+              "predicate_id": "skos:closeMatch",
+              "mapping_justification": "semapv:ManualMappingCuration",
+              "subject_id": "gmeow:facetVisual",
+              "object_id": "fhir:sid/icf#b2",
+              "object_label": "Sensory functions and pain",
+              "confidence": 0.8,
+              "comment": "ICF b2 covers sensory functions including vision."
+            },
+            {
+              "predicate_id": "skos:closeMatch",
+              "mapping_justification": "semapv:ManualMappingCuration",
+              "subject_id": "gmeow:facetVisual",
+              "object_id": "fhir:sid/icf#e135",
+              "object_label": "Products and technology for communication",
+              "confidence": 0.8,
+              "comment": "ICF e135 covers assistive products for communication including visual aids."
+            },
+            {
+              "predicate_id": "skos:closeMatch",
+              "mapping_justification": "semapv:ManualMappingCuration",
+              "subject_id": "gmeow:facetWheelchair",
+              "object_id": "fhir:sid/icf#d4",
+              "object_label": "Mobility",
+              "confidence": 0.8,
+              "comment": "ICF d4 (Mobility) encompasses wheelchair and step-free locomotion."
+            },
+            {
+              "predicate_id": "skos:closeMatch",
+              "mapping_justification": "semapv:ManualMappingCuration",
+              "subject_id": "gmeow:facetWheelchair",
+              "object_id": "fhir:sid/icf#e115",
+              "object_label": "Products and technology for personal mobility",
+              "confidence": 0.8,
+              "comment": "ICF e115 covers assistive products for personal mobility (wheelchairs, walkers, ramps)."
+            },
+            {
+              "predicate_id": "skos:closeMatch",
+              "mapping_justification": "semapv:ManualMappingCuration",
+              "subject_id": "gmeow:hasAccessibilityFeature",
+              "object_id": "schema:accessibilityFeature",
+              "confidence": 0.8,
+              "comment": "schema:accessibilityFeature is a flat textual enum on Place/CreativeWork; GMEOW hasAccessibilityFeature is an object property ranging over AccessibilityFacet individuals. Directional lossy projection."
+            },
+            {
+              "predicate_id": "skos:closeMatch",
+              "mapping_justification": "semapv:ManualMappingCuration",
+              "subject_id": "gmeow:hasBarrier",
+              "object_id": "schema:accessibilityHazard",
+              "confidence": 0.75,
+              "comment": "schema:accessibilityHazard is a flat textual enum for hazards; GMEOW hasBarrier is an object property ranging over AccessibilityFacet individuals. Directional lossy projection."
+            }
+          ],
+          "mapping_set_version": "0.1.0",
+          "mapping_tool": "gmeow regenerate (mappings)",
+          "mapping_tool_version": "0.1.0",
+          "mapping_date": "2026-06-03",
+          "comment": "\"Accessibility alignments \\u2014 schema.org, WHO ICF, IndoorGML/IMDF, and SOSA.\""
+        },
+        "check": "JsonSchema"
+      }
+    ],
+    "confidence-negative.sssom.tsv": [
+      {
+        "severity": "ERROR",
+        "type": "jsonschema validation",
+        "message": "-0.5 is less than the minimum of 0.0 in /mappings/0/confidence",
+        "instance": {
+          "mapping_set_id": "https://blackcatinformatics.ca/gmeow/mappings/accessibility",
+          "license": "https://creativecommons.org/licenses/by/4.0/",
+          "mappings": [
+            {
+              "predicate_id": "skos:closeMatch",
+              "mapping_justification": "semapv:ManualMappingCuration",
+              "subject_id": "gmeow:AccessibilityAssertion",
+              "object_id": "sosa:Observation",
+              "confidence": -0.5,
+              "comment": "sosa:Observation is the generic observation class; gmeow:AccessibilityAssertion is a specialised gufo:Relator for accessibility claims. Both carry provenance and result."
+            },
+            {
+              "predicate_id": "skos:closeMatch",
+              "mapping_justification": "semapv:ManualMappingCuration",
+              "subject_id": "gmeow:facetAuditory",
+              "object_id": "fhir:sid/icf#b2",
+              "object_label": "Sensory functions and pain",
+              "confidence": 0.8,
+              "comment": "ICF b2 covers sensory functions including hearing."
+            },
+            {
+              "predicate_id": "skos:closeMatch",
+              "mapping_justification": "semapv:ManualMappingCuration",
+              "subject_id": "gmeow:facetAuditory",
+              "object_id": "fhir:sid/icf#e125",
+              "object_label": "Products and technology for communication",
+              "confidence": 0.8,
+              "comment": "ICF e125 covers assistive products for communication including hearing aids and induction loops."
+            },
+            {
+              "predicate_id": "skos:closeMatch",
+              "mapping_justification": "semapv:ManualMappingCuration",
+              "subject_id": "gmeow:facetClearance",
+              "object_id": "fhir:sid/icf#d4",
+              "object_label": "Mobility",
+              "confidence": 0.7,
+              "comment": "ICF d4 (Mobility) encompasses the spatial requirements for physical clearance."
+            },
+            {
+              "predicate_id": "skos:closeMatch",
+              "mapping_justification": "semapv:ManualMappingCuration",
+              "subject_id": "gmeow:facetCognitive",
+              "object_id": "fhir:sid/icf#b1",
+              "object_label": "Mental functions",
+              "confidence": 0.8,
+              "comment": "ICF b1 covers mental functions including cognitive processes."
+            },
+            {
+              "predicate_id": "skos:closeMatch",
+              "mapping_justification": "semapv:ManualMappingCuration",
+              "subject_id": "gmeow:facetCognitive",
+              "object_id": "fhir:sid/icf#e140",
+              "object_label": "Products and technology for education",
+              "confidence": 0.7,
+              "comment": "ICF e140 covers assistive products for learning and education, relevant to cognitive access."
+            },
+            {
+              "predicate_id": "skos:closeMatch",
+              "mapping_justification": "semapv:ManualMappingCuration",
+              "subject_id": "gmeow:facetLifeSupport",
+              "object_id": "fhir:sid/icf#e5",
+              "object_label": "Services, systems and policies",
+              "confidence": 0.7,
+              "comment": "ICF e5 covers services, systems and policies including health and medical services relevant to life-support access."
+            },
+            {
+              "predicate_id": "skos:closeMatch",
+              "mapping_justification": "semapv:ManualMappingCuration",
+              "subject_id": "gmeow:facetStepFree",
+              "object_id": "fhir:sid/icf#d4",
+              "object_label": "Mobility",
+              "confidence": 0.8,
+              "comment": "ICF d4 (Mobility) encompasses step-free locomotion."
+            },
+            {
+              "predicate_id": "skos:closeMatch",
+              "mapping_justification": "semapv:ManualMappingCuration",
+              "subject_id": "gmeow:facetVisual",
+              "object_id": "fhir:sid/icf#b2",
+              "object_label": "Sensory functions and pain",
+              "confidence": 0.8,
+              "comment": "ICF b2 covers sensory functions including vision."
+            },
+            {
+              "predicate_id": "skos:closeMatch",
+              "mapping_justification": "semapv:ManualMappingCuration",
+              "subject_id": "gmeow:facetVisual",
+              "object_id": "fhir:sid/icf#e135",
+              "object_label": "Products and technology for communication",
+              "confidence": 0.8,
+              "comment": "ICF e135 covers assistive products for communication including visual aids."
+            },
+            {
+              "predicate_id": "skos:closeMatch",
+              "mapping_justification": "semapv:ManualMappingCuration",
+              "subject_id": "gmeow:facetWheelchair",
+              "object_id": "fhir:sid/icf#d4",
+              "object_label": "Mobility",
+              "confidence": 0.8,
+              "comment": "ICF d4 (Mobility) encompasses wheelchair and step-free locomotion."
+            },
+            {
+              "predicate_id": "skos:closeMatch",
+              "mapping_justification": "semapv:ManualMappingCuration",
+              "subject_id": "gmeow:facetWheelchair",
+              "object_id": "fhir:sid/icf#e115",
+              "object_label": "Products and technology for personal mobility",
+              "confidence": 0.8,
+              "comment": "ICF e115 covers assistive products for personal mobility (wheelchairs, walkers, ramps)."
+            },
+            {
+              "predicate_id": "skos:closeMatch",
+              "mapping_justification": "semapv:ManualMappingCuration",
+              "subject_id": "gmeow:hasAccessibilityFeature",
+              "object_id": "schema:accessibilityFeature",
+              "confidence": 0.8,
+              "comment": "schema:accessibilityFeature is a flat textual enum on Place/CreativeWork; GMEOW hasAccessibilityFeature is an object property ranging over AccessibilityFacet individuals. Directional lossy projection."
+            },
+            {
+              "predicate_id": "skos:closeMatch",
+              "mapping_justification": "semapv:ManualMappingCuration",
+              "subject_id": "gmeow:hasBarrier",
+              "object_id": "schema:accessibilityHazard",
+              "confidence": 0.75,
+              "comment": "schema:accessibilityHazard is a flat textual enum for hazards; GMEOW hasBarrier is an object property ranging over AccessibilityFacet individuals. Directional lossy projection."
+            }
+          ],
+          "mapping_set_version": "0.1.0",
+          "mapping_tool": "gmeow regenerate (mappings)",
+          "mapping_tool_version": "0.1.0",
+          "mapping_date": "2026-06-03",
+          "comment": "\"Accessibility alignments \\u2014 schema.org, WHO ICF, IndoorGML/IMDF, and SOSA.\""
+        },
+        "check": "JsonSchema"
+      }
+    ],
+    "unknown-prefix-subject.sssom.tsv": [
+      {
+        "severity": "ERROR",
+        "type": "prefix validation",
+        "message": "Missing prefix: nope",
+        "instance": null,
+        "check": "PrefixMapCompleteness"
+      }
+    ],
+    "unknown-prefix-object.sssom.tsv": [
+      {
+        "severity": "ERROR",
+        "type": "prefix validation",
+        "message": "Missing prefix: badpfx",
+        "instance": null,
+        "check": "PrefixMapCompleteness"
+      }
+    ],
+    "unknown-prefix-predicate.sssom.tsv": [
+      {
+        "severity": "ERROR",
+        "type": "prefix validation",
+        "message": "Missing prefix: weird",
+        "instance": null,
+        "check": "PrefixMapCompleteness"
+      }
+    ],
+    "missing-subject-id.sssom.tsv": [],
+    "missing-predicate-id.sssom.tsv": [],
+    "missing-object-id.sssom.tsv": [],
+    "invalid-justification-noncurie.sssom.tsv": [],
+    "unparseable-bad-yaml-curie-map.sssom.tsv": [
+      {
+        "severity": "FATAL",
+        "type": "parse error",
+        "message": "ParserError: while parsing a flow sequence\n  in \"<unicode string>\", line 2, column 13:\n     curie_map: [unclosed\n                ^\nexpected ',' or ']', but got '<stream end>'\n  in \"<unicode string>\", line 3, column 1:\n    \n    ^",
+        "instance": null,
+        "check": "parse_tsv"
+      }
+    ]
+  }
+}

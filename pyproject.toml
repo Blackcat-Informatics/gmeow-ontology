@@ -10,10 +10,11 @@ keywords = ["ontology", "owl", "rdf", "linked-data", "gmeow", "fair"]
 dependencies = [
     # NB: gmeow's own code is rdflib-free — it runs on the native
     # `gmeow_rdf.compat.rdflib` facade (purrdf P0, #834). `rdflib` is NOT a direct
-    # dependency. It still arrives transitively via `sssom`/`linkml` (tracked for
-    # native subsumption in #848); the classic_cross_check oracle lane pins it
-    # explicitly through the `crosscheck` extra below.
-    "sssom>=0.4.16",
+    # dependency. The `sssom` path is now subsumed natively (#848): SSSOM codec +
+    # validation live in `gmeow_rdf` (crates/rdf/src/sssom.rs) and FnO emission in
+    # `gmeow_slice`, so `sssom` is gone as a dependency. `rdflib` still arrives
+    # transitively via `linkml` (tracked separately); the classic_cross_check
+    # oracle lane pins it explicitly through the `crosscheck` extra below.
     "httpx>=0.28",
     "typer>=0.15",
     "rich>=13.9",
@@ -136,7 +137,7 @@ mypy_path = ["crates/native/python"]
 
 [[tool.mypy.overrides]]
 # Third-party libraries without complete type information.
-module = ["markdown.*", "sssom.*", "owlrl.*", "linkml.*", "linkml_runtime.*", "yaml", "mlcroissant.*"]
+module = ["markdown.*", "owlrl.*", "linkml.*", "linkml_runtime.*", "yaml", "mlcroissant.*"]
 ignore_missing_imports = true
 
 [[tool.mypy.overrides]]

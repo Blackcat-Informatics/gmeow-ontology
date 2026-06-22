@@ -4,30 +4,14 @@ PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX cc: <http://creativecommons.org/ns#>
 
 CONSTRUCT {
-    ?work cc:license ?lic .
-    ?lic a cc:License .
-    ?ent cc:attributionName ?credit .
-    ?ent cc:attributionURL ?au .
     ?ccrWork cc:requires cc:Attribution .
+    ?ent cc:attributionURL ?au .
+    ?ent cc:attributionName ?credit .
+    ?lic a cc:License .
+    ?work cc:license ?lic .
 }
 WHERE {
     {
-        ?work gmeow:hasLicense ?lic .
-        FILTER NOT EXISTS { ?work gmeow:displayable false . }
-    }
-    UNION {
-        ?lic a gmeow:License .
-        FILTER NOT EXISTS { ?lic gmeow:displayable false . }
-    }
-    UNION {
-        ?ent gmeow:attributionText ?credit .
-        FILTER NOT EXISTS { ?ent gmeow:displayable false . }
-    }
-    UNION {
-        ?ent gmeow:attributionUrl ?au .
-        FILTER NOT EXISTS { ?ent gmeow:displayable false . }
-    }
-    UNION {
         ?ccrRs a gmeow:RightsStatement .
         ?ccrRs gmeow:statementAbout ?ccrWork .
         ?ccrRs gmeow:hasPermission ?ccrPerm .
@@ -36,5 +20,21 @@ WHERE {
         FILTER NOT EXISTS { ?ccrRs gmeow:displayable false . }
         FILTER NOT EXISTS { ?ccrPerm gmeow:displayable false . }
         FILTER NOT EXISTS { ?ccrDuty gmeow:displayable false . }
+    }
+    UNION {
+        ?ent gmeow:attributionUrl ?au .
+        FILTER NOT EXISTS { ?ent gmeow:displayable false . }
+    }
+    UNION {
+        ?ent gmeow:attributionText ?credit .
+        FILTER NOT EXISTS { ?ent gmeow:displayable false . }
+    }
+    UNION {
+        ?lic a gmeow:License .
+        FILTER NOT EXISTS { ?lic gmeow:displayable false . }
+    }
+    UNION {
+        ?work gmeow:hasLicense ?lic .
+        FILTER NOT EXISTS { ?work gmeow:displayable false . }
     }
 }

@@ -15,6 +15,7 @@ SPARQL text deterministically.
 
 from __future__ import annotations
 
+from collections.abc import Iterable
 from dataclasses import dataclass, field
 from functools import lru_cache
 from pathlib import Path
@@ -294,6 +295,80 @@ def render_expr(expr: Expr) -> str:
     return f"{fn}({', '.join(rendered)})"
 
 
+def _expr_vars(expr: Expr) -> set[str]:
+    """Every SPARQL variable referenced anywhere in an expression tree."""
+    found: set[str] = set()
+    if expr.var is not None:
+        found.add(expr.var)
+    for arg in expr.args:
+        found |= _expr_vars(arg)
+    return found
+
+
+def _atom_key(atom: Atom) -> tuple[str, ...]:
+    """A stable, content-only ordering key for a pattern atom.
+
+    Guard atoms (``gm:suppressWhen``/``projectWhen``/``excludeWhen``) are an
+    unordered RDF set referenced by blank nodes. Sorting by ``str(node)`` is
+    non-deterministic because rdflib assigns blank-node ids per parse, so two
+    guards on one cell can swap across runs. Keying on the atom's own content
+    makes the emitted ``FILTER`` order stable regardless of node identity.
+    """
+    return (
+        atom.subject_var,
+        str(atom.predicate or ""),
+        atom.predicate_var or "",
+        atom.path or "",
+        "|".join(str(p) for p in atom.path_alts),
+        atom.object_var or "",
+        str(atom.object_value or ""),
+        str(atom.object_literal) if atom.object_literal is not None else "",
+        str(atom.optional),
+    )
+
+
+def _order_binds(binds: Iterable[Bind]) -> tuple[Bind, ...]:
+    """Order BIND/mint declarations deterministically in dependency order.
+
+    ``graph.objects`` yields RDF triples in unordered set iteration order, so
+    the raw ``gm:bind``/``gm:mint`` sequence is non-deterministic across parses
+    (and across hash seeds) — which leaked into the emitted SPARQL as reordered
+    ``BIND`` clauses. We can't simply sort by name: a bind whose expression
+    references another bind's variable must be emitted *after* it, and
+    :func:`_output_var` treats the *last* bind as the composed output value
+    (e.g. the WKT literal, the geo node). A topological sort keyed on
+    inter-bind variable references — with an alphabetical tiebreak among
+    independent binds — is both stable and dependency-correct: the terminal
+    (composed) bind always sorts last.
+    """
+    items = list(binds)
+    by_var: dict[str, Bind] = {}
+    for b in items:
+        if b.var in by_var:
+            # Two binds claiming one variable is never well-formed: silently
+            # keeping the last would drop a declaration. Fail closed.
+            raise CompileError(f"duplicate BIND/mint variable ?{b.var}")
+        by_var[b.var] = b
+    own = set(by_var)
+    deps = {b.var: (_expr_vars(b.expr) & own) - {b.var} for b in items}
+    placed: set[str] = set()
+    remaining = set(own)
+    ordered: list[Bind] = []
+    while remaining:
+        ready = sorted(v for v in remaining if deps[v] <= placed)
+        if not ready:
+            # A dependency cycle has no valid emission order — breaking it by
+            # name would emit a BIND before the variable it references. Fail
+            # closed rather than produce silently-wrong SPARQL.
+            cycle = ", ".join(f"?{v}" for v in sorted(remaining))
+            raise CompileError(f"cyclic BIND/mint dependency among {cycle}")
+        for var in ready:
+            ordered.append(by_var[var])
+            placed.add(var)
+        remaining -= set(ready)
+    return tuple(ordered)
+
+
 # --------------------------------------------------------------------------- #
 # Parsing
 # --------------------------------------------------------------------------- #
@@ -444,21 +519,38 @@ def _pattern(graph: Graph, node: Node) -> MappingPattern:
         atoms=tuple(
             _item(graph, a) for a in _rdf_list(graph, graph.value(node, GM.atom))
         ),
+        # ``graph.objects`` is an unordered set referenced by blank nodes; sort
+        # the BUILT atoms by content (not node id, which varies per parse) so
+        # the emitted ``FILTER`` order is deterministic across parses and hash
+        # seeds. Likewise filters (they all conjoin, so name order suffices) and
+        # binds/mints (which must respect inter-variable dependencies — see
+        # ``_order_binds``).
         suppress_when=tuple(
-            _atom(graph, a)
-            for a in sorted(graph.objects(node, GM.suppressWhen), key=str)
+            sorted(
+                (_atom(graph, a) for a in graph.objects(node, GM.suppressWhen)),
+                key=_atom_key,
+            )
         ),
         project_when=tuple(
-            _atom(graph, a)
-            for a in sorted(graph.objects(node, GM.projectWhen), key=str)
+            sorted(
+                (_atom(graph, a) for a in graph.objects(node, GM.projectWhen)),
+                key=_atom_key,
+            )
         ),
         exclude_when=tuple(
-            _atom(graph, a)
-            for a in sorted(graph.objects(node, GM.excludeWhen), key=str)
+            sorted(
+                (_atom(graph, a) for a in graph.objects(node, GM.excludeWhen)),
+                key=_atom_key,
+            )
         ),
-        filters=tuple(_expr(graph, f) for f in graph.objects(node, GM.filter)),
-        binds=tuple(_bind(graph, b) for b in graph.objects(node, GM.bind)),
-        mints=tuple(_bind(graph, m) for m in graph.objects(node, GM.mint)),
+        filters=tuple(
+            sorted(
+                (_expr(graph, f) for f in graph.objects(node, GM.filter)),
+                key=render_expr,
+            )
+        ),
+        binds=_order_binds(_bind(graph, b) for b in graph.objects(node, GM.bind)),
+        mints=_order_binds(_bind(graph, m) for m in graph.objects(node, GM.mint)),
         edoal_source=_uri(graph.value(node, GM.edoalSource)),
         edoal_source_kind=str(graph.value(node, GM.edoalSourceKind) or "relation"),
         edoal_path=_as_bool(graph.value(node, GM.edoalPath)),

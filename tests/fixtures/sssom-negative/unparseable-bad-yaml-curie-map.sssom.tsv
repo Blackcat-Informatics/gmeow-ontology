@@ -1,0 +1,4 @@
+# mapping_set_id: https://blackcatinformatics.ca/gmeow/mappings/broken
+# curie_map: [unclosed
+subject_id	predicate_id	object_id
+gmeow:A	skos:exactMatch	gmeow:B

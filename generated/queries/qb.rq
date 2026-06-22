@@ -31,13 +31,13 @@ WHERE {
         ?agg gmeow:aggregationFunction ?func .
         ?agg gmeow:observationResult ?result .
         ?result gmeow:quantityValue ?val .
+        BIND ( IRI(CONCAT(STR(?agg), "/qb-dsd/comp-measure-type")) AS ?compMeasureType )
+        BIND ( IRI(CONCAT(STR(?agg), "/qb-dsd/comp-obs-value")) AS ?compObsValue )
+        BIND ( IRI(CONCAT(STR(?agg), "/qb-dsd/comp-observed-feature")) AS ?compObservedFeature )
         BIND ( IRI(CONCAT(STR(?agg), "/qb-dataset")) AS ?dataset )
         BIND ( IRI(CONCAT(STR(?agg), "/qb-dsd")) AS ?dsd )
-        BIND ( IRI(CONCAT(STR(?agg), "/qb-dsd/comp-measure-type")) AS ?compMeasureType )
-        BIND ( IRI(CONCAT(STR(?agg), "/qb-dsd/comp-observed-feature")) AS ?compObservedFeature )
-        BIND ( IRI(CONCAT(STR(?agg), "/qb-dsd/comp-obs-value")) AS ?compObsValue )
-        BIND ( gmeow:observedFeature AS ?observedFeatureProp )
         BIND ( qb:obsValue AS ?obsValueProp )
+        BIND ( gmeow:observedFeature AS ?observedFeatureProp )
         FILTER NOT EXISTS { ?agg gmeow:displayable false . }
         FILTER NOT EXISTS { ?result gmeow:displayable false . }
     }
