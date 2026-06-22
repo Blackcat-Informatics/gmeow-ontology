@@ -299,11 +299,17 @@ def _ontology_doc_blobs() -> list[tuple[bytes, str, str]]:
     """
     import gmeow_docs as _docs  # legacy-name shim → gmeow_native.docs submodule
 
-    # TODO(#853 Task 7): per-language trees via the Rust i18n path
     docset = _docs.DocSet.from_root(str(PROJECT_ROOT))
     members: list[tuple[str, bytes]] = []
-    for path, data in sorted(docset.files().items()):
-        members.append((f"x-gmeow-english/{path}", bytes(data)))
+    # The English carrier always renders under the historical x-gmeow-english/
+    # prefix; each translation language renders under its internal x-gmeow-* tag
+    # (e.g. fr → x-gmeow-french), which is the prefix the docs consumer
+    # (create_docs) selects on.
+    for lang in docset.languages():
+        prefix = docset.archive_prefix(lang)
+        tree = docset.files() if lang == "english" else docset.files_for_lang(lang)
+        for path, data in sorted(tree.items()):
+            members.append((f"{prefix}/{path}", bytes(data)))
     return [(_tar_members(members), "application/x-tar", "ontology-docs")]
 
 

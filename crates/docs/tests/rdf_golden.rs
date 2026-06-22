@@ -11,6 +11,7 @@
 
 use gmeow_docs::{
     to_gmeow_rdf, DocConcern, DocMappingSet, DocSlice, DocTerm, DocTermCategory, DocsModel,
+    Translations, UiCatalog,
 };
 
 const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
@@ -78,6 +79,9 @@ fn small_model() -> DocsModel {
         recipes: Vec::new(),
         learning_paths: Vec::new(),
         four_boxes: None,
+        available_languages: vec!["english".to_string()],
+        translations: Translations::default(),
+        ui_catalog: UiCatalog::default(),
     }
 }
 

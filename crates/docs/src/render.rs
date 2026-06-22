@@ -25,11 +25,19 @@ use std::collections::BTreeMap;
 use minijinja::{context, Environment};
 use pulldown_cmark::{html as cmark_html, Options, Parser};
 
+use crate::i18n::{self, ENGLISH};
 use crate::model::{DocConcern, DocSlice, DocTerm, DocTermCategory, DocsModel};
 use crate::svg;
 
 /// The GMEOW vocabulary namespace (mirrors `model.rs`).
 const GMEOW_NS: &str = "https://blackcatinformatics.ca/gmeow/";
+
+// Full predicate IRIs used to resolve translated label / definition / title
+// values (the `.po` msgctxt predicate, CURIE-expanded). Mirror `model.rs`.
+const RDFS_LABEL: &str = "http://www.w3.org/2000/01/rdf-schema#label";
+const RDFS_COMMENT: &str = "http://www.w3.org/2000/01/rdf-schema#comment";
+const SKOS_DEFINITION: &str = "http://www.w3.org/2004/02/skos/core#definition";
+const DCTERMS_TITLE: &str = "http://purl.org/dc/terms/title";
 
 /// The embedded minijinja HTML shell (doctype + head + nav + body + footer).
 const SHELL: &str = include_str!("../templates/shell.html");
@@ -185,16 +193,45 @@ pub struct Site {
     pub files: BTreeMap<String, Vec<u8>>,
 }
 
-/// Render the full static-site tree from the model.
+/// Render the full English static-site tree from the model.
 ///
 /// Emits, for every page, both `<dir>/index.md` and `<dir>/index.html`, plus the
 /// CSS asset at `assets/gmeow.css`. The output is byte-identical across calls.
+/// This is exactly [`render_site_lang`] for the English carrier language.
 pub fn render_site(model: &DocsModel) -> Site {
+    render_site_lang(model, ENGLISH)
+}
+
+/// Render the full static-site tree for a target language.
+///
+/// `lang` is the English carrier (`"english"`) or a BCP-47 code (`"fr"`, `"zh"`)
+/// present in [`DocsModel::available_languages`]. Every localizable string — term
+/// and slice labels / definitions, concern / recipe / learning-path text, and the
+/// UI-chrome nav — is resolved to its translation via
+/// [`Translations::lookup`](crate::i18n::Translations::lookup) /
+/// [`ui_string`](crate::i18n::ui_string), falling back to the English value the
+/// model carries. The per-language tree is deterministic and preserves the
+/// no-dangling-link invariant (slugs / IRIs are language-independent).
+pub fn render_site_lang(model: &DocsModel, lang: &str) -> Site {
+    // Build a localized copy of the model so the existing renderers (which read
+    // label / definition / title directly) emit translated content with English
+    // fallback. The English carrier needs no rewrite.
+    let localized;
+    let model: &DocsModel = if lang == ENGLISH {
+        model
+    } else {
+        localized = localize_model(model, lang);
+        &localized
+    };
+
     let mut files: BTreeMap<String, Vec<u8>> = BTreeMap::new();
 
     for page in pages(model) {
         files.insert(page.md_path(), to_markdown(model, &page).into_bytes());
-        files.insert(page.html_path(), to_html(model, &page).into_bytes());
+        files.insert(
+            page.html_path(),
+            to_html_lang(model, &page, lang).into_bytes(),
+        );
     }
     files.insert(CSS_PATH.to_string(), CSS.as_bytes().to_vec());
 
@@ -1457,34 +1494,98 @@ fn md_four_boxes(model: &DocsModel) -> String {
 
 // ── HTML layer ────────────────────────────────────────────────────────────────
 
-/// Render a page to a complete, self-contained HTML document: the page's
-/// Markdown body converted to HTML and injected into the minijinja shell.
+/// Render a page to a complete, self-contained HTML document (English chrome).
+///
+/// Equivalent to [`to_html_lang`] with the English carrier language.
 pub fn to_html(model: &DocsModel, page: &Page) -> String {
+    to_html_lang(model, page, ENGLISH)
+}
+
+/// Render a page to a complete, self-contained HTML document: the page's
+/// Markdown body converted to HTML and injected into the minijinja shell, with
+/// the UI-chrome nav labels resolved for `lang` (English fallback). The `model`
+/// passed in is already localized by [`render_site_lang`], so the body content
+/// is in the target language.
+pub fn to_html_lang(model: &DocsModel, page: &Page, lang: &str) -> String {
     let body_html = rewrite_internal_links(&markdown_to_html(&to_markdown(model, page)));
     let root = root_href(&page.dir());
 
-    // Nav items are a fixed, pre-sorted Vec (never a map) for determinism.
+    let ui = &model.ui_catalog;
+    // Resolve a nav label: for the English carrier keep the exact historical
+    // sentence-case string (so the English golden is byte-stable); for any other
+    // language use the per-language UI-chrome override when present, else the
+    // historical English string (the table's Title-Case default is only a POT
+    // template surface, never the live English nav).
+    let label = |key: &str, english: &str| -> String {
+        if lang == ENGLISH {
+            return english.to_string();
+        }
+        let resolved = i18n::ui_string(key, lang, ui);
+        // `ui_string` returns the English *default* when no override exists; that
+        // default may differ in casing from the live nav, so prefer the caller's
+        // historical English when the catalog had no real override.
+        if resolved == i18n::ui_default(key) {
+            english.to_string()
+        } else {
+            resolved.to_string()
+        }
+    };
+
+    // Nav items are a fixed, pre-sorted Vec (never a map) for determinism. Labels
+    // resolve through the UI-chrome table (English fallback).
     let nav = vec![
-        nav_item(&root, &Page::Landing.dir(), "Home"),
-        nav_item(&root, &Page::SliceIndex.dir(), "Slices"),
+        nav_item(&root, &Page::Landing.dir(), &label("nav_home", "Home")),
+        nav_item(
+            &root,
+            &Page::SliceIndex.dir(),
+            &label("nav_slices", "Slices"),
+        ),
         nav_item(
             &root,
             &Page::Category(DocTermCategory::Class).dir(),
-            "Classes",
+            &label("category_class", "Classes"),
         ),
         nav_item(
             &root,
             &Page::Category(DocTermCategory::Property).dir(),
-            "Properties",
+            &label("category_property", "Properties"),
         ),
-        nav_item(&root, &Page::ConcernIndex.dir(), "Concerns"),
-        nav_item(&root, &Page::LinkageIndex.dir(), "Linkages"),
-        nav_item(&root, &Page::ExampleIndex.dir(), "Examples"),
-        nav_item(&root, &Page::ExternalIndex.dir(), "External"),
-        nav_item(&root, &Page::RecipeIndex.dir(), "Recipes"),
-        nav_item(&root, &Page::LearningPathIndex.dir(), "Learning paths"),
-        nav_item(&root, &Page::GettingStarted.dir(), "Getting started"),
-        nav_item(&root, &Page::About.dir(), "About"),
+        nav_item(
+            &root,
+            &Page::ConcernIndex.dir(),
+            &label("nav_concerns", "Concerns"),
+        ),
+        nav_item(
+            &root,
+            &Page::LinkageIndex.dir(),
+            &label("nav_linkages", "Linkages"),
+        ),
+        nav_item(
+            &root,
+            &Page::ExampleIndex.dir(),
+            &label("nav_examples", "Examples"),
+        ),
+        nav_item(
+            &root,
+            &Page::ExternalIndex.dir(),
+            &label("nav_external", "External"),
+        ),
+        nav_item(
+            &root,
+            &Page::RecipeIndex.dir(),
+            &label("nav_recipes", "Recipes"),
+        ),
+        nav_item(
+            &root,
+            &Page::LearningPathIndex.dir(),
+            &label("nav_learning_paths", "Learning paths"),
+        ),
+        nav_item(
+            &root,
+            &Page::GettingStarted.dir(),
+            &label("nav_getting_started", "Getting started"),
+        ),
+        nav_item(&root, &Page::About.dir(), &label("page_about", "About")),
     ];
 
     let mut env = Environment::new();
@@ -1540,6 +1641,95 @@ fn nav_item(root: &str, dir: &str, label: &str) -> NavItem {
         label: label.to_string(),
         href: format!("{root}{}", join(dir, "index.html")),
     }
+}
+
+// ── Localization ────────────────────────────────────────────────────────────────
+
+const GMEOW_GUIDE_TITLE: &str = "https://blackcatinformatics.ca/gmeow/guideTitle";
+const GMEOW_GUIDE_GOAL: &str = "https://blackcatinformatics.ca/gmeow/guideGoal";
+const GMEOW_LEARNING_AUDIENCE: &str = "https://blackcatinformatics.ca/gmeow/learningAudience";
+
+/// Build a copy of `model` with every localizable string replaced by its `lang`
+/// translation where one exists, falling back to the English carrier value the
+/// element already holds.
+///
+/// IRIs, CURIEs, slugs, digests, paths, and structural collections are
+/// language-independent and are left untouched, so the page graph (and the
+/// no-dangling-link invariant) is identical across languages — only the human
+/// prose changes.
+fn localize_model(model: &DocsModel, lang: &str) -> DocsModel {
+    let tr = &model.translations;
+    let mut out = model.clone();
+
+    // Translate a value for (iri, predicate); definition tries skos:definition
+    // then rdfs:comment, mirroring the model's English fallback chain.
+    let tr_one = |iri: &str, predicate: &str| -> Option<String> {
+        tr.lookup(iri, predicate, lang).map(str::to_string)
+    };
+    let tr_def = |iri: &str| -> Option<String> {
+        tr_one(iri, SKOS_DEFINITION).or_else(|| tr_one(iri, RDFS_COMMENT))
+    };
+
+    for term in &mut out.terms {
+        if let Some(v) = tr_one(&term.iri, RDFS_LABEL) {
+            term.label = Some(v);
+        }
+        if let Some(v) = tr_def(&term.iri) {
+            term.definition = Some(v);
+        }
+    }
+
+    for slice in &mut out.slices {
+        if let Some(v) = tr_one(&slice.iri, RDFS_LABEL) {
+            slice.label = Some(v);
+        }
+        // Slice display prefers `title`; translate it from dcterms:title, else
+        // promote a translated label / skos:definition is not a title source.
+        if let Some(v) = tr_one(&slice.iri, DCTERMS_TITLE) {
+            slice.title = Some(v);
+        }
+    }
+
+    for concern in &mut out.concerns {
+        if let Some(v) = tr_one(&concern.iri, RDFS_LABEL) {
+            concern.label = Some(v);
+        }
+        if let Some(v) = tr_def(&concern.iri) {
+            concern.definition = Some(v);
+        }
+    }
+
+    // Recipes / learning paths are keyed by slug; their localizable prose lives
+    // on the guide individual's IRI. The model does not retain that IRI, but the
+    // guide's GMEOW IRI is `gmeow:<localname>` derived from the slug is not
+    // reliable, so we look up by the canonical guide predicates on the term IRI
+    // reconstructed from the slug only when a translation is actually present.
+    // (No guide translations exist yet — this is a forward-compatible hook that
+    // is a no-op until a catalog provides them.)
+    let guide_iri = |slug: &str| format!("{GMEOW_NS}{slug}");
+    for recipe in &mut out.recipes {
+        let iri = guide_iri(&recipe.slug);
+        if let Some(v) = tr_one(&iri, GMEOW_GUIDE_TITLE).or_else(|| tr_one(&iri, RDFS_LABEL)) {
+            recipe.title = v;
+        }
+        if let Some(v) = tr_one(&iri, GMEOW_GUIDE_GOAL) {
+            recipe.goal = v;
+        }
+    }
+    for path in &mut out.learning_paths {
+        let iri = guide_iri(&path.slug);
+        if let Some(v) = tr_one(&iri, GMEOW_GUIDE_TITLE).or_else(|| tr_one(&iri, RDFS_LABEL)) {
+            path.title = v;
+        }
+        if let Some(v) = tr_one(&iri, GMEOW_GUIDE_GOAL) {
+            path.goal = v;
+        }
+        if let Some(v) = tr_one(&iri, GMEOW_LEARNING_AUDIENCE) {
+            path.audience = v;
+        }
+    }
+
+    out
 }
 
 // ── Slugging ──────────────────────────────────────────────────────────────────
@@ -2116,5 +2306,103 @@ mod tests {
         assert_eq!(md_escape("a|b"), "a\\|b");
         assert_eq!(md_escape("<x>"), "\\<x\\>");
         assert_eq!(md_escape("line\nbreak"), "line break");
+    }
+
+    /// A minimal two-term model with one French translation, used to assert the
+    /// language-parametrized renderer picks the translation and falls back to
+    /// English elsewhere.
+    fn tiny_model() -> DocsModel {
+        let foo = DocTerm {
+            iri: format!("{GMEOW_NS}Foo"),
+            curie: "gmeow:Foo".to_string(),
+            label: Some("Foo".to_string()),
+            definition: Some("A foo.".to_string()),
+            category: DocTermCategory::Class,
+            owner_slice: format!("{GMEOW_NS}slices/demo"),
+            parents: Vec::new(),
+            domain: Vec::new(),
+            range: Vec::new(),
+        };
+        let bar = DocTerm {
+            iri: format!("{GMEOW_NS}Bar"),
+            curie: "gmeow:Bar".to_string(),
+            label: Some("Bar".to_string()),
+            definition: Some("A bar.".to_string()),
+            category: DocTermCategory::Class,
+            owner_slice: format!("{GMEOW_NS}slices/demo"),
+            parents: Vec::new(),
+            domain: Vec::new(),
+            range: Vec::new(),
+        };
+
+        let translations = crate::i18n::Translations::from_entries(
+            [
+                (
+                    (
+                        format!("{GMEOW_NS}Foo"),
+                        RDFS_LABEL.to_string(),
+                        "fr".to_string(),
+                    ),
+                    "Fou".to_string(),
+                ),
+                (
+                    (
+                        format!("{GMEOW_NS}Foo"),
+                        SKOS_DEFINITION.to_string(),
+                        "fr".to_string(),
+                    ),
+                    "Un fou.".to_string(),
+                ),
+            ],
+            ["fr".to_string()],
+        );
+
+        DocsModel {
+            title: "Demo".to_string(),
+            version: "test".to_string(),
+            slices: Vec::new(),
+            terms: vec![bar, foo],
+            dependency_edges: Vec::new(),
+            mapping_sets: Vec::new(),
+            linkages: Vec::new(),
+            examples: Vec::new(),
+            concerns: Vec::new(),
+            external_terms: Vec::new(),
+            recipes: Vec::new(),
+            learning_paths: Vec::new(),
+            four_boxes: None,
+            available_languages: vec!["english".to_string(), "fr".to_string()],
+            translations,
+            ui_catalog: crate::i18n::UiCatalog::default(),
+        }
+    }
+
+    #[test]
+    fn render_site_lang_uses_translation_with_english_fallback() {
+        let model = tiny_model();
+
+        // English page for Foo keeps the carrier values.
+        let en = render_site_lang(&model, "english");
+        let foo_en = String::from_utf8(en.files["terms/foo/index.md"].clone()).unwrap();
+        assert!(foo_en.contains("Foo"), "english label present");
+        // Definitions are md-escaped (`.` → `\.`), so match a bare substring.
+        assert!(foo_en.contains("A foo"), "english definition present");
+        assert!(!foo_en.contains("Fou"));
+
+        // French page for Foo uses the translation.
+        let fr = render_site_lang(&model, "fr");
+        let foo_fr = String::from_utf8(fr.files["terms/foo/index.md"].clone()).unwrap();
+        assert!(foo_fr.contains("Fou"), "french label used");
+        assert!(foo_fr.contains("Un fou"), "french definition used");
+
+        // Bar has no translation → English fallback even in the fr tree.
+        let bar_fr = String::from_utf8(fr.files["terms/bar/index.md"].clone()).unwrap();
+        assert!(bar_fr.contains("Bar"));
+        assert!(bar_fr.contains("A bar"));
+
+        // The page graph (file set) is identical across languages.
+        let en_keys: Vec<&String> = en.files.keys().collect();
+        let fr_keys: Vec<&String> = fr.files.keys().collect();
+        assert_eq!(en_keys, fr_keys, "no dangling/extra links per language");
     }
 }

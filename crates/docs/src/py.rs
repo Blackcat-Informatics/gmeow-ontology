@@ -57,8 +57,10 @@ impl DocSet {
 
 #[pymethods]
 impl DocSet {
-    /// Discover the slice catalog under `<root>/slices`, build the docs model,
-    /// and render the full static site.
+    /// Discover the slice catalog under `<root>/slices`, build the docs model
+    /// (including its translation index), and render the full English static
+    /// site. Per-language trees are rendered on demand from the retained model
+    /// via [`files_for_lang`](Self::files_for_lang).
     #[staticmethod]
     fn from_root(root: String) -> PyResult<Self> {
         let model = DocsModel::discover(Path::new(&root))
@@ -67,14 +69,46 @@ impl DocSet {
         Ok(Self::from_engine(site, model))
     }
 
-    /// The full rendered tree as a Python `dict[str, bytes]` (site-relative path
-    /// → file bytes), inserted in the engine's sorted `BTreeMap` order.
-    fn files(&self, py: Python<'_>) -> PyResult<Py<PyAny>> {
-        let out = PyDict::new(py);
-        for (path, data) in &self.inner.files {
-            out.set_item(path, PyBytes::new(py, data))?;
+    /// The available documentation languages: the English carrier (`"english"`)
+    /// first, then the BCP-47 codes of every slice translation catalog (`"fr"`,
+    /// `"zh"`), sorted. Deterministic.
+    fn languages(&self, py: Python<'_>) -> PyResult<Py<PyAny>> {
+        let out = PyList::empty(py);
+        for lang in &self.model.available_languages {
+            out.append(lang)?;
         }
         Ok(out.into_any().unbind())
+    }
+
+    /// The full rendered English tree as a Python `dict[str, bytes]`
+    /// (site-relative path → file bytes), in the engine's sorted `BTreeMap`
+    /// order.
+    fn files(&self, py: Python<'_>) -> PyResult<Py<PyAny>> {
+        for_lang_dict(py, &self.inner)
+    }
+
+    /// The full rendered tree for `lang` as a Python `dict[str, bytes]`.
+    ///
+    /// `lang` is `"english"` (the carrier, identical to [`files`](Self::files))
+    /// or a BCP-47 code present in [`languages`](Self::languages). Every
+    /// localizable string is resolved to its translation with English fallback;
+    /// the file/path graph is identical across languages. Re-renders the tree
+    /// from the retained model on each call (deterministic).
+    fn files_for_lang(&self, py: Python<'_>, lang: String) -> PyResult<Py<PyAny>> {
+        let site = render::render_site_lang(&self.model, &lang);
+        for_lang_dict(py, &site)
+    }
+
+    /// The gts archive prefix (the internal `x-gmeow-*` tag) for `lang`, e.g.
+    /// `"english"` → `x-gmeow-english`, `"fr"` → `x-gmeow-french`. The bundle
+    /// generator folds each language tree under this prefix and the docs
+    /// consumer (`create_docs`) selects by it.
+    fn archive_prefix(&self, lang: String) -> String {
+        if lang == crate::i18n::ENGLISH {
+            "x-gmeow-english".to_string()
+        } else {
+            self.model.translations.internal_tag(&lang)
+        }
     }
 
     /// Deterministically write the whole tree under `directory`, creating parent
@@ -117,6 +151,15 @@ impl DocSet {
     fn lint(&self) -> PyReport {
         PyReport::from_engine(lint::lint(&self.model, &self.inner))
     }
+}
+
+/// Build a Python `dict[str, bytes]` from a rendered [`Site`]'s sorted tree.
+fn for_lang_dict(py: Python<'_>, site: &Site) -> PyResult<Py<PyAny>> {
+    let out = PyDict::new(py);
+    for (path, data) in &site.files {
+        out.set_item(path, PyBytes::new(py, data))?;
+    }
+    Ok(out.into_any().unbind())
 }
 
 /// Register the `gmeow-docs` surface on a Python module.

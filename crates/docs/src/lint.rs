@@ -233,6 +233,12 @@ mod tests {
             recipes: Vec::new(),
             learning_paths: Vec::new(),
             four_boxes: None,
+
+            available_languages: vec!["english".to_string()],
+
+            translations: crate::i18n::Translations::default(),
+
+            ui_catalog: crate::i18n::UiCatalog::default(),
         }
     }
 

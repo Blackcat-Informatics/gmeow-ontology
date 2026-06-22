@@ -22,6 +22,8 @@ use gmeow_slice::{
     SliceError, SliceRecord, SliceTier,
 };
 
+use crate::i18n::{self, Translations, UiCatalog};
+
 // ── Namespace constants ───────────────────────────────────────────────────────
 
 /// The GMEOW vocabulary namespace; IRIs under it get the `gmeow:` CURIE prefix.
@@ -413,6 +415,24 @@ pub struct DocsModel {
     /// The curated "four boxes" doctrine prose, read at build time from
     /// `<root>/docs/four-boxes.md` if present (`None` when absent).
     pub four_boxes: Option<String>,
+    /// Available documentation languages: the English carrier (`"english"`)
+    /// first, then the BCP-47 codes (`fr`, `zh`) of every slice translation
+    /// catalog, sorted. Deterministic.
+    #[serde(skip)]
+    pub available_languages: Vec<String>,
+    /// The per-(term, predicate, language) translation index built from every
+    /// slice's `i18n/<lang>.po` catalog. The renderer resolves localized
+    /// labels / definitions through it, falling back to the English values
+    /// carried on each model element. Skipped from serialization so the JSON
+    /// model shape (and its golden) is unchanged.
+    #[serde(skip)]
+    pub translations: Translations,
+    /// The UI-chrome override catalog (per-language nav / heading / footer
+    /// strings) loaded from optional `<root>/i18n/ontology-docs-templates.<lang>.po`
+    /// files. Empty when none are present (English fallback). Skipped from
+    /// serialization.
+    #[serde(skip)]
+    pub ui_catalog: UiCatalog,
 }
 
 impl DocsModel {
@@ -536,6 +556,10 @@ impl DocsModel {
         // ── Guides: recipes + learning paths (parsed from module graphs) ───────
         let (recipes, learning_paths) = extract_guides(catalog);
 
+        // ── Translations (built from each slice's i18n/<lang>.po catalogs) ──────
+        let translations = Translations::from_catalog(catalog);
+        let available_languages = i18n::available_languages(&translations);
+
         Self {
             title: "GMEOW Ontology Documentation".to_string(),
             version: Self::VERSION.to_string(),
@@ -550,6 +574,9 @@ impl DocsModel {
             recipes,
             learning_paths,
             four_boxes: None,
+            available_languages,
+            translations,
+            ui_catalog: UiCatalog::default(),
         }
     }
 
@@ -561,6 +588,8 @@ impl DocsModel {
         let ownership = OwnershipAnalyzer::new(&catalog).analyze()?;
         let mut model = Self::from_catalog(&catalog, &ownership);
         model.four_boxes = std::fs::read_to_string(root.join("docs/four-boxes.md")).ok();
+        // Optional UI-chrome overrides: `<root>/i18n/ontology-docs-templates.<lang>.po`.
+        model.ui_catalog = UiCatalog::from_dir(&root.join("i18n"));
         Ok(model)
     }
 }
