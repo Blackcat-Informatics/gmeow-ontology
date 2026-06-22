@@ -153,6 +153,8 @@ fn is_declared(store: &Store, term: &NamedNode) -> bool {
     store
         .quads_for_pattern(Some(term.as_ref().into()), None, None, None)
         .next()
+        .transpose()
+        .expect("declaration lookup: in-memory store query failed")
         .is_some()
 }
 
@@ -340,6 +342,8 @@ fn annotation_property_soundness(
                 None,
             )
             .next()
+            .transpose()
+            .expect("annotation-property lookup: in-memory store query failed")
             .is_some();
         if !is_annotation_property {
             out.push(format!(

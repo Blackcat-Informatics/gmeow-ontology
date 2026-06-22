@@ -56,6 +56,8 @@ fn is_rdfs_class(store: &Store, node: &NamedNode) -> bool {
             None,
         )
         .next()
+        .transpose()
+        .expect("rdfs:Class lookup: in-memory store query failed")
         .is_some()
 }
 
