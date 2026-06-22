@@ -781,6 +781,34 @@ logic:RoleMixin
     skos:definition "An anti-rigid non-sortal that abstracts a relationally-acquired property shared across instances of several Kinds — customer (a person or an organization), insured party. Anti-rigid and identity-dispersive: a Role generalized to span multiple Kinds without supplying identity."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
+logic:RuleNoClosedWorldInCounterfactual
+    a owl:NamedIndividual ,
+        logic:CompatibilityRule ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Rule: No Closed-World Closure In Counterfactual States"@x-gmeow-english ;
+    skos:definition "The compatibility rule forbidding logic:ClosedWorldClosure — whether the contract's logic:defaultClosure or any per-key closure entry value — together with counterfactual entrenchment revision (logic:EntrenchmentRevision is the contract-internal indicator that counterfactual closest-world states are generated). The counterfactual states are open-ended, so reading absence as falsehood inside them is unsound; a contract that names both is unsupported. Authored canonically in crates/logic (Rust); this individual is a lossy documentation projection (Principle 17)."@x-gmeow-english .
+
+logic:RuleNoParaconsistentCounterfactualRevision
+    a owl:NamedIndividual ,
+        logic:CompatibilityRule ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Rule: No Paraconsistent Truth Under Counterfactual Revision"@x-gmeow-english ;
+    skos:definition "The compatibility rule forbidding a paraconsistent valuation — a gap/glut-admitting logic:admissibleValuation (logic:AdmitAllFour, logic:ForbidGap, or logic:ForbidGlut) OR the logic:BelnapBilattice truth algebra — together with counterfactual entrenchment revision (logic:EntrenchmentRevision, the contract-internal indicator of counterfactual closest-world generation). The closest-world selection that generates the counterfactual states is not defined over gappy or glutty valuations; a contract that names both is unsupported. Authored canonically in crates/logic (Rust); this individual is a lossy documentation projection (Principle 17)."@x-gmeow-english .
+
+logic:RuleNoProbabilisticStableModel
+    a owl:NamedIndividual ,
+        logic:CompatibilityRule ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Rule: No Probabilistic Measure Over Stable-Model Semantics"@x-gmeow-english ;
+    skos:definition "The compatibility rule forbidding logic:ProbabilisticMeasure in the uncertainty-measure set together with logic:StableModelSemantics as the model semantics. A calibrated probability mass is not well-defined over the multiple incomparable answer sets the stable-model semantics admits; a contract that names both is unsupported. Authored canonically in crates/logic (Rust); this individual is a lossy documentation projection (Principle 17)."@x-gmeow-english .
+
+logic:RuleProbabilisticRequiresModel
+    a owl:NamedIndividual ,
+        logic:CompatibilityRule ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Rule: Probabilistic Measure Requires A Declared Probability Model"@x-gmeow-english ;
+    skos:definition "The graph-dependent compatibility rule requiring that whenever a contract carries logic:ProbabilisticMeasure, the source graph declares a logic:ProbabilityModel (via logic:probabilityModel or an individual typed logic:ProbabilityModel). Absent a declared model the contract is unsupported: a probabilistic measure is never inferred from confidence metadata and independence is never silently assumed. Because it inspects the surrounding graph it is enforced in the front-end rather than the contract-internal rule table; authored canonically in crates/logic (Rust), projected here lossily (Principle 17)."@x-gmeow-english .
+
 logic:SemanticProfile
     a owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;

@@ -48,6 +48,56 @@ fn semantic_profile_ids_match_module_ttl() {
 }
 
 #[test]
+fn compatibility_rule_ids_match_module_ttl() {
+    // The Rust authority (compat.rs ALL_RULE_IDS) and the ontology surface
+    // (logic:CompatibilityRule individuals in module.ttl) must never diverge:
+    // every rust rule id is an individual local name and vice versa.
+    use crate::compile::compat::ALL_RULE_IDS;
+
+    let module_ttl = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("../../slices/core/logic/module.ttl");
+    let text = std::fs::read_to_string(&module_ttl)
+        .unwrap_or_else(|e| panic!("read {}: {e}", module_ttl.display()));
+
+    // Each individual is declared at column 0 as `logic:<Name>` and carries a
+    // `logic:CompatibilityRule` rdf:type within its statement block (terminated by
+    // a line-final ` .`).  Walk the blocks and collect the subjects whose block
+    // names logic:CompatibilityRule as a type.
+    let mut from_ttl: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
+    let mut current_subject: Option<String> = None;
+    let mut block_is_rule = false;
+    for line in text.lines() {
+        if let Some(rest) = line.strip_prefix("logic:") {
+            // A new top-level subject block begins.
+            if let (Some(subj), true) = (current_subject.take(), block_is_rule) {
+                from_ttl.insert(subj);
+            }
+            let name: String = rest.chars().take_while(|c| !c.is_whitespace()).collect();
+            current_subject = Some(name);
+            block_is_rule = false;
+        }
+        if line.contains("logic:CompatibilityRule") && !line.contains("a owl:Class") {
+            // Skip the class declaration itself (`logic:CompatibilityRule a owl:Class`);
+            // a type reference inside an individual block flags it as a rule.
+            if current_subject.as_deref() != Some("CompatibilityRule") {
+                block_is_rule = true;
+            }
+        }
+    }
+    if let (Some(subj), true) = (current_subject, block_is_rule) {
+        from_ttl.insert(subj);
+    }
+
+    let from_rust: std::collections::BTreeSet<String> =
+        ALL_RULE_IDS.iter().map(|s| (*s).to_owned()).collect();
+
+    assert_eq!(
+        from_rust, from_ttl,
+        "Rust compat rule ids must match logic:CompatibilityRule individuals in module.ttl"
+    );
+}
+
+#[test]
 fn preservation_kind_values_match_module_ttl() {
     let got: std::collections::BTreeSet<&str> = [
         PreservationKind::Exact,

@@ -95,6 +95,95 @@ fn unknown_semantic_profile_emits_diagnostic() {
     assert!(diags.iter().any(|d| d.code == "UNKNOWN_PROFILE"));
 }
 
+#[test]
+fn unknown_semantic_profile_is_a_hard_error() {
+    // Greenfield (reviewer C3): an unrecognised preset reference is a hard error,
+    // not a fail-soft warning — otherwise it is a silent approximation.
+    let (_, diags) = parse("ex:Bogus a logic:ReasoningPreset .");
+    assert!(diags
+        .iter()
+        .any(|d| d.code == "UNKNOWN_PROFILE" && d.severity == Severity::Error));
+}
+
+// ── Compatibility firewall (#767, Task 3 / reviewer C3) ──────────────────────
+
+#[test]
+fn unsupported_contract_is_a_hard_compile_failure() {
+    // A contract pairing logic:ProbabilisticMeasure with logic:StableModelSemantics
+    // is a forbidden combination; it MUST surface as a Severity::Error so the
+    // compile Report is not ok and the program is never treated as soundly
+    // evaluable.  Parallel to the cut-confinement firewall discipline.
+    let (_, diags) = parse(
+        "ex:UnsupportedContract a logic:ReasoningContract ;
+            logic:modelSemantics logic:StableModelSemantics ;
+            logic:uncertaintyMeasure logic:ProbabilisticMeasure .
+         logic:StableModelSemantics a logic:ModelSemantics .
+         logic:ProbabilisticMeasure a logic:UncertaintyMeasure .",
+    );
+    let unsupported: Vec<_> = diags
+        .iter()
+        .filter(|d| d.code == "UNSUPPORTED_CONTRACT")
+        .collect();
+    assert!(
+        unsupported.iter().any(|d| d.severity == Severity::Error),
+        "expected a Severity::Error UNSUPPORTED_CONTRACT finding; got: {diags:?}"
+    );
+    // Projecting into the canonical report, the firewall holds: the report is not ok.
+    let report = diagnostics_report(&diags);
+    assert!(
+        !report.ok(),
+        "an unsupported contract must make the compile report not ok"
+    );
+}
+
+#[test]
+fn supported_contract_compiles_clean() {
+    // A clean stable-model contract (no probabilistic measure) is supported.
+    let (_, diags) = parse(
+        "ex:CleanContract a logic:ReasoningContract ;
+            logic:modelSemantics logic:StableModelSemantics ;
+            logic:negationOperator logic:DefaultNegation .
+         logic:StableModelSemantics a logic:ModelSemantics .
+         logic:DefaultNegation a logic:NegationOperator .",
+    );
+    assert!(
+        !diags.iter().any(|d| d.code == "UNSUPPORTED_CONTRACT"),
+        "clean contract should not be flagged unsupported; got: {diags:?}"
+    );
+}
+
+#[test]
+fn probabilistic_measure_without_model_is_unsupported() {
+    // Reviewer C4: a probabilistic measure with NO declared logic:ProbabilityModel
+    // is a hard error (never a silent independence assumption).
+    let (_, diags) = parse(
+        "ex:ProbContract a logic:ReasoningContract ;
+            logic:uncertaintyMeasure logic:ProbabilisticMeasure .
+         logic:ProbabilisticMeasure a logic:UncertaintyMeasure .",
+    );
+    assert!(
+        diags
+            .iter()
+            .any(|d| d.code == "UNSUPPORTED_CONTRACT" && d.severity == Severity::Error),
+        "probabilistic measure without a model must be a hard error; got: {diags:?}"
+    );
+}
+
+#[test]
+fn probabilistic_measure_with_declared_model_is_supported() {
+    // With a declared logic:ProbabilityModel the probabilistic measure is fine.
+    let (_, diags) = parse(
+        "ex:ProbContract a logic:ReasoningContract ;
+            logic:uncertaintyMeasure logic:ProbabilisticMeasure .
+         logic:ProbabilisticMeasure a logic:UncertaintyMeasure .
+         ex:myModel a logic:ProbabilityModel .",
+    );
+    assert!(
+        !diags.iter().any(|d| d.code == "UNSUPPORTED_CONTRACT"),
+        "probabilistic measure with a declared model is supported; got: {diags:?}"
+    );
+}
+
 // ── Axioms ───────────────────────────────────────────────────────────────────
 
 #[test]

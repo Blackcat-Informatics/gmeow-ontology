@@ -36,6 +36,7 @@ use oxigraph::io::RdfFormat;
 use oxigraph::model::{GraphNameRef, NamedOrBlankNode, Term};
 use oxigraph::store::Store;
 
+use super::compat;
 use super::graphutil::{
     canonicalize_blank_nodes, contains, default_graph_quads, nn, objects, subject_str,
     subjects_with, term_as_subject, term_is_literal, term_str, value, RDF_OBJECT, RDF_PREDICATE,
@@ -94,6 +95,15 @@ impl Diagnostic {
     fn warning(code: &str, message: impl Into<String>, subject: Option<String>) -> Self {
         Self {
             severity: Severity::Warning,
+            code: code.to_owned(),
+            message: message.into(),
+            subject,
+        }
+    }
+
+    fn error(code: &str, message: impl Into<String>, subject: Option<String>) -> Self {
+        Self {
+            severity: Severity::Error,
             code: code.to_owned(),
             message: message.into(),
             subject,
@@ -454,9 +464,38 @@ fn route_facet_value(contract: &mut ReasoningContract, facet_class: &str, value_
     }
 }
 
+/// Whether the source graph declares a probability model: either a triple with
+/// predicate `logic:probabilityModel`, or any individual typed
+/// `logic:ProbabilityModel` (reviewer C4 — probabilistic inference must never
+/// silently assume independence over un-modelled confidence metadata).
+fn graph_declares_probability_model(store: &Store) -> bool {
+    // Any triple whose predicate is logic:probabilityModel.
+    let prob_model_pred = nn(&logic_iri("probabilityModel"));
+    if store
+        .quads_for_pattern(
+            None,
+            Some(prob_model_pred.as_ref()),
+            None,
+            Some(GraphNameRef::DefaultGraph),
+        )
+        .filter_map(Result::ok)
+        .next()
+        .is_some()
+    {
+        return true;
+    }
+    // Any individual typed logic:ProbabilityModel.
+    let prob_model_class = Term::NamedNode(nn(&logic_iri("ProbabilityModel")));
+    !subjects_with(store, &nn(RDF_TYPE), &prob_model_class).is_empty()
+}
+
 fn extract_contracts(store: &Store, diagnostics: &mut Vec<Diagnostic>) -> Vec<ReasoningContract> {
     let mut contracts: Vec<ReasoningContract> = Vec::new();
     let mut seen: HashSet<String> = HashSet::new();
+
+    // Computed once: whether the graph declares any logic:ProbabilityModel; used
+    // by the graph-dependent RuleProbabilisticRequiresModel below.
+    let has_probability_model = graph_declares_probability_model(store);
 
     // Subjects typed logic:ReasoningContract OR logic:ReasoningPreset.
     let mut subjects: Vec<NamedOrBlankNode> = Vec::new();
@@ -488,7 +527,9 @@ fn extract_contracts(store: &Store, diagnostics: &mut Vec<Diagnostic>) -> Vec<Re
             match preset {
                 Some(p) => contract.preset = Some(p),
                 None => {
-                    diagnostics.push(Diagnostic::warning(
+                    // Greenfield (reviewer C3): an unrecognised preset reference is
+                    // a hard error, not a silent approximation to a nearby preset.
+                    diagnostics.push(Diagnostic::error(
                         "UNKNOWN_PROFILE",
                         format!(
                             "{iri_str:?} is declared as logic:ReasoningPreset but is not a \
@@ -514,7 +555,7 @@ fn extract_contracts(store: &Store, diagnostics: &mut Vec<Diagnostic>) -> Vec<Re
                     Some(facet_class) => {
                         route_facet_value(&mut contract, &facet_class, value_local)
                     }
-                    None => diagnostics.push(Diagnostic::warning(
+                    None => diagnostics.push(Diagnostic::error(
                         "UNKNOWN_PROFILE",
                         format!(
                             "{iri_str:?} references {value_iri:?} via logic:{prop_local}, but it \
@@ -557,6 +598,41 @@ fn extract_contracts(store: &Store, diagnostics: &mut Vec<Diagnostic>) -> Vec<Re
                     Some(iri_str.clone()),
                 )),
             }
+        }
+
+        // ── Compatibility feature model (#767, Task 3) ──────────────────────
+        // HARD verdict (reviewer C3): an unsupported contract is a Severity::Error
+        // finding, so the compile Report is not ok and the program is never
+        // silently approximated to a nearby semantics.
+        if let compat::ContractVerdict::Unsupported(reasons) = compat::check(&contract) {
+            diagnostics.push(Diagnostic::error(
+                "UNSUPPORTED_CONTRACT",
+                format!(
+                    "reasoning contract {iri_str:?} is not soundly evaluable: {}",
+                    reasons.join("; ")
+                ),
+                Some(iri_str.clone()),
+            ));
+        }
+
+        // Graph-dependent RuleProbabilisticRequiresModel (reviewer C4): a
+        // probabilistic measure demands a declared logic:ProbabilityModel; absent
+        // one, refuse rather than silently assume independence.
+        if contract
+            .uncertainty_measures
+            .contains("ProbabilisticMeasure")
+            && !has_probability_model
+        {
+            diagnostics.push(Diagnostic::error(
+                "UNSUPPORTED_CONTRACT",
+                format!(
+                    "reasoning contract {iri_str:?} carries logic:ProbabilisticMeasure but the \
+                     graph declares no logic:ProbabilityModel: a probabilistic measure requires a \
+                     declared logic:ProbabilityModel (it is never inferred from confidence \
+                     metadata)"
+                ),
+                Some(iri_str.clone()),
+            ));
         }
 
         contracts.push(contract);
