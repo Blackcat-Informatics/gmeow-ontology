@@ -15,8 +15,7 @@ from pathlib import Path
 
 import pytest
 import yaml
-from rdflib import OWL, RDF, RDFS, URIRef
-from rdflib.namespace import SKOS
+from gmeow_rdf.compat.rdflib import OWL, RDF, RDFS, SKOS, URIRef
 
 from gmeow_tools.export import collect_terms
 from gmeow_tools.generator import registry

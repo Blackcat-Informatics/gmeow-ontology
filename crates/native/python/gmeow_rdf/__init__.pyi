@@ -12,7 +12,7 @@
 from __future__ import annotations
 
 import builtins
-from typing import IO, overload
+from typing import IO, TypedDict, overload
 
 # ── Statement codec (crates/rdf/src/py.rs) ──────────────────────────────────────
 
@@ -274,3 +274,20 @@ class RdfDataset:
     def term_count(self) -> int: ...
     def __len__(self) -> int: ...
     def to_gts(self, profile: str = ...) -> bytes: ...
+
+# ── Native SSSOM codec (crates/rdf/src/py_sssom.rs, #848) ────────────────────────
+# Parse + validate + RDF serialize for GMEOW SSSOM TSV mapping artifacts — the
+# in-repo replacement for the external `sssom` package. `validate_sssom` returns
+# one `SssomDiagnostic` dict per diagnostic (a parse failure surfaces as a single
+# `severity="FATAL"`, `check="parse"` dict); a clean file yields `[]`.
+class SssomDiagnostic(TypedDict):
+    severity: str
+    code: str
+    message: str
+    check: str
+    instance: str | None
+
+def validate_sssom(text: str) -> list[SssomDiagnostic]: ...
+def sssom_to_rdf(text: str) -> str: ...
+def sssom_roundtrip_tsv(text: str) -> str: ...
+def sssom_default_validation_types() -> list[str]: ...

@@ -245,6 +245,42 @@ def test_render_expr_unknown_operator_raises() -> None:
         render_expr(Expr(op=URIRef("urn:opNope"), args=()))
 
 
+def test_order_binds_rejects_duplicate_variable() -> None:
+    """Two BIND/mint declarations claiming one variable fail closed (no silent drop)."""
+    from gmeow_tools.mapping_dsl import Bind, _order_binds
+
+    binds = [
+        Bind(var="x", expr=Expr(const=URIRef("urn:a"))),
+        Bind(var="x", expr=Expr(const=URIRef("urn:b"))),
+    ]
+    with pytest.raises(CompileError, match="duplicate BIND/mint variable"):
+        _order_binds(binds)
+
+
+def test_order_binds_rejects_dependency_cycle() -> None:
+    """A bind cycle has no valid emission order and fails closed (no name-break)."""
+    from gmeow_tools.mapping_dsl import Bind, _order_binds
+
+    binds = [
+        Bind(var="a", expr=Expr(var="b")),
+        Bind(var="b", expr=Expr(var="a")),
+    ]
+    with pytest.raises(CompileError, match="cyclic BIND/mint dependency"):
+        _order_binds(binds)
+
+
+def test_order_binds_orders_dependencies_before_dependents() -> None:
+    """A well-formed set still topo-sorts: a referenced var precedes its user."""
+    from gmeow_tools.mapping_dsl import Bind, _order_binds
+
+    binds = [
+        Bind(var="composed", expr=Expr(op=URIRef("urn:op"), args=(Expr(var="base"),))),
+        Bind(var="base", expr=Expr(const=URIRef("urn:seed"))),
+    ]
+    ordered = [b.var for b in _order_binds(binds)]
+    assert ordered == ["base", "composed"]
+
+
 def test_sparql_string_escapes_control_chars() -> None:
     """String constants with newlines/tabs/quotes stay valid one-line literals."""
     from gmeow_tools.mapping_dsl import sparql_string
@@ -254,48 +290,16 @@ def test_sparql_string_escapes_control_chars() -> None:
     assert out == '"a\\"b\\nc\\td\\\\e"'
 
 
-def test_fno_emit_rejects_input_without_range() -> None:
-    """A transform input predicate with no rdfs:range cannot be compiled.
-
-    Keeps the headline guarantee honest: fno:type is always derived, so the
-    failure mode can never silently become a *missing* type.
-    """
-    from gmeow_tools.mapping_dsl import Dsl, ProjectionFunction
-
-    fn = ProjectionFunction(
-        iri=GM.fnNoRange,
-        label="x",
-        description="",
-        inputs=(GM.predicateWithNoRange,),
-        optional_inputs=(),
-        output=GM.projectedX,
-        output_type=RDFS.Literal,
-    )
-    dsl = Dsl(equivalences=(), projections=(), functions={GM.fnNoRange: fn})
-    with pytest.raises(CompileError, match="no rdfs:range"):
-        emit_fno(dsl, Graph())
-
-
-def test_fno_emit_rejects_param_iri_collision() -> None:
-    """Two predicates minting the same param IRI are rejected, not silently merged."""
-    from gmeow_tools.mapping_dsl import Dsl, ProjectionFunction
-
-    onto = Graph()
-    onto.add((GM.placeType, RDFS.range, GM.PlaceType))
-    onto.add(
-        (URIRef(GM + "PlaceType"), RDFS.range, GM.PlaceType)
-    )  # collides on paramPlaceType
-    functions = {
-        GM.fnA: ProjectionFunction(
-            GM.fnA, "a", "", (GM.placeType,), (), GM.outA, RDFS.Literal
-        ),
-        GM.fnB: ProjectionFunction(
-            GM.fnB, "b", "", (URIRef(GM + "PlaceType"),), (), GM.outB, RDFS.Literal
-        ),
-    }
-    dsl = Dsl(equivalences=(), projections=(), functions=functions)
-    with pytest.raises(CompileError, match="param IRI collision"):
-        emit_fno(dsl, onto)
+# The fail-closed FnO derivation guards — an input predicate with no ontology
+# rdfs:range, and two predicates minting the same param IRI — moved into the native
+# emitter with the rest of emit_fno (#848): the Rust `build_catalog` raises a
+# SliceError on either condition (no degraded fallback). Because the native emitter
+# sources every input from PROJECT_ROOT (Python passes only the repo root), the
+# guards can no longer be exercised from a synthetic in-Python Dsl/Graph; they are
+# now pinned by the Rust inline tests in crates/slice/src/fno_emit.rs
+# (`untyped_input_predicate_is_a_hard_error`, `param_iri_collision_is_a_hard_error`).
+# The committed corpus passing `gmeow-dev regenerate mappings` confirms the
+# headline guarantee holds end-to-end: fno:type is always derived, never missing.
 
 
 def test_edoal_traversal_uses_compose_inverse() -> None:
