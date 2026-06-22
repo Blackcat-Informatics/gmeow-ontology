@@ -23,7 +23,7 @@ def _graph() -> Graph:
     return load_merged_graph(include_imports=True)
 
 
-def test_time_scoped_relation_is_a_gufo_situation() -> None:
+def test_time_scoped_relation_is_a_logic_situation() -> None:
     graph = _graph()
     assert (
         URIRef(GMEOW + "TimeScopedRelation"),
@@ -63,7 +63,7 @@ def test_validity_predicates_are_annotation_properties() -> None:
         ) in graph
 
 
-def test_instant_subclasses_gufo_abstract_individual() -> None:
+def test_instant_subclasses_logic_abstract_individual() -> None:
     graph = _graph()
     assert (
         URIRef(GMEOW + "Instant"),
@@ -100,7 +100,7 @@ def test_time_interval_can_have_temporal_frame() -> None:
     ) in graph
 
 
-def test_temporal_measurement_is_gufo_relator() -> None:
+def test_temporal_measurement_is_logic_relator() -> None:
     # — TemporalMeasurement re-parented under Observation/Measurement.
     graph = _graph()
     assert (
