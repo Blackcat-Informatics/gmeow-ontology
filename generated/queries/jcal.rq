@@ -4,22 +4,21 @@ PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 
 CONSTRUCT {
-    ?cal a <https://tools.ietf.org/rfc/rfc7265#vcalendar> .
-    ?cal <https://tools.ietf.org/rfc/rfc7265#tzid> ?tzid .
+    ?reminder a <https://tools.ietf.org/rfc/rfc7265#valarm> .
+    ?reminder <https://tools.ietf.org/rfc/rfc7265#trigger> ?trig .
+    ?reminder <https://tools.ietf.org/rfc/rfc7265#action> ?act .
     ?task a <https://tools.ietf.org/rfc/rfc7265#vtodo> .
     ?task <https://tools.ietf.org/rfc/rfc7265#due> ?due .
     ?task <https://tools.ietf.org/rfc/rfc7265#priority> ?prio .
     ?task <https://tools.ietf.org/rfc/rfc7265#status> ?ts .
-    ?reminder a <https://tools.ietf.org/rfc/rfc7265#valarm> .
-    ?reminder <https://tools.ietf.org/rfc/rfc7265#trigger> ?trig .
-    ?reminder <https://tools.ietf.org/rfc/rfc7265#action> ?act .
+    ?cal a <https://tools.ietf.org/rfc/rfc7265#vcalendar> .
+    ?cal <https://tools.ietf.org/rfc/rfc7265#tzid> ?tzid .
 }
 WHERE {
     {
-        ?cal rdf:type ?type .
-        OPTIONAL { ?cal gmeow:calendarTimeZone ?tz . }
-        OPTIONAL { ?tz gmeow:timeZoneIanaId ?tzid . }
-        FILTER NOT EXISTS { ?cal gmeow:displayable false . }
+        ?reminder gmeow:reminderTrigger ?trig .
+        ?reminder gmeow:reminderAction ?act .
+        FILTER NOT EXISTS { ?reminder gmeow:displayable false . }
     }
     UNION {
         ?task rdf:type ?type .
@@ -29,8 +28,9 @@ WHERE {
         FILTER NOT EXISTS { ?task gmeow:displayable false . }
     }
     UNION {
-        ?reminder gmeow:reminderTrigger ?trig .
-        ?reminder gmeow:reminderAction ?act .
-        FILTER NOT EXISTS { ?reminder gmeow:displayable false . }
+        ?cal rdf:type ?type .
+        OPTIONAL { ?cal gmeow:calendarTimeZone ?tz . }
+        OPTIONAL { ?tz gmeow:timeZoneIanaId ?tzid . }
+        FILTER NOT EXISTS { ?cal gmeow:displayable false . }
     }
 }
