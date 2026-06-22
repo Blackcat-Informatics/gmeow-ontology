@@ -27,8 +27,8 @@ pub mod py;
 
 pub use lint::lint;
 pub use model::{
-    DocArtifact, DocConcern, DocDependencyEdge, DocExample, DocExternalTerm, DocLinkage,
-    DocMappingSet, DocSlice, DocTerm, DocTermCategory, DocsError, DocsModel,
+    DocArtifact, DocConcern, DocDependencyEdge, DocExample, DocExternalTerm, DocLearningPath,
+    DocLinkage, DocMappingSet, DocRecipe, DocSlice, DocTerm, DocTermCategory, DocsError, DocsModel,
 };
 pub use rdf::to_gmeow_rdf;
 pub use render::{render_site, to_html, to_markdown, Page, Site};

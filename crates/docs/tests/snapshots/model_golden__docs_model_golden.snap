@@ -4,15 +4,15 @@ expression: summary
 ---
 {
   "title": "GMEOW Ontology Documentation",
-  "version": "2",
-  "slice_count": 73,
-  "term_count": 2142,
-  "dependency_edge_count": 735,
+  "version": "3",
+  "slice_count": 74,
+  "term_count": 2153,
+  "dependency_edge_count": 752,
   "term_count_by_category": {
-    "Class": 646,
+    "Class": 648,
     "Datatype": 1,
     "Individual": 3,
-    "Property": 1492
+    "Property": 1501
   },
   "slice_iris": [
     "https://blackcatinformatics.ca/gmeow/slices/accessibility",
@@ -49,6 +49,7 @@ expression: summary
     "https://blackcatinformatics.ca/gmeow/slices/genealogy",
     "https://blackcatinformatics.ca/gmeow/slices/graphrag",
     "https://blackcatinformatics.ca/gmeow/slices/gts",
+    "https://blackcatinformatics.ca/gmeow/slices/guides",
     "https://blackcatinformatics.ca/gmeow/slices/images",
     "https://blackcatinformatics.ca/gmeow/slices/imagination",
     "https://blackcatinformatics.ca/gmeow/slices/inference",
@@ -184,7 +185,7 @@ expression: summary
   "linkage_count": 1381,
   "example_count": 93,
   "concern_count": 7,
-  "external_term_count": 1205,
+  "external_term_count": 1206,
   "sample_mapping_set": {
     "iri": "https://blackcatinformatics.ca/gmeow/mapsetAccessibility",
     "curie": "gmeow:mapsetAccessibility",
@@ -252,6 +253,54 @@ expression: summary
     ],
     "via_predicate": [
       "alignObject"
+    ]
+  },
+  "recipe_count": 6,
+  "learning_path_count": 5,
+  "has_four_boxes": true,
+  "sample_recipe": {
+    "slug": "contested-or-attributed-facts",
+    "title": "Model Contested or Attributed Facts",
+    "goal": "Keep incompatible claims side by side by recording standpoint, vantage, modality, and evidence on the claim rather than on a single global fact slot.",
+    "example_paths": [
+      "slices/core/standpoint/examples/contested-authorship.ttl"
+    ],
+    "term_curies": [
+      "gmeow:StandpointClaim",
+      "gmeow:accordingTo",
+      "gmeow:claimModality",
+      "gmeow:vantage"
+    ],
+    "follow_pages": [
+      "slices/standpoint.md",
+      "statements/index.md"
+    ]
+  },
+  "sample_learning_path": {
+    "slug": "audit-ai-or-graph-rag",
+    "title": "Audit AI and Graph-RAG Pipelines",
+    "audience": "Developers recording extracted facts, chunks, and tools.",
+    "goal": "Connect generated claims to source chunks, evidence spans, tools, model context, and provenance before consumers see them.",
+    "recipe_slugs": [
+      "graph-rag-dataset-lineage"
+    ],
+    "example_paths": [
+      "slices/core/ai/examples/grounded-claim.ttl",
+      "slices/extensions/agentic/examples/agent-trajectory.ttl",
+      "slices/extensions/graphrag/examples/lillith-dataset.ttl",
+      "slices/extensions/graphrag/examples/lillith-pipeline.ttl"
+    ],
+    "term_curies": [
+      "gmeow:Chunk",
+      "gmeow:Dataset",
+      "gmeow:EvidenceSpan",
+      "gmeow:ExtractedEntity",
+      "gmeow:usedModel"
+    ],
+    "adoption_targets": [
+      "dcat",
+      "prov",
+      "schema"
     ]
   }
 }

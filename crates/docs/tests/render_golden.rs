@@ -211,6 +211,26 @@ fn render_site_is_byte_stable() {
     assert!(a.files.contains_key("concerns/index.html"));
     assert!(a.files.contains_key("external-ontologies/index.html"));
     assert!(a.files.contains_key("integrity-constraints/index.html"));
+    // The T3b guides surfaces: recipe/learning-path indexes + the four-boxes page.
+    assert!(a.files.contains_key("recipes/index.html"));
+    assert!(a.files.contains_key("learning-paths/index.html"));
+    assert!(a.files.contains_key("four-boxes/index.html"));
+}
+
+#[test]
+fn recipe_index_markdown_golden() {
+    // The guides surface is small and curated; lock the recipe index in full.
+    let model = model();
+    insta::assert_snapshot!(to_markdown(&model, &Page::RecipeIndex));
+}
+
+#[test]
+fn first_learning_path_markdown_golden() {
+    // The first learning path by slug (model.learning_paths is slug-sorted) — a
+    // deterministic representative exercising recipes + terms + adoption targets.
+    let model = model();
+    let slug = model.learning_paths[0].slug.clone();
+    insta::assert_snapshot!(to_markdown(&model, &Page::LearningPath(slug)));
 }
 
 #[test]

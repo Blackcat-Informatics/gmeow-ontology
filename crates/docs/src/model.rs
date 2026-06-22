@@ -65,6 +65,20 @@ const GMEOW_CONFIDENCE: &str = "https://blackcatinformatics.ca/gmeow/confidence"
 
 const GMEOW_DOCS_CONCERN: &str = "https://blackcatinformatics.ca/gmeow/docsConcern";
 
+// ── Guides-slice predicates / classes (recipes + learning paths, #853 T3b) ─────
+
+const GMEOW_RECIPE: &str = "https://blackcatinformatics.ca/gmeow/Recipe";
+const GMEOW_LEARNING_PATH: &str = "https://blackcatinformatics.ca/gmeow/LearningPath";
+const GMEOW_GUIDE_SLUG: &str = "https://blackcatinformatics.ca/gmeow/guideSlug";
+const GMEOW_GUIDE_TITLE: &str = "https://blackcatinformatics.ca/gmeow/guideTitle";
+const GMEOW_GUIDE_GOAL: &str = "https://blackcatinformatics.ca/gmeow/guideGoal";
+const GMEOW_LEARNING_AUDIENCE: &str = "https://blackcatinformatics.ca/gmeow/learningAudience";
+const GMEOW_USES_EXAMPLE_PATH: &str = "https://blackcatinformatics.ca/gmeow/usesExamplePath";
+const GMEOW_USES_TERM: &str = "https://blackcatinformatics.ca/gmeow/usesTerm";
+const GMEOW_INCLUDES_RECIPE: &str = "https://blackcatinformatics.ca/gmeow/includesRecipe";
+const GMEOW_ADOPTION_TARGET: &str = "https://blackcatinformatics.ca/gmeow/adoptionTarget";
+const GMEOW_FOLLOWS_GUIDE_PATH: &str = "https://blackcatinformatics.ca/gmeow/followsGuidePath";
+
 /// An error building the documentation model.
 #[derive(Debug)]
 pub enum DocsError {
@@ -323,6 +337,48 @@ pub struct DocExternalTerm {
     pub via_predicate: Vec<String>,
 }
 
+/// A task-oriented adoption recipe (`gmeow:Recipe`), parsed from the guides
+/// slice. A curated guide that sequences canonical examples + terms for one
+/// recurring modelling task (no domain axiom — pure pedagogy).
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+pub struct DocRecipe {
+    /// `gmeow:guideSlug` — the stable, filesystem-safe identifier.
+    pub slug: String,
+    /// `gmeow:guideTitle` (falling back to `rdfs:label`).
+    pub title: String,
+    /// `gmeow:guideGoal` — the prose modelling outcome.
+    pub goal: String,
+    /// `gmeow:usesExamplePath` — slice-relative example file paths (sorted).
+    pub example_paths: Vec<String>,
+    /// `gmeow:usesTerm` — referenced GMEOW term CURIEs (sorted, deduped).
+    pub term_curies: Vec<String>,
+    /// `gmeow:followsGuidePath` — documentation-relative follow-on pages (sorted).
+    pub follow_pages: Vec<String>,
+}
+
+/// A curated adoption journey (`gmeow:LearningPath`), parsed from the guides
+/// slice. Sequences recipes, examples, and terms for a named audience.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+pub struct DocLearningPath {
+    /// `gmeow:guideSlug` — the stable, filesystem-safe identifier.
+    pub slug: String,
+    /// `gmeow:guideTitle` (falling back to `rdfs:label`).
+    pub title: String,
+    /// `gmeow:learningAudience` — the intended-audience description.
+    pub audience: String,
+    /// `gmeow:guideGoal` — the prose modelling outcome.
+    pub goal: String,
+    /// `gmeow:includesRecipe` — the slugs of the recipes this path folds in
+    /// (resolved from the recipe individuals; sorted, deduped).
+    pub recipe_slugs: Vec<String>,
+    /// `gmeow:usesExamplePath` — slice-relative example file paths (sorted).
+    pub example_paths: Vec<String>,
+    /// `gmeow:usesTerm` — referenced GMEOW term CURIEs (sorted, deduped).
+    pub term_curies: Vec<String>,
+    /// `gmeow:adoptionTarget` — external-vocabulary prefix strings (sorted).
+    pub adoption_targets: Vec<String>,
+}
+
 /// The complete typed documentation model — one source of truth for every
 /// renderer. All collections are sorted by a stable key.
 ///
@@ -350,11 +406,18 @@ pub struct DocsModel {
     pub concerns: Vec<DocConcern>,
     /// All external (non-GMEOW) terms referenced (sorted by IRI).
     pub external_terms: Vec<DocExternalTerm>,
+    /// All adoption recipes parsed from the guides slice (sorted by slug).
+    pub recipes: Vec<DocRecipe>,
+    /// All curated learning paths parsed from the guides slice (sorted by slug).
+    pub learning_paths: Vec<DocLearningPath>,
+    /// The curated "four boxes" doctrine prose, read at build time from
+    /// `<root>/docs/four-boxes.md` if present (`None` when absent).
+    pub four_boxes: Option<String>,
 }
 
 impl DocsModel {
     /// The model schema version. Bump when the serialized shape changes.
-    pub const VERSION: &'static str = "2";
+    pub const VERSION: &'static str = "3";
 
     /// Build the documentation model from a discovered catalog and a computed
     /// ownership report.
@@ -470,6 +533,9 @@ impl DocsModel {
         // ── External terms (linkage objects + non-GMEOW term edges) ────────────
         let external_terms = extract_external_terms(&terms, &linkages);
 
+        // ── Guides: recipes + learning paths (parsed from module graphs) ───────
+        let (recipes, learning_paths) = extract_guides(catalog);
+
         Self {
             title: "GMEOW Ontology Documentation".to_string(),
             version: Self::VERSION.to_string(),
@@ -481,15 +547,21 @@ impl DocsModel {
             examples,
             concerns,
             external_terms,
+            recipes,
+            learning_paths,
+            four_boxes: None,
         }
     }
 
     /// Discover the slice catalog under `root/slices`, run ownership analysis,
-    /// and build the model.
+    /// and build the model. Also reads the curated `<root>/docs/four-boxes.md`
+    /// prose at build time, if present.
     pub fn discover(root: &Path) -> Result<Self, DocsError> {
         let catalog = SliceCatalog::discover(&root.join("slices"))?;
         let ownership = OwnershipAnalyzer::new(&catalog).analyze()?;
-        Ok(Self::from_catalog(&catalog, &ownership))
+        let mut model = Self::from_catalog(&catalog, &ownership);
+        model.four_boxes = std::fs::read_to_string(root.join("docs/four-boxes.md")).ok();
+        Ok(model)
     }
 }
 
@@ -862,6 +934,168 @@ fn extract_external_terms(terms: &[DocTerm], linkages: &[DocLinkage]) -> Vec<Doc
         .collect();
     out.sort_by(|a, b| a.iri.cmp(&b.iri));
     out
+}
+
+/// Extract the curated recipes + learning paths from every module graph that
+/// carries them (the guides slice). Recipes are parsed first so a learning
+/// path's `gmeow:includesRecipe` IRI edges can be resolved to recipe slugs.
+/// Both lists are returned sorted by slug.
+fn extract_guides(catalog: &SliceCatalog) -> (Vec<DocRecipe>, Vec<DocLearningPath>) {
+    // Recipe IRI → slug, so includesRecipe edges resolve to slugs.
+    let mut recipe_slug_by_iri: BTreeMap<String, String> = BTreeMap::new();
+    let mut recipes: Vec<(String, DocRecipe)> = Vec::new();
+
+    // Stash learning-path raw parses (with includesRecipe IRIs) for a second
+    // resolution pass once every recipe IRI→slug is known.
+    struct RawPath {
+        slug: String,
+        title: String,
+        audience: String,
+        goal: String,
+        recipe_iris: Vec<String>,
+        example_paths: Vec<String>,
+        term_curies: Vec<String>,
+        adoption_targets: Vec<String>,
+    }
+    let mut raw_paths: Vec<RawPath> = Vec::new();
+
+    for record in catalog.records() {
+        for artifact in &record.artifacts {
+            if artifact.role != ArtifactRole::Module {
+                continue;
+            }
+            let Ok(store) = parse_turtle_lenient(&artifact.content) else {
+                continue;
+            };
+
+            for iri in subjects_of_type(&store, GMEOW_RECIPE) {
+                let slug = first_literal(&store, &iri, GMEOW_GUIDE_SLUG)
+                    .unwrap_or_else(|| local_name(&iri).to_string());
+                let title = first_literal(&store, &iri, GMEOW_GUIDE_TITLE)
+                    .or_else(|| first_literal(&store, &iri, RDFS_LABEL))
+                    .unwrap_or_else(|| slug.clone());
+                let goal = first_literal(&store, &iri, GMEOW_GUIDE_GOAL).unwrap_or_default();
+                let example_paths = sorted_literals(&store, &iri, GMEOW_USES_EXAMPLE_PATH);
+                let term_curies = sorted_curie_objects(&store, &iri, GMEOW_USES_TERM);
+                let follow_pages = sorted_literals(&store, &iri, GMEOW_FOLLOWS_GUIDE_PATH);
+                recipe_slug_by_iri.insert(iri.clone(), slug.clone());
+                recipes.push((
+                    slug.clone(),
+                    DocRecipe {
+                        slug,
+                        title,
+                        goal,
+                        example_paths,
+                        term_curies,
+                        follow_pages,
+                    },
+                ));
+            }
+
+            for iri in subjects_of_type(&store, GMEOW_LEARNING_PATH) {
+                let slug = first_literal(&store, &iri, GMEOW_GUIDE_SLUG)
+                    .unwrap_or_else(|| local_name(&iri).to_string());
+                let title = first_literal(&store, &iri, GMEOW_GUIDE_TITLE)
+                    .or_else(|| first_literal(&store, &iri, RDFS_LABEL))
+                    .unwrap_or_else(|| slug.clone());
+                let audience =
+                    first_literal(&store, &iri, GMEOW_LEARNING_AUDIENCE).unwrap_or_default();
+                let goal = first_literal(&store, &iri, GMEOW_GUIDE_GOAL).unwrap_or_default();
+                let mut recipe_iris = named_objects(&store, &iri, GMEOW_INCLUDES_RECIPE);
+                recipe_iris.sort();
+                recipe_iris.dedup();
+                let example_paths = sorted_literals(&store, &iri, GMEOW_USES_EXAMPLE_PATH);
+                let term_curies = sorted_curie_objects(&store, &iri, GMEOW_USES_TERM);
+                let adoption_targets = sorted_literals(&store, &iri, GMEOW_ADOPTION_TARGET);
+                raw_paths.push(RawPath {
+                    slug,
+                    title,
+                    audience,
+                    goal,
+                    recipe_iris,
+                    example_paths,
+                    term_curies,
+                    adoption_targets,
+                });
+            }
+        }
+    }
+
+    let mut learning_paths: Vec<DocLearningPath> = raw_paths
+        .into_iter()
+        .map(|p| {
+            let mut recipe_slugs: Vec<String> = p
+                .recipe_iris
+                .iter()
+                .map(|iri| {
+                    recipe_slug_by_iri
+                        .get(iri)
+                        .cloned()
+                        .unwrap_or_else(|| local_name(iri).to_string())
+                })
+                .collect();
+            recipe_slugs.sort();
+            recipe_slugs.dedup();
+            DocLearningPath {
+                slug: p.slug,
+                title: p.title,
+                audience: p.audience,
+                goal: p.goal,
+                recipe_slugs,
+                example_paths: p.example_paths,
+                term_curies: p.term_curies,
+                adoption_targets: p.adoption_targets,
+            }
+        })
+        .collect();
+
+    let mut recipes: Vec<DocRecipe> = recipes.into_iter().map(|(_, r)| r).collect();
+    recipes.sort_by(|a, b| a.slug.cmp(&b.slug));
+    recipes.dedup_by(|a, b| a.slug == b.slug);
+    learning_paths.sort_by(|a, b| a.slug.cmp(&b.slug));
+    learning_paths.dedup_by(|a, b| a.slug == b.slug);
+    (recipes, learning_paths)
+}
+
+/// All literal objects of `subject predicate ?o`, sorted + deduped.
+fn sorted_literals(store: &Store, subject: &str, predicate: &str) -> Vec<String> {
+    let Ok(subject) = oxigraph::model::NamedNode::new(subject) else {
+        return Vec::new();
+    };
+    let mut out: Vec<String> = store
+        .quads_for_pattern(
+            Some(subject.as_ref().into()),
+            Some(named(predicate).as_ref()),
+            None,
+            Some(GraphNameRef::DefaultGraph),
+        )
+        .flatten()
+        .filter_map(|q| match q.object {
+            Term::Literal(lit) => Some(lit.value().to_string()),
+            _ => None,
+        })
+        .collect();
+    out.sort();
+    out.dedup();
+    out
+}
+
+/// All NamedNode objects of `subject predicate ?o` rendered as CURIEs, sorted +
+/// deduped (used for `gmeow:usesTerm` term references).
+fn sorted_curie_objects(store: &Store, subject: &str, predicate: &str) -> Vec<String> {
+    let mut out: Vec<String> = named_objects(store, subject, predicate)
+        .iter()
+        .map(|iri| to_curie(iri))
+        .collect();
+    out.sort();
+    out.dedup();
+    out
+}
+
+/// The local name of an IRI: the tail after the last `/` or `#`.
+fn local_name(iri: &str) -> &str {
+    let cut = iri.rfind(['/', '#']).map(|i| i + 1).unwrap_or(0);
+    &iri[cut..]
 }
 
 /// Whether an IRI is an http(s) external reference (excludes bnodes / non-IRIs).

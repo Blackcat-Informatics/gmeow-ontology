@@ -230,6 +230,9 @@ mod tests {
             examples: Vec::new(),
             concerns: Vec::new(),
             external_terms: Vec::new(),
+            recipes: Vec::new(),
+            learning_paths: Vec::new(),
+            four_boxes: None,
         }
     }
 

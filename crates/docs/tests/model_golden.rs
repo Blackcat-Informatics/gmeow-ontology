@@ -16,8 +16,8 @@ use std::collections::BTreeMap;
 use std::path::PathBuf;
 
 use gmeow_docs::{
-    DocConcern, DocExample, DocExternalTerm, DocLinkage, DocMappingSet, DocSlice, DocTerm,
-    DocTermCategory, DocsModel,
+    DocConcern, DocExample, DocExternalTerm, DocLearningPath, DocLinkage, DocMappingSet, DocRecipe,
+    DocSlice, DocTerm, DocTermCategory, DocsModel,
 };
 use serde::Serialize;
 
@@ -79,6 +79,18 @@ struct ModelSummary {
     sample_concern: Option<DocConcern>,
     /// ONE fully serialized external term (first by IRI).
     sample_external_term: Option<DocExternalTerm>,
+
+    // ── New (T3b) guides collections: counts + one sample each ──────────────
+    /// Number of adoption recipes.
+    recipe_count: usize,
+    /// Number of curated learning paths.
+    learning_path_count: usize,
+    /// Whether the curated four-boxes prose was discovered.
+    has_four_boxes: bool,
+    /// ONE fully serialized recipe (first by slug).
+    sample_recipe: Option<DocRecipe>,
+    /// ONE fully serialized learning path (first by slug).
+    sample_learning_path: Option<DocLearningPath>,
 }
 
 impl ModelSummary {
@@ -143,6 +155,11 @@ impl ModelSummary {
             sample_example,
             sample_concern: model.concerns.first().cloned(),
             sample_external_term: model.external_terms.first().cloned(),
+            recipe_count: model.recipes.len(),
+            learning_path_count: model.learning_paths.len(),
+            has_four_boxes: model.four_boxes.is_some(),
+            sample_recipe: model.recipes.first().cloned(),
+            sample_learning_path: model.learning_paths.first().cloned(),
         }
     }
 }
