@@ -1,0 +1,32 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example — a minimal three-stage pipeline showing the spine shape the
+# gmeow-pipeline loader validates: a source load, a reasoning stage (the only
+# kind that carries the engine lock), and the single Sink (the gts narrow
+# waist). carriesEngineLock is DERIVED from the kind — true only on the Reason
+# stage — and the loader HARD-fails if an asserted value disagrees.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/pipeline/> .
+
+ex:minimalBuild a gmeow:Pipeline ;
+    gmeow:hasStage ex:load , ex:reason , ex:sink .
+
+ex:load a gmeow:PipelineStage ;
+    gmeow:stageKind gmeow:kindSourceLoad ;
+    gmeow:stageImpl "source_load" ;
+    gmeow:carriesEngineLock false .
+
+ex:reason a gmeow:PipelineStage ;
+    gmeow:stageKind gmeow:kindReason ;
+    gmeow:stageImpl "reason" ;
+    gmeow:dataflowConsumes ex:load ;
+    gmeow:carriesEngineLock true .
+
+ex:sink a gmeow:PipelineStage ;
+    gmeow:stageKind gmeow:kindSink ;
+    gmeow:stageImpl "gts_sink" ;
+    gmeow:dataflowConsumes ex:reason ;
+    gmeow:producesFormat "gts" ;
+    gmeow:carriesEngineLock false .

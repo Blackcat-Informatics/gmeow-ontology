@@ -1,0 +1,19 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow:   <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+
+<https://blackcatinformatics.ca/gmeow/slices/pipeline>
+    a gmeow:Slice ;
+    rdfs:label "pipeline"@x-gmeow-english ;
+    skos:definition "The pipeline slice of the GMEOW ontology (core tier): GMEOW Build Pipeline Module — the dogfooded build graph. It introduces gmeow:Pipeline and gmeow:PipelineStage so the project's own build is authored as data: a directed acyclic graph of typed stages that exchange an in-memory RDF dataset rather than re-parsing the GTS bundle per generator. The gmeow-pipeline Rust executor reads these individuals back, validates them (acyclic, complete, exactly one Sink, engine-lock derived), and runs them. Anatomy, dependencies, and consumer are declared in this manifest; the manifest is the sole source of slice identity and tier."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    dcterms:title "GMEOW Build Pipeline Module"@x-gmeow-english ;
+    dcterms:creator "Blackcat Informatics® Inc." ;
+    gmeow:sliceTier gmeow:tierCore ;
+    gmeow:sliceDependsOn
+        <https://blackcatinformatics.ca/gmeow/slices/kernel> ;
+    gmeow:sliceConsumer "The gmeow-pipeline Rust crate (#861): its loader reads the gmeow:Pipeline / gmeow:PipelineStage individuals as the build DAG, binds each gmeow:stageImpl to a Rust Stage in the STAGE_REGISTRY, validates the graph, and the scheduler runs it single-pass. The build is thereby a first-class ontological citizen (MAXIMAL DOGFOODING); the migrated meta:gate-generator-registry queries gmeow:pipeline-build instead of the retired Python generator list."@x-gmeow-english .

@@ -1,0 +1,493 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow:   <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
+@prefix owl:     <http://www.w3.org/2002/07/owl#> .
+@prefix gufo:    <http://purl.org/nemo/gufo#> .
+@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
+
+# =========================================================================== #
+# Classes — the dogfooded build graph.                                        #
+# =========================================================================== #
+
+gmeow:Pipeline
+    a gufo:Kind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "Pipeline"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:SocialObject ;
+    skos:definition "A directed acyclic graph of build stages — the project's own build, authored as data. A Pipeline gathers its gmeow:PipelineStage members through gmeow:hasStage; the gmeow-pipeline executor reads it back, validates the graph (acyclic, complete, exactly one Sink, engine-lock derived), and runs every stage single-pass over an in-memory RDF dataset. Existing by the project's own convention, it is a gmeow:SocialObject (a description), not a physical thing."@x-gmeow-english ;
+    skos:example "gmeow:pipeline-build a gmeow:Pipeline ; gmeow:hasStage gmeow:stage-source-load ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:PipelineStage
+    a gufo:Kind ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "Pipeline Stage"@x-gmeow-english ;
+    rdfs:subClassOf gmeow:SocialObject ;
+    skos:definition "One node in a gmeow:Pipeline build graph: a typed unit of work that consumes the products of the stages it gmeow:dataflowConsumes and produces one product, passed in memory to its consumers rather than re-parsed from disk. Its gmeow:stageKind selects scheduling treatment, its gmeow:stageImpl binds it to a Rust Stage implementation, and its gmeow:carriesEngineLock (derived from the kind) marks whether it must run under the process-wide reasoning engine lock."@x-gmeow-english ;
+    skos:example "gmeow:stage-reason a gmeow:PipelineStage ; gmeow:stageKind gmeow:kindReason ; gmeow:stageImpl \"reason\" ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+gmeow:StageKind
+    a gufo:AbstractIndividualType ,
+        owl:Class ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "Stage Kind"@x-gmeow-english ;
+    rdfs:subClassOf gufo:QualityValue ;
+    skos:definition "The kind of a build stage — a closed value vocabulary that selects how the scheduler treats the stage: gmeow:kindSourceLoad, gmeow:kindTransform, gmeow:kindReason (the only lock-carrying kind), gmeow:kindValidate, gmeow:kindDocsRender, gmeow:kindExportLeaf, and gmeow:kindSink (the single serialization exit). Its members are individuals, never subclasses, and exactly one applies to each stage."@x-gmeow-english ;
+    skos:example "gmeow:stage-source-load gmeow:stageKind gmeow:kindSourceLoad ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxTBox .
+
+# =========================================================================== #
+# Properties.                                                                 #
+# =========================================================================== #
+
+gmeow:hasStage
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "has stage"@x-gmeow-english ;
+    rdfs:domain gmeow:Pipeline ;
+    rdfs:range gmeow:PipelineStage ;
+    skos:definition "Relates a gmeow:Pipeline to one of its member stages. Non-functional: a pipeline has many stages. The full membership defines the node set the executor validates and schedules."@x-gmeow-english ;
+    skos:example "gmeow:pipeline-build gmeow:hasStage gmeow:stage-gts-sink ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:dataflowConsumes
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "dataflow consumes"@x-gmeow-english ;
+    rdfs:domain gmeow:PipelineStage ;
+    rdfs:range gmeow:PipelineStage ;
+    skos:definition "Relates a stage to an upstream stage whose product it reads. The edge direction is consumer → producer; the executor inverts it to schedule producers first. The transitive closure of gmeow:dataflowConsumes must be acyclic — the loader HARD-fails on a cycle. The Rust Stage's consumes() must agree with this declaration exactly (Rust/RDF agreement)."@x-gmeow-english ;
+    skos:example "gmeow:stage-reason gmeow:dataflowConsumes gmeow:stage-statements ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:dataflowProduces
+    a owl:ObjectProperty ;
+    owl:inverseOf gmeow:dataflowConsumes ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "dataflow produces"@x-gmeow-english ;
+    rdfs:domain gmeow:PipelineStage ;
+    rdfs:range gmeow:PipelineStage ;
+    skos:definition "The inverse of gmeow:dataflowConsumes: relates a stage to a downstream stage that reads its product. Declared for query convenience (a producer can enumerate its consumers); the canonical authored direction is gmeow:dataflowConsumes, so the inverse is normally left to be inferred rather than asserted."@x-gmeow-english ;
+    skos:example "gmeow:stage-statements gmeow:dataflowProduces gmeow:stage-reason ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:stageKind
+    a owl:ObjectProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "stage kind"@x-gmeow-english ;
+    rdfs:domain gmeow:PipelineStage ;
+    rdfs:range gmeow:StageKind ;
+    skos:definition "The kind of a stage — exactly one gmeow:StageKind individual. It selects the scheduler's treatment and DERIVES gmeow:carriesEngineLock (true exactly when the kind is gmeow:kindReason). Functional in practice: one kind per stage."@x-gmeow-english ;
+    skos:example "gmeow:stage-gts-sink gmeow:stageKind gmeow:kindSink ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:stageImpl
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "stage impl"@x-gmeow-english ;
+    rdfs:domain gmeow:PipelineStage ;
+    rdfs:range xsd:string ;
+    skos:definition "The registry key binding a stage to its Rust Stage implementation in the gmeow-pipeline STAGE_REGISTRY. Exactly one per stage; the loader HARD-fails if the key resolves to no implementation. Stable across runs and language-neutral (an identifier, not localizable prose)."@x-gmeow-english ;
+    skos:example "gmeow:stage-reason gmeow:stageImpl \"reason\" ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:producesFormat
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "produces format"@x-gmeow-english ;
+    rdfs:domain gmeow:PipelineStage ;
+    rdfs:range xsd:string ;
+    skos:definition "An output format tag a stage emits — typically on a gmeow:kindExportLeaf, which folds one artifact of this format into the bundle. Non-functional: a leaf may emit several formats. Stable identifiers (e.g. \"parquet\", \"linkml\"), not localizable prose."@x-gmeow-english ;
+    skos:example "gmeow:stage-export-parquet gmeow:producesFormat \"parquet\" ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+gmeow:carriesEngineLock
+    a owl:DatatypeProperty ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "carries engine lock"@x-gmeow-english ;
+    rdfs:domain gmeow:PipelineStage ;
+    rdfs:range xsd:boolean ;
+    skos:definition "Whether a stage must run under the process-wide reasoning engine lock. This is DERIVED, not independent: it is true exactly when gmeow:stageKind is gmeow:kindReason (the Nemo/Scryer engines hold global locks). The loader HARD-fails if the asserted value disagrees with the kind-derived value, so RDF and Rust can never diverge (single source of truth)."@x-gmeow-english ;
+    skos:example "gmeow:stage-reason gmeow:carriesEngineLock true ."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxRBox .
+
+# =========================================================================== #
+# StageKind value vocabulary (individuals).                                   #
+# =========================================================================== #
+
+gmeow:kindSourceLoad
+    a gmeow:StageKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "source load"@x-gmeow-english ;
+    skos:definition "Parse authored sources (statement-DSL, slice modules, transitive imports) into the initial in-memory dataset. The only kind whose inputs are files rather than upstream stage products, so its cache key folds the source-file digest."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:kindTransform
+    a gmeow:StageKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "transform"@x-gmeow-english ;
+    skos:definition "A pure in-memory dataset → dataset transform (e.g. statement compilation, mapping compilation, bundle composition). Parallel-eligible within its topological level; carries no engine lock."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:kindReason
+    a gmeow:StageKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "reason"@x-gmeow-english ;
+    skos:definition "Reasoning (native EL/DL closure, logic materialization). The ONLY lock-carrying kind: it serializes under the process-wide engine lock because the underlying Nemo/Scryer engines are not concurrency-safe. gmeow:carriesEngineLock is true for exactly this kind."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:kindValidate
+    a gmeow:StageKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "validate"@x-gmeow-english ;
+    skos:definition "A validation pass (SHACL, annotation lints) that reads the dataset and produces diagnostics rather than new data. Parallel-eligible; carries no engine lock."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:kindDocsRender
+    a gmeow:StageKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "docs render"@x-gmeow-english ;
+    skos:definition "Documentation rendering over the composed dataset (the crates/docs model). Consumes the composed bundle and folds the rendered doc artifacts back into it; parallel-eligible with the export leaves."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:kindExportLeaf
+    a gmeow:StageKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "export leaf"@x-gmeow-english ;
+    skos:definition "An independent output-format leaf: consumes the composed dataset and folds one artifact (its gmeow:producesFormat) into the single bundle. The lock-free parallel fan-out — many leaves run concurrently within one level."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+gmeow:kindSink
+    a gmeow:StageKind ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "sink"@x-gmeow-english ;
+    skos:definition "The sole serialization exit — the gts narrow waist. Exactly one Sink per pipeline; it serializes the fully-folded bundle to gmeow.gts once. The loader HARD-fails on zero or more than one Sink."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox .
+
+# =========================================================================== #
+# The canonical build DAG (gmeow:pipeline-build) — dogfooded as data.         #
+#                                                                             #
+# This IS the project's build graph: the gmeow-pipeline executor reads it     #
+# back, binds each gmeow:stageImpl to a registered Rust Stage, validates it    #
+# (acyclic, complete, exactly one Sink, engine-lock derived), and runs it      #
+# single-pass. The migrated meta:gate-generator-registry queries these stages. #
+# Spine: source-load → (statements, mappings) → reason → gts-compose →         #
+# {docs-render + export leaves} → gts-sink (the one serialization).            #
+# =========================================================================== #
+
+gmeow:pipeline-build
+    a gmeow:Pipeline ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "GMEOW build pipeline"@x-gmeow-english ;
+    skos:definition "The canonical GMEOW build: the directed acyclic graph of stages the gmeow-pipeline executor runs to produce gmeow.gts and every committed artifact in one pass. The authoritative build graph, replacing the retired Python generator registry."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:hasStage
+        gmeow:stage-source-load ,
+        gmeow:stage-statements ,
+        gmeow:stage-mappings ,
+        gmeow:stage-reason ,
+        gmeow:stage-gts-compose ,
+        gmeow:stage-docs-render ,
+        gmeow:stage-export-schemas ,
+        gmeow:stage-export-catalog ,
+        gmeow:stage-export-profiles ,
+        gmeow:stage-export-parquet ,
+        gmeow:stage-export-exports ,
+        gmeow:stage-export-okf ,
+        gmeow:stage-export-apache ,
+        gmeow:stage-export-frame-shapes ,
+        gmeow:stage-export-matrix ,
+        gmeow:stage-export-metadata ,
+        gmeow:stage-export-research-objects ,
+        gmeow:stage-export-references ,
+        gmeow:stage-export-evals ,
+        gmeow:stage-export-lpg ,
+        gmeow:stage-export-logic ,
+        gmeow:stage-gts-sink .
+
+# ── Spine ──
+
+gmeow:stage-source-load
+    a gmeow:PipelineStage ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "source load"@x-gmeow-english ;
+    skos:definition "Parse the statement-DSL, slice modules, and transitive imports into the initial in-memory dataset — the root of the build DAG."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:stageKind gmeow:kindSourceLoad ;
+    gmeow:stageImpl "source_load" ;
+    gmeow:carriesEngineLock false .
+
+gmeow:stage-statements
+    a gmeow:PipelineStage ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "statements"@x-gmeow-english ;
+    skos:definition "Compile the RDF-1.2 statement lead and its OWL downcast from the loaded sources."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:stageKind gmeow:kindTransform ;
+    gmeow:stageImpl "statements" ;
+    gmeow:dataflowConsumes gmeow:stage-source-load ;
+    gmeow:carriesEngineLock false .
+
+gmeow:stage-mappings
+    a gmeow:PipelineStage ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "mappings"@x-gmeow-english ;
+    skos:definition "Compile the mapping-DSL into SSSOM, EDOAL, FnO, and SPARQL alignment artifacts."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:stageKind gmeow:kindTransform ;
+    gmeow:stageImpl "mappings" ;
+    gmeow:dataflowConsumes gmeow:stage-source-load ;
+    gmeow:carriesEngineLock false .
+
+gmeow:stage-reason
+    a gmeow:PipelineStage ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "reason"@x-gmeow-english ;
+    skos:definition "Compute the native EL/DL reasoned closure and logic materialization. The only lock-carrying stage: it runs under the process-wide reasoning engine lock."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:stageKind gmeow:kindReason ;
+    gmeow:stageImpl "reason" ;
+    gmeow:dataflowConsumes gmeow:stage-statements ;
+    gmeow:carriesEngineLock true .
+
+gmeow:stage-gts-compose
+    a gmeow:PipelineStage ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "gts compose"@x-gmeow-english ;
+    skos:definition "Assemble the unified in-memory RdfBundle (dataset + provenance + unit catalog) every downstream leaf and the sink fold artifacts into."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:stageKind gmeow:kindTransform ;
+    gmeow:stageImpl "gts_compose" ;
+    gmeow:dataflowConsumes
+        gmeow:stage-statements ,
+        gmeow:stage-mappings ,
+        gmeow:stage-reason ;
+    gmeow:carriesEngineLock false .
+
+gmeow:stage-docs-render
+    a gmeow:PipelineStage ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "docs render"@x-gmeow-english ;
+    skos:definition "Render the typed documentation model (crates/docs) over the composed dataset and fold the doc artifacts into the bundle."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:stageKind gmeow:kindDocsRender ;
+    gmeow:stageImpl "docs_render" ;
+    gmeow:dataflowConsumes gmeow:stage-gts-compose ;
+    gmeow:carriesEngineLock false .
+
+# ── Export leaves (parallel fan-out, each folds one artifact set) ──
+
+gmeow:stage-export-schemas
+    a gmeow:PipelineStage ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "export: schemas"@x-gmeow-english ;
+    skos:definition "Project the composed dataset to LinkML + downstream schema artifacts."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:stageKind gmeow:kindExportLeaf ;
+    gmeow:stageImpl "schemas" ;
+    gmeow:dataflowConsumes gmeow:stage-gts-compose ;
+    gmeow:producesFormat "linkml" ;
+    gmeow:carriesEngineLock false .
+
+gmeow:stage-export-catalog
+    a gmeow:PipelineStage ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "export: catalog"@x-gmeow-english ;
+    skos:definition "Emit the OWL import catalog (catalog-v001.xml) from the slice manifests."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:stageKind gmeow:kindExportLeaf ;
+    gmeow:stageImpl "catalog" ;
+    gmeow:dataflowConsumes gmeow:stage-gts-compose ;
+    gmeow:producesFormat "catalog-xml" ;
+    gmeow:carriesEngineLock false .
+
+gmeow:stage-export-profiles
+    a gmeow:PipelineStage ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "export: profiles"@x-gmeow-english ;
+    skos:definition "Emit the dependency-closed named profile ontology documents from the slice manifests."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:stageKind gmeow:kindExportLeaf ;
+    gmeow:stageImpl "profiles" ;
+    gmeow:dataflowConsumes gmeow:stage-gts-compose ;
+    gmeow:producesFormat "profile-ttl" ;
+    gmeow:carriesEngineLock false .
+
+gmeow:stage-export-parquet
+    a gmeow:PipelineStage ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "export: parquet"@x-gmeow-english ;
+    skos:definition "Project the composed dataset to the per-table Parquet columnar form."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:stageKind gmeow:kindExportLeaf ;
+    gmeow:stageImpl "parquet" ;
+    gmeow:dataflowConsumes gmeow:stage-gts-compose ;
+    gmeow:producesFormat "parquet" ;
+    gmeow:carriesEngineLock false .
+
+gmeow:stage-export-exports
+    a gmeow:PipelineStage ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "export: flat views"@x-gmeow-english ;
+    skos:definition "Emit the flattened export views: CSV/CSVW, Markdown, JSONL, and llms.txt."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:stageKind gmeow:kindExportLeaf ;
+    gmeow:stageImpl "exports" ;
+    gmeow:dataflowConsumes gmeow:stage-gts-compose ;
+    gmeow:producesFormat "csv" , "jsonl" , "markdown" , "llms-txt" ;
+    gmeow:carriesEngineLock false .
+
+gmeow:stage-export-okf
+    a gmeow:PipelineStage ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "export: OKF"@x-gmeow-english ;
+    skos:definition "Emit the Open Knowledge Format concept-document bundle."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:stageKind gmeow:kindExportLeaf ;
+    gmeow:stageImpl "okf" ;
+    gmeow:dataflowConsumes gmeow:stage-gts-compose ;
+    gmeow:producesFormat "okf" ;
+    gmeow:carriesEngineLock false .
+
+gmeow:stage-export-apache
+    a gmeow:PipelineStage ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "export: apache headers"@x-gmeow-english ;
+    skos:definition "Emit the Apache-style license headers from the self-description template."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:stageKind gmeow:kindExportLeaf ;
+    gmeow:stageImpl "apache" ;
+    gmeow:dataflowConsumes gmeow:stage-gts-compose ;
+    gmeow:producesFormat "asf-license" ;
+    gmeow:carriesEngineLock false .
+
+gmeow:stage-export-frame-shapes
+    a gmeow:PipelineStage ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "export: frame shapes"@x-gmeow-english ;
+    skos:definition "Generate SHACL from the gmeow:requiresFrame frame-relativity declarations."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:stageKind gmeow:kindExportLeaf ;
+    gmeow:stageImpl "frame_shapes" ;
+    gmeow:dataflowConsumes gmeow:stage-gts-compose ;
+    gmeow:producesFormat "shacl" ;
+    gmeow:carriesEngineLock false .
+
+gmeow:stage-export-matrix
+    a gmeow:PipelineStage ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "export: matrix"@x-gmeow-english ;
+    skos:definition "Emit the CI compatibility matrix (Makefile.matrix)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:stageKind gmeow:kindExportLeaf ;
+    gmeow:stageImpl "matrix" ;
+    gmeow:dataflowConsumes gmeow:stage-gts-compose ;
+    gmeow:producesFormat "makefile-matrix" ;
+    gmeow:carriesEngineLock false .
+
+gmeow:stage-export-metadata
+    a gmeow:PipelineStage ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "export: metadata"@x-gmeow-english ;
+    skos:definition "Emit the build-metadata files (BUILD.bazel and Sphinx metadata)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:stageKind gmeow:kindExportLeaf ;
+    gmeow:stageImpl "metadata" ;
+    gmeow:dataflowConsumes gmeow:stage-gts-compose ;
+    gmeow:producesFormat "bazel" ;
+    gmeow:carriesEngineLock false .
+
+gmeow:stage-export-research-objects
+    a gmeow:PipelineStage ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "export: research objects"@x-gmeow-english ;
+    skos:definition "Emit the RO-Crate research-object archives from the example inputs."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:stageKind gmeow:kindExportLeaf ;
+    gmeow:stageImpl "research_objects" ;
+    gmeow:dataflowConsumes gmeow:stage-gts-compose ;
+    gmeow:producesFormat "ro-crate" ;
+    gmeow:carriesEngineLock false .
+
+gmeow:stage-export-references
+    a gmeow:PipelineStage ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "export: references"@x-gmeow-english ;
+    skos:definition "Emit the citation / reference index (gmeow-references.ttl)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:stageKind gmeow:kindExportLeaf ;
+    gmeow:stageImpl "references" ;
+    gmeow:dataflowConsumes gmeow:stage-gts-compose ;
+    gmeow:producesFormat "references-ttl" ;
+    gmeow:carriesEngineLock false .
+
+gmeow:stage-export-evals
+    a gmeow:PipelineStage ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "export: evals"@x-gmeow-english ;
+    skos:definition "Emit the evaluation JSON / CSV report tables."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:stageKind gmeow:kindExportLeaf ;
+    gmeow:stageImpl "evals" ;
+    gmeow:dataflowConsumes gmeow:stage-gts-compose ;
+    gmeow:producesFormat "evals-json" ;
+    gmeow:carriesEngineLock false .
+
+gmeow:stage-export-lpg
+    a gmeow:PipelineStage ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "export: LPG"@x-gmeow-english ;
+    skos:definition "Emit the labeled-property-graph artifacts (CSV, Cypher, JSON-LD)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:stageKind gmeow:kindExportLeaf ;
+    gmeow:stageImpl "lpg" ;
+    gmeow:dataflowConsumes gmeow:stage-gts-compose ;
+    gmeow:producesFormat "lpg-cypher" ;
+    gmeow:carriesEngineLock false .
+
+gmeow:stage-export-logic
+    a gmeow:PipelineStage ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "export: logic"@x-gmeow-english ;
+    skos:definition "Emit the logic artifacts (reasoned closure, explanations, ledger) projected from the composed dataset."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:stageKind gmeow:kindExportLeaf ;
+    gmeow:stageImpl "logic" ;
+    gmeow:dataflowConsumes gmeow:stage-gts-compose ;
+    gmeow:producesFormat "logic-ttl" ;
+    gmeow:carriesEngineLock false .
+
+# ── The single serialization exit (the gts narrow waist) ──
+
+gmeow:stage-gts-sink
+    a gmeow:PipelineStage ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "gts sink"@x-gmeow-english ;
+    skos:definition "Serialize the fully-folded bundle to generated/dist/gmeow.gts — the ONE canonical exit (narrow waist). Consumes the docs render and every export leaf so all artifacts are folded in before the single serialization."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:stageKind gmeow:kindSink ;
+    gmeow:stageImpl "gts_sink" ;
+    gmeow:dataflowConsumes
+        gmeow:stage-docs-render ,
+        gmeow:stage-export-schemas ,
+        gmeow:stage-export-catalog ,
+        gmeow:stage-export-profiles ,
+        gmeow:stage-export-parquet ,
+        gmeow:stage-export-exports ,
+        gmeow:stage-export-okf ,
+        gmeow:stage-export-apache ,
+        gmeow:stage-export-frame-shapes ,
+        gmeow:stage-export-matrix ,
+        gmeow:stage-export-metadata ,
+        gmeow:stage-export-research-objects ,
+        gmeow:stage-export-references ,
+        gmeow:stage-export-evals ,
+        gmeow:stage-export-lpg ,
+        gmeow:stage-export-logic ;
+    gmeow:carriesEngineLock false .

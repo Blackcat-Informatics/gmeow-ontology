@@ -1558,6 +1558,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "gmeow-pipeline"
+version = "0.1.0"
+dependencies = [
+ "gmeow-rdf",
+ "oxigraph",
+ "petgraph",
+ "pyo3",
+ "serde",
+ "sha2",
+ "tempfile",
+]
+
+[[package]]
 name = "gmeow-rdf"
 version = "0.1.0"
 dependencies = [
