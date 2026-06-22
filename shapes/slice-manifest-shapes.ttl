@@ -50,12 +50,18 @@ gmeow:SliceManifestShape
     ] ;
     sh:property [
         sh:path dcterms:title ;
-        sh:minCount 1 ; sh:maxCount 1 ;
-        # PROSE (human-facing, localizable): the title is a translatable label,
-        # so it carries @x-gmeow-english (lang-tag discipline, #820 S0).
+        sh:minCount 1 ;
+        # PROSE (human-facing, localizable): the title is a translatable label.
+        # sh:maxCount 1 is intentionally absent — the imminent whole-ontology
+        # Mandarin+French translation will add one literal per language tag.
+        # sh:uniqueLang true ensures at most one literal per language tag.
+        # The canonical @x-gmeow-english carrier is REQUIRED (qualified value
+        # shape below); additional translations are freely permitted.
         sh:nodeKind sh:Literal ;
-        sh:languageIn ( "x-gmeow-english" ) ;
-        sh:message "A slice carries one dcterms:title (projected to its CITATION.cff); the literal carries @x-gmeow-english (lang-tag discipline)."@x-gmeow-english ;
+        sh:uniqueLang true ;
+        sh:qualifiedValueShape [ sh:languageIn ( "x-gmeow-english" ) ] ;
+        sh:qualifiedMinCount 1 ;
+        sh:message "A slice carries at least the canonical @x-gmeow-english dcterms:title (projected to its CITATION.cff); translations may add further language-tagged literals, one per language tag."@x-gmeow-english ;
     ] ;
     sh:property [
         sh:path dcterms:creator ;
