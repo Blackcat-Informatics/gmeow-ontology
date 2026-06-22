@@ -24,8 +24,8 @@ demonstrates four ``gmeow:logic`` advantages over gUFO / OWL 2.
 
 from __future__ import annotations
 
-from rdflib import RDF, Graph, Literal, Namespace, URIRef
-from rdflib.namespace import OWL
+from gmeow_rdf.compat.rdflib import RDF, Graph, Literal, Namespace, URIRef
+from gmeow_rdf.compat.rdflib.namespace import OWL
 
 from gmeow_tools.config import IMPORTS_DIR, LOGIC_NAMESPACE, PREFIXES, SLICES_DIR
 

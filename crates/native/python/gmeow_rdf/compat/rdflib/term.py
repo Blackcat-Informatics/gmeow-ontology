@@ -55,20 +55,27 @@ _XSD_INTEGERS = frozenset(
 )
 
 
-class Node:
-    """Abstract base of every RDF term (mirrors ``rdflib.term.Node``)."""
+class Identifier(str):
+    """A ``str``-subclass RDF term (mirrors ``rdflib.term.Identifier``).
 
-    __slots__ = ()
-
-
-class Identifier(Node, str):
-    """A ``str``-subclass RDF term (mirrors ``rdflib.term.Identifier``)."""
+    The compat surface collapses RDFLib's abstract ``Node`` base into this class
+    (``Node`` below is an alias): every concrete term is a ``str`` subclass, so a
+    separate non-``str`` base buys nothing and only introduces type-boundary noise.
+    """
 
     __slots__ = ()
 
     def __new__(cls, value: str) -> Identifier:
         """Construct the term as its lexical/IRI string."""
         return str.__new__(cls, value)
+
+    def n3(self, namespace_manager: object | None = None) -> str:
+        """Return the N3/Turtle form (subclasses override; default = IRI form)."""
+        return f"<{self}>"
+
+
+#: RDFLib's abstract ``Node`` base — collapsed to :class:`Identifier` here.
+Node = Identifier
 
 
 class URIRef(Identifier):
@@ -237,7 +244,19 @@ class Literal(Identifier):
     def to_native(self) -> _NativeLiteral:
         """Return the native :class:`gmeow_rdf.Literal` counterpart."""
         if self._language is not None:
-            return gmeow_rdf.Literal(str(self), language=self._language)
+            try:
+                return gmeow_rdf.Literal(str(self), language=self._language)
+            except ValueError:
+                # The native Literal *constructor* validates language tags
+                # strictly (RFC 5646: private-use subtags ≤ 8 chars), but the
+                # lenient parser preserves the project's longer ``@x-gmeow-*`` tags
+                # (e.g. ``x-gmeow-traditional``). Round-trip through N-Triples so
+                # those tags survive construction, matching the parse path.
+                nt = f"<urn:x> <urn:x> {self.n3()} .".encode()
+                quad = gmeow_rdf.parse(nt, format=gmeow_rdf.RdfFormat.N_TRIPLES)[0]
+                obj = quad.object
+                assert isinstance(obj, gmeow_rdf.Literal)
+                return obj
         if self._datatype is not None:
             return gmeow_rdf.Literal(
                 str(self), datatype=gmeow_rdf.NamedNode(str(self._datatype))

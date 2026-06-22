@@ -30,9 +30,9 @@ from __future__ import annotations
 from collections.abc import Sequence
 from pathlib import Path
 
-from rdflib import RDF, Graph
-from rdflib.compare import graph_diff
-from rdflib.namespace import OWL
+from gmeow_rdf.compat.rdflib import RDF, Graph
+from gmeow_rdf.compat.rdflib.compare import graph_diff
+from gmeow_rdf.compat.rdflib.namespace import OWL
 
 from gmeow_tools.config import (
     PROJECT_ROOT,

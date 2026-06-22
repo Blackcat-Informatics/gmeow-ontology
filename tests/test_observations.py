@@ -15,7 +15,7 @@ kinship claims into one gufo:Relator structure. These tests verify:
 
 from __future__ import annotations
 
-from rdflib import OWL, RDF, RDFS, Graph, Namespace
+from gmeow_rdf.compat.rdflib import OWL, RDF, RDFS, Graph, Namespace
 
 from gmeow_tools.config import NAMESPACE
 from gmeow_tools.graph import load_merged_graph

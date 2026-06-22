@@ -5,8 +5,8 @@ from __future__ import annotations
 from pathlib import Path
 
 import gmeow_rdf
-from rdflib import RDF, XSD, Graph, Literal, URIRef
-from rdflib.term import Node
+from gmeow_rdf.compat.rdflib import RDF, XSD, Graph, Literal, URIRef
+from gmeow_rdf.compat.rdflib.term import Node
 
 from gmeow_tools import sparql
 from gmeow_tools.config import (
@@ -146,7 +146,7 @@ def test_geo_coordinates_cast_to_decimal() -> None:
     the source typed them — a scientific-notation xsd:double (5.355e+01) and a bare
     xsd:integer (47) both come out clean decimal (53.55 / 47), not the ugly,
     inconsistent source datatypes. The cast lives in the down-projection."""
-    from rdflib import XSD, BNode, Literal
+    from gmeow_rdf.compat.rdflib import XSD, BNode, Literal
 
     wgs84_lat = URIRef("http://www.w3.org/2003/01/geo/wgs84_pos#lat")
     src = load_merged_graph(include_imports=False)

@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from rdflib import Graph, URIRef
-from rdflib.namespace import OWL, SKOS
+from gmeow_rdf.compat.rdflib import Graph, URIRef
+from gmeow_rdf.compat.rdflib.namespace import OWL, SKOS
 
 from gmeow_tools.config import ALIGNMENT_TARGETS, LinkPolicy
 from gmeow_tools.mappings import build_alignment_graph, load_mappings
@@ -56,7 +56,7 @@ def test_event_types_aligned_to_bio() -> None:
 
 def test_parentchild_relationship_typed() -> None:
     # The reified parent-child relationship aligns to the GEDCOM X type.
-    from rdflib.namespace import SKOS
+    from gmeow_rdf.compat.rdflib.namespace import SKOS
 
     graph = _graph()
     assert (
@@ -76,7 +76,7 @@ def test_email_message_equivalent_to_schema() -> None:
 
 
 def test_email_participants_aligned_to_schema() -> None:
-    from rdflib.namespace import SKOS
+    from gmeow_rdf.compat.rdflib.namespace import SKOS
 
     graph = _graph()
     # The author/recipient role properties close-match their schema.org peers.
@@ -93,7 +93,7 @@ def test_email_participants_aligned_to_schema() -> None:
 
 
 def test_trust_aligned_to_wot_schema() -> None:
-    from rdflib.namespace import SKOS
+    from gmeow_rdf.compat.rdflib.namespace import SKOS
 
     graph = _graph()
     assert (
@@ -109,7 +109,7 @@ def test_trust_aligned_to_wot_schema() -> None:
 
 
 def test_relationships_aligned_to_rel_vocab() -> None:
-    from rdflib.namespace import SKOS
+    from gmeow_rdf.compat.rdflib.namespace import SKOS
 
     graph = _graph()
     assert (
@@ -126,7 +126,7 @@ def test_wot_is_reference_only() -> None:
 
 
 def test_import_provenance_aligned_to_prov_and_dcterms() -> None:
-    from rdflib.namespace import SKOS
+    from gmeow_rdf.compat.rdflib.namespace import SKOS
 
     graph = _graph()
     assert (
@@ -142,7 +142,7 @@ def test_import_provenance_aligned_to_prov_and_dcterms() -> None:
 
 
 def test_location_aligned_across_geo_vocabularies() -> None:
-    from rdflib.namespace import SKOS
+    from gmeow_rdf.compat.rdflib.namespace import SKOS
 
     graph = _graph()
     assert (
@@ -240,7 +240,7 @@ def test_schema_is_reference_only() -> None:
 
 
 def test_qb_alignments_present() -> None:
-    from rdflib.namespace import SKOS
+    from gmeow_rdf.compat.rdflib.namespace import SKOS
 
     graph = _graph()
     assert (
@@ -271,7 +271,7 @@ def test_all_mappings_expand() -> None:
 
 def test_quantity_aligned_to_qudt_quantity_value() -> None:
     """gmeow:Quantity maps to qudt:QuantityValue (#77)."""
-    from rdflib.namespace import SKOS
+    from gmeow_rdf.compat.rdflib.namespace import SKOS
 
     graph = _graph()
     assert (
@@ -283,7 +283,7 @@ def test_quantity_aligned_to_qudt_quantity_value() -> None:
 
 def test_quantity_value_aligned_to_qudt() -> None:
     """gmeow:quantityValue maps to qudt:quantityValue (#77)."""
-    from rdflib.namespace import SKOS
+    from gmeow_rdf.compat.rdflib.namespace import SKOS
 
     graph = _graph()
     assert (
@@ -295,7 +295,7 @@ def test_quantity_value_aligned_to_qudt() -> None:
 
 def test_quantity_uncertainty_aligned_to_qudt() -> None:
     """gmeow:quantityUncertainty maps to qudt:standardUncertainty (#77)."""
-    from rdflib.namespace import SKOS
+    from gmeow_rdf.compat.rdflib.namespace import SKOS
 
     graph = _graph()
     assert (
@@ -307,7 +307,7 @@ def test_quantity_uncertainty_aligned_to_qudt() -> None:
 
 def test_deception_event_type_aligned_to_wikidata() -> None:
     """gmeow:eventTypeDeception maps to wd:Q170028 (#213)."""
-    from rdflib.namespace import SKOS
+    from gmeow_rdf.compat.rdflib.namespace import SKOS
 
     graph = _graph()
     assert (
@@ -319,7 +319,7 @@ def test_deception_event_type_aligned_to_wikidata() -> None:
 
 def test_claim_review_aligned_to_attestation() -> None:
     """schema:ClaimReview maps to gmeow:Attestation as lossy projection (#213)."""
-    from rdflib.namespace import SKOS
+    from gmeow_rdf.compat.rdflib.namespace import SKOS
 
     graph = _graph()
     assert (
@@ -331,7 +331,7 @@ def test_claim_review_aligned_to_attestation() -> None:
 
 def test_rating_aligned_to_verification_result() -> None:
     """schema:Rating maps to gmeow:VerificationResult (#213)."""
-    from rdflib.namespace import SKOS
+    from gmeow_rdf.compat.rdflib.namespace import SKOS
 
     graph = _graph()
     assert (
@@ -343,7 +343,7 @@ def test_rating_aligned_to_verification_result() -> None:
 
 def test_bullshit_modality_aligned_to_crminf() -> None:
     """gmeow:bullshit extends CRMinf I6_Belief_Value (#213)."""
-    from rdflib.namespace import SKOS
+    from gmeow_rdf.compat.rdflib.namespace import SKOS
 
     graph = _graph()
     assert (

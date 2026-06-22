@@ -28,8 +28,8 @@ from dataclasses import dataclass, field
 from functools import lru_cache
 from pathlib import Path
 
-from rdflib import RDF, RDFS, Graph, URIRef
-from rdflib.term import Literal
+from gmeow_rdf.compat.rdflib import RDF, RDFS, Graph, URIRef
+from gmeow_rdf.compat.rdflib.term import Literal
 
 from gmeow_tools import diagnostics
 from gmeow_tools.config import PROJECT_ROOT

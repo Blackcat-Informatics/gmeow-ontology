@@ -10,8 +10,8 @@ snapshot proves the layer works at production scale and that the fold-side
 from __future__ import annotations
 
 import pytest
+from gmeow_rdf.compat.rdflib import RDFS, URIRef
 from gts import Term, TermKind, Writer, read
-from rdflib import RDFS, URIRef
 
 from gmeow_tools.config import (
     GTS_GRAPH_ALIGNMENTS,

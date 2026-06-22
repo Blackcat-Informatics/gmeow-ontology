@@ -5,8 +5,8 @@ Principles 4, 9, 10, 11, 12, 15, 16.
 
 from __future__ import annotations
 
-from rdflib import OWL, RDF, RDFS, Graph, Literal, Namespace, URIRef
-from rdflib.namespace import XSD
+from gmeow_rdf.compat.rdflib import OWL, RDF, RDFS, Graph, Literal, Namespace, URIRef
+from gmeow_rdf.compat.rdflib.namespace import XSD
 from tests._graph_nt import run_shacl
 
 from gmeow_tools.graph import load_merged_graph

@@ -26,6 +26,14 @@ class Namespace(str):
         """Return ``URIRef(base + name)``."""
         return URIRef(str(self) + name)
 
+    # `title` is a real ``str`` method, so normal attribute lookup would shadow the
+    # vocabulary term (e.g. ``DCTERMS.title``). Override it to a URIRef, exactly as
+    # RDFLib's Namespace does, so the one common collision resolves correctly.
+    @property
+    def title(self) -> URIRef:  # type: ignore[override]
+        """Return ``URIRef(base + "title")`` (RDFLib parity for ``DCTERMS.title``)."""
+        return URIRef(str(self) + "title")
+
     def __getitem__(self, key: str) -> URIRef:  # type: ignore[override]
         """Return ``URIRef(base + key)`` — supports names that are not identifiers."""
         return URIRef(str(self) + str(key))
@@ -59,6 +67,18 @@ class NamespaceManager:
         """Return the bound ``(prefix, namespace_iri)`` pairs."""
         return list(self._prefixes.items())
 
+    def normalizeUri(self, uri: str) -> str:  # noqa: N802 - RDFLib API name
+        """Return ``prefix:local`` for ``uri`` if a prefix matches, else ``<uri>``."""
+        text = str(uri)
+        best_prefix = ""
+        best_ns = ""
+        for prefix, namespace in self._prefixes.items():
+            if text.startswith(namespace) and len(namespace) > len(best_ns):
+                best_prefix, best_ns = prefix, namespace
+        if best_ns:
+            return f"{best_prefix}:{text[len(best_ns) :]}"
+        return f"<{text}>"
+
 
 # ── The closed standard vocabularies (RDFLib-equivalent attribute access) ────────
 
@@ -72,3 +92,6 @@ DCTERMS = Namespace("http://purl.org/dc/terms/")
 FOAF = Namespace("http://xmlns.com/foaf/0.1/")
 DCAT = Namespace("http://www.w3.org/ns/dcat#")
 VOID = Namespace("http://rdfs.org/ns/void#")
+SH = Namespace("http://www.w3.org/ns/shacl#")
+SDO = Namespace("https://schema.org/")
+PROV = Namespace("http://www.w3.org/ns/prov#")

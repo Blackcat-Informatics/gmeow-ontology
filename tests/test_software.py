@@ -11,7 +11,7 @@ from __future__ import annotations
 from itertools import combinations
 from pathlib import Path
 
-from rdflib import OWL, RDF, RDFS, Graph, Literal, Namespace
+from gmeow_rdf.compat.rdflib import OWL, RDF, RDFS, Graph, Literal, Namespace
 
 from gmeow_tools.graph import load_merged_graph
 from tests._graph_nt import run_shacl

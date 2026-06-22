@@ -14,9 +14,9 @@ from pathlib import Path
 
 import gmeow_rdf
 import pytest
-from rdflib import RDF, Graph, URIRef
-from rdflib.compare import isomorphic
-from rdflib.namespace import OWL
+from gmeow_rdf.compat.rdflib import RDF, Graph, URIRef
+from gmeow_rdf.compat.rdflib.compare import isomorphic
+from gmeow_rdf.compat.rdflib.namespace import OWL
 
 from gmeow_tools import statements_docker_check
 from gmeow_tools.config import (

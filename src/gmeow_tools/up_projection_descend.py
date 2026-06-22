@@ -37,8 +37,8 @@ from collections import defaultdict
 from dataclasses import dataclass
 from functools import lru_cache
 
-from rdflib import RDF, RDFS, Graph, Literal, URIRef
-from rdflib.term import Node
+from gmeow_rdf.compat.rdflib import RDF, RDFS, Graph, Literal, URIRef
+from gmeow_rdf.compat.rdflib.term import Node
 
 from gmeow_tools.graph import shared_merged_graph
 from gmeow_tools.language_tags import retag_graph_to_internal

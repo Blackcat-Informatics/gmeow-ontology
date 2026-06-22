@@ -15,7 +15,7 @@ import json
 from pathlib import Path
 
 import pytest
-from rdflib import OWL, RDF, RDFS, Graph, Namespace
+from gmeow_rdf.compat.rdflib import OWL, RDF, RDFS, Graph, Namespace
 
 from gmeow_tools.graph import load_merged_graph
 from tests._graph_nt import run_shacl
@@ -124,7 +124,7 @@ def test_example_answers_which_tool_under_which_invocation() -> None:
         )
     )
     assert len(rows) == 1
-    tool, invocation, args = rows[0]  # type: ignore[misc]
+    tool, invocation, args = rows[0]
     assert tool == EX.storeClaim
     assert invocation == EX["invocation-7"]
     assert "GTS spec" in str(args)

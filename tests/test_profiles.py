@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from rdflib import Graph, Literal, Namespace
-from rdflib.namespace import OWL, RDF, RDFS, SKOS
+from gmeow_rdf.compat.rdflib import Graph, Literal, Namespace
+from gmeow_rdf.compat.rdflib.namespace import OWL, RDF, RDFS, SKOS
 
 from gmeow_tools.graph import load_merged_graph
 from tests._graph_nt import run_shacl

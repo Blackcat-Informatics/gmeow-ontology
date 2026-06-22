@@ -16,8 +16,8 @@ live BFO, so the offline check cannot silently rot.
 from __future__ import annotations
 
 import pytest
-from rdflib import Graph, URIRef
-from rdflib.namespace import OWL, RDF, RDFS, SKOS
+from gmeow_rdf.compat.rdflib import Graph, URIRef
+from gmeow_rdf.compat.rdflib.namespace import OWL, RDF, RDFS, SKOS
 
 from gmeow_tools.config import ALIGNMENT_TARGETS, LinkPolicy
 from gmeow_tools.graph import load_merged_graph

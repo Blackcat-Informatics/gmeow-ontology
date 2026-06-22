@@ -9,7 +9,7 @@ the output as RDF.
 
 from __future__ import annotations
 
-from rdflib import Graph, Literal, Namespace, URIRef
+from gmeow_rdf.compat.rdflib import Graph, Literal, Namespace, URIRef
 
 from gmeow_tools.compliance import META as META_IRI
 from gmeow_tools.compliance import (
@@ -46,7 +46,7 @@ def _graph(report: str) -> Graph:
 def test_report_is_valid_turtle_covering_every_principle() -> None:
     graph = _graph(_report())
     meta = "https://blackcatinformatics.ca/gmeow/meta#"
-    from rdflib import RDF, URIRef
+    from gmeow_rdf.compat.rdflib import RDF, URIRef
 
     results = list(graph.subjects(RDF.type, URIRef(meta + "PrincipleResult")))
     assert len(results) == len(load_manifest().principles)

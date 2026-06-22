@@ -19,7 +19,24 @@ from pathlib import Path
 from typing import cast
 
 import pytest
-from rdflib import OWL, RDF, RDFS, BNode, Graph, Literal, Namespace, URIRef
+
+# The native-RL ≡ owlrl-RL agreement axis is the classic_cross_check oracle lane:
+# it builds rdflib graphs and runs the upstream owlrl reasoner over them. Both stay
+# on REAL rdflib/owlrl (installed via the `.[crosscheck]` extra); skip-collect this
+# whole module when they are absent from the runtime (purrdf P0, #834).
+pytest.importorskip("rdflib")
+pytest.importorskip("owlrl")
+
+from rdflib import (
+    OWL,
+    RDF,
+    RDFS,
+    BNode,
+    Graph,
+    Literal,
+    Namespace,
+    URIRef,
+)
 
 from gmeow_tools import rl_agreement
 from gmeow_tools.config import GTS_SNAPSHOT_FILE

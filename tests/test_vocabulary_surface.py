@@ -13,7 +13,7 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 
 import pytest
-from rdflib import OWL, RDF, Graph, Literal, Namespace, URIRef
+from gmeow_rdf.compat.rdflib import OWL, RDF, Graph, Literal, Namespace, URIRef
 
 from gmeow_tools.config import (
     CATALOG_FILE,
@@ -216,7 +216,7 @@ def test_landing_page_profiles_section_lists_every_profile() -> None:
 def test_dcat_describes_every_profile_as_a_dataset() -> None:
     """Machine-discoverable composition: full + each named profile is a
     dcat:Dataset with its IRI as the landing page (#330)."""
-    from rdflib.namespace import DCAT
+    from gmeow_rdf.compat.rdflib.namespace import DCAT
 
     from gmeow_tools.config import DCAT_FILE, FULL_PROFILE_IRI, NAMED_PROFILE_NS
     from gmeow_tools.profiles_gen import group_named_profiles

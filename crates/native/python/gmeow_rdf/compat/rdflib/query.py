@@ -37,7 +37,7 @@ class ResultRow(tuple[Identifier | None, ...]):
         """Map each variable name to its positional index (RDFLib parity)."""
         return {name: idx for idx, name in enumerate(self._vars)}
 
-    def __getitem__(self, key: int | str | slice) -> object:  # type: ignore[override]
+    def __getitem__(self, key: int | str | slice) -> Any:  # type: ignore[override]
         """Index by position (``int``/``slice``) or by variable name (``str``)."""
         if isinstance(key, str):
             try:

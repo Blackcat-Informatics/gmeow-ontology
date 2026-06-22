@@ -9,8 +9,8 @@ fixture idiom as :mod:`tests.test_validate` and :mod:`tests.test_statements`.
 from __future__ import annotations
 
 import gmeow_validate
-from rdflib import RDF, RDFS, Graph, URIRef
-from rdflib.namespace import OWL, Namespace
+from gmeow_rdf.compat.rdflib import RDF, RDFS, Graph, URIRef
+from gmeow_rdf.compat.rdflib.namespace import OWL, Namespace
 
 from gmeow_tools.config import NAMESPACE, PREFIXES
 from gmeow_tools.graph import iter_source_files

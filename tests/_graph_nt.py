@@ -23,7 +23,7 @@ from collections.abc import Iterator
 from contextlib import contextmanager
 from pathlib import Path
 
-from rdflib import Graph
+from gmeow_rdf.compat.rdflib import Graph
 
 from gmeow_tools import reasoning_lint as _reasoning_lint
 from gmeow_tools.config import SHAPES_FILE

@@ -9,7 +9,7 @@ precise point, while a place without the marker keeps its exact point.
 
 from __future__ import annotations
 
-from rdflib import Graph, Literal, URIRef
+from gmeow_rdf.compat.rdflib import Graph, Literal, URIRef
 
 from gmeow_tools.config import FIXTURES_DIR
 from gmeow_tools.graph import load_merged_graph

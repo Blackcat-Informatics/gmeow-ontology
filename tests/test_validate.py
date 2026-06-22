@@ -6,8 +6,8 @@ from pathlib import Path
 
 import gmeow_validate
 import pytest
-from rdflib import RDFS, Graph, Literal, URIRef
-from rdflib.namespace import OWL, RDF
+from gmeow_rdf.compat.rdflib import RDFS, Graph, Literal, URIRef
+from gmeow_rdf.compat.rdflib.namespace import OWL, RDF
 
 import gmeow_tools.i18n_lint as i18n_lint_mod
 import gmeow_tools.validate as validate_mod

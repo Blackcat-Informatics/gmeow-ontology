@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from rdflib import RDF, URIRef
+from gmeow_rdf.compat.rdflib import RDF, URIRef
 
 from gmeow_tools.coverage import CoverageReport, run_coverage, to_diagnostics_report
 from gmeow_tools.graph import load_merged_graph

@@ -11,8 +11,8 @@ flat gmeow:sex. Cross-axis independence lives in test_identity_orthogonality.py.
 
 from __future__ import annotations
 
-from rdflib import OWL, RDF, RDFS, Graph, URIRef
-from rdflib.query import ResultRow
+from gmeow_rdf.compat.rdflib import OWL, RDF, RDFS, Graph, URIRef
+from gmeow_rdf.compat.rdflib.query import ResultRow
 
 from gmeow_tools.config import COMPETENCY_DIR
 from gmeow_tools.graph import load_merged_graph

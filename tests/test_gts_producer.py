@@ -8,10 +8,10 @@ import sqlite3
 from collections.abc import Mapping
 from pathlib import Path
 
+from gmeow_rdf.compat.rdflib import BNode, Dataset, Graph, Literal, URIRef
+from gmeow_rdf.compat.rdflib.namespace import RDFS, XSD
 from gts import read, to_nquads
 from gts.wire import iter_items, unwrap_header
-from rdflib import BNode, Dataset, Graph, Literal, URIRef
-from rdflib.namespace import RDFS, XSD
 
 from gmeow_tools.gts_db import to_duckdb, to_sqlite
 from gmeow_tools.gts_producer import compile_gts, gts_from_graph

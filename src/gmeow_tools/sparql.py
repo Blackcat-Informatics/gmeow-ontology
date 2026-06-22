@@ -26,10 +26,11 @@ from __future__ import annotations
 from functools import lru_cache
 from io import BytesIO
 from pathlib import Path
+from typing import Protocol
 
 import gmeow_rdf
-from rdflib import Graph
-from rdflib.term import Identifier
+from gmeow_rdf.compat.rdflib import Graph
+from gmeow_rdf.compat.rdflib.term import Identifier
 
 from gmeow_tools.graph import bind_prefixes, iter_source_files
 
@@ -93,10 +94,22 @@ def merged_store(*, include_imports: bool = False) -> gmeow_rdf.Store:
     return _base_store(include_imports)
 
 
+class _SerializableGraph(Protocol):
+    """A graph that can serialize N-Triples — the compat ``Graph`` or rdflib's."""
+
+    def __len__(self) -> int:
+        """Triple count."""
+        ...
+
+    def serialize(self, *, format: str, encoding: str) -> bytes:
+        """Serialize the graph as bytes in ``format``."""
+        ...
+
+
 def store_with(
     *sources: Path | bytes,
     include_imports: bool = False,
-    extra_triples: Graph | None = None,
+    extra_triples: _SerializableGraph | None = None,
 ) -> gmeow_rdf.Store:
     """Build a fresh store of the merged ontology plus extra instance data.
 
@@ -123,8 +136,8 @@ def store_with(
     return store
 
 
-def store_from_graph(graph: Graph) -> gmeow_rdf.Store:
-    """Load an arbitrary rdflib graph into a fresh ``gmeow_rdf`` store."""
+def store_from_graph(graph: _SerializableGraph) -> gmeow_rdf.Store:
+    """Load an arbitrary graph (compat or rdflib) into a fresh ``gmeow_rdf`` store."""
     store = gmeow_rdf.Store()
     store.load(graph.serialize(format="nt", encoding="utf-8"), format=_NT)
     return store
@@ -206,7 +219,7 @@ def _to_ox_term(term: Identifier) -> _OxTerm:
 
 def _to_rdflib(value: _OxTerm | None) -> Identifier | None:
     """Convert one ``gmeow_rdf`` result term back to its rdflib counterpart."""
-    from rdflib import BNode, Literal, URIRef
+    from gmeow_rdf.compat.rdflib import BNode, Literal, URIRef
 
     if value is None:
         return None

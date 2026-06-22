@@ -4,9 +4,9 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from rdflib import RDF, Graph, URIRef
-from rdflib.compare import isomorphic
-from rdflib.namespace import OWL
+from gmeow_rdf.compat.rdflib import RDF, Graph, URIRef
+from gmeow_rdf.compat.rdflib.compare import isomorphic
+from gmeow_rdf.compat.rdflib.namespace import OWL
 
 from gmeow_tools.config import NAMESPACE
 from gmeow_tools.jsonld_context import build_context

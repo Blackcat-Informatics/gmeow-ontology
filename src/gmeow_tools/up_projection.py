@@ -46,8 +46,17 @@ from collections import defaultdict
 from dataclasses import dataclass, field
 from decimal import Decimal, InvalidOperation
 
-from rdflib import RDF, RDFS, XSD, BNode, Graph, Literal, Namespace, URIRef
-from rdflib.term import Node
+from gmeow_rdf.compat.rdflib import (
+    RDF,
+    RDFS,
+    XSD,
+    BNode,
+    Graph,
+    Literal,
+    Namespace,
+    URIRef,
+)
+from gmeow_rdf.compat.rdflib.term import Node
 
 from gmeow_tools.language_tags import retag_graph_to_internal
 from gmeow_tools.up_projection_audit import (
@@ -552,7 +561,7 @@ def build_lift_map() -> LiftMap:
     # Object properties can't carry a literal object; a rule targeting one lifts a
     # literal as a claim, not an ill-typed fact (see _lift_edge). Derived from the
     # merged ontology, never hand-listed.
-    from rdflib import OWL
+    from gmeow_rdf.compat.rdflib import OWL
 
     from gmeow_tools.graph import shared_merged_graph
 

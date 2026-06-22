@@ -12,7 +12,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from rdflib import OWL, RDF, Graph, Literal, Namespace
+from gmeow_rdf.compat.rdflib import OWL, RDF, Graph, Literal, Namespace
 
 from gmeow_tools.config import STATEMENT_OWL_FILE
 from gmeow_tools.graph import load_merged_graph

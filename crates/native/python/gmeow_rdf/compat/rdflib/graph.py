@@ -21,7 +21,7 @@ from typing import IO, Any, overload
 
 import gmeow_rdf
 
-from .namespace import NamespaceManager
+from .namespace import RDF, NamespaceManager
 from .query import Result, ResultRow
 from .term import (
     Identifier,
@@ -84,6 +84,18 @@ def _require(value: object) -> Identifier:
     return value
 
 
+def _rebuild_graph(
+    cls: type[Graph], nquads: bytes, prefixes: list[tuple[str, str]]
+) -> Graph:
+    """Reconstruct a graph from its N-Quads content (the pickle restore hook)."""
+    graph = cls()
+    if nquads.strip():
+        graph._store.load(nquads, format=_NQ)
+    for prefix, namespace in prefixes:
+        graph.bind(prefix, namespace)
+    return graph
+
+
 def _term_n3(term: Identifier) -> str:
     """Return a term's SPARQL/N3 form (delegating to its ``n3`` method)."""
     n3 = getattr(term, "n3", None)
@@ -125,6 +137,19 @@ class Graph:
         )
         self.identifier = identifier
         self.base = base
+
+    def __reduce__(
+        self,
+    ) -> tuple[object, tuple[type[Graph], bytes, list[tuple[str, str]]]]:
+        """Pickle by content (N-Quads) — the native ``Store`` is not picklable.
+
+        RDFLib's ``Graph`` is picklable, and the parallel generator/test runners
+        ship graphs across process boundaries, so the compat ``Graph`` must be too.
+        """
+        return (
+            _rebuild_graph,
+            (type(self), self._store.dump(format=_NQ), self._nsm.namespaces()),
+        )
 
     # ── prefixes ────────────────────────────────────────────────────────────────
 
@@ -279,6 +304,53 @@ class Graph:
         """Yield ``(predicate, object)`` pairs for ``(subject, *, *)``."""
         for _s, p, o in self.triples((subject, None, None)):
             yield (p, o)
+
+    def items(self, list_node: Identifier) -> Iterator[Identifier]:
+        """Yield the members of the ``rdf:List`` anchored at ``list_node``."""
+        node: Identifier | None = list_node
+        while node is not None and node != RDF.nil:
+            first = self.value(node, RDF.first)
+            if first is not None:
+                yield first
+            node = self.value(node, RDF.rest)
+
+    def transitive_objects(
+        self,
+        subject: Identifier,
+        predicate: Identifier,
+        remember: set[Identifier] | None = None,
+    ) -> Iterator[Identifier]:
+        """Yield ``subject`` and every object reachable via ``predicate`` (RDFLib)."""
+        if remember is None:
+            remember = set[Identifier]()
+        if subject in remember:
+            return
+        remember.add(subject)
+        yield subject
+        for obj in self.objects(subject, predicate):
+            yield from self.transitive_objects(obj, predicate, remember)
+
+    def transitive_subjects(
+        self,
+        predicate: Identifier,
+        object: Identifier,
+        remember: set[Identifier] | None = None,
+    ) -> Iterator[Identifier]:
+        """Yield ``object`` and every subject reaching it via ``predicate`` (RDFLib)."""
+        if remember is None:
+            remember = set[Identifier]()
+        if object in remember:
+            return
+        remember.add(object)
+        yield object
+        for subj in self.subjects(predicate, object):
+            yield from self.transitive_subjects(predicate, subj, remember)
+
+    def isomorphic(self, other: Graph) -> bool:
+        """Return whether this graph is isomorphic to ``other`` (RDFC-1.0)."""
+        from .compare import isomorphic
+
+        return isomorphic(self, other)
 
     # ── parse / serialize ─────────────────────────────────────────────────────────
 
@@ -468,6 +540,29 @@ class Graph:
         return result
 
 
+class _GraphView:
+    """An add target for one graph slot of a :class:`Dataset` (``Dataset.graph``)."""
+
+    def __init__(
+        self,
+        store: gmeow_rdf.Store,
+        graph_name: gmeow_rdf.NamedNode | gmeow_rdf.BlankNode | gmeow_rdf.DefaultGraph,
+    ) -> None:
+        """Bind to ``store`` and the graph slot ``graph_name``."""
+        self._store = store
+        self._graph_name = graph_name
+        self.identifier = graph_name
+
+    def add(self, triple: tuple[Identifier, Identifier, Identifier]) -> None:
+        """Add a triple into this view's graph slot."""
+        s, p, o = triple
+        self._store.add(
+            gmeow_rdf.Quad(
+                _native_subject(s), _native_predicate(p), to_native(o), self._graph_name
+            )
+        )
+
+
 class Dataset(Graph):
     """A quad-capable graph facade (RDFLib ``Dataset``); defaults to N-Quads."""
 
@@ -480,6 +575,33 @@ class Dataset(Graph):
         """Create an empty dataset."""
         super().__init__(store)
         self.default_union = default_union
+
+    def graph(self, identifier: Identifier) -> _GraphView:
+        """Return an add target for the named graph ``identifier``."""
+        return _GraphView(self._store, _native_subject(identifier))
+
+    @property
+    def default_graph(self) -> _GraphView:
+        """Return an add target for the (unnamed) default graph."""
+        return _GraphView(self._store, gmeow_rdf.DefaultGraph())
+
+    def quads(
+        self, pattern: tuple[object, object, object, object] | None = None
+    ) -> Iterator[tuple[Identifier, Identifier, Identifier, Identifier | None]]:
+        """Yield ``(s, p, o, graph_name)`` quads (``graph_name`` ``None`` = default)."""
+        for quad in self._store:
+            graph_name = quad.graph_name
+            gname = (
+                None
+                if isinstance(graph_name, gmeow_rdf.DefaultGraph)
+                else from_native(graph_name)
+            )
+            yield (
+                _require(from_native(quad.subject)),
+                _require(from_native(quad.predicate)),
+                _require(from_native(quad.object)),
+                gname,
+            )
 
     def parse(
         self,

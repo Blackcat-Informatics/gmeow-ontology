@@ -13,9 +13,9 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from rdflib import RDF, Graph, URIRef
-from rdflib.namespace import OWL
-from rdflib.term import Node
+from gmeow_rdf.compat.rdflib import RDF, Graph, URIRef
+from gmeow_rdf.compat.rdflib.namespace import OWL
+from gmeow_rdf.compat.rdflib.term import Node
 
 from gmeow_tools.config import (
     GENERATED_DIR,

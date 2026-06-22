@@ -10,7 +10,7 @@ from __future__ import annotations
 
 from functools import lru_cache
 
-from rdflib import OWL, RDF, RDFS, Graph, Namespace
+from gmeow_rdf.compat.rdflib import OWL, RDF, RDFS, Graph, Namespace
 
 from gmeow_tools.graph import load_merged_graph
 

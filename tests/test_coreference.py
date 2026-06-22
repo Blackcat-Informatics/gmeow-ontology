@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from rdflib import OWL, RDF, RDFS, Graph, URIRef
+from gmeow_rdf.compat.rdflib import OWL, RDF, RDFS, Graph, URIRef
 
 from gmeow_tools.config import FIXTURES_DIR
 from gmeow_tools.graph import load_merged_graph

@@ -12,7 +12,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from rdflib import RDF, Graph, Literal, URIRef
+from gmeow_rdf.compat.rdflib import RDF, Graph, Literal, URIRef
 
 from gmeow_tools.transform import transform
 from gmeow_tools.transpile import transpile

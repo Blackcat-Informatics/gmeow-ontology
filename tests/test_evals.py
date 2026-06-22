@@ -8,7 +8,7 @@ from __future__ import annotations
 import json
 
 import pytest
-from rdflib import Graph
+from gmeow_rdf.compat.rdflib import Graph
 
 from gmeow_tools.config import EVALS_DIR, PROJECT_ROOT
 from gmeow_tools.evals import (

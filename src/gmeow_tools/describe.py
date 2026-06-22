@@ -17,8 +17,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from rdflib import RDF, RDFS, Graph, Literal, Namespace, URIRef
-from rdflib.namespace import OWL, SKOS
+from gmeow_rdf.compat.rdflib import RDF, RDFS, Graph, Literal, Namespace, URIRef
+from gmeow_rdf.compat.rdflib.namespace import OWL, SKOS
 
 from gmeow_tools.config import NAMESPACE
 from gmeow_tools.language_tags import (

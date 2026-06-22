@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from rdflib import Literal, URIRef
-from rdflib.namespace import VOID
+from gmeow_rdf.compat.rdflib import Literal, URIRef
+from gmeow_rdf.compat.rdflib.namespace import VOID
 
 from gmeow_tools.config import VOID_DATASET_IRI
 from gmeow_tools.metadata import build_void_graph

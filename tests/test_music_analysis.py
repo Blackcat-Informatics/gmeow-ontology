@@ -5,7 +5,7 @@ Principles 2, 4, 5, 9, 10, 11, 14, 16.
 
 from __future__ import annotations
 
-from rdflib import OWL, RDF, RDFS, Graph, Namespace, URIRef
+from gmeow_rdf.compat.rdflib import OWL, RDF, RDFS, Graph, Namespace, URIRef
 
 from gmeow_tools.graph import load_merged_graph
 from gmeow_tools.statement_compile import emit_owl

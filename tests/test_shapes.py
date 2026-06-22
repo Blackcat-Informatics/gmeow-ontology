@@ -12,9 +12,9 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from rdflib import RDF, Graph, Literal, Namespace
-from rdflib.namespace import RDFS, SH, SKOS, XSD
-from rdflib.term import Node
+from gmeow_rdf.compat.rdflib import RDF, Graph, Literal, Namespace
+from gmeow_rdf.compat.rdflib.namespace import RDFS, SH, SKOS, XSD
+from gmeow_rdf.compat.rdflib.term import Node
 
 from tests._graph_nt import run_shacl
 

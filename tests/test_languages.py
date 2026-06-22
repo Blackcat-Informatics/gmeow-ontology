@@ -10,8 +10,8 @@ usageInterval.
 
 from __future__ import annotations
 
-from rdflib import OWL, RDF, RDFS, Graph, Literal, URIRef
-from rdflib.namespace import SKOS
+from gmeow_rdf.compat.rdflib import OWL, RDF, RDFS, Graph, Literal, URIRef
+from gmeow_rdf.compat.rdflib.namespace import SKOS
 
 from gmeow_tools.graph import load_merged_graph
 
@@ -539,8 +539,8 @@ def test_inverse_tag_map_recovers_natural_internal_tags() -> None:
 def test_retag_graph_to_internal_lifts_public_to_canonical() -> None:
     """``retag_graph_to_internal`` retags public BCP-47 literals up to the canonical
     internal form and leaves untagged / already-internal literals alone (#451)."""
-    from rdflib import Graph as RDFGraph
-    from rdflib import Literal, URIRef
+    from gmeow_rdf.compat.rdflib import Graph as RDFGraph
+    from gmeow_rdf.compat.rdflib import Literal, URIRef
 
     from gmeow_tools.language_tags import retag_graph_to_internal
 

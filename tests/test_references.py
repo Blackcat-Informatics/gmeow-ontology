@@ -5,7 +5,7 @@ import subprocess
 from pathlib import Path
 
 import pytest
-from rdflib import RDF, Graph, Literal, Namespace, URIRef
+from gmeow_rdf.compat.rdflib import RDF, Graph, Literal, Namespace, URIRef
 
 import gmeow_tools.references as references
 from gmeow_tools.references import (

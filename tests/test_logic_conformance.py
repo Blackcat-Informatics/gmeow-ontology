@@ -27,7 +27,7 @@ import json
 from pathlib import Path
 
 import pytest
-from rdflib import Graph
+from gmeow_rdf.compat.rdflib import Graph
 
 from tests._required_native import require_gmeow_logic
 

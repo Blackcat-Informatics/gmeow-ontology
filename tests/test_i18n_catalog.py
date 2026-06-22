@@ -5,8 +5,8 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
-from rdflib import Graph, Literal, Namespace
-from rdflib.namespace import RDFS, SKOS
+from gmeow_rdf.compat.rdflib import Graph, Literal, Namespace
+from gmeow_rdf.compat.rdflib.namespace import RDFS, SKOS
 
 from gmeow_tools.config import NAMESPACE, SLICES_DIR
 from gmeow_tools.i18n_catalog import (

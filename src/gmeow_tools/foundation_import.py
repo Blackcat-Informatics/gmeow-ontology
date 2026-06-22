@@ -44,7 +44,7 @@ from pathlib import Path
 from typing import Any
 from xml.sax.saxutils import escape
 
-from rdflib import RDF, RDFS, XSD, Graph, Literal, Namespace, URIRef
+from gmeow_rdf.compat.rdflib import RDF, RDFS, XSD, Graph, Literal, Namespace, URIRef
 
 from gmeow_tools.config import NAMESPACE
 
