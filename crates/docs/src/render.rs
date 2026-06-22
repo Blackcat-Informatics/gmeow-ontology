@@ -1603,6 +1603,8 @@ pub fn to_html_lang(model: &DocsModel, page: &Page, lang: &str) -> String {
         nav_item(&root, &Page::About.dir(), &label("page_about", "About")),
     ];
 
+    let page_lang = if lang == ENGLISH { "en" } else { lang };
+
     let tmpl = shell_env()
         .get_template("shell")
         .expect("shell template registered");
@@ -1614,6 +1616,7 @@ pub fn to_html_lang(model: &DocsModel, page: &Page, lang: &str) -> String {
         root_href => root,
         nav => nav,
         body => body_html,
+        page_lang => page_lang,
     })
     .expect("shell template renders")
 }
