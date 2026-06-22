@@ -38,7 +38,6 @@ class ValidateOptions:
         self,
         timings: bool = False,
         sameas_allowlist: list[tuple[str, str]] | None = None,
-        module_specs: list[tuple[str, str]] | None = None,
         slices_dir: str | None = None,
         mapping_shapes_ttl: str | None = None,
         statement_shapes_ttl: str | None = None,
@@ -72,10 +71,6 @@ def structural_lint(
 ) -> dict[str, list[str]]: ...
 def term_naming_lint(
     source_paths: list[str],
-    cfg: LintConfig,
-) -> dict[str, list[str]]: ...
-def slice_ownership_lint(
-    module_specs: list[tuple[str, str]],
     cfg: LintConfig,
 ) -> dict[str, list[str]]: ...
 def typed_terms(

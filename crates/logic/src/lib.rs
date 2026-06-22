@@ -12,6 +12,7 @@
 
 pub mod compile;
 pub mod counterfactual;
+pub mod derivation_graph;
 pub mod dispatch;
 pub mod encode;
 pub mod entrenchment;

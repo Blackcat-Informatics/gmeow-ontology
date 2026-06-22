@@ -1,0 +1,46 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+
+[package]
+name = "gmeow-slice"
+description = "GMEOW native slice catalog: manifest-based discovery, typed artifact inventory, content-addressed IDs"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+readme = "README.md"
+
+[lib]
+crate-type = ["rlib"]
+path = "src/lib.rs"
+
+[features]
+# `python` builds the PyO3 binding (`src/py.rs`) exposing SliceCatalog
+# discovery + the OwnershipAnalyzer + the fix-deps computation to Python,
+# linked into the single `gmeow_native` cdylib (#820 S8). Without it the crate
+# is a pure rlib (no pyo3) for the future Rust compiler.
+python = ["dep:pyo3"]
+
+[dependencies]
+gmeow-rdf = { path = "../rdf", features = ["oxigraph"] }
+oxigraph = { version = "0.5", default-features = false, features = ["rdf-12"] }
+# SPARQL algebra parser — competency/verify queries are PARSED (RFC §10),
+# never text-searched, to extract referenced term IRIs. Version aligns with the
+# oxigraph 0.5 transitive resolution already pinned in the workspace lockfile.
+spargebra = { version = "0.4", features = ["sparql-12"] }
+# Strongly-connected-component computation over the S4 dependency graph
+# (RFC §8 link units). `petgraph` is a published registry crate (no `path`),
+# so it is an external boundary, not a first-party layering edge — the
+# crate-layering gate (S0.9) is unaffected. Version aligns with the workspace
+# lockfile resolution.
+petgraph = { version = "0.8", default-features = false }
+sha2 = "0.10"
+hex = "0.4"
+serde = { version = "1", features = ["derive"] }
+# pyo3 is pulled ONLY by the `python` feature (maturin builds the unified
+# `gmeow_native` cdylib). Same version/abi3 as the other engine crates. Only
+# `src/py.rs` imports it, so the engine modules stay PyO3-free.
+pyo3 = { version = "0.29", features = ["extension-module", "abi3-py313"], optional = true }
+
+[dev-dependencies]
+tempfile = "3"

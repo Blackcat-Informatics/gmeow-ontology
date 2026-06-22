@@ -89,16 +89,21 @@ finding's `gmeow:vantage`.
 
 A finding's location node carries the **wire coordinates** that pin its exact position inside a GTS
 bundle — the same coordinates emitted as SARIF `logicalLocations` and recorded on the Rust
-`Location`. They are datatype properties with an **open domain** (they decorate whatever node
-`gmeow:findingLocation` points at) and a `xsd:nonNegativeInteger` range.
+`Location`. The four diagnostics-owned coordinates are datatype properties with an **open domain**
+(they decorate whatever node `gmeow:findingLocation` points at) and a `xsd:nonNegativeInteger`
+range. The fifth, `gmeow:gtsSegmentIndex`, is **owned by the gts slice**
+(single-owner invariant, #329) and merely *referenced* here as a coordinate.
 
 ### gmeow:gtsTermId · gmeow:gtsQuadIndex · gmeow:gtsReifierId · gmeow:gtsFrameIndex · gmeow:gtsSegmentIndex
 
 The five wire coordinates: the term-id, quad index, reifier-id, frame index, and segment index that
-resolve a finding into the bundle's term/quad/reifier/frame/segment tables. Each mirrors a SARIF
-logical-location kind (`gts:term`, `gts:quad`, `gts:reifier`, `gts:frame`, `gts:segment`) and the
-corresponding Rust `Location.gts_*` field, so SARIF, this RDF projection, and the content-addressed
-validation cache all anchor a diagnostic to the same position.
+resolve a finding into the bundle's term/quad/reifier/frame/segment tables. Four are declared in
+this slice; `gmeow:gtsSegmentIndex` is the gts-owned segment position (the index that, over the
+segment heads, IS a document's composite identity — spec §3.1), referenced here so a finding can
+name the segment it concerns. Each mirrors a SARIF logical-location kind (`gts:term`, `gts:quad`,
+`gts:reifier`, `gts:frame`, `gts:segment`) and the corresponding Rust `Location.gts_*` field, so
+SARIF, this RDF projection, and the content-addressed validation cache all anchor a diagnostic to
+the same position.
 
 ## Dev-gate producers (the feedback fold)
 

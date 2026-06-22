@@ -34,6 +34,12 @@ sha2 = "0.10"
 gmeow-shacl = { path = "../shacl" }
 # Shared RDF 1.2 kernel: GTS/oxigraph store construction and diagnostics (#648).
 gmeow-rdf = { path = "../rdf", features = ["gts", "oxigraph"] }
+# Native slice catalog + S6a semantic Merkle cache: the whole-ontology merged-SHACL
+# source key is the path-independent, comment-insensitive product key over the slice
+# composition (RFC #820 §12). gmeow-slice depends only on gmeow-rdf, so this edge
+# keeps the crate DAG acyclic and layering-legal (#820 S0). Its default build is a
+# pure rlib (no pyo3); the unified gmeow_native cdylib enables its `python` feature.
+gmeow-slice = { path = "../slice" }
 # Canonical Finding/Report model (#654). The RDF/SHACL -> Finding bridge lives
 # here, NOT in the PyO3-free gmeow-rdf kernel: gmeow-diagnostics links pyo3
 # unconditionally, and gmeow-validate already links pyo3, so this dependency
@@ -55,6 +61,8 @@ pyo3 = { version = "0.29", features = ["extension-module", "abi3-py313"] }
 ed25519-dalek = "2"
 # Acceleration-program baselines (#630, Phase 0); light feature set, see crates/logic.
 criterion = { version = "0.5", default-features = false, features = ["cargo_bench_support"] }
+# Hermetic temp slices trees for the S6a merged-SHACL Merkle key integration test.
+tempfile = "3"
 
 [[bench]]
 name = "lint"

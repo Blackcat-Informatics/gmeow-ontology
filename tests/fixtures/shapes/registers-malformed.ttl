@@ -32,6 +32,6 @@ ex:aimlessGuide a gmeow:StyleGuide ;
 ex:driftingGuide a gmeow:StyleGuide ;
     rdfs:label "drifting guide"@en ;
     gmeow:styleGuideFor gmeow:registerPublic ;
-    gmeow:exemplifiedBy ex:undigestedDoc .
+    gmeow:voiceExemplifiedBy ex:undigestedDoc .
 ex:undigestedDoc a gmeow:Document ;
     rdfs:label "no digest"@en .

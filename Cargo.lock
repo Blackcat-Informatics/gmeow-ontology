@@ -1494,6 +1494,7 @@ dependencies = [
  "gmeow-logic",
  "gmeow-rdf",
  "gmeow-shacl",
+ "gmeow-slice",
  "gmeow-validate",
  "pyo3",
 ]
@@ -1509,6 +1510,7 @@ dependencies = [
  "oxigraph",
  "proptest",
  "pyo3",
+ "sha2",
 ]
 
 [[package]]
@@ -1523,6 +1525,21 @@ dependencies = [
  "pyo3",
  "regex",
  "spargebra 0.4.6",
+]
+
+[[package]]
+name = "gmeow-slice"
+version = "0.1.0"
+dependencies = [
+ "gmeow-rdf",
+ "hex",
+ "oxigraph",
+ "petgraph",
+ "pyo3",
+ "serde",
+ "sha2",
+ "spargebra 0.4.6",
+ "tempfile",
 ]
 
 [[package]]
@@ -1545,12 +1562,14 @@ dependencies = [
  "gmeow-gts",
  "gmeow-rdf",
  "gmeow-shacl",
+ "gmeow-slice",
  "oxigraph",
  "pyo3",
  "regex",
  "serde",
  "serde_json",
  "sha2",
+ "tempfile",
 ]
 
 [[package]]

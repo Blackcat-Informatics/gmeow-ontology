@@ -8,6 +8,8 @@
 //! LOGIC. It models RDF 1.2 terms directly, preserves source/location context
 //! where adapters can provide it, and keeps reporting structured but SARIF-free.
 
+pub mod bundle;
+pub mod content_store;
 pub mod diagnostic;
 #[cfg(feature = "gts")]
 pub mod gts;
@@ -15,7 +17,11 @@ pub mod gts;
 pub mod gts_write;
 // The immutable, value-interned RDF 1.2 dataset IR (#819 C1).
 pub mod ir;
+// Generic provenance sidecar for the immutable RDF 1.2 dataset (#820 S2):
+// UnitId/ArtifactId/OriginSetId newtypes, interners, AssertionOccurrence,
+// DatasetProvenance, and the provenance gate. No GMEOW-specific concepts here.
 pub mod lookaside;
+pub mod provenance;
 // The machine-readable RDF↔GTS loss ledger and its drift-gated matrix (#819 C0).
 pub mod loss;
 pub mod model;
@@ -45,10 +51,15 @@ pub mod turtle;
 #[cfg(feature = "oxigraph")]
 pub mod turtle_normalize;
 
+pub use bundle::{
+    ArtifactIndex, ArtifactRecord, BundleError, RdfBundle, SegmentUnitMap, UnitCatalog,
+    UnitMetadata,
+};
+pub use content_store::{Bytes, ContentDigest, ContentStore, ContentStoreError};
 pub use diagnostic::{RdfDiagnostic, RdfLocation, RdfLoss, RdfSeverity};
 pub use ir::{
-    dataset_diff, datasets_isomorphic, BlankScope, DatasetDiff, QuadHandle, QuadIds, QuadRef,
-    RdfBundle, RdfDataset, RdfDatasetBuilder, RdfEnvelope, RdfEventSink, TermId, TermRef,
+    dataset_diff, datasets_isomorphic, BlankScope, DatasetDiff, GtsBundle, QuadHandle, QuadIds,
+    QuadRef, RdfDataset, RdfDatasetBuilder, RdfEnvelope, RdfEventSink, TermId, TermRef,
 };
 #[cfg(feature = "gts")]
 pub use ir::{import_gts_events, import_gts_graph};
@@ -63,6 +74,11 @@ pub use loss::{
 pub use model::{
     RdfAnnotation, RdfLiteral, RdfQuad, RdfReifier, RdfTerm, RdfTermKind, RdfTextDirection,
     RdfTriple,
+};
+pub use provenance::{
+    check_provenance, ArtifactId, ArtifactInterner, AssertionOccurrence, Attribution,
+    AttributionRole, DatasetProvenance, OriginKind, OriginSetId, OriginSetInterner,
+    ProvenanceError, UnitId, UnitInterner,
 };
 pub use store::{RdfStore, RdfStoreCapabilities, VecRdfStore};
 pub use turtle::{emit_annotation, emit_quad, emit_reifier, emit_resource, emit_term, rule_iri};

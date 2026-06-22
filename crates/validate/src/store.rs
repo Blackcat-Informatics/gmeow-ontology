@@ -86,6 +86,62 @@ pub fn load_sources_into_store(paths: &[PathBuf]) -> Result<Store, String> {
     Ok(store)
 }
 
+/// Build a [`gmeow_rdf::DatasetProvenance`] from per-file parsed quad lists.
+///
+/// Accepts a slice of `(PathBuf, Result<Vec<Quad>, String>)` — the same element
+/// type that a parse-once loop produces — and builds one [`DatasetProvenance`]
+/// where:
+///
+/// - Each **successfully parsed file** is registered as a
+///   [`gmeow_rdf::OriginKind::Source`] unit and its path string as its sole
+///   artifact.
+/// - Each quad in that file produces one
+///   [`gmeow_rdf::AssertionOccurrence`] keyed to the file's
+///   `(UnitId, ArtifactId)` pair.
+///
+/// The oxigraph `Quad` type carries no stable dense id; we assign provisional
+/// quad handles sequentially in the order quads are recorded. A caller that also
+/// builds an `RdfDataset` can reconcile the handles against the dataset's frozen
+/// quad table after the fact.
+///
+/// Parse failures in `parsed` are skipped (the failed file contributes no
+/// occurrences); the caller handles them separately when building the store.
+///
+/// This path **does not** import or depend on `gmeow-slice`: units are generic
+/// opaque names keyed by file path, and all unit kinds are
+/// [`gmeow_rdf::OriginKind::Source`]. The slice layer annotates units with slice
+/// IRIs in a higher-level pass.
+pub fn build_provenance_from_parsed(
+    parsed: &[(PathBuf, Result<Vec<Quad>, String>)],
+) -> gmeow_rdf::DatasetProvenance {
+    use gmeow_rdf::ir::QuadHandle;
+    use gmeow_rdf::{DatasetProvenance, OriginKind};
+
+    let mut prov = DatasetProvenance::new();
+    let mut handle_counter: u32 = 0;
+
+    for (path, result) in parsed {
+        let quads = match result {
+            Ok(q) => q,
+            Err(_) => continue, // Parse failure — skip; caller handles separately.
+        };
+
+        let path_str = path.to_string_lossy().into_owned();
+        let unit = prov.register_unit(path_str.clone(), OriginKind::Source);
+        let artifact = prov.register_artifact(path_str);
+
+        for _ in quads {
+            let handle = QuadHandle::from_index(handle_counter);
+            handle_counter = handle_counter
+                .checked_add(1)
+                .expect("quad handle counter overflow");
+            prov.record_occurrence(handle, unit, artifact, None);
+        }
+    }
+
+    prov
+}
+
 /// Parse every source file in `paths` exactly once, returning the per-file
 /// results in the same order as `paths`.
 ///

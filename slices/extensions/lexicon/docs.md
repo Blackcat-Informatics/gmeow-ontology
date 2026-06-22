@@ -71,7 +71,7 @@ Multiple derivations for the same target coexist without privilege (Principle 9)
 
 ```turtle
 ex:derivationAlgebraBorrowing a gmeow:EtymologicalDerivation ;
-    gmeow:derivationSource ex:alJabr ;
+    gmeow:etymonSource ex:alJabr ;
     gmeow:derivationTarget ex:algebra ;
     gmeow:derivationKind gmeow:derivationBorrowing ;
     gmeow:confidence 0.85 .
@@ -169,7 +169,7 @@ corpus, inscription, platform, or community — not truth (Principle 12). The
 carrier; `attestationInterval` carries the period. `attestedForm ⊑ observedFeature`,
 so it inherits the universal claim stack (vantage, confidence, validity).
 
-### gmeow:EtymologicalDerivation · gmeow:derivationSource · gmeow:derivationTarget · gmeow:derivationKind · gmeow:DerivationKind · gmeow:derivationEvidence
+### gmeow:EtymologicalDerivation · gmeow:etymonSource · gmeow:derivationTarget · gmeow:derivationKind · gmeow:DerivationKind · gmeow:derivationEvidence
 
 An `Observation + Relator` linking a source lexical item/form to a target, making
 etymology a graph of provenance-rich, standpointed claims rather than a flat origin

@@ -97,6 +97,93 @@ def test_report_blobs_are_additive_and_do_not_perturb_the_graph() -> None:
     assert "gmeow:report/sarif" not in _reps(read(base))
 
 
+def test_s3_slice_artifacts_recoverable_repo_free() -> None:
+    """The S3 self-describing bundle: per-slice ontology artifacts are recoverable
+    from the serialized bundle ALONE (no slices/ tree), by role + logical path +
+    content digest, with EXACT bytes — and unknown manifest triples plus literal
+    lang/datatype identity survive the round-trip (#820 S3, gap G4).
+    """
+    from blake3 import blake3
+
+    # A manifest carrying an UNKNOWN (non-well-known) triple plus a lang-tagged and
+    # a typed literal, to prove identity survival through the bundle round-trip.
+    manifest_bytes = (
+        b"@prefix ex: <https://example.org/> .\n"
+        b"@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .\n"
+        b"<https://example.org/slice/sample> "
+        b'ex:unknownProp "weird value"@x-gmeow-english ;\n'
+        b'    ex:answer "42"^^xsd:integer .\n'
+    )
+    module_bytes = b"@prefix ex: <https://example.org/> .\nex:Cat a ex:Class .\n"
+    shapes_bytes = b"@prefix sh: <http://www.w3.org/ns/shacl#> .\n# shapes\n"
+
+    rows = [
+        (
+            "https://example.org/slice/sample",
+            "Sample slice",
+            "Module",
+            "slices/core/sample/module.ttl",
+            module_bytes,
+        ),
+        (
+            "https://example.org/slice/sample",
+            "Sample slice",
+            "Shapes",
+            "slices/core/sample/shapes.ttl",
+            shapes_bytes,
+        ),
+        (
+            "https://example.org/slice/sample",
+            "Sample slice",
+            "Manifest",
+            "slices/core/sample/manifest.ttl",
+            manifest_bytes,
+        ),
+    ]
+
+    data = compile_gts(_sample_graph(), slice_artifacts=rows)
+
+    # Repo-free: parse ONLY the serialized bytes; we never touch the source rows
+    # for recovery, only to assert exact equality.
+    folded = read(data)
+    reps = _reps(folded)
+
+    for _slice_iri, _name, role, logical_path, content in rows:
+        rep = f"slice-artifact:{role}:{logical_path}"
+        assert rep in reps, f"artifact {logical_path!r} recoverable by role + path"
+        recovered = reps[rep]
+        # Exact bytes.
+        assert recovered == content, f"exact bytes for {logical_path!r}"
+        # Digest matches: the bundle blob meta carries a blake3 content digest.
+        digest = next(
+            meta["digest"]
+            for meta in folded.blob_meta.values()
+            if meta.get("rep") == rep
+        )
+        assert digest == "blake3:" + blake3(content).hexdigest()
+
+    # Unknown manifest triples + literal lang/datatype identity survive: reparse
+    # the recovered manifest and check the exact terms came through unchanged.
+    recovered_manifest = reps["slice-artifact:Manifest:slices/core/sample/manifest.ttl"]
+    g = Graph()
+    g.parse(data=recovered_manifest.decode("utf-8"), format="turtle")
+    subj = URIRef("https://example.org/slice/sample")
+    unknown = list(g.objects(subj, URIRef("https://example.org/unknownProp")))
+    assert len(unknown) == 1
+    assert isinstance(unknown[0], Literal)
+    assert str(unknown[0]) == "weird value"
+    assert unknown[0].language == "x-gmeow-english"
+    answer = list(g.objects(subj, URIRef("https://example.org/answer")))
+    assert len(answer) == 1
+    assert isinstance(answer[0], Literal)
+    assert answer[0].datatype == XSD.integer
+    assert str(answer[0]) == "42"
+
+    # The snapshot graph identity is unperturbed by the S3 artifact blobs (purely
+    # additive, exactly like report/doc blobs).
+    assert to_nquads(read(data)) == to_nquads(read(compile_gts(_sample_graph())))
+
+
 def test_snapshot_content_id_is_stable_and_blob_independent() -> None:
     """The self-attestation content id is a pure function of the snapshot (#654)."""
     from gmeow_tools.gts_producer import _Builder

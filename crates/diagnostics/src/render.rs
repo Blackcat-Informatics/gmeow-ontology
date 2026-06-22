@@ -146,11 +146,18 @@ fn sarif_artifacts(report: &Report) -> Vec<Value> {
 /// `partialFingerprints` so GitHub code-scanning can dedupe a finding across
 /// runs even as line numbers shift. Deterministic across platforms (unlike
 /// `std::hash::DefaultHasher`).
+///
+/// **v2**: now incorporates canonical attribution roles + slice IRIs so that two
+/// otherwise-identical findings (same severity/code/location/message) produce
+/// different fingerprints when their structured attribution differs. Attributions
+/// are sorted by `(role, slice_iri)` for order-independence.
 fn stable_fingerprint(finding: &Finding) -> String {
     const FNV_OFFSET: u64 = 0xcbf2_9ce4_8422_2325;
     const FNV_PRIME: u64 = 0x0000_0100_0000_01b3;
     let (severity, code, location, message) = finding.sort_key();
     let mut hash = FNV_OFFSET;
+
+    // Hash the primary finding fields (same as v1).
     for part in [severity.as_str(), code, location.as_str(), message] {
         for byte in part.as_bytes() {
             hash ^= u64::from(*byte);
@@ -160,6 +167,35 @@ fn stable_fingerprint(finding: &Finding) -> String {
         hash ^= 0x1f;
         hash = hash.wrapping_mul(FNV_PRIME);
     }
+
+    // Hash sorted attributions (role, slice_iri) so that different attribution
+    // roles on an otherwise-identical finding produce a different fingerprint.
+    // Sorted for order-independence.
+    let mut sorted_attrs: Vec<(&str, &str)> = finding
+        .attributions
+        .iter()
+        .map(|a| (a.role.as_str(), a.slice_iri.as_str()))
+        .collect();
+    sorted_attrs.sort_unstable();
+
+    // Separator between primary fields and attribution section.
+    hash ^= 0x1e;
+    hash = hash.wrapping_mul(FNV_PRIME);
+
+    for (role, iri) in &sorted_attrs {
+        for part in [*role, *iri] {
+            for byte in part.as_bytes() {
+                hash ^= u64::from(*byte);
+                hash = hash.wrapping_mul(FNV_PRIME);
+            }
+            hash ^= 0x1f;
+            hash = hash.wrapping_mul(FNV_PRIME);
+        }
+        // Attribution entry separator.
+        hash ^= 0x1d;
+        hash = hash.wrapping_mul(FNV_PRIME);
+    }
+
     format!("{hash:016x}")
 }
 
@@ -435,7 +471,7 @@ fn sarif_result(finding: &Finding) -> Value {
         "level": finding.severity.sarif_level(),
         "message": { "text": finding.message },
         "partialFingerprints": {
-            "gmeowFindingHash/v1": stable_fingerprint(finding),
+            "gmeowFindingHash/v2": stable_fingerprint(finding),
         },
     });
 
@@ -495,8 +531,38 @@ fn sarif_result(finding: &Finding) -> Value {
         result["relatedLocations"] = json!(physical);
     }
 
+    // Emit result-level properties: detail text (if any) + structured
+    // slice attributions (§9 / S5). Uses a single json!() call so both fields
+    // land in the same "properties" object.
+    let mut props = serde_json::Map::new();
     if let Some(detail) = &finding.detail {
-        result["properties"] = json!({ "detail": detail });
+        props.insert("detail".to_owned(), json!(detail));
+    }
+    if !finding.attributions.is_empty() {
+        // Sorted (role, slice_iri) for deterministic output.
+        let mut sorted: Vec<_> = finding
+            .attributions
+            .iter()
+            .map(|a| {
+                let mut obj = serde_json::Map::new();
+                obj.insert("sliceIri".to_owned(), json!(a.slice_iri));
+                obj.insert("role".to_owned(), json!(a.role));
+                if let Some(ev) = &a.evidence {
+                    obj.insert("evidence".to_owned(), json!(ev));
+                }
+                serde_json::Value::Object(obj)
+            })
+            .collect();
+        sorted.sort_by_key(|v| {
+            (
+                v["role"].as_str().unwrap_or("").to_owned(),
+                v["sliceIri"].as_str().unwrap_or("").to_owned(),
+            )
+        });
+        props.insert("gmeow.attributions".to_owned(), json!(sorted));
+    }
+    if !props.is_empty() {
+        result["properties"] = serde_json::Value::Object(props);
     }
     result
 }
@@ -663,7 +729,7 @@ mod tests {
         let result = &value["runs"][0]["results"][0];
 
         // partialFingerprints is stable and present for code-scanning dedup.
-        let fp = result["partialFingerprints"]["gmeowFindingHash/v1"]
+        let fp = result["partialFingerprints"]["gmeowFindingHash/v2"]
             .as_str()
             .expect("fingerprint present");
         assert_eq!(fp.len(), 16);
@@ -996,5 +1062,97 @@ mod tests {
             _ => {}
         }
         out
+    }
+
+    /// Test 3: SARIF fingerprint role sensitivity.
+    ///
+    /// Two otherwise-identical findings that differ only in their attribution
+    /// roles must produce DIFFERENT fingerprints (v2 contract).
+    #[test]
+    fn sarif_fingerprint_is_role_sensitive() {
+        use crate::model::DiagnosticAttribution;
+
+        let make_finding = |role: &str| {
+            let mut f = Finding::new(Severity::Error, "shacl.MinCount", "missing property");
+            f.attributions.push(DiagnosticAttribution {
+                slice_iri: "https://blackcatinformatics.ca/gmeow/slices/core/epistemics".to_owned(),
+                role: role.to_owned(),
+                evidence: None,
+            });
+            f
+        };
+
+        let finding_shape = make_finding("shape-owner");
+        let finding_focus = make_finding("focus-origin");
+        let finding_scope = make_finding("evaluation-scope");
+
+        // Same slice IRI, same severity/code/message/location — only role differs.
+        let fp_shape = stable_fingerprint(&finding_shape);
+        let fp_focus = stable_fingerprint(&finding_focus);
+        let fp_scope = stable_fingerprint(&finding_scope);
+
+        assert_ne!(
+            fp_shape, fp_focus,
+            "shape-owner vs focus-origin must produce different fingerprints"
+        );
+        assert_ne!(
+            fp_shape, fp_scope,
+            "shape-owner vs evaluation-scope must produce different fingerprints"
+        );
+        assert_ne!(
+            fp_focus, fp_scope,
+            "focus-origin vs evaluation-scope must produce different fingerprints"
+        );
+
+        // Self-consistency: same finding always produces the same fingerprint.
+        assert_eq!(
+            stable_fingerprint(&finding_shape),
+            stable_fingerprint(&finding_shape),
+            "fingerprint must be deterministic"
+        );
+    }
+
+    /// SARIF output carries `gmeow.attributions` in result properties when
+    /// attributions are present.
+    #[test]
+    fn sarif_result_properties_carry_attributions() {
+        use crate::model::DiagnosticAttribution;
+        use serde_json::Value;
+
+        let mut finding = Finding::new(Severity::Error, "shacl.MinCount", "missing property");
+        finding.attributions.push(DiagnosticAttribution {
+            slice_iri: "https://blackcatinformatics.ca/gmeow/slices/core/shapes".to_owned(),
+            role: "shape-owner".to_owned(),
+            evidence: Some("slices/core/shapes/shapes.ttl".to_owned()),
+        });
+        finding.attributions.push(DiagnosticAttribution {
+            slice_iri: "https://blackcatinformatics.ca/gmeow/slices/ext/data".to_owned(),
+            role: "focus-origin".to_owned(),
+            evidence: None,
+        });
+        let mut report = Report::new("shacl");
+        report.add_finding(finding);
+
+        let value: Value = serde_json::from_str(&to_sarif(&report).unwrap()).unwrap();
+        let result = &value["runs"][0]["results"][0];
+
+        let attrs = result["properties"]["gmeow.attributions"]
+            .as_array()
+            .expect("gmeow.attributions must be present as an array");
+
+        assert_eq!(attrs.len(), 2, "two attributions expected");
+
+        // Sorted by (role, sliceIri): focus-origin before shape-owner.
+        assert_eq!(attrs[0]["role"], "focus-origin");
+        assert_eq!(
+            attrs[0]["sliceIri"],
+            "https://blackcatinformatics.ca/gmeow/slices/ext/data"
+        );
+        assert!(
+            attrs[0]["evidence"].is_null(),
+            "focus-origin has no evidence"
+        );
+        assert_eq!(attrs[1]["role"], "shape-owner");
+        assert_eq!(attrs[1]["evidence"], "slices/core/shapes/shapes.ttl");
     }
 }

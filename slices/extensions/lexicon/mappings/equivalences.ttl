@@ -102,12 +102,12 @@ gmeow:eqLexicon007 a gmeow:TermEquivalence ;
     gmeow:sssomFile "gmeow-lexicon.sssom.tsv" .
 
 gmeow:eqLexicon008 a gmeow:TermEquivalence ;
-    gmeow:alignSubject gmeow:derivationSource ;
+    gmeow:alignSubject gmeow:etymonSource ;
     gmeow:alignPredicate skos:closeMatch ;
     gmeow:alignObject prov:entity ;
     gmeow:justification semapv:ManualMappingCuration ;
     gmeow:confidence 0.8 ;
-    gmeow:comment "Structural difference: GMEOW models etymology via a reified EtymologicalDerivation relator (Derivation --derivationSource--> SourceItem), while PROV-O uses a direct binary property (DerivedItem --wasDerivedFrom--> SourceItem). Aligning derivationSource to prov:entity preserves the relator-level linkage to the source entity within the PROV-O Derivation structure, though the reified relator itself and its provenance metadata are lost in projection." ;
+    gmeow:comment "Structural difference: GMEOW models etymology via a reified EtymologicalDerivation relator (Derivation --etymonSource--> SourceItem), while PROV-O uses a direct binary property (DerivedItem --wasDerivedFrom--> SourceItem). Aligning etymonSource to prov:entity preserves the relator-level linkage to the source entity within the PROV-O Derivation structure, though the reified relator itself and its provenance metadata are lost in projection." ;
     gmeow:sssomFile "gmeow-lexicon.sssom.tsv" .
 
 # --------------------------------------------------------------------------- #
