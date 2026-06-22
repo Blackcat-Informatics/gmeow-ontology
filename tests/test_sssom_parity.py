@@ -242,3 +242,18 @@ def test_sssom_to_rdf_nonempty() -> None:
     text = _CORPUS[0].read_text(encoding="utf-8")
     rdf = gmeow_rdf.sssom_to_rdf(text)
     assert rdf.strip(), "sssom_to_rdf returned empty output"
+
+
+def test_default_validation_types_match_golden() -> None:
+    """The native default check set matches the captured sssom-py contract.
+
+    The golden froze sssom-py's default ``validation_types`` (JsonSchema,
+    PrefixMapCompleteness, StrictCurieFormat). Asserting it against
+    ``sssom_default_validation_types()`` turns any silent drift in the native
+    default surface into a test failure (CodeRabbit review #6 on #855); the value
+    was previously loaded into the golden but never checked.
+    """
+    assert (
+        gmeow_rdf.sssom_default_validation_types()
+        == _GOLDEN["default_validation_types"]
+    )
