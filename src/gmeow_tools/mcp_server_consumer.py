@@ -161,6 +161,38 @@ def gmeow_llms_txt(lang: str | None = None) -> str:
         return f"# Error: {exc}\n"
 
 
+@mcp.resource("gmeow://ontology/okf-index{?lang}")
+def gmeow_okf_index(lang: str | None = None) -> str:
+    """Expose the OKF (Open Knowledge Format) bundle index for agents (#780).
+
+    OKF is the agent-facing surface: one Markdown concept document per term, with
+    YAML frontmatter and ``[label](path)`` links — the form ``gts from-okf`` folds.
+    Returns a JSON manifest ``{ok, format, lossy, count, documents:[…]}`` where each
+    document is ``{path, type, title, resource}``; the bytes live in the bundle's
+    ``REP_OKF`` blob (see :func:`gmeow_tools.bundle.bundled_okf`). A LOSSY surface:
+    the flat term view only — the OWL axioms and statement layer stay canonical.
+
+    Args:
+        lang: Optional BCP-47 language tag. Overrides ``GMEOW_LANG``.
+    """
+    from gmeow_tools.okf_export import okf_index_records
+
+    try:
+        documents = okf_index_records(_terms(lang))
+    except UnknownLanguageError as exc:
+        return json.dumps({"ok": False, "error": str(exc)})
+    return json.dumps(
+        {
+            "ok": True,
+            "format": "okf",
+            "lossy": True,
+            "count": len(documents),
+            "documents": documents,
+        },
+        ensure_ascii=False,
+    )
+
+
 def _memory() -> Any:
     """Open the configured append-only GTS memory package."""
     from gts.examples.agent_memory import Memory
