@@ -1,0 +1,10 @@
+---
+source: crates/logic/src/compile/projections/tests.rs
+expression: rdf_snapshot(&arts.gufo)
+---
+<https://blackcatinformatics.ca/gmeow/foundation/gufo> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Ontology>
+<https://example.org/relator-mediation/Employment> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://purl.org/nemo/gufo#Relator>
+<https://example.org/relator-mediation/Organization> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://purl.org/nemo/gufo#Kind>
+<https://example.org/relator-mediation/Person> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://purl.org/nemo/gufo#Kind>
+<https://example.org/relator-mediation/employedBy> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://purl.org/nemo/gufo#Role>
+<https://example.org/relator-mediation/employs> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://purl.org/nemo/gufo#Role>
