@@ -1000,11 +1000,100 @@ fn distinct_pairs_satisfied(
     Ok(true)
 }
 
-/// Join all body atoms against the fact store (semi-naive).
+/// Whether a positive atom's binding to fact `f` is restricted to a delta scan.
 ///
-/// Returns the candidate solutions whose positive body fully matches, whose NAF
-/// literals all fail (no matching fact), and at least one of whose positive sources
-/// is in `delta` (the semi-naive condition).  Mirrors `_join_body_atoms`.
+/// In a delta-position scan we walk only the rows in the predicate bucket whose key
+/// is in `delta`; in a full-store scan we walk the whole bucket.  Both walk the
+/// insertion-ordered bucket so the matched subsequence (and thus `source_keys`
+/// order) is identical to a full scan filtered after the fact.
+enum Scan {
+    /// Bind `a_p` to facts whose key is **in** `delta` (the "new at p" position).
+    Delta,
+    /// Bind to **any** fact in the full store (no delta constraint).
+    Full,
+    /// Bind only to facts whose key is **not** in `delta` (the "old after p"
+    /// positions, j > p, that keep each delta-touching solution produced once).
+    OldOnly,
+}
+
+/// Extend each partial solution by matching `atom` against the store under `scan`.
+///
+/// Uses the predicate index for the constant-predicate case (every foundation rule)
+/// and intersects the bucket with `delta` membership for the [`Scan::Delta`] /
+/// [`Scan::OldOnly`] positions.  Walks the bucket in insertion order so the produced
+/// solutions (and their `source_keys`) match a full insertion-ordered scan.
+fn extend_solutions(
+    atom: &Atom,
+    store: &FactStore,
+    delta: &HashSet<(String, String, String)>,
+    scan: &Scan,
+    solutions: &[Solution],
+) -> Vec<Solution> {
+    let in_delta = |f: &Fact| delta.contains(&f.key());
+    let keep = |f: &Fact| match scan {
+        Scan::Delta => in_delta(f),
+        Scan::Full => true,
+        Scan::OldOnly => !in_delta(f),
+    };
+    let mut next: Vec<Solution> = Vec::new();
+    for sol in solutions {
+        match &atom.predicate {
+            TermPat::Const(p) => {
+                // Constant predicate: scan only the predicate's (insertion-ordered)
+                // bucket, gated by the delta membership the scan mode requires.
+                for &i in store.facts_for_predicate(p) {
+                    let f = &store.facts[i];
+                    if !keep(f) {
+                        continue;
+                    }
+                    if let Some(mut merged) = match_atom(atom, f, sol) {
+                        merged.source_keys.push(f.key());
+                        next.push(merged);
+                    }
+                }
+            }
+            TermPat::Var(_) => {
+                // Variable predicate: full scan (no foundation rule hits this, but it
+                // must remain correct), gated by the same delta membership.
+                for f in &store.facts {
+                    if !keep(f) {
+                        continue;
+                    }
+                    if let Some(mut merged) = match_atom(atom, f, sol) {
+                        merged.source_keys.push(f.key());
+                        next.push(merged);
+                    }
+                }
+            }
+        }
+    }
+    next
+}
+
+/// Join all body atoms against the fact store with **true semi-naive** delta×full
+/// evaluation.
+///
+/// Instead of computing the full join and discarding non-delta solutions at the end,
+/// this enumerates, for each positive body atom position `p`, the term
+///
+/// ```text
+///   a_p  ∈ delta          (new at p)
+///   a_j  ∈ full store      for j < p   (any binding before p)
+///   a_j  ∈ store \ delta   for j > p   (old after p)
+/// ```
+///
+/// The disjoint "new at p, old after p" decomposition produces every delta-touching
+/// solution **exactly once** — at its *first* (lowest-index) delta position — so the
+/// union over `p` needs no further deduplication.  A round whose `delta` equals the
+/// whole store (the per-stratum first round) degenerates to the full join, as
+/// required for correctness.
+///
+/// NAF literals are filtered after the positive join, and the union over positions is
+/// concatenated in increasing `p` order (so within a fixed `p` the source-key order
+/// is the insertion-ordered scan order).  Mirrors `_join_body_atoms` semantically —
+/// the *answer set* (head facts derived over the whole chase) is identical; only the
+/// per-round evaluation order (and hence which firing wins first-wins provenance for a
+/// multiply-derivable quad) may differ.
 fn join_body(
     rule: &Rule,
     store: &FactStore,
@@ -1013,48 +1102,43 @@ fn join_body(
     let positive: Vec<&Atom> = rule.body.iter().filter(|a| !a.negated).collect();
     let negated: Vec<&Atom> = rule.body.iter().filter(|a| a.negated).collect();
 
-    let mut solutions: Vec<Solution> = vec![Solution {
+    let empty = Solution {
         bindings: Vec::new(),
         source_keys: Vec::new(),
-    }];
+    };
 
-    for atom in positive {
-        let mut next: Vec<Solution> = Vec::new();
-        for sol in &solutions {
-            // delta×full position-decomposition rejected (reorders first-wins for
-            // self-join rules → changes content-addressed provenance); predicate
-            // index gives the O(matches) join win byte-identically.
-            match &atom.predicate {
-                TermPat::Const(p) => {
-                    // Constant predicate: scan only the predicate's bucket.  The
-                    // bucket is insertion-ordered, so this yields the identical
-                    // matched subsequence (and source_keys) as the full scan
-                    // filtered by predicate equality.
-                    for &i in store.facts_for_predicate(p) {
-                        let f = &store.facts[i];
-                        if let Some(mut merged) = match_atom(atom, f, sol) {
-                            merged.source_keys.push(f.key());
-                            next.push(merged);
-                        }
-                    }
-                }
-                TermPat::Var(_) => {
-                    // Variable predicate: hard fallback to the full scan (no
-                    // foundation rule hits this, but it must remain correct).
-                    for f in &store.facts {
-                        if let Some(mut merged) = match_atom(atom, f, sol) {
-                            merged.source_keys.push(f.key());
-                            next.push(merged);
-                        }
-                    }
+    let mut solutions: Vec<Solution> = if positive.is_empty() {
+        // Zero positive atoms: the empty solution is the only candidate.  It touches
+        // no facts, so it never satisfies the semi-naive delta condition — emit it
+        // only in a "full" round (delta == whole store covers the legitimate first
+        // round; otherwise an empty-body rule has nothing new to fire on).  This
+        // matches the old end-filter, where an empty source_keys list never passed
+        // `any(|k| delta.contains(k))`.
+        Vec::new()
+    } else {
+        // True semi-naive: union over the delta position p of
+        //   { a_p ∈ delta, a_{<p} ∈ full, a_{>p} ∈ store \ delta }.
+        let k = positive.len();
+        let mut all: Vec<Solution> = Vec::new();
+        for p in 0..k {
+            let mut partial: Vec<Solution> = vec![empty.clone()];
+            for (j, atom) in positive.iter().enumerate() {
+                let scan = if j < p {
+                    Scan::Full
+                } else if j == p {
+                    Scan::Delta
+                } else {
+                    Scan::OldOnly
+                };
+                partial = extend_solutions(atom, store, delta, &scan, &partial);
+                if partial.is_empty() {
+                    break;
                 }
             }
+            all.extend(partial);
         }
-        solutions = next;
-        if solutions.is_empty() {
-            break;
-        }
-    }
+        all
+    };
 
     // NAF filter: drop any binding whose grounded negated atoms still match a fact.
     if !negated.is_empty() {
@@ -1065,11 +1149,7 @@ fn join_body(
         });
     }
 
-    // Semi-naive filter: at least one source key must be in the delta.
     solutions
-        .into_iter()
-        .filter(|sol| sol.source_keys.iter().any(|k| delta.contains(k)))
-        .collect()
 }
 
 // ── Per-world chase ──────────────────────────────────────────────────────────────
