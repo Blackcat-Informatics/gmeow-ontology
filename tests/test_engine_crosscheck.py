@@ -19,6 +19,9 @@ import pytest
 # `.[crosscheck]` extra, so skip-collect this whole module when rdflib is absent.
 pytest.importorskip("rdflib")
 
+from gmeow_rdf.compat.rdflib import BNode as CompatBNode
+from gmeow_rdf.compat.rdflib import Literal as CompatLiteral
+from gmeow_rdf.compat.rdflib import URIRef as CompatURIRef
 from rdflib import RDF, XSD, Graph, Literal, URIRef
 
 from gmeow_tools import sparql
@@ -28,6 +31,7 @@ from gmeow_tools.engine_crosscheck import (
     RULE_DIVERGENCE,
     RULE_SKIPPED,
     CrosscheckResult,
+    _term_key,
     build_report,
     crosscheck_all,
     crosscheck_query,
@@ -97,6 +101,24 @@ def test_crosscheck_decimal_values_compare_equal() -> None:
     store = sparql.store_from_graph(g)  # gmeow_rdf canonicalizes to "645"
     result = crosscheck_query("synthetic/decimal.rq", query, g, store)
     assert result.agree
+
+
+def test_term_keys_accept_native_compat_terms() -> None:
+    """The oracle normalizer compares real rdflib and native compat terms by value."""
+    assert _term_key(CompatURIRef("https://example.org/s")) == _term_key(
+        URIRef("https://example.org/s")
+    )
+    assert _term_key(CompatBNode("b1")) == _term_key(CompatBNode("b2")) == ("bnode",)
+    assert _term_key(CompatLiteral("name", lang="EN")) == _term_key(
+        Literal("name", lang="en")
+    )
+    assert _term_key(
+        CompatLiteral("645", datatype=CompatURIRef(str(XSD.decimal)))
+    ) == _term_key(Literal("645.0", datatype=XSD.decimal))
+    # xsd:dateTime: oxigraph emits ``Z``, rdflib emits ``+00:00`` — same instant.
+    assert _term_key(
+        CompatLiteral("2015-06-20T14:00:00Z", datatype=CompatURIRef(str(XSD.dateTime)))
+    ) == _term_key(Literal("2015-06-20T14:00:00+00:00", datatype=XSD.dateTime))
 
 
 # --------------------------------------------------------------------------- #
