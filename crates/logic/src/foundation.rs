@@ -876,6 +876,34 @@ impl Solution {
     }
 }
 
+/// A candidate derivation within a single chase round.
+///
+/// `sorted_sources` is a sorted copy of `sources` used ONLY for the deterministic
+/// tiebreak comparison.  The emitted [`FoundationQuad`] always uses `sources` in its
+/// original body-order for `source_quad_ids`; the sorted copy never appears in output.
+///
+/// Winner selection uses a **quality-ordered total-order** over same-head candidates:
+/// `(max_src_depth, sum_src_depth, sorted_sources)` — smaller wins.  This prefers the
+/// most-direct (shallowest) derivation, tiebreaks toward asserted-rooted proofs (lower
+/// depth sum), and uses lex-min sorted reifiers as the final content-addressed
+/// tiebreaker, making the winner fully independent of firing-enumeration order.
+#[derive(Clone)]
+struct RoundCandidate {
+    head: Fact,
+    /// Reifiers of matched body facts, in body (scan) order — goes into `source_quad_ids`.
+    sources: Vec<String>,
+    /// Sorted copy of `sources`, used only for deterministic winner comparison.
+    sorted_sources: Vec<String>,
+    /// Content-addressed derivation IRI: `mint_derivation_id(ANON_RULE_IRI, &src_refs)`.
+    deriv: String,
+    /// Maximum derivation depth across the matched source facts.  Depth 0 = asserted.
+    /// `depth = 1 + max(depth[source])` for this candidate; minimised first by the tiebreak.
+    max_src_depth: u32,
+    /// Sum of derivation depths across the matched source facts.  Smaller = closer to
+    /// asserted axioms (tiebreak level 2, after `max_src_depth`).
+    sum_src_depth: u64,
+}
+
 /// Ground a term pattern under bindings to its IRI string, or `None` if an unbound var.
 fn ground(term: &TermPat, sol: &Solution) -> Option<String> {
     match term {
@@ -1091,9 +1119,24 @@ fn extend_solutions(
 /// NAF literals are filtered after the positive join, and the union over positions is
 /// concatenated in increasing `p` order (so within a fixed `p` the source-key order
 /// is the insertion-ordered scan order).  Mirrors `_join_body_atoms` semantically —
-/// the *answer set* (head facts derived over the whole chase) is identical; only the
-/// per-round evaluation order (and hence which firing wins first-wins provenance for a
-/// multiply-derivable quad) may differ.
+/// the *answer set* (head facts derived over the whole chase) is identical.
+///
+/// When multiple firings within a single round derive the same head `(s, p, o)` with
+/// different source sets, the winner is chosen by a **quality-ordered total-order**
+/// tiebreak — smaller tuple wins, independent of firing-enumeration order:
+///
+/// 1. **Fewest derivation steps** (`max_src_depth`) — prefer the candidate whose
+///    deepest source fact has the lowest depth (asserted facts have depth 0, so a
+///    derivation grounded directly in assertions scores 0 here).
+/// 2. **Asserted-rooted preference** (`sum_src_depth`) — tiebreak on the sum of
+///    source-fact depths; a derivation rooted closer to asserted axioms scores lower.
+/// 3. **Lexicographically-minimal sorted source reifiers** (`sorted_sources`) — the
+///    final content-addressed tiebreaker that guarantees a unique winner.
+///
+/// Because all three comparison fields are deterministically computable from the
+/// content-addressed source reifiers and depth counts, the winning provenance is
+/// entirely **independent of firing-enumeration order** — multiple valid derivations
+/// of the same head always collapse to the same winner.
 fn join_body(
     rule: &Rule,
     store: &FactStore,
@@ -1156,15 +1199,29 @@ fn join_body(
 
 /// Run the stratified semi-naive chase in one world, producing asserted + derived
 /// quads with full provenance.  Mirrors `_chase_world` with `enable_naf=True`.
+///
+/// # Winner selection (quality-ordered total-order tiebreak)
+///
+/// When multiple rule firings in the same round derive the same head `(s, p, o)`, the
+/// winner is chosen by comparing `(max_src_depth, sum_src_depth, sorted_sources)` —
+/// smaller wins.  This prefers the most-direct derivation (fewest steps from asserted
+/// facts), tiebreaks toward asserted-rooted proofs, and uses lex-min sorted reifiers
+/// as a final content-addressed guarantee.  The comparison is **independent of
+/// firing-enumeration order** by construction.
 fn chase_world(world_iri: &str, initial: &[Fact]) -> Result<Vec<FoundationQuad>, String> {
     let mut store = FactStore::new();
     for f in initial {
         store.insert(f.clone());
     }
 
+    // Per-fact derivation-depth map: depth 0 for every asserted (initial) fact;
+    // derived facts get depth = 1 + max(source depths) when committed.
+    let mut depth: HashMap<(String, String, String), u32> = HashMap::new();
+
     // Asserted quads: source = [self reifier], rule = logic:assert.
     let mut out: Vec<FoundationQuad> = Vec::with_capacity(initial.len());
     for f in initial {
+        depth.insert(f.key(), 0); // asserted facts have depth 0
         let reifier = fact_reifier(f)?;
         let deriv = mint_derivation_id(ASSERT_RULE_IRI, &[reifier.as_str()]);
         out.push(FoundationQuad {
@@ -1186,7 +1243,10 @@ fn chase_world(world_iri: &str, initial: &[Fact]) -> Result<Vec<FoundationQuad>,
         let mut delta: HashSet<(String, String, String)> = store.keys.clone();
 
         loop {
-            let mut new_delta: HashSet<(String, String, String)> = HashSet::new();
+            // Per-round canonical-winner map: keyed by head key, holds the candidate
+            // chosen by a quality-ordered total-order tiebreak (see struct doc).
+            // This makes provenance selection independent of firing-enumeration order.
+            let mut round: HashMap<(String, String, String), RoundCandidate> = HashMap::new();
 
             for rule in stratum.iter() {
                 for sol in join_body(rule, &store, &delta) {
@@ -1206,36 +1266,90 @@ fn chase_world(world_iri: &str, initial: &[Fact]) -> Result<Vec<FoundationQuad>,
                     };
                     let key = head.key();
                     if store.contains_key(&key) {
-                        continue; // first-wins dedup
+                        continue; // a prior round already derived it; earlier round wins
                     }
 
                     // Provenance: reifiers of the matched positive body facts.  All
                     // foundation terms are IRIs, so every source is included (the
                     // Python filter to URIRef subj/pred never drops any here).
                     let mut sources: Vec<String> = Vec::with_capacity(sol.source_keys.len());
+                    // Compute depth fields from source fact keys.  Every source fact was
+                    // already committed (asserted or a prior-round winner), so its depth
+                    // entry is always present.  The `unwrap_or(&0)` is a defensive guard
+                    // only — a missing entry would indicate a chase-ordering bug, NOT a
+                    // legitimate absent depth (we never silently mask that by choosing 0).
+                    let mut max_sd: u32 = 0;
+                    let mut sum_sd: u64 = 0;
                     for sk in &sol.source_keys {
                         // sk holds the bare (s, p, o) IRIs of a matched body fact.
                         sources.push(triple_reifier(&sk.0, &sk.1, &sk.2)?);
+                        let d = *depth.get(sk).unwrap_or(&0);
+                        max_sd = max_sd.max(d);
+                        sum_sd = sum_sd.saturating_add(u64::from(d));
                     }
                     let src_refs: Vec<&str> = sources.iter().map(String::as_str).collect();
                     let deriv = mint_derivation_id(ANON_RULE_IRI, &src_refs);
+                    let mut sorted_sources = sources.clone();
+                    sorted_sources.sort();
 
-                    store.insert(head.clone());
-                    new_delta.insert(key);
-                    derived.push(FoundationQuad {
-                        graph: world_iri.to_owned(),
-                        subject: head.subject,
-                        predicate: head.predicate,
-                        object: n3(&head.object),
-                        rule_iri: ANON_RULE_IRI.to_owned(),
-                        source_quad_ids: sources,
-                        derivation_id: deriv,
-                    });
+                    // Quality-ordered total-order tiebreak:
+                    //   (max_src_depth, sum_src_depth, sorted_sources) — smaller wins.
+                    // Level 1: fewest derivation steps (most direct).
+                    // Level 2: asserted-rooted preference (lower depth sum).
+                    // Level 3: lex-min sorted reifiers (content-addressed final key).
+                    let candidate = RoundCandidate {
+                        head,
+                        sources,
+                        sorted_sources,
+                        deriv,
+                        max_src_depth: max_sd,
+                        sum_src_depth: sum_sd,
+                    };
+                    round
+                        .entry(key)
+                        .and_modify(|existing| {
+                            let cand_key = (
+                                candidate.max_src_depth,
+                                candidate.sum_src_depth,
+                                &candidate.sorted_sources,
+                            );
+                            let exist_key = (
+                                existing.max_src_depth,
+                                existing.sum_src_depth,
+                                &existing.sorted_sources,
+                            );
+                            if cand_key < exist_key {
+                                *existing = candidate.clone();
+                            }
+                        })
+                        .or_insert(candidate);
                 }
             }
 
-            if new_delta.is_empty() {
+            if round.is_empty() {
                 break; // fixpoint
+            }
+
+            // Commit all winners from this round (commit order doesn't matter; final
+            // output is canonically sorted at the call site).
+            let mut new_delta: HashSet<(String, String, String)> =
+                HashSet::with_capacity(round.len());
+            for (key, c) in round {
+                // Record the winner's depth: 1 + max(source depths).
+                // Empty source sets (zero positive body atoms) get depth 1 by convention.
+                let winner_depth = c.max_src_depth.saturating_add(1);
+                depth.insert(key.clone(), winner_depth);
+                store.insert(c.head.clone());
+                derived.push(FoundationQuad {
+                    graph: world_iri.to_owned(),
+                    subject: c.head.subject,
+                    predicate: c.head.predicate,
+                    object: n3(&c.head.object),
+                    rule_iri: ANON_RULE_IRI.to_owned(),
+                    source_quad_ids: c.sources,
+                    derivation_id: c.deriv,
+                });
+                new_delta.insert(key);
             }
             delta = new_delta;
         }
