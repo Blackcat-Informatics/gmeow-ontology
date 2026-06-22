@@ -33,13 +33,27 @@ _OKF_NS = "https://blackcatinformatics.ca/projects/gts/okf#"
 
 
 def _gts_available() -> bool:
-    try:
-        from gmeow_tools.okf_import import find_gts_binary
+    """Whether an *OKF-capable* gts binary is locatable for the acceptance lane.
 
-        find_gts_binary()
-    except Exception:
+    Locating any ``gts`` is not enough: the PyPI ``gts`` wheel is built without
+    ``--features okf`` and has no ``from-okf`` subcommand, so it would make the
+    acceptance tests *fail* rather than skip. Probe the actual capability so the
+    lane skips cleanly on an okf-less binary and activates the moment an
+    okf-capable ``gts`` (Rust, built ``--features okf``) is present.
+    """
+    from gmeow_tools.okf_import import OkfBinaryNotFoundError, find_gts_binary
+
+    try:
+        binary = find_gts_binary()
+    except OkfBinaryNotFoundError:
         return False
-    return True
+    probe = subprocess.run(
+        [str(binary), "from-okf", "--help"],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    return probe.returncode == 0
 
 
 _requires_gts = pytest.mark.skipif(
@@ -72,6 +86,7 @@ _CATEGORY_DIR = {
 
 
 def test_one_doc_per_term_in_category_dirs(bundle: Path) -> None:
+    """Every folded term has exactly one doc under its category directory."""
     terms = collect_terms()
     docs = {p.relative_to(bundle).as_posix() for p in bundle.rglob("*.md")}
     for term in terms:
@@ -81,7 +96,9 @@ def test_one_doc_per_term_in_category_dirs(bundle: Path) -> None:
 
 
 def test_frontmatter_shape_and_okf_type_is_a_string(bundle: Path) -> None:
-    sample = next((bundle / "classes").glob("*.md"))
+    """Frontmatter has the recognized keys; okf:type is a string, not rdf:type."""
+    # Exclude the per-directory index.md (type: Index) — pick an actual class doc.
+    sample = next(p for p in (bundle / "classes").glob("*.md") if p.name != "index.md")
     fm, body = _split_frontmatter(sample.read_text(encoding="utf-8"))
     # the six recognized keys + the okf:type string literal (NOT rdf:type)
     assert fm["type"] == "Class"
@@ -94,6 +111,7 @@ def test_frontmatter_shape_and_okf_type_is_a_string(bundle: Path) -> None:
 
 
 def test_relation_links_point_at_in_bundle_docs(bundle: Path) -> None:
+    """Relation links resolve to sibling docs that actually exist in the bundle."""
     # find a class with a gmeow parent that is itself in the bundle
     terms = {t.curie: t for t in collect_terms()}
     target = next(
@@ -109,6 +127,7 @@ def test_relation_links_point_at_in_bundle_docs(bundle: Path) -> None:
 
 
 def test_root_index_declares_lossy(bundle: Path) -> None:
+    """The root index carries the in-band LOSSY-projection declaration."""
     root_index = (bundle / "index.md").read_text(encoding="utf-8")
     assert _LOSSY_NOTE in root_index
     assert "LOSSY" in root_index
@@ -131,7 +150,10 @@ def test_deterministic_under_hash_seed_variation(tmp_path: Path) -> None:
             check=True,
             env={"PYTHONHASHSEED": seed, "PATH": "/usr/bin:/bin"},
         )
-        files = sorted((run_dir / OKF_DIR_NAME).rglob("*.md"))
+        files = sorted(
+            (run_dir / OKF_DIR_NAME).rglob("*.md"),
+            key=lambda p: p.relative_to(run_dir).as_posix(),
+        )
         blob = b"".join(
             p.relative_to(run_dir).as_posix().encode() + p.read_bytes() for p in files
         )
@@ -142,6 +164,7 @@ def test_deterministic_under_hash_seed_variation(tmp_path: Path) -> None:
 
 
 def test_generator_compare_skips_gitignored_dist(tmp_path: Path) -> None:
+    """okf generator is directory-output; reports no drift for git-ignored dist."""
     gen = registry()["okf"]
     assert gen.is_directory_output is True
     # dist/ is git-ignored, so committed output never exists → no drift reported
@@ -149,6 +172,7 @@ def test_generator_compare_skips_gitignored_dist(tmp_path: Path) -> None:
 
 
 def test_mcp_okf_index_resource() -> None:
+    """The MCP okf-index resource serves the bundle manifest with lossy=True."""
     from gmeow_tools.mcp_server_consumer import gmeow_okf_index
 
     fn = getattr(gmeow_okf_index, "fn", gmeow_okf_index)
@@ -165,8 +189,9 @@ def test_mcp_okf_index_resource() -> None:
 
 
 def test_index_records_match_bundle(bundle: Path) -> None:
+    """Every manifest record points at a document that exists in the bundle."""
     records = okf_index_records(collect_terms())
-    for rec in records[:50]:
+    for rec in records:
         assert (bundle.parent / rec["path"]).exists()
 
 
@@ -193,6 +218,7 @@ def test_gts_from_okf_folds_our_bundle(bundle: Path, tmp_path: Path) -> None:
 
 @_requires_gts
 def test_lift_roundtrips_recognized_subset_and_retains_unknown(tmp_path: Path) -> None:
+    """Lift maps the recognized okf: subset and retains unknown keys verbatim."""
     from gmeow_tools.okf_import import lift_okf_graph, okf_dir_to_graph
 
     okf = tmp_path / "hand"
