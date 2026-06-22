@@ -2595,7 +2595,8 @@ def certify(
         help=(
             "Override the declared semantic profile localname (e.g. "
             "PositiveHornProfile, StratifiedNAFProfile). When omitted, read "
-            "from a sibling profile.json, else default PositiveHornProfile."
+            "from a sibling profile.json (reasoning_contract.preset), else default "
+            "PositiveHornProfile."
         ),
     ),
 ) -> None:
@@ -2612,7 +2613,7 @@ def certify(
     The profile is resolved (highest precedence first):
 
     1. the ``--profile`` override, if given;
-    2. ``semantic_profile`` in a sibling ``profile.json``, if present;
+    2. ``reasoning_contract.preset`` in a sibling ``profile.json``, if present;
     3. ``PositiveHornProfile`` (the v1 default).
     """
     #: The six logic:ReasoningPreset local names (mirrors the Rust
@@ -2644,9 +2645,11 @@ def certify(
             except (OSError, json.JSONDecodeError) as exc:
                 raise _fail(f"✗ certify: cannot read {sibling}: {exc}") from exc
             if isinstance(sibling_data, dict):
-                profile_str = str(
-                    sibling_data.get("semantic_profile", "PositiveHornProfile")
-                )
+                # #767: the contract preset lives under reasoning_contract.preset
+                # (the retired top-level semantic_profile key is gone).
+                contract = sibling_data.get("reasoning_contract")
+                if isinstance(contract, dict) and "preset" in contract:
+                    profile_str = str(contract["preset"])
 
     if profile_str not in _valid_profiles:
         raise _fail(

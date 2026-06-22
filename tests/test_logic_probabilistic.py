@@ -67,7 +67,7 @@ def _load_golden(case_dir: Path, stem: str) -> dict[str, object]:
 
 def _profile(case_dir: Path) -> str:
     data = json.loads((case_dir / "profile.json").read_text(encoding="utf-8"))
-    return str(data["semantic_profile"])
+    return str(data["reasoning_contract"]["preset"])
 
 
 def _run(case_dir: Path, stem: str) -> dict[str, object]:
