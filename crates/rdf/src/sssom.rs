@@ -50,7 +50,7 @@
 //! the parity checks and the enhancement, so flagging the missing-slot negatives
 //! is an improvement with no corpus regression.
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 
 use crate::{RdfDiagnostic, RdfLiteral, RdfLocation, RdfQuad, RdfSeverity, RdfTerm};
 
@@ -213,26 +213,24 @@ pub fn parse_tsv(text: &str) -> Result<SssomMappingSet, RdfDiagnostic> {
 
     let meta = parse_header(&lines[..header_idx])?;
 
-    // The body is the column-header row plus the data rows. Trailing `# #…`
-    // provenance comments (and blank lines) after the data are not mappings —
-    // drop them so the TSV reader never sees a stray comment line as a row.
-    let mut body_lines: Vec<&str> = lines[header_idx..].to_vec();
-    while body_lines
-        .last()
-        .is_some_and(|line| line.trim().is_empty() || line.starts_with('#'))
-    {
-        body_lines.pop();
+    // The body is the column-header row plus the data rows. `#` provenance
+    // comments (GMEOW emits its trailer block right after the column header when
+    // there are zero rows, or interleaved) and blank lines are not mappings; skip
+    // them while recording each kept line's original 1-based source line number,
+    // so a diagnostic reports the true line even when a comment is interleaved
+    // between data rows (passing a flat offset shifted every later row's line).
+    let mut body = String::new();
+    let mut line_numbers: Vec<u32> = Vec::new();
+    for (offset, line) in lines[header_idx..].iter().enumerate() {
+        if line.starts_with('#') || line.trim().is_empty() {
+            continue;
+        }
+        line_numbers.push((header_idx + offset + 1) as u32);
+        body.push_str(line);
+        body.push('\n');
     }
-    // A '#'-prefixed line *between* the header row and the data (GMEOW emits its
-    // trailer block right after the column header when there are zero rows, or
-    // interleaved) is provenance too; filter every body comment line.
-    let body: String = body_lines
-        .iter()
-        .filter(|line| !line.starts_with('#'))
-        .map(|line| format!("{line}\n"))
-        .collect();
 
-    let mappings = parse_body(&body, header_idx)?;
+    let mappings = parse_body(&body, &line_numbers)?;
     Ok(SssomMappingSet { meta, mappings })
 }
 
@@ -336,7 +334,12 @@ fn split_key_value(scalar: &str) -> Option<(&str, &str)> {
 }
 
 /// Parse the TSV body (column-header row + data rows) into mappings.
-fn parse_body(body: &str, header_line_offset: usize) -> Result<Vec<SssomMapping>, RdfDiagnostic> {
+///
+/// `line_numbers` holds the original 1-based source line of each body line in
+/// order: `line_numbers[0]` is the column-header row, and data row `i` is at
+/// `line_numbers[i + 1]`. This keeps diagnostics anchored to the true source
+/// position regardless of how many `#` comment lines were filtered out upstream.
+fn parse_body(body: &str, line_numbers: &[u32]) -> Result<Vec<SssomMapping>, RdfDiagnostic> {
     if body.trim().is_empty() {
         return Err(RdfDiagnostic::error(
             "sssom-tsv-parse",
@@ -351,12 +354,13 @@ fn parse_body(body: &str, header_line_offset: usize) -> Result<Vec<SssomMapping>
         .from_reader(body.as_bytes());
 
     // `csv` validates the header lazily; fetch it up front so a malformed header
-    // is reported with the right line.
+    // is reported with the right line (the first body line).
+    let header_line = line_numbers.first().copied().unwrap_or(1);
     let columns: Vec<String> = reader
         .headers()
         .map_err(|e| {
             RdfDiagnostic::error("sssom-tsv-parse", format!("unreadable TSV header: {e}"))
-                .with_location(RdfLocation::default().with_line((header_line_offset + 1) as u32))
+                .with_location(RdfLocation::default().with_line(header_line))
         })?
         .iter()
         .map(str::to_owned)
@@ -364,9 +368,12 @@ fn parse_body(body: &str, header_line_offset: usize) -> Result<Vec<SssomMapping>
 
     let mut mappings = Vec::new();
     for (row_index, record) in reader.records().enumerate() {
-        // The data row's 1-based line in the source file: header lines, then the
-        // column-header row, then this row.
-        let line_no = (header_line_offset + 2 + row_index) as u32;
+        // The data row's true 1-based source line: line_numbers[0] is the column
+        // header, so data row `row_index` is at line_numbers[row_index + 1].
+        let line_no = line_numbers
+            .get(row_index + 1)
+            .copied()
+            .unwrap_or(header_line);
         let record = record.map_err(|e| {
             RdfDiagnostic::error("sssom-tsv-parse", format!("malformed TSV row: {e}"))
                 .with_location(RdfLocation::default().with_line(line_no))
@@ -607,13 +614,24 @@ pub fn serialize_tsv(set: &SssomMappingSet) -> String {
 
     // Choose the emitted columns: always-on columns, plus any optional column
     // that at least one row populates (mirrors `_SSSOM_ALWAYS`/`_SSSOM_ORDER`).
-    let columns: Vec<&str> = SSSOM_ORDER
+    let mut columns: Vec<&str> = SSSOM_ORDER
         .iter()
         .copied()
         .filter(|col| {
             SSSOM_ALWAYS.contains(col) || set.mappings.iter().any(|m| !cell(m, col).is_empty())
         })
         .collect();
+    // Append any preserved extra (non-SSSOM-core) columns captured on parse so a
+    // `parse → serialize_tsv` round-trip is lossless for non-GMEOW inputs. The
+    // union of `extras` keys across rows is sorted (BTreeSet) for deterministic
+    // output; these keys are disjoint from SSSOM_ORDER by construction (parse_row
+    // routes only unknown columns into `extras`).
+    let extra_columns: BTreeSet<&str> = set
+        .mappings
+        .iter()
+        .flat_map(|m| m.extras.keys().map(String::as_str))
+        .collect();
+    columns.extend(extra_columns);
     lines.push(columns.join("\t"));
 
     let mut sorted: Vec<&SssomMapping> = set.mappings.iter().collect();
@@ -853,6 +871,65 @@ gmeow:A\tskos:exactMatch\tgmeow:B\tsemapv:ManualMappingCuration\t1:1
                 .get("mapping_cardinality")
                 .map(String::as_str),
             Some("1:1")
+        );
+    }
+
+    #[test]
+    fn serialize_preserves_unknown_columns_roundtrip() {
+        // A non-GMEOW SSSOM file carrying an extra column must survive
+        // parse → serialize_tsv (lossless round-trip), not be silently dropped
+        // because the column set is built only from SSSOM_ORDER (H-1 / #855).
+        let doc = "\
+# mapping_set_id: https://example.org/x
+# curie_map:
+#   gmeow: https://blackcatinformatics.ca/gmeow/
+#   skos: http://www.w3.org/2004/02/skos/core#
+#   semapv: https://w3id.org/semapv/vocab/
+subject_id\tpredicate_id\tobject_id\tmapping_justification\tmapping_cardinality
+gmeow:A\tskos:exactMatch\tgmeow:B\tsemapv:ManualMappingCuration\t1:1
+";
+        let set = parse_tsv(doc).expect("parse");
+        let serialized = serialize_tsv(&set);
+        assert!(
+            serialized.contains("mapping_cardinality"),
+            "extra column dropped on serialize:\n{serialized}"
+        );
+        let reparsed = parse_tsv(&serialized).expect("reparse");
+        assert_eq!(
+            reparsed.mappings[0]
+                .extras
+                .get("mapping_cardinality")
+                .map(String::as_str),
+            Some("1:1"),
+            "extra column value lost on round-trip"
+        );
+    }
+
+    #[test]
+    fn diagnostic_line_survives_interleaved_comment() {
+        // A `#` provenance comment between data rows must not shift the reported
+        // line of a later row's diagnostic. Before M-1 (gemini #1+#2 on #855) a
+        // flat offset ignored the filtered comment and reported the wrong line.
+        let doc = "\
+# mapping_set_id: https://example.org/x
+# curie_map:
+#   gmeow: https://blackcatinformatics.ca/gmeow/
+#   skos: http://www.w3.org/2004/02/skos/core#
+#   semapv: https://w3id.org/semapv/vocab/
+subject_id\tpredicate_id\tobject_id\tmapping_justification\tconfidence
+gmeow:A\tskos:exactMatch\tgmeow:B\tsemapv:ManualMappingCuration\t0.7
+# interleaved provenance comment
+gmeow:C\tskos:exactMatch\tgmeow:D\tsemapv:ManualMappingCuration\tNOTNUM
+";
+        let err = parse_tsv(doc).unwrap_err();
+        assert_eq!(err.code, "sssom-tsv-parse");
+        assert!(err.message.contains("confidence"), "{}", err.message);
+        // The bad row is the 9th source line; the interleaved comment (line 8)
+        // must not shift the reported line back to 8.
+        assert_eq!(
+            err.location.as_ref().and_then(|loc| loc.line),
+            Some(9),
+            "reported line should be the bad row's true source line",
         );
     }
 
