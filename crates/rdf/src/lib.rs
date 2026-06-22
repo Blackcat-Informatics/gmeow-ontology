@@ -44,6 +44,10 @@ pub mod py_gts;
 pub mod py_gts_dataset;
 #[cfg(feature = "oxigraph")]
 pub mod statements;
+// Native SSSOM (Simple Standard for Sharing Ontology Mappings) TSV codec +
+// validator + RDF serializer (#848). PyO3-free; replaces the `sssom` PyPI
+// package's parse+validate behaviour for the GMEOW mapping artifacts.
+pub mod sssom;
 pub mod store;
 pub mod turtle;
 // Canonical, review-friendly Turtle serializer over the IR (#819 Task 9): the
@@ -79,6 +83,9 @@ pub use provenance::{
     check_provenance, ArtifactId, ArtifactInterner, AssertionOccurrence, Attribution,
     AttributionRole, DatasetProvenance, OriginKind, OriginSetId, OriginSetInterner,
     ProvenanceError, UnitId, UnitInterner,
+};
+pub use sssom::{
+    SssomDiagnostic, SssomMapping, SssomMappingSet, SssomMeta, SSSOM_DEFAULT_VALIDATION_TYPES,
 };
 pub use store::{RdfStore, RdfStoreCapabilities, VecRdfStore};
 pub use turtle::{emit_annotation, emit_quad, emit_reifier, emit_resource, emit_term, rule_iri};
