@@ -10,37 +10,8 @@
 //! detection, the trivial asserted-fact explanation, and the faithfulness gate.
 
 use super::*;
-use std::collections::BTreeSet;
 
 const BASE: &str = "https://example.org/explanation/transitive-derivation/";
-
-/// The committed golden skeleton file for the derived `A subOf C` quad.
-const GOLDEN_MD: &str = include_str!(
-    "../../../../conformance/logic/cases/explanation/transitive-derivation/expected/explanation/b2fb756dbd211fce14c818c1fdd042e04d46f4e0.md"
-);
-
-/// Parse the `<!-- cited-iri-skeleton ... -->` block from a golden `.md`.
-/// Mirrors the Python `_parse_cited_iri_skeleton` in `logic_runner.py`.
-fn parse_cited_iri_skeleton(text: &str) -> BTreeSet<String> {
-    let mut in_block = false;
-    let mut iris: BTreeSet<String> = BTreeSet::new();
-    for line in text.lines() {
-        let trimmed = line.trim();
-        if trimmed == "<!-- cited-iri-skeleton" {
-            in_block = true;
-            continue;
-        }
-        if in_block {
-            if trimmed == "-->" {
-                break;
-            }
-            if !trimmed.is_empty() {
-                iris.insert(trimmed.to_owned());
-            }
-        }
-    }
-    iris
-}
 
 /// Build the three rows for the transitive-derivation case (two asserted facts +
 /// one derived quad), in the same input order the runner produces them.
@@ -113,10 +84,17 @@ fn reifier_recipe_golden() {
     );
 }
 
-// ── Transitive-derivation parity ───────────────────────────────────────────────
+// ── Transitive-derivation prose snapshot (T8, #789) ─────────────────────────────
 
 #[test]
-fn transitive_derivation_cited_iris_match_golden() {
+fn transitive_derivation_render_markdown_snapshot() {
+    // The full `render_markdown` prose for the derived `A subOf C` quad, pinned by
+    // an insta `.snap` golden. This replaces the bespoke `include_str!`-golden +
+    // `parse_cited_iri_skeleton` compare: the snapshot's `<!-- cited-iri-skeleton
+    // -->` block IS `exp.cited_iris`, so it subsumes the old cited-IRI check AND
+    // adds full-prose regression the conformance gate lacks (the native
+    // `crates/conformance` harness compares only the cited-IRI skeleton, not the
+    // prose body — that gate is untouched).
     let rows = transitive_rows();
     // The derived quad is the third row (input order).
     let exp = explain_one(&rows, 2).expect("explanation must reconstruct");
@@ -126,15 +104,7 @@ fn transitive_derivation_cited_iris_match_golden() {
         "https://blackcatinformatics.ca/gmeow/reifier/b2fb756dbd211fce14c818c1fdd042e04d46f4e0"
     );
 
-    let golden = parse_cited_iri_skeleton(GOLDEN_MD);
-    assert!(
-        !golden.is_empty(),
-        "golden cited-iri-skeleton block must parse"
-    );
-    assert_eq!(
-        exp.cited_iris, golden,
-        "cited_iris must equal the committed golden skeleton set"
-    );
+    insta::assert_snapshot!(render_markdown(&exp));
 }
 
 #[test]
