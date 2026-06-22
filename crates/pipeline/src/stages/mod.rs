@@ -20,6 +20,7 @@ use crate::registry::StageRegistry;
 
 pub mod catalog;
 pub mod docs_render;
+pub mod frame_shapes;
 pub mod gts_compose;
 pub mod gts_sink;
 pub mod mappings;
@@ -41,4 +42,5 @@ pub fn register_default(registry: &mut StageRegistry) {
     registry.register("gts_sink", Arc::new(gts_sink::GtsSinkStage::new()));
     registry.register("catalog", Arc::new(catalog::CatalogStage));
     registry.register("profiles", Arc::new(profiles::ProfilesStage));
+    registry.register("frame_shapes", Arc::new(frame_shapes::FrameShapesStage));
 }
