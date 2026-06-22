@@ -861,15 +861,12 @@ fn compile_logic<'py>(py: Python<'py>, source_ttl: &str) -> PyResult<Bound<'py, 
         .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.0))?;
     let arts = compile_program(&program).map_err(pyo3::exceptions::PyValueError::new_err)?;
 
-    let diag_list = PyList::empty(py);
-    for diag in &diagnostics {
-        let d = PyDict::new(py);
-        d.set_item("severity", diag.severity.as_str())?;
-        d.set_item("code", diag.code.as_str())?;
-        d.set_item("message", diag.message.as_str())?;
-        d.set_item("subject", diag.subject.as_deref().unwrap_or(""))?;
-        diag_list.append(d)?;
-    }
+    // Build the canonical diagnostics Report in Rust (#856): the parse diagnostics
+    // become `logic-compile.<code>` findings here, in the core, not via a Python
+    // dict→finding reshaper. Normalize before handing it over so the live report
+    // (and any downstream content hash / render) is deterministic — mirroring
+    // `verify_native`.
+    let diag_report = crate::compile::frontend::diagnostics_report(&diagnostics).normalized();
 
     let out = PyDict::new(py);
     out.set_item("owl_dl", arts.owl_dl)?;
@@ -896,7 +893,15 @@ fn compile_logic<'py>(py: Python<'py>, source_ttl: &str) -> PyResult<Bound<'py, 
         ledger.set_item(entry.target.as_str(), row)?;
     }
     out.set_item("preservation_ledger", ledger)?;
-    out.set_item("diagnostics", diag_list)?;
+    // The parse diagnostics as a live, normalized `gmeow_diagnostics` Report (#856),
+    // not a `list[dict]`. The Python surface forwards it directly.
+    out.set_item(
+        "diagnostics_report",
+        Py::new(
+            py,
+            gmeow_diagnostics::py::PyReport::from_engine(diag_report),
+        )?,
+    )?;
     Ok(out)
 }
 

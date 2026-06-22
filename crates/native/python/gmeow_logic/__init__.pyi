@@ -17,12 +17,6 @@ from typing import Any, TypedDict
 
 from gmeow_rdf import Quad
 
-class CompileDiagnostic(TypedDict):
-    severity: str
-    code: str
-    message: str
-    subject: str
-
 class LedgerEntry(TypedDict):
     preservation: str
     complexity: str
@@ -41,7 +35,10 @@ class CompileLogicResult(TypedDict):
     nemo_rules: str
     # Per-target preservation ledger, keyed by target short-name.
     preservation_ledger: dict[str, LedgerEntry]
-    diagnostics: list[CompileDiagnostic]
+    # The parse diagnostics as a live, normalized ``gmeow_diagnostics`` Report
+    # (#856) — built in Rust, forwarded by the Python surface. ``Any`` because
+    # ``gmeow_diagnostics`` is an untyped native extension.
+    diagnostics_report: Any
 
 def materialize(
     rules: str,
@@ -217,15 +214,17 @@ def query(
     max_steps: int | None = ...,
 ) -> dict[str, Any]: ...
 def compile_logic(source_ttl: str) -> CompileLogicResult:
-    """Compile logic: Turtle source → the 8 artifacts + parse diagnostics (#664).
+    """Compile logic: Turtle source → the 8 artifacts + a diagnostics Report (#664).
 
     Returns a dict with the following keys:
 
     * ``owl_dl``, ``owl_el``, ``datalog``, ``n3``, ``gufo``,
       ``canonical_rdf12``, ``nemo``, ``report`` — each the serialized content string.
-    * ``diagnostics`` — a list of dicts, each carrying ``severity`` (str),
-      ``code`` (str), ``message`` (str), and ``subject`` (str, empty string when
-      no subject).  Recoverable parse issues are surfaced here as warnings and
-      never block compilation.
+    * ``nemo_rules`` — the ``% === Rules ===`` section of ``nemo``.
+    * ``preservation_ledger`` — per-target ledger keyed by target short-name.
+    * ``diagnostics_report`` — a live, normalized ``gmeow_diagnostics`` Report
+      (#856) built in Rust: each parse diagnostic is a ``logic-compile.<code>``
+      finding (``subject`` → logical location).  Recoverable parse issues are
+      surfaced here as warnings and never block compilation.
     """
     ...
