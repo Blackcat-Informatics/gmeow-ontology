@@ -1,0 +1,183 @@
+---
+source: crates/docs/tests/model_golden.rs
+expression: summary
+---
+{
+  "title": "GMEOW Ontology Documentation",
+  "version": "1",
+  "slice_count": 73,
+  "term_count": 2142,
+  "dependency_edge_count": 735,
+  "term_count_by_category": {
+    "Class": 646,
+    "Datatype": 1,
+    "Individual": 3,
+    "Property": 1492
+  },
+  "slice_iris": [
+    "https://blackcatinformatics.ca/gmeow/slices/accessibility",
+    "https://blackcatinformatics.ca/gmeow/slices/accounts",
+    "https://blackcatinformatics.ca/gmeow/slices/affect",
+    "https://blackcatinformatics.ca/gmeow/slices/agentic",
+    "https://blackcatinformatics.ca/gmeow/slices/aggregation",
+    "https://blackcatinformatics.ca/gmeow/slices/agreements",
+    "https://blackcatinformatics.ca/gmeow/slices/ai",
+    "https://blackcatinformatics.ca/gmeow/slices/archaeological-evidence",
+    "https://blackcatinformatics.ca/gmeow/slices/attestation",
+    "https://blackcatinformatics.ca/gmeow/slices/awareness",
+    "https://blackcatinformatics.ca/gmeow/slices/calendar",
+    "https://blackcatinformatics.ca/gmeow/slices/citations",
+    "https://blackcatinformatics.ca/gmeow/slices/cognition",
+    "https://blackcatinformatics.ca/gmeow/slices/concepts",
+    "https://blackcatinformatics.ca/gmeow/slices/connectivity",
+    "https://blackcatinformatics.ca/gmeow/slices/contacts",
+    "https://blackcatinformatics.ca/gmeow/slices/coreference",
+    "https://blackcatinformatics.ca/gmeow/slices/creative-works",
+    "https://blackcatinformatics.ca/gmeow/slices/deception",
+    "https://blackcatinformatics.ca/gmeow/slices/diagnostics",
+    "https://blackcatinformatics.ca/gmeow/slices/documents",
+    "https://blackcatinformatics.ca/gmeow/slices/dreaming",
+    "https://blackcatinformatics.ca/gmeow/slices/email",
+    "https://blackcatinformatics.ca/gmeow/slices/employment",
+    "https://blackcatinformatics.ca/gmeow/slices/entities",
+    "https://blackcatinformatics.ca/gmeow/slices/epistemics",
+    "https://blackcatinformatics.ca/gmeow/slices/events",
+    "https://blackcatinformatics.ca/gmeow/slices/evidence",
+    "https://blackcatinformatics.ca/gmeow/slices/expertise",
+    "https://blackcatinformatics.ca/gmeow/slices/finance",
+    "https://blackcatinformatics.ca/gmeow/slices/gender",
+    "https://blackcatinformatics.ca/gmeow/slices/genealogy",
+    "https://blackcatinformatics.ca/gmeow/slices/graphrag",
+    "https://blackcatinformatics.ca/gmeow/slices/gts",
+    "https://blackcatinformatics.ca/gmeow/slices/images",
+    "https://blackcatinformatics.ca/gmeow/slices/imagination",
+    "https://blackcatinformatics.ca/gmeow/slices/inference",
+    "https://blackcatinformatics.ca/gmeow/slices/inquiry",
+    "https://blackcatinformatics.ca/gmeow/slices/kernel",
+    "https://blackcatinformatics.ca/gmeow/slices/language",
+    "https://blackcatinformatics.ca/gmeow/slices/languages",
+    "https://blackcatinformatics.ca/gmeow/slices/learning",
+    "https://blackcatinformatics.ca/gmeow/slices/lexicon",
+    "https://blackcatinformatics.ca/gmeow/slices/lifecycle",
+    "https://blackcatinformatics.ca/gmeow/slices/logic",
+    "https://blackcatinformatics.ca/gmeow/slices/mentation",
+    "https://blackcatinformatics.ca/gmeow/slices/metacognition",
+    "https://blackcatinformatics.ca/gmeow/slices/music",
+    "https://blackcatinformatics.ca/gmeow/slices/names",
+    "https://blackcatinformatics.ca/gmeow/slices/narrative",
+    "https://blackcatinformatics.ca/gmeow/slices/norms",
+    "https://blackcatinformatics.ca/gmeow/slices/notation",
+    "https://blackcatinformatics.ca/gmeow/slices/notes",
+    "https://blackcatinformatics.ca/gmeow/slices/observations",
+    "https://blackcatinformatics.ca/gmeow/slices/organization",
+    "https://blackcatinformatics.ca/gmeow/slices/places",
+    "https://blackcatinformatics.ca/gmeow/slices/procedures",
+    "https://blackcatinformatics.ca/gmeow/slices/profiles",
+    "https://blackcatinformatics.ca/gmeow/slices/provenance",
+    "https://blackcatinformatics.ca/gmeow/slices/quality",
+    "https://blackcatinformatics.ca/gmeow/slices/rights",
+    "https://blackcatinformatics.ca/gmeow/slices/risk",
+    "https://blackcatinformatics.ca/gmeow/slices/sensory",
+    "https://blackcatinformatics.ca/gmeow/slices/sensory-environment",
+    "https://blackcatinformatics.ca/gmeow/slices/sexuality",
+    "https://blackcatinformatics.ca/gmeow/slices/software",
+    "https://blackcatinformatics.ca/gmeow/slices/sources",
+    "https://blackcatinformatics.ca/gmeow/slices/standpoint",
+    "https://blackcatinformatics.ca/gmeow/slices/tags",
+    "https://blackcatinformatics.ca/gmeow/slices/teleology",
+    "https://blackcatinformatics.ca/gmeow/slices/temporal",
+    "https://blackcatinformatics.ca/gmeow/slices/trust",
+    "https://blackcatinformatics.ca/gmeow/slices/versions"
+  ],
+  "sample_slice": {
+    "iri": "https://blackcatinformatics.ca/gmeow/slices/accessibility",
+    "label": "accessibility",
+    "title": "GMEOW Accessibility Module",
+    "tier": "Extension",
+    "identifier": null,
+    "creators": [
+      "Blackcat Informatics® Inc."
+    ],
+    "consumers": [
+      "Accessibility facets over places and routes; the schema.org accessibility projection."
+    ],
+    "artifacts": [
+      {
+        "role": "Documentation",
+        "logical_path": "docs.md",
+        "media_type": "text/markdown",
+        "raw_digest": "f656971f578aec4be456c7e60d978e61225ba2363e54481b3397fcce6491fdc6",
+        "semantic_digest": null
+      },
+      {
+        "role": "Example",
+        "logical_path": "examples/location-access.ttl",
+        "media_type": "text/turtle",
+        "raw_digest": "d51813f45761a15f7cd4551d7951a082249988cbedf02da7cb1e8fe8b49208e0",
+        "semantic_digest": "c8503d5419ce214a9036b76370ba32342c52df596d61247b940b16a3e227080d"
+      },
+      {
+        "role": "Manifest",
+        "logical_path": "manifest.ttl",
+        "media_type": "text/turtle",
+        "raw_digest": "266cbc93bb4aea74310767bf20466d023c331ae3490c85cadd85308f39741541",
+        "semantic_digest": "a26ce65d4abc78fd59bf7a0c7ae7a8bbc5cdfcfab93da511ad0f6c3e731201a9"
+      },
+      {
+        "role": "Mapping",
+        "logical_path": "mappings/equivalences.ttl",
+        "media_type": "text/turtle",
+        "raw_digest": "bf3738f943065d5bd7b7f0e655765808ba6640395ad5dbffa75f258bba35f03d",
+        "semantic_digest": "0765edd06d2dc30324a64a2f4e4ae0ba865bb46fb8577c1591e033c9648c41fa"
+      },
+      {
+        "role": "Module",
+        "logical_path": "module.ttl",
+        "media_type": "text/turtle",
+        "raw_digest": "d95a3f16d1797212fd00a4d83843e480126f0c0399d5ff2a7ace67228e5ba520",
+        "semantic_digest": "2fda785eafc3d4285ee09336d457434c3818b624dfdd7048200c3f48712c304c"
+      }
+    ]
+  },
+  "sample_terms": [
+    {
+      "iri": "https://blackcatinformatics.ca/gmeow/AboutnessMode",
+      "curie": "gmeow:AboutnessMode",
+      "label": "Aboutness Mode",
+      "definition": "The rhetorical relation between an information carrier and its subject matter — whether the carrier describes the subject (mention: reporting, quoting, depicting, analyzing) or enacts it (use: performing, demanding, exemplifying, embodying). A value vocabulary of individuals (never subclasses). Orthogonal to granularity, determinacy, sensitivity, confidence, and standpoint modality (Principle 9): a carrier may describe one subject while enacting another, and distinct vantages may classify the same carrier differently through the statement layer. The distinction every rubric, citation, and evidence assessment eventually needs: text ABOUT deception is not text THAT deceives.",
+      "category": "Class",
+      "owner_slice": "https://blackcatinformatics.ca/gmeow/slices/kernel",
+      "parents": [
+        "http://purl.org/nemo/gufo#QualityValue"
+      ],
+      "domain": [],
+      "range": []
+    },
+    {
+      "iri": "https://blackcatinformatics.ca/gmeow/abstract",
+      "curie": "gmeow:abstract",
+      "label": "abstract",
+      "definition": "A summary of the content of a creative work.",
+      "category": "Property",
+      "owner_slice": "https://blackcatinformatics.ca/gmeow/slices/documents",
+      "parents": [],
+      "domain": [
+        "https://blackcatinformatics.ca/gmeow/CreativeWork"
+      ],
+      "range": [
+        "http://www.w3.org/2000/01/rdf-schema#Literal"
+      ]
+    },
+    {
+      "iri": "https://blackcatinformatics.ca/gmeow/langEnglish",
+      "curie": "gmeow:langEnglish",
+      "label": "English",
+      "definition": "The English language — the seed gmeow:Language individual (gmeow:langEnglish) anchoring the internal private-use tag x-gmeow-english carried by the framework's own literals. Registry codes are alignments, never identity.",
+      "category": "Individual",
+      "owner_slice": "https://blackcatinformatics.ca/gmeow/slices/language",
+      "parents": [],
+      "domain": [],
+      "range": []
+    }
+  ]
+}

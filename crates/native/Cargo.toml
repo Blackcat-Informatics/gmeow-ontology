@@ -28,6 +28,9 @@ path = "src/lib.rs"
 # carry pyo3 unconditionally.
 gmeow-rdf = { path = "../rdf", features = ["python", "gts", "oxigraph"] }
 gmeow-diagnostics = { path = "../diagnostics" }
+# `gmeow-docs` ships the typed documentation model + its register fn (#853);
+# it consumes the pure-Rust slice catalog (no `python` feature needed).
+gmeow-docs = { path = "../docs" }
 gmeow-shacl = { path = "../shacl" }
 gmeow-validate = { path = "../validate" }
 gmeow-logic = { path = "../logic" }
