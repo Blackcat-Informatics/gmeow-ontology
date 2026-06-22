@@ -96,8 +96,8 @@ fn endurant_stereotypes() -> Vec<String> {
         "RoleMixin",
         "PhaseMixin",
     ]
-    .iter()
-    .flat_map(|l| dual(l))
+    .into_iter()
+    .flat_map(dual)
     .collect()
 }
 
@@ -115,7 +115,7 @@ fn perdurant_stereotypes() -> Vec<String> {
 
 /// The abstract-individual stereotype (`_ABSTRACT_STEREOTYPES`), in both namespaces.
 fn abstract_stereotypes() -> Vec<String> {
-    dual("AbstractIndividualType").into_iter().collect()
+    Vec::from(dual("AbstractIndividualType"))
 }
 
 /// The full acceptable-stereotype set (`_META_CLASSES`).
@@ -141,8 +141,8 @@ fn anti_rigid_sortals() -> HashSet<String> {
 /// (`_ANTI_RIGID_TYPES`), in both namespaces.
 fn anti_rigid_types() -> HashSet<String> {
     ["Phase", "Role", "PhaseMixin", "RoleMixin", "Mixin"]
-        .iter()
-        .flat_map(|l| dual(l))
+        .into_iter()
+        .flat_map(dual)
         .collect()
 }
 
@@ -276,17 +276,17 @@ pub fn exactly_one_stereotype(store: &Store, cfg: &GufoConfig) -> Vec<String> {
         let st = stereotypes(store, &cls, &meta);
         if st.is_empty() {
             problems.push(format!(
-                "{} carries no gUFO meta-class — pun it with exactly one of \
-                 gufo:Kind/SubKind/Role/Phase/Category/Mixin/RoleMixin/PhaseMixin \
-                 (gufo:EventType/SituationType for perdurants, or \
-                 gufo:AbstractIndividualType for abstract individuals)",
+                "{} carries no stereotype — pun it with exactly one of \
+                 Kind/SubKind/Role/Phase/Category/Mixin/RoleMixin/PhaseMixin \
+                 (Event/Situation for perdurants, or \
+                 AbstractIndividualType for abstract individuals)",
                 local(&cls, cfg)
             ));
         } else if st.len() > 1 {
             let mut names: Vec<String> = st.iter().map(|s| local(s, cfg)).collect();
             names.sort();
             problems.push(format!(
-                "{} carries conflicting gUFO meta-classes ({}) — a class has \
+                "{} carries conflicting stereotypes ({}) — a class has \
                  exactly one stereotype",
                 local(&cls, cfg),
                 names.join(", ")
@@ -319,7 +319,7 @@ pub fn identity_overlap(store: &Store, cfg: &GufoConfig) -> Vec<String> {
 
         if st.iter().any(is_kind) && !kind_ancestors.is_empty() {
             problems.push(format!(
-                "{} is a gufo:Kind but specializes gufo:Kind(s) {} — identity \
+                "{} is a Kind but specializes Kind(s) {} — identity \
                  conflict (OntoUML MixIden: every endurant instantiates exactly \
                  one Kind). See {}",
                 local(&cls, cfg),
@@ -338,7 +338,7 @@ pub fn identity_overlap(store: &Store, cfg: &GufoConfig) -> Vec<String> {
                 join_local(&kind_ancestors, cfg)
             };
             problems.push(format!(
-                "{} is a sortal but specializes {} gufo:Kind(s) ({}) — a sortal \
+                "{} is a sortal but specializes {} Kind(s) ({}) — a sortal \
                  inherits identity from exactly one Kind (OntoUML MixIden). See {}",
                 local(&cls, cfg),
                 kind_ancestors.len(),
@@ -500,7 +500,7 @@ pub fn relator_mediation(store: &Store, cfg: &GufoConfig) -> Vec<String> {
         }
         if ends < 2 {
             problems.push(format!(
-                "{} is a concrete gufo:Relator mediating only {} end(s) — a relator \
+                "{} is a concrete Relator mediating only {} end(s) — a relator \
                  must mediate at least two (OntoUML RelComp). See {}",
                 local(&cls, cfg),
                 ends,
@@ -914,9 +914,7 @@ mod tests {
     fn missing_stereotype_is_flagged() {
         let store = store_from(&format!("{PREFIXES}gmeow:Bare a owl:Class .\n"));
         let problems = exactly_one_stereotype(&store, &cfg());
-        assert!(problems
-            .iter()
-            .any(|p| p.contains("carries no gUFO meta-class")));
+        assert!(problems.iter().any(|p| p.contains("carries no stereotype")));
     }
 
     #[test]
@@ -927,7 +925,7 @@ mod tests {
         let problems = exactly_one_stereotype(&store, &cfg());
         assert!(problems
             .iter()
-            .any(|p| p.contains("conflicting gUFO meta-classes")));
+            .any(|p| p.contains("conflicting stereotypes")));
     }
 
     #[test]
@@ -1108,6 +1106,6 @@ mod tests {
         ));
         assert!(exactly_one_stereotype(&store, &cfg())
             .iter()
-            .any(|p| p.contains("conflicting gUFO meta-classes")));
+            .any(|p| p.contains("conflicting stereotypes")));
     }
 }
