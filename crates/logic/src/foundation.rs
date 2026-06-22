@@ -44,6 +44,7 @@
 //! returns `Err`).  A malformed inequality guard (an unbound guard variable) is a
 //! hard error.  There is no silent default and no degraded fallback.
 
+use std::collections::HashMap;
 use std::collections::HashSet;
 
 use oxigraph::model::{NamedNode, Term};
@@ -808,6 +809,11 @@ fn triple_reifier(s: &str, p: &str, o: &str) -> Result<String, String> {
 struct FactStore {
     facts: Vec<Fact>,
     keys: HashSet<(String, String, String)>,
+    /// Predicate → row indices into `facts`, in insertion order.  Maintained in
+    /// lockstep with `facts` so each bucket's order equals insertion order; this
+    /// lets the join scan only the rows for a constant-predicate atom while
+    /// returning exactly the subsequence (same relative order) a full scan would.
+    predicate_index: HashMap<String, Vec<usize>>,
 }
 
 impl FactStore {
@@ -815,6 +821,7 @@ impl FactStore {
         Self {
             facts: Vec::new(),
             keys: HashSet::new(),
+            predicate_index: HashMap::new(),
         }
     }
 
@@ -825,13 +832,28 @@ impl FactStore {
             return false;
         }
         self.keys.insert(key);
+        let predicate = fact.predicate.clone();
         self.facts.push(fact);
+        // Push the new row index in lockstep with `facts`, preserving insertion
+        // order within the predicate bucket.
+        self.predicate_index
+            .entry(predicate)
+            .or_default()
+            .push(self.facts.len() - 1);
         true
     }
 
     /// Whether a fact with this key exists.
     fn contains_key(&self, key: &(String, String, String)) -> bool {
         self.keys.contains(key)
+    }
+
+    /// Row indices (into `facts`, insertion-ordered) of facts with predicate
+    /// `pred`; empty slice if none.
+    fn facts_for_predicate(&self, pred: &str) -> &[usize] {
+        self.predicate_index
+            .get(pred)
+            .map_or(&[][..], Vec::as_slice)
     }
 }
 
@@ -999,10 +1021,32 @@ fn join_body(
     for atom in positive {
         let mut next: Vec<Solution> = Vec::new();
         for sol in &solutions {
-            for f in &store.facts {
-                if let Some(mut merged) = match_atom(atom, f, sol) {
-                    merged.source_keys.push(f.key());
-                    next.push(merged);
+            // delta×full position-decomposition rejected (reorders first-wins for
+            // self-join rules → changes content-addressed provenance); predicate
+            // index gives the O(matches) join win byte-identically.
+            match &atom.predicate {
+                TermPat::Const(p) => {
+                    // Constant predicate: scan only the predicate's bucket.  The
+                    // bucket is insertion-ordered, so this yields the identical
+                    // matched subsequence (and source_keys) as the full scan
+                    // filtered by predicate equality.
+                    for &i in store.facts_for_predicate(p) {
+                        let f = &store.facts[i];
+                        if let Some(mut merged) = match_atom(atom, f, sol) {
+                            merged.source_keys.push(f.key());
+                            next.push(merged);
+                        }
+                    }
+                }
+                TermPat::Var(_) => {
+                    // Variable predicate: hard fallback to the full scan (no
+                    // foundation rule hits this, but it must remain correct).
+                    for f in &store.facts {
+                        if let Some(mut merged) = match_atom(atom, f, sol) {
+                            merged.source_keys.push(f.key());
+                            next.push(merged);
+                        }
+                    }
                 }
             }
         }
