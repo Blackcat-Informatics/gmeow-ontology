@@ -62,6 +62,7 @@ classes:
   Agent:
     class_uri: https://blackcatinformatics.ca/gmeow/Agent
     title: Agent
+    is_a: Entity
     slots:
     - accepts
     - asks
@@ -301,6 +302,7 @@ classes:
   Axis:
     class_uri: https://blackcatinformatics.ca/gmeow/Axis
     title: Axis
+    is_a: Entity
   BiologicalParentChild:
     class_uri: https://blackcatinformatics.ca/gmeow/BiologicalParentChild
     title: Biological Parent-Child
@@ -397,6 +399,7 @@ classes:
   CalendarSystem:
     class_uri: https://blackcatinformatics.ca/gmeow/CalendarSystem
     title: Calendar System
+    is_a: Entity
   CalibrationStatus:
     class_uri: https://blackcatinformatics.ca/gmeow/CalibrationStatus
     title: Calibration Status
@@ -419,6 +422,7 @@ classes:
   CausalLink:
     class_uri: https://blackcatinformatics.ca/gmeow/CausalLink
     title: Causal Link
+    is_a: RiskFactor
     slots:
     - causalModality
     - linkAntecedent
@@ -432,6 +436,7 @@ classes:
   CelestialCoordinates:
     class_uri: https://blackcatinformatics.ca/gmeow/CelestialCoordinates
     title: Celestial Coordinates
+    is_a: Entity
     slots:
     - celestialEpoch
     - declination
@@ -899,6 +904,7 @@ classes:
   DatingMethod:
     class_uri: https://blackcatinformatics.ca/gmeow/DatingMethod
     title: Dating Method
+    is_a: ObservationMethod
   DayOfWeek:
     class_uri: https://blackcatinformatics.ca/gmeow/DayOfWeek
     title: Day Of Week
@@ -1558,6 +1564,7 @@ classes:
   Hazard:
     class_uri: https://blackcatinformatics.ca/gmeow/Hazard
     title: Hazard
+    is_a: RiskFactor
     slots:
     - hazardBearer
     - hazardSeverity
@@ -2367,9 +2374,11 @@ classes:
   NameRegister:
     class_uri: https://blackcatinformatics.ca/gmeow/NameRegister
     title: Name Register
+    is_a: Register
   NameUsage:
     class_uri: https://blackcatinformatics.ca/gmeow/NameUsage
     title: Name Usage
+    is_a: Observation
     slots:
     - usageAppellation
     - usageAudience

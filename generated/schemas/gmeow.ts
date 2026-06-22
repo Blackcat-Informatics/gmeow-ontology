@@ -3384,7 +3384,7 @@ export interface AestheticQuality {
 
 
 
-export interface Agent {
+export interface Agent extends Entity {
     accepts?: string[],
     asks?: string[],
     attendsTo?: Entity[],
@@ -3657,7 +3657,7 @@ export interface AwarenessTenure extends TimeScopedRelation {
 
 
 
-export interface Axis {
+export interface Axis extends Entity {
 }
 
 
@@ -3770,7 +3770,7 @@ export interface CalendarMethod {
 
 
 
-export interface CalendarSystem {
+export interface CalendarSystem extends Entity {
 }
 
 
@@ -3798,7 +3798,7 @@ export interface Cascade extends SocialObject {
 
 
 
-export interface CausalLink {
+export interface CausalLink extends RiskFactor {
     causalModality?: CausalModality,
     linkAntecedent?: EventType,
     linkConsequent?: EventType,
@@ -3814,7 +3814,7 @@ export interface CausalModality {
 
 
 
-export interface CelestialCoordinates {
+export interface CelestialCoordinates extends Entity {
     celestialEpoch?: number[],
     declination?: number[],
     rightAscension?: number[],
@@ -4346,7 +4346,7 @@ export interface Dataset extends Work {
 
 
 
-export interface DatingMethod {
+export interface DatingMethod extends ObservationMethod {
 }
 
 
@@ -5098,7 +5098,7 @@ export interface HarmonicFunction {
 
 
 
-export interface Hazard {
+export interface Hazard extends RiskFactor {
     hazardBearer?: Entity,
     hazardSeverity?: SeverityLevel[],
     manifestedAsType?: EventType[],
@@ -6024,12 +6024,12 @@ export interface NamePurpose {
 
 
 
-export interface NameRegister {
+export interface NameRegister extends Register {
 }
 
 
 
-export interface NameUsage {
+export interface NameUsage extends Observation {
     usageAppellation?: Appellation,
     usageAudience?: Entity[],
     usageAuthority?: Agent[],
