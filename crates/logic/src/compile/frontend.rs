@@ -100,6 +100,43 @@ impl Diagnostic {
     }
 }
 
+/// Project parse [`Diagnostic`]s into the canonical `gmeow-diagnostics` `Report`
+/// (issue #856).
+///
+/// This is the RUST-FIRST seam: the `Finding`/`Report` construction the `logic:`
+/// compile surface used to do in Python now happens here, in the Rust core, and
+/// `gmeow_logic.compile_logic` hands Python a live, normalized `Report` instead of
+/// a `list[dict]` of raw diagnostics.
+///
+/// The tool/code namespace is `logic-compile`: the report tool is `logic-compile`,
+/// every finding carries `with_tool("logic-compile")`, and each code is prefixed
+/// `logic-compile.<code>`. The diagnostic `subject` (an IRI / blank-node id) becomes
+/// the finding's logical location; an absent **or empty** subject yields no location
+/// (mirroring the prior `(subject or None)` Python behavior).
+pub fn diagnostics_report(diagnostics: &[Diagnostic]) -> gmeow_diagnostics::Report {
+    use gmeow_diagnostics::{Finding, Location, Report, Severity as DSeverity};
+
+    let mut report = Report::new("logic-compile");
+    for diag in diagnostics {
+        let severity = match diag.severity {
+            Severity::Error => DSeverity::Error,
+            Severity::Warning => DSeverity::Warning,
+            Severity::Info => DSeverity::Info,
+        };
+        let mut finding = Finding::new(
+            severity,
+            format!("logic-compile.{}", diag.code),
+            diag.message.clone(),
+        )
+        .with_tool("logic-compile");
+        if let Some(subject) = diag.subject.as_deref().filter(|s| !s.is_empty()) {
+            finding.add_location(Location::new(None, None, None, Some(subject.to_owned())));
+        }
+        report.add_finding(finding);
+    }
+    report
+}
+
 /// Raised for unparsable input (empty graph, unreadable / malformed file).
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct LogicParseError(pub String);
