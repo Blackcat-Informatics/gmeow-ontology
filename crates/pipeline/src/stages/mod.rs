@@ -21,6 +21,8 @@ use crate::registry::StageRegistry;
 pub mod apache;
 pub mod catalog;
 pub mod docs_render;
+pub mod evals;
+pub mod export;
 pub mod frame_shapes;
 pub mod gts_compose;
 pub mod gts_sink;
@@ -28,9 +30,13 @@ pub mod lpg;
 pub mod mappings;
 pub mod matrix;
 pub mod metadata;
+pub mod okf;
+pub mod parquet;
 pub mod profiles;
 pub mod reason;
 pub mod references;
+pub mod research_objects;
+pub mod schemas;
 pub mod source_load;
 pub mod statements;
 
@@ -53,4 +59,13 @@ pub fn register_default(registry: &mut StageRegistry) {
     registry.register("apache", Arc::new(apache::ApacheStage));
     registry.register("lpg", Arc::new(lpg::LpgStage));
     registry.register("references", Arc::new(references::ReferencesStage));
+    registry.register("evals", Arc::new(evals::EvalsStage));
+    registry.register("schemas", Arc::new(schemas::SchemasStage));
+    registry.register(
+        "research-objects",
+        Arc::new(research_objects::ResearchObjectsStage),
+    );
+    registry.register("parquet", Arc::new(parquet::ParquetStage));
+    registry.register("okf", Arc::new(okf::OkfStage));
+    registry.register("export", Arc::new(export::ExportStage));
 }
