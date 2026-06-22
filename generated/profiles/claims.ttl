@@ -27,6 +27,7 @@
         <https://blackcatinformatics.ca/gmeow/slices/epistemics> ,
         <https://blackcatinformatics.ca/gmeow/slices/events> ,
         <https://blackcatinformatics.ca/gmeow/slices/evidence> ,
+        <https://blackcatinformatics.ca/gmeow/slices/guides> ,
         <https://blackcatinformatics.ca/gmeow/slices/imagination> ,
         <https://blackcatinformatics.ca/gmeow/slices/inference> ,
         <https://blackcatinformatics.ca/gmeow/slices/inquiry> ,

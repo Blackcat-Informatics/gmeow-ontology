@@ -1,0 +1,25 @@
+---
+source: crates/docs/tests/rdf_golden.rs
+expression: nq
+---
+<https://blackcatinformatics.ca/gmeow/documentation/term/cat> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/DocumentedTerm> <https://blackcatinformatics.ca/gmeow/graph/documentation> .
+<https://blackcatinformatics.ca/gmeow/documentation/term/cat> <https://blackcatinformatics.ca/gmeow/documents> <https://blackcatinformatics.ca/gmeow/Cat> <https://blackcatinformatics.ca/gmeow/graph/documentation> .
+<https://blackcatinformatics.ca/gmeow/documentation/term/cat> <https://blackcatinformatics.ca/gmeow/docCategory> "Class" <https://blackcatinformatics.ca/gmeow/graph/documentation> .
+<https://blackcatinformatics.ca/gmeow/documentation/term/cat> <https://blackcatinformatics.ca/gmeow/docHasDefinition> "true"^^<http://www.w3.org/2001/XMLSchema#boolean> <https://blackcatinformatics.ca/gmeow/graph/documentation> .
+<https://blackcatinformatics.ca/gmeow/documentation/term/cat> <https://blackcatinformatics.ca/gmeow/docUrl> "terms/cat/index.html" <https://blackcatinformatics.ca/gmeow/graph/documentation> .
+<https://blackcatinformatics.ca/gmeow/documentation/term/cat> <https://blackcatinformatics.ca/gmeow/docOwnerSlice> <https://blackcatinformatics.ca/gmeow/slice/zoo> <https://blackcatinformatics.ca/gmeow/graph/documentation> .
+<https://blackcatinformatics.ca/gmeow/documentation/term/hasowner> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/DocumentedTerm> <https://blackcatinformatics.ca/gmeow/graph/documentation> .
+<https://blackcatinformatics.ca/gmeow/documentation/term/hasowner> <https://blackcatinformatics.ca/gmeow/documents> <https://blackcatinformatics.ca/gmeow/hasOwner> <https://blackcatinformatics.ca/gmeow/graph/documentation> .
+<https://blackcatinformatics.ca/gmeow/documentation/term/hasowner> <https://blackcatinformatics.ca/gmeow/docCategory> "Property" <https://blackcatinformatics.ca/gmeow/graph/documentation> .
+<https://blackcatinformatics.ca/gmeow/documentation/term/hasowner> <https://blackcatinformatics.ca/gmeow/docHasDefinition> "false"^^<http://www.w3.org/2001/XMLSchema#boolean> <https://blackcatinformatics.ca/gmeow/graph/documentation> .
+<https://blackcatinformatics.ca/gmeow/documentation/term/hasowner> <https://blackcatinformatics.ca/gmeow/docUrl> "terms/hasowner/index.html" <https://blackcatinformatics.ca/gmeow/graph/documentation> .
+<https://blackcatinformatics.ca/gmeow/documentation/term/hasowner> <https://blackcatinformatics.ca/gmeow/docOwnerSlice> <https://blackcatinformatics.ca/gmeow/slice/zoo> <https://blackcatinformatics.ca/gmeow/graph/documentation> .
+<https://blackcatinformatics.ca/gmeow/documentation/slice/zoo> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/DocumentedSlice> <https://blackcatinformatics.ca/gmeow/graph/documentation> .
+<https://blackcatinformatics.ca/gmeow/documentation/slice/zoo> <https://blackcatinformatics.ca/gmeow/documents> <https://blackcatinformatics.ca/gmeow/slice/zoo> <https://blackcatinformatics.ca/gmeow/graph/documentation> .
+<https://blackcatinformatics.ca/gmeow/documentation/slice/zoo> <https://blackcatinformatics.ca/gmeow/docUrl> "slices/zoo/index.html" <https://blackcatinformatics.ca/gmeow/graph/documentation> .
+<https://blackcatinformatics.ca/gmeow/documentation/concern/animals> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/DocumentedConcern> <https://blackcatinformatics.ca/gmeow/graph/documentation> .
+<https://blackcatinformatics.ca/gmeow/documentation/concern/animals> <https://blackcatinformatics.ca/gmeow/documents> <https://blackcatinformatics.ca/gmeow/concern/animals> <https://blackcatinformatics.ca/gmeow/graph/documentation> .
+<https://blackcatinformatics.ca/gmeow/documentation/concern/animals> <https://blackcatinformatics.ca/gmeow/docUrl> "concerns/animals/index.html" <https://blackcatinformatics.ca/gmeow/graph/documentation> .
+<https://blackcatinformatics.ca/gmeow/documentation/mapping-set/zoo-sssom> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/DocumentedMappingSet> <https://blackcatinformatics.ca/gmeow/graph/documentation> .
+<https://blackcatinformatics.ca/gmeow/documentation/mapping-set/zoo-sssom> <https://blackcatinformatics.ca/gmeow/documents> <https://blackcatinformatics.ca/gmeow/mapping/zoo-sssom> <https://blackcatinformatics.ca/gmeow/graph/documentation> .
+<https://blackcatinformatics.ca/gmeow/documentation/mapping-set/zoo-sssom> <https://blackcatinformatics.ca/gmeow/docUrl> "linkages/index.html" <https://blackcatinformatics.ca/gmeow/graph/documentation> .

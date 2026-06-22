@@ -24,7 +24,6 @@ MODULES = (
     "metadata",
     "native_reason_gen",
     "okf_export",
-    "ontology_docs",
     "parquet_gen",
     "profiles_gen",
     "references",

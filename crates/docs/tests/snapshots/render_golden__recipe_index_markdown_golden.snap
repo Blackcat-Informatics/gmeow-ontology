@@ -1,0 +1,16 @@
+---
+source: crates/docs/tests/render_golden.rs
+expression: "to_markdown(&model, &Page::RecipeIndex)"
+---
+# Recipes
+
+**6** task-oriented adoption recipes — short, goal-named guides that show how to model one recurring task in GMEOW, each backed by canonical example files and the vocabulary terms it exercises.
+
+| Recipe | Goal |
+| --- | --- |
+| [Model Contested or Attributed Facts](contested-or-attributed-facts/index.md) | Keep incompatible claims side by side by recording standpoint, vantage, modality, and evidence on the claim rather than on a single global fact slot\. |
+| [Publish Documents for Schema\.org Consumers](documents-and-schema-org/index.md) | Start with native document and web\-presence facts, then inspect which facts project to schema\.org and where projection is lossy\. |
+| [Model Events and Participants](events-and-participants/index.md) | Describe an event, participant roles, time, place, and source evidence without collapsing participation into a flat string\. |
+| [Model Graph\-RAG Dataset Lineage](graph-rag-dataset-lineage/index.md) | Connect sources, chunks, extracted entities, evidence spans, and pipeline provenance so retrieval artifacts remain auditable\. |
+| [Describe Offline GTS Distribution](offline-gts-distribution/index.md) | Treat a GTS file as a first\-class graph object with segments, profiles, chain heads, opaque frames, codecs, and compaction lineage\. |
+| [Model Person Names Without a Preferred\-Name Slot](person-names-and-display/index.md) | Represent coexisting names, pronouns, aliases, usage contexts, and display suppression without asserting one global winner\. |

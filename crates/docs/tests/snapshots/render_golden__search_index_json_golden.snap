@@ -1,0 +1,21 @@
+---
+source: crates/docs/tests/render_golden.rs
+expression: summary
+---
+{
+  "first": {
+    "definition": "Projection-time withholding, coarsening, sensitivity, and display control.",
+    "id": "gmeow:concernDisclosure",
+    "kind": "concern",
+    "label": "disclosure and suppression",
+    "url": "concerns/concerndisclosure/index.html"
+  },
+  "last": {
+    "definition": "Rotation about the vertical (typically z) axis, in degrees or radians as indicated by the reference frame.",
+    "id": "gmeow:yaw",
+    "kind": "term",
+    "label": "yaw",
+    "url": "terms/yaw/index.html"
+  },
+  "record_count": 2288
+}

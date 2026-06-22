@@ -1,0 +1,36 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Worked example — a curated adoption Recipe and the LearningPath that folds it
+# in, with NO new axiom. A gmeow:Recipe is a task-oriented guide that names the
+# canonical example file it builds on (by slice-relative PATH STRING, P5) and the
+# vocabulary terms it exercises (by IRI). A gmeow:LearningPath sequences one or
+# more recipes for a named audience and records the external vocabularies its
+# native model projects toward. Both are pure documentation structure: curated
+# pedagogy over the existing slices, never a fact about the modelled world.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/guides/> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
+
+# --- A task-oriented recipe: one recurring modelling task, one example file,
+#     the terms it exercises, and where to read next.
+ex:recipeNamePerson a gmeow:Recipe ;
+    rdfs:label "Name a Person Without a Preferred-Name Slot"@x-gmeow-english ;
+    skos:definition "Example adoption recipe: represent a person's coexisting names and usage contexts without asserting one global preferred name."@x-gmeow-english ;
+    gmeow:guideSlug "example-name-a-person" ;
+    gmeow:guideTitle "Name a Person Without a Preferred-Name Slot"@x-gmeow-english ;
+    gmeow:guideGoal "Record coexisting names and their usage contexts on a person without choosing one global winner."@x-gmeow-english ;
+    gmeow:usesExamplePath "slices/core/names/examples/person-names.ttl" ;
+    gmeow:usesTerm gmeow:Person , gmeow:PersonName , gmeow:NameUsage .
+
+# --- A learning path for a named audience that folds the recipe in as one
+#     station and records the external vocabularies it projects toward.
+ex:pathIntroduceAPerson a gmeow:LearningPath ;
+    rdfs:label "Introduce a Person Into GMEOW"@x-gmeow-english ;
+    skos:definition "Example learning path for developers importing contact and profile data: model a person and their names, then inspect how the native model projects toward broad consumer vocabularies."@x-gmeow-english ;
+    gmeow:learningAudience "Developers importing contact or profile data."@x-gmeow-english ;
+    gmeow:guideGoal "Model a person and their names natively, then inspect projection toward schema.org and FOAF."@x-gmeow-english ;
+    gmeow:includesRecipe ex:recipeNamePerson ;
+    gmeow:adoptionTarget "schema" , "foaf" .

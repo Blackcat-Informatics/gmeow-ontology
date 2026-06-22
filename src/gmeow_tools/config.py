@@ -252,6 +252,12 @@ GTS_GRAPH_VERIFY = NAMESPACE + "graph/verify"
 #: appears in its own authored input. Must equal the Rust ``ANALYSIS_GRAPH_IRI``
 #: (``crates/slice/src/analysis.rs``).
 GTS_GRAPH_SLICE_ANALYSIS = NAMESPACE + "graph/slice-analysis"
+#: Computed documentation named graph (#853 T5): the self-hosting projection of
+#: the typed documentation model (``gmeow:Documented*`` resources) emitted by the
+#: native ``gmeow_docs`` renderer. Folded into the bundle so the docs surface is
+#: itself SPARQL-queryable RDF beside the ontology it describes (Principle 4).
+#: Must equal the Rust ``DOCUMENTATION_GRAPH`` (``crates/docs/src/rdf.rs``).
+GTS_GRAPH_DOCUMENTATION = NAMESPACE + "graph/documentation"
 
 # IRI-addressable ontology profiles (#330): the root IRI is the CORE profile
 # (generated imports of every tierCore slice); the full aggregation and any

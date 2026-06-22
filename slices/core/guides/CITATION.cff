@@ -1,0 +1,33 @@
+cff-version: 1.2.0
+message: "If you use the GMEOW Guides slice, please cite GMEOW as below."
+title: "GMEOW Guides Module"
+abstract: >-
+  The pedagogy and adoption-guides slice of the GMEOW ontology (core tier). It
+  models task-oriented adoption recipes (gmeow:Recipe) and curated learning paths
+  (gmeow:LearningPath) as first-class GMEOW individuals that sequence canonical
+  example files, vocabulary terms, and follow-on reading for a developer adopting
+  GMEOW. These curated guides were formerly hardcoded in the documentation tooling;
+  dogfooding them here makes them authored-once GMEOW data, sourced through the slice
+  catalog and projected outward into the ontology documentation site.
+type: dataset
+authors:
+  - name: "Blackcat Informatics® Inc."
+    website: "https://blackcatinformatics.ca/"
+  - family-names: "Audley"
+    given-names: "Patrick"
+    orcid: "https://orcid.org/0000-0003-4382-7625"
+version: "0.1.0"
+date-released: "2026-06-22"
+license: CC-BY-4.0
+url: "https://blackcatinformatics.ca/gmeow/slices/guides"
+doi: "10.67342/26w4o"
+identifiers:
+  - type: doi
+    value: "10.67342/26w4o"
+    description: "Concept DOI — resolves to the latest released version of GMEOW."
+keywords:
+  - ontology
+  - documentation
+  - pedagogy
+  - adoption
+  - linked-data

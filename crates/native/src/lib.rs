@@ -28,6 +28,8 @@
 //! * `gmeow_native.logic` — the reasoning engine surface.
 //! * `gmeow_native.slice` — the native slice catalog + ownership/dependency
 //!   analyzer (#820 S8): the authoritative slice machinery.
+//! * `gmeow_native.docs` — the typed documentation model built from the slice
+//!   catalog (#853): slices, terms, and dependency edges.
 //!
 //! Each submodule is also registered in `sys.modules` under its dotted name so
 //! `import gmeow_native.validate` (and friends) resolves. The legacy import
@@ -81,6 +83,7 @@ fn gmeow_native(py: Python<'_>, m: &Bound<'_, PyModule>) -> PyResult<()> {
     add_engine_submodule(py, m, &sys_modules, "validate", gmeow_validate::register)?;
     add_engine_submodule(py, m, &sys_modules, "logic", gmeow_logic::register)?;
     add_engine_submodule(py, m, &sys_modules, "slice", gmeow_slice::register)?;
+    add_engine_submodule(py, m, &sys_modules, "docs", gmeow_docs::register)?;
 
     Ok(())
 }
