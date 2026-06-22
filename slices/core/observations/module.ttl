@@ -4,14 +4,15 @@
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
 gmeow:MeasuredValue
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
     rdfs:label "Measured Value"@x-gmeow-english ;
-    rdfs:subClassOf gufo:Object ,
+    rdfs:subClassOf logic:Object ,
         gmeow:Entity ;
     owl:equivalentClass gmeow:Quantity ;
     skos:definition "An alias for gmeow:Quantity — the measured-value perspective on the same value×unit/frame×determinacy×provenance bundle (ScalarQuantity alias precedent). Equivalent to gmeow:Quantity and gmeow:ScalarQuantity. Provided for consumers who prefer the 'measured value' terminology common in metrology and sensor standards."@x-gmeow-english ;
@@ -24,7 +25,7 @@ gmeow:MeasuredValue
     gmeow:useWhen "Use as the metrology-flavoured name for the value×unit/frame×determinacy×provenance bundle — the same construct as gmeow:Quantity / gmeow:ScalarQuantity — when aligning with sensor or metrology standards that say 'measured value'."@x-gmeow-english .
 
 gmeow:Measurement
-    a gufo:SubKind ,
+    a logic:SubKind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
     rdfs:label "Measurement"@x-gmeow-english ;
@@ -37,7 +38,7 @@ gmeow:Measurement
     gmeow:useWhen "Use when an observation assigns a value to its feature — a dating, a coordinate fix, a scalar reading — so the claim inherits the observation roles while signalling it is a quantified/qualified measurement carrying unit, uncertainty, and determinacy."@x-gmeow-english .
 
 gmeow:MonetaryAmount
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
     rdfs:label "Monetary Amount"@x-gmeow-english ;
@@ -56,11 +57,11 @@ gmeow:MonetaryAmount
     gmeow:useWhen "Use for any quantity of money — a price, salary, fee, balance — so the amount always travels with its currency frame; consumed by employment, agreements, and finance alike (it lives on the measurement spine, not in a finance silo)."@x-gmeow-english .
 
 gmeow:Observation
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
     rdfs:label "Observation"@x-gmeow-english ;
-    rdfs:subClassOf gufo:Relator ,
+    rdfs:subClassOf logic:Relator ,
         [
             a owl:Restriction ;
             owl:onProperty gmeow:vantage ;
@@ -79,11 +80,11 @@ gmeow:Observation
     gmeow:useWhen "Use as the universal claim spine whenever a value is HELD by some vantage rather than asserted as a global fact — a measurement, a sensory reading, a standpoint, an identity/name/rights/kinship claim — so the claim carries its observer, feature, and result explicitly (Principle 9: every value is perspectival, none privileged)."@x-gmeow-english .
 
 gmeow:ObservationMethod
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
     rdfs:label "Observation Method"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The method or protocol by which an observation was made — a value vocabulary (individuals, never subclasses). Generalizes gmeow:DatingMethod (temporal module) and subsumes sensor types, survey protocols, laboratory techniques, archaeological procedures, and standpoint assertion methods. A method is constitutive of the observation: changing the method changes the observation's identity (it is a different act)."@x-gmeow-english ;
     skos:example "ex:rtkSurvey a gmeow:ObservationMethod ; rdfs:label \"GPS-RTK survey\"@en ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid minting per-method subclasses (methods are individuals) and avoid using it for the broad KIND of observation (that is gmeow:ObservationType); a method is a specific protocol, not a category."@x-gmeow-english ;
@@ -92,11 +93,11 @@ gmeow:ObservationMethod
     gmeow:useWhen "Use as the value vocabulary behind gmeow:observationMethod — the open set of individuals naming HOW an observation was produced (direct observation, instrumental reading, survey, remote sensing, computational model, expert judgement, …)."@x-gmeow-english .
 
 gmeow:ObservationType
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
     rdfs:label "Observation Type"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The kind of observation being made — a value vocabulary (individuals, never subclasses). Distinguishes measurement, sensory reading, standpoint claim, derived inference, and simulation output. The specific sub-discipline (radiocarbon dating, GPS survey, temperature sensing) is gmeow:observationMethod, not gmeow:observationType."@x-gmeow-english ;
     skos:example "ex:reading gmeow:observationType gmeow:observationTypeMeasurement ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid minting per-type subclasses (types are individuals) and avoid using it for the specific protocol or discipline (that is gmeow:ObservationMethod); the type is the category, not the technique."@x-gmeow-english ;
@@ -105,11 +106,11 @@ gmeow:ObservationType
     gmeow:useWhen "Use as the value vocabulary behind gmeow:observationType — the open set of individuals naming the broad KIND of observation (measurement, sensory reading, standpoint claim, derived inference, simulation, identity, naming, rights, kinship, streaming)."@x-gmeow-english .
 
 gmeow:Quantity
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
     rdfs:label "Quantity"@x-gmeow-english ;
-    rdfs:subClassOf gufo:Object ,
+    rdfs:subClassOf logic:Object ,
         gmeow:Entity ;
     owl:equivalentClass gmeow:ScalarQuantity ;
     skos:definition "A universal scalar numeric value bundled with unit/frame, determinacy, and provenance — the synthesis of FRAME-GEN + DET-GEN + OBS (ScalarQuantity alias precedent). Equivalent to gmeow:ScalarQuantity; the domain-neutral name for the same construct. Used for temperatures, distances, counts, probabilities, masses, prices, and any other quantitative observation result. The value lives in gmeow:quantityValue; the unit/frame in gmeow:hasUnit / gmeow:hasReferenceFrame; the determinacy in gmeow:hasDeterminacy; the provenance in gmeow:isResultOf."@x-gmeow-english ;
@@ -122,11 +123,11 @@ gmeow:Quantity
     gmeow:useWhen "Use as the domain-neutral name for a scalar value bundled with unit/frame, determinacy, and provenance — the same construct as gmeow:ScalarQuantity, preferred when no metrology or observation-result framing is intended."@x-gmeow-english .
 
 gmeow:ScalarQuantity
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
     rdfs:label "Scalar Quantity"@x-gmeow-english ;
-    rdfs:subClassOf gufo:Object ,
+    rdfs:subClassOf logic:Object ,
         gmeow:Entity ;
     skos:definition "A scalar numeric value with a unit, determinacy model, and granularity — the entity-valued wrapper for literal observation results (temperatures, distances, counts, probabilities). Keeps gmeow:observationResult uniformly entity-valued: the scalar literal lives here, not on the observation directly."@x-gmeow-english ;
     skos:example "ex:temp22 a gmeow:ScalarQuantity ; gmeow:quantityValue 22.5 ; gmeow:hasUnit qudt:DEG_C ."@x-gmeow-english ;
@@ -138,7 +139,7 @@ gmeow:ScalarQuantity
     gmeow:useWhen "Use to wrap a literal scalar reading — temperature, distance, count, probability — as an entity so gmeow:observationResult stays uniformly entity-valued and the value travels with its unit, determinacy, and granularity."@x-gmeow-english .
 
 gmeow:SensoryObservation
-    a gufo:SubKind ,
+    a logic:SubKind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
     rdfs:label "Sensory Observation"@x-gmeow-english ;
@@ -151,7 +152,7 @@ gmeow:SensoryObservation
     gmeow:useWhen "Use when the observation is a reading taken by a sensor or sensory apparatus of a physical property of the environment — the form that travels in a gmeow:Stream and carries sensor/platform/sampling-feature detail."@x-gmeow-english .
 
 gmeow:StandpointClaim
-    a gufo:SubKind ,
+    a logic:SubKind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
     rdfs:label "Standpoint Claim"@x-gmeow-english ;
@@ -165,11 +166,11 @@ gmeow:StandpointClaim
     gmeow:useWhen "Use when a proposition is asserted, denied, or held with a qualified modality FROM a standpoint — the perspectival claim form where the value produced is a doxastic modality rather than a measured quantity (Principle 9: no standpoint privileged)."@x-gmeow-english .
 
 gmeow:Stream
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/observations> ;
     rdfs:label "Stream"@x-gmeow-english ;
-    rdfs:subClassOf gufo:Object ,
+    rdfs:subClassOf logic:Object ,
         gmeow:Entity ,
         [
             a owl:Restriction ;

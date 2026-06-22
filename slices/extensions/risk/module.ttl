@@ -4,10 +4,11 @@
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
 gmeow:Cascade
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/risk> ;
     rdfs:label "Cascade"@x-gmeow-english ;
@@ -16,40 +17,40 @@ gmeow:Cascade
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:CausalLink
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/risk> ;
     rdfs:label "Causal Link"@x-gmeow-english ;
-    rdfs:subClassOf gufo:Relator ,
+    rdfs:subClassOf logic:Relator ,
         gmeow:RiskFactor ;
     skos:definition "A reified type-level causal claim — antecedent kind × consequent kind × modality, with optional mechanism prose and solver-input strength. Mint one when HOW the causation works must be first-class; the 80% case stays flat gmeow:typeCauses (reify-on-demand, Principle 4). Whose claim it is rides the statement layer; two analysts' divergent links coexist (Principle 9)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:CausalModality
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/risk> ;
     rdfs:label "Causal Modality"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The force of a causal link — an OPEN value vocabulary seeded with necessitates (the antecedent suffices), promotes (raises likelihood), enables (makes possible), prevents (blocks). Distinct from gmeow:standpointModality (doxastic — how firmly a frame believes the link) and from gmeow:hasDeterminacy (ontic): causal modality is what the link CLAIMS about the world's mechanics."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:Hazard
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/risk> ;
     rdfs:label "Hazard"@x-gmeow-english ;
-    rdfs:subClassOf gufo:Disposition ,
+    rdfs:subClassOf logic:Disposition ,
         gmeow:RiskFactor ;
     skos:definition "A bearer's disposition toward harm — manifested, when it manifests at all, as events of a feared type (gmeow:manifestedAsType). A hazard that never manifests is still fully real as a disposition: the first gufo:Disposition use in GMEOW, and the reason this slice needs no counterfactual machinery. The bearer may be anything that can carry a disposition: a system, an agent, a relationship, an artifact."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:Mitigation
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/risk> ;
     rdfs:label "Mitigation"@x-gmeow-english ;
-    rdfs:subClassOf gufo:Relator ,
+    rdfs:subClassOf logic:Relator ,
         [
             a owl:Restriction ;
             owl:onProperty gmeow:mitigationMeasure ;
@@ -64,16 +65,16 @@ gmeow:Mitigation
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:MitigationStatus
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/risk> ;
     rdfs:label "Mitigation Status"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The lifecycle status of a mitigation — an OPEN value vocabulary seeded with proposed, active, retired. Retirement is suppression-shaped: a retired mitigation is kept with its status, never deleted (Principle 10)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:RiskFactor
-    a gufo:Category ,
+    a logic:Category ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/risk> ;
     rdfs:label "Risk Factor"@x-gmeow-english ;
@@ -82,11 +83,11 @@ gmeow:RiskFactor
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:SeverityLevel
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/risk> ;
     rdfs:label "Severity Level"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The graded severity of a cascade or hazard — an OPEN, ordered value vocabulary (catastrophic ≻ severe ≻ moderate ≻ minor; deployments add grades — negligible, critical, FMEA 1–10 bands — without schema change, Principle 9), the kernel GranularityLevel pattern (fourth use). gmeow:moreSevereThan is transitive ON LEVELS ONLY. Terminology anchored to ISO 31000 / IEC 60812 in docs, never axioms; what a grade DEMANDS in response is the norms extension's business, plugged in via Mitigation."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 

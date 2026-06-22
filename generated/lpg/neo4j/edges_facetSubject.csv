@@ -1,2 +1,2 @@
 id:ID,:START_ID,:END_ID,:TYPE,accordingTo,assertedAt,confidence,importanceLevel,mappedFrom,selfAsserted,standpointModality,validFrom,validUntil
-edge:49fee2eeb2c5f46e,gmeow:examples/identityfacet-impersonation-001,gmeow:examples/agent-victim-001,facetSubject,gmeow:examples/standpoint-investigator,2026-06-10T00:00:00+00:00,0.8,,,,,,
+edge:f392ce0db598b3c8,gmeow:examples/identityfacet-impersonation-001,gmeow:examples/agent-victim-001,facetSubject,gmeow:examples/standpoint-investigator,2026-06-10T00:00:00Z,0.8,,,,,,

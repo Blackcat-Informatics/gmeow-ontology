@@ -1449,6 +1449,15 @@ export enum LearningEventTypeEnum {
     unlearning = "learningUnlearning",
 };
 
+export enum LearningPathEnum {
+
+    Audit_AI_and_Graph_RAG_Pipelines = "pathAuditAiOrGraphRag",
+    Model_a_Contested_or_Attributed_Claim = "pathModelAContestedClaim",
+    Model_a_Person_Without_Flattening_Identity = "pathModelAPerson",
+    Publish_Web_Structured_Data = "pathPublishWebStructuredData",
+    Ship_Offline_GTS_Documentation = "pathShipOfflineGtsDocs",
+};
+
 export enum LedgerAccountTypeEnum {
 
     asset = "ledgerAccountTypeAsset",
@@ -2500,6 +2509,16 @@ export enum RealizationModeEnum {
     performed = "realizationModePerformed",
 };
 
+export enum RecipeEnum {
+
+    Model_Contested_or_Attributed_Facts = "recipeContestedOrAttributedFacts",
+    Publish_Documents_for_SchemaFULL_STOPorg_Consumers = "recipeDocumentsAndSchemaOrg",
+    Model_Events_and_Participants = "recipeEventsAndParticipants",
+    Model_Graph_RAG_Dataset_Lineage = "recipeGraphRagDatasetLineage",
+    Describe_Offline_GTS_Distribution = "recipeOfflineGtsDistribution",
+    Model_Person_Names_Without_a_Preferred_Name_Slot = "recipePersonNamesAndDisplay",
+};
+
 export enum RecordingEnum {
 
     fixture_composite_recording = "fixtureSessionComposite",
@@ -3365,7 +3384,7 @@ export interface AestheticQuality {
 
 
 
-export interface Agent {
+export interface Agent extends Entity {
     accepts?: string[],
     asks?: string[],
     attendsTo?: Entity[],
@@ -3638,7 +3657,7 @@ export interface AwarenessTenure extends TimeScopedRelation {
 
 
 
-export interface Axis {
+export interface Axis extends Entity {
 }
 
 
@@ -3751,7 +3770,7 @@ export interface CalendarMethod {
 
 
 
-export interface CalendarSystem {
+export interface CalendarSystem extends Entity {
 }
 
 
@@ -3779,7 +3798,7 @@ export interface Cascade extends SocialObject {
 
 
 
-export interface CausalLink {
+export interface CausalLink extends RiskFactor {
     causalModality?: CausalModality,
     linkAntecedent?: EventType,
     linkConsequent?: EventType,
@@ -3795,7 +3814,7 @@ export interface CausalModality {
 
 
 
-export interface CelestialCoordinates {
+export interface CelestialCoordinates extends Entity {
     celestialEpoch?: number[],
     declination?: number[],
     rightAscension?: number[],
@@ -4327,7 +4346,7 @@ export interface Dataset extends Work {
 
 
 
-export interface DatingMethod {
+export interface DatingMethod extends ObservationMethod {
 }
 
 
@@ -5079,7 +5098,7 @@ export interface HarmonicFunction {
 
 
 
-export interface Hazard {
+export interface Hazard extends RiskFactor {
     hazardBearer?: Entity,
     hazardSeverity?: SeverityLevel[],
     manifestedAsType?: EventType[],
@@ -5493,6 +5512,14 @@ export interface LearningEvent extends MentalProcess {
 
 
 export interface LearningEventType {
+}
+
+
+
+export interface LearningPath {
+    adoptionTarget?: string[],
+    includesRecipe?: Recipe[],
+    learningAudience?: string[],
 }
 
 
@@ -5997,12 +6024,12 @@ export interface NamePurpose {
 
 
 
-export interface NameRegister {
+export interface NameRegister extends Register {
 }
 
 
 
-export interface NameUsage {
+export interface NameUsage extends Observation {
     usageAppellation?: Appellation,
     usageAudience?: Entity[],
     usageAuthority?: Agent[],
@@ -6831,6 +6858,12 @@ export interface ReadingOrder extends Standpoint {
 
 
 export interface RealizationMode {
+}
+
+
+
+export interface Recipe {
+    followsGuidePath?: string[],
 }
 
 

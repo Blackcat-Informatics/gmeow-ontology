@@ -19,22 +19,22 @@ from tests._graph_nt import run_shacl
 from gmeow_tools.graph import load_merged_graph
 
 GMEOW = "https://blackcatinformatics.ca/gmeow/"
-GUFO = "http://purl.org/nemo/gufo#"
+LOGIC = "https://blackcatinformatics.ca/logic/"
 
 _SLICE = Path(__file__).resolve().parent.parent
 _MODULE = _SLICE / "module.ttl"
 _SHAPES = _SLICE / "shapes.ttl"
 _SLICE_IRI = URIRef(GMEOW + "slices/inference")
 
-# The full set of allowed gUFO master metaclasses (one per class — the invariant).
-_GUFO_MASTERS = {
-    URIRef(GUFO + m)
+# The full set of allowed logic: master metaclasses (one per class — the invariant).
+# After the #694 migration, stereotype authoring is in the logic: namespace.
+_LOGIC_MASTERS = {
+    URIRef(LOGIC + m)
     for m in (
         "Kind",
         "Category",
         "Relator",
         "Mode",
-        "IntrinsicMode",
         "QualityValue",
         "AbstractIndividualType",
         "Phase",
@@ -43,8 +43,9 @@ _GUFO_MASTERS = {
         "RoleMixin",
         "PhaseMixin",
         "Mixin",
-        "EventType",
-        "SituationType",
+        "Event",  # gufo:EventType → logic:Event
+        "Situation",  # gufo:SituationType → logic:Situation
+        "Disposition",
     )
 }
 
@@ -68,8 +69,9 @@ def _g(local: str) -> URIRef:
     return URIRef(GMEOW + local)
 
 
-def _gufo(local: str) -> URIRef:
-    return URIRef(GUFO + local)
+def _logic(local: str) -> URIRef:
+    """Return a logic:-namespaced term URI (stereotype namespace after #694)."""
+    return URIRef(LOGIC + local)
 
 
 # --------------------------------------------------------------------------- #
@@ -81,7 +83,7 @@ def test_every_class_has_exactly_one_gufo_metaclass() -> None:
     graph = _graph()
     for cls in _CLASSES:
         types = set(graph.objects(_g(cls), RDF.type))
-        meta = types & _GUFO_MASTERS
+        meta = types & _LOGIC_MASTERS
         assert len(meta) == 1, (
             f"{cls} must carry exactly one gUFO master metaclass, got {meta}"
         )
@@ -99,46 +101,51 @@ def test_all_terms_defined_by_inference_slice() -> None:
 
 
 def test_inference_process_is_eventtype_under_mental_process() -> None:
-    """The OCCURRENT face: InferenceProcess ⊑ MentalProcess (a perdurant)."""
+    """The OCCURRENT face: InferenceProcess ⊑ MentalProcess (a perdurant).
+    After #694 migration: stereotype is logic:Event (renamed from gufo:EventType)."""
     graph = _graph()
     ip = _g("InferenceProcess")
-    assert (ip, RDF.type, _gufo("EventType")) in graph
+    assert (ip, RDF.type, _logic("Event")) in graph
     assert (ip, RDFS.subClassOf, _g("MentalProcess")) in graph
     # It must NOT also be a Relator — that was the rejected double-typing.
-    assert (ip, RDFS.subClassOf, _gufo("Relator")) not in graph
+    assert (ip, RDFS.subClassOf, _logic("Relator")) not in graph
 
 
 def test_inference_commitment_is_relator_kind() -> None:
-    """The ENDURANT face: InferenceCommitment ⊑ gufo:Relator, master gufo:Kind."""
+    """The ENDURANT face: InferenceCommitment ⊑ logic:Relator, master logic:Kind.
+    After #694 migration: stereotype namespace is logic: not gufo:."""
     graph = _graph()
     ic = _g("InferenceCommitment")
-    assert (ic, RDF.type, _gufo("Kind")) in graph
-    assert (ic, RDFS.subClassOf, _gufo("Relator")) in graph
+    assert (ic, RDF.type, _logic("Kind")) in graph
+    assert (ic, RDFS.subClassOf, _logic("Relator")) in graph
     # It must NOT be a MentalProcess — the split keeps it off the occurrent side.
     assert (ic, RDFS.subClassOf, _g("MentalProcess")) not in graph
 
 
 def test_relator_classes_carry_relator_only_via_subclassof() -> None:
-    """Analogy/Correspondence are Relators by subClassOf, master gufo:Kind."""
+    """Analogy/Correspondence are Relators by subClassOf, master logic:Kind.
+    After #694 migration: stereotype namespace is logic: not gufo:."""
     graph = _graph()
     for cls in ("Analogy", "Correspondence"):
-        assert (_g(cls), RDF.type, _gufo("Kind")) in graph
-        assert (_g(cls), RDFS.subClassOf, _gufo("Relator")) in graph
-        assert (_g(cls), RDF.type, _gufo("Relator")) not in graph
+        assert (_g(cls), RDF.type, _logic("Kind")) in graph
+        assert (_g(cls), RDFS.subClassOf, _logic("Relator")) in graph
+        assert (_g(cls), RDF.type, _logic("Relator")) not in graph
 
 
 def test_inference_tenure_is_situation_under_timescoped() -> None:
+    """After #694 migration: gufo:SituationType → logic:Situation."""
     graph = _graph()
     it = _g("InferenceTenure")
-    assert (it, RDF.type, _gufo("SituationType")) in graph
+    assert (it, RDF.type, _logic("Situation")) in graph
     assert (it, RDFS.subClassOf, _g("TimeScopedRelation")) in graph
 
 
 def test_value_vocabs_are_abstract_individual_types() -> None:
+    """After #694 migration: stereotype namespace is logic: not gufo:."""
     graph = _graph()
     for cls in ("InferenceMode", "DefeaterKind"):
-        assert (_g(cls), RDF.type, _gufo("AbstractIndividualType")) in graph
-        assert (_g(cls), RDFS.subClassOf, _gufo("QualityValue")) in graph
+        assert (_g(cls), RDF.type, _logic("AbstractIndividualType")) in graph
+        assert (_g(cls), RDFS.subClassOf, _logic("QualityValue")) in graph
 
 
 # --------------------------------------------------------------------------- #

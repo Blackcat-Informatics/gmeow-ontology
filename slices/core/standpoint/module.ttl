@@ -3,10 +3,11 @@
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
 gmeow:Standpoint
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
     rdfs:label "Standpoint"@x-gmeow-english ;
@@ -21,11 +22,11 @@ gmeow:Standpoint
     gmeow:useWhen "Use to mint a named frame as a first-class vantage — when a state's official position, a community's usage, or an editorial point of view needs its own identity, labels, or place in the gmeow:sharpens poset to be the value of gmeow:accordingTo or gmeow:vantage."@x-gmeow-english .
 
 gmeow:StandpointModality
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
     rdfs:label "Standpoint Modality"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The belief value a standpoint assigns a proposition — a closed value vocabulary spanning the Standpoint-Logic □/◊ and the CRMinf belief value (true/false/probable/possible), plus the Frankfurt bullshit modality: gmeow:unequivocal, gmeow:probable, gmeow:conceivable, gmeow:refuted, gmeow:bullshit. Absence of a value is read as unequivocal."@x-gmeow-english ;
     skos:example "ex:claim gmeow:standpointModality gmeow:refuted ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid conflating it with gmeow:confidence (our certainty about the stance) or with gmeow:accordingTo (whose frame); modality is how settled the standpoint itself holds the claim, an axis orthogonal to those. Never use a refuted value to mark a proposition globally false — refutation is one standpoint's denial, never a winner over the rest (Principle 9)."@x-gmeow-english ;
@@ -35,7 +36,7 @@ gmeow:StandpointModality
     gmeow:useWhen "Use as the value vocabulary for HOW a standpoint holds a proposition — the closed set of belief values (unequivocal, probable, conceivable, refuted, bullshit) a claim declares through gmeow:standpointModality or gmeow:claimModality."@x-gmeow-english .
 
 gmeow:StandpointTenure
-    a gufo:SituationType ,
+    a logic:Situation ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/standpoint> ;
     rdfs:label "Standpoint Tenure"@x-gmeow-english ;

@@ -19,12 +19,12 @@ gmeow:examples/agent-dupe-001,,https://blackcatinformatics.ca/gmeow/examples/age
 gmeow:examples/agent-self-001,,https://blackcatinformatics.ca/gmeow/examples/agent-self-001,,,
 gmeow:examples/agent-victim-001,,https://blackcatinformatics.ca/gmeow/examples/agent-victim-001,,,
 gmeow:examples/ai/assistant,,https://blackcatinformatics.ca/gmeow/examples/ai/assistant,,,
-gmeow:examples/ai/east-wing,,https://blackcatinformatics.ca/gmeow/examples/ai/east-wing,,,2026-12-31T22:00:00+00:00
+gmeow:examples/ai/east-wing,,https://blackcatinformatics.ca/gmeow/examples/ai/east-wing,,,2026-12-31T22:00:00Z
 gmeow:examples/ai/invocation-19,,https://blackcatinformatics.ca/gmeow/examples/ai/invocation-19,,,
 gmeow:examples/aiCommit,,https://blackcatinformatics.ca/gmeow/examples/aiCommit,,,
 gmeow:examples/alice,,https://blackcatinformatics.ca/gmeow/examples/alice,,,
 gmeow:examples/attestation-factcheck-001,,https://blackcatinformatics.ca/gmeow/examples/attestation-factcheck-001,,,
-gmeow:examples/birth-alice,,https://blackcatinformatics.ca/gmeow/examples/birth-alice,1990-05-01T00:00:00+00:00,,
+gmeow:examples/birth-alice,,https://blackcatinformatics.ca/gmeow/examples/birth-alice,1990-05-01T00:00:00Z,,
 gmeow:examples/claim-hogwarts-exists,,https://blackcatinformatics.ca/gmeow/examples/claim-hogwarts-exists,,,
 gmeow:examples/claim-hogwarts-in-canon,,https://blackcatinformatics.ca/gmeow/examples/claim-hogwarts-in-canon,,,
 gmeow:examples/copilot,,https://blackcatinformatics.ca/gmeow/examples/copilot,,,
@@ -44,7 +44,7 @@ gmeow:examples/event-impersonation-001,,https://blackcatinformatics.ca/gmeow/exa
 gmeow:examples/event-lie-001,,https://blackcatinformatics.ca/gmeow/examples/event-lie-001,,,
 gmeow:examples/event-omission-001,,https://blackcatinformatics.ca/gmeow/examples/event-omission-001,,,
 gmeow:examples/event-paltering-001,,https://blackcatinformatics.ca/gmeow/examples/event-paltering-001,,,
-gmeow:examples/event-reformation-date,,https://blackcatinformatics.ca/gmeow/examples/event-reformation-date,"[""1582-10-05T00:00:00+00:00"", ""1582-10-15T00:00:00+00:00""]",,
+gmeow:examples/event-reformation-date,,https://blackcatinformatics.ca/gmeow/examples/event-reformation-date,"[""1582-10-05T00:00:00Z"", ""1582-10-15T00:00:00Z""]",,
 gmeow:examples/event-self-deception-001,,https://blackcatinformatics.ca/gmeow/examples/event-self-deception-001,,,
 gmeow:examples/gi-alice,,https://blackcatinformatics.ca/gmeow/examples/gi-alice,,,
 gmeow:examples/identity-deceiver-001,,https://blackcatinformatics.ca/gmeow/examples/identity-deceiver-001,,,

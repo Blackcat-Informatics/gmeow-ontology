@@ -4,10 +4,11 @@
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
 gmeow:Activity
-    a gufo:EventType ,
+    a logic:Event ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/provenance> ;
     rdfs:label "Activity"@x-gmeow-english ;
@@ -21,7 +22,7 @@ gmeow:Activity
     gmeow:useWhen "Use as the occurrent that produced, transformed, used, or attributed an entity — the activity end of gmeow:wasGeneratedBy and the domain of gmeow:wasAssociatedWith."@x-gmeow-english .
 
 gmeow:ImportActivity
-    a gufo:EventType ,
+    a logic:Event ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/provenance> ;
     rdfs:label "Import Activity"@x-gmeow-english ;
@@ -39,7 +40,7 @@ gmeow:ImportActivity
     gmeow:useWhen "Use when modeling the ingestion of an external source — a vCard, mbox, or feed pulled in — so the transaction time and the source mapping become first-class and auditable."@x-gmeow-english .
 
 gmeow:Summary
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/provenance> ;
     rdfs:label "Summary"@x-gmeow-english ;
@@ -55,7 +56,7 @@ gmeow:Summary
     gmeow:useWhen "Use for a condensed, lossy account derived from a source information object — a machine- or human-written abstract whose source stays canonical and whose lineage must be recoverable."@x-gmeow-english .
 
 gmeow:TextExtraction
-    a gufo:SubKind ,
+    a logic:SubKind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/provenance> ;
     rdfs:label "Text Extraction"@x-gmeow-english ;

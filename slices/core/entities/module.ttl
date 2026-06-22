@@ -3,14 +3,15 @@
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
 gmeow:Group
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/entities> ;
     rdfs:label "Group"@x-gmeow-english ;
-    rdfs:subClassOf gufo:Collection ,
+    rdfs:subClassOf logic:Collection ,
         gmeow:Entity ;
     skos:definition "A collection of agents treated as a unit without the formal structure of an organization."@x-gmeow-english ;
     skos:example "ex:researchTeam a gmeow:Group ; gmeow:hasMember ex:lillith, ex:patrick ."@x-gmeow-english ;
@@ -20,7 +21,7 @@ gmeow:Group
     gmeow:useWhen "Use for an informal collection of agents treated as a unit but lacking organizational structure — a research team, an audience, a working set of contributors."@x-gmeow-english .
 
 gmeow:Organization
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/entities> ;
     rdfs:label "Organization"@x-gmeow-english ;
@@ -33,7 +34,7 @@ gmeow:Organization
     gmeow:useWhen "Use for a formally structured collective that acts as one agent — a company, institution, association, or governmental body — when its internal structure and capacity to bear responsibility matter."@x-gmeow-english .
 
 gmeow:Person
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/entities> ;
     rdfs:label "Person"@x-gmeow-english ;
@@ -46,7 +47,7 @@ gmeow:Person
     gmeow:useWhen "Use for an individual human being who acts, authors, or is described — the human specialization of gmeow:Agent that supplies its own principle of identity (gufo:Kind)."@x-gmeow-english .
 
 gmeow:SoftwareAgent
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/entities> ;
     rdfs:label "Software Agent"@x-gmeow-english ;

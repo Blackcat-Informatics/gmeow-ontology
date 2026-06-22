@@ -72,6 +72,10 @@ _GUFO_CLASS_TO_LOGIC: dict[URIRef, str | _Superseded] = {
     GUFO.ExtrinsicAspect: LOGIC_NAMESPACE + "Aspect",
     GUFO.IntrinsicMode: LOGIC_NAMESPACE + "Mode",
     GUFO.ExtrinsicMode: LOGIC_NAMESPACE + "Mode",
+    # gufo:Disposition is not a stock gUFO class (gUFO models dispositions as an
+    # IntrinsicMode); logic: carries it first-class, so the map is a superset of
+    # imports/gufo.ttl here — A1 never iterates it, A2 pins logic:Disposition.
+    GUFO.Disposition: LOGIC_NAMESPACE + "Disposition",
     GUFO.Quality: LOGIC_NAMESPACE + "Quality",
     GUFO.QualityValue: LOGIC_NAMESPACE + "QualityValue",
     GUFO.Relator: LOGIC_NAMESPACE + "Relator",

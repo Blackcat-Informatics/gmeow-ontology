@@ -4,10 +4,11 @@
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
 gmeow:Duration
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> ;
     rdfs:label "Duration"@x-gmeow-english ;
@@ -20,11 +21,11 @@ gmeow:Duration
     gmeow:useWhen "Use for a LENGTH of time as a quantity, independent of when it occurs — a film's running time, a gap, a recurrence period."@x-gmeow-english .
 
 gmeow:Event
-    a gufo:EventType ,
+    a logic:Event ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> ;
     rdfs:label "Event"@x-gmeow-english ;
-    rdfs:subClassOf gufo:Event ;
+    rdfs:subClassOf logic:Event ;
     skos:definition "A temporal occurrence in which entities participate in roles, over possibly fuzzy time, at possibly several locations, asserted by possibly conflicting sources. The universal event of the model: gmeow:Activity (provenance) and gmeow:LifeEvent re-parent onto it. The kind of occurrence is a gmeow:eventType value, never a subclass."@x-gmeow-english ;
     skos:example "ex:wedding a gmeow:Event ; gmeow:eventType gmeow:eventTypeMarriage ; gmeow:eventTime \"1947-06-14T11:00:00Z\"^^xsd:dateTime ; gmeow:eventLocation ex:church ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid typing an endurant as an Event (a person/document/place is a gmeow:Entity, not an occurrence), avoid minting an event-kind SUBCLASS (the kind is a gmeow:eventType value, Principle 9), and reach for gmeow:Activity when the occurrence is an agent-driven provenance act with inputs and outputs."@x-gmeow-english ;
@@ -35,7 +36,7 @@ gmeow:Event
     gmeow:useWhen "Use as the universal occurrent whenever something HAPPENS — a wedding, a release, a survey, a battle — that bears participants, a time, a location, or sub-events; the single anchor for the four orthogonal event axes (type ⟂ role ⟂ temporal ⟂ location)."@x-gmeow-english .
 
 gmeow:EventSeries
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> ;
     rdfs:label "Event Series"@x-gmeow-english ;
@@ -48,11 +49,11 @@ gmeow:EventSeries
     gmeow:useWhen "Use for the planned recurrence or schedule that ISSUES concrete event occurrences — a weekly standup, an annual conference — when the series-vs-occurrence distinction (planned vs actual) matters."@x-gmeow-english .
 
 gmeow:EventType
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> ;
     rdfs:label "Event Type"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The kind of an event — a VALUE, never a gmeow:Event subclass. The set is open; a kind not among the seed individuals is a FRESH gmeow:EventType individual carrying rdfs:label, not a new class. Pointed at by gmeow:eventType (non-functional)."@x-gmeow-english ;
     skos:example "ex:eventTypeCoronation a gmeow:EventType ; rdfs:label \"coronation\"@en ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid minting an event-kind SUBCLASS of gmeow:Event (Principle 9 — no overtyping); a new kind is always a fresh gmeow:EventType individual, never a class, and never a gmeow:ParticipantRole (that is the orthogonal who-did-what axis)."@x-gmeow-english ;
@@ -61,11 +62,11 @@ gmeow:EventType
     gmeow:useWhen "Use as the value vocabulary for the event-kind axis — the open set of individuals (marriage, release, survey, …) that gmeow:eventType draws from; mint a fresh individual when a needed kind is not seeded."@x-gmeow-english .
 
 gmeow:GrammaticalAspect
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> ;
     rdfs:label "Grammatical Aspect"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The grammatical aspect of an event mention in text — a VALUE vocabulary for ISO-TimeML interoperability (perfective / progressive / perfective-progressive / none)."@x-gmeow-english ;
     skos:example "ex:mention gmeow:eventAspect gmeow:aspectProgressive ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid using it to express the event's real temporal structure (that is the dating properties); aspect is a textual-realization facet, never inferred from or to actual placement."@x-gmeow-english ;
@@ -74,11 +75,11 @@ gmeow:GrammaticalAspect
     gmeow:useWhen "Use as the value vocabulary for the grammatical-aspect axis of an event MENTION in text (perfective / progressive / perfective-progressive / none) — for ISO-TimeML interoperability."@x-gmeow-english .
 
 gmeow:GrammaticalTense
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> ;
     rdfs:label "Grammatical Tense"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The grammatical tense of an event mention in text — a VALUE vocabulary for ISO-TimeML interoperability (past / present / future / none). Describes the linguistic realization, not the occurrence."@x-gmeow-english ;
     skos:example "ex:mention gmeow:eventTense gmeow:tensePast ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid using it to express WHEN an event occurred (that is gmeow:eventTime / eventInterval); tense describes a textual realization and must never be inferred from, or used to infer, actual temporal placement."@x-gmeow-english ;
@@ -87,7 +88,7 @@ gmeow:GrammaticalTense
     gmeow:useWhen "Use as the value vocabulary for the grammatical-tense axis of an event MENTION in text (past / present / future / none) — strictly for ISO-TimeML interoperability."@x-gmeow-english .
 
 gmeow:LifeEvent
-    a gufo:EventType ,
+    a logic:Event ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> ;
     rdfs:label "Life Event"@x-gmeow-english ;
@@ -100,7 +101,7 @@ gmeow:LifeEvent
     gmeow:useWhen "Use for a person- or family-scoped occurrence (birth, death, marriage, christening, name change) that genealogical sources and confidence attach to, and as the range a name-conferring gmeow:conferredByEvent points at."@x-gmeow-english .
 
 gmeow:ObservationalActivity
-    a gufo:EventType ,
+    a logic:Event ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> ;
     rdfs:label "Observational Activity"@x-gmeow-english ;
@@ -113,11 +114,11 @@ gmeow:ObservationalActivity
     gmeow:useWhen "Use when the occurrence's PURPOSE is to produce observations — a survey, census, excavation, clinical trial, audit, or code review — so its outputs are reachable as first-class gmeow:Observation individuals via gmeow:generatedObservation."@x-gmeow-english .
 
 gmeow:ParticipantRole
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> ;
     rdfs:label "Participant Role"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The role an entity plays in an event — a VALUE, never a participation subproperty. The set is open; a role not among the seeds is a FRESH gmeow:ParticipantRole individual with rdfs:label. Carried by gmeow:participationRole on a gmeow:Participation."@x-gmeow-english ;
     skos:example "ex:roleBestMan a gmeow:ParticipantRole ; rdfs:label \"best man\"@en ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid reviving a hasWitness-style participation SUBPROPERTY (the former genealogy idiom was refactored into role values, Principle 6), and avoid confusing it with gmeow:EventType — role is who-did-what, type is what-kind, two orthogonal axes."@x-gmeow-english ;
@@ -126,11 +127,11 @@ gmeow:ParticipantRole
     gmeow:useWhen "Use as the value vocabulary for the participation-role axis — the open set of individuals (principal, witness, officiant, performer, …) that gmeow:participationRole draws from; mint a fresh individual for a role not seeded."@x-gmeow-english .
 
 gmeow:Participation
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> ;
     rdfs:label "Participation"@x-gmeow-english ;
-    rdfs:subClassOf gufo:Relator ,
+    rdfs:subClassOf logic:Relator ,
         [
             a owl:Restriction ;
             owl:onProperty gmeow:participationEvent ;
@@ -154,7 +155,7 @@ gmeow:Participation
     gmeow:useWhen "Use when a participation must be first-class — when the role, period, confidence, evidence, or standpoint of an entity's part in an event matters (an officiant at a wedding, a disputed witness), the reified half of the gmeow:hasParticipant flat/relator pair."@x-gmeow-english .
 
 gmeow:RecurrenceRule
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> ;
     rdfs:label "Recurrence Rule"@x-gmeow-english ;
@@ -167,11 +168,11 @@ gmeow:RecurrenceRule
     gmeow:useWhen "Use for the rule by which a gmeow:EventSeries repeats — weekly, every-first-Monday, annually — carrying an RFC 5545 RRULE string."@x-gmeow-english .
 
 gmeow:TemporalPrecision
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/events> ;
     rdfs:label "Temporal Precision"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The granularity to which an event's time is known — day, month, year, decade, or circa. A value carried by gmeow:temporalPrecision; pairs with gmeow:earliestStart / gmeow:latestEnd to express a fuzzy date without abandoning DL-clean xsd:dateTime base triples."@x-gmeow-english ;
     skos:example "ex:battle gmeow:temporalPrecision gmeow:precisionDecade ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid using it as the date itself (the bounds are gmeow:earliestStart / gmeow:latestEnd) and avoid the former free-text gmeow:eventDate string; precision is an explicit value, not prose, and is distinct from epistemic gmeow:confidence."@x-gmeow-english ;

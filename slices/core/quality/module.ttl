@@ -3,10 +3,11 @@
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
 gmeow:QualityAssessment
-    a gufo:SubKind ,
+    a logic:SubKind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/quality> ;
     rdfs:label "Quality Assessment"@x-gmeow-english ;
@@ -24,11 +25,11 @@ gmeow:QualityAssessment
     gmeow:useWhen "Use to record a quality verdict about an entity or dataset along one or more ISO 19157 dimensions — positional/temporal/thematic accuracy, completeness, consistency, or lineage — as a first-class observation carrying its own result, method, and provenance."@x-gmeow-english .
 
 gmeow:QualityDimension
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/quality> ;
     rdfs:label "Quality Dimension"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "An ISO 19157 data-quality dimension or lineage category — an open value vocabulary of individuals (never subclasses). New dimensions (e.g. a domain-specific 'semantic consistency' or 'usability') are added by minting fresh individuals, not by creating new classes (Principle 9)."@x-gmeow-english ;
     skos:example "ex:usability a gmeow:QualityDimension ; rdfs:label \"usability\"@en ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid creating per-dimension subclasses (dimensions are individuals) and avoid using it for the assessment itself (that is gmeow:QualityAssessment)."@x-gmeow-english ;

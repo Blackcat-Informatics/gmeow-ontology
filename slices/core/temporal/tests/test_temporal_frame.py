@@ -9,6 +9,7 @@ from gmeow_tools.graph import load_merged_graph
 
 GMEOW = "https://blackcatinformatics.ca/gmeow/"
 GUFO = "http://purl.org/nemo/gufo#"
+LOGIC = "https://blackcatinformatics.ca/logic/"
 
 
 def _graph() -> Graph:
@@ -25,7 +26,7 @@ def test_temporal_frame_subclasses_reference_frame() -> None:
     assert (
         URIRef(GMEOW + "TemporalFrame"),
         RDFS.subClassOf,
-        URIRef(GUFO + "Object"),
+        URIRef(LOGIC + "Object"),
     ) in g
 
 

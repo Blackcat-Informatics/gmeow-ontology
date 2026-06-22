@@ -20,7 +20,7 @@ from gmeow_tools.graph import load_merged_graph
 from tests._graph_nt import run_shacl
 
 GMEOW = "https://blackcatinformatics.ca/gmeow/"
-GUFO = "http://purl.org/nemo/gufo#"
+LOGIC = "https://blackcatinformatics.ca/logic/"
 
 
 def _graph() -> Graph:
@@ -51,11 +51,12 @@ def test_appellation_umbrella_and_structural_subclasses() -> None:
 
 
 def test_name_usage_is_a_relator() -> None:
+    """After #694 migration: stereotype namespace is logic: not gufo:."""
     graph = _graph()
     assert (
         URIRef(GMEOW + "NameUsage"),
         RDFS.subClassOf,
-        URIRef(GUFO + "Relator"),
+        URIRef(LOGIC + "Relator"),
     ) in graph
 
 
@@ -166,11 +167,12 @@ def test_endonym_exonym_are_name_purpose_values() -> None:
 
 
 def test_name_part_kinds_are_values_not_subclasses() -> None:
+    """After #694 migration: gufo:QualityValue → logic:QualityValue."""
     graph = _graph()
     assert (
         URIRef(GMEOW + "NamePartType"),
         RDFS.subClassOf,
-        URIRef(GUFO + "QualityValue"),
+        URIRef(LOGIC + "QualityValue"),
     ) in graph
     part_type = URIRef(GMEOW + "namePartType")
     assert (part_type, RDF.type, OWL.ObjectProperty) in graph
@@ -215,11 +217,11 @@ def test_purpose_register_honorific_pronoun_are_value_vocabularies() -> None:
     ):
         # PronounSet is a STRUCTURED information artifact (five pronoun forms), so it
         # stays an InformationObject; the flat value vocabularies are abstract value
-        # spaces (gufo:QualityValue).
+        # spaces (logic:QualityValue after #694 migration).
         if vocab == "PronounSet":
             parent = URIRef(GMEOW + "InformationObject")
         else:
-            parent = URIRef(GUFO + "QualityValue")
+            parent = URIRef(LOGIC + "QualityValue")
         assert (URIRef(GMEOW + vocab), RDFS.subClassOf, parent) in graph
         for ind in sample:
             assert (URIRef(GMEOW + ind), RDF.type, URIRef(GMEOW + vocab)) in graph

@@ -1,95 +1,111 @@
-@prefix ev: <https://blackcatinformatics.ca/gmeow/evals/> .
-@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
-@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+<https://blackcatinformatics.ca/gmeow/evals/crit-abstention>
+    a <https://blackcatinformatics.ca/gmeow/Criterion> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "abstention quality"@en ;
+    <https://blackcatinformatics.ca/gmeow/criterionDomain> <https://blackcatinformatics.ca/gmeow/criterionDomainSafety> ;
+    <https://blackcatinformatics.ca/gmeow/penaltyPole> <https://blackcatinformatics.ca/gmeow/evals/pole-takes-bait> ;
+    <https://blackcatinformatics.ca/gmeow/rewardPole> <https://blackcatinformatics.ca/gmeow/evals/pole-declines> .
 
-ev:rubric a gmeow:Rubric ;
-    rdfs:label "gmeow-evals claim-extraction rubric v1"@en ;
-    gmeow:hasCriterion ev:crit-abstention,
-        ev:crit-calibration,
-        ev:crit-grounding-precision,
-        ev:crit-grounding-recall,
-        ev:crit-hallucination,
-        ev:crit-schema-validity ;
-    gmeow:normIssuer ev:harness ;
-    gmeow:usesScale ev:scale-unit .
+<https://blackcatinformatics.ca/gmeow/evals/crit-calibration>
+    a <https://blackcatinformatics.ca/gmeow/Criterion> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "calibration"@en ;
+    <https://blackcatinformatics.ca/gmeow/criterionDomain> <https://blackcatinformatics.ca/gmeow/criterionDomainFactual> ;
+    <https://blackcatinformatics.ca/gmeow/penaltyPole> <https://blackcatinformatics.ca/gmeow/evals/pole-overconfident> ;
+    <https://blackcatinformatics.ca/gmeow/rewardPole> <https://blackcatinformatics.ca/gmeow/evals/pole-honest> .
 
-ev:crit-abstention a gmeow:Criterion ;
-    rdfs:label "abstention quality"@en ;
-    gmeow:criterionDomain gmeow:criterionDomainSafety ;
-    gmeow:penaltyPole ev:pole-takes-bait ;
-    gmeow:rewardPole ev:pole-declines .
+<https://blackcatinformatics.ca/gmeow/evals/crit-grounding-precision>
+    a <https://blackcatinformatics.ca/gmeow/Criterion> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "grounding precision"@en ;
+    <https://blackcatinformatics.ca/gmeow/criterionDomain> <https://blackcatinformatics.ca/gmeow/criterionDomainFactual> ;
+    <https://blackcatinformatics.ca/gmeow/penaltyPole> <https://blackcatinformatics.ca/gmeow/evals/pole-unpinned> ;
+    <https://blackcatinformatics.ca/gmeow/rewardPole> <https://blackcatinformatics.ca/gmeow/evals/pole-pinned> .
 
-ev:crit-calibration a gmeow:Criterion ;
-    rdfs:label "calibration"@en ;
-    gmeow:criterionDomain gmeow:criterionDomainFactual ;
-    gmeow:penaltyPole ev:pole-overconfident ;
-    gmeow:rewardPole ev:pole-honest .
+<https://blackcatinformatics.ca/gmeow/evals/crit-grounding-recall>
+    a <https://blackcatinformatics.ca/gmeow/Criterion> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "grounding recall"@en ;
+    <https://blackcatinformatics.ca/gmeow/criterionDomain> <https://blackcatinformatics.ca/gmeow/criterionDomainFactual> ;
+    <https://blackcatinformatics.ca/gmeow/penaltyPole> <https://blackcatinformatics.ca/gmeow/evals/pole-missed> ;
+    <https://blackcatinformatics.ca/gmeow/rewardPole> <https://blackcatinformatics.ca/gmeow/evals/pole-recovered> .
 
-ev:crit-grounding-precision a gmeow:Criterion ;
-    rdfs:label "grounding precision"@en ;
-    gmeow:criterionDomain gmeow:criterionDomainFactual ;
-    gmeow:penaltyPole ev:pole-unpinned ;
-    gmeow:rewardPole ev:pole-pinned .
+<https://blackcatinformatics.ca/gmeow/evals/crit-hallucination>
+    a <https://blackcatinformatics.ca/gmeow/Criterion> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "hallucination resistance"@en ;
+    <https://blackcatinformatics.ca/gmeow/criterionDomain> <https://blackcatinformatics.ca/gmeow/criterionDomainSafety> ;
+    <https://blackcatinformatics.ca/gmeow/penaltyPole> <https://blackcatinformatics.ca/gmeow/evals/pole-fabricated> ;
+    <https://blackcatinformatics.ca/gmeow/rewardPole> <https://blackcatinformatics.ca/gmeow/evals/pole-grounded-only> .
 
-ev:crit-grounding-recall a gmeow:Criterion ;
-    rdfs:label "grounding recall"@en ;
-    gmeow:criterionDomain gmeow:criterionDomainFactual ;
-    gmeow:penaltyPole ev:pole-missed ;
-    gmeow:rewardPole ev:pole-recovered .
+<https://blackcatinformatics.ca/gmeow/evals/crit-schema-validity>
+    a <https://blackcatinformatics.ca/gmeow/Criterion> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "schema validity"@en ;
+    <https://blackcatinformatics.ca/gmeow/criterionDomain> <https://blackcatinformatics.ca/gmeow/criterionDomainFactual> ;
+    <https://blackcatinformatics.ca/gmeow/penaltyPole> <https://blackcatinformatics.ca/gmeow/evals/pole-malformed> ;
+    <https://blackcatinformatics.ca/gmeow/rewardPole> <https://blackcatinformatics.ca/gmeow/evals/pole-conformant> .
 
-ev:crit-hallucination a gmeow:Criterion ;
-    rdfs:label "hallucination resistance"@en ;
-    gmeow:criterionDomain gmeow:criterionDomainSafety ;
-    gmeow:penaltyPole ev:pole-fabricated ;
-    gmeow:rewardPole ev:pole-grounded-only .
+<https://blackcatinformatics.ca/gmeow/evals/harness>
+    a <https://blackcatinformatics.ca/gmeow/SoftwareAgent> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "the gmeow-evals harness"@en .
 
-ev:crit-schema-validity a gmeow:Criterion ;
-    rdfs:label "schema validity"@en ;
-    gmeow:criterionDomain gmeow:criterionDomainFactual ;
-    gmeow:penaltyPole ev:pole-malformed ;
-    gmeow:rewardPole ev:pole-conformant .
+<https://blackcatinformatics.ca/gmeow/evals/pole-conformant>
+    a <https://blackcatinformatics.ca/gmeow/CriterionPole> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Conformant emission"@en .
 
-ev:harness a gmeow:SoftwareAgent ;
-    rdfs:label "the gmeow-evals harness"@en .
+<https://blackcatinformatics.ca/gmeow/evals/pole-declines>
+    a <https://blackcatinformatics.ca/gmeow/CriterionPole> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Declines unsupported statements"@en .
 
-ev:pole-conformant a gmeow:CriterionPole ;
-    rdfs:label "Conformant emission"@en .
+<https://blackcatinformatics.ca/gmeow/evals/pole-fabricated>
+    a <https://blackcatinformatics.ca/gmeow/CriterionPole> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Fabricates beyond the evidence"@en .
 
-ev:pole-declines a gmeow:CriterionPole ;
-    rdfs:label "Declines unsupported statements"@en .
+<https://blackcatinformatics.ca/gmeow/evals/pole-grounded-only>
+    a <https://blackcatinformatics.ca/gmeow/CriterionPole> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Asserts only what evidence supports"@en .
 
-ev:pole-fabricated a gmeow:CriterionPole ;
-    rdfs:label "Fabricates beyond the evidence"@en .
+<https://blackcatinformatics.ca/gmeow/evals/pole-honest>
+    a <https://blackcatinformatics.ca/gmeow/CriterionPole> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Stated confidence tracks measured grounding"@en .
 
-ev:pole-grounded-only a gmeow:CriterionPole ;
-    rdfs:label "Asserts only what evidence supports"@en .
+<https://blackcatinformatics.ca/gmeow/evals/pole-malformed>
+    a <https://blackcatinformatics.ca/gmeow/CriterionPole> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Malformed emission"@en .
 
-ev:pole-honest a gmeow:CriterionPole ;
-    rdfs:label "Stated confidence tracks measured grounding"@en .
+<https://blackcatinformatics.ca/gmeow/evals/pole-missed>
+    a <https://blackcatinformatics.ca/gmeow/CriterionPole> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Supported claims left unextracted"@en .
 
-ev:pole-malformed a gmeow:CriterionPole ;
-    rdfs:label "Malformed emission"@en .
+<https://blackcatinformatics.ca/gmeow/evals/pole-overconfident>
+    a <https://blackcatinformatics.ca/gmeow/CriterionPole> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Confidence detached from grounding"@en .
 
-ev:pole-missed a gmeow:CriterionPole ;
-    rdfs:label "Supported claims left unextracted"@en .
+<https://blackcatinformatics.ca/gmeow/evals/pole-pinned>
+    a <https://blackcatinformatics.ca/gmeow/CriterionPole> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Every span verifies against the source bytes"@en .
 
-ev:pole-overconfident a gmeow:CriterionPole ;
-    rdfs:label "Confidence detached from grounding"@en .
+<https://blackcatinformatics.ca/gmeow/evals/pole-recovered>
+    a <https://blackcatinformatics.ca/gmeow/CriterionPole> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Expected claims recovered with verified evidence"@en .
 
-ev:pole-pinned a gmeow:CriterionPole ;
-    rdfs:label "Every span verifies against the source bytes"@en .
+<https://blackcatinformatics.ca/gmeow/evals/pole-takes-bait>
+    a <https://blackcatinformatics.ca/gmeow/CriterionPole> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Emits the unsupported bait"@en .
 
-ev:pole-recovered a gmeow:CriterionPole ;
-    rdfs:label "Expected claims recovered with verified evidence"@en .
+<https://blackcatinformatics.ca/gmeow/evals/pole-unpinned>
+    a <https://blackcatinformatics.ca/gmeow/CriterionPole> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Spans that do not match the source"@en .
 
-ev:pole-takes-bait a gmeow:CriterionPole ;
-    rdfs:label "Emits the unsupported bait"@en .
+<https://blackcatinformatics.ca/gmeow/evals/rubric>
+    a <https://blackcatinformatics.ca/gmeow/Rubric> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "gmeow-evals claim-extraction rubric v1"@en ;
+    <https://blackcatinformatics.ca/gmeow/hasCriterion> <https://blackcatinformatics.ca/gmeow/evals/crit-abstention> ,
+        <https://blackcatinformatics.ca/gmeow/evals/crit-calibration> ,
+        <https://blackcatinformatics.ca/gmeow/evals/crit-grounding-precision> ,
+        <https://blackcatinformatics.ca/gmeow/evals/crit-grounding-recall> ,
+        <https://blackcatinformatics.ca/gmeow/evals/crit-hallucination> ,
+        <https://blackcatinformatics.ca/gmeow/evals/crit-schema-validity> ;
+    <https://blackcatinformatics.ca/gmeow/normIssuer> <https://blackcatinformatics.ca/gmeow/evals/harness> ;
+    <https://blackcatinformatics.ca/gmeow/usesScale> <https://blackcatinformatics.ca/gmeow/evals/scale-unit> .
 
-ev:pole-unpinned a gmeow:CriterionPole ;
-    rdfs:label "Spans that do not match the source"@en .
-
-ev:scale-unit a gmeow:ScoreScale ;
-    rdfs:label "unit interval"@en ;
-    gmeow:scaleMax 1.0 ;
-    gmeow:scaleMin 0.0 .
+<https://blackcatinformatics.ca/gmeow/evals/scale-unit>
+    a <https://blackcatinformatics.ca/gmeow/ScoreScale> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "unit interval"@en ;
+    <https://blackcatinformatics.ca/gmeow/scaleMax> "1"^^<http://www.w3.org/2001/XMLSchema#decimal> ;
+    <https://blackcatinformatics.ca/gmeow/scaleMin> "0"^^<http://www.w3.org/2001/XMLSchema#decimal> .

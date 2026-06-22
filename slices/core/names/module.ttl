@@ -6,10 +6,11 @@
 @prefix lime: <http://www.w3.org/ns/lemon/lime#> .
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
 gmeow:Appellation
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> ;
     rdfs:label "Appellation"@x-gmeow-english ;
@@ -23,7 +24,7 @@ gmeow:Appellation
     gmeow:useWhen "Use as the universal name-object umbrella when bearing a name on any entity and a more specific kind (PersonName, PlaceName, Filename) does not apply, or when modelling a name's surface form and structured parts independently of who uses it."@x-gmeow-english .
 
 gmeow:Filename
-    a gufo:SubKind ,
+    a logic:SubKind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> ;
     rdfs:label "Filename"@x-gmeow-english ;
@@ -36,11 +37,11 @@ gmeow:Filename
     gmeow:useWhen "Use for the name borne by a digital file — a stem plus an extension — especially when the extension's claimed media type must be recorded alongside the type detected from the bytes."@x-gmeow-english .
 
 gmeow:Honorific
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> ;
     rdfs:label "Honorific"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "A title or form of address (Mr, Mx, Dr, -san, Sri, Sayyid, …). A value, not a subclass. Each carries a gmeow:honorificPosition (prefix/suffix) and, where applicable, a gmeow:honorificClass."@x-gmeow-english ;
     skos:example "ex:person gmeow:honorific gmeow:honorificMx ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid inferring an honorific from, or asserting one to imply, gender identity, gender expression, or sex assigned at birth — honorifics are a sex/gender-independent form of address; and avoid minting a subclass per title (titles are individuals)."@x-gmeow-english ;
@@ -49,11 +50,11 @@ gmeow:Honorific
     gmeow:useWhen "Use as the open value vocabulary for a title or form of address (Mr, Mx, Dr, -san, Sri, Sayyid, …) — referenced from gmeow:honorific on a person, or extended with a new individual for a non-Western or gender-neutral title not yet seeded."@x-gmeow-english .
 
 gmeow:HonorificClass
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> ;
     rdfs:label "Honorific Class"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The domain of an honorific (academic, clerical, noble, military, judicial, social)."@x-gmeow-english ;
     skos:example "ex:honorific gmeow:honorificClass gmeow:honorificClassAcademic ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid minting a Honorific subclass per class (classes are individuals) and avoid using it for render placement — that is gmeow:HonorificPosition."@x-gmeow-english ;
@@ -62,11 +63,11 @@ gmeow:HonorificClass
     gmeow:useWhen "Use as the open value vocabulary for the social/institutional domain an honorific is drawn from (academic, clerical, noble, military, judicial, social) — referenced from gmeow:honorificClass on a gmeow:Honorific."@x-gmeow-english .
 
 gmeow:HonorificPosition
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> ;
     rdfs:label "Honorific Position"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "Whether an honorific is rendered before (prefix) or after (suffix) the name."@x-gmeow-english ;
     skos:example "ex:honorific gmeow:honorificPosition gmeow:honorificPositionSuffix ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid minting a Honorific subclass per position (positions are individuals) and avoid using it for anything but render placement — class/domain of the honorific is gmeow:HonorificClass."@x-gmeow-english ;
@@ -75,7 +76,7 @@ gmeow:HonorificPosition
     gmeow:useWhen "Use as the closed-ish value vocabulary recording whether an honorific is rendered before (prefix) or after (suffix) the name — referenced from gmeow:honorificPosition on a gmeow:Honorific."@x-gmeow-english .
 
 gmeow:NamePart
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> ;
     rdfs:label "Name Part"@x-gmeow-english ;
@@ -88,11 +89,11 @@ gmeow:NamePart
     gmeow:useWhen "Use to decompose an appellation into its typed, ordered components when parts must be matched, expanded, or rendered separately — a given name, surname, patronymic, particle, Arabic nisba, or filename extension."@x-gmeow-english .
 
 gmeow:NamePartType
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> ;
     rdfs:label "Name Part Type"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The kind of a name part (given, surname, patronymic, particle, Arabic nisba, filename extension, …). A value, not a NamePart subclass: naming systems worldwide contribute an open-ended set of part kinds that share NamePart's structure."@x-gmeow-english ;
     skos:example "ex:part gmeow:namePartType gmeow:namePartNisba ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid minting a NamePart subclass for a new part kind (kinds are individuals on an open value vocabulary) and avoid forcing a culture's part into an ill-fitting Western category — add the proper individual instead."@x-gmeow-english ;
@@ -101,11 +102,11 @@ gmeow:NamePartType
     gmeow:useWhen "Use as the open value vocabulary for the kind of a name part — referenced from a gmeow:NamePart via gmeow:namePartType, or extended with a new individual when a naming system contributes a part kind not yet seeded."@x-gmeow-english .
 
 gmeow:NamePurpose
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> ;
     rdfs:label "Name Purpose"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The purpose/kind of a whole appellation (legal, birth, chosen, professional, deadname, …). A value, not a PersonName subclass; a person may simultaneously bear several co-equal names of different purposes."@x-gmeow-english ;
     skos:example "ex:name gmeow:namePurpose gmeow:namePurposeChosen, gmeow:namePurposeLegal ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid minting a PersonName subclass per purpose (purposes are individuals, and a name may carry several at once) and avoid using purpose to rank names — endonym and exonym are co-equal, not preferred-vs-alternate."@x-gmeow-english ;
@@ -114,11 +115,11 @@ gmeow:NamePurpose
     gmeow:useWhen "Use as the open value vocabulary for the intrinsic kind of a whole appellation — referenced from an appellation via gmeow:namePurpose to mark it legal, birth, chosen, professional, endonym, exonym, deadname, and so on."@x-gmeow-english .
 
 gmeow:NameRegister
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> ;
     rdfs:label "Name Register"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ,
+    rdfs:subClassOf logic:QualityValue ,
         gmeow:Register ;
     skos:definition "The social register of a name-usage (formal, intimate, professional, casual) — the naming specialization of the gmeow:Register umbrella: a name register IS a register, so persona expression and name address draw from one vocabulary spine. A value vocabulary carried by gmeow:usageRegister on a gmeow:NameUsage."@x-gmeow-english ;
     skos:example "ex:usage gmeow:usageRegister gmeow:registerFormal ."@x-gmeow-english ;
@@ -128,11 +129,11 @@ gmeow:NameRegister
     gmeow:useWhen "Use as the value vocabulary for the social register of a name-usage — referenced from gmeow:usageRegister on a gmeow:NameUsage to mark a name as formal, intimate, professional, or casual."@x-gmeow-english .
 
 gmeow:NameUsage
-    a gufo:SubKind ,
+    a logic:SubKind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> ;
     rdfs:label "Name Usage"@x-gmeow-english ;
-    rdfs:subClassOf gufo:Relator ,
+    rdfs:subClassOf logic:Relator ,
         gmeow:Observation ,
         [
             a owl:Restriction ;
@@ -157,7 +158,7 @@ gmeow:NameUsage
     gmeow:useWhen "Use when a name-bearing fact needs its own audience, register, authority, period, evidence, confidence, or standpoint."@x-gmeow-english .
 
 gmeow:OrganizationName
-    a gufo:SubKind ,
+    a logic:SubKind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> ;
     rdfs:label "Organization Name"@x-gmeow-english ;
@@ -170,7 +171,7 @@ gmeow:OrganizationName
     gmeow:useWhen "Use for a structured name borne by an organization — a legal name, a trading or doing-business-as name, a former name, or a multilingual variant."@x-gmeow-english .
 
 gmeow:PersonName
-    a gufo:SubKind ,
+    a logic:SubKind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> ;
     rdfs:label "Person Name"@x-gmeow-english ;
@@ -187,7 +188,7 @@ gmeow:PersonName
     gmeow:useWhen "Use for a structured name borne by a person — a birth, married, chosen, religious, or professional name with typed parts, language/script, and purpose; mint one per co-equal name across life stages and across languages or scripts."@x-gmeow-english .
 
 gmeow:PlaceName
-    a gufo:SubKind ,
+    a logic:SubKind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> ;
     rdfs:label "Place Name"@x-gmeow-english ;
@@ -200,7 +201,7 @@ gmeow:PlaceName
     gmeow:useWhen "Use for a structured toponym borne by a geographic place — an endonym, exonym, multilingual, or historical name — when gazetteer matching or co-equal place naming is needed."@x-gmeow-english .
 
 gmeow:PlaceNaming
-    a gufo:SubKind ,
+    a logic:SubKind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> ;
     rdfs:label "Place Naming"@x-gmeow-english ;
@@ -221,7 +222,7 @@ gmeow:PlaceNaming
     gmeow:useWhen "Use (by inference) for a time-, audience-, or authority-scoped use of a toponym — a competing, historical, or authority-conferred place name that needs its own period, toponymic authority, or standpoint."@x-gmeow-english .
 
 gmeow:PronounSet
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> ;
     rdfs:label "Pronoun Set"@x-gmeow-english ;
@@ -234,11 +235,11 @@ gmeow:PronounSet
     gmeow:useWhen "Use to record the third-person pronouns a person goes by — reference a seeded set (gmeow:pronounSheHer, gmeow:pronounTheyThem, …) for a known paradigm, or mint a fresh instance filling the five forms for any other set."@x-gmeow-english .
 
 gmeow:Register
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/names> ;
     rdfs:label "Register"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "A social or expressive register — the formality, intimacy, or audience-posture of an expression act (the register/persona design). The OPEN umbrella vocabulary that name registers specialize and that persona expression (norms slice) reuses: the same agent, the same norms, expressed formally in public and intimately in private. Registers are first-class value individuals with their own IRIs, labels, and definitions — never a subclass tree, never a 'primary' (Principle 9). Lives in the names core slice because register-of-address was already core here and the dependency direction (extensions reference core, never the reverse) requires the umbrella below its consumers."@x-gmeow-english ;
     skos:example "ex:address gmeow:usageRegister gmeow:registerIntimate ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid building a register subclass tree (registers are co-equal value individuals) and avoid a name-only register where the persona-expression sense is meant — reach for the gmeow:NameRegister specialization for name address."@x-gmeow-english ;

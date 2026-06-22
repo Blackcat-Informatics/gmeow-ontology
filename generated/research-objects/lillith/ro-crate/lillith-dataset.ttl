@@ -1,54 +1,57 @@
-@prefix ex: <https://blackcatinformatics.ca/gmeow/examples/graphrag/> .
-@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
-@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+<https://blackcatinformatics.ca/gmeow/examples/graphrag/blackcat>
+    a <https://blackcatinformatics.ca/gmeow/Organization> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Blackcat Informatics® Inc."@en .
 
-ex:lillith-ingest a gmeow:ImportActivity ;
-    rdfs:label "lillith corpus ingest"@en ;
-    gmeow:eventTemporalFrame gmeow:temporalFrameUTCGregorian ;
-    gmeow:ingestedAt "2026-06-01T09:00:00+00:00"^^xsd:dateTime .
+<https://blackcatinformatics.ca/gmeow/examples/graphrag/lillith-benchmark>
+    a <https://blackcatinformatics.ca/gmeow/Dataset> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Lillith GraphRAG benchmark"@en ;
+    <https://blackcatinformatics.ca/gmeow/citeAs> "Blackcat Informatics® Inc. (2026). Lillith GraphRAG benchmark. https://blackcatinformatics.ca/gmeow/examples/graphrag/lillith-benchmark" ;
+    <https://blackcatinformatics.ca/gmeow/datePublished> "2026-06-12T00:00:00Z"^^<http://www.w3.org/2001/XMLSchema#dateTime> ;
+    <https://blackcatinformatics.ca/gmeow/description> "A worked GraphRAG benchmark dataset: a content-addressed corpus, its chunking, embeddings, vector index, retrieval events, and model-extracted entity/relationship descriptions — every artifact attributed and confidence-weighted, published as a research object."@en ;
+    <https://blackcatinformatics.ca/gmeow/hasLicense> <https://blackcatinformatics.ca/gmeow/examples/graphrag/lillith-license> ;
+    <https://blackcatinformatics.ca/gmeow/hasPart> <https://blackcatinformatics.ca/gmeow/examples/graphrag/corpus-lillith> ;
+    <https://blackcatinformatics.ca/gmeow/sourceLocation> "https://blackcatinformatics.ca/gmeow/examples/graphrag/lillith-benchmark" ;
+    <https://blackcatinformatics.ca/gmeow/title> "Lillith GraphRAG benchmark"@en ;
+    <https://blackcatinformatics.ca/gmeow/version> "1.0.0" ;
+    <https://blackcatinformatics.ca/gmeow/wasAttributedTo> <https://blackcatinformatics.ca/gmeow/examples/graphrag/blackcat> .
 
-ex:pipeline-run a gmeow:BuildActivity ;
-    rdfs:label "lillith benchmark pipeline run 2026-06-02"@en ;
-    gmeow:buildConfigUri "https://example.org/lillith-pipeline/blob/main/ci/workflows/benchmark.yml" ;
-    gmeow:buildOutput ex:lillith-crate ;
-    gmeow:buildSource ex:pipeline-repo ;
-    gmeow:eventTemporalFrame gmeow:temporalFrameUTCGregorian ;
-    gmeow:eventTime "2026-06-02T08:00:00+00:00"^^xsd:dateTime ;
-    gmeow:hasParticipant ex:pipeline-runner .
+<https://blackcatinformatics.ca/gmeow/examples/graphrag/lillith-crate>
+    a <https://blackcatinformatics.ca/gmeow/Distribution> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "lillith.crate.zip"@en ;
+    <https://blackcatinformatics.ca/gmeow/contentDigest> "blake3:8888999900001111222233334444555566667777aaaabbbbccccddddeeeeff66" .
 
-ex:lillith-benchmark a gmeow:Dataset ;
-    rdfs:label "Lillith GraphRAG benchmark"@en ;
-    gmeow:citeAs "Blackcat Informatics® Inc. (2026). Lillith GraphRAG benchmark. https://blackcatinformatics.ca/gmeow/examples/graphrag/lillith-benchmark" ;
-    gmeow:datePublished "2026-06-12T00:00:00+00:00"^^xsd:dateTime ;
-    gmeow:description "A worked GraphRAG benchmark dataset: a content-addressed corpus, its chunking, embeddings, vector index, retrieval events, and model-extracted entity/relationship descriptions — every artifact attributed and confidence-weighted, published as a research object."@en ;
-    gmeow:hasLicense ex:lillith-license ;
-    gmeow:hasPart ex:corpus-lillith ;
-    gmeow:sourceLocation "https://blackcatinformatics.ca/gmeow/examples/graphrag/lillith-benchmark" ;
-    gmeow:title "Lillith GraphRAG benchmark"@en ;
-    gmeow:version "1.0.0"^^xsd:string ;
-    gmeow:wasAttributedTo ex:blackcat .
+<https://blackcatinformatics.ca/gmeow/examples/graphrag/lillith-ingest>
+    a <https://blackcatinformatics.ca/gmeow/ImportActivity> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "lillith corpus ingest"@en ;
+    <https://blackcatinformatics.ca/gmeow/eventTemporalFrame> <https://blackcatinformatics.ca/gmeow/temporalFrameUTCGregorian> ;
+    <https://blackcatinformatics.ca/gmeow/ingestedAt> "2026-06-01T09:00:00Z"^^<http://www.w3.org/2001/XMLSchema#dateTime> .
 
-ex:lillith-crate a gmeow:Distribution ;
-    rdfs:label "lillith.crate.zip"@en ;
-    gmeow:contentDigest "blake3:8888999900001111222233334444555566667777aaaabbbbccccddddeeeeff66" .
+<https://blackcatinformatics.ca/gmeow/examples/graphrag/lillith-license>
+    a <https://blackcatinformatics.ca/gmeow/License> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "CC BY 4.0"@en ;
+    <https://blackcatinformatics.ca/gmeow/licenseFamily> <https://blackcatinformatics.ca/gmeow/licenseFamilyCC> ;
+    <https://blackcatinformatics.ca/gmeow/licensedWork> <https://blackcatinformatics.ca/gmeow/examples/graphrag/lillith-benchmark> ;
+    <https://blackcatinformatics.ca/gmeow/licensor> <https://blackcatinformatics.ca/gmeow/examples/graphrag/blackcat> ;
+    <https://blackcatinformatics.ca/gmeow/spdxLicenseId> "CC-BY-4.0" ;
+    <https://blackcatinformatics.ca/gmeow/spdxLicenseName> "Creative Commons Attribution 4.0 International" .
 
-ex:lillith-license a gmeow:License ;
-    rdfs:label "CC BY 4.0"@en ;
-    gmeow:licenseFamily gmeow:licenseFamilyCC ;
-    gmeow:licensedWork ex:lillith-benchmark ;
-    gmeow:licensor ex:blackcat ;
-    gmeow:spdxLicenseId "CC-BY-4.0" ;
-    gmeow:spdxLicenseName "Creative Commons Attribution 4.0 International" .
+<https://blackcatinformatics.ca/gmeow/examples/graphrag/pipeline-repo>
+    a <https://blackcatinformatics.ca/gmeow/Repository> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "lillith-pipeline repository"@en ;
+    <https://blackcatinformatics.ca/gmeow/cloneUrl> "https://example.org/lillith-pipeline.git" ;
+    <https://blackcatinformatics.ca/gmeow/repositoryType> <https://blackcatinformatics.ca/gmeow/repoTypeGit> ;
+    <https://blackcatinformatics.ca/gmeow/webUrl> "https://example.org/lillith-pipeline" .
 
-ex:pipeline-repo a gmeow:Repository ;
-    rdfs:label "lillith-pipeline repository"@en ;
-    gmeow:cloneUrl "https://example.org/lillith-pipeline.git" ;
-    gmeow:repositoryType gmeow:repoTypeGit ;
-    gmeow:webUrl "https://example.org/lillith-pipeline" .
+<https://blackcatinformatics.ca/gmeow/examples/graphrag/pipeline-run>
+    a <https://blackcatinformatics.ca/gmeow/BuildActivity> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "lillith benchmark pipeline run 2026-06-02"@en ;
+    <https://blackcatinformatics.ca/gmeow/buildConfigUri> "https://example.org/lillith-pipeline/blob/main/ci/workflows/benchmark.yml" ;
+    <https://blackcatinformatics.ca/gmeow/buildOutput> <https://blackcatinformatics.ca/gmeow/examples/graphrag/lillith-crate> ;
+    <https://blackcatinformatics.ca/gmeow/buildSource> <https://blackcatinformatics.ca/gmeow/examples/graphrag/pipeline-repo> ;
+    <https://blackcatinformatics.ca/gmeow/eventTemporalFrame> <https://blackcatinformatics.ca/gmeow/temporalFrameUTCGregorian> ;
+    <https://blackcatinformatics.ca/gmeow/eventTime> "2026-06-02T08:00:00Z"^^<http://www.w3.org/2001/XMLSchema#dateTime> ;
+    <https://blackcatinformatics.ca/gmeow/hasParticipant> <https://blackcatinformatics.ca/gmeow/examples/graphrag/pipeline-runner> .
 
-ex:pipeline-runner a gmeow:Builder ;
-    rdfs:label "lillith pipeline runner"@en .
-
-ex:blackcat a gmeow:Organization ;
-    rdfs:label "Blackcat Informatics® Inc."@en .
+<https://blackcatinformatics.ca/gmeow/examples/graphrag/pipeline-runner>
+    a <https://blackcatinformatics.ca/gmeow/Builder> ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "lillith pipeline runner"@en .

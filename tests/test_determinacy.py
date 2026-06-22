@@ -2,7 +2,7 @@
 
 Ontic indeterminacy (crisp, vague, fuzzy, probabilistic, disputed) is held
 distinct from epistemic confidence (Principle 9). This module pins that as a
-structural invariant: Determinacy is a universal gUFO QualityValue, hasDeterminacy
+structural invariant: Determinacy is a universal logic:QualityValue, hasDeterminacy
 is a domain-free non-functional ObjectProperty orthogonal to confidence, and the
 five seeds span the determinacy space with no privileged winner.
 """
@@ -17,6 +17,7 @@ from gmeow_tools.graph import load_merged_graph
 
 GMEOW = "https://blackcatinformatics.ca/gmeow/"
 GM = Namespace(GMEOW)
+LOGIC = "https://blackcatinformatics.ca/logic/"
 
 
 def _graph() -> Graph:
@@ -29,12 +30,12 @@ def test_determinacy_class_structure() -> None:
     assert (
         GM.Determinacy,
         RDF.type,
-        URIRef("http://purl.org/nemo/gufo#AbstractIndividualType"),
+        URIRef(LOGIC + "AbstractIndividualType"),
     ) in g
     assert (
         GM.Determinacy,
         RDFS.subClassOf,
-        URIRef("http://purl.org/nemo/gufo#QualityValue"),
+        URIRef(LOGIC + "QualityValue"),
     ) in g
 
 

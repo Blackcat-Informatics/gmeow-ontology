@@ -25,7 +25,7 @@
       "@type": "Dataset",
       "name": "Lillith GraphRAG benchmark",
       "description": "A worked GraphRAG benchmark dataset: a content-addressed corpus, its chunking, embeddings, vector index, retrieval events, and model-extracted entity/relationship descriptions — every artifact attributed and confidence-weighted, published as a research object.",
-      "datePublished": "2026-06-12T00:00:00+00:00",
+      "datePublished": "2026-06-12T00:00:00Z",
       "license": {
         "@id": "https://spdx.org/licenses/CC-BY-4.0"
       },
@@ -237,7 +237,7 @@
       "@id": "https://blackcatinformatics.ca/gmeow/examples/graphrag/lillith-ingest",
       "@type": "CreateAction",
       "name": "lillith corpus ingest",
-      "endTime": "2026-06-01T09:00:00+00:00"
+      "endTime": "2026-06-01T09:00:00Z"
     },
     {
       "@id": "https://blackcatinformatics.ca/gmeow/examples/graphrag/pipeline-run",
@@ -259,7 +259,7 @@
           "@id": "https://blackcatinformatics.ca/gmeow/examples/graphrag/lillith-crate"
         }
       ],
-      "endTime": "2026-06-02T08:00:00+00:00"
+      "endTime": "2026-06-02T08:00:00Z"
     },
     {
       "@id": "https://blackcatinformatics.ca/gmeow/examples/ai/claim-close-2200",

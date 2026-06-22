@@ -42,9 +42,30 @@ const CATALOGUE: &str = "https://ontouml.readthedocs.io/en/latest/anti-patterns/
 /// The gUFO namespace (`http://purl.org/nemo/gufo#`).
 const GUFO_NS: &str = "http://purl.org/nemo/gufo#";
 
+/// The canonical `logic:` namespace (`https://blackcatinformatics.ca/logic/`) —
+/// the authoritative sort surface that subsumes gUFO (#663/#694). Slices migrate
+/// their stereotype authoring from `gufo:` to `logic:`; this validator accepts
+/// EITHER namespace so the per-slice migration can run incrementally with the
+/// foundation-conformance gate green at every step (some slices migrated, others
+/// not). The local name is identical across the two namespaces for every sort
+/// except the perdurant down-projection renames (`gufo:EventType`→`logic:Event`,
+/// `gufo:SituationType`→`logic:Situation`).
+const LOGIC_NS: &str = "https://blackcatinformatics.ca/logic/";
+
 /// Build a gUFO-namespaced IRI string for a local name.
 fn gufo(local: &str) -> String {
     format!("{GUFO_NS}{local}")
+}
+
+/// Build a `logic:`-namespaced IRI string for a local name.
+fn logic(local: &str) -> String {
+    format!("{LOGIC_NS}{local}")
+}
+
+/// Both namespaced IRIs for a sort whose local name is identical in `gufo:` and
+/// `logic:` (every sort except the EventType/SituationType perdurant renames).
+fn dual(local: &str) -> [String; 2] {
+    [gufo(local), logic(local)]
 }
 
 /// Typed configuration for the reasoning invariants, supplied by the Python
@@ -62,7 +83,8 @@ impl GufoConfig {
     }
 }
 
-/// The `gufo:EndurantType` stereotypes (`_ENDURANT_STEREOTYPES`).
+/// The endurant-type stereotypes (`_ENDURANT_STEREOTYPES`), accepted in both the
+/// `gufo:` and the canonical `logic:` namespace (#694).
 fn endurant_stereotypes() -> Vec<String> {
     [
         "Kind",
@@ -74,22 +96,26 @@ fn endurant_stereotypes() -> Vec<String> {
         "RoleMixin",
         "PhaseMixin",
     ]
-    .iter()
-    .map(|l| gufo(l))
+    .into_iter()
+    .flat_map(dual)
     .collect()
 }
 
-/// The `gufo` perdurant stereotypes (`_PERDURANT_STEREOTYPES`).
+/// The perdurant stereotypes (`_PERDURANT_STEREOTYPES`). gUFO authors
+/// `gufo:EventType`/`gufo:SituationType`; the canonical `logic:` form down-projects
+/// them to `logic:Event`/`logic:Situation` (#694).
 fn perdurant_stereotypes() -> Vec<String> {
-    ["EventType", "SituationType"]
-        .iter()
-        .map(|l| gufo(l))
-        .collect()
+    vec![
+        gufo("EventType"),
+        gufo("SituationType"),
+        logic("Event"),
+        logic("Situation"),
+    ]
 }
 
-/// The `gufo` abstract-individual stereotype (`_ABSTRACT_STEREOTYPES`).
+/// The abstract-individual stereotype (`_ABSTRACT_STEREOTYPES`), in both namespaces.
 fn abstract_stereotypes() -> Vec<String> {
-    vec![gufo("AbstractIndividualType")]
+    Vec::from(dual("AbstractIndividualType"))
 }
 
 /// The full acceptable-stereotype set (`_META_CLASSES`).
@@ -101,22 +127,22 @@ fn meta_classes() -> HashSet<String> {
         .collect()
 }
 
-/// Rigid sortals (`_RIGID_SORTALS`).
+/// Rigid sortals (`_RIGID_SORTALS`), in both `gufo:` and `logic:` namespaces.
 fn rigid_sortals() -> HashSet<String> {
-    [gufo("Kind"), gufo("SubKind")].into_iter().collect()
+    dual("Kind").into_iter().chain(dual("SubKind")).collect()
 }
 
-/// Anti-rigid sortals (`_ANTI_RIGID_SORTALS`).
+/// Anti-rigid sortals (`_ANTI_RIGID_SORTALS`), in both namespaces.
 fn anti_rigid_sortals() -> HashSet<String> {
-    [gufo("Phase"), gufo("Role")].into_iter().collect()
+    dual("Phase").into_iter().chain(dual("Role")).collect()
 }
 
 /// Anti-rigid / semi-rigid types a rigid sortal must never specialize
-/// (`_ANTI_RIGID_TYPES`).
+/// (`_ANTI_RIGID_TYPES`), in both namespaces.
 fn anti_rigid_types() -> HashSet<String> {
     ["Phase", "Role", "PhaseMixin", "RoleMixin", "Mixin"]
-        .iter()
-        .map(|l| gufo(l))
+        .into_iter()
+        .flat_map(dual)
         .collect()
 }
 
@@ -137,6 +163,8 @@ fn local(iri: &str, cfg: &GufoConfig) -> String {
         format!("gmeow:{}", &iri[cfg.namespace.len()..])
     } else if let Some(rest) = iri.strip_prefix(GUFO_NS) {
         format!("gufo:{rest}")
+    } else if let Some(rest) = iri.strip_prefix(LOGIC_NS) {
+        format!("logic:{rest}")
     } else {
         iri.to_owned()
     }
@@ -248,17 +276,17 @@ pub fn exactly_one_stereotype(store: &Store, cfg: &GufoConfig) -> Vec<String> {
         let st = stereotypes(store, &cls, &meta);
         if st.is_empty() {
             problems.push(format!(
-                "{} carries no gUFO meta-class — pun it with exactly one of \
-                 gufo:Kind/SubKind/Role/Phase/Category/Mixin/RoleMixin/PhaseMixin \
-                 (gufo:EventType/SituationType for perdurants, or \
-                 gufo:AbstractIndividualType for abstract individuals)",
+                "{} carries no stereotype — pun it with exactly one of \
+                 Kind/SubKind/Role/Phase/Category/Mixin/RoleMixin/PhaseMixin \
+                 (Event/Situation for perdurants, or \
+                 AbstractIndividualType for abstract individuals)",
                 local(&cls, cfg)
             ));
         } else if st.len() > 1 {
             let mut names: Vec<String> = st.iter().map(|s| local(s, cfg)).collect();
             names.sort();
             problems.push(format!(
-                "{} carries conflicting gUFO meta-classes ({}) — a class has \
+                "{} carries conflicting stereotypes ({}) — a class has \
                  exactly one stereotype",
                 local(&cls, cfg),
                 names.join(", ")
@@ -272,24 +300,26 @@ pub fn exactly_one_stereotype(store: &Store, cfg: &GufoConfig) -> Vec<String> {
 /// Kind; no Kind ⊑ Kind.
 pub fn identity_overlap(store: &Store, cfg: &GufoConfig) -> Vec<String> {
     let meta = meta_classes();
-    let gufo_kind = gufo("Kind");
+    // A Kind in either namespace (gufo:Kind or the canonical logic:Kind, #694).
+    let kinds: [String; 2] = dual("Kind");
+    let is_kind = |s: &String| kinds.contains(s);
     let rigid = rigid_sortals();
     let anti_rigid = anti_rigid_sortals();
     let mut problems: Vec<String> = Vec::new();
     for cls in gmeow_classes(store, cfg) {
         let st = stereotypes(store, &cls, &meta);
         let ancestors = proper_ancestors(store, &cls);
-        // kind_ancestors: ancestors that are themselves gufo:Kind, sorted by str.
+        // kind_ancestors: ancestors that are themselves a Kind, sorted by str.
         let mut kind_ancestors: Vec<String> = ancestors
             .iter()
-            .filter(|a| has_type(store, a, &gufo_kind))
+            .filter(|a| kinds.iter().any(|k| has_type(store, a, k)))
             .cloned()
             .collect();
         kind_ancestors.sort();
 
-        if st.contains(&gufo_kind) && !kind_ancestors.is_empty() {
+        if st.iter().any(is_kind) && !kind_ancestors.is_empty() {
             problems.push(format!(
-                "{} is a gufo:Kind but specializes gufo:Kind(s) {} — identity \
+                "{} is a Kind but specializes Kind(s) {} — identity \
                  conflict (OntoUML MixIden: every endurant instantiates exactly \
                  one Kind). See {}",
                 local(&cls, cfg),
@@ -301,14 +331,14 @@ pub fn identity_overlap(store: &Store, cfg: &GufoConfig) -> Vec<String> {
         let is_sortal = st
             .iter()
             .any(|s| rigid.contains(s) || anti_rigid.contains(s));
-        if is_sortal && !st.contains(&gufo_kind) && kind_ancestors.len() != 1 {
+        if is_sortal && !st.iter().any(is_kind) && kind_ancestors.len() != 1 {
             let names = if kind_ancestors.is_empty() {
                 "none".to_owned()
             } else {
                 join_local(&kind_ancestors, cfg)
             };
             problems.push(format!(
-                "{} is a sortal but specializes {} gufo:Kind(s) ({}) — a sortal \
+                "{} is a sortal but specializes {} Kind(s) ({}) — a sortal \
                  inherits identity from exactly one Kind (OntoUML MixIden). See {}",
                 local(&cls, cfg),
                 kind_ancestors.len(),
@@ -386,7 +416,8 @@ pub fn anti_rigidity_discipline(store: &Store, cfg: &GufoConfig) -> Vec<String> 
 /// **relator_mediation (RelComp)** — every concrete `gufo:Relator` mediates at
 /// least two relata.
 pub fn relator_mediation(store: &Store, cfg: &GufoConfig) -> Vec<String> {
-    let gufo_relator = gufo("Relator");
+    // A Relator base in either namespace (gufo:Relator or canonical logic:Relator).
+    let relators: [String; 2] = dual("Relator");
     let time_interval = cfg.time_interval();
 
     // The GMEOW object properties (graph iteration order; output is count-only).
@@ -428,7 +459,7 @@ pub fn relator_mediation(store: &Store, cfg: &GufoConfig) -> Vec<String> {
     let mut problems: Vec<String> = Vec::new();
     for cls in gmeow_classes(store, cfg) {
         let ancestors = proper_ancestors(store, &cls);
-        if !ancestors.contains(&gufo_relator) {
+        if !relators.iter().any(|r| ancestors.contains(r)) {
             continue;
         }
         // Concrete iff no GMEOW class specializes it.
@@ -469,7 +500,7 @@ pub fn relator_mediation(store: &Store, cfg: &GufoConfig) -> Vec<String> {
         }
         if ends < 2 {
             problems.push(format!(
-                "{} is a concrete gufo:Relator mediating only {} end(s) — a relator \
+                "{} is a concrete Relator mediating only {} end(s) — a relator \
                  must mediate at least two (OntoUML RelComp). See {}",
                 local(&cls, cfg),
                 ends,
@@ -874,6 +905,7 @@ mod tests {
 
     const PREFIXES: &str = "@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
          @prefix gufo: <http://purl.org/nemo/gufo#> .\n\
+         @prefix logic: <https://blackcatinformatics.ca/logic/> .\n\
          @prefix owl: <http://www.w3.org/2002/07/owl#> .\n\
          @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n\
          @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n";
@@ -882,9 +914,7 @@ mod tests {
     fn missing_stereotype_is_flagged() {
         let store = store_from(&format!("{PREFIXES}gmeow:Bare a owl:Class .\n"));
         let problems = exactly_one_stereotype(&store, &cfg());
-        assert!(problems
-            .iter()
-            .any(|p| p.contains("carries no gUFO meta-class")));
+        assert!(problems.iter().any(|p| p.contains("carries no stereotype")));
     }
 
     #[test]
@@ -895,7 +925,7 @@ mod tests {
         let problems = exactly_one_stereotype(&store, &cfg());
         assert!(problems
             .iter()
-            .any(|p| p.contains("conflicting gUFO meta-classes")));
+            .any(|p| p.contains("conflicting stereotypes")));
     }
 
     #[test]
@@ -1016,5 +1046,66 @@ mod tests {
             "{PREFIXES}gmeow:Animal a owl:Class , gufo:Kind .\n"
         ));
         assert!(reasoning_invariants(&store, &cfg()).is_empty());
+    }
+
+    // ── logic: stereotype acceptance (#694 owl/gUFO → logic: migration) ────────
+
+    #[test]
+    fn logic_kind_satisfies_stereotype_requirement() {
+        // The canonical logic: form is accepted exactly as gufo: was — no
+        // "carries no gUFO meta-class" for a class stereotyped a logic:Kind.
+        let store = store_from(&format!(
+            "{PREFIXES}gmeow:Animal a owl:Class , logic:Kind .\n"
+        ));
+        assert!(exactly_one_stereotype(&store, &cfg()).is_empty());
+    }
+
+    #[test]
+    fn logic_perdurant_rename_is_accepted() {
+        // gufo:EventType / gufo:SituationType down-project to logic:Event /
+        // logic:Situation; both are valid perdurant stereotypes.
+        let store = store_from(&format!(
+            "{PREFIXES}\
+             gmeow:Wedding a owl:Class , logic:Event .\n\
+             gmeow:Marriage a owl:Class , logic:Situation .\n"
+        ));
+        assert!(exactly_one_stereotype(&store, &cfg()).is_empty());
+    }
+
+    #[test]
+    fn logic_sortal_under_logic_kind_passes_mixiden() {
+        // A logic:SubKind that traces to exactly one logic:Kind is well-formed.
+        let store = store_from(&format!(
+            "{PREFIXES}\
+             gmeow:Animal a owl:Class , logic:Kind .\n\
+             gmeow:Dog a owl:Class , logic:SubKind ; rdfs:subClassOf gmeow:Animal .\n"
+        ));
+        assert!(identity_overlap(&store, &cfg()).is_empty());
+    }
+
+    #[test]
+    fn logic_relator_is_mediation_checked() {
+        // An under-mediated logic:Relator is flagged exactly like a gufo:Relator.
+        let store = store_from(&format!(
+            "{PREFIXES}\
+             gmeow:LonelyBond a owl:Class , logic:Kind ; rdfs:subClassOf logic:Relator .\n\
+             gmeow:bondParty a owl:ObjectProperty , owl:FunctionalProperty ;\n\
+               rdfs:domain gmeow:LonelyBond ; rdfs:range gmeow:Person .\n"
+        ));
+        assert!(relator_mediation(&store, &cfg())
+            .iter()
+            .any(|p| p.contains("RelComp") && p.contains("gmeow:LonelyBond")));
+    }
+
+    #[test]
+    fn mixed_namespace_double_stereotype_is_flagged() {
+        // A class mid-migration carrying BOTH gufo:Kind and logic:Kind is two
+        // stereotypes — the cardinality discipline still flags it.
+        let store = store_from(&format!(
+            "{PREFIXES}gmeow:Half a owl:Class , gufo:Kind , logic:Kind .\n"
+        ));
+        assert!(exactly_one_stereotype(&store, &cfg())
+            .iter()
+            .any(|p| p.contains("conflicting stereotypes")));
     }
 }
