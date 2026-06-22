@@ -584,7 +584,12 @@ class Dataset(Graph):
     def quads(
         self, pattern: tuple[object, object, object, object] | None = None
     ) -> Iterator[tuple[Identifier, Identifier, Identifier, Identifier | None]]:
-        """Yield ``(s, p, o, graph_name)`` quads (``graph_name`` ``None`` = default)."""
+        """Yield ``(s, p, o, graph_name)`` quads matching ``pattern``.
+
+        Each ``pattern`` slot is a wildcard when ``None`` (RDFLib quads() semantics);
+        ``graph_name`` is ``None`` for the default graph.
+        """
+        ps, pp, po, pg = pattern if pattern is not None else (None, None, None, None)
         for quad in self._store:
             graph_name = quad.graph_name
             gname = (
@@ -592,12 +597,18 @@ class Dataset(Graph):
                 if isinstance(graph_name, gmeow_rdf.DefaultGraph)
                 else from_native(graph_name)
             )
-            yield (
-                _require(from_native(quad.subject)),
-                _require(from_native(quad.predicate)),
-                _require(from_native(quad.object)),
-                gname,
-            )
+            s = _require(from_native(quad.subject))
+            p = _require(from_native(quad.predicate))
+            o = _require(from_native(quad.object))
+            if ps is not None and s != ps:
+                continue
+            if pp is not None and p != pp:
+                continue
+            if po is not None and o != po:
+                continue
+            if pg is not None and gname != pg:
+                continue
+            yield (s, p, o, gname)
 
     def parse(
         self,
