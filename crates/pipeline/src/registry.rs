@@ -69,9 +69,12 @@ impl StageRegistry {
 
 /// Build the default registry of production stages.
 ///
-/// P1: empty — the executable stages register here in P3–P5. Kept as the single
-/// construction entrypoint so the loader and the PyO3 `run_pipeline` (P6) share
-/// one stage inventory.
+/// Kept as the single construction entrypoint so the loader and the PyO3
+/// `run_pipeline` (P6) share one stage inventory. Delegates to
+/// [`crate::stages::register_default`], which registers each production stage as
+/// its parcel lands (P3 onward).
 pub fn default_registry() -> StageRegistry {
-    StageRegistry::new()
+    let mut registry = StageRegistry::new();
+    crate::stages::register_default(&mut registry);
+    registry
 }

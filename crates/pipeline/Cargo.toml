@@ -40,6 +40,9 @@ petgraph = { version = "0.8", default-features = false }
 # concurrently; only Reason stages serialize under the process-wide ENGINE_LOCK.
 rayon = "1"
 sha2 = "0.10"
+# SHA-1 only for the content-addressed statement reifier mint (mirrors the
+# Python `mint_reifier`); never for security.
+sha1 = "0.10"
 serde = { version = "1", features = ["derive"] }
 # Stage products are serialized to bytes for the content-addressed cache.
 serde_json = "1"

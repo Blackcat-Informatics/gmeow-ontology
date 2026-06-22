@@ -15,6 +15,7 @@ use std::collections::BTreeMap;
 use std::path::Path;
 
 use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256};
 
 use crate::error::PipelineError;
 
@@ -94,26 +95,67 @@ impl StageKind {
     }
 }
 
-/// The product of one stage: its id plus the hex content digest of the value it
-/// produced. The digest is the cache key contribution downstream stages fold in
-/// (Merkle composition, #861 P2); richer dataset / bundle handles are attached
-/// to this struct as later parcels wire the in-memory dataflow.
+/// The product of one stage: its id, the hex content digest of the value it
+/// produced (the cache key contribution downstream stages fold in — Merkle
+/// composition, #861 P2), and the named artifacts it emitted (logical path →
+/// bytes). Transform/export stages carry their compiled outputs here; the
+/// `gts_compose` / `gts_sink` stages fold every upstream artifact into the one
+/// bundle (#861 P3/P4).
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct StageProduct {
     /// The id of the stage that produced this.
     pub stage_id: String,
     /// The hex SHA-256 digest of the produced value (content-addressed).
     pub digest: String,
+    /// The named artifacts this stage emitted, by logical path (sorted).
+    #[serde(default)]
+    pub artifacts: std::collections::BTreeMap<String, Vec<u8>>,
 }
 
 impl StageProduct {
-    /// Construct a product for `stage_id` with the given hex digest.
+    /// Construct an artifact-free product with an explicit digest (abstract
+    /// stages / tests). Real transform stages use [`Self::from_artifacts`].
     pub fn new(stage_id: impl Into<String>, digest: impl Into<String>) -> Self {
         Self {
             stage_id: stage_id.into(),
             digest: digest.into(),
+            artifacts: BTreeMap::new(),
         }
     }
+
+    /// Construct a product from emitted artifacts; the digest is derived from the
+    /// sorted `(logical_path, content-digest)` pairs (order-independent).
+    pub fn from_artifacts(
+        stage_id: impl Into<String>,
+        artifacts: BTreeMap<String, Vec<u8>>,
+    ) -> Self {
+        let mut hasher = Sha256::new();
+        for (path, bytes) in &artifacts {
+            hasher.update(path.as_bytes());
+            hasher.update(b"\x1f");
+            hasher.update(Sha256::digest(bytes));
+            hasher.update(b"\x1e");
+        }
+        let digest = hex_lower(&hasher.finalize());
+        Self {
+            stage_id: stage_id.into(),
+            digest,
+            artifacts,
+        }
+    }
+
+    /// The bytes of one emitted artifact by logical path.
+    pub fn artifact(&self, logical_path: &str) -> Option<&[u8]> {
+        self.artifacts.get(logical_path).map(Vec::as_slice)
+    }
+}
+
+fn hex_lower(bytes: &[u8]) -> String {
+    let mut s = String::with_capacity(bytes.len() * 2);
+    for b in bytes {
+        s.push_str(&format!("{b:02x}"));
+    }
+    s
 }
 
 /// The input handed to a stage's `run`: the repo root and the products of every

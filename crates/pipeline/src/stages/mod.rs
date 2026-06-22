@@ -13,3 +13,16 @@
 //!   * P5 — `docs_render` over `crates/docs`.
 //!
 //! P1 ships no concrete stages; this module is the home they register from.
+
+use std::sync::Arc;
+
+use crate::registry::StageRegistry;
+
+pub mod statements;
+
+/// Register every production stage into `registry` under its `gmeow:stageImpl`
+/// key. The single inventory the loader and `run_pipeline` (P6) share. Stages
+/// land here as P3–P5 implement them.
+pub fn register_default(registry: &mut StageRegistry) {
+    registry.register("statements", Arc::new(statements::StatementsStage));
+}
