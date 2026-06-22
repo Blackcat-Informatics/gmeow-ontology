@@ -24,10 +24,12 @@ from rdflib import RDF, XSD, Graph, Literal, URIRef
 from gmeow_tools.config import (
     GTS_GRAPH_IMPORTS,
     GTS_GRAPH_METADATA,
+    GTS_GRAPH_SLICE_ANALYSIS,
     GTS_GRAPH_VERIFY,
     GTS_SNAPSHOT_FILE,
     MAPPINGS_DIR,
     NAMESPACE,
+    ONTOLOGY_IRI,
     PROJECT_ROOT,
     SLICES_DIR,
     STATEMENT_RDF12_FILE,
@@ -437,6 +439,70 @@ def build_verify_attestation_graph(query_names: list[str], report) -> Graph:  # 
     return graph
 
 
+def _ontology_version(authored_graph: Graph) -> str:
+    """The authored ontology version (``owl:versionInfo``), for toolchain stamping.
+
+    Read from the authored base graph so the analysis-graph toolchain stamp is a
+    pure, deterministic function of the committed sources (the drift gate forbids
+    any runtime-varying input). A missing version is a hard failure, never a
+    silent default.
+    """
+    from rdflib import OWL
+
+    onto = URIRef(ONTOLOGY_IRI)
+    for value in authored_graph.objects(onto, OWL.versionInfo):
+        return str(value)
+    msg = f"authored ontology {ONTOLOGY_IRI} has no owl:versionInfo"
+    raise ValueError(msg)
+
+
+def build_slice_analysis_graph(authored_graph: Graph) -> Graph:
+    """Build the computed ``gmeow:graph/slice-analysis`` named graph (#820 S7, G5).
+
+    Two-pass attestation: the native ownership analyzer runs over the AUTHORED
+    slice catalog (``slices/`` only — never the generated bundle), and its
+    evidence-bearing dependency edges are serialized by the native emitter into a
+    separate named graph. ``authored_graph`` is the authored base graph, serialized
+    to N-Triples to feed the emitter's self-attestation guard: the emitter
+    HARD-FAILS if that text contains the analysis-graph IRI (the analysis graph
+    must never be consumed as its own input). The analysis graph is therefore
+    always a SEPARATE named graph, never folded into the default authored graph.
+
+    The toolchain stamp is deterministic: ``compiler_version`` is the authored
+    ``owl:versionInfo`` and ``reasoning_profile`` is the producer's active bundle
+    profile id (``"dist"`` — the profile :func:`compile_gts` compiles with), so
+    the snapshot stays byte-reproducible for the drift gate.
+
+    Returns:
+        The slice-analysis named graph (the caller names it
+        :data:`~gmeow_tools.config.GTS_GRAPH_SLICE_ANALYSIS`).
+
+    Raises:
+        ValueError: on any native emission failure, notably the self-attestation
+            guard violation — never a silent empty graph.
+    """
+    import gmeow_slice
+
+    # Discover AUTHORED slices only (slices/), never the generated bundle — the
+    # analysis output must not feed back into the catalog/ownership computation.
+    catalog = gmeow_slice.SliceCatalog.discover(str(SLICES_DIR))
+    analyzer = gmeow_slice.OwnershipAnalyzer(catalog)
+
+    # The authored base graph as text for the emitter's self-attestation guard.
+    # N-Triples is deterministic and IRI-explicit (the guard substring-matches the
+    # analysis-graph IRI, which authored sources never contain).
+    authored_input_text = authored_graph.serialize(format="nt")
+
+    turtle_body = analyzer.analysis_graph_turtle(
+        authored_input_text,
+        _ontology_version(authored_graph),
+        "dist",
+    )
+    graph = Graph()
+    graph.parse(data=turtle_body, format="turtle")
+    return graph
+
+
 def build_snapshot_bytes(
     *,
     signer: Signer | None = None,
@@ -540,7 +606,21 @@ def build_snapshot_bytes(
     report = gmeow_logic.verify_native(pass1_bytes, pairs)
     attestation = build_verify_attestation_graph(query_names, report)
 
-    return _compile([imports, metadata, (attestation, GTS_GRAPH_VERIFY, "verify")])
+    # Computed slice-analysis named graph (#820 S7, gap G5): the native ownership
+    # analyzer's evidence-bearing dependency graph, emitted by the native S7
+    # emitter as a SEPARATE named graph. The analyzer reads AUTHORED slices only;
+    # the authored base graph (multilingual_graph) is serialized as the emitter's
+    # self-attestation guard input (it must not contain the analysis-graph IRI).
+    slice_analysis = build_slice_analysis_graph(multilingual_graph)
+
+    return _compile(
+        [
+            imports,
+            metadata,
+            (attestation, GTS_GRAPH_VERIFY, "verify"),
+            (slice_analysis, GTS_GRAPH_SLICE_ANALYSIS, "slice-analysis"),
+        ]
+    )
 
 
 def compile_full_snapshot(

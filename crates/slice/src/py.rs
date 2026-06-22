@@ -26,16 +26,19 @@
 //!   plain error strings, the same diagnostics the retired lint produced (but
 //!   physical-origin based, not directory-name derived).
 
+use std::collections::HashMap;
 use std::path::Path;
 
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 
+use crate::analysis::emit_analysis_graph;
 use crate::artifact::{ArtifactRecord, ArtifactRole};
+use crate::cache::ToolchainContext;
 use crate::catalog::{ManifestView, SliceCatalog, SliceRecord, SliceTier};
 use crate::ownership::{
     DependencyEdge, OwnershipAnalyzer, OwnershipDiagnostic, OwnershipReport, OwnershipStatus,
-    ReconciliationStatus,
+    ReconciliationStatus, SliceIri,
 };
 
 /// The stable lowercase token a [`ReconciliationStatus`] is exposed as.
@@ -402,21 +405,59 @@ impl PyOwnershipReport {
 
 // ── OwnershipAnalyzer ──────────────────────────────────────────────────────────
 
+/// Map a [`SliceTier`] to the numeric tier the analysis-graph emitter expects:
+/// `0` = core, `1` = extension, `2` = domain / unknown (RFC §10 / Principle 16).
+/// Slices absent from the tier map (no `gmeow:sliceTier` in the manifest) are
+/// treated as `2` (unknown) — they never trip the core→ext / ext→ext forbidden
+/// edge rule, matching the emitter's documented contract.
+fn tier_priority(tier: Option<&SliceTier>) -> u8 {
+    match tier {
+        Some(SliceTier::Core) => 0,
+        Some(SliceTier::Extension) => 1,
+        Some(SliceTier::Domain) | Some(SliceTier::Unknown(_)) | None => 2,
+    }
+}
+
 /// The native ownership + dependency analyzer over a [`PySliceCatalog`].
 #[pyclass(name = "OwnershipAnalyzer", module = "gmeow_slice")]
 pub struct PyOwnershipAnalyzer {
     report: OwnershipReport,
+    /// Per-slice numeric tier, resolved once from the catalog manifests, so the
+    /// analysis-graph emitter's `tier_of` closure is a pure lookup (the emitter
+    /// module stays PyO3-free; tier resolution happens here).
+    tier_of: HashMap<SliceIri, u8>,
+    /// Every authored artifact raw digest in the catalog (drives the analysis
+    /// graph's bundle content-ID). Sorted for stable iteration.
+    raw_digests: Vec<String>,
 }
 
 #[pymethods]
 impl PyOwnershipAnalyzer {
     /// Build the analyzer for a catalog and immediately compute the report
     /// (the analysis borrows the catalog, so it is run eagerly at construction
-    /// and the owned report is retained).
+    /// and the owned report is retained). The per-slice tier map and the set of
+    /// all authored artifact raw digests are captured here too, so the
+    /// PyO3-free analysis-graph emitter can be driven entirely from owned data.
     #[new]
     fn new(catalog: &PySliceCatalog) -> PyOwnershipAnalyzer {
         let report = OwnershipAnalyzer::new(&catalog.inner).analyze();
-        PyOwnershipAnalyzer { report }
+        let mut tier_of: HashMap<SliceIri, u8> = HashMap::new();
+        let mut raw_digests: Vec<String> = Vec::new();
+        for record in catalog.inner.records() {
+            tier_of.insert(
+                record.manifest.slice_iri.clone(),
+                tier_priority(record.manifest.tier.as_ref()),
+            );
+            for artifact in &record.artifacts {
+                raw_digests.push(artifact.raw_digest.clone());
+            }
+        }
+        raw_digests.sort_unstable();
+        PyOwnershipAnalyzer {
+            report,
+            tier_of,
+            raw_digests,
+        }
     }
 
     /// Return the computed [`PyOwnershipReport`].
@@ -424,6 +465,63 @@ impl PyOwnershipAnalyzer {
         PyOwnershipReport {
             inner: self.report.clone(),
         }
+    }
+
+    /// Emit the computed `gmeow:graph/slice-analysis` named graph as a Turtle
+    /// body string (#820 S7, gap G5).
+    ///
+    /// This is the production consumer of [`crate::analysis::emit_analysis_graph`]:
+    /// it builds the `tier_of` / `term_count_of` closures from the analyzer's own
+    /// owned state (the catalog tier map captured at construction, and the
+    /// validated ownership table from the computed report), passes every authored
+    /// artifact raw digest as the bundle-content-ID inputs, and stamps the
+    /// supplied toolchain provenance.
+    ///
+    /// `authored_input_text` is the serialized authored base graph; the emitter's
+    /// self-attestation guard hard-fails if it contains the analysis graph IRI
+    /// (the analysis graph must never be consumed as its own input).
+    ///
+    /// # Errors
+    ///
+    /// Raises `ValueError` on any [`crate::analysis::AnalysisError`] (notably the
+    /// self-attestation guard violation) — never returns an empty string.
+    fn analysis_graph_turtle(
+        &self,
+        authored_input_text: &str,
+        compiler_version: &str,
+        reasoning_profile: &str,
+    ) -> PyResult<String> {
+        let toolchain = ToolchainContext::new(compiler_version, reasoning_profile);
+        let digests: Vec<&str> = self.raw_digests.iter().map(String::as_str).collect();
+
+        // `term_count_of`: the number of VALIDATED vocabulary terms owned by the
+        // slice (the authoritative term-coverage count — a conflicted / mismatched
+        // / unowned term is not a clean owned term).
+        let term_count_of = |slice: &SliceIri| -> usize {
+            self.report
+                .ownership
+                .values()
+                .filter(|o| {
+                    matches!(o.status, OwnershipStatus::Validated) && &o.declared_owner == slice
+                })
+                .count()
+        };
+
+        // `tier_of`: pure lookup into the captured manifest tier map. Slices not
+        // in the map (none, in practice — every edge endpoint is a discovered
+        // slice) default to 2 (unknown), which is never forbidden.
+        let tier_of = |slice: &SliceIri| -> u8 { self.tier_of.get(slice).copied().unwrap_or(2) };
+
+        let graph = emit_analysis_graph(
+            &self.report.edges,
+            authored_input_text,
+            &digests,
+            &toolchain,
+            tier_of,
+            term_count_of,
+        )
+        .map_err(|e| PyValueError::new_err(format!("slice-analysis graph emission failed: {e}")))?;
+        Ok(graph.turtle_body)
     }
 }
 

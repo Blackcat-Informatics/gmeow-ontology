@@ -72,3 +72,9 @@ class OwnershipReport:
 class OwnershipAnalyzer:
     def __init__(self, catalog: SliceCatalog) -> None: ...
     def analyze(self) -> OwnershipReport: ...
+    def analysis_graph_turtle(
+        self,
+        authored_input_text: str,
+        compiler_version: str,
+        reasoning_profile: str,
+    ) -> str: ...

@@ -246,6 +246,12 @@ GTS_GRAPH_ALIGNMENTS = NAMESPACE + "graph/alignments"
 GTS_GRAPH_IMPORTS = NAMESPACE + "graph/imports"
 GTS_GRAPH_METADATA = NAMESPACE + "graph/metadata"
 GTS_GRAPH_VERIFY = NAMESPACE + "graph/verify"
+#: Computed slice-analysis named graph (#820 S7): the evidence-bearing
+#: cross-slice dependency graph emitted by the native ownership analyzer. Never
+#: authored; the analyzer's self-attestation guard hard-fails if this IRI ever
+#: appears in its own authored input. Must equal the Rust ``ANALYSIS_GRAPH_IRI``
+#: (``crates/slice/src/analysis.rs``).
+GTS_GRAPH_SLICE_ANALYSIS = NAMESPACE + "graph/slice-analysis"
 
 # IRI-addressable ontology profiles (#330): the root IRI is the CORE profile
 # (generated imports of every tierCore slice); the full aggregation and any
