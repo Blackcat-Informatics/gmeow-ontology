@@ -460,10 +460,10 @@ impl DocsModel {
                 }
                 // A module that fails to parse is a hard fault — the same lenient
                 // parser the slice catalog already validated it with is used here,
-                // so this should never fail, but we surface it rather than hide it.
-                let Ok(store) = parse_turtle_lenient(&artifact.content) else {
-                    continue;
-                };
+                // so this should never fail; surface it loudly with full context.
+                let store = parse_turtle_lenient(&artifact.content).unwrap_or_else(|e| {
+                    panic!("module.ttl for slice {owner} failed to parse: {e}")
+                });
                 terms.extend(extract_terms(&store, owner));
             }
         }
@@ -598,7 +598,7 @@ impl DocsModel {
 
 /// Parse Turtle bytes into an oxigraph store using the SAME lenient parser the
 /// slice catalog uses (accepts `@x-gmeow-*` language tags).
-fn parse_turtle_lenient(bytes: &[u8]) -> Result<Store, SliceError> {
+pub(crate) fn parse_turtle_lenient(bytes: &[u8]) -> Result<Store, SliceError> {
     let store =
         Store::new().map_err(|e| SliceError::Parse(format!("store creation failed: {e}")))?;
     for quad in RdfParser::from_format(RdfFormat::Turtle)

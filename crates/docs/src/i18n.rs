@@ -370,9 +370,8 @@ pub fn available_languages(translations: &Translations) -> Vec<String> {
 /// Read the `gmeow:bcp47Tag` ↔ `gmeow:languageTag` pairs from the language
 /// slice's module so a BCP-47 code maps to its internal `x-gmeow-*` tag.
 fn internal_tag_map(catalog: &SliceCatalog) -> BTreeMap<String, String> {
-    use oxigraph::io::{RdfFormat, RdfParser};
+    use crate::model::parse_turtle_lenient;
     use oxigraph::model::{GraphNameRef, NamedOrBlankNode, Term};
-    use oxigraph::store::Store;
 
     const BCP47: &str = "https://blackcatinformatics.ca/gmeow/bcp47Tag";
     const LANG_TAG: &str = "https://blackcatinformatics.ca/gmeow/languageTag";
@@ -380,34 +379,14 @@ fn internal_tag_map(catalog: &SliceCatalog) -> BTreeMap<String, String> {
     let mut out: BTreeMap<String, String> = BTreeMap::new();
 
     for record in catalog.records() {
+        let owner = &record.manifest.slice_iri;
         for artifact in &record.artifacts {
             if artifact.role != ArtifactRole::Module {
                 continue;
             }
-            let Ok(store) = Store::new() else {
-                continue;
-            };
-            let mut ok = true;
-            for quad in RdfParser::from_format(RdfFormat::Turtle)
-                .lenient()
-                .for_reader(artifact.content.as_slice())
-            {
-                match quad {
-                    Ok(q) => {
-                        if store.insert(&q).is_err() {
-                            ok = false;
-                            break;
-                        }
-                    }
-                    Err(_) => {
-                        ok = false;
-                        break;
-                    }
-                }
-            }
-            if !ok {
-                continue;
-            }
+            // A module that fails to parse is a hard fault; surface it loudly.
+            let store = parse_turtle_lenient(&artifact.content)
+                .unwrap_or_else(|e| panic!("module.ttl for slice {owner} failed to parse: {e}"));
 
             // For each subject with both a bcp47Tag and a languageTag, map the
             // (lowercased) bcp47 code to the internal tag.
