@@ -24,6 +24,7 @@ pub mod docs_render;
 pub mod frame_shapes;
 pub mod gts_compose;
 pub mod gts_sink;
+pub mod lpg;
 pub mod mappings;
 pub mod matrix;
 pub mod profiles;
@@ -47,4 +48,5 @@ pub fn register_default(registry: &mut StageRegistry) {
     registry.register("frame_shapes", Arc::new(frame_shapes::FrameShapesStage));
     registry.register("matrix", Arc::new(matrix::MatrixStage));
     registry.register("apache", Arc::new(apache::ApacheStage));
+    registry.register("lpg", Arc::new(lpg::LpgStage));
 }
