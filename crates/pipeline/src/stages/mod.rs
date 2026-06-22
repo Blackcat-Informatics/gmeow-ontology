@@ -19,6 +19,7 @@ use std::sync::Arc;
 use crate::registry::StageRegistry;
 
 pub mod gts_compose;
+pub mod mappings;
 pub mod reason;
 pub mod source_load;
 pub mod statements;
@@ -31,4 +32,5 @@ pub fn register_default(registry: &mut StageRegistry) {
     registry.register("statements", Arc::new(statements::StatementsStage));
     registry.register("gts_compose", Arc::new(gts_compose::GtsComposeStage::new()));
     registry.register("reason", Arc::new(reason::ReasonStage::new()));
+    registry.register("mappings", Arc::new(mappings::MappingsStage));
 }
