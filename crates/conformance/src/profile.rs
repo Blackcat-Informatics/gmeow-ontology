@@ -63,6 +63,12 @@ pub struct Profile {
     pub counterfactual_profile: Option<String>,
     /// Whether certification is required/compared (`"certify": true`).
     pub certify: bool,
+    /// Whether the case asserts the contract is an UNSUPPORTED facet combination
+    /// (`"expect_unsupported": true`, #767 Gap 2). When set, the runner requires
+    /// the compile to emit an `UNSUPPORTED_CONTRACT` `Severity::Error` diagnostic
+    /// and short-circuits BEFORE evaluating/certifying/materializing — the
+    /// "unsupported is a hard stop" guarantee, pinned at the corpus level.
+    pub expect_unsupported: bool,
 }
 
 impl Profile {
@@ -126,6 +132,11 @@ pub fn parse_profile(case_id: &str, value: &Value) -> Result<Profile, String> {
 
     let certify = obj.get("certify").and_then(Value::as_bool).unwrap_or(false);
 
+    // `expect_unsupported` opts in only on a strict boolean `true` (parallel to
+    // `foundation_lowering` — never auto-gated, never silently coerced from a
+    // truthy non-bool).
+    let expect_unsupported = obj.get("expect_unsupported").and_then(Value::as_bool) == Some(true);
+
     Ok(Profile {
         semantic_profile,
         budget_params,
@@ -133,6 +144,7 @@ pub fn parse_profile(case_id: &str, value: &Value) -> Result<Profile, String> {
         anti_rigidity_policy,
         counterfactual_profile,
         certify,
+        expect_unsupported,
     })
 }
 
@@ -258,7 +270,33 @@ mod tests {
         assert_eq!(p.anti_rigidity_policy, DEFAULT_ANTI_RIGIDITY_POLICY);
         assert!(p.counterfactual_profile.is_none());
         assert!(!p.certify);
+        assert!(!p.expect_unsupported);
         assert_eq!(p.query_profile(), DEFAULT_SEMANTIC_PROFILE);
+    }
+
+    #[test]
+    fn expect_unsupported_round_trips() {
+        // #767 Gap 2: an `expect_unsupported: true` case opts into the unsupported
+        // short-circuit; a strict bool `true` is required (parallel to
+        // foundation_lowering).
+        assert!(
+            parse_profile("c", &json!({ "expect_unsupported": true }))
+                .unwrap()
+                .expect_unsupported
+        );
+        // Absent ⇒ false.
+        assert!(!parse_profile("c", &json!({})).unwrap().expect_unsupported);
+        // A non-true value (string, 1) does NOT opt in.
+        assert!(
+            !parse_profile("c", &json!({ "expect_unsupported": "true" }))
+                .unwrap()
+                .expect_unsupported
+        );
+        assert!(
+            !parse_profile("c", &json!({ "expect_unsupported": 1 }))
+                .unwrap()
+                .expect_unsupported
+        );
     }
 
     #[test]

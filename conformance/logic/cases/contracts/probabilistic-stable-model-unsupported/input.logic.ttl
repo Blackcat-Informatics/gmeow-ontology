@@ -1,0 +1,29 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+# Conformance case: contracts/probabilistic-stable-model-unsupported
+# AC (#767 Gap 2): a ReasoningContract that pairs a probabilistic uncertainty
+# measure (logic:ProbabilisticMeasure) with stable-model semantics
+# (logic:StableModelSemantics) is a FORBIDDEN facet combination
+# (RuleNoProbabilisticStableModel): a calibrated probability mass is not
+# well-defined over the multiple incomparable answer sets stable-model semantics
+# admits. The compile MUST emit an UNSUPPORTED_CONTRACT Severity::Error and the
+# harness MUST short-circuit before evaluating — the "unsupported is a hard stop"
+# guarantee, pinned at the corpus level (profile.json declares
+# "expect_unsupported": true).
+#
+# A logic:ProbabilityModel is declared so the ONLY unsupported reason is the
+# probabilistic/stable-model conflict (not the graph-dependent
+# RuleProbabilisticRequiresModel), keeping the case precisely about the intended
+# forbidden combination.
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://example.org/contracts/probabilistic-stable-model/> .
+
+ex:UnsupportedContract a logic:ReasoningContract ;
+    logic:modelSemantics logic:StableModelSemantics ;
+    logic:uncertaintyMeasure logic:ProbabilisticMeasure .
+
+# Declare a probability model so the lone unsupported reason is the forbidden
+# probabilistic + stable-model pairing.
+ex:probModel a logic:ProbabilityModel .

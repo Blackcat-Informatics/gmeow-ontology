@@ -1,0 +1,20 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+#
+# Conformance case: contracts/paraconsistent-counterfactual-revision-unsupported
+# AC (#767 Gap 2): a ReasoningContract that pairs a paraconsistent
+# (gap/glut-admitting) admissible valuation (logic:AdmitAllFour) with
+# counterfactual entrenchment revision (logic:EntrenchmentRevision) is a
+# FORBIDDEN facet combination (RuleNoParaconsistentCounterfactualRevision): the
+# closest-world selection that generates the counterfactual states is not defined
+# over gappy or glutty valuations. The compile MUST emit an UNSUPPORTED_CONTRACT
+# Severity::Error and the harness MUST short-circuit before evaluating — the
+# "unsupported is a hard stop" guarantee, pinned at the corpus level (profile.json
+# declares "expect_unsupported": true).
+
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://example.org/contracts/paraconsistent-counterfactual-revision/> .
+
+ex:UnsupportedContract a logic:ReasoningContract ;
+    logic:admissibleValuation logic:AdmitAllFour ;
+    logic:revision logic:EntrenchmentRevision .
