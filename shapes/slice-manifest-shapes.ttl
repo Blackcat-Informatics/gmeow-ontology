@@ -33,9 +33,15 @@ gmeow:SliceManifestShape
     sh:property [
         sh:path gmeow:sliceConsumer ;
         sh:minCount 1 ;
-        sh:datatype xsd:string ;
+        # PROSE (human-facing, localizable): a consumer description is a
+        # translatable sentence, so it MUST carry the @x-gmeow-english source
+        # tag (lang-tag discipline, #820 S0 manifest datatype contract). A plain
+        # xsd:string would forbid the very lang-tagged literals every committed
+        # manifest already uses.
+        sh:nodeKind sh:Literal ;
+        sh:languageIn ( "x-gmeow-english" ) ;
         sh:minLength 8 ;
-        sh:message "A slice names at least one consumer — who uses this, through which surface, in which product (Principle 15)."@x-gmeow-english ;
+        sh:message "A slice names at least one consumer — who uses this, through which surface, in which product (Principle 15); the literal carries @x-gmeow-english (lang-tag discipline)."@x-gmeow-english ;
     ] ;
     sh:property [
         sh:path gmeow:sliceDependsOn ;
@@ -44,13 +50,30 @@ gmeow:SliceManifestShape
     ] ;
     sh:property [
         sh:path dcterms:title ;
-        sh:minCount 1 ; sh:maxCount 1 ;
-        sh:message "A slice carries one dcterms:title (projected to its CITATION.cff)."@x-gmeow-english ;
+        sh:minCount 1 ;
+        # PROSE (human-facing, localizable): the title is a translatable label.
+        # sh:maxCount 1 is intentionally absent — the imminent whole-ontology
+        # Mandarin+French translation will add one literal per language tag.
+        # sh:uniqueLang true ensures at most one literal per language tag.
+        # The canonical @x-gmeow-english carrier is REQUIRED (qualified value
+        # shape below); additional translations are freely permitted.
+        sh:nodeKind sh:Literal ;
+        sh:uniqueLang true ;
+        sh:qualifiedValueShape [ sh:languageIn ( "x-gmeow-english" ) ] ;
+        sh:qualifiedMinCount 1 ;
+        sh:message "A slice carries at least the canonical @x-gmeow-english dcterms:title (projected to its CITATION.cff); translations may add further language-tagged literals, one per language tag."@x-gmeow-english ;
     ] ;
     sh:property [
         sh:path dcterms:creator ;
         sh:minCount 1 ;
-        sh:message "A slice names at least one creator (projected to its CITATION.cff — third-party slice authors get citability from the manifest)."@x-gmeow-english ;
+        # TOKEN / proper-name (NOT translatable prose): a creator is a legal-entity
+        # or personal proper name projected verbatim into CITATION.cff, so the #820
+        # S0 manifest datatype contract classes it with the programmatic tokens —
+        # a plain string, NEVER lang-tagged. (Every committed manifest already
+        # carries an untagged name; tagging a proper noun @x-gmeow-english would be
+        # a category error and would hard-fail this gate.)
+        sh:datatype xsd:string ;
+        sh:message "A slice names at least one creator as a plain proper-name literal (projected to its CITATION.cff — third-party slice authors get citability from the manifest)."@x-gmeow-english ;
     ] ;
     sh:property [
         sh:path gmeow:sliceProfile ;

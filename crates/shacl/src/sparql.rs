@@ -143,6 +143,7 @@ pub fn eval_sparql_constraint(
             source_box_roles: vec![],
             path_box_roles: vec![],
             result_box_roles: vec![],
+            attributions: vec![],
         });
     }
     Ok(out)

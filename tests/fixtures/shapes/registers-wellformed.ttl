@@ -43,7 +43,7 @@ ex:privateTrigger a gmeow:Condition ;
 ex:publicGuide a gmeow:StyleGuide ;
     rdfs:label "the public voice"@en ;
     gmeow:styleGuideFor ex:publicPersona , gmeow:registerPublic ;
-    gmeow:exemplifiedBy ex:voiceDoc .
+    gmeow:voiceExemplifiedBy ex:voiceDoc .
 
 ex:voiceDoc a gmeow:Document ;
     rdfs:label "vocal-mechanics excerpt"@en ;

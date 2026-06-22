@@ -21,11 +21,15 @@ use oxigraph::model::{Quad, Term};
 use oxigraph::store::Store;
 use serde::{Deserialize, Serialize};
 
+use gmeow_slice::catalog::SliceCatalog;
+use gmeow_slice::ownership::OwnershipAnalyzer;
+use gmeow_slice::{product_unit_key, Phase, ToolchainContext};
+
 use crate::cache::{CachedResult, ValidationCache};
 use crate::dsl;
 use crate::findings::finding_from_shacl;
 use crate::gufo::{self, GufoConfig};
-use crate::lint::{self, LintConfig, ModuleSpec};
+use crate::lint::{self, LintConfig};
 use crate::signature;
 use crate::store::{self, parse_file};
 
@@ -63,9 +67,6 @@ pub struct ValidateOptions {
     /// `(subject_display, object)` pairs allowed to use `owl:sameAs` with an
     /// external entity (mirrors `config._SAMEAS_ALLOWLIST`).
     pub sameas_allowlist: Vec<(String, String)>,
-    /// `(module_path, expected_slice_iri)` pairs for the slice-ownership lint
-    /// (mirrors the registry Python builds in `slice_ownership_lint`).
-    pub module_specs: Vec<(String, String)>,
     /// Path to the `slices/` directory. When provided, example coverage and
     /// per-example SHACL validation are run in Rust.
     pub slices_dir: Option<String>,
@@ -275,13 +276,6 @@ impl ValidationRun {
         errors.extend(result.errors);
         warnings.extend(result.warnings);
 
-        // Phase 5: slice-ownership lint.
-        let result = timed(&mut timings, "slice-ownership-lint", options, None, || {
-            check_slice_ownership(&options.module_specs, lint_config)
-        })?;
-        errors.extend(result.errors);
-        warnings.extend(result.warnings);
-
         // Phase 6: declared-term collection for Python's guide-anchor lint.
         let declared_terms = timed(&mut timings, "declared-terms", options, None, || {
             lint::declared_terms(&store, lint_config)
@@ -304,12 +298,29 @@ impl ValidationRun {
         let cache = options.project_root.as_ref().map(ValidationCache::new);
 
         // Phase 8: merged SHACL validation against the shared store.
+        //
+        // The whole-ontology merged-SHACL source key is the S6a semantic Merkle
+        // PRODUCT key over the slice composition (RFC #820 §12): path-independent
+        // (renaming a slice's group dir does not bust the key) and
+        // comment-insensitive (a comment-only module/manifest edit folds the same
+        // *semantic* digest). Three mutually exclusive sources, no silent
+        // degraded path (no-optionality, #579):
+        //   • gts_graph present  → segment_heads (already content-addressed).
+        //   • slices_dir present → semantic Merkle product key over the catalog.
+        //   • neither            → shapes-only key (the no-root case is preserved).
         let merged_shacl_key = if let Some(cache) = cache.as_ref() {
             let source_key = if let Some(graph) = &gts_graph {
                 let mut heads: Vec<&[u8]> =
                     graph.segment_heads.iter().map(|h| h.as_slice()).collect();
                 heads.sort();
                 ValidationCache::cache_key(&heads)
+            } else if let Some(slices_dir) = &options.slices_dir {
+                // Build the catalog + S4 dependency edges + toolchain context, then
+                // compute the merged-SHACL Merkle root over ALL slice IRIs (the
+                // merged-SHACL validates the whole composition). A catalog-build
+                // failure when slices_dir IS present is a HARD failure — never a
+                // silent fall-back to the byte-sensitive files key.
+                merged_shacl_merkle_root(slices_dir)?
             } else {
                 let source_paths_buf: Vec<PathBuf> =
                     source_paths.iter().map(PathBuf::from).collect();
@@ -565,6 +576,57 @@ where
     }
 }
 
+/// The toolchain context folded into the merged-SHACL Merkle key. The
+/// `compiler_version` carries the same crate-version triple as
+/// [`ValidationCache::toolchain_salt`] (so a toolchain bump invalidates the key
+/// through this *and* the salt), and the reasoning-profile slot is pinned to the
+/// merged-SHACL phase ("shacl") — the merged whole-ontology validation has no
+/// per-profile reasoning mode.
+fn merged_shacl_toolchain() -> ToolchainContext {
+    let compiler_version = format!(
+        "gmeow-validate={};gmeow-shacl={};gmeow-gts-wire={}",
+        env!("CARGO_PKG_VERSION"),
+        gmeow_shacl::VERSION,
+        gmeow_gts::wire::VERSION,
+    );
+    ToolchainContext::new(compiler_version, "shacl")
+}
+
+/// Compute the S6a semantic Merkle PRODUCT key for the whole-ontology
+/// merged-SHACL phase over the slices catalog discovered at `slices_dir`.
+///
+/// Seeds are ALL slice IRIs in the catalog (the merged-SHACL validates the whole
+/// composition); the product key folds each slice's *semantic* (canonical
+/// N-Triples) module/shapes/manifest digests, so it is path-independent and
+/// comment-insensitive. Hard-fails (no silent degraded path) if the catalog or
+/// edges cannot be built.
+pub fn merged_shacl_source_key(slices_dir: &str) -> Result<String, String> {
+    merged_shacl_merkle_root(slices_dir)
+}
+
+fn merged_shacl_merkle_root(slices_dir: &str) -> Result<String, String> {
+    let catalog = SliceCatalog::discover(Path::new(slices_dir))
+        .map_err(|e| format!("merged-SHACL Merkle key: slice catalog discovery failed: {e}"))?;
+    // S4 dependency edges (the same edges the ownership/dependency analyzer
+    // produces) drive the Merkle dependency composition.
+    let edges = OwnershipAnalyzer::new(&catalog)
+        .analyze()
+        .map_err(|e| format!("merged-SHACL Merkle key: ownership analysis failed: {e}"))?
+        .edges;
+    let toolchain = merged_shacl_toolchain();
+    // Seeds = every slice IRI; the product closes over deps but the union of all
+    // slices already covers the whole composition.
+    let seeds: Vec<String> = catalog
+        .records()
+        .iter()
+        .map(|r| r.manifest.slice_iri.clone())
+        .collect();
+    let product = gmeow_slice::product_unit(&catalog, &edges, &seeds);
+    let key = product_unit_key(Phase::Shacl, &catalog, &edges, &product, &toolchain)
+        .map_err(|e| format!("merged-SHACL Merkle key: product key computation failed: {e}"))?;
+    Ok(key.root)
+}
+
 /// Phase 1: report syntax errors from the already-parsed per-file results.
 ///
 /// The quad lists were produced by [`store::parse_all_files`] before the
@@ -619,29 +681,6 @@ fn check_sameas_ban_from_parsed(
         }
     }
     Ok(result)
-}
-
-/// Phase 5: build per-module stores and run the slice-ownership lint.
-fn check_slice_ownership(
-    module_specs: &[(String, String)],
-    lint_config: &LintConfig,
-) -> Result<PhaseResult, String> {
-    let mut modules: Vec<(ModuleSpec, Store)> = Vec::new();
-    for (module_path, expected_slice_iri) in module_specs {
-        let store = store::build_store(&[PathBuf::from(module_path)])?;
-        modules.push((
-            ModuleSpec {
-                module_path: module_path.clone(),
-                expected_slice_iri: expected_slice_iri.clone(),
-            },
-            store,
-        ));
-    }
-    let report = lint::slice_ownership_lint(&modules, lint_config);
-    Ok(PhaseResult {
-        errors: report.errors,
-        warnings: report.warnings,
-    })
 }
 
 /// Phase 9: every slice must ship at least one `examples/*.ttl` file.

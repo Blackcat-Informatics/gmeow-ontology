@@ -1,10 +1,10 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! PyO3-free engine for the structural, naming, and ownership lints (#579).
+//! PyO3-free engine for the structural and naming lints (#579).
 //!
-//! These three lints — ported byte-exact from `src/gmeow_tools/validate.py`'s
-//! `structural_lint`, `term_naming_lint`, and `slice_ownership_lint` — run over
+//! These two lints — ported byte-exact from `src/gmeow_tools/validate.py`'s
+//! `structural_lint` and `term_naming_lint` — run over
 //! an oxigraph [`Store`] built from the merged ontology sources. The Python
 //! repr-exact language-tag diagnostics (Check 1 / Check 2) are reproduced via
 //! [`py_str_repr`], which mirrors CPython's `str.__repr__` so the rdflib
@@ -701,54 +701,6 @@ pub fn term_naming_lint(store: &Store, cfg: &LintConfig) -> LintReport {
     report
 }
 
-/// One slice module to ownership-check: the module file's quads-bearing path
-/// label and its expected owning-slice IRI.
-#[derive(Debug, Clone)]
-pub struct ModuleSpec {
-    /// The display path of the module (`str(module)` in Python).
-    pub module_path: String,
-    /// The IRI the module's terms must declare as `rdfs:isDefinedBy`.
-    pub expected_slice_iri: String,
-}
-
-/// The slice-ownership lint (mirrors `slice_ownership_lint`). Each module is
-/// parsed alone; a GMEOW subject whose `rdfs:isDefinedBy` is not exactly the
-/// owning slice IRI is an error (#329).
-pub fn slice_ownership_lint(modules: &[(ModuleSpec, Store)], cfg: &LintConfig) -> LintReport {
-    let mut report = LintReport::default();
-    for (spec, store) in modules {
-        for quad in store
-            .quads_for_pattern(None, Some(rdfs::IS_DEFINED_BY), None, None)
-            .flatten()
-        {
-            let subject = match &quad.subject {
-                NamedOrBlankNode::NamedNode(n) => n.as_str().to_owned(),
-                NamedOrBlankNode::BlankNode(_) => continue,
-            };
-            if !is_gmeow_term(&subject, cfg) {
-                continue;
-            }
-            let obj_text = match &quad.object {
-                Term::NamedNode(n) => n.as_str().to_owned(),
-                Term::BlankNode(b) => format!("_:{}", b.as_str()),
-                Term::Literal(l) => l.value().to_owned(),
-                #[allow(unreachable_patterns)]
-                other => format!("{other}"),
-            };
-            if obj_text != spec.expected_slice_iri {
-                report.errors.push(format!(
-                    "{module}: {subject} rdfs:isDefinedBy {obj} — must equal the owning slice \
-                     IRI {slice_iri} (#329)",
-                    module = spec.module_path,
-                    obj = obj_text,
-                    slice_iri = spec.expected_slice_iri,
-                ));
-            }
-        }
-    }
-    report
-}
-
 /// The declared-term IRI set (`set(_collect_typed_terms(graph))`) — exposed for
 /// `guide_anchor_lint`'s anchor resolution (which keeps its markdown logic in
 /// Python).
@@ -980,33 +932,6 @@ mod tests {
                gmeow:namingNote \"value vocabulary\" .\n"
         ));
         let report = term_naming_lint(&store, &cfg());
-        assert!(report.errors.is_empty(), "errors: {:?}", report.errors);
-    }
-
-    #[test]
-    fn ownership_flags_foreign_owner() {
-        let module = store_from(&format!(
-            "{PREFIXES}gmeow:Term rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/other> .\n"
-        ));
-        let spec = ModuleSpec {
-            module_path: "slices/g/mine/module.ttl".to_owned(),
-            expected_slice_iri: "https://blackcatinformatics.ca/gmeow/slices/mine".to_owned(),
-        };
-        let report = slice_ownership_lint(&[(spec, module)], &cfg());
-        assert_eq!(report.errors.len(), 1);
-        assert!(report.errors[0].contains("must equal the owning slice IRI"));
-    }
-
-    #[test]
-    fn ownership_passes_matching_owner() {
-        let module = store_from(&format!(
-            "{PREFIXES}gmeow:Term rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/mine> .\n"
-        ));
-        let spec = ModuleSpec {
-            module_path: "slices/g/mine/module.ttl".to_owned(),
-            expected_slice_iri: "https://blackcatinformatics.ca/gmeow/slices/mine".to_owned(),
-        };
-        let report = slice_ownership_lint(&[(spec, module)], &cfg());
         assert!(report.errors.is_empty(), "errors: {:?}", report.errors);
     }
 

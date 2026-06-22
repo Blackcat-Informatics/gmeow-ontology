@@ -37,6 +37,7 @@
 //! MUST release the GIL **and** call this function from a non-async context
 //! or a `spawn_blocking` task.
 
+use gmeow_rdf::provenance::Attribution;
 use nemo::api::{load_program, load_string, reason, validate};
 use nemo::datavalues::AnyDataValue;
 use nemo::execution::tracing::trace::{ExecutionTraceTree, TraceTreeRuleApplication};
@@ -105,6 +106,10 @@ impl fmt::Display for ChaseRow {
 ///   `.rls` source, or `None` for EDB facts and unnamed rules.
 /// - `antecedent_rows`: The immediate antecedent facts (their display strings,
 ///   one `ChaseRow` per immediate premise) consumed by the firing rule.
+/// - `attributions`: Structured slice attributions (§9 / S5). Records which
+///   compilation units played which roles in this derivation. Empty for legacy
+///   or unfilled contexts; populated at the validation boundary when slice
+///   context is available.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ChaseProvenance {
     /// Whether this fact is an EDB (asserted input) fact.
@@ -113,6 +118,8 @@ pub struct ChaseProvenance {
     pub rule_name: Option<String>,
     /// Immediate antecedent facts (premises) that the rule consumed.
     pub antecedent_rows: Vec<ChaseRow>,
+    /// Structured slice attributions (§9 / S5).
+    pub attributions: Vec<Attribution>,
 }
 
 /// A single materialized row with its provenance metadata.
@@ -268,6 +275,7 @@ fn extract_provenance_from_tree(tree: &ExecutionTraceTree) -> Result<ChaseProven
                 is_edb: true,
                 rule_name: None,
                 antecedent_rows: vec![],
+                attributions: vec![],
             })
         }
         ExecutionTraceTree::Rule(rule_application, subtrees) => {
@@ -297,6 +305,7 @@ fn extract_provenance_from_tree(tree: &ExecutionTraceTree) -> Result<ChaseProven
                 is_edb: false,
                 rule_name,
                 antecedent_rows,
+                attributions: vec![],
             })
         }
     }
@@ -416,6 +425,7 @@ pub fn run_chase(rls: String) -> Result<Vec<ChaseRowWithProvenance>, String> {
                     is_edb: true,
                     rule_name: None,
                     antecedent_rows: vec![],
+                    attributions: vec![],
                 })
                 .collect();
 

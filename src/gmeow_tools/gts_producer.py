@@ -194,6 +194,7 @@ class _Builder:
         transform: list[str] | None = None,
         doc_blobs: list[tuple[bytes, str, str]] | None = None,
         report_blobs: list[tuple[bytes, str, str]] | None = None,
+        slice_artifacts: list[tuple[str, str, str, str, bytes]] | None = None,
         signer: Signer | None = None,
         public_key_armor: str | None = None,
         rsyncable_threshold: int = 65536,
@@ -205,6 +206,14 @@ class _Builder:
         so the bytes stay a pure function of the inputs. They are purely additive
         and never alter the snapshot frame, so the bundle's graph identity is
         unaffected by an embedded report.
+
+        ``slice_artifacts`` (#820 S3) are the per-slice ONTOLOGY artifacts
+        (module / shapes / docs / manifest) as
+        ``(slice_iri, slice_name, role, logical_path, content)`` rows. The native
+        side assembles them into an :class:`RdfBundle`, hard-fails ``validate()``,
+        and folds each as a content-addressed blob through the SAME channel
+        ``doc_blobs`` use (one embedding, no parallel channel). Large external DATA
+        blobs are NOT passed here — they stay by-reference.
 
         If ``signer`` and ``public_key_armor`` are supplied, a ``meta`` frame
         carrying the transport key is emitted first and signed along with every
@@ -239,6 +248,7 @@ class _Builder:
             transform=transform,
             doc_blobs=doc_blobs,
             report_blobs=report_blobs,
+            slice_artifacts=slice_artifacts,
             signer_secret=secret,
             signer_kid=kid,
             public_key_armor=armor,
@@ -304,6 +314,7 @@ def compile_gts(
     transform: list[str] | None = None,
     doc_blobs: list[tuple[bytes, str, str]] | None = None,
     report_blobs: list[tuple[bytes, str, str]] | None = None,
+    slice_artifacts: list[tuple[str, str, str, str, bytes]] | None = None,
     signer: Signer | None = None,
     public_key_armor: str | None = None,
     rsyncable_threshold: int = 65536,
@@ -359,6 +370,7 @@ def compile_gts(
         transform=transform,
         doc_blobs=doc_blobs,
         report_blobs=report_blobs,
+        slice_artifacts=slice_artifacts,
         signer=signer,
         public_key_armor=public_key_armor,
         rsyncable_threshold=rsyncable_threshold,

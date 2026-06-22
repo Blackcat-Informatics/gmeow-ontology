@@ -26,7 +26,7 @@ use std::collections::HashMap;
 use gmeow_gts::model::{Graph, Term, TermKind};
 
 use super::builder::RdfDatasetBuilder;
-use super::bundle::{RdfBundle, RdfEnvelope};
+use super::bundle::{GtsBundle, RdfEnvelope};
 use super::gts_resolve::MAX_GTS_TERM_NESTING_DEPTH;
 use super::term::{BlankScope, InternedTerm, TermId};
 use crate::{RdfDiagnostic, RdfLiteral, RdfLocation};
@@ -195,7 +195,7 @@ impl GraphInterner {
 }
 
 /// Consume a folded GTS [`Graph`] by value, MOVING owned term strings into the
-/// interner, and return the frozen [`RdfBundle`].
+/// interner, and return the frozen [`GtsBundle`].
 ///
 /// Because `reader::read()` folds all segments, per-segment blank-node scope is
 /// already lost; this importer records the `bnode-scope-flatten` intentional loss
@@ -204,7 +204,7 @@ impl GraphInterner {
 ///
 /// Malformed structure (dangling ids, non-IRI predicate/datatype, unbound or cyclic
 /// quoted-triple terms) hard-fails as `Err`.
-pub fn import_gts_graph(graph: Graph) -> Result<RdfBundle, RdfDiagnostic> {
+pub fn import_gts_graph(graph: Graph) -> Result<GtsBundle, RdfDiagnostic> {
     // Read the envelope/lookaside from the SAME graph fields `gts.rs` reads, BEFORE
     // moving term strings out (it touches only meta/segment/blob/etc., never the
     // term `value`/`lang` we move).
@@ -270,7 +270,7 @@ pub fn import_gts_graph(graph: Graph) -> Result<RdfBundle, RdfDiagnostic> {
     }
 
     let dataset = interner.builder.freeze()?;
-    Ok(RdfBundle::new(dataset, RdfEnvelope::new(lookaside)))
+    Ok(GtsBundle::new(dataset, RdfEnvelope::new(lookaside)))
 }
 
 #[cfg(test)]

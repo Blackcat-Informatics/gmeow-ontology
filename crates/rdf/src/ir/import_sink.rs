@@ -49,7 +49,7 @@ use gmeow_gts::model::{OpaqueNode, Quad, Signature, StreamableInfo, Suppression,
 use gmeow_gts::reader::StreamingSink;
 
 use super::builder::RdfDatasetBuilder;
-use super::bundle::{RdfBundle, RdfEnvelope};
+use super::bundle::{GtsBundle, RdfEnvelope};
 use super::term::{BlankScope, TermId};
 use crate::{
     RdfDiagnostic, RdfLiteral, RdfLocation, RdfLookaside, RdfMetadataValue, RdfOpaqueNodeRecord,
@@ -575,7 +575,7 @@ impl SinkImporter {
     }
 }
 
-/// The authoritative GTS ingestion path: folds GTS bytes into an [`RdfBundle`],
+/// The authoritative GTS ingestion path: folds GTS bytes into a [`GtsBundle`],
 /// preserving per-segment blank-node scope (C2.a).
 ///
 /// Drives [`gmeow_gts::reader::read_to_sink`] with `allow_segments = true` so a
@@ -585,7 +585,7 @@ impl SinkImporter {
 /// arrived before or after the term itself. Any reader diagnostic or genuinely
 /// dangling term reference is a HARD failure (`Err`); on success the interned terms
 /// are frozen via [`RdfDatasetBuilder::freeze`] and paired with the envelope.
-pub fn import_gts_events(bytes: &[u8]) -> Result<RdfBundle, RdfDiagnostic> {
+pub fn import_gts_events(bytes: &[u8]) -> Result<GtsBundle, RdfDiagnostic> {
     let mut importer = SinkImporter::new();
     let _ = gmeow_gts::reader::read_to_sink(bytes, true, None, &mut importer);
 
@@ -599,7 +599,7 @@ pub fn import_gts_events(bytes: &[u8]) -> Result<RdfBundle, RdfDiagnostic> {
 
     let lookaside = importer.lookaside;
     let dataset = importer.builder.freeze()?;
-    Ok(RdfBundle::new(dataset, RdfEnvelope::new(lookaside)))
+    Ok(GtsBundle::new(dataset, RdfEnvelope::new(lookaside)))
 }
 
 #[cfg(test)]

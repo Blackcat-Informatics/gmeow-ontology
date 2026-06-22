@@ -29,6 +29,7 @@ from gmeow_tools.config import (
     GTS_GRAPH_ALIGNMENTS,
     GTS_GRAPH_IMPORTS,
     GTS_GRAPH_METADATA,
+    GTS_GRAPH_SLICE_ANALYSIS,
     GTS_GRAPH_STATEMENTS,
     GTS_GRAPH_VERIFY,
     GTS_SNAPSHOT_FILE,
@@ -225,6 +226,7 @@ def test_snapshot_partitions_sources_into_named_graphs() -> None:
         GTS_GRAPH_IMPORTS,
         GTS_GRAPH_METADATA,
         GTS_GRAPH_VERIFY,
+        GTS_GRAPH_SLICE_ANALYSIS,
     }
 
     default_quads = sum(1 for q in g.quads if q[3] is None)
@@ -405,3 +407,35 @@ def test_snapshot_carries_verify_attestation() -> None:
     assert verify_quads, "expected a gmeow:graph/verify named graph in the bundle"
     subjects = {g.terms[q[0]].value for q in verify_quads}
     assert any(s is not None and "verify-attestation/" in s for s in subjects)
+
+
+def test_snapshot_carries_slice_analysis_graph() -> None:
+    """The bundle's gmeow:graph/slice-analysis is present and parses (#820 S7).
+
+    This is the end-to-end consumer of the native S7 emitter: it proves the
+    emitted Turtle (G1's fix) parses into a valid RDF named graph inside the
+    bundle, that the graph carries a SliceAnalysisGraph provenance node, and that
+    the analysis graph is a SEPARATE named graph (its IRI never leaks into the
+    authored default graph — the self-attestation guard contract).
+    """
+    g = read(GTS_SNAPSHOT_FILE.read_bytes())
+    assert g.diagnostics == [], "bundle (incl. slice-analysis) must parse cleanly"
+    analysis_quads = [
+        q
+        for q in g.quads
+        if q[3] is not None and g.terms[q[3]].value == GTS_GRAPH_SLICE_ANALYSIS
+    ]
+    assert analysis_quads, (
+        "expected a gmeow:graph/slice-analysis named graph in the bundle"
+    )
+    # The graph-level provenance node typed as gmeow:SliceAnalysisGraph is present.
+    subjects = {g.terms[q[0]].value for q in analysis_quads}
+    assert GTS_GRAPH_SLICE_ANALYSIS in subjects, (
+        "expected the analysis graph's provenance node keyed on its own IRI"
+    )
+    # The analysis-graph IRI must NOT appear as a quad in the default graph
+    # (separate named graph; never folded into the authored default graph).
+    default_subjects = {
+        g.terms[q[0]].value for q in g.quads if q[3] is None and q[0] is not None
+    }
+    assert GTS_GRAPH_SLICE_ANALYSIS not in default_subjects

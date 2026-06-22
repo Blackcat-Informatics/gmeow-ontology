@@ -145,32 +145,7 @@ class TestDependencyRule:
 
 
 class TestOwnershipGate:
-    def test_foreign_or_root_isdefinedby_is_an_error(self, tmp_path: Path) -> None:
-        """#329: a term's isDefinedBy must EQUAL its containing slice's IRI."""
-        from gmeow_tools.validate import slice_ownership_lint
-
-        bad = tmp_path / "core" / "demo"
-        bad.mkdir(parents=True)
-        (bad / "module.ttl").write_text(
-            "@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n"
-            "@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .\n"
-            "@prefix owl:   <http://www.w3.org/2002/07/owl#> .\n"
-            "gmeow:Thing a owl:Class ;\n"
-            "    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow> .\n"
-            "gmeow:Other a owl:Class ;\n"
-            "    rdfs:isDefinedBy\n"
-            "      <https://blackcatinformatics.ca/gmeow/slices/elsewhere> .\n"
-            "gmeow:Good a owl:Class ;\n"
-            "    rdfs:isDefinedBy\n"
-            "      <https://blackcatinformatics.ca/gmeow/slices/demo> .\n",
-            encoding="utf-8",
-        )
-        result = slice_ownership_lint(root=tmp_path)
-        assert len(result.errors) == 2
-        assert any("gmeow/Thing" in e for e in result.errors)
-        assert any("gmeow/Other" in e for e in result.errors)
-
     def test_repo_is_clean(self) -> None:
-        from gmeow_tools.validate import slice_ownership_lint
+        from gmeow_tools.validate import native_ownership_errors
 
-        assert slice_ownership_lint().errors == []
+        assert native_ownership_errors() == []

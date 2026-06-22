@@ -16,12 +16,12 @@ ex:algebra a gmeow:LexicalItem .
 ex:alJabr a gmeow:LexicalItem .
 
 ex:derivationAlgebraBorrowing a gmeow:EtymologicalDerivation ;
-    gmeow:derivationSource ex:alJabr ;
+    gmeow:etymonSource ex:alJabr ;
     gmeow:derivationTarget ex:algebra ;
     gmeow:derivationKind gmeow:derivationBorrowing .
 
 ex:derivationAlgebraReanalysis a gmeow:EtymologicalDerivation ;
-    gmeow:derivationSource ex:algebra ;
+    gmeow:etymonSource ex:algebra ;
     gmeow:derivationTarget ex:algebra ;
     gmeow:derivationKind gmeow:derivationReanalysis .
 
