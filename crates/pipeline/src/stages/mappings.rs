@@ -18,17 +18,24 @@
 //!   * **SPARQL CONSTRUCT** → `gmeow_slice::emit_sparql_sets(root)` (the
 //!     closed-algebra text renderer) → `generated/queries/*.rq`.
 //!
-//! NOT produced here: the six hand-authored standpoint `.rq` (`standpoint-*.rq`,
-//! pure-text emitters with no DSL input) and `generated/mappings/dsl-stats.json`
-//! (the DSL surface-count summary). Those are emitted by the Python driver's other
-//! branches; this stage covers the four DSL-driven mapping families.
+//! The final two mapping outputs are now ALSO pure Rust (#861), so the mappings
+//! stage is **complete** — all five families plus the DSL surface-count summary:
+//!   * **Standpoint projections** → `gmeow_slice::emit_standpoint_sets(root)` — the
+//!     six hand-authored `standpoint-*.rq` (Standpoint-OWL 2, CRMinf, PROV-O, Web
+//!     Annotation, schema.org Claim, BBC News), fixed template-coded SPARQL with no
+//!     DSL input → `generated/queries/standpoint-*.rq`.
+//!   * **DSL stats** → `gmeow_slice::emit_dsl_stats(root)` — the committed,
+//!     drift-gated counts summary (equivalences / functions / mapping_sets /
+//!     projections / cells_by_set) → `generated/mappings/dsl-stats.json`.
+//!
+//! Every output is byte-identical to the historical Python driver.
 
 use std::collections::BTreeMap;
 use std::path::Path;
 
 use gmeow_slice::emit_sssom_sets;
 use gmeow_slice::fno_emit::emit_fno;
-use gmeow_slice::{emit_edoal_sets, emit_sparql_sets};
+use gmeow_slice::{emit_dsl_stats, emit_edoal_sets, emit_sparql_sets, emit_standpoint_sets};
 
 use crate::error::PipelineError;
 use crate::node::{Stage, StageInput, StageKind, StageOutput, StageProduct};
@@ -39,11 +46,15 @@ pub const SSSOM_DIR: &str = "generated/mappings";
 pub const FNO_PATH: &str = "generated/projections/functions.fno.ttl";
 /// Directory (logical-path prefix) of the EDOAL alignment Turtle files.
 pub const EDOAL_DIR: &str = "generated/projections";
-/// Directory (logical-path prefix) of the SPARQL CONSTRUCT projection queries.
+/// Directory (logical-path prefix) of the SPARQL CONSTRUCT projection queries
+/// (also home to the six standpoint `standpoint-*.rq` projections).
 pub const QUERIES_DIR: &str = "generated/queries";
+/// Committed logical path of the DSL surface-count summary.
+pub const DSL_STATS_PATH: &str = "generated/mappings/dsl-stats.json";
 
-/// Compile the four DSL-driven mapping families (SSSOM + FnO + EDOAL + SPARQL)
-/// from `root`, returning `{logical_path → bytes}`.
+/// Compile all five mapping families (SSSOM + FnO + EDOAL + SPARQL + standpoint
+/// projections) plus the DSL surface-count summary from `root`, returning
+/// `{logical_path → bytes}`. The mappings stage is now complete.
 pub fn compile_mappings(root: &Path) -> Result<BTreeMap<String, Vec<u8>>, PipelineError> {
     let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
 
@@ -81,12 +92,30 @@ pub fn compile_mappings(root: &Path) -> Result<BTreeMap<String, Vec<u8>>, Pipeli
         artifacts.insert(format!("{QUERIES_DIR}/{filename}"), rq.into_bytes());
     }
 
+    // Standpoint projections — the six fixed `standpoint-*.rq` queries (byte-identical
+    // to the Python template-coded emitters; no DSL input).
+    let standpoint = emit_standpoint_sets(root).map_err(|e| PipelineError::Stage {
+        stage: "stage-mappings".to_string(),
+        message: format!("standpoint emission failed: {e}"),
+    })?;
+    for (filename, rq) in standpoint {
+        artifacts.insert(format!("{QUERIES_DIR}/{filename}"), rq.into_bytes());
+    }
+
+    // DSL surface-count summary — the committed, drift-gated counts JSON.
+    let dsl_stats = emit_dsl_stats(root).map_err(|e| PipelineError::Stage {
+        stage: "stage-mappings".to_string(),
+        message: format!("dsl-stats emission failed: {e}"),
+    })?;
+    artifacts.insert(DSL_STATS_PATH.to_string(), dsl_stats.into_bytes());
+
     Ok(artifacts)
 }
 
 // ── Stage impl ───────────────────────────────────────────────────────────────
 
-/// The `mappings` pipeline stage (SSSOM + FnO + EDOAL + SPARQL).
+/// The `mappings` pipeline stage — complete: all five mapping families (SSSOM +
+/// FnO + EDOAL + SPARQL + standpoint projections) plus the DSL surface-count summary.
 pub struct MappingsStage;
 
 impl Stage for MappingsStage {
@@ -102,7 +131,7 @@ impl Stage for MappingsStage {
         &[]
     }
     fn impl_version(&self) -> &str {
-        "mappings.v2-sssom-fno-edoal-sparql"
+        "mappings.v3-complete"
     }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, PipelineError> {
         let artifacts = compile_mappings(input.root)?;
@@ -178,8 +207,13 @@ mod tests {
         let mut sparql = 0usize;
         let mut failures: Vec<String> = Vec::new();
         for (path, bytes) in &artifacts {
+            let name = path.rsplit('/').next().unwrap_or(path);
             let is_edoal = path.starts_with(EDOAL_DIR) && path.ends_with(".edoal.ttl");
-            let is_sparql = path.starts_with(QUERIES_DIR) && path.ends_with(".rq");
+            // The per-profile SPARQL projections only; the six `standpoint-*.rq`
+            // queries are covered by their own dedicated parity test below.
+            let is_sparql = path.starts_with(QUERIES_DIR)
+                && name.ends_with(".rq")
+                && !name.starts_with("standpoint-");
             if !is_edoal && !is_sparql {
                 continue;
             }
@@ -214,6 +248,54 @@ mod tests {
         assert_eq!(
             sparql, 45,
             "expected 45 SPARQL files byte-matching, got {sparql}"
+        );
+    }
+
+    #[test]
+    fn standpoint_and_dsl_stats_emit_byte_identically_with_committed() {
+        // The stage wires `emit_standpoint_sets` / `emit_dsl_stats` — the same Rust
+        // the slice-crate byte-parity unit tests exercise. The six standpoint `.rq`
+        // and `dsl-stats.json` the stage emits MUST equal their committed counterparts
+        // byte-for-byte (the emitters' parity contract).
+        let root = repo_root();
+        let artifacts = compile_mappings(&root).expect("compile");
+        let mut standpoint = 0usize;
+        let mut failures: Vec<String> = Vec::new();
+
+        for (path, bytes) in &artifacts {
+            let name = path.rsplit('/').next().unwrap_or(path);
+            let is_standpoint = path.starts_with(QUERIES_DIR)
+                && name.starts_with("standpoint-")
+                && name.ends_with(".rq");
+            if !is_standpoint {
+                continue;
+            }
+            let committed = std::fs::read(root.join(path))
+                .unwrap_or_else(|_| panic!("committed missing: {path}"));
+            if bytes != &committed {
+                failures.push(path.clone());
+            } else {
+                standpoint += 1;
+            }
+        }
+        assert!(
+            failures.is_empty(),
+            "standpoint byte-parity drift:\n{}",
+            failures.join("\n")
+        );
+        assert_eq!(
+            standpoint, 6,
+            "expected 6 standpoint files byte-matching, got {standpoint}"
+        );
+
+        let stats = artifacts
+            .get(DSL_STATS_PATH)
+            .expect("dsl-stats.json artifact");
+        let committed_stats =
+            std::fs::read(root.join(DSL_STATS_PATH)).expect("committed dsl-stats.json");
+        assert_eq!(
+            stats, &committed_stats,
+            "dsl-stats.json drifted from committed"
         );
     }
 
