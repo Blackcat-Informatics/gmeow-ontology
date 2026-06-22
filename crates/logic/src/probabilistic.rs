@@ -187,13 +187,13 @@ pub fn evaluate(
         .filter(|r| !r.body.is_empty())
         .collect();
 
-    // ── Enumerate total choices ───────────────────────────────────────────────
-    let choices = enumerate_choices(program)?;
-
     // ── Weighted model counting ───────────────────────────────────────────────
     // Accumulate marginal mass per goal binding (keyed by sorted (var,val) pairs).
+    // Total choices are STREAMED one at a time (see `for_each_choice`): each
+    // subset's fact list is materialized on demand, weighted into the model
+    // count, then dropped — so we never hold all `2^N` fact lists at once.
     let mut marginals: BTreeMap<Vec<(String, String)>, f64> = BTreeMap::new();
-    for (true_facts, p) in &choices {
+    for_each_choice(program, &mut |true_facts: &[Fact], p: f64| {
         let mut facts = deterministic.clone();
         for f in true_facts {
             facts.insert(f.clone());
@@ -203,7 +203,7 @@ pub fn evaluate(
             let key: Vec<(String, String)> = binding.into_iter().collect();
             *marginals.entry(key).or_insert(0.0) += p;
         }
-    }
+    })?;
 
     // ── Build sorted, rounded, non-zero answer bindings ───────────────────────
     let mut bindings: Vec<ProbBinding> = marginals
@@ -237,8 +237,24 @@ pub fn evaluate(
     })
 }
 
-/// Enumerate every total choice as `(facts true in the choice, P(choice))`.
-fn enumerate_choices(program: &QProgram) -> Result<Vec<(Vec<Fact>, f64)>, String> {
+/// Stream every total choice as `(facts true in the choice, P(choice))`, invoking
+/// `sink` once per choice. Choices are produced one at a time and the fact list is
+/// materialized on demand, so the caller never holds all `2^N` subsets at once.
+///
+/// The choice order, the per-choice fact order, and the per-choice weight (and its
+/// scalar product order) are **byte-identical** to the previous materialize-all
+/// implementation — the only change is when, not how, each subset is built.
+///
+/// ## SIMD assessed and declined
+/// The per-subset weight is `∏ p_i (in subset) · ∏ (1 − p_i) (out of subset)`,
+/// accumulated as a sequential scalar `f64` in index order `i = 0..n`. The
+/// probabilistic marginals are **exact-tested** (`assert_eq!(.., Some(0.75))` plus
+/// the `conformance/logic/cases/profiles/probabilistic-*` goldens), so vectorizing
+/// this product (`std::simd`) is NOT byte-safe: a SIMD reduction reassociates the
+/// multiplies and drifts the last ULP, breaking byte-identical output. The real,
+/// byte-safe win here is dropping the upfront `2^N Vec<Fact>` allocation via
+/// on-demand mask materialization (`push_facts_for_mask`), streamed through `sink`.
+fn for_each_choice(program: &QProgram, sink: &mut dyn FnMut(&[Fact], f64)) -> Result<(), String> {
     // Independent probabilistic facts (always present; under a dependency model
     // they are the facts OUTSIDE the correlated set). Each fact must be declared
     // at most once: a duplicate `:- probability(...)` would otherwise be counted
@@ -267,8 +283,10 @@ fn enumerate_choices(program: &QProgram) -> Result<Vec<(Vec<Fact>, f64)>, String
         ));
     }
 
-    // The independent power set, each subset with its product weight.
-    let indep_choices = power_set_weights(&indep);
+    // The independent power set as `(u64 mask, product weight)` — masks only, so we
+    // never materialize all `2^N` fact lists. Each subset's facts are built on
+    // demand via `push_facts_for_mask` at the single point a consumer needs them.
+    let indep_masks = power_set_weights(&indep);
 
     match &program.prob_model {
         Some(QProbModel::Dependency { joints }) => {
@@ -305,46 +323,77 @@ fn enumerate_choices(program: &QProgram) -> Result<Vec<(Vec<Fact>, f64)>, String
                     "joint(...) outcome probabilities must sum to 1.0; got {sum}"
                 ));
             }
-            // Cross product: each joint outcome × each independent subset.
-            let mut out = Vec::with_capacity(joint_choices.len() * indep_choices.len());
+            // Cross product: each joint outcome × each independent subset, streamed.
+            // The combined fact list is built in a reusable scratch buffer and
+            // dropped after `sink` returns, preserving the exact historical fact
+            // order (`jfacts` then the mask facts) and the exact `jp * ip` order.
+            let mut scratch: Vec<Fact> = Vec::new();
             for (jfacts, jp) in &joint_choices {
-                for (ifacts, ip) in &indep_choices {
-                    let mut facts = jfacts.clone();
-                    facts.extend(ifacts.iter().cloned());
-                    out.push((facts, jp * ip));
+                for (mask, ip) in &indep_masks {
+                    scratch.clear();
+                    scratch.extend(jfacts.iter().cloned());
+                    push_facts_for_mask(&indep, *mask, &mut scratch);
+                    sink(&scratch, jp * ip);
                 }
             }
-            Ok(out)
+            Ok(())
         }
         Some(QProbModel::FullIndependence) | None => {
             // Pure independence (or a degenerate deterministic query with no prob
-            // facts → the single empty choice with weight 1.0).
-            Ok(indep_choices)
+            // facts → the single empty choice with weight 1.0). Materialize each
+            // subset's fact list on demand from its mask in the same i=0..n order,
+            // reusing one scratch buffer and dropping it after each `sink` call.
+            let mut scratch: Vec<Fact> = Vec::new();
+            for (mask, w) in &indep_masks {
+                scratch.clear();
+                push_facts_for_mask(&indep, *mask, &mut scratch);
+                sink(&scratch, *w);
+            }
+            Ok(())
         }
     }
 }
 
-/// The power set of `items` with each subset's product weight:
-/// `∏_{i in subset} p_i · ∏_{i not in subset} (1 − p_i)`.
+/// The power set of `items` as `(u64 mask, product weight)`, one entry per subset:
+/// `weight = ∏_{i in subset} p_i · ∏_{i not in subset} (1 − p_i)`.
 ///
-/// Returns the single empty subset with weight `1.0` when `items` is empty.
-fn power_set_weights(items: &[(Fact, f64)]) -> Vec<(Vec<Fact>, f64)> {
+/// Returns the single empty subset (mask `0`) with weight `1.0` when `items` is
+/// empty. Only the `2^N` masks + weights are allocated here — the `Vec<Fact>` for
+/// each subset is built on demand by [`push_facts_for_mask`], not up front.
+///
+/// The weight is accumulated as a sequential scalar `f64` in index order
+/// `i = 0..n` (`weight *= p` / `weight *= 1.0 - p`), bit-identical to the historical
+/// implementation. `1.0 - *p` is precomputed once per item (`q_i`) — multiplying the
+/// same values in the same order is bit-identical.
+fn power_set_weights(items: &[(Fact, f64)]) -> Vec<(u64, f64)> {
     let n = items.len();
+    // Precompute the complement `1 - p_i` once per item; the value and the order
+    // it is multiplied in are unchanged, so the product stays bit-identical.
+    let q: Vec<f64> = items.iter().map(|(_, p)| 1.0 - *p).collect();
     let mut out = Vec::with_capacity(1usize << n);
     for mask in 0u64..(1u64 << n) {
-        let mut facts = Vec::new();
         let mut weight = 1.0_f64;
-        for (i, (f, p)) in items.iter().enumerate() {
+        for (i, (_, p)) in items.iter().enumerate() {
             if mask & (1 << i) != 0 {
-                facts.push(f.clone());
                 weight *= *p;
             } else {
-                weight *= 1.0 - *p;
+                weight *= q[i];
             }
         }
-        out.push((facts, weight));
+        out.push((mask, weight));
     }
     out
+}
+
+/// Push the in-subset facts selected by `mask` onto `out`, in index order
+/// `i = 0..n` — the same order the previous `power_set_weights` built each
+/// subset's `Vec<Fact>`, so any downstream fact ordering is preserved.
+fn push_facts_for_mask(items: &[(Fact, f64)], mask: u64, out: &mut Vec<Fact>) {
+    for (i, (f, _)) in items.iter().enumerate() {
+        if mask & (1 << i) != 0 {
+            out.push(f.clone());
+        }
+    }
 }
 
 /// Least-Herbrand-model closure of `facts` under the Horn `rules` (naive fixpoint).

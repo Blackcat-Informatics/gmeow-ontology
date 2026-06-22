@@ -81,3 +81,7 @@ harness = false
 [[bench]]
 name = "graph"
 harness = false
+
+[[bench]]
+name = "probabilistic"
+harness = false
