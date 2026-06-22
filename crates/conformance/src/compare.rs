@@ -1,9 +1,441 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! The three comparison modes and the per-case `diff_case`.
+//! The three comparison modes of the runner contract.
 //!
-//! Implemented in Task 2 (comparators) + Task 5 (`diff_case`):
-//! * `compare_rdf` — RDFC-1.0 graph-isomorphism.
-//! * `compare_canonical_json` — sorted-key JSON equality.
-//! * `compare_explanation_skeleton` — cited-IRI set equality (never prose).
+//! Ported 1:1 from the retired Python `logic_runner.py` comparators, over the
+//! native oxigraph kernel (the SAME engine the Python `gmeow_rdf` binding wraps):
+//!
+//! * [`compare_rdf`] — blank-node-aware **graph isomorphism** via RDFC-1.0
+//!   canonicalization. Two serialized RDF documents are equal iff their canonical
+//!   quad lists match (`rdflib.compare.isomorphic` had the same verdict; oxigraph
+//!   additionally reads the RDF 1.2 `<< … >>` triple terms the `canonical-rdf12`
+//!   projection emits).
+//! * [`compare_canonical_json`] — sorted-key **canonical JSON** equality for
+//!   `verdicts.json`, `preservation-ledger.json`, `certification.json`,
+//!   `budget.json`, and `answers/*.json`.
+//! * [`compare_explanation_skeleton`] — **cited-IRI set** equality for
+//!   `explanation/*.md`, NEVER surface prose.
+//!
+//! The per-case [`diff_case`](crate::compare) orchestration over the full
+//! `expected/` tree lands in Task 5.
+
+use std::collections::{BTreeMap, BTreeSet};
+
+use oxigraph::io::{RdfFormat, RdfParser};
+use oxigraph::model::dataset::{CanonicalizationAlgorithm, CanonicalizationHashAlgorithm};
+use oxigraph::model::{Dataset, GraphName, Triple};
+
+/// Canonicalize a serialized RDF document to a sorted list of canonical N-Quads
+/// strings.
+///
+/// Parses `text` in `format`, applies RDFC-1.0 canonical blank-node labelling,
+/// and returns the canonicalized quads as a sorted `Vec` of their N-Quads
+/// strings. Two RDF documents are graph-isomorphic iff their canonical quad
+/// lists are equal — the rdflib-free replacement for `rdflib.compare.isomorphic`
+/// (mirrors `logic_runner._canonical_quads`).
+fn canonical_quads(text: &str, format: RdfFormat) -> Result<Vec<String>, String> {
+    let mut dataset = Dataset::new();
+    for quad in RdfParser::from_format(format).for_reader(text.as_bytes()) {
+        let quad = quad.map_err(|e| format!("RDF parse error: {e}"))?;
+        dataset.insert(&quad);
+    }
+    dataset.canonicalize(CanonicalizationAlgorithm::Rdfc10 {
+        hash_algorithm: CanonicalizationHashAlgorithm::Sha256,
+    });
+    let mut quads: Vec<String> = dataset.iter().map(|q| q.to_string()).collect();
+    quads.sort();
+    Ok(quads)
+}
+
+/// Compare two serialized RDF documents by blank-node-aware graph equality.
+///
+/// Both documents are parsed and RDFC-1.0 canonicalized, and their canonical
+/// quad lists compared. Returns an empty `Vec` on match, or error strings
+/// describing the canonical quads unique to each side (capped at 5 each, as the
+/// Python runner did). A parse error on either side surfaces as a single diff
+/// line (it still fails the case loudly).
+pub fn compare_rdf(actual_text: &str, expected_text: &str, format: RdfFormat) -> Vec<String> {
+    let actual = match canonical_quads(actual_text, format) {
+        Ok(q) => q,
+        Err(e) => return vec![format!("actual {e}")],
+    };
+    let expected = match canonical_quads(expected_text, format) {
+        Ok(q) => q,
+        Err(e) => return vec![format!("expected {e}")],
+    };
+    if actual == expected {
+        return vec![];
+    }
+
+    let actual_set: BTreeSet<&String> = actual.iter().collect();
+    let expected_set: BTreeSet<&String> = expected.iter().collect();
+    let actual_only: Vec<&&String> = actual_set.difference(&expected_set).collect();
+    let expected_only: Vec<&&String> = expected_set.difference(&actual_set).collect();
+
+    let mut lines = vec![format!(
+        "RDF graph mismatch: {} vs {} quads",
+        actual.len(),
+        expected.len()
+    )];
+    for quad in actual_only.iter().take(5) {
+        lines.push(format!("  actual only: {quad}"));
+    }
+    for quad in expected_only.iter().take(5) {
+        lines.push(format!("  expected only: {quad}"));
+    }
+    lines
+}
+
+/// Compare two JSON values by canonical form: sorted keys, no whitespace.
+///
+/// The [`serde_json::Value`] is BTreeMap-backed (no `preserve_order` feature), so
+/// [`serde_json::to_string`] emits object keys in sorted order — exactly the
+/// canonical form the Python runner produced via `json.dumps(sort_keys=True,
+/// ensure_ascii=False)`. Lists remain order-sensitive. Returns an empty `Vec` on
+/// match, or one error string with both canonical forms (truncated to 200 chars).
+pub fn compare_canonical_json(
+    actual: &serde_json::Value,
+    expected: &serde_json::Value,
+) -> Vec<String> {
+    let actual_canon = serde_json::to_string(actual).unwrap_or_default();
+    let expected_canon = serde_json::to_string(expected).unwrap_or_default();
+    if actual_canon == expected_canon {
+        return vec![];
+    }
+    vec![format!(
+        "Canonical JSON mismatch:\n  actual:   {}\n  expected: {}",
+        truncate_chars(&actual_canon, 200),
+        truncate_chars(&expected_canon, 200)
+    )]
+}
+
+/// Compare two explanation skeletons by their cited-IRI/rule-IRI sets.
+///
+/// The runner contract compares `explanation/<q>.md` on the cited-IRI skeleton,
+/// NEVER on surface prose. Two skeletons are equal iff their cited-IRI sets are
+/// identical. Returns an empty `Vec` on match, or the missing/extra IRIs (capped
+/// at 10 each).
+pub fn compare_explanation_skeleton(
+    actual_cited_iris: &BTreeSet<String>,
+    expected_cited_iris: &BTreeSet<String>,
+) -> Vec<String> {
+    if actual_cited_iris == expected_cited_iris {
+        return vec![];
+    }
+    let missing: Vec<&String> = expected_cited_iris.difference(actual_cited_iris).collect();
+    let extra: Vec<&String> = actual_cited_iris.difference(expected_cited_iris).collect();
+    let mut lines = vec!["Explanation skeleton mismatch (cited-IRI sets differ):".to_string()];
+    for iri in missing.iter().take(10) {
+        lines.push(format!("  missing (expected but not produced): <{iri}>"));
+    }
+    for iri in extra.iter().take(10) {
+        lines.push(format!("  extra   (produced but not expected): <{iri}>"));
+    }
+    lines
+}
+
+/// Parse the `cited-iri-skeleton` block from an explanation markdown file.
+///
+/// Reads every non-empty line between the `<!-- cited-iri-skeleton` opening
+/// comment and its closing `-->` marker; lines are trimmed before collection.
+/// Mirrors `logic_runner._parse_cited_iri_skeleton`.
+pub fn parse_cited_iri_skeleton(text: &str) -> BTreeSet<String> {
+    let mut in_block = false;
+    let mut iris = BTreeSet::new();
+    for line in text.lines() {
+        if line.trim() == "<!-- cited-iri-skeleton" {
+            in_block = true;
+            continue;
+        }
+        if in_block {
+            if line.trim() == "-->" {
+                break;
+            }
+            let iri = line.trim();
+            if !iri.is_empty() {
+                iris.insert(iri.to_string());
+            }
+        }
+    }
+    iris
+}
+
+/// Parse the `target_quad_reifier` from the prose header of an explanation file.
+///
+/// Looks for the line `` # Explanation for `<REIFIER>` ``. Returns the reifier
+/// IRI, or an empty string if the header is absent. Mirrors
+/// `logic_runner._parse_explanation_reifier`.
+pub fn parse_explanation_reifier(text: &str) -> String {
+    let prefix = "# Explanation for `<";
+    let suffix = ">`";
+    for line in text.lines() {
+        if line.starts_with(prefix)
+            && line.ends_with(suffix)
+            && line.len() >= prefix.len() + suffix.len()
+        {
+            return line[prefix.len()..line.len() - suffix.len()].to_string();
+        }
+    }
+    String::new()
+}
+
+/// Group an N-Quads document into per-named-graph N-Triples documents.
+///
+/// Buckets every quad by its named-graph IRI and re-serializes each world's
+/// triples as an N-Triples string. Default-graph (and blank-node-graph) triples
+/// are dropped — the materialized-corpus comparison asserts only over named
+/// worlds (issue #501 AC(a)/(b)). Mirrors `logic_runner._nquads_by_named_graph`.
+pub fn nquads_by_named_graph(nquads_text: &str) -> Result<BTreeMap<String, String>, String> {
+    let mut by_graph: BTreeMap<String, Vec<String>> = BTreeMap::new();
+    if nquads_text.trim().is_empty() {
+        return Ok(BTreeMap::new());
+    }
+    for quad in RdfParser::from_format(RdfFormat::NQuads).for_reader(nquads_text.as_bytes()) {
+        let quad = quad.map_err(|e| format!("N-Quads parse error: {e}"))?;
+        let graph_iri = match &quad.graph_name {
+            GraphName::NamedNode(nn) => nn.as_str().to_string(),
+            // Default graph / blank-node graph triples are not part of the
+            // world-indexed comparison surface — skip them.
+            _ => continue,
+        };
+        let triple = Triple::new(quad.subject, quad.predicate, quad.object);
+        // oxigraph's Triple Display omits the trailing `.`; append it so each
+        // per-world bucket is a valid N-Triples document for the re-parse.
+        by_graph
+            .entry(graph_iri)
+            .or_default()
+            .push(format!("{triple} ."));
+    }
+    Ok(by_graph
+        .into_iter()
+        .map(|(iri, lines)| {
+            let mut doc = String::new();
+            for line in lines {
+                doc.push_str(&line);
+                doc.push('\n');
+            }
+            (iri, doc)
+        })
+        .collect())
+}
+
+/// Truncate a string to at most `n` characters (UTF-8 safe), mirroring Python's
+/// `s[:n]` slice used in the canonical-JSON mismatch message.
+fn truncate_chars(s: &str, n: usize) -> String {
+    s.chars().take(n).collect()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    // ---- compare_rdf (ports tests/test_logic_runner.py::TestCompareRdf) ----
+
+    #[test]
+    fn rdf_identical_graphs_match() {
+        let nt = "<https://example.org/A> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://example.org/B> .\n";
+        assert_eq!(
+            compare_rdf(nt, nt, RdfFormat::NTriples),
+            Vec::<String>::new()
+        );
+    }
+
+    #[test]
+    fn rdf_isomorphic_blank_node_graphs_match() {
+        let g1 = "<https://example.org/A> <https://example.org/rel> _:x .\n_:x <https://example.org/label> <https://example.org/val> .\n";
+        let g2 = "<https://example.org/A> <https://example.org/rel> _:y .\n_:y <https://example.org/label> <https://example.org/val> .\n";
+        assert_eq!(
+            compare_rdf(g1, g2, RdfFormat::NTriples),
+            Vec::<String>::new()
+        );
+    }
+
+    #[test]
+    fn rdf_differing_graphs_fail() {
+        let g1 = "<https://example.org/A> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://example.org/B> .\n";
+        let g2 = "<https://example.org/A> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://example.org/C> .\n";
+        assert!(!compare_rdf(g1, g2, RdfFormat::NTriples).is_empty());
+    }
+
+    #[test]
+    fn rdf_empty_vs_nonempty_fails() {
+        let g2 = "<https://example.org/A> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://example.org/B> .\n";
+        assert!(!compare_rdf("", g2, RdfFormat::NTriples).is_empty());
+    }
+
+    #[test]
+    fn rdf_empty_vs_empty_passes() {
+        assert_eq!(
+            compare_rdf("", "", RdfFormat::NTriples),
+            Vec::<String>::new()
+        );
+    }
+
+    #[test]
+    fn rdf12_triple_terms_compare() {
+        let ttl = "@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n<https://example.org/r> rdf:reifies <<( <https://example.org/s> <https://example.org/p> <https://example.org/o> )>> .\n";
+        assert_eq!(
+            compare_rdf(ttl, ttl, RdfFormat::Turtle),
+            Vec::<String>::new()
+        );
+    }
+
+    // ---- compare_canonical_json (ports TestCompareCanonicalJson) ----
+
+    #[test]
+    fn json_identical_match() {
+        let d = serde_json::json!({"a": 1, "b": "hello"});
+        assert_eq!(compare_canonical_json(&d, &d), Vec::<String>::new());
+    }
+
+    #[test]
+    fn json_key_order_independent() {
+        let d1 = serde_json::json!({"z": 3, "a": 1, "m": "foo"});
+        let d2 = serde_json::json!({"a": 1, "m": "foo", "z": 3});
+        assert_eq!(compare_canonical_json(&d1, &d2), Vec::<String>::new());
+    }
+
+    #[test]
+    fn json_nested_key_order_independent() {
+        let d1 = serde_json::json!({"x": {"b": 2, "a": 1}});
+        let d2 = serde_json::json!({"x": {"a": 1, "b": 2}});
+        assert_eq!(compare_canonical_json(&d1, &d2), Vec::<String>::new());
+    }
+
+    #[test]
+    fn json_value_difference_fails() {
+        let d1 = serde_json::json!({"a": 1});
+        let d2 = serde_json::json!({"a": 2});
+        assert!(!compare_canonical_json(&d1, &d2).is_empty());
+    }
+
+    #[test]
+    fn json_missing_key_fails() {
+        let d1 = serde_json::json!({"a": 1, "b": 2});
+        let d2 = serde_json::json!({"a": 1});
+        assert!(!compare_canonical_json(&d1, &d2).is_empty());
+    }
+
+    #[test]
+    fn json_string_normalization_unchanged() {
+        let d1 = serde_json::json!({"k": "SoundUnderApproximation"});
+        let d2 = serde_json::json!({"k": "SoundUnderApproximation"});
+        assert_eq!(compare_canonical_json(&d1, &d2), Vec::<String>::new());
+    }
+
+    #[test]
+    fn json_list_order_matters() {
+        let d1 = serde_json::json!({"arr": [1, 2, 3]});
+        let d2 = serde_json::json!({"arr": [3, 2, 1]});
+        assert!(!compare_canonical_json(&d1, &d2).is_empty());
+    }
+
+    // ---- compare_explanation_skeleton (ports TestCompareExplanationSkeleton) ----
+
+    const IRI_A: &str = "https://example.org/rule/A";
+    const IRI_B: &str = "https://example.org/term/B";
+    const IRI_C: &str = "https://example.org/reifier/abc";
+
+    fn set(items: &[&str]) -> BTreeSet<String> {
+        items.iter().map(|s| s.to_string()).collect()
+    }
+
+    #[test]
+    fn skeleton_identical_match() {
+        let iris = set(&[IRI_A, IRI_B]);
+        assert_eq!(
+            compare_explanation_skeleton(&iris, &iris),
+            Vec::<String>::new()
+        );
+    }
+
+    #[test]
+    fn skeleton_different_fail() {
+        let actual = set(&[IRI_A, IRI_B]);
+        let expected = set(&[IRI_A, IRI_C]);
+        assert!(!compare_explanation_skeleton(&actual, &expected).is_empty());
+    }
+
+    #[test]
+    fn skeleton_extra_iri_flagged() {
+        let actual = set(&[IRI_A, IRI_B, IRI_C]);
+        let expected = set(&[IRI_A, IRI_B]);
+        let result = compare_explanation_skeleton(&actual, &expected);
+        assert!(!result.is_empty());
+        let combined = result.join("\n");
+        assert!(combined.to_lowercase().contains("extra") || combined.contains(IRI_C));
+    }
+
+    #[test]
+    fn skeleton_missing_iri_flagged() {
+        let actual = set(&[IRI_A]);
+        let expected = set(&[IRI_A, IRI_B]);
+        let result = compare_explanation_skeleton(&actual, &expected);
+        assert!(!result.is_empty());
+        let combined = result.join("\n");
+        assert!(combined.to_lowercase().contains("missing") || combined.contains(IRI_B));
+    }
+
+    // ---- skeleton/reifier parsing (ports the diff_case explanation-test parsing) ----
+
+    #[test]
+    fn parse_skeleton_block_collects_iris() {
+        let md = "# Explanation for `<https://example.org/reifier/x>`\n\n\
+                  <!-- cited-iri-skeleton\n  https://example.org/rule/A\n  https://example.org/term/B\n-->\n\n\
+                  <!-- step-skeleton\n  step ...\n-->\nProse here is ignored.\n";
+        let iris = parse_cited_iri_skeleton(md);
+        assert_eq!(
+            iris,
+            set(&["https://example.org/rule/A", "https://example.org/term/B"])
+        );
+    }
+
+    #[test]
+    fn parse_skeleton_stops_at_close_marker() {
+        // IRIs after the `-->` (e.g. inside the step-skeleton block) must NOT leak in.
+        let md = "<!-- cited-iri-skeleton\n  https://example.org/only\n-->\n  https://example.org/leaked\n";
+        assert_eq!(
+            parse_cited_iri_skeleton(md),
+            set(&["https://example.org/only"])
+        );
+    }
+
+    #[test]
+    fn parse_reifier_from_header() {
+        let md = "# Explanation for `<https://example.org/reifier/abc>`\nbody\n";
+        assert_eq!(
+            parse_explanation_reifier(md),
+            "https://example.org/reifier/abc"
+        );
+    }
+
+    #[test]
+    fn parse_reifier_absent_returns_empty() {
+        assert_eq!(parse_explanation_reifier("no header here\n"), "");
+    }
+
+    // ---- nquads_by_named_graph ----
+
+    #[test]
+    fn nquads_buckets_by_named_graph_and_drops_default() {
+        let nq = "<https://example.org/s> <https://example.org/p> <https://example.org/o> <https://example.org/w1> .\n\
+                  <https://example.org/s2> <https://example.org/p> <https://example.org/o> <https://example.org/w2> .\n\
+                  <https://example.org/sd> <https://example.org/p> <https://example.org/o> .\n";
+        let by_graph = nquads_by_named_graph(nq).expect("parse");
+        assert_eq!(by_graph.len(), 2);
+        assert!(by_graph.contains_key("https://example.org/w1"));
+        assert!(by_graph.contains_key("https://example.org/w2"));
+        // Each bucket re-parses as valid N-Triples and round-trips through compare_rdf.
+        let w1 = &by_graph["https://example.org/w1"];
+        assert_eq!(
+            compare_rdf(w1, w1, RdfFormat::NTriples),
+            Vec::<String>::new()
+        );
+    }
+
+    #[test]
+    fn nquads_empty_input_is_empty_map() {
+        assert!(nquads_by_named_graph("   \n").expect("parse").is_empty());
+    }
+}
