@@ -20,7 +20,6 @@ from gmeow_tools.graph import load_merged_graph
 from tests._graph_nt import run_shacl
 
 GMEOW = "https://blackcatinformatics.ca/gmeow/"
-GUFO = "http://purl.org/nemo/gufo#"
 LOGIC = "https://blackcatinformatics.ca/logic/"
 
 

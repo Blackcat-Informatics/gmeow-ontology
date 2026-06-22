@@ -25,7 +25,6 @@ from tests._graph_nt import run_shacl
 
 GMEOW = "https://blackcatinformatics.ca/gmeow/"
 GM = Namespace(GMEOW)
-GUFO = Namespace("http://purl.org/nemo/gufo#")
 LOGIC = Namespace("https://blackcatinformatics.ca/logic/")
 EX_EVENTS = Namespace("https://blackcatinformatics.ca/gmeow/examples/events/")
 SHAPES_FIXTURES = Path(__file__).parent / "fixtures" / "shapes"

@@ -22,7 +22,6 @@ from gmeow_tools.slices import module_path
 from tests._graph_nt import run_shacl
 
 GM = Namespace(NAMESPACE)
-GUFO = Namespace("http://purl.org/nemo/gufo#")
 LOGIC = Namespace("https://blackcatinformatics.ca/logic/")
 SCHEMA = Namespace("https://schema.org/")
 EX = Namespace("https://example.org/disclosure/")

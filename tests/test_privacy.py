@@ -23,7 +23,6 @@ from tests._graph_nt import run_shacl
 GM = Namespace(NAMESPACE)
 ODRL = Namespace("http://www.w3.org/ns/odrl/2/")
 EX = Namespace("https://example.org/privacy/")
-GUFO = Namespace("http://purl.org/nemo/gufo#")
 LOGIC = Namespace("https://blackcatinformatics.ca/logic/")
 
 SHAPES_FIXTURES = Path(__file__).parent / "fixtures" / "shapes"

@@ -32,7 +32,6 @@ from gmeow_rdf.compat.rdflib import Graph, URIRef
 from gmeow_rdf.compat.rdflib.namespace import OWL, RDF, RDFS
 
 GMEOW = "https://blackcatinformatics.ca/gmeow/"
-GUFO = "http://purl.org/nemo/gufo#"
 LOGIC = "https://blackcatinformatics.ca/logic/"
 SKOS_DEFINITION = URIRef("http://www.w3.org/2004/02/skos/core#definition")
 SLICE_IRI = URIRef("https://blackcatinformatics.ca/gmeow/slices/imagination")
@@ -65,11 +64,6 @@ _DECLARED_TERMS = (
 def _t(name: str) -> URIRef:
     """A gmeow-namespaced term URI."""
     return URIRef(GMEOW + name)
-
-
-def _gufo(name: str) -> URIRef:
-    """A gufo-namespaced term URI."""
-    return URIRef(GUFO + name)
 
 
 def _graph() -> Graph:

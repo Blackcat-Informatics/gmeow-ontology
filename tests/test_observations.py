@@ -23,7 +23,6 @@ from gmeow_tools.native_rl_rdflib import native_rl_closure
 from gmeow_tools.slices import module_path
 
 GMEOW = Namespace(NAMESPACE)
-GUFO = Namespace("http://purl.org/nemo/gufo#")
 LOGIC = Namespace("https://blackcatinformatics.ca/logic/")
 EX = Namespace("https://example.org/test/")
 
