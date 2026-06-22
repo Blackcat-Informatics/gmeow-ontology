@@ -324,29 +324,69 @@ impl Entrenchment {
 // ── Graph helpers ────────────────────────────────────────────────────────────
 
 /// Transitively close a set of `(from, to)` edges into a `from → {reachable}` map.
+///
+/// Lowered to dense `u32` node ids + `Vec<u64>` bitsets (#823): every endpoint is
+/// interned, adjacency becomes a `Vec<BitSet>`, and transitive reachability is a
+/// DFS over set bits with bit-parallel [`crate::dense::BitSet::union_with`]. The
+/// boundary maps every node back to its IRI, so the returned
+/// `BTreeMap<String, BTreeSet<String>>` is byte-identical to the prior
+/// `String`-keyed traversal: the reachable set is the transitive successors
+/// (NOT including the start unless reached through a cycle), and only nodes with a
+/// non-empty reachable set are included.
 fn closure(edges: &BTreeSet<(String, String)>) -> BTreeMap<String, BTreeSet<String>> {
-    let mut adj: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
-    for (a, b) in edges {
-        adj.entry(a.clone()).or_default().insert(b.clone());
+    use crate::dense::{BitSet, DenseInterner};
+
+    // Intern every endpoint and build dense `u32` adjacency.
+    let mut interner = DenseInterner::new();
+    // Collect interned edges first so the node count is known before sizing bitsets.
+    let interned: Vec<(u32, u32)> = edges
+        .iter()
+        .map(|(a, b)| (interner.intern(a), interner.intern(b)))
+        .collect();
+    let n = interner.len();
+    let mut adj: Vec<BitSet> = (0..n).map(|_| BitSet::with_capacity(n)).collect();
+    for &(a, b) in &interned {
+        adj[a as usize].insert(b as usize);
     }
+
+    // Bit-parallel transitive closure via fixpoint: `reach[v]` starts as the
+    // direct successors of `v`, then repeatedly unions in the reachable set of
+    // every direct successor (word-wise `|=`) until nothing changes. This is the
+    // full transitive closure per node — identical to the prior per-start DFS,
+    // and the start enters its own `reach` set exactly when it lies on a cycle.
+    let mut reach: Vec<BitSet> = adj.clone();
+    let mut changed = true;
+    while changed {
+        changed = false;
+        for v in 0..n {
+            // Snapshot the direct successors of `v` to drive the union: unioning
+            // in `reach[succ]` for each `succ ∈ adj[v]`. Successors of `v` never
+            // change, so iterating the (fixed) adjacency is stable.
+            let mut acc = reach[v].clone();
+            for succ in adj[v].iter() {
+                acc.union_with(&reach[succ]);
+            }
+            if acc != reach[v] {
+                reach[v] = acc;
+                changed = true;
+            }
+        }
+    }
+
+    // Boundary: map each non-empty reachable set back to IRIs. `BitSet::iter` is
+    // ascending by id, and ids were assigned in `edges` (sorted) order, but the
+    // BTreeMap/BTreeSet re-sort by IRI exactly as the prior implementation did.
     let mut closed: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
-    let nodes: BTreeSet<&String> = edges.iter().flat_map(|(a, b)| [a, b]).collect();
-    for start in nodes {
-        let mut seen: BTreeSet<String> = BTreeSet::new();
-        let mut stack: Vec<String> = adj.get(start).into_iter().flatten().cloned().collect();
-        while let Some(cur) = stack.pop() {
-            if !seen.insert(cur.clone()) {
-                continue;
-            }
-            if let Some(next) = adj.get(&cur) {
-                for n in next {
-                    stack.push(n.clone());
-                }
-            }
+    for (start, bits) in reach.iter().enumerate() {
+        if bits.is_empty() {
+            continue;
         }
-        if !seen.is_empty() {
-            closed.insert(start.clone(), seen);
-        }
+        let start_iri = interner.resolve(start as u32);
+        let reachable: BTreeSet<String> = bits
+            .iter()
+            .map(|id| interner.resolve(id as u32).to_owned())
+            .collect();
+        closed.insert(start_iri.to_owned(), reachable);
     }
     closed
 }

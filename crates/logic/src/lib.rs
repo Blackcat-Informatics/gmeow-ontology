@@ -12,6 +12,8 @@
 
 pub mod compile;
 pub mod counterfactual;
+/// Dense-id graph primitives (interner + bitset) for the hot graph algorithms.
+pub(crate) mod dense;
 pub mod derivation_graph;
 pub mod dispatch;
 pub mod encode;
