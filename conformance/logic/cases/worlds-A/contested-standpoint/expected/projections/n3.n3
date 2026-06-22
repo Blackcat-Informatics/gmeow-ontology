@@ -12,8 +12,8 @@
 <https://example.org/worlds-A/contested-standpoint/State> a <https://blackcatinformatics.ca/logic/Kind> .
 <https://example.org/worlds-A/contested-standpoint/TerritorialClaimant> a <https://blackcatinformatics.ca/logic/Kind> .
 <https://example.org/worlds-A/contested-standpoint/ruleSovereigntyClaimant> a <https://blackcatinformatics.ca/logic/Rule> .
-<https://example.org/worlds-A/contested-standpoint/ruleSovereigntyClaimant> <https://blackcatinformatics.ca/logic/body> <n413310a04e314c689ef2a28f8055b211b2> .
-<https://example.org/worlds-A/contested-standpoint/ruleSovereigntyClaimant> <https://blackcatinformatics.ca/logic/head> <n413310a04e314c689ef2a28f8055b211b1> .
+<https://example.org/worlds-A/contested-standpoint/ruleSovereigntyClaimant> <https://blackcatinformatics.ca/logic/body> <c14n1> .
+<https://example.org/worlds-A/contested-standpoint/ruleSovereigntyClaimant> <https://blackcatinformatics.ca/logic/head> <c14n0> .
 <https://example.org/worlds-A/contested-standpoint/ruleSovereigntyClaimant> <https://blackcatinformatics.ca/logic/provenance> <https://example.org/worlds-A/contested-standpoint/ruleSovereigntyClaimant> .
 
 # === Rules ===

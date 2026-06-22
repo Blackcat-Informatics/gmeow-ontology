@@ -240,8 +240,8 @@ slicetest: ## Run the gmeow-slicetest harness in isolation (executes the slice-r
 	cargo nextest run -p gmeow-slicetest $(NEXTEST_PARTITION_ARG)
 	cargo test --doc -p gmeow-slicetest
 
-conformance: logic-py ## Run the logic: conformance suite (oracle ≡ engine, Principle 7 gate).
-	$(GMEOW_DEV) conformance
+conformance: ## Run the native logic conformance harness (#785; oracle ≡ engine, Principle 7 gate). Already covered by rust-test / check via the workspace run.
+	cargo nextest run -p gmeow-conformance $(NEXTEST_PARTITION_ARG)
 
 build: ## Build serializations and JSON-LD context into dist/.
 	$(GMEOW_DEV) build

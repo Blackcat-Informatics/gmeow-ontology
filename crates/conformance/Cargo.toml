@@ -1,0 +1,38 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+
+[package]
+name = "gmeow-conformance"
+description = "GMEOW native logic-conformance harness (#785, T4): discovers and runs the logic conformance corpus under cargo-nextest, driving the crates/logic native engine directly (zero PyO3) and diffing against committed goldens via graph-isomorphism / canonical-JSON / cited-IRI-skeleton comparison. Replaces the Python logic_runner.py."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+# The native logic engine: compile / certify / materialize / explain / foundation
+# / scryer / stable-model / probabilistic cores. The harness calls these directly
+# (the SAME functions py.rs wraps), so case outputs are identical by construction.
+gmeow-logic = { path = "../logic" }
+# oxigraph in-memory Dataset with RDF 1.2 for RDFC-1.0 canonicalization and
+# multi-format parsing (Turtle / N-Triples / N-Quads) in the RDF comparator.
+# Same pin + features as the rest of the workspace (no [workspace.dependencies]
+# table exists to inherit from; this matches crates/slicetest exactly).
+oxigraph = { version = "0.5", default-features = false, features = ["rdf-12"] }
+# Canonical-JSON comparison (sorted keys) for verdicts / ledger / certification /
+# budget / answers, and parsing the committed JSON goldens. NO `preserve_order`:
+# the default BTreeMap-backed `Value` serializes keys in sorted order, which IS
+# the canonical form the Python runner produced via `json.dumps(sort_keys=True)`.
+serde_json = "1"
+
+[dev-dependencies]
+# File-driven test harness: one nextest case per discovered profile.json (i.e. per
+# case directory), run in parallel. Mirrors crates/slicetest (#784, T3).
+datatest-stable = "0.3"
+
+[[test]]
+name = "conformance"
+harness = false

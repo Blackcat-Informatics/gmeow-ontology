@@ -36,8 +36,9 @@ use oxigraph::model::{GraphNameRef, NamedOrBlankNode, Term};
 use oxigraph::store::Store;
 
 use super::graphutil::{
-    default_graph_quads, nn, objects, subject_str, subjects_with, term_as_subject, term_is_literal,
-    term_str, value, RDF_OBJECT, RDF_PREDICATE, RDF_REIFIES, RDF_STATEMENT, RDF_SUBJECT, RDF_TYPE,
+    canonicalize_blank_nodes, default_graph_quads, nn, objects, subject_str, subjects_with,
+    term_as_subject, term_is_literal, term_str, value, RDF_OBJECT, RDF_PREDICATE, RDF_REIFIES,
+    RDF_STATEMENT, RDF_SUBJECT, RDF_TYPE,
 };
 use super::ir::{
     ComplexityClass, ContextualScope, LogicAxiom, LogicModality, LogicProfile, LogicProgram,
@@ -541,6 +542,11 @@ pub fn parse_logic_store(
                 .to_owned(),
         ));
     }
+
+    // Re-label blank nodes to their RDFC-1.0 canonical ids BEFORE extraction, so
+    // every projection (text back-ends included) is a deterministic function of the
+    // source graph rather than the parser's random per-parse blank-node labels.
+    let store = &canonicalize_blank_nodes(store).map_err(LogicParseError)?;
 
     let mut diagnostics: Vec<Diagnostic> = Vec::new();
 

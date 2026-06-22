@@ -396,6 +396,130 @@ fn apply_budget(
         .collect()
 }
 
+// ── Profile-routed materialization (issue #785) ──────────────────────────────────
+//
+// The native conformance harness (`crates/conformance`) drives the engine
+// directly, with no PyO3 boundary. It therefore needs ONE public entry point that
+// reproduces the routing the `gmeow_logic.materialize` PyO3 wrapper performs in
+// [`crate::py`]: empty-input short-circuit, the non-stratifiable native routing
+// (well-founded / cautious-stable / declared-StratifiedNAF echo, issue #651), and
+// otherwise the Nemo [`materialize_core`] chase. The wrapper's routing logic and
+// this function are the SAME native evaluators (`crate::wellfounded`,
+// `crate::stablemodel`, `crate::rule_ir`), so the produced quads are identical by
+// construction — the harness is not a second engine, only a second caller.
+
+/// Convert a non-stratifiable [`crate::rule_ir::DerivedRow`] to a [`DerivedQuad`].
+///
+/// Mirrors `py::derived_rows_to_dicts`: the native non-stratifiable paths run to a
+/// polynomial fixpoint with no budget ceiling, so every quad is stamped
+/// [`ASSERTED_PROFILE`] / [`BudgetStatus::Ok`], and the quad is self-contained
+/// (`graph_component == graph`).
+fn derived_row_to_quad(row: crate::rule_ir::DerivedRow) -> Result<DerivedQuad, MaterializeError> {
+    let graph = NamedNode::new(&row.graph)
+        .map_err(|e| MaterializeError::Chase(format!("invalid world IRI {:?}: {e}", row.graph)))?;
+    Ok(DerivedQuad {
+        graph: graph.clone(),
+        subject: row.subject,
+        predicate: row.predicate,
+        object: row.object,
+        graph_component: graph,
+        derivation_id: DerivationId(row.derivation_id),
+        rule_iri: row.rule_iri,
+        source_quad_ids: row.source_quad_ids,
+        profile: ASSERTED_PROFILE.to_owned(),
+        budget_status: BudgetStatus::Ok,
+    })
+}
+
+/// Echo only the asserted EDB facts per world (the honest minimal materialization
+/// for a declared `StratifiedNAFProfile` set that fails stratification). Mirrors
+/// `py::echo_edb_only`.
+fn echo_edb_only(input: &str) -> Result<Vec<crate::rule_ir::DerivedRow>, MaterializeError> {
+    let store = crate::store::WorldStore::new();
+    store.load_nquads(input).map_err(MaterializeError::Parse)?;
+    let mut worlds = store.worlds();
+    worlds.sort();
+    let mut rows = Vec::new();
+    for world in &worlds {
+        let edb =
+            crate::rule_ir::world_edb_facts(&store, world).map_err(MaterializeError::Chase)?;
+        rows.extend(crate::rule_ir::echo_asserted(world, &edb).map_err(MaterializeError::Chase)?);
+    }
+    Ok(rows)
+}
+
+/// Materialize the forward chase, routing by declared semantic `profile`.
+///
+/// This is the public, PyO3-free entry point the conformance harness (#785) calls.
+/// It reproduces the routing of the `gmeow_logic.materialize` wrapper exactly:
+///
+/// * empty `input` ⇒ empty result;
+/// * `Some("WellFoundedProfile")` ⇒ the native alternating-fixpoint evaluator;
+/// * `Some("StableModelProfile")` ⇒ the native cautious (skeptical) materializer;
+/// * any other profile (or `None`) ⇒ the Nemo [`materialize_core`] chase, EXCEPT a
+///   non-empty rule set that fails stratification, which is echoed asserted-only.
+///
+/// Returns the derived quads (asserted EDB + derived IDB) with full provenance.
+///
+/// # Errors
+/// [`MaterializeError::Parse`] for malformed N-Quads / `.rls`; [`MaterializeError::Chase`]
+/// for an evaluation or provenance failure.
+pub fn materialize_routed(
+    rules: &str,
+    input: &str,
+    max_rule_firings: Option<u64>,
+    max_answers: Option<u64>,
+    time_ms: Option<u64>,
+    profile: Option<&str>,
+) -> Result<Vec<DerivedQuad>, MaterializeError> {
+    if input.trim().is_empty() {
+        return Ok(vec![]);
+    }
+
+    // Non-stratifiable native routing (issue #651). `None` ⇒ fall through to Nemo.
+    let non_strat_rows: Option<Vec<crate::rule_ir::DerivedRow>> = match profile {
+        Some("WellFoundedProfile") => {
+            let store = crate::store::WorldStore::new();
+            store.load_nquads(input).map_err(MaterializeError::Parse)?;
+            let eval_rules =
+                crate::rule_ir::parse_eval_rules(rules).map_err(MaterializeError::Parse)?;
+            Some(
+                crate::wellfounded::materialize(&store, &eval_rules)
+                    .map_err(MaterializeError::Chase)?,
+            )
+        }
+        Some("StableModelProfile") => {
+            let store = crate::store::WorldStore::new();
+            store.load_nquads(input).map_err(MaterializeError::Parse)?;
+            let eval_rules =
+                crate::rule_ir::parse_eval_rules(rules).map_err(MaterializeError::Parse)?;
+            Some(
+                crate::stablemodel::cautious_materialize(&store, &eval_rules)
+                    .map_err(MaterializeError::Chase)?,
+            )
+        }
+        _ => {
+            // PositiveHorn / declared StratifiedNAF / Probabilistic / Procedural / None.
+            // Empty rules (projection-only) and genuinely stratified sets run on Nemo;
+            // only a declared set that FAILS stratification is echoed asserted-only.
+            if rules.trim().is_empty()
+                || crate::certify::is_stratifiable(rules).map_err(MaterializeError::Parse)?
+            {
+                None
+            } else {
+                Some(echo_edb_only(input)?)
+            }
+        }
+    };
+
+    if let Some(rows) = non_strat_rows {
+        return rows.into_iter().map(derived_row_to_quad).collect();
+    }
+
+    // Stratifiable / projection-only ⇒ the Nemo chase (with the post-hoc governor).
+    materialize_core(rules, input, max_rule_firings, max_answers, time_ms)
+}
+
 #[cfg(test)]
 mod tests {
     //! Native coverage of the materialize engine pipeline (issue #786 / T5).
