@@ -485,16 +485,20 @@ pub fn project_canonical_rdf12(program: &LogicProgram) -> Result<ProjectionResul
         }
     }
 
-    // Profiles.
-    for profile in &program.profiles {
-        let pid = logic(profile.profile_id.as_str());
-        g.add_iri(&pid, RDF_TYPE, &logic("SemanticProfile"));
-        if let Some(c) = &profile.complexity {
-            g.add_lit(
-                &pid,
-                &logic("complexityClass"),
-                Literal::new_simple_literal(c.label()),
-            );
+    // Reasoning contracts (#767). Behaviour-preserving minimum: when a contract
+    // carries a preset, emit it as a logic:ReasoningPreset individual with its
+    // complexity class (Task 6 enriches this with the full facet projection).
+    for contract in &program.contracts {
+        if let Some(preset) = contract.preset {
+            let pid = logic(preset.as_str());
+            g.add_iri(&pid, RDF_TYPE, &logic("ReasoningPreset"));
+            if let Some(c) = &contract.complexity {
+                g.add_lit(
+                    &pid,
+                    &logic("complexityClass"),
+                    Literal::new_simple_literal(c.label()),
+                );
+            }
         }
     }
 

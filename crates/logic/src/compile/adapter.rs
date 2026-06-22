@@ -35,7 +35,7 @@ use super::graphutil::{
     term_as_subject, term_is_blank, term_is_literal, term_str, RDF_TYPE,
 };
 use super::ir::{
-    ContextualScope, LogicAxiom, LogicProfile, LogicProgram, LogicRule, LOGIC_NAMESPACE,
+    ContextualScope, LogicAxiom, LogicProgram, LogicRule, ReasoningContract, LOGIC_NAMESPACE,
 };
 
 const GUFO_NS: &str = "http://purl.org/nemo/gufo#";
@@ -187,10 +187,9 @@ fn rule_key(r: &LogicRule) -> String {
     base
 }
 
-/// Stable diff key for a profile (mirrors Python `_profile_key`).
-fn profile_key(p: &LogicProfile) -> String {
-    let compl = p.complexity.as_ref().map(|c| c.label()).unwrap_or("");
-    format!("{}{SEP}{compl}", p.profile_id.as_str())
+/// Stable diff key for a reasoning contract (#767; was `profile_key`).
+fn contract_key(c: &ReasoningContract) -> String {
+    c.sort_key()
 }
 
 /// Assert that two [`LogicProgram`]s are canonically equal, raising
@@ -208,8 +207,8 @@ pub fn assert_ir_isomorphic(
     let axioms_b: HashSet<String> = prog_b.axioms.iter().map(axiom_key).collect();
     let rules_a: HashSet<String> = prog_a.rules.iter().map(rule_key).collect();
     let rules_b: HashSet<String> = prog_b.rules.iter().map(rule_key).collect();
-    let profiles_a: HashSet<String> = prog_a.profiles.iter().map(profile_key).collect();
-    let profiles_b: HashSet<String> = prog_b.profiles.iter().map(profile_key).collect();
+    let contracts_a: HashSet<String> = prog_a.contracts.iter().map(contract_key).collect();
+    let contracts_b: HashSet<String> = prog_b.contracts.iter().map(contract_key).collect();
 
     let diff = |from: &HashSet<String>, to: &HashSet<String>| -> Vec<String> {
         let mut v: Vec<String> = from.difference(to).cloned().collect();
@@ -230,11 +229,11 @@ pub fn assert_ir_isomorphic(
     for item in diff(&rules_b, &rules_a) {
         lines.push(format!("B has, A lacks (rule):   {item}"));
     }
-    for item in diff(&profiles_a, &profiles_b) {
-        lines.push(format!("A has, B lacks (profile): {item}"));
+    for item in diff(&contracts_a, &contracts_b) {
+        lines.push(format!("A has, B lacks (contract): {item}"));
     }
-    for item in diff(&profiles_b, &profiles_a) {
-        lines.push(format!("B has, A lacks (profile): {item}"));
+    for item in diff(&contracts_b, &contracts_a) {
+        lines.push(format!("B has, A lacks (contract): {item}"));
     }
 
     if lines.is_empty() {

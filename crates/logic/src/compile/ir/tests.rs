@@ -215,19 +215,36 @@ fn logic_rule_distinct_pairs_canonicalized() {
     assert!(r1.sort_key().contains("?A\u{0}?B"));
 }
 
-// ── LogicProfile ─────────────────────────────────────────────────────────────
+// ── ReasoningContract (#767) ─────────────────────────────────────────────────
 
 #[test]
-fn logic_profile_with_and_without_complexity() {
-    let p = LogicProfile::new(
-        SemanticProfileId::PositiveHorn,
-        Some(ComplexityClass::new("PTIME").unwrap()),
-    );
-    assert_eq!(p.profile_id, SemanticProfileId::PositiveHorn);
-    assert_eq!(p.complexity.as_ref().unwrap().to_string(), "PTIME");
+fn reasoning_contract_with_and_without_complexity() {
+    let mut c = ReasoningContract::from_preset(SemanticProfileId::PositiveHorn);
+    c.complexity = Some(ComplexityClass::new("PTIME").unwrap());
+    c.formula_fragment = Some("HornFragment".to_owned());
+    assert_eq!(c.preset, Some(SemanticProfileId::PositiveHorn));
+    assert_eq!(c.complexity.as_ref().unwrap().to_string(), "PTIME");
+    assert_eq!(c.formula_fragment.as_deref(), Some("HornFragment"));
 
-    let p2 = LogicProfile::new(SemanticProfileId::StableModel, None);
-    assert!(p2.complexity.is_none());
+    let c2 = ReasoningContract::from_preset(SemanticProfileId::StableModel);
+    assert!(c2.complexity.is_none());
+}
+
+#[test]
+fn reasoning_contract_sort_key_is_construction_order_independent() {
+    // The set-valued facets must canonicalize regardless of insertion order.
+    let mut c1 = ReasoningContract::from_preset(SemanticProfileId::StableModel);
+    c1.negation_operators.insert("DefaultNegation".to_owned());
+    c1.negation_operators.insert("ExplicitNegation".to_owned());
+    c1.projection_targets.insert("OwlProjection".to_owned());
+
+    let mut c2 = ReasoningContract::from_preset(SemanticProfileId::StableModel);
+    c2.negation_operators.insert("ExplicitNegation".to_owned());
+    c2.negation_operators.insert("DefaultNegation".to_owned());
+    c2.projection_targets.insert("OwlProjection".to_owned());
+
+    assert_eq!(c1, c2);
+    assert_eq!(c1.sort_key(), c2.sort_key());
 }
 
 // ── LogicProgram order-independence (the core canonicalization contract) ──────
@@ -236,8 +253,8 @@ fn logic_profile_with_and_without_complexity() {
 fn logic_program_order_independence_equality() {
     let a1 = axiom("ex:x", &kind_pred(), "ex:o");
     let a2 = axiom("ex:y", &format!("{LOGIC}Role"), "ex:o");
-    let p1 = LogicProfile::new(SemanticProfileId::PositiveHorn, None);
-    let p2 = LogicProfile::new(SemanticProfileId::StratifiedNaf, None);
+    let p1 = ReasoningContract::from_preset(SemanticProfileId::PositiveHorn);
+    let p2 = ReasoningContract::from_preset(SemanticProfileId::StratifiedNaf);
 
     let prog_ab = LogicProgram::new(
         vec![a1.clone(), a2.clone()],
@@ -334,5 +351,5 @@ fn logic_program_source_iri_preserved() {
     assert_eq!(prog.source_iri.as_deref(), Some("https://example.org/prog"));
     assert!(prog.axioms.is_empty());
     assert!(prog.rules.is_empty());
-    assert!(prog.profiles.is_empty());
+    assert!(prog.contracts.is_empty());
 }

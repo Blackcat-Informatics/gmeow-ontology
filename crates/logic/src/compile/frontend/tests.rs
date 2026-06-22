@@ -54,41 +54,44 @@ fn parse_invalid_turtle_raises() {
     assert!(err.0.contains("Failed to parse"));
 }
 
-// ── Minimal graph + profiles ─────────────────────────────────────────────────
+// ── Minimal graph + reasoning contracts (#767) ───────────────────────────────
 
 #[test]
 fn parse_minimal_graph_succeeds() {
     let (prog, diags) = parse(
         "ex:Person a logic:Kind .
-         logic:PositiveHornProfile a logic:SemanticProfile .",
+         logic:PositiveHornProfile a logic:ReasoningPreset .",
     );
     assert!(diags.is_empty(), "unexpected diagnostics: {diags:?}");
     assert!(has_axiom(&prog, "/Person", "#type", LogicModality::None));
-    assert_eq!(prog.profiles.len(), 1);
-    assert_eq!(prog.profiles[0].profile_id, SemanticProfileId::PositiveHorn);
+    assert_eq!(prog.contracts.len(), 1);
+    assert_eq!(
+        prog.contracts[0].preset,
+        Some(SemanticProfileId::PositiveHorn)
+    );
     assert_eq!(prog.source_iri.as_deref(), Some("https://example.org/prog"));
 }
 
 #[test]
-fn parse_multiple_profiles_with_complexity() {
+fn parse_multiple_contracts_with_complexity() {
     let (prog, _) = parse(
-        "logic:PositiveHornProfile a logic:SemanticProfile ;
+        "logic:PositiveHornProfile a logic:ReasoningPreset ;
             logic:complexityClass \"PTIME\" .
-         logic:StableModelProfile a logic:SemanticProfile .",
+         logic:StableModelProfile a logic:ReasoningPreset .",
     );
-    assert_eq!(prog.profiles.len(), 2);
+    assert_eq!(prog.contracts.len(), 2);
     let horn = prog
-        .profiles
+        .contracts
         .iter()
-        .find(|p| p.profile_id == SemanticProfileId::PositiveHorn)
+        .find(|c| c.preset == Some(SemanticProfileId::PositiveHorn))
         .unwrap();
     assert_eq!(horn.complexity.as_ref().unwrap().to_string(), "PTIME");
 }
 
 #[test]
 fn unknown_semantic_profile_emits_diagnostic() {
-    let (prog, diags) = parse("ex:Bogus a logic:SemanticProfile .");
-    assert!(prog.profiles.is_empty());
+    let (prog, diags) = parse("ex:Bogus a logic:ReasoningPreset .");
+    assert!(prog.contracts.is_empty());
     assert!(diags.iter().any(|d| d.code == "UNKNOWN_PROFILE"));
 }
 
@@ -183,18 +186,18 @@ fn invalid_confidence_emits_diagnostic() {
     assert!(diags.iter().any(|d| d.code == "INVALID_CONFIDENCE"));
 }
 
-// ── Profiles complexity guards ───────────────────────────────────────────────
+// ── Contract complexity guards ───────────────────────────────────────────────
 
 #[test]
 fn empty_complexity_class_emits_diagnostic() {
     let (prog, diags) = parse(
-        "logic:PositiveHornProfile a logic:SemanticProfile ;
+        "logic:PositiveHornProfile a logic:ReasoningPreset ;
             logic:complexityClass \"\" .",
     );
     assert!(diags.iter().any(|d| d.code == "INVALID_COMPLEXITY_CLASS"));
-    // The profile is still recorded, just without a complexity class.
-    assert_eq!(prog.profiles.len(), 1);
-    assert!(prog.profiles[0].complexity.is_none());
+    // The contract is still recorded, just without a complexity class.
+    assert_eq!(prog.contracts.len(), 1);
+    assert!(prog.contracts[0].complexity.is_none());
 }
 
 // ── Rules ────────────────────────────────────────────────────────────────────

@@ -23,7 +23,8 @@
 //!    `rdf:type` triples whose object is a `logic:` class.
 //! 2. **Scoped axioms** — RDF 1.2 reifier nodes (`rdf:reifies` → triple term) and
 //!    classic `rdf:Statement` reifications carrying `logic:` scope annotations.
-//! 3. **Profiles** — `rdf:type logic:SemanticProfile` declarations.
+//! 3. **Reasoning contracts** — `rdf:type logic:ReasoningContract` /
+//!    `logic:ReasoningPreset` declarations, with their facet selection.
 //! 4. **Rules** — `logic:Rule` nodes with `logic:head` / `logic:body` /
 //!    `logic:negatedBody` (#502) / `logic:distinctBody` (#503) links.
 
@@ -36,13 +37,13 @@ use oxigraph::model::{GraphNameRef, NamedOrBlankNode, Term};
 use oxigraph::store::Store;
 
 use super::graphutil::{
-    canonicalize_blank_nodes, default_graph_quads, nn, objects, subject_str, subjects_with,
-    term_as_subject, term_is_literal, term_str, value, RDF_OBJECT, RDF_PREDICATE, RDF_REIFIES,
-    RDF_STATEMENT, RDF_SUBJECT, RDF_TYPE,
+    canonicalize_blank_nodes, contains, default_graph_quads, nn, objects, subject_str,
+    subjects_with, term_as_subject, term_is_literal, term_str, value, RDF_OBJECT, RDF_PREDICATE,
+    RDF_REIFIES, RDF_STATEMENT, RDF_SUBJECT, RDF_TYPE,
 };
 use super::ir::{
-    ComplexityClass, ContextualScope, LogicAxiom, LogicModality, LogicProfile, LogicProgram,
-    LogicRule, SemanticProfileId, LOGIC_NAMESPACE,
+    ComplexityClass, ContextualScope, LogicAxiom, LogicModality, LogicProgram, LogicRule,
+    ReasoningContract, SemanticProfileId, LOGIC_NAMESPACE,
 };
 
 fn logic_iri(local: &str) -> String {
@@ -355,39 +356,198 @@ fn extract_scoped_axioms(store: &Store, diagnostics: &mut Vec<Diagnostic>) -> Ve
 }
 
 // --------------------------------------------------------------------------- //
-// Profile extraction
+// Reasoning-contract extraction (#767)
 // --------------------------------------------------------------------------- //
 
-fn extract_profiles(store: &Store, diagnostics: &mut Vec<Diagnostic>) -> Vec<LogicProfile> {
-    let mut profiles: Vec<LogicProfile> = Vec::new();
+/// The direct facet properties whose object is a single facet value individual.
+/// Each is read AND the `logic:expandsToFacet` bundle is read; every value is
+/// routed into the right contract field by its `rdf:type` facet-class.
+const FACET_PROPERTIES: [&str; 16] = [
+    "formulaFragment",
+    "modelSemantics",
+    "truthAlgebra",
+    "admissibleValuation",
+    "designatedValues",
+    "evolution",
+    "argumentation",
+    "revision",
+    "equalityPolicy",
+    "defaultClosure",
+    "negationOperator",
+    "contextAxis",
+    "uncertaintyMeasure",
+    "resourcePolicy",
+    "projectionTarget",
+    "expandsToFacet",
+];
+
+/// The local name of `value`'s `rdf:type` that is a facet value-class (i.e. not
+/// `owl:NamedIndividual`, not a preset/contract type). Returns the first matching
+/// recognised facet class, or `None` if the value carries no recognised facet type.
+fn facet_class_of(store: &Store, value_iri: &str) -> Option<String> {
+    let subject = NamedOrBlankNode::NamedNode(nn(value_iri));
+    for ty in objects(store, &subject, &nn(RDF_TYPE)) {
+        let ty_str = term_str(&ty);
+        if let Some(local) = ty_str.strip_prefix(LOGIC_NAMESPACE) {
+            if is_facet_class(local) {
+                return Some(local.to_owned());
+            }
+        }
+    }
+    None
+}
+
+/// Whether `local` is one of the recognised facet value-class local names.
+fn is_facet_class(local: &str) -> bool {
+    matches!(
+        local,
+        "FormulaFragment"
+            | "ModelSemantics"
+            | "TruthAlgebra"
+            | "AdmissibleValuationPolicy"
+            | "DesignatedValueSet"
+            | "NegationOperator"
+            | "ClosureValue"
+            | "ContextAxis"
+            | "EvolutionMode"
+            | "UncertaintyMeasure"
+            | "ArgumentationSemantics"
+            | "RevisionPolicy"
+            | "EqualityPolicy"
+            | "ResourcePolicy"
+            | "ProjectionTarget"
+    )
+}
+
+/// Route a facet value (its local name + its facet-class local name) into the
+/// correct field of `contract`. Returns `false` if the facet class is unknown
+/// (caller emits the `UNKNOWN_PROFILE` diagnostic).
+fn route_facet_value(contract: &mut ReasoningContract, facet_class: &str, value_local: String) {
+    match facet_class {
+        "FormulaFragment" => contract.formula_fragment = Some(value_local),
+        "ModelSemantics" => contract.model_semantics = Some(value_local),
+        "TruthAlgebra" => contract.truth_algebra = Some(value_local),
+        "AdmissibleValuationPolicy" => contract.admissible_valuation = Some(value_local),
+        "DesignatedValueSet" => contract.designated_values = Some(value_local),
+        "EvolutionMode" => contract.evolution = Some(value_local),
+        "ArgumentationSemantics" => contract.argumentation = Some(value_local),
+        "RevisionPolicy" => contract.revision = Some(value_local),
+        "EqualityPolicy" => contract.equality_policy = Some(value_local),
+        // `ClosureValue` reached via `logic:defaultClosure` sets the map default.
+        "ClosureValue" => contract.default_closure = Some(value_local),
+        "NegationOperator" => {
+            contract.negation_operators.insert(value_local);
+        }
+        "ContextAxis" => {
+            contract.context_axes.insert(value_local);
+        }
+        "UncertaintyMeasure" => {
+            contract.uncertainty_measures.insert(value_local);
+        }
+        "ResourcePolicy" => {
+            contract.resource_policies.insert(value_local);
+        }
+        "ProjectionTarget" => {
+            contract.projection_targets.insert(value_local);
+        }
+        _ => {}
+    }
+}
+
+fn extract_contracts(store: &Store, diagnostics: &mut Vec<Diagnostic>) -> Vec<ReasoningContract> {
+    let mut contracts: Vec<ReasoningContract> = Vec::new();
     let mut seen: HashSet<String> = HashSet::new();
 
-    let profile_class = Term::NamedNode(nn(&logic_iri("SemanticProfile")));
-    for individual in subjects_with(store, &nn(RDF_TYPE), &profile_class) {
+    // Subjects typed logic:ReasoningContract OR logic:ReasoningPreset.
+    let mut subjects: Vec<NamedOrBlankNode> = Vec::new();
+    for class_local in ["ReasoningContract", "ReasoningPreset"] {
+        let class_term = Term::NamedNode(nn(&logic_iri(class_local)));
+        subjects.extend(subjects_with(store, &nn(RDF_TYPE), &class_term));
+    }
+
+    for individual in subjects {
         let iri_str = subject_str(&individual);
-        let local = iri_str.strip_prefix(LOGIC_NAMESPACE);
-        let profile_id = local.and_then(SemanticProfileId::from_local);
-        let Some(profile_id) = profile_id else {
-            diagnostics.push(Diagnostic::warning(
-                "UNKNOWN_PROFILE",
-                format!(
-                    "{iri_str:?} is declared as logic:SemanticProfile but is not a \
-                     recognised named individual; skipped"
-                ),
-                Some(iri_str.clone()),
-            ));
-            continue;
-        };
         if !seen.insert(iri_str.clone()) {
             continue;
         }
 
-        let complexity_node = value(store, &individual, &nn(&logic_iri("complexityClass")));
-        let mut complexity: Option<ComplexityClass> = None;
-        if let Some(cn) = complexity_node {
+        let mut contract = ReasoningContract::new();
+
+        // If it is a recognised preset, record its preset id; an unrecognised
+        // preset is a hard-skip with a diagnostic (behaviour-preserving).
+        let is_preset = contains(
+            store,
+            &individual,
+            &nn(RDF_TYPE),
+            &Term::NamedNode(nn(&logic_iri("ReasoningPreset"))),
+        );
+        if is_preset {
+            let preset = iri_str
+                .strip_prefix(LOGIC_NAMESPACE)
+                .and_then(SemanticProfileId::from_local);
+            match preset {
+                Some(p) => contract.preset = Some(p),
+                None => {
+                    diagnostics.push(Diagnostic::warning(
+                        "UNKNOWN_PROFILE",
+                        format!(
+                            "{iri_str:?} is declared as logic:ReasoningPreset but is not a \
+                             recognised named individual; skipped"
+                        ),
+                        Some(iri_str.clone()),
+                    ));
+                    continue;
+                }
+            }
+        }
+
+        // Direct facet properties + the expandsToFacet bundle. Every object is a
+        // facet value individual; route it by its rdf:type facet-class.
+        for prop_local in FACET_PROPERTIES {
+            for value_term in objects(store, &individual, &nn(&logic_iri(prop_local))) {
+                let value_iri = term_str(&value_term);
+                let value_local = value_iri
+                    .strip_prefix(LOGIC_NAMESPACE)
+                    .unwrap_or(&value_iri)
+                    .to_owned();
+                match facet_class_of(store, &value_iri) {
+                    Some(facet_class) => {
+                        route_facet_value(&mut contract, &facet_class, value_local)
+                    }
+                    None => diagnostics.push(Diagnostic::warning(
+                        "UNKNOWN_PROFILE",
+                        format!(
+                            "{iri_str:?} references {value_iri:?} via logic:{prop_local}, but it \
+                             is not a recognised facet value; ignored"
+                        ),
+                        Some(iri_str.clone()),
+                    )),
+                }
+            }
+        }
+
+        // Closure entries: logic:closureEntry → ClosureEntry node with
+        // logic:closureKey (string) + logic:closureValue (ClosureValue individual).
+        for entry_term in objects(store, &individual, &nn(&logic_iri("closureEntry"))) {
+            let Some(entry_node) = term_as_subject(&entry_term) else {
+                continue;
+            };
+            let key =
+                value(store, &entry_node, &nn(&logic_iri("closureKey"))).map(|t| term_str(&t));
+            let val = value(store, &entry_node, &nn(&logic_iri("closureValue"))).map(|t| {
+                let v = term_str(&t);
+                v.strip_prefix(LOGIC_NAMESPACE).unwrap_or(&v).to_owned()
+            });
+            if let (Some(key), Some(val)) = (key, val) {
+                contract.closure_entries.insert(key, val);
+            }
+        }
+
+        // Carried decidability data (reviewer B2): logic:complexityClass.
+        if let Some(cn) = value(store, &individual, &nn(&logic_iri("complexityClass"))) {
             let label = term_str(&cn).trim().to_owned();
             match ComplexityClass::new(label.clone()) {
-                Ok(cc) => complexity = Some(cc),
+                Ok(cc) => contract.complexity = Some(cc),
                 Err(_) => diagnostics.push(Diagnostic::warning(
                     "INVALID_COMPLEXITY_CLASS",
                     format!(
@@ -399,10 +559,10 @@ fn extract_profiles(store: &Store, diagnostics: &mut Vec<Diagnostic>) -> Vec<Log
             }
         }
 
-        profiles.push(LogicProfile::new(profile_id, complexity));
+        contracts.push(contract);
     }
 
-    profiles
+    contracts
 }
 
 // --------------------------------------------------------------------------- //
@@ -601,10 +761,10 @@ pub fn parse_logic_store(
         }
     }
 
-    let profiles = extract_profiles(store, &mut diagnostics);
+    let contracts = extract_contracts(store, &mut diagnostics);
     let rules = extract_rules(store, &mut diagnostics);
 
-    let program = LogicProgram::new(all_axioms, rules, profiles, source_iri);
+    let program = LogicProgram::new(all_axioms, rules, contracts, source_iri);
     Ok((program, diagnostics))
 }
 

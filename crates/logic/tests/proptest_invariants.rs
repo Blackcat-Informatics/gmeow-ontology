@@ -120,7 +120,7 @@ proptest! {
         let rebuilt = LogicProgram::new(
             program.axioms.clone(),
             program.rules.clone(),
-            program.profiles.clone(),
+            program.contracts.clone(),
             program.source_iri.clone(),
         );
         prop_assert_eq!(program.canonical_key(), rebuilt.canonical_key());

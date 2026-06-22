@@ -56,7 +56,7 @@ pub fn build_projection_report(
     g.add_lit(
         &report_iri,
         &logic("profileCount"),
-        int_literal(program.profiles.len()),
+        int_literal(program.contracts.len()),
     );
 
     // Targets in sorted order (the Python `sorted(projections, key=target)`).
