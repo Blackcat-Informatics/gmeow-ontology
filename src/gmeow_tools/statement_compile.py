@@ -216,9 +216,10 @@ def compile_diagnostics_report(
     The dev-gate surface entry (folded into the feedback bundle): it emits the OWL
     downcast, runs the native statement-metadata invariants and the native RDF-1.2
     round-trip lossless check, and unions their findings. Both checks are
-    Rust-backed (``gmeow_validate``); this Python is the thin surface. A hard
-    failure before the checks (DSL load, projection) is itself surfaced as a single
-    ``statement-compile.failed`` error finding so nothing terminates on stderr.
+    Rust-backed (``gmeow_validate``); this Python is the thin surface. A
+    ``CompileError`` from the DSL→OWL compile is surfaced as a single
+    ``statement-compile.dsl-error`` finding; any other failure is unexpected and
+    propagates (no-optionality — never swallowed into a soft finding).
     """
     from gmeow_validate import check_statement_invariants
 
@@ -239,14 +240,17 @@ def compile_diagnostics_report(
             _write_ttl(owl, owl_tmp, _OWL_BANNER)
             _project_to_rdf12(owl_tmp, rdf12_tmp)
             report.extend(lossless_report(owl, rdf12_tmp))
-    except Exception as exc:
-        # Surface any failure (DSL load, projection) as a finding — the artifact
-        # builder must never abort the bundle on one surface erroring.
+    except CompileError as exc:
+        # The DSL→OWL compile is the one EXPECTED structured error this surface
+        # exists to report — emit it as a finding (mirrors mapping_compile). Any
+        # OTHER failure (missing input, projection error, native crash) is
+        # unexpected and MUST hard-fail rather than be swallowed here
+        # (no-optionality doctrine).
         report.add(
             diagnostics.finding(
                 severity="error",
-                code=f"{tool}.failed",
-                message=f"statement compile diagnostics failed: {exc}",
+                code=f"{tool}.dsl-error",
+                message=str(exc),
                 tool=tool,
             )
         )
