@@ -48,7 +48,7 @@
 //! would have to be unwound next phase.
 #![allow(dead_code)]
 
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 
 use oxigraph::model::{NamedNode, Term};
 
@@ -137,6 +137,12 @@ impl Fact {
 pub(crate) struct FactStore {
     facts: Vec<Fact>,
     keys: HashSet<FactKey>,
+    /// Predicate surface (`predicate.as_str()`, the same component `Fact::key`
+    /// uses) → row indices into `facts`, in insertion order.  Maintained in
+    /// lockstep with `facts` so each bucket's order equals insertion order; this
+    /// lets the join scan only the rows for a constant-predicate atom while
+    /// returning exactly the subsequence (same relative order) a full scan would.
+    predicate_index: HashMap<String, Vec<usize>>,
 }
 
 impl FactStore {
@@ -145,6 +151,7 @@ impl FactStore {
         Self {
             facts: Vec::new(),
             keys: HashSet::new(),
+            predicate_index: HashMap::new(),
         }
     }
 
@@ -155,7 +162,14 @@ impl FactStore {
             return false;
         }
         self.keys.insert(key);
+        let predicate = fact.predicate.as_str().to_owned();
         self.facts.push(fact);
+        // Push the new row index in lockstep with `facts`, preserving insertion
+        // order within the predicate bucket (only on a successful insert).
+        self.predicate_index
+            .entry(predicate)
+            .or_default()
+            .push(self.facts.len() - 1);
         true
     }
 
@@ -172,6 +186,14 @@ impl FactStore {
     /// The facts in insertion order.
     pub(crate) fn facts(&self) -> &[Fact] {
         &self.facts
+    }
+
+    /// Row indices (into [`facts`](Self::facts), insertion-ordered) of facts whose
+    /// predicate surface (`predicate.as_str()`) equals `pred`; empty slice if none.
+    pub(crate) fn facts_for_predicate(&self, pred: &str) -> &[usize] {
+        self.predicate_index
+            .get(pred)
+            .map_or(&[][..], Vec::as_slice)
     }
 }
 
@@ -507,8 +529,17 @@ fn join_body(
 
     for atom in positive {
         let mut next: Vec<Solution> = Vec::new();
+        // `EvalAtom::predicate` is a constant `NamedNode` (the gmeow `.rls`
+        // fragment never has a variable predicate), so the predicate bucket is
+        // always the exact set to scan.  The bucket is insertion-ordered, so this
+        // yields the identical matched subsequence (and `source_facts`) as the
+        // full `store.facts()` scan filtered by predicate equality — byte-safe.
+        // The `delta×full` position-decomposition is deliberately NOT used (it
+        // reorders first-wins for self-join rules → changes provenance).
+        let bucket = store.facts_for_predicate(atom.predicate.as_str());
         for sol in &solutions {
-            for f in store.facts() {
+            for &i in bucket {
+                let f = &store.facts()[i];
                 if let Some(mut merged) = match_atom(atom, f, sol) {
                     merged.source_facts.push(f.clone());
                     next.push(merged);
