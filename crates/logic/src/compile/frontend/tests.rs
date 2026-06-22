@@ -237,6 +237,72 @@ fn probabilistic_measure_with_declared_model_is_supported() {
     );
 }
 
+// ── Meta-config does not leak into domain axioms (#767, Gap 1) ───────────────
+
+#[test]
+fn contract_facet_config_does_not_leak_into_domain_axioms() {
+    // A logic:ReasoningPreset's facet-config triples (expandsToFacet, defaultClosure,
+    // …) are contract configuration consumed by extract_contracts — they MUST NOT
+    // surface as domain LogicAxioms (which would pollute the Datalog / N3 / ledger
+    // projections). A genuine domain triple alongside them still survives.
+    let (prog, diags) = parse(
+        "logic:PositiveHornProfile a logic:ReasoningPreset ;
+            logic:expandsToFacet logic:ProceduralExecution ;
+            logic:defaultClosure logic:OpenWorldClosure .
+         logic:ProceduralExecution a logic:ResourcePolicy .
+         logic:OpenWorldClosure a logic:ClosureValue .
+         ex:Bird logic:subClassOf ex:Animal .",
+    );
+    assert!(diags.is_empty(), "unexpected diagnostics: {diags:?}");
+
+    // The genuine domain triple survives.
+    assert!(
+        prog.axioms
+            .iter()
+            .any(|a| a.subject.ends_with("/Bird") && a.predicate.ends_with("subClassOf")),
+        "domain axiom must survive; got: {:?}",
+        prog.axioms
+    );
+
+    // ZERO facet-config axioms leaked.
+    assert!(
+        !prog
+            .axioms
+            .iter()
+            .any(|a| a.predicate.ends_with("expandsToFacet")
+                || a.predicate.ends_with("defaultClosure")),
+        "no facet-config triple may leak into prog.axioms; got: {:?}",
+        prog.axioms
+    );
+}
+
+// ── Malformed ClosureEntry hard-fail (#767, Gap 4) ───────────────────────────
+
+#[test]
+fn closure_entry_missing_value_is_a_hard_error() {
+    // A closureEntry node missing logic:closureValue is malformed: emit a
+    // MALFORMED_CLOSURE_ENTRY Severity::Error so the compile report is not ok,
+    // never a silent skip.
+    let (_, diags) = parse(
+        "ex:BadClosure a logic:ReasoningContract ;
+            logic:closureEntry [
+                a logic:ClosureEntry ;
+                logic:closureKey \"ex:pred\"
+            ] .",
+    );
+    assert!(
+        diags
+            .iter()
+            .any(|d| d.code == "MALFORMED_CLOSURE_ENTRY" && d.severity == Severity::Error),
+        "a closureEntry missing closureValue must be a hard error; got: {diags:?}"
+    );
+    let report = diagnostics_report(&diags);
+    assert!(
+        !report.ok(),
+        "a malformed closure entry must make the compile report not ok"
+    );
+}
+
 // ── Axioms ───────────────────────────────────────────────────────────────────
 
 #[test]

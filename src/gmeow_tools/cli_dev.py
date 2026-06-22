@@ -2644,12 +2644,25 @@ def certify(
                 sibling_data = json.loads(sibling.read_text(encoding="utf-8"))
             except (OSError, json.JSONDecodeError) as exc:
                 raise _fail(f"✗ certify: cannot read {sibling}: {exc}") from exc
-            if isinstance(sibling_data, dict):
+            if isinstance(sibling_data, dict) and "reasoning_contract" in sibling_data:
                 # #767: the contract preset lives under reasoning_contract.preset
                 # (the retired top-level semantic_profile key is gone).
-                contract = sibling_data.get("reasoning_contract")
-                if isinstance(contract, dict) and "preset" in contract:
-                    profile_str = str(contract["preset"])
+                #
+                # Mirror the Rust authority's hard-fail (#767, Gap 5): a PRESENT
+                # reasoning_contract that is not an object with a string `preset` is
+                # malformed and must hard-fail, never silently fall through to the
+                # default preset.  Absence stays the PositiveHornProfile fallback.
+                contract = sibling_data["reasoning_contract"]
+                if (
+                    not isinstance(contract, dict)
+                    or "preset" not in contract
+                    or not isinstance(contract["preset"], str)
+                ):
+                    raise _fail(
+                        f"✗ certify: malformed reasoning_contract in {sibling}: "
+                        "expected an object with a string 'preset'"
+                    )
+                profile_str = contract["preset"]
 
     if profile_str not in _valid_profiles:
         raise _fail(

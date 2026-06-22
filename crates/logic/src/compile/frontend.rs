@@ -222,8 +222,41 @@ fn scope_from_node(
 // Axiom extraction
 // --------------------------------------------------------------------------- //
 
+/// The set of `logic:` predicate-local names that carry reasoning-contract /
+/// preset / closure *meta-configuration* (#767, Gap 1).  When such a predicate's
+/// subject is a `logic:ReasoningContract` / `logic:ReasoningPreset` /
+/// `logic:ClosureEntry` node, the triple is contract configuration consumed by
+/// [`extract_contracts`] — NOT a domain fact — and must NOT leak into `prog.axioms`
+/// (where it would pollute the Datalog / N3 / ledger projections).
+fn is_facet_config_predicate(prop_local: &str) -> bool {
+    FACET_PROPERTIES.contains(&prop_local)
+        || matches!(
+            prop_local,
+            "closureEntry" | "closureKey" | "closureValue" | "complexityClass"
+        )
+}
+
+/// Collect the IRIs / blank-node ids of every subject typed
+/// `logic:ReasoningContract`, `logic:ReasoningPreset`, OR `logic:ClosureEntry`.
+/// These are the meta-configuration nodes whose facet-config triples must be kept
+/// out of the domain axiom set (#767, Gap 1).
+fn collect_contract_config_subjects(store: &Store) -> HashSet<String> {
+    let mut subjects: HashSet<String> = HashSet::new();
+    for class_local in ["ReasoningContract", "ReasoningPreset", "ClosureEntry"] {
+        let class_term = Term::NamedNode(nn(&logic_iri(class_local)));
+        for subj in subjects_with(store, &nn(RDF_TYPE), &class_term) {
+            subjects.insert(subject_str(&subj));
+        }
+    }
+    subjects
+}
+
 fn extract_axioms(store: &Store, diagnostics: &mut Vec<Diagnostic>) -> Vec<LogicAxiom> {
     let mut axioms: Vec<LogicAxiom> = Vec::new();
+
+    // Meta-config subjects (contracts / presets / closure entries): facet-config
+    // triples on these are contract configuration, not domain facts (#767, Gap 1).
+    let config_subjects = collect_contract_config_subjects(store);
 
     // 1. Triples with a logic: predicate (excluding rdf:type).
     for quad in default_graph_quads(store) {
@@ -233,6 +266,14 @@ fn extract_axioms(store: &Store, diagnostics: &mut Vec<Diagnostic>) -> Vec<Logic
         }
         if p_str == RDF_TYPE {
             continue; // unreachable (rdf:type is not logic:) but mirrors Python.
+        }
+        // Skip contract/preset/closure facet-config triples: they are consumed by
+        // extract_contracts and must not pollute the domain axiom set.
+        let p_local = &p_str[LOGIC_NAMESPACE.len()..];
+        if is_facet_config_predicate(p_local)
+            && config_subjects.contains(&subject_str(&quad.subject))
+        {
+            continue;
         }
         match LogicAxiom::new(
             subject_str(&quad.subject),
@@ -604,7 +645,21 @@ fn extract_contracts(store: &Store, diagnostics: &mut Vec<Diagnostic>) -> Vec<Re
         // Closure entries: logic:closureEntry → ClosureEntry node with
         // logic:closureKey (string) + logic:closureValue (ClosureValue individual).
         for entry_term in objects(store, &individual, &nn(&logic_iri("closureEntry"))) {
+            // HARD verdict (#767, Gap 4): a malformed closure entry — a non-node
+            // object, or a node missing logic:closureKey / logic:closureValue — is a
+            // Severity::Error (consistent with UNSUPPORTED_CONTRACT above), never a
+            // silent skip, so the compile Report is not ok.
             let Some(entry_node) = term_as_subject(&entry_term) else {
+                diagnostics.push(Diagnostic::error(
+                    "MALFORMED_CLOSURE_ENTRY",
+                    format!(
+                        "reasoning contract {iri_str:?} has a logic:closureEntry whose object \
+                         {:?} is not a node (expected a logic:ClosureEntry with logic:closureKey \
+                         + logic:closureValue)",
+                        term_str(&entry_term)
+                    ),
+                    Some(iri_str.clone()),
+                ));
                 continue;
             };
             let key =
@@ -613,8 +668,29 @@ fn extract_contracts(store: &Store, diagnostics: &mut Vec<Diagnostic>) -> Vec<Re
                 let v = term_str(&t);
                 v.strip_prefix(LOGIC_NAMESPACE).unwrap_or(&v).to_owned()
             });
-            if let (Some(key), Some(val)) = (key, val) {
-                contract.closure_entries.insert(key, val);
+            match (key, val) {
+                (Some(key), Some(val)) => {
+                    contract.closure_entries.insert(key, val);
+                }
+                (key, val) => {
+                    let mut missing: Vec<&str> = Vec::new();
+                    if key.is_none() {
+                        missing.push("logic:closureKey");
+                    }
+                    if val.is_none() {
+                        missing.push("logic:closureValue");
+                    }
+                    diagnostics.push(Diagnostic::error(
+                        "MALFORMED_CLOSURE_ENTRY",
+                        format!(
+                            "reasoning contract {iri_str:?} has a logic:closureEntry node \
+                             {:?} missing {}",
+                            subject_str(&entry_node),
+                            missing.join(" + ")
+                        ),
+                        Some(iri_str.clone()),
+                    ));
+                }
             }
         }
 

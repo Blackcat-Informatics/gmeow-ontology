@@ -30,6 +30,21 @@ fn logic(local: &str) -> String {
     format!("{LOGIC_NS}{local}")
 }
 
+/// Resolve a facet *value* to its emitted IRI. The open facet-value vocabulary
+/// (#767, Gap 3) admits values that are already full custom IRIs (not under the
+/// `logic:` namespace); these must be emitted verbatim, not re-prefixed (which
+/// would yield a corrupt `…/logic/https://…`). A bare local name is prefixed under
+/// the `logic:` namespace. This is symmetric with the front-end storage convention
+/// (`strip_prefix(LOGIC_NAMESPACE).unwrap_or(full_iri)`), so a custom IRI
+/// round-trips identically.
+fn facet_value_iri(value: &str) -> String {
+    if value.starts_with("http://") || value.starts_with("https://") {
+        value.to_owned()
+    } else {
+        logic(value)
+    }
+}
+
 // --------------------------------------------------------------------------- //
 // Projection-side mapping tables (the authoritative logic: → OWL/gUFO maps)
 // --------------------------------------------------------------------------- //
@@ -626,7 +641,7 @@ fn project_contract(
     ];
     for (prop, value) in singletons {
         if let Some(v) = value {
-            g.add_iri(&node, &logic(prop), &logic(v));
+            g.add_iri(&node, &logic(prop), &facet_value_iri(v));
         }
     }
 
@@ -640,7 +655,7 @@ fn project_contract(
     ];
     for (prop, members) in sets {
         for member in members {
-            g.add_iri(&node, &logic(prop), &logic(member));
+            g.add_iri(&node, &logic(prop), &facet_value_iri(member));
         }
     }
 
@@ -655,7 +670,7 @@ fn project_contract(
             &logic("closureKey"),
             Literal::new_simple_literal(key),
         );
-        g.add_iri(&entry, &logic("closureValue"), &logic(val));
+        g.add_iri(&entry, &logic("closureValue"), &facet_value_iri(val));
     }
 
     // Carried decidability data.

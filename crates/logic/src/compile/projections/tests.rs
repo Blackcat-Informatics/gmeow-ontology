@@ -256,6 +256,33 @@ fn contract_round_trip_anonymous_faceted_contract() {
 }
 
 #[test]
+fn contract_round_trip_custom_iri_facet_value() {
+    // #767, Gap 3: the open facet-value vocabulary admits a value that is a full
+    // CUSTOM IRI (not under the logic: namespace). The projection must emit it
+    // verbatim (never re-prefixed to a corrupt `…/logic/https://…`) and storage
+    // must keep the full IRI, so project → reparse round-trips identically.
+    let mut original = ReasoningContract::new();
+    original.model_semantics = Some("https://example.org/MyModelSemantics".to_owned());
+
+    let program = LogicProgram::new(vec![], vec![], vec![original.clone()], None);
+    let reparsed = reparse_canonical(&program);
+
+    assert_eq!(reparsed.contracts.len(), 1);
+    let got = &reparsed.contracts[0];
+    assert_eq!(
+        got.model_semantics.as_deref(),
+        Some("https://example.org/MyModelSemantics"),
+        "custom-IRI facet value must round-trip verbatim (no double-prefix)"
+    );
+    assert_eq!(
+        got.sort_key(),
+        original.sort_key(),
+        "custom-IRI facet value contract sort_key must round-trip exactly"
+    );
+    assert_eq!(*got, original);
+}
+
+#[test]
 fn contract_round_trip_passes_ir_isomorphism_gate_on_contracts() {
     // Reviewer B1: exercise the IR-isomorphism gate's CONTRACT branch with a
     // NON-empty contract set (the adapter fixtures only ever carry empty
