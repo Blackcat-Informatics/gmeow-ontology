@@ -27,6 +27,7 @@ from gts.wire import iter_items, unwrap_header
 
 from gmeow_tools.config import (
     GTS_GRAPH_ALIGNMENTS,
+    GTS_GRAPH_DOCUMENTATION,
     GTS_GRAPH_IMPORTS,
     GTS_GRAPH_METADATA,
     GTS_GRAPH_SLICE_ANALYSIS,
@@ -227,6 +228,7 @@ def test_snapshot_partitions_sources_into_named_graphs() -> None:
         GTS_GRAPH_METADATA,
         GTS_GRAPH_VERIFY,
         GTS_GRAPH_SLICE_ANALYSIS,
+        GTS_GRAPH_DOCUMENTATION,
     }
 
     default_quads = sum(1 for q in g.quads if q[3] is None)
