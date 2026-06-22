@@ -216,7 +216,9 @@ impl DerivationGraph {
     /// support across *distinct* facts is allowed (and correctly handled by
     /// [`DerivationGraph::survives`]).
     pub fn add_derivation(&mut self, fact: FactKey, app: RuleApplication) -> Result<(), String> {
-        if app.premises.contains(&fact) {
+        // `premises` is sorted (RuleApplication::new), so a binary search is the
+        // correct membership test for the self-attestation guard.
+        if app.premises.binary_search(&fact).is_ok() {
             return Err(format!(
                 "self-attestation: fact <{}> cannot be a premise of its own \
                  derivation (rule <{}>)",
@@ -250,7 +252,7 @@ impl DerivationGraph {
     ) -> Result<(), String> {
         let apps: Vec<RuleApplication> = apps.into_iter().collect();
         for app in &apps {
-            if app.premises.contains(fact) {
+            if app.premises.binary_search(fact).is_ok() {
                 return Err(format!(
                     "self-attestation: fact <{}> cannot be a premise of its own \
                      derivation (rule <{}>)",
