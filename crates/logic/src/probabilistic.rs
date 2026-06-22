@@ -841,4 +841,92 @@ mod tests {
         let err = evaluate(&store, WORLD, &prog, PROFILE).unwrap_err();
         assert!(err.contains("sum to 1"), "unexpected error: {err}");
     }
+
+    // ── SIMD bit-identity probe: power_set_weights matches independent scalar ──
+    //
+    // Acceptance criterion: for every n in 0..=20 and every mask in 0..(1<<n),
+    // the SIMD-produced weight is bit-identical (f64::to_bits() equal, max_ulp == 0)
+    // to an independent scalar reference that re-derives the same product in the
+    // same i = 0..n multiply order.
+
+    #[test]
+    fn power_set_weights_simd_bit_identical_to_scalar() {
+        // ── Independent scalar reference ──────────────────────────────────────
+        // Computes, for each mask in 0..(1<<n), the product
+        //   ∏_{i: bit i set} p_i · ∏_{i: bit i clear} (1 - p_i)
+        // iterating i in 0..n order — the SAME multiply order the SIMD lanes use.
+        // This is written from scratch (no call to power_set_weights) so that the
+        // test is a genuine cross-check, not a tautology.
+        let scalar_ref = |items: &[(Fact, f64)]| -> Vec<(u64, f64)> {
+            let n = items.len();
+            let p: Vec<f64> = items.iter().map(|(_, prob)| *prob).collect();
+            let q: Vec<f64> = p.iter().map(|&pi| 1.0 - pi).collect();
+            let total: u64 = 1u64 << n;
+            let mut out = Vec::with_capacity(total as usize);
+            for mask in 0..total {
+                let mut weight = 1.0_f64;
+                for i in 0..n {
+                    if mask & (1u64 << i) != 0 {
+                        weight *= p[i];
+                    } else {
+                        weight *= q[i];
+                    }
+                }
+                out.push((mask, weight));
+            }
+            out
+        };
+
+        // ── Deterministic, non-trivial, varied probabilities ──────────────────
+        // p_i = 0.05 + 0.9 * ((i * 7 + 3) % 19) / 19  — all strictly in (0, 1).
+        // Using 20 as the upper bound covers n = 0..=20 (2^20 ≈ 1.05 M masks).
+        // n = 0 → 1 mask, n = 1 → 2 masks: both fall through to the scalar tail
+        //   (total < LANES = 4 so chunks = 0).
+        // n ≥ 2 → 2^n is a multiple of 4, exercising the full SIMD chunked path.
+        // All n up to 20 are swept to satisfy the issue's acceptance criterion.
+        for n in 0usize..=20 {
+            let items: Vec<(Fact, f64)> = (0..n)
+                .map(|i| {
+                    let raw = 0.05_f64 + 0.9_f64 * ((i * 7 + 3) % 19) as f64 / 19.0_f64;
+                    // Clamp defensively to strict (0, 1) — the formula already satisfies
+                    // this for all i, but explicit clamping documents the intent.
+                    let prob = raw.clamp(f64::MIN_POSITIVE, 1.0_f64 - f64::EPSILON);
+                    let fact: Fact = (
+                        "https://example.org/simd/pred".to_string(),
+                        format!("<https://example.org/simd/s{i}>"),
+                        format!("<https://example.org/simd/o{i}>"),
+                    );
+                    (fact, prob)
+                })
+                .collect();
+
+            let simd_result = power_set_weights(&items);
+            let scalar_result = scalar_ref(&items);
+
+            assert_eq!(
+                simd_result.len(),
+                scalar_result.len(),
+                "n={n}: length mismatch: simd={} scalar={}",
+                simd_result.len(),
+                scalar_result.len()
+            );
+
+            for ((simd_mask, simd_w), (scalar_mask, scalar_w)) in
+                simd_result.iter().zip(scalar_result.iter())
+            {
+                assert_eq!(
+                    simd_mask, scalar_mask,
+                    "n={n} mask={simd_mask}: mask ordering diverged"
+                );
+                assert_eq!(
+                    simd_w.to_bits(),
+                    scalar_w.to_bits(),
+                    "n={n} mask={simd_mask}: SIMD weight {simd_w:?} (bits={:#018x}) \
+                     != scalar weight {scalar_w:?} (bits={:#018x}); max_ulp > 0",
+                    simd_w.to_bits(),
+                    scalar_w.to_bits()
+                );
+            }
+        }
+    }
 }
