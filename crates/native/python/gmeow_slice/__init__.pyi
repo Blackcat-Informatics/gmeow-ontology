@@ -91,3 +91,26 @@ class OwnershipAnalyzer:
         compiler_version: str,
         reasoning_profile: str,
     ) -> str: ...
+
+# ── Module-level functions ─────────────────────────────────────────────────────
+
+def emit_sssom(root: str) -> dict[str, str]:
+    """Emit every SSSOM TSV from the repo at ``root``.
+
+    Returns ``{sssom_file: tsv_text}`` (bare file names), byte-identical to the
+    historical Python emitter (#848). Sources every input natively from ``root``:
+    slice mapping artifacts, the shared ``dsl/mappings/`` tree, the prefix map,
+    and ``metadata/gmeow-self.ttl`` for the version + release date.
+    """
+    ...
+
+def emit_fno(root: str) -> str:
+    """Emit the FnO function catalog from the repo at ``root``.
+
+    Returns the ``functions.fno.ttl`` graph as full-IRI N-Triples text,
+    graph-isomorphic to the historical Python emitter (#848). Sources every input
+    natively from ``root``: the projection functions + cells from the
+    ``dsl/mappings/`` tree + slice mapping artifacts, and each input predicate's
+    ``rdfs:range`` from ``ontology/gmeow.ttl`` + slice module artifacts.
+    """
+    ...

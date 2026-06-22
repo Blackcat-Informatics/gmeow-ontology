@@ -1,96 +1,185 @@
 @prefix align: <http://knowledgeweb.semanticweb.org/heterogeneity/alignment#> .
-@prefix dcterms: <http://purl.org/dc/terms/> .
-@prefix edoal: <http://ns.inria.org/edoal/1.0/#> .
 @prefix geo: <http://www.opengis.net/ont/geosparql#> .
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix edoal: <http://ns.inria.org/edoal/1.0/#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
 
-<https://blackcatinformatics.ca/gmeow/projections/geosparql> a align:Alignment ;
-    rdfs:label "GMEOW → geosparql (EDOAL)"@en ;
+<https://blackcatinformatics.ca/gmeow/projections/geosparql>
+    a align:Alignment ;
     align:level "2EDOAL" ;
-    align:map [ a align:Cell ;
-            rdfs:label "hasCentroid geometry → geo:hasCentroid with WKT"@en ;
-            align:entity1 [ a edoal:Relation ;
-                    edoal:uri gmeow:hasCentroid ] ;
-            align:entity2 [ a edoal:Property ;
-                    edoal:uri geo:hasCentroid ] ;
-            align:relation "=" ;
-            edoal:transformation [ rdfs:seeAlso gmeow:fnRetagWkt ] ],
-        [ a align:Cell ;
-            rdfs:label "CoordinateObservation coordinateResult → geo:Geometry with WKT POINT"@en ;
-            align:entity1 [ a edoal:Class ;
-                    edoal:uri gmeow:CoordinateObservation ] ;
-            align:entity2 [ a edoal:Class ;
-                    edoal:uri geo:Geometry ] ;
+    align:map [
+        a align:Cell ;
+        align:entity1 [
+            a edoal:Relation ;
+            edoal:uri gmeow:asWKT ;
+        ] ;
+        align:entity2 [
+            a edoal:Property ;
+            edoal:uri geo:asWKT ;
+        ] ;
+        align:relation "=" ;
+        edoal:transformation [
+            rdfs:seeAlso gmeow:fnRetagWkt ;
+        ] ;
+        rdfs:label "asWKT literal → geo:asWKT retagged geo:wktLiteral"@en ;
+    ] ,
+        [
+            a align:Cell ;
+            align:entity1 [
+                a edoal:Relation ;
+                edoal:uri gmeow:coarsenTo ;
+            ] ;
+            align:entity2 [
+                a edoal:Class ;
+                edoal:uri geo:Geometry ;
+            ] ;
             align:relation "<=" ;
-            edoal:transformation [ rdfs:seeAlso gmeow:fnLatLongToWktPoint ] ],
-        [ a align:Cell ;
-            rdfs:label "CoordinateObservation geometryResult → geo:hasGeometry with WKT"@en ;
-            align:entity1 [ a edoal:Class ;
-                    edoal:uri gmeow:CoordinateObservation ] ;
-            align:entity2 [ a edoal:Property ;
-                    edoal:uri geo:hasGeometry ] ;
-            align:relation "=" ;
-            edoal:transformation [ rdfs:seeAlso gmeow:fnRetagWkt ] ],
-        [ a align:Cell ;
-            rdfs:label "coarsenTo → enclosing-region GeoJSON (privacy generalization)"@en ;
-            align:entity1 [ a edoal:Relation ;
-                    edoal:uri gmeow:coarsenTo ] ;
-            align:entity2 [ a edoal:Class ;
-                    edoal:uri geo:Geometry ] ;
-            align:relation "<=" ;
-            edoal:transformation [ rdfs:seeAlso gmeow:fnCoarsenToGranularityGeoJson ] ],
-        [ a align:Cell ;
-            rdfs:label "asGeoJSON literal → geo:asGeoJSON retagged geo:geoJSONLiteral"@en ;
-            align:entity1 [ a edoal:Relation ;
-                    edoal:uri gmeow:asGeoJSON ] ;
-            align:entity2 [ a edoal:Property ;
-                    edoal:uri geo:asGeoJSON ] ;
-            align:relation "=" ;
-            edoal:transformation [ rdfs:seeAlso gmeow:fnRetagGeoJson ] ],
-        [ a align:Cell ;
-            rdfs:label "coarsenTo → enclosing-region WKT POINT (privacy generalization)"@en ;
-            align:entity1 [ a edoal:Relation ;
-                    edoal:uri gmeow:coarsenTo ] ;
-            align:entity2 [ a edoal:Class ;
-                    edoal:uri geo:Geometry ] ;
-            align:relation "<=" ;
-            edoal:transformation [ rdfs:seeAlso gmeow:fnCoarsenToGranularity ] ],
-        [ a align:Cell ;
-            rdfs:label "latitude + longitude → geo:Geometry with WKT POINT"@en ;
-            align:entity1 [ a edoal:Class ;
-                    edoal:uri gmeow:GeoCoordinates ] ;
-            align:entity2 [ a edoal:Class ;
-                    edoal:uri geo:Geometry ] ;
-            align:relation "<=" ;
-            edoal:transformation [ rdfs:seeAlso gmeow:fnLatLongToWktPoint ] ],
-        [ a align:Cell ;
-            rdfs:label "pose position (lat/long) → geo:Geometry with WKT POINT"@en ;
-            align:entity1 [ a edoal:Class ;
-                    edoal:uri gmeow:Pose ] ;
-            align:entity2 [ a edoal:Class ;
-                    edoal:uri geo:Geometry ] ;
-            align:relation "<=" ;
-            edoal:transformation [ rdfs:seeAlso gmeow:fnPosePositionToWktPoint ] ],
-        [ a align:Cell ;
+            edoal:transformation [
+                rdfs:seeAlso gmeow:fnCoarsenToGranularity ;
+            ] ;
             rdfs:label "coarsenTo → enclosing-region WKT geometry (privacy generalization)"@en ;
-            align:entity1 [ a edoal:Relation ;
-                    edoal:uri gmeow:coarsenTo ] ;
-            align:entity2 [ a edoal:Class ;
-                    edoal:uri geo:Geometry ] ;
+        ] ,
+        [
+            a align:Cell ;
+            align:entity1 [
+                a edoal:Class ;
+                edoal:uri gmeow:GeoCoordinates ;
+            ] ;
+            align:entity2 [
+                a edoal:Class ;
+                edoal:uri geo:Geometry ;
+            ] ;
             align:relation "<=" ;
-            edoal:transformation [ rdfs:seeAlso gmeow:fnCoarsenToGranularity ] ],
-        [ a align:Cell ;
-            rdfs:label "asWKT literal → geo:asWKT retagged geo:wktLiteral"@en ;
-            align:entity1 [ a edoal:Relation ;
-                    edoal:uri gmeow:asWKT ] ;
-            align:entity2 [ a edoal:Property ;
-                    edoal:uri geo:asWKT ] ;
+            edoal:transformation [
+                rdfs:seeAlso gmeow:fnLatLongToWktPoint ;
+            ] ;
+            rdfs:label "latitude + longitude → geo:Geometry with WKT POINT"@en ;
+        ] ,
+        [
+            a align:Cell ;
+            align:entity1 [
+                a edoal:Relation ;
+                edoal:uri gmeow:coarsenTo ;
+            ] ;
+            align:entity2 [
+                a edoal:Class ;
+                edoal:uri geo:Geometry ;
+            ] ;
+            align:relation "<=" ;
+            edoal:transformation [
+                rdfs:seeAlso gmeow:fnCoarsenToGranularity ;
+            ] ;
+            rdfs:label "coarsenTo → enclosing-region WKT POINT (privacy generalization)"@en ;
+        ] ,
+        [
+            a align:Cell ;
+            align:entity1 [
+                a edoal:Class ;
+                edoal:uri gmeow:Pose ;
+            ] ;
+            align:entity2 [
+                a edoal:Class ;
+                edoal:uri geo:Geometry ;
+            ] ;
+            align:relation "<=" ;
+            edoal:transformation [
+                rdfs:seeAlso gmeow:fnPosePositionToWktPoint ;
+            ] ;
+            rdfs:label "pose position (lat/long) → geo:Geometry with WKT POINT"@en ;
+        ] ,
+        [
+            a align:Cell ;
+            align:entity1 [
+                a edoal:Relation ;
+                edoal:uri gmeow:asGeoJSON ;
+            ] ;
+            align:entity2 [
+                a edoal:Property ;
+                edoal:uri geo:asGeoJSON ;
+            ] ;
             align:relation "=" ;
-            edoal:transformation [ rdfs:seeAlso gmeow:fnRetagWkt ] ] ;
-    align:onto1 [ a align:Ontology ;
-            align:formalism [ align:name "GMEOW" ] ] ;
-    align:onto2 [ a align:Ontology ;
-            align:formalism [ align:name "geosparql" ] ] ;
+            edoal:transformation [
+                rdfs:seeAlso gmeow:fnRetagGeoJson ;
+            ] ;
+            rdfs:label "asGeoJSON literal → geo:asGeoJSON retagged geo:geoJSONLiteral"@en ;
+        ] ,
+        [
+            a align:Cell ;
+            align:entity1 [
+                a edoal:Relation ;
+                edoal:uri gmeow:coarsenTo ;
+            ] ;
+            align:entity2 [
+                a edoal:Class ;
+                edoal:uri geo:Geometry ;
+            ] ;
+            align:relation "<=" ;
+            edoal:transformation [
+                rdfs:seeAlso gmeow:fnCoarsenToGranularityGeoJson ;
+            ] ;
+            rdfs:label "coarsenTo → enclosing-region GeoJSON (privacy generalization)"@en ;
+        ] ,
+        [
+            a align:Cell ;
+            align:entity1 [
+                a edoal:Relation ;
+                edoal:uri gmeow:hasCentroid ;
+            ] ;
+            align:entity2 [
+                a edoal:Property ;
+                edoal:uri geo:hasCentroid ;
+            ] ;
+            align:relation "=" ;
+            edoal:transformation [
+                rdfs:seeAlso gmeow:fnRetagWkt ;
+            ] ;
+            rdfs:label "hasCentroid geometry → geo:hasCentroid with WKT"@en ;
+        ] ,
+        [
+            a align:Cell ;
+            align:entity1 [
+                a edoal:Class ;
+                edoal:uri gmeow:CoordinateObservation ;
+            ] ;
+            align:entity2 [
+                a edoal:Class ;
+                edoal:uri geo:Geometry ;
+            ] ;
+            align:relation "<=" ;
+            edoal:transformation [
+                rdfs:seeAlso gmeow:fnLatLongToWktPoint ;
+            ] ;
+            rdfs:label "CoordinateObservation coordinateResult → geo:Geometry with WKT POINT"@en ;
+        ] ,
+        [
+            a align:Cell ;
+            align:entity1 [
+                a edoal:Class ;
+                edoal:uri gmeow:CoordinateObservation ;
+            ] ;
+            align:entity2 [
+                a edoal:Property ;
+                edoal:uri geo:hasGeometry ;
+            ] ;
+            align:relation "=" ;
+            edoal:transformation [
+                rdfs:seeAlso gmeow:fnRetagWkt ;
+            ] ;
+            rdfs:label "CoordinateObservation geometryResult → geo:hasGeometry with WKT"@en ;
+        ] ;
+    align:onto1 [
+        a align:Ontology ;
+        align:formalism [
+            align:name "GMEOW" ;
+        ] ;
+    ] ;
+    align:onto2 [
+        a align:Ontology ;
+        align:formalism [
+            align:name "geosparql" ;
+        ] ;
+    ] ;
     dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;
-    rdfs:comment "GENERATED by `gmeow regenerate` (mappings) from mapping-dsl/ — DO NOT EDIT."@en .
+    rdfs:comment "GENERATED by `gmeow regenerate` (mappings) from mapping-dsl/ — DO NOT EDIT."@en ;
+    rdfs:label "GMEOW → geosparql (EDOAL)"@en .

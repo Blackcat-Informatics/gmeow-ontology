@@ -15,6 +15,7 @@ routes through the native ``canonicalize_turtle`` (deterministic, dogfooded).
 
 from __future__ import annotations
 
+import builtins
 from collections.abc import Iterable, Iterator
 from pathlib import Path
 from typing import IO, Any, overload
@@ -327,7 +328,7 @@ class Graph:
         self,
         subject: Identifier,
         predicate: Identifier,
-        remember: set[Identifier] | None = None,
+        remember: builtins.set[Identifier] | None = None,
     ) -> Iterator[Identifier]:
         """Yield ``subject`` and every object reachable via ``predicate`` (RDFLib)."""
         if remember is None:
@@ -343,7 +344,7 @@ class Graph:
         self,
         predicate: Identifier,
         object: Identifier,
-        remember: set[Identifier] | None = None,
+        remember: builtins.set[Identifier] | None = None,
     ) -> Iterator[Identifier]:
         """Yield ``object`` and every subject reaching it via ``predicate`` (RDFLib)."""
         if remember is None:

@@ -408,60 +408,95 @@ impl DepGraph {
 /// petgraph). Iterative DFS for deep graphs; node iteration is sorted so the
 /// result is fully deterministic. Mirrors Python `tarjan_scc`.
 pub fn tarjan_scc(graph: &BTreeMap<String, Vec<String>>) -> Vec<BTreeSet<String>> {
+    use crate::dense::DenseInterner;
+
+    // Lowered to dense `u32` ids (#823): all per-node Tarjan state lives in dense
+    // arrays keyed by id, and successor lists are precomputed `Vec<u32>`.
+    //
+    // DETERMINISM CONTRACT: the result order is driven by the DFS-root iteration
+    // order, which MUST stay sorted-IRI order (the old `graph.keys()` order). A
+    // first-seen interner would assign ids in discovery order, so we pre-intern
+    // every vertex in sorted-key order up front; that fixes id == sorted-key rank
+    // for declared vertices and makes root iteration over `0..n_keys` equivalent
+    // to iterating `graph.keys()`. Successor IRIs that are not graph keys (sinks)
+    // are interned lazily and never enter the root loop. Successor ORDER is
+    // preserved exactly (no sort): the `Vec<String>` order maps straight through.
+    let mut interner = DenseInterner::new();
+    // (1) Intern declared vertices in sorted-key order → ids 0..n_keys match the
+    //     old sorted root-iteration order exactly.
+    let n_keys = graph.len();
+    for key in graph.keys() {
+        interner.intern(key);
+    }
+    // (2) Build dense successor lists, interning any sink IRIs (ids ≥ n_keys).
+    //     `succ[id]` is `None` for sink-only ids (no outgoing edges declared).
+    let mut succ: Vec<Vec<u32>> = vec![Vec::new(); n_keys];
+    for (key, outs) in graph {
+        let id = interner.get(key).expect("declared key interned") as usize;
+        succ[id] = outs.iter().map(|o| interner.intern(o)).collect();
+    }
+    let n = interner.len();
+    // Sink ids (≥ n_keys) have no successor list; treat as empty.
+    let successors_of = |id: usize| -> &[u32] {
+        if id < n_keys {
+            &succ[id]
+        } else {
+            &[]
+        }
+    };
+
+    const UNVISITED: usize = usize::MAX;
     let mut index_counter: usize = 0;
-    let mut stack: Vec<String> = Vec::new();
-    let mut on_stack: HashSet<String> = HashSet::new();
-    let mut indices: HashMap<String, usize> = HashMap::new();
-    let mut low: HashMap<String, usize> = HashMap::new();
+    let mut indices: Vec<usize> = vec![UNVISITED; n];
+    let mut low: Vec<usize> = vec![0; n];
+    let mut on_stack: Vec<bool> = vec![false; n];
+    let mut stack: Vec<u32> = Vec::new();
     let mut result: Vec<BTreeSet<String>> = Vec::new();
 
-    // Sorted node iteration → deterministic SCC numbering (matches Python).
-    let vertices: Vec<String> = graph.keys().cloned().collect();
-
-    for start in &vertices {
-        if indices.contains_key(start) {
+    // Roots iterated in sorted-IRI order (== id order for declared keys 0..n_keys).
+    for start in 0..n_keys {
+        if indices[start] != UNVISITED {
             continue;
         }
-        // Iterative DFS: each frame is (node, next-child-index).
-        let mut work: Vec<(String, usize)> = vec![(start.clone(), 0)];
-        while let Some((node, child_idx)) = work.last().cloned() {
+        // Iterative DFS: each frame is (node id, next-child-index).
+        let mut work: Vec<(u32, usize)> = vec![(start as u32, 0)];
+        while let Some(&(node, child_idx)) = work.last() {
+            let node = node as usize;
             if child_idx == 0 {
-                indices.insert(node.clone(), index_counter);
-                low.insert(node.clone(), index_counter);
+                indices[node] = index_counter;
+                low[node] = index_counter;
                 index_counter += 1;
-                stack.push(node.clone());
-                on_stack.insert(node.clone());
+                stack.push(node as u32);
+                on_stack[node] = true;
             }
-            let successors = graph.get(&node).cloned().unwrap_or_default();
+            let outs = successors_of(node);
             let mut recursed = false;
             let mut i = child_idx;
-            while i < successors.len() {
-                let succ = &successors[i];
-                if !indices.contains_key(succ) {
-                    // Advance this frame past `succ`, then descend into it.
+            while i < outs.len() {
+                let s = outs[i] as usize;
+                if indices[s] == UNVISITED {
+                    // Advance this frame past `s`, then descend into it.
                     let len = work.len();
-                    work[len - 1] = (node.clone(), i + 1);
-                    work.push((succ.clone(), 0));
+                    work[len - 1] = (node as u32, i + 1);
+                    work.push((s as u32, 0));
                     recursed = true;
                     break;
                 }
-                if on_stack.contains(succ) {
-                    let succ_index = indices[succ];
-                    let entry = low.get_mut(&node).expect("low set on push");
-                    *entry = (*entry).min(succ_index);
+                if on_stack[s] {
+                    low[node] = low[node].min(indices[s]);
                 }
                 i += 1;
             }
             if recursed {
                 continue;
             }
-            if low[&node] == indices[&node] {
+            if low[node] == indices[node] {
                 let mut component: BTreeSet<String> = BTreeSet::new();
                 loop {
-                    let w = stack.pop().expect("stack non-empty while closing SCC");
-                    on_stack.remove(&w);
+                    let w = stack.pop().expect("stack non-empty while closing SCC") as usize;
+                    on_stack[w] = false;
                     let done = w == node;
-                    component.insert(w);
+                    component.insert(interner.resolve(w as u32).to_owned());
                     if done {
                         break;
                     }
@@ -469,10 +504,9 @@ pub fn tarjan_scc(graph: &BTreeMap<String, Vec<String>>) -> Vec<BTreeSet<String>
                 result.push(component);
             }
             work.pop();
-            if let Some((parent, _)) = work.last().cloned() {
-                let node_low = low[&node];
-                let entry = low.get_mut(&parent).expect("parent low set on push");
-                *entry = (*entry).min(node_low);
+            if let Some(&(parent, _)) = work.last() {
+                let node_low = low[node];
+                low[parent as usize] = low[parent as usize].min(node_low);
             }
         }
     }

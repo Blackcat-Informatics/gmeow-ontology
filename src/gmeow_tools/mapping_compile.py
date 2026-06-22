@@ -21,7 +21,6 @@ from __future__ import annotations
 
 import concurrent.futures
 import inspect
-import io
 import json
 import os
 import re
@@ -31,12 +30,12 @@ from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
 
-import sssom
+import gmeow_rdf
+import gmeow_slice
 from gmeow_rdf.compat.rdflib import RDF, RDFS, SKOS, BNode, Graph, Literal, URIRef
 from gmeow_rdf.compat.rdflib.collection import Collection
 from gmeow_rdf.compat.rdflib.namespace import Namespace
 from gmeow_rdf.compat.rdflib.term import Node
-from sssom.validators import validate
 
 from gmeow_tools.config import (
     MAPPING_DSL_DIR,
@@ -55,7 +54,6 @@ from gmeow_tools.mapping_dsl import (
     CompileError,
     Dsl,
     MappingPattern,
-    MappingSet,
     OptionalGroup,
     ProfileBinding,
     ProjectionCell,
@@ -69,12 +67,9 @@ from gmeow_tools.projection_lint import (
     fno_type_mismatches,
     projection_spec_drift,
 )
-from gmeow_tools.self_desc import load_self_description
 from gmeow_tools.slices import iter_slice_mapping_files
 
 GM = Namespace(PREFIXES["gmeow"])
-FNO = Namespace(PREFIXES["fno"])
-FNOM = Namespace(PREFIXES["fnom"])
 ALIGN = Namespace(PREFIXES["align"])
 EDOAL = Namespace(PREFIXES["edoal"])
 DCTERMS = Namespace(PREFIXES["dcterms"])
@@ -176,144 +171,33 @@ def _local(iri: URIRef) -> str:
     return text[cut + 1 :] if cut >= 0 else text
 
 
-def _param_iri(predicate: URIRef) -> URIRef:
-    local = _local(predicate)
-    return URIRef(GM + "param" + local[:1].upper() + local[1:])
-
-
-def _output_iri(fn: URIRef) -> URIRef:
-    local = _local(fn)
-    stem = local[2:] if local.startswith("fn") else local
-    return URIRef(GM + "out" + stem)
-
-
 def emit_fno(dsl: Dsl, onto: Graph) -> Graph:
-    """Render the FnO function catalog; param fno:type derived from rdfs:range."""
+    """Render the FnO function catalog (param fno:type derived from rdfs:range).
+
+    FnO emission is now wholly native (#848): the entire emitter lives in the Rust
+    slice framework (``gmeow_slice.emit_fno`` → ``crates/slice/src/fno_emit.rs``),
+    which sources every input from the repo itself — the projection functions +
+    cells from the slice ``mappings/*.ttl`` artifacts and the shared
+    ``dsl/mappings/`` tree, and each input predicate's ``rdfs:range`` from
+    ``ontology/gmeow.ttl`` + the slice ``module.ttl`` artifacts (the
+    ``load_merged_graph`` source set). Python passes only the repo root; the ``dsl``
+    and ``onto`` arguments are accepted for call-site compatibility but are no
+    longer read (the native emitter rediscovers the same sources). The fail-closed
+    ``fno:type`` guard (an input predicate with no ontology range is a hard error)
+    is reproduced natively.
+
+    The native emitter returns the FnO graph as full-IRI N-Triples; this wrapper
+    re-parses it into a fresh rdflib :class:`Graph` (so the downstream
+    ``projection_lint`` reads + the Turtle writer are unchanged) and binds the
+    canonical prefixes as the old code did. The result is graph-isomorphic to the
+    historical Python emitter.
+    """
+    del dsl, onto  # Sourced natively from PROJECT_ROOT; see the docstring.
+    ntriples = gmeow_slice.emit_fno(str(PROJECT_ROOT))
     graph = Graph()
+    graph.parse(data=ntriples, format="nt")
     bind_prefixes(graph)
-    onto_iri = URIRef(ONTOLOGY_IRI)
-    doc = URIRef(ONTOLOGY_IRI + "/projections/functions")
-    graph.add((doc, RDF.type, URIRef(PREFIXES["owl"] + "Ontology")))
-    graph.add(
-        (
-            doc,
-            RDFS.label,
-            Literal("GMEOW projection functions (FnO)", lang="x-gmeow-english"),
-        )
-    )
-    graph.add((doc, DCTERMS.isPartOf, onto_iri))
-    graph.add((doc, RDFS.comment, Literal(_GENERATED_BANNER, lang="x-gmeow-english")))
-
-    # Which profiles use each transform (+ ALL cells per (transform, profile) — a
-    # transform can fan out to several cells, e.g. fnHonorificToAffix → prefix and
-    # suffix — so the fnom mapping must aggregate every cell's var bindings).
-    used_by: dict[URIRef, list[str]] = {}
-    transform_cells: dict[tuple[URIRef, str], list[ProjectionCell]] = {}
-    for cell in dsl.projections:
-        for b in cell.bindings:
-            if b.transform is not None:
-                used_by.setdefault(b.transform, [])
-                if b.profile not in used_by[b.transform]:
-                    used_by[b.transform].append(b.profile)
-                transform_cells.setdefault((b.transform, b.profile), []).append(cell)
-
-    params_emitted: dict[URIRef, URIRef] = {}
-    for fn_iri in sorted(dsl.functions, key=str):
-        fn = dsl.functions[fn_iri]
-        graph.add((fn_iri, RDF.type, FNO.Function))
-        graph.add((fn_iri, RDF.type, GM.ProjectionFunction))
-        graph.add((fn_iri, RDFS.label, Literal(fn.label, lang="x-gmeow-english")))
-        if fn.description:
-            graph.add(
-                (
-                    fn_iri,
-                    SKOS.definition,
-                    Literal(fn.description, lang="x-gmeow-english"),
-                )
-            )
-        profiles = used_by.get(fn_iri) or ["schema-org"]
-        graph.add(
-            (
-                fn_iri,
-                RDFS.seeAlso,
-                URIRef(f"{ONTOLOGY_IRI}/queries/projections/{profiles[0]}.rq"),
-            )
-        )
-        # expects (required first, then optional), each param derives fno:type.
-        expects: list[URIRef] = []
-        for predicate, required in [
-            *[(p, True) for p in fn.inputs],
-            *[(p, False) for p in fn.optional_inputs],
-        ]:
-            param = _param_iri(predicate)
-            # The derived fno:type is the whole point — refuse to emit a param
-            # whose source predicate has no ontology range (the type mismatch
-            # bug class would otherwise move from "wrong type" to "missing type").
-            rng = onto.value(predicate, RDFS.range)
-            if not isinstance(rng, URIRef):
-                raise CompileError(
-                    f"{fn_iri}: input {predicate} has no rdfs:range — "
-                    "cannot derive its fno:type"
-                )
-            prior = params_emitted.get(param)
-            if prior is not None and prior != predicate:
-                raise CompileError(
-                    f"param IRI collision: {param} is minted from both "
-                    f"{prior} and {predicate}"
-                )
-            expects.append(param)
-            if param not in params_emitted:
-                params_emitted[param] = predicate
-                graph.add((param, RDF.type, FNO.Parameter))
-                graph.add((param, FNO.predicate, predicate))
-                graph.add((param, FNO.type, rng))
-                graph.add((param, FNO.required, Literal(required)))
-        _attach_list(graph, fn_iri, FNO.expects, expects)
-        out = _output_iri(fn_iri)
-        graph.add((out, RDF.type, FNO.Output))
-        graph.add((out, FNO.predicate, fn.output))
-        graph.add((out, FNO.type, fn.output_type))
-        _attach_list(graph, fn_iri, FNO.returns, [out])
-
-    _emit_fnom(graph, dsl, used_by, transform_cells)
     return graph
-
-
-def _camel(text: str) -> str:
-    return "".join(p.capitalize() for p in text.replace("_", "-").split("-"))
-
-
-def _impl_iri(profile: str) -> URIRef:
-    return URIRef(GM + "impl" + _camel(profile))
-
-
-def _var_for_predicate(cell: ProjectionCell, predicate: URIRef) -> str | None:
-    """The SPARQL object variable an atom binds for ``predicate`` (or None).
-
-    Matches a plain-predicate atom, and an alternation-path atom one of whose
-    alternatives is the predicate (e.g. ``hasAppellation`` inside
-    ``hasAppellation|hasName`` → the appellation variable).
-    """
-    for atom in _flatten_atoms(cell.pattern.atoms):
-        if atom.object_var is None:
-            continue
-        if atom.predicate == predicate or predicate in atom.path_alts:
-            return atom.object_var
-    return None
-
-
-def _output_var(cell: ProjectionCell) -> str | None:
-    """The SPARQL variable a cell's output value binds to.
-
-    The pattern's ``value`` for a single-value projection; for a structural
-    (templateAtoms) transform with no value var, the last derived ``BIND`` var
-    (the composed/retagged literal — e.g. the WKT, the address label).
-    """
-    if cell.pattern.value is not None:
-        return cell.pattern.value
-    if cell.pattern.binds:
-        return cell.pattern.binds[-1].var
-    return None
 
 
 def _stable_bnode(label: str) -> BNode:
@@ -328,104 +212,6 @@ def _stable_bnode(label: str) -> BNode:
     """
     safe = "".join(c if c.isalnum() else "_" for c in label)
     return BNode(f"n_{safe}")
-
-
-def _emit_fnom(
-    graph: Graph,
-    dsl: Dsl,
-    used_by: dict[URIRef, list[str]],
-    transform_cells: dict[tuple[URIRef, str], list[ProjectionCell]],
-) -> None:
-    """Emit fno:Implementation + fno:Mapping linking each function to its SPARQL.
-
-    The FnO mapping vocabulary (fnom) makes the function self-describing about HOW
-    it executes: one fno:Implementation per profile .rq, and one fno:Mapping per
-    (function, profile) binding each parameter/output to the SPARQL variable that
-    realises it (a PropertyParameterMapping — a SPARQL var is a named property).
-    A transform may fan out to several cells in a profile (e.g. honorific →
-    prefix and suffix), so the bindings are aggregated across every such cell.
-    """
-    impl_emitted: set[str] = set()
-    for fn_iri in sorted(dsl.functions, key=str):
-        fn = dsl.functions[fn_iri]
-        out_node = _output_iri(fn_iri)
-        for profile in used_by.get(fn_iri, []):
-            impl = _impl_iri(profile)
-            if profile not in impl_emitted:
-                impl_emitted.add(profile)
-                graph.add((impl, RDF.type, FNO.Implementation))
-                graph.add(
-                    (impl, DCTERMS["format"], Literal("application/sparql-query"))
-                )
-                graph.add(
-                    (
-                        impl,
-                        RDFS.seeAlso,
-                        URIRef(f"{ONTOLOGY_IRI}/queries/projections/{profile}.rq"),
-                    )
-                )
-            cells = transform_cells.get((fn_iri, profile), [])
-            # Aggregate every cell's parameter/output variable bindings.
-            param_vars: dict[URIRef, set[str]] = {}
-            out_vars: set[str] = set()
-            for cell in cells:
-                for predicate in (*fn.inputs, *fn.optional_inputs):
-                    var = _var_for_predicate(cell, predicate)
-                    if var is not None:
-                        param_vars.setdefault(_param_iri(predicate), set()).add(var)
-                out_var = _output_var(cell)
-                if out_var is not None:
-                    out_vars.add(out_var)
-
-            fn_local = _local(fn_iri)
-            mapping = _stable_bnode(f"mapping-{fn_local}-{profile}")
-            graph.add((mapping, RDF.type, FNO.Mapping))
-            # Label from the *neutral* function local name + profile — never
-            # ``fn.label``, which may embed one profile's target term (e.g.
-            # "… → schema:birthDate") and mislead when the function is reused
-            # across profiles (vCard/FOAF).
-            graph.add(
-                (
-                    mapping,
-                    RDFS.label,
-                    Literal(
-                        f"{fn_local} → {profile} (FnO mapping)", lang="x-gmeow-english"
-                    ),
-                )
-            )
-            graph.add((mapping, FNO.function, fn_iri))
-            graph.add((mapping, FNO.implementation, impl))
-            for param in sorted(param_vars, key=str):
-                for var in sorted(param_vars[param]):
-                    pmap = _stable_bnode(
-                        f"param-{fn_local}-{profile}-{_local(param)}-{var}"
-                    )
-                    graph.add((pmap, RDF.type, FNOM.PropertyParameterMapping))
-                    graph.add(
-                        (
-                            pmap,
-                            RDFS.label,
-                            Literal(
-                                f"{_local(param)} ↦ ?{var}", lang="x-gmeow-english"
-                            ),
-                        )
-                    )
-                    graph.add((pmap, FNOM.functionParameter, param))
-                    graph.add((pmap, FNOM.implementationProperty, Literal(var)))
-                    graph.add((mapping, FNO.parameterMapping, pmap))
-            for var in sorted(out_vars):
-                rmap = _stable_bnode(f"return-{fn_local}-{profile}-{var}")
-                graph.add((rmap, RDF.type, FNOM.DefaultReturnMapping))
-                graph.add(
-                    (
-                        rmap,
-                        RDFS.label,
-                        Literal(f"{fn_local} output ↦ ?{var}", lang="x-gmeow-english"),
-                    )
-                )
-                graph.add((rmap, FNOM.functionOutput, out_node))
-                graph.add((rmap, FNOM.implementationProperty, Literal(var)))
-                graph.add((mapping, FNO.returnMapping, rmap))
 
 
 def _attach_list(
@@ -688,140 +474,31 @@ def _edoal_target(b: ProfileBinding) -> tuple[URIRef | None, str]:
 
 
 # --------------------------------------------------------------------------- #
-# SSSOM emitter
+# SSSOM emitter (native)
 # --------------------------------------------------------------------------- #
-
-_DEFAULT_JUSTIFICATION = URIRef(PREFIXES["semapv"] + "ManualMappingCuration")
-
-
-def _conf(value: float | None) -> str:
-    if value is None:
-        return ""
-    return f"{value:g}" if value != int(value) else f"{value:.1f}"
-
-
-#: SSSOM columns in canonical order; labels are emitted only when populated.
-_SSSOM_ORDER = (
-    "subject_id",
-    "subject_label",
-    "predicate_id",
-    "object_id",
-    "object_label",
-    "mapping_justification",
-    "confidence",
-    "comment",
-)
-_SSSOM_ALWAYS = frozenset(
-    {
-        "subject_id",
-        "predicate_id",
-        "object_id",
-        "mapping_justification",
-        "confidence",
-        "comment",
-    }
-)
-
-
-def _sssom_header(meta: MappingSet | None, prefixes: list[str]) -> list[str]:
-    """The SSSOM YAML metadata header: set id, license, provenance, curie_map."""
-    _meta = load_self_description()
-    lines: list[str] = []
-    if meta is not None and meta.set_id:
-        lines.append(f"# mapping_set_id: {meta.set_id}")
-        lines.append(f"# mapping_set_version: {_meta.version}")
-        lines.append(f"# license: {meta.license}")
-    lines.append("# mapping_tool: gmeow regenerate (mappings)")
-    lines.append(f"# mapping_tool_version: {_meta.version}")
-    lines.append(f"# mapping_date: {_meta.release_date}")
-    if meta is not None and meta.comment:
-        # Collapse any whitespace run (incl. the newlines of a multi-line Turtle
-        # """...""" source literal) to single spaces, so the comment stays on one
-        # SSSOM header line regardless of how it is wrapped in the DSL source.
-        comment = " ".join(meta.comment.split())
-        # JSON-quoted = a valid YAML double-quoted scalar: prose with ": "
-        # sequences must not break the sssom-py metadata parse.
-        lines.append(f"# comment: {json.dumps(comment)}")
-    lines.append("# curie_map:")
-    for prefix in prefixes:
-        lines.append(f"#   {prefix}: {PREFIXES[prefix]}")
-    return lines
-
-
-def _sssom_id(node: URIRef) -> str:
-    """Return a SSSOM-safe identifier: CURIE when possible, bare URI otherwise.
-
-    The DSL ``curie()`` helper falls back to Turtle angle-bracket syntax for
-    unregistered namespaces, but SSSOM TSV expects bare absolute URIs, so any
-    surrounding ``<...>`` is stripped here.
-    """
-    return curie(node).strip("<>")
 
 
 def emit_sssom(dsl: Dsl) -> dict[str, str]:
     """Render every SSSOM TSV file from the term-equivalence cells.
+
+    SSSOM emission is now wholly native (#848): the entire emitter lives in the
+    Rust slice framework (``gmeow_slice.emit_sssom`` →
+    ``crates/slice/src/mapping_emit.rs``), which sources every input from the repo
+    itself — the slice ``mappings/*.ttl`` artifacts, the shared ``dsl/mappings/``
+    tree, the curated prefix registry, and ``metadata/gmeow-self.ttl`` for the
+    version + release date. Python passes only the repo root; the ``dsl`` argument
+    is accepted for call-site compatibility but is no longer read (the native
+    emitter rediscovers the same sources). The result is byte-identical to the
+    historical Python emitter.
 
     SSSOM rows are owned exclusively by gmeow:TermEquivalence cells (a 1:1 with
     the rows). Each file carries deterministic provenance metadata + a curie_map
     of the prefixes it uses; subject_label/object_label columns appear only when a
     row populates them.
     """
-    rows: dict[str, list[dict[str, str]]] = {}
-    for eq in dsl.equivalences:
-        rows.setdefault(eq.sssom_file, []).append(
-            {
-                "subject_id": _sssom_id(eq.subject),
-                "subject_label": eq.subject_label,
-                "predicate_id": _sssom_id(eq.predicate),
-                "object_id": _sssom_id(eq.obj),
-                "object_label": eq.object_label,
-                "mapping_justification": _sssom_id(
-                    eq.justification or _DEFAULT_JUSTIFICATION
-                ),
-                "confidence": _conf(eq.confidence),
-                "comment": eq.comment,
-            }
-        )
-
-    out: dict[str, str] = {}
-    for file, file_rows in rows.items():
-        meta = dsl.mapping_sets.get(file)
-        columns = [
-            c
-            for c in _SSSOM_ORDER
-            if c in _SSSOM_ALWAYS or any(r[c] for r in file_rows)
-        ]
-        used_prefixes = sorted(
-            {
-                tok.split(":", 1)[0]
-                for r in file_rows
-                for tok in (
-                    r["subject_id"],
-                    r["predicate_id"],
-                    r["object_id"],
-                    r["mapping_justification"],
-                )
-                if ":" in tok and tok.split(":", 1)[0] in PREFIXES
-            }
-        )
-        lines = _sssom_header(meta, used_prefixes)
-        if meta is not None and meta.trailer:
-            # Refused/deferred mappings are provenance worth keeping IN the
-            # artifact, but sssom-py reads every leading "#" line as YAML
-            # metadata and treats trailing "#" lines as malformed rows. The
-            # extra "#" makes each line a YAML comment: human-readable,
-            # parser-invisible, spec-conformant.
-            lines.extend(
-                "# #" + line.removeprefix("#") for line in meta.trailer.splitlines()
-            )
-        lines.append("\t".join(columns))
-        for r in sorted(
-            file_rows,
-            key=lambda r: (r["subject_id"], r["predicate_id"], r["object_id"]),
-        ):
-            lines.append("\t".join(r[c] for c in columns))
-        out[file] = "\n".join(lines) + "\n"
-    return out
+    del dsl  # Sourced natively from PROJECT_ROOT; see the docstring.
+    result = gmeow_slice.emit_sssom(str(PROJECT_ROOT))
+    return dict(result)
 
 
 # --------------------------------------------------------------------------- #
@@ -829,94 +506,34 @@ def emit_sssom(dsl: Dsl) -> dict[str, str]:
 # --------------------------------------------------------------------------- #
 
 
-def _sssom_for_validation(text: str) -> str:
-    """Return a version of a GMEOW SSSOM text that ``sssom-py`` can parse.
-
-    Applies two GMEOW→SSSOM-Toolkit compatibility shims:
-
-    1. **Quote the ``comment`` header value** if it contains YAML-special
-       characters (colons, brackets, etc.).  GMEOW comments are prose that
-       may contain ``FORMAL GROUNDING:`` and similar colons; the SSSOM
-       Toolkit header parser treats the header as YAML and fails on unquoted
-       colons.
-    2. **Strip trailer comments** that appear after the data section.
-       ``sssom-py`` consumes every ``#``-prefixed line before the TSV column
-       header as YAML metadata; any ``#`` line *after* the header is passed
-       to pandas as a data row and reported as a malformed mapping.  GMEOW
-       intentionally emits trailer comments (e.g. ``# REFUSED …``) to
-       document refused alignments; these are stripped for validation only.
-    """
-    lines = text.splitlines()
-
-    # Find the TSV column-header row (first line that does not start with #).
-    header_idx: int | None = None
-    for i, line in enumerate(lines):
-        if not line.startswith("#"):
-            header_idx = i
-            break
-
-    if header_idx is None:
-        # No data rows — nothing that sssom-py can validate meaningfully.
-        return text
-
-    # Strip trailer comments (and any trailing empty/whitespace lines) that
-    # follow the data rows.
-    data_lines = lines[header_idx:]
-    while data_lines and (not data_lines[-1].strip() or data_lines[-1].startswith("#")):
-        data_lines.pop()
-
-    # Fix YAML in header key-value lines (curie_map entries are left untouched).
-    # Rather than maintaining a growing allow-list of YAML-special characters,
-    # every scalar value is double-quoted. This is simple, robust, and future-
-    # proof against new characters appearing in prose comments or other fields.
-    fixed_header: list[str] = []
-    for line in lines[:header_idx]:
-        m = re.match(r"^# ([A-Za-z0-9_]+): (.*)$", line)
-        if m and m.group(1) != "curie_map":
-            key, value = m.groups()
-            escaped = value.replace("\\", "\\\\").replace('"', '\\"')
-            fixed_header.append(f'# {key}: "{escaped}"')
-        else:
-            fixed_header.append(line)
-
-    return "\n".join(fixed_header + data_lines) + "\n"
-
-
 def _validate_sssom(sssom_texts: dict[str, str]) -> list[str]:
-    """Run every generated SSSOM TSV through the SSSOM Toolkit validator.
+    """Run every generated SSSOM TSV through the native SSSOM validator.
 
-    Parses each text in memory (so the exact bytes that will be written are
-    checked) and returns a flat list of diagnostic strings.  An empty list
-    means every file passed validation.
+    Validates each text in memory (so the exact bytes that will be written are
+    checked) via the Rust ``gmeow_rdf`` kernel — which subsumes the former
+    ``sssom`` package (#848) and reads GMEOW's own SSSOM format directly, so no
+    header-quoting shim is needed. Returns a flat list of diagnostic strings;
+    an empty list means every file passed validation.
+
+    The native validator replicates sssom-py's reachable default checks
+    (``PrefixMapCompleteness``, ``JsonSchema``) and adds a strict-superset
+    ``RequiredSlot`` check (sssom-py silently dropped malformed rows); parse
+    failures surface as a ``FATAL``/``check=parse`` diagnostic.
     """
     problems: list[str] = []
     for rel_path, text in sssom_texts.items():
         # The mappings-dir text artifacts include dsl-stats.json (#3); only the
-        # SSSOM TSVs are mapping sets. Feeding the JSON to parse_tsv makes
-        # sssom-py report every line as a malformed mapping ("predicate_id must
-        # be supplied").
+        # SSSOM TSVs are mapping sets.
         if not rel_path.endswith(".sssom.tsv"):
             continue
-        safe = _sssom_for_validation(text)
-        try:
-            msdf = sssom.parse_tsv(io.StringIO(safe))
-        except Exception as exc:
-            problems.append(f"{rel_path}: parse error — {exc}")
-            continue
-        try:
-            reports = validate(msdf, validation_types=None, fail_on_error=False)
-        except Exception as exc:
-            problems.append(f"{rel_path}: validation engine error — {exc}")
-            continue
-        for validation_type, report in reports.items():
-            for result in report.results:
-                if result.severity.value in ("ERROR", "FATAL"):
-                    node = result.instance if result.instance is not None else "—"
-                    problems.append(
-                        f"{rel_path}: {result.message} "
-                        f"(type={result.type}, node={node}, "
-                        f"check={validation_type.value})"
-                    )
+        for result in gmeow_rdf.validate_sssom(text):
+            if result["severity"] in ("ERROR", "FATAL"):
+                node = result["instance"] if result["instance"] is not None else "—"
+                problems.append(
+                    f"{rel_path}: {result['message']} "
+                    f"(type={result['code']}, node={node}, "
+                    f"check={result['check']})"
+                )
     return problems
 
 

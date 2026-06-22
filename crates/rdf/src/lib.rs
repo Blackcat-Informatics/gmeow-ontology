@@ -11,6 +11,10 @@
 pub mod bundle;
 pub mod content_store;
 pub mod diagnostic;
+// Native FnO (W3C Function Ontology) typed catalog model + serializer (#848).
+// PyO3-free; the `gmeow-slice` FnO emitter builds a `FnoCatalog` from the slice
+// framework and serializes it here, replacing rdflib `emit_fno`/`_emit_fnom`.
+pub mod fno;
 #[cfg(feature = "gts")]
 pub mod gts;
 #[cfg(feature = "gts")]
@@ -42,8 +46,16 @@ pub mod py_store;
 pub mod py_gts;
 #[cfg(feature = "python")]
 pub mod py_gts_dataset;
+// The native SSSOM codec surface for `gmeow_rdf` (parse + validate + RDF
+// serialize), replacing the `sssom` PyPI package (#848). Python-only, like `py`.
+#[cfg(feature = "python")]
+pub mod py_sssom;
 #[cfg(feature = "oxigraph")]
 pub mod statements;
+// Native SSSOM (Simple Standard for Sharing Ontology Mappings) TSV codec +
+// validator + RDF serializer (#848). PyO3-free; replaces the `sssom` PyPI
+// package's parse+validate behaviour for the GMEOW mapping artifacts.
+pub mod sssom;
 pub mod store;
 pub mod turtle;
 // Canonical, review-friendly Turtle serializer over the IR (#819 Task 9): the
@@ -57,6 +69,10 @@ pub use bundle::{
 };
 pub use content_store::{Bytes, ContentDigest, ContentStore, ContentStoreError};
 pub use diagnostic::{RdfDiagnostic, RdfLocation, RdfLoss, RdfSeverity};
+pub use fno::{
+    to_ntriples as fno_to_ntriples, to_quads as fno_to_quads, FnFunction, FnImpl, FnMapping,
+    FnOutput, FnParam, FnParamMapping, FnReturnMapping, FnoCatalog,
+};
 pub use ir::{
     dataset_diff, datasets_isomorphic, BlankScope, DatasetDiff, GtsBundle, QuadHandle, QuadIds,
     QuadRef, RdfDataset, RdfDatasetBuilder, RdfEnvelope, RdfEventSink, TermId, TermRef,
@@ -79,6 +95,9 @@ pub use provenance::{
     check_provenance, ArtifactId, ArtifactInterner, AssertionOccurrence, Attribution,
     AttributionRole, DatasetProvenance, OriginKind, OriginSetId, OriginSetInterner,
     ProvenanceError, UnitId, UnitInterner,
+};
+pub use sssom::{
+    SssomDiagnostic, SssomMapping, SssomMappingSet, SssomMeta, SSSOM_DEFAULT_VALIDATION_TYPES,
 };
 pub use store::{RdfStore, RdfStoreCapabilities, VecRdfStore};
 pub use turtle::{emit_annotation, emit_quad, emit_reifier, emit_resource, emit_term, rule_iri};

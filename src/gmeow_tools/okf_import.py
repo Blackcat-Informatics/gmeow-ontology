@@ -30,7 +30,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from rdflib import RDF, RDFS, SKOS, Graph, Literal, URIRef
+from gmeow_rdf.compat.rdflib import RDF, RDFS, SKOS, Graph, Literal, URIRef
 
 from gmeow_tools.config import PROJECT_ROOT
 

@@ -36,6 +36,10 @@ python = ["dep:pyo3", "gts", "oxigraph", "dep:ed25519-dalek", "gmeow-gts/yaml-ld
 
 [dependencies]
 ciborium = { version = "0.2", optional = true }
+# Tab-separated body parser for the native SSSOM codec (#848): handles quoting,
+# flexible column counts, and by-name column access. The SSSOM `#`-prefixed YAML
+# header is parsed bespoke (GMEOW owns the format); `csv` only parses the body.
+csv = "1"
 gmeow-gts = { version = "0.9.5", optional = true }
 # Content-addressed blob digest for the content store (#820). Same version as the
 # sibling kernel crates (logic/validate/slice).

@@ -48,7 +48,7 @@
 //! would have to be unwound next phase.
 #![allow(dead_code)]
 
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 
 use oxigraph::model::{NamedNode, Term};
 
@@ -137,6 +137,12 @@ impl Fact {
 pub(crate) struct FactStore {
     facts: Vec<Fact>,
     keys: HashSet<FactKey>,
+    /// Predicate surface (`predicate.as_str()`, the same component `Fact::key`
+    /// uses) → row indices into `facts`, in insertion order.  Maintained in
+    /// lockstep with `facts` so each bucket's order equals insertion order; this
+    /// lets the join scan only the rows for a constant-predicate atom while
+    /// returning exactly the subsequence (same relative order) a full scan would.
+    predicate_index: HashMap<String, Vec<usize>>,
 }
 
 impl FactStore {
@@ -145,6 +151,7 @@ impl FactStore {
         Self {
             facts: Vec::new(),
             keys: HashSet::new(),
+            predicate_index: HashMap::new(),
         }
     }
 
@@ -155,7 +162,18 @@ impl FactStore {
             return false;
         }
         self.keys.insert(key);
+        let idx = self.facts.len();
         self.facts.push(fact);
+        // Push the new row index in lockstep with `facts`, preserving insertion
+        // order within the predicate bucket (only on a successful insert).
+        // Clone the predicate string only on first occurrence to avoid a heap
+        // allocation for repeat predicates.
+        let pred = self.facts[idx].predicate.as_str();
+        if let Some(bucket) = self.predicate_index.get_mut(pred) {
+            bucket.push(idx);
+        } else {
+            self.predicate_index.insert(pred.to_owned(), vec![idx]);
+        }
         true
     }
 
@@ -172,6 +190,14 @@ impl FactStore {
     /// The facts in insertion order.
     pub(crate) fn facts(&self) -> &[Fact] {
         &self.facts
+    }
+
+    /// Row indices (into [`facts`](Self::facts), insertion-ordered) of facts whose
+    /// predicate surface (`predicate.as_str()`) equals `pred`; empty slice if none.
+    pub(crate) fn facts_for_predicate(&self, pred: &str) -> &[usize] {
+        self.predicate_index
+            .get(pred)
+            .map_or(&[][..], Vec::as_slice)
     }
 }
 
@@ -486,11 +512,69 @@ fn distinct_pairs_satisfied(
     Ok(true)
 }
 
+/// Whether a positive atom's binding to fact `f` is restricted to a delta scan.
+///
+/// Mirrors `foundation.rs::Scan` exactly.  In a delta-position scan we walk only the
+/// rows in the predicate bucket whose key is in `delta`; in a full-store scan we walk
+/// the whole bucket; in an old-only scan we walk only rows NOT in `delta`.  All three
+/// modes walk the insertion-ordered predicate bucket so the matched subsequence (and
+/// thus `source_facts` order) is identical to a full scan filtered post-hoc.
+enum Scan {
+    /// Bind `a_p` to facts whose key is **in** `delta` (the "new at p" position).
+    Delta,
+    /// Bind to **any** fact in the full store (no delta constraint).
+    Full,
+    /// Bind only to facts whose key is **not** in `delta` (the "old after p"
+    /// positions, j > p, that keep each delta-touching solution produced once).
+    OldOnly,
+}
+
+/// Extend each partial solution by matching `atom` against the store under `scan`.
+///
+/// `EvalAtom::predicate` is always a constant `NamedNode` in the gmeow `.rls` fragment,
+/// so this always uses the predicate bucket — gated by delta membership for the
+/// [`Scan::Delta`] / [`Scan::OldOnly`] positions.  Walks the bucket in insertion order
+/// so the produced solutions (and their `source_facts`) match a full insertion-ordered
+/// scan.  Mirrors `foundation.rs::extend_solutions`.
+fn extend_solutions(
+    atom: &EvalAtom,
+    store: &FactStore,
+    delta: &HashSet<FactKey>,
+    scan: &Scan,
+    solutions: &[Solution],
+) -> Vec<Solution> {
+    let keep = |f: &Fact| match scan {
+        Scan::Delta => delta.contains(&f.key()),
+        Scan::Full => true,
+        Scan::OldOnly => !delta.contains(&f.key()),
+    };
+    let mut next: Vec<Solution> = Vec::new();
+    let bucket = store.facts_for_predicate(atom.predicate.as_str());
+    for sol in solutions {
+        for &i in bucket {
+            let f = &store.facts()[i];
+            if !keep(f) {
+                continue;
+            }
+            if let Some(mut merged) = match_atom(atom, f, sol) {
+                merged.source_facts.push(f.clone());
+                next.push(merged);
+            }
+        }
+    }
+    next
+}
+
 /// Join all body atoms against `store`, evaluating NAF against `reference`.
 ///
-/// Returns the solutions whose positive body fully matches, whose NAF literals are
-/// all absent from `reference`, and at least one of whose positive sources is in
-/// `delta` (semi-naive).  Mirrors `foundation.rs::join_body`.
+/// Uses true semi-naive delta×full position-decomposition (mirroring
+/// `foundation.rs::join_body`): for each positive body atom position `p`, the union
+/// over `p` of { a_p ∈ delta, a_{<p} ∈ full, a_{>p} ∈ store \ delta } produces every
+/// delta-touching solution exactly once — at its first (lowest-index) delta position.
+/// NAF literals are filtered after the positive join, evaluated against `reference`.
+///
+/// By-construction tiebreak is applied per-round in `least_model_of_reduct`
+/// (cross-reference `foundation.rs::chase_world`).
 fn join_body(
     rule: &EvalRule,
     store: &FactStore,
@@ -500,26 +584,40 @@ fn join_body(
     let positive: Vec<&EvalAtom> = rule.body.iter().filter(|a| !a.negated).collect();
     let negated: Vec<&EvalAtom> = rule.body.iter().filter(|a| a.negated).collect();
 
-    let mut solutions: Vec<Solution> = vec![Solution {
+    let empty = Solution {
         bindings: Vec::new(),
         source_facts: Vec::new(),
-    }];
+    };
 
-    for atom in positive {
-        let mut next: Vec<Solution> = Vec::new();
-        for sol in &solutions {
-            for f in store.facts() {
-                if let Some(mut merged) = match_atom(atom, f, sol) {
-                    merged.source_facts.push(f.clone());
-                    next.push(merged);
+    let mut solutions: Vec<Solution> = if positive.is_empty() {
+        // Zero positive atoms: the empty solution never touches delta, so it never
+        // fires in a semi-naive round.  Emit nothing (matches the prior end-filter
+        // behaviour where an empty source_facts list never passed the delta check).
+        Vec::new()
+    } else {
+        // True semi-naive: union over delta position p of
+        //   { a_p ∈ delta, a_{<p} ∈ full, a_{>p} ∈ store \ delta }.
+        let k = positive.len();
+        let mut all: Vec<Solution> = Vec::new();
+        for p in 0..k {
+            let mut partial: Vec<Solution> = vec![empty.clone()];
+            for (j, atom) in positive.iter().enumerate() {
+                let scan = if j < p {
+                    Scan::Full
+                } else if j == p {
+                    Scan::Delta
+                } else {
+                    Scan::OldOnly
+                };
+                partial = extend_solutions(atom, store, delta, &scan, &partial);
+                if partial.is_empty() {
+                    break;
                 }
             }
+            all.extend(partial);
         }
-        solutions = next;
-        if solutions.is_empty() {
-            break;
-        }
-    }
+        all
+    };
 
     if !negated.is_empty() {
         solutions.retain(|sol| {
@@ -530,9 +628,37 @@ fn join_body(
     }
 
     solutions
-        .into_iter()
-        .filter(|sol| sol.source_facts.iter().any(|f| delta.contains(&f.key())))
-        .collect()
+}
+
+/// A candidate derivation within a single chase round for the reduct evaluator.
+///
+/// `sorted_sources` is a sorted copy of `sources` used ONLY for the deterministic
+/// tiebreak comparison.  The emitted [`DerivedRow`] always uses body-order `sources`
+/// for `source_quad_ids`; the sorted copy never appears in output.
+///
+/// Winner selection uses a **quality-ordered total-order** over same-head candidates:
+/// `(max_src_depth, sum_src_depth, sorted_sources, rule_iri)` — smaller wins.  This
+/// prefers the most-direct (shallowest) derivation, tiebreaks toward asserted-rooted
+/// proofs (lower depth sum), uses lex-min sorted reifiers as a content-addressed
+/// tiebreaker, and finally uses `rule_iri` as a total-order backstop (since rule IRIs
+/// vary per rule, unlike `foundation.rs` where a single anonymous IRI is used).
+#[derive(Clone)]
+struct RuleRoundCandidate {
+    head: Fact,
+    key: FactKey,
+    /// Reifiers of matched positive body facts, in body (scan) order — goes into
+    /// `DerivedRow.source_quad_ids`.
+    sources: Vec<String>,
+    /// Sorted copy of `sources`, used only for deterministic winner comparison.
+    sorted_sources: Vec<String>,
+    /// Content-addressed derivation IRI.
+    deriv: String,
+    /// The firing rule IRI (carried for comparison and output).
+    rule_iri: String,
+    /// Maximum derivation depth across matched source facts (depth 0 = asserted).
+    max_src_depth: u32,
+    /// Sum of derivation depths across matched source facts.
+    sum_src_depth: u64,
 }
 
 /// The least model of the Gelfond-Lifschitz reduct of `rules` w.r.t. `reference`,
@@ -540,8 +666,18 @@ fn join_body(
 ///
 /// The positive semi-naive join grows a fresh store seeded from `edb`; a negated
 /// body atom blocks its rule iff its grounded form is PRESENT in `reference`.  The
-/// returned [`ReductResult`] carries the final store AND the FIRST-WINS provenance
-/// of every DERIVED (non-EDB) fact.
+/// returned [`ReductResult`] carries the final store AND the first-wins provenance
+/// of every DERIVED (non-EDB) fact, selected by a quality-ordered total-order
+/// tiebreak (mirroring `foundation.rs::chase_world`):
+///
+/// 1. **Fewest derivation steps** (`max_src_depth`) — prefer the candidate whose
+///    deepest source has the lowest depth.
+/// 2. **Asserted-rooted preference** (`sum_src_depth`) — tiebreak on sum of source depths.
+/// 3. **Lex-min sorted source reifiers** (`sorted_sources`) — content-addressed tiebreaker.
+/// 4. **Rule IRI** (`rule_iri`) — total-order backstop (rule IRIs vary per rule here,
+///    unlike the single anonymous IRI in `foundation.rs`).
+///
+/// The comparison is **independent of firing-enumeration order** by construction.
 ///
 /// # Errors
 ///
@@ -554,16 +690,26 @@ pub(crate) fn least_model_of_reduct(
 ) -> Result<ReductResult, String> {
     let mut store = FactStore::new();
     let edb_keys: HashSet<FactKey> = edb.key_set();
+
+    // Per-fact derivation-depth map: depth 0 for every EDB (asserted) fact;
+    // derived facts get depth = 1 + max(source depths) when committed at round end.
+    let mut depth: HashMap<FactKey, u32> = HashMap::new();
+
     for f in edb.facts() {
+        let key = f.key();
+        depth.insert(key, 0); // EDB facts have depth 0
         store.insert(f.clone());
     }
 
     let mut derivations: Vec<DerivedRow> = Vec::new();
 
-    // Seed delta with all EDB keys so rules re-derive against the seed.
+    // Seed delta with all EDB keys so rules fire against the seed in round 1.
     let mut delta: HashSet<FactKey> = store.key_set();
     loop {
-        let mut new_delta: HashSet<FactKey> = HashSet::new();
+        // Per-round canonical-winner map: keyed by head key, holds the candidate
+        // chosen by a quality-ordered total-order tiebreak (see struct doc above).
+        // This makes provenance selection independent of firing-enumeration order.
+        let mut round: HashMap<FactKey, RuleRoundCandidate> = HashMap::new();
 
         for rule in rules {
             for sol in join_body(rule, &store, reference, &delta) {
@@ -573,40 +719,90 @@ pub(crate) fn least_model_of_reduct(
                 let head = ground_head(&rule.head, &sol)?;
                 let key = head.key();
                 if store.contains_key(&key) {
-                    continue; // first-wins dedup
+                    continue; // a prior round already derived it; earlier round wins
                 }
 
-                // Provenance: reifiers of the matched POSITIVE body facts only
-                // (negated atoms contribute no source).
+                // Provenance: reifiers of matched POSITIVE body facts in body order.
                 let mut sources: Vec<String> = Vec::with_capacity(sol.source_facts.len());
+                let mut max_sd: u32 = 0;
+                let mut sum_sd: u64 = 0;
                 for sf in &sol.source_facts {
                     sources.push(sf.reifier()?);
+                    let d = *depth.get(&sf.key()).unwrap_or(&0);
+                    max_sd = max_sd.max(d);
+                    sum_sd = sum_sd.saturating_add(u64::from(d));
                 }
                 let src_refs: Vec<&str> = sources.iter().map(String::as_str).collect();
                 let deriv = mint_derivation_id(&rule.rule_iri, &src_refs);
+                let mut sorted_sources = sources.clone();
+                sorted_sources.sort();
 
-                store.insert(head.clone());
-                new_delta.insert(key.clone());
-
-                // Record provenance only for genuinely-derived facts (a rule whose
-                // head re-states an EDB fact is not a derivation row).
-                if !edb_keys.contains(&key) {
-                    derivations.push(DerivedRow {
-                        graph: String::new(),
-                        subject: head.subject,
-                        predicate: head.predicate,
-                        object: head.object,
-                        rule_iri: rule.rule_iri.clone(),
-                        source_quad_ids: sources,
-                        derivation_id: deriv,
-                    });
-                }
+                // Quality-ordered total-order tiebreak:
+                //   (max_src_depth, sum_src_depth, sorted_sources, rule_iri) — smaller wins.
+                // Level 1: fewest derivation steps (most direct).
+                // Level 2: asserted-rooted preference (lower depth sum).
+                // Level 3: lex-min sorted reifiers (content-addressed tiebreaker).
+                // Level 4: rule_iri — total-order backstop (IRIs vary per rule).
+                let candidate = RuleRoundCandidate {
+                    head,
+                    key: key.clone(),
+                    sources,
+                    sorted_sources,
+                    deriv,
+                    rule_iri: rule.rule_iri.clone(),
+                    max_src_depth: max_sd,
+                    sum_src_depth: sum_sd,
+                };
+                round
+                    .entry(key)
+                    .and_modify(|existing| {
+                        let cand_key = (
+                            candidate.max_src_depth,
+                            candidate.sum_src_depth,
+                            &candidate.sorted_sources,
+                            &candidate.rule_iri,
+                        );
+                        let exist_key = (
+                            existing.max_src_depth,
+                            existing.sum_src_depth,
+                            &existing.sorted_sources,
+                            &existing.rule_iri,
+                        );
+                        if cand_key < exist_key {
+                            *existing = candidate.clone();
+                        }
+                    })
+                    .or_insert(candidate);
             }
         }
 
-        if new_delta.is_empty() {
-            break;
+        if round.is_empty() {
+            break; // fixpoint
         }
+
+        // Commit all winners from this round.
+        let mut new_delta: HashSet<FactKey> = HashSet::with_capacity(round.len());
+        for (_key, winner) in round {
+            let winner_depth = winner.max_src_depth.saturating_add(1);
+            depth.insert(winner.key.clone(), winner_depth);
+            store.insert(winner.head.clone());
+            new_delta.insert(winner.key.clone());
+
+            // Record provenance only for genuinely-derived facts (a rule whose
+            // head re-states an EDB fact is not a derivation row).
+            if !edb_keys.contains(&winner.key) {
+                derivations.push(DerivedRow {
+                    graph: String::new(),
+                    subject: winner.head.subject,
+                    predicate: winner.head.predicate,
+                    object: winner.head.object,
+                    rule_iri: winner.rule_iri,
+                    source_quad_ids: winner.sources, // body-order, NEVER sorted copy
+                    derivation_id: winner.deriv,
+                });
+            }
+        }
+
         delta = new_delta;
     }
 
@@ -800,6 +996,191 @@ mod tests {
         assert_eq!(
             rows[0].derivation_id,
             mint_derivation_id(ASSERT_RULE_IRI, &[self_ref.as_str()])
+        );
+    }
+
+    // ── Determinism / quality-ordered tiebreak test ───────────────────────────
+    //
+    // Mirrors `foundation/tests.rs::first_wins_tiebreak_prefers_most_direct_derivation_order_independent`
+    // but uses `RuleRoundCandidate`'s four-field tiebreak key, which adds `rule_iri`
+    // as a total-order backstop (since rule IRIs vary per rule in rule_ir, unlike
+    // foundation.rs where a single anonymous IRI is used for all rules).
+    //
+    // Proves:
+    //   1. Depth dominates lex order — shallower wins over lex-smaller deeper candidate.
+    //   2. Sum-depth tiebreaks at equal max-depth.
+    //   3. Lex-min sorted_sources as final content-addressed tiebreaker (all depths equal).
+    //   4. All three levels are enumeration-order-independent (forward, reverse, permuted).
+    //   5. `rule_iri` provides a total-order backstop when all other fields are equal.
+    /// Verify that the per-round winner-selection tiebreak in `least_model_of_reduct` is
+    /// quality-ordered and independent of the order in which candidates are folded into
+    /// the round map.
+    ///
+    /// The total order is `(max_src_depth, sum_src_depth, sorted_sources, rule_iri)` —
+    /// smaller wins.  Self-contained; no external store or rule parsing required.
+    #[test]
+    fn first_wins_tiebreak_prefers_most_direct_derivation_order_independent() {
+        /// A minimal stand-in for [`RuleRoundCandidate`]'s comparison key.
+        #[derive(Clone, Debug, PartialEq, Eq)]
+        struct FakeCand {
+            max_depth: u32,
+            sum_depth: u64,
+            sorted_sources: Vec<String>,
+            rule_iri: String,
+            label: &'static str, // for assertion messages only
+        }
+
+        /// Fold a slice of candidates using the same `and_modify` logic as
+        /// `least_model_of_reduct`, returning a clone of the winning candidate.
+        fn fold(cands: &[FakeCand]) -> FakeCand {
+            let mut winner: Option<FakeCand> = None;
+            for c in cands {
+                match &winner {
+                    None => winner = Some(c.clone()),
+                    Some(w) => {
+                        let c_key = (c.max_depth, c.sum_depth, &c.sorted_sources, &c.rule_iri);
+                        let w_key = (w.max_depth, w.sum_depth, &w.sorted_sources, &w.rule_iri);
+                        if c_key < w_key {
+                            winner = Some(c.clone());
+                        }
+                    }
+                }
+            }
+            winner.unwrap()
+        }
+
+        // ── Level 1: depth dominates lex order ──────────────────────────────
+        //
+        // `shallow` has max_depth=1; `deep` has max_depth=2 but a lex-smaller
+        // sorted_sources.  Expected winner: `shallow` (depth beats lex).
+        let shallow = FakeCand {
+            max_depth: 1,
+            sum_depth: 1,
+            sorted_sources: vec!["urn:z".to_owned()], // lex-larger
+            rule_iri: "urn:rule/b".to_owned(),
+            label: "shallow",
+        };
+        let deep = FakeCand {
+            max_depth: 2,
+            sum_depth: 2,
+            sorted_sources: vec!["urn:a".to_owned()], // lex-smaller — but loses on depth
+            rule_iri: "urn:rule/a".to_owned(),
+            label: "deep",
+        };
+        let pool1 = vec![shallow.clone(), deep.clone()];
+        let pool1_rev = vec![deep.clone(), shallow.clone()];
+        assert_eq!(fold(&pool1).label, "shallow", "fwd: depth must beat lex");
+        assert_eq!(
+            fold(&pool1_rev).label,
+            "shallow",
+            "rev: depth must beat lex"
+        );
+
+        // ── Level 2: sum-depth tiebreak at equal max-depth ───────────────────
+        //
+        // `asserted_rooted` has max=1, sum=1; `chain_rooted` has max=1, sum=3.
+        // Same max-depth; sum-depth picks `asserted_rooted`.
+        let asserted_rooted = FakeCand {
+            max_depth: 1,
+            sum_depth: 1,
+            sorted_sources: vec!["urn:m".to_owned()], // lex-larger
+            rule_iri: "urn:rule/b".to_owned(),
+            label: "asserted_rooted",
+        };
+        let chain_rooted = FakeCand {
+            max_depth: 1,
+            sum_depth: 3,
+            sorted_sources: vec!["urn:a".to_owned()], // lex-smaller — but loses on sum
+            rule_iri: "urn:rule/a".to_owned(),
+            label: "chain_rooted",
+        };
+        let pool2 = vec![asserted_rooted.clone(), chain_rooted.clone()];
+        let pool2_rev = vec![chain_rooted.clone(), asserted_rooted.clone()];
+        assert_eq!(
+            fold(&pool2).label,
+            "asserted_rooted",
+            "fwd: sum-depth must beat lex at equal max-depth"
+        );
+        assert_eq!(
+            fold(&pool2_rev).label,
+            "asserted_rooted",
+            "rev: sum-depth must beat lex at equal max-depth"
+        );
+
+        // ── Level 3: lex-min sorted_sources as content-addressed tiebreaker ─
+        //
+        // All candidates have same max-depth, sum-depth, and rule_iri;
+        // only sorted_sources (lex order) decides.
+        let cands3: Vec<FakeCand> = vec![
+            FakeCand {
+                max_depth: 0,
+                sum_depth: 0,
+                sorted_sources: vec!["urn:a".to_owned(), "urn:c".to_owned()],
+                rule_iri: "urn:rule/x".to_owned(),
+                label: "ac",
+            },
+            FakeCand {
+                max_depth: 0,
+                sum_depth: 0,
+                sorted_sources: vec!["urn:a".to_owned(), "urn:b".to_owned()], // ← lex smallest
+                rule_iri: "urn:rule/x".to_owned(),
+                label: "ab",
+            },
+            FakeCand {
+                max_depth: 0,
+                sum_depth: 0,
+                sorted_sources: vec!["urn:b".to_owned(), "urn:d".to_owned()],
+                rule_iri: "urn:rule/x".to_owned(),
+                label: "bd",
+            },
+        ];
+        let cands3_rev: Vec<FakeCand> = cands3.iter().cloned().rev().collect();
+        let cands3_perm: Vec<FakeCand> =
+            vec![cands3[2].clone(), cands3[0].clone(), cands3[1].clone()];
+        assert_eq!(
+            fold(&cands3).label,
+            "ab",
+            "fwd: lex-min sorted_sources must win when depths equal"
+        );
+        assert_eq!(
+            fold(&cands3_rev).label,
+            "ab",
+            "rev: lex-min sorted_sources must win when depths equal"
+        );
+        assert_eq!(
+            fold(&cands3_perm).label,
+            "ab",
+            "perm: lex-min sorted_sources must win when depths equal"
+        );
+
+        // ── Level 4: rule_iri total-order backstop ───────────────────────────
+        //
+        // All depth/sum/sorted_sources equal; rule_iri lex order is the final tiebreak.
+        let rule_a = FakeCand {
+            max_depth: 0,
+            sum_depth: 0,
+            sorted_sources: vec!["urn:s".to_owned()],
+            rule_iri: "urn:rule/a".to_owned(), // ← lex smallest
+            label: "rule_a",
+        };
+        let rule_b = FakeCand {
+            max_depth: 0,
+            sum_depth: 0,
+            sorted_sources: vec!["urn:s".to_owned()],
+            rule_iri: "urn:rule/b".to_owned(),
+            label: "rule_b",
+        };
+        let pool4 = vec![rule_b.clone(), rule_a.clone()];
+        let pool4_rev = vec![rule_a.clone(), rule_b.clone()];
+        assert_eq!(
+            fold(&pool4).label,
+            "rule_a",
+            "fwd: lex-min rule_iri must win when all other fields equal"
+        );
+        assert_eq!(
+            fold(&pool4_rev).label,
+            "rule_a",
+            "rev: lex-min rule_iri must win when all other fields equal"
         );
     }
 }
