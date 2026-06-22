@@ -4,13 +4,13 @@
 % === Ground facts (axioms) ===
 type("https://example.org/decidability/budget-exhaustion/Node", "https://blackcatinformatics.ca/logic/Kind", "default").
 type("https://example.org/decidability/budget-exhaustion/ruleTcBase", "https://blackcatinformatics.ca/logic/Rule", "default").
-body("https://example.org/decidability/budget-exhaustion/ruleTcBase", "n86ceae32171c466e95aa81f4e56b9bfcb2", "default").
-head("https://example.org/decidability/budget-exhaustion/ruleTcBase", "n86ceae32171c466e95aa81f4e56b9bfcb1", "default").
+body("https://example.org/decidability/budget-exhaustion/ruleTcBase", "c14n3", "default").
+head("https://example.org/decidability/budget-exhaustion/ruleTcBase", "c14n2", "default").
 provenance("https://example.org/decidability/budget-exhaustion/ruleTcBase", "https://example.org/decidability/budget-exhaustion/ruleTcBase", "default").
 type("https://example.org/decidability/budget-exhaustion/ruleTcStep", "https://blackcatinformatics.ca/logic/Rule", "default").
-body("https://example.org/decidability/budget-exhaustion/ruleTcStep", "n86ceae32171c466e95aa81f4e56b9bfcb4", "default").
-body("https://example.org/decidability/budget-exhaustion/ruleTcStep", "n86ceae32171c466e95aa81f4e56b9bfcb5", "default").
-head("https://example.org/decidability/budget-exhaustion/ruleTcStep", "n86ceae32171c466e95aa81f4e56b9bfcb3", "default").
+body("https://example.org/decidability/budget-exhaustion/ruleTcStep", "c14n0", "default").
+body("https://example.org/decidability/budget-exhaustion/ruleTcStep", "c14n4", "default").
+head("https://example.org/decidability/budget-exhaustion/ruleTcStep", "c14n1", "default").
 provenance("https://example.org/decidability/budget-exhaustion/ruleTcStep", "https://example.org/decidability/budget-exhaustion/ruleTcStep", "default").
 
 % === Rules ===

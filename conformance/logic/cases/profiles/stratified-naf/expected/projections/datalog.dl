@@ -4,13 +4,13 @@
 % === Ground facts (axioms) ===
 type("https://example.org/profiles/stratified-naf/Person", "https://blackcatinformatics.ca/logic/Kind", "default").
 type("https://example.org/profiles/stratified-naf/ruleMarried", "https://blackcatinformatics.ca/logic/Rule", "default").
-body("https://example.org/profiles/stratified-naf/ruleMarried", "n194b7b5e3ddc4f1c8ceeac5a32e8cb0bb2", "default").
-head("https://example.org/profiles/stratified-naf/ruleMarried", "n194b7b5e3ddc4f1c8ceeac5a32e8cb0bb1", "default").
+body("https://example.org/profiles/stratified-naf/ruleMarried", "c14n0", "default").
+head("https://example.org/profiles/stratified-naf/ruleMarried", "c14n4", "default").
 provenance("https://example.org/profiles/stratified-naf/ruleMarried", "https://example.org/profiles/stratified-naf/ruleMarried", "default").
 type("https://example.org/profiles/stratified-naf/ruleSingle", "https://blackcatinformatics.ca/logic/Rule", "default").
-body("https://example.org/profiles/stratified-naf/ruleSingle", "n194b7b5e3ddc4f1c8ceeac5a32e8cb0bb4", "default").
-head("https://example.org/profiles/stratified-naf/ruleSingle", "n194b7b5e3ddc4f1c8ceeac5a32e8cb0bb3", "default").
-negatedBody("https://example.org/profiles/stratified-naf/ruleSingle", "n194b7b5e3ddc4f1c8ceeac5a32e8cb0bb5", "default").
+body("https://example.org/profiles/stratified-naf/ruleSingle", "c14n3", "default").
+head("https://example.org/profiles/stratified-naf/ruleSingle", "c14n1", "default").
+negatedBody("https://example.org/profiles/stratified-naf/ruleSingle", "c14n2", "default").
 provenance("https://example.org/profiles/stratified-naf/ruleSingle", "https://example.org/profiles/stratified-naf/ruleSingle", "default").
 
 % === Rules ===

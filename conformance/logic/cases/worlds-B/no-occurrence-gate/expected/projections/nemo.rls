@@ -4,9 +4,9 @@
 % === Ground facts (axioms) ===
 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>(<https://example.org/worlds-B/no-occurrence-gate/EventType>, <https://blackcatinformatics.ca/logic/Kind>, "default").
 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>(<https://example.org/worlds-B/no-occurrence-gate/ruleTransitiveCausation>, <https://blackcatinformatics.ca/logic/Rule>, "default").
-<https://blackcatinformatics.ca/logic/body>(<https://example.org/worlds-B/no-occurrence-gate/ruleTransitiveCausation>, <n7ab0495f10b44e9a88c43541c3d3ae66b2>, "default").
-<https://blackcatinformatics.ca/logic/body>(<https://example.org/worlds-B/no-occurrence-gate/ruleTransitiveCausation>, <n7ab0495f10b44e9a88c43541c3d3ae66b3>, "default").
-<https://blackcatinformatics.ca/logic/head>(<https://example.org/worlds-B/no-occurrence-gate/ruleTransitiveCausation>, <n7ab0495f10b44e9a88c43541c3d3ae66b1>, "default").
+<https://blackcatinformatics.ca/logic/body>(<https://example.org/worlds-B/no-occurrence-gate/ruleTransitiveCausation>, <c14n0>, "default").
+<https://blackcatinformatics.ca/logic/body>(<https://example.org/worlds-B/no-occurrence-gate/ruleTransitiveCausation>, <c14n1>, "default").
+<https://blackcatinformatics.ca/logic/head>(<https://example.org/worlds-B/no-occurrence-gate/ruleTransitiveCausation>, <c14n2>, "default").
 <https://blackcatinformatics.ca/logic/provenance>(<https://example.org/worlds-B/no-occurrence-gate/ruleTransitiveCausation>, <https://example.org/worlds-B/no-occurrence-gate/ruleTransitiveCausation>, "default").
 
 % === Rules ===

@@ -52,6 +52,32 @@ fn canonical_quads(text: &str, format: RdfFormat) -> Result<Vec<String>, String>
     Ok(quads)
 }
 
+/// Compare two deterministic text projections (Datalog / Nemo `.rls` / N3) by exact
+/// equality. Unlike the RDF targets these carry no blank-node ambiguity once the
+/// front-end RDFC-1.0-canonicalizes blank labels, so a byte mismatch is a real
+/// regression, not codec skew. On mismatch the line counts and the first differing
+/// line are reported (capped, mirroring `compare_rdf`).
+pub fn compare_text(actual: &str, expected: &str) -> Vec<String> {
+    if actual == expected {
+        return vec![];
+    }
+    let a: Vec<&str> = actual.lines().collect();
+    let e: Vec<&str> = expected.lines().collect();
+    let mut lines = vec![format!("text mismatch: {} vs {} lines", a.len(), e.len())];
+    if let Some((i, (al, el))) = a
+        .iter()
+        .zip(e.iter())
+        .enumerate()
+        .find(|(_, (al, el))| al != el)
+    {
+        lines.push(format!(
+            "  first diff at line {}: actual {al:?} vs expected {el:?}",
+            i + 1
+        ));
+    }
+    lines
+}
+
 /// Compare two serialized RDF documents by blank-node-aware graph equality.
 ///
 /// Both documents are parsed and RDFC-1.0 canonicalized, and their canonical
@@ -320,6 +346,41 @@ pub fn diff_case(case_dir: &Path, out: &CaseOutputs) -> Vec<String> {
                 Err(e) => diffs.push(format!(
                     "[{case_id}] cannot parse expected preservation-ledger.json: {e}"
                 )),
+            }
+        }
+
+        // ── Projection text targets (Datalog / N3 / Nemo) ─────────────────────
+        // Deterministic since the front-end RDFC-1.0-canonicalizes blank labels, so
+        // these are gated by exact text equality (parity with the RDF block's
+        // missing-golden hard-fail). Every committed `projections/` dir carries all
+        // three text files, so a missing-but-produced target is a real regression.
+        const TEXT: [(&str, &str); 3] = [
+            ("datalog", "datalog.dl"),
+            ("n3", "n3.n3"),
+            ("nemo", "nemo.rls"),
+        ];
+        for (target, filename) in TEXT {
+            let expected_path = proj.join(filename);
+            let produced = out.projections.text.get(target);
+            if !expected_path.exists() {
+                if produced.is_some() {
+                    diffs.push(format!(
+                        "[{case_id}] projection {target}: golden {filename} is missing from \
+                         expected/projections/ — run the bless mode to generate it"
+                    ));
+                }
+                continue;
+            }
+            match (produced, read_text(&expected_path)) {
+                (Some(content), Ok(expected_text)) => {
+                    for d in compare_text(content, &expected_text) {
+                        diffs.push(format!("[{case_id}] {target}: {d}"));
+                    }
+                }
+                (None, _) => {
+                    diffs.push(format!("[{case_id}] projection {target}: no text produced"));
+                }
+                (_, Err(e)) => diffs.push(format!("[{case_id}] {target}: {e}")),
             }
         }
     }

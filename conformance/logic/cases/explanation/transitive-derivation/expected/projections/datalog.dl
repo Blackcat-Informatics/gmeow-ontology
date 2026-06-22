@@ -6,9 +6,9 @@ type("https://example.org/explanation/transitive-derivation/A", "https://blackca
 type("https://example.org/explanation/transitive-derivation/B", "https://blackcatinformatics.ca/logic/Kind", "default").
 type("https://example.org/explanation/transitive-derivation/C", "https://blackcatinformatics.ca/logic/Kind", "default").
 type("https://example.org/explanation/transitive-derivation/ruleTransitiveSubOf", "https://blackcatinformatics.ca/logic/Rule", "default").
-body("https://example.org/explanation/transitive-derivation/ruleTransitiveSubOf", "n0905218859ea4f68ac1e6889931ff417b2", "default").
-body("https://example.org/explanation/transitive-derivation/ruleTransitiveSubOf", "n0905218859ea4f68ac1e6889931ff417b3", "default").
-head("https://example.org/explanation/transitive-derivation/ruleTransitiveSubOf", "n0905218859ea4f68ac1e6889931ff417b1", "default").
+body("https://example.org/explanation/transitive-derivation/ruleTransitiveSubOf", "c14n1", "default").
+body("https://example.org/explanation/transitive-derivation/ruleTransitiveSubOf", "c14n2", "default").
+head("https://example.org/explanation/transitive-derivation/ruleTransitiveSubOf", "c14n0", "default").
 provenance("https://example.org/explanation/transitive-derivation/ruleTransitiveSubOf", "https://example.org/explanation/transitive-derivation/ruleTransitiveSubOf", "default").
 
 % === Rules ===

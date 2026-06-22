@@ -4,8 +4,8 @@
 % === Ground facts (axioms) ===
 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>(<https://example.org/profiles/positive-horn/Person>, <https://blackcatinformatics.ca/logic/Kind>, "default").
 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>(<https://example.org/profiles/positive-horn/ruleAncestor>, <https://blackcatinformatics.ca/logic/Rule>, "default").
-<https://blackcatinformatics.ca/logic/body>(<https://example.org/profiles/positive-horn/ruleAncestor>, <n2ae5ac8c590c4ee89156e90482610b2fb2>, "default").
-<https://blackcatinformatics.ca/logic/head>(<https://example.org/profiles/positive-horn/ruleAncestor>, <n2ae5ac8c590c4ee89156e90482610b2fb1>, "default").
+<https://blackcatinformatics.ca/logic/body>(<https://example.org/profiles/positive-horn/ruleAncestor>, <c14n1>, "default").
+<https://blackcatinformatics.ca/logic/head>(<https://example.org/profiles/positive-horn/ruleAncestor>, <c14n0>, "default").
 <https://blackcatinformatics.ca/logic/provenance>(<https://example.org/profiles/positive-horn/ruleAncestor>, <https://example.org/profiles/positive-horn/ruleAncestor>, "default").
 
 % === Rules ===

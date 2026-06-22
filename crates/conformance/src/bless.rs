@@ -16,53 +16,80 @@
 //! gate compares only the cited-IRI skeleton, which is verified against the
 //! existing goldens) and `witnesses.json` (a bless-only side file the diff never
 //! consumed). Authoring those for a brand-new case remains manual.
+//!
+//! ## Curated corpus + idempotency
+//!
+//! Each case commits a *curated* subset of goldens (a query case may pin only its
+//! `answers/`; a projection case pins the projection set). Bless therefore only
+//! **refreshes goldens that already exist** — it never spawns a golden the case
+//! deliberately omits. Combined with the deterministic front-end (RDFC-1.0 blank
+//! labels), this makes `bless → git diff` clean: a second bless on a fresh
+//! checkout is a no-op. To **seed a brand-new case**, set
+//! `GMEOW_CONFORMANCE_BLESS_INIT=1`, which writes the full produced golden set; the
+//! author then curates (deletes) the targets that case should not gate.
 
 use std::path::Path;
 
 use crate::run::CaseOutputs;
 
+/// Whether bless is in seed/init mode (`GMEOW_CONFORMANCE_BLESS_INIT=1`) — write the
+/// full produced golden set rather than only refreshing existing goldens.
+fn init_mode() -> bool {
+    std::env::var_os("GMEOW_CONFORMANCE_BLESS_INIT").is_some_and(|v| v == "1")
+}
+
 /// Write the reproducible `expected/` goldens for `case_dir` from `out`.
+///
+/// In the default (refresh) mode only goldens that already exist on disk are
+/// rewritten, so the curated corpus stays curated and bless is idempotent. In
+/// init mode (`GMEOW_CONFORMANCE_BLESS_INIT=1`) the full produced set is written.
 ///
 /// # Errors
 /// Returns an error string on any filesystem or serialization failure.
 pub fn write_expected(case_dir: &Path, out: &CaseOutputs) -> Result<(), String> {
+    let init = init_mode();
     let expected = case_dir.join("expected");
     let proj = expected.join("projections");
-    mkdirs(&proj)?;
 
-    // Projection RDF + report + ledger.
-    for (target, filename) in [
-        ("owl-dl", "owl-dl.ttl"),
-        ("owl-el", "owl-el.ttl"),
-        ("gufo", "gufo.ttl"),
-        ("canonical-rdf12", "canonical-rdf12.ttl"),
-    ] {
-        if let Some(content) = out.projections.rdf.get(target) {
-            write_text(&proj.join(filename), content)?;
+    // Projections are (re)written only when the case already commits a
+    // `projections/` golden dir (curated corpus), or in init mode (seed a new case).
+    if init || proj.is_dir() {
+        mkdirs(&proj)?;
+
+        // Projection RDF + report + ledger.
+        for (target, filename) in [
+            ("owl-dl", "owl-dl.ttl"),
+            ("owl-el", "owl-el.ttl"),
+            ("gufo", "gufo.ttl"),
+            ("canonical-rdf12", "canonical-rdf12.ttl"),
+        ] {
+            if let Some(content) = out.projections.rdf.get(target) {
+                write_if(init, &proj.join(filename), |p| write_text(p, content))?;
+            }
         }
-    }
-    write_text(
-        &proj.join("projection-report.ttl"),
-        &out.projections.report_turtle,
-    )?;
-    write_json(
-        &proj.join("preservation-ledger.json"),
-        &out.projections.ledger,
-    )?;
+        write_if(init, &proj.join("projection-report.ttl"), |p| {
+            write_text(p, &out.projections.report_turtle)
+        })?;
+        write_if(init, &proj.join("preservation-ledger.json"), |p| {
+            write_json(p, &out.projections.ledger)
+        })?;
 
-    // Plain-text projections.
-    for (target, filename) in [
-        ("datalog", "datalog.dl"),
-        ("n3", "n3.n3"),
-        ("nemo", "nemo.rls"),
-    ] {
-        if let Some(content) = out.projections.text.get(target) {
-            write_text(&proj.join(filename), content)?;
+        // Plain-text projections (now deterministic; gated like the RDF set).
+        for (target, filename) in [
+            ("datalog", "datalog.dl"),
+            ("n3", "n3.n3"),
+            ("nemo", "nemo.rls"),
+        ] {
+            if let Some(content) = out.projections.text.get(target) {
+                write_if(init, &proj.join(filename), |p| write_text(p, content))?;
+            }
         }
     }
 
     // Verdicts.
-    write_json(&expected.join("verdicts.json"), &out.verdicts)?;
+    write_if(init, &expected.join("verdicts.json"), |p| {
+        write_json(p, &out.verdicts)
+    })?;
 
     // Certification — write when the case opts in or a golden already exists.
     let profile_val = crate::compare::read_profile_value(case_dir);
@@ -71,14 +98,14 @@ pub fn write_expected(case_dir: &Path, out: &CaseOutputs) -> Result<(), String> 
         .and_then(serde_json::Value::as_bool)
         .unwrap_or(false);
     let cert_path = expected.join("certification.json");
-    if cert_opt_in || cert_path.exists() {
+    if init || cert_opt_in || cert_path.exists() {
         write_json(&cert_path, &out.certification)?;
     }
 
     // Budget — write when the case declares budget_params or a golden exists.
     let declares_budget = profile_val.get("budget_params").is_some();
     let budget_path = expected.join("budget.json");
-    if declares_budget || budget_path.exists() {
+    if init || declares_budget || budget_path.exists() {
         let actual_budget = serde_json::json!({
             "budget_status": out.budget_status,
             "incomplete": out.incomplete,
@@ -86,9 +113,12 @@ pub fn write_expected(case_dir: &Path, out: &CaseOutputs) -> Result<(), String> 
         write_json(&budget_path, &actual_budget)?;
     }
 
-    // Materialized N-Quads — write when non-empty or a golden exists.
+    // Materialized N-Quads — refresh-only: a case whose gated artifact is its
+    // `answers/` (goal / probabilistic cases) curates `materialized.nq` out even
+    // though materialization is non-empty, so writing on non-empty alone would spawn
+    // an uncommitted golden and break idempotency. Seed a new case with init.
     let mat_path = expected.join("materialized.nq");
-    if !out.materialized_nquads.is_empty() || mat_path.exists() {
+    if init || mat_path.exists() {
         write_text(&mat_path, &out.materialized_nquads)?;
     }
 
@@ -113,6 +143,21 @@ pub fn write_expected(case_dir: &Path, out: &CaseOutputs) -> Result<(), String> 
     }
 
     Ok(())
+}
+
+/// Refresh-or-seed gate: run the writer `f` only when seeding (`init`) or when a
+/// golden already exists at `path`. This is what keeps the curated corpus curated
+/// and bless idempotent — a target the case omits is never spawned in refresh mode.
+fn write_if(
+    init: bool,
+    path: &Path,
+    f: impl FnOnce(&Path) -> Result<(), String>,
+) -> Result<(), String> {
+    if init || path.exists() {
+        f(path)
+    } else {
+        Ok(())
+    }
 }
 
 /// Create `dir` and all parents.
