@@ -48,6 +48,78 @@ fn semantic_profile_ids_match_module_ttl() {
 }
 
 #[test]
+fn reasoning_contract_permits_cut_only_with_procedural_execution_facet() {
+    // The cut-confinement (AC-2) decision is facet-derived: a contract licenses cut iff
+    // its resource policy carries logic:ProceduralExecution — never via the budget facet.
+    let mut c = ReasoningContract::new();
+    assert!(!c.permits_cut(), "empty contract must not license cut");
+    c.resource_policies
+        .insert("BudgetBoundedResource".to_owned());
+    assert!(
+        !c.permits_cut(),
+        "a budget-bounded contract must NOT license cut (budget != procedural)"
+    );
+    c.resource_policies
+        .insert(PROCEDURAL_EXECUTION_FACET.to_owned());
+    assert!(
+        c.permits_cut(),
+        "the ProceduralExecution facet licenses cut even alongside a budget"
+    );
+}
+
+#[test]
+fn procedural_preset_carries_procedural_execution_facet() {
+    // Tie the Rust cut gate (SemanticProfileId::permits_cut) to the ontology surface:
+    // exactly the presets whose module.ttl expandsToFacet bundle includes
+    // logic:ProceduralExecution may license cut — so the two can never silently diverge.
+    let module_ttl = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("../../slices/core/logic/module.ttl");
+    let text = std::fs::read_to_string(&module_ttl)
+        .unwrap_or_else(|e| panic!("read {}: {e}", module_ttl.display()));
+
+    // Collect, per top-level preset block, whether it names logic:ProceduralExecution.
+    let mut carries: std::collections::BTreeMap<String, bool> = std::collections::BTreeMap::new();
+    let mut current: Option<String> = None;
+    let mut has_facet = false;
+    for line in text.lines() {
+        if let Some(rest) = line.strip_prefix("logic:") {
+            if let Some(subj) = current.take() {
+                carries.insert(subj, has_facet);
+            }
+            current = Some(rest.chars().take_while(|c| !c.is_whitespace()).collect());
+            has_facet = false;
+        }
+        if line.contains("logic:ProceduralExecution")
+            && current.as_deref() != Some("ProceduralExecution")
+        {
+            has_facet = true;
+        }
+    }
+    if let Some(subj) = current.take() {
+        carries.insert(subj, has_facet);
+    }
+
+    for id in [
+        SemanticProfileId::PositiveHorn,
+        SemanticProfileId::StratifiedNaf,
+        SemanticProfileId::WellFounded,
+        SemanticProfileId::StableModel,
+        SemanticProfileId::ProceduralProlog,
+        SemanticProfileId::Probabilistic,
+    ] {
+        let in_ttl = carries.get(id.as_str()).copied().unwrap_or(false);
+        assert_eq!(
+            in_ttl,
+            id.permits_cut(),
+            "preset {} cut-licensing must agree between module.ttl ProceduralExecution \
+             bundle ({in_ttl}) and SemanticProfileId::permits_cut ({})",
+            id.as_str(),
+            id.permits_cut()
+        );
+    }
+}
+
+#[test]
 fn compatibility_rule_ids_match_module_ttl() {
     // The Rust authority (compat.rs ALL_RULE_IDS) and the ontology surface
     // (logic:CompatibilityRule individuals in module.ttl) must never diverge:

@@ -652,11 +652,19 @@ logic:ProbabilityModel
     rdfs:label "Probability Model"@x-gmeow-english ;
     skos:definition "A declared independence or dependency model governing probabilistic inference for a rule set or world. Probabilistic inference under logic:ProbabilisticProfile is available ONLY when such a model is declared via logic:probabilityModel: the model fixes the joint distribution over the logic:probability facts so that marginals are well-defined. Absent a declared model the profile refuses to infer probabilities — it never silently assumes independence, because treating un-modelled confidence metadata as a probability model is the named failure mode this vocabulary exists to prevent."@x-gmeow-english .
 
+logic:ProceduralExecution
+    a owl:NamedIndividual ,
+        logic:ResourcePolicy ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
+    rdfs:label "Procedural Execution"@x-gmeow-english ;
+    skos:definition "The operational-execution property of a resource policy: SLD search control (cut) and builtins are permitted — an operational rather than purely declarative reading. This is the facet that licenses cut; cut-confinement (the AC-2 seal) is decided on it, never on the budget/bound property: a budget-bounded contract does not, by that fact alone, license cut. Only the procedural preset expands to it, but a contract assembled directly with this facet licenses cut even without the ProceduralPrologProfile preset name."@x-gmeow-english .
+
 logic:ProceduralPrologProfile
     a owl:NamedIndividual ,
         logic:ReasoningPreset ;
     logic:expandsToFacet logic:BudgetBoundedResource ,
-        logic:HornFragment ;
+        logic:HornFragment ,
+        logic:ProceduralExecution ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
     rdfs:label "Procedural Prolog Profile"@x-gmeow-english ;
     skos:definition "SLD resolution with cut and builtins: an operational, not purely declarative, semantics in which procedural search control (cut) and order-sensitive evaluation are permitted. Cut lives only here; artifacts using it must not project as declarative rules without recording the loss, because cut can change a program's answer set and defeats faithful-by-construction explanation."@x-gmeow-english .

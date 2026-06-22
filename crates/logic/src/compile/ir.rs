@@ -31,6 +31,12 @@ const SEP: char = '\u{0}';
 /// Matches `gmeow_tools.config.LOGIC_NAMESPACE` (and [`crate::provenance::LOGIC_NAMESPACE`]).
 pub const LOGIC_NAMESPACE: &str = "https://blackcatinformatics.ca/logic/";
 
+/// The `logic:ResourcePolicy` facet value (local name) that licenses operational SLD
+/// cut + builtins — the facet on which cut-confinement (AC-2) is decided.  Distinct
+/// from the budget/bound property: a budgeted contract does not, by that fact, license
+/// cut.  Only the procedural preset expands to it (`logic:expandsToFacet`).
+pub const PROCEDURAL_EXECUTION_FACET: &str = "ProceduralExecution";
+
 // --------------------------------------------------------------------------- //
 // Enums — single source of truth, local names taken verbatim from module.ttl
 // --------------------------------------------------------------------------- //
@@ -74,6 +80,18 @@ impl SemanticProfileId {
     /// The full IRI (`LOGIC_NAMESPACE + local_name`).
     pub fn iri(&self) -> String {
         format!("{LOGIC_NAMESPACE}{}", self.as_str())
+    }
+
+    /// `true` iff this preset's facet bundle carries the procedural-execution facet
+    /// (`logic:ProceduralExecution`) and therefore licenses SLD cut.
+    ///
+    /// This mirrors the `logic:expandsToFacet` bundle authored in `module.ttl` (only
+    /// `ProceduralPrologProfile` expands to `logic:ProceduralExecution`); the
+    /// `procedural_preset_carries_procedural_execution_facet` test ties this Rust fact
+    /// to the ontology surface so the two cannot silently diverge.  The cut gate
+    /// (`profile_gate`) decides via this facet-derived predicate, not a raw name match.
+    pub fn permits_cut(self) -> bool {
+        matches!(self, Self::ProceduralProlog)
     }
 
     /// Parse a local name back to the enum (inverse of [`Self::as_str`]).
@@ -578,6 +596,21 @@ impl ReasoningContract {
             preset: Some(preset),
             ..Self::default()
         }
+    }
+
+    /// `true` iff this contract licenses SLD cut (`!`) — i.e. its resource/execution
+    /// policy carries the procedural-execution facet ([`PROCEDURAL_EXECUTION_FACET`],
+    /// `logic:ProceduralExecution`).
+    ///
+    /// Cut-confinement (AC-2) is expressed in FACET terms: cut is the operational
+    /// search-control of the procedural execution policy, NOT a property of the
+    /// budget/bound (a budgeted contract does not, by that fact, license cut).  A
+    /// contract assembled directly with the procedural-execution facet licenses cut
+    /// even if it carries no `ProceduralPrologProfile` preset name.
+    pub fn permits_cut(&self) -> bool {
+        self.resource_policies
+            .iter()
+            .any(|r| r == PROCEDURAL_EXECUTION_FACET)
     }
 
     /// Render the single-valued facet `Option<String>` fields in a FIXED order
