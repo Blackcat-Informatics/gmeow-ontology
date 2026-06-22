@@ -169,27 +169,28 @@ pub fn check_enforcement_coverage(store: &Store) -> Vec<Finding> {
     let mut cited: BTreeSet<String> = BTreeSet::new();
 
     for principle in &principles {
-        let known: Vec<&String> = principle
-            .enforced_by
-            .iter()
-            .filter(|e| enforcements.contains_key(*e))
-            .collect();
-        let known_set: BTreeSet<&String> = known.iter().copied().collect();
-        for missing in &principle.enforced_by {
-            if !known_set.contains(missing) {
-                findings.push(error(
+        // Single pass over the cited enforcements: an entry mapped to a known
+        // enforcement is recorded in `cited` (and tells whether ≥1 is a real,
+        // non-Practice enforcement); an unknown entry is an `undeclared` finding.
+        let mut any_known = false;
+        let mut has_non_practice = false;
+        for e in &principle.enforced_by {
+            match enforcements.get(e) {
+                Some(kind) => {
+                    any_known = true;
+                    has_non_practice |= kind != "Practice";
+                    cited.insert(e.clone());
+                }
+                None => findings.push(error(
                     "undeclared-enforcement",
                     format!(
-                        "principle {} cites undeclared enforcement {missing}",
+                        "principle {} cites undeclared enforcement {e}",
                         principle.number
                     ),
-                ));
+                )),
             }
         }
-        for e in &known {
-            cited.insert((*e).clone());
-        }
-        if known.is_empty() {
+        if !any_known {
             findings.push(error(
                 "principle-unenforced",
                 format!(
@@ -197,10 +198,7 @@ pub fn check_enforcement_coverage(store: &Store) -> Vec<Finding> {
                     principle.number, principle.title
                 ),
             ));
-        } else if known
-            .iter()
-            .all(|e| enforcements.get(*e).map(String::as_str) == Some("Practice"))
-        {
+        } else if !has_non_practice {
             findings.push(
                 Finding::new(
                     Severity::Warning,

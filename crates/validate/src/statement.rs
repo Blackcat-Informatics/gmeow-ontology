@@ -33,7 +33,7 @@
 //! bindings adapt it to Python.
 
 use oxigraph::model::{Literal, NamedNode, NamedOrBlankNode, Term};
-use std::collections::BTreeSet;
+use std::collections::HashSet;
 
 use oxigraph::store::Store;
 
@@ -295,28 +295,48 @@ pub fn check_statement_lossless(
     let rdf12_triples = triple_set(normalized);
 
     let mut findings = Vec::new();
-    for triple in owl_triples.difference(&rdf12_triples) {
-        findings.push(lossless_finding(format!(
-            "OWL form has, RDF 1.2 lost: {triple}"
-        )));
-    }
-    for triple in rdf12_triples.difference(&owl_triples) {
-        findings.push(lossless_finding(format!(
-            "RDF 1.2 form has, OWL lacks: {triple}"
-        )));
-    }
+    findings.extend(
+        sorted_difference(&owl_triples, &rdf12_triples)
+            .map(|t| lossless_finding(format!("OWL form has, RDF 1.2 lost: {t}"))),
+    );
+    findings.extend(
+        sorted_difference(&rdf12_triples, &owl_triples)
+            .map(|t| lossless_finding(format!("RDF 1.2 form has, OWL lacks: {t}"))),
+    );
     findings
 }
 
-/// Every triple in `store`, each rendered as a canonical `subject predicate object`
-/// N-Triples string. A `BTreeSet` makes membership/difference deterministic and the
-/// diff order stable (sort-every-aggregate).
-fn triple_set(store: &Store) -> BTreeSet<String> {
+/// A single triple, kept as owned terms so set membership/difference avoids the
+/// per-quad `String` allocation that formatting every matching triple would cost.
+type Triple = (NamedOrBlankNode, NamedNode, Term);
+
+/// Every triple in `store` as a `HashSet` of owned terms. Hashing the terms
+/// directly (vs. an N-Triples `String` per quad) skips an allocation for the
+/// matching majority; the divergent few are rendered + sorted in
+/// [`sorted_difference`] so the diff order stays deterministic (P7).
+fn triple_set(store: &Store) -> HashSet<Triple> {
     store
         .iter()
-        .filter_map(Result::ok)
-        .map(|quad| format!("{} {} {}", quad.subject, quad.predicate, quad.object))
+        .map(|quad| {
+            let quad = quad.expect("statement lossless: store iteration failed");
+            (quad.subject, quad.predicate, quad.object)
+        })
         .collect()
+}
+
+/// The triples in `lhs` not in `rhs`, rendered `subject predicate object` and
+/// **sorted** so the emitted findings are deterministic regardless of `HashSet`
+/// iteration order.
+fn sorted_difference<'a>(
+    lhs: &'a HashSet<Triple>,
+    rhs: &'a HashSet<Triple>,
+) -> impl Iterator<Item = String> {
+    let mut rendered: Vec<String> = lhs
+        .difference(rhs)
+        .map(|(s, p, o)| format!("{s} {p} {o}"))
+        .collect();
+    rendered.sort();
+    rendered.into_iter()
 }
 
 /// Build one `statement-compile.lossless-round-trip` error finding.
