@@ -18,15 +18,48 @@
 
 use datatest_stable::Utf8Path;
 
-use gmeow_conformance::discover;
+use gmeow_conformance::{bless, compare, discover, run};
+
+/// The environment variable that switches the harness into golden-regeneration
+/// (bless) mode: when set to a truthy value, each case writes its goldens instead
+/// of asserting against them.
+const BLESS_ENV: &str = "GMEOW_CONFORMANCE_BLESS";
 
 /// Run one conformance case, identified by its `profile.json` sentinel path.
+///
+/// Default (assert) mode: discover → run the native engine → diff against the
+/// committed `expected/` goldens, surfacing every mismatch as one aggregated
+/// error. Bless mode (`GMEOW_CONFORMANCE_BLESS=1`): regenerate the reproducible
+/// goldens instead of asserting.
 fn run_case_file(profile_json: &Utf8Path) -> datatest_stable::Result<()> {
     let case_dir = gmeow_conformance::paths::case_dir(profile_json.as_std_path());
-    // Discovery validation: the directory must be a runnable case (input + profile).
-    // Task 4/5 extend this to run the engine and diff against goldens.
     discover::validate_case(&case_dir)?;
-    Ok(())
+    let outputs = run::run_case(&case_dir)?;
+
+    if bless_enabled() {
+        bless::write_expected(&case_dir, &outputs)?;
+        return Ok(());
+    }
+
+    let diffs = compare::diff_case(&case_dir, &outputs);
+    if diffs.is_empty() {
+        Ok(())
+    } else {
+        Err(format!(
+            "{} golden mismatch(es) for {}:\n  • {}",
+            diffs.len(),
+            outputs.case_id,
+            diffs.join("\n  • ")
+        )
+        .into())
+    }
+}
+
+/// Whether the bless env var is set to a truthy value (`1`/`true`/`yes`, any case).
+fn bless_enabled() -> bool {
+    std::env::var(BLESS_ENV)
+        .map(|v| matches!(v.trim().to_ascii_lowercase().as_str(), "1" | "true" | "yes"))
+        .unwrap_or(false)
 }
 
 datatest_stable::harness! {

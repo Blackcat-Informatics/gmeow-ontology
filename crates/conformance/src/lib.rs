@@ -32,6 +32,7 @@
 //! * [`compare`] — the three comparison modes and the per-case diff.
 //! * [`paths`] — `CARGO_MANIFEST_DIR`-anchored path resolution.
 
+pub mod bless;
 pub mod compare;
 pub mod discover;
 pub mod paths;

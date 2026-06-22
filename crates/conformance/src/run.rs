@@ -461,26 +461,7 @@ fn is_asserted(quad: &RunnerQuad) -> bool {
     quad.rule_iri == ASSERT_RULE_IRI
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    /// Smoke test: `run_case` executes end-to-end (engine + serialization) over
-    /// every discovered case without erroring. The golden DIFF is asserted by the
-    /// datatest harness (`tests/conformance.rs`); this only proves the orchestration
-    /// runs and produces well-formed artifacts.
-    #[test]
-    fn run_case_executes_over_the_whole_corpus() {
-        let cases =
-            crate::discover::discover_cases(&crate::paths::cases_root()).expect("discovery ok");
-        assert!(cases.len() >= 20, "unexpectedly few cases: {}", cases.len());
-        for case in &cases {
-            let out = run_case(&case.case_dir)
-                .unwrap_or_else(|e| panic!("run_case errored for {}: {e}", case.case_id));
-            // Every case yields the four RDF projection targets and a certification.
-            assert_eq!(out.projections.rdf.len(), 4, "case {}", case.case_id);
-            assert!(out.certification.is_object(), "case {}", case.case_id);
-            assert!(out.verdicts.is_object(), "case {}", case.case_id);
-        }
-    }
-}
+// NOTE: `run_case` end-to-end execution over the whole corpus is verified by the
+// `datatest-stable` harness (`tests/conformance.rs`), which runs AND diffs every
+// case in parallel (~3s). A separate serial smoke test here would only duplicate
+// that coverage at ~11s of gate time, so it is intentionally omitted (gate-perf).

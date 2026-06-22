@@ -17,14 +17,18 @@
 //! * [`compare_explanation_skeleton`] — **cited-IRI set** equality for
 //!   `explanation/*.md`, NEVER surface prose.
 //!
-//! The per-case [`diff_case`](crate::compare) orchestration over the full
-//! `expected/` tree lands in Task 5.
+//! [`diff_case`] drives all three modes over a case's full committed `expected/`
+//! tree (projections, materialized N-Quads, verdicts, certification, budget,
+//! explanation skeletons, answers), ported 1:1 from `logic_runner.diff_case`.
 
 use std::collections::{BTreeMap, BTreeSet};
+use std::path::{Path, PathBuf};
 
 use oxigraph::io::{RdfFormat, RdfParser};
 use oxigraph::model::dataset::{CanonicalizationAlgorithm, CanonicalizationHashAlgorithm};
 use oxigraph::model::{Dataset, GraphName, Triple};
+
+use crate::run::CaseOutputs;
 
 /// Canonicalize a serialized RDF document to a sorted list of canonical N-Quads
 /// strings.
@@ -224,6 +228,323 @@ pub fn nquads_by_named_graph(nquads_text: &str) -> Result<BTreeMap<String, Strin
 /// `s[:n]` slice used in the canonical-JSON mismatch message.
 fn truncate_chars(s: &str, n: usize) -> String {
     s.chars().take(n).collect()
+}
+
+// ── Case-level diff: actual vs committed expected/ ──────────────────────────────
+
+/// Diff a [`CaseOutputs`] against the committed `expected/` files for `case_dir`.
+///
+/// Ported 1:1 from `logic_runner.diff_case`: every committed expected artifact is
+/// checked with the appropriate comparison mode. Missing goldens are treated as
+/// mismatches only when the corresponding output is non-trivial (verification
+/// honesty); the certification / budget opt-in rules mirror the Python runner.
+/// Returns an empty `Vec` when the case matches all of its goldens.
+///
+/// `witnesses.json` is intentionally NOT compared — the Python `diff_case` never
+/// compared it either (it is a bless-only side file).
+pub fn diff_case(case_dir: &Path, out: &CaseOutputs) -> Vec<String> {
+    let case_id = &out.case_id;
+    let mut diffs: Vec<String> = Vec::new();
+    let expected = case_dir.join("expected");
+    let proj = expected.join("projections");
+
+    // Re-read the raw profile for the opt-in flags (mirrors _read_case_profile:
+    // lenient — an unreadable/non-object profile is treated as "no opt-in").
+    let profile_val = read_profile_value(case_dir);
+    let cert_opt_in = profile_val
+        .get("certify")
+        .and_then(serde_json::Value::as_bool)
+        .unwrap_or(false);
+    let declares_budget = profile_val.get("budget_params").is_some();
+
+    // ── Projection RDF targets ────────────────────────────────────────────────
+    if proj.is_dir() {
+        const RDF: [(&str, &str); 4] = [
+            ("owl-dl", "owl-dl.ttl"),
+            ("owl-el", "owl-el.ttl"),
+            ("gufo", "gufo.ttl"),
+            ("canonical-rdf12", "canonical-rdf12.ttl"),
+        ];
+        for (target, filename) in RDF {
+            let expected_path = proj.join(filename);
+            let produced = out.projections.rdf.get(target);
+            if !expected_path.exists() {
+                // Missing golden + produced RDF ⇒ hard failure (verification honesty).
+                if produced.is_some() {
+                    diffs.push(format!(
+                        "[{case_id}] projection {target}: golden {filename} is missing from \
+                         expected/projections/ — run the bless mode to generate it"
+                    ));
+                }
+                continue;
+            }
+            match (produced, read_text(&expected_path)) {
+                (Some(content), Ok(expected_text)) => {
+                    for d in compare_rdf(content, &expected_text, RdfFormat::Turtle) {
+                        diffs.push(format!("[{case_id}] {target}: {d}"));
+                    }
+                }
+                (None, _) => diffs.push(format!(
+                    "[{case_id}] projection {target}: no graph produced"
+                )),
+                (_, Err(e)) => diffs.push(format!("[{case_id}] {target}: {e}")),
+            }
+        }
+
+        // Projection report (graph-isomorphism).
+        let report_path = proj.join("projection-report.ttl");
+        if report_path.exists() {
+            match read_text(&report_path) {
+                Ok(expected_text) => {
+                    for d in compare_rdf(
+                        &out.projections.report_turtle,
+                        &expected_text,
+                        RdfFormat::Turtle,
+                    ) {
+                        diffs.push(format!("[{case_id}] projection-report: {d}"));
+                    }
+                }
+                Err(e) => diffs.push(format!("[{case_id}] projection-report: {e}")),
+            }
+        }
+
+        // Preservation ledger (canonical JSON).
+        let ledger_path = proj.join("preservation-ledger.json");
+        if ledger_path.exists() {
+            match read_json(&ledger_path) {
+                Ok(expected_ledger) => {
+                    for d in compare_canonical_json(&out.projections.ledger, &expected_ledger) {
+                        diffs.push(format!("[{case_id}] preservation-ledger: {d}"));
+                    }
+                }
+                Err(e) => diffs.push(format!(
+                    "[{case_id}] cannot parse expected preservation-ledger.json: {e}"
+                )),
+            }
+        }
+    }
+
+    // ── Verdicts (canonical JSON) ─────────────────────────────────────────────
+    diff_json_golden(
+        &expected.join("verdicts.json"),
+        &out.verdicts,
+        case_id,
+        "verdicts",
+        &mut diffs,
+    );
+
+    // ── Certification (opt-in canonical JSON) ─────────────────────────────────
+    let cert_path = expected.join("certification.json");
+    if cert_path.exists() {
+        diff_json_golden(
+            &cert_path,
+            &out.certification,
+            case_id,
+            "certification",
+            &mut diffs,
+        );
+    } else if cert_opt_in {
+        diffs.push(format!(
+            "[{case_id}] certification: golden certification.json is missing from expected/ \
+             but profile.json declares \"certify\": true — run the bless mode to generate it"
+        ));
+    }
+
+    // ── Budget governor markers (declares-budget ⇒ require-golden) ─────────────
+    let budget_path = expected.join("budget.json");
+    let actual_budget = serde_json::json!({
+        "budget_status": out.budget_status,
+        "incomplete": out.incomplete,
+    });
+    if budget_path.exists() {
+        diff_json_golden(&budget_path, &actual_budget, case_id, "budget", &mut diffs);
+    } else if declares_budget {
+        diffs.push(format!(
+            "[{case_id}] budget: golden budget.json is missing from expected/ but profile.json \
+             declares budget_params — run the bless mode to generate it"
+        ));
+    }
+
+    // ── Materialized N-Quads (per-world graph isomorphism) ────────────────────
+    let mat_path = expected.join("materialized.nq");
+    if mat_path.exists() {
+        match read_text(&mat_path) {
+            Err(e) => diffs.push(format!("[{case_id}] materialized.nq: {e}")),
+            Ok(expected_nq) => {
+                let actual_by_graph = nquads_by_named_graph(&out.materialized_nquads);
+                let expected_by_graph = nquads_by_named_graph(&expected_nq);
+                match (actual_by_graph, expected_by_graph) {
+                    (Err(e), _) | (_, Err(e)) => {
+                        diffs.push(format!("[{case_id}] materialized.nq parse error: {e}"))
+                    }
+                    (Ok(actual_by_graph), Ok(expected_by_graph)) => {
+                        let actual_iris: BTreeSet<&String> = actual_by_graph.keys().collect();
+                        let expected_iris: BTreeSet<&String> = expected_by_graph.keys().collect();
+                        for extra in actual_iris.difference(&expected_iris) {
+                            diffs.push(format!(
+                                "[{case_id}] materialized.nq: named graph present in actual but \
+                                 not expected: <{extra}>"
+                            ));
+                        }
+                        for missing in expected_iris.difference(&actual_iris) {
+                            diffs.push(format!(
+                                "[{case_id}] materialized.nq: named graph present in expected but \
+                                 not actual: <{missing}>"
+                            ));
+                        }
+                        for g in actual_iris.intersection(&expected_iris) {
+                            let g = *g;
+                            for d in compare_rdf(
+                                &actual_by_graph[g],
+                                &expected_by_graph[g],
+                                RdfFormat::NTriples,
+                            ) {
+                                diffs.push(format!("[{case_id}] materialized.nq [<{g}>]: {d}"));
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // ── Explanation skeletons (cited-IRI set, matched by reifier) ─────────────
+    let expl_dir = expected.join("explanation");
+    if expl_dir.is_dir() {
+        let produced: BTreeMap<&str, &BTreeSet<String>> = out
+            .explanations
+            .iter()
+            .map(|e| (e.target_quad_reifier.as_str(), &e.cited_iris))
+            .collect();
+        for md_path in sorted_files_with_ext(&expl_dir, "md") {
+            let name = md_path
+                .file_name()
+                .and_then(|s| s.to_str())
+                .unwrap_or("<unknown>.md")
+                .to_string();
+            let md_text = match read_text(&md_path) {
+                Ok(t) => t,
+                Err(e) => {
+                    diffs.push(format!("[{case_id}] explanation {name}: {e}"));
+                    continue;
+                }
+            };
+            let committed = parse_cited_iri_skeleton(&md_text);
+            let reifier = parse_explanation_reifier(&md_text);
+            match produced.get(reifier.as_str()) {
+                Some(cited) => {
+                    for d in compare_explanation_skeleton(cited, &committed) {
+                        diffs.push(format!("[{case_id}] explanation {name}: {d}"));
+                    }
+                }
+                None => diffs.push(format!(
+                    "[{case_id}] explanation {name}: golden cites reifier <{reifier}> but the \
+                     runner produced no explanation for it"
+                )),
+            }
+        }
+    }
+
+    // ── Answers (#504 backward goals) ─────────────────────────────────────────
+    let queries_dir = case_dir.join("queries");
+    let answers_dir = expected.join("answers");
+    if queries_dir.is_dir() {
+        for qfile in sorted_files_with_ext(&queries_dir, "logic") {
+            let stem = qfile
+                .file_stem()
+                .and_then(|s| s.to_str())
+                .unwrap_or("<unknown>")
+                .to_string();
+            let expected_path = answers_dir.join(format!("{stem}.json"));
+            if !expected_path.exists() {
+                diffs.push(format!(
+                    "[{case_id}] answers/{stem}: golden expected/answers/{stem}.json is missing"
+                ));
+                continue;
+            }
+            let expected_answer = match read_json(&expected_path) {
+                Ok(v) => v,
+                Err(e) => {
+                    diffs.push(format!(
+                        "[{case_id}] cannot parse expected answers/{stem}.json: {e}"
+                    ));
+                    continue;
+                }
+            };
+            match out.answers.get(&stem) {
+                Some(actual) => {
+                    for d in compare_canonical_json(actual, &expected_answer) {
+                        diffs.push(format!("[{case_id}] answers/{stem}: {d}"));
+                    }
+                }
+                None => diffs.push(format!(
+                    "[{case_id}] answers/{stem}: run produced no answer set"
+                )),
+            }
+        }
+    }
+
+    diffs
+}
+
+/// Compare a JSON `actual` against the golden at `path` when it exists, pushing
+/// any diffs (prefixed `[case_id] label:`). A missing golden is a no-op here —
+/// the caller decides whether absence is a failure.
+fn diff_json_golden(
+    path: &Path,
+    actual: &serde_json::Value,
+    case_id: &str,
+    label: &str,
+    diffs: &mut Vec<String>,
+) {
+    if !path.exists() {
+        return;
+    }
+    match read_json(path) {
+        Ok(expected) => {
+            for d in compare_canonical_json(actual, &expected) {
+                diffs.push(format!("[{case_id}] {label}: {d}"));
+            }
+        }
+        Err(e) => diffs.push(format!(
+            "[{case_id}] cannot parse expected {label}.json: {e}"
+        )),
+    }
+}
+
+/// Read a case's `profile.json` as a JSON value, returning `{}` on any error
+/// (mirrors `logic_runner._read_case_profile`'s lenient diff-phase read).
+pub(crate) fn read_profile_value(case_dir: &Path) -> serde_json::Value {
+    std::fs::read_to_string(case_dir.join("profile.json"))
+        .ok()
+        .and_then(|t| serde_json::from_str(&t).ok())
+        .filter(serde_json::Value::is_object)
+        .unwrap_or_else(|| serde_json::Value::Object(serde_json::Map::new()))
+}
+
+/// Read a UTF-8 text file, mapping I/O errors to a short diff string.
+fn read_text(path: &Path) -> Result<String, String> {
+    std::fs::read_to_string(path).map_err(|e| format!("cannot read {}: {e}", path.display()))
+}
+
+/// Read and parse a JSON file.
+fn read_json(path: &Path) -> Result<serde_json::Value, String> {
+    let text = read_text(path)?;
+    serde_json::from_str(&text).map_err(|e| format!("{e}"))
+}
+
+/// The files directly under `dir` with extension `ext`, sorted by path.
+fn sorted_files_with_ext(dir: &Path, ext: &str) -> Vec<PathBuf> {
+    let mut files: Vec<PathBuf> = match std::fs::read_dir(dir) {
+        Ok(rd) => rd
+            .filter_map(Result::ok)
+            .map(|e| e.path())
+            .filter(|p| p.extension().is_some_and(|x| x == ext))
+            .collect(),
+        Err(_) => Vec::new(),
+    };
+    files.sort();
+    files
 }
 
 #[cfg(test)]
