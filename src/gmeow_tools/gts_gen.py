@@ -489,7 +489,7 @@ def _ontology_version(authored_graph: Graph) -> str:
     any runtime-varying input). A missing version is a hard failure, never a
     silent default.
     """
-    from rdflib import OWL
+    from gmeow_rdf.compat.rdflib.namespace import OWL
 
     onto = URIRef(ONTOLOGY_IRI)
     for value in authored_graph.objects(onto, OWL.versionInfo):

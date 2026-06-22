@@ -21,9 +21,13 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import gmeow_rdf
 import pytest
+
+if TYPE_CHECKING:
+    from gmeow_rdf import SssomDiagnostic
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 _GOLDEN = json.loads(
@@ -43,7 +47,7 @@ def _severities(text: str) -> list[str]:
     return [d["severity"] for d in gmeow_rdf.validate_sssom(text)]
 
 
-def _blocking(text: str) -> list[dict[str, str]]:
+def _blocking(text: str) -> list[SssomDiagnostic]:
     """Native ERROR/FATAL diagnostics (the verdicts a gate would reject on)."""
     return [
         d for d in gmeow_rdf.validate_sssom(text) if d["severity"] in {"ERROR", "FATAL"}
