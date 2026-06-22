@@ -2595,7 +2595,8 @@ def certify(
         help=(
             "Override the declared semantic profile localname (e.g. "
             "PositiveHornProfile, StratifiedNAFProfile). When omitted, read "
-            "from a sibling profile.json, else default PositiveHornProfile."
+            "from a sibling profile.json (reasoning_contract.preset), else default "
+            "PositiveHornProfile."
         ),
     ),
 ) -> None:
@@ -2612,10 +2613,10 @@ def certify(
     The profile is resolved (highest precedence first):
 
     1. the ``--profile`` override, if given;
-    2. ``semantic_profile`` in a sibling ``profile.json``, if present;
+    2. ``reasoning_contract.preset`` in a sibling ``profile.json``, if present;
     3. ``PositiveHornProfile`` (the v1 default).
     """
-    #: The six logic:SemanticProfile local names (mirrors the Rust
+    #: The six logic:ReasoningPreset local names (mirrors the Rust
     #: SemanticProfileId enum / the ontology's named individuals).
     _valid_profiles = {
         "PositiveHornProfile",
@@ -2643,10 +2644,25 @@ def certify(
                 sibling_data = json.loads(sibling.read_text(encoding="utf-8"))
             except (OSError, json.JSONDecodeError) as exc:
                 raise _fail(f"✗ certify: cannot read {sibling}: {exc}") from exc
-            if isinstance(sibling_data, dict):
-                profile_str = str(
-                    sibling_data.get("semantic_profile", "PositiveHornProfile")
-                )
+            if isinstance(sibling_data, dict) and "reasoning_contract" in sibling_data:
+                # #767: the contract preset lives under reasoning_contract.preset
+                # (the retired top-level semantic_profile key is gone).
+                #
+                # Mirror the Rust authority's hard-fail (#767, Gap 5): a PRESENT
+                # reasoning_contract that is not an object with a string `preset` is
+                # malformed and must hard-fail, never silently fall through to the
+                # default preset.  Absence stays the PositiveHornProfile fallback.
+                contract = sibling_data["reasoning_contract"]
+                if (
+                    not isinstance(contract, dict)
+                    or "preset" not in contract
+                    or not isinstance(contract["preset"], str)
+                ):
+                    raise _fail(
+                        f"✗ certify: malformed reasoning_contract in {sibling}: "
+                        "expected an object with a string 'preset'"
+                    )
+                profile_str = contract["preset"]
 
     if profile_str not in _valid_profiles:
         raise _fail(

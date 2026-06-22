@@ -54,42 +54,253 @@ fn parse_invalid_turtle_raises() {
     assert!(err.0.contains("Failed to parse"));
 }
 
-// ── Minimal graph + profiles ─────────────────────────────────────────────────
+// ── Minimal graph + reasoning contracts (#767) ───────────────────────────────
 
 #[test]
 fn parse_minimal_graph_succeeds() {
     let (prog, diags) = parse(
         "ex:Person a logic:Kind .
-         logic:PositiveHornProfile a logic:SemanticProfile .",
+         logic:PositiveHornProfile a logic:ReasoningPreset .",
     );
     assert!(diags.is_empty(), "unexpected diagnostics: {diags:?}");
     assert!(has_axiom(&prog, "/Person", "#type", LogicModality::None));
-    assert_eq!(prog.profiles.len(), 1);
-    assert_eq!(prog.profiles[0].profile_id, SemanticProfileId::PositiveHorn);
+    assert_eq!(prog.contracts.len(), 1);
+    assert_eq!(
+        prog.contracts[0].preset,
+        Some(SemanticProfileId::PositiveHorn)
+    );
     assert_eq!(prog.source_iri.as_deref(), Some("https://example.org/prog"));
 }
 
 #[test]
-fn parse_multiple_profiles_with_complexity() {
+fn parse_multiple_contracts_with_complexity() {
     let (prog, _) = parse(
-        "logic:PositiveHornProfile a logic:SemanticProfile ;
+        "logic:PositiveHornProfile a logic:ReasoningPreset ;
             logic:complexityClass \"PTIME\" .
-         logic:StableModelProfile a logic:SemanticProfile .",
+         logic:StableModelProfile a logic:ReasoningPreset .",
     );
-    assert_eq!(prog.profiles.len(), 2);
+    assert_eq!(prog.contracts.len(), 2);
     let horn = prog
-        .profiles
+        .contracts
         .iter()
-        .find(|p| p.profile_id == SemanticProfileId::PositiveHorn)
+        .find(|c| c.preset == Some(SemanticProfileId::PositiveHorn))
         .unwrap();
     assert_eq!(horn.complexity.as_ref().unwrap().to_string(), "PTIME");
 }
 
 #[test]
 fn unknown_semantic_profile_emits_diagnostic() {
-    let (prog, diags) = parse("ex:Bogus a logic:SemanticProfile .");
-    assert!(prog.profiles.is_empty());
+    let (prog, diags) = parse("ex:Bogus a logic:ReasoningPreset .");
+    assert!(prog.contracts.is_empty());
     assert!(diags.iter().any(|d| d.code == "UNKNOWN_PROFILE"));
+}
+
+#[test]
+fn unknown_semantic_profile_is_a_hard_error() {
+    // Greenfield (reviewer C3): an unrecognised preset reference is a hard error,
+    // not a fail-soft warning — otherwise it is a silent approximation.
+    let (_, diags) = parse("ex:Bogus a logic:ReasoningPreset .");
+    assert!(diags
+        .iter()
+        .any(|d| d.code == "UNKNOWN_PROFILE" && d.severity == Severity::Error));
+}
+
+// ── Compatibility firewall (#767, Task 3 / reviewer C3) ──────────────────────
+
+#[test]
+fn unsupported_contract_is_a_hard_compile_failure() {
+    // A contract pairing logic:ProbabilisticMeasure with logic:StableModelSemantics
+    // is a forbidden combination; it MUST surface as a Severity::Error so the
+    // compile Report is not ok and the program is never treated as soundly
+    // evaluable.  Parallel to the cut-confinement firewall discipline.
+    let (_, diags) = parse(
+        "ex:UnsupportedContract a logic:ReasoningContract ;
+            logic:modelSemantics logic:StableModelSemantics ;
+            logic:uncertaintyMeasure logic:ProbabilisticMeasure .
+         logic:StableModelSemantics a logic:ModelSemantics .
+         logic:ProbabilisticMeasure a logic:UncertaintyMeasure .",
+    );
+    let unsupported: Vec<_> = diags
+        .iter()
+        .filter(|d| d.code == "UNSUPPORTED_CONTRACT")
+        .collect();
+    assert!(
+        unsupported.iter().any(|d| d.severity == Severity::Error),
+        "expected a Severity::Error UNSUPPORTED_CONTRACT finding; got: {diags:?}"
+    );
+    // Projecting into the canonical report, the firewall holds: the report is not ok.
+    let report = diagnostics_report(&diags);
+    assert!(
+        !report.ok(),
+        "an unsupported contract must make the compile report not ok"
+    );
+}
+
+#[test]
+fn supported_contract_compiles_clean() {
+    // A clean stable-model contract (no probabilistic measure) is supported.
+    let (_, diags) = parse(
+        "ex:CleanContract a logic:ReasoningContract ;
+            logic:modelSemantics logic:StableModelSemantics ;
+            logic:negationOperator logic:DefaultNegation .
+         logic:StableModelSemantics a logic:ModelSemantics .
+         logic:DefaultNegation a logic:NegationOperator .",
+    );
+    assert!(
+        !diags.iter().any(|d| d.code == "UNSUPPORTED_CONTRACT"),
+        "clean contract should not be flagged unsupported; got: {diags:?}"
+    );
+}
+
+#[test]
+fn probabilistic_measure_without_model_is_unsupported() {
+    // Reviewer C4: a probabilistic measure with NO declared logic:ProbabilityModel
+    // is a hard error (never a silent independence assumption).
+    let (_, diags) = parse(
+        "ex:ProbContract a logic:ReasoningContract ;
+            logic:uncertaintyMeasure logic:ProbabilisticMeasure .
+         logic:ProbabilisticMeasure a logic:UncertaintyMeasure .",
+    );
+    assert!(
+        diags
+            .iter()
+            .any(|d| d.code == "UNSUPPORTED_CONTRACT" && d.severity == Severity::Error),
+        "probabilistic measure without a model must be a hard error; got: {diags:?}"
+    );
+}
+
+#[test]
+fn paraconsistent_valuation_under_counterfactual_revision_is_a_hard_compile_failure() {
+    // Forbidden combo (RuleNoParaconsistentCounterfactualRevision), exercised end-to-end
+    // through the front-end: a gap/glut-admitting admissible valuation cannot coexist with
+    // counterfactual entrenchment revision. The closest-world generator that builds the
+    // counterfactual states is undefined over gappy/glutty valuations, so the compile Report
+    // must be not ok — never a silent approximation.
+    let (_, diags) = parse(
+        "ex:ParaCfContract a logic:ReasoningContract ;
+            logic:admissibleValuation logic:AdmitAllFour ;
+            logic:revision logic:EntrenchmentRevision .
+         logic:AdmitAllFour a logic:AdmissibleValuationPolicy .
+         logic:EntrenchmentRevision a logic:RevisionPolicy .",
+    );
+    assert!(
+        diags
+            .iter()
+            .any(|d| d.code == "UNSUPPORTED_CONTRACT" && d.severity == Severity::Error),
+        "paraconsistent valuation under counterfactual revision must be a hard error; got: {diags:?}"
+    );
+    let report = diagnostics_report(&diags);
+    assert!(
+        !report.ok(),
+        "an unsupported contract must make the compile report not ok"
+    );
+}
+
+#[test]
+fn closed_world_closure_under_counterfactual_revision_is_a_hard_compile_failure() {
+    // Forbidden combo (RuleNoClosedWorldInCounterfactual), exercised end-to-end: a
+    // closed-world (negation-by-absence) default closure cannot coexist with counterfactual
+    // entrenchment revision, whose generated states are open-ended. Reading absence as
+    // falsehood inside them is unsound, so the compile Report must be not ok.
+    let (_, diags) = parse(
+        "ex:CwaCfContract a logic:ReasoningContract ;
+            logic:defaultClosure logic:ClosedWorldClosure ;
+            logic:revision logic:EntrenchmentRevision .
+         logic:ClosedWorldClosure a logic:ClosureValue .
+         logic:EntrenchmentRevision a logic:RevisionPolicy .",
+    );
+    assert!(
+        diags
+            .iter()
+            .any(|d| d.code == "UNSUPPORTED_CONTRACT" && d.severity == Severity::Error),
+        "closed-world closure under counterfactual revision must be a hard error; got: {diags:?}"
+    );
+    let report = diagnostics_report(&diags);
+    assert!(
+        !report.ok(),
+        "an unsupported contract must make the compile report not ok"
+    );
+}
+
+#[test]
+fn probabilistic_measure_with_declared_model_is_supported() {
+    // With a declared logic:ProbabilityModel the probabilistic measure is fine.
+    let (_, diags) = parse(
+        "ex:ProbContract a logic:ReasoningContract ;
+            logic:uncertaintyMeasure logic:ProbabilisticMeasure .
+         logic:ProbabilisticMeasure a logic:UncertaintyMeasure .
+         ex:myModel a logic:ProbabilityModel .",
+    );
+    assert!(
+        !diags.iter().any(|d| d.code == "UNSUPPORTED_CONTRACT"),
+        "probabilistic measure with a declared model is supported; got: {diags:?}"
+    );
+}
+
+// ── Meta-config does not leak into domain axioms (#767, Gap 1) ───────────────
+
+#[test]
+fn contract_facet_config_does_not_leak_into_domain_axioms() {
+    // A logic:ReasoningPreset's facet-config triples (expandsToFacet, defaultClosure,
+    // …) are contract configuration consumed by extract_contracts — they MUST NOT
+    // surface as domain LogicAxioms (which would pollute the Datalog / N3 / ledger
+    // projections). A genuine domain triple alongside them still survives.
+    let (prog, diags) = parse(
+        "logic:PositiveHornProfile a logic:ReasoningPreset ;
+            logic:expandsToFacet logic:ProceduralExecution ;
+            logic:defaultClosure logic:OpenWorldClosure .
+         logic:ProceduralExecution a logic:ResourcePolicy .
+         logic:OpenWorldClosure a logic:ClosureValue .
+         ex:Bird logic:subClassOf ex:Animal .",
+    );
+    assert!(diags.is_empty(), "unexpected diagnostics: {diags:?}");
+
+    // The genuine domain triple survives.
+    assert!(
+        prog.axioms
+            .iter()
+            .any(|a| a.subject.ends_with("/Bird") && a.predicate.ends_with("subClassOf")),
+        "domain axiom must survive; got: {:?}",
+        prog.axioms
+    );
+
+    // ZERO facet-config axioms leaked.
+    assert!(
+        !prog
+            .axioms
+            .iter()
+            .any(|a| a.predicate.ends_with("expandsToFacet")
+                || a.predicate.ends_with("defaultClosure")),
+        "no facet-config triple may leak into prog.axioms; got: {:?}",
+        prog.axioms
+    );
+}
+
+// ── Malformed ClosureEntry hard-fail (#767, Gap 4) ───────────────────────────
+
+#[test]
+fn closure_entry_missing_value_is_a_hard_error() {
+    // A closureEntry node missing logic:closureValue is malformed: emit a
+    // MALFORMED_CLOSURE_ENTRY Severity::Error so the compile report is not ok,
+    // never a silent skip.
+    let (_, diags) = parse(
+        "ex:BadClosure a logic:ReasoningContract ;
+            logic:closureEntry [
+                a logic:ClosureEntry ;
+                logic:closureKey \"ex:pred\"
+            ] .",
+    );
+    assert!(
+        diags
+            .iter()
+            .any(|d| d.code == "MALFORMED_CLOSURE_ENTRY" && d.severity == Severity::Error),
+        "a closureEntry missing closureValue must be a hard error; got: {diags:?}"
+    );
+    let report = diagnostics_report(&diags);
+    assert!(
+        !report.ok(),
+        "a malformed closure entry must make the compile report not ok"
+    );
 }
 
 // ── Axioms ───────────────────────────────────────────────────────────────────
@@ -183,18 +394,18 @@ fn invalid_confidence_emits_diagnostic() {
     assert!(diags.iter().any(|d| d.code == "INVALID_CONFIDENCE"));
 }
 
-// ── Profiles complexity guards ───────────────────────────────────────────────
+// ── Contract complexity guards ───────────────────────────────────────────────
 
 #[test]
 fn empty_complexity_class_emits_diagnostic() {
     let (prog, diags) = parse(
-        "logic:PositiveHornProfile a logic:SemanticProfile ;
+        "logic:PositiveHornProfile a logic:ReasoningPreset ;
             logic:complexityClass \"\" .",
     );
     assert!(diags.iter().any(|d| d.code == "INVALID_COMPLEXITY_CLASS"));
-    // The profile is still recorded, just without a complexity class.
-    assert_eq!(prog.profiles.len(), 1);
-    assert!(prog.profiles[0].complexity.is_none());
+    // The contract is still recorded, just without a complexity class.
+    assert_eq!(prog.contracts.len(), 1);
+    assert!(prog.contracts[0].complexity.is_none());
 }
 
 // ── Rules ────────────────────────────────────────────────────────────────────

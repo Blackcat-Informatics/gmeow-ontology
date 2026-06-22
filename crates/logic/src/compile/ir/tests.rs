@@ -30,21 +30,179 @@ fn semantic_profile_ids_match_module_ttl() {
     .iter()
     .map(|p| p.as_str())
     .collect();
-    let expected: std::collections::BTreeSet<&str> = [
-        "PositiveHornProfile",
-        "StratifiedNAFProfile",
-        "WellFoundedProfile",
-        "StableModelProfile",
-        "ProceduralPrologProfile",
-        "ProbabilisticProfile",
-    ]
-    .into_iter()
-    .collect();
-    assert_eq!(got, expected);
-    // Round-trip through from_local.
-    for p in expected {
-        assert_eq!(SemanticProfileId::from_local(p).unwrap().as_str(), p);
+
+    // The six preset local names must be EXACTLY the logic:ReasoningPreset named
+    // individuals declared in module.ttl (#767, reviewer B1): the historical
+    // logic:SemanticProfile class is retired, so the source of truth is now the
+    // set of logic:ReasoningPreset individuals. Walk the top-level subject blocks
+    // and collect every subject whose block names logic:ReasoningPreset as a type
+    // (skipping the class declaration itself).
+    let module_ttl = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("../../slices/core/logic/module.ttl");
+    let text = std::fs::read_to_string(&module_ttl)
+        .unwrap_or_else(|e| panic!("read {}: {e}", module_ttl.display()));
+
+    let mut from_ttl: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
+    let mut current_subject: Option<String> = None;
+    let mut block_is_preset = false;
+    for line in text.lines() {
+        if let Some(rest) = line.strip_prefix("logic:") {
+            if let (Some(subj), true) = (current_subject.take(), block_is_preset) {
+                from_ttl.insert(subj);
+            }
+            current_subject = Some(rest.chars().take_while(|c| !c.is_whitespace()).collect());
+            block_is_preset = false;
+        }
+        // Only an rdf:type reference flags the block — a type-list line, never the
+        // class declaration itself, the expandsToFacet property's prose, or any
+        // other skos:definition prose (which is quoted, so exclude quoted lines).
+        if line.contains("logic:ReasoningPreset")
+            && !line.contains('"')
+            && !line.contains("a owl:Class")
+            && current_subject.as_deref() != Some("ReasoningPreset")
+            && current_subject.as_deref() != Some("expandsToFacet")
+        {
+            block_is_preset = true;
+        }
     }
+    if let (Some(subj), true) = (current_subject, block_is_preset) {
+        from_ttl.insert(subj);
+    }
+
+    let from_rust: std::collections::BTreeSet<&str> = got.iter().copied().collect();
+    let from_ttl_refs: std::collections::BTreeSet<&str> =
+        from_ttl.iter().map(String::as_str).collect();
+    assert_eq!(
+        from_rust, from_ttl_refs,
+        "SemanticProfileId enum must match the logic:ReasoningPreset individuals in module.ttl"
+    );
+
+    // Round-trip through from_local.
+    for p in &got {
+        assert_eq!(SemanticProfileId::from_local(p).unwrap().as_str(), *p);
+    }
+}
+
+#[test]
+fn reasoning_contract_permits_cut_only_with_procedural_execution_facet() {
+    // The cut-confinement (AC-2) decision is facet-derived: a contract licenses cut iff
+    // its resource policy carries logic:ProceduralExecution — never via the budget facet.
+    let mut c = ReasoningContract::new();
+    assert!(!c.permits_cut(), "empty contract must not license cut");
+    c.resource_policies
+        .insert("BudgetBoundedResource".to_owned());
+    assert!(
+        !c.permits_cut(),
+        "a budget-bounded contract must NOT license cut (budget != procedural)"
+    );
+    c.resource_policies
+        .insert(PROCEDURAL_EXECUTION_FACET.to_owned());
+    assert!(
+        c.permits_cut(),
+        "the ProceduralExecution facet licenses cut even alongside a budget"
+    );
+}
+
+#[test]
+fn procedural_preset_carries_procedural_execution_facet() {
+    // Tie the Rust cut gate (SemanticProfileId::permits_cut) to the ontology surface:
+    // exactly the presets whose module.ttl expandsToFacet bundle includes
+    // logic:ProceduralExecution may license cut — so the two can never silently diverge.
+    let module_ttl = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("../../slices/core/logic/module.ttl");
+    let text = std::fs::read_to_string(&module_ttl)
+        .unwrap_or_else(|e| panic!("read {}: {e}", module_ttl.display()));
+
+    // Collect, per top-level preset block, whether it names logic:ProceduralExecution.
+    let mut carries: std::collections::BTreeMap<String, bool> = std::collections::BTreeMap::new();
+    let mut current: Option<String> = None;
+    let mut has_facet = false;
+    for line in text.lines() {
+        if let Some(rest) = line.strip_prefix("logic:") {
+            if let Some(subj) = current.take() {
+                carries.insert(subj, has_facet);
+            }
+            current = Some(rest.chars().take_while(|c| !c.is_whitespace()).collect());
+            has_facet = false;
+        }
+        if line.contains("logic:ProceduralExecution")
+            && current.as_deref() != Some("ProceduralExecution")
+        {
+            has_facet = true;
+        }
+    }
+    if let Some(subj) = current.take() {
+        carries.insert(subj, has_facet);
+    }
+
+    for id in [
+        SemanticProfileId::PositiveHorn,
+        SemanticProfileId::StratifiedNaf,
+        SemanticProfileId::WellFounded,
+        SemanticProfileId::StableModel,
+        SemanticProfileId::ProceduralProlog,
+        SemanticProfileId::Probabilistic,
+    ] {
+        let in_ttl = carries.get(id.as_str()).copied().unwrap_or(false);
+        assert_eq!(
+            in_ttl,
+            id.permits_cut(),
+            "preset {} cut-licensing must agree between module.ttl ProceduralExecution \
+             bundle ({in_ttl}) and SemanticProfileId::permits_cut ({})",
+            id.as_str(),
+            id.permits_cut()
+        );
+    }
+}
+
+#[test]
+fn compatibility_rule_ids_match_module_ttl() {
+    // The Rust authority (compat.rs ALL_RULE_IDS) and the ontology surface
+    // (logic:CompatibilityRule individuals in module.ttl) must never diverge:
+    // every rust rule id is an individual local name and vice versa.
+    use crate::compile::compat::ALL_RULE_IDS;
+
+    let module_ttl = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("../../slices/core/logic/module.ttl");
+    let text = std::fs::read_to_string(&module_ttl)
+        .unwrap_or_else(|e| panic!("read {}: {e}", module_ttl.display()));
+
+    // Each individual is declared at column 0 as `logic:<Name>` and carries a
+    // `logic:CompatibilityRule` rdf:type within its statement block (terminated by
+    // a line-final ` .`).  Walk the blocks and collect the subjects whose block
+    // names logic:CompatibilityRule as a type.
+    let mut from_ttl: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
+    let mut current_subject: Option<String> = None;
+    let mut block_is_rule = false;
+    for line in text.lines() {
+        if let Some(rest) = line.strip_prefix("logic:") {
+            // A new top-level subject block begins.
+            if let (Some(subj), true) = (current_subject.take(), block_is_rule) {
+                from_ttl.insert(subj);
+            }
+            let name: String = rest.chars().take_while(|c| !c.is_whitespace()).collect();
+            current_subject = Some(name);
+            block_is_rule = false;
+        }
+        if line.contains("logic:CompatibilityRule") && !line.contains("a owl:Class") {
+            // Skip the class declaration itself (`logic:CompatibilityRule a owl:Class`);
+            // a type reference inside an individual block flags it as a rule.
+            if current_subject.as_deref() != Some("CompatibilityRule") {
+                block_is_rule = true;
+            }
+        }
+    }
+    if let (Some(subj), true) = (current_subject, block_is_rule) {
+        from_ttl.insert(subj);
+    }
+
+    let from_rust: std::collections::BTreeSet<String> =
+        ALL_RULE_IDS.iter().map(|s| (*s).to_owned()).collect();
+
+    assert_eq!(
+        from_rust, from_ttl,
+        "Rust compat rule ids must match logic:CompatibilityRule individuals in module.ttl"
+    );
 }
 
 #[test]
@@ -215,19 +373,36 @@ fn logic_rule_distinct_pairs_canonicalized() {
     assert!(r1.sort_key().contains("?A\u{0}?B"));
 }
 
-// ── LogicProfile ─────────────────────────────────────────────────────────────
+// ── ReasoningContract (#767) ─────────────────────────────────────────────────
 
 #[test]
-fn logic_profile_with_and_without_complexity() {
-    let p = LogicProfile::new(
-        SemanticProfileId::PositiveHorn,
-        Some(ComplexityClass::new("PTIME").unwrap()),
-    );
-    assert_eq!(p.profile_id, SemanticProfileId::PositiveHorn);
-    assert_eq!(p.complexity.as_ref().unwrap().to_string(), "PTIME");
+fn reasoning_contract_with_and_without_complexity() {
+    let mut c = ReasoningContract::from_preset(SemanticProfileId::PositiveHorn);
+    c.complexity = Some(ComplexityClass::new("PTIME").unwrap());
+    c.formula_fragment = Some("HornFragment".to_owned());
+    assert_eq!(c.preset, Some(SemanticProfileId::PositiveHorn));
+    assert_eq!(c.complexity.as_ref().unwrap().to_string(), "PTIME");
+    assert_eq!(c.formula_fragment.as_deref(), Some("HornFragment"));
 
-    let p2 = LogicProfile::new(SemanticProfileId::StableModel, None);
-    assert!(p2.complexity.is_none());
+    let c2 = ReasoningContract::from_preset(SemanticProfileId::StableModel);
+    assert!(c2.complexity.is_none());
+}
+
+#[test]
+fn reasoning_contract_sort_key_is_construction_order_independent() {
+    // The set-valued facets must canonicalize regardless of insertion order.
+    let mut c1 = ReasoningContract::from_preset(SemanticProfileId::StableModel);
+    c1.negation_operators.insert("DefaultNegation".to_owned());
+    c1.negation_operators.insert("ExplicitNegation".to_owned());
+    c1.projection_targets.insert("OwlProjection".to_owned());
+
+    let mut c2 = ReasoningContract::from_preset(SemanticProfileId::StableModel);
+    c2.negation_operators.insert("ExplicitNegation".to_owned());
+    c2.negation_operators.insert("DefaultNegation".to_owned());
+    c2.projection_targets.insert("OwlProjection".to_owned());
+
+    assert_eq!(c1, c2);
+    assert_eq!(c1.sort_key(), c2.sort_key());
 }
 
 // ── LogicProgram order-independence (the core canonicalization contract) ──────
@@ -236,8 +411,8 @@ fn logic_profile_with_and_without_complexity() {
 fn logic_program_order_independence_equality() {
     let a1 = axiom("ex:x", &kind_pred(), "ex:o");
     let a2 = axiom("ex:y", &format!("{LOGIC}Role"), "ex:o");
-    let p1 = LogicProfile::new(SemanticProfileId::PositiveHorn, None);
-    let p2 = LogicProfile::new(SemanticProfileId::StratifiedNaf, None);
+    let p1 = ReasoningContract::from_preset(SemanticProfileId::PositiveHorn);
+    let p2 = ReasoningContract::from_preset(SemanticProfileId::StratifiedNaf);
 
     let prog_ab = LogicProgram::new(
         vec![a1.clone(), a2.clone()],
@@ -334,5 +509,5 @@ fn logic_program_source_iri_preserved() {
     assert_eq!(prog.source_iri.as_deref(), Some("https://example.org/prog"));
     assert!(prog.axioms.is_empty());
     assert!(prog.rules.is_empty());
-    assert!(prog.profiles.is_empty());
+    assert!(prog.contracts.is_empty());
 }

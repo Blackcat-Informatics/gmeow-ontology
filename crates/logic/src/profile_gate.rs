@@ -14,23 +14,21 @@
 //! inserted into `WorldStore.inner` during or after resolution. Cut is virtual-only by
 //! construction.
 //!
-//! # Profile matching
+//! # Cut-permission is facet-derived (#767)
 //!
-//! A profile "denotes ProceduralPrologProfile" iff it:
-//! - Equals [`PROCEDURAL_PROLOG_PROFILE`] (the full IRI), OR
-//! - Equals the bare short name `"ProceduralPrologProfile"`, OR
-//! - Ends with `"ProceduralPrologProfile"` (covers `logic:ProceduralPrologProfile`,
-//!   `https://…/ProceduralPrologProfile`, and any other prefixed form that profile.json
-//!   might emit).
+//! Cut-confinement is decided in FACET terms, not by a raw profile-name match: a
+//! profile reference (full IRI, `prefix:Local`, or bare local name) is resolved to its
+//! preset, and cut is licensed iff that preset's facet bundle carries the
+//! procedural-execution facet (`logic:ProceduralExecution`, see
+//! [`SemanticProfileId::permits_cut`]).  An unrecognized reference resolves to no preset
+//! and does not license cut — the AC-2 seal is preserved.
 
+use crate::compile::ir::SemanticProfileId;
 use crate::query_ir::{QBodyLit, QProgram};
 
-/// The canonical full IRI for the procedural Prolog profile.
+/// The canonical full IRI for the procedural Prolog profile (used in diagnostics).
 pub const PROCEDURAL_PROLOG_PROFILE: &str =
     "https://blackcatinformatics.ca/logic/ProceduralPrologProfile";
-
-/// The bare short name accepted as an alias for [`PROCEDURAL_PROLOG_PROFILE`].
-const PROCEDURAL_SHORT_NAME: &str = "ProceduralPrologProfile";
 
 /// Return `true` if any rule body in `program` contains a [`QBodyLit::Cut`].
 pub fn has_cut(program: &QProgram) -> bool {
@@ -40,22 +38,28 @@ pub fn has_cut(program: &QProgram) -> bool {
         .any(|rule| rule.body.iter().any(|lit| matches!(lit, QBodyLit::Cut)))
 }
 
-/// Assert that if `program` contains cut, `profile` denotes
-/// [`PROCEDURAL_PROLOG_PROFILE`].
+/// Assert that if `program` contains cut, `profile` resolves to a preset whose
+/// facet bundle licenses cut.
 ///
-/// Cut may appear ONLY under the procedural Prolog profile. Hard-fail otherwise —
-/// there is no fallback or silent stripping of cut.
+/// Cut may appear ONLY under a profile whose facet bundle licenses it. Hard-fail
+/// otherwise — there is no fallback or silent stripping of cut.
 ///
-/// A profile denotes `ProceduralPrologProfile` iff it equals
-/// [`PROCEDURAL_PROLOG_PROFILE`], equals `"ProceduralPrologProfile"`, or ends with
-/// `"ProceduralPrologProfile"`.
+/// The decision is **facet-derived** (#767): `profile` is resolved to its preset
+/// via its local name ([`SemanticProfileId::from_local`]) and cut is licensed iff
+/// that preset's facet bundle carries the procedural-execution facet
+/// (`logic:ProceduralExecution`, exposed by [`SemanticProfileId::permits_cut`] and
+/// pinned to the facet by the `procedural_preset_carries_procedural_execution_facet`
+/// test) — see [`is_procedural_profile`]. An unrecognized reference resolves to no
+/// preset and does not license cut. This is NOT a raw name match against
+/// `ProceduralPrologProfile`; that preset only licenses cut because its facet bundle
+/// carries the procedural-execution facet.
 ///
 /// If the program contains no cut this function always returns `Ok(())`.
 ///
 /// # Errors
 ///
 /// Returns `Err(String)` with a message naming the offending profile when the program
-/// contains cut and the profile does not denote `ProceduralPrologProfile`.
+/// contains cut and the profile resolves to no cut-licensing preset.
 pub fn check_cut_profile(program: &QProgram, profile: &str) -> Result<(), String> {
     if !has_cut(program) {
         return Ok(());
@@ -70,11 +74,28 @@ pub fn check_cut_profile(program: &QProgram, profile: &str) -> Result<(), String
     ))
 }
 
-/// Return `true` if `profile` denotes the procedural Prolog profile.
+/// Extract the local name from a profile reference (full IRI, `prefix:Local`, or a
+/// bare local name) — the substring after the last `/` or `:`.
+fn profile_local_name(profile: &str) -> &str {
+    profile
+        .rsplit(['/', ':'])
+        .next()
+        .filter(|s| !s.is_empty())
+        .unwrap_or(profile)
+}
+
+/// Return `true` if `profile` denotes a reasoning contract whose facet bundle
+/// licenses cut.
+///
+/// The decision is **facet-derived**: the profile string is resolved to its preset and
+/// the cut decision flows from that preset's procedural-execution facet
+/// ([`SemanticProfileId::permits_cut`] ⇔ the `logic:ProceduralExecution` facet in its
+/// `logic:expandsToFacet` bundle), NOT from a raw `ProceduralPrologProfile` name match.
+/// An unrecognized profile reference resolves to no preset and therefore does not
+/// license cut (hard-fail), preserving the AC-2 seal.
 fn is_procedural_profile(profile: &str) -> bool {
-    profile == PROCEDURAL_PROLOG_PROFILE
-        || profile == PROCEDURAL_SHORT_NAME
-        || profile.ends_with(PROCEDURAL_SHORT_NAME)
+    SemanticProfileId::from_local(profile_local_name(profile))
+        .is_some_and(SemanticProfileId::permits_cut)
 }
 
 // ── Probabilistic profile recognition (#506) ─────────────────────────────────

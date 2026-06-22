@@ -47,7 +47,7 @@ def _profile(case_dir: Path) -> str:
     — mirroring the runner's ``query_profile`` selection.
     """
     data = json.loads((case_dir / "profile.json").read_text(encoding="utf-8"))
-    profile = data.get("counterfactual_profile", data["semantic_profile"])
+    profile = data.get("counterfactual_profile", data["reasoning_contract"]["preset"])
     assert isinstance(profile, str)
     return profile
 

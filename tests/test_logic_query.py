@@ -63,9 +63,9 @@ def _load_golden(case_dir: Path, stem: str) -> dict[str, object]:
 
 
 def _profile(case_dir: Path) -> str:
-    """Read the semantic_profile string from profile.json."""
+    """Read the reasoning-contract preset string from profile.json (#767)."""
     data = json.loads((case_dir / "profile.json").read_text(encoding="utf-8"))
-    return str(data["semantic_profile"])
+    return str(data["reasoning_contract"]["preset"])
 
 
 def _max_answers(case_dir: Path) -> int | None:

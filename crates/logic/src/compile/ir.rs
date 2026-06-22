@@ -9,17 +9,19 @@
 //! # Canonicalization contract
 //!
 //! [`LogicProgram`] equality is content-addressed and order-independent: two
-//! programs with the same axioms/rules/profiles constructed in a different order
+//! programs with the same axioms/rules/contracts constructed in a different order
 //! compare equal and produce the same canonical key.  This is achieved by storing
 //! all collection fields as **sorted vectors**, built by the canonicalizing
 //! constructors ([`LogicProgram::new`], [`LogicRule::new`]).  Sorting is **stable**
 //! and keyed on [`LogicAxiom::sort_key`] / [`LogicRule::sort_key`] /
-//! [`LogicProfile::sort_key`], which reproduce the Python `_sort_key()` byte for
-//! byte (null-byte separators; Python `bool` `Display` `True`/`False`;
-//! corpus-safety: `negated` / `distinct` are appended to the key only when set, so
-//! every pre-#502/#503 program keeps its exact historical key string and the
-//! downstream artifacts stay byte-identical).
+//! [`ReasoningContract::sort_key`].  The axiom/rule keys reproduce the Python
+//! `_sort_key()` byte for byte (null-byte separators; Python `bool` `Display`
+//! `True`/`False`; corpus-safety: `negated` / `distinct` are appended to the key
+//! only when set, so every pre-#502/#503 program keeps its exact historical key
+//! string and the downstream artifacts stay byte-identical).  The contract key is
+//! greenfield (#767): it has no Python byte form, only internal determinism.
 
+use std::collections::{BTreeMap, BTreeSet};
 use std::fmt;
 
 /// The null-byte field separator used by every `sort_key` (Python `"\x00"`).
@@ -29,15 +31,23 @@ const SEP: char = '\u{0}';
 /// Matches `gmeow_tools.config.LOGIC_NAMESPACE` (and [`crate::provenance::LOGIC_NAMESPACE`]).
 pub const LOGIC_NAMESPACE: &str = "https://blackcatinformatics.ca/logic/";
 
+/// The `logic:ResourcePolicy` facet value (local name) that licenses operational SLD
+/// cut + builtins — the facet on which cut-confinement (AC-2) is decided.  Distinct
+/// from the budget/bound property: a budgeted contract does not, by that fact, license
+/// cut.  Only the procedural preset expands to it (`logic:expandsToFacet`).
+pub const PROCEDURAL_EXECUTION_FACET: &str = "ProceduralExecution";
+
 // --------------------------------------------------------------------------- //
 // Enums — single source of truth, local names taken verbatim from module.ttl
 // --------------------------------------------------------------------------- //
 
-/// The six `logic:SemanticProfile` named individuals.
+/// The six historical reasoning **preset** ids — the named `logic:ReasoningPreset`
+/// individuals (#767; formerly `logic:SemanticProfile`).
 ///
 /// The string form ([`SemanticProfileId::as_str`]) is the local name (no
 /// `logic:` prefix), taken verbatim from `slices/core/logic/module.ttl` — any
-/// change there must be reflected here.
+/// change there must be reflected here.  A preset is sugar the front-end expands
+/// to a full [`ReasoningContract`] facet selection.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum SemanticProfileId {
     /// `logic:PositiveHornProfile`.
@@ -70,6 +80,18 @@ impl SemanticProfileId {
     /// The full IRI (`LOGIC_NAMESPACE + local_name`).
     pub fn iri(&self) -> String {
         format!("{LOGIC_NAMESPACE}{}", self.as_str())
+    }
+
+    /// `true` iff this preset's facet bundle carries the procedural-execution facet
+    /// (`logic:ProceduralExecution`) and therefore licenses SLD cut.
+    ///
+    /// This mirrors the `logic:expandsToFacet` bundle authored in `module.ttl` (only
+    /// `ProceduralPrologProfile` expands to `logic:ProceduralExecution`); the
+    /// `procedural_preset_carries_procedural_execution_facet` test ties this Rust fact
+    /// to the ontology surface so the two cannot silently diverge.  The cut gate
+    /// (`profile_gate`) decides via this facet-derived predicate, not a raw name match.
+    pub fn permits_cut(self) -> bool {
+        matches!(self, Self::ProceduralProlog)
     }
 
     /// Parse a local name back to the enum (inverse of [`Self::as_str`]).
@@ -499,36 +521,167 @@ impl LogicRule {
     }
 }
 
-/// A declared semantic profile with its (optional) complexity class.
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct LogicProfile {
-    /// The named `logic:SemanticProfile` individual.
-    pub profile_id: SemanticProfileId,
-    /// The `logic:complexityClass` value, or `None` if not declared.
+/// The canonical reasoning-configuration IR (#767): an independent selection
+/// across the orthogonal reasoning facets, replacing the single monolithic
+/// semantic-profile axis.
+///
+/// Facet values are carried as **local-name strings** (not enums) to honour the
+/// OPEN facet value vocabulary — a new value individual minted in `module.ttl`
+/// must join without a Rust schema change.  Single-valued facets are
+/// `Option<String>`; set-valued facets are [`BTreeSet`] (sorted ⇒ deterministic);
+/// the closure map is a [`BTreeMap`].  When a contract was authored as / expanded
+/// from a named preset, [`Self::preset`] records it.
+///
+/// Construct via [`ReasoningContract::new`] (empty) and the `with_*` /
+/// `set_*` builder methods; the front-end populates it from the graph.  Derives
+/// `Eq` but **not** `Hash` (it holds `BTreeMap`, and nothing keys a `HashMap` on
+/// it).
+#[derive(Debug, Clone, PartialEq, Eq, Default)]
+pub struct ReasoningContract {
+    /// Set when the contract was authored as / expanded from a named preset.
+    pub preset: Option<SemanticProfileId>,
+
+    // ── Single-valued facets (local name of the chosen facet value, or None). ──
+    /// `logic:formulaFragment` value.
+    pub formula_fragment: Option<String>,
+    /// `logic:modelSemantics` value.
+    pub model_semantics: Option<String>,
+    /// `logic:truthAlgebra` value.
+    pub truth_algebra: Option<String>,
+    /// `logic:admissibleValuation` value.
+    pub admissible_valuation: Option<String>,
+    /// `logic:designatedValues` value.
+    pub designated_values: Option<String>,
+    /// `logic:evolution` value.
+    pub evolution: Option<String>,
+    /// `logic:argumentation` value.
+    pub argumentation: Option<String>,
+    /// `logic:revision` value.
+    pub revision: Option<String>,
+    /// `logic:equalityPolicy` value.
+    pub equality_policy: Option<String>,
+    /// `logic:defaultClosure` value — the closure-map default.
+    pub default_closure: Option<String>,
+
+    // ── Set-valued facets (sorted local names). ───────────────────────────────
+    /// `logic:negationOperator` values.
+    pub negation_operators: BTreeSet<String>,
+    /// `logic:contextAxis` values.
+    pub context_axes: BTreeSet<String>,
+    /// `logic:uncertaintyMeasure` values.
+    pub uncertainty_measures: BTreeSet<String>,
+    /// `logic:resourcePolicy` values.
+    pub resource_policies: BTreeSet<String>,
+    /// `logic:projectionTarget` values.
+    pub projection_targets: BTreeSet<String>,
+
+    // ── Map-valued facet. ─────────────────────────────────────────────────────
+    /// `logic:closureEntry` map: predicate/context key → closure value local name
+    /// (`"OpenWorldClosure"` / `"ClosedWorldClosure"`).
+    pub closure_entries: BTreeMap<String, String>,
+
+    /// Carried decidability data (reviewer B2): the `logic:complexityClass` value.
     pub complexity: Option<ComplexityClass>,
 }
 
-impl LogicProfile {
-    /// Construct a profile.
-    pub fn new(profile_id: SemanticProfileId, complexity: Option<ComplexityClass>) -> Self {
+impl ReasoningContract {
+    /// An empty contract (no facets selected, no preset).
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    /// An empty contract carrying only the given preset id.
+    pub fn from_preset(preset: SemanticProfileId) -> Self {
         Self {
-            profile_id,
-            complexity,
+            preset: Some(preset),
+            ..Self::default()
         }
     }
 
-    /// Stable sort key — the golden-pinned key format.
-    pub fn sort_key(&self) -> String {
-        let compl = match &self.complexity {
-            Some(c) => c.label(),
-            None => "",
-        };
-        format!("{}{SEP}{compl}", self.profile_id.as_str())
+    /// `true` iff this contract licenses SLD cut (`!`) — i.e. its resource/execution
+    /// policy carries the procedural-execution facet ([`PROCEDURAL_EXECUTION_FACET`],
+    /// `logic:ProceduralExecution`).
+    ///
+    /// Cut-confinement (AC-2) is expressed in FACET terms: cut is the operational
+    /// search-control of the procedural execution policy, NOT a property of the
+    /// budget/bound (a budgeted contract does not, by that fact, license cut).  A
+    /// contract assembled directly with the procedural-execution facet licenses cut
+    /// even if it carries no `ProceduralPrologProfile` preset name.
+    pub fn permits_cut(&self) -> bool {
+        self.resource_policies
+            .iter()
+            .any(|r| r == PROCEDURAL_EXECUTION_FACET)
     }
 
-    /// A deterministic full-content key (equals the sort key for profiles).
+    /// Render the single-valued facet `Option<String>` fields in a FIXED order
+    /// (the determinism hinge of both [`Self::sort_key`] and [`Self::content_key`]).
+    fn singletons_segment(&self) -> String {
+        // FIXED field order — do not reorder (it pins the key).
+        [
+            self.formula_fragment.as_deref(),
+            self.model_semantics.as_deref(),
+            self.truth_algebra.as_deref(),
+            self.admissible_valuation.as_deref(),
+            self.designated_values.as_deref(),
+            self.evolution.as_deref(),
+            self.argumentation.as_deref(),
+            self.revision.as_deref(),
+            self.equality_policy.as_deref(),
+            self.default_closure.as_deref(),
+        ]
+        .map(|v| v.unwrap_or(""))
+        .join(&SEP.to_string())
+    }
+
+    /// Render the set-valued facets in a FIXED facet order; each set iterates
+    /// sorted (it is a [`BTreeSet`]), members joined by `|`.
+    fn sets_segment(&self) -> String {
+        let join = |set: &BTreeSet<String>| set.iter().cloned().collect::<Vec<_>>().join("|");
+        // FIXED facet order.
+        [
+            join(&self.negation_operators),
+            join(&self.context_axes),
+            join(&self.uncertainty_measures),
+            join(&self.resource_policies),
+            join(&self.projection_targets),
+        ]
+        .join(&SEP.to_string())
+    }
+
+    /// Render the closure map in sorted-key order (it is a [`BTreeMap`]).
+    fn closure_segment(&self) -> String {
+        self.closure_entries
+            .iter()
+            .map(|(k, v)| format!("{k}={v}"))
+            .collect::<Vec<_>>()
+            .join("|")
+    }
+
+    /// Stable sort key over a FIXED field order — used for canonical ordering.
+    ///
+    /// Greenfield (#767): there is no Python byte form to match; the only contract
+    /// is INTERNAL determinism (same contract ⇒ same key, any construction order,
+    /// guaranteed by the `BTreeSet`/`BTreeMap` storage and the fixed segment order)
+    /// and that a preset's expanded contract has a stable key.  Mirrors the
+    /// SEP-joined style of the axiom/rule keys.
+    pub fn sort_key(&self) -> String {
+        let preset = self.preset.map(|p| p.as_str()).unwrap_or("");
+        format!(
+            "{preset}{SEP}{}{SEP}{}{SEP}{}",
+            self.singletons_segment(),
+            self.sets_segment(),
+            self.closure_segment(),
+        )
+    }
+
+    /// A deterministic full-content key (sort key + the carried complexity class).
     fn content_key(&self) -> String {
-        self.sort_key()
+        let compl = self
+            .complexity
+            .as_ref()
+            .map(ComplexityClass::label)
+            .unwrap_or("");
+        format!("{}{SEP}|compl|{SEP}{compl}", self.sort_key())
     }
 }
 
@@ -538,8 +691,8 @@ impl LogicProfile {
 
 /// Top-level container for a compiled `logic:` program.
 ///
-/// Aggregates axioms, rules, and profiles; the unit of comparison for the
-/// round-trip isomorphism gate.  Construct via [`LogicProgram::new`] so the
+/// Aggregates axioms, rules, and reasoning contracts; the unit of comparison for
+/// the round-trip isomorphism gate.  Construct via [`LogicProgram::new`] so the
 /// canonicalization contract (sorted collections) holds.
 #[derive(Debug, Clone, PartialEq)]
 pub struct LogicProgram {
@@ -547,8 +700,8 @@ pub struct LogicProgram {
     pub axioms: Vec<LogicAxiom>,
     /// Rules in canonical order.
     pub rules: Vec<LogicRule>,
-    /// Profiles in canonical order.
-    pub profiles: Vec<LogicProfile>,
+    /// Reasoning contracts in canonical order (#767; was `profiles`).
+    pub contracts: Vec<ReasoningContract>,
     /// IRI of the source graph/document (optional provenance).
     pub source_iri: Option<String>,
 }
@@ -559,19 +712,19 @@ impl LogicProgram {
     pub fn new(
         axioms: Vec<LogicAxiom>,
         rules: Vec<LogicRule>,
-        profiles: Vec<LogicProfile>,
+        contracts: Vec<ReasoningContract>,
         source_iri: Option<String>,
     ) -> Self {
         let mut axioms = axioms;
         axioms.sort_by_cached_key(LogicAxiom::sort_key);
         let mut rules = rules;
         rules.sort_by_cached_key(LogicRule::sort_key);
-        let mut profiles = profiles;
-        profiles.sort_by_cached_key(LogicProfile::sort_key);
+        let mut contracts = contracts;
+        contracts.sort_by_cached_key(ReasoningContract::sort_key);
         Self {
             axioms,
             rules,
-            profiles,
+            contracts,
             source_iri,
         }
     }
@@ -593,14 +746,14 @@ impl LogicProgram {
             .map(LogicRule::content_key)
             .collect::<Vec<_>>()
             .join("\n");
-        let profiles = self
-            .profiles
+        let contracts = self
+            .contracts
             .iter()
-            .map(LogicProfile::content_key)
+            .map(ReasoningContract::content_key)
             .collect::<Vec<_>>()
             .join("\n");
         format!(
-            "AXIOMS\n{axioms}\nRULES\n{rules}\nPROFILES\n{profiles}\nSOURCE\n{}",
+            "AXIOMS\n{axioms}\nRULES\n{rules}\nCONTRACTS\n{contracts}\nSOURCE\n{}",
             self.source_iri.as_deref().unwrap_or(""),
         )
     }

@@ -32,6 +32,7 @@
 //! `negated`/`distinct`).
 
 pub mod adapter;
+pub mod compat;
 pub mod frontend;
 pub mod graphutil;
 pub mod ir;

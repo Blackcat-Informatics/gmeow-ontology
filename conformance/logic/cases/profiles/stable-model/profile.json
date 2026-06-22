@@ -1,5 +1,5 @@
 {
-  "semantic_profile": "StableModelProfile",
+  "reasoning_contract": {"preset": "StableModelProfile"},
   "world_types": ["epistemic"],
   "mode": "native",
   "expected_decidability_class": "NP-hard",

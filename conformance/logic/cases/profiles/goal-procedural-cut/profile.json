@@ -1,5 +1,5 @@
 {
-  "semantic_profile": "ProceduralPrologProfile",
+  "reasoning_contract": {"preset": "ProceduralPrologProfile"},
   "world_types": ["epistemic"],
   "mode": "native"
 }
