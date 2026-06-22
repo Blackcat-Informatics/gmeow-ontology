@@ -41,12 +41,15 @@ pub fn has_cut(program: &QProgram) -> bool {
 /// Assert that if `program` contains cut, `profile` denotes
 /// [`PROCEDURAL_PROLOG_PROFILE`].
 ///
-/// Cut may appear ONLY under the procedural Prolog profile. Hard-fail otherwise —
-/// there is no fallback or silent stripping of cut.
+/// Cut may appear ONLY under a profile whose facet bundle licenses it. Hard-fail
+/// otherwise — there is no fallback or silent stripping of cut.
 ///
-/// A profile denotes `ProceduralPrologProfile` iff it equals
-/// [`PROCEDURAL_PROLOG_PROFILE`], equals `"ProceduralPrologProfile"`, or ends with
-/// `"ProceduralPrologProfile"`.
+/// The decision is **facet-derived** (#767): `profile` is resolved to its preset
+/// via its local name ([`SemanticProfileId::from_local`]) and cut is licensed iff
+/// that preset's facet bundle carries the procedural-execution facet
+/// ([`SemanticProfileId::permits_cut`] ⇔ the `logic:ProceduralExecution` facet in
+/// its `logic:expandsToFacet` bundle) — see [`is_procedural_profile`]. An
+/// unrecognized reference resolves to no preset and does not license cut.
 ///
 /// If the program contains no cut this function always returns `Ok(())`.
 ///

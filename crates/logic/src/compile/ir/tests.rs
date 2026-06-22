@@ -30,20 +30,56 @@ fn semantic_profile_ids_match_module_ttl() {
     .iter()
     .map(|p| p.as_str())
     .collect();
-    let expected: std::collections::BTreeSet<&str> = [
-        "PositiveHornProfile",
-        "StratifiedNAFProfile",
-        "WellFoundedProfile",
-        "StableModelProfile",
-        "ProceduralPrologProfile",
-        "ProbabilisticProfile",
-    ]
-    .into_iter()
-    .collect();
-    assert_eq!(got, expected);
+
+    // The six preset local names must be EXACTLY the logic:ReasoningPreset named
+    // individuals declared in module.ttl (#767, reviewer B1): the historical
+    // logic:SemanticProfile class is retired, so the source of truth is now the
+    // set of logic:ReasoningPreset individuals. Walk the top-level subject blocks
+    // and collect every subject whose block names logic:ReasoningPreset as a type
+    // (skipping the class declaration itself).
+    let module_ttl = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("../../slices/core/logic/module.ttl");
+    let text = std::fs::read_to_string(&module_ttl)
+        .unwrap_or_else(|e| panic!("read {}: {e}", module_ttl.display()));
+
+    let mut from_ttl: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
+    let mut current_subject: Option<String> = None;
+    let mut block_is_preset = false;
+    for line in text.lines() {
+        if let Some(rest) = line.strip_prefix("logic:") {
+            if let (Some(subj), true) = (current_subject.take(), block_is_preset) {
+                from_ttl.insert(subj);
+            }
+            current_subject = Some(rest.chars().take_while(|c| !c.is_whitespace()).collect());
+            block_is_preset = false;
+        }
+        // Only an rdf:type reference flags the block — a type-list line, never the
+        // class declaration itself, the expandsToFacet property's prose, or any
+        // other skos:definition prose (which is quoted, so exclude quoted lines).
+        if line.contains("logic:ReasoningPreset")
+            && !line.contains('"')
+            && !line.contains("a owl:Class")
+            && current_subject.as_deref() != Some("ReasoningPreset")
+            && current_subject.as_deref() != Some("expandsToFacet")
+        {
+            block_is_preset = true;
+        }
+    }
+    if let (Some(subj), true) = (current_subject, block_is_preset) {
+        from_ttl.insert(subj);
+    }
+
+    let from_rust: std::collections::BTreeSet<&str> = got.iter().copied().collect();
+    let from_ttl_refs: std::collections::BTreeSet<&str> =
+        from_ttl.iter().map(String::as_str).collect();
+    assert_eq!(
+        from_rust, from_ttl_refs,
+        "SemanticProfileId enum must match the logic:ReasoningPreset individuals in module.ttl"
+    );
+
     // Round-trip through from_local.
-    for p in expected {
-        assert_eq!(SemanticProfileId::from_local(p).unwrap().as_str(), p);
+    for p in &got {
+        assert_eq!(SemanticProfileId::from_local(p).unwrap().as_str(), *p);
     }
 }
 

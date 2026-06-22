@@ -2615,7 +2615,7 @@ def certify(
     2. ``semantic_profile`` in a sibling ``profile.json``, if present;
     3. ``PositiveHornProfile`` (the v1 default).
     """
-    #: The six logic:SemanticProfile local names (mirrors the Rust
+    #: The six logic:ReasoningPreset local names (mirrors the Rust
     #: SemanticProfileId enum / the ontology's named individuals).
     _valid_profiles = {
         "PositiveHornProfile",

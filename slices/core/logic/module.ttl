@@ -817,12 +817,6 @@ logic:RuleProbabilisticRequiresModel
     rdfs:label "Rule: Probabilistic Measure Requires A Declared Probability Model"@x-gmeow-english ;
     skos:definition "The graph-dependent compatibility rule requiring that whenever a contract carries logic:ProbabilisticMeasure, the source graph declares a logic:ProbabilityModel (via logic:probabilityModel or an individual typed logic:ProbabilityModel). Absent a declared model the contract is unsupported: a probabilistic measure is never inferred from confidence metadata and independence is never silently assumed. Because it inspects the surrounding graph it is enforced in the front-end rather than the contract-internal rule table; authored canonically in crates/logic (Rust), projected here lossily (Principle 17)."@x-gmeow-english .
 
-logic:SemanticProfile
-    a owl:Class ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;
-    rdfs:label "Semantic Profile"@x-gmeow-english ;
-    skos:definition "The named semantics that governs a rule set's interpretation. Because logic: admits monotonic Horn rules, negation-as-failure, well-founded and stable-model semantics, and procedural Prolog all at once, 'sound' is meaningless until the profile is named — so every rule set must declare one, and soundness, completeness, and decidability class are all stated relative to it."@x-gmeow-english .
-
 logic:SemiRigidType
     a owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/logic> ;

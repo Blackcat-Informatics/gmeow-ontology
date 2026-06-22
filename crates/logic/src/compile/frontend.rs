@@ -407,6 +407,34 @@ fn facet_class_of(store: &Store, value_iri: &str) -> Option<String> {
     None
 }
 
+/// The facet value-class a DIRECT facet property routes to, independent of the
+/// value individual's `rdf:type`.  This is the round-trip path (#767, Task 6): the
+/// canonical RDF12 projection emits facet selections as bare
+/// `logic:<facetProp> logic:<Value>` triples WITHOUT re-typing each value
+/// individual, so the parser routes by the property name itself.  `expandsToFacet`
+/// is intentionally absent — it carries mixed facet kinds and must route by the
+/// value's `rdf:type` ([`facet_class_of`]).
+fn facet_class_for_property(prop_local: &str) -> Option<&'static str> {
+    Some(match prop_local {
+        "formulaFragment" => "FormulaFragment",
+        "modelSemantics" => "ModelSemantics",
+        "truthAlgebra" => "TruthAlgebra",
+        "admissibleValuation" => "AdmissibleValuationPolicy",
+        "designatedValues" => "DesignatedValueSet",
+        "evolution" => "EvolutionMode",
+        "argumentation" => "ArgumentationSemantics",
+        "revision" => "RevisionPolicy",
+        "equalityPolicy" => "EqualityPolicy",
+        "defaultClosure" => "ClosureValue",
+        "negationOperator" => "NegationOperator",
+        "contextAxis" => "ContextAxis",
+        "uncertaintyMeasure" => "UncertaintyMeasure",
+        "resourcePolicy" => "ResourcePolicy",
+        "projectionTarget" => "ProjectionTarget",
+        _ => return None,
+    })
+}
+
 /// Whether `local` is one of the recognised facet value-class local names.
 fn is_facet_class(local: &str) -> bool {
     matches!(
@@ -542,8 +570,11 @@ fn extract_contracts(store: &Store, diagnostics: &mut Vec<Diagnostic>) -> Vec<Re
             }
         }
 
-        // Direct facet properties + the expandsToFacet bundle. Every object is a
-        // facet value individual; route it by its rdf:type facet-class.
+        // Direct facet properties + the expandsToFacet bundle. A DIRECT facet
+        // property (everything but expandsToFacet) routes by the PROPERTY name —
+        // so the rdf:type-less canonical RDF12 projection round-trips; the
+        // value's own facet-class rdf:type, when present, is used as a fallback /
+        // for expandsToFacet (which carries mixed facet kinds).
         for prop_local in FACET_PROPERTIES {
             for value_term in objects(store, &individual, &nn(&logic_iri(prop_local))) {
                 let value_iri = term_str(&value_term);
@@ -551,7 +582,10 @@ fn extract_contracts(store: &Store, diagnostics: &mut Vec<Diagnostic>) -> Vec<Re
                     .strip_prefix(LOGIC_NAMESPACE)
                     .unwrap_or(&value_iri)
                     .to_owned();
-                match facet_class_of(store, &value_iri) {
+                let facet_class = facet_class_for_property(prop_local)
+                    .map(str::to_owned)
+                    .or_else(|| facet_class_of(store, &value_iri));
+                match facet_class {
                     Some(facet_class) => {
                         route_facet_value(&mut contract, &facet_class, value_local)
                     }
