@@ -45,7 +45,11 @@ _Pattern = tuple[Identifier | None, Identifier | None, Identifier | None]
 
 
 def _rdf_format(fmt: str | None) -> gmeow_rdf.RdfFormat:
-    """Map an RDFLib format string to a native :class:`gmeow_rdf.RdfFormat`."""
+    """Map an RDFLib format string to an oxigraph-native :class:`gmeow_rdf.RdfFormat`.
+
+    JSON-LD-star and RDF/XML are NOT oxigraph-native; ``parse``/``serialize`` route
+    those through the gmeow-gts codecs before reaching this mapper.
+    """
     f = (fmt or "turtle").lower()
     if f in ("turtle", "ttl", "longturtle", "n3"):
         return _TURTLE
@@ -55,16 +59,6 @@ def _rdf_format(fmt: str | None) -> gmeow_rdf.RdfFormat:
         return _NQ
     if f in ("trig", "application/trig"):
         return _TRIG
-    if f in _JSON_LD_FORMATS:
-        raise NotImplementedError(
-            "JSON-LD is not yet served by the native gmeow_rdf surface or the gts "
-            "codec set (gts ships JSON-LD-star only). The purrdf P0 self-host pauses "
-            "here pending a gmeow-gts release that adds a plain JSON-LD codec."
-        )
-    if f in _XML_FORMATS:
-        raise NotImplementedError(
-            "RDF/XML is not yet served natively (gmeow-gts#252 is open)."
-        )
     raise ValueError(f"unsupported RDF format: {fmt!r}")
 
 
@@ -298,32 +292,61 @@ class Graph:
         data: str | bytes | None = None,
         **kwargs: object,
     ) -> Graph:
-        """Parse RDF from a path/file/``data`` into this graph."""
-        fmt = _rdf_format(format)
+        """Parse RDF from a path/file/``data`` into this graph (any compat format).
+
+        JSON-LD-star and RDF/XML route through the gmeow-gts codecs (text → native
+        ``from_json_ld``/``from_rdf_xml`` → N-Quads → store); the oxigraph-native
+        formats load directly (a path source is handed straight to the loader).
+        """
+        f = (format or "turtle").lower()
+        is_codec = f in _JSON_LD_FORMATS or f in _XML_FORMATS
+        payload: bytes
         if data is not None:
             payload = data.encode("utf-8") if isinstance(data, str) else data
-            self._store.load(payload, format=fmt)
-            return self
-        src: object | None = source if source is not None else location
-        if src is None and file is not None:
-            src = file
-        if src is None:
-            raise ValueError("parse requires one of: source, data, location, file")
-        reader = getattr(src, "read", None)
-        if callable(reader):
-            raw = reader()
-            payload = raw.encode("utf-8") if isinstance(raw, str) else raw
-            self._store.load(payload, format=fmt)
         else:
-            self._store.load(path=str(src), format=fmt)
+            src: object | None = source if source is not None else location
+            if src is None and file is not None:
+                src = file
+            if src is None:
+                raise ValueError("parse requires one of: source, data, location, file")
+            reader = getattr(src, "read", None)
+            if callable(reader):
+                raw = reader()
+                payload = raw.encode("utf-8") if isinstance(raw, str) else raw
+            elif is_codec:
+                payload = Path(str(src)).read_bytes()
+            else:
+                self._store.load(path=str(src), format=_rdf_format(format))
+                return self
+        if f in _JSON_LD_FORMATS:
+            self._store.load(
+                gmeow_rdf.from_json_ld(payload.decode("utf-8")), format=_NQ
+            )
+        elif f in _XML_FORMATS:
+            self._store.load(
+                gmeow_rdf.from_rdf_xml(payload.decode("utf-8")), format=_NQ
+            )
+        else:
+            self._store.load(payload, format=_rdf_format(format))
         return self
 
     def _dump_bytes(self, fmt: str | None) -> bytes:
-        """Serialize the store to bytes in the requested format."""
+        """Serialize the store to bytes in the requested format.
+
+        Turtle routes through the native ``canonicalize_turtle``; JSON-LD-star and
+        RDF/XML route through the gmeow-gts codecs (store → N-Quads → native
+        ``to_json_ld``/``to_rdf_xml``); the rest dump directly via oxigraph.
+        """
         f = (fmt or "turtle").lower()
         if f in ("turtle", "ttl", "longturtle", "n3"):
             nt = self._store.dump(format=_NT)
             return gmeow_rdf.canonicalize_turtle(nt, self._nsm.namespaces())
+        if f in _JSON_LD_FORMATS:
+            nquads = self._store.dump(format=_NQ)
+            return gmeow_rdf.to_json_ld(nquads, format=_NQ).encode("utf-8")
+        if f in _XML_FORMATS:
+            nquads = self._store.dump(format=_NQ)
+            return gmeow_rdf.to_rdf_xml(nquads, format=_NQ).encode("utf-8")
         return self._store.dump(format=_rdf_format(fmt))
 
     @overload

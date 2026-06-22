@@ -10,7 +10,6 @@ lane (no ``classic_cross_check`` marker) — the facade IS default-path code.
 from __future__ import annotations
 
 import gmeow_rdf
-import pytest
 from gmeow_rdf.compat.rdflib import (
     RDF,
     RDFS,
@@ -200,12 +199,30 @@ def test_guess_format() -> None:
     assert guess_format("a.unknown") is None
 
 
-def test_jsonld_is_a_clear_blocker() -> None:
-    """JSON-LD parse/serialize fails loudly (pending a gts JSON-LD codec)."""
+def test_jsonld_star_roundtrip() -> None:
+    """serialize(json-ld) emits JSON-LD-star (gmeow-gts) and reparses isomorphic."""
     g = Graph()
-    g.add((EX.a, RDF.type, EX.T))
-    with pytest.raises(NotImplementedError, match="JSON-LD"):
-        g.serialize(format="json-ld")
+    g.add((EX.alice, RDF.type, EX.Person))
+    g.add((EX.alice, RDFS.label, Literal("Alice")))
+    jsonld = g.serialize(format="json-ld")
+    assert isinstance(jsonld, str)
+    assert '"@context"' in jsonld  # JSON-LD-star carries the gts context
+    back = Graph()
+    back.parse(data=jsonld, format="json-ld")
+    assert isomorphic(g, back)
+
+
+def test_rdfxml_roundtrip() -> None:
+    """serialize(xml) emits RDF/XML (gmeow-gts) and reparses isomorphic."""
+    g = Graph()
+    g.add((EX.alice, RDF.type, EX.Person))
+    g.add((EX.alice, RDFS.label, Literal("Alice")))
+    xml = g.serialize(format="xml")
+    assert isinstance(xml, str)
+    assert xml.lstrip().startswith("<?xml")
+    back = Graph()
+    back.parse(data=xml, format="xml")
+    assert isomorphic(g, back)
 
 
 def test_namespace_attribute_and_item_access() -> None:

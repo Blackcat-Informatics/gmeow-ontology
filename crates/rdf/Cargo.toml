@@ -29,11 +29,14 @@ oxigraph = ["dep:oxigraph"]
 # functionality is identical with or without it (#648, #667).
 # `python` builds the GTS producer + statement-codec surface, so it pulls in the
 # `gts` feature (gmeow-gts) and the Ed25519 signer the snapshot signing path uses.
-python = ["dep:pyo3", "gts", "oxigraph", "dep:ed25519-dalek"]
+# The PyO3 surface adds the JSON-LD-star (`yaml-ld`) + RDF/XML (`rdf-codecs`)
+# gmeow-gts codecs the compat `Graph.serialize/parse` route through (#834); these
+# stay OFF for the non-python Rust consumers (logic/shacl/validate) to keep them lean.
+python = ["dep:pyo3", "gts", "oxigraph", "dep:ed25519-dalek", "gmeow-gts/yaml-ld", "gmeow-gts/rdf-codecs"]
 
 [dependencies]
 ciborium = { version = "0.2", optional = true }
-gmeow-gts = { version = "0.9.4", optional = true }
+gmeow-gts = { version = "0.9.5", optional = true }
 oxigraph = { version = "0.5", default-features = false, features = ["rdf-12"], optional = true }
 # pyo3 is pulled ONLY by the `python` feature (maturin). Same version/abi3 as the
 # sibling extension crates (validate/shacl/logic/diagnostics).
@@ -44,7 +47,7 @@ ed25519-dalek = { version = "2", optional = true }
 
 [dev-dependencies]
 ciborium = "0.2"
-gmeow-gts = "0.9.4"
+gmeow-gts = "0.9.5"
 # Same oxigraph build the kernel links (rdf-12, no extra codecs) so proptest
 # round-trips drive the identical engine the production codecs use.
 oxigraph = { version = "0.5", default-features = false, features = ["rdf-12"] }
