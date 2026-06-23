@@ -2,41 +2,18 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 """The narrow-waist seal (#267, #12): GTS is the only exit for data.
 
-Two complementary enforcement layers, so the waist cannot silently regress:
-
-* **Behavioral seal** — with every canonical-source reader monkeypatched to
-  raise, all five data exporters must still render, proving they need
-  nothing but ``generated/dist/gmeow.gts``.
-* **Static seal** — the exporter modules must not import rdflib or
-  gmeow_rdf at all (``metadata.py`` keeps rdflib strictly as the OUTPUT
-  serializer for its freshly built description graphs — the one agreed
-  allowance — and must not touch the canonical-source loaders).
-
-Plus the ordering invariant: the registry sequences ``gts`` before every
-consumer, derived from declared inputs/outputs — never hand-maintained.
+The **static seal** — the surviving exporter modules must not import rdflib
+or gmeow_rdf at all, and must not touch the canonical-source loaders. The
+build authority itself is now the Rust pipeline (#861); the data-flow
+ordering invariant is enforced there (``crates/pipeline``), not by a Python
+registry.
 """
 
 from __future__ import annotations
 
 import ast
-from pathlib import Path
 
-import pytest
-
-from gmeow_tools import (  # noqa: F401  (@register side effects)
-    apache,
-    export,
-    gts_gen,
-    lpg,
-    mapping_compile,
-    matrix,
-    metadata,
-    parquet_gen,
-    schema_compile,
-    statement_compile,
-)
 from gmeow_tools.config import PROJECT_ROOT
-from gmeow_tools.generator import regenerate_order, registry
 
 _SRC = PROJECT_ROOT / "src" / "gmeow_tools"
 
@@ -44,10 +21,6 @@ _SRC = PROJECT_ROOT / "src" / "gmeow_tools"
 _SEALED: dict[str, frozenset[str]] = {
     "export.py": frozenset({"rdflib", "gmeow_rdf"}),
     "schema_compile.py": frozenset({"rdflib", "gmeow_rdf"}),
-    "lpg.py": frozenset({"rdflib", "gmeow_rdf"}),
-    "parquet_gen.py": frozenset({"rdflib", "gmeow_rdf"}),
-    # rdflib allowed as the output serializer; gmeow_rdf not at all
-    "metadata.py": frozenset({"gmeow_rdf"}),
 }
 
 #: Canonical-source readers no exporter may touch (metadata included).
@@ -103,55 +76,6 @@ def test_static_seal_no_canonical_source_loaders() -> None:
         tree = ast.parse((_SRC / module).read_text(encoding="utf-8"))
         offending = _referenced_names(tree) & _FORBIDDEN_LOADERS
         assert not offending, f"{module} imports {sorted(offending)}"
-
-
-def test_behavioral_seal_exporters_render_from_snapshot_alone(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    """All five generators render with every source reader raising.
-
-    The strongest form of the claim: not merely "they don't import the
-    loaders" but "they cannot be USING them" — every canonical-source
-    entry point detonates on touch, and the renders still succeed from
-    ``generated/dist/gmeow.gts``.
-    """
-    import gmeow_tools.graph as graph_mod
-    import gmeow_tools.mappings as mappings_mod
-    import gmeow_tools.self_desc as self_desc_mod
-
-    def boom(*_args: object, **_kwargs: object) -> object:
-        msg = "narrow-waist violation: a canonical-source reader was called"
-        raise AssertionError(msg)
-
-    monkeypatch.setattr(graph_mod, "load_merged_graph", boom)
-    monkeypatch.setattr(graph_mod, "shared_merged_graph", boom)
-    monkeypatch.setattr(mappings_mod, "load_mappings", boom)
-    monkeypatch.setattr(self_desc_mod, "load_self_description", boom)
-    # gmeow_rdf (the native oxigraph binding) is always present, but the seal must
-    # prove the narrow-waist generators never touch the engine at render time.
-    import gmeow_rdf  # noqa: F401
-
-    monkeypatch.setattr("gmeow_rdf.Store", boom)
-    monkeypatch.setattr("gmeow_rdf.parse", boom)
-
-    gens = registry()
-    for name in ("exports", "metadata", "schemas", "lpg", "parquet"):
-        staging = tmp_path / name
-        staging.mkdir()
-        gens[name].render(staging)  # must not raise
-        rendered = list(staging.rglob("*"))
-        assert any(p.is_file() for p in rendered), f"{name} rendered nothing"
-
-
-def test_registry_orders_gts_before_every_consumer() -> None:
-    """Topological order: statements → gts → the five exporters."""
-    order = regenerate_order()
-    gts_pos = order.index("gts")
-    assert order.index("statements") < gts_pos
-    for consumer in ("exports", "metadata", "schemas", "lpg", "parquet"):
-        assert gts_pos < order.index(consumer), (
-            f"{consumer} ordered before its input producer"
-        )
 
 
 _CLI = PROJECT_ROOT / "src" / "gmeow_tools" / "cli.py"

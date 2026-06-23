@@ -26,11 +26,9 @@ from typing import TYPE_CHECKING
 import jsonschema
 from gmeow_rdf.compat.rdflib import Graph
 
-from gmeow_tools.config import EVALS_DIR, GENERATED_EVALS_DIR, PROJECT_ROOT
-from gmeow_tools.generator import Generator, register
+from gmeow_tools.config import EVALS_DIR, PROJECT_ROOT
 
 if TYPE_CHECKING:
-    from collections.abc import Sequence
     from pathlib import Path
 
 _SCHEMA_FILE = EVALS_DIR / "claim-emission.schema.json"
@@ -267,66 +265,6 @@ def _render_scores_ttl(cards: list[Scorecard]) -> str:
             )
         lines.append("")
     return "\n".join(lines)
-
-
-@register
-class EvalsGenerator(Generator):
-    """Emit scorecards + leaderboard + meta-claim scores from emissions."""
-
-    name: str = "evals"
-
-    @property
-    def inputs(self) -> Sequence[Path]:
-        """The contract + the committed emissions + the corpus sources.
-
-        The source files are DERIVED from the corpus manifest — adding or
-        renaming a corpus entry invalidates the generator with it.
-        """
-        corpus_sources = [
-            PROJECT_ROOT / location for location in sorted(_corpus_texts())
-        ]
-        return [
-            _SCHEMA_FILE,
-            _CORPUS_FILE,
-            _EXPECTATIONS_FILE,
-            EVALS_DIR / "rubric.ttl",
-            *sorted(_OUTPUTS_DIR.glob("*/claims.jsonl")),
-            *sorted(_OUTPUTS_DIR.glob("*/meta.json")),
-            *corpus_sources,
-        ]
-
-    @property
-    def outputs(self) -> Sequence[Path]:
-        """Leaderboard + per-model scorecards + the meta-claim scores."""
-        models = sorted(p.parent.name for p in _OUTPUTS_DIR.glob("*/claims.jsonl"))
-        return [
-            GENERATED_EVALS_DIR / "leaderboard.md",
-            GENERATED_EVALS_DIR / "scores.ttl",
-            *(GENERATED_EVALS_DIR / f"{m}.scorecard.json" for m in models),
-        ]
-
-    def render(self, staging: Path) -> None:
-        """Score every committed emission and render the artifacts."""
-        target = staging / GENERATED_EVALS_DIR.relative_to(PROJECT_ROOT)
-        target.mkdir(parents=True, exist_ok=True)
-        cards = all_scorecards()
-        (target / "leaderboard.md").write_text(
-            _render_leaderboard(cards), encoding="utf-8"
-        )
-        (target / "scores.ttl").write_text(_render_scores_ttl(cards), encoding="utf-8")
-        for card in cards:
-            payload = {
-                "model": card.model,
-                "emitted": card.emitted,
-                "valid": card.valid,
-                "overall": round(card.overall, 4),
-                "scores": card.scores,
-                "notes": card.notes,
-            }
-            (target / f"{card.model}.scorecard.json").write_text(
-                json.dumps(payload, indent=2, sort_keys=True) + "\n",
-                encoding="utf-8",
-            )
 
 
 # --------------------------------------------------------------------------- #

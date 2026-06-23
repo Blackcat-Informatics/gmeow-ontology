@@ -17,22 +17,12 @@ construction.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
 from gmeow_tools.config import (
     FULL_PROFILE_IRI,
     NAMED_PROFILE_NS,
     ONTOLOGY_IRI,
-    PROFILES_DIR,
-    PROJECT_ROOT,
-    SLICES_DIR,
 )
-from gmeow_tools.generator import Generator, register
 from gmeow_tools.slices import Slice, discover_slices
-
-if TYPE_CHECKING:
-    from collections.abc import Sequence
-    from pathlib import Path
 
 
 def group_named_profiles(slices: dict[str, Slice]) -> dict[str, list[str]]:
@@ -136,27 +126,3 @@ def render_profiles() -> dict[str, str]:
             dependency_closure(members, slices),
         )
     return out
-
-
-@register
-class ProfilesGenerator(Generator):
-    """Emit the profile ontology documents from the slice manifests."""
-
-    name: str = "profiles"
-
-    @property
-    def inputs(self) -> Sequence[Path]:
-        """Membership derives from the manifests alone."""
-        return sorted(SLICES_DIR.glob("*/*/manifest.ttl"))
-
-    @property
-    def outputs(self) -> Sequence[Path]:
-        """One document per profile (full + named)."""
-        return [PROFILES_DIR / name for name in render_profiles()]
-
-    def render(self, staging: Path) -> None:
-        """Render every profile document into the staging tree."""
-        target_dir = staging / PROFILES_DIR.relative_to(PROJECT_ROOT)
-        target_dir.mkdir(parents=True, exist_ok=True)
-        for name, text in render_profiles().items():
-            (target_dir / name).write_text(text, encoding="utf-8")

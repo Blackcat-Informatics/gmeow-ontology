@@ -63,3 +63,4 @@ crates/native/python/gmeow_native/*.pyd
 lcov.info
 mutants.out*/
 bench-results.json
+/pipeline/

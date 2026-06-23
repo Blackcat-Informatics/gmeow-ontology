@@ -48,7 +48,7 @@ from gmeow_tools.config import (
     NAMESPACE,
     PROJECT_ROOT,
 )
-from gmeow_tools.generator import Generator, GeneratorError, _rel, register, write_text
+from gmeow_tools.genlib import GeneratorError, write_text
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -1141,59 +1141,3 @@ def export_research_objects(
             "research-object validation failed: " + "; ".join(problems)
         )
     return written
-
-
-@register
-class ResearchObjectsGenerator(Generator):
-    """Generate the flagship research-object exports (the #58 drift gate)."""
-
-    name: str = "research-objects"
-
-    @property
-    def inputs(self) -> Sequence[Path]:
-        """The worked example's instance data + the compiled dcat query."""
-        return [
-            *EXAMPLE_INPUTS,
-            GENERATED_DIR / "queries" / "dcat.rq",
-        ]
-
-    @property
-    def outputs(self) -> Sequence[Path]:
-        """Committed artifacts under generated/, plus the git-ignored zip."""
-        payload = sorted(p.name for p in EXAMPLE_INPUTS if p.suffix == ".ttl")
-        return [
-            RESEARCH_OBJECTS_DIR / "lillith.croissant.jsonld",
-            RESEARCH_OBJECTS_DIR / "ro-crate" / "ro-crate-metadata.json",
-            RESEARCH_OBJECTS_DIR / "ro-crate" / "ro-crate-preview.html",
-            *(
-                RESEARCH_OBJECTS_DIR / "ro-crate" / name
-                for name in (*payload, "lillith.croissant.jsonld")
-            ),
-            RESEARCH_OBJECTS_DIR / "lillith.dcat.ttl",
-            RESEARCH_OBJECTS_DIR / "lillith.datacite.xml",
-            RESEARCH_OBJECTS_DIR / "datapackage.json",
-            CRATE_ZIP,
-        ]
-
-    def render(self, staging: Path) -> None:
-        """Render and validate the worked example's research objects."""
-        out_dir = staging / RESEARCH_OBJECTS_DIR.relative_to(PROJECT_ROOT)
-        source_hash = getattr(self, "_source_hash", "")
-        export_research_objects(
-            EXAMPLE_INPUTS,
-            out_dir,
-            stem="lillith",
-            banner=(self.name, source_hash) if source_hash else None,
-        )
-        zip_path = staging / CRATE_ZIP.relative_to(PROJECT_ROOT)
-        package_ro_crate(out_dir / "ro-crate", zip_path)
-
-    def compare(self, fresh: Path, committed: Path) -> list[str]:
-        """Default byte drift, but git-ignored outputs (the zip) may be absent."""
-        if not committed.exists():
-            return []
-        if not fresh.exists():
-            return [f"{_rel(committed)} (not produced in staging)"]
-        if fresh.read_bytes() != committed.read_bytes():
-            return [f"{_rel(committed)}"]
-        return []

@@ -340,33 +340,6 @@ def test_conflicting_reifier_rebind_is_an_error(tmp_path: Path) -> None:
         compile_gts(_small_graph(), rdf12)
 
 
-def test_compare_ignores_encoding_only_drift(tmp_path: Path) -> None:
-    """compare() flags semantic source change but tolerates codec/library skew."""
-    from gmeow_tools.generator import registry
-    from gmeow_tools.gts_gen import GtsSnapshotGenerator  # noqa: F401  (register)
-
-    gen = registry()["gts"]
-
-    committed = tmp_path / "committed.gts"
-    committed.write_bytes(compile_gts(_small_graph()))
-
-    # identical fold, different bytes (identity vs zstd) → NOT drift
-    fresh = tmp_path / "fresh.gts"
-    fresh.write_bytes(compile_gts(_small_graph(), transform=["identity"]))
-    assert gen.compare(fresh, committed) == []
-
-    # different content → semantic drift
-    other = _small_graph()
-    other.add((URIRef(EX + "dog"), RDF.type, URIRef(EX + "Animal")))
-    fresh.write_bytes(compile_gts(other))
-    [diag] = gen.compare(fresh, committed)
-    assert "semantic" in diag
-
-    # equal bytes → clean
-    fresh.write_bytes(committed.read_bytes())
-    assert gen.compare(fresh, committed) == []
-
-
 def test_build_verify_attestation_graph_marks_pass_and_fail() -> None:
     """A QualityAssessment per query records pass/fail from the verify report."""
     from gmeow_tools import diagnostics

@@ -33,7 +33,7 @@ from gmeow_tools.config import (
     REFERENCES_FILE,
     REFERENCES_MD_FILE,
 )
-from gmeow_tools.generator import Generator, register, write_text
+from gmeow_tools.genlib import write_text
 
 GMEOW = Namespace(NAMESPACE)
 REF = Namespace(NAMESPACE + "references/")
@@ -882,34 +882,3 @@ def backfill_references(
         references_file=references_file,
         candidates_file=candidates_file,
     )
-
-
-@register
-class ReferencesGenerator(Generator):
-    """Generate bibliography exports from the canonical citation ledger."""
-
-    name = "references"
-
-    @property
-    def inputs(self) -> Sequence[Path]:
-        """Canonical citation ledger source."""
-        return [REFERENCES_FILE]
-
-    @property
-    def outputs(self) -> Sequence[Path]:
-        """Generated citation exports."""
-        return [REFERENCES_CSL_FILE, REFERENCES_BIB_FILE, REFERENCES_MD_FILE]
-
-    def render(self, staging: Path) -> None:
-        """Render generated citation exports."""
-        graph = load_reference_graph()
-        source_hash = getattr(self, "_source_hash", "")
-        out_dir = staging / REFERENCES_CSL_FILE.parent.relative_to(PROJECT_ROOT)
-        write_reference_exports(
-            graph,
-            csl_path=out_dir / REFERENCES_CSL_FILE.name,
-            bib_path=out_dir / REFERENCES_BIB_FILE.name,
-            md_path=out_dir / REFERENCES_MD_FILE.name,
-            name=self.name,
-            source_hash=source_hash,
-        )

@@ -45,16 +45,16 @@ def _fail(message: str, code: int = 1) -> typer.Exit:
     return typer.Exit(code=code)
 
 
-def _regenerate_native(jobs: int | None = None, check: bool = False) -> None:
-    """Route the build to the Rust single-pass executor.
+def _run_pipeline(jobs: int | None = None, check: bool = False) -> dict[str, Any]:
+    """Run the Rust single-pass build executor and return its summary report.
 
-    Calls ``gmeow_native.pipeline.run_pipeline(root, jobs, check)`` — the #861 P6
-    DAG executor that produces every committed artifact in one pass. Opt-in
-    pre-cutover (the ``--native`` flag); the full swap to this path is P7.
+    Calls ``gmeow_native.pipeline.run_pipeline(root, jobs, check)`` — the #861
+    DAG executor that reads the dogfooded build graph (``slices/core/pipeline/``)
+    and reproduces every committed artifact single-pass. This is THE build
+    authority since #861 P7 retired the Python generator orchestrator.
 
     Raises a clear ``typer.Exit`` if the native extension is not importable (the
-    ``gmeow_native`` cdylib must be rebuilt with the 8th submodule) or, in check
-    mode, if any committed artifact drifted.
+    ``gmeow_native`` cdylib must be rebuilt with the pipeline submodule).
     """
     from gmeow_tools.config import PROJECT_ROOT
 
@@ -65,11 +65,17 @@ def _regenerate_native(jobs: int | None = None, check: bool = False) -> None:
             "✗ the native pipeline is unavailable: "
             f"`import gmeow_native.pipeline` failed ({exc}). Rebuild the unified "
             "extension (e.g. `maturin develop --manifest-path "
-            "crates/native/Cargo.toml`) to pick up the #861 P6 submodule."
+            "crates/native/Cargo.toml`) to pick up the pipeline submodule."
         ) from exc
 
     cpu = jobs if jobs is not None else (os.cpu_count() or 1)
     report = _pipeline.run_pipeline(str(PROJECT_ROOT), int(cpu), check)
+    return cast("dict[str, Any]", report)
+
+
+def _regenerate_native(jobs: int | None = None, check: bool = False) -> None:
+    """Build (or drift-check) every committed artifact via the Rust pipeline."""
+    report = _run_pipeline(jobs=jobs, check=check)
 
     for finding in report.get("findings", []):
         err_console.print(
@@ -83,10 +89,10 @@ def _regenerate_native(jobs: int | None = None, check: bool = False) -> None:
             for path in drifted:
                 err_console.print(f"[red]drift[/red] {path}")
             raise _fail(f"✗ {len(drifted)} artifact(s) drifted")
-        console.print("[green]✓ native check: zero drift[/green]")
+        console.print("[green]✓ pipeline check: zero drift[/green]")
     else:
         console.print(
-            f"[green]✓ native regenerate: produced {report['produced']}, "
+            f"[green]✓ pipeline regenerate: produced {report['produced']}, "
             f"reproduced {report['reproduced']}[/green]"
         )
 
@@ -207,137 +213,57 @@ def info() -> None:
 
 @app.command()
 def regenerate(
-    names: list[str] | None = typer.Argument(  # noqa: B008
-        None,
-        help="Generator names to run (default: all in dependency order).",
-    ),
     jobs: int | None = typer.Option(
         None,
         "-j",
         "--jobs",
-        help="Number of parallel workers (default: capped CPU count).",
+        help="Per-level parallelism budget (default: capped CPU count).",
     ),
-    skip_unchanged: bool | None = typer.Option(
-        None,
-        "--skip-unchanged/--no-skip-unchanged",
-        help=(
-            "Skip generators whose inputs and implementation have not changed."
-            " Defaults to True when running all generators, False when a"
-            " specific generator is named."
-        ),
-    ),
-    native: bool = typer.Option(
+    check: bool = typer.Option(
         False,
-        "--native",
-        help=(
-            "Route to the Rust single-pass build executor "
-            "(gmeow_native.pipeline.run_pipeline) instead of the Python "
-            "orchestrator. Opt-in pre-cutover (#861 P6); P7 makes it the default."
-        ),
+        "--check",
+        help="Drift-check committed artifacts without writing (non-zero on drift).",
     ),
 ) -> None:
     """Rebuild all checked-in generated artifacts from canonical sources.
 
-    Runs every registered generator in topologically sorted order, or the
-    named generators in the order given.
+    Runs the dogfooded build DAG (``slices/core/pipeline/``) single-pass through
+    the Rust ``gmeow-pipeline`` executor — THE build authority since #861 P7
+    retired the Python generator orchestrator. With ``--check`` it compares every
+    produced artifact against the committed bytes and exits non-zero on drift.
     """
-    from gmeow_tools.config import PROJECT_ROOT
-
-    if native:
-        _regenerate_native(jobs=jobs)
-        return
-
-    # Import all generator modules to trigger @register side effects.
-    from gmeow_tools.generator import regenerate as _regenerate
-    from gmeow_tools.load_generators import load_all
-
-    load_all()
-
-    effective_skip = skip_unchanged if skip_unchanged is not None else (names is None)
-    results = _regenerate(names or None, jobs=jobs, skip_unchanged=effective_skip)
-    for _name, report in results.items():
-        if report.skipped:
-            console.print(f"[blue]⏵[/blue] {_name} skipped (unchanged)")
-        for path in report.written:
-            console.print(f"[green]✓[/green] {path.relative_to(PROJECT_ROOT)}")
-        if report.orphans:
-            for orphan in report.orphans:
-                err_console.print(f"[yellow]orphan[/yellow] {orphan}")
-    console.print(f"[green]✓ regenerated {len(results)} generator(s)[/green]")
+    _regenerate_native(jobs=jobs, check=check)
 
 
 @app.command()
 def check_generated(
-    names: list[str] | None = typer.Argument(  # noqa: B008
-        None,
-        help="Generator names to check (default: all).",
-    ),
-    skip: list[str] | None = typer.Option(  # noqa: B008
-        None,
-        "--skip",
-        help=(
-            "Generator names to exclude (e.g. --skip statements in a CI job "
-            "without the Docker/Jena toolchain). A NEW generator is always "
-            "included by default — exclusion is explicit, never wiring lag."
-        ),
-    ),
     jobs: int | None = typer.Option(
         None,
         "-j",
         "--jobs",
-        help="Number of parallel workers (default: capped CPU count).",
-    ),
-    skip_unchanged: bool | None = typer.Option(
-        None,
-        "--skip-unchanged/--no-skip-unchanged",
-        help=(
-            "Skip generators whose inputs and implementation have not changed."
-            " Defaults to True when checking all generators, False when a"
-            " specific generator is named."
-        ),
+        help="Per-level parallelism budget (default: capped CPU count).",
     ),
 ) -> None:
-    """Drift + orphan check for every registered generator.
+    """Drift-check every committed artifact against its canonical source.
 
-    Runs ``--check`` mode for all registered generators (or the named ones)
-    and exits non-zero if any drift or orphans are found.
+    Runs the dogfooded build DAG in CHECK mode through the Rust ``gmeow-pipeline``
+    executor (the build authority since #861 P7) and exits non-zero if any
+    committed artifact has drifted from what the pipeline reproduces.
     """
-    # Import all generator modules to trigger @register side effects.
-    from gmeow_tools.generator import check_all, registry
-    from gmeow_tools.load_generators import load_all
-
-    load_all()
-
-    selected = names or None
-    if skip:
-        unknown = sorted(set(skip) - set(registry()))
-        if unknown:
-            raise _fail(f"✗ --skip names not in the registry: {', '.join(unknown)}")
-        selected = sorted(set(selected or registry()) - set(skip))
-    effective_skip = skip_unchanged if skip_unchanged is not None else (names is None)
-    results = check_all(selected, jobs=jobs, skip_unchanged=effective_skip)
-    total_drift = 0
-    total_orphans = 0
-    for name, report in results.items():
-        if report.skipped:
-            console.print(f"[blue]⏵[/blue] {name} skipped (unchanged)")
-        if report.drifted:
-            total_drift += len(report.drifted)
-            for rel in sorted(report.drifted):
-                err_console.print(f"[red]drift[/red] {name}: {rel}")
-        if report.orphans:
-            total_orphans += len(report.orphans)
-            for rel in sorted(report.orphans):
-                err_console.print(f"[yellow]orphan[/yellow] {name}: {rel}")
-
-    if total_drift or total_orphans:
-        raise _fail(
-            f"✗ {total_drift} drifted, {total_orphans} orphaned — "
-            "run `gmeow regenerate`"
+    report = _run_pipeline(jobs=jobs, check=True)
+    for finding in report.get("findings", []):
+        err_console.print(
+            f"[yellow]{finding['severity']}[/yellow] {finding['code']}: "
+            f"{finding['message']}"
         )
+    drifted = report.get("drifted", [])
+    if drifted:
+        for rel in sorted(drifted):
+            err_console.print(f"[red]drift[/red] {rel}")
+        raise _fail(f"✗ {len(drifted)} artifact(s) drifted — run `gmeow regenerate`")
     console.print(
-        f"[green]✓ all {len(results)} generator(s) match committed sources "
-        "(no drift, no orphans)[/green]"
+        f"[green]✓ all {report['reproduced']} committed artifact(s) match "
+        "canonical sources (no drift)[/green]"
     )
 
 
@@ -521,11 +447,33 @@ def _surface_reports() -> list[tuple[str, Callable[[], Any]]]:
         return audit.to_diagnostics_report(audit.audit_graph([corpus]))
 
     def _generated() -> Any:
-        from gmeow_tools import generator
+        # Drift surface for the build: run the Rust pipeline in CHECK mode (the
+        # build authority since #861 P7) and project its drift findings into the
+        # canonical diagnostics report folded into the bundle.
+        from gmeow_tools import diagnostics
 
-        return generator.to_diagnostics_report(
-            generator.check_all(skip_unchanged=False)
-        )
+        report = _run_pipeline(check=True)
+        items = [
+            diagnostics.finding(
+                severity="error",
+                code="generator.drift",
+                message=rel,
+                tool="pipeline",
+                path=rel,
+            )
+            for rel in report.get("drifted", [])
+        ]
+        items += [
+            diagnostics.finding(
+                severity=finding["severity"],
+                code=finding["code"],
+                message=finding["message"],
+                tool="pipeline",
+            )
+            for finding in report.get("findings", [])
+            if finding["severity"] == "error"
+        ]
+        return diagnostics.report_from_findings(tool="generated", findings=items)
 
     def _classic_cross_check() -> Any:
         # The native↔oracle (ELK/HermiT/ROBOT) divergence ledger is already a
@@ -2113,7 +2061,7 @@ def export(
     package (WorkflowHub), DCAT (W3C catalogs), DataCite deposit XML (DOI),
     and a Frictionless datapackage.json. Each declares what it drops.
     """
-    from gmeow_tools.generator import GeneratorError
+    from gmeow_tools.genlib import GeneratorError
     from gmeow_tools.research_objects import (
         export_research_objects,
         package_ro_crate,
@@ -2189,8 +2137,7 @@ def compile_gts(out: Path | None = _GTS_COMPILE_OUT) -> None:
     drift-gated snapshot every exporter consumes (the narrow waist). With
     ``--out``, writes an ad-hoc copy of the identical bytes instead.
     """
-    from gmeow_tools import config, gts_gen  # noqa: F401  (register side effect)
-    from gmeow_tools.generator import run
+    from gmeow_tools import config
 
     rdf12 = config.STATEMENT_RDF12_FILE
     if not rdf12.exists():
@@ -2199,7 +2146,9 @@ def compile_gts(out: Path | None = _GTS_COMPILE_OUT) -> None:
             "run 'gmeow regenerate' first (a statement-less dist would drop "
             "confidence/standpoint/provenance)."
         )
-    run("gts")
+    # The Rust pipeline (the build authority since #861 P7) folds the snapshot
+    # at its single gts_sink; running it reproduces generated/dist/gmeow.gts.
+    _regenerate_native()
     if out is not None:
         out.parent.mkdir(parents=True, exist_ok=True)
         out.write_bytes(config.GTS_SNAPSHOT_FILE.read_bytes())
@@ -2524,10 +2473,7 @@ def logic_compile(
     """
     import gmeow_logic
 
-    from gmeow_tools import logic_compile as _lc  # noqa: F401  (register side effect)
     from gmeow_tools.config import PROJECT_ROOT as _PROJECT_ROOT
-    from gmeow_tools.generator import registry as _registry
-    from gmeow_tools.generator import run
     from gmeow_tools.logic_compile import (
         LOGIC_DATALOG_FILE,
         LOGIC_GUFO_FILE,
@@ -2542,14 +2488,17 @@ def logic_compile(
     if mode is not None and mode not in _LOGIC_MODES:
         raise _fail(f"✗ unknown --mode {mode!r} (valid: {', '.join(_LOGIC_MODES)})")
 
-    # --check with no --mode: use the framework's drift gate directly.
+    # --check with no --mode: drift-gate via the Rust pipeline (the build
+    # authority since #861 P7). The pipeline reproduces every committed
+    # artifact, the logic ones included, and reports any drift.
     if check and mode is None:
-        report = run("logic", check=True)
-        if report.drifted:
-            for rel in sorted(report.drifted):
+        report = _run_pipeline(check=True)
+        logic_drift = [d for d in report.get("drifted", []) if "/logic/" in d]
+        if logic_drift:
+            for rel in sorted(logic_drift):
                 err_console.print(f"[red]drift[/red] {rel}")
             raise _fail(
-                f"✗ {len(report.drifted)} logic artifact(s) out of date — "
+                f"✗ {len(logic_drift)} logic artifact(s) out of date — "
                 "run `gmeow logic compile`"
             )
         console.print(
@@ -2615,8 +2564,9 @@ def logic_compile(
             with tempfile.NamedTemporaryFile(suffix=_sfx, delete=False) as tf:
                 tmp_path = Path(tf.name)
             tmp_path.write_text(content, encoding="utf-8")
-            gen = _registry()["logic"]
-            drifts = gen.compare(tmp_path, target_file)
+            from gmeow_tools.genlib import rdf_compare
+
+            drifts = rdf_compare(tmp_path, target_file)
             tmp_path.unlink(missing_ok=True)
             if drifts:
                 for d in drifts:
@@ -2630,13 +2580,10 @@ def logic_compile(
             console.print(f"[green]✓[/green] {_rel}")
         return
 
-    # Default: full render of all 7 outputs via the generator framework.
-    report = run("logic", check=False)
-    for path in report.written:
-        console.print(f"[green]✓[/green] {path.relative_to(_PROJECT_ROOT)}")
-    if report.orphans:
-        for orphan in report.orphans:
-            err_console.print(f"[yellow]orphan[/yellow] {orphan}")
+    # Default: full render via the Rust pipeline (the build authority). It
+    # reproduces every committed artifact single-pass, the 7 logic outputs
+    # included.
+    _regenerate_native()
     console.print("[green]✓ logic: artifacts compiled[/green]")
 
 

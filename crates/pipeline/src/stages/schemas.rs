@@ -58,23 +58,23 @@ pub const SCHEMA_PATHS: [&str; 6] = [
 ];
 
 /// The inline Python driver: render the six schema artifacts into the staging
-/// directory handed as `argv[1]`, reusing the repo's registered `schemas`
-/// generator (the exact `emit_linkml → _write_yaml → gen_* → gen_openapi →
-/// _write_artifacts(_normalize_text)` sequence). The generator writes under
+/// directory handed as `argv[1]`, reusing the repo's lane-only `schemas`
+/// compiler (the exact `emit_linkml → _write_yaml → gen_* → gen_openapi →
+/// _write_artifacts(_normalize_text)` sequence). The compiler writes under
 /// `<staging>/generated/schemas/` (its `SCHEMAS_DIR` relative to
 /// `PROJECT_ROOT`).
 ///
-/// This replicates the prologue of `gmeow_tools.generator.run`: importing the
-/// module registers the `schemas` generator instance (`@register`), then we
-/// stamp `_source_hash` from `source_hash(gen.inputs)` — the framework value
-/// the committed banner was minted with — before calling `render`. We do NOT
-/// call `run` itself: that would publish into / compare against the real tree.
+/// #861 P7 retired the Python build orchestrator (the `generator.py` registry):
+/// the build authority is now this Rust pipeline. So we no longer route through
+/// `registry()['schemas']`; we instantiate `SchemaGenerator` directly and stamp
+/// `_source_hash` from `genlib.source_hash(gen.inputs)` — the value the committed
+/// banner was minted with — before calling `render`.
 const RENDER_SCRIPT: &str = "\
 import sys
 from pathlib import Path
-import gmeow_tools.schema_compile  # noqa: F401  (registers the `schemas` generator)
-from gmeow_tools.generator import registry, source_hash
-gen = registry()['schemas']
+from gmeow_tools.schema_compile import SchemaGenerator
+from gmeow_tools.genlib import source_hash
+gen = SchemaGenerator()
 object.__setattr__(gen, '_source_hash', source_hash(gen.inputs))
 gen.render(Path(sys.argv[1]))
 ";

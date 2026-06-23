@@ -69,16 +69,17 @@ meta:gate-rdf12-codec a meta:Gate ;
     meta:artifact "queries/codecs/rdf12-project.rq", "queries/codecs/rdf12-to-owl.rq" .
 
 meta:gate-generator-registry a meta:Gate ;
-    rdfs:label "generator registry: regenerate / drift / orphan gates"@x-gmeow-english ;
-    meta:artifact "src/gmeow_tools/generator.py" ;
-    meta:symbol "regenerate_order" ;
+    rdfs:label "pipeline DAG registry: single-pass regenerate / drift gates"@x-gmeow-english ;
+    meta:artifact "crates/pipeline/src/py.rs", "crates/pipeline/src/run.rs", "slices/core/pipeline/module.ttl" ;
+    meta:symbol "run_pipeline" ;
     meta:cliCommand "regenerate", "check-generated",
         "compile-gts", "compile-gts-full" ;
     meta:makeTarget "check-generated", "regenerate" ;
-    meta:generator "statements", "mappings", "gts", "exports",
+    meta:generator "source_load", "statements", "mappings", "reason",
+        "gts_compose", "snapshot", "docs_render", "gts_sink", "logic",
         "metadata", "schemas", "lpg", "matrix", "apache",
-        "catalog", "profiles", "frame-shapes", "evals", "parquet",
-        "research-objects", "references", "logic", "okf" .
+        "catalog", "profiles", "frame_shapes", "evals", "parquet",
+        "research-objects", "references", "export", "okf" .
 
 meta:tests-narrow-waist a meta:TestSuite ;
     rdfs:label "narrow-waist seal (GTS is the only exit for data)"@x-gmeow-english ;
@@ -113,7 +114,7 @@ meta:gate-reasoning a meta:Gate ;
 
 meta:gate-fair-metadata a meta:Gate ;
     rdfs:label "VoID/DCAT publication metadata generator"@x-gmeow-english ;
-    meta:artifact "src/gmeow_tools/metadata.py", "generated/metadata" .
+    meta:artifact "crates/pipeline/src/stages/metadata.rs", "generated/metadata" .
 
 meta:lint-no-preferred-rank a meta:Lint ;
     rdfs:label "no preferredRank / primary* selector annotations"@x-gmeow-english ;
@@ -214,7 +215,7 @@ meta:tests-leak-conformance a meta:TestSuite ;
 
 meta:shapes-frame-generated a meta:Shape ;
     rdfs:label "frame-relativity SHACL generated from gmeow:requiresFrame"@x-gmeow-english ;
-    meta:artifact "src/gmeow_tools/frame_shapes_gen.py", "generated/shapes/frame-shapes.ttl" ;
+    meta:artifact "crates/pipeline/src/stages/frame_shapes.rs", "generated/shapes/frame-shapes.ttl" ;
     meta:symbol "render_frame_shapes" .
 
 meta:lint-frame-completeness a meta:Lint ;
@@ -264,7 +265,7 @@ meta:gate-logic-conformance a meta:Gate ;
 
 meta:gate-logic-round-trip a meta:Gate ;
     rdfs:label "logic→OWL DL/EL, Datalog, N3, gUFO projection round-trip isomorphism + preservation ledger"@x-gmeow-english ;
-    meta:artifact "tests/test_logic_conformance.py", "crates/logic/src/compile/projections/text.rs", "crates/logic/src/compile/projections/report.rs" ;
+    meta:artifact "crates/logic/src/compile/projections/text.rs", "crates/logic/src/compile/projections/report.rs" ;
     meta:symbol "project_nemo", "build_projection_report" .
 
 meta:gate-foundation-conformance a meta:Gate ;
@@ -290,9 +291,9 @@ meta:gate-reason-native a meta:Gate ;
 
 meta:gate-dl-el-crosscheck a meta:Gate ;
     rdfs:label "native↔oracle divergence ledger — report-only committed artifact on the primary path; enforcement runs in the classic-cross-check lane (gate-classic-cross-check)"@x-gmeow-english ;
-    meta:artifact "src/gmeow_tools/native_reason_gen.py", "generated/logic/dl-el-crosscheck-report.ttl" ;
-    meta:symbol "NativeReasoningGenerator" ;
-    meta:generator "native-reasoning" .
+    meta:artifact "crates/pipeline/src/stages/logic.rs", "generated/logic/dl-el-crosscheck-report.ttl" ;
+    meta:symbol "LogicStage" ;
+    meta:generator "logic" .
 
 # The ENFORCING classic-cross-check lane: the sole Java+Docker surface, a
 # single non-required CI job. Compares the native engine against the legacy

@@ -32,9 +32,7 @@ from typing import TYPE_CHECKING
 
 import yaml
 
-from gmeow_tools.config import DIST_DIR, PROJECT_ROOT
 from gmeow_tools.export import Term, collect_terms, fold_meta
-from gmeow_tools.generator import Generator, _rel, register
 from gmeow_tools.gts_views import load_fold
 
 if TYPE_CHECKING:
@@ -312,47 +310,3 @@ def export_okf_bundle(
     title, version = fold_meta(view)
     terms = collect_terms(view, selector=selector)
     return write_okf(terms, out_dir, title=title, version=version)
-
-
-@register
-class OkfExportGenerator(Generator):
-    """Generate the OKF concept-document bundle under ``dist/gmeow-okf/`` (#780).
-
-    The first directory-output generator. Like :class:`ExportGenerator`, the
-    output lives under git-ignored ``dist/`` — the *committed* surface is the
-    ``gmeow.gts`` ``REP_OKF`` blob (folded by the ``gts`` generator, Task 2), so
-    ``compare()`` skips drift here exactly as the flat-export generator does.
-    """
-
-    name: str = "okf"
-    is_directory_output: bool = True
-
-    @property
-    def inputs(self) -> Sequence[Path]:
-        """Canonical input — the narrow-waist GTS snapshot."""
-        from gmeow_tools.config import GTS_SNAPSHOT_FILE
-
-        return [GTS_SNAPSHOT_FILE]
-
-    @property
-    def outputs(self) -> Sequence[Path]:
-        """The single committed output: the bundle directory (git-ignored)."""
-        return [DIST_DIR / OKF_DIR_NAME]
-
-    def render(self, staging: Path) -> None:
-        """Render the OKF bundle into the staging tree."""
-        from gmeow_tools.language_tags import resolve_lang_input
-
-        out_dir = staging / DIST_DIR.relative_to(PROJECT_ROOT) / OKF_DIR_NAME
-        out_dir.mkdir(parents=True, exist_ok=True)
-        view = load_fold()
-        selector = resolve_lang_input(None, view.tag_map())
-        export_okf_bundle(out_dir, view=view, selector=selector)
-
-    def compare(self, fresh: Path, committed: Path) -> list[str]:
-        """Skip drift for the git-ignored bundle (the gts blob is the gate)."""
-        if not committed.exists():
-            return []
-        if not fresh.exists():
-            return [f"{_rel(committed)} (not produced in staging)"]
-        return []

@@ -17944,6 +17944,9 @@ enums:
       stage-export-frame-shapes:
         meaning: https://blackcatinformatics.ca/gmeow/stage-export-frame-shapes
         title: 'export: frame shapes'
+      stage-export-logic:
+        meaning: https://blackcatinformatics.ca/gmeow/stage-export-logic
+        title: 'export: logic'
       stage-export-lpg:
         meaning: https://blackcatinformatics.ca/gmeow/stage-export-lpg
         title: 'export: LPG'

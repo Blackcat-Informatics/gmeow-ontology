@@ -41,7 +41,7 @@ from gmeow_tools.config import (
     PROJECT_ROOT,
     SCHEMAS_DIR,
 )
-from gmeow_tools.generator import Generator, register, write_text
+from gmeow_tools.genlib import Generator, write_text
 from gmeow_tools.gts_views import FoldView, load_fold
 
 _GMEOW = str(PREFIXES["gmeow"])
@@ -555,11 +555,14 @@ def _gen_graphql_worker(linkml_path: Path) -> tuple[str, str]:
 
 
 # --------------------------------------------------------------------------- #
-# Registered generator
+# Schema compiler (lane-only render helper)
+#
+# Not a build-registry entry: #861 P7 retired the Python orchestrator. The Rust
+# `stage-export-schemas` leaf drives this class directly as a subprocess — the
+# sanctioned ext-deps-lane exception for the external LinkML toolkit.
 # --------------------------------------------------------------------------- #
 
 
-@register
 class SchemaGenerator(Generator):
     """Compile canonical OWL → LinkML + downstream artifacts."""
 

@@ -14,7 +14,6 @@ from xml.etree import ElementTree as ET
 
 import pytest
 
-from gmeow_tools.generator import registry
 from gmeow_tools.research_objects import (
     CROISSANT_CONFORMS_TO,
     DATACITE_NS,
@@ -241,22 +240,6 @@ def test_datacite_xml_structure(exports: Path) -> None:
 def test_datacite_is_deterministic(meta: DatasetMeta) -> None:
     g = load_instance_graph(EXAMPLE_INPUTS)
     assert build_datacite_xml(g, meta) == build_datacite_xml(g, meta)
-
-
-# --------------------------------------------------------------------------- #
-# The generator
-# --------------------------------------------------------------------------- #
-
-
-def test_generator_is_registered_and_ordered() -> None:
-    from gmeow_tools import evals, mapping_compile  # noqa: F401  (@register)
-    from gmeow_tools.generator import regenerate_order
-
-    gens = registry()
-    assert "research-objects" in gens
-    order = regenerate_order()
-    assert order.index("mappings") < order.index("research-objects")
-    assert order.index("evals") < order.index("research-objects")
 
 
 def test_builders_share_one_meta_path(meta: DatasetMeta) -> None:

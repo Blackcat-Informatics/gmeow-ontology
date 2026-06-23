@@ -25,15 +25,12 @@ CLI face of the #500 logic compiler (Task 4).
 from __future__ import annotations
 
 import logging
-from collections.abc import Sequence
 from pathlib import Path
-from typing import cast
 
 import gmeow_logic
 
 from gmeow_tools import diagnostics
 from gmeow_tools.config import GENERATED_DIR, PROJECT_ROOT, SLICES_DIR
-from gmeow_tools.generator import Generator, rdf_compare, register
 
 log = logging.getLogger(__name__)
 
@@ -107,109 +104,3 @@ def compile_diagnostics_report(
 # --------------------------------------------------------------------------- #
 # Registered generator
 # --------------------------------------------------------------------------- #
-
-
-@register
-class LogicGenerator(Generator):
-    """Compile slices/core/logic/module.ttl → 8 generated logic artifacts."""
-
-    name: str = "logic"
-    #: Internal x-gmeow-* tags are canonical; they survive the leak gate (#287).
-    allows_internal_tags: bool = True
-
-    @property
-    def inputs(self) -> Sequence[Path]:
-        """The logic: source vocabulary file is the sole authoring input."""
-        return [LOGIC_SOURCE_FILE]
-
-    @property
-    def outputs(self) -> Sequence[Path]:
-        """All 8 committed artifacts owned by this generator."""
-        return [
-            LOGIC_OWL_DL_FILE,
-            LOGIC_OWL_EL_FILE,
-            LOGIC_DATALOG_FILE,
-            LOGIC_N3_FILE,
-            LOGIC_GUFO_FILE,
-            LOGIC_RDF12_FILE,
-            LOGIC_NEMO_FILE,
-            LOGIC_REPORT_FILE,
-        ]
-
-    def render(self, staging: Path) -> None:
-        """Compile the logic: source (in Rust) and write all 8 artifacts.
-
-        The whole frontend → IR → 7-projections + report pipeline now runs in the
-        native ``gmeow_logic.compile_logic`` Rust compiler (#664).  The overclaim
-        gate (CONSTITUTION Principle 7) and the Nemo rule-safety check fire inside
-        the Rust ``compile_program`` — either raises ``ValueError`` before a single
-        byte is written to the committed tree.
-        """
-        from gmeow_tools.mapping_dsl import CompileError
-
-        # --- Compile (Rust): source Turtle → the 8 artifact strings ------
-        source_ttl = LOGIC_SOURCE_FILE.read_text(encoding="utf-8")
-        try:
-            result = gmeow_logic.compile_logic(source_ttl)
-        except ValueError as exc:
-            raise CompileError(f"logic: compile failed: {exc}") from exc
-
-        # --- Surface parse diagnostics as warnings (fail-soft contract) --
-        # The native report's findings carry the canonical ``logic-compile.<code>``
-        # codes (built in Rust, #856); each is a dict with severity/code/message.
-        for diag in result["diagnostics_report"].findings:
-            log.warning(
-                "logic: parse diagnostic [%s] %s: %s",
-                diag["severity"],
-                diag["code"],
-                diag["message"],
-            )
-
-        # Cast to plain str-keyed mapping for dynamic-key artifact operations.
-        # The TypedDict return type enforces the exact keys at literal call sites;
-        # here we need a runtime loop over the 8 artifact keys, which mypy cannot
-        # verify statically on a TypedDict.  The cast is safe: every key in
-        # `outputs` is a declared field of CompileLogicResult.
-        artifacts: dict[str, str] = cast("dict[str, str]", result)
-
-        # --- Map artifact name → committed path, write into staging ------
-        def _staged(committed: Path) -> Path:
-            return staging / committed.relative_to(PROJECT_ROOT)
-
-        outputs: dict[str, Path] = {
-            "owl_dl": LOGIC_OWL_DL_FILE,
-            "owl_el": LOGIC_OWL_EL_FILE,
-            "datalog": LOGIC_DATALOG_FILE,
-            "n3": LOGIC_N3_FILE,
-            "gufo": LOGIC_GUFO_FILE,
-            "canonical_rdf12": LOGIC_RDF12_FILE,
-            "nemo": LOGIC_NEMO_FILE,
-            "report": LOGIC_REPORT_FILE,
-        }
-        missing = [k for k in outputs if k not in artifacts]
-        if missing:
-            raise CompileError(
-                f"logic: compile produced no output for: {', '.join(sorted(missing))}"
-            )
-
-        for key, committed in outputs.items():
-            staged = _staged(committed)
-            staged.parent.mkdir(parents=True, exist_ok=True)
-            staged.write_text(artifacts[key], encoding="utf-8")
-
-    def compare(self, fresh: Path, committed: Path) -> list[str]:
-        """Graph-isomorphism for RDF/Turtle; byte-normalized compare for text."""
-        # Plain-text targets (Datalog, N3, Nemo): normalize line endings, then compare.
-        if committed in {LOGIC_DATALOG_FILE, LOGIC_N3_FILE, LOGIC_NEMO_FILE}:
-            if not committed.exists():
-                return [f"{_rel_str(committed)} (missing committed file)"]
-            if not fresh.exists():
-                return [f"{_rel_str(committed)} (not produced in staging)"]
-            fresh_text = fresh.read_text(encoding="utf-8").rstrip("\n") + "\n"
-            committed_text = committed.read_text(encoding="utf-8").rstrip("\n") + "\n"
-            if fresh_text != committed_text:
-                return [_rel_str(committed)]
-            return []
-
-        # All other outputs are RDF/Turtle — use graph isomorphism.
-        return rdf_compare(fresh, committed)

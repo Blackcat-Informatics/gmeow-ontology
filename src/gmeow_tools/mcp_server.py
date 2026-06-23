@@ -11,7 +11,7 @@ Principle 12 (Compute outside the logic): the MCP boundary is a solver/tooling l
 from __future__ import annotations
 
 import json
-from typing import Any
+from typing import Any, cast
 
 from fastmcp import FastMCP
 from gmeow_rdf.compat.rdflib import OWL, RDF, RDFS, SKOS, URIRef
@@ -209,79 +209,52 @@ def gmeow_validate() -> str:
     )
 
 
-def _load_generator_modules() -> None:
-    # Trigger @register side effects for all generators.
-    from gmeow_tools import (  # noqa: F401
-        apache,
-        export,
-        lpg,
-        mapping_compile,
-        metadata,
-        schema_compile,
-        statement_compile,
-    )
+def _run_build_pipeline(check: bool) -> dict[str, object]:
+    """Run the Rust build pipeline (the build authority since #861 P7).
+
+    Reads the dogfooded build DAG (``slices/core/pipeline/``) and reproduces
+    every committed artifact single-pass — regenerate (``check=False``) or
+    drift-check (``check=True``).
+    """
+    import os
+
+    import gmeow_native.pipeline as _pipeline  # type: ignore[import-not-found]
+
+    from gmeow_tools.config import PROJECT_ROOT
+
+    result = _pipeline.run_pipeline(str(PROJECT_ROOT), os.cpu_count() or 1, check)
+    return cast("dict[str, object]", result)
 
 
 @mcp.tool()
-def gmeow_regenerate(names: list[str] | None = None) -> str:
-    """Rebuild all checked-in generated artifacts from canonical sources.
-
-    Args:
-        names: Generator names to run (default: all in dependency order).
-    """
-    _load_generator_modules()
-    from gmeow_tools.generator import regenerate
-    from gmeow_tools.mapping_dsl import CompileError
-
+def gmeow_regenerate() -> str:
+    """Rebuild all checked-in generated artifacts from canonical sources."""
     try:
-        results = regenerate(names or None)
-    except CompileError as exc:
-        return json.dumps({"ok": False, "error": str(exc)})
+        report = _run_build_pipeline(check=False)
     except Exception as exc:
         return json.dumps({"ok": False, "error": str(exc)})
     return json.dumps(
         {
             "ok": True,
-            "generators": {
-                name: {
-                    "written": [str(p) for p in report.written],
-                    "drifted": report.drifted,
-                    "orphans": report.orphans,
-                }
-                for name, report in results.items()
-            },
+            "produced": report.get("produced"),
+            "reproduced": report.get("reproduced"),
         }
     )
 
 
 @mcp.tool()
-def gmeow_check_generated(names: list[str] | None = None) -> str:
-    """Drift + orphan check for all registered generators.
-
-    Args:
-        names: Generator names to check (default: all).
-    """
-    _load_generator_modules()
-    from gmeow_tools.generator import check_all
-
+def gmeow_check_generated() -> str:
+    """Drift-check every committed artifact against its canonical source."""
     try:
-        results = check_all(names or None)
+        report = _run_build_pipeline(check=True)
     except Exception as exc:
         return json.dumps({"ok": False, "error": str(exc)})
-    total_drift = sum(len(r.drifted) for r in results.values())
-    total_orphans = sum(len(r.orphans) for r in results.values())
+    drifted = cast("list[str]", report.get("drifted", []))
     return json.dumps(
         {
-            "ok": total_drift == 0 and total_orphans == 0,
-            "drifted": total_drift,
-            "orphaned": total_orphans,
-            "generators": {
-                name: {
-                    "drifted": report.drifted,
-                    "orphans": report.orphans,
-                }
-                for name, report in results.items()
-            },
+            "ok": len(drifted) == 0,
+            "drifted": len(drifted),
+            "paths": sorted(drifted),
         }
     )
 

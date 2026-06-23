@@ -111411,6 +111411,7 @@
               "stage-export-evals",
               "stage-export-export",
               "stage-export-frame-shapes",
+              "stage-export-logic",
               "stage-export-lpg",
               "stage-export-matrix",
               "stage-export-metadata",

@@ -18,7 +18,6 @@ from gmeow_rdf.compat.rdflib.compare import graph_diff, isomorphic
 from gmeow_rdf.compat.rdflib.namespace import OWL
 
 from gmeow_tools.config import STATEMENT_RDF12_FILE
-from gmeow_tools.generator import run
 from gmeow_tools.rdf12 import normalize_rdf12_to_owl
 from gmeow_tools.statement_compile import emit_owl
 from gmeow_tools.statement_dsl import load_statement_dsl
@@ -46,17 +45,25 @@ def assert_lossless_jena(owl_graph: Graph, rdf12_path: Path) -> list[str]:
 
 
 def assert_committed_artifacts_match_dsl() -> None:
-    """The committed statement artifacts must match the canonical DSL."""
-    report = run("statements", check=True)
-    if report.drifted:
+    """The committed statement artifacts must match the canonical DSL.
+
+    Drift-checks via the Rust ``gmeow-pipeline`` executor (the build authority
+    since #861 P7) and filters its drift findings to the statement artifacts.
+    """
+    import os
+
+    import gmeow_native.pipeline as _pipeline  # type: ignore[import-not-found]
+
+    from gmeow_tools.config import PROJECT_ROOT
+
+    report = _pipeline.run_pipeline(str(PROJECT_ROOT), os.cpu_count() or 1, True)
+    statement_drift = [
+        d for d in report.get("drifted", []) if "statement" in d or "gmeow.rdf12" in d
+    ]
+    if statement_drift:
         raise AssertionError(
             "committed statement artifacts are stale; run `gmeow regenerate`:\n  "
-            + "\n  ".join(report.drifted)
-        )
-    if report.orphans:
-        raise AssertionError(
-            "committed statement artifacts include orphaned generated files:\n  "
-            + "\n  ".join(report.orphans)
+            + "\n  ".join(statement_drift)
         )
 
 

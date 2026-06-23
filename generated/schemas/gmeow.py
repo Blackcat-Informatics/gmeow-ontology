@@ -2069,6 +2069,7 @@ class PipelineStageEnum(str, Enum):
     exportCOLON_evals = "stage-export-evals"
     exportCOLON_flat_views = "stage-export-export"
     exportCOLON_frame_shapes = "stage-export-frame-shapes"
+    exportCOLON_logic = "stage-export-logic"
     exportCOLON_LPG = "stage-export-lpg"
     exportCOLON_matrix = "stage-export-matrix"
     exportCOLON_metadata = "stage-export-metadata"

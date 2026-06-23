@@ -18,7 +18,6 @@ import yaml
 from gmeow_rdf.compat.rdflib import OWL, RDF, RDFS, SKOS, URIRef
 
 from gmeow_tools.export import collect_terms
-from gmeow_tools.generator import registry
 from gmeow_tools.okf_export import (
     _LOSSY_NOTE,
     OKF_DIR_NAME,
@@ -160,14 +159,6 @@ def test_deterministic_under_hash_seed_variation(tmp_path: Path) -> None:
 
         digests.append(hashlib.blake2b(blob).hexdigest())
     assert digests[0] == digests[1], "OKF export is not deterministic under hash seed"
-
-
-def test_generator_compare_skips_gitignored_dist(tmp_path: Path) -> None:
-    """okf generator is directory-output; reports no drift for git-ignored dist."""
-    gen = registry()["okf"]
-    assert gen.is_directory_output is True
-    # dist/ is git-ignored, so committed output never exists → no drift reported
-    assert gen.compare(tmp_path / "fresh", tmp_path / "missing-committed") == []
 
 
 def test_mcp_okf_index_resource() -> None:
