@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import base64
+import re
 import tomllib
 from pathlib import Path
 from typing import Any
@@ -23,6 +24,19 @@ from gmeow_tools.config import GTS_SNAPSHOT_FILE, NAMESPACE, ONTOLOGY_IRI
 from gmeow_tools.gts_producer import compile_gts
 
 _GUFO = Namespace("http://purl.org/nemo/gufo#")
+
+# Rich emits colour when CI forces it (FORCE_COLOR/CI), and its option highlighter
+# styles each ``-`` run of a flag separately — so ``--gts`` is rendered as
+# ``\x1b[..m-\x1b[0m\x1b[..m-gts\x1b[0m`` with an escape sequence *between the two
+# dashes*. That makes the literal substring ``--gts`` absent under colour even
+# though the flag is plainly there. Normalise the escapes before substring checks
+# of flag names (CI forces colour; local dev shells usually do not).
+_ANSI_RE = re.compile(r"\x1b\[[0-9;]*m")
+
+
+def _strip_ansi(text: str) -> str:
+    """Remove SGR colour escapes so flag-name substring checks are colour-stable."""
+    return _ANSI_RE.sub("", text)
 
 
 def _armor_public_key(raw_public: bytes) -> str:
@@ -928,7 +942,7 @@ def test_dev_validate_require_signed_without_gts_errors(runner: CliRunner) -> No
     """Signature flags are only meaningful together with --gts."""
     result = runner.invoke(dev_app, ["validate", "--require-signed"])
     assert result.exit_code != 0
-    assert "--gts" in result.output
+    assert "--gts" in _strip_ansi(result.output)
 
 
 def test_dev_validate_gts_with_trusted_key_cli_flag(
