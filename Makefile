@@ -226,9 +226,10 @@ clippy: ## Run cargo clippy on all Rust targets with warnings as errors.
 
 rdf-core-hygiene: ## [purrdf P2/#836] Prove the gmeow-rdf kernel lib builds with NO oxigraph in its NORMAL dependency graph (the weak ring-fence; the strong crate boundary is P2b).
 	cargo build -p gmeow-rdf --no-default-features
-	@# `cargo tree -i` exits 0 even when the package is absent ("nothing to print"),
-	@# so detect a real edge by the inverted tree's root line, not the exit code.
-	@if cargo tree -p gmeow-rdf --no-default-features --edges normal -i oxigraph 2>/dev/null | grep -q '^oxigraph '; then \
+	@# Capture the forward normal-edges tree; a cargo failure (bad manifest/lockfile)
+	@# is a hard FAIL here, not a silenced false-OK. Then grep the captured output.
+	@tree=$$(cargo tree -p gmeow-rdf --no-default-features --edges normal) || { echo "FAIL: cargo tree errored"; exit 1; }; \
+	if echo "$$tree" | grep -q '\boxigraph\b'; then \
 		echo "FAIL: oxigraph is a NORMAL dependency of gmeow-rdf under --no-default-features"; exit 1; \
 	else \
 		echo "OK: gmeow-rdf --no-default-features is oxigraph-free (oxigraph is feature-gated/dev-dep only)"; \

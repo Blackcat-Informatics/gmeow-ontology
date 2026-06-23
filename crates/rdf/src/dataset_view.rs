@@ -75,9 +75,11 @@ pub trait DatasetView {
         g: GraphMatch,
     ) -> impl Iterator<Item = QuadIds> + '_ {
         self.quads().filter(move |q| {
-            s.is_none_or(|s| q.s == s)
-                && p.is_none_or(|p| q.p == p)
-                && o.is_none_or(|o| q.o == o)
+            // Closure params named `id` (not s/p/o) to avoid shadowing the outer
+            // `Option<TermId>` filters with the unwrapped `TermId`.
+            s.is_none_or(|id| q.s == id)
+                && p.is_none_or(|id| q.p == id)
+                && o.is_none_or(|id| q.o == id)
                 && g.matches(q.g)
         })
     }
