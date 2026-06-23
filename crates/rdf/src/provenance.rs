@@ -158,6 +158,7 @@ impl fmt::Display for OriginKind {
 /// These variants are kernel-generic — no GMEOW-specific concept here. The slice
 /// layer interprets which `UnitId` maps to which slice IRI.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[non_exhaustive]
 pub enum AttributionRole {
     /// The unit that asserted the RDF data from which the finding originates.
     AssertionOrigin,
@@ -530,6 +531,7 @@ impl Default for DatasetProvenance {
 
 /// An error from the provenance gate.
 #[derive(Debug, Clone, PartialEq, Eq)]
+#[non_exhaustive]
 pub enum ProvenanceError {
     /// An occurrence references a `UnitId` that has no registered kind.
     UnknownUnit {

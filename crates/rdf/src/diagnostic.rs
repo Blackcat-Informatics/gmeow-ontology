@@ -4,6 +4,10 @@
 use std::fmt;
 
 /// Severity for RDF ingestion, conversion, and adapter diagnostics.
+///
+/// Deliberately exhaustive (NOT `#[non_exhaustive]`): these are the four standard
+/// diagnostic levels (mirroring LSP `DiagnosticSeverity`), a closed set — so
+/// consumers SHOULD match them exhaustively rather than fall back on a lossy `_`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum RdfSeverity {
     Error,

@@ -42,7 +42,7 @@ pub mod validate;
 pub use builder::RdfDatasetBuilder;
 pub use bundle::{GtsBundle, RdfEnvelope};
 pub use compare::{dataset_diff, datasets_isomorphic, DatasetDiff};
-pub use dataset::{QuadHandle, QuadIds, QuadRef, RdfDataset, TermRef};
+pub use dataset::{QuadHandle, QuadIds, QuadRef, RdfDataset, RdfDatasetIter, TermRef};
 pub use event_sink::RdfEventSink;
 #[cfg(feature = "gts")]
 pub use import_graph::import_gts_graph;

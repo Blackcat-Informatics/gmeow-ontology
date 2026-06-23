@@ -174,13 +174,22 @@ impl RdfDataset {
     /// Iterate quads as borrowed, resolved [`QuadRef`] views. Each term is resolved
     /// by borrowing into the term table — no allocation, no clone per quad.
     #[inline]
-    pub fn quad_refs(&self) -> impl Iterator<Item = QuadRef<'_>> + '_ {
-        self.quads.iter().map(move |row| QuadRef {
+    pub fn quad_refs(&self) -> RdfDatasetIter<'_> {
+        RdfDatasetIter {
+            dataset: self,
+            inner: self.quads.iter(),
+        }
+    }
+
+    /// Resolve one frozen [`QuadRow`] to a borrowed [`QuadRef`] (no allocation).
+    #[inline]
+    fn quad_ref_of(&self, row: &QuadRow) -> QuadRef<'_> {
+        QuadRef {
             s: self.resolve(row.s),
             p: self.resolve(row.p),
             o: self.resolve(row.o),
             g: row.g.map(|g| self.resolve(g)),
-        })
+        }
     }
 
     /// Resolve a term id to a borrowed [`TermRef`]. No allocation: string content is
@@ -281,6 +290,69 @@ impl RdfDataset {
     }
 }
 
+/// A zero-allocation, zero-dynamic-dispatch iterator over an [`RdfDataset`]'s quads
+/// as resolved [`QuadRef`]s. Yielded by [`RdfDataset::quad_refs`] and by
+/// `for quad in &dataset`. Backed by a `core::slice::Iter` (no_std-ready), it is
+/// `Double-ended`, `ExactSize`, and `Fused` — a drop-in for the standard iterator
+/// adapters with no per-item heap cost.
+pub struct RdfDatasetIter<'a> {
+    dataset: &'a RdfDataset,
+    inner: core::slice::Iter<'a, QuadRow>,
+}
+
+impl<'a> Iterator for RdfDatasetIter<'a> {
+    type Item = QuadRef<'a>;
+
+    #[inline]
+    fn next(&mut self) -> Option<Self::Item> {
+        let dataset = self.dataset;
+        self.inner.next().map(|row| dataset.quad_ref_of(row))
+    }
+
+    #[inline]
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        self.inner.size_hint()
+    }
+}
+
+impl DoubleEndedIterator for RdfDatasetIter<'_> {
+    #[inline]
+    fn next_back(&mut self) -> Option<Self::Item> {
+        let dataset = self.dataset;
+        self.inner.next_back().map(|row| dataset.quad_ref_of(row))
+    }
+}
+
+impl ExactSizeIterator for RdfDatasetIter<'_> {
+    #[inline]
+    fn len(&self) -> usize {
+        self.inner.len()
+    }
+}
+
+impl core::iter::FusedIterator for RdfDatasetIter<'_> {}
+
+/// `for quad in &dataset` yields each [`QuadRef`] (resolved, borrowed terms — no
+/// per-quad allocation, no dynamic dispatch; see [`RdfDatasetIter`]).
+impl<'a> IntoIterator for &'a RdfDataset {
+    type Item = QuadRef<'a>;
+    type IntoIter = RdfDatasetIter<'a>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.quad_refs()
+    }
+}
+
+// A frozen `RdfDataset` is an immutable, `Arc`-shared snapshot; it (and the `Copy`
+// `TermId` that indexes it) are `Send + Sync` so consumers can fan reasoning/
+// serialization across threads. These guards fail the build if that ever regresses.
+const _: fn() = || {
+    fn assert_send_sync<T: Send + Sync>() {}
+    assert_send_sync::<RdfDataset>();
+    assert_send_sync::<TermId>();
+    assert_send_sync::<QuadIds>();
+};
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -289,6 +361,54 @@ mod tests {
 
     fn iri(b: &mut RdfDatasetBuilder, n: &str) -> TermId {
         b.intern_iri(format!("http://example.org/{n}"))
+    }
+
+    #[test]
+    fn extend_with_interned_ids_and_into_iterator() {
+        let mut b = RdfDatasetBuilder::new();
+        let (s, p) = (iri(&mut b, "s"), iri(&mut b, "p"));
+        let (o1, o2) = (iri(&mut b, "o1"), iri(&mut b, "o2"));
+        // Extend<QuadIds>: bulk-push ids interned in THIS builder (#841).
+        b.extend([
+            QuadIds {
+                s,
+                p,
+                o: o1,
+                g: None,
+            },
+            QuadIds {
+                s,
+                p,
+                o: o2,
+                g: None,
+            },
+        ]);
+        let ds = b.freeze().expect("freeze");
+        assert_eq!(ds.quad_count(), 2);
+        // IntoIterator for &RdfDataset yields one QuadRef per quad.
+        assert_eq!((&*ds).into_iter().count(), 2);
+        // The named iterator is ExactSize, DoubleEnded, and Fused (#841).
+        let mut it = ds.quad_refs();
+        assert_eq!(it.len(), 2);
+        assert!(it.next_back().is_some());
+        assert_eq!(it.len(), 1);
+        assert!(it.next().is_some());
+        assert!(it.next().is_none());
+        assert!(it.next().is_none(), "fused: stays exhausted");
+    }
+
+    #[test]
+    fn extend_empty_and_dedup() {
+        // Empty extend yields an empty dataset.
+        let mut b = RdfDatasetBuilder::new();
+        b.extend(core::iter::empty::<QuadIds>());
+        assert_eq!(b.freeze().expect("freeze").quad_count(), 0);
+        // Duplicate quads collapse — Extend routes through push_quad's dedup.
+        let mut b = RdfDatasetBuilder::new();
+        let (s, p, o) = (iri(&mut b, "s"), iri(&mut b, "p"), iri(&mut b, "o"));
+        let q = QuadIds { s, p, o, g: None };
+        b.extend([q, q]);
+        assert_eq!(b.freeze().expect("freeze").quad_count(), 1);
     }
 
     #[test]
