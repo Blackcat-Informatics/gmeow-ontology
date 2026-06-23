@@ -74,17 +74,31 @@ pub fn compile_statements(root: &Path) -> Result<(String, String), PipelineError
     Ok((owl_out, rdf12_out))
 }
 
+/// The sorted `dsl/statements/*.ttl` source files (the leaf's raw inputs — folded
+/// into the cache key via `input_files` so a DSL edit busts the cache).
+pub fn statement_dsl_files(root: &Path) -> Result<Vec<std::path::PathBuf>, PipelineError> {
+    let dir = root.join("dsl").join("statements");
+    if !dir.is_dir() {
+        return Ok(Vec::new());
+    }
+    let mut files: Vec<std::path::PathBuf> = Vec::new();
+    // Fail-fast on a read_dir entry error: a transient FS error must surface, not
+    // silently drop a DSL file (no-optionality, #863).
+    for entry in std::fs::read_dir(&dir)? {
+        let path = entry?.path();
+        if path.extension().is_some_and(|x| x == "ttl") {
+            files.push(path);
+        }
+    }
+    files.sort();
+    Ok(files)
+}
+
 /// Parse every `dsl/statements/*.ttl` into one lenient oxigraph store.
 fn parse_statement_dsl(root: &Path) -> Result<Store, PipelineError> {
-    let dir = root.join("dsl").join("statements");
     let store =
         Store::new().map_err(|e| PipelineError::Parse(format!("store creation failed: {e}")))?;
-    let mut files: Vec<std::path::PathBuf> = std::fs::read_dir(&dir)?
-        .filter_map(|e| e.ok().map(|e| e.path()))
-        .filter(|p| p.extension().is_some_and(|x| x == "ttl"))
-        .collect();
-    files.sort();
-    for path in files {
+    for path in statement_dsl_files(root)? {
         let bytes = std::fs::read(&path)?;
         for quad in RdfParser::from_format(RdfFormat::Turtle)
             .lenient()
@@ -308,6 +322,12 @@ impl Stage for StatementsStage {
     }
     fn impl_version(&self) -> &str {
         "statements.v1"
+    }
+    fn input_files(&self, root: &Path) -> Result<Vec<std::path::PathBuf>, PipelineError> {
+        // Raw source read: the RDF-1.2 statement cells come from `dsl/statements/`,
+        // which no upstream product reflects. Declare them so a DSL edit busts the
+        // cache. `consumes() == []` (the leaf reads sources, not upstream products).
+        statement_dsl_files(root)
     }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, PipelineError> {
         let (owl, rdf12) = compile_statements(input.root)?;

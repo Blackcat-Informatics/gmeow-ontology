@@ -98,87 +98,191 @@ fn linkml_available(root: &Path) -> bool {
         .unwrap_or(false)
 }
 
+/// The schemas leaf is the ONLY part of the gate that may be conditional on the
+/// lane-only LinkML toolkit. The six `generated/schemas/*` byte comparisons are
+/// gated; EVERYTHING else (the fold + every other committed leaf + dist
+/// determinism) runs unconditionally so the cutover gate that authorizes the
+/// build verifies real bytes regardless of LinkML (NO-OPTIONALITY, #863).
+const SCHEMAS_PREFIX: &str = "generated/schemas/";
+
 #[test]
 fn full_run_reproduces_every_committed_artifact() {
     let root = repo_root();
+    let have_linkml = linkml_available(&root);
 
-    if !linkml_available(&root) {
-        eprintln!(
-            "SKIP full_run_reproduces_every_committed_artifact: the lane-only LinkML \
-             toolkit is unavailable, so the `schemas` leaf cannot run (clean skip)."
-        );
-        return;
-    }
-
-    let report = run_full(&root, 4, RunMode::Check).expect("run_full(check) completes");
-
-    println!(
-        "\nfull_parity: produced={} reproduced={} drifted={}",
-        report.produced,
-        report.reproduced,
-        report.drifted.len()
-    );
-
-    // ── 1. The `gmeow.gts` bundle: FOLD parity. ──
+    // ── 1. The `gmeow.gts` bundle: FOLD parity (LinkML-free, ALWAYS runs). ──
     //
-    // The fold matches EXACTLY except the self-describing pipeline DAG triples that
-    // re-adding `gmeow:stage-export-logic` to the dogfooded `module.ttl` authors
-    // (the new `gmeow:PipelineStage` individual + the pipeline slice's raised
-    // `gmeow:termCoverage`), which the committed bundle does not yet carry (regen
-    // pending). Those are excluded by `is_pipeline_self_triple` — the SAME filter
-    // `fold_parity.rs` applies for the SAME stale-vs-fresh reason; any OTHER fold
-    // mismatch is a real drift.
+    // The fold matches EXACTLY except the self-describing pipeline DAG triples
+    // excluded by `is_pipeline_self_triple` (the SAME filter `fold_parity.rs`
+    // applies); any OTHER fold mismatch is a real drift and HARD-fails here
+    // whether or not LinkML is present.
     let regen = regen_gts_fold(&root);
-    let committed = fold_shape(
+    let committed_fold = fold_shape(
         &std::fs::read(root.join("generated/dist/gmeow.gts")).expect("committed gmeow.gts"),
     );
-    let fold_mismatches = compare_folds(&regen, &committed);
+    let fold_mismatches = compare_folds(&regen, &committed_fold);
 
-    // ── 2. Classify every COMMITTED leaf drift against KNOWN_SKEW. ──
+    // ── 2. Every NON-schemas committed leaf: reconcile UNCONDITIONALLY. ──
     //
-    // Ephemeral `dist/**` outputs are gitignored (no committed authority): they
-    // never gate parity. Only git-tracked `generated/**` artifacts count.
+    // Run the pre-schemas DAG (LinkML-free) and compare every committed artifact it
+    // produces (excluding the gated `generated/schemas/*`, the internal `pipeline/`
+    // dataflow, the gitignored `dist/*`, and `gmeow.gts` itself — compared by fold
+    // above) against the committed bytes, classifying any drift against KNOWN_SKEW.
+    let leaf_drifts = non_schemas_leaf_drifts(&root);
     let mut unexpected: Vec<String> = Vec::new();
     let mut classified_skew: Vec<String> = Vec::new();
-    if !report.drifted.is_empty() {
-        eprintln!(
-            "RESIDUAL drifts ({}) — classifying (dist/* are gitignored, no authority):",
-            report.drifted.len()
-        );
-        for path in &report.drifted {
-            let tag = if path.starts_with("dist/") {
-                "ignored-dist"
-            } else if KNOWN_SKEW.contains(&path.as_str()) {
-                classified_skew.push(path.clone());
-                "known-skew"
-            } else {
-                unexpected.push(path.clone());
-                "UNEXPECTED"
-            };
-            eprintln!("  [{tag}] {path}");
+    for path in &leaf_drifts {
+        if KNOWN_SKEW.contains(&path.as_str()) {
+            classified_skew.push(path.clone());
+        } else {
+            unexpected.push(path.clone());
         }
     }
     eprintln!(
-        "KNOWN_SKEW classified ({}): {classified_skew:?}",
-        classified_skew.len()
+        "non-schemas committed-leaf drifts: {} unexpected, {} known-skew ({classified_skew:?})",
+        unexpected.len(),
+        classified_skew.len(),
     );
 
-    // ── 3. `dist/**` DETERMINISM: a second run must reproduce them byte-exact. ──
-    //
-    // We don't pin dist/ to stale on-disk leftovers (they have no authority);
-    // instead we prove the build is REPRODUCIBLE — the gitignored dist outputs
-    // are a pure function of the inputs.
+    // ── 3. `dist/**` DETERMINISM (LinkML-free, ALWAYS runs). ──
     let dist_nondeterministic = dist_determinism_mismatches(&root);
 
+    // ── 4. The `generated/schemas/*` byte comparisons: ONLY gated on LinkML. ──
+    //
+    // When LinkML is absent we cannot run the `schemas` leaf, so its six artifacts
+    // cannot be byte-compared — but we LOUDLY announce the skip and still hold the
+    // gate above unconditionally (the fold + every other leaf + dist determinism).
+    let mut schema_drifts: Vec<String> = Vec::new();
+    if have_linkml {
+        let report = run_full(&root, 4, RunMode::Check).expect("run_full(check) completes");
+        println!(
+            "\nfull_parity: produced={} reproduced={} drifted={}",
+            report.produced,
+            report.reproduced,
+            report.drifted.len(),
+        );
+        for path in &report.drifted {
+            if path.starts_with(SCHEMAS_PREFIX) && !KNOWN_SKEW.contains(&path.as_str()) {
+                schema_drifts.push(path.clone());
+            }
+        }
+    } else {
+        eprintln!(
+            "SCHEMAS PARITY SKIPPED — LinkML absent: the six generated/schemas/* byte \
+             comparisons cannot run without the lane-only LinkML toolkit. The fold, every \
+             other committed leaf, and dist determinism were verified UNCONDITIONALLY above."
+        );
+    }
+
     assert!(
-        unexpected.is_empty() && fold_mismatches.is_empty() && dist_nondeterministic.is_empty(),
+        unexpected.is_empty()
+            && fold_mismatches.is_empty()
+            && dist_nondeterministic.is_empty()
+            && schema_drifts.is_empty(),
         "full-build parity FAILED:\n  \
          unexpected committed-leaf drifts: {unexpected:?}\n  \
+         schema drifts: {schema_drifts:?}\n  \
          fold drifts:\n  {}\n  \
          dist non-determinism:\n  {}",
         fold_mismatches.join("\n  "),
         dist_nondeterministic.join("\n  "),
     );
+}
+
+/// Run the pre-schemas full DAG over a fresh ephemeral cache and reconcile every
+/// COMMITTED artifact it produces against the committed bytes, returning the
+/// drifted logical paths. Skips the gated `generated/schemas/*`, the internal
+/// `pipeline/` dataflow, the gitignored `dist/*`, and `gmeow.gts` (folded above).
+/// Byte-deterministic text compares by bytes; RDF leaves by graph isomorphism.
+fn non_schemas_leaf_drifts(root: &Path) -> Vec<String> {
+    use gmeow_pipeline::{bind, default_registry, full_spec, run, PipelineSpec, RunContext};
+    let spec = full_spec();
+    let pre = PipelineSpec {
+        id: spec.id.clone(),
+        stages: spec
+            .stages
+            .into_iter()
+            .filter(|s| s.id != "stage-export-schemas")
+            .collect(),
+    };
+    let graph = pre.validate().expect("pre-sink DAG validates");
+    let bound = bind(&pre, &graph, &default_registry()).expect("binds");
+    let mut ctx = RunContext::open_ephemeral(root, 4).expect("ctx");
+    let result = run(&graph, &bound, &mut ctx).expect("pipeline runs");
+
+    let mut drifted: Vec<String> = Vec::new();
+    for product in result.products.values() {
+        for (path, bytes) in &product.artifacts {
+            if path.starts_with("pipeline/")
+                || path.starts_with("dist/")
+                || path.starts_with(SCHEMAS_PREFIX)
+                || path == "generated/dist/gmeow.gts"
+            {
+                continue;
+            }
+            let committed = match std::fs::read(root.join(path)) {
+                Ok(c) => c,
+                Err(_) => {
+                    drifted.push(path.clone());
+                    continue;
+                }
+            };
+            if committed == *bytes {
+                continue;
+            }
+            // RDF/Turtle/N-Triples/N-Quads leaves were minted by the retired rdflib
+            // serializer; compare them by graph isomorphism, not bytes.
+            if is_rdf_leaf(path) && rdf_isomorphic(&committed, bytes) {
+                continue;
+            }
+            drifted.push(path.clone());
+        }
+    }
+    drifted.sort();
+    drifted.dedup();
+    drifted
+}
+
+/// Whether `path` is an RDF text artifact compared by graph isomorphism.
+fn is_rdf_leaf(path: &str) -> bool {
+    path.ends_with(".ttl") || path.ends_with(".nt") || path.ends_with(".nq")
+}
+
+/// Whether two RDF documents are isomorphic (same RDFC-1.0 canonical quad set).
+fn rdf_isomorphic(committed: &[u8], produced: &[u8]) -> bool {
+    canonical_quads(committed)
+        .zip(canonical_quads(produced))
+        .map(|(c, p)| c == p)
+        .unwrap_or(false)
+}
+
+fn canonical_quads(bytes: &[u8]) -> Option<std::collections::BTreeSet<String>> {
+    use oxigraph::io::{RdfFormat, RdfParser};
+    use oxigraph::model::dataset::{
+        CanonicalizationAlgorithm, CanonicalizationHashAlgorithm, Dataset,
+    };
+    for format in [RdfFormat::Turtle, RdfFormat::NQuads] {
+        let mut dataset = Dataset::new();
+        let mut ok = true;
+        for quad in RdfParser::from_format(format).lenient().for_slice(bytes) {
+            match quad {
+                Ok(q) => {
+                    dataset.insert(q.as_ref());
+                }
+                Err(_) => {
+                    ok = false;
+                    break;
+                }
+            }
+        }
+        if ok && !dataset.is_empty() {
+            dataset.canonicalize(CanonicalizationAlgorithm::Rdfc10 {
+                hash_algorithm: CanonicalizationHashAlgorithm::Sha256,
+            });
+            return Some(dataset.iter().map(|q| format!("{q} .")).collect());
+        }
+    }
+    None
 }
 
 /// Run the fold-reading export DAG twice over fresh ephemeral caches and assert

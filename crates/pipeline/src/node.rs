@@ -187,6 +187,21 @@ pub trait Stage: Send + Sync {
     /// A version string folded into the cache key; bump to invalidate this
     /// stage's cached products when its logic changes.
     fn impl_version(&self) -> &str;
+    /// The RAW source files this stage reads directly from disk that are NOT
+    /// reflected in any upstream product digest (e.g. an export leaf that reads
+    /// `metadata/references.ttl`, the eval corpus, or the slice manifests rather
+    /// than consuming the composed fold). Their CONTENT is folded into the cache
+    /// key so a source change busts the cache — the cache-soundness guarantee for
+    /// non-`SourceLoad` stages that legitimately consume nothing (#861, #863).
+    ///
+    /// The default is empty: a stage whose every input is an upstream product
+    /// (Merkle-composed) or whose file reads are already covered by a consumed
+    /// `SourceLoad`/`stage-snapshot` product declares nothing here. Paths are
+    /// resolved relative to the repo root; the scheduler reads each file's bytes
+    /// and folds a content digest into the key (a missing file HARD-fails).
+    fn input_files(&self, _root: &Path) -> Result<Vec<std::path::PathBuf>, PipelineError> {
+        Ok(Vec::new())
+    }
     /// Execute the stage over its upstream products.
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, PipelineError>;
 }

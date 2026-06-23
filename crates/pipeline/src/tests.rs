@@ -71,6 +71,31 @@ fn dangling_dependency_is_rejected() {
 }
 
 #[test]
+fn unknown_consumes_edge_errors_instead_of_panicking() {
+    // A `consumes` map whose CONSUMER KEY is not a declared node would once have
+    // panicked at `index[stage]` in the public `StageGraph::build`. It must now
+    // return an InvalidDag error.
+    use crate::graph::StageGraph;
+    use std::collections::{BTreeMap, BTreeSet};
+
+    let nodes: BTreeSet<String> = ["source".to_string(), "sink".to_string()]
+        .into_iter()
+        .collect();
+    let mut consumes: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
+    // `ghost` is not a node, yet it declares a dependency (a malformed adjacency).
+    consumes.insert(
+        "ghost".to_string(),
+        ["source".to_string()].into_iter().collect(),
+    );
+    match StageGraph::build(&nodes, &consumes) {
+        Err(PipelineError::InvalidDag(msg)) => {
+            assert!(msg.contains("ghost"), "{msg}");
+        }
+        other => panic!("expected InvalidDag for an unknown consumer key, got {other:?}"),
+    }
+}
+
+#[test]
 fn missing_sink_is_rejected() {
     let mut s = diamond();
     s.stages[3].kind = StageKind::ExportLeaf; // demote the only sink
@@ -439,6 +464,92 @@ fn scheduler_runs_diamond_and_caches() {
     assert_eq!(
         first.combined_digest, second.combined_digest,
         "warm-cache run is identical"
+    );
+}
+
+/// A leaf that reads a raw source file and declares it via `input_files` — its
+/// cache key must reflect the file's CONTENT so an edit busts the cache (#863).
+struct FileReadingStage {
+    file: std::path::PathBuf,
+    runs: Arc<AtomicUsize>,
+}
+
+impl Stage for FileReadingStage {
+    fn id(&self) -> &str {
+        "file-leaf"
+    }
+    fn kind(&self) -> StageKind {
+        StageKind::ExportLeaf
+    }
+    fn consumes(&self) -> &[String] {
+        &[]
+    }
+    fn impl_version(&self) -> &str {
+        "v1"
+    }
+    fn input_files(
+        &self,
+        _root: &std::path::Path,
+    ) -> Result<Vec<std::path::PathBuf>, PipelineError> {
+        Ok(vec![self.file.clone()])
+    }
+    fn run(&self, _input: StageInput<'_>) -> Result<StageOutput, PipelineError> {
+        self.runs.fetch_add(1, Ordering::SeqCst);
+        let bytes = std::fs::read(&self.file)?;
+        Ok(StageOutput {
+            product: StageProduct::new("file-leaf", crate::cache::content_digest(&[&bytes])),
+        })
+    }
+}
+
+#[test]
+fn input_files_content_busts_the_cache() {
+    // A leaf declaring `input_files` is served from cache while the file is
+    // unchanged, and RE-RUNS (different cache key) once the file's bytes change —
+    // the cache-soundness guarantee for source-reading leaves.
+    let dir = tempfile::tempdir().unwrap();
+    let file = dir.path().join("source.txt");
+    std::fs::write(&file, b"v1").unwrap();
+
+    let runs = Arc::new(AtomicUsize::new(0));
+    let spec = PipelineSpec {
+        id: "p".to_string(),
+        stages: vec![
+            spec("file-leaf", StageKind::ExportLeaf, &[]),
+            spec("sink", StageKind::Sink, &[]),
+        ],
+    };
+    let graph = spec.validate().unwrap();
+    let mut reg = StageRegistry::new();
+    reg.register(
+        "impl:file-leaf".to_string(),
+        Arc::new(FileReadingStage {
+            file: file.clone(),
+            runs: Arc::clone(&runs),
+        }) as Arc<dyn Stage>,
+    );
+    reg.register("impl:sink".to_string(), fake("sink", StageKind::Sink, &[]));
+    let bound = bind(&spec, &graph, &reg).unwrap();
+
+    let mut ctx = RunContext::open(dir.path().join("cache"), 2).unwrap();
+    run(&graph, &bound, &mut ctx).unwrap();
+    assert_eq!(runs.load(Ordering::SeqCst), 1, "cold cache runs the leaf");
+
+    // Same file → warm cache hit, no re-run.
+    run(&graph, &bound, &mut ctx).unwrap();
+    assert_eq!(
+        runs.load(Ordering::SeqCst),
+        1,
+        "unchanged input file ⇒ cache hit"
+    );
+
+    // Edit the file → the input-files digest changes ⇒ the cache key changes ⇒ re-run.
+    std::fs::write(&file, b"v2-changed").unwrap();
+    run(&graph, &bound, &mut ctx).unwrap();
+    assert_eq!(
+        runs.load(Ordering::SeqCst),
+        2,
+        "a changed input file busts the cache"
     );
 }
 

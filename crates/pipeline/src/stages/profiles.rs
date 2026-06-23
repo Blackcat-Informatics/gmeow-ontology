@@ -269,6 +269,13 @@ impl Stage for ProfilesStage {
     fn impl_version(&self) -> &str {
         "profiles.v1"
     }
+    fn input_files(&self, root: &Path) -> Result<Vec<std::path::PathBuf>, PipelineError> {
+        // Pure source read: profile membership + dependency closures are derived
+        // from the slice manifests (`gmeow:sliceProfile` / `sliceTier` /
+        // `sliceDependsOn` live in `manifest.ttl`, NOT the composed fold). Declare
+        // the manifests so a membership/dependency change busts the cache.
+        crate::stages::source_load::manifest_files(root)
+    }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, PipelineError> {
         let docs = render_profiles(input.root)?;
         let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();

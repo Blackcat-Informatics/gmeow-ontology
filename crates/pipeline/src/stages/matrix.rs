@@ -266,6 +266,36 @@ impl Stage for MatrixStage {
     fn impl_version(&self) -> &str {
         "matrix.v1"
     }
+    fn input_files(&self, root: &Path) -> Result<Vec<std::path::PathBuf>, PipelineError> {
+        // Pure source read over the slice tree: each row's tier/deps come from the
+        // manifest, term counts from the module, the guide column from `docs.md`,
+        // and the example count from `examples/*.ttl`. Declare ALL of those so any
+        // edit (a new term, a flipped guide, an added example) busts the cache.
+        // `consumes() == []`; the data is partly NON-fold (docs.md / example count).
+        let mut files: Vec<std::path::PathBuf> = Vec::new();
+        for module in crate::stages::source_load::module_files(root)? {
+            let dir = module.parent().unwrap_or(root);
+            files.push(module.clone());
+            let manifest = dir.join("manifest.ttl");
+            if manifest.is_file() {
+                files.push(manifest);
+            }
+            let docs = dir.join("docs.md");
+            if docs.is_file() {
+                files.push(docs);
+            }
+            let examples = dir.join("examples");
+            if let Ok(entries) = std::fs::read_dir(&examples) {
+                for entry in entries.flatten() {
+                    let p = entry.path();
+                    if p.extension().is_some_and(|x| x == "ttl") {
+                        files.push(p);
+                    }
+                }
+            }
+        }
+        Ok(files)
+    }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, PipelineError> {
         let md = render_matrix(input.root)?;
         let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();

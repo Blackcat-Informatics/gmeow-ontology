@@ -607,13 +607,24 @@ fn s(v: &str) -> Json {
 }
 
 /// A score float rendered the way Python's `json.dumps(float(x))` would: trailing
-/// `.0` for integral values, else the shortest decimal of `float(lexical)`.
-fn json_float(lexical: &str) -> Json {
-    let f: f64 = lexical.parse().unwrap_or(0.0);
-    if f == f.trunc() && f.is_finite() {
-        Json::Num(format!("{f:.1}"))
+/// `.0` for integral values, else the shortest decimal of `float(lexical)`. A
+/// non-numeric score lexical HARD-fails — invalid source data is never silently
+/// coerced to `0.0` (no-optionality, #863).
+fn json_float(lexical: &str) -> Result<Json, PipelineError> {
+    let f: f64 = lexical.trim().parse().map_err(|e| {
+        PipelineError::Parse(format!(
+            "assessmentScoreValue {lexical:?} is not a valid float: {e}"
+        ))
+    })?;
+    if !f.is_finite() {
+        return Err(PipelineError::Parse(format!(
+            "assessmentScoreValue {lexical:?} is not finite"
+        )));
+    }
+    if f == f.trunc() {
+        Ok(Json::Num(format!("{f:.1}")))
     } else {
-        Json::Num(format!("{f}"))
+        Ok(Json::Num(format!("{f}")))
     }
 }
 
@@ -654,7 +665,7 @@ fn croissant_field(rs: &str, name: &str, data_type: &str) -> Json {
     ])
 }
 
-fn croissant_record_sets(store: &Store) -> Vec<Json> {
+fn croissant_record_sets(store: &Store) -> Result<Vec<Json>, PipelineError> {
     let mut record_sets: Vec<Json> = Vec::new();
 
     let chunk_rows: Vec<Json> = subjects_of_type(store, &g("Chunk"))
@@ -728,26 +739,24 @@ fn croissant_record_sets(store: &Store) -> Vec<Json> {
         ]));
     }
 
-    let score_rows: Vec<Json> = subjects_of_type(store, &g("Assessment"))
-        .into_iter()
-        .filter(|a| !text(store, a, &g("assessmentScoreValue")).is_empty())
-        .map(|a| {
-            obj(vec![
-                (
-                    "evalScores/model",
-                    s(&text(store, &a, &g("assessmentTarget"))),
-                ),
-                (
-                    "evalScores/criterion",
-                    s(&slug(&text(store, &a, &g("assessmentCriterion")))),
-                ),
-                (
-                    "evalScores/score",
-                    json_float(&text(store, &a, &g("assessmentScoreValue"))),
-                ),
-            ])
-        })
-        .collect();
+    let mut score_rows: Vec<Json> = Vec::new();
+    for a in subjects_of_type(store, &g("Assessment")) {
+        let lexical = text(store, &a, &g("assessmentScoreValue"));
+        if lexical.is_empty() {
+            continue;
+        }
+        score_rows.push(obj(vec![
+            (
+                "evalScores/model",
+                s(&text(store, &a, &g("assessmentTarget"))),
+            ),
+            (
+                "evalScores/criterion",
+                s(&slug(&text(store, &a, &g("assessmentCriterion")))),
+            ),
+            ("evalScores/score", json_float(&lexical)?),
+        ]));
+    }
     if !score_rows.is_empty() {
         record_sets.push(obj(vec![
             ("@type", s("cr:RecordSet")),
@@ -768,7 +777,7 @@ fn croissant_record_sets(store: &Store) -> Vec<Json> {
             ("data", Json::Arr(score_rows)),
         ]));
     }
-    record_sets
+    Ok(record_sets)
 }
 
 fn build_croissant(store: &Store, ds: &DatasetMeta) -> Result<Json, PipelineError> {
@@ -844,7 +853,10 @@ fn build_croissant(store: &Store, ds: &DatasetMeta) -> Result<Json, PipelineErro
         ("datePublished".into(), s(&ds.date_published)),
         ("url".into(), s(&ds.landing_page)),
         ("distribution".into(), Json::Arr(distributions)),
-        ("recordSet".into(), Json::Arr(croissant_record_sets(store))),
+        (
+            "recordSet".into(),
+            Json::Arr(croissant_record_sets(store)?),
+        ),
         ("rai:dataCollection".into(), s("Sources are content-addressed (blake3) and ingested through attributed gmeow:ImportActivity records; every derived artifact carries wasGeneratedBy/wasDerivedFrom lineage.")),
         ("rai:machineAnnotationTools".into(), Json::Arr(tools)),
         ("rai:dataLimitation".into(), Json::Arr(limitations)),
@@ -1578,6 +1590,21 @@ impl Stage for ResearchObjectsStage {
     }
     fn impl_version(&self) -> &str {
         "research_objects.v1"
+    }
+    fn input_files(&self, root: &Path) -> Result<Vec<std::path::PathBuf>, PipelineError> {
+        // Pure source read: the worked-example A-Box inputs, the language-tag map
+        // (root ontology + slice modules), and the DCAT CONSTRUCT query are all raw
+        // sources (some, like the example .ttl + generated/queries/dcat.rq, are NOT
+        // in the composed fold). Declare them ALL so any edit busts the cache.
+        // `consumes() == []`.
+        let mut files: Vec<std::path::PathBuf> = Vec::new();
+        for (rel, _) in EXAMPLE_INPUTS {
+            files.push(root.join(rel));
+        }
+        files.push(root.join("ontology").join("gmeow.ttl"));
+        files.extend(module_files(root)?);
+        files.push(root.join("generated/queries/dcat.rq"));
+        Ok(files)
     }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, PipelineError> {
         Ok(StageOutput {

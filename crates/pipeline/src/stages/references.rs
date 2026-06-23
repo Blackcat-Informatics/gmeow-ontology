@@ -366,6 +366,12 @@ impl Stage for ReferencesStage {
     fn impl_version(&self) -> &str {
         "references.v1"
     }
+    fn input_files(&self, root: &Path) -> Result<Vec<std::path::PathBuf>, PipelineError> {
+        // Pure source read: the citation ledger `metadata/references.ttl` is a raw
+        // NON-fold source, so declare it as a cache input — a ledger edit busts the
+        // cache. The leaf consumes no upstream product (`consumes() == []`).
+        Ok(vec![root.join("metadata").join("references.ttl")])
+    }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, PipelineError> {
         Ok(StageOutput {
             product: StageProduct::from_artifacts(self.id(), render_references(input.root)?),

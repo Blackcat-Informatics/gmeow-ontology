@@ -152,6 +152,13 @@ impl Stage for CatalogStage {
     fn impl_version(&self) -> &str {
         "catalog.v1"
     }
+    fn input_files(&self, root: &Path) -> Result<Vec<std::path::PathBuf>, PipelineError> {
+        // Pure source read: the IRI→file map is derived from the slice manifests
+        // (`gmeow:sliceProfile` lives in `manifest.ttl`, which is NOT folded into
+        // the snapshot — only `module.ttl` is). Declare the manifests so a slice
+        // add/rename/profile-change busts the cache. `consumes() == []`.
+        crate::stages::source_load::manifest_files(root)
+    }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, PipelineError> {
         let xml = render_catalog(input.root)?;
         let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();

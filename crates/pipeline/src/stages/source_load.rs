@@ -76,6 +76,21 @@ pub fn module_files(root: &Path) -> Result<Vec<PathBuf>, PipelineError> {
     Ok(out)
 }
 
+/// Every `slices/<group>/<name>/manifest.ttl` (the sibling of each `module.ttl`),
+/// for export leaves whose cache key must reflect the slice manifests they read
+/// directly from disk (catalog, profiles, matrix — `gmeow:sliceProfile` /
+/// `sliceTier` / `sliceDependsOn` live in the manifest, NOT the composed fold).
+pub fn manifest_files(root: &Path) -> Result<Vec<PathBuf>, PipelineError> {
+    let mut out = Vec::new();
+    for module in module_files(root)? {
+        let manifest = module.with_file_name("manifest.ttl");
+        if manifest.is_file() {
+            out.push(manifest);
+        }
+    }
+    Ok(out)
+}
+
 fn ttl_files_in(dir: &Path) -> Result<Vec<PathBuf>, PipelineError> {
     let mut out = Vec::new();
     if !dir.is_dir() {
@@ -92,10 +107,15 @@ fn ttl_files_in(dir: &Path) -> Result<Vec<PathBuf>, PipelineError> {
 }
 
 fn sorted_dirs(dir: &Path) -> Result<Vec<PathBuf>, PipelineError> {
-    let mut out: Vec<PathBuf> = std::fs::read_dir(dir)?
-        .filter_map(|e| e.ok().map(|e| e.path()))
-        .filter(|p| p.is_dir())
-        .collect();
+    // Fail-fast on a read_dir entry error: a transient FS error must surface, not
+    // silently drop a slice group/dir (no-optionality, #863).
+    let mut out: Vec<PathBuf> = Vec::new();
+    for entry in std::fs::read_dir(dir)? {
+        let path = entry?.path();
+        if path.is_dir() {
+            out.push(path);
+        }
+    }
     out.sort();
     Ok(out)
 }

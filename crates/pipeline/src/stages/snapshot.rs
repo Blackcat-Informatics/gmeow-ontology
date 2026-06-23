@@ -90,7 +90,9 @@ pub fn build_snapshot(
     // ── the builder: route every source into its named graph ────────────────────
     let mut builder = SnapshotBuilder::new();
     // default ← the canonicalized authored ontology only.
-    builder.add_quads(&parse_nq(authored_canon.as_bytes())?, None, Some("base"));
+    let base_quads = parse_nq(authored_canon.as_bytes())?;
+    reject_quoted_triples(&base_quads, "<default>")?;
+    builder.add_quads(&base_quads, None, Some("base"));
     // RDF 1.2 statement layer: base quads → graph/statements; reifies/annot global.
     builder
         .add_rdf12(
@@ -238,11 +240,18 @@ fn load_authored_default(root: &Path) -> Result<Vec<u8>, PipelineError> {
     // build keeps distinct (rdflib skolemizes per-parse). Renaming each file's
     // blanks with a file-unique prefix before union preserves that distinctness.
     let onto = root.join("ontology").join("gmeow.ttl");
-    let mut scope = 0usize;
-    if onto.exists() {
-        ingest_turtle_scoped(&store, &std::fs::read(&onto)?, scope)?;
-        scope += 1;
+    // The root ontology is REQUIRED — the authored default graph is meaningless
+    // without it. A missing `ontology/gmeow.ttl` HARD-fails rather than silently
+    // assembling a partial default graph (no-optionality, #863).
+    if !onto.is_file() {
+        return Err(stage_err(&format!(
+            "required root ontology {} is missing",
+            onto.display()
+        )));
     }
+    let mut scope = 0usize;
+    ingest_turtle_scoped(&store, &std::fs::read(&onto)?, scope)?;
+    scope += 1;
     for module in crate::stages::source_load::module_files(root)? {
         ingest_turtle_scoped(&store, &std::fs::read(&module)?, scope)?;
         scope += 1;
@@ -341,10 +350,13 @@ fn merge_translations(root: &Path, store: &Store) -> Result<(), PipelineError> {
 fn load_imports(root: &Path) -> Result<Vec<u8>, PipelineError> {
     let dir = root.join("imports");
     let store = Store::new().map_err(|e| stage_err(&format!("store: {e}")))?;
-    let mut files: Vec<std::path::PathBuf> = std::fs::read_dir(&dir)?
-        .filter_map(|e| e.ok().map(|e| e.path()))
-        .filter(|p| p.extension().is_some_and(|x| x == "ttl"))
-        .collect();
+    let mut files: Vec<std::path::PathBuf> = Vec::new();
+    for entry in std::fs::read_dir(&dir)? {
+        let path = entry?.path();
+        if path.extension().is_some_and(|x| x == "ttl") {
+            files.push(path);
+        }
+    }
     files.sort();
     for path in files {
         ingest_turtle(&store, &std::fs::read(&path)?)?;
@@ -469,10 +481,13 @@ fn ontology_version(authored_nq: &[u8]) -> Result<String, PipelineError> {
 /// `generated/mappings/*.sssom.tsv` (the mappings stage's byte-parity output).
 fn load_alignments(root: &Path) -> Result<Vec<u8>, PipelineError> {
     let dir = root.join("generated").join("mappings");
-    let mut files: Vec<std::path::PathBuf> = std::fs::read_dir(&dir)?
-        .filter_map(|e| e.ok().map(|e| e.path()))
-        .filter(|p| p.to_string_lossy().ends_with(".sssom.tsv"))
-        .collect();
+    let mut files: Vec<std::path::PathBuf> = Vec::new();
+    for entry in std::fs::read_dir(&dir)? {
+        let path = entry?.path();
+        if path.to_string_lossy().ends_with(".sssom.tsv") {
+            files.push(path);
+        }
+    }
     files.sort();
 
     let store = Store::new().map_err(|e| stage_err(&format!("store: {e}")))?;
@@ -618,14 +633,15 @@ fn verify_query_paths(root: &Path) -> Result<Vec<(String, std::path::PathBuf)>, 
     let mut out: Vec<(String, std::path::PathBuf)> = Vec::new();
     // Core: sorted queries/verify/*.rq.
     let core = root.join("queries").join("verify");
-    let mut core_files: Vec<std::path::PathBuf> = if core.is_dir() {
-        std::fs::read_dir(&core)?
-            .filter_map(|e| e.ok().map(|e| e.path()))
-            .filter(|p| p.extension().is_some_and(|x| x == "rq"))
-            .collect()
-    } else {
-        Vec::new()
-    };
+    let mut core_files: Vec<std::path::PathBuf> = Vec::new();
+    if core.is_dir() {
+        for entry in std::fs::read_dir(&core)? {
+            let path = entry?.path();
+            if path.extension().is_some_and(|x| x == "rq") {
+                core_files.push(path);
+            }
+        }
+    }
     core_files.sort();
     for path in core_files {
         out.push((rel_name(root, &path), path));
@@ -734,7 +750,28 @@ fn add_named(
     scope: &str,
 ) -> Result<(), PipelineError> {
     let canon = canonicalize_nq(nq_bytes, scope)?;
-    builder.add_quads(&parse_nq(canon.as_bytes())?, Some(graph_name), Some(scope));
+    let quads = parse_nq(canon.as_bytes())?;
+    reject_quoted_triples(&quads, graph_name)?;
+    builder.add_quads(&quads, Some(graph_name), Some(scope));
+    Ok(())
+}
+
+/// `SnapshotBuilder::add_quads` SILENTLY DROPS a quad whose object is a quoted
+/// triple (`<<>>`), because the RDF-1.2 statement layer is meant to arrive only via
+/// `add_rdf12` (as reifies/annotation rows), never as a base quoted-triple object.
+/// In the pipeline these base/named graphs are plain RDF-1.1 N-Quads, so a quoted
+/// triple here would be a real defect — HARD-fail rather than let `add_quads` drop
+/// the statement and shrink the fold (no-optionality / no silent data loss, #863).
+fn reject_quoted_triples(quads: &[Quad], graph_name: &str) -> Result<(), PipelineError> {
+    if quads
+        .iter()
+        .any(|q| matches!(q.object, oxigraph::model::Term::Triple(_)))
+    {
+        return Err(stage_err(&format!(
+            "graph {graph_name} carries a quoted-triple (<<>>) object that add_quads would \
+             silently drop; the RDF-1.2 statement layer must arrive via add_rdf12, not as a base quad"
+        )));
+    }
     Ok(())
 }
 
@@ -851,10 +888,13 @@ fn store_to_nquads(store: &Store) -> Result<Vec<u8>, PipelineError> {
 }
 
 fn sorted_dirs(dir: &Path) -> Result<Vec<std::path::PathBuf>, PipelineError> {
-    let mut out: Vec<std::path::PathBuf> = std::fs::read_dir(dir)?
-        .filter_map(|e| e.ok().map(|e| e.path()))
-        .filter(|p| p.is_dir())
-        .collect();
+    let mut out: Vec<std::path::PathBuf> = Vec::new();
+    for entry in std::fs::read_dir(dir)? {
+        let path = entry?.path();
+        if path.is_dir() {
+            out.push(path);
+        }
+    }
     out.sort();
     Ok(out)
 }

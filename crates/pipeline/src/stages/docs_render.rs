@@ -31,6 +31,23 @@ pub fn render_docs_graph(root: &Path) -> Result<String, PipelineError> {
     Ok(to_gmeow_rdf(&model))
 }
 
+/// Recursively collect every regular file under `dir` into `out` (fail-fast on a
+/// `read_dir` entry error; a missing directory yields nothing).
+fn walk_files(dir: &Path, out: &mut Vec<std::path::PathBuf>) -> Result<(), PipelineError> {
+    if !dir.is_dir() {
+        return Ok(());
+    }
+    for entry in std::fs::read_dir(dir)? {
+        let path = entry?.path();
+        if path.is_dir() {
+            walk_files(&path, out)?;
+        } else {
+            out.push(path);
+        }
+    }
+    Ok(())
+}
+
 // ── Stage impl ───────────────────────────────────────────────────────────────
 
 /// The `docs_render` pipeline stage.
@@ -66,6 +83,40 @@ impl Stage for DocsRenderStage {
     }
     fn impl_version(&self) -> &str {
         "docs_render.v1"
+    }
+    fn input_files(&self, root: &Path) -> Result<Vec<std::path::PathBuf>, PipelineError> {
+        // `DocsModel::discover` reads the slice catalog (modules, per-slice `docs.md`
+        // guides, examples, recipes/learning-paths in the module graphs), plus
+        // `docs/four-boxes.md` and the `i18n/` UI catalog — sources the consumed
+        // `stage-gts-compose` product does NOT reflect (the guide BODIES ride the
+        // bundle only as blake3 blob digests, not as composed triples). Declare them
+        // so a guide / four-boxes / i18n edit busts the cache (cache soundness for the
+        // raw-source half of this DocsRender leaf, #863).
+        let mut files: Vec<std::path::PathBuf> = Vec::new();
+        for module in crate::stages::source_load::module_files(root)? {
+            let dir = module.parent().unwrap_or(root);
+            files.push(module.clone());
+            let docs = dir.join("docs.md");
+            if docs.is_file() {
+                files.push(docs);
+            }
+            if let Ok(entries) = std::fs::read_dir(dir.join("examples")) {
+                for entry in entries.flatten() {
+                    let p = entry.path();
+                    if p.extension().is_some_and(|x| x == "ttl") {
+                        files.push(p);
+                    }
+                }
+            }
+        }
+        let four_boxes = root.join("docs").join("four-boxes.md");
+        if four_boxes.is_file() {
+            files.push(four_boxes);
+        }
+        walk_files(&root.join("i18n"), &mut files)?;
+        files.sort();
+        files.dedup();
+        Ok(files)
     }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, PipelineError> {
         let graph = render_docs_graph(input.root)?;

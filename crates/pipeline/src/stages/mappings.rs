@@ -112,6 +112,27 @@ pub fn compile_mappings(root: &Path) -> Result<BTreeMap<String, Vec<u8>>, Pipeli
     Ok(artifacts)
 }
 
+/// Recursively collect every regular file under `dir` into `out` (fail-fast on a
+/// `read_dir` entry error — a transient FS error must surface, not silently drop
+/// a mapping source, #863). A missing directory yields nothing.
+fn collect_files_recursive(
+    dir: &Path,
+    out: &mut Vec<std::path::PathBuf>,
+) -> Result<(), PipelineError> {
+    if !dir.is_dir() {
+        return Ok(());
+    }
+    for entry in std::fs::read_dir(dir)? {
+        let path = entry?.path();
+        if path.is_dir() {
+            collect_files_recursive(&path, out)?;
+        } else {
+            out.push(path);
+        }
+    }
+    Ok(())
+}
+
 // ── Stage impl ───────────────────────────────────────────────────────────────
 
 /// The `mappings` pipeline stage — complete: all five mapping families (SSSOM +
@@ -132,6 +153,18 @@ impl Stage for MappingsStage {
     }
     fn impl_version(&self) -> &str {
         "mappings.v3-complete"
+    }
+    fn input_files(&self, root: &Path) -> Result<Vec<std::path::PathBuf>, PipelineError> {
+        // Raw source read: the alignment artifacts compile from the `dsl/mappings/`
+        // tree plus the per-slice mapping cells in the slice modules — none of which
+        // any upstream product reflects. Declare them ALL so a mapping edit busts the
+        // cache. `consumes() == []` (the leaf reads sources, not upstream products).
+        let mut files = Vec::new();
+        collect_files_recursive(&root.join("dsl").join("mappings"), &mut files)?;
+        files.extend(crate::stages::source_load::module_files(root)?);
+        files.sort();
+        files.dedup();
+        Ok(files)
     }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, PipelineError> {
         let artifacts = compile_mappings(input.root)?;

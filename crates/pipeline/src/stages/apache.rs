@@ -221,7 +221,9 @@ fn concept_doi(root: &Path) -> Result<String, PipelineError> {
         .for_reader(bytes.as_slice())
     {
         let quad = quad.map_err(|e| PipelineError::Parse(format!("self-desc parse: {e}")))?;
-        store.insert(&quad).ok();
+        store
+            .insert(&quad)
+            .map_err(|e| PipelineError::Parse(format!("self-desc insert: {e}")))?;
     }
     let pred = oxigraph::model::NamedNode::new(DCTERMS_IDENTIFIER).unwrap();
     for quad in store.quads_for_pattern(None, Some(pred.as_ref()), None, None) {
@@ -264,6 +266,12 @@ impl Stage for ApacheStage {
     }
     fn impl_version(&self) -> &str {
         "apache.v1"
+    }
+    fn input_files(&self, root: &Path) -> Result<Vec<std::path::PathBuf>, PipelineError> {
+        // Pure source read: the concept DOI comes from `metadata/gmeow-self.ttl`
+        // (not the fold), so declare it as a cache input — a DOI change busts the
+        // cache. The leaf consumes no upstream product (`consumes() == []`).
+        Ok(vec![root.join("metadata").join("gmeow-self.ttl")])
     }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, PipelineError> {
         let conf = render_apache(input.root)?;

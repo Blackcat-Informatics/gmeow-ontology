@@ -55,8 +55,17 @@ impl StageGraph {
         nodes: &BTreeSet<String>,
         consumes: &BTreeMap<String, BTreeSet<String>>,
     ) -> Result<Self, PipelineError> {
-        // ── Completeness: every consumed id must be a known node. ──
+        // ── Completeness: every CONSUMER key AND every consumed id must be a
+        //    known node. A `consumes` entry whose KEY is not in `nodes` would
+        //    later panic at `index[stage]` / `in_deps[stage]`; reject it here so
+        //    the public `build`/`validate` API hard-fails with a diagnostic
+        //    instead of panicking on a malformed adjacency map. ──
         for (stage, deps) in consumes {
+            if !nodes.contains(stage) {
+                return Err(PipelineError::InvalidDag(format!(
+                    "stage {stage} declares dependencies but is not itself a declared stage"
+                )));
+            }
             for dep in deps {
                 if !nodes.contains(dep) {
                     return Err(PipelineError::InvalidDag(format!(

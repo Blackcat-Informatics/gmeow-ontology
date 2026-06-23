@@ -181,6 +181,19 @@ impl Stage for FrameShapesStage {
     fn impl_version(&self) -> &str {
         "frame_shapes.v1"
     }
+    fn input_files(&self, root: &Path) -> Result<Vec<std::path::PathBuf>, PipelineError> {
+        // The `gmeow:requiresFrame` declarations this leaf reads ARE in the fold's
+        // authored default graph, so a consume-`stage-snapshot` rewrite is possible
+        // (the MAXIMAL-INFORMATION-FLOW option). We instead declare the SAME authored
+        // sources (root ontology + slice modules) as cache inputs: it is exactly as
+        // sound (the fold's default graph is built from these same files, and the
+        // IRI→IRI frame declarations are language-neutral so translations never touch
+        // them) while keeping `consumes() == []` — no DAG re-wire, no byte-parity risk
+        // from re-reading through the GTS store. A declaration change busts the cache.
+        let mut files = vec![root.join("ontology").join("gmeow.ttl")];
+        files.extend(crate::stages::source_load::module_files(root)?);
+        Ok(files)
+    }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, PipelineError> {
         let ttl = render_frame_shapes(input.root)?;
         let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();

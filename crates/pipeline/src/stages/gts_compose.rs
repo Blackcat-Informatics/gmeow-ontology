@@ -61,18 +61,43 @@ pub fn compose(upstream: &BTreeMap<String, StageProduct>) -> Result<Vec<u8>, Pip
         })?;
     ingest(&store, BASE_GRAPH_PATH, base)?;
 
-    // The RDF 1.2 statement layer (required once statements is wired upstream).
-    if let Some(rdf12) = upstream
-        .get("stage-statements")
-        .and_then(|p| p.artifact(RDF12_PATH))
-    {
+    // The RDF 1.2 statement layer. When `stage-statements` is an upstream (it
+    // always is in the full DAG), its artifact is REQUIRED — a missing RDF12
+    // artifact is a HARD failure, never a silent skip that would compose a
+    // statement-layer-less dataset (no-optionality, #863).
+    if let Some(statements) = upstream.get("stage-statements") {
+        let rdf12 = statements
+            .artifact(RDF12_PATH)
+            .ok_or_else(|| PipelineError::Stage {
+                stage: "stage-gts-compose".to_string(),
+                message: format!("stage-statements product is missing its {RDF12_PATH} artifact"),
+            })?;
         ingest(&store, RDF12_PATH, rdf12)?;
     }
 
     // Every other upstream RDF artifact (mappings, reason) folds in by the same
-    // channel as those stages land — union all *.ttl / *.nq / *.nt artifacts.
+    // channel as those stages land — union all *.ttl / *.nq / *.nt artifacts. The
+    // `stage-reason` product carries THREE artifacts (the inferred CLOSURE plus the
+    // proof-skeleton EXPLANATIONS and the DL/EL crosscheck LEDGER report); only the
+    // closure is dataset facts. Folding the explanation/ledger REPORT TTLs into the
+    // composed dataset would pollute it with provenance-reifier / report triples
+    // that are not part of the ontology — so reason contributes ONLY its closure
+    // artifact (#863).
     for (id, product) in upstream {
         if id == "stage-source-load" || id == "stage-statements" {
+            continue;
+        }
+        if id == "stage-reason" {
+            let closure = product
+                .artifact(crate::stages::reason::CLOSURE_PATH)
+                .ok_or_else(|| PipelineError::Stage {
+                    stage: "stage-gts-compose".to_string(),
+                    message: format!(
+                        "stage-reason product is missing its closure artifact {}",
+                        crate::stages::reason::CLOSURE_PATH
+                    ),
+                })?;
+            ingest(&store, crate::stages::reason::CLOSURE_PATH, closure)?;
             continue;
         }
         for (path, bytes) in &product.artifacts {

@@ -187,11 +187,20 @@ fn exec_stage(
         upstream.insert(dep.clone(), p.clone());
     }
 
-    // Cache key = id ++ impl_version ++ sorted(upstream digests). The source-file
-    // digest (SourceLoad only) is folded in P3 when those stages read files.
+    // Cache key = id ++ impl_version ++ sorted(upstream digests) ++ the content
+    // digest of any RAW source files the stage declares via `input_files` (export
+    // leaves that read non-fold sources — references.ttl, the eval corpus, the
+    // slice manifests — declare them there so a source change busts the cache;
+    // cache soundness for stages that legitimately consume nothing, #861/#863).
     let mut up_digests: Vec<String> = upstream.values().map(|p| p.digest.clone()).collect();
     up_digests.sort();
-    let key = stage_key(stage.id(), stage.impl_version(), &up_digests, None);
+    let source_digest = input_files_digest(stage, root)?;
+    let key = stage_key(
+        stage.id(),
+        stage.impl_version(),
+        &up_digests,
+        source_digest.as_deref(),
+    );
 
     if let Some(product) = cache.get(&key)? {
         return Ok(StageRun {
@@ -222,6 +231,41 @@ fn exec_stage(
         product: out.product,
         cached: false,
     })
+}
+
+/// The content digest of a stage's declared raw `input_files`, or `None` when it
+/// declares none (so the cache key is unchanged for the common case). The digest
+/// folds each file's repo-relative logical path AND its bytes (sorted by path, so
+/// it is order-independent); a declared file that cannot be read HARD-fails — a
+/// missing required input is never silently treated as "unchanged" (no-optionality).
+fn input_files_digest(stage: &dyn Stage, root: &Path) -> Result<Option<String>, PipelineError> {
+    let mut files = stage.input_files(root)?;
+    if files.is_empty() {
+        return Ok(None);
+    }
+    files.sort();
+    files.dedup();
+    let mut rels: Vec<Vec<u8>> = Vec::with_capacity(files.len());
+    let mut bytes: Vec<Vec<u8>> = Vec::with_capacity(files.len());
+    for path in &files {
+        let rel = path
+            .strip_prefix(root)
+            .unwrap_or(path)
+            .to_string_lossy()
+            .into_owned();
+        let content = std::fs::read(path).map_err(|e| PipelineError::Stage {
+            stage: stage.id().to_string(),
+            message: format!("declared input file {} could not be read: {e}", rel),
+        })?;
+        rels.push(rel.into_bytes());
+        bytes.push(content);
+    }
+    let mut fields: Vec<&[u8]> = Vec::with_capacity(files.len() * 2);
+    for (rel, content) in rels.iter().zip(bytes.iter()) {
+        fields.push(rel.as_slice());
+        fields.push(content.as_slice());
+    }
+    Ok(Some(content_digest(&fields)))
 }
 
 /// Fold the products into one order-independent digest over sorted

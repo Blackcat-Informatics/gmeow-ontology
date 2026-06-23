@@ -800,9 +800,19 @@ pub(crate) fn render_expr(expr: &Expr) -> String {
                 return format!("regex({})", rendered.join(", "));
             }
             if name == "opNot" {
+                // Arity guard: opNot is unary. A malformed declaration with zero
+                // args would panic on `rendered[0]`; emit a sentinel that cannot
+                // match committed bytes (the parity gate catches it) instead.
+                if rendered.len() != 1 {
+                    return format!("MALFORMED_opNot({})", rendered.join(", "));
+                }
                 return format!("(!{})", rendered[0]);
             }
             if name == "opIn" {
+                // Arity guard: opIn needs at least the tested term plus one member.
+                if rendered.is_empty() {
+                    return "MALFORMED_opIn()".to_string();
+                }
                 return format!("({} IN ({}))", rendered[0], rendered[1..].join(", "));
             }
             if let Some(sym) = infix_op(&name) {
@@ -1908,15 +1918,23 @@ fn object_bool_of_term(store: &Store, subject: &Term, pred: &str) -> Result<bool
     }
 }
 
-/// The members of an rdf:List head node (mirrors `_rdf_list`).
+/// The members of an rdf:List head node (mirrors `_rdf_list`). A visited-set
+/// guards against a cyclic `rdf:rest` chain (a malformed list pointing back into
+/// itself) so traversal terminates instead of looping forever (#863).
 fn rdf_list(store: &Store, head: Option<&Term>) -> Result<Vec<Term>, SliceError> {
     let mut out: Vec<Term> = Vec::new();
+    let mut visited: BTreeSet<String> = BTreeSet::new();
     let mut node = head.cloned();
     while let Some(cur) = node {
         if let Term::NamedNode(nn) = &cur {
             if nn.as_str() == RDF_NIL {
                 break;
             }
+        }
+        // Stop if we re-encounter a list node (cyclic rdf:rest); `cur.to_string()`
+        // is a stable identity for the node (IRI or blank-node label).
+        if !visited.insert(cur.to_string()) {
+            break;
         }
         if let Some(first) = first_object_of_term(store, &cur, RDF_FIRST)? {
             out.push(first);

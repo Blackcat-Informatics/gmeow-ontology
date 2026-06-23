@@ -107,50 +107,70 @@ enum Yaml {
 
 /// PyYAML `safe_dump` with `sort_keys=False, default_flow_style=False,
 /// allow_unicode=True, width=10**9` over a mapping of scalar/bool/list values.
-fn yaml_dump(entries: &[(String, Yaml)]) -> String {
+fn yaml_dump(entries: &[(String, Yaml)]) -> Result<String, PipelineError> {
     let mut out = String::new();
     for (key, value) in entries {
         match value {
             Yaml::Str(s) => {
-                out.push_str(&yaml_key(key));
+                out.push_str(&yaml_key(key)?);
                 out.push_str(": ");
-                out.push_str(&yaml_scalar(s));
+                out.push_str(&yaml_scalar(s)?);
                 out.push('\n');
             }
             Yaml::Bool(b) => {
-                out.push_str(&yaml_key(key));
+                out.push_str(&yaml_key(key)?);
                 out.push_str(": ");
                 out.push_str(if *b { "true" } else { "false" });
                 out.push('\n');
             }
             Yaml::List(items) => {
-                out.push_str(&yaml_key(key));
+                out.push_str(&yaml_key(key)?);
                 out.push_str(":\n");
                 for item in items {
                     out.push_str("- ");
-                    out.push_str(&yaml_scalar(item));
+                    out.push_str(&yaml_scalar(item)?);
                     out.push('\n');
                 }
             }
         }
     }
-    out
+    Ok(out)
 }
 
 /// A YAML mapping key (always a plain identifier in this generator).
-fn yaml_key(key: &str) -> String {
+fn yaml_key(key: &str) -> Result<String, PipelineError> {
     yaml_scalar(key)
 }
 
 /// Emit a YAML scalar the way PyYAML `safe_dump(allow_unicode=True)` would:
 /// plain when safe, otherwise single-quoted (PyYAML's preferred quote style).
-fn yaml_scalar(s: &str) -> String {
-    if needs_quoting(s) {
+///
+/// NOTE (committed-format-bound, #863): a raw newline in a frontmatter scalar is
+/// NOT handled here — PyYAML would emit a multi-line literal/folded BLOCK scalar,
+/// and a single-quoted scalar with an embedded `\n` is not what `safe_dump`
+/// produces, so it would diverge from the byte-pinned committed OKF output. No
+/// current GMEOW term carries a multi-line label/definition (the parity gate is
+/// green), so rather than re-implement PyYAML's full block-scalar machinery (a
+/// large change that risks the committed bytes), this HARD-fails on a newline-
+/// bearing scalar: a future multi-line value surfaces loudly instead of silently
+/// emitting broken frontmatter. Returns `Err` only on that (currently impossible)
+/// input.
+fn yaml_scalar(s: &str) -> Result<String, PipelineError> {
+    if s.contains('\n') {
+        return Err(PipelineError::Stage {
+            stage: "stage-export-okf".to_string(),
+            message: format!(
+                "OKF frontmatter scalar contains a newline, which the PyYAML-parity \
+                 emitter does not yet render as a block scalar: {s:?}"
+            ),
+        });
+    }
+    Ok(if needs_quoting(s) {
         // PyYAML single-quote style: double internal single quotes.
         format!("'{}'", s.replace('\'', "''"))
     } else {
         s.to_string()
-    }
+    })
 }
 
 /// Whether a string must be quoted to round-trip as a YAML plain scalar.
@@ -340,12 +360,16 @@ fn body(term: &Term, by_curie: &BTreeMap<String, Term>) -> String {
     lines.join("\n").trim_end_matches('\n').to_string() + "\n"
 }
 
-fn render_doc(frontmatter: &[(String, Yaml)], body: &str) -> String {
-    let fm = yaml_dump(frontmatter);
-    format!("---\n{fm}---\n{body}")
+fn render_doc(frontmatter: &[(String, Yaml)], body: &str) -> Result<String, PipelineError> {
+    let fm = yaml_dump(frontmatter)?;
+    Ok(format!("---\n{fm}---\n{body}"))
 }
 
-fn index_doc(title: &str, entries: &[(String, String)], lossy_note: &str) -> String {
+fn index_doc(
+    title: &str,
+    entries: &[(String, String)],
+    lossy_note: &str,
+) -> Result<String, PipelineError> {
     let fm = vec![
         ("type".to_string(), Yaml::Str("Index".into())),
         ("title".to_string(), Yaml::Str(title.to_string())),
@@ -365,7 +389,11 @@ fn index_doc(title: &str, entries: &[(String, String)], lossy_note: &str) -> Str
 // ── bundle assembly ──────────────────────────────────────────────────────────────
 
 /// Render the OKF bundle as logical-path → bytes, keyed under `dist/gmeow-okf/…`.
-pub(crate) fn render_okf(title: &str, version: &str, terms: &[Term]) -> BTreeMap<String, Vec<u8>> {
+pub(crate) fn render_okf(
+    title: &str,
+    version: &str,
+    terms: &[Term],
+) -> Result<BTreeMap<String, Vec<u8>>, PipelineError> {
     let by_curie: BTreeMap<String, Term> =
         terms.iter().map(|t| (t.curie.clone(), t.clone())).collect();
 
@@ -379,7 +407,7 @@ pub(crate) fn render_okf(title: &str, version: &str, terms: &[Term]) -> BTreeMap
     }
     for term in terms {
         let rel = doc_relpath(term);
-        let doc = render_doc(&frontmatter(term, version), &body(term, &by_curie));
+        let doc = render_doc(&frontmatter(term, version), &body(term, &by_curie))?;
         out.insert(format!("{prefix}/{rel}"), doc.into_bytes());
         by_category.entry(term.category).or_default().push(term);
     }
@@ -401,7 +429,7 @@ pub(crate) fn render_okf(title: &str, version: &str, terms: &[Term]) -> BTreeMap
                 (label, format!("{}.md", slug(&m.curie)))
             })
             .collect();
-        let idx = index_doc(&format!("GMEOW {}", category_dir(category)), &entries, "");
+        let idx = index_doc(&format!("GMEOW {}", category_dir(category)), &entries, "")?;
         out.insert(
             format!("{prefix}/{}/index.md", category_dir(category)),
             idx.into_bytes(),
@@ -421,9 +449,9 @@ pub(crate) fn render_okf(title: &str, version: &str, terms: &[Term]) -> BTreeMap
         .collect();
     out.insert(
         format!("{prefix}/index.md"),
-        index_doc(&format!("{title} (OKF)"), &root_entries, LOSSY_NOTE).into_bytes(),
+        index_doc(&format!("{title} (OKF)"), &root_entries, LOSSY_NOTE)?.into_bytes(),
     );
-    out
+    Ok(out)
 }
 
 // ── Stage impl ───────────────────────────────────────────────────────────────────
@@ -464,7 +492,7 @@ impl Stage for OkfStage {
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, PipelineError> {
         let graph = read_fold_upstream(input.upstream)?;
         let (title, version, terms) = collect_term_surface(&graph)?;
-        let artifacts = render_okf(&title, &version, &terms);
+        let artifacts = render_okf(&title, &version, &terms)?;
         Ok(StageOutput {
             product: StageProduct::from_artifacts(self.id(), artifacts),
         })
@@ -490,7 +518,7 @@ mod tests {
         let graph = crate::stages::export::read_fold(&root).expect("read fold");
         let (title, version, terms) = collect_term_surface(&graph).expect("terms");
         assert!(!terms.is_empty(), "no terms collected");
-        let arts = render_okf(&title, &version, &terms);
+        let arts = render_okf(&title, &version, &terms).expect("render okf");
 
         // Root index + at least the class index must exist and carry the lossy note.
         let root_index = arts
@@ -526,7 +554,7 @@ mod tests {
         assert!(term_docs > 100, "expected many term docs, got {term_docs}");
 
         // Determinism: a second render is byte-identical.
-        let arts2 = render_okf(&title, &version, &terms);
+        let arts2 = render_okf(&title, &version, &terms).expect("render okf");
         assert_eq!(arts, arts2, "okf render is not deterministic");
 
         // A class doc links its parents under ## Relations with a relative path.

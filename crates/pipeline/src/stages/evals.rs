@@ -970,6 +970,34 @@ impl Stage for EvalsStage {
     fn impl_version(&self) -> &str {
         "evals.v1"
     }
+    fn input_files(&self, root: &Path) -> Result<Vec<std::path::PathBuf>, PipelineError> {
+        // Pure source read of NON-fold inputs: the emission schema, the corpus
+        // manifest + every source document it references, the ground-truth
+        // expectations, and every recorded model emission. Declare them ALL so a
+        // re-scored corpus / new model / changed expectation busts the cache.
+        // `consumes() == []`.
+        let evals = root.join("evals");
+        let mut files: Vec<std::path::PathBuf> = vec![
+            evals.join("claim-emission.schema.json"),
+            evals.join("corpus.ttl"),
+            evals.join("expectations.json"),
+        ];
+        // Every corpus source document (sourceLocation rows in corpus.ttl).
+        for location in parse_corpus(&evals.join("corpus.ttl"))?.keys() {
+            files.push(root.join(location));
+        }
+        // Every recorded model emission: evals/outputs/<model>/claims.jsonl.
+        let outputs = evals.join("outputs");
+        if let Ok(entries) = std::fs::read_dir(&outputs) {
+            for entry in entries.flatten() {
+                let claims = entry.path().join("claims.jsonl");
+                if claims.is_file() {
+                    files.push(claims);
+                }
+            }
+        }
+        Ok(files)
+    }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, PipelineError> {
         Ok(StageOutput {
             product: StageProduct::from_artifacts(self.id(), render_evals(input.root)?),
