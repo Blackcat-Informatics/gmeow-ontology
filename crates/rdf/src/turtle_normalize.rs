@@ -134,9 +134,12 @@ struct Renderer<'a> {
     shared_labels: HashMap<TermId, String>,
     /// Prefixes actually used during rendering.
     used_prefixes: RefCell<BTreeSet<String>>,
-    rdf_type: TermId,
-    rdf_first: TermId,
-    rdf_rest: TermId,
+    /// The well-known predicate ids, or `None` when the term table has no such
+    /// IRI (#837: `None` replaces the former out-of-range `TermId` sentinel — the
+    /// `NonZeroU32` niche makes the absent case free).
+    rdf_type: Option<TermId>,
+    rdf_first: Option<TermId>,
+    rdf_rest: Option<TermId>,
     rdf_nil_iri: String,
 }
 
@@ -183,9 +186,9 @@ impl<'a> Renderer<'a> {
             object_refs,
             shared_labels,
             used_prefixes: RefCell::new(BTreeSet::new()),
-            rdf_type: TermId::from_index(0),
-            rdf_first: TermId::from_index(0),
-            rdf_rest: TermId::from_index(0),
+            rdf_type: None,
+            rdf_first: None,
+            rdf_rest: None,
             rdf_nil_iri: rdf("nil"),
         };
         // Resolve the well-known predicate ids by scanning the term table (they may
@@ -196,17 +199,17 @@ impl<'a> Renderer<'a> {
         r
     }
 
-    /// The `TermId` of an interned IRI, or an out-of-range sentinel if absent.
-    fn find_iri(&self, iri: &str) -> TermId {
+    /// The `TermId` of an interned IRI, or `None` if the term table has no such IRI.
+    fn find_iri(&self, iri: &str) -> Option<TermId> {
         for i in 0..self.dataset.term_count() {
             let id = TermId::from_index(i as u32);
             if let TermRef::Iri(v) = self.dataset.resolve(id) {
                 if v == iri {
-                    return id;
+                    return Some(id);
                 }
             }
         }
-        TermId::from_index(u32::MAX)
+        None
     }
 
     fn is_inline_bnode(&self, id: TermId) -> bool {
@@ -253,12 +256,12 @@ impl<'a> Renderer<'a> {
             return;
         };
         let mut preds: Vec<TermId> = props.keys().copied().collect();
-        preds.sort_by_cached_key(|p| (*p != self.rdf_type, self.iri_of(*p)));
+        preds.sort_by_cached_key(|p| (Some(*p) != self.rdf_type, self.iri_of(*p)));
 
         let last_pred = preds.len().saturating_sub(1);
         for (pi, pred) in preds.iter().enumerate() {
             let objs: Vec<&ObjKey> = props[pred].iter().collect();
-            let pred_str = if *pred == self.rdf_type {
+            let pred_str = if Some(*pred) == self.rdf_type {
                 "a".to_string()
             } else {
                 self.term_label(*pred)
@@ -342,9 +345,9 @@ impl<'a> Renderer<'a> {
     /// A well-formed `rdf:List` headed by `id`: a chain of inline blanks each with
     /// exactly `rdf:first` + `rdf:rest`, ending in `rdf:nil`. Returns the elements.
     fn try_collection(&self, id: TermId) -> Option<Vec<TermId>> {
-        if self.rdf_first.index() == usize::MAX || self.rdf_rest.index() == usize::MAX {
-            return None;
-        }
+        // No `rdf:first`/`rdf:rest` IRI in the table ⇒ no list can exist (#837: the
+        // niche `None` replaces the former out-of-range-sentinel check).
+        let (rdf_first, rdf_rest) = (self.rdf_first?, self.rdf_rest?);
         let mut items = Vec::new();
         let mut cur = id;
         let mut seen = BTreeSet::new();
@@ -353,14 +356,12 @@ impl<'a> Renderer<'a> {
                 return None;
             }
             let props = self.by_subject.get(&cur)?;
-            if props.len() != 2
-                || !props.contains_key(&self.rdf_first)
-                || !props.contains_key(&self.rdf_rest)
+            if props.len() != 2 || !props.contains_key(&rdf_first) || !props.contains_key(&rdf_rest)
             {
                 return None;
             }
-            let firsts = &props[&self.rdf_first];
-            let rests = &props[&self.rdf_rest];
+            let firsts = &props[&rdf_first];
+            let rests = &props[&rdf_rest];
             if firsts.len() != 1 || rests.len() != 1 {
                 return None;
             }
