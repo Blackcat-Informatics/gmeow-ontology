@@ -182,6 +182,23 @@ future slice migration inherits.
 
 **Imagination tally:** 10 converted (13 cells across 10 pytest functions), 1 retained-with-reason (manifest-scope), 1 deleted-covered-by-make-validate. Source file `tests/test_imagination.py` trimmed to the 1 retained function (not deleted — the must-stay remains).
 
+## `slices/core/temporal`
+
+The temporal pytest loaded the FULL merged graph (`load_merged_graph(include_imports=True)`), so each tested triple needs home-slice triage: a triple asserted in temporal/module.ttl → `scopeModule` cell; one asserted in another slice → cross-slice must-stay.
+
+| Pytest fn | Pytest file | DSL cell IRI | Cell type | Status | Reason if retained | Run by |
+|---|---|---|---|---|---|---|
+| `test_time_scoped_relation_is_a_logic_situation` | `tests/test_temporal.py` | `ex:saTimeScopedRelationIsLogicSituation` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_validity_predicates_are_annotation_properties` | `tests/test_temporal.py` | `ex:saValidityPredicatesAreAnnotationProperties` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_instant_subclasses_logic_abstract_individual` | `tests/test_temporal.py` | `ex:saInstantSubclassesLogicAbstractIndividual` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_time_interval_has_start_and_end_instants` | `tests/test_temporal.py` | `ex:saTimeIntervalHasStartAndEndInstants` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_time_interval_can_have_temporal_frame` | `tests/test_temporal.py` | `ex:saTimeIntervalCanHaveTemporalFrame` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_temporal_measurement_is_logic_relator` | `tests/test_temporal.py` | `ex:saTemporalMeasurementIsLogicRelator` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_reified_residence_and_tenure_are_time_scoped` | `tests/test_temporal.py` | — | — | **retained** | CROSS-SLICE: `gmeow:MailboxResidence` (extensions/email) + `gmeow:AddressTenure` (core/contacts) ⊑ TimeScopedRelation — the subclass edges are declared in those OTHER slices' modules, absent from temporal/module.ttl, so the module-scoped harness cannot see them. Faithful only over the merged graph. | pytest |
+| `test_interpersonal_relationship_is_a_gufo_relator` | `tests/test_temporal.py` | — | — | **retained** | CROSS-SLICE: `gmeow:InterpersonalRelationship` (core/contacts, core/names) ⊑ gufo:Relator — declared in those slices, absent from temporal/module.ttl. Merged-graph integration check. | pytest |
+
+**Temporal tally:** 6 converted, 2 retained-with-reason (cross-slice merged-graph). Source file `tests/test_temporal.py` trimmed to the 2 retained functions (not deleted).
+
 ## Other slices
 
 No other slice carries declarative test-DSL specs yet (T2 authored only the

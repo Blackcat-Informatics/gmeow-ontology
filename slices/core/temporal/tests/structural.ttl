@@ -1,0 +1,105 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Declarative structural assertions for the temporal slice — the slice-resident
+# test-DSL twin of the MUST invariants formerly hand-written in
+# tests/test_temporal.py. Authored as gmeow: ontology data so the same annotation
+# discipline and the native Rust harness (crates/slicetest, #784) drive the test,
+# not ad-hoc Python. Each assertion runs as a SPARQL ASK over the slice module
+# graph (gmeow:scopeModule); every `must` ASK anchors on a concrete term IRI.
+#
+# NAMESPACE: the temporal module is #694-migrated — its gUFO-stereotyped spine is
+# typed with the logic: stereotype vocabulary (logic:Situation,
+# logic:AbstractIndividual, logic:Relator). These cells mirror the module's
+# CURRENT logic: shape.
+#
+# TWO tests stay in tests/test_temporal.py because they are CROSS-SLICE — the
+# subjects are NOT declared in temporal/module.ttl, so the module-scoped harness
+# (which loads only this slice's module.ttl) cannot see them; the pytest reaches
+# them via the FULL merged graph (load_merged_graph(include_imports=True)):
+#   * test_reified_residence_and_tenure_are_time_scoped — gmeow:MailboxResidence
+#     (extensions/email) and gmeow:AddressTenure (core/contacts) ⊑
+#     gmeow:TimeScopedRelation. The subclass edges live in those OTHER slices'
+#     modules, not here.
+#   * test_interpersonal_relationship_is_a_gufo_relator —
+#     gmeow:InterpersonalRelationship (core/contacts, core/names) ⊑ gufo:Relator.
+#     Same reason.
+# These are genuine cross-slice integration checks, faithfully retained in pytest.
+#
+# See dsl/tests/MIGRATION-LEDGER.md for the per-test pytest→DSL mapping.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/temporal/tests/> .
+
+# --- 1. TimeScopedRelation ⊑ logic:Situation (MUST hold) ---------------------
+ex:saTimeScopedRelationIsLogicSituation a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK { gmeow:TimeScopedRelation rdfs:subClassOf logic:Situation . }""" ;
+    gmeow:saRationale "gmeow:TimeScopedRelation reifies a relation that holds over an interval: it MUST be a subClassOf logic:Situation (the #694-migrated stereotype) so residence and tenure are situations, not relators. Mirrors test_time_scoped_relation_is_a_logic_situation." .
+
+# --- 2. validFrom / validUntil are AnnotationProperties (MUST hold) ----------
+ex:saValidityPredicatesAreAnnotationProperties a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    gmeow:validFrom  a owl:AnnotationProperty .
+    gmeow:validUntil a owl:AnnotationProperty .
+}""" ;
+    gmeow:saRationale "The lightweight RDF-star validity clocks gmeow:validFrom / gmeow:validUntil MUST each be an owl:AnnotationProperty — statement-layer annotations, not first-class object/datatype edges. Mirrors test_validity_predicates_are_annotation_properties." .
+
+# --- 3. Instant ⊑ logic:AbstractIndividual (MUST hold) -----------------------
+ex:saInstantSubclassesLogicAbstractIndividual a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK { gmeow:Instant rdfs:subClassOf logic:AbstractIndividual . }""" ;
+    gmeow:saRationale "A gmeow:Instant is a reified zero-duration point: it MUST be a subClassOf logic:AbstractIndividual (the #694-migrated stereotype). Mirrors test_instant_subclasses_logic_abstract_individual." .
+
+# --- 4. TimeInterval has start and end Instants (MUST hold) ------------------
+ex:saTimeIntervalHasStartAndEndInstants a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:hasStartInstant a owl:ObjectProperty ;
+        rdfs:domain gmeow:TimeInterval ;
+        rdfs:range gmeow:Instant .
+    gmeow:hasEndInstant a owl:ObjectProperty ;
+        rdfs:domain gmeow:TimeInterval ;
+        rdfs:range gmeow:Instant .
+}""" ;
+    gmeow:saRationale "gmeow:hasStartInstant / gmeow:hasEndInstant MUST each be an owl:ObjectProperty with domain gmeow:TimeInterval and range gmeow:Instant — the interval's two reified endpoints. Mirrors test_time_interval_has_start_and_end_instants." .
+
+# --- 5. TimeInterval can carry a TemporalFrame (MUST hold) -------------------
+ex:saTimeIntervalCanHaveTemporalFrame a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:hasTemporalFrame a owl:ObjectProperty ;
+        rdfs:domain gmeow:TimeInterval ;
+        rdfs:range gmeow:TemporalFrame .
+}""" ;
+    gmeow:saRationale "gmeow:hasTemporalFrame MUST be an owl:ObjectProperty with domain gmeow:TimeInterval and range gmeow:TemporalFrame — the frame edge satisfying the interval's frame-relativity requirement (P11). Mirrors test_time_interval_can_have_temporal_frame." .
+
+# --- 6. TemporalMeasurement ⊑ logic:Relator (MUST hold) ----------------------
+ex:saTemporalMeasurementIsLogicRelator a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK { gmeow:TemporalMeasurement rdfs:subClassOf logic:Relator . }""" ;
+    gmeow:saRationale "gmeow:TemporalMeasurement reifies a dating claim (method, age, uncertainty): it MUST be a subClassOf logic:Relator (the #694-migrated stereotype), not a Situation. Mirrors test_temporal_measurement_is_logic_relator." .
