@@ -69,6 +69,11 @@ scryer-prolog = { git = "https://github.com/mthom/scryer-prolog", branch = "mast
 [dev-dependencies]
 proptest = "1"
 serde_json = "1"
+# insta: snapshot goldens for the projection back-ends + explanation prose (T8,
+# #789). The `.snap` files ARE the byte-exact unit goldens (the native
+# crates/conformance harness owns cross-engine corpus parity). Pinned to match
+# crates/docs. `json` feature drives `assert_json_snapshot!` where used.
+insta = { version = "1.48", features = ["json"] }
 # Acceleration-program baselines (#630, Phase 0). Light feature set: criterion's
 # plotters/rayon defaults are off so `make bench` builds fast; the cargo-bench
 # stdout summary is all the baseline needs.

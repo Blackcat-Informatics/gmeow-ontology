@@ -1,0 +1,25 @@
+---
+source: crates/diagnostics/src/render.rs
+expression: to_gmeow_rdf(&comprehensive_report())
+---
+<https://blackcatinformatics.ca/gmeow/diagnostics/finding/1dd8166d263293b6-0> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Finding> <https://blackcatinformatics.ca/gmeow/graph/diagnostics> .
+<https://blackcatinformatics.ca/gmeow/diagnostics/finding/1dd8166d263293b6-0> <https://blackcatinformatics.ca/gmeow/findingSeverity> <https://blackcatinformatics.ca/gmeow/severityError> <https://blackcatinformatics.ca/gmeow/graph/diagnostics> .
+<https://blackcatinformatics.ca/gmeow/diagnostics/finding/1dd8166d263293b6-0> <https://blackcatinformatics.ca/gmeow/findingCode> "shacl.MinCount" <https://blackcatinformatics.ca/gmeow/graph/diagnostics> .
+<https://blackcatinformatics.ca/gmeow/diagnostics/finding/1dd8166d263293b6-0> <https://blackcatinformatics.ca/gmeow/findingMessage> "missing property" <https://blackcatinformatics.ca/gmeow/graph/diagnostics> .
+<https://blackcatinformatics.ca/gmeow/diagnostics/finding/1dd8166d263293b6-0> <https://blackcatinformatics.ca/gmeow/findingTool> "shacl" <https://blackcatinformatics.ca/gmeow/graph/diagnostics> .
+<https://blackcatinformatics.ca/gmeow/diagnostics/finding/1dd8166d263293b6-0> <https://blackcatinformatics.ca/gmeow/findingLocation> <https://blackcatinformatics.ca/gmeow/diagnostics/finding/1dd8166d263293b6-0/location/0> <https://blackcatinformatics.ca/gmeow/graph/diagnostics> .
+<https://blackcatinformatics.ca/gmeow/diagnostics/finding/1dd8166d263293b6-0/location/0> <https://blackcatinformatics.ca/gmeow/gtsQuadIndex> "42"^^<http://www.w3.org/2001/XMLSchema#nonNegativeInteger> <https://blackcatinformatics.ca/gmeow/graph/diagnostics> .
+<https://blackcatinformatics.ca/gmeow/diagnostics/finding/1dd8166d263293b6-0/location/0> <https://blackcatinformatics.ca/gmeow/gtsSegmentIndex> "2"^^<http://www.w3.org/2001/XMLSchema#nonNegativeInteger> <https://blackcatinformatics.ca/gmeow/graph/diagnostics> .
+<https://blackcatinformatics.ca/gmeow/diagnostics/finding/1dd8166d263293b6-0/location/0> <https://blackcatinformatics.ca/gmeow/findingLocationPath> "bundle.gts" <https://blackcatinformatics.ca/gmeow/graph/diagnostics> .
+<https://blackcatinformatics.ca/gmeow/diagnostics/finding/9f37721a7334a69c-1> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Finding> <https://blackcatinformatics.ca/gmeow/graph/diagnostics> .
+<https://blackcatinformatics.ca/gmeow/diagnostics/finding/9f37721a7334a69c-1> <https://blackcatinformatics.ca/gmeow/findingSeverity> <https://blackcatinformatics.ca/gmeow/severityError> <https://blackcatinformatics.ca/gmeow/graph/diagnostics> .
+<https://blackcatinformatics.ca/gmeow/diagnostics/finding/9f37721a7334a69c-1> <https://blackcatinformatics.ca/gmeow/findingCode> "shacl.MinCount" <https://blackcatinformatics.ca/gmeow/graph/diagnostics> .
+<https://blackcatinformatics.ca/gmeow/diagnostics/finding/9f37721a7334a69c-1> <https://blackcatinformatics.ca/gmeow/findingMessage> "missing property" <https://blackcatinformatics.ca/gmeow/graph/diagnostics> .
+<https://blackcatinformatics.ca/gmeow/diagnostics/finding/9f37721a7334a69c-1> <https://blackcatinformatics.ca/gmeow/findingTool> "shacl" <https://blackcatinformatics.ca/gmeow/graph/diagnostics> .
+<https://blackcatinformatics.ca/gmeow/diagnostics/finding/9f37721a7334a69c-1> <https://blackcatinformatics.ca/gmeow/findingLocation> <https://blackcatinformatics.ca/gmeow/diagnostics/finding/9f37721a7334a69c-1/location/0> <https://blackcatinformatics.ca/gmeow/graph/diagnostics> .
+<https://blackcatinformatics.ca/gmeow/diagnostics/finding/9f37721a7334a69c-1/location/0> <https://blackcatinformatics.ca/gmeow/findingLocationPath> "core/ai/examples/grounded-claim.ttl" <https://blackcatinformatics.ca/gmeow/graph/diagnostics> .
+<https://blackcatinformatics.ca/gmeow/diagnostics/finding/5bf7402afe63c0fc-2> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Finding> <https://blackcatinformatics.ca/gmeow/graph/diagnostics> .
+<https://blackcatinformatics.ca/gmeow/diagnostics/finding/5bf7402afe63c0fc-2> <https://blackcatinformatics.ca/gmeow/findingSeverity> <https://blackcatinformatics.ca/gmeow/severityWarning> <https://blackcatinformatics.ca/gmeow/graph/diagnostics> .
+<https://blackcatinformatics.ca/gmeow/diagnostics/finding/5bf7402afe63c0fc-2> <https://blackcatinformatics.ca/gmeow/findingCode> "validate.warning" <https://blackcatinformatics.ca/gmeow/graph/diagnostics> .
+<https://blackcatinformatics.ca/gmeow/diagnostics/finding/5bf7402afe63c0fc-2> <https://blackcatinformatics.ca/gmeow/findingMessage> "class gmeow:Analogy is missing gmeow:howToUse" <https://blackcatinformatics.ca/gmeow/graph/diagnostics> .
+<https://blackcatinformatics.ca/gmeow/diagnostics/finding/5bf7402afe63c0fc-2> <https://blackcatinformatics.ca/gmeow/findingTool> "validate" <https://blackcatinformatics.ca/gmeow/graph/diagnostics> .

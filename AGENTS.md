@@ -127,7 +127,32 @@ make verify          # Reuse dist/gmeow-reasoned-elk.ttl and run SPARQL QC (Dock
 ```bash
 make test            # Run the pytest test suite (Python/SPARQL competency tests)
 make check           # Run FULL gate: lint, validate, compilation check, reason, verify, tests
+make rust-test       # Run the Rust workspace tests (cargo nextest + doctests)
 ```
+
+#### Snapshot goldens (insta, T8 #789)
+
+The Rust suite pins large structured outputs — the logic projection back-ends,
+the diagnostics/SARIF renderers, and the explanation prose — with
+[`insta`](https://insta.rs) snapshot goldens (`*.snap` files committed next to
+their tests). The renderers are pure and deterministic, so the goldens carry the
+output verbatim with no redaction.
+
+The review flow is **non-interactive** (no `cargo insta review` TTY prompt), so
+it works in CI and agent runs:
+
+```bash
+make rust-test                 # default: HARD-FAILS on any snapshot drift (writes a *.snap.new)
+make insta-review              # after an INTENTIONAL output change: regenerate the .snap goldens,
+                               # then re-run in CI mode so the run still fails if anything is
+                               # non-deterministic. Review the .snap diff, then commit.
+```
+
+Drift is a hard failure by design (`INSTA_UPDATE=no` in CI). Never auto-accept a
+snapshot you have not inspected, and never leave a `*.snap.new` uncommitted. The
+`.snap` files are the byte-exact unit golden; cross-engine *semantic* corpus
+parity stays with the native `crates/conformance` harness (graph-isomorphism +
+bless), which insta does not replace.
 
 #### GTS engines (moved to the `gmeow-gts` repo)
 
