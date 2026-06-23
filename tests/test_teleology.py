@@ -25,6 +25,7 @@ from tests._graph_nt import run_shacl
 GMEOW = "https://blackcatinformatics.ca/gmeow/"
 GM = Namespace(GMEOW)
 GUFO = Namespace("http://purl.org/nemo/gufo#")
+LOGIC = Namespace("https://blackcatinformatics.ca/logic/")
 
 FIXTURES = Path(__file__).parent / "fixtures" / "shapes"
 
@@ -54,11 +55,11 @@ def test_goal_is_a_social_object_kind() -> None:
 def test_intrinsic_modes_are_grounded() -> None:
     g = _graph()
     assert (GM.IntentionalMode, RDF.type, GUFO.Category) in g
-    # Reparented under gmeow:MentalMoment (#556); MentalMoment ⊑ gufo:IntrinsicMode
-    # supplies the gUFO branch, so IntentionalMode stays grounded in IntrinsicMode
+    # Reparented under gmeow:MentalMoment (#556); MentalMoment ⊑ logic:Mode
+    # supplies the native-logic branch, so IntentionalMode stays grounded in Mode
     # transitively rather than by a direct (now-removed) subClassOf assertion.
     assert (GM.IntentionalMode, RDFS.subClassOf, GM.MentalMoment) in g
-    assert (GM.MentalMoment, RDFS.subClassOf, GUFO.IntrinsicMode) in g
+    assert (GM.MentalMoment, RDFS.subClassOf, LOGIC.Mode) in g
     assert (GM.IntentionalMode, RDFS.subClassOf, GM.IntentionalMoment) in g
     for kind in (GM.Desire, GM.Intention):
         assert (kind, RDF.type, GUFO.Kind) in g

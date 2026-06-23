@@ -238,6 +238,27 @@ The first slice migrated using BOTH cell types: `gmeow:StructuralAssertion` (6 s
 
 **Concepts tally:** 12 converted (9 structural cells + 6 example-conformance cells across 12 fns), 1 deleted-covered-by-make-validate. Source file `tests/test_concepts.py` DELETED entirely (all 13 fns migrated/subsumed, no must-stays). First slice to exercise the `gmeow:ExampleConformance` cell type beyond the epistemics exemplar.
 
+## `slices/core/learning`
+
+The second SHACL-conformance slice (concepts recipe): 8 structural fns → `tests/structural.ttl`, 3 SHACL fns → `tests/example-conformance.ttl` + 3 materialized fixtures, 1 annotation fn deleted. All 12 fns migrate → `tests/test_learning.py` DELETED. The EL `someValuesFrom` relator-mediation restrictions (teacher + learner) are migrated as a blank-node bracket ASK faithful to the pytest's existential restriction walk. MESSAGE→CODE shift (collapses distinct messages sharing a component); every code VERIFIED + confirmed SINGLETON via sentinel-flip, 2026-06-23.
+
+| Pytest fn | Pytest file | DSL cell IRI | Cell type | Status | Reason if deleted | Run by |
+|---|---|---|---|---|---|---|
+| `test_learning_event_reparents_mental_process` | `tests/test_learning.py` | `ex:saLearningEventReparentsMentalProcess` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_process_learning_marker_rides_instances_not_the_class` | `tests/test_learning.py` | `ex:saProcessLearningMarkerRidesInstances` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_learning_event_type_is_an_abstract_individual_type` | `tests/test_learning.py` | `ex:saLearningEventTypeIsAbstractIndividualType` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_learning_event_type_individuals_are_seeded` | `tests/test_learning.py` | `ex:saLearningEventTypeIndividualsSeeded` + `ex:saLearningEventTypeIndividualsNotSubclasses` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_learning_type_property` | `tests/test_learning.py` | `ex:saLearningTypeProperty` + `ex:saLearningTypeNotFunctional` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_provenance_trajectory_product_are_open_range` | `tests/test_learning.py` | `ex:saProvenanceTrajectoryProductProperties` + `ex:saProvenanceTrajectoryProductOpenRangeNotFunctional` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_teaching_is_a_mediating_relator` | `tests/test_learning.py` | `ex:saTeachingIsMediatingRelator` + `ex:saLearnerNotFunctional` + `ex:saTeachingELRestrictions` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_no_forgetting_or_truth_bit_and_remembers_not_redeclared` | `tests/test_learning.py` | `ex:saNoForgettingOrTruthBit` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_wellformed_teaching_conforms` | `tests/test_learning.py` | `ex:ecTeachingConforms` | ExampleConformance | converted | — | `make slicetest` |
+| `test_teacher_equals_learner_is_flagged` | `tests/test_learning.py` | `ex:ecTeachingSelf` | ExampleConformance | converted (violates `shacl.SPARQLConstraintComponent`, verified singleton — the `sh:sparql` self-teaching rule) | — | `make slicetest` |
+| `test_non_agent_learner_is_flagged` | `tests/test_learning.py` | `ex:ecTeachingNonAgentLearner` | ExampleConformance | converted (violates `shacl.ClassConstraintComponent`, verified singleton — learner `sh:class gmeow:Agent`) | — | `make slicetest` |
+| `test_every_declared_term_is_annotated` | `tests/test_learning.py` | — | — | **deleted** | Covered by the global `make validate` gate via TWO guardians: SHACL `GmeowClassShape` / `GmeowPropertyShape` for the classes/properties AND the Rust `structural_lint` vocabulary-individual sweep for the 6 `LearningEventType` value individuals. Verified 2026-06-23, BOTH exercised: deleting `gmeow:learningSkillAcquisition`'s `rdfs:label` (a value-vocab INDIVIDUAL) → "error individual … is missing rdfs:label" (Rust); deleting `gmeow:LearningEvent`'s `rdfs:label` (a CLASS) → "error class … is missing rdfs:label" (SHACL); both reverted. | `make validate` |
+
+**Learning tally:** 11 converted (11 structural cells + 3 example-conformance cells across 11 fns), 1 deleted-covered-by-make-validate. Source file `tests/test_learning.py` DELETED entirely (all 12 fns migrated/subsumed, no must-stays). Second slice exercising `gmeow:ExampleConformance`; first to migrate an EL `someValuesFrom` restriction (blank-node ASK) and an `sh:sparql` constraint violation.
+
 ## Other slices
 
 No other slice carries declarative test-DSL specs yet (T2 authored only the

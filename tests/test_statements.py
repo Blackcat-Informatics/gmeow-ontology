@@ -189,14 +189,17 @@ def test_jena_oracle_codec_hard_fails_without_jena(
 
 
 def test_statement_docker_check_reports_drift(monkeypatch: pytest.MonkeyPatch) -> None:
-    """The Docker lane fails on stale or orphaned statement artifacts."""
+    """The Docker lane fails on stale statement artifacts."""
+    import gmeow_native.pipeline as _pipeline
 
-    class Report:
-        def __init__(self) -> None:
-            self.drifted = ["generated/statements/gmeow.rdf12.ttl"]
-            self.orphans: list[str] = []
-
-    monkeypatch.setattr(statements_docker_check, "run", lambda *_a, **_kw: Report())
+    monkeypatch.setattr(
+        _pipeline,
+        "run_pipeline",
+        lambda *_a, **_kw: {
+            "drifted": ["generated/statements/gmeow.rdf12.ttl"],
+            "orphans": [],
+        },
+    )
 
     with pytest.raises(AssertionError, match="stale"):
         statements_docker_check.assert_committed_artifacts_match_dsl()

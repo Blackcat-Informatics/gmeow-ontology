@@ -17,6 +17,7 @@ from tests._graph_nt import run_shacl
 
 GMEOW = "https://blackcatinformatics.ca/gmeow/"
 GUFO = "http://purl.org/nemo/gufo#"
+LOGIC = "https://blackcatinformatics.ca/logic/"
 
 
 def _graph() -> Graph:
@@ -32,40 +33,48 @@ def _gufo(local: str) -> URIRef:
     return URIRef(GUFO + local)
 
 
+def _logic(local: str) -> URIRef:
+    return URIRef(LOGIC + local)
+
+
 # --------------------------------------------------------------------------- #
 # MentalMoment umbrella (#556) and its members.
 # --------------------------------------------------------------------------- #
 
 
 def test_mental_moment_is_category_under_intrinsic_mode() -> None:
-    """MentalMoment is a gufo:Category placed under gufo:IntrinsicMode (kernel)."""
+    """MentalMoment is a logic:Category placed under logic:Mode (kernel)."""
     graph = _graph()
     mm = _g("MentalMoment")
-    assert (mm, RDF.type, _gufo("Category")) in graph
-    assert (mm, RDFS.subClassOf, _gufo("IntrinsicMode")) in graph
+    assert (mm, RDF.type, _logic("Category")) in graph
+    assert (mm, RDFS.subClassOf, _logic("Mode")) in graph
     assert (mm, RDFS.isDefinedBy, _g("slices/kernel")) in graph
 
 
 def test_mental_moment_has_exactly_one_gufo_metaclass() -> None:
-    """Acceptance: each new class carries exactly one gUFO metaclass."""
+    """Acceptance: each new class carries exactly one ontological metaclass.
+
+    Checks that each term has exactly one metaclass annotation from either the
+    gufo: or logic: namespace.
+    """
     graph = _graph()
-    gufo_meta = {
-        _gufo(m)
-        for m in (
-            "Kind",
-            "Category",
-            "Relator",
-            "Mode",
-            "IntrinsicMode",
-            "QualityValue",
-            "AbstractIndividualType",
-            "Phase",
-            "Role",
-            "SubKind",
-            "RoleMixin",
-            "PhaseMixin",
-            "Mixin",
-        )
+    metaclass_locals = (
+        "Kind",
+        "Category",
+        "Relator",
+        "Mode",
+        "IntrinsicMode",
+        "QualityValue",
+        "AbstractIndividualType",
+        "Phase",
+        "Role",
+        "SubKind",
+        "RoleMixin",
+        "PhaseMixin",
+        "Mixin",
+    )
+    known_meta = {_gufo(m) for m in metaclass_locals} | {
+        _logic(m) for m in metaclass_locals
     }
     for cls in (
         "MentalMoment",
@@ -74,9 +83,9 @@ def test_mental_moment_has_exactly_one_gufo_metaclass() -> None:
         "KnowledgeLevel",
     ):
         types = set(graph.objects(_g(cls), RDF.type))
-        meta = types & gufo_meta
+        meta = types & known_meta
         assert len(meta) == 1, (
-            f"{cls} must carry exactly one gUFO metaclass, got {meta}"
+            f"{cls} must carry exactly one ontological metaclass, got {meta}"
         )
 
 
@@ -107,7 +116,7 @@ def test_proficiency_vocab_relocated_to_kernel() -> None:
     graph = _graph()
     for cls in ("ProficiencyScale", "ProficiencyLevel", "ProficiencyModality"):
         node = _g(cls)
-        assert (node, RDFS.subClassOf, _gufo("QualityValue")) in graph
+        assert (node, RDFS.subClassOf, _logic("QualityValue")) in graph
         assert (node, RDFS.isDefinedBy, _g("slices/kernel")) in graph
         assert (node, RDFS.isDefinedBy, _g("slices/expertise")) not in graph
 

@@ -493,6 +493,55 @@ def transpile(
         err_console.print(f"[green]wrote[/green] {path}")
 
 
+@app.command()
+def export(
+    out: Path = typer.Option(  # noqa: B008
+        _DEFAULT_OUT_ROOT / "export", "--out", "-o", help="Output directory."
+    ),
+    file: Path | None = typer.Option(  # noqa: B008
+        None, "--gts", help="GTS snapshot to export (default: bundled snapshot)."
+    ),
+    lang: str | None = _lang_option(),
+) -> None:
+    """Export flat consumer views from a GTS snapshot."""
+    from gmeow_tools.export import (
+        collect_terms,
+        fold_meta,
+        write_csvs,
+        write_csvw,
+        write_jsonl,
+        write_llms_txt,
+        write_markdown,
+        write_nquads,
+        write_obographs,
+        write_shex,
+        write_skos,
+        write_statements_jsonl,
+        write_trig,
+    )
+
+    view = _bundle_view(file)
+    selector = _resolve_lang(lang, view)
+    title, version = fold_meta(view)
+    terms = collect_terms(view, selector=selector)
+    out.mkdir(parents=True, exist_ok=True)
+    written = [
+        *write_csvs(terms, out, selector=selector),
+        write_csvw(out, title=title, selector=selector),
+        write_jsonl(terms, out),
+        write_markdown(terms, out, title=title, version=version),
+        write_llms_txt(terms, out, title=title, version=version),
+        write_nquads(view, out),
+        write_trig(view, out, selector=selector),
+        write_statements_jsonl(view, out),
+        write_skos(view, out, title=title, version=version, selector=selector),
+        write_obographs(view, out, version=version, selector=selector),
+        write_shex(view, out),
+    ]
+    for path in written:
+        console.print(f"[green]wrote[/green] {path}")
+
+
 @app.command(name="extract-docs")
 def extract_docs(
     directory: Path = typer.Option(  # noqa: B008

@@ -13,6 +13,7 @@ from gmeow_tools.graph import load_merged_graph
 
 GMEOW = "https://blackcatinformatics.ca/gmeow/"
 GUFO = "http://purl.org/nemo/gufo#"
+LOGIC = "https://blackcatinformatics.ca/logic/"
 
 
 def _graph() -> Graph:
@@ -53,7 +54,7 @@ def test_proficiency_scale_is_generalised() -> None:
     assert (
         URIRef(GMEOW + "ProficiencyScale"),
         RDFS.subClassOf,
-        URIRef(GUFO + "QualityValue"),
+        URIRef(LOGIC + "QualityValue"),
     ) in graph
     for scale in (
         "scaleCEFR",

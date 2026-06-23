@@ -1,0 +1,20 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for gmeow:TeachingShape: the teacher and the learner are the
+# SAME agent (ex:alice). gmeow:TeachingShape's sh:sparql constraint forbids
+# teacher = learner ("an agent cannot teach itself"), so validation MUST emit
+# shacl.SPARQLConstraintComponent (and no other finding — teacher/learner minCount,
+# maxCount, and sh:class gmeow:Agent are all satisfied, subjectTaught is present).
+# Bound by tests/example-conformance.ttl (ex:ecTeachingSelf). Lives under tests/
+# (NOT examples/) so the global make validate gate does not reject it.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex: <http://example.org/lrn/> .
+
+ex:alice a gmeow:Agent .
+ex:welding a gmeow:Skill .
+
+ex:bad a gmeow:Teaching ;
+    gmeow:teacher ex:alice ;
+    gmeow:learner ex:alice ;
+    gmeow:subjectTaught ex:welding .

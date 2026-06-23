@@ -1,0 +1,20 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Conforming fixture for gmeow:TeachingShape — a well-formed Teaching with exactly
+# one teacher (an Agent), one learner (a distinct Agent), and a subject taught.
+# Bound by tests/example-conformance.ttl (ex:ecTeachingConforms, gmeow:conforms).
+# Self-contained: the harness loads learning/module.ttl + ONLY this file against
+# learning/shapes.ttl. Agents are typed locally so the sh:class gmeow:Agent
+# constraints are satisfiable without the merged graph.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex: <http://example.org/lrn/> .
+
+ex:alice a gmeow:Agent .
+ex:bob a gmeow:Agent .
+ex:welding a gmeow:Skill .
+
+ex:t1 a gmeow:Teaching ;
+    gmeow:teacher ex:alice ;
+    gmeow:learner ex:bob ;
+    gmeow:subjectTaught ex:welding .

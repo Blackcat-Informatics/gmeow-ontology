@@ -176,20 +176,26 @@ meta:Principle1 a meta:Principle ; meta:number 1 ; meta:title "Be excellent" ;
 
 
 def test_undeclared_generator_is_an_error(tmp_path: Path) -> None:
-    """A registered generator missing from the manifest fails the gate."""
+    """A principle citing an enforcement that is not declared in the manifest fails
+    the gate.
+
+    The generator-registry equality check was retired in #861 P7 (the Rust pipeline
+    is now the authoritative build DAG).  The nearest current equivalent is a principle
+    that references an enforcement node which has no ``meta:<Kind>`` type triple — the
+    Rust ``constitution_enforcement_report`` flags this as ``undeclared-enforcement``.
+    """
     manifest, constitution = _write_pair(
         tmp_path,
         """\
-meta:gate-x a meta:Gate ; meta:artifact "Makefile" ; meta:generator "gts" .
 meta:Principle1 a meta:Principle ; meta:number 1 ; meta:title "Be good" ;
-    meta:enforcedBy meta:gate-x .
+    meta:enforcedBy meta:nonexistent-gate .
 """,
         _MINIMAL_CONSTITUTION,
     )
     result = check_constitution(manifest_path=manifest, constitution_path=constitution)
-    assert any(
-        "registered but not constitutionally declared" in e for e in result.errors
-    ), "\n".join(result.errors)
+    assert any("undeclared enforcement" in e for e in result.errors), "\n".join(
+        result.errors
+    )
 
 
 def test_practice_only_principle_warns_not_errors(tmp_path: Path) -> None:

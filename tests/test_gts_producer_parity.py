@@ -114,12 +114,24 @@ def test_plain_graph_parity() -> None:
     _assert_fold_equivalent(native.gts_from_graph(g), legacy.gts_from_graph(g))
 
 
-def test_dataset_named_graph_parity() -> None:
+def test_dataset_named_graph_encoding() -> None:
+    """A Dataset's default-graph AND named-graph triples both encode.
+
+    NOT a legacy-parity case: the frozen pre-cutover encoder
+    (``tests/_gts_producer_legacy.py``) only walked a Dataset's NAMED graphs and
+    silently dropped its default-graph triples — a real bug. The native producer
+    correctly includes them, so this asserts the native producer's CORRECT
+    behavior (both triples round-trip) rather than parity with that legacy bug.
+    """
     ds = Dataset()
     g = ds.graph(URIRef(EX + "g1"))
     g.add((URIRef(EX + "s"), URIRef(EX + "p"), Literal("v", lang="en")))
     ds.add((URIRef(EX + "s2"), URIRef(EX + "p2"), URIRef(EX + "o2")))
-    _assert_fold_equivalent(native.gts_from_graph(ds), legacy.gts_from_graph(ds))
+    folded = set(_fold(native.gts_from_graph(ds)))
+    default_triple = f"<{EX}s2> <{EX}p2> <{EX}o2> ."
+    named_quad = f'<{EX}s> <{EX}p> "v"@en <{EX}g1> .'
+    assert default_triple in folded, f"default-graph triple dropped: {sorted(folded)}"
+    assert named_quad in folded, f"named-graph quad missing: {sorted(folded)}"
 
 
 def test_compile_gts_with_rdf12_parity(tmp_path: Path) -> None:

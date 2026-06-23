@@ -148,7 +148,9 @@ jobs:
       # (AC2/AC4 and the oracle≡engine parity gate run in every CI build).
       - name: Unit tests (pure Python)
         timeout-minutes: 60
-        run: uv run pytest -q -n auto --dist loadscope -m "not maintainer and not docker and not classic_cross_check"
+        # --durations=25 surfaces the slowest tests in every run — the migration
+        # worklist for moving the pytest suite into high-performance Rust (#781/#867).
+        run: uv run pytest -q -n auto --dist loadscope --durations=25 -m "not maintainer and not docker and not classic_cross_check"
 
   # Sharded across 3 runners via nextest's `--partition count:N/3` (balances the
   # test set across shards). All shards share the same Swatinem rust-cache key, so

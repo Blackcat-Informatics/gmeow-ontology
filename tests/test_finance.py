@@ -17,6 +17,7 @@ from tests._graph_nt import run_shacl
 
 GMEOW = "https://blackcatinformatics.ca/gmeow/"
 GUFO = "http://purl.org/nemo/gufo#"
+LOGIC = "https://blackcatinformatics.ca/logic/"
 
 EX_FIN = Namespace("https://blackcatinformatics.ca/gmeow/examples/finance/")
 COVERAGE_FIXTURES = Path(__file__).parent / "fixtures" / "coverage"
@@ -50,7 +51,7 @@ def test_monetary_amount_is_entity() -> None:
     assert (
         URIRef(GMEOW + "MonetaryAmount"),
         RDF.type,
-        URIRef(GUFO + "Kind"),
+        URIRef(LOGIC + "Kind"),
     ) in graph
 
 

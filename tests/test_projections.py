@@ -86,7 +86,7 @@ def test_schema_org_projection() -> None:
     # co-equal multilingual names BOTH emitted; deadname suppressed.
     names = set(g.objects(URIRef(NAMES + "patrick"), URIRef(SCHEMA + "name")))
     assert Literal("Patrick Colm Audley", lang="en") in names
-    assert Literal("欧德理", lang="zh-Hans") in names
+    assert Literal("欧德理", lang="zh-hans") in names
     assert not any("suppressed" in str(o) for o in g.objects())
     # name parts + honorific.
     assert (
@@ -305,7 +305,7 @@ def test_foaf_projection() -> None:
         URIRef(WGS84 + "SpatialThing"),
     ) in g
     assert list(g.objects(URIRef(LOC + "westbourne112"), URIRef(WGS84 + "lat")))
-    assert Literal("欧德理", lang="zh-Hans") in set(
+    assert Literal("欧德理", lang="zh-hans") in set(
         g.objects(URIRef(NAMES + "patrick"), URIRef(FOAF + "name"))
     )
     _assert_no_gmeow_leakage(g)
