@@ -1754,11 +1754,16 @@ dependencies = [
  "csv",
  "ed25519-dalek",
  "gmeow-gts",
+ "gmeow-rdf-events",
  "hashbrown 0.14.5",
  "pretty_assertions",
  "proptest",
  "sha2",
 ]
+
+[[package]]
+name = "gmeow-rdf-events"
+version = "0.1.0"
 
 [[package]]
 name = "gmeow-shacl"
