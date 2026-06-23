@@ -48,10 +48,10 @@ ex:saMetacognitiveStateNoExtraGufoMetaclass a gmeow:StructuralAssertion ;
 PREFIX gufo: <http://purl.org/nemo/gufo#>
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 ASK {
-    VALUES ?extra { gufo:SubKind gufo:Phase gufo:Role gufo:RoleMixin gufo:Mixin gufo:Category gufo:PhaseMixin gufo:HistoricalRoleMixin }
-    gmeow:MetacognitiveState rdf:type ?extra .
+    gmeow:MetacognitiveState rdf:type ?t .
+    FILTER(STRSTARTS(STR(?t), "http://purl.org/nemo/gufo#") && ?t != gufo:Kind)
 }""" ;
-    gmeow:saRationale "MetacognitiveState MUST carry exactly one gUFO metaclass (gufo:Kind): no additional gUFO sortal or non-sortal may be present. Mirrors the exact-one-metaclass clause of test_metacognitive_state_is_a_mental_moment_kind." .
+    gmeow:saRationale "MetacognitiveState MUST carry NO gUFO-namespace type other than gufo:Kind — this dynamic ASK mirrors the ORIGINAL test_metacognitive_state_is_a_mental_moment_kind set-equality (the gUFO-type set must equal {gufo:Kind} exactly, for ANY gUFO metaclass, not just a hardcoded blacklist). Paired with ex:saMetacognitiveStateIsMentalMomentKind which asserts gufo:Kind IS present." .
 
 # --- 2. MetacognitiveState is sibling not a sub-mode (MUST-NOT hold) ----------
 ex:saMetacognitiveStateSiblingNotSubMode a gmeow:StructuralAssertion ;
