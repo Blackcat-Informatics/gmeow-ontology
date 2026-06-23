@@ -20,7 +20,6 @@ isomorphism, TSV/SPARQL by bytes), reporting any drift without writing.
 from __future__ import annotations
 
 import concurrent.futures
-import inspect
 import json
 import os
 import re
@@ -47,8 +46,7 @@ from gmeow_tools.config import (
     PROJECTION_QUERY_DIR,
     PROJECTIONS_DIR,
 )
-from gmeow_tools.generator import Generator, rdf_compare, register
-from gmeow_tools.graph import bind_prefixes, iter_module_files, load_merged_graph
+from gmeow_tools.graph import bind_prefixes, load_merged_graph
 from gmeow_tools.language_tags import retag_graph
 from gmeow_tools.mapping_dsl import (
     Atom,
@@ -68,7 +66,6 @@ from gmeow_tools.projection_lint import (
     fno_type_mismatches,
     projection_spec_drift,
 )
-from gmeow_tools.slices import iter_slice_mapping_files
 
 GM = Namespace(PREFIXES["gmeow"])
 ALIGN = Namespace(PREFIXES["align"])
@@ -1636,72 +1633,3 @@ def _drift(root: Path) -> list[str]:
 # --------------------------------------------------------------------------- #
 # Registered generator
 # --------------------------------------------------------------------------- #
-
-
-@register
-class MappingGenerator(Generator):
-    """Compile the mapping DSL → SSSOM + EDOAL + FnO + SPARQL."""
-
-    name: str = "mappings"
-    _cached_outputs: Sequence[Path] | None = None
-
-    @property
-    def inputs(self) -> Sequence[Path]:
-        """Canonical inputs for the mapping generator."""
-        return [
-            *list(MAPPING_DSL_DIR.glob("*.ttl")),
-            *list(MAPPING_DSL_DIR.glob("*/*.ttl")),
-            *iter_slice_mapping_files(),
-            PROJECT_ROOT / "ontology" / "gmeow.ttl",
-            *iter_module_files(),
-            *list((PROJECT_ROOT / "imports").glob("*.ttl")),
-        ]
-
-    @property
-    def outputs(self) -> Sequence[Path]:
-        """Committed outputs for the mapping generator."""
-        if self._cached_outputs is not None:
-            return self._cached_outputs
-        dsl = load_dsl()
-        paths = list(_committed_paths().values())
-        for file in emit_sssom(dsl):
-            paths.append(MAPPINGS_DIR / file)
-        self._cached_outputs = paths
-        return paths
-
-    @property
-    def implementation_paths(self) -> Sequence[Path]:
-        """Helper modules whose logic affects generated mapping artifacts."""
-        import gmeow_tools.graph
-        import gmeow_tools.mapping_dsl
-        import gmeow_tools.projection_lint
-
-        return [
-            Path(inspect.getfile(gmeow_tools.graph)),
-            Path(inspect.getfile(gmeow_tools.mapping_dsl)),
-            Path(inspect.getfile(gmeow_tools.projection_lint)),
-        ]
-
-    def render(self, staging: Path) -> None:
-        """Render mapping artifacts into the staging tree."""
-        dsl = load_dsl()
-        onto = load_merged_graph(include_imports=False)
-        rdf_graphs, sparql_texts, sssom_texts = _artifacts(dsl, onto)
-        _write_tree(staging, rdf_graphs, sparql_texts, sssom_texts)
-        problems = _run_invariants(staging)
-        if problems:
-            raise CompileError(
-                "compiler output violates projection invariants:\n  "
-                + "\n  ".join(problems)
-            )
-        sssom_problems = _validate_sssom(sssom_texts)
-        if sssom_problems:
-            raise CompileError(
-                "SSSOM validation failed:\n  " + "\n  ".join(sssom_problems)
-            )
-
-    def compare(self, fresh: Path, committed: Path) -> list[str]:
-        """Use graph isomorphism for RDF artifacts, bytes for others."""
-        if committed.suffix == ".ttl":
-            return rdf_compare(fresh, committed)
-        return Generator.compare(self, fresh, committed)

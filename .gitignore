@@ -25,6 +25,10 @@ htmlcov/
 # Stamp files (compilation freshness tracking)
 .stamps/
 
+# gmeow-pipeline content-addressed stage cache (#861): self-verifying, rebuilt
+# on demand, never committed (supersedes .stamps/ at the #861 cutover).
+generated/.pipeline-cache/
+
 # Editor/OS noise
 .DS_Store
 *.swp
@@ -59,3 +63,4 @@ crates/native/python/gmeow_native/*.pyd
 lcov.info
 mutants.out*/
 bench-results.json
+/pipeline/

@@ -24,7 +24,7 @@ from __future__ import annotations
 
 import csv
 import json
-from collections.abc import Iterable, Sequence
+from collections.abc import Iterable
 from dataclasses import dataclass, field
 from dataclasses import replace as dataclass_replace
 from functools import lru_cache
@@ -36,15 +36,11 @@ from gts.nquads import to_nquads
 from gts.trig import to_trig
 
 from gmeow_tools.config import (
-    DIST_DIR,
     GTS_GRAPH_ALIGNMENTS,
-    GTS_SNAPSHOT_FILE,
     NAMESPACE,
     ONTOLOGY_IRI,
     PREFIXES,
-    PROJECT_ROOT,
 )
-from gmeow_tools.generator import Generator, _rel, register
 from gmeow_tools.gts_views import FoldView, load_fold
 
 if TYPE_CHECKING:
@@ -1164,73 +1160,3 @@ def write_shex(view: FoldView, dist_dir: Path) -> Path:
 # --------------------------------------------------------------------------- #
 # Registered generator
 # --------------------------------------------------------------------------- #
-
-
-@register
-class ExportGenerator(Generator):
-    """Generate flattened export views (CSV/CSVW, Markdown, JSONL, llms.txt)."""
-
-    name: str = "exports"
-
-    _cached_inputs: Sequence[Path] | None = None
-
-    @property
-    def inputs(self) -> Sequence[Path]:
-        """Canonical inputs for the export generator."""
-        if self._cached_inputs is not None:
-            return self._cached_inputs
-        self._cached_inputs = [GTS_SNAPSHOT_FILE]
-        return self._cached_inputs
-
-    @property
-    def outputs(self) -> Sequence[Path]:
-        """Committed outputs for the export generator."""
-        return [
-            DIST_DIR / "gmeow-classes.csv",
-            DIST_DIR / "gmeow-properties.csv",
-            DIST_DIR / "gmeow-individuals.csv",
-            DIST_DIR / "gmeow-terms.csvw.json",
-            DIST_DIR / "gmeow-terms.jsonl",
-            DIST_DIR / "gmeow-terms.md",
-            DIST_DIR / "llms.txt",
-            DIST_DIR / "gmeow.nq",
-            DIST_DIR / "gmeow.trig",
-            DIST_DIR / "gmeow-statements.jsonl",
-            DIST_DIR / "gmeow-skos.ttl",
-            DIST_DIR / "gmeow-obographs.json",
-            DIST_DIR / "gmeow.shex",
-        ]
-
-    def render(self, staging: Path) -> None:
-        """Render flattened export views from the GTS snapshot."""
-        from gmeow_tools.language_tags import resolve_lang_input
-
-        out_dir = staging / DIST_DIR.relative_to(PROJECT_ROOT)
-        out_dir.mkdir(parents=True, exist_ok=True)
-        view = load_fold()
-        title, version = fold_meta(view)
-        selector = resolve_lang_input(None, view.tag_map())
-        terms = collect_terms(view, selector=selector)
-        write_csvs(terms, out_dir, selector=selector)
-        write_csvw(out_dir, title=title, selector=selector)
-        write_jsonl(terms, out_dir)
-        write_markdown(terms, out_dir, title=title, version=version)
-        write_llms_txt(terms, out_dir, title=title, version=version)
-        write_nquads(view, out_dir)
-        write_trig(view, out_dir, selector=selector)
-        write_statements_jsonl(view, out_dir)
-        write_skos(view, out_dir, title=title, version=version, selector=selector)
-        write_obographs(view, out_dir, version=version, selector=selector)
-        write_shex(view, out_dir)
-
-    def compare(self, fresh: Path, committed: Path) -> list[str]:
-        """Skip drift for git-ignored export artifacts."""
-        if not committed.exists():
-            return []
-        if not fresh.exists():
-            rel = _rel(committed)
-            return [f"{rel} (not produced in staging)"]
-        if fresh.read_bytes() != committed.read_bytes():
-            rel = _rel(committed)
-            return [f"{rel}"]
-        return []

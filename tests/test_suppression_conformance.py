@@ -8,7 +8,7 @@ tests parametrize over the live :data:`gmeow_tools.projections.PROFILES`
 registry, so adding a profile yields its leak-conformance tests with zero
 additional authoring.
 
-Marked ``ci_only`` because it renders every projection profile over the canary
+Marked ``maintainer`` because it renders every projection profile over the canary
 corpus and re-derives every guarded branch. CI still proves the all-profile
 contract; frequent local ``make check`` runs keep the narrower regression tests
 in ``tests/test_suppress_gen.py`` and ``tests/test_projections.py``.
@@ -41,7 +41,7 @@ from gmeow_tools.config import FIXTURES_DIR, PROJECTION_QUERY_DIR
 from gmeow_tools.graph import load_merged_graph
 from gmeow_tools.projections import PROFILES, project_graph
 
-pytestmark = pytest.mark.ci_only
+pytestmark = pytest.mark.maintainer
 
 _CANARY_FILE = FIXTURES_DIR / "suppression-canary.ttl"
 _COARSEN_FILE = FIXTURES_DIR / "suppress-gen.ttl"

@@ -24,7 +24,7 @@ from gmeow_tools.saturate import (
     saturate,
 )
 
-pytestmark = pytest.mark.ci_only
+pytestmark = pytest.mark.maintainer
 
 _GM = NAMESPACE
 _SCHEMA_PERSON = URIRef("https://schema.org/Person")

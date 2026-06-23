@@ -20,7 +20,7 @@ path = "src/lib.rs"
 
 [features]
 default = ["gts"]
-gts = ["dep:ciborium", "dep:gmeow-gts", "oxigraph"]
+gts = ["dep:ciborium", "dep:gmeow-gts", "dep:ed25519-dalek", "oxigraph"]
 oxigraph = ["dep:oxigraph"]
 # `python` builds the `gmeow_rdf` PyO3 extension (the native statement codec).
 # It is OFF by default so the kernel rlib stays PyO3-free for its Rust consumers
@@ -28,11 +28,12 @@ oxigraph = ["dep:oxigraph"]
 # the standard extension-module switch, not a degraded fallback — the Rust
 # functionality is identical with or without it (#648, #667).
 # `python` builds the GTS producer + statement-codec surface, so it pulls in the
-# `gts` feature (gmeow-gts) and the Ed25519 signer the snapshot signing path uses.
+# `gts` feature (gmeow-gts + the Ed25519 signer the snapshot signing path uses —
+# now owned by `gts` since the pyo3-free compose core links it, #861 P6).
 # The PyO3 surface adds the JSON-LD-star (`yaml-ld`) + RDF/XML (`rdf-codecs`)
 # gmeow-gts codecs the compat `Graph.serialize/parse` route through (#834); these
 # stay OFF for the non-python Rust consumers (logic/shacl/validate) to keep them lean.
-python = ["dep:pyo3", "gts", "oxigraph", "dep:ed25519-dalek", "gmeow-gts/yaml-ld", "gmeow-gts/rdf-codecs"]
+python = ["dep:pyo3", "gts", "oxigraph", "gmeow-gts/yaml-ld", "gmeow-gts/rdf-codecs"]
 
 [dependencies]
 ciborium = { version = "0.2", optional = true }

@@ -8,11 +8,15 @@ pub mod analysis;
 pub mod artifact;
 pub mod cache;
 pub mod catalog;
+pub mod dsl_stats_emit;
+pub mod edoal_emit;
 pub mod error;
 pub mod fix_deps;
 pub mod fno_emit;
 pub mod mapping_emit;
 pub mod ownership;
+pub mod sparql_emit;
+pub mod standpoint_emit;
 
 #[cfg(feature = "python")]
 pub mod py;
@@ -31,6 +35,8 @@ pub use cache::{
     CacheKey, LinkUnit, Phase, ProductUnit, ToolchainContext,
 };
 pub use catalog::{ManifestView, SliceCatalog, SliceRecord, SliceTier};
+pub use dsl_stats_emit::emit_dsl_stats;
+pub use edoal_emit::emit_edoal_sets;
 pub use error::SliceError;
 pub use fix_deps::{compute_fix_deps, ManifestPatch};
 pub use mapping_emit::emit_sssom_sets;
@@ -39,3 +45,5 @@ pub use ownership::{
     OwnershipDiagnostic, OwnershipReport, OwnershipStatus, ReconciliationStatus, SliceIri,
     TermOwnership,
 };
+pub use sparql_emit::emit_sparql_sets;
+pub use standpoint_emit::emit_standpoint_sets;

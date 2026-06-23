@@ -282,11 +282,14 @@ build: ## Build serializations and JSON-LD context into dist/.
 project: ## Project GMEOW data to pure schema.org/GeoSPARQL/vCard/FOAF/iCal/OWL-Time profiles (FnO/EDOAL).
 	$(GMEOW_DEV) project
 
-test: native-py ## Run the full test suite (incl. heavy ci_only export tests; excludes the classic-cross-check lane).
-	uv run pytest -n auto --dist loadscope -m "not classic_cross_check"
+test: native-py ## Run the test suite (excludes the maintainer-only and classic-cross-check lanes).
+	uv run pytest -n auto --dist loadscope -m "not maintainer and not classic_cross_check"
 
-test-fast: native-py ## Run the fast test suite (excludes ci_only, docker, and the classic-cross-check lane).
-	uv run pytest -n auto --dist loadscope -m "not ci_only and not docker and not classic_cross_check"
+test-fast: native-py ## Run the fast test suite (excludes maintainer, docker, and the classic-cross-check lane).
+	uv run pytest -n auto --dist loadscope -m "not maintainer and not docker and not classic_cross_check"
+
+test-maintainer: native-py ## [maintainer] Heavy kept-Python-module suite (schema_compile/export/okf/compilers/transpiler) — MANUAL only, never in CI or any other make target (#861).
+	uv run pytest -n auto --dist loadscope -m "maintainer and not classic_cross_check"
 
 test-docker: classic-cross-check ## Compatibility alias for the classic-cross-check (Docker/Java oracle) lane.
 
@@ -295,7 +298,7 @@ test-network: ## Run the network tests (LIVE endpoints) — MANUAL only, never i
 
 check: logic-py rdf-py ## Fast local gate: core ontology + transforms (native EL/DL reasoning — Java/Docker-free; classic-cross-check oracle lane runs separately).
 	$(MAKE) -j$$(nproc 2>/dev/null || echo 4) lint clippy rust-test validate check-generated constitution-check crate-check audit wikidata coverage acceptance reason-native verify mappings-only lint-alignment doc-lint
-	uv run pytest -n auto --dist loadscope -m "not ci_only and not docker and not classic_cross_check"
+	uv run pytest -n auto --dist loadscope -m "not maintainer and not docker and not classic_cross_check"
 	$(GMEOW_DEV) compliance-report --from-passing-check
 	@echo "✓ all checks passed (Docker-free, Java-free)"
 

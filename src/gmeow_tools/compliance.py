@@ -73,26 +73,23 @@ def _run_alignment() -> ValidationResult:
 
 
 def _run_check_generated() -> ValidationResult:
-    from gmeow_tools.constitution import _registered_generators
-    from gmeow_tools.generator import check_all
-    from gmeow_tools.runner import ToolUnavailableError
-
-    generators = _registered_generators()  # @register side effects
+    import os
 
     result = ValidationResult()
     try:
-        reports = check_all(None)
-    except ToolUnavailableError as exc:
-        # The statements generator renders via Docker/Jena, absent in some
-        # CI jobs — it is gated by its own Docker-backed job; the skip is
-        # recorded in the report, never silent.
-        result.warnings.append(f"statements drift not checked here: {exc}")
-        reports = check_all(sorted(generators - {"statements"}))
-    for name, report in reports.items():
-        for rel in sorted(report.drifted):
-            result.errors.append(f"drift {name}: {rel}")
-        for rel in sorted(report.orphans):
-            result.errors.append(f"orphan {name}: {rel}")
+        import gmeow_native.pipeline as _pipeline
+    except ImportError as exc:
+        result.warnings.append(f"generated drift not checked here: {exc}")
+        return result
+
+    # The Rust pipeline (the build authority since #861 P7) reproduces every
+    # committed artifact single-pass and reports any drift in CHECK mode.
+    report = _pipeline.run_pipeline(str(PROJECT_ROOT), os.cpu_count() or 1, True)
+    for rel in sorted(report.get("drifted", [])):
+        result.errors.append(f"drift: {rel}")
+    for finding in report.get("findings", []):
+        if finding["severity"] == "error":
+            result.errors.append(f"{finding['code']}: {finding['message']}")
     return result
 
 

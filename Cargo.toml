@@ -15,6 +15,9 @@ members = [
     # The single PyO3 cdylib: all five engine crates fold into `gmeow_native` so
     # the diagnostics `Report`/`Finding` pyclasses are ONE shared type (#630).
     "crates/native",
+    # DAG-driven single-pass build executor (#861): typed stages over an
+    # in-memory RDF dataflow, dogfooding the build graph from gmeow: individuals.
+    "crates/pipeline",
     "crates/rdf",
     "crates/shacl",
     "crates/slice",
@@ -92,6 +95,9 @@ codegen-units = 1
 codegen-units = 1
 
 [profile.release.package.gmeow-native]
+codegen-units = 1
+
+[profile.release.package.gmeow-pipeline]
 codegen-units = 1
 
 [profile.release.package.gmeow-slice]
