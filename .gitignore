@@ -64,3 +64,6 @@ lcov.info
 mutants.out*/
 bench-results.json
 /pipeline/
+
+# Nightly rustc internal-compiler-error crash dumps (never commit)
+rustc-ice-*.txt
