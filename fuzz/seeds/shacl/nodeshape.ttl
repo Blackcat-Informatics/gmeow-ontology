@@ -1,0 +1,7 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix ex: <https://example.org/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+ex:S a sh:NodeShape ;
+  sh:targetClass ex:C ;
+  sh:property [ sh:path ex:p ; sh:minCount 1 ; sh:datatype xsd:string ] ;
+  sh:property [ sh:path ex:q ; sh:nodeKind sh:IRI ; sh:pattern "^a+$" ] .

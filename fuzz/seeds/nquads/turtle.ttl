@@ -1,0 +1,4 @@
+@prefix ex: <https://example.org/> .
+ex:a ex:b ex:c .
+<<ex:a ex:b ex:c>> ex:d ex:e .
+ex:a ex:b "42"^^<http://www.w3.org/2001/XMLSchema#integer> .

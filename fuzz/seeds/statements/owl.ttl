@@ -1,0 +1,6 @@
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix ex: <https://example.org/> .
+ex:C a owl:Class .
+ex:p a owl:ObjectProperty ; rdf:type owl:Class .
+<<ex:s ex:p ex:o>> ex:confidence "0.9" .
