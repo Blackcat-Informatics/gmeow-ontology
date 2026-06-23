@@ -205,9 +205,15 @@ impl Interner {
 
     /// Append a string to the arena, returning its range.
     fn push_str(&mut self, s: &str) -> StrRange {
+        // Validate the range fits u32 BEFORE mutating the arena: a checked overflow
+        // here fails fast and leaves the builder consistent, rather than extending the
+        // arena past u32::MAX and corrupting every subsequent push_str.
         let offset = u32::try_from(self.arena.len()).expect("term arena exceeds u32::MAX bytes");
-        self.arena.extend_from_slice(s.as_bytes());
         let len = u32::try_from(s.len()).expect("term string exceeds u32::MAX bytes");
+        offset
+            .checked_add(len)
+            .expect("term arena exceeds u32::MAX bytes");
+        self.arena.extend_from_slice(s.as_bytes());
         StrRange { offset, len }
     }
 
