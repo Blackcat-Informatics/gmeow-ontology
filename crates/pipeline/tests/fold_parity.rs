@@ -105,52 +105,6 @@ struct FoldShape {
     annotations: usize,
 }
 
-/// Whether a quad is a self-describing pipeline-DAG triple (authored in the
-/// pipeline slice). Matched by the pipeline individuals / vocabulary IRIs: the
-/// `gmeow:pipeline-build` graph, every `gmeow:stage-*` node, the `gmeow:kind*`
-/// values, and the pipeline-vocabulary predicates. These are the triples the
-/// #861 P6 DAG re-authoring legitimately changes ahead of a bundle regen.
-fn is_pipeline_self_triple(s: &str, p: &str, o: &str) -> bool {
-    const NS: &str = "https://blackcatinformatics.ca/gmeow/";
-    let pipeline_iri = |t: &str| -> bool {
-        t.strip_prefix(NS).is_some_and(|local| {
-            local.starts_with("stage-")
-                || local.starts_with("kind")
-                || local.starts_with("pipeline-")
-                || matches!(
-                    local,
-                    "Pipeline"
-                        | "PipelineStage"
-                        | "StageKind"
-                        | "hasStage"
-                        | "dataflowConsumes"
-                        | "dataflowProduces"
-                        | "stageKind"
-                        | "stageImpl"
-                        | "producesFormat"
-                        | "carriesEngineLock"
-                )
-        })
-    };
-    // The slice-analysis graph's `gmeow:bundleContentId` is a content hash OVER the
-    // authored graph; re-authoring the pipeline DAG changes the authored content
-    // and thus this digest, while the committed bundle still carries the old one
-    // (pending regen). Exclude it for the same stale-vs-fresh reason.
-    if p == format!("{NS}bundleContentId") {
-        return true;
-    }
-    // The pipeline slice's OWN slice-analysis row (subject `gmeow:slices/pipeline`)
-    // carries its `gmeow:termCoverage` count + ownership digests. Authoring a new
-    // `gmeow:stage-*` individual in the pipeline `module.ttl` raises that term count
-    // (e.g. 42 → 43 when `stage-export-logic` lands), while the committed bundle
-    // still pins the old count — the same stale-vs-fresh self-description divergence
-    // as the default-graph DAG triples above, pending a bundle regen.
-    if s == format!("{NS}slices/pipeline") {
-        return true;
-    }
-    pipeline_iri(s) || pipeline_iri(p) || pipeline_iri(o)
-}
-
 fn fold_shape(bytes: &[u8]) -> FoldShape {
     // Read the folded GTS graph and count over the raw `Graph` quad table. We do
     // NOT iterate `GtsGraphStore::quads()` here: it eagerly resolves quoted-triple
@@ -173,18 +127,11 @@ fn fold_shape(bytes: &[u8]) -> FoldShape {
             None => "<default>".to_string(),
         };
         let (sv, pv, ov) = (term(s), term(p), term(o));
-        // The pipeline slice (`slices/core/pipeline/module.ttl`) describes the BUILD
-        // DAG itself, and its authored triples ride the default graph. When the DAG
-        // is re-authored (e.g. the #861 P6 single-pass rewiring of stageImpl /
-        // dataflowConsumes), the freshly-composed fold reflects the new DAG while
-        // the COMMITTED `gmeow.gts` still carries the OLD DAG (regenerating the
-        // bundle is a separate step — "module.ttl change ⇒ regen gmeow.gts"). Those
-        // self-describing pipeline triples are therefore EXPECTED to diverge until
-        // regen; exclude them so the gate still proves the rest of the fold is
-        // byte-stable. They are re-validated end-to-end by `dag_dogfood.rs`.
-        if is_pipeline_self_triple(&sv, &pv, &ov) {
-            continue;
-        }
+        // No self-triple exclusion: the committed `gmeow.gts` is kept regenerated
+        // in lock-step with the dogfooded pipeline DAG (`module.ttl` change ⇒
+        // pipeline regen), so the freshly-composed fold — including every
+        // self-describing pipeline-DAG triple, the `bundleContentId`, and the
+        // pipeline slice-analysis row — matches the committed bundle exactly.
         *by_graph.entry(key.clone()).or_default() += 1;
         // A blank node's canonical label is run-specific; only blank-free quads
         // compare across runs (the count covers the blank-bearing remainder).

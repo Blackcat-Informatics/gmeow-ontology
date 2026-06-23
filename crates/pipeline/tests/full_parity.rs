@@ -68,21 +68,10 @@ fn repo_root() -> PathBuf {
 ///    `mapping_compile`'s `retag_graph` / `edoal_emit`'s tag map), so it is
 ///    graph-isomorphic to the committed `@en` projection. NOT in this allowlist.
 ///
-/// The ONLY residual entry is the stale-vs-fresh self-description of the pipeline
-/// DAG itself: re-adding `gmeow:stage-export-logic` to the dogfooded `module.ttl`
-/// authors ONE new `gmeow:PipelineStage` individual, which the committed
-/// `generated/dist/gmeow.gts` (folded before the stage was re-added) does not yet
-/// carry. Regenerating the bundle is a SEPARATE step ("module.ttl change ⇒ regen
-/// gmeow.gts"); until then:
-///
-///  * `generated/metadata/void.ttl` — the VoID census counts the default-graph
-///    triples + `gmeow:`-namespaced entities. The new stage individual raises
-///    `void:triples` by exactly 11 (38136 → 38147) and `void:entities` by exactly 1
-///    (4481 → 4482); EVERY other triple is identical (verified: 1714 vs 1714 triples,
-///    differing ONLY in those two derived counts). This is the SAME pipeline-self
-///    re-authoring delta the `fold_shape` filter excludes from the fold below —
-///    pending the bundle regen, NOT a real drift and NOT an external toolchain.
-const KNOWN_SKEW: &[&str] = &["generated/metadata/void.ttl"];
+/// The allowlist is EMPTY: the committed `gmeow.gts` and every committed leaf are
+/// kept regenerated in lock-step with the dogfooded DAG, so the pipeline reproduces
+/// them all with zero drift. New entries must be individually justified.
+const KNOWN_SKEW: &[&str] = &[];
 
 /// Whether the lane-only LinkML toolkit is available (the `schemas` leaf shells
 /// out to it). A missing toolkit is a clean SKIP, never a failure — mirrors the
