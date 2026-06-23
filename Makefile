@@ -34,7 +34,7 @@ NATIVE_RUSTFLAGS := -Zunstable-options -Clink-self-contained=+linker -Clinker-fe
         native-py rust-test insta-review fuzz-smoke logic-build logic-test logic-py conformance \
         shacl-build shacl-test shacl-py \
         validate-build validate-test validate-py validate-gts rdf-py clippy slicetest \
-        bench dev
+        bench rust-coverage mutants bench-json dev
 
 help: ## Show this help.
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
@@ -251,8 +251,20 @@ fuzz-smoke: ## Deep-fuzz each format frontend briefly (T7, #788; needs `cargo in
 	  cargo fuzz run $$t fuzz/corpus/$$t fuzz/seeds/$$t -- -max_total_time=$(FUZZ_TIME) || exit 1; \
 	done
 
-bench: ## Run criterion benchmarks (release, host-tuned target-cpu=native) — the acceleration-program baseline (#630).
-	RUSTFLAGS="$(NATIVE_RUSTFLAGS)" cargo bench -p gmeow-logic -p gmeow-shacl -p gmeow-validate
+bench: ## Run criterion benchmarks (release, host-tuned target-cpu=native) — the acceleration-program baseline (#630) + the reasoning hot path (#790).
+	RUSTFLAGS="$(NATIVE_RUSTFLAGS)" cargo bench -p gmeow-logic -p gmeow-rdf -p gmeow-shacl -p gmeow-validate
+
+rust-coverage: ## Rust region-level coverage (cargo-llvm-cov; report-only, OFF the required gate — the suite-quality budget, #790). Emits lcov.info + an HTML report. Needs `cargo install cargo-llvm-cov`. Named `rust-coverage` to not collide with the Python entity-`coverage` gate.
+	cargo llvm-cov --workspace --include-ffi --lcov --output-path lcov.info
+	cargo llvm-cov report --html
+
+MUTANTS_ARGS ?=
+mutants: ## Mutation-test the logic+validate cores (cargo-mutants; grades whether the suite catches regressions; report-only, OFF the required gate, #790). Config in mutants.toml. The full logic run is HOURS (nemo) — scope locally with MUTANTS_ARGS="-p gmeow-validate -f <file>". Needs `cargo install cargo-mutants`.
+	cargo mutants $(MUTANTS_ARGS)
+
+bench-json: ## Flatten criterion estimates into bench-results.json for the #668 perf leaderboard (#790). Run `make bench` first to populate target/criterion.
+	python3 scripts/bench_to_json.py > bench-results.json
+	@echo "wrote bench-results.json ($$(wc -c < bench-results.json) bytes)"
 
 dev: ## Build + install gmeow_native host-tuned (maturin develop --release, target-cpu=native) for optimized LOCAL runs.
 	RUSTFLAGS="$(NATIVE_RUSTFLAGS)" VIRTUAL_ENV="$$(pwd)/.venv" uvx maturin develop --release --manifest-path crates/native/Cargo.toml

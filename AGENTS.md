@@ -154,6 +154,34 @@ snapshot you have not inspected, and never leave a `*.snap.new` uncommitted. The
 parity stays with the native `crates/conformance` harness (graph-isomorphism +
 bless), which insta does not replace.
 
+#### Suite quality & the gate-perf budget (benchmarks / coverage / mutation, T9 #790)
+
+The **always-on hard gate is `make rust-test`** (plus `make check`). Benchmarks,
+coverage, and mutation testing are SLOW and **report-only** — they run **off the
+required PR path**, scheduled + `workflow_dispatch` in
+[`.github/workflows/suite-quality.yml`](./.github/workflows/suite-quality.yml),
+exactly like the nightly fuzz job (#788) and the HermiT oracle. Keeping slow
+tools off-gate IS the documented **gate-perf budget**: nothing here can block a
+PR, so the required lane stays fast.
+
+```bash
+make bench           # criterion hot-path benchmarks (host-tuned target-cpu=native);
+                     #   reasoning (reason_all/el_closure/materialize_core), SHACL
+                     #   validate, RDF layout, foundation chase, …
+make bench-json      # flatten target/criterion/**/new/estimates.json → bench-results.json
+                     #   (the machine-stable feed for the #668 perf leaderboard)
+make rust-coverage   # cargo-llvm-cov region coverage (lcov + HTML, --include-ffi); report-only.
+                     #   Named NOT `coverage` — that is the Python entity-coverage gate.
+make mutants         # cargo-mutants over the logic+validate cores (mutants.toml). Grades whether
+                     #   the suite catches regressions. The full logic run is HOURS (nemo) — scope
+                     #   locally with MUTANTS_ARGS="-p gmeow-validate -f <file>".
+```
+
+A surviving mutant is a real test-strength gap: kill it by strengthening a test
+(see the `constitution.rs` `literal_i64`/`literal_string` tests added in #790),
+or document why it is acceptable. Coverage/mutation/bench numbers are *evidence
+to act on*, never a fabricated metric — report exactly what ran.
+
 #### GTS engines (moved to the `gmeow-gts` repo)
 
 The four GTS engines (Python, Rust, Go, TypeScript) and the frozen conformance

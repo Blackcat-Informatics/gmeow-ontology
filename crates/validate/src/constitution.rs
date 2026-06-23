@@ -234,6 +234,44 @@ fn error(code: &str, message: String) -> Finding {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use oxigraph::model::Literal;
+
+    // cargo-mutants (T9, #790) surfaced surviving mutants in `literal_i64` /
+    // `literal_string` — the helpers had no direct coverage, so replacing their
+    // body with `None`/`Some(0)`/deleting the match arm went undetected. These
+    // tests pin both the literal path and the non-literal fallthrough, killing
+    // that mutant cluster.
+    #[test]
+    fn literal_i64_parses_only_integer_literals() {
+        assert_eq!(
+            literal_i64(&Term::Literal(Literal::new_simple_literal("42"))),
+            Some(42)
+        );
+        assert_eq!(
+            literal_i64(&Term::Literal(Literal::new_simple_literal("-7"))),
+            Some(-7)
+        );
+        assert_eq!(
+            literal_i64(&Term::Literal(Literal::new_simple_literal("notanint"))),
+            None
+        );
+        assert_eq!(
+            literal_i64(&Term::NamedNode(NamedNode::new("https://e/x").unwrap())),
+            None
+        );
+    }
+
+    #[test]
+    fn literal_string_extracts_only_literal_lexical_values() {
+        assert_eq!(
+            literal_string(&Term::Literal(Literal::new_simple_literal("hello"))),
+            Some("hello".to_string())
+        );
+        assert_eq!(
+            literal_string(&Term::NamedNode(NamedNode::new("https://e/x").unwrap())),
+            None
+        );
+    }
 
     fn store_from(ttl: &str) -> Store {
         use oxigraph::io::{RdfFormat, RdfParser};
