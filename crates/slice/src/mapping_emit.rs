@@ -363,6 +363,32 @@ pub fn emit_sssom_sets(root: &Path) -> Result<BTreeMap<String, String>, SliceErr
     render_sets(&sources, &version, &release_date)
 }
 
+/// Every IRI that participates in an SSSOM equivalence at `root`, taken from BOTH
+/// the subject and object position of each `gmeow:TermEquivalence` cell.
+///
+/// This is the native equivalent of the Python `projection_spec_drift`'s `aligned`
+/// set (`build_alignment_graph(load_mappings(...))`, both endpoints collected): an
+/// SSSOM row may place the external target in subject OR object position, so the
+/// drift check needs both. Sourced from the DSL (byte-parity with the committed
+/// `*.sssom.tsv`), so no CURIE-expansion of the rendered TSV is needed — the cells
+/// already carry full absolute IRIs ([`EquivalenceCell::subject`]/[`obj`]).
+///
+/// [`obj`]: EquivalenceCell::obj
+///
+/// # Errors
+///
+/// Returns [`SliceError`] on any missing/unparsable required source (same contract
+/// as [`emit_sssom_sets`]).
+pub fn alignment_terms(root: &Path) -> Result<BTreeSet<String>, SliceError> {
+    let sources = collect_sources(root)?;
+    let mut terms: BTreeSet<String> = BTreeSet::new();
+    for cell in &sources.equivalences {
+        terms.insert(cell.subject.clone());
+        terms.insert(cell.obj.clone());
+    }
+    Ok(terms)
+}
+
 // ── Source collection ──────────────────────────────────────────────────────────
 
 /// Discover and parse every SSSOM source (the shared DSL tree + slice mapping

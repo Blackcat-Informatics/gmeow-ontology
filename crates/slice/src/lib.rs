@@ -15,6 +15,7 @@ pub mod fix_deps;
 pub mod fno_emit;
 pub mod mapping_emit;
 pub mod ownership;
+pub mod projection_lint;
 pub mod sparql_emit;
 pub mod standpoint_emit;
 
@@ -39,11 +40,12 @@ pub use dsl_stats_emit::emit_dsl_stats;
 pub use edoal_emit::emit_edoal_sets;
 pub use error::SliceError;
 pub use fix_deps::{compute_fix_deps, ManifestPatch};
-pub use mapping_emit::emit_sssom_sets;
+pub use mapping_emit::{alignment_terms, emit_sssom_sets};
 pub use ownership::{
     ArtifactEvidence, DependencyEdge, EdgeEvidence, EdgeKind, OwnershipAnalyzer,
     OwnershipDiagnostic, OwnershipReport, OwnershipStatus, ReconciliationStatus, SliceIri,
     TermOwnership,
 };
+pub use projection_lint::{lint_projection, ProjectionDiagnostic};
 pub use sparql_emit::emit_sparql_sets;
 pub use standpoint_emit::emit_standpoint_sets;
