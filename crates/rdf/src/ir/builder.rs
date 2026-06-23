@@ -17,8 +17,11 @@
 //! no-optionality doctrine, malformed structure is a HARD failure (`Err`), never a
 //! silent default.
 
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
+use std::hash::{Hash, Hasher};
 use std::sync::Arc;
+
+use hashbrown::HashTable;
 
 use crate::RdfLiteral;
 
@@ -26,35 +29,55 @@ use super::dataset::{QuadHandle, QuadIds, QuadRow, RdfDataset};
 use super::term::{BlankScope, InternedLiteral, InternedTerm, TermId, RDF_LANG_STRING, XSD_STRING};
 use crate::RdfLocation;
 
+/// A fixed-seed hash of a value (`DefaultHasher::new()` keys are constant), so the
+/// store-once tables are deterministic across runs. The frozen output is sorted by
+/// id, not hash-iteration order, so any hash would do — a fixed one just rules out
+/// the whole class of hash-order nondeterminism.
+fn hash_of<T: Hash>(value: &T) -> u64 {
+    let mut hasher = std::collections::hash_map::DefaultHasher::new();
+    value.hash(&mut hasher);
+    hasher.finish()
+}
+
+/// **Store-once** insert-or-find (#880 P3c): `vec` is the sole owner of the values;
+/// `table` holds only their `u32` indices, with hash/eq that look INTO `vec`. Returns
+/// the index of the (existing or newly pushed) value. No value is ever stored twice.
+///
+/// `vec` and `table` are distinct `&mut` params — callers pass disjoint struct fields,
+/// so the find-then-push-then-insert sequence has no overlapping borrow.
+fn store_once<T: Hash + Eq>(vec: &mut Vec<T>, table: &mut HashTable<u32>, value: T) -> u32 {
+    let hash = hash_of(&value);
+    if let Some(&i) = table.find(hash, |&i| vec[i as usize] == value) {
+        return i;
+    }
+    let i = u32::try_from(vec.len()).expect("interner table exceeds u32::MAX entries");
+    vec.push(value);
+    table.insert_unique(hash, i, |&i| hash_of(&vec[i as usize]));
+    i
+}
+
 /// Term storage + value-interning dedup + the C0 identity policy, in one cohesive
 /// unit (SRP). Private: the builder is the only public surface.
 struct Interner {
-    /// Dense table of interned terms, addressed by [`TermId::index`].
+    /// Dense table of interned terms — the **sole** owner of each term value (#880).
     terms: Vec<InternedTerm>,
-    /// Value → id index enforcing one id per distinct interned value.
-    index: HashMap<InternedTerm, TermId>,
+    /// Store-once value→id index: holds only the `u32` indices into `terms`, with
+    /// hash/eq looking into `terms`, so no term is stored twice.
+    index: HashTable<u32>,
 }
 
 impl Interner {
     fn new() -> Self {
         Self {
             terms: Vec::new(),
-            index: HashMap::new(),
+            index: HashTable::new(),
         }
     }
 
     /// Intern a fully-formed [`InternedTerm`], returning its (possibly existing)
     /// id. Idempotent: equal values map to the same id.
     fn intern(&mut self, term: InternedTerm) -> TermId {
-        if let Some(&id) = self.index.get(&term) {
-            return id;
-        }
-        let id = TermId::from_index(
-            u32::try_from(self.terms.len()).expect("term table exceeds u32::MAX entries"),
-        );
-        self.terms.push(term.clone());
-        self.index.insert(term, id);
-        id
+        TermId::from_index(store_once(&mut self.terms, &mut self.index, term))
     }
 
     fn term(&self, id: TermId) -> &InternedTerm {
@@ -77,16 +100,17 @@ pub struct RdfDatasetBuilder {
     /// Owns terms + the value-intern index + the C0 identity policy.
     interner: Interner,
     /// Deduplicated quad rows in first-seen order; `g == None` is the default graph.
+    /// The **sole** owner of each row; `quad_index` holds only indices (#880 P3c).
     quads: Vec<QuadRow>,
-    /// Membership set collapsing duplicate quads to one row (C0.5).
-    quad_set: HashSet<QuadRow>,
+    /// Store-once dedup index into `quads` (replaces the duplicate `HashSet<QuadRow>`).
+    quad_index: HashTable<u32>,
     /// `(reifier, triple-term)` bindings. Several reifiers MAY bind one triple term
     /// and the same binding MAY be pushed more than once; duplicates collapse (C0.4).
     reifiers: Vec<(TermId, TermId)>,
-    reifier_set: HashSet<(TermId, TermId)>,
+    reifier_index: HashTable<u32>,
     /// `(reifier, predicate, object)` annotations; duplicates collapse (C0.5).
     annotations: Vec<(TermId, TermId, TermId)>,
-    annotation_set: HashSet<(TermId, TermId, TermId)>,
+    annotation_index: HashTable<u32>,
     /// Sparse source locations keyed by the pushed-quad ordinal. Only quads with a
     /// recorded location appear here.
     locations: Vec<(QuadHandle, RdfLocation)>,
@@ -113,7 +137,8 @@ impl Extend<QuadIds> for RdfDatasetBuilder {
         let reserve = iter.size_hint().0;
         if reserve > 0 {
             self.quads.reserve(reserve);
-            self.quad_set.reserve(reserve);
+            self.quad_index
+                .reserve(reserve, |&i| hash_of(&self.quads[i as usize]));
         }
         for q in iter {
             self.push_quad(q.s, q.p, q.o, q.g);
@@ -128,11 +153,11 @@ impl RdfDatasetBuilder {
         Self {
             interner: Interner::new(),
             quads: Vec::new(),
-            quad_set: HashSet::new(),
+            quad_index: HashTable::new(),
             reifiers: Vec::new(),
-            reifier_set: HashSet::new(),
+            reifier_index: HashTable::new(),
             annotations: Vec::new(),
-            annotation_set: HashSet::new(),
+            annotation_index: HashTable::new(),
             locations: Vec::new(),
         }
     }
@@ -214,9 +239,7 @@ impl RdfDatasetBuilder {
     /// (deduped) order via [`QuadHandle`].
     pub fn push_quad(&mut self, s: TermId, p: TermId, o: TermId, g: Option<TermId>) {
         let row = QuadRow { s, p, o, g };
-        if self.quad_set.insert(row) {
-            self.quads.push(row);
-        }
+        store_once(&mut self.quads, &mut self.quad_index, row);
     }
 
     /// Bind a reifier resource to a triple term (C0.4). Several reifiers MAY bind
@@ -224,18 +247,18 @@ impl RdfDatasetBuilder {
     /// collapses to one.
     pub fn push_reifier(&mut self, reifier: TermId, triple: TermId) {
         let binding = (reifier, triple);
-        if self.reifier_set.insert(binding) {
-            self.reifiers.push(binding);
-        }
+        store_once(&mut self.reifiers, &mut self.reifier_index, binding);
     }
 
     /// Push a statement annotation `(reifier, predicate, object)`. Duplicate
     /// annotations collapse to one (C0.5).
     pub fn push_annotation(&mut self, reifier: TermId, p: TermId, o: TermId) {
         let annotation = (reifier, p, o);
-        if self.annotation_set.insert(annotation) {
-            self.annotations.push(annotation);
-        }
+        store_once(
+            &mut self.annotations,
+            &mut self.annotation_index,
+            annotation,
+        );
     }
 
     /// Attach a source location to a previously pushed quad, identified by its
