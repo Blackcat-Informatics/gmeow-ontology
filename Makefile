@@ -247,6 +247,7 @@ FUZZ_TIME ?= 30
 fuzz-smoke: ## Deep-fuzz each format frontend briefly (T7, #788; needs `cargo install cargo-fuzz`). The always-on contract is the proptest never-panic gate in `make rust-test`; this is the deeper coverage-guided pass. A crash = a "reject malformed, never panic" violation.
 	@for t in $(FUZZ_TARGETS); do \
 	  echo "== fuzz $$t ($(FUZZ_TIME)s) =="; \
+	  mkdir -p fuzz/corpus/$$t; \
 	  cargo fuzz run $$t fuzz/corpus/$$t fuzz/seeds/$$t -- -max_total_time=$(FUZZ_TIME) || exit 1; \
 	done
 
