@@ -1,0 +1,15 @@
+---
+source: crates/logic/src/compile/projections/tests.rs
+expression: rdf_snapshot(&arts.canonical_rdf12)
+---
+<https://blackcatinformatics.ca/gmeow/logic/gmeow.logic.rdf12> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Ontology>
+<https://example.org/relator-mediation/Employment> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/Relator>
+<https://example.org/relator-mediation/Organization> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/Kind>
+<https://example.org/relator-mediation/Person> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/Kind>
+<https://example.org/relator-mediation/employedBy> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/Role>
+<https://example.org/relator-mediation/employedBy> <https://blackcatinformatics.ca/logic/domain> <https://example.org/relator-mediation/Employment>
+<https://example.org/relator-mediation/employedBy> <https://blackcatinformatics.ca/logic/range> <https://example.org/relator-mediation/Organization>
+<https://example.org/relator-mediation/employs> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/logic/Role>
+<https://example.org/relator-mediation/employs> <https://blackcatinformatics.ca/logic/domain> <https://example.org/relator-mediation/Employment>
+<https://example.org/relator-mediation/employs> <https://blackcatinformatics.ca/logic/inverseOf> <https://example.org/relator-mediation/employedBy>
+<https://example.org/relator-mediation/employs> <https://blackcatinformatics.ca/logic/range> <https://example.org/relator-mediation/Person>

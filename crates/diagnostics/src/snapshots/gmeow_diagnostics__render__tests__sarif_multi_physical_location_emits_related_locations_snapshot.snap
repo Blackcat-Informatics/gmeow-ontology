@@ -1,0 +1,75 @@
+---
+source: crates/diagnostics/src/render.rs
+expression: value
+---
+{
+  "$schema": "https://json.schemastore.org/sarif-2.1.0.json",
+  "runs": [
+    {
+      "artifacts": [
+        {
+          "location": {
+            "uri": "core/ai/examples/grounded-claim.ttl"
+          }
+        },
+        {
+          "location": {
+            "uri": "slices/core/shapes/shapes.ttl"
+          }
+        }
+      ],
+      "results": [
+        {
+          "level": "error",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "core/ai/examples/grounded-claim.ttl"
+                },
+                "region": {
+                  "startColumn": 3,
+                  "startLine": 12
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "missing property"
+          },
+          "partialFingerprints": {
+            "gmeowFindingHash/v2": "d81c36effbb01770"
+          },
+          "relatedLocations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "slices/core/shapes/shapes.ttl"
+                },
+                "region": {
+                  "startLine": 40
+                }
+              }
+            }
+          ],
+          "ruleId": "shacl.MinCount"
+        }
+      ],
+      "tool": {
+        "driver": {
+          "informationUri": "https://github.com/Blackcat-Informatics/gmeow-ontology",
+          "name": "validate",
+          "rules": [
+            {
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "id": "shacl.MinCount"
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "version": "2.1.0"
+}

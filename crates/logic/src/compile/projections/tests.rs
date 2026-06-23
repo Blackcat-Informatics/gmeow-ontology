@@ -1,10 +1,13 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Projection tests — unit checks plus the **parity gate**: every projection of
-//! every `conformance/logic/cases/projections/*` case must match the committed
-//! Python goldens (text targets byte-for-byte; RDF targets by triple-set, since
-//! no golden uses blank nodes).
+//! Projection tests — unit checks plus the **insta snapshot goldens** (T8,
+//! #789): every projection of every `conformance/logic/cases/projections/*` case
+//! is pinned by a committed `.snap` golden (text targets byte-for-byte; RDF
+//! targets as a canonicalized sorted triple-set, since no golden uses blank
+//! nodes). The `.snap` files ARE the byte-exact unit golden; cross-engine
+//! semantic corpus parity over the same `expected/` files is owned by the native
+//! `crates/conformance` harness (graph-isomorphism + bless), which is untouched.
 
 use std::path::PathBuf;
 
@@ -112,19 +115,22 @@ fn triple_set(turtle: &str) -> Vec<String> {
     lines
 }
 
-fn assert_rdf_iso(case: &str, target: &str, got: &str, expected: &str) {
-    let g = triple_set(got);
-    let e = triple_set(expected);
-    if g != e {
-        let only_got: Vec<_> = g.iter().filter(|x| !e.contains(x)).collect();
-        let only_exp: Vec<_> = e.iter().filter(|x| !g.contains(x)).collect();
-        panic!(
-            "[{case}/{target}] RDF triple-set mismatch\n  got-only: {only_got:#?}\n  \
-             expected-only: {only_exp:#?}"
-        );
-    }
+/// Canonical sorted triple-set rendering of a Turtle document, as a single
+/// newline-joined string suitable for a byte-stable insta snapshot. Reuses
+/// [`triple_set`] (default graph, blank-node-free goldens) so quoted/reifier
+/// terms of `canonical-rdf12` / the projection report are captured as object
+/// terms in deterministic sorted order — NEVER raw oxigraph Turtle, whose blank
+/// labels and statement order are non-deterministic.
+fn rdf_snapshot(turtle: &str) -> String {
+    triple_set(turtle).join("\n")
 }
 
+/// Pin every projection of one conformance case with insta snapshot goldens.
+///
+/// The `.snap` files are the byte-exact unit golden; the native
+/// `crates/conformance` harness owns cross-engine semantic parity over the same
+/// `expected/` corpus, so this only re-compiles the case `input.logic.ttl` (it
+/// no longer reads the `expected/projections/` files).
 fn run_case(case: &str) {
     let dir = conformance_dir().join(case);
     let input = std::fs::read_to_string(dir.join("input.logic.ttl")).expect("read input");
@@ -135,25 +141,24 @@ fn run_case(case: &str) {
     );
     let arts = compile_program(&program).expect("compile");
 
-    let exp = dir.join("expected/projections");
-    let read = |name: &str| std::fs::read_to_string(exp.join(name)).expect(name);
+    // One `.snap` per (case, target). The per-case suffix keeps the goldens
+    // discoverable and avoids a single mega-snapshot.
+    let mut settings = insta::Settings::clone_current();
+    settings.set_snapshot_suffix(case);
+    settings.set_prepend_module_to_snapshot(false);
+    settings.bind(|| {
+        // Text targets: byte-identical (the front-end canonicalizes blank labels).
+        insta::assert_snapshot!("datalog", arts.datalog);
+        insta::assert_snapshot!("n3", arts.n3);
+        insta::assert_snapshot!("nemo", arts.nemo);
 
-    // Text targets: byte-identical.
-    assert_eq!(arts.datalog, read("datalog.dl"), "[{case}] datalog bytes");
-    assert_eq!(arts.n3, read("n3.n3"), "[{case}] n3 bytes");
-    assert_eq!(arts.nemo, read("nemo.rls"), "[{case}] nemo bytes");
-
-    // RDF targets: triple-set / isomorphism.
-    assert_rdf_iso(case, "owl-dl", &arts.owl_dl, &read("owl-dl.ttl"));
-    assert_rdf_iso(case, "owl-el", &arts.owl_el, &read("owl-el.ttl"));
-    assert_rdf_iso(case, "gufo", &arts.gufo, &read("gufo.ttl"));
-    assert_rdf_iso(
-        case,
-        "canonical-rdf12",
-        &arts.canonical_rdf12,
-        &read("canonical-rdf12.ttl"),
-    );
-    assert_rdf_iso(case, "report", &arts.report, &read("projection-report.ttl"));
+        // RDF targets: canonicalized sorted triple-set.
+        insta::assert_snapshot!("owl-dl", rdf_snapshot(&arts.owl_dl));
+        insta::assert_snapshot!("owl-el", rdf_snapshot(&arts.owl_el));
+        insta::assert_snapshot!("gufo", rdf_snapshot(&arts.gufo));
+        insta::assert_snapshot!("canonical-rdf12", rdf_snapshot(&arts.canonical_rdf12));
+        insta::assert_snapshot!("projection-report", rdf_snapshot(&arts.report));
+    });
 }
 
 // ── ReasoningContract round-trip (#767, Task 6) ──────────────────────────────

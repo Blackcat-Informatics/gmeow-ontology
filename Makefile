@@ -31,7 +31,7 @@ NATIVE_RUSTFLAGS := -Zunstable-options -Clink-self-contained=+linker -Clinker-fe
         normalize build project test test-fast test-docker check check-generated release regenerate commit clean clean-docs pull-images \
         coverage acceptance crossref constitution-check compliance-report compliance-report-full audit evals-score \
         diagnostics-build diagnostics-test diagnostics-py \
-        native-py rust-test logic-build logic-test logic-py conformance \
+        native-py rust-test insta-review logic-build logic-test logic-py conformance \
         shacl-build shacl-test shacl-py \
         validate-build validate-test validate-py validate-gts rdf-py clippy slicetest \
         bench dev
@@ -236,6 +236,10 @@ diagnostics-py logic-py shacl-py validate-py rdf-py: native-py
 rust-test: ## Run the Rust workspace tests.
 	cargo nextest run $(NEXTEST_PARTITION_ARG)
 	cargo test --doc
+
+insta-review: ## Regenerate the insta snapshot goldens after an INTENTIONAL output change (T8, #789). Non-interactive: writes .snap files in place, then re-runs in CI mode (INSTA_UPDATE=no) so the run still HARD-FAILS if anything is non-deterministic. Review the .snap diff before committing.
+	INSTA_UPDATE=always cargo nextest run $(NEXTEST_PARTITION_ARG)
+	INSTA_UPDATE=no cargo nextest run $(NEXTEST_PARTITION_ARG)
 
 bench: ## Run criterion benchmarks (release, host-tuned target-cpu=native) — the acceleration-program baseline (#630).
 	RUSTFLAGS="$(NATIVE_RUSTFLAGS)" cargo bench -p gmeow-logic -p gmeow-shacl -p gmeow-validate
