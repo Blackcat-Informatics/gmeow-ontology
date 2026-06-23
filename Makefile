@@ -258,6 +258,10 @@ rust-coverage: ## Rust region-level coverage (cargo-llvm-cov; report-only, OFF t
 	cargo llvm-cov --workspace --include-ffi --lcov --output-path lcov.info
 	cargo llvm-cov report --html
 
+MUTANTS_ARGS ?=
+mutants: ## Mutation-test the logic+validate cores (cargo-mutants; grades whether the suite catches regressions; report-only, OFF the required gate, #790). Config in mutants.toml. The full logic run is HOURS (nemo) — scope locally with MUTANTS_ARGS="-p gmeow-validate -f <file>". Needs `cargo install cargo-mutants`.
+	cargo mutants $(MUTANTS_ARGS)
+
 dev: ## Build + install gmeow_native host-tuned (maturin develop --release, target-cpu=native) for optimized LOCAL runs.
 	RUSTFLAGS="$(NATIVE_RUSTFLAGS)" VIRTUAL_ENV="$$(pwd)/.venv" uvx maturin develop --release --manifest-path crates/native/Cargo.toml
 

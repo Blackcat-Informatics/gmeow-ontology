@@ -57,3 +57,4 @@ crates/native/python/gmeow_native/*.pyd
 .goals
 .baseline
 lcov.info
+mutants.out/
