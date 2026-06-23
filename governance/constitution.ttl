@@ -72,8 +72,7 @@ meta:gate-generator-registry a meta:Gate ;
     rdfs:label "pipeline DAG registry: single-pass regenerate / drift gates"@x-gmeow-english ;
     meta:artifact "crates/pipeline/src/py.rs", "crates/pipeline/src/run.rs", "slices/core/pipeline/module.ttl" ;
     meta:symbol "run_pipeline" ;
-    meta:cliCommand "regenerate", "check-generated",
-        "compile-gts", "compile-gts-full" ;
+    meta:cliCommand "regenerate", "check-generated", "compile-gts" ;
     meta:makeTarget "check-generated", "regenerate" ;
     meta:generator "source_load", "statements", "mappings", "reason",
         "gts_compose", "snapshot", "docs_render", "gts_sink", "logic",
@@ -240,13 +239,13 @@ meta:gate-claim-audit a meta:Gate ;
 
 meta:gate-evals a meta:Gate ;
     rdfs:label "the claim-extraction eval suite + leaderboard"@x-gmeow-english ;
-    meta:artifact "src/gmeow_tools/evals.py", "evals/rubric.ttl",
+    meta:artifact "crates/pipeline/src/stages/evals.rs", "evals/rubric.ttl",
         "evals/claim-emission.schema.json" ;
-    meta:symbol "score_emissions" .
+    meta:symbol "render_evals" .
 
 meta:tests-claim-pattern a meta:TestSuite ;
     rdfs:label "audit + evals mechanical-scoring tests"@x-gmeow-english ;
-    meta:artifact "tests/test_audit.py", "tests/test_evals.py",
+    meta:artifact "tests/test_audit.py", "crates/pipeline/src/stages/evals.rs",
         "tests/fixtures/coverage/hallucination-kg.ttl" .
 
 # Principle 17 enforcement — the logic EPIC has landed.
