@@ -142,10 +142,12 @@ to catch:
 - the EDOAL `entity2` set and the SPARQL-emitted term set come from the *same*
   binding list — they cannot drift.
 
-The compiler runs the three `projection_lint` cross-layer invariants on its own
-output before writing; a violation aborts the compile. `gmeow-dev check-generated mappings`
-is wired into CI as the standing no-drift regression. Adding a new
-projection is now a **single DSL cell**, not four edits.
+The native `gmeow_slice.lint_projection` trio (#854) runs the three cross-layer
+invariants over the committed projection tree and surfaces any problem as a
+`mapping-compile.{fno-type,fno-ref,spec-drift}` finding (folded into the dev-gate
+report). `gmeow-dev check-generated mappings` is wired into CI as the standing
+no-drift regression. Adding a new projection is now a **single DSL cell**, not four
+edits.
 
 ### Maximal use of the four target languages
 

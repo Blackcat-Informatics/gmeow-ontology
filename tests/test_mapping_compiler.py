@@ -6,13 +6,14 @@ import json
 import sys
 from pathlib import Path
 
+import gmeow_slice
 import pytest
 import pytest as _pytest
 from gmeow_rdf.compat.rdflib import RDF, RDFS, BNode, Graph, URIRef
 from gmeow_rdf.compat.rdflib.namespace import Namespace
 from gmeow_rdf.compat.rdflib.plugins.sparql import prepareQuery
 
-from gmeow_tools.config import MAPPING_DSL_DIR, MAPPINGS_DIR, PREFIXES, PROJECT_ROOT
+from gmeow_tools.config import MAPPINGS_DIR, PREFIXES, PROJECT_ROOT
 from gmeow_tools.graph import load_merged_graph
 from gmeow_tools.mapping_compile import (
     _PROFILES,
@@ -24,7 +25,6 @@ from gmeow_tools.mapping_compile import (
 )
 from gmeow_tools.mapping_dsl import CompileError, Expr, load_dsl, render_expr
 from gmeow_tools.mappings import load_mappings
-from gmeow_tools.projection_lint import fno_type_mismatches
 
 pytestmark = _pytest.mark.maintainer
 
@@ -123,18 +123,19 @@ def test_fno_type_derived_from_ontology_range() -> None:
         pytest.fail("no parameter bound to gmeow:eventTime was emitted")
 
 
-def test_emitted_fno_satisfies_type_invariant(tmp_path: Path) -> None:
-    """The emitted FnO catalog passes fno_type_mismatches by construction."""
-    import shutil
+def test_emitted_fno_satisfies_type_invariant() -> None:
+    """The emitted FnO catalog has type-consistent params by construction.
 
-    dsl = load_dsl()
-    onto = load_merged_graph(include_imports=False)
-    proj = tmp_path / "projections"
-    proj.mkdir()
-    fno_out = proj / "functions.fno.ttl"
-    emit_fno(dsl, onto).serialize(destination=fno_out, format="turtle")
-    shutil.copy2(MAPPING_DSL_DIR / "transforms.fno.ttl", proj / "transforms.fno.ttl")
-    assert fno_type_mismatches(proj) == []
+    The native emitter is fail-closed on ``fno:type == rdfs:range`` (#848), so the
+    committed catalog — which *is* ``emit_fno``'s output — carries no fno-type drift;
+    the native lint's ``fno-type`` leg confirms it over the committed tree (#854).
+    """
+    drift = [
+        d["message"]
+        for d in gmeow_slice.lint_projection(str(PROJECT_ROOT))
+        if d["check"] == "fno-type"
+    ]
+    assert drift == [], "FnO type ≠ predicate range:\n" + "\n".join(drift)
 
 
 def test_sparql_executors_are_valid_queries() -> None:
