@@ -10,6 +10,9 @@
 //! carrier per-term where it does not, and that the page graph (and the
 //! no-dangling-link invariant) is language-independent.
 
+// Rich colored line-diffs on assert_eq! failure (#871); shadows the std macro
+// for this file. Identical behaviour on pass; insta snapshots are unaffected.
+use pretty_assertions::assert_eq;
 use std::path::PathBuf;
 
 use gmeow_docs::lint::lint;

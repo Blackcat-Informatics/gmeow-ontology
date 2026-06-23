@@ -10,6 +10,9 @@
 //! lock the cross-cutting invariants — byte-stability across two `render_site`
 //! calls, and the absence of dangling internal `.html` links.
 
+// Rich colored line-diffs on assert_eq! failure (#871); shadows the std macro
+// for this file. Identical behaviour on pass; insta snapshots are unaffected.
+use pretty_assertions::assert_eq;
 use std::collections::BTreeSet;
 
 use gmeow_docs::render::{

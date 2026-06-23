@@ -9,10 +9,13 @@
 //! vocabulary shape (predicates, the documentation named graph, the
 //! `xsd:boolean` typing) rather than churning on ontology content.
 
+// Rich colored line-diffs on assert_eq! failure (#871); shadows the std macro
+// for this file. Identical behaviour on pass; insta snapshots are unaffected.
 use gmeow_docs::{
     to_gmeow_rdf, DocConcern, DocMappingSet, DocSlice, DocTerm, DocTermCategory, DocsModel,
     Translations, UiCatalog,
 };
+use pretty_assertions::assert_eq;
 
 const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
 
