@@ -37,8 +37,10 @@ jobs:
           components: llvm-tools-preview
       - name: Cache Cargo dependencies
         uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
-      - name: Install cargo-llvm-cov
-        run: cargo install cargo-llvm-cov --locked || cargo install cargo-llvm-cov
+      - name: Install cargo-llvm-cov + cargo-nextest
+        run: |
+          cargo install cargo-llvm-cov --locked || cargo install cargo-llvm-cov
+          cargo install cargo-nextest --locked || cargo install cargo-nextest
       - name: Coverage (lcov + html, report-only)
         run: make rust-coverage
       - name: Upload coverage report
