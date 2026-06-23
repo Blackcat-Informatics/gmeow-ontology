@@ -38,7 +38,7 @@
 ex:ecCategorizationConforms a gmeow:ExampleConformance ;
     gmeow:exampleFile "tests/conformance-fixtures/categorization-wellformed.ttl" ;
     gmeow:expectedOutcome gmeow:conforms ;
-    gmeow:conformanceRationale "The fixture supplies exactly one gmeow:observedFeature (a gmeow:Entity), one gmeow:observationResult (a gmeow:Concept), an gmeow:observationMethod, and an in-range gmeow:typicality, so it satisfies gmeow:ConceptCategorizationShape and validates with no findings. Mirrors test_wellformed_concept_categorization_conforms." .
+    gmeow:conformanceRationale "The fixture supplies exactly one gmeow:observedFeature (a gmeow:Entity), one gmeow:observationResult (a gmeow:Concept), a gmeow:observationMethod, and an in-range gmeow:typicality, so it satisfies gmeow:ConceptCategorizationShape and validates with no findings. Mirrors test_wellformed_concept_categorization_conforms." .
 
 # --- Conforming: a well-formed ConceptTenure --------------------------------
 ex:ecTenureConforms a gmeow:ExampleConformance ;
