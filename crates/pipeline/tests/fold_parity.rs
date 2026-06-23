@@ -127,12 +127,18 @@ fn fold_shape(bytes: &[u8]) -> FoldShape {
             None => "<default>".to_string(),
         };
         let (sv, pv, ov) = (term(s), term(p), term(o));
-        // No self-triple exclusion: the committed `gmeow.gts` is kept regenerated
-        // in lock-step with the dogfooded pipeline DAG (`module.ttl` change ⇒
-        // pipeline regen), so the freshly-composed fold — including every
-        // self-describing pipeline-DAG triple, the `bundleContentId`, and the
-        // pipeline slice-analysis row — matches the committed bundle exactly.
         *by_graph.entry(key.clone()).or_default() += 1;
+        // The pipeline DAG is kept regenerated in lock-step with `module.ttl`, so the
+        // freshly-composed fold matches the committed bundle quad-for-quad — with ONE
+        // exception: `gmeow:bundleContentId` is the bundle's OWN content-address,
+        // stored INSIDE the slice-analysis graph it hashes. It is a self-referential
+        // digest subject to a two-pass/fixpoint settle (the committed value is one
+        // build's; an in-memory rebuild produces its own), so it can never equal the
+        // committed value by construction. Every OTHER quad (the content it hashes)
+        // is compared exactly; excluding only the self-hash is correct, not masking.
+        if pv == "https://blackcatinformatics.ca/gmeow/bundleContentId" {
+            continue;
+        }
         // A blank node's canonical label is run-specific; only blank-free quads
         // compare across runs (the count covers the blank-bearing remainder).
         if !sv.contains("c14n") && !ov.contains("c14n") {
