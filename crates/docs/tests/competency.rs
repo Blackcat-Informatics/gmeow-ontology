@@ -28,14 +28,17 @@ fn model() -> DocsModel {
     DocsModel::discover(&repo_root()).expect("build docs model from live slices")
 }
 
-/// The leading run of letters/digits/spaces in `s`, trimmed. The renderer
-/// md-escapes table/inline metacharacters (`-`→`\-`, `.`→`\.`, …), so a raw
-/// title/definition won't substring-match; this escape-free prefix does.
+/// The first metacharacter-free chunk of `s` that is at least 4 chars, trimmed.
+/// The renderer md-escapes table/inline metacharacters (`-`→`\-`, `.`→`\.`, …),
+/// so a raw title/definition won't substring-match; an escape-free chunk does.
+/// Splitting (rather than taking only the *leading* run) means a string that
+/// starts with a metacharacter (`**Bold**`, `[Link]`, a quote) still yields a
+/// usable probe instead of an empty one that would silently skip the assertion.
 fn escape_free_probe(s: &str) -> String {
-    s.chars()
-        .take_while(|c| c.is_alphanumeric() || *c == ' ')
-        .collect::<String>()
-        .trim()
+    s.split(|c: char| !(c.is_alphanumeric() || c == ' '))
+        .map(str::trim)
+        .find(|chunk| chunk.len() >= 4)
+        .unwrap_or("")
         .to_string()
 }
 
@@ -96,15 +99,17 @@ fn term_page_surfaces_iri_definition_domain_and_range() {
         assert!(md.contains(heading), "term md missing section `{heading}`");
     }
 
-    // The definition text surfaces (matched via its escape-free prefix).
+    // The definition text surfaces (matched via an escape-free chunk).
     let def = term.definition.as_deref().expect("term has a definition");
     let probe = escape_free_probe(def);
-    if probe.len() >= 4 {
-        assert!(
-            md.contains(&probe),
-            "term md missing definition prose `{probe}`"
-        );
-    }
+    assert!(
+        !probe.is_empty(),
+        "no escape-free probe in definition `{def}`"
+    );
+    assert!(
+        md.contains(&probe),
+        "term md missing definition prose `{probe}`"
+    );
 }
 
 #[test]
@@ -129,12 +134,15 @@ fn slice_page_lists_tier_and_consumers() {
     );
     // The declared consumer prose is surfaced (matched escape-free).
     let probe = escape_free_probe(&slice.consumers[0]);
-    if probe.len() >= 4 {
-        assert!(
-            md.contains(&probe),
-            "slice page missing its consumer `{probe}`"
-        );
-    }
+    assert!(
+        !probe.is_empty(),
+        "no escape-free probe in consumer `{}`",
+        slice.consumers[0]
+    );
+    assert!(
+        md.contains(&probe),
+        "slice page missing its consumer `{probe}`"
+    );
 }
 
 #[test]
