@@ -1,0 +1,20 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for gmeow:ConceptCategorizationShape: a ConceptCategorization
+# with NO gmeow:observedFeature. gmeow:observedFeature has sh:minCount 1, so
+# validation MUST emit shacl.MinCountConstraintComponent (and no other finding).
+# Bound by tests/example-conformance.ttl (ex:ecCategorizationMissingFeature).
+# Lives under tests/ (NOT examples/) so the global make validate gate does not
+# reject it.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex: <http://example.org/cnc/> .
+
+ex:mammal a gmeow:Concept .
+ex:method a gmeow:ObservationMethod .
+
+ex:bad1 a gmeow:ConceptCategorization ;
+    gmeow:observationResult ex:mammal ;
+    gmeow:observationMethod ex:method ;
+    gmeow:typicality "0.5"^^xsd:decimal .

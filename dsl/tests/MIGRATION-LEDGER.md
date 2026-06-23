@@ -216,6 +216,28 @@ The gts pytest mixed merged-graph, module-only, and competency loads. Subjects o
 
 **GTS tally:** 6 converted + 1 partial (value-vocab: named/exact-set converted, cardinality floors retained) + 1 retained (competency parse-smoke); 9 cells across 7 migrated fns. Source file `tests/test_gts_slice.py` trimmed to the 2 retained functions (not deleted).
 
+## `slices/core/concepts`
+
+The first slice migrated using BOTH cell types: `gmeow:StructuralAssertion` (6 structural fns → `tests/structural.ttl`) AND `gmeow:ExampleConformance` (6 SHACL fns → `tests/example-conformance.ttl`, the epistemics-exemplar type). All 13 fns migrate, so `tests/test_concepts.py` is DELETED entirely. The 6 SHACL fns built inline instance graphs asserting an `sh:message`; they are migrated to 6 materialized self-contained fixtures (2 conforming under `tests/conformance-fixtures/`, 4 violating under `tests/counter-examples/`) bound to ExampleConformance cells. MESSAGE→CODE shift (epistemics precedent): cells pin the constraint-component CODE, which collapses distinct `sh:message` strings sharing a component (two MinCount messages become indistinguishable), but each counter-example isolates ONE violation so (fixture, code) is faithful. Every code was VERIFIED against the native validator AND confirmed a SINGLETON (sentinel-flip read of the full code-set), 2026-06-23.
+
+| Pytest fn | Pytest file | DSL cell IRI | Cell type | Status | Reason if deleted | Run by |
+|---|---|---|---|---|---|---|
+| `test_concept_is_social_object_kind` | `tests/test_concepts.py` | `ex:saConceptIsSocialObjectKind` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_concept_categorization_subkind_of_standpoint_claim` | `tests/test_concepts.py` | `ex:saConceptCategorizationSubkindOfStandpointClaim` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_instance_of_concept_property` | `tests/test_concepts.py` | `ex:saInstanceOfConceptProperty` + `ex:saInstanceOfConceptNotFunctional` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_typicality_property` | `tests/test_concepts.py` | `ex:saTypicalityProperty` + `ex:saTypicalityNotFunctional` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_concept_structure_properties` | `tests/test_concepts.py` | `ex:saConceptStructureProperties` + `ex:saConceptStructurePropertiesNotFunctionalNotTransitive` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_concept_tenure_is_time_scoped` | `tests/test_concepts.py` | `ex:saConceptTenureIsTimeScoped` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_wellformed_concept_categorization_conforms` | `tests/test_concepts.py` | `ex:ecCategorizationConforms` | ExampleConformance | converted | — | `make slicetest` |
+| `test_categorization_missing_feature_is_flagged` | `tests/test_concepts.py` | `ex:ecCategorizationMissingFeature` | ExampleConformance | converted (violates `shacl.MinCountConstraintComponent`, verified singleton) | — | `make slicetest` |
+| `test_categorization_result_not_concept_is_flagged` | `tests/test_concepts.py` | `ex:ecCategorizationResultNotConcept` | ExampleConformance | converted (violates `shacl.ClassConstraintComponent`, verified singleton) | — | `make slicetest` |
+| `test_categorization_typicality_out_of_range_is_flagged` | `tests/test_concepts.py` | `ex:ecCategorizationTypicalityOutOfRange` | ExampleConformance | converted (violates `shacl.MaxInclusiveConstraintComponent`, verified singleton) | — | `make slicetest` |
+| `test_wellformed_concept_tenure_conforms` | `tests/test_concepts.py` | `ex:ecTenureConforms` | ExampleConformance | converted | — | `make slicetest` |
+| `test_tenure_missing_interval_is_flagged` | `tests/test_concepts.py` | `ex:ecTenureMissingInterval` | ExampleConformance | converted (violates `shacl.MinCountConstraintComponent`, verified singleton) | — | `make slicetest` |
+| `test_every_declared_term_is_annotated` | `tests/test_concepts.py` | — | — | **deleted** | Covered by the global `make validate` gate: all 8 concepts terms are classes/properties (no value-vocab individuals), so SHACL `GmeowClassShape` / `GmeowPropertyShape` enforce the rdfs:label / skos:definition / rdfs:isDefinedBy triad. Verified 2026-06-23, BOTH shapes exercised: deleting `gmeow:Concept`'s `rdfs:label` (a CLASS) → "error class … is missing rdfs:label"; deleting `gmeow:typicality`'s `rdfs:label` (a PROPERTY) → "error property … is missing rdfs:label"; both reverted. | `make validate` |
+
+**Concepts tally:** 12 converted (9 structural cells + 6 example-conformance cells across 12 fns), 1 deleted-covered-by-make-validate. Source file `tests/test_concepts.py` DELETED entirely (all 13 fns migrated/subsumed, no must-stays). First slice to exercise the `gmeow:ExampleConformance` cell type beyond the epistemics exemplar.
+
 ## Other slices
 
 No other slice carries declarative test-DSL specs yet (T2 authored only the

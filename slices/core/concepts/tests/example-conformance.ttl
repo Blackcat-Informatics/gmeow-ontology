@@ -1,0 +1,75 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Declarative example-conformance fixtures for the concepts slice — the test-DSL
+# twin of the SHACL pytest in tests/test_concepts.py ("this instance must
+# validate, that counter-example must be rejected"). The harness
+# (crates/slicetest run_conformance_cell) validates concepts/module.ttl + the one
+# bound gmeow:exampleFile against concepts/shapes.ttl and compares finding codes.
+#
+# MESSAGE→CODE shift: the original pytest asserted a specific sh:message substring;
+# these cells pin the constraint-component CODE (shacl.<ConstraintComponentLocalName>,
+# from gmeow_validate::findings::finding_from_shacl). This is the same lossy shift
+# the epistemics exemplar accepted: the code form COLLAPSES distinct sh:message
+# strings that share a constraint component — e.g. a missing-feature and a
+# missing-interval both report shacl.MinCountConstraintComponent, indistinguishable
+# by code alone. Because each counter-example is a SEPARATE fixture isolating ONE
+# violation, the (fixture, code) pair still pins the specific constraint faithfully.
+#
+# CODE VERIFICATION (two-way, 2026-06-23): every expectedViolationCode below was
+# confirmed by running the native validator (via `make slicetest`) on
+# module + fixture + shapes and reading the FULL emitted code-set — each violator
+# emits EXACTLY its one expected code and NO other finding (the harness's
+# gmeow:violates check is a CONTAINS, so the singleton was confirmed separately to
+# guard against a stray second violation masking a malformed fixture).
+#
+# The two CONFORMING fixtures live under tests/conformance-fixtures/ (NOT
+# examples/) and the four counter-examples under tests/counter-examples/, so the
+# global `make validate` gate never loads them as data; they are therefore
+# validated SLICE-SCOPED only (module + slice shapes), intentional and mirroring
+# the epistemics flagship-exclusion rationale.
+#
+# See dsl/tests/MIGRATION-LEDGER.md for the per-test pytest→DSL mapping.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/concepts/tests/> .
+
+# --- Conforming: a well-formed ConceptCategorization ------------------------
+ex:ecCategorizationConforms a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/categorization-wellformed.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "The fixture supplies exactly one gmeow:observedFeature (a gmeow:Entity), one gmeow:observationResult (a gmeow:Concept), a gmeow:observationMethod, and an in-range gmeow:typicality, so it satisfies gmeow:ConceptCategorizationShape and validates with no findings. Mirrors test_wellformed_concept_categorization_conforms." .
+
+# --- Conforming: a well-formed ConceptTenure --------------------------------
+ex:ecTenureConforms a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/conformance-fixtures/tenure-wellformed.ttl" ;
+    gmeow:expectedOutcome gmeow:conforms ;
+    gmeow:conformanceRationale "The fixture supplies exactly one gmeow:conceptHoldsFor (a gmeow:Concept) and one gmeow:duringInterval (a gmeow:TimeInterval), so it satisfies gmeow:ConceptTenureShape and validates with no findings. Mirrors test_wellformed_concept_tenure_conforms." .
+
+# --- Violating: ConceptCategorization missing observedFeature ----------------
+ex:ecCategorizationMissingFeature a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/categorization-missing-feature.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example omits gmeow:observedFeature (sh:minCount 1 on gmeow:ConceptCategorizationShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding. Mirrors test_categorization_missing_feature_is_flagged." .
+
+# --- Violating: observationResult is not a Concept ---------------------------
+ex:ecCategorizationResultNotConcept a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/categorization-result-not-concept.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.ClassConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example's gmeow:observationResult (ex:vehicle) is a gmeow:Entity but NOT a gmeow:Concept (sh:class gmeow:Concept), so validation MUST emit shacl.ClassConstraintComponent and NO other finding. Mirrors test_categorization_result_not_concept_is_flagged." .
+
+# --- Violating: typicality out of the closed interval [0,1] ------------------
+ex:ecCategorizationTypicalityOutOfRange a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/categorization-typicality-out-of-range.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MaxInclusiveConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example's gmeow:typicality is 1.5, above sh:maxInclusive 1 (sh:minInclusive 0 and sh:datatype xsd:decimal are both satisfied), so validation MUST emit shacl.MaxInclusiveConstraintComponent and NO other finding. Mirrors test_categorization_typicality_out_of_range_is_flagged." .
+
+# --- Violating: ConceptTenure missing duringInterval -------------------------
+ex:ecTenureMissingInterval a gmeow:ExampleConformance ;
+    gmeow:exampleFile "tests/counter-examples/tenure-missing-interval.ttl" ;
+    gmeow:expectedOutcome gmeow:violates ;
+    gmeow:expectedViolationCode "shacl.MinCountConstraintComponent" ;
+    gmeow:conformanceRationale "The counter-example omits gmeow:duringInterval (sh:minCount 1 on gmeow:ConceptTenureShape), so validation MUST emit shacl.MinCountConstraintComponent and NO other finding. Mirrors test_tenure_missing_interval_is_flagged." .

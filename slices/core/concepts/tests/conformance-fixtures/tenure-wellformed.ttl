@@ -1,0 +1,16 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Conforming fixture for gmeow:ConceptTenureShape — a well-formed tenure with
+# exactly one conceptHoldsFor (a Concept) and one duringInterval (a TimeInterval).
+# Bound by tests/example-conformance.ttl (ex:ecTenureConforms, gmeow:conforms).
+# Self-contained: the harness loads concepts/module.ttl + ONLY this file.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex: <http://example.org/cnc/> .
+
+ex:mammal a gmeow:Concept .
+ex:interval a gmeow:TimeInterval .
+
+ex:tenure1 a gmeow:ConceptTenure ;
+    gmeow:conceptHoldsFor ex:mammal ;
+    gmeow:duringInterval ex:interval .
