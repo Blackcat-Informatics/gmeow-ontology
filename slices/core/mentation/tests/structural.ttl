@@ -1,0 +1,205 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Declarative structural assertions for the mentation slice — the slice-resident
+# test-DSL twin of the MUST / MUST-NOT invariants formerly hand-written in
+# tests/test_mentation.py. Authored as gmeow: ontology data so the same
+# annotation discipline and the native Rust harness (crates/slicetest, #784)
+# drive the test, not ad-hoc Python. Each assertion runs as a SPARQL ASK over the
+# module graph (gmeow:scopeModule). A positive universal over a fixed term set is
+# a single MUST with a conjunctive pattern (all conjuncts must match); a
+# negative universal ("no bridge property is functional") is a MUST-NOT over a
+# VALUES set.
+#
+# The annotation-completeness test (formerly test_every_term_annotated) is
+# covered by the global `make validate` SHACL gate (shapes/gmeow-shapes.ttl:
+# GmeowClassShape + GmeowPropertyShape enforce rdfs:label / skos:definition /
+# rdfs:isDefinedBy / gmeow:graphBoxRole on every gmeow:-namespaced class and
+# property). Verified 2026-06-22: deleting gmeow:MentalProcess's rdfs:label
+# caused make validate to emit "error class
+# https://blackcatinformatics.ca/gmeow/MentalProcess is missing rdfs:label" and
+# exit non-zero. That pytest function is therefore deleted rather than migrated.
+#
+# See dsl/tests/MIGRATION-LEDGER.md for the per-test pytest→DSL mapping.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/mentation/tests/> .
+
+# --- 1. MentalProcess ⊑ Event (MUST hold) ------------------------------------
+ex:saMentalProcessSubclassOfEvent a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK { gmeow:MentalProcess rdfs:subClassOf gmeow:Event . }""" ;
+    gmeow:saRationale "MentalProcess is the occurrent umbrella for every mental event: it MUST be a subClassOf gmeow:Event (the perdurant spine). Mirrors test_mentalprocess_subclass_of_event." .
+
+# --- 2. Experience ⊑ MentalProcess (MUST hold) --------------------------------
+ex:saExperienceSubclassOfMentalProcess a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK { gmeow:Experience rdfs:subClassOf gmeow:MentalProcess . }""" ;
+    gmeow:saRationale "Experience is the phenomenally-conscious, qualia-bearing subset of MentalProcess: it MUST be declared a subClassOf gmeow:MentalProcess (the only genuine subclass in this slice). Mirrors test_experience_subclass_of_mentalprocess." .
+
+# --- 3. experiencer is a functional ObjectProperty (MUST hold) ----------------
+ex:saExperiencerFunctionalObjectProperty a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:experiencer a owl:ObjectProperty , owl:FunctionalProperty ;
+        rdfs:domain gmeow:MentalProcess ;
+        rdfs:range gmeow:Agent .
+}""" ;
+    gmeow:saRationale "gmeow:experiencer MUST be an owl:ObjectProperty AND owl:FunctionalProperty with domain gmeow:MentalProcess and range gmeow:Agent (one process, one experiencer — a mental occurrent inheres in exactly one agent). Mirrors test_experiencer_is_functional_object_property." .
+
+# --- 4a. mentalProcessType is a non-functional ObjectProperty (MUST hold) -----
+ex:saMentalProcessTypeProperty a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:mentalProcessType a owl:ObjectProperty ;
+        rdfs:domain gmeow:MentalProcess ;
+        rdfs:range gmeow:MentalProcessType .
+}""" ;
+    gmeow:saRationale "gmeow:mentalProcessType MUST be an owl:ObjectProperty with domain gmeow:MentalProcess and range gmeow:MentalProcessType. Mirrors the positive clauses of test_mentalprocesstype_property." .
+
+# --- 4b. mentalProcessType is NOT functional (MUST-NOT hold) ------------------
+ex:saMentalProcessTypeNotFunctional a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:mentalProcessType a owl:FunctionalProperty . }""" ;
+    gmeow:saRationale "gmeow:mentalProcessType MUST NOT be functional — a single occurrence may carry several type values (a reverie that is both imagining and mind-wandering). Mirrors the non-functional clause of test_mentalprocesstype_property." .
+
+# --- 5. MentalProcessType is a value-vocab class (MUST hold) ------------------
+ex:saMentalProcessTypeValueVocab a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:MentalProcessType a owl:Class , gufo:AbstractIndividualType ;
+        rdfs:subClassOf gufo:QualityValue .
+}""" ;
+    gmeow:saRationale "gmeow:MentalProcessType MUST be typed owl:Class AND gufo:AbstractIndividualType AND be a subClassOf gufo:QualityValue — the value-vocab pattern (Principle 9: no overtyping). Mirrors test_mentalprocesstype_is_value_vocab." .
+
+# --- 6. All nine process* seed individuals are typed MentalProcessType (MUST) --
+ex:saAllNineProcessIndividuals a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    gmeow:processPerception    a gmeow:MentalProcessType .
+    gmeow:processAttention     a gmeow:MentalProcessType .
+    gmeow:processReasoning     a gmeow:MentalProcessType .
+    gmeow:processImagining     a gmeow:MentalProcessType .
+    gmeow:processDeliberation  a gmeow:MentalProcessType .
+    gmeow:processRecollection  a gmeow:MentalProcessType .
+    gmeow:processMindWandering a gmeow:MentalProcessType .
+    gmeow:processDreaming      a gmeow:MentalProcessType .
+    gmeow:processLearning      a gmeow:MentalProcessType .
+}""" ;
+    gmeow:saRationale "All nine gmeow:process* seed individuals MUST be explicitly typed gmeow:MentalProcessType (the value-vocab closed set for this slice). Mirrors test_all_eight_process_individuals (the docstring says 'all nine')." .
+
+# --- 7. realizesMentalMoment is a non-functional ObjectProperty (MUST/-NOT) ---
+ex:saRealizesMentalMomentProperty a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:realizesMentalMoment a owl:ObjectProperty ;
+        rdfs:domain gmeow:MentalProcess ;
+        rdfs:range gmeow:MentalMoment .
+}""" ;
+    gmeow:saRationale "gmeow:realizesMentalMoment MUST be an owl:ObjectProperty with domain gmeow:MentalProcess and range gmeow:MentalMoment. Mirrors the positive clauses of test_realizesmentalmoment_property." .
+
+ex:saRealizesMentalMomentNotFunctional a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:realizesMentalMoment a owl:FunctionalProperty . }""" ;
+    gmeow:saRationale "gmeow:realizesMentalMoment MUST NOT be functional — one process may manifest several moments. Mirrors the non-functional clause of test_realizesmentalmoment_property." .
+
+# --- 8. producesMentalMoment is a non-functional ObjectProperty (MUST/-NOT) ---
+ex:saProducesMentalMomentProperty a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:producesMentalMoment a owl:ObjectProperty ;
+        rdfs:domain gmeow:MentalProcess ;
+        rdfs:range gmeow:MentalMoment .
+}""" ;
+    gmeow:saRationale "gmeow:producesMentalMoment MUST be an owl:ObjectProperty with domain gmeow:MentalProcess and range gmeow:MentalMoment. Mirrors the positive clauses of test_producesmentalmoment_property." .
+
+ex:saProducesMentalMomentNotFunctional a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:producesMentalMoment a owl:FunctionalProperty . }""" ;
+    gmeow:saRationale "gmeow:producesMentalMoment MUST NOT be functional — one process may produce several moments. Mirrors the non-functional clause of test_producesmentalmoment_property." .
+
+# --- 9. updatesMentalTenure is a non-functional ObjectProperty (MUST/-NOT) ----
+ex:saUpdatesMentalTenureProperty a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:updatesMentalTenure a owl:ObjectProperty ;
+        rdfs:domain gmeow:MentalProcess ;
+        rdfs:range gmeow:TimeScopedRelation .
+}""" ;
+    gmeow:saRationale "gmeow:updatesMentalTenure MUST be an owl:ObjectProperty with domain gmeow:MentalProcess and range gmeow:TimeScopedRelation. Mirrors the positive clauses of test_updatesmentaltenure_property." .
+
+ex:saUpdatesMentalTenureNotFunctional a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:updatesMentalTenure a owl:FunctionalProperty . }""" ;
+    gmeow:saRationale "gmeow:updatesMentalTenure MUST NOT be functional — one process may update several tenures. Mirrors the non-functional clause of test_updatesmentaltenure_property." .
+
+# --- 10. gmeow:realizes collision guard (MUST-NOT hold + MUST declarations) ---
+ex:saRealizesAbsentFromMentation a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    { gmeow:realizes ?p ?o . }
+    UNION
+    { ?s gmeow:realizes ?o . }
+    UNION
+    { ?s ?p gmeow:realizes . }
+}""" ;
+    gmeow:saRationale "gmeow:realizes MUST NOT appear in any subject, predicate, or object position in this module — creative-works owns it (Principle 4). Mirrors the collision-guard clauses of test_realizes_collision_guard." .
+
+ex:saBridgePropertiesDeclared a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+ASK {
+    gmeow:realizesMentalMoment  rdf:type ?t1 .
+    gmeow:producesMentalMoment  rdf:type ?t2 .
+    gmeow:updatesMentalTenure   rdf:type ?t3 .
+}""" ;
+    gmeow:saRationale "All three bridge properties (realizesMentalMoment, producesMentalMoment, updatesMentalTenure) MUST be declared with at least one rdf:type triple — their existence in the module is required. Mirrors the bridge-property declaration guard of test_realizes_collision_guard." .
