@@ -20,6 +20,7 @@
 //!
 //! [`super::builder::RdfDatasetBuilder`]: super::builder::RdfDatasetBuilder
 
+use std::cmp::Ordering;
 use std::collections::HashMap;
 use std::hash::{Hash, Hasher};
 use std::sync::OnceLock;
@@ -202,15 +203,31 @@ fn axis_key(axis: Axis, q: &QuadRow) -> u32 {
     }
 }
 
-/// The full four-axis sort key of a quad under a permutation's axis order.
+/// Compare two quads under a permutation's axis order, short-circuiting at the first
+/// differing axis (so it computes only the axis keys it needs, never a full `[u32; 4]`).
 #[inline]
-fn perm_key(axes: &[Axis; 4], q: &QuadRow) -> [u32; 4] {
-    [
-        axis_key(axes[0], q),
-        axis_key(axes[1], q),
-        axis_key(axes[2], q),
-        axis_key(axes[3], q),
-    ]
+fn compare_quads(axes: &[Axis; 4], a: &QuadRow, b: &QuadRow) -> Ordering {
+    for &axis in axes {
+        match axis_key(axis, a).cmp(&axis_key(axis, b)) {
+            Ordering::Equal => {}
+            ord => return ord,
+        }
+    }
+    Ordering::Equal
+}
+
+/// Compare a quad's leading `prefix` axes (in a permutation's order) against a bound
+/// `target`, short-circuiting at the first differing axis. Drives the `partition_point`
+/// bisection without materializing a key array.
+#[inline]
+fn compare_prefix(axes: &[Axis; 4], q: &QuadRow, target: &[u32; 4], prefix: usize) -> Ordering {
+    for i in 0..prefix {
+        match axis_key(axes[i], q).cmp(&target[i]) {
+            Ordering::Equal => {}
+            ord => return ord,
+        }
+    }
+    Ordering::Equal
 }
 
 /// One of the six quad orderings. SPOG is the identity (the freeze-sorted table); the
@@ -274,9 +291,16 @@ impl<'a> Iterator for QuadCandidates<'a> {
     fn next(&mut self) -> Option<&'a QuadRow> {
         match self {
             QuadCandidates::Slice(iter) => iter.next(),
-            QuadCandidates::Permuted { ordinals, quads } => {
-                ordinals.next().map(|&ord| &quads[ord as usize])
-            }
+            QuadCandidates::Permuted { ordinals, quads } => ordinals.next().map(|&ord| {
+                debug_assert!(
+                    (ord as usize) < quads.len(),
+                    "permutation ordinal out of range"
+                );
+                // SAFETY: every permutation array is built as a sort of `0..quads.len()`
+                // (see `permutation`), so each ordinal is a valid index into the SAME
+                // `quads` slice. The `debug_assert` pins the invariant in test builds.
+                unsafe { quads.get_unchecked(ord as usize) }
+            }),
         }
     }
 }
@@ -325,10 +349,12 @@ impl RdfDataset {
         };
         cell.get_or_init(|| {
             let axes = perm.axes();
-            let mut ordinals: Vec<u32> = (0..self.quads.len() as u32).collect();
+            // The ordinal arrays are `u32`, so a dataset with more than u32::MAX quads
+            // could not be addressed; fail fast rather than silently truncate the cast.
+            let len = u32::try_from(self.quads.len()).expect("dataset quad count exceeds u32::MAX");
+            let mut ordinals: Vec<u32> = (0..len).collect();
             ordinals.sort_by(|&a, &b| {
-                perm_key(&axes, &self.quads[a as usize])
-                    .cmp(&perm_key(&axes, &self.quads[b as usize]))
+                compare_quads(&axes, &self.quads[a as usize], &self.quads[b as usize])
             });
             ordinals.into_boxed_slice()
         })
@@ -395,19 +421,19 @@ impl RdfDataset {
             QuadPermutation::Spog => {
                 let lo = self
                     .quads
-                    .partition_point(|q| perm_key(&axes, q)[..prefix] < target[..prefix]);
+                    .partition_point(|q| compare_prefix(&axes, q, &target, prefix).is_lt());
                 let hi = self
                     .quads
-                    .partition_point(|q| perm_key(&axes, q)[..prefix] <= target[..prefix]);
+                    .partition_point(|q| compare_prefix(&axes, q, &target, prefix).is_le());
                 QuadCandidates::Slice(self.quads[lo..hi].iter())
             }
             _ => {
                 let arr = self.permutation(best);
                 let lo = arr.partition_point(|&ord| {
-                    perm_key(&axes, &self.quads[ord as usize])[..prefix] < target[..prefix]
+                    compare_prefix(&axes, &self.quads[ord as usize], &target, prefix).is_lt()
                 });
                 let hi = arr.partition_point(|&ord| {
-                    perm_key(&axes, &self.quads[ord as usize])[..prefix] <= target[..prefix]
+                    compare_prefix(&axes, &self.quads[ord as usize], &target, prefix).is_le()
                 });
                 // Selectivity guard (#891): a non-identity permutation visits its run
                 // via `u32` ordinal indirection — random access into `quads`. For a
