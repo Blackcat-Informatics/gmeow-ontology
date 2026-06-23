@@ -16,6 +16,7 @@ const RDF_REIFIES: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies";
 
 /// Named-graph policy when materializing a generic RDF store into oxigraph.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[non_exhaustive]
 pub enum GraphPolicy {
     PreserveNamedGraphs,
     FlattenToDefaultGraph,

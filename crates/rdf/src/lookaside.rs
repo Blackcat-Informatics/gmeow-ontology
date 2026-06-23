@@ -40,6 +40,7 @@ impl RdfLookaside {
 
 /// Known companion/index kinds. Unknown domains remain representable.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
+#[non_exhaustive]
 pub enum RdfLookasideKind {
     Shacl,
     Shex,

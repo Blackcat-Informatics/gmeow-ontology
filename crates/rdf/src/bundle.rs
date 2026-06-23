@@ -278,6 +278,7 @@ impl SegmentUnitMap {
 /// A hard error from [`RdfBundle::load`]. The loader never silently repairs;
 /// every malformed structure is a typed `Err`.
 #[derive(Debug, Clone, PartialEq, Eq)]
+#[non_exhaustive]
 pub enum BundleError {
     /// A blob's bytes do not match the content id they are filed under.
     DigestMismatch {
