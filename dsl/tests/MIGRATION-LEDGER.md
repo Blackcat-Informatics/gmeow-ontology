@@ -129,6 +129,20 @@ future slice migration inherits.
 
 **Metacognition tally:** 11 converted (21 cells across 11 pytest functions), 0 retained, 1 deleted-covered-by-make-validate. Source file `tests/test_metacognition.py` deleted entirely (no retained functions).
 
+## `slices/core/diagnostics`
+
+| Pytest fn | Pytest file | DSL cell IRI | Cell type | Status | Reason if retained/deleted | Run by |
+|---|---|---|---|---|---|---|
+| `test_finding_is_a_subkind_of_observation` | `tests/test_diagnostics.py` | `ex:saFindingIsSubKindOwlClass` + `ex:saFindingNotKind` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_severity_and_location_subproperty_observation_roles` | `tests/test_diagnostics.py` | `ex:saFindingSeveritySubPropertyAndRange` + `ex:saFindingLocationSubProperty` + `ex:saFindingLocationOpenRange` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_diagnostic_severity_is_a_value_vocabulary` | `tests/test_diagnostics.py` | `ex:saDiagnosticSeverityIsValueVocab` + `ex:saSeverityIndividualsSeeded` + `ex:saSeverityIndividualsNotClasses` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_wire_coordinates_are_datatype_properties` | `tests/test_diagnostics.py` | `ex:saWireCoordinatesAreDatatype` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_no_truth_or_resolution_bits` | `tests/test_diagnostics.py` | `ex:saNoTruthOrResolutionBits` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_annotation_completeness` | `tests/test_diagnostics.py` | — | — | **deleted** | Covered by global `make validate` SHACL gate (shapes/gmeow-shapes.ttl `GmeowClassShape` + `GmeowPropertyShape` + `GmeowDatatypeShape` enforce rdfs:label / skos:definition / rdfs:isDefinedBy on every gmeow:-namespaced term). Verified 2026-06-22: removing `gmeow:Finding`'s `rdfs:label` caused `make validate` to emit "error Every GMEOW class must carry at least one rdfs:label." and exit non-zero. | `make validate` |
+| `test_graph_box_role_coverage` | `tests/test_diagnostics.py` | — | — | **deleted** | Covered by global `make validate` SHACL gate: the same `GmeowClassShape` / `GmeowPropertyShape` / `GmeowDatatypeShape` shapes in `shapes/gmeow-shapes.ttl` also carry a `sh:path gmeow:graphBoxRole` min-count 1 constraint (verified 2026-06-22: the graphBoxRole shape is wired alongside the label shape in the same file). Both annotation and graphBoxRole invariants therefore fire together under `make validate`. | `make validate` |
+
+**Diagnostics tally:** 5 converted (9 cells across 5 pytest functions), 0 retained, 2 deleted-covered-by-make-validate. Source file `tests/test_diagnostics.py` deleted entirely (no retained functions).
+
 ## Other slices
 
 No other slice carries declarative test-DSL specs yet (T2 authored only the
