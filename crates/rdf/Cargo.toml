@@ -38,9 +38,10 @@ python = ["dep:pyo3", "gts", "oxigraph", "gmeow-gts/yaml-ld", "gmeow-gts/rdf-cod
 [dependencies]
 ciborium = { version = "0.2", optional = true }
 # Raw `HashTable` for the store-once builder interner/dedup (#880 P3c): each term/
-# row is owned ONCE by its `Vec`, the table holds only indices. Version-matched to
-# the 0.14 that oxigraph already links (one copy in the tree).
-hashbrown = "0.14"
+# row is owned ONCE by its `Vec`, the table holds only indices. `>= 0.14.2` because
+# the `HashTable` type was introduced in 0.14.2 (0.14.0/0.14.1 lack it); the 0.14.5
+# that oxigraph already links satisfies this, so the tree keeps a single copy.
+hashbrown = "0.14.2"
 # Tab-separated body parser for the native SSSOM codec (#848): handles quoting,
 # flexible column counts, and by-name column access. The SSSOM `#`-prefixed YAML
 # header is parsed bespoke (GMEOW owns the format); `csv` only parses the body.
