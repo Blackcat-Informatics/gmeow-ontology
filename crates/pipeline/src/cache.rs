@@ -87,7 +87,7 @@ impl PipelineCache {
         let index: BTreeMap<String, String> = if index_path.exists() {
             let bytes = fs::read(&index_path)?;
             serde_json::from_slice(&bytes)
-                .map_err(|e| PipelineError::Parse(format!("corrupt pipeline cache index: {e}")))?
+                .map_err(|e| PipelineError::Decode(format!("corrupt pipeline cache index: {e}")))?
         } else {
             BTreeMap::new()
         };
@@ -118,16 +118,16 @@ impl PipelineCache {
             });
         }
         let product: StageProduct = serde_json::from_slice(&bytes)
-            .map_err(|e| PipelineError::Parse(format!("corrupt cached product: {e}")))?;
+            .map_err(|e| PipelineError::Decode(format!("corrupt cached product: {e}")))?;
         Ok(Some(product))
     }
 
     /// Store a stage product under `stage_key`, persisting the blob and index.
     pub fn put(&mut self, stage_key: &str, product: &StageProduct) -> Result<(), PipelineError> {
         let bytes = serde_json::to_vec(product)
-            .map_err(|e| PipelineError::Parse(format!("cannot serialize product: {e}")))?;
+            .map_err(|e| PipelineError::Decode(format!("cannot serialize product: {e}")))?;
         let digest_hex = ContentDigest::of(&bytes).to_hex();
-        fs::write(self.dir.join("blobs").join(&digest_hex), &bytes)?;
+        write_atomic(&self.dir.join("blobs").join(&digest_hex), &bytes)?;
         self.index.insert(stage_key.to_string(), digest_hex);
         self.persist_index()?;
         Ok(())
@@ -146,8 +146,32 @@ impl PipelineCache {
     fn persist_index(&self) -> Result<(), PipelineError> {
         // Deterministic: BTreeMap serializes in sorted key order.
         let bytes = serde_json::to_vec_pretty(&self.index)
-            .map_err(|e| PipelineError::Parse(format!("cannot serialize cache index: {e}")))?;
-        fs::write(self.dir.join("index.json"), bytes)?;
+            .map_err(|e| PipelineError::Decode(format!("cannot serialize cache index: {e}")))?;
+        write_atomic(&self.dir.join("index.json"), &bytes)?;
         Ok(())
     }
+}
+
+/// Write `bytes` to `target` atomically: stage them in a sibling temp file in the
+/// SAME directory (so the final `rename` stays on one filesystem, where POSIX
+/// guarantees atomicity), then rename over the target. An interrupted write can
+/// only ever leave a stray temp file, never a half-written `target` — so the
+/// cache is never bricked mid-write (no-optionality, #861 P2).
+fn write_atomic(target: &Path, bytes: &[u8]) -> Result<(), PipelineError> {
+    let dir = target.parent().ok_or_else(|| {
+        PipelineError::Io(std::io::Error::new(
+            std::io::ErrorKind::InvalidInput,
+            format!("cache path {} has no parent directory", target.display()),
+        ))
+    })?;
+    // A per-target temp name keeps concurrent writers from clobbering each other's
+    // staging file; the final atomic rename still resolves the last-writer-wins.
+    let file_name = target
+        .file_name()
+        .map(|n| n.to_string_lossy().into_owned())
+        .unwrap_or_default();
+    let tmp = dir.join(format!(".{file_name}.tmp.{}", std::process::id()));
+    fs::write(&tmp, bytes)?;
+    fs::rename(&tmp, target)?;
+    Ok(())
 }

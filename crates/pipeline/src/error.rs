@@ -16,6 +16,11 @@ pub enum PipelineError {
     Io(std::io::Error),
     /// An RDF parse error reading the dogfooded DAG individuals.
     Parse(String),
+    /// A (de)serialization failure on the on-disk cache: a corrupt `index.json`,
+    /// a corrupt cached `StageProduct` blob, or a JSON encode failure on persist
+    /// (#861 P2). Distinct from [`PipelineError::Parse`] (RDF), which it used to
+    /// borrow — these are JSON, not RDF, decode failures.
+    Decode(String),
     /// The DAG is structurally invalid: a cycle, a dangling `dataflowConsumes`
     /// reference, no `Sink`, or more than one `Sink`.
     InvalidDag(String),
@@ -60,6 +65,7 @@ impl std::fmt::Display for PipelineError {
         match self {
             PipelineError::Io(e) => write!(f, "I/O error: {e}"),
             PipelineError::Parse(msg) => write!(f, "RDF parse error: {msg}"),
+            PipelineError::Decode(msg) => write!(f, "pipeline cache decode error: {msg}"),
             PipelineError::InvalidDag(msg) => write!(f, "invalid pipeline DAG: {msg}"),
             PipelineError::UnknownStageImpl { stage, impl_key } => write!(
                 f,

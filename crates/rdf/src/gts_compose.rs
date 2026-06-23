@@ -458,11 +458,21 @@ pub fn emit_gts(
     public_key_armor: Option<String>,
     rsyncable_threshold: usize,
 ) -> Result<Vec<u8>, String> {
-    // No-optionality: signer xor public_key_armor is an error (both or neither).
-    let signing = match (&signer_secret, &public_key_armor) {
-        (Some(_), Some(_)) => true,
-        (None, None) => false,
-        _ => return Err("signer and public_key_armor must be supplied together".to_string()),
+    // No-optionality: signing is all-or-nothing across ALL THREE fields
+    // (secret, kid, public key). A partial config — e.g. a `signer_kid` with no
+    // secret/armor — would otherwise be silently treated as unsigned, dropping
+    // the kid and emitting an unsigned bundle that carries (or implies) signing
+    // metadata. Require every signing field together or none; hard-fail between.
+    let signing = match (&signer_secret, &signer_kid, &public_key_armor) {
+        (Some(_), Some(_), Some(_)) => true,
+        (None, None, None) => false,
+        _ => {
+            return Err(
+                "signing requires signer_secret, signer_kid, and public_key_armor together \
+                 (all three or none)"
+                    .to_string(),
+            )
+        }
     };
 
     let base_chain = transform.unwrap_or_else(|| vec!["zstd".to_string()]);

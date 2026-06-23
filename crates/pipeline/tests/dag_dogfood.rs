@@ -33,23 +33,37 @@ fn slice_dag_binds_and_matches_full_spec() {
     let bound = bind(&spec, &graph, &default_registry()).expect("slice DAG binds to registry");
     assert_eq!(bound.len(), spec.stages.len(), "every slice stage bound");
 
-    // The slice DAG is IDENTICAL to the authoritative Rust full_spec (same stages,
-    // impl keys, and consumes sets) — the single authoritative graph the run uses.
+    // The slice DAG is IDENTICAL to the authoritative Rust full_spec — the single
+    // authoritative graph the run uses. We compare every field the loader fills
+    // authoritatively from `module.ttl`: id, impl_key, consumes, kind, AND
+    // engine_lock. (`kind` is `gmeow:stageKind`; `engine_lock` is
+    // `gmeow:carriesEngineLock` — both are loaded from the slice, so a drift in
+    // either must surface here, not just in id/impl_key/consumes.)
+    //
+    // `formats` (`gmeow:producesFormat`) is loaded from the slice too, but is
+    // DELIBERATELY excluded: `full_spec()` leaves `formats` empty (run.rs builds
+    // stages with `formats: Vec::new()`), so the Rust spec is not authoritative
+    // for it. The slice is the sole formats source; comparing it would compare a
+    // populated slice value against an intentionally-empty Rust one. Format
+    // coverage is asserted independently against the slice in the loader tests.
+    type StageTuple = (String, String, Vec<String>, &'static str, bool);
+    let project = |s: &gmeow_pipeline::StageSpec| -> StageTuple {
+        (
+            s.id.clone(),
+            s.impl_key.clone(),
+            s.consumes.clone(),
+            s.kind.tag(),
+            s.engine_lock,
+        )
+    };
     let full = full_spec();
-    let mut slice: Vec<(String, String, Vec<String>)> = spec
-        .stages
-        .iter()
-        .map(|s| (s.id.clone(), s.impl_key.clone(), s.consumes.clone()))
-        .collect();
-    let mut rust: Vec<(String, String, Vec<String>)> = full
-        .stages
-        .iter()
-        .map(|s| (s.id.clone(), s.impl_key.clone(), s.consumes.clone()))
-        .collect();
+    let mut slice: Vec<StageTuple> = spec.stages.iter().map(project).collect();
+    let mut rust: Vec<StageTuple> = full.stages.iter().map(project).collect();
     slice.sort();
     rust.sort();
     assert_eq!(
         slice, rust,
-        "the dogfooded slice DAG and the Rust full_spec must be identical"
+        "the dogfooded slice DAG and the Rust full_spec must be identical \
+         (id, impl_key, consumes, kind, engine_lock)"
     );
 }
