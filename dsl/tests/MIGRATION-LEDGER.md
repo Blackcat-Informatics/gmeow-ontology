@@ -289,10 +289,16 @@ pending the #867 slicetest structural migration — they are not reasoning tests
 | `test_universal_part_properties_are_broad_transitive_inverses` | `tests/test_mereology.py` | — | — | **retained** | structural TBox well-formedness over the ASSERTED graph (no closure) — #867 slicetest territory, not a reasoning test | pytest |
 | `test_existing_part_like_relations_specialize_the_spine` | `tests/test_mereology.py` | — | — | **retained** | structural sub-property assertions over the asserted graph — #867 | pytest |
 | `test_no_winner_or_cardinality_terms_for_parts` | `tests/test_mereology.py` | — | — | **retained** | structural absence check over the asserted graph — #867 | pytest |
+| `test_competency_ancestry_is_answered_only_by_reasoning` | `tests/test_competency.py` | `ancestry_is_derived_not_asserted` | RL-entailment | converted | — (same genealogy chain as the `_materialize` ancestry twin) | `make logic-test` |
+| `test_place_naming_is_entailed_not_asserted` | `tests/test_competency.py` | `place_naming_is_entailed_not_asserted` | RL-entailment | converted | — (the first `owl:equivalentClass` defined-class classification + its negative) | `make logic-test` |
+| the 47 `_query_terms` / `_query_terms_on_graph` competency QUERY tests | `tests/test_competency.py` | — | — | **retained (de-reasoned)** | answer on the ASSERTED merged graph via SPARQL property paths — they never needed the OWL-RL closure; `_query_terms` was repointed from `_reasoned_graph()` to the asserted `_merged_graph()`, killing the ~4-min materialization. Stay in pytest pending the #867 slicetest competency migration | pytest (now ~1.7s) |
 
-**#896 reasoning tally (running):** 7 converted, 6 retained-with-reason (3 Python
-Docker-orchestration, 3 structural-not-reasoning). The migrated `_materialize`
-helpers and their A-Box-injection imports were removed from both pytest files.
+**#896 reasoning tally (running):** 9 converted, 6 retained-with-reason (3 Python
+Docker-orchestration, 3 structural-not-reasoning), plus the 47 competency QUERY
+tests de-reasoned in place (no closure; #867 will move them to slicetest cells).
+The migrated `_materialize` helpers and A-Box-injection imports were removed from
+the touched pytest files; `tests/test_competency.py` dropped from ~14 min to
+**~1.7 s** (the two ~5–9 min reasoning tests gone, the closure cost removed).
 
 ## Other slices
 

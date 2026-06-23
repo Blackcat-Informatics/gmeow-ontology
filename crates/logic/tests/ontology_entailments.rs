@@ -362,3 +362,39 @@ fn event_location_propagates_through_spatial_containment() {
         "eventLocation propagates through spatial containment (two hops)"
     );
 }
+
+// ── Migrated from tests/test_competency.py (the entailment-dependent competency questions) ───
+// The competency QUERY tests (`_query_terms`) answer on the ASSERTED merged graph via SPARQL
+// property paths (`rdfs:subClassOf*`) and pay no closure cost — they stay in pytest (now fast),
+// pending the #867 slicetest migration. Only the two genuinely entailment-dependent contrasts
+// migrate here: the ancestry property-chain answer (already covered by
+// `ancestry_is_derived_not_asserted` above) and the PlaceNaming `equivalentClass` classification.
+
+#[test]
+fn place_naming_is_entailed_not_asserted() {
+    // PlaceNaming ≡ NameUsage ⊓ ∃usageNamed.Place (the first owl:equivalentClass defined class,
+    // #105): a NameUsage that names a gmeow:Place is CLASSIFIED a PlaceNaming — the type is
+    // entailed, authored nowhere (Principle 6 reuse, Principle 8 reasoning-centric).
+    let (usage, place, toponym) = (ex("usage"), ex("place"), ex("toponym"));
+    let (person_usage, person) = (ex("personUsage"), ex("person"));
+    let abox = vec![
+        // a name-usage that names a Place → should classify as a PlaceNaming
+        iri_quad(&usage, RDF_TYPE, &gmeow("NameUsage")),
+        iri_quad(&usage, &gmeow("usageNamed"), &place),
+        iri_quad(&place, RDF_TYPE, &gmeow("Place")),
+        iri_quad(&usage, &gmeow("usageAppellation"), &toponym),
+        iri_quad(&toponym, RDF_TYPE, &gmeow("PlaceName")),
+        // a name-usage that names a Person → must NOT classify as a PlaceNaming
+        iri_quad(&person_usage, RDF_TYPE, &gmeow("NameUsage")),
+        iri_quad(&person_usage, &gmeow("usageNamed"), &person),
+        iri_quad(&person, RDF_TYPE, &gmeow("Person")),
+    ];
+    let closure = scoped_closure(&["core/names"], &abox);
+    // Entailed: the place-naming usage is classified a PlaceNaming (authored nowhere).
+    assert_entailed(&closure, &abox, &usage, RDF_TYPE, &gmeow("PlaceNaming"));
+    // Negative: a name-usage that does NOT name a Place is NOT classified a PlaceNaming.
+    assert!(
+        !has_type(&closure, &person_usage, &gmeow("PlaceNaming")),
+        "a NameUsage naming a Person must NOT be classified a PlaceNaming"
+    );
+}

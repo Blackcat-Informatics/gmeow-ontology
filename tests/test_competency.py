@@ -1,18 +1,18 @@
 """Tests that the competency and QC SPARQL queries behave as expected.
 
-Phase 3 of the reasoning-depth epic (#35) upgrades the competency harness to run
-over a **reasoned (materialized) graph** rather than the asserted one, so the
-queries test what GMEOW *entails*, not merely what is written down (CONSTITUTION
-Principle 7, verified by construction; Principle 8, reasoning-centric). The merged
-graph is closed under OWL 2 RL with the native ``gmeow_logic`` RL engine
-(``gmeow_tools.native_rl.native_rl_closure``) once and cached — Java/Docker-free,
-the same native primary lane as ``tests/test_reasoning_entailments.py``. The
-legacy ``owlrl`` baseline now lives only in the classic-cross-check lane as the
-agreement oracle (issue #666).
-Entailment is monotonic, so every answer the asserted graph gave is still present;
-reasoning only adds. ``test_competency_ancestry_is_answered_only_by_reasoning``
-makes the gain explicit: a competency answer absent from the asserted graph yet
-present after materialization.
+The competency queries answer over the **asserted** merged graph: they supply
+transitive closure at query time via SPARQL property paths (``rdfs:subClassOf*`` /
+``rdfs:subPropertyOf*``), so no OWL 2 RL materialization is needed (the
+``reasoningNone`` doctrine, ``docs/TESTING.md``). Entailment is monotonic, so the
+asserted answer can only ever *under*-answer — a loud set/count mismatch, never a
+silent wrong-green.
+
+The two genuinely entailment-dependent competency questions — the ancestry
+property-chain answer and the ``PlaceNaming`` ``owl:equivalentClass``
+classification — were migrated to the native Rust RL harness
+(``crates/logic/tests/ontology_entailments.rs``, issue #896), where the scoped RL
+chase runs Docker-free in seconds instead of rebuilding a full-ontology reasoned
+graph per pytest. See ``dsl/tests/MIGRATION-LEDGER.md``.
 """
 
 from __future__ import annotations
@@ -26,25 +26,31 @@ from gmeow_rdf.compat.rdflib.query import ResultRow
 
 from gmeow_tools.config import COMPETENCY_DIR, NAMESPACE, QC_DIR
 from gmeow_tools.graph import load_merged_graph
-from gmeow_tools.native_rl_rdflib import native_rl_closure
-from gmeow_tools.slices import module_path
 
 GMEOW = Namespace(NAMESPACE)
 EX = Namespace("https://example.org/test/")
 
 
 @lru_cache(maxsize=1)
-def _reasoned_graph() -> Graph:
-    """The merged ontology closed under OWL 2 RL (materialized once, cached)."""
-    graph = load_merged_graph(include_imports=False)
-    native_rl_closure(graph)
-    return graph
+def _merged_graph() -> Graph:
+    """The ASSERTED merged ontology (cached).
+
+    Competency queries supply transitive closure at query time via SPARQL property
+    paths (``rdfs:subClassOf*`` / ``rdfs:subPropertyOf*``), so they answer on the
+    asserted graph with no OWL 2 RL materialization — the ``reasoningNone`` doctrine
+    (``docs/TESTING.md``). The genuinely entailment-dependent competency questions
+    (ancestry via the property chain, the ``PlaceNaming`` ``equivalentClass``
+    classification) were migrated to the native Rust RL harness
+    (``crates/logic/tests/ontology_entailments.rs``, #896); nothing here pays the
+    ~4-minute full-ontology chase any longer.
+    """
+    return load_merged_graph(include_imports=False)
 
 
 def _query_terms(filename: str) -> set[str]:
     query = (COMPETENCY_DIR / filename).read_text(encoding="utf-8")
     terms: set[str] = set()
-    for row in _reasoned_graph().query(query):
+    for row in _merged_graph().query(query):
         assert isinstance(row, ResultRow)
         terms.add(str(row[0]))
     return terms
@@ -254,77 +260,6 @@ def test_competency_proficiency_levels_query() -> None:
     terms = _query_terms("proficiency-levels.rq")
     for term in ("cefrA1", "cefrC2", "levelNative", "levelHeritage"):
         assert NAMESPACE + term in terms
-
-
-def test_competency_ancestry_is_answered_only_by_reasoning() -> None:
-    """AC#2: a competency answer ENTAILED, not asserted.
-
-    "Who are a person's ancestors?" is answered by the ``gmeow:hasAncestor``
-    relation, which is derived by the property chain ``hasParent ∘ hasParent ⊑
-    hasAncestor`` (#38). The ``hasAncestor`` triple is authored *nowhere* in the
-    A-Box — it only appears once the chain is materialized. (One could of course
-    walk ``hasParent+`` as a path, but the competency answer relation is
-    ``hasAncestor``, and that triple is entailed, not asserted.) This contrasts
-    the asserted and reasoned graphs on the same A-Box to prove the entailment is
-    absent before reasoning and present after.
-    """
-    abox = (
-        (EX.a, GMEOW.hasParent, EX.b),
-        (EX.b, GMEOW.hasParent, EX.c),
-    )
-    asserted = Graph()
-    asserted.parse(module_path("genealogy"), format="turtle")
-    for triple in abox:
-        asserted.add(triple)
-
-    grandparent = (EX.a, GMEOW.hasAncestor, EX.c)
-    ask = f"PREFIX gmeow: <{NAMESPACE}> ASK {{ <{EX.a}> gmeow:hasAncestor <{EX.c}> }}"
-    # Absent in the asserted graph...
-    assert grandparent not in asserted
-    assert not bool(asserted.query(ask))
-
-    # ...present once the property chain is materialized.
-    reasoned = Graph()
-    reasoned += asserted
-    native_rl_closure(reasoned)
-    assert grandparent in reasoned
-    assert bool(reasoned.query(ask))
-
-
-def test_place_naming_is_entailed_not_asserted() -> None:
-    """The PlaceNaming DEFINED class (≡ NameUsage ⊓ ∃usageNamed.Place, issue #105).
-
-    A name-usage that names a gmeow:Place is CLASSIFIED as a gmeow:PlaceNaming by
-    the reasoner — the type is entailed, authored nowhere (Principle 6: place-naming
-    reuses the NameUsage relator instead of minting a parallel one; Principle 8:
-    reasoning-centric). This is the first owl:equivalentClass defined class in the
-    ontology; the test contrasts the asserted and reasoned graphs on the same A-Box
-    to prove the classification is absent before reasoning and present after.
-    """
-    asserted = load_merged_graph(include_imports=False)
-    asserted.add((EX.usage, RDF.type, GMEOW.NameUsage))
-    asserted.add((EX.usage, GMEOW.usageNamed, EX.place))
-    asserted.add((EX.place, RDF.type, GMEOW.Place))
-    asserted.add((EX.usage, GMEOW.usageAppellation, EX.toponym))
-    asserted.add((EX.toponym, RDF.type, GMEOW.PlaceName))
-
-    classified = (EX.usage, RDF.type, GMEOW.PlaceNaming)
-    # Absent in the asserted graph (nothing types it a PlaceNaming)...
-    assert classified not in asserted
-
-    # ...present once the equivalentClass definition is materialized.
-    reasoned = Graph()
-    reasoned += asserted
-    native_rl_closure(reasoned)
-    assert classified in reasoned
-    # And a name-usage that does NOT name a Place is NOT classified as a PlaceNaming.
-    asserted.add((EX.personUsage, RDF.type, GMEOW.NameUsage))
-    asserted.add((EX.personUsage, GMEOW.usageNamed, EX.person))
-    asserted.add((EX.person, RDF.type, GMEOW.Person))
-    other = Graph()
-    other += asserted
-    native_rl_closure(other)
-    assert (EX.personUsage, RDF.type, GMEOW.PlaceNaming) not in other
 
 
 def test_qc_missing_definitions_is_empty() -> None:
