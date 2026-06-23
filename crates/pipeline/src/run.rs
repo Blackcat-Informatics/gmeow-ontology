@@ -298,6 +298,19 @@ pub fn run_full(root: &Path, jobs: usize, mode: RunMode) -> Result<RunReport, Pi
                 continue;
             }
 
+            // `dist/*` artifacts are gitignored runtime outputs with NO committed
+            // authority: a fresh checkout (CI `check-generated`) has no `dist/` tree,
+            // so they can never be drift-compared. They are WRITTEN in Regenerate but
+            // SKIPPED in Check (their reproducibility is covered by the second-run
+            // determinism check in `tests/full_parity.rs`).
+            if path.starts_with("dist/") {
+                if mode == RunMode::Regenerate {
+                    write_artifact(root, path, bytes)?;
+                }
+                reproduced += 1;
+                continue;
+            }
+
             if mode == RunMode::Regenerate {
                 // Phase-1 products were written above; (re)write every artifact.
                 write_artifact(root, path, bytes)?;
