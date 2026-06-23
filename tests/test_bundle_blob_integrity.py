@@ -45,10 +45,11 @@ def test_no_dangling_guide_blob_references() -> None:
     """Every gmeow:guideBlob digest reference is backed by a blob actually present
     in the bundle — the docs guide content is embedded, not a dangling pointer."""
     graph = _bundle_graph()
-    refs = {
-        graph.terms[o].value
+    refs: set[str] = {
+        value
         for _s, p, o, _gid in graph.quads
         if graph.terms[p].value == _GUIDE_BLOB
+        and (value := graph.terms[o].value) is not None
     }
     present = set(graph.blob_meta.keys())
     dangling = sorted(d for d in refs if d not in present)
