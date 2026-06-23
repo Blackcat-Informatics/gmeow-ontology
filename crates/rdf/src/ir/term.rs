@@ -43,9 +43,25 @@ pub(crate) const RDF_LANG_STRING: &str = "http://www.w3.org/1999/02/22-rdf-synta
 /// [`from_index`](TermId::from_index); every other site addresses terms through
 /// those two methods and is offset-agnostic, so allocation order — and therefore
 /// the `Ord` sort used at freeze — is preserved exactly.
-#[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Debug)]
+///
+/// [`Hash`] is implemented by hand to hash the **0-based dense index as a `u32`**,
+/// byte-identical to the former `TermId(u32)` derive. The `+1` storage offset must
+/// NOT leak into the hash: keeping it out preserves every `HashMap<TermId, _>` /
+/// `HashSet<TermId>` iteration order, so the niche is a pure memory optimization
+/// with no observable behavioral effect (a perf change must not silently reorder
+/// any hash-iteration-dependent output).
+#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Debug)]
 #[repr(transparent)]
 pub struct TermId(NonZeroU32);
+
+impl std::hash::Hash for TermId {
+    #[inline]
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        // `self.0.get() - 1` is the dense index (a `u32`) — identical to what the
+        // old `TermId(u32)` derive hashed. See the type doc above for why.
+        (self.0.get() - 1).hash(state);
+    }
+}
 
 impl TermId {
     /// The dense index this id addresses in the interner's term table.
@@ -62,11 +78,12 @@ impl TermId {
     ///
     /// Crate-internal: only the interner mints ids, in allocation order. Hard-fails
     /// (rather than wrapping) if `index` is `u32::MAX`, since `index + 1` would
-    /// overflow the id space — the table is bounded at `u32::MAX - 1` terms.
+    /// overflow the id space — the largest dense index is `u32::MAX - 1`, so the
+    /// table can hold up to `u32::MAX` terms.
     pub(crate) fn from_index(index: u32) -> Self {
         let raw = index
             .checked_add(1)
-            .expect("term table index exceeds u32::MAX - 1 entries");
+            .expect("term table cannot exceed u32::MAX entries");
         // `raw = index + 1 >= 1`, so the `NonZeroU32` invariant always holds.
         Self(NonZeroU32::new(raw).expect("index + 1 is always >= 1"))
     }
@@ -170,7 +187,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "exceeds u32::MAX - 1")]
+    #[should_panic(expected = "cannot exceed u32::MAX entries")]
     fn term_id_from_index_rejects_u32_max() {
         // `index + 1` would overflow the id space; the mint hard-fails (#837).
         let _ = TermId::from_index(u32::MAX);
