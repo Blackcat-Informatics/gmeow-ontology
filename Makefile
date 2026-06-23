@@ -33,7 +33,7 @@ NATIVE_RUSTFLAGS := -Zunstable-options -Clink-self-contained=+linker -Clinker-fe
         diagnostics-build diagnostics-test diagnostics-py \
         native-py rust-test insta-review fuzz-smoke logic-build logic-test logic-py conformance \
         shacl-build shacl-test shacl-py \
-        validate-build validate-test validate-py validate-gts rdf-py clippy slicetest \
+        validate-build validate-test validate-py validate-gts rdf-py clippy rdf-core-hygiene slicetest \
         bench rust-coverage mutants bench-json dev
 
 help: ## Show this help.
@@ -223,6 +223,17 @@ validate-test: ## Run the gmeow-validate unit + integration tests.
 
 clippy: ## Run cargo clippy on all Rust targets with warnings as errors.
 	cargo clippy --all-targets -- -D warnings
+
+rdf-core-hygiene: ## [purrdf P2/#836] Prove the gmeow-rdf kernel lib builds with NO oxigraph in its NORMAL dependency graph (the weak ring-fence; the strong crate boundary is P2b).
+	cargo build -p gmeow-rdf --no-default-features
+	@# Capture the forward normal-edges tree; a cargo failure (bad manifest/lockfile)
+	@# is a hard FAIL here, not a silenced false-OK. Then grep the captured output.
+	@tree=$$(cargo tree -p gmeow-rdf --no-default-features --edges normal) || { echo "FAIL: cargo tree errored"; exit 1; }; \
+	if echo "$$tree" | grep -q '\boxigraph\b'; then \
+		echo "FAIL: oxigraph is a NORMAL dependency of gmeow-rdf under --no-default-features"; exit 1; \
+	else \
+		echo "OK: gmeow-rdf --no-default-features is oxigraph-free (oxigraph is feature-gated/dev-dep only)"; \
+	fi
 
 native-py: ## Build and install the single unified gmeow_native Python extension (maturin develop, #630).
 	VIRTUAL_ENV="$$(pwd)/.venv" uvx maturin develop --manifest-path crates/native/Cargo.toml
