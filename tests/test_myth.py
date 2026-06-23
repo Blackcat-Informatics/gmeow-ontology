@@ -15,6 +15,7 @@ from tests._graph_nt import run_shacl
 
 GMEOW = Namespace("https://blackcatinformatics.ca/gmeow/")
 GUFO = Namespace("http://purl.org/nemo/gufo#")
+LOGIC = Namespace("https://blackcatinformatics.ca/logic/")
 EX = Namespace("https://example.org/test/")
 
 
@@ -32,9 +33,9 @@ def test_myth_is_kind_and_social_object() -> None:
 def test_social_object_is_category() -> None:
     graph = _graph()
     assert (GMEOW.SocialObject, RDF.type, OWL.Class) in graph
-    assert (GMEOW.SocialObject, RDF.type, GUFO.Category) in graph
+    assert (GMEOW.SocialObject, RDF.type, LOGIC.Category) in graph
     assert (GMEOW.SocialObject, RDFS.subClassOf, GMEOW.Entity) in graph
-    assert (GMEOW.SocialObject, RDFS.subClassOf, GUFO.Object) in graph
+    assert (GMEOW.SocialObject, RDFS.subClassOf, LOGIC.Object) in graph
 
 
 def test_myth_properties_exist() -> None:

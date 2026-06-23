@@ -312,7 +312,7 @@ def test_quality_foops_best_effort_skips_when_foops_raises(
 
 def test_create_docs_from_bundled_snapshot(runner: CliRunner, tmp_path: Path) -> None:
     out = tmp_path / "docs-tree"
-    result = runner.invoke(public_app, ["docs", "--directory", str(out)])
+    result = runner.invoke(public_app, ["extract-docs", "--directory", str(out)])
     assert result.exit_code == 0, result.output
     assert (out / "index.md").exists()
     assert (out / "terms" / "classes").is_dir()
@@ -443,7 +443,7 @@ def test_create_docs_language_fallback(runner: CliRunner, tmp_path: Path) -> Non
     out = tmp_path / "docs-tree"
     result = runner.invoke(
         public_app,
-        ["docs", "--directory", str(out), "--lang", "fr", str(fixture)],
+        ["extract-docs", "--directory", str(out), "--lang", "fr", str(fixture)],
     )
     assert result.exit_code == 0, result.output
     sample_file = out / "terms" / "classes" / "gmeow-SampleTerm.md"
@@ -610,7 +610,6 @@ def test_dev_cli_has_compile_gts_commands(runner: CliRunner) -> None:
     result = runner.invoke(dev_app, ["--help"])
     assert result.exit_code == 0
     assert "compile-gts" in result.output
-    assert "compile-gts-full" in result.output
 
 
 def test_dev_i18n_help_lists_sync_english(runner: CliRunner) -> None:
