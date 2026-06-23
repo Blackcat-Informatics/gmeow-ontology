@@ -56,15 +56,37 @@ fn english_carrier_tree_matches_render_site() {
 }
 
 #[test]
-fn archive_prefix_maps_language_to_internal_tag() {
-    // `create_docs` selects the stored archive by the internal `x-gmeow-*` tag.
-    // English is special-cased; an undeclared language defaults to `x-gmeow-<code>`.
+fn archive_prefix_fallback_uses_default_tag_when_undeclared() {
+    // When a catalog declares no internal-tag mapping (the `from_entries` builder
+    // leaves it empty), `create_docs`'s archive-prefix selection defaults to
+    // `x-gmeow-<code>`; English is special-cased.
     let tr = Translations::from_entries(
         Vec::<((String, String, String), String)>::new(),
         ["fr".to_string()],
     );
     assert_eq!(tr.internal_tag("english"), "x-gmeow-english");
     assert_eq!(tr.internal_tag("fr"), "x-gmeow-fr");
+}
+
+#[test]
+fn live_model_archive_prefix_uses_declared_bcp47_internal_tags() {
+    // The REAL mapping `create_docs` selects on, read from the language slices'
+    // declared BCP-47 → internal `x-gmeow-*` pairs — NOT the empty-map fallback.
+    // This pins the actual production selection (`fr` → French archive, `zh` →
+    // Mandarin archive), which the empty-fixture test above cannot exercise.
+    let model = live_model();
+    let tr = &model.translations;
+    assert_eq!(tr.internal_tag("english"), "x-gmeow-english");
+    assert_eq!(
+        tr.internal_tag("fr"),
+        "x-gmeow-french",
+        "fr must resolve to the declared French internal tag, not the fallback"
+    );
+    assert_eq!(
+        tr.internal_tag("zh"),
+        "x-gmeow-mandarin",
+        "zh must resolve to the declared Mandarin internal tag, not the fallback"
+    );
 }
 
 #[test]
