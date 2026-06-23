@@ -67,9 +67,9 @@ pub use fno::{
     FnOutput, FnParam, FnParamMapping, FnReturnMapping, FnoCatalog,
 };
 pub use ir::{
-    dataset_diff, datasets_isomorphic, BlankScope, DatasetDiff, GtsBundle, MutableDataset,
-    QuadHandle, QuadIds, QuadRef, QuadValues, RdfDataset, RdfDatasetBuilder, RdfEnvelope,
-    RdfEventSink, TermId, TermRef, TermValue,
+    dataset_diff, datasets_isomorphic, BlankScope, DatasetDiff, DatasetSink, FrozenDatasetSource,
+    GtsBundle, MutableDataset, QuadHandle, QuadIds, QuadRef, QuadValues, RdfDataset,
+    RdfDatasetBuilder, RdfDatasetVisitor, RdfEnvelope, TermId, TermRef, TermValue,
 };
 #[cfg(feature = "gts")]
 pub use ir::{import_gts_events, import_gts_graph};

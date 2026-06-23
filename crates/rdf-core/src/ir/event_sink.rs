@@ -3,14 +3,23 @@
 
 //! Evented, ID-addressed OUTPUT of a frozen [`RdfDataset`] (#819 C6).
 //!
-//! [`RdfEventSink`] is the dual of the GTS import sink ([`super::import_sink`]):
-//! where the importer folds an event stream *into* the IR, [`RdfDataset::emit`]
-//! streams a frozen dataset *out* as events, so downstream consumers — the chase
-//! materializer, SHACL result emission, and projection writers — can receive the
-//! graph without each re-walking or re-materializing it.
+//! [`RdfDatasetVisitor`] is the **frozen-dataset OUTPUT visitor**: it is the dual of
+//! the permissive ingestion protocol (the `gmeow-rdf-events` `RdfDatasetVisitor`, purrdf
+//! P6 #840, named `RdfEventSink` there) — where that ingestion sink folds an
+//! *external* event stream *into* the
+//! IR, [`RdfDataset::emit`] walks an *already-frozen* dataset and streams it *out* as
+//! events, so downstream consumers — the chase materializer, SHACL result emission,
+//! and projection writers — can receive the graph without each re-walking or
+//! re-materializing it.
+//!
+//! The two are distinct on purpose: this visitor is **infallible** (every method
+//! returns `()`), output-only, and driven by [`RdfDataset::emit`] over a validated
+//! dataset; the ingestion `RdfEventSink` is **fallible** (forward references,
+//! cancellation, unresolved-at-finish are all real outcomes) and driven by an
+//! arbitrary, possibly out-of-order external source.
 //!
 //! The stream is **ID-addressed and self-declaring**: every [`TermId`] is declared
-//! by a [`term`](RdfEventSink::term) event *before* any quad / reifier / annotation
+//! by a [`term`](RdfDatasetVisitor::term) event *before* any quad / reifier / annotation
 //! / nested-triple-term references it. Because interning is bottom-up (a triple
 //! term's components are interned before the triple term itself, so they hold lower
 //! ids), emitting term declarations in ascending id order satisfies this invariant
@@ -26,7 +35,7 @@ use super::term::TermId;
 /// about — e.g. a projection writer that only needs quads ignores reifiers and
 /// annotations. The driver is [`RdfDataset::emit`], which guarantees the
 /// term-before-reference ordering documented on this module.
-pub trait RdfEventSink {
+pub trait RdfDatasetVisitor {
     /// Declare a term and its resolved value. Emitted in ascending [`TermId`] order,
     /// so any component id of a triple term — and a literal's datatype id — has
     /// already been declared.
@@ -53,10 +62,10 @@ pub trait RdfEventSink {
 }
 
 impl RdfDataset {
-    /// Stream this frozen dataset to an [`RdfEventSink`] as an ID-addressed,
+    /// Stream this frozen dataset to an [`RdfDatasetVisitor`] as an ID-addressed,
     /// self-declaring event stream: every term is declared before it is referenced
     /// (see the module docs). Zero allocation beyond what the sink itself does.
-    pub fn emit<S: RdfEventSink>(&self, sink: &mut S) {
+    pub fn emit<S: RdfDatasetVisitor>(&self, sink: &mut S) {
         // Term declarations first, in ascending id order — components and datatypes
         // (lower ids) precede the triple terms / literals that reference them.
         for i in 0..self.term_count() {
@@ -107,7 +116,7 @@ mod tests {
         }
     }
 
-    impl RdfEventSink for CollectSink {
+    impl RdfDatasetVisitor for CollectSink {
         fn term(&mut self, id: TermId, term: TermRef<'_>) {
             match term {
                 TermRef::Triple { s, p, o } => {
@@ -174,7 +183,7 @@ mod tests {
     fn default_sink_methods_are_noops() {
         // A sink that overrides nothing still drives to completion without panicking.
         struct Silent;
-        impl RdfEventSink for Silent {}
+        impl RdfDatasetVisitor for Silent {}
         let mut b = RdfDatasetBuilder::new();
         let (s, p, o) = (iri(&mut b, "s"), iri(&mut b, "p"), iri(&mut b, "o"));
         b.push_quad(s, p, o, None);
