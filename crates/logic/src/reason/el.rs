@@ -54,7 +54,7 @@ pub(crate) const SUBSUMPTION_PREDICATES: &[&str] = &[
 /// distinguishes asserted facts (`true`) from rule-derived ones (`false`).
 /// `rule_name` is the firing rule's `#[name(...)]` (`None` for EDB), and
 /// `premises` are the decoded immediate antecedents (subject, predicate, object).
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub struct InferredAxiom {
     pub subject: String,
     pub predicate: String,

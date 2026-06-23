@@ -143,9 +143,20 @@ fn axiom_triple(axiom: &InferredAxiom) -> RdfTriple {
     )
 }
 
-/// The derived (non-EDB) axioms of a result, in result order.
-fn derived(result: &ReasonResult) -> impl Iterator<Item = &InferredAxiom> {
-    result.inferred.iter().filter(|a| !a.is_edb)
+/// The derived (non-EDB) axioms of a result in a deterministic content order.
+///
+/// The native chase emits axioms in world-iteration order, which varies
+/// run-to-run (issue #883). Premises are canonicalized (sorted) at construction
+/// time in `run_reasoning`, so this helper only orders the derived set by full
+/// content so all three artifacts serialize byte-identically regardless of chase
+/// order — killing the drift class at the single chokepoint every builder funnels
+/// through. `sort` (stable) is used deliberately WITHOUT dedup: fully
+/// content-equal duplicate derivations must be preserved so the emitted multiset
+/// is unchanged.
+fn derived_sorted(result: &ReasonResult) -> Vec<&InferredAxiom> {
+    let mut axioms: Vec<&InferredAxiom> = result.inferred.iter().filter(|a| !a.is_edb).collect();
+    axioms.sort();
+    axioms
 }
 
 // ── inferred-closure ────────────────────────────────────────────────────────────
@@ -177,7 +188,7 @@ pub fn build_inferred_closure_ttl(
     }
 
     out.push_str("\n# --- derived (inferred) closure ---\n");
-    for axiom in derived(result) {
+    for axiom in derived_sorted(result) {
         let triple = axiom_triple(axiom);
         let rule = format!("<{}>", derived_rule_iri(axiom)?);
         let world = format!("<{}>", bare_iri(&axiom.world));
@@ -215,13 +226,13 @@ pub fn build_inferred_closure_ttl(
 pub fn build_explanations_ttl(result: &ReasonResult) -> Result<String, String> {
     let mut out = String::from(EXPLANATIONS_HEADER);
     out.push_str("\n# --- derivation proof skeletons ---\n");
-    for axiom in derived(result) {
+    for axiom in derived_sorted(result) {
         let conclusion = emit_term(&RdfTerm::triple(axiom_triple(axiom)));
         let rule = format!("<{}>", derived_rule_iri(axiom)?);
         let world = format!("<{}>", bare_iri(&axiom.world));
 
         // Property list on an anonymous derivation node: type, conclusion, each
-        // premise (preserving result order), rule, kind, label, world.
+        // premise (canonically sorted at construction, deterministic), rule, kind, label, world.
         let mut properties: Vec<(String, String)> = Vec::new();
         properties.push((RDF_TYPE.to_owned(), format!("<{}>", gmeow("Derivation"))));
         properties.push((gmeow("concludes"), conclusion));
@@ -326,7 +337,8 @@ pub fn build_dl_el_ledger_ttl(result: &ReasonResult) -> String {
     ));
 
     // Native-only subsumption entailments (derived rdfs:subClassOf axioms).
-    let subsumptions: Vec<&InferredAxiom> = derived(result)
+    let subsumptions: Vec<&InferredAxiom> = derived_sorted(result)
+        .into_iter()
         .filter(|a| a.predicate == RDFS_SUBCLASS_OF)
         .collect();
 
