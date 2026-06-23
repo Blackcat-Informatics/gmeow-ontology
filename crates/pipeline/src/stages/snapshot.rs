@@ -17,7 +17,7 @@
 //! source into the named graph `gts_gen.py` assigns it.
 
 use std::collections::BTreeMap;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 use gmeow_rdf::gts_compose::{emit_gts, BlobRow, SnapshotBuilder};
 use gmeow_rdf::oxigraph::OxigraphStore;
@@ -148,6 +148,199 @@ pub(crate) fn snapshot_bytes(
         .ok_or_else(|| stage_err("missing stage-snapshot gmeow.gts artifact"))
 }
 
+// ── Archive blobs (#861 regression fix) ─────────────────────────────────────────
+//
+// The pre-pipeline generator folded four TAR archives into `gmeow.gts` —
+// `mappings-archive` / `cells-archive` / `queries-archive` / `tests-archive` —
+// that the wheel-mode consumer loaders read back (`gmeow_tools.bundle`:
+// `bundled_sssom` / `bundled_cells` / `bundled_queries` / `bundled_tests`). The
+// #861 pipeline cutover dropped the WRITER (only the reader survived, orphaned),
+// so a repo-free `gmeow.gts` lost its lift maps / cells / queries / test specs and
+// every wheel-mode consumer (up-projection, docs-from-bundle, export) broke. This
+// restores the writer as a dep-free, byte-deterministic USTAR codec (sorted
+// members, zeroed mtime/uid/gid, mode 0644) so the composed snapshot stays
+// fold-stable. Member-name conventions MIRROR the reader: mappings/queries use the
+// bare filename; cells/tests preserve the repo-relative path (so
+// `bundled_cells_under(prefix)` can route by directory).
+
+const REP_MAPPINGS: &str = "mappings-archive";
+const REP_CELLS: &str = "cells-archive";
+const REP_QUERIES: &str = "queries-archive";
+const REP_TESTS: &str = "tests-archive";
+const ARCHIVE_MEDIA_TYPE: &str = "application/x-tar";
+
+/// Build the four bundle archive blobs from the repo tree.
+fn build_archive_blobs(root: &Path) -> Result<Vec<BlobRow>, PipelineError> {
+    // mappings + queries: member = bare filename.
+    let mappings = members_basename(&list_files(&root.join("generated/mappings"), "sssom.tsv")?);
+    let queries = members_basename(&list_files(&root.join("generated/queries"), "rq")?);
+    // cells: equivalences + projections + slice mappings, member = repo-relative path.
+    let mut cells: Vec<(String, Vec<u8>)> = Vec::new();
+    cells.extend(members_relpath(
+        root,
+        &list_files(&root.join("dsl/mappings/equivalences"), "ttl")?,
+    )?);
+    cells.extend(members_relpath(
+        root,
+        &list_files(&root.join("dsl/mappings/projections"), "ttl")?,
+    )?);
+    cells.extend(members_relpath(root, &slice_files(root, "mappings")?)?);
+    cells.sort_by(|a, b| a.0.cmp(&b.0));
+    // tests: slices/*/*/tests/*.ttl (non-recursive), member = repo-relative path.
+    let mut tests = members_relpath(root, &slice_files(root, "tests")?)?;
+    tests.sort_by(|a, b| a.0.cmp(&b.0));
+    Ok(vec![
+        archive_blob(REP_MAPPINGS, &mappings)?,
+        archive_blob(REP_CELLS, &cells)?,
+        archive_blob(REP_QUERIES, &queries)?,
+        archive_blob(REP_TESTS, &tests)?,
+    ])
+}
+
+/// Every `*.<ext>` directly under `dir`, sorted by path (empty if the dir is absent).
+fn list_files(dir: &Path, ext: &str) -> Result<Vec<PathBuf>, PipelineError> {
+    let entries = match std::fs::read_dir(dir) {
+        Ok(e) => e,
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(Vec::new()),
+        Err(e) => return Err(stage_err(&format!("read_dir {}: {e}", dir.display()))),
+    };
+    let dot = format!(".{ext}");
+    let mut files: Vec<PathBuf> = Vec::new();
+    for entry in entries {
+        let path = entry
+            .map_err(|e| stage_err(&format!("read_dir entry under {}: {e}", dir.display())))?
+            .path();
+        if path.is_file() && path.to_string_lossy().ends_with(&dot) {
+            files.push(path);
+        }
+    }
+    files.sort();
+    Ok(files)
+}
+
+/// Every `slices/<group>/<name>/<sub>/*.ttl` (non-recursive past `<sub>/`), sorted.
+fn slice_files(root: &Path, sub: &str) -> Result<Vec<PathBuf>, PipelineError> {
+    let slices = root.join("slices");
+    let mut out: Vec<PathBuf> = Vec::new();
+    let groups = match std::fs::read_dir(&slices) {
+        Ok(e) => e,
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(out),
+        Err(e) => return Err(stage_err(&format!("read_dir {}: {e}", slices.display()))),
+    };
+    for group in groups {
+        let gpath = group
+            .map_err(|e| stage_err(&format!("slices group: {e}")))?
+            .path();
+        if !gpath.is_dir() {
+            continue;
+        }
+        let names = std::fs::read_dir(&gpath)
+            .map_err(|e| stage_err(&format!("read_dir {}: {e}", gpath.display())))?;
+        for name in names {
+            let npath = name
+                .map_err(|e| stage_err(&format!("slices name: {e}")))?
+                .path();
+            if npath.is_dir() {
+                out.extend(list_files(&npath.join(sub), "ttl")?);
+            }
+        }
+    }
+    out.sort();
+    Ok(out)
+}
+
+/// `(filename, bytes)` members — the file's bare name (mappings / queries).
+fn members_basename(files: &[PathBuf]) -> Vec<(String, Vec<u8>)> {
+    files
+        .iter()
+        .filter_map(|p| {
+            let name = p.file_name()?.to_string_lossy().into_owned();
+            let data = std::fs::read(p).ok()?;
+            Some((name, data))
+        })
+        .collect()
+}
+
+/// `(repo-relative-path, bytes)` members — the path under `root` (cells / tests).
+fn members_relpath(
+    root: &Path,
+    files: &[PathBuf],
+) -> Result<Vec<(String, Vec<u8>)>, PipelineError> {
+    let mut out: Vec<(String, Vec<u8>)> = Vec::with_capacity(files.len());
+    for p in files {
+        let rel = p
+            .strip_prefix(root)
+            .map_err(|_| stage_err(&format!("path {} not under root", p.display())))?
+            .to_string_lossy()
+            .replace('\\', "/");
+        let data =
+            std::fs::read(p).map_err(|e| stage_err(&format!("read {}: {e}", p.display())))?;
+        out.push((rel, data));
+    }
+    Ok(out)
+}
+
+/// One archive blob: a deterministic USTAR tar over `members`, tagged with `rep`.
+fn archive_blob(rep: &str, members: &[(String, Vec<u8>)]) -> Result<BlobRow, PipelineError> {
+    Ok(BlobRow {
+        data: ustar_archive(members)?,
+        media_type: ARCHIVE_MEDIA_TYPE.to_string(),
+        rep: rep.to_string(),
+    })
+}
+
+/// A byte-deterministic USTAR archive: per-member 512-byte header + 512-padded
+/// data, terminated by two zero blocks. mtime/uid/gid = 0, mode = 0644.
+fn ustar_archive(members: &[(String, Vec<u8>)]) -> Result<Vec<u8>, PipelineError> {
+    let mut out: Vec<u8> = Vec::new();
+    for (name, data) in members {
+        out.extend_from_slice(&ustar_header(name, data.len())?);
+        out.extend_from_slice(data);
+        let pad = (512 - data.len() % 512) % 512;
+        out.extend(std::iter::repeat_n(0u8, pad));
+    }
+    out.extend(std::iter::repeat_n(0u8, 1024)); // two trailing zero blocks
+    Ok(out)
+}
+
+/// A single USTAR 512-byte header. Names must be ≤ 100 bytes (every repo-relative
+/// member path is well under that — asserted); no `prefix`-split path is needed.
+fn ustar_header(name: &str, size: usize) -> Result<[u8; 512], PipelineError> {
+    let nb = name.as_bytes();
+    if nb.len() > 100 {
+        return Err(stage_err(&format!(
+            "USTAR member name exceeds 100 bytes ({}): {name}",
+            nb.len()
+        )));
+    }
+    let mut h = [0u8; 512];
+    h[..nb.len()].copy_from_slice(nb);
+    write_octal(&mut h[100..108], 0o644); // mode
+    write_octal(&mut h[108..116], 0); // uid
+    write_octal(&mut h[116..124], 0); // gid
+    write_octal(&mut h[124..136], size as u64); // size
+    write_octal(&mut h[136..148], 0); // mtime
+    for b in &mut h[148..156] {
+        *b = b' '; // checksum field is spaces while the sum is computed
+    }
+    h[156] = b'0'; // typeflag: regular file
+    h[257..263].copy_from_slice(b"ustar\0");
+    h[263..265].copy_from_slice(b"00");
+    let sum: u32 = h.iter().map(|&b| u32::from(b)).sum();
+    // 6 octal digits, then NUL + space (the canonical checksum encoding).
+    let chk = format!("{sum:06o}\0 ");
+    h[148..156].copy_from_slice(chk.as_bytes());
+    Ok(h)
+}
+
+/// Write `value` as right-justified, zero-padded octal into `field`, NUL-terminated.
+fn write_octal(field: &mut [u8], value: u64) {
+    let width = field.len() - 1;
+    let s = format!("{value:0width$o}");
+    field[..width].copy_from_slice(&s.as_bytes()[..width]);
+    field[width] = 0;
+}
+
 // ── Stage impl ───────────────────────────────────────────────────────────────────
 
 /// The `stage-snapshot` Transform stage (#861 P6): assembles the structured
@@ -195,10 +388,13 @@ impl Stage for SnapshotStage {
         &self.consumes
     }
     fn impl_version(&self) -> &str {
-        "snapshot.v1-structured"
+        // v2: re-fold the mappings/cells/queries/tests archive blobs the #861
+        // pipeline cutover dropped (the wheel-mode consumer loaders need them).
+        "snapshot.v2-archive-blobs"
     }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, PipelineError> {
-        let gts = build_snapshot(input.root, input.upstream, Vec::new())?;
+        let blobs = build_archive_blobs(input.root)?;
+        let gts = build_snapshot(input.root, input.upstream, blobs)?;
         let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
         artifacts.insert(SNAPSHOT_PATH.to_string(), gts);
         Ok(StageOutput {
