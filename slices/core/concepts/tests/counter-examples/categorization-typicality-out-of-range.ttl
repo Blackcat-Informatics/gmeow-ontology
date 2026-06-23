@@ -1,0 +1,22 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for gmeow:ConceptCategorizationShape: gmeow:typicality is
+# "1.5"^^xsd:decimal, above the closed interval [0,1]. The typicality property
+# shape carries sh:maxInclusive 1 (and sh:minInclusive 0, sh:datatype xsd:decimal,
+# both satisfied by 1.5), so validation MUST emit
+# shacl.MaxInclusiveConstraintComponent (and no other finding).
+# Bound by tests/example-conformance.ttl (ex:ecCategorizationTypicalityOutOfRange).
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex: <http://example.org/cnc/> .
+
+ex:whale a gmeow:Entity .
+ex:mammal a gmeow:Concept .
+ex:method a gmeow:ObservationMethod .
+
+ex:bad3 a gmeow:ConceptCategorization ;
+    gmeow:observedFeature ex:whale ;
+    gmeow:observationResult ex:mammal ;
+    gmeow:observationMethod ex:method ;
+    gmeow:typicality "1.5"^^xsd:decimal .

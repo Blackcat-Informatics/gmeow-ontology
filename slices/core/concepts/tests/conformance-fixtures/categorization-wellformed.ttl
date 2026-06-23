@@ -1,0 +1,22 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Conforming fixture for gmeow:ConceptCategorizationShape — a well-formed
+# categorization with exactly one observedFeature (an Entity), one
+# observationResult (a Concept), an observationMethod, and an in-range typicality.
+# Bound by tests/example-conformance.ttl (ex:ecCategorizationConforms,
+# gmeow:conforms). Self-contained: the harness loads concepts/module.ttl + ONLY
+# this file against concepts/shapes.ttl.
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex: <http://example.org/cnc/> .
+
+ex:whale a gmeow:Entity .
+ex:mammal a gmeow:Concept .
+ex:method a gmeow:ObservationMethod .
+
+ex:cat1 a gmeow:ConceptCategorization ;
+    gmeow:observedFeature ex:whale ;
+    gmeow:observationResult ex:mammal ;
+    gmeow:observationMethod ex:method ;
+    gmeow:typicality "0.95"^^xsd:decimal .
