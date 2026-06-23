@@ -1,0 +1,156 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Declarative structural assertions for the diagnostics slice — the
+# slice-resident test-DSL twin of the MUST / MUST-NOT invariants formerly
+# hand-written in tests/test_diagnostics.py. Authored as gmeow: ontology data
+# so the same annotation discipline and the native Rust harness
+# (crates/slicetest, #784) drive the test, not ad-hoc Python. Each assertion
+# runs as a SPARQL ASK over the module graph (gmeow:scopeModule). A positive
+# universal over a fixed term set is a single MUST with a conjunctive pattern
+# (all conjuncts must match); a negative universal ("no property carries this
+# characteristic") is a MUST-NOT over a VALUES set or explicit list.
+#
+# The annotation-completeness test (formerly test_annotation_completeness)
+# and the graphBoxRole-coverage test (formerly test_graph_box_role_coverage)
+# are both covered by the global `make validate` SHACL gate
+# (shapes/gmeow-shapes.ttl: GmeowClassShape + GmeowPropertyShape + GmeowDatatypeShape
+# enforce rdfs:label / skos:definition / rdfs:isDefinedBy / gmeow:graphBoxRole
+# on every gmeow:-namespaced class and property). Verified 2026-06-22: deleting
+# gmeow:Finding's rdfs:label caused make validate to emit "error Every GMEOW
+# class must carry at least one rdfs:label." and exit non-zero. The
+# graphBoxRole shape (sh:path gmeow:graphBoxRole, min-count 1) is wired
+# alongside the label shapes in the same file, so both are enforced together.
+# Both pytest functions are therefore deleted rather than migrated.
+#
+# See dsl/tests/MIGRATION-LEDGER.md for the per-test pytest→DSL mapping.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/diagnostics/tests/> .
+
+# --- 1a. Finding is an owl:Class and a gufo:SubKind (MUST hold) ---------------
+ex:saFindingIsSubKindOwlClass a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:Finding a owl:Class , gufo:SubKind ;
+        rdfs:subClassOf gmeow:Observation .
+}""" ;
+    gmeow:saRationale "gmeow:Finding MUST be an owl:Class, a gufo:SubKind (inheriting Observation's identity principle — the OntoUML MixIden rule forbids a Kind specializing a Kind), and rdfs:subClassOf gmeow:Observation (a diagnostic IS an observation, Principle 9). Mirrors test_finding_is_a_subkind_of_observation." .
+
+# --- 1b. Finding is NOT a gufo:Kind (MUST-NOT hold) --------------------------
+ex:saFindingNotKind a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+ASK {
+    gmeow:Finding rdf:type gufo:Kind .
+}""" ;
+    gmeow:saRationale "gmeow:Finding MUST NOT be typed gufo:Kind — gmeow:Observation already is a Kind; a Kind specializing a Kind is the OntoUML MixIden identity conflict. Finding inherits the identity principle via SubKind. Mirrors the negative gufo:Kind clause of test_finding_is_a_subkind_of_observation." .
+
+# --- 2a. findingSeverity ⊑ observationResult and ranges DiagnosticSeverity ----
+ex:saFindingSeveritySubPropertyAndRange a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:findingSeverity rdfs:subPropertyOf gmeow:observationResult ;
+        rdfs:range gmeow:DiagnosticSeverity .
+}""" ;
+    gmeow:saRationale "gmeow:findingSeverity MUST be rdfs:subPropertyOf gmeow:observationResult and MUST carry rdfs:range gmeow:DiagnosticSeverity (the closed severity vocabulary). Mirrors test_severity_and_location_subproperty_observation_roles." .
+
+# --- 2b. findingLocation ⊑ observedFeature (MUST hold) -----------------------
+ex:saFindingLocationSubProperty a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:findingLocation rdfs:subPropertyOf gmeow:observedFeature .
+}""" ;
+    gmeow:saRationale "gmeow:findingLocation MUST be rdfs:subPropertyOf gmeow:observedFeature — a finding's location IS what the observation is about, enabling generic 'observations about X' queries by inheritance. Mirrors the positive subPropertyOf clause of test_severity_and_location_subproperty_observation_roles." .
+
+# --- 2c. findingLocation has open range: NO rdfs:range (MUST-NOT hold) --------
+ex:saFindingLocationOpenRange a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK { gmeow:findingLocation rdfs:range ?r . }""" ;
+    gmeow:saRationale "gmeow:findingLocation MUST NOT declare an rdfs:range — per-kind narrowing is SHACL's job; the location may point at any term (typically a reified RDF 1.2 statement node carrying GTS wire coordinates). Mirrors the open-range clause of test_severity_and_location_subproperty_observation_roles." .
+
+# --- 3a. DiagnosticSeverity is an owl:Class and a gufo:AbstractIndividualType --
+ex:saDiagnosticSeverityIsValueVocab a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:DiagnosticSeverity a owl:Class , gufo:AbstractIndividualType ;
+        rdfs:subClassOf gufo:QualityValue .
+}""" ;
+    gmeow:saRationale "gmeow:DiagnosticSeverity MUST be an owl:Class, a gufo:AbstractIndividualType, and rdfs:subClassOf gufo:QualityValue — the value-vocabulary genus. Severity is a quality value, not a subclass hierarchy. Mirrors test_diagnostic_severity_is_a_value_vocabulary." .
+
+# --- 3b. All four severity individuals are typed DiagnosticSeverity (MUST) ----
+ex:saSeverityIndividualsSeeded a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    gmeow:severityError   a gmeow:DiagnosticSeverity .
+    gmeow:severityWarning a gmeow:DiagnosticSeverity .
+    gmeow:severityNote    a gmeow:DiagnosticSeverity .
+    gmeow:severityInfo    a gmeow:DiagnosticSeverity .
+}""" ;
+    gmeow:saRationale "All four severity grade individuals (severityError, severityWarning, severityNote, severityInfo) MUST be typed gmeow:DiagnosticSeverity — the closed-by-convention value vocabulary (Principle 9). Mirrors the per-individual membership clause of test_diagnostic_severity_is_a_value_vocabulary." .
+
+# --- 3c. Severity grade individuals are NOT owl:Class (MUST-NOT hold) --------
+ex:saSeverityIndividualsNotClasses a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+ASK {
+    VALUES ?indiv { gmeow:severityError gmeow:severityWarning gmeow:severityNote gmeow:severityInfo }
+    ?indiv rdf:type owl:Class .
+}""" ;
+    gmeow:saRationale "None of the four severity grade individuals may be typed owl:Class — grades are individuals, never subclasses (Principle 9). Mirrors the negative owl:Class clause of test_diagnostic_severity_is_a_value_vocabulary." .
+
+# --- 4. Wire-coordinate datatype properties range over nonNegativeInteger -----
+ex:saWireCoordinatesAreDatatype a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+ASK {
+    gmeow:gtsTermId     a owl:DatatypeProperty ; rdfs:range xsd:nonNegativeInteger .
+    gmeow:gtsQuadIndex  a owl:DatatypeProperty ; rdfs:range xsd:nonNegativeInteger .
+    gmeow:gtsReifierId  a owl:DatatypeProperty ; rdfs:range xsd:nonNegativeInteger .
+    gmeow:gtsFrameIndex a owl:DatatypeProperty ; rdfs:range xsd:nonNegativeInteger .
+}""" ;
+    gmeow:saRationale "All four diagnostics-owned GTS wire coordinate properties (gtsTermId, gtsQuadIndex, gtsReifierId, gtsFrameIndex) MUST be owl:DatatypeProperty and MUST range over xsd:nonNegativeInteger (wire indices are always non-negative). Mirrors test_wire_coordinates_are_datatype_properties." .
+
+# --- 5. No truth/resolution bits (MUST-NOT hold) -----------------------------
+ex:saNoTruthOrResolutionBits a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    VALUES ?forbidden { gmeow:isTrue gmeow:isFalse gmeow:isResolved gmeow:findingOutcome }
+    { ?forbidden ?p ?o . }
+    UNION { ?s ?forbidden ?o . }
+    UNION { ?s ?p ?forbidden . }
+}""" ;
+    gmeow:saRationale "The diagnostics slice is a projection of the Rust-owned canonical report and MUST NOT mint truth or resolution bits (isTrue, isFalse, isResolved, findingOutcome). None of the forbidden terms may appear in any subject, predicate, or object position. Mirrors test_no_truth_or_resolution_bits." .
