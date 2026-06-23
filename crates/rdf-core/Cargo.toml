@@ -1,0 +1,65 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+
+[package]
+name = "gmeow-rdf-core"
+description = "GMEOW RDF 1.2 oxigraph-free kernel: model, diagnostics, IR, store traits, GTS readers"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+readme = "README.md"
+keywords = ["rdf", "rdf-12", "gts", "ir", "diagnostics"]
+
+[lib]
+# rlib-only oxigraph-free / PyO3-free kernel. The oxigraph adapters and the PyO3
+# extension surface live in the sibling `gmeow-rdf` crate; this crate is the ring-
+# fenced core that MUST NOT pull oxigraph into its dependency tree (#885 / purrdf P2b).
+crate-type = ["rlib"]
+path = "src/lib.rs"
+name = "gmeow_rdf_core"
+
+[features]
+default = ["gts"]
+# `gts` enables the GTS reader surface + the Ed25519 signer the snapshot path uses.
+# Unlike the sibling `gmeow-rdf` `gts` feature, this one does NOT pull oxigraph: the
+# ring-fence proof (#885) is that no feature of this crate can introduce oxigraph.
+gts = ["dep:ciborium", "dep:gmeow-gts", "dep:ed25519-dalek"]
+
+[dependencies]
+ciborium = { version = "0.2", optional = true }
+# Raw `HashTable` for the store-once builder interner/dedup (#880 P3c): each term/
+# row is owned ONCE by its `Vec`, the table holds only indices. `>= 0.14.2` because
+# the `HashTable` type was introduced in 0.14.2 (0.14.0/0.14.1 lack it).
+hashbrown = "0.14.2"
+# Tab-separated body parser for the native SSSOM codec (#848): handles quoting,
+# flexible column counts, and by-name column access. The SSSOM `#`-prefixed YAML
+# header is parsed bespoke (GMEOW owns the format); `csv` only parses the body.
+csv = "1"
+gmeow-gts = { version = "0.9.5", optional = true }
+# Content-addressed blob digest for the content store (#820). Same version as the
+# sibling kernel crates (logic/validate/slice).
+sha2 = "0.10"
+# The snapshot signing path constructs a SigningKey from the 32 raw Ed25519 bytes
+# the Python `gts.Signer` carries; same major as gmeow-gts links. gts-only.
+ed25519-dalek = { version = "2", optional = true }
+
+[dev-dependencies]
+# Rich colored line-diffs on assert_eq! failure (#871). Drop-in: a shadowing
+# `use pretty_assertions::assert_eq;` per test file; identical on pass.
+pretty_assertions = "1"
+ciborium = "0.2"
+gmeow-gts = "0.9.5"
+proptest = "1"
+# Acceleration-program baselines (#630/#819 C1 Task 7); light feature set matching
+# the sibling crates (logic/shacl/validate): criterion's plotters/rayon defaults are
+# off so `make bench` builds fast and the cargo-bench stdout summary is all we need.
+criterion = { version = "0.5", default-features = false, features = ["cargo_bench_support"] }
+
+[[bench]]
+# IR layout / operational-metrics harness: AoS-vs-SoA(-vs-predicate-adjacency)
+# iteration + allocated-bytes/count/peak reporting. Satisfies the #819 RFC gate
+# "Layout is chosen by benchmark, not asserted". `make bench` lane only — excluded
+# from `make check`.
+name = "ir_layout"
+harness = false

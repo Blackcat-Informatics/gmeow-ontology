@@ -26,7 +26,7 @@ use std::collections::BTreeMap;
 
 use gmeow_gts::model::{Graph, Term, TermKind};
 use gmeow_gts::writer::Writer;
-use gmeow_rdf::{
+use gmeow_rdf_core::{
     datasets_isomorphic, import_gts_events, import_gts_graph, RdfDataset, TermId, TermRef,
 };
 
@@ -499,7 +499,7 @@ fn import_consumes_graph_by_value() {
 /// The loss ledger documents the `bnode-scope-flatten` loss this path incurs.
 #[test]
 fn loss_ledger_documents_bnode_scope_flatten() {
-    let ledger = gmeow_rdf::gts_to_rdf_loss_ledger();
+    let ledger = gmeow_rdf_core::gts_to_rdf_loss_ledger();
     let entry = ledger
         .entries()
         .iter()

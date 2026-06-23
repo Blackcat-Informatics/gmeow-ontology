@@ -7,7 +7,7 @@
 
 // Rich colored line-diffs on assert_eq! failure (#871); shadows the std macro
 // for this file. Identical behaviour on pass; insta snapshots are unaffected.
-use gmeow_rdf::{
+use gmeow_rdf_core::{
     gts_write::{to_gts, to_writer},
     RdfAnnotation, RdfLiteral, RdfQuad, RdfReifier, RdfTerm, RdfTriple, VecRdfStore,
 };

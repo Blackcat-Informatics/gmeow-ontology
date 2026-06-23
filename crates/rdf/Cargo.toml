@@ -20,7 +20,10 @@ path = "src/lib.rs"
 
 [features]
 default = ["gts"]
-gts = ["dep:ciborium", "dep:gmeow-gts", "dep:ed25519-dalek", "oxigraph"]
+# `gts` is now DECOUPLED from oxigraph (#885 / purrdf P2b): it enables the GTS
+# adapter surface (re-exported from the ring-fenced `gmeow-rdf-core` kernel via
+# `gmeow-rdf-core/gts`) plus the Ed25519 signer, but no longer pulls oxigraph.
+gts = ["dep:ciborium", "dep:gmeow-gts", "dep:ed25519-dalek", "gmeow-rdf-core/gts"]
 oxigraph = ["dep:oxigraph"]
 # `python` builds the `gmeow_rdf` PyO3 extension (the native statement codec).
 # It is OFF by default so the kernel rlib stays PyO3-free for its Rust consumers
@@ -36,20 +39,14 @@ oxigraph = ["dep:oxigraph"]
 python = ["dep:pyo3", "gts", "oxigraph", "gmeow-gts/yaml-ld", "gmeow-gts/rdf-codecs"]
 
 [dependencies]
+# The ring-fenced, oxigraph-free kernel (#885 / purrdf P2b): owns the IR, value
+# model, diagnostics, store traits, loss ledger, provenance, FnO/SSSOM codecs,
+# the content store, and the oxigraph-free GTS reader path. Non-optional —
+# gmeow-rdf always re-exports its always-on modules — with default features off
+# so the `gts`-only modules stay behind gmeow-rdf's own `gts` feature.
+gmeow-rdf-core = { path = "../rdf-core", default-features = false }
 ciborium = { version = "0.2", optional = true }
-# Raw `HashTable` for the store-once builder interner/dedup (#880 P3c): each term/
-# row is owned ONCE by its `Vec`, the table holds only indices. `>= 0.14.2` because
-# the `HashTable` type was introduced in 0.14.2 (0.14.0/0.14.1 lack it); the 0.14.5
-# that oxigraph already links satisfies this, so the tree keeps a single copy.
-hashbrown = "0.14.2"
-# Tab-separated body parser for the native SSSOM codec (#848): handles quoting,
-# flexible column counts, and by-name column access. The SSSOM `#`-prefixed YAML
-# header is parsed bespoke (GMEOW owns the format); `csv` only parses the body.
-csv = "1"
 gmeow-gts = { version = "0.9.5", optional = true }
-# Content-addressed blob digest for the content store (#820). Same version as the
-# sibling kernel crates (logic/validate/slice).
-sha2 = "0.10"
 oxigraph = { version = "0.5", default-features = false, features = ["rdf-12"], optional = true }
 # pyo3 is pulled ONLY by the `python` feature (maturin). Same version/abi3 as the
 # sibling extension crates (validate/shacl/logic/diagnostics).
@@ -72,11 +69,3 @@ proptest = "1"
 # the sibling crates (logic/shacl/validate): criterion's plotters/rayon defaults are
 # off so `make bench` builds fast and the cargo-bench stdout summary is all we need.
 criterion = { version = "0.5", default-features = false, features = ["cargo_bench_support"] }
-
-[[bench]]
-# IR layout / operational-metrics harness: AoS-vs-SoA(-vs-predicate-adjacency)
-# iteration + allocated-bytes/count/peak reporting. Satisfies the #819 RFC gate
-# "Layout is chosen by benchmark, not asserted". `make bench` lane only — excluded
-# from `make check`.
-name = "ir_layout"
-harness = false
