@@ -58,3 +58,4 @@ crates/native/python/gmeow_native/*.pyd
 .baseline
 lcov.info
 mutants.out/
+bench-results.json

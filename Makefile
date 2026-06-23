@@ -262,6 +262,10 @@ MUTANTS_ARGS ?=
 mutants: ## Mutation-test the logic+validate cores (cargo-mutants; grades whether the suite catches regressions; report-only, OFF the required gate, #790). Config in mutants.toml. The full logic run is HOURS (nemo) — scope locally with MUTANTS_ARGS="-p gmeow-validate -f <file>". Needs `cargo install cargo-mutants`.
 	cargo mutants $(MUTANTS_ARGS)
 
+bench-json: ## Flatten criterion estimates into bench-results.json for the #668 perf leaderboard (#790). Run `make bench` first to populate target/criterion.
+	python3 scripts/bench_to_json.py > bench-results.json
+	@echo "wrote bench-results.json ($$(wc -c < bench-results.json) bytes)"
+
 dev: ## Build + install gmeow_native host-tuned (maturin develop --release, target-cpu=native) for optimized LOCAL runs.
 	RUSTFLAGS="$(NATIVE_RUSTFLAGS)" VIRTUAL_ENV="$$(pwd)/.venv" uvx maturin develop --release --manifest-path crates/native/Cargo.toml
 

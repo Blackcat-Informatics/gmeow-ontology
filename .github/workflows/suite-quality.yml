@@ -81,3 +81,31 @@ jobs:
           name: mutants-report
           path: mutants.out/
           if-no-files-found: warn
+
+  benchmarks:
+    name: benchmarks (perf leaderboard feed)
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          persist-credentials: false
+      - name: Install Rust (nightly)
+        uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8 # nightly
+        with:
+          toolchain: nightly
+      - name: Cache Cargo dependencies
+        uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
+      - name: Run criterion benchmarks
+        run: cargo bench -p gmeow-logic -p gmeow-rdf -p gmeow-shacl -p gmeow-validate
+      - name: Flatten to bench-results.json (#668 leaderboard feed)
+        run: make bench-json
+      - name: Upload benchmark results
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: bench-results
+          path: |
+            bench-results.json
+            target/criterion/
+          if-no-files-found: warn
