@@ -122,12 +122,11 @@ def _inject_bindings(query_text: str, bindings: dict[str, Identifier]) -> str:
     clause = f" VALUES ({names}) {{ ({values}) }} "
     lowered = query_text.lower()
     where = lowered.find("where")
-    if where == -1:
-        raise ValueError(
-            "initBindings/VALUES injection requires a WHERE clause; "
-            "got a query with none (e.g. a WHERE-less CONSTRUCT)."
-        )
-    brace = query_text.find("{", where)
+    # SELECT / CONSTRUCT-WHERE: inject after the WHERE keyword's opening brace.
+    # ASK / DESCRIBE / WHERE-less SELECT: no WHERE keyword — first `{` IS the
+    # group graph pattern.  (A CONSTRUCT always carries an explicit WHERE, so
+    # its template brace is never reached by the else branch.)
+    brace = query_text.find("{", where) if where != -1 else query_text.find("{")
     if brace == -1:
         return query_text
     return query_text[: brace + 1] + clause + query_text[brace + 1 :]
