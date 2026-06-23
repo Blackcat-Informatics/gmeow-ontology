@@ -12,8 +12,7 @@
 //! `ontology_docs.py`. Markdown/HTML/RDF projections and lint are added to this
 //! type in later tasks.
 
-use std::fs;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
 use pyo3::prelude::*;
 use pyo3::types::{PyBytes, PyDict, PyList};
@@ -131,18 +130,12 @@ impl DocSet {
     /// directories as needed, in fixed sorted order. Returns the list of written
     /// absolute-or-joined paths.
     fn write_artifacts(&self, py: Python<'_>, directory: String) -> PyResult<Py<PyAny>> {
-        let directory = PathBuf::from(directory);
+        // Thin wrapper over the pure-Rust `render::write_site` (unit-tested
+        // directly); just adapts the result to a Python list of path strings.
+        let paths = render::write_site(&self.inner, Path::new(&directory))
+            .map_err(|e| pyo3::exceptions::PyOSError::new_err(e.to_string()))?;
         let written = PyList::empty(py);
-        // The engine `BTreeMap` is already sorted; iterating it yields a fixed,
-        // deterministic write order.
-        for (rel, data) in &self.inner.files {
-            let path = directory.join(rel);
-            if let Some(parent) = path.parent() {
-                fs::create_dir_all(parent)
-                    .map_err(|e| pyo3::exceptions::PyOSError::new_err(e.to_string()))?;
-            }
-            fs::write(&path, data)
-                .map_err(|e| pyo3::exceptions::PyOSError::new_err(e.to_string()))?;
+        for path in paths {
             written.append(path.to_string_lossy().to_string())?;
         }
         Ok(written.into_any().unbind())

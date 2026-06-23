@@ -69,19 +69,22 @@ fn archive_prefix_maps_language_to_internal_tag() {
 
 #[test]
 fn rendered_tree_is_disk_faithful() {
-    // Materialize a per-language tree to the cargo target tmpdir exactly as
-    // write_artifacts does (sorted BTreeMap → join(rel) → write) and read every
-    // file back: the on-disk bytes are identical to the in-memory Site. Catches
-    // a path-join / encoding regression in the write contract.
+    // Drive the REAL writer `render::write_site` (the pure-Rust core that the
+    // PyO3 `DocSet::write_artifacts` wraps) and read every file back: the on-disk
+    // bytes are identical to the in-memory Site, and the returned path list
+    // matches the tree. Catches a path-join / create_dir / encoding regression in
+    // the actual write contract — not a mirrored copy of it.
     let model = live_model();
     let site = render_site_lang(&model, "english");
     let root = PathBuf::from(env!("CARGO_TARGET_TMPDIR")).join("docs-extract-roundtrip");
     let _ = std::fs::remove_dir_all(&root);
-    for (rel, data) in &site.files {
-        let path = root.join(rel);
-        std::fs::create_dir_all(path.parent().unwrap()).unwrap();
-        std::fs::write(&path, data).unwrap();
-    }
+
+    let written = gmeow_docs::render::write_site(&site, &root).expect("write_site");
+    assert_eq!(
+        written.len(),
+        site.files.len(),
+        "write_site must return one path per file"
+    );
     for (rel, data) in &site.files {
         let got = std::fs::read(root.join(rel)).expect("read back");
         assert_eq!(&got, data, "disk round-trip mismatch for `{rel}`");
