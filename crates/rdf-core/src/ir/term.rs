@@ -66,9 +66,13 @@ impl std::hash::Hash for TermId {
 impl TermId {
     /// The dense index this id addresses in the interner's term table.
     ///
-    /// Crate-internal: the inner value is private precisely so a `TermId` cannot
-    /// be forged or compared across datasets by external code.
-    pub(crate) fn index(self) -> usize {
+    /// Low-level kernel API: the inner `NonZeroU32` stays private (so the `+1`
+    /// niche offset never leaks and ids can't be byte-forged), but the dense
+    /// index is exposed so the sibling `gmeow-rdf` adapters — the canonical
+    /// Turtle serializer in particular — can address terms by position within a
+    /// SINGLE dataset. It remains dataset-local and is never serialized or
+    /// compared across datasets (C0.8).
+    pub fn index(self) -> usize {
         // The stored value is `index + 1` (id 0 is the niche sentinel), so the
         // dense index is one less. Never underflows: the inner is `>= 1`.
         (self.0.get() - 1) as usize
@@ -76,11 +80,14 @@ impl TermId {
 
     /// Construct a `TermId` from a dense table index.
     ///
-    /// Crate-internal: only the interner mints ids, in allocation order. Hard-fails
+    /// Low-level kernel API: the interner mints ids in allocation order; the
+    /// sibling `gmeow-rdf` adapters (canonical Turtle serializer) also re-mint an
+    /// id while scanning `0..term_count()` of a single dataset. The result is only
+    /// meaningful against the dataset whose table has `index` (C0.8). Hard-fails
     /// (rather than wrapping) if `index` is `u32::MAX`, since `index + 1` would
     /// overflow the id space — the largest dense index is `u32::MAX - 1`, so the
     /// table can hold up to `u32::MAX` terms.
-    pub(crate) fn from_index(index: u32) -> Self {
+    pub fn from_index(index: u32) -> Self {
         let raw = index
             .checked_add(1)
             .expect("term table cannot exceed u32::MAX entries");

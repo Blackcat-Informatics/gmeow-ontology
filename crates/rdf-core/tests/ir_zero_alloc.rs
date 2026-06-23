@@ -18,7 +18,7 @@ use std::alloc::{GlobalAlloc, Layout, System};
 use std::cell::Cell;
 use std::hash::{Hash, Hasher};
 
-use gmeow_rdf::{BlankScope, QuadIds, QuadRef, RdfDatasetBuilder, RdfLiteral, TermRef};
+use gmeow_rdf_core::{BlankScope, QuadIds, QuadRef, RdfDatasetBuilder, RdfLiteral, TermRef};
 
 // A THREAD-LOCAL allocation counter, not a process-global atomic: `cargo test` runs
 // every test in the binary concurrently on separate threads sharing one process and
@@ -71,7 +71,7 @@ fn allocations() -> usize {
 /// Build a non-trivial frozen dataset: many quads across the default graph and named
 /// graphs, with IRIs, blanks, literals (typed + language-tagged + directional), and a
 /// nested triple term — so the iteration genuinely resolves every term variant.
-fn build_dataset() -> std::sync::Arc<gmeow_rdf::RdfDataset> {
+fn build_dataset() -> std::sync::Arc<gmeow_rdf_core::RdfDataset> {
     let mut b = RdfDatasetBuilder::new();
     let p = b.intern_iri("http://example.org/p".to_string());
     let g = b.intern_iri("http://example.org/g".to_string());

@@ -37,7 +37,10 @@ use std::cell::Cell;
 use std::sync::Arc;
 
 use criterion::{criterion_group, criterion_main, Criterion};
-use gmeow_rdf::{BlankScope, QuadIds, RdfDataset, RdfDatasetBuilder, RdfLiteral, TermId, TermRef};
+use gmeow_rdf_core::{
+    BlankScope, DatasetView, GraphMatch, QuadIds, RdfDataset, RdfDatasetBuilder, RdfLiteral,
+    TermId, TermRef,
+};
 
 // ---------------------------------------------------------------------------
 // Counting allocator — operational metrics beyond quads/sec.
@@ -445,6 +448,119 @@ fn bench_resolve(c: &mut Criterion) {
     group.finish();
 }
 
+/// P4b (#891) indexed `quads_for_pattern` vs the linear scan, on WARM permutation
+/// indexes. Each `(s|p|o)`-bound shape exercises a different permutation (SPOG / POS /
+/// OSP); the scan baseline is the same id-equality filter the trait default runs.
+fn bench_pattern_warm(c: &mut Criterion) {
+    let ds = build_dataset();
+    let sample = ds.quads().next().expect("build_dataset yields quads");
+    let (subj, pred, obj) = (sample.s, sample.p, sample.o);
+
+    // Warm every permutation the shapes below select, so the timed loops measure the
+    // indexed LOOKUP, not the one-time build.
+    let warm = |s, p, o| DatasetView::quads_for_pattern(&*ds, s, p, o, GraphMatch::Any).count();
+    let _ = warm(Some(subj), None, None);
+    let _ = warm(None, Some(pred), None);
+    let _ = warm(None, None, Some(obj));
+
+    let mut group = c.benchmark_group("ir_pattern_warm");
+    for (name, s, p, o) in [
+        ("subject", Some(subj), None, None),
+        ("predicate", None, Some(pred), None),
+        ("object", None, None, Some(obj)),
+    ] {
+        // Baseline = the EXACT body of the trait's default `quads_for_pattern` (the
+        // linear scan the index replaces), so the comparison is apples-to-apples.
+        group.bench_function(format!("scan_{name}"), |b| {
+            b.iter(|| {
+                std::hint::black_box(
+                    ds.quads()
+                        .filter(|q| {
+                            s.is_none_or(|id| q.s == id)
+                                && p.is_none_or(|id| q.p == id)
+                                && o.is_none_or(|id| q.o == id)
+                                && GraphMatch::Any.matches(q.g)
+                        })
+                        .count(),
+                )
+            });
+        });
+        group.bench_function(format!("indexed_{name}"), |b| {
+            b.iter(|| {
+                std::hint::black_box(
+                    DatasetView::quads_for_pattern(&*ds, s, p, o, GraphMatch::Any).count(),
+                )
+            });
+        });
+    }
+    group.finish();
+}
+
+/// P4b cold cost: a fresh dataset's first predicate-bound query pays the one-time POS
+/// permutation build. `iter_batched` keeps the (expensive) dataset construction in
+/// UN-timed setup so the measured region is just the cold index build + first query.
+fn bench_pattern_cold(c: &mut Criterion) {
+    use criterion::BatchSize;
+    let mut group = c.benchmark_group("ir_pattern_cold");
+    group.bench_function("first_pos_query_cold_index", |b| {
+        // `iter_batched_ref` (not `iter_batched`) so the dataset's Drop — freeing the
+        // arena + the just-built POS index — happens in UN-timed teardown, not the
+        // measured region.
+        b.iter_batched_ref(
+            build_dataset,
+            |ds| {
+                let ds = &**ds;
+                let pred = ds.quads().next().expect("quads").p;
+                std::hint::black_box(
+                    DatasetView::quads_for_pattern(ds, None, Some(pred), None, GraphMatch::Any)
+                        .count(),
+                )
+            },
+            BatchSize::SmallInput,
+        );
+    });
+    group.finish();
+}
+
+/// P4b concurrent first access: four threads race the SAME cold POS `OnceLock` on a
+/// fresh dataset. `iter_batched` keeps dataset construction in UN-timed setup so the
+/// measured region is the `get_or_init` race + queries (correctness guaranteed by
+/// `OnceLock`; this measures its cost under contention).
+fn bench_pattern_concurrent(c: &mut Criterion) {
+    use criterion::BatchSize;
+    let mut group = c.benchmark_group("ir_pattern_concurrent");
+    group.bench_function("concurrent_first_pos_access_x4", |b| {
+        // `iter_batched_ref` excludes the dataset's Drop from the timed region.
+        b.iter_batched_ref(
+            build_dataset,
+            |ds| {
+                let ds = &**ds;
+                let pred = ds.quads().next().expect("quads").p;
+                let total: usize = std::thread::scope(|scope| {
+                    let handles: Vec<_> = (0..4)
+                        .map(|_| {
+                            scope.spawn(|| {
+                                DatasetView::quads_for_pattern(
+                                    &*ds,
+                                    None,
+                                    Some(pred),
+                                    None,
+                                    GraphMatch::Any,
+                                )
+                                .count()
+                            })
+                        })
+                        .collect();
+                    handles.into_iter().map(|h| h.join().expect("thread")).sum()
+                });
+                std::hint::black_box(total)
+            },
+            BatchSize::SmallInput,
+        );
+    });
+    group.finish();
+}
+
 /// Print the allocation metrics once (criterion's first call), then run all timed
 /// groups. Criterion calls each `bench_*` once per run; the metrics print is a
 /// separate leading function so it runs exactly once.
@@ -457,6 +573,9 @@ criterion_group!(
     bench_metrics,
     bench_build,
     bench_iterate,
-    bench_resolve
+    bench_resolve,
+    bench_pattern_warm,
+    bench_pattern_cold,
+    bench_pattern_concurrent
 );
 criterion_main!(benches);

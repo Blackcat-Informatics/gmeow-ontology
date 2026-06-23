@@ -19,6 +19,7 @@ members = [
     # in-memory RDF dataflow, dogfooding the build graph from gmeow: individuals.
     "crates/pipeline",
     "crates/rdf",
+    "crates/rdf-core",
     "crates/shacl",
     "crates/slice",
     "crates/slicetest",

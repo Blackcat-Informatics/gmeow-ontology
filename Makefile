@@ -224,15 +224,19 @@ validate-test: ## Run the gmeow-validate unit + integration tests.
 clippy: ## Run cargo clippy on all Rust targets with warnings as errors.
 	cargo clippy --all-targets -- -D warnings
 
-rdf-core-hygiene: ## [purrdf P2/#836] Prove the gmeow-rdf kernel lib builds with NO oxigraph in its NORMAL dependency graph (the weak ring-fence; the strong crate boundary is P2b).
-	cargo build -p gmeow-rdf --no-default-features
+rdf-core-hygiene: ## [purrdf P2b/#885] Prove the ring-fenced gmeow-rdf-core kernel CRATE has NO oxigraph anywhere in its NORMAL dependency graph — the STRONG, structural boundary (P2b made the ring-fence a crate; the prior weak form only proved a feature-gated rlib).
+	cargo build -p gmeow-rdf-core
 	@# Capture the forward normal-edges tree; a cargo failure (bad manifest/lockfile)
 	@# is a hard FAIL here, not a silenced false-OK. Then grep the captured output.
-	@tree=$$(cargo tree -p gmeow-rdf --no-default-features --edges normal) || { echo "FAIL: cargo tree errored"; exit 1; }; \
-	if echo "$$tree" | grep -q '\boxigraph\b'; then \
-		echo "FAIL: oxigraph is a NORMAL dependency of gmeow-rdf under --no-default-features"; exit 1; \
+	@# Match the PACKAGE line `oxigraph v0.5.x`, never the worktree path component
+	@# (which may itself literally contain the word "oxigraph"): `{p}` prints the
+	@# crate name + version, so `oxigraph v` only ever matches a real dependency.
+	@tree=$$(cargo tree -p gmeow-rdf-core --edges normal -f "{p}") || { echo "FAIL: cargo tree errored"; exit 1; }; \
+	if echo "$$tree" | grep -q 'oxigraph v'; then \
+		echo "FAIL: oxigraph is a NORMAL dependency of the gmeow-rdf-core crate — the #885 ring-fence is BROKEN"; \
+		echo "$$tree" | grep 'oxigraph v'; exit 1; \
 	else \
-		echo "OK: gmeow-rdf --no-default-features is oxigraph-free (oxigraph is feature-gated/dev-dep only)"; \
+		echo "OK: gmeow-rdf-core has NO oxigraph in its normal dependency tree (the #885 crate ring-fence holds)"; \
 	fi
 
 native-py: ## Build and install the single unified gmeow_native Python extension (maturin develop, #630).
