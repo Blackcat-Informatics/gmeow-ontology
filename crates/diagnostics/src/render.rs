@@ -821,6 +821,43 @@ mod tests {
         insta::assert_json_snapshot!(value);
     }
 
+    #[test]
+    fn sarif_multi_physical_location_emits_related_locations_snapshot() {
+        // A finding with two physical file locations: the first becomes the
+        // primary `physicalLocation`, the rest ride as `relatedLocations`
+        // (render.rs §"Remaining physical locations"). This is the only shape that
+        // emits `relatedLocations`, so it pins that branch AND makes the #666
+        // "every relatedLocation carries a physicalLocation" invariant non-vacuous.
+        let mut finding =
+            Finding::new(Severity::Error, "shacl.MinCount", "missing property").with_tool("shacl");
+        finding.add_location(Location::new(
+            Some("core/ai/examples/grounded-claim.ttl".to_owned()),
+            Some(12),
+            Some(3),
+            None,
+        ));
+        finding.add_location(Location::new(
+            Some("slices/core/shapes/shapes.ttl".to_owned()),
+            Some(40),
+            None,
+            None,
+        ));
+        let mut report = Report::new("validate");
+        report.add_finding(finding);
+
+        let value: Value = serde_json::from_str(&to_sarif(&report).unwrap()).unwrap();
+
+        // The emission branch fired: exactly one related location, carrying a
+        // physicalLocation (the #666 contract, here actually exercised).
+        let related = value["runs"][0]["results"][0]["relatedLocations"]
+            .as_array()
+            .expect("relatedLocations emitted for a 2+ physical-location finding");
+        assert_eq!(related.len(), 1);
+        assert!(related[0].get("physicalLocation").is_some());
+
+        insta::assert_json_snapshot!(value);
+    }
+
     // ── Semantic invariants (properties a snapshot cannot express) ───────────
 
     #[test]
