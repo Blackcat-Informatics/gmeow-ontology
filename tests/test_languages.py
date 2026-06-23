@@ -17,6 +17,7 @@ from gmeow_tools.graph import load_merged_graph
 
 GMEOW = "https://blackcatinformatics.ca/gmeow/"
 GUFO = "http://purl.org/nemo/gufo#"
+LOGIC = "https://blackcatinformatics.ca/logic/"
 
 #: Complete ISO 639-1 two-letter code set (184 entries). Stable since 2000.
 EXPECTED_ISO639_1_CODES: frozenset[str] = frozenset(
@@ -270,6 +271,11 @@ def test_reified_relators_and_functional_roles() -> None:
 
 def test_value_vocabularies_not_subclasses() -> None:
     graph = _graph()
+    # Vocabs that migrated to logic: in #694 use logic:QualityValue; the
+    # remaining language-extension vocabs still carry gufo:QualityValue.
+    logic_quality_vocabs = frozenset(
+        ("ProficiencyModality", "ProficiencyScale", "ProficiencyLevel")
+    )
     for vocab, sample in (
         ("LanguageOrigin", ("originNatural", "originAiGenerated", "originProgramming")),
         ("LanguageModality", ("modalitySpoken", "modalitySigned", "modalityMachine")),
@@ -282,10 +288,11 @@ def test_value_vocabularies_not_subclasses() -> None:
         ("ProficiencyLevel", ("cefrB2", "levelNative", "levelHeritage")),
         ("TransliterationScheme", ("schemeHepburn", "schemePinyin", "schemeIPA")),
     ):
+        quality_value_ns = LOGIC if vocab in logic_quality_vocabs else GUFO
         assert (
             URIRef(GMEOW + vocab),
             RDFS.subClassOf,
-            URIRef(GUFO + "QualityValue"),
+            URIRef(quality_value_ns + "QualityValue"),
         ) in graph
         for ind in sample:
             assert (URIRef(GMEOW + ind), RDF.type, URIRef(GMEOW + vocab)) in graph
