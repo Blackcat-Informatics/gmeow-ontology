@@ -4,8 +4,8 @@
 //! Evented, ID-addressed OUTPUT of a frozen [`RdfDataset`] (#819 C6).
 //!
 //! [`RdfDatasetVisitor`] is the **frozen-dataset OUTPUT visitor**: it is the dual of
-//! the permissive ingestion protocol (the `gmeow-rdf-events` `RdfDatasetVisitor`, purrdf
-//! P6 #840, named `RdfEventSink` there) — where that ingestion sink folds an
+//! the permissive ingestion protocol (the `gmeow-rdf-events` `RdfEventSink`, purrdf
+//! P6 #840) — where that ingestion sink folds an
 //! *external* event stream *into* the
 //! IR, [`RdfDataset::emit`] walks an *already-frozen* dataset and streams it *out* as
 //! events, so downstream consumers — the chase materializer, SHACL result emission,
@@ -65,7 +65,7 @@ impl RdfDataset {
     /// Stream this frozen dataset to an [`RdfDatasetVisitor`] as an ID-addressed,
     /// self-declaring event stream: every term is declared before it is referenced
     /// (see the module docs). Zero allocation beyond what the sink itself does.
-    pub fn emit<S: RdfDatasetVisitor>(&self, sink: &mut S) {
+    pub fn emit<S: RdfDatasetVisitor + ?Sized>(&self, sink: &mut S) {
         // Term declarations first, in ascending id order — components and datatypes
         // (lower ids) precede the triple terms / literals that reference them.
         for i in 0..self.term_count() {

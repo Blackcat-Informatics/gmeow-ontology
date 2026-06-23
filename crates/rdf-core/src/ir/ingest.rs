@@ -23,7 +23,7 @@
 //!   / reifier / annotation events. This is the in-repo source that lets P6 be tested
 //!   end-to-end without the cross-repo GTS source (deferred, gmeow-gts#249).
 
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::sync::Arc;
 
 use core::ops::ControlFlow;
@@ -100,9 +100,16 @@ pub struct DatasetSink {
     /// The scope each [`EventTermId`] was declared under, for the redeclaration check
     /// and the closed-scope guard.
     declared_in: HashMap<EventTermId, ScopeId>,
-    /// Phase-2 memo: EventTermId → the interned [`TermId`]. Also the resolution
-    /// cycle/in-progress guard is layered on top of this.
+    /// Phase-2 memo: EventTermId → the interned [`TermId`]. A successfully resolved id
+    /// is recorded here so later references hit the memo instead of re-resolving.
     remaps: HashMap<EventTermId, TermId>,
+    /// Phase-2 in-progress guard: the set of [`EventTermId`]s currently mid-resolution
+    /// (their nested components are still being resolved). Re-entering an id already in
+    /// this set is a cyclic triple term ([`EventError::CyclicTerm`]) — distinct from a
+    /// genuinely never-declared id ([`EventError::Unresolved`]). A raw term is removed
+    /// from `raw_terms` only AFTER its components resolve, so a self/transitive cycle
+    /// trips this guard rather than reading as a (removed-therefore-)missing term.
+    resolving: HashSet<EventTermId>,
     /// RAW quad rows, resolved in phase 2.
     raw_quads: Vec<EventQuad>,
     /// RAW reifier bindings `(reifier id, triple)`, resolved in phase 2.
@@ -137,6 +144,7 @@ impl Default for DatasetSink {
             raw_terms: HashMap::new(),
             declared_in: HashMap::new(),
             remaps: HashMap::new(),
+            resolving: HashSet::new(),
             raw_quads: Vec::new(),
             raw_reifiers: Vec::new(),
             raw_annotations: Vec::new(),
@@ -181,8 +189,10 @@ impl DatasetSink {
     }
 
     /// Phase-2 primitive: resolve an [`EventTermId`] to its interned [`TermId`],
-    /// resolving (and interning) it on demand, depth-bounded against cyclic triple
-    /// terms. Fails with [`EventError::Unresolved`] if no `term` event declared it.
+    /// resolving (and interning) it on demand. Three failure modes are kept distinct:
+    /// a never-declared id is [`EventError::Unresolved`]; an over-deep but acyclic
+    /// triple-term chain is [`EventError::NestingDepthExceeded`]; and a self/transitive
+    /// cycle is [`EventError::CyclicTerm`], caught by the in-progress guard below.
     fn resolve(&mut self, id: EventTermId, depth: usize) -> Result<TermId, EventError> {
         if let Some(&existing) = self.remaps.get(&id) {
             return Ok(existing);
@@ -190,14 +200,24 @@ impl DatasetSink {
         if depth > MAX_TERM_NESTING_DEPTH {
             return Err(EventError::NestingDepthExceeded { id });
         }
-        // MOVE the raw term out: it resolves at most once (later references hit the
-        // `remaps` memo above). A pathological cyclic triple term thus surfaces as an
-        // `Unresolved` (the raw term is already removed) rather than recursing — both
-        // are hard fails. A genuinely never-declared id also lands here.
-        let Some(raw) = self.raw_terms.remove(&id) else {
+        // In-progress guard: if this id is already being resolved further up the stack,
+        // its components reference itself — a cyclic triple term. Report it as such
+        // rather than as a missing declaration.
+        if !self.resolving.insert(id) {
+            return Err(EventError::CyclicTerm { id });
+        }
+        // BORROW (clone) the raw term, leaving it in `raw_terms` until its components
+        // resolve, so a re-entry hits the in-progress guard above (not a missing term).
+        // A genuinely never-declared id lands here as `Unresolved`.
+        let Some(raw) = self.raw_terms.get(&id).cloned() else {
+            self.resolving.remove(&id);
             return Err(EventError::Unresolved { id });
         };
-        let our_id = self.intern_raw(raw, depth)?;
+        let resolved = self.intern_raw(raw, depth);
+        self.resolving.remove(&id);
+        let our_id = resolved?;
+        // Resolution succeeded: drop the raw term (it resolves at most once) and memo.
+        self.raw_terms.remove(&id);
         self.remaps.insert(id, our_id);
         Ok(our_id)
     }
@@ -319,8 +339,15 @@ impl RdfEventSink for DatasetSink {
     }
 
     fn close_scope(&mut self, scope: ScopeId) -> Result<ControlFlow<()>, EventError> {
-        // Sealing a scope is simply removing it from the open set; a later reference
-        // to it then reads as "not open" (see `ensure_scope_open`).
+        // `close_scope` is a real lifecycle op, not a silent no-op. The default scope
+        // cannot be closed, and a scope that was never opened (or is already closed —
+        // both read as "not in open_scopes") cannot be closed either: each is a
+        // ClosedScope protocol error. A valid close removes the scope from the open
+        // set, after which a later blank declaration under it reads as "not open"
+        // (see `ensure_scope_open`).
+        if scope == ScopeId::DEFAULT || !self.open_scopes.contains(&scope) {
+            return Err(EventError::ClosedScope { scope });
+        }
         self.open_scopes.retain(|&s| s != scope);
         Ok(ControlFlow::Continue(()))
     }
@@ -811,6 +838,63 @@ mod tests {
         // And an explicit finish after cancellation refuses to freeze.
         let err = sink.inner.finish().expect_err("finish after cancel fails");
         assert!(matches!(err, EventError::Message(_)));
+    }
+
+    #[test]
+    fn cyclic_triple_term_is_error() {
+        // A triple term whose object is itself: <<s p T>> where T == the triple's own
+        // id. Resolving T re-enters resolve(T, ..) while T is still in progress, so the
+        // in-progress guard fires CyclicTerm — NOT Unresolved (the raw term is still
+        // present) and NOT NestingDepthExceeded (the cycle is caught before depth 16).
+        let mut sink = DatasetSink::new();
+        let s = EventTermId(0);
+        let p = EventTermId(1);
+        let cyclic = EventTermId(2);
+        decl(&mut sink, s, EventTerm::Iri("http://example.org/s"));
+        decl(&mut sink, p, EventTerm::Iri("http://example.org/p"));
+        decl(
+            &mut sink,
+            cyclic,
+            EventTerm::Triple(EventTriple { s, p, o: cyclic }),
+        );
+        let err = sink.finish().expect_err("cyclic triple term must fail");
+        assert_eq!(
+            err,
+            EventError::CyclicTerm { id: cyclic },
+            "a self-referential triple term is a cycle, not Unresolved, got {err:?}"
+        );
+        assert!(sink.dataset().is_none(), "no freeze on a cyclic term");
+    }
+
+    #[test]
+    fn close_default_or_unopened_scope_is_error() {
+        // close_scope is a real lifecycle op: closing the default scope, a scope that
+        // was never opened, or an already-closed scope each fails with ClosedScope.
+        let mut sink = DatasetSink::new();
+        // (a) the default scope cannot be closed.
+        let err = sink
+            .close_scope(ScopeId::DEFAULT)
+            .expect_err("closing the default scope must fail");
+        assert_eq!(
+            err,
+            EventError::ClosedScope {
+                scope: ScopeId::DEFAULT
+            }
+        );
+        // (b) a never-opened scope cannot be closed.
+        let unopened = ScopeId(9);
+        let err = sink
+            .close_scope(unopened)
+            .expect_err("closing a never-opened scope must fail");
+        assert_eq!(err, EventError::ClosedScope { scope: unopened });
+        // (c) double-close: open, close (ok), close again (error).
+        let scope = sink.open_scope().expect("open scope");
+        let flow = sink.close_scope(scope).expect("first close ok");
+        assert_eq!(flow, ControlFlow::Continue(()));
+        let err = sink
+            .close_scope(scope)
+            .expect_err("closing an already-closed scope must fail");
+        assert_eq!(err, EventError::ClosedScope { scope });
     }
 
     #[test]

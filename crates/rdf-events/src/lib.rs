@@ -33,14 +33,20 @@
 //!   has not yet arrived. References are resolved at [`finish`](RdfEventSink::finish),
 //!   never eagerly. A source that happens to declare every term before referencing it
 //!   advertises this via [`RdfEventSource::declares_before_reference`].
-//! * **At most one declaration per id per scope.** Declaring the same
-//!   [`EventTermId`] twice in the same open scope is an [`EventError::RedeclaredId`]
-//!   — there is no last-writer-wins.
-//! * **Ids are scope-local; closing a scope seals identity.** Blank-node identity is
-//!   scoped: the same blank label in two scopes names two different nodes (mirroring
-//!   per-segment blank scope in GTS). [`close_scope`](RdfEventSink::close_scope)
-//!   seals a scope; referencing a closed scope afterwards is
-//!   [`EventError::ClosedScope`].
+//! * **At most one declaration per id per drive.** An [`EventTermId`] is unique
+//!   across the WHOLE drive: declaring the same id twice anywhere (in any scope, open
+//!   or default) is an [`EventError::RedeclaredId`] — there is no last-writer-wins.
+//! * **`EventTermId` is drive-global; `ScopeId` namespaces blank-node labels only.**
+//!   The id space is global to one ingestion drive — every reference ([`EventQuad`],
+//!   [`EventTriple`], `reifier`, `annotation`) carries a bare [`EventTermId`] that
+//!   resolves against that single global space, so a buffered row never needs a scope
+//!   to disambiguate which declaration it names. A [`ScopeId`] scopes blank-node
+//!   *label* identity ONLY: the same blank label in two different scopes names two
+//!   different nodes (mirroring per-segment blank scope in GTS), yet each still gets
+//!   its own globally-unique [`EventTermId`]. [`close_scope`](RdfEventSink::close_scope)
+//!   seals a scope so no NEW blank may be declared under it; already-declared ids stay
+//!   referenceable by their global [`EventTermId`]. Declaring a blank under a sealed
+//!   or never-opened scope is [`EventError::ClosedScope`].
 //! * **Unresolved at finish is a hard error.** Any [`EventTermId`] still undeclared
 //!   when [`finish`](RdfEventSink::finish) runs is [`EventError::Unresolved`] — never
 //!   a silent drop or degraded fallback (no-optionality doctrine).
@@ -66,10 +72,13 @@ use core::ops::ControlFlow;
 /// without bound.
 pub const MAX_TERM_NESTING_DEPTH: usize = 16;
 
-/// A blank-node / declaration scope, local to one ingestion drive. The default scope
-/// is [`ScopeId::DEFAULT`]; a source opens further scopes (e.g. one per GTS segment)
-/// via [`RdfEventSink::open_scope`] so the same blank label in different scopes names
-/// different nodes.
+/// A **blank-node label namespace**, local to one ingestion drive. A [`ScopeId`]
+/// does NOT scope [`EventTermId`]s (those are drive-global); it scopes blank-node
+/// *label* identity ONLY, so the same blank label in different scopes names different
+/// nodes. The default scope is [`ScopeId::DEFAULT`]; a source opens further scopes
+/// (e.g. one per GTS segment) via [`RdfEventSink::open_scope`] and seals them with
+/// [`RdfEventSink::close_scope`] (after which no new blank may be declared under
+/// that scope, though already-declared ids remain referenceable globally).
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
 pub struct ScopeId(pub u32);
 
@@ -84,10 +93,14 @@ impl Default for ScopeId {
     }
 }
 
-/// A **protocol-local** term id. Ids are minted by the *source* and are meaningful
-/// only within one ingestion drive; they MAY be forward-referenced (used by a quad
-/// before their [`term`](RdfEventSink::term) declaration arrives) and are resolved to
-/// the sink's own identity at [`finish`](RdfEventSink::finish).
+/// A **protocol-local, drive-global** term id. Ids are minted by the *source* and are
+/// meaningful within one ingestion drive, where they form a SINGLE global id space:
+/// every reference carries a bare `EventTermId` that resolves against that one space
+/// regardless of scope (a [`ScopeId`] namespaces blank-node *labels* only, never the
+/// id space). Ids MAY be forward-referenced (used by a quad before their
+/// [`term`](RdfEventSink::term) declaration arrives) and are resolved to the sink's
+/// own identity at [`finish`](RdfEventSink::finish). Each id may be declared at most
+/// once per drive — redeclaring it anywhere is [`EventError::RedeclaredId`].
 ///
 /// This is deliberately NOT the IR engine's dataset-local `TermId`: the protocol owns
 /// its own id space so neither side leaks identity into the other.
@@ -196,16 +209,18 @@ impl SourceSpan {
 /// object-safe and the error space is fixed by the protocol (see the module docs).
 #[derive(Clone, PartialEq, Eq, Debug)]
 pub enum EventError {
-    /// An [`EventTermId`] was declared more than once within one open scope.
+    /// An [`EventTermId`] was declared more than once in one drive. Ids are
+    /// drive-global, so a redeclaration anywhere — in any scope — is an error.
     RedeclaredId {
         /// The id that was redeclared.
         id: EventTermId,
-        /// The scope it was redeclared in.
+        /// The scope the FIRST (winning) declaration was recorded under.
         scope: ScopeId,
     },
-    /// A reference named a scope that has already been closed (sealed).
+    /// A blank declaration named a scope that is not currently open — either it was
+    /// sealed by [`close_scope`](RdfEventSink::close_scope) or it was never opened.
     ClosedScope {
-        /// The closed scope that was referenced.
+        /// The closed (or never-opened) scope that was referenced.
         scope: ScopeId,
     },
     /// An [`EventTermId`] was referenced but never declared by the time
@@ -217,6 +232,15 @@ pub enum EventError {
     /// Reified-triple-term nesting exceeded [`MAX_TERM_NESTING_DEPTH`].
     NestingDepthExceeded {
         /// The id at which the depth bound was crossed.
+        id: EventTermId,
+    },
+    /// A reified-triple term (directly or transitively) references its own id, so
+    /// resolution re-enters an id already in progress. Distinct from
+    /// [`Unresolved`](Self::Unresolved) (a genuinely never-declared id) and from
+    /// [`NestingDepthExceeded`](Self::NestingDepthExceeded) (a bounded but acyclic
+    /// chain): a cycle is a structural error, not a missing declaration.
+    CyclicTerm {
+        /// The id at which the cycle was detected (the id already being resolved).
         id: EventTermId,
     },
     /// Any other protocol failure, carried as a message (e.g. a sink-specific freeze
@@ -250,6 +274,11 @@ impl core::fmt::Display for EventError {
                 "triple-term nesting depth limit ({MAX_TERM_NESTING_DEPTH}) exceeded resolving event term id {}",
                 id.0
             ),
+            Self::CyclicTerm { id } => write!(
+                f,
+                "cyclic triple term: event term id {} (directly or transitively) references itself",
+                id.0
+            ),
             Self::Message(msg) => f.write_str(msg),
         }
     }
@@ -276,8 +305,10 @@ impl std::error::Error for EventError {}
 /// [`quads`](Self::quads) defaults to looping over [`quad`](Self::quad) honoring
 /// [`ControlFlow::Break`].
 pub trait RdfEventSink {
-    /// Declare a term and its value. The same [`EventTermId`] MUST NOT be declared
-    /// twice in one open scope (→ [`EventError::RedeclaredId`]). Declarations MAY
+    /// Declare a term and its value. [`EventTermId`]s are drive-global, so the same id
+    /// MUST NOT be declared twice anywhere in one drive (→
+    /// [`EventError::RedeclaredId`]). A blank-node declaration's [`ScopeId`] must be
+    /// currently open (→ [`EventError::ClosedScope`] otherwise). Declarations MAY
     /// arrive after the quads that reference them (forward references).
     fn term(&mut self, id: EventTermId, term: EventTerm<'_>)
         -> Result<ControlFlow<()>, EventError>;
@@ -315,12 +346,17 @@ pub trait RdfEventSink {
         o: EventTermId,
     ) -> Result<ControlFlow<()>, EventError>;
 
-    /// Open a fresh scope, returning its [`ScopeId`]. Blank-node identity is sealed
-    /// per scope (see [`close_scope`](Self::close_scope)).
+    /// Open a fresh blank-node label namespace, returning its [`ScopeId`]. Blank-node
+    /// *label* identity is namespaced per scope (see [`close_scope`](Self::close_scope));
+    /// the drive-global [`EventTermId`] space is unaffected.
     fn open_scope(&mut self) -> Result<ScopeId, EventError>;
 
-    /// Seal a scope: blank-node identity within it is now fixed and referencing it
-    /// afterwards is [`EventError::ClosedScope`].
+    /// Seal a scope: no NEW blank may be declared under it afterwards (→
+    /// [`EventError::ClosedScope`]). Already-declared ids remain referenceable by
+    /// their drive-global [`EventTermId`]. Closing [`ScopeId::DEFAULT`], a scope that
+    /// was never opened, or an already-closed scope is itself an
+    /// [`EventError::ClosedScope`] — `close_scope` is a real lifecycle op, not a
+    /// silent no-op.
     fn close_scope(&mut self, scope: ScopeId) -> Result<ControlFlow<()>, EventError>;
 
     /// Droppable hint: a namespace prefix mapping (`prefix:` → IRI). Defaults to a
@@ -513,6 +549,9 @@ mod tests {
             EventError::ClosedScope { scope: ScopeId(2) },
             EventError::Unresolved { id: EventTermId(7) },
             EventError::NestingDepthExceeded { id: EventTermId(9) },
+            EventError::CyclicTerm {
+                id: EventTermId(11),
+            },
             EventError::message("boom"),
         ];
         for case in cases {
