@@ -48,4 +48,4 @@ pub use event_sink::RdfEventSink;
 pub use import_graph::import_gts_graph;
 #[cfg(feature = "gts")]
 pub use import_sink::import_gts_events;
-pub use term::{BlankScope, TermId};
+pub use term::{BlankScope, TermId, TermValue};
