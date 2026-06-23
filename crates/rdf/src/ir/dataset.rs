@@ -20,9 +20,12 @@
 //!
 //! [`super::builder::RdfDatasetBuilder`]: super::builder::RdfDatasetBuilder
 
+use std::collections::HashMap;
+use std::sync::OnceLock;
+
 use crate::{RdfLocation, RdfStoreCapabilities, RdfTextDirection};
 
-use super::term::{BlankScope, InternedTerm, TermId};
+use super::term::{BlankScope, InternedTerm, TermId, TermValue};
 
 /// A handle identifying a pushed quad by its dense (deduplicated) ordinal, used to
 /// attach a source location sparsely. Like [`TermId`], it is local to one frozen
@@ -137,6 +140,11 @@ pub struct RdfDataset {
     locations: Box<[(QuadHandle, RdfLocation)]>,
     /// Capability flags, computed ONCE at freeze.
     caps: RdfStoreCapabilities,
+    /// Lazy value→id reverse map for [`RdfDataset::term_id_by_value`] (#838). The
+    /// builder's interner index is dropped at freeze; this rebuilds a
+    /// dataset-independent ([`TermValue`]-keyed, no foreign ids) map on first use.
+    /// `OnceLock` keeps the frozen dataset `Send + Sync`.
+    value_index: OnceLock<HashMap<TermValue, TermId>>,
 }
 
 impl RdfDataset {
@@ -160,7 +168,65 @@ impl RdfDataset {
             annotations,
             locations,
             caps,
+            value_index: OnceLock::new(),
         }
+    }
+
+    /// Resolve a frozen term to its **dataset-independent** [`TermValue`] (#838):
+    /// the datatype id of a literal becomes its IRI string, and triple-term
+    /// components recurse by value — so the result carries no [`TermId`].
+    fn term_value_of(&self, id: TermId) -> TermValue {
+        match &self.terms[id.index()] {
+            InternedTerm::Iri(iri) => TermValue::Iri(iri.to_string()),
+            InternedTerm::Blank { label, scope } => TermValue::Blank {
+                label: label.to_string(),
+                scope: *scope,
+            },
+            InternedTerm::Literal(lit) => TermValue::Literal {
+                lexical_form: lit.lexical_form.to_string(),
+                // The datatype is always an interned IRI term; resolve it to its
+                // string so the value key never carries a dataset-local id.
+                datatype: self.iri_string_of(lit.datatype),
+                language: lit.language.as_ref().map(|l| l.to_string()),
+                direction: lit.direction,
+            },
+            InternedTerm::Triple { s, p, o } => TermValue::Triple {
+                s: Box::new(self.term_value_of(*s)),
+                p: Box::new(self.term_value_of(*p)),
+                o: Box::new(self.term_value_of(*o)),
+            },
+        }
+    }
+
+    /// The IRI string of a term known to be an interned IRI (a literal datatype).
+    fn iri_string_of(&self, id: TermId) -> String {
+        match &self.terms[id.index()] {
+            InternedTerm::Iri(iri) => iri.to_string(),
+            // Unreachable for a validated dataset: a literal datatype is always an
+            // IRI. Fall back to the resolved Debug rather than panicking.
+            other => format!("{other:?}"),
+        }
+    }
+
+    /// The id of an interned term given its **dataset-independent** value, or
+    /// `None` if the dataset contains no such term (purrdf P4, #838).
+    ///
+    /// The reverse value→id map is built **lazily on first call** (the builder's
+    /// interner index is dropped at freeze) and cached; `OnceLock::get_or_init`
+    /// guarantees a single build even under concurrent first access. Keying on
+    /// [`TermValue`] (not [`TermRef`](crate::ir::TermRef)) is the correctness rule:
+    /// a `TermRef`'s datatype/triple ids are local to whichever dataset minted them.
+    #[must_use]
+    pub fn term_id_by_value(&self, value: &TermValue) -> Option<TermId> {
+        let index = self.value_index.get_or_init(|| {
+            (0..self.terms.len())
+                .map(|i| {
+                    let id = TermId::from_index(i as u32);
+                    (self.term_value_of(id), id)
+                })
+                .collect()
+        });
+        index.get(value).copied()
     }
 
     /// Iterate quads as ID-native [`QuadIds`]. **Zero allocations, infallible, no
@@ -348,9 +414,12 @@ impl<'a> IntoIterator for &'a RdfDataset {
 // serialization across threads. These guards fail the build if that ever regresses.
 const _: fn() = || {
     fn assert_send_sync<T: Send + Sync>() {}
+    // RdfDataset gained an `OnceLock<HashMap<TermValue, TermId>>` value index (#838);
+    // `OnceLock` (not `RefCell`) is what keeps this guard holding.
     assert_send_sync::<RdfDataset>();
     assert_send_sync::<TermId>();
     assert_send_sync::<QuadIds>();
+    assert_send_sync::<TermValue>();
 };
 
 #[cfg(test)]
@@ -361,6 +430,122 @@ mod tests {
 
     fn iri(b: &mut RdfDatasetBuilder, n: &str) -> TermId {
         b.intern_iri(format!("http://example.org/{n}"))
+    }
+
+    #[test]
+    fn term_id_by_value_round_trips_every_kind() {
+        let mut b = RdfDatasetBuilder::new();
+        let s = iri(&mut b, "s");
+        let p = iri(&mut b, "p");
+        let o = iri(&mut b, "o");
+        let bn = b.intern_blank("b0".to_string(), BlankScope::DEFAULT);
+        let plain = b.intern_literal(RdfLiteral::simple("hello"));
+        let typed = b.intern_literal(RdfLiteral::typed(
+            "42",
+            "http://www.w3.org/2001/XMLSchema#integer",
+        ));
+        let lang = b.intern_literal(RdfLiteral::language_tagged("bonjour", "fr"));
+        let tr = b.intern_triple(s, p, o);
+        b.push_quad(s, p, o, None);
+        let r = iri(&mut b, "r");
+        let reifies =
+            b.intern_iri("http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies".to_string());
+        b.push_quad(r, reifies, tr, None);
+        let ds = b.freeze().expect("freeze");
+
+        assert_eq!(
+            ds.term_id_by_value(&TermValue::Iri("http://example.org/s".to_string())),
+            Some(s)
+        );
+        assert_eq!(
+            ds.term_id_by_value(&TermValue::Blank {
+                label: "b0".to_string(),
+                scope: BlankScope::DEFAULT,
+            }),
+            Some(bn)
+        );
+        assert_eq!(
+            ds.term_id_by_value(&TermValue::Literal {
+                lexical_form: "hello".to_string(),
+                datatype: "http://www.w3.org/2001/XMLSchema#string".to_string(),
+                language: None,
+                direction: None,
+            }),
+            Some(plain)
+        );
+        assert_eq!(
+            ds.term_id_by_value(&TermValue::Literal {
+                lexical_form: "42".to_string(),
+                datatype: "http://www.w3.org/2001/XMLSchema#integer".to_string(),
+                language: None,
+                direction: None,
+            }),
+            Some(typed)
+        );
+        assert_eq!(
+            ds.term_id_by_value(&TermValue::Literal {
+                lexical_form: "bonjour".to_string(),
+                datatype: "http://www.w3.org/1999/02/22-rdf-syntax-ns#langString".to_string(),
+                language: Some("fr".to_string()),
+                direction: None,
+            }),
+            Some(lang)
+        );
+        // A triple term resolves recursively by value.
+        let triple_val = TermValue::Triple {
+            s: Box::new(TermValue::Iri("http://example.org/s".to_string())),
+            p: Box::new(TermValue::Iri("http://example.org/p".to_string())),
+            o: Box::new(TermValue::Iri("http://example.org/o".to_string())),
+        };
+        assert_eq!(ds.term_id_by_value(&triple_val), Some(tr));
+        // An absent value misses.
+        assert_eq!(
+            ds.term_id_by_value(&TermValue::Iri("http://example.org/absent".to_string())),
+            None
+        );
+    }
+
+    #[test]
+    fn term_id_by_value_is_dataset_independent_not_id_based() {
+        // The SAME value maps to DIFFERENT ids across datasets; a value lookup must
+        // return each dataset's OWN id (proves it is value-keyed, never smuggling a
+        // foreign dataset-local id — the #838 correctness rule).
+        let val = TermValue::Iri("http://example.org/x".to_string());
+        let mut a = RdfDatasetBuilder::new();
+        let _pad = iri(&mut a, "pad"); // shift x's id in dataset `a`
+        let xa = a.intern_iri("http://example.org/x".to_string());
+        a.push_quad(xa, xa, xa, None);
+        let da = a.freeze().unwrap();
+
+        let mut b = RdfDatasetBuilder::new();
+        let xb = b.intern_iri("http://example.org/x".to_string());
+        b.push_quad(xb, xb, xb, None);
+        let db = b.freeze().unwrap();
+
+        assert_ne!(xa, xb, "the same value has different ids across datasets");
+        assert_eq!(da.term_id_by_value(&val), Some(xa));
+        assert_eq!(db.term_id_by_value(&val), Some(xb));
+    }
+
+    #[test]
+    fn term_id_by_value_lazy_init_is_thread_safe() {
+        use std::sync::Arc;
+        let mut b = RdfDatasetBuilder::new();
+        let s = iri(&mut b, "s");
+        b.push_quad(s, s, s, None);
+        let ds = b.freeze().unwrap(); // Arc<RdfDataset>
+        let want = TermValue::Iri("http://example.org/s".to_string());
+        // Many threads race the OnceLock first-init; all must agree.
+        let handles: Vec<_> = (0..8)
+            .map(|_| {
+                let ds = Arc::clone(&ds);
+                let want = want.clone();
+                std::thread::spawn(move || ds.term_id_by_value(&want))
+            })
+            .collect();
+        for h in handles {
+            assert_eq!(h.join().unwrap(), Some(s));
+        }
     }
 
     #[test]

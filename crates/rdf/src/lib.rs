@@ -96,7 +96,7 @@ pub use fno::{
 };
 pub use ir::{
     dataset_diff, datasets_isomorphic, BlankScope, DatasetDiff, GtsBundle, QuadHandle, QuadIds,
-    QuadRef, RdfDataset, RdfDatasetBuilder, RdfEnvelope, RdfEventSink, TermId, TermRef,
+    QuadRef, RdfDataset, RdfDatasetBuilder, RdfEnvelope, RdfEventSink, TermId, TermRef, TermValue,
 };
 #[cfg(feature = "gts")]
 pub use ir::{import_gts_events, import_gts_graph};
@@ -131,7 +131,9 @@ pub use turtle::{emit_annotation, emit_quad, emit_reifier, emit_resource, emit_t
 pub mod prelude {
     pub use crate::dataset_view::{DatasetView, GraphMatch};
     pub use crate::diagnostic::{RdfDiagnostic, RdfLocation, RdfSeverity};
-    pub use crate::ir::{QuadIds, QuadRef, RdfDataset, RdfDatasetBuilder, TermId, TermRef};
+    pub use crate::ir::{
+        QuadIds, QuadRef, RdfDataset, RdfDatasetBuilder, TermId, TermRef, TermValue,
+    };
     pub use crate::model::{
         RdfAnnotation, RdfLiteral, RdfQuad, RdfReifier, RdfTerm, RdfTermKind, RdfTextDirection,
         RdfTriple,
