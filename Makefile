@@ -251,8 +251,8 @@ fuzz-smoke: ## Deep-fuzz each format frontend briefly (T7, #788; needs `cargo in
 	  cargo fuzz run $$t fuzz/corpus/$$t fuzz/seeds/$$t -- -max_total_time=$(FUZZ_TIME) || exit 1; \
 	done
 
-bench: ## Run criterion benchmarks (release, host-tuned target-cpu=native) — the acceleration-program baseline (#630).
-	RUSTFLAGS="$(NATIVE_RUSTFLAGS)" cargo bench -p gmeow-logic -p gmeow-shacl -p gmeow-validate
+bench: ## Run criterion benchmarks (release, host-tuned target-cpu=native) — the acceleration-program baseline (#630) + the reasoning hot path (#790).
+	RUSTFLAGS="$(NATIVE_RUSTFLAGS)" cargo bench -p gmeow-logic -p gmeow-rdf -p gmeow-shacl -p gmeow-validate
 
 dev: ## Build + install gmeow_native host-tuned (maturin develop --release, target-cpu=native) for optimized LOCAL runs.
 	RUSTFLAGS="$(NATIVE_RUSTFLAGS)" VIRTUAL_ENV="$$(pwd)/.venv" uvx maturin develop --release --manifest-path crates/native/Cargo.toml
