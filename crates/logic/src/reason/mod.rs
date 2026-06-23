@@ -159,11 +159,12 @@ pub(crate) fn run_reasoning(
         let world = decode_string_constant(&row.values[2])?;
 
         let prov = &rwp.provenance;
-        let premises = prov
+        let mut premises = prov
             .antecedent_rows
             .iter()
             .map(decode_premise)
             .collect::<Result<Vec<_>, String>>()?;
+        premises.sort();
 
         inferred.push(InferredAxiom {
             subject,
