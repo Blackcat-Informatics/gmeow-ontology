@@ -182,6 +182,40 @@ future slice migration inherits.
 
 **Imagination tally:** 10 converted (13 cells across 10 pytest functions), 1 retained-with-reason (manifest-scope), 1 deleted-covered-by-make-validate. Source file `tests/test_imagination.py` trimmed to the 1 retained function (not deleted — the must-stay remains).
 
+## `slices/core/temporal`
+
+The temporal pytest loaded the FULL merged graph (`load_merged_graph(include_imports=True)`), so each tested triple needs home-slice triage: a triple asserted in temporal/module.ttl → `scopeModule` cell; one asserted in another slice → cross-slice must-stay.
+
+| Pytest fn | Pytest file | DSL cell IRI | Cell type | Status | Reason if retained | Run by |
+|---|---|---|---|---|---|---|
+| `test_time_scoped_relation_is_a_logic_situation` | `tests/test_temporal.py` | `ex:saTimeScopedRelationIsLogicSituation` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_validity_predicates_are_annotation_properties` | `tests/test_temporal.py` | `ex:saValidityPredicatesAreAnnotationProperties` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_instant_subclasses_logic_abstract_individual` | `tests/test_temporal.py` | `ex:saInstantSubclassesLogicAbstractIndividual` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_time_interval_has_start_and_end_instants` | `tests/test_temporal.py` | `ex:saTimeIntervalHasStartAndEndInstants` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_time_interval_can_have_temporal_frame` | `tests/test_temporal.py` | `ex:saTimeIntervalCanHaveTemporalFrame` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_temporal_measurement_is_logic_relator` | `tests/test_temporal.py` | `ex:saTemporalMeasurementIsLogicRelator` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_reified_residence_and_tenure_are_time_scoped` | `tests/test_temporal.py` | — | — | **retained** | CROSS-SLICE: `gmeow:MailboxResidence` (extensions/email) + `gmeow:AddressTenure` (core/contacts) ⊑ TimeScopedRelation — the subclass edges are declared in those OTHER slices' modules, absent from temporal/module.ttl, so the module-scoped harness cannot see them. Faithful only over the merged graph. | pytest |
+| `test_interpersonal_relationship_is_a_gufo_relator` | `tests/test_temporal.py` | — | — | **retained** | CROSS-SLICE: `gmeow:InterpersonalRelationship` (core/contacts, core/names) ⊑ gufo:Relator — declared in those slices, absent from temporal/module.ttl. Merged-graph integration check. | pytest |
+
+**Temporal tally:** 6 converted, 2 retained-with-reason (cross-slice merged-graph). Source file `tests/test_temporal.py` trimmed to the 2 retained functions (not deleted).
+
+## `slices/core/gts`
+
+The gts pytest mixed merged-graph, module-only, and competency loads. Subjects of the migrated subClassOf/subPropertyOf edges are home-asserted in gts/module.ttl (verified), so they convert even though the parent classes live in other slices. The two dynamic universals use `FILTER NOT EXISTS` over a type pattern (not a VALUES blacklist); adversarially break-probed 2026-06-23 (a TransformCodec without codecClass, an untyped gmeow term, a stray OpacityReason → the three cells reded as `mustNot but the ASK pattern HELD`, then reverted).
+
+| Pytest fn | Pytest file | DSL cell IRI | Cell type | Status | Reason if retained | Run by |
+|---|---|---|---|---|---|---|
+| `test_artifact_classes_ground_in_existing_spine` | `tests/test_gts_slice.py` | `ex:saArtifactClassesGroundInSpine` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_head_id_is_a_version_fingerprint` | `tests/test_gts_slice.py` | `ex:saHeadIdIsVersionFingerprint` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_structure_properties_are_part_of_spine` | `tests/test_gts_slice.py` | `ex:saStructurePropertiesArePartOfSpine` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_no_parallel_signature_or_digest_mechanism` | `tests/test_gts_slice.py` | `ex:saNoParallelSignatureOrDigest` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_every_codec_carries_a_codec_class` | `tests/test_gts_slice.py` | `ex:saEveryCodecCarriesACodecClass` | StructuralAssertion | converted (DYNAMIC `FILTER NOT EXISTS`, scopeModule-narrowed vs the pytest's merged scan — faithful for slice-owned codecs) | — | `make slicetest` |
+| `test_slice_terms_are_class_or_property_typed` | `tests/test_gts_slice.py` | `ex:saSliceTermsAreClassOrPropertyTyped` | StructuralAssertion | converted (DYNAMIC typing sweep, `FILTER NOT EXISTS` over the allowed-type set + individual escape) | — | `make slicetest` |
+| `test_value_vocabularies_are_seeded` | `tests/test_gts_slice.py` | `ex:saValueVocabNamedIndividualsSeeded` + `ex:saOpacityReasonIndividualsSeeded` + `ex:saOpacityReasonExactClosedSet` | StructuralAssertion | **partial** | converted: the named individuals (gtsProfileDist/Evidence/AiPackage, codecZstd) + the OpacityReason EXACT closed set (`mustNot FILTER ?r NOT IN (the 3)`). RETAINED in `test_value_vocabulary_cardinality_floors`: the `>=7` GTSProfile, `>=7` TransformCodec, `==3` CodecClass numeric counts — a boolean ASK cannot assert a cardinality. | `make slicetest` + pytest |
+| `test_competency_queries_parse_and_run` | `tests/test_gts_slice.py` | — | — | **retained** | a parse+execute SMOKE over `queries/*.rq` with NO pinned expected result; a `gmeow:CompetencyQuestion` cell requires an expected outcome, so authoring one would fabricate an assertion the pytest never made. | pytest |
+
+**GTS tally:** 6 converted + 1 partial (value-vocab: named/exact-set converted, cardinality floors retained) + 1 retained (competency parse-smoke); 9 cells across 7 migrated fns. Source file `tests/test_gts_slice.py` trimmed to the 2 retained functions (not deleted).
+
 ## Other slices
 
 No other slice carries declarative test-DSL specs yet (T2 authored only the
