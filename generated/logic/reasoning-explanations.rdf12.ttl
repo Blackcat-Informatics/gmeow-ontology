@@ -10,38 +10,6 @@
 
 # --- derivation proof skeletons ---
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
-   <https://blackcatinformatics.ca/gmeow/concludes> << <http://purl.org/nemo/gufo#isCollectionMemberOf> <http://www.w3.org/2000/01/rdf-schema#subPropertyOf> <http://purl.org/nemo/gufo#isProperPartOf> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#isCollectionMemberOf> <http://www.w3.org/2000/01/rdf-schema#subPropertyOf> <http://purl.org/nemo/gufo#isObjectProperPartOf> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#isObjectProperPartOf> <http://www.w3.org/2000/01/rdf-schema#subPropertyOf> <http://purl.org/nemo/gufo#isProperPartOf> >> ;
-   <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubPropertyOf-transitive> ;
-   <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
-   <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
-   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/imports> .
-[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
-   <https://blackcatinformatics.ca/gmeow/concludes> << <http://purl.org/nemo/gufo#isComponentOf> <http://www.w3.org/2000/01/rdf-schema#subPropertyOf> <http://purl.org/nemo/gufo#isProperPartOf> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#isComponentOf> <http://www.w3.org/2000/01/rdf-schema#subPropertyOf> <http://purl.org/nemo/gufo#isObjectProperPartOf> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#isObjectProperPartOf> <http://www.w3.org/2000/01/rdf-schema#subPropertyOf> <http://purl.org/nemo/gufo#isProperPartOf> >> ;
-   <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubPropertyOf-transitive> ;
-   <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
-   <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
-   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/imports> .
-[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
-   <https://blackcatinformatics.ca/gmeow/concludes> << <http://purl.org/nemo/gufo#isSubCollectionOf> <http://www.w3.org/2000/01/rdf-schema#subPropertyOf> <http://purl.org/nemo/gufo#isProperPartOf> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#isSubCollectionOf> <http://www.w3.org/2000/01/rdf-schema#subPropertyOf> <http://purl.org/nemo/gufo#isObjectProperPartOf> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#isObjectProperPartOf> <http://www.w3.org/2000/01/rdf-schema#subPropertyOf> <http://purl.org/nemo/gufo#isProperPartOf> >> ;
-   <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubPropertyOf-transitive> ;
-   <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
-   <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
-   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/imports> .
-[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
-   <https://blackcatinformatics.ca/gmeow/concludes> << <http://purl.org/nemo/gufo#isSubQuantityOf> <http://www.w3.org/2000/01/rdf-schema#subPropertyOf> <http://purl.org/nemo/gufo#isProperPartOf> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#isSubQuantityOf> <http://www.w3.org/2000/01/rdf-schema#subPropertyOf> <http://purl.org/nemo/gufo#isObjectProperPartOf> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#isObjectProperPartOf> <http://www.w3.org/2000/01/rdf-schema#subPropertyOf> <http://purl.org/nemo/gufo#isProperPartOf> >> ;
-   <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubPropertyOf-transitive> ;
-   <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
-   <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
-   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/imports> .
-[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <http://data.europa.eu/esco/model#Occupation> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://data.europa.eu/esco/model#Occupation> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://data.europa.eu/esco/model#Occupation> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Occupation> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://blackcatinformatics.ca/gmeow/Occupation> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://data.europa.eu/esco/model#Occupation> >> ;
@@ -269,88 +237,88 @@
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/imports> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <http://purl.org/nemo/gufo#Endurant> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Individual> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#Endurant> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#ConcreteIndividual> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#ConcreteIndividual> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Individual> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#Endurant> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#ConcreteIndividual> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/imports> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <http://purl.org/nemo/gufo#EndurantType> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Type> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#EndurantType> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#ConcreteIndividualType> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#ConcreteIndividualType> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Type> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#EndurantType> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#ConcreteIndividualType> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/imports> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <http://purl.org/nemo/gufo#Event> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Individual> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#Event> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#ConcreteIndividual> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#ConcreteIndividual> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Individual> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#Event> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#ConcreteIndividual> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/imports> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <http://purl.org/nemo/gufo#EventType> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Type> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#EventType> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#ConcreteIndividualType> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#ConcreteIndividualType> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Type> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#EventType> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#ConcreteIndividualType> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/imports> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <http://purl.org/nemo/gufo#ExtrinsicAspect> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#ConcreteIndividual> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#ExtrinsicAspect> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Aspect> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#Aspect> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#ConcreteIndividual> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#ExtrinsicAspect> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Aspect> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/imports> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <http://purl.org/nemo/gufo#ExtrinsicAspect> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Endurant> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#ExtrinsicAspect> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Aspect> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#Aspect> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Endurant> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#ExtrinsicAspect> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Aspect> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/imports> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <http://purl.org/nemo/gufo#ExtrinsicAspect> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Individual> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#ExtrinsicAspect> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Endurant> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#Endurant> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Individual> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#ExtrinsicAspect> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Endurant> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/imports> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <http://purl.org/nemo/gufo#ExtrinsicMode> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Aspect> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#ExtrinsicMode> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#ExtrinsicAspect> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#ExtrinsicAspect> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Aspect> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#ExtrinsicMode> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#ExtrinsicAspect> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/imports> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <http://purl.org/nemo/gufo#ExtrinsicMode> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#ConcreteIndividual> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#ExtrinsicMode> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Aspect> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#Aspect> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#ConcreteIndividual> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#ExtrinsicMode> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Aspect> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/imports> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <http://purl.org/nemo/gufo#ExtrinsicMode> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Endurant> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#ExtrinsicMode> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Aspect> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#Aspect> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Endurant> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#ExtrinsicMode> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Aspect> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/imports> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <http://purl.org/nemo/gufo#ExtrinsicMode> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Individual> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#ExtrinsicMode> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Aspect> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#Aspect> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Individual> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#ExtrinsicMode> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Aspect> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
@@ -365,32 +333,32 @@
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/imports> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <http://purl.org/nemo/gufo#FixedCollection> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Endurant> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#FixedCollection> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Collection> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#Collection> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Endurant> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#FixedCollection> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Collection> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/imports> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <http://purl.org/nemo/gufo#FixedCollection> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Individual> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#FixedCollection> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Collection> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#Collection> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Individual> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#FixedCollection> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Collection> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/imports> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <http://purl.org/nemo/gufo#FixedCollection> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Object> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#FixedCollection> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Collection> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#Collection> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Object> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#FixedCollection> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Collection> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/imports> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <http://purl.org/nemo/gufo#FunctionalComplex> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#ConcreteIndividual> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#FunctionalComplex> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Endurant> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#Endurant> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#ConcreteIndividual> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#FunctionalComplex> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Endurant> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
@@ -405,72 +373,72 @@
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/imports> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <http://purl.org/nemo/gufo#FunctionalComplex> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Individual> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#FunctionalComplex> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Endurant> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#Endurant> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Individual> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#FunctionalComplex> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Endurant> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/imports> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <http://purl.org/nemo/gufo#IntrinsicAspect> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#ConcreteIndividual> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#IntrinsicAspect> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Aspect> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#Aspect> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#ConcreteIndividual> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#IntrinsicAspect> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Aspect> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/imports> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <http://purl.org/nemo/gufo#IntrinsicAspect> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Endurant> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#IntrinsicAspect> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Aspect> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#Aspect> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Endurant> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#IntrinsicAspect> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Aspect> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/imports> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <http://purl.org/nemo/gufo#IntrinsicAspect> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Individual> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#IntrinsicAspect> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Endurant> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#Endurant> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Individual> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#IntrinsicAspect> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Endurant> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/imports> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <http://purl.org/nemo/gufo#IntrinsicMode> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Aspect> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#IntrinsicMode> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#IntrinsicAspect> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#IntrinsicAspect> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Aspect> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#IntrinsicMode> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#IntrinsicAspect> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/imports> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <http://purl.org/nemo/gufo#IntrinsicMode> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#ConcreteIndividual> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#IntrinsicMode> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Aspect> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#Aspect> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#ConcreteIndividual> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#IntrinsicMode> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Aspect> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/imports> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <http://purl.org/nemo/gufo#IntrinsicMode> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Endurant> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#IntrinsicMode> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Aspect> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#Aspect> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Endurant> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#IntrinsicMode> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Aspect> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/imports> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <http://purl.org/nemo/gufo#IntrinsicMode> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Individual> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#IntrinsicMode> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Aspect> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#Aspect> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Individual> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#IntrinsicMode> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Aspect> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/imports> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <http://purl.org/nemo/gufo#Kind> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#ConcreteIndividualType> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#Kind> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#EndurantType> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#EndurantType> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#ConcreteIndividualType> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#Kind> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#EndurantType> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
@@ -485,8 +453,8 @@
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/imports> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <http://purl.org/nemo/gufo#Kind> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Type> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#Kind> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#EndurantType> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#EndurantType> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Type> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#Kind> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#EndurantType> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
@@ -501,8 +469,8 @@
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/imports> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <http://purl.org/nemo/gufo#Mixin> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#ConcreteIndividualType> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#Mixin> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#EndurantType> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#EndurantType> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#ConcreteIndividualType> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#Mixin> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#EndurantType> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
@@ -525,80 +493,80 @@
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/imports> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <http://purl.org/nemo/gufo#Mixin> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Type> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#Mixin> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#EndurantType> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#EndurantType> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Type> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#Mixin> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#EndurantType> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/imports> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <http://purl.org/nemo/gufo#NonRigidType> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#ConcreteIndividualType> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#NonRigidType> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#EndurantType> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#EndurantType> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#ConcreteIndividualType> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#NonRigidType> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#EndurantType> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/imports> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <http://purl.org/nemo/gufo#NonRigidType> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Type> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#NonRigidType> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#ConcreteIndividualType> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#ConcreteIndividualType> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Type> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#NonRigidType> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#ConcreteIndividualType> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/imports> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <http://purl.org/nemo/gufo#NonSortal> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#ConcreteIndividualType> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#NonSortal> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#EndurantType> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#EndurantType> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#ConcreteIndividualType> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#NonSortal> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#EndurantType> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/imports> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <http://purl.org/nemo/gufo#NonSortal> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Type> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#NonSortal> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#ConcreteIndividualType> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#ConcreteIndividualType> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Type> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#NonSortal> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#ConcreteIndividualType> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/imports> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <http://purl.org/nemo/gufo#Object> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#ConcreteIndividual> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#Object> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Endurant> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#Endurant> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#ConcreteIndividual> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#Object> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Endurant> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/imports> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <http://purl.org/nemo/gufo#Object> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Individual> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#Object> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#ConcreteIndividual> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#ConcreteIndividual> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Individual> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#Object> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#ConcreteIndividual> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/imports> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <http://purl.org/nemo/gufo#Participation> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#ConcreteIndividual> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#Participation> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Event> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#Event> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#ConcreteIndividual> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#Participation> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Event> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/imports> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <http://purl.org/nemo/gufo#Participation> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Individual> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#Participation> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#ConcreteIndividual> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#ConcreteIndividual> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Individual> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#Participation> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#ConcreteIndividual> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/imports> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <http://purl.org/nemo/gufo#Phase> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#ConcreteIndividualType> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#Phase> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#EndurantType> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#EndurantType> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#ConcreteIndividualType> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#Phase> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#EndurantType> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
@@ -613,88 +581,88 @@
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/imports> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <http://purl.org/nemo/gufo#Phase> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#NonRigidType> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#Phase> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#AntiRigidType> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#AntiRigidType> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#NonRigidType> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#Phase> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#AntiRigidType> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/imports> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <http://purl.org/nemo/gufo#Phase> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Type> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#Phase> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#EndurantType> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#EndurantType> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Type> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#Phase> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#EndurantType> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/imports> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <http://purl.org/nemo/gufo#PhaseMixin> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#ConcreteIndividualType> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#PhaseMixin> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#EndurantType> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#EndurantType> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#ConcreteIndividualType> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#PhaseMixin> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#EndurantType> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/imports> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <http://purl.org/nemo/gufo#PhaseMixin> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#EndurantType> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#PhaseMixin> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#NonSortal> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#NonSortal> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#EndurantType> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#PhaseMixin> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#NonSortal> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/imports> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <http://purl.org/nemo/gufo#PhaseMixin> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#NonRigidType> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#PhaseMixin> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#AntiRigidType> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#AntiRigidType> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#NonRigidType> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#PhaseMixin> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#AntiRigidType> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/imports> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <http://purl.org/nemo/gufo#PhaseMixin> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Type> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#PhaseMixin> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#EndurantType> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#EndurantType> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Type> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#PhaseMixin> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#EndurantType> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/imports> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <http://purl.org/nemo/gufo#Quality> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Aspect> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#Quality> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#IntrinsicAspect> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#IntrinsicAspect> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Aspect> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#Quality> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#IntrinsicAspect> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/imports> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <http://purl.org/nemo/gufo#Quality> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#ConcreteIndividual> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#Quality> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Aspect> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#Aspect> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#ConcreteIndividual> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#Quality> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Aspect> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/imports> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <http://purl.org/nemo/gufo#Quality> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Endurant> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#Quality> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Aspect> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#Aspect> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Endurant> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#Quality> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Aspect> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/imports> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <http://purl.org/nemo/gufo#Quality> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Individual> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#Quality> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Aspect> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#Aspect> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Individual> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#Quality> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Aspect> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/imports> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <http://purl.org/nemo/gufo#QualityValue> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Individual> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#QualityValue> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#AbstractIndividual> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#AbstractIndividual> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Individual> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#QualityValue> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#AbstractIndividual> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
@@ -709,88 +677,88 @@
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/imports> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <http://purl.org/nemo/gufo#QualityValueAttributionSituation> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Individual> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#QualityValueAttributionSituation> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#ConcreteIndividual> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#ConcreteIndividual> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Individual> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#QualityValueAttributionSituation> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#ConcreteIndividual> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/imports> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <http://purl.org/nemo/gufo#Quantity> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#ConcreteIndividual> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#Quantity> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Endurant> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#Endurant> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#ConcreteIndividual> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#Quantity> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Endurant> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/imports> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <http://purl.org/nemo/gufo#Quantity> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Endurant> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#Quantity> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Object> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#Object> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Endurant> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#Quantity> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Object> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/imports> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <http://purl.org/nemo/gufo#Quantity> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Individual> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#Quantity> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Endurant> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#Endurant> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Individual> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#Quantity> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Endurant> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/imports> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <http://purl.org/nemo/gufo#Relator> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Aspect> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#Relator> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#ExtrinsicAspect> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#ExtrinsicAspect> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Aspect> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#Relator> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#ExtrinsicAspect> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/imports> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <http://purl.org/nemo/gufo#Relator> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#ConcreteIndividual> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#Relator> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Aspect> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#Aspect> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#ConcreteIndividual> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#Relator> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Aspect> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/imports> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <http://purl.org/nemo/gufo#Relator> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Endurant> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#Relator> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Aspect> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#Aspect> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Endurant> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#Relator> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Aspect> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/imports> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <http://purl.org/nemo/gufo#Relator> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Individual> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#Relator> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Aspect> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#Aspect> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Individual> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#Relator> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Aspect> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/imports> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <http://purl.org/nemo/gufo#RigidType> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#ConcreteIndividualType> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#RigidType> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#EndurantType> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#EndurantType> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#ConcreteIndividualType> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#RigidType> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#EndurantType> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/imports> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <http://purl.org/nemo/gufo#RigidType> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Type> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#RigidType> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#ConcreteIndividualType> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#ConcreteIndividualType> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Type> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#RigidType> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#ConcreteIndividualType> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/imports> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <http://purl.org/nemo/gufo#Role> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#ConcreteIndividualType> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#Role> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#EndurantType> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#EndurantType> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#ConcreteIndividualType> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#Role> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#EndurantType> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
@@ -805,225 +773,257 @@
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/imports> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <http://purl.org/nemo/gufo#Role> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#NonRigidType> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#Role> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#AntiRigidType> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#AntiRigidType> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#NonRigidType> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#Role> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#AntiRigidType> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/imports> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <http://purl.org/nemo/gufo#Role> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Type> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#Role> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#EndurantType> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#EndurantType> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Type> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#Role> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#EndurantType> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/imports> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <http://purl.org/nemo/gufo#RoleMixin> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#ConcreteIndividualType> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#RoleMixin> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#EndurantType> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#EndurantType> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#ConcreteIndividualType> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#RoleMixin> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#EndurantType> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/imports> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <http://purl.org/nemo/gufo#RoleMixin> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#EndurantType> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#RoleMixin> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#NonSortal> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#NonSortal> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#EndurantType> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#RoleMixin> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#NonSortal> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/imports> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <http://purl.org/nemo/gufo#RoleMixin> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#NonRigidType> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#RoleMixin> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#AntiRigidType> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#AntiRigidType> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#NonRigidType> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#RoleMixin> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#AntiRigidType> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/imports> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <http://purl.org/nemo/gufo#RoleMixin> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Type> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#RoleMixin> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#EndurantType> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#EndurantType> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Type> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#RoleMixin> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#EndurantType> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/imports> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <http://purl.org/nemo/gufo#SemiRigidType> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#ConcreteIndividualType> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#SemiRigidType> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#EndurantType> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#EndurantType> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#ConcreteIndividualType> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#SemiRigidType> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#EndurantType> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/imports> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <http://purl.org/nemo/gufo#SemiRigidType> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#EndurantType> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#SemiRigidType> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#NonRigidType> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#NonRigidType> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#EndurantType> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#SemiRigidType> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#NonRigidType> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/imports> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <http://purl.org/nemo/gufo#SemiRigidType> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Type> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#SemiRigidType> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#EndurantType> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#EndurantType> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Type> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#SemiRigidType> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#EndurantType> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/imports> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <http://purl.org/nemo/gufo#Situation> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Individual> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#Situation> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#ConcreteIndividual> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#ConcreteIndividual> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Individual> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#Situation> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#ConcreteIndividual> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/imports> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <http://purl.org/nemo/gufo#SituationType> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Type> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#SituationType> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#ConcreteIndividualType> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#ConcreteIndividualType> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Type> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#SituationType> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#ConcreteIndividualType> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/imports> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <http://purl.org/nemo/gufo#Sortal> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#ConcreteIndividualType> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#Sortal> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#EndurantType> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#EndurantType> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#ConcreteIndividualType> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#Sortal> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#EndurantType> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/imports> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <http://purl.org/nemo/gufo#Sortal> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Type> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#Sortal> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#ConcreteIndividualType> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#ConcreteIndividualType> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Type> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#Sortal> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#ConcreteIndividualType> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/imports> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <http://purl.org/nemo/gufo#SubKind> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#ConcreteIndividualType> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#SubKind> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#EndurantType> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#EndurantType> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#ConcreteIndividualType> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#SubKind> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#EndurantType> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/imports> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <http://purl.org/nemo/gufo#SubKind> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#EndurantType> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#SubKind> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#RigidType> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#RigidType> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#EndurantType> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#SubKind> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#RigidType> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/imports> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <http://purl.org/nemo/gufo#SubKind> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Type> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#SubKind> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#EndurantType> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#EndurantType> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Type> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#SubKind> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#EndurantType> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/imports> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <http://purl.org/nemo/gufo#TemporaryConstitutionSituation> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#ConcreteIndividual> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#TemporaryConstitutionSituation> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Situation> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#Situation> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#ConcreteIndividual> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#TemporaryConstitutionSituation> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Situation> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/imports> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <http://purl.org/nemo/gufo#TemporaryConstitutionSituation> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Individual> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#TemporaryConstitutionSituation> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#ConcreteIndividual> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#ConcreteIndividual> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Individual> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#TemporaryConstitutionSituation> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#ConcreteIndividual> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/imports> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <http://purl.org/nemo/gufo#TemporaryInstantiationSituation> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#ConcreteIndividual> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#TemporaryInstantiationSituation> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Situation> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#Situation> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#ConcreteIndividual> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#TemporaryInstantiationSituation> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Situation> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/imports> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <http://purl.org/nemo/gufo#TemporaryInstantiationSituation> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Individual> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#TemporaryInstantiationSituation> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#ConcreteIndividual> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#ConcreteIndividual> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Individual> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#TemporaryInstantiationSituation> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#ConcreteIndividual> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/imports> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <http://purl.org/nemo/gufo#TemporaryParthoodSituation> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#ConcreteIndividual> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#TemporaryParthoodSituation> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Situation> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#Situation> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#ConcreteIndividual> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#TemporaryParthoodSituation> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Situation> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/imports> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <http://purl.org/nemo/gufo#TemporaryParthoodSituation> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Individual> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#TemporaryParthoodSituation> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#ConcreteIndividual> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#ConcreteIndividual> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Individual> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#TemporaryParthoodSituation> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#ConcreteIndividual> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/imports> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <http://purl.org/nemo/gufo#TemporaryRelationshipSituation> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#ConcreteIndividual> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#TemporaryRelationshipSituation> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Situation> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#Situation> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#ConcreteIndividual> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#TemporaryRelationshipSituation> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Situation> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/imports> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <http://purl.org/nemo/gufo#TemporaryRelationshipSituation> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Individual> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#TemporaryRelationshipSituation> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#ConcreteIndividual> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#ConcreteIndividual> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Individual> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#TemporaryRelationshipSituation> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#ConcreteIndividual> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/imports> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <http://purl.org/nemo/gufo#VariableCollection> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#ConcreteIndividual> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#VariableCollection> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Object> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#Object> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#ConcreteIndividual> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#VariableCollection> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Object> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/imports> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <http://purl.org/nemo/gufo#VariableCollection> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Endurant> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#VariableCollection> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Collection> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#Collection> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Endurant> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#VariableCollection> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Collection> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/imports> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <http://purl.org/nemo/gufo#VariableCollection> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Individual> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#VariableCollection> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Collection> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#Collection> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Individual> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#VariableCollection> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Collection> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/imports> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <http://purl.org/nemo/gufo#VariableCollection> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Object> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#VariableCollection> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Collection> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#Collection> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Object> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#VariableCollection> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Collection> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
+   <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
+   <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
+   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/imports> .
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
+   <https://blackcatinformatics.ca/gmeow/concludes> << <http://purl.org/nemo/gufo#isCollectionMemberOf> <http://www.w3.org/2000/01/rdf-schema#subPropertyOf> <http://purl.org/nemo/gufo#isProperPartOf> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#isCollectionMemberOf> <http://www.w3.org/2000/01/rdf-schema#subPropertyOf> <http://purl.org/nemo/gufo#isObjectProperPartOf> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#isObjectProperPartOf> <http://www.w3.org/2000/01/rdf-schema#subPropertyOf> <http://purl.org/nemo/gufo#isProperPartOf> >> ;
+   <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubPropertyOf-transitive> ;
+   <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
+   <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
+   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/imports> .
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
+   <https://blackcatinformatics.ca/gmeow/concludes> << <http://purl.org/nemo/gufo#isComponentOf> <http://www.w3.org/2000/01/rdf-schema#subPropertyOf> <http://purl.org/nemo/gufo#isProperPartOf> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#isComponentOf> <http://www.w3.org/2000/01/rdf-schema#subPropertyOf> <http://purl.org/nemo/gufo#isObjectProperPartOf> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#isObjectProperPartOf> <http://www.w3.org/2000/01/rdf-schema#subPropertyOf> <http://purl.org/nemo/gufo#isProperPartOf> >> ;
+   <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubPropertyOf-transitive> ;
+   <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
+   <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
+   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/imports> .
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
+   <https://blackcatinformatics.ca/gmeow/concludes> << <http://purl.org/nemo/gufo#isSubCollectionOf> <http://www.w3.org/2000/01/rdf-schema#subPropertyOf> <http://purl.org/nemo/gufo#isProperPartOf> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#isObjectProperPartOf> <http://www.w3.org/2000/01/rdf-schema#subPropertyOf> <http://purl.org/nemo/gufo#isProperPartOf> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#isSubCollectionOf> <http://www.w3.org/2000/01/rdf-schema#subPropertyOf> <http://purl.org/nemo/gufo#isObjectProperPartOf> >> ;
+   <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubPropertyOf-transitive> ;
+   <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
+   <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
+   <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/imports> .
+[] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
+   <https://blackcatinformatics.ca/gmeow/concludes> << <http://purl.org/nemo/gufo#isSubQuantityOf> <http://www.w3.org/2000/01/rdf-schema#subPropertyOf> <http://purl.org/nemo/gufo#isProperPartOf> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#isObjectProperPartOf> <http://www.w3.org/2000/01/rdf-schema#subPropertyOf> <http://purl.org/nemo/gufo#isProperPartOf> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#isSubQuantityOf> <http://www.w3.org/2000/01/rdf-schema#subPropertyOf> <http://purl.org/nemo/gufo#isObjectProperPartOf> >> ;
+   <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubPropertyOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/imports> .
@@ -1198,8 +1198,8 @@
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/alignments> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <http://www.w3.org/2006/time#Instant> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Individual> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://www.w3.org/2006/time#Instant> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#AbstractIndividual> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/nemo/gufo#AbstractIndividual> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#Individual> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://www.w3.org/2006/time#Instant> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/nemo/gufo#AbstractIndividual> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
@@ -1419,8 +1419,8 @@
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/alignments> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <https://blackcatinformatics.ca/gmeow/Activity> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Activity> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://blackcatinformatics.ca/gmeow/Activity> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://www.w3.org/ns/prov#Activity> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://www.w3.org/ns/prov#Activity> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Activity> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://blackcatinformatics.ca/gmeow/Activity> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://www.w3.org/ns/prov#Activity> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
@@ -1441,8 +1441,8 @@
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/alignments> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <https://blackcatinformatics.ca/gmeow/Agent> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Agent> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://blackcatinformatics.ca/gmeow/Agent> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://www.w3.org/ns/prov#Agent> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://www.w3.org/ns/prov#Agent> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Agent> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://blackcatinformatics.ca/gmeow/Agent> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://www.w3.org/ns/prov#Agent> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
@@ -1501,8 +1501,8 @@
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/alignments> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <https://blackcatinformatics.ca/gmeow/CreativeWorkTitle> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/CreativeWorkTitle> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://blackcatinformatics.ca/gmeow/CreativeWorkTitle> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://id.loc.gov/ontologies/bibframe/Title> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://id.loc.gov/ontologies/bibframe/Title> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/CreativeWorkTitle> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://blackcatinformatics.ca/gmeow/CreativeWorkTitle> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://id.loc.gov/ontologies/bibframe/Title> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
@@ -1590,8 +1590,8 @@
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/alignments> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <https://blackcatinformatics.ca/gmeow/Expression> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Expression> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://blackcatinformatics.ca/gmeow/Expression> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://iflastandards.info/ns/lrm/lrmoo/F2_Expression> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://iflastandards.info/ns/lrm/lrmoo/F2_Expression> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Expression> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://blackcatinformatics.ca/gmeow/Expression> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://iflastandards.info/ns/lrm/lrmoo/F2_Expression> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
@@ -1605,8 +1605,8 @@
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/alignments> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <https://blackcatinformatics.ca/gmeow/Family> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Family> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://blackcatinformatics.ca/gmeow/Family> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://www.w3.org/2000/10/swap/pim/gedcom#Family> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://www.w3.org/2000/10/swap/pim/gedcom#Family> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Family> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://blackcatinformatics.ca/gmeow/Family> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://www.w3.org/2000/10/swap/pim/gedcom#Family> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
@@ -1635,8 +1635,8 @@
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/alignments> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <https://blackcatinformatics.ca/gmeow/Group> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Group> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://blackcatinformatics.ca/gmeow/Group> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://xmlns.com/foaf/0.1/Group> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://xmlns.com/foaf/0.1/Group> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Group> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://blackcatinformatics.ca/gmeow/Group> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://xmlns.com/foaf/0.1/Group> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
@@ -1657,8 +1657,8 @@
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/alignments> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <https://blackcatinformatics.ca/gmeow/Item> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Item> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://blackcatinformatics.ca/gmeow/Item> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://iflastandards.info/ns/lrm/lrmoo/F5_Item> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://iflastandards.info/ns/lrm/lrmoo/F5_Item> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Item> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://blackcatinformatics.ca/gmeow/Item> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://iflastandards.info/ns/lrm/lrmoo/F5_Item> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
@@ -1679,8 +1679,8 @@
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/alignments> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <https://blackcatinformatics.ca/gmeow/Manifestation> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Manifestation> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://blackcatinformatics.ca/gmeow/Manifestation> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://iflastandards.info/ns/lrm/lrmoo/F3_Manifestation> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://iflastandards.info/ns/lrm/lrmoo/F3_Manifestation> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Manifestation> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://blackcatinformatics.ca/gmeow/Manifestation> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://iflastandards.info/ns/lrm/lrmoo/F3_Manifestation> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
@@ -1709,8 +1709,8 @@
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/alignments> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <https://blackcatinformatics.ca/gmeow/Membership> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Membership> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://blackcatinformatics.ca/gmeow/Membership> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://www.w3.org/ns/org#Membership> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://www.w3.org/ns/org#Membership> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Membership> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://blackcatinformatics.ca/gmeow/Membership> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://www.w3.org/ns/org#Membership> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
@@ -1724,8 +1724,8 @@
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/alignments> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <https://blackcatinformatics.ca/gmeow/Occupation> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Occupation> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://blackcatinformatics.ca/gmeow/Occupation> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://data.europa.eu/esco/model#Occupation> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://data.europa.eu/esco/model#Occupation> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Occupation> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://blackcatinformatics.ca/gmeow/Occupation> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://data.europa.eu/esco/model#Occupation> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
@@ -1746,8 +1746,8 @@
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/alignments> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <https://blackcatinformatics.ca/gmeow/OnlineAccount> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/OnlineAccount> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://blackcatinformatics.ca/gmeow/OnlineAccount> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://xmlns.com/foaf/0.1/OnlineAccount> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://xmlns.com/foaf/0.1/OnlineAccount> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/OnlineAccount> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://blackcatinformatics.ca/gmeow/OnlineAccount> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://xmlns.com/foaf/0.1/OnlineAccount> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
@@ -1761,8 +1761,8 @@
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/alignments> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <https://blackcatinformatics.ca/gmeow/Organization> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Organization> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://blackcatinformatics.ca/gmeow/Organization> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://xmlns.com/foaf/0.1/Organization> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://xmlns.com/foaf/0.1/Organization> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Organization> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://blackcatinformatics.ca/gmeow/Organization> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://xmlns.com/foaf/0.1/Organization> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
@@ -1783,8 +1783,8 @@
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/alignments> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <https://blackcatinformatics.ca/gmeow/Patent> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Patent> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://blackcatinformatics.ca/gmeow/Patent> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/ontology/bibo/Patent> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://purl.org/ontology/bibo/Patent> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Patent> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://blackcatinformatics.ca/gmeow/Patent> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://purl.org/ontology/bibo/Patent> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
@@ -1805,8 +1805,8 @@
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/alignments> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <https://blackcatinformatics.ca/gmeow/Person> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Person> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://blackcatinformatics.ca/gmeow/Person> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://www.w3.org/2000/10/swap/pim/gedcom#Individual> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://www.w3.org/2000/10/swap/pim/gedcom#Individual> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Person> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://blackcatinformatics.ca/gmeow/Person> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://www.w3.org/2000/10/swap/pim/gedcom#Individual> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
@@ -1842,8 +1842,8 @@
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/alignments> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <https://blackcatinformatics.ca/gmeow/Post> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Post> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://blackcatinformatics.ca/gmeow/Post> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://www.w3.org/ns/org#Post> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://www.w3.org/ns/org#Post> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Post> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://blackcatinformatics.ca/gmeow/Post> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://www.w3.org/ns/org#Post> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
@@ -1872,8 +1872,8 @@
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/alignments> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <https://blackcatinformatics.ca/gmeow/Role> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Role> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://blackcatinformatics.ca/gmeow/Role> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://www.w3.org/ns/org#Role> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://www.w3.org/ns/org#Role> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Role> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://blackcatinformatics.ca/gmeow/Role> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://www.w3.org/ns/org#Role> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
@@ -1909,8 +1909,8 @@
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/alignments> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <https://blackcatinformatics.ca/gmeow/Work> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Work> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://blackcatinformatics.ca/gmeow/Work> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://iflastandards.info/ns/lrm/lrmoo/F1_Work> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <http://iflastandards.info/ns/lrm/lrmoo/F1_Work> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Work> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://blackcatinformatics.ca/gmeow/Work> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://iflastandards.info/ns/lrm/lrmoo/F1_Work> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
@@ -1924,16 +1924,16 @@
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/alignments> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <https://purl.org/ctdl/terms/Credential> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://purl.org/ctdl/terms/Credential> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://purl.org/ctdl/terms/Credential> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Credential> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://blackcatinformatics.ca/gmeow/Credential> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://purl.org/ctdl/terms/Credential> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://purl.org/ctdl/terms/Credential> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Credential> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/alignments> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <https://purl.org/ctdl/terms/Credential> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://schema.org/EducationalOccupationalCredential> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://purl.org/ctdl/terms/Credential> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Credential> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://blackcatinformatics.ca/gmeow/Credential> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://schema.org/EducationalOccupationalCredential> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://purl.org/ctdl/terms/Credential> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Credential> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
@@ -1947,24 +1947,24 @@
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/alignments> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <https://schema.org/Article> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://schema.org/Article> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://schema.org/Article> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Article> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://blackcatinformatics.ca/gmeow/Article> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://schema.org/Article> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://schema.org/Article> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Article> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/alignments> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <https://schema.org/AudioObject> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://schema.org/MediaObject> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://schema.org/AudioObject> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/MediaObject> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://blackcatinformatics.ca/gmeow/MediaObject> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://schema.org/MediaObject> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://schema.org/AudioObject> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/MediaObject> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/alignments> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <https://schema.org/BlogPosting> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://schema.org/Article> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://schema.org/BlogPosting> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Article> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://blackcatinformatics.ca/gmeow/Article> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://schema.org/Article> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://schema.org/BlogPosting> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Article> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
@@ -1978,16 +1978,16 @@
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/alignments> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <https://schema.org/ContactPoint> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://schema.org/ContactPoint> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://schema.org/ContactPoint> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/ContactPoint> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://blackcatinformatics.ca/gmeow/ContactPoint> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://schema.org/ContactPoint> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://schema.org/ContactPoint> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/ContactPoint> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/alignments> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <https://schema.org/Country> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://schema.org/Place> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://schema.org/Country> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Place> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://blackcatinformatics.ca/gmeow/Place> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://schema.org/Place> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://schema.org/Country> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Place> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
@@ -2001,8 +2001,8 @@
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/alignments> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <https://schema.org/CreativeWork> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://schema.org/CreativeWork> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://schema.org/CreativeWork> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/CreativeWork> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://blackcatinformatics.ca/gmeow/CreativeWork> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://schema.org/CreativeWork> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://schema.org/CreativeWork> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/CreativeWork> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
@@ -2016,8 +2016,8 @@
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/alignments> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <https://schema.org/Dataset> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://schema.org/Dataset> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://schema.org/Dataset> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Dataset> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://blackcatinformatics.ca/gmeow/Dataset> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://schema.org/Dataset> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://schema.org/Dataset> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Dataset> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
@@ -2031,8 +2031,8 @@
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/alignments> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <https://schema.org/DigitalDocument> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://schema.org/DigitalDocument> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://schema.org/DigitalDocument> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Document> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://blackcatinformatics.ca/gmeow/Document> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://schema.org/DigitalDocument> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://schema.org/DigitalDocument> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Document> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
@@ -2046,16 +2046,16 @@
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/alignments> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <https://schema.org/EducationalOccupationalCredential> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://purl.org/ctdl/terms/Credential> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://schema.org/EducationalOccupationalCredential> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Credential> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://blackcatinformatics.ca/gmeow/Credential> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://purl.org/ctdl/terms/Credential> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://schema.org/EducationalOccupationalCredential> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Credential> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/alignments> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <https://schema.org/EducationalOccupationalCredential> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://schema.org/EducationalOccupationalCredential> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://schema.org/EducationalOccupationalCredential> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Credential> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://blackcatinformatics.ca/gmeow/Credential> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://schema.org/EducationalOccupationalCredential> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://schema.org/EducationalOccupationalCredential> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Credential> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
@@ -2069,8 +2069,8 @@
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/alignments> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <https://schema.org/EmailMessage> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://schema.org/EmailMessage> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://schema.org/EmailMessage> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/EmailMessage> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://blackcatinformatics.ca/gmeow/EmailMessage> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://schema.org/EmailMessage> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://schema.org/EmailMessage> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/EmailMessage> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
@@ -2084,16 +2084,16 @@
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/alignments> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <https://schema.org/GeoCoordinates> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://schema.org/GeoCoordinates> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://schema.org/GeoCoordinates> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/GeoCoordinates> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://blackcatinformatics.ca/gmeow/GeoCoordinates> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://schema.org/GeoCoordinates> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://schema.org/GeoCoordinates> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/GeoCoordinates> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/alignments> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <https://schema.org/ImageObject> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://schema.org/MediaObject> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://schema.org/ImageObject> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/MediaObject> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://blackcatinformatics.ca/gmeow/MediaObject> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://schema.org/MediaObject> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://schema.org/ImageObject> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/MediaObject> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
@@ -2107,24 +2107,24 @@
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/alignments> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <https://schema.org/MediaObject> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://schema.org/MediaObject> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://schema.org/MediaObject> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/MediaObject> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://blackcatinformatics.ca/gmeow/MediaObject> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://schema.org/MediaObject> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://schema.org/MediaObject> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/MediaObject> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/alignments> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <https://schema.org/NewsArticle> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://schema.org/Article> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://schema.org/NewsArticle> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Article> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://blackcatinformatics.ca/gmeow/Article> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://schema.org/Article> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://schema.org/NewsArticle> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Article> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/alignments> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <https://schema.org/Occupation> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://data.europa.eu/esco/model#Occupation> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://schema.org/Occupation> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Occupation> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://blackcatinformatics.ca/gmeow/Occupation> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://data.europa.eu/esco/model#Occupation> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://schema.org/Occupation> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Occupation> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
@@ -2138,16 +2138,16 @@
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/alignments> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <https://schema.org/Occupation> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://schema.org/Occupation> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://schema.org/Occupation> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Occupation> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://blackcatinformatics.ca/gmeow/Occupation> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://schema.org/Occupation> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://schema.org/Occupation> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Occupation> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/alignments> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <https://schema.org/Organization> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://xmlns.com/foaf/0.1/Organization> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://schema.org/Organization> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Organization> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://blackcatinformatics.ca/gmeow/Organization> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://xmlns.com/foaf/0.1/Organization> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://schema.org/Organization> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Organization> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
@@ -2161,32 +2161,32 @@
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/alignments> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <https://schema.org/Organization> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://schema.org/Organization> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://schema.org/Organization> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Organization> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://blackcatinformatics.ca/gmeow/Organization> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://schema.org/Organization> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://schema.org/Organization> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Organization> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/alignments> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <https://schema.org/OrganizationRole> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://www.w3.org/ns/org#Role> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://schema.org/OrganizationRole> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Role> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://blackcatinformatics.ca/gmeow/Role> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://www.w3.org/ns/org#Role> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://schema.org/OrganizationRole> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Role> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/alignments> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <https://schema.org/Person> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://www.w3.org/2000/10/swap/pim/gedcom#Individual> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://schema.org/Person> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Person> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://blackcatinformatics.ca/gmeow/Person> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://www.w3.org/2000/10/swap/pim/gedcom#Individual> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://schema.org/Person> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Person> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/alignments> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <https://schema.org/Person> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://xmlns.com/foaf/0.1/Person> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://schema.org/Person> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Person> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://blackcatinformatics.ca/gmeow/Person> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <http://xmlns.com/foaf/0.1/Person> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://schema.org/Person> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Person> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
@@ -2200,8 +2200,8 @@
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/alignments> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <https://schema.org/Person> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://schema.org/Person> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://schema.org/Person> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Person> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://blackcatinformatics.ca/gmeow/Person> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://schema.org/Person> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://schema.org/Person> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Person> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
@@ -2215,8 +2215,8 @@
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/alignments> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <https://schema.org/Place> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://schema.org/Place> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://schema.org/Place> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Place> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://blackcatinformatics.ca/gmeow/Place> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://schema.org/Place> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://schema.org/Place> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Place> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
@@ -2230,16 +2230,16 @@
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/alignments> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <https://schema.org/PostalAddress> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://schema.org/PostalAddress> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://schema.org/PostalAddress> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/PostalAddress> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://blackcatinformatics.ca/gmeow/PostalAddress> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://schema.org/PostalAddress> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://schema.org/PostalAddress> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/PostalAddress> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/alignments> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <https://schema.org/ScholarlyArticle> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://schema.org/Article> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://schema.org/ScholarlyArticle> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Article> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://blackcatinformatics.ca/gmeow/Article> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://schema.org/Article> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://schema.org/ScholarlyArticle> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/Article> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;
@@ -2253,8 +2253,8 @@
    <https://blackcatinformatics.ca/gmeow/inWorld> <https://blackcatinformatics.ca/gmeow/graph/alignments> .
 [] <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://blackcatinformatics.ca/gmeow/Derivation> ;
    <https://blackcatinformatics.ca/gmeow/concludes> << <https://schema.org/WebPage> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://schema.org/WebPage> >> ;
-   <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://schema.org/WebPage> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/WebPage> >> ;
    <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://blackcatinformatics.ca/gmeow/WebPage> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://schema.org/WebPage> >> ;
+   <https://blackcatinformatics.ca/gmeow/hasPremise> << <https://schema.org/WebPage> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <https://blackcatinformatics.ca/gmeow/WebPage> >> ;
    <https://blackcatinformatics.ca/gmeow/viaRule> <https://blackcatinformatics.ca/gmeow/rule/el%3AsubClassOf-transitive> ;
    <https://blackcatinformatics.ca/gmeow/inferenceKind> <https://blackcatinformatics.ca/gmeow/Deduction> ;
    <http://www.w3.org/2000/01/rdf-schema#label> "derivation of an inferred axiom"@en ;

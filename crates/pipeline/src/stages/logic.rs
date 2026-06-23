@@ -142,6 +142,26 @@ mod tests {
             .unwrap()
     }
 
+    /// Regenerate the committed logic goldens from the COMMITTED `gmeow.gts` fold.
+    ///
+    /// Reuses the exact authority path (`reason_fold_artifacts`) the assertion
+    /// test below verifies, so the written bytes are precisely what that test
+    /// expects. Reasoning over the *committed* snapshot (not a fresh rebuild)
+    /// keeps the goldens CI-consistent and sidesteps local↔CI env-skew. Ignored
+    /// by default — run explicitly after an ordering/serialization change:
+    /// `cargo nextest run -p gmeow-pipeline regen_logic_goldens_from_committed_fold --run-ignored all`
+    /// (or `cargo test -p gmeow-pipeline regen_logic_goldens_from_committed_fold -- --ignored`).
+    #[test]
+    #[ignore = "writes committed goldens; run explicitly to regenerate (#883)"]
+    fn regen_logic_goldens_from_committed_fold() {
+        let root = repo_root();
+        let gts = std::fs::read(root.join("generated/dist/gmeow.gts")).unwrap();
+        let (closure, explanations, ledger) = reason_fold_artifacts(&gts).expect("reason");
+        std::fs::write(root.join(CLOSURE_PATH), closure).unwrap();
+        std::fs::write(root.join(EXPLANATIONS_PATH), explanations).unwrap();
+        std::fs::write(root.join(LEDGER_PATH), ledger).unwrap();
+    }
+
     /// Reasoning the COMMITTED `gmeow.gts` fold through the leaf's artifact path
     /// reproduces the committed logic artifacts byte-for-byte — the exact same
     /// `GtsGraphStore` → `reason_all` → `build_*_ttl` path `native_reason_gen.py`
