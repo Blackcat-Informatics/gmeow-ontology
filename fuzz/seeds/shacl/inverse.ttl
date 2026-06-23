@@ -1,0 +1,5 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix ex: <https://example.org/> .
+ex:T a sh:NodeShape ;
+  sh:targetSubjectsOf ex:p ;
+  sh:property [ sh:path [ sh:inversePath ex:p ] ; sh:maxCount 1 ] .

@@ -1,0 +1,2 @@
+subject_id	predicate_id	object_id
+ex:a	skos:exactMatch	ex:b
