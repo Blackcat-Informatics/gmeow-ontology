@@ -12,8 +12,7 @@
 //! `ontology_docs.py`. Markdown/HTML/RDF projections and lint are added to this
 //! type in later tasks.
 
-use std::fs;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
 use pyo3::prelude::*;
 use pyo3::types::{PyBytes, PyDict, PyList};
@@ -31,6 +30,22 @@ fn model_json(root: String) -> PyResult<String> {
         .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))?;
     serde_json::to_string(&model)
         .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))
+}
+
+/// The canonical UI-chrome template table (R6 of #859) as a `dict[str, str]`.
+///
+/// `crate::i18n::UI_TEMPLATES` is the SINGLE source of truth for the
+/// documentation UI strings. This accessor exposes it so the Python `.pot`
+/// authoring pipeline (`gmeow-dev i18n extract`) derives the templates from it
+/// instead of duplicating the 60-key table — the duplicate Python literal is
+/// deleted. The Rust table is pre-sorted; dict insertion order follows it.
+#[pyfunction]
+fn ui_templates(py: Python<'_>) -> PyResult<Py<PyAny>> {
+    let out = PyDict::new(py);
+    for (key, value) in crate::i18n::UI_TEMPLATES {
+        out.set_item(key, value)?;
+    }
+    Ok(out.into_any().unbind())
 }
 
 /// A fully rendered ontology-docs static site.
@@ -115,18 +130,12 @@ impl DocSet {
     /// directories as needed, in fixed sorted order. Returns the list of written
     /// absolute-or-joined paths.
     fn write_artifacts(&self, py: Python<'_>, directory: String) -> PyResult<Py<PyAny>> {
-        let directory = PathBuf::from(directory);
+        // Thin wrapper over the pure-Rust `render::write_site` (unit-tested
+        // directly); just adapts the result to a Python list of path strings.
+        let paths = render::write_site(&self.inner, Path::new(&directory))
+            .map_err(|e| pyo3::exceptions::PyOSError::new_err(e.to_string()))?;
         let written = PyList::empty(py);
-        // The engine `BTreeMap` is already sorted; iterating it yields a fixed,
-        // deterministic write order.
-        for (rel, data) in &self.inner.files {
-            let path = directory.join(rel);
-            if let Some(parent) = path.parent() {
-                fs::create_dir_all(parent)
-                    .map_err(|e| pyo3::exceptions::PyOSError::new_err(e.to_string()))?;
-            }
-            fs::write(&path, data)
-                .map_err(|e| pyo3::exceptions::PyOSError::new_err(e.to_string()))?;
+        for path in paths {
             written.append(path.to_string_lossy().to_string())?;
         }
         Ok(written.into_any().unbind())
@@ -169,6 +178,7 @@ fn for_lang_dict(py: Python<'_>, site: &Site) -> PyResult<Py<PyAny>> {
 /// to that same submodule object via a Python shim.
 pub fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(model_json, m)?)?;
+    m.add_function(wrap_pyfunction!(ui_templates, m)?)?;
     m.add_class::<DocSet>()?;
     Ok(())
 }

@@ -401,6 +401,21 @@ def test_extract_ontology_docs_templates() -> None:
     assert all(entry.msgstr == "" for entry in entries)
 
 
+def test_ontology_docs_templates_single_source_of_truth() -> None:
+    # The UI-chrome table has ONE source of truth: the Rust renderer's
+    # crates/docs/src/i18n.rs::UI_TEMPLATES, exposed via gmeow_docs.ui_templates().
+    # The Python .pot extraction must derive from it exactly (no duplicate Python
+    # literal). (#859 R6.)
+    import gmeow_docs
+
+    native = gmeow_docs.ui_templates()
+    derived = {
+        entry.msgctxt.removeprefix("ontology-docs-template|"): entry.msgid
+        for entry in extract_ontology_docs_templates()
+    }
+    assert derived == native, "the .pot extraction must equal the native UI table"
+
+
 def test_discover_doc_languages_finds_slice_languages(tmp_path: Path) -> None:
     # Create a minimal slice tree with French and English PO files.
     slices_dir = tmp_path / "slices" / "core" / "lifecycle" / "i18n"
