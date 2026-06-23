@@ -846,46 +846,6 @@ def audit(
         raise _fail(f"✗ {report.flagged} flagged claim(s) (--strict)")
 
 
-evals_app = typer.Typer(
-    help="Claim-extraction eval suite (#298).", no_args_is_help=True
-)
-app.add_typer(evals_app, name="evals")
-
-
-@evals_app.command(name="score")
-def evals_score() -> None:
-    """Score every committed emission against the published contract (offline)."""
-    from gmeow_tools.evals import all_scorecards
-
-    for card in all_scorecards():
-        console.print(
-            f"[bold]{card.model}[/bold] overall {card.overall:.2f} "
-            f"({card.valid}/{card.emitted} valid)"
-        )
-        for name, value in sorted(card.scores.items()):
-            console.print(f"  {name}: {value:.2f}")
-
-
-@evals_app.command(name="run")
-def evals_run(
-    model: str = typer.Option(..., "--model", help="Model identifier to send."),
-    endpoint: str = typer.Option(..., "--endpoint", help="API endpoint URL."),
-    api: str = typer.Option("openai", "--api", help="openai | anthropic."),
-) -> None:
-    """Call a model API over the corpus (network; keys from env)."""
-    from gmeow_tools.evals import run_model
-
-    if api not in ("openai", "anthropic"):
-        raise _fail(f"✗ unsupported --api {api!r} (openai | anthropic)")
-    try:
-        out = run_model(model=model, endpoint=endpoint, api=api)
-    except httpx.HTTPError as exc:
-        raise _fail(f"✗ model API call failed: {exc}") from exc
-    console.print(
-        f"[green]✓ emission written to {out} — run `gmeow regenerate evals`[/green]"
-    )
-
-
 @app.command(name="compliance-report")
 def compliance_report_cmd(
     from_passing_check: bool = typer.Option(
@@ -1656,48 +1616,6 @@ def crossref() -> None:
     )
 
 
-@app.command(name="references-backfill")
-def references_backfill(
-    github: bool = typer.Option(
-        True,
-        "--github/--no-github",
-        help="Include GitHub issue, PR, comment, and review text via the gh CLI.",
-    ),
-    repo: str | None = typer.Option(
-        None,
-        "--repo",
-        help="GitHub repository in owner/name form (default: current GMEOW repo).",
-    ),
-    candidates_file: Path | None = typer.Option(  # noqa: B008
-        None,
-        "--candidates-file",
-        help="JSONL audit output for harvested citation candidates.",
-    ),
-) -> None:
-    """Backfill the canonical citation ledger from local and GitHub carriers."""
-    from gmeow_tools.references import (
-        DEFAULT_CANDIDATES_FILE,
-        DEFAULT_REPO,
-        backfill_references,
-    )
-
-    try:
-        report = backfill_references(
-            include_github=github,
-            repo=repo or DEFAULT_REPO,
-            candidates_file=candidates_file or DEFAULT_CANDIDATES_FILE,
-        )
-    except RuntimeError as exc:
-        raise _fail(f"✗ citation backfill failed: {exc}") from exc
-    console.print(
-        "[green]✓[/green] references backfilled: "
-        f"{report.unique_candidates} unique candidates "
-        f"({report.local_candidates} local, {report.github_candidates} GitHub)"
-    )
-    console.print(f"  ledger: {report.references_file}")
-    console.print(f"  candidates: {report.candidates_file}")
-
-
 @app.command()
 def normalize() -> None:
     """Canonicalize the authored ontology sources for stable diffs."""
@@ -2032,56 +1950,6 @@ def acceptance(
         )
 
 
-_EXPORT_PROFILES = ("croissant", "ro-crate", "dcat", "datacite", "frictionless")
-
-
-@app.command()
-def export(
-    profile: str = typer.Argument(
-        ...,
-        help="Research-object profile: all|" + "|".join(_EXPORT_PROFILES) + ".",
-    ),
-    data: list[Path] = typer.Argument(  # noqa: B008
-        ...,
-        help=(
-            "GMEOW instance Turtle file(s) — must include a dataset "
-            "descriptor (gmeow:Dataset + gmeow:hasLicense + gmeow:title)."
-        ),
-    ),
-    out: Path = typer.Option(  # noqa: B008
-        Path("dist/research-objects"),
-        "--out",
-        help="Output directory.",
-    ),
-) -> None:
-    """Export GMEOW data as research objects (#58): Croissant, RO-Crate, ….
-
-    Generated lossy projections of the canonical instance data (P4/P5):
-    Croissant JSON-LD (Google Dataset Search / HF / Kaggle), an RO-Crate
-    package (WorkflowHub), DCAT (W3C catalogs), DataCite deposit XML (DOI),
-    and a Frictionless datapackage.json. Each declares what it drops.
-    """
-    from gmeow_tools.genlib import GeneratorError
-    from gmeow_tools.research_objects import (
-        export_research_objects,
-        package_ro_crate,
-    )
-
-    profiles = _EXPORT_PROFILES if profile == "all" else (profile,)
-    unknown = set(profiles) - set(_EXPORT_PROFILES)
-    if unknown:
-        raise _fail(f"unknown profile(s): {', '.join(sorted(unknown))}")
-    stem = data[0].stem
-    try:
-        written = export_research_objects(data, out, profiles=profiles, stem=stem)
-    except (ValueError, GeneratorError) as exc:
-        raise _fail(f"✗ {exc}") from exc
-    if "ro-crate" in profiles:
-        written.append(package_ro_crate(out / "ro-crate", out / f"{stem}.crate.zip"))
-    for path in written:
-        console.print(f"[green]✓[/green] {path}")
-
-
 @app.command()
 def quality(
     foops_url: str = typer.Option(
@@ -2155,65 +2023,6 @@ def compile_gts(out: Path | None = _GTS_COMPILE_OUT) -> None:
         console.print(f"[green]✓[/green] {out}")
     size = config.GTS_SNAPSHOT_FILE.stat().st_size
     console.print(f"[green]✓[/green] {config.GTS_SNAPSHOT_FILE} ({size} bytes)")
-
-
-_GTS_FULL_OUT = typer.Option(
-    None, "--out", "-o", help="Output .gts path (default: dist/gmeow.gts)."
-)
-
-
-@app.command(name="compile-gts-full")
-def compile_gts_full(
-    out: Path | None = _GTS_FULL_OUT,
-    sign_key: Path | None = typer.Option(  # noqa: B008
-        None, "--sign-key", help="Armored Ed25519 OpenPGP secret key file."
-    ),
-    public_key: Path | None = typer.Option(  # noqa: B008
-        None, "--public-key", help="Armored OpenPGP public key file to embed."
-    ),
-) -> None:
-    """Compile the offline-ready unified GMEOW snapshot.
-
-    The registered ``gts`` generator emits an unsigned snapshot to
-    ``generated/dist/gmeow.gts``. This command is the release path: it compiles
-    the same snapshot, optionally signs every frame, and embeds the armored
-    transport public key in the first ``meta`` frame.
-
-    When ``--sign-key`` and ``--public-key`` are supplied, the ``kid`` is the
-    OpenPGP fingerprint of the secret key and the public key armor is embedded
-    as the file's transport key.
-    """
-    from gmeow_tools.config import DIST_DIR
-    from gmeow_tools.gts_gen import compile_full_snapshot
-
-    signer: gts.Signer | None = None
-    public_key_armor: str | None = None
-    if sign_key is not None or public_key is not None:
-        if sign_key is None or public_key is None:
-            raise _fail("--sign-key and --public-key must be supplied together")
-        try:
-            secret_armor = sign_key.read_text(encoding="utf-8")
-        except OSError as exc:
-            raise _fail(f"cannot read --sign-key {sign_key}: {exc}") from exc
-        try:
-            public_key_armor = public_key.read_text(encoding="utf-8")
-        except OSError as exc:
-            raise _fail(f"cannot read --public-key {public_key}: {exc}") from exc
-        try:
-            signer = gts.Signer.from_gpg_secret_key(secret_armor)
-        except Exception as exc:
-            raise _fail(f"cannot load signer from {sign_key}: {exc}") from exc
-
-    data = compile_full_snapshot(signer=signer, public_key_armor=public_key_armor)
-    target = out or (DIST_DIR / "gmeow.gts")
-    target.parent.mkdir(parents=True, exist_ok=True)
-    try:
-        target.write_bytes(data)
-    except OSError as exc:
-        raise _fail(f"cannot write {target}: {exc}") from exc
-    console.print(f"[green]✓[/green] {target} ({len(data)} bytes)")
-    if signer is not None:
-        console.print(f"[green]✓[/green] signed with kid {signer.kid}")
 
 
 @app.command(name="mcp")
