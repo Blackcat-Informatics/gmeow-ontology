@@ -292,10 +292,19 @@ pending the #867 slicetest structural migration — they are not reasoning tests
 | `test_competency_ancestry_is_answered_only_by_reasoning` | `tests/test_competency.py` | `ancestry_is_derived_not_asserted` | RL-entailment | converted | — (same genealogy chain as the `_materialize` ancestry twin) | `make logic-test` |
 | `test_place_naming_is_entailed_not_asserted` | `tests/test_competency.py` | `place_naming_is_entailed_not_asserted` | RL-entailment | converted | — (the first `owl:equivalentClass` defined-class classification + its negative) | `make logic-test` |
 | the 47 `_query_terms` / `_query_terms_on_graph` competency QUERY tests | `tests/test_competency.py` | — | — | **retained (de-reasoned)** | answer on the ASSERTED merged graph via SPARQL property paths — they never needed the OWL-RL closure; `_query_terms` was repointed from `_reasoned_graph()` to the asserted `_merged_graph()`, killing the ~4-min materialization. Stay in pytest pending the #867 slicetest competency migration | pytest (now ~1.7s) |
+| `test_sensory_observation_specialises_observation` | `tests/test_sensory.py` | `sensory_observation_specialises_observation` | RL-entailment | converted | — (SensoryObservation ⊑ Observation) | `make logic-test` |
+| `test_sensor_specialises_agent` | `tests/test_sensory.py` | `sensor_specialises_agent` | RL-entailment | converted | — (Sensor ⊑ Agent) | `make logic-test` |
+| `test_sensory_quantity_inherits_scalar_quantity` | `tests/test_sensory.py` | `sensory_quantity_inherits_scalar_quantity` | RL-entailment | converted | — (SensoryQuantity ≡ ScalarQuantity) | `make logic-test` |
+| `test_sensory_observation_el_axioms` | `tests/test_sensory.py` | `sensory_observation_el_axioms_stay_consistent` | RL-entailment | converted | — (full SensoryObservation survives materialization) | `make logic-test` |
+| `test_sensory_quantity_frame_inheritance` | `tests/test_sensory.py` | `sensory_quantity_frame_inheritance` | RL-entailment | converted | — (isResultOf ∘ hasReferenceFrame chain) | `make logic-test` |
+| `test_has_sensory_quantity_property_chain` | `tests/test_sensory.py` | `has_sensory_quantity_property_chain` | RL-entailment | converted | — (hasSensoryObservation ∘ sensoryResult shortcut) | `make logic-test` |
+| `test_contested_sensory_readings_coexist` | `tests/test_sensory.py` | `contested_sensory_readings_coexist` | RL-entailment | converted | — (Principle 9 coexistence; decimal literals omitted, not assertion-relevant) | `make logic-test` |
+| the 14 structural `test_sensory.py` tests (TBox existence, equivalentClass/subProperty/inverseOf assertions, SOSA/AFO mappings) | `tests/test_sensory.py` | — | — | **retained** | structural checks over the ASSERTED graph / generated mapping artifacts (no closure) — #867 slicetest territory | pytest (now ~4.8s) |
 
-**#896 reasoning tally (running):** 9 converted, 6 retained-with-reason (3 Python
-Docker-orchestration, 3 structural-not-reasoning), plus the 47 competency QUERY
-tests de-reasoned in place (no closure; #867 will move them to slicetest cells).
+**#896 reasoning tally (running):** 16 converted, 7 retained-with-reason (3 Python
+Docker-orchestration, 4 structural-not-reasoning incl. the mereology trio), plus
+the 47 competency QUERY tests de-reasoned in place and the 14 structural sensory
+tests retained (no closure; #867 will move them to slicetest cells).
 The migrated `_materialize` helpers and A-Box-injection imports were removed from
 the touched pytest files; `tests/test_competency.py` dropped from ~14 min to
 **~1.7 s** (the two ~5–9 min reasoning tests gone, the closure cost removed).

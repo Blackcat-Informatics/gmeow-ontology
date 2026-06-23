@@ -398,3 +398,160 @@ fn place_naming_is_entailed_not_asserted() {
         "a NameUsage naming a Person must NOT be classified a PlaceNaming"
     );
 }
+
+// ── Migrated from tests/test_sensory.py (#126, #77) ─────────────────────────────────────────
+// The `native_rl_closure` tests parse the sensory + observation modules, inject a SensoryObservation
+// A-Box, and assert the OWL-RL entailment (specialization, equivalentClass inheritance, property
+// chains, contested-coexistence). The structural tests (`load_merged_graph`, no closure — the
+// subProperty / inverseOf / equivalentClass *asserted* TBox checks) stay in pytest (#867).
+
+#[test]
+fn sensory_observation_specialises_observation() {
+    // SensoryObservation ⊑ Observation, inferred under OWL RL.
+    let so1 = ex("so1");
+    let abox = vec![iri_quad(&so1, RDF_TYPE, &gmeow("SensoryObservation"))];
+    let closure = scoped_closure(&["core/observations", "extensions/sensory"], &abox);
+    assert!(
+        has_type(&closure, &so1, &gmeow("Observation")),
+        "so1 a Observation (SensoryObservation ⊑ Observation)"
+    );
+}
+
+#[test]
+fn sensor_specialises_agent() {
+    // Sensor ⊑ Agent, inferred under OWL RL.
+    let sensor1 = ex("sensor1");
+    let abox = vec![iri_quad(&sensor1, RDF_TYPE, &gmeow("Sensor"))];
+    let closure = scoped_closure(
+        &["core/kernel", "core/observations", "extensions/sensory"],
+        &abox,
+    );
+    assert!(
+        has_type(&closure, &sensor1, &gmeow("Agent")),
+        "sensor1 a Agent (Sensor ⊑ Agent)"
+    );
+}
+
+#[test]
+fn sensory_quantity_inherits_scalar_quantity() {
+    // SensoryQuantity ≡ ScalarQuantity (#77, #126): a SensoryQuantity individual is a ScalarQuantity.
+    let sq1 = ex("sq1");
+    let abox = vec![iri_quad(&sq1, RDF_TYPE, &gmeow("SensoryQuantity"))];
+    let closure = scoped_closure(&["core/observations", "extensions/sensory"], &abox);
+    assert!(
+        has_type(&closure, &sq1, &gmeow("ScalarQuantity")),
+        "sq1 a ScalarQuantity (SensoryQuantity ≡ ScalarQuantity)"
+    );
+}
+
+#[test]
+fn sensory_observation_el_axioms_stay_consistent() {
+    // A fully-propertied SensoryObservation survives materialization (EL consistency).
+    let (so2, sensor2, room1, sq2) = (ex("so2"), ex("sensor2"), ex("room1"), ex("sq2"));
+    let abox = vec![
+        iri_quad(&so2, RDF_TYPE, &gmeow("SensoryObservation")),
+        iri_quad(&so2, &gmeow("vantage"), &sensor2),
+        iri_quad(&so2, &gmeow("sensoryObservationOf"), &room1),
+        iri_quad(
+            &so2,
+            &gmeow("sensoryProperty"),
+            &gmeow("observablePropertyTemperature"),
+        ),
+        iri_quad(&so2, &gmeow("sensoryResult"), &sq2),
+        iri_quad(&sensor2, RDF_TYPE, &gmeow("Sensor")),
+        iri_quad(&room1, RDF_TYPE, &gmeow("Place")),
+        iri_quad(&sq2, RDF_TYPE, &gmeow("SensoryQuantity")),
+    ];
+    let closure = scoped_closure(
+        &[
+            "core/kernel",
+            "core/places",
+            "core/observations",
+            "extensions/sensory",
+        ],
+        &abox,
+    );
+    assert!(
+        has_type(&closure, &so2, &gmeow("SensoryObservation")),
+        "so2 remains a SensoryObservation after materialization"
+    );
+}
+
+#[test]
+fn sensory_quantity_frame_inheritance() {
+    // isResultOf ∘ hasReferenceFrame ⊑ hasReferenceFrame: a SensoryQuantity result inherits the
+    // observation's reference frame (isResultOf is the inverse of the result property).
+    let (so3, sq3, frame_si) = (ex("so3"), ex("sq3"), ex("frameSI"));
+    let abox = vec![
+        iri_quad(&so3, RDF_TYPE, &gmeow("SensoryObservation")),
+        iri_quad(&so3, &gmeow("sensoryResult"), &sq3),
+        iri_quad(&so3, &gmeow("hasReferenceFrame"), &frame_si),
+        iri_quad(&sq3, RDF_TYPE, &gmeow("SensoryQuantity")),
+        iri_quad(&frame_si, RDF_TYPE, &gmeow("ReferenceFrame")),
+    ];
+    let closure = scoped_closure(
+        &["core/observations", "core/places", "extensions/sensory"],
+        &abox,
+    );
+    assert!(
+        contains(&closure, &sq3, &gmeow("hasReferenceFrame"), &frame_si),
+        "sq3 inherits the observation's reference frame via the property chain"
+    );
+}
+
+#[test]
+fn has_sensory_quantity_property_chain() {
+    // The flat shortcut hasSensoryQuantity is derived from hasSensoryObservation ∘ sensoryResult.
+    let (room2, so4, sq4) = (ex("room2"), ex("so4"), ex("sq4"));
+    let abox = vec![
+        iri_quad(&room2, RDF_TYPE, &gmeow("Place")),
+        iri_quad(&room2, &gmeow("hasSensoryObservation"), &so4),
+        iri_quad(&so4, &gmeow("sensoryResult"), &sq4),
+        iri_quad(&so4, RDF_TYPE, &gmeow("SensoryObservation")),
+        iri_quad(&sq4, RDF_TYPE, &gmeow("SensoryQuantity")),
+    ];
+    let closure = scoped_closure(&["core/observations", "extensions/sensory"], &abox);
+    assert!(
+        contains(&closure, &room2, &gmeow("hasSensoryQuantity"), &sq4),
+        "room2 hasSensoryQuantity sq4 (flat shortcut chain)"
+    );
+}
+
+#[test]
+fn contested_sensory_readings_coexist() {
+    // Two sensors observing the same feature with different results COEXIST (Principle 9): both
+    // observations survive and both sensors are inferred Agents — no clash. (The decimal
+    // quantityValue literals are decoration for the assertions and are omitted.)
+    let (so_a, sensor_a, sq_a) = (ex("soA"), ex("sensorA"), ex("sqA"));
+    let (so_b, sensor_b, sq_b) = (ex("soB"), ex("sensorB"), ex("sqB"));
+    let room3 = ex("room3");
+    let temp = gmeow("observablePropertyTemperature");
+    let mut abox = Vec::new();
+    for (so, sensor, sq) in [(&so_a, &sensor_a, &sq_a), (&so_b, &sensor_b, &sq_b)] {
+        abox.extend([
+            iri_quad(so, RDF_TYPE, &gmeow("SensoryObservation")),
+            iri_quad(so, &gmeow("vantage"), sensor),
+            iri_quad(so, &gmeow("sensoryObservationOf"), &room3),
+            iri_quad(so, &gmeow("sensoryProperty"), &temp),
+            iri_quad(so, &gmeow("sensoryResult"), sq),
+            iri_quad(sensor, RDF_TYPE, &gmeow("Sensor")),
+            iri_quad(sq, RDF_TYPE, &gmeow("SensoryQuantity")),
+        ]);
+    }
+    abox.push(iri_quad(&room3, RDF_TYPE, &gmeow("Place")));
+    let closure = scoped_closure(
+        &[
+            "core/kernel",
+            "core/places",
+            "core/observations",
+            "extensions/sensory",
+        ],
+        &abox,
+    );
+    // Both observations survive; neither is contradicted.
+    assert!(has_type(&closure, &so_a, &gmeow("SensoryObservation")));
+    assert!(has_type(&closure, &so_b, &gmeow("SensoryObservation")));
+    // Both sensors are inferred Agents.
+    assert!(has_type(&closure, &sensor_a, &gmeow("Agent")));
+    assert!(has_type(&closure, &sensor_b, &gmeow("Agent")));
+}
