@@ -58,6 +58,12 @@ pub(crate) struct QuadRow {
     pub g: Option<TermId>,
 }
 
+// #837 P3a: with the `NonZeroU32` `TermId` niche, the `g: Option<TermId>` slot
+// costs no discriminant word, so a quad row is 16 bytes (3×4 ids + 4 for the
+// niche-packed optional graph) rather than 20. This is the ~20%-off-the-quad-table
+// win; the assertion fails the build if the niche or field layout regresses.
+const _: () = assert!(std::mem::size_of::<QuadRow>() == 16);
+
 /// A small `Copy` quad row in term ids, for ID-native consumers. `g == None` is the
 /// default graph.
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]

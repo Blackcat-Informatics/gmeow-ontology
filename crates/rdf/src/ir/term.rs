@@ -15,6 +15,8 @@
 //! - Blank-node scope participates in the interning key (C0.2).
 //! - Triple terms are identified structurally by their resolved `(s, p, o)` (C0.3).
 
+use std::num::NonZeroU32;
+
 use crate::RdfTextDirection;
 
 /// The `xsd:string` datatype IRI — the default datatype of a plain literal (C0.1).
@@ -28,25 +30,70 @@ pub(crate) const RDF_LANG_STRING: &str = "http://www.w3.org/1999/02/22-rdf-synta
 /// `Serialize`/`Deserialize`, not merge-stable, not meaningful across datasets
 /// (C0.8). Any consumer needing a durable identifier MUST resolve the term to its
 /// RDF value rather than retaining a `TermId`.
-#[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Debug)]
-pub struct TermId(u32);
+///
+/// # Layout (#837 P3a)
+///
+/// The inner value is a [`NonZeroU32`] holding `dense_index + 1`, so the all-zero
+/// bit pattern is free for the [`Option`] niche: `Option<TermId>` is **4 bytes**
+/// (not 8), which shrinks [`QuadRow`](crate::ir::dataset) from 20 to 16 — ~20% off
+/// the quad table — because the absent-graph slot (`g: Option<TermId>`) no longer
+/// needs a discriminant word. `#[repr(transparent)]` keeps the FFI layout a plain
+/// `u32`. Id `0` is reserved as the niche sentinel and is never minted. The `+1`
+/// offset is confined entirely to [`index`](TermId::index) /
+/// [`from_index`](TermId::from_index); every other site addresses terms through
+/// those two methods and is offset-agnostic, so allocation order — and therefore
+/// the `Ord` sort used at freeze — is preserved exactly.
+///
+/// [`Hash`] is implemented by hand to hash the **0-based dense index as a `u32`**,
+/// byte-identical to the former `TermId(u32)` derive. The `+1` storage offset must
+/// NOT leak into the hash: keeping it out preserves every `HashMap<TermId, _>` /
+/// `HashSet<TermId>` iteration order, so the niche is a pure memory optimization
+/// with no observable behavioral effect (a perf change must not silently reorder
+/// any hash-iteration-dependent output).
+#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Debug)]
+#[repr(transparent)]
+pub struct TermId(NonZeroU32);
+
+impl std::hash::Hash for TermId {
+    #[inline]
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        // `self.0.get() - 1` is the dense index (a `u32`) — identical to what the
+        // old `TermId(u32)` derive hashed. See the type doc above for why.
+        (self.0.get() - 1).hash(state);
+    }
+}
 
 impl TermId {
     /// The dense index this id addresses in the interner's term table.
     ///
-    /// Crate-internal: the inner `u32` is private precisely so a `TermId` cannot
+    /// Crate-internal: the inner value is private precisely so a `TermId` cannot
     /// be forged or compared across datasets by external code.
     pub(crate) fn index(self) -> usize {
-        self.0 as usize
+        // The stored value is `index + 1` (id 0 is the niche sentinel), so the
+        // dense index is one less. Never underflows: the inner is `>= 1`.
+        (self.0.get() - 1) as usize
     }
 
     /// Construct a `TermId` from a dense table index.
     ///
-    /// Crate-internal: only the interner mints ids, in allocation order.
+    /// Crate-internal: only the interner mints ids, in allocation order. Hard-fails
+    /// (rather than wrapping) if `index` is `u32::MAX`, since `index + 1` would
+    /// overflow the id space — the largest dense index is `u32::MAX - 1`, so the
+    /// table can hold up to `u32::MAX` terms.
     pub(crate) fn from_index(index: u32) -> Self {
-        Self(index)
+        let raw = index
+            .checked_add(1)
+            .expect("term table cannot exceed u32::MAX entries");
+        // `raw = index + 1 >= 1`, so the `NonZeroU32` invariant always holds.
+        Self(NonZeroU32::new(raw).expect("index + 1 is always >= 1"))
     }
 }
+
+// The NonZeroU32 niche is the load-bearing P3a invariant (#837): it is *why*
+// `Option<TermId>` — and the `g` graph slot of every quad row — costs no extra
+// word. These compile-time assertions fail the build if the niche ever regresses.
+const _: () = assert!(std::mem::size_of::<TermId>() == 4);
+const _: () = assert!(std::mem::size_of::<Option<TermId>>() == 4);
 
 /// Blank-node scope. Participates in the interning key (C0.2): two blank nodes
 /// from different scopes are distinct even with the same label; two blank nodes in
@@ -124,10 +171,26 @@ mod tests {
 
     #[test]
     fn term_id_index_round_trips() {
-        for raw in [0u32, 1, 42, u32::MAX] {
+        // `u32::MAX` is no longer a valid index (the stored value is `index + 1`,
+        // so the last addressable index is `u32::MAX - 1`).
+        for raw in [0u32, 1, 42, u32::MAX - 1] {
             let id = TermId::from_index(raw);
             assert_eq!(id.index(), raw as usize);
         }
+    }
+
+    #[test]
+    fn term_id_option_uses_the_nonzero_niche() {
+        // The whole point of P3a: `Option<TermId>` rides the NonZeroU32 niche.
+        assert_eq!(std::mem::size_of::<Option<TermId>>(), 4);
+        assert_eq!(std::mem::size_of::<TermId>(), 4);
+    }
+
+    #[test]
+    #[should_panic(expected = "cannot exceed u32::MAX entries")]
+    fn term_id_from_index_rejects_u32_max() {
+        // `index + 1` would overflow the id space; the mint hard-fails (#837).
+        let _ = TermId::from_index(u32::MAX);
     }
 
     #[test]
