@@ -174,13 +174,22 @@ impl RdfDataset {
     /// Iterate quads as borrowed, resolved [`QuadRef`] views. Each term is resolved
     /// by borrowing into the term table — no allocation, no clone per quad.
     #[inline]
-    pub fn quad_refs(&self) -> impl Iterator<Item = QuadRef<'_>> + '_ {
-        self.quads.iter().map(move |row| QuadRef {
+    pub fn quad_refs(&self) -> RdfDatasetIter<'_> {
+        RdfDatasetIter {
+            dataset: self,
+            inner: self.quads.iter(),
+        }
+    }
+
+    /// Resolve one frozen [`QuadRow`] to a borrowed [`QuadRef`] (no allocation).
+    #[inline]
+    fn quad_ref_of(&self, row: &QuadRow) -> QuadRef<'_> {
+        QuadRef {
             s: self.resolve(row.s),
             p: self.resolve(row.p),
             o: self.resolve(row.o),
             g: row.g.map(|g| self.resolve(g)),
-        })
+        }
     }
 
     /// Resolve a term id to a borrowed [`TermRef`]. No allocation: string content is
@@ -281,15 +290,56 @@ impl RdfDataset {
     }
 }
 
+/// A zero-allocation, zero-dynamic-dispatch iterator over an [`RdfDataset`]'s quads
+/// as resolved [`QuadRef`]s. Yielded by [`RdfDataset::quad_refs`] and by
+/// `for quad in &dataset`. Backed by a `core::slice::Iter` (no_std-ready), it is
+/// `Double-ended`, `ExactSize`, and `Fused` — a drop-in for the standard iterator
+/// adapters with no per-item heap cost.
+pub struct RdfDatasetIter<'a> {
+    dataset: &'a RdfDataset,
+    inner: core::slice::Iter<'a, QuadRow>,
+}
+
+impl<'a> Iterator for RdfDatasetIter<'a> {
+    type Item = QuadRef<'a>;
+
+    #[inline]
+    fn next(&mut self) -> Option<Self::Item> {
+        let dataset = self.dataset;
+        self.inner.next().map(|row| dataset.quad_ref_of(row))
+    }
+
+    #[inline]
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        self.inner.size_hint()
+    }
+}
+
+impl DoubleEndedIterator for RdfDatasetIter<'_> {
+    #[inline]
+    fn next_back(&mut self) -> Option<Self::Item> {
+        let dataset = self.dataset;
+        self.inner.next_back().map(|row| dataset.quad_ref_of(row))
+    }
+}
+
+impl ExactSizeIterator for RdfDatasetIter<'_> {
+    #[inline]
+    fn len(&self) -> usize {
+        self.inner.len()
+    }
+}
+
+impl core::iter::FusedIterator for RdfDatasetIter<'_> {}
+
 /// `for quad in &dataset` yields each [`QuadRef`] (resolved, borrowed terms — no
-/// allocation per quad). The iterator handle is boxed once; the zero-overhead path
-/// is [`RdfDataset::quad_refs`]/[`RdfDataset::quads`] directly.
+/// per-quad allocation, no dynamic dispatch; see [`RdfDatasetIter`]).
 impl<'a> IntoIterator for &'a RdfDataset {
     type Item = QuadRef<'a>;
-    type IntoIter = Box<dyn Iterator<Item = QuadRef<'a>> + 'a>;
+    type IntoIter = RdfDatasetIter<'a>;
 
     fn into_iter(self) -> Self::IntoIter {
-        Box::new(self.quad_refs())
+        self.quad_refs()
     }
 }
 
@@ -337,6 +387,14 @@ mod tests {
         assert_eq!(ds.quad_count(), 2);
         // IntoIterator for &RdfDataset yields one QuadRef per quad.
         assert_eq!((&*ds).into_iter().count(), 2);
+        // The named iterator is ExactSize, DoubleEnded, and Fused (#841).
+        let mut it = ds.quad_refs();
+        assert_eq!(it.len(), 2);
+        assert!(it.next_back().is_some());
+        assert_eq!(it.len(), 1);
+        assert!(it.next().is_some());
+        assert!(it.next().is_none());
+        assert!(it.next().is_none(), "fused: stays exhausted");
     }
 
     #[test]
