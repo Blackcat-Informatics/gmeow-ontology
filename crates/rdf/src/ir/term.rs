@@ -175,7 +175,7 @@ pub(crate) enum InternedTerm {
 /// the issue's core correctness rule: keying value→id lookup on `TermRef` would
 /// smuggle ids local to *another* dataset and silently return wrong answers, so the
 /// key carries no `TermId` at all. A `&TermValue` is the spec's "TermValueRef".
-#[derive(Clone, PartialEq, Eq, Hash, Debug)]
+#[derive(Clone, PartialEq, Eq, Debug)]
 pub enum TermValue {
     /// An IRI, by its full string.
     Iri(String),
@@ -196,6 +196,47 @@ pub enum TermValue {
         p: Box<TermValue>,
         o: Box<TermValue>,
     },
+}
+
+// `Hash` is hand-written (not derived) with **explicit** discriminant tags so it is
+// robust against compiler-dependent enum-discriminant hashing AND matches the
+// allocation-free `RdfDataset::hash_term` (which hashes the interned representation
+// directly) byte-for-byte (#838). The two MUST stay in sync — the
+// `term_id_by_value` round-trip tests fail if they diverge. `String`/`Box<str>`/
+// `&str` all hash via `str`, so the by-value datatype here matches the resolved IRI
+// string there.
+impl core::hash::Hash for TermValue {
+    fn hash<H: core::hash::Hasher>(&self, state: &mut H) {
+        match self {
+            TermValue::Iri(iri) => {
+                0u8.hash(state);
+                iri.hash(state);
+            }
+            TermValue::Blank { label, scope } => {
+                1u8.hash(state);
+                label.hash(state);
+                scope.hash(state);
+            }
+            TermValue::Literal {
+                lexical_form,
+                datatype,
+                language,
+                direction,
+            } => {
+                2u8.hash(state);
+                lexical_form.hash(state);
+                datatype.hash(state);
+                language.hash(state);
+                direction.hash(state);
+            }
+            TermValue::Triple { s, p, o } => {
+                3u8.hash(state);
+                s.hash(state);
+                p.hash(state);
+                o.hash(state);
+            }
+        }
+    }
 }
 
 #[cfg(test)]

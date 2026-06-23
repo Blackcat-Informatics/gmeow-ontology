@@ -21,6 +21,7 @@
 //! [`super::builder::RdfDatasetBuilder`]: super::builder::RdfDatasetBuilder
 
 use std::collections::HashMap;
+use std::hash::{Hash, Hasher};
 use std::sync::OnceLock;
 
 use crate::{RdfLocation, RdfStoreCapabilities, RdfTextDirection};
@@ -140,11 +141,13 @@ pub struct RdfDataset {
     locations: Box<[(QuadHandle, RdfLocation)]>,
     /// Capability flags, computed ONCE at freeze.
     caps: RdfStoreCapabilities,
-    /// Lazy value→id reverse map for [`RdfDataset::term_id_by_value`] (#838). The
-    /// builder's interner index is dropped at freeze; this rebuilds a
-    /// dataset-independent ([`TermValue`]-keyed, no foreign ids) map on first use.
-    /// `OnceLock` keeps the frozen dataset `Send + Sync`.
-    value_index: OnceLock<HashMap<TermValue, TermId>>,
+    /// Lazy value→id reverse index for [`RdfDataset::term_id_by_value`] (#838).
+    /// Keyed by a canonical **hash** of each term's dataset-independent value (with
+    /// `Vec<TermId>` buckets to resolve the rare collision), NOT by full
+    /// [`TermValue`] copies — so building it duplicates **no** term strings (~10×
+    /// leaner than an owned-key map). Built lazily (the builder's interner index is
+    /// dropped at freeze); `OnceLock` keeps the frozen dataset `Send + Sync`.
+    value_index: OnceLock<HashMap<u64, Vec<TermId>>>,
 }
 
 impl RdfDataset {
@@ -172,61 +175,130 @@ impl RdfDataset {
         }
     }
 
-    /// Resolve a frozen term to its **dataset-independent** [`TermValue`] (#838):
-    /// the datatype id of a literal becomes its IRI string, and triple-term
-    /// components recurse by value — so the result carries no [`TermId`].
-    fn term_value_of(&self, id: TermId) -> TermValue {
+    /// Hash an interned term **with zero allocations**, byte-for-byte identically to
+    /// [`TermValue`]'s manual `Hash` (explicit tags; the literal datatype is hashed
+    /// as its resolved IRI string, triple components recurse). The round-trip tests
+    /// fail if this drifts from `TermValue::hash`.
+    fn hash_term<H: Hasher>(&self, id: TermId, state: &mut H) {
         match &self.terms[id.index()] {
-            InternedTerm::Iri(iri) => TermValue::Iri(iri.to_string()),
-            InternedTerm::Blank { label, scope } => TermValue::Blank {
-                label: label.to_string(),
-                scope: *scope,
-            },
-            InternedTerm::Literal(lit) => TermValue::Literal {
-                lexical_form: lit.lexical_form.to_string(),
-                // The datatype is always an interned IRI term; resolve it to its
-                // string so the value key never carries a dataset-local id.
-                datatype: self.iri_string_of(lit.datatype),
-                language: lit.language.as_ref().map(|l| l.to_string()),
-                direction: lit.direction,
-            },
-            InternedTerm::Triple { s, p, o } => TermValue::Triple {
-                s: Box::new(self.term_value_of(*s)),
-                p: Box::new(self.term_value_of(*p)),
-                o: Box::new(self.term_value_of(*o)),
-            },
+            InternedTerm::Iri(iri) => {
+                0u8.hash(state);
+                iri.hash(state);
+            }
+            InternedTerm::Blank { label, scope } => {
+                1u8.hash(state);
+                label.hash(state);
+                scope.hash(state);
+            }
+            InternedTerm::Literal(lit) => {
+                2u8.hash(state);
+                lit.lexical_form.hash(state);
+                self.hash_iri_string(lit.datatype, state);
+                lit.language.hash(state);
+                lit.direction.hash(state);
+            }
+            InternedTerm::Triple { s, p, o } => {
+                3u8.hash(state);
+                self.hash_term(*s, state);
+                self.hash_term(*p, state);
+                self.hash_term(*o, state);
+            }
         }
     }
 
-    /// The IRI string of a term known to be an interned IRI (a literal datatype).
-    fn iri_string_of(&self, id: TermId) -> String {
+    /// Hash the IRI string of a term known to be an interned IRI (a literal datatype).
+    fn hash_iri_string<H: Hasher>(&self, id: TermId, state: &mut H) {
         match &self.terms[id.index()] {
-            InternedTerm::Iri(iri) => iri.to_string(),
-            // Unreachable for a validated dataset: a literal datatype is always an
-            // IRI. Fall back to the resolved Debug rather than panicking.
-            other => format!("{other:?}"),
+            InternedTerm::Iri(iri) => iri.hash(state),
+            // Unreachable for a validated dataset (a literal datatype is always an
+            // IRI); hash the Debug form rather than panic.
+            other => format!("{other:?}").hash(state),
         }
+    }
+
+    /// Whether an interned term equals a dataset-independent [`TermValue`], compared
+    /// **with zero allocations** directly against the interned representation
+    /// (resolving the literal datatype id to its IRI in place). Resolves hash
+    /// collisions in [`RdfDataset::term_id_by_value`].
+    fn term_matches_value(&self, id: TermId, value: &TermValue) -> bool {
+        match (&self.terms[id.index()], value) {
+            (InternedTerm::Iri(iri), TermValue::Iri(v)) => &**iri == v,
+            (
+                InternedTerm::Blank { label, scope },
+                TermValue::Blank {
+                    label: vl,
+                    scope: vs,
+                },
+            ) => &**label == vl && scope == vs,
+            (
+                InternedTerm::Literal(lit),
+                TermValue::Literal {
+                    lexical_form,
+                    datatype,
+                    language,
+                    direction,
+                },
+            ) => {
+                &*lit.lexical_form == lexical_form
+                    && lit.direction == *direction
+                    && lit.language.as_deref() == language.as_deref()
+                    && self.iri_matches(lit.datatype, datatype)
+            }
+            (
+                InternedTerm::Triple { s, p, o },
+                TermValue::Triple {
+                    s: vs,
+                    p: vp,
+                    o: vo,
+                },
+            ) => {
+                self.term_matches_value(*s, vs)
+                    && self.term_matches_value(*p, vp)
+                    && self.term_matches_value(*o, vo)
+            }
+            _ => false,
+        }
+    }
+
+    /// Whether a term known to be an interned IRI equals `expected` (zero-alloc).
+    fn iri_matches(&self, id: TermId, expected: &str) -> bool {
+        matches!(&self.terms[id.index()], InternedTerm::Iri(iri) if &**iri == expected)
+    }
+
+    /// Canonical hash of a value, matching [`hash_term`](Self::hash_term).
+    fn hash_of<T: Hash>(value: &T) -> u64 {
+        let mut hasher = std::collections::hash_map::DefaultHasher::new();
+        value.hash(&mut hasher);
+        hasher.finish()
     }
 
     /// The id of an interned term given its **dataset-independent** value, or
     /// `None` if the dataset contains no such term (purrdf P4, #838).
     ///
-    /// The reverse value→id map is built **lazily on first call** (the builder's
+    /// The reverse hash→id index is built **lazily on first call** (the builder's
     /// interner index is dropped at freeze) and cached; `OnceLock::get_or_init`
-    /// guarantees a single build even under concurrent first access. Keying on
-    /// [`TermValue`] (not [`TermRef`](crate::ir::TermRef)) is the correctness rule:
-    /// a `TermRef`'s datatype/triple ids are local to whichever dataset minted them.
+    /// guarantees a single build even under concurrent first access. The index is
+    /// keyed by a canonical value hash with `Vec<TermId>` collision buckets and
+    /// stores **no** term strings, so building it is allocation-light. Keying on
+    /// [`TermValue`] (not [`TermRef`](crate::ir::TermRef)) is the correctness rule: a
+    /// `TermRef`'s datatype/triple ids are local to whichever dataset minted them.
     #[must_use]
     pub fn term_id_by_value(&self, value: &TermValue) -> Option<TermId> {
         let index = self.value_index.get_or_init(|| {
-            (0..self.terms.len())
-                .map(|i| {
-                    let id = TermId::from_index(i as u32);
-                    (self.term_value_of(id), id)
-                })
-                .collect()
+            let mut map: HashMap<u64, Vec<TermId>> = HashMap::with_capacity(self.terms.len());
+            for i in 0..self.terms.len() {
+                let id = TermId::from_index(i as u32);
+                let mut hasher = std::collections::hash_map::DefaultHasher::new();
+                self.hash_term(id, &mut hasher);
+                map.entry(hasher.finish()).or_default().push(id);
+            }
+            map
         });
-        index.get(value).copied()
+        index
+            .get(&Self::hash_of(value))?
+            .iter()
+            .copied()
+            .find(|&id| self.term_matches_value(id, value))
     }
 
     /// Iterate quads as ID-native [`QuadIds`]. **Zero allocations, infallible, no
@@ -502,6 +574,45 @@ mod tests {
         assert_eq!(
             ds.term_id_by_value(&TermValue::Iri("http://example.org/absent".to_string())),
             None
+        );
+    }
+
+    #[test]
+    fn term_id_by_value_disambiguates_same_lexical_different_datatype() {
+        // Two literals share the lexical form "1" but differ by datatype — the
+        // hash-bucketed index must disambiguate them by value (term_matches_value
+        // resolves the datatype id to its IRI), not collapse them.
+        let mut b = RdfDatasetBuilder::new();
+        let as_int = b.intern_literal(RdfLiteral::typed(
+            "1",
+            "http://www.w3.org/2001/XMLSchema#integer",
+        ));
+        let as_bool = b.intern_literal(RdfLiteral::typed(
+            "1",
+            "http://www.w3.org/2001/XMLSchema#boolean",
+        ));
+        let s = iri(&mut b, "s");
+        b.push_quad(s, s, as_int, None);
+        b.push_quad(s, s, as_bool, None);
+        let ds = b.freeze().unwrap();
+        assert_ne!(as_int, as_bool);
+        assert_eq!(
+            ds.term_id_by_value(&TermValue::Literal {
+                lexical_form: "1".to_string(),
+                datatype: "http://www.w3.org/2001/XMLSchema#integer".to_string(),
+                language: None,
+                direction: None,
+            }),
+            Some(as_int)
+        );
+        assert_eq!(
+            ds.term_id_by_value(&TermValue::Literal {
+                lexical_form: "1".to_string(),
+                datatype: "http://www.w3.org/2001/XMLSchema#boolean".to_string(),
+                language: None,
+                direction: None,
+            }),
+            Some(as_bool)
         );
     }
 
