@@ -288,12 +288,14 @@ fn blob_metadata(
 }
 
 fn lookaside_kind_from_metadata(metadata: &BTreeMap<String, RdfMetadataValue>) -> RdfLookasideKind {
+    // Borrow the metadata text directly (`as_text`) rather than `metadata_text`'s
+    // owned clone: these hints are inspected and discarded, never stored.
     for key in ["kind", "role", "domain", "type"] {
-        if let Some(value) = metadata_text(metadata, key) {
-            return RdfLookasideKind::from_hint(&value);
+        if let Some(value) = metadata.get(key).and_then(RdfMetadataValue::as_text) {
+            return RdfLookasideKind::from_hint(value);
         }
     }
-    if let Some(media_type) = metadata_text(metadata, "mt") {
+    if let Some(media_type) = metadata.get("mt").and_then(RdfMetadataValue::as_text) {
         let lower = media_type.to_ascii_lowercase();
         if lower.contains("shacl") {
             return RdfLookasideKind::Shacl;
