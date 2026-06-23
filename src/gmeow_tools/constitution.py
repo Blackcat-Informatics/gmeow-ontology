@@ -12,9 +12,11 @@ fails when:
 2. a cited artifact, Python symbol, Makefile target, or CLI command no longer
    exists (stale "Tested by" reference);
 3. an enforcement mechanism maps to no principle (orphaned enforcement —
-   "why does this lint exist?");
-4. the declared generator set differs from the live registry — a new
-   generator must be constitutionally registered the moment it exists.
+   "why does this lint exist?").
+
+The build authority is the Rust ``gmeow-pipeline`` executor (the dogfooded DAG
+in ``slices/core/pipeline/``); #861 P7 retired the Python generator registry, so
+there is no longer a per-generator registry-equality check here.
 
 A principle enforced ONLY by documented review practice is a warning, never
 an error and never silent: the honor system is allowed but always visible.
@@ -63,7 +65,6 @@ class Enforcement:
     symbols: tuple[str, ...]
     make_targets: tuple[str, ...]
     cli_commands: tuple[str, ...]
-    generators: tuple[str, ...]
 
 
 @dataclass(frozen=True, slots=True)
@@ -126,7 +127,6 @@ def load_manifest(path: Path = MANIFEST_FILE) -> Manifest:
                 symbols=_strings(graph, node, URIRef(META + "symbol")),
                 make_targets=_strings(graph, node, URIRef(META + "makeTarget")),
                 cli_commands=_strings(graph, node, URIRef(META + "cliCommand")),
-                generators=_strings(graph, node, URIRef(META + "generator")),
             )
     for node in graph.subjects(RDF.type, URIRef(META + "Principle")):
         if not isinstance(node, URIRef):
@@ -204,15 +204,6 @@ def _cli_command_names() -> frozenset[str]:
         elif command.callback is not None:
             names.add(command.callback.__name__.replace("_", "-"))
     return frozenset(names)
-
-
-def _registered_generators() -> frozenset[str]:
-    """Every generator name in the live registry (same imports as the CLI)."""
-    from gmeow_tools.generator import registry
-    from gmeow_tools.load_generators import load_all
-
-    load_all()
-    return frozenset(registry())
 
 
 def _emit(
@@ -318,32 +309,6 @@ def _check_references(
                     message=f"{name}: gmeow CLI command {command!r} is not registered",
                     logical=str(enforcement.iri),
                 )
-
-
-def _check_generator_registry(
-    manifest: Manifest, report: diagnostics.DiagnosticsReport
-) -> None:
-    """The declared generator set must equal the live registry exactly."""
-    declared: set[str] = set()
-    for enforcement in manifest.enforcements.values():
-        declared.update(enforcement.generators)
-    live = _registered_generators()
-    for missing in sorted(live - declared):
-        _emit(
-            report,
-            severity="error",
-            code="generator-undeclared",
-            message=f"generator {missing!r} is registered but not constitutionally "
-            f"declared (add it to governance/constitution.ttl)",
-        )
-    for stale in sorted(declared - live):
-        _emit(
-            report,
-            severity="error",
-            code="generator-stale",
-            message=f"manifest declares generator {stale!r} which is not in the "
-            f"live registry",
-        )
 
 
 def _markdown_relations(md_text: str, marker: str) -> dict[int, set[int]]:
@@ -460,7 +425,6 @@ def constitution_report(
         )
     )
     _check_references(manifest, root, report)
-    _check_generator_registry(manifest, report)
     _check_supersession(constitution_text, manifest, report)
     return report
 

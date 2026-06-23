@@ -3,7 +3,7 @@
 Validates the OWL → LinkML pipeline and the downstream generator fan-out.
 These tests are pure-Python (no Docker) and exercise the full compile path.
 
-Marked ``ci_only``: the LinkML + JSON-Schema/Pydantic/TS/GraphQL/OpenAPI
+Marked ``maintainer``: the LinkML + JSON-Schema/Pydantic/TS/GraphQL/OpenAPI
 generation is a heavy *secondary external-export* transformation (~45 s), so it
 runs in CI and ``make test`` but is excluded from the fast ``make check`` gate.
 """
@@ -16,8 +16,8 @@ from pathlib import Path
 import pytest
 import yaml
 
-from gmeow_tools.config import SCHEMAS_DIR
-from gmeow_tools.generator import run
+from gmeow_tools.config import PROJECT_ROOT, SCHEMAS_DIR
+from gmeow_tools.genlib import source_hash
 from gmeow_tools.gts_views import load_fold
 from gmeow_tools.schema_compile import (
     _LINKML_FILE,
@@ -30,7 +30,7 @@ from gmeow_tools.schema_compile import (
     gen_typescript,
 )
 
-pytestmark = pytest.mark.ci_only
+pytestmark = pytest.mark.maintainer
 
 
 def test_emit_linkml_produces_expected_structure() -> None:
@@ -94,61 +94,60 @@ def test_openapi_derives_valid_json(tmp_path: Path) -> None:
     assert "paths" in openapi
 
 
-def test_schema_compile_check_no_drift_after_write(tmp_path: Path) -> None:
-    """After compiling in-place, a subsequent --check must report no drift."""
-    # Use a temporary schemas directory to avoid interfering with dist/
-    original_schemas_dir = SCHEMAS_DIR
+#: The six committed schema artifacts the Rust ``schemas.rs`` leaf asserts on.
+_SCHEMA_ARTIFACTS = (
+    "gmeow.linkml.yaml",
+    "gmeow.schema.json",
+    "gmeow.py",
+    "gmeow.ts",
+    "gmeow.graphql",
+    "gmeow.openapi.json",
+)
+
+
+def _render_schemas(staging: Path) -> SchemaGenerator:
+    """Drive the schemas lane directly into ``staging`` (orchestrator-free)."""
     try:
-        # Monkey-patch SCHEMAS_DIR for the duration of the test
-        import gmeow_tools.config as _cfg
-        import gmeow_tools.schema_compile as sc
-
-        _cfg.SCHEMAS_DIR = tmp_path
-        sc.SCHEMAS_DIR = tmp_path  # type: ignore[attr-defined]
-
-        # First compile
-        report1 = run("schemas", check=False)
-        assert len(report1.written) == 6  # linkml + 4 generators + openapi
-        assert report1.drifted == []
-
-        # Then check
-        report2 = run("schemas", check=True)
-        assert report2.drifted == [], (
-            f"schema artifacts drifted after in-place compile: {report2.drifted}"
-        )
-        assert report2.orphans == [], (
-            "schema artifacts contain orphans after in-place compile:\n  "
-            + "\n  ".join(report2.orphans)
-        )
-    finally:
-        _cfg.SCHEMAS_DIR = original_schemas_dir
-        sc.SCHEMAS_DIR = original_schemas_dir  # type: ignore[attr-defined]
+        import linkml  # noqa: F401
+    except ImportError:  # pragma: no cover - exercised only without the ext lane
+        pytest.skip("linkml toolkit not installed in this environment")
+    gen = SchemaGenerator()
+    # Stamp the provenance source hash exactly as the Rust leaf would.
+    object.__setattr__(gen, "_source_hash", source_hash(gen.inputs))
+    gen.render(staging)
+    return gen
 
 
 def test_schema_generator_renders_all_artifacts(tmp_path: Path) -> None:
     """SchemaGenerator produces all six expected artifacts."""
-    import gmeow_tools.config as _cfg
-    import gmeow_tools.schema_compile as sc
+    _render_schemas(tmp_path)
+    out_dir = tmp_path / SCHEMAS_DIR.relative_to(PROJECT_ROOT)
+    found = {p.name for p in out_dir.rglob("*") if p.is_file()}
+    expected = set(_SCHEMA_ARTIFACTS)
+    assert expected <= found, f"missing artifacts: {expected - found}"
 
-    original = _cfg.SCHEMAS_DIR
-    try:
-        _cfg.SCHEMAS_DIR = tmp_path
-        sc.SCHEMAS_DIR = tmp_path  # type: ignore[attr-defined]
-        gen = SchemaGenerator
-        gen.render(tmp_path)  # type: ignore
-        expected = {
-            _LINKML_FILE,
-            "gmeow.schema.json",
-            "gmeow.py",
-            "gmeow.ts",
-            "gmeow.graphql",
-            "gmeow.openapi.json",
-        }
-        found = {p.name for p in tmp_path.rglob("*") if p.is_file()}
-        assert expected <= found, f"missing artifacts: {expected - found}"
-    finally:
-        _cfg.SCHEMAS_DIR = original
-        sc.SCHEMAS_DIR = original  # type: ignore[attr-defined]
+
+def test_schema_compile_no_drift_against_committed(tmp_path: Path) -> None:
+    """A fresh render is byte-identical to the committed ``generated/schemas/*``.
+
+    This is exactly what the Rust ``schemas.rs`` leaf asserts: the lane is a
+    pure function of its inputs, so a freshly rendered tree must reproduce the
+    committed artifact bytes verbatim — no drift.
+    """
+    for name in _SCHEMA_ARTIFACTS:
+        if not (SCHEMAS_DIR / name).exists():
+            pytest.skip(f"committed schema artifact {name} not present in checkout")
+
+    _render_schemas(tmp_path)
+    out_dir = tmp_path / SCHEMAS_DIR.relative_to(PROJECT_ROOT)
+
+    drifts: list[str] = []
+    for name in _SCHEMA_ARTIFACTS:
+        fresh = (out_dir / name).read_bytes()
+        committed = (SCHEMAS_DIR / name).read_bytes()
+        if fresh != committed:
+            drifts.append(name)
+    assert not drifts, f"schema artifacts drifted from committed bytes: {drifts}"
 
 
 def test_bounded_xsd_integers_map_to_numeric_types() -> None:

@@ -28,7 +28,6 @@ engine (:mod:`gmeow_tools.mapping_compile`), generalized to the metadata layer.
 from __future__ import annotations
 
 import tempfile
-from collections.abc import Sequence
 from pathlib import Path
 
 from gmeow_rdf.compat.rdflib import RDF, Graph
@@ -37,12 +36,10 @@ from gmeow_rdf.compat.rdflib.namespace import OWL
 from gmeow_tools import diagnostics
 from gmeow_tools.config import (
     PROJECT_ROOT,
-    STATEMENT_DSL_DIR,
     STATEMENT_OWL_FILE,
     STATEMENT_RDF12_FILE,
 )
-from gmeow_tools.generator import Generator, rdf_compare, register
-from gmeow_tools.graph import bind_prefixes, iter_module_files, load_merged_graph
+from gmeow_tools.graph import bind_prefixes, load_merged_graph
 from gmeow_tools.mapping_dsl import CompileError
 from gmeow_tools.rdf_canonical import graphs_isomorphic
 from gmeow_tools.statement_dsl import StatementDsl, load_statement_dsl
@@ -264,83 +261,3 @@ def _rel_str(path: Path) -> str:
 # --------------------------------------------------------------------------- #
 # Registered generator
 # --------------------------------------------------------------------------- #
-
-
-@register
-class StatementGenerator(Generator):
-    """Compile statement-dsl/ → RDF 1.2 lead artifact + OWL downcast."""
-
-    name: str = "statements"
-    #: The canonical internal compilation keeps x-gmeow-* tags (#287 leak gate).
-    allows_internal_tags: bool = True
-
-    @property
-    def inputs(self) -> Sequence[Path]:
-        """Canonical inputs for the statement generator."""
-        return [
-            *list(STATEMENT_DSL_DIR.glob("*.ttl")),
-            PROJECT_ROOT / "ontology" / "gmeow.ttl",
-            *iter_module_files(),
-            *list((PROJECT_ROOT / "imports").glob("*.ttl")),
-        ]
-
-    @property
-    def outputs(self) -> Sequence[Path]:
-        """Committed outputs for the statement generator."""
-        return [STATEMENT_OWL_FILE, STATEMENT_RDF12_FILE]
-
-    def render(self, staging: Path) -> None:
-        """Render statement artifacts into the staging tree."""
-        dsl = load_statement_dsl()
-        onto = load_merged_graph(include_imports=False)
-
-        # Author once → verify natively: emit the OWL downcast first, then run the
-        # statement-metadata invariants in Rust (gmeow_validate) over that emitted
-        # OWL graph unioned with the ontology — the pure-Python statement_lint was
-        # retired in the #630 cutover. Any finding blocks the compile, exactly as
-        # the former invariant list did.
-        #
-        # Deferred import — see _project_to_rdf12: the native ext is a hard
-        # requirement of this writer path, but NOT of the module's pure-rdflib
-        # emit_owl, which the Jena oracle lane imports without building the ext.
-        from gmeow_validate import check_statement_invariants
-
-        owl = emit_owl(dsl)
-        report = check_statement_invariants(
-            owl.serialize(format="turtle"),
-            onto.serialize(format="nt"),
-        )
-        if not report.ok:
-            raise CompileError(
-                "statement DSL violates invariants:\n  " + "\n  ".join(report.errors)
-            )
-
-        owl_tmp = staging / STATEMENT_OWL_FILE.relative_to(PROJECT_ROOT)
-        rdf12_tmp = staging / STATEMENT_RDF12_FILE.relative_to(PROJECT_ROOT)
-
-        _write_ttl(owl, owl_tmp, _OWL_BANNER)
-
-        _project_to_rdf12(owl_tmp, rdf12_tmp)
-
-        lossy = assert_lossless(owl, rdf12_tmp)
-        if lossy:
-            raise CompileError(
-                "RDF 1.2 / OWL round-trip is lossy (emit blocked):\n  "
-                + "\n  ".join(lossy)
-            )
-
-    def compare(self, fresh: Path, committed: Path) -> list[str]:
-        """Use graph isomorphism for OWL; normalize RDF 1.2 natively (gmeow-rdf)."""
-        if committed == STATEMENT_OWL_FILE:
-            return rdf_compare(fresh, committed)
-        # RDF 1.2: normalize both to OWL natively (gmeow-rdf), then isomorphism
-        if not committed.exists():
-            return [f"{_rel_str(committed)} (missing committed file)"]
-        try:
-            a = _normalize_to_owl_graph(committed)
-            b = _normalize_to_owl_graph(fresh)
-        except Exception as exc:
-            return [f"{_rel_str(committed)} (normalization error: {exc})"]
-        if not graphs_isomorphic(a, b):
-            return [f"{_rel_str(committed)}"]
-        return []

@@ -2791,6 +2791,23 @@ classes:
     slots:
     - carrierInscription
     - carrierType
+  Pipeline:
+    class_uri: https://blackcatinformatics.ca/gmeow/Pipeline
+    title: Pipeline
+    is_a: SocialObject
+    slots:
+    - hasStage
+  PipelineStage:
+    class_uri: https://blackcatinformatics.ca/gmeow/PipelineStage
+    title: Pipeline Stage
+    is_a: SocialObject
+    slots:
+    - carriesEngineLock
+    - dataflowConsumes
+    - dataflowProduces
+    - producesFormat
+    - stageImpl
+    - stageKind
   PitchAnchor:
     class_uri: https://blackcatinformatics.ca/gmeow/PitchAnchor
     title: Pitch Anchor
@@ -3611,6 +3628,9 @@ classes:
     class_uri: https://blackcatinformatics.ca/gmeow/Spectrum
     title: Spectrum
     is_a: InformationObject
+  StageKind:
+    class_uri: https://blackcatinformatics.ca/gmeow/StageKind
+    title: Stage Kind
   Standpoint:
     class_uri: https://blackcatinformatics.ca/gmeow/Standpoint
     title: Standpoint
@@ -5014,6 +5034,12 @@ slots:
     range: PhysicalCarrierType
     domain: PhysicalObject
     multivalued: true
+  carriesEngineLock:
+    slot_uri: https://blackcatinformatics.ca/gmeow/carriesEngineLock
+    title: carries engine lock
+    range: boolean
+    domain: PipelineStage
+    multivalued: true
   cascadeFirstLink:
     slot_uri: https://blackcatinformatics.ca/gmeow/cascadeFirstLink
     title: cascade first link
@@ -5784,6 +5810,18 @@ slots:
     title: data flow target
     range: ProcedureStep
     domain: DataFlow
+    multivalued: true
+  dataflowConsumes:
+    slot_uri: https://blackcatinformatics.ca/gmeow/dataflowConsumes
+    title: dataflow consumes
+    range: PipelineStage
+    domain: PipelineStage
+    multivalued: true
+  dataflowProduces:
+    slot_uri: https://blackcatinformatics.ca/gmeow/dataflowProduces
+    title: dataflow produces
+    range: PipelineStage
+    domain: PipelineStage
     multivalued: true
   dateAccepted:
     slot_uri: https://blackcatinformatics.ca/gmeow/dateAccepted
@@ -7973,6 +8011,12 @@ slots:
     title: has spouse
     range: Person
     domain: Person
+    multivalued: true
+  hasStage:
+    slot_uri: https://blackcatinformatics.ca/gmeow/hasStage
+    title: has stage
+    range: PipelineStage
+    domain: Pipeline
     multivalued: true
   hasStartInstant:
     slot_uri: https://blackcatinformatics.ca/gmeow/hasStartInstant
@@ -10464,6 +10508,12 @@ slots:
     range: uriorcurie
     domain: LearningEvent
     multivalued: true
+  producesFormat:
+    slot_uri: https://blackcatinformatics.ca/gmeow/producesFormat
+    title: produces format
+    range: string
+    domain: PipelineStage
+    multivalued: true
   producesMentalMoment:
     slot_uri: https://blackcatinformatics.ca/gmeow/producesMentalMoment
     title: produces mental moment
@@ -11759,6 +11809,18 @@ slots:
     range: PitchSpellingSystem
     domain: PitchSpelling
     multivalued: false
+  stageImpl:
+    slot_uri: https://blackcatinformatics.ca/gmeow/stageImpl
+    title: stage impl
+    range: string
+    domain: PipelineStage
+    multivalued: true
+  stageKind:
+    slot_uri: https://blackcatinformatics.ca/gmeow/stageKind
+    title: stage kind
+    range: StageKind
+    domain: PipelineStage
+    multivalued: true
   standpointClaim:
     slot_uri: https://blackcatinformatics.ca/gmeow/standpointClaim
     title: standpoint claim
@@ -17855,6 +17917,84 @@ enums:
       fixture1959LesPaul:
         meaning: https://blackcatinformatics.ca/gmeow/fixture1959LesPaul
         title: 1959 Les Paul fixture
+  PipelineEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/Pipeline
+    permissible_values:
+      pipeline-build:
+        meaning: https://blackcatinformatics.ca/gmeow/pipeline-build
+        title: GMEOW build pipeline
+  PipelineStageEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/PipelineStage
+    permissible_values:
+      stage-docs-render:
+        meaning: https://blackcatinformatics.ca/gmeow/stage-docs-render
+        title: docs render
+      stage-export-apache:
+        meaning: https://blackcatinformatics.ca/gmeow/stage-export-apache
+        title: 'export: apache headers'
+      stage-export-catalog:
+        meaning: https://blackcatinformatics.ca/gmeow/stage-export-catalog
+        title: 'export: catalog'
+      stage-export-evals:
+        meaning: https://blackcatinformatics.ca/gmeow/stage-export-evals
+        title: 'export: evals'
+      stage-export-export:
+        meaning: https://blackcatinformatics.ca/gmeow/stage-export-export
+        title: 'export: flat views'
+      stage-export-frame-shapes:
+        meaning: https://blackcatinformatics.ca/gmeow/stage-export-frame-shapes
+        title: 'export: frame shapes'
+      stage-export-logic:
+        meaning: https://blackcatinformatics.ca/gmeow/stage-export-logic
+        title: 'export: logic'
+      stage-export-lpg:
+        meaning: https://blackcatinformatics.ca/gmeow/stage-export-lpg
+        title: 'export: LPG'
+      stage-export-matrix:
+        meaning: https://blackcatinformatics.ca/gmeow/stage-export-matrix
+        title: 'export: matrix'
+      stage-export-metadata:
+        meaning: https://blackcatinformatics.ca/gmeow/stage-export-metadata
+        title: 'export: metadata'
+      stage-export-okf:
+        meaning: https://blackcatinformatics.ca/gmeow/stage-export-okf
+        title: 'export: OKF'
+      stage-export-parquet:
+        meaning: https://blackcatinformatics.ca/gmeow/stage-export-parquet
+        title: 'export: parquet'
+      stage-export-profiles:
+        meaning: https://blackcatinformatics.ca/gmeow/stage-export-profiles
+        title: 'export: profiles'
+      stage-export-references:
+        meaning: https://blackcatinformatics.ca/gmeow/stage-export-references
+        title: 'export: references'
+      stage-export-research-objects:
+        meaning: https://blackcatinformatics.ca/gmeow/stage-export-research-objects
+        title: 'export: research objects'
+      stage-export-schemas:
+        meaning: https://blackcatinformatics.ca/gmeow/stage-export-schemas
+        title: 'export: schemas'
+      stage-gts-compose:
+        meaning: https://blackcatinformatics.ca/gmeow/stage-gts-compose
+        title: gts compose
+      stage-gts-sink:
+        meaning: https://blackcatinformatics.ca/gmeow/stage-gts-sink
+        title: gts sink
+      stage-mappings:
+        meaning: https://blackcatinformatics.ca/gmeow/stage-mappings
+        title: mappings
+      stage-reason:
+        meaning: https://blackcatinformatics.ca/gmeow/stage-reason
+        title: reason
+      stage-snapshot:
+        meaning: https://blackcatinformatics.ca/gmeow/stage-snapshot
+        title: snapshot
+      stage-source-load:
+        meaning: https://blackcatinformatics.ca/gmeow/stage-source-load
+        title: source load
+      stage-statements:
+        meaning: https://blackcatinformatics.ca/gmeow/stage-statements
+        title: statements
   PitchAnchorEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/PitchAnchor
     permissible_values:
@@ -19700,6 +19840,30 @@ enums:
       spectrumExample:
         meaning: https://blackcatinformatics.ca/gmeow/spectrumExample
         title: example spectrum
+  StageKindEnum:
+    enum_uri: https://blackcatinformatics.ca/gmeow/StageKind
+    permissible_values:
+      kindDocsRender:
+        meaning: https://blackcatinformatics.ca/gmeow/kindDocsRender
+        title: docs render
+      kindExportLeaf:
+        meaning: https://blackcatinformatics.ca/gmeow/kindExportLeaf
+        title: export leaf
+      kindReason:
+        meaning: https://blackcatinformatics.ca/gmeow/kindReason
+        title: reason
+      kindSink:
+        meaning: https://blackcatinformatics.ca/gmeow/kindSink
+        title: sink
+      kindSourceLoad:
+        meaning: https://blackcatinformatics.ca/gmeow/kindSourceLoad
+        title: source load
+      kindTransform:
+        meaning: https://blackcatinformatics.ca/gmeow/kindTransform
+        title: transform
+      kindValidate:
+        meaning: https://blackcatinformatics.ca/gmeow/kindValidate
+        title: validate
   StandpointEnum:
     enum_uri: https://blackcatinformatics.ca/gmeow/Standpoint
     permissible_values:

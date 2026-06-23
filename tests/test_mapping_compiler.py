@@ -7,6 +7,7 @@ import sys
 from pathlib import Path
 
 import pytest
+import pytest as _pytest
 from gmeow_rdf.compat.rdflib import RDF, RDFS, BNode, Graph, URIRef
 from gmeow_rdf.compat.rdflib.namespace import Namespace
 from gmeow_rdf.compat.rdflib.plugins.sparql import prepareQuery
@@ -24,6 +25,8 @@ from gmeow_tools.mapping_compile import (
 from gmeow_tools.mapping_dsl import CompileError, Expr, load_dsl, render_expr
 from gmeow_tools.mappings import load_mappings
 from gmeow_tools.projection_lint import fno_type_mismatches
+
+pytestmark = _pytest.mark.maintainer
 
 GM = Namespace(PREFIXES["gmeow"])
 FNO = Namespace(PREFIXES["fno"])
@@ -448,21 +451,6 @@ def test_malformed_sssom_fails_validation() -> None:
     problems = _validate_sssom({"mappings/bad.sssom.tsv": bad})
     assert problems
     assert any("Missing prefix" in p for p in problems)
-
-
-def test_compile_all_check_stops_on_sssom_validation_failure(  # type: ignore[no-untyped-def]
-    monkeypatch,
-) -> None:
-    """Generator run aborts when ``_validate_sssom`` reports errors."""
-    from gmeow_tools import mapping_compile as mc
-    from gmeow_tools.generator import run
-
-    def _bad_validate(_: dict[str, str]) -> list[str]:
-        return ["mappings/x.sssom.tsv: synthetic validation failure"]
-
-    monkeypatch.setattr(mc, "_validate_sssom", _bad_validate)
-    with pytest.raises(CompileError, match="SSSOM validation failed"):
-        run("mappings")
 
 
 def test_drift_flags_orphaned_sssom(tmp_path: Path, monkeypatch) -> None:  # type: ignore[no-untyped-def]

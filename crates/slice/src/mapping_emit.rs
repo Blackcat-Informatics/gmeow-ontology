@@ -125,7 +125,7 @@ const SSSOM_ALWAYS: &[&str] = &[
 /// namespace length with the *registry order* as the tie-break (mirroring
 /// `mapping_dsl._NS_TO_PREFIX`, a Python stable sort keyed on `-len(ns)` over the
 /// dict's insertion order). The block-comment groupings below follow `config.py`.
-const PREFIX_REGISTRY: &[(&str, &str)] = &[
+pub(crate) const PREFIX_REGISTRY: &[(&str, &str)] = &[
     ("gmeow", "https://blackcatinformatics.ca/gmeow/"),
     ("logic", "https://blackcatinformatics.ca/logic/"),
     ("owl", "http://www.w3.org/2002/07/owl#"),

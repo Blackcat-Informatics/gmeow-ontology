@@ -151,7 +151,9 @@ ignore_missing_imports = true
 # typed stubs (__init__.pyi) beside their shims so their call sites stay checked.
 # gmeow_docs (#853) carries no API stub yet (the typed renderer surface lands in
 # Task 6); skip it for now, like the other stub-less shims.
-module = ["gmeow_diagnostics.*", "gmeow_shacl.*", "gmeow_docs.*"]
+# gmeow_native.pipeline (#861) is the run_pipeline submodule on the unified cdylib;
+# it carries no API stub yet, so skip it like the other stub-less shims.
+module = ["gmeow_diagnostics.*", "gmeow_shacl.*", "gmeow_docs.*", "gmeow_native.*"]
 ignore_missing_imports = true
 follow_imports = "skip"
 
@@ -174,7 +176,7 @@ filterwarnings = [
 markers = [
     "network: tests that require network access (Wikidata/OOPS!/FOOPS!)",
     "docker: tests that require Docker (ROBOT/Jena)",
-    "ci_only: heavy pure-Python gates and secondary/export transformation tests; run in CI and 'make test', excluded from the fast 'make check' gate",
+    "maintainer: heavy / kept-Python-module tests (schema_compile LinkML, export/okf read-library, the mapping & statement compilers, transpiler). The Rust pipeline (crates/pipeline) is the build authority and covers their committed output via byte-parity + `check-generated`, so these are a SEPARATE maintainer-only suite — EXCLUDED from CI and EVERY `make` target; run on demand with `make test-maintainer` (#861).",
     "classic_cross_check: legacy-oracle cross-check tests (ELK/HermiT/owlrl/rdflib) — run ONLY in the `make classic-cross-check` lane (#666), never required for normal repo use",
 ]
 

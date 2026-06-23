@@ -37,4 +37,7 @@ gmeow-logic = { path = "../logic" }
 # `gmeow-slice` needs its `python` feature so its `register` fn (the SliceCatalog
 # discovery + ownership analyzer surface) is compiled in (#820 S8).
 gmeow-slice = { path = "../slice", features = ["python"] }
+# `gmeow-pipeline` needs its `python` feature so its `register` fn (the
+# `run_pipeline` full-build surface) is compiled in — the 8th submodule (#861 P6).
+gmeow-pipeline = { path = "../pipeline", features = ["python"] }
 pyo3 = { version = "0.29", features = ["extension-module", "abi3-py313"] }

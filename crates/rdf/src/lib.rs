@@ -17,6 +17,11 @@ pub mod diagnostic;
 pub mod fno;
 #[cfg(feature = "gts")]
 pub mod gts;
+// The pyo3-free GTS snapshot compose core (#861 P6): SnapshotBuilder + emit_gts +
+// BlobRow, lifted out of the python-gated py_gts surface so gmeow-pipeline can
+// author a full multi-named-graph snapshot without pulling pyo3.
+#[cfg(feature = "gts")]
+pub mod gts_compose;
 #[cfg(feature = "gts")]
 pub mod gts_write;
 // The immutable, value-interned RDF 1.2 dataset IR (#819 C1).
