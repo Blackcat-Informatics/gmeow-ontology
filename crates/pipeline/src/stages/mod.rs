@@ -37,6 +37,7 @@ pub mod reason;
 pub mod references;
 pub mod research_objects;
 pub mod schemas;
+pub mod snapshot;
 pub mod source_load;
 pub mod statements;
 

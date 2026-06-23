@@ -1711,6 +1711,7 @@ dependencies = [
  "arrow-schema",
  "blake3",
  "bytes",
+ "gmeow-diagnostics",
  "gmeow-docs",
  "gmeow-gts",
  "gmeow-logic",

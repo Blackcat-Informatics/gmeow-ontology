@@ -76,7 +76,12 @@ fn spine() -> PipelineSpec {
                 "stage-gts-sink",
                 StageKind::Sink,
                 "gts_sink",
-                &["stage-docs-render", "stage-gts-compose", "stage-reason"],
+                &[
+                    "stage-docs-render",
+                    "stage-gts-compose",
+                    "stage-reason",
+                    "stage-statements",
+                ],
             ),
         ],
     }

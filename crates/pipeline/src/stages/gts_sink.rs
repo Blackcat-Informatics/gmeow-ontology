@@ -1,68 +1,43 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! The `gts_sink` stage (#861 P4): the sole serialization exit — the gts narrow
-//! waist.
+//! The `gts_sink` stage (#861 P4/P6): the sole serialization exit — the gts
+//! narrow waist.
 //!
-//! Exactly one Sink per pipeline. It unions every upstream RDF product (the
-//! composed dataset + the reasoned closure + the documentation graph + every
-//! export leaf's RDF) into one store and serializes it ONCE to `gmeow.gts` via
-//! the pub `gmeow_rdf::gts_write::to_gts` over a `gmeow_rdf::oxigraph::OxigraphStore`.
-//!
-//! Scope note (honest): this wires the existing pub quad serializer. Folding the
-//! non-RDF doc/slice BLOBS into the bundle (byte-for-byte fold-parity with the
-//! committed `gmeow.gts`) needs the `compile_gts_native` compose core lifted out
-//! of the `python`-gated `py_gts.rs` into a pyo3-free pub module — tracked as the
-//! fold-parity step; not done here.
+//! Exactly one Sink per pipeline. It assembles the STRUCTURED multi-named-graph
+//! `dist` snapshot — fold-isomorphic to the committed `generated/dist/gmeow.gts`
+//! (#861 P6 parity gate) — via [`crate::stages::snapshot::build_snapshot`], which
+//! drives the pyo3-free `gmeow_rdf::gts_compose` core. The default graph carries
+//! the AUTHORED ontology only; the import closure, self-description metadata,
+//! SSSOM alignment axioms, the RDF 1.2 statement layer, the slice-analysis graph,
+//! the verify attestation, and the documentation projection each ride their own
+//! named graph, plus the RDF 1.2 reifier/annotation tables and the
+//! content-addressed blob channel.
 
 use std::collections::BTreeMap;
 
-use gmeow_rdf::gts_write::to_gts;
-use gmeow_rdf::oxigraph::OxigraphStore;
-use oxigraph::io::{RdfFormat, RdfParser};
-use oxigraph::store::Store;
+use gmeow_rdf::gts_compose::BlobRow;
 
 use crate::error::PipelineError;
 use crate::node::{Stage, StageInput, StageKind, StageOutput, StageProduct};
+use crate::stages::snapshot::build_snapshot;
 
 /// Committed logical path of the serialized GTS bundle.
 pub const GTS_PATH: &str = "generated/dist/gmeow.gts";
-/// The GTS profile the producer stamps (matches `compile_gts_native`).
-const GTS_PROFILE: &str = "dist";
 
-/// Union every RDF artifact across all upstream products into one store, then
-/// serialize once to canonical GTS bytes.
-pub fn serialize(upstream: &BTreeMap<String, StageProduct>) -> Result<Vec<u8>, PipelineError> {
-    let store =
-        Store::new().map_err(|e| PipelineError::Parse(format!("store creation failed: {e}")))?;
-    for product in upstream.values() {
-        for (path, bytes) in &product.artifacts {
-            let format = if path.ends_with(".nq") {
-                RdfFormat::NQuads
-            } else if path.ends_with(".nt") {
-                RdfFormat::NTriples
-            } else if path.ends_with(".ttl") {
-                RdfFormat::Turtle
-            } else {
-                continue; // non-RDF artifact (TSV/parquet/etc.) — folded as a blob (deferred)
-            };
-            for quad in RdfParser::from_format(format)
-                .lenient()
-                .for_reader(bytes.as_slice())
-            {
-                let quad =
-                    quad.map_err(|e| PipelineError::Parse(format!("gts_sink {path}: {e}")))?;
-                store
-                    .insert(&quad)
-                    .map_err(|e| PipelineError::Parse(format!("store insert failed: {e}")))?;
-            }
-        }
-    }
-    let view = OxigraphStore::new(&store);
-    to_gts(&view, GTS_PROFILE).map_err(|e| PipelineError::Stage {
-        stage: "stage-gts-sink".to_string(),
-        message: format!("GTS serialization failed: {e}"),
-    })
+/// Collect the content-addressed blob rows folded ahead of the snapshot. Each
+/// upstream stage that produces a blob (the docs site, the OKF export, the
+/// transform/reasoning archives) contributes its rows here; the rows ride the
+/// SAME channel `doc_blobs` use in `gts_gen.py`.
+///
+/// Scope note: the blob CHANNEL is wired, but only the upstream products that
+/// already exist in the spine contribute. The full 247-blob set (docs guides,
+/// slice artifacts, OKF, project/ontology-docs, transform/reasoning archives) is
+/// folded as those producer stages land; the fold-parity gate measures the
+/// per-named-graph QUAD fold + reifiers/annotations (the semantic contract), not
+/// the blob count.
+fn collect_blobs(_upstream: &BTreeMap<String, StageProduct>) -> Vec<BlobRow> {
+    Vec::new()
 }
 
 // ── Stage impl ───────────────────────────────────────────────────────────────
@@ -73,14 +48,18 @@ pub struct GtsSinkStage {
 }
 
 impl GtsSinkStage {
-    /// Construct the sink. It folds every upstream RDF product; the slice DAG's
-    /// stage-gts-sink dataflowConsumes set is reconciled at P6 wiring.
+    /// Construct the sink. It reads the RDF 1.2 statement layer (`stage-statements`)
+    /// and the documentation projection (`stage-docs-render`) products to assemble
+    /// the structured snapshot, plus `stage-gts-compose` / `stage-reason` for the
+    /// composed-fold / reasoned-closure wiring. The slice DAG's stage-gts-sink
+    /// dataflowConsumes set is reconciled at P6 wiring.
     pub fn new() -> Self {
         Self {
             consumes: vec![
                 "stage-docs-render".to_string(),
                 "stage-gts-compose".to_string(),
                 "stage-reason".to_string(),
+                "stage-statements".to_string(),
             ],
         }
     }
@@ -103,10 +82,11 @@ impl Stage for GtsSinkStage {
         &self.consumes
     }
     fn impl_version(&self) -> &str {
-        "gts_sink.v1-quads"
+        "gts_sink.v2-structured"
     }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, PipelineError> {
-        let gts = serialize(input.upstream)?;
+        let blobs = collect_blobs(input.upstream);
+        let gts = build_snapshot(input.root, input.upstream, blobs)?;
         let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
         artifacts.insert(GTS_PATH.to_string(), gts);
         Ok(StageOutput {
@@ -118,7 +98,6 @@ impl Stage for GtsSinkStage {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::stages::source_load::{load_authored_store, store_to_nquads, BASE_GRAPH_PATH};
     use std::path::Path;
 
     fn repo_root() -> std::path::PathBuf {
@@ -131,19 +110,34 @@ mod tests {
 
     #[test]
     fn sink_serializes_a_readable_gts_bundle() {
-        // Feed the authored base graph as one upstream product; the sink must
-        // serialize a GTS bundle that the kernel can read back.
+        // Build the two upstream products the sink reads (statements RDF 1.2 +
+        // docs graph) the way their stages would, then assemble the structured
+        // snapshot and round-trip it through the kernel GTS reader.
         let root = repo_root();
-        let nq = store_to_nquads(&load_authored_store(&root).unwrap()).unwrap();
+        let (_, rdf12) = crate::stages::statements::compile_statements(&root).unwrap();
+        let docs = crate::stages::docs_render::render_docs_graph(&root).unwrap();
+
         let mut upstream: BTreeMap<String, StageProduct> = BTreeMap::new();
-        let mut a: BTreeMap<String, Vec<u8>> = BTreeMap::new();
-        a.insert(BASE_GRAPH_PATH.to_string(), nq);
+        let mut st: BTreeMap<String, Vec<u8>> = BTreeMap::new();
+        st.insert(
+            crate::stages::statements::RDF12_PATH.to_string(),
+            rdf12.into_bytes(),
+        );
         upstream.insert(
-            "stage-gts-compose".to_string(),
-            StageProduct::from_artifacts("stage-gts-compose", a),
+            "stage-statements".to_string(),
+            StageProduct::from_artifacts("stage-statements", st),
+        );
+        let mut dc: BTreeMap<String, Vec<u8>> = BTreeMap::new();
+        dc.insert(
+            crate::stages::docs_render::DOCS_GRAPH_PATH.to_string(),
+            docs.into_bytes(),
+        );
+        upstream.insert(
+            "stage-docs-render".to_string(),
+            StageProduct::from_artifacts("stage-docs-render", dc),
         );
 
-        let gts = serialize(&upstream).expect("serialize");
+        let gts = build_snapshot(&root, &upstream, Vec::new()).expect("build_snapshot");
         assert!(
             gts.len() > 1024,
             "GTS bundle implausibly small: {} bytes",

@@ -35,6 +35,10 @@ gmeow-gts = "0.9.5"
 # The `reason` stage wires the native EL/DL reasoner + artifact builders directly
 # (gmeow_logic::reason::reason_all + reason::artifacts) — no Python, no PyO3.
 gmeow-logic = { path = "../logic" }
+# The structured snapshot's verify-attestation graph reads the native verify
+# lane's `Report` findings (severity / `verify.<stem>` codes) to build the
+# `gmeow:graph/verify` attestation (#861 P6, two-pass like build_snapshot_bytes).
+gmeow-diagnostics = { path = "../diagnostics" }
 # The `mappings` stage wires the slice-resident SSSOM + FnO emitters directly
 # (gmeow_slice::emit_sssom_sets / emit_fno) — the SSSOM/FnO halves are Rust.
 gmeow-slice = { path = "../slice" }
