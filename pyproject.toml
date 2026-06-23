@@ -151,7 +151,9 @@ ignore_missing_imports = true
 # typed stubs (__init__.pyi) beside their shims so their call sites stay checked.
 # gmeow_docs (#853) carries no API stub yet (the typed renderer surface lands in
 # Task 6); skip it for now, like the other stub-less shims.
-module = ["gmeow_diagnostics.*", "gmeow_shacl.*", "gmeow_docs.*"]
+# gmeow_native.pipeline (#861) is the run_pipeline submodule on the unified cdylib;
+# it carries no API stub yet, so skip it like the other stub-less shims.
+module = ["gmeow_diagnostics.*", "gmeow_shacl.*", "gmeow_docs.*", "gmeow_native.*"]
 ignore_missing_imports = true
 follow_imports = "skip"
 

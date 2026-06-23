@@ -218,7 +218,7 @@ def _run_build_pipeline(check: bool) -> dict[str, object]:
     """
     import os
 
-    import gmeow_native.pipeline as _pipeline  # type: ignore[import-not-found]
+    import gmeow_native.pipeline as _pipeline
 
     from gmeow_tools.config import PROJECT_ROOT
 

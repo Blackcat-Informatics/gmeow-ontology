@@ -59,7 +59,7 @@ def _run_pipeline(jobs: int | None = None, check: bool = False) -> dict[str, Any
     from gmeow_tools.config import PROJECT_ROOT
 
     try:
-        import gmeow_native.pipeline as _pipeline  # type: ignore[import-not-found]
+        import gmeow_native.pipeline as _pipeline
     except ImportError as exc:
         raise _fail(
             "✗ the native pipeline is unavailable: "

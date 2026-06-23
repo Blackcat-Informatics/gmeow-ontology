@@ -52,7 +52,7 @@ def assert_committed_artifacts_match_dsl() -> None:
     """
     import os
 
-    import gmeow_native.pipeline as _pipeline  # type: ignore[import-not-found]
+    import gmeow_native.pipeline as _pipeline
 
     from gmeow_tools.config import PROJECT_ROOT
 

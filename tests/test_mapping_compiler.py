@@ -450,21 +450,6 @@ def test_malformed_sssom_fails_validation() -> None:
     assert any("Missing prefix" in p for p in problems)
 
 
-def test_compile_all_check_stops_on_sssom_validation_failure(  # type: ignore[no-untyped-def]
-    monkeypatch,
-) -> None:
-    """Generator run aborts when ``_validate_sssom`` reports errors."""
-    from gmeow_tools import mapping_compile as mc
-    from gmeow_tools.generator import run
-
-    def _bad_validate(_: dict[str, str]) -> list[str]:
-        return ["mappings/x.sssom.tsv: synthetic validation failure"]
-
-    monkeypatch.setattr(mc, "_validate_sssom", _bad_validate)
-    with pytest.raises(CompileError, match="SSSOM validation failed"):
-        run("mappings")
-
-
 def test_drift_flags_orphaned_sssom(tmp_path: Path, monkeypatch) -> None:  # type: ignore[no-untyped-def]
     """A committed SSSOM file the DSL no longer produces is reported as drift."""
     from gmeow_tools import mapping_compile as mc

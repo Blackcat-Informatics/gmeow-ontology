@@ -77,7 +77,7 @@ def _run_check_generated() -> ValidationResult:
 
     result = ValidationResult()
     try:
-        import gmeow_native.pipeline as _pipeline  # type: ignore[import-not-found]
+        import gmeow_native.pipeline as _pipeline
     except ImportError as exc:
         result.warnings.append(f"generated drift not checked here: {exc}")
         return result
