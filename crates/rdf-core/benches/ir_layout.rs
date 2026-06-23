@@ -503,12 +503,16 @@ fn bench_pattern_cold(c: &mut Criterion) {
     use criterion::BatchSize;
     let mut group = c.benchmark_group("ir_pattern_cold");
     group.bench_function("first_pos_query_cold_index", |b| {
-        b.iter_batched(
+        // `iter_batched_ref` (not `iter_batched`) so the dataset's Drop — freeing the
+        // arena + the just-built POS index — happens in UN-timed teardown, not the
+        // measured region.
+        b.iter_batched_ref(
             build_dataset,
             |ds| {
+                let ds = &**ds;
                 let pred = ds.quads().next().expect("quads").p;
                 std::hint::black_box(
-                    DatasetView::quads_for_pattern(&*ds, None, Some(pred), None, GraphMatch::Any)
+                    DatasetView::quads_for_pattern(ds, None, Some(pred), None, GraphMatch::Any)
                         .count(),
                 )
             },
@@ -526,9 +530,11 @@ fn bench_pattern_concurrent(c: &mut Criterion) {
     use criterion::BatchSize;
     let mut group = c.benchmark_group("ir_pattern_concurrent");
     group.bench_function("concurrent_first_pos_access_x4", |b| {
-        b.iter_batched(
+        // `iter_batched_ref` excludes the dataset's Drop from the timed region.
+        b.iter_batched_ref(
             build_dataset,
             |ds| {
+                let ds = &**ds;
                 let pred = ds.quads().next().expect("quads").p;
                 let total: usize = std::thread::scope(|scope| {
                     let handles: Vec<_> = (0..4)
