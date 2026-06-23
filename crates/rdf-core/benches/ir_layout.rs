@@ -497,51 +497,60 @@ fn bench_pattern_warm(c: &mut Criterion) {
 }
 
 /// P4b cold cost: a fresh dataset's first predicate-bound query pays the one-time POS
-/// permutation build. Bounds the cold-build overhead the lazy index trades for warm
-/// speed.
+/// permutation build. `iter_batched` keeps the (expensive) dataset construction in
+/// UN-timed setup so the measured region is just the cold index build + first query.
 fn bench_pattern_cold(c: &mut Criterion) {
+    use criterion::BatchSize;
     let mut group = c.benchmark_group("ir_pattern_cold");
-    group.bench_function("build_plus_first_pos_query", |b| {
-        b.iter(|| {
-            let ds = build_dataset();
-            let pred = ds.quads().next().expect("quads").p;
-            std::hint::black_box(
-                DatasetView::quads_for_pattern(&*ds, None, Some(pred), None, GraphMatch::Any)
-                    .count(),
-            )
-        });
+    group.bench_function("first_pos_query_cold_index", |b| {
+        b.iter_batched(
+            build_dataset,
+            |ds| {
+                let pred = ds.quads().next().expect("quads").p;
+                std::hint::black_box(
+                    DatasetView::quads_for_pattern(&*ds, None, Some(pred), None, GraphMatch::Any)
+                        .count(),
+                )
+            },
+            BatchSize::SmallInput,
+        );
     });
     group.finish();
 }
 
 /// P4b concurrent first access: four threads race the SAME cold POS `OnceLock` on a
-/// fresh dataset. Exercises the `get_or_init` race (correctness guaranteed by
+/// fresh dataset. `iter_batched` keeps dataset construction in UN-timed setup so the
+/// measured region is the `get_or_init` race + queries (correctness guaranteed by
 /// `OnceLock`; this measures its cost under contention).
 fn bench_pattern_concurrent(c: &mut Criterion) {
+    use criterion::BatchSize;
     let mut group = c.benchmark_group("ir_pattern_concurrent");
     group.bench_function("concurrent_first_pos_access_x4", |b| {
-        b.iter(|| {
-            let ds = build_dataset();
-            let pred = ds.quads().next().expect("quads").p;
-            let total: usize = std::thread::scope(|scope| {
-                let handles: Vec<_> = (0..4)
-                    .map(|_| {
-                        scope.spawn(|| {
-                            DatasetView::quads_for_pattern(
-                                &*ds,
-                                None,
-                                Some(pred),
-                                None,
-                                GraphMatch::Any,
-                            )
-                            .count()
+        b.iter_batched(
+            build_dataset,
+            |ds| {
+                let pred = ds.quads().next().expect("quads").p;
+                let total: usize = std::thread::scope(|scope| {
+                    let handles: Vec<_> = (0..4)
+                        .map(|_| {
+                            scope.spawn(|| {
+                                DatasetView::quads_for_pattern(
+                                    &*ds,
+                                    None,
+                                    Some(pred),
+                                    None,
+                                    GraphMatch::Any,
+                                )
+                                .count()
+                            })
                         })
-                    })
-                    .collect();
-                handles.into_iter().map(|h| h.join().expect("thread")).sum()
-            });
-            std::hint::black_box(total)
-        });
+                        .collect();
+                    handles.into_iter().map(|h| h.join().expect("thread")).sum()
+                });
+                std::hint::black_box(total)
+            },
+            BatchSize::SmallInput,
+        );
     });
     group.finish();
 }
