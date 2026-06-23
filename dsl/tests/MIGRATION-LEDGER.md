@@ -110,6 +110,25 @@ future slice migration inherits.
 
 **Inquiry tally:** 12 converted (20 cells across 12 pytest functions), 0 retained, 1 deleted-covered-by-make-validate. Source file `tests/test_inquiry.py` deleted entirely (no retained functions).
 
+## `slices/core/metacognition`
+
+| Pytest fn | Pytest file | DSL cell IRI | Cell type | Status | Reason if retained/deleted | Run by |
+|---|---|---|---|---|---|---|
+| `test_metacognitive_state_is_a_mental_moment_kind` | `tests/test_metacognition.py` | `ex:saMetacognitiveStateIsMentalMomentKind` + `ex:saMetacognitiveStateNoExtraGufoMetaclass` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_metacognitive_state_is_a_sibling_not_a_sub_mode` | `tests/test_metacognition.py` | `ex:saMetacognitiveStateSiblingNotSubMode` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_meta_target_is_open_range_and_characteristic_free` | `tests/test_metacognition.py` | `ex:saMetaTargetObjectPropertyWithDomain` + `ex:saMetaTargetOpenRange` + `ex:saMetaTargetFlat` + `ex:saMetaTargetCharacteristicFree` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_calibration_status_is_an_abstract_individual_type` | `tests/test_metacognition.py` | `ex:saCalibrationStatusIsAbstractIndividualType` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_calibration_statuses_are_seeded_individuals` | `tests/test_metacognition.py` | `ex:saCalibrationStatusesSeeded` + `ex:saCalibrationStatusesNotSubclasses` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_calibration_property` | `tests/test_metacognition.py` | `ex:saCalibrationProperty` + `ex:saCalibrationNotFunctional` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_calibration_error_is_a_solver_layer_annotation` | `tests/test_metacognition.py` | `ex:saCalibrationErrorIsAnnotationProperty` + `ex:saCalibrationErrorNotDataOrObjectProperty` + `ex:saCalibrationErrorNoDomainRange` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_known_unknown_and_self_trust_are_flat_open_range_agent_props` | `tests/test_metacognition.py` | `ex:saKnownUnknownAndSelfTrustObjectProperties` + `ex:saKnownUnknownAndSelfTrustOpenRange` + `ex:saKnownUnknownAndSelfTrustFlat` + `ex:saKnownUnknownAndSelfTrustNotFunctional` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_reflection_is_an_event_type_individual` | `tests/test_metacognition.py` | `ex:saEventTypeReflectionIsIndividual` + `ex:saEventTypeReflectionNotClassOrSubclass` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_no_status_or_truth_bit` | `tests/test_metacognition.py` | `ex:saNoStatusOrTruthBit` + `ex:saNoXsdBooleanRange` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_bridges_are_documented_not_axiomatised` | `tests/test_metacognition.py` | `ex:saBridgesDocumentedNotAxiomatised` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_every_declared_term_is_annotated` | `tests/test_metacognition.py` | — | — | **deleted** | Covered by global `make validate` SHACL gate (shapes/gmeow-shapes.ttl `GmeowClassShape` + `GmeowPropertyShape` enforce rdfs:label / skos:definition / rdfs:isDefinedBy / gmeow:graphBoxRole on every gmeow:-namespaced term). Verified 2026-06-22: removing `gmeow:MetacognitiveState`'s `rdfs:label` caused `make validate` to emit "error class https://blackcatinformatics.ca/gmeow/MetacognitiveState is missing rdfs:label" and "error Every GMEOW class must carry at least one rdfs:label." and exit non-zero. | `make validate` |
+
+**Metacognition tally:** 11 converted (21 cells across 11 pytest functions), 0 retained, 1 deleted-covered-by-make-validate. Source file `tests/test_metacognition.py` deleted entirely (no retained functions).
+
 ## Other slices
 
 No other slice carries declarative test-DSL specs yet (T2 authored only the
