@@ -1,0 +1,111 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+
+# Suite-quality measurement (T9, #790): Rust coverage, mutation testing, and
+# benchmarks. These are SLOW and report-only — they run OFF the required PR gate
+# (scheduled + manual dispatch), exactly like the fuzz job (#788) and the HermiT
+# oracle. The always-on contract gate stays `make rust-test`; nothing here can
+# block a PR. This IS the documented gate-perf budget addressing the slow-gate
+# concern (see docs / AGENTS.md).
+name: suite-quality
+
+on:
+  schedule:
+    - cron: "30 6 * * *" # 06:30 UTC daily (after the fuzz job)
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: suite-quality-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  coverage:
+    name: rust coverage (report-only)
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          persist-credentials: false
+      - name: Install Rust (nightly + llvm-tools)
+        uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8 # nightly
+        with:
+          toolchain: nightly
+          components: llvm-tools-preview
+      - name: Cache Cargo dependencies
+        uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
+      - name: Install cargo-llvm-cov
+        run: cargo install cargo-llvm-cov --locked || cargo install cargo-llvm-cov
+      - name: Coverage (lcov + html, report-only)
+        run: make rust-coverage
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: rust-coverage
+          path: |
+            lcov.info
+            target/llvm-cov/html/
+          if-no-files-found: warn
+
+  mutants:
+    name: mutation testing (report-only)
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          persist-credentials: false
+      - name: Install Rust (nightly)
+        uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8 # nightly
+        with:
+          toolchain: nightly
+      - name: Cache Cargo dependencies
+        uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
+      - name: Install cargo-mutants + cargo-nextest
+        run: |
+          cargo install cargo-mutants --locked || cargo install cargo-mutants
+          cargo install cargo-nextest --locked || cargo install cargo-nextest
+      # The validate core is feasible nightly; the logic core (nemo) is run
+      # on-demand via dispatch with MUTANTS_ARGS. Surviving mutants are a
+      # report, not a gate.
+      - name: Mutation test the validate core
+        run: make mutants MUTANTS_ARGS="-p gmeow-validate"
+      - name: Upload mutants report
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: mutants-report
+          path: mutants.out/
+          if-no-files-found: warn
+
+  benchmarks:
+    name: benchmarks (perf leaderboard feed)
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          persist-credentials: false
+      - name: Install Rust (nightly)
+        uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8 # nightly
+        with:
+          toolchain: nightly
+      - name: Cache Cargo dependencies
+        uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
+      - name: Run criterion benchmarks
+        run: cargo bench -p gmeow-logic -p gmeow-rdf -p gmeow-shacl -p gmeow-validate
+      - name: Flatten to bench-results.json (#668 leaderboard feed)
+        run: make bench-json
+      - name: Upload benchmark results
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: bench-results
+          path: |
+            bench-results.json
+            target/criterion/
+          if-no-files-found: warn
