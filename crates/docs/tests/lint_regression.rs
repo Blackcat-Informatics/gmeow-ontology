@@ -10,6 +10,9 @@
 //! a deterministic-ordering regression over a site that triggers ALL four codes
 //! at once. Findings are documented as deterministically sorted; this pins it.
 
+// Rich colored line-diffs on assert_eq! failure (#871); shadows the std macro
+// for this file. Identical behaviour on pass; insta snapshots are unaffected.
+use pretty_assertions::assert_eq;
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::PathBuf;
 

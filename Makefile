@@ -254,8 +254,8 @@ fuzz-smoke: ## Deep-fuzz each format frontend briefly (T7, #788; needs `cargo in
 bench: ## Run criterion benchmarks (release, host-tuned target-cpu=native) — the acceleration-program baseline (#630) + the reasoning hot path (#790).
 	RUSTFLAGS="$(NATIVE_RUSTFLAGS)" cargo bench -p gmeow-logic -p gmeow-rdf -p gmeow-shacl -p gmeow-validate
 
-rust-coverage: ## Rust region-level coverage (cargo-llvm-cov; report-only, OFF the required gate — the suite-quality budget, #790). Emits lcov.info + an HTML report. Needs `cargo install cargo-llvm-cov`. Named `rust-coverage` to not collide with the Python entity-`coverage` gate.
-	cargo llvm-cov --workspace --include-ffi --lcov --output-path lcov.info
+rust-coverage: ## Rust region-level coverage via nextest (cargo-llvm-cov; report-only, OFF the required gate — local dev report + the #790 scheduled suite-quality job). Emits lcov.info + HTML. Runs THROUGH nextest so the engine test-group memory cap (#871) applies to the instrumented run too. Needs `cargo install cargo-llvm-cov cargo-nextest`. NOT in `make check`; the region/perf-leaderboard CI deliverable stays #790.
+	cargo llvm-cov nextest --workspace --include-ffi --lcov --output-path lcov.info
 	cargo llvm-cov report --html
 
 MUTANTS_ARGS ?=

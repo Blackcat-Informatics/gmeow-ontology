@@ -17,6 +17,9 @@
 
 #![cfg(feature = "gts")]
 
+// Rich colored line-diffs on assert_eq! failure (#871); shadows the std macro
+// for this file. Identical behaviour on pass; insta snapshots are unaffected.
+use pretty_assertions::assert_eq;
 use std::alloc::{GlobalAlloc, Layout, System};
 use std::cell::Cell;
 use std::collections::BTreeMap;

@@ -53,6 +53,9 @@ pyo3 = { version = "0.29", features = ["extension-module", "abi3-py313"], option
 ed25519-dalek = { version = "2", optional = true }
 
 [dev-dependencies]
+# Rich colored line-diffs on assert_eq! failure (#871). Drop-in: a shadowing
+# `use pretty_assertions::assert_eq;` per test file; identical on pass.
+pretty_assertions = "1"
 ciborium = "0.2"
 gmeow-gts = "0.9.5"
 # Same oxigraph build the kernel links (rdf-12, no extra codecs) so proptest
