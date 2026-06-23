@@ -1,0 +1,161 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix sh:    <http://www.w3.org/ns/shacl#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos:  <http://www.w3.org/2004/02/skos/core#> .
+@prefix owl:   <http://www.w3.org/2002/07/owl#> .
+
+# =========================================================================== #
+# Doxastic tier shapes (#560)
+# =========================================================================== #
+
+gmeow:DoxasticStandpointClaimShape
+    a sh:NodeShape ;
+    rdfs:label "DoxasticStandpointClaim well-formedness shape"@x-gmeow-english ;
+    skos:definition "SHACL constraints for gmeow:DoxasticStandpointClaim: at most one claimOfBelief link to a DoxasticState; optional justification grounds restricted to EvidenceSpan, Attestation, or DoxasticState."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
+    sh:targetClass gmeow:DoxasticStandpointClaim ;
+    sh:property [
+        sh:path gmeow:claimOfBelief ;
+        sh:minCount 0 ;
+        sh:maxCount 1 ;
+        sh:class gmeow:DoxasticState ;
+        sh:severity sh:Violation ;
+        sh:message "A DoxasticStandpointClaim may be linked to at most one DoxasticState via gmeow:claimOfBelief." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:justifiedBy ;
+        sh:minCount 0 ;
+        sh:class gmeow:JustificationGround ;
+        sh:severity sh:Violation ;
+        sh:message "If present, a justification ground (gmeow:justifiedBy) must be a gmeow:JustificationGround (EvidenceSpan, Attestation, or DoxasticState)." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:defeatedBy ;
+        sh:minCount 0 ;
+        sh:nodeKind sh:IRI ;
+        sh:class gmeow:JustificationStatus ;
+        sh:severity sh:Violation ;
+        sh:message "If present, gmeow:defeatedBy on a DoxasticStandpointClaim must be an IRI typed as gmeow:JustificationStatus." ;
+    ] .
+
+gmeow:DoxasticStateShape
+    a sh:NodeShape ;
+    rdfs:label "DoxasticState well-formedness shape"@x-gmeow-english ;
+    skos:definition "SHACL constraints for gmeow:DoxasticState: exactly one believer, one proposition, one linked StandpointClaim; optional credence in [0,1]."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
+    sh:targetClass gmeow:DoxasticState ;
+    sh:property [
+        sh:path gmeow:epistemicAgent ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:class gmeow:Agent ;
+        sh:severity sh:Violation ;
+        sh:message "A DoxasticState must have exactly one epistemic agent (gmeow:epistemicAgent, range gmeow:Agent)." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:doxasticContent ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:class gmeow:Proposition ;
+        sh:severity sh:Violation ;
+        sh:message "A DoxasticState must have exactly one doxastic content (gmeow:doxasticContent, range gmeow:Proposition)." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:doxasticClaim ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:class gmeow:StandpointClaim ;
+        sh:severity sh:Violation ;
+        sh:message "A DoxasticState must be linked to exactly one StandpointClaim (gmeow:doxasticClaim) carrying its qualitative claimModality." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:credence ;
+        sh:minCount 0 ;
+        sh:datatype xsd:decimal ;
+        sh:minInclusive 0 ;
+        sh:maxInclusive 1 ;
+        sh:severity sh:Violation ;
+        sh:message "If present, gmeow:credence must be an xsd:decimal in the closed interval [0,1]." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:justifiedBy ;
+        sh:minCount 0 ;
+        sh:class gmeow:JustificationGround ;
+        sh:severity sh:Violation ;
+        sh:message "If present, gmeow:justifiedBy must point to a gmeow:JustificationGround (EvidenceSpan, Attestation, or DoxasticState)." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:defeatedBy ;
+        sh:minCount 0 ;
+        sh:nodeKind sh:IRI ;
+        sh:class gmeow:JustificationStatus ;
+        sh:severity sh:Violation ;
+        sh:message "If present, gmeow:defeatedBy on a DoxasticState must be an IRI typed as gmeow:JustificationStatus." ;
+    ] .
+
+gmeow:DoxasticTenureShape
+    a sh:NodeShape ;
+    rdfs:label "DoxasticTenure well-formedness shape"@x-gmeow-english ;
+    skos:definition "SHACL constraints for gmeow:DoxasticTenure: exactly one DoxasticState and one TimeInterval."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
+    sh:targetClass gmeow:DoxasticTenure ;
+    sh:property [
+        sh:path gmeow:tenureOfDoxasticState ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:class gmeow:DoxasticState ;
+        sh:severity sh:Violation ;
+        sh:message "A DoxasticTenure must scope exactly one DoxasticState (gmeow:tenureOfDoxasticState)." ;
+    ] ;
+    sh:property [
+        sh:path gmeow:duringInterval ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:class gmeow:TimeInterval ;
+        sh:severity sh:Violation ;
+        sh:message "A DoxasticTenure must carry exactly one time interval (gmeow:duringInterval, range gmeow:TimeInterval)." ;
+    ] .
+
+# (Principle 10) A withdrawn belief (a DoxasticTenure whose interval has ended)
+# should be suppressed with gmeow:displayable false rather than deleted.
+gmeow:WithdrawnDoxasticTenureSuppressionShape
+    a sh:NodeShape ;
+    rdfs:label "Withdrawn doxastic tenure suppression shape"@x-gmeow-english ;
+    skos:definition "Warns when a closed DoxasticTenure is not marked displayable false — suppression, not deletion (Principle 10)."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
+    sh:targetClass gmeow:DoxasticTenure ;
+    sh:severity sh:Warning ;
+    sh:sparql [
+        sh:message "A withdrawn belief (a DoxasticTenure whose interval has ended) should set gmeow:displayable false — suppressed from display, never deleted." ;
+        sh:select """
+            SELECT $this WHERE {
+                $this <https://blackcatinformatics.ca/gmeow/duringInterval> ?iv .
+                ?iv <https://blackcatinformatics.ca/gmeow/endedAtTime> ?end .
+                FILTER NOT EXISTS { $this <https://blackcatinformatics.ca/gmeow/displayable> false }
+            }
+        """ ;
+    ] .
+
+# (Principle 13) The OWL range of gmeow:justifiedBy remains open; this shape is
+# advisory only and emits a warning when the justifier is not one of the
+# expected types from the evidence/inference/standpoint slices.
+gmeow:DoxasticStateJustifierWarningShape
+    a sh:NodeShape ;
+    rdfs:label "DoxasticState justifier warning shape"@x-gmeow-english ;
+    skos:definition "Warns when a DoxasticState's gmeow:justifiedBy value is not an EvidenceSpan, Attestation, or DoxasticState. The OWL range remains open (Principle 13); this is advisory only."@x-gmeow-english ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
+    sh:targetClass gmeow:DoxasticState ;
+    sh:severity sh:Warning ;
+    sh:property [
+        sh:path gmeow:justifiedBy ;
+        sh:or (
+            [ sh:class gmeow:EvidenceSpan ]
+            [ sh:class gmeow:Attestation ]
+            [ sh:class gmeow:DoxasticState ]
+        ) ;
+        sh:message "gmeow:justifiedBy should point to an EvidenceSpan, Attestation, or DoxasticState (range is open; this is a warning)." ;
+    ] .

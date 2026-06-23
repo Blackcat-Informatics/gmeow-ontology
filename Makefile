@@ -31,7 +31,7 @@ NATIVE_RUSTFLAGS := -Zunstable-options -Clink-self-contained=+linker -Clinker-fe
         normalize build project test test-fast test-docker check check-generated release regenerate commit clean clean-docs pull-images \
         coverage acceptance crossref constitution-check compliance-report compliance-report-full audit evals-score \
         diagnostics-build diagnostics-test diagnostics-py \
-        native-py rust-test insta-review logic-build logic-test logic-py conformance \
+        native-py rust-test insta-review fuzz-smoke logic-build logic-test logic-py conformance \
         shacl-build shacl-test shacl-py \
         validate-build validate-test validate-py validate-gts rdf-py clippy slicetest \
         bench dev
@@ -240,6 +240,15 @@ rust-test: ## Run the Rust workspace tests.
 insta-review: ## Regenerate the insta snapshot goldens after an INTENTIONAL output change (T8, #789). Non-interactive: writes .snap files in place, then re-runs in CI mode (INSTA_UPDATE=no) so the run still HARD-FAILS if anything is non-deterministic. Review the .snap diff before committing.
 	INSTA_UPDATE=always cargo nextest run $(NEXTEST_PARTITION_ARG)
 	INSTA_UPDATE=no cargo nextest run $(NEXTEST_PARTITION_ARG)
+
+FUZZ_TARGETS = nquads gts shacl sssom statements
+FUZZ_TIME ?= 30
+
+fuzz-smoke: ## Deep-fuzz each format frontend briefly (T7, #788; needs `cargo install cargo-fuzz`). The always-on contract is the proptest never-panic gate in `make rust-test`; this is the deeper coverage-guided pass. A crash = a "reject malformed, never panic" violation.
+	@for t in $(FUZZ_TARGETS); do \
+	  echo "== fuzz $$t ($(FUZZ_TIME)s) =="; \
+	  cargo fuzz run $$t fuzz/corpus/$$t fuzz/seeds/$$t -- -max_total_time=$(FUZZ_TIME) || exit 1; \
+	done
 
 bench: ## Run criterion benchmarks (release, host-tuned target-cpu=native) — the acceleration-program baseline (#630).
 	RUSTFLAGS="$(NATIVE_RUSTFLAGS)" cargo bench -p gmeow-logic -p gmeow-shacl -p gmeow-validate

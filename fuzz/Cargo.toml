@@ -1,0 +1,72 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: AGPL-3.0-only
+
+# cargo-fuzz harness for the gmeow format frontends (T7, #788). Deep,
+# coverage-guided fuzzing of the "reject malformed, never panic" contract — the
+# nightly/manual counterpart to the always-on proptest gate in
+# crates/{rdf,shacl,logic}/tests/never_panic.rs.
+#
+# Scoped to the CHEAP parsers (gmeow-rdf + gmeow-shacl, oxigraph-backed) so the
+# libFuzzer + sanitizer build never drags the heavy nemo tree. The logic
+# frontends (parse_logic_str / parse_query_program) are covered by the proptest
+# gate; their fuzz targets are deferred (nemo build cost). CLIF/CGIF/XCL (#718)
+# and full-FOL IR (#719) parsers do not exist yet — no targets.
+
+[package]
+name = "gmeow-fuzz"
+version = "0.0.0"
+edition = "2021"
+license = "AGPL-3.0-only"
+publish = false
+
+[package.metadata]
+cargo-fuzz = true
+
+# A standalone workspace: cargo-fuzz carries its own nightly + sanitizer profile
+# and must NOT join the parent workspace (whose explicit `members` list excludes
+# this dir and whose nemo build-memory profiles are irrelevant here).
+[workspace]
+
+[dependencies]
+libfuzzer-sys = "0.4"
+# The fuzzed frontends. gmeow-rdf with the default `gts` feature pulls oxigraph +
+# gmeow-gts (no nemo); gmeow-shacl is oxigraph-only.
+gmeow-rdf = { path = "../crates/rdf", features = ["gts"] }
+gmeow-shacl = { path = "../crates/shacl" }
+# Direct oxigraph for the N-Quads target (the parse_quads path is python-gated).
+oxigraph = { version = "0.5", default-features = false, features = ["rdf-12"] }
+
+[[bin]]
+name = "nquads"
+path = "fuzz_targets/nquads.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "gts"
+path = "fuzz_targets/gts.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "shacl"
+path = "fuzz_targets/shacl.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "sssom"
+path = "fuzz_targets/sssom.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "statements"
+path = "fuzz_targets/statements.rs"
+test = false
+doc = false
+bench = false
