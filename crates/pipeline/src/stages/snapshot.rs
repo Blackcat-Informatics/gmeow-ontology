@@ -198,8 +198,8 @@ fn build_guide_blobs(root: &Path) -> Result<Vec<BlobRow>, PipelineError> {
 /// Build the four bundle archive blobs from the repo tree.
 fn build_archive_blobs(root: &Path) -> Result<Vec<BlobRow>, PipelineError> {
     // mappings + queries: member = bare filename.
-    let mappings = members_basename(&list_files(&root.join("generated/mappings"), "sssom.tsv")?);
-    let queries = members_basename(&list_files(&root.join("generated/queries"), "rq")?);
+    let mappings = members_basename(&list_files(&root.join("generated/mappings"), "sssom.tsv")?)?;
+    let queries = members_basename(&list_files(&root.join("generated/queries"), "rq")?)?;
     // cells: equivalences + projections + slice mappings, member = repo-relative path.
     let mut cells: Vec<(String, Vec<u8>)> = Vec::new();
     cells.extend(members_relpath(
@@ -276,15 +276,23 @@ fn slice_files(root: &Path, sub: &str) -> Result<Vec<PathBuf>, PipelineError> {
 }
 
 /// `(filename, bytes)` members — the file's bare name (mappings / queries).
-fn members_basename(files: &[PathBuf]) -> Vec<(String, Vec<u8>)> {
-    files
-        .iter()
-        .filter_map(|p| {
-            let name = p.file_name()?.to_string_lossy().into_owned();
-            let data = std::fs::read(p).ok()?;
-            Some((name, data))
-        })
-        .collect()
+///
+/// A read error HARD-FAILS rather than silently dropping the file: an incomplete
+/// archive would silently break the wheel-mode consumers (no-optionality, the
+/// no-silent-caps doctrine — the same as [`members_relpath`]).
+fn members_basename(files: &[PathBuf]) -> Result<Vec<(String, Vec<u8>)>, PipelineError> {
+    let mut out: Vec<(String, Vec<u8>)> = Vec::with_capacity(files.len());
+    for p in files {
+        let name = p
+            .file_name()
+            .ok_or_else(|| stage_err(&format!("archive member has no file name: {}", p.display())))?
+            .to_string_lossy()
+            .into_owned();
+        let data =
+            std::fs::read(p).map_err(|e| stage_err(&format!("read {}: {e}", p.display())))?;
+        out.push((name, data));
+    }
+    Ok(out)
 }
 
 /// `(repo-relative-path, bytes)` members — the path under `root` (cells / tests).
