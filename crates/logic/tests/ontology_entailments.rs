@@ -555,3 +555,124 @@ fn contested_sensory_readings_coexist() {
     assert!(has_type(&closure, &sensor_a, &gmeow("Agent")));
     assert!(has_type(&closure, &sensor_b, &gmeow("Agent")));
 }
+
+// ── Migrated from tests/test_places.py (the coordinate/geometry observation chains) ─────────
+// The other ~128 test_places.py tests are structural / SHACL / fixture checks (no closure) and
+// stay in pytest (#867). Only these two property-chain entailments migrate here.
+
+#[test]
+fn coordinate_observation_chain_fires() {
+    // hasCoordinateObservation ∘ coordinateResult ⊑ hasCoordinates.
+    let (place, obs, coords) = (ex("testPlace"), ex("testObs"), ex("testCoords"));
+    let abox = vec![
+        iri_quad(&place, RDF_TYPE, &gmeow("Place")),
+        iri_quad(&place, &gmeow("hasCoordinateObservation"), &obs),
+        iri_quad(&obs, RDF_TYPE, &gmeow("CoordinateObservation")),
+        iri_quad(&obs, &gmeow("coordinateResult"), &coords),
+        iri_quad(&coords, RDF_TYPE, &gmeow("GeoCoordinates")),
+    ];
+    let closure = scoped_closure(&["core/places", "core/observations"], &abox);
+    assert!(
+        contains(&closure, &place, &gmeow("hasCoordinates"), &coords),
+        "place hasCoordinates via hasCoordinateObservation ∘ coordinateResult"
+    );
+}
+
+#[test]
+fn geometry_observation_chain_fires() {
+    // hasCoordinateObservation ∘ geometryResult ⊑ hasGeometry.
+    let (place, obs, geom) = (ex("testPlace2"), ex("testObs2"), ex("testGeom2"));
+    let abox = vec![
+        iri_quad(&place, RDF_TYPE, &gmeow("Place")),
+        iri_quad(&place, &gmeow("hasCoordinateObservation"), &obs),
+        iri_quad(&obs, RDF_TYPE, &gmeow("CoordinateObservation")),
+        iri_quad(&obs, &gmeow("geometryResult"), &geom),
+        iri_quad(&geom, RDF_TYPE, &gmeow("Geometry")),
+    ];
+    let closure = scoped_closure(&["core/places", "core/observations"], &abox);
+    assert!(
+        contains(&closure, &place, &gmeow("hasGeometry"), &geom),
+        "place hasGeometry via hasCoordinateObservation ∘ geometryResult"
+    );
+}
+
+// ── Migrated from tests/test_sensory_environment.py (#87) ────────────────────────────────────
+// The four pure entailment tests. `test_mental_reference_frame_requires_host` is MIXED (a
+// structural blank-node restriction-axiom check + a consistency check) and stays in pytest as a
+// small scoped structural test. The remaining structural/mapping tests stay in pytest (#867).
+
+#[test]
+fn sensory_environment_el_axioms_fire() {
+    // A SensoryEnvironment is inferred from environmentAtLocation's domain.
+    let (env1, place1) = (ex("env1"), ex("place1"));
+    let abox = vec![
+        iri_quad(&env1, &gmeow("environmentAtLocation"), &place1),
+        iri_quad(&place1, RDF_TYPE, &gmeow("Place")),
+    ];
+    let closure = scoped_closure(&["extensions/sensory-environment", "core/places"], &abox);
+    assert!(
+        has_type(&closure, &env1, &gmeow("SensoryEnvironment")),
+        "env1 a SensoryEnvironment (environmentAtLocation domain)"
+    );
+}
+
+#[test]
+fn sensory_perception_specialises_standpoint_claim() {
+    // SensoryPerception ⊑ StandpointClaim and ⊑ Observation.
+    let perc1 = ex("perc1");
+    let abox = vec![iri_quad(&perc1, RDF_TYPE, &gmeow("SensoryPerception"))];
+    let closure = scoped_closure(
+        &[
+            "extensions/sensory-environment",
+            "core/observations",
+            "core/standpoint",
+        ],
+        &abox,
+    );
+    assert!(
+        has_type(&closure, &perc1, &gmeow("StandpointClaim")),
+        "perc1 a StandpointClaim"
+    );
+    assert!(
+        has_type(&closure, &perc1, &gmeow("Observation")),
+        "perc1 a Observation"
+    );
+}
+
+#[test]
+fn mental_reference_frame_specialises_reference_frame() {
+    // MentalReferenceFrame ⊑ ReferenceFrame.
+    let mrf1 = ex("mrf1");
+    let abox = vec![iri_quad(&mrf1, RDF_TYPE, &gmeow("MentalReferenceFrame"))];
+    let closure = scoped_closure(&["extensions/sensory-environment", "core/places"], &abox);
+    assert!(
+        has_type(&closure, &mrf1, &gmeow("ReferenceFrame")),
+        "mrf1 a ReferenceFrame (MentalReferenceFrame ⊑ ReferenceFrame)"
+    );
+}
+
+#[test]
+fn frame_inheritance_via_coordinate_matrix() {
+    // A CoordinateMatrix result inherits the observation's reference frame (the same
+    // isResultOf ∘ hasReferenceFrame chain as the sensory-quantity frame test).
+    let (obs1, matrix1, frame) = (ex("obs1"), ex("matrix1"), ex("frameCIEXYZ"));
+    let abox = vec![
+        iri_quad(&obs1, RDF_TYPE, &gmeow("SensoryObservation")),
+        iri_quad(&obs1, &gmeow("observationResult"), &matrix1),
+        iri_quad(&obs1, &gmeow("hasReferenceFrame"), &frame),
+        iri_quad(&matrix1, RDF_TYPE, &gmeow("CoordinateMatrix")),
+        iri_quad(&frame, RDF_TYPE, &gmeow("ReferenceFrame")),
+    ];
+    let closure = scoped_closure(
+        &[
+            "extensions/sensory-environment",
+            "core/observations",
+            "core/places",
+        ],
+        &abox,
+    );
+    assert!(
+        contains(&closure, &matrix1, &gmeow("hasReferenceFrame"), &frame),
+        "matrix1 inherits the observation's reference frame via the property chain"
+    );
+}

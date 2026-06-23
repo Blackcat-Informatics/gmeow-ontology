@@ -300,11 +300,20 @@ pending the #867 slicetest structural migration — they are not reasoning tests
 | `test_has_sensory_quantity_property_chain` | `tests/test_sensory.py` | `has_sensory_quantity_property_chain` | RL-entailment | converted | — (hasSensoryObservation ∘ sensoryResult shortcut) | `make logic-test` |
 | `test_contested_sensory_readings_coexist` | `tests/test_sensory.py` | `contested_sensory_readings_coexist` | RL-entailment | converted | — (Principle 9 coexistence; decimal literals omitted, not assertion-relevant) | `make logic-test` |
 | the 14 structural `test_sensory.py` tests (TBox existence, equivalentClass/subProperty/inverseOf assertions, SOSA/AFO mappings) | `tests/test_sensory.py` | — | — | **retained** | structural checks over the ASSERTED graph / generated mapping artifacts (no closure) — #867 slicetest territory | pytest (now ~4.8s) |
+| `test_coordinate_observation_chain_fires` | `tests/test_places.py` | `coordinate_observation_chain_fires` | RL-entailment | converted | — (hasCoordinateObservation ∘ coordinateResult ⊑ hasCoordinates) | `make logic-test` |
+| `test_geometry_observation_chain_fires` | `tests/test_places.py` | `geometry_observation_chain_fires` | RL-entailment | converted | — (hasCoordinateObservation ∘ geometryResult ⊑ hasGeometry) | `make logic-test` |
+| `test_sensory_environment_el_axioms_fire` | `tests/test_sensory_environment.py` | `sensory_environment_el_axioms_fire` | RL-entailment | converted | — (environmentAtLocation domain ⇒ SensoryEnvironment) | `make logic-test` |
+| `test_sensory_perception_specialises_standpoint_claim` | `tests/test_sensory_environment.py` | `sensory_perception_specialises_standpoint_claim` | RL-entailment | converted | — (SensoryPerception ⊑ StandpointClaim, ⊑ Observation) | `make logic-test` |
+| `test_mental_reference_frame_specialises_reference_frame` | `tests/test_sensory_environment.py` | `mental_reference_frame_specialises_reference_frame` | RL-entailment | converted | — (MentalReferenceFrame ⊑ ReferenceFrame) | `make logic-test` |
+| `test_frame_inheritance_via_coordinate_matrix` | `tests/test_sensory_environment.py` | `frame_inheritance_via_coordinate_matrix` | RL-entailment | converted | — (CoordinateMatrix inherits the observation frame) | `make logic-test` |
+| `test_mental_reference_frame_requires_host` | `tests/test_sensory_environment.py` | — | — | **retained** | MIXED: a structural blank-node `someValuesFrom` restriction-axiom check (asserted graph) + a small scoped consistency check; the inference half duplicates the migrated ReferenceFrame twin | pytest |
 
-**#896 reasoning tally (running):** 16 converted, 7 retained-with-reason (3 Python
-Docker-orchestration, 4 structural-not-reasoning incl. the mereology trio), plus
-the 47 competency QUERY tests de-reasoned in place and the 14 structural sensory
-tests retained (no closure; #867 will move them to slicetest cells).
+**#896 reasoning tally (running):** 22 converted, 8 retained-with-reason (3 Python
+Docker-orchestration, 4 structural-not-reasoning, 1 mixed structural/consistency),
+plus the 47 competency QUERY tests de-reasoned in place and the per-slice
+structural tests retained (no closure; #867 will move them to slicetest cells).
+**Files fully reasoning-free now:** `test_reasoning_entailments.py`,
+`test_mereology.py`, `test_competency.py`, `test_sensory.py`, `test_places.py`.
 The migrated `_materialize` helpers and A-Box-injection imports were removed from
 the touched pytest files; `tests/test_competency.py` dropped from ~14 min to
 **~1.7 s** (the two ~5–9 min reasoning tests gone, the closure cost removed).
