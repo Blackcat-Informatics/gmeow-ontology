@@ -21,7 +21,7 @@ use std::collections::BTreeMap;
 
 use crate::error::PipelineError;
 use crate::node::{Stage, StageInput, StageKind, StageOutput, StageProduct};
-use crate::stages::export::{collect_term_surface, read_fold, Term};
+use crate::stages::export::{collect_term_surface, read_fold_upstream, Term};
 
 /// The bundle directory name under `dist/` (#780, Task 2).
 pub const OKF_DIR_NAME: &str = "gmeow-okf";
@@ -429,7 +429,24 @@ pub(crate) fn render_okf(title: &str, version: &str, terms: &[Term]) -> BTreeMap
 // ── Stage impl ───────────────────────────────────────────────────────────────────
 
 /// The `stage-export-okf` export-leaf stage.
-pub struct OkfStage;
+pub struct OkfStage {
+    consumes: Vec<String>,
+}
+
+impl OkfStage {
+    /// Construct the stage; it consumes THIS run's snapshot fold.
+    pub fn new() -> Self {
+        Self {
+            consumes: vec!["stage-snapshot".to_string()],
+        }
+    }
+}
+
+impl Default for OkfStage {
+    fn default() -> Self {
+        Self::new()
+    }
+}
 
 impl Stage for OkfStage {
     fn id(&self) -> &str {
@@ -439,13 +456,13 @@ impl Stage for OkfStage {
         StageKind::ExportLeaf
     }
     fn consumes(&self) -> &[String] {
-        &[]
+        &self.consumes
     }
     fn impl_version(&self) -> &str {
         "okf.v1"
     }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, PipelineError> {
-        let graph = read_fold(input.root)?;
+        let graph = read_fold_upstream(input.upstream)?;
         let (title, version, terms) = collect_term_surface(&graph)?;
         let artifacts = render_okf(&title, &version, &terms);
         Ok(StageOutput {
@@ -470,7 +487,7 @@ mod tests {
     #[test]
     fn okf_bundle_round_trips_structurally() {
         let root = repo_root();
-        let graph = read_fold(&root).expect("read fold");
+        let graph = crate::stages::export::read_fold(&root).expect("read fold");
         let (title, version, terms) = collect_term_surface(&graph).expect("terms");
         assert!(!terms.is_empty(), "no terms collected");
         let arts = render_okf(&title, &version, &terms);

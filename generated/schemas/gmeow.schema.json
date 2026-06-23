@@ -111371,9 +111371,8 @@
                 "stage-export-apache",
                 "stage-export-catalog",
                 "stage-export-evals",
-                "stage-export-exports",
+                "stage-export-export",
                 "stage-export-frame-shapes",
-                "stage-export-logic",
                 "stage-export-lpg",
                 "stage-export-matrix",
                 "stage-export-metadata",
@@ -111387,6 +111386,7 @@
                 "stage-gts-sink",
                 "stage-mappings",
                 "stage-reason",
+                "stage-snapshot",
                 "stage-source-load",
                 "stage-statements"
             ],

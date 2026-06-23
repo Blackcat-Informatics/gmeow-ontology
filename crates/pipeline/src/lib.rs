@@ -35,6 +35,7 @@ pub mod loader;
 pub mod node;
 pub mod provenance;
 pub mod registry;
+pub mod run;
 pub mod scheduler;
 pub mod stages;
 
@@ -47,6 +48,7 @@ pub use graph::StageGraph;
 pub use loader::{bind, PipelineSpec, StageSpec};
 pub use node::{Stage, StageInput, StageKind, StageOutput, StageProduct};
 pub use registry::{default_registry, StageRegistry};
+pub use run::{full_spec, run_full, RunMode, RunReport};
 pub use scheduler::{run, RunContext, RunResult, ENGINE_LOCK};
 
 #[cfg(feature = "python")]

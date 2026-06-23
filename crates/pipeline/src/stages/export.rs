@@ -1917,15 +1917,47 @@ pub(crate) fn collect_term_surface(
     Ok((title, version, terms))
 }
 
-/// Read the committed fold from `generated/dist/gmeow.gts` under `root`.
+/// Read the committed fold from `generated/dist/gmeow.gts` under `root`. Used by
+/// the leaf unit tests (logic-vs-canonical against the committed file); the
+/// runtime path reads THIS run's snapshot via [`read_fold_upstream`].
+#[cfg(test)]
 pub(crate) fn read_fold(root: &std::path::Path) -> Result<Graph, PipelineError> {
     let gts = std::fs::read(root.join("generated/dist/gmeow.gts"))?;
     gmeow_rdf::gts::read_graph(&gts, true)
         .map_err(|e| PipelineError::Parse(format!("read gmeow.gts: {e}")))
 }
 
+/// Read THIS run's fold from the `stage-snapshot` upstream product. The runtime
+/// path every fold-reading export leaf uses (single-pass): the snapshot bytes are
+/// fold-isomorphic to the committed file (proven by `fold_parity`), so the
+/// `GtsGraphStore` logic is identical — only the byte source changes.
+pub(crate) fn read_fold_upstream(
+    upstream: &std::collections::BTreeMap<String, StageProduct>,
+) -> Result<Graph, PipelineError> {
+    let gts = crate::stages::snapshot::snapshot_bytes(upstream)?;
+    gmeow_rdf::gts::read_graph(&gts, true)
+        .map_err(|e| PipelineError::Parse(format!("read snapshot gmeow.gts: {e}")))
+}
+
 /// The `stage-export-export` export-leaf stage.
-pub struct ExportStage;
+pub struct ExportStage {
+    consumes: Vec<String>,
+}
+
+impl ExportStage {
+    /// Construct the stage; it consumes THIS run's snapshot fold.
+    pub fn new() -> Self {
+        Self {
+            consumes: vec!["stage-snapshot".to_string()],
+        }
+    }
+}
+
+impl Default for ExportStage {
+    fn default() -> Self {
+        Self::new()
+    }
+}
 
 impl Stage for ExportStage {
     fn id(&self) -> &str {
@@ -1935,13 +1967,13 @@ impl Stage for ExportStage {
         StageKind::ExportLeaf
     }
     fn consumes(&self) -> &[String] {
-        &[]
+        &self.consumes
     }
     fn impl_version(&self) -> &str {
         "export.v1"
     }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, PipelineError> {
-        let graph = read_fold(input.root)?;
+        let graph = read_fold_upstream(input.upstream)?;
         Ok(StageOutput {
             product: StageProduct::from_artifacts(self.id(), render_all(&graph)?),
         })

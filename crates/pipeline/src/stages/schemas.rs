@@ -156,7 +156,32 @@ fn render_into(root: &Path, staging: &Path) -> Result<BTreeMap<String, Vec<u8>>,
 }
 
 /// The `stage-export-schemas` export-leaf stage.
-pub struct SchemasStage;
+///
+/// Unlike the other export leaves, this one shells out to the lane-only Python
+/// LinkML toolkit, which reads `generated/dist/gmeow.gts` FROM DISK (its
+/// `GTS_SNAPSHOT_FILE` input). So it cannot consume the in-memory snapshot
+/// bytes — it must run AFTER the sole `gts_sink` has WRITTEN the fresh fold to
+/// disk. It therefore declares a dataflow dependency on `stage-gts-sink`; the
+/// `run_full` orchestration writes the sink's `gmeow.gts` to disk before this
+/// stage's level executes (the disk-write barrier).
+pub struct SchemasStage {
+    consumes: Vec<String>,
+}
+
+impl SchemasStage {
+    /// Construct the stage; it depends on the on-disk fold the Sink writes.
+    pub fn new() -> Self {
+        Self {
+            consumes: vec!["stage-gts-sink".to_string()],
+        }
+    }
+}
+
+impl Default for SchemasStage {
+    fn default() -> Self {
+        Self::new()
+    }
+}
 
 impl Stage for SchemasStage {
     fn id(&self) -> &str {
@@ -166,7 +191,7 @@ impl Stage for SchemasStage {
         StageKind::ExportLeaf
     }
     fn consumes(&self) -> &[String] {
-        &[]
+        &self.consumes
     }
     fn impl_version(&self) -> &str {
         "schemas.v1"

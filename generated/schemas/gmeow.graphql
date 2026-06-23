@@ -2161,9 +2161,8 @@ enum PipelineStageEnum
     stage__HYPHEN_MINUS__export__HYPHEN_MINUS__apache
     stage__HYPHEN_MINUS__export__HYPHEN_MINUS__catalog
     stage__HYPHEN_MINUS__export__HYPHEN_MINUS__evals
-    stage__HYPHEN_MINUS__export__HYPHEN_MINUS__exports
+    stage__HYPHEN_MINUS__export__HYPHEN_MINUS__export
     stage__HYPHEN_MINUS__export__HYPHEN_MINUS__frame__HYPHEN_MINUS__shapes
-    stage__HYPHEN_MINUS__export__HYPHEN_MINUS__logic
     stage__HYPHEN_MINUS__export__HYPHEN_MINUS__lpg
     stage__HYPHEN_MINUS__export__HYPHEN_MINUS__matrix
     stage__HYPHEN_MINUS__export__HYPHEN_MINUS__metadata
@@ -2177,6 +2176,7 @@ enum PipelineStageEnum
     stage__HYPHEN_MINUS__gts__HYPHEN_MINUS__sink
     stage__HYPHEN_MINUS__mappings
     stage__HYPHEN_MINUS__reason
+    stage__HYPHEN_MINUS__snapshot
     stage__HYPHEN_MINUS__source__HYPHEN_MINUS__load
     stage__HYPHEN_MINUS__statements
   }

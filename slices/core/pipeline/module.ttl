@@ -194,11 +194,12 @@ gmeow:pipeline-build
         gmeow:stage-reason ,
         gmeow:stage-gts-compose ,
         gmeow:stage-docs-render ,
+        gmeow:stage-snapshot ,
         gmeow:stage-export-schemas ,
         gmeow:stage-export-catalog ,
         gmeow:stage-export-profiles ,
         gmeow:stage-export-parquet ,
-        gmeow:stage-export-exports ,
+        gmeow:stage-export-export ,
         gmeow:stage-export-okf ,
         gmeow:stage-export-apache ,
         gmeow:stage-export-frame-shapes ,
@@ -208,7 +209,6 @@ gmeow:pipeline-build
         gmeow:stage-export-references ,
         gmeow:stage-export-evals ,
         gmeow:stage-export-lpg ,
-        gmeow:stage-export-logic ,
         gmeow:stage-gts-sink .
 
 # ── Spine ──
@@ -231,7 +231,6 @@ gmeow:stage-statements
     gmeow:graphBoxRole gmeow:boxABox ;
     gmeow:stageKind gmeow:kindTransform ;
     gmeow:stageImpl "statements" ;
-    gmeow:dataflowConsumes gmeow:stage-source-load ;
     gmeow:carriesEngineLock false .
 
 gmeow:stage-mappings
@@ -242,7 +241,6 @@ gmeow:stage-mappings
     gmeow:graphBoxRole gmeow:boxABox ;
     gmeow:stageKind gmeow:kindTransform ;
     gmeow:stageImpl "mappings" ;
-    gmeow:dataflowConsumes gmeow:stage-source-load ;
     gmeow:carriesEngineLock false .
 
 gmeow:stage-reason
@@ -253,7 +251,10 @@ gmeow:stage-reason
     gmeow:graphBoxRole gmeow:boxABox ;
     gmeow:stageKind gmeow:kindReason ;
     gmeow:stageImpl "reason" ;
-    gmeow:dataflowConsumes gmeow:stage-statements ;
+    gmeow:dataflowConsumes
+        gmeow:stage-mappings ,
+        gmeow:stage-source-load ,
+        gmeow:stage-statements ;
     gmeow:carriesEngineLock true .
 
 gmeow:stage-gts-compose
@@ -265,9 +266,10 @@ gmeow:stage-gts-compose
     gmeow:stageKind gmeow:kindTransform ;
     gmeow:stageImpl "gts_compose" ;
     gmeow:dataflowConsumes
-        gmeow:stage-statements ,
         gmeow:stage-mappings ,
-        gmeow:stage-reason ;
+        gmeow:stage-reason ,
+        gmeow:stage-source-load ,
+        gmeow:stage-statements ;
     gmeow:carriesEngineLock false .
 
 gmeow:stage-docs-render
@@ -281,6 +283,23 @@ gmeow:stage-docs-render
     gmeow:dataflowConsumes gmeow:stage-gts-compose ;
     gmeow:carriesEngineLock false .
 
+# ── Snapshot assembly (structured multi-named-graph dist bundle) ──
+
+gmeow:stage-snapshot
+    a gmeow:PipelineStage ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "snapshot"@x-gmeow-english ;
+    skos:definition "Assemble the structured multi-named-graph dist snapshot (gmeow.gts bytes) in memory: the authored default graph plus the import closure, metadata, alignment, RDF 1.2 statement, slice-analysis, verify-attestation, and documentation named graphs. Split from the sink so every fold-reading export leaf consumes THIS run's freshly-composed fold rather than re-reading the committed file from disk (the single-pass invariant)."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:stageKind gmeow:kindTransform ;
+    gmeow:stageImpl "snapshot" ;
+    gmeow:dataflowConsumes
+        gmeow:stage-docs-render ,
+        gmeow:stage-gts-compose ,
+        gmeow:stage-reason ,
+        gmeow:stage-statements ;
+    gmeow:carriesEngineLock false .
+
 # ── Export leaves (parallel fan-out, each folds one artifact set) ──
 
 gmeow:stage-export-schemas
@@ -291,7 +310,7 @@ gmeow:stage-export-schemas
     gmeow:graphBoxRole gmeow:boxABox ;
     gmeow:stageKind gmeow:kindExportLeaf ;
     gmeow:stageImpl "schemas" ;
-    gmeow:dataflowConsumes gmeow:stage-gts-compose ;
+    gmeow:dataflowConsumes gmeow:stage-gts-sink ;
     gmeow:producesFormat "linkml" ;
     gmeow:carriesEngineLock false .
 
@@ -303,7 +322,6 @@ gmeow:stage-export-catalog
     gmeow:graphBoxRole gmeow:boxABox ;
     gmeow:stageKind gmeow:kindExportLeaf ;
     gmeow:stageImpl "catalog" ;
-    gmeow:dataflowConsumes gmeow:stage-gts-compose ;
     gmeow:producesFormat "catalog-xml" ;
     gmeow:carriesEngineLock false .
 
@@ -315,7 +333,6 @@ gmeow:stage-export-profiles
     gmeow:graphBoxRole gmeow:boxABox ;
     gmeow:stageKind gmeow:kindExportLeaf ;
     gmeow:stageImpl "profiles" ;
-    gmeow:dataflowConsumes gmeow:stage-gts-compose ;
     gmeow:producesFormat "profile-ttl" ;
     gmeow:carriesEngineLock false .
 
@@ -327,19 +344,19 @@ gmeow:stage-export-parquet
     gmeow:graphBoxRole gmeow:boxABox ;
     gmeow:stageKind gmeow:kindExportLeaf ;
     gmeow:stageImpl "parquet" ;
-    gmeow:dataflowConsumes gmeow:stage-gts-compose ;
+    gmeow:dataflowConsumes gmeow:stage-snapshot ;
     gmeow:producesFormat "parquet" ;
     gmeow:carriesEngineLock false .
 
-gmeow:stage-export-exports
+gmeow:stage-export-export
     a gmeow:PipelineStage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "export: flat views"@x-gmeow-english ;
     skos:definition "Emit the flattened export views: CSV/CSVW, Markdown, JSONL, and llms.txt."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
     gmeow:stageKind gmeow:kindExportLeaf ;
-    gmeow:stageImpl "exports" ;
-    gmeow:dataflowConsumes gmeow:stage-gts-compose ;
+    gmeow:stageImpl "export" ;
+    gmeow:dataflowConsumes gmeow:stage-snapshot ;
     gmeow:producesFormat "csv" , "jsonl" , "markdown" , "llms-txt" ;
     gmeow:carriesEngineLock false .
 
@@ -351,7 +368,7 @@ gmeow:stage-export-okf
     gmeow:graphBoxRole gmeow:boxABox ;
     gmeow:stageKind gmeow:kindExportLeaf ;
     gmeow:stageImpl "okf" ;
-    gmeow:dataflowConsumes gmeow:stage-gts-compose ;
+    gmeow:dataflowConsumes gmeow:stage-snapshot ;
     gmeow:producesFormat "okf" ;
     gmeow:carriesEngineLock false .
 
@@ -363,7 +380,6 @@ gmeow:stage-export-apache
     gmeow:graphBoxRole gmeow:boxABox ;
     gmeow:stageKind gmeow:kindExportLeaf ;
     gmeow:stageImpl "apache" ;
-    gmeow:dataflowConsumes gmeow:stage-gts-compose ;
     gmeow:producesFormat "asf-license" ;
     gmeow:carriesEngineLock false .
 
@@ -375,7 +391,6 @@ gmeow:stage-export-frame-shapes
     gmeow:graphBoxRole gmeow:boxABox ;
     gmeow:stageKind gmeow:kindExportLeaf ;
     gmeow:stageImpl "frame_shapes" ;
-    gmeow:dataflowConsumes gmeow:stage-gts-compose ;
     gmeow:producesFormat "shacl" ;
     gmeow:carriesEngineLock false .
 
@@ -387,7 +402,6 @@ gmeow:stage-export-matrix
     gmeow:graphBoxRole gmeow:boxABox ;
     gmeow:stageKind gmeow:kindExportLeaf ;
     gmeow:stageImpl "matrix" ;
-    gmeow:dataflowConsumes gmeow:stage-gts-compose ;
     gmeow:producesFormat "makefile-matrix" ;
     gmeow:carriesEngineLock false .
 
@@ -399,7 +413,7 @@ gmeow:stage-export-metadata
     gmeow:graphBoxRole gmeow:boxABox ;
     gmeow:stageKind gmeow:kindExportLeaf ;
     gmeow:stageImpl "metadata" ;
-    gmeow:dataflowConsumes gmeow:stage-gts-compose ;
+    gmeow:dataflowConsumes gmeow:stage-snapshot ;
     gmeow:producesFormat "bazel" ;
     gmeow:carriesEngineLock false .
 
@@ -410,8 +424,7 @@ gmeow:stage-export-research-objects
     skos:definition "Emit the RO-Crate research-object archives from the example inputs."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
     gmeow:stageKind gmeow:kindExportLeaf ;
-    gmeow:stageImpl "research_objects" ;
-    gmeow:dataflowConsumes gmeow:stage-gts-compose ;
+    gmeow:stageImpl "research-objects" ;
     gmeow:producesFormat "ro-crate" ;
     gmeow:carriesEngineLock false .
 
@@ -423,7 +436,6 @@ gmeow:stage-export-references
     gmeow:graphBoxRole gmeow:boxABox ;
     gmeow:stageKind gmeow:kindExportLeaf ;
     gmeow:stageImpl "references" ;
-    gmeow:dataflowConsumes gmeow:stage-gts-compose ;
     gmeow:producesFormat "references-ttl" ;
     gmeow:carriesEngineLock false .
 
@@ -435,7 +447,6 @@ gmeow:stage-export-evals
     gmeow:graphBoxRole gmeow:boxABox ;
     gmeow:stageKind gmeow:kindExportLeaf ;
     gmeow:stageImpl "evals" ;
-    gmeow:dataflowConsumes gmeow:stage-gts-compose ;
     gmeow:producesFormat "evals-json" ;
     gmeow:carriesEngineLock false .
 
@@ -447,21 +458,13 @@ gmeow:stage-export-lpg
     gmeow:graphBoxRole gmeow:boxABox ;
     gmeow:stageKind gmeow:kindExportLeaf ;
     gmeow:stageImpl "lpg" ;
-    gmeow:dataflowConsumes gmeow:stage-gts-compose ;
+    gmeow:dataflowConsumes gmeow:stage-snapshot ;
     gmeow:producesFormat "lpg-cypher" ;
     gmeow:carriesEngineLock false .
 
-gmeow:stage-export-logic
-    a gmeow:PipelineStage ;
-    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
-    rdfs:label "export: logic"@x-gmeow-english ;
-    skos:definition "Emit the logic artifacts (reasoned closure, explanations, ledger) projected from the composed dataset."@x-gmeow-english ;
-    gmeow:graphBoxRole gmeow:boxABox ;
-    gmeow:stageKind gmeow:kindExportLeaf ;
-    gmeow:stageImpl "logic" ;
-    gmeow:dataflowConsumes gmeow:stage-gts-compose ;
-    gmeow:producesFormat "logic-ttl" ;
-    gmeow:carriesEngineLock false .
+# Note: the logic artifacts (generated/logic/*.ttl — reasoned closure,
+# explanations, ledger) are folded by the gmeow:stage-reason transform itself,
+# not by a separate export leaf; there is no "logic" Rust Stage impl.
 
 # ── The single serialization exit (the gts narrow waist) ──
 
@@ -469,25 +472,9 @@ gmeow:stage-gts-sink
     a gmeow:PipelineStage ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "gts sink"@x-gmeow-english ;
-    skos:definition "Serialize the fully-folded bundle to generated/dist/gmeow.gts — the ONE canonical exit (narrow waist). Consumes the docs render and every export leaf so all artifacts are folded in before the single serialization."@x-gmeow-english ;
+    skos:definition "Write the fully-assembled snapshot to generated/dist/gmeow.gts — the ONE canonical exit (narrow waist). Consumes the single gmeow:stage-snapshot product (the structured multi-named-graph bundle) and re-emits its bytes as the disk-write target. The snapshot assembly (a Transform) is split from this serialization exit so every fold-reading export leaf can consume THIS run's freshly-composed fold rather than the committed file."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxABox ;
     gmeow:stageKind gmeow:kindSink ;
     gmeow:stageImpl "gts_sink" ;
-    gmeow:dataflowConsumes
-        gmeow:stage-docs-render ,
-        gmeow:stage-export-schemas ,
-        gmeow:stage-export-catalog ,
-        gmeow:stage-export-profiles ,
-        gmeow:stage-export-parquet ,
-        gmeow:stage-export-exports ,
-        gmeow:stage-export-okf ,
-        gmeow:stage-export-apache ,
-        gmeow:stage-export-frame-shapes ,
-        gmeow:stage-export-matrix ,
-        gmeow:stage-export-metadata ,
-        gmeow:stage-export-research-objects ,
-        gmeow:stage-export-references ,
-        gmeow:stage-export-evals ,
-        gmeow:stage-export-lpg ,
-        gmeow:stage-export-logic ;
+    gmeow:dataflowConsumes gmeow:stage-snapshot ;
     gmeow:carriesEngineLock false .

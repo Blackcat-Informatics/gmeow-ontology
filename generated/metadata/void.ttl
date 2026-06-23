@@ -260,7 +260,7 @@
         <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-wiki-630ef1-skos_relatedMatch> ,
         <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-www.discogs.com-4b9508-skos_relatedMatch> ,
         <https://blackcatinformatics.ca/gmeow/.well-known/void.ttl#dataset-linkset-www.onetcenter.org-49e491-skos_relatedMatch> ;
-    void:triples 38156 ;
+    void:triples 38136 ;
     void:uriSpace "https://blackcatinformatics.ca/gmeow/" ;
     void:vocabulary <http://biohackathon.org/resource/faldo#> ,
         <http://creativecommons.org/ns#> ,

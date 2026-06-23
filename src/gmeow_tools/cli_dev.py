@@ -45,6 +45,52 @@ def _fail(message: str, code: int = 1) -> typer.Exit:
     return typer.Exit(code=code)
 
 
+def _regenerate_native(jobs: int | None = None, check: bool = False) -> None:
+    """Route the build to the Rust single-pass executor.
+
+    Calls ``gmeow_native.pipeline.run_pipeline(root, jobs, check)`` — the #861 P6
+    DAG executor that produces every committed artifact in one pass. Opt-in
+    pre-cutover (the ``--native`` flag); the full swap to this path is P7.
+
+    Raises a clear ``typer.Exit`` if the native extension is not importable (the
+    ``gmeow_native`` cdylib must be rebuilt with the 8th submodule) or, in check
+    mode, if any committed artifact drifted.
+    """
+    from gmeow_tools.config import PROJECT_ROOT
+
+    try:
+        import gmeow_native.pipeline as _pipeline  # type: ignore[import-not-found]
+    except ImportError as exc:
+        raise _fail(
+            "✗ the native pipeline is unavailable: "
+            f"`import gmeow_native.pipeline` failed ({exc}). Rebuild the unified "
+            "extension (e.g. `maturin develop --manifest-path "
+            "crates/native/Cargo.toml`) to pick up the #861 P6 submodule."
+        ) from exc
+
+    cpu = jobs if jobs is not None else (os.cpu_count() or 1)
+    report = _pipeline.run_pipeline(str(PROJECT_ROOT), int(cpu), check)
+
+    for finding in report.get("findings", []):
+        err_console.print(
+            f"[yellow]{finding['severity']}[/yellow] {finding['code']}: "
+            f"{finding['message']}"
+        )
+
+    if check:
+        drifted = report.get("drifted", [])
+        if drifted:
+            for path in drifted:
+                err_console.print(f"[red]drift[/red] {path}")
+            raise _fail(f"✗ {len(drifted)} artifact(s) drifted")
+        console.print("[green]✓ native check: zero drift[/green]")
+    else:
+        console.print(
+            f"[green]✓ native regenerate: produced {report['produced']}, "
+            f"reproduced {report['reproduced']}[/green]"
+        )
+
+
 def _lang_option() -> Any:
     """Shared --lang / -l option for language-emitting commands."""
     return typer.Option(
@@ -180,14 +226,28 @@ def regenerate(
             " specific generator is named."
         ),
     ),
+    native: bool = typer.Option(
+        False,
+        "--native",
+        help=(
+            "Route to the Rust single-pass build executor "
+            "(gmeow_native.pipeline.run_pipeline) instead of the Python "
+            "orchestrator. Opt-in pre-cutover (#861 P6); P7 makes it the default."
+        ),
+    ),
 ) -> None:
     """Rebuild all checked-in generated artifacts from canonical sources.
 
     Runs every registered generator in topologically sorted order, or the
     named generators in the order given.
     """
-    # Import all generator modules to trigger @register side effects.
     from gmeow_tools.config import PROJECT_ROOT
+
+    if native:
+        _regenerate_native(jobs=jobs)
+        return
+
+    # Import all generator modules to trigger @register side effects.
     from gmeow_tools.generator import regenerate as _regenerate
     from gmeow_tools.load_generators import load_all
 

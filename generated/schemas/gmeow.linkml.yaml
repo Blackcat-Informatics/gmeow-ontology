@@ -17938,15 +17938,12 @@ enums:
       stage-export-evals:
         meaning: https://blackcatinformatics.ca/gmeow/stage-export-evals
         title: 'export: evals'
-      stage-export-exports:
-        meaning: https://blackcatinformatics.ca/gmeow/stage-export-exports
+      stage-export-export:
+        meaning: https://blackcatinformatics.ca/gmeow/stage-export-export
         title: 'export: flat views'
       stage-export-frame-shapes:
         meaning: https://blackcatinformatics.ca/gmeow/stage-export-frame-shapes
         title: 'export: frame shapes'
-      stage-export-logic:
-        meaning: https://blackcatinformatics.ca/gmeow/stage-export-logic
-        title: 'export: logic'
       stage-export-lpg:
         meaning: https://blackcatinformatics.ca/gmeow/stage-export-lpg
         title: 'export: LPG'
@@ -17986,6 +17983,9 @@ enums:
       stage-reason:
         meaning: https://blackcatinformatics.ca/gmeow/stage-reason
         title: reason
+      stage-snapshot:
+        meaning: https://blackcatinformatics.ca/gmeow/stage-snapshot
+        title: snapshot
       stage-source-load:
         meaning: https://blackcatinformatics.ca/gmeow/stage-source-load
         title: source load

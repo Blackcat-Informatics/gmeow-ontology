@@ -56,6 +56,39 @@ impl RunContext {
             provenance: DatasetProvenance::new(),
         })
     }
+
+    /// Construct a run context whose cache lives in a FRESH, process-unique temp
+    /// directory rather than the persistent `generated/.pipeline-cache/`.
+    ///
+    /// The full-build entry point ([`crate::run::run_full`]) uses this so the
+    /// build is deterministic w.r.t. the CURRENT code: the persistent cache keys
+    /// stages by `stage_id + impl_version + upstream_digests`, so a stage whose
+    /// Rust implementation changed (e.g. across a rebase) without a bumped
+    /// `impl_version` would otherwise be served a STALE pre-change product — a
+    /// false-parity / false-drift source for the gate. Per-level memoization
+    /// within the single run still applies (the temp cache is populated and read
+    /// during the run); only cross-invocation reuse is dropped.
+    pub fn open_ephemeral(root: impl Into<PathBuf>, jobs: usize) -> Result<Self, PipelineError> {
+        let root = root.into();
+        // A process- + nanosecond-unique cache dir under the system temp root, so
+        // concurrent runs never collide and nothing leaks into the repo tree.
+        let nonce = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .map(|d| d.as_nanos())
+            .unwrap_or(0);
+        let dir = std::env::temp_dir().join(format!(
+            "gmeow-pipeline-cache-{}-{}",
+            std::process::id(),
+            nonce
+        ));
+        let cache = PipelineCache::open(dir)?;
+        Ok(Self {
+            root,
+            jobs: jobs.max(1),
+            cache,
+            provenance: DatasetProvenance::new(),
+        })
+    }
 }
 
 /// The result of a pipeline run: every stage's product plus the order-independent

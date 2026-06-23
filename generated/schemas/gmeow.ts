@@ -2161,9 +2161,8 @@ export enum PipelineStageEnum {
     exportCOLON_apache_headers = "stage-export-apache",
     exportCOLON_catalog = "stage-export-catalog",
     exportCOLON_evals = "stage-export-evals",
-    exportCOLON_flat_views = "stage-export-exports",
+    exportCOLON_flat_views = "stage-export-export",
     exportCOLON_frame_shapes = "stage-export-frame-shapes",
-    exportCOLON_logic = "stage-export-logic",
     exportCOLON_LPG = "stage-export-lpg",
     exportCOLON_matrix = "stage-export-matrix",
     exportCOLON_metadata = "stage-export-metadata",
@@ -2177,6 +2176,7 @@ export enum PipelineStageEnum {
     gts_sink = "stage-gts-sink",
     mappings = "stage-mappings",
     reason = "stage-reason",
+    snapshot = "stage-snapshot",
     source_load = "stage-source-load",
     statements = "stage-statements",
 };

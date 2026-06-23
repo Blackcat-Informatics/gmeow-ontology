@@ -30,6 +30,8 @@
 //!   analyzer (#820 S8): the authoritative slice machinery.
 //! * `gmeow_native.docs` — the typed documentation model built from the slice
 //!   catalog (#853): slices, terms, and dependency edges.
+//! * `gmeow_native.pipeline` — the DAG-driven single-pass build executor (#861):
+//!   the `run_pipeline` full-build / drift-check surface.
 //!
 //! Each submodule is also registered in `sys.modules` under its dotted name so
 //! `import gmeow_native.validate` (and friends) resolves. The legacy import
@@ -84,6 +86,7 @@ fn gmeow_native(py: Python<'_>, m: &Bound<'_, PyModule>) -> PyResult<()> {
     add_engine_submodule(py, m, &sys_modules, "logic", gmeow_logic::register)?;
     add_engine_submodule(py, m, &sys_modules, "slice", gmeow_slice::register)?;
     add_engine_submodule(py, m, &sys_modules, "docs", gmeow_docs::register)?;
+    add_engine_submodule(py, m, &sys_modules, "pipeline", gmeow_pipeline::register)?;
 
     Ok(())
 }

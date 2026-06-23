@@ -31,7 +31,7 @@ use parquet::file::properties::WriterProperties;
 
 use crate::error::PipelineError;
 use crate::node::{Stage, StageInput, StageKind, StageOutput, StageProduct};
-use crate::stages::export::read_fold;
+use crate::stages::export::read_fold_upstream;
 
 /// The generator's output directory (under the git-ignored dist/ tree).
 pub const PARQUET_DIR: &str = "dist/parquet";
@@ -234,7 +234,24 @@ pub(crate) fn render_parquet(graph: &Graph) -> Result<BTreeMap<String, Vec<u8>>,
 // ── Stage impl ───────────────────────────────────────────────────────────────────
 
 /// The `stage-export-parquet` export-leaf stage.
-pub struct ParquetStage;
+pub struct ParquetStage {
+    consumes: Vec<String>,
+}
+
+impl ParquetStage {
+    /// Construct the stage; it consumes THIS run's snapshot fold.
+    pub fn new() -> Self {
+        Self {
+            consumes: vec!["stage-snapshot".to_string()],
+        }
+    }
+}
+
+impl Default for ParquetStage {
+    fn default() -> Self {
+        Self::new()
+    }
+}
 
 impl Stage for ParquetStage {
     fn id(&self) -> &str {
@@ -244,13 +261,13 @@ impl Stage for ParquetStage {
         StageKind::ExportLeaf
     }
     fn consumes(&self) -> &[String] {
-        &[]
+        &self.consumes
     }
     fn impl_version(&self) -> &str {
         "parquet.v1"
     }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, PipelineError> {
-        let graph = read_fold(input.root)?;
+        let graph = read_fold_upstream(input.upstream)?;
         Ok(StageOutput {
             product: StageProduct::from_artifacts(self.id(), render_parquet(&graph)?),
         })
@@ -283,7 +300,7 @@ mod tests {
     #[test]
     fn parquet_tables_reread_with_expected_row_counts() {
         let root = repo_root();
-        let graph = read_fold(&root).expect("read fold");
+        let graph = crate::stages::export::read_fold(&root).expect("read fold");
         let arts = render_parquet(&graph).expect("render");
 
         // terms and quads are always non-empty for the committed fold.

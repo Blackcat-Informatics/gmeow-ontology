@@ -27,10 +27,14 @@ use oxigraph::model::{Dataset, Quad};
 use oxigraph::store::Store;
 
 use crate::error::PipelineError;
-use crate::node::StageProduct;
+use crate::node::{Stage, StageInput, StageKind, StageOutput, StageProduct};
 use crate::stages::statements::RDF12_PATH;
 
 const GMEOW_NS: &str = "https://blackcatinformatics.ca/gmeow/";
+
+/// The committed logical path of the serialized GTS bundle — the single artifact
+/// this stage produces and every fold-reading leaf (and the sink) consumes.
+pub const SNAPSHOT_PATH: &str = "generated/dist/gmeow.gts";
 
 /// The named-graph IRIs (mirror `config.GTS_GRAPH_*`).
 const GRAPH_IMPORTS: &str = "https://blackcatinformatics.ca/gmeow/graph/imports";
@@ -125,6 +129,80 @@ pub fn build_snapshot(
         gmeow_rdf::gts_compose::DEFAULT_RSYNCABLE_THRESHOLD,
     )
     .map_err(|e| stage_err(&format!("emit_gts: {e}")))
+}
+
+/// Read this run's freshly-composed `gmeow.gts` snapshot bytes from the
+/// `stage-snapshot` upstream product. Every fold-reading export leaf calls this
+/// instead of `std::fs::read("generated/dist/gmeow.gts")`, so a single-pass run
+/// reads THIS run's fold rather than the (potentially stale) committed file. The
+/// bytes are fold-isomorphic to the committed snapshot (proven by `fold_parity`).
+pub(crate) fn snapshot_bytes(
+    upstream: &BTreeMap<String, StageProduct>,
+) -> Result<Vec<u8>, PipelineError> {
+    upstream
+        .get("stage-snapshot")
+        .and_then(|p| p.artifact(SNAPSHOT_PATH))
+        .map(<[u8]>::to_vec)
+        .ok_or_else(|| stage_err("missing stage-snapshot gmeow.gts artifact"))
+}
+
+// ── Stage impl ───────────────────────────────────────────────────────────────────
+
+/// The `stage-snapshot` Transform stage (#861 P6): assembles the structured
+/// multi-named-graph `dist` snapshot bytes (`build_snapshot`) as an in-memory
+/// artifact. The split from the sink lets every fold-reading export leaf consume
+/// THIS run's freshly-composed fold rather than re-reading the committed file
+/// from disk; the sole [`crate::stages::gts_sink::GtsSinkStage`] then just writes
+/// these bytes to `generated/dist/gmeow.gts` (the narrow-waist invariant — one
+/// Sink, the disk writer).
+pub struct SnapshotStage {
+    consumes: Vec<String>,
+}
+
+impl SnapshotStage {
+    /// Construct the snapshot stage. It reads the RDF 1.2 statement layer
+    /// (`stage-statements`) and the documentation projection (`stage-docs-render`)
+    /// products to assemble the structured snapshot, plus `stage-gts-compose` /
+    /// `stage-reason` for the composed-fold / reasoned-closure wiring.
+    pub fn new() -> Self {
+        Self {
+            consumes: vec![
+                "stage-docs-render".to_string(),
+                "stage-gts-compose".to_string(),
+                "stage-reason".to_string(),
+                "stage-statements".to_string(),
+            ],
+        }
+    }
+}
+
+impl Default for SnapshotStage {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl Stage for SnapshotStage {
+    fn id(&self) -> &str {
+        "stage-snapshot"
+    }
+    fn kind(&self) -> StageKind {
+        StageKind::Transform
+    }
+    fn consumes(&self) -> &[String] {
+        &self.consumes
+    }
+    fn impl_version(&self) -> &str {
+        "snapshot.v1-structured"
+    }
+    fn run(&self, input: StageInput<'_>) -> Result<StageOutput, PipelineError> {
+        let gts = build_snapshot(input.root, input.upstream, Vec::new())?;
+        let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
+        artifacts.insert(SNAPSHOT_PATH.to_string(), gts);
+        Ok(StageOutput {
+            product: StageProduct::from_artifacts(self.id(), artifacts),
+        })
+    }
 }
 
 // ── default graph (authored ontology, NO imports) ───────────────────────────────

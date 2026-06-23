@@ -4,41 +4,24 @@
 //! The `gts_sink` stage (#861 P4/P6): the sole serialization exit — the gts
 //! narrow waist.
 //!
-//! Exactly one Sink per pipeline. It assembles the STRUCTURED multi-named-graph
-//! `dist` snapshot — fold-isomorphic to the committed `generated/dist/gmeow.gts`
-//! (#861 P6 parity gate) — via [`crate::stages::snapshot::build_snapshot`], which
-//! drives the pyo3-free `gmeow_rdf::gts_compose` core. The default graph carries
-//! the AUTHORED ontology only; the import closure, self-description metadata,
-//! SSSOM alignment axioms, the RDF 1.2 statement layer, the slice-analysis graph,
-//! the verify attestation, and the documentation projection each ride their own
-//! named graph, plus the RDF 1.2 reifier/annotation tables and the
-//! content-addressed blob channel.
+//! Exactly one Sink per pipeline. The STRUCTURED multi-named-graph `dist`
+//! snapshot is ASSEMBLED upstream by [`crate::stages::snapshot::SnapshotStage`]
+//! (fold-isomorphic to the committed `generated/dist/gmeow.gts`, #861 P6 parity
+//! gate). This sink consumes that one `stage-snapshot` product and re-emits its
+//! `gmeow.gts` bytes as the sink artifact — the single, well-defined disk-write
+//! the `run_full` orchestration performs. Splitting the assembly (a Transform)
+//! from the serialization exit (this Sink) is what lets every fold-reading export
+//! leaf consume THIS run's freshly-composed fold rather than the stale committed
+//! file (the single-pass invariant).
 
 use std::collections::BTreeMap;
 
-use gmeow_rdf::gts_compose::BlobRow;
-
 use crate::error::PipelineError;
 use crate::node::{Stage, StageInput, StageKind, StageOutput, StageProduct};
-use crate::stages::snapshot::build_snapshot;
+use crate::stages::snapshot::{snapshot_bytes, SNAPSHOT_PATH};
 
 /// Committed logical path of the serialized GTS bundle.
-pub const GTS_PATH: &str = "generated/dist/gmeow.gts";
-
-/// Collect the content-addressed blob rows folded ahead of the snapshot. Each
-/// upstream stage that produces a blob (the docs site, the OKF export, the
-/// transform/reasoning archives) contributes its rows here; the rows ride the
-/// SAME channel `doc_blobs` use in `gts_gen.py`.
-///
-/// Scope note: the blob CHANNEL is wired, but only the upstream products that
-/// already exist in the spine contribute. The full 247-blob set (docs guides,
-/// slice artifacts, OKF, project/ontology-docs, transform/reasoning archives) is
-/// folded as those producer stages land; the fold-parity gate measures the
-/// per-named-graph QUAD fold + reifiers/annotations (the semantic contract), not
-/// the blob count.
-fn collect_blobs(_upstream: &BTreeMap<String, StageProduct>) -> Vec<BlobRow> {
-    Vec::new()
-}
+pub const GTS_PATH: &str = SNAPSHOT_PATH;
 
 // ── Stage impl ───────────────────────────────────────────────────────────────
 
@@ -48,19 +31,11 @@ pub struct GtsSinkStage {
 }
 
 impl GtsSinkStage {
-    /// Construct the sink. It reads the RDF 1.2 statement layer (`stage-statements`)
-    /// and the documentation projection (`stage-docs-render`) products to assemble
-    /// the structured snapshot, plus `stage-gts-compose` / `stage-reason` for the
-    /// composed-fold / reasoned-closure wiring. The slice DAG's stage-gts-sink
-    /// dataflowConsumes set is reconciled at P6 wiring.
+    /// Construct the sink. It consumes the single `stage-snapshot` product (the
+    /// fully-assembled structured snapshot) and re-emits its `gmeow.gts` bytes.
     pub fn new() -> Self {
         Self {
-            consumes: vec![
-                "stage-docs-render".to_string(),
-                "stage-gts-compose".to_string(),
-                "stage-reason".to_string(),
-                "stage-statements".to_string(),
-            ],
+            consumes: vec!["stage-snapshot".to_string()],
         }
     }
 }
@@ -82,11 +57,10 @@ impl Stage for GtsSinkStage {
         &self.consumes
     }
     fn impl_version(&self) -> &str {
-        "gts_sink.v2-structured"
+        "gts_sink.v3-snapshot"
     }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, PipelineError> {
-        let blobs = collect_blobs(input.upstream);
-        let gts = build_snapshot(input.root, input.upstream, blobs)?;
+        let gts = snapshot_bytes(input.upstream)?;
         let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
         artifacts.insert(GTS_PATH.to_string(), gts);
         Ok(StageOutput {
@@ -109,21 +83,21 @@ mod tests {
     }
 
     #[test]
-    fn sink_serializes_a_readable_gts_bundle() {
-        // Build the two upstream products the sink reads (statements RDF 1.2 +
-        // docs graph) the way their stages would, then assemble the structured
-        // snapshot and round-trip it through the kernel GTS reader.
+    fn sink_re_emits_the_snapshot_bytes_verbatim() {
+        // The sink now consumes the assembled `stage-snapshot` product and just
+        // re-emits its `gmeow.gts` bytes. Build a snapshot product the way the
+        // SnapshotStage would, run the sink over it, and assert byte-equality.
         let root = repo_root();
         let (_, rdf12) = crate::stages::statements::compile_statements(&root).unwrap();
         let docs = crate::stages::docs_render::render_docs_graph(&root).unwrap();
 
-        let mut upstream: BTreeMap<String, StageProduct> = BTreeMap::new();
+        let mut snap_upstream: BTreeMap<String, StageProduct> = BTreeMap::new();
         let mut st: BTreeMap<String, Vec<u8>> = BTreeMap::new();
         st.insert(
             crate::stages::statements::RDF12_PATH.to_string(),
             rdf12.into_bytes(),
         );
-        upstream.insert(
+        snap_upstream.insert(
             "stage-statements".to_string(),
             StageProduct::from_artifacts("stage-statements", st),
         );
@@ -132,19 +106,41 @@ mod tests {
             crate::stages::docs_render::DOCS_GRAPH_PATH.to_string(),
             docs.into_bytes(),
         );
-        upstream.insert(
+        snap_upstream.insert(
             "stage-docs-render".to_string(),
             StageProduct::from_artifacts("stage-docs-render", dc),
         );
 
-        let gts = build_snapshot(&root, &upstream, Vec::new()).expect("build_snapshot");
+        let gts = crate::stages::snapshot::build_snapshot(&root, &snap_upstream, Vec::new())
+            .expect("build_snapshot");
         assert!(
             gts.len() > 1024,
             "GTS bundle implausibly small: {} bytes",
             gts.len()
         );
+
+        // Hand the assembled snapshot to the sink as the `stage-snapshot` product.
+        let mut snap_art: BTreeMap<String, Vec<u8>> = BTreeMap::new();
+        snap_art.insert(GTS_PATH.to_string(), gts.clone());
+        let mut upstream: BTreeMap<String, StageProduct> = BTreeMap::new();
+        upstream.insert(
+            "stage-snapshot".to_string(),
+            StageProduct::from_artifacts("stage-snapshot", snap_art),
+        );
+        let out = GtsSinkStage::new()
+            .run(StageInput {
+                root: &root,
+                upstream: &upstream,
+            })
+            .expect("sink runs");
+        let emitted = out
+            .product
+            .artifact(GTS_PATH)
+            .expect("sink emits gmeow.gts");
+        assert_eq!(emitted, gts.as_slice(), "sink must re-emit verbatim");
+
         // Round-trips through the kernel GTS reader (the bundle is well-formed).
-        let graph = gmeow_rdf::gts::read_graph(&gts, true).expect("read_graph");
+        let graph = gmeow_rdf::gts::read_graph(emitted, true).expect("read_graph");
         let _ = gmeow_rdf::gts::GtsGraphStore::new(&graph);
     }
 }

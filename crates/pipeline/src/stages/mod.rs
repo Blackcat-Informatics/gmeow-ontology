@@ -51,22 +51,23 @@ pub fn register_default(registry: &mut StageRegistry) {
     registry.register("reason", Arc::new(reason::ReasonStage::new()));
     registry.register("mappings", Arc::new(mappings::MappingsStage));
     registry.register("docs_render", Arc::new(docs_render::DocsRenderStage::new()));
+    registry.register("snapshot", Arc::new(snapshot::SnapshotStage::new()));
     registry.register("gts_sink", Arc::new(gts_sink::GtsSinkStage::new()));
     registry.register("catalog", Arc::new(catalog::CatalogStage));
     registry.register("profiles", Arc::new(profiles::ProfilesStage));
     registry.register("frame_shapes", Arc::new(frame_shapes::FrameShapesStage));
     registry.register("matrix", Arc::new(matrix::MatrixStage));
-    registry.register("metadata", Arc::new(metadata::MetadataStage));
+    registry.register("metadata", Arc::new(metadata::MetadataStage::new()));
     registry.register("apache", Arc::new(apache::ApacheStage));
-    registry.register("lpg", Arc::new(lpg::LpgStage));
+    registry.register("lpg", Arc::new(lpg::LpgStage::new()));
     registry.register("references", Arc::new(references::ReferencesStage));
     registry.register("evals", Arc::new(evals::EvalsStage));
-    registry.register("schemas", Arc::new(schemas::SchemasStage));
+    registry.register("schemas", Arc::new(schemas::SchemasStage::new()));
     registry.register(
         "research-objects",
         Arc::new(research_objects::ResearchObjectsStage),
     );
-    registry.register("parquet", Arc::new(parquet::ParquetStage));
-    registry.register("okf", Arc::new(okf::OkfStage));
-    registry.register("export", Arc::new(export::ExportStage));
+    registry.register("parquet", Arc::new(parquet::ParquetStage::new()));
+    registry.register("okf", Arc::new(okf::OkfStage::new()));
+    registry.register("export", Arc::new(export::ExportStage::new()));
 }

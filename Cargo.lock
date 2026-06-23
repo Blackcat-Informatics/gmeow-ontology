@@ -1696,6 +1696,7 @@ dependencies = [
  "gmeow-diagnostics",
  "gmeow-docs",
  "gmeow-logic",
+ "gmeow-pipeline",
  "gmeow-rdf",
  "gmeow-shacl",
  "gmeow-slice",

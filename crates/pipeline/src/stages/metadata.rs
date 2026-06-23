@@ -643,7 +643,24 @@ fn serialize(store: &Store) -> Result<Vec<u8>, PipelineError> {
 // ── Stage impl ───────────────────────────────────────────────────────────────
 
 /// The `metadata` export-leaf stage.
-pub struct MetadataStage;
+pub struct MetadataStage {
+    consumes: Vec<String>,
+}
+
+impl MetadataStage {
+    /// Construct the stage; it consumes THIS run's snapshot fold.
+    pub fn new() -> Self {
+        Self {
+            consumes: vec!["stage-snapshot".to_string()],
+        }
+    }
+}
+
+impl Default for MetadataStage {
+    fn default() -> Self {
+        Self::new()
+    }
+}
 
 impl Stage for MetadataStage {
     fn id(&self) -> &str {
@@ -653,15 +670,15 @@ impl Stage for MetadataStage {
         StageKind::ExportLeaf
     }
     fn consumes(&self) -> &[String] {
-        &[]
+        &self.consumes
     }
     fn impl_version(&self) -> &str {
         "metadata.v1"
     }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, PipelineError> {
-        let gts = std::fs::read(input.root.join("generated/dist/gmeow.gts"))?;
+        let gts = crate::stages::snapshot::snapshot_bytes(input.upstream)?;
         let graph = gmeow_rdf::gts::read_graph(&gts, true)
-            .map_err(|e| PipelineError::Parse(format!("read gmeow.gts: {e}")))?;
+            .map_err(|e| PipelineError::Parse(format!("read snapshot gmeow.gts: {e}")))?;
         let store = gmeow_rdf::gts::GtsGraphStore::new(&graph);
 
         let void = build_void_store(&store)?;

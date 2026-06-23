@@ -764,7 +764,24 @@ fn render_graphml(nodes: &[Node], edges: &[Edge]) -> String {
 // ── Stage impl ───────────────────────────────────────────────────────────────
 
 /// The `lpg` export-leaf stage.
-pub struct LpgStage;
+pub struct LpgStage {
+    consumes: Vec<String>,
+}
+
+impl LpgStage {
+    /// Construct the stage; it consumes THIS run's snapshot fold.
+    pub fn new() -> Self {
+        Self {
+            consumes: vec!["stage-snapshot".to_string()],
+        }
+    }
+}
+
+impl Default for LpgStage {
+    fn default() -> Self {
+        Self::new()
+    }
+}
 
 impl Stage for LpgStage {
     fn id(&self) -> &str {
@@ -774,16 +791,16 @@ impl Stage for LpgStage {
         StageKind::ExportLeaf
     }
     fn consumes(&self) -> &[String] {
-        &[]
+        &self.consumes
     }
     fn impl_version(&self) -> &str {
         "lpg.v1"
     }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, PipelineError> {
-        // Read the composed fold from the committed gmeow.gts at the root.
-        let gts = std::fs::read(input.root.join("generated/dist/gmeow.gts"))?;
+        // Read THIS run's fold from the stage-snapshot upstream product.
+        let gts = crate::stages::snapshot::snapshot_bytes(input.upstream)?;
         let graph = gmeow_rdf::gts::read_graph(&gts, true)
-            .map_err(|e| PipelineError::Parse(format!("read gmeow.gts: {e}")))?;
+            .map_err(|e| PipelineError::Parse(format!("read snapshot gmeow.gts: {e}")))?;
         let store = gmeow_rdf::gts::GtsGraphStore::new(&graph);
         let (nodes, edges) = build_lpg(&store)?;
         Ok(StageOutput {
