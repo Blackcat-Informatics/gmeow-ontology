@@ -39,3 +39,14 @@ engine = { max-threads = 2 }
 # foundation/stablemodel unit tests use the NATIVE rust chase (no engine) and stay parallel.
 filter = 'package(gmeow-conformance) | (package(gmeow-logic) & test(/nemo_engine|scryer_engine|materialize|reason|verify|certify|dispatch|profile_gate|counterfactual/))'
 test-group = 'engine'
+
+[[profile.default.overrides]]
+# gmeow-pipeline's executor / parity tests run the FULL build DAG, which reasons
+# over the entire 66k-quad fold via the native engine (the `logic` leaf reasons,
+# `snapshot` folds the closure). They are engine-heavy (so serialize them under the
+# `engine` group to avoid OOM-thrash with the other chases) AND inherently slow —
+# the full-fold chase is minutes — so they need a far longer terminate cliff than
+# the 120s default (logic_artifacts / full_parity exceed it under the CI memory cap).
+filter = 'package(gmeow-pipeline) & test(/full_parity|fold_parity|end_to_end|dag_dogfood|logic_artifacts_reproduce/)'
+test-group = 'engine'
+slow-timeout = { period = "240s", "terminate-after" = 4, "grace-period" = "30s" }

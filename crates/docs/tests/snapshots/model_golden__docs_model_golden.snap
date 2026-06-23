@@ -5,14 +5,14 @@ expression: summary
 {
   "title": "GMEOW Ontology Documentation",
   "version": "3",
-  "slice_count": 74,
-  "term_count": 2153,
-  "dependency_edge_count": 754,
+  "slice_count": 75,
+  "term_count": 2163,
+  "dependency_edge_count": 755,
   "term_count_by_category": {
-    "Class": 648,
+    "Class": 651,
     "Datatype": 1,
     "Individual": 3,
-    "Property": 1501
+    "Property": 1508
   },
   "slice_iris": [
     "https://blackcatinformatics.ca/gmeow/slices/accessibility",
@@ -71,6 +71,7 @@ expression: summary
     "https://blackcatinformatics.ca/gmeow/slices/notes",
     "https://blackcatinformatics.ca/gmeow/slices/observations",
     "https://blackcatinformatics.ca/gmeow/slices/organization",
+    "https://blackcatinformatics.ca/gmeow/slices/pipeline",
     "https://blackcatinformatics.ca/gmeow/slices/places",
     "https://blackcatinformatics.ca/gmeow/slices/procedures",
     "https://blackcatinformatics.ca/gmeow/slices/profiles",
@@ -183,7 +184,7 @@ expression: summary
   ],
   "mapping_set_count": 54,
   "linkage_count": 1381,
-  "example_count": 94,
+  "example_count": 95,
   "concern_count": 7,
   "external_term_count": 1213,
   "sample_mapping_set": {

@@ -6,23 +6,23 @@ expression: "to_markdown(&model, &Page::Landing)"
 
 Version **3**.
 
-This site documents **2153** vocabulary terms across **74** slices.
+This site documents **2163** vocabulary terms across **75** slices.
 
 ## Vocabulary by category
 
 | Category | Terms |
 | --- | --- |
-| [Classes](classes/index.md) | 648 |
-| [Properties](properties/index.md) | 1501 |
+| [Classes](classes/index.md) | 651 |
+| [Properties](properties/index.md) | 1508 |
 | [Individuals](individuals/index.md) | 3 |
 | [Datatypes](datatypes/index.md) | 1 |
 
 ## Browse
 
-- [All slices](slices/index.md) — the 74 compilation units.
+- [All slices](slices/index.md) — the 75 compilation units.
 - [Concerns](concerns/index.md) — 7 cross-cutting design concerns.
 - [Linkages](linkages/index.md) — 1381 term equivalences to external vocabularies.
-- [Examples](examples/index.md) — 94 worked examples.
+- [Examples](examples/index.md) — 95 worked examples.
 - [External ontologies](external-ontologies/index.md) — 1213 external terms referenced.
 - [Integrity constraints](integrity-constraints/index.md)
 - [Recipes](recipes/index.md) — 6 task-oriented adoption recipes.
