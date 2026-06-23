@@ -42,10 +42,10 @@ use std::sync::Arc;
 
 use crate::dataset_view::{DatasetMut, GraphMatch};
 use crate::ir::{RdfDataset, RdfDatasetBuilder, TermValue};
-use crate::model::{RdfLiteral, RdfTextDirection};
+use crate::model::RdfLiteral;
 
 use super::dataset::TermRef;
-use super::term::{BlankScope, TermId};
+use super::term::TermId;
 
 /// A dense index into a [`MutableDataset`]'s OWN delta term interner. Newtype (not a
 /// bare `u32`) so it can never be confused with a base [`TermId`]; only ever wrapped
@@ -84,56 +84,61 @@ pub(crate) struct QuadKey {
     pub g: Option<MutTermId>,
 }
 
-/// One interned delta term. Strings are owned (the delta is small and short-lived,
-/// so an arena would be over-engineering); triple components are [`MutTermId`]s so a
-/// delta triple term may reference base terms or other delta terms.
-#[derive(Clone, PartialEq, Eq, Debug)]
-enum DeltaTerm {
-    Iri(String),
-    Blank {
-        label: String,
-        scope: BlankScope,
-    },
-    Literal {
-        lexical_form: String,
-        /// The datatype IRI, by value (already expanded per C0.1).
-        datatype: String,
-        language: Option<String>,
-        direction: Option<RdfTextDirection>,
-    },
-    Triple {
-        s: MutTermId,
-        p: MutTermId,
-        o: MutTermId,
-    },
-}
-
-/// The delta's own small term interner. Terms not found in the base are minted here
-/// (value-deduplicated against the delta's own terms), each yielding a
-/// [`DeltaTermId`]. Kept INTERNAL to the mutable layer.
+/// The delta's own small term interner. Terms not found in the base are minted here,
+/// each yielding a [`DeltaTermId`]. Stores fully-resolved [`TermValue`]s by value (a
+/// delta triple term is a `TermValue::Triple` holding its components by value, so no
+/// `MutTermId` recursion is needed to read one back). Kept INTERNAL to the mutable
+/// layer.
 #[derive(Default, Debug)]
 struct DeltaBuilder {
-    /// The sole owner of each delta term, in mint order. A linear value-dedup scan is
-    /// adequate: the delta is the *churn* over a base, expected small relative to it,
-    /// and is discarded at every `freeze()`/`should_compact()` re-base.
-    terms: Vec<DeltaTerm>,
+    /// The sole owner of each delta term value, in mint order.
+    values: Vec<TermValue>,
+    /// Reverse hash→id index, mirroring the base's `value_index` in `dataset.rs`:
+    /// keyed by a canonical hash of the term VALUE with `Vec<DeltaTermId>` collision
+    /// buckets, so interning and lookup are O(1) expected instead of a linear scan.
+    /// The hash is in-memory only (never persisted), so a fixed-seed `DefaultHasher`
+    /// is fine and matches the `dataset.rs` precedent.
+    index: std::collections::HashMap<u64, Vec<DeltaTermId>>,
 }
 
 impl DeltaBuilder {
+    /// Canonical hash of a [`TermValue`], matching the base's `value_index` keying.
+    fn hash_of(value: &TermValue) -> u64 {
+        use std::hash::{Hash, Hasher};
+        let mut hasher = std::collections::hash_map::DefaultHasher::new();
+        value.hash(&mut hasher);
+        hasher.finish()
+    }
+
     /// Intern a delta term BY VALUE, returning its [`DeltaTermId`]. Idempotent: equal
-    /// values dedup to one id.
-    fn intern(&mut self, term: DeltaTerm) -> DeltaTermId {
-        if let Some(i) = self.terms.iter().position(|t| *t == term) {
-            return DeltaTermId(i as u32);
+    /// values dedup to one id (probe the hash bucket, compare candidates by `==`).
+    fn intern(&mut self, value: TermValue) -> DeltaTermId {
+        let h = Self::hash_of(&value);
+        let bucket = self.index.entry(h).or_default();
+        for &did in bucket.iter() {
+            if self.values[did.index()] == value {
+                return did;
+            }
         }
-        let i = u32::try_from(self.terms.len()).expect("delta term table exceeds u32::MAX");
-        self.terms.push(term);
-        DeltaTermId(i)
+        let i = u32::try_from(self.values.len()).expect("delta term table exceeds u32::MAX");
+        let did = DeltaTermId(i);
+        bucket.push(did);
+        self.values.push(value);
+        did
+    }
+
+    /// Find an already-interned [`TermValue`] WITHOUT minting; `None` if absent.
+    fn find(&self, value: &TermValue) -> Option<DeltaTermId> {
+        let bucket = self.index.get(&Self::hash_of(value))?;
+        bucket
+            .iter()
+            .copied()
+            .find(|&did| self.values[did.index()] == *value)
     }
 
     #[inline]
-    fn term(&self, id: DeltaTermId) -> &DeltaTerm {
-        &self.terms[id.index()]
+    fn value(&self, id: DeltaTermId) -> &TermValue {
+        &self.values[id.index()]
     }
 }
 
@@ -220,71 +225,25 @@ impl MutableDataset {
         }
     }
 
-    /// Resolve a [`MutTermId`] to its dataset-independent [`TermValue`].
+    /// Resolve a [`MutTermId`] to its dataset-independent [`TermValue`]. A `Delta`
+    /// component is stored fully-resolved by value, so this is a single clone — no
+    /// recursion through the delta interner.
     fn mut_value(&self, id: MutTermId) -> TermValue {
         match id {
             MutTermId::Base(b) => self.base_value(b),
-            MutTermId::Delta(d) => match self.delta.term(d) {
-                DeltaTerm::Iri(iri) => TermValue::Iri(iri.clone()),
-                DeltaTerm::Blank { label, scope } => TermValue::Blank {
-                    label: label.clone(),
-                    scope: *scope,
-                },
-                DeltaTerm::Literal {
-                    lexical_form,
-                    datatype,
-                    language,
-                    direction,
-                } => TermValue::Literal {
-                    lexical_form: lexical_form.clone(),
-                    datatype: datatype.clone(),
-                    language: language.clone(),
-                    direction: *direction,
-                },
-                DeltaTerm::Triple { s, p, o } => TermValue::Triple {
-                    s: Box::new(self.mut_value(*s)),
-                    p: Box::new(self.mut_value(*p)),
-                    o: Box::new(self.mut_value(*o)),
-                },
-            },
+            MutTermId::Delta(d) => self.delta.value(d).clone(),
         }
     }
 
     /// Resolve a [`TermValue`] to a [`MutTermId`]: a base hit binds `Base`, a miss
-    /// mints (or finds) a `Delta` id in the delta interner. Recurses for triple
-    /// components so a brand-new triple over existing terms re-uses their base ids.
+    /// mints (or finds) a `Delta` id in the delta interner. The delta stores the term
+    /// fully-resolved by value, so a brand-new triple term is interned whole as one
+    /// `TermValue::Triple` (its components carried by value).
     fn resolve_value(&mut self, value: &TermValue) -> MutTermId {
         if let Some(id) = self.base.term_id_by_value(value) {
             return MutTermId::Base(id);
         }
-        // The C0.1 datatype-expansion / language-lowercasing policy is applied here so
-        // a delta literal value keys identically to how the builder would intern it,
-        // keeping base-lookup and delta-mint identity consistent.
-        let term = match value {
-            TermValue::Iri(iri) => DeltaTerm::Iri(iri.clone()),
-            TermValue::Blank { label, scope } => DeltaTerm::Blank {
-                label: label.clone(),
-                scope: *scope,
-            },
-            TermValue::Literal {
-                lexical_form,
-                datatype,
-                language,
-                direction,
-            } => DeltaTerm::Literal {
-                lexical_form: lexical_form.clone(),
-                datatype: datatype.clone(),
-                language: language.clone(),
-                direction: *direction,
-            },
-            TermValue::Triple { s, p, o } => {
-                let s = self.resolve_value(s);
-                let p = self.resolve_value(p);
-                let o = self.resolve_value(o);
-                DeltaTerm::Triple { s, p, o }
-            }
-        };
-        MutTermId::Delta(self.delta.intern(term))
+        MutTermId::Delta(self.delta.intern(value.clone()))
     }
 
     /// Build a [`QuadKey`] from a value-quad, resolving each component to a
@@ -340,15 +299,10 @@ impl MutableDataset {
         if let Some(id) = self.base.term_id_by_value(value) {
             return Some(MutTermId::Base(id));
         }
-        // Linear value scan of the delta interner (small). Triple components are
-        // compared by resolving each side back to a value.
-        for (i, _) in self.delta.terms.iter().enumerate() {
-            let did = DeltaTermId(i as u32);
-            if self.mut_value(MutTermId::Delta(did)) == *value {
-                return Some(MutTermId::Delta(did));
-            }
-        }
-        None
+        // Hash-indexed delta lookup (O(1) expected) — no linear scan, no per-term
+        // value rebuild: the delta stores `TermValue`s by value and indexes them by
+        // their canonical hash, just like the base's `value_index`.
+        self.delta.find(value).map(MutTermId::Delta)
     }
 
     /// Whether a base [`QuadKey`] (all components `Base`) names a quad in the base.
@@ -694,20 +648,14 @@ impl MutableDataset {
     /// dataset and read `QuadIds` there.
     #[doc(hidden)]
     pub fn effective_count(&self) -> usize {
-        let suppressed = self
-            .base
-            .quads()
-            .filter(|q| {
-                let key = QuadKey {
-                    s: MutTermId::Base(q.s),
-                    p: MutTermId::Base(q.p),
-                    o: MutTermId::Base(q.o),
-                    g: q.g.map(MutTermId::Base),
-                };
-                self.suppressed.contains(&key)
-            })
-            .count();
-        self.base.quad_count() - suppressed + self.added.len()
+        // O(1) from the mutation invariants (no base scan):
+        //   • every key in `suppressed` is a base quad (rule 3 inserts only when
+        //     `base_contains`), so `suppressed.len()` base quads are removed;
+        //   • every key in `added` is a non-base, non-suppressed quad (insert adds
+        //     only when `!contains_key`), so `added.len()` quads are net-new;
+        //   • `added` and `suppressed` are disjoint.
+        // Hence effective = base ∪ added − suppressed has exactly this cardinality.
+        self.base.quad_count() + self.added.len() - self.suppressed.len()
     }
 }
 
