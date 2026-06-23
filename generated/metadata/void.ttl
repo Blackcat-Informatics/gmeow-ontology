@@ -1616,7 +1616,7 @@
 	<http://rdfs.org/ns/void#entities> 4482 ;
 	<http://rdfs.org/ns/void#properties> 1566 ;
 	<http://rdfs.org/ns/void#classes> 739 ;
-	<http://rdfs.org/ns/void#triples> 38593 ;
+	<http://rdfs.org/ns/void#triples> 38600 ;
 	<http://rdfs.org/ns/void#exampleResource> <https://blackcatinformatics.ca/gmeow/Person> ;
 	<http://rdfs.org/ns/void#uriSpace> "https://blackcatinformatics.ca/gmeow/" ;
 	<http://purl.org/dc/terms/hasVersion> "0.1.0" ;

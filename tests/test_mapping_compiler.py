@@ -7,6 +7,7 @@ import sys
 from pathlib import Path
 
 import pytest
+import pytest as _pytest
 from gmeow_rdf.compat.rdflib import RDF, RDFS, BNode, Graph, URIRef
 from gmeow_rdf.compat.rdflib.namespace import Namespace
 from gmeow_rdf.compat.rdflib.plugins.sparql import prepareQuery
@@ -24,6 +25,8 @@ from gmeow_tools.mapping_compile import (
 from gmeow_tools.mapping_dsl import CompileError, Expr, load_dsl, render_expr
 from gmeow_tools.mappings import load_mappings
 from gmeow_tools.projection_lint import fno_type_mismatches
+
+pytestmark = _pytest.mark.maintainer
 
 GM = Namespace(PREFIXES["gmeow"])
 FNO = Namespace(PREFIXES["fno"])

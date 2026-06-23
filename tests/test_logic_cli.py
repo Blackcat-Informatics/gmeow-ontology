@@ -16,10 +16,13 @@ import json
 from pathlib import Path
 
 import pytest
+import pytest as _pytest
 from typer.testing import CliRunner
 
 from gmeow_tools.cli_dev import app as dev_app
 from tests._required_native import require_gmeow_logic
+
+pytestmark = _pytest.mark.maintainer
 
 # --------------------------------------------------------------------------- #
 # CLI: gmeow logic compile --check

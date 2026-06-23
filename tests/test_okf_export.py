@@ -1,6 +1,6 @@
 """Tests for the OKF (Open Knowledge Format) bidirectional surface (#780).
 
-Marked ``ci_only``: the OKF bundle is the agent-facing export surface (like the
+Marked ``maintainer``: the OKF bundle is the agent-facing export surface (like the
 CSV/Markdown/llms.txt views), so these run in ``make test`` / CI but are excluded
 from the fast ``make check`` gate. The ``gts from-okf`` round-trip + lift tests are
 additionally gated on a built ``gts`` binary with OKF support (a separate
@@ -25,7 +25,7 @@ from gmeow_tools.okf_export import (
     okf_index_records,
 )
 
-pytestmark = pytest.mark.ci_only
+pytestmark = pytest.mark.maintainer
 
 _OKF_NS = "https://blackcatinformatics.ca/projects/gts/okf#"
 

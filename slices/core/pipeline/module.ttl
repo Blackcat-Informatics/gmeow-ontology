@@ -7,6 +7,20 @@
 @prefix owl:     <http://www.w3.org/2002/07/owl#> .
 @prefix gufo:    <http://purl.org/nemo/gufo#> .
 @prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+
+# =========================================================================== #
+# Module ontology header (the slice IRI).                                     #
+# =========================================================================== #
+
+<https://blackcatinformatics.ca/gmeow/slices/pipeline>
+    a owl:Ontology ;
+    dcterms:isPartOf <https://blackcatinformatics.ca/gmeow> ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "GMEOW Pipeline Module"@x-gmeow-english ;
+    skos:definition "The GMEOW Pipeline Module — the dogfooded build DAG: gmeow:Pipeline / gmeow:PipelineStage individuals describing the DAG-driven single-pass executor (crates/pipeline), read back by the loader so the build is a first-class ontological citizen. One gmeow:stage-gts-sink is the narrow-waist serialization exit."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxConfigBox ,
+        gmeow:boxTBox .
 
 # =========================================================================== #
 # Classes — the dogfooded build graph.                                        #

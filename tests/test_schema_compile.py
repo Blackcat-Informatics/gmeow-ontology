@@ -3,7 +3,7 @@
 Validates the OWL → LinkML pipeline and the downstream generator fan-out.
 These tests are pure-Python (no Docker) and exercise the full compile path.
 
-Marked ``ci_only``: the LinkML + JSON-Schema/Pydantic/TS/GraphQL/OpenAPI
+Marked ``maintainer``: the LinkML + JSON-Schema/Pydantic/TS/GraphQL/OpenAPI
 generation is a heavy *secondary external-export* transformation (~45 s), so it
 runs in CI and ``make test`` but is excluded from the fast ``make check`` gate.
 """
@@ -30,7 +30,7 @@ from gmeow_tools.schema_compile import (
     gen_typescript,
 )
 
-pytestmark = pytest.mark.ci_only
+pytestmark = pytest.mark.maintainer
 
 
 def test_emit_linkml_produces_expected_structure() -> None:

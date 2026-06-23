@@ -21,7 +21,7 @@ from gmeow_rdf.compat.rdflib import Graph, URIRef
 from gmeow_tools.config import EXTERNAL_FIXTURES_DIR, FIXTURES_DIR, NAMESPACE
 from gmeow_tools.transform import TransformAbortedError, transform, vocab_coverage
 
-pytestmark = pytest.mark.ci_only
+pytestmark = pytest.mark.maintainer
 
 _RIGHTS = FIXTURES_DIR / "rights.ttl"
 _CANARY = FIXTURES_DIR / "suppression-canary.ttl"

@@ -1,6 +1,6 @@
 """Tests for the flattened export views (tabular + LLM).
 
-Marked ``ci_only``: these exercise the secondary external-export surface
+Marked ``maintainer``: these exercise the secondary external-export surface
 (CSV/CSVW, Markdown, JSONL, llms.txt) rather than the core ontology, so they run
 in CI and ``make test`` but are excluded from the fast ``make check`` gate.
 """
@@ -35,7 +35,7 @@ from gmeow_tools.export import (
 )
 from gmeow_tools.gts_views import FoldView, load_fold
 
-pytestmark = pytest.mark.ci_only
+pytestmark = pytest.mark.maintainer
 
 
 def test_curie_compacts_known_namespaces() -> None:
