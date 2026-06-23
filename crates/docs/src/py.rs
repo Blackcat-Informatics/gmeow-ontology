@@ -33,6 +33,22 @@ fn model_json(root: String) -> PyResult<String> {
         .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))
 }
 
+/// The canonical UI-chrome template table (R6 of #859) as a `dict[str, str]`.
+///
+/// `crate::i18n::UI_TEMPLATES` is the SINGLE source of truth for the
+/// documentation UI strings. This accessor exposes it so the Python `.pot`
+/// authoring pipeline (`gmeow-dev i18n extract`) derives the templates from it
+/// instead of duplicating the 60-key table — the duplicate Python literal is
+/// deleted. The Rust table is pre-sorted; dict insertion order follows it.
+#[pyfunction]
+fn ui_templates(py: Python<'_>) -> PyResult<Py<PyAny>> {
+    let out = PyDict::new(py);
+    for (key, value) in crate::i18n::UI_TEMPLATES {
+        out.set_item(key, value)?;
+    }
+    Ok(out.into_any().unbind())
+}
+
 /// A fully rendered ontology-docs static site.
 ///
 /// Wraps the engine [`Site`] (a deterministic, sorted `path -> bytes` tree) and
@@ -169,6 +185,7 @@ fn for_lang_dict(py: Python<'_>, site: &Site) -> PyResult<Py<PyAny>> {
 /// to that same submodule object via a Python shim.
 pub fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(model_json, m)?)?;
+    m.add_function(wrap_pyfunction!(ui_templates, m)?)?;
     m.add_class::<DocSet>()?;
     Ok(())
 }
