@@ -162,7 +162,7 @@ impl GraphInterner {
     ) -> Result<String, RdfDiagnostic> {
         let id = self.intern(dt_id, depth)?;
         match self.builder.term(id) {
-            InternedTerm::Iri(iri) => Ok(iri.to_string()),
+            InternedTerm::Iri(iri) => Ok(self.builder.interned_str(*iri).to_string()),
             other => Err(RdfDiagnostic::error(
                 "gts-literal-datatype-not-iri",
                 format!("GTS literal datatype must resolve to an IRI, got {other:?}"),

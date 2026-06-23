@@ -23,10 +23,13 @@ use std::sync::Arc;
 
 use hashbrown::HashTable;
 
-use crate::RdfLiteral;
+use crate::{RdfLiteral, RdfTextDirection};
 
 use super::dataset::{QuadHandle, QuadIds, QuadRow, RdfDataset};
-use super::term::{BlankScope, InternedLiteral, InternedTerm, TermId, RDF_LANG_STRING, XSD_STRING};
+use super::term::{
+    arena_str, BlankScope, InternedLiteral, InternedTerm, StrRange, TermId, RDF_LANG_STRING,
+    XSD_STRING,
+};
 use crate::RdfLocation;
 
 /// A fixed-seed hash of a value (`DefaultHasher::new()` keys are constant), so the
@@ -56,32 +59,225 @@ fn store_once<T: Hash + Eq>(vec: &mut Vec<T>, table: &mut HashTable<u32>, value:
     i
 }
 
+/// A borrowed term lookup key (#879 P3b): carries the string components by reference
+/// so the interner can dedup BY VALUE *before* anything is pushed to the arena.
+/// Mirrors [`InternedTerm`] but with `&str` where the stored form holds a `StrRange`.
+enum TermLookup<'a> {
+    Iri(&'a str),
+    Blank {
+        label: &'a str,
+        scope: BlankScope,
+    },
+    Literal {
+        lexical: &'a str,
+        datatype: TermId,
+        language: Option<&'a str>,
+        direction: Option<RdfTextDirection>,
+    },
+    Triple {
+        s: TermId,
+        p: TermId,
+        o: TermId,
+    },
+}
+
+/// Hash a borrowed lookup. MUST hash byte-identically to [`hash_stored`] for equal
+/// values — explicit discriminant tags + `str::hash` (so the find/insert hashes agree).
+fn hash_lookup<H: Hasher>(lookup: &TermLookup, state: &mut H) {
+    match lookup {
+        TermLookup::Iri(iri) => {
+            0u8.hash(state);
+            iri.hash(state);
+        }
+        TermLookup::Blank { label, scope } => {
+            1u8.hash(state);
+            label.hash(state);
+            scope.hash(state);
+        }
+        TermLookup::Literal {
+            lexical,
+            datatype,
+            language,
+            direction,
+        } => {
+            2u8.hash(state);
+            lexical.hash(state);
+            datatype.hash(state);
+            language.hash(state);
+            direction.hash(state);
+        }
+        TermLookup::Triple { s, p, o } => {
+            3u8.hash(state);
+            s.hash(state);
+            p.hash(state);
+            o.hash(state);
+        }
+    }
+}
+
+/// Hash a stored term, resolving its `StrRange`s through `arena`. MUST match
+/// [`hash_lookup`] for equal values.
+fn hash_stored<H: Hasher>(arena: &[u8], term: &InternedTerm, state: &mut H) {
+    match term {
+        InternedTerm::Iri(r) => {
+            0u8.hash(state);
+            arena_str(arena, *r).hash(state);
+        }
+        InternedTerm::Blank { label, scope } => {
+            1u8.hash(state);
+            arena_str(arena, *label).hash(state);
+            scope.hash(state);
+        }
+        InternedTerm::Literal(lit) => {
+            2u8.hash(state);
+            arena_str(arena, lit.lexical_form).hash(state);
+            lit.datatype.hash(state);
+            lit.language.map(|r| arena_str(arena, r)).hash(state);
+            lit.direction.hash(state);
+        }
+        InternedTerm::Triple { s, p, o } => {
+            3u8.hash(state);
+            s.hash(state);
+            p.hash(state);
+            o.hash(state);
+        }
+    }
+}
+
+/// Whether a stored term equals a lookup, resolving the stored ranges through `arena`.
+fn term_eq(arena: &[u8], term: &InternedTerm, lookup: &TermLookup) -> bool {
+    match (term, lookup) {
+        (InternedTerm::Iri(r), TermLookup::Iri(s)) => arena_str(arena, *r) == *s,
+        (
+            InternedTerm::Blank { label, scope },
+            TermLookup::Blank {
+                label: ls,
+                scope: ss,
+            },
+        ) => arena_str(arena, *label) == *ls && scope == ss,
+        (
+            InternedTerm::Literal(lit),
+            TermLookup::Literal {
+                lexical,
+                datatype,
+                language,
+                direction,
+            },
+        ) => {
+            arena_str(arena, lit.lexical_form) == *lexical
+                && lit.datatype == *datatype
+                && lit.direction == *direction
+                && lit.language.map(|r| arena_str(arena, r)) == *language
+        }
+        (
+            InternedTerm::Triple { s, p, o },
+            TermLookup::Triple {
+                s: ls,
+                p: lp,
+                o: lo,
+            },
+        ) => s == ls && p == lp && o == lo,
+        _ => false,
+    }
+}
+
 /// Term storage + value-interning dedup + the C0 identity policy, in one cohesive
 /// unit (SRP). Private: the builder is the only public surface.
 struct Interner {
-    /// Dense table of interned terms — the **sole** owner of each term value (#880).
+    /// The byte arena owning every interned string ONCE (#879 P3b); terms hold ranges.
+    arena: Vec<u8>,
+    /// Dense table of interned terms (range-backed); the sole structural owner.
     terms: Vec<InternedTerm>,
-    /// Store-once value→id index: holds only the `u32` indices into `terms`, with
-    /// hash/eq looking into `terms`, so no term is stored twice.
+    /// Store-once value→id index: `u32` indices into `terms`, with hash/eq resolving
+    /// ranges through the arena and comparing BY VALUE (so equal strings dedup to
+    /// one id even though the table itself stores neither strings nor ranges).
     index: HashTable<u32>,
 }
 
 impl Interner {
     fn new() -> Self {
         Self {
+            arena: Vec::new(),
             terms: Vec::new(),
             index: HashTable::new(),
         }
     }
 
-    /// Intern a fully-formed [`InternedTerm`], returning its (possibly existing)
-    /// id. Idempotent: equal values map to the same id.
-    fn intern(&mut self, term: InternedTerm) -> TermId {
-        TermId::from_index(store_once(&mut self.terms, &mut self.index, term))
+    /// Append a string to the arena, returning its range.
+    fn push_str(&mut self, s: &str) -> StrRange {
+        // Validate the range fits u32 BEFORE mutating the arena: a checked overflow
+        // here fails fast and leaves the builder consistent, rather than extending the
+        // arena past u32::MAX and corrupting every subsequent push_str.
+        let offset = u32::try_from(self.arena.len()).expect("term arena exceeds u32::MAX bytes");
+        let len = u32::try_from(s.len()).expect("term string exceeds u32::MAX bytes");
+        offset
+            .checked_add(len)
+            .expect("term arena exceeds u32::MAX bytes");
+        self.arena.extend_from_slice(s.as_bytes());
+        StrRange { offset, len }
+    }
+
+    /// Intern a term BY VALUE: dedups against existing terms (resolving their ranges
+    /// through the arena) and pushes the strings to the arena only on a MISS, so a
+    /// duplicate value costs no arena bytes. Idempotent: equal values map to one id.
+    fn intern(&mut self, lookup: TermLookup) -> TermId {
+        let hash = {
+            let mut h = std::collections::hash_map::DefaultHasher::new();
+            hash_lookup(&lookup, &mut h);
+            h.finish()
+        };
+        {
+            let (arena, terms) = (&self.arena, &self.terms);
+            if let Some(&i) = self
+                .index
+                .find(hash, |&i| term_eq(arena, &terms[i as usize], &lookup))
+            {
+                return TermId::from_index(i);
+            }
+        }
+        let i = u32::try_from(self.terms.len()).expect("term table exceeds u32::MAX entries");
+        // Miss: now (and only now) push the strings to the arena and build the term.
+        let term = match lookup {
+            TermLookup::Iri(iri) => InternedTerm::Iri(self.push_str(iri)),
+            TermLookup::Blank { label, scope } => InternedTerm::Blank {
+                label: self.push_str(label),
+                scope,
+            },
+            TermLookup::Literal {
+                lexical,
+                datatype,
+                language,
+                direction,
+            } => {
+                let lexical_form = self.push_str(lexical);
+                let language = language.map(|l| self.push_str(l));
+                InternedTerm::Literal(InternedLiteral {
+                    lexical_form,
+                    datatype,
+                    language,
+                    direction,
+                })
+            }
+            TermLookup::Triple { s, p, o } => InternedTerm::Triple { s, p, o },
+        };
+        self.terms.push(term);
+        let (arena, terms) = (&self.arena, &self.terms);
+        self.index.insert_unique(hash, i, |&i| {
+            let mut h = std::collections::hash_map::DefaultHasher::new();
+            hash_stored(arena, &terms[i as usize], &mut h);
+            h.finish()
+        });
+        TermId::from_index(i)
     }
 
     fn term(&self, id: TermId) -> &InternedTerm {
         &self.terms[id.index()]
+    }
+
+    /// The byte arena backing this interner's term ranges (for the few build-time
+    /// readers that resolve a term's string before freeze).
+    fn arena(&self) -> &[u8] {
+        &self.arena
     }
 
     fn term_count(&self) -> usize {
@@ -164,15 +360,14 @@ impl RdfDatasetBuilder {
 
     /// Intern an IRI term. Idempotent: the same IRI string yields the same id.
     pub fn intern_iri(&mut self, iri: String) -> TermId {
-        self.interner
-            .intern(InternedTerm::Iri(iri.into_boxed_str()))
+        self.interner.intern(TermLookup::Iri(&iri))
     }
 
     /// Intern a blank node. Identity is `(label, scope)` (C0.2): same label + same
     /// scope → same id; same label + different scope → different id.
     pub fn intern_blank(&mut self, label: String, scope: BlankScope) -> TermId {
-        self.interner.intern(InternedTerm::Blank {
-            label: label.into_boxed_str(),
+        self.interner.intern(TermLookup::Blank {
+            label: &label,
             scope,
         })
     }
@@ -206,25 +401,31 @@ impl RdfDatasetBuilder {
 
         let datatype_id = self.intern_iri(datatype_iri);
 
-        self.interner.intern(InternedTerm::Literal(InternedLiteral {
-            lexical_form: lexical_form.into_boxed_str(),
+        self.interner.intern(TermLookup::Literal {
+            lexical: &lexical_form,
             datatype: datatype_id,
-            language: language_key.map(String::into_boxed_str),
+            language: language_key.as_deref(),
             direction,
-        }))
+        })
     }
 
     /// Intern a triple term (RDF 1.2 quoted triple). Identified structurally by the
     /// resolved `(s, p, o)` ids (C0.3); dedup is by that triple. Acyclicity is a
     /// freeze-time concern ([`super::validate`]), not enforced here.
     pub fn intern_triple(&mut self, s: TermId, p: TermId, o: TermId) -> TermId {
-        self.interner.intern(InternedTerm::Triple { s, p, o })
+        self.interner.intern(TermLookup::Triple { s, p, o })
     }
 
     /// Crate-internal read access to an interned term. [`freeze`](Self::freeze) and
     /// [`super::validate`] consume this to materialize and check the dataset.
     pub(crate) fn term(&self, id: TermId) -> &InternedTerm {
         self.interner.term(id)
+    }
+
+    /// Resolve a term's [`StrRange`] to a `&str` borrowed from the builder's arena
+    /// (for build-time readers that have an interned term's range, #879).
+    pub(crate) fn interned_str(&self, range: StrRange) -> &str {
+        arena_str(self.interner.arena(), range)
     }
 
     /// The number of distinct interned terms. Used by validation (the ID-reference
@@ -360,6 +561,7 @@ impl RdfDatasetBuilder {
             compute_capabilities(&interner.terms, &quads, &reifiers, &annotations, &locations);
 
         RdfDataset::from_parts(
+            interner.arena.into_boxed_slice(),
             interner.terms.into_boxed_slice(),
             quads.into_boxed_slice(),
             reifiers.into_boxed_slice(),

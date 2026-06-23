@@ -26,7 +26,7 @@ use std::sync::OnceLock;
 
 use crate::{RdfLocation, RdfStoreCapabilities, RdfTextDirection};
 
-use super::term::{BlankScope, InternedTerm, TermId, TermValue};
+use super::term::{arena_str, BlankScope, InternedTerm, TermId, TermValue};
 
 /// A handle identifying a pushed quad by its dense (deduplicated) ordinal, used to
 /// attach a source location sparsely. Like [`TermId`], it is local to one frozen
@@ -129,6 +129,9 @@ pub struct QuadRef<'a> {
 /// flags are computed once at freeze.
 #[derive(Debug)]
 pub struct RdfDataset {
+    /// The byte arena owning every interned string ONCE (#879 P3b); `terms` hold
+    /// `StrRange`s into it, and `resolve` borrows `&str` from here.
+    arena: Box<[u8]>,
     /// The interned term table; addressed by [`TermId::index`].
     terms: Box<[InternedTerm]>,
     /// Deduplicated quad rows in deterministic order (C0.5).
@@ -157,6 +160,7 @@ impl RdfDataset {
     ///
     /// [`RdfDatasetBuilder::freeze`]: super::builder::RdfDatasetBuilder::freeze
     pub(crate) fn from_parts(
+        arena: Box<[u8]>,
         terms: Box<[InternedTerm]>,
         quads: Box<[QuadRow]>,
         reifiers: Box<[(TermId, TermId)]>,
@@ -165,6 +169,7 @@ impl RdfDataset {
         caps: RdfStoreCapabilities,
     ) -> Self {
         Self {
+            arena,
             terms,
             quads,
             reifiers,
@@ -183,18 +188,18 @@ impl RdfDataset {
         match &self.terms[id.index()] {
             InternedTerm::Iri(iri) => {
                 0u8.hash(state);
-                iri.hash(state);
+                arena_str(&self.arena, *iri).hash(state);
             }
             InternedTerm::Blank { label, scope } => {
                 1u8.hash(state);
-                label.hash(state);
+                arena_str(&self.arena, *label).hash(state);
                 scope.hash(state);
             }
             InternedTerm::Literal(lit) => {
                 2u8.hash(state);
-                lit.lexical_form.hash(state);
+                arena_str(&self.arena, lit.lexical_form).hash(state);
                 self.hash_iri_string(lit.datatype, state);
-                lit.language.hash(state);
+                lit.language.map(|r| arena_str(&self.arena, r)).hash(state);
                 lit.direction.hash(state);
             }
             InternedTerm::Triple { s, p, o } => {
@@ -209,7 +214,7 @@ impl RdfDataset {
     /// Hash the IRI string of a term known to be an interned IRI (a literal datatype).
     fn hash_iri_string<H: Hasher>(&self, id: TermId, state: &mut H) {
         match &self.terms[id.index()] {
-            InternedTerm::Iri(iri) => iri.hash(state),
+            InternedTerm::Iri(iri) => arena_str(&self.arena, *iri).hash(state),
             // Unreachable for a validated dataset (a literal datatype is always an
             // IRI); hash the Debug form rather than panic.
             other => format!("{other:?}").hash(state),
@@ -218,18 +223,18 @@ impl RdfDataset {
 
     /// Whether an interned term equals a dataset-independent [`TermValue`], compared
     /// **with zero allocations** directly against the interned representation
-    /// (resolving the literal datatype id to its IRI in place). Resolves hash
-    /// collisions in [`RdfDataset::term_id_by_value`].
+    /// (resolving each string range through the arena, and the literal datatype id
+    /// to its IRI). Resolves hash collisions in [`RdfDataset::term_id_by_value`].
     fn term_matches_value(&self, id: TermId, value: &TermValue) -> bool {
         match (&self.terms[id.index()], value) {
-            (InternedTerm::Iri(iri), TermValue::Iri(v)) => &**iri == v,
+            (InternedTerm::Iri(iri), TermValue::Iri(v)) => arena_str(&self.arena, *iri) == v,
             (
                 InternedTerm::Blank { label, scope },
                 TermValue::Blank {
                     label: vl,
                     scope: vs,
                 },
-            ) => &**label == vl && scope == vs,
+            ) => arena_str(&self.arena, *label) == vl && scope == vs,
             (
                 InternedTerm::Literal(lit),
                 TermValue::Literal {
@@ -239,9 +244,9 @@ impl RdfDataset {
                     direction,
                 },
             ) => {
-                &*lit.lexical_form == lexical_form
+                arena_str(&self.arena, lit.lexical_form) == lexical_form
                     && lit.direction == *direction
-                    && lit.language.as_deref() == language.as_deref()
+                    && lit.language.map(|r| arena_str(&self.arena, r)) == language.as_deref()
                     && self.iri_matches(lit.datatype, datatype)
             }
             (
@@ -262,7 +267,7 @@ impl RdfDataset {
 
     /// Whether a term known to be an interned IRI equals `expected` (zero-alloc).
     fn iri_matches(&self, id: TermId, expected: &str) -> bool {
-        matches!(&self.terms[id.index()], InternedTerm::Iri(iri) if &**iri == expected)
+        matches!(&self.terms[id.index()], InternedTerm::Iri(iri) if arena_str(&self.arena, *iri) == expected)
     }
 
     /// Canonical hash of a value, matching [`hash_term`](Self::hash_term).
@@ -335,15 +340,15 @@ impl RdfDataset {
     #[inline]
     pub fn resolve(&self, id: TermId) -> TermRef<'_> {
         match &self.terms[id.index()] {
-            InternedTerm::Iri(iri) => TermRef::Iri(iri),
+            InternedTerm::Iri(iri) => TermRef::Iri(arena_str(&self.arena, *iri)),
             InternedTerm::Blank { label, scope } => TermRef::Blank {
-                label,
+                label: arena_str(&self.arena, *label),
                 scope: *scope,
             },
             InternedTerm::Literal(lit) => TermRef::Literal {
-                lexical: &lit.lexical_form,
+                lexical: arena_str(&self.arena, lit.lexical_form),
                 datatype: lit.datatype,
-                language: lit.language.as_deref(),
+                language: lit.language.map(|r| arena_str(&self.arena, r)),
                 direction: lit.direction,
             },
             InternedTerm::Triple { s, p, o } => TermRef::Triple {
