@@ -1,0 +1,242 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Declarative structural assertions for the awareness slice — the slice-resident
+# test-DSL twin of the MUST / MUST-NOT invariants formerly hand-written in
+# tests/test_awareness.py. Authored as gmeow: ontology data so the same
+# annotation discipline and the native Rust harness (crates/slicetest, #784)
+# drive the test, not ad-hoc Python. Each assertion runs as a SPARQL ASK over the
+# module graph (gmeow:scopeModule); a positive universal over a fixed term set is
+# a single MUST with a conjunctive pattern (every conjunct anchored on a concrete
+# term IRI — no fully-variable, vacuously-satisfiable pattern); a negative
+# universal ("no reality bit appears", "no inherence triple") is a MUST-NOT whose
+# ASK FINDS the forbidden pattern across every triple position, so it quantifies
+# over the WHOLE module graph rather than a hand-listed set.
+#
+# NAMESPACE: the awareness module is NOT yet migrated under #694 — its value
+# classes are typed with the gUFO meta-vocabulary (gufo:AbstractIndividualType,
+# gufo:QualityValue, gufo:SituationType). These cells mirror the module's CURRENT
+# gufo: shape, not a normalized form.
+#
+# TWO tests stay in tests/test_awareness.py (genuinely unreachable by this
+# module-scoped harness):
+#   * test_level_ranks_are_zero_through_five — closed numeric SET-EQUALITY over
+#     the six gmeow:levelRank values ({0,1,2,3,4,5}); a SPARQL ASK can assert each
+#     rank EXISTS but not that the set is EXACTLY those six and no others.
+#   * test_manifest_depends_only_on_kernel_and_temporal — set-equality over
+#     manifest.ttl, which run_structural_cell never loads (module.ttl + examples/
+#     only).
+#
+# The annotation-completeness test (test_every_declared_term_is_annotated) is
+# subsumed by the global `make validate` gate, which has TWO guardians:
+#   * SHACL GmeowClassShape / GmeowPropertyShape (shapes/gmeow-shapes.ttl) enforce
+#     rdfs:label / skos:definition / rdfs:isDefinedBy / gmeow:graphBoxRole on every
+#     gmeow:-namespaced CLASS and PROPERTY.
+#   * The Rust structural_lint / collect_typed_terms guardian (crates/validate)
+#     enforces the same triad on the value-vocab INDIVIDUALS (the mode* / level*
+#     terms), which the property/class shapes do not target.
+# Verified 2026-06-22 (break-and-revert, BOTH guardians exercised):
+#   - deleting gmeow:levelAlert's rdfs:label (a value-vocab INDIVIDUAL) made
+#     `make validate` emit a missing-label error and exit non-zero — the Rust
+#     guardian.
+#   - deleting gmeow:AwarenessTenure's rdfs:label (a CLASS) likewise reddened
+#     `make validate` — the SHACL guardian.
+# That pytest function is therefore deleted rather than migrated.
+#
+# See dsl/tests/MIGRATION-LEDGER.md for the per-test pytest→DSL mapping.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/awareness/tests/> .
+
+# --- 1. Value classes are gufo:AbstractIndividualType ⊑ QualityValue (MUST) ---
+ex:saVocabClassesAreAbstractIndividualTypes a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:AwarenessMode  a owl:Class , gufo:AbstractIndividualType ;
+        rdfs:subClassOf gufo:QualityValue .
+    gmeow:AwarenessLevel a owl:Class , gufo:AbstractIndividualType ;
+        rdfs:subClassOf gufo:QualityValue .
+}""" ;
+    gmeow:saRationale "gmeow:AwarenessMode and gmeow:AwarenessLevel MUST each be an owl:Class, a gufo:AbstractIndividualType, and a subClassOf gufo:QualityValue — the value-vocabulary genus shared with gmeow:ContentOrigin (Principle 9, no overtyping). Mirrors test_vocab_classes_are_abstract_individual_types." .
+
+# --- 2. All 17 awareness-mode individuals are seeded (MUST) -------------------
+ex:saModeIndividualsAreSeeded a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    gmeow:modeWaking         a gmeow:AwarenessMode .
+    gmeow:modeDrowsy         a gmeow:AwarenessMode .
+    gmeow:modeAsleep         a gmeow:AwarenessMode .
+    gmeow:modeDreaming       a gmeow:AwarenessMode .
+    gmeow:modeREM            a gmeow:AwarenessMode .
+    gmeow:modeLucidDreaming  a gmeow:AwarenessMode .
+    gmeow:modeMindWandering  a gmeow:AwarenessMode .
+    gmeow:modeFocused        a gmeow:AwarenessMode .
+    gmeow:modeFlow           a gmeow:AwarenessMode .
+    gmeow:modeMeditative     a gmeow:AwarenessMode .
+    gmeow:modeSedated        a gmeow:AwarenessMode .
+    gmeow:modeComatose       a gmeow:AwarenessMode .
+    gmeow:modeOnlineInference a gmeow:AwarenessMode .
+    gmeow:modeOfflineReplay  a gmeow:AwarenessMode .
+    gmeow:modeTraining       a gmeow:AwarenessMode .
+    gmeow:modeSampling       a gmeow:AwarenessMode .
+    gmeow:modeDormant        a gmeow:AwarenessMode .
+}""" ;
+    gmeow:saRationale "All 17 awareness modes (12 human + 5 machine) MUST be individuals of gmeow:AwarenessMode — one open vocabulary holding the human and machine modes as siblings (Principle 5). Mirrors test_mode_individuals_are_seeded." .
+
+# --- 3. All 6 awareness-level individuals are seeded (MUST) -------------------
+ex:saLevelIndividualsAreSeeded a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    gmeow:levelHyperalert   a gmeow:AwarenessLevel .
+    gmeow:levelAlert        a gmeow:AwarenessLevel .
+    gmeow:levelRelaxed      a gmeow:AwarenessLevel .
+    gmeow:levelDrowsy       a gmeow:AwarenessLevel .
+    gmeow:levelObtunded     a gmeow:AwarenessLevel .
+    gmeow:levelUnresponsive a gmeow:AwarenessLevel .
+}""" ;
+    gmeow:saRationale "All 6 awareness levels MUST be individuals of gmeow:AwarenessLevel. Mirrors test_level_individuals_are_seeded." .
+
+# --- 4a. No mode/level individual is an owl:Class (MUST-NOT) ------------------
+ex:saVocabIndividualsNotClasses a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    VALUES ?i {
+        gmeow:modeWaking gmeow:modeDrowsy gmeow:modeAsleep gmeow:modeDreaming
+        gmeow:modeREM gmeow:modeLucidDreaming gmeow:modeMindWandering
+        gmeow:modeFocused gmeow:modeFlow gmeow:modeMeditative gmeow:modeSedated
+        gmeow:modeComatose gmeow:modeOnlineInference gmeow:modeOfflineReplay
+        gmeow:modeTraining gmeow:modeSampling gmeow:modeDormant
+        gmeow:levelHyperalert gmeow:levelAlert gmeow:levelRelaxed
+        gmeow:levelDrowsy gmeow:levelObtunded gmeow:levelUnresponsive
+    }
+    ?i a owl:Class .
+}""" ;
+    gmeow:saRationale "Value-vocab discipline (Principle 9, no overtyping): NO mode or level individual MUST be typed an owl:Class — each is an individual, not a class. Mirrors the owl:Class clause of test_vocab_individuals_are_not_subclasses." .
+
+# --- 4b. No mode/level individual is a subClassOf its vocab class (MUST-NOT) --
+ex:saVocabIndividualsNotSubclasses a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    {
+        VALUES ?i {
+            gmeow:modeWaking gmeow:modeDrowsy gmeow:modeAsleep gmeow:modeDreaming
+            gmeow:modeREM gmeow:modeLucidDreaming gmeow:modeMindWandering
+            gmeow:modeFocused gmeow:modeFlow gmeow:modeMeditative gmeow:modeSedated
+            gmeow:modeComatose gmeow:modeOnlineInference gmeow:modeOfflineReplay
+            gmeow:modeTraining gmeow:modeSampling gmeow:modeDormant
+        }
+        ?i rdfs:subClassOf gmeow:AwarenessMode .
+    }
+    UNION
+    {
+        VALUES ?i {
+            gmeow:levelHyperalert gmeow:levelAlert gmeow:levelRelaxed
+            gmeow:levelDrowsy gmeow:levelObtunded gmeow:levelUnresponsive
+        }
+        ?i rdfs:subClassOf gmeow:AwarenessLevel .
+    }
+}""" ;
+    gmeow:saRationale "Value-vocab discipline (Principle 9): NO mode is a subClassOf gmeow:AwarenessMode and NO level a subClassOf gmeow:AwarenessLevel — the machine modes too are siblings, not a subclass hierarchy. Mirrors the rdfs:subClassOf clause of test_vocab_individuals_are_not_subclasses." .
+
+# --- 5. Property types and ranges (MUST) -------------------------------------
+ex:saPropertyTypesAndRanges a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+ASK {
+    gmeow:awarenessMode    a owl:ObjectProperty ; rdfs:range gmeow:AwarenessMode .
+    gmeow:awarenessLevel   a owl:ObjectProperty ; rdfs:range gmeow:AwarenessLevel .
+    gmeow:awarenessSubject a owl:ObjectProperty .
+    gmeow:awarenessScalar  a owl:DatatypeProperty ; rdfs:range xsd:decimal .
+    gmeow:levelRank        a owl:DatatypeProperty ;
+        rdfs:range xsd:integer ;
+        rdfs:domain gmeow:AwarenessLevel .
+}""" ;
+    gmeow:saRationale "awarenessMode / awarenessLevel / awarenessSubject MUST be owl:ObjectProperty (mode/level ranging over their value class); awarenessScalar an owl:DatatypeProperty over xsd:decimal; levelRank an owl:DatatypeProperty over xsd:integer with domain gmeow:AwarenessLevel. Mirrors test_property_types_and_ranges." .
+
+# --- 6. awareness edges keep an OPEN domain and are non-functional (MUST-NOT) -
+ex:saAwarenessEdgesOpenDomain a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    VALUES ?p { gmeow:awarenessMode gmeow:awarenessLevel gmeow:awarenessScalar }
+    { ?p rdfs:domain ?d . }
+    UNION
+    { ?p a owl:FunctionalProperty . }
+}""" ;
+    gmeow:saRationale "OPEN-DOMAIN (Principle 13): gmeow:awarenessMode / gmeow:awarenessLevel / gmeow:awarenessScalar MUST assert NO rdfs:domain (the edge applies to a tenure OR directly to a process / agent) and MUST NOT be functional (vantage-indexed). Mirrors test_awareness_edges_open_domain." .
+
+# --- 7. awarenessSubject is the per-branch bearer edge (MUST) -----------------
+ex:saAwarenessSubjectBearerEdge a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:awarenessSubject a owl:ObjectProperty , owl:FunctionalProperty ;
+        rdfs:domain gmeow:AwarenessTenure ;
+        rdfs:range gmeow:Agent .
+}""" ;
+    gmeow:saRationale "gmeow:awarenessSubject MUST be the per-branch bearer edge (Principle 4): an owl:ObjectProperty AND owl:FunctionalProperty with domain gmeow:AwarenessTenure and range gmeow:Agent — the tenure carries its subject explicitly, never through gufo:inheresIn. Mirrors test_awareness_subject_bearer_edge." .
+
+# --- 8. AwarenessTenure is a time-scoped situation (MUST) ---------------------
+ex:saAwarenessTenureTimeScopedSituation a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:AwarenessTenure a owl:Class , gufo:SituationType ;
+        rdfs:subClassOf gmeow:TimeScopedRelation .
+}""" ;
+    gmeow:saRationale "gmeow:AwarenessTenure MUST be an owl:Class, a gufo:SituationType, and an rdfs:subClassOf gmeow:TimeScopedRelation — the temporal reification seam. Mirrors test_awareness_tenure_is_a_time_scoped_situation." .
+
+# --- 9. No reality or truth bit (MUST-NOT) -----------------------------------
+ex:saNoRealityOrTruthBit a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    VALUES ?t {
+        gmeow:isReal gmeow:isTrue gmeow:isFake
+        gmeow:isDream gmeow:isImaginary gmeow:isFalse
+    }
+    { ?t ?p ?o . } UNION { ?s ?t ?o . } UNION { ?s ?p ?t . }
+}""" ;
+    gmeow:saRationale "No reality or truth bit (Principle 9): awareness is a state of the experiencer, not a verdict on the content — none of isReal / isTrue / isFake / isDream / isImaginary / isFalse MUST appear in ANY triple position. Mirrors test_no_reality_or_truth_bit." .
+
+# --- 10. By-reference: no inherence triple (MUST-NOT) ------------------------
+ex:saByReferenceNoInherenceTriple a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX gufo: <http://purl.org/nemo/gufo#>
+ASK {
+    VALUES ?t { gufo:inheresIn gmeow:inheresIn }
+    { ?t ?p ?o . } UNION { ?s ?t ?o . } UNION { ?s ?p ?t . }
+}""" ;
+    gmeow:saRationale "By-reference discipline (Principle 4 / Principle 5): the subject is carried by gmeow:awarenessSubject, so the module MUST assert NO gufo:inheresIn and NO gmeow:inheresIn triple in any position (the gUFO inherence alignment target is left untouched). Mirrors test_by_reference_no_inherence_triple." .

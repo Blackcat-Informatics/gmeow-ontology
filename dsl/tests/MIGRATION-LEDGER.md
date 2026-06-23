@@ -143,6 +143,45 @@ future slice migration inherits.
 
 **Diagnostics tally:** 5 converted (9 cells across 5 pytest functions), 0 retained, 2 deleted-covered-by-make-validate. Source file `tests/test_diagnostics.py` deleted entirely (no retained functions).
 
+## `slices/core/awareness`
+
+| Pytest fn | Pytest file | DSL cell IRI | Cell type | Status | Reason if retained/deleted | Run by |
+|---|---|---|---|---|---|---|
+| `test_vocab_classes_are_abstract_individual_types` | `tests/test_awareness.py` | `ex:saVocabClassesAreAbstractIndividualTypes` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_mode_individuals_are_seeded` | `tests/test_awareness.py` | `ex:saModeIndividualsAreSeeded` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_level_individuals_are_seeded` | `tests/test_awareness.py` | `ex:saLevelIndividualsAreSeeded` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_vocab_individuals_are_not_subclasses` | `tests/test_awareness.py` | `ex:saVocabIndividualsNotClasses` + `ex:saVocabIndividualsNotSubclasses` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_property_types_and_ranges` | `tests/test_awareness.py` | `ex:saPropertyTypesAndRanges` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_awareness_edges_open_domain` | `tests/test_awareness.py` | `ex:saAwarenessEdgesOpenDomain` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_awareness_subject_bearer_edge` | `tests/test_awareness.py` | `ex:saAwarenessSubjectBearerEdge` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_awareness_tenure_is_a_time_scoped_situation` | `tests/test_awareness.py` | `ex:saAwarenessTenureTimeScopedSituation` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_no_reality_or_truth_bit` | `tests/test_awareness.py` | `ex:saNoRealityOrTruthBit` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_by_reference_no_inherence_triple` | `tests/test_awareness.py` | `ex:saByReferenceNoInherenceTriple` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_level_ranks_are_zero_through_five` | `tests/test_awareness.py` | — | — | **retained** | closed numeric SET-EQUALITY over the six `gmeow:levelRank` values: a SPARQL ASK can assert each rank exists but not that the set is EXACTLY `{0,1,2,3,4,5}` and no others | pytest |
+| `test_manifest_depends_only_on_kernel_and_temporal` | `tests/test_awareness.py` | — | — | **retained** | set-equality over `manifest.ttl`, which `run_structural_cell` never loads (store = module.ttl + examples/ only) | pytest |
+| `test_every_declared_term_is_annotated` | `tests/test_awareness.py` | — | — | **deleted** | Covered by global `make validate` gate via two guardians: (1) SHACL `GmeowClassShape` + `GmeowPropertyShape` (shapes/gmeow-shapes.ttl) enforce rdfs:label / skos:definition / rdfs:isDefinedBy / gmeow:graphBoxRole on every gmeow:-namespaced owl:Class and property; (2) the Rust `structural_lint` vocabulary-individual sweep (crates/validate/src/lint.rs `collect_typed_terms`, pinned by test `structural_still_flags_vocabulary_individual`) enforces the same contract on value-vocab individuals (the `mode*` / `level*` individuals). Verified 2026-06-22, BOTH guardians exercised: removing `gmeow:levelAlert`'s `rdfs:label` (a value-vocab INDIVIDUAL) made `make validate` emit "error individual https://blackcatinformatics.ca/gmeow/levelAlert is missing rdfs:label" (the Rust guardian) and exit non-zero; removing `gmeow:AwarenessTenure`'s `rdfs:label` (a CLASS) made it emit "error class https://blackcatinformatics.ca/gmeow/AwarenessTenure is missing rdfs:label" (the SHACL guardian) and exit non-zero. | `make validate` |
+
+**Awareness tally:** 10 converted (11 cells across 10 pytest functions), 2 retained-with-reason (numeric set-equality + manifest-scope), 1 deleted-covered-by-make-validate. Source file `tests/test_awareness.py` trimmed to the 2 retained functions (not deleted — the must-stays remain).
+
+## `slices/core/imagination`
+
+| Pytest fn | Pytest file | DSL cell IRI | Cell type | Status | Reason if retained/deleted | Run by |
+|---|---|---|---|---|---|---|
+| `test_spine_are_object_properties_with_agent_domain_open_range` | `tests/test_imagination.py` | `ex:saSpineObjectPropertiesAgentDomain` + `ex:saSpineOpenRangeNotFunctional` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_spine_is_flat_and_decoupled` | `tests/test_imagination.py` | `ex:saSpineFlatAndDecoupled` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_content_origin_is_an_abstract_individual_type` | `tests/test_imagination.py` | `ex:saContentOriginAbstractIndividualType` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_content_origin_individuals_are_seeded` | `tests/test_imagination.py` | `ex:saContentOriginIndividualsSeeded` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_content_origin_individuals_are_not_subclasses` | `tests/test_imagination.py` | `ex:saContentOriginIndividualsNotSubclasses` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_content_origin_property_open_domain` | `tests/test_imagination.py` | `ex:saContentOriginPropertyRange` + `ex:saContentOriginPropertyOpenDomain` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_imagined_world_open_domain_and_range` | `tests/test_imagination.py` | `ex:saImaginedWorldObjectProperty` + `ex:saImaginedWorldOpenDomainAndRange` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_no_reality_or_truth_bit` | `tests/test_imagination.py` | `ex:saNoRealityOrTruthBit` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_no_new_content_class` | `tests/test_imagination.py` | `ex:saNoNewContentClass` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_by_reference_no_logic_triples` | `tests/test_imagination.py` | `ex:saByReferenceNoLogicTriples` | StructuralAssertion | converted | — (DYNAMIC FILTER over every `logic:` node, allowing only the 15 #694 stereotype IRIs — NOT a hand-listed blacklist) | `make slicetest` |
+| `test_manifest_depends_only_on_kernel` | `tests/test_imagination.py` | — | — | **retained** | set-equality over `manifest.ttl`, which `run_structural_cell` never loads (store = module.ttl + examples/ only) | pytest |
+| `test_every_declared_term_is_annotated` | `tests/test_imagination.py` | — | — | **deleted** | Covered by global `make validate` gate via two guardians: (1) SHACL `GmeowClassShape` + `GmeowPropertyShape` (shapes/gmeow-shapes.ttl) enforce rdfs:label / skos:definition / rdfs:isDefinedBy / gmeow:graphBoxRole on every gmeow:-namespaced owl:Class and property; (2) the Rust `structural_lint` vocabulary-individual sweep (crates/validate/src/lint.rs `collect_typed_terms`, pinned by test `structural_still_flags_vocabulary_individual`) enforces the same contract on value-vocab individuals (the `origin*` ContentOrigin individuals). Verified 2026-06-22, BOTH guardians exercised on imagination terms: removing `gmeow:originImagined`'s `rdfs:label` (a value-vocab INDIVIDUAL) made `make validate` emit "error individual https://blackcatinformatics.ca/gmeow/originImagined is missing rdfs:label" (the Rust guardian) and exit non-zero; removing `gmeow:ContentOrigin`'s `rdfs:label` (a CLASS) made it emit "error class https://blackcatinformatics.ca/gmeow/ContentOrigin is missing rdfs:label" (the SHACL guardian) and exit non-zero. | `make validate` |
+
+**Imagination tally:** 10 converted (13 cells across 10 pytest functions), 1 retained-with-reason (manifest-scope), 1 deleted-covered-by-make-validate. Source file `tests/test_imagination.py` trimmed to the 1 retained function (not deleted — the must-stay remains).
+
 ## Other slices
 
 No other slice carries declarative test-DSL specs yet (T2 authored only the

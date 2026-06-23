@@ -1,0 +1,226 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Declarative structural assertions for the imagination slice — the slice-resident
+# test-DSL twin of the MUST / MUST-NOT invariants formerly hand-written in
+# tests/test_imagination.py. Authored as gmeow: ontology data so the same
+# annotation discipline and the native Rust harness (crates/slicetest, #784) drive
+# the test, not ad-hoc Python. Each assertion runs as a SPARQL ASK over the module
+# graph (gmeow:scopeModule); every `must` ASK anchors on a concrete term IRI (no
+# vacuous, fully-variable pattern); negative universals (no reality bit, no
+# subPropertyOf, no out-of-band logic: triple) are MUST-NOT ASKs that FIND the
+# forbidden pattern across the relevant triple positions.
+#
+# NAMESPACE: the imagination module IS migrated under #694 — its value class is
+# typed with the logic: stereotype vocabulary (logic:AbstractIndividualType,
+# logic:QualityValue), NOT gufo:. These cells mirror the module's CURRENT logic:
+# shape.
+#
+# BY-REFERENCE (cell saByReferenceNoLogicTriples): this is a DYNAMIC, open
+# universal, not a hand-listed blacklist. The forbidden thing is ANY logic:
+# IRI in any triple position EXCEPT the fixed set of #694 stereotype IRIs
+# (logic:Kind … logic:Disposition); a FILTER(STRSTARTS(... logic:) && ?t NOT IN
+# (<the 15 stereotypes>)) quantifies over the WHOLE module graph, so a future
+# logic:World / modal-logic leak is caught even though no such term exists today.
+#
+# ONE test stays in tests/test_imagination.py (genuinely unreachable by this
+# module-scoped harness): test_manifest_depends_only_on_kernel — set-equality
+# over manifest.ttl, which run_structural_cell never loads (store = module.ttl +
+# examples/ only).
+#
+# The annotation-completeness test (test_every_declared_term_is_annotated) is
+# subsumed by the global `make validate` gate (SHACL Gmeow*Shape for the class
+# and properties + the Rust structural_lint guardian for the value-vocab origin*
+# individuals). Verified 2026-06-22 in the awareness twin of this migration:
+# deleting a value-vocab INDIVIDUAL's rdfs:label tripped the Rust guardian
+# ("error individual … is missing rdfs:label") and deleting a CLASS's rdfs:label
+# tripped the SHACL guardian ("error class … is missing rdfs:label"), both
+# reddening `make validate`. That pytest function is therefore deleted rather
+# than migrated.
+#
+# See dsl/tests/MIGRATION-LEDGER.md for the per-test pytest→DSL mapping.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/imagination/tests/> .
+
+# --- 1a. Spine verbs are ObjectProperties with agent domain (MUST) -----------
+ex:saSpineObjectPropertiesAgentDomain a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:imagines a owl:ObjectProperty ; rdfs:domain gmeow:Agent .
+    gmeow:supposes a owl:ObjectProperty ; rdfs:domain gmeow:Agent .
+}""" ;
+    gmeow:saRationale "Both imagination spine verbs (gmeow:imagines, gmeow:supposes) MUST be owl:ObjectProperty with rdfs:domain gmeow:Agent — agent→content attitudes (Principle 4). Mirrors the positive clauses of test_spine_are_object_properties_with_agent_domain_open_range." .
+
+# --- 1b. Spine verbs are OPEN-range and non-functional (MUST-NOT) -------------
+ex:saSpineOpenRangeNotFunctional a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    VALUES ?p { gmeow:imagines gmeow:supposes }
+    { ?p rdfs:range ?r . }
+    UNION
+    { ?p a owl:FunctionalProperty . }
+}""" ;
+    gmeow:saRationale "OPEN-RANGE (Principle 13): neither gmeow:imagines nor gmeow:supposes MUST assert an rdfs:range, and neither MUST be functional — an agent imagines and supposes many things at once. Mirrors the negative clauses of test_spine_are_object_properties_with_agent_domain_open_range." .
+
+# --- 2. Spine is FLAT and decoupled (MUST-NOT) -------------------------------
+ex:saSpineFlatAndDecoupled a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    VALUES ?p { gmeow:imagines gmeow:supposes }
+    ?p rdfs:subPropertyOf ?super .
+}""" ;
+    gmeow:saRationale "FLAT spine (Principle 4): neither gmeow:imagines nor gmeow:supposes MUST declare an rdfs:subPropertyOf — two distinct attitudes, not a hierarchy, and crucially NOT sub-properties of the doxastic spine (believes / accepts); imagining and supposing assert neither truth nor pragmatic commitment. Mirrors test_spine_is_flat_and_decoupled." .
+
+# --- 3. ContentOrigin is a logic:AbstractIndividualType ⊑ QualityValue (MUST) -
+ex:saContentOriginAbstractIndividualType a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:ContentOrigin a owl:Class , logic:AbstractIndividualType ;
+        rdfs:subClassOf logic:QualityValue .
+}""" ;
+    gmeow:saRationale "gmeow:ContentOrigin MUST be an owl:Class, a logic:AbstractIndividualType, and a subClassOf logic:QualityValue — the value-vocabulary genus shared with gmeow:MentalProcessType / gmeow:QuestionType (Principle 9, no overtyping); the stereotype namespace is logic: after the #694 migration. Mirrors test_content_origin_is_an_abstract_individual_type." .
+
+# --- 4. The six content-origin individuals are seeded (MUST) -----------------
+ex:saContentOriginIndividualsSeeded a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    gmeow:originPerceived  a gmeow:ContentOrigin .
+    gmeow:originRemembered a gmeow:ContentOrigin .
+    gmeow:originBelieved   a gmeow:ContentOrigin .
+    gmeow:originImagined   a gmeow:ContentOrigin .
+    gmeow:originSupposed   a gmeow:ContentOrigin .
+    gmeow:originGenerated  a gmeow:ContentOrigin .
+}""" ;
+    gmeow:saRationale "The six content-origin values MUST be individuals of gmeow:ContentOrigin — a closed-but-open value vocabulary. Mirrors test_content_origin_individuals_are_seeded." .
+
+# --- 5. Content-origin individuals are NOT subclasses/classes (MUST-NOT) ------
+ex:saContentOriginIndividualsNotSubclasses a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    VALUES ?i {
+        gmeow:originPerceived gmeow:originRemembered gmeow:originBelieved
+        gmeow:originImagined gmeow:originSupposed gmeow:originGenerated
+    }
+    { ?i rdfs:subClassOf gmeow:ContentOrigin . }
+    UNION
+    { ?i a owl:Class . }
+}""" ;
+    gmeow:saRationale "Value-vocab discipline (Principle 9, no overtyping): NO origin value is a subClassOf gmeow:ContentOrigin nor typed an owl:Class — each is an individual. Mirrors test_content_origin_individuals_are_not_subclasses." .
+
+# --- 6a. contentOrigin is an ObjectProperty ranging over ContentOrigin (MUST) -
+ex:saContentOriginPropertyRange a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:contentOrigin a owl:ObjectProperty ;
+        rdfs:range gmeow:ContentOrigin .
+}""" ;
+    gmeow:saRationale "gmeow:contentOrigin MUST be an owl:ObjectProperty ranging over gmeow:ContentOrigin. Mirrors the positive clauses of test_content_origin_property_open_domain." .
+
+# --- 6b. contentOrigin keeps an OPEN domain and is non-functional (MUST-NOT) --
+ex:saContentOriginPropertyOpenDomain a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    { gmeow:contentOrigin rdfs:domain ?d . }
+    UNION
+    { gmeow:contentOrigin a owl:FunctionalProperty . }
+}""" ;
+    gmeow:saRationale "OPEN-DOMAIN (Principle 9 / Principle 13): gmeow:contentOrigin MUST assert NO rdfs:domain (content may be a claim, a proposition, or anything) and MUST NOT be functional (vantage-indexed). Mirrors the negative clauses of test_content_origin_property_open_domain." .
+
+# --- 7a. imaginedWorld is an ObjectProperty (MUST) ---------------------------
+ex:saImaginedWorldObjectProperty a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:imaginedWorld a owl:ObjectProperty . }""" ;
+    gmeow:saRationale "gmeow:imaginedWorld MUST be an owl:ObjectProperty. Mirrors the positive clause of test_imagined_world_open_domain_and_range." .
+
+# --- 7b. imaginedWorld has BOTH ends open and is non-functional (MUST-NOT) ----
+ex:saImaginedWorldOpenDomainAndRange a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    { gmeow:imaginedWorld rdfs:domain ?d . }
+    UNION
+    { gmeow:imaginedWorld rdfs:range ?r . }
+    UNION
+    { gmeow:imaginedWorld a owl:FunctionalProperty . }
+}""" ;
+    gmeow:saRationale "BOTH ends OPEN (Principle 5): gmeow:imaginedWorld MUST assert no rdfs:domain and no rdfs:range (the logic:World target is carried by reference) and MUST NOT be functional — one rehearsal may branch into several worlds. Mirrors the negative clauses of test_imagined_world_open_domain_and_range." .
+
+# --- 8. No reality or truth bit (MUST-NOT) -----------------------------------
+ex:saNoRealityOrTruthBit a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    VALUES ?t {
+        gmeow:isReal gmeow:isImaginary gmeow:isGenerated
+        gmeow:isFake gmeow:isTrue gmeow:isFalse
+    }
+    { ?t ?p ?o . } UNION { ?s ?t ?o . } UNION { ?s ?p ?t . }
+}""" ;
+    gmeow:saRationale "No reality or truth bit (Principle 9): reality-monitoring is a gmeow:contentOrigin value, so none of isReal / isImaginary / isGenerated / isFake / isTrue / isFalse MUST appear in ANY triple position. Mirrors test_no_reality_or_truth_bit." .
+
+# --- 9. No new content class is minted (MUST-NOT) ----------------------------
+ex:saNoNewContentClass a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    VALUES ?c { gmeow:Supposition gmeow:ImaginedContent gmeow:ImaginativeContent }
+    ?c a owl:Class .
+}""" ;
+    gmeow:saRationale "The slice mints NO new content-mode class (the attitude verbs plus the originImagined / originSupposed markers carry the as-if): no gmeow:Supposition / gmeow:ImaginedContent / gmeow:ImaginativeContent MUST be declared an owl:Class. Mirrors test_no_new_content_class." .
+
+# --- 10. By-reference: no out-of-band logic: triple (MUST-NOT, DYNAMIC) -------
+ex:saByReferenceNoLogicTriples a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX logic: <https://blackcatinformatics.ca/logic/>
+ASK {
+    { ?t ?p ?o . } UNION { ?s ?t ?o . } UNION { ?s ?p ?t . }
+    FILTER( isIRI(?t) && STRSTARTS(STR(?t), "https://blackcatinformatics.ca/logic/") )
+    FILTER( ?t NOT IN (
+        logic:Kind, logic:SubKind, logic:Phase, logic:Role, logic:Category,
+        logic:Mixin, logic:RoleMixin, logic:PhaseMixin, logic:Event,
+        logic:Situation, logic:AbstractIndividualType, logic:Relator,
+        logic:QualityValue, logic:Mode, logic:Disposition
+    ) )
+}""" ;
+    gmeow:saRationale "By-reference discipline (Principle 5): the module MUST assert NO triple whose subject, predicate, or object is a logic: IRI EXCEPT the fixed #694 stereotype vocabulary (logic:Kind … logic:Disposition) — those are identity/rigidity typing, not modal-world dependencies. This is a DYNAMIC universal (a FILTER over every logic: node in any position), NOT a hand-listed blacklist, so a future logic:World / modal-logic leak is caught even though no such term exists today. Mirrors test_by_reference_no_logic_triples." .
