@@ -10,7 +10,6 @@ the canonical sources; this catalog is the shared library that operates on them.
 
 from __future__ import annotations
 
-import contextlib
 import csv
 import hashlib
 import re
@@ -55,85 +54,12 @@ _ENGLISH_TAG = "x-gmeow-english"
 #: Regular expression to extract the ``Language:`` header from a PO file.
 _LANGUAGE_HEADER_RE = re.compile(r'^"Language:\s*([^"\\]+)\\n"', re.MULTILINE)
 
-#: Hard-coded English UI strings used by the ontology-docs generator.
-#: These are extracted into ``ontology-docs-templates.pot`` and can be
-#: translated so that generated documentation pages render in other languages.
-_ONTOLOGY_DOCS_TEMPLATES: dict[str, str] = {
-    # Category labels
-    "category_class": "Classes",
-    "category_property": "Properties",
-    "category_individual": "Individuals",
-    "category_datatype": "Datatypes",
-    # Site navigation
-    "nav_home": "Home",
-    "nav_getting_started": "Getting Started",
-    "nav_learning_paths": "Learning Paths",
-    "nav_recipes": "Recipes",
-    "nav_examples": "Examples",
-    "nav_concerns": "Concerns",
-    "nav_four_boxes": "Four Boxes",
-    "nav_slices": "Slices",
-    "nav_adoption": "Adoption",
-    "nav_linkages": "Linkages",
-    "nav_bibliography": "Bibliography",
-    "nav_reference": "Reference",
-    "nav_external": "External",
-    "nav_rdf12": "RDF 1.2",
-    "nav_integrity": "Integrity Constraints",
-    "nav_logic": "Logic & Reasoning",
-    # Generic page titles
-    "page_index": "Index",
-    "page_getting_started": "Getting Started",
-    "page_recipes": "Recipes",
-    "page_learning_paths": "Learning Paths",
-    "page_examples": "Examples",
-    "page_about": "About GMEOW",
-    "page_changelog": "Changelog",
-    "page_visualizations": "Visualizations",
-    "page_quality_gates": "Quality Gates",
-    "page_references": "References",
-    "page_reference": "Reference",
-    "page_slices": "Slices",
-    "page_linkages": "Linkages",
-    "page_adoption_targets": "Adoption Targets",
-    "page_external_ontologies": "External Ontologies",
-    "page_external_terms": "External Terms",
-    "page_statements": "RDF 1.2 Statement Layer",
-    "page_search": "Search",
-    # Section headings
-    "section_start_here": "Start Here",
-    "section_profiles": "Profiles",
-    "section_slices": "Slices",
-    "section_reference": "Reference",
-    "section_distribution": "Distribution",
-    "section_static_indexes": "Static Indexes",
-    "section_install": "Install",
-    "section_export_docs": "Export the bundled docs",
-    "section_pick_first_path": "Pick a first path",
-    "section_inspect_terms": "Inspect terms while reading examples",
-    "section_read_slices": "Read slices as doctrine, not just reference",
-    "section_read_next": "Read Next",
-    "section_external_vocabulary_coverage": "External Vocabulary Coverage",
-    "section_recipes": "Recipes",
-    "section_references": "References",
-    # Footer
-    "footer_generated": (
-        "Generated from the GMEOW ontology. Canonical source is RDF/OWL; this "
-        "site is a deterministic projection."
-    ),
-    "footer_cite_prefix": "Cite as",
-    "footer_license": "Ontology licensed CC BY 4.0",
-    # Accessibility / misc
-    "skip_to_content": "Skip to content",
-    "open_canonical_page": "Open the canonical reference page.",
-    "generated_documentation": "Generated documentation",
-    "module": "Module",
-}
-
-#: Active template catalog used by the ontology-docs renderer.  Override this
-#: temporarily (e.g. via :func:`translated_ontology_docs_templates`) to render
-#: docs in another language.
-_active_templates: dict[str, str] = dict(_ONTOLOGY_DOCS_TEMPLATES)
+# The English UI-chrome template table is owned by the Rust renderer — the SINGLE
+# source of truth is ``crates/docs/src/i18n.rs::UI_TEMPLATES`` (#859, R6). The
+# `.pot` authoring pipeline derives the templates from it via the native accessor
+# ``gmeow_docs.ui_templates()`` (see :func:`extract_ontology_docs_templates`); the
+# old duplicate Python literal and the dead ``_active_templates`` runtime catalog
+# (used only by the retired Python docs generator) were removed.
 
 
 @dataclass(frozen=True, slots=True)
@@ -467,105 +393,26 @@ def _write_po_header(path: Path, *, language: str | None = None) -> None:
     path.write_text("\n".join(lines), encoding="utf-8")
 
 
-def ontology_docs_template(key: str, fallback: str = "") -> str:
-    """Return the current ontology-docs template string for *key*.
-
-    Args:
-        key: Template identifier (e.g. ``"nav_home"``).
-        fallback: Value to return when *key* is not registered.
-
-    Returns:
-        The registered template string, or *fallback* if the key is missing.
-    """
-    return _active_templates.get(key, fallback)
-
-
-@contextlib.contextmanager
-def translated_ontology_docs_templates(
-    catalog: dict[str, str],
-) -> Iterator[None]:
-    """Temporarily override ontology-docs template strings with *catalog*.
-
-    Args:
-        catalog: Mapping from template id to translated string. The mapping is
-            merged with the English defaults, so missing keys fall back to
-            English.
-
-    Yields:
-        None. The original template catalog is restored on context exit.
-    """
-    global _active_templates
-    previous = _active_templates
-    _active_templates = merge_ontology_docs_templates(catalog)
-    try:
-        yield
-    finally:
-        _active_templates = previous
-
-
 def extract_ontology_docs_templates() -> list[PoEntry]:
-    """Return :class:`PoEntry` records for every ontology-docs template string.
+    """Return :class:`PoEntry` records for every ontology-docs UI template.
 
-    Each entry carries ``msgctxt "ontology-docs-template|<id>"`` and an empty
-    ``msgstr`` so it can be shipped as a POT template.
+    The template table is owned by the Rust renderer (the single source of truth,
+    ``crates/docs/src/i18n.rs::UI_TEMPLATES``); this reads it through the native
+    accessor ``gmeow_docs.ui_templates()`` (imported lazily so importing this
+    module never requires the native extension). Each entry carries ``msgctxt
+    "ontology-docs-template|<id>"`` and an empty ``msgstr`` so it can be shipped
+    as a POT template.
 
     Returns:
         Template entries in deterministic id order.
     """
+    import gmeow_docs  # gmeow_native.docs submodule (built for gmeow-dev).
+
+    templates: dict[str, str] = gmeow_docs.ui_templates()
     return [
         PoEntry(msgctxt=f"ontology-docs-template|{key}", msgid=value, msgstr="")
-        for key, value in sorted(_ONTOLOGY_DOCS_TEMPLATES.items())
+        for key, value in sorted(templates.items())
     ]
-
-
-def merge_ontology_docs_templates(catalog: dict[str, str]) -> dict[str, str]:
-    """Return a complete template dict with translations from *catalog* merged.
-
-    *catalog* maps template ids (without the ``ontology-docs-template|`` prefix)
-    to translated strings. Missing or empty values fall back to the English
-    defaults.
-
-    Args:
-        catalog: Mapping from template id to translated string.
-
-    Returns:
-        A full template dictionary including English fallbacks.
-    """
-    merged = dict(_ONTOLOGY_DOCS_TEMPLATES)
-    for key, value in catalog.items():
-        if key in merged and value:
-            merged[key] = value
-    return merged
-
-
-def load_ontology_docs_template_catalog(
-    lang: str, root: Path = PROJECT_ROOT
-) -> dict[str, str]:
-    """Load translated ontology-docs template strings for *lang*.
-
-    Reads ``dist/i18n/ontology-docs-templates.<lang>.po`` and returns a dict
-    mapping template id to translated string.
-
-    Args:
-        lang: BCP-47 language tag (e.g. ``"fr"``).
-        root: Repository root used to locate ``dist/i18n/``.
-
-    Returns:
-        Mapping from template id to translated string, or an empty dict when the
-        PO file does not exist.
-    """
-    po_path = root / "dist" / "i18n" / f"ontology-docs-templates.{lang}.po"
-    if not po_path.is_file():
-        return {}
-    catalog: dict[str, str] = {}
-    for entry in parse_po(po_path.read_text(encoding="utf-8")):
-        if not entry.msgctxt or not entry.msgctxt.startswith("ontology-docs-template|"):
-            continue
-        key = entry.msgctxt[len("ontology-docs-template|") :]
-        msgstr = entry.msgstr
-        if msgstr:
-            catalog[key] = msgstr
-    return catalog
 
 
 @dataclass(frozen=True, slots=True)

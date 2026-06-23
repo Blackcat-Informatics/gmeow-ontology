@@ -273,6 +273,26 @@ pub fn render_site_lang(model: &DocsModel, lang: &str) -> Site {
     Site { files }
 }
 
+/// Write a rendered [`Site`] tree under `directory`, creating parent directories
+/// as needed, in the engine's fixed sorted `BTreeMap` order. Returns the written
+/// paths. Pure Rust (no Python GIL) so it is directly unit-testable; the PyO3
+/// `DocSet::write_artifacts` method is a thin wrapper over this.
+pub fn write_site(
+    site: &Site,
+    directory: &std::path::Path,
+) -> std::io::Result<Vec<std::path::PathBuf>> {
+    let mut written = Vec::with_capacity(site.files.len());
+    for (rel, data) in &site.files {
+        let path = directory.join(rel);
+        if let Some(parent) = path.parent() {
+            std::fs::create_dir_all(parent)?;
+        }
+        std::fs::write(&path, data)?;
+        written.push(path);
+    }
+    Ok(written)
+}
+
 /// The full, deterministically ordered page set for the model.
 fn pages(model: &DocsModel) -> Vec<Page> {
     let mut pages = vec![
