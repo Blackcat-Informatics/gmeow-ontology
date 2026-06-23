@@ -150,7 +150,18 @@ jobs:
         timeout-minutes: 60
         run: uv run pytest -q -n auto --dist loadscope -m "not maintainer and not docker and not classic_cross_check"
 
+  # Sharded across 3 runners via nextest's `--partition count:N/3` (balances the
+  # test set across shards). All shards share the same Swatinem rust-cache key, so
+  # each restores the same compiled `target/` and only pays an incremental recompile
+  # plus ~1/3 of the test runtime. The whole-workspace gates (fmt/clippy/doctests)
+  # run ONLY on shard 1 — they need not run 3×. Each shard is its own runner, so the
+  # nextest `engine = { max-threads = 2 }` OOM cap is honored per shard (3×2 across
+  # shards is fine — the cap is a per-process bound, not a cluster bound).
   rust:
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3]
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -177,22 +188,25 @@ jobs:
           tool: cargo-nextest
 
       - name: Format gate
+        if: ${{ matrix.shard == 1 }}
         run: cargo fmt --check
 
       - name: Clippy (warnings are errors)
+        if: ${{ matrix.shard == 1 }}
         run: cargo clippy --all-targets -- -D warnings
 
-      - name: Workspace tests (cargo-nextest)
-        run: cargo nextest run --profile ci
+      - name: Workspace tests (cargo-nextest) (shard ${{ matrix.shard }}/3)
+        run: cargo nextest run --profile ci --partition count:${{ matrix.shard }}/3
 
       - name: Doctests
+        if: ${{ matrix.shard == 1 }}
         run: cargo test --doc
 
       - name: Upload JUnit report
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
-          name: junit-report-rust
+          name: junit-report-rust-${{ matrix.shard }}
           path: target/nextest/ci/junit.xml
           if-no-files-found: warn
 
@@ -200,11 +214,24 @@ jobs:
         uses: dorny/test-reporter@df6247429542221bc30d46a036ee47af1102c451 # v2
         if: always()
         with:
-          name: Rust Tests
+          name: Rust Tests (shard ${{ matrix.shard }}/3)
           path: target/nextest/ci/junit.xml
           reporter: java-junit
 
-  ontology:
+  # === ONTOLOGY GATE LANES ===
+  # The single `ontology` job was split into four parallel jobs that each pay the
+  # shared setup (checkout + uv sync + the `maturin develop` gmeow_native build +
+  # caches) but run a disjoint slice of the gmeow-dev gates. GitHub Actions has no
+  # native step-reuse, so the setup block is copied verbatim into each job. Grouping
+  # balances wall-time, isolating the two long poles (validate ~250s,
+  # check-generated ~178s) into separate jobs.
+  #
+  # Every original gate lands in exactly one job:
+  #   ontology-validate  : validate
+  #   ontology-generated : crosscheck-queries, check-generated, constitution-check
+  #   ontology-reason    : verify --mode native, acceptance, coverage
+  #   ontology-misc      : mappings, wikidata, lint-alignment, audit, compliance-report
+  ontology-validate:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
@@ -254,6 +281,48 @@ jobs:
       - name: Validate (syntax, lint, SHACL, DSL SHACL)
         run: uv run --package gmeow-dev gmeow-dev validate
 
+  ontology-generated:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          persist-credentials: false
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39 # v8.2.0
+        with:
+          enable-cache: true
+
+      - name: Cache generator stamps
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+        with:
+          path: .stamps/generators
+          key: generator-stamps-${{ runner.os }}-${{ hashFiles('src/gmeow_tools/**/*.py', 'ontology/**/*.ttl', 'slices/**/*.ttl', 'slices/**/*.md', 'dsl/**/*.ttl', 'shapes/**/*.ttl', 'queries/**/*.rq', 'metadata/**/*.ttl', 'generated/**/*') }}
+          restore-keys: |
+            generator-stamps-${{ runner.os }}-
+
+      - name: Cache ontology-docs build outputs
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+        with:
+          path: .cache/ontology-docs
+          key: ontology-docs-${{ runner.os }}-${{ hashFiles('src/gmeow_tools/ontology_docs.py', 'generated/dist/gmeow.gts', 'generated/references/references.md', 'generated/statements/gmeow.rdf12.ttl', 'dsl/mappings/**/*.ttl', 'slices/*/*/manifest.ttl', 'slices/*/*/docs.md', 'slices/*/*/design/*.md', 'slices/*/*/mappings/*.ttl') }}
+          restore-keys: |
+            ontology-docs-${{ runner.os }}-
+
+      - name: Sync environment
+        run: uv sync --all-packages --frozen
+
+      - name: Install Rust (nightly, native only)
+        uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8 # nightly
+        with:
+          toolchain: nightly
+
+      - name: Cache Cargo dependencies
+        uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
+
+      - name: Build + install the unified gmeow_native extension (#630)
+        run: VIRTUAL_ENV="$PWD/.venv" uvx maturin develop --manifest-path crates/native/Cargo.toml
+
       - name: Engine cross-check (rdflib ≡ gmeow_rdf on every query)
         run: uv run --package gmeow-dev gmeow-dev crosscheck-queries
 
@@ -263,20 +332,104 @@ jobs:
       - name: Constitution check (every principle has live enforcement)
         run: uv run --package gmeow-dev gmeow-dev constitution-check
 
+  ontology-reason:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          persist-credentials: false
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39 # v8.2.0
+        with:
+          enable-cache: true
+
+      - name: Cache generator stamps
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+        with:
+          path: .stamps/generators
+          key: generator-stamps-${{ runner.os }}-${{ hashFiles('src/gmeow_tools/**/*.py', 'ontology/**/*.ttl', 'slices/**/*.ttl', 'slices/**/*.md', 'dsl/**/*.ttl', 'shapes/**/*.ttl', 'queries/**/*.rq', 'metadata/**/*.ttl', 'generated/**/*') }}
+          restore-keys: |
+            generator-stamps-${{ runner.os }}-
+
+      - name: Cache ontology-docs build outputs
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+        with:
+          path: .cache/ontology-docs
+          key: ontology-docs-${{ runner.os }}-${{ hashFiles('src/gmeow_tools/ontology_docs.py', 'generated/dist/gmeow.gts', 'generated/references/references.md', 'generated/statements/gmeow.rdf12.ttl', 'dsl/mappings/**/*.ttl', 'slices/*/*/manifest.ttl', 'slices/*/*/docs.md', 'slices/*/*/design/*.md', 'slices/*/*/mappings/*.ttl') }}
+          restore-keys: |
+            ontology-docs-${{ runner.os }}-
+
+      - name: Sync environment
+        run: uv sync --all-packages --frozen
+
+      - name: Install Rust (nightly, native only)
+        uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8 # nightly
+        with:
+          toolchain: nightly
+
+      - name: Cache Cargo dependencies
+        uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
+
+      - name: Build + install the unified gmeow_native extension (#630)
+        run: VIRTUAL_ENV="$PWD/.venv" uvx maturin develop --manifest-path crates/native/Cargo.toml
+
       - name: Reasoned-graph negative tests (native verify, Docker-free — #695)
         run: uv run --package gmeow-dev gmeow-dev verify --mode native
+
+      - name: Transpile acceptance — hard aggregate recall floor (#579)
+        run: uv run --package gmeow-dev gmeow-dev acceptance --min-recall 60
+
+      - name: Vendored-entity coverage — hard class/predicate floors (#579)
+        run: uv run --package gmeow-dev gmeow-dev coverage --gaps --min-class 0.92 --min-predicate 0.85
+
+  ontology-misc:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          persist-credentials: false
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39 # v8.2.0
+        with:
+          enable-cache: true
+
+      - name: Cache generator stamps
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+        with:
+          path: .stamps/generators
+          key: generator-stamps-${{ runner.os }}-${{ hashFiles('src/gmeow_tools/**/*.py', 'ontology/**/*.ttl', 'slices/**/*.ttl', 'slices/**/*.md', 'dsl/**/*.ttl', 'shapes/**/*.ttl', 'queries/**/*.rq', 'metadata/**/*.ttl', 'generated/**/*') }}
+          restore-keys: |
+            generator-stamps-${{ runner.os }}-
+
+      - name: Cache ontology-docs build outputs
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+        with:
+          path: .cache/ontology-docs
+          key: ontology-docs-${{ runner.os }}-${{ hashFiles('src/gmeow_tools/ontology_docs.py', 'generated/dist/gmeow.gts', 'generated/references/references.md', 'generated/statements/gmeow.rdf12.ttl', 'dsl/mappings/**/*.ttl', 'slices/*/*/manifest.ttl', 'slices/*/*/docs.md', 'slices/*/*/design/*.md', 'slices/*/*/mappings/*.ttl') }}
+          restore-keys: |
+            ontology-docs-${{ runner.os }}-
+
+      - name: Sync environment
+        run: uv sync --all-packages --frozen
+
+      - name: Install Rust (nightly, native only)
+        uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8 # nightly
+        with:
+          toolchain: nightly
+
+      - name: Cache Cargo dependencies
+        uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
+
+      - name: Build + install the unified gmeow_native extension (#630)
+        run: VIRTUAL_ENV="$PWD/.venv" uvx maturin develop --manifest-path crates/native/Cargo.toml
 
       - name: Mappings → axioms + linksets, QID syntax
         run: uv run --package gmeow-dev gmeow-dev mappings
 
       - name: Wikidata QID/PID syntax gate
         run: uv run --package gmeow-dev gmeow-dev wikidata
-
-      - name: Vendored-entity coverage — hard class/predicate floors (#579)
-        run: uv run --package gmeow-dev gmeow-dev coverage --gaps --min-class 0.92 --min-predicate 0.85
-
-      - name: Transpile acceptance — hard aggregate recall floor (#579)
-        run: uv run --package gmeow-dev gmeow-dev acceptance --min-recall 60
 
       - name: Alignment direction lint
         run: uv run --package gmeow-dev gmeow-dev lint-alignment
@@ -309,7 +462,7 @@ jobs:
   # gmeow-rdf codec inside the `ontology` job's `check-generated` (#667) — there
   # is no separate statements lane.
   quality:
-    needs: [lint, python, rust, ontology]
+    needs: [lint, python, rust, ontology-validate, ontology-generated, ontology-reason, ontology-misc]
     if: always()
     runs-on: ubuntu-latest
     steps:
@@ -318,10 +471,13 @@ jobs:
           LINT: ${{ needs.lint.result }}
           PYTHON: ${{ needs.python.result }}
           RUST: ${{ needs.rust.result }}
-          ONTOLOGY: ${{ needs.ontology.result }}
+          ONTOLOGY_VALIDATE: ${{ needs.ontology-validate.result }}
+          ONTOLOGY_GENERATED: ${{ needs.ontology-generated.result }}
+          ONTOLOGY_REASON: ${{ needs.ontology-reason.result }}
+          ONTOLOGY_MISC: ${{ needs.ontology-misc.result }}
         run: |
-          echo "results: lint=$LINT python=$PYTHON rust=$RUST ontology=$ONTOLOGY"
-          for r in "$LINT" "$PYTHON" "$RUST" "$ONTOLOGY"; do
+          echo "results: lint=$LINT python=$PYTHON rust=$RUST ontology-validate=$ONTOLOGY_VALIDATE ontology-generated=$ONTOLOGY_GENERATED ontology-reason=$ONTOLOGY_REASON ontology-misc=$ONTOLOGY_MISC"
+          for r in "$LINT" "$PYTHON" "$RUST" "$ONTOLOGY_VALIDATE" "$ONTOLOGY_GENERATED" "$ONTOLOGY_REASON" "$ONTOLOGY_MISC"; do
             if [ "$r" != "success" ]; then
               echo "::error::a quality job did not succeed ($r)"
               exit 1
