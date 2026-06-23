@@ -5,10 +5,13 @@
 
 //! Integration tests for `gmeow-rdf::gts_write`.
 
+// Rich colored line-diffs on assert_eq! failure (#871); shadows the std macro
+// for this file. Identical behaviour on pass; insta snapshots are unaffected.
 use gmeow_rdf::{
     gts_write::{to_gts, to_writer},
     RdfAnnotation, RdfLiteral, RdfQuad, RdfReifier, RdfTerm, RdfTriple, VecRdfStore,
 };
+use pretty_assertions::assert_eq;
 
 fn roundtrip_graph(store: &VecRdfStore) -> gmeow_gts::model::Graph {
     let bytes = to_gts(store, "gmeow-rdf-test").expect("to_gts should succeed");

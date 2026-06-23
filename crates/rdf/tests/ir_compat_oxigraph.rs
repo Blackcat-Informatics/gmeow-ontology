@@ -9,9 +9,12 @@
 
 #![cfg(feature = "oxigraph")]
 
+// Rich colored line-diffs on assert_eq! failure (#871); shadows the std macro
+// for this file. Identical behaviour on pass; insta snapshots are unaffected.
 use gmeow_rdf::ir::RdfDatasetBuilder;
 use gmeow_rdf::oxigraph::{store_from_rdf_store, GraphPolicy};
 use gmeow_rdf::{RdfLiteral, RdfStore, TermId};
+use pretty_assertions::assert_eq;
 
 fn iri(b: &mut RdfDatasetBuilder, n: &str) -> TermId {
     b.intern_iri(format!("http://example.org/{n}"))
