@@ -22,7 +22,7 @@ use std::sync::Arc;
 
 use crate::RdfLiteral;
 
-use super::dataset::{QuadHandle, QuadRow, RdfDataset};
+use super::dataset::{QuadHandle, QuadIds, QuadRow, RdfDataset};
 use super::term::{BlankScope, InternedLiteral, InternedTerm, TermId, RDF_LANG_STRING, XSD_STRING};
 use crate::RdfLocation;
 
@@ -98,8 +98,23 @@ impl Default for RdfDatasetBuilder {
     }
 }
 
+/// Bulk-push already-interned quads. The ids MUST belong to THIS builder's interner
+/// (C0.8 — `TermId`s are dataset-local), so this is the ergonomic bulk form of
+/// [`RdfDatasetBuilder::push_quad`], NOT a cross-dataset merge. (There is no
+/// `FromIterator<QuadIds>`: a fresh builder's interner is empty, so foreign ids
+/// would be out-of-range; a `FromIterator<RdfQuad>` that re-interns owned terms is
+/// the right cross-dataset form and is left as follow-up work.)
+impl Extend<QuadIds> for RdfDatasetBuilder {
+    fn extend<T: IntoIterator<Item = QuadIds>>(&mut self, iter: T) {
+        for q in iter {
+            self.push_quad(q.s, q.p, q.o, q.g);
+        }
+    }
+}
+
 impl RdfDatasetBuilder {
     /// A fresh, empty builder.
+    #[must_use]
     pub fn new() -> Self {
         Self {
             interner: Interner::new(),

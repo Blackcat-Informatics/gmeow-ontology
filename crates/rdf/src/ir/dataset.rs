@@ -281,6 +281,28 @@ impl RdfDataset {
     }
 }
 
+/// `for quad in &dataset` yields each [`QuadRef`] (resolved, borrowed terms — no
+/// allocation per quad). The iterator handle is boxed once; the zero-overhead path
+/// is [`RdfDataset::quad_refs`]/[`RdfDataset::quads`] directly.
+impl<'a> IntoIterator for &'a RdfDataset {
+    type Item = QuadRef<'a>;
+    type IntoIter = Box<dyn Iterator<Item = QuadRef<'a>> + 'a>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        Box::new(self.quad_refs())
+    }
+}
+
+// A frozen `RdfDataset` is an immutable, `Arc`-shared snapshot; it (and the `Copy`
+// `TermId` that indexes it) are `Send + Sync` so consumers can fan reasoning/
+// serialization across threads. These guards fail the build if that ever regresses.
+const _: fn() = || {
+    fn assert_send_sync<T: Send + Sync>() {}
+    assert_send_sync::<RdfDataset>();
+    assert_send_sync::<TermId>();
+    assert_send_sync::<QuadIds>();
+};
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -289,6 +311,32 @@ mod tests {
 
     fn iri(b: &mut RdfDatasetBuilder, n: &str) -> TermId {
         b.intern_iri(format!("http://example.org/{n}"))
+    }
+
+    #[test]
+    fn extend_with_interned_ids_and_into_iterator() {
+        let mut b = RdfDatasetBuilder::new();
+        let (s, p) = (iri(&mut b, "s"), iri(&mut b, "p"));
+        let (o1, o2) = (iri(&mut b, "o1"), iri(&mut b, "o2"));
+        // Extend<QuadIds>: bulk-push ids interned in THIS builder (#841).
+        b.extend([
+            QuadIds {
+                s,
+                p,
+                o: o1,
+                g: None,
+            },
+            QuadIds {
+                s,
+                p,
+                o: o2,
+                g: None,
+            },
+        ]);
+        let ds = b.freeze().expect("freeze");
+        assert_eq!(ds.quad_count(), 2);
+        // IntoIterator for &RdfDataset yields one QuadRef per quad.
+        assert_eq!((&*ds).into_iter().count(), 2);
     }
 
     #[test]
