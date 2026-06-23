@@ -17,7 +17,7 @@
 //! object-safety obligation. `RdfStore` survives alongside `DatasetView` until the
 //! consumer migration (P2c) retires it.
 
-use crate::ir::{QuadIds, QuadRef, RdfDataset, TermId, TermRef};
+use crate::ir::{QuadIds, QuadRef, RdfDataset, TermId, TermRef, TermValue};
 use crate::RdfStoreCapabilities;
 
 /// How a pattern query matches the graph slot of a quad.
@@ -91,6 +91,48 @@ pub trait DatasetView {
     fn len_hint(&self) -> Option<usize> {
         None
     }
+}
+
+/// The **write companion** to [`DatasetView`] — the mutation surface a copy-on-write
+/// or backed-by-store dataset exposes (purrdf P5, #839; backend contract C4).
+///
+/// Where [`DatasetView`] reads in dataset-local [`TermId`]s, `DatasetMut` mutates by
+/// **value**: its [`Quad`](DatasetMut::Quad) associated type is an owned, dataset-
+/// independent quad (each component a [`TermValue`]). A mutable dataset that straddles
+/// a frozen base and an in-memory delta has no single id space its caller could name a
+/// brand-new term in (C0.8), so a value is the only well-defined mutation identity. The
+/// implementer resolves each value to its internal handle (a base hit, or a freshly
+/// minted delta id) — see [`MutableDataset`](crate::ir::mutable::MutableDataset).
+///
+/// All four methods operate on the **effective** set. `insert`/`remove` return whether
+/// the effective set actually changed (so callers can detect no-ops); `contains` and
+/// `quads_for_pattern` reflect the effective set after any sequence of mutations.
+pub trait DatasetMut {
+    /// The owned, dataset-independent quad value this dataset is mutated with.
+    type Quad;
+
+    /// Insert a quad into the effective set. Returns `true` iff the effective set
+    /// changed (a quad already present is a no-op returning `false`).
+    fn insert(&mut self, quad: Self::Quad) -> bool;
+
+    /// Remove a quad from the effective set. Returns `true` iff the effective set
+    /// changed (removing an absent quad is a no-op returning `false`).
+    fn remove(&mut self, quad: &Self::Quad) -> bool;
+
+    /// Whether the quad is in the effective set.
+    fn contains(&self, quad: &Self::Quad) -> bool;
+
+    /// The effective quads matching an optional `(s, p, o)` value pattern and a
+    /// [`GraphMatch`]. Returns owned value-quads (the mutable view has no stable id
+    /// space to borrow into across the base/delta boundary). A bound value interned
+    /// in neither the base nor the delta matches nothing.
+    fn quads_for_pattern(
+        &self,
+        s: Option<&TermValue>,
+        p: Option<&TermValue>,
+        o: Option<&TermValue>,
+        g: GraphMatch,
+    ) -> Vec<Self::Quad>;
 }
 
 /// The production read view: the immutable value-interned [`RdfDataset`] (#819 C1).

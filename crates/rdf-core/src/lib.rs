@@ -60,15 +60,16 @@ pub use bundle::{
     UnitMetadata,
 };
 pub use content_store::{Bytes, ContentDigest, ContentStore, ContentStoreError};
-pub use dataset_view::{DatasetView, GraphMatch};
+pub use dataset_view::{DatasetMut, DatasetView, GraphMatch};
 pub use diagnostic::{RdfDiagnostic, RdfLocation, RdfLoss, RdfSeverity};
 pub use fno::{
     to_ntriples as fno_to_ntriples, to_quads as fno_to_quads, FnFunction, FnImpl, FnMapping,
     FnOutput, FnParam, FnParamMapping, FnReturnMapping, FnoCatalog,
 };
 pub use ir::{
-    dataset_diff, datasets_isomorphic, BlankScope, DatasetDiff, GtsBundle, QuadHandle, QuadIds,
-    QuadRef, RdfDataset, RdfDatasetBuilder, RdfEnvelope, RdfEventSink, TermId, TermRef, TermValue,
+    dataset_diff, datasets_isomorphic, BlankScope, DatasetDiff, GtsBundle, MutableDataset,
+    QuadHandle, QuadIds, QuadRef, QuadValues, RdfDataset, RdfDatasetBuilder, RdfEnvelope,
+    RdfEventSink, TermId, TermRef, TermValue,
 };
 #[cfg(feature = "gts")]
 pub use ir::{import_gts_events, import_gts_graph};

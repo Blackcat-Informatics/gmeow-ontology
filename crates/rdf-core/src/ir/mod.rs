@@ -20,6 +20,8 @@ pub mod compat;
 // equality oracle for importer equivalence — explicitly NOT oxigraph.
 pub mod compare;
 pub mod dataset;
+// The copy-on-write, suppression-delta mutable dataset + `DatasetMut` impl (#839 P5).
+pub mod mutable;
 // The shared GTS term resolver (#819 C2): the single home of the eager
 // `&Graph` → `RdfTerm` traversal used by `crate::gts::GtsGraphStore`. Gated on
 // `gts`, like its only consumers.
@@ -48,4 +50,5 @@ pub use event_sink::RdfEventSink;
 pub use import_graph::import_gts_graph;
 #[cfg(feature = "gts")]
 pub use import_sink::import_gts_events;
+pub use mutable::{MutableDataset, QuadValues};
 pub use term::{BlankScope, TermId, TermValue};
