@@ -92,7 +92,6 @@ fn map_direction(direction: Option<TextDirection>) -> Option<RdfTextDirection> {
 
 /// An [`RdfEventSink`] that folds a permissive ingestion event stream into a frozen
 /// [`RdfDataset`], tolerant of forward references (two-phase; see the module docs).
-#[derive(Default)]
 pub struct DatasetSink {
     /// RAW term declarations recorded during the streaming phase, keyed by
     /// [`EventTermId`]. A triple term stashes its component ids verbatim; resolution
@@ -111,10 +110,10 @@ pub struct DatasetSink {
     /// RAW annotation rows `(reifier, predicate, object)`, resolved in phase 2.
     raw_annotations: Vec<(EventTermId, EventTermId, EventTermId)>,
     /// Open scopes. [`ScopeId::DEFAULT`] is always open; [`open_scope`](Self::open_scope)
-    /// adds more, [`close_scope`](Self::close_scope) seals them.
+    /// adds more, [`close_scope`](Self::close_scope) removes (seals) them. Openness is
+    /// determined solely by membership here, so a sealed OR never-opened scope id both
+    /// read as "not open".
     open_scopes: Vec<ScopeId>,
-    /// Scopes that have been sealed via [`close_scope`](Self::close_scope).
-    closed_scopes: Vec<ScopeId>,
     /// The next scope ordinal to mint.
     next_scope: u32,
     /// Set once a cancellation ([`ControlFlow::Break`]) is observed: a cancelled sink
@@ -126,13 +125,36 @@ pub struct DatasetSink {
     builder: Option<RdfDatasetBuilder>,
 }
 
-impl DatasetSink {
-    /// A fresh sink with the default scope open.
-    pub fn new() -> Self {
+impl Default for DatasetSink {
+    /// The default sink is identical to [`new`](Self::new): the default scope
+    /// ([`ScopeId::DEFAULT`]) is open from the start. This is implemented MANUALLY
+    /// (rather than `#[derive]`d) because a derived `Default` would leave
+    /// `open_scopes` empty, so `ScopeId::DEFAULT` would not be considered open — a
+    /// latent bug. Keeping `new`/`default` in lock-step (one delegates to the other)
+    /// ensures the two initial states can never diverge.
+    fn default() -> Self {
         Self {
+            raw_terms: HashMap::new(),
+            declared_in: HashMap::new(),
+            remaps: HashMap::new(),
+            raw_quads: Vec::new(),
+            raw_reifiers: Vec::new(),
+            raw_annotations: Vec::new(),
+            // The default scope is open from the start (see the doc comment above).
             open_scopes: vec![ScopeId::DEFAULT],
-            ..Self::default()
+            next_scope: 0,
+            cancelled: false,
+            frozen: None,
+            builder: None,
         }
+    }
+}
+
+impl DatasetSink {
+    /// A fresh sink with the default scope open. Delegates to [`Default`] so the two
+    /// can never diverge.
+    pub fn new() -> Self {
+        Self::default()
     }
 
     /// The frozen dataset produced by a successful [`finish`](RdfEventSink::finish).
@@ -146,10 +168,13 @@ impl DatasetSink {
         self.frozen.as_ref()
     }
 
-    /// Was the most recent scope referenced still open? A blank declared under a
-    /// closed scope is a [`EventError::ClosedScope`].
+    /// Validate that `scope` is currently open. Returns
+    /// [`EventError::ClosedScope`] if the scope is not in `open_scopes` — i.e. it has
+    /// either been sealed via [`close_scope`](Self::close_scope) OR was never opened
+    /// at all (referencing a closed scope's id is a protocol error per the spec).
+    /// [`ScopeId::DEFAULT`] is open by default because `new`/`default` seed it.
     fn ensure_scope_open(&self, scope: ScopeId) -> Result<(), EventError> {
-        if self.closed_scopes.contains(&scope) {
+        if !self.open_scopes.contains(&scope) {
             return Err(EventError::ClosedScope { scope });
         }
         Ok(())
@@ -178,18 +203,20 @@ impl DatasetSink {
     }
 
     /// Intern one already-located raw term, recursing inner-first for triple terms.
+    ///
+    /// The `builder` borrow is taken *inside* each arm that actually mutates it,
+    /// never across the whole `match`. This keeps the borrow structure explicit and
+    /// robust: the `Triple` arm needs `&mut self` (to recurse through `resolve`)
+    /// before it touches the builder, so a single match-wide `&mut self.builder`
+    /// would only compile thanks to NLL dropping it — fragile under refactor.
     fn intern_raw(&mut self, raw: RawTerm, depth: usize) -> Result<TermId, EventError> {
-        let builder = self
-            .builder
-            .as_mut()
-            .expect("builder present during resolution");
         let our_id = match raw {
-            RawTerm::Iri(iri) => builder.intern_iri(iri),
+            RawTerm::Iri(iri) => self.builder_mut().intern_iri(iri),
             RawTerm::Blank { label, scope } => {
                 // Scope 0 (DEFAULT) maps to the IR default scope; a protocol scope `n`
                 // maps to IR `BlankScope(n)` so same-label blanks in different scopes
                 // intern to DISTINCT ids (mirrors GTS per-segment scope).
-                builder.intern_blank(label, BlankScope(scope.0))
+                self.builder_mut().intern_blank(label, BlankScope(scope.0))
             }
             RawTerm::Literal {
                 lexical,
@@ -211,19 +238,26 @@ impl DatasetSink {
                     language,
                     direction: map_direction(direction),
                 };
-                builder.intern_literal(literal)
+                self.builder_mut().intern_literal(literal)
             }
             RawTerm::Triple(EventTriple { s, p, o }) => {
+                // Resolve the components first (needs `&mut self`), THEN borrow the
+                // builder — the two borrows never overlap.
                 let s = self.resolve(s, depth + 1)?;
                 let p = self.resolve(p, depth + 1)?;
                 let o = self.resolve(o, depth + 1)?;
-                self.builder
-                    .as_mut()
-                    .expect("builder present during resolution")
-                    .intern_triple(s, p, o)
+                self.builder_mut().intern_triple(s, p, o)
             }
         };
         Ok(our_id)
+    }
+
+    /// Mutably borrow the phase-2 builder, which is present for the whole of
+    /// [`finish`](RdfEventSink::finish).
+    fn builder_mut(&mut self) -> &mut RdfDatasetBuilder {
+        self.builder
+            .as_mut()
+            .expect("builder present during resolution")
     }
 }
 
@@ -234,9 +268,8 @@ impl RdfEventSink for DatasetSink {
         term: EventTerm<'_>,
     ) -> Result<ControlFlow<()>, EventError> {
         // Redeclaration of the same id while its declaring scope is still open is an
-        // error (no last-writer-wins).
-        if self.declared_in.contains_key(&id) {
-            let scope = self.declared_in[&id];
+        // error (no last-writer-wins). Single lookup: fetch the prior scope and bail.
+        if let Some(&scope) = self.declared_in.get(&id) {
             return Err(EventError::RedeclaredId { id, scope });
         }
         // A blank node's scope must be open at declaration time.
@@ -275,17 +308,20 @@ impl RdfEventSink for DatasetSink {
     }
 
     fn open_scope(&mut self) -> Result<ScopeId, EventError> {
-        self.next_scope += 1;
-        let scope = ScopeId(self.next_scope);
+        // Hard-fail on ordinal exhaustion rather than wrapping (no degraded fallback).
+        let next = self.next_scope.checked_add(1).ok_or_else(|| {
+            EventError::message("scope ordinal space exhausted (u32::MAX scopes opened)")
+        })?;
+        self.next_scope = next;
+        let scope = ScopeId(next);
         self.open_scopes.push(scope);
         Ok(scope)
     }
 
     fn close_scope(&mut self, scope: ScopeId) -> Result<ControlFlow<()>, EventError> {
+        // Sealing a scope is simply removing it from the open set; a later reference
+        // to it then reads as "not open" (see `ensure_scope_open`).
         self.open_scopes.retain(|&s| s != scope);
-        if !self.closed_scopes.contains(&scope) {
-            self.closed_scopes.push(scope);
-        }
         Ok(ControlFlow::Continue(()))
     }
 
@@ -443,6 +479,25 @@ impl<'a> FrozenDatasetSource<'a> {
 
 impl RdfEventSource for FrozenDatasetSource<'_> {
     fn drive<S: RdfEventSink + ?Sized>(&self, sink: &mut S) -> Result<(), EventError> {
+        // Open every non-default blank scope this dataset uses BEFORE declaring any
+        // blank under it: the sink's `ensure_scope_open` guard rejects a blank whose
+        // scope was never opened. `open_scope` mints sequential ordinals (1, 2, …),
+        // so opening `max_scope` times yields exactly the ids ScopeId(1..=max_scope),
+        // matching the blank ordinals carried by value. ScopeId::DEFAULT (0) is open
+        // from the start and is never minted here.
+        let max_scope = (0..self.dataset.term_count())
+            .filter_map(
+                |i| match self.dataset.resolve(TermId::from_index(i as u32)) {
+                    TermRef::Blank { scope, .. } => Some(scope.ordinal()),
+                    _ => None,
+                },
+            )
+            .max()
+            .unwrap_or(0);
+        for _ in 0..max_scope {
+            sink.open_scope()?;
+        }
+
         // Terms first, in ascending id order — a triple term's components (lower ids)
         // and a literal's datatype are declared before the term referencing them.
         for i in 0..self.dataset.term_count() {
@@ -662,6 +717,37 @@ mod tests {
             .term(EventTermId(0), EventTerm::Blank { label: "b", scope })
             .expect_err("closed-scope reference must fail");
         assert_eq!(err, EventError::ClosedScope { scope });
+    }
+
+    #[test]
+    fn never_opened_scope_reference_is_error() {
+        // A scope id that was NEVER opened (not in `open_scopes`) is just as invalid
+        // as a sealed one: declaring a blank under it is a ClosedScope protocol error.
+        let mut sink = DatasetSink::new();
+        let scope = ScopeId(7);
+        let err = sink
+            .term(EventTermId(0), EventTerm::Blank { label: "b", scope })
+            .expect_err("never-opened-scope reference must fail");
+        assert_eq!(err, EventError::ClosedScope { scope });
+        assert!(sink.dataset().is_none(), "no freeze on protocol error");
+    }
+
+    #[test]
+    fn default_matches_new_initial_state() {
+        // `DatasetSink::default()` must produce the SAME initial state as `new()`:
+        // the default scope is open, so a blank under it declares fine.
+        let mut sink = DatasetSink::default();
+        decl(
+            &mut sink,
+            EventTermId(0),
+            EventTerm::Blank {
+                label: "b",
+                scope: ScopeId::DEFAULT,
+            },
+        );
+        sink.finish()
+            .expect("default sink has the default scope open");
+        assert!(sink.dataset().is_some(), "default sink freezes");
     }
 
     /// A source that returns `Break` mid-stream cancels the drive and the sink, when
