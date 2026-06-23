@@ -11,7 +11,9 @@
 //!   chase yielding the subsumption closure + the consistency verdict, over a
 //!   `VecRdfStore` class hierarchy (the same store shape the PyO3 `reason_native`
 //!   seam drives).
-//! - `el_closure` — just the EL subsumption closure (the cheaper sub-path).
+//! - `el_closure` — the EL subsumption closure alone (the sub-path of `reason_all`
+//!   without the DL consistency verdict; whether it is meaningfully cheaper at a
+//!   given size is exactly what the bench measures).
 //! - `materialize_core` — the Nemo forward-chase materialize over a transitive
 //!   `subClassOf` chain (O(n^2) derived facts), reusing the materialize.rs test
 //!   ruleset.
@@ -36,12 +38,13 @@ fn hierarchy_store(num_classes: usize, instances: usize) -> VecRdfStore {
                 .in_graph(RdfTerm::iri(W)),
         );
     }
+    let c0 = cls(0);
     for j in 0..instances {
         quads.push(
             RdfQuad::new(
                 RdfTerm::iri(format!("http://gmeow.example/x{j}")),
                 RDF_TYPE,
-                RdfTerm::iri(cls(0)),
+                RdfTerm::iri(c0.clone()),
             )
             .in_graph(RdfTerm::iri(W)),
         );
@@ -60,12 +63,15 @@ const TRANSITIVITY_RULES: &str = concat!(
 /// A `C0 → C1 → … → C{n}` `logic:subClassOf` chain as N-Quads (one world); the
 /// transitive chase derives the full O(n^2) closure.
 fn chain_nquads(n: usize) -> String {
+    use std::fmt::Write as _;
     let mut s = String::with_capacity(n * 160);
     for i in 0..n {
-        s.push_str(&format!(
-            "<http://example.org/C{i}> <https://blackcatinformatics.ca/logic/subClassOf> <http://example.org/C{}> <http://world/Alpha> .\n",
+        // write! into a String is infallible — no intermediate format! allocation.
+        let _ = writeln!(
+            s,
+            "<http://example.org/C{i}> <https://blackcatinformatics.ca/logic/subClassOf> <http://example.org/C{}> <http://world/Alpha> .",
             i + 1
-        ));
+        );
     }
     s
 }
