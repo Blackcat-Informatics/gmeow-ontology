@@ -1,0 +1,21 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for gmeow:ConceptCategorizationShape: the gmeow:observationResult
+# is ex:vehicle, declared a gmeow:Entity but NOT a gmeow:Concept. The result
+# property shape carries sh:class gmeow:Concept, so validation MUST emit
+# shacl.ClassConstraintComponent (and no other finding).
+# Bound by tests/example-conformance.ttl (ex:ecCategorizationResultNotConcept).
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex: <http://example.org/cnc/> .
+
+ex:whale a gmeow:Entity .
+ex:vehicle a gmeow:Entity .
+ex:method a gmeow:ObservationMethod .
+
+ex:bad2 a gmeow:ConceptCategorization ;
+    gmeow:observedFeature ex:whale ;
+    gmeow:observationResult ex:vehicle ;
+    gmeow:observationMethod ex:method ;
+    gmeow:typicality "0.5"^^xsd:decimal .

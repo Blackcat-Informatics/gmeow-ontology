@@ -1,0 +1,14 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Counter-example for gmeow:ConceptTenureShape: a ConceptTenure with NO
+# gmeow:duringInterval. gmeow:duringInterval has sh:minCount 1, so validation MUST
+# emit shacl.MinCountConstraintComponent (and no other finding).
+# Bound by tests/example-conformance.ttl (ex:ecTenureMissingInterval).
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex: <http://example.org/cnc/> .
+
+ex:mammal a gmeow:Concept .
+
+ex:tenure2 a gmeow:ConceptTenure ;
+    gmeow:conceptHoldsFor ex:mammal .

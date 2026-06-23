@@ -7,7 +7,7 @@ expression: summary
   "version": "3",
   "slice_count": 75,
   "term_count": 2163,
-  "dependency_edge_count": 755,
+  "dependency_edge_count": 759,
   "term_count_by_category": {
     "Class": 651,
     "Datatype": 1,
