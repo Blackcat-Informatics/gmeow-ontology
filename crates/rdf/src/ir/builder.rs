@@ -106,6 +106,15 @@ impl Default for RdfDatasetBuilder {
 /// the right cross-dataset form and is left as follow-up work.)
 impl Extend<QuadIds> for RdfDatasetBuilder {
     fn extend<T: IntoIterator<Item = QuadIds>>(&mut self, iter: T) {
+        let iter = iter.into_iter();
+        // Reserve up front so a bulk push reallocates the quad table/dedup set at
+        // most once. The lower bound is exact for non-deduping sources; with
+        // duplicates the reserve is a harmless over-estimate.
+        let reserve = iter.size_hint().0;
+        if reserve > 0 {
+            self.quads.reserve(reserve);
+            self.quad_set.reserve(reserve);
+        }
         for q in iter {
             self.push_quad(q.s, q.p, q.o, q.g);
         }

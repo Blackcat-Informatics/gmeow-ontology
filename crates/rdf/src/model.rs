@@ -245,8 +245,19 @@ mod tests {
             "<https://example.org/s>"
         );
         assert_eq!(RdfTerm::blank_node("b0").to_string(), "_:b0");
-        // `Display` MUST delegate to the single-source-of-truth serializer (#841).
-        let t = RdfTerm::iri("https://example.org/x");
-        assert_eq!(t.to_string(), crate::turtle::emit_term(&t));
+        // `Display` MUST delegate to the single-source-of-truth serializer for ALL
+        // four RDF term kinds (IRI, blank node, literal, triple term) (#841).
+        for t in [
+            RdfTerm::iri("https://example.org/x"),
+            RdfTerm::blank_node("b1"),
+            RdfTerm::literal(RdfLiteral::simple("hello")),
+            RdfTerm::triple(RdfTriple::new(
+                RdfTerm::iri("https://example.org/s"),
+                "https://example.org/p",
+                RdfTerm::iri("https://example.org/o"),
+            )),
+        ] {
+            assert_eq!(t.to_string(), crate::turtle::emit_term(&t));
+        }
     }
 }

@@ -398,6 +398,20 @@ mod tests {
     }
 
     #[test]
+    fn extend_empty_and_dedup() {
+        // Empty extend yields an empty dataset.
+        let mut b = RdfDatasetBuilder::new();
+        b.extend(core::iter::empty::<QuadIds>());
+        assert_eq!(b.freeze().expect("freeze").quad_count(), 0);
+        // Duplicate quads collapse — Extend routes through push_quad's dedup.
+        let mut b = RdfDatasetBuilder::new();
+        let (s, p, o) = (iri(&mut b, "s"), iri(&mut b, "p"), iri(&mut b, "o"));
+        let q = QuadIds { s, p, o, g: None };
+        b.extend([q, q]);
+        assert_eq!(b.freeze().expect("freeze").quad_count(), 1);
+    }
+
+    #[test]
     fn resolve_round_trips_iri() {
         let mut b = RdfDatasetBuilder::new();
         let s = iri(&mut b, "s");
