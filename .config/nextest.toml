@@ -4,6 +4,13 @@
 [profile.default]
 slow-timeout = { period = "60s", "terminate-after" = 2, "grace-period" = "30s" }
 retries = { backoff = "fixed", count = 2, delay = "1s" }
+# Output ergonomics (#871): surface the slowest tests in the final summary every
+# run (previously invisible until they hit the slow-timeout terminate cliff).
+# Passing runs stay quiet; a failing test's captured output shows inline AND is
+# recapped at the end so it is not lost in a parallel run.
+final-status-level = "slow"
+success-output = "never"
+failure-output = "immediate-final"
 
 [profile.ci]
 inherits = "default"
