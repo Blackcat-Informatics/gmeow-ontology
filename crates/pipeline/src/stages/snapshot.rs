@@ -169,6 +169,32 @@ const REP_QUERIES: &str = "queries-archive";
 const REP_TESTS: &str = "tests-archive";
 const ARCHIVE_MEDIA_TYPE: &str = "application/x-tar";
 
+/// The per-slice guide content blobs (each slice's `docs.md`), backing the
+/// `gmeow:guideBlob "blake3:<hex>"` reference triples [`add_guide_blobs`] writes
+/// into the documentation graph. The #861 cutover dropped these too — the
+/// references shipped dangling. The blob digest the gts writer assigns
+/// (`digest_string` = `blake3:<hex>`) equals the reference, so adding the SAME
+/// `guide.content` bytes resolves the reference. The `doc-guide` rep is read by
+/// digest (not by rep), so it just tags the channel.
+fn build_guide_blobs(root: &Path) -> Result<Vec<BlobRow>, PipelineError> {
+    let catalog = gmeow_slice::SliceCatalog::discover(&root.join("slices"))
+        .map_err(|e| stage_err(&format!("slice catalog: {e}")))?;
+    let mut blobs: Vec<BlobRow> = Vec::new();
+    for record in catalog.records() {
+        if let Some(guide) = record.artifacts.iter().find(|a| {
+            a.role == gmeow_slice::ArtifactRole::Documentation && a.logical_path == "docs.md"
+        }) {
+            blobs.push(BlobRow {
+                data: guide.content.clone(),
+                media_type: "text/markdown".to_string(),
+                rep: "doc-guide".to_string(),
+            });
+        }
+    }
+    blobs.sort_by(|a, b| a.data.cmp(&b.data));
+    Ok(blobs)
+}
+
 /// Build the four bundle archive blobs from the repo tree.
 fn build_archive_blobs(root: &Path) -> Result<Vec<BlobRow>, PipelineError> {
     // mappings + queries: member = bare filename.
@@ -388,12 +414,14 @@ impl Stage for SnapshotStage {
         &self.consumes
     }
     fn impl_version(&self) -> &str {
-        // v2: re-fold the mappings/cells/queries/tests archive blobs the #861
-        // pipeline cutover dropped (the wheel-mode consumer loaders need them).
-        "snapshot.v2-archive-blobs"
+        // v3: re-fold the mappings/cells/queries/tests archive blobs AND the
+        // per-slice docs guide blobs the #861 pipeline cutover dropped (the
+        // wheel-mode consumers + the dangling gmeow:guideBlob references need them).
+        "snapshot.v3-archive-and-guide-blobs"
     }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, PipelineError> {
-        let blobs = build_archive_blobs(input.root)?;
+        let mut blobs = build_archive_blobs(input.root)?;
+        blobs.extend(build_guide_blobs(input.root)?);
         let gts = build_snapshot(input.root, input.upstream, blobs)?;
         let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
         artifacts.insert(SNAPSHOT_PATH.to_string(), gts);
