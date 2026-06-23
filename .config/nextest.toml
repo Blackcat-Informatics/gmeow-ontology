@@ -31,8 +31,11 @@ engine = { max-threads = 2 }
 
 [[profile.default.overrides]]
 # The whole gmeow-conformance datatest harness (its foundation/* cases materialize
-# via nemo's run_chase) plus the gmeow-logic engine tests that invoke Nemo/Scryer
-# (nemo_engine/scryer_engine/materialize/reason/verify/certify). foundation/
-# stablemodel unit tests use the NATIVE rust chase (no nemo) and stay parallel.
-filter = 'package(gmeow-conformance) | (package(gmeow-logic) & test(/nemo_engine|scryer_engine|materialize|reason|verify|certify/))'
+# via nemo's run_chase) plus EVERY gmeow-logic test that drives Nemo or Scryer:
+# - Nemo (run_chase / run_reasoning): nemo_engine, materialize, reason, verify, certify
+# - Scryer (run_scryer, directly or via dispatch_query): scryer_engine, dispatch,
+#   profile_gate, counterfactual — so the scryer nightly alloc-abort insurance above
+#   actually covers all scryer execution, not just the scryer_engine module.
+# foundation/stablemodel unit tests use the NATIVE rust chase (no engine) and stay parallel.
+filter = 'package(gmeow-conformance) | (package(gmeow-logic) & test(/nemo_engine|scryer_engine|materialize|reason|verify|certify|dispatch|profile_gate|counterfactual/))'
 test-group = 'engine'
