@@ -39,6 +39,8 @@ pub const GMEOW: &str = "https://blackcatinformatics.ca/gmeow/";
 pub const EX: &str = "https://example.org/test/";
 /// `rdf:type`.
 pub const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+/// `rdfs:subClassOf`.
+pub const RDFS_SUBCLASSOF: &str = "http://www.w3.org/2000/01/rdf-schema#subClassOf";
 
 /// `https://blackcatinformatics.ca/gmeow/<local>`.
 pub fn gmeow(local: &str) -> String {
@@ -48,6 +50,11 @@ pub fn gmeow(local: &str) -> String {
 /// `https://example.org/test/<local>`.
 pub fn ex(local: &str) -> String {
     format!("{EX}{local}")
+}
+
+/// `https://example.org/mereology/<local>` — the A-Box namespace the mereology tests use.
+pub fn exm(local: &str) -> String {
+    format!("https://example.org/mereology/{local}")
 }
 
 /// Repo root (`CARGO_MANIFEST_DIR` = `<repo>/crates/logic`).
@@ -177,5 +184,181 @@ fn smoke_property_chain_entailment_and_negative() {
         closure.triples.len() > 10,
         "the scoped RL closure should be non-trivial; got {}",
         closure.triples.len()
+    );
+}
+
+// ── Migrated from tests/test_reasoning_entailments.py ───────────────────────────────────────
+// The native twins of the `_materialize(module, *abox)` positive-entailment tests (#38). The
+// three `reasoning_cases` monkeypatch tests (two-axis / two-kind / run_all order) are NOT migrated
+// — they exercise the Python Docker-orchestration layer (`gmeow_tools.reasoning_cases`), an
+// independent live Python impl with no Rust twin (retain-with-reason, see MIGRATION-LEDGER.md).
+
+#[test]
+fn ancestry_is_derived_not_asserted() {
+    // hasParent ∘ hasParent ⊑ hasAncestor (transitive sub-property), DERIVED.
+    let (a, b, c) = (ex("a"), ex("b"), ex("c"));
+    let abox = vec![
+        iri_quad(&a, &gmeow("hasParent"), &b),
+        iri_quad(&b, &gmeow("hasParent"), &c),
+    ];
+    let closure = scoped_closure(&["extensions/genealogy"], &abox);
+    // The grandparent edge is asserted nowhere yet is entailed.
+    assert_entailed(&closure, &abox, &a, &gmeow("hasAncestor"), &c);
+    // Parentage feeds ancestry; the transitive inverse closes descendants too.
+    assert!(
+        contains(&closure, &a, &gmeow("hasAncestor"), &b),
+        "ex:a hasAncestor ex:b (parentage ⊑ ancestry)"
+    );
+    assert!(
+        contains(&closure, &c, &gmeow("hasDescendant"), &a),
+        "ex:c hasDescendant ex:a (transitive inverse)"
+    );
+}
+
+#[test]
+fn location_propagates_through_containment() {
+    // locatedAt ∘ containedInPlace ⊑ locatedAt: in your room means in your city.
+    let (thing, room, city) = (ex("thing"), ex("room"), ex("city"));
+    let abox = vec![
+        iri_quad(&thing, &gmeow("locatedAt"), &room),
+        iri_quad(&room, &gmeow("containedInPlace"), &city),
+    ];
+    let closure = scoped_closure(&["core/places"], &abox);
+    assert!(
+        contains(&closure, &thing, &gmeow("locatedAt"), &city),
+        "ex:thing locatedAt ex:city (location through containment)"
+    );
+}
+
+#[test]
+fn suborganization_is_transitive() {
+    // subOrganizationOf is transitive — a team is part of the parent company.
+    let (team, div, corp) = (ex("team"), ex("div"), ex("corp"));
+    let abox = vec![
+        iri_quad(&team, &gmeow("subOrganizationOf"), &div),
+        iri_quad(&div, &gmeow("subOrganizationOf"), &corp),
+    ];
+    let closure = scoped_closure(&["core/organization"], &abox);
+    assert!(
+        contains(&closure, &team, &gmeow("subOrganizationOf"), &corp),
+        "ex:team subOrganizationOf ex:corp (transitive)"
+    );
+}
+
+#[test]
+fn proximity_measurement_is_a_measurement() {
+    // ProximityMeasurement ⊑ Measurement is asserted and survives materialization.
+    let (commute, home, dist) = (ex("commute"), ex("home"), ex("dist"));
+    let abox = vec![
+        iri_quad(&commute, RDF_TYPE, &gmeow("ProximityMeasurement")),
+        iri_quad(&commute, &gmeow("proximityTo"), &home),
+        iri_quad(&commute, &gmeow("observationResult"), &dist),
+        iri_quad(&dist, RDF_TYPE, &gmeow("ScalarQuantity")),
+    ];
+    let closure = scoped_closure(&["core/places"], &abox);
+    // The asserted subClassOf is preserved through materialization.
+    assert!(
+        contains(
+            &closure,
+            &gmeow("ProximityMeasurement"),
+            RDFS_SUBCLASSOF,
+            &gmeow("Measurement")
+        ),
+        "ProximityMeasurement ⊑ Measurement preserved"
+    );
+    // And the instance is typed in both the asserted and reasoned graph.
+    assert!(
+        has_type(&closure, &commute, &gmeow("ProximityMeasurement")),
+        "ex:commute a ProximityMeasurement (asserted)"
+    );
+    assert!(
+        has_type(&closure, &commute, &gmeow("Measurement")),
+        "ex:commute a Measurement (derived via cax-sco)"
+    );
+}
+
+// ── Migrated from tests/test_mereology.py (#76) ─────────────────────────────────────────────
+// The three `_materialize(*modules, abox=...)` propagation tests. The three structural tests
+// (`_universal_part_properties_*`, `_existing_part_like_relations_*`, `_no_winner_or_cardinality_*`)
+// run over the ASSERTED merged graph with no closure — they are TBox-well-formedness checks that
+// belong to the #867 slicetest structural migration, not this reasoning migration; left in place.
+
+#[test]
+fn specialized_part_relations_entail_generic_parthood() {
+    let (room, building) = (exm("room"), exm("building"));
+    let (team, division) = (exm("team"), exm("division"));
+    let (talk, session) = (exm("talk"), exm("session"));
+    let (message, mime_part) = (exm("message"), exm("mimePart"));
+    let abox = vec![
+        iri_quad(&room, &gmeow("containedInPlace"), &building),
+        iri_quad(&team, &gmeow("subOrganizationOf"), &division),
+        iri_quad(&talk, &gmeow("subEventOf"), &session),
+        iri_quad(&message, &gmeow("hasBodyPart"), &mime_part),
+    ];
+    let closure = scoped_closure(
+        &[
+            "core/kernel",
+            "core/places",
+            "core/organization",
+            "core/events",
+            "extensions/email",
+        ],
+        &abox,
+    );
+    assert!(
+        contains(&closure, &room, &gmeow("partOf"), &building),
+        "containedInPlace ⊑ partOf"
+    );
+    assert!(
+        contains(&closure, &team, &gmeow("partOf"), &division),
+        "subOrganizationOf ⊑ partOf"
+    );
+    assert!(
+        contains(&closure, &talk, &gmeow("partOf"), &session),
+        "subEventOf ⊑ partOf"
+    );
+    assert!(
+        contains(&closure, &message, &gmeow("hasPart"), &mime_part),
+        "hasBodyPart ⊑ hasPart"
+    );
+}
+
+#[test]
+fn member_of_propagates_through_suborganization() {
+    let (alex, team, division, company) =
+        (exm("alex"), exm("team"), exm("division"), exm("company"));
+    let abox = vec![
+        iri_quad(&alex, &gmeow("memberOf"), &team),
+        iri_quad(&team, &gmeow("subOrganizationOf"), &division),
+        iri_quad(&division, &gmeow("subOrganizationOf"), &company),
+    ];
+    let closure = scoped_closure(&["core/kernel", "core/organization"], &abox);
+    assert!(
+        contains(&closure, &alex, &gmeow("memberOf"), &division),
+        "memberOf propagates through subOrganizationOf (one hop)"
+    );
+    assert!(
+        contains(&closure, &alex, &gmeow("memberOf"), &company),
+        "memberOf propagates through subOrganizationOf (two hops)"
+    );
+}
+
+#[test]
+fn event_location_propagates_through_spatial_containment() {
+    let (meeting, room, building, city) =
+        (exm("meeting"), exm("room"), exm("building"), exm("city"));
+    let abox = vec![
+        iri_quad(&meeting, &gmeow("eventLocation"), &room),
+        iri_quad(&room, &gmeow("containedInPlace"), &building),
+        iri_quad(&building, &gmeow("containedInPlace"), &city),
+    ];
+    let closure = scoped_closure(&["core/kernel", "core/places", "core/events"], &abox);
+    assert!(
+        contains(&closure, &meeting, &gmeow("eventLocation"), &building),
+        "eventLocation propagates through spatial containment (one hop)"
+    );
+    assert!(
+        contains(&closure, &meeting, &gmeow("eventLocation"), &city),
+        "eventLocation propagates through spatial containment (two hops)"
     );
 }

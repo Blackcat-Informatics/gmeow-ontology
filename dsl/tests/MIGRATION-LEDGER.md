@@ -259,6 +259,41 @@ The second SHACL-conformance slice (concepts recipe): 8 structural fns → `test
 
 **Learning tally:** 11 converted (11 structural cells + 3 example-conformance cells across 11 fns), 1 deleted-covered-by-make-validate. Source file `tests/test_learning.py` DELETED entirely (all 12 fns migrated/subsumed, no must-stays). Second slice exercising `gmeow:ExampleConformance`; first to migrate an EL `someValuesFrom` restriction (blank-node ASK) and an `sh:sparql` constraint violation.
 
+## Reasoning cluster → native Rust OWL 2 RL harness (#896)
+
+The OWL/EL/DL **reasoning + entailment** tests are a distinct lane from the
+declarative slice-test DSL above: each rebuilt a reasoned rdflib graph via the
+OWL-2-RL chase (`gmeow_tools.native_rl_rdflib.native_rl_closure`) and asserted a
+derived triple. Because the chase is superlinear in fact count, the per-test cost
+dominated the ~45-min `python` CI lane. These migrate to
+`crates/logic/tests/ontology_entailments.rs` — `scoped_closure(slices, abox)`,
+the native twin of `_materialize(module, *abox)`: parse the *same* authored
+`module.ttl`, inject the *same* A-Box, run the native RL chase
+(`gmeow_logic::reason::rl_closure`) over that small scoped input (seconds,
+Docker-free). RL lane (not EL/DL) to preserve exact entailments. The structural
+(asserted-graph, no-closure) tests that lived alongside them stay in pytest
+pending the #867 slicetest structural migration — they are not reasoning tests.
+
+| Pytest fn | Pytest file | Rust twin | Cell type | Status | Reason if retained | Run by |
+|---|---|---|---|---|---|---|
+| `test_ancestry_is_derived_not_asserted` | `tests/test_reasoning_entailments.py` | `ancestry_is_derived_not_asserted` | RL-entailment | converted | — | `make logic-test` |
+| `test_location_propagates_through_containment` | `tests/test_reasoning_entailments.py` | `location_propagates_through_containment` | RL-entailment | converted | — | `make logic-test` |
+| `test_suborganization_is_transitive` | `tests/test_reasoning_entailments.py` | `suborganization_is_transitive` | RL-entailment | converted | — | `make logic-test` |
+| `test_proximity_measurement_is_a_measurement` | `tests/test_reasoning_entailments.py` | `proximity_measurement_is_a_measurement` | RL-entailment | converted | — | `make logic-test` |
+| `test_two_axis_case_expects_inconsistency` | `tests/test_reasoning_entailments.py` | — | — | **retained** | tests the Python Docker-orchestration layer (`gmeow_tools.reasoning_cases`, monkeypatched reasoner call-order) — an independent live Python impl with no Rust twin | pytest |
+| `test_two_kind_case_expects_inconsistency` | `tests/test_reasoning_entailments.py` | — | — | **retained** | same — Python orchestration of the Docker inconsistency lane | pytest |
+| `test_reasoning_cases_run_all_order` | `tests/test_reasoning_entailments.py` | — | — | **retained** | same — pins the Docker reasoning-case run order | pytest |
+| `test_specialized_part_relations_entail_generic_parthood` | `tests/test_mereology.py` | `specialized_part_relations_entail_generic_parthood` | RL-entailment | converted | — | `make logic-test` |
+| `test_member_of_propagates_through_suborganization` | `tests/test_mereology.py` | `member_of_propagates_through_suborganization` | RL-entailment | converted | — | `make logic-test` |
+| `test_event_location_propagates_through_spatial_containment_only` | `tests/test_mereology.py` | `event_location_propagates_through_spatial_containment` | RL-entailment | converted | — | `make logic-test` |
+| `test_universal_part_properties_are_broad_transitive_inverses` | `tests/test_mereology.py` | — | — | **retained** | structural TBox well-formedness over the ASSERTED graph (no closure) — #867 slicetest territory, not a reasoning test | pytest |
+| `test_existing_part_like_relations_specialize_the_spine` | `tests/test_mereology.py` | — | — | **retained** | structural sub-property assertions over the asserted graph — #867 | pytest |
+| `test_no_winner_or_cardinality_terms_for_parts` | `tests/test_mereology.py` | — | — | **retained** | structural absence check over the asserted graph — #867 | pytest |
+
+**#896 reasoning tally (running):** 7 converted, 6 retained-with-reason (3 Python
+Docker-orchestration, 3 structural-not-reasoning). The migrated `_materialize`
+helpers and their A-Box-injection imports were removed from both pytest files.
+
 ## Other slices
 
 No other slice carries declarative test-DSL specs yet (T2 authored only the
