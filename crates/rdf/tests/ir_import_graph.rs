@@ -401,66 +401,82 @@ fn graph_and_event_paths_agree_on_non_blank_terms() {
 
 // --- Gate 4: string-move proof ---------------------------------------------
 
-/// `import_gts_graph` MOVES owned term strings into the interner. We allocate a very
-/// long IRI when building the `Graph` (BEFORE the measured window), then import it
-/// and bound the bytes allocated DURING import.
+/// P3b (#879) stores all interned strings in ONE contiguous byte arena instead of a
+/// `Box<str>` per term. An arena copies each string's bytes once into the shared
+/// buffer (and copies the whole buffer once more when it is frozen at materialize) —
+/// so the old "move the `String`'s heap buffer, never copy a byte" invariant no longer
+/// applies, and measuring a single import's absolute byte count is no longer a
+/// meaningful clone-detector (the fixed copy+freeze cost dwarfs it).
 ///
-/// The interner deduplicates by keeping the term in BOTH a `Vec` and a `HashMap`
-/// index, so it clones the interned term exactly ONCE internally — an unavoidable
-/// ~1× IRI-length cost shared by every import path. The importer's own contribution
-/// is the difference: a MOVE adds nothing length-proportional (total ≈ 1× the IRI),
-/// whereas a CLONE-based importer would copy the IRI an extra time (total ≈ 2×). We
-/// therefore assert the import stays well under 2× the IRI length — only achievable
-/// if the importer MOVES the string out of the `Graph` rather than cloning it.
+/// The invariant that DOES survive — and that P3b + store-once (#880) must uphold — is
+/// that each DISTINCT string value lands in the arena EXACTLY ONCE. We assert it with a
+/// delta: importing the same long IRI as four separate `Graph` terms must allocate
+/// barely more than importing it once. Equal terms dedup by value before any arena
+/// push, so the three extra copies add only constant bookkeeping (term-table / quad
+/// rows), NOT three more arena copies of the IRI. A per-term arena copy (a dedup
+/// regression) would add ≈3× the IRI length, blowing the ceiling. Taking the delta
+/// cancels the fixed copy+freeze overhead that the absolute single-import number can't.
 #[test]
-fn import_moves_long_iri_string_not_clone() {
-    // A long IRI whose backing `String` has capacity == len (so the interner's
-    // `into_boxed_str` shrink is a no-op and cannot mask the measurement).
-    let mut long: String = String::from("http://example.org/") + &"x".repeat(200_000) + "#term";
-    // Force capacity == len so the interner's `into_boxed_str` shrink is a no-op and
-    // cannot reallocate (copy) the string inside the measured window. This shrink
-    // happens BEFORE the measured window regardless.
-    long.shrink_to_fit();
+fn import_dedups_equal_long_iris_in_arena() {
+    let long: String = String::from("http://example.org/") + &"x".repeat(200_000) + "#term";
     let long_len = long.len();
     assert!(long_len > 200_000);
 
-    // Build the graph; the long IRI's bytes are allocated HERE, before measuring.
-    let mut graph = Graph::default();
-    graph.terms.push(Term {
-        kind: TermKind::Iri,
-        value: Some(long),
-        datatype: None,
-        lang: None,
-        direction: None,
-        reifier: None,
-    });
-    graph.terms.push(iri("http://example.org/p"));
-    graph.terms.push(iri("http://example.org/o"));
-    graph.quads.push((0, 1, 2, None));
+    // Import the long IRI as `copies` distinct subject terms (all equal) and return the
+    // bytes allocated DURING import. The graph's own term strings are allocated before
+    // the measured window, so the delta between two `copies` values isolates the arena.
+    let import_with_copies = |copies: usize| -> usize {
+        let mut graph = Graph::default();
+        for _ in 0..copies {
+            graph.terms.push(Term {
+                kind: TermKind::Iri,
+                value: Some(long.clone()),
+                datatype: None,
+                lang: None,
+                direction: None,
+                reifier: None,
+            });
+        }
+        let p = copies; // predicate term index, right after the subject copies
+        let o = copies + 1; // object term index
+        graph.terms.push(iri("http://example.org/p"));
+        graph.terms.push(iri("http://example.org/o"));
+        for s in 0..copies {
+            graph.quads.push((s, p, o, None));
+        }
 
-    let before = allocated_bytes();
-    let bundle = import_gts_graph(graph).expect("import");
-    let after = allocated_bytes();
+        let before = allocated_bytes();
+        let bundle = import_gts_graph(graph).expect("import");
+        let measured = allocated_bytes() - before;
 
-    // Sanity: the long IRI did survive into the interned dataset.
-    let kept = bundle
-        .dataset
-        .quad_refs()
-        .next()
-        .map(|q| matches!(q.s, TermRef::Iri(s) if s.len() == long_len))
-        .unwrap_or(false);
-    assert!(kept, "the long IRI must be interned intact");
+        // Sanity: the long IRI survived into the interned dataset intact, and the equal
+        // subjects collapsed to a single quad (one interned IRI shared by all rows).
+        let kept = bundle
+            .dataset
+            .quad_refs()
+            .next()
+            .map(|q| matches!(q.s, TermRef::Iri(s) if s.len() == long_len))
+            .unwrap_or(false);
+        assert!(kept, "the long IRI must be interned intact");
+        assert_eq!(
+            bundle.dataset.quad_count(),
+            1,
+            "equal subjects over the same (p, o) dedup to ONE quad"
+        );
+        measured
+    };
 
-    let measured = after - before;
-    // A move → ~1× the IRI (the interner's single index clone) plus small bookkeeping.
-    // A clone-based importer → ~2× the IRI. Anything under 1.5× is only reachable by
-    // moving the string out of the `Graph`.
-    let move_ceiling = long_len + long_len / 2;
+    let one = import_with_copies(1);
+    let four = import_with_copies(4);
+
+    // Store-once: the three EXTRA equal IRIs add no arena bytes (deduped before any
+    // push) — only constant bookkeeping. A per-term arena copy would add ≈3× the IRI.
+    let dedup_ceiling = one + long_len;
     assert!(
-        measured < move_ceiling,
-        "import allocated {measured} bytes for a {long_len}-byte IRI (ceiling \
-         {move_ceiling}); a MOVE keeps this near 1× the IRI, a clone would push it \
-         to ~2×"
+        four < dedup_ceiling,
+        "four equal long IRIs allocated {four} bytes vs {one} for one (ceiling \
+         {dedup_ceiling}); store-once keeps the three extras near zero arena bytes, a \
+         per-term copy would add ≈3× the {long_len}-byte IRI"
     );
 }
 

@@ -22,6 +22,9 @@
 
 pub mod bundle;
 pub mod content_store;
+// The static, allocation-free read view over an RDF dataset (purrdf P2, #836):
+// `DatasetView` + `GraphMatch`. PyO3-free, oxigraph-free — pure kernel.
+pub mod dataset_view;
 pub mod diagnostic;
 // Native FnO (W3C Function Ontology) typed catalog model + serializer (#848).
 // PyO3-free; the `gmeow-slice` FnO emitter builds a `FnoCatalog` from the slice
@@ -85,6 +88,7 @@ pub use bundle::{
     UnitMetadata,
 };
 pub use content_store::{Bytes, ContentDigest, ContentStore, ContentStoreError};
+pub use dataset_view::{DatasetView, GraphMatch};
 pub use diagnostic::{RdfDiagnostic, RdfLocation, RdfLoss, RdfSeverity};
 pub use fno::{
     to_ntriples as fno_to_ntriples, to_quads as fno_to_quads, FnFunction, FnImpl, FnMapping,
@@ -92,7 +96,7 @@ pub use fno::{
 };
 pub use ir::{
     dataset_diff, datasets_isomorphic, BlankScope, DatasetDiff, GtsBundle, QuadHandle, QuadIds,
-    QuadRef, RdfDataset, RdfDatasetBuilder, RdfEnvelope, RdfEventSink, TermId, TermRef,
+    QuadRef, RdfDataset, RdfDatasetBuilder, RdfEnvelope, RdfEventSink, TermId, TermRef, TermValue,
 };
 #[cfg(feature = "gts")]
 pub use ir::{import_gts_events, import_gts_graph};
@@ -125,8 +129,11 @@ pub use turtle::{emit_annotation, emit_quad, emit_reifier, emit_resource, emit_t
 /// store trait, and the diagnostic type — the set a typical consumer (a SHACL/
 /// validate/logic adapter, or an external Rust crate) reaches for first.
 pub mod prelude {
+    pub use crate::dataset_view::{DatasetView, GraphMatch};
     pub use crate::diagnostic::{RdfDiagnostic, RdfLocation, RdfSeverity};
-    pub use crate::ir::{QuadIds, QuadRef, RdfDataset, RdfDatasetBuilder, TermId, TermRef};
+    pub use crate::ir::{
+        QuadIds, QuadRef, RdfDataset, RdfDatasetBuilder, TermId, TermRef, TermValue,
+    };
     pub use crate::model::{
         RdfAnnotation, RdfLiteral, RdfQuad, RdfReifier, RdfTerm, RdfTermKind, RdfTextDirection,
         RdfTriple,

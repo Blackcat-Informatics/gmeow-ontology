@@ -137,32 +137,132 @@ impl Default for BlankScope {
 /// An interned literal. The identity key per C0.1: datatype is ALWAYS expanded to
 /// an interned IRI [`TermId`]; the language tag is lowercased; base direction is in
 /// the key; and the lexical spelling is preserved verbatim.
-#[derive(Clone, PartialEq, Eq, Hash, Debug)]
+/// A `(offset, len)` range into the interner's byte arena (#879 P3b). Each interned
+/// string is stored once in the arena rather than as its own `Box<str>`, so a term
+/// holds only this 8-byte range — `InternedTerm` becomes `Copy` and per-term heap
+/// allocations collapse to one growable arena.
+#[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
+pub(crate) struct StrRange {
+    pub offset: u32,
+    pub len: u32,
+}
+
+/// Borrow an arena range as `&str`. The arena only ever receives validated UTF-8
+/// (it is appended from `&str` values) and ranges are recorded at push time, so the
+/// sub-slice is always valid UTF-8.
+#[inline]
+pub(crate) fn arena_str(arena: &[u8], range: StrRange) -> &str {
+    let bytes = &arena[range.offset as usize..range.offset as usize + range.len as usize];
+    debug_assert!(
+        std::str::from_utf8(bytes).is_ok(),
+        "arena range is valid UTF-8"
+    );
+    // SAFETY: see the doc comment — the arena is append-only of validated UTF-8 and
+    // every `StrRange` was recorded over a pushed `&str`, so `bytes` is valid UTF-8.
+    unsafe { std::str::from_utf8_unchecked(bytes) }
+}
+
+#[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
 pub(crate) struct InternedLiteral {
     /// The lexical form, byte-for-byte as authored — never canonicalized (C0.1).
-    pub lexical_form: Box<str>,
+    pub lexical_form: StrRange,
     /// The expanded datatype, always present (`xsd:string` / `rdf:langString`
     /// expanded at intern time), stored as the id of its interned IRI term.
     pub datatype: TermId,
     /// The language tag, lowercased for the identity key (C0.1).
-    pub language: Option<Box<str>>,
+    pub language: Option<StrRange>,
     /// The RDF 1.2 base direction; distinct directions are distinct literals.
     pub direction: Option<RdfTextDirection>,
 }
 
 /// An interned term — the storage form behind a [`TermId`]. Crate-private: the IR
-/// exposes terms through resolved views, never this internal representation.
-#[derive(Clone, PartialEq, Eq, Hash, Debug)]
+/// exposes terms through resolved views, never this internal representation. Strings
+/// are `StrRange`s into the interner's byte arena (#879).
+#[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
 pub(crate) enum InternedTerm {
-    /// An IRI, by its full string.
-    Iri(Box<str>),
+    /// An IRI, by its arena range.
+    Iri(StrRange),
     /// A blank node, identified by `(label, scope)` (C0.2).
-    Blank { label: Box<str>, scope: BlankScope },
+    Blank { label: StrRange, scope: BlankScope },
     /// A literal, identified per C0.1.
     Literal(InternedLiteral),
     /// A triple term (RDF 1.2 quoted triple), identified structurally by its
     /// resolved `(s, p, o)` (C0.3).
     Triple { s: TermId, p: TermId, o: TermId },
+}
+
+/// A **dataset-independent** term value — the lookup key for
+/// [`RdfDataset::term_id_by_value`](super::RdfDataset::term_id_by_value) (purrdf P4,
+/// #838).
+///
+/// Unlike [`TermRef`] (whose literal-datatype and triple-component slots carry
+/// dataset-local [`TermId`]s), `TermValue` expresses every component **by value** —
+/// the literal datatype is its IRI string, triple terms recurse by value. This is
+/// the issue's core correctness rule: keying value→id lookup on `TermRef` would
+/// smuggle ids local to *another* dataset and silently return wrong answers, so the
+/// key carries no `TermId` at all. A `&TermValue` is the spec's "TermValueRef".
+#[derive(Clone, PartialEq, Eq, Debug)]
+pub enum TermValue {
+    /// An IRI, by its full string.
+    Iri(String),
+    /// A blank node, by `(label, scope)` (C0.2). `scope` is a structural ordinal,
+    /// not a term-table id, so it is dataset-independent.
+    Blank { label: String, scope: BlankScope },
+    /// A literal (C0.1): lexical form, the datatype **IRI by value**, optional
+    /// (lowercased) language tag, and optional base direction.
+    Literal {
+        lexical_form: String,
+        datatype: String,
+        language: Option<String>,
+        direction: Option<RdfTextDirection>,
+    },
+    /// A triple term, identified structurally by its `(s, p, o)` **values** (C0.3).
+    Triple {
+        s: Box<TermValue>,
+        p: Box<TermValue>,
+        o: Box<TermValue>,
+    },
+}
+
+// `Hash` is hand-written (not derived) with **explicit** discriminant tags so it is
+// robust against compiler-dependent enum-discriminant hashing AND matches the
+// allocation-free `RdfDataset::hash_term` (which hashes the interned representation
+// directly) byte-for-byte (#838). The two MUST stay in sync — the
+// `term_id_by_value` round-trip tests fail if they diverge. `String`/`Box<str>`/
+// `&str` all hash via `str`, so the by-value datatype here matches the resolved IRI
+// string there.
+impl core::hash::Hash for TermValue {
+    fn hash<H: core::hash::Hasher>(&self, state: &mut H) {
+        match self {
+            TermValue::Iri(iri) => {
+                0u8.hash(state);
+                iri.hash(state);
+            }
+            TermValue::Blank { label, scope } => {
+                1u8.hash(state);
+                label.hash(state);
+                scope.hash(state);
+            }
+            TermValue::Literal {
+                lexical_form,
+                datatype,
+                language,
+                direction,
+            } => {
+                2u8.hash(state);
+                lexical_form.hash(state);
+                datatype.hash(state);
+                language.hash(state);
+                direction.hash(state);
+            }
+            TermValue::Triple { s, p, o } => {
+                3u8.hash(state);
+                s.hash(state);
+                p.hash(state);
+                o.hash(state);
+            }
+        }
+    }
 }
 
 #[cfg(test)]
@@ -211,12 +311,14 @@ mod tests {
     #[test]
     fn interned_literal_equality_includes_direction() {
         let a = InternedLiteral {
-            lexical_form: "x".into(),
+            // The arena range is irrelevant here — this pins that base direction
+            // participates in literal identity (#879: lexical form is now a range).
+            lexical_form: StrRange { offset: 0, len: 1 },
             datatype: TermId::from_index(0),
             language: None,
             direction: Some(RdfTextDirection::Ltr),
         };
-        let mut b = a.clone();
+        let mut b = a;
         assert_eq!(a, b);
         b.direction = Some(RdfTextDirection::Rtl);
         assert_ne!(a, b);

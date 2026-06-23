@@ -251,7 +251,9 @@ impl SinkImporter {
                 let dt_id =
                     self.resolve_term(segment_index, dt_gts_id, "literal datatype", depth + 1)?;
                 match self.builder.term(dt_id) {
-                    super::term::InternedTerm::Iri(iri) => Some(iri.to_string()),
+                    super::term::InternedTerm::Iri(iri) => {
+                        Some(self.builder.interned_str(*iri).to_string())
+                    }
                     other => {
                         return Err(RdfDiagnostic::error(
                             "rdf-ir-literal-datatype-not-iri",
@@ -647,7 +649,9 @@ mod tests {
     /// Resolve `our_id` back to its interned blank `(label, scope)` for assertions.
     fn blank_scope(importer: &SinkImporter, id: TermId) -> (String, BlankScope) {
         match importer.builder.term(id) {
-            InternedTerm::Blank { label, scope } => (label.to_string(), *scope),
+            InternedTerm::Blank { label, scope } => {
+                (importer.builder.interned_str(*label).to_string(), *scope)
+            }
             other => panic!("expected blank node, got {other:?}"),
         }
     }
