@@ -16,3 +16,23 @@ failure-output = "immediate-final"
 inherits = "default"
 junit = { path = "junit.xml" }
 fail-fast = false
+
+# Engine memory cap (#871, sub-ask 3). The Nemo/Scryer reasoning engines are
+# RAM-heavy: nextest runs EACH test in its own process, and the in-process
+# `CHASE_LOCK` (nemo_engine.rs) / `SCRYER_LOCK` (scryer_engine.rs)
+# process-global mutexes serialize only WITHIN a process — they do NOT cap how many multi-GB chase
+# PROCESSES run at once. On the 16 GB CI runner the default thread count = nproc
+# (4), so up to 4 concurrent chases could OOM-thrash (and the scryer nightly
+# alloc-abort surfaces under parallelism). This group caps concurrent engine
+# tests to 2; the fast leaf-crate tests (rdf/shacl/validate/docs/diagnostics) and
+# the ~360 fast gmeow-logic unit tests stay fully parallel.
+[test-groups]
+engine = { max-threads = 2 }
+
+[[profile.default.overrides]]
+# The whole gmeow-conformance datatest harness (its foundation/* cases materialize
+# via nemo's run_chase) plus the gmeow-logic engine tests that invoke Nemo/Scryer
+# (nemo_engine/scryer_engine/materialize/reason/verify/certify). foundation/
+# stablemodel unit tests use the NATIVE rust chase (no nemo) and stay parallel.
+filter = 'package(gmeow-conformance) | (package(gmeow-logic) & test(/nemo_engine|scryer_engine|materialize|reason|verify|certify/))'
+test-group = 'engine'
