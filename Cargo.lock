@@ -1736,14 +1736,27 @@ version = "0.1.0"
 dependencies = [
  "ciborium",
  "criterion",
- "csv",
  "ed25519-dalek",
  "gmeow-gts",
- "hashbrown 0.14.5",
+ "gmeow-rdf-core",
  "oxigraph",
  "pretty_assertions",
  "proptest",
  "pyo3",
+]
+
+[[package]]
+name = "gmeow-rdf-core"
+version = "0.1.0"
+dependencies = [
+ "ciborium",
+ "criterion",
+ "csv",
+ "ed25519-dalek",
+ "gmeow-gts",
+ "hashbrown 0.14.5",
+ "pretty_assertions",
+ "proptest",
  "sha2",
 ]
 

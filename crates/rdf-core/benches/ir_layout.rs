@@ -37,7 +37,9 @@ use std::cell::Cell;
 use std::sync::Arc;
 
 use criterion::{criterion_group, criterion_main, Criterion};
-use gmeow_rdf::{BlankScope, QuadIds, RdfDataset, RdfDatasetBuilder, RdfLiteral, TermId, TermRef};
+use gmeow_rdf_core::{
+    BlankScope, QuadIds, RdfDataset, RdfDatasetBuilder, RdfLiteral, TermId, TermRef,
+};
 
 // ---------------------------------------------------------------------------
 // Counting allocator — operational metrics beyond quads/sec.
