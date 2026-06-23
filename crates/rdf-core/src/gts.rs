@@ -169,6 +169,9 @@ fn has_lookaside(graph: &Graph) -> bool {
         || !graph.segment_heads.is_empty()
         || !graph.segment_profiles.is_empty()
         || !graph.segment_meta.is_empty()
+        // `segment_records` surfaces per-segment streamable info, so a graph that
+        // carries only `segment_streamable` is still lookaside-bearing.
+        || !graph.segment_streamable.is_empty()
         || !graph.blobs.is_empty()
         || !graph.blob_meta.is_empty()
         || !graph.suppressions.is_empty()
