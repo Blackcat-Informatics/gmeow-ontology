@@ -63,3 +63,11 @@ criterion = { version = "0.5", default-features = false, features = ["cargo_benc
 # from `make check`.
 name = "ir_layout"
 harness = false
+
+[[bench]]
+# COW `MutableDataset` measured-hypothesis harness (#839 P5): the shipped copy-on-
+# write suppression-delta dataset benched head-to-head against a simple hash-indexed
+# value-quad store, on a build/mutate/query workload. Reports both; asserts no winner.
+# `make bench` lane only — excluded from `make check`.
+name = "mutable"
+harness = false
