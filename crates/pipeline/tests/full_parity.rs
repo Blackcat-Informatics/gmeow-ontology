@@ -94,6 +94,14 @@ fn linkml_available(root: &Path) -> bool {
 /// build verifies real bytes regardless of LinkML (NO-OPTIONALITY, #863).
 const SCHEMAS_PREFIX: &str = "generated/schemas/";
 
+// `#[ignore]` in CI: this runs `run_full(Check)` several times (full reasoning +
+// every leaf + a fold regen + a dist determinism pass) — minutes of work. The CI
+// `ontology` lane's `gmeow-dev check-generated` runs the IDENTICAL `run_full(Check)`
+// parity gate (with the Python + native-ext environment it needs) and is the
+// authoritative cutover gate; duplicating it as a multi-minute Rust test would only
+// double the cost. Run on demand with `cargo test -p gmeow-pipeline --test full_parity
+// -- --ignored`. (The cheaper `fold_parity` fold gate still runs unconditionally.)
+#[ignore = "redundant with the ontology lane's `gmeow-dev check-generated`; run with --ignored"]
 #[test]
 fn full_run_reproduces_every_committed_artifact() {
     let root = repo_root();
