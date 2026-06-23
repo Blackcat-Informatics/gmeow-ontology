@@ -209,6 +209,7 @@ gmeow:pipeline-build
         gmeow:stage-export-references ,
         gmeow:stage-export-evals ,
         gmeow:stage-export-lpg ,
+        gmeow:stage-export-logic ,
         gmeow:stage-gts-sink .
 
 # ── Spine ──
@@ -462,9 +463,17 @@ gmeow:stage-export-lpg
     gmeow:producesFormat "lpg-cypher" ;
     gmeow:carriesEngineLock false .
 
-# Note: the logic artifacts (generated/logic/*.ttl — reasoned closure,
-# explanations, ledger) are folded by the gmeow:stage-reason transform itself,
-# not by a separate export leaf; there is no "logic" Rust Stage impl.
+gmeow:stage-export-logic
+    a gmeow:PipelineStage ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "export: logic"@x-gmeow-english ;
+    skos:definition "Emit the three native EL/DL reasoning artifacts (generated/logic/inferred-closure.rdf12.ttl, reasoning-explanations.rdf12.ttl, dl-el-crosscheck-report.ttl) by reasoning over THIS run's FULL snapshot fold — the same GtsGraphStore → reason_all → build_*_ttl path native_reason_gen.py drives over the committed gmeow.gts. (The earlier gmeow:stage-reason transform reasons over the smaller early-composed subset for the bundle's reasoned-closure graph; this leaf reproduces the committed full-fold logic artifacts.) An export leaf, so it acquires the engine lock explicitly around the native chase."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:stageKind gmeow:kindExportLeaf ;
+    gmeow:stageImpl "logic" ;
+    gmeow:dataflowConsumes gmeow:stage-snapshot ;
+    gmeow:producesFormat "rdf12-turtle" ;
+    gmeow:carriesEngineLock false .
 
 # ── The single serialization exit (the gts narrow waist) ──
 

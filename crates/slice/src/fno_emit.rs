@@ -45,6 +45,7 @@ use gmeow_rdf::fno::{
     self, FnFunction, FnImpl, FnMapping, FnOutput, FnParam, FnParamMapping, FnReturnMapping,
     FnoCatalog,
 };
+use gmeow_rdf::{turtle, RdfQuad, RdfTerm};
 use oxigraph::io::{RdfFormat, RdfParser};
 use oxigraph::model::{GraphNameRef, NamedNode, NamedOrBlankNode, Term};
 use oxigraph::store::Store;
@@ -189,7 +190,56 @@ pub fn emit_fno(root: &Path) -> Result<String, SliceError> {
     let functions = extract_functions(&dsl_store)?;
     let cells = extract_cells(&dsl_store)?;
     let catalog = build_catalog(&functions, &cells, &onto_store)?;
-    Ok(fno::to_ntriples(&catalog))
+
+    // Projection boundary: retag every internal `@x-gmeow-*` language tag to its
+    // public BCP-47 form (mirrors `mapping_compile._write_tree`'s `retag_graph`,
+    // applied to the FnO graph before the Turtle write — #287). The serializer in
+    // `gmeow_rdf::fno` mints `@x-gmeow-english` literals; the committed
+    // `functions.fno.ttl` carries the public `@en` retag, so this is the same
+    // internal→public boundary as `edoal_emit`.
+    let tag_map = build_tag_map(&onto_store)?;
+    let quads: Vec<RdfQuad> = fno::to_quads(&catalog)
+        .into_iter()
+        .map(|q| retag_quad(q, &tag_map))
+        .collect();
+    Ok(quads.iter().map(turtle::emit_quad).collect())
+}
+
+/// Build the internal→BCP-47 tag map (`gmeow:languageTag` → `gmeow:bcp47Tag`) from
+/// the ontology store. Mirrors `edoal_emit::build_tag_map` — the only tag FnO uses
+/// is `x-gmeow-english` → `en`, but the map is read from the graph, never hardcoded.
+fn build_tag_map(store: &Store) -> Result<BTreeMap<String, String>, SliceError> {
+    use crate::sparql_emit::{first_lexical_of_iri, quads_with_predicate, term_iri, term_lexical};
+    const GM_LANGUAGE_TAG: &str = "https://blackcatinformatics.ca/gmeow/languageTag";
+    const GM_BCP47_TAG: &str = "https://blackcatinformatics.ca/gmeow/bcp47Tag";
+
+    let mut map: BTreeMap<String, String> = BTreeMap::new();
+    for (subject, object) in quads_with_predicate(store, GM_LANGUAGE_TAG)? {
+        let Some(internal) = term_lexical(&object) else {
+            continue;
+        };
+        let Some(subj_iri) = term_iri(&subject) else {
+            continue;
+        };
+        if let Some(ext) = first_lexical_of_iri(store, &subj_iri, GM_BCP47_TAG)? {
+            map.insert(internal, ext);
+        }
+    }
+    Ok(map)
+}
+
+/// Retag a quad's language-tagged literal object through `tag_map` (a public tag —
+/// no `x-gmeow-` mapping — passes through unchanged). Only the object can carry a
+/// localizable literal in the FnO catalog.
+fn retag_quad(mut quad: RdfQuad, tag_map: &BTreeMap<String, String>) -> RdfQuad {
+    if let RdfTerm::Literal(lit) = &mut quad.object {
+        if let Some(lang) = &lit.language {
+            if let Some(ext) = tag_map.get(lang) {
+                lit.language = Some(ext.clone());
+            }
+        }
+    }
+    quad
 }
 
 // ── Source collection ──────────────────────────────────────────────────────────

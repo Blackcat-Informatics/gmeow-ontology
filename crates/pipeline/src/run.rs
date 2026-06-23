@@ -134,6 +134,7 @@ pub fn full_spec() -> PipelineSpec {
     // ── fold-reading export leaves (consume THIS run's snapshot) ──
     for (id, impl_key) in [
         ("stage-export-lpg", "lpg"),
+        ("stage-export-logic", "logic"),
         ("stage-export-metadata", "metadata"),
         ("stage-export-export", "export"),
         ("stage-export-okf", "okf"),

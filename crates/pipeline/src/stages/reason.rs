@@ -24,12 +24,22 @@ use oxigraph::store::Store;
 use crate::error::PipelineError;
 use crate::node::{Stage, StageInput, StageKind, StageOutput, StageProduct};
 
-/// Committed logical path of the native told-vs-inferred closure.
-pub const CLOSURE_PATH: &str = "generated/logic/inferred-closure.rdf12.ttl";
-/// Committed logical path of the per-axiom proof-skeleton explanations.
-pub const EXPLANATIONS_PATH: &str = "generated/logic/reasoning-explanations.rdf12.ttl";
-/// Committed logical path of the native DL/EL crosscheck ledger.
-pub const LEDGER_PATH: &str = "generated/logic/dl-el-crosscheck-report.ttl";
+/// INTERNAL logical path of the reasoned closure this stage folds into the
+/// composed dataset (`pipeline/`-prefixed, so it is in-memory dataflow only and is
+/// NOT reconciled as a committed artifact — `run_full` skips the `pipeline/`
+/// prefix). The COMMITTED `generated/logic/inferred-closure.rdf12.ttl` is owned by
+/// the `stage-export-logic` leaf, which reasons over the FULL snapshot fold; this
+/// stage reasons over the EARLY composed subset purely to seed the reasoned-closure
+/// material `docs-render` consumes via `composed.nq`. Emitting it under a committed
+/// path would collide with the leaf and drift the parity gate (small-subset closure
+/// ≠ full-fold closure).
+pub const CLOSURE_PATH: &str = "pipeline/reason-closure.rdf12.ttl";
+/// INTERNAL logical path of the per-axiom proof-skeleton explanations (see
+/// [`CLOSURE_PATH`]; the committed counterpart is owned by `stage-export-logic`).
+pub const EXPLANATIONS_PATH: &str = "pipeline/reason-explanations.rdf12.ttl";
+/// INTERNAL logical path of the native DL/EL crosscheck ledger (see
+/// [`CLOSURE_PATH`]; the committed counterpart is owned by `stage-export-logic`).
+pub const LEDGER_PATH: &str = "pipeline/reason-dl-el-crosscheck-report.ttl";
 
 /// Reason over a composed dataset (N-Quads bytes) and return the three artifacts
 /// `(closure, explanations, ledger)`. Mirrors `reason_native_artifacts` in

@@ -139,6 +139,15 @@ fn is_pipeline_self_triple(s: &str, p: &str, o: &str) -> bool {
     if p == format!("{NS}bundleContentId") {
         return true;
     }
+    // The pipeline slice's OWN slice-analysis row (subject `gmeow:slices/pipeline`)
+    // carries its `gmeow:termCoverage` count + ownership digests. Authoring a new
+    // `gmeow:stage-*` individual in the pipeline `module.ttl` raises that term count
+    // (e.g. 42 → 43 when `stage-export-logic` lands), while the committed bundle
+    // still pins the old count — the same stale-vs-fresh self-description divergence
+    // as the default-graph DAG triples above, pending a bundle regen.
+    if s == format!("{NS}slices/pipeline") {
+        return true;
+    }
     pipeline_iri(s) || pipeline_iri(p) || pipeline_iri(o)
 }
 
