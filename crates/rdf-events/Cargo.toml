@@ -1,0 +1,22 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: MIT OR Apache-2.0
+
+[package]
+name = "gmeow-rdf-events"
+description = "Permissive RDF 1.2 ingestion protocol: the object-safe event sink/source seam both the GTS container and the IR engine depend ON (purrdf P6)"
+version = "0.1.0"
+edition.workspace = true
+repository.workspace = true
+# NOT the workspace AGPL: this crate is the neutral protocol both the (AGPL) IR
+# engine and the (permissive) GTS container depend on. A pure parse->serialize path
+# routed only through these traits must stay permissive, so the seam itself is
+# `MIT OR Apache-2.0`, owned by neither side.
+license = "MIT OR Apache-2.0"
+keywords = ["rdf", "rdf-12", "events", "ingestion", "protocol"]
+
+[lib]
+# rlib-only, ZERO dependencies: this crate IS the protocol both sides depend on, so
+# it must not pull either side (no gmeow-rdf-core, no gmeow-gts) into its tree.
+crate-type = ["rlib"]
+path = "src/lib.rs"
+name = "gmeow_rdf_events"
