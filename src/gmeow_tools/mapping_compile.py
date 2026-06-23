@@ -24,7 +24,7 @@ import json
 import os
 import re
 import shutil
-from collections.abc import Sequence
+from collections.abc import Iterator, Sequence
 from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
@@ -519,20 +519,33 @@ def _validate_sssom(sssom_texts: dict[str, str]) -> list[str]:
     failures surface as a ``FATAL``/``check=parse`` diagnostic.
     """
     problems: list[str] = []
+    for rel_path, result in _iter_sssom_blocking(sssom_texts):
+        node = result["instance"] if result["instance"] is not None else "—"
+        problems.append(
+            f"{rel_path}: {result['message']} "
+            f"(type={result['code']}, node={node}, "
+            f"check={result['check']})"
+        )
+    return problems
+
+
+def _iter_sssom_blocking(
+    sssom_texts: dict[str, str],
+) -> Iterator[tuple[str, gmeow_rdf.SssomDiagnostic]]:
+    """Yield ``(rel_path, diagnostic)`` for every ERROR/FATAL SSSOM problem.
+
+    The single call site of the native ``gmeow_rdf.validate_sssom`` kernel — both
+    the string API (:func:`_validate_sssom`) and the canonical-finding leg
+    (:func:`_sssom_findings`) consume this, so the SSSOM validation surface is
+    sourced exactly once. ``rel_path`` filters to the SSSOM TSVs (the mappings-dir
+    text artifacts also include ``dsl-stats.json`` (#3), which is not a mapping set).
+    """
     for rel_path, text in sssom_texts.items():
-        # The mappings-dir text artifacts include dsl-stats.json (#3); only the
-        # SSSOM TSVs are mapping sets.
         if not rel_path.endswith(".sssom.tsv"):
             continue
         for result in gmeow_rdf.validate_sssom(text):
             if result["severity"] in ("ERROR", "FATAL"):
-                node = result["instance"] if result["instance"] is not None else "—"
-                problems.append(
-                    f"{rel_path}: {result['message']} "
-                    f"(type={result['code']}, node={node}, "
-                    f"check={result['check']})"
-                )
-    return problems
+                yield rel_path, result
 
 
 # --------------------------------------------------------------------------- #
@@ -1545,17 +1558,24 @@ def compile_diagnostics_report(
     *,
     tool: str = TOOL,
 ) -> diagnostics.DiagnosticsReport:
-    """Surface the mapping **DSL/compile** diagnostics as canonical findings (#809).
+    """Surface the mapping diagnostics as canonical findings (#809/#854).
 
-    Deliberately scoped to the DSL → artifact compile path: it loads the mapping
-    DSL and builds the artifacts, mapping any ``CompileError`` (a malformed cell,
-    missing binding, or unresolved value pattern) to a ``mapping-compile.dsl-error``
-    finding. It does NOT run the FnO ``projection_lint`` trio or ``_validate_sssom``
-    — those graph/SSSOM checks are being subsumed natively into ``gmeow-rdf`` by
-    #848, so wrapping the current Python would only churn code #848 deletes; their
-    Findings are tracked in #854 to ride #848's native SSSOM/FnO core. The
-    mapping DSL compiler itself is still Python, so this surface is an honest thin
-    forward into the Rust ``diagnostics.finding`` model until that too is subsumed.
+    Three legs, all folded into one ``mapping-compile`` report:
+
+    * **DSL/compile** — loads the mapping DSL and builds the artifacts, mapping any
+      ``CompileError`` (a malformed cell, missing binding, or unresolved value
+      pattern) to a ``mapping-compile.dsl-error`` finding. The mapping DSL compiler
+      is still Python, so this leg is an honest thin forward into the Rust
+      ``diagnostics.finding`` model until that too is subsumed.
+    * **SSSOM** (#854) — every generated SSSOM TSV through the native
+      ``gmeow_rdf.validate_sssom`` kernel (#848); each ERROR/FATAL becomes a
+      ``mapping-compile.sssom`` finding.
+    * **Projection lint** (#854) — the native ``gmeow_slice.lint_projection``
+      cross-layer trio (#848 core); each problem becomes a
+      ``mapping-compile.{fno-type,fno-ref,spec-drift}`` finding.
+
+    Each non-DSL leg is defensive: a loader failure becomes a ``warning`` finding
+    rather than aborting the whole report (the ``_fold_surfaces`` contract).
     """
     report = diagnostics.report(tool)
     try:
@@ -1571,7 +1591,75 @@ def compile_diagnostics_report(
                 tool=tool,
             )
         )
+    _sssom_findings(report, tool)
+    _projection_lint_findings(report, tool)
     return report
+
+
+def _sssom_findings(report: diagnostics.DiagnosticsReport, tool: str) -> None:
+    """Fold every blocking SSSOM-validation problem into ``report`` (#854).
+
+    Emits the SSSOM sets natively (``gmeow_slice.emit_sssom``, the exact bytes that
+    will be written) and runs each through the native validator; each ERROR/FATAL
+    becomes a ``mapping-compile.sssom`` finding carrying the offending node + the
+    originating check/code. A loader failure degrades to a single ``warning``.
+    """
+    try:
+        sssom_texts = gmeow_slice.emit_sssom(str(PROJECT_ROOT))
+    except Exception as exc:
+        report.add(
+            diagnostics.finding(
+                severity="warning",
+                code=f"{tool}.sssom-skipped",
+                message=f"SSSOM findings not surfaced: {exc}",
+                tool=tool,
+            )
+        )
+        return
+    for rel_path, result in _iter_sssom_blocking(sssom_texts):
+        report.add(
+            diagnostics.finding(
+                severity="error",
+                code=f"{tool}.sssom",
+                message=result["message"],
+                tool=tool,
+                path=rel_path,
+                logical=result["instance"],
+                detail=f"check={result['check']} code={result['code']}",
+            )
+        )
+
+
+def _projection_lint_findings(report: diagnostics.DiagnosticsReport, tool: str) -> None:
+    """Fold every cross-layer projection-lint problem into ``report`` (#854).
+
+    Runs the native ``gmeow_slice.lint_projection`` trio over the committed tree and
+    maps each problem's ``check`` (``fno-type`` / ``fno-ref`` / ``spec-drift``) to the
+    canonical ``mapping-compile.<check>`` code. A loader failure degrades to a single
+    ``warning``.
+    """
+    try:
+        problems = gmeow_slice.lint_projection(str(PROJECT_ROOT))
+    except Exception as exc:
+        report.add(
+            diagnostics.finding(
+                severity="warning",
+                code=f"{tool}.projection-lint-skipped",
+                message=f"projection-lint findings not surfaced: {exc}",
+                tool=tool,
+            )
+        )
+        return
+    for problem in problems:
+        report.add(
+            diagnostics.finding(
+                severity="error",
+                code=f"{tool}.{problem['check']}",
+                message=problem["message"],
+                tool=tool,
+                logical=problem["instance"],
+            )
+        )
 
 
 def _committed_paths() -> dict[str, Path]:
