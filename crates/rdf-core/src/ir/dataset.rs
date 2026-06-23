@@ -24,6 +24,7 @@ use std::collections::HashMap;
 use std::hash::{Hash, Hasher};
 use std::sync::OnceLock;
 
+use crate::dataset_view::GraphMatch;
 use crate::{RdfLocation, RdfStoreCapabilities, RdfTextDirection};
 
 use super::term::{arena_str, BlankScope, InternedTerm, TermId, TermValue};
@@ -151,6 +152,133 @@ pub struct RdfDataset {
     /// leaner than an owned-key map). Built lazily (the builder's interner index is
     /// dropped at freeze); `OnceLock` keeps the frozen dataset `Send + Sync`.
     value_index: OnceLock<HashMap<u64, Vec<TermId>>>,
+    /// Lazy permutation quad indexes for indexed
+    /// [`quads_for_pattern`](RdfDataset::quads_for_pattern_indexed) (#891 P4b). SPOG
+    /// is free (the `quads` table is already freeze-sorted by `(s, p, o, g)`); the
+    /// other five orderings are `u32` ordinal-indirection arrays (4 B/quad) built
+    /// lazily on the first pattern query that selects them. `OnceLock` keeps the
+    /// frozen dataset `Send + Sync`.
+    indexes: QuadIndexes,
+}
+
+/// The lazy non-identity permutation indexes over the freeze-sorted `quads` table
+/// (#891 P4b). Each is a `u32`-per-quad ordinal-indirection array: `arr[i]` is the
+/// ordinal into [`RdfDataset`]`::quads` of the `i`-th quad in that permutation's
+/// order. SPOG needs no array (the table is already SPOG-sorted); these five cover
+/// the remaining bound-set shapes. All five warm ≈ 20 B/quad on top of the table.
+#[derive(Debug, Default)]
+struct QuadIndexes {
+    pos: OnceLock<Box<[u32]>>,
+    osp: OnceLock<Box<[u32]>>,
+    gspo: OnceLock<Box<[u32]>>,
+    gpos: OnceLock<Box<[u32]>>,
+    gosp: OnceLock<Box<[u32]>>,
+}
+
+/// A quad-position axis, used to describe a permutation's sort-key order.
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum Axis {
+    S,
+    P,
+    O,
+    G,
+}
+
+/// The orderable key of one quad axis. Subject/predicate/object map to the dense
+/// `TermId` index; the graph slot maps `None` (default graph) to `0` and `Some(id)`
+/// to `index + 1`, so the default graph sorts before every named graph (matching
+/// `Option<TermId>`'s own ordering). Each axis is only ever compared against the same
+/// axis, so the differing scales never interact.
+#[inline]
+fn axis_key(axis: Axis, q: &QuadRow) -> u32 {
+    match axis {
+        Axis::S => q.s.index() as u32,
+        Axis::P => q.p.index() as u32,
+        Axis::O => q.o.index() as u32,
+        Axis::G => match q.g {
+            None => 0,
+            Some(id) => id.index() as u32 + 1,
+        },
+    }
+}
+
+/// The full four-axis sort key of a quad under a permutation's axis order.
+#[inline]
+fn perm_key(axes: &[Axis; 4], q: &QuadRow) -> [u32; 4] {
+    [
+        axis_key(axes[0], q),
+        axis_key(axes[1], q),
+        axis_key(axes[2], q),
+        axis_key(axes[3], q),
+    ]
+}
+
+/// One of the six quad orderings. SPOG is the identity (the freeze-sorted table); the
+/// other five are materialized lazily as ordinal arrays.
+#[derive(Clone, Copy)]
+enum QuadPermutation {
+    Spog,
+    Pos,
+    Osp,
+    Gspo,
+    Gpos,
+    Gosp,
+}
+
+impl QuadPermutation {
+    /// Every permutation, identity first so it wins prefix-length ties (it needs no
+    /// array). The dispatch scans this list to pick the best ordering for a pattern.
+    const ALL: [QuadPermutation; 6] = [
+        QuadPermutation::Spog,
+        QuadPermutation::Pos,
+        QuadPermutation::Osp,
+        QuadPermutation::Gspo,
+        QuadPermutation::Gpos,
+        QuadPermutation::Gosp,
+    ];
+
+    /// This permutation's axis order (its sort-key sequence).
+    #[inline]
+    fn axes(self) -> [Axis; 4] {
+        use Axis::{G, O, P, S};
+        match self {
+            QuadPermutation::Spog => [S, P, O, G],
+            QuadPermutation::Pos => [P, O, S, G],
+            QuadPermutation::Osp => [O, S, P, G],
+            QuadPermutation::Gspo => [G, S, P, O],
+            QuadPermutation::Gpos => [G, P, O, S],
+            QuadPermutation::Gosp => [G, O, S, P],
+        }
+    }
+}
+
+/// The candidate-quad source for an indexed pattern query. Unifies the two access
+/// shapes into one `Iterator<Item = &QuadRow>` so `quads_for_pattern` returns a single
+/// concrete type regardless of which permutation the dispatch chose:
+/// - `Slice` — a contiguous sub-slice of the freeze-sorted `quads` table, iterated
+///   SEQUENTIALLY (SPOG bisection, or the low-selectivity fallback). Bounds-check-free.
+/// - `Permuted` — a sub-slice of a permutation array whose `u32` ordinals index back
+///   into `quads` (the only path that pays random-access indirection; taken only when
+///   the candidate run is small enough to beat a sequential scan).
+enum QuadCandidates<'a> {
+    Slice(std::slice::Iter<'a, QuadRow>),
+    Permuted {
+        ordinals: std::slice::Iter<'a, u32>,
+        quads: &'a [QuadRow],
+    },
+}
+
+impl<'a> Iterator for QuadCandidates<'a> {
+    type Item = &'a QuadRow;
+    #[inline]
+    fn next(&mut self) -> Option<&'a QuadRow> {
+        match self {
+            QuadCandidates::Slice(iter) => iter.next(),
+            QuadCandidates::Permuted { ordinals, quads } => {
+                ordinals.next().map(|&ord| &quads[ord as usize])
+            }
+        }
+    }
 }
 
 impl RdfDataset {
@@ -177,7 +305,139 @@ impl RdfDataset {
             locations,
             caps,
             value_index: OnceLock::new(),
+            indexes: QuadIndexes::default(),
         }
+    }
+
+    /// Borrow (building on first access) the ordinal-indirection array for a
+    /// non-identity permutation (#891 P4b): `arr[i]` is the ordinal into `self.quads`
+    /// of the `i`-th quad in `perm`'s order. Sorted by [`perm_key`]; `OnceLock` makes
+    /// the first-access build race-safe and keeps the dataset `Send + Sync`. Never
+    /// called for [`QuadPermutation::Spog`] (the table is already that order).
+    fn permutation(&self, perm: QuadPermutation) -> &[u32] {
+        let cell = match perm {
+            QuadPermutation::Spog => unreachable!("SPOG is the identity table, never materialized"),
+            QuadPermutation::Pos => &self.indexes.pos,
+            QuadPermutation::Osp => &self.indexes.osp,
+            QuadPermutation::Gspo => &self.indexes.gspo,
+            QuadPermutation::Gpos => &self.indexes.gpos,
+            QuadPermutation::Gosp => &self.indexes.gosp,
+        };
+        cell.get_or_init(|| {
+            let axes = perm.axes();
+            let mut ordinals: Vec<u32> = (0..self.quads.len() as u32).collect();
+            ordinals.sort_by(|&a, &b| {
+                perm_key(&axes, &self.quads[a as usize])
+                    .cmp(&perm_key(&axes, &self.quads[b as usize]))
+            });
+            ordinals.into_boxed_slice()
+        })
+    }
+
+    /// Indexed [`DatasetView::quads_for_pattern`](crate::DatasetView::quads_for_pattern)
+    /// (#891 P4b): pick the permutation whose sort prefix covers the most bound
+    /// positions, binary-search the contiguous candidate run, then apply the EXACT
+    /// linear-scan filter to each candidate. Correctness is identical to the scan by
+    /// construction — the index only narrows the candidate set; the residual filter is
+    /// the same id-equality + [`GraphMatch`] predicate the default scan uses.
+    pub(crate) fn quads_for_pattern_indexed(
+        &self,
+        s: Option<TermId>,
+        p: Option<TermId>,
+        o: Option<TermId>,
+        g: GraphMatch,
+    ) -> impl Iterator<Item = QuadIds> + '_ {
+        // The bound key for an axis, or `None` if the pattern leaves it free.
+        let bound = |axis: Axis| -> Option<u32> {
+            match axis {
+                Axis::S => s.map(|id| id.index() as u32),
+                Axis::P => p.map(|id| id.index() as u32),
+                Axis::O => o.map(|id| id.index() as u32),
+                Axis::G => match g {
+                    GraphMatch::Any => None,
+                    GraphMatch::Default => Some(0),
+                    GraphMatch::Named(id) => Some(id.index() as u32 + 1),
+                },
+            }
+        };
+
+        // Choose the permutation with the longest leading run of bound axes. SPOG is
+        // first in `ALL`, so it wins ties (it needs no array). The chosen `target`
+        // holds the bound key for each of the `prefix` leading axes.
+        let mut best = QuadPermutation::Spog;
+        let mut prefix = 0usize;
+        let mut target = [0u32; 4];
+        for perm in QuadPermutation::ALL {
+            let axes = perm.axes();
+            let mut k = 0;
+            let mut t = [0u32; 4];
+            while k < 4 {
+                match bound(axes[k]) {
+                    Some(v) => {
+                        t[k] = v;
+                        k += 1;
+                    }
+                    None => break,
+                }
+            }
+            if k > prefix {
+                prefix = k;
+                best = perm;
+                target = t;
+            }
+        }
+
+        let axes = best.axes();
+        // Binary-search the contiguous run whose `prefix` leading keys equal `target`.
+        // For SPOG the run is a sub-slice of the freeze-sorted table (sequential);
+        // otherwise it is a sub-slice of the permutation array (ordinal indirection).
+        let candidates = match best {
+            QuadPermutation::Spog => {
+                let lo = self
+                    .quads
+                    .partition_point(|q| perm_key(&axes, q)[..prefix] < target[..prefix]);
+                let hi = self
+                    .quads
+                    .partition_point(|q| perm_key(&axes, q)[..prefix] <= target[..prefix]);
+                QuadCandidates::Slice(self.quads[lo..hi].iter())
+            }
+            _ => {
+                let arr = self.permutation(best);
+                let lo = arr.partition_point(|&ord| {
+                    perm_key(&axes, &self.quads[ord as usize])[..prefix] < target[..prefix]
+                });
+                let hi = arr.partition_point(|&ord| {
+                    perm_key(&axes, &self.quads[ord as usize])[..prefix] <= target[..prefix]
+                });
+                // Selectivity guard (#891): a non-identity permutation visits its run
+                // via `u32` ordinal indirection — random access into `quads`. For a
+                // LOW-selectivity prefix (a large run, e.g. a predicate matching much of
+                // the dataset), that scattered access costs more than a sequential pass,
+                // so fall back to a full sequential scan + residual filter (same result).
+                // Random access runs ~4× a sequential pass, so the crossover is a run
+                // wider than a quarter of the table. (Per-predicate cardinality stats
+                // that would let us choose upfront are deferred to the SPARQL round; this
+                // is a free, post-bisection check.)
+                if (hi - lo).saturating_mul(4) > self.quads.len() {
+                    QuadCandidates::Slice(self.quads.iter())
+                } else {
+                    QuadCandidates::Permuted {
+                        ordinals: arr[lo..hi].iter(),
+                        quads: &self.quads,
+                    }
+                }
+            }
+        };
+
+        candidates
+            // The same predicate the linear-scan default applies (dataset_view.rs).
+            .filter(move |q| {
+                s.is_none_or(|id| q.s == id)
+                    && p.is_none_or(|id| q.p == id)
+                    && o.is_none_or(|id| q.o == id)
+                    && g.matches(q.g)
+            })
+            .map(|q| QuadIds::from(*q))
     }
 
     /// Hash an interned term **with zero allocations**, byte-for-byte identically to
@@ -491,8 +751,9 @@ impl<'a> IntoIterator for &'a RdfDataset {
 // serialization across threads. These guards fail the build if that ever regresses.
 const _: fn() = || {
     fn assert_send_sync<T: Send + Sync>() {}
-    // RdfDataset gained an `OnceLock<HashMap<TermValue, TermId>>` value index (#838);
-    // `OnceLock` (not `RefCell`) is what keeps this guard holding.
+    // RdfDataset carries lazy `OnceLock` indexes — the value index (#838) and the
+    // permutation quad indexes (#891 P4b). `OnceLock` (not `RefCell`) is what keeps
+    // this guard holding once those interior-mutable caches are added.
     assert_send_sync::<RdfDataset>();
     assert_send_sync::<TermId>();
     assert_send_sync::<QuadIds>();
@@ -905,6 +1166,63 @@ mod tests {
                     prop_assert!(g.index() < term_count);
                 }
             }
+        }
+
+        /// The #891 P4b correctness gate: the indexed `quads_for_pattern` must return
+        /// EXACTLY the same quad set as a linear scan, for every `(s?, p?, o?) ×
+        /// GraphMatch` shape. The index only narrows candidates; the residual filter is
+        /// the same predicate the scan applies, so any divergence is a range-math bug.
+        #[test]
+        fn proptest_indexed_pattern_matches_linear_scan(
+            rows in prop::collection::vec(
+                (0u8..5, 0u8..5, 0u8..5, prop::option::of(0u8..3)),
+                0..48,
+            ),
+            s_sel in prop::option::of(0u8..5),
+            p_sel in prop::option::of(0u8..5),
+            o_sel in prop::option::of(0u8..5),
+            // 0 = Any, 1 = Default, 2..5 = Named(graphs[g - 2]).
+            g_sel in 0u8..5,
+        ) {
+            use std::collections::BTreeSet;
+
+            let mut b = RdfDatasetBuilder::new();
+            let pool: Vec<TermId> = (0..5)
+                .map(|n| b.intern_iri(format!("http://example.org/n{n}")))
+                .collect();
+            let graphs: Vec<TermId> = (0..3)
+                .map(|n| b.intern_iri(format!("http://example.org/g{n}")))
+                .collect();
+            for (s, p, o, g) in rows {
+                b.push_quad(pool[s as usize], pool[p as usize], pool[o as usize],
+                    g.map(|gi| graphs[gi as usize]));
+            }
+            let ds = b.freeze().expect("random valid dataset must freeze");
+
+            let s = s_sel.map(|i| pool[i as usize]);
+            let p = p_sel.map(|i| pool[i as usize]);
+            let o = o_sel.map(|i| pool[i as usize]);
+            let g = match g_sel {
+                0 => GraphMatch::Any,
+                1 => GraphMatch::Default,
+                n => GraphMatch::Named(graphs[(n - 2) as usize]),
+            };
+
+            // Reference: the exact linear scan the trait default would run.
+            let key = |q: QuadIds| (q.s, q.p, q.o, q.g);
+            let scan: BTreeSet<_> = ds
+                .quads()
+                .filter(|q| {
+                    s.is_none_or(|id| q.s == id)
+                        && p.is_none_or(|id| q.p == id)
+                        && o.is_none_or(|id| q.o == id)
+                        && g.matches(q.g)
+                })
+                .map(key)
+                .collect();
+            let indexed: BTreeSet<_> =
+                ds.quads_for_pattern_indexed(s, p, o, g).map(key).collect();
+            prop_assert_eq!(indexed, scan);
         }
     }
 }
