@@ -22,7 +22,8 @@ use std::sync::Arc;
 
 use criterion::{criterion_group, criterion_main, Criterion};
 use gmeow_rdf_core::{
-    DatasetMut, GraphMatch, MutableDataset, QuadValues, RdfDataset, RdfDatasetBuilder, TermValue,
+    DatasetMut, GraphMatchValue, MutableDataset, QuadValues, RdfDataset, RdfDatasetBuilder,
+    TermValue,
 };
 
 /// Number of base quads the COW base / simple store start from.
@@ -190,7 +191,7 @@ fn bench_query(c: &mut Criterion) {
     group.bench_function("cow_predicate_scan", |b| {
         b.iter(|| {
             std::hint::black_box(
-                cow.quads_for_pattern(None, Some(&pred), None, GraphMatch::Any)
+                cow.quads_for_pattern(None, Some(&pred), None, GraphMatchValue::Any)
                     .len(),
             )
         });

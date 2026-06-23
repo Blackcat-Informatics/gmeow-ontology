@@ -40,11 +40,11 @@
 use std::collections::HashSet;
 use std::sync::Arc;
 
-use crate::dataset_view::{DatasetMut, GraphMatch};
+use crate::dataset_view::{DatasetMut, GraphMatch, GraphMatchValue};
 use crate::ir::{RdfDataset, RdfDatasetBuilder, TermValue};
 use crate::model::RdfLiteral;
 
-use super::dataset::TermRef;
+use super::dataset::{QuadHandle, TermRef};
 use super::term::TermId;
 
 /// A dense index into a [`MutableDataset`]'s OWN delta term interner. Newtype (not a
@@ -386,8 +386,11 @@ impl MutableDataset {
         self.suppressed.len()
     }
 
-    /// Iterate the effective quads as value-quads. Internal helper for `freeze` and
-    /// the test/proptest oracle; the public surface is [`DatasetMut`].
+    /// Iterate the effective quads as value-quads — the independent test/proptest
+    /// oracle for the effective set. `freeze` builds the effective set directly (so it
+    /// can carry per-base-quad source locations), so this is a test-only helper; the
+    /// public surface is [`DatasetMut`].
+    #[cfg(test)]
     fn effective_value_quads(&self) -> Vec<QuadValues> {
         let mut out: Vec<QuadValues> = Vec::new();
         // Base quads that are not suppressed.
@@ -433,11 +436,57 @@ impl MutableDataset {
     /// annotation whose reifier binds a triple-term that is no longer effective is
     /// still carried (reification metadata is independent of quad suppression, matching
     /// the base's own freeze semantics).
+    ///
+    /// Source LOCATIONS of the surviving base quads are carried too: a base quad is
+    /// pushed in base order (so a base ordinal maps to a running new ordinal), and its
+    /// location — if the base recorded one — is re-attached to that new handle. The
+    /// builder's own freeze sort then remaps the handle to the dense frozen position
+    /// (the `attach_location` contract). Delta-added quads were minted in memory, not
+    /// parsed from a source, so they carry no location.
     pub fn freeze(&self) -> Result<Arc<RdfDataset>, crate::RdfDiagnostic> {
         let mut builder = RdfDatasetBuilder::new();
+        let base = &*self.base;
 
-        // Effective quads, remapped via value re-intern.
-        for q in self.effective_value_quads() {
+        // Running count of quads PUSHED so far == the next quad's builder ordinal.
+        // Base quads are distinct and `added` quads are non-base, so no push collapses
+        // by dedup; the counter therefore tracks the pre-freeze pushed-quad ordinal
+        // that `attach_location` keys off (freeze's own sort then remaps it to the
+        // dense frozen position — see `location_follows_quad_through_freeze_sort`).
+        let mut new_ord: u32 = 0;
+
+        // 1. Surviving BASE quads, remapped via value re-intern, carrying any source
+        //    location across the base-ordinal -> new-handle mapping.
+        for (base_ord, q) in base.quads().enumerate() {
+            // The base quad's effective key (all components are `Base`). Skip it if it
+            // is suppressed — gone from the effective set.
+            let key = QuadKey {
+                s: MutTermId::Base(q.s),
+                p: MutTermId::Base(q.p),
+                o: MutTermId::Base(q.o),
+                g: q.g.map(MutTermId::Base),
+            };
+            if self.suppressed.contains(&key) {
+                continue;
+            }
+            let s = self.intern_base(&mut builder, q.s);
+            let p = self.intern_base(&mut builder, q.p);
+            let o = self.intern_base(&mut builder, q.o);
+            let g = q.g.map(|g| self.intern_base(&mut builder, g));
+            builder.push_quad(s, p, o, g);
+            // Carry the base quad's source location, if any, keyed to its NEW pushed
+            // ordinal (`new_ord`), not its base ordinal.
+            if let Some(loc) = base.location_of(QuadHandle::from_index(base_ord as u32)) {
+                builder.attach_location(QuadHandle::from_index(new_ord), loc.clone());
+            }
+            new_ord += 1;
+        }
+
+        // 2. DELTA-added quads (no source location — they were minted in memory, not
+        //    parsed from a source, so the `new_ord` mapping ends here). Remapped via
+        //    value re-intern.
+        let _ = new_ord; // last value consumed by the base loop; delta quads add none.
+        for key in &self.added {
+            let q = self.quad_values_of(key);
             let s = intern_value(&mut builder, &q.s);
             let p = intern_value(&mut builder, &q.p);
             let o = intern_value(&mut builder, &q.o);
@@ -447,7 +496,6 @@ impl MutableDataset {
 
         // Carry the base's reifiers + annotations through the same path. Their term
         // ids are BASE ids, so resolve each to a value and re-intern into the builder.
-        let base = &*self.base;
         for (reifier, triple) in base.reifiers() {
             let reifier = self.intern_base(&mut builder, reifier);
             let triple = self.intern_base(&mut builder, triple);
@@ -568,7 +616,7 @@ impl DatasetMut for MutableDataset {
         s: Option<&TermValue>,
         p: Option<&TermValue>,
         o: Option<&TermValue>,
-        g: GraphMatch,
+        g: GraphMatchValue<'_>,
     ) -> Vec<QuadValues> {
         // Resolve each bound position to a MutTermId without minting; a bound value
         // interned nowhere can match nothing, so the whole pattern yields empty.
@@ -582,12 +630,18 @@ impl DatasetMut for MutableDataset {
             (Ok(sb), Ok(pb), Ok(ob)) => (sb, pb, ob),
             _ => return Vec::new(),
         };
-        // The graph filter, in MutTermId space. A `Named` value interned nowhere also
-        // matches nothing.
+        // The graph filter, in MutTermId space. The named graph is matched BY VALUE
+        // (resolved without minting), so both a base-named and a delta-only-named
+        // graph are expressible. A `Named` value interned nowhere — in neither base
+        // nor delta — names no graph at all, so the whole pattern yields empty
+        // (mirroring a bound `s`/`p`/`o` miss above).
         let gb: GraphMatchMut = match g {
-            GraphMatch::Any => GraphMatchMut::Any,
-            GraphMatch::Default => GraphMatchMut::Default,
-            GraphMatch::Named(id) => GraphMatchMut::Named(MutTermId::Base(id)),
+            GraphMatchValue::Any => GraphMatchMut::Any,
+            GraphMatchValue::Default => GraphMatchMut::Default,
+            GraphMatchValue::Named(value) => match self.find_value(value) {
+                Some(id) => GraphMatchMut::Named(id),
+                None => return Vec::new(),
+            },
         };
 
         self.effective_keys()
@@ -810,12 +864,12 @@ mod tests {
         assert!(m.contains(&q("a", "p", "c")));
 
         // Pattern: all quads with predicate p.
-        let all_p = m.quads_for_pattern(None, Some(&iri_val("p")), None, GraphMatch::Any);
+        let all_p = m.quads_for_pattern(None, Some(&iri_val("p")), None, GraphMatchValue::Any);
         // Effective: (a,p,c), (b,p,c), (z,p,w) = 3.
         assert_eq!(all_p.len(), 3);
 
         // Pattern bound on a delta subject.
-        let zq = m.quads_for_pattern(Some(&iri_val("z")), None, None, GraphMatch::Any);
+        let zq = m.quads_for_pattern(Some(&iri_val("z")), None, None, GraphMatchValue::Any);
         assert_eq!(zq.len(), 1);
         assert_eq!(zq[0], q("z", "p", "w"));
 
@@ -824,13 +878,17 @@ mod tests {
             Some(&iri_val("a")),
             Some(&iri_val("p")),
             Some(&iri_val("b")),
-            GraphMatch::Any,
+            GraphMatchValue::Any,
         );
         assert!(gone.is_empty());
 
         // A bound value interned nowhere matches nothing.
-        let nothing =
-            m.quads_for_pattern(Some(&iri_val("never-seen")), None, None, GraphMatch::Any);
+        let nothing = m.quads_for_pattern(
+            Some(&iri_val("never-seen")),
+            None,
+            None,
+            GraphMatchValue::Any,
+        );
         assert!(nothing.is_empty());
     }
 
@@ -851,11 +909,39 @@ mod tests {
         assert!(m.contains(&nq));
 
         // Default-graph match excludes both named quads.
-        let dflt = m.quads_for_pattern(None, None, None, GraphMatch::Default);
+        let dflt = m.quads_for_pattern(None, None, None, GraphMatchValue::Default);
         assert!(dflt.is_empty());
         // Any matches both.
-        let any = m.quads_for_pattern(None, None, None, GraphMatch::Any);
+        let any = m.quads_for_pattern(None, None, None, GraphMatchValue::Any);
         assert_eq!(any.len(), 2);
+    }
+
+    #[test]
+    fn quads_for_pattern_matches_delta_only_named_graph() {
+        // A base whose graph term `g2` does NOT exist — branch off it, then insert a
+        // quad into a brand-new named graph `g2`. The graph term is delta-only (no
+        // base TermId), so a TermId-keyed filter could never name it; the value-based
+        // GraphMatchValue::Named resolves it via the delta interner.
+        let mut b = RdfDatasetBuilder::new();
+        let s = b.intern_iri("http://example.org/s".to_string());
+        let p = b.intern_iri("http://example.org/p".to_string());
+        let o = b.intern_iri("http://example.org/o".to_string());
+        b.push_quad(s, p, o, None); // default-graph base quad; no g2 anywhere
+        let base = b.freeze().unwrap();
+
+        let mut m = MutableDataset::new(base);
+        let g2 = iri_val("g2"); // a graph term interned NOWHERE in the base
+        let nq = QuadValues::quad(iri_val("s2"), iri_val("p"), iri_val("o2"), g2.clone());
+        assert!(m.insert(nq.clone()));
+
+        // Query the delta-only named graph by VALUE — it must return that quad.
+        let hits = m.quads_for_pattern(None, None, None, GraphMatchValue::Named(&g2));
+        assert_eq!(hits.len(), 1, "delta-only named graph is now queryable");
+        assert_eq!(hits[0], nq);
+
+        // A graph value interned nowhere still matches nothing.
+        let none = m.quads_for_pattern(None, None, None, GraphMatchValue::Named(&iri_val("nope")));
+        assert!(none.is_empty());
     }
 
     // -- freeze round-trip ------------------------------------------------------------
@@ -925,6 +1011,59 @@ mod tests {
         assert_eq!(frozen.quad_count(), 3, "no mutation → same quads");
         assert_eq!(frozen.reifiers().count(), 1);
         assert_eq!(frozen.annotations().count(), 1);
+    }
+
+    #[test]
+    fn freeze_carries_base_quad_locations() {
+        use crate::RdfLocation;
+
+        // A base with two located quads. We attach a location to ONE of them, then
+        // after a delta insert + a DIFFERENT-quad suppression, freeze must preserve
+        // the surviving located quad's location (across the base-ord → new-handle →
+        // frozen-sort remap) while dropping the suppressed one.
+        let mut b = RdfDatasetBuilder::new();
+        let a = b.intern_iri("http://example.org/a".to_string());
+        let p = b.intern_iri("http://example.org/p".to_string());
+        let bb = b.intern_iri("http://example.org/b".to_string());
+        let c = b.intern_iri("http://example.org/c".to_string());
+
+        // (a,p,b) gets a location; (a,p,c) does not.
+        let h_ab = b.next_quad_handle();
+        b.push_quad(a, p, bb, None);
+        b.push_quad(a, p, c, None);
+        b.attach_location(h_ab, RdfLocation::logical("loc-a-p-b"));
+        let base = b.freeze().expect("base freezes");
+
+        let mut m = MutableDataset::new(base);
+        // Insert a brand-new delta quad and suppress a DIFFERENT base quad (a,p,c).
+        m.insert(q("x", "p", "y"));
+        assert!(m.remove(&q("a", "p", "c")));
+
+        let frozen = m.freeze().expect("freeze compacts");
+
+        // The surviving located base quad (a,p,b) STILL carries its location, found at
+        // its frozen position.
+        let a2 = frozen.term_id_by_value(&iri_val("a")).expect("a remapped");
+        let p2 = frozen.term_id_by_value(&iri_val("p")).expect("p remapped");
+        let b2 = frozen.term_id_by_value(&iri_val("b")).expect("b remapped");
+        let frozen_ab = frozen
+            .quads()
+            .position(|qd| qd.s == a2 && qd.p == p2 && qd.o == b2 && qd.g.is_none())
+            .expect("(a,p,b) survives");
+        assert_eq!(
+            frozen
+                .location_of(QuadHandle::from_index(frozen_ab as u32))
+                .and_then(|l| l.logical.as_deref()),
+            Some("loc-a-p-b"),
+            "the surviving base quad keeps its location through freeze"
+        );
+
+        // The suppressed quad (a,p,c) is gone.
+        assert!(!m.contains(&q("a", "p", "c")));
+        assert!(
+            frozen.term_id_by_value(&iri_val("c")).is_none(),
+            "the suppressed quad's unique object term is no longer interned"
+        );
     }
 
     // -- branch / handle stability ----------------------------------------------------

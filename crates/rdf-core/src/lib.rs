@@ -60,7 +60,7 @@ pub use bundle::{
     UnitMetadata,
 };
 pub use content_store::{Bytes, ContentDigest, ContentStore, ContentStoreError};
-pub use dataset_view::{DatasetMut, DatasetView, GraphMatch};
+pub use dataset_view::{DatasetMut, DatasetView, GraphMatch, GraphMatchValue};
 pub use diagnostic::{RdfDiagnostic, RdfLocation, RdfLoss, RdfSeverity};
 pub use fno::{
     to_ntriples as fno_to_ntriples, to_quads as fno_to_quads, FnFunction, FnImpl, FnMapping,

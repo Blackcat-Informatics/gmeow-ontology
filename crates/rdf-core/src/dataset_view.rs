@@ -50,6 +50,31 @@ impl GraphMatch {
     }
 }
 
+/// How a **write-side** pattern query matches the graph slot of a quad — the
+/// value-based twin of [`GraphMatch`].
+///
+/// The read view ([`DatasetView`]) names a graph by its dataset-local [`TermId`],
+/// which every graph in a frozen dataset has. The mutable write view
+/// ([`DatasetMut`]), however, straddles a frozen base and an in-memory delta: a
+/// *delta-only* named graph (one introduced after branching) has NO base `TermId`,
+/// so a `TermId`-keyed graph filter cannot express it. Worse, it would be
+/// inconsistent with the `s`/`p`/`o` slots, which `DatasetMut` already matches by
+/// *value*. So the write side names a graph by [`TermValue`] too: the implementer
+/// resolves the value to its internal handle WITHOUT minting (a value interned
+/// nowhere matches nothing — an empty filter, exactly like a bound `s`/`p`/`o`
+/// value that misses). This makes both base-named AND delta-only-named graphs
+/// expressible. Deliberately exhaustive (NOT `#[non_exhaustive]`), like
+/// [`GraphMatch`].
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum GraphMatchValue<'a> {
+    /// Match quads in any graph (default or named).
+    Any,
+    /// Match only quads in the default graph.
+    Default,
+    /// Match only quads in the named graph identified by this term value.
+    Named(&'a TermValue),
+}
+
 /// A static, allocation-free read view over an RDF dataset (purrdf backend
 /// contract, C2/C3/C6). All methods are infallible for a frozen, validated dataset.
 pub trait DatasetView {
@@ -123,15 +148,20 @@ pub trait DatasetMut {
     fn contains(&self, quad: &Self::Quad) -> bool;
 
     /// The effective quads matching an optional `(s, p, o)` value pattern and a
-    /// [`GraphMatch`]. Returns owned value-quads (the mutable view has no stable id
-    /// space to borrow into across the base/delta boundary). A bound value interned
-    /// in neither the base nor the delta matches nothing.
+    /// [`GraphMatchValue`]. Returns owned value-quads (the mutable view has no stable
+    /// id space to borrow into across the base/delta boundary). A bound value — in
+    /// any of `s`/`p`/`o` OR the graph slot — interned in neither the base nor the
+    /// delta matches nothing.
+    ///
+    /// The graph filter is value-based (`GraphMatchValue`, NOT the read side's
+    /// `TermId`-based `GraphMatch`) so a delta-only named graph, which has no base
+    /// `TermId`, is still expressible — consistent with the value-based `s`/`p`/`o`.
     fn quads_for_pattern(
         &self,
         s: Option<&TermValue>,
         p: Option<&TermValue>,
         o: Option<&TermValue>,
-        g: GraphMatch,
+        g: GraphMatchValue<'_>,
     ) -> Vec<Self::Quad>;
 }
 
