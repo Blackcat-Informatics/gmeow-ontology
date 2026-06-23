@@ -67,6 +67,10 @@ impl RdfLiteral {
 }
 
 /// Owned RDF 1.2 term.
+///
+/// Deliberately exhaustive (NOT `#[non_exhaustive]`): the RDF data model fixes the
+/// set of term kinds (IRI, blank node, literal, triple term), so consumers SHOULD
+/// match all four — there is no future variant to guard against.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum RdfTerm {
     Iri(String),
@@ -76,22 +80,27 @@ pub enum RdfTerm {
 }
 
 impl RdfTerm {
+    #[must_use]
     pub fn iri(value: impl Into<String>) -> Self {
         Self::Iri(value.into())
     }
 
+    #[must_use]
     pub fn blank_node(value: impl Into<String>) -> Self {
         Self::BlankNode(value.into())
     }
 
+    #[must_use]
     pub fn literal(literal: RdfLiteral) -> Self {
         Self::Literal(literal)
     }
 
+    #[must_use]
     pub fn triple(triple: RdfTriple) -> Self {
         Self::Triple(Box::new(triple))
     }
 
+    #[must_use]
     pub fn kind(&self) -> RdfTermKind {
         match self {
             Self::Iri(_) => RdfTermKind::Iri,
@@ -99,6 +108,15 @@ impl RdfTerm {
             Self::Literal(_) => RdfTermKind::Literal,
             Self::Triple(_) => RdfTermKind::Triple,
         }
+    }
+}
+
+/// Renders the term in its canonical form (`<iri>`, `_:label`, a typed/lang literal,
+/// or the RDF 1.2 triple-term shorthand `<< … >>`) — the single source of truth is
+/// [`crate::turtle::emit_term`], so `Display` and the serializer never diverge.
+impl core::fmt::Display for RdfTerm {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        f.write_str(&crate::turtle::emit_term(self))
     }
 }
 
@@ -213,5 +231,33 @@ impl RdfAnnotation {
             self.location = Some(location);
         }
         self
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn display_for_rdfterm_matches_canonical_emit() {
+        assert_eq!(
+            RdfTerm::iri("https://example.org/s").to_string(),
+            "<https://example.org/s>"
+        );
+        assert_eq!(RdfTerm::blank_node("b0").to_string(), "_:b0");
+        // `Display` MUST delegate to the single-source-of-truth serializer for ALL
+        // four RDF term kinds (IRI, blank node, literal, triple term) (#841).
+        for t in [
+            RdfTerm::iri("https://example.org/x"),
+            RdfTerm::blank_node("b1"),
+            RdfTerm::literal(RdfLiteral::simple("hello")),
+            RdfTerm::triple(RdfTriple::new(
+                RdfTerm::iri("https://example.org/s"),
+                "https://example.org/p",
+                RdfTerm::iri("https://example.org/o"),
+            )),
+        ] {
+            assert_eq!(t.to_string(), crate::turtle::emit_term(&t));
+        }
     }
 }

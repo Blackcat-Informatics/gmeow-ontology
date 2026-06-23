@@ -88,6 +88,7 @@ impl fmt::Display for ContentDigest {
 
 /// An error raised while validating or accessing a content-addressed blob.
 #[derive(Debug, Clone, PartialEq, Eq)]
+#[non_exhaustive]
 pub enum ContentStoreError {
     /// A stored blob's bytes do not hash to the id they are filed under. This is
     /// always a hard error — the store never silently re-files or repairs it.

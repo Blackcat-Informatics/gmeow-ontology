@@ -7,6 +7,18 @@
 //! oxigraph, and future logic stores) and consumers such as SHACL, validate, and
 //! LOGIC. It models RDF 1.2 terms directly, preserves source/location context
 //! where adapters can provide it, and keeps reporting structured but SARIF-free.
+//!
+//! # `no_std` readiness (#841)
+//!
+//! The immutable IR ([`ir`]) is the kernel's purest layer and is **file-IO-free**
+//! (no `std::fs`/`std::io`), the first prerequisite for an eventual `alloc`-only
+//! `no_std` core for embedded / C-ABI consumers. The remaining blocker is the
+//! interner's `std::collections::{HashMap, HashSet}` (not in `alloc`); migrating it
+//! to `hashbrown` is tracked as **P3c (#880)**. New IR code therefore prefers
+//! `core::`/`alloc::` over `std::` where the item exists in both (e.g. `core::fmt`,
+//! `alloc::sync::Arc`) so the eventual `#![no_std]` flip stays mechanical. Per the
+//! purrdf plan, `no_std` is for embedded/C-ABI targets and is **not** a WASM
+//! prerequisite. Common types are re-exported from [`prelude`].
 
 pub mod bundle;
 pub mod content_store;
@@ -106,6 +118,21 @@ pub use sssom::{
 };
 pub use store::{RdfStore, RdfStoreCapabilities, VecRdfStore};
 pub use turtle::{emit_annotation, emit_quad, emit_reifier, emit_resource, emit_term, rule_iri};
+
+/// The common gmeow-rdf surface, for `use gmeow_rdf::prelude::*;`.
+///
+/// Pulls in the owned value model, the immutable IR + builder, term identity, the
+/// store trait, and the diagnostic type — the set a typical consumer (a SHACL/
+/// validate/logic adapter, or an external Rust crate) reaches for first.
+pub mod prelude {
+    pub use crate::diagnostic::{RdfDiagnostic, RdfLocation, RdfSeverity};
+    pub use crate::ir::{QuadIds, QuadRef, RdfDataset, RdfDatasetBuilder, TermId, TermRef};
+    pub use crate::model::{
+        RdfAnnotation, RdfLiteral, RdfQuad, RdfReifier, RdfTerm, RdfTermKind, RdfTextDirection,
+        RdfTriple,
+    };
+    pub use crate::store::{RdfStore, RdfStoreCapabilities};
+}
 
 // Re-export the module-registration entrypoint (python feature only) so the
 // unified `gmeow_native` cdylib can populate the `gmeow_native.rdf` submodule
