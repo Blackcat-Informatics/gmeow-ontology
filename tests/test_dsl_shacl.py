@@ -11,9 +11,10 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import gmeow_validate
 import pytest
 
-from gmeow_tools.dsl_validate import validate_statement_dsl
+from gmeow_tools.config import STATEMENT_DSL_SHAPES_FILE
 from gmeow_tools.mapping_dsl import CompileError, load_dsl
 
 _MALFORMED_MAPPING_TTL = """
@@ -67,7 +68,10 @@ class TestStatementDslShacl:
     def test_malformed_statement_shacl_diagnostic(self, tmp_path: Path) -> None:
         """A StatementMetadata with both qObject and qObjectLiteral must fail."""
         (tmp_path / "test.ttl").write_text(_MALFORMED_STATEMENT_TTL, encoding="utf-8")
-        violations = validate_statement_dsl([str(tmp_path / "test.ttl")])
+        shapes_ttl = STATEMENT_DSL_SHAPES_FILE.read_text(encoding="utf-8")
+        violations = gmeow_validate.validate_dsl_shacl(
+            [str(tmp_path / "test.ttl")], shapes_ttl
+        )
         msg = "\n".join(violations)
         assert violations
         assert "focus=" in msg
