@@ -187,6 +187,13 @@ struct PyValidateOptions {
     slices_dir: Option<String>,
     mapping_shapes_ttl: Option<String>,
     statement_shapes_ttl: Option<String>,
+    /// Path to the test DSL vocabulary directory (`dsl/tests/`). When provided
+    /// along with `test_dsl_shapes_ttl` and `slices_dir`, test DSL SHACL
+    /// validation is run in Rust.
+    test_dsl_dir: Option<String>,
+    /// Turtle text of the test DSL SHACL shapes. When provided, test DSL SHACL
+    /// validation is run in Rust.
+    test_dsl_shapes_ttl: Option<String>,
     /// Project root used to locate `.cache/validate`. When `None`, the cache is
     /// disabled. Task 4 wires Python to pass `PROJECT_ROOT`.
     project_root: Option<String>,
@@ -209,6 +216,8 @@ impl PyValidateOptions {
         slices_dir = None,
         mapping_shapes_ttl = None,
         statement_shapes_ttl = None,
+        test_dsl_dir = None,
+        test_dsl_shapes_ttl = None,
         project_root = None,
         gts_bytes = None,
         signature_config = None,
@@ -219,6 +228,8 @@ impl PyValidateOptions {
         slices_dir: Option<String>,
         mapping_shapes_ttl: Option<String>,
         statement_shapes_ttl: Option<String>,
+        test_dsl_dir: Option<String>,
+        test_dsl_shapes_ttl: Option<String>,
         project_root: Option<String>,
         gts_bytes: Option<Vec<u8>>,
         signature_config: Option<PySignatureConfig>,
@@ -229,6 +240,8 @@ impl PyValidateOptions {
             slices_dir,
             mapping_shapes_ttl,
             statement_shapes_ttl,
+            test_dsl_dir,
+            test_dsl_shapes_ttl,
             project_root,
             gts_bytes,
             signature_config,
@@ -244,6 +257,8 @@ impl PyValidateOptions {
             slices_dir: self.slices_dir.clone(),
             mapping_shapes_ttl: self.mapping_shapes_ttl.clone(),
             statement_shapes_ttl: self.statement_shapes_ttl.clone(),
+            test_dsl_dir: self.test_dsl_dir.clone(),
+            test_dsl_shapes_ttl: self.test_dsl_shapes_ttl.clone(),
             project_root: self.project_root.as_ref().map(PathBuf::from),
             gts_bytes: self.gts_bytes.clone(),
             signature_config: self.signature_config.as_ref().map(|c| c.to_engine()),

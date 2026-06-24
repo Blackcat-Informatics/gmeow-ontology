@@ -225,3 +225,102 @@ fn build_store(paths: &[String]) -> oxigraph::store::Store {
     let path_bufs: Vec<PathBuf> = paths.iter().map(PathBuf::from).collect();
     gmeow_validate::store::build_store(&path_bufs).expect("store must build")
 }
+
+#[test]
+fn test_dsl_shacl_runs_in_orchestration() {
+    // Minimal ontology source so earlier phases do not short-circuit.
+    let ttl = format!(
+        "@prefix gmeow: <{NS}> .\n\
+         @prefix owl: <http://www.w3.org/2002/07/owl#> .\n\
+         @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\
+         @prefix skos: <http://www.w3.org/2004/02/skos/core#> .\n\
+         @prefix gufo: <http://purl.org/nemo/gufo#> .\n\
+         gmeow:Thing a owl:Class , gufo:Kind ;\n\
+           rdfs:label \"Thing\" ;\n\
+           skos:definition \"A thing.\" ;\n\
+           rdfs:isDefinedBy <{NS}> ;\n\
+           gmeow:graphBoxRole gmeow:boxTBox .\n"
+    );
+    let source_path = write_tmp("gmeow_validate_all_test_dsl_source.ttl", &ttl);
+    let shapes_ttl = mini_shapes_ttl();
+
+    // Test DSL shapes: every ex:Test must have an ex:name.
+    let test_dsl_shapes = "@prefix sh: <http://www.w3.org/ns/shacl#> .\n\
+                           @prefix ex: <https://example.org/> .\n\
+                           ex:TestShape a sh:NodeShape ;\n\
+                             sh:targetClass ex:Test ;\n\
+                             sh:property [ sh:path ex:name ; sh:minCount 1 ] ."
+        .to_owned();
+
+    // Test DSL vocabulary directory.
+    let vocab_dir = std::env::temp_dir().join(format!(
+        "gmeow_validate_all_test_dsl_vocab_{}",
+        std::process::id()
+    ));
+    std::fs::create_dir_all(&vocab_dir).unwrap();
+    let vocab_path = vocab_dir.join("vocabulary.ttl");
+    std::fs::write(
+        &vocab_path,
+        "@prefix owl: <http://www.w3.org/2002/07/owl#> .\n\
+         @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\
+         @prefix skos: <http://www.w3.org/2004/02/skos/core#> .\n\
+         @prefix ex: <https://example.org/> .\n\
+         ex:Test a owl:Class ;\n\
+           rdfs:label \"Test\" ;\n\
+           skos:definition \"A test.\" ;\n\
+           rdfs:isDefinedBy <https://example.org/> .\n",
+    )
+    .unwrap();
+
+    // Slice tree with one manifest, one example, and one test fixture that
+    // violates the shape.
+    let slices_dir = std::env::temp_dir().join(format!(
+        "gmeow_validate_all_test_dsl_slices_{}",
+        std::process::id()
+    ));
+    let slice_dir = slices_dir.join("core").join("demo");
+    std::fs::create_dir_all(slice_dir.join("tests")).unwrap();
+    std::fs::create_dir_all(slice_dir.join("examples")).unwrap();
+    std::fs::write(slice_dir.join("manifest.ttl"), "# manifest\n").unwrap();
+    std::fs::write(
+        slice_dir.join("examples").join("demo.ttl"),
+        "@prefix ex: <https://example.org/> .\n\
+         ex:example a ex:Thing ; ex:label \"example\" .\n",
+    )
+    .unwrap();
+    std::fs::write(
+        slice_dir.join("tests").join("demo.ttl"),
+        "@prefix ex: <https://example.org/> .\n\
+         ex:badTest a ex:Test .\n",
+    )
+    .unwrap();
+
+    let options = ValidateOptions {
+        test_dsl_dir: Some(vocab_dir.to_string_lossy().to_string()),
+        test_dsl_shapes_ttl: Some(test_dsl_shapes),
+        slices_dir: Some(slices_dir.to_string_lossy().to_string()),
+        ..ValidateOptions::default()
+    };
+
+    let run = ValidationRun::run(
+        &[source_path.to_string_lossy().to_string()],
+        &shapes_ttl,
+        "",
+        "",
+        &lint_config(),
+        &options,
+    )
+    .expect("orchestration must complete");
+
+    std::fs::remove_file(&source_path).ok();
+    std::fs::remove_dir_all(&vocab_dir).ok();
+    std::fs::remove_dir_all(&slices_dir).ok();
+
+    assert!(
+        run.errors()
+            .iter()
+            .any(|e| e == "SHACL constraint violated"),
+        "test DSL SHACL phase must flag the missing ex:name violation: {:?}",
+        run.errors()
+    );
+}

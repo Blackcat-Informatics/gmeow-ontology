@@ -24,6 +24,7 @@ import gmeow_validate
 from gmeow_tools import shacl_engine
 from gmeow_tools.config import (
     _SAMEAS_ALLOWLIST,
+    DSL_TESTS_DIR,
     EXTERNAL_FIXTURES_DIR,
     FIXTURES_DIR,
     GENERATED_SHAPES_DIR,
@@ -37,6 +38,7 @@ from gmeow_tools.config import (
     SLICES_DIR,
     STATEMENT_DSL_DIR,
     STATEMENT_DSL_SHAPES_FILE,
+    TEST_DSL_SHAPES_FILE,
 )
 from gmeow_tools.graph import iter_source_files
 from gmeow_tools.slices import iter_slice_shape_files
@@ -558,22 +560,26 @@ def validate_all(
     # GTS mode validates a folded graph, so only the store-based phases apply
     # (structural lint, term-naming, reasoning/gUFO invariants, merged SHACL).
     # The source-layout phases — example coverage, per-example SHACL, and the
-    # mapping/statement DSL SHACL — validate the repo source tree, not a bundle,
-    # so we withhold their filesystem inputs; the Rust engine skips any phase
-    # whose inputs are absent (#644). Ownership is sourced from the native
+    # mapping/statement/test DSL SHACL — validate the repo source tree, not a
+    # bundle, so we withhold their filesystem inputs; the Rust engine skips any
+    # phase whose inputs are absent (#644). Ownership is sourced from the native
     # gmeow_slice OwnershipAnalyzer (folded in below), independent of mode.
     if gts_input is not None:
         slices_dir_opt: str | None = None
         mapping_shapes_ttl: str | None = None
         statement_shapes_ttl: str | None = None
+        test_dsl_shapes_ttl: str | None = None
         mapping_dsl_dir = ""
         statement_dsl_dir = ""
+        test_dsl_dir = ""
     else:
         mapping_shapes_ttl = _dsl_shapes_turtle(MAPPING_DSL_SHAPES_FILE)
         statement_shapes_ttl = _dsl_shapes_turtle(STATEMENT_DSL_SHAPES_FILE)
+        test_dsl_shapes_ttl = _dsl_shapes_turtle(TEST_DSL_SHAPES_FILE)
         slices_dir_opt = str(SLICES_DIR)
         mapping_dsl_dir = str(MAPPING_DSL_DIR)
         statement_dsl_dir = str(STATEMENT_DSL_DIR)
+        test_dsl_dir = str(DSL_TESTS_DIR)
 
     config = _lint_config()
     if signature_config is not None:
@@ -599,6 +605,8 @@ def validate_all(
         slices_dir=slices_dir_opt,
         mapping_shapes_ttl=mapping_shapes_ttl,
         statement_shapes_ttl=statement_shapes_ttl,
+        test_dsl_dir=test_dsl_dir,
+        test_dsl_shapes_ttl=test_dsl_shapes_ttl,
         project_root=str(PROJECT_ROOT),
         gts_bytes=gts_bytes,
         signature_config=signature_options,
@@ -669,23 +677,9 @@ def validate_all(
             result.errors.append(message)
             py_errors.append(message)
 
-        # Test-DSL SHACL gate (#783): the slice-resident declarative test
-        # fixtures (slices/*/*/tests/*.ttl) plus their authoring vocabulary are
-        # validated against the test-DSL shapes here, Python-side, since the Rust
-        # engine does not own this lane. A violation is a real validation error.
-        try:
-            from gmeow_tools.mapping_dsl import CompileError
-            from gmeow_tools.test_dsl import load_test_dsl
-
-            load_test_dsl()
-        except CompileError as exc:
-            message = str(exc)
-            result.errors.append(message)
-            py_errors.append(message)
-
     # Fold the Python-only lint findings straight into the live canonical report
-    # (guide-anchor, i18n PO, test-DSL) so it stays the complete source of truth
-    # (#654) — folded in place, no JSON serialize/deserialize round-trip (#630).
+    # (guide-anchor, i18n PO) so it stays the complete source of truth (#654) —
+    # folded in place, no JSON serialize/deserialize round-trip (#630).
     # ``errors``/``warnings`` on the result already carry the same findings for
     # the legacy string surface and the ``ok`` check.
     if result.report is not None and (py_errors or py_warnings):
