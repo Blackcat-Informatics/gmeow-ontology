@@ -8,7 +8,7 @@
 
 use std::cmp::Ordering;
 
-use crate::numeric::{numeric_cmp, numeric_eq};
+use crate::numeric::numeric_cmp;
 use crate::value::XsdValue;
 
 /// SPARQL value-space comparison (`<` / `>` / `=` semantics).
@@ -46,13 +46,7 @@ pub fn value_cmp(a: &XsdValue, b: &XsdValue) -> Option<Ordering> {
 /// [`value_cmp`] and treat `None` as the error.
 #[must_use]
 pub fn value_eq(a: &XsdValue, b: &XsdValue) -> bool {
-    use XsdValue::{Boolean, String as Str};
-    match (a, b) {
-        (Boolean(x), Boolean(y)) => x == y,
-        (Str(x), Str(y)) => x == y,
-        _ if is_numeric(a) && is_numeric(b) => numeric_eq(a, b),
-        _ => false,
-    }
+    value_cmp(a, b) == Some(Ordering::Equal)
 }
 
 /// SPARQL Effective Boolean Value (value-space rules).
@@ -71,13 +65,6 @@ pub fn effective_boolean_value(v: &XsdValue) -> Option<bool> {
         // Temporal values have no effective boolean value (SPARQL type error).
         _ => return None,
     })
-}
-
-fn is_numeric(v: &XsdValue) -> bool {
-    matches!(
-        v,
-        XsdValue::Integer(_) | XsdValue::Decimal(_) | XsdValue::Float(_) | XsdValue::Double(_)
-    )
 }
 
 #[cfg(test)]
