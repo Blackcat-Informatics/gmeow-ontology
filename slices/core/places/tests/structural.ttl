@@ -1,0 +1,1700 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Declarative structural assertions for the places slice (#51, #82, #84, #85,
+# #87, #90, #91, #92, #94, #96, #100, #103, #125) -- the slice-resident
+# test-DSL twin of the asserted-TBox MUST / MUST-NOT invariants formerly
+# hand-written in tests/test_places.py. Each assertion runs as a SPARQL ASK
+# over the places module graph (gmeow:scopeModule) under the native Rust
+# slicetest harness (crates/slicetest).
+#
+# Places IS #694-migrated: class stereotypes are logic:
+# (logic:Kind, logic:QualityValue), NOT gufo:.
+#
+# RETAINED in pytest (not migratable here):
+#   test_location_superset_core -- walks blank-node owl:unionOf lists via
+#     g.items(), sweeps owl:AllDisjointProperties subjects dynamically, and
+#     checks a locatedAt owl:propertyChainAxiom bnode list; bnode graph
+#     structure is not expressible as a module-scoped ASK.
+#   test_has_coordinate_matrix_includes_geocode -- same bnode unionOf walk.
+#   test_has_coordinates_property_chain -- bnode property-chain list check.
+#   test_has_geometry_property_chain -- bnode property-chain list check.
+#   test_no_unsafe_motion_property_chains -- uses graph.triples() dynamic
+#     sweep over a live subject list; a module-scoped cell would silently
+#     narrow this regression guard.
+#   test_place_type_parcel_exists -- checks graph.value() label string
+#     contents ("parcel" not in label); string-content checks are not ASK.
+#   test_contested_* / test_superseded_* / test_lapsed_* -- load fixture
+#     files and call run_shacl(); multi-file ABox + ExampleConformance checks.
+#   test_location_stream_to_trajectory_derivation,
+#   test_stream_and_trajectory_coexist -- load places-streaming.ttl fixture
+#     and call run_shacl(); ABox checks.
+#   test_geocode_shape_valid / test_geocode_shape_invalid_* -- run_shacl()
+#     calls; ExampleConformance, not structural TBox assertions.
+#   test_biological_coverage_passes_shacl,
+#   test_biological_standpoint_coordinate_claims_coexist -- run_shacl();
+#     ABox / ExampleConformance checks.
+#   test_cadastral_coverage_passes_shacl, test_land_tenure_instance_structure,
+#   test_cadastral_reference_instance_structure,
+#   test_contested_land_tenures_coexist, test_lapsed_tenure_suppressed_not_deleted,
+#   test_cadastral_reference_multiple_types_coexist -- run_shacl() or ABox
+#     fixture sweeps; not structural TBox assertions.
+#   test_occupancy_with_unit_asserted, test_storage_capacity_in_bytes --
+#     numeric Decimal equality checks on ABox fixture values.
+#   test_geometry_has_type_and_geojson -- ABox fixture object sweep.
+#
+# See dsl/tests/MIGRATION-LEDGER.md for the per-test pytest->DSL mapping.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/places/tests/> .
+
+# --- 1. Location umbrella and structural subclasses (MUST) --------------------
+ex:saLocationUmbrellaSubclasses a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:Location        rdfs:subClassOf gmeow:Entity .
+    gmeow:Place           rdfs:subClassOf gmeow:Location .
+    gmeow:VirtualLocation rdfs:subClassOf gmeow:Location .
+    gmeow:StorageLocation rdfs:subClassOf gmeow:Location .
+}""" ;
+    gmeow:saRationale "gmeow:Location MUST be a subclass of gmeow:Entity and Place, VirtualLocation, StorageLocation MUST each be subclasses of Location -- the three structural subtypes of the umbrella. Mirrors test_location_umbrella_and_structural_subclasses." .
+
+# --- 2. alternateName is retired as any property (MUST-NOT) -------------------
+ex:saAlternateNameRetired a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    VALUES ?t { owl:DatatypeProperty owl:ObjectProperty owl:AnnotationProperty }
+    gmeow:alternateName a ?t .
+}""" ;
+    gmeow:saRationale "gmeow:alternateName MUST NOT exist as any property -- retired in favour of gmeow:PlaceName appellations via gmeow:hasPlaceName (Principle 6, #105). Mirrors test_alternate_name_retired (not-exist part)." .
+
+# --- 4. PlaceType subclasses logic:QualityValue and placeType is non-functional ObjectProperty (MUST) ---
+ex:saPlaceTypeIsQualityValue a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:PlaceType rdfs:subClassOf logic:QualityValue .
+    gmeow:placeType a owl:ObjectProperty .
+}""" ;
+    gmeow:saRationale "gmeow:PlaceType MUST be a subclass of logic:QualityValue and gmeow:placeType MUST be an owl:ObjectProperty -- place kinds are value individuals, not subclasses (Principle 9). Mirrors test_place_kind_is_value_not_subclass (positive part)." .
+
+# --- 5. placeType is NOT functional (MUST-NOT) --------------------------------
+ex:saPlaceTypeNotFunctional a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:placeType a owl:FunctionalProperty . }""" ;
+    gmeow:saRationale "gmeow:placeType MUST NOT be owl:FunctionalProperty -- a place may have multiple co-equal type claims (Principle 9). Mirrors test_place_kind_is_value_not_subclass (non-functional part)." .
+
+# --- 6. PlaceType seed individuals exist (MUST) --------------------------------
+ex:saPlaceTypeSeeds a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    gmeow:placeTypeCountry  a gmeow:PlaceType .
+    gmeow:placeTypeCity     a gmeow:PlaceType .
+    gmeow:placeTypeRoom     a gmeow:PlaceType .
+    gmeow:placeTypePremises a gmeow:PlaceType .
+    gmeow:placeTypeSite     a gmeow:PlaceType .
+}""" ;
+    gmeow:saRationale "The five core PlaceType seed individuals MUST exist as gmeow:PlaceType values, not classes (anti-subclass guard). Mirrors test_place_kind_is_value_not_subclass (seeds part)." .
+
+# --- 7. Rejected per-kind subclasses do NOT exist as classes (MUST-NOT) --------
+ex:saRejectedPlaceSubclassesGone a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    VALUES ?banned { gmeow:Country gmeow:City gmeow:Building gmeow:Room gmeow:Site }
+    ?banned a owl:Class .
+}""" ;
+    gmeow:saRationale "gmeow:Country, City, Building, Room, and Site MUST NOT exist as owl:Class -- the per-kind-subclass pattern was permanently refactored to PlaceType value individuals. Mirrors test_place_kind_is_value_not_subclass (rejected-classes part)." .
+
+# --- 8. storageMedium is a functional ObjectProperty (MUST) -------------------
+ex:saStorageMediumIsFunctional a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    gmeow:storageMedium a owl:ObjectProperty .
+    gmeow:storageMedium a owl:FunctionalProperty .
+}""" ;
+    gmeow:saRationale "gmeow:storageMedium MUST be a functional owl:ObjectProperty -- the medium is constitutive of the storage location (like keyScheme), not a descriptive co-equal. Mirrors test_storage_medium_is_value_not_subclass (functional part)." .
+
+# --- 9. StorageMedium seed individuals exist (MUST) ---------------------------
+ex:saStorageMediumSeeds a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    gmeow:storageMediumCloudService  a gmeow:StorageMedium .
+    gmeow:storageMediumPhysicalDisk  a gmeow:StorageMedium .
+}""" ;
+    gmeow:saRationale "The two core StorageMedium seed individuals MUST exist as gmeow:StorageMedium values. Mirrors test_storage_medium_is_value_not_subclass (seeds part)." .
+
+# --- 10. Rejected storage subclasses do NOT exist as classes (MUST-NOT) -------
+ex:saRejectedStorageSubclassesGone a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    VALUES ?banned { gmeow:CloudStorage gmeow:LocalStorage gmeow:ObjectStore }
+    ?banned a owl:Class .
+}""" ;
+    gmeow:saRationale "gmeow:CloudStorage, LocalStorage, and ObjectStore MUST NOT exist as owl:Class -- permanently refactored to StorageMedium value individuals. Mirrors test_storage_medium_is_value_not_subclass (rejected-classes part)." .
+
+# --- 11. asWKT range is rdfs:Literal, NOT geo:wktLiteral (MUST + MUST-NOT) ---
+ex:saAsWKTRangeIsLiteral a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK { gmeow:asWKT rdfs:range rdfs:Literal . }""" ;
+    gmeow:saRationale "gmeow:asWKT MUST have rdfs:range rdfs:Literal -- the custom geo:wktLiteral datatype is outside the OWL 2 DL datatype map (Principle 3). Mirrors test_aswkt_range_is_dl_safe (positive part)." .
+
+ex:saAsWKTNotGeoWktLiteral a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX geo: <http://www.opengis.net/ont/geosparql#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK { gmeow:asWKT rdfs:range geo:wktLiteral . }""" ;
+    gmeow:saRationale "gmeow:asWKT MUST NOT range over geo:wktLiteral -- not in OWL 2 DL map, would break DL safety. Mirrors test_aswkt_range_is_dl_safe (mustNot part)." .
+
+# --- 16. containedInPlace is transitive, NOT symmetric (MUST + MUST-NOT) ------
+ex:saContainedInPlaceTransitiveNotSymmetric a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:containedInPlace a owl:TransitiveProperty . }""" ;
+    gmeow:saRationale "gmeow:containedInPlace MUST be owl:TransitiveProperty -- spatial containment chains are transitive. Mirrors test_containedinplace_transitive_not_symmetric (transitive part)." .
+
+ex:saContainedInPlaceNotSymmetric a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:containedInPlace a owl:SymmetricProperty . }""" ;
+    gmeow:saRationale "gmeow:containedInPlace MUST NOT be owl:SymmetricProperty -- containment is asymmetric (a city is in a country, not vice versa). Mirrors test_containedinplace_transitive_not_symmetric (not-symmetric part)." .
+
+# --- 17. storedIn is subPropertyOf locatedAt (MUST) ---------------------------
+ex:saStoredInSubpropertyLocatedAt a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK { gmeow:storedIn rdfs:subPropertyOf gmeow:locatedAt . }""" ;
+    gmeow:saRationale "gmeow:storedIn MUST be rdfs:subPropertyOf gmeow:locatedAt -- storage is a specialization of location. Mirrors test_storedin_subproperty_of_locatedat." .
+
+# --- 18. authorityLink has NO rdfs:range (MUST-NOT) ---------------------------
+ex:saAuthorityLinkRangeOpen a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK { gmeow:authorityLink rdfs:range ?r . }""" ;
+    gmeow:saRationale "gmeow:authorityLink MUST NOT carry any rdfs:range -- open range for any external authority IRI, DL-safe (the open-range convention). Mirrors test_authoritylink_has_open_range." .
+
+# --- 19. Coordinate props are non-functional; elevation ranges xsd:decimal (MUST) --
+ex:saCoordinatePropsNonfunctional a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    VALUES ?p { gmeow:latitude gmeow:longitude gmeow:elevation gmeow:timezone }
+    ?p a owl:FunctionalProperty .
+}""" ;
+    gmeow:saRationale "gmeow:latitude, longitude, elevation, and timezone MUST NOT be owl:FunctionalProperty -- competing observation-indexed coordinate claims coexist (Principle 9). Mirrors test_coordinate_props_nonfunctional (non-functional part)." .
+
+ex:saElevationRangeDecimal a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK { gmeow:elevation rdfs:range xsd:decimal . }""" ;
+    gmeow:saRationale "gmeow:elevation MUST have rdfs:range xsd:decimal (DL-clean). Mirrors test_coordinate_props_nonfunctional (elevation-range part)." .
+
+# --- 20. MetricKind subclasses logic:QualityValue (MUST) ----------------------
+ex:saMetricKindIsQualityValue a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK { gmeow:MetricKind rdfs:subClassOf logic:QualityValue . }""" ;
+    gmeow:saRationale "gmeow:MetricKind MUST be a subclass of logic:QualityValue -- metric kinds are ordered value individuals, not subclasses. Mirrors test_metric_kind_is_value_not_subclass (subclass part)." .
+
+# --- 21. MetricKind seed individuals exist (MUST) -----------------------------
+ex:saMetricKindSeeds a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    gmeow:metricGeodesic           a gmeow:MetricKind .
+    gmeow:metricEuclidean          a gmeow:MetricKind .
+    gmeow:metricCosine             a gmeow:MetricKind .
+    gmeow:metricEditDistance       a gmeow:MetricKind .
+    gmeow:metricGraphHops          a gmeow:MetricKind .
+    gmeow:metricSymplectic         a gmeow:MetricKind .
+    gmeow:metricPositionalDistance a gmeow:MetricKind .
+}""" ;
+    gmeow:saRationale "The seven core MetricKind seed individuals MUST exist as gmeow:MetricKind values. Mirrors test_metric_kind_is_value_not_subclass (seeds part)." .
+
+# --- 22. hasMetricKind is a functional ObjectProperty on ReferenceFrame (MUST) -
+ex:saHasMetricKindShape a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:hasMetricKind a owl:ObjectProperty .
+    gmeow:hasMetricKind a owl:FunctionalProperty .
+    gmeow:hasMetricKind rdfs:domain gmeow:ReferenceFrame .
+    gmeow:hasMetricKind rdfs:range  gmeow:MetricKind .
+}""" ;
+    gmeow:saRationale "gmeow:hasMetricKind MUST be a functional owl:ObjectProperty with domain ReferenceFrame and range MetricKind. Mirrors test_has_metric_kind_on_reference_frame." .
+
+# --- 23. ProximityMeasurement subclasses Measurement (MUST) -------------------
+ex:saProximityMeasurementSubclass a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK { gmeow:ProximityMeasurement rdfs:subClassOf gmeow:Measurement . }""" ;
+    gmeow:saRationale "gmeow:ProximityMeasurement MUST be rdfs:subClassOf gmeow:Measurement. Mirrors test_proximity_measurement_subclass_of_measurement." .
+
+# --- 24. proximity domain is Entity, range is ProximityMeasurement (MUST) -----
+ex:saProximityPropertyShape a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:proximity a owl:ObjectProperty ;
+        rdfs:domain gmeow:Entity ;
+        rdfs:range  gmeow:ProximityMeasurement .
+}""" ;
+    gmeow:saRationale "gmeow:proximity MUST be an owl:ObjectProperty with domain Entity and range ProximityMeasurement. Mirrors test_proximity_property_domain_range." .
+
+# --- 25. proximityTo is functional with domain/range (MUST) -------------------
+ex:saProximityToShape a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:proximityTo a owl:ObjectProperty .
+    gmeow:proximityTo a owl:FunctionalProperty .
+    gmeow:proximityTo rdfs:domain gmeow:ProximityMeasurement .
+    gmeow:proximityTo rdfs:range  gmeow:Entity .
+}""" ;
+    gmeow:saRationale "gmeow:proximityTo MUST be a functional owl:ObjectProperty with domain ProximityMeasurement and range Entity. Mirrors test_proximity_to_property." .
+
+# --- 26. Spatial frames declare hasMetricKind seeds (MUST) --------------------
+ex:saSpatialFrameMetricKinds a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    gmeow:referenceFrameWGS84               gmeow:hasMetricKind gmeow:metricGeodesic .
+    gmeow:referenceFrameLocalGrid           gmeow:hasMetricKind gmeow:metricEuclidean .
+    gmeow:referenceFrameRobotBase           gmeow:hasMetricKind gmeow:metricEuclidean .
+    gmeow:referenceFrameCelestialEquatorial gmeow:hasMetricKind gmeow:metricGeodesic .
+}""" ;
+    gmeow:saRationale "The four core spatial frames MUST declare their metric kinds. Mirrors test_spatial_frames_declare_metric_kind." .
+
+# --- 27. hasCentroid domain Place, range Geometry (MUST) ----------------------
+ex:saHasCentroidShape a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:hasCentroid a owl:ObjectProperty ;
+        rdfs:domain gmeow:Place ;
+        rdfs:range  gmeow:Geometry .
+}""" ;
+    gmeow:saRationale "gmeow:hasCentroid MUST be an owl:ObjectProperty with domain Place and range Geometry. Mirrors test_has_centroid_domain_range." .
+
+# --- 28. No preferred/primary place terms (MUST-NOT) -------------------------
+ex:saNoPreferredPrimaryPlaceTerms a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    VALUES ?banned {
+        gmeow:primaryName gmeow:preferredName
+        gmeow:primaryJurisdiction gmeow:preferredJurisdiction
+        gmeow:preferredRank
+        gmeow:primaryOverlay gmeow:preferredOverlay
+        gmeow:primaryRegulatoryOverlay gmeow:preferredRegulatoryOverlay
+    }
+    VALUES ?t {
+        owl:ObjectProperty owl:DatatypeProperty
+        owl:AnnotationProperty owl:Class
+    }
+    ?banned a ?t .
+}""" ;
+    gmeow:saRationale "No preferred*/primary* selector for contested jurisdiction, toponym, or overlay MUST NOT exist (Principle 9, co-equality). Mirrors test_no_preferred_or_primary_place_term." .
+
+# --- 29. JurisdictionTenure subclasses TimeScopedRelation (MUST) --------------
+ex:saJurisdictionTenureGrounding a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:JurisdictionTenure rdfs:subClassOf gmeow:TimeScopedRelation .
+    gmeow:jurisdictionPlace  rdfs:domain gmeow:JurisdictionTenure ;
+                             rdfs:range  gmeow:Place ;
+                             a owl:FunctionalProperty .
+    gmeow:jurisdictionPolity rdfs:domain gmeow:JurisdictionTenure ;
+                             rdfs:range  gmeow:Agent ;
+                             a owl:FunctionalProperty .
+}""" ;
+    gmeow:saRationale "gmeow:JurisdictionTenure MUST be rdfs:subClassOf TimeScopedRelation; jurisdictionPlace and jurisdictionPolity MUST be functional with correct domain/range. Mirrors test_jurisdiction_tenure_grounding." .
+
+# --- 30. ContainmentTenure subclasses TimeScopedRelation (MUST) ---------------
+ex:saContainmentTenureGrounding a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:ContainmentTenure  rdfs:subClassOf gmeow:TimeScopedRelation .
+    gmeow:containmentChild   rdfs:domain gmeow:ContainmentTenure ;
+                             rdfs:range  gmeow:Place ;
+                             a owl:FunctionalProperty .
+    gmeow:containmentParent  rdfs:domain gmeow:ContainmentTenure ;
+                             rdfs:range  gmeow:Place ;
+                             a owl:FunctionalProperty .
+}""" ;
+    gmeow:saRationale "gmeow:ContainmentTenure MUST be rdfs:subClassOf TimeScopedRelation; containmentChild and containmentParent MUST be functional with correct domain/range. Mirrors test_containment_tenure_grounding." .
+
+# --- 31. GeometryType subclasses logic:QualityValue; seed individuals exist (MUST) --
+ex:saGeometryTypeIsQualityValue a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK { gmeow:GeometryType rdfs:subClassOf logic:QualityValue . }""" ;
+    gmeow:saRationale "gmeow:GeometryType MUST be a subclass of logic:QualityValue -- geometry kinds are value individuals, not subclasses. Mirrors test_geometry_type_is_value_not_subclass (subclass part)." .
+
+ex:saGeometryTypeSeeds a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    gmeow:geometryTypePoint            a gmeow:GeometryType .
+    gmeow:geometryTypeLineString       a gmeow:GeometryType .
+    gmeow:geometryTypePolygon          a gmeow:GeometryType .
+    gmeow:geometryTypeMultiPoint       a gmeow:GeometryType .
+    gmeow:geometryTypeMultiLineString  a gmeow:GeometryType .
+    gmeow:geometryTypeMultiPolygon     a gmeow:GeometryType .
+}""" ;
+    gmeow:saRationale "The six core GeometryType seed individuals MUST exist as gmeow:GeometryType values. Mirrors test_geometry_type_is_value_not_subclass (seeds part)." .
+
+# --- 32. Rejected geometry subclasses do NOT exist as classes (MUST-NOT) ------
+ex:saRejectedGeometrySubclassesGone a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    VALUES ?banned { gmeow:Point gmeow:LineString gmeow:Polygon gmeow:MultiPoint }
+    ?banned a owl:Class .
+}""" ;
+    gmeow:saRationale "gmeow:Point, LineString, Polygon, and MultiPoint MUST NOT exist as owl:Class -- permanently refactored to GeometryType value individuals. Mirrors test_geometry_type_is_value_not_subclass (rejected part)." .
+
+# --- 33. asGeoJSON range is rdfs:Literal, NOT geo:geoJSONLiteral (MUST + MUST-NOT) --
+ex:saAsGeoJSONRangeIsLiteral a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:asGeoJSON a owl:DatatypeProperty .
+    gmeow:asGeoJSON rdfs:range rdfs:Literal .
+}""" ;
+    gmeow:saRationale "gmeow:asGeoJSON MUST be an owl:DatatypeProperty with rdfs:range rdfs:Literal -- geo:geoJSONLiteral is outside OWL 2 DL (Principle 3). Mirrors test_asgeojson_range_is_dl_safe (positive part)." .
+
+ex:saAsGeoJSONNotGeoLiteral a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX geo: <http://www.opengis.net/ont/geosparql#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK { gmeow:asGeoJSON rdfs:range geo:geoJSONLiteral . }""" ;
+    gmeow:saRationale "gmeow:asGeoJSON MUST NOT range over geo:geoJSONLiteral -- not in OWL 2 DL datatype map. Mirrors test_asgeojson_range_is_dl_safe (mustNot part)." .
+
+# --- 34. placeDeterminacy and geometryDeterminacy subproperties (MUST) ---------
+ex:saPlaceDeterminacySubproperty a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:placeDeterminacy    rdfs:subPropertyOf gmeow:hasDeterminacy ;
+                              rdfs:domain gmeow:Place .
+    gmeow:geometryDeterminacy rdfs:subPropertyOf gmeow:hasDeterminacy ;
+                              rdfs:domain gmeow:Geometry .
+}""" ;
+    gmeow:saRationale "gmeow:placeDeterminacy and geometryDeterminacy MUST be subproperties of gmeow:hasDeterminacy with correct domains. Mirrors test_place_determinacy_subproperty." .
+
+# --- 35. placeSupersededBy and placeSupersedes subproperties (MUST) -----------
+ex:saPlaceSupersessionSubproperties a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:placeSupersededBy rdfs:subPropertyOf gmeow:supersededBy .
+    gmeow:placeSupersedes   rdfs:subPropertyOf gmeow:supersedes .
+}""" ;
+    gmeow:saRationale "gmeow:placeSupersededBy MUST be rdfs:subPropertyOf gmeow:supersededBy and gmeow:placeSupersedes MUST be rdfs:subPropertyOf gmeow:supersedes. Mirrors test_place_supersession_subproperties." .
+
+# --- 36. RegulatoryOverlay grounding (MUST) -----------------------------------
+ex:saRegulatoryOverlayGrounding a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:RegulatoryOverlay rdfs:subClassOf gmeow:TimeScopedRelation .
+    gmeow:overlayPlace      rdfs:domain gmeow:RegulatoryOverlay ;
+                            rdfs:range  gmeow:Place ;
+                            a owl:FunctionalProperty .
+    gmeow:overlayAuthority  rdfs:domain gmeow:RegulatoryOverlay ;
+                            rdfs:range  gmeow:Agent ;
+                            a owl:FunctionalProperty .
+    gmeow:overlayType       rdfs:domain gmeow:RegulatoryOverlay ;
+                            rdfs:range  gmeow:RegulatoryOverlayType .
+    gmeow:overlayRegulation rdfs:domain gmeow:RegulatoryOverlay ;
+                            rdfs:range  gmeow:RightsStatement .
+}""" ;
+    gmeow:saRationale "gmeow:RegulatoryOverlay MUST be rdfs:subClassOf TimeScopedRelation; overlayPlace/overlayAuthority MUST be functional; overlayType/overlayRegulation MUST have correct ranges. Mirrors test_regulatory_overlay_grounding." .
+
+# --- 37. overlayDeterminacy is a determinacy subproperty on RegulatoryOverlay (MUST) --
+ex:saOverlayDeterminacySubproperty a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:overlayDeterminacy rdfs:subPropertyOf gmeow:hasDeterminacy ;
+                             rdfs:domain gmeow:RegulatoryOverlay ;
+                             rdfs:range  gmeow:Determinacy .
+}""" ;
+    gmeow:saRationale "gmeow:overlayDeterminacy MUST be rdfs:subPropertyOf hasDeterminacy with domain RegulatoryOverlay and range Determinacy. Mirrors test_regulatory_overlay_grounding (determinacy sub-check)." .
+
+# --- 38. overlayLowerBound / overlayUpperBound range ScalarQuantity (MUST) ----
+ex:saOverlayBoundsRange a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:overlayLowerBound rdfs:domain gmeow:RegulatoryOverlay ;
+                            rdfs:range  gmeow:ScalarQuantity .
+    gmeow:overlayUpperBound rdfs:domain gmeow:RegulatoryOverlay ;
+                            rdfs:range  gmeow:ScalarQuantity .
+}""" ;
+    gmeow:saRationale "gmeow:overlayLowerBound and overlayUpperBound MUST have domain RegulatoryOverlay and range ScalarQuantity (3D altitude bounds). Mirrors test_regulatory_overlay_grounding (bounds part)." .
+
+# --- 39. Maritime overlay type seeds exist (MUST) -----------------------------
+ex:saMaritimeOverlayTypeSeeds a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    gmeow:overlayTypeTerritorialSea       a gmeow:RegulatoryOverlayType .
+    gmeow:overlayTypeContiguousZone       a gmeow:RegulatoryOverlayType .
+    gmeow:overlayTypeContinentalShelf     a gmeow:RegulatoryOverlayType .
+    gmeow:overlayTypeHighSeas             a gmeow:RegulatoryOverlayType .
+    gmeow:overlayTypeMarineProtectedArea  a gmeow:RegulatoryOverlayType .
+}""" ;
+    gmeow:saRationale "The five maritime RegulatoryOverlayType seed individuals MUST exist. Mirrors test_maritime_overlay_types_are_values_not_subclasses (seeds part)." .
+
+# --- 40. Rejected maritime subclasses do NOT exist as classes (MUST-NOT) ------
+ex:saRejectedMaritimeSubclassesGone a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    VALUES ?banned { gmeow:TerritorialSea gmeow:ContinentalShelf gmeow:HighSeas }
+    ?banned a owl:Class .
+}""" ;
+    gmeow:saRationale "gmeow:TerritorialSea, ContinentalShelf, HighSeas MUST NOT exist as owl:Class -- permanently refactored to value individuals. Mirrors test_maritime_overlay_types_are_values_not_subclasses (rejected part)." .
+
+# --- 41. Aviation overlay type seeds exist (MUST) -----------------------------
+ex:saAviationOverlayTypeSeeds a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    gmeow:overlayTypeAirway                      a gmeow:RegulatoryOverlayType .
+    gmeow:overlayTypeControlZone                 a gmeow:RegulatoryOverlayType .
+    gmeow:overlayTypeTerminalControlArea         a gmeow:RegulatoryOverlayType .
+    gmeow:overlayTypeFlightInformationRegion     a gmeow:RegulatoryOverlayType .
+    gmeow:overlayTypeAerodromeTrafficZone        a gmeow:RegulatoryOverlayType .
+    gmeow:overlayTypeMilitaryOperationsArea      a gmeow:RegulatoryOverlayType .
+    gmeow:overlayTypeWarningArea                 a gmeow:RegulatoryOverlayType .
+    gmeow:overlayTypeAlertArea                   a gmeow:RegulatoryOverlayType .
+}""" ;
+    gmeow:saRationale "The eight aviation RegulatoryOverlayType seed individuals MUST exist. Mirrors test_aviation_overlay_types_are_values_not_subclasses (seeds part)." .
+
+# --- 42. Rejected aviation subclasses do NOT exist as classes (MUST-NOT) ------
+ex:saRejectedAviationSubclassesGone a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    VALUES ?banned {
+        gmeow:Airway gmeow:ControlZone gmeow:FlightInformationRegion
+    }
+    ?banned a owl:Class .
+}""" ;
+    gmeow:saRationale "gmeow:Airway, ControlZone, FlightInformationRegion MUST NOT exist as owl:Class -- permanently refactored to value individuals. Mirrors test_aviation_overlay_types_are_values_not_subclasses (rejected part)." .
+
+# --- 43. overlayTypeNOTAM exists as a RegulatoryOverlayType (MUST) ------------
+ex:saNotamOverlayTypeExists a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK { gmeow:overlayTypeNOTAM a gmeow:RegulatoryOverlayType . }""" ;
+    gmeow:saRationale "gmeow:overlayTypeNOTAM MUST exist as a gmeow:RegulatoryOverlayType individual. Mirrors test_notam_overlay_type_exists." .
+
+# --- 44. Vertical reference frames declared (MUST) ----------------------------
+ex:saVerticalReferenceFrames a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    gmeow:referenceFrameAltitudeMSL           a gmeow:ReferenceFrame ;
+        gmeow:frameRealm gmeow:frameRealmTerrestrial .
+    gmeow:referenceFrameFlightLevel           a gmeow:ReferenceFrame ;
+        gmeow:frameRealm gmeow:frameRealmTerrestrial .
+    gmeow:referenceFrameAltitudeAGL           a gmeow:ReferenceFrame ;
+        gmeow:frameRealm gmeow:frameRealmTerrestrial .
+    gmeow:referenceFrameDepthBelowSeaLevel    a gmeow:ReferenceFrame ;
+        gmeow:frameRealm gmeow:frameRealmTerrestrial .
+    gmeow:referenceFrameDepthBelowChartDatum  a gmeow:ReferenceFrame ;
+        gmeow:frameRealm gmeow:frameRealmTerrestrial .
+}""" ;
+    gmeow:saRationale "The five vertical reference frames MUST be declared as ReferenceFrame individuals with frameRealmTerrestrial. Mirrors test_vertical_reference_frames_properly_declared." .
+
+# --- 45. overlayDesignator is a functional DatatypeProperty on RegulatoryOverlay (MUST) --
+ex:saOverlayDesignatorGrounding a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:overlayDesignator a owl:DatatypeProperty .
+    gmeow:overlayDesignator a owl:FunctionalProperty .
+    gmeow:overlayDesignator rdfs:domain gmeow:RegulatoryOverlay .
+    gmeow:overlayDesignator rdfs:range  rdfs:Literal .
+}""" ;
+    gmeow:saRationale "gmeow:overlayDesignator MUST be a functional owl:DatatypeProperty with domain RegulatoryOverlay and range rdfs:Literal. Mirrors test_overlay_designator_grounding." .
+
+# --- 46. LocationState is a subclass of Entity (MUST) -------------------------
+ex:saLocationStateIsEntity a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK { gmeow:LocationState rdfs:subClassOf gmeow:Entity . }""" ;
+    gmeow:saRationale "gmeow:LocationState MUST be rdfs:subClassOf gmeow:Entity. Mirrors test_location_state_is_entity." .
+
+# --- 47. Trajectory is a subclass of Entity (MUST) ----------------------------
+ex:saTrajectoryIsEntity a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK { gmeow:Trajectory rdfs:subClassOf gmeow:Entity . }""" ;
+    gmeow:saRationale "gmeow:Trajectory MUST be rdfs:subClassOf gmeow:Entity. Mirrors test_trajectory_is_entity." .
+
+# --- 48. LocationState property domains (MUST) --------------------------------
+ex:saLocationStatePropertyDomains a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:stateOf               rdfs:domain gmeow:LocationState .
+    gmeow:stateDuringInterval   rdfs:domain gmeow:LocationState .
+    gmeow:stateAtInstant        rdfs:domain gmeow:LocationState .
+    gmeow:stateHasVelocity      rdfs:domain gmeow:LocationState .
+    gmeow:stateHasAngularVelocity rdfs:domain gmeow:LocationState .
+    gmeow:stateReferenceFrame   rdfs:domain gmeow:LocationState .
+}""" ;
+    gmeow:saRationale "The six LocationState properties MUST have rdfs:domain gmeow:LocationState. Mirrors test_location_state_properties_exist." .
+
+# --- 49. Trajectory property domains (MUST) -----------------------------------
+ex:saTrajectoryPropertyDomains a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:trajectoryOf           rdfs:domain gmeow:Trajectory .
+    gmeow:hasTrajectorySample    rdfs:domain gmeow:Trajectory .
+    gmeow:trajectoryReferenceFrame rdfs:domain gmeow:Trajectory .
+}""" ;
+    gmeow:saRationale "The three Trajectory properties MUST have rdfs:domain gmeow:Trajectory. Mirrors test_trajectory_properties_exist." .
+
+# --- 50. Velocity properties range over ScalarQuantity (MUST) -----------------
+ex:saVelocityRangeScalarQuantity a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:stateHasVelocity        rdfs:range gmeow:ScalarQuantity .
+    gmeow:stateHasAngularVelocity rdfs:range gmeow:ScalarQuantity .
+}""" ;
+    gmeow:saRationale "gmeow:stateHasVelocity and stateHasAngularVelocity MUST range over gmeow:ScalarQuantity. Mirrors test_velocity_range_is_scalar_quantity." .
+
+# --- 51. hasTrajectorySample is NOT functional (MUST-NOT) ---------------------
+ex:saHasTrajectorySampleNotFunctional a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:hasTrajectorySample a owl:FunctionalProperty . }""" ;
+    gmeow:saRationale "gmeow:hasTrajectorySample MUST NOT be owl:FunctionalProperty -- a trajectory may have many samples. Mirrors test_trajectory_sample_is_non_functional." .
+
+# --- 52. hasTrajectorySample is an ObjectProperty (MUST) ----------------------
+ex:saHasTrajectorySampleIsObjectProperty a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:hasTrajectorySample a owl:ObjectProperty . }""" ;
+    gmeow:saRationale "gmeow:hasTrajectorySample MUST be an owl:ObjectProperty. Mirrors test_trajectory_sample_is_non_functional (ObjectProperty part)." .
+
+# --- 53. stateReferenceFrame is functional (MUST) -----------------------------
+ex:saStateReferenceFrameIsFunctional a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:stateReferenceFrame a owl:FunctionalProperty . }""" ;
+    gmeow:saRationale "gmeow:stateReferenceFrame MUST be owl:FunctionalProperty. Mirrors test_state_reference_frame_is_functional." .
+
+# --- 54. trajectoryReferenceFrame is functional (MUST) ------------------------
+ex:saTrajectoryReferenceFrameIsFunctional a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:trajectoryReferenceFrame a owl:FunctionalProperty . }""" ;
+    gmeow:saRationale "gmeow:trajectoryReferenceFrame MUST be owl:FunctionalProperty. Mirrors test_trajectory_reference_frame_is_functional." .
+
+# --- 55. stateOf is functional (MUST) -----------------------------------------
+ex:saStateOfIsFunctional a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:stateOf a owl:FunctionalProperty . }""" ;
+    gmeow:saRationale "gmeow:stateOf MUST be owl:FunctionalProperty. Mirrors test_state_of_is_functional." .
+
+# --- 56. trajectoryOf is functional (MUST) ------------------------------------
+ex:saTrajectoryOfIsFunctional a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:trajectoryOf a owl:FunctionalProperty . }""" ;
+    gmeow:saRationale "gmeow:trajectoryOf MUST be owl:FunctionalProperty. Mirrors test_trajectory_of_is_functional." .
+
+# --- 57. No preferred/primary stream terms (MUST-NOT) -------------------------
+ex:saNoPreferredPrimaryStreamTerms a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    VALUES ?banned {
+        gmeow:primaryStream gmeow:preferredStream
+        gmeow:primaryLocationStream gmeow:preferredLocationStream
+    }
+    VALUES ?t {
+        owl:ObjectProperty owl:DatatypeProperty
+        owl:AnnotationProperty owl:Class
+    }
+    ?banned a ?t .
+}""" ;
+    gmeow:saRationale "No preferred*/primary* stream selectors MUST NOT exist (Principle 9, co-equality). Mirrors test_no_preferred_stream_term." .
+
+# --- 58. Capacity/Occupancy/Utilization subclass Measurement (MUST) -----------
+ex:saCapacityOccupancyUtilizationSubclasses a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:Capacity    a owl:Class ; rdfs:subClassOf gmeow:Measurement .
+    gmeow:Occupancy   a owl:Class ; rdfs:subClassOf gmeow:Measurement .
+    gmeow:Utilization a owl:Class ; rdfs:subClassOf gmeow:Measurement .
+}""" ;
+    gmeow:saRationale "gmeow:Capacity, Occupancy, and Utilization MUST be owl:Class and rdfs:subClassOf gmeow:Measurement. Mirrors test_capacity_occupancy_utilization_subclass_of_measurement." .
+
+# --- 59. capacityOf is functional with domain/range/subPropertyOf (MUST) ------
+ex:saCapacityOfShape a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:capacityOf a owl:FunctionalProperty ;
+        rdfs:domain gmeow:Capacity ;
+        rdfs:range  gmeow:Location ;
+        rdfs:subPropertyOf gmeow:observedFeature .
+}""" ;
+    gmeow:saRationale "gmeow:capacityOf MUST be functional with domain Capacity, range Location, and rdfs:subPropertyOf observedFeature. Mirrors test_capacity_of_property." .
+
+# --- 60. occupancyOf is functional with domain/range/subPropertyOf (MUST) -----
+ex:saOccupancyOfShape a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:occupancyOf a owl:FunctionalProperty ;
+        rdfs:domain gmeow:Occupancy ;
+        rdfs:range  gmeow:Location ;
+        rdfs:subPropertyOf gmeow:observedFeature .
+}""" ;
+    gmeow:saRationale "gmeow:occupancyOf MUST be functional with domain Occupancy, range Location, and rdfs:subPropertyOf observedFeature. Mirrors test_occupancy_of_property." .
+
+# --- 61. utilizationOf is functional with domain/range/subPropertyOf (MUST) ---
+ex:saUtilizationOfShape a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:utilizationOf a owl:FunctionalProperty ;
+        rdfs:domain gmeow:Utilization ;
+        rdfs:range  gmeow:Location ;
+        rdfs:subPropertyOf gmeow:observedFeature .
+}""" ;
+    gmeow:saRationale "gmeow:utilizationOf MUST be functional with domain Utilization, range Location, and rdfs:subPropertyOf observedFeature. Mirrors test_utilization_of_property." .
+
+# --- 62. hasCapacity domain Location, range Capacity (MUST) -------------------
+ex:saHasCapacityShape a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:hasCapacity rdfs:domain gmeow:Location ; rdfs:range gmeow:Capacity .
+}""" ;
+    gmeow:saRationale "gmeow:hasCapacity MUST have domain Location and range Capacity. Mirrors test_has_capacity_domain_range." .
+
+# --- 63. hasOccupancy domain Location, range Occupancy (MUST) -----------------
+ex:saHasOccupancyShape a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:hasOccupancy rdfs:domain gmeow:Location ; rdfs:range gmeow:Occupancy .
+}""" ;
+    gmeow:saRationale "gmeow:hasOccupancy MUST have domain Location and range Occupancy. Mirrors test_has_occupancy_domain_range." .
+
+# --- 64. hasUtilization domain Location, range Utilization (MUST) -------------
+ex:saHasUtilizationShape a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:hasUtilization rdfs:domain gmeow:Location ; rdfs:range gmeow:Utilization .
+}""" ;
+    gmeow:saRationale "gmeow:hasUtilization MUST have domain Location and range Utilization. Mirrors test_has_utilization_domain_range." .
+
+# --- 65. No preferred/primary capacity terms (MUST-NOT) -----------------------
+ex:saNoPreferredPrimaryCapacityTerms a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    VALUES ?banned {
+        gmeow:primaryCapacity gmeow:preferredCapacity
+        gmeow:primaryOccupancy gmeow:preferredOccupancy
+        gmeow:primaryUtilization gmeow:preferredUtilization
+    }
+    VALUES ?t {
+        owl:ObjectProperty owl:DatatypeProperty
+        owl:AnnotationProperty owl:Class
+    }
+    ?banned a ?t .
+}""" ;
+    gmeow:saRationale "No preferred*/primary* capacity/occupancy/utilization selectors MUST NOT exist (Principle 9, co-equality). Mirrors test_no_preferred_or_primary_capacity_term." .
+
+# --- 66. VirtualLocationType subclasses logic:QualityValue (MUST) --------------
+ex:saVirtualLocationTypeIsQualityValue a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:VirtualLocationType rdfs:subClassOf logic:QualityValue .
+    gmeow:virtualLocationType a owl:ObjectProperty .
+}""" ;
+    gmeow:saRationale "gmeow:VirtualLocationType MUST be a subclass of logic:QualityValue and gmeow:virtualLocationType MUST be an owl:ObjectProperty. Mirrors test_virtual_location_type_is_value_not_subclass (positive part)." .
+
+# --- 67. virtualLocationType is NOT functional (MUST-NOT) ---------------------
+ex:saVirtualLocationTypeNotFunctional a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:virtualLocationType a owl:FunctionalProperty . }""" ;
+    gmeow:saRationale "gmeow:virtualLocationType MUST NOT be owl:FunctionalProperty -- a virtual location may have multiple co-equal type claims (Principle 9). Mirrors test_virtual_location_type_is_value_not_subclass (non-functional part)." .
+
+# --- 68. VirtualLocationType seed individuals exist (MUST) --------------------
+ex:saVirtualLocationTypeSeeds a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    gmeow:virtualLocationTypeVideoConference a gmeow:VirtualLocationType .
+    gmeow:virtualLocationTypeChatSpace       a gmeow:VirtualLocationType .
+    gmeow:virtualLocationTypeWebsite         a gmeow:VirtualLocationType .
+    gmeow:virtualLocationTypeSocialMediaPage a gmeow:VirtualLocationType .
+}""" ;
+    gmeow:saRationale "The four core VirtualLocationType seed individuals MUST exist. Mirrors test_virtual_location_type_is_value_not_subclass (seeds part)." .
+
+# --- 69. Rejected virtual location subclasses do NOT exist (MUST-NOT) ---------
+ex:saRejectedVirtualLocationSubclassesGone a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    VALUES ?banned {
+        gmeow:VideoConference gmeow:ChatSpace gmeow:Website gmeow:SocialMediaPage
+    }
+    ?banned a owl:Class .
+}""" ;
+    gmeow:saRationale "gmeow:VideoConference, ChatSpace, Website, SocialMediaPage MUST NOT exist as owl:Class -- permanently refactored to VirtualLocationType value individuals. Mirrors test_virtual_location_type_is_value_not_subclass (rejected part)." .
+
+# --- 70. NetworkAddress grounding (MUST) --------------------------------------
+ex:saNetworkAddressGrounding a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:NetworkAddress       a owl:Class .
+    gmeow:hasNetworkAddress    rdfs:domain gmeow:VirtualLocation ;
+                               rdfs:range  gmeow:NetworkAddress .
+    gmeow:networkAddressType   rdfs:domain gmeow:NetworkAddress ;
+                               rdfs:range  gmeow:NetworkAddressType .
+    gmeow:networkAddressValue  rdfs:domain gmeow:NetworkAddress .
+    gmeow:networkAddressFrame  rdfs:domain gmeow:NetworkAddress ;
+                               rdfs:range  gmeow:ReferenceFrame ;
+                               a owl:FunctionalProperty ;
+                               rdfs:subPropertyOf gmeow:hasReferenceFrame .
+}""" ;
+    gmeow:saRationale "NetworkAddress class and all core properties MUST be grounded as specified. Mirrors test_network_address_grounding." .
+
+# --- 71. NetworkAddressType subclasses logic:QualityValue (MUST) --------------
+ex:saNetworkAddressTypeIsQualityValue a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK { gmeow:NetworkAddressType rdfs:subClassOf logic:QualityValue . }""" ;
+    gmeow:saRationale "gmeow:NetworkAddressType MUST be a subclass of logic:QualityValue. Mirrors test_network_address_type_is_value_not_subclass (subclass part)." .
+
+# --- 72. NetworkAddressType seed individuals exist (MUST) ---------------------
+ex:saNetworkAddressTypeSeeds a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    gmeow:networkAddressTypeIPv4 a gmeow:NetworkAddressType .
+    gmeow:networkAddressTypeIPv6 a gmeow:NetworkAddressType .
+    gmeow:networkAddressTypeMAC  a gmeow:NetworkAddressType .
+    gmeow:networkAddressTypeDNS  a gmeow:NetworkAddressType .
+    gmeow:networkAddressTypeURL  a gmeow:NetworkAddressType .
+    gmeow:networkAddressTypePort a gmeow:NetworkAddressType .
+    gmeow:networkAddressTypeBGP  a gmeow:NetworkAddressType .
+}""" ;
+    gmeow:saRationale "The seven core NetworkAddressType seed individuals MUST exist. Mirrors test_network_address_type_is_value_not_subclass (seeds part)." .
+
+# --- 73. Rejected network address subclasses do NOT exist (MUST-NOT) ----------
+ex:saRejectedNetworkAddressSubclassesGone a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    VALUES ?banned {
+        gmeow:IPv4Address gmeow:IPv6Address gmeow:MACAddress gmeow:DNSName
+    }
+    ?banned a owl:Class .
+}""" ;
+    gmeow:saRationale "gmeow:IPv4Address, IPv6Address, MACAddress, DNSName MUST NOT exist as owl:Class -- refactored to NetworkAddressType value individuals. Mirrors test_network_address_type_is_value_not_subclass (rejected part)." .
+
+# --- 74. frameKindTopological exists as a FrameKind (MUST) --------------------
+ex:saFrameKindTopologicalExists a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK { gmeow:frameKindTopological a gmeow:FrameKind . }""" ;
+    gmeow:saRationale "gmeow:frameKindTopological MUST exist as a gmeow:FrameKind individual. Mirrors test_frame_kind_topological_exists." .
+
+# --- 75. Network reference frames have parentFrame = referenceFrameInternet (MUST) --
+ex:saNetworkReferenceFramesParent a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    gmeow:referenceFrameIPv4 gmeow:parentFrame gmeow:referenceFrameInternet .
+    gmeow:referenceFrameIPv6 gmeow:parentFrame gmeow:referenceFrameInternet .
+    gmeow:referenceFrameMAC  gmeow:parentFrame gmeow:referenceFrameInternet .
+    gmeow:referenceFrameDNS  gmeow:parentFrame gmeow:referenceFrameInternet .
+    gmeow:referenceFrameURL  gmeow:parentFrame gmeow:referenceFrameInternet .
+    gmeow:referenceFramePort gmeow:parentFrame gmeow:referenceFrameInternet .
+    gmeow:referenceFrameBGP  gmeow:parentFrame gmeow:referenceFrameInternet .
+}""" ;
+    gmeow:saRationale "The seven network reference frames MUST have gmeow:parentFrame gmeow:referenceFrameInternet. Mirrors test_network_reference_frames_have_parent_frame." .
+
+# --- 76. referenceFrameInternet is topological with graphHops metric (MUST) ---
+ex:saInternetRootFrameIsTopological a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    gmeow:referenceFrameInternet gmeow:frameKind     gmeow:frameKindTopological .
+    gmeow:referenceFrameInternet gmeow:hasMetricKind gmeow:metricGraphHops .
+}""" ;
+    gmeow:saRationale "gmeow:referenceFrameInternet MUST be frameKindTopological with metricGraphHops. Mirrors test_internet_root_frame_is_topological." .
+
+# --- 77. No preferred/primary virtual location terms (MUST-NOT) ---------------
+ex:saNoPreferredPrimaryVirtualLocationTerms a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    VALUES ?banned {
+        gmeow:primaryVirtualLocationType gmeow:preferredVirtualLocationType
+        gmeow:primaryNetworkAddress gmeow:preferredNetworkAddress
+        gmeow:primaryNetworkAddressType gmeow:preferredNetworkAddressType
+    }
+    VALUES ?t {
+        owl:ObjectProperty owl:DatatypeProperty
+        owl:AnnotationProperty owl:Class
+    }
+    ?banned a ?t .
+}""" ;
+    gmeow:saRationale "No preferred*/primary* virtual-location selectors MUST NOT exist (Principle 9). Mirrors test_no_preferred_or_primary_virtual_location_term." .
+
+# --- 78. CelestialLocation subclasses Location (MUST) ------------------------
+ex:saCelestialLocationSubclass a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK { gmeow:CelestialLocation rdfs:subClassOf gmeow:Location . }""" ;
+    gmeow:saRationale "gmeow:CelestialLocation MUST be rdfs:subClassOf gmeow:Location. Mirrors test_celestial_location_subclass_of_location." .
+
+# --- 79. CelestialCoordinates subclasses Entity (MUST) -----------------------
+ex:saCelestialCoordinatesSubclass a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK { gmeow:CelestialCoordinates rdfs:subClassOf gmeow:Entity . }""" ;
+    gmeow:saRationale "gmeow:CelestialCoordinates MUST be rdfs:subClassOf gmeow:Entity. Mirrors test_celestial_coordinates_subclass_of_entity." .
+
+# --- 80. CelestialObjectType subclasses logic:QualityValue (MUST) ------------
+ex:saCelestialObjectTypeIsQualityValue a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:CelestialObjectType rdfs:subClassOf logic:QualityValue .
+    gmeow:celestialObjectType a owl:ObjectProperty .
+}""" ;
+    gmeow:saRationale "gmeow:CelestialObjectType MUST be subclass of logic:QualityValue; celestialObjectType MUST be an ObjectProperty. Mirrors test_celestial_object_type_is_value_not_subclass (positive part)." .
+
+# --- 81. celestialObjectType is NOT functional (MUST-NOT) --------------------
+ex:saCelestialObjectTypeNotFunctional a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:celestialObjectType a owl:FunctionalProperty . }""" ;
+    gmeow:saRationale "gmeow:celestialObjectType MUST NOT be owl:FunctionalProperty -- co-equal type claims coexist (Principle 9). Mirrors test_celestial_object_type_is_value_not_subclass (non-functional part)." .
+
+# --- 82. CelestialObjectType seed individuals exist (MUST) -------------------
+ex:saCelestialObjectTypeSeeds a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    gmeow:celestialObjectTypeStar       a gmeow:CelestialObjectType .
+    gmeow:celestialObjectTypeGalaxy     a gmeow:CelestialObjectType .
+    gmeow:celestialObjectTypePlanet     a gmeow:CelestialObjectType .
+    gmeow:celestialObjectTypeNebula     a gmeow:CelestialObjectType .
+    gmeow:celestialObjectTypeAsteroid   a gmeow:CelestialObjectType .
+    gmeow:celestialObjectTypeComet      a gmeow:CelestialObjectType .
+    gmeow:celestialObjectTypeCluster    a gmeow:CelestialObjectType .
+    gmeow:celestialObjectTypeSpacecraft a gmeow:CelestialObjectType .
+}""" ;
+    gmeow:saRationale "The eight CelestialObjectType seed individuals MUST exist. Mirrors test_celestial_object_type_is_value_not_subclass (seeds part)." .
+
+# --- 83. Rejected celestial subclasses do NOT exist (MUST-NOT) ----------------
+ex:saRejectedCelestialSubclassesGone a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    VALUES ?banned { gmeow:Star gmeow:Galaxy gmeow:Nebula gmeow:Planet }
+    ?banned a owl:Class .
+}""" ;
+    gmeow:saRationale "gmeow:Star, Galaxy, Nebula, Planet MUST NOT exist as owl:Class. Mirrors test_celestial_object_type_is_value_not_subclass (rejected part)." .
+
+# --- 84. CelestialReferenceOrigin subclasses logic:QualityValue + seeds (MUST) -
+ex:saCelestialReferenceOriginSeeds a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:CelestialReferenceOrigin rdfs:subClassOf logic:QualityValue .
+    gmeow:refOriginTopocentric     a gmeow:CelestialReferenceOrigin .
+    gmeow:refOriginGeocentric      a gmeow:CelestialReferenceOrigin .
+    gmeow:refOriginBarycentric     a gmeow:CelestialReferenceOrigin .
+    gmeow:refOriginHeliocentric    a gmeow:CelestialReferenceOrigin .
+}""" ;
+    gmeow:saRationale "gmeow:CelestialReferenceOrigin MUST be a subclass of logic:QualityValue; four seed individuals MUST exist. Mirrors test_reference_position_and_timescale_are_values." .
+
+# --- 85. ICRS, FK5, Galactic frames exist with celestial realm (MUST) ---------
+ex:saIcrsFk5GalacticFrames a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    gmeow:referenceFrameICRS a gmeow:ReferenceFrame ;
+        gmeow:frameRealm gmeow:frameRealmCelestial ;
+        gmeow:hasMetricKind gmeow:metricGeodesic .
+    gmeow:referenceFrameFK5 a gmeow:ReferenceFrame ;
+        gmeow:frameRealm gmeow:frameRealmCelestial ;
+        gmeow:hasMetricKind gmeow:metricGeodesic .
+    gmeow:referenceFrameGalactic a gmeow:ReferenceFrame ;
+        gmeow:frameRealm gmeow:frameRealmCelestial ;
+        gmeow:hasMetricKind gmeow:metricGeodesic .
+}""" ;
+    gmeow:saRationale "ICRS, FK5, and Galactic reference frames MUST exist with celestial realm and geodesic metric. Mirrors test_icrs_fk5_galactic_frames_exist." .
+
+# --- 86. CelestialCoordinates has RA, Dec, epoch DatatypeProperties (MUST) ----
+ex:saCelestialCoordsProperties a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:rightAscension a owl:DatatypeProperty ;
+        rdfs:domain gmeow:CelestialCoordinates .
+    gmeow:declination a owl:DatatypeProperty ;
+        rdfs:domain gmeow:CelestialCoordinates .
+    gmeow:celestialEpoch a owl:DatatypeProperty ;
+        rdfs:domain gmeow:CelestialCoordinates .
+}""" ;
+    gmeow:saRationale "gmeow:rightAscension, declination, and celestialEpoch MUST be DatatypeProperties with domain CelestialCoordinates. Mirrors test_celestial_coords_have_ra_dec_epoch." .
+
+# --- 87. hasCelestialCoordinates domain/range (MUST) -------------------------
+ex:saHasCelestialCoordinatesShape a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:hasCelestialCoordinates a owl:ObjectProperty ;
+        rdfs:domain gmeow:CelestialLocation ;
+        rdfs:range  gmeow:CelestialCoordinates .
+}""" ;
+    gmeow:saRationale "gmeow:hasCelestialCoordinates MUST be an owl:ObjectProperty with domain CelestialLocation and range CelestialCoordinates. Mirrors test_celestial_location_has_coords_property." .
+
+# --- 88. hasReferencePosition and hasTimeScale are functional (MUST) ----------
+ex:saRefposAndTimescaleFunctional a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    gmeow:hasReferencePosition a owl:FunctionalProperty .
+    gmeow:hasTimeScale         a owl:FunctionalProperty .
+    gmeow:referenceFrameICRS gmeow:hasReferencePosition gmeow:refOriginBarycentric .
+    gmeow:referenceFrameICRS gmeow:hasTimeScale         gmeow:timeScaleTDB .
+}""" ;
+    gmeow:saRationale "hasReferencePosition and hasTimeScale MUST be functional; ICRS MUST be bound to Barycentric+TDB. Mirrors test_reference_frame_has_refpos_and_timescale." .
+
+# --- 89. isHostedBy domain ReferenceFrame, range Entity (MUST) ----------------
+ex:saIsHostedByShape a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:isHostedBy a owl:ObjectProperty ;
+        rdfs:domain gmeow:ReferenceFrame ;
+        rdfs:range  gmeow:Entity .
+}""" ;
+    gmeow:saRationale "gmeow:isHostedBy MUST be an owl:ObjectProperty with domain ReferenceFrame and range Entity (#87). Mirrors test_is_hosted_by_property_exists." .
+
+# --- 90. frameRealmPsychological exists as a FrameRealm (MUST) ---------------
+ex:saFrameRealmPsychologicalExists a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK { gmeow:frameRealmPsychological a gmeow:FrameRealm . }""" ;
+    gmeow:saRationale "gmeow:frameRealmPsychological MUST exist as a gmeow:FrameRealm individual (#87). Mirrors test_psychological_frame_realm_exists." .
+
+# --- 91. Psychological axes exist (MUST) -------------------------------------
+ex:saPsychologicalAxesExist a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    gmeow:axisValence              a gmeow:Axis .
+    gmeow:axisArousal              a gmeow:Axis .
+    gmeow:axisConceptualSimilarity a gmeow:Axis .
+    gmeow:axisEgocentricForward    a gmeow:Axis .
+    gmeow:axisEgocentricLateral    a gmeow:Axis .
+    gmeow:axisAllocentricX         a gmeow:Axis .
+    gmeow:axisAllocentricY         a gmeow:Axis .
+    gmeow:axisImaginedSpaceX       a gmeow:Axis .
+    gmeow:axisImaginedSpaceY       a gmeow:Axis .
+    gmeow:axisImaginedSpaceZ       a gmeow:Axis .
+}""" ;
+    gmeow:saRationale "The ten psychological/cognitive axis individuals MUST exist (#87). Mirrors test_psychological_axes_exist." .
+
+# --- 92. BiologicalSequenceLocation subclasses Location (MUST) ----------------
+ex:saBiologicalSequenceLocationSubclass a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK { gmeow:BiologicalSequenceLocation rdfs:subClassOf gmeow:Location . }""" ;
+    gmeow:saRationale "gmeow:BiologicalSequenceLocation MUST be rdfs:subClassOf gmeow:Location (#90). Mirrors test_biological_sequence_location_subclass_of_location." .
+
+# --- 93. SequenceFeatureType subclasses logic:QualityValue + seeds (MUST) -----
+ex:saSequenceFeatureTypeGrounding a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:SequenceFeatureType      rdfs:subClassOf logic:QualityValue .
+    gmeow:sequenceFeatureTypeGene  a gmeow:SequenceFeatureType .
+    gmeow:sequenceFeatureTypeExon  a gmeow:SequenceFeatureType .
+    gmeow:sequenceFeatureTypeIntron a gmeow:SequenceFeatureType .
+    gmeow:sequenceFeatureTypeCDS   a gmeow:SequenceFeatureType .
+    gmeow:sequenceFeatureTypeSNP   a gmeow:SequenceFeatureType .
+    gmeow:sequenceFeatureTypeChromosome a gmeow:SequenceFeatureType .
+}""" ;
+    gmeow:saRationale "gmeow:SequenceFeatureType MUST be a subclass of logic:QualityValue; six seed individuals MUST exist. Mirrors test_sequence_feature_type_is_value_not_subclass." .
+
+# --- 94. Rejected sequence subclasses do NOT exist (MUST-NOT) -----------------
+ex:saRejectedSequenceSubclassesGone a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    VALUES ?banned { gmeow:Gene gmeow:Exon gmeow:Intron gmeow:CDS gmeow:SNP }
+    ?banned a owl:Class .
+}""" ;
+    gmeow:saRationale "gmeow:Gene, Exon, Intron, CDS, SNP MUST NOT exist as owl:Class -- permanently refactored to SequenceFeatureType value individuals. Mirrors test_sequence_feature_type_is_value_not_subclass (rejected part)." .
+
+# --- 95. StrandOrientation subclasses logic:QualityValue + seeds (MUST) -------
+ex:saStrandOrientationGrounding a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:StrandOrientation rdfs:subClassOf logic:QualityValue .
+    gmeow:strandForward     a gmeow:StrandOrientation .
+    gmeow:strandReverse     a gmeow:StrandOrientation .
+    gmeow:strandBoth        a gmeow:StrandOrientation .
+}""" ;
+    gmeow:saRationale "gmeow:StrandOrientation MUST be a subclass of logic:QualityValue; three seed individuals MUST exist (#90). Mirrors test_strand_orientation_values." .
+
+# --- 96. SequenceCoordinates core properties (MUST) ---------------------------
+ex:saSequenceCoordinatesProperties a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:sequenceStart a owl:DatatypeProperty , owl:FunctionalProperty ;
+        rdfs:domain gmeow:SequenceCoordinates ;
+        rdfs:range  xsd:positiveInteger .
+    gmeow:sequenceEnd   a owl:DatatypeProperty , owl:FunctionalProperty ;
+        rdfs:domain gmeow:SequenceCoordinates ;
+        rdfs:range  xsd:positiveInteger .
+    gmeow:sequenceStrand a owl:ObjectProperty , owl:FunctionalProperty ;
+        rdfs:domain gmeow:SequenceCoordinates ;
+        rdfs:range  gmeow:StrandOrientation .
+    gmeow:inReferenceAssembly a owl:ObjectProperty , owl:FunctionalProperty ;
+        rdfs:domain gmeow:SequenceCoordinates ;
+        rdfs:range  gmeow:ReferenceFrame ;
+        rdfs:subPropertyOf gmeow:hasReferenceFrame .
+}""" ;
+    gmeow:saRationale "Core SequenceCoordinates properties MUST have the correct types, functional-property status, domain/range. Mirrors test_sequence_coordinates_properties (core part)." .
+
+# --- 97. hasSequenceCoordinates and sequenceFeatureType shapes (MUST + MUST-NOT) --
+ex:saSequenceFeaturePropertyShapes a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:hasSequenceCoordinates a owl:ObjectProperty ;
+        rdfs:domain gmeow:SequenceFeature ;
+        rdfs:range  gmeow:SequenceCoordinates .
+    gmeow:sequenceFeatureType a owl:ObjectProperty ;
+        rdfs:domain gmeow:SequenceFeature ;
+        rdfs:range  gmeow:SequenceFeatureType .
+    gmeow:hasSequenceFeature a owl:ObjectProperty ;
+        rdfs:domain gmeow:BiologicalSequenceLocation ;
+        rdfs:range  gmeow:SequenceFeature .
+}""" ;
+    gmeow:saRationale "hasSequenceCoordinates, sequenceFeatureType, and hasSequenceFeature MUST have correct domain/range. Mirrors test_sequence_coordinates_properties (feature-property part)." .
+
+ex:saHasSequenceCoordinatesNotFunctional a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:hasSequenceCoordinates a owl:FunctionalProperty . }""" ;
+    gmeow:saRationale "gmeow:hasSequenceCoordinates MUST NOT be owl:FunctionalProperty -- co-equal coordinate claims coexist (Principle 9). Mirrors test_sequence_coordinates_properties (non-functional part)." .
+
+ex:saSequenceFeatureTypeNotFunctional a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:sequenceFeatureType a owl:FunctionalProperty . }""" ;
+    gmeow:saRationale "gmeow:sequenceFeatureType MUST NOT be owl:FunctionalProperty -- co-equal feature-type classifications coexist (Principle 9). Mirrors test_sequence_coordinates_properties (non-functional sequenceFeatureType part)." .
+
+# --- 98. SequenceFeature exists as owl:Class (MUST) ---------------------------
+ex:saSequenceFeatureExists a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:SequenceFeature a owl:Class .
+    gmeow:hasSequenceCoordinates rdfs:domain gmeow:SequenceFeature .
+    gmeow:sequenceFeatureType    rdfs:domain gmeow:SequenceFeature .
+}""" ;
+    gmeow:saRationale "gmeow:SequenceFeature MUST be an owl:Class with hasSequenceCoordinates and sequenceFeatureType both bearing its domain. Mirrors test_sequence_feature_has_coordinates_and_type." .
+
+# --- 99. GRCh38 reference frame seeded with biological realm (MUST) -----------
+ex:saGRCh38ReferenceFrameSeeded a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+ASK {
+    gmeow:referenceFrameGRCh38 a gmeow:ReferenceFrame ;
+        gmeow:frameRealm       gmeow:frameRealmBiological ;
+        gmeow:frameKind        gmeow:frameKindLinearSequence ;
+        gmeow:hasAxis          gmeow:axisSequencePosition ;
+        gmeow:dimensionCount   "1"^^xsd:nonNegativeInteger ;
+        gmeow:determinacyModel gmeow:determinacyCrisp ;
+        gmeow:hasMetricKind    gmeow:metricPositionalDistance .
+}""" ;
+    gmeow:saRationale "GRCh38 reference frame MUST be seeded with biological realm, linear-sequence kind, 1D, crisp, positionalDistance metric. Mirrors test_grch38_reference_frame_seeded." .
+
+# --- 100. frameRealmBiological, frameKindLinearSequence, axisSequencePosition (MUST) --
+ex:saFrameRealmBiologicalSeeded a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    gmeow:frameRealmBiological    a gmeow:FrameRealm .
+    gmeow:frameKindLinearSequence a gmeow:FrameKind .
+    gmeow:axisSequencePosition    a gmeow:Axis .
+}""" ;
+    gmeow:saRationale "Biological realm vocabulary seeds MUST exist (#90). Mirrors test_frame_realm_biological_seeded." .
+
+# --- 101. Geocode is a logic:Kind, subclass of Entity (MUST) ------------------
+ex:saGeocodeIsKind a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:Geocode a owl:Class , logic:Kind ;
+        rdfs:subClassOf gmeow:Entity .
+}""" ;
+    gmeow:saRationale "gmeow:Geocode MUST be an owl:Class typed logic:Kind and a subclass of gmeow:Entity (#91). Mirrors test_geocode_class_grounding." .
+
+# --- 102. Geocode object properties (MUST) ------------------------------------
+ex:saGeocodeObjectProperties a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:hasGeocode  a owl:ObjectProperty ;
+        rdfs:domain gmeow:Place ; rdfs:range gmeow:Geocode .
+    gmeow:geocodeFrame a owl:ObjectProperty , owl:FunctionalProperty ;
+        rdfs:domain gmeow:Geocode ; rdfs:range gmeow:ReferenceFrame ;
+        rdfs:subPropertyOf gmeow:hasReferenceFrame .
+}""" ;
+    gmeow:saRationale "gmeow:hasGeocode and geocodeFrame MUST be correctly shaped. Mirrors test_geocode_properties (object-property part)." .
+
+# --- 103. Geocode datatype properties are all functional on Geocode (MUST) ----
+ex:saGeocodeDatatypeProperties a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:geocodeValue a owl:DatatypeProperty , owl:FunctionalProperty ;
+        rdfs:domain gmeow:Geocode .
+    gmeow:plusCode     a owl:DatatypeProperty , owl:FunctionalProperty ;
+        rdfs:domain gmeow:Geocode ; rdfs:range xsd:string .
+    gmeow:what3words   a owl:DatatypeProperty , owl:FunctionalProperty ;
+        rdfs:domain gmeow:Geocode ; rdfs:range xsd:string .
+    gmeow:geohash      a owl:DatatypeProperty , owl:FunctionalProperty ;
+        rdfs:domain gmeow:Geocode ; rdfs:range xsd:string .
+    gmeow:mgrs         a owl:DatatypeProperty , owl:FunctionalProperty ;
+        rdfs:domain gmeow:Geocode ; rdfs:range xsd:string .
+    gmeow:unLocode     a owl:DatatypeProperty , owl:FunctionalProperty ;
+        rdfs:domain gmeow:Geocode ; rdfs:range xsd:string .
+    gmeow:mileMarker   a owl:DatatypeProperty , owl:FunctionalProperty ;
+        rdfs:domain gmeow:Geocode ; rdfs:range xsd:string .
+}""" ;
+    gmeow:saRationale "All seven Geocode datatype properties MUST be functional DatatypeProperties on gmeow:Geocode with xsd:string range (except geocodeValue which is range-open). Mirrors test_geocode_properties (datatype part)." .
+
+# --- 104. Geocode reference frames declared (MUST) ----------------------------
+ex:saGeocodeFramesDeclared a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    gmeow:referenceFramePlusCode    a gmeow:ReferenceFrame ;
+        gmeow:frameRealm gmeow:frameRealmTerrestrial ;
+        gmeow:determinacyModel gmeow:determinacyCrisp .
+    gmeow:referenceFrameWhat3Words  a gmeow:ReferenceFrame ;
+        gmeow:frameRealm gmeow:frameRealmTerrestrial ;
+        gmeow:determinacyModel gmeow:determinacyCrisp .
+    gmeow:referenceFrameGeohash     a gmeow:ReferenceFrame ;
+        gmeow:frameRealm gmeow:frameRealmTerrestrial ;
+        gmeow:determinacyModel gmeow:determinacyCrisp .
+    gmeow:referenceFrameMGRS        a gmeow:ReferenceFrame ;
+        gmeow:frameRealm gmeow:frameRealmTerrestrial ;
+        gmeow:determinacyModel gmeow:determinacyCrisp .
+    gmeow:referenceFrameUNLocode    a gmeow:ReferenceFrame ;
+        gmeow:frameRealm gmeow:frameRealmTerrestrial ;
+        gmeow:determinacyModel gmeow:determinacyCrisp .
+    gmeow:referenceFrameMileMarker  a gmeow:ReferenceFrame ;
+        gmeow:frameRealm gmeow:frameRealmTerrestrial ;
+        gmeow:determinacyModel gmeow:determinacyCrisp .
+}""" ;
+    gmeow:saRationale "The six geocoding reference frames MUST be declared with terrestrial realm and crisp determinacy. Mirrors test_geocode_frames_declared (existence part)." .
+
+# --- 105. referenceFrameMileMarker requiresHost=true; UNLocode metricGraphHops (MUST) --
+ex:saGeocodeFrameSpecialProperties a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+ASK {
+    gmeow:referenceFrameMileMarker gmeow:requiresHost "true"^^xsd:boolean .
+    gmeow:referenceFrameUNLocode   gmeow:hasMetricKind gmeow:metricGraphHops .
+}""" ;
+    gmeow:saRationale "MileMarker frame MUST requiresHost=true; UNLocode frame MUST use metricGraphHops. Mirrors test_geocode_frames_declared (special-properties part)." .
+
+# --- 106. SpatialMeasurement subclasses Measurement (MUST) --------------------
+ex:saSpatialMeasurementSubclass a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK { gmeow:SpatialMeasurement rdfs:subClassOf gmeow:Measurement . }""" ;
+    gmeow:saRationale "gmeow:SpatialMeasurement MUST be rdfs:subClassOf gmeow:Measurement (#125). Mirrors test_spatial_measurement_subclass_of_measurement." .
+
+# --- 107. CoordinateObservation subclasses SpatialMeasurement (MUST) ----------
+ex:saCoordinateObservationSubclass a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK { gmeow:CoordinateObservation rdfs:subClassOf gmeow:SpatialMeasurement . }""" ;
+    gmeow:saRationale "gmeow:CoordinateObservation MUST be rdfs:subClassOf gmeow:SpatialMeasurement (#125). Mirrors test_coordinate_observation_subclass_of_spatial_measurement." .
+
+# --- 108. hasCoordinateObservation domain/range/non-functional (MUST) ---------
+ex:saHasCoordinateObservationShape a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:hasCoordinateObservation a owl:ObjectProperty ;
+        rdfs:domain gmeow:Place ;
+        rdfs:range  gmeow:CoordinateObservation .
+}""" ;
+    gmeow:saRationale "gmeow:hasCoordinateObservation MUST be an owl:ObjectProperty with domain Place and range CoordinateObservation. Mirrors test_has_coordinate_observation_domain_range (positive part)." .
+
+ex:saHasCoordinateObservationNotFunctional a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:hasCoordinateObservation a owl:FunctionalProperty . }""" ;
+    gmeow:saRationale "gmeow:hasCoordinateObservation MUST NOT be owl:FunctionalProperty -- co-equal observations coexist (Principle 9). Mirrors test_has_coordinate_observation_domain_range (non-functional part)." .
+
+# --- 109. coordinateObservationOf subproperty of spatialMeasurementOf (MUST) --
+ex:saCoordinateObservationOfSubproperty a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:coordinateObservationOf rdfs:subPropertyOf gmeow:spatialMeasurementOf ;
+        rdfs:domain gmeow:CoordinateObservation ;
+        rdfs:range  gmeow:Place .
+}""" ;
+    gmeow:saRationale "gmeow:coordinateObservationOf MUST be rdfs:subPropertyOf spatialMeasurementOf with domain/range. Mirrors test_coordinate_observation_of_subproperty." .
+
+# --- 110. coordinateResult subproperty of observationResult (MUST) ------------
+ex:saCoordinateResultSubproperty a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:coordinateResult rdfs:subPropertyOf gmeow:observationResult ;
+        rdfs:domain gmeow:CoordinateObservation ;
+        rdfs:range  gmeow:GeoCoordinates .
+}""" ;
+    gmeow:saRationale "gmeow:coordinateResult MUST be rdfs:subPropertyOf observationResult with domain/range. Mirrors test_coordinate_result_subproperty." .
+
+# --- 111. geometryResult subproperty of observationResult (MUST) --------------
+ex:saGeometryResultSubproperty a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:geometryResult rdfs:subPropertyOf gmeow:observationResult ;
+        rdfs:domain gmeow:CoordinateObservation ;
+        rdfs:range  gmeow:Geometry .
+}""" ;
+    gmeow:saRationale "gmeow:geometryResult MUST be rdfs:subPropertyOf observationResult with domain/range. Mirrors test_geometry_result_subproperty." .
+
+# --- 112. Spatial method seed individuals exist (MUST) ------------------------
+ex:saSpatialMethodSeeds a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    gmeow:methodGPS             a gmeow:ObservationMethod .
+    gmeow:methodLiDAR           a gmeow:ObservationMethod .
+    gmeow:methodTotalStation    a gmeow:ObservationMethod .
+    gmeow:methodPhotogrammetry  a gmeow:ObservationMethod .
+    gmeow:methodGNSSRTK         a gmeow:ObservationMethod .
+}""" ;
+    gmeow:saRationale "The five spatial ObservationMethod seed individuals MUST exist (#125). Mirrors test_spatial_method_seeds_exist." .
+
+# --- 113. LandTenure subclasses TimeScopedRelation (MUST) ---------------------
+ex:saLandTenureGrounding a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:LandTenure rdfs:subClassOf gmeow:TimeScopedRelation .
+    gmeow:tenurePlace  rdfs:domain gmeow:LandTenure ; rdfs:range gmeow:Place ;
+        a owl:FunctionalProperty .
+    gmeow:tenureParty  rdfs:domain gmeow:LandTenure ; rdfs:range gmeow:Agent ;
+        a owl:FunctionalProperty .
+    gmeow:tenureRights rdfs:domain gmeow:LandTenure ;
+        rdfs:range gmeow:RightsStatement .
+    gmeow:tenureType   rdfs:domain gmeow:LandTenure ;
+        rdfs:range gmeow:LandTenureType .
+    gmeow:tenureDeterminacy rdfs:subPropertyOf gmeow:hasDeterminacy ;
+        rdfs:domain gmeow:LandTenure ; rdfs:range gmeow:Determinacy .
+}""" ;
+    gmeow:saRationale "gmeow:LandTenure MUST be rdfs:subClassOf TimeScopedRelation; tenurePlace/tenureParty MUST be functional; full property grounding required (#92). Mirrors test_land_tenure_grounding." .
+
+# --- 114. LandTenureType subclasses logic:QualityValue + seeds (MUST) ---------
+ex:saLandTenureTypeGrounding a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:LandTenureType rdfs:subClassOf logic:QualityValue .
+    gmeow:tenureTypeOwnership  a gmeow:LandTenureType .
+    gmeow:tenureTypeLeasehold  a gmeow:LandTenureType .
+    gmeow:tenureTypeEasement   a gmeow:LandTenureType .
+    gmeow:tenureTypeMortgage   a gmeow:LandTenureType .
+    gmeow:tenureTypeUsufruct   a gmeow:LandTenureType .
+    gmeow:tenureTypeFreehold   a gmeow:LandTenureType .
+    gmeow:tenureTypeCrownLease a gmeow:LandTenureType .
+}""" ;
+    gmeow:saRationale "gmeow:LandTenureType MUST be a subclass of logic:QualityValue; seven seed individuals MUST exist. Mirrors test_land_tenure_type_is_value_vocabulary (positive part)." .
+
+# --- 115. Rejected tenure subclasses do NOT exist (MUST-NOT) ------------------
+ex:saRejectedTenureSubclassesGone a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    VALUES ?banned {
+        gmeow:Ownership gmeow:Leasehold gmeow:Easement gmeow:Mortgage
+    }
+    ?banned a owl:Class .
+}""" ;
+    gmeow:saRationale "gmeow:Ownership, Leasehold, Easement, Mortgage MUST NOT exist as owl:Class. Mirrors test_land_tenure_type_is_value_vocabulary (rejected part)." .
+
+# --- 116. CadastralReference subclasses InformationObject + properties (MUST) -
+ex:saCadastralReferenceGrounding a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:CadastralReference rdfs:subClassOf gmeow:InformationObject .
+    gmeow:hasCadastralReference rdfs:domain gmeow:Place ;
+        rdfs:range gmeow:CadastralReference .
+    gmeow:referenceValue a owl:DatatypeProperty ;
+        rdfs:domain gmeow:CadastralReference .
+    gmeow:referenceType  rdfs:domain gmeow:CadastralReference ;
+        rdfs:range gmeow:CadastralReferenceType .
+    gmeow:referenceAuthority rdfs:domain gmeow:CadastralReference ;
+        rdfs:range gmeow:Agent ;
+        a owl:FunctionalProperty .
+    gmeow:referenceJurisdiction rdfs:domain gmeow:CadastralReference ;
+        rdfs:range gmeow:Place ;
+        a owl:FunctionalProperty .
+}""" ;
+    gmeow:saRationale "gmeow:CadastralReference MUST be rdfs:subClassOf InformationObject; all core properties MUST be grounded (#92). Mirrors test_cadastral_reference_grounding." .
+
+# --- 117. CadastralReferenceType subclasses logic:QualityValue + seeds (MUST) -
+ex:saCadastralReferenceTypeGrounding a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:CadastralReferenceType rdfs:subClassOf logic:QualityValue .
+    gmeow:referenceTypeParcelId  a gmeow:CadastralReferenceType .
+    gmeow:referenceTypeFolio     a gmeow:CadastralReferenceType .
+    gmeow:referenceTypeTitle     a gmeow:CadastralReferenceType .
+    gmeow:referenceTypeLot       a gmeow:CadastralReferenceType .
+    gmeow:referenceTypeSurveyPlan a gmeow:CadastralReferenceType .
+}""" ;
+    gmeow:saRationale "gmeow:CadastralReferenceType MUST be a subclass of logic:QualityValue; five seed individuals MUST exist. Mirrors test_cadastral_reference_type_is_value_vocabulary (positive part)." .
+
+# --- 118. Rejected cadastral subclasses do NOT exist (MUST-NOT) ---------------
+ex:saRejectedCadastralSubclassesGone a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    VALUES ?banned { gmeow:FolioNumber gmeow:TitleNumber gmeow:LotNumber }
+    ?banned a owl:Class .
+}""" ;
+    gmeow:saRationale "gmeow:FolioNumber, TitleNumber, LotNumber MUST NOT exist as owl:Class. Mirrors test_cadastral_reference_type_is_value_vocabulary (rejected part)." .
+
+# --- postal reference frame: declared with topological kind + 7 axes (MUST) ---
+ex:saPostalAddressFrameDeclared a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+ASK {
+    gmeow:referenceFramePostalAddress a gmeow:ReferenceFrame ;
+        gmeow:frameKind gmeow:frameKindTopological ;
+        gmeow:dimensionCount "7"^^xsd:nonNegativeInteger ;
+        gmeow:hasAxis gmeow:axisStreetAddress , gmeow:axisExtendedAddress ,
+            gmeow:axisPostOfficeBox , gmeow:axisAddressLocality , gmeow:axisAddressRegion ,
+            gmeow:axisPostalCode , gmeow:axisCountryCode .
+}""" ;
+    gmeow:saRationale "gmeow:referenceFramePostalAddress MUST be a gmeow:ReferenceFrame of frameKindTopological with dimensionCount 7 and exactly the seven postal hasAxis edges (street/extended/poBox/locality/region/postalCode/countryCode). The frame individual is places-home (module.ttl). Mirrors test_postal_address_frame." .
