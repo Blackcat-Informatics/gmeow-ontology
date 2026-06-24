@@ -107,6 +107,25 @@ Migration: port `RdfStore` consumers (compat bridge, SHACL/validate/logic) to `D
 delete `RdfStore`. The write side (`DatasetMut`) + `RdfParserBackend`/`SparqlEngine`/`RdfSerializer` +
 `TermFactory` layer on top.
 
+> **P2c migration reality (refined in #886).** `DatasetView` is NOT a drop-in superset of `RdfStore`:
+> it is **quad-only** (no `reifiers()`/`annotations()`/`lookaside()`), **`RdfDataset`-only**, and **not
+> object-safe** — while in production nearly every `RdfStore` consumer is fed a `GtsGraphStore` or
+> `OxigraphStore`, not an `RdfDataset`. So the migration is "**port consumers onto the concrete IR**
+> (`&RdfDataset`, reading the RDF 1.2 statement layer via the IR's inherent id-based accessors), NOT
+> extend the `DatasetView` trait." It is split:
+>
+> - **P2c part 1 (#886, landed):** added the borrowed `RdfDataset::reifier_refs()`/`annotation_refs()`
+>   read surface; ported the two genuinely IR-native seams — `gts_write::to_writer`/`to_gts` (now
+>   `&RdfDataset` + `&RdfLookaside`) and the SHACL SPARQL materialization (`store_from_dataset`) — off
+>   the `RdfStore` compat bridge. `RdfStore`/`VecRdfStore` are NOT deleted; a parity guard pins
+>   `store_from_dataset` == `store_from_rdf_store(&dataset)`.
+> - **P2c part 2 (follow-up, #922):** route the production GTS/oxigraph ingress through the IR
+>   (`import_gts_graph`/`import_gts_events`), migrate the remaining `GtsGraphStore`/`OxigraphStore`-sourced
+>   consumers (reasoning EL/DL/RL, metadata folds, `build_lpg`, `asserted_turtle`, SHACL
+>   `dataset_from_rdf_store`, `WorldStore::load_rdf_store`, `logic::verify`), swap the remaining
+>   `store_from_rdf_store` callers to `store_from_dataset`, then DELETE `RdfStore` + its backend impls +
+>   the compat bridge + `VecRdfStore`.
+
 **Graph position needs an explicit match type** — `Option<TermId>` cannot distinguish "any graph" from
 "the default graph". Storage/quads keep `Option<TermId> g` (`None` = default graph), but *matching* uses:
 
