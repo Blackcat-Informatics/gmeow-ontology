@@ -1,0 +1,456 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Declarative structural assertions for the archaeological-evidence slice (#173) —
+# the slice-resident test-DSL twin of the asserted-TBox MUST / MUST-NOT invariants
+# formerly hand-written in tests/test_archaeological_evidence.py. Each assertion
+# runs as a SPARQL ASK over the archaeological-evidence module graph
+# (gmeow:scopeModule) under the native Rust slicetest harness (crates/slicetest).
+#
+# Archaeological-evidence is NOT #694-migrated: class stereotypes remain gufo:
+# (gufo:Kind, gufo:SubKind, gufo:AbstractIndividualType, gufo:QualityValue,
+# gufo:Relator), not logic:.
+#
+# RETAINED in pytest (not migratable here):
+#   test_attested_on_carrier_exists — asserts gmeow:attestedOnCarrier, whose
+#     subject is defined in slices/extensions/lexicon/module.ttl, not in the
+#     archaeological-evidence module; a scopeModule cell would silently miss it.
+#   test_no_primary_or_preferred_archaeological_terms — dynamically sweeps the
+#     entire merged graph's subject set for any GMEOW-prefixed term whose local
+#     name begins with "primary" or "preferred"; module-scoped would silently
+#     narrow this whole-ontology regression guard to one graph.
+#
+# See dsl/tests/MIGRATION-LEDGER.md for the per-test pytest->DSL mapping.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/archaeological-evidence/tests/> .
+
+# --- 1. Inscription is an owl:Class subclass of InformationObject (MUST) --------
+ex:saInscriptionIsInformationObject a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:Inscription a owl:Class ;
+        rdfs:subClassOf gmeow:InformationObject .
+}""" ;
+    gmeow:saRationale "gmeow:Inscription MUST be an owl:Class and a subclass of gmeow:InformationObject — the sign-bearing content is informationally distinct from its physical carrier (#173). Mirrors test_inscription_is_information_object." .
+
+# --- 2. InscriptionReading is an owl:Class, subClassOf Observation and gufo:Relator (MUST) ---
+ex:saInscriptionReadingIsObservationRelator a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:InscriptionReading a owl:Class ;
+        rdfs:subClassOf gmeow:Observation ;
+        rdfs:subClassOf gufo:Relator .
+}""" ;
+    gmeow:saRationale "gmeow:InscriptionReading MUST be an owl:Class, a subclass of gmeow:Observation, and a subclass of gufo:Relator — a scholarly reading is a standpoint-scoped observation that binds inscription and interpreter (Observation+Relator pattern, #173). Mirrors test_inscription_reading_is_observation_relator." .
+
+# --- 3. InscriptionTransliteration is an owl:Class, subClassOf Observation and gufo:Relator (MUST) ---
+ex:saInscriptionTransliterationIsObservationRelator a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:InscriptionTransliteration a owl:Class ;
+        rdfs:subClassOf gmeow:Observation ;
+        rdfs:subClassOf gufo:Relator .
+}""" ;
+    gmeow:saRationale "gmeow:InscriptionTransliteration MUST be an owl:Class, a subclass of gmeow:Observation, and a subclass of gufo:Relator — competing transliteration schemes coexist without a single winner (Principle 9, #173). Mirrors test_inscription_transliteration_is_observation_relator." .
+
+# --- 4. InscriptionTranslation is an owl:Class, subClassOf Observation and gufo:Relator (MUST) ---
+ex:saInscriptionTranslationIsObservationRelator a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:InscriptionTranslation a owl:Class ;
+        rdfs:subClassOf gmeow:Observation ;
+        rdfs:subClassOf gufo:Relator .
+}""" ;
+    gmeow:saRationale "gmeow:InscriptionTranslation MUST be an owl:Class, a subclass of gmeow:Observation, and a subclass of gufo:Relator — competing translations coexist without privilege (Principle 9, #173). Mirrors test_inscription_translation_is_observation_relator." .
+
+# --- 5. ScriptLanguageAttribution is an owl:Class, subClassOf Observation and gufo:Relator (MUST) ---
+ex:saScriptLanguageAttributionIsObservationRelator a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:ScriptLanguageAttribution a owl:Class ;
+        rdfs:subClassOf gmeow:Observation ;
+        rdfs:subClassOf gufo:Relator .
+}""" ;
+    gmeow:saRationale "gmeow:ScriptLanguageAttribution MUST be an owl:Class, a subclass of gmeow:Observation, and a subclass of gufo:Relator — disputed, uncertain, and undeciphered cases produce competing attributions that coexist (Principle 9, #173). Mirrors test_script_language_attribution_is_observation_relator." .
+
+# --- 6. ArchaeologicalFindContext is an owl:Class, subClassOf Observation and gufo:Relator (MUST) ---
+ex:saArchaeologicalFindContextIsObservationRelator a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:ArchaeologicalFindContext a owl:Class ;
+        rdfs:subClassOf gmeow:Observation ;
+        rdfs:subClassOf gufo:Relator .
+}""" ;
+    gmeow:saRationale "gmeow:ArchaeologicalFindContext MUST be an owl:Class, a subclass of gmeow:Observation, and a subclass of gufo:Relator — a reified find context binding a carrier to its stratigraphic unit; multiple context claims from different campaigns coexist (Principle 9, #173). Mirrors test_archaeological_find_context_is_observation_relator." .
+
+# --- 7. inscriptionCarrier is functional (MUST) ---------------------------------
+ex:saInscriptionCarrierIsFunctional a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:inscriptionCarrier a owl:FunctionalProperty . }""" ;
+    gmeow:saRationale "gmeow:inscriptionCarrier MUST be owl:FunctionalProperty — an inscription is borne by exactly one carrier; a copy on another carrier is a distinct Inscription instance (#173). Mirrors test_inscription_carrier_is_functional." .
+
+# --- 8. carrierInscription is an owl:ObjectProperty (MUST) ----------------------
+ex:saCarrierInscriptionIsObjectProperty a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:carrierInscription a owl:ObjectProperty . }""" ;
+    gmeow:saRationale "gmeow:carrierInscription MUST be an owl:ObjectProperty — the inverse of inscriptionCarrier, linking a carrier to the inscription(s) it bears. Mirrors test_carrier_inscription_is_non_functional (positive part)." .
+
+# --- 9. carrierInscription is NOT functional (MUST-NOT) -----------------------
+ex:saCarrierInscriptionNotFunctional a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:carrierInscription a owl:FunctionalProperty . }""" ;
+    gmeow:saRationale "gmeow:carrierInscription MUST NOT be owl:FunctionalProperty — a carrier may bear multiple inscriptions (e.g. tablet with text on both sides, or a wall with successive graffiti layers). Mirrors test_carrier_inscription_is_non_functional (negative part)." .
+
+# --- 10. carrierType is an owl:ObjectProperty (MUST) ---------------------------
+ex:saCarrierTypeIsObjectProperty a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:carrierType a owl:ObjectProperty . }""" ;
+    gmeow:saRationale "gmeow:carrierType MUST be an owl:ObjectProperty — the archaeological classification of a physical carrier as a value vocabulary individual. Mirrors test_carrier_type_is_non_functional (positive part)." .
+
+# --- 11. carrierType is NOT functional (MUST-NOT) -----------------------------
+ex:saCarrierTypeNotFunctional a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:carrierType a owl:FunctionalProperty . }""" ;
+    gmeow:saRationale "gmeow:carrierType MUST NOT be owl:FunctionalProperty — a carrier may be classified plurally by different standpoints (Principle 9). Mirrors test_carrier_type_is_non_functional (negative part)." .
+
+# --- 12. readingOf is functional (MUST) ----------------------------------------
+ex:saReadingOfIsFunctional a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:readingOf a owl:FunctionalProperty . }""" ;
+    gmeow:saRationale "gmeow:readingOf MUST be owl:FunctionalProperty — one source inscription per InscriptionReading relator (functional per relator doctrine, #173). Mirrors test_reading_of_is_functional." .
+
+# --- 13. readingResult is an owl:ObjectProperty (MUST) -------------------------
+ex:saReadingResultIsObjectProperty a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:readingResult a owl:ObjectProperty . }""" ;
+    gmeow:saRationale "gmeow:readingResult MUST be an owl:ObjectProperty — the lexical form(s) produced by a reading. Mirrors test_reading_result_is_non_functional (positive part)." .
+
+# --- 14. readingResult is NOT functional (MUST-NOT) ----------------------------
+ex:saReadingResultNotFunctional a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:readingResult a owl:FunctionalProperty . }""" ;
+    gmeow:saRationale "gmeow:readingResult MUST NOT be owl:FunctionalProperty — a single reading may yield multiple coexisting forms (e.g. ambiguous signs), and competing result claims from different readings coexist (Principle 9, #173). Mirrors test_reading_result_is_non_functional (negative part)." .
+
+# --- 15. transliterationOf is functional (MUST) --------------------------------
+ex:saTransliterationOfIsFunctional a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:transliterationOf a owl:FunctionalProperty . }""" ;
+    gmeow:saRationale "gmeow:transliterationOf MUST be owl:FunctionalProperty — one source inscription per InscriptionTransliteration relator (functional per relator doctrine, #173). Mirrors test_transliteration_of_is_functional." .
+
+# --- 16. transliterationResult is an owl:ObjectProperty (MUST) -----------------
+ex:saTransliterationResultIsObjectProperty a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:transliterationResult a owl:ObjectProperty . }""" ;
+    gmeow:saRationale "gmeow:transliterationResult MUST be an owl:ObjectProperty — the lexical form(s) produced by a transliteration. Mirrors test_transliteration_result_is_non_functional (positive part)." .
+
+# --- 17. transliterationResult is NOT functional (MUST-NOT) --------------------
+ex:saTransliterationResultNotFunctional a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:transliterationResult a owl:FunctionalProperty . }""" ;
+    gmeow:saRationale "gmeow:transliterationResult MUST NOT be owl:FunctionalProperty — competing transliteration schemes may produce different forms for the same inscription and those claims coexist (Principle 9, #173). Mirrors test_transliteration_result_is_non_functional (negative part)." .
+
+# --- 18. translationOf is functional (MUST) ------------------------------------
+ex:saTranslationOfIsFunctional a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:translationOf a owl:FunctionalProperty . }""" ;
+    gmeow:saRationale "gmeow:translationOf MUST be owl:FunctionalProperty — one source inscription per InscriptionTranslation relator (functional per relator doctrine, #173). Mirrors test_translation_of_is_functional." .
+
+# --- 19. translationResult is an owl:ObjectProperty (MUST) ---------------------
+ex:saTranslationResultIsObjectProperty a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:translationResult a owl:ObjectProperty . }""" ;
+    gmeow:saRationale "gmeow:translationResult MUST be an owl:ObjectProperty — the lexical form(s) produced by a translation. Mirrors test_translation_result_is_non_functional (positive part)." .
+
+# --- 20. translationResult is NOT functional (MUST-NOT) -----------------------
+ex:saTranslationResultNotFunctional a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:translationResult a owl:FunctionalProperty . }""" ;
+    gmeow:saRationale "gmeow:translationResult MUST NOT be owl:FunctionalProperty — competing translations of the same inscription coexist without privilege (Principle 9, #173). Mirrors test_translation_result_is_non_functional (negative part)." .
+
+# --- 21. attributionTarget is functional (MUST) --------------------------------
+ex:saAttributionTargetIsFunctional a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:attributionTarget a owl:FunctionalProperty . }""" ;
+    gmeow:saRationale "gmeow:attributionTarget MUST be owl:FunctionalProperty — one target inscription per ScriptLanguageAttribution relator (functional per relator doctrine, #173). Mirrors test_attribution_target_is_functional." .
+
+# --- 22. attributedLanguage is an owl:ObjectProperty (MUST) -------------------
+ex:saAttributedLanguageIsObjectProperty a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:attributedLanguage a owl:ObjectProperty . }""" ;
+    gmeow:saRationale "gmeow:attributedLanguage MUST be an owl:ObjectProperty — the language assigned to an inscription by a script/language attribution. Mirrors test_attributed_language_is_non_functional (positive part)." .
+
+# --- 23. attributedLanguage is NOT functional (MUST-NOT) ----------------------
+ex:saAttributedLanguageNotFunctional a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:attributedLanguage a owl:FunctionalProperty . }""" ;
+    gmeow:saRationale "gmeow:attributedLanguage MUST NOT be owl:FunctionalProperty — competing language assignments from different standpoints coexist, and a bilingual inscription may carry multiple languages (Principle 9, #173). Mirrors test_attributed_language_is_non_functional (negative part)." .
+
+# --- 24. attributedScript is an owl:ObjectProperty (MUST) ---------------------
+ex:saAttributedScriptIsObjectProperty a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:attributedScript a owl:ObjectProperty . }""" ;
+    gmeow:saRationale "gmeow:attributedScript MUST be an owl:ObjectProperty — the writing system assigned to an inscription by a script/language attribution. Mirrors test_attributed_script_is_non_functional (positive part)." .
+
+# --- 25. attributedScript is NOT functional (MUST-NOT) ------------------------
+ex:saAttributedScriptNotFunctional a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:attributedScript a owl:FunctionalProperty . }""" ;
+    gmeow:saRationale "gmeow:attributedScript MUST NOT be owl:FunctionalProperty — competing script assignments coexist (Principle 9, #173). Mirrors test_attributed_script_is_non_functional (negative part)." .
+
+# --- 26. attributedNotation is an owl:ObjectProperty (MUST) -------------------
+ex:saAttributedNotationIsObjectProperty a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:attributedNotation a owl:ObjectProperty . }""" ;
+    gmeow:saRationale "gmeow:attributedNotation MUST be an owl:ObjectProperty — the notation system assigned to an undeciphered or symbol-classified inscription. Mirrors test_attributed_notation_is_non_functional (positive part)." .
+
+# --- 27. attributedNotation is NOT functional (MUST-NOT) ----------------------
+ex:saAttributedNotationNotFunctional a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:attributedNotation a owl:FunctionalProperty . }""" ;
+    gmeow:saRationale "gmeow:attributedNotation MUST NOT be owl:FunctionalProperty — used when the inscription is not yet linked to a known language or writing system; multiple notation claims may coexist (#173). Mirrors test_attributed_notation_is_non_functional (negative part)." .
+
+# --- 28. findContextTarget is functional (MUST) --------------------------------
+ex:saFindContextTargetIsFunctional a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:findContextTarget a owl:FunctionalProperty . }""" ;
+    gmeow:saRationale "gmeow:findContextTarget MUST be owl:FunctionalProperty — one target carrier per ArchaeologicalFindContext relator (functional per relator doctrine, #173). Mirrors test_find_context_target_is_functional." .
+
+# --- 29. findContextPlace is an owl:ObjectProperty (MUST) ---------------------
+ex:saFindContextPlaceIsObjectProperty a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:findContextPlace a owl:ObjectProperty . }""" ;
+    gmeow:saRationale "gmeow:findContextPlace MUST be an owl:ObjectProperty — the find-spot where a carrier was discovered. Mirrors test_find_context_place_is_non_functional (positive part)." .
+
+# --- 30. findContextPlace is NOT functional (MUST-NOT) ------------------------
+ex:saFindContextPlaceNotFunctional a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:findContextPlace a owl:FunctionalProperty . }""" ;
+    gmeow:saRationale "gmeow:findContextPlace MUST NOT be owl:FunctionalProperty — a carrier may be associated with multiple place claims (ancient find-spot vs modern museum location) and competing place attributions coexist (Principle 9, #173). Mirrors test_find_context_place_is_non_functional (negative part)." .
+
+# --- 31. findContextStratigraphy is an owl:ObjectProperty (MUST) --------------
+ex:saFindContextStratigraphyIsObjectProperty a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:findContextStratigraphy a owl:ObjectProperty . }""" ;
+    gmeow:saRationale "gmeow:findContextStratigraphy MUST be an owl:ObjectProperty — the stratigraphic unit or layer associated with a carrier's find context. Mirrors test_find_context_stratigraphy_is_non_functional (positive part)." .
+
+# --- 32. findContextStratigraphy is NOT functional (MUST-NOT) -----------------
+ex:saFindContextStratigraphyNotFunctional a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:findContextStratigraphy a owl:FunctionalProperty . }""" ;
+    gmeow:saRationale "gmeow:findContextStratigraphy MUST NOT be owl:FunctionalProperty — competing stratigraphic interpretations coexist (Principle 9, #173). Mirrors test_find_context_stratigraphy_is_non_functional (negative part)." .
+
+# --- 33. findContextDating is an owl:ObjectProperty (MUST) --------------------
+ex:saFindContextDatingIsObjectProperty a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:findContextDating a owl:ObjectProperty . }""" ;
+    gmeow:saRationale "gmeow:findContextDating MUST be an owl:ObjectProperty — the temporal measurement(s) assigned to a carrier's find context (radiocarbon, stratigraphic correlation, TPQ, etc.). Mirrors test_find_context_dating_is_non_functional (positive part)." .
+
+# --- 34. findContextDating is NOT functional (MUST-NOT) -----------------------
+ex:saFindContextDatingNotFunctional a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:findContextDating a owl:FunctionalProperty . }""" ;
+    gmeow:saRationale "gmeow:findContextDating MUST NOT be owl:FunctionalProperty — multiple dating methods and competing date claims coexist (Principle 9, #173). Mirrors test_find_context_dating_is_non_functional (negative part)." .
+
+# --- 35. findContextEvent is an owl:ObjectProperty (MUST) ---------------------
+ex:saFindContextEventIsObjectProperty a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:findContextEvent a owl:ObjectProperty . }""" ;
+    gmeow:saRationale "gmeow:findContextEvent MUST be an owl:ObjectProperty — the excavation, survey, or documentation event during which a carrier was discovered or recorded. Mirrors test_find_context_event_is_non_functional (positive part)." .
+
+# --- 36. findContextEvent is NOT functional (MUST-NOT) ------------------------
+ex:saFindContextEventNotFunctional a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:findContextEvent a owl:FunctionalProperty . }""" ;
+    gmeow:saRationale "gmeow:findContextEvent MUST NOT be owl:FunctionalProperty — a carrier may be rediscovered or re-documented multiple times (#173). Mirrors test_find_context_event_is_non_functional (negative part)." .
+
+# --- 37. readingOf is subPropertyOf observedFeature (MUST) --------------------
+ex:saReadingOfSubpropertyObservedFeature a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK { gmeow:readingOf rdfs:subPropertyOf gmeow:observedFeature . }""" ;
+    gmeow:saRationale "gmeow:readingOf MUST be rdfs:subPropertyOf gmeow:observedFeature — bridges inscription readings onto the universal 'observations about X' query path. Mirrors test_reading_of_subsumed_under_observed_feature." .
+
+# --- 38. readingResult is subPropertyOf observationResult (MUST) --------------
+ex:saReadingResultSubpropertyObservationResult a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK { gmeow:readingResult rdfs:subPropertyOf gmeow:observationResult . }""" ;
+    gmeow:saRationale "gmeow:readingResult MUST be rdfs:subPropertyOf gmeow:observationResult — joins the reading result onto the universal observation-result query path. Mirrors test_reading_result_subsumed_under_observation_result." .
+
+# --- 39. attributionTarget is subPropertyOf observedFeature (MUST) ------------
+ex:saAttributionTargetSubpropertyObservedFeature a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK { gmeow:attributionTarget rdfs:subPropertyOf gmeow:observedFeature . }""" ;
+    gmeow:saRationale "gmeow:attributionTarget MUST be rdfs:subPropertyOf gmeow:observedFeature — bridges script/language attributions onto the universal 'observations about X' query path. Mirrors test_attribution_target_subsumed_under_observed_feature." .
+
+# --- 40. findContextTarget is subPropertyOf observedFeature (MUST) ------------
+ex:saFindContextTargetSubpropertyObservedFeature a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK { gmeow:findContextTarget rdfs:subPropertyOf gmeow:observedFeature . }""" ;
+    gmeow:saRationale "gmeow:findContextTarget MUST be rdfs:subPropertyOf gmeow:observedFeature — bridges find contexts onto the universal 'observations about X' query path. Mirrors test_find_context_target_subsumed_under_observed_feature." .
+
+# --- 41. PhysicalCarrierType is an owl:Class, gufo:AbstractIndividualType,
+#         subClassOf gufo:QualityValue (MUST) -----------------------------------
+ex:saPhysicalCarrierTypeIsValueVocab a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:PhysicalCarrierType a owl:Class , gufo:AbstractIndividualType ;
+        rdfs:subClassOf gufo:QualityValue .
+}""" ;
+    gmeow:saRationale "gmeow:PhysicalCarrierType MUST be an owl:Class typed gufo:AbstractIndividualType and a subclass of gufo:QualityValue — the carrier classification is an open value vocabulary (individuals, never subclasses); new kinds are minted without ontology modification. Mirrors test_physical_carrier_type_value_vocabulary (class structure part)." .
+
+# --- 42. Twelve PhysicalCarrierType seed individuals exist (MUST) -------------
+ex:saPhysicalCarrierTypeSeeds a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    gmeow:carrierTablet         a gmeow:PhysicalCarrierType .
+    gmeow:carrierOstracon       a gmeow:PhysicalCarrierType .
+    gmeow:carrierSeal           a gmeow:PhysicalCarrierType .
+    gmeow:carrierCoin           a gmeow:PhysicalCarrierType .
+    gmeow:carrierManuscript     a gmeow:PhysicalCarrierType .
+    gmeow:carrierWallInscription a gmeow:PhysicalCarrierType .
+    gmeow:carrierStela          a gmeow:PhysicalCarrierType .
+    gmeow:carrierPapyrus        a gmeow:PhysicalCarrierType .
+    gmeow:carrierPotterySherd   a gmeow:PhysicalCarrierType .
+    gmeow:carrierBone           a gmeow:PhysicalCarrierType .
+    gmeow:carrierMetal          a gmeow:PhysicalCarrierType .
+    gmeow:carrierWood           a gmeow:PhysicalCarrierType .
+}""" ;
+    gmeow:saRationale "All twelve PhysicalCarrierType seed individuals (tablet, ostracon, seal, coin, manuscript, wallInscription, stela, papyrus, potterySherd, bone, metal, wood) MUST be present as gmeow:PhysicalCarrierType instances. Mirrors test_physical_carrier_type_value_vocabulary (seed individuals part)." .

@@ -1,14 +1,28 @@
-"""Structural + DL-safety + SHACL guards for the notes & annotation building block.
+"""SHACL + cross-slice structural guards for the notes & annotation building block.
 
-Pins gmeow:Note / Annotation / Highlight / Bookmark / Comment hierarchy,
-EvidenceSpan generalization, the backlink graph (mentions/mentionedIn/relatedNote),
-comment threading (commentParent/hasReply), annotation motivations, and the
-projection layer (W3C OA, schema.org, ActivityStreams, markdown wikilinks).
+TBox invariants for notes-module subjects (Note/Annotation/Highlight/Bookmark/
+Comment hierarchy, annotation roles, comment threading, backlink graph, motivation
+vocabulary, orthogonality and selector-reuse guards) have been migrated to the
+declarative slicetest DSL:
+    slices/extensions/notes/tests/structural.ttl
+
+Retained here (not migratable as module-scoped ASK cells):
+  - test_evidence_span_is_information_object: EvidenceSpan subject is in the
+    evidencespan slice, not in notes/module.ttl (cross-slice).
+  - test_selector_sub_class_of_evidence_span: Selector subject is in the
+    evidencespan slice (cross-slice).
+  - test_notes_are_standpoint_indexed: accordingTo subject is in the standpoint
+    slice (cross-slice).
+  - test_motivation_values_are_individuals: the len(...)==10 count assertion is
+    a dynamic whole-graph numeric check; the 10 seed individuals and banned-class
+    guards are covered in structural.ttl cells sa10MotivationSeeds and
+    saMotivationNotClasses.
+  - All run_shacl() SHACL instance tests (ExampleConformance).
+  - All projection SPARQL parse tests (generated-artifact, numeric/parse check).
 """
 
 from __future__ import annotations
 
-from itertools import combinations
 from pathlib import Path
 
 from gmeow_rdf.compat.rdflib import OWL, RDF, RDFS, Graph, Literal, Namespace, URIRef
@@ -18,7 +32,6 @@ from gmeow_tools.graph import load_merged_graph
 from tests._graph_nt import run_shacl
 
 GMEOW = "https://blackcatinformatics.ca/gmeow/"
-GUFO = "http://purl.org/nemo/gufo#"
 EX = Namespace("https://example.org/test/")
 _PROJ_Q = PROJECTION_QUERY_DIR
 
@@ -28,51 +41,8 @@ def _graph() -> Graph:
 
 
 # =========================================================================== #
-# gUFO grounding
+# Cross-slice structural guards (subjects not in notes/module.ttl)
 # =========================================================================== #
-
-
-def test_note_is_information_object() -> None:
-    graph = _graph()
-    assert (
-        URIRef(GMEOW + "Note"),
-        RDFS.subClassOf,
-        URIRef(GMEOW + "InformationObject"),
-    ) in graph
-
-
-def test_annotation_is_relator() -> None:
-    graph = _graph()
-    assert (URIRef(GMEOW + "Annotation"), RDF.type, OWL.Class) in graph
-    assert (URIRef(GMEOW + "Annotation"), RDF.type, URIRef(GUFO + "Kind")) in graph
-    assert (
-        URIRef(GMEOW + "Annotation"),
-        RDFS.subClassOf,
-        URIRef(GUFO + "Relator"),
-    ) in graph
-
-
-def test_highlight_is_annotation() -> None:
-    graph = _graph()
-    assert (
-        URIRef(GMEOW + "Highlight"),
-        RDFS.subClassOf,
-        URIRef(GMEOW + "Annotation"),
-    ) in graph
-
-
-def test_bookmark_is_annotation() -> None:
-    graph = _graph()
-    assert (
-        URIRef(GMEOW + "Bookmark"),
-        RDFS.subClassOf,
-        URIRef(GMEOW + "Annotation"),
-    ) in graph
-
-
-def test_comment_is_note() -> None:
-    graph = _graph()
-    assert (URIRef(GMEOW + "Comment"), RDFS.subClassOf, URIRef(GMEOW + "Note")) in graph
 
 
 def test_evidence_span_is_information_object() -> None:
@@ -94,154 +64,29 @@ def test_selector_sub_class_of_evidence_span() -> None:
 
 
 # =========================================================================== #
-# Property typing
-# =========================================================================== #
-
-
-def test_annotation_roles_are_functional() -> None:
-    graph = _graph()
-    for prop in ("annotationBody", "annotationTarget", "annotationMotivation"):
-        node = URIRef(GMEOW + prop)
-        assert (node, RDF.type, OWL.ObjectProperty) in graph
-        assert (node, RDF.type, OWL.FunctionalProperty) in graph
-
-
-def test_annotation_target_span_is_non_functional() -> None:
-    graph = _graph()
-    node = URIRef(GMEOW + "annotationTargetSpan")
-    assert (node, RDF.type, OWL.ObjectProperty) in graph
-    assert (node, RDF.type, OWL.FunctionalProperty) not in graph
-
-
-def test_comment_parent_is_object_property() -> None:
-    graph = _graph()
-    node = URIRef(GMEOW + "commentParent")
-    assert (node, RDF.type, OWL.ObjectProperty) in graph
-    # Not declared FunctionalProperty: hasReply is transitive, and in OWL 2 DL
-    # a transitive property (and its inverse) is non-simple and cannot be
-    # functional.  The "one parent per comment" constraint is enforced by
-    # SHACL (sh:maxCount 1 on commentParent) instead.
-    assert (node, RDF.type, OWL.FunctionalProperty) not in graph
-
-
-def test_has_direct_reply_is_inverse_of_comment_parent() -> None:
-    graph = _graph()
-    direct = URIRef(GMEOW + "hasDirectReply")
-    parent = URIRef(GMEOW + "commentParent")
-    assert (direct, RDF.type, OWL.ObjectProperty) in graph
-    assert (direct, OWL.inverseOf, parent) in graph
-
-
-def test_has_reply_is_transitive_superproperty() -> None:
-    graph = _graph()
-    reply = URIRef(GMEOW + "hasReply")
-    direct = URIRef(GMEOW + "hasDirectReply")
-    assert (reply, RDF.type, OWL.TransitiveProperty) in graph
-    assert (direct, RDFS.subPropertyOf, reply) in graph
-
-
-def test_mentions_inverse_mentioned_in() -> None:
-    graph = _graph()
-    assert (
-        URIRef(GMEOW + "mentionedIn"),
-        OWL.inverseOf,
-        URIRef(GMEOW + "mentions"),
-    ) in graph
-
-
-def test_related_note_is_symmetric() -> None:
-    graph = _graph()
-    assert (URIRef(GMEOW + "relatedNote"), RDF.type, OWL.SymmetricProperty) in graph
-
-
-def test_note_properties_exist() -> None:
-    graph = _graph()
-    for prop in ("noteContent", "noteCreatedAt", "noteModifiedAt"):
-        assert (URIRef(GMEOW + prop), RDF.type, OWL.DatatypeProperty) in graph
-    assert (URIRef(GMEOW + "noteAuthor"), RDF.type, OWL.ObjectProperty) in graph
-
-
-# =========================================================================== #
-# Open value vocabulary (individuals, not subclasses)
+# Open value vocabulary (dynamic count -- not expressible as scopeModule ASK)
 # =========================================================================== #
 
 
 def test_motivation_values_are_individuals() -> None:
+    # Seed-existence and not-class guards are covered in structural.ttl cells
+    # sa10MotivationSeeds and saMotivationNotClasses. Retained here only for
+    # the len(...)==10 dynamic count gate.
     graph = _graph()
     motivation_class = URIRef(GMEOW + "AnnotationMotivation")
     assert len(set(graph.subjects(RDF.type, motivation_class))) == 10
-    for ind in (
-        "motivationDescribing",
-        "motivationCommenting",
-        "motivationHighlighting",
-        "motivationBookmarking",
-        "motivationTagging",
-        "motivationLinking",
-        "motivationQuestioning",
-        "motivationReplying",
-        "motivationAssessing",
-        "motivationModerating",
-    ):
-        assert (
-            URIRef(GMEOW + ind),
-            RDF.type,
-            motivation_class,
-        ) in graph
-    for rejected in ("DescribingMotivation", "CommentingMotivation"):
-        assert (URIRef(GMEOW + rejected), RDF.type, OWL.Class) not in graph
 
 
 # =========================================================================== #
-# Selector reuse — no duplicate model
+# Standpoint availability (accordingTo is cross-slice -- standpoint module)
 # =========================================================================== #
 
 
-def test_no_duplicate_selector_properties() -> None:
-    """The selector properties live ONLY on EvidenceSpan/Selector; no second
-    selector model is minted for annotations."""
-    graph = _graph()
-    for banned in (
-        "annotationSelectorTextQuote",
-        "annotationSelectorTextPosition",
-        "annotationSelectorPage",
-        "highlightSelector",
-    ):
-        node = URIRef(GMEOW + banned)
-        assert (node, RDF.type, OWL.DatatypeProperty) not in graph, (
-            f"{banned} duplicates selector model"
-        )
-        assert (node, RDF.type, OWL.ObjectProperty) not in graph, (
-            f"{banned} duplicates selector model"
-        )
-
-
-# =========================================================================== #
-# Trichotomy / orthogonality guards
-# =========================================================================== #
-
-
-def test_no_bridge_among_note_axes() -> None:
-    """Typing, aboutness, and tagging remain orthogonal for notes."""
-    graph = _graph()
-    axes = {
-        "hasTag": URIRef(GMEOW + "hasTag"),
-        "isAbout": URIRef(GMEOW + "isAbout"),
-        "mentions": URIRef(GMEOW + "mentions"),
-    }
-    for a, b in combinations(axes, 2):
-        na, nb = axes[a], axes[b]
-        assert (na, RDFS.subPropertyOf, nb) not in graph, f"{a} ⊑ {b} forbidden"
-        assert (nb, RDFS.subPropertyOf, na) not in graph, f"{b} ⊑ {a} forbidden"
-        assert (na, OWL.equivalentProperty, nb) not in graph, f"{a} ≡ {b} forbidden"
-        assert (nb, OWL.equivalentProperty, na) not in graph, f"{b} ≡ {a} forbidden"
-
-
-def test_note_tagging_reuses_has_tag() -> None:
-    """Notes use the universal hasTag / Tagging building block; no note-specific
-    tag property is minted."""
-    graph = _graph()
-    assert (URIRef(GMEOW + "noteTag"), RDF.type, OWL.ObjectProperty) not in graph
-    assert (URIRef(GMEOW + "noteTagging"), RDF.type, OWL.ObjectProperty) not in graph
+def test_notes_are_standpoint_indexed() -> None:
+    """The standpoint machinery (accordingTo) is available on notes via the
+    statement/provenance layer; the TBox does not forbid it."""
+    g = _graph()
+    assert (URIRef(GMEOW + "accordingTo"), RDF.type, OWL.AnnotationProperty) in g
 
 
 # =========================================================================== #
@@ -384,18 +229,6 @@ def test_notes_as_projection_executable() -> None:
 
 def test_notes_markdown_projection_executable() -> None:
     _sparql_parse(_PROJ_Q / "markdown.rq")
-
-
-# =========================================================================== #
-# Standpoint / suppression guards
-# =========================================================================== #
-
-
-def test_notes_are_standpoint_indexed() -> None:
-    """The standpoint machinery (accordingTo) is available on notes via the
-    statement/provenance layer; the TBox does not forbid it."""
-    g = _graph()
-    assert (URIRef(GMEOW + "accordingTo"), RDF.type, OWL.AnnotationProperty) in g
 
 
 def test_retracted_note_displayable_false() -> None:
