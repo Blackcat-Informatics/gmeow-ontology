@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: AGPL-3.0-only
-"""Tests for the purrdf P0 rdflib compat shim (``gmeow_rdf.compat.rdflib``).
+"""Tests for the purrdf rdflib compat shim (``gmeow_rdf.compat.rdflib``).
 
 Where real ``rdflib`` is installed, the facade is differential-tested against it
 so the term/equality/serialization behaviour matches. These run in the default
@@ -14,6 +14,7 @@ from gmeow_rdf.compat.rdflib import (
     RDF,
     RDFS,
     BNode,
+    Dataset,
     Graph,
     Literal,
     Namespace,
@@ -70,6 +71,31 @@ def test_literal_term_equality_xsd_string_asymmetry() -> None:
     assert hash(Literal("x")) == hash(Literal("x"))
 
 
+def test_literal_value_space_eq_is_separate_from_term_equality() -> None:
+    """``Literal.eq`` uses XSD values; ``==`` remains RDF term equality."""
+    one = Literal("1", datatype=XSD.integer)
+    padded = Literal("01", datatype=XSD.integer)
+    decimal = Literal("1.0", datatype=XSD.decimal)
+    plain = Literal("x")
+    explicit_string = Literal("x", datatype=XSD.string)
+
+    assert one != padded
+    assert one.eq(padded)
+    assert one.eq(decimal)
+    assert plain != explicit_string
+    assert plain.eq(explicit_string)
+
+
+def test_literal_ordering_uses_value_then_term_fallback() -> None:
+    """Value-comparable literals sort by value, then deterministic term fallback."""
+    values = [
+        Literal("2", datatype=XSD.integer),
+        Literal("01", datatype=XSD.integer),
+        Literal("1", datatype=XSD.integer),
+    ]
+    assert [str(v) for v in sorted(values)] == ["01", "1", "2"]
+
+
 def test_graph_add_value_contains_and_native_xsd_string_normalization() -> None:
     """Containment via the native store normalizes plain ↔ xsd:string literals."""
     g = Graph()
@@ -113,6 +139,38 @@ def test_remove_and_set() -> None:
     assert g.value(EX.a, RDFS.label) == Literal("two")
 
 
+def test_graph_intersection_symmetric_difference_and_update() -> None:
+    """P9 graph algebra and SPARQL UPDATE mutate through the native COW dataset."""
+    g1 = Graph()
+    g1.add((EX.a, EX.p, EX.one))
+    g1.add((EX.b, EX.p, EX.two))
+    g2 = Graph()
+    g2.add((EX.b, EX.p, EX.two))
+    g2.add((EX.c, EX.p, EX.three))
+
+    assert set(g1 * g2) == {(EX.b, EX.p, EX.two)}
+    assert set(g1 ^ g2) == {(EX.a, EX.p, EX.one), (EX.c, EX.p, EX.three)}
+
+    g1.update("INSERT DATA { ex:d ex:p ex:four . }", initNs={"ex": EX})
+    assert (EX.d, EX.p, EX.four) in g1
+    g1.update("DELETE DATA { ex:d ex:p ex:four . }", initNs={"ex": EX})
+    assert (EX.d, EX.p, EX.four) not in g1
+
+
+def test_dataset_named_graph_quads_filtering() -> None:
+    """Dataset quads distinguish any graph, named graph, and default graph."""
+    ds = Dataset()
+    ds.default_graph.add((EX.default, EX.p, EX.o))
+    ds.graph(EX.g).add((EX.named, EX.p, EX.o))
+
+    assert set(ds.quads((None, None, None, None))) == {
+        (EX.default, EX.p, EX.o, None),
+        (EX.named, EX.p, EX.o, EX.g),
+    }
+    assert list(ds.quads((None, None, None, EX.g))) == [(EX.named, EX.p, EX.o, EX.g)]
+    assert list(ds.triples((None, None, None))) == [(EX.default, EX.p, EX.o)]
+
+
 def test_turtle_roundtrip_and_isomorphic() -> None:
     """serialize(turtle) → canonicalize_turtle; reparse is isomorphic."""
     g = Graph()
@@ -123,6 +181,19 @@ def test_turtle_roundtrip_and_isomorphic() -> None:
     g2 = Graph()
     g2.parse(data=ttl, format="turtle")
     assert isomorphic(g, g2)
+
+
+def test_private_language_tag_survives_cow_materialization() -> None:
+    """Project-private language tags round-trip through the COW graph surface."""
+    g = Graph()
+    term = EX["term"]
+    g.add((term, RDFS.label, Literal("label", lang="x-gmeow-english")))
+    ttl = g.serialize(format="turtle")
+    assert "@x-gmeow-english" in ttl
+
+    back = Graph()
+    back.parse(data=ttl, format="turtle")
+    assert back.value(term, RDFS.label) == Literal("label", lang="x-gmeow-english")
 
 
 def test_serialize_nt_encoding_contract() -> None:

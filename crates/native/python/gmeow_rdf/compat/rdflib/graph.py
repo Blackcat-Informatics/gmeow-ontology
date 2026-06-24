@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 """The mutable ``Graph`` facade for the purrdf rdflib compat shim.
 
-Backed by a native :class:`gmeow_rdf.Store` (oxigraph). Presents the RDFLib
+Backed by a native :class:`gmeow_rdf.MutableDataset` COW dataset. Presents the RDFLib
 ``Graph`` surface the internal toolchain uses — ``parse``/``serialize``, ``add``/
 ``remove``, wildcard ``triples``/``value`` + the accessor family, ``query``,
 ``bind``/``namespace_manager``, and set algebra. ``serialize(format="turtle")``
@@ -26,6 +26,7 @@ from .namespace import RDF, NamespaceManager
 from .query import Result, ResultRow
 from .term import (
     Identifier,
+    Literal,
     URIRef,
     from_native,
     to_native,
@@ -132,19 +133,33 @@ def _inject_bindings(query_text: str, bindings: dict[str, Identifier]) -> str:
     return query_text[: brace + 1] + clause + query_text[brace + 1 :]
 
 
+def _literal_matches(candidate: Identifier, pattern: Literal) -> bool:
+    """Return whether a stored literal satisfies an object literal pattern."""
+    if not isinstance(candidate, Literal):
+        return False
+    return bool(candidate == pattern or candidate.eq(pattern))
+
+
 class Graph:
-    """An RDFLib-shaped mutable RDF graph over a native :class:`gmeow_rdf.Store`."""
+    """An RDFLib-shaped mutable RDF graph over a native COW dataset."""
 
     def __init__(
         self,
-        store: gmeow_rdf.Store | None = None,
+        store: gmeow_rdf.Store | gmeow_rdf.MutableDataset | None = None,
         identifier: object | None = None,
         *,
         namespace_manager: NamespaceManager | None = None,
         base: str | None = None,
     ) -> None:
-        """Create an empty graph (or wrap an existing native store)."""
-        self._store = store if isinstance(store, gmeow_rdf.Store) else gmeow_rdf.Store()
+        """Create an empty graph (or import an existing native store/dataset)."""
+        if isinstance(store, gmeow_rdf.MutableDataset):
+            self._store = store
+        else:
+            self._store = gmeow_rdf.MutableDataset()
+            if isinstance(store, gmeow_rdf.Store):
+                nquads = store.dump(format=_NQ)
+                if nquads.strip():
+                    self._store.load(nquads, format=_NQ)
         self._nsm = (
             namespace_manager if namespace_manager is not None else (NamespaceManager())
         )
@@ -219,31 +234,27 @@ class Graph:
     def triples(self, pattern: _Pattern) -> Iterator[_Triple]:
         """Yield triples matching the wildcard pattern (``None`` = any)."""
         s, p, o = pattern
-        subs: dict[gmeow_rdf.Variable, Any] = {}
-        if s is not None:
-            subs[gmeow_rdf.Variable("s")] = to_native(s)
-        if p is not None:
-            subs[gmeow_rdf.Variable("p")] = to_native(p)
-        if o is not None:
-            subs[gmeow_rdf.Variable("o")] = to_native(o)
-        res = self._store.query(
-            "SELECT ?s ?p ?o WHERE { ?s ?p ?o }", substitutions=subs or None
+        native_object = None if o is None else to_native(o)
+        object_value_filter = isinstance(o, Literal)
+        quads = self._store.quads_for_pattern(
+            None if s is None else _native_subject(s),
+            None if p is None else _native_predicate(p),
+            None if object_value_filter else native_object,
+            None,
+            any_graph=False,
         )
-        assert isinstance(res, gmeow_rdf.QuerySolutions)
-        for sol in res:
-            rs = s if s is not None else _require(from_native(sol["s"]))
-            rp = p if p is not None else _require(from_native(sol["p"]))
-            ro = o if o is not None else _require(from_native(sol["o"]))
+        for quad in quads:
+            rs = s if s is not None else _require(from_native(quad.subject))
+            rp = p if p is not None else _require(from_native(quad.predicate))
+            candidate = _require(from_native(quad.object))
+            if object_value_filter and not _literal_matches(candidate, o):
+                continue
+            ro = o if o is not None else candidate
             yield (rs, rp, ro)
 
     def __iter__(self) -> Iterator[_Triple]:
         """Iterate every triple as ``(subject, predicate, object)``."""
-        for quad in self._store:
-            yield (
-                _require(from_native(quad.subject)),
-                _require(from_native(quad.predicate)),
-                _require(from_native(quad.object)),
-            )
+        yield from self.triples((None, None, None))
 
     def __len__(self) -> int:
         """Return the triple count."""
@@ -497,6 +508,12 @@ class Graph:
         group (each value via its safe ``n3()`` form), matching RDFLib's
         pre-binding semantics for variables that need not be projected.
         """
+        if initNs:
+            prefixes = "".join(
+                f"PREFIX {prefix}: <{namespace}>\n"
+                for prefix, namespace in initNs.items()
+            )
+            query_object = prefixes + query_object
         if initBindings:
             query_object = _inject_bindings(query_object, initBindings)
         res = self._store.query(query_object)
@@ -515,6 +532,22 @@ class Graph:
             for sol in res
         ]
         return Result("SELECT", rows=rows, variables=var_names)
+
+    def update(
+        self,
+        update_object: str,
+        *,
+        initNs: dict[str, object] | None = None,  # noqa: N803 - RDFLib API
+        **kwargs: object,
+    ) -> None:
+        """Run a SPARQL UPDATE against this graph."""
+        if initNs:
+            prefixes = "".join(
+                f"PREFIX {prefix}: <{namespace}>\n"
+                for prefix, namespace in initNs.items()
+            )
+            update_object = prefixes + update_object
+        self._store.update(update_object)
 
     # ── set algebra ───────────────────────────────────────────────────────────────
 
@@ -548,13 +581,31 @@ class Graph:
                 result.add(triple)
         return result
 
+    def __mul__(self, other: Iterable[_Triple]) -> Graph:
+        """Return a new graph = intersection of this graph and ``other``."""
+        result = Graph()
+        other_set = set(other)
+        for triple in self:
+            if triple in other_set:
+                result.add(triple)
+        return result
+
+    def __xor__(self, other: Iterable[_Triple]) -> Graph:
+        """Return a new graph = symmetric difference of this graph and ``other``."""
+        result = Graph()
+        self_set = set(self)
+        other_set = set(other)
+        for triple in self_set ^ other_set:
+            result.add(triple)
+        return result
+
 
 class _GraphView:
     """An add target for one graph slot of a :class:`Dataset` (``Dataset.graph``)."""
 
     def __init__(
         self,
-        store: gmeow_rdf.Store,
+        store: gmeow_rdf.MutableDataset,
         graph_name: gmeow_rdf.NamedNode | gmeow_rdf.BlankNode | gmeow_rdf.DefaultGraph,
     ) -> None:
         """Bind to ``store`` and the graph slot ``graph_name``."""
@@ -577,7 +628,7 @@ class Dataset(Graph):
 
     def __init__(
         self,
-        store: gmeow_rdf.Store | None = None,
+        store: gmeow_rdf.Store | gmeow_rdf.MutableDataset | None = None,
         default_union: bool = False,
         **kwargs: object,
     ) -> None:
@@ -603,7 +654,16 @@ class Dataset(Graph):
         ``graph_name`` is ``None`` for the default graph.
         """
         ps, pp, po, pg = pattern if pattern is not None else (None, None, None, None)
-        for quad in self._store:
+        graph_name = None if pg is None else _native_subject(pg)
+        native_object = None if po is None else to_native(po)
+        object_value_filter = isinstance(po, Literal)
+        for quad in self._store.quads_for_pattern(
+            None if ps is None else _native_subject(ps),
+            None if pp is None else _native_predicate(pp),
+            None if object_value_filter else native_object,
+            graph_name,
+            any_graph=pg is None,
+        ):
             graph_name = quad.graph_name
             gname = (
                 None
@@ -613,14 +673,16 @@ class Dataset(Graph):
             s = _require(from_native(quad.subject))
             p = _require(from_native(quad.predicate))
             o = _require(from_native(quad.object))
-            if ps is not None and s != ps:
+            if object_value_filter and not _literal_matches(o, po):
                 continue
-            if pp is not None and p != pp:
-                continue
-            if po is not None and o != po:
-                continue
-            if pg is not None and gname != pg:
-                continue
+            if ps is not None:
+                s = ps
+            if pp is not None:
+                p = pp
+            if po is not None:
+                o = po
+            if pg is not None:
+                gname = pg
             yield (s, p, o, gname)
 
     def parse(

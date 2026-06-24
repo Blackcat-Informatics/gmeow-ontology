@@ -173,6 +173,7 @@ class Store:
         *,
         substitutions: dict[Variable, _Term] | None = ...,
     ) -> QuerySolutions | QueryTriples | QueryBoolean: ...
+    def update(self, update: str) -> None: ...
     @overload
     def dump(
         self,
@@ -191,6 +192,54 @@ class Store:
     ) -> bytes: ...
     def __len__(self) -> int: ...
 
+class MutableDataset:
+    def __init__(self) -> None: ...
+    def __iter__(self) -> QuadIter: ...
+    def load(
+        self,
+        input: bytes | str | None = ...,
+        format: RdfFormat | None = ...,
+        *,
+        path: str | None = ...,
+    ) -> None: ...
+    def add(self, quad: Quad) -> bool: ...
+    def remove(self, quad: Quad) -> bool: ...
+    def contains(self, quad: Quad) -> bool: ...
+    def quads_for_pattern(
+        self,
+        subject: _Subject | None = ...,
+        predicate: NamedNode | None = ...,
+        object: _Term | None = ...,
+        graph_name: NamedNode | BlankNode | DefaultGraph | None = ...,
+        *,
+        any_graph: bool = ...,
+    ) -> list[Quad]: ...
+    @overload
+    def dump(
+        self,
+        output: IO[bytes],
+        format: RdfFormat,
+        *,
+        from_graph: NamedNode | BlankNode | DefaultGraph | None = ...,
+    ) -> None: ...
+    @overload
+    def dump(
+        self,
+        output: None = ...,
+        *,
+        format: RdfFormat,
+        from_graph: NamedNode | BlankNode | DefaultGraph | None = ...,
+    ) -> bytes: ...
+    def query(
+        self,
+        query: str,
+        *,
+        substitutions: dict[Variable, _Term] | None = ...,
+    ) -> QuerySolutions | QueryTriples | QueryBoolean: ...
+    def update(self, update: str) -> None: ...
+    def compact(self) -> None: ...
+    def __len__(self) -> int: ...
+
 class Dataset:
     def __init__(self, quads: object | None = ...) -> None: ...
     def add(self, quad: Quad) -> None: ...
@@ -207,6 +256,13 @@ def serialize(input: QueryTriples, output: IO[bytes], format: RdfFormat) -> None
 def serialize(
     input: QueryTriples, output: None = ..., *, format: RdfFormat
 ) -> bytes: ...
+def xsd_value_compare(
+    left_lexical: str,
+    left_datatype: str,
+    right_lexical: str,
+    right_datatype: str,
+) -> int | None: ...
+def xsd_canonical_lexical(lexical: str, datatype: str) -> str | None: ...
 
 # ── RDF → GTS producer (crates/rdf/src/py_gts.rs, #819 Task 8) ───────────────────
 
