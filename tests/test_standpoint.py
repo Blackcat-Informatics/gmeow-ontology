@@ -21,13 +21,11 @@ from __future__ import annotations
 from itertools import combinations
 from pathlib import Path
 
+import gmeow_native.pipeline as native_pipeline
 from gmeow_rdf.compat.rdflib import OWL, RDF, RDFS, SKOS, Graph, Namespace, URIRef
 
-from gmeow_tools.config import PROJECTION_QUERY_DIR, STATEMENT_RDF12_FILE
+from gmeow_tools.config import PROJECT_ROOT, PROJECTION_QUERY_DIR, STATEMENT_RDF12_FILE
 from gmeow_tools.graph import load_merged_graph
-from gmeow_tools.statement_dsl import (
-    load_statement_dsl,
-)
 
 GMEOW = "https://blackcatinformatics.ca/gmeow/"
 GM = Namespace(GMEOW)
@@ -51,6 +49,27 @@ COVERAGE_FIXTURES = Path(__file__).parent / "fixtures" / "coverage"
 
 def _graph() -> Graph:
     return load_merged_graph(include_imports=False)
+
+
+def _statement_owl_graph() -> Graph:
+    artifacts = native_pipeline.compile_statements(str(PROJECT_ROOT))
+    graph = Graph()
+    graph.parse(data=artifacts["owl_ttl"], format="turtle")
+    return graph
+
+
+def _axiom_annotations(graph: Graph, axiom: URIRef) -> dict[object, object]:
+    structural = {
+        RDF.type,
+        OWL.annotatedSource,
+        OWL.annotatedProperty,
+        OWL.annotatedTarget,
+    }
+    return {
+        prop: value
+        for prop, value in graph.predicate_objects(axiom)
+        if prop not in structural
+    }
 
 
 # --------------------------------------------------------------------------- #
@@ -163,24 +182,28 @@ def test_contested_places_cannot_force_inconsistency() -> None:
 
 def test_crimea_pair_coexists_in_the_dsl() -> None:
     """Both Crimea claims are authored, each standpoint-indexed, neither privileged."""
-    cells = {c.iri: c for c in load_statement_dsl().cells}
-    ru = cells[URIRef(GMEOW + "examples/claim-crimea-in-russia-per-ru")]
-    un = cells[URIRef(GMEOW + "examples/claim-crimea-in-ukraine-per-un")]
+    owl = _statement_owl_graph()
+    ru = URIRef(GMEOW + "examples/claim-crimea-in-russia-per-ru")
+    un = URIRef(GMEOW + "examples/claim-crimea-in-ukraine-per-un")
     # Same subject + predicate, contradictory objects — both retained.
-    assert ru.triple.subject == un.triple.subject
-    assert ru.triple.predicate == un.triple.predicate == GM.containedInPlace
-    assert ru.triple.obj != un.triple.obj
+    assert owl.value(ru, OWL.annotatedSource) == owl.value(un, OWL.annotatedSource)
+    assert (
+        owl.value(ru, OWL.annotatedProperty)
+        == owl.value(un, OWL.annotatedProperty)
+        == GM.containedInPlace
+    )
+    assert owl.value(ru, OWL.annotatedTarget) != owl.value(un, OWL.annotatedTarget)
     # Each carries an accordingTo standpoint annotation.
     for cell in (ru, un):
-        assert any(a.prop == GM.accordingTo for a in cell.annotations)
+        assert (cell, GM.accordingTo, None) in owl
 
 
 def test_two_clocks_stay_distinct() -> None:
     """The two-clock cell keeps fact-time (validFrom, 1850s) and standpoint/
     observation-time (assertedAt, 2025) apart — they never collapse."""
-    cells = {c.iri: c for c in load_statement_dsl().cells}
+    owl = _statement_owl_graph()
     iri = URIRef(GMEOW + "examples/claim-territory-1850-per-2025-historiography")
-    ann = {a.prop: a.value for a in cells[iri].annotations}
+    ann = _axiom_annotations(owl, iri)
     assert str(ann[GM.validFrom]).startswith("1850")
     assert str(ann[GM.assertedAt]).startswith("2025")
     assert ann[GM.validFrom] != ann[GM.assertedAt]

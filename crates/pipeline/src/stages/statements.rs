@@ -4,9 +4,9 @@
 //! The `statements` stage (#861 P3): compile `dsl/statements/*.ttl` into the OWL
 //! axiom-annotation downcast + the RDF 1.2 lead artifact.
 //!
-//! This re-cuts `src/gmeow_tools/statement_compile.py` as an in-memory Rust
-//! stage. The statement DSL is authored as plain Turtle (rdflib cannot parse
-//! RDF 1.2 triple terms), so it parses with oxigraph; each
+//! This is the native Rust statement compiler stage. The statement DSL is
+//! authored as plain Turtle (rdflib cannot parse RDF 1.2 triple terms), so it
+//! parses with oxigraph; each
 //! `gmeow:StatementMetadata` cell is a 1:1 transcription of one reifying
 //! statement (a quoted base triple + the annotations on its reifier). The OWL
 //! form reuses the reifier IRI as the named `owl:Axiom` node; the RDF 1.2 lead

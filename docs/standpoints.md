@@ -141,7 +141,7 @@ formal grounding rather than an ad-hoc shape:
 ## Worked example — Crimea, end to end
 
 Two contradictory base triples coexist, each indexed to a standpoint, neither
-privileged (`statement-dsl/examples.ttl`):
+privileged (`dsl/statements/examples.ttl`):
 
 ```turtle
 ex:crimea gmeow:containedInPlace ex:russia , ex:ukraine .   # both asserted

@@ -1,6 +1,6 @@
 # Competency question: "Which events are fabrications?"
 # A fabrication = deception event with a false CreativeWork whose provenance is refuted.
-# Expected: event-fabrication-001 (from statement-dsl/deception.ttl).
+# Expected: event-fabrication-001 (from dsl/statements/deception.ttl).
 
 PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 

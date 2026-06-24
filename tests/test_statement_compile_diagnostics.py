@@ -1,10 +1,10 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: AGPL-3.0-only
-"""The statement-compile diagnostics surface (#809).
+"""The statement-compile diagnostics surface (#809, #935).
 
 Statement invariants and the RDF-1.2 ↔ OWL lossless round-trip are both checked
-natively in Rust (``gmeow_validate``); ``statement_compile`` is the thin surface
-that unions them into the canonical ``Report``.
+natively in Rust. The feedback surface calls the native statement pipeline and
+unions the reports into the canonical ``Report``.
 """
 
 from __future__ import annotations
@@ -12,7 +12,7 @@ from __future__ import annotations
 from gmeow_rdf.compat.rdflib import RDF, Graph, URIRef
 from gmeow_rdf.compat.rdflib.namespace import OWL
 
-from gmeow_tools import statement_compile
+from gmeow_tools import cli_dev
 
 _GMEOW = "https://blackcatinformatics.ca/gmeow/"
 
@@ -30,7 +30,7 @@ def _axiom(graph: Graph, ax: URIRef) -> None:
 
 def test_clean_committed_statements_compile_to_an_ok_report() -> None:
     """The committed statement DSL compiles with no error findings."""
-    report = statement_compile.compile_diagnostics_report()
+    report = cli_dev._statement_compile_report()
 
     assert report.ok
     assert report.error_count == 0

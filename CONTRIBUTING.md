@@ -134,7 +134,7 @@ make help
   from a reference-only (NC/ND/share-alike/copyleft) source — the tooling refuses
   this by design.
 - Statement-level metadata is **RDF 1.2 / RDF\*** in GMEOW's model, and it is the
-  **canonical** form (Principles 2–3). Author it once in `statement-dsl/` — the
+  **canonical** form (Principles 2–3). Author it once in `dsl/statements/` — the
   RDF 1.2-shaped Turtle DSL — then run `make regenerate`. The RDF 1.2 / RDF\*
   serialization **and** the OWL 2 axiom-annotation form (`owl:Axiom` +
   `owl:annotatedSource/Property/Target`) are both **generated — do not hand-author
@@ -163,7 +163,7 @@ Before requesting review, make sure you:
 - [ ] ran `make reason` after any ontology change (native EL/DL profile)
 - [ ] ran `make regenerate` after any `mapping-dsl/` change, then
       `make mappings` and `make wikidata`
-- [ ] ran `make regenerate` after any `statement-dsl/` change
+- [ ] ran `make regenerate` after any `dsl/statements/` change
 - [ ] ran `uv run pytest`
 - [ ] ran `make check` for the full repository gate
 - [ ] updated tests for any behavioural change

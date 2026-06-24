@@ -9,7 +9,7 @@
 # and the .mailmap projection generates a canonical line + a suppressed
 # mapping line (Principle 10).
 #
-# The IRIs here use the same namespace as statement-dsl/examples.ttl so that
+# The IRIs here use the same namespace as dsl/statements/examples.ttl so that
 # the compiled statement metadata attaches directly to the fixture triples.
 
 # --- Contributor transition --------------------------------------------------
@@ -43,7 +43,7 @@ ex:alice a gmeow:Person .
 
 ex:meowProduct a gmeow:SoftwareProduct .
 
-# IRIs here match the statement-dsl/examples.ttl cell ex:claim-ai-commit-authorship
+# IRIs here match the dsl/statements/examples.ttl cell ex:claim-ai-commit-authorship
 ex:aiCommit a gmeow:Commit ;
     gmeow:contentDigest "git:cafebabe00000000000000000000000000000001" ;
     gmeow:authoredBy ex:copilot ;

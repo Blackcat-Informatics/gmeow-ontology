@@ -1,10 +1,10 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Content-addressed provenance IRI helpers — Rust mirror of the Python oracle.
+//! Content-addressed provenance IRI helpers.
 //!
-//! Every function here **must** produce byte-identical output to the corresponding
-//! Python function in `gmeow_tools.statement_dsl` / `gmeow_tools.logic_materialize`.
+//! Every function here **must** produce byte-identical output to the canonical
+//! native statements recipe and `gmeow_tools.logic_materialize`.
 //! The goldens in `tests/fixtures/logic/determinism-goldens.json` are normative;
 //! any deviation from them is a hard test failure.
 //!
@@ -163,7 +163,7 @@ pub fn named_node_n3(nn: &NamedNode) -> String {
 
 /// Compute the reifier IRI for an `(S, P, O)` triple.
 ///
-/// Mirrors `mint_reifier` in `gmeow_tools.statement_dsl` exactly:
+/// Mirrors the native statement-stage reifier recipe exactly:
 /// ```text
 /// canonical = s.n3() + " " + p.n3() + " " + o.n3()
 /// digest    = sha1(canonical.encode("utf-8")).hexdigest()
