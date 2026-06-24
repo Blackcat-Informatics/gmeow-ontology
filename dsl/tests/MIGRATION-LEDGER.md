@@ -373,6 +373,45 @@ This harness is the foundational substrate for migrating the remaining ~230
 
 Slice-shapes glob: `slices/*/shapes.ttl` discovered recursively via directory walk from repo root, sorted ascending.
 
+### Batch 2: shared support module + test_deception.py
+
+**Refactor:** All non-`#[test]` helpers from `ontology_conformance.rs` extracted into
+`crates/validate/tests/conformance_support/mod.rs` and made `pub`. This module also adds
+two merged-ontology helpers:
+
+- `base_ontology_nt() -> &'static str` — OnceLock-cached: parses every `slices/*/*/module.ttl`
+  (recursively) into one oxigraph Store and dumps as N-Triples. Mirrors
+  `load_merged_graph(include_imports=False)`.
+- `validate_with_ontology(fixture_nt: &str) -> ValidationReport` — validates
+  `base_ontology_nt() + "\n" + fixture_nt` against `whole_shapes_ttl()` for tests that
+  require class/property declarations from the merged ontology.
+
+`ontology_conformance.rs` now contains only `mod conformance_support; use conformance_support::*;`
+plus the 17 `#[test]` functions; all helper bodies deleted. All 17 tests still pass.
+
+**Deception migration** (`tests/test_deception.py` → `crates/validate/tests/conformance_deception.rs`):
+
+`_doxastic_claim(g, claim, agent, proposition, method)` is expanded inline as `doxastic_claim_ttl(claim, state, agent, prop, method) -> String` producing the same 7 triples (explicit double-typing of `DoxasticStandpointClaim` + `StandpointClaim` preserved).
+
+| pytest fn | source file | disposition | Rust twin test name | note |
+|-----------|-------------|------------|---------------------|------|
+| `test_standpoint_divergence_coexists` | `tests/test_deception.py` | converted | `standpoint_divergence_coexists` | inline Turtle, `_doxastic_claim` expanded ×2 |
+| `test_deception_event_shacl_passes` | `tests/test_deception.py` | converted | `deception_event_shacl_passes` | inline Turtle, deceptionCue observation included |
+| `test_deception_cue_shacl_passes` | `tests/test_deception.py` | converted | `deception_cue_shacl_passes` | inline Turtle, identical graph to above |
+| `test_paltering_implicates_structure` | `tests/test_deception.py` | converted | `paltering_implicates_structure` | inline Turtle, implicates triple included |
+| `test_self_deception_same_agent` | `tests/test_deception.py` | converted | `self_deception_same_agent` | inline Turtle, two Participation relators |
+| `test_distortion_shacl_passes` | `tests/test_deception.py` | converted | `distortion_shacl_passes` | inline Turtle, spin-doctor participation |
+| `test_fabrication_refuted_provenance` | `tests/test_deception.py` | converted | `fabrication_refuted_provenance` | inline Turtle, VerificationResult with failed status |
+| `test_forgery_failed_signature_structure` | `tests/test_deception.py` | converted | `forgery_failed_signature_structure` | inline Turtle, CryptographicSignature + counterpartOf |
+| `test_impersonation_facet_subject_mismatch` | `tests/test_deception.py` | converted | `impersonation_facet_subject_mismatch` | inline Turtle, IdentityFacet + AuthenticationResult |
+| `test_disinformation_propagation_chain` | `tests/test_deception.py` | converted | `disinformation_propagation_chain` | inline Turtle, 3-hop chain, 4 `_doxastic_claim` expansions |
+| `test_blame_deflection_example_uses_doxastic_standpoint_claims` | `tests/test_deception.py` | **retained** | — | loads example file from disk and iterates subjects dynamically — no portable Rust equivalent |
+| `test_bullshit_modality_exists` | `tests/test_deception.py` | **retained** | — | calls `_graph()` / `load_merged_graph`; cross-slice merged-graph check |
+| `test_licensed_falsehood_not_a_lie` | `tests/test_deception.py` | **retained** | — | calls `run_shacl` AND `_graph()` for cross-slice vocabulary assertions (`veridicalityLicensedFalsehood`, `NarrativeReferenceFrame`); the `_graph()` half requires the merged ontology load |
+| `test_disinformation_boundary_query` | `tests/test_deception.py` | **retained** | — | uses `load_merged_graph` + external `.rq` competency file + SPARQL SELECT result inspection |
+
+**Tally:** 10 converted, 4 retained. `tests/test_deception.py` 14 → 4 fns.
+
 ## #867 structural batch 10 (places — the 129-fn slice)
 
 The largest single slice (129 pytest fns) migrated to `slices/core/places/tests/structural.ttl`

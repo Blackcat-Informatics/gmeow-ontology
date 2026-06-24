@@ -11,18 +11,29 @@ Retained here (not migratable to module-scoped declarative cells):
   - test_bullshit_modality_exists:
       gmeow:bullshit is defined in slices/core/standpoint/module.ttl
       (cross-slice), not in the deception module.
-  - All run_shacl() ExampleConformance tests.
   - test_licensed_falsehood_not_a_lie:
       run_shacl() + cross-slice NarrativeReferenceFrame guard.
   - test_disinformation_boundary_query:
       reads an external competency .rq file and checks result labels.
+
+Migrated to crates/validate/tests/conformance_deception.rs (#867 Batch 2):
+  - test_standpoint_divergence_coexists
+  - test_deception_event_shacl_passes
+  - test_deception_cue_shacl_passes
+  - test_paltering_implicates_structure
+  - test_self_deception_same_agent
+  - test_distortion_shacl_passes
+  - test_fabrication_refuted_provenance
+  - test_forgery_failed_signature_structure
+  - test_impersonation_facet_subject_mismatch
+  - test_disinformation_propagation_chain
 """
 
 from __future__ import annotations
 
 from pathlib import Path
 
-from gmeow_rdf.compat.rdflib import OWL, RDF, Graph, Literal, Namespace, URIRef
+from gmeow_rdf.compat.rdflib import OWL, RDF, Graph, Namespace, URIRef
 
 from gmeow_tools.config import COMPETENCY_DIR
 from gmeow_tools.graph import load_merged_graph
@@ -89,146 +100,6 @@ def test_bullshit_modality_exists() -> None:
     assert (GMEOW.bullshit, RDF.type, GMEOW.StandpointModality) in graph
 
 
-def test_standpoint_divergence_coexists() -> None:
-    """Principle 9: held and projected standpoints are coexisting claims,
-    neither privileged. The graph must permit both on the same event."""
-    g = Graph()
-    g.add((EX.event1, RDF.type, GMEOW.Event))
-    g.add((EX.event1, GMEOW.eventType, GMEOW.eventTypeDeception))
-    g.add((EX.agent1, RDF.type, GMEOW.Agent))
-    g.add((EX.propA, RDF.type, GMEOW.Proposition))
-    g.add((EX.propB, RDF.type, GMEOW.Proposition))
-    g.add((EX.event1, GMEOW.heldStandpoint, EX.claimA))
-    g.add((EX.event1, GMEOW.projectedStandpoint, EX.claimB))
-    _doxastic_claim(g, EX.claimA, EX.agent1, EX.propA)
-    _doxastic_claim(g, EX.claimB, EX.agent1, EX.propB)
-    g.add((EX.method1, RDF.type, GMEOW.ObservationMethod))
-
-    result = run_shacl(g)
-    assert result.ok, "\n".join(result.errors)
-
-
-def test_deception_event_shacl_passes() -> None:
-    """A fully-populated deception event passes SHACL."""
-    g = Graph()
-    g.add((EX.event1, RDF.type, GMEOW.Event))
-    g.add((EX.event1, GMEOW.eventType, GMEOW.eventTypeDeception))
-    g.add((EX.agent1, RDF.type, GMEOW.Agent))
-    g.add((EX.propA, RDF.type, GMEOW.Proposition))
-    g.add((EX.propB, RDF.type, GMEOW.Proposition))
-    g.add((EX.event1, GMEOW.heldStandpoint, EX.claimA))
-    g.add((EX.event1, GMEOW.projectedStandpoint, EX.claimB))
-    _doxastic_claim(g, EX.claimA, EX.agent1, EX.propA)
-    _doxastic_claim(g, EX.claimB, EX.agent1, EX.propB)
-    g.add((EX.method1, RDF.type, GMEOW.ObservationMethod))
-    g.add((EX.cue1, RDF.type, GMEOW.Observation))
-    g.add((EX.cue1, GMEOW.vantage, EX.analyst))
-    g.add((EX.cue1, GMEOW.observationResult, EX.result1))
-    g.add((EX.cue1, GMEOW.observedFeature, EX.event1))
-    g.add((EX.event1, GMEOW.deceptionCue, EX.cue1))
-
-    result = run_shacl(g)
-    assert result.ok, "\n".join(result.errors)
-
-
-def test_deception_cue_shacl_passes() -> None:
-    """A deception cue observation passes SHACL."""
-    g = Graph()
-    g.add((EX.event1, RDF.type, GMEOW.Event))
-    g.add((EX.event1, GMEOW.eventType, GMEOW.eventTypeDeception))
-    g.add((EX.agent1, RDF.type, GMEOW.Agent))
-    g.add((EX.propA, RDF.type, GMEOW.Proposition))
-    g.add((EX.propB, RDF.type, GMEOW.Proposition))
-    g.add((EX.event1, GMEOW.heldStandpoint, EX.claimA))
-    g.add((EX.event1, GMEOW.projectedStandpoint, EX.claimB))
-    _doxastic_claim(g, EX.claimA, EX.agent1, EX.propA)
-    _doxastic_claim(g, EX.claimB, EX.agent1, EX.propB)
-    g.add((EX.method1, RDF.type, GMEOW.ObservationMethod))
-    g.add((EX.cue1, RDF.type, GMEOW.Observation))
-    g.add((EX.cue1, GMEOW.vantage, EX.analyst))
-    g.add((EX.cue1, GMEOW.observationResult, EX.result1))
-    g.add((EX.cue1, GMEOW.observedFeature, EX.event1))
-    g.add((EX.event1, GMEOW.deceptionCue, EX.cue1))
-
-    result = run_shacl(g)
-    assert result.ok, "\n".join(result.errors)
-
-
-# ===========================================================================
-# Issue #215 -- Speech-act deception types (SHACL conformance).
-# ===========================================================================
-
-
-def test_paltering_implicates_structure() -> None:
-    """A paltering event can carry gmeow:implicates to a proposition.
-    The implicates property domain is Event and range is Entity."""
-    g = Graph()
-    g.add((EX.event1, RDF.type, GMEOW.Event))
-    g.add((EX.event1, GMEOW.eventType, GMEOW.eventTypePaltering))
-    g.add((EX.event1, GMEOW.implicates, EX.propositionPprime))
-    g.add((EX.agent1, RDF.type, GMEOW.Agent))
-    g.add((EX.propA, RDF.type, GMEOW.Proposition))
-    g.add((EX.propB, RDF.type, GMEOW.Proposition))
-    g.add((EX.event1, GMEOW.heldStandpoint, EX.claimA))
-    g.add((EX.event1, GMEOW.projectedStandpoint, EX.claimB))
-    _doxastic_claim(g, EX.claimA, EX.agent1, EX.propA)
-    _doxastic_claim(g, EX.claimB, EX.agent1, EX.propB)
-    g.add((EX.method1, RDF.type, GMEOW.ObservationMethod))
-
-    result = run_shacl(g)
-    assert result.ok, "\n".join(result.errors)
-
-
-def test_self_deception_same_agent() -> None:
-    """Self-deception: the same agent can bear both deceiver and deceived roles
-    on the same event via distinct Participation relators (Principle 9)."""
-    g = Graph()
-    g.add((EX.event1, RDF.type, GMEOW.Event))
-    g.add((EX.event1, GMEOW.eventType, GMEOW.eventTypeSelfDeception))
-    g.add((EX.agent1, RDF.type, GMEOW.Agent))
-    g.add((EX.propA, RDF.type, GMEOW.Proposition))
-    g.add((EX.propB, RDF.type, GMEOW.Proposition))
-    g.add((EX.event1, GMEOW.heldStandpoint, EX.claimA))
-    g.add((EX.event1, GMEOW.projectedStandpoint, EX.claimB))
-    _doxastic_claim(g, EX.claimA, EX.agent1, EX.propA)
-    _doxastic_claim(g, EX.claimB, EX.agent1, EX.propB)
-    g.add((EX.method1, RDF.type, GMEOW.ObservationMethod))
-    # Same agent in both roles via distinct participations.
-    g.add((EX.partDeceiver, RDF.type, GMEOW.Participation))
-    g.add((EX.partDeceiver, GMEOW.participationEvent, EX.event1))
-    g.add((EX.partDeceiver, GMEOW.participationParticipant, EX.agent1))
-    g.add((EX.partDeceiver, GMEOW.participationRole, GMEOW.roleDeceiver))
-    g.add((EX.partDeceived, RDF.type, GMEOW.Participation))
-    g.add((EX.partDeceived, GMEOW.participationEvent, EX.event1))
-    g.add((EX.partDeceived, GMEOW.participationParticipant, EX.agent1))
-    g.add((EX.partDeceived, GMEOW.participationRole, GMEOW.roleDeceived))
-
-    result = run_shacl(g)
-    assert result.ok, "\n".join(result.errors)
-
-
-def test_distortion_shacl_passes() -> None:
-    """A distortion event with spin-doctor role passes SHACL."""
-    g = Graph()
-    g.add((EX.event1, RDF.type, GMEOW.Event))
-    g.add((EX.event1, GMEOW.eventType, GMEOW.eventTypeDistortion))
-    g.add((EX.agent1, RDF.type, GMEOW.Agent))
-    g.add((EX.propA, RDF.type, GMEOW.Proposition))
-    g.add((EX.propB, RDF.type, GMEOW.Proposition))
-    g.add((EX.event1, GMEOW.heldStandpoint, EX.claimA))
-    g.add((EX.event1, GMEOW.projectedStandpoint, EX.claimB))
-    _doxastic_claim(g, EX.claimA, EX.agent1, EX.propA)
-    _doxastic_claim(g, EX.claimB, EX.agent1, EX.propB)
-    g.add((EX.method1, RDF.type, GMEOW.ObservationMethod))
-    g.add((EX.partSpin, RDF.type, GMEOW.Participation))
-    g.add((EX.partSpin, GMEOW.participationEvent, EX.event1))
-    g.add((EX.partSpin, GMEOW.participationParticipant, EX.spinDoctor))
-    g.add((EX.partSpin, GMEOW.participationRole, GMEOW.roleSpinDoctor))
-
-    result = run_shacl(g)
-    assert result.ok, "\n".join(result.errors)
-
-
 def test_licensed_falsehood_not_a_lie() -> None:
     """Negative guard: a fiction claim under a NarrativeReferenceFrame must NOT
     be typed as a lie event — the licensed-falsehood safety property.
@@ -266,161 +137,6 @@ def test_licensed_falsehood_not_a_lie() -> None:
         RDF.type,
         OWL.Class,
     ) in graph
-
-
-# ===========================================================================
-# Issue #216 -- Carrier deception types (SHACL conformance).
-# ===========================================================================
-
-
-def test_fabrication_refuted_provenance() -> None:
-    """A fabrication event with refuted provenance passes SHACL."""
-    g = Graph()
-    g.add((EX.event1, RDF.type, GMEOW.Event))
-    g.add((EX.event1, GMEOW.eventType, GMEOW.eventTypeFabrication))
-    g.add((EX.agent1, RDF.type, GMEOW.Agent))
-    g.add((EX.propA, RDF.type, GMEOW.Proposition))
-    g.add((EX.propB, RDF.type, GMEOW.Proposition))
-    g.add((EX.event1, GMEOW.heldStandpoint, EX.claimA))
-    g.add((EX.event1, GMEOW.projectedStandpoint, EX.claimB))
-    _doxastic_claim(g, EX.claimA, EX.agent1, EX.propA)
-    _doxastic_claim(g, EX.claimB, EX.agent1, EX.propB)
-    g.add((EX.method1, RDF.type, GMEOW.ObservationMethod))
-    # The fabricated work has a failed verification result (evidence, not axiom).
-    g.add((EX.work1, RDF.type, GMEOW.CreativeWork))
-    g.add((EX.event1, GMEOW.implicates, EX.work1))
-    g.add((EX.verification1, RDF.type, GMEOW.VerificationResult))
-    g.add(
-        (EX.verification1, GMEOW.hasVerificationStatus, GMEOW.verificationStatusFailed)
-    )
-
-    result = run_shacl(g)
-    assert result.ok, "\n".join(result.errors)
-
-
-def test_forgery_failed_signature_structure() -> None:
-    """A forgery event with counterpartOf + failed CryptographicSignature
-    passes SHACL."""
-    g = Graph()
-    g.add((EX.event1, RDF.type, GMEOW.Event))
-    g.add((EX.event1, GMEOW.eventType, GMEOW.eventTypeForgery))
-    g.add((EX.agent1, RDF.type, GMEOW.Agent))
-    g.add((EX.propA, RDF.type, GMEOW.Proposition))
-    g.add((EX.propB, RDF.type, GMEOW.Proposition))
-    g.add((EX.event1, GMEOW.heldStandpoint, EX.claimA))
-    g.add((EX.event1, GMEOW.projectedStandpoint, EX.claimB))
-    _doxastic_claim(g, EX.claimA, EX.agent1, EX.propA)
-    _doxastic_claim(g, EX.claimB, EX.agent1, EX.propB)
-    g.add((EX.method1, RDF.type, GMEOW.ObservationMethod))
-    # Forged work counterpartOf genuine work.
-    g.add((EX.forgedWork, RDF.type, GMEOW.CreativeWork))
-    g.add((EX.genuineWork, RDF.type, GMEOW.CreativeWork))
-    g.add((EX.forgedWork, GMEOW.counterpartOf, EX.genuineWork))
-    g.add((EX.event1, GMEOW.implicates, EX.forgedWork))
-    # Failed cryptographic signature.
-    g.add((EX.signature1, RDF.type, GMEOW.CryptographicSignature))
-    g.add((EX.signature1, GMEOW.signatureOf, EX.forgedWork))
-    g.add((EX.signature1, GMEOW.hasVerificationStatus, GMEOW.verificationStatusFailed))
-
-    result = run_shacl(g)
-    assert result.ok, "\n".join(result.errors)
-
-
-def test_impersonation_facet_subject_mismatch() -> None:
-    """An impersonation event where projected identity facet subject
-    ≠ deceiver passes SHACL."""
-    g = Graph()
-    g.add((EX.event1, RDF.type, GMEOW.Event))
-    g.add((EX.event1, GMEOW.eventType, GMEOW.eventTypeImpersonation))
-    g.add((EX.agent1, RDF.type, GMEOW.Agent))
-    g.add((EX.propA, RDF.type, GMEOW.Proposition))
-    g.add((EX.propB, RDF.type, GMEOW.Proposition))
-    g.add((EX.event1, GMEOW.heldStandpoint, EX.claimA))
-    g.add((EX.event1, GMEOW.projectedStandpoint, EX.claimB))
-    _doxastic_claim(g, EX.claimA, EX.agent1, EX.propA)
-    _doxastic_claim(g, EX.claimB, EX.agent1, EX.propB)
-    g.add((EX.method1, RDF.type, GMEOW.ObservationMethod))
-    # Projected identity facet's subject is the victim, not the deceiver.
-    g.add((EX.facet1, RDF.type, GMEOW.IdentityFacet))
-    g.add((EX.facet1, GMEOW.facetSubject, EX.victim))
-    g.add((EX.facet1, GMEOW.facetVantage, EX.victim))
-    g.add((EX.facet1, GMEOW.observedFeature, EX.event1))
-    # Failed email authentication result (spoofing instance).
-    g.add((EX.authResult1, RDF.type, GMEOW.AuthenticationResult))
-    g.add((EX.authResult1, GMEOW.authResult, Literal("fail")))
-
-    result = run_shacl(g)
-    assert result.ok, "\n".join(result.errors)
-
-
-# ===========================================================================
-# Issue #217 -- Disinformation campaign (SHACL conformance + query).
-# ===========================================================================
-
-
-def test_disinformation_propagation_chain() -> None:
-    """A 3-hop disinformation chain passes SHACL.
-
-    Hop 0 (origin): deceiver seeds false claim — held ≠ projected + intent.
-    Hop 1 (dupe):   sincere believer reshares — held ≈ projected, untrue, no intent.
-    Hop 2 (downstream): another sincere resharing — held ≈ projected, untrue, no intent.
-    """
-    g = Graph()
-
-    # --- Hop 0: Disinformation origin ---
-    g.add((EX.originEvent, RDF.type, GMEOW.Event))
-    g.add((EX.originEvent, GMEOW.eventType, GMEOW.eventTypeDisinformation))
-    g.add((EX.deceiver, RDF.type, GMEOW.Agent))
-    g.add((EX.originHeldProp, RDF.type, GMEOW.Proposition))
-    g.add((EX.originProjectedProp, RDF.type, GMEOW.Proposition))
-    # held ≠ projected
-    g.add((EX.originEvent, GMEOW.heldStandpoint, EX.originHeld))
-    g.add((EX.originEvent, GMEOW.projectedStandpoint, EX.originProjected))
-    _doxastic_claim(g, EX.originHeld, EX.deceiver, EX.originHeldProp)
-    _doxastic_claim(g, EX.originProjected, EX.deceiver, EX.originProjectedProp)
-    # deceptive intent claim present
-    g.add((EX.originEvent, GMEOW.deceptiveIntentClaim, EX.originIntent))
-    g.add((EX.originIntent, RDF.type, GMEOW.StandpointClaim))
-    g.add((EX.originIntent, GMEOW.observationMethod, EX.method1))
-    # origin deceiver role
-    g.add((EX.partOriginDeceiver, RDF.type, GMEOW.Participation))
-    g.add((EX.partOriginDeceiver, GMEOW.participationEvent, EX.originEvent))
-    g.add((EX.partOriginDeceiver, GMEOW.participationParticipant, EX.deceiver))
-    g.add((EX.partOriginDeceiver, GMEOW.participationRole, GMEOW.roleDeceiver))
-
-    # --- Hop 1: Dupe resharing (misinformation at this node) ---
-    g.add((EX.dupeEvent, RDF.type, GMEOW.Event))
-    g.add((EX.dupeEvent, GMEOW.eventType, GMEOW.eventTypeDeception))
-    g.add((EX.dupe, RDF.type, GMEOW.Agent))
-    g.add((EX.dupeProp, RDF.type, GMEOW.Proposition))
-    # held ≈ projected (same claim)
-    g.add((EX.dupeEvent, GMEOW.heldStandpoint, EX.dupeBelief))
-    g.add((EX.dupeEvent, GMEOW.projectedStandpoint, EX.dupeBelief))
-    _doxastic_claim(g, EX.dupeBelief, EX.dupe, EX.dupeProp)
-    g.add((EX.dupeBelief, GMEOW.claimVeridicality, GMEOW.veridicalityUntrue))
-    # NO deceptiveIntentClaim — the dupe is sincere
-    # dupe role
-    g.add((EX.partDupe, RDF.type, GMEOW.Participation))
-    g.add((EX.partDupe, GMEOW.participationEvent, EX.dupeEvent))
-    g.add((EX.partDupe, GMEOW.participationParticipant, EX.dupe))
-    g.add((EX.partDupe, GMEOW.participationRole, GMEOW.roleDupe))
-
-    # --- Hop 2: Downstream resharing (misinformation at this node) ---
-    g.add((EX.downstreamEvent, RDF.type, GMEOW.Event))
-    g.add((EX.downstreamEvent, GMEOW.eventType, GMEOW.eventTypeDeception))
-    g.add((EX.downstream, RDF.type, GMEOW.Agent))
-    g.add((EX.downstreamProp, RDF.type, GMEOW.Proposition))
-    g.add((EX.downstreamEvent, GMEOW.heldStandpoint, EX.downstreamBelief))
-    g.add((EX.downstreamEvent, GMEOW.projectedStandpoint, EX.downstreamBelief))
-    _doxastic_claim(g, EX.downstreamBelief, EX.downstream, EX.downstreamProp)
-    g.add((EX.downstreamBelief, GMEOW.claimVeridicality, GMEOW.veridicalityUntrue))
-    # NO deceptiveIntentClaim
-
-    # Shared method
-    g.add((EX.method1, RDF.type, GMEOW.ObservationMethod))
-
-    result = run_shacl(g)
-    assert result.ok, "\n".join(result.errors)
 
 
 def test_disinformation_boundary_query() -> None:
