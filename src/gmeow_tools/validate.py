@@ -674,11 +674,11 @@ def validate_all(
         # validated against the test-DSL shapes here, Python-side, since the Rust
         # engine does not own this lane. A violation is a real validation error.
         try:
-            from gmeow_tools.mapping_dsl import CompileError
+            from gmeow_tools.dsl_validate import DslValidationError
             from gmeow_tools.test_dsl import load_test_dsl
 
             load_test_dsl()
-        except CompileError as exc:
+        except DslValidationError as exc:
             message = str(exc)
             result.errors.append(message)
             py_errors.append(message)

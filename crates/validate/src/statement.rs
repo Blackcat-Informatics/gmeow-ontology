@@ -234,7 +234,7 @@ fn first_object(
 
 /// Run every statement invariant over the emitted-OWL-unioned-with-ontology
 /// store, returning a `Finding` per violation (all `Error` severity — these
-/// currently raise `CompileError`, a hard compile block).
+/// block statement compilation).
 ///
 /// `store` must hold the `emit_owl` output UNIONED with the ontology in the
 /// default graph.

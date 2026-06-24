@@ -35,8 +35,7 @@ from gmeow_tools.config import NAMESPACE, SLICES_DIR
 class SliceError(Exception):
     """A structurally invalid slice manifest or slice-set contradiction.
 
-    Deliberately not :class:`gmeow_tools.mapping_dsl.CompileError`: slice
-    discovery is foundational (config-only imports) and sits *below* the
+    Slice discovery is foundational (config-only imports) and sits *below* the
     compilers in the layering, so it raises its own error type.
     """
 

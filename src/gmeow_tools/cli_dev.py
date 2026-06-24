@@ -114,6 +114,20 @@ def _statement_compile_report() -> Any:
     )
 
 
+def _mapping_compile_report() -> Any:
+    """Native mapping compiler diagnostics folded into feedback (#934)."""
+    try:
+        import gmeow_native.pipeline as _pipeline
+    except ImportError as exc:
+        raise _fail(
+            "✗ the native pipeline is unavailable: "
+            f"`import gmeow_native.pipeline` failed ({exc}). Rebuild the unified "
+            "extension (e.g. `maturin develop --manifest-path "
+            "crates/native/Cargo.toml`) to pick up the pipeline submodule."
+        ) from exc
+    return _pipeline.compile_mappings_report(str(PROJECT_ROOT))
+
+
 def _regenerate_native(jobs: int | None = None, check: bool = False) -> None:
     """Build (or drift-check) every committed artifact via the Rust pipeline."""
     report = _run_pipeline(jobs=jobs, check=check)
@@ -543,9 +557,7 @@ def _surface_reports() -> list[tuple[str, Callable[[], Any]]]:
         return _statement_compile_report()
 
     def _mapping_compile() -> Any:
-        from gmeow_tools import mapping_compile
-
-        return mapping_compile.compile_diagnostics_report()
+        return _mapping_compile_report()
 
     def _slice_ownership() -> Any:
         # The FULL native slice-ownership report (#809): ownership-defect errors

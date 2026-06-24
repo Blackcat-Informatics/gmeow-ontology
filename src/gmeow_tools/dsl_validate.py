@@ -1,10 +1,9 @@
 """RDF-native SHACL validation for the GMEOW mapping and statement DSL sources.
 
-Runs ``gmeow_shacl`` over the merged DSL graph before the mapping parser or the
-native statement compiler proceed. Violations are surfaced as structured, per-node
-diagnostics (focus node, path, message, source file) so malformed DSL cells
-fail with an RDF-native conformance report rather than a bare Python
-:exc:`CompileError`.
+Runs ``gmeow_shacl`` over the merged DSL graph before native compilers proceed.
+Violations are surfaced as structured, per-node diagnostics (focus node, path,
+message, source file) so malformed DSL cells fail with an RDF-native
+conformance report rather than a compiler-private parser error.
 
 The merged N-Triples and the focus→file provenance map are both built in Rust
 (``gmeow_validate.dsl_merge_with_provenance``): each ``.ttl`` file is parsed in
@@ -26,6 +25,10 @@ from gmeow_tools.config import (
     TEST_DSL_SHAPES_FILE,
 )
 from gmeow_tools.shacl_engine import ShaclResult
+
+
+class DslValidationError(ValueError):
+    """Raised when a DSL source family fails its SHACL validation gate."""
 
 
 def _format_violations(
