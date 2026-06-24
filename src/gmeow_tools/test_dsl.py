@@ -7,8 +7,8 @@ ontology data in each slice's ``tests/`` directory (``slices/*/*/tests/*.ttl``).
 
 This module is the load-then-validate seam: it gathers the vocabulary plus every
 slice-resident fixture file and validates the merged graph against the test-DSL
-SHACL shapes (``shapes/test-dsl-shapes.ttl``) via
-:func:`gmeow_tools.dsl_validate.validate_test_dsl`, raising
+SHACL shapes (``shapes/test-dsl-shapes.ttl``) via the native
+:func:`gmeow_validate.validate_dsl_shacl`, raising
 :exc:`~gmeow_tools.mapping_dsl.CompileError` on any violation. It is a spec
 layer — grounded in the ``gmeow:`` namespace, never owl:imports-ed into the
 reasoned OWL 2 DL core.
@@ -22,8 +22,9 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from gmeow_tools.config import DSL_TESTS_DIR
-from gmeow_tools.dsl_validate import validate_test_dsl
+import gmeow_validate
+
+from gmeow_tools.config import DSL_TESTS_DIR, TEST_DSL_SHAPES_FILE
 from gmeow_tools.mapping_dsl import CompileError
 from gmeow_tools.slices import iter_slice_test_files
 
@@ -57,7 +58,10 @@ def load_test_dsl(vocab_dir: Path = DSL_TESTS_DIR) -> tuple[Path, ...]:
             test-DSL SHACL shapes.
     """
     sources = _test_dsl_sources(vocab_dir)
-    violations = validate_test_dsl([str(path) for path in sources])
+    shapes_ttl = TEST_DSL_SHAPES_FILE.read_text(encoding="utf-8")
+    violations = gmeow_validate.validate_dsl_shacl(
+        [str(path) for path in sources], shapes_ttl
+    )
     if violations:
         raise CompileError("test DSL SHACL violations:\n  " + "\n  ".join(violations))
     return tuple(sources)

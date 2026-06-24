@@ -20,13 +20,17 @@ from dataclasses import dataclass, field
 from functools import lru_cache
 from pathlib import Path
 
+import gmeow_validate
 from gmeow_rdf.compat.rdflib import RDF, RDFS, SKOS, Graph, Literal, URIRef
 from gmeow_rdf.compat.rdflib.collection import Collection
 from gmeow_rdf.compat.rdflib.namespace import Namespace
 from gmeow_rdf.compat.rdflib.term import Node
 
-from gmeow_tools.config import MAPPING_DSL_DIR, PREFIXES
-from gmeow_tools.dsl_validate import validate_mapping_dsl
+from gmeow_tools.config import (
+    MAPPING_DSL_DIR,
+    MAPPING_DSL_SHAPES_FILE,
+    PREFIXES,
+)
 from gmeow_tools.slices import iter_slice_mapping_files
 
 GM = Namespace(PREFIXES["gmeow"])
@@ -711,10 +715,13 @@ def load_dsl(src: Path = MAPPING_DSL_DIR) -> Dsl:
         sources += iter_slice_mapping_files()
     for path in sources:
         graph.parse(path, format="turtle")
-    # SHACL validation + focus→file provenance run in Rust over the same source
-    # paths (#579): the compiler keeps the rdflib graph only for its dataclass
-    # extraction below.
-    violations = validate_mapping_dsl([str(path) for path in sources])
+    # SHACL validation + focus→file provenance run natively in Rust over the
+    # same source paths (#937): the compiler keeps the rdflib graph only for its
+    # dataclass extraction below.
+    shapes_ttl = MAPPING_DSL_SHAPES_FILE.read_text(encoding="utf-8")
+    violations = gmeow_validate.validate_dsl_shacl(
+        [str(path) for path in sources], shapes_ttl
+    )
     if violations:
         raise CompileError(
             "mapping DSL SHACL violations:\n  " + "\n  ".join(violations)
