@@ -1,31 +1,25 @@
-"""Universal mereology spine and propagation rules (#76)."""
+"""Universal mereology spine — structural TBox well-formedness (#76).
+
+The OWL 2 RL propagation tests that used to live here — specialized-part relations
+entailing generic parthood, ``memberOf`` propagating through ``subOrganizationOf``,
+event location propagating through spatial containment — were migrated to the
+native Rust reasoning harness (``crates/logic/tests/ontology_entailments.rs``)
+under issue #896. What remains are the **structural** checks: they run over the
+ASSERTED merged graph (no reasoning closure), pinning the shape of the partOf /
+hasPart spine and its sub-properties. See ``dsl/tests/MIGRATION-LEDGER.md``.
+"""
 
 from __future__ import annotations
 
 from gmeow_rdf.compat.rdflib import OWL, RDF, RDFS, Graph, Namespace
-from gmeow_rdf.compat.rdflib.term import Node
 
 from gmeow_tools.graph import load_merged_graph
-from gmeow_tools.native_rl_rdflib import native_rl_closure
-from gmeow_tools.slices import module_path
 
 GM = Namespace("https://blackcatinformatics.ca/gmeow/")
-EX = Namespace("https://example.org/mereology/")
 
 
 def _graph() -> Graph:
     return load_merged_graph(include_imports=False)
-
-
-def _materialize(*modules: str, abox: tuple[tuple[Node, Node, Node], ...]) -> Graph:
-    """Close real authored modules + a tiny A-Box under OWL 2 RL."""
-    graph = Graph()
-    for module in modules:
-        graph.parse(module_path(module), format="turtle")
-    for triple in abox:
-        graph.add(triple)
-    native_rl_closure(graph)
-    return graph
 
 
 def test_universal_part_properties_are_broad_transitive_inverses() -> None:
@@ -65,55 +59,6 @@ def test_existing_part_like_relations_specialize_the_spine() -> None:
         assert (prop, RDFS.subPropertyOf, GM.partOf) in g
     for prop in has_part_subproperties:
         assert (prop, RDFS.subPropertyOf, GM.hasPart) in g
-
-
-def test_specialized_part_relations_entail_generic_parthood() -> None:
-    g = _materialize(
-        "kernel",
-        "places",
-        "organization",
-        "events",
-        "email",
-        abox=(
-            (EX.room, GM.containedInPlace, EX.building),
-            (EX.team, GM.subOrganizationOf, EX.division),
-            (EX.talk, GM.subEventOf, EX.session),
-            (EX.message, GM.hasBodyPart, EX.mimePart),
-        ),
-    )
-    assert (EX.room, GM.partOf, EX.building) in g
-    assert (EX.team, GM.partOf, EX.division) in g
-    assert (EX.talk, GM.partOf, EX.session) in g
-    assert (EX.message, GM.hasPart, EX.mimePart) in g
-
-
-def test_member_of_propagates_through_suborganization() -> None:
-    g = _materialize(
-        "kernel",
-        "organization",
-        abox=(
-            (EX.alex, GM.memberOf, EX.team),
-            (EX.team, GM.subOrganizationOf, EX.division),
-            (EX.division, GM.subOrganizationOf, EX.company),
-        ),
-    )
-    assert (EX.alex, GM.memberOf, EX.division) in g
-    assert (EX.alex, GM.memberOf, EX.company) in g
-
-
-def test_event_location_propagates_through_spatial_containment_only() -> None:
-    g = _materialize(
-        "kernel",
-        "places",
-        "events",
-        abox=(
-            (EX.meeting, GM.eventLocation, EX.room),
-            (EX.room, GM.containedInPlace, EX.building),
-            (EX.building, GM.containedInPlace, EX.city),
-        ),
-    )
-    assert (EX.meeting, GM.eventLocation, EX.building) in g
-    assert (EX.meeting, GM.eventLocation, EX.city) in g
 
 
 def test_no_winner_or_cardinality_terms_for_parts() -> None:

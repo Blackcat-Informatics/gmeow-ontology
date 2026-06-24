@@ -50,3 +50,14 @@ test-group = 'engine'
 filter = 'package(gmeow-pipeline) & (binary(/full_parity|fold_parity|end_to_end|dag_dogfood/) | test(/logic_artifacts_reproduce_committed_over_full_fold/))'
 test-group = 'engine'
 slow-timeout = { period = "300s", "terminate-after" = 4, "grace-period" = "30s" }
+
+[[profile.default.overrides]]
+# The #896 native reasoning-entailment harness (crates/logic/tests/ontology_entailments.rs)
+# migrates the OWL/EL/DL reasoning pytest cluster: each test drives Nemo (rl_closure → run_chase)
+# over a scoped set of authored slice modules. Serialize under the `engine` group so the kernel-
+# heavy multi-module closures do not OOM-thrash alongside the other chases on the 16 GB runner, and
+# grant a far longer terminate cliff than the 60s default — a 4–5-module closure is ~60–90s, well
+# past the default 120s terminate point under the engine memory cap.
+filter = 'package(gmeow-logic) & binary(ontology_entailments)'
+test-group = 'engine'
+slow-timeout = { period = "180s", "terminate-after" = 3, "grace-period" = "30s" }

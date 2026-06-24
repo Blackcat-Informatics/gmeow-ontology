@@ -1,26 +1,26 @@
-"""Competency and reasoning tests for the Observation module (#66, #69).
+"""Structural TBox tests for the Observation module (#66, #69).
 
 The observation stack unifies spatial measurement, temporal dating, sensory
 reading, standpoint claims, identity claims, naming claims, rights claims, and
-kinship claims into one gufo:Relator structure. These tests verify:
+kinship claims into one gufo:Relator structure. These tests verify, over the
+ASSERTED graph, that the TBox is well-formed (classes, properties, value
+vocabularies, Stream/property characteristics, asserted sub-property bridges).
 
-1. The TBox is well-formed (classes, properties, value vocabularies).
-2. EL axioms fire (Observation mediates at least vantage + observedFeature).
-3. Property chains fire (frame inheritance via observationResult).
-4. ScalarQuantity is reasoned correctly as an observation result wrapper.
-5. Universal claim construct (#69): NameUsage, IdentityFacet, RightsStatement,
-   and KinRelationship are inferred as Observation subclasses.
-6. Property bridges fire (usageNamer ⊑ vantage, usageNamed ⊑ observedFeature, etc.).
+The OWL 2 RL ENTAILMENT tests — EL consistency, the frame-inheritance / isResultOf
+property chains, and the universal-claim-construct subsumptions (Measurement,
+SensoryObservation, StandpointClaim, NameUsage, IdentityFacet, RightsStatement,
+KinRelationship, SpatialMeasurement, CoordinateObservation ⊑ Observation) — were
+migrated to the native Rust RL harness
+(``crates/logic/tests/ontology_entailments.rs``, issue #896). See
+``dsl/tests/MIGRATION-LEDGER.md``.
 """
 
 from __future__ import annotations
 
-from gmeow_rdf.compat.rdflib import OWL, RDF, RDFS, Graph, Namespace
+from gmeow_rdf.compat.rdflib import OWL, RDF, RDFS, Namespace
 
 from gmeow_tools.config import NAMESPACE
 from gmeow_tools.graph import load_merged_graph
-from gmeow_tools.native_rl_rdflib import native_rl_closure
-from gmeow_tools.slices import module_path
 
 GMEOW = Namespace(NAMESPACE)
 LOGIC = Namespace("https://blackcatinformatics.ca/logic/")
@@ -96,121 +96,6 @@ def test_scalar_quantity_properties_exist() -> None:
     graph = load_merged_graph(include_imports=False)
     assert (GMEOW.quantityValue, RDF.type, OWL.DatatypeProperty) in graph
     assert (GMEOW.quantityUncertainty, RDF.type, OWL.DatatypeProperty) in graph
-
-
-def test_observation_el_axioms_fire() -> None:
-    """An Observation individual with required properties stays consistent."""
-    graph = Graph()
-    graph.parse(module_path("observations"), format="turtle")
-    # Minimal A-Box: an observation of a place by an agent
-    graph.add((EX.obs1, RDF.type, GMEOW.Observation))
-    graph.add((EX.obs1, GMEOW.vantage, EX.agent1))
-    graph.add((EX.obs1, GMEOW.observedFeature, EX.place1))
-    graph.add((EX.agent1, RDF.type, GMEOW.Agent))
-    graph.add((EX.place1, RDF.type, GMEOW.Place))
-
-    # The EL restrictions are necessary (not sufficient) conditions, so the
-    # reasoner will not *infer* Observation from the properties alone under
-    # OWL 2 RL.  What we verify here is that the asserted type is not
-    # contradicted — i.e. the axioms are consistent with the A-Box.
-    native_rl_closure(graph)
-    assert (EX.obs1, RDF.type, GMEOW.Observation) in graph
-
-
-def test_frame_inheritance_property_chain() -> None:
-    """A result inherits the observation's reference frame via property chain."""
-    graph = Graph()
-    graph.parse(module_path("observations"), format="turtle")
-    graph.parse(module_path("places"), format="turtle")
-
-    graph.add((EX.obs1, GMEOW.observationResult, EX.coords1))
-    graph.add((EX.obs1, GMEOW.hasReferenceFrame, EX.frameWGS84))
-    graph.add((EX.coords1, RDF.type, GMEOW.GeoCoordinates))
-    graph.add((EX.frameWGS84, RDF.type, GMEOW.ReferenceFrame))
-
-    native_rl_closure(graph)
-    # The chain: inverse(observationResult) ∘ hasReferenceFrame ⊑ hasReferenceFrame
-    # means: coords1 --inverse(observationResult)-- obs1
-    #         --hasReferenceFrame-- frameWGS84
-    # implies: coords1 --hasReferenceFrame-- frameWGS84
-    assert (EX.coords1, GMEOW.hasReferenceFrame, EX.frameWGS84) in graph
-
-
-def test_measurement_specialises_observation() -> None:
-    """Measurement is inferred as an Observation."""
-    graph = Graph()
-    graph.parse(module_path("observations"), format="turtle")
-    graph.add((EX.m1, RDF.type, GMEOW.Measurement))
-
-    native_rl_closure(graph)
-    assert (EX.m1, RDF.type, GMEOW.Observation) in graph
-
-
-def test_sensory_observation_specialises_observation() -> None:
-    graph = Graph()
-    graph.parse(module_path("observations"), format="turtle")
-    graph.add((EX.s1, RDF.type, GMEOW.SensoryObservation))
-
-    native_rl_closure(graph)
-    assert (EX.s1, RDF.type, GMEOW.Observation) in graph
-
-
-def test_standpoint_claim_specialises_observation() -> None:
-    graph = Graph()
-    graph.parse(module_path("observations"), format="turtle")
-    graph.add((EX.c1, RDF.type, GMEOW.StandpointClaim))
-
-    native_rl_closure(graph)
-    assert (EX.c1, RDF.type, GMEOW.Observation) in graph
-
-
-# --------------------------------------------------------------------------- #
-# Universal claim construct (#69)
-# --------------------------------------------------------------------------- #
-
-
-def test_name_usage_specialises_observation() -> None:
-    """NameUsage is inferred as an Observation."""
-    graph = Graph()
-    graph.parse(module_path("observations"), format="turtle")
-    graph.parse(module_path("names"), format="turtle")
-    graph.add((EX.nu1, RDF.type, GMEOW.NameUsage))
-
-    native_rl_closure(graph)
-    assert (EX.nu1, RDF.type, GMEOW.Observation) in graph
-
-
-def test_identity_facet_specialises_observation() -> None:
-    """IdentityFacet is inferred as an Observation."""
-    graph = Graph()
-    graph.parse(module_path("observations"), format="turtle")
-    graph.parse(module_path("gender"), format="turtle")
-    graph.add((EX.if1, RDF.type, GMEOW.IdentityFacet))
-
-    native_rl_closure(graph)
-    assert (EX.if1, RDF.type, GMEOW.Observation) in graph
-
-
-def test_rights_statement_specialises_observation() -> None:
-    """RightsStatement is inferred as an Observation."""
-    graph = Graph()
-    graph.parse(module_path("observations"), format="turtle")
-    graph.parse(module_path("rights"), format="turtle")
-    graph.add((EX.rs1, RDF.type, GMEOW.RightsStatement))
-
-    native_rl_closure(graph)
-    assert (EX.rs1, RDF.type, GMEOW.Observation) in graph
-
-
-def test_kin_relationship_specialises_observation() -> None:
-    """KinRelationship is inferred as an Observation."""
-    graph = Graph()
-    graph.parse(module_path("observations"), format="turtle")
-    graph.parse(module_path("genealogy"), format="turtle")
-    graph.add((EX.kr1, RDF.type, GMEOW.KinRelationship))
-
-    native_rl_closure(graph)
-    assert (EX.kr1, RDF.type, GMEOW.Observation) in graph
 
 
 def test_property_bridges_fire() -> None:
@@ -313,42 +198,6 @@ def test_is_result_of_is_inverse_of_observation_result() -> None:
     ) in graph
 
 
-def test_is_result_of_provenance_chain() -> None:
-    """A quantity can trace back to its producing observation via isResultOf (#77)."""
-    graph = Graph()
-    graph.parse(module_path("observations"), format="turtle")
-
-    graph.add((EX.obs1, RDF.type, GMEOW.Measurement))
-    graph.add((EX.q1, RDF.type, GMEOW.Quantity))
-    graph.add((EX.q1, GMEOW.isResultOf, EX.obs1))
-
-    native_rl_closure(graph)
-    # Because isResultOf is inverse of observationResult,
-    # obs1 --observationResult--> q1 is inferred.
-    assert (EX.obs1, GMEOW.observationResult, EX.q1) in graph
-
-
-def test_frame_inheritance_via_quantity() -> None:
-    """A Quantity result inherits the observation's reference frame (#77)."""
-    graph = Graph()
-    graph.parse(module_path("observations"), format="turtle")
-    graph.parse(module_path("places"), format="turtle")
-
-    graph.add((EX.obs1, RDF.type, GMEOW.Measurement))
-    graph.add((EX.obs1, GMEOW.observationResult, EX.q1))
-    graph.add((EX.obs1, GMEOW.hasReferenceFrame, EX.frameSI))
-    graph.add((EX.q1, RDF.type, GMEOW.Quantity))
-    graph.add((EX.frameSI, RDF.type, GMEOW.ReferenceFrame))
-
-    native_rl_closure(graph)
-    assert (EX.q1, GMEOW.hasReferenceFrame, EX.frameSI) in graph
-
-
-# --------------------------------------------------------------------------- #
-# Stream — time-ordered observation sequences (#96)
-# --------------------------------------------------------------------------- #
-
-
 def test_stream_class_exists() -> None:
     graph = load_merged_graph(include_imports=False)
     assert (GMEOW.Stream, RDF.type, OWL.Class) in graph
@@ -421,81 +270,6 @@ def test_streaming_observation_type_exists() -> None:
 def test_streaming_method_exists() -> None:
     graph = load_merged_graph(include_imports=False)
     assert (GMEOW.methodStreaming, RDF.type, GMEOW.ObservationMethod) in graph
-
-
-def test_stream_el_axiom() -> None:
-    """A Stream individual with streamOf stays consistent under OWL RL."""
-    graph = Graph()
-    graph.parse(module_path("observations"), format="turtle")
-    graph.add((EX.stream1, RDF.type, GMEOW.Stream))
-    graph.add((EX.stream1, GMEOW.streamOf, EX.entity1))
-    graph.add((EX.entity1, RDF.type, GMEOW.Entity))
-
-    native_rl_closure(graph)
-    assert (EX.stream1, RDF.type, GMEOW.Stream) in graph
-
-
-# --------------------------------------------------------------------------- #
-# SpatialMeasurement / CoordinateObservation (#125)
-# --------------------------------------------------------------------------- #
-
-
-def test_spatial_measurement_infers_observation() -> None:
-    """SpatialMeasurement is inferred as an Observation under OWL RL."""
-    graph = Graph()
-    graph.parse(module_path("observations"), format="turtle")
-    graph.parse(module_path("places"), format="turtle")
-    graph.add((EX.sm1, RDF.type, GMEOW.SpatialMeasurement))
-
-    native_rl_closure(graph)
-    assert (EX.sm1, RDF.type, GMEOW.Observation) in graph
-
-
-def test_coordinate_observation_infers_spatial_measurement() -> None:
-    """CoordinateObservation is inferred as SpatialMeasurement
-    (and thus Observation)."""
-    graph = Graph()
-    graph.parse(module_path("observations"), format="turtle")
-    graph.parse(module_path("places"), format="turtle")
-    graph.add((EX.co1, RDF.type, GMEOW.CoordinateObservation))
-
-    native_rl_closure(graph)
-    assert (EX.co1, RDF.type, GMEOW.SpatialMeasurement) in graph
-    assert (EX.co1, RDF.type, GMEOW.Observation) in graph
-
-
-def test_coordinate_observation_frame_inheritance() -> None:
-    """A CoordinateObservation's result inherits the observation's reference frame."""
-    graph = Graph()
-    graph.parse(module_path("observations"), format="turtle")
-    graph.parse(module_path("places"), format="turtle")
-
-    graph.add((EX.co2, RDF.type, GMEOW.CoordinateObservation))
-    graph.add((EX.co2, GMEOW.coordinateResult, EX.coords2))
-    graph.add((EX.co2, GMEOW.hasReferenceFrame, EX.frameWGS84))
-    graph.add((EX.coords2, RDF.type, GMEOW.GeoCoordinates))
-    graph.add((EX.frameWGS84, RDF.type, GMEOW.ReferenceFrame))
-
-    native_rl_closure(graph)
-    # isResultOf is inverse of observationResult, so coords2 --isResultOf-- co2
-    # Then the chain isResultOf ∘ hasReferenceFrame ⊑ hasReferenceFrame fires.
-    assert (EX.coords2, GMEOW.hasReferenceFrame, EX.frameWGS84) in graph
-
-
-def test_coordinate_observation_el_axioms() -> None:
-    """A CoordinateObservation individual with required properties stays consistent."""
-    graph = Graph()
-    graph.parse(module_path("observations"), format="turtle")
-    graph.parse(module_path("places"), format="turtle")
-
-    graph.add((EX.co3, RDF.type, GMEOW.CoordinateObservation))
-    graph.add((EX.co3, GMEOW.vantage, EX.agent3))
-    graph.add((EX.co3, GMEOW.observedFeature, EX.place3))
-    graph.add((EX.agent3, RDF.type, GMEOW.Agent))
-    graph.add((EX.place3, RDF.type, GMEOW.Place))
-
-    native_rl_closure(graph)
-    assert (EX.co3, RDF.type, GMEOW.CoordinateObservation) in graph
 
 
 def test_coordinate_observation_mapped_to_sosa() -> None:

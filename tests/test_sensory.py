@@ -1,23 +1,21 @@
-"""Competency and reasoning tests for the Sensory module (#126).
+"""Structural TBox + mapping tests for the Sensory module (#126).
 
 The sensory module deepens the SensoryObservation stub with sensor-specific
 properties (sensoryProperty, sensoryResult), introduces Sensor, SensorPlatform,
 ObservableProperty (value vocabulary), and SensoryQuantity (equivalent alias for
-ScalarQuantity). These tests verify:
+ScalarQuantity). These tests verify, over the ASSERTED graph / loaded mappings:
 
 1. The TBox is well-formed (classes, properties, value vocabularies).
-2. SensoryObservation is inferred as Observation under OWL RL.
-3. Sensor is inferred as Agent.
-4. SensoryQuantity is inferred as ScalarQuantity (via equivalence, #77).
-5. ObservableProperty seeds exist.
-6. Bridge properties fire (sensoryResult ⊑ observationResult,
-   sensoryObservationOf ⊑ observedFeature).
-7. EL axioms are consistent (SensoryObservation mediates vantage + feature +
-   property + result).
-8. SOSA alignments are present in the loaded mappings.
-9. Frame inheritance via property chain fires for SensoryQuantity results.
-10. Contested readings pattern: competing observations from different sensors
-    coexist (Principle 9).
+2. The bridge properties / equivalentClass / inverseOf axioms are asserted
+   (sensoryResult ⊑ observationResult, sensoryObservationOf ⊑ observedFeature,
+   SensoryQuantity ≡ ScalarQuantity, hasSensoryObservation inverseOf …).
+3. SOSA / AFO alignments are present in the loaded mappings.
+
+The OWL 2 RL ENTAILMENT tests — SensoryObservation ⊑ Observation, Sensor ⊑ Agent,
+SensoryQuantity inheritance, the frame-inheritance and hasSensoryQuantity property
+chains, EL consistency, and contested-reading coexistence — were migrated to the
+native Rust RL harness (``crates/logic/tests/ontology_entailments.rs``, issue #896).
+See ``dsl/tests/MIGRATION-LEDGER.md``.
 """
 
 from __future__ import annotations
@@ -26,9 +24,7 @@ from gmeow_rdf.compat.rdflib import (
     OWL,
     RDF,
     RDFS,
-    XSD,
     Graph,
-    Literal,
     Namespace,
     URIRef,
 )
@@ -36,7 +32,6 @@ from gmeow_rdf.compat.rdflib.namespace import SKOS
 
 from gmeow_tools.config import NAMESPACE
 from gmeow_tools.graph import load_merged_graph
-from gmeow_tools.native_rl_rdflib import native_rl_closure
 from gmeow_tools.slices import module_path
 
 GMEOW = Namespace(NAMESPACE)
@@ -99,29 +94,6 @@ def test_observable_property_seeds_exist() -> None:
 # --------------------------------------------------------------------------- #
 
 
-def test_sensory_observation_specialises_observation() -> None:
-    """SensoryObservation is inferred as an Observation under OWL RL."""
-    graph = Graph()
-    graph.parse(module_path("observations"), format="turtle")
-    graph.parse(module_path("sensory"), format="turtle")
-    graph.add((EX.so1, RDF.type, GMEOW.SensoryObservation))
-
-    native_rl_closure(graph)
-    assert (EX.so1, RDF.type, GMEOW.Observation) in graph
-
-
-def test_sensor_specialises_agent() -> None:
-    """Sensor is inferred as an Agent under OWL RL."""
-    graph = Graph()
-    graph.parse(module_path("kernel"), format="turtle")
-    graph.parse(module_path("observations"), format="turtle")
-    graph.parse(module_path("sensory"), format="turtle")
-    graph.add((EX.sensor1, RDF.type, GMEOW.Sensor))
-
-    native_rl_closure(graph)
-    assert (EX.sensor1, RDF.type, GMEOW.Agent) in graph
-
-
 def test_sensory_quantity_equivalent_to_scalar_quantity() -> None:
     """SensoryQuantity is equivalent to ScalarQuantity (#77, #126)."""
     graph = load_merged_graph(include_imports=False)
@@ -130,22 +102,6 @@ def test_sensory_quantity_equivalent_to_scalar_quantity() -> None:
         OWL.equivalentClass,
         GMEOW.ScalarQuantity,
     ) in graph
-
-
-def test_sensory_quantity_inherits_scalar_quantity() -> None:
-    """A SensoryQuantity individual is inferred as a ScalarQuantity."""
-    graph = Graph()
-    graph.parse(module_path("observations"), format="turtle")
-    graph.parse(module_path("sensory"), format="turtle")
-    graph.add((EX.sq1, RDF.type, GMEOW.SensoryQuantity))
-
-    native_rl_closure(graph)
-    assert (EX.sq1, RDF.type, GMEOW.ScalarQuantity) in graph
-
-
-# --------------------------------------------------------------------------- #
-# Bridge properties
-# --------------------------------------------------------------------------- #
 
 
 def test_sensory_result_subproperty_of_observation_result() -> None:
@@ -173,121 +129,6 @@ def test_has_sensory_observation_is_inverse() -> None:
 
 # --------------------------------------------------------------------------- #
 # EL axioms — consistency
-# --------------------------------------------------------------------------- #
-
-
-def test_sensory_observation_el_axioms() -> None:
-    """A SensoryObservation individual with required properties stays consistent."""
-    graph = Graph()
-    graph.parse(module_path("kernel"), format="turtle")
-    graph.parse(module_path("places"), format="turtle")
-    graph.parse(module_path("observations"), format="turtle")
-    graph.parse(module_path("sensory"), format="turtle")
-
-    graph.add((EX.so2, RDF.type, GMEOW.SensoryObservation))
-    graph.add((EX.so2, GMEOW.vantage, EX.sensor2))
-    graph.add((EX.so2, GMEOW.sensoryObservationOf, EX.room1))
-    graph.add((EX.so2, GMEOW.sensoryProperty, GMEOW.observablePropertyTemperature))
-    graph.add((EX.so2, GMEOW.sensoryResult, EX.sq2))
-    graph.add((EX.sensor2, RDF.type, GMEOW.Sensor))
-    graph.add((EX.room1, RDF.type, GMEOW.Place))
-    graph.add((EX.sq2, RDF.type, GMEOW.SensoryQuantity))
-
-    native_rl_closure(graph)
-    assert (EX.so2, RDF.type, GMEOW.SensoryObservation) in graph
-
-
-# --------------------------------------------------------------------------- #
-# Frame inheritance via property chain
-# --------------------------------------------------------------------------- #
-
-
-def test_sensory_quantity_frame_inheritance() -> None:
-    """A SensoryQuantity result inherits the observation's reference frame."""
-    graph = Graph()
-    graph.parse(module_path("observations"), format="turtle")
-    graph.parse(module_path("places"), format="turtle")
-    graph.parse(module_path("sensory"), format="turtle")
-
-    graph.add((EX.so3, RDF.type, GMEOW.SensoryObservation))
-    graph.add((EX.so3, GMEOW.sensoryResult, EX.sq3))
-    graph.add((EX.so3, GMEOW.hasReferenceFrame, EX.frameSI))
-    graph.add((EX.sq3, RDF.type, GMEOW.SensoryQuantity))
-    graph.add((EX.frameSI, RDF.type, GMEOW.ReferenceFrame))
-
-    native_rl_closure(graph)
-    # isResultOf is inverse of observationResult, so sq3 --isResultOf-- so3
-    # Then the chain isResultOf ∘ hasReferenceFrame ⊑ hasReferenceFrame fires.
-    assert (EX.sq3, GMEOW.hasReferenceFrame, EX.frameSI) in graph
-
-
-# --------------------------------------------------------------------------- #
-# Flat shortcut property chain
-# --------------------------------------------------------------------------- #
-
-
-def test_has_sensory_quantity_property_chain() -> None:
-    """The flat shortcut hasSensoryQuantity is derived from
-    hasSensoryObservation ∘ sensoryResult."""
-    graph = Graph()
-    graph.parse(module_path("observations"), format="turtle")
-    graph.parse(module_path("sensory"), format="turtle")
-
-    graph.add((EX.room2, RDF.type, GMEOW.Place))
-    graph.add((EX.room2, GMEOW.hasSensoryObservation, EX.so4))
-    graph.add((EX.so4, GMEOW.sensoryResult, EX.sq4))
-    graph.add((EX.so4, RDF.type, GMEOW.SensoryObservation))
-    graph.add((EX.sq4, RDF.type, GMEOW.SensoryQuantity))
-
-    native_rl_closure(graph)
-    assert (EX.room2, GMEOW.hasSensoryQuantity, EX.sq4) in graph
-
-
-# --------------------------------------------------------------------------- #
-# Contested readings — Principle 9
-# --------------------------------------------------------------------------- #
-
-
-def test_contested_sensory_readings_coexist() -> None:
-    """Two sensors observing the same feature with different results coexist."""
-    graph = Graph()
-    graph.parse(module_path("kernel"), format="turtle")
-    graph.parse(module_path("places"), format="turtle")
-    graph.parse(module_path("observations"), format="turtle")
-    graph.parse(module_path("sensory"), format="turtle")
-
-    # Sensor A says 21°C
-    graph.add((EX.soA, RDF.type, GMEOW.SensoryObservation))
-    graph.add((EX.soA, GMEOW.vantage, EX.sensorA))
-    graph.add((EX.soA, GMEOW.sensoryObservationOf, EX.room3))
-    graph.add((EX.soA, GMEOW.sensoryProperty, GMEOW.observablePropertyTemperature))
-    graph.add((EX.soA, GMEOW.sensoryResult, EX.sqA))
-    graph.add((EX.sensorA, RDF.type, GMEOW.Sensor))
-    graph.add((EX.room3, RDF.type, GMEOW.Place))
-    graph.add((EX.sqA, RDF.type, GMEOW.SensoryQuantity))
-    graph.add((EX.sqA, GMEOW.quantityValue, Literal("21.0", datatype=XSD.decimal)))
-
-    # Sensor B says 22.5°C
-    graph.add((EX.soB, RDF.type, GMEOW.SensoryObservation))
-    graph.add((EX.soB, GMEOW.vantage, EX.sensorB))
-    graph.add((EX.soB, GMEOW.sensoryObservationOf, EX.room3))
-    graph.add((EX.soB, GMEOW.sensoryProperty, GMEOW.observablePropertyTemperature))
-    graph.add((EX.soB, GMEOW.sensoryResult, EX.sqB))
-    graph.add((EX.sensorB, RDF.type, GMEOW.Sensor))
-    graph.add((EX.sqB, RDF.type, GMEOW.SensoryQuantity))
-    graph.add((EX.sqB, GMEOW.quantityValue, Literal("22.5", datatype=XSD.decimal)))
-
-    native_rl_closure(graph)
-    # Both observations survive; neither is contradicted.
-    assert (EX.soA, RDF.type, GMEOW.SensoryObservation) in graph
-    assert (EX.soB, RDF.type, GMEOW.SensoryObservation) in graph
-    # Both sensors are inferred as Agents.
-    assert (EX.sensorA, RDF.type, GMEOW.Agent) in graph
-    assert (EX.sensorB, RDF.type, GMEOW.Agent) in graph
-
-
-# --------------------------------------------------------------------------- #
-# SOSA alignments in the mapping layer
 # --------------------------------------------------------------------------- #
 
 

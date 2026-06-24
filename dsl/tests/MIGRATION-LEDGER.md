@@ -259,6 +259,93 @@ The second SHACL-conformance slice (concepts recipe): 8 structural fns → `test
 
 **Learning tally:** 11 converted (11 structural cells + 3 example-conformance cells across 11 fns), 1 deleted-covered-by-make-validate. Source file `tests/test_learning.py` DELETED entirely (all 12 fns migrated/subsumed, no must-stays). Second slice exercising `gmeow:ExampleConformance`; first to migrate an EL `someValuesFrom` restriction (blank-node ASK) and an `sh:sparql` constraint violation.
 
+## Reasoning cluster → native Rust OWL 2 RL harness (#896)
+
+The OWL/EL/DL **reasoning + entailment** tests are a distinct lane from the
+declarative slice-test DSL above: each rebuilt a reasoned rdflib graph via the
+OWL-2-RL chase (`gmeow_tools.native_rl_rdflib.native_rl_closure`) and asserted a
+derived triple. Because the chase is superlinear in fact count, the per-test cost
+dominated the ~45-min `python` CI lane. These migrate to
+`crates/logic/tests/ontology_entailments.rs` — `scoped_closure(slices, abox)`,
+the native twin of `_materialize(module, *abox)`: parse the *same* authored
+`module.ttl`, inject the *same* A-Box, run the native RL chase
+(`gmeow_logic::reason::rl_closure`) over that small scoped input (seconds,
+Docker-free). RL lane (not EL/DL) to preserve exact entailments. The structural
+(asserted-graph, no-closure) tests that lived alongside them stay in pytest
+pending the #867 slicetest structural migration — they are not reasoning tests.
+
+| Pytest fn | Pytest file | Rust twin | Cell type | Status | Reason if retained | Run by |
+|---|---|---|---|---|---|---|
+| `test_ancestry_is_derived_not_asserted` | `tests/test_reasoning_entailments.py` | `ancestry_is_derived_not_asserted` | RL-entailment | converted | — | `make logic-test` |
+| `test_location_propagates_through_containment` | `tests/test_reasoning_entailments.py` | `location_propagates_through_containment` | RL-entailment | converted | — | `make logic-test` |
+| `test_suborganization_is_transitive` | `tests/test_reasoning_entailments.py` | `suborganization_is_transitive` | RL-entailment | converted | — | `make logic-test` |
+| `test_proximity_measurement_is_a_measurement` | `tests/test_reasoning_entailments.py` | `proximity_measurement_is_a_measurement` | RL-entailment | converted | — | `make logic-test` |
+| `test_two_axis_case_expects_inconsistency` | `tests/test_reasoning_entailments.py` | — | — | **retained** | tests the Python Docker-orchestration layer (`gmeow_tools.reasoning_cases`, monkeypatched reasoner call-order) — an independent live Python impl with no Rust twin | pytest |
+| `test_two_kind_case_expects_inconsistency` | `tests/test_reasoning_entailments.py` | — | — | **retained** | same — Python orchestration of the Docker inconsistency lane | pytest |
+| `test_reasoning_cases_run_all_order` | `tests/test_reasoning_entailments.py` | — | — | **retained** | same — pins the Docker reasoning-case run order | pytest |
+| `test_specialized_part_relations_entail_generic_parthood` | `tests/test_mereology.py` | `specialized_part_relations_entail_generic_parthood` | RL-entailment | converted | — | `make logic-test` |
+| `test_member_of_propagates_through_suborganization` | `tests/test_mereology.py` | `member_of_propagates_through_suborganization` | RL-entailment | converted | — | `make logic-test` |
+| `test_event_location_propagates_through_spatial_containment_only` | `tests/test_mereology.py` | `event_location_propagates_through_spatial_containment` | RL-entailment | converted | — | `make logic-test` |
+| `test_universal_part_properties_are_broad_transitive_inverses` | `tests/test_mereology.py` | — | — | **retained** | structural TBox well-formedness over the ASSERTED graph (no closure) — #867 slicetest territory, not a reasoning test | pytest |
+| `test_existing_part_like_relations_specialize_the_spine` | `tests/test_mereology.py` | — | — | **retained** | structural sub-property assertions over the asserted graph — #867 | pytest |
+| `test_no_winner_or_cardinality_terms_for_parts` | `tests/test_mereology.py` | — | — | **retained** | structural absence check over the asserted graph — #867 | pytest |
+| `test_competency_ancestry_is_answered_only_by_reasoning` | `tests/test_competency.py` | `ancestry_is_derived_not_asserted` | RL-entailment | converted | — (same genealogy chain as the `_materialize` ancestry twin) | `make logic-test` |
+| `test_place_naming_is_entailed_not_asserted` | `tests/test_competency.py` | `place_naming_is_entailed_not_asserted` | RL-entailment | converted | — (the first `owl:equivalentClass` defined-class classification + its negative) | `make logic-test` |
+| the 47 `_query_terms` / `_query_terms_on_graph` competency QUERY tests | `tests/test_competency.py` | — | — | **retained (de-reasoned)** | answer on the ASSERTED merged graph via SPARQL property paths — they never needed the OWL-RL closure; `_query_terms` was repointed from `_reasoned_graph()` to the asserted `_merged_graph()`, killing the ~4-min materialization. Stay in pytest pending the #867 slicetest competency migration | pytest (now ~1.7s) |
+| `test_sensory_observation_specialises_observation` | `tests/test_sensory.py` | `sensory_observation_specialises_observation` | RL-entailment | converted | — (SensoryObservation ⊑ Observation) | `make logic-test` |
+| `test_sensor_specialises_agent` | `tests/test_sensory.py` | `sensor_specialises_agent` | RL-entailment | converted | — (Sensor ⊑ Agent) | `make logic-test` |
+| `test_sensory_quantity_inherits_scalar_quantity` | `tests/test_sensory.py` | `sensory_quantity_inherits_scalar_quantity` | RL-entailment | converted | — (SensoryQuantity ≡ ScalarQuantity) | `make logic-test` |
+| `test_sensory_observation_el_axioms` | `tests/test_sensory.py` | `sensory_observation_el_axioms_stay_consistent` | RL-entailment | converted | — (full SensoryObservation survives materialization) | `make logic-test` |
+| `test_sensory_quantity_frame_inheritance` | `tests/test_sensory.py` | `sensory_quantity_frame_inheritance` | RL-entailment | converted | — (isResultOf ∘ hasReferenceFrame chain) | `make logic-test` |
+| `test_has_sensory_quantity_property_chain` | `tests/test_sensory.py` | `has_sensory_quantity_property_chain` | RL-entailment | converted | — (hasSensoryObservation ∘ sensoryResult shortcut) | `make logic-test` |
+| `test_contested_sensory_readings_coexist` | `tests/test_sensory.py` | `contested_sensory_readings_coexist` | RL-entailment | converted | — (Principle 9 coexistence; decimal literals omitted, not assertion-relevant) | `make logic-test` |
+| the 14 structural `test_sensory.py` tests (TBox existence, equivalentClass/subProperty/inverseOf assertions, SOSA/AFO mappings) | `tests/test_sensory.py` | — | — | **retained** | structural checks over the ASSERTED graph / generated mapping artifacts (no closure) — #867 slicetest territory | pytest (now ~4.8s) |
+| `test_coordinate_observation_chain_fires` | `tests/test_places.py` | `coordinate_observation_chain_fires` | RL-entailment | converted | — (hasCoordinateObservation ∘ coordinateResult ⊑ hasCoordinates) | `make logic-test` |
+| `test_geometry_observation_chain_fires` | `tests/test_places.py` | `geometry_observation_chain_fires` | RL-entailment | converted | — (hasCoordinateObservation ∘ geometryResult ⊑ hasGeometry) | `make logic-test` |
+| `test_sensory_environment_el_axioms_fire` | `tests/test_sensory_environment.py` | `sensory_environment_el_axioms_fire` | RL-entailment | converted | — (environmentAtLocation domain ⇒ SensoryEnvironment) | `make logic-test` |
+| `test_sensory_perception_specialises_standpoint_claim` | `tests/test_sensory_environment.py` | `sensory_perception_specialises_standpoint_claim` | RL-entailment | converted | — (SensoryPerception ⊑ StandpointClaim, ⊑ Observation) | `make logic-test` |
+| `test_mental_reference_frame_specialises_reference_frame` | `tests/test_sensory_environment.py` | `mental_reference_frame_specialises_reference_frame` | RL-entailment | converted | — (MentalReferenceFrame ⊑ ReferenceFrame) | `make logic-test` |
+| `test_frame_inheritance_via_coordinate_matrix` | `tests/test_sensory_environment.py` | `frame_inheritance_via_coordinate_matrix` | RL-entailment | converted | — (CoordinateMatrix inherits the observation frame) | `make logic-test` |
+| `test_mental_reference_frame_requires_host` | `tests/test_sensory_environment.py` | — | — | **retained** | MIXED: a structural blank-node `someValuesFrom` restriction-axiom check (asserted graph) + a small scoped consistency check; the inference half duplicates the migrated ReferenceFrame twin | pytest |
+| `test_observation_el_axioms_fire` | `tests/test_observations.py` | `observation_el_axioms_fire` | RL-entailment | converted | — (Observation EL consistency) | `make logic-test` |
+| `test_frame_inheritance_property_chain` | `tests/test_observations.py` | `observation_frame_inheritance_property_chain` | RL-entailment | converted | — (inverse(observationResult) ∘ hasReferenceFrame) | `make logic-test` |
+| `test_measurement_specialises_observation` | `tests/test_observations.py` | `measurement_specialises_observation` | RL-entailment | converted | — | `make logic-test` |
+| `test_sensory_observation_specialises_observation` | `tests/test_observations.py` | `sensory_observation_specialises_observation` | RL-entailment | converted | — (same subsumption as the `test_sensory.py` twin) | `make logic-test` |
+| `test_standpoint_claim_specialises_observation` | `tests/test_observations.py` | `standpoint_claim_specialises_observation` | RL-entailment | converted | — | `make logic-test` |
+| `test_name_usage_specialises_observation` | `tests/test_observations.py` | `name_usage_specialises_observation` | RL-entailment | converted | — (universal claim construct, #69) | `make logic-test` |
+| `test_identity_facet_specialises_observation` | `tests/test_observations.py` | `identity_facet_specialises_observation` | RL-entailment | converted | — (#69) | `make logic-test` |
+| `test_rights_statement_specialises_observation` | `tests/test_observations.py` | `rights_statement_specialises_observation` | RL-entailment | converted | — (#69) | `make logic-test` |
+| `test_kin_relationship_specialises_observation` | `tests/test_observations.py` | `kin_relationship_specialises_observation` | RL-entailment | converted | — (#69) | `make logic-test` |
+| `test_is_result_of_provenance_chain` | `tests/test_observations.py` | `is_result_of_provenance_chain` | RL-entailment | converted | — (isResultOf inverse of observationResult, #77) | `make logic-test` |
+| `test_frame_inheritance_via_quantity` | `tests/test_observations.py` | `frame_inheritance_via_quantity` | RL-entailment | converted | — (#77) | `make logic-test` |
+| `test_stream_el_axiom` | `tests/test_observations.py` | `stream_el_axiom_stays_consistent` | RL-entailment | converted | — (#96) | `make logic-test` |
+| `test_spatial_measurement_infers_observation` | `tests/test_observations.py` | `spatial_measurement_infers_observation` | RL-entailment | converted | — (#125) | `make logic-test` |
+| `test_coordinate_observation_infers_spatial_measurement` | `tests/test_observations.py` | `coordinate_observation_infers_spatial_measurement` | RL-entailment | converted | — (#125) | `make logic-test` |
+| `test_coordinate_observation_frame_inheritance` | `tests/test_observations.py` | `coordinate_observation_frame_inheritance` | RL-entailment | converted | — (#125) | `make logic-test` |
+| `test_coordinate_observation_el_axioms` | `tests/test_observations.py` | `coordinate_observation_el_axioms_stay_consistent` | RL-entailment | converted | — (#125) | `make logic-test` |
+| `test_quality_assessment_specialises_observation` | `tests/test_quality.py` | `quality_assessment_specialises_observation` | RL-entailment | converted | — (QualityAssessment ⊑ Observation; the assessedEntity/Place A-Box is decoration) | `make logic-test` |
+| `TestReasonNativeEngine::test_consistent_with_entailments_and_gaps` | `tests/test_reason_native.py` | `reason_all` (`crates/logic/src/reason/mod.rs`) + the `check-generated` byte-regen of the committed closure/ledger | engine-direct | converted (covered) | — (consistency + non-empty closure is the `reason_all` unit test; real-bundle consistency/gaps is pinned by the byte-regenerable `generated/logic/*.ttl` gate) | `make rust-test` + `gmeow-dev check-generated` |
+| `TestVerifyNative::test_violating_query_reports_error` | `tests/test_reason_native.py` | `violating_query_yields_error_finding_with_detail` (`crates/logic/src/verify.rs`) | engine-direct | converted (covered) | — (the verify violation path — same `verify()` code + `!ok`/`error_count`/finding-code semantics) | `make logic-test` |
+| `TestNativeReasonArtifacts::test_closure_parses_and_carries_reifier_provenance` | `tests/test_reason_native.py` | `closure_emits_triple_and_reifier_with_provenance` (`crates/logic/src/reason/artifacts.rs`) | engine-direct | converted (covered) | — (same `reifies`/`Deduction`/`viaRule` tokens on the same `build_closure_ttl` output) | `make logic-test` |
+| `TestNativeReasonArtifacts::test_explanations_parse_and_carry_derivation_skeleton` | `tests/test_reason_native.py` | `explanations_emit_derivation_with_premise` (`crates/logic/src/reason/artifacts.rs`) | engine-direct | converted (covered) | — (same `Derivation`/`concludes`/`hasPremise` tokens) | `make logic-test` |
+| `TestNativeReasonArtifacts::test_ledger_parses_and_carries_entries_gaps_and_counts` | `tests/test_reason_native.py` | `ledger_header_entries_gaps_and_counts` (`crates/logic/src/reason/artifacts.rs`) + the byte-regen gate | engine-direct | converted (covered) | — (`CrosscheckLedger`/`DlGap`/`entailmentCount` tokens; the `#666`/`classic-cross-check`/`consistent> true` banner tokens are byte-pinned by `check-generated`) | `make logic-test` + `gmeow-dev check-generated` |
+| `TestNativeReasonArtifacts::test_artifacts_are_byte_regenerable_against_committed` | `tests/test_reason_native.py` | `crates/pipeline/tests/full_parity.rs` + the `ontology-generated` lane (`gmeow-dev check-generated`) | engine-direct | converted (covered) | — (the SAME `GtsGraphStore → reason_all → build_*_ttl` path reproduces the committed `generated/logic/*.ttl` EXACTLY; the authoritative cutover gate, fail-closed) | `gmeow-dev check-generated` |
+| `TestReasonNativePipeline::test_report_ok_and_writes_closure` | `tests/test_reason_native.py` | — | — | **retained** | the Python report wrapper `gmeow_tools.reason.reason_native` — disk-writing orchestration over the Rust core; independent live Python surface, no Rust twin (doctrine-guard) | pytest |
+| `TestVerifyNative::test_clean_over_bundle_and_writes_artifacts` | `tests/test_reason_native.py` | — | — | **retained** | the Python report wrapper `gmeow_tools.reason.verify_native` — slice-query glob discovery + JSON/SARIF/HTML artifact writing; Python surface, no Rust twin (doctrine-guard) | pytest |
+| `test_gmeow_reason_native` | `tests/test_mcp_server.py` | — | — | **retained** | the thin Python MCP wrapper `gmeow_tools.mcp_server.gmeow_reason` — independent live Python surface, no Rust twin (doctrine-guard) | pytest |
+
+**#896 reasoning tally:** 45 converted (39 RL-entailment twins + 6 engine-direct
+covered by existing Rust unit tests / the byte-regen gate), 11 retained-with-reason
+(3 Python Docker-orchestration, 4 structural-not-reasoning, 1 mixed, 2 native-report
+Python wrappers, 1 MCP wrapper), plus the 47 competency QUERY tests de-reasoned in
+place. **Files fully reasoning-free now:** `test_reasoning_entailments.py`,
+`test_mereology.py`, `test_competency.py`, `test_sensory.py`, `test_places.py`,
+`test_observations.py`, `test_quality.py`. `test_reason_native.py` carries only the
+two Python report-wrapper tests (8 → 2; ~330 s → ~105 s).
+The migrated `_materialize` helpers and A-Box-injection imports were removed from
+the touched pytest files; `tests/test_competency.py` dropped from ~14 min to
+**~1.7 s** (the two ~5–9 min reasoning tests gone, the closure cost removed).
+
 ## Other slices
 
 No other slice carries declarative test-DSL specs yet (T2 authored only the

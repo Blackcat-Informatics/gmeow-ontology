@@ -15,8 +15,6 @@ from gmeow_rdf.compat.rdflib import OWL, RDF, RDFS, Graph, Literal, Namespace, U
 from gmeow_rdf.compat.rdflib.namespace import XSD
 
 from gmeow_tools.graph import load_merged_graph
-from gmeow_tools.native_rl_rdflib import native_rl_closure
-from gmeow_tools.slices import module_path
 from tests._graph_nt import run_shacl
 
 GMEOW = "https://blackcatinformatics.ca/gmeow/"
@@ -2560,96 +2558,6 @@ def test_has_geometry_property_chain() -> None:
         URIRef(GMEOW + "hasCoordinateObservation"),
         URIRef(GMEOW + "geometryResult"),
     ]
-
-
-def test_coordinate_observation_chain_fires() -> None:
-    """A Place with a CoordinateObservation that has a GeoCoordinates result
-    infers hasCoordinates via the property chain."""
-    graph = Graph()
-    graph.parse(module_path("places"), format="turtle")
-    graph.parse(module_path("observations"), format="turtle")
-
-    graph.add((EX_PLACES.testPlace, RDF.type, URIRef(GMEOW + "Place")))
-    graph.add(
-        (
-            EX_PLACES.testPlace,
-            URIRef(GMEOW + "hasCoordinateObservation"),
-            EX_PLACES.testObs,
-        )
-    )
-    graph.add(
-        (
-            EX_PLACES.testObs,
-            RDF.type,
-            URIRef(GMEOW + "CoordinateObservation"),
-        )
-    )
-    graph.add(
-        (
-            EX_PLACES.testObs,
-            URIRef(GMEOW + "coordinateResult"),
-            EX_PLACES.testCoords,
-        )
-    )
-    graph.add(
-        (
-            EX_PLACES.testCoords,
-            RDF.type,
-            URIRef(GMEOW + "GeoCoordinates"),
-        )
-    )
-
-    native_rl_closure(graph)
-    assert (
-        EX_PLACES.testPlace,
-        URIRef(GMEOW + "hasCoordinates"),
-        EX_PLACES.testCoords,
-    ) in graph
-
-
-def test_geometry_observation_chain_fires() -> None:
-    """A Place with a CoordinateObservation that has a Geometry result infers
-    hasGeometry via the property chain."""
-    graph = Graph()
-    graph.parse(module_path("places"), format="turtle")
-    graph.parse(module_path("observations"), format="turtle")
-
-    graph.add((EX_PLACES.testPlace2, RDF.type, URIRef(GMEOW + "Place")))
-    graph.add(
-        (
-            EX_PLACES.testPlace2,
-            URIRef(GMEOW + "hasCoordinateObservation"),
-            EX_PLACES.testObs2,
-        )
-    )
-    graph.add(
-        (
-            EX_PLACES.testObs2,
-            RDF.type,
-            URIRef(GMEOW + "CoordinateObservation"),
-        )
-    )
-    graph.add(
-        (
-            EX_PLACES.testObs2,
-            URIRef(GMEOW + "geometryResult"),
-            EX_PLACES.testGeom2,
-        )
-    )
-    graph.add(
-        (
-            EX_PLACES.testGeom2,
-            RDF.type,
-            URIRef(GMEOW + "Geometry"),
-        )
-    )
-
-    native_rl_closure(graph)
-    assert (
-        EX_PLACES.testPlace2,
-        URIRef(GMEOW + "hasGeometry"),
-        EX_PLACES.testGeom2,
-    ) in graph
 
 
 def test_coordinate_observations_coexist() -> None:
