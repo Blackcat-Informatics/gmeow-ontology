@@ -681,6 +681,9 @@ fn lint_projection<'py>(
             dict.set_item("message", d.message)?;
             dict.set_item("check", d.check)?;
             dict.set_item("instance", d.instance)?;
+            dict.set_item("subject_id", d.subject_id)?;
+            dict.set_item("predicate_id", d.predicate_id)?;
+            dict.set_item("object_id", d.object_id)?;
             Ok(dict)
         })
         .collect()

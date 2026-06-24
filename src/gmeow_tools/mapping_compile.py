@@ -1612,10 +1612,12 @@ def _sssom_findings(report: diagnostics.DiagnosticsReport, tool: str) -> None:
 def _projection_lint_findings(report: diagnostics.DiagnosticsReport, tool: str) -> None:
     """Fold every cross-layer projection-lint problem into ``report`` (#854).
 
-    Runs the native ``gmeow_slice.lint_projection`` trio over the committed tree and
-    maps each problem's ``check`` (``fno-type`` / ``fno-ref`` / ``spec-drift``) to the
-    canonical ``mapping-compile.<check>`` code. A loader failure degrades to a single
-    ``warning``.
+    Runs the native ``gmeow_slice.lint_projection`` over the committed tree and
+    maps each problem's ``check`` (``fno-type`` / ``fno-ref`` / ``spec-drift``,
+    plus the alignment-direction families from #936) to the canonical
+    ``mapping-compile.<check>`` code. The finding severity now reflects the actual
+    severity reported by the native lint (ERROR/WARNING/INFO). A loader failure
+    degrades to a single ``warning``.
     """
     try:
         problems = gmeow_slice.lint_projection(str(PROJECT_ROOT))
@@ -1632,7 +1634,7 @@ def _projection_lint_findings(report: diagnostics.DiagnosticsReport, tool: str) 
     for problem in problems:
         report.add(
             diagnostics.finding(
-                severity="error",
+                severity=problem["severity"].lower(),
                 code=f"{tool}.{problem['check']}",
                 message=problem["message"],
                 tool=tool,

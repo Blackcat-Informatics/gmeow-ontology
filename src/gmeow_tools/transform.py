@@ -33,9 +33,10 @@ import time
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
+import gmeow_slice
 from gmeow_rdf.compat.rdflib import Graph, URIRef
 
-from gmeow_tools.config import DIST_DIR, NAMESPACE, PREFIXES
+from gmeow_tools.config import DIST_DIR, NAMESPACE, PREFIXES, PROJECT_ROOT
 from gmeow_tools.graph import bind_prefixes, load_merged_graph
 from gmeow_tools.language_tags import filter_graph
 from gmeow_tools.saturate import (
@@ -135,7 +136,7 @@ def _skolemized(abox: Graph) -> Graph:
 
 
 def _denied_cells() -> set[tuple[str, str, str]]:
-    """The direction lint's ERROR rows — the saturation refusal set (#25).
+    """The alignment lint's ERROR rows — the saturation refusal set (#25).
 
     On a wheel-only install (no source tree) the lint cannot run — it reads the
     SSSOM tables and the vendored target axioms — so the set precomputed at
@@ -154,22 +155,38 @@ def _denied_cells() -> set[tuple[str, str, str]]:
         if precomputed is not None:
             return set(precomputed)
 
-    from gmeow_tools.alignment_lint import Severity, lint_alignment_directions
+    alignment_checks = frozenset(
+        {
+            "inverse-direction",
+            "domain-range",
+            "property-character",
+            "equivalence-collapse",
+            "dc-refinement",
+            "dc-hand-authored",
+        }
+    )
 
-    findings = lint_alignment_directions()
+    findings = [
+        f
+        for f in gmeow_slice.lint_projection(str(PROJECT_ROOT), allow_network=False)
+        if f["check"] in alignment_checks
+    ]
     collapses = [
         f
         for f in findings
-        if f.severity is Severity.ERROR and f.check == "equivalence-collapse"
+        if f["severity"] == "ERROR" and f["check"] == "equivalence-collapse"
     ]
     if collapses:
-        details = "; ".join(f.message for f in collapses[:3])
+        details = "; ".join(f["message"] for f in collapses[:3])
         msg = f"equivalence-collapse ERROR — transform refused: {details}"
         raise TransformAbortedError(msg)
     return {
-        (f.subject_id, f.predicate_id, f.object_id)
+        (f["subject_id"], f["predicate_id"], f["object_id"])
         for f in findings
-        if f.severity is Severity.ERROR
+        if f["severity"] == "ERROR"
+        and f["subject_id"] is not None
+        and f["predicate_id"] is not None
+        and f["object_id"] is not None
     }
 
 

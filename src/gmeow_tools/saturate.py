@@ -10,8 +10,8 @@ gmeow:Person`` becomes *simultaneously* ``foaf:Person`` / ``schema:Person`` /
 (lossy) half is the projection engine, P(G).
 
 The correctness keystone: only STRONG predicates materialize —
-:data:`gmeow_tools.alignment_lint.STRONG_CLASS_PREDICATES` /
-:data:`~gmeow_tools.alignment_lint.STRONG_PROPERTY_PREDICATES` are the single
+:data:`gmeow_tools.mapping_constants.STRONG_CLASS_PREDICATES` /
+:data:`~gmeow_tools.mapping_constants.STRONG_PROPERTY_PREDICATES` are the single
 source of truth, so linter and saturator agree by construction.
 ``skos:closeMatch`` (a hint), ``broadMatch``/``narrowMatch`` (hierarchy), and
 any cell the direction lint rates ERROR never materialize. Suppression is
@@ -34,12 +34,12 @@ from typing import TYPE_CHECKING
 from gmeow_rdf.compat.rdflib import OWL, RDF, Graph, Literal, URIRef
 from gmeow_rdf.compat.rdflib.namespace import SKOS, XSD
 
-from gmeow_tools.alignment_lint import (
+from gmeow_tools.config import MAPPING_DSL_DIR, NAMESPACE
+from gmeow_tools.export import curie
+from gmeow_tools.mapping_constants import (
     STRONG_CLASS_PREDICATES,
     STRONG_PROPERTY_PREDICATES,
 )
-from gmeow_tools.config import MAPPING_DSL_DIR, NAMESPACE
-from gmeow_tools.export import curie
 
 if TYPE_CHECKING:
     from collections.abc import Iterable, Sequence

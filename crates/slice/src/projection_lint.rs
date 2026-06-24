@@ -149,8 +149,7 @@ const STRUCTURAL_OUTPUTS: &[&str] = &[
 /// Python finding leg already consumes.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ProjectionDiagnostic {
-    /// Always `"ERROR"` — every projection-lint problem is a hard inconsistency
-    /// (mirrors the Python trio, whose every returned string is a gate failure).
+    /// Severity token: `"ERROR"`, `"WARNING"`, or `"INFO"`.
     pub severity: String,
     /// The drift family: `fno-type`, `fno-ref`, or `spec-drift`. The Python finding
     /// leg maps this to the canonical code `mapping-compile.<check>`.
@@ -163,6 +162,12 @@ pub struct ProjectionDiagnostic {
     /// The most-specific RDF node the problem concerns (the FnO param/output IRI, the
     /// undefined function IRI, or the drifting target term), or `None`.
     pub instance: Option<String>,
+    /// For alignment-direction findings, the SSSOM row CURIEs that the finding is
+    /// about. These are `None` for projection-stack findings (`fno-type`, `fno-ref`,
+    /// `spec-drift`).
+    pub subject_id: Option<String>,
+    pub predicate_id: Option<String>,
+    pub object_id: Option<String>,
 }
 
 impl ProjectionDiagnostic {
@@ -173,6 +178,9 @@ impl ProjectionDiagnostic {
             code: check.to_owned(),
             message,
             instance,
+            subject_id: None,
+            predicate_id: None,
+            object_id: None,
         }
     }
 }

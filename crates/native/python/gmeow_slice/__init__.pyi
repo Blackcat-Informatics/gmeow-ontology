@@ -127,6 +127,9 @@ class ProjectionDiagnostic(TypedDict):
     message: str
     check: str
     instance: str | None
+    subject_id: str | None
+    predicate_id: str | None
+    object_id: str | None
 
 def lint_projection(
     root: str, allow_network: bool = False

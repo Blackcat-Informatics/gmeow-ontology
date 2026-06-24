@@ -202,6 +202,9 @@ pub(crate) fn lint_dc_refinement(mappings: &[Mapping]) -> Vec<ProjectionDiagnost
                 code: "dc-refinement".to_owned(),
                 message,
                 instance: expand_curie(broader),
+                subject_id: None,
+                predicate_id: None,
+                object_id: Some(refinement.to_string()),
             });
         }
     }
@@ -221,6 +224,9 @@ pub(crate) fn lint_dc_refinement(mappings: &[Mapping]) -> Vec<ProjectionDiagnost
                 code: "dc-hand-authored".to_owned(),
                 message,
                 instance: expand_curie(&m.object_id),
+                subject_id: Some(m.subject_id.clone()),
+                predicate_id: Some(m.predicate_id.clone()),
+                object_id: Some(m.object_id.clone()),
             });
         }
     }
@@ -289,6 +295,9 @@ pub(crate) fn lint_alignment_directions(
             code: "domain-range".to_owned(),
             message: "network fetch for target axioms is not yet implemented (#936)".to_owned(),
             instance: None,
+            subject_id: None,
+            predicate_id: None,
+            object_id: None,
         });
     }
 
@@ -430,6 +439,9 @@ fn check_inverse_direction(
                     code: "inverse-direction".to_owned(),
                     message: format!("{message} — did you mean {suggestion}?"),
                     instance: expand_curie(&offender.object_id),
+                    subject_id: Some(offender.subject_id.clone()),
+                    predicate_id: Some(offender.predicate_id.clone()),
+                    object_id: Some(offender.object_id.clone()),
                 });
             }
 
@@ -474,6 +486,9 @@ fn check_inverse_direction(
                             m.object_id, m.subject_id, inv_curie, inv_curie
                         ),
                         instance: expand_curie(&m.object_id),
+                        subject_id: Some(m.subject_id.clone()),
+                        predicate_id: Some(m.predicate_id.clone()),
+                        object_id: Some(m.object_id.clone()),
                     });
                     break;
                 }
@@ -548,6 +563,9 @@ fn check_domain_range(
                               (no class bridge to the target's domain/range)"
                         .to_owned(),
                     instance: Some(target_iri),
+                    subject_id: Some(m.subject_id.clone()),
+                    predicate_id: Some(m.predicate_id.clone()),
+                    object_id: Some(m.object_id.clone()),
                 });
                 continue;
             }
@@ -557,6 +575,9 @@ fn check_domain_range(
                 code: "domain-range".to_owned(),
                 message: "domain/range are inverted relative to the target term".to_owned(),
                 instance: Some(target_iri),
+                subject_id: Some(m.subject_id.clone()),
+                predicate_id: Some(m.predicate_id.clone()),
+                object_id: Some(m.object_id.clone()),
             });
         }
     }
@@ -644,7 +665,7 @@ fn check_property_character(
 }
 
 fn character_finding(
-    _m: &Mapping,
+    m: &Mapping,
     severity: &str,
     message: &str,
     term: &str,
@@ -655,6 +676,9 @@ fn character_finding(
         code: "property-character".to_owned(),
         message: message.to_owned(),
         instance: Some(term.to_owned()),
+        subject_id: Some(m.subject_id.clone()),
+        predicate_id: Some(m.predicate_id.clone()),
+        object_id: Some(m.object_id.clone()),
     }
 }
 
@@ -691,6 +715,9 @@ fn check_equivalence_collapse(
                  (Principle 5): {chain}"
             ),
             instance: Some(a.clone()),
+            subject_id: None,
+            predicate_id: None,
+            object_id: None,
         });
     }
     Ok(findings)
@@ -1261,6 +1288,9 @@ fn info_unavailable(m: &Mapping, prefix: &str) -> ProjectionDiagnostic {
              (vendor a snapshot or run with --network)"
         ),
         instance: expand_curie(&m.object_id),
+        subject_id: Some(m.subject_id.clone()),
+        predicate_id: Some(m.predicate_id.clone()),
+        object_id: Some(m.object_id.clone()),
     }
 }
 
@@ -1272,6 +1302,9 @@ fn info_not_checkable(m: &Mapping, reason: &str) -> ProjectionDiagnostic {
         code: "domain-range".to_owned(),
         message: format!("direction not checked — {reason}"),
         instance: expand_curie(&m.object_id),
+        subject_id: Some(m.subject_id.clone()),
+        predicate_id: Some(m.predicate_id.clone()),
+        object_id: Some(m.object_id.clone()),
     }
 }
 
