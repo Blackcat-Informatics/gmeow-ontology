@@ -27,6 +27,10 @@ members = [
     "crates/slice",
     "crates/slicetest",
     "crates/validate",
+    # Native XSD value space (parse / value-space equality+ordering / canonical
+    # lexical / SPARQL numeric promotion): the zero-dep leaf that replaces the
+    # oxigraph-family `oxsdatatypes` (purrdf S1, EPIC #906).
+    "crates/xsd",
 ]
 resolver = "2"
 
@@ -111,6 +115,9 @@ codegen-units = 1
 codegen-units = 1
 
 [profile.release.package.gmeow-conformance]
+codegen-units = 1
+
+[profile.release.package.gmeow-xsd]
 codegen-units = 1
 
 # `cargo bench` (used by `make bench`) runs under the `bench` profile, which
