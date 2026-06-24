@@ -12,10 +12,8 @@ from __future__ import annotations
 from pathlib import Path
 
 import gmeow_validate
-import pytest
 
 from gmeow_tools.config import PROJECT_ROOT
-from gmeow_tools.constitution import constitution_report
 from gmeow_tools.constitution_manifest import (
     CONSTITUTION_FILE,
     MANIFEST_FILE,
@@ -323,35 +321,3 @@ def test_extends_matching_pair_passes(tmp_path: Path) -> None:
     assert not any("extends drift" in e for e in result.errors), "\n".join(
         result.errors
     )
-
-
-def test_rust_report_matches_python_report() -> None:
-    """The native Rust full report must match the legacy Python report (#939).
-
-    This test deliberately re-runs the old Python path one last time so any
-    divergence in codes or messages is surfaced before the Python gate is removed.
-    """
-    py_report = constitution_report()
-    rust_report = gmeow_validate.constitution_full_report(
-        str(MANIFEST_FILE),
-        str(CONSTITUTION_FILE),
-        str(PROJECT_ROOT),
-    )
-
-    py_findings = {(f["code"], f["message"]) for f in py_report.findings}
-    rust_findings = {(f["code"], f["message"]) for f in rust_report.findings}
-
-    missing = py_findings - rust_findings
-    extra = rust_findings - py_findings
-
-    if missing or extra:
-        details: list[str] = []
-        if missing:
-            details.append(f"Rust report missing {len(missing)} Python findings:")
-            details.extend(f"  {code}: {message}" for code, message in sorted(missing))
-        if extra:
-            details.append(f"Rust report has {len(extra)} extra findings:")
-            details.extend(f"  {code}: {message}" for code, message in sorted(extra))
-        pytest.fail("\n".join(details))
-
-    assert py_findings == rust_findings
