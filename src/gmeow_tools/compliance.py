@@ -58,9 +58,17 @@ def _run_validate() -> ValidationResult:
 
 
 def _run_constitution() -> ValidationResult:
-    from gmeow_tools.constitution import check_constitution
+    import gmeow_validate
 
-    return check_constitution()
+    report = gmeow_validate.constitution_full_report(
+        str(PROJECT_ROOT / "governance" / "constitution.ttl"),
+        str(PROJECT_ROOT / "CONSTITUTION.md"),
+        str(PROJECT_ROOT),
+    )
+    return ValidationResult(
+        errors=[f["message"] for f in report.findings if f["severity"] == "error"],
+        warnings=[f["message"] for f in report.findings if f["severity"] == "warning"],
+    )
 
 
 def _run_alignment() -> ValidationResult:
