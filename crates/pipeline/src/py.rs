@@ -83,9 +83,27 @@ fn run_pipeline(py: Python<'_>, root: String, jobs: usize, check: bool) -> PyRes
     Ok(out.into_any().unbind())
 }
 
+/// Compile only the statement layer through the native Rust statements stage.
+///
+/// This is an interface hook for developer feedback and oracle checks. The
+/// compiler authority remains [`crate::stages::statements::compile_statements`];
+/// Python receives the already-rendered OWL downcast and RDF 1.2 lead strings.
+#[pyfunction]
+#[pyo3(signature = (root))]
+fn compile_statements(py: Python<'_>, root: String) -> PyResult<Py<PyAny>> {
+    let (owl_ttl, rdf12_ttl) = crate::stages::statements::compile_statements(Path::new(&root))
+        .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))?;
+
+    let out = PyDict::new(py);
+    out.set_item("owl_ttl", owl_ttl)?;
+    out.set_item("rdf12_ttl", rdf12_ttl)?;
+    Ok(out.into_any().unbind())
+}
+
 /// Register the `gmeow_native.pipeline` submodule. Called by the unified
 /// `gmeow_native` cdylib (#630); exposes [`run_pipeline`].
 pub fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(run_pipeline, m)?)?;
+    m.add_function(wrap_pyfunction!(compile_statements, m)?)?;
     Ok(())
 }
