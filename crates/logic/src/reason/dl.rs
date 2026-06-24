@@ -23,7 +23,7 @@
 
 use crate::reason::el::EL_RULES;
 use crate::reason::InferredAxiom;
-use gmeow_rdf::{RdfLoss, RdfStore, RdfTerm};
+use gmeow_rdf::{RdfDataset, RdfLoss, RdfTerm};
 
 // ── OWL/RDF IRI constants ──────────────────────────────────────────────────────
 
@@ -132,7 +132,7 @@ fn unwrap_iri(display: &str) -> &str {
 ///
 /// Returns `Err(String)` if the source store cannot be loaded or the Nemo
 /// chase fails to parse/validate/evaluate/decode.
-pub fn dl_consistency(edb: &impl RdfStore) -> Result<DlVerdict, String> {
+pub fn dl_consistency(edb: &RdfDataset) -> Result<DlVerdict, String> {
     let inferred: Vec<InferredAxiom> = crate::reason::run_reasoning(edb, &dl_rules())?;
     verdict_from_inferred(&inferred, edb)
 }
@@ -155,7 +155,7 @@ pub fn dl_consistency(edb: &impl RdfStore) -> Result<DlVerdict, String> {
 /// Returns `Err(String)` if a quad cannot be read from `edb` during the gap scan.
 pub(crate) fn verdict_from_inferred(
     inferred: &[InferredAxiom],
-    edb: &impl RdfStore,
+    edb: &RdfDataset,
 ) -> Result<DlVerdict, String> {
     let mut inconsistencies: Vec<InconsistencyWitness> = Vec::new();
     let mut unsatisfiable_classes: Vec<UnsatClass> = Vec::new();
@@ -210,7 +210,7 @@ pub(crate) fn verdict_from_inferred(
 /// # Errors
 ///
 /// Returns `Err(String)` if a quad cannot be read from the source store.
-fn scan_gaps(edb: &impl RdfStore) -> Result<Vec<RdfLoss>, String> {
+fn scan_gaps(edb: &RdfDataset) -> Result<Vec<RdfLoss>, String> {
     // (predicate-or-object IRI, short construct name, gap-code suffix).
     const BEYOND_EL: &[(&str, &str, &str)] = &[
         (OWL_COMPLEMENT_OF, "owl:complementOf", "complementOf"),
@@ -248,8 +248,8 @@ fn scan_gaps(edb: &impl RdfStore) -> Result<Vec<RdfLoss>, String> {
     // a hard failure (no-optionality doctrine — silently dropping a quad could
     // miss a beyond-EL construct).
     let mut present_iris: std::collections::HashSet<String> = std::collections::HashSet::new();
-    for quad in edb.quads() {
-        let quad = quad.map_err(|d| format!("dl gap-scan: cannot read quad: {d}"))?;
+    for (index, quad) in edb.quads().enumerate() {
+        let quad = edb.to_owned_quad(index, quad);
         present_iris.insert(quad.predicate);
         if let RdfTerm::Iri(o) = quad.object {
             present_iris.insert(o);
@@ -276,7 +276,7 @@ fn scan_gaps(edb: &impl RdfStore) -> Result<Vec<RdfLoss>, String> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use gmeow_rdf::{RdfQuad, RdfTerm, VecRdfStore};
+    use gmeow_rdf::{RdfDatasetBuilder, RdfQuad, RdfTerm};
 
     const W: &str = "http://gmeow.example/w";
     const SUBCLASS: &str = RDFS_SUBCLASSOF;
@@ -292,17 +292,25 @@ mod tests {
         RdfQuad::new(RdfTerm::iri(s), p, RdfTerm::iri(o)).in_graph(RdfTerm::iri(W))
     }
 
+    fn dataset(quads: Vec<RdfQuad>) -> std::sync::Arc<RdfDataset> {
+        let mut builder = RdfDatasetBuilder::new();
+        for quad in quads {
+            builder.push_owned_quad(&quad);
+        }
+        builder.freeze().expect("valid test dataset")
+    }
+
     #[test]
     fn disjoint_superclasses_make_a_unsat_and_x_inconsistent() {
         // A ⊑ B, A ⊑ C, B disjointWith C, x : A
         // ⇒ A is unsatisfiable, and x is forced into owl:Nothing (inconsistent).
-        let store = VecRdfStore::with_quads(vec![
+        let store = dataset(vec![
             quad(A, SUBCLASS, B),
             quad(A, SUBCLASS, C),
             quad(B, DISJOINT, C),
             quad(X, TYPE, A),
         ]);
-        let verdict = dl_consistency(&store).expect("dl consistency should succeed");
+        let verdict = dl_consistency(store.as_ref()).expect("dl consistency should succeed");
 
         assert!(
             !verdict.consistent,
@@ -328,8 +336,8 @@ mod tests {
     #[test]
     fn no_disjointness_is_consistent() {
         // A ⊑ B, x : A — no disjointness ⇒ consistent, no inconsistencies.
-        let store = VecRdfStore::with_quads(vec![quad(A, SUBCLASS, B), quad(X, TYPE, A)]);
-        let verdict = dl_consistency(&store).expect("dl consistency should succeed");
+        let store = dataset(vec![quad(A, SUBCLASS, B), quad(X, TYPE, A)]);
+        let verdict = dl_consistency(store.as_ref()).expect("dl consistency should succeed");
 
         assert!(verdict.consistent, "no clash ⇒ consistent");
         assert!(
@@ -342,8 +350,8 @@ mod tests {
     fn complement_of_is_named_as_a_gap() {
         // An owl:complementOf triple is beyond EL; it must be surfaced as a gap,
         // and the verdict must not silently claim consistency about it.
-        let store = VecRdfStore::with_quads(vec![quad(A, super::OWL_COMPLEMENT_OF, B)]);
-        let verdict = dl_consistency(&store).expect("dl consistency should succeed");
+        let store = dataset(vec![quad(A, super::OWL_COMPLEMENT_OF, B)]);
+        let verdict = dl_consistency(store.as_ref()).expect("dl consistency should succeed");
 
         assert!(
             verdict
@@ -360,8 +368,8 @@ mod tests {
         // owl:unionOf (general class disjunction) is beyond EL and must be named
         // as a gap — unlike owl:intersectionOf, which IS in EL and is decided
         // natively rather than surfaced.
-        let store = VecRdfStore::with_quads(vec![quad(A, super::OWL_UNION_OF, B)]);
-        let verdict = dl_consistency(&store).expect("dl consistency should succeed");
+        let store = dataset(vec![quad(A, super::OWL_UNION_OF, B)]);
+        let verdict = dl_consistency(store.as_ref()).expect("dl consistency should succeed");
 
         assert!(
             verdict

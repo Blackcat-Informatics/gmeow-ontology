@@ -19,8 +19,8 @@ use oxigraph::model::{GraphName, NamedNode, Quad};
 use oxigraph::sparql::{QueryResults, SparqlEvaluator};
 
 use gmeow_diagnostics::{Finding, Location, Report, Severity};
-use gmeow_rdf::oxigraph::{store_from_rdf_store, GraphPolicy};
-use gmeow_rdf::RdfStore;
+use gmeow_rdf::oxigraph::{store_from_dataset, GraphPolicy};
+use gmeow_rdf::RdfDataset;
 
 use crate::reason::reason_all;
 
@@ -64,11 +64,11 @@ fn query_stem(name: &str) -> &str {
 ///
 /// Returns `Err(String)` if reasoning fails, if a query fails to parse/evaluate,
 /// if a query is not a SELECT, or if a derived edge cannot be built as a quad.
-pub fn verify(edb: &impl RdfStore, queries: &[(String, String)]) -> Result<Report, String> {
+pub fn verify(edb: &RdfDataset, queries: &[(String, String)]) -> Result<Report, String> {
     // 1. Flat asserted graph (default graph; literals + owl:members lists kept).
     //    A no-GRAPH verify query then matches it, exactly like ROBOT's single
     //    merged reasoned graph.
-    let store = store_from_rdf_store(edb, GraphPolicy::FlattenToDefaultGraph)
+    let store = store_from_dataset(edb, GraphPolicy::FlattenToDefaultGraph)
         .map_err(|e| format!("flatten asserted store failed: {e}"))?;
 
     // 2. Native EL/DL closure; layer the derived (non-EDB) edges on top, also in
@@ -170,7 +170,7 @@ pub fn verify(edb: &impl RdfStore, queries: &[(String, String)]) -> Result<Repor
 #[cfg(test)]
 mod tests {
     use super::*;
-    use gmeow_rdf::{RdfQuad, RdfTerm, VecRdfStore};
+    use gmeow_rdf::{RdfDatasetBuilder, RdfQuad, RdfTerm};
 
     const W: &str = "http://gmeow.example/w";
     const SUBCLASS: &str = "http://www.w3.org/2000/01/rdf-schema#subClassOf";
@@ -182,9 +182,13 @@ mod tests {
         RdfQuad::new(RdfTerm::iri(s), p, RdfTerm::iri(o)).in_graph(RdfTerm::iri(W))
     }
 
-    fn store() -> VecRdfStore {
+    fn store() -> std::sync::Arc<RdfDataset> {
         // A ⊑ B ⊑ C — the native EL closure derives A ⊑ C.
-        VecRdfStore::with_quads(vec![quad(A, SUBCLASS, B), quad(B, SUBCLASS, C)])
+        let mut builder = RdfDatasetBuilder::new();
+        for quad in [quad(A, SUBCLASS, B), quad(B, SUBCLASS, C)] {
+            builder.push_owned_quad(&quad);
+        }
+        builder.freeze().expect("valid test dataset")
     }
 
     #[test]
@@ -194,7 +198,8 @@ mod tests {
             "queries/verify/no-self-subclass.rq".to_owned(),
             format!("SELECT ?x WHERE {{ ?x <{SUBCLASS}> ?x }}"),
         );
-        let report = verify(&store(), std::slice::from_ref(&q)).expect("verify runs");
+        let dataset = store();
+        let report = verify(dataset.as_ref(), std::slice::from_ref(&q)).expect("verify runs");
         assert!(report.ok(), "clean run must have no error findings");
         assert_eq!(report.error_count(), 0);
     }
@@ -207,7 +212,8 @@ mod tests {
             "queries/verify/subclass-of-c.rq".to_owned(),
             format!("SELECT ?x WHERE {{ ?x <{SUBCLASS}> <{C}> }}"),
         );
-        let report = verify(&store(), std::slice::from_ref(&q)).expect("verify runs");
+        let dataset = store();
+        let report = verify(dataset.as_ref(), std::slice::from_ref(&q)).expect("verify runs");
         assert!(!report.ok(), "a returned row must fail the report");
         assert_eq!(report.error_count(), 1);
         let finding = report
@@ -232,7 +238,8 @@ mod tests {
             "queries/verify/bad.rq".to_owned(),
             "ASK { ?s ?p ?o }".to_owned(),
         );
-        let err = verify(&store(), std::slice::from_ref(&q)).unwrap_err();
+        let dataset = store();
+        let err = verify(dataset.as_ref(), std::slice::from_ref(&q)).unwrap_err();
         assert!(err.contains("SELECT"), "ASK must be rejected: {err}");
     }
 }

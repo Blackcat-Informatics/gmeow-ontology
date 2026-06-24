@@ -14,8 +14,8 @@ use oxigraph::model::{
 use oxigraph::sparql::{QueryResults, SparqlEvaluator};
 use oxigraph::store::Store;
 
-use gmeow_rdf::oxigraph::{store_from_rdf_store, GraphPolicy};
-use gmeow_rdf::RdfStore;
+use gmeow_rdf::oxigraph::{store_from_dataset, GraphPolicy};
+use gmeow_rdf::RdfDataset;
 
 /// A world-indexed RDF store.
 ///
@@ -52,19 +52,19 @@ impl WorldStore {
         Ok(())
     }
 
-    /// Load any shared RDF store into the world-indexed store, preserving named graphs.
+    /// Load a frozen RDF dataset into the world-indexed store, preserving named graphs.
     ///
-    /// GTS-backed sources, oxigraph-backed stores, and future sidecar-aware stores
-    /// all cross into LOGIC through the same `gmeow-rdf` adapter. Named graphs are
+    /// GTS-backed sources, oxigraph-parsed stores, and future sidecar-aware inputs
+    /// all cross into LOGIC as the concrete `RdfDataset` IR. Named graphs are
     /// retained as worlds; default-graph quads are loaded but remain inaccessible
     /// through the world-only APIs by design.
     ///
     /// # Errors
     ///
-    /// Returns `Err(String)` if the source store cannot be materialized into
+    /// Returns `Err(String)` if the dataset cannot be materialized into
     /// oxigraph or if an insert into the in-memory store fails.
-    pub fn load_rdf_store(&self, source: &impl RdfStore) -> Result<(), String> {
-        let materialized = store_from_rdf_store(source, GraphPolicy::PreserveNamedGraphs)
+    pub fn load_dataset(&self, source: &RdfDataset) -> Result<(), String> {
+        let materialized = store_from_dataset(source, GraphPolicy::PreserveNamedGraphs)
             .map_err(|e| e.to_string())?;
         for quad in materialized.iter() {
             let quad = quad.map_err(|e| format!("RDF store iteration failed: {e}"))?;
@@ -271,19 +271,18 @@ mod tests {
     }
 
     #[test]
-    fn load_rdf_store_preserves_named_graph_worlds() {
-        use gmeow_rdf::{RdfQuad, RdfTerm, VecRdfStore};
+    fn load_dataset_preserves_named_graph_worlds() {
+        use gmeow_rdf::{RdfDatasetBuilder, RdfQuad, RdfTerm};
 
-        let source = VecRdfStore::with_quads(vec![RdfQuad::new(
-            RdfTerm::iri(S_A),
-            P_A,
-            RdfTerm::iri(O_A),
-        )
-        .in_graph(RdfTerm::iri(WORLD_A))]);
+        let quad =
+            RdfQuad::new(RdfTerm::iri(S_A), P_A, RdfTerm::iri(O_A)).in_graph(RdfTerm::iri(WORLD_A));
+        let mut builder = RdfDatasetBuilder::new();
+        builder.push_owned_quad(&quad);
+        let source = builder.freeze().expect("valid dataset");
         let store = WorldStore::new();
         store
-            .load_rdf_store(&source)
-            .expect("shared RDF store should load into LOGIC");
+            .load_dataset(source.as_ref())
+            .expect("RDF dataset should load into LOGIC");
 
         assert_eq!(store.quads_in_world(WORLD_A).len(), 1);
         assert!(store.quads_in_world(WORLD_B).is_empty());

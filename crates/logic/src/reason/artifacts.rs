@@ -20,7 +20,7 @@
 //! the committed artifacts and the drift gate (RDFC-1.0 isomorphism) stays green.
 
 use gmeow_rdf::turtle::{emit_quad, emit_reifier, emit_resource, emit_term, rule_iri};
-use gmeow_rdf::{RdfAnnotation, RdfLiteral, RdfQuad, RdfReifier, RdfStore, RdfTerm, RdfTriple};
+use gmeow_rdf::{RdfAnnotation, RdfDataset, RdfLiteral, RdfQuad, RdfReifier, RdfTerm, RdfTriple};
 use oxigraph::model::vocab::xsd;
 use oxigraph::model::{Literal, Term};
 
@@ -175,7 +175,7 @@ fn derived_sorted(result: &ReasonResult) -> Vec<&InferredAxiom> {
 /// Returns `Err` if any derived axiom is missing its `rule_name`.
 pub fn build_inferred_closure_ttl(
     result: &ReasonResult,
-    merge_asserted: Option<&dyn RdfStore>,
+    merge_asserted: Option<&RdfDataset>,
 ) -> Result<String, String> {
     let mut out = String::from(CLOSURE_HEADER);
 
@@ -421,19 +421,18 @@ fn escape_literal(value: &str) -> String {
 /// # Errors
 ///
 /// Returns `Err` if the store surfaces a quad/reifier/annotation read failure.
-fn asserted_turtle(store: &dyn RdfStore) -> Result<String, String> {
+fn asserted_turtle(store: &RdfDataset) -> Result<String, String> {
     let mut out = String::new();
-    for quad in store.quads() {
-        let quad = quad.map_err(|e| format!("asserted quad read error: {e:?}"))?;
+    for (index, quad) in store.quads().enumerate() {
+        let quad = store.to_owned_quad(index, quad);
         out.push_str(&emit_quad(&quad));
     }
-    for reifier in store.reifiers() {
-        let reifier = reifier.map_err(|e| format!("asserted reifier read error: {e:?}"))?;
+    for (reifier, triple) in store.reifiers() {
+        let reifier = store.to_owned_reifier(reifier, triple);
         out.push_str(&emit_reifier(&reifier, &[]));
     }
-    for annotation in store.annotations() {
-        let annotation =
-            annotation.map_err(|e| format!("asserted annotation read error: {e:?}"))?;
+    for (reifier, predicate, object) in store.annotations() {
+        let annotation = store.to_owned_annotation(reifier, predicate, object);
         out.push_str(&emit_annotation_triple(&annotation));
     }
     Ok(out)

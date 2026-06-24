@@ -30,7 +30,7 @@ use std::path::PathBuf;
 
 use gmeow_logic::reason::{rl_closure, RlClosure};
 use gmeow_rdf::oxigraph::rdf_quad_from_oxigraph;
-use gmeow_rdf::{RdfQuad, RdfTerm, VecRdfStore};
+use gmeow_rdf::{RdfDatasetBuilder, RdfQuad, RdfTerm};
 use oxigraph::io::{RdfFormat, RdfParser};
 
 /// The gmeow ontology namespace (`config.NAMESPACE` = `ONTOLOGY_IRI + "/"`).
@@ -87,6 +87,14 @@ fn turtle_quads(rel_paths: &[String]) -> Vec<RdfQuad> {
     quads
 }
 
+fn dataset_from_quads(quads: Vec<RdfQuad>) -> std::sync::Arc<gmeow_rdf::RdfDataset> {
+    let mut builder = RdfDatasetBuilder::new();
+    for quad in quads {
+        builder.push_owned_quad(&quad);
+    }
+    builder.freeze().expect("valid scoped test dataset")
+}
+
 /// An RL closure of the named slice modules plus injected `abox` quads — the native twin of the
 /// Python `_materialize(*modules, abox)` pattern. `slices` are `<group>/<name>` ids; the relevant
 /// `module.ttl` files (small TBox) plus the tiny A-Box close in seconds, Docker-free.
@@ -95,8 +103,8 @@ pub fn scoped_closure(slices: &[&str], abox: &[RdfQuad]) -> RlClosure {
     paths.sort();
     let mut quads = turtle_quads(&paths);
     quads.extend_from_slice(abox);
-    let store = VecRdfStore::with_quads(quads);
-    rl_closure(&store).expect("scoped OWL 2 RL closure should succeed")
+    let dataset = dataset_from_quads(quads);
+    rl_closure(dataset.as_ref()).expect("scoped OWL 2 RL closure should succeed")
 }
 
 /// An RL closure of arbitrary Turtle source files (repo-relative) plus injected `abox` — for the
@@ -105,8 +113,8 @@ pub fn scoped_closure_files(rel_paths: &[&str], abox: &[RdfQuad]) -> RlClosure {
     let paths: Vec<String> = rel_paths.iter().map(|s| (*s).to_owned()).collect();
     let mut quads = turtle_quads(&paths);
     quads.extend_from_slice(abox);
-    let store = VecRdfStore::with_quads(quads);
-    rl_closure(&store).expect("scoped OWL 2 RL closure should succeed")
+    let dataset = dataset_from_quads(quads);
+    rl_closure(dataset.as_ref()).expect("scoped OWL 2 RL closure should succeed")
 }
 
 /// An IRI-subject / IRI-object quad in the single default world (matches the parsed Turtle).

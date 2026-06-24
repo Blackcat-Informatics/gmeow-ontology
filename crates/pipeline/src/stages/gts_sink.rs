@@ -139,8 +139,7 @@ mod tests {
             .expect("sink emits gmeow.gts");
         assert_eq!(emitted, gts.as_slice(), "sink must re-emit verbatim");
 
-        // Round-trips through the kernel GTS reader (the bundle is well-formed).
-        let graph = gmeow_rdf::gts::read_graph(emitted, true).expect("read_graph");
-        let _ = gmeow_rdf::gts::GtsGraphStore::new(&graph);
+        // Round-trips through the kernel GTS importer (the bundle is well-formed).
+        let _ = gmeow_rdf::import_gts_events(emitted).expect("import_gts_events");
     }
 }

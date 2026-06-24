@@ -32,7 +32,7 @@ use crate::encode::{
 };
 use crate::nemo_engine::{run_chase, ChaseRow};
 use crate::store::WorldStore;
-use gmeow_rdf::RdfStore;
+use gmeow_rdf::RdfDataset;
 
 /// The combined result of a single-chase native reasoning run.
 ///
@@ -65,7 +65,7 @@ pub struct ReasonResult {
 /// Returns `Err(String)` if the source store cannot be loaded, if the Nemo
 /// chase fails to parse/validate/evaluate/decode, or if the gap scan fails to
 /// read a quad from `edb`.
-pub fn reason_all(edb: &impl RdfStore) -> Result<ReasonResult, String> {
+pub fn reason_all(edb: &RdfDataset) -> Result<ReasonResult, String> {
     let all = run_reasoning(edb, &dl::dl_rules())?;
     let verdict = dl::verdict_from_inferred(&all, edb)?;
     let inferred: Vec<InferredAxiom> = all
@@ -107,13 +107,10 @@ fn decode_premise(row: &ChaseRow) -> Result<(String, String, String), String> {
 ///
 /// Returns `Err(String)` if the source store cannot be loaded, if the Nemo
 /// chase fails to parse/validate/evaluate, or if a derived row fails to decode.
-pub(crate) fn run_reasoning(
-    edb: &impl RdfStore,
-    rules: &str,
-) -> Result<Vec<InferredAxiom>, String> {
+pub(crate) fn run_reasoning(edb: &RdfDataset, rules: &str) -> Result<Vec<InferredAxiom>, String> {
     // 1. Load the source into a fresh world-indexed store.
     let store = WorldStore::new();
-    store.load_rdf_store(edb)?;
+    store.load_dataset(edb)?;
 
     // 2. Encode every IRI-object quad of every world into ternary EDB fact lines.
     //    The fixed EL/DL calculi only fire on axioms whose object is an IRI
@@ -183,7 +180,7 @@ pub(crate) fn run_reasoning(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use gmeow_rdf::{RdfQuad, RdfTerm, VecRdfStore};
+    use gmeow_rdf::{RdfDatasetBuilder, RdfQuad, RdfTerm};
 
     const W: &str = "http://gmeow.example/w";
     const SUBCLASS: &str = "http://www.w3.org/2000/01/rdf-schema#subClassOf";
@@ -199,17 +196,25 @@ mod tests {
         RdfQuad::new(RdfTerm::iri(s), p, RdfTerm::iri(o)).in_graph(RdfTerm::iri(W))
     }
 
+    fn dataset(quads: Vec<RdfQuad>) -> std::sync::Arc<gmeow_rdf::RdfDataset> {
+        let mut builder = RdfDatasetBuilder::new();
+        for quad in quads {
+            builder.push_owned_quad(&quad);
+        }
+        builder.freeze().expect("valid test dataset")
+    }
+
     #[test]
     fn reason_all_single_chase_yields_inconsistent_and_nonempty_closure() {
         // A ⊑ B, A ⊑ C, B disjointWith C, x : A — one chase must derive both the
         // subsumption closure AND the inconsistency verdict (x forced into Nothing).
-        let store = VecRdfStore::with_quads(vec![
+        let store = dataset(vec![
             quad(A, SUBCLASS, B),
             quad(A, SUBCLASS, C),
             quad(B, DISJOINT, C),
             quad(X, TYPE, A),
         ]);
-        let result = reason_all(&store).expect("reason_all should succeed");
+        let result = reason_all(store.as_ref()).expect("reason_all should succeed");
 
         assert!(
             !result.verdict.consistent,

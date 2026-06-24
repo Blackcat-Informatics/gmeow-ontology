@@ -68,7 +68,7 @@ use std::collections::HashMap;
 
 use crate::encode::{decode_iri_term, skolem_iri, SKOLEM_PREFIX};
 use crate::nemo_engine::run_chase;
-use gmeow_rdf::{RdfStore, RdfTerm};
+use gmeow_rdf::{RdfDataset, RdfTerm};
 
 /// IRI scheme prefix for an interned-literal surrogate (see [`encode_generic_edb`]).
 const LIT_SURROGATE_PREFIX: &str = "urn:gmeow-rl-lit:";
@@ -426,7 +426,7 @@ fn render_resource(term: &RdfTerm, interner: &mut Interner) -> Option<String> {
     }
 }
 
-/// Encode an [`RdfStore`] into generic-triple `triple(?s,?p,?o,?w)` EDB facts.
+/// Encode an [`RdfDataset`] into generic-triple `triple(?s,?p,?o,?w)` EDB facts.
 ///
 /// Every quad becomes a 4-ary `triple` fact with the predicate as DATA (so RL's
 /// property-quantifying rules can bind it). IRIs/bnodes go through verbatim
@@ -437,13 +437,10 @@ fn render_resource(term: &RdfTerm, interner: &mut Interner) -> Option<String> {
 /// single world (RDF-1.2-first; the world axis is never flattened away). A
 /// triple-term subject/object is skipped — unsupported in the Nemo chase and
 /// absent from the suites' RL fixtures.
-fn encode_generic_edb(
-    store: &impl RdfStore,
-    interner: &mut Interner,
-) -> Result<Vec<String>, String> {
+fn encode_generic_edb(store: &RdfDataset, interner: &mut Interner) -> Vec<String> {
     let mut facts: Vec<String> = Vec::new();
-    for result in store.quads() {
-        let quad = result.map_err(|e| format!("RDF store iteration failed: {e}"))?;
+    for (index, quad) in store.quads().enumerate() {
+        let quad = store.to_owned_quad(index, quad);
 
         let Some(subj) = render_resource(&quad.subject, interner) else {
             continue;
@@ -463,7 +460,7 @@ fn encode_generic_edb(
             "triple({subj}, {pred}, {obj}, \"{world_escaped}\")."
         ));
     }
-    Ok(facts)
+    facts
 }
 
 /// Compute the OWL 2 RL/RDF deductive closure of `edb` via the Nemo chase.
@@ -477,9 +474,9 @@ fn encode_generic_edb(
 ///
 /// Returns `Err(String)` if the chase fails to parse/validate/evaluate or a row
 /// fails to decode.
-pub fn rl_closure(edb: &impl RdfStore) -> Result<RlClosure, String> {
+pub fn rl_closure(edb: &RdfDataset) -> Result<RlClosure, String> {
     let mut interner = Interner::default();
-    let edb_facts = encode_generic_edb(edb, &mut interner)?;
+    let edb_facts = encode_generic_edb(edb, &mut interner);
     if edb_facts.is_empty() {
         return Ok(RlClosure { triples: vec![] });
     }
@@ -527,7 +524,7 @@ pub fn rl_closure(edb: &impl RdfStore) -> Result<RlClosure, String> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use gmeow_rdf::{RdfQuad, RdfTerm, VecRdfStore};
+    use gmeow_rdf::{RdfDatasetBuilder, RdfQuad, RdfTerm};
 
     const W: &str = "http://gmeow.example/w";
     const TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
@@ -557,6 +554,14 @@ mod tests {
         RdfQuad::new(RdfTerm::iri(s), p, RdfTerm::iri(o)).in_graph(RdfTerm::iri(W))
     }
 
+    fn dataset(quads: Vec<RdfQuad>) -> std::sync::Arc<RdfDataset> {
+        let mut builder = RdfDatasetBuilder::new();
+        for quad in quads {
+            builder.push_owned_quad(&quad);
+        }
+        builder.freeze().expect("valid test dataset")
+    }
+
     fn has(closure: &RlClosure, s: &str, p: &str, o: &str) -> bool {
         let obj = format!("<{o}>");
         closure
@@ -568,12 +573,12 @@ mod tests {
     #[test]
     fn cax_sco_type_propagates_through_subclass() {
         // x a A, A ⊑ B, B ⊑ C ⇒ x a B, x a C.
-        let store = VecRdfStore::with_quads(vec![
+        let store = dataset(vec![
             quad(X, TYPE, A),
             quad(A, SUBCLASS, B),
             quad(B, SUBCLASS, C),
         ]);
-        let c = rl_closure(&store).expect("RL closure should succeed");
+        let c = rl_closure(store.as_ref()).expect("RL closure should succeed");
         assert!(has(&c, X, TYPE, B), "x a B via cax-sco");
         assert!(has(&c, X, TYPE, C), "x a C via cax-sco + scm-sco");
     }
@@ -581,9 +586,8 @@ mod tests {
     #[test]
     fn prp_dom_and_rng_derive_types() {
         // p domain A, p range B, x p y ⇒ x a A, y a B.
-        let store =
-            VecRdfStore::with_quads(vec![quad(P, DOMAIN, A), quad(P, RANGE, B), quad(X, P, Y)]);
-        let c = rl_closure(&store).expect("RL closure should succeed");
+        let store = dataset(vec![quad(P, DOMAIN, A), quad(P, RANGE, B), quad(X, P, Y)]);
+        let c = rl_closure(store.as_ref()).expect("RL closure should succeed");
         assert!(has(&c, X, TYPE, A), "x a A via prp-dom");
         assert!(has(&c, Y, TYPE, B), "y a B via prp-rng");
     }
@@ -591,36 +595,36 @@ mod tests {
     #[test]
     fn prp_spo1_propagates_assertions_up_the_property_hierarchy() {
         // p1 ⊑ p2, x p1 y ⇒ x p2 y.
-        let store = VecRdfStore::with_quads(vec![quad(P1, SUBPROP, P2), quad(X, P1, Y)]);
-        let c = rl_closure(&store).expect("RL closure should succeed");
+        let store = dataset(vec![quad(P1, SUBPROP, P2), quad(X, P1, Y)]);
+        let c = rl_closure(store.as_ref()).expect("RL closure should succeed");
         assert!(has(&c, X, P2, Y), "x p2 y via prp-spo1");
     }
 
     #[test]
     fn prp_trp_closes_a_transitive_chain() {
         // p transitive, x p y, y p z ⇒ x p z.
-        let store = VecRdfStore::with_quads(vec![
+        let store = dataset(vec![
             quad(P, TYPE, TRANSITIVE),
             quad(X, P, Y),
             quad(Y, P, Z),
         ]);
-        let c = rl_closure(&store).expect("RL closure should succeed");
+        let c = rl_closure(store.as_ref()).expect("RL closure should succeed");
         assert!(has(&c, X, P, Z), "x p z via prp-trp");
     }
 
     #[test]
     fn prp_symp_mirrors_a_symmetric_edge() {
         // p symmetric, x p y ⇒ y p x.
-        let store = VecRdfStore::with_quads(vec![quad(P, TYPE, SYMMETRIC), quad(X, P, Y)]);
-        let c = rl_closure(&store).expect("RL closure should succeed");
+        let store = dataset(vec![quad(P, TYPE, SYMMETRIC), quad(X, P, Y)]);
+        let c = rl_closure(store.as_ref()).expect("RL closure should succeed");
         assert!(has(&c, Y, P, X), "y p x via prp-symp");
     }
 
     #[test]
     fn prp_inv_derives_both_directions() {
         // p1 inverseOf p2, x p1 y ⇒ y p2 x.
-        let store = VecRdfStore::with_quads(vec![quad(P1, INVERSE_OF, P2), quad(X, P1, Y)]);
-        let c = rl_closure(&store).expect("RL closure should succeed");
+        let store = dataset(vec![quad(P1, INVERSE_OF, P2), quad(X, P1, Y)]);
+        let c = rl_closure(store.as_ref()).expect("RL closure should succeed");
         assert!(has(&c, Y, P2, X), "y p2 x via prp-inv1");
     }
 
@@ -629,7 +633,7 @@ mod tests {
         // p propertyChainAxiom ( p1 p2 ), x p1 y, y p2 z ⇒ x p z.
         let l0 = "http://gmeow.example/l0";
         let l1 = "http://gmeow.example/l1";
-        let store = VecRdfStore::with_quads(vec![
+        let store = dataset(vec![
             quad(P, CHAIN, l0),
             quad(l0, FIRST, P1),
             quad(l0, REST, l1),
@@ -638,7 +642,7 @@ mod tests {
             quad(X, P1, Y),
             quad(Y, P2, Z),
         ]);
-        let c = rl_closure(&store).expect("RL closure should succeed");
+        let c = rl_closure(store.as_ref()).expect("RL closure should succeed");
         assert!(has(&c, X, P, Z), "x p z via prp-spo2");
     }
 
@@ -658,7 +662,7 @@ mod tests {
         const ONPROP: &str = "http://www.w3.org/2002/07/owl#onProperty";
         const EQC: &str = "http://www.w3.org/2002/07/owl#equivalentClass";
 
-        let store = VecRdfStore::with_quads(vec![
+        let store = dataset(vec![
             // Defined ≡ equiv-node ; equiv-node intersectionOf ( C1 restr )
             quad(DEFINED, EQC, EQUIV_NODE),
             quad(EQUIV_NODE, INTERSECTION, L0),
@@ -674,7 +678,7 @@ mod tests {
             quad(X, P, Y),
             quad(Y, TYPE, D),
         ]);
-        let c = rl_closure(&store).expect("RL closure should succeed");
+        let c = rl_closure(store.as_ref()).expect("RL closure should succeed");
         assert!(
             has(&c, X, TYPE, DEFINED),
             "x must be classified into the equivalent defined class Defined"
@@ -709,8 +713,8 @@ mod tests {
             )),
         )
         .in_graph(RdfTerm::iri(W));
-        let store = VecRdfStore::with_quads(vec![quad(p1, subprop, p2), lit_quad, int_quad]);
-        let c = rl_closure(&store).expect("RL closure should succeed");
+        let store = dataset(vec![quad(p1, subprop, p2), lit_quad, int_quad]);
+        let c = rl_closure(store.as_ref()).expect("RL closure should succeed");
 
         // The interned language literal propagates up the sub-property hierarchy.
         let derived = c
@@ -730,8 +734,8 @@ mod tests {
 
     #[test]
     fn closure_carries_the_world_and_edb_flags() {
-        let store = VecRdfStore::with_quads(vec![quad(X, TYPE, A), quad(A, SUBCLASS, B)]);
-        let c = rl_closure(&store).expect("RL closure should succeed");
+        let store = dataset(vec![quad(X, TYPE, A), quad(A, SUBCLASS, B)]);
+        let c = rl_closure(store.as_ref()).expect("RL closure should succeed");
         let derived = c
             .triples
             .iter()
