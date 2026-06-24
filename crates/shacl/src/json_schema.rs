@@ -217,9 +217,14 @@ pub fn compile(shapes: &Shapes) -> CompiledSchema {
 fn root_schema(defs: &Map<String, Value>) -> Value {
     let node_ref = json!({ "$ref": "#/$defs/Node" });
 
-    // The @graph envelope object: every member is a discriminated Node.
+    // The @graph envelope object: every member is a discriminated Node. The
+    // envelope branch REQUIRES `@graph`, so a bare single-node document cannot
+    // slip through this permissive branch and escape `Node` discrimination — a
+    // bare node must satisfy the `node_ref` branch of the root `anyOf` instead
+    // (closed-world: a bare incomplete node is rejected, #700).
     let graph_envelope = json!({
         "type": "object",
+        "required": ["@graph"],
         "properties": {
             "@context": true,
             "@graph": {
@@ -716,12 +721,26 @@ fn compile_property(
     let is_required = min_count.map(|n| n >= 1).unwrap_or(false);
 
     // Cardinality wrapping: maxCount==1 → single; else array.
+    //
+    // JSON-LD convention (and the [`crate::instance`] projector's exact
+    // behaviour): a property with a SINGLE value is emitted UNWRAPPED — a bare
+    // scalar / `{"@id":..}` / `{"@value":..}` — and only multi-valued properties
+    // are wrapped in a JSON array. So an array-cardinality property schema must
+    // accept BOTH the bare single form and the array form, or it would reject
+    // SHACL-conformant single-value data the projector legitimately emits.
+    //
+    // Soundness: accepting the bare single form is sound iff `minCount <= 1`. The
+    // projector only emits the bare form when the data has EXACTLY ONE value;
+    // such data conforms to SHACL only when `minCount <= 1` (a `minCount >= 2`
+    // shape rejects single-value data, putting it out of scope). When
+    // `minCount >= 2` we therefore keep the strict array form so the schema does
+    // not admit data SHACL rejects.
     let schema = if max_count == Some(1) {
         single
     } else {
         let mut arr: Map<String, Value> = Map::new();
         arr.insert("type".to_owned(), json!("array"));
-        arr.insert("items".to_owned(), single);
+        arr.insert("items".to_owned(), single.clone());
         if let Some(n) = min_count {
             if n > 0 {
                 arr.insert("minItems".to_owned(), json!(n));
@@ -730,7 +749,15 @@ fn compile_property(
         if let Some(n) = max_count {
             arr.insert("maxItems".to_owned(), json!(n));
         }
-        Value::Object(arr)
+        let array_form = Value::Object(arr);
+
+        // A single value is permissible exactly when minCount <= 1.
+        let allow_single = min_count.map(|n| n <= 1).unwrap_or(true);
+        if allow_single {
+            json!({ "anyOf": [single, array_form] })
+        } else {
+            array_form
+        }
     };
 
     (schema, is_required)
@@ -955,9 +982,23 @@ mod tests {
         // name (maxCount 1) is a single value, NOT an array
         let name = &person["properties"]["gmeow:name"];
         assert_ne!(name["type"], json!("array"), "maxCount 1 → single value");
-        // nickname (no maxCount) is an array
+        // nickname (no maxCount, minCount<=1) accepts BOTH the bare single form
+        // AND the array form: the projector emits a bare scalar for a single
+        // value and an array only for multiple values, so the schema must accept
+        // either or it would reject SHACL-conformant single-value data (#700).
         let nickname = &person["properties"]["gmeow:nickname"];
-        assert_eq!(nickname["type"], json!("array"), "no maxCount → array");
+        let alts = nickname["anyOf"]
+            .as_array()
+            .expect("no-maxCount property is an anyOf of single|array");
+        assert_eq!(alts.len(), 2, "anyOf of single + array forms");
+        assert!(
+            alts.iter().any(|a| a["type"] == json!("array")),
+            "one alternative is the array form: {alts:?}"
+        );
+        assert!(
+            alts.iter().any(|a| a["type"] != json!("array")),
+            "one alternative is the bare single form: {alts:?}"
+        );
     }
 
     #[test]
