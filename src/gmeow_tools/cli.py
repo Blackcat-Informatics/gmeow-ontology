@@ -75,7 +75,7 @@ def _default_schema_bytes() -> bytes:
     if not path.is_file():
         raise _fail(
             f"no bundled JSON Schema at {path}; pass one with --schema, "
-            "or run the schema generator first"
+            "or run `make regenerate` to emit generated/schemas/gmeow.schema.json"
         )
     return _read_bytes_or_fail(path)
 
@@ -342,14 +342,16 @@ def validate(
     import gmeow_validate
 
     suffix = instance.suffix.lower()
-    if suffix == ".json":
+    # JSON-LD is JSON to the validator (the projector emits JSON-LD instances, and
+    # docs/schema-projections.md documents a `.jsonld` example), so accept it here.
+    if suffix in (".json", ".jsonld"):
         fmt = "json"
     elif suffix in (".yaml", ".yml"):
         fmt = "yaml"
     else:
         raise _fail(
             f"cannot infer format from {instance.name}: "
-            "expected a .json, .yaml, or .yml extension"
+            "expected a .json, .jsonld, .yaml, or .yml extension"
         )
 
     instance_bytes = _read_bytes_or_fail(instance)
