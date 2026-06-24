@@ -185,7 +185,7 @@ the ODRL *deontic logic*, not just its structure (Principle 1). A licence's temp
 bound is modelled as an `odrl:dateTime` constraint; lightweight statement validity
 rides `gmeow:validFrom` / `gmeow:validUntil` (the temporal module), and rights
 provenance/confidence/standpoint ride the RDF-1.2 statement layer
-(`statement-dsl/rights.ttl`).
+(`dsl/statements/rights.ttl`).
 
 The structural ODRL / CC `templateAtoms` cells carry no EDOAL cell of their own, so
 the no-drift gate (`projection_spec_drift`) verifies every emitted `odrl:` / `cc:`

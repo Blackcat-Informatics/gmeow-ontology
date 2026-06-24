@@ -1,8 +1,7 @@
 """RDF-native SHACL validation for the GMEOW mapping and statement DSL sources.
 
-Runs ``gmeow_shacl`` over the merged DSL graph *before* the Python graph-walkers
-(:mod:`gmeow_tools.mapping_dsl`, :mod:`gmeow_tools.statement_dsl`) proceed
-into dataclass parsing. Violations are surfaced as structured, per-node
+Runs ``gmeow_shacl`` over the merged DSL graph before the mapping parser or the
+native statement compiler proceed. Violations are surfaced as structured, per-node
 diagnostics (focus node, path, message, source file) so malformed DSL cells
 fail with an RDF-native conformance report rather than a bare Python
 :exc:`CompileError`.

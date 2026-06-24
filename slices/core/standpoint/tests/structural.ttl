@@ -27,9 +27,9 @@
 #     skos:definition text dynamically; not a TBox triple.
 #   test_no_preferred_or_primary_term_is_declared -- whole-ontology sweep via
 #     g.subjects(); scoping to module would silently narrow the guard.
-#   test_crimea_pair_coexists_in_the_dsl -- uses load_statement_dsl();
+#   test_crimea_pair_coexists_in_the_dsl -- uses the native statement OWL downcast;
 #     generated-artifact DSL check, not a module-scoped TBox assertion.
-#   test_two_clocks_stay_distinct -- uses load_statement_dsl(); same reason.
+#   test_two_clocks_stay_distinct -- uses the native statement OWL downcast; same reason.
 #   test_rdf12_artifact_carries_the_standpoint_axis -- reads committed file
 #     content; generated-artifact check, not a TBox assertion.
 #   test_coexistence_fixture_conforms -- run_shacl() call; ExampleConformance.

@@ -73,6 +73,46 @@ def _run_pipeline(jobs: int | None = None, check: bool = False) -> dict[str, Any
     return cast("dict[str, Any]", report)
 
 
+def _compile_statements_native() -> dict[str, str]:
+    """Compile statement artifacts through the native Rust statements stage."""
+    try:
+        import gmeow_native.pipeline as _pipeline
+    except ImportError as exc:
+        raise _fail(
+            "✗ the native pipeline is unavailable: "
+            f"`import gmeow_native.pipeline` failed ({exc}). Rebuild the unified "
+            "extension (e.g. `maturin develop --manifest-path "
+            "crates/native/Cargo.toml`) to pick up the pipeline submodule."
+        ) from exc
+    artifacts = _pipeline.compile_statements(str(PROJECT_ROOT))
+    return cast("dict[str, str]", artifacts)
+
+
+def _statement_compile_report() -> Any:
+    """Native statement compiler diagnostics folded into feedback (#935).
+
+    Python owns only the developer feedback surface here. The compiler itself is
+    the Rust `stage-statements` implementation exposed through
+    `gmeow_native.pipeline.compile_statements_report`.
+    """
+    from gmeow_tools.graph import load_merged_graph
+
+    try:
+        import gmeow_native.pipeline as _pipeline
+    except ImportError as exc:
+        raise _fail(
+            "✗ the native pipeline is unavailable: "
+            f"`import gmeow_native.pipeline` failed ({exc}). Rebuild the unified "
+            "extension (e.g. `maturin develop --manifest-path "
+            "crates/native/Cargo.toml`) to pick up the pipeline submodule."
+        ) from exc
+    onto = load_merged_graph(include_imports=False)
+    return _pipeline.compile_statements_report(
+        str(PROJECT_ROOT),
+        onto.serialize(format="nt"),
+    )
+
+
 def _regenerate_native(jobs: int | None = None, check: bool = False) -> None:
     """Build (or drift-check) every committed artifact via the Rust pipeline."""
     report = _run_pipeline(jobs=jobs, check=check)
@@ -497,9 +537,7 @@ def _surface_reports() -> list[tuple[str, Callable[[], Any]]]:
         return logic_compile.compile_diagnostics_report()
 
     def _statement_compile() -> Any:
-        from gmeow_tools import statement_compile
-
-        return statement_compile.compile_diagnostics_report()
+        return _statement_compile_report()
 
     def _mapping_compile() -> Any:
         from gmeow_tools import mapping_compile

@@ -1,11 +1,11 @@
 """Tests for the RDF-1.2-first statement-metadata pipeline (issues #28, #29).
 
-The pure-Python tests (DSL parse, reifier minting, the invariants, the OWL emit,
-the no-preview-language gate, and the native lead-codec round-trip) run anywhere —
-the RDF 1.2 lead writer is the native ``gmeow-rdf`` Rust codec (#667), so the
-round-trip needs no Jena and no Docker. The Apache Jena oracle (no-drift /
-isomorphism cross-check) runs through a repo-local script so Make/CI can schedule
-Docker outside pytest, in the non-required ``classic-cross-check`` lane.
+The statement compiler is the native Rust `stage-statements` pipeline stage
+(#935). Compiler behavior is covered in the Rust test framework; pytest only
+keeps Python wrapper/oracle scheduling checks here. The Apache Jena oracle
+(no-drift / isomorphism cross-check) runs through a repo-local script so Make/CI
+can schedule Docker outside pytest, in the non-required `classic-cross-check`
+lane.
 """
 
 from __future__ import annotations
@@ -14,103 +14,17 @@ from pathlib import Path
 
 import gmeow_rdf
 import pytest
-from gmeow_rdf.compat.rdflib import RDF, Graph, URIRef
+from gmeow_rdf.compat.rdflib import Graph
 from gmeow_rdf.compat.rdflib.compare import isomorphic
-from gmeow_rdf.compat.rdflib.namespace import OWL
 
 from gmeow_tools import statements_docker_check
 from gmeow_tools.config import (
-    PREFIXES,
     PROJECT_ROOT,
     STATEMENT_OWL_FILE,
     STATEMENT_RDF12_FILE,
 )
 from gmeow_tools.rdf12 import project_owl_to_rdf12
 from gmeow_tools.runner import ToolUnavailableError
-from gmeow_tools.statement_compile import emit_owl
-from gmeow_tools.statement_dsl import (
-    QuotedTriple,
-    load_statement_dsl,
-    mint_reifier,
-)
-
-GM = PREFIXES["gmeow"]
-
-
-# --------------------------------------------------------------------------- #
-# Pure-Python: parsing, minting, emit, invariants
-# --------------------------------------------------------------------------- #
-
-
-def test_dsl_parses_and_is_sorted() -> None:
-    dsl = load_statement_dsl()
-    assert len(dsl.cells) >= 3
-    assert list(dsl.cells) == sorted(dsl.cells, key=lambda c: str(c.iri))
-    for cell in dsl.cells:
-        assert cell.annotations  # every worked cell carries metadata
-        assert list(cell.annotations) == sorted(
-            cell.annotations, key=lambda a: (str(a.prop), a.value.n3())
-        )
-
-
-def test_reifier_minting_is_deterministic_and_content_addressed() -> None:
-    triple = QuotedTriple(
-        subject=URIRef("https://example.org/s"),
-        predicate=URIRef(GM + "knowsLanguage"),
-        obj=URIRef("https://example.org/o"),
-    )
-    assert mint_reifier(triple) == mint_reifier(triple)  # stable
-    assert str(mint_reifier(triple)).startswith(GM + "reifier/")
-    # The cell without an authored reifier got a minted, content-addressed one.
-    minted = [
-        c
-        for c in load_statement_dsl().cells
-        if str(c.reifier).startswith(GM + "reifier/")
-    ]
-    assert minted, "expected at least one minted reifier in the worked examples"
-
-
-def test_duplicate_annotation_value_is_rejected(tmp_path: Path) -> None:
-    """Two annValues on one annotation node is a malformed cell, not a silent pick."""
-    from gmeow_tools.mapping_dsl import CompileError
-
-    ttl = (
-        "@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n"
-        "@prefix ex: <https://blackcatinformatics.ca/gmeow/examples/> .\n"
-        "ex:c a gmeow:StatementMetadata ;\n"
-        "    gmeow:qSubject ex:s ; gmeow:qPredicate gmeow:knowsLanguage ;\n"
-        "    gmeow:qObject ex:o ;\n"
-        "    gmeow:annotation [ gmeow:annProperty gmeow:confidence ;\n"
-        "        gmeow:annValue 0.5 ; gmeow:annValue 0.6 ] .\n"
-    )
-    (tmp_path / "dup.ttl").write_text(ttl, encoding="utf-8")
-    with pytest.raises(
-        CompileError,
-        match=r"statement DSL SHACL violations",
-    ):
-        load_statement_dsl(src=tmp_path)
-
-
-def test_emit_owl_produces_axiom_annotation_form() -> None:
-    dsl = load_statement_dsl()
-    owl = emit_owl(dsl)
-    axioms = set(owl.subjects(RDF.type, OWL.Axiom))
-    assert len(axioms) == len(dsl.cells)
-    for cell in dsl.cells:
-        ax = cell.reifier
-        assert (ax, OWL.annotatedSource, cell.triple.subject) in owl
-        assert (ax, OWL.annotatedProperty, cell.triple.predicate) in owl
-        assert (ax, OWL.annotatedTarget, cell.triple.obj) in owl
-        assert (cell.triple.subject, cell.triple.predicate, cell.triple.obj) in owl
-        for ann in cell.annotations:
-            assert (ax, ann.prop, ann.value) in owl
-
-
-# The statement-invariant checks (annotation-property soundness, confidence range,
-# OWL 2 DL datatypes, predicate/term groundedness, no-preferred-rank) are now native
-# Rust (gmeow_validate.check_statement_invariants); their unit tests live in
-# crates/validate/src/statement.rs (issue #630).
-
 
 # --------------------------------------------------------------------------- #
 # Pure-Python: the no-preview-language gate (#28.4, #29.4)

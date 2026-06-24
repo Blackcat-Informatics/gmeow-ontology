@@ -791,7 +791,7 @@ fn insert_ntriples(store: &oxigraph::store::Store, data_nt: &str) -> PyResult<()
 /// The statement-metadata invariants over the emitted OWL downcast + ontology
 /// (mirrors `statement_lint.statement_invariants`, #630 Gap B3).
 ///
-/// `statement_owl_ttl` is the `statement_compile.emit_owl` output as Turtle;
+/// `statement_owl_ttl` is the native statement-stage OWL downcast as Turtle;
 /// `ontology_nt` is the merged ontology as N-Triples. Both are loaded into ONE
 /// oxigraph store (their default-graph union), the four invariants run natively,
 /// and the violations are returned as a single canonical `Report` pyclass (every

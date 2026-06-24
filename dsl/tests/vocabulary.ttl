@@ -24,7 +24,7 @@
 #
 # This file is a SPEC LAYER — grounded in the gmeow: namespace and annotated like
 # every GMEOW term, but NOT owl:imports-ed into the reasoned OWL 2 DL core. It is
-# the sibling of statement-dsl/vocabulary.ttl and mapping-dsl/vocabulary.ttl, not
+# the sibling of dsl/statements/vocabulary.ttl and dsl/mappings/vocabulary.ttl, not
 # of ontology/modules/*. The test harness reads it; the reasoner does not.
 # =============================================================================
 

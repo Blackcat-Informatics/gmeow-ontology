@@ -1783,6 +1783,7 @@ dependencies = [
  "gmeow-rdf",
  "gmeow-shacl",
  "gmeow-slice",
+ "gmeow-validate",
  "oxigraph",
  "parquet",
  "petgraph",

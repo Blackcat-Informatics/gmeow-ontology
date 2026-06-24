@@ -8,8 +8,8 @@
 # Deception statement-metadata exemplars — canonical RDF 1.2 / RDF* cells.
 #
 # Compiled to statements/gmeow.rdf12.ttl and statements/gmeow-statements.owl.ttl
-# by `gmeow compile-statements`. See statement-dsl/examples.ttl for the general
-# pattern and statement-dsl/vocabulary.ttl for the DSL spec.
+# by the `gmeow regenerate` statements generator. See dsl/statements/examples.ttl for the general
+# pattern and dsl/statements/vocabulary.ttl for the DSL spec.
 # =============================================================================
 
 # 1. A deception event: the held standpoint and projected standpoint diverge.

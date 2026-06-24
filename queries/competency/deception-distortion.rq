@@ -1,7 +1,7 @@
 # Competency question: "Which events are distortions?"
 # A distortion = held claim probable (or otherwise qualified) and projected
 # claim sharpened to unequivocal — a modality shift without literal falsification.
-# Expected: event-distortion-001 (from statement-dsl/deception.ttl).
+# Expected: event-distortion-001 (from dsl/statements/deception.ttl).
 
 PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 

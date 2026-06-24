@@ -15,6 +15,8 @@ use std::path::Path;
 use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyList, PyModule};
 
+use gmeow_diagnostics::py::PyReport;
+
 use crate::run::{run_full, RunMode};
 
 /// Run the full dogfooded build single-pass.
@@ -83,9 +85,45 @@ fn run_pipeline(py: Python<'_>, root: String, jobs: usize, check: bool) -> PyRes
     Ok(out.into_any().unbind())
 }
 
+/// Compile only the statement layer through the native Rust statements stage.
+///
+/// This is an interface hook for developer feedback and oracle checks. The
+/// compiler authority remains [`crate::stages::statements::compile_statements`];
+/// Python receives the already-rendered OWL downcast and RDF 1.2 lead strings.
+#[pyfunction]
+#[pyo3(signature = (root))]
+fn compile_statements(py: Python<'_>, root: String) -> PyResult<Py<PyAny>> {
+    let (owl_ttl, rdf12_ttl) = crate::stages::statements::compile_statements(Path::new(&root))
+        .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))?;
+
+    let out = PyDict::new(py);
+    out.set_item("owl_ttl", owl_ttl)?;
+    out.set_item("rdf12_ttl", rdf12_ttl)?;
+    Ok(out.into_any().unbind())
+}
+
+/// Compile statements and return the structured feedback diagnostics report.
+///
+/// Python supplies `ontology_nt` because it already owns the merged-ontology
+/// loading surface; the compiler, invariant checks, lossless check, and
+/// `statement-compile.dsl-error` mapping remain Rust-owned.
+#[pyfunction]
+#[pyo3(signature = (root, ontology_nt))]
+fn compile_statements_report(
+    py: Python<'_>,
+    root: String,
+    ontology_nt: String,
+) -> PyResult<Py<PyAny>> {
+    let report =
+        crate::stages::statements::compile_diagnostics_report(Path::new(&root), &ontology_nt);
+    Ok(Py::new(py, PyReport::from_engine(report))?.into_any())
+}
+
 /// Register the `gmeow_native.pipeline` submodule. Called by the unified
 /// `gmeow_native` cdylib (#630); exposes [`run_pipeline`].
 pub fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(run_pipeline, m)?)?;
+    m.add_function(wrap_pyfunction!(compile_statements, m)?)?;
+    m.add_function(wrap_pyfunction!(compile_statements_report, m)?)?;
     Ok(())
 }

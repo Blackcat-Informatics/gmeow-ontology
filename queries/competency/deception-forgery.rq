@@ -1,6 +1,6 @@
 # Competency question: "Which events are forgeries?"
 # A forgery = deception event mimicking a specific genuine artifact with failed signature.
-# Expected: event-forgery-001 (from statement-dsl/deception.ttl).
+# Expected: event-forgery-001 (from dsl/statements/deception.ttl).
 
 PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 

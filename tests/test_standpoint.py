@@ -23,11 +23,8 @@ from pathlib import Path
 
 from gmeow_rdf.compat.rdflib import OWL, RDF, RDFS, SKOS, Graph, Namespace, URIRef
 
-from gmeow_tools.config import PROJECTION_QUERY_DIR, STATEMENT_RDF12_FILE
+from gmeow_tools.config import PROJECTION_QUERY_DIR
 from gmeow_tools.graph import load_merged_graph
-from gmeow_tools.statement_dsl import (
-    load_statement_dsl,
-)
 
 GMEOW = "https://blackcatinformatics.ca/gmeow/"
 GM = Namespace(GMEOW)
@@ -154,47 +151,6 @@ def test_contested_places_cannot_force_inconsistency() -> None:
     assert (GM.containedInPlace, RDF.type, OWL.FunctionalProperty) not in g
     assert (GM.Place, RDF.type, OWL.Class) in g
     assert (GM.Place, OWL.disjointWith, GM.Place) not in g
-
-
-# --------------------------------------------------------------------------- #
-# Statement-DSL cells (the RDF-1.2 lead) + lint
-# --------------------------------------------------------------------------- #
-
-
-def test_crimea_pair_coexists_in_the_dsl() -> None:
-    """Both Crimea claims are authored, each standpoint-indexed, neither privileged."""
-    cells = {c.iri: c for c in load_statement_dsl().cells}
-    ru = cells[URIRef(GMEOW + "examples/claim-crimea-in-russia-per-ru")]
-    un = cells[URIRef(GMEOW + "examples/claim-crimea-in-ukraine-per-un")]
-    # Same subject + predicate, contradictory objects — both retained.
-    assert ru.triple.subject == un.triple.subject
-    assert ru.triple.predicate == un.triple.predicate == GM.containedInPlace
-    assert ru.triple.obj != un.triple.obj
-    # Each carries an accordingTo standpoint annotation.
-    for cell in (ru, un):
-        assert any(a.prop == GM.accordingTo for a in cell.annotations)
-
-
-def test_two_clocks_stay_distinct() -> None:
-    """The two-clock cell keeps fact-time (validFrom, 1850s) and standpoint/
-    observation-time (assertedAt, 2025) apart — they never collapse."""
-    cells = {c.iri: c for c in load_statement_dsl().cells}
-    iri = URIRef(GMEOW + "examples/claim-territory-1850-per-2025-historiography")
-    ann = {a.prop: a.value for a in cells[iri].annotations}
-    assert str(ann[GM.validFrom]).startswith("1850")
-    assert str(ann[GM.assertedAt]).startswith("2025")
-    assert ann[GM.validFrom] != ann[GM.assertedAt]
-    # And it records the standpoint's modal force as conceivable (◊), not settled.
-    assert ann[GM.standpointModality] == GM.conceivable
-
-
-def test_rdf12_artifact_carries_the_standpoint_axis() -> None:
-    """The committed RDF-1.2 lead artifact actually serialises gmeow:accordingTo
-    (the cells round-trip through the compiler — full isomorphism is covered by the
-    Jena gate in test_statements.py)."""
-    text = STATEMENT_RDF12_FILE.read_text(encoding="utf-8")
-    assert "accordingTo" in text
-    assert "standpointModality" in text
 
 
 # --------------------------------------------------------------------------- #

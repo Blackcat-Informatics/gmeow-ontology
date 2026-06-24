@@ -133,7 +133,7 @@ GMEOW's canonical statement-level metadata (issue #51) uses RDF 1.2 / RDF* tripl
 LinkML has no native representation for quoted triples or
 standpoint-indexed claims.  The compiler drops all statement-level provenance.
 
-> **Rationale.** These layers live in `statement-dsl/` and `statements/gmeow.rdf12.ttl`.
+> **Rationale.** These layers live in `dsl/statements/` and `statements/gmeow.rdf12.ttl`.
 The LinkML schema is a *simplified structural view*, not the canonical model.
 
 #### 2.3 `owl:inverseOf`
