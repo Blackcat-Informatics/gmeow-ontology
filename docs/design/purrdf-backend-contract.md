@@ -9,10 +9,12 @@ Companion to [`PURRDF-PLAN.md`](./PURRDF-PLAN.md). The PLAN requires this contra
 be **specified before implementing P2** — the answers here decide the trait shapes,
 in particular whether the erased (`&mut dyn`) layer is mandatory.
 
-This document is normative for the purrdf backend traits (`DatasetView`, and the
-later `DatasetMut` / `RdfParserBackend` / `SparqlEngine` / `RdfSerializer` /
-`TermFactory`). The first trait it governs — [`DatasetView`](../../crates/rdf/src/dataset_view.rs) —
-lands in P2a (#836); the rest land with P2b–P2d and P5/P6.
+This document is normative for the purrdf backend traits (`DatasetView`,
+`DatasetMut`, `TermFactory`, `RdfParserBackend`, `SparqlEngine`, and
+`RdfSerializer`). `DatasetView` lives in
+[`crates/rdf-core/src/dataset_view.rs`](../../crates/rdf-core/src/dataset_view.rs)
+after the P2b crate split (#885); `DatasetMut` landed as the P5 write substrate
+(#839); the remaining four narrow seams land in P2d (#887).
 
 ## C1 — Backend-selection: compile-time, single, required
 
@@ -57,11 +59,11 @@ scan; P4 (#838) overrides it with the lazy access-pattern indexes.
 
 ## C4 — Write side (DatasetMut): deferred to P2c/P5
 
-`DatasetMut` (insert/remove, `Base`/`Delta` COW handles) is P5 substrate (#839, needs
-P2 + P4). SPARQL **UPDATE** and **transactions** are a backend concern (oxigraph
-provides them); the contract: UPDATE/transaction APIs live on the mutable/SPARQL
-backend traits (P2d/P5), never on `DatasetView` (read-only), and an UPDATE is atomic
-per the backend's transaction semantics (oxigraph: serializable in-memory).
+`DatasetMut` (insert/remove, `Base`/`Delta` COW handles) is delivered as the P5
+substrate (#839). SPARQL **UPDATE** and **transactions** are a backend concern
+(oxigraph provides them); the contract: UPDATE APIs live on the SPARQL backend
+trait (P2d), never on `DatasetView` (read-only), and an UPDATE is atomic per the
+backend's transaction semantics (oxigraph: serializable in-memory).
 
 ## C5 — Cancellation
 
@@ -104,8 +106,13 @@ Rayon-style fan-out over a shared `&RdfDataset` is sound today.
 | Trait | Layer | Parcel | Object-safe? |
 |---|---|---|---|
 | `DatasetView` | static read | **P2a (#836)** | no (RPITIT) — fine, selection is compile-time |
-| `DatasetMut` | static write | P5 (#839) | no |
-| `TermFactory` | interning | P2d | tbd |
-| `RdfParserBackend` | ingress | P2d/P6 | erased only if runtime registry needed |
-| `SparqlEngine` | query | P2d | — |
-| `RdfSerializer` | egress | P2d | — |
+| `DatasetMut` | static write | **P5 (#839)** | no |
+| `TermFactory` | interning | **P2d (#887)** | no object-safety requirement |
+| `RdfParserBackend` | ingress | **P2d (#887)** over P6 events | erased only if runtime registry needed |
+| `SparqlEngine` | query/update | **P2d (#887)** | no object-safety requirement |
+| `RdfSerializer` | egress | **P2d (#887)** | no object-safety requirement |
+
+The first concrete P2d adapter is `OxigraphBackend` in
+[`crates/rdf/src/oxigraph/backend.rs`](../../crates/rdf/src/oxigraph/backend.rs).
+It implements parser ingress over `gmeow-rdf-events`, SPARQL query/update, and
+serializer egress without exposing oxigraph types through `gmeow-rdf-core`.

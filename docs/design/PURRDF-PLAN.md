@@ -359,8 +359,10 @@ the benchmarks bear it out.
 
 ## Rust-idiomatic surfaces (committed)
 
-- **Abstraction traits:** `Dataset` (read) + `DatasetMut` (write) + `TermFactory`/DataFactory — one read
-  interface across frozen IR, COW delta, oxigraph; the RDF/JS shim maps onto `TermFactory` 1:1.
+- **Abstraction traits:** `DatasetView` (read) + `DatasetMut` (write) + `TermFactory`/DataFactory —
+  one read/write interface across frozen IR, COW delta, and backend adapters; the RDF/JS shim maps
+  onto `TermFactory` 1:1. `DatasetMut` is already delivered by P5 (#839); P2d (#887) adds the
+  remaining term/parser/SPARQL/serializer seams.
 - **std traits:** `Display`/`FromStr` (canonical N-Triples term form) on `TermRef`/`QuadRef`;
   `IntoIterator for &RdfDataset`; `FromIterator`/`Extend` on the builder; `std::error::Error` on
   `RdfDiagnostic`; documented **`Send+Sync`** on the frozen dataset (why the lazy index uses `OnceLock`).
@@ -383,10 +385,11 @@ a criterion baseline before/after.
   `make test` green without rdflib. The honest proving gate.
 - **P1 — SRP-decompose `py_store.rs` [no deps].** Split the 1,239-line god-module into
   `term`/`store`/`query`/`io`/`canon`. Behavior-identical; corpus green.
-- **P2 — Backend traits + oxigraph ring-fence [needs P1].** `Dataset`/`DatasetMut`/`TermFactory` +
-  `RdfParserBackend`/`SparqlEngine`/`MutableStore`/`RdfSerializer`; sole `use oxigraph` in
-  `backend/oxigraph/`; fix leaks; decouple `gts`/`python` from oxigraph; `--no-default-features` hygiene
-  build.
+- **P2 — Backend traits + oxigraph ring-fence [needs P1].** `DatasetView` + `GraphMatch` (P2a),
+  the `gmeow-rdf-core` / `gmeow-rdf` crate boundary (P2b), the concrete-IR consumer migration (P2c),
+  and the remaining `TermFactory` + `RdfParserBackend` + `SparqlEngine` + `RdfSerializer` seams (P2d).
+  `DatasetMut` is P5 (#839), not repeated here. The sole `use oxigraph` sites stay in the adapter
+  crate; `gmeow-rdf-core` remains oxigraph-free under `make rdf-core-hygiene`.
 - **P3 — IR perf [∥; SPLIT into measure-gated steps]:** **P3a** `NonZeroU32` `TermId` + compile-time
   `size_of!` assertions; **P3b** arena / string-range term representation; **P3c** store-once hash table
   (drops the term double-store *and* the builder's quad `Vec`+`HashSet` dedup duplication); **P3d** SoA
@@ -394,8 +397,8 @@ a criterion baseline before/after.
 - **P4 — Lazy quad indexes + `term_id_by_value(TermValueRef)` + `GraphMatch` [needs P3a].**
   Access-pattern-driven build; the value lookup keys on a dataset-independent `TermValueRef`.
 - **P5 — COW suppression-delta + `DatasetMut` [needs P2, P4].** Tagged `Base`/`Delta` handles; explicit
-  mutation rules; `freeze` remaps all tables. **A measured hypothesis** — benchmark vs the oxigraph store
-  AND a simple hash-indexed mutable store.
+  mutation rules; `freeze` remaps all tables. **Delivered in #839.** A measured hypothesis — benchmark
+  vs the oxigraph store AND a simple hash-indexed mutable store.
 - **P6 — `gmeow-rdf-events` ingestion protocol crate [needs P2].** New standalone permissive crate (NOT
   a `StreamingSink` rename); rename the existing frozen-dataset visitor `RdfDatasetVisitor`. Object-safe
   sink + generic & erased source; forward-reference + `finish()` resolution; specified scope/ID/cancel/
