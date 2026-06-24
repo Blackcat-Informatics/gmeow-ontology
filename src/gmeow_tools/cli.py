@@ -22,7 +22,12 @@ from rich.panel import Panel
 from rich.table import Table
 
 from gmeow_tools import __version__
-from gmeow_tools.config import GTS_GRAPH_METADATA, GTS_SNAPSHOT_FILE, NAMESPACE
+from gmeow_tools.config import (
+    GTS_GRAPH_METADATA,
+    GTS_SNAPSHOT_FILE,
+    NAMESPACE,
+    SCHEMAS_DIR,
+)
 from gmeow_tools.gts_views import FoldView
 
 if TYPE_CHECKING:
@@ -51,6 +56,23 @@ def _fail(message: str, code: int = 1) -> typer.Exit:
 def _default_gts_file() -> Path:
     """The bundled ontology snapshot."""
     return GTS_SNAPSHOT_FILE
+
+
+def _default_schema_bytes() -> bytes:
+    """Read the default GMEOW JSON Schema (the SHACL-derived gmeow.schema.json).
+
+    Today this reads ``SCHEMAS_DIR / "gmeow.schema.json"`` from the repo.
+
+    TODO(#700 Task 5): switch this to the GTS-bundled schema (REP_SCHEMAS) so
+    ``gmeow validate`` works repo-free — a one-line swap of the source below.
+    """
+    path = SCHEMAS_DIR / "gmeow.schema.json"
+    if not path.is_file():
+        raise _fail(
+            f"no bundled JSON Schema at {path}; pass one with --schema, "
+            "or run the schema generator first"
+        )
+    return _read_bytes_or_fail(path)
 
 
 def _lang_option() -> Any:
@@ -291,6 +313,57 @@ def describe(
     console.print(text)
     if code:
         raise typer.Exit(code=code)
+
+
+@app.command()
+def validate(
+    instance: Path = typer.Argument(  # noqa: B008
+        ...,
+        help="Instance file to validate (.json or .yaml/.yml).",
+    ),
+    schema: Path | None = typer.Option(  # noqa: B008
+        None,
+        "--schema",
+        "-s",
+        help="JSON Schema to validate against (default: bundled gmeow.schema.json).",
+    ),
+) -> None:
+    """Validate a JSON/YAML instance against a JSON Schema (the SHACL-derived one).
+
+    The instance format is detected from its extension. Validation runs in the
+    Rust ``gmeow_validate.validate_instance`` engine (#700): an empty violation
+    set passes, any violation hard-fails with a non-zero exit.
+    """
+    import gmeow_validate
+
+    suffix = instance.suffix.lower()
+    if suffix == ".json":
+        fmt = "json"
+    elif suffix in (".yaml", ".yml"):
+        fmt = "yaml"
+    else:
+        raise _fail(
+            f"cannot infer format from {instance.name}: "
+            "expected a .json, .yaml, or .yml extension"
+        )
+
+    instance_bytes = _read_bytes_or_fail(instance)
+    schema_bytes = (
+        _read_bytes_or_fail(schema) if schema is not None else _default_schema_bytes()
+    )
+
+    try:
+        report = gmeow_validate.validate_instance(instance_bytes, fmt, schema_bytes)
+    except ValueError as exc:
+        raise _fail(f"validation error: {exc}") from exc
+
+    violations = report["errors"]
+    if not violations:
+        console.print("[green]validation passed[/green]")
+        return
+    for violation in violations:
+        err_console.print(f"[red]{violation}[/red]")
+    raise typer.Exit(code=1)
 
 
 @app.command()
