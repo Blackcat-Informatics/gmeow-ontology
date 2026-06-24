@@ -238,6 +238,15 @@ rdf-core-hygiene: ## [purrdf P2b/#885] Prove the ring-fenced gmeow-rdf-core kern
 	else \
 		echo "OK: gmeow-rdf-core has NO oxigraph in its normal dependency tree (the #885 crate ring-fence holds)"; \
 	fi
+	@# [purrdf S2/#908] The native gmeow-iri leaf REPLACES `oxiri`; assert it pulls
+	@# NO oxigraph-family crate (umbrella + any ox*/spar* leaf) into its normal tree.
+	@itree=$$(cargo tree -p gmeow-iri --edges normal -f "{p}") || { echo "FAIL: cargo tree errored for gmeow-iri"; exit 1; }; \
+	if echo "$$itree" | grep -Eq '(oxigraph|oxrdf|oxsdatatypes|oxiri|spargebra|spareval|sparopt|sparesults|oxttl|oxrdfio|oxrdfxml|oxjsonld) v'; then \
+		echo "FAIL: gmeow-iri pulls an oxigraph-family crate — the S2 zero-dep replacement is BROKEN"; \
+		echo "$$itree" | grep -E '(oxigraph|oxrdf|oxsdatatypes|oxiri|spargebra|spareval|sparopt|sparesults|oxttl|oxrdfio|oxrdfxml|oxjsonld) v'; exit 1; \
+	else \
+		echo "OK: gmeow-iri has NO oxigraph-family crate in its normal dependency tree (the #908 oxiri replacement is clean)"; \
+	fi
 
 native-py: ## Build and install the single unified gmeow_native Python extension (maturin develop, #630).
 	VIRTUAL_ENV="$$(pwd)/.venv" uvx maturin develop --manifest-path crates/native/Cargo.toml

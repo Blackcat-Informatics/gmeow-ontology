@@ -1669,6 +1669,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "gmeow-iri"
+version = "0.1.0"
+dependencies = [
+ "pretty_assertions",
+ "proptest",
+]
+
+[[package]]
 name = "gmeow-logic"
 version = "0.1.0"
 dependencies = [

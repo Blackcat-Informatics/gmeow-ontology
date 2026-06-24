@@ -11,6 +11,10 @@ members = [
     "crates/diagnostics",
     # Rust-owned typed documentation model built from the slice catalog (#853).
     "crates/docs",
+    # Native IRI/URI value space (RFC-3987 IRI + RFC-3986 URI parse/validate,
+    # reference resolution, syntax normalization, CURIE/prefix expansion): the
+    # zero-dep leaf that replaces the oxigraph-family `oxiri` (purrdf S2, EPIC #906).
+    "crates/iri",
     "crates/logic",
     # The single PyO3 cdylib: all five engine crates fold into `gmeow_native` so
     # the diagnostics `Report`/`Finding` pyclasses are ONE shared type (#630).
@@ -118,6 +122,9 @@ codegen-units = 1
 codegen-units = 1
 
 [profile.release.package.gmeow-xsd]
+codegen-units = 1
+
+[profile.release.package.gmeow-iri]
 codegen-units = 1
 
 # `cargo bench` (used by `make bench`) runs under the `bench` profile, which
