@@ -39,11 +39,11 @@ Only **IMPORT_OK** targets (per `config.policy_for_license`) are vendored here:
 
 **Reference-only** targets (e.g. schema.org, CC-BY-SA) are *never* vendored;
 `refresh_snapshot` refuses them. Their axioms are fetched live under the
-`network` test mark / `gmeow lint-alignment --network`, with a tiny hand-authored
+`network` test mark / `make maint-test-network`, with a tiny hand-authored
 fixture (`tests/fixtures/target_axioms/`) covering the cases needed offline.
 
 ## Refreshing
 
 ```sh
-make refresh-target-axioms          # or: gmeow refresh-target-axioms --target all
+make maint-refresh-target-axioms
 ```

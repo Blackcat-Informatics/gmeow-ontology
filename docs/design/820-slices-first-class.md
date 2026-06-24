@@ -50,9 +50,9 @@ Conflating them makes diagnostics misleading and incremental deletion incorrect.
 
 ### 1. Generic provenance in the RDF kernel; slice semantics layered above
 
-`gmeow-rdf` is the generic RDF-1.2 narrow waist (GTS ↔ oxigraph ↔ future stores ↔ SHACL ↔
-validation ↔ logic). It must **not** gain a GMEOW-specific `SliceId`. Instead it gains a
-neutral provenance vocabulary:
+`gmeow-rdf-core` is the generic RDF-1.2 narrow waist under the oxigraph adapter,
+future stores, SHACL, validation, and logic. It must **not** gain a
+GMEOW-specific `SliceId`. Instead it gains a neutral provenance vocabulary:
 
 ```rust
 pub struct UnitId(u32);        // a compilation/source unit (opaque to the kernel)
@@ -445,10 +445,12 @@ view's.
 
 The Rust-side twin of Principle 16, enforced now (not deferred):
 
-- **Kernel purity** — `gmeow-rdf` (the generic RDF-1.2 narrow waist) has
-  **zero** first-party (`gmeow-*` path) dependencies. A registry crate such as
-  `gmeow-gts` (published, no `path`) is an external boundary, not an internal
-  layering edge, and is excluded by construction.
+- **RDF core purity** — `gmeow-rdf-core` may depend on the neutral
+  `gmeow-rdf-events` protocol seam, but no slice/domain/adapter crate may leak
+  into the core. `gmeow-rdf` is the oxigraph/PyO3 adapter that depends on and
+  re-exports the core. A registry crate such as `gmeow-gts` (published, no
+  `path`) is an external boundary, not an internal layering edge, and is
+  excluded by construction.
 - **Acyclic layering** — the first-party crate dependency graph is a **DAG**;
   any cycle is a hard error (the monolithic-compiler trap of §3).
 

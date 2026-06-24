@@ -214,24 +214,10 @@ The corpus lives under `conformance/logic/cases/profiles/probabilistic-*`.
 cargo build -p gmeow-logic
 ```
 
-Via the Makefile:
-
-```bash
-make logic-build
-```
-
----
-
 ## Test
 
 ```bash
 cargo test -p gmeow-logic
-```
-
-Via the Makefile:
-
-```bash
-make logic-test
 ```
 
 ---

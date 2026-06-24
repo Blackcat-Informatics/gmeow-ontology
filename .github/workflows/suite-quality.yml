@@ -99,7 +99,7 @@ jobs:
       - name: Cache Cargo dependencies
         uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
       - name: Run criterion benchmarks
-        run: cargo bench -p gmeow-logic -p gmeow-rdf -p gmeow-shacl -p gmeow-validate
+        run: make bench
       - name: Flatten to bench-results.json (#668 leaderboard feed)
         run: make bench-json
       - name: Upload benchmark results

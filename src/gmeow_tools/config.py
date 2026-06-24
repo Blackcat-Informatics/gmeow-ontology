@@ -179,7 +179,7 @@ PROJECTION_QUERY_DIR = GENERATED_DIR / "queries"
 #: FnO function catalog + EDOAL complex-alignment specs (consumable, not reasoned).
 PROJECTIONS_DIR = GENERATED_DIR / "projections"
 #: Single-source mapping DSL (the GMEOW-grounded authoring layer). ``gmeow
-#: compile-mappings`` renders these cells into the SSSOM / EDOAL / FnO / SPARQL
+#: mappings generator renders these cells into the SSSOM / EDOAL / FnO / SPARQL
 #: artifacts. Authored, never generated; not in the reasoned import closure.
 MAPPING_DSL_DIR = PROJECT_ROOT / "dsl" / "mappings"
 #: Slice root (CONSTITUTION Principles 15-16): every ontology unit is a
@@ -190,7 +190,7 @@ SLICES_DIR = PROJECT_ROOT / "slices"
 #: Authoring vocabulary for slice manifests (a spec layer, never reasoned).
 SLICE_VOCABULARY_FILE = SLICES_DIR / "vocabulary.ttl"
 #: Single-source statement DSL (the canonical RDF 1.2 / RDF* statement-metadata
-#: layer — provenance, confidence, temporal scope). ``gmeow compile-statements``
+#: layer — provenance, confidence, temporal scope). ``gmeow-dev regenerate statements``
 #: renders these cells to the RDF 1.2 lead artifact + the OWL axiom-annotation
 #: compatibility downcast. Authored, never generated; a spec layer (CONSTITUTION
 #: Principles 2-3). The RDF 1.2 form is canonical; the OWL form is the generated,
@@ -204,7 +204,7 @@ DSL_TESTS_DIR = PROJECT_ROOT / "dsl" / "tests"
 #: The test DSL authoring vocabulary file (the spec layer it grounds).
 TEST_DSL_VOCABULARY_FILE = DSL_TESTS_DIR / "vocabulary.ttl"
 #: Generated statement-metadata artifacts (committed, like mappings/ — so the
-#: ``compile-statements --check`` no-drift gate has a committed target).
+#: ``make check-generated`` no-drift gate has a committed target).
 STATEMENTS_DIR = GENERATED_DIR / "statements"
 #: The RDF 1.2 / RDF* lead serialization (canonical statement-metadata form).
 STATEMENT_RDF12_FILE = STATEMENTS_DIR / "gmeow.rdf12.ttl"
@@ -313,7 +313,7 @@ SCHEMAS_DIR = GENERATED_DIR / "schemas"
 ROBOT_IMAGE = "obolibrary/robot:v1.9.7"
 #: Apache Jena CLI (riot + sparql) — the required RDF 1.2 / triple-term engine.
 #: No maintained public Jena 5.4 CLI image exists, so this pinned tag is built
-#: from ``docker/jena/Dockerfile`` (``make pull-images`` / CI build it). A private
+#: from ``docker/jena/Dockerfile`` (``make maint-pull-images`` / CI build it). A private
 #: mirror under the same tag is pulled if present.
 JENA_IMAGE = "stain/jena:5.4.0"
 

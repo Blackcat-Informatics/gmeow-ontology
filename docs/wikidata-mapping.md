@@ -74,9 +74,9 @@ Every `gmeow:TermEquivalence` targeting Wikidata MUST carry:
 ### Validation
 
 - Offline: `make wikidata` checks syntax and namespace usage.
-- Live: `make wikidata-live` checks existence, redirects, and stale labels (network required).
-- Coverage: `make wikidata-coverage` reports how much of the ontology is mapped.
-- Fixtures: `make wikidata-audit` scans fixtures for invalid or misused Wikidata IRIs.
+- Live: `make maint-wikidata-live` checks existence, redirects, and stale labels (network required).
+- Coverage: `make maint-wikidata-coverage` reports how much of the ontology is mapped.
+- Fixtures: `make maint-wikidata-audit` scans fixtures for invalid or misused Wikidata IRIs.
 
 ---
 

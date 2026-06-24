@@ -15,5 +15,5 @@ def require_gmeow_logic() -> Any:
     except ImportError as exc:
         raise AssertionError(
             "gmeow_logic native extension is required for logic tests; "
-            "run `make logic-py`, `make test-fast`, or `make test`."
+            "run `make native-py`, `make test-fast`, or `make test`."
         ) from exc

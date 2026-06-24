@@ -88,8 +88,7 @@ def test_every_bfo_iri_is_a_real_class_in_the_snapshot() -> None:
     label, verified offline against the vendored snapshot."""
     snapshot = load_target_snapshot("bfo")
     assert snapshot is not None, (
-        "imports/targets/bfo.ttl is missing — run "
-        "`gmeow refresh-target-axioms --target bfo`"
+        "imports/targets/bfo.ttl is missing — run `make maint-refresh-target-axioms`"
     )
     for m in _foundational_mappings():
         iri = expand_curie(m.object_id)

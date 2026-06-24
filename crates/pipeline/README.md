@@ -39,4 +39,5 @@ loader — the build is a first-class ontological citizen.
 
 `gmeow-pipeline` sits at the top of the engine DAG: it may depend on the kernel
 and engine crates, and is depended on **only** by `crates/native`. It must never
-introduce a cycle, and it keeps `gmeow-rdf` kernel-pure (`make crate-check`).
+introduce a cycle, and it keeps the `gmeow-rdf-core` kernel pure
+(`make crate-check`).

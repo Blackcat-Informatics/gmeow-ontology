@@ -148,8 +148,8 @@ preserved*. This is loss without winner-picking — every standpoint still appea
 
 ## Verified by construction
 
-- `gmeow compile-mappings --check` — no drift between `mapping-dsl/` and the generated
+- `make check-generated` — no drift between `mapping-dsl/` and the generated
   artifacts (the Standpoint-OWL 2 executor included).
-- `gmeow lint-alignment` — alignment-direction soundness over the SSSOM rows.
+- `make lint-alignment` — alignment-direction soundness over the SSSOM rows.
 - `tests/test_standpoint.py` — no frame-selecting executor exists; the Standpoint-OWL 2
   projection emits tool-compatible `Box`/`Diamond` labels and preserves the base axioms.

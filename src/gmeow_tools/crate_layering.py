@@ -1,20 +1,24 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: AGPL-3.0-only
 
-"""Crate-layering gate (#820 S0): kernel purity + an acyclic crate DAG.
+"""Crate-layering gate (#820 S0): RDF core purity + an acyclic crate DAG.
 
 CONSTITUTION Principle 16 ("a small core; everything else a published
-extension") has a Rust-side twin: ``gmeow-rdf`` is the generic RDF-1.2 narrow
-waist (the kernel), and slice / domain semantics must layer *above* it, never
-leak *into* it. This gate makes that falsifiable at the crate boundary, the way
-the alignment / projection / i18n lints make their invariants falsifiable.
+extension") has a Rust-side twin: ``gmeow-rdf-core`` is the generic RDF-1.2
+kernel, ``gmeow-rdf-events`` is the neutral ingestion protocol seam, and
+``gmeow-rdf`` is the oxigraph/PyO3 adapter that depends on and re-exports the
+core. Slice / domain semantics must layer *above* that RDF core, never leak
+*into* it. This gate makes that falsifiable at the crate boundary, the way the
+alignment / projection / i18n lints make their invariants falsifiable.
 
 Two structural invariants over ``crates/*/Cargo.toml``:
 
-* **Kernel purity** — ``gmeow-rdf`` has ZERO first-party (``gmeow-*`` path)
-  dependencies. A ``SliceId`` or any other GMEOW-specific construct in the
-  kernel is the failure #820 exists to prevent; if the kernel ever grows a
-  first-party dependency it is no longer the generic waist.
+* **RDF core purity** — ``gmeow-rdf-core`` may depend on the neutral
+  ``gmeow-rdf-events`` protocol seam, but no slice/domain/adapter crate may leak
+  into the core. The ``gmeow-rdf-events`` seam itself has ZERO first-party
+  dependencies.
+* **Adapter shape** — ``gmeow-rdf`` must depend on ``gmeow-rdf-core``. That edge
+  is the intended core/adapter split, not a layering violation.
 * **Acyclic layering** — the first-party crate dependency graph is a DAG. A
   cycle between ``gmeow-slice`` / ``gmeow-rdf`` / ``gmeow-shacl`` /
   ``gmeow-slicetest`` / the mapping compiler is exactly the monolithic-compiler
@@ -26,8 +30,9 @@ package name starts with ``gmeow-``. Registry crates such as ``gmeow-gts`` (a
 *published* dependency, no ``path``) are deliberately NOT first-party: they are
 an external boundary, not an internal layering edge.
 
-This is greenfield / no-optionality / hard-fail: a malformed ``Cargo.toml``, a
-kernel impurity, or a cycle all FAIL — there is no degraded pass.
+This is greenfield / no-optionality / hard-fail: a malformed ``Cargo.toml``, an
+RDF core leak, a broken core/adapter split, or a cycle all FAIL — there is no
+degraded pass.
 """
 
 from __future__ import annotations
@@ -48,9 +53,19 @@ __all__ = [
     "to_diagnostics_report",
 ]
 
-#: The generic RDF-1.2 narrow waist. It must remain free of any first-party
-#: (``gmeow-*`` path) dependency — slice / domain semantics layer above it.
-KERNEL_CRATE = "gmeow-rdf"
+#: The generic RDF-1.2 kernel. Slice / domain / adapter semantics layer above it.
+KERNEL_CRATE = "gmeow-rdf-core"
+
+#: The oxigraph/PyO3 adapter and re-export surface. It must depend on the core.
+RDF_ADAPTER_CRATE = "gmeow-rdf"
+
+#: The neutral ingestion protocol seam both the core and external containers may
+#: depend on. It must not depend back on either side.
+RDF_EVENTS_CRATE = "gmeow-rdf-events"
+
+#: First-party deps allowed inside the RDF core. Anything else is a semantic or
+#: adapter leak into the kernel.
+KERNEL_ALLOWED_FIRST_PARTY_DEPS = frozenset({RDF_EVENTS_CRATE})
 
 #: First-party crate prefix. Path-less registry crates with this prefix
 #: (``gmeow-gts``) are an external boundary, not an internal layering edge.
@@ -225,18 +240,46 @@ def check_crate_layering(
         names_seen.add(name)
         report.edges[name] = _first_party_deps(manifest)
 
-    # Kernel purity (Principle 16 / #820): the narrow waist owns no first-party edge.
+    # RDF core purity (Principle 16 / #820): only the neutral event seam may sit
+    # below the core; slice/domain/adapter crates must layer above it.
     kernel_deps = report.edges.get(KERNEL_CRATE)
     if kernel_deps is None:
         report.errors.append(
             f"kernel crate {KERNEL_CRATE!r} not found under {crates_dir}"
         )
-    elif kernel_deps:
+    else:
+        disallowed_kernel_deps = kernel_deps - KERNEL_ALLOWED_FIRST_PARTY_DEPS
+        if disallowed_kernel_deps:
+            report.errors.append(
+                f"{KERNEL_CRATE} (the RDF-1.2 core kernel) may only depend on "
+                f"{', '.join(sorted(KERNEL_ALLOWED_FIRST_PARTY_DEPS))} first-party "
+                f"support crates, but depends on "
+                f"{', '.join(sorted(disallowed_kernel_deps))} — slice/domain/"
+                f"adapter semantics must layer ABOVE the core, never inside it "
+                f"(#820 S0 RDF core purity)"
+            )
+
+    event_deps = report.edges.get(RDF_EVENTS_CRATE)
+    if event_deps is None:
         report.errors.append(
-            f"{KERNEL_CRATE} (the RDF-1.2 narrow waist) must have ZERO first-party "
-            f"dependencies, but depends on "
-            f"{', '.join(sorted(kernel_deps))} — slice/domain semantics must layer "
-            f"ABOVE the kernel, never inside it (#820 S0 kernel purity)"
+            f"RDF event seam crate {RDF_EVENTS_CRATE!r} not found under {crates_dir}"
+        )
+    elif event_deps:
+        report.errors.append(
+            f"{RDF_EVENTS_CRATE} (the neutral RDF event protocol seam) must have "
+            f"ZERO first-party dependencies, but depends on "
+            f"{', '.join(sorted(event_deps))} (#820 S0 protocol seam purity)"
+        )
+
+    adapter_deps = report.edges.get(RDF_ADAPTER_CRATE)
+    if adapter_deps is None:
+        report.errors.append(
+            f"RDF adapter crate {RDF_ADAPTER_CRATE!r} not found under {crates_dir}"
+        )
+    elif KERNEL_CRATE not in adapter_deps:
+        report.errors.append(
+            f"{RDF_ADAPTER_CRATE} must depend on {KERNEL_CRATE}: the oxigraph/PyO3 "
+            f"adapter is required to re-export the ring-fenced RDF core (#885 P2b)"
         )
 
     # Every referenced first-party dep must resolve to a known crate (a dangling

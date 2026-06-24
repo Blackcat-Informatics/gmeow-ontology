@@ -46,24 +46,10 @@ The Python `gmeow_validate` extension (PyO3/maturin) exposes:
 cargo build -p gmeow-validate
 ```
 
-Via the Makefile:
-
-```bash
-make validate-build
-```
-
----
-
 ## Test
 
 ```bash
 cargo test -p gmeow-validate
-```
-
-Via the Makefile:
-
-```bash
-make validate-test
 ```
 
 ---
@@ -108,7 +94,7 @@ upgrading any of those crates automatically invalidates prior cached results.
 ## Python extension
 
 ```bash
-make validate-py
+make native-py
 ```
 
 ```python

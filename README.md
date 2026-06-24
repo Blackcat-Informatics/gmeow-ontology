@@ -202,8 +202,8 @@ developer command.
 
 ```bash
 make install         # sync the uv environment
-make check               # fast local gate: lint, validate, native EL/DL reason + verify, mappings, fast tests
-make classic-cross-check # non-required Docker oracle: ROBOT/ELK/HermiT cross-check of the native work + Jena statements
+make check           # fast local gate: lint, validate, native EL/DL reason + verify, mappings, fast tests
+make maint-classic-cross-check # non-required Docker oracle: ROBOT/ELK/HermiT cross-check of the native work + Jena statements
 ```
 
 `make check` is the normal local gate — fully Java/Docker-free (native EL/DL
@@ -271,24 +271,24 @@ hash, text labels, randomart, and valid/invalid/unverified signature counts. See
 
 | Command | What it does |
 |---|---|
-| `make validate` | Turtle syntax + term-annotation lint + SHACL (pure Python) |
-| `make reason` | Merge import closure → OWL 2 **DL** profile check → **ELK** consistency (Docker/ROBOT) |
-| `make explain` | Explain unsatisfiable classes with **HermiT** |
+| `make validate` | Turtle syntax + term-annotation lint + SHACL |
+| `make reason` | Native Docker-free EL/DL reasoning authority |
+| `make maint-explain` | Explain unsatisfiable classes with **HermiT** |
 | `make verify` | Reasoned-graph SPARQL QC (native EL/DL closure over `queries/verify/`, Java/Docker-free) — the closed-world half of the [OWL-infers / SHACL-validates split](./docs/reasoning.md) |
 | `make regenerate` | Rebuild EVERY committed artifact under `generated/` via the registered-generator framework (#279): mappings, projections, statements, schemas, lpg, metadata, apache, the module-status matrix |
 | `make check-generated` | Drift + orphan + internal-tag-leak gate over every registered generator |
 | `make mappings` | SSSOM → OWL/SKOS alignment axioms + VoID linksets; validates Wikidata QID syntax |
-| `make wikidata` / `wikidata-live` | Wikidata QID/PID syntax gate (offline) / + existence check (network) |
+| `make wikidata` / `make maint-wikidata-live` | Wikidata QID/PID syntax gate (offline) / + existence check (network) |
 | `make crossref` | Generate the CrossRef DOI deposit XML (deposit schema 5.4.0) |
 | `make acceptance` | Score full transpile on real external RDF snapshots; hard gates plus honest coverage scoreboard |
-| `make docs` / `docs-full` | Native ontology-docs site into `dist/ontology-docs` / + optional Docker stages |
+| `make docs` | Regenerate `gmeow.gts` docs and extract the committed `ontology-docs/` tree |
 | `make build` | All serializations (`ttl`/`rdf`/`nt`/`jsonld`) + JSON-LD context → `dist/` (ephemeral) |
-| `make classic-cross-check` | Non-required ROBOT/ELK/HermiT cross-check of the native work + Jena-backed statement checks |
-| `make quality` | OOPS! pitfall scan (network, best-effort) |
-| `make release` | Regenerate + HermiT closure + build + compliance report + CrossRef deposit |
+| `make maint-classic-cross-check` | Non-required ROBOT/ELK/HermiT cross-check of the native work + Jena-backed statement checks |
+| `make maint-quality` | OOPS! pitfall scan (network, best-effort) |
+| `make release` | Regenerate + native reasoning closure + build + compliance report + CrossRef deposit |
 
 The Java tools (ROBOT, WIDOCO, Jena) run as **pinned Docker images** (see
-`src/gmeow_tools/config.py`); `make pull-images` pre-pulls them. Containers run as the
+`src/gmeow_tools/config.py`); `make maint-pull-images` pre-pulls them. Containers run as the
 invoking user, so generated files are never owned by root.
 
 ## Architecture
