@@ -1,8 +1,11 @@
-"""Structural + standpoint guards for the genealogy module.
+"""Standpoint + dynamic guards for the genealogy module.
 
-The genealogy slice consumes the #43 standpoint facility for contested facts:
-disputed parentage, conflicting birth/death dates, competing civil vs parish records.
-No genealogy-specific dispute mechanism is minted (Principle 4, P9).
+Asserted-TBox invariants (Family/KinRelationship/ParentChildRelationship
+grounding and KinRelationship bridges) were migrated to
+slices/extensions/genealogy/tests/structural.ttl (#867).  Only the dynamic
+guards that cannot be expressed as module-scoped ASK cells are retained here:
+  - whole-ontology merged-graph sweeps (_graph()),
+  - run_shacl() ExampleConformance + ABox fixture checks.
 """
 
 from __future__ import annotations
@@ -10,14 +13,13 @@ from __future__ import annotations
 from pathlib import Path
 
 from gmeow_rdf.compat.rdflib import Graph, Literal, Namespace, URIRef
-from gmeow_rdf.compat.rdflib.namespace import OWL, RDF, RDFS
+from gmeow_rdf.compat.rdflib.namespace import OWL, RDF
 
 from gmeow_tools.graph import load_merged_graph
 from tests._graph_nt import run_shacl
 
 GMEOW = "https://blackcatinformatics.ca/gmeow/"
 GM = Namespace(GMEOW)
-GUFO = Namespace("http://purl.org/nemo/gufo#")
 EX_GENEALOGY = Namespace("https://blackcatinformatics.ca/gmeow/examples/genealogy/")
 COVERAGE_FIXTURES = Path(__file__).parent / "fixtures" / "coverage"
 
@@ -27,20 +29,8 @@ def _graph() -> Graph:
 
 
 # --------------------------------------------------------------------------- #
-# gUFO grounding
-# --------------------------------------------------------------------------- #
-
-
-def test_genealogy_is_gufo_grounded() -> None:
-    g = _graph()
-    assert (GM.Family, RDF.type, OWL.Class) in g
-    assert (GM.Family, RDFS.subClassOf, GM.Group) in g
-    assert (GM.KinRelationship, RDFS.subClassOf, GUFO.Relator) in g
-    assert (GM.ParentChildRelationship, RDFS.subClassOf, GM.KinRelationship) in g
-
-
-# --------------------------------------------------------------------------- #
-# Regression guard — former event subclasses live in the events module
+# Regression guard: former event subclasses live in the events module.
+# Whole merged-graph sweep -- cannot be a module-scoped ASK cell.
 # --------------------------------------------------------------------------- #
 
 

@@ -1,0 +1,439 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics(R) Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Declarative structural assertions for the creative-works slice (#208) --
+# the slice-resident test-DSL twin of the asserted-TBox MUST / MUST-NOT
+# invariants formerly hand-written in tests/test_creative_works.py. Each
+# assertion runs as a SPARQL ASK over the creative-works module graph
+# (gmeow:scopeModule) under the native Rust slicetest harness
+# (crates/slicetest).
+#
+# creative-works is NOT yet #694-migrated: class stereotypes remain gufo:
+# (gufo:Kind, gufo:SubKind, gufo:Category, gufo:AbstractIndividualType,
+# gufo:QualityValue, gufo:Relator), not logic:.
+#
+# RETAINED in pytest (not migratable here):
+#   test_creative_work_is_category -- gmeow:CreativeWork is defined as a
+#     subject in slices/core/documents/module.ttl, not this module; a
+#     scopeModule cell would silently miss it.
+#   test_wemi_tiers_subclass_information_object -- uses
+#     g.transitive_objects(cls, RDFS.subClassOf) for a live closure walk;
+#     not expressible as a simple scopeModule ASK.
+#   test_document_subclasses_work -- gmeow:Document, gmeow:Article,
+#     gmeow:Patent, gmeow:Dataset are defined in slices/core/documents/;
+#     cross-slice subjects.
+#   test_media_etc_subclasses_manifestation -- gmeow:MediaObject,
+#     gmeow:WebPage, gmeow:BookRelease, gmeow:SerialInstallment are defined
+#     in slices/core/documents/; cross-slice subjects.
+#   test_contribution_degree_value_vocab -- gmeow:ContributionDegree,
+#     gmeow:degreeLead, gmeow:degreeEqual, gmeow:degreeSupporting are defined
+#     in slices/core/citations/module.ttl; cross-slice subjects.
+#   test_creation_event_types_exist -- gmeow:eventTypeWorkConception,
+#     gmeow:eventTypeExpressionCreation, gmeow:eventTypeManifestationProduction
+#     are defined in slices/core/events/module.ttl; cross-slice subjects.
+#   test_spine_shacl_passes -- run_shacl() call; ExampleConformance, not a
+#     structural TBox assertion.
+#   test_expression_without_work_fails_shacl -- run_shacl() call with
+#     error-text assertions; ExampleConformance.
+#   test_manifestation_without_expression_fails_shacl -- run_shacl() call;
+#     ExampleConformance.
+#   test_item_without_manifestation_fails_shacl -- run_shacl() call;
+#     ExampleConformance.
+#   test_contribution_shacl_passes -- run_shacl() call; ExampleConformance.
+#   test_contribution_missing_role_fails_shacl -- run_shacl() call with
+#     error-text assertions; ExampleConformance.
+#   test_literary_work_subclasses_work -- gmeow:LiteraryWork is defined in
+#     slices/core/documents/module.ttl; cross-slice subject.
+#   test_serial_work_subclasses_work -- gmeow:SerialWork is defined in
+#     slices/core/documents/module.ttl; cross-slice subject.
+#   test_content_segment_subclasses_information_object -- gmeow:ContentSegment
+#     is defined in slices/core/documents/module.ttl; cross-slice subject.
+#   test_has_segment_is_subproperty_of_has_part -- gmeow:hasSegment is defined
+#     in slices/core/documents/module.ttl; cross-slice subject.
+#   test_segment_of_is_subproperty_of_part_of -- gmeow:segmentOf is defined in
+#     slices/core/documents/module.ttl; cross-slice subject.
+#   test_segment_type_is_functional -- gmeow:segmentType is defined in
+#     slices/core/documents/module.ttl; cross-slice subject.
+#   test_segment_index_is_functional -- gmeow:segmentIndex is defined in
+#     slices/core/documents/module.ttl; cross-slice subject.
+#   test_content_segment_type_value_vocab -- gmeow:ContentSegmentType and
+#     its seed individuals are in slices/core/documents/module.ttl; cross-slice.
+#   test_content_segment_shacl_passes -- run_shacl() call; ExampleConformance.
+#   test_content_segment_without_container_fails_shacl -- run_shacl() call;
+#     ExampleConformance.
+#
+# See dsl/tests/MIGRATION-LEDGER.md for the per-test pytest->DSL mapping.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/creative-works/tests/> .
+
+# --- 1. Work is a gufo:Kind (MUST) -------------------------------------------
+ex:saWorkIsKind a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:Work a gufo:Kind , owl:Class . }""" ;
+    gmeow:saRationale "gmeow:Work MUST be an owl:Class typed gufo:Kind -- the most abstract WEMI tier is an OntoUML Kind (identity principle at the Work level). Mirrors test_wemi_tiers_are_kinds (Work)." .
+
+# --- 2. Expression is a gufo:Kind (MUST) -------------------------------------
+ex:saExpressionIsKind a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:Expression a gufo:Kind , owl:Class . }""" ;
+    gmeow:saRationale "gmeow:Expression MUST be an owl:Class typed gufo:Kind -- the language/realization tier of the WEMI spine is an OntoUML Kind. Mirrors test_wemi_tiers_are_kinds (Expression)." .
+
+# --- 3. Manifestation is a gufo:Kind (MUST) ----------------------------------
+ex:saManifestationIsKind a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:Manifestation a gufo:Kind , owl:Class . }""" ;
+    gmeow:saRationale "gmeow:Manifestation MUST be an owl:Class typed gufo:Kind -- the edition/format tier of the WEMI spine is an OntoUML Kind. Mirrors test_wemi_tiers_are_kinds (Manifestation)." .
+
+# --- 4. Item is a gufo:Kind (MUST) -------------------------------------------
+ex:saItemIsKind a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:Item a gufo:Kind , owl:Class . }""" ;
+    gmeow:saRationale "gmeow:Item MUST be an owl:Class typed gufo:Kind -- the single-copy tier of the WEMI spine is an OntoUML Kind. Mirrors test_wemi_tiers_are_kinds (Item)." .
+
+# --- 5. WEMI tiers are direct subclasses of CreativeWork (MUST) --------------
+ex:saWemiTiersSubclassCreativeWork a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:Work         rdfs:subClassOf gmeow:CreativeWork .
+    gmeow:Expression   rdfs:subClassOf gmeow:CreativeWork .
+    gmeow:Manifestation rdfs:subClassOf gmeow:CreativeWork .
+    gmeow:Item         rdfs:subClassOf gmeow:CreativeWork .
+}""" ;
+    gmeow:saRationale "Work, Expression, Manifestation, and Item MUST each have a direct rdfs:subClassOf gmeow:CreativeWork -- the WEMI spine hangs beneath the creative-works Category. Mirrors test_wemi_tiers_subclass_creative_work." .
+
+# --- 6. Spine relation properties exist as ObjectProperties (MUST) -----------
+ex:saSpineRelationsExist a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    gmeow:realizes           a owl:ObjectProperty .
+    gmeow:realizedThrough    a owl:ObjectProperty .
+    gmeow:embodies           a owl:ObjectProperty .
+    gmeow:embodiedIn         a owl:ObjectProperty .
+    gmeow:exemplifies        a owl:ObjectProperty .
+    gmeow:exemplifiedBy      a owl:ObjectProperty .
+    gmeow:hasCarrier         a owl:ObjectProperty .
+}""" ;
+    gmeow:saRationale "All seven WEMI spine relations MUST be declared owl:ObjectProperty -- they are the R-relations of the WEMI model (#208). Mirrors test_spine_relations_exist." .
+
+# --- 7. realizedThrough is owl:inverseOf realizes (MUST) --------------------
+ex:saRealizedThroughInverseOfRealizes a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    { gmeow:realizedThrough owl:inverseOf gmeow:realizes } UNION
+    { gmeow:realizes owl:inverseOf gmeow:realizedThrough }
+}""" ;
+    gmeow:saRationale "gmeow:realizedThrough MUST be declared owl:inverseOf gmeow:realizes (in either direction) -- bidirectional traversal of the Work-to-Expression R-relation. Mirrors test_realizes_inverse." .
+
+# --- 8. embodiedIn is owl:inverseOf embodies (MUST) -------------------------
+ex:saEmbodiedInInverseOfEmbodies a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    { gmeow:embodiedIn owl:inverseOf gmeow:embodies } UNION
+    { gmeow:embodies owl:inverseOf gmeow:embodiedIn }
+}""" ;
+    gmeow:saRationale "gmeow:embodiedIn MUST be declared owl:inverseOf gmeow:embodies (in either direction) -- bidirectional traversal of the Expression-to-Manifestation R-relation. Mirrors test_embodies_inverse." .
+
+# --- 9. exemplifiedBy is owl:inverseOf exemplifies (MUST) -------------------
+ex:saExemplifiedByInverseOfExemplifies a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    { gmeow:exemplifiedBy owl:inverseOf gmeow:exemplifies } UNION
+    { gmeow:exemplifies owl:inverseOf gmeow:exemplifiedBy }
+}""" ;
+    gmeow:saRationale "gmeow:exemplifiedBy MUST be declared owl:inverseOf gmeow:exemplifies (in either direction) -- bidirectional traversal of the Manifestation-to-Item R-relation. Mirrors test_exemplifies_inverse." .
+
+# --- 10. Contribution is a gufo:Kind subclass of gufo:Relator (MUST) --------
+ex:saContributionIsKindRelator a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:Contribution a gufo:Kind , owl:Class ;
+        rdfs:subClassOf gufo:Relator .
+}""" ;
+    gmeow:saRationale "gmeow:Contribution MUST be an owl:Class typed gufo:Kind and a subclass of gufo:Relator -- the universal credit/authorship relator binding contributor, target, and role (#208). Mirrors test_contribution_is_relator_kind." .
+
+# --- 11. Contribution core properties are functional ObjectProperties (MUST) -
+ex:saContributionCorePropertiesFunctional a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    gmeow:contributor        a owl:ObjectProperty , owl:FunctionalProperty .
+    gmeow:contributionTarget a owl:ObjectProperty , owl:FunctionalProperty .
+    gmeow:contributionRole   a owl:ObjectProperty , owl:FunctionalProperty .
+}""" ;
+    gmeow:saRationale "gmeow:contributor, contributionTarget, and contributionRole MUST each be both owl:ObjectProperty and owl:FunctionalProperty -- one agent, one target, one role per relator instance (SHACL-mandatory triples). Mirrors test_contribution_properties_exist (functional core)." .
+
+# --- 12. contributionDegree is an ObjectProperty (MUST) ---------------------
+ex:saContributionDegreeIsObjectProperty a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:contributionDegree a owl:ObjectProperty . }""" ;
+    gmeow:saRationale "gmeow:contributionDegree MUST be an owl:ObjectProperty -- the optional weighting slot on a Contribution relator (lead/equal/supporting). Mirrors test_contribution_properties_exist (contributionDegree)." .
+
+# --- 13. hasContributor is an ObjectProperty (MUST) -------------------------
+ex:saHasContributorIsObjectProperty a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:hasContributor a owl:ObjectProperty . }""" ;
+    gmeow:saRationale "gmeow:hasContributor MUST be an owl:ObjectProperty -- the flat 80%-case shortcut that bypasses the Contribution relator. Mirrors test_has_contributor_exists." .
+
+# --- 14. hasAuthor is subPropertyOf hasContributor (MUST) -------------------
+ex:saHasAuthorSubpropertyHasContributor a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK { gmeow:hasAuthor rdfs:subPropertyOf gmeow:hasContributor . }""" ;
+    gmeow:saRationale "gmeow:hasAuthor MUST be rdfs:subPropertyOf gmeow:hasContributor -- the typed shortcut inherits the generic contributor query path. Mirrors test_has_author_is_subproperty_of_has_contributor." .
+
+# --- 15. Flat contributor shortcuts are ObjectProperties (MUST) -------------
+ex:saFlatContributorShortcutsAreObjectProperties a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    gmeow:hasTranslator  a owl:ObjectProperty .
+    gmeow:hasIllustrator a owl:ObjectProperty .
+    gmeow:hasNarrator    a owl:ObjectProperty .
+    gmeow:hasEditor      a owl:ObjectProperty .
+}""" ;
+    gmeow:saRationale "gmeow:hasTranslator, hasIllustrator, hasNarrator, and hasEditor MUST each be an owl:ObjectProperty -- the flat role-specific contributor shortcuts. Mirrors test_flat_shortcuts_are_subproperties (ObjectProperty half)." .
+
+# --- 16. Flat contributor shortcuts are subproperties of hasContributor (MUST)
+ex:saFlatContributorShortcutsSubproperty a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:hasTranslator  rdfs:subPropertyOf gmeow:hasContributor .
+    gmeow:hasIllustrator rdfs:subPropertyOf gmeow:hasContributor .
+    gmeow:hasNarrator    rdfs:subPropertyOf gmeow:hasContributor .
+    gmeow:hasEditor      rdfs:subPropertyOf gmeow:hasContributor .
+}""" ;
+    gmeow:saRationale "gmeow:hasTranslator, hasIllustrator, hasNarrator, and hasEditor MUST each be rdfs:subPropertyOf gmeow:hasContributor -- role shortcuts inherit the generic query path. Mirrors test_flat_shortcuts_are_subproperties (subPropertyOf half)." .
+
+# --- 17. CreativeWorkType is a gufo:AbstractIndividualType subclass of
+#         gufo:QualityValue (MUST) -------------------------------------------
+ex:saCreativeWorkTypeIsValueVocab a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:CreativeWorkType a gufo:AbstractIndividualType , owl:Class ;
+        rdfs:subClassOf gufo:QualityValue .
+}""" ;
+    gmeow:saRationale "gmeow:CreativeWorkType MUST be an owl:Class typed gufo:AbstractIndividualType and a subclass of gufo:QualityValue -- an open value vocabulary of individuals, never subclasses (Principle 9). Mirrors test_creative_work_type_value_vocab (class structure)." .
+
+# --- 18. CreativeWorkType seed individuals exist (MUST) ----------------------
+ex:saCreativeWorkTypeSeeds a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    gmeow:workTypeLiterary       a gmeow:CreativeWorkType .
+    gmeow:workTypeWritten        a gmeow:CreativeWorkType .
+    gmeow:workTypeNarrative      a gmeow:CreativeWorkType .
+    gmeow:workTypeMusical        a gmeow:CreativeWorkType .
+    gmeow:workTypeVisual         a gmeow:CreativeWorkType .
+    gmeow:workTypePhotographic   a gmeow:CreativeWorkType .
+    gmeow:workTypeAudiovisual    a gmeow:CreativeWorkType .
+    gmeow:workTypeFilm           a gmeow:CreativeWorkType .
+    gmeow:workTypeChoreographic  a gmeow:CreativeWorkType .
+    gmeow:workTypeCartographic   a gmeow:CreativeWorkType .
+    gmeow:workTypeSoftware       a gmeow:CreativeWorkType .
+    gmeow:workTypeDataset        a gmeow:CreativeWorkType .
+}""" ;
+    gmeow:saRationale "All twelve CreativeWorkType seed individuals MUST be present as gmeow:CreativeWorkType instances. Mirrors test_creative_work_type_value_vocab (seed individuals)." .
+
+# --- 19. Deprecated workTypeComposedMusical must not exist (MUST-NOT) --------
+ex:saWorkTypeComposedMusicalGone a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    { gmeow:workTypeComposedMusical ?p ?o } UNION
+    { ?s ?p gmeow:workTypeComposedMusical }
+}""" ;
+    gmeow:saRationale "gmeow:workTypeComposedMusical MUST NOT appear in any triple -- it was removed in issue #307 in favour of MusicalWork + realizationMode. Regression guard from test_creative_work_type_value_vocab." .
+
+# --- 20. ContributionRole is a gufo:AbstractIndividualType subclass of
+#         gufo:QualityValue (MUST) -------------------------------------------
+ex:saContributionRoleIsValueVocab a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:ContributionRole a gufo:AbstractIndividualType , owl:Class ;
+        rdfs:subClassOf gufo:QualityValue .
+}""" ;
+    gmeow:saRationale "gmeow:ContributionRole MUST be an owl:Class typed gufo:AbstractIndividualType and a subclass of gufo:QualityValue -- an open value vocabulary of role individuals, never subclasses (Principle 9). Mirrors test_contribution_role_value_vocab (class structure)." .
+
+# --- 21. ContributionRole seed individuals exist (MUST) ----------------------
+ex:saContributionRoleSeeds a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    gmeow:roleAuthor                a gmeow:ContributionRole .
+    gmeow:roleEditor                a gmeow:ContributionRole .
+    gmeow:roleTranslator            a gmeow:ContributionRole .
+    gmeow:roleIllustrator           a gmeow:ContributionRole .
+    gmeow:roleNarrator              a gmeow:ContributionRole .
+    gmeow:roleComposer              a gmeow:ContributionRole .
+    gmeow:roleDirector              a gmeow:ContributionRole .
+    gmeow:rolePhotographer          a gmeow:ContributionRole .
+    gmeow:roleCoverArtist           a gmeow:ContributionRole .
+    gmeow:roleLetterer              a gmeow:ContributionRole .
+    gmeow:roleLLMAssistedEditor     a gmeow:ContributionRole .
+    gmeow:roleConceptualization     a gmeow:ContributionRole .
+    gmeow:roleDataCuration          a gmeow:ContributionRole .
+    gmeow:roleFormalAnalysis        a gmeow:ContributionRole .
+    gmeow:roleFundingAcquisition    a gmeow:ContributionRole .
+    gmeow:roleInvestigation         a gmeow:ContributionRole .
+    gmeow:roleMethodology           a gmeow:ContributionRole .
+    gmeow:roleProjectAdministration a gmeow:ContributionRole .
+    gmeow:roleResources             a gmeow:ContributionRole .
+    gmeow:roleSoftware              a gmeow:ContributionRole .
+    gmeow:roleSupervision           a gmeow:ContributionRole .
+    gmeow:roleValidation            a gmeow:ContributionRole .
+    gmeow:roleVisualization         a gmeow:ContributionRole .
+    gmeow:roleWritingOriginalDraft  a gmeow:ContributionRole .
+    gmeow:roleWritingReviewEditing  a gmeow:ContributionRole .
+}""" ;
+    gmeow:saRationale "All 25 ContributionRole seed individuals (creative roles + CRediT roles) MUST exist as gmeow:ContributionRole instances (open vocabulary -- superset check). Mirrors test_contribution_role_value_vocab (seed individuals)." .
+
+# --- 22. ManifestationFormat is a gufo:AbstractIndividualType subclass of
+#         gufo:QualityValue (MUST) -------------------------------------------
+ex:saManifestationFormatIsValueVocab a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:ManifestationFormat a gufo:AbstractIndividualType , owl:Class ;
+        rdfs:subClassOf gufo:QualityValue .
+}""" ;
+    gmeow:saRationale "gmeow:ManifestationFormat MUST be an owl:Class typed gufo:AbstractIndividualType and a subclass of gufo:QualityValue -- an open value vocabulary of format individuals, never subclasses (Principle 9). Mirrors test_manifestation_format_value_vocab (class structure)." .
+
+# --- 23. ManifestationFormat seed individuals exist (MUST) ------------------
+ex:saManifestationFormatSeeds a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    gmeow:formatHardcover  a gmeow:ManifestationFormat .
+    gmeow:formatPaperback  a gmeow:ManifestationFormat .
+    gmeow:formatEPUB       a gmeow:ManifestationFormat .
+    gmeow:formatPDF        a gmeow:ManifestationFormat .
+    gmeow:formatAudiobook  a gmeow:ManifestationFormat .
+    gmeow:formatVinyl      a gmeow:ManifestationFormat .
+    gmeow:formatDigitalFile a gmeow:ManifestationFormat .
+    gmeow:formatWebPage    a gmeow:ManifestationFormat .
+}""" ;
+    gmeow:saRationale "The eight core ManifestationFormat seed individuals MUST exist as gmeow:ManifestationFormat instances (open vocabulary -- superset check). Mirrors test_manifestation_format_value_vocab (seed individuals)." .
+
+# --- 24. CarrierMedium is a gufo:AbstractIndividualType subclass of
+#         gufo:QualityValue (MUST) -------------------------------------------
+ex:saCarrierMediumIsValueVocab a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:CarrierMedium a gufo:AbstractIndividualType , owl:Class ;
+        rdfs:subClassOf gufo:QualityValue .
+}""" ;
+    gmeow:saRationale "gmeow:CarrierMedium MUST be an owl:Class typed gufo:AbstractIndividualType and a subclass of gufo:QualityValue -- an open value vocabulary of medium individuals, never subclasses (Principle 9). Mirrors test_carrier_medium_value_vocab (class structure)." .
+
+# --- 25. CarrierMedium seed individuals exist (MUST) ------------------------
+ex:saCarrierMediumSeeds a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    gmeow:mediumPrint        a gmeow:CarrierMedium .
+    gmeow:mediumEInkFile     a gmeow:CarrierMedium .
+    gmeow:mediumOpticalDisc  a gmeow:CarrierMedium .
+    gmeow:mediumServerObject a gmeow:CarrierMedium .
+}""" ;
+    gmeow:saRationale "The four CarrierMedium seed individuals MUST exist as gmeow:CarrierMedium instances (open vocabulary -- superset check). Mirrors test_carrier_medium_value_vocab (seed individuals)." .
+
+# --- 26. hasManifestationFormat is a functional ObjectProperty with
+#         domain Manifestation and range ManifestationFormat (MUST) ----------
+ex:saHasManifestationFormatShape a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:hasManifestationFormat a owl:ObjectProperty , owl:FunctionalProperty ;
+        rdfs:domain gmeow:Manifestation ;
+        rdfs:range gmeow:ManifestationFormat .
+}""" ;
+    gmeow:saRationale "gmeow:hasManifestationFormat MUST be both owl:ObjectProperty and owl:FunctionalProperty with domain gmeow:Manifestation and range gmeow:ManifestationFormat -- one format per Manifestation per asserter (SHACL-mandatory). Mirrors test_has_manifestation_format_exists." .
+
+# --- 27. New issue-156 ManifestationFormat seeds exist (MUST) ---------------
+ex:saManifestationFormatNewSeeds a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    gmeow:formatWebSerial  a gmeow:ManifestationFormat .
+    gmeow:formatComicIssue a gmeow:ManifestationFormat .
+}""" ;
+    gmeow:saRationale "gmeow:formatWebSerial and gmeow:formatComicIssue MUST exist as gmeow:ManifestationFormat instances -- the issue-#156 book/narrative model additions. Mirrors test_manifestation_format_new_seeds." .
