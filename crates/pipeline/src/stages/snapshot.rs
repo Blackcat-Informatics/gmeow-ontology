@@ -168,6 +168,11 @@ const REP_CELLS: &str = "cells-archive";
 const REP_QUERIES: &str = "queries-archive";
 const REP_TESTS: &str = "tests-archive";
 const ARCHIVE_MEDIA_TYPE: &str = "application/x-tar";
+/// The GNU long-name sentinel: a `'L'`-typeflag record carrying a member path
+/// that overflows the 100-byte USTAR `name` field. The doc-site archive (#897)
+/// has paths well past 100 bytes; mappings/cells/queries/tests never do, so they
+/// never emit this record and stay byte-identical.
+const LONGLINK_NAME: &str = "././@LongLink";
 
 /// The per-slice guide content blobs (each slice's `docs.md`), backing the
 /// `gmeow:guideBlob "blake3:<hex>"` reference triples [`add_guide_blobs`] writes
@@ -325,10 +330,25 @@ fn archive_blob(rep: &str, members: &[(String, Vec<u8>)]) -> Result<BlobRow, Pip
 
 /// A byte-deterministic USTAR archive: per-member 512-byte header + 512-padded
 /// data, terminated by two zero blocks. mtime/uid/gid = 0, mode = 0644.
+///
+/// A member whose name overflows the 100-byte `name` field is preceded by a GNU
+/// `'L'` (`LongLink`) record carrying the full path (NUL-terminated, 512-padded);
+/// the real header then truncates the name to 100 bytes (GNU convention — readers
+/// take the path from the LongLink). Names ≤ 100 bytes emit no LongLink and are
+/// byte-identical to the pre-#897 writer, so the existing archive blobs are
+/// fold-stable.
 fn ustar_archive(members: &[(String, Vec<u8>)]) -> Result<Vec<u8>, PipelineError> {
     let mut out: Vec<u8> = Vec::new();
     for (name, data) in members {
-        out.extend_from_slice(&ustar_header(name, data.len())?);
+        if name.len() > 100 {
+            let mut payload = name.as_bytes().to_vec();
+            payload.push(0); // GNU LongLink bodies are NUL-terminated.
+            out.extend_from_slice(&ustar_header(LONGLINK_NAME, payload.len(), b'L')?);
+            out.extend_from_slice(&payload);
+            let pad = (512 - payload.len() % 512) % 512;
+            out.extend(std::iter::repeat_n(0u8, pad));
+        }
+        out.extend_from_slice(&ustar_header(name, data.len(), b'0')?);
         out.extend_from_slice(data);
         let pad = (512 - data.len() % 512) % 512;
         out.extend(std::iter::repeat_n(0u8, pad));
@@ -337,18 +357,16 @@ fn ustar_archive(members: &[(String, Vec<u8>)]) -> Result<Vec<u8>, PipelineError
     Ok(out)
 }
 
-/// A single USTAR 512-byte header. Names must be ≤ 100 bytes (every repo-relative
-/// member path is well under that — asserted); no `prefix`-split path is needed.
-fn ustar_header(name: &str, size: usize) -> Result<[u8; 512], PipelineError> {
+/// A single USTAR 512-byte header with the given `typeflag` (`b'0'` regular file,
+/// `b'L'` GNU LongLink). A name longer than 100 bytes is truncated into the field
+/// — the caller MUST have emitted a preceding `LongLink` record carrying the full
+/// path (see [`ustar_archive`]). For a name ≤ 100 bytes the bytes are identical to
+/// the pre-#897 single-typeflag header.
+fn ustar_header(name: &str, size: usize, typeflag: u8) -> Result<[u8; 512], PipelineError> {
     let nb = name.as_bytes();
-    if nb.len() > 100 {
-        return Err(stage_err(&format!(
-            "USTAR member name exceeds 100 bytes ({}): {name}",
-            nb.len()
-        )));
-    }
+    let n = nb.len().min(100);
     let mut h = [0u8; 512];
-    h[..nb.len()].copy_from_slice(nb);
+    h[..n].copy_from_slice(&nb[..n]);
     write_octal(&mut h[100..108], 0o644); // mode
     write_octal(&mut h[108..116], 0); // uid
     write_octal(&mut h[116..124], 0); // gid
@@ -357,7 +375,7 @@ fn ustar_header(name: &str, size: usize) -> Result<[u8; 512], PipelineError> {
     for b in &mut h[148..156] {
         *b = b' '; // checksum field is spaces while the sum is computed
     }
-    h[156] = b'0'; // typeflag: regular file
+    h[156] = typeflag;
     h[257..263].copy_from_slice(b"ustar\0");
     h[263..265].copy_from_slice(b"00");
     let sum: u32 = h.iter().map(|&b| u32::from(b)).sum();
@@ -1142,5 +1160,113 @@ fn stage_err(message: &str) -> PipelineError {
     PipelineError::Stage {
         stage: "stage-gts-sink".to_string(),
         message: message.to_string(),
+    }
+}
+
+#[cfg(test)]
+mod ustar_tests {
+    use super::*;
+
+    /// A minimal GNU/USTAR reader for the test: decodes `(name, data)` members,
+    /// resolving `'L'` LongLink records into the following member's name. Mirrors
+    /// how Python `tarfile` (the real `_unpack_doc_archive` consumer) reads them.
+    fn parse(raw: &[u8]) -> Vec<(String, Vec<u8>)> {
+        fn octal(field: &[u8]) -> usize {
+            let s: String = field
+                .iter()
+                .take_while(|&&b| b != 0 && b != b' ')
+                .map(|&b| b as char)
+                .collect();
+            usize::from_str_radix(s.trim(), 8).unwrap_or(0)
+        }
+        fn cstr(field: &[u8]) -> String {
+            let end = field.iter().position(|&b| b == 0).unwrap_or(field.len());
+            String::from_utf8_lossy(&field[..end]).into_owned()
+        }
+        let mut out = Vec::new();
+        let mut pending: Option<String> = None;
+        let mut off = 0usize;
+        while off + 512 <= raw.len() {
+            let header = &raw[off..off + 512];
+            if header.iter().all(|&b| b == 0) {
+                break; // trailing zero blocks
+            }
+            let size = octal(&header[124..136]);
+            let typeflag = header[156];
+            off += 512;
+            let blocks = size.div_ceil(512);
+            let body = &raw[off..off + blocks * 512];
+            off += blocks * 512;
+            if typeflag == b'L' {
+                // LongLink body is the NUL-terminated path for the NEXT header.
+                pending = Some(cstr(&body[..size]));
+            } else {
+                let name = pending.take().unwrap_or_else(|| cstr(&header[..100]));
+                out.push((name, body[..size].to_vec()));
+            }
+        }
+        out
+    }
+
+    #[test]
+    fn long_member_name_round_trips_via_longlink() {
+        let long = format!(
+            "x-gmeow-english/terms/classes/gmeow-{}.html",
+            "A".repeat(90)
+        );
+        assert!(long.len() > 100, "fixture must exceed the 100-byte field");
+        let members = vec![
+            (long.clone(), b"<html>long</html>".to_vec()),
+            ("x-gmeow-english/index.html".to_string(), b"idx".to_vec()),
+        ];
+        let raw = ustar_archive(&members).expect("archive");
+        let got = parse(&raw);
+        assert_eq!(got, members, "GNU LongLink path must round-trip exactly");
+
+        // The first record on the wire is the 'L' LongLink, then the real header
+        // whose name field is the 100-byte truncation of the long path.
+        assert_eq!(raw[156], b'L', "first record is a LongLink");
+        assert_eq!(&raw[0..LONGLINK_NAME.len()], LONGLINK_NAME.as_bytes());
+    }
+
+    #[test]
+    fn short_names_emit_no_longlink_and_stay_plain_ustar() {
+        let members = vec![
+            ("mappings/a.sssom.tsv".to_string(), b"x".to_vec()),
+            ("slices/core/x/tests/t.ttl".to_string(), vec![0u8; 600]),
+        ];
+        let raw = ustar_archive(&members).expect("archive");
+        // No member name overflows 100 bytes, so NO 'L' record may appear: the
+        // four existing consumer archives must stay byte-identical (fold-stable).
+        assert!(
+            !raw.chunks(512).any(|c| c.len() == 512 && c[156] == b'L'),
+            "short-name archive must not emit a LongLink record"
+        );
+        // The first header carries the full name inline (typeflag '0', ustar magic).
+        assert_eq!(raw[156], b'0');
+        assert_eq!(&raw[257..263], b"ustar\0");
+        assert_eq!(&raw[263..265], b"00");
+        assert_eq!(parse(&raw), members);
+    }
+
+    #[test]
+    fn header_checksum_is_valid() {
+        let h = ustar_header("x-gmeow-english/index.html", 42, b'0').expect("header");
+        // The stored checksum equals the sum of all bytes with the checksum field
+        // taken as spaces — the canonical USTAR self-check.
+        let stored = usize::from_str_radix(
+            std::str::from_utf8(&h[148..154])
+                .unwrap()
+                .trim_matches('\0')
+                .trim(),
+            8,
+        )
+        .unwrap();
+        let mut probe = h;
+        for b in &mut probe[148..156] {
+            *b = b' ';
+        }
+        let computed: usize = probe.iter().map(|&b| b as usize).sum();
+        assert_eq!(stored, computed);
     }
 }
