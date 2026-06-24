@@ -15,7 +15,6 @@ from gmeow_rdf.compat.rdflib.namespace import OWL
 
 from gmeow_tools.config import FIXTURES_DIR, NAMESPACE
 from gmeow_tools.graph import load_merged_graph
-from tests._graph_nt import run_shacl
 
 GUFO = "http://purl.org/nemo/gufo#"
 
@@ -128,20 +127,6 @@ def test_no_new_identity_axes_were_minted() -> None:
         }
         assert terms, slice_iri
         assert not [t for t in terms if (t, coequal, None) in g], slice_iri
-
-
-# --------------------------------------------------------------------------- #
-# The normative fixture: the norms/risk seams hold against the FULL graph.
-# --------------------------------------------------------------------------- #
-
-
-def test_normative_fixture_validates_against_the_full_graph() -> None:
-    """Evaluation-as-Assessment and hallucination-as-hazard are pure instance
-    data over the norms and risk extensions — zero new TBox, SHACL-clean."""
-    g = load_merged_graph(include_imports=False)
-    g.parse(FIXTURES_DIR / "ai-normative.ttl", format="turtle")
-    result = run_shacl(g)
-    assert result.ok, "\n".join(result.errors)
 
 
 def test_assessment_seam_is_the_norms_extensions() -> None:

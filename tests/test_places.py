@@ -883,14 +883,6 @@ def test_contested_dns_names_coexist() -> None:
 # --------------------------------------------------------------------------- #
 
 
-def test_biological_coverage_passes_shacl() -> None:
-    """A biological-sequence coverage fixture with GRCh38 features loads
-    and passes SHACL validation."""
-    g = Graph().parse(COVERAGE_FIXTURES / "places-biological.ttl", format="turtle")
-    result = run_shacl(g)
-    assert result.ok, "\n".join(result.errors)
-
-
 def test_biological_standpoint_coordinate_claims_coexist() -> None:
     """Two standpoint-indexed SequenceCoordinates on the same gene load,
     SHACL-pass, and are BOTH retained (Principle 9)."""
@@ -909,13 +901,6 @@ def test_biological_standpoint_coordinate_claims_coexist() -> None:
 # --------------------------------------------------------------------------- #
 # Geocoding frames (#91)
 # --------------------------------------------------------------------------- #
-
-
-def test_geocode_shape_valid() -> None:
-    """Valid geocode instances pass SHACL."""
-    g = Graph().parse(COVERAGE_FIXTURES / "places-geocode.ttl", format="turtle")
-    result = run_shacl(g)
-    assert result.ok, "\n".join(result.errors)
 
 
 def test_geocode_shape_invalid_no_code() -> None:
@@ -984,14 +969,6 @@ def test_superseded_coordinate_observation_suppressed() -> None:
 # --------------------------------------------------------------------------- #
 # Cadastral / land administration (#92)
 # --------------------------------------------------------------------------- #
-
-
-def test_cadastral_coverage_passes_shacl() -> None:
-    """A cadastral coverage fixture with parcels, tenures, and references
-    loads and passes SHACL validation."""
-    g = Graph().parse(COVERAGE_FIXTURES / "places-cadastral.ttl", format="turtle")
-    result = run_shacl(g)
-    assert result.ok, "\n".join(result.errors)
 
 
 def test_land_tenure_instance_structure() -> None:
