@@ -5,7 +5,7 @@
 //!
 //! This crate is the ring-fenced core (#885 / purrdf P2b) extracted out of
 //! `gmeow-rdf`: the immutable value-interned IR, the owned value model, structured
-//! diagnostics, the store trait surface, the loss ledger, provenance, and the
+//! diagnostics, dataset capability flags, the loss ledger, provenance, and the
 //! oxigraph-free GTS reader path. It models RDF 1.2 terms directly, preserves
 //! source/location context where adapters can provide it, and keeps reporting
 //! structured but SARIF-free. The oxigraph adapters and the PyO3 extension surface
@@ -93,14 +93,14 @@ pub use provenance::{
 pub use sssom::{
     SssomDiagnostic, SssomMapping, SssomMappingSet, SssomMeta, SSSOM_DEFAULT_VALIDATION_TYPES,
 };
-pub use store::{RdfStore, RdfStoreCapabilities, VecRdfStore};
+pub use store::RdfStoreCapabilities;
 pub use turtle::{emit_annotation, emit_quad, emit_reifier, emit_resource, emit_term, rule_iri};
 
 /// The common gmeow-rdf-core surface, for `use gmeow_rdf_core::prelude::*;`.
 ///
-/// Pulls in the owned value model, the immutable IR + builder, term identity, the
-/// store trait, and the diagnostic type — the set a typical consumer (a SHACL/
-/// validate/logic adapter, or an external Rust crate) reaches for first.
+/// Pulls in the owned value model, the immutable IR + builder, term identity,
+/// capability flags, and the diagnostic type — the set a typical consumer reaches
+/// for first.
 pub mod prelude {
     pub use crate::dataset_view::{DatasetView, GraphMatch};
     pub use crate::diagnostic::{RdfDiagnostic, RdfLocation, RdfSeverity};
@@ -111,5 +111,5 @@ pub mod prelude {
         RdfAnnotation, RdfLiteral, RdfQuad, RdfReifier, RdfTerm, RdfTermKind, RdfTextDirection,
         RdfTriple,
     };
-    pub use crate::store::{RdfStore, RdfStoreCapabilities};
+    pub use crate::store::RdfStoreCapabilities;
 }

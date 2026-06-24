@@ -11,7 +11,7 @@
 //! # Crate boundary (#885 / purrdf P2b)
 //!
 //! The oxigraph-free, PyO3-free kernel — the immutable IR, the owned value model,
-//! diagnostics, the store trait surface, the loss ledger, provenance, the FnO and
+//! diagnostics, dataset capability flags, the loss ledger, provenance, the FnO and
 //! SSSOM codecs, the content store, and the oxigraph-free GTS reader path — now
 //! lives in the ring-fenced sibling crate [`gmeow_rdf_core`]. `gmeow-rdf`
 //! **re-exports** every one of those modules at its own root so that both the
@@ -43,6 +43,8 @@ pub mod gts;
 // author a full multi-named-graph snapshot without pulling pyo3. It ingests a flat
 // oxigraph quad list (RDF 1.1 base graph) and parses RDF bytes via oxigraph, so it
 // now needs the `oxigraph` feature explicitly — `gts` no longer implies it (#885).
+#[cfg(feature = "oxigraph")]
+pub mod dataset_io;
 #[cfg(all(feature = "gts", feature = "oxigraph"))]
 pub mod gts_compose;
 #[cfg(feature = "oxigraph")]
@@ -76,6 +78,8 @@ pub mod turtle_normalize;
 // Mirror the kernel's root-level re-exports so `gmeow_rdf::RdfTerm`,
 // `gmeow_rdf::RdfDiagnostic`, … keep resolving exactly as before. The two
 // `gts`-gated IR import helpers are re-exported under the matching gate.
+#[cfg(feature = "oxigraph")]
+pub use dataset_io::{dataset_from_bytes, dataset_from_oxigraph_quads};
 pub use gmeow_rdf_core::{
     check_provenance, dataset_diff, datasets_isomorphic, emit_annotation, emit_quad, emit_reifier,
     emit_resource, emit_term, fno_to_ntriples, fno_to_quads, gts_to_rdf_loss_ledger,
@@ -89,19 +93,19 @@ pub use gmeow_rdf_core::{
     RdfDatasetBuilder, RdfDatasetVisitor, RdfDiagnostic, RdfEnvelope, RdfLiteral, RdfLocation,
     RdfLookaside, RdfLookasideKind, RdfLookasideResource, RdfLoss, RdfMetadataEntry,
     RdfMetadataValue, RdfOpaqueNodeRecord, RdfQuad, RdfReifier, RdfSegmentRecord, RdfSeverity,
-    RdfSignatureRecord, RdfStore, RdfStoreCapabilities, RdfSuppressionRecord, RdfTerm, RdfTermKind,
+    RdfSignatureRecord, RdfStoreCapabilities, RdfSuppressionRecord, RdfTerm, RdfTermKind,
     RdfTextDirection, RdfTriple, SegmentUnitMap, SssomDiagnostic, SssomMapping, SssomMappingSet,
     SssomMeta, TermId, TermRef, TermValue, UnitCatalog, UnitId, UnitInterner, UnitMetadata,
-    VecRdfStore, SSSOM_DEFAULT_VALIDATION_TYPES,
+    SSSOM_DEFAULT_VALIDATION_TYPES,
 };
 #[cfg(feature = "gts")]
 pub use gmeow_rdf_core::{import_gts_events, import_gts_graph};
 
 /// The common gmeow-rdf surface, for `use gmeow_rdf::prelude::*;`.
 ///
-/// Pulls in the owned value model, the immutable IR + builder, term identity, the
-/// store trait, and the diagnostic type — the set a typical consumer (a SHACL/
-/// validate/logic adapter, or an external Rust crate) reaches for first. Mirrors
+/// Pulls in the owned value model, the immutable IR + builder, term identity,
+/// capability flags, and the diagnostic type — the set a typical consumer reaches
+/// for first. Mirrors
 /// the ring-fenced kernel's own [`gmeow_rdf_core::prelude`].
 pub mod prelude {
     pub use gmeow_rdf_core::prelude::*;

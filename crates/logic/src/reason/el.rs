@@ -18,7 +18,7 @@
 //! cannot express entailments that quantify over the predicate position
 //! (domain/range, property chains) — see the [`ElClosure::gaps`] surface.
 
-use gmeow_rdf::RdfStore;
+use gmeow_rdf::RdfDataset;
 
 /// The fixed OWL-2-EL/RL class-level entailment rule set, in the world-scoped
 /// ternary gmeow encoding. Full IRIs in angle brackets; `?w` threads the world.
@@ -87,7 +87,7 @@ pub struct ElClosure {
 ///
 /// Returns `Err(String)` if the source store cannot be loaded, if the Nemo
 /// chase fails to parse/validate/evaluate, or if a derived row fails to decode.
-pub fn el_closure(edb: &impl RdfStore) -> Result<ElClosure, String> {
+pub fn el_closure(edb: &RdfDataset) -> Result<ElClosure, String> {
     // 1. Run the fixed EL rule set through the shared chase machinery.
     let all = crate::reason::run_reasoning(edb, EL_RULES)?;
 
@@ -119,7 +119,7 @@ pub fn el_closure(edb: &impl RdfStore) -> Result<ElClosure, String> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use gmeow_rdf::{RdfQuad, RdfTerm, VecRdfStore};
+    use gmeow_rdf::{RdfDatasetBuilder, RdfQuad, RdfTerm};
 
     const W: &str = "http://gmeow.example/w";
     const SUBCLASS: &str = "http://www.w3.org/2000/01/rdf-schema#subClassOf";
@@ -137,6 +137,14 @@ mod tests {
         RdfQuad::new(RdfTerm::iri(s), p, RdfTerm::iri(o)).in_graph(RdfTerm::iri(W))
     }
 
+    fn dataset(quads: Vec<RdfQuad>) -> std::sync::Arc<RdfDataset> {
+        let mut builder = RdfDatasetBuilder::new();
+        for quad in quads {
+            builder.push_owned_quad(&quad);
+        }
+        builder.freeze().expect("valid test dataset")
+    }
+
     /// Find an inferred axiom matching the given triple (any world).
     ///
     /// `o` is the bare object IRI; the stored axiom keeps the decoded Nemo
@@ -152,8 +160,8 @@ mod tests {
     #[test]
     fn subclass_transitivity_derives_a_subclass_c() {
         // A ⊑ B, B ⊑ C ⇒ A ⊑ C (derived, not asserted).
-        let store = VecRdfStore::with_quads(vec![quad(A, SUBCLASS, B), quad(B, SUBCLASS, C)]);
-        let closure = el_closure(&store).expect("EL closure should succeed");
+        let store = dataset(vec![quad(A, SUBCLASS, B), quad(B, SUBCLASS, C)]);
+        let closure = el_closure(store.as_ref()).expect("EL closure should succeed");
 
         let ac = find(&closure, A, SUBCLASS, C).expect("A ⊑ C must be inferred");
         assert!(!ac.is_edb, "A ⊑ C is derived, must be is_edb == false");
@@ -167,8 +175,8 @@ mod tests {
     #[test]
     fn equivalent_class_derives_both_directions() {
         // D ≡ E ⇒ D ⊑ E and E ⊑ D.
-        let store = VecRdfStore::with_quads(vec![quad(D, EQUIV, E)]);
-        let closure = el_closure(&store).expect("EL closure should succeed");
+        let store = dataset(vec![quad(D, EQUIV, E)]);
+        let closure = el_closure(store.as_ref()).expect("EL closure should succeed");
 
         let de = find(&closure, D, SUBCLASS, E).expect("D ⊑ E must be inferred");
         let ed = find(&closure, E, SUBCLASS, D).expect("E ⊑ D must be inferred");
@@ -179,8 +187,8 @@ mod tests {
     #[test]
     fn type_propagation_derives_x_type_b() {
         // x : A, A ⊑ B ⇒ x : B.
-        let store = VecRdfStore::with_quads(vec![quad(X, TYPE, A), quad(A, SUBCLASS, B)]);
-        let closure = el_closure(&store).expect("EL closure should succeed");
+        let store = dataset(vec![quad(X, TYPE, A), quad(A, SUBCLASS, B)]);
+        let closure = el_closure(store.as_ref()).expect("EL closure should succeed");
 
         let xb = find(&closure, X, TYPE, B).expect("x : B must be inferred");
         assert!(!xb.is_edb, "x : B is derived, must be is_edb == false");
@@ -188,8 +196,8 @@ mod tests {
 
     #[test]
     fn gaps_names_the_predicate_as_symbol_limitation() {
-        let store = VecRdfStore::with_quads(vec![quad(A, SUBCLASS, B)]);
-        let closure = el_closure(&store).expect("EL closure should succeed");
+        let store = dataset(vec![quad(A, SUBCLASS, B)]);
+        let closure = el_closure(store.as_ref()).expect("EL closure should succeed");
         assert_eq!(closure.gaps.len(), 1, "exactly one honest gap entry");
         assert!(
             closure.gaps[0].contains("property-chain")

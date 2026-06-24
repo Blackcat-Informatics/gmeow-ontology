@@ -8,7 +8,7 @@
 //! the RDF 1.2 statement lead artifact (`generated/statements/gmeow.rdf12.ttl`)
 //! is produced with **no Apache Jena, no Docker, and no SPARQL engine**. oxigraph
 //! (the `rdf-12` feature) only *parses* the input Turtle; the projection itself
-//! is a fold over [`crate::RdfStore`] quads into native RDF 1.2 triple terms.
+//! is a fold over native RDF quads into RDF 1.2 triple terms.
 //!
 //! Both emitters write full-IRI Turtle (no prefix compaction); the drift gate
 //! compares RDFC-1.0 canonical quad sets (graph isomorphism), so banners and

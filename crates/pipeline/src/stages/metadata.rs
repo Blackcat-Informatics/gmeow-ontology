@@ -21,7 +21,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;
 
 use gmeow_rdf::model::{RdfLiteral, RdfTerm};
-use gmeow_rdf::store::RdfStore;
+use gmeow_rdf::RdfDataset;
 use oxigraph::io::RdfFormat;
 use oxigraph::model::{Literal, NamedNode, Quad, Term};
 use oxigraph::store::Store;
@@ -147,18 +147,10 @@ fn object_namespace(iri: &str) -> String {
     iri.to_string()
 }
 
-fn err(e: gmeow_rdf::RdfDiagnostic) -> PipelineError {
-    PipelineError::Parse(format!("metadata fold: {e}"))
-}
-
 /// The lexical value of a literal/IRI object of `(ONTOLOGY_IRI, predicate)` in
 /// the default graph (`graph_name == None`).
-fn fold_header_value(
-    store: &impl RdfStore,
-    predicate: &str,
-) -> Result<Option<String>, PipelineError> {
-    for q in store.quads() {
-        let q = q.map_err(err)?;
+fn fold_header_value(store: &RdfDataset, predicate: &str) -> Result<Option<String>, PipelineError> {
+    for q in store.owned_quads() {
         if graph_iri(&q.graph_name).is_some() {
             continue; // default graph only
         }
@@ -172,13 +164,13 @@ fn fold_header_value(
     Ok(None)
 }
 
-fn fold_version(store: &impl RdfStore) -> Result<String, PipelineError> {
+fn fold_version(store: &RdfDataset) -> Result<String, PipelineError> {
     fold_header_value(store, OWL_VERSION_INFO)?.ok_or_else(|| {
         PipelineError::Parse(format!("snapshot lacks owl:versionInfo on {ONTOLOGY_IRI}"))
     })
 }
 
-fn fold_description(store: &impl RdfStore) -> Result<String, PipelineError> {
+fn fold_description(store: &RdfDataset) -> Result<String, PipelineError> {
     fold_header_value(store, DCTERMS_DESCRIPTION)?.ok_or_else(|| {
         PipelineError::Parse(format!(
             "snapshot lacks dcterms:description on {ONTOLOGY_IRI}"
@@ -187,10 +179,9 @@ fn fold_description(store: &impl RdfStore) -> Result<String, PipelineError> {
 }
 
 /// Wikidata authority/exact-match links for the Work, scoped to `graph/metadata`.
-fn fold_wikidata_links(store: &impl RdfStore) -> Result<Vec<String>, PipelineError> {
+fn fold_wikidata_links(store: &RdfDataset) -> Result<Vec<String>, PipelineError> {
     let mut links: BTreeSet<String> = BTreeSet::new();
-    for q in store.quads() {
-        let q = q.map_err(err)?;
+    for q in store.owned_quads() {
         if graph_iri(&q.graph_name) != Some(GTS_GRAPH_METADATA) {
             continue;
         }
@@ -217,13 +208,12 @@ struct VoidStats {
 }
 
 /// VoID statistics over the *default* graph (`graph_name == None`).
-fn fold_stats(store: &impl RdfStore) -> Result<VoidStats, PipelineError> {
+fn fold_stats(store: &RdfDataset) -> Result<VoidStats, PipelineError> {
     let mut triples: u64 = 0;
     let mut entities: BTreeSet<String> = BTreeSet::new();
     let mut classes: BTreeSet<String> = BTreeSet::new();
     let mut properties: BTreeSet<String> = BTreeSet::new();
-    for q in store.quads() {
-        let q = q.map_err(err)?;
+    for q in store.owned_quads() {
         if graph_iri(&q.graph_name).is_some() {
             continue; // default graph only
         }
@@ -267,10 +257,9 @@ struct Linkset {
 
 /// Linksets from the `graph/alignments` named graph: one per (target namespace,
 /// predicate) pair where both predicate and object are IRIs.
-fn fold_linksets(store: &impl RdfStore) -> Result<Vec<Linkset>, PipelineError> {
+fn fold_linksets(store: &RdfDataset) -> Result<Vec<Linkset>, PipelineError> {
     let mut buckets: BTreeMap<(String, String), u64> = BTreeMap::new();
-    for q in store.quads() {
-        let q = q.map_err(err)?;
+    for q in store.owned_quads() {
         if graph_iri(&q.graph_name) != Some(GTS_GRAPH_ALIGNMENTS) {
             continue;
         }
@@ -347,7 +336,7 @@ fn iri_term(s: &str) -> Term {
 
 // ── Graph builders ─────────────────────────────────────────────────────────────
 
-fn build_void_store(store: &impl RdfStore) -> Result<Store, PipelineError> {
+fn build_void_store(store: &RdfDataset) -> Result<Store, PipelineError> {
     let out = Store::new().map_err(|e| PipelineError::Parse(e.to_string()))?;
     let dataset = nn(VOID_DATASET_IRI);
 
@@ -493,7 +482,7 @@ fn build_void_store(store: &impl RdfStore) -> Result<Store, PipelineError> {
     Ok(out)
 }
 
-fn build_dcat_store(store: &impl RdfStore, root: &Path) -> Result<Store, PipelineError> {
+fn build_dcat_store(store: &RdfDataset, root: &Path) -> Result<Store, PipelineError> {
     let out = Store::new().map_err(|e| PipelineError::Parse(e.to_string()))?;
     let dataset = nn(ONTOLOGY_IRI);
 
@@ -677,12 +666,12 @@ impl Stage for MetadataStage {
     }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, PipelineError> {
         let gts = crate::stages::snapshot::snapshot_bytes(input.upstream)?;
-        let graph = gmeow_rdf::gts::read_graph(&gts, true)
+        let bundle = gmeow_rdf::import_gts_events(&gts)
             .map_err(|e| PipelineError::Parse(format!("read snapshot gmeow.gts: {e}")))?;
-        let store = gmeow_rdf::gts::GtsGraphStore::new(&graph);
+        let store = bundle.dataset.as_ref();
 
-        let void = build_void_store(&store)?;
-        let dcat = build_dcat_store(&store, input.root)?;
+        let void = build_void_store(store)?;
+        let dcat = build_dcat_store(store, input.root)?;
 
         let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
         artifacts.insert(VOID_PATH.to_string(), serialize(&void)?);
@@ -730,9 +719,8 @@ mod tests {
     fn metadata_void_is_isomorphic_to_committed() {
         let root = repo_root();
         let gts = std::fs::read(root.join("generated/dist/gmeow.gts")).unwrap();
-        let graph = gmeow_rdf::gts::read_graph(&gts, true).unwrap();
-        let store = gmeow_rdf::gts::GtsGraphStore::new(&graph);
-        let built = build_void_store(&store).unwrap();
+        let bundle = gmeow_rdf::import_gts_events(&gts).unwrap();
+        let built = build_void_store(bundle.dataset.as_ref()).unwrap();
         let committed = parse_committed(&root.join(VOID_PATH));
         let a = triple_set(&built);
         let b = triple_set(&committed);
@@ -750,9 +738,8 @@ mod tests {
     fn metadata_dcat_is_isomorphic_to_committed() {
         let root = repo_root();
         let gts = std::fs::read(root.join("generated/dist/gmeow.gts")).unwrap();
-        let graph = gmeow_rdf::gts::read_graph(&gts, true).unwrap();
-        let store = gmeow_rdf::gts::GtsGraphStore::new(&graph);
-        let built = build_dcat_store(&store, &root).unwrap();
+        let bundle = gmeow_rdf::import_gts_events(&gts).unwrap();
+        let built = build_dcat_store(bundle.dataset.as_ref(), &root).unwrap();
         let committed = parse_committed(&root.join(DCAT_PATH));
         let a = triple_set(&built);
         let b = triple_set(&committed);
@@ -794,9 +781,8 @@ mod tests {
     fn metadata_stats_match_committed_targets() {
         let root = repo_root();
         let gts = std::fs::read(root.join("generated/dist/gmeow.gts")).unwrap();
-        let graph = gmeow_rdf::gts::read_graph(&gts, true).unwrap();
-        let store = gmeow_rdf::gts::GtsGraphStore::new(&graph);
-        let stats = fold_stats(&store).unwrap();
+        let bundle = gmeow_rdf::import_gts_events(&gts).unwrap();
+        let stats = fold_stats(bundle.dataset.as_ref()).unwrap();
         // Expected values are read from the committed `void.ttl` dataset subject
         // (the canonical artifact) rather than hardcoded, so they track every
         // refold automatically. `fold_stats` counts the default graph exactly as

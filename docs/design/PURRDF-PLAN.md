@@ -63,7 +63,7 @@ overwhelmingly at the **Python compatibility boundary**, not in Rust. Ranked by 
 ## Current state (what exists — do NOT rebuild)
 
 - **Rust kernel** `crates/rdf/src/model.rs`, `ir/` — RDF-1.2-native terms (triple terms, directional
-  literals `RdfTextDirection`, reifiers, annotations), frozen interned `RdfDataset`, `RdfStore` trait,
+  literals `RdfTextDirection`, reifiers, annotations), frozen interned `RdfDataset`,
   structural isomorphism `ir/compare.rs`, loss ledger `loss.rs`.
 - **oxigraph adapter** `crates/rdf/src/oxigraph.rs` — materialize to oxigraph `Store`; full SPARQL.
 - **Python surface** `crates/rdf/src/py_store.rs` + stub `crates/native/python/gmeow_rdf/__init__.pyi`:
@@ -97,38 +97,35 @@ The crate split dissolves today's feature leaks (the `gts`/`python` features tra
 oxigraph; `py_store`/`py_gts` importing oxigraph types): `gmeow-rdf-core` simply has no oxigraph in its
 dependency graph, full stop.
 
-**Reconcile with the EXISTING abstraction — do NOT add a parallel trait family.** `gmeow-rdf` already
-has an `RdfStore` trait (boxed iterators of OWNED quads). The new traits must **replace it under a
-migration plan**, not sit beside it. Define exactly two layers:
+**Reconcile with the retired owned-quad abstraction — do NOT add a parallel trait family.** The
+legacy boxed owned-quad iterator has now been replaced under a migration plan, not left beside the
+IR. Define exactly two layers:
 
 - **`DatasetView`** — a static, **allocation-free** read interface for Rust internals (borrowed
-  `TermRef`/`QuadRef`, `quads_for_pattern`); the hot path. Generalizes/replaces today's owned-quad
-  `RdfStore`.
+  `TermRef`/`QuadRef`, `quads_for_pattern`); the hot path. This is the replacement for the retired
+  owned-quad reader.
 - **An object-safe ERASED adapter** (`&mut dyn …`) for runtime backends + the parser/format registry.
 
-Migration: port `RdfStore` consumers (compat bridge, SHACL/validate/logic) to `DatasetView`, then
-delete `RdfStore`. The write side (`DatasetMut`) + `RdfParserBackend`/`SparqlEngine`/`RdfSerializer` +
-`TermFactory` layer on top.
+Migration: port the old consumers (compat bridge, SHACL/validate/logic) to the concrete IR and
+delete the legacy reader. The write side (`DatasetMut`) + `RdfParserBackend`/`SparqlEngine`/
+`RdfSerializer` + `TermFactory` layer on top.
 
-> **P2c migration reality (refined in #886).** `DatasetView` is NOT a drop-in superset of `RdfStore`:
-> it is **quad-only** (no `reifiers()`/`annotations()`/`lookaside()`), **`RdfDataset`-only**, and **not
-> object-safe** — while in production nearly every `RdfStore` consumer is fed a `GtsGraphStore` or
-> `OxigraphStore`, not an `RdfDataset`. So the migration is "**port consumers onto the concrete IR**
+> **P2c migration reality (refined in #886 and completed in #922).** `DatasetView` is NOT a drop-in
+> superset of the retired reader: it is **quad-only** (no `reifiers()`/`annotations()`/`lookaside()`),
+> **`RdfDataset`-only**, and **not object-safe** — while production consumers were previously fed
+> adapter-backed stores, not an `RdfDataset`. So the migration was "**port consumers onto the concrete IR**
 > (`&RdfDataset`, reading the RDF 1.2 statement layer via the IR's inherent id-based accessors), NOT
 > extend the `DatasetView` trait." It is split:
 >
 > - **P2c part 1 (#886, landed):** added the borrowed `RdfDataset::reifier_refs()`/`annotation_refs()`
 >   read surface; ported the two genuinely IR-native seams — `gts_write::to_writer`/`to_gts` (now
 >   `&RdfDataset` + `&RdfLookaside`) and the SHACL SPARQL materialization (`store_from_dataset`) — off
->   the `RdfStore` compat bridge. `RdfStore`/`VecRdfStore` are NOT deleted; a parity guard
->   (`store_from_dataset_matches_compat_bridge` in `crates/rdf/src/oxigraph.rs`, the crate that owns
->   both functions) pins `store_from_dataset` == `store_from_rdf_store(&dataset)`.
-> - **P2c part 2 (follow-up, #922):** route the production GTS/oxigraph ingress through the IR
->   (`import_gts_graph`/`import_gts_events`), migrate the remaining `GtsGraphStore`/`OxigraphStore`-sourced
->   consumers (reasoning EL/DL/RL, metadata folds, `build_lpg`, `asserted_turtle`, SHACL
->   `dataset_from_rdf_store`, `WorldStore::load_rdf_store`, `logic::verify`), swap the remaining
->   `store_from_rdf_store` callers to `store_from_dataset`, then DELETE `RdfStore` + its backend impls +
->   the compat bridge + `VecRdfStore`.
+>   the owned-quad bridge.
+> - **P2c part 2 (#922, landed):** route production GTS/oxigraph ingress through the IR
+>   (`import_gts_graph`/`import_gts_events`), migrate the remaining adapter-sourced consumers
+>   (reasoning EL/DL/RL, metadata folds, `build_lpg`, `asserted_turtle`, SHACL, world loading,
+>   `logic::verify`), swap materialization callers to `store_from_dataset`, then delete the legacy
+>   trait, its backend impls, the compat bridge, and the owned fixture store.
 
 **Graph position needs an explicit match type** — `Option<TermId>` cannot distinguish "any graph" from
 "the default graph". Storage/quads keep `Option<TermId> g` (`None` = default graph), but *matching* uses:

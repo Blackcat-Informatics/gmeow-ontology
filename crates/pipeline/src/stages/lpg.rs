@@ -4,7 +4,7 @@
 //! The `lpg` export leaf (#861 P4): RDF → Labeled Property Graph.
 //!
 //! A genuine port of `src/gmeow_tools/lpg.py` (no Rust existed): reads the
-//! statement-layer quads + reifier/annotation fold tables from an `RdfStore`
+//! statement-layer quads + reifier/annotation fold tables from an `RdfDataset`
 //! (the composed dataset / committed `gmeow.gts`) and emits nodes + edges, with
 //! statement metadata as edge properties, to generic CSV, Neo4j typed CSV,
 //! openCypher, and GraphML. Byte-deterministic; compared to `generated/lpg/**`.
@@ -12,7 +12,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use gmeow_rdf::model::{RdfLiteral, RdfTerm};
-use gmeow_rdf::store::RdfStore;
+use gmeow_rdf::RdfDataset;
 use sha2::{Digest, Sha256};
 
 use crate::error::PipelineError;
@@ -279,15 +279,12 @@ struct Edge {
     props: BTreeMap<String, Val>,
 }
 
-/// Build the LPG (nodes + edges) from an `RdfStore` fold.
-fn build_lpg(store: &impl RdfStore) -> Result<(Vec<Node>, Vec<Edge>), PipelineError> {
-    let err = |e: gmeow_rdf::RdfDiagnostic| PipelineError::Parse(format!("lpg fold: {e}"));
-
+/// Build the LPG (nodes + edges) from an `RdfDataset` fold.
+fn build_lpg(store: &RdfDataset) -> Result<(Vec<Node>, Vec<Edge>), PipelineError> {
     // Reifier tables.
     let mut reifier_triple: BTreeMap<String, (String, String, String)> = BTreeMap::new();
     let mut reifier_iris: BTreeSet<String> = BTreeSet::new();
-    for r in store.reifiers() {
-        let r = r.map_err(err)?;
+    for r in store.owned_reifiers() {
         if let RdfTerm::Iri(rid) = &r.reifier {
             reifier_iris.insert(rid.clone());
             let s = lex(&r.statement.subject);
@@ -298,8 +295,7 @@ fn build_lpg(store: &impl RdfStore) -> Result<(Vec<Node>, Vec<Edge>), PipelineEr
     }
     let mut reifier_meta: BTreeMap<String, BTreeMap<String, PropVal>> = BTreeMap::new();
     let mut ann_iri_values: BTreeSet<String> = BTreeSet::new();
-    for a in store.annotations() {
-        let a = a.map_err(err)?;
+    for a in store.owned_annotations() {
         if let RdfTerm::Iri(rid) = &a.reifier {
             reifier_iris.insert(rid.clone());
             accumulate(
@@ -332,8 +328,7 @@ fn build_lpg(store: &impl RdfStore) -> Result<(Vec<Node>, Vec<Edge>), PipelineEr
     let mut node_props: BTreeMap<String, BTreeMap<String, PropVal>> = BTreeMap::new();
     let mut object_rows: Vec<(String, String, String)> = Vec::new();
 
-    for q in store.quads() {
-        let q = q.map_err(err)?;
+    for q in store.owned_quads() {
         // Scope to the statement named graph.
         if term_iri_opt(&q.graph_name).as_deref() != Some(STATEMENTS_GRAPH) {
             continue;
@@ -799,10 +794,9 @@ impl Stage for LpgStage {
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, PipelineError> {
         // Read THIS run's fold from the stage-snapshot upstream product.
         let gts = crate::stages::snapshot::snapshot_bytes(input.upstream)?;
-        let graph = gmeow_rdf::gts::read_graph(&gts, true)
+        let bundle = gmeow_rdf::import_gts_events(&gts)
             .map_err(|e| PipelineError::Parse(format!("read snapshot gmeow.gts: {e}")))?;
-        let store = gmeow_rdf::gts::GtsGraphStore::new(&graph);
-        let (nodes, edges) = build_lpg(&store)?;
+        let (nodes, edges) = build_lpg(bundle.dataset.as_ref())?;
         Ok(StageOutput {
             product: StageProduct::from_artifacts(self.id(), render_all(&nodes, &edges)),
         })
@@ -826,9 +820,8 @@ mod tests {
     fn lpg_is_byte_identical_to_committed() {
         let root = repo_root();
         let gts = std::fs::read(root.join("generated/dist/gmeow.gts")).unwrap();
-        let graph = gmeow_rdf::gts::read_graph(&gts, true).unwrap();
-        let store = gmeow_rdf::gts::GtsGraphStore::new(&graph);
-        let (nodes, edges) = build_lpg(&store).unwrap();
+        let bundle = gmeow_rdf::import_gts_events(&gts).unwrap();
+        let (nodes, edges) = build_lpg(bundle.dataset.as_ref()).unwrap();
         let arts = render_all(&nodes, &edges);
         let mut checked = 0;
         for (path, bytes) in &arts {

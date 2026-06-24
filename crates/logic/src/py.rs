@@ -1048,8 +1048,8 @@ fn build_divergence_ledger(
 
 /// Run native OWL-2 reasoning over a `gmeow.gts` bundle (issue #665).
 ///
-/// Ingests the RDF-1.2-first GTS bundle through the gmeow-rdf GTS adapter
-/// ([`gmeow_rdf::gts::read_graph`] / [`gmeow_rdf::gts::GtsGraphStore`]), then runs
+/// Ingests the RDF-1.2-first GTS bundle through the concrete
+/// [`gmeow_rdf::RdfDataset`] import path, then runs
 /// the single-chase combined entry point [`crate::reason::reason_all`] — the EL
 /// subsumption closure and the DL consistency verdict are derived from ONE Nemo
 /// chase, never two.
@@ -1075,9 +1075,9 @@ fn build_divergence_ledger(
 /// failure during the gap scan).
 #[pyfunction]
 fn reason_native(py: Python<'_>, gts_bytes: &[u8]) -> PyResult<Py<PyAny>> {
-    // The GtsGraphStore borrows the Graph, which is not Send; build BOTH the graph
-    // and the store inside the GIL-released closure (moving the bytes in) so the
-    // detached work is self-contained. `reason_all` runs the single chase here.
+    // Import the bundle into the frozen IR inside the GIL-released closure
+    // (moving the bytes in) so the detached work is self-contained. `reason_all`
+    // runs the single chase here.
     // Distinguish the two failure modes per the docstring: a GTS read/parse
     // failure is a caller-input error (`ValueError`); a reasoning failure (chase
     // parse/validate/evaluate/decode, or a gap-scan quad-read) is a `RuntimeError`.
@@ -1088,10 +1088,9 @@ fn reason_native(py: Python<'_>, gts_bytes: &[u8]) -> PyResult<Py<PyAny>> {
     let bytes = gts_bytes.to_vec();
     let read_result: Result<crate::reason::ReasonResult, ReasonNativeError> =
         py.detach(move || {
-            let graph = gmeow_rdf::gts::read_graph(&bytes, true)
+            let bundle = gmeow_rdf::import_gts_events(&bytes)
                 .map_err(|e| ReasonNativeError::GtsRead(format!("GTS read error: {e}")))?;
-            let store = gmeow_rdf::gts::GtsGraphStore::new(&graph);
-            crate::reason::reason_all(&store).map_err(ReasonNativeError::Reason)
+            crate::reason::reason_all(bundle.dataset.as_ref()).map_err(ReasonNativeError::Reason)
         });
     let result = read_result.map_err(|e| match e {
         ReasonNativeError::GtsRead(m) => pyo3::exceptions::PyValueError::new_err(m),
@@ -1187,20 +1186,20 @@ fn reason_native_artifacts(py: Python<'_>, gts_bytes: &[u8], merge: bool) -> PyR
 
     // Distinguish the two failure modes (GTS read = ValueError, reasoning /
     // emission = RuntimeError) the same way `reason_native` does. The
-    // GtsGraphStore borrows the Graph (not Send), so the graph, store, reasoning,
-    // AND the three serializations all run inside one GIL-released closure.
+    // The GTS import, reasoning, and three serializations all run inside one
+    // GIL-released closure.
     enum ArtifactsError {
         GtsRead(String),
         Reason(String),
     }
     let bytes = gts_bytes.to_vec();
     let built: Result<(String, String, String), ArtifactsError> = py.detach(move || {
-        let graph = gmeow_rdf::gts::read_graph(&bytes, true)
+        let bundle = gmeow_rdf::import_gts_events(&bytes)
             .map_err(|e| ArtifactsError::GtsRead(format!("GTS read error: {e}")))?;
-        let store = gmeow_rdf::gts::GtsGraphStore::new(&graph);
-        let result = crate::reason::reason_all(&store).map_err(ArtifactsError::Reason)?;
+        let dataset = bundle.dataset.as_ref();
+        let result = crate::reason::reason_all(dataset).map_err(ArtifactsError::Reason)?;
 
-        let merge_store: Option<&dyn gmeow_rdf::RdfStore> = if merge { Some(&store) } else { None };
+        let merge_store = if merge { Some(dataset) } else { None };
         let closure =
             build_inferred_closure_ttl(&result, merge_store).map_err(ArtifactsError::Reason)?;
         let explanations = build_explanations_ttl(&result).map_err(ArtifactsError::Reason)?;
@@ -1259,16 +1258,13 @@ fn reason_native_artifacts(py: Python<'_>, gts_bytes: &[u8], merge: bool) -> PyR
 /// Compute the OWL 2 RL closure of `input` (the shared core of the two surfaces).
 fn compute_rl_closure(py: Python<'_>, input: &str) -> PyResult<crate::reason::rl::RlClosure> {
     // Parse the input as N-Quads (a superset of N-Triples — bare triples land in
-    // the default graph) into an oxigraph store, then close it through the
+    // the default graph) into the frozen IR, then close it through the
     // generic-triple RL chase with the GIL released.
     let bytes = input.as_bytes().to_vec();
     let closure: Result<crate::reason::rl::RlClosure, (bool, String)> = py.detach(move || {
-        let store = Store::new().map_err(|e| (false, format!("store creation failed: {e}")))?;
-        store
-            .load_from_reader(RdfFormat::NQuads, bytes.as_slice())
+        let dataset = gmeow_rdf::dataset_from_bytes(&bytes, RdfFormat::NQuads)
             .map_err(|e| (true, format!("N-Quads parse error: {e}")))?;
-        let rdf_store = gmeow_rdf::oxigraph::OxigraphStore::new(&store);
-        crate::reason::rl::rl_closure(&rdf_store).map_err(|e| (false, e))
+        crate::reason::rl::rl_closure(dataset.as_ref()).map_err(|e| (false, e))
     });
     closure.map_err(|(is_parse, msg)| {
         if is_parse {
@@ -1372,10 +1368,10 @@ fn verify_native(
     let bytes = gts_bytes.to_vec();
     let verify_result: Result<gmeow_diagnostics::Report, VerifyNativeError> =
         py.detach(move || {
-            let graph = gmeow_rdf::gts::read_graph(&bytes, true)
+            let bundle = gmeow_rdf::import_gts_events(&bytes)
                 .map_err(|e| VerifyNativeError::GtsRead(format!("GTS read error: {e}")))?;
-            let store = gmeow_rdf::gts::GtsGraphStore::new(&graph);
-            crate::verify::verify(&store, &queries).map_err(VerifyNativeError::Verify)
+            crate::verify::verify(bundle.dataset.as_ref(), &queries)
+                .map_err(VerifyNativeError::Verify)
         });
     let report = verify_result.map_err(|e| match e {
         VerifyNativeError::GtsRead(m) => pyo3::exceptions::PyValueError::new_err(m),

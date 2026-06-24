@@ -32,7 +32,7 @@ fn intern_owned(b: &mut RdfDatasetBuilder, term: &RdfTerm) -> TermId {
 }
 
 /// Freeze owned rows (quads + RDF 1.2 statement layer) into the frozen IR the GTS
-/// writer now consumes (#886 part 1) — replaces the retired `VecRdfStore` fixture.
+/// writer now consumes (#886 part 1).
 fn freeze_rows(
     quads: &[RdfQuad],
     reifiers: &[RdfReifier],

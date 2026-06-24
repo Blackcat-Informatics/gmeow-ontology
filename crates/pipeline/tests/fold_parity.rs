@@ -6,7 +6,7 @@
 //!
 //! It runs the executor spine over the real repo, reads the sink's `gmeow.gts`,
 //! folds BOTH the sink output and the committed reference through the kernel GTS
-//! reader (`gmeow_rdf::gts::read_graph` → `GtsGraphStore`), and compares the
+//! reader (`gmeow_rdf::gts::read_graph`), and compares the
 //! per-named-graph quad counts plus the reifier/annotation counts. Per the
 //! semantic gts gate (#595), full CBOR byte-identity is NOT required: the FOLD
 //! (quads + reifiers + annotations per named graph) is the contract.
@@ -115,11 +115,10 @@ struct FoldShape {
 
 fn fold_shape(bytes: &[u8]) -> FoldShape {
     // Read the folded GTS graph and count over the raw `Graph` quad table. We do
-    // NOT iterate `GtsGraphStore::quads()` here: it eagerly resolves quoted-triple
-    // objects against the reifier table and errors when the committed snapshot
-    // carries a triple-term quad whose binding lives only in `reifies`. Counting
-    // graph slots directly (resolving only the graph-name term id) is robust and
-    // is exactly the per-named-graph fold the parity gate measures.
+    // Count graph slots directly (resolving only the graph-name term id). This is
+    // robust when the committed snapshot carries a triple-term quad whose binding
+    // lives only in `reifies`, and is exactly the per-named-graph fold the parity
+    // gate measures.
     let g = gmeow_rdf::gts::read_graph(bytes, true).expect("read_graph");
     let term = |id: usize| -> String {
         g.terms

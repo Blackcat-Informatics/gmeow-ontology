@@ -5,8 +5,7 @@
 //!
 //! This is pure WIRING of the existing Rust reasoner — no port. It unions the
 //! upstream transforms (base graph + statement layer + mappings) into an oxigraph
-//! store, wraps it as a `gmeow_rdf::oxigraph::OxigraphStore` (which `impl
-//! RdfStore`), runs `gmeow_logic::reason::reason_all`, and serializes the three
+//! dataset, runs `gmeow_logic::reason::reason_all`, and serializes the three
 //! committed artifacts via the `gmeow_logic::reason::artifacts` builders — the
 //! exact functions `reason_native_artifacts` calls. Reasoning serializes under
 //! the pipeline `ENGINE_LOCK` (this is the sole `Reason`-kind stage).
@@ -17,9 +16,7 @@ use gmeow_logic::reason::artifacts::{
     build_dl_el_ledger_ttl, build_explanations_ttl, build_inferred_closure_ttl,
 };
 use gmeow_logic::reason::reason_all;
-use gmeow_rdf::oxigraph::OxigraphStore;
-use oxigraph::io::{RdfFormat, RdfParser};
-use oxigraph::store::Store;
+use oxigraph::io::RdfFormat;
 
 use crate::error::PipelineError;
 use crate::node::{Stage, StageInput, StageKind, StageOutput, StageProduct};
@@ -45,19 +42,9 @@ pub const LEDGER_PATH: &str = "pipeline/reason-dl-el-crosscheck-report.ttl";
 /// `(closure, explanations, ledger)`. Mirrors `reason_native_artifacts` in
 /// non-merge mode (the regenerate path).
 pub fn reason_artifacts(composed_nquads: &[u8]) -> Result<(String, String, String), PipelineError> {
-    let store =
-        Store::new().map_err(|e| PipelineError::Parse(format!("store creation failed: {e}")))?;
-    for quad in RdfParser::from_format(RdfFormat::NQuads)
-        .lenient()
-        .for_reader(composed_nquads)
-    {
-        let quad = quad.map_err(|e| PipelineError::Parse(format!("reason input parse: {e}")))?;
-        store
-            .insert(&quad)
-            .map_err(|e| PipelineError::Parse(format!("store insert failed: {e}")))?;
-    }
-    let edb = OxigraphStore::new(&store);
-    let result = reason_all(&edb).map_err(|e| PipelineError::Stage {
+    let edb = gmeow_rdf::dataset_from_bytes(composed_nquads, RdfFormat::NQuads)
+        .map_err(|e| PipelineError::Parse(format!("reason input parse: {e}")))?;
+    let result = reason_all(edb.as_ref()).map_err(|e| PipelineError::Stage {
         stage: "stage-reason".to_string(),
         message: format!("native reasoning failed: {e}"),
     })?;

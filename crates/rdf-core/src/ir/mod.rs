@@ -13,18 +13,13 @@
 
 pub mod builder;
 pub mod bundle;
-// The IR→`RdfStore` coexistence bridge (#819 C1/C2): lets a frozen `RdfDataset`
-// feed existing owned-model consumers (SHACL/validate/LOGIC/oxigraph) unported.
-pub mod compat;
 // The `RdfDataset`-direct, blank-aware structural comparator (#819 C1/C2): the
 // equality oracle for importer equivalence — explicitly NOT oxigraph.
 pub mod compare;
 pub mod dataset;
 // The copy-on-write, suppression-delta mutable dataset + `DatasetMut` impl (#839 P5).
 pub mod mutable;
-// The shared GTS term resolver (#819 C2): the single home of the eager
-// `&Graph` → `RdfTerm` traversal used by `crate::gts::GtsGraphStore`. Gated on
-// `gts`, like its only consumers.
+// Shared GTS term helpers (direction parsing and importer constants).
 #[cfg(feature = "gts")]
 pub(crate) mod gts_resolve;
 // The consuming `Graph`-by-value importer (#819 C2.b): moves owned term strings

@@ -23,7 +23,7 @@ use std::sync::Arc;
 
 use hashbrown::HashTable;
 
-use crate::{RdfLiteral, RdfTextDirection};
+use crate::{RdfLiteral, RdfQuad, RdfTerm, RdfTextDirection};
 
 use super::dataset::{QuadHandle, QuadIds, QuadRow, RdfDataset};
 use super::term::{
@@ -414,6 +414,45 @@ impl RdfDatasetBuilder {
     /// freeze-time concern ([`super::validate`]), not enforced here.
     pub fn intern_triple(&mut self, s: TermId, p: TermId, o: TermId) -> TermId {
         self.interner.intern(TermLookup::Triple { s, p, o })
+    }
+
+    /// Intern one owned model term into this builder, recursively for triple terms.
+    ///
+    /// This is the inverse of [`RdfDataset::to_owned_quad`](super::dataset::RdfDataset::to_owned_quad)
+    /// at the owned boundary: tests and adapter edges that already hold
+    /// [`RdfTerm`] values can freeze them into the concrete IR without detouring.
+    pub fn intern_owned_term(&mut self, term: &RdfTerm) -> TermId {
+        match term {
+            RdfTerm::Iri(iri) => self.intern_iri(iri.clone()),
+            RdfTerm::BlankNode(label) => self.intern_blank(label.clone(), BlankScope::DEFAULT),
+            RdfTerm::Literal(literal) => self.intern_literal(literal.clone()),
+            RdfTerm::Triple(triple) => {
+                let s = self.intern_owned_term(&triple.subject);
+                let p = self.intern_iri(triple.predicate.clone());
+                let o = self.intern_owned_term(&triple.object);
+                self.intern_triple(s, p, o)
+            }
+        }
+    }
+
+    /// Push one owned model quad into this builder.
+    ///
+    /// The predicate is interned as an IRI term, and any source location on the
+    /// owned quad is preserved on the corresponding pushed quad handle. Structural
+    /// validity remains the normal [`freeze`](Self::freeze) contract.
+    pub fn push_owned_quad(&mut self, quad: &RdfQuad) {
+        let handle = self.next_quad_handle();
+        let s = self.intern_owned_term(&quad.subject);
+        let p = self.intern_iri(quad.predicate.clone());
+        let o = self.intern_owned_term(&quad.object);
+        let g = quad
+            .graph_name
+            .as_ref()
+            .map(|graph_name| self.intern_owned_term(graph_name));
+        self.push_quad(s, p, o, g);
+        if let Some(location) = &quad.location {
+            self.attach_location(handle, location.clone());
+        }
     }
 
     /// Crate-internal read access to an interned term. [`freeze`](Self::freeze) and

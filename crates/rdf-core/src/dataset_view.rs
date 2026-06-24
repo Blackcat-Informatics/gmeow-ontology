@@ -4,9 +4,8 @@
 //! The static, allocation-free **read view** over an RDF dataset (purrdf P2,
 //! #836). See [`docs/design/purrdf-backend-contract.md`](../../../docs/design/purrdf-backend-contract.md).
 //!
-//! [`DatasetView`] generalizes the owned-quad [`RdfStore`](crate::RdfStore) into an
-//! id-based, borrowed read interface: it yields `Copy` [`QuadIds`] and borrowed
-//! [`QuadRef`]s (no per-quad allocation, no term-string clones), and offers
+//! [`DatasetView`] is the id-based, borrowed read interface: it yields `Copy`
+//! [`QuadIds`] and borrowed [`QuadRef`]s (no per-quad allocation, no term-string clones), and offers
 //! [`DatasetView::quads_for_pattern`] keyed on dataset-local [`TermId`]s plus a
 //! [`GraphMatch`]. The default `quads_for_pattern` is a linear scan; backends with
 //! access-pattern indexes (P4, #838) override it.
@@ -14,8 +13,7 @@
 //! This is the **static** trait layer (generic `impl DatasetView`, RPITIT — not
 //! object-safe). Per the backend contract (C1), backend selection is compile-time
 //! and single, so the erased `&mut dyn` layer is deferred; this trait carries no
-//! object-safety obligation. `RdfStore` survives alongside `DatasetView` until the
-//! consumer migration (P2c) retires it.
+//! object-safety obligation.
 
 use crate::ir::{QuadIds, QuadRef, RdfDataset, TermId, TermRef, TermValue};
 use crate::RdfStoreCapabilities;
