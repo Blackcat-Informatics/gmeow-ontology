@@ -1476,6 +1476,176 @@ mod tests {
         );
     }
 
+    #[test]
+    fn jsonld_star_downcast_preserves_simple_literal_object() {
+        // Equivalent to the removed Python test
+        // tests/test_yaml_ld_star.py::test_yamlld_annotated_to_graph_downcasts_to_statement_metadata.
+        let mut graph = Graph::default();
+        graph.terms.push(iri_term("http://example.org/s"));
+        graph.terms.push(iri_term("http://example.org/p"));
+        graph.terms.push(literal_term("hello"));
+        graph.terms.push(iri_term("http://example.org/r"));
+        graph
+            .terms
+            .push(iri_term("https://blackcatinformatics.ca/gmeow/confidence"));
+        graph.terms.push(literal_term("0.9"));
+        graph.quads.push((0, 1, 2, None));
+        graph.reifiers.push((3, (0, 1, 2)));
+        graph.annotations.push((3, 4, 5));
+
+        let json = serialize_graph(&graph).expect("serialize");
+        let nquads = jsonld_star_to_gmeow_statement_metadata_nquads(json.as_bytes())
+            .expect("downcast simple-literal JSON-LD-star");
+
+        // The output must be parseable plain N-Quads (no quoted triple terms).
+        let dataset = parse_nquads(&nquads);
+        assert!(
+            !dataset
+                .iter()
+                .any(|q| matches!(q.object, oxigraph::model::TermRef::Triple(_))),
+            "downcast output must contain no quoted triple terms"
+        );
+
+        let s: NamedOrBlankNode = ox_named_node("http://example.org/s").into();
+        let p = ox_named_node("http://example.org/p");
+        let o = ox_simple_literal("hello");
+        let r: NamedOrBlankNode = ox_named_node("http://example.org/r").into();
+        let rdf_type = ox_named_node(RDF_TYPE);
+        let statement_metadata = ox_named_node(GMEOW_STATEMENT_METADATA);
+        let q_subject = ox_named_node(GMEOW_QSUBJECT);
+        let q_predicate = ox_named_node(GMEOW_QPREDICATE);
+        let q_object_literal = ox_named_node(GMEOW_QOBJECTLITERAL);
+        let confidence = ox_named_node("https://blackcatinformatics.ca/gmeow/confidence");
+        let meta = ox_simple_literal("0.9");
+
+        assert!(
+            dataset_has(&dataset, &s, &p, &o),
+            "base triple must survive"
+        );
+        assert!(
+            dataset_has(
+                &dataset,
+                &r,
+                &rdf_type,
+                &OxTerm::NamedNode(statement_metadata)
+            ),
+            "reifier must be typed gmeow:StatementMetadata"
+        );
+        assert!(
+            dataset_has(&dataset, &r, &q_subject, &OxTerm::from(s.clone())),
+            "gmeow:qSubject must point to quoted subject"
+        );
+        assert!(
+            dataset_has(&dataset, &r, &q_predicate, &OxTerm::NamedNode(p.clone())),
+            "gmeow:qPredicate must point to quoted predicate"
+        );
+        assert!(
+            dataset_has(&dataset, &r, &q_object_literal, &o),
+            "gmeow:qObjectLiteral must point to quoted literal object"
+        );
+        assert!(
+            dataset_has(&dataset, &r, &confidence, &meta),
+            "annotation triple must survive downcast"
+        );
+    }
+
+    #[test]
+    fn jsonld_star_downcast_preserves_typed_literal_annotation() {
+        // Equivalent to the removed Python test
+        // tests/test_transpile.py::test_transpile_yaml_ld_star_preserves_statement_metadata.
+        // The Rust side cannot run the Python up-projection lane, so this test
+        // verifies the prerequisite: the JSON-LD-star downcast emits native
+        // GMEOW statement-metadata structural terms and preserves the typed
+        // annotation, which is what lets the up-projection pass them through.
+        let mut graph = Graph::default();
+        graph.terms.push(iri_term("https://example.org/alice"));
+        graph.terms.push(iri_term("https://schema.org/name"));
+        graph.terms.push(literal_term("Alice"));
+        graph
+            .terms
+            .push(iri_term("https://example.org/claim-alice-name"));
+        graph
+            .terms
+            .push(iri_term("https://blackcatinformatics.ca/gmeow/confidence"));
+        graph
+            .terms
+            .push(iri_term("http://www.w3.org/2001/XMLSchema#decimal"));
+        graph.terms.push(Term {
+            kind: TermKind::Literal,
+            value: Some("0.9".to_string()),
+            datatype: Some(5),
+            lang: None,
+            direction: None,
+            reifier: None,
+        });
+        graph.quads.push((0, 1, 2, None));
+        graph.reifiers.push((3, (0, 1, 2)));
+        graph.annotations.push((3, 4, 6));
+
+        let json = serialize_graph(&graph).expect("serialize");
+        let nquads = jsonld_star_to_gmeow_statement_metadata_nquads(json.as_bytes())
+            .expect("downcast schema-org-like JSON-LD-star");
+
+        let dataset = parse_nquads(&nquads);
+        assert!(
+            !dataset
+                .iter()
+                .any(|q| matches!(q.object, oxigraph::model::TermRef::Triple(_))),
+            "downcast output must contain no quoted triple terms"
+        );
+
+        let alice: NamedOrBlankNode = ox_named_node("https://example.org/alice").into();
+        let schema_name = ox_named_node("https://schema.org/name");
+        let alice_name = ox_simple_literal("Alice");
+        let claim: NamedOrBlankNode = ox_named_node("https://example.org/claim-alice-name").into();
+        let rdf_type = ox_named_node(RDF_TYPE);
+        let statement_metadata = ox_named_node(GMEOW_STATEMENT_METADATA);
+        let q_subject = ox_named_node(GMEOW_QSUBJECT);
+        let q_predicate = ox_named_node(GMEOW_QPREDICATE);
+        let q_object_literal = ox_named_node(GMEOW_QOBJECTLITERAL);
+        let confidence = ox_named_node("https://blackcatinformatics.ca/gmeow/confidence");
+        let meta: oxigraph::model::Term = oxigraph::model::Literal::new_typed_literal(
+            "0.9",
+            ox_named_node("http://www.w3.org/2001/XMLSchema#decimal"),
+        )
+        .into();
+
+        assert!(
+            dataset_has(&dataset, &alice, &schema_name, &alice_name),
+            "base triple must survive"
+        );
+        assert!(
+            dataset_has(
+                &dataset,
+                &claim,
+                &rdf_type,
+                &OxTerm::NamedNode(statement_metadata)
+            ),
+            "reifier must be typed gmeow:StatementMetadata"
+        );
+        assert!(
+            dataset_has(&dataset, &claim, &q_subject, &OxTerm::from(alice.clone())),
+            "gmeow:qSubject must point to quoted subject"
+        );
+        assert!(
+            dataset_has(
+                &dataset,
+                &claim,
+                &q_predicate,
+                &OxTerm::NamedNode(schema_name.clone())
+            ),
+            "gmeow:qPredicate must point to quoted predicate"
+        );
+        assert!(
+            dataset_has(&dataset, &claim, &q_object_literal, &alice_name),
+            "gmeow:qObjectLiteral must point to quoted literal object"
+        );
+        assert!(
+            dataset_has(&dataset, &claim, &confidence, &meta),
+            "typed annotation triple must survive downcast"
+        );
+    }
+
     fn canonical_nquads(dataset: &Dataset) -> String {
         let mut quads: Vec<String> = dataset.iter().map(|q| q.to_string()).collect();
         quads.sort();

@@ -13,7 +13,6 @@ import json
 
 import pyoxigraph
 import pytest
-from gmeow_rdf.compat.rdflib import RDF, Literal, URIRef
 
 from gmeow_tools import yaml_ld
 from gmeow_tools.yaml_ld import YamlLdError
@@ -93,63 +92,3 @@ ex:p: *alias
 """
     with pytest.raises(YamlLdError, match="aliases"):
         yaml_ld.yamlld_to_jsonld(yaml_with_alias)
-
-
-def test_yamlld_annotated_to_graph_downcasts_to_statement_metadata() -> None:
-    """An annotated YAML-LD-star value object downcasts to GMEOW statement
-    metadata in the rdflib-compat graph, not to a quoted triple (#699)."""
-    yaml_bytes = b"""
-'@context':
-  ex: http://example.org/
-  gmeow: https://blackcatinformatics.ca/gmeow/
-'@id': ex:s
-ex:p:
-  '@value': hello
-  '@annotation':
-    '@id': ex:r
-    gmeow:confidence:
-      '@value': '0.9'
-"""
-    graph = yaml_ld.yaml_ld_to_graph(yaml_bytes)
-
-    # Base triple is preserved.
-    assert (
-        URIRef("http://example.org/s"),
-        URIRef("http://example.org/p"),
-        Literal("hello"),
-    ) in graph
-
-    # No quoted triple terms reach the rdflib graph.
-    for _s, _p, o in graph:
-        assert not str(o).startswith("<<"), (
-            "rdflib graph must not contain quoted triples"
-        )
-
-    # Statement-metadata skeleton is present.
-    r = URIRef("http://example.org/r")
-
-    assert (
-        r,
-        RDF.type,
-        URIRef("https://blackcatinformatics.ca/gmeow/StatementMetadata"),
-    ) in graph
-    assert (
-        r,
-        URIRef("https://blackcatinformatics.ca/gmeow/qSubject"),
-        URIRef("http://example.org/s"),
-    ) in graph
-    assert (
-        r,
-        URIRef("https://blackcatinformatics.ca/gmeow/qPredicate"),
-        URIRef("http://example.org/p"),
-    ) in graph
-    assert (
-        r,
-        URIRef("https://blackcatinformatics.ca/gmeow/qObjectLiteral"),
-        Literal("hello"),
-    ) in graph
-    assert (
-        r,
-        URIRef("https://blackcatinformatics.ca/gmeow/confidence"),
-        Literal("0.9"),
-    ) in graph
