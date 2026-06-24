@@ -33,7 +33,8 @@ use crate::json_schema::{compact_iri, PREFIXES};
 use crate::model::rdf;
 
 const XSD_NS: &str = "http://www.w3.org/2001/XMLSchema#";
-const RDF_NS: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#";
+const XSD_STRING: &str = "http://www.w3.org/2001/XMLSchema#string";
+const RDF_LANG_STRING: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#langString";
 
 /// Project the default graph of `store` into a JSON-LD `@graph` document.
 pub fn project_graph(store: &Store) -> Value {
@@ -152,7 +153,7 @@ fn project_value(term: &Term) -> Value {
             let dt = lit.datatype();
             let dt_iri = dt.as_str();
             // Plain string / langString without a tag → bare string.
-            if dt_iri == format!("{XSD_NS}string") || dt_iri == format!("{RDF_NS}langString") {
+            if dt_iri == XSD_STRING || dt_iri == RDF_LANG_STRING {
                 return Value::String(lit.value().to_owned());
             }
             // Numeric / boolean → bare JSON scalar (scalar branch of anyOf).

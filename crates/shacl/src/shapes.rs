@@ -866,8 +866,16 @@ impl<'s> Parser<'s> {
             ignored_lists.sort_by_key(|t| t.to_string());
             for list_head in ignored_lists {
                 for item in self.walk_rdf_list(&list_head, id)? {
-                    if let Term::NamedNode(n) = item {
-                        ignored.push(n);
+                    match item {
+                        Term::NamedNode(n) => ignored.push(n),
+                        // sh:ignoredProperties members must be IRIs; silently
+                        // skipping a non-IRI would let a malformed shapes graph load
+                        // and feed bad data downstream (hard-fail, no silent drop).
+                        other => {
+                            return Err(format!(
+                                "sh:ignoredProperties list on {id} contains a non-IRI member: {other}"
+                            ));
+                        }
                     }
                 }
             }
@@ -1913,6 +1921,28 @@ mod tests {
                 .iter()
                 .any(|n| n.as_str() == "http://example.org/ns#extra"),
             "ignoredProperties should include ex:extra"
+        );
+    }
+
+    #[test]
+    fn test_ignored_properties_non_iri_member_errors() {
+        // A non-IRI sh:ignoredProperties member (a literal) is malformed: the
+        // shapes graph must HARD-fail to load rather than silently dropping it
+        // (#700 Gap H).
+        let ttl = format!(
+            r#"{PREFIXES}
+            ex:ClosedShape a sh:NodeShape ;
+                sh:targetClass ex:Person ;
+                sh:closed true ;
+                sh:ignoredProperties ( rdf:type "oops" ) ;
+                sh:property [ sh:path ex:name ] .
+        "#
+        );
+        let store = load_store(&ttl);
+        let err = from_store(&store).expect_err("non-IRI ignoredProperties member must error");
+        assert!(
+            err.contains("ignoredProperties") && err.contains("non-IRI"),
+            "error should name the malformed ignoredProperties member, got: {err}"
         );
     }
 

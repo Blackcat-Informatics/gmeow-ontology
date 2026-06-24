@@ -1267,13 +1267,15 @@ fn language_matches_any(value: &Term, tags: &[String]) -> bool {
     let Some(lang) = lit.language() else {
         return false;
     };
-    let lang = lang.to_ascii_lowercase();
+    // RFC 4647 basic filtering, case-insensitive, allocation-free: compare ASCII
+    // slices in place rather than lowercasing `lang` and each `entry` per call.
     tags.iter().any(|entry| {
-        let entry = entry.to_ascii_lowercase();
-        lang == entry
-            || (lang.len() > entry.len()
-                && lang.as_bytes()[entry.len()] == b'-'
-                && lang.starts_with(&entry))
+        if lang.eq_ignore_ascii_case(entry) {
+            return true;
+        }
+        lang.len() > entry.len()
+            && lang.as_bytes()[entry.len()] == b'-'
+            && lang[..entry.len()].eq_ignore_ascii_case(entry)
     })
 }
 

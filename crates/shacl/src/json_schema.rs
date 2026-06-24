@@ -43,6 +43,10 @@ const RDF_NS: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#";
 const RDFS_NS: &str = "http://www.w3.org/2000/01/rdf-schema#";
 const OWL_NS: &str = "http://www.w3.org/2002/07/owl#";
 const SH_NS: &str = "http://www.w3.org/ns/shacl#";
+/// The two datatype IRIs whose literals project as a bare JSON string (no alloc
+/// per literal — see [`crate::instance`] for the matching projection convention).
+const XSD_STRING: &str = "http://www.w3.org/2001/XMLSchema#string";
+const RDF_LANG_STRING: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#langString";
 
 /// The well-known prefix map, highest-specificity-first so e.g. the gmeow
 /// namespace is matched before any shorter prefix could.  `(prefix, namespace)`.
@@ -922,9 +926,7 @@ fn term_const_value(term: &Term) -> Value {
                 json!({ "@value": lit.value(), "@language": lang })
             } else {
                 let dt = lit.datatype();
-                if dt.as_str() == format!("{RDF_NS}langString")
-                    || dt.as_str() == format!("{XSD_NS}string")
-                {
+                if dt.as_str() == RDF_LANG_STRING || dt.as_str() == XSD_STRING {
                     Value::String(lit.value().to_owned())
                 } else {
                     json!({ "@value": lit.value(), "@type": compact_iri(dt.as_str()) })
