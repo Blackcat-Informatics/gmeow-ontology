@@ -18,7 +18,7 @@ from gmeow_tools.compliance import (
     assumed_passed_gate_runs,
     build_report,
 )
-from gmeow_tools.constitution import load_manifest
+from gmeow_tools.constitution_manifest import load_manifest
 
 META = Namespace(META_IRI)
 
