@@ -584,6 +584,19 @@ plus the 17 `#[test]` functions; all helper bodies deleted. All 17 tests still p
 
 **Conformance batch-3 GRAND tally:** citations 3 + cognition 2 + reference_frames 8 + narration 2 + aboutness 2 + disclosure 3 + risk 2 + interior 2 + narrative_time 2 + software 2 + trust 1 + rubrics 2 + music_analysis 3 = **34 converted** across 13 slices (+ 4 faithfulness mode-fixes). genealogy/employment/names had ZERO migratable. Total native conformance suite = **121 tests** (#957: 17, #961: 70, batch-3: 34). Remaining run_shacl files: places 34, images 12, music_collections 10, music_pitch 9, + 1-count whole-graph validations (agentic/ai_claims/up_projection/identity_over_history/foundation_import/verifiable_release_chain).
 
+### #867 conformance batch 4 (the big files: places, images, music_collections, music_pitch)
+
+All migrated twins use fixture-only `validate()` (every Python original is `run_shacl(_fixture(...))` / `run_shacl(Graph())`); no `validate_with_ontology`, no fixture edits.
+
+| source | converted | Rust twins | retained |
+|--------|-----------|-----------|----------|
+| test_places.py | 3 | `biological_coverage_passes_shacl`, `geocode_shape_valid`, `cadastral_coverage_passes_shacl` | ~39 (bnode owl:unionOf walks, RCC-8 JEPD disjoint sweeps, `g.subjects()`/`g.objects()` post-SHACL membership, decimal-ABox numeric, cross-slice `_graph()`) |
+| test_images.py | 11 | depiction_usage (pass/missing-image/multi-subject), image_region (pass/missing-selector), scene_graph_edge (pass/missing-relation/confidence-range), region_selector_missing_value, media_object_colourspace (pass/missing-warns) | 7 (`_graph()` TBox + colourspace cross-slice) |
+| test_music_collections.py | 11 | pitch_collection (kind/membership ×4), pitch_spelling (×4), standpoint_memberships arabic+turkish | 15 (`_graph()` TBox/`(triple) in g`, functional-property, seed/coexist) |
+| test_music_pitch.py | 9 | pitch_value (ratio/cents/missing-frame/both-fails/zero-denom), pitch_interval_xor (×3), tuning_system_requires_kind_and_realm | 10 (`_graph()` TBox, dynamic property sweeps, seed coexist) |
+
+**Conformance batch-4 tally:** places 3 + images 11 + music_collections 11 + music_pitch 9 = **34 converted**. All **155** conformance tests (121 prior + 34) green; `uv run mypy` clean (281 files). Only `conformance_finance.rs` + `conformance_music_analysis.rs` use the merged `validate_with_ontology` (both faithful — Python `g = _graph()`).
+
 ## #867 structural batch 10 (places — the 129-fn slice)
 
 The largest single slice (129 pytest fns) migrated to `slices/core/places/tests/structural.ttl`
