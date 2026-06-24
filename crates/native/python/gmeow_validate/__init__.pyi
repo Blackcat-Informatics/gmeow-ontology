@@ -41,6 +41,8 @@ class ValidateOptions:
         slices_dir: str | None = None,
         mapping_shapes_ttl: str | None = None,
         statement_shapes_ttl: str | None = None,
+        test_dsl_dir: str | None = None,
+        test_dsl_shapes_ttl: str | None = None,
         project_root: str | None = None,
         gts_bytes: bytes | None = None,
         signature_config: SignatureConfig | None = None,
