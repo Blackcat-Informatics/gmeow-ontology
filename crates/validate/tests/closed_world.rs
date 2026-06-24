@@ -72,15 +72,12 @@ fn required_rejects_an_incomplete_instance_the_old_open_world_schema_accepted() 
         "an incomplete instance of a modeled class must be rejected (the old \
          open-world schema accepted it)"
     );
-    // NB: a bare-node root fails the top-level `anyOf` (neither the @graph
-    // envelope branch nor the Node branch holds), so the `jsonschema` crate
-    // collapses the sub-error into one `anyOf` message rather than surfacing the
-    // missing `gmeow:req`. The property-naming guarantee is asserted in the
-    // @graph-envelope variant below, where the per-node sub-error surfaces.
-    assert!(
-        violations.iter().any(|m| m.contains("anyOf")),
-        "the incomplete bare node must fail the root anyOf, got {violations:?}"
-    );
+    // We deliberately DON'T assert on the `jsonschema` crate's message wording
+    // here: a bare-node root collapses its sub-error into the top-level union, so
+    // the missing `gmeow:req` is not surfaced, and matching on "anyOf" would be
+    // brittle across dependency upgrades. The non-empty rejection above is the
+    // contract; the property-NAMING guarantee is asserted in the @graph-envelope
+    // variant below, where the per-node sub-error surfaces `gmeow:req` structurally.
 }
 
 #[test]

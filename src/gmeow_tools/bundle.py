@@ -168,8 +168,11 @@ def bundled_schemas() -> dict[str, bytes]:
     emitter produced) and ``gmeow.openapi.json`` (the OpenAPI projection), keyed by
     bare filename so a repo-free consumer can validate instances or serve the API
     surface straight from the wheel. Empty when unbundled.
+
+    Returns a fresh ``dict`` copy: ``_archive`` is ``lru_cache``-backed, so handing
+    out the cached object would let caller mutation corrupt the shared cache.
     """
-    return _archive(REP_SCHEMAS)
+    return dict(_archive(REP_SCHEMAS))
 
 
 def bundled_schema() -> bytes | None:

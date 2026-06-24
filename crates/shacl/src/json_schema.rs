@@ -141,6 +141,17 @@ impl Ctx {
 
 /// Compile a parsed [`Shapes`] graph into a closed-world JSON Schema + OpenAPI.
 pub fn compile(shapes: &Shapes) -> CompiledSchema {
+    // Keying invariant (#700 Gap D, fail-closed): every `$def` is keyed by the
+    // class LOCAL NAME and the `@type` discriminator is `gmeow:<LocalName>`. That
+    // is sound ONLY while every target class is in the gmeow namespace and no two
+    // distinct class IRIs share a local name. Local-name keys are deliberate — a
+    // colon-bearing compact IRI (`gmeow:Event`) is not a valid OpenAPI
+    // `components/schemas` key (`^[a-zA-Z0-9._-]+$`) — so this guard protects the
+    // precondition rather than widening the keys. The whole corpus satisfies it
+    // today; a future non-gmeow or colliding target class HARD-fails the build
+    // here instead of silently mis-discriminating or clobbering a `$def`.
+    assert_target_class_keys_are_unambiguous(shapes);
+
     // PASS 1: compute the set of class local-names that WILL receive a `$def`,
     // using the EXACT same iteration that builds the `$defs` map below (every
     // `Target::Class(..)` of every non-deactivated node shape). This lets the
@@ -204,6 +215,40 @@ pub fn compile(shapes: &Shapes) -> CompiledSchema {
         schema_json: to_pretty(&schema),
         openapi_json: to_pretty(&openapi),
         losses: ctx.losses,
+    }
+}
+
+/// Enforce the local-name keying precondition (#700 Gap D): every active
+/// `sh:targetClass` is in the gmeow namespace and local names are collision-free.
+/// Panics with a descriptive message otherwise (build-time, fail-closed).
+fn assert_target_class_keys_are_unambiguous(shapes: &Shapes) {
+    use std::collections::BTreeMap;
+    let mut local_to_iri: BTreeMap<String, String> = BTreeMap::new();
+    for shape in &shapes.node_shapes {
+        if shape.deactivated {
+            continue;
+        }
+        for target in &shape.targets {
+            if let Target::Class(c) = target {
+                let iri = c.as_str();
+                assert!(
+                    is_gmeow(iri),
+                    "json_schema: non-gmeow sh:targetClass {iri:?} — the @type \
+                     discriminator assumes the gmeow: namespace and `$defs` keys use \
+                     the bare local name; extend the emitter (and OpenAPI key encoding) \
+                     before introducing non-gmeow target classes"
+                );
+                let local = local_name(iri);
+                if let Some(prev) = local_to_iri.insert(local.clone(), iri.to_owned()) {
+                    assert_eq!(
+                        prev, iri,
+                        "json_schema: distinct target classes share the local name \
+                         {local:?} ({prev} vs {iri}) — their `$defs`/OpenAPI keys would \
+                         collide; disambiguate before keying by local name"
+                    );
+                }
+            }
+        }
     }
 }
 
@@ -938,6 +983,21 @@ mod tests {
 
     fn def<'a>(schema: &'a Value, name: &str) -> &'a Value {
         &schema["$defs"][name]
+    }
+
+    #[test]
+    #[should_panic(expected = "non-gmeow sh:targetClass")]
+    fn non_gmeow_target_class_hard_fails() {
+        // A non-gmeow sh:targetClass would never match the `gmeow:<Local>` @type
+        // discriminator; the keying guard must reject it loudly (#700 Gap D).
+        compile_ttl(
+            r#"
+            @prefix ex: <https://example.org/> .
+            ex:PersonShape a sh:NodeShape ;
+                sh:targetClass ex:Person ;
+                sh:property [ sh:path gmeow:name ; sh:minCount 1 ] .
+        "#,
+        );
     }
 
     #[test]

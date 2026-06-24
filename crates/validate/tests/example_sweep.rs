@@ -139,8 +139,13 @@ fn read_dirs(dir: &Path) -> Vec<PathBuf> {
     }
     let mut out: Vec<PathBuf> = std::fs::read_dir(dir)
         .unwrap_or_else(|e| panic!("read {}: {e}", dir.display()))
-        .filter_map(|e| e.ok())
-        .map(|e| e.path())
+        // Fail fast on an unreadable entry rather than silently dropping a
+        // slice/example directory (which would let the sweep pass without covering
+        // the full corpus) — matching the file-level `example_files()` behavior.
+        .map(|e| {
+            e.unwrap_or_else(|err| panic!("read {} entry: {err}", dir.display()))
+                .path()
+        })
         .filter(|p| p.is_dir())
         .collect();
     out.sort();
