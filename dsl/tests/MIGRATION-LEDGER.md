@@ -495,7 +495,29 @@ plus the 17 `#[test]` functions; all helper bodies deleted. All 17 tests still p
 
 **Batch 2 wave-4 tally:** rights 3 + registers 2 + profiles 3 + privacy 3 = **11 converted**.
 
-**Batch 2 grand tally:** deception 10 + evidence 5 + notes 8 + events 2 + creative_works 8 + organization 2 + finance 6 + lifecycle 2 + standpoint 5 + rights 3 + registers 2 + profiles 3 + privacy 3 = **59 converted**; retained (cross-slice/dynamic/SPARQL/disk-load/SSSOM/projection) tracked per-fn above. All **76** conformance tests (17 batch-1 + 59 batch-2) green; `uv run mypy` clean (281 files).
+**Batch 2 wave 5** (teleology, norms, myth, narrative):
+
+| pytest fn | source | disposition | Rust twin / retain reason |
+|-----------|--------|------------|---------------------------|
+| `test_wellformed_teleology_fixture_conforms` | test_teleology.py | converted | `wellformed_teleology_fixture_conforms` |
+| `test_malformed_teleology_fixture_is_flagged` | test_teleology.py | converted | `malformed_teleology_fixture_is_flagged` |
+| 3 teleology tests | test_teleology.py | **retained** | cross-slice `(triple) in g` membership / dynamic `g.subjects()` sweep / SPARQL `.rq` |
+| `test_wellformed_norms_fixture_conforms` | test_norms.py | converted | `wellformed_norms_fixture_conforms` (fixture-only — `validate` not `validate_with_ontology`, to avoid the WEMI-embodies inference the merged base adds) |
+| `test_malformed_norms_fixture_is_flagged` | test_norms.py | converted | `malformed_norms_fixture_is_flagged` |
+| 4 norms tests (`test_graft_*`, `test_competency_*`) | test_norms.py | **retained** | cross-slice file-load + `(triple) in g` / SPARQL `.rq` |
+| `test_myth_shacl_passes` | test_myth.py | converted | `myth_shacl_passes` (`_add_narrative_frame` inlined as `narrative_frame_ttl`) |
+| `test_myth_missing_frame_fails_shacl` | test_myth.py | converted | `myth_missing_frame_fails_shacl` |
+| `test_myth_propagation_shacl_passes` | test_myth.py | converted | `myth_propagation_shacl_passes` |
+| 10 myth tests | test_myth.py | **retained** | `_graph()` TBox membership / dynamic sweeps / BNode OWL-restriction walk |
+| `test_narrative_reference_frame_shacl_passes` | test_narrative.py | converted | `narrative_reference_frame_shacl_passes` |
+| `test_narrative_frame_link_shacl_passes` | test_narrative.py | converted | `narrative_frame_link_shacl_passes` |
+| `test_character_arc_shacl_passes` | test_narrative.py | converted | `character_arc_shacl_passes` |
+| `test_character_arc_missing_subject_fails_shacl` | test_narrative.py | converted | `character_arc_missing_subject_fails_shacl` |
+| 4 narrative tests | test_narrative.py | **retained** | transitive `subClassOf` walk / cross-slice `(triple) in g` (documents/places modules) |
+
+**Batch 2 wave-5 tally:** teleology 2 + norms 2 + myth 3 + narrative 4 = **11 converted**.
+
+**Batch 2 grand tally:** deception 10 + evidence 5 + notes 8 + events 2 + creative_works 8 + organization 2 + finance 6 + lifecycle 2 + standpoint 5 + rights 3 + registers 2 + profiles 3 + privacy 3 + teleology 2 + norms 2 + myth 3 + narrative 4 = **70 converted** across 17 slices; retained (cross-slice/dynamic/SPARQL/disk-load/SSSOM/projection) tracked per-fn above. All **87** conformance tests (17 batch-1 + 70 batch-2) green; `uv run mypy` clean (281 files).
 
 ## #867 structural batch 10 (places — the 129-fn slice)
 
