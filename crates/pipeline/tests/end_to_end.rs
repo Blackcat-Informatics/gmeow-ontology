@@ -35,8 +35,9 @@ fn spec(id: &str, kind: StageKind, impl_key: &str, consumes: &[&str]) -> StageSp
 }
 
 /// The implemented spine DAG — each stage's `consumes` matches its Rust impl's
-/// `consumes()` exactly (so `bind` agreement holds). The 15 export leaves of the
-/// full `gmeow:pipeline-build` DAG are excluded until their ports land.
+/// `consumes()` exactly (so `bind` agreement holds). The remaining export leaves
+/// of the full `gmeow:pipeline-build` DAG are excluded; `stage-export-json-schema`
+/// is included because the snapshot now folds its product (#700).
 fn spine() -> PipelineSpec {
     PipelineSpec {
         id: "pipeline-spine".to_string(),
@@ -72,12 +73,21 @@ fn spine() -> PipelineSpec {
                 "docs_render",
                 &["stage-gts-compose"],
             ),
+            // The SHACL→JSON-Schema source leaf the snapshot folds (#700); a
+            // source-reading ExportLeaf that consumes nothing.
+            spec(
+                "stage-export-json-schema",
+                StageKind::ExportLeaf,
+                "json_schema",
+                &[],
+            ),
             spec(
                 "stage-snapshot",
                 StageKind::Transform,
                 "snapshot",
                 &[
                     "stage-docs-render",
+                    "stage-export-json-schema",
                     "stage-gts-compose",
                     "stage-reason",
                     "stage-statements",
@@ -102,7 +112,7 @@ fn executor_runs_the_spine_end_to_end() {
     // engine-lock derived) + Rust/RDF consumes+kind agreement against the registry.
     let graph = spec.validate().expect("spine DAG validates");
     let bound = bind(&spec, &graph, &default_registry()).expect("every spine stage binds");
-    assert_eq!(bound.len(), 8, "all 8 spine stages bound");
+    assert_eq!(bound.len(), 9, "all 9 spine stages bound");
 
     // Run over a temp cache so the test never writes into the repo tree.
     let cache_dir = tempfile::tempdir().unwrap();
@@ -110,7 +120,7 @@ fn executor_runs_the_spine_end_to_end() {
     ctx.cache = PipelineCache::open(cache_dir.path()).unwrap();
 
     let result = run(&graph, &bound, &mut ctx).expect("pipeline runs end-to-end");
-    assert_eq!(result.products.len(), 8);
+    assert_eq!(result.products.len(), 9);
 
     // The single Sink produced gmeow.gts.
     let sink = result.products.get("stage-gts-sink").expect("sink product");
