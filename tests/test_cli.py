@@ -333,6 +333,10 @@ def test_create_docs_from_bundled_snapshot(runner: CliRunner, tmp_path: Path) ->
     assert (out / "terms" / "properties").is_dir()
     assert (out / "alignments.md").exists()
     assert (out / "statements.md").exists()
+    # The full ontology-docs site is unpacked verbatim from the embedded
+    # ``ontology-docs`` blob (#897), repo-free — the language prefix is stripped.
+    assert (out / "ontology-docs" / "index.html").exists()
+    assert (out / "ontology-docs" / "assets" / "gmeow.css").exists()
 
 
 def test_describe_unknown_language_fails(runner: CliRunner) -> None:
