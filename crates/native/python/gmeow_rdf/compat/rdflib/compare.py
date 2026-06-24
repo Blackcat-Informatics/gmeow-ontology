@@ -44,7 +44,7 @@ def to_canonical_graph(graph: Graph) -> Graph:
     nt = graph.serialize(format="nt", encoding="utf-8")
     dataset = gmeow_rdf.Dataset(gmeow_rdf.parse(nt, format=_NT))
     dataset.canonicalize(_RDFC_1_0)
-    store = gmeow_rdf.Store()
+    store = gmeow_rdf.MutableDataset()
     for quad in dataset:
         store.add(quad)
     return Graph(store)
