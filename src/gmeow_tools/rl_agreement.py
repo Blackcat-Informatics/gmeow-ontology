@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 """Native-RL ≡ owlrl-RL agreement axis of the classic-cross-check lane (#666, Task 5).
 
-The native OWL 2 RL engine (``gmeow_tools.native_rl.native_rl_closure``) is the
+The native OWL 2 RL engine (``gmeow_logic.rl_closure_nt``) is the
 **primary** Docker-free entailment authority; the 8 converted conformance suites
 run on it. ``owlrl`` is no longer on the primary path — it lives HERE, in the
 classic-cross-check lane, as the agreement ORACLE that proves the native RL

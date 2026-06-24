@@ -5,7 +5,7 @@ expression, sex-assigned-at-birth (gender module), and sexual + romantic
 orientation (sexuality module) are independent axes. None may be inferred from
 another. Since #281 the live enforcement is ANNOTATION-DRIVEN —
 ``gmeow:coequalFacet true`` marks each axis, and
-:func:`gmeow_tools.reasoning_lint.coequal_facet_orthogonality` derives every
+:func:`gmeow_validate.reasoning_coequal_facet_orthogonality_nt` derives every
 invariant from the annotation set inside ``make validate``, so a new axis is
 enforced the moment it is declared. This file is the REGRESSION layer over that
 machinery: it pins the historical seven-axis matrix explicitly (the annotation
