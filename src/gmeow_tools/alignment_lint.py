@@ -1,8 +1,8 @@
 """SSSOM alignment-direction lint: catch mappings to inverse / mismatched terms.
 
-PR #24's :mod:`gmeow_tools.projection_lint` verifies the projection artifacts
-against *each other*. This module verifies the SSSOM property alignments against
-the **target vocabularies' own axioms** — the one class of error domain/range
+PR #24's native ``gmeow_slice.lint_projection`` trio (#854) verifies the projection
+artifacts against *each other*. This module verifies the SSSOM property alignments
+against the **target vocabularies' own axioms** — the one class of error domain/range
 checks on GMEOW alone cannot see.
 
 The motivating bug: ``gmeow:subOrganizationOf`` (child→parent) was mapped via

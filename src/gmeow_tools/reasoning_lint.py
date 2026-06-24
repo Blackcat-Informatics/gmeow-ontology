@@ -8,7 +8,8 @@ gUFO ``gufo:EndurantType`` / ``gufo:EventType`` / ``gufo:SituationType`` taxonom
 (OWL 2 punning; see ``imports/gufo.ttl`` ~line 1427). This module checks the
 structural discipline the stereotype facet licenses, exactly the role the
 native ``gmeow_validate.check_statement_invariants`` engine plays for the
-statement layer and :mod:`gmeow_tools.projection_lint` for the projection stack.
+statement layer and the native ``gmeow_slice.lint_projection`` trio (#854) for
+the projection stack.
 
 The reasoning logic itself lives in the Rust ``gmeow_validate`` extension (#579):
 the transitive ``rdfs:subClassOf`` closure, the ``owl:AllDisjointClasses`` /
