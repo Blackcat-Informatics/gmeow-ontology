@@ -58,14 +58,27 @@ gmeow-diagnostics = { path = "../diagnostics" }
 # and the toolchain salt mixes `gmeow_gts::wire::VERSION`. Runtime GTS ingestion itself
 # lives in gmeow-rdf (#683).
 gmeow-gts = "0.9.5"
-# pyo3 is an UNCONDITIONAL native-only dependency: this crate is native-only and
-# carries NO architecture cfgs (never a [target.'cfg(...)'] table). A capability
-# cfg would be optionality, not compliance (#579). The engine core
-# (store.rs/model.rs) stays PyO3-free; only py.rs imports pyo3, so the rlib links
-# into a future Rust compiler without Python.
-pyo3 = { version = "0.29", features = ["extension-module", "abi3-py313"] }
+# pyo3 is a native-only dependency: this crate is native-only and carries NO
+# architecture cfgs (never a [target.'cfg(...)'] table). A capability cfg would
+# be optionality, not compliance (#579). The engine core (store.rs/model.rs)
+# stays PyO3-free; only the py modules import pyo3. The `extension-module`
+# feature is enabled by the unified `gmeow_native` cdylib; it is off for
+# `cargo test` so the test binary can link libpython directly (#937, ETHOS §22).
+pyo3 = { version = "0.29", features = ["abi3-py313"] }
+
+[features]
+default = []
+# Builds the PyO3 bindings (`src/py.rs`, `src/py_dsl.rs`) linked into the
+# unified `gmeow_native` cdylib (#630). It must be off for `cargo test` so the
+# test binary can link libpython directly and exercise the PyO3-bound public
+# entry points (#937, ETHOS §22).
+extension-module = ["pyo3/extension-module"]
 
 [dev-dependencies]
+# Auto-initialize the Python interpreter for unit tests that exercise the
+# PyO3-bound public entry points directly (e.g., py_dsl tests). This is only
+# needed for test binaries; the production rlib/cdylib path does not enable it.
+pyo3 = { version = "0.29", features = ["auto-initialize"] }
 # Ed25519 signing material for deterministic GTS signature tests (#646).
 ed25519-dalek = "2"
 # Acceleration-program baselines (#630, Phase 0); light feature set, see crates/logic.

@@ -148,7 +148,8 @@ ex:NodeShape a sh:NodeShape ;
             "@prefix ex: <https://example.org/> .\n\
              ex:alice a ex:Thing ; ex:name \"Alice\" .\n",
         );
-        let violations = validate_dsl_shacl_inner(&[ttl], simple_shapes());
+        let violations =
+            validate_dsl_shacl(vec![path_arg(&ttl)], simple_shapes()).expect("must succeed");
         assert!(
             violations.is_empty(),
             "expected no violations, got {violations:?}"
@@ -162,7 +163,8 @@ ex:NodeShape a sh:NodeShape ;
             "@prefix ex: <https://example.org/> .\n\
              ex:bob a ex:Thing .\n",
         );
-        let violations = validate_dsl_shacl_inner(std::slice::from_ref(&ttl), simple_shapes());
+        let violations =
+            validate_dsl_shacl(vec![path_arg(&ttl)], simple_shapes()).expect("must succeed");
         assert!(!violations.is_empty(), "expected at least one violation");
         let msg = violations.join("\n");
         assert!(msg.contains("focus=https://example.org/bob"), "{msg}");
@@ -194,7 +196,8 @@ ex:NodeShape a sh:NodeShape ;
             "@prefix ex: <https://example.org/> .\nex:shared a ex:Thing .\n",
         )
         .unwrap();
-        let violations = validate_dsl_shacl_inner(&[a.clone(), b.clone()], simple_shapes());
+        let violations = validate_dsl_shacl(vec![path_arg(&a), path_arg(&b)], simple_shapes())
+            .expect("must succeed");
         assert_eq!(
             violations.len(),
             1,
@@ -209,24 +212,18 @@ ex:NodeShape a sh:NodeShape ;
 
     #[test]
     fn parse_error_hard_fails_with_path() {
+        // The public PyO3 entry point constructs a PyErr on failure. Attaching
+        // to the interpreter lets auto-initialize run; creating the error itself
+        // does not need the GIL.
         let bad = write_tmp("gmeow_py_dsl_bad_syntax.ttl", "this is not turtle @@@ <<<");
-        let err = validate_dsl_shacl_inner_err(std::slice::from_ref(&bad), simple_shapes());
-        assert!(err.contains(&bad.display().to_string()), "{err}");
+        let err = Python::attach(|_| {
+            validate_dsl_shacl(vec![path_arg(&bad)], simple_shapes()).expect_err("must fail")
+        });
+        let msg = err.to_string();
+        assert!(msg.contains(&bad.display().to_string()), "{msg}");
     }
 
-    // Helpers that bypass the PyO3 boundary for unit tests.
-    fn validate_dsl_shacl_inner(paths: &[PathBuf], shapes_ttl: String) -> Vec<String> {
-        crate::dsl_shacl::validate_dsl(paths, &shapes_ttl, "dsl")
-            .expect("validate_dsl must succeed")
-            .iter()
-            .map(format_dsl_finding)
-            .collect()
-    }
-
-    fn validate_dsl_shacl_inner_err(paths: &[PathBuf], _shapes_ttl: String) -> String {
-        match crate::dsl::merge_with_provenance(paths) {
-            Ok(_) => panic!("expected merge to fail for malformed Turtle"),
-            Err(err) => err,
-        }
+    fn path_arg(path: &std::path::Path) -> String {
+        path.to_string_lossy().into_owned()
     }
 }
