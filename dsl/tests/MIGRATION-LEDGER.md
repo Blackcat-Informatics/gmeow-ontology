@@ -565,6 +565,25 @@ plus the 17 `#[test]` functions; all helper bodies deleted. All 17 tests still p
 
 **Conformance batch-3 wave-3 tally:** risk 2 + interior 2 + narrative_time 2 + software 2 = **8 converted**. All **115** conformance tests (107 prior + 8) green; `uv run mypy` clean.
 
+### #867 conformance batch 3 wave 4 (trust, rubrics, names, music_analysis)
+
+| pytest fn | source | disposition | Rust twin / retain reason |
+|-----------|--------|------------|---------------------------|
+| `test_contested_certification_coexists` | test_trust.py | converted | `contested_certification_coexists` (fixture-only — `Graph().parse(coverage/trust-contested.ttl)`) |
+| 2 trust tests | test_trust.py | **retained** | `_graph()` orthogonality + dynamic banned-term sweep |
+| `test_wellformed_rubrics_fixture_conforms` | test_rubrics.py | converted | `wellformed_rubrics_fixture_conforms` (fixture-only) |
+| `test_malformed_rubrics_fixture_is_flagged` | test_rubrics.py | converted | `malformed_rubrics_fixture_is_flagged` (12 violation substrings) |
+| 7 rubrics tests | test_rubrics.py | **retained** | `_graph()` TBox / `g.subjects()` judge-walk / SPARQL |
+| 8 names tests | test_names.py | **retained** | ALL: defined-class Collection traversal / dynamic pronoun-form sweep / `g.objects()` membership / cross-slice `_graph()` (Appellation subclasses, hasTitle, hasSoftwareName home in other slices) — ZERO migratable |
+| `test_music_analysis_claim_shape_passes` | test_music_analysis.py | converted | `music_analysis_claim_shape_passes` (**merged** — Python `g = _graph()`) |
+| `test_music_analysis_claim_missing_frame_fails` | test_music_analysis.py | converted | `music_analysis_claim_missing_frame_fails` (**merged** — Python `g = _graph()`) |
+| `test_genre_no_subclass_shape_fails_on_bad_subclass` | test_music_analysis.py | converted | `genre_no_subclass_shape_fails_on_bad_subclass` (fixture-only) |
+| 9 music_analysis tests | test_music_analysis.py | **retained** | TBox membership / dynamic genre+frame sweeps / DSL-compile |
+
+**Conformance batch-3 wave-4 tally:** trust 1 + rubrics 2 + names 0 + music_analysis 3 = **6 converted**. All **121** conformance tests (115 prior + 6) green; `uv run mypy` clean.
+
+**Conformance batch-3 GRAND tally:** citations 3 + cognition 2 + reference_frames 8 + narration 2 + aboutness 2 + disclosure 3 + risk 2 + interior 2 + narrative_time 2 + software 2 + trust 1 + rubrics 2 + music_analysis 3 = **34 converted** across 13 slices (+ 4 faithfulness mode-fixes). genealogy/employment/names had ZERO migratable. Total native conformance suite = **121 tests** (#957: 17, #961: 70, batch-3: 34). Remaining run_shacl files: places 34, images 12, music_collections 10, music_pitch 9, + 1-count whole-graph validations (agentic/ai_claims/up_projection/identity_over_history/foundation_import/verifiable_release_chain).
+
 ## #867 structural batch 10 (places — the 129-fn slice)
 
 The largest single slice (129 pytest fns) migrated to `slices/core/places/tests/structural.ttl`

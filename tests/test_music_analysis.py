@@ -10,8 +10,6 @@ from gmeow_rdf.compat.rdflib import OWL, RDF, RDFS, Graph, Namespace, URIRef
 from gmeow_tools.graph import load_merged_graph
 from gmeow_tools.statement_compile import emit_owl
 from gmeow_tools.statement_dsl import load_statement_dsl
-from gmeow_tools.validate import ValidationResult
-from tests._graph_nt import run_shacl
 
 GMEOW = Namespace("https://blackcatinformatics.ca/gmeow/")
 EX = Namespace("https://blackcatinformatics.ca/gmeow/examples/music/")
@@ -20,10 +18,6 @@ EX = Namespace("https://blackcatinformatics.ca/gmeow/examples/music/")
 def _graph() -> Graph:
     """Load the project's merged RDF graph without following owl:imports."""
     return load_merged_graph(include_imports=False)
-
-
-def _error_text(result: ValidationResult) -> str:
-    return "\n".join(result.errors)
 
 
 def test_music_analysis_claim_subclass_of_observation() -> None:
@@ -101,46 +95,6 @@ def test_genre_derivation_links_exist() -> None:
     assert (GMEOW.genreMathRock, GMEOW.wasDerivedFrom, GMEOW.genreRock) in graph
     assert (GMEOW.genreFusion, GMEOW.wasDerivedFrom, GMEOW.genreJazz) in graph
     assert (GMEOW.genreFusion, GMEOW.wasDerivedFrom, GMEOW.genreRock) in graph
-
-
-def test_music_analysis_claim_shape_passes() -> None:
-    g = _graph()
-    g.bind("ex", EX)
-    claim = EX.claim1
-    g.add((claim, RDF.type, GMEOW.MusicAnalysisClaim))
-    g.add((claim, GMEOW.analysisTarget, EX.segment1))
-    g.add((claim, GMEOW.analysisProperty, GMEOW.analysisPropertyHarmonyLabel))
-    g.add((claim, GMEOW.analysisResult, GMEOW.harmonicFunctionDominant))
-    g.add((claim, GMEOW.vantage, EX.analyst1))
-    g.add((claim, GMEOW.analysisFrame, GMEOW.theoryFrameRomanNumeral))
-    result = run_shacl(g)
-    assert result.ok, _error_text(result)
-
-
-def test_music_analysis_claim_missing_frame_fails() -> None:
-    g = _graph()
-    g.bind("ex", EX)
-    claim = EX.claim1
-    g.add((claim, RDF.type, GMEOW.MusicAnalysisClaim))
-    g.add((claim, GMEOW.analysisTarget, EX.segment1))
-    g.add((claim, GMEOW.analysisProperty, GMEOW.analysisPropertyHarmonyLabel))
-    g.add((claim, GMEOW.analysisResult, GMEOW.harmonicFunctionDominant))
-    g.add((claim, GMEOW.vantage, EX.analyst1))
-    # deliberately no analysisFrame
-    result = run_shacl(g)
-    assert not result.ok
-    assert "analysisFrame" in _error_text(result)
-
-
-def test_genre_no_subclass_shape_fails_on_bad_subclass() -> None:
-    g = Graph()
-    g.bind("gmeow", GMEOW)
-    g.bind("ex", EX)
-    g.add((EX.FakeSubGenre, RDF.type, OWL.Class))
-    g.add((EX.FakeSubGenre, RDFS.subClassOf, GMEOW.Genre))
-    result = run_shacl(g)
-    assert not result.ok
-    assert "Genre must not be subclassed" in _error_text(result)
 
 
 def test_statement_cells_include_contested_meter_pair() -> None:
