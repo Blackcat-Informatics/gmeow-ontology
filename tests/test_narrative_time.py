@@ -19,7 +19,6 @@ from gmeow_rdf.compat.rdflib.query import ResultRow
 
 from gmeow_tools.config import COMPETENCY_DIR
 from gmeow_tools.graph import load_merged_graph
-from tests._graph_nt import run_shacl
 
 GMEOW = "https://blackcatinformatics.ca/gmeow/"
 GM = Namespace(GMEOW)
@@ -91,25 +90,6 @@ def test_at_narrative_position_is_domain_free_and_not_functional() -> None:
     assert g.value(GM.atNarrativePosition, RDFS.domain) is None
     assert (GM.atNarrativePosition, RDF.type, OWL.FunctionalProperty) not in g
     assert (GM.atNarrativePosition, RDFS.range, GM.NarrativePosition) in g
-
-
-# --------------------------------------------------------------------------- #
-# Closed-world SHACL shapes
-# --------------------------------------------------------------------------- #
-
-
-def test_wellformed_narrative_time_fixture_conforms() -> None:
-    result = run_shacl(_fixture("narrative-time-wellformed"))
-    assert result.ok, "\n".join(result.errors)
-
-
-def test_malformed_narrative_time_fixture_is_flagged() -> None:
-    result = run_shacl(_fixture("narrative-time-malformed"))
-    assert not result.ok
-    errors = "\n".join(result.errors)
-    assert "exactly one gmeow:narrativeTimeAxis" in errors
-    assert "never the other anchor" in errors
-    assert "exactly one reference frame (gmeow:positionFrame)" in errors
 
 
 # --------------------------------------------------------------------------- #

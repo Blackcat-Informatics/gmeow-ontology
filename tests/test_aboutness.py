@@ -105,37 +105,6 @@ def test_competency_aboutness_modes_query() -> None:
     assert modes == {GM.aboutnessDescribes, GM.aboutnessEnacts}
 
 
-def test_wellformed_aboutness_fixture_conforms() -> None:
-    """A carrier can describe one thing while enacting another — both cells valid."""
-    from pathlib import Path
-
-    from tests._graph_nt import run_shacl
-
-    g = Graph()
-    g.parse(
-        Path(__file__).parent / "fixtures" / "shapes" / "aboutness-wellformed.ttl",
-        format="turtle",
-    )
-    result = run_shacl(g)
-    assert result.ok, "\n".join(result.errors)
-
-
-def test_malformed_aboutness_fixture_is_flagged() -> None:
-    """hasAboutness must target a vocabulary IRI, never a free literal."""
-    from pathlib import Path
-
-    from tests._graph_nt import run_shacl
-
-    g = Graph()
-    g.parse(
-        Path(__file__).parent / "fixtures" / "shapes" / "aboutness-malformed.ttl",
-        format="turtle",
-    )
-    result = run_shacl(g)
-    assert not result.ok
-    assert "not a free literal" in "\n".join(result.errors)
-
-
 def test_every_term_labeled_and_defined() -> None:
     g = _graph()
     skos_def = URIRef("http://www.w3.org/2004/02/skos/core#definition")

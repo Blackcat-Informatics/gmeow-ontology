@@ -7,72 +7,24 @@ ContributionDegree seed individuals; Selector datatype properties) have been
 migrated to the declarative slicetest DSL in
 slices/core/citations/tests/structural.ttl (#867).
 
-Retained here: SHACL ExampleConformance checks (run_shacl), self-description
-loader, and the whole-ontology canonical-description standardisation sweep.
+SHACL ExampleConformance checks (test_citation_act_shacl_passes,
+test_citation_act_missing_intent_fails_shacl,
+test_contribution_with_degree_shacl_passes) have been migrated to the Rust
+conformance suite in crates/validate/tests/conformance_citations.rs (#867).
+
+Retained here: self-description loader and the whole-ontology
+canonical-description standardisation sweep.
 """
 
 from __future__ import annotations
 
 import re
 
-from gmeow_rdf.compat.rdflib import RDF, RDFS, Graph, Literal, Namespace, URIRef
-
-from tests._graph_nt import run_shacl
+from gmeow_rdf.compat.rdflib import RDF, Graph, Literal, Namespace, URIRef
 
 GMEOW = Namespace("https://blackcatinformatics.ca/gmeow/")
 EX = Namespace("https://example.org/test/")
 SELF = Namespace("https://blackcatinformatics.ca/gmeow/self#")
-
-
-# =========================================================================== #
-# SHACL well-formedness
-# =========================================================================== #
-
-
-def test_citation_act_shacl_passes() -> None:
-    """A well-formed CitationAct relator passes SHACL."""
-    g = Graph()
-    g.add((EX.citation, RDF.type, GMEOW.CitationAct))
-    g.add((EX.citation, GMEOW.citingEntity, EX.claim))
-    g.add((EX.citation, GMEOW.citedEntity, EX.work))
-    g.add((EX.citation, GMEOW.citationIntent, GMEOW.intentCitesAsDataSource))
-    g.add((EX.claim, RDF.type, GMEOW.Entity))
-    g.add((EX.work, RDF.type, GMEOW.Work))
-    g.add((EX.work, RDFS.label, Literal("Test Work")))
-
-    result = run_shacl(g)
-    assert result.ok, "\n".join(result.errors)
-
-
-def test_citation_act_missing_intent_fails_shacl() -> None:
-    """A CitationAct without citationIntent violates SHACL."""
-    g = Graph()
-    g.add((EX.citation, RDF.type, GMEOW.CitationAct))
-    g.add((EX.citation, GMEOW.citingEntity, EX.claim))
-    g.add((EX.citation, GMEOW.citedEntity, EX.work))
-    g.add((EX.claim, RDF.type, GMEOW.Entity))
-    g.add((EX.work, RDF.type, GMEOW.Work))
-    g.add((EX.work, RDFS.label, Literal("Test Work")))
-
-    result = run_shacl(g)
-    assert not result.ok
-    assert any("citation intent" in e.lower() for e in result.errors)
-
-
-def test_contribution_with_degree_shacl_passes() -> None:
-    """A Contribution with an optional degree passes SHACL."""
-    g = Graph()
-    g.add((EX.contribution, RDF.type, GMEOW.Contribution))
-    g.add((EX.contribution, GMEOW.contributor, EX.alice))
-    g.add((EX.contribution, GMEOW.contributionTarget, EX.work))
-    g.add((EX.contribution, GMEOW.contributionRole, GMEOW.roleAuthor))
-    g.add((EX.contribution, GMEOW.contributionDegree, GMEOW.degreeLead))
-    g.add((EX.alice, RDF.type, GMEOW.Agent))
-    g.add((EX.work, RDF.type, GMEOW.Work))
-    g.add((EX.work, RDFS.label, Literal("Test Work")))
-
-    result = run_shacl(g)
-    assert result.ok, "\n".join(result.errors)
 
 
 # =========================================================================== #

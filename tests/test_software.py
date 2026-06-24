@@ -27,7 +27,6 @@ from pathlib import Path
 from gmeow_rdf.compat.rdflib import OWL, RDF, RDFS, Graph, Literal, Namespace
 
 from gmeow_tools.graph import load_merged_graph
-from tests._graph_nt import run_shacl
 
 GMEOW = "https://blackcatinformatics.ca/gmeow/"
 GM = Namespace(GMEOW)
@@ -73,26 +72,15 @@ def test_no_subclass_bridge_between_facets() -> None:
         )
 
 
-def test_facet_orthogonality_shacl_rejects_two_facets() -> None:
-    """The closed-world dual: an individual typed in two facet classes is
-    rejected by SHACL without a reasoner."""
-    bad = Graph()
-    bad.add((EX.x, RDF.type, GM.Project))
-    bad.add((EX.x, RDF.type, GM.SoftwareProduct))
-    result = run_shacl(bad)
-    assert not result.ok
-    assert "may fill at most one software facet" in "\n".join(result.errors)
-
+# test_facet_orthogonality_shacl_rejects_two_facets — migrated to
+# crates/validate/tests/conformance_software.rs (#867)
 
 # --------------------------------------------------------------------------- #
 # Fixture: MeowGraph
 # --------------------------------------------------------------------------- #
 
-
-def test_fixture_parses_and_shacl_passes() -> None:
-    g = _fixture()
-    result = run_shacl(g)
-    assert result.ok, "\n".join(result.errors)
+# test_fixture_parses_and_shacl_passes — migrated to
+# crates/validate/tests/conformance_software.rs (#867)
 
 
 def test_fixture_has_all_five_facets() -> None:
