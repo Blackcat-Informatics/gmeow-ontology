@@ -746,6 +746,21 @@ fn check_property_character(
                     ));
                 }
             }
+
+            // Also flag the opposite direction: target declares a characteristic
+            // that GMEOW does not.
+            for char_iri in CHARACTER_TYPES {
+                if t_types.contains(*char_iri) && !g_chars.iter().any(|g| g == char_iri) {
+                    let shortened = shorten_iri(char_iri);
+                    let label = shortened.split(':').next_back().unwrap_or(char_iri);
+                    findings.push(character_finding(
+                        m,
+                        "WARNING",
+                        &format!("target declares {label} but GMEOW does not"),
+                        &term,
+                    ));
+                }
+            }
         }
     }
     Ok(findings)
@@ -1040,7 +1055,11 @@ fn overlaps(
     for cls in gmeow_classes {
         expanded.extend(resolve_class(cls, bridge));
     }
-    expanded.iter().any(|c| target_set.contains(c))
+    let mut expanded_targets: BTreeSet<String> = target_set;
+    for cls in target_classes {
+        expanded_targets.extend(resolve_class(cls, bridge));
+    }
+    expanded.iter().any(|c| expanded_targets.contains(c))
 }
 
 // ── Target-axiom accessors ─────────────────────────────────────────────────────
@@ -1168,6 +1187,10 @@ fn is_axiom_or_property_type_quad(quad: &oxigraph::model::Quad) -> bool {
         || pred == SCHEMA_INVERSE_OF
         || pred == SCHEMA_DOMAIN_INCLUDES
         || pred == SCHEMA_RANGE_INCLUDES
+        || pred == RDFS_SUB_CLASS_OF
+        || pred == OWL_EQUIVALENT_CLASS
+        || pred == OWL_EQUIVALENT_PROPERTY
+        || pred == SKOS_EXACT_MATCH
     {
         return true;
     }
@@ -1215,19 +1238,26 @@ fn load_fixture(root: &Path, prefix: &str) -> Result<Option<Store>, SliceError> 
 /// non-comment line is the TSV header.
 fn load_sssom_mappings(root: &Path) -> Result<Vec<Mapping>, SliceError> {
     let mappings_dir = root.join("generated").join("mappings");
+    if !mappings_dir.is_dir() {
+        return Err(SliceError::Io(std::io::Error::new(
+            std::io::ErrorKind::NotFound,
+            format!(
+                "missing SSSOM mappings directory {}",
+                mappings_dir.display()
+            ),
+        )));
+    }
     let mut files: Vec<std::path::PathBuf> = Vec::new();
-    if mappings_dir.is_dir() {
-        for entry in std::fs::read_dir(&mappings_dir).map_err(SliceError::Io)? {
-            let entry = entry.map_err(SliceError::Io)?;
-            let path = entry.path();
-            if path.is_file()
-                && path
-                    .file_name()
-                    .and_then(|n| n.to_str())
-                    .is_some_and(|n| n.ends_with(".sssom.tsv"))
-            {
-                files.push(path);
-            }
+    for entry in std::fs::read_dir(&mappings_dir).map_err(SliceError::Io)? {
+        let entry = entry.map_err(SliceError::Io)?;
+        let path = entry.path();
+        if path.is_file()
+            && path
+                .file_name()
+                .and_then(|n| n.to_str())
+                .is_some_and(|n| n.ends_with(".sssom.tsv"))
+        {
+            files.push(path);
         }
     }
     files.sort();
@@ -1371,11 +1401,25 @@ const ALIGNMENT_TARGETS: &[&str] = &[
     "snomed",
 ];
 
-/// Return the CURIE prefix of `curie` if it is a known alignment target.
+/// Alignment-target prefixes that are aliases for canonical registry prefixes.
+const TARGET_PREFIX_ALIASES: &[(&str, &str)] = &[
+    ("dolce", "dul"),
+    ("gedcomx", "gx"),
+    ("geonames", "gn"),
+    ("wikidata", "wd"),
+];
+
+/// Return the canonical CURIE prefix of `curie` if it names a known alignment
+/// target (resolving alias prefixes to their registry form).
 fn prefix_of(curie: &str) -> Option<String> {
     let (prefix, _) = curie.split_once(':')?;
-    if ALIGNMENT_TARGETS.contains(&prefix) {
-        Some(prefix.to_owned())
+    let canonical = TARGET_PREFIX_ALIASES
+        .iter()
+        .find(|(alias, _)| alias == &prefix)
+        .map(|(_, canonical)| *canonical)
+        .unwrap_or(prefix);
+    if ALIGNMENT_TARGETS.contains(&canonical) {
+        Some(canonical.to_owned())
     } else {
         None
     }
@@ -1384,7 +1428,12 @@ fn prefix_of(curie: &str) -> Option<String> {
 /// Expand a CURIE to an absolute IRI using the curated prefix registry.
 fn expand_curie(curie: &str) -> Option<String> {
     let (prefix, local) = curie.split_once(':')?;
-    let (_, ns) = PREFIX_REGISTRY.iter().find(|(p, _)| p == &prefix)?;
+    let canonical = TARGET_PREFIX_ALIASES
+        .iter()
+        .find(|(alias, _)| alias == &prefix)
+        .map(|(_, canonical)| *canonical)
+        .unwrap_or(prefix);
+    let (_, ns) = PREFIX_REGISTRY.iter().find(|(p, _)| p == &canonical)?;
     Some(format!("{ns}{local}"))
 }
 
@@ -1734,6 +1783,21 @@ mod tests {
             .iter()
             .any(|(r, b)| *r == "dcterms:abstract" && *b == "dcterms:description"));
         assert!(GRANDFATHERED_DC.contains(&"dc:rights"));
+    }
+
+    #[test]
+    fn alignment_target_prefixes_are_expandable() {
+        for prefix in ALIGNMENT_TARGETS {
+            let canonical = TARGET_PREFIX_ALIASES
+                .iter()
+                .find(|(alias, _)| alias == prefix)
+                .map(|(_, canonical)| *canonical)
+                .unwrap_or(prefix);
+            assert!(
+                registry_iri(canonical).is_some(),
+                "ALIGNMENT_TARGETS contains prefix `{prefix}` (canonical `{canonical}`) but PREFIX_REGISTRY cannot expand it"
+            );
+        }
     }
 
     /// Target snapshot loading succeeds for at least one vendored target and

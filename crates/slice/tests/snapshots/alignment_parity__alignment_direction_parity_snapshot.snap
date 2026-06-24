@@ -2858,16 +2858,6 @@ expression: alignment_findings
     "check": "domain-range",
     "code": "domain-range",
     "message": "domain/range overlap could not be established (no class bridge to the target's domain/range)",
-    "instance": "http://www.w3.org/ns/prov#wasAssociatedWith",
-    "subject_id": "gmeow:hasParticipant",
-    "predicate_id": "skos:exactMatch",
-    "object_id": "prov:wasAssociatedWith"
-  },
-  {
-    "severity": "INFO",
-    "check": "domain-range",
-    "code": "domain-range",
-    "message": "domain/range overlap could not be established (no class bridge to the target's domain/range)",
     "instance": "http://www.w3.org/ns/prov#wasAttributedTo",
     "subject_id": "gmeow:attester",
     "predicate_id": "skos:closeMatch",
@@ -3082,16 +3072,6 @@ expression: alignment_findings
     "subject_id": "gmeow:interestedIn",
     "predicate_id": "skos:closeMatch",
     "object_id": "foaf:interest"
-  },
-  {
-    "severity": "INFO",
-    "check": "domain-range",
-    "code": "domain-range",
-    "message": "domain/range overlap could not be established (no class bridge to the target's domain/range)",
-    "instance": "http://xmlns.com/foaf/0.1/knows",
-    "subject_id": "gmeow:hasMet",
-    "predicate_id": "skos:closeMatch",
-    "object_id": "foaf:knows"
   },
   {
     "severity": "INFO",
