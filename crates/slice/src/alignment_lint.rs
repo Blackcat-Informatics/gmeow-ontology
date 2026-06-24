@@ -15,7 +15,9 @@
 
 #![allow(dead_code)] // constants used by Tasks 3–4
 
-use std::collections::{BTreeMap, BTreeSet, VecDeque};
+use std::collections::{BTreeMap, BTreeSet, HashSet, VecDeque};
+use std::fs::File;
+use std::io::BufReader;
 use std::path::Path;
 
 use oxigraph::io::{RdfFormat, RdfParser};
@@ -1368,7 +1370,11 @@ fn rdf_list_term_objects(
 fn rdf_list_members(store: &Store, head: &Term) -> Result<Vec<String>, SliceError> {
     let mut out = Vec::new();
     let mut current = head.clone();
+    let mut seen = HashSet::new();
     loop {
+        if !seen.insert(current.clone()) {
+            break;
+        }
         let subj = match &current {
             Term::NamedNode(nn) if nn.as_str() == RDF_NIL => break,
             Term::NamedNode(nn) => NamedOrBlankNode::NamedNode(nn.clone()),
@@ -1401,10 +1407,11 @@ fn new_store() -> Result<Store, SliceError> {
 /// `@x-gmeow-*` language tags parse).
 fn parse_ttl(path: &Path) -> Result<Store, SliceError> {
     let store = new_store()?;
-    let bytes = std::fs::read(path).map_err(SliceError::Io)?;
+    let file = File::open(path).map_err(SliceError::Io)?;
+    let reader = BufReader::new(file);
     for quad in RdfParser::from_format(RdfFormat::Turtle)
         .lenient()
-        .for_reader(bytes.as_slice())
+        .for_reader(reader)
     {
         let quad = quad
             .map_err(|e| SliceError::Parse(format!("syntax error in {}: {e}", path.display())))?;
