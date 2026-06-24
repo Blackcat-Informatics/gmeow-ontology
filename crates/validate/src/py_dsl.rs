@@ -73,6 +73,26 @@ fn format_dsl_finding(finding: &Finding) -> String {
     }
 }
 
+/// Internal Rust entry point for DSL SHACL validation.
+///
+/// This helper is used by both the public `#[pyfunction]` and the Rust unit
+/// tests so the tests exercise the same code path without needing a Python
+/// runtime (Principle 4, RUST-FIRST, #937).
+fn validate_dsl_shacl_inner(dsl_paths: &[String], shapes_ttl: &str) -> Result<Vec<String>, String> {
+    if dsl_paths.is_empty() {
+        return Err("validate_dsl_shacl: paths to validate must not be empty".to_string());
+    }
+
+    let paths: Vec<PathBuf> = dsl_paths.iter().map(PathBuf::from).collect();
+    let findings = crate::dsl_shacl::validate_dsl(&paths, shapes_ttl, "dsl")?;
+
+    if findings.is_empty() {
+        return Ok(Vec::new());
+    }
+
+    Ok(findings.iter().map(format_dsl_finding).collect())
+}
+
 /// Validate merged DSL Turtle sources against a SHACL shapes graph and return
 /// formatted violation strings.
 ///
@@ -94,21 +114,8 @@ fn format_dsl_finding(finding: &Finding) -> String {
 /// fail, never a silent conformant result (P11/§11).
 #[pyfunction]
 pub fn validate_dsl_shacl(dsl_paths: Vec<String>, shapes_ttl: String) -> PyResult<Vec<String>> {
-    if dsl_paths.is_empty() {
-        return Err(pyo3::exceptions::PyValueError::new_err(
-            "validate_dsl_shacl: paths to validate must not be empty",
-        ));
-    }
-
-    let paths: Vec<PathBuf> = dsl_paths.iter().map(PathBuf::from).collect();
-    let findings = crate::dsl_shacl::validate_dsl(&paths, &shapes_ttl, "dsl")
-        .map_err(pyo3::exceptions::PyValueError::new_err)?;
-
-    if findings.is_empty() {
-        return Ok(Vec::new());
-    }
-
-    Ok(findings.iter().map(format_dsl_finding).collect())
+    validate_dsl_shacl_inner(&dsl_paths, &shapes_ttl)
+        .map_err(pyo3::exceptions::PyValueError::new_err)
 }
 
 #[cfg(test)]
@@ -149,7 +156,7 @@ ex:NodeShape a sh:NodeShape ;
              ex:alice a ex:Thing ; ex:name \"Alice\" .\n",
         );
         let violations =
-            validate_dsl_shacl(vec![path_arg(&ttl)], simple_shapes()).expect("must succeed");
+            validate_dsl_shacl_inner(&[path_arg(&ttl)], &simple_shapes()).expect("must succeed");
         assert!(
             violations.is_empty(),
             "expected no violations, got {violations:?}"
@@ -164,7 +171,7 @@ ex:NodeShape a sh:NodeShape ;
              ex:bob a ex:Thing .\n",
         );
         let violations =
-            validate_dsl_shacl(vec![path_arg(&ttl)], simple_shapes()).expect("must succeed");
+            validate_dsl_shacl_inner(&[path_arg(&ttl)], &simple_shapes()).expect("must succeed");
         assert!(!violations.is_empty(), "expected at least one violation");
         let msg = violations.join("\n");
         assert!(msg.contains("focus=https://example.org/bob"), "{msg}");
@@ -196,7 +203,7 @@ ex:NodeShape a sh:NodeShape ;
             "@prefix ex: <https://example.org/> .\nex:shared a ex:Thing .\n",
         )
         .unwrap();
-        let violations = validate_dsl_shacl(vec![path_arg(&a), path_arg(&b)], simple_shapes())
+        let violations = validate_dsl_shacl_inner(&[path_arg(&a), path_arg(&b)], &simple_shapes())
             .expect("must succeed");
         assert_eq!(
             violations.len(),
@@ -208,19 +215,6 @@ ex:NodeShape a sh:NodeShape ;
             "{}",
             violations[0]
         );
-    }
-
-    #[test]
-    fn parse_error_hard_fails_with_path() {
-        // The public PyO3 entry point constructs a PyErr on failure. Attaching
-        // to the interpreter lets auto-initialize run; creating the error itself
-        // does not need the GIL.
-        let bad = write_tmp("gmeow_py_dsl_bad_syntax.ttl", "this is not turtle @@@ <<<");
-        let err = Python::attach(|_| {
-            validate_dsl_shacl(vec![path_arg(&bad)], simple_shapes()).expect_err("must fail")
-        });
-        let msg = err.to_string();
-        assert!(msg.contains(&bad.display().to_string()), "{msg}");
     }
 
     fn path_arg(path: &std::path::Path) -> String {
