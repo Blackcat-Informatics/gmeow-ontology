@@ -312,6 +312,89 @@ The observation-module asserted-TBox structural assertions (#66, #69) migrated t
 
 **Observations tally:** 19 converted + 1 partial (property-bridges: 8 of 11 converted) = 23 structural cells, 5 retained-with-reason (4 generated-SSSOM-mapping reads + 1 cross-slice kin-bridge). `tests/test_observations.py` 24 → 5 fns.
 
+## #867 structural batch 2 (provenance / sexuality / connectivity / gender / aggregation)
+
+Five more home slices migrated to `slices/<g>/<n>/tests/structural.ttl` declarative
+cells. `music` was assessed and produced **no** cell file — all 4 of its tests are
+cross-slice (Genre/roles defined in creative-works/events), a generated-shapes read,
+or a whole-graph `transitive_subjects` sweep — all retained in pytest. RETAIN
+categories applied uniformly: cross-slice subjects (module-scoped cell can't see
+them), generated-artifact reads (`load_mappings`, `.rq` competency files, shapes),
+whole-graph dynamic sweeps, and numeric count guards. The negative "ban" cells
+(`gmeow:Woman a owl:Class` MUST be false; per-value-subclass / flat-shortcut bans)
+are faithful absence assertions, not vacuous — verified each `*NotFunctional`
+mustNot references a real `owl:ObjectProperty` in its module.
+
+### `slices/core/provenance` (logic:) — 2 converted, 2 retained
+
+| Pytest fn | DSL cell IRI | Status | Reason if retained |
+|---|---|---|---|
+| `test_import_activity_is_an_activity` | `ex:saImportActivityIsSubclassOfActivity` | converted | — |
+| `test_activity_agent_link_is_event_safe` | `ex:saWasAssociatedWithShape` | converted | — |
+| `test_carrier_and_ingestion_props` | — | **retained** | cross-slice: `sourceModifiedAt`/`contentDigest` defined in `core/sources` |
+| `test_four_clocks_are_distinct_dated_annotations` | — | **retained** | cross-slice (`validFrom`/`validUntil`/`assertedAt`/`recordedNoLaterThan` in temporal/sources) + dynamic set-distinctness loop |
+
+### `slices/core/sexuality` (gufo:) — 5 converted (14 cells), 1 retained
+
+| Pytest fn | DSL cell IRI(s) | Status | Reason if retained |
+|---|---|---|---|
+| `test_orientation_facets_subclass_identity_facet` | `ex:saSexualOrientationSubclassIdentityFacet` + `ex:saRomanticOrientationSubclassIdentityFacet` | converted | — |
+| `test_split_attraction_axes_are_independent` | `ex:saSplitAttractionRanges` + `ex:saSexualNotSubPropRomantic` + `ex:saRomanticNotSubPropSexual` + `ex:saOrientationPropertiesNotEquivalent` | converted | — |
+| `test_orientation_values_are_individuals_not_subclasses` | `ex:saOrientationValueSubclassQualityValue` + `ex:saOrientAsexualTyped` + `ex:saRomanticAromanticTyped` + `ex:saNoPerOrientationSubclasses` | converted | — |
+| `test_orientation_value_properties_functional_facets_nonfunctional` | `ex:saValuePropertiesFunctional` + `ex:saHasSexualOrientationNotFunctional` + `ex:saHasRomanticOrientationNotFunctional` | converted | — |
+| `test_no_flat_orientation_shortcut` | `ex:saNoFlatOrientationShortcut` | converted | — |
+| `test_competency_orientation_values_query` | — | **retained** | reads a generated `.rq` competency file + numeric `>= 16` count guard |
+
+### `slices/extensions/connectivity` (gufo:) — 4 converted (11 cells), 3 retained
+
+| Pytest fn | DSL cell IRI(s) | Status | Reason if retained |
+|---|---|---|---|
+| `test_route_class_and_kinds` | `ex:saRouteClass` + `ex:saRouteKindClass` + `ex:saRouteKindSeeds` + `ex:saRouteKindProperty` | converted | — |
+| `test_connection_relator` | `ex:saConnectionClass` + `ex:saConnectionEndpoints` | converted | — |
+| `test_route_properties` | `ex:saRouteEndpoints` + `ex:saRouteViaShape` + `ex:saRouteViaNotFunctional` + `ex:saHasRouteSegment` + `ex:saHasRoute` | converted | — |
+| `test_reference_frame_network_graph` | `ex:saReferenceFrameNetworkGraph` | converted | — |
+| `test_connects_to_universal_spine` | — | **retained** | `gmeow:connectsTo` defined in a core slice, not connectivity |
+| `test_spatially_connects_to_is_symmetric_subproperty` | — | **retained** | `gmeow:spatiallyConnectsTo` cross-slice |
+| `test_genealogy_subproperties_of_connects_to` | — | **retained** | `hasSpouse`/`hasSibling`/`hasParent`/`hasChild` in the genealogy slice |
+
+### `slices/core/gender` (gufo:) — 5 converted (16 cells), 2 retained
+
+| Pytest fn | DSL cell IRI(s) | Status | Reason if retained |
+|---|---|---|---|
+| `test_identity_facet_is_a_relator` | `ex:saIdentityFacetIsRelator` + `ex:saIdentityFacetNotSituation` + `ex:saGenderIdentitySubclassIdentityFacet` + `ex:saGenderExpressionSubclassIdentityFacet` | converted | — |
+| `test_gender_values_are_individuals_not_subclasses` | `ex:saValueVocabsSubclassQualityValue` + `ex:saGenderSeedIndividuals` + 5×`ex:saNo*Class` | converted | — |
+| `test_value_properties_are_functional_facets_nonfunctional` | `ex:saValuePropertiesFunctional` + `ex:saHasGenderIdentityShape` + `ex:saHasGenderExpressionShape` + `ex:saHasGenderIdentityNotFunctional` + `ex:saHasGenderExpressionNotFunctional` | converted | — |
+| `test_no_flat_gender_shortcut` | 4×`ex:saNo*Datatype` | converted | — |
+| `test_sex_assigned_at_birth_is_recorded_not_a_facet` | `ex:saSexAssignedAtBirthShape` + `ex:saSexAssignedAtBirthNotSubpropIdentity` + `ex:saNoFlatSexDatatypeProperty` + `ex:saNoFlatSexObjectProperty` | converted | — |
+| `test_displayable_generalised_to_cover_identity` | — | **retained** | `gmeow:displayable` cross-slice (names slice) |
+| `test_competency_gender_values_query` | — | **retained** | generated `.rq` read + numeric `>= 11` count |
+
+### `slices/extensions/aggregation` (gufo:) — 7 converted (9 cells), 1 retained
+
+| Pytest fn | DSL cell IRI(s) | Status | Reason if retained |
+|---|---|---|---|
+| `test_spatial_aggregation_is_measurement` | `ex:saSpatialAggregationIsMeasurement` | converted | — |
+| `test_spatial_bin_is_place` | `ex:saSpatialBinIsPlace` | converted | — |
+| `test_aggregation_function_is_value_not_subclass` | `ex:saAggregationFunctionIsValueVocab` + `ex:saAggregationFunctionSeeds` + `ex:saNoPerFunctionSubclasses` | converted | — |
+| `test_aggregation_function_property_is_functional` | `ex:saAggregationFunctionPropertyFunctional` | converted | — |
+| `test_has_bin_is_non_functional` | `ex:saHasBinIsObjectProperty` + `ex:saHasBinNotFunctional` | converted | — |
+| `test_minimum_population_is_datatype` | `ex:saMinimumPopulationProperty` | converted | — |
+| `test_no_unsafe_complex_property_chains` | `ex:saAggregationFunctionNoChain` + `ex:saHasBinNoChain` | converted | — |
+| `test_contains_place_exists_and_is_inverse` | — | **retained** | `containsPlace`/`containedInPlace` defined in `core/places` |
+
+### `slices/extensions/music` — 0 converted, 4 retained (no cell file)
+
+| Pytest fn | Status | Reason |
+|---|---|---|
+| `test_genre_is_never_subclassed` | **retained** | whole-graph `transitive_subjects` dynamic sweep |
+| `test_oral_tradition_guarantee` | **retained** | generated-shapes read (`gmeow-shapes.ttl`) |
+| `test_dual_typed_music_roles` | **retained** | all subjects cross-slice (roles in creative-works/events) |
+| `test_music_properties_functionality` | **retained** | all subjects cross-slice (`derivation*`/`hasGenre` in creative-works) |
+
+**Batch-2 tally:** 23 converted fns → 53 structural cells across 5 slices; 11
+retained-with-reason (7 cross-slice, 3 generated-artifact/competency, 1 dynamic-set) plus music's 4 retained. Pytest fn counts: provenance 4→2, sexuality 6→1, connectivity
+7→3, gender 7→2, aggregation 8→1, music 4→4 (untouched).
+
 ## Reasoning cluster → native Rust OWL 2 RL harness (#896)
 
 The OWL/EL/DL **reasoning + entailment** tests are a distinct lane from the
