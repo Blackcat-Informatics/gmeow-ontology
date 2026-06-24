@@ -19,18 +19,6 @@ use std::path::PathBuf;
 use gmeow_diagnostics::Finding;
 use pyo3::prelude::*;
 
-/// Render a gmeow_shacl N-Triples term as the legacy Python seam did:
-/// `<http://x>` → `http://x`; `_:b0` → `b0`; literals/plain pass through.
-fn term_to_str(term: &str) -> String {
-    if let Some(inner) = term.strip_prefix('<').and_then(|t| t.strip_suffix('>')) {
-        inner.to_owned()
-    } else if let Some(inner) = term.strip_prefix("_:") {
-        inner.to_owned()
-    } else {
-        term.to_owned()
-    }
-}
-
 /// Format one structured DSL finding into the legacy string form expected by
 /// Python callers.
 ///
@@ -58,13 +46,13 @@ fn format_dsl_finding(finding: &Finding) -> String {
         .primary_location()
         .and_then(|l| l.logical.as_deref())
     {
-        parts.push(format!("focus={}", term_to_str(logical)));
+        parts.push(format!("focus={logical}"));
     }
 
     for related in &finding.related_locations {
         if let Some(logical) = related.logical.as_deref() {
             if let Some(path_iri) = logical.strip_prefix("path ") {
-                parts.push(format!("path={}", term_to_str(path_iri)));
+                parts.push(format!("path={path_iri}"));
                 break;
             }
         }

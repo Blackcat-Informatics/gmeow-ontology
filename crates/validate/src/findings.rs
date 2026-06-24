@@ -19,6 +19,7 @@
 use gmeow_diagnostics::{Finding, Location, Severity};
 use gmeow_rdf::{RdfDiagnostic, RdfLocation, RdfSeverity};
 use gmeow_shacl::report::{Severity as ShaclSeverity, ValidationResult};
+use oxigraph::model::Term;
 
 /// Normalize an [`RdfSeverity`] to the canonical diagnostics [`Severity`].
 fn severity_from_rdf(severity: RdfSeverity) -> Severity {
@@ -50,16 +51,17 @@ fn iri_local(iri: &str) -> &str {
         .unwrap_or(iri)
 }
 
-/// Strip the angle brackets oxigraph's N-Triples `Display` wraps around IRIs, so
-/// a focus node / path / value stored in a [`Location`] is the bare IRI (its
-/// identity), not its serialization. This keeps the SARIF projection (where a
-/// bracketed URI is invalid), the flat JSON report, and the `gmeow:` RDF graph
-/// all anchored on the same clean identifier. Blank nodes and literals lack the
-/// brackets and pass through unchanged.
-fn strip_angle(term: &str) -> &str {
-    term.strip_prefix('<')
-        .and_then(|inner| inner.strip_suffix('>'))
-        .unwrap_or(term)
+/// Render an oxigraph `Term` as a clean identifier: IRIs and blank-node IDs
+/// are returned via `as_str()`, literals fall back to their N-Triples form.
+/// This avoids serializing to N-Triples and then stripping `<...>` / `_:`
+/// prefixes, and keeps the SARIF projection, the flat JSON report, and the
+/// `gmeow:` RDF graph all anchored on the same clean identifier.
+fn term_to_str(term: &Term) -> String {
+    match term {
+        Term::NamedNode(node) => node.as_str().to_owned(),
+        Term::BlankNode(node) => node.as_str().to_owned(),
+        _ => term.to_string(),
+    }
 }
 
 /// Convert an [`RdfLocation`] into a diagnostics [`Location`], preserving every
@@ -138,25 +140,25 @@ pub fn finding_from_shacl(result: &ValidationResult) -> Finding {
         Finding::new(severity_from_shacl(result.severity), code, message).with_tool("shacl");
 
     finding.add_location(Location {
-        logical: Some(strip_angle(&result.focus_node.to_string()).to_owned()),
+        logical: Some(term_to_str(&result.focus_node)),
         ..Location::default()
     });
 
     if let Some(path) = &result.result_path {
         finding.related_locations.push(Location {
-            logical: Some(format!("path {}", strip_angle(&path.to_string()))),
+            logical: Some(format!("path {}", term_to_str(path))),
             ..Location::default()
         });
     }
     if let Some(value) = &result.value {
         finding.related_locations.push(Location {
-            logical: Some(format!("value {}", strip_angle(&value.to_string()))),
+            logical: Some(format!("value {}", term_to_str(value))),
             ..Location::default()
         });
     }
     finding.detail = Some(format!(
         "source shape: {}",
-        strip_angle(&result.source_shape.to_string())
+        term_to_str(&result.source_shape)
     ));
     finding
 }
