@@ -243,8 +243,6 @@ class Literal(Identifier):
             if lang is None and dt is None:
                 lang = lexical_or_value._language
                 dt = lexical_or_value._datatype
-                if dt is not None and str(dt) in _XSD_INTEGERS:
-                    dt = URIRef(_XSD + "integer")
         elif isinstance(lexical_or_value, str):
             lexical = str(lexical_or_value)
         else:

@@ -71,6 +71,15 @@ def test_literal_term_equality_xsd_string_asymmetry() -> None:
     assert hash(Literal("x")) == hash(Literal("x"))
 
 
+def test_literal_rewrap_preserves_integer_subtype() -> None:
+    """Re-wrapping a typed literal preserves its exact datatype IRI."""
+    original = Literal("12", datatype=XSD.int)
+    wrapped = Literal(original)
+
+    assert wrapped == original
+    assert wrapped.datatype == XSD.int
+
+
 def test_literal_value_space_eq_is_separate_from_term_equality() -> None:
     """``Literal.eq`` uses XSD values; ``==`` remains RDF term equality."""
     one = Literal("1", datatype=XSD.integer)
@@ -96,17 +105,46 @@ def test_literal_ordering_uses_value_then_term_fallback() -> None:
     assert [str(v) for v in sorted(values)] == ["01", "1", "2"]
 
 
-def test_graph_add_value_contains_and_native_xsd_string_normalization() -> None:
-    """Containment via the native store normalizes plain ↔ xsd:string literals."""
+def test_graph_add_value_contains_and_xsd_string_provenance() -> None:
+    """The shim preserves RDFLib plain-vs-explicit xsd:string term provenance."""
     g = Graph()
     g.add((EX.alice, RDF.type, EX.Person))
     g.add((EX.alice, RDFS.label, Literal("Alice")))
     assert len(g) == 2
     assert g.value(EX.alice, RDFS.label) == Literal("Alice")
     assert (EX.alice, RDF.type, EX.Person) in g
-    # both plain and explicit xsd:string match through the native store
     assert (EX.alice, RDFS.label, Literal("Alice")) in g
-    assert (EX.alice, RDFS.label, Literal("Alice", datatype=XSD.string)) in g
+    assert (EX.alice, RDFS.label, Literal("Alice", datatype=XSD.string)) not in g
+
+    typed = Graph()
+    typed.add((EX.alice, RDFS.label, Literal("Alice", datatype=XSD.string)))
+    assert typed.value(EX.alice, RDFS.label) == Literal("Alice", datatype=XSD.string)
+    assert (EX.alice, RDFS.label, Literal("Alice")) not in typed
+
+
+def test_graph_keeps_plain_and_explicit_xsd_string_as_separate_terms() -> None:
+    """RDFLib stores plain and explicit xsd:string literals as distinct terms."""
+    g = Graph()
+    plain = Literal("Alice")
+    explicit = Literal("Alice", datatype=XSD.string)
+    g.add((EX.alice, RDFS.label, plain))
+    g.add((EX.alice, RDFS.label, explicit))
+
+    assert len(g) == 2
+    assert set(g.objects(EX.alice, RDFS.label)) == {plain, explicit}
+
+    g.remove((EX.alice, RDFS.label, plain))
+    assert len(g) == 1
+    assert list(g.objects(EX.alice, RDFS.label)) == [explicit]
+
+
+def test_graph_numeric_literal_contains_uses_value_space() -> None:
+    """Numeric object patterns keep the RDFLib value-space containment behavior."""
+    g = Graph()
+    count = EX["count"]
+    g.add((EX.alice, count, Literal("01", datatype=XSD.integer)))
+
+    assert (EX.alice, count, Literal("1", datatype=XSD.integer)) in g
 
 
 def test_graph_accessors_and_wildcards() -> None:

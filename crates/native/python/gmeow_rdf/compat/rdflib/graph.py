@@ -39,11 +39,18 @@ _TRIG = gmeow_rdf.RdfFormat.TRIG
 
 _JSON_LD_FORMATS = frozenset(("json-ld", "jsonld", "application/ld+json"))
 _XML_FORMATS = frozenset(("xml", "application/rdf+xml", "pretty-xml"))
+_XSD_STRING = "http://www.w3.org/2001/XMLSchema#string"
 
 #: A graph triple of compat terms.
 _Triple = tuple[Identifier, Identifier, Identifier]
 #: A wildcard triple pattern (``None`` = any).
 _Pattern = tuple[Identifier | None, Identifier | None, Identifier | None]
+_QuadPattern = tuple[
+    Identifier | None, Identifier | None, Identifier | None, Identifier | None
+]
+_GraphName = Identifier | None
+_LiteralBucket = tuple[str, str | None, str | None]
+_LiteralQuadKey = tuple[Identifier, Identifier, _LiteralBucket, _GraphName]
 
 
 def _rdf_format(fmt: str | None) -> gmeow_rdf.RdfFormat:
@@ -86,13 +93,61 @@ def _require(value: object) -> Identifier:
     return value
 
 
+def _graph_name_from_native(
+    graph_name: gmeow_rdf.NamedNode | gmeow_rdf.BlankNode | gmeow_rdf.DefaultGraph,
+) -> _GraphName:
+    """Convert a native graph name to the compat quad slot value."""
+    if isinstance(graph_name, gmeow_rdf.DefaultGraph):
+        return None
+    converted = from_native(graph_name)
+    assert converted is None or isinstance(converted, Identifier)
+    return converted
+
+
+def _literal_bucket(literal: Literal) -> _LiteralBucket:
+    """Return the native-equivalence bucket for shim-side literal provenance."""
+    datatype = None if literal.datatype is None else str(literal.datatype)
+    language = None if literal.language is None else literal.language.lower()
+    if language is None and datatype in (None, _XSD_STRING):
+        datatype = _XSD_STRING
+    return (str(literal), datatype, language)
+
+
+def _literal_quad_key(
+    subject: Identifier,
+    predicate: Identifier,
+    literal: Literal,
+    graph_name: _GraphName,
+) -> _LiteralQuadKey:
+    """Return the provenance key for a literal quad collapsed by the native IR."""
+    return (subject, predicate, _literal_bucket(literal), graph_name)
+
+
+def _literal_terms_snapshot(
+    literal_terms: dict[_LiteralQuadKey, set[Literal]],
+) -> list[tuple[Identifier, Identifier, Literal, _GraphName]]:
+    """Flatten literal provenance for pickle state."""
+    return [
+        (subject, predicate, literal, graph_name)
+        for (subject, predicate, _bucket, graph_name), literals in literal_terms.items()
+        for literal in literals
+    ]
+
+
 def _rebuild_graph(
-    cls: type[Graph], nquads: bytes, prefixes: list[tuple[str, str]]
+    cls: type[Graph],
+    nquads: bytes,
+    prefixes: list[tuple[str, str]],
+    literal_terms: list[tuple[Identifier, Identifier, Literal, _GraphName]]
+    | None = None,
 ) -> Graph:
     """Reconstruct a graph from its N-Quads content (the pickle restore hook)."""
     graph = cls()
     if nquads.strip():
         graph._store.load(nquads, format=_NQ)
+    for subject, predicate, literal, graph_name in literal_terms or []:
+        key = _literal_quad_key(subject, predicate, literal, graph_name)
+        graph._literal_terms.setdefault(key, set()).add(literal)
     for prefix, namespace in prefixes:
         graph.bind(prefix, namespace)
     return graph
@@ -137,6 +192,11 @@ def _literal_matches(candidate: Identifier, pattern: Literal) -> bool:
     """Return whether a stored literal satisfies an object literal pattern."""
     if not isinstance(candidate, Literal):
         return False
+    if (
+        _literal_bucket(candidate) == (str(candidate), _XSD_STRING, None)
+        and candidate.datatype != pattern.datatype
+    ):
+        return bool(candidate == pattern)
     return bool(candidate == pattern or candidate.eq(pattern))
 
 
@@ -165,10 +225,19 @@ class Graph:
         )
         self.identifier = identifier
         self.base = base
+        self._literal_terms: dict[_LiteralQuadKey, set[Literal]] = {}
 
     def __reduce__(
         self,
-    ) -> tuple[object, tuple[type[Graph], bytes, list[tuple[str, str]]]]:
+    ) -> tuple[
+        object,
+        tuple[
+            type[Graph],
+            bytes,
+            list[tuple[str, str]],
+            list[tuple[Identifier, Identifier, Literal, _GraphName]],
+        ],
+    ]:
         """Pickle by content (N-Quads) — the native ``Store`` is not picklable.
 
         RDFLib's ``Graph`` is picklable, and the parallel generator/test runners
@@ -176,7 +245,12 @@ class Graph:
         """
         return (
             _rebuild_graph,
-            (type(self), self._store.dump(format=_NQ), self._nsm.namespaces()),
+            (
+                type(self),
+                self._store.dump(format=_NQ),
+                self._nsm.namespaces(),
+                _literal_terms_snapshot(self._literal_terms),
+            ),
         )
 
     # ── prefixes ────────────────────────────────────────────────────────────────
@@ -207,9 +281,7 @@ class Graph:
     def add(self, triple: tuple[Identifier, Identifier, Identifier]) -> None:
         """Add a ``(subject, predicate, object)`` triple."""
         s, p, o = triple
-        self._store.add(
-            gmeow_rdf.Quad(_native_subject(s), _native_predicate(p), to_native(o))
-        )
+        self._add_quad(s, p, o, None)
 
     def remove(self, triple: _Pattern) -> None:
         """Remove every triple matching the (possibly wildcard) pattern."""
@@ -217,11 +289,7 @@ class Graph:
         # Snapshot matches first — deleting while iterating the store is unsafe.
         matched = list(self.triples((s, p, o)))
         for ms, mp, mo in matched:
-            self._store.remove(
-                gmeow_rdf.Quad(
-                    _native_subject(ms), _native_predicate(mp), to_native(mo)
-                )
-            )
+            self._remove_quad(ms, mp, mo, None)
 
     def set(self, triple: tuple[Identifier, Identifier, Identifier]) -> None:
         """Replace all ``(s, p, *)`` objects with this single triple's object."""
@@ -234,12 +302,13 @@ class Graph:
     def triples(self, pattern: _Pattern) -> Iterator[_Triple]:
         """Yield triples matching the wildcard pattern (``None`` = any)."""
         s, p, o = pattern
-        native_object = None if o is None else to_native(o)
-        object_value_filter = isinstance(o, Literal)
+        pattern_literal = o if isinstance(o, Literal) else None
         quads = self._store.quads_for_pattern(
             None if s is None else _native_subject(s),
             None if p is None else _native_predicate(p),
-            None if object_value_filter else native_object,
+            None
+            if pattern_literal is not None
+            else (None if o is None else to_native(o)),
             None,
             any_graph=False,
         )
@@ -247,10 +316,15 @@ class Graph:
             rs = s if s is not None else _require(from_native(quad.subject))
             rp = p if p is not None else _require(from_native(quad.predicate))
             candidate = _require(from_native(quad.object))
-            if object_value_filter and not _literal_matches(candidate, o):
-                continue
-            ro = o if o is not None else candidate
-            yield (rs, rp, ro)
+            if isinstance(candidate, Literal):
+                for variant in self._literal_variants(rs, rp, candidate, None):
+                    if pattern_literal is not None and not _literal_matches(
+                        variant, pattern_literal
+                    ):
+                        continue
+                    yield (rs, rp, variant)
+            elif pattern_literal is None:
+                yield (rs, rp, candidate)
 
     def __iter__(self) -> Iterator[_Triple]:
         """Iterate every triple as ``(subject, predicate, object)``."""
@@ -258,7 +332,9 @@ class Graph:
 
     def __len__(self) -> int:
         """Return the triple count."""
-        return len(self._store)
+        return len(self._store) + sum(
+            max(0, len(variants) - 1) for variants in self._literal_terms.values()
+        )
 
     def __contains__(self, triple: _Pattern) -> bool:
         """Return whether any triple matches the pattern."""
@@ -548,6 +624,7 @@ class Graph:
             )
             update_object = prefixes + update_object
         self._store.update(update_object)
+        self._literal_terms.clear()
 
     # ── set algebra ───────────────────────────────────────────────────────────────
 
@@ -599,28 +676,96 @@ class Graph:
             result.add(triple)
         return result
 
+    def _add_quad(
+        self,
+        subject: Identifier,
+        predicate: Identifier,
+        object: Identifier,
+        graph_name: _GraphName,
+    ) -> None:
+        """Add a quad and remember exact literal provenance at the RDFLib boundary."""
+        native_graph = (
+            gmeow_rdf.DefaultGraph()
+            if graph_name is None
+            else _native_subject(graph_name)
+        )
+        self._store.add(
+            gmeow_rdf.Quad(
+                _native_subject(subject),
+                _native_predicate(predicate),
+                to_native(object),
+                native_graph,
+            )
+        )
+        if isinstance(object, Literal):
+            key = _literal_quad_key(subject, predicate, object, graph_name)
+            self._literal_terms.setdefault(key, set()).add(object)
+
+    def _remove_quad(
+        self,
+        subject: Identifier,
+        predicate: Identifier,
+        object: Identifier,
+        graph_name: _GraphName,
+    ) -> None:
+        """Remove one exact quad variant, preserving other literal variants."""
+        should_remove_native = True
+        if isinstance(object, Literal):
+            key = _literal_quad_key(subject, predicate, object, graph_name)
+            variants = self._literal_terms.get(key)
+            if variants is not None:
+                variants.discard(object)
+                if variants:
+                    should_remove_native = False
+                else:
+                    del self._literal_terms[key]
+        if should_remove_native:
+            native_graph = (
+                gmeow_rdf.DefaultGraph()
+                if graph_name is None
+                else _native_subject(graph_name)
+            )
+            self._store.remove(
+                gmeow_rdf.Quad(
+                    _native_subject(subject),
+                    _native_predicate(predicate),
+                    to_native(object),
+                    native_graph,
+                )
+            )
+
+    def _literal_variants(
+        self,
+        subject: Identifier,
+        predicate: Identifier,
+        candidate: Literal,
+        graph_name: _GraphName,
+    ) -> tuple[Literal, ...]:
+        """Return exact RDFLib literal variants for a native literal bucket."""
+        key = _literal_quad_key(subject, predicate, candidate, graph_name)
+        variants = self._literal_terms.get(key)
+        if variants is None:
+            return (candidate,)
+        return tuple(variants)
+
 
 class _GraphView:
     """An add target for one graph slot of a :class:`Dataset` (``Dataset.graph``)."""
 
     def __init__(
         self,
-        store: gmeow_rdf.MutableDataset,
-        graph_name: gmeow_rdf.NamedNode | gmeow_rdf.BlankNode | gmeow_rdf.DefaultGraph,
+        dataset: Dataset,
+        graph_name: _GraphName,
     ) -> None:
         """Bind to ``store`` and the graph slot ``graph_name``."""
-        self._store = store
+        self._dataset = dataset
         self._graph_name = graph_name
         self.identifier = graph_name
 
     def add(self, triple: tuple[Identifier, Identifier, Identifier]) -> None:
         """Add a triple into this view's graph slot."""
         s, p, o = triple
-        self._store.add(
-            gmeow_rdf.Quad(
-                _native_subject(s), _native_predicate(p), to_native(o), self._graph_name
-            )
-        )
+        self._dataset._add_quad(s, p, o, self._graph_name)
 
 
 class Dataset(Graph):
@@ -638,52 +783,52 @@ class Dataset(Graph):
 
     def graph(self, identifier: Identifier) -> _GraphView:
         """Return an add target for the named graph ``identifier``."""
-        return _GraphView(self._store, _native_subject(identifier))
+        return _GraphView(self, identifier)
 
     @property
     def default_graph(self) -> _GraphView:
         """Return an add target for the (unnamed) default graph."""
-        return _GraphView(self._store, gmeow_rdf.DefaultGraph())
+        return _GraphView(self, None)
 
     def quads(
-        self, pattern: tuple[object, object, object, object] | None = None
-    ) -> Iterator[tuple[Identifier, Identifier, Identifier, Identifier | None]]:
+        self, pattern: _QuadPattern | None = None
+    ) -> Iterator[tuple[Identifier, Identifier, Identifier, _GraphName]]:
         """Yield ``(s, p, o, graph_name)`` quads matching ``pattern``.
 
         Each ``pattern`` slot is a wildcard when ``None`` (RDFLib quads() semantics);
         ``graph_name`` is ``None`` for the default graph.
         """
         ps, pp, po, pg = pattern if pattern is not None else (None, None, None, None)
-        graph_name = None if pg is None else _native_subject(pg)
-        native_object = None if po is None else to_native(po)
-        object_value_filter = isinstance(po, Literal)
+        native_graph_name = None if pg is None else _native_subject(pg)
+        pattern_literal = po if isinstance(po, Literal) else None
         for quad in self._store.quads_for_pattern(
             None if ps is None else _native_subject(ps),
             None if pp is None else _native_predicate(pp),
-            None if object_value_filter else native_object,
-            graph_name,
+            None
+            if pattern_literal is not None
+            else (None if po is None else to_native(po)),
+            native_graph_name,
             any_graph=pg is None,
         ):
-            graph_name = quad.graph_name
-            gname = (
-                None
-                if isinstance(graph_name, gmeow_rdf.DefaultGraph)
-                else from_native(graph_name)
-            )
+            gname = _graph_name_from_native(quad.graph_name)
             s = _require(from_native(quad.subject))
             p = _require(from_native(quad.predicate))
             o = _require(from_native(quad.object))
-            if object_value_filter and not _literal_matches(o, po):
-                continue
             if ps is not None:
                 s = ps
             if pp is not None:
                 p = pp
-            if po is not None:
-                o = po
             if pg is not None:
                 gname = pg
-            yield (s, p, o, gname)
+            if isinstance(o, Literal):
+                for variant in self._literal_variants(s, p, o, gname):
+                    if pattern_literal is not None and not _literal_matches(
+                        variant, pattern_literal
+                    ):
+                        continue
+                    yield (s, p, variant, gname)
+            elif pattern_literal is None:
+                yield (s, p, o, gname)
 
     def parse(
         self,
