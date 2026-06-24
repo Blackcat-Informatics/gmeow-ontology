@@ -2163,6 +2163,7 @@ enum PipelineStageEnum
     stage__HYPHEN_MINUS__export__HYPHEN_MINUS__evals
     stage__HYPHEN_MINUS__export__HYPHEN_MINUS__export
     stage__HYPHEN_MINUS__export__HYPHEN_MINUS__frame__HYPHEN_MINUS__shapes
+    stage__HYPHEN_MINUS__export__HYPHEN_MINUS__json__HYPHEN_MINUS__schema
     stage__HYPHEN_MINUS__export__HYPHEN_MINUS__logic
     stage__HYPHEN_MINUS__export__HYPHEN_MINUS__lpg
     stage__HYPHEN_MINUS__export__HYPHEN_MINUS__matrix

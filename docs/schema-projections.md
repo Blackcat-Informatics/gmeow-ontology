@@ -1,20 +1,92 @@
 <!-- SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca> -->
 <!-- SPDX-License-Identifier: CC-BY-4.0 -->
 
-# Schema projections — OWL → LinkML developer schemas
+# Schema projections — two provenances, two world assumptions
 
-> **Status.** Implemented in issue #57.  CLI: `gmeow compile-schemas` / `uv run --package gmeow-dev gmeow-dev regenerate schemas`.
-> CI gate: `uv run --package gmeow-dev gmeow-dev check-generated schemas` (runs in the `ontology` job).
+> **Status.**
+> **JSON Schema** (`gmeow.schema.json`) + **OpenAPI** (`gmeow.openapi.json`) are compiled
+> **natively in Rust from the SHACL shapes** (`crates/shacl`) — issue #700.  They are
+> *closed-world* validators.
+> The **LinkML targets** (`gmeow.linkml.yaml`, `gmeow.py`, `gmeow.ts`, `gmeow.graphql`) are
+> projected **OWL → LinkML** — issue #57.  They are *open-world* structural views.
+> Regenerate: `uv run --package gmeow-dev gmeow-dev regenerate schemas`.
+> CI gate: `uv run --package gmeow-dev gmeow-dev check-generated schemas` (in the `ontology` job).
 
-GMEOW is an **OWL 2 DL** ontology.  OWL is a *logic* language — it supports intersection,
-cardinality, inverse properties, and open-world reasoning.  Developer schemas (JSON Schema,
-Pydantic, TypeScript, GraphQL, OpenAPI) are *closed-world structural* contracts.  Translating
-from the former to the latter is **intentionally lossy** by design (CONSTITUTION Principle 5:
-*maximal bridging — by reference*).  This document inventories exactly what is lost and why.
+GMEOW is an **OWL 2 DL** ontology with a parallel layer of **SHACL** shapes.  OWL is a *logic*
+language (intersection, cardinality, inverse properties, open-world reasoning); SHACL is a
+*constraint* language that validates the well-formedness of instance data.  Developer schemas
+are *closed-world structural* contracts.  Which schema you can derive — and what it preserves —
+depends on **which source layer it is projected from**:
+
+* **From SHACL** → real validators with `required`, `enum`, `pattern`, cardinality, and ranges.
+* **From OWL (via LinkML)** → structural *type stubs*; requiredness is never inferred.
+
+This document inventories both, and exactly what each one loses and why.
 
 ---
 
-## What is preserved
+## 1. JSON Schema + OpenAPI — closed-world, native from SHACL (#700)
+
+`gmeow.schema.json` and `gmeow.openapi.json` are compiled **directly from the SHACL shapes**
+by the native Rust emitter (`gmeow_shacl::json_schema::compile`, `crates/shacl/src/json_schema.rs`),
+not from LinkML.  Because SHACL constraints *are* closed-world structural assertions, the
+projection preserves them faithfully:
+
+| SHACL construct | JSON Schema representation |
+|-----------------|----------------------------|
+| `sh:minCount ≥ 1` | `required` (the property is actually mandatory) |
+| `sh:minCount` / `sh:maxCount` | `minItems` / `maxItems` (or a single value for `maxCount 1`) |
+| `sh:in` | `enum` |
+| `sh:pattern` | `pattern` |
+| `sh:minInclusive` / `sh:maxInclusive` / `sh:minExclusive` / `sh:maxExclusive` | numeric `minimum` / `maximum` / `exclusiveMinimum` / `exclusiveMaximum` |
+| `sh:closed` | `additionalProperties: false` |
+| `sh:datatype` / `sh:nodeKind` | typed-literal / node-reference value schemas |
+
+These schemas **actually validate instance data**.  They drive `gmeow validate --schema`
+and IDE autocomplete for the YAML-LD-star surface.
+
+### The `@type`-discriminated envelope
+
+The schema validates a JSON-LD `@graph` of instance nodes against a single
+`$defs/Node` envelope.  `Node` discriminates on `@type`: an `allOf` of conditionals reads
+*if `@type` includes `gmeow:<Class>` (as a bare string or inside an array), then the node MUST
+satisfy `#/$defs/<Class>`*.  So a node is validated against the class def(s) named in its own
+`@type`, and **an instance missing a property required by its class is REJECTED** (closed-world
+enforcement).  Nodes typed only by unmodeled classes fall through permissively.
+
+### What is lost (and why) — JSON Schema / OpenAPI
+
+This is a **lossy** projection (CONSTITUTION Principle 17 / the loss ledger).  The emitter
+records each drop as a `LossRecord` and annotates the affected schema with a `$comment`:
+
+* **`sh:sparql` (SHACL-AF) constraints** have no JSON Schema equivalent and are **DROPPED**.
+  A JSON Schema cannot run a SPARQL query, so these node- and property-level constraints are
+  omitted (and logged).  This is the analogue of the ShEx/SPARQL loss: structural well-formedness
+  is preserved, but arbitrary SPARQL-expressed business rules are not.
+* **External (non-gmeow) class references** degrade to a permissive node reference / string.
+  A `gmeow:` class with no NodeShape likewise degrades to a node reference (no `$def` is emitted).
+
+Because it validates structure but is **not an entailment relation**, the projection is ledgered
+`logic:ValidationOnly` — see
+[`slices/core/logic/examples/projection-loss-ledger.ttl`](../slices/core/logic/examples/projection-loss-ledger.ttl),
+entry `ex:shaclJsonSchemaReport`.
+
+---
+
+## 2. LinkML targets — open-world, OWL → LinkML (#57)
+
+The remaining developer artifacts are projected from the **OWL** source through **LinkML**:
+
+* `gmeow.linkml.yaml` — the canonical LinkML schema
+* `gmeow.py` — Pydantic models
+* `gmeow.ts` — TypeScript interfaces
+* `gmeow.graphql` — GraphQL type stubs
+
+OWL is *open-world*: absence of a triple is not negation.  LinkML projection of OWL is therefore
+**intentionally lossy** by design (CONSTITUTION Principle 5: *maximal bridging — by reference*),
+and crucially it **never infers `required`** — these are type stubs, not validators.
+
+### What is preserved — LinkML
 
 | OWL construct | LinkML representation |
 |---------------|----------------------|
@@ -27,11 +99,9 @@ from the former to the latter is **intentionally lossy** by design (CONSTITUTION
 | `owl:inverseOf` | **dropped** (LinkML has no inverse slot) |
 | Named individuals of GMEOW classes | `enums` with `permissible_values` |
 
----
+### What is lost (and why) — LinkML
 
-## What is lost (and why)
-
-### 1. OWL restrictions (intersection, cardinality, value constraints)
+#### 2.1 OWL restrictions (intersection, cardinality, value constraints)
 
 OWL restrictions are expressed as anonymous blank nodes:
 
@@ -46,11 +116,12 @@ LinkML has no intersection construct.  The compiler drops all BNode-shaped
 `rdfs:subClassOf` / `owl:equivalentClass` axioms.  Cardinality constraints
 (`owl:minCardinality`, `owl:maxCardinality`) are likewise dropped.
 
-> **Rationale.** Developer schemas are structural, not logical.  A Pydantic model
+> **Rationale.** These targets are structural, not logical.  A Pydantic model
 cannot express "Person AND (hasAge some Age)".  The loss is documented so consumers
-know they must validate against SHACL or reasoned OWL for completeness.
+know they must validate against the SHACL-derived JSON Schema (§1) or reasoned OWL for
+completeness.
 
-### 2. RDF 1.2 reification, standpoint indexing, and the four-clocks temporal model
+#### 2.2 RDF 1.2 reification, standpoint indexing, and the four-clocks temporal model
 
 GMEOW's canonical statement-level metadata (issue #51) uses RDF 1.2 / RDF* triple terms:
 
@@ -59,21 +130,21 @@ GMEOW's canonical statement-level metadata (issue #51) uses RDF 1.2 / RDF* tripl
                                            :confidence 0.9 .
 ```
 
-LinkML and JSON Schema have no native representation for quoted triples or
+LinkML has no native representation for quoted triples or
 standpoint-indexed claims.  The compiler drops all statement-level provenance.
 
 > **Rationale.** These layers live in `statement-dsl/` and `statements/gmeow.rdf12.ttl`.
-The developer schema is a *simplified structural view*, not the canonical model.
+The LinkML schema is a *simplified structural view*, not the canonical model.
 
-### 3. `owl:inverseOf`
+#### 2.3 `owl:inverseOf`
 
 LinkML has no inverse-slot construct.  Properties declared with `owl:inverseOf`
 are emitted as forward-direction slots only.
 
-> **Rationale.** JSON Schema / Pydantic / TypeScript model properties, not
+> **Rationale.** Pydantic / TypeScript / GraphQL model properties, not
 bidirectional logical relations.  Consumers can infer inverses at the OWL layer.
 
-### 4. Multiple `rdfs:domain` / `rdfs:range` values
+#### 2.4 Multiple `rdfs:domain` / `rdfs:range` values
 
 If a property has more than one named domain or range, the compiler keeps the
 first and warns about the rest.
@@ -81,37 +152,37 @@ first and warns about the rest.
 > **Rationale.** LinkML slots have a single `domain` and `range`.  Multiple
 values would require union types, which many target generators handle poorly.
 
-### 5. External-class ranges
+#### 2.5 External-class ranges
 
 If a property's range is a class outside GMEOW (e.g., `schema:Person`, `foaf:Agent`),
 the compiler degrades it to `string` with a warning.
 
-> **Rationale.** The developer schema only defines GMEOW classes.  External
+> **Rationale.** The LinkML schema only defines GMEOW classes.  External
 classes would require importing their full type hierarchy, which is out of scope.
 
-### 6. Open-world assumptions
+#### 2.6 Open-world assumptions — requiredness is never inferred
 
-OWL is open-world: absence of a triple does not mean negation.  JSON Schema /
-Pydantic are closed-world: missing required fields fail validation.
-
-The compiler never marks slots as `required: true` (LinkML `required` is not
-inferred from OWL cardinality).  All slots default to optional.
+OWL is open-world: absence of a triple does not mean negation.  Pydantic / TypeScript
+are closed-world, but the LinkML projection **never marks slots as `required: true`**
+(LinkML `required` is not inferred from OWL cardinality).  All slots default to optional.
 
 > **Rationale.** Requiredness in OWL is a *logical* constraint (`owl:minCardinality 1`),
-not a *structural* one.  Mapping logical to structural requiredness would over-constrain
-consumers and contradict the open-world design.
+not a *structural* one.  Mapping logical to structural requiredness in the *type stubs*
+would over-constrain consumers and contradict the open-world design.  When you need real
+requiredness, use the **SHACL-derived JSON Schema** (§1), which carries `required` from
+`sh:minCount`.
 
 ---
 
 ## Generator-specific caveats
 
-| Generator | Known limitation |
-|-----------|-----------------|
-| **Pydantic** | Embeds the source LinkML path (normalized to `gmeow.linkml.yaml` for determinism).  Custom types (`duration`) inherit from `string`. |
-| **TypeScript** | Unknown `type.base` warnings for `datetime`, `decimal`, `duration`, `uri` — these fall back to `string`. |
-| **GraphQL** | Names containing illegal characters (e.g. `signatureSchemeBLS12-381`) are not valid in GraphQL identifiers. Normalize them before consumption (e.g. replace `-` with `_` → `signatureSchemeBLS12_381`, or remove entirely → `signatureSchemeBLS12381`). The schema generator preserves the original name so the mapping is explicit. |
-| **JSON Schema** | LinkML `mergeimports=True` inlines all definitions; the schema is self-contained but large. |
-| **OpenAPI** | Minimal path set (`GET /entities/{id}`) added for spec validity; not a functional API definition. |
+| Generator | Provenance | Known limitation |
+|-----------|-----------|------------------|
+| **JSON Schema** | SHACL (#700) | `sh:sparql` constraints are dropped (no equivalent); external / NodeShape-less classes degrade to a node reference. |
+| **OpenAPI** | SHACL (#700) | Minimal path set (`GET /entities/{id}`) added for spec validity; not a functional API definition.  Inherits the JSON Schema losses. |
+| **Pydantic** | LinkML (#57) | Embeds the source LinkML path (normalized to `gmeow.linkml.yaml` for determinism).  Custom types (`duration`) inherit from `string`. |
+| **TypeScript** | LinkML (#57) | Unknown `type.base` warnings for `datetime`, `decimal`, `duration`, `uri` — these fall back to `string`. |
+| **GraphQL** | LinkML (#57) | Names with illegal characters (e.g. `signatureSchemeBLS12-381`) are not valid GraphQL identifiers. Normalize before consumption (e.g. `-` → `_` → `signatureSchemeBLS12_381`, or remove → `signatureSchemeBLS12381`). The generator preserves the original name so the mapping is explicit. |
 
 ---
 
@@ -121,21 +192,23 @@ consumers and contradict the open-world design.
 # Generate all artifacts into dist/schemas/
 uv run --package gmeow-dev gmeow-dev regenerate schemas
 
-# Verify they match the current ontology (CI gate)
+# Verify they match the current ontology + shapes (CI gate)
 uv run --package gmeow-dev gmeow-dev check-generated schemas
 
-# Regenerate after JSON-LD context changes before checking drift.
+# Validate an instance document against the SHACL-derived JSON Schema
+gmeow validate --schema dist/schemas/gmeow.schema.json instance.jsonld
 ```
 
 Output files:
 
-* `dist/schemas/gmeow.linkml.yaml` — canonical LinkML schema
-* `dist/schemas/gmeow.schema.json` — JSON Schema
-* `dist/schemas/gmeow.py` — Pydantic models
-* `dist/schemas/gmeow.ts` — TypeScript interfaces
-* `dist/schemas/gmeow.graphql` — GraphQL type stubs
-* `dist/schemas/gmeow.openapi.json` — OpenAPI 3.1
+* `dist/schemas/gmeow.schema.json` — JSON Schema (closed-world, native from SHACL)
+* `dist/schemas/gmeow.openapi.json` — OpenAPI 3.1 (closed-world, native from SHACL)
+* `dist/schemas/gmeow.linkml.yaml` — canonical LinkML schema (OWL → LinkML)
+* `dist/schemas/gmeow.py` — Pydantic models (OWL → LinkML)
+* `dist/schemas/gmeow.ts` — TypeScript interfaces (OWL → LinkML)
+* `dist/schemas/gmeow.graphql` — GraphQL type stubs (OWL → LinkML)
 
 These are **build artifacts** (`dist/` is git-ignored).  Do not edit them by hand.
-If a term is wrong, fix the OWL source in `ontology/modules/` and re-run
+If a term is wrong, fix the OWL source in `ontology/modules/` (LinkML targets) or the SHACL
+shapes (JSON Schema / OpenAPI), then re-run
 `uv run --package gmeow-dev gmeow-dev regenerate schemas`.
