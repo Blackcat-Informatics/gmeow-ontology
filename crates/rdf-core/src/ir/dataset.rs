@@ -658,6 +658,31 @@ impl RdfDataset {
         self.annotations.iter().copied()
     }
 
+    /// Iterate `(reifier, triple-term)` bindings with each id resolved to its borrowed
+    /// [`TermRef`]. Zero allocation (string content is borrowed from the term table),
+    /// infallible. The triple-term resolves to [`TermRef::Triple`].
+    ///
+    /// The borrowed twin of [`reifiers`](Self::reifiers): consumers that read the
+    /// RDF 1.2 statement layer off the concrete IR (the GTS writer, the oxigraph
+    /// materializer) use this to read reifiers WITHOUT the owned `RdfReifier` model —
+    /// the id-based read surface for the purrdf consumer migration (#886).
+    #[inline]
+    pub fn reifier_refs(&self) -> impl Iterator<Item = (TermRef<'_>, TermRef<'_>)> + '_ {
+        self.reifiers()
+            .map(move |(r, t)| (self.resolve(r), self.resolve(t)))
+    }
+
+    /// Iterate `(reifier, predicate, object)` annotations with each id resolved to its
+    /// borrowed [`TermRef`]. Zero allocation, infallible. The borrowed twin of
+    /// [`annotations`](Self::annotations) — see [`reifier_refs`](Self::reifier_refs).
+    #[inline]
+    pub fn annotation_refs(
+        &self,
+    ) -> impl Iterator<Item = (TermRef<'_>, TermRef<'_>, TermRef<'_>)> + '_ {
+        self.annotations()
+            .map(move |(r, p, o)| (self.resolve(r), self.resolve(p), self.resolve(o)))
+    }
+
     /// The reifier resources bound to a triple term (C0.4). Several reifiers MAY
     /// bind one triple, so this yields zero or more — the single source for "who
     /// reifies this statement", used by the SARIF/annotation threading and validate
@@ -1122,6 +1147,62 @@ mod tests {
         let anns: Vec<_> = ds.annotations_of(r1).collect();
         assert_eq!(anns, vec![(ap, ao)]);
         assert_eq!(ds.annotations_of(r2).count(), 0);
+    }
+
+    #[test]
+    fn reifier_and_annotation_refs_resolve_to_borrowed_terms() {
+        // The borrowed read surface (#886) must resolve every reifier/annotation id to
+        // its `TermRef` with full fidelity — including a triple-term reifier statement
+        // and a directional literal annotation object (MAXIMAL INFORMATION FLOW).
+        let mut b = RdfDatasetBuilder::new();
+        let s = iri(&mut b, "s");
+        let p = iri(&mut b, "p");
+        let o = iri(&mut b, "o");
+        let triple = b.intern_triple(s, p, o);
+        let r = iri(&mut b, "r");
+        let ap = iri(&mut b, "ap");
+        let rtl = b.intern_literal(RdfLiteral {
+            lexical_form: "مرحبا".to_string(),
+            datatype: None,
+            language: Some("ar".to_string()),
+            direction: Some(RdfTextDirection::Rtl),
+        });
+        b.push_reifier(r, triple);
+        b.push_annotation(r, ap, rtl);
+        let ds = b.freeze().expect("valid");
+
+        // reifier_refs: the reifier is an IRI, the statement resolves to a triple term.
+        let reifier_refs: Vec<_> = ds.reifier_refs().collect();
+        assert_eq!(reifier_refs.len(), 1);
+        let (reifier, statement) = &reifier_refs[0];
+        assert!(matches!(reifier, TermRef::Iri("http://example.org/r")));
+        match statement {
+            TermRef::Triple { s: ts, p: tp, .. } => {
+                assert_eq!(*ts, s);
+                assert_eq!(*tp, p);
+            }
+            other => panic!("reifier statement must be a triple term, got {other:?}"),
+        }
+
+        // annotation_refs: the directional literal object survives resolution intact.
+        let annotation_refs: Vec<_> = ds.annotation_refs().collect();
+        assert_eq!(annotation_refs.len(), 1);
+        let (a_reifier, a_pred, a_obj) = &annotation_refs[0];
+        assert!(matches!(a_reifier, TermRef::Iri("http://example.org/r")));
+        assert!(matches!(a_pred, TermRef::Iri("http://example.org/ap")));
+        match a_obj {
+            TermRef::Literal {
+                lexical,
+                language,
+                direction,
+                ..
+            } => {
+                assert_eq!(*lexical, "مرحبا");
+                assert_eq!(*language, Some("ar"));
+                assert_eq!(*direction, Some(RdfTextDirection::Rtl));
+            }
+            other => panic!("annotation object must be the directional literal, got {other:?}"),
+        }
     }
 
     #[test]
