@@ -15,7 +15,6 @@ from gmeow_rdf.compat.rdflib import OWL, RDF, Graph, Literal, URIRef
 
 from gmeow_tools.config import FIXTURES_DIR, NAMESPACE
 from gmeow_tools.graph import load_merged_graph
-from gmeow_tools.mapping_compile import _default_suppression_vocab
 from gmeow_tools.saturate import (
     SAME_AS_MIRROR_RULE,
     Cell,
@@ -23,6 +22,7 @@ from gmeow_tools.saturate import (
     load_cells,
     saturate,
 )
+from gmeow_tools.suppression import default_suppression_vocab
 
 pytestmark = pytest.mark.maintainer
 
@@ -53,7 +53,7 @@ def _saturate(
         onto=onto,
         cells=cells,
         denied=kw.get("denied", set()),  # type: ignore[arg-type]
-        vocab=_default_suppression_vocab(),
+        vocab=default_suppression_vocab(),
     )
 
 

@@ -47,7 +47,7 @@ if TYPE_CHECKING:
 
     from gmeow_rdf.compat.rdflib.term import Node
 
-    from gmeow_tools.mapping_compile import SuppressionVocab
+    from gmeow_tools.suppression import SuppressionVocab
 
 _GM = NAMESPACE
 _DISPLAYABLE = URIRef(_GM + "displayable")

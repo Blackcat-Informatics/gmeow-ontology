@@ -4,10 +4,9 @@
 //! Native FnO emission — the whole of GMEOW's `functions.fno.ttl` emitter, sourced
 //! entirely from Rust (#848).
 //!
-//! This is the SUBSUME/ENHANCE move that pulls the FnO *emission* orchestrator out
-//! of Python (`gmeow_tools.mapping_compile.emit_fno` / `_emit_fnom`) and into the
-//! slice framework, mirroring the SSSOM emitter ([`crate::mapping_emit`]). The
-//! Python side now passes nothing but the repo-root path; every input is discovered
+//! This is the SUBSUME/ENHANCE move that keeps the FnO *emission* orchestrator in
+//! the slice framework, mirroring the SSSOM emitter ([`crate::mapping_emit`]).
+//! Python passes nothing but the repo-root path; every input is discovered
 //! natively here:
 //!
 //! * **Projection functions** (`gmeow:ProjectionFunction`) and **projection cells**
@@ -192,8 +191,7 @@ pub fn emit_fno(root: &Path) -> Result<String, SliceError> {
     let catalog = build_catalog(&functions, &cells, &onto_store)?;
 
     // Projection boundary: retag every internal `@x-gmeow-*` language tag to its
-    // public BCP-47 form (mirrors `mapping_compile._write_tree`'s `retag_graph`,
-    // applied to the FnO graph before the Turtle write — #287). The serializer in
+    // public BCP-47 form before the Turtle write (#287). The serializer in
     // `gmeow_rdf::fno` mints `@x-gmeow-english` literals; the committed
     // `functions.fno.ttl` carries the public `@en` retag, so this is the same
     // internal→public boundary as `edoal_emit`.
@@ -355,7 +353,7 @@ fn load_into_store(store: &Store, bytes: &[u8], path: &Path) -> Result<(), Slice
 
 // ── Function / cell extraction ───────────────────────────────────────────────────
 
-/// Extract every `gmeow:ProjectionFunction` (mirrors `mapping_dsl._functions`).
+/// Extract every `gmeow:ProjectionFunction`.
 fn extract_functions(store: &Store) -> Result<Vec<ProjectionFunction>, SliceError> {
     let mut out: Vec<ProjectionFunction> = Vec::new();
     for fn_iri in subjects_of_type(store, GM_PROJECTION_FUNCTION)? {
@@ -381,8 +379,7 @@ fn extract_functions(store: &Store) -> Result<Vec<ProjectionFunction>, SliceErro
     Ok(out)
 }
 
-/// Extract every `gmeow:ProjectionMapping`'s FnO-relevant subset (mirrors the parts
-/// of `mapping_dsl._projections` / `_pattern` / `_binding` that FnO reads).
+/// Extract every `gmeow:ProjectionMapping`'s FnO-relevant subset.
 fn extract_cells(store: &Store) -> Result<Vec<ProjectionCell>, SliceError> {
     let mut out: Vec<ProjectionCell> = Vec::new();
     for cell_iri in subjects_of_type(store, GM_PROJECTION_MAPPING)? {
@@ -431,8 +428,7 @@ fn parse_pattern(store: &Store, pattern: &Term) -> Result<ParsedPattern, SliceEr
     Ok((atoms, value, binds))
 }
 
-/// Parse one pattern item into the flattened atom list, recursing OPTIONAL groups
-/// (mirrors `mapping_dsl._item` + `mapping_compile._flatten_atoms`).
+/// Parse one pattern item into the flattened atom list, recursing OPTIONAL groups.
 fn flatten_item(store: &Store, node: &Term, out: &mut Vec<Atom>) -> Result<(), SliceError> {
     if let Some(group_head) = first_object_of_term(store, node, GM_OPTIONAL_GROUP)? {
         for item in rdf_list(store, Some(&group_head))? {
@@ -444,9 +440,9 @@ fn flatten_item(store: &Store, node: &Term, out: &mut Vec<Atom>) -> Result<(), S
     Ok(())
 }
 
-/// Parse one atom's FnO-relevant fields (mirrors the relevant parts of
-/// `mapping_dsl._atom`): the plain predicate, the top-level alt-path alternatives,
-/// and the object var. `tSubj/tPred/tObj` template aliases are honoured for parity.
+/// Parse one atom's FnO-relevant fields: the plain predicate, the top-level
+/// alt-path alternatives, and the object var. `tSubj/tPred/tObj` template aliases
+/// are honoured for parity.
 fn parse_atom(store: &Store, node: &Term) -> Result<Atom, SliceError> {
     let predicate = match object_iri_of_term(store, node, GM_PREDICATE)? {
         Some(p) => Some(p),
@@ -478,7 +474,7 @@ fn parse_atom(store: &Store, node: &Term) -> Result<Atom, SliceError> {
 }
 
 /// If `node` is a top-level `gmeow:AltPath` of plain predicates, return them; else
-/// `()` (mirrors `mapping_dsl._alt_members`).
+/// `()`.
 fn alt_members(store: &Store, node: &Term) -> Result<Vec<String>, SliceError> {
     // A bare predicate IRI (or a literal) is never an alternation node; only a
     // blank-node AltPath structure is.
@@ -502,8 +498,7 @@ fn alt_members(store: &Store, node: &Term) -> Result<Vec<String>, SliceError> {
     Ok(alts)
 }
 
-/// Parse one bind node: its var + the set of variables its expression references
-/// (mirrors `mapping_dsl._bind` + `_expr` + `_expr_vars`).
+/// Parse one bind node: its var + the set of variables its expression references.
 fn parse_bind(store: &Store, node: &Term) -> Result<Bind, SliceError> {
     let Some(var) = object_literal_of_term(store, node, GM_BIND_VAR)? else {
         return Err(SliceError::Parse("bind missing bindVar".to_owned()));
@@ -542,8 +537,8 @@ fn collect_expr_vars(
 }
 
 /// Order BIND declarations deterministically in dependency order with an
-/// alphabetical tiebreak among independent binds (mirrors `mapping_dsl._order_binds`
-/// — the committed canonical order, so `_output_var`'s `binds[-1]` is stable).
+/// alphabetical tiebreak among independent binds — the committed canonical order,
+/// so `_output_var`'s `binds[-1]` is stable.
 fn order_binds(binds: Vec<Bind>) -> Vec<String> {
     let own: BTreeSet<String> = binds.iter().map(|b| b.var.clone()).collect();
     // deps[v] = (expr vars ∩ own) − {v}
@@ -584,7 +579,7 @@ fn order_binds(binds: Vec<Bind>) -> Vec<String> {
 }
 
 /// Parse the `(profile, transform)` of every binding that names a transform
-/// (mirrors the transform-bearing slice of `mapping_dsl._binding`).
+/// transform.
 fn parse_transform_bindings(
     store: &Store,
     cell: &NamedNode,
@@ -606,8 +601,7 @@ fn parse_transform_bindings(
 
 // ── Derivation (emit_fno + _emit_fnom) ───────────────────────────────────────────
 
-/// The local name of an IRI — the substring after the last `#` or `/` (mirrors
-/// `mapping_compile._local`).
+/// The local name of an IRI — the substring after the last `#` or `/`.
 fn local(iri: &str) -> String {
     let cut = iri.rfind(['#', '/']).map(|i| i + 1).unwrap_or(0);
     iri[cut..].to_owned()
@@ -741,7 +735,7 @@ fn build_catalog(
         {
             let param = param_iri(predicate);
             // The fail-closed type: refuse a param whose source predicate has no
-            // ontology rdfs:range (mirrors the CompileError).
+            // ontology rdfs:range.
             let Some(rng) = predicate_range(onto, predicate)? else {
                 return Err(SliceError::Parse(format!(
                     "{}: input {predicate} has no rdfs:range — cannot derive its fno:type",
@@ -1078,8 +1072,7 @@ fn object_literal_of_term(
     }
 }
 
-/// The members of an rdf:List head node (empty if `head` is `None`), mirroring
-/// `mapping_dsl._rdf_list` over an oxigraph store.
+/// The members of an rdf:List head node (empty if `head` is `None`).
 fn rdf_list(store: &Store, head: Option<&Term>) -> Result<Vec<Term>, SliceError> {
     let mut out: Vec<Term> = Vec::new();
     let mut node = head.cloned();
@@ -1335,8 +1328,7 @@ gmeow:fnDemo a gmeow:ProjectionFunction ;
     }
 
     /// Two predicates minting the same param IRI from different sources are
-    /// rejected, never silently merged (mirrors the Python `param IRI collision`
-    /// CompileError — now Rust-native).
+    /// rejected, never silently merged.
     #[test]
     fn param_iri_collision_is_a_hard_error() {
         let dsl = new_store().unwrap();

@@ -4,10 +4,10 @@
 //! Native DSL surface-count emission — GMEOW's committed, drift-gated
 //! `generated/mappings/dsl-stats.json` (#861).
 //!
-//! Ports `mapping_compile.emit_dsl_stats`: a counts summary over the SAME merged
-//! mapping-DSL source set every other emitter loads (the shared
+//! Emits the counts summary over the SAME merged mapping-DSL source set every
+//! other emitter loads (the shared
 //! `dsl/mappings/**/*.ttl` tree + the slice [`crate::artifact::ArtifactRole::Mapping`]
-//! artifacts — exactly `mapping_dsl.load_dsl`'s sources). The counts are:
+//! artifacts). The counts are:
 //!   * `equivalences` — every `gmeow:TermEquivalence` cell.
 //!   * `functions` — every `gmeow:ProjectionFunction`.
 //!   * `mapping_sets` — every `gmeow:MappingSet`.
@@ -37,7 +37,7 @@ const GM_SSSOM_FILE: &str = "https://blackcatinformatics.ca/gmeow/sssomFile";
 ///
 /// All inputs are sourced natively from `root` (the shared mapping-DSL tree + the
 /// slice mapping artifacts — the same merged store [`emit_sparql_sets`] parses).
-/// The text is byte-identical to the historical Python `emit_dsl_stats`.
+/// The text is byte-identical to the historical Python DSL stats emitter.
 ///
 /// [`emit_sparql_sets`]: crate::sparql_emit::emit_sparql_sets
 ///
@@ -45,7 +45,7 @@ const GM_SSSOM_FILE: &str = "https://blackcatinformatics.ca/gmeow/sssomFile";
 ///
 /// Returns [`SliceError`] on any missing/unparsable required source (no degraded
 /// fallback): a `gmeow:TermEquivalence` cell with no `gmeow:sssomFile` is a hard
-/// error, mirroring `mapping_dsl._equivalences`.
+/// error, matching the DSL equivalence-cell contract.
 pub fn emit_dsl_stats(root: &Path) -> Result<String, SliceError> {
     let store = collect_dsl_store(root)?;
 

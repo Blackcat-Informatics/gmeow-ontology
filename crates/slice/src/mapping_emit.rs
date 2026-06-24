@@ -4,9 +4,8 @@
 //! Native SSSOM emission — the whole of GMEOW's `*.sssom.tsv` emitter, sourced
 //! entirely from Rust (#848).
 //!
-//! This is the SUBSUME/ENHANCE move that pulls the SSSOM *emission* orchestrator
-//! out of Python (`gmeow_tools.mapping_compile.emit_sssom`) and into the slice
-//! framework. The Python side now passes nothing but the repo-root path; every
+//! This is the SUBSUME/ENHANCE move that keeps the SSSOM *emission* orchestrator
+//! inside the slice framework. Python passes nothing but the repo-root path; every
 //! input is discovered natively here:
 //!
 //! * **Slice equivalence cells** ← [`SliceCatalog::discover`] →
@@ -123,8 +122,8 @@ const SSSOM_ALWAYS: &[&str] = &[
 ///
 /// Insertion order is load-bearing: CURIE-shortening sorts by descending
 /// namespace length with the *registry order* as the tie-break (mirroring
-/// `mapping_dsl._NS_TO_PREFIX`, a Python stable sort keyed on `-len(ns)` over the
-/// dict's insertion order). The block-comment groupings below follow `config.py`.
+/// the compiler's stable sort keyed on descending namespace length over the
+/// registry's insertion order. The block-comment groupings below follow `config.py`.
 pub(crate) const PREFIX_REGISTRY: &[(&str, &str)] = &[
     ("gmeow", "https://blackcatinformatics.ca/gmeow/"),
     ("logic", "https://blackcatinformatics.ca/logic/"),
@@ -301,7 +300,7 @@ pub(crate) const PREFIX_REGISTRY: &[(&str, &str)] = &[
 
 /// One `gmeow:TermEquivalence` cell — compiles to exactly one SSSOM row.
 ///
-/// Mirrors the Python `EquivalenceCell` dataclass (`mapping_dsl.EquivalenceCell`).
+/// One parsed `gmeow:TermEquivalence` cell.
 /// IRIs are kept as full absolute strings; CURIE-shortening happens at emit time.
 #[derive(Debug, Clone)]
 struct EquivalenceCell {
@@ -739,7 +738,7 @@ fn render_sets(
     version: &str,
     release_date: &str,
 ) -> Result<BTreeMap<String, String>, SliceError> {
-    // Longest-IRI-prefix table for CURIE shortening (`mapping_dsl._NS_TO_PREFIX`),
+    // Longest-IRI-prefix table for CURIE shortening,
     // built from the curated registry (the prefix authority).
     let ns_to_prefix = build_ns_to_prefix();
 
@@ -887,10 +886,8 @@ fn registry_iri(prefix: &str) -> Option<&'static str> {
 /// Build the longest-IRI-first `(namespace, prefix)` table used to shorten an IRI
 /// to a CURIE, from the curated [`PREFIX_REGISTRY`].
 ///
-/// Mirrors `mapping_dsl._NS_TO_PREFIX`: a stable sort keyed on descending
-/// namespace length. The tiebreak among equal-length namespaces is the registry's
-/// own insertion order (Python sorts `((ns, p) for p, ns in PREFIXES.items())`
-/// stably by `-len(ns)`, so equal-length namespaces keep `config.PREFIXES` order).
+/// Stable sort keyed on descending namespace length. The tiebreak among
+/// equal-length namespaces is the registry's own insertion order.
 fn build_ns_to_prefix() -> Vec<(&'static str, &'static str)> {
     let mut pairs: Vec<(&'static str, &'static str)> =
         PREFIX_REGISTRY.iter().map(|(p, ns)| (*ns, *p)).collect();

@@ -598,9 +598,8 @@ impl PyOwnershipAnalyzer {
 
 /// Emit every SSSOM TSV from the repo at `root`, returning `{sssom_file → tsv}`.
 ///
-/// This is the native, byte-parity replacement for the Python
-/// `mapping_compile.emit_sssom` (#848): Python passes only the repo root, and the
-/// emitter sources every input — slice mapping artifacts, the shared
+/// This is the native, byte-parity SSSOM emitter (#848): Python passes only the
+/// repo root, and the emitter sources every input — slice mapping artifacts, the shared
 /// `dsl/mappings/` tree, the prefix map, and the self-description version/date —
 /// natively. Keys are bare file names (e.g. `gmeow-accessibility.sssom.tsv`).
 ///

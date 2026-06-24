@@ -3,23 +3,15 @@
 
 //! The `mappings` stage (#861 P3): compile the alignment artifacts.
 //!
-//! Two of the four mapping families are ALREADY pure Rust and are wired directly
-//! here — no port:
+//! All mapping artifact families are Rust-owned and wired directly here:
 //!   * **SSSOM** → `gmeow_slice::emit_sssom_sets(root)` (byte-identical to the
 //!     historical Python emitter, its own parity gate) → `generated/mappings/*.sssom.tsv`.
 //!   * **FnO** → `gmeow_slice::emit_fno(root)` → `generated/projections/functions.fno.ttl`.
-//!
-//! The remaining two families — **EDOAL** (`emit_edoal`) and the **SPARQL
-//! CONSTRUCT** projections (`emit_sparql`, the closed-algebra renderer in
-//! `mapping_dsl.py`) — are now ALSO pure Rust (#861 P3/P4):
 //!   * **EDOAL** → `gmeow_slice::emit_edoal_sets(root)` (byte-identical to the
 //!     historical Python emitter — built as N-Triples then serialized through the
 //!     project's canonical Turtle serializer) → `generated/projections/*.edoal.ttl`.
 //!   * **SPARQL CONSTRUCT** → `gmeow_slice::emit_sparql_sets(root)` (the
 //!     closed-algebra text renderer) → `generated/queries/*.rq`.
-//!
-//! The final two mapping outputs are now ALSO pure Rust (#861), so the mappings
-//! stage is **complete** — all five families plus the DSL surface-count summary:
 //!   * **Standpoint projections** → `gmeow_slice::emit_standpoint_sets(root)` — the
 //!     six hand-authored `standpoint-*.rq` (Standpoint-OWL 2, CRMinf, PROV-O, Web
 //!     Annotation, schema.org Claim, BBC News), fixed template-coded SPARQL with no
@@ -33,9 +25,13 @@
 use std::collections::BTreeMap;
 use std::path::Path;
 
+use gmeow_diagnostics::{Finding, Location, Report, Severity};
+use gmeow_rdf::RdfSeverity;
 use gmeow_slice::emit_sssom_sets;
 use gmeow_slice::fno_emit::emit_fno;
-use gmeow_slice::{emit_dsl_stats, emit_edoal_sets, emit_sparql_sets, emit_standpoint_sets};
+use gmeow_slice::{
+    emit_dsl_stats, emit_edoal_sets, emit_sparql_sets, emit_standpoint_sets, lint_projection,
+};
 
 use crate::error::PipelineError;
 use crate::node::{Stage, StageInput, StageKind, StageOutput, StageProduct};
@@ -110,6 +106,119 @@ pub fn compile_mappings(root: &Path) -> Result<BTreeMap<String, Vec<u8>>, Pipeli
     artifacts.insert(DSL_STATS_PATH.to_string(), dsl_stats.into_bytes());
 
     Ok(artifacts)
+}
+
+/// Compile mappings and fold their diagnostics into the native report.
+///
+/// This is the Rust-owned implementation behind the Python feedback surface:
+/// Python remains the CLI/interface, while compilation, SSSOM validation, and
+/// cross-layer projection linting all run through native Rust authorities.
+pub fn compile_diagnostics_report(root: &Path) -> Report {
+    let mut report = Report::new("mapping-compile");
+    let artifacts = match compile_mappings(root) {
+        Ok(artifacts) => artifacts,
+        Err(err) => {
+            add_dsl_error(&mut report, err.to_string());
+            return report;
+        }
+    };
+
+    for (path, bytes) in artifacts
+        .iter()
+        .filter(|(path, _)| path.ends_with(".sssom.tsv"))
+    {
+        fold_sssom_findings(&mut report, path, bytes);
+    }
+
+    match lint_projection(root) {
+        Ok(problems) => {
+            for problem in problems {
+                let mut finding = Finding::new(
+                    Severity::Error,
+                    format!("mapping-compile.{}", problem.check),
+                    problem.message,
+                )
+                .with_tool("mapping-compile");
+                if let Some(instance) = problem.instance {
+                    finding.add_location(Location::new(None, None, None, Some(instance)));
+                }
+                report.add_finding(finding);
+            }
+        }
+        Err(err) => {
+            report.add_finding(
+                Finding::new(
+                    Severity::Warning,
+                    "mapping-compile.projection-lint-skipped",
+                    format!("projection lint findings not surfaced: {err}"),
+                )
+                .with_tool("mapping-compile"),
+            );
+        }
+    }
+
+    report
+}
+
+fn add_dsl_error(report: &mut Report, message: String) {
+    report.add_finding(
+        Finding::new(Severity::Error, "mapping-compile.dsl-error", message)
+            .with_tool("mapping-compile"),
+    );
+}
+
+fn fold_sssom_findings(report: &mut Report, path: &str, bytes: &[u8]) {
+    let text = match std::str::from_utf8(bytes) {
+        Ok(text) => text,
+        Err(err) => {
+            report.add_finding(sssom_finding(
+                path,
+                None,
+                format!("SSSOM artifact is not UTF-8: {err}"),
+                "parse",
+                "Utf8",
+            ));
+            return;
+        }
+    };
+
+    let set = match gmeow_rdf::sssom::parse_tsv(text) {
+        Ok(set) => set,
+        Err(diag) => {
+            report.add_finding(sssom_finding(path, None, diag.message, "parse", diag.code));
+            return;
+        }
+    };
+
+    for diag in gmeow_rdf::sssom::validate(&set) {
+        if diag.severity == RdfSeverity::Error {
+            report.add_finding(sssom_finding(
+                path,
+                diag.instance,
+                diag.message,
+                diag.check,
+                diag.code,
+            ));
+        }
+    }
+}
+
+fn sssom_finding(
+    path: &str,
+    instance: Option<String>,
+    message: String,
+    check: impl Into<String>,
+    code: impl Into<String>,
+) -> Finding {
+    let mut finding = Finding::new(Severity::Error, "mapping-compile.sssom", message)
+        .with_tool("mapping-compile");
+    let mut location = Location::new(Some(path.to_owned()), None, None, instance);
+    if location.is_empty() {
+        location.path = Some(path.to_owned());
+    }
+    finding.add_location(location);
+    finding.detail = Some(format!("check={} code={}", check.into(), code.into()));
+    finding
 }
 
 /// Recursively collect every regular file under `dir` into `out` (fail-fast on a

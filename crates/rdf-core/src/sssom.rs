@@ -77,7 +77,7 @@ const SSSOM_NS: &str = "https://w3id.org/sssom/";
 pub const SSSOM_DEFAULT_VALIDATION_TYPES: &[&str] =
     &["JsonSchema", "PrefixMapCompleteness", "StrictCurieFormat"];
 
-/// The canonical SSSOM column order GMEOW writes (`mapping_compile._SSSOM_ORDER`).
+/// The canonical SSSOM column order GMEOW writes.
 const SSSOM_ORDER: &[&str] = &[
     "subject_id",
     "subject_label",
@@ -89,8 +89,7 @@ const SSSOM_ORDER: &[&str] = &[
     "comment",
 ];
 
-/// The columns GMEOW always emits, even when blank for every row
-/// (`mapping_compile._SSSOM_ALWAYS`).
+/// The columns GMEOW always emits, even when blank for every row.
 const SSSOM_ALWAYS: &[&str] = &[
     "subject_id",
     "predicate_id",
@@ -247,7 +246,7 @@ fn parse_header(lines: &[&str]) -> Result<SssomMeta, RdfDiagnostic> {
             continue;
         }
         // A `# #…` line is a trailer/provenance comment (the second '#' makes it
-        // YAML-invisible — see `mapping_compile.emit_sssom`). GMEOW emits these
+        // YAML-invisible). GMEOW emits these
         // after the curie_map block but still inside the leading `#` region; they
         // are never header scalars or curie entries, so skip them outright (they
         // do NOT close an open curie_map block — more curie entries can follow in
@@ -584,7 +583,7 @@ fn mapping_instance(mapping: &SssomMapping) -> Option<String> {
 ///
 /// Emits the metadata header, then the `_SSSOM_ORDER` columns (always-on columns
 /// plus any optional column some row populates), then rows sorted by
-/// `(subject_id, predicate_id, object_id)` — matching `mapping_compile.emit_sssom`
+/// `(subject_id, predicate_id, object_id)` — matching the GMEOW SSSOM writer
 /// closely enough that `parse ∘ serialize_tsv` is stable (round-trip-stable). IDs
 /// are kept as authored (CURIEs are not expanded).
 pub fn serialize_tsv(set: &SssomMappingSet) -> String {
@@ -678,7 +677,7 @@ fn cell(mapping: &SssomMapping, column: &str) -> String {
 }
 
 /// Format a confidence as the shortest round-trip-stable decimal (`0.7`, not
-/// `0.70`), matching the GMEOW writer (`mapping_compile._conf`).
+/// `0.70`), matching the GMEOW writer.
 fn format_confidence(value: f64) -> String {
     // Rust's default float formatting already drops trailing zeros and prints the
     // shortest decimal that round-trips, so `0.7_f64` → "0.7" and `1.0` → "1".

@@ -9,9 +9,9 @@ This module is the load-then-validate seam: it gathers the vocabulary plus every
 slice-resident fixture file and validates the merged graph against the test-DSL
 SHACL shapes (``shapes/test-dsl-shapes.ttl``) via
 :func:`gmeow_tools.dsl_validate.validate_test_dsl`, raising
-:exc:`~gmeow_tools.mapping_dsl.CompileError` on any violation. It is a spec
-layer — grounded in the ``gmeow:`` namespace, never owl:imports-ed into the
-reasoned OWL 2 DL core.
+:exc:`~gmeow_tools.dsl_validate.DslValidationError` on any violation. It is a
+spec layer — grounded in the ``gmeow:`` namespace, never owl:imports-ed into
+the reasoned OWL 2 DL core.
 
 Execution of the test specs themselves (running the SPARQL, checking outcomes)
 is a later concern; this module only makes the specs SHACL-validated and
@@ -23,8 +23,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from gmeow_tools.config import DSL_TESTS_DIR
-from gmeow_tools.dsl_validate import validate_test_dsl
-from gmeow_tools.mapping_dsl import CompileError
+from gmeow_tools.dsl_validate import DslValidationError, validate_test_dsl
 from gmeow_tools.slices import iter_slice_test_files
 
 
@@ -53,11 +52,13 @@ def load_test_dsl(vocab_dir: Path = DSL_TESTS_DIR) -> tuple[Path, ...]:
         The validated source paths, in the order they were merged.
 
     Raises:
-        CompileError: When any fixture (or the vocabulary) violates the
+        DslValidationError: When any fixture (or the vocabulary) violates the
             test-DSL SHACL shapes.
     """
     sources = _test_dsl_sources(vocab_dir)
     violations = validate_test_dsl([str(path) for path in sources])
     if violations:
-        raise CompileError("test DSL SHACL violations:\n  " + "\n  ".join(violations))
+        raise DslValidationError(
+            "test DSL SHACL violations:\n  " + "\n  ".join(violations)
+        )
     return tuple(sources)

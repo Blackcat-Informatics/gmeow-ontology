@@ -259,7 +259,7 @@ The Makefile is only a task runner. The actual compiler and validation logic liv
 
 ### Mapping Compiler
 
-Mapping compilation runs inside `gmeow regenerate` (the `mappings` generator), implemented by [src/gmeow_tools/mapping_dsl.py](./src/gmeow_tools/mapping_dsl.py) and [src/gmeow_tools/mapping_compile.py](./src/gmeow_tools/mapping_compile.py).
+Mapping compilation runs inside `gmeow regenerate` (the `mappings` generator), implemented by the native Rust pipeline stage in [crates/pipeline/src/stages/mappings.rs](./crates/pipeline/src/stages/mappings.rs) and the `gmeow-slice` emitters.
 
 * **Canonical input**: all Turtle files under [dsl/mappings/](./dsl/mappings/), plus the DSL vocabulary in [dsl/mappings/vocabulary.ttl](./dsl/mappings/vocabulary.ttl).
 * **Generated outputs**:
@@ -268,7 +268,7 @@ Mapping compilation runs inside `gmeow regenerate` (the `mappings` generator), i
   * `projections/functions.fno.ttl` — generated FnO function catalog.
   * `queries/projections/*.rq` — executable SPARQL CONSTRUCT projection queries.
 * **Hand-authored companion file**: `dsl/mappings/transforms.fno.ttl` is read by the compiler/lints but is authored, never generated.
-* **Important behavior**: the compiler first renders artifacts into a temporary tree, runs projection cross-layer invariants, and only then writes generated files. If an invariant fails, nothing is written.
+* **Important behavior**: the registered generator first renders artifacts into a staging product, runs projection cross-layer invariants, and only then writes generated files. If an invariant fails, nothing is written.
 * **Drift check**: `make check-generated` renders into a staging tree, compares against the committed `generated/` artifacts, detects orphans, and enforces the internal-tag leak gate.
 
 The mapping DSL has two main authoring units:

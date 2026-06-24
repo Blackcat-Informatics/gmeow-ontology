@@ -3,8 +3,7 @@
 
 //! Native FnO (W3C Function Ontology) typed model + serializer.
 //!
-//! This is the PyO3-free Rust replacement for the rdflib-`Graph.add(...)` body of
-//! `mapping_compile.emit_fno` / `_emit_fnom` (#848). It carries a single,
+//! This is the PyO3-free Rust FnO model and serializer (#848). It carries a single,
 //! fully-resolved **catalog** of the GMEOW projection-function surface
 //! (`generated/projections/functions.fno.ttl`) into an owned RDF quad set and
 //! serializes it to N-Triples text.
@@ -62,8 +61,7 @@ const FNOM: &str = "https://w3id.org/function/vocabulary/mapping#";
 const GMEOW_PROJECTION_FUNCTION: &str = "https://blackcatinformatics.ca/gmeow/ProjectionFunction";
 
 /// The GMEOW-internal language tag every localizable literal carries until the
-/// projection boundary retags it to public BCP-47 (`mapping_compile` emits these
-/// `@x-gmeow-english` literals; `retag_graph` rewrites them on the way to disk).
+/// projection boundary retags it to public BCP-47.
 const X_GMEOW_ENGLISH: &str = "x-gmeow-english";
 
 // --------------------------------------------------------------------------- //
@@ -191,10 +189,9 @@ pub struct FnReturnMapping {
 // Serialization
 // --------------------------------------------------------------------------- //
 
-/// Sanitize a label into a blank-node id the way `mapping_compile._stable_bnode`
-/// does: every non-alphanumeric character becomes `_`, prefixed with `n_`. This
-/// keeps the mapping/param/return subjects self-documenting; isomorphism does not
-/// require it, but matching the Python id keeps the model readable.
+/// Sanitize a label into a blank-node id: every non-alphanumeric character becomes
+/// `_`, prefixed with `n_`. This keeps the mapping/param/return subjects
+/// self-documenting; isomorphism does not require the exact labels.
 fn bnode(label: &str) -> RdfTerm {
     let safe: String = label
         .chars()

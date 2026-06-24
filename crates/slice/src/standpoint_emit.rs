@@ -9,8 +9,7 @@
 //! template-coded SPARQL strings (the `standpointLabel` encoding and its siblings)
 //! that re-express the standpoint axis as each peer model (Standpoint-OWL 2,
 //! CRMinf, PROV-O, Web Annotation, schema.org Claim, BBC News Ontology). The
-//! historical Python emitters live in `mapping_compile.emit_standpoint_*_sparql`;
-//! this module ports them verbatim.
+//! historical Python emitters were ported here verbatim.
 //!
 //! Each emitter assembles a fixed `header` + `body` and threads the body through
 //! the shared [`crate::sparql_emit::prefix_block`] (registry-ordered `PREFIX`

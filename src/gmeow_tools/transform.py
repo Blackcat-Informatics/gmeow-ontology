@@ -402,8 +402,8 @@ def transform_graph(
         The :class:`TransformReport` (counts, wall clock, written paths).
     """
     from gmeow_tools.gts_producer import gts_from_maximal
-    from gmeow_tools.mapping_compile import _default_suppression_vocab
     from gmeow_tools.projections import PROFILES
+    from gmeow_tools.suppression import default_suppression_vocab
 
     start = time.perf_counter()
     target = out_dir if out_dir is not None else DIST_DIR / "transform" / stem
@@ -416,7 +416,7 @@ def transform_graph(
     abox = _skolemized(raw)
 
     onto = load_merged_graph(include_imports=False)
-    vocab = _default_suppression_vocab()
+    vocab = default_suppression_vocab()
     denied = _denied_cells()
     suppressed = suppressed_nodes(abox, vocab)
 
