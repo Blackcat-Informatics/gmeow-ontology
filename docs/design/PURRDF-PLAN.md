@@ -18,8 +18,9 @@ Can `gmeow-rdf` (the `crates/rdf/` kernel, surfaced to Python as `gmeow_rdf` ins
 Python's `rdflib`** — and, beyond Python, the dominant RDF library in every major ecosystem?
 
 This is consistent with `.goals` ("SUBSUME, EXTEND, ENHANCE"; "gmeow = the goto for KG/AI for RAW
-POWER, EXPRESSIVE DEPTH, REASONING") and with three drop-ins already in-repo: `native_rl.py` (replaces
-`owlrl`), `rdf_canonical.py` (replaces `rdflib.compare.isomorphic`), `sparql.py` (replaces rdflib's
+POWER, EXPRESSIVE DEPTH, REASONING") and with native drop-ins already in-repo: the Rust RL engine
+`gmeow_logic.rl_closure_nt` (replaces `owlrl`), `rdf_canonical.py` (replaces `rdflib.compare.isomorphic`),
+`sparql.py` (replaces rdflib's
 SPARQL engine, ~12× faster). Yet `pyproject.toml` still hard-depends on `rdflib>=7.6` and ~15 internal
 modules import it — gmeow does not yet eat its own dog food here.
 
@@ -68,7 +69,9 @@ overwhelmingly at the **Python compatibility boundary**, not in Rust. Ranked by 
 - **Python surface** `crates/rdf/src/py_store.rs` + stub `crates/native/python/gmeow_rdf/__init__.pyi`:
   pyoxigraph-shaped `NamedNode/BlankNode/Literal/Triple/Quad/Variable`, `Store`, `Dataset`,
   `QuerySolutions/QueryTriples/QueryBoolean`, `parse()`/`serialize()`, `canonicalize_turtle`.
-- **Existing rdflib drop-ins:** `src/gmeow_tools/native_rl.py`, `rdf_canonical.py`, `sparql.py`.
+- **Existing rdflib drop-ins:** `src/gmeow_tools/rdf_canonical.py`, `sparql.py` (the `owlrl` replacement
+  now lives in the Rust RL engine `gmeow_logic.rl_closure_nt`, surfaced for rdflib graphs via
+  `native_rl_rdflib.py`).
 - **gmeow-gts (separate Apache/MIT repo, crates.io 0.9.4):** six conformance-gated engines (Rust,
   Python, Go, TypeScript, Smalltalk/Pharo, Kotlin/JVM), a Rust-backed C-ABI `libgts` with C/C++/.NET/
   PHP/Lua/Swift/Ruby/R/Julia wrappers, RDF-1.2 losslessness (#212/#213/#214 closed), and formats

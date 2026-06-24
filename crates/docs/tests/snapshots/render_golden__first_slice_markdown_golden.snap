@@ -44,6 +44,12 @@ expression: "to_markdown(&model, &Page::Slice(slug))"
 | --- | --- | --- |
 | `module.ttl` | `text/turtle` | `d95a3f16d179` |
 
+### Tests
+
+| Path | Media type | Digest |
+| --- | --- | --- |
+| `tests/structural.ttl` | `text/turtle` | `2db163f0fe2d` |
+
 ## Terms \(9\)
 
 - [`gmeow:AccessibilityAssertion`](../../terms/accessibilityassertion/index.md) — Class

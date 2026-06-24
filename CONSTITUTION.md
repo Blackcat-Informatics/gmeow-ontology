@@ -398,7 +398,7 @@ runtime / migration / conformance siblings). The logic EPIC has landed. *Tested 
 conformance corpus (native solver ≡ committed goldens,
 Principle 7 — `meta:gate-logic-conformance`), the `logic:` → OWL / Datalog / N3 / gUFO round-trip
 isomorphism gate (`meta:gate-logic-round-trip`), and the foundation-conformance gate (the gUFO
-downcast passes `reasoning_lint.py` unchanged, evaluated natively — `meta:gate-foundation-conformance`).
+downcast passes the native `crates/validate/src/gufo.rs` reasoning invariants — `meta:gate-foundation-conformance`).
 The machine-readable enforcement lives in
 [`governance/constitution.ttl`](./governance/constitution.ttl).
 

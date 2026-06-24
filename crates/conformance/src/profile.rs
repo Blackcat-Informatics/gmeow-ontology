@@ -33,7 +33,8 @@ pub const DEFAULT_SEMANTIC_PROFILE: &str = "PositiveHornProfile";
 pub const DEFAULT_ANTI_RIGIDITY_POLICY: &str = "witness-obligation";
 
 /// Optional budget governor ceilings (issue #502). Each is an optional positive
-/// integer; absence ⇒ unbounded. Mirrors `logic_seam.BudgetParams`.
+/// integer; absence ⇒ unbounded. This struct is the sole authority for the
+/// budget ceilings (the former Python `logic_seam.BudgetParams` was culled in #932).
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct BudgetParams {
     pub time_ms: Option<u64>,

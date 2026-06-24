@@ -2,8 +2,8 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 """Graph I/O adapter for the native OWL 2 RL closure (issue #630).
 
-The production reasoning core (:mod:`gmeow_tools.native_rl`) is rdflib-free. This
-module is the **caller-boundary adapter** for the graph-native consumers — the
+The production reasoning core (native ``gmeow_logic.rl_closure_nt``) is rdflib-free.
+This module is the **caller-boundary adapter** for the graph-native consumers — the
 competency/observation suites (which use the native ``gmeow_rdf.compat.rdflib``
 ``Graph``) and the ``rl_agreement`` classic-cross-check oracle (which uses the
 upstream rdflib ``Graph`` to compare against ``owlrl``).

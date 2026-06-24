@@ -46,7 +46,7 @@ faithfulness) are the load-bearing invariants.
 
 | Category | Input artifact | Verification (expected output) | Rung |
 |---|---|---|---|
-| `foundation/` | `input.logic.ttl` with UFO⁺ stereotype, subsumption, and mediation facts | `materialized.nq` contains the expected `logic:violation` / `logic:rigidityViolation` / `logic:dischargeObligation` quads; the lint-equivalence gate proves the derived offending-class sets match `reasoning_lint.py` exactly | #503 |
+| `foundation/` | `input.logic.ttl` with UFO⁺ stereotype, subsumption, and mediation facts | `materialized.nq` contains the expected `logic:violation` / `logic:rigidityViolation` / `logic:dischargeObligation` quads; the lint-equivalence gate proves the derived offending-class sets match `crates/validate/src/gufo.rs` exactly | #503 |
 | `worlds-A/` | standpoint / deception / narrative source | `materialized.nq` carries each world as its own named graph; the contested claim coexists (Crimea `conceivable` vs `refuted`), neither privileged | #501 |
 | `worlds-B/` | risk cascade, teleology, or norms source | `materialized.nq` proves **exactly zero `Event` instances** are generated (the no-occurrence gate), with type-level force present | #501 |
 | `worlds-C/` | counterfactual antecedent query | `answers/<q>.json` confirms the consequent and `materialized.nq` shows **no leakage** of the constructed world into the base graph; a deterministic revision yields one world, a genuine tie returns `unknown` | #505 |
@@ -105,5 +105,5 @@ Six cases under `cases/foundation/` (one stub `.gitkeep` + five populated):
 | `cross-world-rigidity/` | `logic:rigidityViolation` + `logic:dischargeObligation` (multi-world) |
 
 The lint-equivalence gate (`tests/test_logic_foundation_lint_equivalence.py`) proves that for the
-three type-level disciplines the derived offending-class sets match `reasoning_lint.py` by full-map
+three type-level disciplines the derived offending-class sets match `crates/validate/src/gufo.rs` by full-map
 equality. The cross-world rigidity soundness suite is in `tests/test_logic_rigidity.py`.

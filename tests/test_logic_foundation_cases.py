@@ -7,7 +7,8 @@ The native gate (the ``gmeow-conformance`` datatest harness) runs the engine and
 diffs its output against the committed goldens, so a golden trivially diff-passes
 regardless of whether it is *correct*.  This module instead PARSES each committed
 ``expected/materialized.nq`` and asserts the discipline-fact set it contains is
-EXACTLY the lint-faithful set hand-computed per :mod:`gmeow_tools.reasoning_lint`.
+EXACTLY the lint-faithful set hand-computed per the native
+``gmeow_validate.reasoning_*_nt`` anti-pattern checks.
 
 For each foundation case we collect the three discipline-fact families the
 foundation lowering emits:
@@ -18,8 +19,8 @@ foundation lowering emits:
 * ``logic:dischargeObligation`` /
   ``logic:witnessRequiredViolation`` — the anti-rigidity witness policy (Task 4).
 
-The expected sets below are the verdicts :mod:`reasoning_lint` produces over the
-equivalent gUFO schema (cross-checked against the lint in development); the
+The expected sets below are the verdicts the native ``gmeow_validate`` checks produce
+over the equivalent gUFO schema (cross-checked against the lint in development); the
 ``mixrig-kind-under-role`` case in particular asserts the MixRig catch (AC#3).
 
 The runner-vs-golden diff that formerly lived here is now enforced natively by the
