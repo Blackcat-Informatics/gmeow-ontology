@@ -351,3 +351,186 @@ mod prop {
         }
     }
 }
+
+// ── Gregorian family value-space vectors ─────────────────────────────────────────
+
+/// Positive parse: these must all parse successfully.
+const GREGORIAN_VALID: &[(&str, D)] = &[
+    // gYear
+    ("2024", D::GYear),
+    ("-0044", D::GYear),
+    ("12345", D::GYear),
+    ("2024Z", D::GYear),
+    ("2024+05:30", D::GYear),
+    // gMonth
+    ("--05", D::GMonth),
+    ("--01", D::GMonth),
+    ("--12", D::GMonth),
+    ("--07Z", D::GMonth),
+    // gDay
+    ("---15", D::GDay),
+    ("---31", D::GDay),
+    ("---01", D::GDay),
+    ("---15+05:30", D::GDay),
+    // gYearMonth
+    ("2024-05", D::GYearMonth),
+    ("2024-05Z", D::GYearMonth),
+    ("-0044-02", D::GYearMonth),
+    ("12345-11", D::GYearMonth),
+    // gMonthDay
+    ("--02-29", D::GMonthDay), // Feb 29 is valid without a year (leap reference)
+    ("--12-31", D::GMonthDay),
+    ("--02-29+05:00", D::GMonthDay),
+    ("--01-01", D::GMonthDay),
+];
+
+/// Negative parse: these must all produce `Err`.
+const GREGORIAN_INVALID: &[(&str, D)] = &[
+    // gMonth errors
+    ("--13", D::GMonth),  // month 13 out of range
+    ("--00", D::GMonth),  // month 00 out of range
+    ("-05", D::GMonth),   // missing second dash
+    ("--1", D::GMonth),   // only 1 digit
+    ("---05", D::GMonth), // three dashes (gDay prefix, wrong type)
+    // gDay errors
+    ("---32", D::GDay),  // day 32 out of range
+    ("---00", D::GDay),  // day 00 out of range
+    ("--15", D::GDay),   // only 2 dashes (gMonth prefix)
+    ("----15", D::GDay), // four dashes
+    // gYearMonth errors
+    ("2024-13", D::GYearMonth),    // month 13
+    ("2024-00", D::GYearMonth),    // month 00
+    ("2024-05-01", D::GYearMonth), // has day part (gYearMonth must stop at month)
+    ("--2024-05", D::GYearMonth),  // starts with "--" (gMonthDay prefix, not gYearMonth)
+    // gMonthDay errors
+    ("--02-30", D::GMonthDay), // Feb only has 29 days (leap reference)
+    ("--04-31", D::GMonthDay), // April has 30 days
+    ("--13-01", D::GMonthDay), // month 13
+    ("--00-15", D::GMonthDay), // month 00
+    ("--02-00", D::GMonthDay), // day 00
+    ("2024-05", D::GMonthDay), // no leading "--"
+];
+
+#[test]
+fn gregorian_valid_lexicals_parse_ok() {
+    for (lexical, dt) in GREGORIAN_VALID {
+        assert!(
+            parse(lexical, *dt).is_ok(),
+            "expected Ok for {lexical:?}^^{dt:?} but got Err: {:?}",
+            parse(lexical, *dt).unwrap_err()
+        );
+    }
+}
+
+#[test]
+fn gregorian_invalid_lexicals_are_hard_errors() {
+    for (lexical, dt) in GREGORIAN_INVALID {
+        assert!(
+            parse(lexical, *dt).is_err(),
+            "expected Err for {lexical:?}^^{dt:?} but got Ok"
+        );
+    }
+}
+
+// ── Gregorian ordering tests ─────────────────────────────────────────────────────
+
+#[test]
+fn gregorian_ordering() {
+    use std::cmp::Ordering;
+
+    // gYear: 2023 < 2024
+    let a = parse("2023", D::GYear).unwrap();
+    let b = parse("2024", D::GYear).unwrap();
+    assert_eq!(value_cmp(&a, &b), Some(Ordering::Less), "gYear 2023 < 2024");
+
+    // gMonth: --03 < --11
+    let c = parse("--03", D::GMonth).unwrap();
+    let d = parse("--11", D::GMonth).unwrap();
+    assert_eq!(
+        value_cmp(&c, &d),
+        Some(Ordering::Less),
+        "gMonth --03 < --11"
+    );
+
+    // gMonthDay: --02-29 < --03-01
+    let e = parse("--02-29", D::GMonthDay).unwrap();
+    let f = parse("--03-01", D::GMonthDay).unwrap();
+    assert_eq!(
+        value_cmp(&e, &f),
+        Some(Ordering::Less),
+        "gMonthDay --02-29 < --03-01"
+    );
+
+    // tz-indeterminate: gYear "2024" (no tz) vs "2024Z" → None (within ±14h overlap)
+    let g = parse("2024", D::GYear).unwrap();
+    let h = parse("2024Z", D::GYear).unwrap();
+    assert_eq!(
+        value_cmp(&g, &h),
+        None,
+        "gYear 2024 vs 2024Z is tz-indeterminate"
+    );
+
+    // determinate pair: gYear "2020" vs "2024Z" → Some(Less)
+    // 4 years apart = 4 * 365.25 * 86400 ≈ 126.2M seconds >> 14h = 50400 seconds
+    let i = parse("2020", D::GYear).unwrap();
+    let j = parse("2024Z", D::GYear).unwrap();
+    assert_eq!(
+        value_cmp(&i, &j),
+        Some(Ordering::Less),
+        "gYear 2020 < 2024Z (determinate)"
+    );
+
+    // cross-family: gYear "2024" vs gMonth "--05" → None
+    let k = parse("2024", D::GYear).unwrap();
+    let l = parse("--05", D::GMonth).unwrap();
+    assert_eq!(
+        value_cmp(&k, &l),
+        None,
+        "gYear vs gMonth is cross-family incomparable"
+    );
+}
+
+// ── Gregorian canonical_lexical round-trips ──────────────────────────────────────
+
+/// (lexical, datatype, expected canonical).
+const GREGORIAN_CANONICAL: &[(&str, D, &str)] = &[
+    // +00:00 normalizes to Z
+    ("2024+00:00", D::GYear, "2024Z"),
+    // negative year
+    ("-0044", D::GYear, "-0044"),
+    // gMonth
+    ("--07", D::GMonth, "--07"),
+    ("--07Z", D::GMonth, "--07Z"),
+    // gDay
+    ("---15", D::GDay, "---15"),
+    ("---15+05:30", D::GDay, "---15+05:30"),
+    // gYearMonth
+    ("2024-05", D::GYearMonth, "2024-05"),
+    ("-0044-02", D::GYearMonth, "-0044-02"),
+    // gMonthDay
+    ("--02-29", D::GMonthDay, "--02-29"),
+    ("--12-31+05:30", D::GMonthDay, "--12-31+05:30"),
+];
+
+#[test]
+fn gregorian_canonical_round_trips() {
+    for (lexical, dt, expected) in GREGORIAN_CANONICAL {
+        let value = parse(lexical, *dt)
+            .unwrap_or_else(|e| panic!("parse({lexical:?}, {dt:?}) failed: {e}"));
+        assert_eq!(
+            value.canonical_lexical(),
+            *expected,
+            "canonical_lexical({lexical:?}^^{dt:?})"
+        );
+        assert_eq!(value.datatype(), *dt, "datatype({lexical:?}^^{dt:?})");
+    }
+}
+
+#[test]
+fn gregorian_canonical_is_idempotent() {
+    for (lexical, dt, _) in GREGORIAN_CANONICAL {
+        let once = parse(lexical, *dt).unwrap().canonical_lexical();
+        let twice = parse(&once, *dt).unwrap().canonical_lexical();
+        assert_eq!(once, twice, "idempotent canonical for {lexical:?}^^{dt:?}");
+    }
+}

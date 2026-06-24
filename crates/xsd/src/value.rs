@@ -53,6 +53,8 @@ pub enum XsdValue {
     Time(temporal::Time),
     /// `xsd:duration` and its `dayTimeDuration`/`yearMonthDuration` subtypes.
     Duration(temporal::Duration),
+    /// `xsd:gYear`, `xsd:gMonth`, `xsd:gDay`, `xsd:gYearMonth`, `xsd:gMonthDay`.
+    Gregorian(temporal::Gregorian),
 }
 
 impl XsdValue {
@@ -70,6 +72,7 @@ impl XsdValue {
             XsdValue::Date(_) => XsdDatatype::Date,
             XsdValue::Time(_) => XsdDatatype::Time,
             XsdValue::Duration(d) => d.datatype(),
+            XsdValue::Gregorian(g) => g.datatype(),
         }
     }
 
@@ -87,6 +90,7 @@ impl XsdValue {
             XsdValue::Date(v) => v.canonical_lexical(),
             XsdValue::Time(v) => v.canonical_lexical(),
             XsdValue::Duration(v) => v.canonical_lexical(),
+            XsdValue::Gregorian(v) => v.canonical_lexical(),
         }
     }
 }
@@ -124,6 +128,9 @@ pub fn parse(lexical: &str, datatype: XsdDatatype) -> Result<XsdValue, XsdError>
         D::Time => temporal::parse_time(lexical).map(XsdValue::Time),
         D::Duration | D::DayTimeDuration | D::YearMonthDuration => {
             temporal::parse_duration(datatype, lexical).map(XsdValue::Duration)
+        }
+        D::GYear | D::GMonth | D::GDay | D::GYearMonth | D::GMonthDay => {
+            temporal::parse_gregorian(datatype, lexical).map(XsdValue::Gregorian)
         }
     }
 }

@@ -1,8 +1,9 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! The XSD temporal value space: `dateTime`, `date`, `time`, and `duration` (with
-//! its `dayTimeDuration`/`yearMonthDuration` subtypes).
+//! The XSD temporal value space: `dateTime`, `date`, `time`, `duration` (with
+//! its `dayTimeDuration`/`yearMonthDuration` subtypes), and the Gregorian family
+//! (`gYear`, `gMonth`, `gDay`, `gYearMonth`, `gMonthDay`).
 //!
 //! Comparison follows XSD's **partial order**: dateTime/date/time values carry an
 //! optional timezone; a value without a timezone is compared against one with a
@@ -66,6 +67,27 @@ pub struct Duration {
 
 impl Duration {
     /// The originating XSD datatype (`Duration`/`DayTimeDuration`/`YearMonthDuration`).
+    #[must_use]
+    pub fn datatype(&self) -> XsdDatatype {
+        self.datatype
+    }
+}
+
+/// `xsd:gYear`, `xsd:gMonth`, `xsd:gDay`, `xsd:gYearMonth`, `xsd:gMonthDay`.
+///
+/// Fields absent for a given type are `None`; `datatype` records which of the five
+/// Gregorian datatypes this value belongs to.
+#[derive(Debug, Clone)]
+pub struct Gregorian {
+    year: Option<i64>,
+    month: Option<u8>,
+    day: Option<u8>,
+    tz: Option<i32>,
+    datatype: XsdDatatype,
+}
+
+impl Gregorian {
+    /// The originating XSD Gregorian datatype.
     #[must_use]
     pub fn datatype(&self) -> XsdDatatype {
         self.datatype
@@ -380,6 +402,181 @@ pub fn parse_duration(dt: XsdDatatype, s: &str) -> Result<Duration, XsdError> {
     })
 }
 
+// ── Gregorian family parsing ─────────────────────────────────────────────────────
+
+/// Parse a year part `[-]YYYY[Y...]` (no trailing components).
+/// Returns `(year_magnitude_with_sign, remaining_str_after_year_digits)`.
+/// The year must be ≥4 digits; >4 digits must not have a leading zero.
+fn parse_year_str<'a>(
+    dt: XsdDatatype,
+    lexical: &str,
+    s: &'a str,
+) -> Result<(i64, &'a str), XsdError> {
+    let neg = s.starts_with('-');
+    let digits_start = if neg { 1 } else { 0 };
+    let rest = &s[digits_start..];
+    // Find how many leading ASCII digits there are.
+    let n_digits = rest.bytes().take_while(|b| b.is_ascii_digit()).count();
+    if n_digits < 4 {
+        return Err(invalid(dt, lexical, "year must be at least 4 digits"));
+    }
+    let year_digits = &rest[..n_digits];
+    if n_digits > 4 && year_digits.starts_with('0') {
+        return Err(invalid(
+            dt,
+            lexical,
+            "year wider than 4 digits must not have a leading zero",
+        ));
+    }
+    let year_mag: i64 = year_digits
+        .parse()
+        .map_err(|_| invalid(dt, lexical, "bad year digits"))?;
+    let year = if neg { -year_mag } else { year_mag };
+    let after = &rest[n_digits..];
+    Ok((year, after))
+}
+
+/// Max days per month with February = 29 (no year available; allow Feb 29).
+/// Index 0 = January, index 11 = December.
+const MONTH_MAX_DAYS_LEAP: [u8; 12] = [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+
+/// Parse a 2-digit month string `MM`, returning the month value (1–12).
+fn parse_month_field(dt: XsdDatatype, lexical: &str, s: &str) -> Result<u8, XsdError> {
+    if s.len() != 2 || !s.bytes().all(|b| b.is_ascii_digit()) {
+        return Err(invalid(dt, lexical, "month must be exactly 2 digits"));
+    }
+    let m: u8 = s
+        .parse()
+        .map_err(|_| invalid(dt, lexical, "bad month digits"))?;
+    if !(1..=12).contains(&m) {
+        return Err(invalid(dt, lexical, "month out of range (01-12)"));
+    }
+    Ok(m)
+}
+
+/// Parse a 2-digit day string `DD`, returning the day value (1–31).
+fn parse_day_field(dt: XsdDatatype, lexical: &str, s: &str) -> Result<u8, XsdError> {
+    if s.len() != 2 || !s.bytes().all(|b| b.is_ascii_digit()) {
+        return Err(invalid(dt, lexical, "day must be exactly 2 digits"));
+    }
+    let d: u8 = s
+        .parse()
+        .map_err(|_| invalid(dt, lexical, "bad day digits"))?;
+    if !(1..=31).contains(&d) {
+        return Err(invalid(dt, lexical, "day out of range (01-31)"));
+    }
+    Ok(d)
+}
+
+/// Dispatch parser for all five Gregorian datatypes.
+pub fn parse_gregorian(datatype: XsdDatatype, lexical: &str) -> Result<Gregorian, XsdError> {
+    let dt = datatype;
+    match dt {
+        XsdDatatype::GYear => {
+            // [-]YYYY[Y...][tz]
+            let (body, tz) = split_tz(dt, lexical, lexical)?;
+            let (year, after) = parse_year_str(dt, lexical, &body)?;
+            if !after.is_empty() {
+                return Err(invalid(dt, lexical, "unexpected content after gYear"));
+            }
+            Ok(Gregorian {
+                year: Some(year),
+                month: None,
+                day: None,
+                tz,
+                datatype: dt,
+            })
+        }
+        XsdDatatype::GMonth => {
+            // --MM[tz]
+            let (body, tz) = split_tz(dt, lexical, lexical)?;
+            let s = body
+                .strip_prefix("--")
+                .ok_or_else(|| invalid(dt, lexical, "gMonth must start with '--'"))?;
+            // After stripping "--", s must be exactly "MM" (2 digits)
+            if s.len() != 2 {
+                return Err(invalid(dt, lexical, "gMonth must be '--MM'"));
+            }
+            let month = parse_month_field(dt, lexical, s)?;
+            Ok(Gregorian {
+                year: None,
+                month: Some(month),
+                day: None,
+                tz,
+                datatype: dt,
+            })
+        }
+        XsdDatatype::GDay => {
+            // ---DD[tz]
+            let (body, tz) = split_tz(dt, lexical, lexical)?;
+            let s = body
+                .strip_prefix("---")
+                .ok_or_else(|| invalid(dt, lexical, "gDay must start with '---'"))?;
+            if s.len() != 2 {
+                return Err(invalid(dt, lexical, "gDay must be '---DD'"));
+            }
+            let day = parse_day_field(dt, lexical, s)?;
+            Ok(Gregorian {
+                year: None,
+                month: None,
+                day: Some(day),
+                tz,
+                datatype: dt,
+            })
+        }
+        XsdDatatype::GYearMonth => {
+            // [-]YYYY[Y...]-MM[tz]
+            let (body, tz) = split_tz(dt, lexical, lexical)?;
+            let (year, after) = parse_year_str(dt, lexical, &body)?;
+            // after must be "-MM"
+            let mm_str = after
+                .strip_prefix('-')
+                .ok_or_else(|| invalid(dt, lexical, "gYearMonth: expected '-MM' after year"))?;
+            if mm_str.len() != 2 {
+                return Err(invalid(
+                    dt,
+                    lexical,
+                    "gYearMonth: month part must be 2 digits",
+                ));
+            }
+            let month = parse_month_field(dt, lexical, mm_str)?;
+            Ok(Gregorian {
+                year: Some(year),
+                month: Some(month),
+                day: None,
+                tz,
+                datatype: dt,
+            })
+        }
+        XsdDatatype::GMonthDay => {
+            // --MM-DD[tz]
+            let (body, tz) = split_tz(dt, lexical, lexical)?;
+            let s = body
+                .strip_prefix("--")
+                .ok_or_else(|| invalid(dt, lexical, "gMonthDay must start with '--'"))?;
+            // s must be "MM-DD" — exactly 5 chars
+            if s.len() != 5 || s.as_bytes()[2] != b'-' {
+                return Err(invalid(dt, lexical, "gMonthDay must be '--MM-DD'"));
+            }
+            let month = parse_month_field(dt, lexical, &s[..2])?;
+            let day = parse_day_field(dt, lexical, &s[3..5])?;
+            // Validate day against month; use leap reference (Feb max = 29).
+            let max_day = MONTH_MAX_DAYS_LEAP[(month - 1) as usize];
+            if day > max_day {
+                return Err(invalid(dt, lexical, "day out of range for month"));
+            }
+            Ok(Gregorian {
+                year: None,
+                month: Some(month),
+                day: Some(day),
+                tz,
+                datatype: dt,
+            })
+        }
+        _ => Err(invalid(dt, lexical, "not a Gregorian datatype")),
+    }
+}
+
 // ── Comparison (XSD partial order) ───────────────────────────────────────────────
 
 /// The naive whole-seconds offset (timezone NOT applied) on the proleptic timeline.
@@ -491,6 +688,43 @@ pub fn cmp_duration(a: &Duration, b: &Duration) -> Option<Ordering> {
         (a, b) if a == b => Some(a),
         _ => None,
     }
+}
+
+/// Compare two Gregorian values (XSD partial order).
+///
+/// Different Gregorian types are **incomparable** (`None`): comparing a `gYear` to a
+/// `gMonth` is a SPARQL type error, not a numeric comparison.
+///
+/// For values of the same type, absent fields are filled with reference defaults
+/// anchored to 2000-01-01 — a **leap** year chosen so that `--02-29` comparisons are
+/// well-defined. The reference: year=2000, month=1, day=1.  Using a leap year for the
+/// reference ensures `--02-29` maps to a valid calendar date and thus participates in
+/// the timeline correctly.
+///
+/// The resulting naive-second offset is then fed into `cmp_timeline` with the values'
+/// timezone offsets, giving XSD's tz-indeterminate partial order for free.
+#[must_use]
+pub fn cmp_gregorian(a: &Gregorian, b: &Gregorian) -> Option<Ordering> {
+    if a.datatype != b.datatype {
+        return None;
+    }
+    let zero = Decimal::from_parts(0, 0);
+    // Reference: year 2000 (leap), month 1, day 1.
+    const REF_YEAR: i64 = 2000;
+    const REF_MONTH: u8 = 1;
+    const REF_DAY: u8 = 1;
+
+    let ay = a.year.unwrap_or(REF_YEAR);
+    let am = a.month.unwrap_or(REF_MONTH);
+    let ad = a.day.unwrap_or(REF_DAY);
+
+    let by = b.year.unwrap_or(REF_YEAR);
+    let bm = b.month.unwrap_or(REF_MONTH);
+    let bd = b.day.unwrap_or(REF_DAY);
+
+    let an = naive_secs(days_from_civil(ay, am, ad), 0, 0, 0);
+    let bn = naive_secs(days_from_civil(by, bm, bd), 0, 0, 0);
+    cmp_timeline(an, &zero, a.tz, bn, &zero, b.tz)
 }
 
 // ── Canonical lexical mapping ────────────────────────────────────────────────────
@@ -632,6 +866,40 @@ impl Duration {
     }
 }
 
+impl Gregorian {
+    /// XSD canonical lexical form.
+    #[must_use]
+    pub fn canonical_lexical(&self) -> String {
+        let tz = fmt_tz(self.tz);
+        match self.datatype {
+            XsdDatatype::GYear => {
+                format!("{}{tz}", fmt_year(self.year.unwrap_or(0)))
+            }
+            XsdDatatype::GMonth => {
+                format!("--{:02}{tz}", self.month.unwrap_or(1))
+            }
+            XsdDatatype::GDay => {
+                format!("---{:02}{tz}", self.day.unwrap_or(1))
+            }
+            XsdDatatype::GYearMonth => {
+                format!(
+                    "{}-{:02}{tz}",
+                    fmt_year(self.year.unwrap_or(0)),
+                    self.month.unwrap_or(1)
+                )
+            }
+            XsdDatatype::GMonthDay => {
+                format!(
+                    "--{:02}-{:02}{tz}",
+                    self.month.unwrap_or(1),
+                    self.day.unwrap_or(1)
+                )
+            }
+            _ => String::new(), // unreachable for well-formed Gregorian values
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -712,5 +980,38 @@ mod tests {
         assert!(parse_time("12:00").is_err()); // no seconds
         assert!(parse_duration(XsdDatatype::Duration, "1Y").is_err()); // no P
         assert!(parse_datetime("2024-01-01T12:00:00+15:00").is_err()); // tz > 14h
+    }
+
+    #[test]
+    fn gregorian_parse_roundtrip() {
+        let g = parse_gregorian(XsdDatatype::GYear, "2024").unwrap();
+        assert_eq!(g.canonical_lexical(), "2024");
+        let g = parse_gregorian(XsdDatatype::GYear, "2024Z").unwrap();
+        assert_eq!(g.canonical_lexical(), "2024Z");
+        let g = parse_gregorian(XsdDatatype::GMonth, "--05").unwrap();
+        assert_eq!(g.canonical_lexical(), "--05");
+        let g = parse_gregorian(XsdDatatype::GDay, "---15").unwrap();
+        assert_eq!(g.canonical_lexical(), "---15");
+        let g = parse_gregorian(XsdDatatype::GYearMonth, "2024-05").unwrap();
+        assert_eq!(g.canonical_lexical(), "2024-05");
+        let g = parse_gregorian(XsdDatatype::GMonthDay, "--02-29").unwrap();
+        assert_eq!(g.canonical_lexical(), "--02-29");
+    }
+
+    #[test]
+    fn gregorian_cmp_same_type() {
+        let a = parse_gregorian(XsdDatatype::GYear, "2023").unwrap();
+        let b = parse_gregorian(XsdDatatype::GYear, "2024").unwrap();
+        assert_eq!(cmp_gregorian(&a, &b), Some(Ordering::Less));
+        let c = parse_gregorian(XsdDatatype::GMonth, "--03").unwrap();
+        let d = parse_gregorian(XsdDatatype::GMonth, "--11").unwrap();
+        assert_eq!(cmp_gregorian(&c, &d), Some(Ordering::Less));
+    }
+
+    #[test]
+    fn gregorian_cross_type_incomparable() {
+        let a = parse_gregorian(XsdDatatype::GYear, "2024").unwrap();
+        let b = parse_gregorian(XsdDatatype::GMonth, "--05").unwrap();
+        assert_eq!(cmp_gregorian(&a, &b), None);
     }
 }

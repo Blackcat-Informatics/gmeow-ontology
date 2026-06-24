@@ -22,7 +22,7 @@ use crate::value::XsdValue;
 /// same numeric tower as xsd:integer — `xsd:int 5 = xsd:long 5` is `true`.
 #[must_use]
 pub fn value_cmp(a: &XsdValue, b: &XsdValue) -> Option<Ordering> {
-    use XsdValue::{Boolean, Double, Float, Integer, String as Str};
+    use XsdValue::{Boolean, Double, Float, Gregorian, Integer, String as Str};
     match (a, b) {
         // Numeric tower (with promotion); covers every numeric/numeric pair,
         // including all integer-family subtypes (they share the Integer variant).
@@ -39,6 +39,8 @@ pub fn value_cmp(a: &XsdValue, b: &XsdValue) -> Option<Ordering> {
         (XsdValue::Date(x), XsdValue::Date(y)) => crate::temporal::cmp_date(x, y),
         (XsdValue::Time(x), XsdValue::Time(y)) => crate::temporal::cmp_time(x, y),
         (XsdValue::Duration(x), XsdValue::Duration(y)) => crate::temporal::cmp_duration(x, y),
+        // Gregorian family: same-type comparison, cross-type incomparable.
+        (Gregorian(x), Gregorian(y)) => crate::temporal::cmp_gregorian(x, y),
         // Different value-space families are incomparable.
         _ => None,
     }

@@ -119,3 +119,53 @@ fn value_cmp_is_antisymmetric_on_determinate_rows() {
         let _ = forward;
     }
 }
+
+// ── Gregorian operator-mapping rows ──────────────────────────────────────────────
+
+/// Additional Gregorian rows for the operator-mapping table.
+#[allow(clippy::type_complexity)]
+const GREGORIAN_TABLE: &[(&str, D, &str, D, Option<Ordering>)] = &[
+    // same-type ordering
+    ("2023", D::GYear, "2024", D::GYear, LT),
+    ("--03", D::GMonth, "--11", D::GMonth, LT),
+    ("---01", D::GDay, "---15", D::GDay, LT),
+    ("2024-01", D::GYearMonth, "2024-05", D::GYearMonth, LT),
+    ("--02-01", D::GMonthDay, "--03-01", D::GMonthDay, LT),
+    // same value → Equal
+    ("2024", D::GYear, "2024", D::GYear, EQ),
+    ("--05", D::GMonth, "--05", D::GMonth, EQ),
+    // cross-family incomparable
+    ("2024", D::GYear, "--05", D::GMonth, NC),
+    ("---15", D::GDay, "--02-15", D::GMonthDay, NC),
+    // cross with other temporal families
+    ("2024", D::GYear, "2024-01-01", D::Date, NC),
+];
+
+#[test]
+fn gregorian_operator_mapping_table() {
+    for (la, da, lb, db, want) in GREGORIAN_TABLE {
+        let a = parse(la, *da).unwrap_or_else(|e| panic!("parse {la:?}^^{da:?}: {e}"));
+        let b = parse(lb, *db).unwrap_or_else(|e| panic!("parse {lb:?}^^{db:?}: {e}"));
+        assert_eq!(
+            value_cmp(&a, &b),
+            *want,
+            "value_cmp({la:?}^^{da:?}, {lb:?}^^{db:?})"
+        );
+    }
+}
+
+#[test]
+fn gregorian_effective_boolean_value_is_type_error() {
+    use gmeow_xsd::effective_boolean_value;
+    // Gregorian values have no EBV — must return None (SPARQL type error).
+    let gyear = parse("2024", D::GYear).unwrap();
+    assert_eq!(effective_boolean_value(&gyear), None, "gYear has no EBV");
+    let gmonth = parse("--05", D::GMonth).unwrap();
+    assert_eq!(effective_boolean_value(&gmonth), None, "gMonth has no EBV");
+    let gday = parse("---15", D::GDay).unwrap();
+    assert_eq!(effective_boolean_value(&gday), None, "gDay has no EBV");
+    let gym = parse("2024-05", D::GYearMonth).unwrap();
+    assert_eq!(effective_boolean_value(&gym), None, "gYearMonth has no EBV");
+    let gmd = parse("--02-29", D::GMonthDay).unwrap();
+    assert_eq!(effective_boolean_value(&gmd), None, "gMonthDay has no EBV");
+}

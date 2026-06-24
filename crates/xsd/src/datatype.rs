@@ -61,6 +61,16 @@ pub const XSD_DURATION: &str = "http://www.w3.org/2001/XMLSchema#duration";
 pub const XSD_DAY_TIME_DURATION: &str = "http://www.w3.org/2001/XMLSchema#dayTimeDuration";
 /// `xsd:yearMonthDuration` — totally-ordered duration subtype (months only).
 pub const XSD_YEAR_MONTH_DURATION: &str = "http://www.w3.org/2001/XMLSchema#yearMonthDuration";
+/// `xsd:gYear` — a Gregorian year (e.g. `2024`).
+pub const XSD_G_YEAR: &str = "http://www.w3.org/2001/XMLSchema#gYear";
+/// `xsd:gMonth` — a Gregorian month (e.g. `--05`).
+pub const XSD_G_MONTH: &str = "http://www.w3.org/2001/XMLSchema#gMonth";
+/// `xsd:gDay` — a Gregorian day of the month (e.g. `---15`).
+pub const XSD_G_DAY: &str = "http://www.w3.org/2001/XMLSchema#gDay";
+/// `xsd:gYearMonth` — a Gregorian year + month (e.g. `2024-05`).
+pub const XSD_G_YEAR_MONTH: &str = "http://www.w3.org/2001/XMLSchema#gYearMonth";
+/// `xsd:gMonthDay` — a Gregorian month + day (e.g. `--02-29`).
+pub const XSD_G_MONTH_DAY: &str = "http://www.w3.org/2001/XMLSchema#gMonthDay";
 
 /// The XSD datatypes whose **value space** `gmeow-xsd` models.
 ///
@@ -119,6 +129,16 @@ pub enum XsdDatatype {
     DayTimeDuration,
     /// `xsd:yearMonthDuration`.
     YearMonthDuration,
+    /// `xsd:gYear` — Gregorian year.
+    GYear,
+    /// `xsd:gMonth` — Gregorian month.
+    GMonth,
+    /// `xsd:gDay` — Gregorian day of month.
+    GDay,
+    /// `xsd:gYearMonth` — Gregorian year and month.
+    GYearMonth,
+    /// `xsd:gMonthDay` — Gregorian month and day.
+    GMonthDay,
 }
 
 impl XsdDatatype {
@@ -151,6 +171,11 @@ impl XsdDatatype {
             XSD_DURATION => Self::Duration,
             XSD_DAY_TIME_DURATION => Self::DayTimeDuration,
             XSD_YEAR_MONTH_DURATION => Self::YearMonthDuration,
+            XSD_G_YEAR => Self::GYear,
+            XSD_G_MONTH => Self::GMonth,
+            XSD_G_DAY => Self::GDay,
+            XSD_G_YEAR_MONTH => Self::GYearMonth,
+            XSD_G_MONTH_DAY => Self::GMonthDay,
             _ => return None,
         })
     }
@@ -183,6 +208,11 @@ impl XsdDatatype {
             Self::Duration => XSD_DURATION,
             Self::DayTimeDuration => XSD_DAY_TIME_DURATION,
             Self::YearMonthDuration => XSD_YEAR_MONTH_DURATION,
+            Self::GYear => XSD_G_YEAR,
+            Self::GMonth => XSD_G_MONTH,
+            Self::GDay => XSD_G_DAY,
+            Self::GYearMonth => XSD_G_YEAR_MONTH,
+            Self::GMonthDay => XSD_G_MONTH_DAY,
         }
     }
 
@@ -245,6 +275,11 @@ mod tests {
             XsdDatatype::Duration,
             XsdDatatype::DayTimeDuration,
             XsdDatatype::YearMonthDuration,
+            XsdDatatype::GYear,
+            XsdDatatype::GMonth,
+            XsdDatatype::GDay,
+            XsdDatatype::GYearMonth,
+            XsdDatatype::GMonthDay,
         ] {
             assert_eq!(XsdDatatype::from_iri(dt.iri()), Some(dt));
             assert!(dt.iri().starts_with(XSD_NS));
@@ -306,6 +341,18 @@ mod tests {
         assert_eq!(XSD_BOOLEAN, "http://www.w3.org/2001/XMLSchema#boolean");
         assert_eq!(XSD_DOUBLE, "http://www.w3.org/2001/XMLSchema#double");
         assert_eq!(XSD_DATE_TIME, "http://www.w3.org/2001/XMLSchema#dateTime");
+        // Gregorian family pin
+        assert_eq!(XSD_G_YEAR, "http://www.w3.org/2001/XMLSchema#gYear");
+        assert_eq!(XSD_G_MONTH, "http://www.w3.org/2001/XMLSchema#gMonth");
+        assert_eq!(XSD_G_DAY, "http://www.w3.org/2001/XMLSchema#gDay");
+        assert_eq!(
+            XSD_G_YEAR_MONTH,
+            "http://www.w3.org/2001/XMLSchema#gYearMonth"
+        );
+        assert_eq!(
+            XSD_G_MONTH_DAY,
+            "http://www.w3.org/2001/XMLSchema#gMonthDay"
+        );
     }
 
     #[test]
@@ -367,5 +414,11 @@ mod tests {
         assert_eq!(XsdDatatype::Double.integer_range(), None);
         assert_eq!(XsdDatatype::Boolean.integer_range(), None);
         assert_eq!(XsdDatatype::String.integer_range(), None);
+        // Gregorian types have no integer range.
+        assert_eq!(XsdDatatype::GYear.integer_range(), None);
+        assert_eq!(XsdDatatype::GMonth.integer_range(), None);
+        assert_eq!(XsdDatatype::GDay.integer_range(), None);
+        assert_eq!(XsdDatatype::GYearMonth.integer_range(), None);
+        assert_eq!(XsdDatatype::GMonthDay.integer_range(), None);
     }
 }
