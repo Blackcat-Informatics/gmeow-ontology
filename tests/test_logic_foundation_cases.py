@@ -19,8 +19,8 @@ foundation lowering emits:
 * ``logic:dischargeObligation`` /
   ``logic:witnessRequiredViolation`` — the anti-rigidity witness policy (Task 4).
 
-The expected sets below are the verdicts the native ``gmeow_validate`` checks produce over the
-equivalent gUFO schema (cross-checked against the lint in development); the
+The expected sets below are the verdicts the native ``gmeow_validate`` checks produce
+over the equivalent gUFO schema (cross-checked against the lint in development); the
 ``mixrig-kind-under-role`` case in particular asserts the MixRig catch (AC#3).
 
 The runner-vs-golden diff that formerly lived here is now enforced natively by the
