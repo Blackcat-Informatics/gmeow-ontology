@@ -242,17 +242,33 @@ class _Parser:
         reifier: pyoxigraph.NamedNode | pyoxigraph.BlankNode,
         annotation: dict[str, Any] | list[Any],
         graph: pyoxigraph.NamedNode | pyoxigraph.DefaultGraph = _DEFAULT_GRAPH,
-    ) -> None:
-        """Emit annotation triples about a reifier node."""
+    ) -> pyoxigraph.NamedNode | pyoxigraph.BlankNode:
+        """Emit annotation triples about a reifier node.
+
+        If an annotation object carries an explicit ``@id``, that node becomes the
+        reifier subject; otherwise the supplied fallback reifier is used. The
+        ``@id`` key itself is metadata about the reifier and is not emitted as a
+        property triple.
+        """
         annotations = annotation if isinstance(annotation, list) else [annotation]
+        used_reifier = reifier
         for ann_obj in annotations:
             if not isinstance(ann_obj, dict):
                 raise YamlLdError(
                     "@annotation value must be an object or array of objects"
                 )
+            raw_reifier_id = ann_obj.get("@id")
+            if raw_reifier_id is not None:
+                current_reifier = self._node(self._jsonld_term_to_iri(raw_reifier_id))
+            else:
+                current_reifier = reifier
+            used_reifier = current_reifier
             for key, val in ann_obj.items():
+                if key == "@id":
+                    continue
                 pred = pyoxigraph.NamedNode(self._expand_term(key))
-                self._parse_property(reifier, pred, val, graph)
+                self._parse_property(current_reifier, pred, val, graph)
+        return used_reifier
 
     def _parse_property(
         self,
@@ -272,7 +288,9 @@ class _Parser:
                 lit = self._literal_from_value(value)
                 self.store.add(pyoxigraph.Quad(subj, pred, lit, graph))
                 if "@annotation" in value:
-                    reifier = self._fresh_blank()
+                    reifier = self._parse_annotation(
+                        self._fresh_blank(), value["@annotation"]
+                    )
                     self.store.add(
                         pyoxigraph.Quad(
                             reifier,
@@ -281,22 +299,21 @@ class _Parser:
                             pyoxigraph.DefaultGraph(),
                         )
                     )
-                    self._parse_annotation(reifier, value["@annotation"])
                 return
 
             annotation = value.get("@annotation")
             node_obj = self._parse_node_object(value, graph)
             self.store.add(pyoxigraph.Quad(subj, pred, node_obj, graph))
             if annotation is not None:
+                reifier = self._parse_annotation(self._fresh_blank(), annotation)
                 self.store.add(
                     pyoxigraph.Quad(
-                        node_obj,
+                        reifier,
                         pyoxigraph.NamedNode(_RDF_REIFIES),
                         pyoxigraph.Triple(subj, pred, node_obj),
                         pyoxigraph.DefaultGraph(),
                     )
                 )
-                self._parse_annotation(node_obj, annotation)
             return
 
         scalar_obj = self._scalar_to_term(value)
