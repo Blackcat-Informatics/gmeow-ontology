@@ -150,8 +150,9 @@ pub(crate) fn snapshot_bytes(
 
 // ── Archive blobs (#861 regression fix) ─────────────────────────────────────────
 //
-// The pre-pipeline generator folded four TAR archives into `gmeow.gts` —
-// `mappings-archive` / `cells-archive` / `queries-archive` / `tests-archive` —
+// The pre-pipeline generator folded five TAR archives into `gmeow.gts` —
+// `mappings-archive` / `cells-archive` / `queries-archive` / `tests-archive` /
+// `schemas-archive` —
 // that the wheel-mode consumer loaders read back (`gmeow_tools.bundle`:
 // `bundled_sssom` / `bundled_cells` / `bundled_queries` / `bundled_tests`). The
 // #861 pipeline cutover dropped the WRITER (only the reader survived, orphaned),
@@ -167,6 +168,8 @@ const REP_MAPPINGS: &str = "mappings-archive";
 const REP_CELLS: &str = "cells-archive";
 const REP_QUERIES: &str = "queries-archive";
 const REP_TESTS: &str = "tests-archive";
+/// tar of the SHACL-derived JSON Schema + OpenAPI (#700), member = bare filename.
+const REP_SCHEMAS: &str = "schemas-archive";
 /// The full rendered ontology-docs static site (#897). The rep MUST equal the
 /// string the runtime consumer (`create_docs._unpack_doc_archive`) looks up —
 /// `"ontology-docs"`, NOT an `-archive` variant — so `gmeow extract-docs` finds it.
@@ -204,11 +207,18 @@ fn build_guide_blobs(root: &Path) -> Result<Vec<BlobRow>, PipelineError> {
     Ok(blobs)
 }
 
-/// Build the four bundle archive blobs from the repo tree.
+/// Build the five bundle archive blobs from the repo tree.
 fn build_archive_blobs(root: &Path) -> Result<Vec<BlobRow>, PipelineError> {
     // mappings + queries: member = bare filename.
     let mappings = members_basename(&list_files(&root.join("generated/mappings"), "sssom.tsv")?)?;
     let queries = members_basename(&list_files(&root.join("generated/queries"), "rq")?)?;
+    // schemas: the SHACL-derived JSON Schema + OpenAPI (#700), member = bare
+    // filename. Both files always exist after the json-schema stage; a missing one
+    // HARD-fails through `members_basename` (no optionality, fail-closed).
+    let schemas = members_basename(&[
+        root.join("generated/schemas/gmeow.schema.json"),
+        root.join("generated/schemas/gmeow.openapi.json"),
+    ])?;
     // cells: equivalences + projections + slice mappings, member = repo-relative path.
     let mut cells: Vec<(String, Vec<u8>)> = Vec::new();
     cells.extend(members_relpath(
@@ -229,6 +239,7 @@ fn build_archive_blobs(root: &Path) -> Result<Vec<BlobRow>, PipelineError> {
         archive_blob(REP_CELLS, &cells)?,
         archive_blob(REP_QUERIES, &queries)?,
         archive_blob(REP_TESTS, &tests)?,
+        archive_blob(REP_SCHEMAS, &schemas)?,
     ])
 }
 

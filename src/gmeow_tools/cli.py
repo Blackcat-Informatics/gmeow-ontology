@@ -61,11 +61,16 @@ def _default_gts_file() -> Path:
 def _default_schema_bytes() -> bytes:
     """Read the default GMEOW JSON Schema (the SHACL-derived gmeow.schema.json).
 
-    Today this reads ``SCHEMAS_DIR / "gmeow.schema.json"`` from the repo.
-
-    TODO(#700 Task 5): switch this to the GTS-bundled schema (REP_SCHEMAS) so
-    ``gmeow validate`` works repo-free — a one-line swap of the source below.
+    Prefers the GTS-bundled schema (REP_SCHEMAS) so ``gmeow validate`` works
+    repo-free, falling back to ``SCHEMAS_DIR / "gmeow.schema.json"`` in a dev
+    checkout (#700).
     """
+    from gmeow_tools import bundle
+
+    blob = bundle.bundled_schema()
+    if blob is not None:
+        return blob
+    # dev/repo fallback: the on-disk generated schema.
     path = SCHEMAS_DIR / "gmeow.schema.json"
     if not path.is_file():
         raise _fail(

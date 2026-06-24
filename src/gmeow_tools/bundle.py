@@ -43,6 +43,7 @@ REP_TESTS = "tests-archive"  # tar of the slice test-DSL specs (repo-rel paths, 
 REP_REASONING = "reasoning-archive"  # tar of canonical reasoning products (#667)
 REP_OKF = "okf-export"  # tar of the OKF (Open Knowledge Format) bundle (#780)
 REP_ONTOLOGY_DOCS = "ontology-docs"  # tar of the rust-rendered docs site (#897)
+REP_SCHEMAS = "schemas-archive"  # tar of gmeow.schema.json + gmeow.openapi.json (#700)
 REP_DENIED = "transform:denied"  # JSON of the saturation refusal set (alignment lint)
 _GUIDE_BLOB = NAMESPACE + "guideBlob"
 
@@ -158,6 +159,22 @@ def bundled_ontology_docs() -> dict[str, bytes]:
     and unpacks it repo-free. Empty when unbundled.
     """
     return _archive(REP_ONTOLOGY_DOCS)
+
+
+def bundled_schemas() -> dict[str, bytes]:
+    """The folded SHACL-derived schemas as ``{filename: bytes}`` (#700).
+
+    Holds ``gmeow.schema.json`` (the JSON Schema the native SHACL→JSON-Schema
+    emitter produced) and ``gmeow.openapi.json`` (the OpenAPI projection), keyed by
+    bare filename so a repo-free consumer can validate instances or serve the API
+    surface straight from the wheel. Empty when unbundled.
+    """
+    return _archive(REP_SCHEMAS)
+
+
+def bundled_schema() -> bytes | None:
+    """The bundled SHACL-derived JSON Schema (gmeow.schema.json), or None if absent."""
+    return _archive(REP_SCHEMAS).get("gmeow.schema.json")
 
 
 def _is_slice_mapping(relpath: str) -> bool:
