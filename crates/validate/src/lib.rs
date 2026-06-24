@@ -28,6 +28,7 @@ pub mod coverage;
 pub mod dsl;
 pub mod findings;
 pub mod gufo;
+pub mod instance;
 pub mod language_tags;
 pub mod lint;
 pub mod model;

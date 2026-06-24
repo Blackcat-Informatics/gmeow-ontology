@@ -122,8 +122,28 @@ pub enum Constraint {
     },
     /// `sh:minLength 3`
     MinLength(u64),
+    /// `sh:maxLength 255`
+    MaxLength(u64),
     /// `sh:uniqueLang true`
     UniqueLang(bool),
+    /// `sh:languageIn ( "en" "fr" )` — every value node must be a
+    /// language-tagged literal whose tag matches one of the listed tags (basic
+    /// filtering / prefix match per SHACL: a value tag matches an entry iff it
+    /// equals it or is a subtag, e.g. `"en"` matches `"en-US"`).
+    LanguageIn(Vec<String>),
+    /// `sh:not <shape>` — the focus/value node must NOT conform to the shape.
+    Not(Box<Shape>),
+    /// `sh:closed true` (with optional `sh:ignoredProperties`).
+    ///
+    /// A node-shape-level constraint: every predicate used on the focus node must
+    /// be declared by one of the shape's `sh:property` simple-predicate paths, be
+    /// listed in `ignored`, or be `rdf:type` (always allowed). Only emitted when
+    /// `sh:closed true`.
+    Closed {
+        /// Predicates explicitly exempted from the closed-world check
+        /// (`sh:ignoredProperties`), in addition to the implicit `rdf:type`.
+        ignored: Vec<NamedNode>,
+    },
     /// `sh:minInclusive "0"^^xsd:integer`
     MinInclusive(Term),
     /// `sh:maxInclusive "100"^^xsd:integer`
@@ -266,11 +286,6 @@ fn unsupported_predicates() -> HashSet<&'static str> {
         sh::LESS_THAN_OR_EQUALS.as_str(),
         sh::EQUALS.as_str(),
         sh::DISJOINT.as_str(),
-        sh::NOT.as_str(),
-        sh::CLOSED.as_str(),
-        sh::IGNORED_PROPERTIES.as_str(),
-        sh::LANGUAGE_IN.as_str(),
-        sh::MAX_LENGTH.as_str(),
         // unsupported path forms (checked on bnode path objects)
         sh::ALTERNATIVE_PATH.as_str(),
         sh::ZERO_OR_MORE_PATH.as_str(),
@@ -799,6 +814,74 @@ impl<'s> Parser<'s> {
                 format!("sh:minLength value is not a non-negative integer on {id}")
             })?;
             constraints.push(Constraint::MinLength(v));
+        }
+
+        // sh:maxLength
+        for t in self.objects_of(id, sh::MAX_LENGTH) {
+            let v = parse_u64(&t).ok_or_else(|| {
+                format!("sh:maxLength value is not a non-negative integer on {id}")
+            })?;
+            constraints.push(Constraint::MaxLength(v));
+        }
+
+        // sh:languageIn — an RDF list of language-tag string literals
+        let mut lang_in_lists: Vec<Term> = self.objects_of(id, sh::LANGUAGE_IN);
+        lang_in_lists.sort_by_key(|t| t.to_string());
+        for list_head in lang_in_lists {
+            let items = self.walk_rdf_list(&list_head, id)?;
+            let mut tags: Vec<String> = Vec::with_capacity(items.len());
+            for item in items {
+                match item {
+                    Term::Literal(lit) => tags.push(lit.value().to_owned()),
+                    other => {
+                        return Err(format!(
+                            "sh:languageIn list on {id} contains a non-literal language tag: {other}"
+                        ));
+                    }
+                }
+            }
+            constraints.push(Constraint::LanguageIn(tags));
+        }
+
+        // sh:not — a single nested shape (mirrors sh:node)
+        let mut not_refs: Vec<Term> = self.objects_of(id, sh::NOT);
+        not_refs.sort_by_key(|t| t.to_string());
+        for not_ref in not_refs {
+            let inner = self.parse_node_shape(not_ref)?;
+            constraints.push(Constraint::Not(Box::new(inner)));
+        }
+
+        // sh:closed (+ sh:ignoredProperties) — node-shape-level closed-world check.
+        // Only emit the constraint when sh:closed is true.
+        let is_closed = self
+            .first_object_of(id, sh::CLOSED)
+            .map(|t| match &t {
+                Term::Literal(lit) => lit.value() == "true",
+                _ => false,
+            })
+            .unwrap_or(false);
+        if is_closed {
+            let mut ignored: Vec<NamedNode> = Vec::new();
+            let mut ignored_lists: Vec<Term> = self.objects_of(id, sh::IGNORED_PROPERTIES);
+            ignored_lists.sort_by_key(|t| t.to_string());
+            for list_head in ignored_lists {
+                for item in self.walk_rdf_list(&list_head, id)? {
+                    match item {
+                        Term::NamedNode(n) => ignored.push(n),
+                        // sh:ignoredProperties members must be IRIs; silently
+                        // skipping a non-IRI would let a malformed shapes graph load
+                        // and feed bad data downstream (hard-fail, no silent drop).
+                        other => {
+                            return Err(format!(
+                                "sh:ignoredProperties list on {id} contains a non-IRI member: {other}"
+                            ));
+                        }
+                    }
+                }
+            }
+            ignored.sort_by(|a, b| a.as_str().cmp(b.as_str()));
+            ignored.dedup();
+            constraints.push(Constraint::Closed { ignored });
         }
 
         // sh:uniqueLang
@@ -1719,6 +1802,171 @@ mod tests {
         assert!(
             err.contains("requires an IRI sh:path"),
             "error should document the supported path boundary, got: {err}"
+        );
+    }
+
+    // ── #700: sh:maxLength parses to Constraint::MaxLength ────────────────────
+
+    #[test]
+    fn test_max_length_parses() {
+        let ttl = format!(
+            r#"{PREFIXES}
+            ex:MaxLenShape a sh:NodeShape ;
+                sh:targetClass ex:Tag ;
+                sh:property [
+                    sh:path ex:code ;
+                    sh:maxLength 5 ;
+                ] .
+        "#
+        );
+        let store = load_store(&ttl);
+        let shapes = from_store(&store).expect("sh:maxLength must parse");
+        let ps = &shapes.node_shapes[0].property_shapes[0];
+        let has_max = ps
+            .constraints
+            .iter()
+            .any(|c| matches!(c, Constraint::MaxLength(5)));
+        assert!(has_max, "expected MaxLength(5), got {:?}", ps.constraints);
+    }
+
+    // ── #700: sh:languageIn parses to Constraint::LanguageIn ──────────────────
+
+    #[test]
+    fn test_language_in_parses() {
+        let ttl = format!(
+            r#"{PREFIXES}
+            ex:LangShape a sh:NodeShape ;
+                sh:targetClass ex:Doc ;
+                sh:property [
+                    sh:path ex:label ;
+                    sh:languageIn ( "en" "fr" ) ;
+                ] .
+        "#
+        );
+        let store = load_store(&ttl);
+        let shapes = from_store(&store).expect("sh:languageIn must parse");
+        let ps = &shapes.node_shapes[0].property_shapes[0];
+        let tags = ps.constraints.iter().find_map(|c| match c {
+            Constraint::LanguageIn(tags) => Some(tags),
+            _ => None,
+        });
+        assert!(
+            tags.is_some(),
+            "expected LanguageIn, got {:?}",
+            ps.constraints
+        );
+        assert_eq!(
+            tags.unwrap().as_slice(),
+            &["en".to_owned(), "fr".to_owned()]
+        );
+    }
+
+    // ── #700: sh:not parses to Constraint::Not(nested shape) ──────────────────
+
+    #[test]
+    fn test_not_parses() {
+        let ttl = format!(
+            r#"{PREFIXES}
+            ex:NotShape a sh:NodeShape ;
+                sh:targetClass ex:Thing ;
+                sh:not [ sh:nodeKind sh:Literal ] .
+        "#
+        );
+        let store = load_store(&ttl);
+        let shapes = from_store(&store).expect("sh:not must parse");
+        let shape = &shapes.node_shapes[0];
+        let not_c = shape.constraints.iter().find_map(|c| match c {
+            Constraint::Not(inner) => Some(inner),
+            _ => None,
+        });
+        assert!(not_c.is_some(), "expected Not, got {:?}", shape.constraints);
+        let inner = not_c.unwrap();
+        assert!(
+            inner
+                .constraints
+                .iter()
+                .any(|c| matches!(c, Constraint::NodeKind(NodeKindValue::Literal))),
+            "nested shape should carry NodeKind(Literal)"
+        );
+    }
+
+    // ── #700: sh:closed true (+ sh:ignoredProperties) parses to Closed ────────
+
+    #[test]
+    fn test_closed_parses() {
+        let ttl = format!(
+            r#"{PREFIXES}
+            ex:ClosedShape a sh:NodeShape ;
+                sh:targetClass ex:Person ;
+                sh:closed true ;
+                sh:ignoredProperties ( rdf:type ex:extra ) ;
+                sh:property [ sh:path ex:name ] .
+        "#
+        );
+        let store = load_store(&ttl);
+        let shapes = from_store(&store).expect("sh:closed must parse");
+        let shape = &shapes.node_shapes[0];
+        let ignored = shape.constraints.iter().find_map(|c| match c {
+            Constraint::Closed { ignored } => Some(ignored),
+            _ => None,
+        });
+        assert!(
+            ignored.is_some(),
+            "expected Closed, got {:?}",
+            shape.constraints
+        );
+        let ignored = ignored.unwrap();
+        assert!(
+            ignored
+                .iter()
+                .any(|n| n.as_str() == "http://example.org/ns#extra"),
+            "ignoredProperties should include ex:extra"
+        );
+    }
+
+    #[test]
+    fn test_ignored_properties_non_iri_member_errors() {
+        // A non-IRI sh:ignoredProperties member (a literal) is malformed: the
+        // shapes graph must HARD-fail to load rather than silently dropping it
+        // (#700 Gap H).
+        let ttl = format!(
+            r#"{PREFIXES}
+            ex:ClosedShape a sh:NodeShape ;
+                sh:targetClass ex:Person ;
+                sh:closed true ;
+                sh:ignoredProperties ( rdf:type "oops" ) ;
+                sh:property [ sh:path ex:name ] .
+        "#
+        );
+        let store = load_store(&ttl);
+        let err = from_store(&store).expect_err("non-IRI ignoredProperties member must error");
+        assert!(
+            err.contains("ignoredProperties") && err.contains("non-IRI"),
+            "error should name the malformed ignoredProperties member, got: {err}"
+        );
+    }
+
+    // ── #700: sh:closed false emits NO Closed constraint ──────────────────────
+
+    #[test]
+    fn test_closed_false_emits_nothing() {
+        let ttl = format!(
+            r#"{PREFIXES}
+            ex:OpenShape a sh:NodeShape ;
+                sh:targetClass ex:Person ;
+                sh:closed false ;
+                sh:property [ sh:path ex:name ] .
+        "#
+        );
+        let store = load_store(&ttl);
+        let shapes = from_store(&store).expect("sh:closed false must parse");
+        let shape = &shapes.node_shapes[0];
+        assert!(
+            !shape
+                .constraints
+                .iter()
+                .any(|c| matches!(c, Constraint::Closed { .. })),
+            "sh:closed false must not emit a Closed constraint"
         );
     }
 
