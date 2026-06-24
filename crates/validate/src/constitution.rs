@@ -379,6 +379,9 @@ pub fn cli_command_names(cli_dev_text: &str) -> BTreeSet<String> {
             continue;
         }
         if pending {
+            if stripped.is_empty() || stripped.starts_with('#') || stripped.starts_with('@') {
+                continue;
+            }
             if let Some(cap) = def_re.captures(stripped) {
                 let fname = cap.get(1).expect("function name").as_str();
                 names.insert(fname.replace('_', "-"));
@@ -899,6 +902,19 @@ mod tests {
         assert!(got.contains("second-cmd"));
         assert!(got.contains("third-cmd"));
         assert!(!got.contains("second_command"));
+    }
+
+    #[test]
+    fn cli_command_names_skips_blank_comment_decorator_before_def() {
+        let py = "\n\
+            @app.command()\n\
+            \n\
+            # a comment\n\
+            @some_other_decorator\n\
+            def spaced_command():\n\
+                pass\n";
+        let got = cli_command_names(py);
+        assert!(got.contains("spaced-command"));
     }
 
     // ------------------------------------------------------------------
