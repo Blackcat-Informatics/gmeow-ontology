@@ -48,7 +48,7 @@ _ALIGNMENT_CHECKS = frozenset(
 )
 
 
-def _alignment_findings(network: bool = False) -> list[ProjectionDiagnostic]:
+def _alignment_findings(*, network: bool = False) -> list[ProjectionDiagnostic]:
     """Run the Rust alignment lint and return only alignment-family findings."""
     return [
         f

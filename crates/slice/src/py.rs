@@ -650,8 +650,9 @@ fn emit_fno(root: &str) -> PyResult<String> {
 /// type-mismatch / EDOAL→FnO reference-integrity / CONSTRUCT↔EDOAL↔SSSOM spec-drift
 /// invariants) folded together with the alignment-direction lint
 /// (`inverse-direction`, `domain-range`, `property-character`, `equivalence-collapse`,
-/// `dc-refinement`, `dc-hand-authored`). Each dict carries the SAME
-/// `{severity, code, message, check, instance}` shape as the native SSSOM validator
+/// `dc-refinement`, `dc-hand-authored`). Each dict carries the common
+/// `{severity, code, message, check, instance}` fields plus optional
+/// `{subject_id, predicate_id, object_id}` CURIEs for alignment-row findings
 /// (`gmeow_rdf.validate_sssom`). An empty list means the projection stack and SSSOM
 /// alignments are internally consistent.
 ///
