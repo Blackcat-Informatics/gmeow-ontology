@@ -16,7 +16,7 @@ Migrated to crates/validate/tests/ontology_conformance.rs (#867):
 
 from __future__ import annotations
 
-from gmeow_rdf.compat.rdflib import URIRef
+from gmeow_rdf.compat.rdflib import Graph, URIRef
 from gmeow_rdf.compat.rdflib.namespace import OWL, RDF, RDFS
 
 from gmeow_tools.graph import load_merged_graph
@@ -25,7 +25,7 @@ GMEOW = "https://blackcatinformatics.ca/gmeow/"
 GUFO = "http://purl.org/nemo/gufo#"
 
 
-def _graph():
+def _graph() -> Graph:
     return load_merged_graph(include_imports=False)
 
 
