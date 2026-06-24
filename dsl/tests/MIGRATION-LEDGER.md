@@ -259,6 +259,59 @@ The second SHACL-conformance slice (concepts recipe): 8 structural fns → `test
 
 **Learning tally:** 11 converted (11 structural cells + 3 example-conformance cells across 11 fns), 1 deleted-covered-by-make-validate. Source file `tests/test_learning.py` DELETED entirely (all 12 fns migrated/subsumed, no must-stays). Second slice exercising `gmeow:ExampleConformance`; first to migrate an EL `someValuesFrom` restriction (blank-node ASK) and an `sh:sparql` constraint violation.
 
+## `slices/core/quality`
+
+The quality-module TBox structural assertions (#99) migrated to
+`slices/core/quality/tests/structural.ttl`. The whole-ontology Principle-9 sweep is
+RETAINED in pytest (a module-scoped cell would silently narrow its subject set).
+
+| Pytest fn | Pytest file | DSL cell IRI | Cell type | Status | Reason if retained | Run by |
+|---|---|---|---|---|---|---|
+| `test_quality_assessment_class_structure` | `tests/test_quality.py` | `ex:saQualityAssessmentIsSubKindObservation` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_quality_dimension_class_structure` | `tests/test_quality.py` | `ex:saQualityDimensionIsValueVocab` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_assessed_entity_property_structure` | `tests/test_quality.py` | `ex:saAssessedEntityProperty` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_quality_dimension_property_structure` | `tests/test_quality.py` | `ex:saQualityDimensionProperty` + `ex:saQualityDimensionNotFunctional` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_dimension_seeds_exist` | `tests/test_quality.py` | `ex:saQualityDimensionSeeds` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_no_preferred_or_primary_term_is_declared` | `tests/test_quality.py` | — | — | **retained** | whole-ontology Principle-9 dynamic sweep over the ENTIRE merged graph's subject set — a quality-module-scoped cell would silently narrow it (the #869 Gap-1 trap class). Kept as a dynamic-set sweep | pytest |
+
+**Quality tally:** 5 converted (6 structural cells across 5 fns), 1 retained-with-reason. `tests/test_quality.py` keeps only the whole-ontology sweep.
+
+## `slices/core/observations`
+
+The observation-module asserted-TBox structural assertions (#66, #69) migrated to
+`slices/core/observations/tests/structural.ttl`. The SOSA/AFO mapping tests
+(generated-artifact reads) and the cross-slice KinRelationship bridges are retained.
+
+| Pytest fn | Pytest file | DSL cell IRI | Cell type | Status | Reason if retained | Run by |
+|---|---|---|---|---|---|---|
+| `test_observation_class_exists` | `tests/test_observations.py` | `ex:saObservationClass` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_observation_properties_exist` | `tests/test_observations.py` | `ex:saObservationProperties` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_observation_value_vocabularies_exist` | `tests/test_observations.py` | `ex:saObservationValueVocabularies` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_observation_type_seeds_exist` | `tests/test_observations.py` | `ex:saObservationTypeSeeds` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_observation_method_seeds_exist` | `tests/test_observations.py` | `ex:saObservationMethodSeeds` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_scalar_quantity_properties_exist` | `tests/test_observations.py` | `ex:saScalarQuantityProperties` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_property_bridges_fire` | `tests/test_observations.py` | `ex:saPropertyBridges` | StructuralAssertion | **partial** | the 8 observations-module-local bridges convert; the 3 KinRelationship bridges (`relationshipParent`/`relationshipChild`/`hasPartner`) are asserted in the genealogy module → retained as `test_kin_relationship_bridges_fire` (cross-slice, pending a genealogy migration) | `make slicetest` + pytest |
+| `test_quantity_equivalent_to_scalar_quantity` | `tests/test_observations.py` | `ex:saQuantityEquivalentScalarQuantity` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_measured_value_equivalent_to_quantity` | `tests/test_observations.py` | `ex:saMeasuredValueEquivalentQuantity` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_is_result_of_is_inverse_of_observation_result` | `tests/test_observations.py` | `ex:saIsResultOfInverseObservationResult` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_stream_class_exists` | `tests/test_observations.py` | `ex:saStreamClass` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_stream_properties_exist` | `tests/test_observations.py` | `ex:saStreamProperties` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_stream_of_is_functional` | `tests/test_observations.py` | `ex:saStreamOfFunctional` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_has_stream_is_inverse_of_stream_of` | `tests/test_observations.py` | `ex:saHasStreamInverseStreamOf` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_stream_sample_is_non_functional` | `tests/test_observations.py` | `ex:saStreamSampleShape` + `ex:saStreamSampleNotFunctional` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_stream_platform_is_non_functional` | `tests/test_observations.py` | `ex:saStreamPlatformShape` + `ex:saStreamPlatformNotFunctional` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_stream_sensor_is_non_functional` | `tests/test_observations.py` | `ex:saStreamSensorShape` + `ex:saStreamSensorNotFunctional` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_stream_interval_is_functional` | `tests/test_observations.py` | `ex:saStreamIntervalFunctional` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_streaming_observation_type_exists` | `tests/test_observations.py` | `ex:saStreamingObservationType` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_streaming_method_exists` | `tests/test_observations.py` | `ex:saStreamingMethod` | StructuralAssertion | converted | — | `make slicetest` |
+| `test_standpoint_claim_aligned_to_sosa_observation` | `tests/test_observations.py` | — | — | **retained** | reads the GENERATED SSSOM mapping artifact (`load_mappings`) — independent Python surface, no module graph | pytest |
+| `test_agent_aligned_to_sosa_sensor_as_standpoint` | `tests/test_observations.py` | — | — | **retained** | generated SSSOM mapping read | pytest |
+| `test_coordinate_observation_mapped_to_sosa` | `tests/test_observations.py` | — | — | **retained** | generated SSSOM mapping read | pytest |
+| `test_spatial_measurement_mapped_to_sosa` | `tests/test_observations.py` | — | — | **retained** | generated SSSOM mapping read | pytest |
+| `test_kin_relationship_bridges_fire` (new, the cross-slice remnant of `test_property_bridges_fire`) | `tests/test_observations.py` | — | — | **retained** | the 3 KinRelationship bridges are asserted in the genealogy module, invisible to a module-scoped observations cell; over the merged graph pending a genealogy migration | pytest |
+
+**Observations tally:** 19 converted + 1 partial (property-bridges: 8 of 11 converted) = 23 structural cells, 5 retained-with-reason (4 generated-SSSOM-mapping reads + 1 cross-slice kin-bridge). `tests/test_observations.py` 24 → 5 fns.
+
 ## Reasoning cluster → native Rust OWL 2 RL harness (#896)
 
 The OWL/EL/DL **reasoning + entailment** tests are a distinct lane from the
