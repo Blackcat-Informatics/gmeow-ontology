@@ -47,19 +47,9 @@ pub fn to_writer(
     // resolved before quad terms reference them. The resolution is infallible
     // (the dataset is already validated at freeze) and reuses the same
     // owned-boundary helpers the IR exposes for legacy consumers.
-    let quads: Vec<RdfQuad> = dataset
-        .quads()
-        .enumerate()
-        .map(|(i, q)| dataset.to_owned_quad(i, q))
-        .collect();
-    let reifiers: Vec<RdfReifier> = dataset
-        .reifiers()
-        .map(|(r, t)| dataset.to_owned_reifier(r, t))
-        .collect();
-    let annotations: Vec<RdfAnnotation> = dataset
-        .annotations()
-        .map(|(r, p, o)| dataset.to_owned_annotation(r, p, o))
-        .collect();
+    let quads: Vec<RdfQuad> = dataset.owned_quads().collect();
+    let reifiers: Vec<RdfReifier> = dataset.owned_reifiers().collect();
+    let annotations: Vec<RdfAnnotation> = dataset.owned_annotations().collect();
 
     let mut state = InternState::new();
 

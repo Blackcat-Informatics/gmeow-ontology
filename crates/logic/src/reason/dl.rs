@@ -248,8 +248,7 @@ fn scan_gaps(edb: &RdfDataset) -> Result<Vec<RdfLoss>, String> {
     // a hard failure (no-optionality doctrine — silently dropping a quad could
     // miss a beyond-EL construct).
     let mut present_iris: std::collections::HashSet<String> = std::collections::HashSet::new();
-    for (index, quad) in edb.quads().enumerate() {
-        let quad = edb.to_owned_quad(index, quad);
+    for quad in edb.owned_quads() {
         present_iris.insert(quad.predicate);
         if let RdfTerm::Iri(o) = quad.object {
             present_iris.insert(o);

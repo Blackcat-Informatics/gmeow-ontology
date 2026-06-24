@@ -439,9 +439,7 @@ fn render_resource(term: &RdfTerm, interner: &mut Interner) -> Option<String> {
 /// absent from the suites' RL fixtures.
 fn encode_generic_edb(store: &RdfDataset, interner: &mut Interner) -> Vec<String> {
     let mut facts: Vec<String> = Vec::new();
-    for (index, quad) in store.quads().enumerate() {
-        let quad = store.to_owned_quad(index, quad);
-
+    for quad in store.owned_quads() {
         let Some(subj) = render_resource(&quad.subject, interner) else {
             continue;
         };

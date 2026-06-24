@@ -11,7 +11,7 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use gmeow_rdf::model::{RdfAnnotation, RdfLiteral, RdfQuad, RdfReifier, RdfTerm};
+use gmeow_rdf::model::{RdfLiteral, RdfTerm};
 use gmeow_rdf::RdfDataset;
 use sha2::{Digest, Sha256};
 
@@ -279,31 +279,12 @@ struct Edge {
     props: BTreeMap<String, Val>,
 }
 
-fn owned_quads(dataset: &RdfDataset) -> impl Iterator<Item = RdfQuad> + '_ {
-    dataset
-        .quads()
-        .enumerate()
-        .map(|(index, quad)| dataset.to_owned_quad(index, quad))
-}
-
-fn owned_reifiers(dataset: &RdfDataset) -> impl Iterator<Item = RdfReifier> + '_ {
-    dataset
-        .reifiers()
-        .map(|(reifier, triple)| dataset.to_owned_reifier(reifier, triple))
-}
-
-fn owned_annotations(dataset: &RdfDataset) -> impl Iterator<Item = RdfAnnotation> + '_ {
-    dataset
-        .annotations()
-        .map(|(reifier, predicate, object)| dataset.to_owned_annotation(reifier, predicate, object))
-}
-
 /// Build the LPG (nodes + edges) from an `RdfDataset` fold.
 fn build_lpg(store: &RdfDataset) -> Result<(Vec<Node>, Vec<Edge>), PipelineError> {
     // Reifier tables.
     let mut reifier_triple: BTreeMap<String, (String, String, String)> = BTreeMap::new();
     let mut reifier_iris: BTreeSet<String> = BTreeSet::new();
-    for r in owned_reifiers(store) {
+    for r in store.owned_reifiers() {
         if let RdfTerm::Iri(rid) = &r.reifier {
             reifier_iris.insert(rid.clone());
             let s = lex(&r.statement.subject);
@@ -314,7 +295,7 @@ fn build_lpg(store: &RdfDataset) -> Result<(Vec<Node>, Vec<Edge>), PipelineError
     }
     let mut reifier_meta: BTreeMap<String, BTreeMap<String, PropVal>> = BTreeMap::new();
     let mut ann_iri_values: BTreeSet<String> = BTreeSet::new();
-    for a in owned_annotations(store) {
+    for a in store.owned_annotations() {
         if let RdfTerm::Iri(rid) = &a.reifier {
             reifier_iris.insert(rid.clone());
             accumulate(
@@ -347,7 +328,7 @@ fn build_lpg(store: &RdfDataset) -> Result<(Vec<Node>, Vec<Edge>), PipelineError
     let mut node_props: BTreeMap<String, BTreeMap<String, PropVal>> = BTreeMap::new();
     let mut object_rows: Vec<(String, String, String)> = Vec::new();
 
-    for q in owned_quads(store) {
+    for q in store.owned_quads() {
         // Scope to the statement named graph.
         if term_iri_opt(&q.graph_name).as_deref() != Some(STATEMENTS_GRAPH) {
             continue;

@@ -188,7 +188,7 @@ mod tests {
         let dataset = b.freeze().expect("valid");
 
         // Read the quad back through the owned-boundary helper — it carries the IR location.
-        let quad = dataset.to_owned_quad(0, dataset.quads().next().expect("a quad"));
+        let quad = dataset.owned_quads().next().expect("a quad");
         let rdf_location = quad
             .location
             .expect("the bridge threads the quad's IR location into the owned model");

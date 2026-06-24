@@ -423,16 +423,13 @@ fn escape_literal(value: &str) -> String {
 /// Returns `Err` if the store surfaces a quad/reifier/annotation read failure.
 fn asserted_turtle(store: &RdfDataset) -> Result<String, String> {
     let mut out = String::new();
-    for (index, quad) in store.quads().enumerate() {
-        let quad = store.to_owned_quad(index, quad);
+    for quad in store.owned_quads() {
         out.push_str(&emit_quad(&quad));
     }
-    for (reifier, triple) in store.reifiers() {
-        let reifier = store.to_owned_reifier(reifier, triple);
+    for reifier in store.owned_reifiers() {
         out.push_str(&emit_reifier(&reifier, &[]));
     }
-    for (reifier, predicate, object) in store.annotations() {
-        let annotation = store.to_owned_annotation(reifier, predicate, object);
+    for annotation in store.owned_annotations() {
         out.push_str(&emit_annotation_triple(&annotation));
     }
     Ok(out)

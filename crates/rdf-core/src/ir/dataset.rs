@@ -418,6 +418,26 @@ impl RdfDataset {
         )
     }
 
+    /// Iterate over all quads resolved to their owned [`RdfQuad`] representation.
+    pub fn owned_quads(&self) -> impl Iterator<Item = RdfQuad> + '_ {
+        self.quads()
+            .enumerate()
+            .map(|(index, quad)| self.to_owned_quad(index, quad))
+    }
+
+    /// Iterate over all reifiers resolved to their owned [`RdfReifier`] representation.
+    pub fn owned_reifiers(&self) -> impl Iterator<Item = RdfReifier> + '_ {
+        self.reifiers()
+            .map(|(reifier, triple)| self.to_owned_reifier(reifier, triple))
+    }
+
+    /// Iterate over all annotations resolved to their owned [`RdfAnnotation`] representation.
+    pub fn owned_annotations(&self) -> impl Iterator<Item = RdfAnnotation> + '_ {
+        self.annotations().map(|(reifier, predicate, object)| {
+            self.to_owned_annotation(reifier, predicate, object)
+        })
+    }
+
     /// Borrow (building on first access) the ordinal-indirection array for a
     /// non-identity permutation (#891 P4b): `arr[i]` is the ordinal into `self.quads`
     /// of the `i`-th quad in `perm`'s order. Sorted by [`perm_key`]; `OnceLock` makes

@@ -285,16 +285,14 @@ fn shacl_dataset_from_dataset(
 ) -> Result<std::sync::Arc<gmeow_rdf::RdfDataset>, String> {
     let mut builder = RdfDatasetBuilder::new();
 
-    for (index, quad) in data.quads().enumerate() {
-        let mut quad = data.to_owned_quad(index, quad);
+    for mut quad in data.owned_quads() {
         // FlattenToDefaultGraph: drop the source graph name.
         quad.graph_name = None;
         builder.push_owned_quad(&quad);
     }
 
     // Reifiers → `(reifier, rdf:reifies, <<triple>>)` triples.
-    for (reifier, triple) in data.reifiers() {
-        let reifier = data.to_owned_reifier(reifier, triple);
+    for reifier in data.owned_reifiers() {
         builder.push_owned_quad(&RdfQuad::new(
             reifier.reifier,
             RDF_REIFIES,
@@ -303,8 +301,7 @@ fn shacl_dataset_from_dataset(
     }
 
     // Annotations → `(reifier, predicate, object)` triples.
-    for (reifier, predicate, object) in data.annotations() {
-        let annotation = data.to_owned_annotation(reifier, predicate, object);
+    for annotation in data.owned_annotations() {
         builder.push_owned_quad(&RdfQuad::new(
             annotation.reifier,
             annotation.predicate,

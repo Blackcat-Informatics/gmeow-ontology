@@ -30,25 +30,22 @@ pub fn store_from_dataset(
 ) -> Result<Store, RdfDiagnostic> {
     let store =
         Store::new().map_err(|e| RdfDiagnostic::error("oxigraph-store-create", e.to_string()))?;
-    for (frozen_index, quad) in dataset.quads().enumerate() {
-        let ox_quad =
-            oxigraph_quad_from_rdf(&dataset.to_owned_quad(frozen_index, quad), graph_policy)?;
+    for quad in dataset.owned_quads() {
+        let ox_quad = oxigraph_quad_from_rdf(&quad, graph_policy)?;
         store
             .insert(&ox_quad)
             .map_err(|e| RdfDiagnostic::error("oxigraph-store-insert", e.to_string()))?;
     }
     let rdf_reifies = NamedNode::new(RDF_REIFIES)
         .map_err(|e| RdfDiagnostic::error("oxigraph-rdf-reifies-iri", e.to_string()))?;
-    for (reifier, triple) in dataset.reifiers() {
-        let ox_quad =
-            oxigraph_reifier_quad(&dataset.to_owned_reifier(reifier, triple), &rdf_reifies)?;
+    for reifier in dataset.owned_reifiers() {
+        let ox_quad = oxigraph_reifier_quad(&reifier, &rdf_reifies)?;
         store
             .insert(&ox_quad)
             .map_err(|e| RdfDiagnostic::error("oxigraph-store-insert", e.to_string()))?;
     }
-    for (reifier, predicate, object) in dataset.annotations() {
-        let ox_quad =
-            oxigraph_annotation_quad(&dataset.to_owned_annotation(reifier, predicate, object))?;
+    for annotation in dataset.owned_annotations() {
+        let ox_quad = oxigraph_annotation_quad(&annotation)?;
         store
             .insert(&ox_quad)
             .map_err(|e| RdfDiagnostic::error("oxigraph-store-insert", e.to_string()))?;

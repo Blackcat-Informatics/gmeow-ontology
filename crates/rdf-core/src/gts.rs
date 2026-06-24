@@ -393,12 +393,7 @@ mod tests {
     fn gts_import_preserves_named_graph_and_private_language_tag() {
         let graph = private_lang_named_graph();
         let bundle = crate::ir::import_gts_graph(graph).expect("GTS graph should import cleanly");
-        let quads: Vec<_> = bundle
-            .dataset
-            .quads()
-            .enumerate()
-            .map(|(index, quad)| bundle.dataset.to_owned_quad(index, quad))
-            .collect();
+        let quads: Vec<_> = bundle.dataset.owned_quads().collect();
         assert_eq!(quads.len(), 1);
         assert!(quads[0].graph_name.is_some());
         let lookaside = &bundle.envelope.lookaside;

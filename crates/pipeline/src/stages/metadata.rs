@@ -20,7 +20,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;
 
-use gmeow_rdf::model::{RdfLiteral, RdfQuad, RdfTerm};
+use gmeow_rdf::model::{RdfLiteral, RdfTerm};
 use gmeow_rdf::RdfDataset;
 use oxigraph::io::RdfFormat;
 use oxigraph::model::{Literal, NamedNode, Quad, Term};
@@ -117,13 +117,6 @@ fn graph_iri(t: &Option<RdfTerm>) -> Option<&str> {
     }
 }
 
-fn owned_quads(dataset: &RdfDataset) -> impl Iterator<Item = RdfQuad> + '_ {
-    dataset
-        .quads()
-        .enumerate()
-        .map(|(index, quad)| dataset.to_owned_quad(index, quad))
-}
-
 /// A subject's identity key for the class/property census (IRI or blank node).
 fn subject_key(t: &RdfTerm) -> String {
     match t {
@@ -157,7 +150,7 @@ fn object_namespace(iri: &str) -> String {
 /// The lexical value of a literal/IRI object of `(ONTOLOGY_IRI, predicate)` in
 /// the default graph (`graph_name == None`).
 fn fold_header_value(store: &RdfDataset, predicate: &str) -> Result<Option<String>, PipelineError> {
-    for q in owned_quads(store) {
+    for q in store.owned_quads() {
         if graph_iri(&q.graph_name).is_some() {
             continue; // default graph only
         }
@@ -188,7 +181,7 @@ fn fold_description(store: &RdfDataset) -> Result<String, PipelineError> {
 /// Wikidata authority/exact-match links for the Work, scoped to `graph/metadata`.
 fn fold_wikidata_links(store: &RdfDataset) -> Result<Vec<String>, PipelineError> {
     let mut links: BTreeSet<String> = BTreeSet::new();
-    for q in owned_quads(store) {
+    for q in store.owned_quads() {
         if graph_iri(&q.graph_name) != Some(GTS_GRAPH_METADATA) {
             continue;
         }
@@ -220,7 +213,7 @@ fn fold_stats(store: &RdfDataset) -> Result<VoidStats, PipelineError> {
     let mut entities: BTreeSet<String> = BTreeSet::new();
     let mut classes: BTreeSet<String> = BTreeSet::new();
     let mut properties: BTreeSet<String> = BTreeSet::new();
-    for q in owned_quads(store) {
+    for q in store.owned_quads() {
         if graph_iri(&q.graph_name).is_some() {
             continue; // default graph only
         }
@@ -266,7 +259,7 @@ struct Linkset {
 /// predicate) pair where both predicate and object are IRIs.
 fn fold_linksets(store: &RdfDataset) -> Result<Vec<Linkset>, PipelineError> {
     let mut buckets: BTreeMap<(String, String), u64> = BTreeMap::new();
-    for q in owned_quads(store) {
+    for q in store.owned_quads() {
         if graph_iri(&q.graph_name) != Some(GTS_GRAPH_ALIGNMENTS) {
             continue;
         }
