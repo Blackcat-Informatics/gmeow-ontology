@@ -3169,10 +3169,10 @@
     gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/70b0fa0b296d866f> .
 
 <https://blackcatinformatics.ca/gmeow/references/citation/70e5d0474f82a16e> a gmeow:CitationAct ;
-    rdfs:label "src/gmeow_tools/reasoning_lint.py"@en ;
+    rdfs:label "crates/validate/src/gufo.rs"@en ;
     gmeow:citationIntent gmeow:intentBridgedByReference ;
     gmeow:citedEntity <https://ontouml.readthedocs.io/en/latest/anti-patterns/> ;
-    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/src/gmeow_tools/reasoning_lint.py> ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/repo/crates/validate/src/gufo.rs> ;
     gmeow:viaSelector <https://blackcatinformatics.ca/gmeow/references/selector/70e5d0474f82a16e> .
 
 <https://blackcatinformatics.ca/gmeow/references/citation/7177e83e718f9476> a gmeow:CitationAct ;
@@ -9669,7 +9669,7 @@ foaf:homepage a gmeow:CreativeWork ;
     gmeow:selectorLocator "docs/GTS-SPEC.md:919" .
 
 <https://blackcatinformatics.ca/gmeow/references/selector/70e5d0474f82a16e> a gmeow:Selector ;
-    gmeow:selectorLocator "src/gmeow_tools/reasoning_lint.py:14" .
+    gmeow:selectorLocator "crates/validate/src/gufo.rs:40" .
 
 <https://blackcatinformatics.ca/gmeow/references/selector/7177e83e718f9476> a gmeow:Selector ;
     gmeow:selectorLocator "https://github.com/Blackcat-Informatics/gmeow-ontology/issues/211:256" .
@@ -11454,9 +11454,9 @@ repo:CITATION.cff a gmeow:CreativeWork ;
     rdfs:label "src/gmeow_tools/create_docs.py"@en ;
     gmeow:sourceLocation "src/gmeow_tools/create_docs.py" .
 
-<https://blackcatinformatics.ca/gmeow/repo/src/gmeow_tools/reasoning_lint.py> a gmeow:CreativeWork ;
-    rdfs:label "src/gmeow_tools/reasoning_lint.py"@en ;
-    gmeow:sourceLocation "src/gmeow_tools/reasoning_lint.py" .
+<https://blackcatinformatics.ca/gmeow/repo/crates/validate/src/gufo.rs> a gmeow:CreativeWork ;
+    rdfs:label "crates/validate/src/gufo.rs"@en ;
+    gmeow:sourceLocation "crates/validate/src/gufo.rs" .
 
 <https://blackcatinformatics.ca/gmeow/repo/src/gmeow_tools/references.py> a gmeow:CreativeWork ;
     rdfs:label "src/gmeow_tools/references.py"@en ;
