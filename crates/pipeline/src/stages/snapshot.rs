@@ -485,10 +485,10 @@ impl Stage for SnapshotStage {
     fn input_files(&self, root: &Path) -> Result<Vec<PathBuf>, PipelineError> {
         // The embedded ontology-docs site (`build_docs_archive`) is rendered from
         // the docs model's raw sources (slice modules / `docs.md` / examples /
-        // `docs/four-boxes.md` / `i18n/`), which the consumed upstream products do
-        // not fully reflect. Declare them so a doc-source edit busts this stage and
-        // re-renders the embedded site (cache soundness, #897) — shared with
-        // `DocsRenderStage` via `docs_source_files`.
+        // `docs/four-boxes.md` / per-slice `i18n/<lang>.po` translation catalogs),
+        // which the consumed upstream products do not fully reflect. Declare them so
+        // a doc-source edit busts this stage and re-renders the embedded site (cache
+        // soundness, #897) — shared with `DocsRenderStage` via `docs_source_files`.
         crate::stages::docs_render::docs_source_files(root)
     }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, PipelineError> {
