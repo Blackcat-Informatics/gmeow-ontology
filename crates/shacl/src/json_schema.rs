@@ -29,6 +29,8 @@
 //! They are never silently skipped: each one is dropped, recorded as a
 //! [`LossRecord`], and annotated with a `$comment` on the affected schema.
 
+use std::collections::BTreeSet;
+
 use oxigraph::model::Term;
 use serde_json::{json, Map, Value};
 
@@ -110,11 +112,20 @@ pub struct CompiledSchema {
 /// Accumulates losses while compiling so every emitter helper can record one.
 struct Ctx {
     losses: Vec<LossRecord>,
+    /// The set of class local-names that WILL receive a `$def` — i.e. every
+    /// `LocalName(target_class)` over all non-deactivated `Target::Class(..)`
+    /// shapes. An object property's `sh:class C` may only emit a
+    /// `#/$defs/<LocalName(C)>` ref when `LocalName(C)` is in this set;
+    /// otherwise the ref would dangle (no shape ⇒ no `$def`).
+    emitted_defs: BTreeSet<String>,
 }
 
 impl Ctx {
-    fn new() -> Self {
-        Self { losses: Vec::new() }
+    fn new(emitted_defs: BTreeSet<String>) -> Self {
+        Self {
+            losses: Vec::new(),
+            emitted_defs,
+        }
     }
 
     fn record(&mut self, construct: &str, shape_iri: &str, reason: &str) {
@@ -130,7 +141,24 @@ impl Ctx {
 
 /// Compile a parsed [`Shapes`] graph into a closed-world JSON Schema + OpenAPI.
 pub fn compile(shapes: &Shapes) -> CompiledSchema {
-    let mut ctx = Ctx::new();
+    // PASS 1: compute the set of class local-names that WILL receive a `$def`,
+    // using the EXACT same iteration that builds the `$defs` map below (every
+    // `Target::Class(..)` of every non-deactivated node shape). This lets the
+    // per-property emitter decide whether a `sh:class C` ref can resolve before
+    // the `$defs` map is fully built, so it never writes a dangling `$ref`.
+    let mut emitted_defs: BTreeSet<String> = BTreeSet::new();
+    for shape in &shapes.node_shapes {
+        if shape.deactivated {
+            continue;
+        }
+        for target in &shape.targets {
+            if let Target::Class(c) = target {
+                emitted_defs.insert(local_name(c.as_str()));
+            }
+        }
+    }
+
+    let mut ctx = Ctx::new(emitted_defs);
 
     // Build $defs: one entry per `sh:targetClass` of every active node shape,
     // keyed by the class local name; the body is the shape compiled as an object
@@ -163,7 +191,13 @@ pub fn compile(shapes: &Shapes) -> CompiledSchema {
         .collect();
     // `class_names` is already sorted because `defs` is a BTree-ordered Map iter.
 
-    let schema = root_schema(&defs, &class_names);
+    // The `@type`-discriminated `Node` schema (#700 closed-world enforcement):
+    // a node typed `gmeow:Foo` MUST satisfy `#/$defs/Foo`. Inserted AFTER
+    // `class_names` is snapshotted so `Node` itself is never treated as a class
+    // branch.
+    defs.insert("Node".to_owned(), node_def(&class_names));
+
+    let schema = root_schema(&defs);
     let openapi = openapi_doc(&defs);
 
     CompiledSchema {
@@ -176,25 +210,21 @@ pub fn compile(shapes: &Shapes) -> CompiledSchema {
 // ── Root envelope ────────────────────────────────────────────────────────────
 
 /// Build the top-level JSON Schema envelope.
-fn root_schema(defs: &Map<String, Value>, class_names: &[String]) -> Value {
-    // anyOf branch list (one $ref per class def), sorted by $ref for stability.
-    let mut class_refs: Vec<Value> = class_names
-        .iter()
-        .map(|name| json!({ "$ref": format!("#/$defs/{name}") }))
-        .collect();
-    class_refs.sort_by_key(ref_key);
+///
+/// Every instance node — whether a `@graph` member or a bare single-node root —
+/// is validated by the single `#/$defs/Node` schema, which discriminates on
+/// `@type` (closed-world enforcement, #700).
+fn root_schema(defs: &Map<String, Value>) -> Value {
+    let node_ref = json!({ "$ref": "#/$defs/Node" });
 
-    // A single bare node: anyOf over every class def.
-    let bare_node = json!({ "anyOf": class_refs.clone() });
-
-    // The @graph envelope object.
+    // The @graph envelope object: every member is a discriminated Node.
     let graph_envelope = json!({
         "type": "object",
         "properties": {
             "@context": true,
             "@graph": {
                 "type": "array",
-                "items": { "anyOf": class_refs.clone() }
+                "items": node_ref.clone()
             }
         }
     });
@@ -205,23 +235,73 @@ fn root_schema(defs: &Map<String, Value>, class_names: &[String]) -> Value {
         "title": "GMEOW instance schema (SHACL-derived, closed-world)",
         "$defs": Value::Object(defs.clone()),
         "type": "object",
-        "anyOf": [graph_envelope, bare_node],
+        "anyOf": [graph_envelope, node_ref.clone()],
         "properties": {
             "@context": true,
             "@graph": {
                 "type": "array",
-                "items": { "anyOf": class_refs }
+                "items": node_ref
             }
         }
     })
 }
 
-/// Sort key for an `anyOf` branch that is a `$ref` object.
-fn ref_key(v: &Value) -> String {
-    v.get("$ref")
-        .and_then(Value::as_str)
-        .unwrap_or("")
-        .to_owned()
+/// Build the `@type`-discriminated `Node` schema (#700).
+///
+/// A node carries `@id`/`@type`/`@annotation` permissively, then an `allOf` of
+/// per-class conditionals (sorted by class name for determinism). Each entry
+/// reads: *if* `@type` includes `gmeow:<Class>` (as a bare string OR an array
+/// member), *then* the node MUST satisfy `#/$defs/<Class>`.
+///
+/// Closed-world semantics:
+/// * An instance typed `gmeow:Foo` that is MISSING a required property triggers
+///   Foo's `then` (`#/$defs/Foo`), fails Foo's `required`, and is REJECTED.
+/// * A node typed only by an UNMODELED class (no `$def`) fires no `if`, so no
+///   `then` applies and it stays permissively allowed — keeping the slice
+///   example sweep (Task 6) green on unmodeled types.
+fn node_def(class_names: &[String]) -> Value {
+    // class_names arrives sorted (BTree-ordered defs iter); keep it explicit so
+    // the conditional list is deterministic regardless of caller.
+    let mut sorted: Vec<&String> = class_names.iter().collect();
+    sorted.sort();
+
+    let conditionals: Vec<Value> = sorted
+        .iter()
+        .map(|name| {
+            let type_const = format!("gmeow:{name}");
+            json!({
+                "if": {
+                    "required": ["@type"],
+                    "properties": {
+                        "@type": {
+                            "anyOf": [
+                                { "const": type_const },
+                                { "type": "array", "contains": { "const": type_const } }
+                            ]
+                        }
+                    }
+                },
+                "then": { "$ref": format!("#/$defs/{name}") }
+            })
+        })
+        .collect();
+
+    json!({
+        "type": "object",
+        "title": "A single discriminated GMEOW instance node",
+        "description": "Validated by @type: a node typed gmeow:Foo MUST satisfy #/$defs/Foo (closed-world, #700). Nodes typed only by unmodeled classes are permissively allowed.",
+        "properties": {
+            "@id": { "type": "string" },
+            "@type": {
+                "anyOf": [
+                    { "type": "string" },
+                    { "type": "array", "items": { "type": "string" } }
+                ]
+            },
+            "@annotation": { "$ref": "#/$defs/Annotation" }
+        },
+        "allOf": conditionals
+    })
 }
 
 /// The OpenAPI 3.1 document embedding the same `$defs` as `components/schemas`.
@@ -509,9 +589,30 @@ fn compile_property(
             }
             Constraint::Class(c) => {
                 if is_gmeow(c.as_str()) {
-                    // Object property: a node ref OR the class $ref.
-                    alts.push(node_ref_schema());
-                    alts.push(json!({ "$ref": format!("#/$defs/{}", local_name(c.as_str())) }));
+                    let name = local_name(c.as_str());
+                    if ctx.emitted_defs.contains(&name) {
+                        // The class has a NodeShape ⇒ a `$def` is emitted for it.
+                        // Object property: a node ref OR the class `$ref`.
+                        alts.push(node_ref_schema());
+                        alts.push(json!({ "$ref": format!("#/$defs/{name}") }));
+                    } else {
+                        // The class has NO NodeShape ⇒ no `$def` is emitted, so a
+                        // `$ref` to it would dangle and make the schema
+                        // uncompilable. Closed-world correct behaviour: instances
+                        // reference such nodes by `@id` only; the node simply is
+                        // not further constrained here. Emit the node-reference
+                        // form WITHOUT the `$ref` branch.
+                        let mut node_ref = node_ref_schema();
+                        if let Value::Object(map) = &mut node_ref {
+                            map.insert(
+                                "$comment".to_owned(),
+                                json!(format!(
+                                    "gmeow:{name} has no NodeShape; node reference only"
+                                )),
+                            );
+                        }
+                        alts.push(node_ref);
+                    }
                 } else {
                     alts.push(json!({
                         "type": "string",
@@ -1057,6 +1158,197 @@ mod tests {
         assert!(openapi["paths"]["/entities/{id}"]["get"].is_object());
         // trailing newline convention
         assert!(c.openapi_json.ends_with("}\n"));
+    }
+
+    /// Recursively collect every `"$ref": "#/$defs/<name>"` `<name>` reachable
+    /// from a JSON value.
+    fn collect_def_refs(v: &Value, out: &mut Vec<String>) {
+        match v {
+            Value::Object(map) => {
+                if let Some(Value::String(r)) = map.get("$ref") {
+                    if let Some(name) = r.strip_prefix("#/$defs/") {
+                        out.push(name.to_owned());
+                    }
+                }
+                for child in map.values() {
+                    collect_def_refs(child, out);
+                }
+            }
+            Value::Array(items) => {
+                for child in items {
+                    collect_def_refs(child, out);
+                }
+            }
+            _ => {}
+        }
+    }
+
+    /// Self-consistency invariant: EVERY `#/$defs/<name>` ref the emitter writes
+    /// must resolve to an actually-emitted key in the top-level `$defs`. This is
+    /// the bug guard for #700 — an object property whose `sh:class` points at a
+    /// class with NO NodeShape must NOT emit a dangling `$ref`.
+    #[test]
+    fn every_ref_resolves() {
+        // gmeow:Organization HAS a shape; gmeow:Ghost (the sh:class target of the
+        // `haunts` property) has NONE — so no `$defs/Ghost` is emitted and a ref
+        // to it would dangle. Also exercise sh:node (inline) and @annotation.
+        let c = compile_ttl(
+            r#"
+            gmeow:OrgShape a sh:NodeShape ;
+                sh:targetClass gmeow:Organization ;
+                sh:node [ sh:property [ sh:path gmeow:label ; sh:datatype xsd:string ] ] ;
+                sh:property [ sh:path gmeow:member ; sh:maxCount 1 ; sh:class gmeow:Person ] ;
+                sh:property [ sh:path gmeow:haunts ; sh:maxCount 1 ; sh:class gmeow:Ghost ] .
+            gmeow:PersonShape a sh:NodeShape ;
+                sh:targetClass gmeow:Person .
+            "#,
+        );
+        let schema = schema_of(&c);
+
+        // Collect the set of emitted $defs keys.
+        let defs: std::collections::BTreeSet<String> = schema["$defs"]
+            .as_object()
+            .expect("$defs object")
+            .keys()
+            .cloned()
+            .collect();
+
+        // Walk the ENTIRE schema and assert every $ref resolves.
+        let mut refs = Vec::new();
+        collect_def_refs(&schema, &mut refs);
+        assert!(
+            !refs.is_empty(),
+            "expected at least the Annotation/class refs"
+        );
+        for name in &refs {
+            assert!(
+                defs.contains(name),
+                "dangling $ref #/$defs/{name}: not an emitted def (have {defs:?})"
+            );
+        }
+
+        // The Ghost class (no shape) must NOT have produced a $ref anywhere.
+        assert!(
+            !refs.iter().any(|r| r == "Ghost"),
+            "a class with no NodeShape must not be $ref'd"
+        );
+        // …and the haunts property must carry the node-reference-only form with a
+        // $comment noting Ghost has no shape.
+        let haunts = &def(&schema, "Organization")["properties"]["gmeow:haunts"];
+        let comment = haunts["$comment"].as_str().unwrap_or("");
+        assert!(
+            comment.contains("Ghost") && comment.contains("no NodeShape"),
+            "expected a node-reference-only $comment for gmeow:Ghost, got {haunts:?}"
+        );
+        // The Person ref (class WITH a shape) is still present.
+        assert!(refs.iter().any(|r| r == "Person"));
+
+        // The discriminated Node schema is emitted and itself only $refs emitted
+        // defs (the `if` consts are plain strings, not refs). Walk Node directly
+        // and assert every ref it carries resolves.
+        let node = def(&schema, "Node");
+        assert!(node.is_object(), "expected a $defs/Node schema");
+        let mut node_refs = Vec::new();
+        collect_def_refs(node, &mut node_refs);
+        for name in &node_refs {
+            assert!(
+                defs.contains(name),
+                "Node carries a dangling $ref #/$defs/{name} (have {defs:?})"
+            );
+        }
+        // Node references each emitted class def in a `then`, plus Annotation.
+        assert!(node_refs.iter().any(|r| r == "Organization"));
+        assert!(node_refs.iter().any(|r| r == "Person"));
+        assert!(node_refs.iter().any(|r| r == "Annotation"));
+        // …and never an unmodeled class.
+        assert!(
+            !node_refs.iter().any(|r| r == "Ghost"),
+            "Node must not $ref an unmodeled class"
+        );
+    }
+
+    #[test]
+    fn closed_world_rejects_incomplete_typed_node() {
+        // A class with a required property: a node typed gmeow:Thing that is
+        // missing gmeow:req must (structurally) be funnelled through Thing's
+        // `then` and fail Thing's `required` — i.e. the discrimination exists and
+        // Thing actually requires gmeow:req.
+        let c = compile_ttl(
+            r#"
+            gmeow:ThingShape a sh:NodeShape ;
+                sh:targetClass gmeow:Thing ;
+                sh:property [ sh:path gmeow:req ; sh:minCount 1 ; sh:maxCount 1 ; sh:datatype xsd:string ] .
+            "#,
+        );
+        let schema = schema_of(&c);
+
+        // The discriminated Node schema exists.
+        let node = def(&schema, "Node");
+        assert!(node.is_object(), "expected a $defs/Node schema");
+
+        // Node carries permissive @id/@type/@annotation.
+        assert!(node["properties"]["@id"].is_object());
+        assert!(node["properties"]["@type"].is_object());
+        assert_eq!(
+            node["properties"]["@annotation"]["$ref"],
+            json!("#/$defs/Annotation")
+        );
+
+        // It carries an allOf conditional list.
+        let conds = node["allOf"].as_array().expect("Node.allOf array");
+
+        // Find the conditional whose `then` is the Thing ref.
+        let thing_cond = conds
+            .iter()
+            .find(|c| c["then"]["$ref"] == json!("#/$defs/Thing"))
+            .expect("a conditional whose then $refs #/$defs/Thing");
+
+        // Its `if` requires @type and matches @type == "gmeow:Thing" both as a
+        // bare const and as an array `contains`.
+        let if_clause = &thing_cond["if"];
+        assert_eq!(if_clause["required"], json!(["@type"]));
+        let type_alts = if_clause["properties"]["@type"]["anyOf"]
+            .as_array()
+            .expect("@type discrimination anyOf");
+        assert!(
+            type_alts.iter().any(|a| a["const"] == json!("gmeow:Thing")),
+            "expected a bare const gmeow:Thing branch, got {type_alts:?}"
+        );
+        assert!(
+            type_alts
+                .iter()
+                .any(|a| a["type"] == json!("array")
+                    && a["contains"]["const"] == json!("gmeow:Thing")),
+            "expected an array-contains gmeow:Thing branch, got {type_alts:?}"
+        );
+
+        // And Thing actually requires gmeow:req — so an incomplete node IS
+        // rejected once routed through Thing's `then`.
+        let thing = def(&schema, "Thing");
+        let required = thing["required"].as_array().expect("Thing.required array");
+        assert!(
+            required.iter().any(|v| v == "gmeow:req"),
+            "Thing must require gmeow:req, got {required:?}"
+        );
+
+        // Thing itself must NOT require @type (discrimination lives in Node).
+        assert!(
+            !required.iter().any(|v| v == "@type"),
+            "per-class def must not require @type"
+        );
+
+        // The root envelope routes every node through Node.
+        assert_eq!(
+            schema["properties"]["@graph"]["items"]["$ref"],
+            json!("#/$defs/Node")
+        );
+        let root_anyof = schema["anyOf"].as_array().expect("root anyOf");
+        assert!(
+            root_anyof
+                .iter()
+                .any(|b| b["$ref"] == json!("#/$defs/Node")),
+            "bare-node root alternative must $ref Node"
+        );
     }
 
     #[test]

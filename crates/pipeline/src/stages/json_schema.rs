@@ -135,4 +135,63 @@ mod tests {
         let second = run_once(&root);
         assert_eq!(first, second, "json-schema output is non-deterministic");
     }
+
+    /// Recursively collect every `#/$defs/<name>` ref reachable from a value.
+    fn collect_def_refs(v: &serde_json::Value, out: &mut Vec<String>) {
+        match v {
+            serde_json::Value::Object(map) => {
+                if let Some(serde_json::Value::String(r)) = map.get("$ref") {
+                    if let Some(name) = r.strip_prefix("#/$defs/") {
+                        out.push(name.to_owned());
+                    }
+                }
+                for child in map.values() {
+                    collect_def_refs(child, out);
+                }
+            }
+            serde_json::Value::Array(items) => {
+                for child in items {
+                    collect_def_refs(child, out);
+                }
+            }
+            _ => {}
+        }
+    }
+
+    /// Corpus self-consistency invariant (#700): compiling over the REAL repo
+    /// shape union must produce ZERO dangling `$ref`s — every `#/$defs/<name>`
+    /// the schema references must resolve to an emitted `$def`. This guards the
+    /// real corpus against the dangling-ref bug a draft-2020-12 validator rejects
+    /// (`Pointer '/$defs/<name>' does not exist`).
+    #[test]
+    fn json_schema_corpus_has_no_dangling_refs() {
+        let root = repo_root();
+        let artifacts = run_once(&root);
+        let schema: serde_json::Value = serde_json::from_slice(
+            artifacts
+                .get(JSON_SCHEMA_PATH)
+                .expect("schema artifact present"),
+        )
+        .expect("schema is valid JSON");
+
+        let defs: std::collections::BTreeSet<String> = schema
+            .get("$defs")
+            .and_then(|v| v.as_object())
+            .expect("$defs object")
+            .keys()
+            .cloned()
+            .collect();
+
+        let mut refs = Vec::new();
+        collect_def_refs(&schema, &mut refs);
+        assert!(!refs.is_empty(), "expected refs in the real corpus schema");
+
+        let dangling: Vec<&String> = refs.iter().filter(|r| !defs.contains(*r)).collect();
+        assert!(
+            dangling.is_empty(),
+            "schema references {} dangling $defs over the real corpus: {:?}",
+            dangling.len(),
+            dangling
+        );
+    }
 }
