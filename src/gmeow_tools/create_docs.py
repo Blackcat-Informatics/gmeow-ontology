@@ -138,7 +138,7 @@ def _write_index(
     ]
     if has_ontology_docs:
         lines.append(
-            "- [`ontology-docs/`](ontology-docs/) — the full ontology-docs site (#440)."
+            "- [`ontology-docs/`](ontology-docs/) — the full ontology-docs site (#897)."
         )
     lines.extend(
         [
