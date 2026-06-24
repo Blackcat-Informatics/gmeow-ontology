@@ -183,6 +183,21 @@ impl ProjectionDiagnostic {
             object_id: None,
         }
     }
+
+    /// Severity-first ordering used for stable, deterministic lint output:
+    /// ERROR < WARNING < INFO < everything else, then check, then instance.
+    pub fn cmp_severity_check_instance(&self, other: &Self) -> std::cmp::Ordering {
+        let order = |s: &str| match s {
+            "ERROR" => 0,
+            "WARNING" => 1,
+            "INFO" => 2,
+            _ => 3,
+        };
+        order(&self.severity)
+            .cmp(&order(&other.severity))
+            .then_with(|| self.check.cmp(&other.check))
+            .then_with(|| self.instance.cmp(&other.instance))
+    }
 }
 
 // ── Public API ─────────────────────────────────────────────────────────────────
@@ -222,18 +237,7 @@ pub fn lint_projection(
         allow_network,
     )?);
 
-    out.sort_by(|a, b| {
-        let order = |s: &str| match s {
-            "ERROR" => 0,
-            "WARNING" => 1,
-            "INFO" => 2,
-            _ => 3,
-        };
-        order(&a.severity)
-            .cmp(&order(&b.severity))
-            .then_with(|| a.check.cmp(&b.check))
-            .then_with(|| a.instance.cmp(&b.instance))
-    });
+    out.sort_by(ProjectionDiagnostic::cmp_severity_check_instance);
     Ok(out)
 }
 
