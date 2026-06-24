@@ -120,6 +120,40 @@ fn value_cmp_is_antisymmetric_on_determinate_rows() {
     }
 }
 
+// ── Duration cross-subtype operator rows ─────────────────────────────────────────
+
+#[test]
+fn duration_cross_subtype_operator_rows() {
+    // dayTimeDuration vs yearMonthDuration: non-zero cross-subtype → incomparable.
+    // "P1D" = (months=0, seconds=86400) vs "P1Y" = (months=12, seconds=0):
+    // months disagree (0 vs 12) and seconds disagree (86400 vs 0) → None.
+    let day = parse("P1D", D::DayTimeDuration).unwrap();
+    let year = parse("P1Y", D::YearMonthDuration).unwrap();
+    assert_eq!(
+        value_cmp(&day, &year),
+        NC,
+        "P1D (dayTime) vs P1Y (yearMonth) is incomparable"
+    );
+
+    // Same-subtype determinate pair (dayTimeDuration total order).
+    let h1 = parse("PT1H", D::DayTimeDuration).unwrap();
+    let h2 = parse("PT2H", D::DayTimeDuration).unwrap();
+    assert_eq!(value_cmp(&h1, &h2), LT, "dayTimeDuration PT1H < PT2H");
+    assert_eq!(value_cmp(&h2, &h1), GT, "dayTimeDuration PT2H > PT1H");
+
+    // Zero-component cross-subtype: "P0M"^^yearMonthDuration vs "PT0S"^^dayTimeDuration.
+    // Both reduce to the zero-duration value pair (months=0, seconds=0) → Equal.
+    // This is NOT a cross-subtype incomparability: the two-component partial order is
+    // defined on values, not on subtype labels. See cmp_duration doc for chosen = semantics.
+    let zero_ym = parse("P0M", D::YearMonthDuration).unwrap();
+    let zero_dt = parse("PT0S", D::DayTimeDuration).unwrap();
+    assert_eq!(
+        value_cmp(&zero_ym, &zero_dt),
+        EQ,
+        "zero yearMonthDuration = zero dayTimeDuration (value pair is (0,0) for both)"
+    );
+}
+
 // ── Gregorian operator-mapping rows ──────────────────────────────────────────────
 
 /// Additional Gregorian rows for the operator-mapping table.

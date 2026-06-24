@@ -77,13 +77,13 @@ fn hex_digit(b: u8) -> Option<u8> {
 /// Encode a byte slice to XSD canonical hexBinary form (UPPERCASE hex, two chars per byte).
 pub fn canonical_hex(bytes: &[u8]) -> String {
     const HEX: &[u8; 16] = b"0123456789ABCDEF";
-    let mut out = Vec::with_capacity(bytes.len() * 2);
+    let mut out = String::with_capacity(bytes.len() * 2);
     for &b in bytes {
-        out.push(HEX[(b >> 4) as usize]);
-        out.push(HEX[(b & 0x0F) as usize]);
+        // Both indices are masked to 0..15 so the table lookup is always in-range.
+        out.push(char::from(HEX[(b >> 4) as usize]));
+        out.push(char::from(HEX[(b & 0x0F) as usize]));
     }
-    // Only ASCII bytes 0x30-0x46 were pushed; this cannot fail.
-    String::from_utf8(out).expect("hex output is always valid ASCII")
+    out
 }
 
 // ── base64 codec ──────────────────────────────────────────────────────────────────
@@ -162,38 +162,35 @@ pub fn parse_base64(lexical: &str) -> Result<Vec<u8>, XsdError> {
         );
 
         if is_last && pad_count > 0 {
-            // Final group with padding.
-            match pad_count {
-                1 => {
-                    // Three base64 chars + one `=` → 2 output bytes.
-                    let a = decode_b64_char(a_raw)
-                        .ok_or_else(|| err("invalid character in base64Binary lexical"))?;
-                    let b = decode_b64_char(b_raw)
-                        .ok_or_else(|| err("invalid character in base64Binary lexical"))?;
-                    let c = decode_b64_char(c_raw)
-                        .ok_or_else(|| err("invalid character in base64Binary lexical"))?;
-                    if d_raw != b'=' {
-                        return Err(err(
-                            "expected padding character '=' in base64Binary lexical",
-                        ));
-                    }
-                    out.push((a << 2) | (b >> 4));
-                    out.push((b << 4) | (c >> 2));
+            // Final group with padding. pad_count is 1 or 2 (0 takes the else branch;
+            // >2 was rejected above). Both arms are explicit; no wildcard needed.
+            if pad_count == 1 {
+                // Three base64 chars + one `=` → 2 output bytes.
+                let a = decode_b64_char(a_raw)
+                    .ok_or_else(|| err("invalid character in base64Binary lexical"))?;
+                let b = decode_b64_char(b_raw)
+                    .ok_or_else(|| err("invalid character in base64Binary lexical"))?;
+                let c = decode_b64_char(c_raw)
+                    .ok_or_else(|| err("invalid character in base64Binary lexical"))?;
+                if d_raw != b'=' {
+                    return Err(err(
+                        "expected padding character '=' in base64Binary lexical",
+                    ));
                 }
-                2 => {
-                    // Two base64 chars + two `=` → 1 output byte.
-                    let a = decode_b64_char(a_raw)
-                        .ok_or_else(|| err("invalid character in base64Binary lexical"))?;
-                    let b = decode_b64_char(b_raw)
-                        .ok_or_else(|| err("invalid character in base64Binary lexical"))?;
-                    if c_raw != b'=' || d_raw != b'=' {
-                        return Err(err(
-                            "expected padding characters '==' in base64Binary lexical",
-                        ));
-                    }
-                    out.push((a << 2) | (b >> 4));
+                out.push((a << 2) | (b >> 4));
+                out.push((b << 4) | (c >> 2));
+            } else {
+                // pad_count == 2: Two base64 chars + two `=` → 1 output byte.
+                let a = decode_b64_char(a_raw)
+                    .ok_or_else(|| err("invalid character in base64Binary lexical"))?;
+                let b = decode_b64_char(b_raw)
+                    .ok_or_else(|| err("invalid character in base64Binary lexical"))?;
+                if c_raw != b'=' || d_raw != b'=' {
+                    return Err(err(
+                        "expected padding characters '==' in base64Binary lexical",
+                    ));
                 }
-                _ => unreachable!("pad_count already bounded to 0..=2"),
+                out.push((a << 2) | (b >> 4));
             }
         } else {
             // Full group (no padding needed).
@@ -236,40 +233,46 @@ pub fn canonical_base64(bytes: &[u8]) -> String {
     let full_groups = bytes.len() / 3;
     let remainder = bytes.len() % 3;
     let out_len = (full_groups + usize::from(remainder > 0)) * 4;
-    let mut out = Vec::with_capacity(out_len);
+    // Build directly as a String — all output bytes are valid ASCII (BASE64_ALPHABET
+    // + '='), so char::from is safe and no from_utf8 conversion is needed.
+    let mut out = String::with_capacity(out_len);
 
     for g in 0..full_groups {
         let base = g * 3;
         let (a, b, c) = (bytes[base], bytes[base + 1], bytes[base + 2]);
-        out.push(BASE64_ALPHABET[(a >> 2) as usize]);
-        out.push(BASE64_ALPHABET[((a & 0x03) << 4 | b >> 4) as usize]);
-        out.push(BASE64_ALPHABET[((b & 0x0F) << 2 | c >> 6) as usize]);
-        out.push(BASE64_ALPHABET[(c & 0x3F) as usize]);
+        out.push(char::from(BASE64_ALPHABET[(a >> 2) as usize]));
+        out.push(char::from(
+            BASE64_ALPHABET[((a & 0x03) << 4 | b >> 4) as usize],
+        ));
+        out.push(char::from(
+            BASE64_ALPHABET[((b & 0x0F) << 2 | c >> 6) as usize],
+        ));
+        out.push(char::from(BASE64_ALPHABET[(c & 0x3F) as usize]));
     }
 
     if remainder > 0 {
         let base = full_groups * 3;
-        match remainder {
-            1 => {
-                let a = bytes[base];
-                out.push(BASE64_ALPHABET[(a >> 2) as usize]);
-                out.push(BASE64_ALPHABET[((a & 0x03) << 4) as usize]);
-                out.push(b'=');
-                out.push(b'=');
-            }
-            2 => {
-                let (a, b) = (bytes[base], bytes[base + 1]);
-                out.push(BASE64_ALPHABET[(a >> 2) as usize]);
-                out.push(BASE64_ALPHABET[((a & 0x03) << 4 | b >> 4) as usize]);
-                out.push(BASE64_ALPHABET[((b & 0x0F) << 2) as usize]);
-                out.push(b'=');
-            }
-            _ => unreachable!("remainder is 0, 1, or 2"),
+        // remainder is the result of `% 3`, so only 1 or 2 can reach here (0 skips
+        // the entire `if` block). Both arms are explicit; no wildcard is needed.
+        if remainder == 1 {
+            let a = bytes[base];
+            out.push(char::from(BASE64_ALPHABET[(a >> 2) as usize]));
+            out.push(char::from(BASE64_ALPHABET[((a & 0x03) << 4) as usize]));
+            out.push('=');
+            out.push('=');
+        } else {
+            // remainder == 2
+            let (a, b) = (bytes[base], bytes[base + 1]);
+            out.push(char::from(BASE64_ALPHABET[(a >> 2) as usize]));
+            out.push(char::from(
+                BASE64_ALPHABET[((a & 0x03) << 4 | b >> 4) as usize],
+            ));
+            out.push(char::from(BASE64_ALPHABET[((b & 0x0F) << 2) as usize]));
+            out.push('=');
         }
     }
 
-    // Only valid ASCII bytes from BASE64_ALPHABET and '=' were pushed; cannot fail.
-    String::from_utf8(out).expect("base64 output is always valid ASCII")
+    out
 }
 
 // ── dispatch ──────────────────────────────────────────────────────────────────────

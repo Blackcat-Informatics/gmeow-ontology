@@ -103,11 +103,15 @@ impl XsdValue {
             XsdValue::Time(v) => v.canonical_lexical(),
             XsdValue::Duration(v) => v.canonical_lexical(),
             XsdValue::Gregorian(v) => v.canonical_lexical(),
-            XsdValue::Binary { bytes, datatype } => match datatype {
-                XsdDatatype::HexBinary => crate::binary::canonical_hex(bytes),
-                XsdDatatype::Base64Binary => crate::binary::canonical_base64(bytes),
-                _ => unreachable!("Binary variant carries only HexBinary or Base64Binary"),
-            },
+            XsdValue::Binary { bytes, datatype } => {
+                // Only two binary datatypes exist; the constructor in `parse` guarantees
+                // the variant carries HexBinary or Base64Binary. Use a total two-arm form.
+                if *datatype == XsdDatatype::Base64Binary {
+                    crate::binary::canonical_base64(bytes)
+                } else {
+                    crate::binary::canonical_hex(bytes)
+                }
+            }
         }
     }
 }
@@ -193,6 +197,8 @@ pub enum XsdError {
         datatype: XsdDatatype,
         /// The offending lexical form.
         lexical: String,
+        /// A short, stable explanation of which bound was exceeded.
+        reason: &'static str,
     },
 }
 
@@ -208,9 +214,13 @@ impl std::fmt::Display for XsdError {
                 "invalid lexical form {lexical:?} for <{}>: {reason}",
                 datatype.iri()
             ),
-            XsdError::OutOfRange { datatype, lexical } => write!(
+            XsdError::OutOfRange {
+                datatype,
+                lexical,
+                reason,
+            } => write!(
                 f,
-                "lexical form {lexical:?} is out of representable range for <{}>",
+                "lexical form {lexical:?} is out of representable range for <{}>: {reason}",
                 datatype.iri()
             ),
         }

@@ -389,6 +389,7 @@ pub fn parse_duration(dt: XsdDatatype, s: &str) -> Result<Duration, XsdError> {
         .ok_or_else(|| XsdError::OutOfRange {
             datatype: dt,
             lexical: s.to_string(),
+            reason: "duration seconds overflow",
         })?;
     let mut total_secs = Decimal::from_parts(combined, scale);
     if neg {
@@ -678,6 +679,19 @@ pub fn cmp_time(a: &Time, b: &Time) -> Option<Ordering> {
 /// seconds). Agreement on both components gives the order; disagreement is
 /// indeterminate (`None`). Totally-ordered subtypes (`dayTimeDuration` with
 /// months = 0, `yearMonthDuration` with seconds = 0) always resolve.
+///
+/// ## Chosen `=` semantics for cross-subtype pairs
+///
+/// The value space is the pair `(months, seconds)` regardless of which lexical
+/// subtype the duration was parsed as. Cross-subtype pairs with zero in the
+/// "other" component are therefore **comparable** at the value level:
+/// - `"P0M"^^yearMonthDuration` has `(months=0, seconds=0)`.
+/// - `"PT0S"^^dayTimeDuration` has `(months=0, seconds=0)`.
+///
+/// Both reduce to the zero pair → `cmp_duration` returns `Some(Equal)`.
+///
+/// Non-zero cross-subtype pairs (e.g. `"P1Y"` vs `"P1D"`) disagree on at least
+/// one component → `None` (genuinely incomparable per XSD §3.6.5).
 #[must_use]
 pub fn cmp_duration(a: &Duration, b: &Duration) -> Option<Ordering> {
     let m = a.months.cmp(&b.months);

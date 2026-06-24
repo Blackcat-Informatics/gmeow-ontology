@@ -646,3 +646,53 @@ fn binary_parse_by_iri_contract() {
     let v2 = parse_by_iri("TWFu", "http://www.w3.org/2001/XMLSchema#base64Binary").unwrap();
     assert!(matches!(v2, Some(XsdValue::Binary { .. })));
 }
+
+// ── xsd:double extreme-magnitude canonical vectors ────────────────────────────────
+
+/// Pairs of `(lexical, expected_canonical)` for extreme-magnitude `xsd:double` values.
+const DOUBLE_EXTREME_CANONICAL: &[(&str, &str)] = &[
+    // Near f64::MAX: 1e308 is a convenient large finite value; canonical adds ".0".
+    ("1.0E308", "1.0E308"),
+    // Smallest positive subnormal (5 × 10^-324 = f64::MIN_POSITIVE / 2^52).
+    ("5.0E-324", "5.0E-324"),
+    // IEEE specials: already covered by CANONICAL_VECTORS but pinned here explicitly.
+    ("INF", "INF"),
+    ("-INF", "-INF"),
+    ("NaN", "NaN"),
+];
+
+#[test]
+fn double_extreme_canonical_vectors() {
+    for (lexical, expected_canonical) in DOUBLE_EXTREME_CANONICAL {
+        let v = parse(lexical, D::Double)
+            .unwrap_or_else(|e| panic!("parse({lexical:?}, Double) failed: {e}"));
+        let canon = v.canonical_lexical();
+        assert_eq!(
+            canon, *expected_canonical,
+            "canonical_lexical({lexical:?}^^Double)"
+        );
+    }
+}
+
+#[test]
+fn double_extreme_canonical_roundtrip() {
+    // For finite extreme doubles: parse the canonical form and confirm value-equality
+    // with the original (i.e. the canonical form round-trips through parse).
+    for (lexical, _) in DOUBLE_EXTREME_CANONICAL {
+        let original = parse(lexical, D::Double).unwrap();
+        // Skip NaN: NaN is never equal to itself (per IEEE and XSD).
+        if original.canonical_lexical() == "NaN" {
+            continue;
+        }
+        let canon = original.canonical_lexical();
+        let reparsed = parse(&canon, D::Double)
+            .unwrap_or_else(|e| panic!("re-parse({canon:?}, Double) failed: {e}"));
+        // value_cmp(original, reparsed) == Equal asserts bit-for-bit round-trip
+        // (no real bugs found in canonical_double for these extremes).
+        assert_eq!(
+            value_cmp(&original, &reparsed),
+            Some(Ordering::Equal),
+            "round-trip failed for {lexical:?}: canonical={canon:?}"
+        );
+    }
+}

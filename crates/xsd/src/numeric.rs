@@ -193,6 +193,7 @@ pub fn parse_integer(s: &str) -> Result<i128, XsdError> {
     s.parse::<i128>().map_err(|_| XsdError::OutOfRange {
         datatype: dt,
         lexical: s.to_string(),
+        reason: "integer magnitude exceeds i128",
     })
 }
 
@@ -217,6 +218,7 @@ pub fn parse_integer_typed(lexical: &str, datatype: XsdDatatype) -> Result<i128,
     let value = lexical.parse::<i128>().map_err(|_| XsdError::OutOfRange {
         datatype,
         lexical: lexical.to_string(),
+        reason: "integer magnitude exceeds i128",
     })?;
 
     // Now range-check against the datatype's inclusive bounds.
@@ -225,6 +227,7 @@ pub fn parse_integer_typed(lexical: &str, datatype: XsdDatatype) -> Result<i128,
             return Err(XsdError::OutOfRange {
                 datatype,
                 lexical: lexical.to_string(),
+                reason: "value outside datatype range",
             });
         }
     }
@@ -256,6 +259,7 @@ pub fn parse_decimal(s: &str) -> Result<Decimal, XsdError> {
         return Err(XsdError::OutOfRange {
             datatype: dt,
             lexical: s.to_string(),
+            reason: "decimal scale exceeds 18",
         });
     }
 
@@ -269,6 +273,7 @@ pub fn parse_decimal(s: &str) -> Result<Decimal, XsdError> {
             .map_err(|_| XsdError::OutOfRange {
                 datatype: dt,
                 lexical: s.to_string(),
+                reason: "integer magnitude exceeds i128",
             })?
     };
     let mantissa = if neg { -magnitude } else { magnitude };
@@ -404,6 +409,9 @@ pub fn numeric_eq(a: &XsdValue, b: &XsdValue) -> bool {
 /// The numeric value as `f64`, or `None` if `v` is not a numeric value.
 fn num_f64(v: &XsdValue) -> Option<f64> {
     Some(match v {
+        // Spec-mandated lossy promotion: integer ⊂ double (SPARQL §17.3 numeric tower).
+        // Large i128 values (> 2^53) lose low-order bits; this is required behaviour,
+        // not an accident.
         XsdValue::Integer { value, .. } => *value as f64,
         XsdValue::Decimal(d) => d.to_f64(),
         XsdValue::Float(f) => f64::from(*f),
@@ -415,9 +423,16 @@ fn num_f64(v: &XsdValue) -> Option<f64> {
 /// The numeric value as `f32`, or `None` if `v` is not a numeric value.
 fn num_f32(v: &XsdValue) -> Option<f32> {
     Some(match v {
+        // Spec-mandated lossy promotion: integer ⊂ float (SPARQL §17.3 numeric tower).
+        // Large i128 values (> 2^24) lose precision; required by IEEE promotion semantics.
         XsdValue::Integer { value, .. } => *value as f32,
+        // Decimal → f64 → f32: two rounds of precision loss. First round is inherent
+        // (decimal to IEEE double), second round narrows to single. Both are required by
+        // the SPARQL promotion rules (decimal ⊂ float); no intermediate Decimal→f32 path exists.
         XsdValue::Decimal(d) => d.to_f64() as f32,
         XsdValue::Float(f) => *f,
+        // double → float narrowing: required by the numeric tower when a float operand
+        // forces promotion of the other operand down (SPARQL §17.3).
         XsdValue::Double(d) => *d as f32,
         _ => return None,
     })
