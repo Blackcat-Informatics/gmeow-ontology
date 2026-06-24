@@ -20,6 +20,9 @@ members = [
     "crates/pipeline",
     "crates/rdf",
     "crates/rdf-core",
+    # The permissive (MIT OR Apache-2.0) RDF 1.2 ingestion protocol (purrdf P6):
+    # the zero-dep event seam both the container and the engine depend ON.
+    "crates/rdf-events",
     "crates/shacl",
     "crates/slice",
     "crates/slicetest",
