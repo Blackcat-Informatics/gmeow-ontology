@@ -682,9 +682,10 @@ fn merge_to_ntriples(source_paths: Vec<String>) -> PyResult<String> {
 ///
 /// Returns `(data_nt, [(named_subject_iri, source_file_path), ...])` where the
 /// pairs record the FIRST `.ttl` file each named subject appears in, in
-/// first-seen order. `dsl_validate.py` validates `data_nt` via `gmeow_shacl` and
-/// enriches each violation with `source=` from the map — no rdflib. A parse
-/// failure maps to a Python `ValueError`.
+/// first-seen order. The new canonical consumer is `gmeow_validate.validate_dsl_shacl`
+/// (Rust entry point `validate_dsl_shacl` / `dsl_shacl::validate_dsl`), which
+/// validates `data_nt` natively and enriches each violation with `source=` from the
+/// map — no rdflib. A parse failure maps to a Python `ValueError`.
 #[pyfunction]
 fn dsl_merge_with_provenance(
     py: Python<'_>,
