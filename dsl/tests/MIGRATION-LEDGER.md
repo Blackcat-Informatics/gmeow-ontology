@@ -474,7 +474,28 @@ plus the 17 `#[test]` functions; all helper bodies deleted. All 17 tests still p
 
 **Batch 2 wave-3 tally:** organization 2 + finance 6 + lifecycle 2 + standpoint 5 = **15 converted**.
 
-**Batch 2 grand tally:** deception 10 + evidence 5 + notes 8 + events 2 + creative_works 8 + organization 2 + finance 6 + lifecycle 2 + standpoint 5 = **48 converted**; ~71 retained (cross-slice/dynamic/SPARQL/disk-load/SSSOM). All **65** conformance tests (17 batch-1 + 48 batch-2) green; `uv run mypy` clean (281 files).
+**Batch 2 wave 4** (rights, registers, profiles, privacy — all fixture-backed `validate(&nt)`):
+
+| pytest fn | source | disposition | Rust twin / retain reason |
+|-----------|--------|------------|---------------------------|
+| `test_wellformed_rights_fixture_conforms` | test_rights.py | converted | `wellformed_rights_fixture_conforms` |
+| `test_malformed_rights_fixture_is_flagged` | test_rights.py | converted | `malformed_rights_fixture_is_flagged` |
+| `test_expired_trademark_warns_but_does_not_fail` | test_rights.py | converted | `expired_trademark_warns_but_does_not_fail` (warning-tolerant) |
+| 7 rights tests (`test_expanded_action_vocabulary_is_seeded`, 6 `test_*_projection_emits_*`) | test_rights.py | **retained** | dynamic subjects sweep / projection + `(triple) in out` membership |
+| `test_wellformed_registers_fixture_conforms` | test_registers.py | converted | `wellformed_registers_fixture_conforms` |
+| `test_malformed_registers_fixture_is_flagged` | test_registers.py | converted | `malformed_registers_fixture_is_flagged` (4 violation substrings) |
+| 7 registers tests (`test_register_spine_*`, `test_persona_*`, `test_expression_machinery_*`, `test_style_guide_*`, `test_no_primary_persona_*`, `test_same_norms_invariant_*`, `test_divergence_query_*`) | test_registers.py | **retained** | `_graph()` TBox checks / dynamic subject sweep / SPARQL competency |
+| `test_profile_shape_passes_for_wellformed_profile` | test_profiles.py | converted | `profile_shape_passes_for_wellformed_profile` |
+| `test_profile_shape_fails_for_invalid_profile_applies_to` | test_profiles.py | converted | `profile_shape_fails_for_invalid_profile_applies_to` |
+| `test_profile_open_value_guard_warns_on_orphan` | test_profiles.py | converted | `profile_open_value_guard_warns_on_orphan` (warning-tolerant) |
+| `test_wellformed_privacy_fixture_conforms` | test_privacy.py | converted | `wellformed_privacy_fixture_conforms` |
+| `test_malformed_privacy_fixture_is_flagged` | test_privacy.py | converted | `malformed_privacy_fixture_is_flagged` |
+| `test_sensitive_value_warns_but_does_not_fail` | test_privacy.py | converted | `sensitive_value_warns_but_does_not_fail` (warning-tolerant) |
+| 11 privacy tests | test_privacy.py | **retained** | `_graph()` TBox membership / `load_merged_graph` subject iteration / projection |
+
+**Batch 2 wave-4 tally:** rights 3 + registers 2 + profiles 3 + privacy 3 = **11 converted**.
+
+**Batch 2 grand tally:** deception 10 + evidence 5 + notes 8 + events 2 + creative_works 8 + organization 2 + finance 6 + lifecycle 2 + standpoint 5 + rights 3 + registers 2 + profiles 3 + privacy 3 = **59 converted**; retained (cross-slice/dynamic/SPARQL/disk-load/SSSOM/projection) tracked per-fn above. All **76** conformance tests (17 batch-1 + 59 batch-2) green; `uv run mypy` clean (281 files).
 
 ## #867 structural batch 10 (places — the 129-fn slice)
 
