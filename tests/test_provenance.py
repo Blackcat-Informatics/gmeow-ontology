@@ -4,6 +4,18 @@ These pin the "four clocks" design: valid time (validFrom/validUntil), assertion
 time (assertedAt), carrier time (sourceModifiedAt on the Source), and transaction
 time (ingestedAt on an ImportActivity) — each a distinct term in its own home,
 never collapsed into one slot.
+
+MIGRATED to slices/core/provenance/tests/structural.ttl (declarative cells):
+  test_import_activity_is_an_activity  → ex:saImportActivityIsSubclassOfActivity
+  test_activity_agent_link_is_event_safe → ex:saWasAssociatedWithShape
+
+RETAINED here (cross-slice subjects):
+  test_carrier_and_ingestion_props — gmeow:sourceModifiedAt and gmeow:contentDigest
+    are defined in the sources slice, not provenance; cannot be scoped to
+    gmeow:scopeModule for provenance.
+  test_four_clocks_are_distinct_dated_annotations — gmeow:validFrom, gmeow:validUntil,
+    gmeow:assertedAt, and gmeow:recordedNoLaterThan are all defined in the temporal
+    and sources slices, not provenance.
 """
 
 from __future__ import annotations
@@ -17,25 +29,6 @@ GMEOW = "https://blackcatinformatics.ca/gmeow/"
 
 def _graph() -> Graph:
     return load_merged_graph(include_imports=False)
-
-
-def test_import_activity_is_an_activity() -> None:
-    graph = _graph()
-    assert (
-        URIRef(GMEOW + "ImportActivity"),
-        RDFS.subClassOf,
-        URIRef(GMEOW + "Activity"),
-    ) in graph
-
-
-def test_activity_agent_link_is_event_safe() -> None:
-    # An import activity names its agent via wasAssociatedWith (Activity→Agent),
-    # NOT wasAttributedTo (Entity→Agent) — the latter on an Event-class activity
-    # would clash with gUFO endurant/event disjointness.
-    graph = _graph()
-    assoc = URIRef(GMEOW + "wasAssociatedWith")
-    assert (assoc, RDFS.domain, URIRef(GMEOW + "Activity")) in graph
-    assert (assoc, RDFS.range, URIRef(GMEOW + "Agent")) in graph
 
 
 def test_carrier_and_ingestion_props() -> None:
