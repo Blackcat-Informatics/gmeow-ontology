@@ -510,10 +510,13 @@ pub fn check_principle_sync(
 }
 
 /// Whether `symbol` is defined in any artifact (AST for `.py`, verbatim else).
-fn symbol_defined(symbol: &str, artifacts: &[String], root: &Path) -> bool {
-    let mut py_cache: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
-    let mut text_cache: BTreeMap<String, String> = BTreeMap::new();
-
+fn symbol_defined(
+    symbol: &str,
+    artifacts: &[String],
+    root: &Path,
+    py_cache: &mut BTreeMap<String, BTreeSet<String>>,
+    text_cache: &mut BTreeMap<String, String>,
+) -> bool {
     for artifact in artifacts {
         let path = root.join(artifact);
         if !path.is_file() {
@@ -544,6 +547,8 @@ fn symbol_defined(symbol: &str, artifacts: &[String], root: &Path) -> bool {
 /// Every cited artifact / symbol / make target / CLI command must exist.
 pub fn check_references(enforcements: &BTreeMap<String, Enforcement>, root: &Path) -> Vec<Finding> {
     let mut findings = Vec::new();
+    let mut py_cache: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
+    let mut text_cache: BTreeMap<String, String> = BTreeMap::new();
 
     let makefile_text = fs::read_to_string(root.join("Makefile")).unwrap_or_default();
     let make_targets = makefile_targets(&makefile_text);
@@ -566,7 +571,13 @@ pub fn check_references(enforcements: &BTreeMap<String, Enforcement>, root: &Pat
             }
         }
         for symbol in &enforcement.symbols {
-            if !symbol_defined(symbol, &enforcement.artifacts, root) {
+            if !symbol_defined(
+                symbol,
+                &enforcement.artifacts,
+                root,
+                &mut py_cache,
+                &mut text_cache,
+            ) {
                 findings.push(error(
                     "stale-symbol",
                     format!(
