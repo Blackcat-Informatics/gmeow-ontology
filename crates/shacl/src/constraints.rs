@@ -51,13 +51,12 @@ pub fn validate_shape<G: ShaclDataGraph>(
     }
 
     // --- sh:closed (node-shape-level; needs the sibling property shapes) ---
+    // `eval_closed` stamps each result's box roles itself — the source roles plus
+    // the OFFENDING PREDICATE's path roles — so closed-world violations carry the
+    // same predicate attribution that property-shape results do (#700 Gap B).
     for constraint in &shape.constraints {
         if let Constraint::Closed { ignored } = constraint {
-            let mut rs = eval_closed(store, focus, shape, ignored);
-            for r in &mut rs {
-                r.apply_box_roles(&shape.box_roles, &[]);
-            }
-            results.extend(rs);
+            results.extend(eval_closed(store, focus, shape, ignored));
         }
     }
 
@@ -98,7 +97,11 @@ fn eval_closed<G: ShaclDataGraph>(
         if permitted.contains(predicate.as_str()) {
             continue;
         }
-        results.push(ValidationResult {
+        // Resolve the offending predicate's graph-box roles (the same resolution
+        // property shapes use for their path) so closed-world results are not left
+        // with empty path attribution.
+        let path_roles = path_box_roles(store, &Path::Predicate(predicate.clone()));
+        let mut result = ValidationResult {
             focus_node: focus.clone(),
             result_path: Some(Term::NamedNode(predicate.clone())),
             value: Some(quad.object),
@@ -110,7 +113,9 @@ fn eval_closed<G: ShaclDataGraph>(
             path_box_roles: vec![],
             result_box_roles: vec![],
             attributions: vec![],
-        });
+        };
+        result.apply_box_roles(&shape.box_roles, &path_roles);
+        results.push(result);
     }
     results
 }
@@ -2574,6 +2579,32 @@ mod tests {
         assert_eq!(
             results[0].result_path.as_ref().map(|t| t.to_string()),
             Some(format!("<{EX}age>"))
+        );
+    }
+
+    #[test]
+    fn closed_violation_carries_predicate_box_roles() {
+        use crate::model::gmeow;
+        // The offending (undeclared) predicate ex:age declares a graph-box role;
+        // the closed-world result must carry it as PATH attribution — closed
+        // violations previously dropped predicate roles (#700 Gap B).
+        let store = load_store(&format!(
+            "@prefix ex: <{EX}> .\n\
+             @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
+             ex:age gmeow:graphBoxRole gmeow:boxRBox .\n\
+             ex:a ex:name \"Al\" ; ex:age 30 .\n"
+        ));
+        let shape = closed_shape(vec![], &[&format!("{EX}name")]);
+        let results = validate_shape(&store, &ex("a"), &shape);
+        assert_eq!(results.len(), 1, "ex:age is an undeclared predicate");
+        assert_eq!(
+            role_iris(&results[0].path_box_roles),
+            [gmeow::BOX_RBOX.as_str()],
+            "closed-world violation must carry the offending predicate's box roles"
+        );
+        assert!(
+            role_iris(&results[0].result_box_roles).contains(&gmeow::BOX_RBOX.as_str()),
+            "merged result roles must include the predicate's path role"
         );
     }
 
