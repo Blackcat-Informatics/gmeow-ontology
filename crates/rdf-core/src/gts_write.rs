@@ -1,13 +1,20 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Write any [`RdfStore`] into a deterministic GTS byte stream.
+//! Write a frozen [`RdfDataset`] into a deterministic GTS byte stream.
 //!
 //! This is the inverse direction of [`crate::gts::GtsGraphStore`]: instead of
-//! viewing a folded GTS graph as an RDF store, we materialise an RDF store into
-//! a [`gmeow_gts::model::Graph`] and ask [`gmeow_gts::writer::Writer`] to
+//! viewing a folded GTS graph as an RDF store, we materialise the concrete IR
+//! into a [`gmeow_gts::model::Graph`] and ask [`gmeow_gts::writer::Writer`] to
 //! canonicalise it. All interning, term remapping, and frame authoring is
 //! delegated to `gmeow-gts`.
+//!
+//! The writer consumes the IR directly (purrdf P2c part 1, #886): it reads the
+//! frozen dataset's quad/reifier/annotation tables and resolves each row to the
+//! owned model at the boundary (the same allocation the old `RdfStore` compat
+//! bridge performed), then interns into the GTS term table. Out-of-band material
+//! (GTS metadata, suppressions) is passed in explicitly as an [`RdfLookaside`]
+//! (C0.6: it lives in the bundle envelope, not the hot graph).
 
 use std::collections::HashMap;
 
@@ -16,26 +23,46 @@ use gmeow_gts::codec::CodecError;
 use gmeow_gts::model::{Graph, Suppression, Term, TermKind, Triple3};
 use gmeow_gts::writer::Writer;
 
+use crate::ir::RdfDataset;
 use crate::{
     RdfAnnotation, RdfDiagnostic, RdfLiteral, RdfLookaside, RdfMetadataValue, RdfQuad, RdfReifier,
-    RdfStore, RdfTerm,
+    RdfTerm,
 };
 
 const MAX_TERM_NESTING_DEPTH: usize = 16;
 
-/// Convert any [`RdfStore`] into a canonical GTS [`Writer`].
+/// Convert a frozen [`RdfDataset`] into a canonical GTS [`Writer`].
 ///
-/// `profile` is passed through to the GTS header (e.g. `"gmeow-rdf"`). The
-/// resulting writer can be further configured (signing, indexes) or emitted
-/// directly with [`Writer::to_bytes`].
-pub fn to_writer(store: &impl RdfStore, profile: &str) -> Result<Writer, RdfDiagnostic> {
+/// `lookaside` carries the out-of-band envelope material (GTS metadata,
+/// suppressions) to fold alongside the hot graph; pass [`RdfLookaside::default`]
+/// for a bare dataset with no envelope. `profile` is passed through to the GTS
+/// header (e.g. `"gmeow-rdf"`). The resulting writer can be further configured
+/// (signing, indexes) or emitted directly with [`Writer::to_bytes`].
+pub fn to_writer(
+    dataset: &RdfDataset,
+    lookaside: &RdfLookaside,
+    profile: &str,
+) -> Result<Writer, RdfDiagnostic> {
     let mut graph = Graph::default();
 
-    // First pass: collect the logical rows so we can intern terms in a stable
-    // order and resolve reifier bindings before quad terms reference them.
-    let quads: Vec<RdfQuad> = collect(store.quads(), "quad")?;
-    let reifiers: Vec<RdfReifier> = collect(store.reifiers(), "reifier")?;
-    let annotations: Vec<RdfAnnotation> = collect(store.annotations(), "annotation")?;
+    // First pass: resolve the frozen IR tables to the owned model in stable
+    // frozen order so terms intern deterministically and reifier bindings are
+    // resolved before quad terms reference them. The resolution is infallible
+    // (the dataset is already validated at freeze) and reuses the same
+    // owned-boundary helpers the IR exposes for legacy consumers.
+    let quads: Vec<RdfQuad> = dataset
+        .quads()
+        .enumerate()
+        .map(|(i, q)| dataset.to_owned_quad(i, q))
+        .collect();
+    let reifiers: Vec<RdfReifier> = dataset
+        .reifiers()
+        .map(|(r, t)| dataset.to_owned_reifier(r, t))
+        .collect();
+    let annotations: Vec<RdfAnnotation> = dataset
+        .annotations()
+        .map(|(r, p, o)| dataset.to_owned_annotation(r, p, o))
+        .collect();
 
     let mut state = InternState::new();
 
@@ -72,15 +99,20 @@ pub fn to_writer(store: &impl RdfStore, profile: &str) -> Result<Writer, RdfDiag
         graph.annotations.push((r, p, v));
     }
 
-    apply_lookaside(&state, &mut graph, store.lookaside());
+    apply_lookaside(&state, &mut graph, lookaside.clone());
     graph.terms = state.terms;
 
     Writer::deterministic(&graph, profile).map_err(codec_error_to_diagnostic)
 }
 
-/// Convert any [`RdfStore`] directly into canonical GTS bytes.
-pub fn to_gts(store: &impl RdfStore, profile: &str) -> Result<Vec<u8>, RdfDiagnostic> {
-    to_writer(store, profile).map(|writer| writer.to_bytes())
+/// Convert a frozen [`RdfDataset`] directly into canonical GTS bytes. See
+/// [`to_writer`] for the `lookaside` envelope contract.
+pub fn to_gts(
+    dataset: &RdfDataset,
+    lookaside: &RdfLookaside,
+    profile: &str,
+) -> Result<Vec<u8>, RdfDiagnostic> {
+    to_writer(dataset, lookaside, profile).map(|writer| writer.to_bytes())
 }
 
 struct InternState {
@@ -101,14 +133,6 @@ impl InternState {
             reifier_map: HashMap::new(),
         }
     }
-}
-
-fn collect<T>(
-    iter: Box<dyn Iterator<Item = Result<T, RdfDiagnostic>> + '_>,
-    kind: &str,
-) -> Result<Vec<T>, RdfDiagnostic> {
-    iter.collect::<Result<Vec<_>, _>>()
-        .map_err(|e| e.with_detail(format!("failed to read {kind} from RDF store")))
 }
 
 fn bind_explicit_reifier(
@@ -391,33 +415,88 @@ fn codec_error_to_diagnostic(err: CodecError) -> RdfDiagnostic {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::ir::RdfDatasetBuilder;
     use crate::{
-        RdfAnnotation, RdfLiteral, RdfMetadataEntry, RdfMetadataValue, RdfQuad, RdfReifier,
-        RdfSuppressionRecord, RdfTerm, RdfTextDirection, RdfTriple, VecRdfStore,
+        BlankScope, RdfAnnotation, RdfLiteral, RdfMetadataEntry, RdfMetadataValue, RdfQuad,
+        RdfReifier, RdfSuppressionRecord, RdfTerm, RdfTextDirection, RdfTriple, TermId,
     };
+    use std::sync::Arc;
 
-    fn roundtrip_store(store: &VecRdfStore, profile: &str) -> Graph {
-        let bytes = to_gts(store, profile).expect("to_gts should succeed");
+    /// Recursively intern an owned [`RdfTerm`] into a builder, returning its id —
+    /// the test-side inverse of the writer's owned-boundary resolution.
+    fn intern_owned(b: &mut RdfDatasetBuilder, term: &RdfTerm) -> TermId {
+        match term {
+            RdfTerm::Iri(iri) => b.intern_iri(iri.clone()),
+            RdfTerm::BlankNode(label) => b.intern_blank(label.clone(), BlankScope::DEFAULT),
+            RdfTerm::Literal(lit) => b.intern_literal(lit.clone()),
+            RdfTerm::Triple(t) => {
+                let s = intern_owned(b, &t.subject);
+                let p = b.intern_iri(t.predicate.clone());
+                let o = intern_owned(b, &t.object);
+                b.intern_triple(s, p, o)
+            }
+        }
+    }
+
+    /// Freeze owned rows (quads + RDF 1.2 statement layer) into the frozen IR the
+    /// writer now consumes — replaces the retired `VecRdfStore` fixture for this
+    /// consumer (#886 part 1). Order is irrelevant: `freeze` dedups and sorts.
+    fn freeze_rows(
+        quads: &[RdfQuad],
+        reifiers: &[RdfReifier],
+        annotations: &[RdfAnnotation],
+    ) -> Arc<RdfDataset> {
+        let mut b = RdfDatasetBuilder::new();
+        for q in quads {
+            let s = intern_owned(&mut b, &q.subject);
+            let p = b.intern_iri(q.predicate.clone());
+            let o = intern_owned(&mut b, &q.object);
+            let g = q.graph_name.as_ref().map(|g| intern_owned(&mut b, g));
+            b.push_quad(s, p, o, g);
+        }
+        for r in reifiers {
+            let rid = intern_owned(&mut b, &r.reifier);
+            let s = intern_owned(&mut b, &r.statement.subject);
+            let p = b.intern_iri(r.statement.predicate.clone());
+            let o = intern_owned(&mut b, &r.statement.object);
+            let triple = b.intern_triple(s, p, o);
+            b.push_reifier(rid, triple);
+        }
+        for a in annotations {
+            let rid = intern_owned(&mut b, &a.reifier);
+            let p = b.intern_iri(a.predicate.clone());
+            let o = intern_owned(&mut b, &a.object);
+            b.push_annotation(rid, p, o);
+        }
+        b.freeze().expect("rows must freeze into a valid dataset")
+    }
+
+    fn roundtrip(dataset: &RdfDataset, lookaside: &RdfLookaside, profile: &str) -> Graph {
+        let bytes = to_gts(dataset, lookaside, profile).expect("to_gts should succeed");
         let graph = gmeow_gts::reader::read(&bytes, false, None);
         assert!(graph.diagnostics.is_empty(), "{:?}", graph.diagnostics);
         graph
     }
 
-    fn assert_nquads_eq(store: &VecRdfStore, profile: &str, expected: &str) {
-        let graph = roundtrip_store(store, profile);
+    fn assert_nquads_eq(dataset: &RdfDataset, profile: &str, expected: &str) {
+        let graph = roundtrip(dataset, &RdfLookaside::default(), profile);
         let nquads = gmeow_gts::nquads::to_nquads(&graph);
         assert_eq!(nquads.trim(), expected.trim());
     }
 
     #[test]
     fn simple_quad_roundtrips_through_gts() {
-        let store = VecRdfStore::with_quads(vec![RdfQuad::new(
-            RdfTerm::iri("https://example.org/s"),
-            "https://example.org/p",
-            RdfTerm::iri("https://example.org/o"),
-        )]);
+        let ds = freeze_rows(
+            &[RdfQuad::new(
+                RdfTerm::iri("https://example.org/s"),
+                "https://example.org/p",
+                RdfTerm::iri("https://example.org/o"),
+            )],
+            &[],
+            &[],
+        );
         assert_nquads_eq(
-            &store,
+            &ds,
             "gmeow-rdf-test",
             "<https://example.org/s> <https://example.org/p> <https://example.org/o> .",
         );
@@ -430,12 +509,16 @@ mod tests {
         // `direction-dropped` loss is genuinely gone, not merely undocumented.
         let mut lit = RdfLiteral::language_tagged("\u{645}\u{631}\u{62d}\u{628}\u{627}", "ar");
         lit.direction = Some(RdfTextDirection::Rtl);
-        let store = VecRdfStore::with_quads(vec![RdfQuad::new(
-            RdfTerm::iri("https://example.org/s"),
-            "https://example.org/p",
-            RdfTerm::literal(lit),
-        )]);
-        let graph = roundtrip_store(&store, "gmeow-rdf-test");
+        let ds = freeze_rows(
+            &[RdfQuad::new(
+                RdfTerm::iri("https://example.org/s"),
+                "https://example.org/p",
+                RdfTerm::literal(lit),
+            )],
+            &[],
+            &[],
+        );
+        let graph = roundtrip(&ds, &RdfLookaside::default(), "gmeow-rdf-test");
         let lit_term = graph
             .terms
             .iter()
@@ -453,9 +536,9 @@ mod tests {
             RdfTerm::literal(RdfLiteral::language_tagged("hello", "en")),
         )
         .in_graph(RdfTerm::iri("https://example.org/g"));
-        let store = VecRdfStore::with_quads(vec![quad]);
+        let ds = freeze_rows(&[quad], &[], &[]);
         assert_nquads_eq(
-            &store,
+            &ds,
             "gmeow-rdf-test",
             "<https://example.org/s> <https://example.org/p> \"hello\"@en <https://example.org/g> .",
         );
@@ -469,14 +552,14 @@ mod tests {
             RdfTerm::iri("https://example.org/o"),
         );
         let reifier = RdfTerm::blank_node("r1");
-        let store = VecRdfStore {
-            quads: vec![RdfQuad::new(
+        let ds = freeze_rows(
+            &[RdfQuad::new(
                 reifier.clone(),
                 "http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies",
                 RdfTerm::triple(statement.clone()),
             )],
-            reifiers: vec![RdfReifier::new(reifier.clone(), statement)],
-            annotations: vec![RdfAnnotation::new(
+            &[RdfReifier::new(reifier.clone(), statement)],
+            &[RdfAnnotation::new(
                 reifier.clone(),
                 "https://example.org/confidence",
                 RdfTerm::literal(RdfLiteral::typed(
@@ -484,10 +567,9 @@ mod tests {
                     "http://www.w3.org/2001/XMLSchema#decimal",
                 )),
             )],
-            ..VecRdfStore::default()
-        };
+        );
 
-        let graph = roundtrip_store(&store, "gmeow-rdf-test");
+        let graph = roundtrip(&ds, &RdfLookaside::default(), "gmeow-rdf-test");
         let nquads = gmeow_gts::nquads::to_nquads(&graph);
         assert!(nquads.contains("http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies"));
         assert!(nquads.contains("https://example.org/confidence"));
@@ -504,14 +586,15 @@ mod tests {
             "https://example.org/p",
             RdfTerm::iri("https://example.org/o"),
         );
-        let store = VecRdfStore {
-            reifiers: vec![
+        let ds = freeze_rows(
+            &[],
+            &[
                 RdfReifier::new(RdfTerm::blank_node("r1"), statement.clone()),
                 RdfReifier::new(RdfTerm::blank_node("r2"), statement.clone()),
             ],
-            ..VecRdfStore::default()
-        };
-        let graph = roundtrip_store(&store, "gmeow-rdf-test");
+            &[],
+        );
+        let graph = roundtrip(&ds, &RdfLookaside::default(), "gmeow-rdf-test");
         // Two distinct reifier rows over the same triple content survive.
         assert_eq!(graph.reifiers.len(), 2);
         let rids: std::collections::BTreeSet<usize> =
@@ -524,36 +607,45 @@ mod tests {
 
     #[test]
     fn determinism_produces_identical_bytes() {
-        let store = VecRdfStore::with_quads(vec![
-            RdfQuad::new(
-                RdfTerm::iri("https://example.org/s"),
-                "https://example.org/p",
-                RdfTerm::iri("https://example.org/o"),
-            ),
-            RdfQuad::new(
-                RdfTerm::blank_node("b1"),
-                "https://example.org/p2",
-                RdfTerm::literal(RdfLiteral::simple("literal value")),
-            ),
-        ]);
-        let first = to_gts(&store, "gmeow-rdf-test").expect("first write");
-        let second = to_gts(&store, "gmeow-rdf-test").expect("second write");
+        let ds = freeze_rows(
+            &[
+                RdfQuad::new(
+                    RdfTerm::iri("https://example.org/s"),
+                    "https://example.org/p",
+                    RdfTerm::iri("https://example.org/o"),
+                ),
+                RdfQuad::new(
+                    RdfTerm::blank_node("b1"),
+                    "https://example.org/p2",
+                    RdfTerm::literal(RdfLiteral::simple("literal value")),
+                ),
+            ],
+            &[],
+            &[],
+        );
+        let first = to_gts(&ds, &RdfLookaside::default(), "gmeow-rdf-test").expect("first write");
+        let second = to_gts(&ds, &RdfLookaside::default(), "gmeow-rdf-test").expect("second write");
         assert_eq!(first, second);
     }
 
     #[test]
     fn lookaside_metadata_and_suppressions_are_preserved() {
-        let mut store = VecRdfStore::with_quads(vec![RdfQuad::new(
-            RdfTerm::iri("https://example.org/s"),
-            "https://example.org/p",
-            RdfTerm::iri("https://example.org/o"),
-        )]);
-        store.lookaside.metadata.push(RdfMetadataEntry::new(
+        let ds = freeze_rows(
+            &[RdfQuad::new(
+                RdfTerm::iri("https://example.org/s"),
+                "https://example.org/p",
+                RdfTerm::iri("https://example.org/o"),
+            )],
+            &[],
+            &[],
+        );
+        let mut lookaside = RdfLookaside::default();
+        lookaside.metadata.push(RdfMetadataEntry::new(
             "gts:file",
             "producer",
             RdfMetadataValue::Text("gmeow-rdf-test".to_owned()),
         ));
-        store.lookaside.suppressions.push(RdfSuppressionRecord {
+        lookaside.suppressions.push(RdfSuppressionRecord {
             reason: Some("test suppression".to_owned()),
             by: None,
             targets: vec![RdfMetadataValue::Map(
@@ -563,27 +655,36 @@ mod tests {
             )],
         });
 
-        let graph = roundtrip_store(&store, "gmeow-rdf-test");
+        let graph = roundtrip(&ds, &lookaside, "gmeow-rdf-test");
         assert_eq!(graph.meta.len(), 1);
         assert_eq!(graph.suppressions.len(), 1);
     }
 
     #[test]
-    fn deeply_nested_triple_terms_hit_nesting_limit() {
+    fn moderately_nested_triple_term_roundtrips() {
+        // The writer now consumes a frozen `RdfDataset`, whose `freeze` already
+        // enforces the SAME triple-term nesting bound (validate.rs reuses
+        // `MAX_TERM_NESTING_DEPTH`), so the writer's own guard is unreachable from a
+        // valid dataset — the depth-limit error path is tested upstream at freeze.
+        // Here we prove a legal, moderately nested triple term round-trips intact.
         let mut term = RdfTerm::iri("https://example.org/leaf");
-        for _ in 0..MAX_TERM_NESTING_DEPTH + 2 {
+        for _ in 0..4 {
             term = RdfTerm::triple(RdfTriple::new(
                 RdfTerm::iri("https://example.org/s"),
                 "https://example.org/p",
                 term,
             ));
         }
-        let store = VecRdfStore::with_quads(vec![RdfQuad::new(
-            RdfTerm::iri("https://example.org/s"),
-            "https://example.org/p",
-            term,
-        )]);
-        let err = to_gts(&store, "gmeow-rdf-test").expect_err("nested triple should fail");
-        assert_eq!(err.code, "rdf-term-nesting-limit");
+        let ds = freeze_rows(
+            &[RdfQuad::new(
+                RdfTerm::iri("https://example.org/s"),
+                "https://example.org/p",
+                term,
+            )],
+            &[],
+            &[],
+        );
+        let graph = roundtrip(&ds, &RdfLookaside::default(), "gmeow-rdf-test");
+        assert!(graph.terms.iter().any(|t| t.kind == TermKind::Triple));
     }
 }
