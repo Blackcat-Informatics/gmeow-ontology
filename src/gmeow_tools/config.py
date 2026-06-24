@@ -148,11 +148,11 @@ SHAPES_DIR = PROJECT_ROOT / "shapes"
 SHAPES_FILE = SHAPES_DIR / "gmeow-shapes.ttl"
 SOFTWARE_SHAPES_FILE = SHAPES_DIR / "software-shapes.ttl"
 ORGANIZATION_SHAPES_FILE = SHAPES_DIR / "organization-shapes.ttl"
-#: SHACL shapes for the mapping DSL source (gmeow_tools.dsl_validate).
+#: SHACL shapes for the mapping DSL source (gmeow_validate.validate_dsl_shacl).
 MAPPING_DSL_SHAPES_FILE = SHAPES_DIR / "mapping-dsl-shapes.ttl"
-#: SHACL shapes for the statement DSL source (gmeow_tools.dsl_validate).
+#: SHACL shapes for the statement DSL source (gmeow_validate.validate_dsl_shacl).
 STATEMENT_DSL_SHAPES_FILE = SHAPES_DIR / "statement-dsl-shapes.ttl"
-#: SHACL shapes for the test DSL source (gmeow_tools.dsl_validate).
+#: SHACL shapes for the test DSL source (gmeow_validate.validate_dsl_shacl).
 TEST_DSL_SHAPES_FILE = SHAPES_DIR / "test-dsl-shapes.ttl"
 QUERIES_DIR = PROJECT_ROOT / "queries"
 COMPETENCY_DIR = QUERIES_DIR / "competency"
