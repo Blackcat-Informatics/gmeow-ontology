@@ -1920,6 +1920,186 @@ mod tests {
         );
     }
 
+    /// Convert a hand-authored YAML-LD-star file to its JSON-LD-star form so the
+    /// narrow Rust parser path can consume it.
+    fn yaml_file_to_jsonld_star(path: &std::path::Path) -> String {
+        let yaml = std::fs::read_to_string(path)
+            .unwrap_or_else(|e| panic!("read {}: {e}", path.display()));
+        let value: serde_yaml::Value =
+            serde_yaml::from_str(&yaml).expect("YAML-LD-star fixture is valid YAML");
+        serde_json::to_string(&value).expect("YAML-LD-star -> JSON-LD-star")
+    }
+
+    /// Acceptance criterion #5 (issue #699 / PR #978): a hand-authored YAML-LD-star
+    /// statement-layer fixture losslessly transpiles into GMEOW through the Rust
+    /// native downcast path exposed to Python as
+    /// `parse_jsonld_star_to_gmeow_statement_metadata_nquads`.
+    #[test]
+    fn hand_authored_yaml_ld_star_fixture_transpiles_to_gmeow() {
+        let path = repo_root().join("slices/core/standpoint/examples/claim-bullshit.yamlld");
+        let json = yaml_file_to_jsonld_star(&path);
+        let nquads = jsonld_star_to_gmeow_statement_metadata_nquads(json.as_bytes())
+            .expect("downcast YAML-LD-star fixture to GMEOW statement metadata");
+
+        let dataset = parse_nquads(&nquads);
+        assert!(
+            !dataset
+                .iter()
+                .any(|q| matches!(q.object, oxigraph::model::TermRef::Triple(_))),
+            "transpiled output must contain no RDF 1.2 quoted triple terms"
+        );
+
+        let claim: NamedOrBlankNode = ox_named_node("https://example.org/claim-001").into();
+        let alice: NamedOrBlankNode = ox_named_node("https://example.org/alice").into();
+        let analyst: NamedOrBlankNode =
+            ox_named_node("https://example.org/analyst-standpoint").into();
+        let bullshit: oxigraph::model::Term =
+            ox_named_node("https://blackcatinformatics.ca/gmeow/bullshit").into();
+
+        let rdf_type = ox_named_node(RDF_TYPE);
+        let standpoint_claim = ox_named_node(GMEOW_STATEMENT_METADATA);
+        let claim_modality = ox_named_node("https://blackcatinformatics.ca/gmeow/claimModality");
+        let observed_feature =
+            ox_named_node("https://blackcatinformatics.ca/gmeow/observedFeature");
+        let name = ox_named_node("https://blackcatinformatics.ca/gmeow/name");
+        let q_subject = ox_named_node(GMEOW_QSUBJECT);
+        let q_predicate = ox_named_node(GMEOW_QPREDICATE);
+        let q_object = ox_named_node(GMEOW_QOBJECT);
+        let q_object_literal = ox_named_node(GMEOW_QOBJECTLITERAL);
+        let according_to = ox_named_node("https://blackcatinformatics.ca/gmeow/accordingTo");
+        let confidence = ox_named_node("https://blackcatinformatics.ca/gmeow/confidence");
+        let asserted_at = ox_named_node("https://blackcatinformatics.ca/gmeow/assertedAt");
+
+        // Base triples survive.
+        assert!(
+            dataset_has(&dataset, &claim, &claim_modality, &bullshit),
+            "claimModality base triple must survive transpile"
+        );
+        assert!(
+            dataset_has(
+                &dataset,
+                &claim,
+                &observed_feature,
+                &OxTerm::from(alice.clone())
+            ),
+            "observedFeature base triple must survive transpile"
+        );
+
+        // Directional language string is preserved on the base literal triple.
+        let alice_name: oxigraph::model::Term =
+            oxigraph::model::Literal::new_directional_language_tagged_literal(
+                "Alice",
+                "en",
+                oxigraph::model::BaseDirection::Ltr,
+            )
+            .expect("valid directional literal")
+            .into();
+        assert!(
+            dataset_has(&dataset, &alice, &name, &alice_name),
+            "directional language-tagged name must survive transpile"
+        );
+
+        // Explicit reifier for the claim modality is typed StatementMetadata and
+        // carries the quoted subject/predicate/object skeleton.
+        let claim_annotation: NamedOrBlankNode =
+            ox_named_node("https://example.org/claim-001-annotation").into();
+        assert!(
+            dataset_has(
+                &dataset,
+                &claim_annotation,
+                &rdf_type,
+                &OxTerm::NamedNode(standpoint_claim.clone())
+            ),
+            "explicit reifier must be typed gmeow:StatementMetadata"
+        );
+        assert!(
+            dataset_has(
+                &dataset,
+                &claim_annotation,
+                &q_subject,
+                &OxTerm::from(claim.clone())
+            ),
+            "gmeow:qSubject must point to the claim"
+        );
+        assert!(
+            dataset_has(
+                &dataset,
+                &claim_annotation,
+                &q_predicate,
+                &OxTerm::NamedNode(claim_modality.clone())
+            ),
+            "gmeow:qPredicate must point to claimModality"
+        );
+        assert!(
+            dataset_has(&dataset, &claim_annotation, &q_object, &bullshit),
+            "gmeow:qObject must point to the IRI object"
+        );
+
+        // Annotation triples on the explicit reifier survive.
+        assert!(
+            dataset_has(
+                &dataset,
+                &claim_annotation,
+                &according_to,
+                &OxTerm::from(analyst.clone())
+            ),
+            "accordingTo annotation must survive transpile"
+        );
+        let confidence_value: oxigraph::model::Term = oxigraph::model::Literal::new_typed_literal(
+            "0.65",
+            ox_named_node("http://www.w3.org/2001/XMLSchema#decimal"),
+        )
+        .into();
+        assert!(
+            dataset_has(&dataset, &claim_annotation, &confidence, &confidence_value),
+            "confidence annotation must survive transpile"
+        );
+        let asserted_value: oxigraph::model::Term = oxigraph::model::Literal::new_typed_literal(
+            "2026-06-05T00:00:00Z",
+            ox_named_node("http://www.w3.org/2001/XMLSchema#dateTime"),
+        )
+        .into();
+        assert!(
+            dataset_has(&dataset, &claim_annotation, &asserted_at, &asserted_value),
+            "assertedAt annotation must survive transpile"
+        );
+
+        // Explicit reifier for the directional-language name uses qObjectLiteral.
+        let name_annotation: NamedOrBlankNode =
+            ox_named_node("https://example.org/alice-name-annotation").into();
+        assert!(
+            dataset_has(
+                &dataset,
+                &name_annotation,
+                &rdf_type,
+                &OxTerm::NamedNode(standpoint_claim)
+            ),
+            "name reifier must be typed gmeow:StatementMetadata"
+        );
+        assert!(
+            dataset_has(
+                &dataset,
+                &name_annotation,
+                &q_subject,
+                &OxTerm::from(alice.clone())
+            ),
+            "name gmeow:qSubject must point to alice"
+        );
+        assert!(
+            dataset_has(
+                &dataset,
+                &name_annotation,
+                &q_predicate,
+                &OxTerm::NamedNode(name)
+            ),
+            "name gmeow:qPredicate must point to name"
+        );
+        assert!(
+            dataset_has(&dataset, &name_annotation, &q_object_literal, &alice_name),
+            "name gmeow:qObjectLiteral must point to the directional literal"
+        );
+    }
+
     fn canonical_nquads(dataset: &Dataset) -> String {
         let mut quads: Vec<String> = dataset.iter().map(|q| q.to_string()).collect();
         quads.sort();
