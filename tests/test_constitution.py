@@ -11,19 +11,41 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from gmeow_tools.constitution import (
+import gmeow_validate
+import pytest
+
+from gmeow_tools.config import PROJECT_ROOT
+from gmeow_tools.constitution import constitution_report
+from gmeow_tools.constitution_manifest import (
     CONSTITUTION_FILE,
     MANIFEST_FILE,
-    check_constitution,
     constitution_headings,
     load_manifest,
-    to_diagnostics_report,
 )
+from gmeow_tools.validate import ValidationResult
+
+
+def _run_rust_constitution(
+    *,
+    manifest_path: Path = MANIFEST_FILE,
+    constitution_path: Path = CONSTITUTION_FILE,
+) -> ValidationResult:
+    report = gmeow_validate.constitution_full_report(
+        str(manifest_path),
+        str(constitution_path),
+        str(PROJECT_ROOT),
+    )
+    return ValidationResult(
+        errors=[f["message"] for f in report.findings if f["severity"] == "error"],
+        warnings=[f["message"] for f in report.findings if f["severity"] == "warning"],
+    )
 
 
 def test_constitution_report_uses_granular_codes() -> None:
     """The canonical report carries per-check codes, not the legacy roll-up (#809)."""
-    report = to_diagnostics_report()  # rebuilt from the committed constitution
+    report = gmeow_validate.constitution_full_report(
+        str(MANIFEST_FILE), str(CONSTITUTION_FILE), str(PROJECT_ROOT)
+    )
 
     assert report.error_count == 0, "\n".join(report.errors)
     codes = {item["code"] for item in report.findings}
@@ -54,7 +76,7 @@ def _write_pair(
 
 def test_real_manifest_passes() -> None:
     """The committed manifest, constitution, and repo agree — zero errors."""
-    result = check_constitution()
+    result = _run_rust_constitution()
     assert not result.errors, "\n".join(result.errors)
 
 
@@ -94,7 +116,7 @@ def test_honor_system_principles_are_visible_not_silent() -> None:
     ``gate-foundation-conformance`` gates in ``governance/constitution.ttl``, so it
     is no longer practice-only.
     """
-    result = check_constitution()
+    result = _run_rust_constitution()
     flagged = {int(w.split()[1]) for w in result.warnings if "review practice" in w}
     assert flagged == {1, 6, 15}
 
@@ -105,7 +127,9 @@ def test_zero_enforcement_is_an_error(tmp_path: Path) -> None:
         'meta:Principle1 a meta:Principle ; meta:number 1 ; meta:title "Be good" .\n',
         _MINIMAL_CONSTITUTION,
     )
-    result = check_constitution(manifest_path=manifest, constitution_path=constitution)
+    result = _run_rust_constitution(
+        manifest_path=manifest, constitution_path=constitution
+    )
     assert any("zero registered enforcement" in e for e in result.errors)
 
 
@@ -119,7 +143,9 @@ meta:Principle1 a meta:Principle ; meta:number 1 ; meta:title "Be good" ;
 """,
         _MINIMAL_CONSTITUTION,
     )
-    result = check_constitution(manifest_path=manifest, constitution_path=constitution)
+    result = _run_rust_constitution(
+        manifest_path=manifest, constitution_path=constitution
+    )
     assert any("'no/such/file.py' does not exist" in e for e in result.errors)
 
 
@@ -137,7 +163,9 @@ meta:Principle1 a meta:Principle ; meta:number 1 ; meta:title "Be good" ;
 """,
         _MINIMAL_CONSTITUTION,
     )
-    result = check_constitution(manifest_path=manifest, constitution_path=constitution)
+    result = _run_rust_constitution(
+        manifest_path=manifest, constitution_path=constitution
+    )
     text = "\n".join(result.errors)
     assert "'no_such_function' not found" in text
     assert "Makefile target 'no-such-target'" in text
@@ -155,7 +183,9 @@ meta:Principle1 a meta:Principle ; meta:number 1 ; meta:title "Be good" ;
 """,
         _MINIMAL_CONSTITUTION,
     )
-    result = check_constitution(manifest_path=manifest, constitution_path=constitution)
+    result = _run_rust_constitution(
+        manifest_path=manifest, constitution_path=constitution
+    )
     assert any(
         "orphaned enforcement" in e and "gate-orphan" in e for e in result.errors
     )
@@ -171,7 +201,9 @@ meta:Principle1 a meta:Principle ; meta:number 1 ; meta:title "Be excellent" ;
 """,
         _MINIMAL_CONSTITUTION,
     )
-    result = check_constitution(manifest_path=manifest, constitution_path=constitution)
+    result = _run_rust_constitution(
+        manifest_path=manifest, constitution_path=constitution
+    )
     assert any("title drift" in e for e in result.errors)
 
 
@@ -192,7 +224,9 @@ meta:Principle1 a meta:Principle ; meta:number 1 ; meta:title "Be good" ;
 """,
         _MINIMAL_CONSTITUTION,
     )
-    result = check_constitution(manifest_path=manifest, constitution_path=constitution)
+    result = _run_rust_constitution(
+        manifest_path=manifest, constitution_path=constitution
+    )
     assert any("undeclared enforcement" in e for e in result.errors), "\n".join(
         result.errors
     )
@@ -208,7 +242,9 @@ meta:Principle1 a meta:Principle ; meta:number 1 ; meta:title "Be good" ;
 """,
         _MINIMAL_CONSTITUTION,
     )
-    result = check_constitution(manifest_path=manifest, constitution_path=constitution)
+    result = _run_rust_constitution(
+        manifest_path=manifest, constitution_path=constitution
+    )
     assert any("only by review practice" in w for w in result.warnings)
     assert not any("zero registered enforcement" in e for e in result.errors)
 
@@ -232,7 +268,9 @@ def test_supersession_matching_pair_passes(tmp_path: Path) -> None:
     manifest, constitution = _write_pair(
         tmp_path, _SUPERSESSION_MANIFEST, _SUPERSESSION_MD
     )
-    result = check_constitution(manifest_path=manifest, constitution_path=constitution)
+    result = _run_rust_constitution(
+        manifest_path=manifest, constitution_path=constitution
+    )
     assert not any("supersededInPartBy drift" in e for e in result.errors), "\n".join(
         result.errors
     )
@@ -244,7 +282,9 @@ def test_supersession_markdown_only_is_an_error(tmp_path: Path) -> None:
         " ; meta:supersededInPartBy meta:Principle1", ""
     )
     manifest, constitution = _write_pair(tmp_path, manifest_ttl, _SUPERSESSION_MD)
-    result = check_constitution(manifest_path=manifest, constitution_path=constitution)
+    result = _run_rust_constitution(
+        manifest_path=manifest, constitution_path=constitution
+    )
     assert any(
         "principle 2 meta:supersededInPartBy drift" in e for e in result.errors
     ), "\n".join(result.errors)
@@ -256,7 +296,9 @@ def test_supersession_ttl_only_is_an_error(tmp_path: Path) -> None:
     manifest, constitution = _write_pair(
         tmp_path, _SUPERSESSION_MANIFEST, md_without_marker
     )
-    result = check_constitution(manifest_path=manifest, constitution_path=constitution)
+    result = _run_rust_constitution(
+        manifest_path=manifest, constitution_path=constitution
+    )
     assert any(
         "principle 2 meta:supersededInPartBy drift" in e for e in result.errors
     ), "\n".join(result.errors)
@@ -275,7 +317,41 @@ def test_extends_matching_pair_passes(tmp_path: Path) -> None:
         "## 1. Be good\n\nprose\n\n## 2. Be great\n\n**Extends Principle 1.**\n"
     )
     manifest, constitution = _write_pair(tmp_path, manifest_ttl, constitution_md)
-    result = check_constitution(manifest_path=manifest, constitution_path=constitution)
+    result = _run_rust_constitution(
+        manifest_path=manifest, constitution_path=constitution
+    )
     assert not any("extends drift" in e for e in result.errors), "\n".join(
         result.errors
     )
+
+
+def test_rust_report_matches_python_report() -> None:
+    """The native Rust full report must match the legacy Python report (#939).
+
+    This test deliberately re-runs the old Python path one last time so any
+    divergence in codes or messages is surfaced before the Python gate is removed.
+    """
+    py_report = constitution_report()
+    rust_report = gmeow_validate.constitution_full_report(
+        str(MANIFEST_FILE),
+        str(CONSTITUTION_FILE),
+        str(PROJECT_ROOT),
+    )
+
+    py_findings = {(f["code"], f["message"]) for f in py_report.findings}
+    rust_findings = {(f["code"], f["message"]) for f in rust_report.findings}
+
+    missing = py_findings - rust_findings
+    extra = rust_findings - py_findings
+
+    if missing or extra:
+        details: list[str] = []
+        if missing:
+            details.append(f"Rust report missing {len(missing)} Python findings:")
+            details.extend(f"  {code}: {message}" for code, message in sorted(missing))
+        if extra:
+            details.append(f"Rust report has {len(extra)} extra findings:")
+            details.extend(f"  {code}: {message}" for code, message in sorted(extra))
+        pytest.fail("\n".join(details))
+
+    assert py_findings == rust_findings
