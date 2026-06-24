@@ -26,6 +26,7 @@ from gmeow_tools.bundle import (
     _GUIDE_BLOB,
     _bundle_graph,
     bundled_cells,
+    bundled_ontology_docs,
     bundled_queries,
     bundled_sssom,
     bundled_tests,
@@ -39,6 +40,21 @@ def test_bundle_carries_the_four_consumer_archives() -> None:
     assert bundled_cells(), "cells-archive blob missing from gmeow.gts"
     assert bundled_queries(), "queries-archive blob missing from gmeow.gts"
     assert bundled_tests(), "tests-archive blob missing from gmeow.gts"
+
+
+def test_bundle_carries_the_ontology_docs_site() -> None:
+    """The full ontology-docs site is folded into gmeow.gts as the
+    ``ontology-docs`` blob (#897) — the producer half of repo-free
+    ``gmeow extract-docs``, which was designed but never wired until now."""
+    site = bundled_ontology_docs()
+    assert site, "ontology-docs blob missing from gmeow.gts"
+    # Members carry the internal language-tag prefix the consumer filters on, and
+    # the English landing page + structural assets are present.
+    assert all(name.startswith("x-gmeow-") for name in site), (
+        f"every member must carry an internal-tag prefix, got e.g. {list(site)[:3]}"
+    )
+    assert "x-gmeow-english/index.html" in site, "English landing page missing"
+    assert "x-gmeow-english/assets/gmeow.css" in site, "site CSS asset missing"
 
 
 def test_no_dangling_guide_blob_references() -> None:
