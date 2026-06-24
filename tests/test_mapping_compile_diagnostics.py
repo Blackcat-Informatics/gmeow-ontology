@@ -93,6 +93,9 @@ def test_sssom_validation_problem_becomes_a_finding(
     assert len(sssom) == 1
     assert sssom[0]["severity"] == "error"
     assert "missing subject_id" in sssom[0]["message"]
+    # The path is recorded repo-relative (not the bare filename, not absolute) so
+    # SARIF viewers / editors can locate the file.
+    assert sssom[0]["locations"][0]["path"] == "generated/mappings/gmeow-bad.sssom.tsv"
 
 
 def test_projection_lint_problems_become_findings(

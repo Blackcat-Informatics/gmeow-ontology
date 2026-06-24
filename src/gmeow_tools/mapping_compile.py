@@ -1598,7 +1598,11 @@ def _sssom_findings(report: diagnostics.DiagnosticsReport, tool: str) -> None:
                 code=f"{tool}.sssom",
                 message=result["message"],
                 tool=tool,
-                path=rel_path,
+                # ``emit_sssom`` keys are bare file names; record the repo-relative
+                # path (matching the ``_committed_paths`` keys) so SARIF viewers /
+                # editors can locate the file. NOT the absolute ``MAPPINGS_DIR`` —
+                # SARIF artifactLocation.uri must be checkout-relative, not absolute.
+                path=f"generated/mappings/{rel_path}",
                 logical=result["instance"],
                 detail=f"check={result['check']} code={result['code']}",
             )
