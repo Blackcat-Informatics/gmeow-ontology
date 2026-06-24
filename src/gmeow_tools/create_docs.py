@@ -3,7 +3,8 @@
 """``gmeow create-docs`` — browsable docs tree from a GTS snapshot (#439).
 
 A lossy, deterministic Markdown projection of the ontology plus the bundled
-slice guides, project docs, and ontology docs carried by the offline snapshot.
+slice guides, and the full ontology-docs site (the ``ontology-docs`` blob the
+snapshot stage embeds, #897) carried by the offline snapshot.
 """
 
 from __future__ import annotations
@@ -134,11 +135,10 @@ def _write_index(
         "",
         "- [`terms/`](terms/) — one Markdown file per GMEOW term.",
         "- [`slices/`](slices/) — per-slice guide documentation.",
-        "- [`project_docs/`](project_docs/) — project doctrine and design docs.",
     ]
     if has_ontology_docs:
         lines.append(
-            "- [`ontology-docs/`](ontology-docs/) — ontology web documentation (#440)."
+            "- [`ontology-docs/`](ontology-docs/) — the full ontology-docs site (#440)."
         )
     lines.extend(
         [
@@ -335,7 +335,6 @@ def create_docs(
     doc_lang = resolve_doc_language(selector, view.tag_map())
     terms = collect_terms(view, selector=selector)
 
-    _unpack_doc_archive(out_dir, view, "project-docs", "project_docs", doc_lang)
     has_ontology_docs = _unpack_doc_archive(
         out_dir, view, "ontology-docs", "ontology-docs", doc_lang
     )

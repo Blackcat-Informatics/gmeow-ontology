@@ -42,6 +42,7 @@ REP_CELLS = "cells-archive"  # tar of the cell/projection TTL sources (repo-rel 
 REP_TESTS = "tests-archive"  # tar of the slice test-DSL specs (repo-rel paths, #783)
 REP_REASONING = "reasoning-archive"  # tar of canonical reasoning products (#667)
 REP_OKF = "okf-export"  # tar of the OKF (Open Knowledge Format) bundle (#780)
+REP_ONTOLOGY_DOCS = "ontology-docs"  # tar of the rust-rendered docs site (#897)
 REP_DENIED = "transform:denied"  # JSON of the saturation refusal set (alignment lint)
 _GUIDE_BLOB = NAMESPACE + "guideBlob"
 
@@ -145,6 +146,18 @@ def bundled_okf() -> dict[str, bytes]:
     source stays canonical. Empty when unbundled.
     """
     return _archive(REP_OKF)
+
+
+def bundled_ontology_docs() -> dict[str, bytes]:
+    """The full ontology-docs site as ``{member-path: bytes}`` (#897).
+
+    The snapshot stage renders the ontology-docs static site once per available
+    language and folds it into ``gmeow.gts`` as the ``ontology-docs`` blob. Member
+    paths are prefixed with the internal language tag (``x-gmeow-english/index.html``,
+    ``x-gmeow-french/index.html``, …); ``gmeow extract-docs`` selects one language
+    and unpacks it repo-free. Empty when unbundled.
+    """
+    return _archive(REP_ONTOLOGY_DOCS)
 
 
 def _is_slice_mapping(relpath: str) -> bool:

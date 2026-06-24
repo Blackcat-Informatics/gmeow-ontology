@@ -558,10 +558,12 @@ def extract_docs(
     ),
     lang: str | None = _lang_option(),
 ) -> None:
-    """Extract the stored Markdown docs tree from a GTS snapshot.
+    """Extract the browsable docs tree from a GTS snapshot.
 
-    The browsable tree is read verbatim from the ``ontology-docs`` blob baked
-    into the bundle — it is never re-rendered here.
+    The tree combines a deterministic Markdown projection (per-term pages, slice
+    guides, alignment + statement summaries) with the full ontology-docs site,
+    which is unpacked verbatim from the ``ontology-docs`` blob baked into the
+    bundle (rendered at ``regenerate`` time, not re-rendered here).
     """
     from gmeow_tools.create_docs import create_docs
 
