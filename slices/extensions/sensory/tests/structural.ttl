@@ -1,0 +1,129 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Declarative structural assertions for the sensory slice (#126) -- the
+# slice-resident test-DSL twin of the asserted-TBox MUST / MUST-NOT invariants
+# formerly hand-written in tests/test_sensory.py. Each assertion runs as a
+# SPARQL ASK over the sensory module graph (gmeow:scopeModule) under the native
+# Rust slicetest harness (crates/slicetest).
+#
+# Sensory is NOT #694-migrated: class stereotypes are gufo: (gufo:Kind,
+# gufo:RoleMixin, gufo:AbstractIndividualType), NOT logic:.
+#
+# NOTE: gmeow:SensoryObservation a owl:Class is declared in the observations
+# module (rdfs:isDefinedBy observations, stereotype logic:SubKind). The
+# sensory module only adds restriction subClassOf triples to it. The class
+# existence check for SensoryObservation is already covered by the
+# observations/tests/structural.ttl cell 3 (saObservationValueVocabularies).
+# This file therefore checks the four classes declared HERE (Sensor,
+# SensorPlatform, ObservableProperty, SensoryQuantity).
+#
+# RETAINED in pytest (not migratable here):
+#   test_sensor_mapped_to_sosa_sensor -- uses load_mappings(); generated
+#     mapping artifact, not the module graph.
+#   test_sensor_platform_mapped_to_sosa_platform -- uses load_mappings().
+#   test_observable_property_mapped_to_sosa -- uses load_mappings().
+#   test_sensory_quantity_mapped_to_sosa_result -- uses load_mappings().
+#   test_sensory_property_mapped_to_sosa_observed_property -- uses load_mappings().
+#   test_platform_location_mapped_to_geo_location -- uses load_mappings().
+#   test_sensory_afo_mappings_exist -- reads SENSORY_EQ_FILE (external
+#     generated equivalences.ttl artifact); not a module-scoped TBox check.
+#
+# See dsl/tests/MIGRATION-LEDGER.md for the per-test pytest->DSL mapping.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/sensory/tests/> .
+
+# --- 1. Core sensory TBox classes exist (MUST) --------------------------------
+ex:saSensoryClassesExist a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    gmeow:Sensor              a owl:Class .
+    gmeow:SensorPlatform      a owl:Class .
+    gmeow:ObservableProperty  a owl:Class .
+    gmeow:SensoryQuantity     a owl:Class .
+}""" ;
+    gmeow:saRationale "gmeow:Sensor, SensorPlatform, ObservableProperty, and SensoryQuantity MUST all be declared owl:Class in the sensory module. SensoryObservation is declared in the observations module and is covered there. Mirrors test_sensory_classes_exist (the four sensory-module-owned classes)." .
+
+# --- 2. Core sensory object properties exist (MUST) --------------------------
+ex:saSensoryPropertiesExist a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    gmeow:sensoryProperty        a owl:ObjectProperty .
+    gmeow:sensoryResult          a owl:ObjectProperty .
+    gmeow:sensoryObservationOf   a owl:ObjectProperty .
+    gmeow:hasSensoryObservation  a owl:ObjectProperty .
+    gmeow:platformLocation       a owl:ObjectProperty .
+    gmeow:hasSensoryQuantity     a owl:ObjectProperty .
+}""" ;
+    gmeow:saRationale "All six sensory object properties MUST be declared owl:ObjectProperty in the sensory module. Mirrors test_sensory_properties_exist." .
+
+# --- 3. ObservableProperty seed individuals exist (MUST) ---------------------
+ex:saObservablePropertySeedsExist a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    gmeow:observablePropertyTemperature        a gmeow:ObservableProperty .
+    gmeow:observablePropertyHumidity           a gmeow:ObservableProperty .
+    gmeow:observablePropertyLightIntensity     a gmeow:ObservableProperty .
+    gmeow:observablePropertySoundPressureLevel a gmeow:ObservableProperty .
+    gmeow:observablePropertyAtmosphericPressure a gmeow:ObservableProperty .
+    gmeow:observablePropertyAirQualityIndex    a gmeow:ObservableProperty .
+    gmeow:observablePropertyRadiationLevel     a gmeow:ObservableProperty .
+    gmeow:observablePropertyTimbre             a gmeow:ObservableProperty .
+    gmeow:observablePropertyLoudness           a gmeow:ObservableProperty .
+    gmeow:observablePropertyRoughness          a gmeow:ObservableProperty .
+    gmeow:observablePropertyTimingDeviation    a gmeow:ObservableProperty .
+}""" ;
+    gmeow:saRationale "All eleven ObservableProperty seed individuals MUST be present as gmeow:ObservableProperty instances. Mirrors test_observable_property_seeds_exist." .
+
+# --- 4. SensoryQuantity is equivalent to ScalarQuantity (MUST) ---------------
+ex:saSensoryQuantityEquivalentScalarQuantity a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    gmeow:SensoryQuantity owl:equivalentClass gmeow:ScalarQuantity .
+}""" ;
+    gmeow:saRationale "gmeow:SensoryQuantity MUST be owl:equivalentClass gmeow:ScalarQuantity -- the domain-specific alias for the scalar quantity stack (#77, #126). Mirrors test_sensory_quantity_equivalent_to_scalar_quantity." .
+
+# --- 5. sensoryResult is a subproperty of observationResult (MUST) -----------
+ex:saSensoryResultSubPropertyOfObservationResult a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:sensoryResult rdfs:subPropertyOf gmeow:observationResult .
+}""" ;
+    gmeow:saRationale "gmeow:sensoryResult MUST be rdfs:subPropertyOf gmeow:observationResult so generic consumers can query all observation results without knowing the domain (#126). Mirrors test_sensory_result_subproperty_of_observation_result." .
+
+# --- 6. sensoryObservationOf is a subproperty of observedFeature (MUST) ------
+ex:saSensoryObservationOfSubPropertyOfObservedFeature a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:sensoryObservationOf rdfs:subPropertyOf gmeow:observedFeature .
+}""" ;
+    gmeow:saRationale "gmeow:sensoryObservationOf MUST be rdfs:subPropertyOf gmeow:observedFeature so generic observation-about-X queries reach sensory observations (#126). Mirrors test_sensory_observation_of_subproperty_of_observed_feature." .
+
+# --- 7. hasSensoryObservation is inverse of sensoryObservationOf (MUST) ------
+ex:saHasSensoryObservationIsInverse a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    gmeow:hasSensoryObservation owl:inverseOf gmeow:sensoryObservationOf .
+}""" ;
+    gmeow:saRationale "gmeow:hasSensoryObservation MUST be owl:inverseOf gmeow:sensoryObservationOf -- the bidirectional navigation pair for sensory observations (#126). Mirrors test_has_sensory_observation_is_inverse." .

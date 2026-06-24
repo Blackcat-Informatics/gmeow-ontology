@@ -1,29 +1,41 @@
-"""Structural TBox + mapping tests for the Sensory module (#126).
+"""Mapping tests for the Sensory module (#126) -- SOSA / AFO alignments only.
 
-The sensory module deepens the SensoryObservation stub with sensor-specific
-properties (sensoryProperty, sensoryResult), introduces Sensor, SensorPlatform,
-ObservableProperty (value vocabulary), and SensoryQuantity (equivalent alias for
-ScalarQuantity). These tests verify, over the ASSERTED graph / loaded mappings:
+The asserted-TBox structural checks (classes, properties, value-vocabulary
+seeds, equivalentClass, subPropertyOf, inverseOf) have been migrated to the
+declarative slicetest DSL cell file:
 
-1. The TBox is well-formed (classes, properties, value vocabularies).
-2. The bridge properties / equivalentClass / inverseOf axioms are asserted
-   (sensoryResult ⊑ observationResult, sensoryObservationOf ⊑ observedFeature,
-   SensoryQuantity ≡ ScalarQuantity, hasSensoryObservation inverseOf …).
-3. SOSA / AFO alignments are present in the loaded mappings.
+    slices/extensions/sensory/tests/structural.ttl
 
-The OWL 2 RL ENTAILMENT tests — SensoryObservation ⊑ Observation, Sensor ⊑ Agent,
-SensoryQuantity inheritance, the frame-inheritance and hasSensoryQuantity property
-chains, EL consistency, and contested-reading coexistence — were migrated to the
-native Rust RL harness (``crates/logic/tests/ontology_entailments.rs``, issue #896).
-See ``dsl/tests/MIGRATION-LEDGER.md``.
+Migrated functions (now cells sa1-sa7):
+  test_sensory_classes_exist              -> ex:saSensoryClassesExist
+  test_sensory_properties_exist           -> ex:saSensoryPropertiesExist
+  test_observable_property_seeds_exist    -> ex:saObservablePropertySeedsExist
+  test_sensory_quantity_equivalent_to_scalar_quantity
+      -> ex:saSensoryQuantityEquivalentScalarQuantity
+  test_sensory_result_subproperty_of_observation_result
+      -> ex:saSensoryResultSubPropertyOfObservationResult
+  test_sensory_observation_of_subproperty_of_observed_feature
+      -> ex:saSensoryObservationOfSubPropertyOfObservedFeature
+  test_has_sensory_observation_is_inverse -> ex:saHasSensoryObservationIsInverse
+
+The OWL 2 RL ENTAILMENT tests were migrated to the native Rust RL harness
+(crates/logic/tests/ontology_entailments.rs, issue #896).
+See dsl/tests/MIGRATION-LEDGER.md.
+
+RETAINED here (load_mappings() / external generated-artifact reads):
+  test_sensor_mapped_to_sosa_sensor
+  test_sensor_platform_mapped_to_sosa_platform
+  test_observable_property_mapped_to_sosa
+  test_sensory_quantity_mapped_to_sosa_result
+  test_sensory_property_mapped_to_sosa_observed_property
+  test_platform_location_mapped_to_geo_location
+  test_sensory_afo_mappings_exist
 """
 
 from __future__ import annotations
 
 from gmeow_rdf.compat.rdflib import (
-    OWL,
     RDF,
-    RDFS,
     Graph,
     Namespace,
     URIRef,
@@ -31,100 +43,11 @@ from gmeow_rdf.compat.rdflib import (
 from gmeow_rdf.compat.rdflib.namespace import SKOS
 
 from gmeow_tools.config import NAMESPACE
-from gmeow_tools.graph import load_merged_graph
 from gmeow_tools.slices import module_path
 
 GMEOW = Namespace(NAMESPACE)
-GUFO = Namespace("http://purl.org/nemo/gufo#")
-EX = Namespace("https://example.org/test/")
 
 SENSORY_EQ_FILE = module_path("sensory").parent / "mappings" / "equivalences.ttl"
-
-
-# --------------------------------------------------------------------------- #
-# TBox well-formedness
-# --------------------------------------------------------------------------- #
-
-
-def test_sensory_classes_exist() -> None:
-    graph = load_merged_graph(include_imports=False)
-    for cls in (
-        "Sensor",
-        "SensorPlatform",
-        "ObservableProperty",
-        "SensoryQuantity",
-        "SensoryObservation",
-    ):
-        assert (GMEOW[cls], RDF.type, OWL.Class) in graph
-
-
-def test_sensory_properties_exist() -> None:
-    graph = load_merged_graph(include_imports=False)
-    for prop in (
-        "sensoryProperty",
-        "sensoryResult",
-        "sensoryObservationOf",
-        "hasSensoryObservation",
-        "platformLocation",
-        "hasSensoryQuantity",
-    ):
-        assert (GMEOW[prop], RDF.type, OWL.ObjectProperty) in graph
-
-
-def test_observable_property_seeds_exist() -> None:
-    graph = load_merged_graph(include_imports=False)
-    for term in (
-        "observablePropertyTemperature",
-        "observablePropertyHumidity",
-        "observablePropertyLightIntensity",
-        "observablePropertySoundPressureLevel",
-        "observablePropertyAtmosphericPressure",
-        "observablePropertyAirQualityIndex",
-        "observablePropertyRadiationLevel",
-        "observablePropertyTimbre",
-        "observablePropertyLoudness",
-        "observablePropertyRoughness",
-        "observablePropertyTimingDeviation",
-    ):
-        assert (GMEOW[term], RDF.type, GMEOW.ObservableProperty) in graph
-
-
-# --------------------------------------------------------------------------- #
-# Class hierarchy and equivalence (#126, #77)
-# --------------------------------------------------------------------------- #
-
-
-def test_sensory_quantity_equivalent_to_scalar_quantity() -> None:
-    """SensoryQuantity is equivalent to ScalarQuantity (#77, #126)."""
-    graph = load_merged_graph(include_imports=False)
-    assert (
-        GMEOW.SensoryQuantity,
-        OWL.equivalentClass,
-        GMEOW.ScalarQuantity,
-    ) in graph
-
-
-def test_sensory_result_subproperty_of_observation_result() -> None:
-    graph = load_merged_graph(include_imports=False)
-    assert (GMEOW.sensoryResult, RDFS.subPropertyOf, GMEOW.observationResult) in graph
-
-
-def test_sensory_observation_of_subproperty_of_observed_feature() -> None:
-    graph = load_merged_graph(include_imports=False)
-    assert (
-        GMEOW.sensoryObservationOf,
-        RDFS.subPropertyOf,
-        GMEOW.observedFeature,
-    ) in graph
-
-
-def test_has_sensory_observation_is_inverse() -> None:
-    graph = load_merged_graph(include_imports=False)
-    assert (
-        GMEOW.hasSensoryObservation,
-        OWL.inverseOf,
-        GMEOW.sensoryObservationOf,
-    ) in graph
 
 
 # --------------------------------------------------------------------------- #
