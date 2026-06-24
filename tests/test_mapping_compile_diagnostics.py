@@ -102,10 +102,12 @@ def test_projection_lint_problems_become_findings(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """The native lint's check maps to mapping-compile.<check> findings (#854)."""
-    monkeypatch.setattr(
-        gmeow_slice,
-        "lint_projection",
-        lambda _root, allow_network=False: [
+
+    def _lint_projection_stub(
+        _root: str, *, allow_network: bool = False
+    ) -> list[dict[str, str]]:
+        _ = allow_network
+        return [
             {
                 "severity": "ERROR",
                 "code": "fno-type",
@@ -120,8 +122,9 @@ def test_projection_lint_problems_become_findings(
                 "check": "spec-drift",
                 "instance": "https://schema.org/dead",
             },
-        ],
-    )
+        ]
+
+    monkeypatch.setattr(gmeow_slice, "lint_projection", _lint_projection_stub)
 
     report = mapping_compile.compile_diagnostics_report()
 
@@ -135,7 +138,8 @@ def test_projection_lint_loader_failure_degrades_to_warning(
 ) -> None:
     """A native-lint loader failure becomes one warning, not a crash (#854)."""
 
-    def _boom(_root: str, allow_network: bool = False) -> object:
+    def _boom(_root: str, *, allow_network: bool = False) -> object:
+        _ = allow_network
         raise RuntimeError("native ext unavailable")
 
     monkeypatch.setattr(gmeow_slice, "lint_projection", _boom)
