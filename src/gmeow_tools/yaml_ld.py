@@ -37,7 +37,11 @@ class YamlLdError(ValueError):
 
 
 class _NoAnchorSafeLoader(yaml.SafeLoader):  # type: ignore[misc]
-    """SafeLoader that rejects YAML anchors, aliases, and therefore custom tags."""
+    """SafeLoader that rejects YAML anchors, aliases, and therefore custom tags.
+
+    ISO timestamp scalars are kept as strings so the intermediate JSON-LD
+    representation remains JSON-serializable without datetime objects.
+    """
 
     def compose_node(
         self, parent: yaml.nodes.Node | None, index: Any
@@ -50,6 +54,11 @@ class _NoAnchorSafeLoader(yaml.SafeLoader):  # type: ignore[misc]
         if getattr(event, "anchor", None) is not None:
             raise YamlLdError("YAML-LD anchors are not supported")
         return super().compose_node(parent, index)
+
+
+_NoAnchorSafeLoader.add_constructor(
+    "tag:yaml.org,2002:timestamp", lambda loader, node: str(node.value)
+)
 
 
 class _NoAliasSafeDumper(yaml.SafeDumper):  # type: ignore[misc]
