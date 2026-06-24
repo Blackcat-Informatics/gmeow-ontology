@@ -129,6 +129,26 @@ fn split_tz(dt: XsdDatatype, lexical: &str, s: &str) -> Result<(String, Option<i
     Ok((s.to_string(), None))
 }
 
+/// Number of days in a given month for a proleptic-Gregorian year.
+/// Uses the signed year directly; negative years follow the same leap-year rule as
+/// positive ones (proleptic Gregorian: leap iff divisible by 4, except centuries
+/// unless also divisible by 400).
+fn days_in_month(year: i64, month: u8) -> u8 {
+    match month {
+        1 | 3 | 5 | 7 | 8 | 10 | 12 => 31,
+        4 | 6 | 9 | 11 => 30,
+        2 => {
+            let is_leap = year % 4 == 0 && (year % 100 != 0 || year % 400 == 0);
+            if is_leap {
+                29
+            } else {
+                28
+            }
+        }
+        _ => 0, // invalid month — caught by caller before reaching here
+    }
+}
+
 /// Parse `[-]YYYY[Y...]-MM-DD` into `(year, month, day)`.
 fn parse_ymd(dt: XsdDatatype, lexical: &str, s: &str) -> Result<(i64, u8, u8), XsdError> {
     let neg = s.starts_with('-');
@@ -152,7 +172,11 @@ fn parse_ymd(dt: XsdDatatype, lexical: &str, s: &str) -> Result<(i64, u8, u8), X
     if !(1..=12).contains(&month) || !(1..=31).contains(&day) {
         return Err(invalid(dt, lexical, "month/day out of range"));
     }
-    Ok((if neg { -year_mag } else { year_mag }, month, day))
+    let year = if neg { -year_mag } else { year_mag };
+    if day > days_in_month(year, month) {
+        return Err(invalid(dt, lexical, "day out of range for month"));
+    }
+    Ok((year, month, day))
 }
 
 /// Parse `hh:mm:ss(.fff)?` into `(hour, minute, second)`.
@@ -170,9 +194,29 @@ fn parse_hms(dt: XsdDatatype, lexical: &str, s: &str) -> Result<(u8, u8, Decimal
     let minute: u8 = parts[1]
         .parse()
         .map_err(|_| invalid(dt, lexical, "bad minute"))?;
+    // Reject a trailing-dot seconds lexical (e.g. "00.") — parse_decimal accepts it
+    // as a valid decimal ("1.0") but it is not a valid XSD time seconds field.
+    if parts[2].ends_with('.') {
+        return Err(invalid(dt, lexical, "seconds has trailing decimal point"));
+    }
+    // Reject a leading sign in the seconds field — seconds must be non-negative.
+    if parts[2].starts_with('-') || parts[2].starts_with('+') {
+        return Err(invalid(dt, lexical, "seconds must not have a sign"));
+    }
     let second = parse_decimal(parts[2]).map_err(|_| invalid(dt, lexical, "bad second"))?;
-    if hour > 24 || minute > 59 || second.whole_part() > 60 || second.mantissa() < 0 {
-        return Err(invalid(dt, lexical, "time field out of range"));
+    // XSD has no leap seconds: seconds must be in [0, 60). Whole part >= 60 is invalid.
+    if second.whole_part() >= 60 {
+        return Err(invalid(dt, lexical, "seconds out of range (must be < 60)"));
+    }
+    if minute > 59 {
+        return Err(invalid(dt, lexical, "minute out of range"));
+    }
+    if hour > 24 {
+        return Err(invalid(dt, lexical, "hour out of range"));
+    }
+    // Hour 24 is only valid as exactly 24:00:00 (end-of-day sentinel).
+    if hour == 24 && (minute != 0 || !second.is_zero()) {
+        return Err(invalid(dt, lexical, "hour 24 is only valid as 24:00:00"));
     }
     Ok((hour, minute, second))
 }

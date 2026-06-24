@@ -135,6 +135,66 @@ fn determinate_orderings() {
     assert_eq!(value_cmp(&t1, &t2), Some(Ordering::Equal)); // same instant
 }
 
+// ── Temporal calendar/time validation vectors ────────────────────────────────────
+
+/// Negative: these must all parse as `Err` (out of calendar/time value space).
+const TEMPORAL_INVALID: &[(&str, D)] = &[
+    // Date: day exceeds month length
+    ("2024-02-30", D::Date), // Feb has at most 29 days (2024 is leap)
+    ("2023-02-29", D::Date), // 2023 is not a leap year
+    ("2024-04-31", D::Date), // April has 30 days
+    ("1900-02-29", D::Date), // 1900 is a century non-leap year
+    // Same bad dates embedded in dateTime
+    ("2024-02-30T00:00:00", D::DateTime),
+    ("2023-02-29T12:00:00", D::DateTime),
+    ("2024-04-31T00:00:00Z", D::DateTime),
+    ("1900-02-29T00:00:00", D::DateTime),
+    // Time: XSD has NO leap seconds
+    ("23:59:60", D::Time),
+    // Time: hour 24 only valid as 24:00:00
+    ("24:30:00", D::Time),
+    ("24:00:01", D::Time),
+    // Time: trailing decimal point in seconds is ill-formed
+    ("12:00:00.", D::Time),
+    // Same bad times in dateTime
+    ("2024-01-01T23:59:60", D::DateTime),
+    ("2024-01-01T24:30:00", D::DateTime),
+    ("2024-01-01T24:00:01", D::DateTime),
+    ("2024-01-01T12:00:00.", D::DateTime),
+];
+
+/// Positive: these MUST parse successfully (boundary / edge-case controls).
+const TEMPORAL_VALID: &[(&str, D)] = &[
+    ("2024-02-29", D::Date),              // 2024 IS a leap year
+    ("2000-02-29", D::Date),              // 2000 is a 400-year leap
+    ("24:00:00", D::Time),                // end-of-day sentinel — valid
+    ("23:59:59.999", D::Time),            // max valid fractional second
+    ("2024-02-29T00:00:00", D::DateTime), // leap day in dateTime
+    ("2000-02-29T12:00:00Z", D::DateTime),
+    ("2024-01-01T24:00:00", D::DateTime), // end-of-day dateTime
+];
+
+#[test]
+fn temporal_calendar_invalid_lexicals_are_hard_errors() {
+    for (lexical, dt) in TEMPORAL_INVALID {
+        assert!(
+            parse(lexical, *dt).is_err(),
+            "expected Err for {lexical:?}^^{dt:?} but got Ok"
+        );
+    }
+}
+
+#[test]
+fn temporal_calendar_valid_lexicals_parse_ok() {
+    for (lexical, dt) in TEMPORAL_VALID {
+        assert!(
+            parse(lexical, *dt).is_ok(),
+            "expected Ok for {lexical:?}^^{dt:?} but got Err: {:?}",
+            parse(lexical, *dt).unwrap_err()
+        );
+    }
+}
+
 mod prop {
     use super::*;
     use proptest::prelude::*;
