@@ -11,6 +11,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
 use std::path::Path;
+use std::sync::OnceLock;
 
 use gmeow_diagnostics::{Finding, Severity};
 use oxigraph::model::{NamedNode, NamedNodeRef, NamedOrBlankNode, Term};
@@ -27,6 +28,15 @@ const ENFORCEMENT_KINDS: &[&str] = &["Lint", "TestSuite", "Shape", "Gate", "Prac
 /// enforcement instance (mirrors the Python `(node, RDF.type, RDFS.Class)` skip).
 const RDFS_CLASS: NamedNodeRef<'static> =
     NamedNodeRef::new_unchecked("http://www.w3.org/2000/01/rdf-schema#Class");
+
+static HEADING_RE: OnceLock<Regex> = OnceLock::new();
+static PRINCIPLE_REF_RE: OnceLock<Regex> = OnceLock::new();
+static MAKEFILE_TARGET_RE: OnceLock<Regex> = OnceLock::new();
+static PYTHON_CLASS_RE: OnceLock<Regex> = OnceLock::new();
+static PYTHON_DEF_RE: OnceLock<Regex> = OnceLock::new();
+static PYTHON_ASSIGN_RE: OnceLock<Regex> = OnceLock::new();
+static CLI_DECORATOR_RE: OnceLock<Regex> = OnceLock::new();
+static CLI_NAME_RE: OnceLock<Regex> = OnceLock::new();
 
 /// One principle reconstructed from the manifest graph.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -246,7 +256,8 @@ fn literal_string(term: &Term) -> Option<String> {
 
 /// ``## N. Title`` headings of CONSTITUTION.md, as ``{number: title}``.
 pub fn constitution_headings(md_text: &str) -> BTreeMap<i64, String> {
-    let re = Regex::new(r"(?m)^## (\d+)\. (.+?)\s*$").expect("valid heading regex");
+    let re = HEADING_RE
+        .get_or_init(|| Regex::new(r"(?m)^## (\d+)\. (.+?)\s*$").expect("valid heading regex"));
     re.captures_iter(md_text)
         .filter_map(|cap| {
             let number: i64 = cap[1].parse().ok()?;
@@ -261,8 +272,10 @@ pub fn constitution_headings(md_text: &str) -> BTreeMap<i64, String> {
 /// the `from` number is the enclosing ``## N. Title`` heading, the targets are
 /// every ``Principle N`` on the marker line.
 pub fn markdown_relations(md_text: &str, marker: &str) -> BTreeMap<i64, BTreeSet<i64>> {
-    let heading_re = Regex::new(r"(?m)^## (\d+)\. (.+?)\s*$").expect("valid heading regex");
-    let principle_ref = Regex::new(r"Principle (\d+)").expect("valid principle ref regex");
+    let heading_re = HEADING_RE
+        .get_or_init(|| Regex::new(r"(?m)^## (\d+)\. (.+?)\s*$").expect("valid heading regex"));
+    let principle_ref = PRINCIPLE_REF_RE
+        .get_or_init(|| Regex::new(r"Principle (\d+)").expect("valid principle ref regex"));
 
     let headings: Vec<(i64, usize, usize)> = heading_re
         .captures_iter(md_text)
@@ -298,7 +311,9 @@ pub fn markdown_relations(md_text: &str, marker: &str) -> BTreeMap<i64, BTreeSet
 
 /// Makefile target names of the form ``name:``.
 pub fn makefile_targets(makefile_text: &str) -> BTreeSet<String> {
-    let re = Regex::new(r"^([A-Za-z][A-Za-z0-9_-]*):").expect("valid make target regex");
+    let re = MAKEFILE_TARGET_RE.get_or_init(|| {
+        Regex::new(r"^([A-Za-z][A-Za-z0-9_-]*):").expect("valid make target regex")
+    });
     makefile_text
         .lines()
         .filter_map(|line| re.captures(line).map(|cap| cap[1].to_string()))
@@ -307,11 +322,15 @@ pub fn makefile_targets(makefile_text: &str) -> BTreeSet<String> {
 
 /// Top-level `def`, `class`, assignment, and annotated-assignment names.
 pub fn python_top_level_names(py_text: &str) -> BTreeSet<String> {
-    let class_re = Regex::new(r"^class\s+([A-Za-z_][A-Za-z0-9_]*)\b").expect("valid class regex");
-    let def_re =
-        Regex::new(r"^(?:async\s+)?def\s+([A-Za-z_][A-Za-z0-9_]*)\b").expect("valid def regex");
-    let assign_re =
-        Regex::new(r"^([A-Za-z_][A-Za-z0-9_]*)\s*(?::[^=]*|=)").expect("valid assign regex");
+    let class_re = PYTHON_CLASS_RE.get_or_init(|| {
+        Regex::new(r"^class\s+([A-Za-z_][A-Za-z0-9_]*)\b").expect("valid class regex")
+    });
+    let def_re = PYTHON_DEF_RE.get_or_init(|| {
+        Regex::new(r"^(?:async\s+)?def\s+([A-Za-z_][A-Za-z0-9_]*)\b").expect("valid def regex")
+    });
+    let assign_re = PYTHON_ASSIGN_RE.get_or_init(|| {
+        Regex::new(r"^([A-Za-z_][A-Za-z0-9_]*)\s*(?::[^=]*|=)").expect("valid assign regex")
+    });
 
     let keywords: BTreeSet<&str> = [
         "if", "elif", "else", "for", "while", "try", "except", "finally", "with", "return",
@@ -346,12 +365,16 @@ pub fn python_top_level_names(py_text: &str) -> BTreeSet<String> {
 
 /// Every command registered on the gmeow-dev Typer app.
 pub fn cli_command_names(cli_dev_text: &str) -> BTreeSet<String> {
-    let decorator_re =
-        Regex::new(r"^@app\.command\((.*)\)\s*(?:#.*)?$").expect("valid decorator regex");
-    let name_re = Regex::new(r#"name\s*=\s*(?:"([^"]*)"|'([^']*)'|([A-Za-z_][A-Za-z0-9_]*))"#)
-        .expect("valid name regex");
-    let def_re =
-        Regex::new(r"^(?:async\s+)?def\s+([A-Za-z_][A-Za-z0-9_]*)\b").expect("valid def regex");
+    let decorator_re = CLI_DECORATOR_RE.get_or_init(|| {
+        Regex::new(r"^@app\.command\((.*)\)\s*(?:#.*)?$").expect("valid decorator regex")
+    });
+    let name_re = CLI_NAME_RE.get_or_init(|| {
+        Regex::new(r#"name\s*=\s*(?:"([^"]*)"|'([^']*)'|([A-Za-z_][A-Za-z0-9_]*))"#)
+            .expect("valid name regex")
+    });
+    let def_re = PYTHON_DEF_RE.get_or_init(|| {
+        Regex::new(r"^(?:async\s+)?def\s+([A-Za-z_][A-Za-z0-9_]*)\b").expect("valid def regex")
+    });
 
     let mut names = BTreeSet::new();
     let mut pending: bool = false;
