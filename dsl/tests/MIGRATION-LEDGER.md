@@ -312,6 +312,30 @@ The observation-module asserted-TBox structural assertions (#66, #69) migrated t
 
 **Observations tally:** 19 converted + 1 partial (property-bridges: 8 of 11 converted) = 23 structural cells, 5 retained-with-reason (4 generated-SSSOM-mapping reads + 1 cross-slice kin-bridge). `tests/test_observations.py` 24 → 5 fns.
 
+## #867 structural batch 8 (attestation / standpoint / archaeological-evidence / notes / sensory / sensory-environment)
+
+Six more home slices migrated to `slices/<g>/<n>/tests/structural.ttl`. ~83 converted
+fns → 125 `gmeow:StructuralAssertion` cells; all green (`cargo nextest -p gmeow-slicetest`,
+70/70 cell files). `standpoint` is #694-migrated (logic:); the rest gufo:. sensory +
+sensory-environment had their OWL-RL reasoning tests migrated to Rust in #896 — this
+batch migrates their remaining ASSERTED-TBox structural fns (the SOSA/AFO `*_mapped_to_*`
+mapping reads stay retained). Per-cell `saRationale` names the source fn. Every RETAINED
+fn is rowed below (no silent drops). `make validate` ✓.
+
+| Slice (stereotype) | Converted fns → cells | Retained fns (reason) |
+|---|---|---|
+| `core/attestation` (gufo:) | 14 → 24 cells | `test_certification_still_exists_as_relator` (cross-slice: Certification in trust); 2 run_shacl ExampleConformance |
+| `core/standpoint` (logic:) | 5 → 14 cells | 32 retained: foundational slice with heavy cross-slice (wasAttributedTo/confidence in provenance, containedInPlace/Place in places); 5 run_shacl; 5 SSSOM mapping reads; whole-graph dynamic sweeps (modality `==` over merged graph, no-preferred); bnode tenure-restriction walk |
+| `extensions/archaeological-evidence` (gufo:) | 29 → 42 cells | `test_attested_on_carrier_exists` (cross-slice: attestedOnCarrier in lexicon); `test_no_primary_or_preferred_archaeological_terms` (whole-graph sweep) |
+| `extensions/notes` (gufo:) | 16 → 23 cells | 16 retained: 3 cross-slice (EvidenceSpan/Selector in evidence, accordingTo in standpoint); `motivation` numeric-count gate (seeds+ban migrated); 7 run_shacl + 1 retracted; 4 projection parse tests |
+| `extensions/sensory` (gufo:) | 7 → 7 cells | 7 retained: all SOSA/AFO `*_mapped_to_*` + AFO-equivalences reads (generated mapping artifacts) — the reasoning tests were already migrated to Rust (#896) |
+| `extensions/sensory-environment` (gufo:) | 12 → 15 cells | 5 retained: 2 SSSOM mapping reads; 2 cross-slice (axis/frame-realm in places); the consistency arm of the mixed `mental_reference_frame_requires_host` (its structural restriction arm → cell) |
+
+**Batch-8 tally:** ~83 converted fns → 125 structural cells across 6 slices; ~65
+retained-with-reason (cross-slice subjects, run_shacl ExampleConformance, SSSOM-mapping
+reads, whole-graph dynamic sweeps, bnode list-walks, projection-parse + numeric gates).
+sensory/sensory-environment complete the #896 reasoning-cluster slices' structural tails.
+
 ## #867 structural batch 7 (names / events / software / finance / images / cognition)
 
 Six more home slices migrated to `slices/<g>/<n>/tests/structural.ttl`. ~94 converted

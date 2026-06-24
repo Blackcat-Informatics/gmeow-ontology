@@ -2,14 +2,18 @@
 
 GMEOW dissolves the edit war by refusing a single winning slot: a contested fact
 is several standpoint-indexed claims that COEXIST, none privileged. This module
-pins that as a structural + behavioural invariant — the standpoint axis is an
-owl:AnnotationProperty (DL-clean), the three axes (standpoint ⟂ source ⟂
-confidence) are orthogonal, the two clocks (fact-time ⟂ standpoint-time) stay
-apart, coexistence is SHACL-clean and reasoning-safe, and the projection collapses
-to exactly one chosen standpoint. The facility realises Standpoint Logic
-(□/◊ = gmeow:standpointModality, the ⊆ poset = gmeow:sharpens, * =
-gmeow:universalStandpoint). See ontology/modules/standpoint.ttl and
-docs/standpoints.md.
+pins that as a structural + behavioural invariant -- the three axes (standpoint
+perpendicular to source perpendicular to confidence) are orthogonal, the two
+clocks (fact-time perpendicular to standpoint-time) stay apart, coexistence is
+SHACL-clean and reasoning-safe. The facility realises Standpoint Logic
+(box/diamond = gmeow:standpointModality, the subset poset = gmeow:sharpens, * =
+gmeow:universalStandpoint). See slices/core/standpoint/module.ttl.
+
+Asserted-TBox invariants whose ASK subjects are all local to the standpoint
+module have been migrated to slices/core/standpoint/tests/structural.ttl
+(#867). Retained here: dynamic-set sweeps, whole-graph guards, bnode-list
+walks, run_shacl ExampleConformance calls, .rq projection checks, DSL checks,
+load_mappings SSSOM checks, and filesystem existence checks.
 """
 
 from __future__ import annotations
@@ -58,23 +62,11 @@ def _fixture(name: str) -> Graph:
 # --------------------------------------------------------------------------- #
 # Term-level structure (the merged ontology graph)
 # --------------------------------------------------------------------------- #
-
-
-def test_according_to_is_annotation_property() -> None:
-    """The standpoint axis is an owl:AnnotationProperty — so the OWL downcast stays
-    OWL 2 DL and accordingTo is a legal statement-DSL annProperty (Principle 3)."""
-    g = _graph()
-    assert (GM.accordingTo, RDF.type, OWL.AnnotationProperty) in g
-    assert (GM.standpointModality, RDF.type, OWL.AnnotationProperty) in g
-
-
-def test_standpoint_class_and_tenure_hierarchy() -> None:
-    g = _graph()
-    assert (GM.Standpoint, RDF.type, OWL.Class) in g
-    assert (GM.Standpoint, RDFS.subClassOf, GM.Entity) in g
-    assert (GM.StandpointTenure, RDFS.subClassOf, GM.TimeScopedRelation) in g
-    assert (GM.tenureStandpoint, RDFS.domain, GM.StandpointTenure) in g
-    assert (GM.tenureStandpoint, RDFS.range, GM.Standpoint) in g
+# NOTE: accordingTo/standpointModality AnnotationProperty, Standpoint class
+# hierarchy, sharpens transitivity, universalStandpoint individual,
+# standpointClaim property shape, and claimModality property shape have been
+# migrated to slices/core/standpoint/tests/structural.ttl (#867, cells 1-14).
+# --------------------------------------------------------------------------- #
 
 
 def test_modality_value_vocab_spans_belief_values() -> None:
@@ -91,12 +83,6 @@ def test_modality_value_vocab_spans_belief_values() -> None:
         GM.refuted,
         GM.bullshit,
     }
-
-
-def test_sharpens_is_transitive_and_universal_standpoint_declared() -> None:
-    g = _graph()
-    assert (GM.sharpens, RDF.type, OWL.TransitiveProperty) in g
-    assert (GM.universalStandpoint, RDF.type, GM.Standpoint) in g
 
 
 def test_three_axes_are_orthogonal() -> None:
@@ -365,30 +351,9 @@ def test_schema_projection_emits_per_standpoint_claims() -> None:
 # --------------------------------------------------------------------------- #
 # Issue #127 — StandpointClaim as Observation specialization
 # --------------------------------------------------------------------------- #
-
-
-def test_standpoint_claim_property_exists() -> None:
-    """gmeow:standpointClaim links StandpointTenure to StandpointClaim."""
-    g = _graph()
-    assert (GM.standpointClaim, RDF.type, OWL.ObjectProperty) in g
-    assert (GM.standpointClaim, RDF.type, OWL.FunctionalProperty) in g
-    assert (GM.standpointClaim, RDFS.domain, GM.StandpointTenure) in g
-    assert (GM.standpointClaim, RDFS.range, GM.StandpointClaim) in g
-
-
-def test_claim_modality_property_exists() -> None:
-    """gmeow:claimModality carries the belief value of a StandpointClaim.
-
-    Not declared subPropertyOf observationResult because StandpointModality
-    (gufo:QualityValue, abstract individual) is disjoint from Entity
-    (gufo:Endurant) in the DL profile — the semantic equivalence is documented
-    instead of axiomatised.
-    """
-    g = _graph()
-    assert (GM.claimModality, RDF.type, OWL.ObjectProperty) in g
-    assert (GM.claimModality, RDF.type, OWL.FunctionalProperty) in g
-    assert (GM.claimModality, RDFS.domain, GM.StandpointClaim) in g
-    assert (GM.claimModality, RDFS.range, GM.StandpointModality) in g
+# NOTE: standpointClaim and claimModality property shapes have been migrated
+# to slices/core/standpoint/tests/structural.ttl (#867, cells 12-14).
+# --------------------------------------------------------------------------- #
 
 
 def test_standpoint_tenure_generates_claim_restriction() -> None:

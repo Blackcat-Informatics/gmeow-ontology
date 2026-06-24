@@ -1,0 +1,235 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics(R) Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Declarative structural assertions for the standpoint slice (#43) -- the
+# slice-resident test-DSL twin of the asserted-TBox MUST / MUST-NOT invariants
+# formerly hand-written in tests/test_standpoint.py. Each assertion runs as a
+# SPARQL ASK over the standpoint module graph (gmeow:scopeModule) under the
+# native Rust slicetest harness (crates/slicetest).
+#
+# Standpoint IS #694-migrated: class stereotypes are logic: (logic:Kind,
+# logic:AbstractIndividualType, logic:Situation), NOT gufo:.
+#
+# RETAINED in pytest (not migratable here):
+#   test_modality_value_vocab_spans_belief_values -- uses g.subjects() on the
+#     MERGED graph with set equality (== {5 IRIs}); would silently narrow scope.
+#   test_three_axes_are_orthogonal -- accordingTo is in standpoint, but
+#     wasAttributedTo + confidence are subjects in the provenance slice; a
+#     scopeModule cell would miss those cross-slice triple patterns.
+#   test_contested_places_cannot_force_inconsistency -- gmeow:containedInPlace
+#     and gmeow:Place are subjects in the places slice, not the standpoint
+#     module; a scopeModule cell would silently miss them.
+#   test_vantage_semantically_subsumes_according_to -- reads skos:scopeNote
+#     text dynamically and asserts English-string content; not a TBox triple.
+#   test_vantage_recognises_observer_as_standpoint -- reads skos:definition
+#     text dynamically; not a TBox triple.
+#   test_according_to_references_vantage_as_reified_counterpart -- reads
+#     skos:definition text dynamically; not a TBox triple.
+#   test_no_preferred_or_primary_term_is_declared -- whole-ontology sweep via
+#     g.subjects(); scoping to module would silently narrow the guard.
+#   test_crimea_pair_coexists_in_the_dsl -- uses load_statement_dsl();
+#     generated-artifact DSL check, not a module-scoped TBox assertion.
+#   test_two_clocks_stay_distinct -- uses load_statement_dsl(); same reason.
+#   test_rdf12_artifact_carries_the_standpoint_axis -- reads committed file
+#     content; generated-artifact check, not a TBox assertion.
+#   test_coexistence_fixture_conforms -- run_shacl() call; ExampleConformance.
+#   test_preferred_claim_is_flagged -- run_shacl() call; ExampleConformance.
+#   test_withdrawn_standpoint_warning_does_not_fail -- run_shacl() call.
+#   test_no_frame_collapsing_projection_exists -- filesystem .exists() check.
+#   test_standpoint_owl2_projection_emits_tool_compatible_labels -- runs a
+#     SPARQL query over a coverage fixture; projection check.
+#   test_crminf_projection_is_at_least_as_expressive -- SPARQL query on
+#     fixture; projection check.
+#   test_prov_projection_attributes_every_standpoint -- SPARQL query on
+#     fixture; projection check.
+#   test_oa_projection_annotates_each_claim -- SPARQL query on fixture.
+#   test_schema_projection_emits_per_standpoint_claims -- SPARQL query.
+#   test_standpoint_tenure_generates_claim_restriction -- walks blank-node
+#     restriction lists via g.objects() + g.items(); bnode structure is not
+#     expressible as a simple module-scoped ASK.
+#   test_standpoint_crminf_projection_from_standpoint_claim_reified -- SPARQL
+#     query on fixture; projection check.
+#   test_standpoint_crminf_projection_from_standpoint_claim_entity -- SPARQL
+#     query on fixture; projection check.
+#   test_standpoint_schema_projection_from_standpoint_claim_entity -- SPARQL
+#     query on fixture; projection check.
+#   test_bbc_projection_exists -- filesystem .exists() check.
+#   test_bbc_projection_emits_news_event -- SPARQL query on fixture.
+#   test_variety_coexistence_fixture_conforms -- run_shacl() call.
+#   test_etymology_coexistence_fixture_conforms -- run_shacl() call.
+#   test_standpoint_claim_maps_to_crminf_i5 -- load_mappings() call;
+#     generated-artifact SSSOM check.
+#   test_standpoint_claim_maps_to_iao_assertion -- load_mappings() call.
+#   test_standpoint_claim_maps_to_oa_annotation -- load_mappings() call.
+#   test_standpoint_maps_to_iptc_assertor -- load_mappings() call.
+#   test_claim_modality_maps_to_sosa_has_result -- load_mappings() call.
+#
+# See dsl/tests/MIGRATION-LEDGER.md for the per-test pytest->DSL mapping.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/standpoint/tests/> .
+
+# --- 1. accordingTo is an owl:AnnotationProperty (MUST) -----------------------
+ex:saAccordingToIsAnnotationProperty a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:accordingTo a owl:AnnotationProperty . }""" ;
+    gmeow:saRationale "gmeow:accordingTo MUST be an owl:AnnotationProperty -- the standpoint axis stays OWL 2 DL (no ObjectProperty downcast), so the generated OWL downcast is DL-clean and accordingTo is a legal statement-DSL annProperty (Principle 3). Mirrors test_according_to_is_annotation_property (accordingTo part)." .
+
+# --- 2. standpointModality is an owl:AnnotationProperty (MUST) ----------------
+ex:saStandpointModalityIsAnnotationProperty a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:standpointModality a owl:AnnotationProperty . }""" ;
+    gmeow:saRationale "gmeow:standpointModality MUST be an owl:AnnotationProperty -- annotation-property placement is what makes the statement-DSL annotation form DL-clean (Principle 3). Mirrors test_according_to_is_annotation_property (standpointModality part)." .
+
+# --- 3. Standpoint is a logic:Kind subclass of Entity (MUST) ------------------
+ex:saStandpointIsKindEntity a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:Standpoint a owl:Class , logic:Kind ;
+        rdfs:subClassOf gmeow:Entity .
+}""" ;
+    gmeow:saRationale "gmeow:Standpoint MUST be an owl:Class typed logic:Kind and a subclass of gmeow:Entity -- a named perspective is an endurant kind, not a mode or relator. Mirrors test_standpoint_class_and_tenure_hierarchy (Standpoint class part)." .
+
+# --- 4. StandpointTenure is a logic:Situation subclass of TimeScopedRelation --
+ex:saStandpointTenureIsSituationTimeScopedRelation a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:StandpointTenure a owl:Class , logic:Situation ;
+        rdfs:subClassOf gmeow:TimeScopedRelation .
+}""" ;
+    gmeow:saRationale "gmeow:StandpointTenure MUST be an owl:Class typed logic:Situation and a subclass of gmeow:TimeScopedRelation -- the time-scoped recognition/withdrawal situation (Principle 10). Mirrors test_standpoint_class_and_tenure_hierarchy (StandpointTenure subClassOf part)." .
+
+# --- 5. tenureStandpoint has domain StandpointTenure and range Standpoint ------
+ex:saTenureStandpointShape a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:tenureStandpoint a owl:ObjectProperty ;
+        rdfs:domain gmeow:StandpointTenure ;
+        rdfs:range gmeow:Standpoint .
+}""" ;
+    gmeow:saRationale "gmeow:tenureStandpoint MUST be an owl:ObjectProperty with domain gmeow:StandpointTenure and range gmeow:Standpoint -- bridges the time-scoped situation to the named frame it records. Mirrors test_standpoint_class_and_tenure_hierarchy (tenureStandpoint domain/range part)." .
+
+# --- 6. tenureStandpoint is functional (MUST) ---------------------------------
+ex:saTenureStandpointIsFunctional a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:tenureStandpoint a owl:FunctionalProperty . }""" ;
+    gmeow:saRationale "gmeow:tenureStandpoint MUST be owl:FunctionalProperty -- each tenure records exactly one standpoint's position; a different frame's position is a separate tenure (Principle 9). Mirrors test_standpoint_class_and_tenure_hierarchy (tenureStandpoint functional part)." .
+
+# --- 7. sharpens is a TransitiveProperty (MUST) --------------------------------
+ex:saSharpenIsTransitive a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:sharpens a owl:TransitiveProperty . }""" ;
+    gmeow:saRationale "gmeow:sharpens MUST be owl:TransitiveProperty -- the standpoint refinement/subsumption relation is transitive by definition; transitivity closes the precisification poset. Mirrors test_sharpens_is_transitive_and_universal_standpoint_declared (sharpens part)." .
+
+# --- 8. universalStandpoint is a Standpoint individual (MUST) -----------------
+ex:saUniversalStandpointIsStandpoint a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK { gmeow:universalStandpoint a gmeow:Standpoint . }""" ;
+    gmeow:saRationale "gmeow:universalStandpoint MUST be typed gmeow:Standpoint -- the top of the sharpens poset, the frame under which every unindexed statement is held. Mirrors test_sharpens_is_transitive_and_universal_standpoint_declared (universalStandpoint part)." .
+
+# --- 9. Five StandpointModality seed individuals exist (MUST) -----------------
+ex:saStandpointModalitySeeds a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    gmeow:unequivocal  a gmeow:StandpointModality .
+    gmeow:probable     a gmeow:StandpointModality .
+    gmeow:conceivable  a gmeow:StandpointModality .
+    gmeow:refuted      a gmeow:StandpointModality .
+    gmeow:bullshit     a gmeow:StandpointModality .
+}""" ;
+    gmeow:saRationale "All five gmeow:StandpointModality seed individuals (unequivocal, probable, conceivable, refuted, bullshit) MUST exist -- they span the Standpoint-Logic box/diamond plus CRMinf true/false/probable/possible plus the Frankfurt bullshit modality. Mirrors test_modality_value_vocab_spans_belief_values (seeds part)." .
+
+# --- 10. No sixth StandpointModality individual exists (MUST-NOT) -------------
+ex:saNoExtraStandpointModality a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    ?x a gmeow:StandpointModality .
+    FILTER (?x NOT IN (
+        gmeow:unequivocal, gmeow:probable, gmeow:conceivable,
+        gmeow:refuted, gmeow:bullshit
+    ))
+}""" ;
+    gmeow:saRationale "No sixth gmeow:StandpointModality individual MUST NOT exist -- the five-value vocabulary is closed by design (any extension would require an ontology revision, not a data assertion). Mirrors test_modality_value_vocab_spans_belief_values (closed-set part)." .
+
+# --- 11. StandpointModality is a logic:AbstractIndividualType QualityValue ----
+ex:saStandpointModalityIsValueVocab a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:StandpointModality a owl:Class , logic:AbstractIndividualType ;
+        rdfs:subClassOf logic:QualityValue .
+}""" ;
+    gmeow:saRationale "gmeow:StandpointModality MUST be an owl:Class typed logic:AbstractIndividualType and a subclass of logic:QualityValue -- a closed value vocabulary of abstract individuals (the GranularityLevel pattern, belief-value edition). Guards the DL-clean disjointness from gmeow:Entity." .
+
+# --- 12. standpointClaim is an ObjectProperty + FunctionalProperty (MUST) -----
+ex:saStandpointClaimPropertyShape a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:standpointClaim a owl:ObjectProperty , owl:FunctionalProperty ;
+        rdfs:domain gmeow:StandpointTenure ;
+        rdfs:range gmeow:StandpointClaim .
+}""" ;
+    gmeow:saRationale "gmeow:standpointClaim MUST be an owl:ObjectProperty and owl:FunctionalProperty with domain gmeow:StandpointTenure and range gmeow:StandpointClaim -- a tenure generates exactly one standpoint-claim observation. Mirrors test_standpoint_claim_property_exists." .
+
+# --- 13. claimModality is an ObjectProperty + FunctionalProperty (MUST) -------
+ex:saClaimModalityPropertyShape a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:claimModality a owl:ObjectProperty , owl:FunctionalProperty ;
+        rdfs:domain gmeow:StandpointClaim ;
+        rdfs:range gmeow:StandpointModality .
+}""" ;
+    gmeow:saRationale "gmeow:claimModality MUST be an owl:ObjectProperty and owl:FunctionalProperty with domain gmeow:StandpointClaim and range gmeow:StandpointModality -- a standpoint claim carries exactly one belief-value. Mirrors test_claim_modality_property_exists." .
+
+# --- 14. claimModality is NOT a subPropertyOf observationResult (MUST-NOT) ----
+ex:saClaimModalityNotSubpropertyObservationResult a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK { gmeow:claimModality rdfs:subPropertyOf gmeow:observationResult . }""" ;
+    gmeow:saRationale "gmeow:claimModality MUST NOT be rdfs:subPropertyOf gmeow:observationResult -- StandpointModality (a logic:QualityValue / abstract individual) is disjoint from gmeow:Entity (a gufo:Endurant) in the DL profile; the semantic equivalence is documented, not axiomatised (the claimModality precedent). Mirrors test_claim_modality_property_exists (not-subPropertyOf part)." .

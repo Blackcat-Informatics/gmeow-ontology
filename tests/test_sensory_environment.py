@@ -1,22 +1,23 @@
-"""Competency and reasoning tests for the Sensory Environment module (#104).
+"""Retained tests for the Sensory Environment module (#104).
 
-The sensory environment module models ambient perceivable conditions at a
-Location x time. Measured conditions are expressed as CoordinateMatrix values
-in measurement reference frames; perceived conditions are standpoint-indexed
-values in MentalReferenceFrames. These tests verify:
+Structural (asserted TBox) invariants have been migrated to the declarative
+slice-test DSL in
+slices/extensions/sensory-environment/tests/structural.ttl (cells 1-15,
+#867 batch 8). The following tests are retained here because they cannot be
+expressed as module-scoped SPARQL ASK cells:
 
-1. The TBox is well-formed (classes, properties, value vocabularies).
-2. EL axioms fire (SensoryEnvironment mediates at least one location).
-3. Specialisation hierarchy (SensoryPerception ⊑ StandpointClaim ⊑ Observation).
-4. Frame inheritance via property chain (isResultOf ∘ hasReferenceFrame).
-5. Bridge properties (perceptionEnvironment ⊑ observedFeature).
-6. Reference frame seeds exist (CIEXYZ, CIELAB, AudioSpectrum, ThermalComfort).
-7. SOSA alignments are present in the mapping set.
+- test_sosa_alignments_loaded: load_mappings() / SOSA SSSOM cross-slice.
+- test_psychological_mappings_loaded: load_mappings() / MF+MFOEM SSSOM.
+- test_new_axes_exist: axisTristimulusX etc. defined in places, cross-slice.
+- test_perceptual_frame_realm_exists: frameRealmPerceptual in places, cross.
+- test_mental_reference_frame_requires_host: OWL-RL consistency arm
+  (native_rl_closure + ABox construction); structural restriction arm
+  migrated to cell 14 in structural.ttl.
 """
 
 from __future__ import annotations
 
-from gmeow_rdf.compat.rdflib import OWL, RDF, RDFS, Graph, Literal, Namespace
+from gmeow_rdf.compat.rdflib import OWL, RDF, Graph, Namespace
 
 from gmeow_tools.config import NAMESPACE
 from gmeow_tools.graph import load_merged_graph
@@ -24,121 +25,15 @@ from gmeow_tools.native_rl_rdflib import native_rl_closure
 from gmeow_tools.slices import module_path
 
 GMEOW = Namespace(NAMESPACE)
-GUFO = Namespace("http://purl.org/nemo/gufo#")
 EX = Namespace("https://example.org/test/")
 
 
-def test_sensory_environment_class_exists() -> None:
-    graph = load_merged_graph(include_imports=False)
-    assert (GMEOW.SensoryEnvironment, RDF.type, OWL.Class) in graph
-    assert (GMEOW.SensoryEnvironment, RDFS.subClassOf, GUFO.Object) in graph
-
-
-def test_coordinate_matrix_class_exists() -> None:
-    graph = load_merged_graph(include_imports=False)
-    assert (GMEOW.CoordinateMatrix, RDF.type, OWL.Class) in graph
-    assert (GMEOW.CoordinateMatrix, RDFS.subClassOf, GUFO.Object) in graph
-
-
-def test_mental_reference_frame_class_exists() -> None:
-    graph = load_merged_graph(include_imports=False)
-    assert (GMEOW.MentalReferenceFrame, RDF.type, OWL.Class) in graph
-    assert (GMEOW.MentalReferenceFrame, RDFS.subClassOf, GMEOW.ReferenceFrame) in graph
-
-
-def test_sensory_perception_class_exists() -> None:
-    graph = load_merged_graph(include_imports=False)
-    assert (GMEOW.SensoryPerception, RDF.type, OWL.Class) in graph
-    assert (GMEOW.SensoryPerception, RDFS.subClassOf, GMEOW.StandpointClaim) in graph
-
-
-def test_sensory_modality_value_vocabulary_exists() -> None:
-    graph = load_merged_graph(include_imports=False)
-    assert (GMEOW.SensoryModality, RDF.type, OWL.Class) in graph
-    for term in (
-        "sensoryModalityVisual",
-        "sensoryModalityAuditory",
-        "sensoryModalityOlfactory",
-        "sensoryModalityGustatory",
-        "sensoryModalityTactile",
-        "sensoryModalityThermal",
-        "sensoryModalityAirQuality",
-    ):
-        assert (GMEOW[term], RDF.type, GMEOW.SensoryModality) in graph
-
-
-def test_sensory_environment_properties_exist() -> None:
-    graph = load_merged_graph(include_imports=False)
-    for prop in (
-        "environmentAtLocation",
-        "environmentAtInstant",
-        "environmentDuringInterval",
-        "hasMeasuredCondition",
-        "hasPerceivedCondition",
-        "sensoryModality",
-        "perceptionEnvironment",
-        "perceptionModality",
-    ):
-        assert (GMEOW[prop], RDF.type, OWL.ObjectProperty) in graph
-
-
-def test_coordinate_matrix_properties_exist() -> None:
-    graph = load_merged_graph(include_imports=False)
-    assert (GMEOW.matrixValue, RDF.type, OWL.DatatypeProperty) in graph
-    assert (GMEOW.matrixShape, RDF.type, OWL.DatatypeProperty) in graph
-    assert (GMEOW.coordinateMatrixFrame, RDF.type, OWL.ObjectProperty) in graph
-
-
-def test_perception_environment_bridge() -> None:
-    """perceptionEnvironment is a subPropertyOf observedFeature."""
-    graph = load_merged_graph(include_imports=False)
-    assert (
-        GMEOW.perceptionEnvironment,
-        RDFS.subPropertyOf,
-        GMEOW.observedFeature,
-    ) in graph
-
-
-def test_coordinate_matrix_frame_is_subproperty() -> None:
-    """coordinateMatrixFrame is a subPropertyOf hasReferenceFrame."""
-    graph = load_merged_graph(include_imports=False)
-    assert (
-        GMEOW.coordinateMatrixFrame,
-        RDFS.subPropertyOf,
-        GMEOW.hasReferenceFrame,
-    ) in graph
-
-
-def test_reference_frame_seeds_exist() -> None:
-    """Seed reference frames for sensory measurement are present."""
-    graph = load_merged_graph(include_imports=False)
-    for frame, expected_type in (
-        ("referenceFrameCIEXYZ", GMEOW.ReferenceFrame),
-        ("referenceFrameCIELAB", GMEOW.ReferenceFrame),
-        ("referenceFrameAudioSpectrum", GMEOW.ReferenceFrame),
-        ("referenceFrameThermalComfort", GMEOW.MentalReferenceFrame),
-    ):
-        assert (GMEOW[frame], RDF.type, expected_type) in graph
-
-
-def test_thermal_comfort_is_mental_reference_frame() -> None:
-    """referenceFrameThermalComfort is typed as a MentalReferenceFrame and
-    requires a host, matching the MentalReferenceFrame class contract."""
-    graph = load_merged_graph(include_imports=False)
-    assert (
-        GMEOW.referenceFrameThermalComfort,
-        RDF.type,
-        GMEOW.MentalReferenceFrame,
-    ) in graph
-    assert (
-        GMEOW.referenceFrameThermalComfort,
-        GMEOW.requiresHost,
-        Literal(True),
-    ) in graph
-
-
 def test_new_axes_exist() -> None:
-    """Sensory-environment axes are present in the places module."""
+    """Sensory-environment axes are present in the places module.
+
+    Retained: gmeow:axisTristimulusX etc. are defined as subjects in
+    slices/core/places/module.ttl, not in sensory-environment; cross-slice.
+    """
     graph = load_merged_graph(include_imports=False)
     for axis in (
         "axisTristimulusX",
@@ -156,7 +51,11 @@ def test_new_axes_exist() -> None:
 
 
 def test_perceptual_frame_realm_exists() -> None:
-    """frameRealmPerceptual is present for mental reference frames."""
+    """frameRealmPerceptual is present for mental reference frames.
+
+    Retained: gmeow:frameRealmPerceptual is defined as a subject in
+    slices/core/places/module.ttl, not in sensory-environment; cross-slice.
+    """
     graph = load_merged_graph(include_imports=False)
     assert (GMEOW.frameRealmPerceptual, RDF.type, GMEOW.FrameRealm) in graph
 
@@ -193,20 +92,17 @@ def test_sosa_alignments_loaded() -> None:
 
 
 def test_mental_reference_frame_requires_host() -> None:
-    """Issue #87: MentalReferenceFrame carries an existential restriction on
-    isHostedBy; verify the axiom exists and that a hosted instance is consistent
-    under OWL 2 RL (necessary-but-not-sufficient: check structure + consistency)."""
+    """Issue #87: a hosted MentalReferenceFrame instance is consistent under
+    OWL 2 RL.
+
+    Retained (consistency arm only): the OWL-RL closure + ABox construction
+    is a reasoning test, not expressible as a module-scoped structural cell.
+    The structural blank-node restriction-existence check has been migrated to
+    cell ex:saMentalReferenceFrameRestriction in structural.ttl (#867).
+    """
     graph = Graph()
     graph.parse(module_path("sensory-environment"), format="turtle")
     graph.parse(module_path("places"), format="turtle")
-
-    # Structural: the restriction axiom must exist on MentalReferenceFrame.
-    restrictions = list(graph.objects(GMEOW.MentalReferenceFrame, RDFS.subClassOf))
-    assert any(
-        (r, OWL.onProperty, GMEOW.isHostedBy) in graph
-        and (r, OWL.someValuesFrom, GMEOW.Entity) in graph
-        for r in restrictions
-    ), "MentalReferenceFrame must restrict isHostedBy some Entity"
 
     # Consistency: a hosted MentalReferenceFrame instance does not contradict
     # the ontology under OWL 2 RL.
@@ -221,20 +117,6 @@ def test_mental_reference_frame_requires_host() -> None:
         "Ontology + hosted instance must be consistent"
     )
     assert (ex_frame, RDF.type, GMEOW.ReferenceFrame) in graph
-
-
-def test_psychological_reference_frame_seeds_exist() -> None:
-    """Issue #87: Seed mental reference frames for the
-    psychological realm are present."""
-    graph = load_merged_graph(include_imports=False)
-    for frame in (
-        "referenceFrameAffectiveCircumplex",
-        "referenceFrameConceptualSpace",
-        "referenceFrameCognitiveMapEgocentric",
-        "referenceFrameCognitiveMapAllocentric",
-        "referenceFrameImaginedSpace",
-    ):
-        assert (GMEOW[frame], RDF.type, GMEOW.MentalReferenceFrame) in graph
 
 
 def test_psychological_mappings_loaded() -> None:
