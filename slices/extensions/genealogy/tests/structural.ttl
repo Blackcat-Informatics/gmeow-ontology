@@ -1,0 +1,123 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics(r) Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Declarative structural assertions for the genealogy slice (#43, #51) -- the
+# slice-resident test-DSL twin of the asserted-TBox MUST invariants formerly
+# hand-written in tests/test_genealogy.py. Each assertion runs as a SPARQL ASK
+# over the genealogy module graph (gmeow:scopeModule) under the native Rust
+# slicetest harness (crates/slicetest).
+#
+# Genealogy is NOT #694-migrated: class stereotypes are gufo: (gufo:SubKind,
+# gufo:Relator), NOT logic:. This will change when #694 reaches this slice.
+#
+# KinRelationship bridges (relationshipParent / relationshipChild / hasPartner
+# subPropertyOf observedFeature) are home-local here and are migrated in cells
+# 4-6 below; the observations structural.ttl cell 7 deferred them here
+# explicitly (see dsl/tests/MIGRATION-LEDGER.md).
+#
+# RETAINED in pytest (not migratable here):
+#   test_former_event_subclasses_are_not_reintroduced -- load_merged_graph()
+#     whole-ontology sweep; a module-scoped cell cannot see Birth/Death/Marriage
+#     etc. absent from every module; dynamic set over merged graph.
+#   test_contested_parentage_coexists -- run_shacl() + fixture ABox load
+#     (coverage/genealogy-contested.ttl); ExampleConformance + ABox dynamic
+#     check, not a TBox invariant.
+#   test_contested_birth_date_coexists -- run_shacl() + fixture ABox load;
+#     same reason as above.
+#   test_withdrawn_parentage_suppressed_not_deleted -- run_shacl() + fixture
+#     ABox load; ExampleConformance + ABox assertion, not TBox.
+#   test_no_preferred_or_primary_genealogy_term -- load_merged_graph() sweep
+#     over banned term IRIs across the full merged graph; dynamic set.
+#
+# See dsl/tests/MIGRATION-LEDGER.md for the per-test pytest->DSL mapping.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/genealogy/tests/> .
+
+# --- 1. Family is a gufo:SubKind owl:Class subclassing gmeow:Group (MUST) ----
+ex:saFamilyIsSubKindGroup a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:Family a owl:Class , gufo:SubKind ;
+        rdfs:subClassOf gmeow:Group .
+}""" ;
+    gmeow:saRationale "gmeow:Family MUST be an owl:Class typed gufo:SubKind and a subclass of gmeow:Group -- a Family is a SubKind of Group (kinship group of persons related by descent, marriage, or adoption). Mirrors test_genealogy_is_gufo_grounded (Family part)." .
+
+# --- 2. KinRelationship is a gufo:SubKind subclassing gufo:Relator (MUST) ---
+ex:saKinRelationshipIsRelator a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:KinRelationship a owl:Class , gufo:SubKind ;
+        rdfs:subClassOf gufo:Relator ;
+        rdfs:subClassOf gmeow:Observation .
+}""" ;
+    gmeow:saRationale "gmeow:KinRelationship MUST be an owl:Class typed gufo:SubKind with rdfs:subClassOf gufo:Relator and gmeow:Observation -- the observation-spine bridge makes kinship a reified claim-from-a-vantage (#43). Mirrors test_genealogy_is_gufo_grounded (KinRelationship part)." .
+
+# --- 3. ParentChildRelationship subclasses KinRelationship (MUST) ------------
+ex:saParentChildRelationshipIsKinRelationship a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:ParentChildRelationship a owl:Class , gufo:SubKind ;
+        rdfs:subClassOf gmeow:KinRelationship .
+}""" ;
+    gmeow:saRationale "gmeow:ParentChildRelationship MUST be an owl:Class typed gufo:SubKind and a subclass of gmeow:KinRelationship -- the typed specialisation of a kin bond that carries a parent and a child role (#43). Mirrors test_genealogy_is_gufo_grounded (ParentChildRelationship part)." .
+
+# --- 4. relationshipParent subPropertyOf observedFeature, functional (MUST) --
+ex:saRelationshipParentBridge a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:relationshipParent a owl:ObjectProperty , owl:FunctionalProperty ;
+        rdfs:subPropertyOf gmeow:observedFeature ;
+        rdfs:domain gmeow:ParentChildRelationship ;
+        rdfs:range gmeow:Person .
+}""" ;
+    gmeow:saRationale "gmeow:relationshipParent MUST be a functional owl:ObjectProperty with rdfs:subPropertyOf gmeow:observedFeature, domain ParentChildRelationship, and range Person -- the parent role exposes the parent as an observation feature so the universal query path sees it; functional because each reified relationship has exactly one parent (#43). Mirrors test_kin_relationship_bridges_fire (observations)." .
+
+# --- 5. relationshipChild subPropertyOf observedFeature, functional (MUST) ---
+ex:saRelationshipChildBridge a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:relationshipChild a owl:ObjectProperty , owl:FunctionalProperty ;
+        rdfs:subPropertyOf gmeow:observedFeature ;
+        rdfs:domain gmeow:ParentChildRelationship ;
+        rdfs:range gmeow:Person .
+}""" ;
+    gmeow:saRationale "gmeow:relationshipChild MUST be a functional owl:ObjectProperty with rdfs:subPropertyOf gmeow:observedFeature, domain ParentChildRelationship, and range Person -- symmetrical to relationshipParent; exposes the child end as an observation feature; functional because a reified relationship has exactly one child slot (#43). Mirrors test_kin_relationship_bridges_fire (observations)." .
+
+# --- 6. hasPartner subPropertyOf observedFeature (MUST) ----------------------
+ex:saHasPartnerBridge a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:hasPartner a owl:ObjectProperty ;
+        rdfs:subPropertyOf gmeow:observedFeature ;
+        rdfs:domain gmeow:CoupleRelationship ;
+        rdfs:range gmeow:Person .
+}""" ;
+    gmeow:saRationale "gmeow:hasPartner MUST be an owl:ObjectProperty with rdfs:subPropertyOf gmeow:observedFeature, domain CoupleRelationship, and range Person -- partners are co-observed features of the couple observation so the universal query path sees them; non-functional because a couple has two partners (#43). Mirrors test_kin_relationship_bridges_fire (observations) (observations structural.ttl cell 7 deferred this here)." .
