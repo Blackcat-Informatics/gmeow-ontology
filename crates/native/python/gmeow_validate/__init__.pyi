@@ -82,6 +82,11 @@ def declared_terms(
     cfg: LintConfig,
 ) -> list[str]: ...
 def check_syntax(paths: list[str]) -> dict[str, list[str]]: ...
+def validate_instance(
+    instance_bytes: bytes,
+    format: str,
+    schema_bytes: bytes,
+) -> dict[str, list[str]]: ...
 def check_sameas_ban(
     paths: list[str],
     namespace: str,

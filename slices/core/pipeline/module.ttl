@@ -217,6 +217,7 @@ gmeow:pipeline-build
         gmeow:stage-export-okf ,
         gmeow:stage-export-apache ,
         gmeow:stage-export-frame-shapes ,
+        gmeow:stage-export-json-schema ,
         gmeow:stage-export-matrix ,
         gmeow:stage-export-metadata ,
         gmeow:stage-export-research-objects ,
@@ -310,12 +311,24 @@ gmeow:stage-snapshot
     gmeow:stageImpl "snapshot" ;
     gmeow:dataflowConsumes
         gmeow:stage-docs-render ,
+        gmeow:stage-export-json-schema ,
         gmeow:stage-gts-compose ,
         gmeow:stage-reason ,
         gmeow:stage-statements ;
     gmeow:carriesEngineLock false .
 
 # ── Export leaves (parallel fan-out, each folds one artifact set) ──
+
+gmeow:stage-export-json-schema
+    a gmeow:PipelineStage ;
+    rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
+    rdfs:label "export: json schema"@x-gmeow-english ;
+    skos:definition "Compile the hand-authored SHACL shape union into a closed-world JSON Schema (draft 2020-12) and an OpenAPI 3.1 document via the native emitter (crates/shacl), retiring the LinkML-derived JSON Schema. A source-reading leaf: it reads the shape files directly and consumes no upstream product, so the snapshot stage folds its fresh output into the schemas-archive blob."@x-gmeow-english ;
+    gmeow:graphBoxRole gmeow:boxABox ;
+    gmeow:stageKind gmeow:kindExportLeaf ;
+    gmeow:stageImpl "json_schema" ;
+    gmeow:producesFormat "json-schema" ;
+    gmeow:carriesEngineLock false .
 
 gmeow:stage-export-schemas
     a gmeow:PipelineStage ;

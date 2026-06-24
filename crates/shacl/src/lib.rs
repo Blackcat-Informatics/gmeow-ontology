@@ -13,9 +13,12 @@
 pub mod constraints;
 pub mod data;
 pub mod engine;
+pub mod instance;
+pub mod json_schema;
 pub mod model;
 pub mod path;
 pub mod report;
+pub mod shape_union;
 pub mod shapes;
 pub mod sparql;
 
