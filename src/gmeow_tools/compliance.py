@@ -32,7 +32,7 @@ from typing import TYPE_CHECKING
 
 from gmeow_tools import __version__
 from gmeow_tools.config import DIST_DIR, PROJECT_ROOT
-from gmeow_tools.constitution import Manifest, load_manifest
+from gmeow_tools.constitution_manifest import Manifest, load_manifest
 from gmeow_tools.validate import ValidationResult
 
 if TYPE_CHECKING:
