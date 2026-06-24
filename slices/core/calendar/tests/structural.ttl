@@ -1,0 +1,817 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Declarative structural assertions for the calendar slice (#62) — the
+# slice-resident test-DSL twin of the asserted-TBox MUST / MUST-NOT invariants
+# formerly hand-written in tests/test_calendar.py. Each assertion runs as a
+# SPARQL ASK over the calendar module graph (gmeow:scopeModule) under the
+# native Rust harness (crates/slicetest).
+#
+# Calendar is NOT yet #694-migrated, so class stereotypes remain gufo:
+# (gufo:Kind, gufo:SubKind, gufo:SituationType, gufo:AbstractIndividualType,
+# gufo:QualityValue, gufo:Relator, gufo:Object, gufo:EventType), not logic:.
+#
+# CONVERTED (cells 36-41): the six test_*_vocabulary_seeded tests checked that
+#   specific hand-named seed individuals are typed as their value class (a membership
+#   test of named locals, NOT a closed live-set sweep), so each becomes a `must` ASK
+#   that the named seeds exist — a faithful twin (saInvitationStatusSeedsExist …
+#   saExceptionTypeSeedsExist).
+#
+# RETAINED in pytest (not migratable here):
+#   test_calendar_temporal_datatypes_are_datetime_or_duration — contains
+#     complex blank-node union + cardinality check on gmeow:reminderTrigger
+#     (verifies len(range_nodes)==1, walks owl:unionOf list); not expressible
+#     as a simple module-scoped ASK.
+#   test_calendar_axes_are_independent — itertools.combinations sweep over 10
+#     orthogonal properties (45 pairs × 4 assertions = 180 checks); NEVER
+#     convert a dynamic pair-sweep to a finite blacklist enumeration.
+#   test_organizer_and_attendee_roles_exist — gmeow:roleOrganizer and
+#     gmeow:roleAttendee are defined in slices/core/event/module.ttl (cross-slice
+#     subjects); a scopeModule cell would silently miss them.
+#
+# See dsl/tests/MIGRATION-LEDGER.md for the per-test pytest→DSL mapping.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/calendar/tests/> .
+
+# ===========================================================================
+# gUFO grounding — class hierarchy
+# ===========================================================================
+
+# --- 1. Calendar is an InformationObject (MUST) ------------------------------
+ex:saCalendarIsInformationObject a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:Calendar a owl:Class ;
+        rdfs:subClassOf gmeow:InformationObject .
+}""" ;
+    gmeow:saRationale "gmeow:Calendar MUST be an owl:Class and a subclass of gmeow:InformationObject — a calendar is a CalDAV-style information object aggregating event members (#62). Mirrors test_calendar_is_information_object." .
+
+# --- 2. EventSchedule is a gufo:Relator (MUST) -------------------------------
+ex:saEventScheduleIsRelator a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:EventSchedule a owl:Class ;
+        rdfs:subClassOf gufo:Relator .
+}""" ;
+    gmeow:saRationale "gmeow:EventSchedule MUST be an owl:Class and a subclass of gufo:Relator — it mediates the template event, recurrence rule, and generated occurrences (#62). Mirrors test_event_schedule_is_relator." .
+
+# --- 3. ScheduleException is a gufo:Relator (MUST) --------------------------
+ex:saScheduleExceptionIsRelator a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:ScheduleException a owl:Class ;
+        rdfs:subClassOf gufo:Relator .
+}""" ;
+    gmeow:saRationale "gmeow:ScheduleException MUST be an owl:Class and a subclass of gufo:Relator — it mediates the schedule, original date, and optional replacement event (#62). Mirrors test_schedule_exception_is_relator." .
+
+# --- 4. EventInvitation is an Agreement and a gufo:Relator (MUST) ------------
+ex:saEventInvitationIsAgreementAndRelator a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:EventInvitation a owl:Class ;
+        rdfs:subClassOf gmeow:Agreement ;
+        rdfs:subClassOf gufo:Relator .
+}""" ;
+    gmeow:saRationale "gmeow:EventInvitation MUST be an owl:Class and a subclass of both gmeow:Agreement and gufo:Relator — it reifies the invitation social act as a relator and inherits the agreement spine (#62). Mirrors test_event_invitation_is_agreement_and_relator." .
+
+# --- 5. Availability is a TimeScopedRelation (MUST) --------------------------
+ex:saAvailabilityIsTimeScopedRelation a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:Availability a owl:Class ;
+        rdfs:subClassOf gmeow:TimeScopedRelation .
+}""" ;
+    gmeow:saRationale "gmeow:Availability MUST be an owl:Class and a subclass of gmeow:TimeScopedRelation — an availability holds only across its named interval, reusing the time-scoped spine (#62). Mirrors test_availability_is_time_scoped_relation." .
+
+# --- 6. Reminder is an Entity (MUST) ----------------------------------------
+ex:saReminderIsEntity a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:Reminder a owl:Class ;
+        rdfs:subClassOf gmeow:Entity .
+}""" ;
+    gmeow:saRationale "gmeow:Reminder MUST be an owl:Class and a subclass of gmeow:Entity — it is an alert object, not an event itself (#62). Mirrors test_reminder_is_entity." .
+
+# --- 7. Task is an Event (MUST) ---------------------------------------------
+ex:saTaskIsEvent a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:Task a owl:Class ;
+        rdfs:subClassOf gmeow:Event .
+}""" ;
+    gmeow:saRationale "gmeow:Task MUST be an owl:Class and a subclass of gmeow:Event — tasks inherit the full event spine (temporal placement, location, participation, scheduling) (#62). Mirrors test_task_is_event." .
+
+# --- 8. TimeZone is an Entity (MUST) ----------------------------------------
+ex:saTimeZoneIsEntity a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:TimeZone a owl:Class ;
+        rdfs:subClassOf gmeow:Entity .
+}""" ;
+    gmeow:saRationale "gmeow:TimeZone MUST be an owl:Class and a subclass of gmeow:Entity — a time zone is a named civil offset object, not a temporal frame (#62). Mirrors test_time_zone_is_entity." .
+
+# ===========================================================================
+# Value vocabulary structure — status classes are gufo:AbstractIndividualType
+# ===========================================================================
+
+# --- 9. InvitationStatus is a gufo:AbstractIndividualType value vocab (MUST) -
+ex:saInvitationStatusIsValueVocab a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:InvitationStatus a owl:Class , gufo:AbstractIndividualType ;
+        rdfs:subClassOf gufo:QualityValue .
+}""" ;
+    gmeow:saRationale "gmeow:InvitationStatus MUST be an owl:Class typed gufo:AbstractIndividualType and a subclass of gufo:QualityValue — invitation states are an individuals-based value vocabulary, never subclasses (Principle 9). Mirrors test_calendar_value_vocabularies_are_object_properties (InvitationStatus)." .
+
+# --- 10. RsvpStatus is a gufo:AbstractIndividualType value vocab (MUST) ------
+ex:saRsvpStatusIsValueVocab a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:RsvpStatus a owl:Class , gufo:AbstractIndividualType ;
+        rdfs:subClassOf gufo:QualityValue .
+}""" ;
+    gmeow:saRationale "gmeow:RsvpStatus MUST be an owl:Class typed gufo:AbstractIndividualType and a subclass of gufo:QualityValue — RSVP states are a distinct value vocabulary from InvitationStatus so organizer and invitee views can coexist (Principle 9). Mirrors test_calendar_value_vocabularies_are_object_properties (RsvpStatus)." .
+
+# --- 11. AvailabilityStatus is a gufo:AbstractIndividualType value vocab (MUST)
+ex:saAvailabilityStatusIsValueVocab a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:AvailabilityStatus a owl:Class , gufo:AbstractIndividualType ;
+        rdfs:subClassOf gufo:QualityValue .
+}""" ;
+    gmeow:saRationale "gmeow:AvailabilityStatus MUST be an owl:Class typed gufo:AbstractIndividualType and a subclass of gufo:QualityValue — free-busy states are an individuals-based value vocabulary (Principle 9). Mirrors test_calendar_value_vocabularies_are_object_properties (AvailabilityStatus)." .
+
+# --- 12. ReminderAction is a gufo:AbstractIndividualType value vocab (MUST) --
+ex:saReminderActionIsValueVocab a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:ReminderAction a owl:Class , gufo:AbstractIndividualType ;
+        rdfs:subClassOf gufo:QualityValue .
+}""" ;
+    gmeow:saRationale "gmeow:ReminderAction MUST be an owl:Class typed gufo:AbstractIndividualType and a subclass of gufo:QualityValue — alarm actions are an individuals-based value vocabulary, never Reminder subclasses (Principle 9). Mirrors test_calendar_value_vocabularies_are_object_properties (ReminderAction)." .
+
+# --- 13. TaskStatus is a gufo:AbstractIndividualType value vocab (MUST) ------
+ex:saTaskStatusIsValueVocab a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:TaskStatus a owl:Class , gufo:AbstractIndividualType ;
+        rdfs:subClassOf gufo:QualityValue .
+}""" ;
+    gmeow:saRationale "gmeow:TaskStatus MUST be an owl:Class typed gufo:AbstractIndividualType and a subclass of gufo:QualityValue — task progress states are individuals, never Task subclasses (Principles 9, 10). Mirrors test_calendar_value_vocabularies_are_object_properties (TaskStatus)." .
+
+# --- 14. ExceptionType is a gufo:AbstractIndividualType value vocab (MUST) ---
+ex:saExceptionTypeIsValueVocab a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:ExceptionType a owl:Class , gufo:AbstractIndividualType ;
+        rdfs:subClassOf gufo:QualityValue .
+}""" ;
+    gmeow:saRationale "gmeow:ExceptionType MUST be an owl:Class typed gufo:AbstractIndividualType and a subclass of gufo:QualityValue — exception kinds are individuals on the open-value axis, never ScheduleException subclasses (Principle 9). Mirrors test_calendar_value_vocabularies_are_object_properties (ExceptionType)." .
+
+# ===========================================================================
+# Value vocabulary object properties — axes range over vocab classes
+# ===========================================================================
+
+# --- 15. invitationStatus is an ObjectProperty ranging over InvitationStatus -
+ex:saInvitationStatusProperty a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:invitationStatus a owl:ObjectProperty ;
+        rdfs:range gmeow:InvitationStatus .
+}""" ;
+    gmeow:saRationale "gmeow:invitationStatus MUST be an owl:ObjectProperty ranging over gmeow:InvitationStatus — the organizer's view is a vocab value, never a subclass or datatype (Principle 9). Mirrors test_calendar_value_vocabularies_are_object_properties (invitationStatus property)." .
+
+# --- 16. rsvpStatus is an ObjectProperty ranging over RsvpStatus -------------
+ex:saRsvpStatusProperty a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:rsvpStatus a owl:ObjectProperty ;
+        rdfs:range gmeow:RsvpStatus .
+}""" ;
+    gmeow:saRationale "gmeow:rsvpStatus MUST be an owl:ObjectProperty ranging over gmeow:RsvpStatus — the invitee's reply is a vocab value distinct from InvitationStatus (Principle 9). Mirrors test_calendar_value_vocabularies_are_object_properties (rsvpStatus property)." .
+
+# --- 17. availabilityStatus is an ObjectProperty ranging over AvailabilityStatus
+ex:saAvailabilityStatusProperty a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:availabilityStatus a owl:ObjectProperty ;
+        rdfs:range gmeow:AvailabilityStatus .
+}""" ;
+    gmeow:saRationale "gmeow:availabilityStatus MUST be an owl:ObjectProperty ranging over gmeow:AvailabilityStatus — the FBTYPE state is a vocab value, never a subclass (Principle 9). Mirrors test_calendar_value_vocabularies_are_object_properties (availabilityStatus property)." .
+
+# --- 18. reminderAction is an ObjectProperty ranging over ReminderAction -----
+ex:saReminderActionProperty a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:reminderAction a owl:ObjectProperty ;
+        rdfs:range gmeow:ReminderAction .
+}""" ;
+    gmeow:saRationale "gmeow:reminderAction MUST be an owl:ObjectProperty ranging over gmeow:ReminderAction — the alarm kind is a vocab value (Principle 9). Mirrors test_calendar_value_vocabularies_are_object_properties (reminderAction property)." .
+
+# --- 19. taskStatus is an ObjectProperty ranging over TaskStatus --------------
+ex:saTaskStatusProperty a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:taskStatus a owl:ObjectProperty ;
+        rdfs:range gmeow:TaskStatus .
+}""" ;
+    gmeow:saRationale "gmeow:taskStatus MUST be an owl:ObjectProperty ranging over gmeow:TaskStatus — the progress state is a vocab value, never a Task subclass (Principle 9). Mirrors test_calendar_value_vocabularies_are_object_properties (taskStatus property)." .
+
+# --- 20. exceptionType is an ObjectProperty ranging over ExceptionType -------
+ex:saExceptionTypeProperty a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:exceptionType a owl:ObjectProperty ;
+        rdfs:range gmeow:ExceptionType .
+}""" ;
+    gmeow:saRationale "gmeow:exceptionType MUST be an owl:ObjectProperty ranging over gmeow:ExceptionType — the exception kind is a vocab value, never a ScheduleException subclass (Principle 9). Mirrors test_calendar_value_vocabularies_are_object_properties (exceptionType property)." .
+
+# ===========================================================================
+# Anti-subclass guard — status individuals are NOT classes
+# ===========================================================================
+
+# --- 21. InvitationStatus individuals are NOT classes (MUST-NOT) -------------
+ex:saInvitationStatusIndividualsNotClasses a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    VALUES ?v {
+        gmeow:invitationStatusNeedsAction
+        gmeow:invitationStatusAccepted
+        gmeow:invitationStatusDeclined
+        gmeow:invitationStatusTentative
+    }
+    ?v a owl:Class .
+}""" ;
+    gmeow:saRationale "The four InvitationStatus seed values MUST NOT be typed owl:Class — status values are individuals on the open vocabulary axis, never event subclasses (Principle 9). Mirrors test_calendar_statuses_are_individuals_not_classes (InvitationStatus mustNot half)." .
+
+# --- 22. RsvpStatus individuals are NOT classes (MUST-NOT) ------------------
+ex:saRsvpStatusIndividualsNotClasses a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    VALUES ?v {
+        gmeow:rsvpStatusNeedsAction
+        gmeow:rsvpStatusAccepted
+        gmeow:rsvpStatusDeclined
+        gmeow:rsvpStatusTentative
+    }
+    ?v a owl:Class .
+}""" ;
+    gmeow:saRationale "The four RsvpStatus seed values MUST NOT be typed owl:Class (Principle 9). Mirrors test_calendar_statuses_are_individuals_not_classes (RsvpStatus mustNot half)." .
+
+# --- 23. AvailabilityStatus individuals are NOT classes (MUST-NOT) -----------
+ex:saAvailabilityStatusIndividualsNotClasses a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    VALUES ?v {
+        gmeow:availabilityStatusFree
+        gmeow:availabilityStatusBusy
+        gmeow:availabilityStatusTentative
+        gmeow:availabilityStatusOutOfOffice
+    }
+    ?v a owl:Class .
+}""" ;
+    gmeow:saRationale "The four AvailabilityStatus seed values MUST NOT be typed owl:Class (Principle 9). Mirrors test_calendar_statuses_are_individuals_not_classes (AvailabilityStatus mustNot half)." .
+
+# --- 24. ReminderAction individuals are NOT classes (MUST-NOT) ---------------
+ex:saReminderActionIndividualsNotClasses a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    VALUES ?v {
+        gmeow:reminderActionDisplay
+        gmeow:reminderActionEmail
+        gmeow:reminderActionAudio
+    }
+    ?v a owl:Class .
+}""" ;
+    gmeow:saRationale "The three ReminderAction seed values MUST NOT be typed owl:Class (Principle 9). Mirrors test_calendar_statuses_are_individuals_not_classes (ReminderAction mustNot half)." .
+
+# --- 25. TaskStatus individuals are NOT classes (MUST-NOT) -------------------
+ex:saTaskStatusIndividualsNotClasses a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    VALUES ?v {
+        gmeow:taskStatusNotStarted
+        gmeow:taskStatusInProgress
+        gmeow:taskStatusCompleted
+        gmeow:taskStatusCancelled
+    }
+    ?v a owl:Class .
+}""" ;
+    gmeow:saRationale "The four TaskStatus seed values MUST NOT be typed owl:Class (Principle 9). Mirrors test_calendar_statuses_are_individuals_not_classes (TaskStatus mustNot half)." .
+
+# --- 26. ExceptionType individuals are NOT classes (MUST-NOT) ----------------
+ex:saExceptionTypeIndividualsNotClasses a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    VALUES ?v {
+        gmeow:exceptionTypeCancellation
+        gmeow:exceptionTypeRescheduling
+    }
+    ?v a owl:Class .
+}""" ;
+    gmeow:saRationale "The two ExceptionType seed values MUST NOT be typed owl:Class (Principle 9). Mirrors test_calendar_statuses_are_individuals_not_classes (ExceptionType mustNot half)." .
+
+# ===========================================================================
+# Anti-subclass guard — no CancelledEvent / RescheduledEvent class
+# ===========================================================================
+
+# --- 27. CancelledEvent / CanceledEvent / RescheduledEvent do NOT exist as classes (MUST-NOT)
+ex:saNoCancelledEventSubclass a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    VALUES ?banned { gmeow:CancelledEvent gmeow:CanceledEvent gmeow:RescheduledEvent }
+    ?banned a owl:Class .
+}""" ;
+    gmeow:saRationale "gmeow:CancelledEvent, CanceledEvent, and RescheduledEvent MUST NOT exist as owl:Class — cancellation is a ScheduleException + displayable false, not a subclass (Principle 10). Mirrors test_no_cancelled_event_subclass_exists." .
+
+# ===========================================================================
+# Relator mediation axioms (open-world EL someValuesFrom)
+# ===========================================================================
+
+# --- 28. EventSchedule has a someValuesFrom restriction on scheduleTemplateEvent (MUST)
+ex:saEventScheduleMediationAxiom a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:EventSchedule rdfs:subClassOf [
+        owl:onProperty gmeow:scheduleTemplateEvent ;
+        owl:someValuesFrom gmeow:Event
+    ] .
+}""" ;
+    gmeow:saRationale "gmeow:EventSchedule MUST carry a someValuesFrom restriction on gmeow:scheduleTemplateEvent with filler gmeow:Event — the EL mediation axiom ensuring every schedule is bound to at least one template event (#62). Mirrors test_event_schedule_mediation_axiom_present." .
+
+# --- 29. ScheduleException has someValuesFrom on exceptionSchedule (MUST) ----
+ex:saScheduleExceptionMediationSchedule a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:ScheduleException rdfs:subClassOf [
+        owl:onProperty gmeow:exceptionSchedule ;
+        owl:someValuesFrom gmeow:EventSchedule
+    ] .
+}""" ;
+    gmeow:saRationale "gmeow:ScheduleException MUST carry a someValuesFrom restriction on gmeow:exceptionSchedule — every exception must be anchored to its schedule (#62). Mirrors test_schedule_exception_mediation_axiom_present (exceptionSchedule)." .
+
+# --- 30. ScheduleException has someValuesFrom on exceptionOriginalDate (MUST) -
+ex:saScheduleExceptionMediationOriginalDate a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+ASK {
+    gmeow:ScheduleException rdfs:subClassOf [
+        owl:onProperty gmeow:exceptionOriginalDate ;
+        owl:someValuesFrom xsd:dateTime
+    ] .
+}""" ;
+    gmeow:saRationale "gmeow:ScheduleException MUST carry a someValuesFrom restriction on gmeow:exceptionOriginalDate with filler xsd:dateTime — the RFC 5545 RECURRENCE-ID anchor must be present (#62). Mirrors test_schedule_exception_mediation_axiom_present (exceptionOriginalDate)." .
+
+# --- 31. EventInvitation has someValuesFrom on invitationEvent (MUST) --------
+ex:saEventInvitationMediationEvent a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:EventInvitation rdfs:subClassOf [
+        owl:onProperty gmeow:invitationEvent ;
+        owl:someValuesFrom gmeow:Event
+    ] .
+}""" ;
+    gmeow:saRationale "gmeow:EventInvitation MUST carry a someValuesFrom restriction on gmeow:invitationEvent — every invitation is about a concrete event (#62). Mirrors test_event_invitation_mediation_axiom_present (invitationEvent)." .
+
+# --- 32. EventInvitation has someValuesFrom on invitationInvitee (MUST) ------
+ex:saEventInvitationMediationInvitee a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:EventInvitation rdfs:subClassOf [
+        owl:onProperty gmeow:invitationInvitee ;
+        owl:someValuesFrom gmeow:Agent
+    ] .
+}""" ;
+    gmeow:saRationale "gmeow:EventInvitation MUST carry a someValuesFrom restriction on gmeow:invitationInvitee — every invitation targets at least one agent (#62). Mirrors test_event_invitation_mediation_axiom_present (invitationInvitee)." .
+
+# --- 33. Availability has someValuesFrom on availabilityAgent (MUST) ---------
+ex:saAvailabilityMediationAgent a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:Availability rdfs:subClassOf [
+        owl:onProperty gmeow:availabilityAgent ;
+        owl:someValuesFrom gmeow:Agent
+    ] .
+}""" ;
+    gmeow:saRationale "gmeow:Availability MUST carry a someValuesFrom restriction on gmeow:availabilityAgent — every free-busy statement names whose availability it describes (#62). Mirrors test_availability_mediation_axiom_present (availabilityAgent)." .
+
+# --- 34. Availability has someValuesFrom on availabilitySlot (MUST) ----------
+ex:saAvailabilityMediationSlot a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:Availability rdfs:subClassOf [
+        owl:onProperty gmeow:availabilitySlot ;
+        owl:someValuesFrom gmeow:TimeInterval
+    ] .
+}""" ;
+    gmeow:saRationale "gmeow:Availability MUST carry a someValuesFrom restriction on gmeow:availabilitySlot — every free-busy statement is bounded by an interval (#62). Mirrors test_availability_mediation_axiom_present (availabilitySlot)." .
+
+# --- 35. Reminder has someValuesFrom on reminderTarget (MUST) ----------------
+ex:saReminderMediationTarget a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:Reminder rdfs:subClassOf [
+        owl:onProperty gmeow:reminderTarget ;
+        owl:someValuesFrom gmeow:Event
+    ] .
+}""" ;
+    gmeow:saRationale "gmeow:Reminder MUST carry a someValuesFrom restriction on gmeow:reminderTarget — every reminder is attached to a concrete event (#62). Mirrors test_reminder_mediation_axiom_present." .
+
+# ===========================================================================
+# Value vocabulary seeds — individuals exist in the module
+# ===========================================================================
+
+# --- 36. InvitationStatus seed individuals exist (MUST) ----------------------
+ex:saInvitationStatusSeedsExist a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    gmeow:invitationStatusNeedsAction a gmeow:InvitationStatus .
+    gmeow:invitationStatusAccepted    a gmeow:InvitationStatus .
+    gmeow:invitationStatusDeclined    a gmeow:InvitationStatus .
+    gmeow:invitationStatusTentative   a gmeow:InvitationStatus .
+}""" ;
+    gmeow:saRationale "All four iTIP PARTSTAT seed individuals MUST exist as gmeow:InvitationStatus members — they are the base vocabulary for the organizer's invitation view (#62). Mirrors test_invitation_status_vocabulary_seeded." .
+
+# --- 37. RsvpStatus seed individuals exist (MUST) ----------------------------
+ex:saRsvpStatusSeedsExist a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    gmeow:rsvpStatusNeedsAction a gmeow:RsvpStatus .
+    gmeow:rsvpStatusAccepted    a gmeow:RsvpStatus .
+    gmeow:rsvpStatusDeclined    a gmeow:RsvpStatus .
+    gmeow:rsvpStatusTentative   a gmeow:RsvpStatus .
+}""" ;
+    gmeow:saRationale "All four RSVP seed individuals MUST exist as gmeow:RsvpStatus members — they seed the invitee's reply vocabulary, distinct from InvitationStatus (Principle 9, #62). Mirrors test_rsvp_status_vocabulary_seeded." .
+
+# --- 38. AvailabilityStatus seed individuals exist (MUST) --------------------
+ex:saAvailabilityStatusSeedsExist a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    gmeow:availabilityStatusFree       a gmeow:AvailabilityStatus .
+    gmeow:availabilityStatusBusy       a gmeow:AvailabilityStatus .
+    gmeow:availabilityStatusTentative  a gmeow:AvailabilityStatus .
+    gmeow:availabilityStatusOutOfOffice a gmeow:AvailabilityStatus .
+}""" ;
+    gmeow:saRationale "All four iCalendar FBTYPE seed individuals MUST exist as gmeow:AvailabilityStatus members (#62). Mirrors test_availability_status_vocabulary_seeded." .
+
+# --- 39. ReminderAction seed individuals exist (MUST) ------------------------
+ex:saReminderActionSeedsExist a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    gmeow:reminderActionDisplay a gmeow:ReminderAction .
+    gmeow:reminderActionEmail   a gmeow:ReminderAction .
+    gmeow:reminderActionAudio   a gmeow:ReminderAction .
+}""" ;
+    gmeow:saRationale "All three iCalendar ACTION seed individuals MUST exist as gmeow:ReminderAction members (#62). Mirrors test_reminder_action_vocabulary_seeded." .
+
+# --- 40. TaskStatus seed individuals exist (MUST) ----------------------------
+ex:saTaskStatusSeedsExist a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    gmeow:taskStatusNotStarted a gmeow:TaskStatus .
+    gmeow:taskStatusInProgress a gmeow:TaskStatus .
+    gmeow:taskStatusCompleted  a gmeow:TaskStatus .
+    gmeow:taskStatusCancelled  a gmeow:TaskStatus .
+}""" ;
+    gmeow:saRationale "All four iCalendar VTODO STATUS seed individuals MUST exist as gmeow:TaskStatus members (#62). Mirrors test_task_status_vocabulary_seeded." .
+
+# --- 41. ExceptionType seed individuals exist (MUST) -------------------------
+ex:saExceptionTypeSeedsExist a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    gmeow:exceptionTypeCancellation  a gmeow:ExceptionType .
+    gmeow:exceptionTypeRescheduling  a gmeow:ExceptionType .
+}""" ;
+    gmeow:saRationale "Both ExceptionType seed individuals MUST exist as gmeow:ExceptionType members (#62). Mirrors test_exception_type_vocabulary_seeded." .
+
+# ===========================================================================
+# No preferred / primary calendar term (Principle 9)
+# ===========================================================================
+
+# --- 42. No preferred/primary calendar terms exist (MUST-NOT) ----------------
+ex:saNoPreferredOrPrimaryCalendarTerm a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    VALUES ?banned {
+        gmeow:primaryInvitation      gmeow:preferredInvitation
+        gmeow:primaryAvailability    gmeow:preferredAvailability
+        gmeow:primaryTask            gmeow:preferredTask
+        gmeow:primaryReminder        gmeow:preferredReminder
+    }
+    { ?banned a owl:ObjectProperty }
+    UNION { ?banned a owl:DatatypeProperty }
+    UNION { ?banned a owl:AnnotationProperty }
+    UNION { ?banned a owl:Class }
+}""" ;
+    gmeow:saRationale "The eight preferred/primary calendar terms MUST NOT exist as any property or class type — the anti-primary-selector doctrine (Principle 9) forbids frozen winner claims on calendar axes. Mirrors test_no_preferred_or_primary_calendar_term." .
+
+# ===========================================================================
+# Structural properties — domain/range and functionality
+# ===========================================================================
+
+# --- 43. EventSchedule properties are well-typed (MUST) ----------------------
+ex:saEventSchedulePropertiesWellTyped a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:scheduleTemplateEvent rdfs:domain gmeow:EventSchedule ;
+        rdfs:range gmeow:Event ;
+        a owl:FunctionalProperty .
+    gmeow:scheduleRecurrenceRule rdfs:domain gmeow:EventSchedule ;
+        rdfs:range gmeow:RecurrenceRule .
+    gmeow:scheduleTimeZone rdfs:domain gmeow:EventSchedule ;
+        rdfs:range gmeow:TimeZone .
+    gmeow:scheduleOccurrence rdfs:domain gmeow:EventSchedule ;
+        rdfs:range gmeow:Event .
+}""" ;
+    gmeow:saRationale "gmeow:scheduleTemplateEvent (functional), scheduleRecurrenceRule, scheduleTimeZone, and scheduleOccurrence MUST all have the correct domain, range, and functionality — these are the four mediating properties of EventSchedule (#62). Mirrors test_event_schedule_properties_are_well_typed." .
+
+# --- 44. EventInvitation properties are well-typed (MUST) --------------------
+ex:saInvitationPropertiesWellTyped a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:invitationEvent rdfs:domain gmeow:EventInvitation ;
+        rdfs:range gmeow:Event ;
+        a owl:FunctionalProperty .
+    gmeow:invitationInvitee rdfs:domain gmeow:EventInvitation ;
+        rdfs:range gmeow:Agent .
+    gmeow:invitationStatus rdfs:domain gmeow:EventInvitation ;
+        rdfs:range gmeow:InvitationStatus .
+    gmeow:rsvpStatus rdfs:domain gmeow:EventInvitation ;
+        rdfs:range gmeow:RsvpStatus .
+}""" ;
+    gmeow:saRationale "gmeow:invitationEvent (functional), invitationInvitee, invitationStatus, and rsvpStatus MUST all have the correct domain and range (#62). Mirrors test_invitation_properties_are_well_typed." .
+
+# --- 45. Availability properties are well-typed (MUST) -----------------------
+ex:saAvailabilityPropertiesWellTyped a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:availabilityAgent rdfs:domain gmeow:Availability ;
+        rdfs:range gmeow:Agent .
+    gmeow:availabilitySlot rdfs:domain gmeow:Availability ;
+        rdfs:range gmeow:TimeInterval ;
+        a owl:FunctionalProperty .
+    gmeow:availabilityStatus rdfs:domain gmeow:Availability ;
+        rdfs:range gmeow:AvailabilityStatus .
+}""" ;
+    gmeow:saRationale "gmeow:availabilityAgent, availabilitySlot (functional), and availabilityStatus MUST all have the correct domain and range (#62). Mirrors test_availability_properties_are_well_typed." .
+
+# --- 46. Reminder properties are well-typed (MUST) ---------------------------
+ex:saReminderPropertiesWellTyped a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:reminderTrigger rdfs:domain gmeow:Reminder .
+    gmeow:reminderAction rdfs:domain gmeow:Reminder ;
+        rdfs:range gmeow:ReminderAction .
+    gmeow:reminderTarget rdfs:domain gmeow:Reminder ;
+        rdfs:range gmeow:Event ;
+        a owl:FunctionalProperty .
+}""" ;
+    gmeow:saRationale "gmeow:reminderTrigger (domain only), reminderAction, and reminderTarget (functional) MUST all have the correct domain and range (#62). Mirrors test_reminder_properties_are_well_typed." .
+
+# --- 47. Task properties are well-typed (MUST) --------------------------------
+ex:saTaskPropertiesWellTyped a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+ASK {
+    gmeow:taskDueDate rdfs:domain gmeow:Task ;
+        rdfs:range xsd:dateTime .
+    gmeow:taskStatus rdfs:domain gmeow:Task ;
+        rdfs:range gmeow:TaskStatus .
+    gmeow:taskPriority rdfs:domain gmeow:Task ;
+        rdfs:range xsd:integer .
+    gmeow:taskRecurrenceUntilDone rdfs:domain gmeow:Task ;
+        rdfs:range xsd:boolean .
+}""" ;
+    gmeow:saRationale "gmeow:taskDueDate, taskStatus, taskPriority, and taskRecurrenceUntilDone MUST all have the correct domain and range (#62). Mirrors test_task_properties_are_well_typed." .
+
+# --- 48. TimeZone properties are well-typed (MUST) ---------------------------
+ex:saTimeZonePropertiesWellTyped a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+ASK {
+    gmeow:timeZoneIanaId rdfs:domain gmeow:TimeZone ;
+        rdfs:range xsd:string ;
+        a owl:FunctionalProperty .
+    gmeow:eventTimeZone rdfs:domain gmeow:Event ;
+        rdfs:range gmeow:TimeZone ;
+        a owl:FunctionalProperty .
+}""" ;
+    gmeow:saRationale "gmeow:timeZoneIanaId (functional) and gmeow:eventTimeZone (functional) MUST have the correct domain and range — each event carries at most one civil offset and each zone has one IANA tzid (#62). Mirrors test_time_zone_properties_are_well_typed." .
+
+# --- 49. Calendar collection properties are well-typed (MUST) ----------------
+ex:saCalendarCollectionPropertiesWellTyped a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:calendarTimeZone rdfs:domain gmeow:Calendar ;
+        rdfs:range gmeow:TimeZone ;
+        a owl:FunctionalProperty .
+    gmeow:calendarMember rdfs:domain gmeow:Calendar ;
+        rdfs:range gmeow:Event .
+}""" ;
+    gmeow:saRationale "gmeow:calendarTimeZone (functional) and gmeow:calendarMember MUST have the correct domain and range — one default zone per calendar, membership non-functional (#62). Mirrors test_calendar_collection_properties_are_well_typed." .
+
+# --- 50. ScheduleException properties are well-typed (MUST) ------------------
+ex:saScheduleExceptionPropertiesWellTyped a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+ASK {
+    gmeow:exceptionSchedule rdfs:domain gmeow:ScheduleException ;
+        rdfs:range gmeow:EventSchedule .
+    gmeow:exceptionOriginalDate rdfs:domain gmeow:ScheduleException ;
+        rdfs:range xsd:dateTime .
+    gmeow:exceptionReplacementEvent rdfs:domain gmeow:ScheduleException ;
+        rdfs:range gmeow:Event .
+    gmeow:exceptionType rdfs:domain gmeow:ScheduleException ;
+        rdfs:range gmeow:ExceptionType .
+}""" ;
+    gmeow:saRationale "gmeow:exceptionSchedule, exceptionOriginalDate, exceptionReplacementEvent, and exceptionType MUST all have the correct domain and range (#62). Mirrors test_schedule_exception_properties_are_well_typed." .

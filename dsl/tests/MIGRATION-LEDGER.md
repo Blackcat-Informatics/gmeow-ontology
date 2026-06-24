@@ -312,6 +312,31 @@ The observation-module asserted-TBox structural assertions (#66, #69) migrated t
 
 **Observations tally:** 19 converted + 1 partial (property-bridges: 8 of 11 converted) = 23 structural cells, 5 retained-with-reason (4 generated-SSSOM-mapping reads + 1 cross-slice kin-bridge). `tests/test_observations.py` 24 → 5 fns.
 
+## #867 structural batch 5 (calendar / citations / rights / norms / teleology / lifecycle)
+
+Six more home slices migrated to `slices/<g>/<n>/tests/structural.ttl` (all gufo:).
+75 converted fns → 134 `gmeow:StructuralAssertion` cells; all green
+(`cargo nextest -p gmeow-slicetest`, 52/52 cell files). Per-cell `saRationale` names
+the source fn; detailed cell IRIs live in each `structural.ttl`. Every RETAINED fn is
+rowed below (no silent drops). Closed-set vocabularies (norms group-operator /
+evaluation-verdict) are split into must (seeds) + mustNot (`FILTER NOT IN` extra-member)
+pairs preserving the closed-world `==` semantics. `make validate` ✓.
+
+| Slice (stereotype) | Converted fns → cells | Retained / partial fns (reason) |
+|---|---|---|
+| `core/calendar` (gufo:) | 31 → 50 cells | `test_calendar_temporal_datatypes_are_datetime_or_duration` (blank-node union + cardinality); `test_calendar_axes_are_independent` (itertools.combinations 45-pair sweep — narrowing would weaken); `test_organizer_and_attendee_roles_exist` (cross-slice: roleOrganizer/roleAttendee in core/event) |
+| `core/citations` (gufo:) | 9 → 11 cells | 3 run_shacl ExampleConformance; `test_contribution_with_degree_shacl_passes` (run_shacl + cross-slice Contribution/contributor); 2 self-description whole-ontology sweeps |
+| `core/rights` (gufo:) | 10 → 17 cells | `test_expanded_action_vocabulary_is_seeded` (numeric `len>=45`); 3 run_shacl ExampleConformance; 6 projection-over-fixture tests |
+| `extensions/norms` (gufo:) | 13 → 37 cells | `test_graft_axioms_live_extension_side_only` + `test_graft_preserves_core_trio_classhood` (cross-slice: Permission/Prohibition/Duty in core/rights); 2 run_shacl; 2 competency `.rq` reads |
+| `core/teleology` (gufo:) | 7 → 14 cells | `test_intrinsic_modes_are_grounded` (partial: MentalMoment cross-slice in mentation; module-local arms converted); `test_no_preferred_or_primary_goal_terms` (whole-graph sweep); 2 run_shacl; 1 competency `.rq` |
+| `core/lifecycle` (gufo:) | 5 → 5 cells | `test_supersession_properties_are_object_properties` (partial: supersedes cross-slice in coreference; supersededBy converted); `test_lifecycle_event_types_are_individuals_not_classes` (cross-slice: eventType* in core/events); 2 whole-graph sweeps; 4 run_shacl/ABox-fixture |
+
+**Batch-5 tally:** 75 converted fns → 134 structural cells across 6 slices; 36
+retained-with-reason (cross-slice subjects, run_shacl ExampleConformance, whole-graph
+dynamic sweeps, numeric/cardinality + `.rq` reads). Two partials (teleology
+intrinsic-modes, lifecycle supersession) split module-local arms to cells + retained
+the cross-slice arm.
+
 ## #867 structural batch 4 (procedures / languages / trust / profiles / employment / risk)
 
 Six more home slices migrated to `slices/<g>/<n>/tests/structural.ttl`. 37 converted

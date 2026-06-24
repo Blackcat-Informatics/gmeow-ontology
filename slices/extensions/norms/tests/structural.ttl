@@ -1,0 +1,428 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Declarative structural assertions for the norms slice (#351 / #352, EPIC #348) —
+# the slice-resident test-DSL twin of the asserted-TBox MUST / MUST-NOT invariants
+# formerly hand-written in tests/test_norms.py. Each assertion runs as a SPARQL
+# ASK over the norms module graph (gmeow:scopeModule) under the native Rust
+# slicetest harness (crates/slicetest).
+#
+# Norms is NOT yet #694-migrated: class stereotypes remain gufo:
+# (gufo:Category, gufo:Kind, gufo:SubKind, gufo:SituationType,
+# gufo:AbstractIndividualType, gufo:QualityValue), not logic:.
+#
+# RETAINED in pytest (not migratable here):
+#   test_graft_axioms_live_extension_side_only — loads slices/core/rights/module.ttl
+#     as a separate graph and asserts that no norms-extension IRIs appear there;
+#     this is a cross-slice file-load check, not a module-scoped TBox assertion.
+#   test_graft_preserves_core_trio_classhood — checks gmeow:Permission,
+#     gmeow:Prohibition, gmeow:Duty which are SUBJECTS in slices/core/rights/module.ttl,
+#     not in the norms module; a scopeModule cell would silently miss them.
+#   test_wellformed_norms_fixture_conforms — run_shacl() call;
+#     ExampleConformance, not a structural TBox assertion.
+#   test_malformed_norms_fixture_is_flagged — run_shacl() call with error-text
+#     assertions; ExampleConformance, not a structural TBox assertion.
+#   test_competency_deontic_modalities_query — reads an external .rq file from
+#     COMPETENCY_DIR and asserts the result set; generated-artifact / SPARQL-result
+#     check, not expressible as a module-scoped ASK.
+#   test_competency_authority_order_query — reads an external .rq file from
+#     COMPETENCY_DIR and asserts the result set; same reason.
+#
+# See dsl/tests/MIGRATION-LEDGER.md for the per-test pytest->DSL mapping.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/norms/tests/> .
+
+# --- 1. Norm is a gufo:Category at Entity level, never a Kind or SocialObject subclass (MUST) ---
+ex:saNormIsCategory a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:Norm a gufo:Category , owl:Class ;
+        rdfs:subClassOf gmeow:Entity .
+    gmeow:NormativeSystem rdfs:subClassOf gmeow:SocialObject .
+}""" ;
+    gmeow:saRationale "gmeow:Norm MUST be an owl:Class typed gufo:Category and a subclass of gmeow:Entity — the IntentionalMoment precedent; gmeow:NormativeSystem MUST be a subclass of gmeow:SocialObject. Mirrors test_norm_is_an_entity_level_category (positive part)." .
+
+# --- 2. Norm must NOT be typed gufo:Kind (MUST-NOT) ---
+ex:saNormNotKind a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX gufo: <http://purl.org/nemo/gufo#>
+ASK { gmeow:Norm a gufo:Kind . }""" ;
+    gmeow:saRationale "gmeow:Norm MUST NOT be typed gufo:Kind — a Kind would stack identities under the rights trio (OntoUML MixIden gate); the Category is the correct OntoUML sort. Mirrors test_norm_is_an_entity_level_category (mustNot-Kind part)." .
+
+# --- 3. Norm must NOT be a subclass of SocialObject (MUST-NOT) ---
+ex:saNormNotSubclassSocialObject a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK { gmeow:Norm rdfs:subClassOf gmeow:SocialObject . }""" ;
+    gmeow:saRationale "gmeow:Norm MUST NOT be a subclass of gmeow:SocialObject — the Category sits at Entity level so gmeow:Rule (a Relator subclass) can live beneath it without Object/Aspect contradiction. Mirrors test_norm_is_an_entity_level_category (mustNot-SocialObject part)." .
+
+# --- 4. Four required DeonticModality seed individuals exist (MUST) ---
+ex:saDeonticModalitySeeds a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    gmeow:deonticObligation    a gmeow:DeonticModality .
+    gmeow:deonticProhibition   a gmeow:DeonticModality .
+    gmeow:deonticPermission    a gmeow:DeonticModality .
+    gmeow:deonticRecommendation a gmeow:DeonticModality .
+}""" ;
+    gmeow:saRationale "The four mandatory DeonticModality seed individuals (obligation, prohibition, permission, recommendation) MUST exist — they anchor the open value vocabulary. Mirrors test_deontic_modality_vocab_seeds." .
+
+# --- 5. normIssuer is an owl:ObjectProperty with no range, no domain, NOT functional (MUST) ---
+ex:saNormIssuerIsOpenProperty a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:normIssuer a owl:ObjectProperty . }""" ;
+    gmeow:saRationale "gmeow:normIssuer MUST be an owl:ObjectProperty — the constitutional keystone that turns an ought into an ought-according-to. Mirrors test_no_anonymous_ought_machinery (ObjectProperty part)." .
+
+# --- 6. normIssuer has no rdfs:range (MUST-NOT) ---
+ex:saNormIssuerRangeOpen a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK { gmeow:normIssuer rdfs:range ?r . }""" ;
+    gmeow:saRationale "gmeow:normIssuer MUST NOT carry an rdfs:range — the range is intentionally open (Agent or Standpoint individual, the accordingTo convention). Mirrors test_no_anonymous_ought_machinery (no-range part)." .
+
+# --- 7. normIssuer has no rdfs:domain (MUST-NOT) ---
+ex:saNormIssuerDomainFree a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK { gmeow:normIssuer rdfs:domain ?d . }""" ;
+    gmeow:saRationale "gmeow:normIssuer MUST NOT carry an rdfs:domain — domain-free so systemIssuer specialization cannot leak Norm typing onto NormativeSystems (PR #369 review). Mirrors test_no_anonymous_ought_machinery (no-domain part)." .
+
+# --- 8. normIssuer is NOT functional (MUST-NOT) ---
+ex:saNormIssuerNotFunctional a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:normIssuer a owl:FunctionalProperty . }""" ;
+    gmeow:saRationale "gmeow:normIssuer MUST NOT be owl:FunctionalProperty — co-issued norms (a treaty, a joint policy) carry several issuers and those claims coexist (Principle 9). Mirrors test_no_anonymous_ought_machinery (not-functional part)." .
+
+# --- 9. normIssuer is NOT a subPropertyOf accordingTo (MUST-NOT) ---
+ex:saNormIssuerNotSubpropertyAccordingTo a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK { gmeow:normIssuer rdfs:subPropertyOf gmeow:accordingTo . }""" ;
+    gmeow:saRationale "gmeow:normIssuer MUST NOT be axiomatised as rdfs:subPropertyOf gmeow:accordingTo — the relationship is documented but not axiomatised because accordingTo is an AnnotationProperty (the vantage precedent). Mirrors test_no_anonymous_ought_machinery (not-subPropertyOf-accordingTo part)." .
+
+# --- 10. systemIssuer is a subPropertyOf normIssuer (MUST) ---
+ex:saSystemIssuerSubpropertyNormIssuer a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK { gmeow:systemIssuer rdfs:subPropertyOf gmeow:normIssuer . }""" ;
+    gmeow:saRationale "gmeow:systemIssuer MUST be rdfs:subPropertyOf gmeow:normIssuer — issuing a whole normative system is a specialization of normIssuer, so generic issuer queries surface it. Mirrors test_no_anonymous_ought_machinery (systemIssuer-subproperty part)." .
+
+# --- 11. prescribedConduct has domain Norm and no rdfs:range (MUST) ---
+ex:saPrescribedConductDomainNorm a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK { gmeow:prescribedConduct rdfs:domain gmeow:Norm . }""" ;
+    gmeow:saRationale "gmeow:prescribedConduct MUST have rdfs:domain gmeow:Norm. Mirrors test_prescribed_conduct_is_range_open (domain part)." .
+
+# --- 12. prescribedConduct has no rdfs:range (MUST-NOT) ---
+ex:saPrescribedConductRangeOpen a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK { gmeow:prescribedConduct rdfs:range ?r . }""" ;
+    gmeow:saRationale "gmeow:prescribedConduct MUST NOT carry any rdfs:range — the range is intentionally open so the rights graft needs no dual-typing and the generated surface stays clean (the tenurePosition precedent). Mirrors test_prescribed_conduct_is_range_open (range-open part)." .
+
+# --- 13. overrides is an owl:ObjectProperty (MUST) ---
+ex:saOverridesIsObjectProperty a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:overrides a owl:ObjectProperty ;
+        rdfs:domain gmeow:Norm ;
+        rdfs:range gmeow:Norm .
+}""" ;
+    gmeow:saRationale "gmeow:overrides MUST be an owl:ObjectProperty with domain and range gmeow:Norm — pairwise defeasible precedence relates norms to norms. Mirrors test_overrides_is_pairwise_never_transitive (ObjectProperty/domain/range part)." .
+
+# --- 14. overrides is NOT transitive (MUST-NOT) ---
+ex:saOverridesNotTransitive a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:overrides a owl:TransitiveProperty . }""" ;
+    gmeow:saRationale "gmeow:overrides MUST NOT be owl:TransitiveProperty — lex-superior chains are solver inferences, never reasoner entailments (Principle 12). Mirrors test_overrides_is_pairwise_never_transitive (mustNot-transitive part)." .
+
+# --- 15. strongerThan is transitive with domain AuthorityLevel (MUST) ---
+ex:saStrongerThanIsTransitiveDomain a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:strongerThan a owl:TransitiveProperty ;
+        rdfs:domain gmeow:AuthorityLevel .
+}""" ;
+    gmeow:saRationale "gmeow:strongerThan MUST be owl:TransitiveProperty with rdfs:domain gmeow:AuthorityLevel — transitivity is scoped to levels only; norm-level competition is solver work over gmeow:overrides pairs. Mirrors test_authority_levels_are_ordered_on_levels_only (strongerThan structure part)." .
+
+# --- 16. Authority ordering chain is asserted (MUST) ---
+ex:saAuthorityOrderingChain a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    gmeow:authorityAbsolute   gmeow:strongerThan gmeow:authorityHigh .
+    gmeow:authorityHigh       gmeow:strongerThan gmeow:authorityMedium .
+    gmeow:authorityMedium     gmeow:strongerThan gmeow:authorityConditional .
+}""" ;
+    gmeow:saRationale "The three asserted gmeow:strongerThan chain steps (absolute > high > medium > conditional) MUST be present — they seed the authority ordering ladder; transitivity closes the rest. Mirrors test_authority_levels_are_ordered_on_levels_only (chain part)." .
+
+# --- 17. hasAuthorityLevel is NOT functional (MUST-NOT) ---
+ex:saHasAuthorityLevelNotFunctional a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:hasAuthorityLevel a owl:FunctionalProperty . }""" ;
+    gmeow:saRationale "gmeow:hasAuthorityLevel MUST NOT be owl:FunctionalProperty — in a multi-source merge sources may grade the same norm differently, and those claims coexist (Principle 9, the kernel-axis convention). Mirrors test_authority_levels_are_ordered_on_levels_only (hasAuthorityLevel not-functional part)." .
+
+# --- 18. PrecedenceTenure is a gufo:SituationType subclass of TimeScopedRelation (MUST) ---
+ex:saPrecedenceTenureIsSituationType a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:PrecedenceTenure a gufo:SituationType , owl:Class ;
+        rdfs:subClassOf gmeow:TimeScopedRelation .
+}""" ;
+    gmeow:saRationale "gmeow:PrecedenceTenure MUST be an owl:Class typed gufo:SituationType and a subclass of gmeow:TimeScopedRelation — the StandpointTenure idiom (Principle 10). Mirrors test_precedence_tenure_is_the_standpoint_tenure_idiom (class structure part)." .
+
+# --- 19. precedenceHigher, precedenceLower, precedenceScope are functional (MUST) ---
+ex:saPrecedenceTenurePropertiesFunctional a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    gmeow:precedenceHigher a owl:FunctionalProperty .
+    gmeow:precedenceLower  a owl:FunctionalProperty .
+    gmeow:precedenceScope  a owl:FunctionalProperty .
+}""" ;
+    gmeow:saRationale "gmeow:precedenceHigher, precedenceLower, and precedenceScope MUST all be owl:FunctionalProperty — each tenure binds exactly one prevailing norm, one yielding norm, and one normative system. Mirrors test_precedence_tenure_is_the_standpoint_tenure_idiom (functional properties part)." .
+
+# --- 20. Condition subclasses InformationObject; ConditionGroup subclasses Condition (MUST) ---
+ex:saConditionIsInformationObject a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:Condition rdfs:subClassOf gmeow:InformationObject .
+    gmeow:ConditionGroup rdfs:subClassOf gmeow:Condition .
+}""" ;
+    gmeow:saRationale "gmeow:Condition MUST be a subclass of gmeow:InformationObject and gmeow:ConditionGroup MUST be a subclass of gmeow:Condition — conditions are stored information objects, never entailed (Principle 12). Mirrors test_condition_is_prose_canonical (subclass part)." .
+
+# --- 21. conditionText is functional (MUST) ---
+ex:saConditionTextIsFunctional a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:conditionText a owl:FunctionalProperty . }""" ;
+    gmeow:saRationale "gmeow:conditionText MUST be owl:FunctionalProperty — one canonical prose text per condition. Mirrors test_condition_is_prose_canonical (conditionText-functional part)." .
+
+# --- 22. formalizedAs is NOT functional (MUST-NOT) ---
+ex:saFormalizedAsNotFunctional a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:formalizedAs a owl:FunctionalProperty . }""" ;
+    gmeow:saRationale "gmeow:formalizedAs MUST NOT be owl:FunctionalProperty — one condition may carry several formalizations (one per engine), each a separate equivalence claim. Mirrors test_condition_is_prose_canonical (formalizedAs not-functional part)." .
+
+# --- 23. GroupOperator three seeds exist (MUST) ---
+ex:saGroupOperatorSeeds a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    gmeow:operatorAll  a gmeow:GroupOperator .
+    gmeow:operatorAny  a gmeow:GroupOperator .
+    gmeow:operatorNone a gmeow:GroupOperator .
+}""" ;
+    gmeow:saRationale "The three GroupOperator seed individuals (all, any, none) MUST exist — they form the closed trichotomy for condition-group combination logic. Mirrors test_group_operator_vocab_is_closed_three (positive part)." .
+
+# --- 24. No fourth GroupOperator individual exists (MUST-NOT) ---
+ex:saNoExtraGroupOperator a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    ?x a gmeow:GroupOperator .
+    FILTER (?x NOT IN (gmeow:operatorAll, gmeow:operatorAny, gmeow:operatorNone))
+}""" ;
+    gmeow:saRationale "No fourth gmeow:GroupOperator individual MUST NOT exist — the all/any/none trichotomy is closed by design; richer logic is built by nesting groups, not adding operators. Mirrors test_group_operator_vocab_is_closed_three (closed-set part)." .
+
+# --- 25. Seven required ExpressionLanguage seed individuals exist (MUST) ---
+ex:saExpressionLanguageSeeds a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    gmeow:exprLangProse      a gmeow:ExpressionLanguage .
+    gmeow:exprLangSparqlAsk  a gmeow:ExpressionLanguage .
+    gmeow:exprLangCel        a gmeow:ExpressionLanguage .
+    gmeow:exprLangRego       a gmeow:ExpressionLanguage .
+    gmeow:exprLangCedar      a gmeow:ExpressionLanguage .
+    gmeow:exprLangXacml      a gmeow:ExpressionLanguage .
+    gmeow:exprLangShacl      a gmeow:ExpressionLanguage .
+}""" ;
+    gmeow:saRationale "The seven mandatory ExpressionLanguage seed individuals (prose, SPARQL ASK, CEL, Rego, Cedar, XACML, SHACL) MUST exist — they anchor the open policy-engine vocabulary. Mirrors test_expression_language_vocab_seeds." .
+
+# --- 26. ConditionEvaluation subclasses Observation; evaluatedCondition subPropertyOf observedFeature (MUST) ---
+ex:saConditionEvaluationIsObservation a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:ConditionEvaluation rdfs:subClassOf gmeow:Observation .
+    gmeow:evaluatedCondition  rdfs:subPropertyOf gmeow:observedFeature .
+}""" ;
+    gmeow:saRationale "gmeow:ConditionEvaluation MUST be a subclass of gmeow:Observation and gmeow:evaluatedCondition MUST be rdfs:subPropertyOf gmeow:observedFeature — condition evaluations are vantage-indexed observations on the universal spine. Mirrors test_evaluation_is_a_vantage_indexed_observation (subclass/subproperty part)." .
+
+# --- 27. evaluationVerdict is NOT a subPropertyOf observationResult (MUST-NOT) ---
+ex:saEvaluationVerdictNotSubpropertyObservationResult a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK { gmeow:evaluationVerdict rdfs:subPropertyOf gmeow:observationResult . }""" ;
+    gmeow:saRationale "gmeow:evaluationVerdict MUST NOT be rdfs:subPropertyOf gmeow:observationResult — QualityValue is disjoint from Entity in the DL profile (the claimModality precedent). Mirrors test_evaluation_is_a_vantage_indexed_observation (not-subPropertyOf part)." .
+
+# --- 28. Three EvaluationVerdict seeds exist (MUST) ---
+ex:saEvaluationVerdictSeeds a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    gmeow:verdictHeld         a gmeow:EvaluationVerdict .
+    gmeow:verdictNotHeld      a gmeow:EvaluationVerdict .
+    gmeow:verdictUndetermined a gmeow:EvaluationVerdict .
+}""" ;
+    gmeow:saRationale "The three EvaluationVerdict seed individuals (held, not held, undetermined) MUST exist — they form the closed trichotomy for condition evaluation outcomes. Mirrors test_evaluation_is_a_vantage_indexed_observation (verdict seeds part)." .
+
+# --- 29. No fourth EvaluationVerdict individual exists (MUST-NOT) ---
+ex:saNoExtraEvaluationVerdict a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    ?x a gmeow:EvaluationVerdict .
+    FILTER (?x NOT IN (gmeow:verdictHeld, gmeow:verdictNotHeld, gmeow:verdictUndetermined))
+}""" ;
+    gmeow:saRationale "No fourth gmeow:EvaluationVerdict individual MUST NOT exist — the held/not-held/undetermined trichotomy is closed by design (a fourth verdict would violate the semantics). Mirrors test_evaluation_is_a_vantage_indexed_observation (closed-set part)." .
+
+# --- 30. violates and complies are owl:ObjectProperty, NOT functional, no propertyChain (MUST) ---
+ex:saViolatesCompliesAreObjectProperties a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    gmeow:violates a owl:ObjectProperty .
+    gmeow:complies a owl:ObjectProperty .
+}""" ;
+    gmeow:saRationale "gmeow:violates and gmeow:complies MUST be owl:ObjectProperty — they are plain assertable judgement shortcuts. Mirrors test_compliance_is_never_entailed (ObjectProperty part)." .
+
+# --- 31. violates is NOT functional (MUST-NOT) ---
+ex:saViolatesNotFunctional a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:violates a owl:FunctionalProperty . }""" ;
+    gmeow:saRationale "gmeow:violates MUST NOT be owl:FunctionalProperty — violation is always somebody's judgement; no inferential machinery (Principles 1, 9, 12). Mirrors test_compliance_is_never_entailed (violates not-functional part)." .
+
+# --- 32. complies is NOT functional (MUST-NOT) ---
+ex:saCompliesNotFunctional a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:complies a owl:FunctionalProperty . }""" ;
+    gmeow:saRationale "gmeow:complies MUST NOT be owl:FunctionalProperty — compliance is always somebody's judgement; no inferential machinery (Principles 1, 9, 12). Mirrors test_compliance_is_never_entailed (complies not-functional part)." .
+
+# --- 33. violates has no owl:propertyChainAxiom (MUST-NOT) ---
+ex:saViolatesNoPropertyChain a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:violates owl:propertyChainAxiom ?chain . }""" ;
+    gmeow:saRationale "gmeow:violates MUST NOT carry a propertyChainAxiom — judgement properties have no inferential machinery (Principle 12). Mirrors test_compliance_is_never_entailed (violates no-chain part)." .
+
+# --- 34. complies has no owl:propertyChainAxiom (MUST-NOT) ---
+ex:saCompliesNoPropertyChain a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:complies owl:propertyChainAxiom ?chain . }""" ;
+    gmeow:saRationale "gmeow:complies MUST NOT carry a propertyChainAxiom — judgement properties have no inferential machinery (Principle 12). Mirrors test_compliance_is_never_entailed (complies no-chain part)." .
+
+# --- 35. ComplianceAssessment subclasses Observation (MUST) ---
+ex:saComplianceAssessmentIsObservation a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK { gmeow:ComplianceAssessment rdfs:subClassOf gmeow:Observation . }""" ;
+    gmeow:saRationale "gmeow:ComplianceAssessment MUST be a subclass of gmeow:Observation — compliance verdicts ride the universal observation spine (vantage-indexed). Mirrors test_compliance_is_never_entailed (ComplianceAssessment subclass part)." .
+
+# --- 36. assessedEvent subPropertyOf observedFeature (MUST) ---
+ex:saAssessedEventSubpropertyObservedFeature a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK { gmeow:assessedEvent rdfs:subPropertyOf gmeow:observedFeature . }""" ;
+    gmeow:saRationale "gmeow:assessedEvent MUST be rdfs:subPropertyOf gmeow:observedFeature — links compliance observations to the generic 'observations about X' query path. Mirrors test_compliance_is_never_entailed (assessedEvent subproperty part)." .
+
+# --- 37. Rule subclasses Norm; ruleAssignee and ruleAction are subproperty grafts (MUST) ---
+ex:saRuleGraftOnNorm a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:Rule         rdfs:subClassOf gmeow:Norm .
+    gmeow:ruleAssignee rdfs:subPropertyOf gmeow:normBearer .
+    gmeow:ruleAction   rdfs:subPropertyOf gmeow:prescribedConduct .
+}""" ;
+    gmeow:saRationale "gmeow:Rule MUST be rdfs:subClassOf gmeow:Norm and the two subproperty grafts (ruleAssignee/normBearer and ruleAction/prescribedConduct) MUST be asserted in the norms module — zero core churn (#352). Mirrors test_graft_rule_is_a_norm." .

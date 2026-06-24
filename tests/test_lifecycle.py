@@ -1,14 +1,23 @@
-"""The universal lifecycle facility (#81).
+"""The universal lifecycle facility (#81) — retained dynamic tests.
 
-GMEOW had no universal existence-over-time model: birth/death were person-scoped
-life events, founding/dissolution were organization-scoped schema.org fields, and
-places had no lifecycle at all. This module mints universal flat properties
-(hasCreationEvent, hasDestructionEvent, existenceInterval, supersededBy/supersedes)
-and a reified EntityExistence TimeScopedRelation for contested or evidence-bearing
-claims. It absorbs the person/org-specific forms forward (Principle 6).
+Structural TBox invariants for the lifecycle module are expressed as declarative
+slicetest cells in slices/core/lifecycle/tests/structural.ttl (#867 migration).
+The functions below are RETAINED because they are either:
+  - dynamic whole-graph sweeps that cannot be narrowed to scopeModule without
+    silent coverage loss (test_no_lifecycle_event_subclasses_exist,
+    test_no_preferred_or_primary_lifecycle_term),
+  - cross-slice checks whose subjects are defined outside this module
+    (test_supersession_properties_are_object_properties → gmeow:supersedes in
+    slices/core/coreference; test_lifecycle_event_types_are_individuals_not_classes
+    → eventType* individuals in slices/core/events),
+  - run_shacl() ExampleConformance checks (test_wellformed_entity_existence_conforms,
+    test_malformed_entity_existence_is_flagged),
+  - multi-file ABox fixture checks (contested-existence + coverage-fixture).
 
-The centerpiece is the anti-subclass regression guard: creation, destruction,
-supersession and dissolution are EventType VALUE individuals, never classes.
+The asserted-TBox structural assertions were migrated to
+slices/core/lifecycle/tests/structural.ttl (5 cells); see
+dsl/tests/MIGRATION-LEDGER.md for the per-fn mapping.
+                                              → ex:saSupersededByIsObjectProperty
 """
 
 from __future__ import annotations
@@ -22,7 +31,6 @@ from tests._graph_nt import run_shacl
 
 GMEOW = "https://blackcatinformatics.ca/gmeow/"
 GM = Namespace(GMEOW)
-GUFO = Namespace("http://purl.org/nemo/gufo#")
 EX_LIFE = Namespace("https://blackcatinformatics.ca/gmeow/examples/lifecycle/")
 SHAPES_FIXTURES = Path(__file__).parent / "fixtures" / "shapes"
 COVERAGE_FIXTURES = Path(__file__).parent / "fixtures" / "coverage"
@@ -37,26 +45,13 @@ def _fixture(name: str) -> Graph:
 
 
 # --------------------------------------------------------------------------- #
-# gUFO grounding — EntityExistence is a Situation; flat properties are object
-# properties.
+# gUFO grounding — supersession properties.
+# NOTE: gmeow:EntityExistence (gufo:SituationType + rdfs:subClassOf
+# TimeScopedRelation) and the flat object properties (hasCreationEvent,
+# hasDestructionEvent, existenceInterval, domain Entity) are asserted as
+# structural cells in structural.ttl (ex:saEntityExistenceIsSituationType,
+# ex:saFlatLifecyclePropertiesAreObjectProperties).
 # --------------------------------------------------------------------------- #
-
-
-def test_entity_existence_is_a_gufo_situation() -> None:
-    g = _graph()
-    assert (GM.EntityExistence, RDF.type, OWL.Class) in g
-    assert (GM.EntityExistence, RDF.type, GUFO.SituationType) in g
-    assert (GM.EntityExistence, RDFS.subClassOf, GM.TimeScopedRelation) in g
-
-
-def test_creation_and_destruction_are_object_properties() -> None:
-    g = _graph()
-    for prop in ("hasCreationEvent", "hasDestructionEvent", "existenceInterval"):
-        node = URIRef(GMEOW + prop)
-        assert (node, RDF.type, OWL.ObjectProperty) in g, (
-            f"{prop} must be an ObjectProperty"
-        )
-        assert (node, RDFS.domain, GM.Entity) in g, f"{prop} domain must be Entity"
 
 
 def test_supersession_properties_are_object_properties() -> None:
@@ -116,28 +111,13 @@ def test_no_lifecycle_event_subclasses_exist() -> None:
 
 
 # --------------------------------------------------------------------------- #
-# Flat-first pattern — both flat shortcuts and reified EntityExistence coexist.
-# --------------------------------------------------------------------------- #
-
-
-def test_flat_lifecycle_properties_exist() -> None:
-    g = _graph()
-    for prop in ("hasCreationEvent", "hasDestructionEvent", "existenceInterval"):
-        node = URIRef(GMEOW + prop)
-        assert (node, RDF.type, OWL.ObjectProperty) in g
-
-
-def test_reified_entity_existence_exists() -> None:
-    g = _graph()
-    assert (GM.EntityExistence, RDF.type, OWL.Class) in g
-    assert (GM.existenceEntity, RDF.type, OWL.ObjectProperty) in g
-    assert (GM.existenceCreationEvent, RDF.type, OWL.ObjectProperty) in g
-    assert (GM.existenceDestructionEvent, RDF.type, OWL.ObjectProperty) in g
-
-
-# --------------------------------------------------------------------------- #
 # No preferred/primary term (Principle 9) — the lifecycle module mints no
 # primary*/preferred* selector.
+# NOTE: Flat-first pattern properties (hasCreationEvent, hasDestructionEvent,
+# existenceInterval as ObjectProperty) and reified EntityExistence slot set
+# (existenceEntity, existenceCreationEvent, existenceDestructionEvent) are
+# asserted as structural cells ex:saFlatLifecyclePropertiesAreObjectProperties
+# and ex:saReifiedEntityExistenceProperties in structural.ttl.
 # --------------------------------------------------------------------------- #
 
 
@@ -160,25 +140,9 @@ def test_no_preferred_or_primary_lifecycle_term() -> None:
 
 
 # --------------------------------------------------------------------------- #
-# Relator mediation axiom — open-world EL someValuesFrom on EntityExistence.
-# --------------------------------------------------------------------------- #
-
-
-def test_entity_existence_mediation_axiom_present() -> None:
-    g = _graph()
-    mediated: set[URIRef] = set()
-    for restriction in g.objects(GM.EntityExistence, RDFS.subClassOf):
-        on = g.value(restriction, OWL.onProperty)
-        some = g.value(restriction, OWL.someValuesFrom)
-        if isinstance(on, URIRef) and some is not None:
-            mediated.add(on)
-            if on == GM.existenceEntity:
-                assert some == GM.Entity
-    assert GM.existenceEntity in mediated
-
-
-# --------------------------------------------------------------------------- #
 # SHACL well-formedness of the EntityExistence situation.
+# NOTE: The relator mediation axiom (someValuesFrom restriction on existenceEntity)
+# is asserted as structural cell ex:saEntityExistenceMediationAxiom in structural.ttl.
 # --------------------------------------------------------------------------- #
 
 

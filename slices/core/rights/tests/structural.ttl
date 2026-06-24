@@ -1,0 +1,262 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Declarative structural assertions for the rights slice (#21) — the slice-resident
+# test-DSL twin of the asserted-TBox MUST / MUST-NOT invariants formerly hand-written
+# in tests/test_rights.py. Each assertion runs as a SPARQL ASK over the rights
+# module graph (gmeow:scopeModule) under the native Rust slicetest harness
+# (crates/slicetest).
+#
+# Rights is NOT yet #694-migrated, so class stereotypes are gufo:
+# (gufo:Kind, gufo:SubKind, gufo:Category, gufo:AbstractIndividualType,
+# gufo:QualityValue, gufo:Relator), NOT logic:.
+#
+# RETAINED in pytest (not migratable here):
+#   test_expanded_action_vocabulary_is_seeded — asserts len(actions) >= 45, a
+#     numeric cardinality check over the live action-individual set; SPARQL ASK
+#     cannot express numeric lower-bound counts in a module-scoped cell.
+#   test_wellformed_rights_fixture_conforms — run_shacl() call;
+#     ExampleConformance, not a structural TBox assertion.
+#   test_malformed_rights_fixture_is_flagged — run_shacl() call with error-text
+#     assertions; ExampleConformance, not a structural TBox assertion.
+#   test_expired_trademark_warns_but_does_not_fail — run_shacl() call;
+#     ExampleConformance, not a structural TBox assertion.
+#   test_odrl_projection_emits_a_policy_with_rules — project_graph() over loaded
+#     coverage fixture; generated-artifact projection check, not a TBox assertion.
+#   test_odrl_projection_emits_constraint_and_conflict_logic — project_graph();
+#     generated-artifact projection check.
+#   test_spdx_projection_emits_listed_license — project_graph();
+#     generated-artifact projection check.
+#   test_cc_projection_emits_license_and_attribution — project_graph();
+#     generated-artifact projection check.
+#   test_dcterms_projection_emits_flat_rights — project_graph();
+#     generated-artifact projection check.
+#   test_schema_projection_emits_rights_cluster — project_graph();
+#     generated-artifact projection check.
+#
+# See dsl/tests/MIGRATION-LEDGER.md for the per-test pytest→DSL mapping.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/rights/tests/> .
+
+# --- 1. Core relators are grounded — class + stereotype pairs (MUST) -----------
+ex:saCoreRelatorsGrounded a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    gmeow:RightsStatement a owl:Class , gufo:SubKind .
+    gmeow:Copyright        a owl:Class , gufo:Kind .
+    gmeow:Trademark        a owl:Class , gufo:Kind .
+    gmeow:Mark             a owl:Class , gufo:Kind .
+    gmeow:Rule             a owl:Class , gufo:Category .
+    gmeow:Permission       a owl:Class , gufo:Kind .
+    gmeow:Prohibition      a owl:Class , gufo:Kind .
+    gmeow:Duty             a owl:Class , gufo:Kind .
+    gmeow:License          a owl:Class , gufo:SubKind .
+}""" ;
+    gmeow:saRationale "All nine core rights classes MUST be asserted as owl:Class with their gufo: stereotype — RightsStatement/License as gufo:SubKind, Copyright/Trademark/Mark/Permission/Prohibition/Duty as gufo:Kind, Rule as gufo:Category. Mirrors test_core_relators_are_grounded (class + stereo part)." .
+
+# --- 2. RightsStatement is a subclass of gufo:Relator (MUST) ------------------
+ex:saRightsStatementSubclassRelator a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:RightsStatement rdfs:subClassOf gufo:Relator .
+}""" ;
+    gmeow:saRationale "gmeow:RightsStatement MUST be a subclass of gufo:Relator — it reifies the binding of an IP right to its subject as a relator. Mirrors test_core_relators_are_grounded (RightsStatement→gufo:Relator part)." .
+
+# --- 3. RightsStatement is a subclass of gmeow:Observation (MUST) -------------
+ex:saRightsStatementSubclassObservation a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:RightsStatement rdfs:subClassOf gmeow:Observation .
+}""" ;
+    gmeow:saRationale "gmeow:RightsStatement MUST be a subclass of gmeow:Observation — the observation-spine bridge wires rights into the universal claim stack (observation-spine, #21). Mirrors test_core_relators_are_grounded (RightsStatement→gmeow:Observation part)." .
+
+# --- 4. Permission is a subclass of Rule (MUST) --------------------------------
+ex:saPermissionSubclassRule a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:Permission rdfs:subClassOf gmeow:Rule .
+}""" ;
+    gmeow:saRationale "gmeow:Permission MUST be a subclass of gmeow:Rule — the deontic trio (Permission/Prohibition/Duty) specialises the abstract Rule base. Mirrors test_core_relators_are_grounded (Permission→gmeow:Rule part)." .
+
+# --- 5. License is a subclass of gmeow:Agreement (MUST) -----------------------
+ex:saLicenseSubclassAgreement a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:License rdfs:subClassOf gmeow:Agreement .
+}""" ;
+    gmeow:saRationale "gmeow:License MUST be a subclass of gmeow:Agreement — a licence binds licensor and licensee and creates permissions / duties, which IS an agreement (#21). Mirrors test_license_is_an_agreement." .
+
+# --- 6. Holder properties are subproperties of wasAttributedTo (MUST) ---------
+ex:saHolderPropertiesSpecialiseAttribution a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:copyrightHolder  rdfs:subPropertyOf gmeow:wasAttributedTo .
+    gmeow:trademarkHolder  rdfs:subPropertyOf gmeow:wasAttributedTo .
+}""" ;
+    gmeow:saRationale "gmeow:copyrightHolder and gmeow:trademarkHolder MUST both be subproperties of gmeow:wasAttributedTo — holder attribution reuses the generic attribution property (Principle: reuse not duplicate, #21). Mirrors test_holder_and_party_properties_specialise_reused_terms (holder part)." .
+
+# --- 7. Licence party properties are subproperties of hasParty (MUST) ---------
+ex:saLicencePartyPropertiesSpecialiseHasParty a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:licensor rdfs:subPropertyOf gmeow:hasParty .
+    gmeow:licensee rdfs:subPropertyOf gmeow:hasParty .
+}""" ;
+    gmeow:saRationale "gmeow:licensor and gmeow:licensee MUST both be subproperties of gmeow:hasParty — licence parties reuse the generic party property rather than a separate model (Principle: reuse not duplicate, #21). Mirrors test_holder_and_party_properties_specialise_reused_terms (party part)." .
+
+# --- 8. Deontic trio Permission/Prohibition/Duty is pairwise disjoint (MUST) --
+ex:saDeonticTrioIsDisjoint a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    ?adc a owl:AllDisjointClasses ;
+         owl:members ( gmeow:Permission gmeow:Prohibition gmeow:Duty ) .
+}""" ;
+    gmeow:saRationale "gmeow:Permission, gmeow:Prohibition, and gmeow:Duty MUST be declared pairwise disjoint via owl:AllDisjointClasses — no rights rule may simultaneously grant and forbid an action (the ODRL closed-world rule model, #21). Mirrors test_deontic_trio_is_disjoint." .
+
+# --- 9. Value vocabularies are subclasses of gufo:QualityValue (MUST) ---------
+ex:saValueVocabulariesAreQualityValues a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:RightsAction     rdfs:subClassOf gufo:QualityValue .
+    gmeow:LicenseFamily    rdfs:subClassOf gufo:QualityValue .
+    gmeow:TrademarkStatus  rdfs:subClassOf gufo:QualityValue .
+    gmeow:CopyrightStatus  rdfs:subClassOf gufo:QualityValue .
+}""" ;
+    gmeow:saRationale "gmeow:RightsAction, LicenseFamily, TrademarkStatus, and CopyrightStatus MUST all be subclasses of gufo:QualityValue — they are open individuals-based value vocabularies, never subclassed per value (Principle 9, #21). Mirrors test_value_vocabularies_are_open_individuals (subClassOf part)." .
+
+# --- 10. One seed individual from each value vocabulary exists (MUST) ----------
+ex:saValueVocabularySeedIndividualsExist a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    gmeow:actionReproduce          a gmeow:RightsAction .
+    gmeow:licenseFamilyCC          a gmeow:LicenseFamily .
+    gmeow:trademarkStatusRegistered a gmeow:TrademarkStatus .
+    gmeow:copyrightStatusInCopyright a gmeow:CopyrightStatus .
+}""" ;
+    gmeow:saRationale "A representative seed individual from each value vocabulary MUST exist: gmeow:actionReproduce (RightsAction), licenseFamilyCC (LicenseFamily), trademarkStatusRegistered (TrademarkStatus), copyrightStatusInCopyright (CopyrightStatus). Mirrors test_value_vocabularies_are_open_individuals (seed-individual part)." .
+
+# --- 11. spdxLicenseId is a DatatypeProperty with domain License (MUST) -------
+ex:saSpdxLicenseIdPropertyExists a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:spdxLicenseId a owl:DatatypeProperty ;
+        rdfs:domain gmeow:License .
+}""" ;
+    gmeow:saRationale "gmeow:spdxLicenseId MUST be an owl:DatatypeProperty with rdfs:domain gmeow:License — the SPDX identifier is a mandatory datatype property on every licence (P5 canonical identifier, #21). Mirrors test_spdx_license_id_property_exists." .
+
+# --- 12. Constraint algebra — AtomicConstraint/LogicalConstraint subclasses and ruleConstraint (MUST) ---
+ex:saConstraintAlgebraTermsExist a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:AtomicConstraint  rdfs:subClassOf gmeow:Constraint .
+    gmeow:LogicalConstraint rdfs:subClassOf gmeow:Constraint .
+    gmeow:ruleConstraint    a owl:ObjectProperty .
+}""" ;
+    gmeow:saRationale "gmeow:AtomicConstraint and LogicalConstraint MUST be subclasses of gmeow:Constraint, and gmeow:ruleConstraint MUST be an owl:ObjectProperty — the ODRL constraint algebra is modelled as two specialisations of an abstract Constraint base (#21). Mirrors test_constraint_algebra_terms_exist (class/property part)." .
+
+# --- 13. ODRL operand/operator/logic/conflict value vocabulary seeds exist (MUST) ---
+ex:saConstraintVocabSeedsExist a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    gmeow:leftOpDateTime  a gmeow:LeftOperand .
+    gmeow:operatorLteq    a gmeow:ConstraintOperator .
+    gmeow:logicAnd        a gmeow:ConstraintLogic .
+    gmeow:conflictProhibit a gmeow:ConflictStrategy .
+}""" ;
+    gmeow:saRationale "The four ODRL vocabulary seeds gmeow:leftOpDateTime, gmeow:operatorLteq, gmeow:logicAnd, and gmeow:conflictProhibit MUST exist as individuals of their respective value vocabularies — they are the minimal seeds for the constraint algebra (#21). Mirrors test_constraint_algebra_terms_exist (seed-individual part)." .
+
+# --- 14. Three rightsType seed individuals exist (MUST) -----------------------
+ex:saRightsTypeSeedsExist a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    gmeow:rightsTypeCopyright    a gmeow:RightsType .
+    gmeow:rightsTypePatent       a gmeow:RightsType .
+    gmeow:rightsTypeTradeSecret  a gmeow:RightsType .
+}""" ;
+    gmeow:saRationale "gmeow:rightsTypeCopyright, rightsTypePatent, and rightsTypeTradeSecret MUST exist as gmeow:RightsType individuals — these seed the IP-right-kind vocabulary (copyright, patent, trade-secret, #21). Mirrors test_rights_type_vocabulary_exists." .
+
+# --- 15. Four specific RightsAction seeds exist (MUST) -----------------------
+ex:saRightsActionCoreSeedsExist a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    gmeow:actionSell      a gmeow:RightsAction .
+    gmeow:actionStream    a gmeow:RightsAction .
+    gmeow:actionModify    a gmeow:RightsAction .
+    gmeow:actionAnonymize a gmeow:RightsAction .
+}""" ;
+    gmeow:saRationale "The four ODRL Common-Vocabulary action seeds gmeow:actionSell, actionStream, actionModify, and actionAnonymize MUST exist as gmeow:RightsAction individuals — they confirm the maximal ODRL common-vocabulary seeding (the non-numeric part of test_expanded_action_vocabulary_is_seeded, #21). Mirrors test_expanded_action_vocabulary_is_seeded (named-action part)." .
+
+# --- 16. No RightsAction individual is also an owl:Class (MUST-NOT) -----------
+ex:saNoActionValueIsAClass a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    ?action a gmeow:RightsAction , owl:Class .
+}""" ;
+    gmeow:saRationale "No gmeow:RightsAction individual MUST NOT also be typed owl:Class — actions are values, never per-value subclasses (Principle 9, no overtyping, #21). Mirrors test_no_action_value_is_a_class." .
+
+# --- 17. No gmeow: term in the rights module starts with 'primary' or 'preferred' (MUST-NOT) ---
+ex:saNoPreferredOrPrimaryRightsTerm a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    ?s ?p ?o .
+    FILTER(
+        STRSTARTS(STR(?s), "https://blackcatinformatics.ca/gmeow/") &&
+        (
+            STRSTARTS(LCASE(STRAFTER(STR(?s), "https://blackcatinformatics.ca/gmeow/")), "primary") ||
+            STRSTARTS(LCASE(STRAFTER(STR(?s), "https://blackcatinformatics.ca/gmeow/")), "preferred")
+        )
+    )
+}""" ;
+    gmeow:saRationale "No gmeow: term in the rights module MUST start with 'primary' or 'preferred' — Principle 9 forbids preferred/primary selector terms anywhere in the vocabulary (open-world, individuals-first doctrine, #21). Mirrors test_no_preferred_or_primary_rights_term." .

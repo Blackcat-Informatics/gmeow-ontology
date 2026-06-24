@@ -1,0 +1,180 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Declarative structural assertions for the citations slice (#211) — the
+# slice-resident test-DSL twin of the asserted-TBox MUST / MUST-NOT invariants
+# formerly hand-written in tests/test_citations.py. Each assertion runs as a
+# SPARQL ASK over the citations module graph (gmeow:scopeModule) under the
+# native Rust harness (crates/slicetest).
+#
+# Citations is NOT yet #694-migrated, so class stereotypes remain gufo:
+# (gufo:Kind, gufo:RoleMixin, gufo:AbstractIndividualType, gufo:QualityValue,
+# gufo:Relator), not logic:.
+#
+# RETAINED in pytest (not migratable here):
+#   test_citation_act_shacl_passes — run_shacl() call; ExampleConformance,
+#     not a structural TBox assertion.
+#   test_citation_act_missing_intent_fails_shacl — run_shacl() call with
+#     error-text assertions; ExampleConformance, not a structural TBox assertion.
+#   test_contribution_with_degree_shacl_passes — run_shacl() call; references
+#     gmeow:Contribution, gmeow:contributor, gmeow:contributionTarget,
+#     gmeow:contributionRole which are defined in other slices; ExampleConformance.
+#   test_self_description_loader — reads gmeow_tools.self_desc; whole-ontology
+#     dynamic loader check, not a module-scoped TBox assertion.
+#   test_self_description_models_project_repository_and_brand_assets — loads
+#     SELF_DESC_FILE; subject IRIs are in the gmeow/self# namespace, not the
+#     citations module; cross-slice dynamic check.
+#   test_canonical_description_is_standardized — loads CITATION.cff + whole
+#     ontology header + whole-ontology vocabulary count; whole-graph dynamic
+#     sweep, not expressible as a module-scoped ASK.
+#
+# See dsl/tests/MIGRATION-LEDGER.md for the per-test pytest→DSL mapping.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/citations/tests/> .
+
+# --- 1. CitationAct is a gufo:Kind subclass of gufo:Relator (MUST) ------------
+ex:saCitationActIsRelatorKind a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:CitationAct a owl:Class , gufo:Kind ;
+        rdfs:subClassOf gufo:Relator .
+}""" ;
+    gmeow:saRationale "gmeow:CitationAct MUST be an owl:Class typed gufo:Kind and a subclass of gufo:Relator — a citation is a reified relator binding citing and cited players with a typed intent (#211). Mirrors test_citation_act_is_relator_kind." .
+
+# --- 2. Selector is a gufo:Kind subclass of EvidenceSpan (MUST) ---------------
+ex:saSelectorIsKind a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:Selector a owl:Class , gufo:Kind ;
+        rdfs:subClassOf gmeow:EvidenceSpan .
+}""" ;
+    gmeow:saRationale "gmeow:Selector MUST be an owl:Class typed gufo:Kind and a subclass of gmeow:EvidenceSpan — a pinpoint anchor into a cited work reuses the shared evidence-span machinery (#211). Mirrors test_selector_is_kind." .
+
+# --- 3. SourceRole is a gufo:RoleMixin (MUST) ---------------------------------
+ex:saSourceRoleIsRoleMixin a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    gmeow:SourceRole a owl:Class , gufo:RoleMixin .
+}""" ;
+    gmeow:saRationale "gmeow:SourceRole MUST be an owl:Class typed gufo:RoleMixin — source-hood is anti-rigid (the same work is contingently a source, a subject, and a work in its own right; #211). Mirrors test_source_role_is_role_mixin." .
+
+# --- 4. CitationIntent is a value vocabulary subclass of gufo:QualityValue (MUST) ---
+ex:saCitationIntentIsQualityValue a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:CitationIntent rdfs:subClassOf gufo:QualityValue .
+}""" ;
+    gmeow:saRationale "gmeow:CitationIntent MUST be a subclass of gufo:QualityValue — citation intents are an open value vocabulary (individuals, never subclasses) characterizing a CitationAct (#211, Principle 9). Mirrors test_citation_intent_is_quality_value." .
+
+# --- 5. ContributionDegree is a value vocabulary subclass of gufo:QualityValue (MUST) ---
+ex:saContributionDegreeIsQualityValue a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:ContributionDegree rdfs:subClassOf gufo:QualityValue .
+}""" ;
+    gmeow:saRationale "gmeow:ContributionDegree MUST be a subclass of gufo:QualityValue — contribution degrees are an open value vocabulary (individuals, never subclasses) characterizing a Contribution (#211, Principle 9). Mirrors test_contribution_degree_is_quality_value." .
+
+# --- 6a. citingEntity, citedEntity, citationIntent are functional object properties (MUST) ---
+ex:saCitationActCorePropsFunctional a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    gmeow:citingEntity   a owl:ObjectProperty , owl:FunctionalProperty .
+    gmeow:citedEntity    a owl:ObjectProperty , owl:FunctionalProperty .
+    gmeow:citationIntent a owl:ObjectProperty , owl:FunctionalProperty .
+}""" ;
+    gmeow:saRationale "gmeow:citingEntity, citedEntity, and citationIntent MUST each be owl:ObjectProperty and owl:FunctionalProperty — one citing player, one cited work, and one intent per CitationAct (relator arity, #211). Mirrors test_citation_act_properties_exist (functional triad part)." .
+
+# --- 6b. viaSelector and cites are non-functional object properties (MUST) ----
+ex:saCitationActOptionalPropsExist a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    gmeow:viaSelector a owl:ObjectProperty .
+    gmeow:cites       a owl:ObjectProperty .
+}""" ;
+    gmeow:saRationale "gmeow:viaSelector and gmeow:cites MUST each be an owl:ObjectProperty — viaSelector is the non-functional pinpoint link; cites is the flat 80%-case shortcut (non-functional: an entity may cite many works; #211). Mirrors test_citation_act_properties_exist (viaSelector and cites part)." .
+
+# --- 6c. viaSelector and cites are NOT functional (MUST-NOT) ------------------
+ex:saCitationOptionalPropsNotFunctional a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    VALUES ?p { gmeow:viaSelector gmeow:cites }
+    ?p a owl:FunctionalProperty .
+}""" ;
+    gmeow:saRationale "gmeow:viaSelector and gmeow:cites MUST NOT be owl:FunctionalProperty — a citation may pinpoint multiple selectors; an entity may cite many works (#211). Mirrors test_citation_act_properties_exist (non-functional mustNot part)." .
+
+# --- 7. The ten CitationIntent seeds exist as individuals (MUST) ---------------
+ex:saCitationIntentSeedsExist a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    gmeow:intentCitesAsDataSource   a gmeow:CitationIntent .
+    gmeow:intentUsesMethodIn        a gmeow:CitationIntent .
+    gmeow:intentExtends             a gmeow:CitationIntent .
+    gmeow:intentIsInspiredBy        a gmeow:CitationIntent .
+    gmeow:intentConformsTo          a gmeow:CitationIntent .
+    gmeow:intentDerivedFrom         a gmeow:CitationIntent .
+    gmeow:intentDocuments           a gmeow:CitationIntent .
+    gmeow:intentSupports            a gmeow:CitationIntent .
+    gmeow:intentDisagreesWith       a gmeow:CitationIntent .
+    gmeow:intentBridgedByReference  a gmeow:CitationIntent .
+}""" ;
+    gmeow:saRationale "All ten gmeow:CitationIntent seed individuals MUST be present — they cover the CiTO-aligned intent vocabulary used by CitationAct and are the open-vocabulary starting set (#211). Mirrors test_citation_intent_seeds_exist." .
+
+# --- 8. The four Selector datatype properties exist (MUST) --------------------
+ex:saSelectorPropertiesExist a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    gmeow:selectorPage         a owl:DatatypeProperty .
+    gmeow:selectorTextPosition a owl:DatatypeProperty .
+    gmeow:selectorTextQuote    a owl:DatatypeProperty .
+    gmeow:selectorLocator      a owl:DatatypeProperty .
+}""" ;
+    gmeow:saRationale "gmeow:selectorPage, selectorTextPosition, selectorTextQuote, and selectorLocator MUST each be owl:DatatypeProperty — they are the four pinpoint locus kinds carried on a gmeow:Selector (#211). Mirrors test_selector_properties_exist." .
+
+# --- 9. The three ContributionDegree seeds exist as individuals (MUST) --------
+ex:saContributionDegreeSeedsExist a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    gmeow:degreeLead      a gmeow:ContributionDegree .
+    gmeow:degreeEqual     a gmeow:ContributionDegree .
+    gmeow:degreeSupporting a gmeow:ContributionDegree .
+}""" ;
+    gmeow:saRationale "All three gmeow:ContributionDegree seed individuals (lead, equal, supporting) MUST be present — they are the canonical CRediT-aligned degree seeds; the set is open (#211). Mirrors test_contribution_degree_seeds_exist." .

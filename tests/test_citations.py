@@ -1,118 +1,27 @@
-"""Citation & Credit module structural guards (issue #211).
+"""Citation & Credit module retained guards (issue #211).
 
-Pins the CitationAct relator, CitationIntent and ContributionDegree value vocabularies,
-Selector, and SourceRole. Verifies gUFO grounding, property existence, and SHACL
-well-formedness.
+The asserted-TBox structural invariants (CitationAct, Selector, SourceRole,
+CitationIntent, ContributionDegree class hierarchy; citingEntity/citedEntity/
+citationIntent/viaSelector/cites property shapes; CitationIntent and
+ContributionDegree seed individuals; Selector datatype properties) have been
+migrated to the declarative slicetest DSL in
+slices/core/citations/tests/structural.ttl (#867).
+
+Retained here: SHACL ExampleConformance checks (run_shacl), self-description
+loader, and the whole-ontology canonical-description standardisation sweep.
 """
 
 from __future__ import annotations
 
 import re
 
-from gmeow_rdf.compat.rdflib import OWL, RDF, RDFS, Graph, Literal, Namespace, URIRef
+from gmeow_rdf.compat.rdflib import RDF, RDFS, Graph, Literal, Namespace, URIRef
 
-from gmeow_tools.graph import load_merged_graph
 from tests._graph_nt import run_shacl
 
 GMEOW = Namespace("https://blackcatinformatics.ca/gmeow/")
-GUFO = Namespace("http://purl.org/nemo/gufo#")
 EX = Namespace("https://example.org/test/")
 SELF = Namespace("https://blackcatinformatics.ca/gmeow/self#")
-
-
-def _graph() -> Graph:
-    return load_merged_graph(include_imports=False)
-
-
-# =========================================================================== #
-# Class hierarchy
-# =========================================================================== #
-
-
-def test_citation_act_is_relator_kind() -> None:
-    g = _graph()
-    assert (GMEOW.CitationAct, RDF.type, OWL.Class) in g
-    assert (GMEOW.CitationAct, RDF.type, GUFO.Kind) in g
-    assert (GMEOW.CitationAct, RDFS.subClassOf, GUFO.Relator) in g
-
-
-def test_selector_is_kind() -> None:
-    g = _graph()
-    assert (GMEOW.Selector, RDF.type, OWL.Class) in g
-    assert (GMEOW.Selector, RDF.type, GUFO.Kind) in g
-    assert (GMEOW.Selector, RDFS.subClassOf, GMEOW.EvidenceSpan) in g
-
-
-def test_source_role_is_role_mixin() -> None:
-    g = _graph()
-    assert (GMEOW.SourceRole, RDF.type, OWL.Class) in g
-    assert (GMEOW.SourceRole, RDF.type, GUFO.RoleMixin) in g
-
-
-def test_citation_intent_is_quality_value() -> None:
-    g = _graph()
-    assert (GMEOW.CitationIntent, RDFS.subClassOf, GUFO.QualityValue) in g
-
-
-def test_contribution_degree_is_quality_value() -> None:
-    g = _graph()
-    assert (GMEOW.ContributionDegree, RDFS.subClassOf, GUFO.QualityValue) in g
-
-
-# =========================================================================== #
-# Properties
-# =========================================================================== #
-
-
-def test_citation_act_properties_exist() -> None:
-    g = _graph()
-    for prop in (
-        GMEOW.citingEntity,
-        GMEOW.citedEntity,
-        GMEOW.citationIntent,
-    ):
-        assert (prop, RDF.type, OWL.ObjectProperty) in g
-        assert (prop, RDF.type, OWL.FunctionalProperty) in g
-    assert (GMEOW.viaSelector, RDF.type, OWL.ObjectProperty) in g
-    assert (GMEOW.cites, RDF.type, OWL.ObjectProperty) in g
-
-
-def test_citation_intent_seeds_exist() -> None:
-    g = _graph()
-    for ind in (
-        GMEOW.intentCitesAsDataSource,
-        GMEOW.intentUsesMethodIn,
-        GMEOW.intentExtends,
-        GMEOW.intentIsInspiredBy,
-        GMEOW.intentConformsTo,
-        GMEOW.intentDerivedFrom,
-        GMEOW.intentDocuments,
-        GMEOW.intentSupports,
-        GMEOW.intentDisagreesWith,
-        GMEOW.intentBridgedByReference,
-    ):
-        assert (ind, RDF.type, GMEOW.CitationIntent) in g
-
-
-def test_selector_properties_exist() -> None:
-    g = _graph()
-    for prop in (
-        GMEOW.selectorPage,
-        GMEOW.selectorTextPosition,
-        GMEOW.selectorTextQuote,
-        GMEOW.selectorLocator,
-    ):
-        assert (prop, RDF.type, OWL.DatatypeProperty) in g
-
-
-def test_contribution_degree_seeds_exist() -> None:
-    g = _graph()
-    for ind in (
-        GMEOW.degreeLead,
-        GMEOW.degreeEqual,
-        GMEOW.degreeSupporting,
-    ):
-        assert (ind, RDF.type, GMEOW.ContributionDegree) in g
 
 
 # =========================================================================== #
