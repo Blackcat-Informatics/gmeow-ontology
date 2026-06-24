@@ -1,0 +1,309 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Declarative structural assertions for the software slice (#231 Phase A + #232
+# Phase B) -- the slice-resident test-DSL twin of the asserted-TBox MUST /
+# MUST-NOT invariants formerly hand-written in tests/test_software.py. Each
+# assertion runs as a SPARQL ASK over the software module graph
+# (gmeow:scopeModule) under the native Rust slicetest harness
+# (crates/slicetest).
+#
+# Software is NOT yet #694-migrated: class stereotypes remain gufo:
+# (gufo:Kind, gufo:SubKind, gufo:EventType, gufo:AbstractIndividualType).
+#
+# RETAINED in pytest (not migratable here):
+#   test_no_subclass_bridge_between_facets -- dynamic pairwise sweep over 6
+#     facet classes (15 pairs); cannot be expressed as a fixed module-scoped ASK
+#     without enumerating every pair inline (which would turn a live sweep into a
+#     finite list and lose coverage if new facets are added).
+#   test_facet_orthogonality_shacl_rejects_two_facets -- run_shacl() call
+#     with ABox graph; ExampleConformance, not a structural TBox assertion.
+#   test_fixture_parses_and_shacl_passes -- run_shacl() fixture conformance.
+#   test_fixture_has_all_five_facets -- fixture ABox individual type checks.
+#   test_fixture_commit_has_content_digest -- fixture ABox predicate check.
+#   test_fixture_ai_contributor_is_first_class -- fixture ABox dynamic subject
+#     scan (g.subjects(GM.contributor, EX.copilot)); not module-scoped TBox.
+#   test_fixture_contribution_reifies_role_and_degree -- fixture ABox checks.
+#   test_software_contribution_roles_seeded -- dynamic subset sweep
+#     (expected <= actual); not a closed-set TBox assertion; new roles may be
+#     added by future slices without breaking the invariant.
+#   test_software_event_types_seeded -- dynamic subset sweep (expected <= actual)
+#     over gmeow:ContributionRole / gmeow:EventType individuals; same reason.
+#   test_fixture_has_three_commit_dag -- fixture ABox parentCommit assertions.
+#   test_fixture_has_commit_ancestor_closure -- fixture ABox commitAncestor.
+#   test_fixture_has_blobs_and_tree_entries -- fixture ABox.
+#   test_fixture_has_push_event -- fixture ABox.
+#   test_fixture_has_merge_event -- fixture ABox.
+#   test_fixture_has_code_review_event -- fixture ABox.
+#   test_fixture_has_diff -- fixture ABox.
+#   test_fixture_repository_has_materialization_depth -- fixture ABox numeric
+#     check (datatype + value); not expressible as a module-scoped TBox ASK.
+#
+# See dsl/tests/MIGRATION-LEDGER.md for the per-test pytest->DSL mapping.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/software/tests/> .
+
+# --- 1. Core class hierarchy (Phase A gUFO grounding) (MUST) -----------------
+ex:saProjectIsKindSubclassEntity a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:Project a owl:Class , gufo:Kind ;
+        rdfs:subClassOf gmeow:Entity .
+}""" ;
+    gmeow:saRationale "gmeow:Project MUST be an owl:Class typed gufo:Kind and a subclass of gmeow:Entity -- the Project facet is the primary real-world kind (not an artifact or event) in the five-facet de-conflation doctrine. Mirrors test_software_project_is_gufo_grounded (Project part)." .
+
+# --- 2. SoftwareProject subClassOf Project (MUST) ----------------------------
+ex:saSoftwareProjectSubclassProject a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:SoftwareProject rdfs:subClassOf gmeow:Project .
+}""" ;
+    gmeow:saRationale "gmeow:SoftwareProject MUST be a subclass of gmeow:Project -- specialises the project facet to software without bridging to other facets. Mirrors test_software_project_is_gufo_grounded (SoftwareProject part)." .
+
+# --- 3. SoftwareProduct subClassOf Work (MUST) --------------------------------
+ex:saSoftwareProductSubclassWork a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:SoftwareProduct rdfs:subClassOf gmeow:Work .
+}""" ;
+    gmeow:saRationale "gmeow:SoftwareProduct MUST be a subclass of gmeow:Work -- the product facet is a WEMI Work, not an Entity or Activity; this is the Product != Project split. Mirrors test_software_project_is_gufo_grounded (SoftwareProduct part)." .
+
+# --- 4. Commit subClassOf Activity (MUST) ------------------------------------
+ex:saCommitSubclassActivity a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:Commit rdfs:subClassOf gmeow:Activity .
+}""" ;
+    gmeow:saRationale "gmeow:Commit MUST be a subclass of gmeow:Activity -- a commit is a performed action (with author + committer), not just an artifact or event. Mirrors test_software_project_is_gufo_grounded (Commit part)." .
+
+# --- 5. Release subClassOf Event (MUST) --------------------------------------
+ex:saReleaseSubclassEvent a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:Release rdfs:subClassOf gmeow:Event .
+}""" ;
+    gmeow:saRationale "gmeow:Release MUST be a subclass of gmeow:Event -- releasing is a point-in-time event, not a sustained activity; distinct from the artifact (Distribution) it produces. Mirrors test_software_project_is_gufo_grounded (Release part)." .
+
+# --- 6. Repository subClassOf InformationObject (MUST) -----------------------
+ex:saRepositorySubclassInformationObject a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:Repository rdfs:subClassOf gmeow:InformationObject .
+}""" ;
+    gmeow:saRationale "gmeow:Repository MUST be a subclass of gmeow:InformationObject -- a repository is a content-addressed store, not an Entity or Event; this is the Repository != Project split. Mirrors test_software_project_is_gufo_grounded (Repository part)." .
+
+# --- 7. Value-vocabulary classes are gufo:QualityValue subclasses (MUST) -----
+ex:saValueVocabsAreQualityValues a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:RepositoryType    rdfs:subClassOf gufo:QualityValue .
+    gmeow:MaintenanceStatus rdfs:subClassOf gufo:QualityValue .
+    gmeow:GovernanceModel   rdfs:subClassOf gufo:QualityValue .
+}""" ;
+    gmeow:saRationale "gmeow:RepositoryType, MaintenanceStatus, and GovernanceModel MUST each be subclasses of gufo:QualityValue -- they are ordered or unordered value vocabularies (the kernel QualityValue pattern; software is not yet #694-migrated so gufo: not logic:). Mirrors test_software_value_vocabs_are_quality_values." .
+
+# --- 8. parentCommit subPropertyOf wasDerivedFrom (MUST) ---------------------
+ex:saParentCommitSubPropertyWasDerivedFrom a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:parentCommit rdfs:subPropertyOf gmeow:wasDerivedFrom .
+}""" ;
+    gmeow:saRationale "gmeow:parentCommit MUST be a subproperty of gmeow:wasDerivedFrom -- every parent-commit link is also a PROV-O derivation link, enabling provenance chain queries without separate inference. Mirrors test_parent_commit_is_derived_from_subproperty." .
+
+# --- 9. Phase B new classes are owl:Class with correct parents (MUST) --------
+ex:saBlobIsSubKindSourceNode a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:Blob a owl:Class ;
+        rdfs:subClassOf gmeow:SourceNode .
+}""" ;
+    gmeow:saRationale "gmeow:Blob MUST be an owl:Class and a subclass of gmeow:SourceNode -- a blob is the leaf content node of a Merkle source tree; distinct from TreeEntry which carries the name. Mirrors test_new_classes_are_owl_classes_with_correct_parents (Blob part)." .
+
+# --- 10. TreeEntry is owl:Class subClassOf InformationObject (MUST) ----------
+ex:saTreeEntrySubclassInformationObject a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:TreeEntry a owl:Class ;
+        rdfs:subClassOf gmeow:InformationObject .
+}""" ;
+    gmeow:saRationale "gmeow:TreeEntry MUST be an owl:Class and a subclass of gmeow:InformationObject -- a tree entry is a named pointer in a directory, not an Event or Entity. Mirrors test_new_classes_are_owl_classes_with_correct_parents (TreeEntry part)." .
+
+# --- 11. Push is owl:Class subClassOf Activity (MUST) ------------------------
+ex:saPushSubclassActivity a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:Push a owl:Class ;
+        rdfs:subClassOf gmeow:Activity .
+}""" ;
+    gmeow:saRationale "gmeow:Push MUST be an owl:Class and a subclass of gmeow:Activity -- pushing commits is an intentional performed action. Mirrors test_new_classes_are_owl_classes_with_correct_parents (Push part)." .
+
+# --- 12. Merge is owl:Class subClassOf Activity (MUST) -----------------------
+ex:saMergeSubclassActivity a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:Merge a owl:Class ;
+        rdfs:subClassOf gmeow:Activity .
+}""" ;
+    gmeow:saRationale "gmeow:Merge MUST be an owl:Class and a subclass of gmeow:Activity -- a merge is an intentional action integrating branches, not merely an event. Mirrors test_new_classes_are_owl_classes_with_correct_parents (Merge part)." .
+
+# --- 13. CodeReview is owl:Class subClassOf Event (MUST) ---------------------
+ex:saCodeReviewSubclassEvent a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:CodeReview a owl:Class ;
+        rdfs:subClassOf gmeow:Event .
+}""" ;
+    gmeow:saRationale "gmeow:CodeReview MUST be an owl:Class and a subclass of gmeow:Event (not Activity) -- reviewing is observation-like and does not require intentional agency in the same sense as Push or Merge. Mirrors test_new_classes_are_owl_classes_with_correct_parents (CodeReview part)." .
+
+# --- 14. Diff is owl:Class subClassOf InformationObject (MUST) ---------------
+ex:saDiffSubclassInformationObject a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:Diff a owl:Class ;
+        rdfs:subClassOf gmeow:InformationObject .
+}""" ;
+    gmeow:saRationale "gmeow:Diff MUST be an owl:Class and a subclass of gmeow:InformationObject -- a diff is a computed artifact (content), not an Event or Entity. Mirrors test_new_classes_are_owl_classes_with_correct_parents (Diff part)." .
+
+# --- 15. commitAncestor is transitive and subPropertyOf wasDerivedFrom (MUST) -
+ex:saCommitAncestorTransitiveAndDerived a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:commitAncestor a owl:TransitiveProperty ;
+        rdfs:subPropertyOf gmeow:wasDerivedFrom .
+}""" ;
+    gmeow:saRationale "gmeow:commitAncestor MUST be an owl:TransitiveProperty and a subproperty of gmeow:wasDerivedFrom -- transitivity enables full ancestor queries without materialising every step; derivation link exposes history to PROV-O consumers. Mirrors test_commit_ancestor_is_transitive_and_derived_from_subproperty." .
+
+# --- 16. parentCommit subPropertyOf commitAncestor (MUST) --------------------
+ex:saParentCommitSubPropertyCommitAncestor a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:parentCommit rdfs:subPropertyOf gmeow:commitAncestor .
+}""" ;
+    gmeow:saRationale "gmeow:parentCommit MUST be a subproperty of gmeow:commitAncestor -- direct parent edges are the base case of the transitive closure; the sub-property relation seeds closure correctly. Mirrors test_parent_commit_is_subproperty_of_commit_ancestor." .
+
+# --- 17. commitDescendant inverseOf commitAncestor (MUST) --------------------
+ex:saCommitDescendantInverseOfAncestor a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    gmeow:commitDescendant owl:inverseOf gmeow:commitAncestor .
+}""" ;
+    gmeow:saRationale "gmeow:commitDescendant MUST be declared owl:inverseOf gmeow:commitAncestor -- a single declared inverse avoids maintaining two parallel transitive chains. Mirrors test_commit_descendant_is_inverse_of_commit_ancestor." .
+
+# --- 18. treeEntry properties have correct domain and range (MUST) -----------
+ex:saTreeEntryPropertiesExist a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:treeEntryName   rdfs:domain gmeow:TreeEntry .
+    gmeow:treeEntryMode   rdfs:domain gmeow:TreeEntry .
+    gmeow:treeEntryObject rdfs:domain gmeow:TreeEntry ;
+                          rdfs:range  gmeow:SourceNode .
+}""" ;
+    gmeow:saRationale "gmeow:treeEntryName, treeEntryMode, and treeEntryObject MUST all have domain gmeow:TreeEntry; treeEntryObject MUST also have range gmeow:SourceNode -- the entry is the name+mode+pointer triple of a Merkle directory node. Mirrors test_tree_entry_properties_exist." .
+
+# --- 19. diff properties have correct domain and range (MUST) ----------------
+ex:saDiffPropertiesExist a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:diffFrom rdfs:domain gmeow:Diff ; rdfs:range gmeow:Commit .
+    gmeow:diffTo   rdfs:domain gmeow:Diff ; rdfs:range gmeow:Commit .
+}""" ;
+    gmeow:saRationale "gmeow:diffFrom and diffTo MUST both have domain gmeow:Diff and range gmeow:Commit -- a diff is always anchored between exactly two commits; range constrains the pointer to the commit facet. Mirrors test_diff_properties_exist." .
+
+# --- 20. Push/Merge/CodeReview properties exist with correct domain (MUST) ---
+ex:saPushMergeReviewPropertiesExist a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:pushTarget   rdfs:domain gmeow:Push .
+    gmeow:mergeBase    rdfs:domain gmeow:Merge .
+    gmeow:mergeSource  rdfs:domain gmeow:Merge .
+    gmeow:mergeTarget  rdfs:domain gmeow:Merge ;
+                       a owl:FunctionalProperty .
+    gmeow:reviewOf     rdfs:domain gmeow:CodeReview .
+    gmeow:reviewCommit rdfs:domain gmeow:CodeReview .
+}""" ;
+    gmeow:saRationale "gmeow:pushTarget, mergeBase, mergeSource, mergeTarget, reviewOf, and reviewCommit MUST all have their respective event-class domains; mergeTarget MUST additionally be owl:FunctionalProperty (a merge has exactly one target branch). Mirrors test_push_merge_review_properties_exist." .
+
+# --- 21. materializationDepth has correct domain and range (MUST) ------------
+ex:saMaterializationDepthPropertyExists a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:materializationDepth rdfs:domain gmeow:Repository ;
+                               rdfs:range  xsd:nonNegativeInteger .
+}""" ;
+    gmeow:saRationale "gmeow:materializationDepth MUST have domain gmeow:Repository and range xsd:nonNegativeInteger -- records the clone depth chosen at fetch time so tooling can warn when ancestor queries may be incomplete. Mirrors test_materialization_depth_property_exists." .
