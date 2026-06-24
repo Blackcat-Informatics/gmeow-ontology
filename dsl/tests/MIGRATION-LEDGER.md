@@ -312,6 +312,31 @@ The observation-module asserted-TBox structural assertions (#66, #69) migrated t
 
 **Observations tally:** 19 converted + 1 partial (property-bridges: 8 of 11 converted) = 23 structural cells, 5 retained-with-reason (4 generated-SSSOM-mapping reads + 1 cross-slice kin-bridge). `tests/test_observations.py` 24 → 5 fns.
 
+## #867 structural batch 6 (coreference / organization / agentic / evidence / narrative / deception)
+
+Six more home slices migrated to `slices/<g>/<n>/tests/structural.ttl` (all gufo:).
+50 converted fns → 108 `gmeow:StructuralAssertion` cells; all green
+(`cargo nextest -p gmeow-slicetest`, 58/58 cell files). Per-cell `saRationale` names
+the source fn; detailed cell IRIs live in each `structural.ttl`. Every RETAINED fn is
+rowed below (no silent drops). `make validate` ✓. This batch is run_shacl-heavy
+(organization 11, evidence 9, deception 12) — all run_shacl fns RETAINED.
+
+| Slice (stereotype) | Converted fns → cells | Retained fns (reason) |
+|---|---|---|
+| `core/coreference` (gufo:) | 3 → 16 cells | `test_no_preferred_or_primary_coreference_terms` (whole-graph sweep); 1 run_shacl; 1 projection |
+| `core/organization` (gufo:) | 5 → 19 cells | 10 run_shacl ExampleConformance; `test_no_preferred_or_primary_org_term` (whole-graph sweep); `test_change_event_type_values_exist` (cross-slice: eventType* in core/events) |
+| `extensions/agentic` (gufo:) | 3 → 4 cells | 5 retained: 1 run_shacl, `test_example_answers_*` (example file + SELECT), 3 Memory/MCP runtime-integration tests |
+| `core/evidence` (gufo:) | 8 → 22 cells | 9 run_shacl ExampleConformance (5 inline + 4 fixture-based) |
+| `extensions/narrative` (gufo:) | 9 → 16 cells | 4 cross-slice (book-release/serial in core/documents, frame-realm in core/places, reading-order in core/documents) + a transitive merged-graph walk; 3 run_shacl + 1 negative run_shacl |
+| `core/deception` (gufo:) | 22 → 31 cells | 12 run_shacl ExampleConformance; `test_bullshit_modality_exists` (cross-slice: standpoint); 1 dynamic ABox file-load; 1 competency `.rq` |
+
+**Batch-6 tally:** 50 converted fns → 108 structural cells across 6 slices; 51
+retained-with-reason (run_shacl ExampleConformance dominate, plus cross-slice subjects,
+whole-graph dynamic sweeps, runtime-integration + `.rq` reads). Notable: deception's
+non-assertion guardrails (NO `isFalse`/`isDeceptive` property — falsehood is a refuted
+StandpointClaim, not a truth-bit) migrated as mustNot cells, and licensed-falsehood ⊄
+untrue as a disjointness pair.
+
 ## #867 structural batch 5 (calendar / citations / rights / norms / teleology / lifecycle)
 
 Six more home slices migrated to `slices/<g>/<n>/tests/structural.ttl` (all gufo:).

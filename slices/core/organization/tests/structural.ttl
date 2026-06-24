@@ -1,0 +1,236 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics(R) Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Declarative structural assertions for the organization slice (#258, #51) --
+# the slice-resident test-DSL twin of the asserted-TBox MUST / MUST-NOT TBox
+# invariants formerly hand-written in tests/test_organization.py. Each
+# assertion runs as a SPARQL ASK over the organization module graph
+# (gmeow:scopeModule) under the native Rust harness (crates/slicetest).
+#
+# Organization is NOT #694-migrated: class stereotypes remain gufo:
+# (gufo:Kind, gufo:RoleMixin, gufo:AbstractIndividualType, gufo:QualityValue,
+# gufo:Relator), not logic:.
+#
+# RETAINED in pytest (not migratable here):
+#   test_contested_membership_coexists -- run_shacl() call over fixture;
+#     ExampleConformance, not a structural TBox assertion.
+#   test_contested_succession_coexists -- run_shacl() call over fixture;
+#     ExampleConformance, not a structural TBox assertion.
+#   test_withdrawn_recognition_suppressed_not_deleted -- run_shacl() + fixture
+#     ABox check; not a module-scoped TBox invariant.
+#   test_no_preferred_or_primary_org_term -- sweeps the entire merged graph
+#     subject set via _graph(); a scopeModule cell would silently narrow the
+#     sweep to the organization module only (missing cross-slice violations).
+#   test_post_seat_independent_of_holder -- run_shacl() + fixture ABox check.
+#   test_post_successive_holders -- run_shacl() + fixture ABox check.
+#   test_membership_fills_post_org_mismatch_warns -- run_shacl() + SHACL
+#     Warning text check; not expressible as a module-scoped ASK.
+#   test_site_location -- run_shacl() + fixture ABox check.
+#   test_change_event_entailments -- run_shacl() + fixture ABox check.
+#   test_legal_identifier_requires_scheme -- run_shacl() + error-text
+#     assertion; ExampleConformance / SHACL Violation check.
+#   test_wellformed_legal_identifier_passes -- run_shacl() + graph
+#     manipulation; ExampleConformance.
+#   test_change_event_type_values_exist -- eventTypeMerger/Split/SpinOff/
+#     Acquisition/Rename are defined in slices/core/events/module.ttl, not
+#     here; a scopeModule cell would miss them (cross-slice).
+#
+# See dsl/tests/MIGRATION-LEDGER.md for the per-test pytest->DSL mapping.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/organization/tests/> .
+
+# --- 1. Role is a gufo:RoleMixin subclass of FunctionalComplex (MUST) --------
+ex:saRoleIsRoleMixin a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:Role a owl:Class , gufo:RoleMixin ;
+        rdfs:subClassOf gufo:FunctionalComplex .
+}""" ;
+    gmeow:saRationale "gmeow:Role MUST be an owl:Class typed gufo:RoleMixin and a subclass of gufo:FunctionalComplex -- roles are functional complexes played by agents, never subclasses of the agent (Principle 9). Mirrors test_organization_is_gufo_grounded (Role part)." .
+
+# --- 2. Membership is a gufo:Kind subclass of gufo:Relator (MUST) ------------
+ex:saMembershipIsKindRelator a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:Membership a owl:Class , gufo:Kind ;
+        rdfs:subClassOf gufo:Relator .
+}""" ;
+    gmeow:saRationale "gmeow:Membership MUST be an owl:Class typed gufo:Kind and a subclass of gufo:Relator -- the reified member x organization x role x post binding (gUFO relator idiom; Principle 4). Mirrors test_organization_is_gufo_grounded (Membership part)." .
+
+# --- 3. Post is a gufo:RoleMixin subclass of FunctionalComplex (MUST) --------
+ex:saPostIsRoleMixin a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:Post a owl:Class , gufo:RoleMixin ;
+        rdfs:subClassOf gufo:FunctionalComplex .
+}""" ;
+    gmeow:saRationale "gmeow:Post MUST be an owl:Class typed gufo:RoleMixin and a subclass of gufo:FunctionalComplex -- a seat independent of its holder; RoleMixin because the post identity does not fix the bearer's identity (issue #258). Mirrors test_post_is_gufo_role_mixin." .
+
+# --- 4. The six OrganizationType seed individuals exist (MUST) ----------------
+ex:saOrganizationTypeSeeds a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    gmeow:organizationTypeCompany              a gmeow:OrganizationType .
+    gmeow:organizationTypeNonprofit            a gmeow:OrganizationType .
+    gmeow:organizationTypeGovernmentBody       a gmeow:OrganizationType .
+    gmeow:organizationTypeEducationalInstitution a gmeow:OrganizationType .
+    gmeow:organizationTypeAssociation          a gmeow:OrganizationType .
+    gmeow:organizationTypeCollaboration        a gmeow:OrganizationType .
+}""" ;
+    gmeow:saRationale "All six OrganizationType seed individuals (company, nonprofit, governmentBody, educationalInstitution, association, collaboration) MUST exist as gmeow:OrganizationType instances -- the open value vocabulary bootstrap (Principle 9). Mirrors test_organization_type_values_exist." .
+
+# --- 5. The three SiteType seed individuals exist (MUST) ---------------------
+ex:saSiteTypeSeeds a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    gmeow:siteTypeHeadquarters a gmeow:SiteType .
+    gmeow:siteTypeBranch       a gmeow:SiteType .
+    gmeow:siteTypeRegistered   a gmeow:SiteType .
+}""" ;
+    gmeow:saRationale "The three SiteType seed individuals (headquarters, branch, registered) MUST exist as gmeow:SiteType instances -- the site-purpose value vocabulary bootstrap (issue #258). Mirrors test_site_type_values_exist." .
+
+# --- 6. organizationType is an owl:ObjectProperty (MUST) ---------------------
+ex:saOrganizationTypeProperty a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:organizationType a owl:ObjectProperty . }""" ;
+    gmeow:saRationale "gmeow:organizationType MUST be an owl:ObjectProperty -- kind is a value, not a subclass (Principle 9). Mirrors test_new_organization_properties_exist (organizationType part)." .
+
+# --- 7. postIn is an owl:ObjectProperty (MUST) -------------------------------
+ex:saPostInProperty a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:postIn a owl:ObjectProperty . }""" ;
+    gmeow:saRationale "gmeow:postIn MUST be an owl:ObjectProperty binding a Post to its organization (issue #258). Mirrors test_new_organization_properties_exist (postIn part)." .
+
+# --- 8. fillsPost is an owl:ObjectProperty (MUST) ----------------------------
+ex:saFillsPostProperty a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:fillsPost a owl:ObjectProperty . }""" ;
+    gmeow:saRationale "gmeow:fillsPost MUST be an owl:ObjectProperty -- a Membership fills a Post seat (issue #258). Mirrors test_new_organization_properties_exist (fillsPost part)." .
+
+# --- 9. hasSite is an owl:ObjectProperty (MUST) ------------------------------
+ex:saHasSiteProperty a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:hasSite a owl:ObjectProperty . }""" ;
+    gmeow:saRationale "gmeow:hasSite MUST be an owl:ObjectProperty relating an organization to a site location (issue #258). Mirrors test_new_organization_properties_exist (hasSite part)." .
+
+# --- 10. siteType is an owl:ObjectProperty (MUST) ----------------------------
+ex:saSiteTypeProperty a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:siteType a owl:ObjectProperty . }""" ;
+    gmeow:saRationale "gmeow:siteType MUST be an owl:ObjectProperty carrying the purpose of a site (issue #258). Mirrors test_new_organization_properties_exist (siteType part)." .
+
+# --- 11. predecessorOrganization is an owl:ObjectProperty (MUST) -------------
+ex:saPredecessorOrganizationProperty a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:predecessorOrganization a owl:ObjectProperty . }""" ;
+    gmeow:saRationale "gmeow:predecessorOrganization MUST be an owl:ObjectProperty on a change Event naming an organization that ceased or transformed (issue #258). Mirrors test_new_organization_properties_exist (predecessorOrganization part)." .
+
+# --- 12. successorOrganization is an owl:ObjectProperty (MUST) ---------------
+ex:saSuccessorOrganizationProperty a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:successorOrganization a owl:ObjectProperty . }""" ;
+    gmeow:saRationale "gmeow:successorOrganization MUST be an owl:ObjectProperty on a change Event naming an organization that began or resulted from it (issue #258). Mirrors test_new_organization_properties_exist (successorOrganization part)." .
+
+# --- 13. hasIdentifier is an owl:ObjectProperty (MUST) -----------------------
+ex:saHasIdentifierProperty a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:hasIdentifier a owl:ObjectProperty . }""" ;
+    gmeow:saRationale "gmeow:hasIdentifier MUST be an owl:ObjectProperty relating an entity to a reified Identifier node (issue #258). Mirrors test_new_organization_properties_exist (hasIdentifier part)." .
+
+# --- 14. legalIdentifier is an owl:ObjectProperty (MUST) ---------------------
+ex:saLegalIdentifierProperty a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:legalIdentifier a owl:ObjectProperty . }""" ;
+    gmeow:saRationale "gmeow:legalIdentifier MUST be an owl:ObjectProperty -- the org-scoped specialization of hasIdentifier for legal registration codes (issue #258). Mirrors test_new_organization_properties_exist (legalIdentifier part)." .
+
+# --- 15. industryClassification is an owl:ObjectProperty (MUST) --------------
+ex:saIndustryClassificationProperty a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:industryClassification a owl:ObjectProperty . }""" ;
+    gmeow:saRationale "gmeow:industryClassification MUST be an owl:ObjectProperty -- the org-scoped specialization of hasIdentifier for NAICS/ISIC sector codes (issue #258). Mirrors test_new_organization_properties_exist (industryClassification part)." .
+
+# --- 16. identifierValue is an owl:DatatypeProperty (MUST) -------------------
+ex:saIdentifierValueProperty a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:identifierValue a owl:DatatypeProperty . }""" ;
+    gmeow:saRationale "gmeow:identifierValue MUST be an owl:DatatypeProperty carrying the scheme-local literal code on an Identifier node (issue #258). Mirrors test_new_organization_properties_exist (identifierValue part)." .
+
+# --- 17. identifierScheme is an owl:DatatypeProperty (MUST) ------------------
+ex:saIdentifierSchemeProperty a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:identifierScheme a owl:DatatypeProperty . }""" ;
+    gmeow:saRationale "gmeow:identifierScheme MUST be an owl:DatatypeProperty naming the scheme on an Identifier node (issue #258). Mirrors test_new_organization_properties_exist (identifierScheme part)." .
+
+# --- 18. jurisdiction is an owl:ObjectProperty (MUST) ------------------------
+ex:saJurisdictionProperty a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:jurisdiction a owl:ObjectProperty . }""" ;
+    gmeow:saRationale "gmeow:jurisdiction MUST be an owl:ObjectProperty carrying the legal/regulatory jurisdiction of an Identifier (issue #258). Mirrors test_new_organization_properties_exist (jurisdiction part)." .
+
+# --- 19. organizationPurpose is an owl:DatatypeProperty (MUST) ---------------
+ex:saOrganizationPurposeProperty a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:organizationPurpose a owl:DatatypeProperty . }""" ;
+    gmeow:saRationale "gmeow:organizationPurpose MUST be an owl:DatatypeProperty carrying a free-text mission statement (issue #258). Mirrors test_new_organization_properties_exist (organizationPurpose part)." .

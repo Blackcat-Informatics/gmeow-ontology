@@ -1,0 +1,358 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics(R) Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Declarative structural assertions for the deception slice (#213, EPIC #212) --
+# the slice-resident test-DSL twin of the asserted-TBox MUST / MUST-NOT
+# invariants formerly hand-written in tests/test_deception.py. Each assertion
+# runs as a SPARQL ASK over the deception module graph (gmeow:scopeModule)
+# under the native Rust harness (crates/slicetest).
+#
+# Deception is NOT #694-migrated: class stereotypes remain gufo:
+# (gufo:AbstractIndividualType, gufo:QualityValue), not logic:.
+#
+# RETAINED in pytest (not migratable here):
+#   test_blame_deflection_example_uses_doxastic_standpoint_claims --
+#     loads slices/core/deception/examples/blame-deflection.ttl and checks
+#     that every held/projected standpoint is typed DoxasticStandpointClaim;
+#     dynamic ABox file-load check, not a module-scoped TBox assertion.
+#   test_bullshit_modality_exists --
+#     gmeow:bullshit is a SUBJECT of slices/core/standpoint/module.ttl, not
+#     the deception module; a scopeModule cell would silently miss it.
+#   test_standpoint_divergence_coexists -- run_shacl(); ExampleConformance.
+#   test_deception_event_shacl_passes -- run_shacl(); ExampleConformance.
+#   test_deception_cue_shacl_passes -- run_shacl(); ExampleConformance.
+#   test_paltering_implicates_structure -- run_shacl(); ExampleConformance.
+#   test_self_deception_same_agent -- run_shacl(); ExampleConformance.
+#   test_distortion_shacl_passes -- run_shacl(); ExampleConformance.
+#   test_licensed_falsehood_not_a_lie -- run_shacl() + NarrativeReferenceFrame
+#     check (cross-slice subject); ExampleConformance + cross-slice guard.
+#   test_fabrication_refuted_provenance -- run_shacl(); ExampleConformance.
+#   test_forgery_failed_signature_structure -- run_shacl(); ExampleConformance.
+#   test_impersonation_facet_subject_mismatch -- run_shacl(); ExampleConformance.
+#   test_disinformation_propagation_chain -- run_shacl(); ExampleConformance.
+#   test_disinformation_boundary_query -- reads competency .rq file and
+#     asserts result labels; generated-artifact / SPARQL-result check, not
+#     expressible as a module-scoped ASK.
+#
+# See dsl/tests/MIGRATION-LEDGER.md for the per-test pytest->DSL mapping.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/deception/tests/> .
+
+# --- 1. eventTypeDeception is an EventType individual (MUST) ------------------
+ex:saDeceptionEventTypeExists a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK { gmeow:eventTypeDeception a gmeow:EventType . }""" ;
+    gmeow:saRationale "gmeow:eventTypeDeception MUST exist as a gmeow:EventType individual -- deception-kind is an open value vocabulary, never a subclass (events.ttl doctrine). Mirrors test_deception_event_type_exists." .
+
+# --- 2. heldStandpoint is an ObjectProperty with domain Event and range
+#        DoxasticStandpointClaim (MUST) ----------------------------------------
+ex:saHeldStandpointProperty a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:heldStandpoint a owl:ObjectProperty ;
+        rdfs:domain gmeow:Event ;
+        rdfs:range gmeow:DoxasticStandpointClaim .
+}""" ;
+    gmeow:saRationale "gmeow:heldStandpoint MUST be an owl:ObjectProperty with domain gmeow:Event and range gmeow:DoxasticStandpointClaim -- the private-belief half of the held!=projected deception divergence. Mirrors test_divergence_properties_exist (heldStandpoint part)." .
+
+# --- 3. projectedStandpoint is an ObjectProperty with domain Event and range
+#        DoxasticStandpointClaim (MUST) ----------------------------------------
+ex:saProjectedStandpointProperty a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:projectedStandpoint a owl:ObjectProperty ;
+        rdfs:domain gmeow:Event ;
+        rdfs:range gmeow:DoxasticStandpointClaim .
+}""" ;
+    gmeow:saRationale "gmeow:projectedStandpoint MUST be an owl:ObjectProperty with domain gmeow:Event and range gmeow:DoxasticStandpointClaim -- the communicated-position half of the held!=projected deception divergence. Mirrors test_divergence_properties_exist (projectedStandpoint part)." .
+
+# --- 4. deceptiveIntentClaim property shape (MUST) ----------------------------
+ex:saDeceptiveIntentClaimProperty a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:deceptiveIntentClaim a owl:ObjectProperty ;
+        rdfs:domain gmeow:Event ;
+        rdfs:range gmeow:StandpointClaim .
+}""" ;
+    gmeow:saRationale "gmeow:deceptiveIntentClaim MUST be an owl:ObjectProperty with domain gmeow:Event and range gmeow:StandpointClaim -- intent is a defeasible, attributed standpoint claim, never an entailed boolean (Principle 9). Mirrors test_deceptive_intent_claim_property_exists." .
+
+# --- 5. implicates property shape (MUST) --------------------------------------
+ex:saImplicatesProperty a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:implicates a owl:ObjectProperty ;
+        rdfs:domain gmeow:Event ;
+        rdfs:range gmeow:Entity .
+}""" ;
+    gmeow:saRationale "gmeow:implicates MUST be an owl:ObjectProperty with domain gmeow:Event and range gmeow:Entity -- the paltering hook; implicature computation is solver-layer (Principle 12). Mirrors test_implicates_property_exists." .
+
+# --- 6. deceptionCue property shape (MUST) ------------------------------------
+ex:saDeceptionCueProperty a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:deceptionCue a owl:ObjectProperty ;
+        rdfs:domain gmeow:Event ;
+        rdfs:range gmeow:Observation .
+}""" ;
+    gmeow:saRationale "gmeow:deceptionCue MUST be an owl:ObjectProperty with domain gmeow:Event and range gmeow:Observation -- each cue carries its own vantage and method rather than being a bare fact. Mirrors test_deception_cue_property_exists." .
+
+# --- 7. The four core deception roles exist as ParticipantRole individuals
+#        (MUST) ----------------------------------------------------------------
+ex:saDeceptionRolesExist a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    gmeow:roleDeceiver                a gmeow:ParticipantRole .
+    gmeow:roleDeceived                a gmeow:ParticipantRole .
+    gmeow:roleBeneficiaryOfDeception  a gmeow:ParticipantRole .
+    gmeow:roleDupe                    a gmeow:ParticipantRole .
+}""" ;
+    gmeow:saRationale "The four core deception roles (deceiver, deceived, beneficiary, dupe) MUST exist as gmeow:ParticipantRole individuals -- they cover the principal positions in any deception event. Mirrors test_deception_roles_exist." .
+
+# --- 8. ClaimVeridicality is a gufo:AbstractIndividualType value vocabulary
+#        subclassing gufo:QualityValue (MUST) -----------------------------------
+ex:saClaimVeridicalityClass a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:ClaimVeridicality a owl:Class , gufo:AbstractIndividualType ;
+        rdfs:subClassOf gufo:QualityValue .
+}""" ;
+    gmeow:saRationale "gmeow:ClaimVeridicality MUST be an owl:Class typed gufo:AbstractIndividualType and a subclass of gufo:QualityValue -- veridicality is an open value vocabulary of individuals, never subclasses (Principle 9). Mirrors test_veridicality_values_exist (class structure part)." .
+
+# --- 9. The two required ClaimVeridicality seed individuals exist (MUST) ------
+ex:saClaimVeridicalitySeeds a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    gmeow:veridicalityUntrue           a gmeow:ClaimVeridicality .
+    gmeow:veridicalityLicensedFalsehood a gmeow:ClaimVeridicality .
+}""" ;
+    gmeow:saRationale "Both seed individuals (veridicalityUntrue, veridicalityLicensedFalsehood) MUST exist as gmeow:ClaimVeridicality instances -- they anchor the licensed-falsehood safety property that separates fiction from deception. Mirrors test_veridicality_values_exist (individual seeds part)." .
+
+# --- 10. attestationTypeFactCheck exists as an AttestationType (MUST) ---------
+ex:saAttestationTypeFactCheck a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK { gmeow:attestationTypeFactCheck a gmeow:AttestationType . }""" ;
+    gmeow:saRationale "gmeow:attestationTypeFactCheck MUST exist as a gmeow:AttestationType individual -- models the schema.org ClaimReview act (result is a VerificationResult, never a global truth assertion; Principle 12). Mirrors test_attestation_type_fact_check_exists." .
+
+# --- 11. No isFalse property declared as ObjectProperty (MUST-NOT) -----------
+ex:saNoIsFalseObjectProperty a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:isFalse a owl:ObjectProperty . }""" ;
+    gmeow:saRationale "gmeow:isFalse MUST NOT be declared an owl:ObjectProperty -- a falsehood is a refuted StandpointClaim modality, never a boolean flag (Principles 1, 12; no-isFalse doctrine). Mirrors test_no_is_false_axiom (isFalse ObjectProperty part)." .
+
+# --- 12. No isFalse property declared as DatatypeProperty (MUST-NOT) ---------
+ex:saNoIsFalseDatatypeProperty a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:isFalse a owl:DatatypeProperty . }""" ;
+    gmeow:saRationale "gmeow:isFalse MUST NOT be declared an owl:DatatypeProperty -- a falsehood is a refuted StandpointClaim modality, never a boolean flag (Principles 1, 12; no-isFalse doctrine). Mirrors test_no_is_false_axiom (isFalse DatatypeProperty part)." .
+
+# --- 13. No isFalse property declared as AnnotationProperty (MUST-NOT) -------
+ex:saNoIsFalseAnnotationProperty a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:isFalse a owl:AnnotationProperty . }""" ;
+    gmeow:saRationale "gmeow:isFalse MUST NOT be declared an owl:AnnotationProperty -- a falsehood is a refuted StandpointClaim modality, never an annotation flag (Principles 1, 12; no-isFalse doctrine). Mirrors test_no_is_false_axiom (isFalse AnnotationProperty part)." .
+
+# --- 14. No isDeceptive property declared as ObjectProperty (MUST-NOT) -------
+ex:saNoIsDeceptiveObjectProperty a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:isDeceptive a owl:ObjectProperty . }""" ;
+    gmeow:saRationale "gmeow:isDeceptive MUST NOT be declared an owl:ObjectProperty -- deceptiveness is a defeasible attributed claim that coexists with its denial, never an entailed flag (Principle 9; no-isFalse doctrine). Mirrors test_no_is_false_axiom (isDeceptive ObjectProperty part)." .
+
+# --- 15. No isDeceptive property declared as DatatypeProperty (MUST-NOT) -----
+ex:saNoIsDeceptiveDatatypeProperty a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:isDeceptive a owl:DatatypeProperty . }""" ;
+    gmeow:saRationale "gmeow:isDeceptive MUST NOT be declared an owl:DatatypeProperty -- deceptiveness is a defeasible attributed claim, never a boolean data flag (Principle 9; no-isFalse doctrine). Mirrors test_no_is_false_axiom (isDeceptive DatatypeProperty part)." .
+
+# --- 16. No isDeceptive property declared as AnnotationProperty (MUST-NOT) ---
+ex:saNoIsDeceptiveAnnotationProperty a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:isDeceptive a owl:AnnotationProperty . }""" ;
+    gmeow:saRationale "gmeow:isDeceptive MUST NOT be declared an owl:AnnotationProperty -- deceptiveness is a defeasible attributed claim, never an annotation flag (Principle 9; no-isFalse doctrine). Mirrors test_no_is_false_axiom (isDeceptive AnnotationProperty part)." .
+
+# --- 17. veridicalityLicensedFalsehood is NOT a subclass of veridicalityUntrue
+#        (MUST-NOT) ------------------------------------------------------------
+ex:saLicensedFalsehoodNotSubclassUntrue a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK { gmeow:veridicalityLicensedFalsehood rdfs:subClassOf gmeow:veridicalityUntrue . }""" ;
+    gmeow:saRationale "gmeow:veridicalityLicensedFalsehood MUST NOT be rdfs:subClassOf gmeow:veridicalityUntrue -- licensed falsehood and untrue are siblings, neither subsumes the other; fiction is not deception (licensed-falsehood safety property). Mirrors test_licensed_falsehood_is_not_deception (LicensedFalsehood not-subClassOf-Untrue part)." .
+
+# --- 18. veridicalityUntrue is NOT a subclass of veridicalityLicensedFalsehood
+#        (MUST-NOT) ------------------------------------------------------------
+ex:saUntrueNotSubclassLicensedFalsehood a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK { gmeow:veridicalityUntrue rdfs:subClassOf gmeow:veridicalityLicensedFalsehood . }""" ;
+    gmeow:saRationale "gmeow:veridicalityUntrue MUST NOT be rdfs:subClassOf gmeow:veridicalityLicensedFalsehood -- the two veridicality siblings are co-equal; deception is not a special case of fiction (licensed-falsehood safety property). Mirrors test_licensed_falsehood_is_not_deception (Untrue not-subClassOf-LicensedFalsehood part)." .
+
+# --- 19. eventTypeLie exists as an EventType individual (MUST) ----------------
+ex:saEventTypeLieExists a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK { gmeow:eventTypeLie a gmeow:EventType . }""" ;
+    gmeow:saRationale "gmeow:eventTypeLie MUST exist as a gmeow:EventType individual -- lie/falsification is the core speech-act deception type (issue #215). Mirrors test_event_type_lie_exists." .
+
+# --- 20. eventTypePaltering exists as an EventType individual (MUST) ----------
+ex:saEventTypePalteringExists a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK { gmeow:eventTypePaltering a gmeow:EventType . }""" ;
+    gmeow:saRationale "gmeow:eventTypePaltering MUST exist as a gmeow:EventType individual -- paltering is the technically-true-but-misleading speech-act deception type (issue #215). Mirrors test_event_type_paltering_exists." .
+
+# --- 21. eventTypeOmission exists as an EventType individual (MUST) -----------
+ex:saEventTypeOmissionExists a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK { gmeow:eventTypeOmission a gmeow:EventType . }""" ;
+    gmeow:saRationale "gmeow:eventTypeOmission MUST exist as a gmeow:EventType individual -- omission/concealment is the suppression-of-held-truth deception type (issue #215). Mirrors test_event_type_omission_exists." .
+
+# --- 22. eventTypeDistortion exists as an EventType individual (MUST) ---------
+ex:saEventTypeDistortionExists a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK { gmeow:eventTypeDistortion a gmeow:EventType . }""" ;
+    gmeow:saRationale "gmeow:eventTypeDistortion MUST exist as a gmeow:EventType individual -- distortion/spin is the reframing deception type carrying gmeow:roleSpinDoctor (issue #215). Mirrors test_event_type_distortion_exists." .
+
+# --- 23. eventTypeBullshit exists as an EventType individual (MUST) -----------
+ex:saEventTypeBullshitExists a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK { gmeow:eventTypeBullshit a gmeow:EventType . }""" ;
+    gmeow:saRationale "gmeow:eventTypeBullshit MUST exist as a gmeow:EventType individual -- bullshit event type (Frankfurt indifference-to-truth; distinct from lie and error, issue #215). Mirrors test_event_type_bullshit_exists." .
+
+# --- 24. eventTypeSelfDeception exists as an EventType individual (MUST) ------
+ex:saEventTypeSelfDeceptionExists a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK { gmeow:eventTypeSelfDeception a gmeow:EventType . }""" ;
+    gmeow:saRationale "gmeow:eventTypeSelfDeception MUST exist as a gmeow:EventType individual -- self-deception is the structural configuration where roleDeceiver = roleDeceived (issue #215). Mirrors test_event_type_self_deception_exists." .
+
+# --- 25. roleSpinDoctor exists as a ParticipantRole individual (MUST) ---------
+ex:saRoleSpinDoctorExists a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK { gmeow:roleSpinDoctor a gmeow:ParticipantRole . }""" ;
+    gmeow:saRationale "gmeow:roleSpinDoctor MUST exist as a gmeow:ParticipantRole individual -- the distortion-specific role for the participant who reframes information (issue #215). Mirrors test_role_spin_doctor_exists." .
+
+# --- 26. MaximViolationType is a gufo:AbstractIndividualType value vocabulary
+#        subclassing gufo:QualityValue (MUST) -----------------------------------
+ex:saMaximViolationTypeClass a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:MaximViolationType a owl:Class , gufo:AbstractIndividualType ;
+        rdfs:subClassOf gufo:QualityValue .
+}""" ;
+    gmeow:saRationale "gmeow:MaximViolationType MUST be an owl:Class typed gufo:AbstractIndividualType and a subclass of gufo:QualityValue -- the four Gricean maxim violations are an open value vocabulary of individuals, not subclasses. Mirrors test_maxim_violation_values_exist (class structure part)." .
+
+# --- 27. The four Gricean maxim violation seed individuals exist (MUST) -------
+ex:saMaximViolationSeeds a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    gmeow:maximViolationQuality   a gmeow:MaximViolationType .
+    gmeow:maximViolationQuantity  a gmeow:MaximViolationType .
+    gmeow:maximViolationRelation  a gmeow:MaximViolationType .
+    gmeow:maximViolationManner    a gmeow:MaximViolationType .
+}""" ;
+    gmeow:saRationale "All four Gricean maxim violation seeds (quality, quantity, relation, manner) MUST exist as gmeow:MaximViolationType individuals -- they cover the full set of conversational maxims a deceptive event may breach. Mirrors test_maxim_violation_values_exist (individual seeds part)." .
+
+# --- 28. eventTypeFabrication exists as an EventType individual (MUST) --------
+ex:saEventTypeFabricationExists a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK { gmeow:eventTypeFabrication a gmeow:EventType . }""" ;
+    gmeow:saRationale "gmeow:eventTypeFabrication MUST exist as a gmeow:EventType individual -- fabrication is the carrier deception type that invents a false artifact (issue #216). Mirrors test_event_type_fabrication_exists." .
+
+# --- 29. eventTypeForgery exists as an EventType individual (MUST) ------------
+ex:saEventTypeForgeryExists a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK { gmeow:eventTypeForgery a gmeow:EventType . }""" ;
+    gmeow:saRationale "gmeow:eventTypeForgery MUST exist as a gmeow:EventType individual -- forgery is the fabrication subtype that mimics a specific genuine artifact via gmeow:counterpartOf (issue #216). Mirrors test_event_type_forgery_exists." .
+
+# --- 30. eventTypeImpersonation exists as an EventType individual (MUST) ------
+ex:saEventTypeImpersonationExists a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK { gmeow:eventTypeImpersonation a gmeow:EventType . }""" ;
+    gmeow:saRationale "gmeow:eventTypeImpersonation MUST exist as a gmeow:EventType individual -- impersonation is the projected-identity-mismatch carrier deception type (issue #216). Mirrors test_event_type_impersonation_exists." .
+
+# --- 31. eventTypeDisinformation exists as an EventType individual (MUST) -----
+ex:saEventTypeDisinformationExists a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK { gmeow:eventTypeDisinformation a gmeow:EventType . }""" ;
+    gmeow:saRationale "gmeow:eventTypeDisinformation MUST exist as a gmeow:EventType individual -- disinformation is the coordinated propagation type; the misinfo/disinfo boundary is per-node (issue #217). Mirrors test_event_type_disinformation_exists." .
