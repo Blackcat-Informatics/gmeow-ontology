@@ -1,44 +1,48 @@
-"""Structural + DL-safety guards for the finance module (#64, Phase A).
+"""Retained dynamic guards for the finance module (#64).
 
-These tests pin the decisions that keep the financial slice grounded in gUFO,
-frame-relative (Principle 11), open-vocabulary (Principle 9), and free of
-subclass explosion.
+Asserted-TBox invariants whose subjects are defined in
+slices/extensions/finance/module.ttl have been migrated to
+slices/extensions/finance/tests/structural.ttl as declarative
+gmeow:StructuralAssertion cells (DSL twin, #867).
+
+RETAINED here (not migratable to scopeModule cells):
+  - test_monetary_amount_is_entity: gmeow:MonetaryAmount is cross-slice.
+  - test_monetary_value_is_functional: gmeow:monetaryValue is cross-slice.
+  - test_currency_is_functional: gmeow:currency is cross-slice.
+  - test_currency_is_subproperty_of_has_reference_frame: cross-slice.
+  - test_currency_frames_have_realm_currency: reference-frame individuals
+    are defined outside the finance module; dynamic cross-slice check.
+  - test_no_transaction_subclass_explosion: whole-graph sweep asserting
+    the absence of three named classes; dynamic, not module-scoped.
+  - test_currency_vocab_is_open_values_not_subclasses (negative half):
+    whole-graph sweep for absent BankAccount/CreditAccount/etc. classes.
+  - test_transaction_type_vocab_is_open_values (negative half): sweep
+    for absent PaymentTransaction/DebitPosting/etc. classes.
+  - test_asset_type_vocab_is_open_values (negative half): sweep for
+    absent StockAsset/BondAsset/CryptoAsset classes.
+  - test_transaction_uses_participation_not_subproperty (negative half):
+    sweep for absent hasPayer/hasPayee/hasIntermediary properties.
+  - All run_shacl calls: ExampleConformance, not TBox invariants.
 """
 
 from __future__ import annotations
 
 from pathlib import Path
 
-from gmeow_rdf.compat.rdflib import Graph, Namespace, URIRef
+from gmeow_rdf.compat.rdflib import Graph, URIRef
 from gmeow_rdf.compat.rdflib.namespace import OWL, RDF, RDFS
 
 from gmeow_tools.graph import load_merged_graph
 from tests._graph_nt import run_shacl
 
 GMEOW = "https://blackcatinformatics.ca/gmeow/"
-GUFO = "http://purl.org/nemo/gufo#"
 LOGIC = "https://blackcatinformatics.ca/logic/"
 
-EX_FIN = Namespace("https://blackcatinformatics.ca/gmeow/examples/finance/")
 COVERAGE_FIXTURES = Path(__file__).parent / "fixtures" / "coverage"
 
 
 def _graph() -> Graph:
     return load_merged_graph(include_imports=False)
-
-
-def test_financial_account_is_information_object() -> None:
-    graph = _graph()
-    assert (
-        URIRef(GMEOW + "FinancialAccount"),
-        RDFS.subClassOf,
-        URIRef(GMEOW + "InformationObject"),
-    ) in graph
-    assert (
-        URIRef(GMEOW + "FinancialAccount"),
-        RDF.type,
-        URIRef(GUFO + "Kind"),
-    ) in graph
 
 
 def test_monetary_amount_is_entity() -> None:
@@ -56,20 +60,9 @@ def test_monetary_amount_is_entity() -> None:
 
 
 def test_currency_vocab_is_open_values_not_subclasses() -> None:
+    # Negative half: no per-type subclasses of FinancialAccount may exist.
+    # (Positive half migrated to structural.ttl: ex:saFinancialAccountTypeSeeds)
     graph = _graph()
-    # FinancialAccountType values are individuals, not classes.
-    for value in (
-        "accountTypeBank",
-        "accountTypeCredit",
-        "accountTypeInvestment",
-        "accountTypeWallet",
-    ):
-        assert (
-            URIRef(GMEOW + value),
-            RDF.type,
-            URIRef(GMEOW + "FinancialAccountType"),
-        ) in graph
-    # There must be no per-type subclasses of FinancialAccount.
     for rejected in (
         "BankAccount",
         "CreditAccount",
@@ -81,17 +74,6 @@ def test_currency_vocab_is_open_values_not_subclasses() -> None:
             RDF.type,
             OWL.Class,
         ) not in graph, f"{rejected} must not exist as a class"
-
-
-def test_account_currency_is_non_functional() -> None:
-    graph = _graph()
-    account_currency = URIRef(GMEOW + "accountCurrency")
-    assert (account_currency, RDF.type, OWL.ObjectProperty) in graph
-    assert (
-        account_currency,
-        RDF.type,
-        OWL.FunctionalProperty,
-    ) not in graph, "accountCurrency must stay non-functional (multi-currency accounts)"
 
 
 def test_monetary_value_is_functional() -> None:
@@ -170,115 +152,16 @@ def test_finance_fixture_conforms() -> None:
 
 
 # --------------------------------------------------------------------------- #
-# Phase B — Transactions, Ledger, Posting
+# Phase B -- Transactions, Ledger, Posting
 # --------------------------------------------------------------------------- #
 
 
-def test_financial_transaction_is_event() -> None:
-    graph = _graph()
-    assert (
-        URIRef(GMEOW + "FinancialTransaction"),
-        RDFS.subClassOf,
-        URIRef(GMEOW + "Event"),
-    ) in graph
-    assert (
-        URIRef(GMEOW + "FinancialTransaction"),
-        RDF.type,
-        URIRef(GUFO + "EventType"),
-    ) in graph
-
-
-def test_journal_entry_is_event() -> None:
-    graph = _graph()
-    assert (
-        URIRef(GMEOW + "JournalEntry"),
-        RDFS.subClassOf,
-        URIRef(GMEOW + "Event"),
-    ) in graph
-    assert (
-        URIRef(GMEOW + "JournalEntry"),
-        RDF.type,
-        URIRef(GUFO + "EventType"),
-    ) in graph
-
-
-def test_posting_is_relator() -> None:
-    graph = _graph()
-    assert (
-        URIRef(GMEOW + "Posting"),
-        RDFS.subClassOf,
-        URIRef(GUFO + "Relator"),
-    ) in graph
-    assert (
-        URIRef(GMEOW + "Posting"),
-        RDF.type,
-        URIRef(GUFO + "Kind"),
-    ) in graph
-
-
-def test_ledger_account_is_information_object() -> None:
-    graph = _graph()
-    assert (
-        URIRef(GMEOW + "LedgerAccount"),
-        RDFS.subClassOf,
-        URIRef(GMEOW + "InformationObject"),
-    ) in graph
-    assert (
-        URIRef(GMEOW + "LedgerAccount"),
-        RDF.type,
-        URIRef(GUFO + "Kind"),
-    ) in graph
-
-
 def test_transaction_type_vocab_is_open_values() -> None:
+    # Negative half: no per-type subclasses may exist (whole-graph sweep).
+    # (Positive halves migrated to structural.ttl: ex:saTransactionTypeSeeds,
+    # ex:saTransactionStatusSeeds, ex:saLedgerAccountTypeSeeds,
+    # ex:saPostingDirectionSeeds)
     graph = _graph()
-    for value in (
-        "transactionTypePayment",
-        "transactionTypeTransfer",
-        "transactionTypeDeposit",
-        "transactionTypeWithdrawal",
-        "transactionTypeFee",
-        "transactionTypeInterest",
-        "transactionTypeRefund",
-    ):
-        assert (
-            URIRef(GMEOW + value),
-            RDF.type,
-            URIRef(GMEOW + "TransactionType"),
-        ) in graph
-    for value in (
-        "transactionStatusPending",
-        "transactionStatusCompleted",
-        "transactionStatusReversed",
-        "transactionStatusFailed",
-    ):
-        assert (
-            URIRef(GMEOW + value),
-            RDF.type,
-            URIRef(GMEOW + "TransactionStatus"),
-        ) in graph
-    for value in (
-        "ledgerAccountTypeAsset",
-        "ledgerAccountTypeLiability",
-        "ledgerAccountTypeEquity",
-        "ledgerAccountTypeRevenue",
-        "ledgerAccountTypeExpense",
-    ):
-        assert (
-            URIRef(GMEOW + value),
-            RDF.type,
-            URIRef(GMEOW + "LedgerAccountType"),
-        ) in graph
-    for value in (
-        "postingDirectionDebit",
-        "postingDirectionCredit",
-    ):
-        assert (
-            URIRef(GMEOW + value),
-            RDF.type,
-            URIRef(GMEOW + "PostingDirection"),
-        ) in graph
-    # There must be no per-type subclasses.
     for rejected in (
         "PaymentTransaction",
         "InvoiceTransaction",
@@ -294,48 +177,15 @@ def test_transaction_type_vocab_is_open_values() -> None:
 
 
 def test_transaction_uses_participation_not_subproperty() -> None:
+    # Negative half: no shortcut subproperties may exist (whole-graph sweep).
+    # (Positive half migrated to structural.ttl: ex:saTransactionRoleSeeds)
     graph = _graph()
-    for role in ("rolePayer", "rolePayee", "roleIntermediary"):
-        assert (
-            URIRef(GMEOW + role),
-            RDF.type,
-            URIRef(GMEOW + "ParticipantRole"),
-        ) in graph
-    # There must be no hasPayer / hasPayee subproperties.
     for rejected in ("hasPayer", "hasPayee", "hasIntermediary"):
         assert (
             URIRef(GMEOW + rejected),
             RDF.type,
             OWL.ObjectProperty,
         ) not in graph, f"{rejected} must not exist as a property"
-
-
-def test_transaction_amount_is_functional() -> None:
-    graph = _graph()
-    txn_amount = URIRef(GMEOW + "transactionAmount")
-    assert (txn_amount, RDF.type, OWL.ObjectProperty) in graph
-    assert (
-        txn_amount,
-        RDF.type,
-        OWL.FunctionalProperty,
-    ) in graph, "transactionAmount must be functional"
-
-
-def test_posting_properties_are_functional() -> None:
-    graph = _graph()
-    for prop in (
-        "postingJournalEntry",
-        "postingAccount",
-        "postingAmount",
-        "postingDirection",
-    ):
-        p = URIRef(GMEOW + prop)
-        assert (p, RDF.type, OWL.ObjectProperty) in graph
-        assert (
-            p,
-            RDF.type,
-            OWL.FunctionalProperty,
-        ) in graph, f"{prop} must be functional"
 
 
 def test_double_entry_fixture_conforms() -> None:
@@ -347,124 +197,20 @@ def test_double_entry_fixture_conforms() -> None:
 
 
 # --------------------------------------------------------------------------- #
-# Phase C — Payment, Invoice, Order, Asset, Holding
+# Phase C -- Payment, Invoice, Order, Asset, Holding
 # --------------------------------------------------------------------------- #
 
 
-def test_payment_is_financial_transaction() -> None:
-    graph = _graph()
-    assert (
-        URIRef(GMEOW + "Payment"),
-        RDFS.subClassOf,
-        URIRef(GMEOW + "FinancialTransaction"),
-    ) in graph
-
-
-def test_invoice_is_document() -> None:
-    graph = _graph()
-    assert (
-        URIRef(GMEOW + "Invoice"),
-        RDFS.subClassOf,
-        URIRef(GMEOW + "Document"),
-    ) in graph
-
-
-def test_order_is_agreement() -> None:
-    graph = _graph()
-    assert (
-        URIRef(GMEOW + "Order"),
-        RDFS.subClassOf,
-        URIRef(GMEOW + "Agreement"),
-    ) in graph
-
-
 def test_asset_type_vocab_is_open_values() -> None:
+    # Negative half: no per-type Asset subclasses may exist (whole-graph
+    # sweep). (Positive half migrated to structural.ttl: ex:saAssetTypeSeeds)
     graph = _graph()
-    for value in (
-        "assetTypeStock",
-        "assetTypeBond",
-        "assetTypeCryptocurrency",
-        "assetTypeRealEstate",
-        "assetTypeCommodity",
-    ):
-        assert (
-            URIRef(GMEOW + value),
-            RDF.type,
-            URIRef(GMEOW + "AssetType"),
-        ) in graph
     for rejected in ("StockAsset", "BondAsset", "CryptoAsset"):
         assert (
             URIRef(GMEOW + rejected),
             RDF.type,
             OWL.Class,
         ) not in graph, f"{rejected} must not exist as a class"
-
-
-def test_payment_invoice_order_vocab_is_open_values() -> None:
-    graph = _graph()
-    for value in (
-        "paymentMethodCash",
-        "paymentMethodCheque",
-        "paymentMethodCreditCard",
-        "paymentMethodBankTransfer",
-        "paymentMethodCrypto",
-    ):
-        assert (
-            URIRef(GMEOW + value),
-            RDF.type,
-            URIRef(GMEOW + "PaymentMethod"),
-        ) in graph
-    for value in (
-        "invoiceStatusSent",
-        "invoiceStatusPaid",
-        "invoiceStatusOverdue",
-        "invoiceStatusCancelled",
-    ):
-        assert (
-            URIRef(GMEOW + value),
-            RDF.type,
-            URIRef(GMEOW + "InvoiceStatus"),
-        ) in graph
-    for value in (
-        "orderStatusConfirmed",
-        "orderStatusShipped",
-        "orderStatusDelivered",
-        "orderStatusCancelled",
-    ):
-        assert (
-            URIRef(GMEOW + value),
-            RDF.type,
-            URIRef(GMEOW + "OrderStatus"),
-        ) in graph
-
-
-def test_wallet_scheme_vocab_is_open_values() -> None:
-    graph = _graph()
-    for value in (
-        "walletSchemeBTC",
-        "walletSchemeETH",
-        "walletSchemeSOL",
-        "walletSchemeXMR",
-    ):
-        assert (
-            URIRef(GMEOW + value),
-            RDF.type,
-            URIRef(GMEOW + "WalletScheme"),
-        ) in graph
-
-
-def test_holding_is_relator() -> None:
-    graph = _graph()
-    assert (
-        URIRef(GMEOW + "Holding"),
-        RDFS.subClassOf,
-        URIRef(GUFO + "Relator"),
-    ) in graph
-    assert (
-        URIRef(GMEOW + "Holding"),
-        RDF.type,
-        URIRef(GUFO + "Kind"),
-    ) in graph
 
 
 def test_invoice_fixture_conforms() -> None:
@@ -492,44 +238,8 @@ def test_holding_fixture_conforms() -> None:
 
 
 # --------------------------------------------------------------------------- #
-# Phase D — CryptoWallet
+# Phase D -- CryptoWallet
 # --------------------------------------------------------------------------- #
-
-
-def test_crypto_wallet_is_financial_account() -> None:
-    graph = _graph()
-    assert (
-        URIRef(GMEOW + "CryptoWallet"),
-        RDFS.subClassOf,
-        URIRef(GMEOW + "FinancialAccount"),
-    ) in graph
-    assert (
-        URIRef(GMEOW + "CryptoWallet"),
-        RDF.type,
-        URIRef(GUFO + "SubKind"),
-    ) in graph
-
-
-def test_wallet_address_non_functional() -> None:
-    graph = _graph()
-    wallet_address = URIRef(GMEOW + "walletAddress")
-    assert (wallet_address, RDF.type, OWL.DatatypeProperty) in graph
-    assert (
-        wallet_address,
-        RDF.type,
-        OWL.FunctionalProperty,
-    ) not in graph, "walletAddress must stay non-functional (multi-address wallets)"
-
-
-def test_wallet_scheme_is_functional() -> None:
-    graph = _graph()
-    wallet_scheme = URIRef(GMEOW + "walletScheme")
-    assert (wallet_scheme, RDF.type, OWL.ObjectProperty) in graph
-    assert (
-        wallet_scheme,
-        RDF.type,
-        OWL.FunctionalProperty,
-    ) in graph, "walletScheme must be functional"
 
 
 def test_crypto_fixture_conforms() -> None:

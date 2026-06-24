@@ -312,6 +312,29 @@ The observation-module asserted-TBox structural assertions (#66, #69) migrated t
 
 **Observations tally:** 19 converted + 1 partial (property-bridges: 8 of 11 converted) = 23 structural cells, 5 retained-with-reason (4 generated-SSSOM-mapping reads + 1 cross-slice kin-bridge). `tests/test_observations.py` 24 → 5 fns.
 
+## #867 structural batch 7 (names / events / software / finance / images / cognition)
+
+Six more home slices migrated to `slices/<g>/<n>/tests/structural.ttl`. ~94 converted
+fns → 179 `gmeow:StructuralAssertion` cells; all green (`cargo nextest -p gmeow-slicetest`,
+64/64 cell files). `names` and `events` are #694-migrated (logic:); the rest gufo:.
+Per-cell `saRationale` names the source fn; detailed cell IRIs live in each
+`structural.ttl`. Every RETAINED fn is rowed below (no silent drops). `make validate` ✓.
+
+| Slice (stereotype) | Converted fns → cells | Retained fns (reason) |
+|---|---|---|
+| `core/names` (logic:) | 20 → 44 cells | 8 retained: `test_appellation_umbrella_and_structural_subclasses` + `test_has_title_subproperty_of_hasappellation` + `test_has_software_name_subproperty_of_hasappellation` (CROSS-SLICE — the Appellation subclasses / hasAppellation bridges are asserted in organization/creative-works/agreements/software/documents, not names — caught by the harness, restored to pytest); `test_place_naming_is_defined_class` (partial: equivalentClass Collection traversal); 21-item dynamic pronoun-anchor sweep; pronoun name-only ABox; `test_contested_name_usage_coexists` (run_shacl); audience/standpoint cross-slice |
+| `core/events` (logic:) | 24 → 55 cells | 16 retained: cross-slice (Activity⊑Event in provenance, observational-activity); dynamic `g.subjects(subClassOf)` sweeps; bnode mediation/property-chain list walks; 2 run_shacl + contested fixture; 8 projection tests |
+| `extensions/software` (gufo:) | 11 → 21 cells | 17 retained: dynamic pairwise facet sweep; run_shacl + 13 fixture-ABox checks; 2 dynamic subset sweeps |
+| `extensions/finance` (gufo:) | ~17 → 28 cells | 16 retained: cross-slice (MonetaryAmount/currency/reference-frame in core); 6 run_shacl; whole-graph absence sweeps (no-subclass-explosion + the negative arms of the value-vocab partials) |
+| `extensions/images` (gufo:) | 10 → 11 cells | 18 retained: 7 cross-slice (depicts/MediaObject/image-event-types in core/documents + core/events); 11 run_shacl ExampleConformance |
+| `core/cognition` (gufo:) | 13 → 20 cells | 9 retained: cross-slice (MentalMoment in kernel, IntentionalMode in teleology, proficiency-vocab in kernel); dynamic metaclass-cardinality; 2 run_shacl; 3 SSSOM mapping reads |
+
+**Batch-7 tally:** ~94 converted fns → 179 structural cells across 6 slices (the
+largest batch); ~84 retained-with-reason (cross-slice subjects, run_shacl
+ExampleConformance, whole-graph dynamic sweeps, bnode list-walks, projection +
+SSSOM-mapping + numeric reads). names' 3 cross-slice Appellation-bridge cells were
+caught by the harness (must-cell failed) and correctly moved back to retained pytest.
+
 ## #867 structural batch 6 (coreference / organization / agentic / evidence / narrative / deception)
 
 Six more home slices migrated to `slices/<g>/<n>/tests/structural.ttl` (all gufo:).

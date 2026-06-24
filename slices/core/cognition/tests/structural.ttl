@@ -1,0 +1,311 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Declarative structural assertions for the cognition slice (#556/#557/#558) --
+# the slice-resident test-DSL twin of the asserted-TBox MUST / MUST-NOT
+# invariants formerly hand-written in tests/test_cognition.py. Each assertion
+# runs as a SPARQL ASK over the cognition module graph (gmeow:scopeModule)
+# under the native Rust slicetest harness (crates/slicetest).
+#
+# Cognition is NOT yet #694-migrated: class stereotypes remain gufo:
+# (gufo:Kind, gufo:AbstractIndividualType, gufo:QualityValue), not logic:.
+#
+# RETAINED in pytest (not migratable here):
+#   test_mental_moment_is_category_under_intrinsic_mode --
+#     gmeow:MentalMoment is defined in slices/core/kernel/module.ttl;
+#     a scopeModule cell over the cognition graph would silently miss it.
+#   test_mental_moment_has_exactly_one_gufo_metaclass --
+#     whole-graph dynamic sweep: iterates all MentalMoment/CognitiveState/
+#     KnowledgeProficiency/KnowledgeLevel types and counts metaclass hits;
+#     a finite-list ASK cannot faithfully encode the "exactly one" cardinality
+#     check across an open metaclass set without narrowing the assertion.
+#   test_intentional_mode_reparented_under_mental_moment --
+#     gmeow:IntentionalMode is defined in slices/core/teleology/module.ttl;
+#     a scopeModule cell would silently miss it (cross-slice subject).
+#   test_proficiency_vocab_relocated_to_kernel --
+#     gmeow:ProficiencyScale, gmeow:ProficiencyLevel, gmeow:ProficiencyModality
+#     are defined in slices/core/kernel/module.ttl with
+#     rdfs:isDefinedBy gmeow:slices/kernel; a scopeModule cell over the
+#     cognition graph would silently miss them (cross-slice subjects).
+#   test_wellformed_knowledge_proficiency_conforms --
+#     run_shacl() call; ExampleConformance, not a structural TBox assertion.
+#   test_malformed_knowledge_proficiency_is_flagged --
+#     run_shacl() call with error-text assertions; ExampleConformance.
+#   test_cognition_sssom_rows_include_expected_alignments --
+#     load_mappings() read of gmeow-cognition.sssom.tsv; MAP-flag ledger check,
+#     not a module-scoped TBox assertion.
+#   test_cognition_sssom_includes_corrected_wikidata_qids --
+#     load_mappings() read; MAP-flag ledger check.
+#   test_cognition_sssom_includes_opencyc_knows_about --
+#     load_mappings() read; MAP-flag ledger check.
+#
+# See dsl/tests/MIGRATION-LEDGER.md for the per-test pytest->DSL mapping.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/cognition/tests/> .
+
+# --- 1. CognitiveState is a gufo:Kind subclass of MentalMoment (MUST) --------
+ex:saCognitiveStateIsKindUnderMentalMoment a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:CognitiveState a owl:Class , gufo:Kind ;
+        rdfs:subClassOf gmeow:MentalMoment .
+}""" ;
+    gmeow:saRationale "gmeow:CognitiveState MUST be an owl:Class typed gufo:Kind and a subclass of gmeow:MentalMoment -- the knowing mode that grounds the knowledge spectrum lives under the kernel mental-moment umbrella (Principle 15). Mirrors test_cognitive_state_is_kind_under_mental_moment." .
+
+# --- 2. KnowledgeProficiency is a gufo:Kind subclass of gufo:Relator (MUST) --
+ex:saKnowledgeProficiencyIsKindRelator a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:KnowledgeProficiency a owl:Class , gufo:Kind ;
+        rdfs:subClassOf gufo:Relator .
+}""" ;
+    gmeow:saRationale "gmeow:KnowledgeProficiency MUST be an owl:Class typed gufo:Kind and a subclass of gufo:Relator -- the reified leveled depth-of-knowledge relator binding agent x subject x level x scale (mirrors gmeow:SkillProficiency). Mirrors test_knowledge_proficiency_is_relator_with_functional_roles (class part)." .
+
+# --- 3. The four KnowledgeProficiency role properties are functional (MUST) ---
+ex:saKnowledgeProficiencyRolesAreFunctional a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    gmeow:knowledgeProficiencyAgent   a owl:ObjectProperty , owl:FunctionalProperty .
+    gmeow:knowledgeProficiencySubject a owl:ObjectProperty , owl:FunctionalProperty .
+    gmeow:knowledgeProficiencyLevel   a owl:ObjectProperty , owl:FunctionalProperty .
+    gmeow:knowledgeProficiencyScale   a owl:ObjectProperty , owl:FunctionalProperty .
+}""" ;
+    gmeow:saRationale "gmeow:knowledgeProficiencyAgent, knowledgeProficiencySubject, knowledgeProficiencyLevel, and knowledgeProficiencyScale MUST all be owl:ObjectProperty and owl:FunctionalProperty -- each is constitutive of the relator (exactly one value per role). Mirrors test_knowledge_proficiency_is_relator_with_functional_roles (role properties part)." .
+
+# --- 4. knowledgeProficiencyInterval is ObjectProperty but NOT functional -----
+ex:saKnowledgeProficiencyIntervalIsOptional a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    gmeow:knowledgeProficiencyInterval a owl:ObjectProperty .
+}""" ;
+    gmeow:saRationale "gmeow:knowledgeProficiencyInterval MUST be an owl:ObjectProperty -- the temporal-scope player of the relator (close to record lapsed knowledge; Principle 10). Mirrors test_knowledge_proficiency_interval_is_optional (positive part)." .
+
+ex:saKnowledgeProficiencyIntervalNotFunctional a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    gmeow:knowledgeProficiencyInterval a owl:FunctionalProperty .
+}""" ;
+    gmeow:saRationale "gmeow:knowledgeProficiencyInterval MUST NOT be owl:FunctionalProperty -- several temporal spans may attach to one relator (non-functional; the suppression-not-deletion doctrine, Principle 10). Mirrors test_knowledge_proficiency_interval_is_optional (not-functional part)." .
+
+# --- 5. KnowledgeProficiency carries someValuesFrom restrictions (MUST) -------
+ex:saKnowledgeProficiencySomeValuesFromAgent a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    ?r a owl:Restriction ;
+        owl:onProperty gmeow:knowledgeProficiencyAgent ;
+        owl:someValuesFrom gmeow:Agent .
+    gmeow:KnowledgeProficiency rdfs:subClassOf ?r .
+}""" ;
+    gmeow:saRationale "gmeow:KnowledgeProficiency MUST carry an owl:Restriction someValuesFrom gmeow:Agent on gmeow:knowledgeProficiencyAgent -- the agent arity slot is existentially typed. Mirrors test_knowledge_proficiency_some_values_from_axioms (agent part)." .
+
+ex:saKnowledgeProficiencySomeValuesFromSubject a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    ?r a owl:Restriction ;
+        owl:onProperty gmeow:knowledgeProficiencySubject ;
+        owl:someValuesFrom gmeow:Entity .
+    gmeow:KnowledgeProficiency rdfs:subClassOf ?r .
+}""" ;
+    gmeow:saRationale "gmeow:KnowledgeProficiency MUST carry an owl:Restriction someValuesFrom gmeow:Entity on gmeow:knowledgeProficiencySubject -- the subject arity slot is existentially typed. Mirrors test_knowledge_proficiency_some_values_from_axioms (subject part)." .
+
+ex:saKnowledgeProficiencySomeValuesFromLevel a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    ?r a owl:Restriction ;
+        owl:onProperty gmeow:knowledgeProficiencyLevel ;
+        owl:someValuesFrom gmeow:KnowledgeLevel .
+    gmeow:KnowledgeProficiency rdfs:subClassOf ?r .
+}""" ;
+    gmeow:saRationale "gmeow:KnowledgeProficiency MUST carry an owl:Restriction someValuesFrom gmeow:KnowledgeLevel on gmeow:knowledgeProficiencyLevel -- the depth-rung arity slot is existentially typed. Mirrors test_knowledge_proficiency_some_values_from_axioms (level part)." .
+
+ex:saKnowledgeProficiencySomeValuesFromScale a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    ?r a owl:Restriction ;
+        owl:onProperty gmeow:knowledgeProficiencyScale ;
+        owl:someValuesFrom gmeow:ProficiencyScale .
+    gmeow:KnowledgeProficiency rdfs:subClassOf ?r .
+}""" ;
+    gmeow:saRationale "gmeow:KnowledgeProficiency MUST carry an owl:Restriction someValuesFrom gmeow:ProficiencyScale on gmeow:knowledgeProficiencyScale -- the framework arity slot is existentially typed. Mirrors test_knowledge_proficiency_some_values_from_axioms (scale part)." .
+
+# --- 6. CognitiveState and KnowledgeProficiency are never linked (MUST-NOT) ---
+ex:saCognitiveStateAndProficiencyNotDoubleTyped a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+ASK {
+    { gmeow:KnowledgeProficiency rdfs:subClassOf gmeow:CognitiveState . }
+    UNION
+    { gmeow:CognitiveState rdfs:subClassOf gmeow:KnowledgeProficiency . }
+    UNION
+    { gmeow:KnowledgeProficiency rdf:type gmeow:CognitiveState . }
+}""" ;
+    gmeow:saRationale "gmeow:KnowledgeProficiency MUST NOT be axiomatically linked to gmeow:CognitiveState (no subclass or type relation in either direction) -- the mode and the relator are distinct individuals for the same knowing relation, never double-typed (Principle 12). Mirrors test_cognitive_state_and_proficiency_are_not_double_typed." .
+
+# --- 7. KnowledgeLevel is a gufo:AbstractIndividualType under gufo:QualityValue
+ex:saKnowledgeLevelIsQualityValue a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:KnowledgeLevel a owl:Class , gufo:AbstractIndividualType ;
+        rdfs:subClassOf gufo:QualityValue .
+}""" ;
+    gmeow:saRationale "gmeow:KnowledgeLevel MUST be an owl:Class typed gufo:AbstractIndividualType and a subclass of gufo:QualityValue -- the knowledge-depth axis is an open ordered value vocabulary (individuals, not subclasses; the kernel GranularityLevel pattern). Mirrors test_knowledge_level_is_quality_value." .
+
+# --- 8. deeperThan is transitive with domain and range KnowledgeLevel (MUST) --
+ex:saDeeperThanIsTransitiveOnLevelsOnly a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:deeperThan a owl:TransitiveProperty ;
+        rdfs:domain gmeow:KnowledgeLevel ;
+        rdfs:range gmeow:KnowledgeLevel .
+}""" ;
+    gmeow:saRationale "gmeow:deeperThan MUST be owl:TransitiveProperty with rdfs:domain and rdfs:range gmeow:KnowledgeLevel -- transitivity is deliberately scoped to levels only; KnowledgeProficiency relators are never ordered by it (the moreSevereThan / coarserThan precedent). Mirrors test_deeper_than_is_transitive_on_levels_only." .
+
+# --- 9. The four KnowledgeLevel seed individuals exist (MUST) -----------------
+ex:saKnowledgeLevelSeedsExist a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    gmeow:knowledgeAware       a gmeow:KnowledgeLevel .
+    gmeow:knowledgeKnowsAbout  a gmeow:KnowledgeLevel .
+    gmeow:knowledgeUnderstands a gmeow:KnowledgeLevel .
+    gmeow:knowledgeMastered    a gmeow:KnowledgeLevel .
+}""" ;
+    gmeow:saRationale "The four gmeow:KnowledgeLevel seed individuals (aware, knowsAbout, understands, mastered) MUST all exist -- they are the ordinal rungs of the knowledge-depth axis. Mirrors test_knowledge_levels_are_ordinally_chained (level existence part)." .
+
+# --- 10. The deeperThan ordinal chain is asserted (MUST) ----------------------
+ex:saKnowledgeLevelOrdinalChain a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    gmeow:knowledgeMastered    gmeow:deeperThan gmeow:knowledgeUnderstands .
+    gmeow:knowledgeUnderstands gmeow:deeperThan gmeow:knowledgeKnowsAbout .
+    gmeow:knowledgeKnowsAbout  gmeow:deeperThan gmeow:knowledgeAware .
+}""" ;
+    gmeow:saRationale "The three asserted gmeow:deeperThan chain steps (mastered > understands > knowsAbout > aware) MUST be present -- they seed the ordinal ladder; transitivity closes the full partial order. Mirrors test_knowledge_levels_are_ordinally_chained (chain part)." .
+
+# --- 11. Flat spectrum properties pair with KnowledgeProficiency (MUST) ------
+ex:saSpectrumPairsWithRelator a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    gmeow:isAwareOf  gmeow:pairsWith gmeow:KnowledgeProficiency .
+    gmeow:knowsAbout gmeow:pairsWith gmeow:KnowledgeProficiency .
+    gmeow:understands gmeow:pairsWith gmeow:KnowledgeProficiency .
+    gmeow:hasMastered gmeow:pairsWith gmeow:KnowledgeProficiency .
+}""" ;
+    gmeow:saRationale "gmeow:isAwareOf, knowsAbout, understands, and hasMastered MUST all carry gmeow:pairsWith gmeow:KnowledgeProficiency -- the pairsWith link surfaces the reified promotion path in gmeow describe (Principle 15). Mirrors test_spectrum_pairs_with_relator." .
+
+# --- 12. Attention / interest / memory relations exist with correct shape -----
+ex:saAttentionRelationsExist a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:attendsTo    a owl:ObjectProperty ;
+        rdfs:domain gmeow:Agent ; rdfs:range gmeow:Entity .
+    gmeow:interestedIn a owl:ObjectProperty ;
+        rdfs:domain gmeow:Agent ; rdfs:range gmeow:Entity .
+    gmeow:curiousAbout a owl:ObjectProperty ;
+        rdfs:domain gmeow:Agent ; rdfs:range gmeow:Entity .
+    gmeow:remembers    a owl:ObjectProperty ;
+        rdfs:domain gmeow:Agent ; rdfs:range gmeow:Entity .
+}""" ;
+    gmeow:saRationale "gmeow:attendsTo, interestedIn, curiousAbout, and remembers MUST all be owl:ObjectProperty with rdfs:domain gmeow:Agent and rdfs:range gmeow:Entity -- the attentional/affective/objectual-memory quartet that constitutes the attention/interest layer (#557). Mirrors test_attention_and_interest_relations_exist." .
+
+# --- 13. curiousAbout is a subproperty of interestedIn (MUST) ----------------
+ex:saCuriousAboutSpecializesInterestedIn a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:curiousAbout rdfs:subPropertyOf gmeow:interestedIn .
+}""" ;
+    gmeow:saRationale "gmeow:curiousAbout MUST be rdfs:subPropertyOf gmeow:interestedIn -- curiosity is knowledge-seeking interest, so every curious agent is automatically interested (#557). Mirrors test_curious_about_specializes_interested_in." .
+
+# --- 14. remembers is a subproperty of isAwareOf (MUST) ----------------------
+ex:saRemembersSubpropertyIsAwareOf a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:remembers rdfs:subPropertyOf gmeow:isAwareOf .
+}""" ;
+    gmeow:saRationale "gmeow:remembers MUST be rdfs:subPropertyOf gmeow:isAwareOf -- remembering a subject entails awareness of it; objectual memory-of is the narrowest knowledge-spectrum level. Mirrors test_remembers_is_objectual_memory_under_awareness (positive part)." .
+
+# --- 15. remembers is NOT a subproperty of memoryOf (MUST-NOT) ---------------
+ex:saRemembersNotSubpropertyMemoryOf a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:remembers rdfs:subPropertyOf gmeow:memoryOf .
+}""" ;
+    gmeow:saRationale "gmeow:remembers MUST NOT be axiomatised as rdfs:subPropertyOf gmeow:memoryOf -- the bridge to the ai:MemoryItem construct is documented prose, never an OWL coupling; cognition asserts no dependency on the ai slice (Principle 9). Mirrors test_remembers_is_objectual_memory_under_awareness (no-bridge part)." .
+
+# --- 16. Attention / interest are never subprops of hasGoal (MUST-NOT) -------
+ex:saNoAxiomBridgeToTeleologyDesire a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    VALUES ?p { gmeow:attendsTo gmeow:interestedIn gmeow:curiousAbout }
+    ?p rdfs:subPropertyOf gmeow:hasGoal .
+}""" ;
+    gmeow:saRationale "gmeow:attendsTo, interestedIn, and curiousAbout MUST NOT be axiomatised as rdfs:subPropertyOf gmeow:hasGoal -- attention/interest are attentional pulls, not teleological desires; the axes are orthogonal and the boundary is conceptual, enforced by review not axiom (Principle 9). Mirrors test_no_axiom_bridge_to_teleology_desire." .
