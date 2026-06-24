@@ -324,17 +324,24 @@ pending the #867 slicetest structural migration — they are not reasoning tests
 | `test_coordinate_observation_frame_inheritance` | `tests/test_observations.py` | `coordinate_observation_frame_inheritance` | RL-entailment | converted | — (#125) | `make logic-test` |
 | `test_coordinate_observation_el_axioms` | `tests/test_observations.py` | `coordinate_observation_el_axioms_stay_consistent` | RL-entailment | converted | — (#125) | `make logic-test` |
 | `test_quality_assessment_specialises_observation` | `tests/test_quality.py` | `quality_assessment_specialises_observation` | RL-entailment | converted | — (QualityAssessment ⊑ Observation; the assessedEntity/Place A-Box is decoration) | `make logic-test` |
+| `TestReasonNativeEngine::test_consistent_with_entailments_and_gaps` | `tests/test_reason_native.py` | `reason_all` (`crates/logic/src/reason/mod.rs`) + the `check-generated` byte-regen of the committed closure/ledger | engine-direct | converted (covered) | — (consistency + non-empty closure is the `reason_all` unit test; real-bundle consistency/gaps is pinned by the byte-regenerable `generated/logic/*.ttl` gate) | `make rust-test` + `gmeow-dev check-generated` |
+| `TestVerifyNative::test_violating_query_reports_error` | `tests/test_reason_native.py` | `violating_query_yields_error_finding_with_detail` (`crates/logic/src/verify.rs`) | engine-direct | converted (covered) | — (the verify violation path — same `verify()` code + `!ok`/`error_count`/finding-code semantics) | `make logic-test` |
+| `TestNativeReasonArtifacts::test_closure_parses_and_carries_reifier_provenance` | `tests/test_reason_native.py` | `closure_emits_triple_and_reifier_with_provenance` (`crates/logic/src/reason/artifacts.rs`) | engine-direct | converted (covered) | — (same `reifies`/`Deduction`/`viaRule` tokens on the same `build_closure_ttl` output) | `make logic-test` |
+| `TestNativeReasonArtifacts::test_explanations_parse_and_carry_derivation_skeleton` | `tests/test_reason_native.py` | `explanations_emit_derivation_with_premise` (`crates/logic/src/reason/artifacts.rs`) | engine-direct | converted (covered) | — (same `Derivation`/`concludes`/`hasPremise` tokens) | `make logic-test` |
+| `TestNativeReasonArtifacts::test_ledger_parses_and_carries_entries_gaps_and_counts` | `tests/test_reason_native.py` | `ledger_header_entries_gaps_and_counts` (`crates/logic/src/reason/artifacts.rs`) + the byte-regen gate | engine-direct | converted (covered) | — (`CrosscheckLedger`/`DlGap`/`entailmentCount` tokens; the `#666`/`classic-cross-check`/`consistent> true` banner tokens are byte-pinned by `check-generated`) | `make logic-test` + `gmeow-dev check-generated` |
+| `TestNativeReasonArtifacts::test_artifacts_are_byte_regenerable_against_committed` | `tests/test_reason_native.py` | `crates/pipeline/tests/full_parity.rs` + the `ontology-generated` lane (`gmeow-dev check-generated`) | engine-direct | converted (covered) | — (the SAME `GtsGraphStore → reason_all → build_*_ttl` path reproduces the committed `generated/logic/*.ttl` EXACTLY; the authoritative cutover gate, fail-closed) | `gmeow-dev check-generated` |
+| `TestReasonNativePipeline::test_report_ok_and_writes_closure` | `tests/test_reason_native.py` | — | — | **retained** | the Python report wrapper `gmeow_tools.reason.reason_native` — disk-writing orchestration over the Rust core; independent live Python surface, no Rust twin (doctrine-guard) | pytest |
+| `TestVerifyNative::test_clean_over_bundle_and_writes_artifacts` | `tests/test_reason_native.py` | — | — | **retained** | the Python report wrapper `gmeow_tools.reason.verify_native` — slice-query glob discovery + JSON/SARIF/HTML artifact writing; Python surface, no Rust twin (doctrine-guard) | pytest |
+| `test_gmeow_reason_native` | `tests/test_mcp_server.py` | — | — | **retained** | the thin Python MCP wrapper `gmeow_tools.mcp_server.gmeow_reason` — independent live Python surface, no Rust twin (doctrine-guard) | pytest |
 
-**#896 reasoning tally (running):** 39 converted, 8 retained-with-reason (3 Python
-Docker-orchestration, 4 structural-not-reasoning, 1 mixed structural/consistency),
-plus the 47 competency QUERY tests de-reasoned in place and the per-slice
-structural tests retained (no closure; #867 will move them to slicetest cells).
-**Files fully reasoning-free now:** `test_reasoning_entailments.py`,
+**#896 reasoning tally:** 45 converted (39 RL-entailment twins + 6 engine-direct
+covered by existing Rust unit tests / the byte-regen gate), 11 retained-with-reason
+(3 Python Docker-orchestration, 4 structural-not-reasoning, 1 mixed, 2 native-report
+Python wrappers, 1 MCP wrapper), plus the 47 competency QUERY tests de-reasoned in
+place. **Files fully reasoning-free now:** `test_reasoning_entailments.py`,
 `test_mereology.py`, `test_competency.py`, `test_sensory.py`, `test_places.py`,
-`test_observations.py`. **Still pending (stage 2):** `test_reason_native.py`
-(engine-direct, asserts over `reason_all` output — a different shape than the
-scoped-closure entailment tests) and `test_mcp_server.py::test_gmeow_reason_native`
-(thin Python MCP wrapper).
+`test_observations.py`, `test_quality.py`. `test_reason_native.py` carries only the
+two Python report-wrapper tests (8 → 2; ~330 s → ~105 s).
 The migrated `_materialize` helpers and A-Box-injection imports were removed from
 the touched pytest files; `tests/test_competency.py` dropped from ~14 min to
 **~1.7 s** (the two ~5–9 min reasoning tests gone, the closure cost removed).
