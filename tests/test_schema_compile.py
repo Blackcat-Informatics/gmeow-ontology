@@ -3,14 +3,14 @@
 Validates the OWL → LinkML pipeline and the downstream generator fan-out.
 These tests are pure-Python (no Docker) and exercise the full compile path.
 
-Marked ``maintainer``: the LinkML + JSON-Schema/Pydantic/TS/GraphQL/OpenAPI
-generation is a heavy *secondary external-export* transformation (~45 s), so it
-runs in CI and ``make test`` but is excluded from the fast ``make check`` gate.
+Marked ``maintainer``: the LinkML + Pydantic/TS/GraphQL generation is a heavy
+*secondary external-export* transformation (~45 s), so it runs in CI and
+``make test`` but is excluded from the fast ``make check`` gate. JSON Schema +
+OpenAPI moved to the native Rust SHACL emitter (#700).
 """
 
 from __future__ import annotations
 
-import json
 from pathlib import Path
 
 import pytest
@@ -24,8 +24,6 @@ from gmeow_tools.schema_compile import (
     SchemaGenerator,
     emit_linkml,
     gen_graphql,
-    gen_json_schema,
-    gen_openapi,
     gen_pydantic,
     gen_typescript,
 )
@@ -59,13 +57,6 @@ def test_generators_run_without_error(tmp_path: Path) -> None:
         yaml.safe_dump(schema_dict, sort_keys=False), encoding="utf-8"
     )
 
-    json_schema = gen_json_schema(linkml_path)
-    assert (
-        "$schema" in json_schema
-        or "$defs" in json_schema
-        or "properties" in json_schema
-    )
-
     pydantic = gen_pydantic(linkml_path)
     assert "class " in pydantic or "pydantic" in pydantic.lower()
 
@@ -76,32 +67,14 @@ def test_generators_run_without_error(tmp_path: Path) -> None:
     assert "type" in graphql
 
 
-def test_openapi_derives_valid_json(tmp_path: Path) -> None:
-    """OpenAPI derivation must produce valid JSON with a components/schemas block."""
-    schema_dict, _warnings = emit_linkml(load_fold())
-    linkml_path = tmp_path / _LINKML_FILE
-    linkml_path.write_text(
-        yaml.safe_dump(schema_dict, sort_keys=False), encoding="utf-8"
-    )
-
-    json_schema_text = gen_json_schema(linkml_path)
-    openapi_text = gen_openapi(json_schema_text)
-
-    openapi = json.loads(openapi_text)
-    assert openapi["openapi"] == "3.1.0"
-    assert "components" in openapi
-    assert "schemas" in openapi["components"]
-    assert "paths" in openapi
-
-
-#: The six committed schema artifacts the Rust ``schemas.rs`` leaf asserts on.
+#: The four committed LinkML schema artifacts the Rust ``schemas.rs`` leaf asserts
+#: on. JSON Schema (``gmeow.schema.json``) + OpenAPI (``gmeow.openapi.json``) moved
+#: to the native Rust ``stage-export-json-schema`` leaf (#700).
 _SCHEMA_ARTIFACTS = (
     "gmeow.linkml.yaml",
-    "gmeow.schema.json",
     "gmeow.py",
     "gmeow.ts",
     "gmeow.graphql",
-    "gmeow.openapi.json",
 )
 
 
@@ -119,7 +92,7 @@ def _render_schemas(staging: Path) -> SchemaGenerator:
 
 
 def test_schema_generator_renders_all_artifacts(tmp_path: Path) -> None:
-    """SchemaGenerator produces all six expected artifacts."""
+    """SchemaGenerator produces all four expected LinkML artifacts."""
     _render_schemas(tmp_path)
     out_dir = tmp_path / SCHEMAS_DIR.relative_to(PROJECT_ROOT)
     found = {p.name for p in out_dir.rglob("*") if p.is_file()}
@@ -154,9 +127,8 @@ def test_bounded_xsd_integers_map_to_numeric_types() -> None:
     """#345: the bounded XSD integer family must never fall back to string.
 
     Asserts type STRINGS for one property per target — never totals (the
-    count-pin lesson)."""
-    import json
-
+    count-pin lesson). The JSON Schema assertions moved to the native Rust
+    SHACL emitter (#700); this gate now covers the LinkML + TS lanes."""
     from gmeow_tools.config import PROJECT_ROOT
 
     schemas = PROJECT_ROOT / "generated" / "schemas"
@@ -170,13 +142,6 @@ def test_bounded_xsd_integers_map_to_numeric_types() -> None:
 
     ts = (schemas / "gmeow.ts").read_text(encoding="utf-8")
     assert "pixelWidth?: number," in ts
-
-    json_schema = json.loads(
-        (schemas / "gmeow.schema.json").read_text(encoding="utf-8")
-    )
-    prop = json_schema["$defs"]["MediaObject"]["properties"]["pixelWidth"]
-    assert prop["minimum"] == 0
-    assert "integer" in prop["type"]
 
 
 def test_range_open_object_properties_are_uriorcurie() -> None:

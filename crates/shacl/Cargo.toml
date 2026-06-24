@@ -30,6 +30,10 @@ oxigraph = { version = "0.5", default-features = false, features = ["rdf-12"] }
 spargebra = "0.4"
 # sh:pattern regex constraint.
 regex = "1"
+# JSON Schema / OpenAPI emitter (#700). NO `preserve_order` feature: we rely on
+# serde_json's default BTreeMap-backed Map so object keys serialize sorted for
+# deterministic, byte-stable output.
+serde_json = "1"
 # Shared PyO3-free RDF 1.2 kernel and GTS/oxigraph adapter boundary (#648).
 gmeow-rdf = { path = "../rdf", features = ["gts", "oxigraph"] }
 
