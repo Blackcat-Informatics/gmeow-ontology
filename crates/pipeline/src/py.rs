@@ -13,7 +13,7 @@
 use std::path::Path;
 
 use pyo3::prelude::*;
-use pyo3::types::{PyDict, PyList, PyModule};
+use pyo3::types::{PyBytes, PyDict, PyList, PyModule};
 
 use gmeow_diagnostics::py::PyReport;
 
@@ -130,6 +130,37 @@ fn compile_mappings_report(py: Python<'_>, root: String) -> PyResult<Py<PyAny>> 
     Ok(Py::new(py, PyReport::from_engine(report))?.into_any())
 }
 
+/// Serialize N-Quads-star bytes to RDF-1.2-star JSON-LD or YAML-LD-star.
+///
+/// * `nquads_bytes` — a UTF-8 N-Quads-star document (plain N-Quads is accepted).
+/// * `format` — `"jsonld"` for JSON-LD-star, `"yamlld"` for YAML-LD-star.
+///
+/// Returns the serialized bytes. This is the Python surface for the serializer
+/// used by the `stage-export-yaml-ld` leaf (#699).
+#[pyfunction]
+#[pyo3(signature = (nquads_bytes, format = "jsonld"))]
+fn serialize_yaml_ld(py: Python<'_>, nquads_bytes: &[u8], format: &str) -> PyResult<Py<PyAny>> {
+    let gts =
+        gmeow_gts::from_nquads::from_nquads(std::str::from_utf8(nquads_bytes).map_err(|e| {
+            pyo3::exceptions::PyValueError::new_err(format!("N-Quads bytes are not UTF-8: {e}"))
+        })?)
+        .map_err(|e| pyo3::exceptions::PyValueError::new_err(format!("parse N-Quads: {e}")))?;
+    let graph = gmeow_rdf::gts::read_graph(&gts, true)
+        .map_err(|e| pyo3::exceptions::PyValueError::new_err(format!("read GTS graph: {e}")))?;
+    let text = match format {
+        "jsonld" => crate::stages::yaml_ld::serialize_graph(&graph)
+            .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))?,
+        "yamlld" => crate::stages::yaml_ld::serialize_graph_yaml(&graph)
+            .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))?,
+        _ => {
+            return Err(pyo3::exceptions::PyValueError::new_err(format!(
+                "unknown format {format:?}; expected 'jsonld' or 'yamlld'"
+            )))
+        }
+    };
+    Ok(PyBytes::new(py, text.as_bytes()).into_any().unbind())
+}
+
 /// Register the `gmeow_native.pipeline` submodule. Called by the unified
 /// `gmeow_native` cdylib (#630); exposes [`run_pipeline`].
 pub fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
@@ -137,5 +168,6 @@ pub fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(compile_statements, m)?)?;
     m.add_function(wrap_pyfunction!(compile_statements_report, m)?)?;
     m.add_function(wrap_pyfunction!(compile_mappings_report, m)?)?;
+    m.add_function(wrap_pyfunction!(serialize_yaml_ld, m)?)?;
     Ok(())
 }

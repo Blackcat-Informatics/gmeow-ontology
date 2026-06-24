@@ -404,12 +404,28 @@ def build(
         plain.serialize(destination=target, format=fmt)
         console.print(f"[green]wrote[/green] {target}")
 
+    # RDF 1.2-star serializations are folded into the bundle by the pipeline;
+    # write them straight from the bundle so this command works repo-free (#699).
+    from gmeow_tools import bundle
+
+    jsonld_star = bundle.bundled_jsonld_star()
+    if jsonld_star is not None:
+        target = out / "gmeow.jsonld"
+        target.write_bytes(jsonld_star)
+        console.print(f"[green]wrote[/green] {target}")
+    yamlld = bundle.bundled_yaml_ld().get("gmeow.yamlld")
+    if yamlld is not None:
+        target = out / "gmeow.yamlld"
+        target.write_bytes(yamlld)
+        console.print(f"[green]wrote[/green] {target}")
+
 
 @app.command()
 def project(
     source: Path | None = typer.Argument(  # noqa: B008
         None,
-        help="A GMEOW data file (.ttl) to project, or a transpiled .gts to filter; "
+        help="A GMEOW data file (.ttl) to project, a transpiled .gts to filter, "
+        "or '-' to emit the bundled YAML-LD-star snapshot; "
         "default: the bundled snapshot.",
     ),
     profile: str = typer.Option(
@@ -419,6 +435,12 @@ def project(
     ),
     out: Path = typer.Option(  # noqa: B008
         _DEFAULT_OUT_ROOT / "project", "--out", "-o", help="Output directory."
+    ),
+    fmt: str = typer.Option(
+        "turtle",
+        "--format",
+        "-f",
+        help="Output serialization: turtle or yaml-ld (#699).",
     ),
     lang: str | None = _lang_option(),
 ) -> None:
@@ -431,6 +453,9 @@ def project(
     * A **.gts** snapshot (or the default bundle): a *view filter* —
       ``--profile foaf`` emits the FOAF subset already in the snapshot, ``gmeow``
       the pure-GMEOW base, ``all``/``maximal`` the whole thing.
+
+    Use ``--format yaml-ld`` to emit the bundled RDF-1.2-star YAML-LD snapshot
+    instead of a Turtle view filter (#699).
     """
     from gmeow_tools.projections import (
         GTS_VIEW_ALL,
@@ -439,6 +464,27 @@ def project(
         project_file,
         project_gts_subset,
     )
+
+    fmt_lower = fmt.lower()
+    if fmt_lower == "yaml-ld":
+        if source is not None and str(source) != "-":
+            raise _fail(
+                "--format yaml-ld reads the bundled snapshot only; "
+                "do not pass a source file"
+            )
+        from gmeow_tools import bundle
+
+        yamlld = bundle.bundled_yaml_ld().get("gmeow.yamlld")
+        if yamlld is None:
+            raise _fail("bundled YAML-LD snapshot not found")
+        out.mkdir(parents=True, exist_ok=True)
+        target = out / "gmeow.yamlld"
+        target.write_bytes(yamlld)
+        console.print(f"[green]wrote[/green] {target}")
+        return
+
+    if fmt_lower not in ("turtle", "ttl"):
+        raise _fail(f"unknown --format: {fmt}")
 
     # Resolve the language selector against the input the user actually gave us
     # (the target graph), not the hard-coded bundled snapshot.
@@ -470,8 +516,8 @@ def transpile(
     source: Path = typer.Argument(  # noqa: B008
         ...,
         help=(
-            "A non-GMEOW source RDF file (Turtle), an OKF bundle directory, "
-            "or '-' to read Turtle from stdin."
+            "A non-GMEOW source RDF file (Turtle or JSON-LD-star / YAML-LD-star), "
+            "an OKF bundle directory, or '-' to read Turtle from stdin."
         ),
     ),
     out: Path | None = typer.Option(  # noqa: B008
@@ -537,6 +583,18 @@ def transpile(
             result = transpile_graph(
                 graph,
                 stem,
+                out_dir=out,
+                profiles=names,
+                descend=not floor,
+                selector=selector,
+            )
+        elif source.suffix.lower() in (".jsonld", ".yamlld", ".yaml-ld", ".yld"):
+            from gmeow_tools.yaml_ld import yaml_ld_to_graph
+
+            graph = yaml_ld_to_graph(source.read_bytes())
+            result = transpile_graph(
+                graph,
+                source.stem,
                 out_dir=out,
                 profiles=names,
                 descend=not floor,

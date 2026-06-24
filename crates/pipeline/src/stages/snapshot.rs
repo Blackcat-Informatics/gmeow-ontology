@@ -123,6 +123,14 @@ pub fn build_snapshot(
     // graph/documentation ← the docs projection (N-Quads, already in its graph).
     add_named(&mut builder, &documentation, GRAPH_DOCUMENTATION, "doc")?;
 
+    // Fold a deterministic tar archive of the JSON-LD-star + YAML-LD-star
+    // serializations into the bundle (#699). The serializer reads THIS builder's
+    // snapshot graph, so we do a temporary in-memory emit/read rather than reading
+    // the committed file from disk or creating a DAG cycle.
+    let yaml_ld_blob = build_yaml_ld_blob_from_builder(&builder)?;
+    let mut blobs = blobs;
+    blobs.push(yaml_ld_blob);
+
     emit_gts(
         &builder,
         "dist",
@@ -174,6 +182,8 @@ const REP_QUERIES: &str = "queries-archive";
 const REP_TESTS: &str = "tests-archive";
 /// tar of the SHACL-derived JSON Schema + OpenAPI (#700), member = bare filename.
 const REP_SCHEMAS: &str = "schemas-archive";
+/// tar of the JSON-LD-star + YAML-LD-star serializations (#699).
+const REP_YAMLLD: &str = "yaml-ld-archive";
 /// The full rendered ontology-docs static site (#897). The rep MUST equal the
 /// string the runtime consumer (`create_docs._unpack_doc_archive`) looks up —
 /// `"ontology-docs"`, NOT an `-archive` variant — so `gmeow extract-docs` finds it.
@@ -253,6 +263,37 @@ fn build_archive_blobs(
         archive_blob(REP_TESTS, &tests)?,
         archive_blob(REP_SCHEMAS, &schemas)?,
     ])
+}
+
+/// Pack the JSON-LD-star + YAML-LD-star serializations into a deterministic tar
+/// archive blob (#699). Member names mirror the `dist/` logical paths.
+fn build_yaml_ld_blob(jsonld: &[u8], yamlld: &[u8]) -> Result<BlobRow, PipelineError> {
+    let members = vec![
+        ("gmeow.jsonld".to_string(), jsonld.to_vec()),
+        ("gmeow.yamlld".to_string(), yamlld.to_vec()),
+    ];
+    archive_blob(REP_YAMLLD, &members)
+}
+
+/// Build the YAML-LD archive by serializing the snapshot builder's graph in-memory.
+fn build_yaml_ld_blob_from_builder(builder: &SnapshotBuilder) -> Result<BlobRow, PipelineError> {
+    let temp_gts = emit_gts(
+        builder,
+        "dist",
+        Some(vec!["gzip".to_string()]),
+        Vec::new(),
+        Vec::new(),
+        None,
+        None,
+        None,
+        gmeow_rdf::gts_compose::DEFAULT_RSYNCABLE_THRESHOLD,
+    )
+    .map_err(|e| stage_err(&format!("temporary emit for yaml-ld: {e}")))?;
+    let graph = gmeow_rdf::gts::read_graph(&temp_gts, true)
+        .map_err(|e| PipelineError::Parse(format!("read temp snapshot gmeow.gts: {e}")))?;
+    let jsonld = crate::stages::yaml_ld::serialize_graph(&graph)?;
+    let yamlld = crate::stages::yaml_ld::serialize_graph_yaml(&graph)?;
+    build_yaml_ld_blob(jsonld.as_bytes(), yamlld.as_bytes())
 }
 
 /// Render the full ontology-docs static site and pack it into the single
@@ -512,7 +553,9 @@ impl Stage for SnapshotStage {
         // a single regenerate now folds the fresh schema. v4: render+tar+embed the
         // full ontology-docs site as the `ontology-docs` blob (#897). v3 added the
         // mappings/cells/queries/tests archive blobs + per-slice docs guide blobs.
-        "snapshot.v5-fresh-schemas-blob"
+        // v6: fold the JSON-LD-star + YAML-LD-star archive from the in-memory
+        // `stage-export-yaml-ld` product (#699).
+        "snapshot.v6-yaml-ld-archive"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<PathBuf>, PipelineError> {
         // The embedded ontology-docs site (`build_docs_archive`) is rendered from

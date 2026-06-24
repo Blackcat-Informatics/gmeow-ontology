@@ -3,8 +3,8 @@
 
 //! The `yaml_ld` export leaf (#699): RDF → YAML-LD-star / JSON-LD-star.
 //!
-//! Task 2 implements the lossless `gts.model.Graph → JSON-LD-star` serializer.
-//! YAML output and CLI wiring are intentionally left for later tasks.
+//! Emits both the JSON-LD-star lead artifact and a deterministic YAML-LD-star
+//! derivative, plus a small serialization-preservation ledger.
 
 use std::collections::BTreeMap;
 
@@ -16,9 +16,15 @@ use crate::node::{Stage, StageInput, StageKind, StageOutput, StageProduct};
 
 /// Logical path of the JSON-LD-star artifact emitted by this stage.
 pub const JSON_LD_PATH: &str = "dist/gmeow.jsonld";
+/// Logical path of the YAML-LD-star artifact emitted by this stage.
+pub const YAML_LD_PATH: &str = "dist/gmeow.yamlld";
+/// Logical path of the serialization-preservation ledger.
+pub const PRESERVATION_PATH: &str = "generated/metadata/preservation.json";
 
 const GMEOW_NAMESPACE: &str = "https://blackcatinformatics.ca/gmeow/";
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+/// Default schema URL for the YAML-LD language-server header.
+const DEFAULT_SCHEMA_URL: &str = "https://blackcatinformatics.ca/gmeow/schemas/gmeow.schema.json";
 
 // Longest-namespace-first prefix table (mirrors `src/gmeow_tools/config.py`).
 include!("lpg_prefixes.rs");
@@ -63,15 +69,20 @@ impl Stage for YamlLdStage {
         &self.consumes
     }
     fn impl_version(&self) -> &str {
-        "yaml_ld.jsonld_star.v1"
+        // v2: adds deterministic YAML-LD-star output and the preservation ledger.
+        "yaml_ld.jsonld_star.v2-yaml-ld"
     }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, PipelineError> {
         let gts = crate::stages::snapshot::snapshot_bytes(input.upstream)?;
         let graph = gmeow_rdf::gts::read_graph(&gts, true)
             .map_err(|e| PipelineError::Parse(format!("read snapshot gmeow.gts: {e}")))?;
         let json = serialize_graph(&graph)?;
+        let yaml = serialize_graph_yaml(&graph)?;
+        let preservation = preservation_ledger();
         let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
         artifacts.insert(JSON_LD_PATH.to_string(), json.into_bytes());
+        artifacts.insert(YAML_LD_PATH.to_string(), yaml.into_bytes());
+        artifacts.insert(PRESERVATION_PATH.to_string(), preservation.into_bytes());
         Ok(StageOutput {
             product: StageProduct::from_artifacts(self.id(), artifacts),
         })
@@ -84,7 +95,7 @@ fn to_json_object(map: BTreeMap<String, Value>) -> Value {
 }
 
 /// Serialize a folded GTS graph to a deterministic JSON-LD-star document.
-fn serialize_graph(graph: &Graph) -> Result<String, PipelineError> {
+pub fn serialize_graph(graph: &Graph) -> Result<String, PipelineError> {
     let mut doc = BTreeMap::new();
     doc.insert("@context".to_string(), build_context());
 
@@ -104,6 +115,45 @@ fn serialize_graph(graph: &Graph) -> Result<String, PipelineError> {
     let value = to_json_object(doc);
     serde_json::to_string_pretty(&value)
         .map_err(|e| PipelineError::Decode(format!("JSON-LD serialization: {e}")))
+}
+
+/// Serialize a folded GTS graph to deterministic YAML-LD-star bytes.
+///
+/// The JSON-LD-star document is re-serialized to YAML with sorted keys, block
+/// style, no anchors/aliases, and an explicit `@context`. The header carries a
+/// YAML language-server schema reference.
+pub fn serialize_graph_yaml(graph: &Graph) -> Result<String, PipelineError> {
+    let json = serialize_graph(graph)?;
+    let value: Value = serde_json::from_str(&json)
+        .map_err(|e| PipelineError::Decode(format!("parse JSON-LD for YAML: {e}")))?;
+    let body = serde_yaml::to_string(&value)
+        .map_err(|e| PipelineError::Decode(format!("YAML-LD serialization: {e}")))?;
+    let header = format!(
+        "# yaml-language-server: $schema={DEFAULT_SCHEMA_URL}\n\
+         # TODO(#700): default schema URL is bounded to the bundled gmeow.schema.json;\n\
+         # replace with the canonical public URL once issue #700 finalizes the schema surface.\n"
+    );
+    Ok(header + &body)
+}
+
+/// Serialization-preservation ledger: records YAML-LD-star as lossless.
+fn preservation_ledger() -> String {
+    // A deliberately simple, versioned JSON ledger. It is intentionally NOT
+    // conflated with the logic-projection PreservationKind vocabulary.
+    let mut map: BTreeMap<String, Value> = BTreeMap::new();
+    let mut entry: BTreeMap<String, Value> = BTreeMap::new();
+    entry.insert(
+        "preservation".to_string(),
+        Value::String("lossless".to_string()),
+    );
+    entry.insert("roundTrips".to_string(), Value::Bool(true));
+    entry.insert(
+        "note".to_string(),
+        Value::String("RDF 1.2-star quoted triples and annotations round-trip through the JSON-LD-star / YAML-LD-star surface.".to_string()),
+    );
+    map.insert("yaml-ld-star".to_string(), to_json_object(entry));
+    serde_json::to_string_pretty(&to_json_object(map))
+        .expect("preservation ledger is serializable JSON")
 }
 
 /// Build the JSON-LD `@context` from the GMEOW prefix registry plus `@vocab`.
@@ -932,6 +982,58 @@ mod tests {
         assert!(
             json.contains("\"@direction\": \"ltr\""),
             "directional language literal must emit @direction: {json}"
+        );
+    }
+
+    #[test]
+    fn yaml_ld_is_byte_deterministic() {
+        let graph = minimal_graph();
+        let first = serialize_graph_yaml(&graph).expect("serialize first");
+        let second = serialize_graph_yaml(&graph).expect("serialize second");
+        assert_eq!(first, second, "YAML-LD output must be byte-deterministic");
+    }
+
+    #[test]
+    fn yaml_ld_has_explicit_context_and_no_anchors() {
+        let graph = minimal_graph();
+        let yaml = serialize_graph_yaml(&graph).expect("serialize YAML-LD");
+        assert!(
+            yaml.contains("@context"),
+            "YAML-LD must carry an explicit @context: {yaml}"
+        );
+        assert!(
+            yaml.contains("@graph"),
+            "YAML-LD must carry an explicit @graph: {yaml}"
+        );
+        // Anchor/alias tokens appear as whitespace-delimited `&id` or `*id`.
+        assert!(
+            !yaml
+                .split_whitespace()
+                .any(|t| t.starts_with('&') || t.starts_with('*')),
+            "YAML-LD must not use anchors or aliases: {yaml}"
+        );
+        assert!(
+            yaml.contains("yaml-language-server: $schema="),
+            "YAML-LD must carry a language-server schema header: {yaml}"
+        );
+    }
+
+    #[test]
+    fn yaml_ld_roundtrips_through_oxigraph() {
+        let graph = minimal_graph();
+        let yaml = serialize_graph_yaml(&graph).expect("serialize YAML-LD");
+        // The test parser works over JSON-LD-star; convert YAML back to JSON first.
+        let yaml_value: serde_yaml::Value =
+            serde_yaml::from_str(&yaml).expect("parse emitted YAML-LD");
+        let json = serde_json::to_string(&yaml_value).expect("YAML -> JSON");
+
+        let expected = parse_nquads(&gmeow_gts::nquads::to_nquads(&graph));
+        let actual = parse_jsonld_star(&json).expect("parse JSON-LD-star from YAML round-trip");
+
+        assert_eq!(
+            canonical_nquads(&expected),
+            canonical_nquads(&actual),
+            "YAML-LD round-trip diverged from N-Quads-star baseline"
         );
     }
 

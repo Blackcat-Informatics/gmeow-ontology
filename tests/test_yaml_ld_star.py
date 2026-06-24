@@ -1,6 +1,11 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: AGPL-3.0-only
-"""Tests for the YAML-LD-star / JSON-LD-star codec and parse lane (#699)."""
+"""Python-surface tests for the YAML-LD-star / JSON-LD-star lane (#699).
+
+The comprehensive serialization, isomorphism, and determinism tests live in
+Rust (`crates/pipeline/src/stages/yaml_ld.rs`). This file only exercises the
+Python wrappers, PyYAML-specific rejection, and the language-server header.
+"""
 
 from __future__ import annotations
 
@@ -17,89 +22,34 @@ def _json_bytes(doc: object) -> bytes:
     return json.dumps(doc, sort_keys=True, separators=(",", ":")).encode("utf-8")
 
 
-def test_yamlld_jsonld_roundtrip() -> None:
-    """JSON-LD-star → YAML-LD-star → JSON-LD-star is byte-stable."""
+def test_jsonld_star_to_yamlld_includes_language_server_header() -> None:
+    """The YAML-LD-star emitter carries the yaml-language-server schema header."""
     doc = {
-        "@context": {
-            "ex": "http://example.org/",
-            "@vocab": "http://example.org/",
-        },
+        "@context": {"ex": "http://example.org/"},
         "@id": "ex:s",
-        "@type": "ex:Thing",
-        "ex:p": {"@id": "ex:o", "ex:label": "hello"},
+        "ex:p": {"@id": "ex:o"},
     }
-    original = _json_bytes(doc)
-    yaml_bytes = yaml_ld.jsonld_star_to_yamlld(original)
+    yaml_bytes = yaml_ld.jsonld_star_to_yamlld(_json_bytes(doc))
     assert yaml_bytes.startswith(b"# yaml-language-server:")
     assert b"TODO(#700):" in yaml_bytes
-    restored = yaml_ld.yamlld_to_jsonld(yaml_bytes)
-    assert restored == original
 
 
-def test_parse_jsonld_star_reconstructs_quoted_triple() -> None:
-    """A JSON-LD-star @annotation becomes an rdf:reifies quoted triple."""
-    doc = {
-        "@context": {"ex": "http://example.org/"},
-        "@id": "ex:s",
-        "ex:p": {
-            "@id": "ex:o",
-            "@annotation": {"ex:confidence": "0.9"},
-        },
-    }
-    store = yaml_ld.parse_jsonld_star(_json_bytes(doc))
-
-    reifies = pyoxigraph.NamedNode("http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies")
-    found = False
-    for quad in store:
-        if quad.predicate == reifies and isinstance(quad.object, pyoxigraph.Triple):
-            assert quad.object.subject == pyoxigraph.NamedNode("http://example.org/s")
-            assert quad.object.predicate == pyoxigraph.NamedNode("http://example.org/p")
-            assert quad.object.object == pyoxigraph.NamedNode("http://example.org/o")
-            found = True
-    assert found
-
-
-def test_parse_directional_language() -> None:
-    """A directional language string round-trips through the store."""
-    doc = {
-        "@context": {"ex": "http://example.org/"},
-        "@id": "ex:s",
-        "ex:label": {
-            "@value": "hello",
-            "@language": "en",
-            "@direction": "ltr",
-        },
-    }
-    store = yaml_ld.parse_jsonld_star(_json_bytes(doc))
-
-    label = pyoxigraph.NamedNode("http://example.org/label")
-    found = False
-    for quad in store:
-        if (
-            quad.predicate == label
-            and isinstance(quad.object, pyoxigraph.Literal)
-            and quad.object.language == "en"
-            and quad.object.direction == pyoxigraph.BaseDirection.LTR
-        ):
-            found = True
-    assert found
-
-    # Round-trip through N-Quads and back into a fresh pyoxigraph Store.
-    nquads = store.dump(format=pyoxigraph.RdfFormat.N_QUADS)
-    store2 = pyoxigraph.Store()
-    store2.load(
-        nquads, format=pyoxigraph.RdfFormat.N_QUADS, to_graph=pyoxigraph.DefaultGraph()
+def test_parse_yaml_ld_loads_store() -> None:
+    """The parse_yaml_ld wrapper returns a populated pyoxigraph.Store."""
+    yaml_bytes = b"""
+'@context':
+  ex: http://example.org/
+'@id': ex:s
+ex:p:
+  '@id': ex:o
+"""
+    store = yaml_ld.parse_yaml_ld(yaml_bytes)
+    assert any(
+        quad.subject == pyoxigraph.NamedNode("http://example.org/s")
+        and quad.predicate == pyoxigraph.NamedNode("http://example.org/p")
+        and quad.object == pyoxigraph.NamedNode("http://example.org/o")
+        for quad in store
     )
-    found2 = False
-    for quad in store2:
-        if (
-            quad.predicate == label
-            and isinstance(quad.object, pyoxigraph.Literal)
-            and quad.object.language == "en"
-            and quad.object.direction == pyoxigraph.BaseDirection.LTR
-        ):
-            found2 = True
-    assert found2
 
 
 def test_yamlld_to_graph_loads_rdflib() -> None:

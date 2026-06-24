@@ -44,6 +44,7 @@ REP_REASONING = "reasoning-archive"  # tar of canonical reasoning products (#667
 REP_OKF = "okf-export"  # tar of the OKF (Open Knowledge Format) bundle (#780)
 REP_ONTOLOGY_DOCS = "ontology-docs"  # tar of the rust-rendered docs site (#897)
 REP_SCHEMAS = "schemas-archive"  # tar of gmeow.schema.json + gmeow.openapi.json (#700)
+REP_YAMLLD = "yaml-ld-archive"  # tar of gmeow.jsonld + gmeow.yamlld (#699)
 REP_DENIED = "transform:denied"  # JSON of the saturation refusal set (alignment lint)
 _GUIDE_BLOB = NAMESPACE + "guideBlob"
 
@@ -178,6 +179,21 @@ def bundled_schemas() -> dict[str, bytes]:
 def bundled_schema() -> bytes | None:
     """The bundled SHACL-derived JSON Schema (gmeow.schema.json), or None if absent."""
     return _archive(REP_SCHEMAS).get("gmeow.schema.json")
+
+
+def bundled_yaml_ld() -> dict[str, bytes]:
+    """The folded JSON-LD-star + YAML-LD-star serializations (#699).
+
+    Holds ``gmeow.jsonld`` and ``gmeow.yamlld``, keyed by bare filename so a
+    repo-free consumer can serve or re-materialize the RDF 1.2-star surface
+    straight from the wheel. Empty when unbundled.
+    """
+    return dict(_archive(REP_YAMLLD))
+
+
+def bundled_jsonld_star() -> bytes | None:
+    """The bundled JSON-LD-star serialization (gmeow.jsonld), or None if absent."""
+    return _archive(REP_YAMLLD).get("gmeow.jsonld")
 
 
 def _is_slice_mapping(relpath: str) -> bool:
