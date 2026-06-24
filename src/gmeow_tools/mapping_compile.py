@@ -1620,7 +1620,7 @@ def _projection_lint_findings(report: diagnostics.DiagnosticsReport, tool: str) 
     degrades to a single ``warning``.
     """
     try:
-        problems = gmeow_slice.lint_projection(str(PROJECT_ROOT))
+        problems = gmeow_slice.lint_projection(str(PROJECT_ROOT), allow_network=False)
     except Exception as exc:
         report.add(
             diagnostics.finding(
