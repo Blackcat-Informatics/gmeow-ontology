@@ -22,6 +22,7 @@ fn main() {
     }
 
     let python = std::env::var("PYO3_PYTHON").unwrap_or_else(|_| "python3".to_string());
+    println!("cargo:rerun-if-env-changed=PYO3_PYTHON");
 
     let libdir = python_stdout(
         &python,
