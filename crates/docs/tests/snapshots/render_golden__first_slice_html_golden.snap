@@ -58,6 +58,10 @@ expression: "to_html(&model, &Page::Slice(slug))"
 <table><thead><tr><th>Path</th><th>Media type</th><th>Digest</th></tr></thead><tbody>
 <tr><td><code>module.ttl</code></td><td><code>text/turtle</code></td><td><code>d95a3f16d179</code></td></tr>
 </tbody></table>
+<h3>Tests</h3>
+<table><thead><tr><th>Path</th><th>Media type</th><th>Digest</th></tr></thead><tbody>
+<tr><td><code>tests/structural.ttl</code></td><td><code>text/turtle</code></td><td><code>2db163f0fe2d</code></td></tr>
+</tbody></table>
 <h2>Terms (9)</h2>
 <ul>
 <li><a href="../../terms/accessibilityassertion/index.html"><code>gmeow:AccessibilityAssertion</code></a> — Class</li>
