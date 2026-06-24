@@ -108,13 +108,13 @@ Focused module timings:
    keep one dedicated determinism test, and avoid rebuilding full ontology docs
    inside every snapshot build unless the test specifically covers doc bundling.
 
-5. Refactor `test_suppression_conformance.py` so `load_dsl()`,
-   `_default_suppression_vocab()`, and branch rendering happen once per module
-   instead of once per profile.
+5. Keep structural suppression-guard checks in the Rust slice emitter tests so
+   parsed DSL, suppression vocabulary, and branch rendering happen in one native
+   pass instead of repeatedly in Python.
 
-6. Refactor `tests/test_mapping_compiler.py` / `tests/test_compile_no_drift.py`
-   to share parsed DSL and merged ontology fixtures where assertions are
-   read-only.
+6. Keep mapping-compiler parity on the native generator DAG (`make
+   check-generated`) and avoid reintroducing a duplicate Python parser/emitter
+   test surface.
 
 7. Stop rerunning full gates inside `compliance-report` during routine local
    checks. `make compliance-report` should emit the RDF from already-run gate

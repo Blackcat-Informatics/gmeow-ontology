@@ -56,8 +56,8 @@ PROFILES: dict[str, Profile] = {
     "iiif": Profile("iiif", ("iiif", "oa", "rdf")),
     "dcat": Profile("dcat", ("dcat", "dcterms", "prov", "spdx")),
     # #34 phases 2-3: the coverage profiles — plus doap/codemeta, which were
-    # compile-only (in mapping_compile._PROFILES but absent here, so their
-    # queries never ran in MAXIMAL).
+    # compile-only in the mapping compiler profile set but absent here, so their
+    # queries never ran in MAXIMAL.
     "org": Profile("org", ("org",)),
     "bibo": Profile("bibo", ("bibo",)),
     "bibframe": Profile("bibframe", ("bibframe", "rdf")),

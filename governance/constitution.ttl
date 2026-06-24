@@ -63,7 +63,7 @@ meta:gate-statements a meta:Gate ;
 
 meta:tests-statements a meta:TestSuite ;
     rdfs:label "RDF 1.2 round-trip tests"@x-gmeow-english ;
-    meta:artifact "tests/test_mapping_compiler.py", "tests/test_statements.py" .
+    meta:artifact "tests/test_statements.py" .
 
 meta:gate-rdf12-codec a meta:Gate ;
     rdfs:label "OWL ↔ RDF 1.2 codec (generated↔generated downcast)"@x-gmeow-english ;
@@ -206,8 +206,8 @@ meta:lint-term-naming a meta:Lint ;
 
 meta:gate-suppression-injection a meta:Gate ;
     rdfs:label "suppression guards injected into every projection CONSTRUCT"@x-gmeow-english ;
-    meta:artifact "src/gmeow_tools/mapping_compile.py" ;
-    meta:symbol "_injected_guards" .
+    meta:artifact "crates/slice/src/sparql_emit.rs" ;
+    meta:symbol "injected_guards" .
 
 meta:tests-leak-conformance a meta:TestSuite ;
     rdfs:label "generated per-profile leak-conformance suite"@x-gmeow-english ;

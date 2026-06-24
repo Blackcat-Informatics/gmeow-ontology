@@ -119,11 +119,23 @@ fn compile_statements_report(
     Ok(Py::new(py, PyReport::from_engine(report))?.into_any())
 }
 
+/// Compile mappings and return the structured feedback diagnostics report.
+///
+/// The compiler, SSSOM validation, and projection linting remain Rust-owned.
+/// Python receives only the canonical report object for CLI/SARIF/HTML folding.
+#[pyfunction]
+#[pyo3(signature = (root))]
+fn compile_mappings_report(py: Python<'_>, root: String) -> PyResult<Py<PyAny>> {
+    let report = crate::stages::mappings::compile_diagnostics_report(Path::new(&root));
+    Ok(Py::new(py, PyReport::from_engine(report))?.into_any())
+}
+
 /// Register the `gmeow_native.pipeline` submodule. Called by the unified
 /// `gmeow_native` cdylib (#630); exposes [`run_pipeline`].
 pub fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(run_pipeline, m)?)?;
     m.add_function(wrap_pyfunction!(compile_statements, m)?)?;
     m.add_function(wrap_pyfunction!(compile_statements_report, m)?)?;
+    m.add_function(wrap_pyfunction!(compile_mappings_report, m)?)?;
     Ok(())
 }
