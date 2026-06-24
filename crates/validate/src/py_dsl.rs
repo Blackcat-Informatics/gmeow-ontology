@@ -102,3 +102,146 @@ pub fn validate_dsl_shacl(dsl_paths: Vec<String>, shapes_ttl: String) -> PyResul
 
     Ok(violations)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    use std::io::Write;
+
+    fn write_tmp(name: &str, contents: &str) -> PathBuf {
+        let path = std::env::temp_dir().join(name);
+        let mut file = std::fs::File::create(&path).unwrap();
+        file.write_all(contents.as_bytes()).unwrap();
+        path
+    }
+
+    fn simple_shapes() -> String {
+        r#"@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex: <https://example.org/> .
+
+ex:NodeShape a sh:NodeShape ;
+    sh:targetClass ex:Thing ;
+    sh:property [
+        sh:path ex:name ;
+        sh:minCount 1 ;
+        sh:severity sh:Violation ;
+        sh:message "Missing ex:name" ;
+    ] .
+"#
+        .to_owned()
+    }
+
+    #[test]
+    fn clean_graph_returns_empty_violations() {
+        let ttl = write_tmp(
+            "gmeow_py_dsl_clean.ttl",
+            "@prefix ex: <https://example.org/> .\n\
+             ex:alice a ex:Thing ; ex:name \"Alice\" .\n",
+        );
+        let violations = validate_dsl_shacl_inner(&[ttl], simple_shapes());
+        assert!(
+            violations.is_empty(),
+            "expected no violations, got {violations:?}"
+        );
+    }
+
+    #[test]
+    fn malformed_cell_carries_focus_path_msg_and_source() {
+        let ttl = write_tmp(
+            "gmeow_py_dsl_bad.ttl",
+            "@prefix ex: <https://example.org/> .\n\
+             ex:bob a ex:Thing .\n",
+        );
+        let violations = validate_dsl_shacl_inner(std::slice::from_ref(&ttl), simple_shapes());
+        assert!(!violations.is_empty(), "expected at least one violation");
+        let msg = violations.join("\n");
+        assert!(msg.contains("focus=https://example.org/bob"), "{msg}");
+        assert!(msg.contains("path="), "{msg}");
+        assert!(msg.contains("msg="), "{msg}");
+        assert!(msg.contains(&format!("source={}", ttl.display())), "{msg}");
+    }
+
+    #[test]
+    fn provenance_first_seen_wins() {
+        let a = write_tmp(
+            "gmeow_py_dsl_prov_a.ttl",
+            "@prefix ex: <https://example.org/> .\n\
+             ex:shared a ex:Thing ; ex:name \"A\" .\n",
+        );
+        let b = write_tmp(
+            "gmeow_py_dsl_prov_b.ttl",
+            "@prefix ex: <https://example.org/> .\n\
+             ex:shared a ex:Thing ; ex:name \"B\" .\n",
+        );
+        // Remove the required name from both; the violation should attribute to file a.
+        std::fs::write(
+            &a,
+            "@prefix ex: <https://example.org/> .\nex:shared a ex:Thing .\n",
+        )
+        .unwrap();
+        std::fs::write(
+            &b,
+            "@prefix ex: <https://example.org/> .\nex:shared a ex:Thing .\n",
+        )
+        .unwrap();
+        let violations = validate_dsl_shacl_inner(&[a.clone(), b.clone()], simple_shapes());
+        assert_eq!(
+            violations.len(),
+            1,
+            "expected one violation for shared subject"
+        );
+        assert!(
+            violations[0].contains(&format!("source={}", a.display())),
+            "{}",
+            violations[0]
+        );
+    }
+
+    #[test]
+    fn parse_error_hard_fails_with_path() {
+        let bad = write_tmp("gmeow_py_dsl_bad_syntax.ttl", "this is not turtle @@@ <<<");
+        let err = validate_dsl_shacl_inner_err(std::slice::from_ref(&bad), simple_shapes());
+        assert!(err.contains(&bad.display().to_string()), "{err}");
+    }
+
+    // Helpers that bypass the PyO3 boundary for unit tests.
+    fn validate_dsl_shacl_inner(paths: &[PathBuf], shapes_ttl: String) -> Vec<String> {
+        let merge = crate::dsl::merge_with_provenance(paths).expect("merge must succeed");
+        let data_store =
+            crate::store::build_store_from_nt(&merge.data_nt).expect("store must build");
+        let shapes = gmeow_shacl::engine::parse_shapes(&shapes_ttl).expect("shapes must parse");
+        let report = gmeow_shacl::engine::validate(&data_store, &shapes);
+        if report.conforms {
+            return Vec::new();
+        }
+        let focus_to_file: HashMap<String, String> = merge.focus_to_file.into_iter().collect();
+        report
+            .results
+            .iter()
+            .map(|result| {
+                let mut parts = vec![format!("focus={}", term_to_str(&result.focus_node))];
+                if let Some(path) = &result.result_path {
+                    parts.push(format!("path={}", term_to_str(path)));
+                }
+                if let Some(message) = &result.message {
+                    parts.push(format!("msg={message}"));
+                }
+                if let Term::NamedNode(node) = &result.focus_node {
+                    if let Some(source) = focus_to_file.get(node.as_str()) {
+                        parts.push(format!("source={source}"));
+                    }
+                }
+                parts.join(" | ")
+            })
+            .collect()
+    }
+
+    fn validate_dsl_shacl_inner_err(paths: &[PathBuf], _shapes_ttl: String) -> String {
+        match crate::dsl::merge_with_provenance(paths) {
+            Ok(_) => panic!("expected merge to fail for malformed Turtle"),
+            Err(err) => err,
+        }
+    }
+}
