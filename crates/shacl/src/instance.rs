@@ -25,7 +25,7 @@
 
 use std::collections::BTreeMap;
 
-use oxigraph::model::{NamedOrBlankNodeRef, Term};
+use oxigraph::model::{GraphNameRef, NamedOrBlankNodeRef, Term};
 use oxigraph::store::Store;
 use serde_json::{json, Map, Value};
 
@@ -40,7 +40,12 @@ pub fn project_graph(store: &Store) -> Value {
     // Collect distinct named-node / blank-node subjects of the default graph.
     let mut subjects: Vec<Term> = Vec::new();
     let mut seen: std::collections::HashSet<String> = std::collections::HashSet::new();
-    for quad in store.quads_for_pattern(None, None, None, None).flatten() {
+    // Scope to the DEFAULT graph only: a `None` graph filter would match named
+    // graphs too, leaking named-graph subjects into the projected `@graph`.
+    for quad in store
+        .quads_for_pattern(None, None, None, Some(GraphNameRef::DefaultGraph))
+        .flatten()
+    {
         let subj: Term = quad.subject.into();
         // Only IRI / blank-node subjects become @graph nodes (literals never are).
         if matches!(subj, Term::NamedNode(_) | Term::BlankNode(_)) {
@@ -79,7 +84,7 @@ pub fn project_subject(store: &Store, subject: &Term) -> Value {
     let mut types: Vec<String> = Vec::new();
 
     for quad in store
-        .quads_for_pattern(Some(subj_sub), None, None, None)
+        .quads_for_pattern(Some(subj_sub), None, None, Some(GraphNameRef::DefaultGraph))
         .flatten()
     {
         let pred = quad.predicate;
@@ -297,6 +302,35 @@ mod tests {
         assert_eq!(tags.len(), 3);
         // sorted by term string → "a","b","c"
         assert_eq!(tags, &[json!("a"), json!("b"), json!("c")]);
+    }
+
+    #[test]
+    fn test_named_graph_data_is_excluded() {
+        use oxigraph::model::{GraphName, Literal, NamedNode, Quad};
+        // alice lives in the default graph; bob lives ONLY in a named graph.
+        let store = load(&format!(
+            r#"{PREFIXES_TTL}
+            gmeow:alice a gmeow:Person ; gmeow:name "Alice" .
+        "#
+        ));
+        let named = NamedNode::new("https://blackcatinformatics.ca/gmeow/graph/other").unwrap();
+        store
+            .insert(&Quad::new(
+                NamedNode::new("https://blackcatinformatics.ca/gmeow/bob").unwrap(),
+                NamedNode::new("https://blackcatinformatics.ca/gmeow/name").unwrap(),
+                Literal::new_simple_literal("Bob"),
+                GraphName::NamedNode(named),
+            ))
+            .unwrap();
+        let doc = project_graph(&store);
+        let graph = doc["@graph"].as_array().expect("@graph array");
+        // Only the default-graph subject is projected — no named-graph leak.
+        assert_eq!(graph.len(), 1, "named-graph subject must not appear");
+        assert_eq!(graph[0]["@id"], json!("gmeow:alice"));
+        assert!(
+            graph.iter().all(|n| n["@id"] != json!("gmeow:bob")),
+            "named-graph subject leaked into @graph"
+        );
     }
 
     #[test]

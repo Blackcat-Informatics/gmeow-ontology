@@ -148,10 +148,12 @@ fn slice_shape_files(slices_dir: &Path) -> Result<Vec<PathBuf>, String> {
         if !group_path.is_dir() {
             continue;
         }
-        let slices = match std::fs::read_dir(&group_path) {
-            Ok(it) => it,
-            Err(_) => continue,
-        };
+        // A read error here would silently drop an entire slice subtree from the
+        // shape union — under-validating instances and shrinking the compiled JSON
+        // Schema. Hard-fail instead (no-optionality), matching every sibling
+        // read_dir in this file.
+        let slices = std::fs::read_dir(&group_path)
+            .map_err(|e| format!("failed to read {}: {e}", group_path.display()))?;
         for slice in slices {
             let slice = slice.map_err(|e| format!("dir entry error: {e}"))?;
             let slice_path = slice.path();
