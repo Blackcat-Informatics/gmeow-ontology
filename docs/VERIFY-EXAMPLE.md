@@ -18,10 +18,10 @@ repo under `python/tests/fixtures/`; point `--sign-key`/`--public-key` at a loca
 copy (or any test keypair):
 
 ```bash
-uv run --package gmeow-dev gmeow-dev compile-gts-full \
-  --sign-key path/to/test_key.sec.asc \
-  --public-key path/to/test_key.pub.asc \
-  -o dist/gmeow.gts
+make release-sign-gts \
+  SIGN_KEY=path/to/test_key.sec.asc \
+  PUBLIC_KEY=path/to/test_key.pub.asc \
+  GTS_OUT=dist/gmeow.gts
 ```
 
 Expected signing summary:

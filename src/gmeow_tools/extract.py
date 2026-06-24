@@ -13,8 +13,8 @@ This is the concrete teeth behind the plan's "refuses reference-only imports".
 
 Maintainer-only (#695 / Principle 18)
 -------------------------------------
-Extraction is a **maintainer** import tool (``make extract`` /
-``make refresh-target-axioms``) for vendoring target-axiom snapshots — it is NOT
+Extraction is a **maintainer** import tool (``make maint-extract`` /
+``make maint-refresh-target-axioms``) for vendoring target-axiom snapshots — it is NOT
 on the normal-use primary path, never part of ``make check`` or the required CI
 ``quality`` gate. As of **#695** it is Java/Docker-free: the ROBOT shell-out was
 replaced by the in-process Rust ``gmeow_logic`` syntactic-locality extractor, so

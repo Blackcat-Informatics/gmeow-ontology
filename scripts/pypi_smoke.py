@@ -171,11 +171,12 @@ print("quickstart-ok")
         assert "regenerate" not in gmeow_help.stdout
         assert "quality" not in gmeow_help.stdout
         gts_help = _run([str(bin_dir / "gmeow"), "gts", "--help"])
-        # ``compile-full`` used to be a ``gmeow gts`` subcommand; after #617 it
-        # lives on the repository-only toolchain as ``gmeow-dev compile-gts-full``.
+        # Release GTS signing is repository-only Makefile work, not part of the
+        # installed consumer CLI.
         assert "compile-full" not in gts_help.stdout
         assert "compile-gts-full" not in gts_help.stdout
         assert "compile-gts-full" not in gmeow_help.stdout
+        assert "release-sign-gts" not in gmeow_help.stdout
         _run([str(bin_dir / "gmeow"), "info"])
         _run([str(bin_dir / "gmeow"), "verify"])
         _run([str(bin_dir / "gts"), "info", str(assistant)])

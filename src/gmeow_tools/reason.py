@@ -3,7 +3,7 @@
 **classic-cross-check only.** This module is the lane's ROBOT/Docker reasoning
 plumbing — the *sole* Java+Docker reasoning surface (Principle 18). It is NOT on
 the primary path: ``make check`` and the required ``quality`` gate reason
-natively (``reason-native`` / ``gmeow reason --mode native``, Java/Docker-free),
+natively (``make reason`` / ``gmeow-dev reason --mode native``, Java/Docker-free),
 and every pytest that drives these functions is ``docker``/``classic_cross_check``
 marked or mocks them out. The only live callers are the classic-cross-check lane
 (``classic_cross_check.py``), the maintainer ``gmeow-dev`` docker subcommands, and
@@ -84,7 +84,7 @@ def merge_release(
     metadata (``statements/gmeow-statements.owl.ttl``) is merged in too, so the
     reasoner consumes the statement layer as a *generated downcast* — never an
     authored one (CONSTITUTION Principles 2-3). Its freshness is guarded
-    separately by ``gmeow compile-statements --check``; merging the committed file
+    separately by ``make check-generated``; merging the committed file
     keeps reasoning a pure-ROBOT step (no Jena dependency here).
 
     Args:

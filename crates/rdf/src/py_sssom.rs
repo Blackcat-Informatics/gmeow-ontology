@@ -3,7 +3,7 @@
 
 //! PyO3 bindings for the native SSSOM codec — the `gmeow_rdf` SSSOM surface that
 //! replaces the `sssom` PyPI package's parse + validate behaviour on the
-//! `gmeow regenerate` / `compile-mappings` path (#848).
+//! `gmeow-dev regenerate` / mappings-generator path (#848).
 //!
 //! # Kernel-clean separation
 //!

@@ -53,24 +53,10 @@ This crate is gated by a SHACL conformance corpus and is part of **EPIC #575**.
 cargo build -p gmeow-shacl
 ```
 
-Via the Makefile:
-
-```bash
-make shacl-build
-```
-
----
-
 ## Test
 
 ```bash
 cargo test -p gmeow-shacl
-```
-
-Via the Makefile:
-
-```bash
-make shacl-test
 ```
 
 ---
@@ -78,7 +64,7 @@ make shacl-test
 ## Python extension
 
 ```bash
-make shacl-py
+make native-py
 ```
 
 ```python

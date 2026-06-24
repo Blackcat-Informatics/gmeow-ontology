@@ -32,28 +32,13 @@ jobs:
       - name: Sync environment
         run: uv sync --all-packages --frozen
 
-      - name: Pull pinned ROBOT image
-        run: |
-          ROBOT_IMAGE=$(uv run python -c "from gmeow_tools.config import ROBOT_IMAGE; print(ROBOT_IMAGE)")
-          docker pull "$ROBOT_IMAGE"
+      - name: Install Rust (nightly, native only)
+        uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8 # nightly
+        with:
+          toolchain: nightly
 
-      - name: Reason (HermiT) + reasoned closure
-        run: uv run --package gmeow-dev gmeow-dev reason --reasoner hermit --full
-
-      - name: Build serializations + JSON-LD context + apache.conf
-        run: uv run --package gmeow-dev gmeow-dev build
-
-      - name: Generate VoID + DCAT metadata
-        run: uv run --package gmeow-dev gmeow-dev regenerate metadata
-
-      - name: Generate CrossRef DOI deposit document
-        run: uv run --package gmeow-dev gmeow-dev crossref
-
-      - name: Generate documentation (pyLODE)
-        run: uv run --package gmeow-dev gmeow-dev docs
-
-      - name: RDF 1.2 statement artifact gate
-        run: uv run --package gmeow-dev gmeow-dev regenerate statements
+      - name: Build release artifacts
+        run: make release
 
       - name: Sign gmeow.gts with the release key
         env:
@@ -65,10 +50,7 @@ jobs:
           fi
           mkdir -p /tmp/gpg
           printf '%s' "$GMEOW_RELEASE_SIGNING_KEY" > /tmp/gpg/signing-key.asc
-          uv run --package gmeow-dev gmeow-dev compile-gts-full \
-            --sign-key /tmp/gpg/signing-key.asc \
-            --public-key keys/gmeow-release-key.asc \
-            -o dist/gmeow.gts
+          make release-sign-gts SIGN_KEY=/tmp/gpg/signing-key.asc GTS_OUT=dist/gmeow.gts
           rm -f /tmp/gpg/signing-key.asc
 
       - name: Verify signed gmeow.gts
@@ -80,5 +62,5 @@ jobs:
           name: gmeow-${{ github.ref_name }}
           path: |
             dist/
-            docs/_generated/
+            ontology-docs/
             metadata/

@@ -7,7 +7,7 @@ other. The PRIMARY lane — ``make check``, the required CI ``quality`` aggregat
 the build, and runtime — is rust-first and carries **no Java and no Docker**: it
 reasons with the native ``gmeow_logic`` EL/DL engine, serializes RDF-1.2 with the
 native ``gmeow-rdf`` codec (#667), and validates with native ``gmeow_shacl``. The
-``classic-cross-check`` lane — ``make classic-cross-check`` and a single,
+``classic-cross-check`` lane — ``make maint-classic-cross-check`` and a single,
 deliberately **non-required** CI job — is the *sole* Java+Docker surface, where
 the legacy oracles (ELK, HermiT, ROBOT, Jena) live.
 
@@ -42,15 +42,13 @@ MAKEFILE = PROJECT_ROOT / "Makefile"
 #: its single-purpose siblings. Every other target must be Docker/Java-free.
 LANE_MAKE_TARGETS: frozenset[str] = frozenset(
     {
-        "classic-cross-check",
-        "reason-hermit",
-        "explain",
-        "verify-docker",
-        "reasoning-cases",
-        "statements-docker-check",
-        "crosscheck",
-        "pull-images",
-        "test-docker",
+        "maint-classic-cross-check",
+        "maint-reason-hermit",
+        "maint-explain",
+        "maint-verify-docker",
+        "maint-reasoning-cases",
+        "maint-statements-docker-check",
+        "maint-pull-images",
     }
 )
 
@@ -59,12 +57,12 @@ LANE_MAKE_TARGETS: frozenset[str] = frozenset(
 #: matching after a tooling change would otherwise let everything "pass").
 LANE_TARGETS_THAT_MUST_HIT: frozenset[str] = frozenset(
     {
-        "classic-cross-check",
-        "reason-hermit",
-        "verify-docker",
-        "reasoning-cases",
-        "statements-docker-check",
-        "pull-images",
+        "maint-classic-cross-check",
+        "maint-reason-hermit",
+        "maint-verify-docker",
+        "maint-reasoning-cases",
+        "maint-statements-docker-check",
+        "maint-pull-images",
     }
 )
 
@@ -172,13 +170,13 @@ def test_required_ci_jobs_carry_no_java_or_docker() -> None:
         assert not hits, f"required CI job {job_name!r} reaches Docker/Java: {hits}"
         # Dispatching the oracle lane by name (or naming an oracle reasoner) is
         # also forbidden on the required path. Match an actual invocation —
-        # `make classic-cross-check`, an oracle `--reasoner` switch — not a bare
+        # `make maint-classic-cross-check`, an oracle `--reasoner` switch — not a bare
         # mention, so the aggregator's "…oracle lane is non-blocking…" log line
         # and the required `crosscheck-queries` CLI command do not false-trip.
         # Lowercased so `--reasoner ELK` and `--reasoner elk` both trip.
         lowered_blob = blob.lower()
         oracle_tokens = (
-            "make classic-cross-check",
+            "make maint-classic-cross-check",
             "--reasoner hermit",
             "--reasoner elk",
         )
@@ -252,6 +250,8 @@ def test_lane_surfaces_actually_carry_the_tokens() -> None:
         hits = _forbidden_hits("\n".join(recipes[target]))
         assert hits, f"lane target {target!r} no longer carries a Docker/Java token"
 
-    assert _forbidden_hits(CLASSIC_CROSS_CHECK.read_text(encoding="utf-8")), (
-        "the classic-cross-check workflow no longer carries a Docker/Java token"
-    )
+    workflow_text = CLASSIC_CROSS_CHECK.read_text(encoding="utf-8")
+    assert (
+        _forbidden_hits(workflow_text)
+        or "make maint-classic-cross-check" in workflow_text
+    ), "the classic-cross-check workflow no longer invokes the Docker/Java lane"

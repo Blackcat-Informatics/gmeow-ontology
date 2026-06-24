@@ -22,7 +22,7 @@ full-ontology validation is unchanged:
   does **not** validate SHACL.
 
 What licenses the suite to trust the fast engine is the **engine-equivalence
-gate** (`gmeow crosscheck-queries`, `make crosscheck`, and the CI `ontology`
+gate** (`gmeow-dev crosscheck-queries`, `make maint-crosscheck`, and the CI `ontology`
 job): every committed query under `queries/` is executed on the same merged graph
 under **both** rdflib and gmeow_rdf, and the answers are compared **by value**.
 If the two engines ever disagree, the gate fails. This extends the RDF 1.2

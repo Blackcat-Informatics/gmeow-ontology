@@ -41,7 +41,7 @@ gmeow-rdf = { path = "../rdf", features = ["gts", "oxigraph"] }
 # pure rlib (no pyo3); the unified gmeow_native cdylib enables its `python` feature.
 gmeow-slice = { path = "../slice" }
 # Canonical Finding/Report model (#654). The RDF/SHACL -> Finding bridge lives
-# here, NOT in the PyO3-free gmeow-rdf kernel: gmeow-diagnostics links pyo3
+# here, NOT in the PyO3-free gmeow-rdf-core kernel: gmeow-diagnostics links pyo3
 # unconditionally, and gmeow-validate already links pyo3, so this dependency
 # keeps the kernel clean while threading wire-coordinate findings end-to-end.
 gmeow-diagnostics = { path = "../diagnostics" }
