@@ -1,0 +1,161 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Declarative structural assertions for the sexuality slice — the slice-resident
+# test-DSL twin of the asserted-TBox MUST / MUST-NOT invariants formerly
+# hand-written in tests/test_sexuality.py. Each runs as a SPARQL ASK over the
+# sexuality module graph (gmeow:scopeModule) under the native Rust slicetest
+# harness. This slice has NOT been #694-migrated so class stereotypes are gufo:
+# (gufo:SubKind, gufo:AbstractIndividualType, gufo:QualityValue), not logic:.
+#
+# RETAINED in pytest (not migratable here):
+#   test_competency_orientation_values_query — reads an external .rq file from
+#     COMPETENCY_DIR and asserts len(values) >= 16; a generated-artifact /
+#     numeric-count check that cannot be expressed as a module-scoped ASK.
+#
+# See dsl/tests/MIGRATION-LEDGER.md for the per-test pytest→DSL mapping.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/sexuality/tests/> .
+
+# --- 1. SexualOrientation is a subclass of IdentityFacet (MUST) --------------
+ex:saSexualOrientationSubclassIdentityFacet a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK { gmeow:SexualOrientation rdfs:subClassOf gmeow:IdentityFacet . }""" ;
+    gmeow:saRationale "gmeow:SexualOrientation MUST be a subclass of gmeow:IdentityFacet — sexual orientation is modelled as a self-asserted identity facet. Mirrors test_orientation_facets_subclass_identity_facet (SexualOrientation arm)." .
+
+# --- 2. RomanticOrientation is a subclass of IdentityFacet (MUST) ------------
+ex:saRomanticOrientationSubclassIdentityFacet a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK { gmeow:RomanticOrientation rdfs:subClassOf gmeow:IdentityFacet . }""" ;
+    gmeow:saRationale "gmeow:RomanticOrientation MUST be a subclass of gmeow:IdentityFacet — romantic orientation is modelled as a self-asserted identity facet. Mirrors test_orientation_facets_subclass_identity_facet (RomanticOrientation arm)." .
+
+# --- 3. hasSexualOrientation range is SexualOrientation (MUST) ---------------
+ex:saSplitAttractionRanges a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:hasSexualOrientation rdfs:range gmeow:SexualOrientation .
+    gmeow:hasRomanticOrientation rdfs:range gmeow:RomanticOrientation .
+}""" ;
+    gmeow:saRationale "hasSexualOrientation MUST have range SexualOrientation and hasRomanticOrientation MUST have range RomanticOrientation — each axis points exclusively to its own facet class (split-attraction independence). Mirrors test_split_attraction_axes_are_independent (positive range half)." .
+
+# --- 4. hasSexualOrientation is NOT a subPropertyOf hasRomanticOrientation (MUST-NOT) ---
+ex:saSexualNotSubPropRomantic a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK { gmeow:hasSexualOrientation rdfs:subPropertyOf gmeow:hasRomanticOrientation . }""" ;
+    gmeow:saRationale "gmeow:hasSexualOrientation MUST NOT be a subPropertyOf gmeow:hasRomanticOrientation — the split-attraction model keeps the two axes independent; one must never subsume the other. Mirrors test_split_attraction_axes_are_independent (subPropertyOf sexual→romantic mustNot)." .
+
+# --- 5. hasRomanticOrientation is NOT a subPropertyOf hasSexualOrientation (MUST-NOT) ---
+ex:saRomanticNotSubPropSexual a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK { gmeow:hasRomanticOrientation rdfs:subPropertyOf gmeow:hasSexualOrientation . }""" ;
+    gmeow:saRationale "gmeow:hasRomanticOrientation MUST NOT be a subPropertyOf gmeow:hasSexualOrientation — the split-attraction model keeps the two axes independent. Mirrors test_split_attraction_axes_are_independent (subPropertyOf romantic→sexual mustNot)." .
+
+# --- 6. hasSexualOrientation and hasRomanticOrientation are NOT equivalent (MUST-NOT) ---
+ex:saOrientationPropertiesNotEquivalent a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:hasSexualOrientation owl:equivalentProperty gmeow:hasRomanticOrientation . }""" ;
+    gmeow:saRationale "gmeow:hasSexualOrientation MUST NOT be owl:equivalentProperty gmeow:hasRomanticOrientation — the two axes are structurally distinct (asexual-biromantic must remain expressible). Mirrors test_split_attraction_axes_are_independent (equivalentProperty mustNot)." .
+
+# --- 7. SexualOrientationValue and RomanticOrientationValue subclass gufo:QualityValue (MUST) ---
+ex:saOrientationValueSubclassQualityValue a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:SexualOrientationValue rdfs:subClassOf gufo:QualityValue .
+    gmeow:RomanticOrientationValue rdfs:subClassOf gufo:QualityValue .
+}""" ;
+    gmeow:saRationale "gmeow:SexualOrientationValue and gmeow:RomanticOrientationValue MUST both be subclasses of gufo:QualityValue — orientation values are open individual vocabularies rooted in the gufo quality hierarchy. Mirrors test_orientation_values_are_individuals_not_subclasses (QualityValue subClass half)." .
+
+# --- 8. orientAsexual is typed SexualOrientationValue (MUST) -----------------
+ex:saOrientAsexualTyped a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK { gmeow:orientAsexual a gmeow:SexualOrientationValue . }""" ;
+    gmeow:saRationale "gmeow:orientAsexual MUST be a gmeow:SexualOrientationValue individual — seed values are typed individuals, not subclasses. Mirrors test_orientation_values_are_individuals_not_subclasses (orientAsexual typing half)." .
+
+# --- 9. romanticAromantic is typed RomanticOrientationValue (MUST) -----------
+ex:saRomanticAromanticTyped a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK { gmeow:romanticAromantic a gmeow:RomanticOrientationValue . }""" ;
+    gmeow:saRationale "gmeow:romanticAromantic MUST be a gmeow:RomanticOrientationValue individual — seed values are typed individuals, not subclasses. Mirrors test_orientation_values_are_individuals_not_subclasses (romanticAromantic typing half)." .
+
+# --- 10. No per-orientation subclasses declared (MUST-NOT) -------------------
+ex:saNoPerOrientationSubclasses a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    { gmeow:AsexualPerson a owl:Class . }
+    UNION { gmeow:GayPerson a owl:Class . }
+    UNION { gmeow:BisexualPerson a owl:Class . }
+}""" ;
+    gmeow:saRationale "gmeow:AsexualPerson, gmeow:GayPerson, and gmeow:BisexualPerson MUST NOT be declared as owl:Class — per-orientation subclasses are banned; all orientations are open individuals (Principle 9). Mirrors test_orientation_values_are_individuals_not_subclasses (rejected subclass half)." .
+
+# --- 11. sexualOrientationValue and romanticOrientationValue are functional (MUST) ---
+ex:saValuePropertiesFunctional a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    gmeow:sexualOrientationValue a owl:FunctionalProperty .
+    gmeow:romanticOrientationValue a owl:FunctionalProperty .
+}""" ;
+    gmeow:saRationale "gmeow:sexualOrientationValue and gmeow:romanticOrientationValue MUST be owl:FunctionalProperty — a single facet asserts exactly one value (a change is a new facet, not a second value). Mirrors test_orientation_value_properties_functional_facets_nonfunctional (functional half)." .
+
+# --- 12. hasSexualOrientation is NOT functional (MUST-NOT) -------------------
+ex:saHasSexualOrientationNotFunctional a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:hasSexualOrientation a owl:FunctionalProperty . }""" ;
+    gmeow:saRationale "gmeow:hasSexualOrientation MUST NOT be functional — concurrent or time-scoped orientations and superseded prior values coexist. Mirrors test_orientation_value_properties_functional_facets_nonfunctional (nonfunctional hasSexualOrientation half)." .
+
+# --- 13. hasRomanticOrientation is NOT functional (MUST-NOT) -----------------
+ex:saHasRomanticOrientationNotFunctional a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:hasRomanticOrientation a owl:FunctionalProperty . }""" ;
+    gmeow:saRationale "gmeow:hasRomanticOrientation MUST NOT be functional — concurrent or time-scoped orientations and superseded prior values coexist. Mirrors test_orientation_value_properties_functional_facets_nonfunctional (nonfunctional hasRomanticOrientation half)." .
+
+# --- 14. No flat orientation shortcut datatype properties (MUST-NOT) ---------
+ex:saNoFlatOrientationShortcut a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    { gmeow:orientation a owl:DatatypeProperty . }
+    UNION { gmeow:sexuality a owl:DatatypeProperty . }
+    UNION { gmeow:orientationLabel a owl:DatatypeProperty . }
+}""" ;
+    gmeow:saRationale "gmeow:orientation, gmeow:sexuality, and gmeow:orientationLabel MUST NOT be declared as owl:DatatypeProperty — flat literal orientation shortcuts are banned; the reified facet pattern is required. Mirrors test_no_flat_orientation_shortcut." .

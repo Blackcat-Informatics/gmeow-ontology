@@ -1,0 +1,191 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Declarative structural assertions for the connectivity slice (#80) — the
+# slice-resident test-DSL twin of the asserted-TBox MUST / MUST-NOT invariants
+# formerly hand-written in tests/test_connectivity.py. Each runs as a SPARQL ASK
+# over the connectivity module graph (gmeow:scopeModule) under the native Rust
+# slicetest harness.
+#
+# Connectivity is NOT #694-migrated, so class stereotypes use gufo:
+# (gufo:Kind, gufo:Relator, gufo:AbstractIndividualType, gufo:QualityValue).
+#
+# RETAINED in pytest (cross-slice subjects):
+#   test_connects_to_universal_spine      — gmeow:connectsTo lives in core, not here
+#   test_spatially_connects_to_is_...     — gmeow:spatiallyConnectsTo lives in core, not here
+#   test_genealogy_subproperties_of_...   — hasSpouse/hasSibling/hasParent/hasChild
+#                                           live in the genealogy slice, not here
+#
+# See dsl/tests/MIGRATION-LEDGER.md for the per-test pytest→DSL mapping.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/connectivity/tests/> .
+
+# --- 1. Route is a gufo:Kind subclass of Entity (MUST) -----------------------
+ex:saRouteClass a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:Route a owl:Class , gufo:Kind ;
+        rdfs:subClassOf gmeow:Entity .
+}""" ;
+    gmeow:saRationale "gmeow:Route MUST be an owl:Class typed gufo:Kind and a subclass of gmeow:Entity. Mirrors test_route_class_and_kinds (Route part)." .
+
+# --- 2. RouteKind is a gufo:AbstractIndividualType value vocab (MUST) --------
+ex:saRouteKindClass a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:RouteKind a owl:Class , gufo:AbstractIndividualType ;
+        rdfs:subClassOf gufo:QualityValue .
+}""" ;
+    gmeow:saRationale "gmeow:RouteKind MUST be an owl:Class typed gufo:AbstractIndividualType and a subclass of gufo:QualityValue — an open value vocabulary of individuals, not subclasses (Principle 9). Mirrors test_route_class_and_kinds (RouteKind part)." .
+
+# --- 3. The seven RouteKind seed individuals exist (MUST) --------------------
+ex:saRouteKindSeeds a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    gmeow:routeKindTransit    a gmeow:RouteKind .
+    gmeow:routeKindWalking    a gmeow:RouteKind .
+    gmeow:routeKindFlight     a gmeow:RouteKind .
+    gmeow:routeKindNetwork    a gmeow:RouteKind .
+    gmeow:routeKindCitation   a gmeow:RouteKind .
+    gmeow:routeKindSocial     a gmeow:RouteKind .
+    gmeow:routeKindDependency a gmeow:RouteKind .
+}""" ;
+    gmeow:saRationale "All seven seeded RouteKind individuals MUST exist as gmeow:RouteKind. Mirrors test_route_class_and_kinds (individual loop)." .
+
+# --- 4. routeKind property shape (MUST) --------------------------------------
+ex:saRouteKindProperty a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:routeKind a owl:ObjectProperty , owl:FunctionalProperty ;
+        rdfs:domain gmeow:Route ;
+        rdfs:range gmeow:RouteKind .
+}""" ;
+    gmeow:saRationale "gmeow:routeKind MUST be a functional owl:ObjectProperty with domain Route and range RouteKind. Mirrors test_route_class_and_kinds (routeKind property part)." .
+
+# --- 5. Connection is a gufo:Relator class (MUST) ----------------------------
+ex:saConnectionClass a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:Connection a owl:Class ;
+        rdfs:subClassOf gufo:Relator .
+}""" ;
+    gmeow:saRationale "gmeow:Connection MUST be an owl:Class and a subclass of gufo:Relator. Mirrors test_connection_relator (class part)." .
+
+# --- 6. connectionSource and connectionTarget are functional with owl:Thing range (MUST) ---
+ex:saConnectionEndpoints a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:connectionSource a owl:ObjectProperty , owl:FunctionalProperty ;
+        rdfs:domain gmeow:Connection ;
+        rdfs:range owl:Thing .
+    gmeow:connectionTarget a owl:ObjectProperty , owl:FunctionalProperty ;
+        rdfs:domain gmeow:Connection ;
+        rdfs:range owl:Thing .
+}""" ;
+    gmeow:saRationale "gmeow:connectionSource and gmeow:connectionTarget MUST each be a functional owl:ObjectProperty with domain Connection and range owl:Thing (universal connectivity contract). Mirrors test_connection_relator (properties loop)." .
+
+# --- 7. routeStart and routeEnd are functional with owl:Thing range (MUST) ---
+ex:saRouteEndpoints a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:routeStart a owl:ObjectProperty , owl:FunctionalProperty ;
+        rdfs:domain gmeow:Route ;
+        rdfs:range owl:Thing .
+    gmeow:routeEnd a owl:ObjectProperty , owl:FunctionalProperty ;
+        rdfs:domain gmeow:Route ;
+        rdfs:range owl:Thing .
+}""" ;
+    gmeow:saRationale "gmeow:routeStart and gmeow:routeEnd MUST each be a functional owl:ObjectProperty with domain Route and range owl:Thing. Mirrors test_route_properties (routeStart/routeEnd part)." .
+
+# --- 8a. routeVia shape (MUST) -----------------------------------------------
+ex:saRouteViaShape a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:routeVia a owl:ObjectProperty ;
+        rdfs:domain gmeow:Route ;
+        rdfs:range owl:Thing .
+}""" ;
+    gmeow:saRationale "gmeow:routeVia MUST be an owl:ObjectProperty with domain Route and range owl:Thing. Mirrors test_route_properties (routeVia positive half)." .
+
+# --- 8b. routeVia is NOT functional (MUST-NOT) --------------------------------
+ex:saRouteViaNotFunctional a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:routeVia a owl:FunctionalProperty . }""" ;
+    gmeow:saRationale "gmeow:routeVia MUST NOT be functional — multiple via points are possible on a route. Mirrors test_route_properties (routeVia negative half)." .
+
+# --- 9. hasRouteSegment ⊑ hasPart, transitive (MUST) -------------------------
+ex:saHasRouteSegment a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:hasRouteSegment a owl:ObjectProperty , owl:TransitiveProperty ;
+        rdfs:subPropertyOf gmeow:hasPart ;
+        rdfs:domain gmeow:Route ;
+        rdfs:range gmeow:Route .
+}""" ;
+    gmeow:saRationale "gmeow:hasRouteSegment MUST be a transitive owl:ObjectProperty, a subproperty of gmeow:hasPart, with domain and range Route. Mirrors test_route_properties (hasRouteSegment part)." .
+
+# --- 10. hasRoute links things to routes (MUST) ------------------------------
+ex:saHasRoute a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:hasRoute a owl:ObjectProperty ;
+        rdfs:domain owl:Thing ;
+        rdfs:range gmeow:Route .
+}""" ;
+    gmeow:saRationale "gmeow:hasRoute MUST be an owl:ObjectProperty with domain owl:Thing and range Route (universal connectivity contract). Mirrors test_route_properties (hasRoute part)." .
+
+# --- 11. referenceFrameNetworkGraph ABox individual (MUST) -------------------
+ex:saReferenceFrameNetworkGraph a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    gmeow:referenceFrameNetworkGraph a gmeow:ReferenceFrame ;
+        gmeow:hasMetricKind gmeow:metricGraphHops .
+}""" ;
+    gmeow:saRationale "gmeow:referenceFrameNetworkGraph MUST exist as a gmeow:ReferenceFrame individual and MUST declare gmeow:metricGraphHops as its metric kind. Mirrors test_reference_frame_network_graph." .

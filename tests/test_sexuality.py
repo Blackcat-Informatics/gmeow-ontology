@@ -1,87 +1,31 @@
-"""Structural + DL-safety guards for the sexuality building block.
+"""Retained dynamic guards for the sexuality building block.
 
-Pins the SexualOrientation / RomanticOrientation facets on the shared
-gmeow:IdentityFacet base, the SPLIT-ATTRACTION independence (sexual and romantic
-orientation are separate axes with no bridge), the value-vs-subclass decisions
-(orientation values are OPEN value vocabularies of individuals), and the absence
-of a flat-literal orientation shortcut.
+Asserted-TBox structural invariants (orientation facet subclassing, split-
+attraction axis independence, value-vs-subclass decisions, functional/non-
+functional property shapes, and the absence of flat-literal orientation
+shortcuts) have been migrated to declarative slicetest cells in
+slices/core/sexuality/tests/structural.ttl (#867).
+
+This file retains only tests that cannot be expressed as module-scoped
+SPARQL ASK cells:
+  - test_competency_orientation_values_query: reads an external .rq file
+    from COMPETENCY_DIR and asserts len(values) >= 16 (generated-artifact
+    read + numeric count guard).
 """
 
 from __future__ import annotations
 
-from gmeow_rdf.compat.rdflib import OWL, RDF, RDFS, Graph, URIRef
+from gmeow_rdf.compat.rdflib import Graph
 from gmeow_rdf.compat.rdflib.query import ResultRow
 
 from gmeow_tools.config import COMPETENCY_DIR
 from gmeow_tools.graph import load_merged_graph
 
 GMEOW = "https://blackcatinformatics.ca/gmeow/"
-GUFO = "http://purl.org/nemo/gufo#"
 
 
 def _graph() -> Graph:
     return load_merged_graph(include_imports=False)
-
-
-def test_orientation_facets_subclass_identity_facet() -> None:
-    graph = _graph()
-    for facet in ("SexualOrientation", "RomanticOrientation"):
-        assert (
-            URIRef(GMEOW + facet),
-            RDFS.subClassOf,
-            URIRef(GMEOW + "IdentityFacet"),
-        ) in graph
-
-
-def test_split_attraction_axes_are_independent() -> None:
-    """Sexual and romantic orientation are SEPARATE axes — no bridge either way."""
-    graph = _graph()
-    sexual = URIRef(GMEOW + "hasSexualOrientation")
-    romantic = URIRef(GMEOW + "hasRomanticOrientation")
-    assert (sexual, RDFS.subPropertyOf, romantic) not in graph
-    assert (romantic, RDFS.subPropertyOf, sexual) not in graph
-    assert (sexual, OWL.equivalentProperty, romantic) not in graph
-    # Distinct facet ranges (each points to its own facet class).
-    assert (sexual, RDFS.range, URIRef(GMEOW + "SexualOrientation")) in graph
-    assert (romantic, RDFS.range, URIRef(GMEOW + "RomanticOrientation")) in graph
-
-
-def test_orientation_values_are_individuals_not_subclasses() -> None:
-    graph = _graph()
-    qv = URIRef(GUFO + "QualityValue")
-    for cls in ("SexualOrientationValue", "RomanticOrientationValue"):
-        assert (URIRef(GMEOW + cls), RDFS.subClassOf, qv) in graph
-    assert (
-        URIRef(GMEOW + "orientAsexual"),
-        RDF.type,
-        URIRef(GMEOW + "SexualOrientationValue"),
-    ) in graph
-    assert (
-        URIRef(GMEOW + "romanticAromantic"),
-        RDF.type,
-        URIRef(GMEOW + "RomanticOrientationValue"),
-    ) in graph
-    # No per-orientation subclasses.
-    for rejected in ("AsexualPerson", "GayPerson", "BisexualPerson"):
-        assert (URIRef(GMEOW + rejected), RDF.type, OWL.Class) not in graph
-
-
-def test_orientation_value_properties_functional_facets_nonfunctional() -> None:
-    graph = _graph()
-    for prop in ("sexualOrientationValue", "romanticOrientationValue"):
-        node = URIRef(GMEOW + prop)
-        assert (node, RDF.type, OWL.FunctionalProperty) in graph
-    for prop in ("hasSexualOrientation", "hasRomanticOrientation"):
-        node = URIRef(GMEOW + prop)
-        assert (node, RDF.type, OWL.FunctionalProperty) not in graph
-
-
-def test_no_flat_orientation_shortcut() -> None:
-    graph = _graph()
-    for banned in ("orientation", "sexuality", "orientationLabel"):
-        node = URIRef(GMEOW + banned)
-        msg = f"{banned} is baggage"
-        assert (node, RDF.type, OWL.DatatypeProperty) not in graph, msg
 
 
 def test_competency_orientation_values_query() -> None:
