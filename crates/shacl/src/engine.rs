@@ -12,7 +12,7 @@ use oxigraph::model::Term;
 use oxigraph::store::Store;
 
 use gmeow_rdf::ir::RdfDatasetBuilder;
-use gmeow_rdf::{RdfStore, RdfTerm};
+use gmeow_rdf::{RdfDataset, RdfQuad, RdfTerm};
 
 use crate::data::{GraphFilter, ShaclDataGraph};
 use crate::model::{rdf, rdfs};
@@ -196,7 +196,7 @@ pub fn validate(data: &Store, shapes: &Shapes) -> ValidationReport {
 /// Validate any [`ShaclDataGraph`] backend against `shapes`.
 ///
 /// This is the single, backend-generic engine core: [`validate`] (oxigraph
-/// [`Store`]) and [`validate_rdf_store`] (the IR backend) both bottom out here, so
+/// [`Store`]) and [`validate_dataset`] (the IR backend) both bottom out here, so
 /// conformance is identical by construction across backends.
 pub fn validate_with<G: ShaclDataGraph>(data: &G, shapes: &Shapes) -> ValidationReport {
     let mut all_results = Vec::new();
@@ -255,24 +255,19 @@ pub fn validate_with<G: ShaclDataGraph>(data: &G, shapes: &Shapes) -> Validation
     }
 }
 
-/// Validate any [`gmeow_rdf::RdfStore`] against parsed SHACL shapes, IR-natively.
+/// Validate a frozen [`gmeow_rdf::RdfDataset`] against parsed SHACL shapes, IR-natively.
 ///
-/// The source store is frozen into an immutable [`gmeow_rdf::RdfDataset`] (the RDF
-/// IR) and the generic engine reads pattern lookups DIRECTLY from the IR — there is
-/// no whole-store oxigraph materialization on this path (SHACL-SPARQL constraints,
-/// if any, lazily materialize a query store on demand only). Named graphs are
-/// flattened so GTS bundle partitions behave like the repository's Turtle source
-/// merge, which loads all inputs into one default graph.
+/// The generic engine reads pattern lookups DIRECTLY from a SHACL projection of
+/// the IR — there is no whole-store oxigraph materialization on this path
+/// (SHACL-SPARQL constraints, if any, lazily materialize a query store on demand
+/// only). Named graphs are flattened so GTS bundle partitions behave like the
+/// repository's Turtle source merge, which loads all inputs into one default graph.
 ///
 /// # Errors
 ///
-/// Returns an error string if the source store cannot be frozen into the IR
-/// (e.g. a malformed term the builder rejects).
-pub fn validate_rdf_store(
-    data: &impl RdfStore,
-    shapes: &Shapes,
-) -> Result<ValidationReport, String> {
-    let dataset = dataset_from_rdf_store(data)?;
+/// Returns an error string if the SHACL projection cannot be frozen into the IR.
+pub fn validate_dataset(data: &RdfDataset, shapes: &Shapes) -> Result<ValidationReport, String> {
+    let dataset = shacl_dataset_from_dataset(data)?;
     // The engine reads pattern lookups directly from the frozen IR, with no
     // whole-store oxigraph materialization. SHACL-SPARQL paths materialize lazily and
     // — via `CachedIrDataGraph` — AT MOST ONCE per validation, shared across every
@@ -282,45 +277,39 @@ pub fn validate_rdf_store(
     Ok(validate_with(&reference, shapes))
 }
 
-/// Build a frozen [`gmeow_rdf::RdfDataset`] from any [`RdfStore`], flattening
+/// Build a SHACL-projection dataset from the source [`RdfDataset`], flattening
 /// every quad into the default graph and materializing reifier bindings as
-/// `rdf:reifies` triples and statement annotations as plain triples — exactly the
-/// shape `store_from_rdf_store` produces, so the IR backend sees the same graph the
-/// oxigraph oracle does.
-fn dataset_from_rdf_store(
-    data: &impl RdfStore,
+/// `rdf:reifies` triples and statement annotations as plain triples.
+fn shacl_dataset_from_dataset(
+    data: &RdfDataset,
 ) -> Result<std::sync::Arc<gmeow_rdf::RdfDataset>, String> {
     let mut builder = RdfDatasetBuilder::new();
 
-    for quad in data.quads() {
-        let quad = quad.map_err(|e| e.to_string())?;
-        let s = intern_term(&mut builder, &quad.subject)?;
-        let p = builder.intern_iri(quad.predicate.clone());
-        let o = intern_term(&mut builder, &quad.object)?;
+    for (index, quad) in data.quads().enumerate() {
+        let mut quad = data.to_owned_quad(index, quad);
         // FlattenToDefaultGraph: drop the source graph name.
-        builder.push_quad(s, p, o, None);
+        quad.graph_name = None;
+        builder.push_owned_quad(&quad);
     }
 
     // Reifiers → `(reifier, rdf:reifies, <<triple>>)` triples.
-    for reifier in data.reifiers() {
-        let reifier = reifier.map_err(|e| e.to_string())?;
-        let subject = intern_term(&mut builder, &reifier.reifier)?;
-        let predicate = builder.intern_iri(RDF_REIFIES.to_owned());
-        let st = &reifier.statement;
-        let st_s = intern_term(&mut builder, &st.subject)?;
-        let st_p = builder.intern_iri(st.predicate.clone());
-        let st_o = intern_term(&mut builder, &st.object)?;
-        let triple = builder.intern_triple(st_s, st_p, st_o);
-        builder.push_quad(subject, predicate, triple, None);
+    for (reifier, triple) in data.reifiers() {
+        let reifier = data.to_owned_reifier(reifier, triple);
+        builder.push_owned_quad(&RdfQuad::new(
+            reifier.reifier,
+            RDF_REIFIES,
+            RdfTerm::triple(reifier.statement),
+        ));
     }
 
     // Annotations → `(reifier, predicate, object)` triples.
-    for annotation in data.annotations() {
-        let annotation = annotation.map_err(|e| e.to_string())?;
-        let subject = intern_term(&mut builder, &annotation.reifier)?;
-        let predicate = builder.intern_iri(annotation.predicate.clone());
-        let object = intern_term(&mut builder, &annotation.object)?;
-        builder.push_quad(subject, predicate, object, None);
+    for (reifier, predicate, object) in data.annotations() {
+        let annotation = data.to_owned_annotation(reifier, predicate, object);
+        builder.push_owned_quad(&RdfQuad::new(
+            annotation.reifier,
+            annotation.predicate,
+            annotation.object,
+        ));
     }
 
     builder.freeze().map_err(|e| e.to_string())
@@ -329,32 +318,6 @@ fn dataset_from_rdf_store(
 /// The `rdf:reifies` predicate IRI, used to project reifier bindings into the
 /// quad table so SHACL's reifier-shape lookups can find them.
 const RDF_REIFIES: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies";
-
-/// Intern one owned-model [`RdfTerm`] into the IR builder, recursing through triple
-/// terms. The interner applies the C0.1 literal-identity policy itself.
-fn intern_term(
-    builder: &mut RdfDatasetBuilder,
-    term: &RdfTerm,
-) -> Result<gmeow_rdf::TermId, String> {
-    match term {
-        RdfTerm::Iri(iri) => Ok(builder.intern_iri(iri.clone())),
-        RdfTerm::BlankNode(label) => {
-            Ok(builder.intern_blank(label.clone(), gmeow_rdf::BlankScope::DEFAULT))
-        }
-        RdfTerm::Literal(literal) => Ok(builder.intern_literal(gmeow_rdf::RdfLiteral {
-            lexical_form: literal.lexical_form.clone(),
-            datatype: literal.datatype.clone(),
-            language: literal.language.clone(),
-            direction: literal.direction,
-        })),
-        RdfTerm::Triple(triple) => {
-            let s = intern_term(builder, &triple.subject)?;
-            let p = builder.intern_iri(triple.predicate.clone());
-            let o = intern_term(builder, &triple.object)?;
-            Ok(builder.intern_triple(s, p, o))
-        }
-    }
-}
 
 /// Parse a SHACL shapes graph from a Turtle string.
 ///
@@ -422,18 +385,18 @@ pub fn validate_graphs(data_nt: &str, shapes_ttl: &str) -> Result<ValidationRepo
     Ok(validate(&data, &shapes))
 }
 
-/// Validate any [`gmeow_rdf::RdfStore`] against a Turtle SHACL shapes graph.
+/// Validate a frozen [`gmeow_rdf::RdfDataset`] against a Turtle SHACL shapes graph.
 ///
 /// # Errors
 ///
-/// Returns an error string if the shapes graph fails to parse or if the source
-/// store cannot be materialized into oxigraph.
-pub fn validate_rdf_store_graphs(
-    data: &impl RdfStore,
+/// Returns an error string if the shapes graph fails to parse or if the SHACL
+/// projection cannot be frozen.
+pub fn validate_dataset_graphs(
+    data: &RdfDataset,
     shapes_ttl: &str,
 ) -> Result<ValidationReport, String> {
     let shapes = parse_shapes(shapes_ttl)?;
-    validate_rdf_store(data, &shapes)
+    validate_dataset(data, &shapes)
 }
 
 // ── Tests ─────────────────────────────────────────────────────────────────────
@@ -483,26 +446,18 @@ mod tests {
     }
 
     #[test]
-    fn rdf_store_entrypoint_validates_gts_backed_graph() {
-        use gmeow_gts::model::{Graph, Term as GtsTerm, TermKind};
-        use gmeow_rdf::gts::GtsGraphStore;
-
-        let mut graph = Graph::default();
-        for value in [
+    fn dataset_entrypoint_validates_gts_backed_graph() {
+        let mut builder = RdfDatasetBuilder::new();
+        let ids: Vec<_> = [
             "http://example.org/ns#a",
             "http://example.org/ns#p",
             "http://example.org/ns#b",
-        ] {
-            graph.terms.push(GtsTerm {
-                kind: TermKind::Iri,
-                value: Some(value.to_owned()),
-                datatype: None,
-                lang: None,
-                direction: None,
-                reifier: None,
-            });
-        }
-        graph.quads.push((0, 1, 2, None));
+        ]
+        .into_iter()
+        .map(|value| builder.intern_iri(value.to_owned()))
+        .collect();
+        builder.push_quad(ids[0], ids[1], ids[2], None);
+        let dataset = builder.freeze().expect("valid test dataset");
 
         let shapes_ttl = format!(
             "{PREFIXES}
@@ -513,7 +468,7 @@ mod tests {
                     sh:minCount 1 ;
                 ] ."
         );
-        let report = validate_rdf_store_graphs(&GtsGraphStore::new(&graph), &shapes_ttl)
+        let report = validate_dataset_graphs(dataset.as_ref(), &shapes_ttl)
             .expect("GTS-backed store should validate");
         assert!(!report.conforms, "missing property must violate the shape");
         assert_eq!(report.results.len(), 1);

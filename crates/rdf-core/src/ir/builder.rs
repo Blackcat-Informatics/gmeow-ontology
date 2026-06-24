@@ -420,8 +420,7 @@ impl RdfDatasetBuilder {
     ///
     /// This is the inverse of [`RdfDataset::to_owned_quad`](super::dataset::RdfDataset::to_owned_quad)
     /// at the owned boundary: tests and adapter edges that already hold
-    /// [`RdfTerm`] values can freeze them into the concrete IR without detouring
-    /// through the retired `RdfStore` compatibility surface.
+    /// [`RdfTerm`] values can freeze them into the concrete IR without detouring.
     pub fn intern_owned_term(&mut self, term: &RdfTerm) -> TermId {
         match term {
             RdfTerm::Iri(iri) => self.intern_iri(iri.clone()),

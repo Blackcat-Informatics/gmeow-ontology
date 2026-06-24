@@ -3,16 +3,15 @@
 
 //! The shared GTS term resolver (#819 C2).
 //!
-//! The borrowing [`crate::gts::GtsGraphStore`] adapter and the consuming
-//! [`super::import_graph`] importer both fold a *folded* `gmeow_gts::model::Graph`
-//! into RDF terms, and both need the SAME depth-bounded structural traversal:
-//! term-kind dispatch, the non-empty-IRI and datatype-must-be-IRI checks, reifier
-//! lookup for quoted-triple terms, and the cyclic-nesting depth guard.
+//! GTS graph readers and the consuming [`super::import_graph`] importer both fold a
+//! *folded* `gmeow_gts::model::Graph` into RDF terms, and both need the SAME
+//! depth-bounded structural traversal: term-kind dispatch, the non-empty-IRI and
+//! datatype-must-be-IRI checks, reifier lookup for quoted-triple terms, and the
+//! cyclic-nesting depth guard.
 //!
-//! This module is the single home of that traversal in its **eager** form:
-//! [`term_from_id`] / [`triple_from_ids`] / [`predicate_from_id`] resolve a graph
-//! term id into the [`RdfTerm`]/[`RdfTriple`] model by **cloning** the borrowed
-//! graph's owned strings — the surface a `&Graph` view (`GtsGraphStore`) needs.
+//! This module keeps the shared nesting bound and literal-direction parser used by
+//! the production importers. A test-only eager resolver remains here for regression
+//! coverage over malformed folded graphs.
 //!
 //! The consuming `import_graph` importer cannot reuse these directly: it consumes a
 //! `Graph` *by value* and MOVES term strings into the interner, which is structurally
@@ -22,12 +21,15 @@
 //! cannot drift on structural contract.
 //!
 //! The diagnostic codes here are the historical `gts-*` codes (preserved verbatim
-//! from the original `gts.rs` implementation), so the existing `GtsGraphStore`
-//! behavior — including its error contracts — is unchanged by the extraction.
+//! from the original `gts.rs` implementation), so error contracts are unchanged by
+//! the extraction.
 
+#[cfg(test)]
 use gmeow_gts::model::{Graph, TermKind};
 
-use crate::{RdfDiagnostic, RdfLiteral, RdfLocation, RdfTerm, RdfTextDirection, RdfTriple};
+use crate::{RdfDiagnostic, RdfTextDirection};
+#[cfg(test)]
+use crate::{RdfLiteral, RdfLocation, RdfTerm, RdfTriple};
 
 /// Depth bound for resolving nested quoted-triple terms. A cyclic or absurdly
 /// nested triple term hard-fails rather than recursing without bound. Shared by the
@@ -70,6 +72,7 @@ pub(crate) fn parse_gts_direction(
 }
 
 /// Resolve a graph term id into an [`RdfTerm`], cloning the borrowed strings.
+#[cfg(test)]
 pub(crate) fn term_from_id(
     graph: &Graph,
     term_id: usize,
@@ -78,26 +81,7 @@ pub(crate) fn term_from_id(
     term_from_id_depth(graph, term_id, location, 0)
 }
 
-/// Resolve a graph term id that MUST be an IRI into its string (predicate position).
-pub(crate) fn predicate_from_id(
-    graph: &Graph,
-    term_id: usize,
-    location: RdfLocation,
-) -> Result<String, RdfDiagnostic> {
-    predicate_from_id_depth(graph, term_id, location, 0)
-}
-
-/// Resolve a `(s, p, o)` triple of graph term ids into an [`RdfTriple`].
-pub(crate) fn triple_from_ids(
-    graph: &Graph,
-    s: usize,
-    p: usize,
-    o: usize,
-    location: RdfLocation,
-) -> Result<RdfTriple, RdfDiagnostic> {
-    triple_from_ids_depth(graph, s, p, o, location, 0)
-}
-
+#[cfg(test)]
 fn triple_from_ids_depth(
     graph: &Graph,
     s: usize,
@@ -112,6 +96,7 @@ fn triple_from_ids_depth(
     Ok(RdfTriple::new(subject, predicate, object).with_location(location))
 }
 
+#[cfg(test)]
 fn predicate_from_id_depth(
     graph: &Graph,
     term_id: usize,
@@ -128,6 +113,7 @@ fn predicate_from_id_depth(
     }
 }
 
+#[cfg(test)]
 fn term_from_id_depth(
     graph: &Graph,
     term_id: usize,

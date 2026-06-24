@@ -164,7 +164,7 @@ mod tests {
 
     /// Reasoning the COMMITTED `gmeow.gts` fold through the leaf's artifact path
     /// reproduces the committed logic artifacts byte-for-byte — the exact same
-    /// `GtsGraphStore` → `reason_all` → `build_*_ttl` path `native_reason_gen.py`
+    /// GTS-import → `reason_all` → `build_*_ttl` path `native_reason_gen.py`
     /// uses, so the bytes are identical (deterministic serializer over the same fold).
     #[test]
     fn logic_artifacts_reproduce_committed_over_full_fold() {

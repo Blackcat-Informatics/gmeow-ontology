@@ -43,7 +43,7 @@ use gmeow_rdf::{RdfTextDirection, TermId};
 /// - `None`  ⇒ [`GraphFilter::AnyGraph`] (every graph, named and default);
 /// - `Some(GraphNameRef::DefaultGraph)` ⇒ [`GraphFilter::DefaultGraph`].
 ///
-/// The IR backends produced by [`crate::engine::validate_rdf_store`] flatten all
+/// The IR backends produced by [`crate::engine::validate_dataset`] flatten all
 /// quads into the default graph, so the two filters coincide there; the [`Store`]
 /// backend honors the distinction to remain a faithful oracle.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -208,7 +208,7 @@ impl ShaclDataGraph for &RdfDataset {
         //
         // NOTE: this bare `&RdfDataset` backend has nowhere to cache the Store, so it
         // re-materializes per call. The engine drives validation through
-        // [`CachedIrDataGraph`] (see `validate_rdf_store`), which materializes ONCE
+        // [`CachedIrDataGraph`] (see `validate_dataset`), which materializes ONCE
         // per validation and shares the Store across every SPARQL target/constraint;
         // this impl remains correct for any direct `validate_with(&&RdfDataset)` user.
         let store = materialize_sparql_store(self);
@@ -221,7 +221,7 @@ impl ShaclDataGraph for &RdfDataset {
 /// `FlattenToDefaultGraph` data policy. Shared by both IR backends.
 fn materialize_sparql_store(dataset: &RdfDataset) -> Store {
     // Concrete-IR entrypoint (#886 part 1): materialize directly from the frozen
-    // dataset instead of routing through the `&impl RdfStore` compat bridge.
+    // dataset.
     gmeow_rdf::oxigraph::store_from_dataset(
         dataset,
         gmeow_rdf::oxigraph::GraphPolicy::FlattenToDefaultGraph,

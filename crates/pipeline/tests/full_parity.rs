@@ -57,7 +57,7 @@ fn repo_root() -> PathBuf {
 ///  * The three `generated/logic/*` artifacts (inferred-closure /
 ///    reasoning-explanations / dl-el-crosscheck-report) are produced by the
 ///    `stage-export-logic` leaf, which reasons over THIS run's FULL snapshot fold
-///    through the SAME `GtsGraphStore` → `reason_all` → `build_*_ttl` path that
+///    through the SAME GTS-import → `reason_all` → `build_*_ttl` path that
 ///    `native_reason_gen.py` (`reason_native_artifacts(gmeow.gts, merge=False)`)
 ///    drives over the committed bundle. The native reasoner is Docker-free and
 ///    deterministic, so all three reproduce the committed bytes EXACTLY (the ledger

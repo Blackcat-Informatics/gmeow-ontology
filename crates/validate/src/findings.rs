@@ -169,12 +169,11 @@ mod tests {
     #[test]
     fn ir_quad_location_threads_end_to_end_into_sarif() {
         // The full #819 Task 12 chain: a source location attached to a quad in the
-        // immutable IR survives (a) the compat bridge that resolves the frozen quad
-        // to the owned model (Commit 4), (b) the RdfLocation -> diagnostics Location
-        // bridge here, and (c) the SARIF renderer — surfacing as a repo-relative
-        // physicalLocation. No single layer's test crosses all three.
+        // immutable IR survives (a) owned-boundary resolution of the frozen quad,
+        // (b) the RdfLocation -> diagnostics Location bridge here, and (c) the
+        // SARIF renderer — surfacing as a repo-relative physicalLocation. No
+        // single layer's test crosses all three.
         use gmeow_rdf::ir::RdfDatasetBuilder;
-        use gmeow_rdf::RdfStore;
 
         let mut b = RdfDatasetBuilder::new();
         let s = b.intern_iri("https://example.org/s".to_owned());
@@ -188,9 +187,8 @@ mod tests {
         );
         let dataset = b.freeze().expect("valid");
 
-        // Read the quad back THROUGH the compat bridge — it carries the IR location.
-        let store = dataset.as_rdf_store();
-        let quad = RdfStore::quads(&store).next().expect("a quad").expect("ok");
+        // Read the quad back through the owned-boundary helper — it carries the IR location.
+        let quad = dataset.to_owned_quad(0, dataset.quads().next().expect("a quad"));
         let rdf_location = quad
             .location
             .expect("the bridge threads the quad's IR location into the owned model");

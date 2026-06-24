@@ -11,7 +11,7 @@
 //! # Crate boundary (#885 / purrdf P2b)
 //!
 //! The oxigraph-free, PyO3-free kernel — the immutable IR, the owned value model,
-//! diagnostics, the store trait surface, the loss ledger, provenance, the FnO and
+//! diagnostics, dataset capability flags, the loss ledger, provenance, the FnO and
 //! SSSOM codecs, the content store, and the oxigraph-free GTS reader path — now
 //! lives in the ring-fenced sibling crate [`gmeow_rdf_core`]. `gmeow-rdf`
 //! **re-exports** every one of those modules at its own root so that both the
@@ -93,19 +93,19 @@ pub use gmeow_rdf_core::{
     RdfDatasetBuilder, RdfDatasetVisitor, RdfDiagnostic, RdfEnvelope, RdfLiteral, RdfLocation,
     RdfLookaside, RdfLookasideKind, RdfLookasideResource, RdfLoss, RdfMetadataEntry,
     RdfMetadataValue, RdfOpaqueNodeRecord, RdfQuad, RdfReifier, RdfSegmentRecord, RdfSeverity,
-    RdfSignatureRecord, RdfStore, RdfStoreCapabilities, RdfSuppressionRecord, RdfTerm, RdfTermKind,
+    RdfSignatureRecord, RdfStoreCapabilities, RdfSuppressionRecord, RdfTerm, RdfTermKind,
     RdfTextDirection, RdfTriple, SegmentUnitMap, SssomDiagnostic, SssomMapping, SssomMappingSet,
     SssomMeta, TermId, TermRef, TermValue, UnitCatalog, UnitId, UnitInterner, UnitMetadata,
-    VecRdfStore, SSSOM_DEFAULT_VALIDATION_TYPES,
+    SSSOM_DEFAULT_VALIDATION_TYPES,
 };
 #[cfg(feature = "gts")]
 pub use gmeow_rdf_core::{import_gts_events, import_gts_graph};
 
 /// The common gmeow-rdf surface, for `use gmeow_rdf::prelude::*;`.
 ///
-/// Pulls in the owned value model, the immutable IR + builder, term identity, the
-/// store trait, and the diagnostic type — the set a typical consumer (a SHACL/
-/// validate/logic adapter, or an external Rust crate) reaches for first. Mirrors
+/// Pulls in the owned value model, the immutable IR + builder, term identity,
+/// capability flags, and the diagnostic type — the set a typical consumer reaches
+/// for first. Mirrors
 /// the ring-fenced kernel's own [`gmeow_rdf_core::prelude`].
 pub mod prelude {
     pub use gmeow_rdf_core::prelude::*;

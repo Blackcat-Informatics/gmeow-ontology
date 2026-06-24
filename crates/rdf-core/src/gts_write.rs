@@ -3,16 +3,13 @@
 
 //! Write a frozen [`RdfDataset`] into a deterministic GTS byte stream.
 //!
-//! This is the inverse direction of [`crate::gts::GtsGraphStore`]: instead of
-//! viewing a folded GTS graph as an RDF store, we materialise the concrete IR
-//! into a [`gmeow_gts::model::Graph`] and ask [`gmeow_gts::writer::Writer`] to
-//! canonicalise it. All interning, term remapping, and frame authoring is
-//! delegated to `gmeow-gts`.
+//! This materialises the concrete IR into a [`gmeow_gts::model::Graph`] and asks
+//! [`gmeow_gts::writer::Writer`] to canonicalise it. All interning, term remapping,
+//! and frame authoring is delegated to `gmeow-gts`.
 //!
 //! The writer consumes the IR directly (purrdf P2c part 1, #886): it reads the
 //! frozen dataset's quad/reifier/annotation tables and resolves each row to the
-//! owned model at the boundary (the same allocation the old `RdfStore` compat
-//! bridge performed), then interns into the GTS term table. Out-of-band material
+//! owned model at the boundary, then interns into the GTS term table. Out-of-band material
 //! (GTS metadata, suppressions) is passed in explicitly as an [`RdfLookaside`]
 //! (C0.6: it lives in the bundle envelope, not the hot graph).
 
@@ -439,8 +436,7 @@ mod tests {
     }
 
     /// Freeze owned rows (quads + RDF 1.2 statement layer) into the frozen IR the
-    /// writer now consumes — replaces the retired `VecRdfStore` fixture for this
-    /// consumer (#886 part 1). Order is irrelevant: `freeze` dedups and sorts.
+    /// writer consumes. Order is irrelevant: `freeze` dedups and sorts.
     fn freeze_rows(
         quads: &[RdfQuad],
         reifiers: &[RdfReifier],

@@ -4,92 +4,13 @@
 use std::collections::BTreeMap;
 
 use ciborium::value::Value;
-use gmeow_gts::model::{Graph, TermKind};
+use gmeow_gts::model::Graph;
 
-use crate::ir::gts_resolve::{predicate_from_id, term_from_id, triple_from_ids};
 use crate::{
-    RdfAnnotation, RdfBlobOrigin, RdfBlobRecord, RdfDiagnostic, RdfLocation, RdfLookaside,
-    RdfLookasideKind, RdfLookasideResource, RdfMetadataEntry, RdfMetadataValue,
-    RdfOpaqueNodeRecord, RdfQuad, RdfReifier, RdfSegmentRecord, RdfSignatureRecord, RdfStore,
-    RdfStoreCapabilities, RdfSuppressionRecord,
+    RdfBlobOrigin, RdfBlobRecord, RdfDiagnostic, RdfLocation, RdfLookaside, RdfLookasideKind,
+    RdfLookasideResource, RdfMetadataEntry, RdfMetadataValue, RdfOpaqueNodeRecord,
+    RdfSegmentRecord, RdfSignatureRecord, RdfSuppressionRecord,
 };
-
-/// RDF store view over a folded GTS graph.
-#[derive(Debug, Clone, Copy)]
-pub struct GtsGraphStore<'a> {
-    graph: &'a Graph,
-}
-
-impl<'a> GtsGraphStore<'a> {
-    pub fn new(graph: &'a Graph) -> Self {
-        Self { graph }
-    }
-
-    pub fn graph(&self) -> &'a Graph {
-        self.graph
-    }
-}
-
-impl RdfStore for GtsGraphStore<'_> {
-    fn quads(&self) -> Box<dyn Iterator<Item = Result<RdfQuad, RdfDiagnostic>> + '_> {
-        Box::new(
-            self.graph
-                .quads
-                .iter()
-                .enumerate()
-                .map(|(index, &(s, p, o, graph_name))| {
-                    quad_from_ids(self.graph, index, s, p, o, graph_name)
-                }),
-        )
-    }
-
-    fn reifiers(&self) -> Box<dyn Iterator<Item = Result<RdfReifier, RdfDiagnostic>> + '_> {
-        Box::new(self.graph.reifiers.iter().map(|&(rid, (s, p, o))| {
-            let location = RdfLocation::logical("gts:reifier").with_gts_reifier(rid);
-            let reifier = term_from_id(self.graph, rid, location.clone())?;
-            let statement = triple_from_ids(self.graph, s, p, o, location.clone())?;
-            Ok(RdfReifier::new(reifier, statement).with_location(location))
-        }))
-    }
-
-    fn annotations(&self) -> Box<dyn Iterator<Item = Result<RdfAnnotation, RdfDiagnostic>> + '_> {
-        Box::new(self.graph.annotations.iter().map(|&(r, p, v)| {
-            let location = RdfLocation::logical("gts:annotation").with_gts_reifier(r);
-            let reifier = term_from_id(self.graph, r, location.clone())?;
-            let predicate = predicate_from_id(self.graph, p, location.clone())?;
-            let object = term_from_id(self.graph, v, location.clone())?;
-            Ok(RdfAnnotation::new(reifier, predicate, object).with_location(location))
-        }))
-    }
-
-    fn capabilities(&self) -> RdfStoreCapabilities {
-        RdfStoreCapabilities {
-            named_graphs: self
-                .graph
-                .quads
-                .iter()
-                .any(|(_, _, _, graph)| graph.is_some()),
-            quoted_triples: self
-                .graph
-                .terms
-                .iter()
-                .any(|term| term.kind == TermKind::Triple),
-            reifiers: !self.graph.reifiers.is_empty(),
-            annotations: !self.graph.annotations.is_empty(),
-            source_locations: true,
-            loss_records: !self.graph.opaque.is_empty() || !self.graph.suppressions.is_empty(),
-            lookaside: has_lookaside(self.graph),
-        }
-    }
-
-    fn lookaside(&self) -> RdfLookaside {
-        lookaside_from_graph(self.graph)
-    }
-
-    fn len_hint(&self) -> Option<usize> {
-        Some(self.graph.quads.len())
-    }
-}
 
 pub fn lookaside_from_graph(graph: &Graph) -> RdfLookaside {
     let metadata = graph
@@ -162,21 +83,6 @@ pub fn lookaside_from_graph(graph: &Graph) -> RdfLookaside {
         opaque_nodes,
         signatures,
     }
-}
-
-fn has_lookaside(graph: &Graph) -> bool {
-    !graph.meta.is_empty()
-        || !graph.segment_heads.is_empty()
-        || !graph.segment_profiles.is_empty()
-        || !graph.segment_meta.is_empty()
-        // `segment_records` surfaces per-segment streamable info, so a graph that
-        // carries only `segment_streamable` is still lookaside-bearing.
-        || !graph.segment_streamable.is_empty()
-        || !graph.blobs.is_empty()
-        || !graph.blob_meta.is_empty()
-        || !graph.suppressions.is_empty()
-        || !graph.opaque.is_empty()
-        || !graph.signatures.is_empty()
 }
 
 fn segment_records(graph: &Graph) -> Vec<RdfSegmentRecord> {
@@ -413,28 +319,10 @@ fn diagnostics_to_error(graph: &Graph) -> RdfDiagnostic {
     diagnostic
 }
 
-fn quad_from_ids(
-    graph: &Graph,
-    index: usize,
-    s: usize,
-    p: usize,
-    o: usize,
-    graph_name: Option<usize>,
-) -> Result<RdfQuad, RdfDiagnostic> {
-    let location = RdfLocation::logical("gts:quad").with_gts_quad(index);
-    let subject = term_from_id(graph, s, location.clone())?;
-    let predicate = predicate_from_id(graph, p, location.clone())?;
-    let object = term_from_id(graph, o, location.clone())?;
-    let mut quad = RdfQuad::new(subject, predicate, object).with_location(location.clone());
-    if let Some(graph_name) = graph_name {
-        quad = quad.in_graph(term_from_id(graph, graph_name, location)?);
-    }
-    Ok(quad)
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::ir::gts_resolve::term_from_id;
     use crate::RdfTerm;
     use gmeow_gts::model::{Term, TermKind};
 
@@ -491,8 +379,7 @@ mod tests {
         graph.segment_heads.push(vec![0xab, 0xcd]);
         graph.set_blob("blake3:deadbeef".to_owned(), b"payload".to_vec());
 
-        let store = GtsGraphStore::new(&graph);
-        let lookaside = store.lookaside();
+        let lookaside = lookaside_from_graph(&graph);
         assert_eq!(lookaside.blobs.len(), 1);
         let blob = &lookaside.blobs[0];
         // blob_id reference.
@@ -503,16 +390,18 @@ mod tests {
     }
 
     #[test]
-    fn gts_store_preserves_named_graph_and_private_language_tag() {
+    fn gts_import_preserves_named_graph_and_private_language_tag() {
         let graph = private_lang_named_graph();
-        let store = GtsGraphStore::new(&graph);
-        let quads = store
+        let bundle = crate::ir::import_gts_graph(graph).expect("GTS graph should import cleanly");
+        let quads: Vec<_> = bundle
+            .dataset
             .quads()
-            .collect::<Result<Vec<_>, _>>()
-            .expect("GTS graph should adapt cleanly");
+            .enumerate()
+            .map(|(index, quad)| bundle.dataset.to_owned_quad(index, quad))
+            .collect();
         assert_eq!(quads.len(), 1);
         assert!(quads[0].graph_name.is_some());
-        let lookaside = store.lookaside();
+        let lookaside = &bundle.envelope.lookaside;
         assert_eq!(lookaside.metadata.len(), 1);
         assert_eq!(lookaside.segments.len(), 1);
         match &quads[0].object {

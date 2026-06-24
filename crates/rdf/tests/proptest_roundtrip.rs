@@ -19,9 +19,10 @@
 //!
 //! # Single generator, three codecs
 //!
-//! One generator authors a [`VecRdfStore`] in the gmeow-rdf model; the reachable
-//! production seam [`store_from_rdf_store`] converts it once to the oxigraph
-//! "before" set, which drives N-Quads, TriG, and GTS fold/unfold alike.
+//! One generator authors a frozen [`RdfDataset`] fixture; the reachable production
+//! seam [`store_from_dataset`](gmeow_rdf::oxigraph::store_from_dataset) converts it
+//! once to the oxigraph "before" set, which drives N-Quads, TriG, and GTS
+//! fold/unfold alike.
 //!
 //! # Generators dodge codec-lossy inputs deliberately
 //!
@@ -41,12 +42,9 @@
 //! * **CLIF / CGIF / XCL** round-trips: depend on the open Common Logic epic
 //!   (#718/#719) and do not exist yet.
 
-use std::sync::Arc;
-
-use gmeow_rdf::oxigraph::{store_from_rdf_store, GraphPolicy};
+use gmeow_rdf::oxigraph::{store_from_dataset, GraphPolicy};
 use gmeow_rdf::{
-    BlankScope, RdfDataset, RdfDatasetBuilder, RdfLiteral, RdfLookaside, RdfQuad, RdfTerm,
-    RdfTriple, TermId, VecRdfStore,
+    RdfDataset, RdfDatasetBuilder, RdfLiteral, RdfLookaside, RdfQuad, RdfTerm, RdfTriple,
 };
 use oxigraph::io::{RdfFormat, RdfParser, RdfSerializer};
 use oxigraph::model::dataset::{CanonicalizationAlgorithm, CanonicalizationHashAlgorithm};
@@ -100,42 +98,23 @@ fn parse_quads(bytes: &[u8], format: RdfFormat) -> Vec<Quad> {
         .collect()
 }
 
-/// The oxigraph "before" quad set for `store`, via the reachable production seam.
-fn before_quads(store: &VecRdfStore) -> Vec<Quad> {
-    let ox = store_from_rdf_store(store, GraphPolicy::PreserveNamedGraphs)
-        .expect("convert VecRdfStore to oxigraph store");
+/// The oxigraph "before" quad set for `dataset`, via the reachable production seam.
+fn before_quads(dataset: &RdfDataset) -> Vec<Quad> {
+    let ox = store_from_dataset(dataset, GraphPolicy::PreserveNamedGraphs)
+        .expect("convert RdfDataset to oxigraph store");
     ox.iter().map(|quad| quad.expect("store quad")).collect()
 }
 
-/// Recursively intern an owned term into a builder (handles quoted triples).
-fn intern_owned(b: &mut RdfDatasetBuilder, term: &RdfTerm) -> TermId {
-    match term {
-        RdfTerm::Iri(iri) => b.intern_iri(iri.clone()),
-        RdfTerm::BlankNode(label) => b.intern_blank(label.clone(), BlankScope::DEFAULT),
-        RdfTerm::Literal(lit) => b.intern_literal(lit.clone()),
-        RdfTerm::Triple(t) => {
-            let s = intern_owned(b, &t.subject);
-            let p = b.intern_iri(t.predicate.clone());
-            let o = intern_owned(b, &t.object);
-            b.intern_triple(s, p, o)
-        }
-    }
-}
-
-/// Freeze a `VecRdfStore`'s quads into the frozen IR the GTS writer now consumes
-/// (#886 part 1). The bnode-label rewrite from scope qualification is irrelevant
-/// here: the comparator canonicalizes blank nodes under RDFC-1.0.
-fn dataset_from_vec_store(store: &VecRdfStore) -> Arc<RdfDataset> {
+/// Freeze generated quads into the IR. The bnode-label rewrite from scope
+/// qualification is irrelevant here: the comparator canonicalizes blank nodes
+/// under RDFC-1.0.
+fn dataset_from_quads(quads: Vec<RdfQuad>) -> std::sync::Arc<RdfDataset> {
     let mut b = RdfDatasetBuilder::new();
-    for q in &store.quads {
-        let s = intern_owned(&mut b, &q.subject);
-        let p = b.intern_iri(q.predicate.clone());
-        let o = intern_owned(&mut b, &q.object);
-        let g = q.graph_name.as_ref().map(|g| intern_owned(&mut b, g));
-        b.push_quad(s, p, o, g);
+    for quad in quads {
+        b.push_owned_quad(&quad);
     }
     b.freeze()
-        .expect("VecRdfStore quads must freeze into a valid dataset")
+        .expect("generated quads must freeze into a valid dataset")
 }
 
 // ── Generators (valid, codec-safe inputs) ───────────────────────────────────────
@@ -222,8 +201,8 @@ fn mk_quad(
     }
 }
 
-/// Store over the GTS-faithful surface (no bare quoted-triple objects).
-fn arb_vec_store() -> impl Strategy<Value = VecRdfStore> {
+/// Dataset over the GTS-faithful surface (no bare quoted-triple objects).
+fn arb_dataset() -> impl Strategy<Value = std::sync::Arc<RdfDataset>> {
     let quad = (
         arb_subject(),
         arb_iri(),
@@ -231,11 +210,11 @@ fn arb_vec_store() -> impl Strategy<Value = VecRdfStore> {
         prop::option::of(arb_iri()),
     )
         .prop_map(mk_quad);
-    prop::collection::vec(quad, 0..16).prop_map(VecRdfStore::with_quads)
+    prop::collection::vec(quad, 0..16).prop_map(dataset_from_quads)
 }
 
-/// Store including RDF-1.2 quoted triples (for the lossless N-Quads/TriG codecs).
-fn arb_vec_store_star() -> impl Strategy<Value = VecRdfStore> {
+/// Dataset including RDF-1.2 quoted triples (for the lossless N-Quads/TriG codecs).
+fn arb_dataset_star() -> impl Strategy<Value = std::sync::Arc<RdfDataset>> {
     let quad = (
         arb_subject(),
         arb_iri(),
@@ -243,7 +222,7 @@ fn arb_vec_store_star() -> impl Strategy<Value = VecRdfStore> {
         prop::option::of(arb_iri()),
     )
         .prop_map(mk_quad);
-    prop::collection::vec(quad, 0..16).prop_map(VecRdfStore::with_quads)
+    prop::collection::vec(quad, 0..16).prop_map(dataset_from_quads)
 }
 
 // ── Config ──────────────────────────────────────────────────────────────────────
@@ -271,16 +250,16 @@ proptest! {
     /// N-Quads: serialize → parse round-trips to the same canonical quad set,
     /// including RDF-1.2 quoted triples.
     #[test]
-    fn nquads_roundtrip(store in arb_vec_store_star()) {
-        let before = before_quads(&store);
+    fn nquads_roundtrip(dataset in arb_dataset_star()) {
+        let before = before_quads(dataset.as_ref());
         let after = parse_quads(&serialize_quads(&before, RdfFormat::NQuads), RdfFormat::NQuads);
         prop_assert_eq!(canonical(before), canonical(after));
     }
 
     /// TriG: same property, exercising named graphs and quoted triples.
     #[test]
-    fn trig_roundtrip(store in arb_vec_store_star()) {
-        let before = before_quads(&store);
+    fn trig_roundtrip(dataset in arb_dataset_star()) {
+        let before = before_quads(dataset.as_ref());
         let after = parse_quads(&serialize_quads(&before, RdfFormat::TriG), RdfFormat::TriG);
         prop_assert_eq!(canonical(before), canonical(after));
     }
@@ -288,19 +267,18 @@ proptest! {
     /// JSON-LD: serialize → parse round-trips to the same canonical quad set
     /// (basic terms; quoted triples excluded — see module docs).
     #[test]
-    fn jsonld_roundtrip(store in arb_vec_store()) {
-        let before = before_quads(&store);
+    fn jsonld_roundtrip(dataset in arb_dataset()) {
+        let before = before_quads(dataset.as_ref());
         let after = parse_quads(&serialize_quads(&before, jsonld()), jsonld());
         prop_assert_eq!(canonical(before), canonical(after));
     }
 
-    /// GTS fold/unfold: VecRdfStore → `to_gts` → fold → N-Quads round-trips to the
+    /// GTS fold/unfold: RdfDataset → `to_gts` → fold → N-Quads round-trips to the
     /// same canonical quad set.
     #[test]
-    fn gts_roundtrip(store in arb_vec_store()) {
-        let before = before_quads(&store);
-        let ds = dataset_from_vec_store(&store);
-        let bytes = gmeow_rdf::gts_write::to_gts(&ds, &RdfLookaside::default(), "gmeow-rdf-proptest")
+    fn gts_roundtrip(dataset in arb_dataset()) {
+        let before = before_quads(dataset.as_ref());
+        let bytes = gmeow_rdf::gts_write::to_gts(dataset.as_ref(), &RdfLookaside::default(), "gmeow-rdf-proptest")
             .expect("to_gts should succeed");
         let graph = gmeow_gts::reader::read(&bytes, false, None);
         prop_assert!(graph.diagnostics.is_empty(), "GTS fold diagnostics: {:?}", graph.diagnostics);
