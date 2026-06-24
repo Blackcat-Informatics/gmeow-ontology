@@ -312,6 +312,67 @@ The observation-module asserted-TBox structural assertions (#66, #69) migrated t
 
 **Observations tally:** 19 converted + 1 partial (property-bridges: 8 of 11 converted) = 23 structural cells, 5 retained-with-reason (4 generated-SSSOM-mapping reads + 1 cross-slice kin-bridge). `tests/test_observations.py` 24 → 5 fns.
 
+## #867 run_shacl → whole-ontology native conformance harness (crates/validate/tests/ontology_conformance.rs)
+
+The `run_shacl` pytest cluster ran full-ontology SHACL validation by assembling a merged
+shapes corpus in Python (`_shapes_turtle`) and feeding it alongside a fixture or inline
+graph to `gmeow_validate.run_shacl`. The Rust twin at
+`crates/validate/tests/ontology_conformance.rs` replicates every step at the crate level
+so findings are byte-identical to Python (same `gmeow-shacl` engine underneath).
+
+**Merged-shapes recipe** (mirrors `_shapes_turtle` exactly):
+
+1. `shapes/gmeow-shapes.ttl` first
+2. Every other `shapes/*.ttl` sorted, excluding `mapping-dsl-shapes.ttl`,
+   `statement-dsl-shapes.ttl`, `test-dsl-shapes.ttl`, `slice-manifest-shapes.ttl`,
+   `gmeow-shapes.ttl`
+3. Every `generated/shapes/*.ttl` sorted — hard-fail (panic) if directory is empty
+4. Every `slices/*/shapes.ttl` discovered by recursive walk, sorted
+
+The corpus is assembled once per process into an `OnceLock<String>` so disk I/O is not
+repeated across tests. Shapes parsing and the merged data graph are the two separate
+inputs to `gmeow_validate::validate_graphs(data_nt, shapes_ttl)`.
+
+**Two base validation modes:**
+
+- `validate(data_nt)` — shapes from the merged corpus above, data from any NT string
+- Fixture helpers `fixture_as_nt(subdir, name)` / `ttl_file_to_nt(path)` convert `.ttl`
+  fixture files to NT on the fly via oxigraph (no Python round-trip)
+
+**ok() vs conforms:** Python's `result.ok` is `not result.errors` — Violation-severity
+only. SHACL's `conforms` is `false` for Warning-level results too. The `ok()` helper
+captures the Python semantic (Violation-free = ok), making suppression/warning-only
+tests expressible cleanly.
+
+This harness is the foundational substrate for migrating the remaining ~230
+`run_shacl` call sites in later batches.
+
+### Batch 1: test_shapes.py fixture-backed + inline-graph tests
+
+| pytest fn | source file | disposition | Rust twin test name | note |
+|-----------|-------------|------------|---------------------|------|
+| `test_wellformed_relator_fixture_conforms` | `tests/test_shapes.py` | converted | `wellformed_relator_fixture_conforms` | |
+| `test_malformed_relator_fixture_is_flagged` | `tests/test_shapes.py` | converted | `malformed_relator_fixture_is_flagged` | all 4 substrings asserted |
+| `test_suppression_warning_does_not_fail_validation` | `tests/test_shapes.py` | converted | `suppression_warning_does_not_fail_validation` | Warning-only; ok() must be true |
+| `test_orthogonality_data_check_rejects_two_axes` | `tests/test_shapes.py` | converted | `orthogonality_data_check_rejects_two_axes` | inline Turtle |
+| `test_wellformed_facet_cardinality_passes` | `tests/test_shapes.py` | converted | `wellformed_facet_cardinality_passes` | inline Turtle |
+| `test_internal_language_tag_shape_is_case_insensitive` | `tests/test_shapes.py` | converted | `internal_language_tag_shape_is_case_insensitive` | inline Turtle |
+| `test_wellformed_reference_frame_passes` | `tests/test_shapes.py` | converted | `wellformed_reference_frame_passes` | inline Turtle |
+| `test_reference_frame_axis_count_must_match_dimension_count` | `tests/test_shapes.py` | converted | `reference_frame_axis_count_must_match_dimension_count` | inline Turtle |
+| `test_malformed_reference_frame_fails` | `tests/test_shapes.py` | converted | `malformed_reference_frame_fails` | inline Turtle |
+| `test_profile_open_value_guard_warns_on_orphan` | `tests/test_shapes.py` | converted | `profile_open_value_guard_warns_on_orphan` | inline Turtle |
+| `test_wellformed_proximity_fixture_conforms` | `tests/test_shapes.py` | converted | `wellformed_proximity_fixture_conforms` | |
+| `test_malformed_proximity_fixture_is_flagged` | `tests/test_shapes.py` | converted | `malformed_proximity_fixture_is_flagged` | |
+| `test_wellformed_expertise_fixture_conforms` | `tests/test_shapes.py` | converted | `wellformed_expertise_fixture_conforms` | |
+| `test_malformed_expertise_fixture_is_flagged` | `tests/test_shapes.py` | converted | `malformed_expertise_fixture_is_flagged` | |
+| `test_contested_attestation_coexists` | `tests/test_attestation.py` | converted | `contested_attestation_coexists` | |
+| `test_all_fixture_files_load` | `tests/test_attestation.py` | converted | `attestation_all_fixture_files_load` | walks fixtures/attestation/ |
+| `test_authority_link_without_match_strength_warns_only` | `tests/test_coreference.py` | converted | `authority_link_without_match_strength_warns_only` | Warning-only |
+
+**Tally:** 17 converted, 0 retained. `tests/test_shapes.py` 14 → 1 fn (nodeshape collision inline test retained — no obvious Rust twin yet for that inline pattern; marked for batch 2). `tests/test_attestation.py` reduced. `tests/test_coreference.py` reduced.
+
+Slice-shapes glob: `slices/*/shapes.ttl` discovered recursively via directory walk from repo root, sorted ascending.
+
 ## #867 structural batch 10 (places — the 129-fn slice)
 
 The largest single slice (129 pytest fns) migrated to `slices/core/places/tests/structural.ttl`
