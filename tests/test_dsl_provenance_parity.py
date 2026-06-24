@@ -21,6 +21,7 @@ behavior two ways:
 
 from __future__ import annotations
 
+import re
 from pathlib import Path
 
 import gmeow_validate
@@ -107,5 +108,5 @@ def test_dsl_parse_error_hard_fails(tmp_path: Path) -> None:
     bad = tmp_path / "broken.ttl"
     bad.write_text("this is not turtle @@@ <<<", encoding="utf-8")
     shapes_ttl = MAPPING_DSL_SHAPES_FILE.read_text(encoding="utf-8")
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match=re.escape(str(bad))):
         gmeow_validate.validate_dsl_shacl([str(bad)], shapes_ttl)
