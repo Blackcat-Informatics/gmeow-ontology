@@ -182,6 +182,8 @@ fn invalid(dt: XsdDatatype, lexical: &str, reason: &'static str) -> XsdError {
 }
 
 /// `xsd:integer`: optional leading `+`/`-`, then one or more ASCII digits.
+/// Returns the raw `i128` value without any subtype range check — for range-checked
+/// integer-family parsing use [`parse_integer_typed`].
 pub fn parse_integer(s: &str) -> Result<i128, XsdError> {
     let dt = XsdDatatype::Integer;
     let body = s.strip_prefix(['+', '-']).unwrap_or(s);
@@ -192,6 +194,41 @@ pub fn parse_integer(s: &str) -> Result<i128, XsdError> {
         datatype: dt,
         lexical: s.to_string(),
     })
+}
+
+/// Parse a lexical integer form for the given `datatype`, hard-failing with
+/// [`XsdError::OutOfRange`] if the value is outside the datatype's inclusive bounds.
+///
+/// This is the unified entry point for all integer-family datatypes; `parse` in
+/// `value.rs` routes every integer-family IRI through here.
+pub fn parse_integer_typed(lexical: &str, datatype: XsdDatatype) -> Result<i128, XsdError> {
+    // First, parse as an unconstrained integer (which may itself fail with
+    // InvalidLexical for malformed input, or OutOfRange for beyond-i128).
+    // We call parse_integer but report the error under `datatype` for non-Integer
+    // subtypes, so callers see the correct IRI in the error.
+    let body = lexical.strip_prefix(['+', '-']).unwrap_or(lexical);
+    if body.is_empty() || !body.bytes().all(|b| b.is_ascii_digit()) {
+        return Err(XsdError::InvalidLexical {
+            datatype,
+            lexical: lexical.to_string(),
+            reason: "expected an optional sign then digits",
+        });
+    }
+    let value = lexical.parse::<i128>().map_err(|_| XsdError::OutOfRange {
+        datatype,
+        lexical: lexical.to_string(),
+    })?;
+
+    // Now range-check against the datatype's inclusive bounds.
+    if let Some((min, max)) = datatype.integer_range() {
+        if value < min || value > max {
+            return Err(XsdError::OutOfRange {
+                datatype,
+                lexical: lexical.to_string(),
+            });
+        }
+    }
+    Ok(value)
 }
 
 /// `xsd:decimal`: optional sign, digits with an optional single `.` (at least one
@@ -336,15 +373,19 @@ fn canonical_ieee(
 /// that contains them (`integer ⊂ decimal ⊂ float ⊂ double`) and compares. Returns
 /// `None` when an operand is `NaN` (genuinely unordered) or non-numeric (the caller
 /// — `value_cmp` — only routes numeric operands here; non-numeric → `None`).
+///
+/// Integer-vs-integer comparison is by value only (ignoring the subtype): per the
+/// SPARQL promotion rules, `xsd:int 5 = xsd:long 5`.
 #[must_use]
 pub fn numeric_cmp(a: &XsdValue, b: &XsdValue) -> Option<Ordering> {
     use XsdValue::{Decimal as Dec, Double, Float, Integer};
     match (a, b) {
         // Same exact integer / decimal cases keep full precision.
-        (Integer(x), Integer(y)) => Some(x.cmp(y)),
+        // Integer-vs-integer: compare by value, ignore subtype (xsd:int 5 == xsd:long 5).
+        (Integer { value: x, .. }, Integer { value: y, .. }) => Some(x.cmp(y)),
         (Dec(x), Dec(y)) => Some(x.cmp_exact(y)),
-        (Integer(x), Dec(y)) => Some(Decimal::from_parts(*x, 0).cmp_exact(y)),
-        (Dec(x), Integer(y)) => Some(x.cmp_exact(&Decimal::from_parts(*y, 0))),
+        (Integer { value: x, .. }, Dec(y)) => Some(Decimal::from_parts(*x, 0).cmp_exact(y)),
+        (Dec(x), Integer { value: y, .. }) => Some(x.cmp_exact(&Decimal::from_parts(*y, 0))),
         // Any `double` operand → compare as f64.
         (Double(_), _) | (_, Double(_)) => num_f64(a)?.partial_cmp(&num_f64(b)?),
         // Else any `float` operand → compare as f32.
@@ -363,7 +404,7 @@ pub fn numeric_eq(a: &XsdValue, b: &XsdValue) -> bool {
 /// The numeric value as `f64`, or `None` if `v` is not a numeric value.
 fn num_f64(v: &XsdValue) -> Option<f64> {
     Some(match v {
-        XsdValue::Integer(i) => *i as f64,
+        XsdValue::Integer { value, .. } => *value as f64,
         XsdValue::Decimal(d) => d.to_f64(),
         XsdValue::Float(f) => f64::from(*f),
         XsdValue::Double(d) => *d,
@@ -374,7 +415,7 @@ fn num_f64(v: &XsdValue) -> Option<f64> {
 /// The numeric value as `f32`, or `None` if `v` is not a numeric value.
 fn num_f32(v: &XsdValue) -> Option<f32> {
     Some(match v {
-        XsdValue::Integer(i) => *i as f32,
+        XsdValue::Integer { value, .. } => *value as f32,
         XsdValue::Decimal(d) => d.to_f64() as f32,
         XsdValue::Float(f) => *f,
         XsdValue::Double(d) => *d as f32,
@@ -385,10 +426,18 @@ fn num_f32(v: &XsdValue) -> Option<f32> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::XsdDatatype as D;
     use pretty_assertions::assert_eq;
 
     fn dec(s: &str) -> Decimal {
         parse_decimal(s).unwrap()
+    }
+
+    fn int_val(n: i128) -> XsdValue {
+        XsdValue::Integer {
+            value: n,
+            datatype: D::Integer,
+        }
     }
 
     #[test]
@@ -406,6 +455,52 @@ mod tests {
         assert!(parse_integer("1.0").is_err());
         assert!(parse_integer("").is_err());
         assert!(parse_integer("abc").is_err());
+    }
+
+    #[test]
+    fn parse_integer_typed_range_checks() {
+        // xsd:byte: -128..127
+        assert_eq!(parse_integer_typed("127", D::Byte).unwrap(), 127);
+        assert_eq!(parse_integer_typed("-128", D::Byte).unwrap(), -128);
+        assert!(parse_integer_typed("128", D::Byte).is_err());
+        assert!(parse_integer_typed("-129", D::Byte).is_err());
+
+        // xsd:unsignedByte: 0..255
+        assert_eq!(parse_integer_typed("255", D::UnsignedByte).unwrap(), 255);
+        assert_eq!(parse_integer_typed("0", D::UnsignedByte).unwrap(), 0);
+        assert!(parse_integer_typed("256", D::UnsignedByte).is_err());
+        assert!(parse_integer_typed("-1", D::UnsignedByte).is_err());
+
+        // xsd:positiveInteger: >= 1
+        assert_eq!(parse_integer_typed("1", D::PositiveInteger).unwrap(), 1);
+        assert!(parse_integer_typed("0", D::PositiveInteger).is_err());
+
+        // xsd:negativeInteger: <= -1
+        assert_eq!(parse_integer_typed("-1", D::NegativeInteger).unwrap(), -1);
+        assert!(parse_integer_typed("0", D::NegativeInteger).is_err());
+
+        // xsd:nonNegativeInteger: >= 0
+        assert_eq!(parse_integer_typed("0", D::NonNegativeInteger).unwrap(), 0);
+        assert!(parse_integer_typed("-1", D::NonNegativeInteger).is_err());
+
+        // xsd:nonPositiveInteger: <= 0
+        assert_eq!(parse_integer_typed("0", D::NonPositiveInteger).unwrap(), 0);
+        assert!(parse_integer_typed("1", D::NonPositiveInteger).is_err());
+
+        // xsd:unsignedLong boundary: u64::MAX should pass; u64::MAX+1 should fail
+        let u64max = u64::MAX.to_string();
+        assert_eq!(
+            parse_integer_typed(&u64max, D::UnsignedLong).unwrap(),
+            u64::MAX as i128
+        );
+        assert!(parse_integer_typed("18446744073709551616", D::UnsignedLong).is_err());
+
+        // xsd:int: 2147483647 ok, 2147483648 fails
+        assert_eq!(
+            parse_integer_typed("2147483647", D::Int).unwrap(),
+            2147483647
+        );
+        assert!(parse_integer_typed("2147483648", D::Int).is_err());
     }
 
     #[test]
@@ -555,13 +650,10 @@ mod tests {
     #[test]
     fn numeric_promotion() {
         // "1"^^integer = "1.0"^^decimal
-        assert!(numeric_eq(
-            &XsdValue::Integer(1),
-            &XsdValue::Decimal(dec("1.0"))
-        ));
+        assert!(numeric_eq(&int_val(1), &XsdValue::Decimal(dec("1.0"))));
         // integer vs double
         assert_eq!(
-            numeric_cmp(&XsdValue::Integer(2), &XsdValue::Double(2.5)),
+            numeric_cmp(&int_val(2), &XsdValue::Double(2.5)),
             Some(Ordering::Less)
         );
         // decimal vs float
@@ -570,15 +662,24 @@ mod tests {
             Some(Ordering::Greater)
         );
         // NaN is unordered and unequal.
-        assert_eq!(
-            numeric_cmp(&XsdValue::Double(f64::NAN), &XsdValue::Integer(1)),
-            None
-        );
+        assert_eq!(numeric_cmp(&XsdValue::Double(f64::NAN), &int_val(1)), None);
         assert!(!numeric_eq(
             &XsdValue::Double(f64::NAN),
             &XsdValue::Double(f64::NAN)
         ));
         // +0 == -0.
         assert!(numeric_eq(&XsdValue::Double(0.0), &XsdValue::Double(-0.0)));
+
+        // Cross-subtype integer equality: xsd:int 5 == xsd:long 5.
+        let int5 = XsdValue::Integer {
+            value: 5,
+            datatype: D::Int,
+        };
+        let long5 = XsdValue::Integer {
+            value: 5,
+            datatype: D::Long,
+        };
+        assert!(numeric_eq(&int5, &long5));
+        assert_eq!(numeric_cmp(&int5, &long5), Some(Ordering::Equal));
     }
 }

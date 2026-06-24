@@ -73,6 +73,15 @@ const TABLE: &[(&str, D, &str, D, Option<Ordering>)] = &[
     ("1", D::Integer, "1", D::String, NC),
     ("true", D::Boolean, "1", D::Integer, NC),
     ("2024-01-01T00:00:00Z", D::DateTime, "P1Y", D::Duration, NC),
+    // ── derived-integer cross-subtype equality/comparison ──
+    // xsd:int 5 = xsd:long 5
+    ("5", D::Int, "5", D::Long, EQ),
+    // xsd:byte 5 = xsd:integer 5
+    ("5", D::Byte, "5", D::Integer, EQ),
+    // xsd:short 3 < xsd:int 4
+    ("3", D::Short, "4", D::Int, LT),
+    // xsd:unsignedByte 2 < xsd:double 2.5 (cross-tower promotion)
+    ("2", D::UnsignedByte, "2.5", D::Double, LT),
 ];
 
 #[test]

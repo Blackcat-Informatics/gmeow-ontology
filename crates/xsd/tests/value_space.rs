@@ -14,6 +14,27 @@ const CANONICAL_VECTORS: &[(&str, D, &str)] = &[
     ("42", D::Integer, "42"),
     ("+007", D::Integer, "7"),
     ("-0", D::Integer, "0"),
+    // derived integer subtypes — canonical form is just the decimal integer value.
+    ("127", D::Byte, "127"),
+    ("-128", D::Byte, "-128"),
+    ("255", D::UnsignedByte, "255"),
+    ("0", D::UnsignedByte, "0"),
+    ("32767", D::Short, "32767"),
+    ("65535", D::UnsignedShort, "65535"),
+    ("2147483647", D::Int, "2147483647"),
+    ("4294967295", D::UnsignedInt, "4294967295"),
+    ("9223372036854775807", D::Long, "9223372036854775807"),
+    (
+        "18446744073709551615",
+        D::UnsignedLong,
+        "18446744073709551615",
+    ),
+    ("1", D::PositiveInteger, "1"),
+    ("-1", D::NegativeInteger, "-1"),
+    ("0", D::NonNegativeInteger, "0"),
+    ("0", D::NonPositiveInteger, "0"),
+    // Leading-zero stripping still applies.
+    ("007", D::Int, "7"),
     // decimal
     ("12.00", D::Decimal, "12.0"),
     (".5", D::Decimal, "0.5"),
@@ -77,7 +98,7 @@ fn canonical_is_idempotent() {
 fn parse_by_iri_contract() {
     // A known XSD value-space datatype IRI parses.
     let v = parse_by_iri("42", "http://www.w3.org/2001/XMLSchema#integer").unwrap();
-    assert!(matches!(v, Some(XsdValue::Integer(42))));
+    assert!(matches!(v, Some(XsdValue::Integer { value: 42, .. })));
     // A non-XSD datatype IRI is Ok(None) — caller treats as a plain term.
     // (XsdValue has no PartialEq by design, so assert on `is_none`.)
     assert!(parse_by_iri(
@@ -94,7 +115,10 @@ fn parse_by_iri_contract() {
 fn numeric_bounds_are_hard_failed_not_saturated() {
     // i128::MAX round-trips.
     let max = i128::MAX.to_string();
-    assert!(matches!(parse(&max, D::Integer), Ok(XsdValue::Integer(i)) if i == i128::MAX));
+    assert!(matches!(
+        parse(&max, D::Integer),
+        Ok(XsdValue::Integer { value, .. }) if value == i128::MAX
+    ));
     // i128::MAX + 1 is a hard OutOfRange error, not a saturated value.
     let overflow = "170141183460469231731687303715884105728";
     assert!(matches!(
@@ -133,6 +157,64 @@ fn determinate_orderings() {
     let t1 = parse("2024-01-01T00:00:00Z", D::DateTime).unwrap();
     let t2 = parse("2024-01-01T01:00:00+01:00", D::DateTime).unwrap();
     assert_eq!(value_cmp(&t1, &t2), Some(Ordering::Equal)); // same instant
+}
+
+// ── Derived-integer range NEGATIVE vectors (must be Err) ────────────────────────
+
+/// (lexical, datatype): each must parse as `Err` (out of the subtype's value space).
+const INTEGER_RANGE_NEGATIVE: &[(&str, D)] = &[
+    ("128", D::Byte),                          // xsd:byte max is 127
+    ("-129", D::Byte),                         // xsd:byte min is -128
+    ("256", D::UnsignedByte),                  // xsd:unsignedByte max is 255
+    ("-1", D::UnsignedByte),                   // xsd:unsignedByte min is 0
+    ("0", D::PositiveInteger),                 // xsd:positiveInteger must be >= 1
+    ("0", D::NegativeInteger),                 // xsd:negativeInteger must be <= -1
+    ("-1", D::NonNegativeInteger),             // xsd:nonNegativeInteger must be >= 0
+    ("1", D::NonPositiveInteger),              // xsd:nonPositiveInteger must be <= 0
+    ("18446744073709551616", D::UnsignedLong), // u64::MAX + 1
+    ("2147483648", D::Int),                    // i32::MAX + 1
+];
+
+#[test]
+fn integer_range_negative_vectors_are_hard_errors() {
+    for (lexical, dt) in INTEGER_RANGE_NEGATIVE {
+        assert!(
+            parse(lexical, *dt).is_err(),
+            "expected Err for {lexical:?}^^{dt:?} but got Ok"
+        );
+    }
+}
+
+// ── Derived-integer range POSITIVE (boundary) vectors (must be Ok) ──────────────
+
+/// (lexical, datatype): each must parse successfully (boundary/edge controls).
+const INTEGER_RANGE_POSITIVE: &[(&str, D)] = &[
+    ("127", D::Byte),
+    ("-128", D::Byte),
+    ("255", D::UnsignedByte),
+    ("0", D::UnsignedByte),
+    ("1", D::PositiveInteger),
+    ("18446744073709551615", D::UnsignedLong), // u64::MAX
+];
+
+#[test]
+fn integer_range_positive_vectors_parse_ok() {
+    for (lexical, dt) in INTEGER_RANGE_POSITIVE {
+        assert!(
+            parse(lexical, *dt).is_ok(),
+            "expected Ok for {lexical:?}^^{dt:?} but got Err: {:?}",
+            parse(lexical, *dt).unwrap_err()
+        );
+    }
+}
+
+// ── Canonical lexical sanity for derived integers ───────────────────────────────
+
+#[test]
+fn int_leading_zeros_strip_to_canonical() {
+    let v = parse("007", D::Int).expect("xsd:int '007' must parse");
+    assert_eq!(v.canonical_lexical(), "7", "canonical strips leading zeros");
+    assert_eq!(v.datatype(), D::Int, "datatype is preserved as Int");
 }
 
 // ── Temporal calendar/time validation vectors ────────────────────────────────────

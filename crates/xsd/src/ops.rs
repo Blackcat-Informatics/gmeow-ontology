@@ -17,14 +17,18 @@ use crate::value::XsdValue;
 /// values from different value-space families (e.g. a number vs a string). The
 /// evaluator maps `None` to a SPARQL *type error* for the relational operators; it
 /// must NOT be read as "not equal".
+///
+/// Integer-family subtypes (xsd:byte, xsd:long, xsd:unsignedInt, etc.) are in the
+/// same numeric tower as xsd:integer — `xsd:int 5 = xsd:long 5` is `true`.
 #[must_use]
 pub fn value_cmp(a: &XsdValue, b: &XsdValue) -> Option<Ordering> {
     use XsdValue::{Boolean, Double, Float, Integer, String as Str};
     match (a, b) {
-        // Numeric tower (with promotion); covers every numeric/numeric pair.
+        // Numeric tower (with promotion); covers every numeric/numeric pair,
+        // including all integer-family subtypes (they share the Integer variant).
         (
-            Integer(_) | XsdValue::Decimal(_) | Float(_) | Double(_),
-            Integer(_) | XsdValue::Decimal(_) | Float(_) | Double(_),
+            Integer { .. } | XsdValue::Decimal(_) | Float(_) | Double(_),
+            Integer { .. } | XsdValue::Decimal(_) | Float(_) | Double(_),
         ) => numeric_cmp(a, b),
         // `false` < `true`.
         (Boolean(x), Boolean(y)) => Some(x.cmp(y)),
@@ -58,7 +62,7 @@ pub fn effective_boolean_value(v: &XsdValue) -> Option<bool> {
     Some(match v {
         XsdValue::Boolean(b) => *b,
         XsdValue::String(s) => !s.is_empty(),
-        XsdValue::Integer(i) => *i != 0,
+        XsdValue::Integer { value, .. } => *value != 0,
         XsdValue::Decimal(d) => d.mantissa() != 0,
         XsdValue::Float(f) => !f.is_nan() && *f != 0.0,
         XsdValue::Double(d) => !d.is_nan() && *d != 0.0,
@@ -71,7 +75,9 @@ pub fn effective_boolean_value(v: &XsdValue) -> Option<bool> {
 mod tests {
     use super::*;
     use crate::value::parse;
-    use crate::XsdDatatype::{Boolean, Decimal, Double, Float, Integer, String};
+    use crate::XsdDatatype::{
+        Boolean, Byte, Decimal, Double, Float, Int, Integer, Long, Short, String, UnsignedByte,
+    };
 
     fn v(lex: &str, dt: crate::XsdDatatype) -> XsdValue {
         parse(lex, dt).unwrap()
@@ -101,6 +107,11 @@ mod tests {
             // Cross-family: incomparable.
             ("1", Integer, "1", String, None),
             ("true", Boolean, "1", Integer, None),
+            // Cross-subtype integer equality.
+            ("5", Int, "5", Long, eq),
+            ("5", Byte, "5", Integer, eq),
+            ("3", Short, "4", Int, lt),
+            ("2", UnsignedByte, "2.5", Double, lt),
         ];
         for (la, da, lb, db, want) in rows {
             assert_eq!(
@@ -130,5 +141,8 @@ mod tests {
         assert_eq!(effective_boolean_value(&v("0", Integer)), Some(false));
         assert_eq!(effective_boolean_value(&v("5", Integer)), Some(true));
         assert_eq!(effective_boolean_value(&v("NaN", Double)), Some(false));
+        // Derived integer EBV: non-zero byte is true.
+        assert_eq!(effective_boolean_value(&v("0", Byte)), Some(false));
+        assert_eq!(effective_boolean_value(&v("1", Byte)), Some(true));
     }
 }

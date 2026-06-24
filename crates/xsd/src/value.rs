@@ -6,13 +6,13 @@
 //! `XsdValue` is a **value-space** representation: parsing maps a lexical form into
 //! the abstract value it denotes. It is deliberately NOT a term-identity key —
 //! parsing discards the lexical form, so `"1"^^xsd:integer` and `"01"^^xsd:integer`
-//! both become [`XsdValue::Integer`]`(1)` even though they are DISTINCT RDF terms
-//! (`sameTerm` is false). RDF term identity (`sameTerm`) is the IR's
-//! `(lexical, datatype, language)` tuple, NOT this type. Consequently `XsdValue`
-//! intentionally implements neither `PartialEq`/`Eq`/`Hash` (which would falsely
-//! read as term identity) nor `PartialOrd`/`Ord` (value ordering is the partial
-//! `value_cmp` free fn). It implements only `Clone`/`Debug`, so a consumer can cache
-//! `HashMap<TermId, XsdValue>` keyed by the IR's `TermId`.
+//! both become [`XsdValue::Integer`]`{ value: 1, datatype: Integer }` even though
+//! they are DISTINCT RDF terms (`sameTerm` is false). RDF term identity (`sameTerm`)
+//! is the IR's `(lexical, datatype, language)` tuple, NOT this type. Consequently
+//! `XsdValue` intentionally implements neither `PartialEq`/`Eq`/`Hash` (which would
+//! falsely read as term identity) nor `PartialOrd`/`Ord` (value ordering is the
+//! partial `value_cmp` free fn). It implements only `Clone`/`Debug`, so a consumer
+//! can cache `HashMap<TermId, XsdValue>` keyed by the IR's `TermId`.
 
 use crate::datatype::XsdDatatype;
 use crate::numeric::Decimal;
@@ -23,8 +23,18 @@ use crate::temporal;
 #[derive(Debug, Clone)]
 #[non_exhaustive]
 pub enum XsdValue {
-    /// `xsd:integer` — `i128`-bounded (exceeds `oxsdatatypes`' `i64`).
-    Integer(i128),
+    /// `xsd:integer` and all derived integer datatypes — `i128`-bounded.
+    ///
+    /// The `datatype` field carries the exact XSD derived type (e.g. `xsd:byte`,
+    /// `xsd:unsignedLong`) so that `value_cmp` can distinguish types for cross-type
+    /// equality while `value_cmp` still compares by value across integer subtypes
+    /// (xsd:int 5 == xsd:long 5 per the SPARQL promotion rules).
+    Integer {
+        /// The parsed integer value.
+        value: i128,
+        /// The exact XSD datatype (Integer, Long, Byte, UnsignedLong, etc.).
+        datatype: XsdDatatype,
+    },
     /// `xsd:decimal` — exact fixed-point (`i128` mantissa + scale).
     Decimal(Decimal),
     /// `xsd:float` — IEEE single-precision.
@@ -50,7 +60,7 @@ impl XsdValue {
     #[must_use]
     pub fn datatype(&self) -> XsdDatatype {
         match self {
-            XsdValue::Integer(_) => XsdDatatype::Integer,
+            XsdValue::Integer { datatype, .. } => *datatype,
             XsdValue::Decimal(_) => XsdDatatype::Decimal,
             XsdValue::Float(_) => XsdDatatype::Float,
             XsdValue::Double(_) => XsdDatatype::Double,
@@ -67,7 +77,7 @@ impl XsdValue {
     #[must_use]
     pub fn canonical_lexical(&self) -> String {
         match self {
-            XsdValue::Integer(i) => i.to_string(),
+            XsdValue::Integer { value, .. } => value.to_string(),
             XsdValue::Decimal(d) => d.canonical_lexical(),
             XsdValue::Float(f) => crate::numeric::canonical_float(*f),
             XsdValue::Double(d) => crate::numeric::canonical_double(*d),
@@ -89,7 +99,21 @@ impl XsdValue {
 pub fn parse(lexical: &str, datatype: XsdDatatype) -> Result<XsdValue, XsdError> {
     use XsdDatatype as D;
     match datatype {
-        D::Integer => crate::numeric::parse_integer(lexical).map(XsdValue::Integer),
+        // All integer-family datatypes share one parse path with range checking.
+        D::Integer
+        | D::Long
+        | D::Int
+        | D::Short
+        | D::Byte
+        | D::UnsignedLong
+        | D::UnsignedInt
+        | D::UnsignedShort
+        | D::UnsignedByte
+        | D::NonNegativeInteger
+        | D::PositiveInteger
+        | D::NonPositiveInteger
+        | D::NegativeInteger => crate::numeric::parse_integer_typed(lexical, datatype)
+            .map(|value| XsdValue::Integer { value, datatype }),
         D::Decimal => crate::numeric::parse_decimal(lexical).map(XsdValue::Decimal),
         D::Float => crate::numeric::parse_float(lexical).map(XsdValue::Float),
         D::Double => crate::numeric::parse_double(lexical).map(XsdValue::Double),
@@ -131,9 +155,9 @@ pub enum XsdError {
         reason: &'static str,
     },
     /// The lexical form is well-formed but exceeds this crate's representable range
-    /// (e.g. an integer beyond `i128`, or a decimal beyond `i128` mantissa). This is
-    /// a deliberate hard-fail rather than saturation; bignum support is a deferred
-    /// enhancement (it would only be needed by the future public purrdf).
+    /// (e.g. an integer beyond `i128`, a derived integer out of its subtype bounds,
+    /// or a decimal beyond `i128` mantissa). This is a deliberate hard-fail rather
+    /// than saturation; bignum support is a deferred enhancement.
     OutOfRange {
         /// The datatype the lexical was being parsed as.
         datatype: XsdDatatype,

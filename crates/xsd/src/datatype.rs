@@ -15,6 +15,30 @@ pub const XSD_NS: &str = "http://www.w3.org/2001/XMLSchema#";
 
 /// `xsd:integer` — arbitrary-magnitude (this crate: `i128`-bounded) signed integer.
 pub const XSD_INTEGER: &str = "http://www.w3.org/2001/XMLSchema#integer";
+/// `xsd:long` — 64-bit signed integer (`-9223372036854775808..9223372036854775807`).
+pub const XSD_LONG: &str = "http://www.w3.org/2001/XMLSchema#long";
+/// `xsd:int` — 32-bit signed integer (`-2147483648..2147483647`).
+pub const XSD_INT: &str = "http://www.w3.org/2001/XMLSchema#int";
+/// `xsd:short` — 16-bit signed integer (`-32768..32767`).
+pub const XSD_SHORT: &str = "http://www.w3.org/2001/XMLSchema#short";
+/// `xsd:byte` — 8-bit signed integer (`-128..127`).
+pub const XSD_BYTE: &str = "http://www.w3.org/2001/XMLSchema#byte";
+/// `xsd:unsignedLong` — 64-bit unsigned integer (`0..18446744073709551615`).
+pub const XSD_UNSIGNED_LONG: &str = "http://www.w3.org/2001/XMLSchema#unsignedLong";
+/// `xsd:unsignedInt` — 32-bit unsigned integer (`0..4294967295`).
+pub const XSD_UNSIGNED_INT: &str = "http://www.w3.org/2001/XMLSchema#unsignedInt";
+/// `xsd:unsignedShort` — 16-bit unsigned integer (`0..65535`).
+pub const XSD_UNSIGNED_SHORT: &str = "http://www.w3.org/2001/XMLSchema#unsignedShort";
+/// `xsd:unsignedByte` — 8-bit unsigned integer (`0..255`).
+pub const XSD_UNSIGNED_BYTE: &str = "http://www.w3.org/2001/XMLSchema#unsignedByte";
+/// `xsd:nonNegativeInteger` — integer `>= 0`.
+pub const XSD_NON_NEGATIVE_INTEGER: &str = "http://www.w3.org/2001/XMLSchema#nonNegativeInteger";
+/// `xsd:positiveInteger` — integer `> 0` (i.e. `>= 1`).
+pub const XSD_POSITIVE_INTEGER: &str = "http://www.w3.org/2001/XMLSchema#positiveInteger";
+/// `xsd:nonPositiveInteger` — integer `<= 0`.
+pub const XSD_NON_POSITIVE_INTEGER: &str = "http://www.w3.org/2001/XMLSchema#nonPositiveInteger";
+/// `xsd:negativeInteger` — integer `< 0` (i.e. `<= -1`).
+pub const XSD_NEGATIVE_INTEGER: &str = "http://www.w3.org/2001/XMLSchema#negativeInteger";
 /// `xsd:decimal` — exact decimal (this crate: `i128` mantissa, fixed scale).
 pub const XSD_DECIMAL: &str = "http://www.w3.org/2001/XMLSchema#decimal";
 /// `xsd:float` — IEEE single-precision.
@@ -49,6 +73,30 @@ pub const XSD_YEAR_MONTH_DURATION: &str = "http://www.w3.org/2001/XMLSchema#year
 pub enum XsdDatatype {
     /// `xsd:integer`.
     Integer,
+    /// `xsd:long` — derived integer, 64-bit signed.
+    Long,
+    /// `xsd:int` — derived integer, 32-bit signed.
+    Int,
+    /// `xsd:short` — derived integer, 16-bit signed.
+    Short,
+    /// `xsd:byte` — derived integer, 8-bit signed.
+    Byte,
+    /// `xsd:unsignedLong` — derived integer, 64-bit unsigned.
+    UnsignedLong,
+    /// `xsd:unsignedInt` — derived integer, 32-bit unsigned.
+    UnsignedInt,
+    /// `xsd:unsignedShort` — derived integer, 16-bit unsigned.
+    UnsignedShort,
+    /// `xsd:unsignedByte` — derived integer, 8-bit unsigned.
+    UnsignedByte,
+    /// `xsd:nonNegativeInteger` — integer >= 0.
+    NonNegativeInteger,
+    /// `xsd:positiveInteger` — integer >= 1.
+    PositiveInteger,
+    /// `xsd:nonPositiveInteger` — integer <= 0.
+    NonPositiveInteger,
+    /// `xsd:negativeInteger` — integer <= -1.
+    NegativeInteger,
     /// `xsd:decimal`.
     Decimal,
     /// `xsd:float`.
@@ -80,6 +128,18 @@ impl XsdDatatype {
     pub fn from_iri(iri: &str) -> Option<Self> {
         Some(match iri {
             XSD_INTEGER => Self::Integer,
+            XSD_LONG => Self::Long,
+            XSD_INT => Self::Int,
+            XSD_SHORT => Self::Short,
+            XSD_BYTE => Self::Byte,
+            XSD_UNSIGNED_LONG => Self::UnsignedLong,
+            XSD_UNSIGNED_INT => Self::UnsignedInt,
+            XSD_UNSIGNED_SHORT => Self::UnsignedShort,
+            XSD_UNSIGNED_BYTE => Self::UnsignedByte,
+            XSD_NON_NEGATIVE_INTEGER => Self::NonNegativeInteger,
+            XSD_POSITIVE_INTEGER => Self::PositiveInteger,
+            XSD_NON_POSITIVE_INTEGER => Self::NonPositiveInteger,
+            XSD_NEGATIVE_INTEGER => Self::NegativeInteger,
             XSD_DECIMAL => Self::Decimal,
             XSD_FLOAT => Self::Float,
             XSD_DOUBLE => Self::Double,
@@ -100,6 +160,18 @@ impl XsdDatatype {
     pub const fn iri(self) -> &'static str {
         match self {
             Self::Integer => XSD_INTEGER,
+            Self::Long => XSD_LONG,
+            Self::Int => XSD_INT,
+            Self::Short => XSD_SHORT,
+            Self::Byte => XSD_BYTE,
+            Self::UnsignedLong => XSD_UNSIGNED_LONG,
+            Self::UnsignedInt => XSD_UNSIGNED_INT,
+            Self::UnsignedShort => XSD_UNSIGNED_SHORT,
+            Self::UnsignedByte => XSD_UNSIGNED_BYTE,
+            Self::NonNegativeInteger => XSD_NON_NEGATIVE_INTEGER,
+            Self::PositiveInteger => XSD_POSITIVE_INTEGER,
+            Self::NonPositiveInteger => XSD_NON_POSITIVE_INTEGER,
+            Self::NegativeInteger => XSD_NEGATIVE_INTEGER,
             Self::Decimal => XSD_DECIMAL,
             Self::Float => XSD_FLOAT,
             Self::Double => XSD_DOUBLE,
@@ -113,6 +185,32 @@ impl XsdDatatype {
             Self::YearMonthDuration => XSD_YEAR_MONTH_DURATION,
         }
     }
+
+    /// The inclusive `(min, max)` integer bounds for this datatype, or `None` if it is
+    /// not an integer-family datatype.
+    ///
+    /// The returned bounds are the XSD-specified INCLUSIVE constraints. Parsing an
+    /// integer-family literal that falls outside these bounds is a hard
+    /// [`crate::value::XsdError::OutOfRange`] failure.
+    #[must_use]
+    pub const fn integer_range(self) -> Option<(i128, i128)> {
+        Some(match self {
+            Self::Integer => (i128::MIN, i128::MAX),
+            Self::Long => (i64::MIN as i128, i64::MAX as i128),
+            Self::Int => (i32::MIN as i128, i32::MAX as i128),
+            Self::Short => (i16::MIN as i128, i16::MAX as i128),
+            Self::Byte => (i8::MIN as i128, i8::MAX as i128),
+            Self::UnsignedLong => (0, u64::MAX as i128),
+            Self::UnsignedInt => (0, u32::MAX as i128),
+            Self::UnsignedShort => (0, u16::MAX as i128),
+            Self::UnsignedByte => (0, u8::MAX as i128),
+            Self::NonNegativeInteger => (0, i128::MAX),
+            Self::PositiveInteger => (1, i128::MAX),
+            Self::NonPositiveInteger => (i128::MIN, 0),
+            Self::NegativeInteger => (i128::MIN, -1),
+            _ => return None,
+        })
+    }
 }
 
 #[cfg(test)]
@@ -124,6 +222,18 @@ mod tests {
     fn iri_round_trips_for_every_datatype() {
         for dt in [
             XsdDatatype::Integer,
+            XsdDatatype::Long,
+            XsdDatatype::Int,
+            XsdDatatype::Short,
+            XsdDatatype::Byte,
+            XsdDatatype::UnsignedLong,
+            XsdDatatype::UnsignedInt,
+            XsdDatatype::UnsignedShort,
+            XsdDatatype::UnsignedByte,
+            XsdDatatype::NonNegativeInteger,
+            XsdDatatype::PositiveInteger,
+            XsdDatatype::NonPositiveInteger,
+            XsdDatatype::NegativeInteger,
             XsdDatatype::Decimal,
             XsdDatatype::Float,
             XsdDatatype::Double,
@@ -156,9 +266,106 @@ mod tests {
     fn iri_constants_are_byte_exact() {
         assert_eq!(XSD_STRING, "http://www.w3.org/2001/XMLSchema#string");
         assert_eq!(XSD_INTEGER, "http://www.w3.org/2001/XMLSchema#integer");
+        assert_eq!(XSD_LONG, "http://www.w3.org/2001/XMLSchema#long");
+        assert_eq!(XSD_INT, "http://www.w3.org/2001/XMLSchema#int");
+        assert_eq!(XSD_SHORT, "http://www.w3.org/2001/XMLSchema#short");
+        assert_eq!(XSD_BYTE, "http://www.w3.org/2001/XMLSchema#byte");
+        assert_eq!(
+            XSD_UNSIGNED_LONG,
+            "http://www.w3.org/2001/XMLSchema#unsignedLong"
+        );
+        assert_eq!(
+            XSD_UNSIGNED_INT,
+            "http://www.w3.org/2001/XMLSchema#unsignedInt"
+        );
+        assert_eq!(
+            XSD_UNSIGNED_SHORT,
+            "http://www.w3.org/2001/XMLSchema#unsignedShort"
+        );
+        assert_eq!(
+            XSD_UNSIGNED_BYTE,
+            "http://www.w3.org/2001/XMLSchema#unsignedByte"
+        );
+        assert_eq!(
+            XSD_NON_NEGATIVE_INTEGER,
+            "http://www.w3.org/2001/XMLSchema#nonNegativeInteger"
+        );
+        assert_eq!(
+            XSD_POSITIVE_INTEGER,
+            "http://www.w3.org/2001/XMLSchema#positiveInteger"
+        );
+        assert_eq!(
+            XSD_NON_POSITIVE_INTEGER,
+            "http://www.w3.org/2001/XMLSchema#nonPositiveInteger"
+        );
+        assert_eq!(
+            XSD_NEGATIVE_INTEGER,
+            "http://www.w3.org/2001/XMLSchema#negativeInteger"
+        );
         assert_eq!(XSD_DECIMAL, "http://www.w3.org/2001/XMLSchema#decimal");
         assert_eq!(XSD_BOOLEAN, "http://www.w3.org/2001/XMLSchema#boolean");
         assert_eq!(XSD_DOUBLE, "http://www.w3.org/2001/XMLSchema#double");
         assert_eq!(XSD_DATE_TIME, "http://www.w3.org/2001/XMLSchema#dateTime");
+    }
+
+    #[test]
+    fn integer_range_table() {
+        assert_eq!(
+            XsdDatatype::Integer.integer_range(),
+            Some((i128::MIN, i128::MAX))
+        );
+        assert_eq!(
+            XsdDatatype::Long.integer_range(),
+            Some((i64::MIN as i128, i64::MAX as i128))
+        );
+        assert_eq!(
+            XsdDatatype::Int.integer_range(),
+            Some((i32::MIN as i128, i32::MAX as i128))
+        );
+        assert_eq!(
+            XsdDatatype::Short.integer_range(),
+            Some((i16::MIN as i128, i16::MAX as i128))
+        );
+        assert_eq!(
+            XsdDatatype::Byte.integer_range(),
+            Some((i8::MIN as i128, i8::MAX as i128))
+        );
+        assert_eq!(
+            XsdDatatype::UnsignedLong.integer_range(),
+            Some((0, u64::MAX as i128))
+        );
+        assert_eq!(
+            XsdDatatype::UnsignedInt.integer_range(),
+            Some((0, u32::MAX as i128))
+        );
+        assert_eq!(
+            XsdDatatype::UnsignedShort.integer_range(),
+            Some((0, u16::MAX as i128))
+        );
+        assert_eq!(
+            XsdDatatype::UnsignedByte.integer_range(),
+            Some((0, u8::MAX as i128))
+        );
+        assert_eq!(
+            XsdDatatype::NonNegativeInteger.integer_range(),
+            Some((0, i128::MAX))
+        );
+        assert_eq!(
+            XsdDatatype::PositiveInteger.integer_range(),
+            Some((1, i128::MAX))
+        );
+        assert_eq!(
+            XsdDatatype::NonPositiveInteger.integer_range(),
+            Some((i128::MIN, 0))
+        );
+        assert_eq!(
+            XsdDatatype::NegativeInteger.integer_range(),
+            Some((i128::MIN, -1))
+        );
+        // Non-integer datatypes have no range.
+        assert_eq!(XsdDatatype::Decimal.integer_range(), None);
+        assert_eq!(XsdDatatype::Double.integer_range(), None);
+        assert_eq!(XsdDatatype::Boolean.integer_range(), None);
+        assert_eq!(XsdDatatype::String.integer_range(), None);
     }
 }
