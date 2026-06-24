@@ -64,8 +64,8 @@ fn repo_root() -> PathBuf {
 ///    is report-only / native-computed — no ELK/HermiT oracle, so no external
 ///    dependency remains). They are NOT in this allowlist.
 ///  * `generated/projections/functions.fno.ttl` — the FnO emitter now applies the
-///    `@x-gmeow-english` → `@en` projection-boundary retag (mirroring
-///    `mapping_compile`'s `retag_graph` / `edoal_emit`'s tag map), so it is
+///    `@x-gmeow-english` → `@en` projection-boundary retag (mirroring the native
+///    EDOAL tag map), so it is
 ///    graph-isomorphic to the committed `@en` projection. NOT in this allowlist.
 ///
 /// The allowlist is EMPTY: the committed `gmeow.gts` and every committed leaf are

@@ -133,7 +133,7 @@ stays driven solely by the validation result** — per-surface hard gating lives
 | `generator` | `generator.{drift,orphan,problem}` | `error`; per-finding `tool` = generator name (covers statement + mapping drift) |
 | `classic-cross-check` | `classic-cross-check/{subsumption,consistency}-divergence`, `…/dl-gap` | native↔oracle (ELK/HermiT/ROBOT) divergence ledger, already a Rust-backed report; `NativeOnly`/`OracleOnly` → `error`, `DlGap` → `note` |
 
-The mapping-compiler surface is now **landed**: `CompileError` →
+The mapping-compiler surface is now **landed**: native compiler failures surface as
 `mapping-compile.dsl-error` ([#809](https://github.com/Blackcat-Informatics/gmeow-ontology/issues/809)),
 and the SSSOM validator + native `gmeow_slice.lint_projection` trio →
 `mapping-compile.{sssom,fno-type,fno-ref,spec-drift}`
@@ -142,7 +142,7 @@ leg remains.
 
 **Deferred to [#809](https://github.com/Blackcat-Informatics/gmeow-ontology/issues/809)** (the remaining
 GMEOW-owned `make check` surfaces, tracked, not silently dropped): the mapping-compiler `overclaim`
-leg, statement-compiler (`CompileError` / round-trip), and logic-compiler (`gmeow_logic` diagnostic
+leg, statement-compiler (round-trip), and logic-compiler (`gmeow_logic` diagnostic
 dicts) surfaces; external-tool failures (`ruff` / `mypy` / `clippy` / `pre-commit`) wrapped with raw
 output; and granular per-check `constitution.*` codes (today the string-only constitution surface
 uses `constitution.error` / `constitution.warning`).

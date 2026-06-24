@@ -2,7 +2,7 @@
 
 The server is a thin interface layer over existing ``gmeow_tools`` modules and
 native pipeline entry points. No ontology logic lives here — it delegates to
-``validate``, ``mapping_compile``, ``reason``, ``export``, and ``graph``.
+``validate``, the native mapping pipeline, ``reason``, ``export``, and ``graph``.
 
 Principle 4 (One canonical source): this module only exposes; it never authors.
 Principle 12 (Compute outside the logic): the MCP boundary is a solver/tooling layer.

@@ -9,9 +9,9 @@
 # =============================================================================
 # SHACL shapes for the GMEOW mapping DSL (mapping-dsl/**/*.ttl).
 #
-# These shapes validate the canonical authoring source BEFORE the Python
-# graph-walkers in gmeow_tools.mapping_dsl run. Violations surface as
-# structured per-node diagnostics (focus node, path, message, source file).
+# These shapes validate the canonical authoring source before the native
+# mapping pipeline runs. Violations surface as structured per-node diagnostics
+# (focus node, path, message, source file).
 # =============================================================================
 
 # --------------------------------------------------------------------------- #

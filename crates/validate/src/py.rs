@@ -795,7 +795,7 @@ fn insert_ntriples(store: &oxigraph::store::Store, data_nt: &str) -> PyResult<()
 /// `ontology_nt` is the merged ontology as N-Triples. Both are loaded into ONE
 /// oxigraph store (their default-graph union), the four invariants run natively,
 /// and the violations are returned as a single canonical `Report` pyclass (every
-/// finding is an `Error` — each currently blocks the compile with `CompileError`).
+/// finding is an `Error` — each blocks statement compilation).
 /// Returning the live `Report` lets Python join the messages, render SARIF, or
 /// fold the findings in without a JSON round-trip (#630/#654).
 #[pyfunction]
