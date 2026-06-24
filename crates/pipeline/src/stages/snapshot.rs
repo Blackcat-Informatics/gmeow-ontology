@@ -207,18 +207,26 @@ fn build_guide_blobs(root: &Path) -> Result<Vec<BlobRow>, PipelineError> {
     Ok(blobs)
 }
 
-/// Build the five bundle archive blobs from the repo tree.
-fn build_archive_blobs(root: &Path) -> Result<Vec<BlobRow>, PipelineError> {
+/// Build the five bundle archive blobs from the repo tree. The SHACL-derived JSON
+/// Schema + OpenAPI bytes are passed in from THIS run's `stage-export-json-schema`
+/// product (not re-read from disk) so a single regenerate folds the fresh schema —
+/// the committed `generated/schemas/*.json` are not flushed until phase 1 returns.
+fn build_archive_blobs(
+    root: &Path,
+    schema_json: &[u8],
+    openapi_json: &[u8],
+) -> Result<Vec<BlobRow>, PipelineError> {
     // mappings + queries: member = bare filename.
     let mappings = members_basename(&list_files(&root.join("generated/mappings"), "sssom.tsv")?)?;
     let queries = members_basename(&list_files(&root.join("generated/queries"), "rq")?)?;
     // schemas: the SHACL-derived JSON Schema + OpenAPI (#700), member = bare
-    // filename. Both files always exist after the json-schema stage; a missing one
-    // HARD-fails through `members_basename` (no optionality, fail-closed).
-    let schemas = members_basename(&[
-        root.join("generated/schemas/gmeow.schema.json"),
-        root.join("generated/schemas/gmeow.openapi.json"),
-    ])?;
+    // filename, taken from the in-memory stage product so the bundle never lags the
+    // committed files by a regenerate. Byte-identical to the prior `members_basename`
+    // member names (`gmeow.schema.json` / `gmeow.openapi.json`), so the fold is stable.
+    let schemas = vec![
+        ("gmeow.schema.json".to_string(), schema_json.to_vec()),
+        ("gmeow.openapi.json".to_string(), openapi_json.to_vec()),
+    ];
     // cells: equivalences + projections + slice mappings, member = repo-relative path.
     let mut cells: Vec<(String, Vec<u8>)> = Vec::new();
     cells.extend(members_relpath(
@@ -462,6 +470,13 @@ impl SnapshotStage {
         Self {
             consumes: vec![
                 "stage-docs-render".to_string(),
+                // The SHACL→JSON-Schema export leaf (#700): its in-memory product
+                // carries THIS run's freshly-emitted gmeow.schema.json / .openapi.json
+                // bytes, which `build_archive_blobs` folds into the `schemas-archive`
+                // blob. Without this edge the snapshot would re-read the (previous-run)
+                // committed schema from disk and lag a regenerate behind (the bytes
+                // are only flushed to disk AFTER phase 1 returns — run.rs:242-254).
+                "stage-export-json-schema".to_string(),
                 "stage-gts-compose".to_string(),
                 "stage-reason".to_string(),
                 "stage-statements".to_string(),
@@ -487,11 +502,13 @@ impl Stage for SnapshotStage {
         &self.consumes
     }
     fn impl_version(&self) -> &str {
-        // v4: also render+tar+embed the full ontology-docs site as the
-        // `ontology-docs` blob (#897) — the producer half of repo-free
-        // `gmeow extract-docs`. v3 added the mappings/cells/queries/tests archive
-        // blobs + per-slice docs guide blobs the #861 cutover dropped.
-        "snapshot.v4-docs-site-blob"
+        // v5: fold the `schemas-archive` from the in-memory
+        // `stage-export-json-schema` product (THIS run's fresh bytes) instead of
+        // re-reading the committed `generated/schemas/*.json` from disk (#700) —
+        // a single regenerate now folds the fresh schema. v4: render+tar+embed the
+        // full ontology-docs site as the `ontology-docs` blob (#897). v3 added the
+        // mappings/cells/queries/tests archive blobs + per-slice docs guide blobs.
+        "snapshot.v5-fresh-schemas-blob"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<PathBuf>, PipelineError> {
         // The embedded ontology-docs site (`build_docs_archive`) is rendered from
@@ -503,7 +520,27 @@ impl Stage for SnapshotStage {
         crate::stages::docs_render::docs_source_files(root)
     }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, PipelineError> {
-        let mut blobs = build_archive_blobs(input.root)?;
+        // THIS run's freshly-emitted JSON Schema + OpenAPI bytes, taken from the
+        // `stage-export-json-schema` product rather than the committed on-disk files
+        // (which are not written until phase 1 returns). Missing artifacts HARD-fail
+        // (no-optionality, fail-closed) — the consumes edge guarantees they exist.
+        let schema_json = input
+            .upstream
+            .get("stage-export-json-schema")
+            .and_then(|p| p.artifact(crate::stages::json_schema::JSON_SCHEMA_PATH))
+            .ok_or_else(|| {
+                stage_err("missing stage-export-json-schema gmeow.schema.json artifact")
+            })?
+            .to_vec();
+        let openapi_json = input
+            .upstream
+            .get("stage-export-json-schema")
+            .and_then(|p| p.artifact(crate::stages::json_schema::OPENAPI_PATH))
+            .ok_or_else(|| {
+                stage_err("missing stage-export-json-schema gmeow.openapi.json artifact")
+            })?
+            .to_vec();
+        let mut blobs = build_archive_blobs(input.root, &schema_json, &openapi_json)?;
         blobs.extend(build_guide_blobs(input.root)?);
         blobs.push(build_docs_archive(input.root)?);
         let gts = build_snapshot(input.root, input.upstream, blobs)?;
