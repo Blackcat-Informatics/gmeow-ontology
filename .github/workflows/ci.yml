@@ -144,7 +144,7 @@ jobs:
           && hashFiles('dist/diagnostics/python/*') != ''
           && github.event_name == 'pull_request'
           && github.event.pull_request.head.repo.full_name != github.repository
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: diagnostics-python
           path: dist/diagnostics/python/
@@ -216,14 +216,14 @@ jobs:
 
       - name: Upload JUnit report
         if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: junit-report-rust-${{ matrix.shard }}
           path: target/nextest/ci/junit.xml
           if-no-files-found: warn
 
       - name: Publish test results
-        uses: dorny/test-reporter@df6247429542221bc30d46a036ee47af1102c451 # v2
+        uses: dorny/test-reporter@a43b3a5f7366b97d083190328d2c652e1a8b6aa2 # v3.0.0
         if: always()
         with:
           name: Rust Tests (shard ${{ matrix.shard }}/3)

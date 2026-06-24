@@ -26,6 +26,7 @@ pub mod export;
 pub mod frame_shapes;
 pub mod gts_compose;
 pub mod gts_sink;
+pub mod json_schema;
 pub mod logic;
 pub mod lpg;
 pub mod mappings;
@@ -57,6 +58,7 @@ pub fn register_default(registry: &mut StageRegistry) {
     registry.register("catalog", Arc::new(catalog::CatalogStage));
     registry.register("profiles", Arc::new(profiles::ProfilesStage));
     registry.register("frame_shapes", Arc::new(frame_shapes::FrameShapesStage));
+    registry.register("json_schema", Arc::new(json_schema::JsonSchemaStage));
     registry.register("matrix", Arc::new(matrix::MatrixStage));
     registry.register("metadata", Arc::new(metadata::MetadataStage::new()));
     registry.register("apache", Arc::new(apache::ApacheStage));

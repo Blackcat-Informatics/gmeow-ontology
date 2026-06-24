@@ -1,26 +1,29 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! The `schemas` export leaf (#861 P4): LinkML/JSON-Schema/Pydantic/TS/GraphQL/OpenAPI.
+//! The `schemas` export leaf (#861 P4): the FOUR LinkML artifacts
+//! (`gmeow.linkml.yaml`, `gmeow.py`, `gmeow.ts`, `gmeow.graphql`).
 //!
 //! # Why this leaf shells out to Python (the lane-only external exception)
 //!
-//! Five of the six committed `generated/schemas/` artifacts cannot be produced
-//! in Rust: `gmeow.schema.json` (LinkML `JsonSchemaGenerator`), `gmeow.py`
-//! (`PydanticGenerator`), `gmeow.ts` (`TypescriptGenerator`), and
-//! `gmeow.graphql` (`GraphqlGenerator`) are emitted by the **external LinkML
-//! toolkit** (`linkml.generators.*`), and `gmeow.openapi.json` is derived from
-//! the json-schema text. There is NO Rust LinkML generator suite — this is an
-//! irreducible external dependency, sanctioned as an "ext deps lane-only"
-//! exception under the project's north-star goals (peer to the pre-acknowledged
-//! SPARQL / EDOAL exceptions). The `emit_linkml` OWL→LinkML fold and the
-//! OpenAPI derivation are native Python in this repo, but they are entangled
-//! with the LinkML generators in one render pipeline.
+//! The four committed `generated/schemas/` artifacts this leaf produces cannot
+//! be emitted in Rust: `gmeow.linkml.yaml` (the OWL→LinkML fold) drives
+//! `gmeow.py` (LinkML `PydanticGenerator`), `gmeow.ts` (`TypescriptGenerator`),
+//! and `gmeow.graphql` (`GraphqlGenerator`) — all from the **external LinkML
+//! toolkit** (`linkml.generators.*`). There is NO Rust LinkML generator suite —
+//! this is an irreducible external dependency, sanctioned as an "ext deps
+//! lane-only" exception under the project's north-star goals (peer to the
+//! pre-acknowledged SPARQL / EDOAL exceptions).
+//!
+//! The JSON Schema + OpenAPI artifacts (`gmeow.schema.json` /
+//! `gmeow.openapi.json`) are NO LONGER produced here: as of #700 they are
+//! emitted NATIVELY in Rust from the SHACL shape union by the
+//! `stage-export-json-schema` leaf (`crate::stages::json_schema`).
 //!
 //! So this leaf does NOT port the generators. It invokes the repo's existing
 //! Python (`gmeow_tools.schema_compile.SchemaGenerator.render`) through
 //! `uv run` as a lane-only external tool over a private staging tree, then
-//! reads the six produced files back and folds their bytes — verbatim,
+//! reads the four produced files back and folds their bytes — verbatim,
 //! including the committed banner/normalization the Python already applies —
 //! into the stage product. Byte-identity with the committed artifacts is
 //! guaranteed because it is the SAME toolkit over the SAME fold.
@@ -32,34 +35,24 @@ use std::process::Command;
 use crate::error::PipelineError;
 use crate::node::{Stage, StageInput, StageKind, StageOutput, StageProduct};
 
-/// The committed logical paths of the six schema artifacts, in the fixed order
-/// the render pipeline produces them. Keys are repo-relative (`generated/…`),
-/// matching `gmeow_tools.config.SCHEMAS_DIR`.
+/// The committed logical paths of the four LinkML schema artifacts, in the fixed
+/// order the render pipeline produces them. Keys are repo-relative
+/// (`generated/…`), matching `gmeow_tools.config.SCHEMAS_DIR`. JSON Schema +
+/// OpenAPI moved to `crate::stages::json_schema` (#700).
 pub const LINKML_PATH: &str = "generated/schemas/gmeow.linkml.yaml";
-/// JSON Schema (LinkML `JsonSchemaGenerator`).
-pub const JSON_SCHEMA_PATH: &str = "generated/schemas/gmeow.schema.json";
 /// Pydantic models (LinkML `PydanticGenerator`).
 pub const PYDANTIC_PATH: &str = "generated/schemas/gmeow.py";
 /// TypeScript interfaces (LinkML `TypescriptGenerator`).
 pub const TYPESCRIPT_PATH: &str = "generated/schemas/gmeow.ts";
 /// GraphQL type stubs (LinkML `GraphqlGenerator`).
 pub const GRAPHQL_PATH: &str = "generated/schemas/gmeow.graphql";
-/// OpenAPI 3.1 derived from the JSON Schema text.
-pub const OPENAPI_PATH: &str = "generated/schemas/gmeow.openapi.json";
 
-/// All six committed logical paths (the render output order).
-pub const SCHEMA_PATHS: [&str; 6] = [
-    LINKML_PATH,
-    JSON_SCHEMA_PATH,
-    PYDANTIC_PATH,
-    TYPESCRIPT_PATH,
-    GRAPHQL_PATH,
-    OPENAPI_PATH,
-];
+/// All four committed logical paths (the render output order).
+pub const SCHEMA_PATHS: [&str; 4] = [LINKML_PATH, PYDANTIC_PATH, TYPESCRIPT_PATH, GRAPHQL_PATH];
 
-/// The inline Python driver: render the six schema artifacts into the staging
-/// directory handed as `argv[1]`, reusing the repo's lane-only `schemas`
-/// compiler (the exact `emit_linkml → _write_yaml → gen_* → gen_openapi →
+/// The inline Python driver: render the four LinkML schema artifacts into the
+/// staging directory handed as `argv[1]`, reusing the repo's lane-only `schemas`
+/// compiler (the exact `emit_linkml → _write_yaml → gen_* →
 /// _write_artifacts(_normalize_text)` sequence). The compiler writes under
 /// `<staging>/generated/schemas/` (its `SCHEMAS_DIR` relative to
 /// `PROJECT_ROOT`).
@@ -79,7 +72,7 @@ object.__setattr__(gen, '_source_hash', source_hash(gen.inputs))
 gen.render(Path(sys.argv[1]))
 ";
 
-/// Produce the six schema artifacts by driving the repo's LinkML render
+/// Produce the four schema artifacts by driving the repo's LinkML render
 /// pipeline (lane-only external Python) over a private staging tree rooted at
 /// `root`, then read the produced files back into a logical-path → bytes map.
 ///
@@ -111,7 +104,7 @@ fn staging_dir(root: &Path) -> Result<std::path::PathBuf, PipelineError> {
     Ok(dir)
 }
 
-/// Run the render into `staging` and read the six files back.
+/// Run the render into `staging` and read the four files back.
 fn render_into(root: &Path, staging: &Path) -> Result<BTreeMap<String, Vec<u8>>, PipelineError> {
     let output = Command::new("uv")
         .arg("run")
@@ -194,7 +187,7 @@ impl Stage for SchemasStage {
         &self.consumes
     }
     fn impl_version(&self) -> &str {
-        "schemas.v1"
+        "schemas.v2"
     }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, PipelineError> {
         let artifacts = render_schemas(input.root)?;
@@ -247,7 +240,7 @@ mod tests {
         }
 
         let artifacts = render_schemas(&root).expect("render schemas via the LinkML lane");
-        assert_eq!(artifacts.len(), 6, "expected six schema artifacts");
+        assert_eq!(artifacts.len(), 4, "expected four schema artifacts");
 
         for logical in SCHEMA_PATHS {
             let produced = artifacts
