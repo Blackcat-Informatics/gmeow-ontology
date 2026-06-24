@@ -21,7 +21,7 @@ def _sample_graph() -> Graph:
 
 def test_serialize_all_formats(tmp_path: Path) -> None:
     written = serialize_graph(_sample_graph(), stem="gmeow", dist_dir=tmp_path)
-    assert set(written) == {"ttl", "rdf", "nt", "jsonld"}
+    assert set(written) == {"ttl", "rdf", "nt", "jsonld", "jsonld11", "yamlld"}
     for path in written.values():
         assert path.exists() and path.stat().st_size > 0
 

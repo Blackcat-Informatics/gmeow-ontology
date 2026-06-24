@@ -29,6 +29,8 @@ _RDF = "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
 _RDF_TYPE = _RDF + "type"
 _RDF_REIFIES = _RDF + "reifies"
 
+_DEFAULT_GRAPH: pyoxigraph.DefaultGraph = pyoxigraph.DefaultGraph()
+
 
 class YamlLdError(ValueError):
     """Raised when YAML-LD-star input cannot be parsed or uses unsupported features."""
@@ -162,12 +164,32 @@ class _Parser:
             return pyoxigraph.BlankNode(term[2:])
         return pyoxigraph.NamedNode(self._expand_term(term))
 
+    def _jsonld_term_to_iri(self, term: Any) -> str:
+        """Return the IRI/CURIE string from a JSON-LD term value.
+
+        The GMEOW JSON-LD-star emitter represents IRIs/bnodes as either a plain
+        string (compact IRI or absolute IRI) or a node object ``{"@id": "..."}``.
+        """
+        if isinstance(term, str):
+            return term
+        if isinstance(term, dict):
+            iri = term.get("@id")
+            if isinstance(iri, str):
+                return iri
+            raise YamlLdError(
+                f"JSON-LD term object must contain a string @id: {term!r}"
+            )
+        raise YamlLdError(f"Unsupported JSON-LD term form: {term!r}")
+
     def _literal_from_value(self, value: dict[str, Any]) -> pyoxigraph.Literal:
         """Build a pyoxigraph Literal from a JSON-LD value object."""
         lexical = value["@value"]
         language = value.get("@language")
         direction = value.get("@direction")
-        datatype = value.get("@type")
+        raw_datatype = value.get("@type")
+        datatype = (
+            self._jsonld_term_to_iri(raw_datatype) if raw_datatype is not None else None
+        )
         if datatype is not None:
             if language is not None:
                 raise YamlLdError("A value cannot have both @type and @language")
@@ -219,6 +241,7 @@ class _Parser:
         self,
         reifier: pyoxigraph.NamedNode | pyoxigraph.BlankNode,
         annotation: dict[str, Any] | list[Any],
+        graph: pyoxigraph.NamedNode | pyoxigraph.DefaultGraph = _DEFAULT_GRAPH,
     ) -> None:
         """Emit annotation triples about a reifier node."""
         annotations = annotation if isinstance(annotation, list) else [annotation]
@@ -229,26 +252,25 @@ class _Parser:
                 )
             for key, val in ann_obj.items():
                 pred = pyoxigraph.NamedNode(self._expand_term(key))
-                self._parse_property(reifier, pred, val)
+                self._parse_property(reifier, pred, val, graph)
 
     def _parse_property(
         self,
         subj: pyoxigraph.NamedNode | pyoxigraph.BlankNode,
         pred: pyoxigraph.NamedNode,
         value: Any,
+        graph: pyoxigraph.NamedNode | pyoxigraph.DefaultGraph = _DEFAULT_GRAPH,
     ) -> None:
         """Emit triples for one property value, recursing into node objects."""
         if isinstance(value, list):
             for item in value:
-                self._parse_property(subj, pred, item)
+                self._parse_property(subj, pred, item, graph)
             return
 
         if isinstance(value, dict):
             if "@value" in value or "@language" in value or "@direction" in value:
                 lit = self._literal_from_value(value)
-                self.store.add(
-                    pyoxigraph.Quad(subj, pred, lit, pyoxigraph.DefaultGraph())
-                )
+                self.store.add(pyoxigraph.Quad(subj, pred, lit, graph))
                 if "@annotation" in value:
                     reifier = self._fresh_blank()
                     self.store.add(
@@ -263,10 +285,8 @@ class _Parser:
                 return
 
             annotation = value.get("@annotation")
-            node_obj = self._parse_node_object(value)
-            self.store.add(
-                pyoxigraph.Quad(subj, pred, node_obj, pyoxigraph.DefaultGraph())
-            )
+            node_obj = self._parse_node_object(value, graph)
+            self.store.add(pyoxigraph.Quad(subj, pred, node_obj, graph))
             if annotation is not None:
                 self.store.add(
                     pyoxigraph.Quad(
@@ -280,43 +300,63 @@ class _Parser:
             return
 
         scalar_obj = self._scalar_to_term(value)
-        self.store.add(
-            pyoxigraph.Quad(subj, pred, scalar_obj, pyoxigraph.DefaultGraph())
-        )
+        self.store.add(pyoxigraph.Quad(subj, pred, scalar_obj, graph))
 
     def _parse_node_object(
-        self, obj: dict[str, Any]
+        self,
+        obj: dict[str, Any],
+        graph: pyoxigraph.NamedNode | pyoxigraph.DefaultGraph = _DEFAULT_GRAPH,
     ) -> pyoxigraph.NamedNode | pyoxigraph.BlankNode:
         """Emit triples for a node object and return its node identifier.
 
         ``@annotation`` on the object is intentionally ignored here; the caller
         that holds the embedding subject/predicate handles annotation semantics.
         """
-        node_id = obj.get("@id")
-        if node_id is None:
+        raw_node_id = obj.get("@id")
+        if raw_node_id is None:
             node: pyoxigraph.NamedNode | pyoxigraph.BlankNode = self._fresh_blank()
         else:
-            node = self._node(str(node_id))
+            node = self._node(self._jsonld_term_to_iri(raw_node_id))
 
         for key, val in obj.items():
-            if key in ("@id", "@annotation", "@context"):
+            if key in ("@id", "@annotation", "@context", "@graph"):
                 continue
             if key == "@type":
                 for type_term in val if isinstance(val, list) else [val]:
-                    type_node = self._node(str(type_term))
+                    type_iri = self._jsonld_term_to_iri(type_term)
+                    type_node = self._node(type_iri)
                     self.store.add(
                         pyoxigraph.Quad(
                             node,
                             pyoxigraph.NamedNode(_RDF_TYPE),
                             type_node,
-                            pyoxigraph.DefaultGraph(),
+                            graph,
                         )
                     )
                 continue
             pred = pyoxigraph.NamedNode(self._expand_term(key))
-            self._parse_property(node, pred, val)
+            self._parse_property(node, pred, val, graph)
 
         return node
+
+    def _parse_graph_entry(self, obj: dict[str, Any]) -> None:
+        """Parse one JSON-LD graph entry (default node or named graph object)."""
+        if "@graph" in obj:
+            raw_graph_id = obj.get("@id")
+            if raw_graph_id is None:
+                raise YamlLdError("Named graph object must have @id")
+            graph_node = self._node(self._jsonld_term_to_iri(raw_graph_id))
+            if not isinstance(graph_node, pyoxigraph.NamedNode):
+                raise YamlLdError("Named graph @id must be an absolute IRI")
+            inner = obj["@graph"]
+            if not isinstance(inner, list):
+                raise YamlLdError("@graph must be an array")
+            for node_obj in inner:
+                if not isinstance(node_obj, dict):
+                    raise YamlLdError("@graph entries must be objects")
+                self._parse_node_object(node_obj, graph_node)
+        else:
+            self._parse_node_object(obj, _DEFAULT_GRAPH)
 
 
 def _load_context(
@@ -379,9 +419,17 @@ def parse_jsonld_star(json_bytes: bytes) -> pyoxigraph.Store:
     if isinstance(doc, list):
         for item in doc:
             if isinstance(item, dict):
-                parser._parse_node_object(item)
+                parser._parse_graph_entry(item)
     elif isinstance(doc, dict):
-        parser._parse_node_object(doc)
+        if "@graph" in doc:
+            graph_entries = doc["@graph"]
+            if not isinstance(graph_entries, list):
+                raise YamlLdError("@graph must be an array")
+            for entry in graph_entries:
+                if isinstance(entry, dict):
+                    parser._parse_graph_entry(entry)
+        else:
+            parser._parse_node_object(doc)
     else:
         raise YamlLdError("JSON-LD document must be an object or array of objects")
 
