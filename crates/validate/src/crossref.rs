@@ -150,11 +150,6 @@ pub struct LintInput {
     pub citation_cff: Option<String>,
     /// Contents of ontology/gmeow.ttl (None if file does not exist).
     pub ontology_ttl: Option<String>,
-    /// Pre-rendered deposit XML from the Python path (so monkeypatching of
-    /// Python functions like ``_alignment_citations`` affects the XML checked
-    /// by the lint's round-trip and citation-key checks).  When ``None`` the
-    /// Rust side generates the XML from ``self_description`` + ``config``.
-    pub pre_rendered_xml: Option<String>,
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -1007,18 +1002,13 @@ pub fn lint_deposit(json: &str) -> Result<Vec<String>, String> {
         problems.push("self-description carries no Wikidata authority for registrant".to_string());
     }
 
-    // (b) round-trip: render the deposit (using the pre-rendered XML when provided
-    // so Python monkeypatching of alignment functions is respected), parse pairs.
-    let xml: String = if let Some(ref pre) = input.pre_rendered_xml {
-        pre.clone()
-    } else {
-        let deposit_input = DepositInput {
-            self_description: sd.clone(),
-            config: config.clone(),
-        };
-        let deposit_json = serde_json::to_string(&deposit_input).map_err(|e| e.to_string())?;
-        build_deposit_xml(&deposit_json, "00000000000000", "lint-roundtrip")?
+    // (b) round-trip: render the deposit natively from the input metadata and parse pairs.
+    let deposit_input = DepositInput {
+        self_description: sd.clone(),
+        config: config.clone(),
     };
+    let deposit_json = serde_json::to_string(&deposit_input).map_err(|e| e.to_string())?;
+    let xml: String = build_deposit_xml(&deposit_json, "00000000000000", "lint-roundtrip")?;
 
     let pairs = extract_doi_resource_pairs(&xml);
     let mut expected: BTreeSet<(String, String)> = BTreeSet::new();
@@ -1195,5 +1185,75 @@ mod date_tests {
             let err = validate_iso_date(bad).expect_err("malformed date must be rejected");
             assert!(err.contains("YYYY-MM-DD"), "{err}");
         }
+    }
+}
+
+#[cfg(test)]
+mod lint_tests {
+    use super::check_duplicate_keys;
+
+    #[test]
+    fn detects_duplicate_citation_keys_in_dataset() {
+        let xml = r#"
+<dataset dataset_type="record">
+  <doi_data>
+    <doi>10.67342/26w4o</doi>
+    <resource>https://example.invalid/</resource>
+  </doi_data>
+  <citation_list>
+    <citation key="ref-dup" type="web_resource">
+      <unstructured_citation>First duplicate.</unstructured_citation>
+    </citation>
+    <citation key="ref-dup" type="web_resource">
+      <unstructured_citation>Second duplicate.</unstructured_citation>
+    </citation>
+  </citation_list>
+</dataset>
+"#;
+        let mut problems: Vec<String> = vec![];
+        check_duplicate_keys(xml, &mut problems);
+        assert_eq!(
+            problems.len(),
+            1,
+            "expected exactly one problem, got: {:?}",
+            problems
+        );
+        assert!(
+            problems[0].contains("duplicate citation keys"),
+            "unexpected message: {}",
+            problems[0]
+        );
+        assert!(
+            problems[0].contains("10.67342/26w4o"),
+            "message should name the dataset DOI: {}",
+            problems[0]
+        );
+    }
+
+    #[test]
+    fn no_false_positive_for_unique_citation_keys() {
+        let xml = r#"
+<dataset dataset_type="record">
+  <doi_data>
+    <doi>10.67342/26w4o</doi>
+    <resource>https://example.invalid/</resource>
+  </doi_data>
+  <citation_list>
+    <citation key="ref-a" type="web_resource">
+      <unstructured_citation>First.</unstructured_citation>
+    </citation>
+    <citation key="ref-b" type="web_resource">
+      <unstructured_citation>Second.</unstructured_citation>
+    </citation>
+  </citation_list>
+</dataset>
+"#;
+        let mut problems: Vec<String> = vec![];
+        check_duplicate_keys(xml, &mut problems);
+        assert!(
+            problems.is_empty(),
+            "expected no problems for unique keys, got: {:?}",
+            problems
+        );
     }
 }
