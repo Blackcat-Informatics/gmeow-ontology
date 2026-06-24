@@ -45,8 +45,8 @@ round-trips.
 
 Every stage still pays a conversion tax: GTS → `RdfQuad` (clone) → oxigraph (clone
 again). The Python FFI adds text round-trips — N-Triples/N-Quads serialization for logic
-materialize, RL closure, and the test SHACL path (`native_rl.py`,
-`native_rl_rdflib.py:47`, `logic_runner.py:1210`, `tests/_graph_nt.py:49`) — with the
+materialize, RL closure, and the test SHACL path (`native_rl_rdflib.py:47`,
+`logic_runner.py:1210`, `tests/_graph_nt.py:49`) — with the
 zero-copy capsule-pointer (`py_store.rs:835`) used *only* for production SHACL. Logic
 adds a further internal text round-trip: quads → Nemo ternary fact **strings** →
 ChaseRow **strings** → decoded terms.
@@ -295,8 +295,8 @@ spike); C6 generalizes output; C7/C8 are end-state cleanups gated on the Python 
   `crates/shacl/src/engine.rs` (`validate`, `validate_rdf_store`, `parse_shapes`, target
   helpers `:64-110`), `report.rs`; `crates/validate/src/store.rs`, `validate_all.rs`;
   `crates/slicetest/src/stores.rs`.
-- FFI scaffolding to retire: `src/gmeow_tools/native_rl.py`, `native_rl_rdflib.py`,
-  `logic_runner.py`, `shacl_engine.py`, `tests/_graph_nt.py`.
+- FFI scaffolding to retire: `src/gmeow_tools/native_rl_rdflib.py`, `logic_runner.py`,
+  `shacl_engine.py`, `tests/_graph_nt.py` (the RL-closure shim `native_rl.py` is already retired).
 
 ## Verification — stronger acceptance gates
 

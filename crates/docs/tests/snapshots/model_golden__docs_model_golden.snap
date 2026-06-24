@@ -138,6 +138,13 @@ expression: summary
         "media_type": "text/turtle",
         "raw_digest": "d95a3f16d1797212fd00a4d83843e480126f0c0399d5ff2a7ace67228e5ba520",
         "semantic_digest": "2fda785eafc3d4285ee09336d457434c3818b624dfdd7048200c3f48712c304c"
+      },
+      {
+        "role": "TestDsl",
+        "logical_path": "tests/structural.ttl",
+        "media_type": "text/turtle",
+        "raw_digest": "2db163f0fe2d4c0542fb19641435c5ae509c8d647ba5b2710611d3595148c698",
+        "semantic_digest": "67ef63d509dfb6940e8dc33685bbce7e39889ff3769e86169cc3b37cdcae64fe"
       }
     ]
   },

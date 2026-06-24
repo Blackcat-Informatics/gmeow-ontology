@@ -147,7 +147,7 @@ meta:tests-reference-frames a meta:TestSuite ;
 
 meta:lint-reasoning-invariants a meta:Lint ;
     rdfs:label "closed-world reasoning invariants (solver boundary)"@x-gmeow-english ;
-    meta:artifact "src/gmeow_tools/reasoning_lint.py" ;
+    meta:artifact "crates/validate/src/gufo.rs" ;
     meta:symbol "reasoning_invariants" .
 
 meta:tests-reasoning a meta:TestSuite ;
@@ -195,7 +195,7 @@ meta:gate-crate-layering a meta:Gate ;
 
 meta:lint-coequal-facet a meta:Lint ;
     rdfs:label "annotation-driven identity-axis orthogonality"@x-gmeow-english ;
-    meta:artifact "src/gmeow_tools/reasoning_lint.py" ;
+    meta:artifact "crates/validate/src/gufo.rs" ;
     meta:symbol "coequal_facet_orthogonality" .
 
 meta:lint-term-naming a meta:Lint ;
@@ -219,7 +219,7 @@ meta:shapes-frame-generated a meta:Shape ;
 
 meta:lint-frame-completeness a meta:Lint ;
     rdfs:label "frame-pointing properties demand a requiresFrame declaration"@x-gmeow-english ;
-    meta:artifact "src/gmeow_tools/reasoning_lint.py" ;
+    meta:artifact "crates/validate/src/gufo.rs" ;
     meta:symbol "frame_declaration_completeness" .
 
 meta:gate-compliance-report a meta:Gate ;

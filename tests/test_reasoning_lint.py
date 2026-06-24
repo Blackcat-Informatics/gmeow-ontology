@@ -1,4 +1,4 @@
-"""Tests for the UFO/OntoUML anti-pattern checks (gmeow_tools.reasoning_lint).
+"""Tests for the UFO/OntoUML anti-pattern checks (native gmeow_validate.reasoning_*_nt).
 
 A positive end-to-end test asserts the real, meta-grounded ontology is clean
 (every class stereotyped, no anti-patterns). Negative tests seed one anti-pattern
