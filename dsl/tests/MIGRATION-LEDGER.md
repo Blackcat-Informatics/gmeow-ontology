@@ -312,6 +312,25 @@ The observation-module asserted-TBox structural assertions (#66, #69) migrated t
 
 **Observations tally:** 19 converted + 1 partial (property-bridges: 8 of 11 converted) = 23 structural cells, 5 retained-with-reason (4 generated-SSSOM-mapping reads + 1 cross-slice kin-bridge). `tests/test_observations.py` 24 → 5 fns.
 
+## #867 structural batch 9 (creative-works / genealogy)
+
+Two more home slices migrated to `slices/<g>/<n>/tests/structural.ttl` (both gufo:).
+20 converted fns → 33 `gmeow:StructuralAssertion` cells; all green
+(`cargo nextest -p gmeow-slicetest`, 60/60 cell files). `make validate` ✓. Per-cell
+`saRationale` names the source fn. (`places` — the 129-fn slice — is deferred: its
+structural.ttl is too large to author in a single write; tracked for a follow-on parcel.
+`music` has no migratable structural fns, all-retained, assessed in batch 2.)
+
+| Slice (stereotype) | Converted fns → cells | Retained fns (reason) |
+|---|---|---|
+| `core/creative-works` (gufo:) | 17 → 27 cells | 22 retained: cross-slice WEMI subjects (CreativeWork/Document/Article/MediaObject/BookRelease + ContributionDegree + eventType* defined in documents/citations/events); `transitive_objects` dynamic traversal; 6 run_shacl; the #156 book/narrative tests (subjects in documents); 8 run_shacl ExampleConformance |
+| `extensions/genealogy` (gufo:) | 3 → 6 cells | 5 retained: 2 whole-graph dynamic sweeps (no-former-event-subclass, no-preferred); 3 run_shacl ExampleConformance. genealogy OWNS the 3 KinRelationship bridges (relationshipParent/relationshipChild/hasPartner subPropertyOf observedFeature) that the observations slice could not see (#867 batch-1 cross-slice deferral) — now migrated home as cells |
+
+**Batch-9 tally:** 20 converted fns → 33 structural cells across 2 slices; 27
+retained-with-reason. Notably closes the cross-slice loop from batch 1: the 3
+KinRelationship observation-bridges, retained-in-pytest there as "pending a genealogy
+migration", are now genealogy `structural.ttl` cells.
+
 ## #867 structural batch 8 (attestation / standpoint / archaeological-evidence / notes / sensory / sensory-environment)
 
 Six more home slices migrated to `slices/<g>/<n>/tests/structural.ttl`. ~83 converted
