@@ -1,19 +1,21 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Native alignment-direction lint scaffolding (#936 Task 1) + inverse-direction and
-//! domain-range checks (#936 Task 2).
+//! Native alignment-direction lint scaffolding (#936 Task 1) + inverse-direction,
+//! domain-range (#936 Task 2), property-character, and equivalence-collapse checks
+//! (#936 Task 3).
 //!
-//! This module ports the input-loading and the inverse-direction / domain-range checks
-//! from `src/gmeow_tools/alignment_lint.py` into `gmeow-slice`. The remaining checks
-//! (property-character, equivalence-collapse, DC refinement) are Tasks 3–4.
+//! This module ports the input-loading and the inverse-direction / domain-range /
+//! property-character / equivalence-collapse checks from
+//! `src/gmeow_tools/alignment_lint.py` into `gmeow-slice`. The remaining check
+//! (DC refinement) is Task 4.
 //!
 //! The diagnostic carrier is the existing [`ProjectionDiagnostic`] from
 //! [`crate::projection_lint`]; no new diagnostic struct is introduced.
 
 #![allow(dead_code)] // constants used by Tasks 3–4
 
-use std::collections::{BTreeMap, BTreeSet};
+use std::collections::{BTreeMap, BTreeSet, VecDeque};
 use std::path::Path;
 
 use oxigraph::io::{RdfFormat, RdfParser};
@@ -38,6 +40,15 @@ pub(crate) const STRONG_CLASS_PREDICATES: &[&str] = &["owl:equivalentClass", "sk
 /// Intentionally directional/hierarchical predicates — exempt from direction checks.
 pub(crate) const HIERARCHICAL_PREDICATES: &[&str] =
     &["skos:broadMatch", "skos:narrowMatch", "rdfs:subPropertyOf"];
+
+/// Mapping predicates that assert (near-)equivalence and participate in the collapse
+/// closure. Strictly narrower than the compatibility bridge: sub-class/sub-property
+/// relations are directional and must not connect disjoint terms.
+pub(crate) const COLLAPSE_PREDICATES: &[&str] = &[
+    "owl:equivalentClass",
+    "owl:equivalentProperty",
+    "skos:exactMatch",
+];
 
 /// Strength rank used to pick the canonical term in a self-contradicting pair.
 pub(crate) const PREDICATE_RANK: &[(&str, i32)] = &[
@@ -124,6 +135,17 @@ const OWL_SYMMETRIC_PROPERTY: &str = "http://www.w3.org/2002/07/owl#SymmetricPro
 const OWL_INVERSE_OF: &str = "http://www.w3.org/2002/07/owl#inverseOf";
 const OWL_EQUIVALENT_CLASS: &str = "http://www.w3.org/2002/07/owl#equivalentClass";
 const OWL_EQUIVALENT_PROPERTY: &str = "http://www.w3.org/2002/07/owl#equivalentProperty";
+const OWL_DISJOINT_WITH: &str = "http://www.w3.org/2002/07/owl#disjointWith";
+const OWL_PROPERTY_DISJOINT_WITH: &str = "http://www.w3.org/2002/07/owl#propertyDisjointWith";
+const OWL_ALL_DISJOINT_CLASSES: &str = "http://www.w3.org/2002/07/owl#AllDisjointClasses";
+const OWL_ALL_DISJOINT_PROPERTIES: &str = "http://www.w3.org/2002/07/owl#AllDisjointProperties";
+const OWL_MEMBERS: &str = "http://www.w3.org/2002/07/owl#members";
+
+const SKOS_EXACT_MATCH: &str = "http://www.w3.org/2004/02/skos/core#exactMatch";
+
+const RDF_FIRST: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#first";
+const RDF_REST: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#rest";
+const RDF_NIL: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#nil";
 
 const SCHEMA_INVERSE_OF: &str = "https://schema.org/inverseOf";
 const SCHEMA_DOMAIN_INCLUDES: &str = "https://schema.org/domainIncludes";
@@ -222,6 +244,12 @@ pub(crate) fn lint_alignment_directions(
     let domain_findings =
         check_domain_range(&gmeow_props, &onto, &target_graphs, &bridge, &judged)?;
     findings.extend(domain_findings);
+
+    let character_findings = check_property_character(&gmeow_props, &onto, &target_graphs)?;
+    findings.extend(character_findings);
+
+    let collapse_findings = check_equivalence_collapse(&mappings, &onto, &target_graphs)?;
+    findings.extend(collapse_findings);
 
     // Stable severity-first ordering, matching Python.
     findings.sort_by(|a, b| {
@@ -459,6 +487,279 @@ fn check_domain_range(
         }
     }
     Ok(findings)
+}
+
+// ── Property-character check ───────────────────────────────────────────────────
+
+/// Flag strong-equivalent property mappings with mismatched property character.
+fn check_property_character(
+    gmeow_props: &BTreeMap<String, Vec<Mapping>>,
+    onto: &Store,
+    target_graphs: &BTreeMap<String, Store>,
+) -> Result<Vec<ProjectionDiagnostic>, SliceError> {
+    let mut findings: Vec<ProjectionDiagnostic> = Vec::new();
+    let owl_prop_types: BTreeSet<&str> = OWL_PROPERTY_TYPES.iter().copied().collect();
+
+    for (prop, prop_mappings) in gmeow_props {
+        let g_is_object = has_type(onto, prop, OWL_OBJECT_PROPERTY)?;
+        let g_is_data = has_type(onto, prop, OWL_DATATYPE_PROPERTY)?;
+        let mut g_chars: Vec<String> = Vec::new();
+        for char_iri in CHARACTER_TYPES {
+            if has_type(onto, prop, char_iri)? {
+                g_chars.push((*char_iri).to_owned());
+            }
+        }
+
+        for m in prop_mappings {
+            if !STRONG_PROPERTY_PREDICATES.contains(&m.predicate_id.as_str()) {
+                continue; // character must agree only for asserted equivalence
+            }
+            let Some(prefix) = prefix_of(&m.object_id) else {
+                continue;
+            };
+            let Some(graph) = target_graphs.get(&prefix) else {
+                continue;
+            };
+            let Some(term) = expand_curie(&m.object_id) else {
+                continue;
+            };
+            let t_types: BTreeSet<String> =
+                objects_iri(graph, &term, RDF_TYPE)?.into_iter().collect();
+            if t_types.is_empty() {
+                continue; // target character unknown → skip
+            }
+
+            // Object-vs-datatype kind conflict is a hard semantic error.
+            if g_is_object && t_types.contains(OWL_DATATYPE_PROPERTY) {
+                findings.push(character_finding(
+                    m,
+                    "ERROR",
+                    "GMEOW object property vs target datatype property",
+                    &term,
+                ));
+            } else if g_is_data && t_types.contains(OWL_OBJECT_PROPERTY) {
+                findings.push(character_finding(
+                    m,
+                    "ERROR",
+                    "GMEOW datatype property vs target object property",
+                    &term,
+                ));
+            }
+
+            // Functional/transitive/symmetric/IFP disagreement → warning, but only
+            // when the target speaks the OWL characteristic vocabulary at all.
+            let speaks_owl = t_types.iter().any(|t| owl_prop_types.contains(t.as_str()));
+            if !speaks_owl {
+                continue;
+            }
+            for char_iri in &g_chars {
+                if !t_types.contains(char_iri) {
+                    let shortened = shorten_iri(char_iri);
+                    let label = shortened.split(':').next_back().unwrap_or(char_iri);
+                    findings.push(character_finding(
+                        m,
+                        "WARNING",
+                        &format!("GMEOW declares {label} but the target does not"),
+                        &term,
+                    ));
+                }
+            }
+        }
+    }
+    Ok(findings)
+}
+
+fn character_finding(
+    _m: &Mapping,
+    severity: &str,
+    message: &str,
+    term: &str,
+) -> ProjectionDiagnostic {
+    ProjectionDiagnostic {
+        severity: severity.to_owned(),
+        check: "property-character".to_owned(),
+        code: "property-character".to_owned(),
+        message: message.to_owned(),
+        instance: Some(term.to_owned()),
+    }
+}
+
+// ── Equivalence-collapse check (Principle 5, #284) ─────────────────────────────
+
+/// Principle 5 (#284): no equivalence chain may connect disjoint terms.
+fn check_equivalence_collapse(
+    mappings: &[Mapping],
+    onto: &Store,
+    target_graphs: &BTreeMap<String, Store>,
+) -> Result<Vec<ProjectionDiagnostic>, SliceError> {
+    let adjacency = equivalence_adjacency(mappings, onto, target_graphs)?;
+    let component = equivalence_components(&adjacency);
+    let mut findings: Vec<ProjectionDiagnostic> = Vec::new();
+
+    for (a, b, _axiom) in disjoint_pairs(onto)? {
+        if component.get(&a) != component.get(&b) {
+            continue;
+        }
+        let Some(path) = equivalence_path(&adjacency, &a, &b) else {
+            continue;
+        };
+        let chain = path
+            .iter()
+            .map(|n| shorten_iri(n))
+            .collect::<Vec<_>>()
+            .join(" = ");
+        findings.push(ProjectionDiagnostic {
+            severity: "ERROR".to_owned(),
+            check: "equivalence-collapse".to_owned(),
+            code: "equivalence-collapse".to_owned(),
+            message: format!(
+                "declared disjoint, but the equivalence closure connects them \
+                 (Principle 5): {chain}"
+            ),
+            instance: Some(a.clone()),
+        });
+    }
+    Ok(findings)
+}
+
+/// Symmetric adjacency over every asserted equivalence-grade link.
+fn equivalence_adjacency(
+    mappings: &[Mapping],
+    onto: &Store,
+    target_graphs: &BTreeMap<String, Store>,
+) -> Result<BTreeMap<String, BTreeSet<String>>, SliceError> {
+    let mut adjacency: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
+
+    let mut link = |a: String, b: String| {
+        if a != b {
+            adjacency.entry(a.clone()).or_default().insert(b.clone());
+            adjacency.entry(b).or_default().insert(a);
+        }
+    };
+
+    for m in mappings {
+        if !COLLAPSE_PREDICATES.contains(&m.predicate_id.as_str()) {
+            continue;
+        }
+        let (Some(subj), Some(obj)) = (expand_curie(&m.subject_id), expand_curie(&m.object_id))
+        else {
+            continue;
+        };
+        link(subj, obj);
+    }
+
+    let mut graphs: Vec<&Store> = vec![onto];
+    graphs.extend(target_graphs.values());
+    for graph in graphs {
+        for pred in [
+            OWL_EQUIVALENT_CLASS,
+            OWL_EQUIVALENT_PROPERTY,
+            SKOS_EXACT_MATCH,
+        ] {
+            for (a, b) in subject_objects_iri(graph, pred)? {
+                link(a, b);
+            }
+        }
+    }
+    Ok(adjacency)
+}
+
+/// Label each node with its connected-component id.
+fn equivalence_components(
+    adjacency: &BTreeMap<String, BTreeSet<String>>,
+) -> BTreeMap<String, usize> {
+    let mut component: BTreeMap<String, usize> = BTreeMap::new();
+    let mut next_id: usize = 0;
+    for start in adjacency.keys() {
+        if component.contains_key(start) {
+            continue;
+        }
+        let mut queue: VecDeque<String> = VecDeque::new();
+        queue.push_back(start.clone());
+        component.insert(start.clone(), next_id);
+        while let Some(node) = queue.pop_front() {
+            for nxt in adjacency.get(&node).into_iter().flatten() {
+                if component.insert(nxt.clone(), next_id).is_none() {
+                    queue.push_back(nxt.clone());
+                }
+            }
+        }
+        next_id += 1;
+    }
+    component
+}
+
+/// Shortest equivalence chain from `start` to `goal` (BFS), or `None`.
+fn equivalence_path(
+    adjacency: &BTreeMap<String, BTreeSet<String>>,
+    start: &str,
+    goal: &str,
+) -> Option<Vec<String>> {
+    if !adjacency.contains_key(start) {
+        return None;
+    }
+    let mut previous: BTreeMap<String, String> = BTreeMap::new();
+    let mut queue: VecDeque<String> = VecDeque::new();
+    let mut seen: BTreeSet<String> = BTreeSet::new();
+    queue.push_back(start.to_owned());
+    seen.insert(start.to_owned());
+
+    while let Some(node) = queue.pop_front() {
+        if node == goal {
+            let mut path = vec![goal.to_owned()];
+            while path.last() != Some(&start.to_owned()) {
+                let last = path.last().expect("path is non-empty");
+                let prev = previous.get(last).expect("path has predecessor");
+                path.push(prev.clone());
+            }
+            path.reverse();
+            return Some(path);
+        }
+        for nxt in adjacency.get(&node).into_iter().flatten() {
+            if seen.insert(nxt.clone()) {
+                previous.insert(nxt.clone(), node.clone());
+                queue.push_back(nxt.clone());
+            }
+        }
+    }
+    None
+}
+
+/// Every pair GMEOW declares disjoint, with the axiom that says so.
+fn disjoint_pairs(onto: &Store) -> Result<Vec<(String, String, String)>, SliceError> {
+    let mut pairs: BTreeSet<(String, String, String)> = BTreeSet::new();
+
+    let mut add = |a: &str, b: &str, axiom: &str| {
+        if a != b {
+            let (lo, hi) = if a < b { (a, b) } else { (b, a) };
+            pairs.insert((lo.to_owned(), hi.to_owned(), axiom.to_owned()));
+        }
+    };
+
+    for (s, o) in subject_objects_iri(onto, OWL_DISJOINT_WITH)? {
+        add(&s, &o, "owl:disjointWith");
+    }
+    for (s, o) in subject_objects_iri(onto, OWL_PROPERTY_DISJOINT_WITH)? {
+        add(&s, &o, "owl:propertyDisjointWith");
+    }
+
+    for (axiom_class, axiom_curie) in [
+        (OWL_ALL_DISJOINT_CLASSES, "owl:disjointWith"),
+        (OWL_ALL_DISJOINT_PROPERTIES, "owl:propertyDisjointWith"),
+    ] {
+        for node in subjects_of_type(onto, axiom_class)? {
+            for head in object_terms(onto, &node, OWL_MEMBERS)? {
+                let members = rdf_list_members(onto, &head)?;
+                for i in 0..members.len() {
+                    for j in i + 1..members.len() {
+                        add(&members[i], &members[j], axiom_curie);
+                    }
+                }
+            }
+        }
+    }
+
+    Ok(pairs.into_iter().collect())
 }
 
 // ── Class-equivalence bridge ───────────────────────────────────────────────────
@@ -898,6 +1199,89 @@ fn info_not_checkable(m: &Mapping, reason: &str) -> ProjectionDiagnostic {
         message: format!("direction not checked — {reason}"),
         instance: expand_curie(&m.object_id),
     }
+}
+
+// ── Disjointness / RDF-list helpers ─────────────────────────────────────────────
+
+/// Every named-node subject of `?s a <type_iri>`.
+fn subjects_of_type(store: &Store, type_iri: &str) -> Result<Vec<String>, SliceError> {
+    let rdf_type = named_node(RDF_TYPE)?;
+    let class = named_node(type_iri)?;
+    let mut out = Vec::new();
+    for quad in store.quads_for_pattern(
+        None,
+        Some(rdf_type.as_ref()),
+        Some(class.as_ref().into()),
+        Some(GraphNameRef::DefaultGraph),
+    ) {
+        let quad = quad.map_err(|e| SliceError::Parse(e.to_string()))?;
+        if let NamedOrBlankNode::NamedNode(nn) = quad.subject {
+            out.push(nn.as_str().to_owned());
+        }
+    }
+    Ok(out)
+}
+
+/// All object terms of `<subject_iri> <pred> ?o` (named nodes and blank nodes).
+fn object_terms(store: &Store, subject_iri: &str, pred: &str) -> Result<Vec<Term>, SliceError> {
+    let subject = named_node(subject_iri)?;
+    let predicate = named_node(pred)?;
+    let mut out = Vec::new();
+    for quad in store.quads_for_pattern(
+        Some(subject.as_ref().into()),
+        Some(predicate.as_ref()),
+        None,
+        Some(GraphNameRef::DefaultGraph),
+    ) {
+        out.push(quad.map_err(|e| SliceError::Parse(e.to_string()))?.object);
+    }
+    Ok(out)
+}
+
+/// Object terms of one RDF list node for a given predicate.
+fn rdf_list_term_objects(
+    store: &Store,
+    subject: &NamedOrBlankNode,
+    pred: &str,
+) -> Result<Vec<Term>, SliceError> {
+    let predicate = named_node(pred)?;
+    let mut out = Vec::new();
+    for quad in store.quads_for_pattern(
+        Some(subject.as_ref()),
+        Some(predicate.as_ref()),
+        None,
+        Some(GraphNameRef::DefaultGraph),
+    ) {
+        out.push(quad.map_err(|e| SliceError::Parse(e.to_string()))?.object);
+    }
+    Ok(out)
+}
+
+/// Members of an RDF list starting at `head` (only named-node members kept).
+fn rdf_list_members(store: &Store, head: &Term) -> Result<Vec<String>, SliceError> {
+    let mut out = Vec::new();
+    let mut current = head.clone();
+    loop {
+        let subj = match &current {
+            Term::NamedNode(nn) if nn.as_str() == RDF_NIL => break,
+            Term::NamedNode(nn) => NamedOrBlankNode::NamedNode(nn.clone()),
+            Term::BlankNode(bn) => NamedOrBlankNode::BlankNode(bn.clone()),
+            _ => break,
+        };
+        for first in rdf_list_term_objects(store, &subj, RDF_FIRST)? {
+            if let Term::NamedNode(nn) = first {
+                out.push(nn.as_str().to_owned());
+            }
+        }
+        match rdf_list_term_objects(store, &subj, RDF_REST)?
+            .into_iter()
+            .next()
+        {
+            Some(next) => current = next,
+            None => break,
+        }
+    }
+    Ok(out)
 }
 
 // ── oxigraph store helpers ─────────────────────────────────────────────────────
@@ -1344,5 +1728,145 @@ mod tests {
         assert!(unavailable[0]
             .message
             .contains("no axioms available for target 'foaf'"));
+    }
+
+    /// Property-character: object-vs-datatype conflict is ERROR, characteristic
+    /// mismatch is WARNING, and a schema.org-like target with no OWL characteristics
+    /// is skipped.
+    #[test]
+    fn test_property_character_mismatches_and_skips() {
+        let tmp = tempfile::tempdir().unwrap();
+        let root = tmp.path();
+        let mappings_dir = root.join("generated").join("mappings");
+        let fixtures_dir = root.join("tests").join("fixtures").join("target_axioms");
+        let ontology_dir = root.join("ontology");
+        std::fs::create_dir_all(&mappings_dir).unwrap();
+        std::fs::create_dir_all(&fixtures_dir).unwrap();
+        std::fs::create_dir_all(&ontology_dir).unwrap();
+
+        std::fs::write(
+            ontology_dir.join("gmeow.ttl"),
+            "@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
+             @prefix owl: <http://www.w3.org/2002/07/owl#> .\n\
+             gmeow:dataProp a owl:DatatypeProperty .\n\
+             gmeow:funcProp a owl:ObjectProperty, owl:FunctionalProperty .\n\
+             gmeow:plainProp a owl:ObjectProperty .\n",
+        )
+        .unwrap();
+
+        // foaf speaks OWL characteristics.
+        std::fs::write(
+            fixtures_dir.join("foaf.ttl"),
+            "@prefix foaf: <http://xmlns.com/foaf/0.1/> .\n\
+             @prefix owl: <http://www.w3.org/2002/07/owl#> .\n\
+             foaf:objProp a owl:ObjectProperty .\n\
+             foaf:plainObj a owl:ObjectProperty .\n",
+        )
+        .unwrap();
+
+        // schema.org-like target declares no OWL property-character vocabulary.
+        std::fs::write(
+            fixtures_dir.join("schema.ttl"),
+            "@prefix schema: <https://schema.org/> .\n\
+             schema:someProp a schema:Property .\n",
+        )
+        .unwrap();
+
+        let header = "subject_id\tpredicate_id\tobject_id\tmapping_justification\tconfidence\n";
+        let body = "gmeow:dataProp\towl:equivalentProperty\tfoaf:objProp\tsemapv:ManualMappingCuration\t0.9\n\
+                    gmeow:funcProp\towl:equivalentProperty\tfoaf:plainObj\tsemapv:ManualMappingCuration\t0.9\n\
+                    gmeow:plainProp\tskos:exactMatch\tschema:someProp\tsemapv:ManualMappingCuration\t0.9\n";
+        std::fs::write(
+            mappings_dir.join("character.sssom.tsv"),
+            header.to_owned() + body,
+        )
+        .unwrap();
+
+        let findings = lint_alignment_directions(root, false).unwrap();
+
+        let errors: Vec<_> = findings
+            .iter()
+            .filter(|f| f.check == "property-character" && f.severity == "ERROR")
+            .collect();
+        assert_eq!(errors.len(), 1, "expected one property-character ERROR");
+        assert_eq!(
+            errors[0].instance.as_deref(),
+            Some("http://xmlns.com/foaf/0.1/objProp")
+        );
+        assert!(errors[0]
+            .message
+            .contains("GMEOW datatype property vs target object property"));
+
+        let warnings: Vec<_> = findings
+            .iter()
+            .filter(|f| f.check == "property-character" && f.severity == "WARNING")
+            .collect();
+        assert_eq!(warnings.len(), 1, "expected one property-character WARNING");
+        assert_eq!(
+            warnings[0].instance.as_deref(),
+            Some("http://xmlns.com/foaf/0.1/plainObj")
+        );
+        assert!(warnings[0]
+            .message
+            .contains("GMEOW declares FunctionalProperty but the target does not"));
+
+        let schema_character: Vec<_> = findings
+            .iter()
+            .filter(|f| {
+                f.check == "property-character"
+                    && f.instance.as_deref() == Some("https://schema.org/someProp")
+            })
+            .collect();
+        assert!(
+            schema_character.is_empty(),
+            "schema.org-like target with no OWL characteristics should not be flagged"
+        );
+    }
+
+    /// A strong-equivalence chain that connects two disjoint classes is an ERROR.
+    #[test]
+    fn test_equivalence_collapse_detects_disjoint_class_chain() {
+        let tmp = tempfile::tempdir().unwrap();
+        let root = tmp.path();
+        let mappings_dir = root.join("generated").join("mappings");
+        let ontology_dir = root.join("ontology");
+        std::fs::create_dir_all(&mappings_dir).unwrap();
+        std::fs::create_dir_all(&ontology_dir).unwrap();
+
+        std::fs::write(
+            ontology_dir.join("gmeow.ttl"),
+            "@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
+             @prefix owl: <http://www.w3.org/2002/07/owl#> .\n\
+             gmeow:A a owl:Class .\n\
+             gmeow:B a owl:Class .\n\
+             gmeow:A owl:disjointWith gmeow:B .\n",
+        )
+        .unwrap();
+
+        let header = "subject_id\tpredicate_id\tobject_id\tmapping_justification\tconfidence\n";
+        let body = "gmeow:A\tskos:exactMatch\tschema:Intermediate\tsemapv:ManualMappingCuration\t0.9\n\
+                    gmeow:B\towl:equivalentClass\tschema:Intermediate\tsemapv:ManualMappingCuration\t0.9\n";
+        std::fs::write(
+            mappings_dir.join("collapse.sssom.tsv"),
+            header.to_owned() + body,
+        )
+        .unwrap();
+
+        let findings = lint_alignment_directions(root, false).unwrap();
+        let collapsed: Vec<_> = findings
+            .iter()
+            .filter(|f| f.check == "equivalence-collapse")
+            .collect();
+        assert!(!collapsed.is_empty(), "equivalence collapse not flagged");
+        let flagged = collapsed[0];
+        assert_eq!(flagged.severity, "ERROR");
+        assert!(flagged.message.contains("Principle 5"));
+        assert!(flagged.message.contains("schema:Intermediate"));
+        assert!(
+            flagged.instance.as_deref() == Some("https://blackcatinformatics.ca/gmeow/A")
+                || flagged.instance.as_deref() == Some("https://blackcatinformatics.ca/gmeow/B"),
+            "unexpected instance {:?}",
+            flagged.instance
+        );
     }
 }
