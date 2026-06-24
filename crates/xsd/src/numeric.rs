@@ -47,6 +47,27 @@ impl Decimal {
         self.mantissa as f64 / 10f64.powi(i32::from(self.scale))
     }
 
+    /// The integer (truncated-toward-zero) part of the value.
+    #[must_use]
+    pub fn whole_part(&self) -> i128 {
+        self.mantissa / 10i128.pow(u32::from(self.scale))
+    }
+
+    /// The fractional part of the value as a `Decimal` (same scale).
+    #[must_use]
+    pub fn frac_part(&self) -> Decimal {
+        Decimal {
+            mantissa: self.mantissa % 10i128.pow(u32::from(self.scale)),
+            scale: self.scale,
+        }
+    }
+
+    /// True if the value is exactly zero.
+    #[must_use]
+    pub fn is_zero(&self) -> bool {
+        self.mantissa == 0
+    }
+
     /// Exact comparison of two decimals (total order — decimals are never NaN).
     #[must_use]
     pub fn cmp_exact(&self, other: &Decimal) -> Ordering {

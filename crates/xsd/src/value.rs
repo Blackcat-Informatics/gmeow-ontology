@@ -16,6 +16,7 @@
 
 use crate::datatype::XsdDatatype;
 use crate::numeric::Decimal;
+use crate::temporal;
 
 /// A parsed XSD value (value space). Variants are added per datatype family across
 /// the foundation tasks; numeric first.
@@ -34,6 +35,14 @@ pub enum XsdValue {
     Boolean(bool),
     /// `xsd:string` — the value space is the lexical space (no normalization).
     String(String),
+    /// `xsd:dateTime`.
+    DateTime(temporal::DateTime),
+    /// `xsd:date`.
+    Date(temporal::Date),
+    /// `xsd:time`.
+    Time(temporal::Time),
+    /// `xsd:duration` and its `dayTimeDuration`/`yearMonthDuration` subtypes.
+    Duration(temporal::Duration),
 }
 
 impl XsdValue {
@@ -47,6 +56,10 @@ impl XsdValue {
             XsdValue::Double(_) => XsdDatatype::Double,
             XsdValue::Boolean(_) => XsdDatatype::Boolean,
             XsdValue::String(_) => XsdDatatype::String,
+            XsdValue::DateTime(_) => XsdDatatype::DateTime,
+            XsdValue::Date(_) => XsdDatatype::Date,
+            XsdValue::Time(_) => XsdDatatype::Time,
+            XsdValue::Duration(d) => d.datatype(),
         }
     }
 
@@ -60,6 +73,10 @@ impl XsdValue {
             XsdValue::Double(d) => crate::numeric::canonical_double(*d),
             XsdValue::Boolean(b) => if *b { "true" } else { "false" }.to_string(),
             XsdValue::String(s) => s.clone(),
+            XsdValue::DateTime(v) => v.canonical_lexical(),
+            XsdValue::Date(v) => v.canonical_lexical(),
+            XsdValue::Time(v) => v.canonical_lexical(),
+            XsdValue::Duration(v) => v.canonical_lexical(),
         }
     }
 }
@@ -78,18 +95,11 @@ pub fn parse(lexical: &str, datatype: XsdDatatype) -> Result<XsdValue, XsdError>
         D::Double => crate::numeric::parse_double(lexical).map(XsdValue::Double),
         D::Boolean => crate::simple::parse_boolean(lexical).map(XsdValue::Boolean),
         D::String => Ok(XsdValue::String(lexical.to_string())),
-        D::Date
-        | D::Time
-        | D::DateTime
-        | D::Duration
-        | D::DayTimeDuration
-        | D::YearMonthDuration => {
-            // Temporal value space lands in the next task (#907 Task 4).
-            Err(XsdError::InvalidLexical {
-                datatype,
-                lexical: lexical.to_string(),
-                reason: "temporal datatypes not yet implemented",
-            })
+        D::DateTime => temporal::parse_datetime(lexical).map(XsdValue::DateTime),
+        D::Date => temporal::parse_date(lexical).map(XsdValue::Date),
+        D::Time => temporal::parse_time(lexical).map(XsdValue::Time),
+        D::Duration | D::DayTimeDuration | D::YearMonthDuration => {
+            temporal::parse_duration(datatype, lexical).map(XsdValue::Duration)
         }
     }
 }

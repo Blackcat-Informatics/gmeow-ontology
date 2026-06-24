@@ -30,6 +30,11 @@ pub fn value_cmp(a: &XsdValue, b: &XsdValue) -> Option<Ordering> {
         (Boolean(x), Boolean(y)) => Some(x.cmp(y)),
         // Codepoint (Unicode scalar) order — SPARQL string ordering.
         (Str(x), Str(y)) => Some(x.cmp(y)),
+        // Temporal families compare within themselves (XSD partial order).
+        (XsdValue::DateTime(x), XsdValue::DateTime(y)) => crate::temporal::cmp_datetime(x, y),
+        (XsdValue::Date(x), XsdValue::Date(y)) => crate::temporal::cmp_date(x, y),
+        (XsdValue::Time(x), XsdValue::Time(y)) => crate::temporal::cmp_time(x, y),
+        (XsdValue::Duration(x), XsdValue::Duration(y)) => crate::temporal::cmp_duration(x, y),
         // Different value-space families are incomparable.
         _ => None,
     }
@@ -63,6 +68,8 @@ pub fn effective_boolean_value(v: &XsdValue) -> Option<bool> {
         XsdValue::Decimal(d) => d.mantissa() != 0,
         XsdValue::Float(f) => !f.is_nan() && *f != 0.0,
         XsdValue::Double(d) => !d.is_nan() && *d != 0.0,
+        // Temporal values have no effective boolean value (SPARQL type error).
+        _ => return None,
     })
 }
 

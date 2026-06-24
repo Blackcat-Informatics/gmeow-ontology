@@ -43,6 +43,7 @@ pub mod datatype;
 pub mod numeric;
 pub mod ops;
 pub mod simple;
+pub mod temporal;
 pub mod value;
 
 pub use datatype::{XsdDatatype, XSD_NS};
