@@ -139,6 +139,17 @@ fn parse_inner(s: &str, mode: Mode) -> Result<Iri> {
         pend += 1;
     }
     validate_path(&s[pstart..pend], pstart, mode)?;
+    // RFC-3986 §4.2: a relative reference with no scheme and no authority has a
+    // `path-noscheme`, whose FIRST segment must not contain a ':' — otherwise the
+    // reference would be ambiguous with a scheme. Reject it (hard-fail, not a
+    // degraded accept). A ':' in a later segment (e.g. `foo/bar:baz`) is fine.
+    if scheme.is_none() && authority.is_none() {
+        let first_seg = &s[pstart..pend];
+        let seg = first_seg.split('/').next().unwrap_or("");
+        if let Some(rel) = seg.find(':') {
+            return Err(IriError::DisallowedChar(':', pstart + rel));
+        }
+    }
     let path = pstart..pend;
     idx = pend;
 
@@ -353,6 +364,12 @@ fn validate_authority(s: &str, base_off: usize, mode: Mode) -> Result<()> {
             if !c.is_ascii_digit() {
                 return Err(IriError::DisallowedChar(c, poff + k));
             }
+        }
+        // A port is a TCP/UDP port number: it must fit in a u16. An empty port
+        // (`host:`) is permitted by the grammar (`port = *DIGIT`); a numeric
+        // overflow is not — reject it rather than silently accept garbage.
+        if !p.is_empty() && p.parse::<u16>().is_err() {
+            return Err(IriError::BadAuthority(format!("port out of range: {p}")));
         }
     }
     Ok(())

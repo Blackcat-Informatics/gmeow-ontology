@@ -76,6 +76,30 @@ fn rejects_malformed_input() {
 }
 
 #[test]
+fn rejects_colon_in_first_segment_of_relative_path() {
+    // RFC-3986 §4.2 path-noscheme: a scheme-less, authority-less reference must
+    // not carry a ':' in its first path segment (it would be ambiguous with a
+    // scheme). `3com`/`+a`/`_x` are not valid scheme starts, so these are NOT
+    // schemes — they are relative refs and must be rejected.
+    assert!(parse("3com:x").is_err());
+    assert!(parse("+a:b").is_err());
+    assert!(parse("_x:y").is_err());
+    // A ':' in a LATER segment is fine.
+    assert!(parse("foo/bar:baz").is_ok());
+    // A genuine scheme (`a:b`) is still accepted (ALPHA-led, so it IS a scheme).
+    assert!(parse("a:b").is_ok());
+}
+
+#[test]
+fn rejects_port_out_of_u16_range() {
+    assert!(parse("http://h:8080/p").is_ok());
+    // Empty port is grammar-legal (`port = *DIGIT`).
+    assert!(parse("http://h:/p").is_ok());
+    // 99999 > 65535 -> reject rather than silently accept.
+    assert!(parse("http://h:99999/p").is_err());
+}
+
+#[test]
 fn normalize_case_and_pct_and_dots() {
     // §6.2.2.1 case: scheme + host lower-cased. §6.2.2.2: %-hex upper-cased and
     // unreserved %-encodings decoded. §6.2.2.3: dot segments removed.
@@ -147,4 +171,20 @@ fn contract_prefers_longest_namespace() {
         contract("http://example.org/sub/Thing", &prefixes).as_deref(),
         Some("sub:Thing")
     );
+}
+
+#[test]
+fn contract_skips_empty_prefix_binding() {
+    // An empty-prefix binding must NOT yield a leading-colon ":X" (which would
+    // not round-trip through curie_prefix). A non-empty match still wins.
+    let prefixes: PrefixMap = [("", "http://example.org/"), ("ex", "http://example.org/")]
+        .into_iter()
+        .collect();
+    assert_eq!(
+        contract("http://example.org/Thing", &prefixes).as_deref(),
+        Some("ex:Thing")
+    );
+    // With ONLY an empty-prefix binding, contraction yields nothing (not ":X").
+    let only_empty: PrefixMap = [("", "http://example.org/")].into_iter().collect();
+    assert_eq!(contract("http://example.org/Thing", &only_empty), None);
 }

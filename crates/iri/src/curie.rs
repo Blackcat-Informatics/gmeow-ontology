@@ -104,6 +104,11 @@ pub fn resolve(entity: &str, prefixes: &PrefixMap) -> String {
 pub fn contract(iri: &str, prefixes: &PrefixMap) -> Option<String> {
     let mut best: Option<(&str, &str)> = None; // (prefix, namespace)
     for (prefix, namespace) in &prefixes.map {
+        // Skip an empty prefix: it would produce a leading-colon ":X" that
+        // `curie_prefix` rejects, breaking the contract->expand round-trip.
+        if prefix.is_empty() {
+            continue;
+        }
         if !namespace.is_empty() && iri.starts_with(namespace.as_str()) {
             match best {
                 Some((_, ns)) if ns.len() >= namespace.len() => {}
