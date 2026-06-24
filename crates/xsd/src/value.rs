@@ -30,6 +30,10 @@ pub enum XsdValue {
     Float(f32),
     /// `xsd:double` — IEEE double-precision.
     Double(f64),
+    /// `xsd:boolean`.
+    Boolean(bool),
+    /// `xsd:string` — the value space is the lexical space (no normalization).
+    String(String),
 }
 
 impl XsdValue {
@@ -41,6 +45,8 @@ impl XsdValue {
             XsdValue::Decimal(_) => XsdDatatype::Decimal,
             XsdValue::Float(_) => XsdDatatype::Float,
             XsdValue::Double(_) => XsdDatatype::Double,
+            XsdValue::Boolean(_) => XsdDatatype::Boolean,
+            XsdValue::String(_) => XsdDatatype::String,
         }
     }
 
@@ -52,7 +58,52 @@ impl XsdValue {
             XsdValue::Decimal(d) => d.canonical_lexical(),
             XsdValue::Float(f) => crate::numeric::canonical_float(*f),
             XsdValue::Double(d) => crate::numeric::canonical_double(*d),
+            XsdValue::Boolean(b) => if *b { "true" } else { "false" }.to_string(),
+            XsdValue::String(s) => s.clone(),
         }
+    }
+}
+
+/// Parse a lexical form into the XSD value space for a known [`XsdDatatype`].
+///
+/// Hard-fails on malformed input. This is the interning entry point: a consumer
+/// parses once and caches the result keyed by the IR's `TermId` (the cache lives in
+/// the consumer; this crate stays decoupled from `gmeow-rdf-core`).
+pub fn parse(lexical: &str, datatype: XsdDatatype) -> Result<XsdValue, XsdError> {
+    use XsdDatatype as D;
+    match datatype {
+        D::Integer => crate::numeric::parse_integer(lexical).map(XsdValue::Integer),
+        D::Decimal => crate::numeric::parse_decimal(lexical).map(XsdValue::Decimal),
+        D::Float => crate::numeric::parse_float(lexical).map(XsdValue::Float),
+        D::Double => crate::numeric::parse_double(lexical).map(XsdValue::Double),
+        D::Boolean => crate::simple::parse_boolean(lexical).map(XsdValue::Boolean),
+        D::String => Ok(XsdValue::String(lexical.to_string())),
+        D::Date
+        | D::Time
+        | D::DateTime
+        | D::Duration
+        | D::DayTimeDuration
+        | D::YearMonthDuration => {
+            // Temporal value space lands in the next task (#907 Task 4).
+            Err(XsdError::InvalidLexical {
+                datatype,
+                lexical: lexical.to_string(),
+                reason: "temporal datatypes not yet implemented",
+            })
+        }
+    }
+}
+
+/// Parse a lexical form by datatype IRI.
+///
+/// Returns `Ok(None)` when `datatype_iri` is **not** an XSD value-space datatype —
+/// the caller then treats the literal as a plain (opaque) term. `Err` means the IRI
+/// *is* an XSD value-space datatype but the lexical form is invalid. This cleanly
+/// separates "unknown datatype" from "malformed lexical".
+pub fn parse_by_iri(lexical: &str, datatype_iri: &str) -> Result<Option<XsdValue>, XsdError> {
+    match XsdDatatype::from_iri(datatype_iri) {
+        Some(dt) => parse(lexical, dt).map(Some),
+        None => Ok(None),
     }
 }
 

@@ -271,8 +271,9 @@ fn canonical_ieee(
 }
 
 /// SPARQL numeric promotion comparison. Promotes both operands to the least type
-/// that contains them (`integer ⊂ decimal ⊂ float ⊂ double`) and compares.
-/// Returns `None` only when an operand is `NaN` (genuinely unordered).
+/// that contains them (`integer ⊂ decimal ⊂ float ⊂ double`) and compares. Returns
+/// `None` when an operand is `NaN` (genuinely unordered) or non-numeric (the caller
+/// — `value_cmp` — only routes numeric operands here; non-numeric → `None`).
 #[must_use]
 pub fn numeric_cmp(a: &XsdValue, b: &XsdValue) -> Option<Ordering> {
     use XsdValue::{Decimal as Dec, Double, Float, Integer};
@@ -280,12 +281,14 @@ pub fn numeric_cmp(a: &XsdValue, b: &XsdValue) -> Option<Ordering> {
         // Same exact integer / decimal cases keep full precision.
         (Integer(x), Integer(y)) => Some(x.cmp(y)),
         (Dec(x), Dec(y)) => Some(x.cmp_exact(y)),
-        (Integer(x), Dec(y)) => Some(crate::numeric::Decimal::from_parts(*x, 0).cmp_exact(y)),
-        (Dec(x), Integer(y)) => Some(x.cmp_exact(&crate::numeric::Decimal::from_parts(*y, 0))),
+        (Integer(x), Dec(y)) => Some(Decimal::from_parts(*x, 0).cmp_exact(y)),
+        (Dec(x), Integer(y)) => Some(x.cmp_exact(&Decimal::from_parts(*y, 0))),
         // Any `double` operand → compare as f64.
-        (Double(_), _) | (_, Double(_)) => as_f64(a).partial_cmp(&as_f64(b)),
+        (Double(_), _) | (_, Double(_)) => num_f64(a)?.partial_cmp(&num_f64(b)?),
         // Else any `float` operand → compare as f32.
-        (Float(_), _) | (_, Float(_)) => as_f32(a).partial_cmp(&as_f32(b)),
+        (Float(_), _) | (_, Float(_)) => num_f32(a)?.partial_cmp(&num_f32(b)?),
+        // At least one operand is non-numeric.
+        _ => None,
     }
 }
 
@@ -295,22 +298,26 @@ pub fn numeric_eq(a: &XsdValue, b: &XsdValue) -> bool {
     numeric_cmp(a, b) == Some(Ordering::Equal)
 }
 
-fn as_f64(v: &XsdValue) -> f64 {
-    match v {
+/// The numeric value as `f64`, or `None` if `v` is not a numeric value.
+fn num_f64(v: &XsdValue) -> Option<f64> {
+    Some(match v {
         XsdValue::Integer(i) => *i as f64,
         XsdValue::Decimal(d) => d.to_f64(),
         XsdValue::Float(f) => f64::from(*f),
         XsdValue::Double(d) => *d,
-    }
+        _ => return None,
+    })
 }
 
-fn as_f32(v: &XsdValue) -> f32 {
-    match v {
+/// The numeric value as `f32`, or `None` if `v` is not a numeric value.
+fn num_f32(v: &XsdValue) -> Option<f32> {
+    Some(match v {
         XsdValue::Integer(i) => *i as f32,
         XsdValue::Decimal(d) => d.to_f64() as f32,
         XsdValue::Float(f) => *f,
         XsdValue::Double(d) => *d as f32,
-    }
+        _ => return None,
+    })
 }
 
 #[cfg(test)]

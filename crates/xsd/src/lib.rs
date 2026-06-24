@@ -41,8 +41,11 @@
 
 pub mod datatype;
 pub mod numeric;
+pub mod ops;
+pub mod simple;
 pub mod value;
 
 pub use datatype::{XsdDatatype, XSD_NS};
 pub use numeric::Decimal;
-pub use value::{XsdError, XsdValue};
+pub use ops::{effective_boolean_value, value_cmp, value_eq};
+pub use value::{parse, parse_by_iri, XsdError, XsdValue};
