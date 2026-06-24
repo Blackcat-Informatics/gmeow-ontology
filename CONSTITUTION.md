@@ -60,8 +60,9 @@ applies to schema.org / vCard / FOAF (Principle 4). It is the downgrade for lega
 it recedes naturally as RDF-1.2-native reasoners and stores arrive. The canonical source never
 changes.
 
-*Embodied in:* `gmeow compile-statements`, `queries/rdf12-project.rq` (a codec between two
-generated forms). *Tested by:* the OWL↔RDF 1.2 round-trip / isomorphism gate.
+*Embodied in:* `make regenerate`, `queries/rdf12-project.rq` (a codec between two
+generated forms). *Tested by:* `make check-generated` and the OWL↔RDF 1.2
+round-trip / isomorphism gate.
 
 ## 4. One canonical source; everything else a generated lossy projection
 
@@ -73,7 +74,7 @@ alignment layer (the mapping compiler), and to the RDF 1.2 ↔ OWL relationship 
 The reasoned core stays clean; lossiness is pushed to the boundary and made explicit.
 
 *Embodied in:* [`docs/projections.md`](./docs/projections.md); [`README.md`](./README.md) §
-The mapping compiler. *Tested by:* `gmeow compile-mappings --check`, projection round-trips.
+The mapping compiler. *Tested by:* `make check-generated`, projection round-trips.
 
 ## 5. Maximal superset, maximal bridging — by reference
 
@@ -120,8 +121,8 @@ Generation without verification is a second source of truth in disguise. Every d
 mapping artifacts, the RDF 1.2 view, the OWL compat form — must be regenerable and proven
 non-divergent, so drift is *impossible* rather than merely discouraged.
 
-*Embodied in:* `gmeow compile-mappings --check`, `gmeow compile-statements --check`, the
-`projection_lint` / `statement_lint` invariants, `make check`.
+*Embodied in:* `make check-generated`, the `projection_lint` /
+`statement_lint` invariants, `make check`.
 
 ## 8. Reasoning-gated and FAIR
 
@@ -147,7 +148,7 @@ This is enforced by the annotation-completeness gate (`make validate`) and is no
 generated artifacts (Principles 4 and 7).
 
 *Embodied in:* [`README.md`](./README.md) § Reasoning, § Publishing; `make reason`,
-`make explain`, `make metadata`, `make crossref`.
+`make maint-explain`, `make release`, `make crossref`.
 
 ## 9. Inclusive without overtyping; anti-colonial in every direction; self-assertion is top authority
 
@@ -440,7 +441,7 @@ above is now realized as two lanes that may not bleed into each other. The **pri
 `make check`, the required CI `quality` gate, the build, and runtime — is rust-first and carries **no
 Java and no Docker**: native EL/DL reasoning (`reason --mode native`), the native OWL 2 RL closure
 (`reason/rl.rs`, replacing the `owlrl` baselines), native RDF-1.2 emission (`gmeow-rdf`), and native
-SHACL/validation. The **`classic-cross-check`** lane — `make classic-cross-check` and a single,
+SHACL/validation. The **`classic-cross-check`** lane — `make maint-classic-cross-check` and a single,
 deliberately **non-required** CI job — is the *sole* Java+Docker surface: it runs the legacy oracles
 (ELK, HermiT, ROBOT, Jena) and `owlrl`, and it **enforces** agreement, strictly and without a knob —
 any `NativeOnly`/`OracleOnly` divergence (native↔ELK/HermiT subsumption + consistency) or native↔`owlrl`

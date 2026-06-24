@@ -1,78 +1,249 @@
-# GMEOW ontology toolchain — canonical task runner.
-# Every target shells into the `gmeow-dev` CLI or a focused helper script; no
-# logic lives in this file. Run `make help` for the target list.
+# GMEOW ontology toolchain - canonical task runner.
+# Make is the task-oriented plan. Core logic lives in `gmeow-dev`, Rust crates,
+# or focused scripts; this file names the workflows and their dependencies.
 
 .DEFAULT_GOAL := help
 SHELL := /bin/bash
 
-# Alignment target for `make extract` (license-checked). Override: make extract TARGET=foaf
+# Maintainer extraction target. Override: make maint-extract TARGET=foaf
 TARGET ?= foaf
 
 # Override: make commit MESSAGE="feat: add foaf alignment"
 MESSAGE ?= "chore: regenerate checked-in artifacts"
 GMEOW_DEV ?= uv run --package gmeow-dev gmeow-dev
+NPROC ?= $(shell nproc 2>/dev/null || echo 4)
+CARGO_TARGET_DIR ?= target
+SIGN_KEY ?=
+PUBLIC_KEY ?= keys/gmeow-release-key.asc
+GTS_OUT ?= dist/gmeow.gts
 
 # Optional cargo-nextest partition for sharded CI runs (e.g., count:1/2)
 NEXTEST_PARTITION ?=
 NEXTEST_PARTITION_ARG := $(if $(NEXTEST_PARTITION),--partition $(NEXTEST_PARTITION) --no-tests pass,)
 
-# === Dual build: host-tuned LOCAL binaries (opt-in) vs portable wheels (default) ===
-# The committed .cargo/config.toml pins Rust to the portable `x86-64-v3` floor, so
-# every wheel/CI build ships correctly with no extra flags. `make dev` / `make
-# bench` opt INTO host tuning with `target-cpu=native`. Because the RUSTFLAGS env
-# var REPLACES (does not merge with) the config's rustflags, these targets must
-# re-state the bundled-lld linker flags too. KEEP IN SYNC with the
-# `[target.x86_64-unknown-linux-gnu]` rustflags in .cargo/config.toml.
+# The committed .cargo/config.toml pins Rust to the portable x86-64-v3 floor.
+# Report-only benchmarks opt into host tuning and must restate the bundled-lld
+# linker flags because the RUSTFLAGS env var replaces config rustflags.
 NATIVE_RUSTFLAGS := -Zunstable-options -Clink-self-contained=+linker -Clinker-features=+lld -Ctarget-cpu=native
 
-.PHONY: help install fmt lint validate crosscheck classic-cross-check reason reason-native reason-hermit explain verify verify-docker reasoning-cases statements-docker-check extract \
-        mappings wikidata wikidata-live wikidata-coverage wikidata-audit \
-        lint-alignment crate-check refresh-target-axioms docs docs-full ontology-docs ontology-docs-full quality \
-        normalize build project test test-fast test-docker check check-generated release regenerate commit clean clean-docs pull-images \
-        coverage acceptance crossref constitution-check compliance-report compliance-report-full audit evals-score \
-        diagnostics-build diagnostics-test diagnostics-py \
-        native-py rust-test insta-review fuzz-smoke logic-build logic-test logic-py conformance \
-        shacl-build shacl-test shacl-py \
-        validate-build validate-test validate-py validate-gts rdf-py clippy rdf-core-hygiene slicetest \
-        bench rust-coverage mutants bench-json dev
+ACCEPTANCE_MIN_RECALL ?= 60
+FUZZ_TARGETS = nquads gts shacl sssom statements
+FUZZ_TIME ?= 30
+MUTANTS_ARGS ?=
 
-help: ## Show this help.
-	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
-		| awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-14s\033[0m %s\n", $$1, $$2}'
+# Real Make artifacts for expensive native build preparation. These replace
+# environment sentinels: source timestamps decide when rebuilds are needed.
+NATIVE_PY_STAMP := .venv/.gmeow-native.stamp
+RUST_READY_STAMP := $(CARGO_TARGET_DIR)/.gmeow-rust-ready.stamp
+RUST_INPUTS := Cargo.toml Cargo.lock .cargo/config.toml $(shell find crates -type f \( -name Cargo.toml -o -name '*.rs' -o -name build.rs \) 2>/dev/null)
+NATIVE_PY_INPUTS := pyproject.toml $(RUST_INPUTS)
 
-install: ## Sync the uv environment (runtime + dev deps) and Git merge drivers.
+CHECK_TARGETS := lint rust-gate validate check-generated constitution-check \
+	crate-check audit wikidata coverage acceptance reason verify mappings \
+	lint-alignment doc-lint
+
+.PHONY: help \
+	install fmt lint \
+	native-py validate validate-gts reason verify test test-fast rust-build rust-test check \
+	regenerate check-generated commit docs normalize build project release release-sign-gts clean \
+	mappings wikidata coverage acceptance crossref audit \
+	constitution-check crate-check lint-alignment doc-lint rust-gate clippy rdf-core-hygiene \
+	slicetest conformance insta-review \
+	fuzz-smoke bench bench-json rust-coverage mutants compliance-report \
+	maint-classic-cross-check maint-reason-hermit maint-explain maint-verify-docker \
+	maint-reasoning-cases maint-statements-docker-check maint-crosscheck \
+	maint-extract maint-refresh-target-axioms maint-wikidata-live \
+	maint-wikidata-coverage maint-wikidata-audit maint-test-heavy \
+	maint-test-network maint-pull-images maint-quality maint-evals-score \
+	maint-compliance-report-full
+
+##@ Core Workflows
+
+help: ## Show the task plan.
+	@awk 'BEGIN {FS = ":.*## "; print "GMEOW task plan"} \
+		/^##@ / {printf "\n%s\n", substr($$0, 5); next} \
+		/^[A-Za-z0-9_.-]+:.*## / {printf "  \033[36m%-28s\033[0m %s\n", $$1, $$2}' \
+		$(MAKEFILE_LIST)
+
+install: ## Sync the uv environment and configure repo-local Git merge drivers.
 	uv sync --all-packages
 	bash scripts/bootstrap-git-merge-drivers.sh
 
-fmt: ## Auto-format with ruff.
+fmt: ## Rewrite Python formatting with ruff.
 	uv run ruff format .
 
-lint: ## Lint (ruff), type-check (mypy), and full repo-hygiene suite (pre-commit).
+lint: ## Run ruff, mypy, and the full pre-commit hygiene suite.
 	uv run ruff check .
 	uv run ruff format --check .
 	uv run mypy
-	# Symmetry with CI: CI's `lint` job runs the whole pre-commit suite
-	# (markdownlint, end-of-file-fixer, codespell, yamllint, shellcheck, …),
-	# so the local gate must too — otherwise those lanes only fail in CI.
 	uv run pre-commit run --all-files --show-diff-on-failure
 
-validate: diagnostics-py validate-py shacl-py ## Validate syntax, term annotations, and SHACL (Rust-native orchestration).
+validate: native-py ## Validate syntax, term annotations, SHACL, and DSL SHACL.
 	$(GMEOW_DEV) validate
 
-validate-gts: diagnostics-py validate-py shacl-py ## Validate the committed GTS bundle directly via the gmeow-gts oxigraph adapter (#644).
+validate-gts: native-py ## Validate the committed generated/dist/gmeow.gts bundle.
 	$(GMEOW_DEV) validate --gts generated/dist/gmeow.gts
 
-reason-native: logic-py ## Native Docker-free EL/DL reasoning authority (reason --mode native).
+reason: native-py ## Run the native Docker-free EL/DL reasoning authority.
 	$(GMEOW_DEV) reason --mode native
 
-reason: reason-native ## OWL consistency reasoning — native, Docker-free authority (alias for reason-native).
+verify: native-py ## Run native reasoned-graph negative tests.
+	$(GMEOW_DEV) verify --mode native
 
-# === CLASSIC-CROSS-CHECK LANE — the SOLE Java+Docker surface (#666, Principle 18) ===
-# Everything in this block runs the legacy oracles (ELK, HermiT, ROBOT, Jena) and
-# the rdflib engine cross-check. It is CROSS-CHECK ONLY: never part of `make check`,
-# never in the required CI `quality` gate, never required to use the repo normally.
-# The authoritative, Docker-free gate is `make reason` (= reason-native).
-classic-cross-check: ## CROSS-CHECK ONLY (Docker/Java oracles) — NOT required for normal repo use (#666).
+test: native-py ## Run the pytest suite, excluding maintainer and oracle lanes.
+	uv run pytest -n auto --dist loadscope --durations=25 -m "not maintainer and not classic_cross_check"
+
+test-fast: native-py ## Run the fast pytest suite, excluding maintainer, Docker, and oracle lanes.
+	uv run pytest -n auto --dist loadscope --durations=25 -m "not maintainer and not docker and not classic_cross_check"
+
+rust-build: $(RUST_READY_STAMP) ## Compile Rust workspace test binaries without running them.
+
+rust-test: rust-build ## Run the Rust workspace tests and doctests.
+	cargo nextest run $(NEXTEST_PARTITION_ARG)
+	cargo test --doc
+
+check: native-py ## Run the full Docker-free local quality gate.
+	$(MAKE) -j$(NPROC) $(CHECK_TARGETS)
+	$(MAKE) test-fast
+	$(MAKE) compliance-report
+	@echo "all checks passed (Docker-free, Java-free)"
+
+##@ Generated Artifacts And Outputs
+
+regenerate: native-py ## Rebuild all checked-in generated artifacts from canonical sources.
+	$(GMEOW_DEV) regenerate -j $(NPROC)
+
+check-generated: native-py ## Drift + orphan check for all registered generators.
+	$(GMEOW_DEV) check-generated -j $(NPROC)
+
+commit: regenerate ## Regenerate artifacts, stage generator-owned outputs, and commit.
+	@REGENERATED_PATHS=$$(uv run python -c "from gmeow_tools.load_generators import load_all; load_all(); from gmeow_tools.generator import all_regenerated_paths; print(' '.join(all_regenerated_paths()))"); \
+	git add $${REGENERATED_PATHS}; \
+	if git diff --cached --quiet; then \
+		echo "Nothing to commit."; exit 1; \
+	else \
+		git commit -m "$(MESSAGE)"; \
+	fi
+	@git diff --quiet || echo "Warning: unstaged changes remain. Stage them separately if needed."
+
+docs: regenerate ## Regenerate gmeow.gts docs and extract ontology-docs/.
+	$(GMEOW_DEV) extract-docs --directory ontology-docs --force generated/dist/gmeow.gts
+
+normalize: ## Rewrite authored ontology sources into canonical serialization.
+	$(GMEOW_DEV) normalize
+
+build: ## Build serializations and JSON-LD context into dist/.
+	$(GMEOW_DEV) build
+
+project: ## Project GMEOW data to schema.org/GeoSPARQL/vCard/FOAF/iCal/OWL-Time profiles.
+	$(GMEOW_DEV) project
+
+release: docs ## Regenerate, native-reason, build, report, docs, and emit CrossRef deposit.
+	$(GMEOW_DEV) reason --mode native --merge
+	$(MAKE) build
+	$(MAKE) maint-compliance-report-full
+	$(MAKE) crossref
+
+release-sign-gts: native-py ## Sign the regenerated GTS bundle for release packaging.
+	@if [ -z "$(SIGN_KEY)" ]; then \
+		echo "SIGN_KEY=/path/to/secret.asc is required"; exit 1; \
+	fi
+	$(GMEOW_DEV) compile-gts --sign-key "$(SIGN_KEY)" --public-key "$(PUBLIC_KEY)" --out "$(GTS_OUT)"
+
+clean: ## Remove ephemeral build artifacts.
+	rm -rf dist docs/_generated .stamps $(NATIVE_PY_STAMP) $(RUST_READY_STAMP)
+	@echo "cleaned ephemeral artifacts"
+
+##@ Project Gates
+
+mappings: ## Build alignment axioms and VoID linksets from SSSOM mappings.
+	$(GMEOW_DEV) mappings
+
+wikidata: ## Validate Wikidata QID/PID syntax in mappings, offline.
+	$(GMEOW_DEV) wikidata
+
+coverage: ## Gate vendored entity-slice class and predicate coverage.
+	$(GMEOW_DEV) coverage --gaps --min-class 0.92 --min-predicate 0.85
+
+acceptance: ## Gate full transpile recall against external RDF snapshots.
+	$(GMEOW_DEV) acceptance --min-recall $(ACCEPTANCE_MIN_RECALL)
+
+crossref: ## Generate the CrossRef DOI deposit XML.
+	$(GMEOW_DEV) crossref
+
+audit: ## Run claim audit gates over the worked fixture.
+	$(GMEOW_DEV) audit tests/fixtures/coverage/hallucination-kg.ttl
+
+constitution-check: ## Verify every constitutional principle has live enforcement.
+	$(GMEOW_DEV) constitution-check
+
+crate-check: ## Verify Rust crate layering and acyclic crate DAGs.
+	$(GMEOW_DEV) crate-check
+
+lint-alignment: ## Lint SSSOM mappings for inverse and domain/range mismatches.
+	$(GMEOW_DEV) lint-alignment
+
+doc-lint: ## Lint ontology-docs for dangling links and coverage gaps.
+	$(GMEOW_DEV) doc-lint
+
+rust-gate: rust-build ## Warm Rust once, then run clippy, nextest, and doctests serially.
+	cargo clippy --all-targets -- -D warnings
+	cargo nextest run $(NEXTEST_PARTITION_ARG)
+	cargo test --doc
+
+clippy: rust-build ## Run cargo clippy on all Rust targets with warnings as errors.
+	cargo clippy --all-targets -- -D warnings
+
+rdf-core-hygiene: ## Prove gmeow-rdf-core has no oxigraph normal dependency.
+	cargo build -p gmeow-rdf-core
+	@tree=$$(cargo tree -p gmeow-rdf-core --edges normal -f "{p}") || { echo "FAIL: cargo tree errored"; exit 1; }; \
+	if echo "$$tree" | grep -q 'oxigraph v'; then \
+		echo "FAIL: oxigraph is a NORMAL dependency of gmeow-rdf-core"; \
+		echo "$$tree" | grep 'oxigraph v'; exit 1; \
+	else \
+		echo "OK: gmeow-rdf-core has no oxigraph normal dependency"; \
+	fi
+
+slicetest: ## Run the slice-resident test-DSL harness in isolation.
+	cargo nextest run -p gmeow-slicetest $(NEXTEST_PARTITION_ARG)
+	cargo test --doc -p gmeow-slicetest
+
+conformance: ## Run the native logic conformance harness in isolation.
+	cargo nextest run -p gmeow-conformance $(NEXTEST_PARTITION_ARG)
+
+insta-review: ## Regenerate intentional insta snapshot goldens, then verify determinism.
+	INSTA_UPDATE=always cargo nextest run $(NEXTEST_PARTITION_ARG)
+	INSTA_UPDATE=no cargo nextest run $(NEXTEST_PARTITION_ARG)
+
+##@ CI And Report-Only Work
+
+fuzz-smoke: ## Run bounded coverage-guided fuzz smoke tests for each format frontend.
+	@for t in $(FUZZ_TARGETS); do \
+	  echo "== fuzz $$t ($(FUZZ_TIME)s) =="; \
+	  mkdir -p fuzz/corpus/$$t; \
+	  cargo fuzz run $$t fuzz/corpus/$$t fuzz/seeds/$$t -- -max_total_time=$(FUZZ_TIME) || exit 1; \
+	done
+
+bench: ## Run criterion benchmarks with host-tuned codegen.
+	RUSTFLAGS="$(NATIVE_RUSTFLAGS)" cargo bench -p gmeow-logic -p gmeow-rdf -p gmeow-shacl -p gmeow-validate
+
+bench-json: ## Flatten criterion estimates into bench-results.json.
+	python3 scripts/bench_to_json.py > bench-results.json
+	@echo "wrote bench-results.json ($$(wc -c < bench-results.json) bytes)"
+
+rust-coverage: ## Generate report-only Rust region coverage.
+	cargo llvm-cov nextest --workspace --include-ffi --lcov --output-path lcov.info
+	cargo llvm-cov report --html
+
+mutants: ## Run report-only cargo-mutants over the configured scope.
+	cargo mutants $(MUTANTS_ARGS)
+
+compliance-report: ## Emit dist/compliance-report.ttl from already-passing gates.
+	$(GMEOW_DEV) compliance-report --from-passing-check
+
+##@ Maintainer Tasks
+
+maint-classic-cross-check: maint-pull-images native-py ## Run the full non-required Docker/Java oracle lane.
 	$(GMEOW_DEV) reason --mode docker --reasoner ELK --exclude-tautologies structural
 	$(GMEOW_DEV) verify --mode docker --reasoner ELK --reasoned-input dist/gmeow-reasoned-elk.ttl
 	$(GMEOW_DEV) reason --mode docker --reasoner hermit
@@ -83,267 +254,67 @@ classic-cross-check: ## CROSS-CHECK ONLY (Docker/Java oracles) — NOT required 
 	$(GMEOW_DEV) classic-cross-check
 	$(GMEOW_DEV) classic-cross-check-rl
 	uv run pytest -n auto --dist loadscope -m "classic_cross_check" -q
-	@echo "✓ classic-cross-check (oracle lane) passed — NOT a normal-use requirement"
+	@echo "classic cross-check oracle lane passed"
 
-reason-hermit: ## [lane] Sound + complete consistency check with HermiT (Docker oracle).
+maint-reason-hermit: maint-pull-images native-py ## Run HermiT complete consistency check.
 	$(GMEOW_DEV) reason --mode docker --reasoner hermit
 
-explain: ## [lane] Explain any unsatisfiable classes (HermiT, Docker oracle).
+maint-explain: maint-pull-images native-py ## Explain unsatisfiable classes with HermiT.
 	$(GMEOW_DEV) explain
 
-verify: logic-py ## Reasoned-graph negative tests (native EL/DL closure, Java/Docker-free — #695).
-	$(GMEOW_DEV) verify --mode native
-
-verify-docker: ## [lane] Reasoned-graph negative tests (ELK reason + ROBOT verify over queries/verify/, Docker oracle).
+maint-verify-docker: maint-pull-images native-py ## Run ROBOT/ELK reasoned-graph verification.
 	$(GMEOW_DEV) reason --mode docker --reasoner ELK --exclude-tautologies structural
 	$(GMEOW_DEV) verify --mode docker --reasoner ELK --reasoned-input dist/gmeow-reasoned-elk.ttl
 
-reasoning-cases: ## [lane] HermiT/ELK inconsistency and fixture-coherence cases (Docker oracle).
+maint-reasoning-cases: maint-pull-images ## Run Docker-backed reasoning fixture cases.
 	uv run python scripts/reasoning_cases.py
 
-statements-docker-check: ## [lane] Jena/ROBOT-backed statement artifact and reasoning checks (Docker oracle).
+maint-statements-docker-check: maint-pull-images native-py ## Run Jena/ROBOT statement artifact oracle checks.
 	uv run python scripts/statements_docker_check.py
 
-crosscheck: ## [lane] Prove rdflib (legacy engine) and the native gmeow_rdf engine answer every committed query alike (no Docker).
+maint-crosscheck: native-py ## Cross-check rdflib and native gmeow_rdf query answers.
 	$(GMEOW_DEV) crosscheck-queries
 
-extract: ## [maintainer] Import/extract policy for TARGET (native SLME, Java/Docker-free — maintainer-only, NOT normal-use; #695).
+maint-extract: native-py ## Run import/extract policy for TARGET.
 	$(GMEOW_DEV) extract --target $(TARGET)
 
-
-mappings-only: ## Build alignment axioms + VoID linksets (assumes SSSOM files present).
-	$(GMEOW_DEV) mappings
-
-mappings: ## Build alignment axioms + VoID linksets from SSSOM; validate QID syntax.
-	$(GMEOW_DEV) mappings
-
-lint-alignment: ## Lint SSSOM mappings for inverse / domain-range-mismatched targets (offline).
-	$(GMEOW_DEV) lint-alignment
-
-doc-lint: ## Lint the rust-rendered ontology-docs site for dangling links + coverage gaps (#853).
-	$(GMEOW_DEV) doc-lint
-
-crate-check: ## Verify Rust crate layering: gmeow-rdf kernel purity + acyclic crate DAG (#820 S0).
-	$(GMEOW_DEV) crate-check
-
-refresh-target-axioms: ## [maintainer] Re-vendor minimal target-axiom snapshots (pure-Python httpx, Java/Docker-free — maintainer-only, NOT normal-use; #695).
+maint-refresh-target-axioms: ## Re-vendor minimal target-axiom snapshots.
 	$(GMEOW_DEV) refresh-target-axioms --target all
 
-wikidata: ## Validate Wikidata QID/PID syntax in the mappings (offline).
-	$(GMEOW_DEV) wikidata
-
-wikidata-live: ## Also verify Wikidata ids resolve (network).
+maint-wikidata-live: ## Verify Wikidata identifiers resolve over the network.
 	$(GMEOW_DEV) wikidata --existence
 
-wikidata-coverage: ## Report Wikidata mapping coverage by domain (offline).
+maint-wikidata-coverage: ## Report Wikidata mapping coverage by domain.
 	$(GMEOW_DEV) wikidata-coverage
 
-wikidata-audit: ## Audit fixtures and modules for Wikidata misuse (offline).
+maint-wikidata-audit: ## Audit fixtures and modules for Wikidata misuse.
 	$(GMEOW_DEV) wikidata --fixtures
 
-coverage: ## Report how much of the vendored entity slice GMEOW covers (hard gate).
-	$(GMEOW_DEV) coverage --gaps --min-class 0.92 --min-predicate 0.85
-
-# The aggregate round-trip recall floor (#579). Set just below the current
-# measured corpus aggregate (paudley+bii ≈ 64%) with anti-flake margin. The
-# per-file gates stay scoreboard/soft; only this pooled aggregate is hard.
-ACCEPTANCE_MIN_RECALL ?= 60
-
-acceptance: ## Score the full transpile against external/ snapshots; hard aggregate recall floor (#450/#579).
-	$(GMEOW_DEV) acceptance --min-recall $(ACCEPTANCE_MIN_RECALL)
-
-crossref: ## Generate the CrossRef DOI deposit XML.
-	$(GMEOW_DEV) crossref
-
-docs: docs-gen ## Alias for docs-gen.
-
-docs-gen: ## Regenerate gmeow.gts docs and extract the browsable tree into ontology-docs/.
-	$(GMEOW_DEV) regenerate gts
-	$(GMEOW_DEV) extract-docs --directory ontology-docs --force generated/dist/gmeow.gts
-
-ontology-docs: ## Extract the unified ontology-docs site from the bundle into ontology-docs/.
-	$(GMEOW_DEV) extract-docs --directory ontology-docs --force generated/dist/gmeow.gts
-
-docs-full: ontology-docs-full ## Alias for ontology-docs-full.
-
-ontology-docs-full: ## Extract the unified ontology-docs site from the bundle into dist/ontology-docs.
-	$(GMEOW_DEV) extract-docs --directory dist/ontology-docs --force generated/dist/gmeow.gts
-
-quality: ## Run OOPS! pitfall scan (network, best-effort).
-	$(GMEOW_DEV) quality
-
-normalize: ## Canonicalize the authored ontology sources (rewrites files).
-	$(GMEOW_DEV) normalize
-
-check-generated: ## Drift + orphan check for all registered generators.
-	$(GMEOW_DEV) check-generated -j $$(nproc 2>/dev/null || echo 4)
-
-constitution-check: ## Every constitutional principle must have live enforcement (#280).
-	$(GMEOW_DEV) constitution-check
-
-compliance-report: ## Emit dist/compliance-report.ttl from gates already run by make check/CI (#285).
-	$(GMEOW_DEV) compliance-report --from-passing-check
-
-compliance-report-full: ## Run in-process gates, emit dist/compliance-report.ttl (#285).
-	$(GMEOW_DEV) compliance-report
-
-audit: ## Claim audit gates over the worked fixture (#55): ungrounded/contradicted/stale.
-	$(GMEOW_DEV) audit tests/fixtures/coverage/hallucination-kg.ttl
-
-evals-score: ## Score committed model emissions against the published contract (offline, #298).
-	$(GMEOW_DEV) evals score
-
-diagnostics-build: ## Build the gmeow-diagnostics Rust crate (shared Finding/Report core).
-	cargo build -p gmeow-diagnostics
-
-diagnostics-test: ## Run the gmeow-diagnostics unit tests.
-	cargo nextest run -p gmeow-diagnostics $(NEXTEST_PARTITION_ARG)
-	cargo test --doc -p gmeow-diagnostics
-
-logic-build: ## Build the gmeow-logic Rust crate (world-indexed oxigraph store core).
-	cargo build -p gmeow-logic
-
-logic-test: ## Run the gmeow-logic unit tests (world-isolation conformance).
-	cargo nextest run -p gmeow-logic $(NEXTEST_PARTITION_ARG)
-	cargo test --doc -p gmeow-logic
-
-shacl-build: ## Build the gmeow-shacl Rust crate (oxigraph SHACL Core validator).
-	cargo build -p gmeow-shacl
-
-shacl-test: ## Run the gmeow-shacl unit + conformance tests.
-	cargo nextest run -p gmeow-shacl $(NEXTEST_PARTITION_ARG)
-	cargo test --doc -p gmeow-shacl
-
-validate-build: ## Build the gmeow-validate Rust crate (oxigraph validation-path lints).
-	cargo build -p gmeow-validate
-
-validate-test: ## Run the gmeow-validate unit + integration tests.
-	cargo nextest run -p gmeow-validate $(NEXTEST_PARTITION_ARG)
-	cargo test --doc -p gmeow-validate
-
-clippy: ## Run cargo clippy on all Rust targets with warnings as errors.
-	cargo clippy --all-targets -- -D warnings
-
-rdf-core-hygiene: ## [purrdf P2b/#885] Prove the ring-fenced gmeow-rdf-core kernel CRATE has NO oxigraph anywhere in its NORMAL dependency graph — the STRONG, structural boundary (P2b made the ring-fence a crate; the prior weak form only proved a feature-gated rlib).
-	cargo build -p gmeow-rdf-core
-	@# Capture the forward normal-edges tree; a cargo failure (bad manifest/lockfile)
-	@# is a hard FAIL here, not a silenced false-OK. Then grep the captured output.
-	@# Match the PACKAGE line `oxigraph v0.5.x`, never the worktree path component
-	@# (which may itself literally contain the word "oxigraph"): `{p}` prints the
-	@# crate name + version, so `oxigraph v` only ever matches a real dependency.
-	@tree=$$(cargo tree -p gmeow-rdf-core --edges normal -f "{p}") || { echo "FAIL: cargo tree errored"; exit 1; }; \
-	if echo "$$tree" | grep -q 'oxigraph v'; then \
-		echo "FAIL: oxigraph is a NORMAL dependency of the gmeow-rdf-core crate — the #885 ring-fence is BROKEN"; \
-		echo "$$tree" | grep 'oxigraph v'; exit 1; \
-	else \
-		echo "OK: gmeow-rdf-core has NO oxigraph in its normal dependency tree (the #885 crate ring-fence holds)"; \
-	fi
-
-native-py: ## Build and install the single unified gmeow_native Python extension (maturin develop, #630).
-	VIRTUAL_ENV="$$(pwd)/.venv" uvx maturin develop --manifest-path crates/native/Cargo.toml
-
-# Legacy per-crate target names kept as aliases of the single `native-py` build
-# (the five extensions now fold into one `gmeow_native` cdylib, #630). Docs, CI,
-# and memory still reference these names, so `make logic-py` / `make validate-py`
-# etc. keep working — they all just build the unified extension.
-diagnostics-py logic-py shacl-py validate-py rdf-py: native-py
-
-rust-test: ## Run the Rust workspace tests.
-	cargo nextest run $(NEXTEST_PARTITION_ARG)
-	cargo test --doc
-
-insta-review: ## Regenerate the insta snapshot goldens after an INTENTIONAL output change (T8, #789). Non-interactive: writes .snap files in place, then re-runs in CI mode (INSTA_UPDATE=no) so the run still HARD-FAILS if anything is non-deterministic. Review the .snap diff before committing.
-	INSTA_UPDATE=always cargo nextest run $(NEXTEST_PARTITION_ARG)
-	INSTA_UPDATE=no cargo nextest run $(NEXTEST_PARTITION_ARG)
-
-FUZZ_TARGETS = nquads gts shacl sssom statements
-FUZZ_TIME ?= 30
-
-fuzz-smoke: ## Deep-fuzz each format frontend briefly (T7, #788; needs `cargo install cargo-fuzz`). The always-on contract is the proptest never-panic gate in `make rust-test`; this is the deeper coverage-guided pass. A crash = a "reject malformed, never panic" violation.
-	@for t in $(FUZZ_TARGETS); do \
-	  echo "== fuzz $$t ($(FUZZ_TIME)s) =="; \
-	  mkdir -p fuzz/corpus/$$t; \
-	  cargo fuzz run $$t fuzz/corpus/$$t fuzz/seeds/$$t -- -max_total_time=$(FUZZ_TIME) || exit 1; \
-	done
-
-bench: ## Run criterion benchmarks (release, host-tuned target-cpu=native) — the acceleration-program baseline (#630) + the reasoning hot path (#790).
-	RUSTFLAGS="$(NATIVE_RUSTFLAGS)" cargo bench -p gmeow-logic -p gmeow-rdf -p gmeow-shacl -p gmeow-validate
-
-rust-coverage: ## Rust region-level coverage via nextest (cargo-llvm-cov; report-only, OFF the required gate — local dev report + the #790 scheduled suite-quality job). Emits lcov.info + HTML. Runs THROUGH nextest so the engine test-group memory cap (#871) applies to the instrumented run too. Needs `cargo install cargo-llvm-cov cargo-nextest`. NOT in `make check`; the region/perf-leaderboard CI deliverable stays #790.
-	cargo llvm-cov nextest --workspace --include-ffi --lcov --output-path lcov.info
-	cargo llvm-cov report --html
-
-MUTANTS_ARGS ?=
-mutants: ## Mutation-test the logic+validate cores (cargo-mutants; grades whether the suite catches regressions; report-only, OFF the required gate, #790). Config in mutants.toml. The full logic run is HOURS (nemo) — scope locally with MUTANTS_ARGS="-p gmeow-validate -f <file>". Needs `cargo install cargo-mutants`.
-	cargo mutants $(MUTANTS_ARGS)
-
-bench-json: ## Flatten criterion estimates into bench-results.json for the #668 perf leaderboard (#790). Run `make bench` first to populate target/criterion.
-	python3 scripts/bench_to_json.py > bench-results.json
-	@echo "wrote bench-results.json ($$(wc -c < bench-results.json) bytes)"
-
-dev: ## Build + install gmeow_native host-tuned (maturin develop --release, target-cpu=native) for optimized LOCAL runs.
-	RUSTFLAGS="$(NATIVE_RUSTFLAGS)" VIRTUAL_ENV="$$(pwd)/.venv" uvx maturin develop --release --manifest-path crates/native/Cargo.toml
-
-slicetest: ## Run the gmeow-slicetest harness in isolation (executes the slice-resident test-DSL specs; #784). Already covered by rust-test / check via the workspace run.
-	cargo nextest run -p gmeow-slicetest $(NEXTEST_PARTITION_ARG)
-	cargo test --doc -p gmeow-slicetest
-
-conformance: ## Run the native logic conformance harness (#785; oracle ≡ engine, Principle 7 gate). Already covered by rust-test / check via the workspace run.
-	cargo nextest run -p gmeow-conformance $(NEXTEST_PARTITION_ARG)
-
-build: ## Build serializations and JSON-LD context into dist/.
-	$(GMEOW_DEV) build
-
-project: ## Project GMEOW data to pure schema.org/GeoSPARQL/vCard/FOAF/iCal/OWL-Time profiles (FnO/EDOAL).
-	$(GMEOW_DEV) project
-
-test: native-py ## Run the test suite (excludes the maintainer-only and classic-cross-check lanes).
-	uv run pytest -n auto --dist loadscope --durations=25 -m "not maintainer and not classic_cross_check"
-
-test-fast: native-py ## Run the fast test suite (excludes maintainer, docker, and the classic-cross-check lane).
-	uv run pytest -n auto --dist loadscope --durations=25 -m "not maintainer and not docker and not classic_cross_check"
-
-test-maintainer: native-py ## [maintainer] Heavy kept-Python-module suite (schema_compile/export/okf/compilers/transpiler) — MANUAL only, never in CI or any other make target (#861).
+maint-test-heavy: native-py ## Run kept-Python-module maintainer tests.
 	uv run pytest -n auto --dist loadscope -m "maintainer and not classic_cross_check"
 
-test-docker: classic-cross-check ## Compatibility alias for the classic-cross-check (Docker/Java oracle) lane.
-
-test-network: ## Run the network tests (LIVE endpoints) — MANUAL only, never in CI/check.
+maint-test-network: ## Run live network tests.
 	GMEOW_RUN_NETWORK=1 uv run pytest -m network
 
-check: logic-py rdf-py ## Fast local gate: core ontology + transforms (native EL/DL reasoning — Java/Docker-free; classic-cross-check oracle lane runs separately).
-	$(MAKE) -j$$(nproc 2>/dev/null || echo 4) lint clippy rust-test validate check-generated constitution-check crate-check audit wikidata coverage acceptance reason-native verify mappings-only lint-alignment doc-lint
-	uv run pytest -n auto --dist loadscope --durations=25 -m "not maintainer and not docker and not classic_cross_check"
-	$(GMEOW_DEV) compliance-report --from-passing-check
-	@echo "✓ all checks passed (Docker-free, Java-free)"
-
-release: ## RDF 1.2 + OWL downcast → native reasoned closure + build + regenerate + CrossRef deposit (Docker-free).
-	$(GMEOW_DEV) regenerate
-	$(GMEOW_DEV) reason --mode native --merge
-	$(GMEOW_DEV) build
-	$(MAKE) compliance-report-full
-	$(GMEOW_DEV) crossref
-
-regenerate: ## Rebuild all checked-in generated artifacts from canonical sources.
-	$(GMEOW_DEV) regenerate -j $$(nproc 2>/dev/null || echo 4)
-
-commit: regenerate ## Regenerate artifacts, stage them, and commit.
-	@REGENERATED_PATHS=$$(uv run python -c "from gmeow_tools.load_generators import load_all; load_all(); from gmeow_tools.generator import all_regenerated_paths; print(' '.join(all_regenerated_paths()))"); \
-	git add $${REGENERATED_PATHS}; \
-	if git diff --cached --quiet; then \
-		echo "Nothing to commit."; exit 1; \
-	else \
-		git commit -m "$(MESSAGE)"; \
-	fi
-	@git diff --quiet || echo "Warning: unstaged changes remain. Stage them with 'git add' and commit separately if needed."
-
-pull-images: ## [maintainer] Pre-pull the pinned Docker images for the classic-cross-check lane (ROBOT, Jena; #666).
+maint-pull-images: ## Pull or build pinned Docker oracle images.
 	bash scripts/pull-images.sh
 
-clean: ## Remove ephemeral build artifacts.
-	rm -rf dist docs/_generated .stamps
-	@echo "✓ cleaned"
+maint-quality: ## Run OOPS! network pitfall scan.
+	$(GMEOW_DEV) quality
 
-clean-docs: ## Remove generated ontology docs (regenerate with make ontology-docs).
-	rm -rf dist/ontology-docs ontology-docs
-	@echo "✓ cleaned ontology docs"
+maint-evals-score: ## Score committed model emissions against the eval contract.
+	$(GMEOW_DEV) evals score
+
+maint-compliance-report-full: ## Run in-process gates and emit dist/compliance-report.ttl.
+	$(GMEOW_DEV) compliance-report
+
+native-py: $(NATIVE_PY_STAMP)
+
+$(NATIVE_PY_STAMP): $(NATIVE_PY_INPUTS)
+	VIRTUAL_ENV="$(CURDIR)/.venv" uvx maturin develop --manifest-path crates/native/Cargo.toml
+	@touch $@
+
+$(RUST_READY_STAMP): $(RUST_INPUTS)
+	@mkdir -p $(dir $@)
+	cargo nextest run --no-run $(NEXTEST_PARTITION_ARG)
+	@touch $@

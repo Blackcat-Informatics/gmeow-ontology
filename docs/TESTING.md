@@ -109,7 +109,7 @@ runs in ~1–90 s where the full-ontology chase takes minutes. This is the nativ
 twin of the old `gmeow_tools` `_materialize(module, *abox)` pytest pattern (the
 reasoning cluster the ~45-min `python` lane was dominated by, migrated under #896).
 The harness runs under the `engine` nextest test-group (memory-capped, serialized)
-via `make logic-test`.
+via `cargo nextest run -p gmeow-logic`.
 
 ### Why the default is safe
 

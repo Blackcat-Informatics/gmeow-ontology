@@ -26,7 +26,11 @@ Every design decision, code modification, and schema change is governed by the t
 
 ## 2. Core Toolchain & Commands
 
-The repository uses Python (`uv`) and Docker (for Java tools like ROBOT, WIDOCO, and Jena). Always use the following `make` targets to run operations:
+The repository uses Python (`uv`), Rust/Cargo, and Docker only for explicit
+maintainer/oracle lanes. The Makefile is the definitive task-oriented plan:
+run `make help` first when you need the current target surface, and use `make`
+targets rather than calling `gmeow-dev`, `cargo`, or helper scripts directly
+unless you are adding or debugging the target itself.
 
 ### The CLI razor — `gmeow` vs `gmeow-dev` (#517)
 
@@ -42,9 +46,11 @@ When adding a command, ask the razor first. If it needs a repo path that the whe
 ### Environment & Formatting
 
 ```bash
+make help            # Show the grouped task plan
 make install         # Sync uv and configure repo-local Git merge drivers
 make fmt             # Auto-format Python files with ruff
 make lint            # Run ruff check, ruff format --check, and mypy
+make clean           # Remove ephemeral build artifacts and native build stamps
 ```
 
 `make install` also runs `scripts/bootstrap-git-merge-drivers.sh`, which sets
@@ -57,10 +63,16 @@ the bundle from canonical sources afterward.
 
 ```bash
 make validate        # Validate Turtle syntax, term annotations, and SHACL
+make validate-gts    # Validate generated/dist/gmeow.gts
 make regenerate      # Rebuild ALL committed generated artifacts (the #279 registry; parallel by default)
 make check-generated # Drift + orphan + internal-tag-leak check for every registered generator (parallel by default)
 make constitution-check # Every principle has live enforcement (governance/constitution.ttl, #280)
+make crate-check     # Verify Rust crate layering and acyclic crate DAGs
 make wikidata        # Validate Wikidata QID/PID syntax in the mappings (offline)
+make coverage        # Gate vendored entity-slice class and predicate coverage
+make acceptance      # Gate full transpile recall against external RDF snapshots
+make mappings        # Build alignment axioms and VoID linksets from SSSOM mappings
+make doc-lint        # Lint ontology-docs for dangling links and coverage gaps
 ```
 
 The per-artifact `compile-*` commands were replaced by the unified generator
@@ -113,13 +125,29 @@ make commit MESSAGE="feat: ..."  # Same, with a custom commit message
 > [!TIP]
 > If you suspect generated files are stale but do not want to commit yet, run `make regenerate` followed by `make check-generated` to verify the full gate still passes.
 
+### Release Outputs
+
+```bash
+make docs            # Regenerate gmeow.gts docs and extract ontology-docs/
+make build           # Build serializations and JSON-LD context into dist/
+make project         # Project GMEOW data to external vocabulary profiles
+make release         # Regenerate, native-reason, build, report, and emit CrossRef deposit
+make release-sign-gts SIGN_KEY=/tmp/gpg/signing-key.asc GTS_OUT=dist/gmeow.gts
+```
+
+`make release-sign-gts` signs a freshly regenerated GTS snapshot for release
+packaging. The committed `generated/dist/gmeow.gts` remains unsigned unless a
+release workflow explicitly writes the signed copy there before packaging.
+
 ### Reasoning & Negative Tests
 
 ```bash
-make reason          # Check ELK consistency (Docker ROBOT; writes dist/gmeow-reasoned-elk.ttl)
-make reason-hermit   # Full complete consistency check with HermiT (Docker)
-make explain         # Explain any unsatisfiable classes (HermiT, Docker)
-make verify          # Reuse dist/gmeow-reasoned-elk.ttl and run SPARQL QC (Docker)
+make reason          # Native Docker-free EL/DL reasoning authority
+make verify          # Native reasoned-graph negative tests
+make maint-reason-hermit # Full complete consistency check with HermiT (Docker oracle)
+make maint-explain   # Explain any unsatisfiable classes (HermiT/Docker oracle)
+make maint-verify-docker # ROBOT/ELK reasoned-graph verification
+make maint-classic-cross-check # Full non-required Docker/Java oracle lane
 ```
 
 ### Testing & Verification
@@ -128,6 +156,34 @@ make verify          # Reuse dist/gmeow-reasoned-elk.ttl and run SPARQL QC (Dock
 make test            # Run the pytest test suite (Python/SPARQL competency tests)
 make check           # Run FULL gate: lint, validate, compilation check, reason, verify, tests
 make rust-test       # Run the Rust workspace tests (cargo nextest + doctests)
+make clippy          # Run cargo clippy on all Rust targets with warnings as errors
+make rust-build      # Compile Rust workspace test binaries without running them
+make test-fast       # Run the fast Python test lane used by make check
+```
+
+### Maintainer Tasks
+
+All maintainer-only work is prefixed with `maint-`. These targets may use
+Docker, Java, the network, heavyweight tests, or release/report-only tooling and
+are intentionally outside the normal local `make check` path unless a workflow
+calls them explicitly.
+
+```bash
+make maint-classic-cross-check      # Full Docker/Java oracle lane
+make maint-reasoning-cases          # Docker-backed reasoning fixture cases
+make maint-statements-docker-check  # Jena/ROBOT statement artifact oracle checks
+make maint-crosscheck               # rdflib/native query-answer cross-check
+make maint-extract TARGET=foaf      # Import/extract policy for one target
+make maint-refresh-target-axioms    # Re-vendor minimal target-axiom snapshots
+make maint-wikidata-live            # Network existence checks for Wikidata IDs
+make maint-wikidata-coverage        # Report Wikidata mapping coverage by domain
+make maint-wikidata-audit           # Audit fixtures/modules for Wikidata misuse
+make maint-test-heavy               # Kept Python maintainer tests
+make maint-test-network             # Live network tests
+make maint-pull-images              # Pull/build pinned Docker oracle images
+make maint-quality                  # OOPS! network pitfall scan
+make maint-evals-score              # Score committed model emissions
+make maint-compliance-report-full   # Full compliance-report emission
 ```
 
 #### Snapshot goldens (insta, T8 #789)
@@ -231,7 +287,7 @@ Statement compilation runs inside `gmeow regenerate` (the `statements` generator
   * `generated/statements/gmeow.rdf12.ttl` — RDF 1.2 / RDF* lead artifact, written natively by the `gmeow-rdf` Rust codec (`gmeow_rdf.project_statements_rdf12`); no Java, no Docker, no SPARQL engine (#667). rdflib cannot parse RDF 1.2 triple terms, so the native codec also supplies the OWL normal form for the round-trip check.
   * `generated/statements/gmeow-statements.owl.ttl` — OWL 2 axiom-annotation downcast consumed by OWL 2 DL reasoners.
 * **Important behavior**: the DSL is plain Turtle that structurally mirrors RDF 1.2 reifying statements. The compiler emits the OWL form, projects it to RDF 1.2 natively with `gmeow-rdf`, then normalizes the RDF 1.2 form back to OWL and requires graph isomorphism before writing. Apache Jena re-reads the committed artifact only in the non-required `classic-cross-check` oracle lane.
-* **Drift check**: `make statements-check` performs the same compile in check mode and fails if committed statement artifacts are stale.
+* **Drift check**: `make check-generated` performs the registered-generator check and fails if committed statement artifacts are stale.
 
 Do not edit `generated/statements/gmeow.rdf12.ttl` or `generated/statements/gmeow-statements.owl.ttl` directly. If metadata is wrong, fix the `gmeow:StatementMetadata` cells in `dsl/statements/`.
 
@@ -240,15 +296,18 @@ Do not edit `generated/statements/gmeow.rdf12.ttl` or `generated/statements/gmeo
 Generated files contain a `GENERATED by ... DO NOT EDIT` banner where practical. Treat that as binding:
 
 * Source changes belong in `slices/<group>/<name>/module.ttl`, `dsl/mappings/`, `dsl/statements/`, shapes, queries, tests, or toolchain source.
-* Generated artifact changes must be reproducible by the relevant `make compile-*` target.
+* Generated artifact changes must be reproducible by `make regenerate`.
 * If `make check-generated` reports drift, run `make regenerate` rather than hand-editing the output.
 * If a generated artifact is nondeterministic, fix the compiler determinism bug. Do not normalize the artifact by hand.
 
 ### Vocabulary Index (llms.txt)
 
-This project automatically generates a single-file, flat index of all classes, properties, and individuals (with CURIEs, parent classes, and definitions) at `dist/llms.txt` when running `make export`. It is **not checked in** — run `make export` to produce it on demand.
+This project automatically generates a single-file, flat index of all classes,
+properties, and individuals (with CURIEs, parent classes, and definitions) at
+`dist/llms.txt` through the export stage of the registered build pipeline. It
+is **not checked in** — run `make regenerate` to produce it on demand.
 
-If you are an agent trying to look up terms, resolve definitions, or discover vocabulary details, run `make export` and ingest `dist/llms.txt` to get a clean, context-efficient overview of the entire ontology.
+If you are an agent trying to look up terms, resolve definitions, or discover vocabulary details, generate and ingest `dist/llms.txt` to get a clean, context-efficient overview of the entire ontology.
 
 ---
 
@@ -358,7 +417,10 @@ make check-generated     # verify no drift remains
 make check
 ```
 
-All gates must pass: lint, validate, compilation drift check, ELK reasoning, HermiT reasoning, verify, tests.
+All Docker-free local gates must pass: lint, validate, generated-artifact drift
+check, native reasoning, native verify, Rust tests, and Python tests. Run
+`make maint-classic-cross-check` separately when you need the full Docker/Java
+oracle lane.
 
 ### Push
 

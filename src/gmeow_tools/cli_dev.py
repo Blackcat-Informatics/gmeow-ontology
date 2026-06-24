@@ -898,9 +898,10 @@ def crosscheck_queries() -> None:
 def classic_cross_check() -> None:
     """Enforced native↔oracle divergence cross-check (#666 — Docker/Java lane).
 
-    The FINAL, ENFORCING step of ``make classic-cross-check`` (the sole Docker/Java
-    surface, Principle 18). It reasons the bundle natively (authority), runs the
-    classic ELK + HermiT oracles (timing each), calls the authoritative Rust
+    The FINAL, ENFORCING step of ``make maint-classic-cross-check`` (the sole
+    Docker/Java surface, Principle 18). It reasons the bundle natively
+    (authority), runs the classic ELK + HermiT oracles (timing each), calls the
+    authoritative Rust
     comparator, writes the agreement matrix + per-tool timing as SARIF/JSON, and
     fails NON-ZERO on any real divergence (``NativeOnly`` / ``OracleOnly``).
     ``DlGap`` is the only honest-expected, non-failing class. NEVER part of
@@ -1287,12 +1288,14 @@ def doc_lint() -> None:
 
 @app.command(name="crate-check")
 def crate_check() -> None:
-    """Verify the Rust crate layering: kernel purity + an acyclic crate DAG (#820 S0).
+    """Verify Rust crate layering: RDF core purity + an acyclic crate DAG (#820 S0).
 
-    ``gmeow-rdf`` (the generic RDF-1.2 narrow waist) must carry ZERO first-party
-    (``gmeow-*`` path) dependencies, and the first-party crate dependency graph
-    must be acyclic. This is the Rust-side twin of Principle 16 — slice / domain
-    semantics layer ABOVE the kernel, never inside it.
+    ``gmeow-rdf-core`` is the oxigraph-free RDF 1.2 kernel,
+    ``gmeow-rdf-events`` is the neutral protocol seam, and ``gmeow-rdf`` is the
+    oxigraph/PyO3 adapter that depends on and re-exports the core. The
+    first-party crate dependency graph must stay acyclic. This is the Rust-side
+    twin of Principle 16 — slice / domain semantics layer ABOVE the core, never
+    inside it.
     """
     from gmeow_tools.crate_layering import check_crate_layering
 
@@ -1305,7 +1308,7 @@ def crate_check() -> None:
         raise _fail(f"✗ {len(report.errors)} crate-layering violation(s)")
     console.print(
         f"[green]✓ crate layering OK[/green] "
-        f"({len(report.edges)} crates, kernel pure, DAG acyclic)"
+        f"({len(report.edges)} crates, RDF core pure, DAG acyclic)"
     )
 
 
@@ -1995,17 +1998,95 @@ def quality(
 _GTS_COMPILE_OUT = typer.Option(
     None, "--out", "-o", help="Output .gts path (default: generated/dist/gmeow.gts)."
 )
+_GTS_SIGN_KEY = typer.Option(
+    None, "--sign-key", help="Armored Ed25519 OpenPGP secret key file."
+)
+_GTS_PUBLIC_KEY = typer.Option(
+    None, "--public-key", help="Armored OpenPGP public key file to embed."
+)
+
+
+def _signed_gts_copy(
+    source: Path,
+    *,
+    sign_key: Path,
+    public_key: Path,
+) -> tuple[bytes, str]:
+    """Re-emit a folded GTS snapshot with release signatures.
+
+    The Rust pipeline remains the build authority for the unsigned snapshot.
+    Release signing is a packaging step over that freshly regenerated fold: read
+    the pipeline product, embed the OpenPGP transport key in metadata, and write
+    every frame through the GTS writer with the supplied signer.
+    """
+    try:
+        secret_armor = sign_key.read_text(encoding="utf-8")
+    except OSError as exc:
+        raise _fail(f"cannot read --sign-key {sign_key}: {exc}") from exc
+    try:
+        public_key_armor = public_key.read_text(encoding="utf-8")
+    except OSError as exc:
+        raise _fail(f"cannot read --public-key {public_key}: {exc}") from exc
+    try:
+        signer = gts.Signer.from_gpg_secret_key(secret_armor)
+    except Exception as exc:
+        raise _fail(f"cannot load signer from {sign_key}: {exc}") from exc
+
+    graph = _read_gts_or_fail(source)
+    profile = graph.segment_profiles[-1] if graph.segment_profiles else "dist"
+    writer = gts.Writer(profile=profile, signer=signer)
+
+    meta = dict(sorted(graph.meta.items()))
+    meta["gts:transportKey"] = {"kid": signer.kid, "gpg": public_key_armor}
+    writer.add_meta(meta)
+
+    if graph.terms:
+        writer.add_terms(list(graph.terms))
+    if graph.quads:
+        writer.add_quads(list(graph.quads))
+    if graph.reifiers:
+        writer.add_reifies(dict(sorted(graph.reifiers.items())))
+    if graph.annotations:
+        writer.add_annot(list(graph.annotations))
+
+    for digest in sorted(graph.blobs):
+        blob_meta = graph.blob_meta.get(digest, {})
+        mt = blob_meta.get("mt")
+        rep = blob_meta.get("rep")
+        writer.add_blob(
+            graph.blobs[digest],
+            mt=mt if isinstance(mt, str) else None,
+            rep=rep if isinstance(rep, str) else None,
+        )
+
+    for suppression in graph.suppressions:
+        writer.add_suppress(
+            suppression.targets,
+            reason=suppression.reason,
+            by=suppression.by,
+        )
+    writer.add_index()
+    return writer.to_bytes(), signer.kid
 
 
 @app.command(name="compile-gts")
-def compile_gts(out: Path | None = _GTS_COMPILE_OUT) -> None:
+def compile_gts(
+    out: Path | None = _GTS_COMPILE_OUT,
+    sign_key: Path | None = _GTS_SIGN_KEY,
+    public_key: Path | None = _GTS_PUBLIC_KEY,
+) -> None:
     """Compile the statement-complete GTS dist snapshot (generated/gmeow.gts).
 
     The CLI face of the registered ``gts`` generator — the committed,
     drift-gated snapshot every exporter consumes (the narrow waist). With
-    ``--out``, writes an ad-hoc copy of the identical bytes instead.
+    ``--out``, writes an ad-hoc copy of the identical bytes instead. With
+    ``--sign-key`` and ``--public-key``, re-emits the freshly generated snapshot
+    as a signed release package with the armored transport key embedded.
     """
     from gmeow_tools import config
+
+    if (sign_key is None) != (public_key is None):
+        raise _fail("--sign-key and --public-key must be supplied together")
 
     rdf12 = config.STATEMENT_RDF12_FILE
     if not rdf12.exists():
@@ -2017,12 +2098,22 @@ def compile_gts(out: Path | None = _GTS_COMPILE_OUT) -> None:
     # The Rust pipeline (the build authority since #861 P7) folds the snapshot
     # at its single gts_sink; running it reproduces generated/dist/gmeow.gts.
     _regenerate_native()
+    target = out or config.GTS_SNAPSHOT_FILE
+    if sign_key is not None and public_key is not None:
+        data, kid = _signed_gts_copy(
+            config.GTS_SNAPSHOT_FILE, sign_key=sign_key, public_key=public_key
+        )
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_bytes(data)
+        console.print(f"[green]✓[/green] {target} ({len(data)} bytes)")
+        console.print(f"[green]✓[/green] signed with kid {kid}")
+        return
+
     if out is not None:
-        out.parent.mkdir(parents=True, exist_ok=True)
-        out.write_bytes(config.GTS_SNAPSHOT_FILE.read_bytes())
-        console.print(f"[green]✓[/green] {out}")
-    size = config.GTS_SNAPSHOT_FILE.stat().st_size
-    console.print(f"[green]✓[/green] {config.GTS_SNAPSHOT_FILE} ({size} bytes)")
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_bytes(config.GTS_SNAPSHOT_FILE.read_bytes())
+    size = target.stat().st_size
+    console.print(f"[green]✓[/green] {target} ({size} bytes)")
 
 
 @app.command(name="mcp")
@@ -2212,7 +2303,7 @@ def logic_query(
         import gmeow_logic
     except ImportError as exc:  # pragma: no cover - environment guard
         raise _fail(
-            "✗ gmeow_logic extension not built — run `make logic-py` "
+            "✗ gmeow_logic extension not built — run `make native-py` "
             f"(maturin develop). Underlying error: {exc}"
         ) from exc
 
@@ -2495,7 +2586,7 @@ def certify(
     except ImportError as exc:
         raise _fail(
             "✗ certify: gmeow_logic native extension is not installed "
-            "(certification is Rust-authoritative since #497) — run 'make logic-py'."
+            "(certification is Rust-authoritative since #497) — run 'make native-py'."
         ) from exc
     try:
         source_ttl = input_path.read_text(encoding="utf-8")

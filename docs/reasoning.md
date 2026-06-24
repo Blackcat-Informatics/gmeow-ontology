@@ -45,23 +45,23 @@ GMEOW runs four complementary verification lanes. Each owns a distinct class of 
 
 | Lane | Tool | World | Owns | Where |
 |---|---|---|---|---|
-| **EL pre-check** | ELK (ROBOT, Docker) | open | fast incoherence / unsatisfiability in the EL fragment | `make reason` |
-| **DL gate** | HermiT (ROBOT, Docker) | open | sound + complete consistency, disjointness contradictions | `make reason-hermit`; `tests/test_reasoning_entailments.py` |
+| **Native EL/DL gate** | `gmeow_logic` | open | Docker-free profile, consistency, and entailment authority | `make reason` |
+| **Classic DL oracle** | HermiT/ELK (ROBOT, Docker) | open | non-required cross-check of the native lane | `make maint-reason-hermit`, `make maint-classic-cross-check` |
 | **Entailment tests** | `owlrl` (pure-Python OWL 2 RL) | open | positive derivations — property chains, transitivity, sub-property closure | `tests/test_reasoning_entailments.py`, `tests/test_competency.py` |
 | **Closed-world validation** | SHACL (`gmeow_shacl`) + native `verify` | closed | cardinality, required shapes, display contract, orthogonality data-checks | `make validate`, `make verify`, `tests/test_shapes.py` |
 
-Reasoning order is **reason first to enrich, then validate the enriched graph**. ELK is an
-*incomplete* pre-check (GMEOW already uses `owl:inverseOf`, `SymmetricProperty`, functional
-properties — strictly outside EL), so it catches incoherence early and cheaply; HermiT is the
-complete authority at release time.
+Reasoning order is **reason first to enrich, then validate the enriched graph**. The native
+`gmeow_logic` lane is the required authority. ELK and HermiT survive as non-required
+Docker/Java oracle checks under `maint-*` targets.
 
-### Lane 1–2 — OWL reasoners (ELK, HermiT)
+### Lane 1–2 — Native reasoner plus classic oracles
 
-`make reason` merges the import closure, checks the OWL 2 **DL** profile, and runs **ELK** for
-fast incoherence. `make reason-hermit` runs **HermiT** for sound-and-complete consistency. A
-contradiction — e.g. an individual placed in two disjoint identity axes, or two disjoint Kinds
-(Person ⊓ Organization) — makes ROBOT exit non-zero. These are the *open-world* gate:
-unsatisfiability and inconsistency, nothing else.
+`make reason` runs the native Docker-free EL/DL authority. `make maint-reason-hermit` runs
+**HermiT** for sound-and-complete oracle comparison, and `make maint-classic-cross-check`
+runs the full ELK/HermiT/ROBOT/Jena/rdflib lane. A contradiction — e.g. an individual
+placed in two disjoint identity axes, or two disjoint Kinds (Person ⊓ Organization) — makes
+the relevant reasoner exit non-zero. These are the *open-world* gates: unsatisfiability and
+inconsistency, nothing else.
 
 ### Lane 3 — `owlrl` entailment tests (pure-Python, Docker-free)
 
@@ -138,8 +138,8 @@ enforce that contract on data; consumers MUST honour `false` and never surface t
 
 ```bash
 make validate   # SHACL + syntax + term-annotation lint (pure Python, always-on)
-make reason     # merge → OWL 2 DL profile → ELK incoherence (Docker)
-make reason-hermit  # sound + complete consistency (Docker)
+make reason     # native Docker-free EL/DL reasoning authority
+make maint-reason-hermit  # sound + complete consistency oracle (Docker)
 make verify     # reasoned-graph SPARQL QC — native EL/DL closure (Java/Docker-free)
 uv run pytest   # owlrl entailment tests + SHACL data-shape tests + native verify tests
 ```

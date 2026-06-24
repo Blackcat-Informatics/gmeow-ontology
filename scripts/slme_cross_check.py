@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 """Non-required native-vs-ROBOT SLME + verify cross-check oracle (issue #695).
 
-This is a Docker-backed lane that runs ONLY in ``make classic-cross-check`` /
+This is a Docker-backed lane that runs ONLY in ``make maint-classic-cross-check`` /
 the ``classic-cross-check`` workflow — never on a required gate. It proves two
 things about the native, Java/Docker-free authority:
 

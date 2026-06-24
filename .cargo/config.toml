@@ -29,7 +29,7 @@ rustflags = [
     # x86-64 (SSE2 only) and our hot loops never autovectorize, while zstd/ring
     # run AVX2. `x86-64-v3` is the portable AVX2-era floor that is safe for
     # distributed wheels (matches the CFLAGS contract). For host-tuned LOCAL
-    # builds, `make dev` / `make bench` export RUSTFLAGS with `target-cpu=native`
+    # builds; `make bench` exports RUSTFLAGS with `target-cpu=native`
     # (which fully REPLACES this list, so those targets re-state the lld flags).
     # The portable floor stays the committed default, so any wheel/CI build with
     # no extra flags ships correctly — the host-only case is the opt-in.

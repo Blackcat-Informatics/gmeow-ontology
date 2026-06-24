@@ -88,7 +88,7 @@ genuine ontological gaps, documented rather than papered over (the "no silent ca
 
 The bridge has a two-rail verification, so a mistyped or invented BFO IRI fails the gate:
 
-1. **Offline, deterministic (always runs).** `gmeow refresh-target-axioms --target bfo` vendors a
+1. **Offline, deterministic (always runs).** `gmeow-dev refresh-target-axioms --target bfo` vendors a
    minimal snapshot of BFO's **class facts** to [`imports/targets/bfo.ttl`](../imports/targets/)
    (every `owl:Class`, its in-namespace `rdfs:subClassOf` parents, and its `rdfs:label`).
    [`tests/test_foundational_bridging.py`](../tests/test_foundational_bridging.py) asserts that
@@ -162,7 +162,7 @@ The infrastructure already generalises to any upper ontology (DOLCE/DUL, SUMO, U
 2. **Pick the snapshot strategy by policy:**
    - *IMPORT_OK* (e.g. a CC-BY upper ontology): add a `TARGET_SOURCES` entry in
      [`target_axioms.py`](../src/gmeow_tools/target_axioms.py) and
-     `gmeow refresh-target-axioms --target <prefix>` — you get an offline class snapshot for free,
+     `gmeow-dev refresh-target-axioms --target <prefix>` — you get an offline class snapshot for free,
      and the verification test works exactly as BFO's does.
    - *REFERENCE_ONLY* (DOLCE/DUL): `refresh_snapshot` **refuses** to vendor it. Verify its IRIs
      with a **network-only** test (`@pytest.mark.network`) that fetches the live ontology, plus a

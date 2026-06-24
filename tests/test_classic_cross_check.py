@@ -5,7 +5,7 @@
 These tests are Docker-free: they exercise the authoritative Rust comparator
 (``gmeow_logic.build_divergence_ledger``), the enforcement verdict, and the SARIF
 emission over SYNTHETIC native/ELK/HermiT inputs. The real ELK/HermiT oracle run
-is exercised in the ``make classic-cross-check`` lane / CI, never here.
+is exercised in the ``make maint-classic-cross-check`` lane / CI, never here.
 """
 
 from __future__ import annotations

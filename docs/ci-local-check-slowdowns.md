@@ -14,7 +14,7 @@ The current CI bottleneck is the `python` job. Recent runs show pytest reaching
 about 95% and then emitting no further progress for hours until cancellation.
 The native `gmeow_logic` extension is not the cause: it builds in about one
 minute in CI, and the focused native test module completes locally in under a
-second after `make logic-py`.
+second after `make native-py`.
 
 The current local and CI test hotspots are repeated full-artifact builds:
 
@@ -87,7 +87,7 @@ Focused module timings:
   The drift test was 39.48s, and some EDOAL determinism cases were 23-25s.
 - `tests/test_suppression_conformance.py`, four xdist workers: 84 passed in
   33.19s. The structural branch-guard cases reload/re-render per profile.
-- After `make logic-py`, `tests/test_logic_engine.py` completed 13 tests in
+- After `make native-py`, `tests/test_logic_engine.py` completed 13 tests in
   0.33s, so the CI Python hang is not the native materialize test module.
 
 ## Likely fixes

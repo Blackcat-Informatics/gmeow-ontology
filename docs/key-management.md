@@ -75,10 +75,10 @@ Both `.github/workflows/release.yml` and `.github/workflows/pypi-publish-gmeow.y
 sign the snapshot before uploading artifacts:
 
 ```yaml
-- run: uv run --package gmeow-dev gmeow-dev compile-gts-full \
-         --sign-key /tmp/gpg/signing-key.asc \
-         --public-key keys/gmeow-release-key.asc \
-         -o generated/dist/gmeow.gts
+- run: make release-sign-gts \
+         SIGN_KEY=/tmp/gpg/signing-key.asc \
+         PUBLIC_KEY=keys/gmeow-release-key.asc \
+         GTS_OUT=generated/dist/gmeow.gts
 - run: uv run gmeow verify generated/dist/gmeow.gts
 ```
 
