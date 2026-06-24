@@ -21,7 +21,6 @@ from gmeow_rdf.compat.rdflib.query import ResultRow
 
 from gmeow_tools.config import COMPETENCY_DIR
 from gmeow_tools.graph import load_merged_graph
-from tests._graph_nt import run_shacl
 
 GMEOW = "https://blackcatinformatics.ca/gmeow/"
 GM = Namespace(GMEOW)
@@ -126,31 +125,8 @@ def test_no_preferred_assessment_machinery() -> None:
 
 
 # --------------------------------------------------------------------------- #
-# Closed-world SHACL shapes
+# Closed-world SHACL shapes — migrated to crates/validate/tests/conformance_rubrics.rs
 # --------------------------------------------------------------------------- #
-
-
-def test_wellformed_rubrics_fixture_conforms() -> None:
-    result = run_shacl(_fixture("rubrics-wellformed"))
-    assert result.ok, "\n".join(result.errors)
-
-
-def test_malformed_rubrics_fixture_is_flagged() -> None:
-    result = run_shacl(_fixture("rubrics-malformed"))
-    assert not result.ok
-    errors = "\n".join(result.errors)
-    assert "reward and penalty poles must be distinct" in errors
-    assert "minimum must be strictly below its maximum" in errors
-    assert "at least one gmeow:anchorMeaning" in errors
-    assert "range minimum must not exceed" in errors
-    assert "must name exactly one gmeow:rewardPole" in errors
-    assert "binds at most one gmeow:usesScale" in errors
-    assert "must pin exactly one decimal gmeow:anchorRangeMin" in errors
-    assert "must lie within the scale" in errors
-    assert "may not redirect to the criterion that anchors it" in errors
-    assert "at least one of gmeow:viaSelector" in errors
-    assert "exactly one gmeow:exemplarPolarity" in errors
-    assert "a gmeow:assessmentCriterion, a gmeow:assessmentRubric, or both" in errors
 
 
 def test_two_judges_disagree_without_contradiction() -> None:

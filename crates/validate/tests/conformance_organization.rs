@@ -32,7 +32,7 @@ use conformance_support::*;
 #[test]
 fn membership_fills_post_org_mismatch_warns() {
     let nt = fixture_as_nt("coverage", "organization-posts");
-    let report = validate_with_ontology(&nt);
+    let report = validate(&nt);
     assert!(
         ok(&report),
         "org-mismatch fixture must pass SHACL (warnings only, not violations); violations: {:?}",
@@ -54,7 +54,7 @@ fn membership_fills_post_org_mismatch_warns() {
 #[test]
 fn legal_identifier_requires_scheme() {
     let nt = fixture_as_nt("coverage", "organization-legal-identity");
-    let report = validate_with_ontology(&nt);
+    let report = validate(&nt);
     assert!(
         !ok(&report),
         "malformed legal-identity fixture must fail SHACL validation"
