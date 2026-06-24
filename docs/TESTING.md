@@ -90,12 +90,26 @@ omitting it means `gmeow:reasoningNone`.
 
 ### Why not full OWL 2 RL
 
-The native OWL 2 RL closure (`gmeow_logic::reason::rl_closure`, the same chase
-`tests/test_competency.py` pays) takes ~4 minutes over the merged ontology — far
-too slow for a routine test lane, and it pulls the Nemo Datalog engine into the
-harness's build graph. RDFS captures the type-and-subsumption entailments
-competency questions actually need at a tiny fraction of the cost, and
-`crates/slicetest` carries **no `gmeow-logic`/Nemo dependency** as a result.
+The native OWL 2 RL closure (`gmeow_logic::reason::rl_closure`) takes ~4 minutes
+over the *whole* merged ontology — far too slow for a routine test lane, and it
+pulls the Nemo Datalog engine into the harness's build graph. RDFS captures the
+type-and-subsumption entailments competency questions actually need at a tiny
+fraction of the cost, and `crates/slicetest` carries **no `gmeow-logic`/Nemo
+dependency** as a result.
+
+### The OWL 2 RL entailment harness (`crates/logic/tests/ontology_entailments.rs`, #896)
+
+Genuine OWL 2 RL entailment tests — property chains, `owl:equivalentClass`
+classification, sub-class/sub-property subsumptions, EL consistency — live in a
+separate native Rust harness, **not** the slice-test DSL. `scoped_closure(slices,
+abox)` parses just the relevant slice `module.ttl` files, injects a tiny test
+A-Box, and runs `gmeow_logic::reason::rl_closure` over that small input. Scoping is
+load-bearing: the chase is superlinear in fact count, so a one-/few-module closure
+runs in ~1–90 s where the full-ontology chase takes minutes. This is the native
+twin of the old `gmeow_tools` `_materialize(module, *abox)` pytest pattern (the
+reasoning cluster the ~45-min `python` lane was dominated by, migrated under #896).
+The harness runs under the `engine` nextest test-group (memory-capped, serialized)
+via `make logic-test`.
 
 ### Why the default is safe
 

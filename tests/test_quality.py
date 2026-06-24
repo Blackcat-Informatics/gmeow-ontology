@@ -16,7 +16,6 @@ from __future__ import annotations
 from gmeow_rdf.compat.rdflib import OWL, RDF, RDFS, Graph, Namespace, URIRef
 
 from gmeow_tools.graph import load_merged_graph
-from gmeow_tools.slices import module_path
 
 GMEOW = "https://blackcatinformatics.ca/gmeow/"
 GM = Namespace(GMEOW)
@@ -72,21 +71,6 @@ def test_dimension_seeds_exist() -> None:
         "qualityDimensionLineage",
     ):
         assert (GM[term], RDF.type, GM.QualityDimension) in g
-
-
-def test_quality_assessment_specialises_observation() -> None:
-    """A QualityAssessment individual is inferred as an Observation."""
-    from gmeow_tools.native_rl_rdflib import native_rl_closure
-
-    graph = Graph()
-    graph.parse(module_path("quality"), format="turtle")
-    graph.parse(module_path("observations"), format="turtle")
-    graph.add((EX.qa1, RDF.type, GM.QualityAssessment))
-    graph.add((EX.qa1, GM.assessedEntity, EX.place1))
-    graph.add((EX.place1, RDF.type, GM.Place))
-
-    native_rl_closure(graph)
-    assert (EX.qa1, RDF.type, GM.Observation) in graph
 
 
 def test_no_preferred_or_primary_term_is_declared() -> None:

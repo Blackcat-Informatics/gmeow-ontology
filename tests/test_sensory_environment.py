@@ -89,62 +89,6 @@ def test_coordinate_matrix_properties_exist() -> None:
     assert (GMEOW.coordinateMatrixFrame, RDF.type, OWL.ObjectProperty) in graph
 
 
-def test_sensory_environment_el_axioms_fire() -> None:
-    """A SensoryEnvironment individual with a location stays consistent."""
-    graph = Graph()
-    graph.parse(module_path("sensory-environment"), format="turtle")
-    graph.parse(module_path("places"), format="turtle")
-
-    graph.add((EX.env1, GMEOW.environmentAtLocation, EX.place1))
-    graph.add((EX.place1, RDF.type, GMEOW.Place))
-
-    native_rl_closure(graph)
-    assert (EX.env1, RDF.type, GMEOW.SensoryEnvironment) in graph
-
-
-def test_sensory_perception_specialises_standpoint_claim() -> None:
-    """SensoryPerception is inferred as a StandpointClaim."""
-    graph = Graph()
-    graph.parse(module_path("sensory-environment"), format="turtle")
-    graph.parse(module_path("observations"), format="turtle")
-    graph.parse(module_path("standpoint"), format="turtle")
-
-    graph.add((EX.perc1, RDF.type, GMEOW.SensoryPerception))
-
-    native_rl_closure(graph)
-    assert (EX.perc1, RDF.type, GMEOW.StandpointClaim) in graph
-    assert (EX.perc1, RDF.type, GMEOW.Observation) in graph
-
-
-def test_mental_reference_frame_specialises_reference_frame() -> None:
-    """MentalReferenceFrame is inferred as a ReferenceFrame."""
-    graph = Graph()
-    graph.parse(module_path("sensory-environment"), format="turtle")
-    graph.parse(module_path("places"), format="turtle")
-
-    graph.add((EX.mrf1, RDF.type, GMEOW.MentalReferenceFrame))
-
-    native_rl_closure(graph)
-    assert (EX.mrf1, RDF.type, GMEOW.ReferenceFrame) in graph
-
-
-def test_frame_inheritance_via_coordinate_matrix() -> None:
-    """A CoordinateMatrix result inherits the observation's reference frame."""
-    graph = Graph()
-    graph.parse(module_path("sensory-environment"), format="turtle")
-    graph.parse(module_path("observations"), format="turtle")
-    graph.parse(module_path("places"), format="turtle")
-
-    graph.add((EX.obs1, RDF.type, GMEOW.SensoryObservation))
-    graph.add((EX.obs1, GMEOW.observationResult, EX.matrix1))
-    graph.add((EX.obs1, GMEOW.hasReferenceFrame, EX.frameCIEXYZ))
-    graph.add((EX.matrix1, RDF.type, GMEOW.CoordinateMatrix))
-    graph.add((EX.frameCIEXYZ, RDF.type, GMEOW.ReferenceFrame))
-
-    native_rl_closure(graph)
-    assert (EX.matrix1, GMEOW.hasReferenceFrame, EX.frameCIEXYZ) in graph
-
-
 def test_perception_environment_bridge() -> None:
     """perceptionEnvironment is a subPropertyOf observedFeature."""
     graph = load_merged_graph(include_imports=False)
