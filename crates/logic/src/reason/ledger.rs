@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-//! Report-only divergence ledger over the native reasoner versus classic oracles.
+//! Divergence ledger over the native reasoner versus classic oracles.
 //!
 //! This module compares the native engine's results ([`crate::reason::el`] for EL
 //! subsumption, [`crate::reason::dl`] for DL consistency) against the classic
@@ -9,11 +9,10 @@
 //! not message bytes** — mirroring the #578 doctrine that comparison happens on
 //! the structured shape, never on rendered human strings.
 //!
-//! It is strictly **report-only**: it classifies each tuple as agreeing, native-
-//! only, oracle-only, or a known DL gap, and tallies the counts. It never decides
-//! pass/fail and never enforces anything on divergence — *enforcing on divergence
-//! is deferred to #666*. The Docker oracles themselves run in Python (Task 4); this
-//! Rust module owns ONLY the comparison logic and the structured ledger shape.
+//! It classifies each tuple as agreeing, native-only, oracle-only, or a native
+//! DL coverage defect, and tallies the counts. The Docker oracles themselves run
+//! in Python; this Rust module owns only the comparison logic and the structured
+//! ledger shape.
 //!
 //! There is no I/O and no TTL emission here — serialization is the job of a later
 //! task. This module produces only the in-memory structured ledger.
@@ -30,7 +29,7 @@ pub enum DivergenceKind {
     NativeOnly,
     /// Derived by the oracle but not natively.
     OracleOnly,
-    /// A construct the native encoding cannot decide (a known DL gap).
+    /// A construct the native path did not decide (a coverage defect).
     DlGap,
 }
 
@@ -259,11 +258,11 @@ pub fn compare_consistency(
     rows
 }
 
-/// Emit one [`DivergenceKind::DlGap`] row per native DL gap.
+/// Emit one [`DivergenceKind::DlGap`] row per native DL coverage defect.
 ///
-/// Each gap is a known limitation of the predicate-as-symbol encoding (a construct
-/// whose consistency the native check does not decide); the row carries the gap's
-/// message and code as its `detail`, with empty positional fields.
+/// Each gap is a construct whose consistency the native check did not decide;
+/// the row carries the gap's message and code as its `detail`, with empty
+/// positional fields.
 pub fn dl_gap_rows(gaps: &[RdfLoss]) -> Vec<LedgerRow> {
     gaps.iter()
         .map(|gap| LedgerRow {

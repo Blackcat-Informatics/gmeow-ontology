@@ -10,8 +10,8 @@
 //!   RDF 1.2 reifier annotated with its derivation provenance.
 //! * **reasoning-explanations** — a per-axiom proof skeleton linking each
 //!   conclusion (a triple term) to its premises and firing rule.
-//! * **dl-el-crosscheck-report** — the report-only native↔oracle divergence
-//!   ledger (#666 enforces; this lane only records the native verdict).
+//! * **dl-el-crosscheck-report** — the native↔oracle divergence ledger; `DlGap`
+//!   rows are coverage defects, so the committed bundle must emit zero.
 //!
 //! These builders are the Rust port of the retired Python emitters
 //! (`gmeow_tools.reason.build_*_ttl`). They serialize via the gmeow-rdf
@@ -81,12 +81,11 @@ const EXPLANATIONS_HEADER: &str = "\
 
 /// Banner + prefix block prepended to the native↔oracle divergence ledger.
 const LEDGER_HEADER: &str = "\
-# GMEOW native vs ELK/HermiT DL/EL crosscheck ledger (REPORT-ONLY).
+# GMEOW native vs ELK/HermiT DL/EL crosscheck ledger.
 # Built from the native EL/DL reasoning lane ONLY (Java/Docker-free). The
-# oracle comparison and divergence ENFORCEMENT are deferred to the
-# classic-cross-check lane (#666); this ledger records the native verdict,
-# the native-only subsumption entailments, and the beyond-EL gaps. DO NOT
-# EDIT.
+# oracle comparison runs in the classic-cross-check lane; DlGap rows are
+# native coverage defects and the committed bundle must keep gapCount at 0.
+# DO NOT EDIT.
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
@@ -301,19 +300,19 @@ fn emit_anonymous_resource(properties: &[(String, String)]) -> String {
 
 // ── dl-el-crosscheck-report ─────────────────────────────────────────────────────
 
-/// Render the report-only native↔oracle DL/EL crosscheck ledger as Turtle.
+/// Render the native↔oracle DL/EL crosscheck ledger as Turtle.
 ///
-/// Built from the native results ONLY (the gate stays Java/Docker-free): the
-/// oracle comparison and divergence enforcement are deferred to the
-/// `classic-cross-check` lane (#666). Emits the ledger header (consistency
-/// verdict + report-only note), one `gmeow:LedgerEntry` of kind
-/// `gmeow:NativeOnly` per derived `rdfs:subClassOf` entailment, one
-/// `gmeow:DlGap` per beyond-EL gap, and the entailment/gap counts.
+/// Built from the native results ONLY (the gate stays Java/Docker-free). Emits
+/// the ledger header, one `gmeow:LedgerEntry` of kind `gmeow:NativeOnly` per
+/// derived `rdfs:subClassOf` entailment, one `gmeow:DlGap` per native coverage
+/// defect, and the entailment/gap counts. The committed bundle is expected to
+/// have zero `DlGap` rows.
 pub fn build_dl_el_ledger_ttl(result: &ReasonResult) -> String {
-    const DEFERRED_NOTE: &str = "oracle comparison deferred to classic-cross-check #666";
+    const DEFERRED_NOTE: &str =
+        "oracle comparison runs in classic-cross-check; native gaps fail #697";
     let mut out = String::from(LEDGER_HEADER);
 
-    out.push_str("\n# --- ledger header (report-only; #666 enforces) ---\n");
+    out.push_str("\n# --- ledger header (native coverage; #697 gap-zero) ---\n");
     out.push_str(&emit_resource(
         &gmeow("dl-el-crosscheck"),
         &[
@@ -331,7 +330,8 @@ pub fn build_dl_el_ledger_ttl(result: &ReasonResult) -> String {
             ),
             (
                 gmeow("oracleCrosscheck"),
-                "\"deferred to classic-cross-check (#666); ledger is report-only\"@en".to_owned(),
+                "\"classic-cross-check confirms the native result; DlGap is a failure\"@en"
+                    .to_owned(),
             ),
         ],
     ));
@@ -364,8 +364,8 @@ pub fn build_dl_el_ledger_ttl(result: &ReasonResult) -> String {
         ));
     }
 
-    // Beyond-EL DL gaps.
-    out.push_str("\n# --- beyond-EL DL gaps ---\n");
+    // Native DL coverage defects.
+    out.push_str("\n# --- native DL coverage defects ---\n");
     for (index, gap) in result.verdict.gaps.iter().enumerate() {
         out.push_str(&emit_resource(
             &gmeow(&format!("dl-gap-{index}")),
@@ -448,7 +448,7 @@ fn emit_annotation_triple(annotation: &RdfAnnotation) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::reason::dl::DlVerdict;
+    use crate::reason::dl::{DlCoverage, DlVerdict};
     use crate::reason::el::InferredAxiom;
 
     fn axiom(s: &str, p: &str, o: &str, rule: Option<&str>) -> InferredAxiom {
@@ -494,6 +494,11 @@ mod tests {
                 consistent,
                 unsatisfiable_classes: vec![],
                 inconsistencies: vec![],
+                coverage: DlCoverage {
+                    present: vec![],
+                    decided: vec![],
+                    unsupported: vec![],
+                },
                 gaps: vec![],
             },
         }
@@ -573,9 +578,14 @@ mod tests {
             consistent: false,
             unsatisfiable_classes: vec![],
             inconsistencies: vec![],
+            coverage: DlCoverage {
+                present: vec!["complementOf".to_owned()],
+                decided: vec![],
+                unsupported: vec!["complementOf".to_owned()],
+            },
             gaps: vec![gmeow_rdf::RdfLoss::new(
                 "reason.dl-gap.complementOf",
-                "beyond EL",
+                "native coverage defect",
             )],
         };
         verdict.consistent = false;

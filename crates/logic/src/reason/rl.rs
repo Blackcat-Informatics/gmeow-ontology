@@ -51,6 +51,10 @@
 //! * **scm-dom1/dom2 / scm-rng1/rng2** — domain/range propagate up the class
 //!   hierarchy and down the sub-property hierarchy.
 //! * **cls-svf1** — `owl:someValuesFrom` restriction membership.
+//! * **cls-avf / cls-hv / cls-oneOf / cls-union** — the bundle's finite DL
+//!   class-expression surface that has positive entailment consequences:
+//!   universal restrictions, value restrictions, nominals, unions, and
+//!   disjoint-union member subsumption.
 //! * **cls-int1** — length-2 `owl:intersectionOf` membership; together with
 //!   cls-svf1 + scm-eqc1 this recognizes the `owl:equivalentClass` defined
 //!   classes (e.g. `PlaceNaming ≡ NameUsage ⊓ ∃usageNamed.Place`, #105).
@@ -218,6 +222,51 @@ triple(?x, <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>, ?r, ?w) :-
     triple(?r, <http://www.w3.org/2002/07/owl#someValuesFrom>, ?c, ?w),
     triple(?x, ?p, ?y, ?w),
     triple(?y, <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>, ?c, ?w) .
+
+% ── cls-avf: allValuesFrom restriction value typing ─────────────────────────
+#[name("rl:cls-avf")]
+triple(?y, <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>, ?c, ?w) :-
+    triple(?x, <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>, ?r, ?w),
+    triple(?r, <http://www.w3.org/2002/07/owl#onProperty>, ?p, ?w),
+    triple(?r, <http://www.w3.org/2002/07/owl#allValuesFrom>, ?c, ?w),
+    triple(?x, ?p, ?y, ?w) .
+
+% ── cls-hv1/2: hasValue restriction assertion + recognition ────────────────
+#[name("rl:cls-hv1")]
+triple(?x, ?p, ?v, ?w) :-
+    triple(?x, <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>, ?r, ?w),
+    triple(?r, <http://www.w3.org/2002/07/owl#onProperty>, ?p, ?w),
+    triple(?r, <http://www.w3.org/2002/07/owl#hasValue>, ?v, ?w) .
+#[name("rl:cls-hv2")]
+triple(?x, <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>, ?r, ?w) :-
+    triple(?r, <http://www.w3.org/2002/07/owl#onProperty>, ?p, ?w),
+    triple(?r, <http://www.w3.org/2002/07/owl#hasValue>, ?v, ?w),
+    triple(?x, ?p, ?v, ?w) .
+
+% ── RDF list membership helper for finite class expressions ─────────────────
+#[name("rl:list-member-head")]
+list_member(?l, ?x, ?w) :-
+    triple(?l, <http://www.w3.org/1999/02/22-rdf-syntax-ns#first>, ?x, ?w) .
+#[name("rl:list-member-tail")]
+list_member(?l, ?x, ?w) :-
+    triple(?l, <http://www.w3.org/1999/02/22-rdf-syntax-ns#rest>, ?r, ?w),
+    list_member(?r, ?x, ?w) .
+
+% ── cls-oneOf: nominal members are instances of the enumeration class ───────
+#[name("rl:cls-oneOf")]
+triple(?x, <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>, ?c, ?w) :-
+    triple(?c, <http://www.w3.org/2002/07/owl#oneOf>, ?l, ?w),
+    list_member(?l, ?x, ?w) .
+
+% ── cls-union/disjointUnion: members are subclasses of the containing class ──
+#[name("rl:cls-union-member")]
+triple(?m, <http://www.w3.org/2000/01/rdf-schema#subClassOf>, ?c, ?w) :-
+    triple(?c, <http://www.w3.org/2002/07/owl#unionOf>, ?l, ?w),
+    list_member(?l, ?m, ?w) .
+#[name("rl:cls-disjointUnion-member")]
+triple(?m, <http://www.w3.org/2000/01/rdf-schema#subClassOf>, ?c, ?w) :-
+    triple(?c, <http://www.w3.org/2002/07/owl#disjointUnionOf>, ?l, ?w),
+    list_member(?l, ?m, ?w) .
 
 % ── cls-int1: length-2 intersectionOf membership ────────────────────────────
 % `C intersectionOf ( C1 C2 ); x a C1; x a C2` ⇒ `x a C`. The intersection list

@@ -83,8 +83,10 @@ def reason_native(gts_bytes: bytes) -> dict[str, Any]:
       is_edb, rule_name}`` (told + derived; ``is_edb`` marks asserted axioms).
     * ``unsatisfiable_classes`` — list of ``{class, world}`` dicts.
     * ``inconsistencies`` — list of ``{individual, world}`` dicts.
-    * ``gaps`` — list of ``{code, message}`` dicts naming the beyond-EL axioms
-      whose consistency only the HermiT oracle decides.
+    * ``coverage`` — dict ``{present, decided, unsupported}`` naming the native
+      DL construct families seen and decided.
+    * ``gaps`` — list of ``{code, message}`` dicts naming native coverage
+      defects. This must be empty for the committed bundle.
     """
     ...
 
@@ -100,7 +102,7 @@ def reason_native_artifacts(gts_bytes: bytes, merge: bool = ...) -> dict[str, st
       is prepended so the document is the union of asserted and derived axioms.
     * ``explanations`` — per-axiom proof-skeleton Turtle (conclusion → premises
       → firing rule).
-    * ``ledger`` — the report-only native↔oracle DL/EL crosscheck ledger Turtle.
+    * ``ledger`` — the native gap-zero DL/EL crosscheck ledger Turtle.
 
     Raises ``ValueError`` if the GTS bundle cannot be read, ``RuntimeError`` if
     reasoning fails or a derived axiom is missing its rule name.
@@ -159,8 +161,8 @@ def build_divergence_ledger(
       ``hermit_consistent`` is ``None`` when HermiT was not run (recorded as a
       native-only note, never a divergence).
     * ``native_unsat`` / ``hermit_unsat`` — unsatisfiable-class IRIs.
-    * ``gaps`` — list of ``(code, message)`` beyond-EL DL gaps; each becomes one
-      honest, non-failing ``DlGap`` row.
+    * ``gaps`` — list of ``(code, message)`` native DL coverage defects; each
+      becomes one failing ``DlGap`` row.
 
     Returns a dict ``{"rows": [{kind, category, subject, object, world, detail},
     ...], "agree": int, "native_only": int, "oracle_only": int, "dl_gap": int}``

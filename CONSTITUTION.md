@@ -423,8 +423,8 @@ the *authoring* gate as well: the reasoner is no longer a heavyweight release-on
 ELK and HermiT are not discarded — they remain the *secondary validators* Principle 17 names, but
 they move off the critical path. The committed divergence ledger
 (`generated/logic/dl-el-crosscheck-report.ttl`) is built from the native results **only**: it records
-the native consistency verdict, the native-only subsumption entailments, and the beyond-EL DL gaps,
-and it carries an explicit note that the oracle comparison and divergence *enforcement* run in the
+the native consistency verdict, the native-only subsumption entailments, and the native DL coverage
+defect count, which must stay zero for the committed bundle. The oracle comparison runs in the
 `classic-cross-check` lane, which is the home of the Java/Docker oracle pass. The
 authoritative gate thus stays green offline, on any machine, with no privileged daemon — and the
 oracle cross-check becomes an independent, separately-scheduled confirmation rather than a
@@ -445,9 +445,9 @@ SHACL/validation. The **`classic-cross-check`** lane — `make maint-classic-cro
 deliberately **non-required** CI job — is the *sole* Java+Docker surface: it runs the legacy oracles
 (ELK, HermiT, ROBOT, Jena) and `owlrl`, and it **enforces** agreement, strictly and without a knob —
 any `NativeOnly`/`OracleOnly` divergence (native↔ELK/HermiT subsumption + consistency) or native↔`owlrl`
-RL divergence fails the lane; only a named beyond-EL `DlGap` is honest-expected. The lane MUST NOT be a
-requirement of using the repo normally. The committed `dl-el-crosscheck-report.ttl` stays report-only on
-the primary path (built from native results, Docker-free); enforcement lives only in the lane, which
+RL divergence fails the lane; any `DlGap` is a native coverage defect and fails. The lane MUST NOT be a
+requirement of using the repo normally. The committed `dl-el-crosscheck-report.ttl` stays native-built on
+the primary path (built from native results, Docker-free) with `gapCount` required at zero; the lane
 emits its agreement + timing data through the `gmeow-diagnostics` SARIF rail (the gate taxonomy this
 issue owns). Producer inversion of the Jena RDF-1.2 codec is **done**: the
 statement lead artifact (`generated/statements/gmeow.rdf12.ttl`) is written natively by `gmeow-rdf`
@@ -461,8 +461,8 @@ the `reason --mode native` CLI command, the `native-reasoning` registered genera
 ([`src/gmeow_tools/native_reason_gen.py`](./src/gmeow_tools/native_reason_gen.py)), and the enforcing
 `classic-cross-check` lane ([`src/gmeow_tools/classic_cross_check.py`](./src/gmeow_tools/classic_cross_check.py),
 [`src/gmeow_tools/rl_agreement.py`](./src/gmeow_tools/rl_agreement.py)). *Tested by:* the
-native-reasoning authority gate (`meta:gate-reason-native`), the report-only native↔oracle
-divergence ledger gate (`meta:gate-dl-el-crosscheck`), the enforcing classic-cross-check lane gate
+native-reasoning authority gate (`meta:gate-reason-native`), the native gap-zero divergence ledger
+gate (`meta:gate-dl-el-crosscheck`), the enforcing classic-cross-check lane gate
 (`meta:gate-classic-cross-check`), and the executable lane-purity seal
 ([`tests/test_lane_purity.py`](./tests/test_lane_purity.py), `meta:tests-lane-purity`) that statically
 proves the required CI `quality` jobs and `make check` carry no Java and no Docker — whose

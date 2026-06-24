@@ -967,8 +967,8 @@ fn ledger_row_to_dict(
 /// - `hermit_consistent` — HermiT's consistency verdict, or `None` if HermiT was
 ///   not run (recorded as a native-only note, never a divergence).
 /// - `hermit_unsat` — HermiT's unsatisfiable-class IRIs.
-/// - `gaps` — beyond-EL DL gap codes/messages, each a 2-tuple `(code, message)`;
-///   each becomes one honest, non-failing `DlGap` row.
+/// - `gaps` — native DL coverage defects, each a 2-tuple `(code, message)`;
+///   each becomes one failing `DlGap` row.
 ///
 /// # Returns
 ///
@@ -1066,7 +1066,8 @@ fn build_divergence_ledger(
 ///   (`rule_name` is `None` for asserted EDB axioms)
 /// - `unsatisfiable_classes` (`list[dict]`): each `{class, world}`
 /// - `inconsistencies` (`list[dict]`): each `{individual, world}`
-/// - `gaps` (`list[dict]`): each `{code, message}` — the named beyond-EL constructs
+/// - `coverage` (`dict`): `{present, decided, unsupported}` construct lists
+/// - `gaps` (`list[dict]`): each `{code, message}` — native coverage defects
 ///
 /// # Errors
 ///
@@ -1133,6 +1134,12 @@ fn reason_native(py: Python<'_>, gts_bytes: &[u8]) -> PyResult<Py<PyAny>> {
     }
     out.set_item("inconsistencies", inconsist)?;
 
+    let coverage = PyDict::new(py);
+    coverage.set_item("present", result.verdict.coverage.present.clone())?;
+    coverage.set_item("decided", result.verdict.coverage.decided.clone())?;
+    coverage.set_item("unsupported", result.verdict.coverage.unsupported.clone())?;
+    out.set_item("coverage", coverage)?;
+
     let gaps = PyList::empty(py);
     for g in &result.verdict.gaps {
         let d = PyDict::new(py);
@@ -1169,7 +1176,7 @@ fn reason_native(py: Python<'_>, gts_bytes: &[u8]) -> PyResult<Py<PyAny>> {
 /// A dict with three string keys:
 /// - `closure` — the told-vs-inferred inferred-closure Turtle.
 /// - `explanations` — the per-axiom proof-skeleton Turtle.
-/// - `ledger` — the report-only native↔oracle DL/EL crosscheck ledger Turtle.
+/// - `ledger` — the native gap-zero DL/EL crosscheck ledger Turtle.
 ///
 /// # Errors
 ///
