@@ -1725,6 +1725,7 @@ dependencies = [
  "gmeow-gts",
  "gmeow-logic",
  "gmeow-rdf",
+ "gmeow-shacl",
  "gmeow-slice",
  "oxigraph",
  "parquet",

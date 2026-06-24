@@ -336,6 +336,16 @@ fn compile_object_schema(shape: &Shape, ctx: &mut Ctx) -> Value {
     // Track declared property keys for sh:closed → additionalProperties: false.
     let mut declared_keys: Vec<String> = Vec::new();
 
+    // Group property-shape constraints by JSON key. A node shape may carry
+    // SEVERAL `sh:property` blocks for the SAME path (e.g. one `sh:minCount 1`
+    // and one `sh:maxCount 1`), and their blank-node ids are randomly minted by
+    // the RDF store — so iterating `property_shapes` directly and inserting per
+    // shape would (a) be NON-DETERMINISTIC (last writer wins on a random order)
+    // and (b) DROP one block's constraints. Merging the constraint lists per key
+    // and compiling once is both order-independent and semantically complete.
+    // `BTreeMap` keeps the emitted property order deterministic (sorted keys).
+    let mut by_key: std::collections::BTreeMap<String, Vec<Constraint>> =
+        std::collections::BTreeMap::new();
     for ps in &shape.property_shapes {
         // Inverse paths do not shape outgoing JSON properties: skip but note it.
         let pred = match &ps.path {
@@ -348,13 +358,19 @@ fn compile_object_schema(shape: &Shape, ctx: &mut Ctx) -> Value {
             }
         };
         let key = compact_iri(pred.as_str());
-        declared_keys.push(key.clone());
+        by_key
+            .entry(key)
+            .or_default()
+            .extend(ps.constraints.iter().cloned());
+    }
 
-        let (value_schema, is_required) = compile_property(&ps.constraints, &shape_iri, &key, ctx);
+    for (key, constraints) in &by_key {
+        declared_keys.push(key.clone());
+        let (value_schema, is_required) = compile_property(constraints, &shape_iri, key, ctx);
         if is_required {
             required.push(key.clone());
         }
-        properties.insert(key, value_schema);
+        properties.insert(key.clone(), value_schema);
     }
 
     // ── Node-level constraints ──

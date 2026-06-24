@@ -15,9 +15,10 @@
 //!    hand-written ones, so their absence would silently stop enforcing P11);
 //! 3. every `slices/*/*/shapes.ttl` (sorted) — exactly two directory levels.
 
+use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
-use oxigraph::io::RdfFormat;
+use oxigraph::io::{RdfFormat, RdfParser};
 use oxigraph::store::Store;
 
 use crate::shapes::{self, Shapes};
@@ -71,21 +72,44 @@ pub fn shape_files(repo_root: &Path) -> Result<Vec<PathBuf>, String> {
 /// parse it into a typed [`Shapes`]. Returns both so a caller (e.g. the instance
 /// projector) can reuse the store.
 ///
+/// The union's document `@prefix` declarations are recovered and threaded into
+/// [`shapes::from_store_with_prefixes`] (oxigraph stores do not retain prefix
+/// maps): SHACL-AF `sh:select` queries — e.g. the music `MetricGroupShape`
+/// uniqueness constraint — use prefixed names like `gmeow:` and fail to parse
+/// without them. This mirrors the live validator (`engine::parse_shapes`, #578).
+/// When the same prefix is declared in multiple files, the last declaration wins
+/// (deterministic via the merge order over the sorted file list).
+///
 /// # Errors
 ///
 /// Returns `Err` when a file cannot be read, fails to parse as Turtle, or when
-/// [`shapes::from_store`] rejects an unsupported SHACL construct.
+/// [`shapes::from_store_with_prefixes`] rejects an unsupported SHACL construct.
 pub fn load_shapes(repo_root: &Path) -> Result<(Store, Shapes), String> {
     let files = shape_files(repo_root)?;
     let store = Store::new().map_err(|e| format!("failed to create store: {e}"))?;
+    let mut prefix_map: BTreeMap<String, String> = BTreeMap::new();
     for file in &files {
         let bytes = std::fs::read(file)
             .map_err(|e| format!("failed to read shape file {}: {e}", file.display()))?;
-        store
-            .load_from_reader(RdfFormat::Turtle, bytes.as_slice())
-            .map_err(|e| format!("failed to parse Turtle shape file {}: {e}", file.display()))?;
+        // Drive the parser by iterator (not `load_from_reader`) so the per-file
+        // `@prefix` map can be recovered — see the doc comment above.
+        let mut parser = RdfParser::from_format(RdfFormat::Turtle)
+            .lenient()
+            .for_reader(bytes.as_slice());
+        for quad in parser.by_ref() {
+            let quad = quad.map_err(|e| {
+                format!("failed to parse Turtle shape file {}: {e}", file.display())
+            })?;
+            store
+                .insert(&quad)
+                .map_err(|e| format!("shapes store insert failed: {e}"))?;
+        }
+        for (prefix, namespace) in parser.prefixes() {
+            prefix_map.insert(prefix.to_owned(), namespace.to_owned());
+        }
     }
-    let shapes = shapes::from_store(&store)?;
+    let doc_prefixes: Vec<(String, String)> = prefix_map.into_iter().collect();
+    let shapes = shapes::from_store_with_prefixes(&store, &doc_prefixes)?;
     Ok((store, shapes))
 }
 
