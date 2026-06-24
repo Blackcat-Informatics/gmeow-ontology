@@ -1,0 +1,272 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Declarative structural assertions for the versions slice (#161) — the
+# slice-resident test-DSL twin of the asserted-TBox MUST / MUST-NOT invariants
+# formerly hand-written in tests/test_versions.py. Each assertion runs as a
+# SPARQL ASK over the versions module graph (gmeow:scopeModule) under the
+# native Rust harness (crates/slicetest).
+#
+# Versions is NOT yet #694-migrated, so class stereotypes remain gufo:
+# (gufo:Kind, gufo:SubKind, gufo:AbstractIndividualType, gufo:QualityValue,
+# gufo:Relator), not logic:.
+#
+# RETAINED in pytest (cross-slice subject):
+#   test_version_label_domain_is_entity — gmeow:versionLabel is defined in
+#   slices/extensions/languages/module.ttl, not here; a scopeModule cell would
+#   silently miss it.
+#
+# See dsl/tests/MIGRATION-LEDGER.md for the per-test pytest→DSL mapping.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/versions/tests/> .
+
+# --- 1. VersionSet is a gufo:Kind subclass of InformationObject (MUST) --------
+ex:saVersionSetIsInformationObject a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:VersionSet a owl:Class , gufo:Kind ;
+        rdfs:subClassOf gmeow:InformationObject .
+}""" ;
+    gmeow:saRationale "gmeow:VersionSet MUST be an owl:Class typed gufo:Kind and a subclass of gmeow:InformationObject — the version lineage is a first-class information object so it can carry identifiers and authority links (#161). Mirrors test_versionset_is_information_object." .
+
+# --- 2. VersionMembership is a gufo:SubKind of Observation and gufo:Relator (MUST) ---
+ex:saVersionMembershipIsObservationAndRelator a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:VersionMembership a owl:Class ;
+        rdfs:subClassOf gmeow:Observation ;
+        rdfs:subClassOf gufo:Relator .
+}""" ;
+    gmeow:saRationale "gmeow:VersionMembership MUST be an owl:Class, a subclass of gmeow:Observation (universal claim stack), and a subclass of gufo:Relator (reified mediation relator) — the dual typing keeps it in OWL 2 DL and hooks it into the observation spine (#161). Mirrors test_versionmembership_is_observation_and_relat." .
+
+# --- 3a. versionMember is an ObjectProperty and FunctionalProperty (MUST) -----
+ex:saVersionMemberFunctional a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    gmeow:versionMember a owl:ObjectProperty , owl:FunctionalProperty .
+}""" ;
+    gmeow:saRationale "gmeow:versionMember MUST be both an owl:ObjectProperty and owl:FunctionalProperty — one member per VersionMembership relator; a second member collapses the two (#161). Mirrors test_version_membership_functional_roles (versionMember arm)." .
+
+# --- 3b. versionSet is an ObjectProperty and FunctionalProperty (MUST) --------
+ex:saVersionSetPropertyFunctional a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    gmeow:versionSet a owl:ObjectProperty , owl:FunctionalProperty .
+}""" ;
+    gmeow:saRationale "gmeow:versionSet MUST be both an owl:ObjectProperty and owl:FunctionalProperty — one set per VersionMembership relator (#161). Mirrors test_version_membership_functional_roles (versionSet arm)." .
+
+# --- 4a. versionRole is an ObjectProperty (MUST) ------------------------------
+ex:saVersionRoleIsObjectProperty a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    gmeow:versionRole a owl:ObjectProperty .
+}""" ;
+    gmeow:saRationale "gmeow:versionRole MUST be an owl:ObjectProperty — it carries the standpoint-scoped role classification for a membership (#161). Mirrors test_version_role_and_scale_are_not_functional (versionRole ObjectProperty half)." .
+
+# --- 4b. versionRole is NOT functional (MUST-NOT) ----------------------------
+ex:saVersionRoleNotFunctional a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    gmeow:versionRole a owl:FunctionalProperty .
+}""" ;
+    gmeow:saRationale "gmeow:versionRole MUST NOT be functional — competing authority roles coexist without privilege (Principle 9); standpoint-indexed coexistence requires non-functionality. Mirrors test_version_role_and_scale_are_not_functional (versionRole FunctionalProperty mustNot)." .
+
+# --- 4c. versionScale is an ObjectProperty (MUST) ----------------------------
+ex:saVersionScaleIsObjectProperty a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    gmeow:versionScale a owl:ObjectProperty .
+}""" ;
+    gmeow:saRationale "gmeow:versionScale MUST be an owl:ObjectProperty — it carries the magnitude classification for a membership (#161). Mirrors test_version_role_and_scale_are_not_functional (versionScale ObjectProperty half)." .
+
+# --- 4d. versionScale is NOT functional (MUST-NOT) ---------------------------
+ex:saVersionScaleNotFunctional a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    gmeow:versionScale a owl:FunctionalProperty .
+}""" ;
+    gmeow:saRationale "gmeow:versionScale MUST NOT be functional — rival scheme classifications coexist; standpoint-indexed coexistence requires non-functionality (Principle 9). Mirrors test_version_role_and_scale_are_not_functional (versionScale FunctionalProperty mustNot)." .
+
+# --- 5. membershipInterval is an ObjectProperty with range TimeInterval (MUST) ---
+ex:saMembershipIntervalProperty a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:membershipInterval a owl:ObjectProperty ;
+        rdfs:range gmeow:TimeInterval .
+}""" ;
+    gmeow:saRationale "gmeow:membershipInterval MUST be an owl:ObjectProperty with rdfs:range gmeow:TimeInterval — it bounds a role claim in time consistent with the relator pattern; duringInterval is reserved for gufo:Situation relations (#161). Mirrors test_membership_interval_is_object_property." .
+
+# (membershipAuthority's `subPropertyOf vantage` bridge is asserted in the OBSERVATIONS
+#  module, not versions, so it cannot be a versions module-scoped cell — it is already
+#  covered by observations' ex:saPropertyBridges. test_membership_authority_bridges_to_vantage
+#  is therefore retained-with-reason in pytest, see dsl/tests/MIGRATION-LEDGER.md.)
+
+# --- 7. versionFingerprint is a DatatypeProperty with domain Entity (MUST) ----
+ex:saVersionFingerprintProperty a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:versionFingerprint a owl:DatatypeProperty ;
+        rdfs:domain gmeow:Entity .
+}""" ;
+    gmeow:saRationale "gmeow:versionFingerprint MUST be an owl:DatatypeProperty with rdfs:domain gmeow:Entity — it attaches semantic fingerprints (SWHID, canonical-form digest) to any versioned entity, broader than gmeow:contentDigest (#161). Mirrors test_version_fingerprint_is_datatype_property_on_entity." .
+
+# --- 8a. VersionRole is a subclass of gufo:QualityValue (MUST) ---------------
+ex:saVersionRoleIsQualityValue a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:VersionRole a owl:Class ;
+        rdfs:subClassOf gufo:QualityValue .
+}""" ;
+    gmeow:saRationale "gmeow:VersionRole MUST be an owl:Class and a subclass of gufo:QualityValue — roles are open individual value vocabulary, never Entity subclasses (Principle 9, #161). Mirrors test_version_role_value_vocabulary (VersionRole class half)." .
+
+# --- 8b. All twelve VersionRole seed individuals exist (MUST) -----------------
+ex:saVersionRoleSeeds a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    gmeow:roleCanonical    a gmeow:VersionRole .
+    gmeow:roleVariant      a gmeow:VersionRole .
+    gmeow:roleLatest       a gmeow:VersionRole .
+    gmeow:roleStable       a gmeow:VersionRole .
+    gmeow:roleLTS          a gmeow:VersionRole .
+    gmeow:roleDeprecated   a gmeow:VersionRole .
+    gmeow:roleYanked       a gmeow:VersionRole .
+    gmeow:roleDraft        a gmeow:VersionRole .
+    gmeow:rolePublished    a gmeow:VersionRole .
+    gmeow:roleRevised      a gmeow:VersionRole .
+    gmeow:roleCollected    a gmeow:VersionRole .
+    gmeow:roleWithdrawn    a gmeow:VersionRole .
+}""" ;
+    gmeow:saRationale "All twelve VersionRole seed individuals MUST be present as gmeow:VersionRole individuals — the anchor list covers canonical, variant, latest, stable, LTS, deprecated, yanked, draft, published, revised, collected, and withdrawn (#161). Mirrors test_version_role_value_vocabulary (seed individuals half)." .
+
+# --- 9a. VersionScale is a subclass of gufo:QualityValue (MUST) --------------
+ex:saVersionScaleIsQualityValue a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:VersionScale a owl:Class ;
+        rdfs:subClassOf gufo:QualityValue .
+}""" ;
+    gmeow:saRationale "gmeow:VersionScale MUST be an owl:Class and a subclass of gufo:QualityValue — change magnitude is an open individual value vocabulary, never Entity subclasses (Principle 9, #161). Mirrors test_version_scale_value_vocabulary (VersionScale class half)." .
+
+# --- 9b. All three VersionScale seed individuals exist (MUST) -----------------
+ex:saVersionScaleSeeds a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    gmeow:scaleTrivial a gmeow:VersionScale .
+    gmeow:scaleMinor   a gmeow:VersionScale .
+    gmeow:scaleMajor   a gmeow:VersionScale .
+}""" ;
+    gmeow:saRationale "All three VersionScale seed individuals MUST be present — trivial, minor, and major cover SemVer-style and analogous non-software magnitude schemes (#161). Mirrors test_version_scale_value_vocabulary (seed individuals half)." .
+
+# --- 10. No hard-coded role subclasses exist (MUST-NOT) ----------------------
+ex:saNoVersionRoleSubclasses a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    VALUES ?rejected {
+        gmeow:CanonicalVersion
+        gmeow:LatestVersion
+        gmeow:StableVersion
+        gmeow:YankedVersion
+        gmeow:DeprecatedVersion
+        gmeow:DraftVersion
+        gmeow:VariantVersion
+        gmeow:LTSVersion
+    }
+    ?rejected a owl:Class .
+}""" ;
+    gmeow:saRationale "Hard-coded version-role subclasses (CanonicalVersion, LatestVersion, StableVersion, YankedVersion, DeprecatedVersion, DraftVersion, VariantVersion, LTSVersion) MUST NOT be declared as owl:Class — roles are standpoint-scoped individual values, never essential types (Principle 9, #161). Mirrors test_no_version_role_subclasses_exist." .
+
+# --- 11a. VersionMembership has an EL restriction on versionMember→Entity (MUST) ---
+ex:saVersionMemberELRestriction a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:VersionMembership rdfs:subClassOf ?r .
+    ?r owl:onProperty gmeow:versionMember ;
+       owl:someValuesFrom gmeow:Entity .
+}""" ;
+    gmeow:saRationale "gmeow:VersionMembership MUST have an EL someValuesFrom restriction on gmeow:versionMember with filler gmeow:Entity — the OWL 2 DL existential keeps the relator in the EL fragment (#161). Mirrors test_versionmembership_has_el_restrictions (versionMember arm)." .
+
+# --- 11b. VersionMembership has an EL restriction on versionSet→VersionSet (MUST) ---
+ex:saVersionSetELRestriction a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:VersionMembership rdfs:subClassOf ?r .
+    ?r owl:onProperty gmeow:versionSet ;
+       owl:someValuesFrom gmeow:VersionSet .
+}""" ;
+    gmeow:saRationale "gmeow:VersionMembership MUST have an EL someValuesFrom restriction on gmeow:versionSet with filler gmeow:VersionSet — the existential anchors the relator to its lineage in OWL 2 DL (#161). Mirrors test_versionmembership_has_el_restrictions (versionSet arm)." .
+
+# --- 11c. VersionMembership has an EL restriction on membershipAuthority→Agent (MUST) ---
+ex:saMembershipAuthorityELRestriction a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:VersionMembership rdfs:subClassOf ?r .
+    ?r owl:onProperty gmeow:membershipAuthority ;
+       owl:someValuesFrom gmeow:Agent .
+}""" ;
+    gmeow:saRationale "gmeow:VersionMembership MUST have an EL someValuesFrom restriction on gmeow:membershipAuthority with filler gmeow:Agent — the existential ensures every membership claim is attributed to an asserting agent (Principle 9, #161). Mirrors test_versionmembership_has_el_restrictions (membershipAuthority arm)." .

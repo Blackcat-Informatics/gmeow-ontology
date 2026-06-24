@@ -1,0 +1,260 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Declarative structural assertions for the tags slice — the slice-resident
+# test-DSL twin of the asserted-TBox MUST / MUST-NOT invariants formerly
+# hand-written in tests/test_tags.py. Each assertion runs as a SPARQL ASK over
+# the tags module graph (gmeow:scopeModule) under the native Rust slicetest
+# harness (crates/slicetest).
+#
+# This slice has NOT been #694-migrated so class stereotypes remain gufo:
+# (gufo:Kind, gufo:Relator), not logic:.
+#
+# RETAINED in pytest (dynamic combinatorial sweep):
+#   test_no_bridge_among_has_tag_is_about_and_rdf_type — iterates
+#   combinations(axes, 2) where axes includes rdf:type (not an owl:ObjectProperty
+#   in the ontology graph); the rdf:type-containing pairs would silently narrow
+#   in a scopeModule cell. The meaningful guard (hasTag ↔ isAbout subPropertyOf
+#   and equivalentProperty) is fully covered here by dedicated cells; the
+#   rdf:type-involving pairs are trivially absent and kept in pytest for
+#   whole-graph closed-world proof.
+#
+# See dsl/tests/MIGRATION-LEDGER.md for the per-test pytest→DSL mapping.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/tags/tests/> .
+
+# --- 1a. Tag is a subclass of InformationObject (MUST) ------------------------
+ex:saTagSubclassInformationObject a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK { gmeow:Tag rdfs:subClassOf gmeow:InformationObject . }""" ;
+    gmeow:saRationale "gmeow:Tag MUST be a subclass of gmeow:InformationObject — tags are information objects whose identity is their IRI. Mirrors test_tag_is_information_object (Tag arm)." .
+
+# --- 1b. TagScheme is a subclass of InformationObject (MUST) ------------------
+ex:saTagSchemeSubclassInformationObject a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK { gmeow:TagScheme rdfs:subClassOf gmeow:InformationObject . }""" ;
+    gmeow:saRationale "gmeow:TagScheme MUST be a subclass of gmeow:InformationObject — a tag scheme is a namespaced information object. Mirrors test_tag_is_information_object (TagScheme arm)." .
+
+# --- 2. Tagging is a subclass of gufo:Relator (MUST) -------------------------
+ex:saTaggingSubclassRelator a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK { gmeow:Tagging rdfs:subClassOf gufo:Relator . }""" ;
+    gmeow:saRationale "gmeow:Tagging MUST be a subclass of gufo:Relator — a reified tagging act is a relator mediating tagged resource, tag, and tagger. Mirrors test_tagging_is_a_relator." .
+
+# --- 3a. Seed tag individuals are typed gmeow:Tag (MUST) ----------------------
+ex:saTagSeedIndividualsTyped a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+ASK {
+    gmeow:tagUrgent rdf:type gmeow:Tag .
+    gmeow:tagTodo   rdf:type gmeow:Tag .
+    gmeow:tagReview rdf:type gmeow:Tag .
+}""" ;
+    gmeow:saRationale "gmeow:tagUrgent, gmeow:tagTodo, and gmeow:tagReview MUST be typed as gmeow:Tag individuals — seed values are open individuals, not subclasses (Principle 9). Mirrors test_tag_values_are_individuals_not_subclasses (individuals half)." .
+
+# --- 3b. No per-tag owl:Class subclasses exist (MUST-NOT) --------------------
+ex:saNoPerTagSubclasses a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    VALUES ?rejected { gmeow:UrgentTag gmeow:TodoTag gmeow:ReviewTag }
+    ?rejected a owl:Class .
+}""" ;
+    gmeow:saRationale "gmeow:UrgentTag, gmeow:TodoTag, and gmeow:ReviewTag MUST NOT be declared as owl:Class — per-tag subclasses are banned; tags are open individuals, not types (Principle 9). Mirrors test_tag_values_are_individuals_not_subclasses (rejected subclasses half)." .
+
+# --- 4a. hasTag is an ObjectProperty with range Tag (MUST) -------------------
+ex:saHasTagPropertyShape a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:hasTag a owl:ObjectProperty ;
+        rdfs:range gmeow:Tag .
+}""" ;
+    gmeow:saRationale "gmeow:hasTag MUST be an owl:ObjectProperty with range gmeow:Tag — the flat tagging shortcut targets tag individuals only. Mirrors test_has_tag_is_object_property_ranged_on_tag (positive half)." .
+
+# --- 4b. hasTag is NOT functional (MUST-NOT) ---------------------------------
+ex:saHasTagNotFunctional a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:hasTag a owl:FunctionalProperty . }""" ;
+    gmeow:saRationale "gmeow:hasTag MUST NOT be functional — an entity may carry many co-equal tags. Mirrors test_has_tag_is_object_property_ranged_on_tag (non-functional half)." .
+
+# --- 5a. isAbout is an ObjectProperty (MUST) ---------------------------------
+ex:saIsAboutIsObjectProperty a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:isAbout a owl:ObjectProperty . }""" ;
+    gmeow:saRationale "gmeow:isAbout MUST be an owl:ObjectProperty — aboutness is a semantic subject-matter relation, not a datatype property. Mirrors test_is_about_is_object_property (positive half)." .
+
+# --- 5b. isAbout is NOT functional (MUST-NOT) --------------------------------
+ex:saIsAboutNotFunctional a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:isAbout a owl:FunctionalProperty . }""" ;
+    gmeow:saRationale "gmeow:isAbout MUST NOT be functional — a resource may be about many things. Mirrors test_is_about_is_object_property (non-functional half)." .
+
+# --- 6. taggingTagged, taggingTag, taggingScheme are functional ObjectProperties (MUST) ---
+ex:saTaggingRolesFunctional a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    gmeow:taggingTagged a owl:ObjectProperty , owl:FunctionalProperty .
+    gmeow:taggingTag    a owl:ObjectProperty , owl:FunctionalProperty .
+    gmeow:taggingScheme a owl:ObjectProperty , owl:FunctionalProperty .
+}""" ;
+    gmeow:saRationale "gmeow:taggingTagged, gmeow:taggingTag, and gmeow:taggingScheme MUST each be both an owl:ObjectProperty and an owl:FunctionalProperty — each Tagging relator carries exactly one tagged entity, one tag, and at most one scheme per act. Mirrors test_tagging_roles_are_functional." .
+
+# --- 7a. taggingTagger is an ObjectProperty (MUST) ---------------------------
+ex:saTaggingTaggerIsObjectProperty a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:taggingTagger a owl:ObjectProperty . }""" ;
+    gmeow:saRationale "gmeow:taggingTagger MUST be an owl:ObjectProperty — the agent role in a Tagging relator. Mirrors test_tagging_tagger_is_non_functional (positive half)." .
+
+# --- 7b. taggingTagger is NOT functional (MUST-NOT) --------------------------
+ex:saTaggingTaggerNotFunctional a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:taggingTagger a owl:FunctionalProperty . }""" ;
+    gmeow:saRationale "gmeow:taggingTagger MUST NOT be functional — a collaborative tagging act may have multiple co-taggers. Mirrors test_tagging_tagger_is_non_functional (non-functional half)." .
+
+# --- 8. No banned property-bag datatype properties on Tag (MUST-NOT) ---------
+ex:saNoTagValueDatatypeProperties a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    VALUES ?banned { gmeow:tagValue gmeow:tagColor gmeow:tagPriority gmeow:tagScore }
+    ?banned a owl:DatatypeProperty .
+}""" ;
+    gmeow:saRationale "gmeow:tagValue, gmeow:tagColor, gmeow:tagPriority, and gmeow:tagScore MUST NOT be declared as owl:DatatypeProperty — a tag is a label-bearing information object, never a property bag. Mirrors test_no_tag_value_datatype_property." .
+
+# --- 9a. hasTag is NOT a subPropertyOf isAbout (MUST-NOT) --------------------
+ex:saHasTagNotSubPropIsAbout a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK { gmeow:hasTag rdfs:subPropertyOf gmeow:isAbout . }""" ;
+    gmeow:saRationale "gmeow:hasTag MUST NOT be a subPropertyOf gmeow:isAbout — the tagging and aboutness axes are orthogonal and must never be bridged. Mirrors test_no_bridge_among_has_tag_is_about_and_rdf_type (hasTag⊑isAbout)." .
+
+# --- 9b. isAbout is NOT a subPropertyOf hasTag (MUST-NOT) --------------------
+ex:saIsAboutNotSubPropHasTag a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK { gmeow:isAbout rdfs:subPropertyOf gmeow:hasTag . }""" ;
+    gmeow:saRationale "gmeow:isAbout MUST NOT be a subPropertyOf gmeow:hasTag — the aboutness and tagging axes are orthogonal and must never be bridged. Mirrors test_no_bridge_among_has_tag_is_about_and_rdf_type (isAbout⊑hasTag)." .
+
+# --- 9c. hasTag and isAbout are NOT equivalent properties (MUST-NOT) ---------
+ex:saHasTagIsAboutNotEquivalent a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    { gmeow:hasTag owl:equivalentProperty gmeow:isAbout . }
+    UNION
+    { gmeow:isAbout owl:equivalentProperty gmeow:hasTag . }
+}""" ;
+    gmeow:saRationale "gmeow:hasTag and gmeow:isAbout MUST NOT be declared owl:equivalentProperty in either direction — tagging (folksonomy label) and aboutness (subject-matter) are categorically distinct axes. Mirrors test_no_bridge_among_has_tag_is_about_and_rdf_type (equivalentProperty)." .
+
+# --- 10. hasTag is owl:propertyDisjointWith isAbout (MUST) -------------------
+ex:saHasTagPropertyDisjointWithIsAbout a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:hasTag owl:propertyDisjointWith gmeow:isAbout . }""" ;
+    gmeow:saRationale "gmeow:hasTag MUST be declared owl:propertyDisjointWith gmeow:isAbout — the three axes (typing, tagging, aboutness) must remain orthogonal; this is the OWL-assertable disjointness between the tagging and aboutness axes. Mirrors test_has_tag_and_is_about_are_property_disjoint." .
+
+# --- 11. broaderTag is a TransitiveProperty (MUST) ---------------------------
+ex:saBroaderTagIsTransitive a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:broaderTag a owl:TransitiveProperty . }""" ;
+    gmeow:saRationale "gmeow:broaderTag MUST be an owl:TransitiveProperty — transitivity lets the reasoner compute the full tag hierarchy ladder. Mirrors test_broader_tag_is_transitive." .
+
+# --- 12. narrowerTag is owl:inverseOf broaderTag (MUST) ----------------------
+ex:saNarrowerTagInverseOfBroader a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:narrowerTag owl:inverseOf gmeow:broaderTag . }""" ;
+    gmeow:saRationale "gmeow:narrowerTag MUST be declared owl:inverseOf gmeow:broaderTag — the narrower direction is the structural inverse; only one direction needs asserting in data. Mirrors test_narrower_tag_is_inverse_of_broader." .
+
+# --- 13. relatedTag is a SymmetricProperty (MUST) ----------------------------
+ex:saRelatedTagIsSymmetric a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:relatedTag a owl:SymmetricProperty . }""" ;
+    gmeow:saRationale "gmeow:relatedTag MUST be an owl:SymmetricProperty — one assertion suffices for a non-hierarchical associative link between tags. Mirrors test_related_tag_is_symmetric." .
+
+# --- 14a. Tagging has EL existential restriction for taggingTagged→Entity (MUST) ---
+ex:saTaggingExistentialTagged a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:Tagging rdfs:subClassOf [
+        a owl:Restriction ;
+        owl:onProperty gmeow:taggingTagged ;
+        owl:someValuesFrom gmeow:Entity
+    ] .
+}""" ;
+    gmeow:saRationale "gmeow:Tagging MUST have an EL someValuesFrom restriction on gmeow:taggingTagged scoped to gmeow:Entity — every tagging act is existentially bound to the entity it tags. Mirrors test_tagging_has_el_existential_restrictions (taggingTagged arm)." .
+
+# --- 14b. Tagging has EL existential restriction for taggingTag→Tag (MUST) --
+ex:saTaggingExistentialTag a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:Tagging rdfs:subClassOf [
+        a owl:Restriction ;
+        owl:onProperty gmeow:taggingTag ;
+        owl:someValuesFrom gmeow:Tag
+    ] .
+}""" ;
+    gmeow:saRationale "gmeow:Tagging MUST have an EL someValuesFrom restriction on gmeow:taggingTag scoped to gmeow:Tag — every tagging act is existentially bound to the tag it applies. Mirrors test_tagging_has_el_existential_restrictions (taggingTag arm)." .
