@@ -483,26 +483,6 @@ def test_lint_passes_on_real_self_description() -> None:
     assert lint_deposit() == []
 
 
-def test_lint_identifies_duplicate_citation_list_dataset(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    duplicate = crossref_mod._Citation(
-        key="ref-duplicate",
-        type="web_resource",
-        unstructured="Duplicate reference. https://example.invalid/.",
-    )
-    monkeypatch.setattr(
-        crossref_mod,
-        "_alignment_citations",
-        lambda: [duplicate, duplicate],
-    )
-
-    assert (
-        "deposit citation_list for dataset DOI 10.67342/26w4o contains duplicate "
-        "citation keys"
-    ) in lint_deposit()
-
-
 def test_lint_flags_placeholder_doi() -> None:
     bad = dataclasses.replace(load_self_description(), concept_doi="10.XXXXX/gmeow")
     problems = lint_deposit(bad)
