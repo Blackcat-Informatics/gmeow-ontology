@@ -1,0 +1,103 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Declarative structural assertions for the quality slice (#99) — the slice-resident
+# test-DSL twin of the MUST / MUST-NOT TBox invariants formerly hand-written in
+# tests/test_quality.py. Each assertion runs as a SPARQL ASK over the quality
+# module graph (gmeow:scopeModule) under the native Rust harness (crates/slicetest).
+# Quality is #694-migrated, so the class stereotypes are logic: (logic:SubKind,
+# logic:AbstractIndividualType, logic:QualityValue), not gufo:.
+#
+# The whole-ontology Principle-9 "no primary/preferred selector anywhere" sweep
+# (test_no_preferred_or_primary_term_is_declared) is NOT migrated here: it sweeps
+# the entire merged graph's subject set, so a quality-module-scoped cell would
+# silently narrow it — it is retained as a dynamic-set sweep in pytest.
+#
+# See dsl/tests/MIGRATION-LEDGER.md for the per-test pytest→DSL mapping.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/quality/tests/> .
+
+# --- 1. QualityAssessment is a logic:SubKind of Observation (MUST hold) -------
+ex:saQualityAssessmentIsSubKindObservation a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:QualityAssessment a owl:Class , logic:SubKind ;
+        rdfs:subClassOf gmeow:Observation .
+}""" ;
+    gmeow:saRationale "gmeow:QualityAssessment MUST be an owl:Class typed logic:SubKind and a subclass of gmeow:Observation — quality reuses the universal Observation stack (#99). Mirrors test_quality_assessment_class_structure in test_quality.py." .
+
+# --- 2. QualityDimension is a logic:AbstractIndividualType value vocab (MUST) -
+ex:saQualityDimensionIsValueVocab a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:QualityDimension a owl:Class , logic:AbstractIndividualType ;
+        rdfs:subClassOf logic:QualityValue .
+}""" ;
+    gmeow:saRationale "gmeow:QualityDimension MUST be an owl:Class typed logic:AbstractIndividualType and a subclass of logic:QualityValue — the dimensions are an open value vocabulary of individuals, not subclasses (Principle 9). Mirrors test_quality_dimension_class_structure." .
+
+# --- 3. assessedEntity bridges to the Observation stack (MUST hold) -----------
+ex:saAssessedEntityProperty a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:assessedEntity a owl:ObjectProperty ;
+        rdfs:domain gmeow:QualityAssessment ;
+        rdfs:range gmeow:Entity ;
+        rdfs:subPropertyOf gmeow:observedFeature .
+}""" ;
+    gmeow:saRationale "gmeow:assessedEntity MUST be an owl:ObjectProperty with domain QualityAssessment, range Entity, and rdfs:subPropertyOf gmeow:observedFeature so quality observations join the universal 'observations about X' query path. Mirrors test_assessed_entity_property_structure." .
+
+# --- 4. qualityDimension property shape (MUST hold) ---------------------------
+ex:saQualityDimensionProperty a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:qualityDimension a owl:ObjectProperty ;
+        rdfs:domain gmeow:QualityAssessment ;
+        rdfs:range gmeow:QualityDimension .
+}""" ;
+    gmeow:saRationale "gmeow:qualityDimension MUST be an owl:ObjectProperty with domain QualityAssessment and range QualityDimension. Mirrors test_quality_dimension_property_structure (positive half)." .
+
+# --- 5. qualityDimension is NOT functional (MUST-NOT hold) --------------------
+ex:saQualityDimensionNotFunctional a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    gmeow:qualityDimension a owl:FunctionalProperty .
+}""" ;
+    gmeow:saRationale "gmeow:qualityDimension MUST NOT be functional: a single assessment may cover several dimensions, and competing classifications coexist (Principle 9). Mirrors test_quality_dimension_property_structure (negative half)." .
+
+# --- 6. The seven ISO 19157 + lineage dimension seeds exist (MUST hold) -------
+ex:saQualityDimensionSeeds a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    gmeow:qualityDimensionPositionalAccuracy   a gmeow:QualityDimension .
+    gmeow:qualityDimensionTemporalAccuracy     a gmeow:QualityDimension .
+    gmeow:qualityDimensionThematicAccuracy     a gmeow:QualityDimension .
+    gmeow:qualityDimensionCompleteness         a gmeow:QualityDimension .
+    gmeow:qualityDimensionLogicalConsistency   a gmeow:QualityDimension .
+    gmeow:qualityDimensionTopologicalConsistency a gmeow:QualityDimension .
+    gmeow:qualityDimensionLineage              a gmeow:QualityDimension .
+}""" ;
+    gmeow:saRationale "All seven ISO 19157 + lineage dimension seeds MUST be present as gmeow:QualityDimension individuals. Mirrors test_dimension_seeds_exist." .

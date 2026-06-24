@@ -1,0 +1,261 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Declarative structural assertions for the observations slice (#66, #69) — the
+# slice-resident test-DSL twin of the asserted-TBox MUST / MUST-NOT invariants
+# formerly hand-written in tests/test_observations.py. Each runs as a SPARQL ASK
+# over the observations module graph (gmeow:scopeModule) under the native Rust
+# slicetest harness. Observation is #694-migrated (logic:Relator, not gufo:).
+#
+# The OWL-RL ENTAILMENT tests were migrated to crates/logic/tests/ontology_entailments.rs
+# (#896). The SOSA/AFO *_mapped_to_* fns read GENERATED mapping artifacts (not the
+# module graph) and are KEPT in pytest (doctrine-guard, generated-artifact reads).
+#
+# See dsl/tests/MIGRATION-LEDGER.md for the per-test pytest→DSL mapping.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/observations/tests/> .
+
+# --- 1. Observation is a logic:Relator class (MUST) --------------------------
+ex:saObservationClass a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK { gmeow:Observation a owl:Class ; rdfs:subClassOf logic:Relator . }""" ;
+    gmeow:saRationale "gmeow:Observation MUST be an owl:Class and a subclass of logic:Relator (the #694 gufo→logic migration). Mirrors test_observation_class_exists." .
+
+# --- 2. The seven core observation object properties exist (MUST) ------------
+ex:saObservationProperties a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    gmeow:observedFeature a owl:ObjectProperty . gmeow:observationResult a owl:ObjectProperty .
+    gmeow:isResultOf a owl:ObjectProperty . gmeow:vantage a owl:ObjectProperty .
+    gmeow:observationMethod a owl:ObjectProperty . gmeow:observationType a owl:ObjectProperty .
+    gmeow:observationEvent a owl:ObjectProperty .
+}""" ;
+    gmeow:saRationale "All seven core observation roles MUST be owl:ObjectProperty. Mirrors test_observation_properties_exist." .
+
+# --- 3. The observation value-vocabulary classes exist (MUST) ----------------
+ex:saObservationValueVocabularies a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    gmeow:ObservationMethod a owl:Class . gmeow:ObservationType a owl:Class .
+    gmeow:Measurement a owl:Class . gmeow:SensoryObservation a owl:Class .
+    gmeow:StandpointClaim a owl:Class . gmeow:ScalarQuantity a owl:Class .
+    gmeow:Quantity a owl:Class . gmeow:MeasuredValue a owl:Class .
+}""" ;
+    gmeow:saRationale "The observation-stack classes MUST exist as owl:Class. Mirrors test_observation_value_vocabularies_exist." .
+
+# --- 4. The nine ObservationType seeds exist (MUST) --------------------------
+ex:saObservationTypeSeeds a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    gmeow:observationTypeMeasurement a gmeow:ObservationType . gmeow:observationTypeSensory a gmeow:ObservationType .
+    gmeow:observationTypeStandpoint a gmeow:ObservationType . gmeow:observationTypeDerived a gmeow:ObservationType .
+    gmeow:observationTypeSimulation a gmeow:ObservationType . gmeow:observationTypeIdentity a gmeow:ObservationType .
+    gmeow:observationTypeNaming a gmeow:ObservationType . gmeow:observationTypeRights a gmeow:ObservationType .
+    gmeow:observationTypeKinship a gmeow:ObservationType .
+}""" ;
+    gmeow:saRationale "All nine seeded ObservationType individuals MUST exist. Mirrors test_observation_type_seeds_exist." .
+
+# --- 5. The six ObservationMethod seeds exist (MUST) ------------------------
+ex:saObservationMethodSeeds a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    gmeow:methodDirectObservation a gmeow:ObservationMethod . gmeow:methodInstrumentalReading a gmeow:ObservationMethod .
+    gmeow:methodSurvey a gmeow:ObservationMethod . gmeow:methodRemoteSensing a gmeow:ObservationMethod .
+    gmeow:methodComputationalModel a gmeow:ObservationMethod . gmeow:methodExpertJudgement a gmeow:ObservationMethod .
+}""" ;
+    gmeow:saRationale "All six seeded ObservationMethod individuals MUST exist. Mirrors test_observation_method_seeds_exist." .
+
+# --- 6. ScalarQuantity datatype properties exist (MUST) ---------------------
+ex:saScalarQuantityProperties a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:quantityValue a owl:DatatypeProperty . gmeow:quantityUncertainty a owl:DatatypeProperty . }""" ;
+    gmeow:saRationale "The ScalarQuantity datatype properties MUST exist. Mirrors test_scalar_quantity_properties_exist." .
+
+# --- 7. The universal-claim-construct sub-property bridges fire (MUST) -------
+ex:saPropertyBridges a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:usageNamer rdfs:subPropertyOf gmeow:vantage .
+    gmeow:usageNamed rdfs:subPropertyOf gmeow:observedFeature .
+    gmeow:usageAppellation rdfs:subPropertyOf gmeow:observationResult .
+    gmeow:statementAbout rdfs:subPropertyOf gmeow:observedFeature .
+    gmeow:facetSubject rdfs:subPropertyOf gmeow:observedFeature .
+    gmeow:facetVantage rdfs:subPropertyOf gmeow:vantage .
+    gmeow:versionMember rdfs:subPropertyOf gmeow:observedFeature .
+    gmeow:membershipAuthority rdfs:subPropertyOf gmeow:vantage .
+}""" ;
+    gmeow:saRationale "The observations-module-local domain sub-property bridges expose NameUsage/RightsStatement/IdentityFacet/VersionMembership roles as observation roles (#69). Mirrors the module-local half of test_property_bridges_fire. (The KinRelationship bridges relationshipParent/relationshipChild/hasPartner are asserted in the genealogy module, NOT observations, so a module-scoped cell cannot see them — they are retained in pytest as cross-slice, pending a genealogy-slice migration.)" .
+
+# --- 8. Quantity ≡ ScalarQuantity (MUST) ------------------------------------
+ex:saQuantityEquivalentScalarQuantity a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:Quantity owl:equivalentClass gmeow:ScalarQuantity . }""" ;
+    gmeow:saRationale "gmeow:Quantity MUST be equivalentClass gmeow:ScalarQuantity (#77). Mirrors test_quantity_equivalent_to_scalar_quantity." .
+
+# --- 9. MeasuredValue ≡ Quantity (MUST) -------------------------------------
+ex:saMeasuredValueEquivalentQuantity a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:MeasuredValue owl:equivalentClass gmeow:Quantity . }""" ;
+    gmeow:saRationale "gmeow:MeasuredValue MUST be equivalentClass gmeow:Quantity (#77). Mirrors test_measured_value_equivalent_to_quantity." .
+
+# --- 10. isResultOf is the inverse of observationResult (MUST) --------------
+ex:saIsResultOfInverseObservationResult a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:isResultOf owl:inverseOf gmeow:observationResult . }""" ;
+    gmeow:saRationale "gmeow:isResultOf MUST be owl:inverseOf gmeow:observationResult (#77). Mirrors test_is_result_of_is_inverse_of_observation_result." .
+
+# --- 11. Stream class (MUST) ------------------------------------------------
+ex:saStreamClass a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK { gmeow:Stream a owl:Class ; rdfs:subClassOf gmeow:Entity . }""" ;
+    gmeow:saRationale "gmeow:Stream MUST be an owl:Class subclass of gmeow:Entity (#96). Mirrors test_stream_class_exists." .
+
+# --- 12. Stream object properties exist (MUST) ------------------------------
+ex:saStreamProperties a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    gmeow:streamOf a owl:ObjectProperty . gmeow:hasStream a owl:ObjectProperty .
+    gmeow:streamSample a owl:ObjectProperty . gmeow:streamPlatform a owl:ObjectProperty .
+    gmeow:streamSensor a owl:ObjectProperty . gmeow:streamInterval a owl:ObjectProperty .
+}""" ;
+    gmeow:saRationale "The six Stream object properties MUST exist. Mirrors test_stream_properties_exist." .
+
+# --- 13. streamOf is functional with Stream domain / Entity range (MUST) ----
+ex:saStreamOfFunctional a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK { gmeow:streamOf a owl:FunctionalProperty ; rdfs:domain gmeow:Stream ; rdfs:range gmeow:Entity . }""" ;
+    gmeow:saRationale "gmeow:streamOf MUST be functional with domain Stream and range Entity. Mirrors test_stream_of_is_functional." .
+
+# --- 14. hasStream is the inverse of streamOf (MUST) ------------------------
+ex:saHasStreamInverseStreamOf a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:hasStream owl:inverseOf gmeow:streamOf . }""" ;
+    gmeow:saRationale "gmeow:hasStream MUST be owl:inverseOf gmeow:streamOf. Mirrors test_has_stream_is_inverse_of_stream_of." .
+
+# --- 15a. streamSample shape (MUST) ----------------------------------------
+ex:saStreamSampleShape a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK { gmeow:streamSample a owl:ObjectProperty ; rdfs:domain gmeow:Stream ; rdfs:range gmeow:Entity . }""" ;
+    gmeow:saRationale "gmeow:streamSample MUST be an owl:ObjectProperty with domain Stream and range Entity. Mirrors test_stream_sample_is_non_functional (positive half)." .
+
+# --- 15b. streamSample is NOT functional (MUST-NOT) ------------------------
+ex:saStreamSampleNotFunctional a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:streamSample a owl:FunctionalProperty . }""" ;
+    gmeow:saRationale "gmeow:streamSample MUST NOT be functional (a stream has many samples). Mirrors test_stream_sample_is_non_functional (negative half)." .
+
+# --- 16a. streamPlatform shape (MUST) --------------------------------------
+ex:saStreamPlatformShape a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK { gmeow:streamPlatform a owl:ObjectProperty ; rdfs:range gmeow:Agent . }""" ;
+    gmeow:saRationale "gmeow:streamPlatform MUST be an owl:ObjectProperty with range Agent. Mirrors test_stream_platform_is_non_functional (positive half)." .
+
+# --- 16b. streamPlatform is NOT functional (MUST-NOT) ----------------------
+ex:saStreamPlatformNotFunctional a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:streamPlatform a owl:FunctionalProperty . }""" ;
+    gmeow:saRationale "gmeow:streamPlatform MUST NOT be functional. Mirrors test_stream_platform_is_non_functional (negative half)." .
+
+# --- 17a. streamSensor shape (MUST) ----------------------------------------
+ex:saStreamSensorShape a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK { gmeow:streamSensor a owl:ObjectProperty ; rdfs:range gmeow:Agent . }""" ;
+    gmeow:saRationale "gmeow:streamSensor MUST be an owl:ObjectProperty with range Agent. Mirrors test_stream_sensor_is_non_functional (positive half)." .
+
+# --- 17b. streamSensor is NOT functional (MUST-NOT) ------------------------
+ex:saStreamSensorNotFunctional a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:streamSensor a owl:FunctionalProperty . }""" ;
+    gmeow:saRationale "gmeow:streamSensor MUST NOT be functional. Mirrors test_stream_sensor_is_non_functional (negative half)." .
+
+# --- 18. streamInterval is functional with Stream domain / TimeInterval range (MUST) ---
+ex:saStreamIntervalFunctional a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK { gmeow:streamInterval a owl:FunctionalProperty ; rdfs:domain gmeow:Stream ; rdfs:range gmeow:TimeInterval . }""" ;
+    gmeow:saRationale "gmeow:streamInterval MUST be functional with domain Stream and range TimeInterval. Mirrors test_stream_interval_is_functional." .
+
+# --- 19. The streaming ObservationType seed exists (MUST) ------------------
+ex:saStreamingObservationType a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK { gmeow:observationTypeStreaming a gmeow:ObservationType . }""" ;
+    gmeow:saRationale "gmeow:observationTypeStreaming MUST exist as an ObservationType. Mirrors test_streaming_observation_type_exists." .
+
+# --- 20. The streaming ObservationMethod seed exists (MUST) ----------------
+ex:saStreamingMethod a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK { gmeow:methodStreaming a gmeow:ObservationMethod . }""" ;
+    gmeow:saRationale "gmeow:methodStreaming MUST exist as an ObservationMethod. Mirrors test_streaming_method_exists." .
