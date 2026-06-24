@@ -147,7 +147,7 @@ const STRUCTURAL_OUTPUTS: &[&str] = &[
 /// SSSOM validator's diagnostic dict (`gmeow_rdf.validate_sssom`) so the PyO3 binding
 /// packs both into the same `{severity, code, message, check, instance}` shape the
 /// Python finding leg already consumes.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)]
 pub struct ProjectionDiagnostic {
     /// Severity token: `"ERROR"`, `"WARNING"`, or `"INFO"`.
     pub severity: String,

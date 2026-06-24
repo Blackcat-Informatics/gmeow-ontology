@@ -1852,6 +1852,7 @@ version = "0.1.0"
 dependencies = [
  "gmeow-rdf",
  "hex",
+ "insta",
  "oxigraph",
  "petgraph",
  "pyo3",
