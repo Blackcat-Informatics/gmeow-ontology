@@ -323,8 +323,9 @@ pending the #867 slicetest structural migration — they are not reasoning tests
 | `test_coordinate_observation_infers_spatial_measurement` | `tests/test_observations.py` | `coordinate_observation_infers_spatial_measurement` | RL-entailment | converted | — (#125) | `make logic-test` |
 | `test_coordinate_observation_frame_inheritance` | `tests/test_observations.py` | `coordinate_observation_frame_inheritance` | RL-entailment | converted | — (#125) | `make logic-test` |
 | `test_coordinate_observation_el_axioms` | `tests/test_observations.py` | `coordinate_observation_el_axioms_stay_consistent` | RL-entailment | converted | — (#125) | `make logic-test` |
+| `test_quality_assessment_specialises_observation` | `tests/test_quality.py` | `quality_assessment_specialises_observation` | RL-entailment | converted | — (QualityAssessment ⊑ Observation; the assessedEntity/Place A-Box is decoration) | `make logic-test` |
 
-**#896 reasoning tally (running):** 38 converted, 8 retained-with-reason (3 Python
+**#896 reasoning tally (running):** 39 converted, 8 retained-with-reason (3 Python
 Docker-orchestration, 4 structural-not-reasoning, 1 mixed structural/consistency),
 plus the 47 competency QUERY tests de-reasoned in place and the per-slice
 structural tests retained (no closure; #867 will move them to slicetest cells).

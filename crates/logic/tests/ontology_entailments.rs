@@ -889,3 +889,18 @@ fn coordinate_observation_el_axioms_stay_consistent() {
     let closure = scoped_closure(&["core/observations", "core/places"], &abox);
     assert!(has_type(&closure, &co3, &gmeow("CoordinateObservation")));
 }
+
+// ── Migrated from tests/test_quality.py ─────────────────────────────────────────────────────
+// QualityAssessment ⊑ Observation — the same subsumption shape as the observations twins. The
+// assessedEntity/Place A-Box in the Python test is decoration; the subsumption fires from the
+// type alone (cax-sco). The remaining test_quality.py tests are structural (asserted graph).
+
+#[test]
+fn quality_assessment_specialises_observation() {
+    assert_specialises(
+        &["core/quality", "core/observations"],
+        "qa1",
+        "QualityAssessment",
+        "Observation",
+    );
+}
