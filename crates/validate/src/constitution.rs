@@ -363,6 +363,38 @@ pub fn python_top_level_names(py_text: &str) -> BTreeSet<String> {
     names
 }
 
+/// Apply a fully-collected `@app.command(...)` decorator, returning `true` when
+/// the decorator has no explicit `name=` argument and the parser should fall
+/// back to the decorated function name.
+fn apply_command_decorator(
+    decorator_text: &str,
+    decorator_re: &Regex,
+    name_re: &Regex,
+    names: &mut BTreeSet<String>,
+) -> bool {
+    let Some(cap) = decorator_re.captures(decorator_text) else {
+        return false;
+    };
+    let inner = cap.get(1).map_or("", |m| m.as_str()).trim();
+    if inner.is_empty() {
+        return true;
+    }
+    if let Some(name_cap) = name_re.captures(inner) {
+        let name = name_cap
+            .get(1)
+            .or_else(|| name_cap.get(2))
+            .or_else(|| name_cap.get(3))
+            .map(|m| m.as_str())
+            .unwrap_or("");
+        if !name.is_empty() {
+            names.insert(name.to_string());
+        }
+        false
+    } else {
+        true
+    }
+}
+
 /// Every command registered on the gmeow-dev Typer app.
 pub fn cli_command_names(cli_dev_text: &str) -> BTreeSet<String> {
     let decorator_re = CLI_DECORATOR_RE.get_or_init(|| {
@@ -378,26 +410,83 @@ pub fn cli_command_names(cli_dev_text: &str) -> BTreeSet<String> {
 
     let mut names = BTreeSet::new();
     let mut pending: bool = false;
+    let mut buffer = String::new();
+    let mut depth: i32 = 0;
+    let mut in_string: Option<char> = None;
+    let mut escape = false;
 
     for line in cli_dev_text.lines() {
         let stripped = line.trim();
-        if let Some(cap) = decorator_re.captures(stripped) {
-            let inner = cap.get(1).map_or("", |m| m.as_str()).trim();
-            if inner.is_empty() {
-                pending = true;
-            } else if let Some(name_cap) = name_re.captures(inner) {
-                let name = name_cap
-                    .get(1)
-                    .or_else(|| name_cap.get(2))
-                    .or_else(|| name_cap.get(3))
-                    .map(|m| m.as_str())
-                    .unwrap_or("");
-                if !name.is_empty() {
-                    names.insert(name.to_string());
+        if depth > 0 {
+            for ch in stripped.chars() {
+                if let Some(quote) = in_string {
+                    if escape {
+                        escape = false;
+                    } else if ch == '\\' {
+                        escape = true;
+                    } else if ch == quote {
+                        in_string = None;
+                    }
+                    buffer.push(ch);
+                    continue;
                 }
-                pending = false;
-            } else {
-                pending = true;
+                match ch {
+                    '"' | '\'' => {
+                        in_string = Some(ch);
+                        buffer.push(ch);
+                    }
+                    '(' => {
+                        depth += 1;
+                        buffer.push(ch);
+                    }
+                    ')' => {
+                        depth -= 1;
+                        buffer.push(ch);
+                        if depth == 0 {
+                            break;
+                        }
+                    }
+                    _ => buffer.push(ch),
+                }
+            }
+            if depth == 0 {
+                pending = apply_command_decorator(&buffer, decorator_re, name_re, &mut names);
+                buffer.clear();
+            }
+            continue;
+        }
+        if stripped.starts_with("@app.command(") {
+            buffer.clear();
+            buffer.push_str(stripped);
+            depth = 0;
+            in_string = None;
+            escape = false;
+            for ch in stripped.chars() {
+                if let Some(quote) = in_string {
+                    if escape {
+                        escape = false;
+                    } else if ch == '\\' {
+                        escape = true;
+                    } else if ch == quote {
+                        in_string = None;
+                    }
+                    continue;
+                }
+                match ch {
+                    '"' | '\'' => in_string = Some(ch),
+                    '(' => depth += 1,
+                    ')' => {
+                        depth -= 1;
+                        if depth == 0 {
+                            break;
+                        }
+                    }
+                    _ => {}
+                }
+            }
+            if depth == 0 {
+                pending = apply_command_decorator(&buffer, decorator_re, name_re, &mut names);
+                buffer.clear();
             }
             continue;
         }
@@ -949,6 +1038,45 @@ mod tests {
                 pass\n";
         let got = cli_command_names(py);
         assert!(got.contains("spaced-command"));
+    }
+
+    #[test]
+    fn cli_command_names_extracts_multiline_decorator_with_name() {
+        let py = "\n\
+            @app.command(\n\
+                name=\"multi-cmd\",\n\
+                help=\"A multi-line decorator\",\n\
+            )\n\
+            def multi_command():\n\
+                pass\n";
+        let got = cli_command_names(py);
+        assert!(got.contains("multi-cmd"));
+        assert!(!got.contains("multi-command"));
+    }
+
+    #[test]
+    fn cli_command_names_falls_back_to_function_name_for_multiline_decorator() {
+        let py = "\n\
+            @app.command(\n\
+                help=\"No explicit name here\",\n\
+            )\n\
+            def fallback_command():\n\
+                pass\n";
+        let got = cli_command_names(py);
+        assert!(got.contains("fallback-command"));
+    }
+
+    #[test]
+    fn cli_command_names_handles_multiline_decorator_with_parens_in_string() {
+        let py = "\n\
+            @app.command(\n\
+                name=\"paren-cmd\",\n\
+                help=\"Use (foo) syntax\",\n\
+            )\n\
+            def paren_command():\n\
+                pass\n";
+        let got = cli_command_names(py);
+        assert!(got.contains("paren-cmd"));
     }
 
     // ------------------------------------------------------------------
