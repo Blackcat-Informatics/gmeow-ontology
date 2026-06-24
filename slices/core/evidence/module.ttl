@@ -4,14 +4,15 @@
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
 gmeow:CoverageDepth
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/evidence> ;
     rdfs:label "Coverage Depth"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The depth of coverage a source provides about its subject — a value vocabulary (individuals, never subclasses). Distinguishes significant in-depth treatment from passing mention or routine filing. This axis is orthogonal to source tier and independence."@x-gmeow-english ;
     skos:example "ex:inDepth a gmeow:CoverageDepth ; rdfs:label \"significant coverage\"@en ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid conflating it with source tier (gmeow:SourceTier) or independence (gmeow:SourceIndependence) — depth is orthogonal to both — and avoid per-value subclasses; the depths are individuals."@x-gmeow-english ;
@@ -21,11 +22,11 @@ gmeow:CoverageDepth
     gmeow:useWhen "Use as the value vocabulary behind gmeow:coverageDepth — naming how substantially a source treats its subject (significant coverage, passing mention, routine filing) for notability assessment."@x-gmeow-english .
 
 gmeow:EvidenceClass
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/evidence> ;
     rdfs:label "Evidence Class"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The kind and strength of evidence supporting a claim — a value vocabulary (individuals, never subclasses). Distinguishes verified facts from self-assertions, anecdotes, rumours, and refinements such as legal filings, trade press, or archive extracts. Coarse tiers and fine-grained refinements coexist; a claim may carry multiple evidence classes simultaneously (Principle 9)."@x-gmeow-english ;
     skos:example "ex:filingClass a gmeow:EvidenceClass ; rdfs:label \"court filing\"@en ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid minting per-class subclasses (evidence classes are individuals) and avoid conflating warrant with notability — source independence, tier, and coverage depth are the separate Axis B vocabularies; a strong warrant does not establish encyclopedic significance."@x-gmeow-english ;
@@ -35,7 +36,7 @@ gmeow:EvidenceClass
     gmeow:useWhen "Use as the value vocabulary behind gmeow:hasEvidenceClass — the open set of individuals naming the kind and strength of evidence a citation provides (verified, self, anecdotal, rumour, plus refinements such as legal filing or trade press)."@x-gmeow-english .
 
 gmeow:EvidenceSpan
-    a gufo:Category ,
+    a logic:Category ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/evidence> ;
     rdfs:label "Evidence Span"@x-gmeow-english ;
@@ -49,11 +50,11 @@ gmeow:EvidenceSpan
     gmeow:useWhen "Use to anchor the exact location within a source that backs a claim or carries an annotation — a quote, character offset, fragment, page, or locator — so evidence points at a span, not merely at a whole document; the shared selector target for citations and notes (Principle 4)."@x-gmeow-english .
 
 gmeow:SourceIndependence
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/evidence> ;
     rdfs:label "Source Independence"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The independence of a source from the subject it covers — a value vocabulary (individuals, never subclasses). Distinguishes sources that are editorially independent from those originated or controlled by the subject. This axis is about notability eligibility, not factual truth (Principle 1)."@x-gmeow-english ;
     skos:example "ex:independent a gmeow:SourceIndependence ; rdfs:label \"independent\"@en ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid treating it as a measure of evidential warrant (that is gmeow:EvidenceClass) — a self-originated source may verify a fact while failing independence — and avoid per-value subclasses; the values are individuals on the notability axis (Principle 1)."@x-gmeow-english ;
@@ -63,11 +64,11 @@ gmeow:SourceIndependence
     gmeow:useWhen "Use as the value vocabulary behind gmeow:sourceIndependence — the axis the kernel's publicOnlyWithIndependentSource disclosure policy resolves against — naming whether a source is editorially independent of its subject or self/issuer originated."@x-gmeow-english .
 
 gmeow:SourceTier
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/evidence> ;
     rdfs:label "Source Tier"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The bibliographic tier of a source — primary, secondary, or tertiary — a value vocabulary (individuals, never subclasses). This is the standard source-tier axis applied to notability assessment (cf. WP:GNG)."@x-gmeow-english ;
     skos:example "ex:secondary a gmeow:SourceTier ; rdfs:label \"secondary\"@en ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid using it for the source's independence (gmeow:SourceIndependence) or coverage depth (gmeow:CoverageDepth), which are orthogonal Axis B vocabularies, and avoid per-tier subclasses; the tiers are individuals."@x-gmeow-english ;

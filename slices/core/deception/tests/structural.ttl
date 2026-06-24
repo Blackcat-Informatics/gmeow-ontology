@@ -7,8 +7,8 @@
 # runs as a SPARQL ASK over the deception module graph (gmeow:scopeModule)
 # under the native Rust harness (crates/slicetest).
 #
-# Deception is NOT #694-migrated: class stereotypes remain gufo:
-# (gufo:AbstractIndividualType, gufo:QualityValue), not logic:.
+# Deception is #694-migrated: class stereotypes are logic:
+# (logic:AbstractIndividualType, logic:QualityValue), not gufo:.
 #
 # RETAINED in pytest (not migratable here):
 #   test_blame_deflection_example_uses_doxastic_standpoint_claims --
@@ -133,20 +133,20 @@ ASK {
 }""" ;
     gmeow:saRationale "The four core deception roles (deceiver, deceived, beneficiary, dupe) MUST exist as gmeow:ParticipantRole individuals -- they cover the principal positions in any deception event. Mirrors test_deception_roles_exist." .
 
-# --- 8. ClaimVeridicality is a gufo:AbstractIndividualType value vocabulary
-#        subclassing gufo:QualityValue (MUST) -----------------------------------
+# --- 8. ClaimVeridicality is a logic:AbstractIndividualType value vocabulary
+#        subclassing logic:QualityValue (MUST) -----------------------------------
 ex:saClaimVeridicalityClass a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:ClaimVeridicality a owl:Class , gufo:AbstractIndividualType ;
-        rdfs:subClassOf gufo:QualityValue .
+    gmeow:ClaimVeridicality a owl:Class , logic:AbstractIndividualType ;
+        rdfs:subClassOf logic:QualityValue .
 }""" ;
-    gmeow:saRationale "gmeow:ClaimVeridicality MUST be an owl:Class typed gufo:AbstractIndividualType and a subclass of gufo:QualityValue -- veridicality is an open value vocabulary of individuals, never subclasses (Principle 9). Mirrors test_veridicality_values_exist (class structure part)." .
+    gmeow:saRationale "gmeow:ClaimVeridicality MUST be an owl:Class typed logic:AbstractIndividualType and a subclass of logic:QualityValue -- veridicality is an open value vocabulary of individuals, never subclasses (Principle 9). Mirrors test_veridicality_values_exist (class structure part)." .
 
 # --- 9. The two required ClaimVeridicality seed individuals exist (MUST) ------
 ex:saClaimVeridicalitySeeds a gmeow:StructuralAssertion ;
@@ -297,20 +297,20 @@ ex:saRoleSpinDoctorExists a gmeow:StructuralAssertion ;
 ASK { gmeow:roleSpinDoctor a gmeow:ParticipantRole . }""" ;
     gmeow:saRationale "gmeow:roleSpinDoctor MUST exist as a gmeow:ParticipantRole individual -- the distortion-specific role for the participant who reframes information (issue #215). Mirrors test_role_spin_doctor_exists." .
 
-# --- 26. MaximViolationType is a gufo:AbstractIndividualType value vocabulary
-#        subclassing gufo:QualityValue (MUST) -----------------------------------
+# --- 26. MaximViolationType is a logic:AbstractIndividualType value vocabulary
+#        subclassing logic:QualityValue (MUST) -----------------------------------
 ex:saMaximViolationTypeClass a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:MaximViolationType a owl:Class , gufo:AbstractIndividualType ;
-        rdfs:subClassOf gufo:QualityValue .
+    gmeow:MaximViolationType a owl:Class , logic:AbstractIndividualType ;
+        rdfs:subClassOf logic:QualityValue .
 }""" ;
-    gmeow:saRationale "gmeow:MaximViolationType MUST be an owl:Class typed gufo:AbstractIndividualType and a subclass of gufo:QualityValue -- the four Gricean maxim violations are an open value vocabulary of individuals, not subclasses. Mirrors test_maxim_violation_values_exist (class structure part)." .
+    gmeow:saRationale "gmeow:MaximViolationType MUST be an owl:Class typed logic:AbstractIndividualType and a subclass of logic:QualityValue -- the four Gricean maxim violations are an open value vocabulary of individuals, not subclasses. Mirrors test_maxim_violation_values_exist (class structure part)." .
 
 # --- 27. The four Gricean maxim violation seed individuals exist (MUST) -------
 ex:saMaximViolationSeeds a gmeow:StructuralAssertion ;

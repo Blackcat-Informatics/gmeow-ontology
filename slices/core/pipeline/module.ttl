@@ -8,6 +8,7 @@
 @prefix gufo:    <http://purl.org/nemo/gufo#> .
 @prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
 
 # =========================================================================== #
 # Module ontology header (the slice IRI).                                     #
@@ -27,7 +28,7 @@
 # =========================================================================== #
 
 gmeow:Pipeline
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "Pipeline"@x-gmeow-english ;
@@ -37,7 +38,7 @@ gmeow:Pipeline
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:PipelineStage
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "Pipeline Stage"@x-gmeow-english ;
@@ -47,11 +48,11 @@ gmeow:PipelineStage
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:StageKind
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/pipeline> ;
     rdfs:label "Stage Kind"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The kind of a build stage — a closed value vocabulary that selects how the scheduler treats the stage: gmeow:kindSourceLoad, gmeow:kindTransform, gmeow:kindReason (the only lock-carrying kind), gmeow:kindValidate, gmeow:kindDocsRender, gmeow:kindExportLeaf, and gmeow:kindSink (the single serialization exit). Its members are individuals, never subclasses, and exactly one applies to each stage."@x-gmeow-english ;
     skos:example "gmeow:stage-source-load gmeow:stageKind gmeow:kindSourceLoad ."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .

@@ -5,8 +5,8 @@
 # test-DSL twin of the asserted-TBox MUST / MUST-NOT invariants formerly hand-written
 # in tests/test_expertise.py. Each assertion runs as a SPARQL ASK over the expertise
 # module graph (gmeow:scopeModule) under the native Rust slicetest harness
-# (crates/slicetest). This slice has NOT been #694-migrated, so the class stereotype
-# is gufo: (gufo:Relator), not logic:.
+# (crates/slicetest). This slice is #694-migrated, so the class stereotype
+# is logic: (logic:Relator), not gufo:.
 #
 # RETAINED in pytest (not migratable here):
 #   test_proficiency_scale_is_generalised — gmeow:ProficiencyScale is defined in
@@ -26,15 +26,15 @@
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/expertise/tests/> .
 
-# --- 1a. SkillProficiency is a subclass of gufo:Relator (MUST) ----------------
+# --- 1a. SkillProficiency is a subclass of logic:Relator (MUST) ----------------
 ex:saSkillProficiencyIsRelator a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-ASK { gmeow:SkillProficiency rdfs:subClassOf gufo:Relator . }""" ;
-    gmeow:saRationale "gmeow:SkillProficiency MUST be a subclass of gufo:Relator — the leveled skill-proficiency is a reified relator binding agent × skill × level × scale (#263). Mirrors test_skill_proficiency_is_relator_with_functional_roles (subClassOf gufo:Relator arm)." .
+ASK { gmeow:SkillProficiency rdfs:subClassOf logic:Relator . }""" ;
+    gmeow:saRationale "gmeow:SkillProficiency MUST be a subclass of logic:Relator — the leveled skill-proficiency is a reified relator binding agent × skill × level × scale (#263). Mirrors test_skill_proficiency_is_relator_with_functional_roles (subClassOf logic:Relator arm)." .
 
 # --- 1b. Core roles of SkillProficiency are functional ObjectProperties (MUST) -
 ex:saSkillProficiencyFunctionalRoles a gmeow:StructuralAssertion ;

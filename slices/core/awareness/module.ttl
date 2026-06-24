@@ -4,14 +4,15 @@
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
 gmeow:AwarenessLevel
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/awareness> ;
     rdfs:label "Awareness Level"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The graded level of arousal or vigilance — how alert the experiencer is, on an ordinal ladder from hyperalert down to unresponsive. A value vocabulary (individuals, never subclasses) of six rungs (gmeow:levelHyperalert … gmeow:levelUnresponsive), each carrying an integer gmeow:levelRank (5 high → 0 low) for ordering. The named, ordinal companion of the continuous gmeow:awarenessScalar; distinct from gmeow:AwarenessMode, which names the qualitative STATE rather than its arousal intensity."@x-gmeow-english ;
     skos:example "gmeow:levelAlert a gmeow:AwarenessLevel ; gmeow:levelRank 4 ."@x-gmeow-english ;
     skos:scopeNote "Ordinal arousal, distinct from mode (Principle 9): gmeow:AwarenessLevel grades HOW alert an experiencer is, where gmeow:AwarenessMode names WHICH state it is in — a gmeow:modeAsleep agent carries gmeow:levelUnresponsive, a gmeow:modeFocused agent gmeow:levelAlert, and the two axes co-apply. The lowest rungs (gmeow:levelObtunded, gmeow:levelUnresponsive) map to the Glasgow Coma Scale by reference; the ranks order the rungs without asserting a metric scale."@x-gmeow-english ;
@@ -21,11 +22,11 @@ gmeow:AwarenessLevel
     gmeow:useWhen "Use as the value vocabulary for the graded arousal of an experiencer — the named rungs of the alertness ladder a gmeow:AwarenessTenure or agent declares through gmeow:awarenessLevel, when a discrete clinical-style level is wanted rather than a continuous gmeow:awarenessScalar."@x-gmeow-english .
 
 gmeow:AwarenessMode
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/awareness> ;
     rdfs:label "Awareness Mode"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The named operational state of the experiencer — the qualitative mode of consciousness or processing an agent is in: waking, drowsy, asleep, dreaming, focused, flow, meditative, sedated, comatose (the human modes), or online-inference, offline-replay, training, sampling, dormant (the machine modes). A closed-but-open value vocabulary (individuals, never subclasses): new modes are minted as gmeow:AwarenessMode individuals. The human and machine modes coexist as SIBLINGS in one vocabulary — the machine modes are the analogues of waking / dreaming / focused / drowsy bridged by analogy, NOT by equivalence (Principle 5). The state-of-the-experiencer axis, orthogonal to content (WHAT is entertained) and attitude (HOW it is held)."@x-gmeow-english ;
     skos:example "gmeow:modeWaking a gmeow:AwarenessMode ."@x-gmeow-english ;
     skos:scopeNote "State of the experiencer, NOT a verdict on the content (Principle 9): gmeow:AwarenessMode records WHAT STATE the agent is in (asleep, online-inference), distinct from gmeow:ContentOrigin (imagination — WHERE content came from) and from any truth axis. Dreamt content is not 'false' by virtue of the dream mode; the dream STATE and the content's reality-monitoring source are separate axes."@x-gmeow-english ;
@@ -35,7 +36,7 @@ gmeow:AwarenessMode
     gmeow:useWhen "Use as the value vocabulary for the operational state of an experiencer — the open set of human modes (waking, asleep, dreaming, focused …) and machine modes (online-inference, training, sampling …) an agent or a gmeow:AwarenessTenure declares through gmeow:awarenessMode."@x-gmeow-english .
 
 gmeow:AwarenessTenure
-    a gufo:SituationType ,
+    a logic:Situation ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/awareness> ;
     rdfs:label "Awareness Tenure"@x-gmeow-english ;

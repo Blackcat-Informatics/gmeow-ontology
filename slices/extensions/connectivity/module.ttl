@@ -4,19 +4,20 @@
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
 gmeow:Connection
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/connectivity> ;
     rdfs:label "Connection"@x-gmeow-english ;
-    rdfs:subClassOf gufo:Relator ;
+    rdfs:subClassOf logic:Relator ;
     skos:definition "A reified traversable link between two entities, able to bear its own period, cost, weight, bandwidth, confidence, and standpoint. The flat shortcut is gmeow:connectsTo; promote to Connection when metadata matters."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:Route
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/connectivity> ;
     rdfs:label "Route"@x-gmeow-english ;
@@ -25,11 +26,11 @@ gmeow:Route
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:RouteKind
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/connectivity> ;
     rdfs:label "Route Kind"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The kind of a route — transit line, flight path, walking path, citation chain, network path, social path, dependency chain. An open value vocabulary (individuals, never subclasses) per Principle 9."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 

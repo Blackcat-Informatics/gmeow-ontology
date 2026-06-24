@@ -85,14 +85,14 @@ ex:saMentalProcessTypeValueVocab a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:MentalProcessType a owl:Class , gufo:AbstractIndividualType ;
-        rdfs:subClassOf gufo:QualityValue .
+    gmeow:MentalProcessType a owl:Class , logic:AbstractIndividualType ;
+        rdfs:subClassOf logic:QualityValue .
 }""" ;
-    gmeow:saRationale "gmeow:MentalProcessType MUST be typed owl:Class AND gufo:AbstractIndividualType AND be a subClassOf gufo:QualityValue — the value-vocab pattern (Principle 9: no overtyping). Mirrors test_mentalprocesstype_is_value_vocab." .
+    gmeow:saRationale "gmeow:MentalProcessType MUST be typed owl:Class AND logic:AbstractIndividualType AND be a subClassOf logic:QualityValue — the value-vocab pattern (Principle 9: no overtyping). Mirrors test_mentalprocesstype_is_value_vocab." .
 
 # --- 6. All nine process* seed individuals are typed MentalProcessType (MUST) --
 ex:saAllNineProcessIndividuals a gmeow:StructuralAssertion ;

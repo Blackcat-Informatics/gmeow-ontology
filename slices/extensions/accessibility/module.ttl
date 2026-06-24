@@ -3,14 +3,15 @@
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
 gmeow:AccessibilityAssertion
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/accessibility> ;
     rdfs:label "Accessibility Assertion"@x-gmeow-english ;
-    rdfs:subClassOf gufo:Relator ,
+    rdfs:subClassOf logic:Relator ,
         [
             a owl:Restriction ;
             owl:onProperty gmeow:assertionSubject ;
@@ -31,20 +32,20 @@ gmeow:AccessibilityAssertion
         gmeow:boxTBox .
 
 gmeow:AccessibilityFacet
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/accessibility> ;
     rdfs:label "Accessibility Facet"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The dimension of accessibility being asserted — wheelchair, step-free, visual, auditory, cognitive, clearance, life-support. An open value vocabulary (individuals, never subclasses) per Principle 9."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:AccessibilityPolarity
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/accessibility> ;
     rdfs:label "Accessibility Polarity"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The polarity of an accessibility assertion — feature (positive), barrier (negative), or limited (partial)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 

@@ -3,14 +3,15 @@
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
 gmeow:VersionMembership
-    a gufo:SubKind ,
+    a logic:SubKind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/versions> ;
     rdfs:label "Version Membership"@x-gmeow-english ;
-    rdfs:subClassOf gufo:Relator ,
+    rdfs:subClassOf logic:Relator ,
         gmeow:Observation ,
         [
             a owl:Restriction ;
@@ -35,11 +36,11 @@ gmeow:VersionMembership
     gmeow:useWhen "Use to claim that a concrete version belongs to a lineage with a given role or scale according to some authority — the reified relator whenever the role, period, authority, or confidence of the membership must be first-class and standpoint-indexed (Principle 9)."@x-gmeow-english .
 
 gmeow:VersionRole
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/versions> ;
     rdfs:label "Version Role"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "A role or status that an entity holds within a version set according to an authority — a VALUE, never an Entity subclass. Standpoint-scoped: 'latest' according to a package registry may differ from 'latest' according to a downstream mirror. The seed list is an anchor, not a fence."@x-gmeow-english ;
     skos:example "ex:roleArchived a gmeow:VersionRole ; rdfs:label \"archived\"@en ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid minting per-role Entity subclasses or typing artifacts directly with a role; roles are individual values asserted through a standpoint-scoped membership, not essential types."@x-gmeow-english ;
@@ -48,11 +49,11 @@ gmeow:VersionRole
     gmeow:useWhen "Use as the open value vocabulary for membership roles — the named statuses (latest, stable, deprecated, yanked, …) referenced by gmeow:versionRole, and the place to mint a new role individual when a domain needs one."@x-gmeow-english .
 
 gmeow:VersionScale
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/versions> ;
     rdfs:label "Version Scale"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The magnitude scale of a version change — a VALUE, never an Entity subclass. Used for SemVer-style classification and analogous schemes in non-software domains."@x-gmeow-english ;
     skos:example "ex:scaleBreaking a gmeow:VersionScale ; rdfs:label \"breaking\"@en ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid minting per-scale Entity subclasses and avoid using it as the role of a version (that is gmeow:VersionRole); scales are individual values, not essential types."@x-gmeow-english ;
@@ -61,7 +62,7 @@ gmeow:VersionScale
     gmeow:useWhen "Use as the open value vocabulary for change magnitude — the named scales (trivial, minor, major) referenced by gmeow:versionScale for SemVer-style and analogous schemes."@x-gmeow-english .
 
 gmeow:VersionSet
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/versions> ;
     rdfs:label "Version Set"@x-gmeow-english ;

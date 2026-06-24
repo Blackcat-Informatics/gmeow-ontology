@@ -7,9 +7,9 @@
 # SPARQL ASK over the attestation module graph (gmeow:scopeModule) under the
 # native Rust slicetest harness (crates/slicetest).
 #
-# Attestation is NOT yet #694-migrated: class stereotypes remain gufo:
-# (gufo:Kind, gufo:AbstractIndividualType, gufo:QualityValue, gufo:Relator),
-# not logic:.
+# Attestation is #694-migrated: class stereotypes are logic:
+# (logic:Kind, logic:AbstractIndividualType, logic:QualityValue, logic:Relator),
+# not gufo:.
 #
 # RETAINED in pytest (not migratable here):
 #   test_certification_still_exists_as_relator -- gmeow:Certification is not
@@ -27,17 +27,17 @@
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/attestation/tests/> .
 
-# --- 1. Attestation subclasses gufo:Relator (MUST) ----------------------------
+# --- 1. Attestation subclasses logic:Relator (MUST) ----------------------------
 ex:saAttestationIsRelator a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:Attestation rdfs:subClassOf gufo:Relator .
+    gmeow:Attestation rdfs:subClassOf logic:Relator .
 }""" ;
-    gmeow:saRationale "gmeow:Attestation MUST be a subclass of gufo:Relator -- the reified vouching act mediates between an attester, an attested subject, and optionally an attested claim or artifact (gUFO relator pattern). Mirrors test_attestation_is_relator." .
+    gmeow:saRationale "gmeow:Attestation MUST be a subclass of logic:Relator -- the reified vouching act mediates between an attester, an attested subject, and optionally an attested claim or artifact (gUFO relator pattern). Mirrors test_attestation_is_relator." .
 
 # --- 2. Five InformationObject subclasses (MUST) ------------------------------
 ex:saAttestationInformationObjects a gmeow:StructuralAssertion ;
@@ -89,17 +89,17 @@ ASK {
 }""" ;
     gmeow:saRationale "gmeow:BlockchainNetwork, SmartContract, and BlockchainAccount MUST each be a subclass of gmeow:Entity -- they are endurant on-chain things, not information objects or occurrents. Mirrors test_blockchain_entities_are_entities." .
 
-# --- 6. AttestationType subclasses gufo:QualityValue (MUST) -------------------
+# --- 6. AttestationType subclasses logic:QualityValue (MUST) -------------------
 ex:saAttestationTypeIsQualityValue a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:AttestationType rdfs:subClassOf gufo:QualityValue .
+    gmeow:AttestationType rdfs:subClassOf logic:QualityValue .
 }""" ;
-    gmeow:saRationale "gmeow:AttestationType MUST be a subclass of gufo:QualityValue -- types are an open value vocabulary (individuals, never subclasses). Mirrors test_attestation_type_is_value_vocabulary (subClassOf part)." .
+    gmeow:saRationale "gmeow:AttestationType MUST be a subclass of logic:QualityValue -- types are an open value vocabulary (individuals, never subclasses). Mirrors test_attestation_type_is_value_vocabulary (subClassOf part)." .
 
 # --- 7. Three AttestationType seed individuals exist and are not classes (MUST)
 ex:saAttestationTypeSeeds a gmeow:StructuralAssertion ;
@@ -129,17 +129,17 @@ ASK {
 }""" ;
     gmeow:saRationale "The three seeded AttestationType individuals MUST NOT be typed owl:Class -- the type vocabulary is open individuals, never subclasses (Principle 9). Mirrors test_attestation_type_is_value_vocabulary (not-class part)." .
 
-# --- 9. SignatureScheme subclasses gufo:QualityValue (MUST) -------------------
+# --- 9. SignatureScheme subclasses logic:QualityValue (MUST) -------------------
 ex:saSignatureSchemeIsQualityValue a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:SignatureScheme rdfs:subClassOf gufo:QualityValue .
+    gmeow:SignatureScheme rdfs:subClassOf logic:QualityValue .
 }""" ;
-    gmeow:saRationale "gmeow:SignatureScheme MUST be a subclass of gufo:QualityValue -- cryptographic algorithm names are an open value vocabulary (individuals, never subclasses). Mirrors test_signature_scheme_is_value_vocabulary (subClassOf part)." .
+    gmeow:saRationale "gmeow:SignatureScheme MUST be a subclass of logic:QualityValue -- cryptographic algorithm names are an open value vocabulary (individuals, never subclasses). Mirrors test_signature_scheme_is_value_vocabulary (subClassOf part)." .
 
 # --- 10. Two SignatureScheme seed individuals exist (MUST) --------------------
 ex:saSignatureSchemeSeeds a gmeow:StructuralAssertion ;
@@ -167,17 +167,17 @@ ASK {
 }""" ;
     gmeow:saRationale "The two seeded SignatureScheme individuals MUST NOT be typed owl:Class -- algorithm names are individuals, never subclasses (Principle 9). Mirrors test_signature_scheme_is_value_vocabulary (not-class part)." .
 
-# --- 12. VerificationStatus subclasses gufo:QualityValue (MUST) --------------
+# --- 12. VerificationStatus subclasses logic:QualityValue (MUST) --------------
 ex:saVerificationStatusIsQualityValue a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:VerificationStatus rdfs:subClassOf gufo:QualityValue .
+    gmeow:VerificationStatus rdfs:subClassOf logic:QualityValue .
 }""" ;
-    gmeow:saRationale "gmeow:VerificationStatus MUST be a subclass of gufo:QualityValue -- verification verdict names are an open value vocabulary (individuals, never subclasses; a 'verified' status is one verifier's observation, not global truth). Mirrors test_verification_status_is_value_vocabulary (subClassOf part)." .
+    gmeow:saRationale "gmeow:VerificationStatus MUST be a subclass of logic:QualityValue -- verification verdict names are an open value vocabulary (individuals, never subclasses; a 'verified' status is one verifier's observation, not global truth). Mirrors test_verification_status_is_value_vocabulary (subClassOf part)." .
 
 # --- 13. Two VerificationStatus seed individuals exist (MUST) -----------------
 ex:saVerificationStatusSeeds a gmeow:StructuralAssertion ;
@@ -205,17 +205,17 @@ ASK {
 }""" ;
     gmeow:saRationale "The two seeded VerificationStatus individuals MUST NOT be typed owl:Class -- verdict names are individuals, never subclasses (Principle 9). Mirrors test_verification_status_is_value_vocabulary (not-class part)." .
 
-# --- 15. LedgerFinalityStatus subclasses gufo:QualityValue (MUST) ------------
+# --- 15. LedgerFinalityStatus subclasses logic:QualityValue (MUST) ------------
 ex:saLedgerFinalityStatusIsQualityValue a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:LedgerFinalityStatus rdfs:subClassOf gufo:QualityValue .
+    gmeow:LedgerFinalityStatus rdfs:subClassOf logic:QualityValue .
 }""" ;
-    gmeow:saRationale "gmeow:LedgerFinalityStatus MUST be a subclass of gufo:QualityValue -- chain settlement state names are an open value vocabulary (individuals, never subclasses). Mirrors test_ledger_finality_status_is_value_vocabulary (subClassOf part)." .
+    gmeow:saRationale "gmeow:LedgerFinalityStatus MUST be a subclass of logic:QualityValue -- chain settlement state names are an open value vocabulary (individuals, never subclasses). Mirrors test_ledger_finality_status_is_value_vocabulary (subClassOf part)." .
 
 # --- 16. Two LedgerFinalityStatus seed individuals exist (MUST) ---------------
 ex:saLedgerFinalityStatusSeeds a gmeow:StructuralAssertion ;

@@ -4,23 +4,24 @@
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
 gmeow:BranchConditionType
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/procedures> ;
     rdfs:label "Branch Condition Type"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The kind of guard condition on a control-flow edge — a VALUE, never a subclass. Evaluated solver-side (Principle 12). The set is open; new condition kinds are fresh individuals."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:ControlFlow
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/procedures> ;
     rdfs:label "Control Flow"@x-gmeow-english ;
-    rdfs:subClassOf gufo:Relator ,
+    rdfs:subClassOf logic:Relator ,
         [
             a owl:Restriction ;
             owl:onProperty gmeow:flowSource ;
@@ -35,11 +36,11 @@ gmeow:ControlFlow
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:DataFlow
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/procedures> ;
     rdfs:label "Data Flow"@x-gmeow-english ;
-    rdfs:subClassOf gufo:Relator ,
+    rdfs:subClassOf logic:Relator ,
         [
             a owl:Restriction ;
             owl:onProperty gmeow:dataFlowSource ;
@@ -54,7 +55,7 @@ gmeow:DataFlow
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:Execution
-    a gufo:EventType ,
+    a logic:Event ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/procedures> ;
     rdfs:label "Execution"@x-gmeow-english ;
@@ -73,20 +74,20 @@ gmeow:Execution
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:ExecutionStatus
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/procedures> ;
     rdfs:label "Execution Status"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The status of an Execution occurrence — a VALUE, never a subclass. The set is open; new statuses are fresh individuals."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:Procedure
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/procedures> ;
     rdfs:label "Procedure"@x-gmeow-english ;
-    rdfs:subClassOf gufo:Object ,
+    rdfs:subClassOf logic:Object ,
         gmeow:InformationObject ,
         [
             a owl:Restriction ;
@@ -97,30 +98,30 @@ gmeow:Procedure
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:ProcedureStep
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/procedures> ;
     rdfs:label "Procedure Step"@x-gmeow-english ;
-    rdfs:subClassOf gufo:Object ,
+    rdfs:subClassOf logic:Object ,
         gmeow:InformationObject ;
     skos:definition "An atomic step within a Procedure. Carries inputs, outputs, and parameters. May itself reference a subprocess Procedure via gmeow:stepEnactsProcedure. The kind of step is a gmeow:StepType value, never a subclass."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:ProcedureType
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/procedures> ;
     rdfs:label "Procedure Type"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The kind of a procedure — a VALUE, never a Procedure subclass. The set is open; a kind not among the seed individuals is a FRESH gmeow:ProcedureType individual carrying rdfs:label, not a new class."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:StepType
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/procedures> ;
     rdfs:label "Step Type"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The kind of a procedure step — a VALUE, never a ProcedureStep subclass. The set is open; a kind not among the seed individuals is a FRESH gmeow:StepType individual carrying rdfs:label, not a new class."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 

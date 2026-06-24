@@ -3,10 +3,11 @@
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
 gmeow:AdoptiveParentChild
-    a gufo:SubKind ,
+    a logic:SubKind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/genealogy> ;
     rdfs:label "Adoptive Parent-Child"@x-gmeow-english ;
@@ -15,7 +16,7 @@ gmeow:AdoptiveParentChild
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:BiologicalParentChild
-    a gufo:SubKind ,
+    a logic:SubKind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/genealogy> ;
     rdfs:label "Biological Parent-Child"@x-gmeow-english ;
@@ -24,7 +25,7 @@ gmeow:BiologicalParentChild
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:CoupleRelationship
-    a gufo:SubKind ,
+    a logic:SubKind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/genealogy> ;
     rdfs:label "Couple Relationship"@x-gmeow-english ;
@@ -33,7 +34,7 @@ gmeow:CoupleRelationship
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:Family
-    a gufo:SubKind ,
+    a logic:SubKind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/genealogy> ;
     rdfs:label "Family"@x-gmeow-english ;
@@ -42,7 +43,7 @@ gmeow:Family
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:FosterParentChild
-    a gufo:SubKind ,
+    a logic:SubKind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/genealogy> ;
     rdfs:label "Foster Parent-Child"@x-gmeow-english ;
@@ -51,17 +52,17 @@ gmeow:FosterParentChild
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:KinRelationship
-    a gufo:SubKind ,
+    a logic:SubKind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/genealogy> ;
     rdfs:label "Kin Relationship"@x-gmeow-english ;
-    rdfs:subClassOf gufo:Relator ,
+    rdfs:subClassOf logic:Relator ,
         gmeow:Observation ;
     skos:definition "A reified kinship relationship between persons, modelled as an observation (a claim-from-a-vantage) in the universal stack (observation-spine bridge). Able to bear its own events, dates, sources, and standpoint-indexed claims. A disputed kinship is several coexisting gmeow:accordingTo-annotated relators, none privileged (Principle 9). The relationshipParent and relationshipChild are co-observed features of the observation."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:ParentChildRelationship
-    a gufo:SubKind ,
+    a logic:SubKind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/genealogy> ;
     rdfs:label "Parent-Child Relationship"@x-gmeow-english ;
@@ -80,7 +81,7 @@ gmeow:ParentChildRelationship
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:StepParentChild
-    a gufo:SubKind ,
+    a logic:SubKind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/genealogy> ;
     rdfs:label "Step Parent-Child"@x-gmeow-english ;

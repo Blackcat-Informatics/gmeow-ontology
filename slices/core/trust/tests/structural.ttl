@@ -5,9 +5,9 @@
 # test-DSL twin of the asserted-TBox MUST / MUST-NOT invariants formerly
 # hand-written in tests/test_trust.py. Each assertion runs as a SPARQL ASK
 # over the trust module graph (gmeow:scopeModule) under the native Rust
-# slicetest harness. This slice has NOT been #694-migrated so class stereotypes
-# are gufo: (gufo:Kind, gufo:SubKind, gufo:AbstractIndividualType,
-# gufo:QualityValue), not logic:.
+# slicetest harness. This slice is #694-migrated, so class stereotypes
+# are logic: (logic:Kind, logic:SubKind, logic:AbstractIndividualType,
+# logic:QualityValue), not gufo:.
 #
 # RETAINED in pytest (not migratable here):
 #   test_contested_certification_coexists — calls run_shacl() over a fixture
@@ -34,19 +34,19 @@ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK { gmeow:CryptographicKey rdfs:subClassOf gmeow:InformationObject . }""" ;
     gmeow:saRationale "gmeow:CryptographicKey MUST be a subclass of gmeow:InformationObject — a key is an information object, not a bare entity; the subclass anchors it in the information hierarchy. Mirrors test_key_model_uses_scheme_value_not_subclasses (subClassOf arm)." .
 
-# --- 2. KeyScheme is a value-vocabulary subclass of gufo:QualityValue (MUST) -
+# --- 2. KeyScheme is a value-vocabulary subclass of logic:QualityValue (MUST) -
 ex:saKeySchemeValueVocab a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:KeyScheme a owl:Class , gufo:AbstractIndividualType ;
-        rdfs:subClassOf gufo:QualityValue .
+    gmeow:KeyScheme a owl:Class , logic:AbstractIndividualType ;
+        rdfs:subClassOf logic:QualityValue .
 }""" ;
-    gmeow:saRationale "gmeow:KeyScheme MUST be an owl:Class typed gufo:AbstractIndividualType and a subclass of gufo:QualityValue — key schemes are an open individual vocabulary, not per-scheme subclasses (Principle 9). Mirrors test_key_model_uses_scheme_value_not_subclasses (value-vocab arm)." .
+    gmeow:saRationale "gmeow:KeyScheme MUST be an owl:Class typed logic:AbstractIndividualType and a subclass of logic:QualityValue — key schemes are an open individual vocabulary, not per-scheme subclasses (Principle 9). Mirrors test_key_model_uses_scheme_value_not_subclasses (value-vocab arm)." .
 
 # --- 3. keyScheme is a functional property (MUST) ----------------------------
 ex:saKeySchemeFunctional a gmeow:StructuralAssertion ;
@@ -82,25 +82,25 @@ ASK {
 }""" ;
     gmeow:saRationale "gmeow:PGPKey, gmeow:X509Certificate, gmeow:SSHKey, and gmeow:NostrKey MUST NOT be declared as owl:Class — per-scheme key subclasses are banned; key schemes are open individuals (Principle 9). Mirrors test_key_model_uses_scheme_value_not_subclasses (rejected-subclass arm)." .
 
-# --- 6. Certification is a subclass of gufo:Relator (MUST) ------------------
+# --- 6. Certification is a subclass of logic:Relator (MUST) ------------------
 ex:saCertificationIsRelator a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-ASK { gmeow:Certification rdfs:subClassOf gufo:Relator . }""" ;
-    gmeow:saRationale "gmeow:Certification MUST be a subclass of gufo:Relator — a certification mediates the certifier, key, and identity as a reified relator. Mirrors test_certification_and_trust_are_relators (Certification arm)." .
+ASK { gmeow:Certification rdfs:subClassOf logic:Relator . }""" ;
+    gmeow:saRationale "gmeow:Certification MUST be a subclass of logic:Relator — a certification mediates the certifier, key, and identity as a reified relator. Mirrors test_certification_and_trust_are_relators (Certification arm)." .
 
-# --- 7. TrustAssertion is a subclass of gufo:Relator (MUST) -----------------
+# --- 7. TrustAssertion is a subclass of logic:Relator (MUST) -----------------
 ex:saTrustAssertionIsRelator a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-ASK { gmeow:TrustAssertion rdfs:subClassOf gufo:Relator . }""" ;
-    gmeow:saRationale "gmeow:TrustAssertion MUST be a subclass of gufo:Relator — a trust assertion mediates trustor and trustee as a reified perspectival relator. Mirrors test_certification_and_trust_are_relators (TrustAssertion arm)." .
+ASK { gmeow:TrustAssertion rdfs:subClassOf logic:Relator . }""" ;
+    gmeow:saRationale "gmeow:TrustAssertion MUST be a subclass of logic:Relator — a trust assertion mediates trustor and trustee as a reified perspectival relator. Mirrors test_certification_and_trust_are_relators (TrustAssertion arm)." .
 
 # --- 8. endorses is an owl:ObjectProperty (MUST) -----------------------------
 ex:saEndorsesIsObjectProperty a gmeow:StructuralAssertion ;

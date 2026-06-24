@@ -3,10 +3,11 @@
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
 gmeow:CognitiveState
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/cognition> ;
     rdfs:label "Cognitive State"@x-gmeow-english ;
@@ -24,11 +25,11 @@ gmeow:CognitiveState
     gmeow:useWhen "Use to type an agent's intrinsic knowing mode as a first-class mental moment — the endurant state that grounds the knowledge spectrum and is queried alongside doxastic and conative modes under gmeow:MentalMoment (Principle 15)."@x-gmeow-english .
 
 gmeow:KnowledgeLevel
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/cognition> ;
     rdfs:label "Knowledge Level"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The graded epistemic depth of a knowledge-proficiency — an OPEN, ordered value vocabulary (knowledgeAware ≺ knowledgeKnowsAbout ≺ knowledgeUnderstands ≺ knowledgeMastered), the kernel GranularityLevel pattern. Ordinally parallels the flat knowledge spectrum (gmeow:isAwareOf … gmeow:hasMastered) but as reusable values on the reified relator. gmeow:deeperThan is transitive ON LEVELS ONLY; the boundaries are deliberately vague (only the order is asserted)."@x-gmeow-english ;
     skos:example "gmeow:knowledgeUnderstands a gmeow:KnowledgeLevel ; gmeow:deeperThan gmeow:knowledgeKnowsAbout ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid minting per-level subclasses (levels are individuals, the kernel GranularityLevel idiom) and avoid reading the order as crisp cutoffs; only the order is asserted, the boundaries are deliberately vague. Reach for the generic gmeow:ProficiencyLevel only when rating on a non-knowledge framework."@x-gmeow-english ;
@@ -37,11 +38,11 @@ gmeow:KnowledgeLevel
     gmeow:useWhen "Use as the value vocabulary for the depth role of a gmeow:KnowledgeProficiency relator — the ordinal rung (aware ≺ knows-about ≺ understands ≺ mastered) read on the native gmeow:scaleKnowledgeDepth, the reified parallel of the flat spectrum."@x-gmeow-english .
 
 gmeow:KnowledgeProficiency
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/cognition> ;
     rdfs:label "Knowledge Proficiency"@x-gmeow-english ;
-    rdfs:subClassOf gufo:Relator ,
+    rdfs:subClassOf logic:Relator ,
         [
             a owl:Restriction ;
             owl:onProperty gmeow:knowledgeProficiencyAgent ;

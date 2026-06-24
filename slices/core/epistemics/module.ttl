@@ -4,13 +4,14 @@
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
 gmeow:Attestation
     rdfs:subClassOf gmeow:JustificationGround .
 
 gmeow:DoxasticStandpointClaim
-    a gufo:SubKind ,
+    a logic:SubKind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
     rdfs:label "doxastic standpoint claim"@x-gmeow-english ;
@@ -23,7 +24,7 @@ gmeow:DoxasticStandpointClaim
     gmeow:useWhen "Use when a belief report must be a first-class StandpointClaim that can be justified, defeated, or standpoint-indexed independently of the flat gmeow:believes / gmeow:knowsThat spine (Principle 9)."@x-gmeow-english .
 
 gmeow:DoxasticState
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
     rdfs:label "Doxastic State"@x-gmeow-english ;
@@ -54,7 +55,7 @@ gmeow:DoxasticState
     gmeow:useWhen "Use when an agent's belief toward a proposition must be first-class — when credence, temporal scope (via DoxasticTenure), standpoint modality, or the mental moment itself needs to be queried or revised (Principle 15)."@x-gmeow-english .
 
 gmeow:DoxasticTenure
-    a gufo:SituationType ,
+    a logic:Situation ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
     rdfs:label "Doxastic Tenure"@x-gmeow-english ;
@@ -80,7 +81,7 @@ gmeow:EvidenceSpan
     rdfs:subClassOf gmeow:JustificationGround .
 
 gmeow:JustificationGround
-    a gufo:Category ,
+    a logic:Category ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
     rdfs:label "Justification Ground"@x-gmeow-english ;
@@ -97,11 +98,11 @@ gmeow:JustificationGround
     gmeow:useWhen "Use as the range of gmeow:justifiedBy when projecting the ontology into schema languages that cannot consume a blank-node owl:unionOf."@x-gmeow-english .
 
 gmeow:JustificationStatus
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
     rdfs:label "Justification Status"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "A value vocabulary for justification-defeat states of a doxastic state or standpoint-claim — solver-set flags such as Gettier-case, defeated, undercut, and rebutted. These are quality values (gufo:QualityValue) attached via gmeow:defeatedBy; the reasoner never infers them (Principle 12)."@x-gmeow-english ;
     skos:example "ex:aliceBelievesRound gmeow:defeatedBy gmeow:justificationStatusGettier ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid using it as a global truth predicate or letting the reasoner promote/derogate statuses; it is a solver annotation only."@x-gmeow-english ;
@@ -110,7 +111,7 @@ gmeow:JustificationStatus
     gmeow:useWhen "Use as the value vocabulary when a solver marks a gmeow:DoxasticState or gmeow:StandpointClaim with a justification-defeat status."@x-gmeow-english .
 
 gmeow:JustificationSubject
-    a gufo:Category ,
+    a logic:Category ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
     rdfs:label "Justification Subject"@x-gmeow-english ;
@@ -127,7 +128,7 @@ gmeow:JustificationSubject
     gmeow:useWhen "Use as the domain of gmeow:justifiedBy and gmeow:defeatedBy when projecting the ontology into schema languages that cannot consume a blank-node owl:unionOf."@x-gmeow-english .
 
 gmeow:Proposition
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/epistemics> ;
     rdfs:label "Proposition"@x-gmeow-english ;

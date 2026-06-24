@@ -2,15 +2,15 @@
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
-@prefix gufo: <http://purl.org/nemo/gufo#> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
 gmeow:Commitment
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/teleology> ;
     rdfs:label "Commitment"@x-gmeow-english ;
-    rdfs:subClassOf gufo:Relator ,
+    rdfs:subClassOf logic:Relator ,
         gmeow:IntentionalMoment ;
     skos:definition "A social commitment — an agent committed toward at least one other agent to bring about a goal (UFO-C: social moment). A relator, not a mode: it mediates the committed agent (gmeow:committedAgent) and the beneficiaries (gmeow:commitmentBeneficiary), who must be distinct (SHACL). A covenant, a contract promise, and a service-level agreement are Commitments; the agreements and contracts modules carry the document and the legal wrapper, this class carries the teleological bond itself."@x-gmeow-english ;
     skos:example "ex:slaPromise a gmeow:Commitment ; gmeow:committedAgent ex:vendor ; gmeow:commitmentBeneficiary ex:client ; gmeow:intentionGoal ex:ninetyNinePercentUptime ."@x-gmeow-english ;
@@ -20,7 +20,7 @@ gmeow:Commitment
     gmeow:useWhen "Use for the social commitment grade — an agent bound TOWARD at least one distinct other agent to bring about a goal (a covenant, a contract promise, a service-level agreement), where the bond itself is first-class."@x-gmeow-english .
 
 gmeow:Desire
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/teleology> ;
     rdfs:label "Desire"@x-gmeow-english ;
@@ -33,7 +33,7 @@ gmeow:Desire
     gmeow:useWhen "Use for the lowest commitment grade — the agent wants the goal satisfied but has not settled on pursuing it; the wanting that has not yet become an Intention."@x-gmeow-english .
 
 gmeow:Goal
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/teleology> ;
     rdfs:label "Goal"@x-gmeow-english ;
@@ -46,7 +46,7 @@ gmeow:Goal
     gmeow:useWhen "Use to name the propositional content an agent may want, intend, or commit to — the shared target that the intentional modes and the flat gmeow:hasGoal point at, and the thing a situation can satisfy."@x-gmeow-english .
 
 gmeow:Intention
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/teleology> ;
     rdfs:label "Intention"@x-gmeow-english ;
@@ -59,7 +59,7 @@ gmeow:Intention
     gmeow:useWhen "Use when an agent has internally settled on pursuing a goal but no other agent holds them to it — the middle commitment grade, and the natural source of gmeow:motivates on the events the agent undertakes."@x-gmeow-english .
 
 gmeow:IntentionTenure
-    a gufo:SituationType ,
+    a logic:Situation ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/teleology> ;
     rdfs:label "Intention Tenure"@x-gmeow-english ;
@@ -75,13 +75,13 @@ gmeow:IntentionTenure
     gmeow:useWhen "Use as the reified half of the gmeow:hasGoal ↔ gmeow:IntentionTenure pair: when adoption, revision, or abandonment of an intrinsic mode over an interval is itself the fact of interest, so the tenure can be opened and closed rather than mutated."@x-gmeow-english .
 
 gmeow:IntentionalMode
-    a gufo:Category ,
+    a logic:Category ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/teleology> ;
     rdfs:label "Intentional Mode"@x-gmeow-english ;
     rdfs:subClassOf gmeow:IntentionalMoment ,
         gmeow:MentalMoment ;
-    skos:definition "The abstract category of intrinsic intentional moments — desires and intentions — that inhere in exactly one agent and aim at a goal. The intrinsic branch of gmeow:IntentionalMoment, and the conative member of the kernel gmeow:MentalMoment family (alongside cognition's gmeow:CognitiveState and epistemics' doxastic states) so an agent's whole mental life is queryable as one family (Principle 15) — gmeow:MentalMoment ⊑ gufo:IntrinsicMode supplies the gUFO branch. Never instantiated directly: instances are Desires or Intentions (the commitment-graded trichotomy; the social grade is gmeow:Commitment, a relator, not a mode)."@x-gmeow-english ;
+    skos:definition "The abstract category of intrinsic intentional moments — desires and intentions — that inhere in exactly one agent and aim at a goal. The intrinsic branch of gmeow:IntentionalMoment, and the conative member of the kernel gmeow:MentalMoment family (alongside cognition's gmeow:CognitiveState and epistemics' doxastic states) so an agent's whole mental life is queryable as one family (Principle 15) — gmeow:MentalMoment ⊑ logic:Mode supplies the native logic branch. Never instantiated directly: instances are Desires or Intentions (the commitment-graded trichotomy; the social grade is gmeow:Commitment, a relator, not a mode)."@x-gmeow-english ;
     skos:example "ex:wishForRain a gmeow:Desire ; gmeow:intentBearer ex:lillith .  # an IntentionalMode by inheritance"@x-gmeow-english ;
     gmeow:avoidWhen "Avoid instantiating it directly (mint a Desire or Intention) and avoid using it for socially-committed cases — committed TOWARD another agent is gmeow:Commitment, a relator, not a mode."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
@@ -89,7 +89,7 @@ gmeow:IntentionalMode
     gmeow:useWhen "Use as the domain for what is shared by the intrinsic branch — single-bearer inherence via gmeow:intentBearer and intention-tenure — and to query desires and intentions together without the social grade."@x-gmeow-english .
 
 gmeow:IntentionalMoment
-    a gufo:Category ,
+    a logic:Category ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/teleology> ;
     rdfs:label "Intentional Moment"@x-gmeow-english ;
@@ -207,12 +207,12 @@ gmeow:satisfiedBy
     rdfs:domain gmeow:Goal ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/teleology> ;
     rdfs:label "satisfied by"@x-gmeow-english ;
-    rdfs:range gufo:Situation ;
+    rdfs:range logic:Situation ;
     skos:definition "Relates a goal to a situation that counts as achieving it. NOT functional: many situations may satisfy one goal, and disputed satisfaction is several coexisting vantage-indexed claims through the statement layer — never a global verdict (Principle 9)."@x-gmeow-english ;
     skos:example "ex:reachOrbit gmeow:satisfiedBy ex:firstStableOrbit ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid asserting a single canonical satisfaction when achievement is contested; carry each contested judgement on the statement with gmeow:accordingTo (Principle 9), and never make this functional — many situations may satisfy one goal."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxRBox ;
-    gmeow:howToUse "Point the Goal at one or more gufo:Situation individuals; for disputed achievement, mint coexisting gmeow:accordingTo-annotated statements rather than forcing the reasoner to pick a winner, and leave means-end search to the solver layer (Principle 12)."@x-gmeow-english ;
+    gmeow:howToUse "Point the Goal at one or more logic:Situation individuals; for disputed achievement, mint coexisting gmeow:accordingTo-annotated statements rather than forcing the reasoner to pick a winner, and leave means-end search to the solver layer (Principle 12)."@x-gmeow-english ;
     gmeow:useWhen "Use to record that a particular situation counts as achieving a goal — the achievement link a renderer or planner reads to ask whether a goal has been met."@x-gmeow-english .
 
 gmeow:tenureAgent

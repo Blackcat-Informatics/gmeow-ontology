@@ -3,7 +3,7 @@
 
 # Attestation, verification, and transparency — modelling & interoperability guide
 
-GMEOW models **attestation** as `gmeow:Attestation`, a `gufo:Relator` that reifies a
+GMEOW models **attestation** as `gmeow:Attestation`, a `logic:Relator` that reifies a
 signed claim envelope.  The module is intentionally **cross-cutting**: it is not tied to
 any single domain (identity, messaging, supply chain, or publishing) and is designed to
 be used as a common substrate for any scenario that needs provenance-bearing assertions,
@@ -15,14 +15,14 @@ assertion is true.
 
 ## Core classes
 
-| GMEOW class | gUFO kind | What it represents |
+| GMEOW class | Local grounding | What it represents |
 |---|---|---|
-| `gmeow:Attestation` | `gufo:Relator` | The reified assertion envelope (who said what, when, with what evidence). |
-| `gmeow:AttestationArtifact` | `gufo:InformationObject` | A document or payload that carries the attestation (credential, certificate, signed statement, VC, etc.). |
-| `gmeow:AttestationPolicy` | `gufo:AbstractIndividualType` | Rules under which an attestation was issued (open value vocabulary). |
+| `gmeow:Attestation` | `logic:Relator` | The reified assertion envelope (who said what, when, with what evidence). |
+| `gmeow:AttestationArtifact` | `gmeow:InformationObject` | A document or payload that carries the attestation (credential, certificate, signed statement, VC, etc.). |
+| `gmeow:AttestationPolicy` | `logic:AbstractIndividualType` | Rules under which an attestation was issued (open value vocabulary). |
 | `gmeow:VerificationActivity` | `gmeow:Activity` | The act of checking an attestation against its policy. |
-| `gmeow:VerificationResult` | `gufo:InformationObject` | The outcome of a verification activity, including the final status. |
-| `gmeow:TransparencyLogEntry` | `gufo:InformationObject` | A single append-only record in a transparency log (Rekor entry, SCITT receipt, CT inclusion proof, etc.). |
+| `gmeow:VerificationResult` | `gmeow:InformationObject` | The outcome of a verification activity, including the final status. |
+| `gmeow:TransparencyLogEntry` | `gmeow:InformationObject` | A single append-only record in a transparency log (Rekor entry, SCITT receipt, CT inclusion proof, etc.). |
 
 ## Value vocabularies
 
@@ -170,7 +170,7 @@ ex:ctEntry a gmeow:TransparencyLogEntry ;
 
 1. **Term alignment** — `mappings/gmeow-attestation.sssom.tsv` maps to PROV-O, W3C
    Verifiable Credentials, W3C DID, W3C Web of Things, and W3C DQV.
-2. **SSSOM + EDOAL** — generated from `mapping-dsl/equivalences/attestation.ttl`.
+2. **SSSOM + EDOAL** — generated from `slices/core/attestation/mappings/equivalences.ttl`.
    PROV-O `Entity` ↔ `AttestationArtifact`, `Activity` ↔ `VerificationActivity`,
    `wasGeneratedBy` ↔ `hasSignature` / `signedBy`, etc.
 3. **Refused mappings** — in-toto, SLSA, DSSE, Sigstore, SCITT, C2PA, RATS/EAT, and
@@ -258,8 +258,9 @@ in the solver layer (Principle 12).
 
 ## See also
 
-- `ontology/modules/attestation.ttl` — canonical module source.
-- `mapping-dsl/equivalences/attestation.ttl` — mapping DSL alignments.
-- `tests/test_attestation.py` — structural and negative tests.
+- `slices/core/attestation/module.ttl` — canonical module source.
+- `slices/core/attestation/mappings/equivalences.ttl` — mapping DSL alignments.
+- `slices/core/attestation/tests/structural.ttl` — structural slice tests.
+- `crates/validate/tests/ontology_conformance.rs` — native negative fixture tests.
 - `slices/extensions/email/docs.md` — how `hasSignature` is used for DKIM / S/MIME / PGP in email.
-- `ontology/modules/trust.ttl` — `gmeow:Certification`, the key-to-identity specialisation.
+- `slices/core/trust/module.ttl` — `gmeow:Certification`, the key-to-identity specialisation.

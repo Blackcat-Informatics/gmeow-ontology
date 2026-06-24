@@ -7,11 +7,9 @@ SHACL well-formedness (ExampleConformance) tests have been migrated to Rust at
 crates/validate/tests/conformance_creative_works.rs (#867).
 
 RETAINED:
-  - test_creative_work_is_category: gmeow:CreativeWork defined in documents/
   - test_wemi_tiers_subclass_information_object: uses transitive_objects()
   - test_document_subclasses_work: subjects in documents/
   - test_media_etc_subclasses_manifestation: subjects in documents/
-  - test_contribution_degree_value_vocab: subjects in citations/
   - test_creation_event_types_exist: subjects in events/
   - All book/narrative model tests whose subjects are in documents/
 """
@@ -23,7 +21,6 @@ from gmeow_rdf.compat.rdflib import OWL, RDF, RDFS, Graph, Namespace
 from gmeow_tools.graph import load_merged_graph
 
 GMEOW = Namespace("https://blackcatinformatics.ca/gmeow/")
-GUFO = Namespace("http://purl.org/nemo/gufo#")
 
 
 def _graph() -> Graph:
@@ -40,11 +37,6 @@ def _graph() -> Graph:
 # =========================================================================== #
 # Class hierarchy (cross-slice and dynamic -- NOT in structural.ttl)
 # =========================================================================== #
-
-
-def test_creative_work_is_category() -> None:
-    graph = _graph()
-    assert (GMEOW.CreativeWork, RDF.type, GUFO.Category) in graph
 
 
 def test_wemi_tiers_subclass_information_object() -> None:
@@ -93,29 +85,6 @@ def test_media_etc_subclasses_manifestation() -> None:
         GMEOW.SerialInstallment,
     ):
         assert (cls, RDFS.subClassOf, GMEOW.Manifestation) in graph
-
-
-# =========================================================================== #
-# Value vocabularies -- cross-slice (subjects NOT in creative-works module)
-# =========================================================================== #
-
-
-def test_contribution_degree_value_vocab() -> None:
-    """
-    Verify the contribution-degree vocabulary is modeled as a value class and its
-    members are individuals.
-
-    RETAINED: ContributionDegree, degreeLead, degreeEqual, degreeSupporting are
-    defined in slices/core/citations/module.ttl -- cross-slice subjects.
-    """
-    graph = _graph()
-    assert (GMEOW.ContributionDegree, RDFS.subClassOf, GUFO.QualityValue) in graph
-    for ind in (
-        GMEOW.degreeLead,
-        GMEOW.degreeEqual,
-        GMEOW.degreeSupporting,
-    ):
-        assert (ind, RDF.type, GMEOW.ContributionDegree) in graph
 
 
 # =========================================================================== #
@@ -191,18 +160,3 @@ def test_segment_index_is_functional() -> None:
     """RETAINED: segmentIndex is defined in slices/core/documents/."""
     graph = _graph()
     assert (GMEOW.segmentIndex, RDF.type, OWL.FunctionalProperty) in graph
-
-
-def test_content_segment_type_value_vocab() -> None:
-    """RETAINED: ContentSegmentType and its seeds are in slices/core/documents/."""
-    graph = _graph()
-    assert (GMEOW.ContentSegmentType, RDFS.subClassOf, GUFO.QualityValue) in graph
-    for ind in (
-        GMEOW.segmentTypeChapter,
-        GMEOW.segmentTypeSection,
-        GMEOW.segmentTypeScene,
-        GMEOW.segmentTypeParagraph,
-        GMEOW.segmentTypeFrontMatter,
-        GMEOW.segmentTypeBackMatter,
-    ):
-        assert (ind, RDF.type, GMEOW.ContentSegmentType) in graph

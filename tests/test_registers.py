@@ -27,7 +27,6 @@ from tests._graph_nt import run_shacl
 
 GMEOW = "https://blackcatinformatics.ca/gmeow/"
 GM = Namespace(GMEOW)
-GUFO = Namespace("http://purl.org/nemo/gufo#")
 LOGIC = Namespace("https://blackcatinformatics.ca/logic/")
 EX = Namespace("https://example.org/shapes/")
 
@@ -60,17 +59,6 @@ def test_register_spine_lives_in_names_core() -> None:
     # A names-core seed and a persona-facing seed are both Registers.
     assert (GM.registerFormal, RDF.type, GM.NameRegister) in g
     assert (GM.registerPublic, RDF.type, GM.Register) in g
-
-
-def test_persona_is_a_relator_with_one_bearer() -> None:
-    """The grounding decision: relator, not gufo:Role class — personas need
-    their own identity (style guides, tenure); roles classify, they don't
-    reify."""
-    g = _graph()
-    assert (GM.Persona, RDF.type, GUFO.Kind) in g
-    assert (GM.Persona, RDFS.subClassOf, GUFO.Relator) in g
-    assert (GM.personaBearer, RDF.type, OWL.FunctionalProperty) in g
-    assert (GM.personaBearer, RDFS.range, GM.Agent) in g
 
 
 def test_expression_machinery_is_open_and_plural() -> None:

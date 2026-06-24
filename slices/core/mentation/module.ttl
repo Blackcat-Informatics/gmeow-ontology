@@ -3,10 +3,11 @@
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
 gmeow:Experience
-    a gufo:EventType ,
+    a logic:Event ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/mentation> ;
     rdfs:label "Experience"@x-gmeow-english ;
@@ -24,7 +25,7 @@ gmeow:Experience
     gmeow:useWhen "Use for the phenomenally-conscious, qualia-bearing subset of mental processing — an episode there is something it is like to undergo (a felt perception, an emotion-episode, a dream) — when the first-person character is what distinguishes it."@x-gmeow-english .
 
 gmeow:MentalProcess
-    a gufo:EventType ,
+    a logic:Event ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/mentation> ;
     rdfs:label "Mental Process"@x-gmeow-english ;
@@ -42,11 +43,11 @@ gmeow:MentalProcess
     gmeow:useWhen "Use as the umbrella for any mental OCCURRENCE that unfolds in time — a perceiving, reasoning, imagining, recollecting, or dreaming episode — so an agent's mental timeline is queryable as a single occurrent stream; the kind is a gmeow:mentalProcessType value."@x-gmeow-english .
 
 gmeow:MentalProcessType
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/mentation> ;
     rdfs:label "Mental Process Type"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The kind of a mental process — a closed-but-open value vocabulary (individuals, never subclasses; the gmeow:EventType idiom): gmeow:processPerception, gmeow:processAttention, gmeow:processReasoning, gmeow:processImagining, gmeow:processDeliberation, gmeow:processRecollection, gmeow:processMindWandering, gmeow:processDreaming, gmeow:processLearning. New kinds are minted as individuals, never as subclasses of gmeow:MentalProcess (Principle 9: no overtyping)."@x-gmeow-english ;
     skos:example "gmeow:processReasoning a gmeow:MentalProcessType ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid expressing the kind as a subclass of gmeow:MentalProcess (kinds are individuals of this class, never subclasses — Principle 9, no overtyping) and avoid using it for the phenomenal/sub-personal distinction, which is the gmeow:Experience subclass."@x-gmeow-english ;

@@ -1,7 +1,7 @@
 """Structural guards for the tags building block — RETAINED dynamic sweeps only.
 
 The asserted-TBox invariants (Tag/TagScheme subClassOf InformationObject,
-Tagging subClassOf gufo:Relator, seed individuals, property shapes, functional
+Tagging subClassOf logic:Relator, seed individuals, property shapes, functional
 roles, property-bag ban, broaderTag/narrowerTag/relatedTag semantics, EL
 restrictions) have been migrated to declarative slicetest cells in
 slices/core/tags/tests/structural.ttl (issue #867).

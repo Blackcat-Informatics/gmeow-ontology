@@ -3,10 +3,11 @@
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
 gmeow:DreamReport
-    a gufo:EventType ,
+    a logic:Event ,
         owl:Class ;
     rdfs:comment """A dream report is a recollection episode: an instance of gmeow:Experience with gmeow:mentalProcessType gmeow:processRecollection and gmeow:contentOrigin gmeow:originImagined. It is a claim about a prior dream episode, but modelled as the recollection process itself rather than as a propositional claim class, so it inherits the occurrent mental-timeline machinery (gmeow:experiencer, gmeow:mentalProcessType, etc.) from gmeow:Experience.
 

@@ -3,10 +3,11 @@
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
 gmeow:Tag
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/tags> ;
     rdfs:label "Tag"@x-gmeow-english ;
@@ -19,7 +20,7 @@ gmeow:Tag
     gmeow:useWhen "Use to mint an informal, user-applied label whose identity is its IRI — a folksonomy keyword that classifies entities without the inferential weight of a type or the subject-matter commitment of aboutness."@x-gmeow-english .
 
 gmeow:TagScheme
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/tags> ;
     rdfs:label "Tag Scheme"@x-gmeow-english ;
@@ -32,11 +33,11 @@ gmeow:TagScheme
     gmeow:useWhen "Use to bucket tags into a namespace — a personal tag set, a project vocabulary, or a curated controlled vocabulary — so folksonomy and controlled-vocabulary tags can coexist under distinct scheme identities."@x-gmeow-english .
 
 gmeow:Tagging
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/tags> ;
     rdfs:label "Tagging"@x-gmeow-english ;
-    rdfs:subClassOf gufo:Relator ,
+    rdfs:subClassOf logic:Relator ,
         [
             a owl:Restriction ;
             owl:onProperty gmeow:taggingTagged ;

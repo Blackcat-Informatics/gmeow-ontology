@@ -22,7 +22,7 @@
 #     gmeow:TimeScopedRelation. The subclass edges live in those OTHER slices'
 #     modules, not here.
 #   * test_interpersonal_relationship_is_a_gufo_relator —
-#     gmeow:InterpersonalRelationship (core/contacts, core/names) ⊑ gufo:Relator.
+#     gmeow:InterpersonalRelationship (core/contacts, core/names) ⊑ logic:Relator.
 #     Same reason.
 # These are genuine cross-slice integration checks, faithfully retained in pytest.
 #

@@ -812,7 +812,9 @@ observations cell). Pytest fn deltas: accessibility 11→0, expertise 11→4, ve
 Five more home slices migrated to `slices/<g>/<n>/tests/structural.ttl` declarative
 cells. `music` was assessed and produced **no** cell file — all 4 of its tests are
 cross-slice (Genre/roles defined in creative-works/events), a generated-shapes read,
-or a whole-graph `transitive_subjects` sweep — all retained in pytest. RETAIN
+or a whole-graph `transitive_subjects` sweep — all retained in pytest; the later
+tail for #694 below adds a music `structural.ttl` file for different stale
+stereotype assertions, while these four batch-2 functions remain retained. RETAIN
 categories applied uniformly: cross-slice subjects (module-scoped cell can't see
 them), generated-artifact reads (`load_mappings`, `.rq` competency files, shapes),
 whole-graph dynamic sweeps, and numeric count guards. The negative "ban" cells
@@ -889,6 +891,37 @@ mustNot references a real `owl:ObjectProperty` in its module.
 **Batch-2 tally:** 23 converted fns → 63 structural cells across 5 slices; 11
 retained-with-reason (7 cross-slice, 3 generated-artifact/competency, 1 dynamic-set) plus music's 4 retained. Pytest fn counts: provenance 4→2, sexuality 6→1, connectivity
 7→3, gender 7→2, aggregation 8→1, music 4→4 (untouched).
+
+## #694 logic stereotype retirement tail
+
+This tail removes the remaining Python structural assertions that still expected
+`gufo:` stereotypes after the canonical slice sources moved to the local
+`logic:` spine. Replacement coverage is module-scoped `gmeow:StructuralAssertion`
+data under `slices/**/tests/structural.ttl`, executed by the native Rust
+`make slicetest` lane. No Python tests were added; migrated pytest functions were
+deleted or trimmed.
+
+| Python source | Rust slice-test replacement | Status |
+|---|---|---|
+| `tests/test_attestation.py` | `slices/core/trust/tests/structural.ttl` `ex:saCertificationIsRelator` | deleted entire stale Python file |
+| `tests/test_employment.py` | `slices/extensions/employment/tests/structural.ttl`; `slices/core/agreements/tests/structural.ttl` | stale `Employment`/`foundedOn` gUFO assertions deleted |
+| `slices/core/temporal/tests/test_temporal.py` | `slices/core/contacts/tests/structural.ttl` `ex:saInterpersonalRelationshipIsRelatorKind` | stale cross-slice gUFO assertion deleted |
+| `tests/test_creative_works.py` | `slices/core/documents/tests/structural.ttl` | stale `CreativeWork`/`ContentSegmentType` gUFO assertions deleted |
+| `tests/test_ai_claims.py` | `slices/core/ai/tests/structural.ttl` | stale `MemoryItem`/`Contradiction` gUFO assertions deleted |
+| `tests/test_interior.py` | `slices/extensions/affect/tests/structural.ttl`; `slices/extensions/narrative/tests/structural.ttl` | stale `Emotion`/`RoleInNarrative` gUFO assertions deleted |
+| `tests/test_email_*.py` | `slices/extensions/email/tests/structural.ttl` | stale `MailingList`, `EmailPatchDiff`, `CalendarMethod`, and `MessageKind` gUFO assertions deleted |
+| `tests/test_language_varieties.py` | `slices/extensions/languages/tests/structural.ttl` | stale value-vocabulary and `LanguageState` gUFO assertions deleted |
+| `tests/test_narrative_time.py`, `tests/test_narration.py`, `tests/test_myth.py` | `slices/extensions/narrative/tests/structural.ttl` | stale narrative-time, narration, and myth gUFO assertions deleted |
+| `tests/test_rubrics.py`, `tests/test_registers.py` | `slices/extensions/norms/tests/structural.ttl` | stale `Rubric`, `Exemplar`, and `Persona` gUFO assertions deleted |
+| `tests/test_verifiable_release_chain.py` | `slices/extensions/software/tests/structural.ttl` | stale `SLSALevel` gUFO assertion deleted |
+| `tests/test_music_pitch.py`, `tests/test_music_collections.py`, `slices/extensions/music/tests/test_music_*.py` | `slices/extensions/music/tests/structural.ttl` | stale music stereotype assertions deleted; non-structural fixture, query, mapping, SHACL, and dynamic sweep tests retained |
+
+**#694 tail tally:** 34 stale Python structural functions removed, 7 new
+slice-local structural spec files added, 5 existing structural spec files
+extended, and the native `make slicetest` lane now carries the advanced
+stereotype coverage. Historical retained rows above are unchanged when they
+cover generated artifacts, cross-slice subjects, numeric set/cardinality checks,
+fixture SHACL, queries, or whole-graph dynamic sweeps.
 
 ## Reasoning cluster → native Rust OWL 2 RL harness (#896)
 

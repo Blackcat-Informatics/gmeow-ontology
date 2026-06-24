@@ -7,8 +7,8 @@
 # SPARQL ASK over the aggregation module graph (gmeow:scopeModule) under the
 # native Rust harness (crates/slicetest).
 #
-# Aggregation is NOT yet #694-migrated, so class stereotypes remain gufo:
-# (gufo:AbstractIndividualType, gufo:SubKind, gufo:QualityValue), not logic:.
+# Aggregation is #694-migrated, so class stereotypes are logic:
+# (logic:AbstractIndividualType, logic:SubKind, logic:QualityValue), not gufo:.
 #
 # RETAINED in pytest (cross-slice subject):
 #   test_contains_place_exists_and_is_inverse — gmeow:containsPlace and
@@ -25,42 +25,42 @@ ex:saSpatialAggregationIsMeasurement a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:SpatialAggregation a owl:Class , gufo:SubKind ;
+    gmeow:SpatialAggregation a owl:Class , logic:SubKind ;
         rdfs:subClassOf gmeow:Measurement .
 }""" ;
-    gmeow:saRationale "gmeow:SpatialAggregation MUST be an owl:Class typed gufo:SubKind and a subclass of gmeow:Measurement — every aggregation reuses the universal observation stack without duplication (Principle 4, #101). Mirrors test_spatial_aggregation_is_measurement." .
+    gmeow:saRationale "gmeow:SpatialAggregation MUST be an owl:Class typed logic:SubKind and a subclass of gmeow:Measurement — every aggregation reuses the universal observation stack without duplication (Principle 4, #101). Mirrors test_spatial_aggregation_is_measurement." .
 
 # --- 2. SpatialBin is a subclass of Place (MUST) -----------------------------
 ex:saSpatialBinIsPlace a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:SpatialBin a owl:Class , gufo:SubKind ;
+    gmeow:SpatialBin a owl:Class , logic:SubKind ;
         rdfs:subClassOf gmeow:Place .
 }""" ;
-    gmeow:saRationale "gmeow:SpatialBin MUST be an owl:Class typed gufo:SubKind and a subclass of gmeow:Place — bins are places that partition space for statistical summarisation (#101). Mirrors test_spatial_bin_is_place." .
+    gmeow:saRationale "gmeow:SpatialBin MUST be an owl:Class typed logic:SubKind and a subclass of gmeow:Place — bins are places that partition space for statistical summarisation (#101). Mirrors test_spatial_bin_is_place." .
 
 # --- 3a. AggregationFunction is a value-vocabulary subclass of QualityValue (MUST) ---
 ex:saAggregationFunctionIsValueVocab a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:AggregationFunction a owl:Class , gufo:AbstractIndividualType ;
-        rdfs:subClassOf gufo:QualityValue .
+    gmeow:AggregationFunction a owl:Class , logic:AbstractIndividualType ;
+        rdfs:subClassOf logic:QualityValue .
 }""" ;
-    gmeow:saRationale "gmeow:AggregationFunction MUST be an owl:Class typed gufo:AbstractIndividualType and a subclass of gufo:QualityValue — the aggregation kinds are an individuals-based value vocabulary, never subclasses (Principle 9, #101). Mirrors test_aggregation_function_is_value_not_subclass (positive half)." .
+    gmeow:saRationale "gmeow:AggregationFunction MUST be an owl:Class typed logic:AbstractIndividualType and a subclass of logic:QualityValue — the aggregation kinds are an individuals-based value vocabulary, never subclasses (Principle 9, #101). Mirrors test_aggregation_function_is_value_not_subclass (positive half)." .
 
 # --- 3b. The seven AggregationFunction seeds exist as individuals (MUST) -----
 ex:saAggregationFunctionSeeds a gmeow:StructuralAssertion ;

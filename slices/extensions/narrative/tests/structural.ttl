@@ -7,9 +7,9 @@
 # runs as a SPARQL ASK over the narrative module graph (gmeow:scopeModule) under
 # the native Rust slicetest harness (crates/slicetest).
 #
-# Narrative is NOT yet #694-migrated: class stereotypes remain gufo:
-# (gufo:SubKind, gufo:Kind, gufo:Relator, gufo:AbstractIndividualType,
-# gufo:QualityValue, gufo:Category), NOT logic:.
+# Narrative is #694-migrated: class stereotypes are logic:
+# (logic:SubKind, logic:Kind, logic:Relator, logic:AbstractIndividualType,
+# logic:QualityValue, logic:Category), not gufo:.
 #
 # RETAINED in pytest (not migratable here):
 #   test_narrative_reference_frame_is_not_standpoint_subclass
@@ -51,19 +51,19 @@ ASK {
 }""" ;
     gmeow:saRationale "gmeow:NarrativeReferenceFrame MUST be rdfs:subClassOf gmeow:ReferenceFrame -- canon supplies coordinate topology for in-universe claims; the gUFO MixIden rule forbids a second Kind inheritance (Standpoint). Mirrors test_narrative_reference_frame_is_reference_frame." .
 
-# --- 2. NarrativeFrameRelation is a gufo:AbstractIndividualType value vocab ----
+# --- 2. NarrativeFrameRelation is a logic:AbstractIndividualType value vocab ----
 ex:saNarrativeFrameRelationIsValueVocab a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:NarrativeFrameRelation a gufo:AbstractIndividualType , owl:Class ;
-        rdfs:subClassOf gufo:QualityValue .
+    gmeow:NarrativeFrameRelation a logic:AbstractIndividualType , owl:Class ;
+        rdfs:subClassOf logic:QualityValue .
 }""" ;
-    gmeow:saRationale "gmeow:NarrativeFrameRelation MUST be an owl:Class typed gufo:AbstractIndividualType and a subclass of gufo:QualityValue -- frame-relation types are value-vocabulary individuals, never subclasses (Principle 9). Mirrors test_narrative_frame_relation_value_vocab (class part)." .
+    gmeow:saRationale "gmeow:NarrativeFrameRelation MUST be an owl:Class typed logic:AbstractIndividualType and a subclass of logic:QualityValue -- frame-relation types are value-vocabulary individuals, never subclasses (Principle 9). Mirrors test_narrative_frame_relation_value_vocab (class part)." .
 
 # --- 3. Six NarrativeFrameRelation seed individuals exist (MUST) ---------------
 ex:saNarrativeFrameRelationSeeds a gmeow:StructuralAssertion ;
@@ -94,17 +94,17 @@ ASK {
 }""" ;
     gmeow:saRationale "gmeow:sourceFor MUST be an owl:ObjectProperty with rdfs:domain gmeow:CreativeWork and rdfs:range gmeow:NarrativeReferenceFrame -- out-of-universe artifacts source narrative frames, not the reverse. Mirrors test_source_for_property_exists." .
 
-# --- 5. NarrativeFrameLink subclasses gufo:Relator (MUST) ---------------------
+# --- 5. NarrativeFrameLink subclasses logic:Relator (MUST) ---------------------
 ex:saNarrativeFrameLinkIsRelator a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:NarrativeFrameLink rdfs:subClassOf gufo:Relator .
+    gmeow:NarrativeFrameLink rdfs:subClassOf logic:Relator .
 }""" ;
-    gmeow:saRationale "gmeow:NarrativeFrameLink MUST be rdfs:subClassOf gufo:Relator -- a reified binding of source frame, target frame, and relation type into a single node (the NarrationUsage/Tagging idiom). Mirrors test_narrative_frame_link_is_relatore_subclass." .
+    gmeow:saRationale "gmeow:NarrativeFrameLink MUST be rdfs:subClassOf logic:Relator -- a reified binding of source frame, target frame, and relation type into a single node (the NarrationUsage/Tagging idiom). Mirrors test_narrative_frame_link_is_relatore_subclass." .
 
 # --- 6. narrativeFrameLinkSource, Target, Relation are ObjectProperties (MUST) -
 ex:saNarrativeFrameLinkPropertiesAreObjectProperties a gmeow:StructuralAssertion ;
@@ -215,19 +215,19 @@ ASK {
 }""" ;
     gmeow:saRationale "gmeow:arcEvidence MUST NOT be owl:FunctionalProperty -- an arc may be evidenced by many works or segments, and those coexist (Principle 9). Mirrors test_character_arc_properties_exist (arcEvidence not-functional part)." .
 
-# --- 15. ArcType is a gufo:AbstractIndividualType value vocab (MUST) -----------
+# --- 15. ArcType is a logic:AbstractIndividualType value vocab (MUST) -----------
 ex:saArcTypeIsValueVocab a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:ArcType a gufo:AbstractIndividualType , owl:Class ;
-        rdfs:subClassOf gufo:QualityValue .
+    gmeow:ArcType a logic:AbstractIndividualType , owl:Class ;
+        rdfs:subClassOf logic:QualityValue .
 }""" ;
-    gmeow:saRationale "gmeow:ArcType MUST be an owl:Class typed gufo:AbstractIndividualType and a subclass of gufo:QualityValue -- arc types are an open value vocabulary (individuals, never subclasses, Principle 9). Mirrors test_arc_type_value_vocab (class part)." .
+    gmeow:saRationale "gmeow:ArcType MUST be an owl:Class typed logic:AbstractIndividualType and a subclass of logic:QualityValue -- arc types are an open value vocabulary (individuals, never subclasses, Principle 9). Mirrors test_arc_type_value_vocab (class part)." .
 
 # --- 16. Six ArcType seed individuals exist (MUST) ----------------------------
 ex:saArcTypeSeeds a gmeow:StructuralAssertion ;
@@ -243,3 +243,122 @@ ASK {
     gmeow:arcTypeRecovery    a gmeow:ArcType .
 }""" ;
     gmeow:saRationale "All six ArcType seed individuals (coming-of-age, redemption, fall, corruption, quest, recovery) MUST be present as gmeow:ArcType instances -- they seed the open interpretive vocabulary. Mirrors test_arc_type_value_vocab (individuals part)." .
+
+# --- 17. NarrativeTimeFrame is a logic:SubKind ReferenceFrame (MUST) ---------
+ex:saNarrativeTimeFrameIsReferenceFrame a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:NarrativeTimeFrame a owl:Class , logic:SubKind ;
+        rdfs:subClassOf gmeow:ReferenceFrame .
+}""" ;
+    gmeow:saRationale "gmeow:NarrativeTimeFrame MUST be an owl:Class typed logic:SubKind and a subclass of gmeow:ReferenceFrame. Replaces the stale gufo:SubKind pytest assertion." .
+
+# --- 18. NarrativeTimeAxis is a two-seed value vocabulary (MUST) -------------
+ex:saNarrativeTimeAxisValueVocab a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:NarrativeTimeAxis a owl:Class , logic:AbstractIndividualType ;
+        rdfs:subClassOf logic:QualityValue .
+    gmeow:axisDiscourseTime a gmeow:NarrativeTimeAxis .
+    gmeow:axisStoryTime     a gmeow:NarrativeTimeAxis .
+}""" ;
+    gmeow:saRationale "gmeow:NarrativeTimeAxis MUST be a logic:QualityValue vocabulary seeded by discourse-time and story-time axis values. Replaces stale gufo:AbstractIndividualType/QualityValue pytest assertions." .
+
+# --- 19. NarrativePosition is a logic:Kind object with ordinal/label properties (MUST) ---
+ex:saNarrativePositionFrameOrdinalLabel a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:NarrativePosition a owl:Class , logic:Kind ;
+        rdfs:subClassOf gmeow:Entity .
+    gmeow:positionOrdinal a owl:DatatypeProperty .
+}""" ;
+    gmeow:saRationale "gmeow:NarrativePosition MUST be a logic:Kind entity with a datatype ordinal property. Replaces the stale gufo:Kind pytest assertion." .
+
+ex:saPositionLabelNotFunctional a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:positionLabel a owl:FunctionalProperty . }""" ;
+    gmeow:saRationale "gmeow:positionLabel MUST NOT be functional; co-equal position labels coexist." .
+
+# --- 20. NarrationUsage is a reified logic:Relator with open subject range (MUST) ---
+ex:saNarrationUsageIsRelator a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:NarrationUsage a owl:Class , logic:Kind ;
+        rdfs:subClassOf logic:Relator .
+    gmeow:narrationSegment a owl:FunctionalProperty .
+    gmeow:narrationSubject a owl:FunctionalProperty .
+}""" ;
+    gmeow:saRationale "gmeow:NarrationUsage MUST be a logic:Kind relator with functional segment and subject roles. Replaces stale gufo:Kind/Relator pytest assertions." .
+
+ex:saNarrationSubjectRangeOpen a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK { gmeow:narrationSubject rdfs:range ?range . }""" ;
+    gmeow:saRationale "gmeow:narrationSubject MUST NOT have an rdfs:range; the narrated thing can be an entity, event, or situation." .
+
+ex:saNarrationModeNotFunctional a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:narrationMode a owl:FunctionalProperty . }""" ;
+    gmeow:saRationale "gmeow:narrationMode MUST NOT be functional; a flashback can also be a dream, and rival readings coexist." .
+
+# --- 21. Myth is a logic:Kind SocialObject (MUST) ----------------------------
+ex:saMythIsKindSocialObject a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:Myth a owl:Class , logic:Kind ;
+        rdfs:subClassOf gmeow:SocialObject .
+}""" ;
+    gmeow:saRationale "gmeow:Myth MUST be an owl:Class typed logic:Kind and a subclass of gmeow:SocialObject. Replaces the stale gufo:Kind pytest assertion." .
+
+# --- 22. RoleInNarrative is a scoped interpretive logic:Relator (MUST) -------
+ex:saRoleInNarrativeScopedRelator a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:RoleInNarrative rdfs:subClassOf logic:Relator .
+    gmeow:narrativeRoleBearer a owl:FunctionalProperty .
+    gmeow:narrativeRoleScope  a owl:FunctionalProperty ;
+        rdfs:range gmeow:NarrativeScope .
+    gmeow:narrativeRoleValue  a owl:FunctionalProperty .
+    gmeow:CreativeWork rdfs:subClassOf gmeow:NarrativeScope .
+    gmeow:ContentSegment rdfs:subClassOf gmeow:NarrativeScope .
+    gmeow:NarrativeReferenceFrame rdfs:subClassOf gmeow:NarrativeScope .
+}""" ;
+    gmeow:saRationale "gmeow:RoleInNarrative MUST be a logic:Relator whose bearer, scope, and role value are functional, with the narrative scope graft asserted extension-side. Replaces the stale gufo:Relator pytest assertion." .

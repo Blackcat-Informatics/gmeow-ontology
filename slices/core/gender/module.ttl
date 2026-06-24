@@ -4,14 +4,15 @@
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
 gmeow:Gender
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gender> ;
     rdfs:label "Gender"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "A gender a person may identify with — a VALUE, never a gmeow:Person subclass. The set is open and culturally diverse; a gender not among the seed individuals is a FRESH gmeow:Gender individual carrying rdfs:label, not a new class. Pointed at by gmeow:genderValue."@x-gmeow-english ;
     skos:example "ex:genderXochihua a gmeow:Gender ; rdfs:label \"xochihua\"@en ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid modelling a gender as a gmeow:Person subclass or a forced enum, and avoid treating the binary seeds as a default — every value is co-equal (Principle 9), so none is primary."@x-gmeow-english ;
@@ -20,7 +21,7 @@ gmeow:Gender
     gmeow:useWhen "Use as the open value vocabulary for the gender a gmeow:genderValue points at; mint a fresh individual with rdfs:label when no seeded value fits the culture or identity."@x-gmeow-english .
 
 gmeow:GenderExpression
-    a gufo:SubKind ,
+    a logic:SubKind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gender> ;
     rdfs:label "Gender Expression"@x-gmeow-english ;
@@ -42,11 +43,11 @@ gmeow:GenderExpression
     gmeow:useWhen "Use to record how a person presents — the expression axis — as a self-asserted facet pointing at an open gmeow:GenderExpressionStyle value, held separately from what they identify as."@x-gmeow-english .
 
 gmeow:GenderExpressionStyle
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gender> ;
     rdfs:label "Gender Expression Style"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "A style of gender expression — a VALUE pointed at by gmeow:expressionValue, never a subclass. Open: a style not seeded here is a fresh individual with rdfs:label."@x-gmeow-english ;
     skos:example "ex:expressionButch a gmeow:GenderExpressionStyle ; rdfs:label \"butch\"@en ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid modelling a style as a subclass or a forced enum, and avoid treating any seeded style as a default; the values are co-equal (Principle 9)."@x-gmeow-english ;
@@ -55,7 +56,7 @@ gmeow:GenderExpressionStyle
     gmeow:useWhen "Use as the open value vocabulary for the presentation style a gmeow:expressionValue points at; mint a fresh individual with rdfs:label when no seeded style fits."@x-gmeow-english .
 
 gmeow:GenderIdentity
-    a gufo:SubKind ,
+    a logic:SubKind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gender> ;
     rdfs:label "Gender Identity"@x-gmeow-english ;
@@ -77,11 +78,11 @@ gmeow:GenderIdentity
     gmeow:useWhen "Use to record what a person identifies as, as a self-asserted facet pointing at an open gmeow:Gender value; mint one facet per co-equal identity so bigender, genderfluid, or a transition are all expressible without privileging any."@x-gmeow-english .
 
 gmeow:IdentityFacet
-    a gufo:SubKind ,
+    a logic:SubKind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gender> ;
     rdfs:label "Identity Facet"@x-gmeow-english ;
-    rdfs:subClassOf gufo:Relator ,
+    rdfs:subClassOf logic:Relator ,
         gmeow:Observation ,
         [
             a owl:Restriction ;
@@ -105,11 +106,11 @@ gmeow:IdentityFacet
     gmeow:useWhen "Use as the shared reification base whenever an identity claim must be first-class — carrying who asserted it, a validity period, a sensitivity level, and display control — rather than flattened into an attribute; the parent the concrete gender, expression, and orientation facets specialize."@x-gmeow-english .
 
 gmeow:SexAssignedAtBirth
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/gender> ;
     rdfs:label "Sex Assigned at Birth"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "A recorded sex-assigned-at-birth value pointed at by gmeow:sexAssignedAtBirth — a VALUE, never a subclass. Deliberately coarse and inclusive (incl. intersex); finer sex-characteristic detail is an optional free-text gmeow:intersexVariation note, not a clinical taxonomy."@x-gmeow-english ;
     skos:example "ex:lillith gmeow:sexAssignedAtBirth gmeow:saabIntersex ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid using it as gender identity/expression or as a clinical sex-characteristic taxonomy, and avoid adding finer medical values; use the free-text gmeow:intersexVariation note instead."@x-gmeow-english ;

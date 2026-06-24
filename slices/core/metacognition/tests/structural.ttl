@@ -31,27 +31,27 @@ ex:saMetacognitiveStateIsMentalMomentKind a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:MetacognitiveState a owl:Class , gufo:Kind ;
+    gmeow:MetacognitiveState a owl:Class , logic:Kind ;
         rdfs:subClassOf gmeow:MentalMoment .
 }""" ;
-    gmeow:saRationale "MetacognitiveState MUST be an owl:Class, a gufo:Kind, and a subClassOf gmeow:MentalMoment — the reflexive mode sibling. Mirrors test_metacognitive_state_is_a_mental_moment_kind." .
+    gmeow:saRationale "MetacognitiveState MUST be an owl:Class, a logic:Kind, and a subClassOf gmeow:MentalMoment — the reflexive mode sibling. Mirrors test_metacognitive_state_is_a_mental_moment_kind." .
 
 # --- 1b. MetacognitiveState carries exactly one gUFO metaclass (MUST-NOT) -----
 ex:saMetacognitiveStateNoExtraGufoMetaclass a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 ASK {
     gmeow:MetacognitiveState rdf:type ?t .
-    FILTER(STRSTARTS(STR(?t), "http://purl.org/nemo/gufo#") && ?t != gufo:Kind)
+    FILTER(STRSTARTS(STR(?t), "http://purl.org/nemo/gufo#") && ?t != logic:Kind)
 }""" ;
-    gmeow:saRationale "MetacognitiveState MUST carry NO gUFO-namespace type other than gufo:Kind — this dynamic ASK mirrors the ORIGINAL test_metacognitive_state_is_a_mental_moment_kind set-equality (the gUFO-type set must equal {gufo:Kind} exactly, for ANY gUFO metaclass, not just a hardcoded blacklist). Paired with ex:saMetacognitiveStateIsMentalMomentKind which asserts gufo:Kind IS present." .
+    gmeow:saRationale "MetacognitiveState MUST carry NO gUFO-namespace type other than logic:Kind — this dynamic ASK mirrors the ORIGINAL test_metacognitive_state_is_a_mental_moment_kind set-equality (the gUFO-type set must equal {logic:Kind} exactly, for ANY gUFO metaclass, not just a hardcoded blacklist). Paired with ex:saMetacognitiveStateIsMentalMomentKind which asserts logic:Kind IS present." .
 
 # --- 2. MetacognitiveState is sibling not a sub-mode (MUST-NOT hold) ----------
 ex:saMetacognitiveStateSiblingNotSubMode a gmeow:StructuralAssertion ;
@@ -116,14 +116,14 @@ ex:saCalibrationStatusIsAbstractIndividualType a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:CalibrationStatus a owl:Class , gufo:AbstractIndividualType ;
-        rdfs:subClassOf gufo:QualityValue .
+    gmeow:CalibrationStatus a owl:Class , logic:AbstractIndividualType ;
+        rdfs:subClassOf logic:QualityValue .
 }""" ;
-    gmeow:saRationale "gmeow:CalibrationStatus MUST be an owl:Class AND gufo:AbstractIndividualType AND a subClassOf gufo:QualityValue — the value-vocabulary genus. Mirrors test_calibration_status_is_an_abstract_individual_type." .
+    gmeow:saRationale "gmeow:CalibrationStatus MUST be an owl:Class AND logic:AbstractIndividualType AND a subClassOf logic:QualityValue — the value-vocabulary genus. Mirrors test_calibration_status_is_an_abstract_individual_type." .
 
 # --- 5a. The three calibration individuals are seeded (MUST hold) -------------
 ex:saCalibrationStatusesSeeded a gmeow:StructuralAssertion ;

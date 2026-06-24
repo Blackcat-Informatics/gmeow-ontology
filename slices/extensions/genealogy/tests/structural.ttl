@@ -7,8 +7,8 @@
 # over the genealogy module graph (gmeow:scopeModule) under the native Rust
 # slicetest harness (crates/slicetest).
 #
-# Genealogy is NOT #694-migrated: class stereotypes are gufo: (gufo:SubKind,
-# gufo:Relator), NOT logic:. This will change when #694 reaches this slice.
+# Genealogy is #694-migrated: class stereotypes are logic: (logic:SubKind,
+# logic:Relator), not gufo:.
 #
 # KinRelationship bridges (relationshipParent / relationshipChild / hasPartner
 # subPropertyOf observedFeature) are home-local here and are migrated in cells
@@ -34,48 +34,48 @@
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/genealogy/tests/> .
 
-# --- 1. Family is a gufo:SubKind owl:Class subclassing gmeow:Group (MUST) ----
+# --- 1. Family is a logic:SubKind owl:Class subclassing gmeow:Group (MUST) ----
 ex:saFamilyIsSubKindGroup a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:Family a owl:Class , gufo:SubKind ;
+    gmeow:Family a owl:Class , logic:SubKind ;
         rdfs:subClassOf gmeow:Group .
 }""" ;
-    gmeow:saRationale "gmeow:Family MUST be an owl:Class typed gufo:SubKind and a subclass of gmeow:Group -- a Family is a SubKind of Group (kinship group of persons related by descent, marriage, or adoption). Mirrors test_genealogy_is_gufo_grounded (Family part)." .
+    gmeow:saRationale "gmeow:Family MUST be an owl:Class typed logic:SubKind and a subclass of gmeow:Group -- a Family is a SubKind of Group (kinship group of persons related by descent, marriage, or adoption). Mirrors test_genealogy_is_gufo_grounded (Family part)." .
 
-# --- 2. KinRelationship is a gufo:SubKind subclassing gufo:Relator (MUST) ---
+# --- 2. KinRelationship is a logic:SubKind subclassing logic:Relator (MUST) ---
 ex:saKinRelationshipIsRelator a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:KinRelationship a owl:Class , gufo:SubKind ;
-        rdfs:subClassOf gufo:Relator ;
+    gmeow:KinRelationship a owl:Class , logic:SubKind ;
+        rdfs:subClassOf logic:Relator ;
         rdfs:subClassOf gmeow:Observation .
 }""" ;
-    gmeow:saRationale "gmeow:KinRelationship MUST be an owl:Class typed gufo:SubKind with rdfs:subClassOf gufo:Relator and gmeow:Observation -- the observation-spine bridge makes kinship a reified claim-from-a-vantage (#43). Mirrors test_genealogy_is_gufo_grounded (KinRelationship part)." .
+    gmeow:saRationale "gmeow:KinRelationship MUST be an owl:Class typed logic:SubKind with rdfs:subClassOf logic:Relator and gmeow:Observation -- the observation-spine bridge makes kinship a reified claim-from-a-vantage (#43). Mirrors test_genealogy_is_gufo_grounded (KinRelationship part)." .
 
 # --- 3. ParentChildRelationship subclasses KinRelationship (MUST) ------------
 ex:saParentChildRelationshipIsKinRelationship a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:ParentChildRelationship a owl:Class , gufo:SubKind ;
+    gmeow:ParentChildRelationship a owl:Class , logic:SubKind ;
         rdfs:subClassOf gmeow:KinRelationship .
 }""" ;
-    gmeow:saRationale "gmeow:ParentChildRelationship MUST be an owl:Class typed gufo:SubKind and a subclass of gmeow:KinRelationship -- the typed specialisation of a kin bond that carries a parent and a child role (#43). Mirrors test_genealogy_is_gufo_grounded (ParentChildRelationship part)." .
+    gmeow:saRationale "gmeow:ParentChildRelationship MUST be an owl:Class typed logic:SubKind and a subclass of gmeow:KinRelationship -- the typed specialisation of a kin bond that carries a parent and a child role (#43). Mirrors test_genealogy_is_gufo_grounded (ParentChildRelationship part)." .
 
 # --- 4. relationshipParent subPropertyOf observedFeature, functional (MUST) --
 ex:saRelationshipParentBridge a gmeow:StructuralAssertion ;

@@ -4,14 +4,15 @@
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
 gmeow:DayOfWeek
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> ;
     rdfs:label "Day Of Week"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "A day of the week — a VALUE vocabulary (the seven ISO-8601 days as individuals); projects to schema:dayOfWeek."@x-gmeow-english ;
     skos:example "ex:window gmeow:openingDay gmeow:dayMonday, gmeow:dayTuesday ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid minting per-day subclasses (the days are individuals) and avoid a free-text day name; the seven seeded individuals are closed and complete."@x-gmeow-english ;
@@ -20,11 +21,11 @@ gmeow:DayOfWeek
     gmeow:useWhen "Use as the value vocabulary for days of the week — the seven ISO-8601 days as individuals, referenced through gmeow:openingDay."@x-gmeow-english .
 
 gmeow:Identifier
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> ;
     rdfs:label "Identifier"@x-gmeow-english ;
-    rdfs:subClassOf gufo:FunctionalComplex ;
+    rdfs:subClassOf logic:FunctionalComplex ;
     skos:definition "A reified external-identifier record bundling a scheme-local value with its scheme, and optionally the authority URL that resolves it and a human-readable name — an ORCID, a geni profile id, a Nostr nip05, a LEI, a ROR ID, a NAICS code. Reification ensures that when an entity carries multiple identifiers, each value is paired with its correct scheme (and url/name) in projections. The structured sibling of gmeow:authorityLink: a flat authorityLink points at an external record by IRI; an Identifier decomposes the scheme/value/url/name a schema:PropertyValue or DataCite relatedIdentifier carries."@x-gmeow-english ;
     skos:example "ex:acmeLei a gmeow:Identifier ; gmeow:identifierScheme \"lei\" ; gmeow:identifierValue \"529900T8BM49AURSDO55\" ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid a flat scheme-on-the-bearer property (it produces cross-product pairing bugs when several identifiers coexist) and avoid it for a plain see-also IRI (that is the flat gmeow:authorityLink); a name borne by an entity is a gmeow:Appellation, not an Identifier."@x-gmeow-english ;
@@ -34,11 +35,11 @@ gmeow:Identifier
     gmeow:useWhen "Use to reify an external identifier so its scheme, value, resolving URL, and label travel together — necessary whenever an entity carries more than one code (a LEI plus a ROR plus a NAICS) and projections must pair each value with its own scheme."@x-gmeow-english .
 
 gmeow:Membership
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> ;
     rdfs:label "Membership"@x-gmeow-english ;
-    rdfs:subClassOf gufo:Relator ;
+    rdfs:subClassOf logic:Relator ;
     skos:definition "The reified relationship by which an agent is a member of an organization, optionally playing a role over a period of time. A gufo:Relator binding {member} × {organization} × {role} × {post} × {period}, foundedOn the agreement that constitutes it — the same relator idiom as names' NameUsage and contacts' InterpersonalRelationship. The reify-on-demand promotion of the flat gmeow:memberOf shortcut (Principle 4)."@x-gmeow-english ;
     skos:example "ex:emp a gmeow:Membership ; gmeow:membershipMember ex:alice ; gmeow:membershipOrganization ex:acme ; gmeow:hasRole ex:cfoRole ."@x-gmeow-english ;
     gmeow:avoidForConsumer gmeow:consumerSchemaOrgJsonLd ;
@@ -51,7 +52,7 @@ gmeow:Membership
     gmeow:useWhen "Use when an agent's membership in an organization needs its own role, post, period, evidence, confidence, or standpoint — the reified relator behind the flat gmeow:memberOf edge."@x-gmeow-english .
 
 gmeow:Occupation
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> ;
     rdfs:label "Occupation"@x-gmeow-english ;
@@ -64,7 +65,7 @@ gmeow:Occupation
     gmeow:useWhen "Use for the shared what-one-does concept that both employment and expertise reference — a profession or kind of work classified by ESCO, SOC, or O*NET; it lives in core so sibling extensions can both reach it."@x-gmeow-english .
 
 gmeow:Offering
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> ;
     rdfs:label "Offering"@x-gmeow-english ;
@@ -77,7 +78,7 @@ gmeow:Offering
     gmeow:useWhen "Use to model a commercial offer to provide some item — a product, service, or engagement — by an agent; the reified offer behind the flat gmeow:makesOffer edge."@x-gmeow-english .
 
 gmeow:OpeningHoursSpecification
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> ;
     rdfs:label "Opening Hours Specification"@x-gmeow-english ;
@@ -90,11 +91,11 @@ gmeow:OpeningHoursSpecification
     gmeow:useWhen "Use to reify one opening-hours window so its day(s), open time, and close time stay paired — necessary whenever a business has more than one window (weekday vs weekend)."@x-gmeow-english .
 
 gmeow:OrganizationType
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> ;
     rdfs:label "Organization Type"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The kind of an organization — a VALUE, never an Organization subclass. The set is open; a kind not among the seed individuals is a FRESH gmeow:OrganizationType individual carrying rdfs:label, not a new class."@x-gmeow-english ;
     skos:example "ex:orgTypeCooperative a gmeow:OrganizationType ; rdfs:label \"cooperative\"@en ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid subclassing gmeow:Organization by kind (kinds are values, not classes — Principle 9) and avoid reusing an ill-fitting seed; mint a fresh gmeow:OrganizationType individual when the kind is missing."@x-gmeow-english ;
@@ -103,11 +104,11 @@ gmeow:OrganizationType
     gmeow:useWhen "Use as the value vocabulary for the organization-kind axis — the open set (company, nonprofit, government body, association, collaboration, …) referenced through gmeow:organizationType."@x-gmeow-english .
 
 gmeow:Post
-    a gufo:RoleMixin ,
+    a logic:RoleMixin ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> ;
     rdfs:label "Post"@x-gmeow-english ;
-    rdfs:subClassOf gufo:FunctionalComplex ,
+    rdfs:subClassOf logic:FunctionalComplex ,
         [
             a owl:Restriction ;
             owl:onProperty gmeow:postIn ;
@@ -121,11 +122,11 @@ gmeow:Post
     gmeow:useWhen "Use for a holder-independent seat — a named chair tied to one organization — when 'who holds the CFO post', 'vacant post', or 'succession in a post' must be queryable apart from any incumbent."@x-gmeow-english .
 
 gmeow:Role
-    a gufo:RoleMixin ,
+    a logic:RoleMixin ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> ;
     rdfs:label "Role"@x-gmeow-english ;
-    rdfs:subClassOf gufo:FunctionalComplex ;
+    rdfs:subClassOf logic:FunctionalComplex ;
     skos:definition "A function or position an agent plays in some context, such as a job title or organizational role. A gufo:RoleMixin played within a gmeow:Membership, never a subclass of the agent who plays it (Principle 9 — roles are values, not kinds of person)."@x-gmeow-english ;
     skos:example "ex:cfoRole a gmeow:Role ; rdfs:label \"CFO\"@en ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid subclassing an agent by role (a CFO is not a subclass of Person — Principle 9) and avoid bundling the role with a specific organization; that seat is a gmeow:Post."@x-gmeow-english ;
@@ -134,7 +135,7 @@ gmeow:Role
     gmeow:useWhen "Use to name a function or position an agent plays in a context — a job title, board seat, or organizational role — and bind it to a gmeow:Membership via gmeow:hasRole."@x-gmeow-english .
 
 gmeow:ServiceOffering
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> ;
     rdfs:label "Service Offering"@x-gmeow-english ;
@@ -147,11 +148,11 @@ gmeow:ServiceOffering
     gmeow:useWhen "Use for a commercial service an agent provides — consulting, support, hosting — typically as the gmeow:itemOffered of a gmeow:Offering, tagged with an open gmeow:ServiceType."@x-gmeow-english .
 
 gmeow:ServiceType
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> ;
     rdfs:label "Service Type"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The kind of a service offering — a VALUE vocabulary (individuals, never subclasses); open set (consulting, hosting, support, …)."@x-gmeow-english ;
     skos:example "ex:serviceTypeHosting a gmeow:ServiceType ; rdfs:label \"hosting\"@en ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid subclassing gmeow:ServiceOffering by kind (kinds are values, not classes — Principle 9) and avoid a free-text kind; mint a fresh gmeow:ServiceType individual when the open set lacks one."@x-gmeow-english ;
@@ -160,11 +161,11 @@ gmeow:ServiceType
     gmeow:useWhen "Use as the value vocabulary for the service-kind axis — the open set (consulting, hosting, support, …) referenced through gmeow:serviceType."@x-gmeow-english .
 
 gmeow:SiteType
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/organization> ;
     rdfs:label "Site Type"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The purpose of an organization's site — headquarters, branch, registered office, etc. A value, not a subclass."@x-gmeow-english ;
     skos:example "ex:siteTypeWarehouse a gmeow:SiteType ; rdfs:label \"warehouse\"@en ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid subclassing gmeow:Location by site purpose (purposes are values, not classes) and avoid reusing an ill-fitting seed; mint a fresh gmeow:SiteType individual when the purpose is missing."@x-gmeow-english ;

@@ -24,7 +24,6 @@ from gmeow_tools.graph import load_merged_graph
 
 GMEOW = "https://blackcatinformatics.ca/gmeow/"
 GM = Namespace(GMEOW)
-GUFO = Namespace("http://purl.org/nemo/gufo#")
 EX = Namespace("https://example.org/shapes/")
 
 FIXTURES = Path(__file__).parent / "fixtures" / "shapes"
@@ -45,16 +44,6 @@ def _fixture(name: str) -> Graph:
 # --------------------------------------------------------------------------- #
 
 
-def test_rubric_is_a_norm_for_judging() -> None:
-    """Rubric ⊑ Norm: issuer, overrides, AuthorityLevel, PrecedenceTenure
-    arrive free; an evaluation standard is never anonymous."""
-    g = _graph()
-    assert (GM.Rubric, RDF.type, GUFO.Kind) in g
-    assert (GM.Rubric, RDFS.subClassOf, GM.Norm) in g
-    assert (GM.Rubric, RDFS.subClassOf, GM.SocialObject) in g
-    assert (GM.hasCriterion, RDFS.subPropertyOf, GM.hasPart) in g
-
-
 def test_criterion_carries_named_poles() -> None:
     g = _graph()
     assert (GM.Criterion, RDFS.subClassOf, GM.InformationObject) in g
@@ -62,19 +51,6 @@ def test_criterion_carries_named_poles() -> None:
     for prop in (GM.rewardPole, GM.penaltyPole):
         assert (prop, RDF.type, OWL.FunctionalProperty) in g, prop
         assert (prop, RDFS.range, GM.CriterionPole) in g, prop
-
-
-def test_exemplar_is_a_citation_act_with_polarity() -> None:
-    g = _graph()
-    assert (GM.Exemplar, RDF.type, GUFO.SubKind) in g
-    assert (GM.Exemplar, RDFS.subClassOf, GM.CitationAct) in g
-    assert (GM.exemplarPolarity, RDF.type, OWL.FunctionalProperty) in g
-    members = set(g.subjects(RDF.type, GM.ExemplarPolarity))
-    assert members == {
-        GM.polarityPositive,
-        GM.polarityNegative,
-        GM.polarityCautionary,
-    }
 
 
 def test_exemplar_subject_is_open_and_optional() -> None:

@@ -169,7 +169,9 @@ meta:tests-products a meta:TestSuite ;
 
 meta:tests-claim-spine a meta:TestSuite ;
     rdfs:label "claim provenance, attestation, and trust tests"@x-gmeow-english ;
-    meta:artifact "tests/test_provenance.py", "tests/test_attestation.py",
+    meta:artifact "tests/test_provenance.py",
+        "slices/core/attestation/tests/structural.ttl",
+        "crates/validate/tests/ontology_conformance.rs",
         "tests/test_trust.py", "tests/test_evidence.py" .
 
 meta:practice-consumer-question a meta:Practice ;

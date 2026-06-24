@@ -4,10 +4,11 @@
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
 gmeow:Assessment
-    a gufo:SubKind ,
+    a logic:SubKind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "Assessment"@x-gmeow-english ;
@@ -20,11 +21,11 @@ gmeow:Assessment
     gmeow:useWhen "Use for a score of a target against a criterion or rubric — an observation whose vantage is the judge, human or model; disagreeing judges are coexisting cells with no winner."@x-gmeow-english .
 
 gmeow:AuthorityLevel
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "Authority Level"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The claimed authority grade of a norm within its issuing system — an ordered value vocabulary (absolute ≻ high ≻ medium ≻ conditional), the kernel GranularityLevel pattern. The ordering is carried by gmeow:strongerThan on the LEVELS; what the ordering does to conflicting norms is solver work over recorded precedence claims, never a reasoner entailment (Principle 12)."@x-gmeow-english ;
     skos:example "ex:authorityStatutory a gmeow:AuthorityLevel ; gmeow:strongerThan gmeow:authorityMedium ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid minting per-level subclasses (levels are individuals) and avoid treating the ordering as a reasoner entailment over norms — level comparison resolving conflicts is solver work (Principle 12)."@x-gmeow-english ;
@@ -33,7 +34,7 @@ gmeow:AuthorityLevel
     gmeow:useWhen "Use as the ordered value vocabulary for the authority-grade axis — the seeded levels (absolute ≻ high ≻ medium ≻ conditional) a norm claims via gmeow:hasAuthorityLevel."@x-gmeow-english .
 
 gmeow:ComplianceAssessment
-    a gufo:SubKind ,
+    a logic:SubKind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "Compliance Assessment"@x-gmeow-english ;
@@ -46,7 +47,7 @@ gmeow:ComplianceAssessment
     gmeow:useWhen "Use the reified form when who-judged, on-what-evidence, or how-confidently an event complied or violated must be first-class."@x-gmeow-english .
 
 gmeow:Condition
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "Condition"@x-gmeow-english ;
@@ -59,7 +60,7 @@ gmeow:Condition
     gmeow:useWhen "Use for a describable circumstance — a norm's trigger, a persona's activation context, a causal antecedent — whose canonical form is prose and whose holding is observed, never entailed."@x-gmeow-english .
 
 gmeow:ConditionEvaluation
-    a gufo:SubKind ,
+    a logic:SubKind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "Condition Evaluation"@x-gmeow-english ;
@@ -72,7 +73,7 @@ gmeow:ConditionEvaluation
     gmeow:useWhen "Use to record that an evaluator found a condition held, did not hold, or was undetermined at some moment — a vantage-indexed observation, never a graph entailment."@x-gmeow-english .
 
 gmeow:ConditionExpression
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "Condition Expression"@x-gmeow-english ;
@@ -85,7 +86,7 @@ gmeow:ConditionExpression
     gmeow:useWhen "Use to carry a machine formalization of a condition in a named expression language — SPARQL ASK, CEL, Rego, Cedar, XACML, SHACL — as a stored, challengeable equivalence claim."@x-gmeow-english .
 
 gmeow:ConditionGroup
-    a gufo:SubKind ,
+    a logic:SubKind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "Condition Group"@x-gmeow-english ;
@@ -98,7 +99,7 @@ gmeow:ConditionGroup
     gmeow:useWhen "Use to combine member conditions with explicit and/or/not logic — nest groups for arbitrary boolean trees."@x-gmeow-english .
 
 gmeow:ConditionParameter
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "Condition Parameter"@x-gmeow-english ;
@@ -111,7 +112,7 @@ gmeow:ConditionParameter
     gmeow:useWhen "Use to bind a named slot of a condition template so one Condition can serve many norms with different values — 'threshold = 0.8', 'jurisdiction = Canada'."@x-gmeow-english .
 
 gmeow:Criterion
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "Criterion"@x-gmeow-english ;
@@ -124,11 +125,11 @@ gmeow:Criterion
     gmeow:useWhen "Use for one evaluative axis of a rubric — what is being judged, with named reward and penalty poles and calibration anchors."@x-gmeow-english .
 
 gmeow:CriterionDomain
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "Criterion Domain"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The subject domain of a criterion — an OPEN value vocabulary (relational, factual, aesthetic, safety, stylistic, …). Open: evaluation traditions disagree about the domain inventory itself (Principle 9)."@x-gmeow-english ;
     skos:example "ex:criterionDomainPedagogical a gmeow:CriterionDomain ; rdfs:label \"pedagogical\"@en ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid minting per-domain subclasses (domains are individuals) and avoid treating the inventory as closed — evaluation traditions disagree about the domain list itself (Principle 9)."@x-gmeow-english ;
@@ -137,7 +138,7 @@ gmeow:CriterionDomain
     gmeow:useWhen "Use as the value vocabulary for the criterion-subject-domain axis — the seeded domains (relational, factual, aesthetic, safety, stylistic) a criterion declares via gmeow:criterionDomain."@x-gmeow-english .
 
 gmeow:CriterionPole
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "Criterion Pole"@x-gmeow-english ;
@@ -150,11 +151,11 @@ gmeow:CriterionPole
     gmeow:useWhen "Use for a named extreme of a criterion — a small information object with its own label and definition naming what one end rewards or penalizes."@x-gmeow-english .
 
 gmeow:DeonticModality
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "Deontic Modality"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The deontic force of a norm — an OPEN value vocabulary (individuals, never subclasses) seeded with obligation (must), prohibition (must not), permission (may), and recommendation (should). Open so that supererogation, exemption, and other forces can join without schema change (Principle 9). Distinct from gmeow:standpointModality (doxastic — what a frame believes) and from gmeow:hasDeterminacy (ontic): deontic modality is what an issuer demands."@x-gmeow-english ;
     skos:example "ex:supererogation a gmeow:DeonticModality ; rdfs:label \"supererogation\"@en ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid minting per-force subclasses (forces are individuals) and avoid confusing it with doxastic gmeow:standpointModality (what a frame believes) or ontic gmeow:hasDeterminacy — this axis is what an issuer demands."@x-gmeow-english ;
@@ -163,11 +164,11 @@ gmeow:DeonticModality
     gmeow:useWhen "Use as the value vocabulary for the deontic-force axis — the seeded forces (obligation, prohibition, permission, recommendation) a norm declares via gmeow:deonticModality."@x-gmeow-english .
 
 gmeow:EvaluationVerdict
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "Evaluation Verdict"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The outcome of a condition evaluation — held, not held, or undetermined. A closed three-member value vocabulary. Semantically the observationResult of a ConditionEvaluation, but not declared rdfs:subPropertyOf-reachable because QualityValues are disjoint from Entities in the DL profile (the claimModality precedent, standpoint module)."@x-gmeow-english ;
     skos:example "ex:ev1 gmeow:evaluationVerdict gmeow:verdictUndetermined ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid minting a fourth verdict (the trichotomy is closed) and avoid modelling it as an observationResult subproperty — QualityValue is disjoint from Entity (the claimModality pattern)."@x-gmeow-english ;
@@ -176,7 +177,7 @@ gmeow:EvaluationVerdict
     gmeow:useWhen "Use as the closed value vocabulary for evaluation outcomes — held, not held, undetermined — reused by both gmeow:evaluationVerdict and gmeow:complianceVerdict."@x-gmeow-english .
 
 gmeow:Exemplar
-    a gufo:SubKind ,
+    a logic:SubKind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "Exemplar"@x-gmeow-english ;
@@ -189,11 +190,11 @@ gmeow:Exemplar
     gmeow:useWhen "Use for a citation act that holds something up as an example — positive, negative, or cautionary — pinned into the cited work by selector and/or naming an entity subject."@x-gmeow-english .
 
 gmeow:ExemplarPolarity
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "Exemplar Polarity"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The direction of an exemplar — a CLOSED three-member value vocabulary: positive (emulate this), negative (avoid this), cautionary (a boundary case that LOOKS positive but redirects or warns). Closed because the trichotomy is the design: finer judgement nuance belongs in the rationale and the anchored range, not in new polarities."@x-gmeow-english ;
     skos:example "ex:ex1 gmeow:exemplarPolarity gmeow:polarityCautionary ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid minting a fourth polarity (the trichotomy is closed — finer nuance belongs in the rationale and anchored range)."@x-gmeow-english ;
@@ -202,11 +203,11 @@ gmeow:ExemplarPolarity
     gmeow:useWhen "Use as the closed value vocabulary for exemplar direction — positive (emulate), negative (avoid), cautionary (boundary case that warns or redirects)."@x-gmeow-english .
 
 gmeow:ExpressionLanguage
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "Expression Language"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The language of a condition expression — an OPEN value vocabulary seeded with the policy-engine and query languages GMEOW projects to: prose, SPARQL ASK, CEL, Rego, Cedar, XACML, SHACL. Open: new engines join without schema change."@x-gmeow-english ;
     skos:example "ex:exprLangCedarV2 a gmeow:ExpressionLanguage ; rdfs:label \"Cedar v2\"@en ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid minting per-language subclasses (languages are individuals) and avoid using it for the expression source itself (that is gmeow:expressionText)."@x-gmeow-english ;
@@ -215,11 +216,11 @@ gmeow:ExpressionLanguage
     gmeow:useWhen "Use as the value vocabulary for the condition-expression-language axis — the seeded engines (prose, SPARQL ASK, CEL, Rego, Cedar, XACML, SHACL) a formalization declares via gmeow:expressionLanguage."@x-gmeow-english .
 
 gmeow:GroupOperator
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "Group Operator"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The combination operator of a condition group — a closed three-member value vocabulary: all (conjunction), any (disjunction), none (negated disjunction)."@x-gmeow-english ;
     skos:example "ex:cg1 gmeow:groupOperator gmeow:operatorAny ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid minting a fourth operator (the trichotomy is closed by design) and avoid using it for anything but a gmeow:ConditionGroup's combination logic."@x-gmeow-english ;
@@ -228,7 +229,7 @@ gmeow:GroupOperator
     gmeow:useWhen "Use as the closed value vocabulary for the condition-group combination operator — all (and), any (or), none (not)."@x-gmeow-english .
 
 gmeow:Norm
-    a gufo:Category ,
+    a logic:Category ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "Norm"@x-gmeow-english ;
@@ -241,7 +242,7 @@ gmeow:Norm
     gmeow:useWhen "Use for any issued prescription — obligation, prohibition, permission, recommendation — over some conduct, when the prescription names its issuer and asserts nothing about whether anything in fact complies."@x-gmeow-english .
 
 gmeow:NormativeSystem
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "Normative System"@x-gmeow-english ;
@@ -254,11 +255,11 @@ gmeow:NormativeSystem
     gmeow:useWhen "Use for a body of norms with a shared identity — a constitution, legal code, code of conduct, principia document, or rubric set — that is itself issued and orders its own members."@x-gmeow-english .
 
 gmeow:Persona
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "Persona"@x-gmeow-english ;
-    rdfs:subClassOf gufo:Relator ;
+    rdfs:subClassOf logic:Relator ;
     skos:definition "A reified expression policy of one agent — the relator binding {bearer} × {register(s)} × {expressed norms} × {activation context}. PRIMARY and PRIVATE are two Personas of one agent; 'Dr. Chen at the clinic' and 'Mom at home' are two of another. No primaryPersona exists or ever will (Principle 9): personas are co-equal, context-activated, and withdrawn by suppression, never deletion (Principle 10). Register-switching is not deception — divergence of held and projected standpoints is the deception module's territory, a documented boundary with no axiom coupling."@x-gmeow-english ;
     skos:example "ex:drChen a gmeow:Persona ; gmeow:personaBearer ex:chen ; gmeow:personaRegister gmeow:registerClinical ; gmeow:activatedIn ex:atClinic ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid a primaryPersona or any privileged persona (personas are co-equal — Principle 9), avoid deleting a withdrawn one (suppress with gmeow:displayable false — Principle 10), and avoid reading register-switching as deception (a documented boundary, never an axiom)."@x-gmeow-english ;
@@ -267,7 +268,7 @@ gmeow:Persona
     gmeow:useWhen "Use for a reified expression policy of one agent — the binding of bearer, register(s), expressed norms, and activation context; PRIMARY and PRIVATE are two co-equal personas of one agent."@x-gmeow-english .
 
 gmeow:PrecedenceTenure
-    a gufo:SituationType ,
+    a logic:Situation ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "Precedence Tenure"@x-gmeow-english ;
@@ -280,7 +281,7 @@ gmeow:PrecedenceTenure
     gmeow:useWhen "Use the reified form when the precedence held over an interval — its adoption, revision, or withdrawal — is itself the fact of interest, e.g. 'Tier 2 overrode X until v3.5'."@x-gmeow-english .
 
 gmeow:Rubric
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "Rubric"@x-gmeow-english ;
@@ -297,7 +298,7 @@ gmeow:Rule
     rdfs:subClassOf gmeow:Norm .
 
 gmeow:ScoreAnchor
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "Score Anchor"@x-gmeow-english ;
@@ -310,7 +311,7 @@ gmeow:ScoreAnchor
     gmeow:useWhen "Use to pin a score range to its meaning and exemplars — the rubric's calibration content that anchors what a number means."@x-gmeow-english .
 
 gmeow:ScoreScale
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "Score Scale"@x-gmeow-english ;
@@ -323,7 +324,7 @@ gmeow:ScoreScale
     gmeow:useWhen "Use for a numeric scoring scale — its minimum, maximum, and optional step — that a rubric or criterion declares for its assessments."@x-gmeow-english .
 
 gmeow:StyleGuide
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/norms> ;
     rdfs:label "Style Guide"@x-gmeow-english ;

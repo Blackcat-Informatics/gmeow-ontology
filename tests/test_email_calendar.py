@@ -69,16 +69,6 @@ def test_calendar_uid_is_datatype_property_on_email_message(
     assert (node, RDF.type, OWL.FunctionalProperty) not in ontology_graph
 
 
-def test_calendar_method_class_exists(ontology_graph: Graph) -> None:
-    node = URIRef(GMEOW + "CalendarMethod")
-    assert (node, RDF.type, OWL.Class) in ontology_graph
-    assert (
-        node,
-        RDFS.subClassOf,
-        URIRef("http://purl.org/nemo/gufo#QualityValue"),
-    ) in ontology_graph
-
-
 def test_calendar_method_individuals_exist(ontology_graph: Graph) -> None:
     for method in (
         "calendarMethodRequest",

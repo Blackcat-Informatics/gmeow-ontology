@@ -8,9 +8,9 @@
 # not ad-hoc Python. Each assertion runs as a SPARQL ASK over the slice module
 # graph (gmeow:scopeModule); every `must` ASK anchors on a concrete term IRI.
 #
-# NAMESPACE: the concepts module is NOT #694-migrated — its value classes are
-# typed with the gUFO meta-vocabulary (gufo:Kind, gufo:SubKind,
-# gufo:SituationType). These cells mirror the module's CURRENT gufo: shape.
+# NAMESPACE: the concepts module is #694-migrated — its value classes are
+# typed with the canonical logic meta-vocabulary (logic:Kind, logic:SubKind,
+# logic:Situation). These cells mirror the module's CURRENT logic: shape.
 #
 # The slice's SHACL invariants (ConceptCategorizationShape, ConceptTenureShape)
 # are migrated separately, to tests/example-conformance.ttl. The annotation-
@@ -31,28 +31,28 @@ ex:saConceptIsSocialObjectKind a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:Concept a owl:Class , gufo:Kind ;
+    gmeow:Concept a owl:Class , logic:Kind ;
         rdfs:subClassOf gmeow:SocialObject .
 }""" ;
-    gmeow:saRationale "gmeow:Concept is a socially sustained representational category: it MUST be an owl:Class, a gufo:Kind, and a subClassOf gmeow:SocialObject — explicitly NOT the gUFO universal. Mirrors test_concept_is_social_object_kind." .
+    gmeow:saRationale "gmeow:Concept is a socially sustained representational category: it MUST be an owl:Class, a logic:Kind, and a subClassOf gmeow:SocialObject — explicitly NOT the gUFO universal. Mirrors test_concept_is_social_object_kind." .
 
 # --- 2. ConceptCategorization is a SubKind of StandpointClaim (MUST) ----------
 ex:saConceptCategorizationSubkindOfStandpointClaim a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:ConceptCategorization a owl:Class , gufo:SubKind ;
+    gmeow:ConceptCategorization a owl:Class , logic:SubKind ;
         rdfs:subClassOf gmeow:StandpointClaim .
 }""" ;
-    gmeow:saRationale "gmeow:ConceptCategorization is the reified, standpoint-indexed promotion of the instanceOfConcept shortcut: it MUST be an owl:Class, a gufo:SubKind, and a subClassOf gmeow:StandpointClaim. Mirrors test_concept_categorization_subkind_of_standpoint_claim." .
+    gmeow:saRationale "gmeow:ConceptCategorization is the reified, standpoint-indexed promotion of the instanceOfConcept shortcut: it MUST be an owl:Class, a logic:SubKind, and a subClassOf gmeow:StandpointClaim. Mirrors test_concept_categorization_subkind_of_standpoint_claim." .
 
 # --- 3a. instanceOfConcept is an Entity→Concept ObjectProperty (MUST) ---------
 ex:saInstanceOfConceptProperty a gmeow:StructuralAssertion ;
@@ -137,14 +137,14 @@ ex:saConceptTenureIsTimeScoped a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:ConceptTenure a owl:Class , gufo:SituationType ;
+    gmeow:ConceptTenure a owl:Class , logic:Situation ;
         rdfs:subClassOf gmeow:TimeScopedRelation .
     gmeow:conceptHoldsFor a owl:ObjectProperty , owl:FunctionalProperty ;
         rdfs:domain gmeow:ConceptTenure ;
         rdfs:range gmeow:Concept .
 }""" ;
-    gmeow:saRationale "gmeow:ConceptTenure records a concept's applicability over an interval: it MUST be an owl:Class, a gufo:SituationType, and a subClassOf gmeow:TimeScopedRelation; gmeow:conceptHoldsFor MUST be a FUNCTIONAL owl:ObjectProperty from gmeow:ConceptTenure to gmeow:Concept. Mirrors test_concept_tenure_is_time_scoped." .
+    gmeow:saRationale "gmeow:ConceptTenure records a concept's applicability over an interval: it MUST be an owl:Class, a logic:Situation, and a subClassOf gmeow:TimeScopedRelation; gmeow:conceptHoldsFor MUST be a FUNCTIONAL owl:ObjectProperty from gmeow:ConceptTenure to gmeow:Concept. Mirrors test_concept_tenure_is_time_scoped." .

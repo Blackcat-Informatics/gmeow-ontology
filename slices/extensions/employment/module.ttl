@@ -3,10 +3,11 @@
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
 gmeow:Employment
-    a gufo:SubKind ,
+    a logic:SubKind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/employment> ;
     rdfs:label "Employment"@x-gmeow-english ;
@@ -30,20 +31,20 @@ gmeow:Employment
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:EmploymentType
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/employment> ;
     rdfs:label "Employment Type"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The kind of employment — a VALUE, never an Employment subclass. The set is open; a kind not among the seeds is a FRESH gmeow:EmploymentType individual carrying rdfs:label. Pointed at by gmeow:employmentType."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:SeniorityLevel
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/employment> ;
     rdfs:label "Seniority Level"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The seniority or rank of an employment — a VALUE, never an Employment subclass. The set is open; a level not among the seeds is a FRESH gmeow:SeniorityLevel individual carrying rdfs:label. Pointed at by gmeow:employmentSeniority. Orthogonal to employment type and role."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 

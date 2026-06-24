@@ -28,31 +28,31 @@
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/diagnostics/tests/> .
 
-# --- 1a. Finding is an owl:Class and a gufo:SubKind (MUST hold) ---------------
+# --- 1a. Finding is an owl:Class and a logic:SubKind (MUST hold) ---------------
 ex:saFindingIsSubKindOwlClass a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:Finding a owl:Class , gufo:SubKind ;
+    gmeow:Finding a owl:Class , logic:SubKind ;
         rdfs:subClassOf gmeow:Observation .
 }""" ;
-    gmeow:saRationale "gmeow:Finding MUST be an owl:Class, a gufo:SubKind (inheriting Observation's identity principle — the OntoUML MixIden rule forbids a Kind specializing a Kind), and rdfs:subClassOf gmeow:Observation (a diagnostic IS an observation, Principle 9). Mirrors test_finding_is_a_subkind_of_observation." .
+    gmeow:saRationale "gmeow:Finding MUST be an owl:Class, a logic:SubKind (inheriting Observation's identity principle — the OntoUML MixIden rule forbids a Kind specializing a Kind), and rdfs:subClassOf gmeow:Observation (a diagnostic IS an observation, Principle 9). Mirrors test_finding_is_a_subkind_of_observation." .
 
-# --- 1b. Finding is NOT a gufo:Kind (MUST-NOT hold) --------------------------
+# --- 1b. Finding is NOT a logic:Kind (MUST-NOT hold) --------------------------
 ex:saFindingNotKind a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:mustNot ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 ASK {
-    gmeow:Finding rdf:type gufo:Kind .
+    gmeow:Finding rdf:type logic:Kind .
 }""" ;
-    gmeow:saRationale "gmeow:Finding MUST NOT be typed gufo:Kind — gmeow:Observation already is a Kind; a Kind specializing a Kind is the OntoUML MixIden identity conflict. Finding inherits the identity principle via SubKind. Mirrors the negative gufo:Kind clause of test_finding_is_a_subkind_of_observation." .
+    gmeow:saRationale "gmeow:Finding MUST NOT be typed logic:Kind — gmeow:Observation already is a Kind; a Kind specializing a Kind is the OntoUML MixIden identity conflict. Finding inherits the identity principle via SubKind. Mirrors the negative logic:Kind clause of test_finding_is_a_subkind_of_observation." .
 
 # --- 2a. findingSeverity ⊑ observationResult and ranges DiagnosticSeverity ----
 ex:saFindingSeveritySubPropertyAndRange a gmeow:StructuralAssertion ;
@@ -86,19 +86,19 @@ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK { gmeow:findingLocation rdfs:range ?r . }""" ;
     gmeow:saRationale "gmeow:findingLocation MUST NOT declare an rdfs:range — per-kind narrowing is SHACL's job; the location may point at any term (typically a reified RDF 1.2 statement node carrying GTS wire coordinates). Mirrors the open-range clause of test_severity_and_location_subproperty_observation_roles." .
 
-# --- 3a. DiagnosticSeverity is an owl:Class and a gufo:AbstractIndividualType --
+# --- 3a. DiagnosticSeverity is an owl:Class and a logic:AbstractIndividualType --
 ex:saDiagnosticSeverityIsValueVocab a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:DiagnosticSeverity a owl:Class , gufo:AbstractIndividualType ;
-        rdfs:subClassOf gufo:QualityValue .
+    gmeow:DiagnosticSeverity a owl:Class , logic:AbstractIndividualType ;
+        rdfs:subClassOf logic:QualityValue .
 }""" ;
-    gmeow:saRationale "gmeow:DiagnosticSeverity MUST be an owl:Class, a gufo:AbstractIndividualType, and rdfs:subClassOf gufo:QualityValue — the value-vocabulary genus. Severity is a quality value, not a subclass hierarchy. Mirrors test_diagnostic_severity_is_a_value_vocabulary." .
+    gmeow:saRationale "gmeow:DiagnosticSeverity MUST be an owl:Class, a logic:AbstractIndividualType, and rdfs:subClassOf logic:QualityValue — the value-vocabulary genus. Severity is a quality value, not a subclass hierarchy. Mirrors test_diagnostic_severity_is_a_value_vocabulary." .
 
 # --- 3b. All four severity individuals are typed DiagnosticSeverity (MUST) ----
 ex:saSeverityIndividualsSeeded a gmeow:StructuralAssertion ;

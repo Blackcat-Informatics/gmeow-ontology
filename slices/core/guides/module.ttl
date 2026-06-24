@@ -7,24 +7,25 @@
 @prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
 @prefix owl:     <http://www.w3.org/2002/07/owl#> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
 
 # ── Vocabulary (TBox) ──────────────────────────────────────────────────────────
 
 gmeow:Recipe
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/guides> ;
     rdfs:label "Recipe"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "A task-oriented adoption recipe: a short, goal-named guide that shows how to model one recurring modelling task in GMEOW (for example, representing a person's coexisting names, or keeping contested facts side by side), backed by one or more canonical example files and the vocabulary terms they exercise. A Recipe is curated pedagogy, not an axiom over the modelled domain; it sequences existing examples and terms for a developer adopting GMEOW."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:LearningPath
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/guides> ;
     rdfs:label "Learning Path"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "A curated adoption journey for a named audience: an ordered itinerary that sequences recipes, canonical example files, and vocabulary terms so a developer learns to model a whole area (a person, a contested claim, web structured data, an offline GTS distribution, a graph-RAG pipeline) end to end, and sees which external vocabularies the native model projects toward. A LearningPath is curated pedagogy layered over the existing slices, never a new axiom."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 

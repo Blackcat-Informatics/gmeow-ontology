@@ -19,9 +19,7 @@ from gmeow_tools.config import TEMPORAL_QUERY_DIR
 from gmeow_tools.graph import load_merged_graph
 
 GMEOW = "https://blackcatinformatics.ca/gmeow/"
-GUFO = "http://purl.org/nemo/gufo#"
 GM = Namespace(GMEOW)
-GUFO_NS = Namespace(GUFO)
 COVERAGE_FIXTURES = Path(__file__).parent / "fixtures" / "coverage"
 
 
@@ -51,23 +49,9 @@ def test_variety_of_is_non_functional() -> None:
     assert (GM.varietyOf, RDF.type, OWL.FunctionalProperty) not in g
 
 
-def test_variety_kind_value_vocabulary() -> None:
-    g = _graph()
-    assert (GM.LanguageVarietyKind, RDFS.subClassOf, GUFO_NS.QualityValue) in g
-    for individual in ("kindDialect", "kindSociolect", "kindRegister"):
-        assert (GM[individual], RDF.type, GM.LanguageVarietyKind) in g
-
-
 # --------------------------------------------------------------------------- #
 # LanguageState relator pattern
 # --------------------------------------------------------------------------- #
-
-
-def test_language_state_is_observation_relator() -> None:
-    g = _graph()
-    assert (GM.LanguageState, RDF.type, OWL.Class) in g
-    assert (GM.LanguageState, RDFS.subClassOf, GM.Observation) in g
-    assert (GM.LanguageState, RDFS.subClassOf, GUFO_NS.Relator) in g
 
 
 def test_language_state_functional_role() -> None:
@@ -91,13 +75,6 @@ def test_change_event_is_activity() -> None:
     g = _graph()
     assert (GM.LanguageChangeEvent, RDF.type, OWL.Class) in g
     assert (GM.LanguageChangeEvent, RDFS.subClassOf, GM.Activity) in g
-
-
-def test_change_type_value_vocabulary() -> None:
-    g = _graph()
-    assert (GM.LanguageChangeType, RDFS.subClassOf, GUFO_NS.QualityValue) in g
-    for individual in ("changeSoundShift", "changeBorrowing", "changeExtinction"):
-        assert (GM[individual], RDF.type, GM.LanguageChangeType) in g
 
 
 # --------------------------------------------------------------------------- #

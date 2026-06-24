@@ -3,14 +3,15 @@
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
 gmeow:CarrierMedium
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> ;
     rdfs:label "Carrier Medium"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The medium of a physical carrier — a VALUE vocabulary (individuals, never subclasses). Print, e-ink file, optical disc, and server object are examples; the set is open."@x-gmeow-english ;
     skos:example "gmeow:mediumPrint a gmeow:CarrierMedium ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid confusing it with the publishable format (gmeow:ManifestationFormat — a 'paperback' is a format, 'print' is its carrier medium) and avoid per-medium subclasses."@x-gmeow-english ;
@@ -19,11 +20,11 @@ gmeow:CarrierMedium
     gmeow:useWhen "Use as the value vocabulary for the material medium of a physical carrier — print, e-ink file, optical disc, server object; referenced by gmeow:medium."@x-gmeow-english .
 
 gmeow:Contribution
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> ;
     rdfs:label "Contribution"@x-gmeow-english ;
-    rdfs:subClassOf gufo:Relator ,
+    rdfs:subClassOf logic:Relator ,
         [
             a owl:Restriction ;
             owl:onProperty gmeow:contributor ;
@@ -47,11 +48,11 @@ gmeow:Contribution
     gmeow:useWhen "Use when the role, period, degree, confidence, or evidence of a credit must be first-class — the reify-on-demand half of the credit pattern, covering authorship, CRediT research roles, and software contribution alike."@x-gmeow-english .
 
 gmeow:ContributionRole
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> ;
     rdfs:label "Contribution Role"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The role an agent played in contributing to a creative work — a VALUE vocabulary (individuals, never subclasses). Author, editor, translator, illustrator, narrator, composer, performer, director, photographer, and cover-artist are examples; the set is open."@x-gmeow-english ;
     skos:example "gmeow:roleTranslator a gmeow:ContributionRole ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid encoding roles as Contribution subclasses or as bespoke properties (Principle 9) and avoid using it for the weight of a credit (that is gmeow:ContributionDegree)."@x-gmeow-english ;
@@ -60,11 +61,11 @@ gmeow:ContributionRole
     gmeow:useWhen "Use as the value vocabulary for the role of a credit — referenced by gmeow:contributionRole inside a Contribution, spanning creative, CRediT research, and software roles."@x-gmeow-english .
 
 gmeow:CreativeDerivation
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> ;
     rdfs:label "Creative Derivation"@x-gmeow-english ;
-    rdfs:subClassOf gufo:Relator ,
+    rdfs:subClassOf logic:Relator ,
         [
             a owl:Restriction ;
             owl:onProperty gmeow:derivationSource ;
@@ -88,11 +89,11 @@ gmeow:CreativeDerivation
     gmeow:useWhen "Use when a derivation between two creative works must be first-class — its type(s), source/product segments, or provenance recorded — and when tier-honesty matters (a sample derives from a Recording region, not the abstract Work)."@x-gmeow-english .
 
 gmeow:CreativeWorkType
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> ;
     rdfs:label "Creative Work Type"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The kind of a creative work — a VALUE vocabulary (individuals, never subclasses) characterizing a gmeow:Work. Literary, musical, visual, and software are examples; the set is open."@x-gmeow-english ;
     skos:example "gmeow:workTypeLiterary a gmeow:CreativeWorkType ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid minting per-kind subclasses of Work (Principle 9 — the kind is a value, not a subclass) and avoid conflating it with manifestation format (gmeow:ManifestationFormat) or genre (gmeow:Genre)."@x-gmeow-english ;
@@ -101,11 +102,11 @@ gmeow:CreativeWorkType
     gmeow:useWhen "Use as the value vocabulary for characterizing a Work's kind — literary, musical, visual, software, dataset; an open set of individuals."@x-gmeow-english .
 
 gmeow:DerivationType
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> ;
     rdfs:label "Derivation Type"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The kind of creative derivation relating a source and product — a VALUE vocabulary (individuals, never subclasses). Cover, remix, sample, arrangement, transcription, quotation, and others are co-equal seeds."@x-gmeow-english ;
     skos:example "gmeow:derivationTypeCover a gmeow:DerivationType ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid encoding derivation kinds as relator subclasses (Principle 9 — they are co-equal individuals) and avoid privileging one as canonical when several apply."@x-gmeow-english ;
@@ -114,7 +115,7 @@ gmeow:DerivationType
     gmeow:useWhen "Use as the value vocabulary for the kind of a derivation — cover, remix, sample, arrangement, transcription, quotation; referenced by gmeow:derivationType inside a CreativeDerivation."@x-gmeow-english .
 
 gmeow:Expression
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> ;
     rdfs:label "Expression"@x-gmeow-english ;
@@ -129,7 +130,7 @@ gmeow:Expression
     gmeow:useWhen "Use when the LANGUAGE, script, notation, or arrangement is what distinguishes this realization from the abstract Work — a translation, an audiobook narration, a score-versus-recording rendition; one tier below Work, one above Manifestation."@x-gmeow-english .
 
 gmeow:Genre
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> ;
     rdfs:label "Genre"@x-gmeow-english ;
@@ -142,7 +143,7 @@ gmeow:Genre
     gmeow:useWhen "Use to mint a genre as a first-class, contestable, lineage-bearing object that creative works point at via gmeow:hasGenre — competing genre claims coexist as standpoint-indexed statements."@x-gmeow-english .
 
 gmeow:Item
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> ;
     rdfs:label "Item"@x-gmeow-english ;
@@ -155,7 +156,7 @@ gmeow:Item
     gmeow:useWhen "Use for ONE specific copy — the signed first edition on this shelf, a single loaned audiobook download; the bottom WEMI tier, where a physical carrier and copy-level provenance attach."@x-gmeow-english .
 
 gmeow:Manifestation
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> ;
     rdfs:label "Manifestation"@x-gmeow-english ;
@@ -168,11 +169,11 @@ gmeow:Manifestation
     gmeow:useWhen "Use for an EDITION, format, or release — the publishable, ISBN-bearing, rights-bearing artifact (a paperback, an EPUB, a vinyl pressing, a web serial); the tier where publisher, format, and publication date live."@x-gmeow-english .
 
 gmeow:ManifestationFormat
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> ;
     rdfs:label "Manifestation Format"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The physical or digital format of a Manifestation — a VALUE vocabulary (individuals, never subclasses). Hardcover, paperback, EPUB, PDF, audiobook, vinyl, and web-page are examples; the set is open."@x-gmeow-english ;
     skos:example "gmeow:formatPaperback a gmeow:ManifestationFormat ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid minting per-format subclasses of Manifestation (Principle 9) and avoid using it for the carrier's material medium (that is gmeow:CarrierMedium) or the kind of the Work (gmeow:CreativeWorkType)."@x-gmeow-english ;
@@ -181,7 +182,7 @@ gmeow:ManifestationFormat
     gmeow:useWhen "Use as the value vocabulary for a Manifestation's format — hardcover, EPUB, audiobook, vinyl, web serial; referenced by gmeow:hasManifestationFormat."@x-gmeow-english .
 
 gmeow:MusicalWork
-    a gufo:SubKind ,
+    a logic:SubKind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> ;
     rdfs:label "Musical Work"@x-gmeow-english ;
@@ -194,11 +195,11 @@ gmeow:MusicalWork
     gmeow:useWhen "Use for the abstract musical conception — the composition itself, the Work tier, surviving any notation, performance, or recording unchanged (the oral-tradition guarantee)."@x-gmeow-english .
 
 gmeow:RealizationMode
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> ;
     rdfs:label "Realization Mode"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The mode in which a musical Expression realizes its Work — a VALUE vocabulary (individuals, never subclasses). The oral-tradition guarantee requires that no shape ever mandate a notated realization."@x-gmeow-english ;
     skos:example "gmeow:realizationModeNotated a gmeow:RealizationMode ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid splitting Expression into notated/performed subclasses (Principle 9) and never let a shape mandate the notated mode (the oral-tradition guarantee)."@x-gmeow-english ;
@@ -207,7 +208,7 @@ gmeow:RealizationMode
     gmeow:useWhen "Use as the value vocabulary for how a musical Expression is realized — notated, performed, improvised, oral, machine-generated; referenced by gmeow:realizationMode."@x-gmeow-english .
 
 gmeow:Recording
-    a gufo:SubKind ,
+    a logic:SubKind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> ;
     rdfs:label "Recording"@x-gmeow-english ;
@@ -220,7 +221,7 @@ gmeow:Recording
     gmeow:useWhen "Use for a fixed sound recording at the Manifestation tier — a take, master, or released track; the audio sibling of gmeow:ScoreEdition."@x-gmeow-english .
 
 gmeow:ScoreEdition
-    a gufo:SubKind ,
+    a logic:SubKind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> ;
     rdfs:label "Score Edition"@x-gmeow-english ;
@@ -233,7 +234,7 @@ gmeow:ScoreEdition
     gmeow:useWhen "Use for a notated/symbolic edition at the Manifestation tier — a printed score, engraving, MusicXML, or MEI document; the notation sibling of gmeow:Recording."@x-gmeow-english .
 
 gmeow:Work
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/creative-works> ;
     rdfs:label "Work"@x-gmeow-english ;

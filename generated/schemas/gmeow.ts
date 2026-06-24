@@ -3562,7 +3562,7 @@ export interface ArcType {
 
 
 
-export interface ArchaeologicalFindContext {
+export interface ArchaeologicalFindContext extends Observation {
     findContextDating?: TemporalMeasurement[],
     findContextEvent?: Event[],
     findContextPlace?: Place[],
@@ -3618,7 +3618,7 @@ export interface Attachment extends BodyPart {
 
 
 
-export interface Attestation {
+export interface Attestation extends JustificationGround {
     attestationArtifact?: AttestationArtifact[],
     attestationPolicy?: AttestationPolicy[],
     attestationType?: AttestationType[],
@@ -3671,7 +3671,7 @@ export interface AuthorityLevel {
 
 
 
-export interface Availability {
+export interface Availability extends TimeScopedRelation {
     availabilityAgent?: Agent[],
     availabilitySlot?: TimeInterval,
     availabilityStatus?: AvailabilityStatus[],
@@ -3802,7 +3802,7 @@ export interface CadastralReferenceType {
 
 
 
-export interface Calendar {
+export interface Calendar extends InformationObject {
     calendarMember?: Event[],
     calendarTimeZone?: TimeZone,
 }
@@ -3981,7 +3981,7 @@ export interface Commit extends Activity {
 
 
 
-export interface Commitment {
+export interface Commitment extends IntentionalMoment {
     commitmentBeneficiary?: Agent[],
     committedAgent?: Agent,
 }
@@ -4092,7 +4092,7 @@ export interface ConstraintOperator {
 
 
 
-export interface ContactPoint {
+export interface ContactPoint extends Entity {
     contactPointProvider?: Agent[],
     contactPointType?: ContactPointType[],
 }
@@ -4186,7 +4186,7 @@ export interface ControlFlow {
 
 
 
-export interface CoordinateMatrix {
+export interface CoordinateMatrix extends Entity {
     coordinateMatrixFrame?: ReferenceFrame,
     matrixShape?: string,
     matrixValue?: string,
@@ -4426,7 +4426,7 @@ export interface DepictionContext {
 
 
 
-export interface DepictionUsage {
+export interface DepictionUsage extends Observation {
     depictionAudience?: Entity[],
     depictionAuthority?: Agent[],
     depictionContext?: DepictionContext,
@@ -4611,7 +4611,7 @@ export interface Embedding extends InformationObject {
 
 
 
-export interface Emotion {
+export interface Emotion extends Entity {
     emotionBearer?: Agent,
     emotionType?: EmotionType[],
 }
@@ -4706,7 +4706,7 @@ export interface EntityExistence extends TimeScopedRelation {
 
 
 
-export interface EtymologicalDerivation {
+export interface EtymologicalDerivation extends Observation {
     derivationEvidence?: Entity[],
     derivationKind?: DerivationKind[],
     derivationTarget?: InformationObject,
@@ -5191,7 +5191,7 @@ export interface Identifier {
 
 
 
-export interface IdentityFacet {
+export interface IdentityFacet extends Observation {
     selfAsserted?: boolean,
 }
 
@@ -5271,21 +5271,21 @@ export interface Inscription extends InformationObject {
 
 
 
-export interface InscriptionReading {
+export interface InscriptionReading extends Observation {
     readingOf?: Inscription,
     readingResult?: InformationObject[],
 }
 
 
 
-export interface InscriptionTranslation {
+export interface InscriptionTranslation extends Observation {
     translationOf?: Inscription,
     translationResult?: InformationObject[],
 }
 
 
 
-export interface InscriptionTransliteration {
+export interface InscriptionTransliteration extends Observation {
     transliterationOf?: Inscription,
     transliterationResult?: InformationObject[],
 }
@@ -5425,7 +5425,7 @@ export interface KeyScheme {
 
 
 
-export interface KinRelationship {
+export interface KinRelationship extends Observation {
     withinFamily?: Family[],
 }
 
@@ -5514,7 +5514,7 @@ export interface LanguageProficiency {
 
 
 
-export interface LanguageState {
+export interface LanguageState extends Observation {
     stateAuthority?: Agent[],
     stateInterval?: TimeInterval[],
     stateLanguage?: Language,
@@ -6214,7 +6214,7 @@ export interface NotationSystem extends SymbolicSystem {
 
 
 
-export interface NotationSystemUsage {
+export interface NotationSystemUsage extends Observation {
     notationUsageInterval?: TimeInterval,
     notationUsageNotationSystem?: NotationSystem,
     notationUsageRole?: NotationUsageRole,

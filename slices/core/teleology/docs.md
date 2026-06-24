@@ -15,9 +15,9 @@ epistemics.
 
 | Grade | Class | Grounding | Bound to |
 |---|---|---|---|
-| wanted | `gmeow:Desire` | `gufo:IntrinsicMode` | one agent (`intentBearer`) |
-| internally committed | `gmeow:Intention` | `gufo:IntrinsicMode` | one agent (`intentBearer`) |
-| socially committed | `gmeow:Commitment` | `gufo:Relator` | committed agent + distinct beneficiaries |
+| wanted | `gmeow:Desire` | `logic:Mode` through `gmeow:IntentionalMode` | one agent (`intentBearer`) |
+| internally committed | `gmeow:Intention` | `logic:Mode` through `gmeow:IntentionalMode` | one agent (`intentBearer`) |
+| socially committed | `gmeow:Commitment` | `logic:Relator` | committed agent + distinct beneficiaries |
 
 All three sit under the named umbrella **`gmeow:IntentionalMoment`** (UFO-C's
 intentional moment), which exists so `intentionGoal` and `motivates` carry a
@@ -63,8 +63,8 @@ describing a state of affairs, satisfied by situations through `satisfiedBy`
 ### gmeow:Desire · gmeow:Intention · gmeow:Commitment
 
 The commitment-graded trichotomy: wanted (`Desire`), internally committed
-(`Intention`) — both `gufo:IntrinsicMode` bound to one agent via
-`intentBearer` — and socially committed (`Commitment`, a `gufo:Relator`
+(`Intention`) — both intrinsic `logic:Mode` branches bound to one agent via
+`intentBearer` — and socially committed (`Commitment`, a `logic:Relator`
 binding a `committedAgent` to distinct `commitmentBeneficiary` parties).
 
 ### gmeow:IntentionalMoment · gmeow:IntentionalMode

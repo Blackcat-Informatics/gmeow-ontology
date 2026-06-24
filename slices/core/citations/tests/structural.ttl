@@ -7,9 +7,9 @@
 # SPARQL ASK over the citations module graph (gmeow:scopeModule) under the
 # native Rust harness (crates/slicetest).
 #
-# Citations is NOT yet #694-migrated, so class stereotypes remain gufo:
-# (gufo:Kind, gufo:RoleMixin, gufo:AbstractIndividualType, gufo:QualityValue,
-# gufo:Relator), not logic:.
+# Citations is #694-migrated, so class stereotypes are logic:
+# (logic:Kind, logic:RoleMixin, logic:AbstractIndividualType, logic:QualityValue,
+# logic:Relator), not gufo:.
 #
 # RETAINED in pytest (not migratable here):
 #   test_citation_act_shacl_passes — run_shacl() call; ExampleConformance,
@@ -33,69 +33,69 @@
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/citations/tests/> .
 
-# --- 1. CitationAct is a gufo:Kind subclass of gufo:Relator (MUST) ------------
+# --- 1. CitationAct is a logic:Kind subclass of logic:Relator (MUST) ------------
 ex:saCitationActIsRelatorKind a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:CitationAct a owl:Class , gufo:Kind ;
-        rdfs:subClassOf gufo:Relator .
+    gmeow:CitationAct a owl:Class , logic:Kind ;
+        rdfs:subClassOf logic:Relator .
 }""" ;
-    gmeow:saRationale "gmeow:CitationAct MUST be an owl:Class typed gufo:Kind and a subclass of gufo:Relator — a citation is a reified relator binding citing and cited players with a typed intent (#211). Mirrors test_citation_act_is_relator_kind." .
+    gmeow:saRationale "gmeow:CitationAct MUST be an owl:Class typed logic:Kind and a subclass of logic:Relator — a citation is a reified relator binding citing and cited players with a typed intent (#211). Mirrors test_citation_act_is_relator_kind." .
 
-# --- 2. Selector is a gufo:Kind subclass of EvidenceSpan (MUST) ---------------
+# --- 2. Selector is a logic:Kind subclass of EvidenceSpan (MUST) ---------------
 ex:saSelectorIsKind a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:Selector a owl:Class , gufo:Kind ;
+    gmeow:Selector a owl:Class , logic:Kind ;
         rdfs:subClassOf gmeow:EvidenceSpan .
 }""" ;
-    gmeow:saRationale "gmeow:Selector MUST be an owl:Class typed gufo:Kind and a subclass of gmeow:EvidenceSpan — a pinpoint anchor into a cited work reuses the shared evidence-span machinery (#211). Mirrors test_selector_is_kind." .
+    gmeow:saRationale "gmeow:Selector MUST be an owl:Class typed logic:Kind and a subclass of gmeow:EvidenceSpan — a pinpoint anchor into a cited work reuses the shared evidence-span machinery (#211). Mirrors test_selector_is_kind." .
 
-# --- 3. SourceRole is a gufo:RoleMixin (MUST) ---------------------------------
+# --- 3. SourceRole is a logic:RoleMixin (MUST) ---------------------------------
 ex:saSourceRoleIsRoleMixin a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK {
-    gmeow:SourceRole a owl:Class , gufo:RoleMixin .
+    gmeow:SourceRole a owl:Class , logic:RoleMixin .
 }""" ;
-    gmeow:saRationale "gmeow:SourceRole MUST be an owl:Class typed gufo:RoleMixin — source-hood is anti-rigid (the same work is contingently a source, a subject, and a work in its own right; #211). Mirrors test_source_role_is_role_mixin." .
+    gmeow:saRationale "gmeow:SourceRole MUST be an owl:Class typed logic:RoleMixin — source-hood is anti-rigid (the same work is contingently a source, a subject, and a work in its own right; #211). Mirrors test_source_role_is_role_mixin." .
 
-# --- 4. CitationIntent is a value vocabulary subclass of gufo:QualityValue (MUST) ---
+# --- 4. CitationIntent is a value vocabulary subclass of logic:QualityValue (MUST) ---
 ex:saCitationIntentIsQualityValue a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:CitationIntent rdfs:subClassOf gufo:QualityValue .
+    gmeow:CitationIntent rdfs:subClassOf logic:QualityValue .
 }""" ;
-    gmeow:saRationale "gmeow:CitationIntent MUST be a subclass of gufo:QualityValue — citation intents are an open value vocabulary (individuals, never subclasses) characterizing a CitationAct (#211, Principle 9). Mirrors test_citation_intent_is_quality_value." .
+    gmeow:saRationale "gmeow:CitationIntent MUST be a subclass of logic:QualityValue — citation intents are an open value vocabulary (individuals, never subclasses) characterizing a CitationAct (#211, Principle 9). Mirrors test_citation_intent_is_quality_value." .
 
-# --- 5. ContributionDegree is a value vocabulary subclass of gufo:QualityValue (MUST) ---
+# --- 5. ContributionDegree is a value vocabulary subclass of logic:QualityValue (MUST) ---
 ex:saContributionDegreeIsQualityValue a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:ContributionDegree rdfs:subClassOf gufo:QualityValue .
+    gmeow:ContributionDegree rdfs:subClassOf logic:QualityValue .
 }""" ;
-    gmeow:saRationale "gmeow:ContributionDegree MUST be a subclass of gufo:QualityValue — contribution degrees are an open value vocabulary (individuals, never subclasses) characterizing a Contribution (#211, Principle 9). Mirrors test_contribution_degree_is_quality_value." .
+    gmeow:saRationale "gmeow:ContributionDegree MUST be a subclass of logic:QualityValue — contribution degrees are an open value vocabulary (individuals, never subclasses) characterizing a Contribution (#211, Principle 9). Mirrors test_contribution_degree_is_quality_value." .
 
 # --- 6a. citingEntity, citedEntity, citationIntent are functional object properties (MUST) ---
 ex:saCitationActCorePropsFunctional a gmeow:StructuralAssertion ;

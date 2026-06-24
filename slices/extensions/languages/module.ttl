@@ -3,10 +3,11 @@
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
 gmeow:LanguageChangeEvent
-    a gufo:EventType ,
+    a logic:Event ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> ;
     rdfs:label "Language Change Event"@x-gmeow-english ;
@@ -15,16 +16,16 @@ gmeow:LanguageChangeEvent
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:LanguageChangeType
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> ;
     rdfs:label "Language Change Type"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The kind of historical linguistic change — a value, never an Entity subclass. Open-ended: new analytical frameworks may introduce further change types without ontology modification."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:LanguageCreation
-    a gufo:EventType ,
+    a logic:Event ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> ;
     rdfs:label "Language Creation"@x-gmeow-english ;
@@ -33,38 +34,38 @@ gmeow:LanguageCreation
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:LanguageModality
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> ;
     rdfs:label "Language Modality"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The sensory/transmission channel of a language (spoken, signed, written, whistled, tactile, machine, multimodal). A value carried by gmeow:languageModality."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:LanguageOrigin
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> ;
     rdfs:label "Language Origin"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "How a language came to be (natural, constructed, AI-generated, formal, pidgin, creole, reconstructed, …). A value, not a Language subclass: origins are open-ended and share Language's structure."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:LanguageProficiency
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> ;
     rdfs:label "Language Proficiency"@x-gmeow-english ;
-    rdfs:subClassOf gufo:Relator ;
+    rdfs:subClassOf logic:Relator ;
     skos:definition "A reified, leveled proficiency of an agent in a language, in a particular skill modality — the gufo:Relator binding {agent} × {language} × {skill modality} × {level on a scale}, mirroring names' gmeow:NameUsage. Mint one per (agent, language, modality) so 'native overall' and 'B2 writing' coexist. The base gmeow:knowsLanguage relation states that an agent knows a language; this relator adds the level and the skill."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:LanguageState
-    a gufo:SubKind ,
+    a logic:SubKind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> ;
     rdfs:label "Language State"@x-gmeow-english ;
-    rdfs:subClassOf gufo:Relator ,
+    rdfs:subClassOf logic:Relator ,
         gmeow:Observation ,
         [
             a owl:Restriction ;
@@ -80,16 +81,16 @@ gmeow:LanguageState
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:LanguageStatus
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> ;
     rdfs:label "Language Status"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The vitality status of a language (living, historical, extinct, dormant, revived, emerging, proposed, constructed-active). A value carried by gmeow:languageStatus."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:LanguageVariety
-    a gufo:SubKind ,
+    a logic:SubKind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> ;
     rdfs:label "Language Variety"@x-gmeow-english ;
@@ -98,16 +99,16 @@ gmeow:LanguageVariety
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:LanguageVarietyKind
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> ;
     rdfs:label "Language Variety Kind"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The sociolinguistic classification of a language variety — a value, never an Entity subclass. Standpoint-scoped: 'dialect' according to one authority may be 'language' according to another. The seed list is an anchor, not a fence."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:LanguageVersion
-    a gufo:SubKind ,
+    a logic:SubKind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> ;
     rdfs:label "Language Version"@x-gmeow-english ;
@@ -116,38 +117,38 @@ gmeow:LanguageVersion
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:ScriptRole
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> ;
     rdfs:label "Script Role"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The role a writing system plays within a language's mixed orthography (primary, logographic content, syllabic grammar, loanword, transliteration, liturgical, historical, decorative). A value carried by gmeow:scriptRole."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:TextDirection
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> ;
     rdfs:label "Text Direction"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The writing direction of a writing system (ltr, rtl, vertical, boustrophedon, non-linear, contextual). A value carried by gmeow:textDirection."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:WritingSystemType
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> ;
     rdfs:label "Writing System Type"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The structural kind of a writing system (alphabet, abjad, abugida, syllabary, logographic, featural, ideographic, pictographic, non-linear, mixed). A value carried by gmeow:writingSystemType."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:WritingSystemUsage
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/languages> ;
     rdfs:label "Writing System Usage"@x-gmeow-english ;
-    rdfs:subClassOf gufo:Relator ;
+    rdfs:subClassOf logic:Relator ;
     skos:definition "A reified, role- and period-scoped use of a writing system by a language — the gufo:Relator binding {language} × {writing system} × {role} × {period}, mirroring names' gmeow:NameUsage. Lets Japanese co-mingle Han (logographic content), Hiragana (syllabic grammar), Katakana (loanwords) and Latin (transliteration) co-equally, and models script changes over time (Turkish Arabic→Latin, 1928) via the usage's validity. Mint one usage per (language, writing system, role) tuple."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 

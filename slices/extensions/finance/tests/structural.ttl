@@ -8,9 +8,9 @@
 # (gmeow:scopeModule) under the native Rust slicetest harness
 # (crates/slicetest).
 #
-# Finance is NOT yet #694-migrated: class stereotypes remain gufo:
-# (gufo:Kind, gufo:SubKind, gufo:EventType, gufo:AbstractIndividualType,
-# gufo:QualityValue, gufo:Relator), not logic:.
+# Finance is #694-migrated: class stereotypes are logic:
+# (logic:Kind, logic:SubKind, logic:Event, logic:AbstractIndividualType,
+# logic:QualityValue, logic:Relator), not gufo:.
 #
 # RETAINED in pytest (not migratable here):
 #   test_monetary_amount_is_entity -- gmeow:MonetaryAmount is defined in
@@ -53,19 +53,19 @@
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/finance/tests/> .
 
-# --- 1. FinancialAccount is a gufo:Kind subclass of InformationObject (MUST) --
+# --- 1. FinancialAccount is a logic:Kind subclass of InformationObject (MUST) --
 ex:saFinancialAccountIsInformationObject a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:FinancialAccount a owl:Class , gufo:Kind ;
+    gmeow:FinancialAccount a owl:Class , logic:Kind ;
         rdfs:subClassOf gmeow:InformationObject .
 }""" ;
-    gmeow:saRationale "gmeow:FinancialAccount MUST be an owl:Class typed gufo:Kind and a subclass of gmeow:InformationObject -- a financial account is an information construct (IBAN, account number, balance record), not a physical object. Mirrors test_financial_account_is_information_object." .
+    gmeow:saRationale "gmeow:FinancialAccount MUST be an owl:Class typed logic:Kind and a subclass of gmeow:InformationObject -- a financial account is an information construct (IBAN, account number, balance record), not a physical object. Mirrors test_financial_account_is_information_object." .
 
 # --- 2. Four FinancialAccountType seed individuals exist (MUST) ---------------
 ex:saFinancialAccountTypeSeeds a gmeow:StructuralAssertion ;
@@ -98,61 +98,61 @@ PREFIX owl: <http://www.w3.org/2002/07/owl#>
 ASK { gmeow:accountCurrency a owl:FunctionalProperty . }""" ;
     gmeow:saRationale "gmeow:accountCurrency MUST NOT be owl:FunctionalProperty -- a single account may hold balances in several currencies; the functional constraint moves to Posting/Holding relators. Mirrors test_account_currency_is_non_functional (mustNot-functional part)." .
 
-# --- 5. FinancialTransaction is a gufo:EventType subclass of Event (MUST) -----
+# --- 5. FinancialTransaction is a logic:Event subclass of Event (MUST) -----
 ex:saFinancialTransactionIsEvent a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:FinancialTransaction a owl:Class , gufo:EventType ;
+    gmeow:FinancialTransaction a owl:Class , logic:Event ;
         rdfs:subClassOf gmeow:Event .
 }""" ;
-    gmeow:saRationale "gmeow:FinancialTransaction MUST be an owl:Class typed gufo:EventType and a subclass of gmeow:Event -- money movement reuses the Event/Participation substrate; payer, payee, and intermediary are ParticipantRole values on Participation relators. Mirrors test_financial_transaction_is_event." .
+    gmeow:saRationale "gmeow:FinancialTransaction MUST be an owl:Class typed logic:Event and a subclass of gmeow:Event -- money movement reuses the Event/Participation substrate; payer, payee, and intermediary are ParticipantRole values on Participation relators. Mirrors test_financial_transaction_is_event." .
 
-# --- 6. JournalEntry is a gufo:EventType subclass of Event (MUST) -------------
+# --- 6. JournalEntry is a logic:Event subclass of Event (MUST) -------------
 ex:saJournalEntryIsEvent a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:JournalEntry a owl:Class , gufo:EventType ;
+    gmeow:JournalEntry a owl:Class , logic:Event ;
         rdfs:subClassOf gmeow:Event .
 }""" ;
-    gmeow:saRationale "gmeow:JournalEntry MUST be an owl:Class typed gufo:EventType and a subclass of gmeow:Event -- a balanced double-entry bookkeeping event is a temporal occurrence. Mirrors test_journal_entry_is_event." .
+    gmeow:saRationale "gmeow:JournalEntry MUST be an owl:Class typed logic:Event and a subclass of gmeow:Event -- a balanced double-entry bookkeeping event is a temporal occurrence. Mirrors test_journal_entry_is_event." .
 
-# --- 7. Posting is a gufo:Kind subclass of gufo:Relator (MUST) ----------------
+# --- 7. Posting is a logic:Kind subclass of logic:Relator (MUST) ----------------
 ex:saPostingIsRelator a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:Posting a owl:Class , gufo:Kind ;
-        rdfs:subClassOf gufo:Relator .
+    gmeow:Posting a owl:Class , logic:Kind ;
+        rdfs:subClassOf logic:Relator .
 }""" ;
-    gmeow:saRationale "gmeow:Posting MUST be an owl:Class typed gufo:Kind and a subclass of gufo:Relator -- a posting is the atomic unit of double-entry bookkeeping, reifying the journal-entry x ledger-account x amount x direction tuple. Mirrors test_posting_is_relator." .
+    gmeow:saRationale "gmeow:Posting MUST be an owl:Class typed logic:Kind and a subclass of logic:Relator -- a posting is the atomic unit of double-entry bookkeeping, reifying the journal-entry x ledger-account x amount x direction tuple. Mirrors test_posting_is_relator." .
 
-# --- 8. LedgerAccount is a gufo:Kind subclass of InformationObject (MUST) -----
+# --- 8. LedgerAccount is a logic:Kind subclass of InformationObject (MUST) -----
 ex:saLedgerAccountIsInformationObject a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:LedgerAccount a owl:Class , gufo:Kind ;
+    gmeow:LedgerAccount a owl:Class , logic:Kind ;
         rdfs:subClassOf gmeow:InformationObject .
 }""" ;
-    gmeow:saRationale "gmeow:LedgerAccount MUST be an owl:Class typed gufo:Kind and a subclass of gmeow:InformationObject -- a book-keeping account is a conceptual information construct, distinct from a bank-level FinancialAccount. Mirrors test_ledger_account_is_information_object." .
+    gmeow:saRationale "gmeow:LedgerAccount MUST be an owl:Class typed logic:Kind and a subclass of gmeow:InformationObject -- a book-keeping account is a conceptual information construct, distinct from a bank-level FinancialAccount. Mirrors test_ledger_account_is_information_object." .
 
 # --- 9. Seven TransactionType seed individuals exist (MUST) -------------------
 ex:saTransactionTypeSeeds a gmeow:StructuralAssertion ;
@@ -339,33 +339,33 @@ ASK {
 }""" ;
     gmeow:saRationale "The four mandatory WalletScheme seed individuals (BTC, ETH, SOL, XMR) MUST exist as open-vocabulary values, never as CryptoWallet subclasses (Principle 9). Mirrors test_wallet_scheme_vocab_is_open_values." .
 
-# --- 24. Holding is a gufo:Kind subclass of gufo:Relator (MUST) ---------------
+# --- 24. Holding is a logic:Kind subclass of logic:Relator (MUST) ---------------
 ex:saHoldingIsRelator a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:Holding a owl:Class , gufo:Kind ;
-        rdfs:subClassOf gufo:Relator .
+    gmeow:Holding a owl:Class , logic:Kind ;
+        rdfs:subClassOf logic:Relator .
 }""" ;
-    gmeow:saRationale "gmeow:Holding MUST be an owl:Class typed gufo:Kind and a subclass of gufo:Relator -- a holding reifies the agent x asset x quantity x cost-basis x period tuple; promote from flat accountBalance when provenance matters. Mirrors test_holding_is_relator." .
+    gmeow:saRationale "gmeow:Holding MUST be an owl:Class typed logic:Kind and a subclass of logic:Relator -- a holding reifies the agent x asset x quantity x cost-basis x period tuple; promote from flat accountBalance when provenance matters. Mirrors test_holding_is_relator." .
 
-# --- 25. CryptoWallet is a gufo:SubKind subclass of FinancialAccount (MUST) ---
+# --- 25. CryptoWallet is a logic:SubKind subclass of FinancialAccount (MUST) ---
 ex:saCryptoWalletIsFinancialAccount a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:CryptoWallet a owl:Class , gufo:SubKind ;
+    gmeow:CryptoWallet a owl:Class , logic:SubKind ;
         rdfs:subClassOf gmeow:FinancialAccount .
 }""" ;
-    gmeow:saRationale "gmeow:CryptoWallet MUST be an owl:Class typed gufo:SubKind and a subclass of gmeow:FinancialAccount -- a crypto wallet is a financial-existence account with wallet-specific properties (address, scheme, key). Mirrors test_crypto_wallet_is_financial_account." .
+    gmeow:saRationale "gmeow:CryptoWallet MUST be an owl:Class typed logic:SubKind and a subclass of gmeow:FinancialAccount -- a crypto wallet is a financial-existence account with wallet-specific properties (address, scheme, key). Mirrors test_crypto_wallet_is_financial_account." .
 
 # --- 26. walletAddress is a DatatypeProperty (MUST) ---------------------------
 ex:saWalletAddressIsDatatype a gmeow:StructuralAssertion ;

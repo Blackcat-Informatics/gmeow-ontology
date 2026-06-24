@@ -3,10 +3,11 @@
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
 gmeow:LearningEvent
-    a gufo:EventType ,
+    a logic:Event ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/learning> ;
     rdfs:label "Learning Event"@x-gmeow-english ;
@@ -25,11 +26,11 @@ gmeow:LearningEvent
     gmeow:useWhen "Use to record the EVENT that grew an agent's knowledge or skill — when, from whom, and how it came to know something — so a belief-acquisition log can show not just the current state but the transition that produced it (Principle 14)."@x-gmeow-english .
 
 gmeow:LearningEventType
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/learning> ;
     rdfs:label "Learning Event Type"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The variety of a learning event — a value vocabulary spanning concept-formation, skill-acquisition, being-taught, consolidation, transfer, and unlearning: gmeow:learningConceptFormation, gmeow:learningSkillAcquisition, gmeow:learningBeingTaught, gmeow:learningConsolidation, gmeow:learningTransfer, gmeow:learningUnlearning. Its members are individuals, never subclasses (Principle 9), more than one may co-apply to a single event, and the set is OPEN — a variety not among the seeds is a fresh gmeow:LearningEventType individual. The dedicated learning analogue of the inference slice's gmeow:InferenceMode."@x-gmeow-english ;
     skos:example "gmeow:learningSkillAcquisition a gmeow:LearningEventType ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid subclassing it to add a variety — its members are individuals and the set is extended by minting, not subclassing (Principle 9) — and avoid forcing exactly one variety onto every event; a transfer that also consolidates is both gmeow:learningTransfer and gmeow:learningConsolidation (gmeow:learningType is non-functional)."@x-gmeow-english ;
@@ -38,11 +39,11 @@ gmeow:LearningEventType
     gmeow:useWhen "Use as the value vocabulary for the variety of a gmeow:LearningEvent — the open set of learning kinds (acquisition, being-taught, consolidation, transfer, unlearning, concept-formation) that gmeow:learningType draws from; mint a fresh individual for a variety not seeded."@x-gmeow-english .
 
 gmeow:Teaching
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/learning> ;
     rdfs:label "Teaching"@x-gmeow-english ;
-    rdfs:subClassOf gufo:Relator ,
+    rdfs:subClassOf logic:Relator ,
         [
             a owl:Restriction ;
             owl:onProperty gmeow:teacher ;

@@ -7,9 +7,9 @@
 # assertion runs as a SPARQL ASK over the organization module graph
 # (gmeow:scopeModule) under the native Rust harness (crates/slicetest).
 #
-# Organization is NOT #694-migrated: class stereotypes remain gufo:
-# (gufo:Kind, gufo:RoleMixin, gufo:AbstractIndividualType, gufo:QualityValue,
-# gufo:Relator), not logic:.
+# Organization is #694-migrated: class stereotypes are logic:
+# (logic:Kind, logic:RoleMixin, logic:AbstractIndividualType, logic:QualityValue,
+# logic:Relator), not gufo:.
 #
 # RETAINED in pytest (not migratable here):
 #   test_contested_membership_coexists -- run_shacl() call over fixture;
@@ -40,47 +40,47 @@
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/organization/tests/> .
 
-# --- 1. Role is a gufo:RoleMixin subclass of FunctionalComplex (MUST) --------
+# --- 1. Role is a logic:RoleMixin subclass of FunctionalComplex (MUST) --------
 ex:saRoleIsRoleMixin a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:Role a owl:Class , gufo:RoleMixin ;
-        rdfs:subClassOf gufo:FunctionalComplex .
+    gmeow:Role a owl:Class , logic:RoleMixin ;
+        rdfs:subClassOf logic:FunctionalComplex .
 }""" ;
-    gmeow:saRationale "gmeow:Role MUST be an owl:Class typed gufo:RoleMixin and a subclass of gufo:FunctionalComplex -- roles are functional complexes played by agents, never subclasses of the agent (Principle 9). Mirrors test_organization_is_gufo_grounded (Role part)." .
+    gmeow:saRationale "gmeow:Role MUST be an owl:Class typed logic:RoleMixin and a subclass of logic:FunctionalComplex -- roles are functional complexes played by agents, never subclasses of the agent (Principle 9). Mirrors test_organization_is_gufo_grounded (Role part)." .
 
-# --- 2. Membership is a gufo:Kind subclass of gufo:Relator (MUST) ------------
+# --- 2. Membership is a logic:Kind subclass of logic:Relator (MUST) ------------
 ex:saMembershipIsKindRelator a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:Membership a owl:Class , gufo:Kind ;
-        rdfs:subClassOf gufo:Relator .
+    gmeow:Membership a owl:Class , logic:Kind ;
+        rdfs:subClassOf logic:Relator .
 }""" ;
-    gmeow:saRationale "gmeow:Membership MUST be an owl:Class typed gufo:Kind and a subclass of gufo:Relator -- the reified member x organization x role x post binding (gUFO relator idiom; Principle 4). Mirrors test_organization_is_gufo_grounded (Membership part)." .
+    gmeow:saRationale "gmeow:Membership MUST be an owl:Class typed logic:Kind and a subclass of logic:Relator -- the reified member x organization x role x post binding (gUFO relator idiom; Principle 4). Mirrors test_organization_is_gufo_grounded (Membership part)." .
 
-# --- 3. Post is a gufo:RoleMixin subclass of FunctionalComplex (MUST) --------
+# --- 3. Post is a logic:RoleMixin subclass of FunctionalComplex (MUST) --------
 ex:saPostIsRoleMixin a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:Post a owl:Class , gufo:RoleMixin ;
-        rdfs:subClassOf gufo:FunctionalComplex .
+    gmeow:Post a owl:Class , logic:RoleMixin ;
+        rdfs:subClassOf logic:FunctionalComplex .
 }""" ;
-    gmeow:saRationale "gmeow:Post MUST be an owl:Class typed gufo:RoleMixin and a subclass of gufo:FunctionalComplex -- a seat independent of its holder; RoleMixin because the post identity does not fix the bearer's identity (issue #258). Mirrors test_post_is_gufo_role_mixin." .
+    gmeow:saRationale "gmeow:Post MUST be an owl:Class typed logic:RoleMixin and a subclass of logic:FunctionalComplex -- a seat independent of its holder; RoleMixin because the post identity does not fix the bearer's identity (issue #258). Mirrors test_post_is_gufo_role_mixin." .
 
 # --- 4. The six OrganizationType seed individuals exist (MUST) ----------------
 ex:saOrganizationTypeSeeds a gmeow:StructuralAssertion ;

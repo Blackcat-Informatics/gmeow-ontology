@@ -4,19 +4,20 @@
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
 gmeow:AggregationFunction
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/aggregation> ;
     rdfs:label "Aggregation Function"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The kind of statistical aggregation applied to a spatial region — a value vocabulary (individuals, never subclasses)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:SpatialAggregation
-    a gufo:SubKind ,
+    a logic:SubKind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/aggregation> ;
     rdfs:label "Spatial Aggregation"@x-gmeow-english ;
@@ -25,7 +26,7 @@ gmeow:SpatialAggregation
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:SpatialBin
-    a gufo:SubKind ,
+    a logic:SubKind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/aggregation> ;
     rdfs:label "Spatial Bin"@x-gmeow-english ;

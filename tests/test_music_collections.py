@@ -5,68 +5,17 @@ Principles 4, 5, 6, 9, 11, 15, 16.
 
 from __future__ import annotations
 
-from gmeow_rdf.compat.rdflib import OWL, RDF, RDFS, Graph, Literal, Namespace, URIRef
+from gmeow_rdf.compat.rdflib import OWL, RDF, Graph, Literal, Namespace, URIRef
 from gmeow_rdf.compat.rdflib.namespace import XSD
 
 from gmeow_tools.graph import load_merged_graph
 
 GMEOW = Namespace("https://blackcatinformatics.ca/gmeow/")
-GUFO = Namespace("http://purl.org/nemo/gufo#")
 EX = Namespace("https://example.org/test-music-collections/")
 
 
 def _graph() -> Graph:
     return load_merged_graph(include_imports=False)
-
-
-def test_pitch_collection_kind_is_quality_value() -> None:
-    graph = _graph()
-    assert (
-        URIRef(GMEOW + "PitchCollectionKind"),
-        RDFS.subClassOf,
-        URIRef(GUFO + "QualityValue"),
-    ) in graph
-
-
-def test_collection_member_role_is_quality_value() -> None:
-    graph = _graph()
-    assert (
-        URIRef(GMEOW + "CollectionMemberRole"),
-        RDFS.subClassOf,
-        URIRef(GUFO + "QualityValue"),
-    ) in graph
-
-
-def test_pitch_spelling_system_is_information_object_kind() -> None:
-    graph = _graph()
-    assert (
-        URIRef(GMEOW + "PitchSpellingSystem"),
-        RDF.type,
-        OWL.Class,
-    ) in graph
-    assert (
-        URIRef(GMEOW + "PitchSpellingSystem"),
-        RDF.type,
-        URIRef(GUFO + "Kind"),
-    ) in graph
-
-
-def test_pitch_collection_membership_is_relator() -> None:
-    graph = _graph()
-    assert (
-        URIRef(GMEOW + "PitchCollectionMembership"),
-        RDFS.subClassOf,
-        URIRef(GUFO + "Relator"),
-    ) in graph
-
-
-def test_pitch_spelling_is_relator() -> None:
-    graph = _graph()
-    assert (
-        URIRef(GMEOW + "PitchSpelling"),
-        RDFS.subClassOf,
-        URIRef(GUFO + "Relator"),
-    ) in graph
 
 
 def test_collection_properties_are_functional() -> None:

@@ -13,7 +13,6 @@ from gmeow_tools.graph import load_merged_graph
 from gmeow_tools.validate import ValidationResult
 
 GMEOW = Namespace("https://blackcatinformatics.ca/gmeow/")
-GUFO = Namespace("http://purl.org/nemo/gufo#")
 EX = Namespace("https://example.org/test-music-structure/")
 
 

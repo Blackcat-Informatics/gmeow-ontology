@@ -8,8 +8,8 @@
 # (gmeow:scopeModule) under the native Rust slicetest harness
 # (crates/slicetest).
 #
-# Software is NOT yet #694-migrated: class stereotypes remain gufo:
-# (gufo:Kind, gufo:SubKind, gufo:EventType, gufo:AbstractIndividualType).
+# Software is #694-migrated: class stereotypes are logic:
+# (logic:Kind, logic:SubKind, logic:Event, logic:AbstractIndividualType).
 #
 # RETAINED in pytest (not migratable here):
 #   test_no_subclass_bridge_between_facets -- dynamic pairwise sweep over 6
@@ -49,14 +49,14 @@ ex:saProjectIsKindSubclassEntity a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:Project a owl:Class , gufo:Kind ;
+    gmeow:Project a owl:Class , logic:Kind ;
         rdfs:subClassOf gmeow:Entity .
 }""" ;
-    gmeow:saRationale "gmeow:Project MUST be an owl:Class typed gufo:Kind and a subclass of gmeow:Entity -- the Project facet is the primary real-world kind (not an artifact or event) in the five-facet de-conflation doctrine. Mirrors test_software_project_is_gufo_grounded (Project part)." .
+    gmeow:saRationale "gmeow:Project MUST be an owl:Class typed logic:Kind and a subclass of gmeow:Entity -- the Project facet is the primary real-world kind (not an artifact or event) in the five-facet de-conflation doctrine. Mirrors test_software_project_is_gufo_grounded (Project part)." .
 
 # --- 2. SoftwareProject subClassOf Project (MUST) ----------------------------
 ex:saSoftwareProjectSubclassProject a gmeow:StructuralAssertion ;
@@ -113,19 +113,47 @@ ASK {
 }""" ;
     gmeow:saRationale "gmeow:Repository MUST be a subclass of gmeow:InformationObject -- a repository is a content-addressed store, not an Entity or Event; this is the Repository != Project split. Mirrors test_software_project_is_gufo_grounded (Repository part)." .
 
-# --- 7. Value-vocabulary classes are gufo:QualityValue subclasses (MUST) -----
+# --- 7. Value-vocabulary classes are logic:QualityValue subclasses (MUST) -----
 ex:saValueVocabsAreQualityValues a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:RepositoryType    rdfs:subClassOf gufo:QualityValue .
-    gmeow:MaintenanceStatus rdfs:subClassOf gufo:QualityValue .
-    gmeow:GovernanceModel   rdfs:subClassOf gufo:QualityValue .
+    gmeow:RepositoryType    rdfs:subClassOf logic:QualityValue .
+    gmeow:MaintenanceStatus rdfs:subClassOf logic:QualityValue .
+    gmeow:GovernanceModel   rdfs:subClassOf logic:QualityValue .
 }""" ;
-    gmeow:saRationale "gmeow:RepositoryType, MaintenanceStatus, and GovernanceModel MUST each be subclasses of gufo:QualityValue -- they are ordered or unordered value vocabularies (the kernel QualityValue pattern; software is not yet #694-migrated so gufo: not logic:). Mirrors test_software_value_vocabs_are_quality_values." .
+    gmeow:saRationale "gmeow:RepositoryType, MaintenanceStatus, and GovernanceModel MUST each be subclasses of logic:QualityValue -- they are ordered or unordered value vocabularies (the kernel QualityValue pattern). Mirrors test_software_value_vocabs_are_quality_values." .
+
+# --- 7b. SLSALevel is a logic:QualityValue vocabulary with four seed values (MUST) ---
+ex:saSlsaLevelIsValueVocabulary a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:SLSALevel rdfs:subClassOf logic:QualityValue .
+    gmeow:slsaLevel1 a gmeow:SLSALevel .
+    gmeow:slsaLevel2 a gmeow:SLSALevel .
+    gmeow:slsaLevel3 a gmeow:SLSALevel .
+    gmeow:slsaLevel4 a gmeow:SLSALevel .
+}""" ;
+    gmeow:saRationale "gmeow:SLSALevel MUST be a logic:QualityValue vocabulary with SLSA levels 1 through 4 as individuals. Replaces the stale gufo:QualityValue pytest assertion." .
+
+ex:saSlsaLevelsAreNotClasses a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    VALUES ?level { gmeow:slsaLevel1 gmeow:slsaLevel2 gmeow:slsaLevel3 gmeow:slsaLevel4 }
+    ?level a owl:Class .
+}""" ;
+    gmeow:saRationale "SLSA level individuals MUST NOT be owl:Class declarations; levels are values, not subclasses." .
 
 # --- 8. parentCommit subPropertyOf wasDerivedFrom (MUST) ---------------------
 ex:saParentCommitSubPropertyWasDerivedFrom a gmeow:StructuralAssertion ;

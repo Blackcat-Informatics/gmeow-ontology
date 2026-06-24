@@ -4,21 +4,22 @@
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
 gmeow:CoordinateMatrix
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sensory-environment> ;
     rdfs:label "Coordinate Matrix"@x-gmeow-english ;
-    rdfs:subClassOf gufo:Object ,
+    rdfs:subClassOf logic:Object ,
         gmeow:Entity ;
     skos:definition "A multi-dimensional numeric value expressed as a coordinate matrix or vector — the generalisation of ScalarQuantity to vector, matrix, and tensor results. Carries a serialised matrix literal (matrixValue), shape descriptor (matrixShape), reference frame (hasReferenceFrame), unit (hasUnit), and determinacy (hasDeterminacy). Used for colourspace tuples [j,k,l]+intensity, audio spectra, thermal images, and air-quality compound readings. The actual matrix algebra (dot products, transforms, decompositions) lives in the solver layer (Principle 12)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox ;
     gmeow:requiresFrame gmeow:coordinateMatrixFrame .
 
 gmeow:MentalReferenceFrame
-    a gufo:SubKind ,
+    a logic:SubKind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sensory-environment> ;
     rdfs:label "Mental Reference Frame"@x-gmeow-english ;
@@ -32,11 +33,11 @@ gmeow:MentalReferenceFrame
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:SensoryEnvironment
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sensory-environment> ;
     rdfs:label "Sensory Environment"@x-gmeow-english ;
-    rdfs:subClassOf gufo:Object ,
+    rdfs:subClassOf logic:Object ,
         gmeow:Entity ,
         [
             a owl:Restriction ;
@@ -47,16 +48,16 @@ gmeow:SensoryEnvironment
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:SensoryModality
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sensory-environment> ;
     rdfs:label "Sensory Modality"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The sensory channel or domain through which an environment property is measured or perceived — a value vocabulary (individuals, never subclasses). Distinguishes visual, auditory, olfactory, gustatory, tactile, thermal, air-quality, and other environmental sensing channels. A single environment or observation may span multiple modalities (Principle 9: co-equal, non-functional)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:SensoryPerception
-    a gufo:SubKind ,
+    a logic:SubKind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sensory-environment> ;
     rdfs:label "Sensory Perception"@x-gmeow-english ;

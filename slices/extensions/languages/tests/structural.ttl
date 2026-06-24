@@ -7,10 +7,9 @@
 # SPARQL ASK over the languages module graph (gmeow:scopeModule) under the
 # native Rust harness (crates/slicetest).
 #
-# Languages is NOT yet #694-migrated, EXCEPT for three proficiency value
-# vocabularies (ProficiencyModality, ProficiencyScale, ProficiencyLevel) which
-# use logic:QualityValue. All other value vocabulary stereotypes remain gufo:
-# (gufo:AbstractIndividualType, gufo:Kind, gufo:SubKind, gufo:QualityValue).
+# Languages is #694-migrated: class stereotypes are logic:
+# (logic:AbstractIndividualType, logic:Kind, logic:SubKind, logic:Event,
+# logic:QualityValue), not gufo:.
 #
 # RETAINED in pytest (not migratable here):
 #   test_language_hierarchy — Language, FormalLanguage, ProgrammingLanguage,
@@ -61,19 +60,19 @@
 # Mirrors test_reified_relators_and_functional_roles (WritingSystemUsage arm).
 # ---------------------------------------------------------------------------
 
-# --- 1. WritingSystemUsage is a gufo:Kind and subclass of gufo:Relator (MUST)
+# --- 1. WritingSystemUsage is a logic:Kind and subclass of logic:Relator (MUST)
 ex:saWritingSystemUsageIsRelator a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:WritingSystemUsage a owl:Class , gufo:Kind ;
-        rdfs:subClassOf gufo:Relator .
+    gmeow:WritingSystemUsage a owl:Class , logic:Kind ;
+        rdfs:subClassOf logic:Relator .
 }""" ;
-    gmeow:saRationale "gmeow:WritingSystemUsage MUST be an owl:Class typed gufo:Kind and a subclass of gufo:Relator — it is the reified binding of {language} × {writing system} × {role} × {period}. Mirrors test_reified_relators_and_functional_roles (WritingSystemUsage relator arm)." .
+    gmeow:saRationale "gmeow:WritingSystemUsage MUST be an owl:Class typed logic:Kind and a subclass of logic:Relator — it is the reified binding of {language} × {writing system} × {role} × {period}. Mirrors test_reified_relators_and_functional_roles (WritingSystemUsage relator arm)." .
 
 # --- 2. usageLanguage is a functional ObjectProperty (MUST)
 ex:saUsageLanguageFunctional a gmeow:StructuralAssertion ;
@@ -113,19 +112,19 @@ ASK {
 # Mirrors test_reified_relators_and_functional_roles (LanguageProficiency arm).
 # ---------------------------------------------------------------------------
 
-# --- 5. LanguageProficiency is a gufo:Kind and subclass of gufo:Relator (MUST)
+# --- 5. LanguageProficiency is a logic:Kind and subclass of logic:Relator (MUST)
 ex:saLanguageProficiencyIsRelator a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:LanguageProficiency a owl:Class , gufo:Kind ;
-        rdfs:subClassOf gufo:Relator .
+    gmeow:LanguageProficiency a owl:Class , logic:Kind ;
+        rdfs:subClassOf logic:Relator .
 }""" ;
-    gmeow:saRationale "gmeow:LanguageProficiency MUST be an owl:Class typed gufo:Kind and a subclass of gufo:Relator — it is the reified binding of {agent} × {language} × {skill modality} × {level on scale}. Mirrors test_reified_relators_and_functional_roles (LanguageProficiency relator arm)." .
+    gmeow:saRationale "gmeow:LanguageProficiency MUST be an owl:Class typed logic:Kind and a subclass of logic:Relator — it is the reified binding of {agent} × {language} × {skill modality} × {level on scale}. Mirrors test_reified_relators_and_functional_roles (LanguageProficiency relator arm)." .
 
 # --- 6. proficiencyAgent is a functional ObjectProperty (MUST)
 ex:saProficiencyAgentFunctional a gmeow:StructuralAssertion ;
@@ -183,23 +182,23 @@ ASK {
     gmeow:saRationale "gmeow:proficiencyScale MUST be an owl:ObjectProperty and owl:FunctionalProperty — exactly one framework per proficiency relator. Mirrors test_reified_relators_and_functional_roles (proficiencyScale role arm)." .
 
 # ---------------------------------------------------------------------------
-# GROUP 3: Value vocabularies — gufo:QualityValue subclasses (MUST)
+# GROUP 3: Value vocabularies — logic:QualityValue subclasses (MUST)
 # Mirrors test_value_vocabularies_not_subclasses (non-logic: arms).
 # ---------------------------------------------------------------------------
 
-# --- 11. LanguageOrigin is a gufo:AbstractIndividualType subclassing gufo:QualityValue (MUST)
+# --- 11. LanguageOrigin is a logic:AbstractIndividualType subclassing logic:QualityValue (MUST)
 ex:saLanguageOriginIsValueVocab a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:LanguageOrigin a owl:Class , gufo:AbstractIndividualType ;
-        rdfs:subClassOf gufo:QualityValue .
+    gmeow:LanguageOrigin a owl:Class , logic:AbstractIndividualType ;
+        rdfs:subClassOf logic:QualityValue .
 }""" ;
-    gmeow:saRationale "gmeow:LanguageOrigin MUST be an owl:Class typed gufo:AbstractIndividualType and a subclass of gufo:QualityValue — origins are an open individuals-based value vocabulary, never Language subclasses (Principle 9). Mirrors test_value_vocabularies_not_subclasses (LanguageOrigin class arm)." .
+    gmeow:saRationale "gmeow:LanguageOrigin MUST be an owl:Class typed logic:AbstractIndividualType and a subclass of logic:QualityValue — origins are an open individuals-based value vocabulary, never Language subclasses (Principle 9). Mirrors test_value_vocabularies_not_subclasses (LanguageOrigin class arm)." .
 
 # --- 12. LanguageOrigin seed individuals exist (MUST)
 ex:saLanguageOriginSeeds a gmeow:StructuralAssertion ;
@@ -213,19 +212,52 @@ ASK {
 }""" ;
     gmeow:saRationale "Sample LanguageOrigin individuals (originNatural, originAiGenerated, originProgramming) MUST exist as typed individuals. Mirrors test_value_vocabularies_not_subclasses (LanguageOrigin sample individuals arm)." .
 
-# --- 13. LanguageModality is a gufo:AbstractIndividualType subclassing gufo:QualityValue (MUST)
+# --- 12b. LanguageVarietyKind and LanguageChangeType are logic:QualityValue vocabs (MUST)
+ex:saVarietyAndChangeKindsAreValueVocabs a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:LanguageVarietyKind rdfs:subClassOf logic:QualityValue .
+    gmeow:kindDialect  a gmeow:LanguageVarietyKind .
+    gmeow:kindSociolect a gmeow:LanguageVarietyKind .
+    gmeow:kindRegister a gmeow:LanguageVarietyKind .
+
+    gmeow:LanguageChangeType rdfs:subClassOf logic:QualityValue .
+    gmeow:changeSoundShift a gmeow:LanguageChangeType .
+    gmeow:changeBorrowing  a gmeow:LanguageChangeType .
+    gmeow:changeExtinction a gmeow:LanguageChangeType .
+}""" ;
+    gmeow:saRationale "LanguageVarietyKind and LanguageChangeType MUST be logic:QualityValue vocabularies with their canonical seed individuals. Replaces stale gufo:QualityValue pytest assertions." .
+
+ex:saLanguageStateIsObservationRelator a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:LanguageState a owl:Class ;
+        rdfs:subClassOf gmeow:Observation , logic:Relator .
+}""" ;
+    gmeow:saRationale "gmeow:LanguageState MUST be an Observation and logic:Relator for standpoint-scoped language-state claims. Replaces the stale gufo:Relator pytest assertion." .
+
+# --- 13. LanguageModality is a logic:AbstractIndividualType subclassing logic:QualityValue (MUST)
 ex:saLanguageModalityIsValueVocab a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:LanguageModality a owl:Class , gufo:AbstractIndividualType ;
-        rdfs:subClassOf gufo:QualityValue .
+    gmeow:LanguageModality a owl:Class , logic:AbstractIndividualType ;
+        rdfs:subClassOf logic:QualityValue .
 }""" ;
-    gmeow:saRationale "gmeow:LanguageModality MUST be an owl:Class typed gufo:AbstractIndividualType and a subclass of gufo:QualityValue — modalities are an open individuals-based value vocabulary. Mirrors test_value_vocabularies_not_subclasses (LanguageModality class arm)." .
+    gmeow:saRationale "gmeow:LanguageModality MUST be an owl:Class typed logic:AbstractIndividualType and a subclass of logic:QualityValue — modalities are an open individuals-based value vocabulary. Mirrors test_value_vocabularies_not_subclasses (LanguageModality class arm)." .
 
 # --- 14. LanguageModality seed individuals exist (MUST)
 ex:saLanguageModalitySeeds a gmeow:StructuralAssertion ;
@@ -239,19 +271,19 @@ ASK {
 }""" ;
     gmeow:saRationale "Sample LanguageModality individuals (modalitySpoken, modalitySigned, modalityMachine) MUST exist as typed individuals. Mirrors test_value_vocabularies_not_subclasses (LanguageModality sample individuals arm)." .
 
-# --- 15. LanguageStatus is a gufo:AbstractIndividualType subclassing gufo:QualityValue (MUST)
+# --- 15. LanguageStatus is a logic:AbstractIndividualType subclassing logic:QualityValue (MUST)
 ex:saLanguageStatusIsValueVocab a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:LanguageStatus a owl:Class , gufo:AbstractIndividualType ;
-        rdfs:subClassOf gufo:QualityValue .
+    gmeow:LanguageStatus a owl:Class , logic:AbstractIndividualType ;
+        rdfs:subClassOf logic:QualityValue .
 }""" ;
-    gmeow:saRationale "gmeow:LanguageStatus MUST be an owl:Class typed gufo:AbstractIndividualType and a subclass of gufo:QualityValue — vitality statuses are an open individuals-based value vocabulary. Mirrors test_value_vocabularies_not_subclasses (LanguageStatus class arm)." .
+    gmeow:saRationale "gmeow:LanguageStatus MUST be an owl:Class typed logic:AbstractIndividualType and a subclass of logic:QualityValue — vitality statuses are an open individuals-based value vocabulary. Mirrors test_value_vocabularies_not_subclasses (LanguageStatus class arm)." .
 
 # --- 16. LanguageStatus seed individuals exist (MUST)
 ex:saLanguageStatusSeeds a gmeow:StructuralAssertion ;
@@ -264,19 +296,19 @@ ASK {
 }""" ;
     gmeow:saRationale "Sample LanguageStatus individuals (statusLiving, statusConstructedActive) MUST exist as typed individuals. Mirrors test_value_vocabularies_not_subclasses (LanguageStatus sample individuals arm)." .
 
-# --- 17. WritingSystemType is a gufo:AbstractIndividualType subclassing gufo:QualityValue (MUST)
+# --- 17. WritingSystemType is a logic:AbstractIndividualType subclassing logic:QualityValue (MUST)
 ex:saWritingSystemTypeIsValueVocab a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:WritingSystemType a owl:Class , gufo:AbstractIndividualType ;
-        rdfs:subClassOf gufo:QualityValue .
+    gmeow:WritingSystemType a owl:Class , logic:AbstractIndividualType ;
+        rdfs:subClassOf logic:QualityValue .
 }""" ;
-    gmeow:saRationale "gmeow:WritingSystemType MUST be an owl:Class typed gufo:AbstractIndividualType and a subclass of gufo:QualityValue — writing system structural kinds are an individuals-based value vocabulary. Mirrors test_value_vocabularies_not_subclasses (WritingSystemType class arm)." .
+    gmeow:saRationale "gmeow:WritingSystemType MUST be an owl:Class typed logic:AbstractIndividualType and a subclass of logic:QualityValue — writing system structural kinds are an individuals-based value vocabulary. Mirrors test_value_vocabularies_not_subclasses (WritingSystemType class arm)." .
 
 # --- 18. WritingSystemType seed individuals exist (MUST)
 ex:saWritingSystemTypeSeeds a gmeow:StructuralAssertion ;
@@ -289,19 +321,19 @@ ASK {
 }""" ;
     gmeow:saRationale "Sample WritingSystemType individuals (wsTypeLogographic, wsTypeNonLinear) MUST exist as typed individuals. Mirrors test_value_vocabularies_not_subclasses (WritingSystemType sample individuals arm)." .
 
-# --- 19. TextDirection is a gufo:AbstractIndividualType subclassing gufo:QualityValue (MUST)
+# --- 19. TextDirection is a logic:AbstractIndividualType subclassing logic:QualityValue (MUST)
 ex:saTextDirectionIsValueVocab a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:TextDirection a owl:Class , gufo:AbstractIndividualType ;
-        rdfs:subClassOf gufo:QualityValue .
+    gmeow:TextDirection a owl:Class , logic:AbstractIndividualType ;
+        rdfs:subClassOf logic:QualityValue .
 }""" ;
-    gmeow:saRationale "gmeow:TextDirection MUST be an owl:Class typed gufo:AbstractIndividualType and a subclass of gufo:QualityValue — writing directions are an individuals-based value vocabulary. Mirrors test_value_vocabularies_not_subclasses (TextDirection class arm)." .
+    gmeow:saRationale "gmeow:TextDirection MUST be an owl:Class typed logic:AbstractIndividualType and a subclass of logic:QualityValue — writing directions are an individuals-based value vocabulary. Mirrors test_value_vocabularies_not_subclasses (TextDirection class arm)." .
 
 # --- 20. TextDirection seed individuals exist (MUST)
 ex:saTextDirectionSeeds a gmeow:StructuralAssertion ;
@@ -314,19 +346,19 @@ ASK {
 }""" ;
     gmeow:saRationale "Sample TextDirection individuals (directionLtr, directionBoustrophedon) MUST exist as typed individuals. Mirrors test_value_vocabularies_not_subclasses (TextDirection sample individuals arm)." .
 
-# --- 21. ScriptRole is a gufo:AbstractIndividualType subclassing gufo:QualityValue (MUST)
+# --- 21. ScriptRole is a logic:AbstractIndividualType subclassing logic:QualityValue (MUST)
 ex:saScriptRoleIsValueVocab a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:ScriptRole a owl:Class , gufo:AbstractIndividualType ;
-        rdfs:subClassOf gufo:QualityValue .
+    gmeow:ScriptRole a owl:Class , logic:AbstractIndividualType ;
+        rdfs:subClassOf logic:QualityValue .
 }""" ;
-    gmeow:saRationale "gmeow:ScriptRole MUST be an owl:Class typed gufo:AbstractIndividualType and a subclass of gufo:QualityValue — script roles are an individuals-based value vocabulary. Mirrors test_value_vocabularies_not_subclasses (ScriptRole class arm)." .
+    gmeow:saRationale "gmeow:ScriptRole MUST be an owl:Class typed logic:AbstractIndividualType and a subclass of logic:QualityValue — script roles are an individuals-based value vocabulary. Mirrors test_value_vocabularies_not_subclasses (ScriptRole class arm)." .
 
 # --- 22. ScriptRole seed individuals exist (MUST)
 ex:saScriptRoleSeeds a gmeow:StructuralAssertion ;

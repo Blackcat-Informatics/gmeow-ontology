@@ -42,13 +42,13 @@ expression: "to_markdown(&model, &Page::Slice(slug))"
 
 | Path | Media type | Digest |
 | --- | --- | --- |
-| `module.ttl` | `text/turtle` | `d95a3f16d179` |
+| `module.ttl` | `text/turtle` | `7a6add371993` |
 
 ### Tests
 
 | Path | Media type | Digest |
 | --- | --- | --- |
-| `tests/structural.ttl` | `text/turtle` | `2db163f0fe2d` |
+| `tests/structural.ttl` | `text/turtle` | `4415b880cf4e` |
 
 ## Terms \(9\)
 

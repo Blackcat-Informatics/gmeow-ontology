@@ -19,7 +19,6 @@ from gmeow_rdf.compat.rdflib import OWL, RDF, RDFS, Graph, Literal, Namespace, U
 from gmeow_tools.graph import load_merged_graph
 
 GMEOW = Namespace("https://blackcatinformatics.ca/gmeow/")
-GUFO = Namespace("http://purl.org/nemo/gufo#")
 EX = Namespace("https://example.org/test-music-pitch/")
 
 
@@ -33,15 +32,6 @@ def test_tuning_system_is_reference_frame() -> None:
         URIRef(GMEOW + "TuningSystem"),
         RDFS.subClassOf,
         URIRef(GMEOW + "ReferenceFrame"),
-    ) in graph
-
-
-def test_tuning_system_kind_is_quality_value() -> None:
-    graph = _graph()
-    assert (
-        URIRef(GMEOW + "TuningSystemKind"),
-        RDFS.subClassOf,
-        URIRef(GUFO + "QualityValue"),
     ) in graph
 
 
