@@ -10,8 +10,6 @@ The functions below are RETAINED because they are either:
     (test_supersession_properties_are_object_properties → gmeow:supersedes in
     slices/core/coreference; test_lifecycle_event_types_are_individuals_not_classes
     → eventType* individuals in slices/core/events),
-  - run_shacl() ExampleConformance checks (test_wellformed_entity_existence_conforms,
-    test_malformed_entity_existence_is_flagged),
   - multi-file ABox fixture checks (contested-existence + coverage-fixture).
 
 The asserted-TBox structural assertions were migrated to
@@ -137,25 +135,6 @@ def test_no_preferred_or_primary_lifecycle_term() -> None:
         for pt in prop_types:
             assert (node, RDF.type, pt) not in g, f"{banned} must not exist"
         assert (node, RDF.type, OWL.Class) not in g
-
-
-# --------------------------------------------------------------------------- #
-# SHACL well-formedness of the EntityExistence situation.
-# NOTE: The relator mediation axiom (someValuesFrom restriction on existenceEntity)
-# is asserted as structural cell ex:saEntityExistenceMediationAxiom in structural.ttl.
-# --------------------------------------------------------------------------- #
-
-
-def test_wellformed_entity_existence_conforms() -> None:
-    result = run_shacl(_fixture("entity-existence-wellformed"))
-    assert result.ok, "\n".join(result.errors)
-
-
-def test_malformed_entity_existence_is_flagged() -> None:
-    result = run_shacl(_fixture("entity-existence-malformed"))
-    assert not result.ok
-    joined = "\n".join(result.errors)
-    assert "existenceEntity" in joined and "duringInterval" in joined
 
 
 # --------------------------------------------------------------------------- #

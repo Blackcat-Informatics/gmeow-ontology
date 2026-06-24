@@ -373,6 +373,152 @@ This harness is the foundational substrate for migrating the remaining ~230
 
 Slice-shapes glob: `slices/*/shapes.ttl` discovered recursively via directory walk from repo root, sorted ascending.
 
+### Batch 2: shared support module + test_deception.py
+
+**Refactor:** All non-`#[test]` helpers from `ontology_conformance.rs` extracted into
+`crates/validate/tests/conformance_support/mod.rs` and made `pub`. This module also adds
+two merged-ontology helpers:
+
+- `base_ontology_nt() -> &'static str` — OnceLock-cached: parses every `slices/*/*/module.ttl`
+  (recursively) into one oxigraph Store and dumps as N-Triples. Mirrors
+  `load_merged_graph(include_imports=False)`.
+- `validate_with_ontology(fixture_nt: &str) -> ValidationReport` — validates
+  `base_ontology_nt() + "\n" + fixture_nt` against `whole_shapes_ttl()` for tests that
+  require class/property declarations from the merged ontology.
+
+`ontology_conformance.rs` now contains only `mod conformance_support; use conformance_support::*;`
+plus the 17 `#[test]` functions; all helper bodies deleted. All 17 tests still pass.
+
+**Deception migration** (`tests/test_deception.py` → `crates/validate/tests/conformance_deception.rs`):
+
+`_doxastic_claim(g, claim, agent, proposition, method)` is expanded inline as `doxastic_claim_ttl(claim, state, agent, prop, method) -> String` producing the same 7 triples (explicit double-typing of `DoxasticStandpointClaim` + `StandpointClaim` preserved).
+
+| pytest fn | source file | disposition | Rust twin test name | note |
+|-----------|-------------|------------|---------------------|------|
+| `test_standpoint_divergence_coexists` | `tests/test_deception.py` | converted | `standpoint_divergence_coexists` | inline Turtle, `_doxastic_claim` expanded ×2 |
+| `test_deception_event_shacl_passes` | `tests/test_deception.py` | converted | `deception_event_shacl_passes` | inline Turtle, deceptionCue observation included |
+| `test_deception_cue_shacl_passes` | `tests/test_deception.py` | converted | `deception_cue_shacl_passes` | inline Turtle, identical graph to above |
+| `test_paltering_implicates_structure` | `tests/test_deception.py` | converted | `paltering_implicates_structure` | inline Turtle, implicates triple included |
+| `test_self_deception_same_agent` | `tests/test_deception.py` | converted | `self_deception_same_agent` | inline Turtle, two Participation relators |
+| `test_distortion_shacl_passes` | `tests/test_deception.py` | converted | `distortion_shacl_passes` | inline Turtle, spin-doctor participation |
+| `test_fabrication_refuted_provenance` | `tests/test_deception.py` | converted | `fabrication_refuted_provenance` | inline Turtle, VerificationResult with failed status |
+| `test_forgery_failed_signature_structure` | `tests/test_deception.py` | converted | `forgery_failed_signature_structure` | inline Turtle, CryptographicSignature + counterpartOf |
+| `test_impersonation_facet_subject_mismatch` | `tests/test_deception.py` | converted | `impersonation_facet_subject_mismatch` | inline Turtle, IdentityFacet + AuthenticationResult |
+| `test_disinformation_propagation_chain` | `tests/test_deception.py` | converted | `disinformation_propagation_chain` | inline Turtle, 3-hop chain, 4 `_doxastic_claim` expansions |
+| `test_blame_deflection_example_uses_doxastic_standpoint_claims` | `tests/test_deception.py` | **retained** | — | loads example file from disk and iterates subjects dynamically — no portable Rust equivalent |
+| `test_bullshit_modality_exists` | `tests/test_deception.py` | **retained** | — | calls `_graph()` / `load_merged_graph`; cross-slice merged-graph check |
+| `test_licensed_falsehood_not_a_lie` | `tests/test_deception.py` | **retained** | — | calls `run_shacl` AND `_graph()` for cross-slice vocabulary assertions (`veridicalityLicensedFalsehood`, `NarrativeReferenceFrame`); the `_graph()` half requires the merged ontology load |
+| `test_disinformation_boundary_query` | `tests/test_deception.py` | **retained** | — | uses `load_merged_graph` + external `.rq` competency file + SPARQL SELECT result inspection |
+
+**Tally:** 10 converted, 4 retained. `tests/test_deception.py` 14 → 4 fns.
+
+**Batch 2 parallel migrations** (each `tests/test_<X>.py` → `crates/validate/tests/conformance_<X>.rs`, fixture-only `validate(&nt)` unless noted; inline graphs/helpers reproduced triple-for-triple; assertions preserved):
+
+| pytest fn | source | disposition | Rust twin / retain reason |
+|-----------|--------|------------|---------------------------|
+| `test_self_private_evidence_triggers_warning` | test_evidence.py | converted | `self_private_evidence_triggers_warning` |
+| `test_mixed_evidence_does_not_trigger_self_private_warning` | test_evidence.py | converted | `mixed_evidence_does_not_trigger_self_private_warning` |
+| `test_notability_without_triad_triggers_violation` | test_evidence.py | converted | `notability_without_triad_triggers_violation` |
+| `test_notability_with_full_triad_passes` | test_evidence.py | converted | `notability_with_full_triad_passes` |
+| `test_notability_false_does_not_require_triad` | test_evidence.py | converted | `notability_false_does_not_require_triad` (`_make_citation_act` inlined as `citation_act_ttl()`) |
+| `test_infoworld_citation_passes` | test_evidence.py | **retained** | disk fixture load + per-node message check |
+| `test_orgbook_citation_passes` | test_evidence.py | **retained** | disk fixture load |
+| `test_private_contract_triggers_self_private_warning` | test_evidence.py | **retained** | disk fixture load + per-node warning check |
+| `test_orgbook_notability_mutation_triggers_violation` | test_evidence.py | **retained** | dynamic graph mutation (`g.remove`+`g.add`) post-load |
+| `test_note_with_content_passes_shacl` | test_notes.py | converted | `note_with_content_passes_shacl` |
+| `test_note_with_label_passes_shacl` | test_notes.py | converted | `note_with_label_passes_shacl` |
+| `test_note_without_content_or_label_fails_shacl` | test_notes.py | converted | `note_without_content_or_label_fails_shacl` |
+| `test_annotation_without_target_fails_shacl` | test_notes.py | converted | `annotation_without_target_fails_shacl` |
+| `test_annotation_with_target_passes_shacl` | test_notes.py | converted | `annotation_with_target_passes_shacl` |
+| `test_highlight_without_selector_fails_shacl` | test_notes.py | converted | `highlight_without_selector_fails_shacl` |
+| `test_highlight_with_selector_passes_shacl` | test_notes.py | converted | `highlight_with_selector_passes_shacl` |
+| `test_retracted_note_displayable_false` | test_notes.py | converted | `retracted_note_displayable_false` |
+| `test_evidence_span_is_information_object` | test_notes.py | **retained** | cross-slice (EvidenceSpan in evidencespan slice) |
+| `test_selector_sub_class_of_evidence_span` | test_notes.py | **retained** | cross-slice (Selector in evidencespan slice) |
+| `test_motivation_values_are_individuals` | test_notes.py | **retained** | dynamic count check (`len==10`) |
+| `test_notes_are_standpoint_indexed` | test_notes.py | **retained** | cross-slice (`accordingTo` in standpoint slice) |
+| `test_notes_*_projection_executable` (×4) | test_notes.py | **retained** | SPARQL parse tests, no SHACL |
+| `test_wellformed_participation_conforms` | test_events.py | converted | `wellformed_participation_conforms` (fixture file) |
+| `test_malformed_participation_is_flagged` | test_events.py | converted | `malformed_participation_is_flagged` (fixture file) |
+| `test_event_is_grounded_in_gufo_event` | test_events.py | **retained** | cross-slice (Activity in provenance slice) |
+| `test_former_event_types_are_individuals_not_classes` | test_events.py | **retained** | dynamic subject sweep |
+| `test_participation_mediation_axiom_present` | test_events.py | **retained** | BNode `owl:Restriction someValuesFrom` walk |
+| `test_contested_event_claims_coexist_and_validate` | test_events.py | **retained** | dynamic multi-file ABox + object sweep |
+| `test_schema_*`/`test_ical_*`/`test_owl_time_*`/`test_observational_activity_*` | test_events.py | **retained** | projection stack / cross-slice BNode property-chain |
+| spine/expression/manifestation/item/contribution/content_segment SHACL (×8) | test_creative_works.py | converted | `spine_shacl_passes`, `expression_without_work_fails_shacl`, `manifestation_without_expression_fails_shacl`, `item_without_manifestation_fails_shacl`, `contribution_shacl_passes`, `contribution_missing_role_fails_shacl`, `content_segment_shacl_passes`, `content_segment_without_container_fails_shacl` |
+| 15 cross-slice/transitive/class-hierarchy tests | test_creative_works.py | **retained** | `_graph()`/`transitive_objects()` over documents/citations/events modules |
+
+**Batch 2 wave 3** (organization, finance, lifecycle, standpoint):
+
+| pytest fn | source | disposition | Rust twin / retain reason |
+|-----------|--------|------------|---------------------------|
+| `test_membership_fills_post_org_mismatch_warns` | test_organization.py | converted | `membership_fills_post_org_mismatch_warns` (merged mode) |
+| `test_legal_identifier_requires_scheme` | test_organization.py | converted | `legal_identifier_requires_scheme` (merged mode) |
+| 10 org tests (`test_contested_*`, `test_post_*`, `test_site_location`, `test_change_event_*`, `test_withdrawn_recognition_*`, `test_no_preferred_*`, `test_wellformed_legal_identifier_passes`) | test_organization.py | **retained** | SHACL + `g.objects()`/`g.subjects()` graph-content sweeps, `g.remove()` mutation, or cross-slice `_graph()` |
+| `test_finance_fixture_conforms` | test_finance.py | converted | `finance_fixture_conforms` (merged) |
+| `test_double_entry_fixture_conforms` | test_finance.py | converted | `double_entry_fixture_conforms` (merged) |
+| `test_invoice_fixture_conforms` | test_finance.py | converted | `invoice_fixture_conforms` (merged) |
+| `test_order_fixture_conforms` | test_finance.py | converted | `order_fixture_conforms` (merged) |
+| `test_holding_fixture_conforms` | test_finance.py | converted | `holding_fixture_conforms` (merged) |
+| `test_crypto_fixture_conforms` | test_finance.py | converted | `crypto_fixture_conforms` (merged) |
+| 10 finance TBox/absence tests (`test_monetary_*`, `test_currency_*`, `test_no_transaction_subclass_explosion`, `test_*_vocab_is_open_values`, `test_transaction_uses_participation_not_subproperty`) | test_finance.py | **retained** | cross-slice TBox graph-pattern + whole-graph negative sweeps |
+| `test_wellformed_entity_existence_conforms` | test_lifecycle.py | converted | `wellformed_entity_existence_conforms` |
+| `test_malformed_entity_existence_is_flagged` | test_lifecycle.py | converted | `malformed_entity_existence_is_flagged` |
+| 6 lifecycle tests (`test_supersession_*`, `test_lifecycle_event_types_*`, `test_no_lifecycle_event_subclasses_exist`, `test_no_preferred_*`, `test_contested_existence_*`, `test_coverage_fixture_loads_*`) | test_lifecycle.py | **retained** | cross-slice `_graph()` membership + dynamic sweeps + `g.subjects()` |
+| `test_coexistence_fixture_conforms` | test_standpoint.py | converted | `coexistence_fixture_conforms` |
+| `test_preferred_claim_is_flagged` | test_standpoint.py | converted | `preferred_claim_is_flagged` |
+| `test_withdrawn_standpoint_warning_does_not_fail` | test_standpoint.py | converted | `withdrawn_standpoint_warning_does_not_fail` |
+| `test_variety_coexistence_fixture_conforms` | test_standpoint.py | converted | `variety_coexistence_fixture_conforms` |
+| `test_etymology_coexistence_fixture_conforms` | test_standpoint.py | converted | `etymology_coexistence_fixture_conforms` |
+| ~20 standpoint tests (`test_modality_*`, `test_three_axes_*`, `test_vantage_*`, `test_according_to_*`, `test_*_projection_*`, `test_*_maps_to_*`, statement-DSL + SSSOM-mapping) | test_standpoint.py | **retained** | dynamic `_graph()` sweeps / OWL-restriction walks / SPARQL competency / SSSOM mapping / statement-DSL disk |
+
+**Batch 2 wave-3 tally:** organization 2 + finance 6 + lifecycle 2 + standpoint 5 = **15 converted**.
+
+**Batch 2 wave 4** (rights, registers, profiles, privacy — all fixture-backed `validate(&nt)`):
+
+| pytest fn | source | disposition | Rust twin / retain reason |
+|-----------|--------|------------|---------------------------|
+| `test_wellformed_rights_fixture_conforms` | test_rights.py | converted | `wellformed_rights_fixture_conforms` |
+| `test_malformed_rights_fixture_is_flagged` | test_rights.py | converted | `malformed_rights_fixture_is_flagged` |
+| `test_expired_trademark_warns_but_does_not_fail` | test_rights.py | converted | `expired_trademark_warns_but_does_not_fail` (warning-tolerant) |
+| 7 rights tests (`test_expanded_action_vocabulary_is_seeded`, 6 `test_*_projection_emits_*`) | test_rights.py | **retained** | dynamic subjects sweep / projection + `(triple) in out` membership |
+| `test_wellformed_registers_fixture_conforms` | test_registers.py | converted | `wellformed_registers_fixture_conforms` |
+| `test_malformed_registers_fixture_is_flagged` | test_registers.py | converted | `malformed_registers_fixture_is_flagged` (4 violation substrings) |
+| 7 registers tests (`test_register_spine_*`, `test_persona_*`, `test_expression_machinery_*`, `test_style_guide_*`, `test_no_primary_persona_*`, `test_same_norms_invariant_*`, `test_divergence_query_*`) | test_registers.py | **retained** | `_graph()` TBox checks / dynamic subject sweep / SPARQL competency |
+| `test_profile_shape_passes_for_wellformed_profile` | test_profiles.py | converted | `profile_shape_passes_for_wellformed_profile` |
+| `test_profile_shape_fails_for_invalid_profile_applies_to` | test_profiles.py | converted | `profile_shape_fails_for_invalid_profile_applies_to` |
+| `test_profile_open_value_guard_warns_on_orphan` | test_profiles.py | converted | `profile_open_value_guard_warns_on_orphan` (warning-tolerant) |
+| `test_wellformed_privacy_fixture_conforms` | test_privacy.py | converted | `wellformed_privacy_fixture_conforms` |
+| `test_malformed_privacy_fixture_is_flagged` | test_privacy.py | converted | `malformed_privacy_fixture_is_flagged` |
+| `test_sensitive_value_warns_but_does_not_fail` | test_privacy.py | converted | `sensitive_value_warns_but_does_not_fail` (warning-tolerant) |
+| 11 privacy tests | test_privacy.py | **retained** | `_graph()` TBox membership / `load_merged_graph` subject iteration / projection |
+
+**Batch 2 wave-4 tally:** rights 3 + registers 2 + profiles 3 + privacy 3 = **11 converted**.
+
+**Batch 2 wave 5** (teleology, norms, myth, narrative):
+
+| pytest fn | source | disposition | Rust twin / retain reason |
+|-----------|--------|------------|---------------------------|
+| `test_wellformed_teleology_fixture_conforms` | test_teleology.py | converted | `wellformed_teleology_fixture_conforms` |
+| `test_malformed_teleology_fixture_is_flagged` | test_teleology.py | converted | `malformed_teleology_fixture_is_flagged` |
+| 3 teleology tests | test_teleology.py | **retained** | cross-slice `(triple) in g` membership / dynamic `g.subjects()` sweep / SPARQL `.rq` |
+| `test_wellformed_norms_fixture_conforms` | test_norms.py | converted | `wellformed_norms_fixture_conforms` (fixture-only — `validate` not `validate_with_ontology`, to avoid the WEMI-embodies inference the merged base adds) |
+| `test_malformed_norms_fixture_is_flagged` | test_norms.py | converted | `malformed_norms_fixture_is_flagged` |
+| 4 norms tests (`test_graft_*`, `test_competency_*`) | test_norms.py | **retained** | cross-slice file-load + `(triple) in g` / SPARQL `.rq` |
+| `test_myth_shacl_passes` | test_myth.py | converted | `myth_shacl_passes` (`_add_narrative_frame` inlined as `narrative_frame_ttl`) |
+| `test_myth_missing_frame_fails_shacl` | test_myth.py | converted | `myth_missing_frame_fails_shacl` |
+| `test_myth_propagation_shacl_passes` | test_myth.py | converted | `myth_propagation_shacl_passes` |
+| 10 myth tests | test_myth.py | **retained** | `_graph()` TBox membership / dynamic sweeps / BNode OWL-restriction walk |
+| `test_narrative_reference_frame_shacl_passes` | test_narrative.py | converted | `narrative_reference_frame_shacl_passes` |
+| `test_narrative_frame_link_shacl_passes` | test_narrative.py | converted | `narrative_frame_link_shacl_passes` |
+| `test_character_arc_shacl_passes` | test_narrative.py | converted | `character_arc_shacl_passes` |
+| `test_character_arc_missing_subject_fails_shacl` | test_narrative.py | converted | `character_arc_missing_subject_fails_shacl` |
+| 4 narrative tests | test_narrative.py | **retained** | transitive `subClassOf` walk / cross-slice `(triple) in g` (documents/places modules) |
+
+**Batch 2 wave-5 tally:** teleology 2 + norms 2 + myth 3 + narrative 4 = **11 converted**.
+
+**Batch 2 grand tally:** deception 10 + evidence 5 + notes 8 + events 2 + creative_works 8 + organization 2 + finance 6 + lifecycle 2 + standpoint 5 + rights 3 + registers 2 + profiles 3 + privacy 3 + teleology 2 + norms 2 + myth 3 + narrative 4 = **70 converted** across 17 slices; retained (cross-slice/dynamic/SPARQL/disk-load/SSSOM/projection) tracked per-fn above. All **87** conformance tests (17 batch-1 + 70 batch-2) green; `uv run mypy` clean (281 files).
+
 ## #867 structural batch 10 (places — the 129-fn slice)
 
 The largest single slice (129 pytest fns) migrated to `slices/core/places/tests/structural.ttl`

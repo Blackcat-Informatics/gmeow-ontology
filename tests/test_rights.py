@@ -5,9 +5,12 @@ disjointness, value-vocabulary seeding, Principle-9 guards) have been migrated
 to the declarative DSL at slices/core/rights/tests/structural.ttl and run under
 the native Rust slicetest harness (crates/slicetest).
 
+Closed-world SHACL shape conformance tests have been migrated to
+crates/validate/tests/conformance_rights.rs (#867).
+
 Retained here: the numeric action-count check (not expressible as a module-scoped
-ASK), the closed-world SHACL shape conformance tests, and the ODRL / CC REL /
-schema.org projection round-trips over the coverage fixture.
+ASK) and the ODRL / CC REL / schema.org projection round-trips over the coverage
+fixture.
 """
 
 from __future__ import annotations
@@ -19,7 +22,6 @@ from gmeow_rdf.compat.rdflib import RDF, Graph, Namespace
 from gmeow_tools.config import NAMESPACE
 from gmeow_tools.graph import load_merged_graph
 from gmeow_tools.projections import project_graph
-from tests._graph_nt import run_shacl
 
 GM = Namespace(NAMESPACE)
 ODRL = Namespace("http://www.w3.org/ns/odrl/2/")
@@ -29,16 +31,11 @@ DCTERMS = Namespace("http://purl.org/dc/terms/")
 SPDX = Namespace("http://spdx.org/rdf/terms#")
 EX = Namespace("https://example.org/rights/")
 
-SHAPES_FIXTURES = Path(__file__).parent / "fixtures" / "shapes"
 COVERAGE_FIXTURES = Path(__file__).parent / "fixtures" / "coverage"
 
 
 def _graph() -> Graph:
     return load_merged_graph(include_imports=False)
-
-
-def _fixture(name: str) -> Graph:
-    return Graph().parse(SHAPES_FIXTURES / f"{name}.ttl", format="turtle")
 
 
 def _projection_source() -> Graph:
@@ -60,33 +57,6 @@ def test_expanded_action_vocabulary_is_seeded() -> None:
     assert len(actions) >= 45, len(actions)
     for a in ("actionSell", "actionStream", "actionModify", "actionAnonymize"):
         assert GM[a] in actions, a
-
-
-# --------------------------------------------------------------------------- #
-# Closed-world SHACL shapes
-# --------------------------------------------------------------------------- #
-
-
-def test_wellformed_rights_fixture_conforms() -> None:
-    result = run_shacl(_fixture("rights-wellformed"))
-    assert result.ok, "\n".join(result.errors)
-
-
-def test_malformed_rights_fixture_is_flagged() -> None:
-    result = run_shacl(_fixture("rights-malformed"))
-    assert not result.ok
-    errors = "\n".join(result.errors)
-    assert "must govern exactly one asset" in errors
-    assert "must regulate exactly one action" in errors
-    assert "must have at least one holder" in errors
-    assert "must name at least one licensor" in errors
-    assert "exactly one mark" in errors
-
-
-def test_expired_trademark_warns_but_does_not_fail() -> None:
-    result = run_shacl(_fixture("rights-expired-warning"))
-    assert result.ok, f"warning-only graph must pass; errors: {result.errors}"
-    assert any("displayable false" in w for w in result.warnings), result.warnings
 
 
 # --------------------------------------------------------------------------- #

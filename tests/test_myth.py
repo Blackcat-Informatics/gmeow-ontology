@@ -7,11 +7,10 @@ fields; SHACL shape; and the no-truth-verdict doctrine.
 
 from __future__ import annotations
 
-from gmeow_rdf.compat.rdflib import OWL, RDF, RDFS, Graph, Literal, Namespace, URIRef
+from gmeow_rdf.compat.rdflib import OWL, RDF, RDFS, Graph, Namespace, URIRef
 from gmeow_rdf.compat.rdflib.namespace import XSD
 
 from gmeow_tools.graph import load_merged_graph
-from tests._graph_nt import run_shacl
 
 GMEOW = Namespace("https://blackcatinformatics.ca/gmeow/")
 GUFO = Namespace("http://purl.org/nemo/gufo#")
@@ -110,78 +109,3 @@ def test_no_truth_axiom_on_myth() -> None:
     for forbidden in ("isTrue", "isFalse", "isDeceptive"):
         prop = URIRef(str(GMEOW) + forbidden)
         assert (prop, RDFS.domain, GMEOW.Myth) not in graph
-
-
-def _add_narrative_frame(g: Graph, frame: URIRef, axis: URIRef) -> None:
-    """Helper to populate a minimal narrative reference frame for SHACL."""
-    g.add((frame, RDF.type, GMEOW.NarrativeReferenceFrame))
-    g.add((frame, GMEOW.frameRealm, GMEOW.frameRealmNarrative))
-    g.add((frame, GMEOW.hasAxis, axis))
-    g.add(
-        (
-            frame,
-            GMEOW.dimensionCount,
-            Literal(1, datatype=XSD.nonNegativeInteger),
-        )
-    )
-    g.add((frame, GMEOW.frameKind, GMEOW.frameKindNarrative))
-    g.add((frame, GMEOW.requiresHost, Literal(False)))
-    g.add((frame, GMEOW.determinacyModel, GMEOW.determinacyCrisp))
-
-
-def test_myth_shacl_passes() -> None:
-    """A well-formed Myth passes SHACL."""
-    g = Graph()
-    _add_narrative_frame(g, EX.urbanLegendFrame, EX.axisPlot)
-
-    g.add((EX.urbanLegend, RDF.type, GMEOW.Myth))
-    g.add((EX.urbanLegend, GMEOW.mythFrame, EX.urbanLegendFrame))
-    g.add((EX.urbanLegend, GMEOW.hasMythTelling, EX.articleTelling))
-    g.add((EX.urbanLegend, GMEOW.recurringRisk, Literal(True)))
-    g.add((EX.urbanLegend, GMEOW.affectedConsumerSurface, GMEOW.consumerPublicSite))
-    g.add((EX.articleTelling, RDF.type, GMEOW.CreativeWork))
-
-    g.add((GMEOW.frameRealmNarrative, RDF.type, GMEOW.FrameRealm))
-    g.add((EX.axisPlot, RDF.type, GMEOW.Axis))
-    g.add((GMEOW.frameKindNarrative, RDF.type, GMEOW.FrameKind))
-    g.add((GMEOW.determinacyCrisp, RDF.type, GMEOW.Determinacy))
-    g.add((GMEOW.consumerPublicSite, RDF.type, GMEOW.ProjectionContext))
-
-    result = run_shacl(g)
-    assert result.ok, "\n".join(result.errors)
-
-
-def test_myth_missing_frame_fails_shacl() -> None:
-    """A Myth missing mythFrame violates SHACL."""
-    g = Graph()
-    g.add((EX.urbanLegend, RDF.type, GMEOW.Myth))
-    g.add((EX.urbanLegend, GMEOW.hasMythTelling, EX.articleTelling))
-    g.add((EX.articleTelling, RDF.type, GMEOW.CreativeWork))
-
-    result = run_shacl(g)
-    assert not result.ok
-    assert any(
-        "exactly one reference frame (gmeow:mythFrame)" in e for e in result.errors
-    )
-
-
-def test_myth_propagation_shacl_passes() -> None:
-    """A myth telling with propagatesFrom passes SHACL."""
-    g = Graph()
-    _add_narrative_frame(g, EX.urbanLegendFrame, EX.axisPlot)
-
-    g.add((EX.urbanLegend, RDF.type, GMEOW.Myth))
-    g.add((EX.urbanLegend, GMEOW.mythFrame, EX.urbanLegendFrame))
-    g.add((EX.articleTelling, RDF.type, GMEOW.CreativeWork))
-    g.add((EX.socialPostTelling, RDF.type, GMEOW.CreativeWork))
-    g.add((EX.socialPostTelling, GMEOW.propagatesFrom, EX.articleTelling))
-    g.add((EX.urbanLegend, GMEOW.hasMythTelling, EX.articleTelling))
-    g.add((EX.urbanLegend, GMEOW.hasMythTelling, EX.socialPostTelling))
-
-    g.add((GMEOW.frameRealmNarrative, RDF.type, GMEOW.FrameRealm))
-    g.add((EX.axisPlot, RDF.type, GMEOW.Axis))
-    g.add((GMEOW.frameKindNarrative, RDF.type, GMEOW.FrameKind))
-    g.add((GMEOW.determinacyCrisp, RDF.type, GMEOW.Determinacy))
-
-    result = run_shacl(g)
-    assert result.ok, "\n".join(result.errors)
