@@ -83,8 +83,8 @@ quad `"ok"`.
 
 ## Foundation lowering (issues #503, #636)
 
-Foundation lowering is the move of the five OntoUML structural disciplines from external Python
-checks (`src/gmeow_tools/reasoning_lint.py`) into executable `logic:` IR rules that materialize
+Foundation lowering is the move of the five OntoUML structural disciplines from the native gUFO
+checks (`crates/validate/src/gufo.rs`) into executable `logic:` IR rules that materialize
 `logic:violation` and related diagnostic quads over `logic:` facts.
 
 ### What it does
