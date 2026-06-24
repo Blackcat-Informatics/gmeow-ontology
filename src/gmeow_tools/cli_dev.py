@@ -24,6 +24,7 @@ from rich.markup import escape
 
 from gmeow_tools import __version__
 from gmeow_tools.config import PROJECT_ROOT
+from gmeow_tools.mapping_constants import ALIGNMENT_CHECKS as _ALIGNMENT_CHECKS
 from gmeow_tools.projections import PROFILES as _PROFILES
 from gmeow_tools.slices import Slice
 
@@ -32,20 +33,6 @@ if TYPE_CHECKING:
     from gmeow_slice import ProjectionDiagnostic
 
     from gmeow_tools.language_tags import LangSelector
-
-#: Alignment-direction checks surfaced by ``gmeow_slice.lint_projection`` (#936).
-#: Projection-stack checks (``fno-type``, ``fno-ref``, ``spec-drift``) are
-#: intentionally excluded from the alignment lint surface.
-_ALIGNMENT_CHECKS = frozenset(
-    {
-        "inverse-direction",
-        "domain-range",
-        "property-character",
-        "equivalence-collapse",
-        "dc-refinement",
-        "dc-hand-authored",
-    }
-)
 
 
 def _alignment_findings(*, network: bool = False) -> list[ProjectionDiagnostic]:

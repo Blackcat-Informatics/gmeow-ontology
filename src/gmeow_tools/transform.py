@@ -39,6 +39,9 @@ from gmeow_rdf.compat.rdflib import Graph, URIRef
 from gmeow_tools.config import DIST_DIR, NAMESPACE, PREFIXES, PROJECT_ROOT
 from gmeow_tools.graph import bind_prefixes, load_merged_graph
 from gmeow_tools.language_tags import filter_graph
+from gmeow_tools.mapping_constants import (
+    ALIGNMENT_CHECKS as alignment_checks,  # noqa: N811
+)
 from gmeow_tools.saturate import (
     DerivedTriple,
     load_cells,
@@ -154,17 +157,6 @@ def _denied_cells() -> set[tuple[str, str, str]]:
         precomputed = bundled_denied_cells()
         if precomputed is not None:
             return set(precomputed)
-
-    alignment_checks = frozenset(
-        {
-            "inverse-direction",
-            "domain-range",
-            "property-character",
-            "equivalence-collapse",
-            "dc-refinement",
-            "dc-hand-authored",
-        }
-    )
 
     findings = [
         f

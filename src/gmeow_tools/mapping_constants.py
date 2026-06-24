@@ -20,3 +20,16 @@ STRONG_PROPERTY_PREDICATES: frozenset[str] = frozenset(
 STRONG_CLASS_PREDICATES: frozenset[str] = frozenset(
     {"owl:equivalentClass", "skos:exactMatch"}
 )
+
+#: Alignment-direction lint check families surfaced by ``gmeow_slice.lint_projection``.
+#: Centralized so Python consumers (CLI, transform, tests) cannot drift.
+ALIGNMENT_CHECKS: frozenset[str] = frozenset(
+    {
+        "inverse-direction",
+        "domain-range",
+        "property-character",
+        "equivalence-collapse",
+        "dc-refinement",
+        "dc-hand-authored",
+    }
+)

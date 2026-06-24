@@ -22,20 +22,10 @@ from gmeow_tools.config import (
     LinkPolicy,
 )
 from gmeow_tools.graph import iter_source_files
+from gmeow_tools.mapping_constants import ALIGNMENT_CHECKS as _ALIGNMENT_CHECKS
 
 if TYPE_CHECKING:
     from gmeow_slice import ProjectionDiagnostic
-
-_ALIGNMENT_CHECKS = frozenset(
-    {
-        "inverse-direction",
-        "domain-range",
-        "property-character",
-        "equivalence-collapse",
-        "dc-refinement",
-        "dc-hand-authored",
-    }
-)
 
 
 def _alignment_findings(*, network: bool = False) -> list[ProjectionDiagnostic]:
