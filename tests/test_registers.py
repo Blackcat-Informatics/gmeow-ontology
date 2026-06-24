@@ -112,26 +112,6 @@ def test_no_primary_persona_machinery() -> None:
 
 
 # --------------------------------------------------------------------------- #
-# Closed-world SHACL shapes
-# --------------------------------------------------------------------------- #
-
-
-def test_wellformed_registers_fixture_conforms() -> None:
-    result = run_shacl(_fixture("registers-wellformed"))
-    assert result.ok, "\n".join(result.errors)
-
-
-def test_malformed_registers_fixture_is_flagged() -> None:
-    result = run_shacl(_fixture("registers-malformed"))
-    assert not result.ok
-    errors = "\n".join(result.errors)
-    assert "exactly one gmeow:personaBearer" in errors
-    assert "at least one gmeow:personaRegister" in errors
-    assert "a style guide for nothing is just a document" in errors
-    assert "gmeow:contentDigest" in errors
-
-
-# --------------------------------------------------------------------------- #
 # The same-norms invariant — a query, not a shape
 # --------------------------------------------------------------------------- #
 

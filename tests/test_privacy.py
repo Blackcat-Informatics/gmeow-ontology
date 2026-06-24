@@ -18,23 +18,17 @@ from gmeow_tools.config import NAMESPACE
 from gmeow_tools.graph import load_merged_graph
 from gmeow_tools.projections import project_graph
 from gmeow_tools.slices import module_path
-from tests._graph_nt import run_shacl
 
 GM = Namespace(NAMESPACE)
 ODRL = Namespace("http://www.w3.org/ns/odrl/2/")
 EX = Namespace("https://example.org/privacy/")
 LOGIC = Namespace("https://blackcatinformatics.ca/logic/")
 
-SHAPES_FIXTURES = Path(__file__).parent / "fixtures" / "shapes"
 COVERAGE_FIXTURES = Path(__file__).parent / "fixtures" / "coverage"
 
 
 def _graph() -> Graph:
     return load_merged_graph(include_imports=False)
-
-
-def _fixture(name: str) -> Graph:
-    return Graph().parse(SHAPES_FIXTURES / f"{name}.ttl", format="turtle")
 
 
 def _projection_source() -> Graph:
@@ -150,36 +144,6 @@ def test_no_preferred_or_primary_sensitivity_term() -> None:
         if "/" not in local and local.startswith(("primary", "preferred")):
             offenders.append(str(s))
     assert offenders == [], offenders
-
-
-# --------------------------------------------------------------------------- #
-# Closed-world SHACL shapes
-# --------------------------------------------------------------------------- #
-
-
-def test_wellformed_privacy_fixture_conforms() -> None:
-    result = run_shacl(_fixture("privacy-wellformed"))
-    assert result.ok, "\n".join(result.errors)
-
-
-def test_malformed_privacy_fixture_is_flagged() -> None:
-    result = run_shacl(_fixture("privacy-malformed"))
-    assert not result.ok
-    errors = "\n".join(result.errors)
-    warnings = "\n".join(result.warnings)
-    assert "must govern exactly one asset" in errors
-    assert "must regulate exactly one action" in errors
-    # Consent well-formedness is Warning severity (incomplete metadata is allowed).
-    assert "should name exactly one data subject" in warnings
-    assert "at least one data controller" in warnings
-
-
-def test_sensitive_value_warns_but_does_not_fail() -> None:
-    result = run_shacl(_fixture("privacy-sensitive-warning"))
-    assert result.ok, f"warning-only graph must pass; errors: {result.errors}"
-    assert any("sensitivitySensitivePersonal" in w for w in result.warnings), (
-        result.warnings
-    )
 
 
 # --------------------------------------------------------------------------- #

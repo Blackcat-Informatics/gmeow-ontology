@@ -82,16 +82,11 @@ GMEOW = "https://blackcatinformatics.ca/gmeow/"
 GM = Namespace(GMEOW)
 LOGIC = Namespace("https://blackcatinformatics.ca/logic/")
 EX_EVENTS = Namespace("https://blackcatinformatics.ca/gmeow/examples/events/")
-SHAPES_FIXTURES = Path(__file__).parent / "fixtures" / "shapes"
 COVERAGE_FIXTURES = Path(__file__).parent / "fixtures" / "coverage"
 
 
 def _graph() -> Graph:
     return load_merged_graph(include_imports=False)
-
-
-def _fixture(name: str) -> Graph:
-    return Graph().parse(SHAPES_FIXTURES / f"{name}.ttl", format="turtle")
 
 
 # --------------------------------------------------------------------------- #
@@ -179,18 +174,6 @@ def test_participation_mediation_axiom_present() -> None:
 # --------------------------------------------------------------------------- #
 # SHACL well-formedness of the Participation relator.
 # --------------------------------------------------------------------------- #
-
-
-def test_wellformed_participation_conforms() -> None:
-    result = run_shacl(_fixture("participation-wellformed"))
-    assert result.ok, "\n".join(result.errors)
-
-
-def test_malformed_participation_is_flagged() -> None:
-    result = run_shacl(_fixture("participation-malformed"))
-    assert not result.ok
-    joined = "\n".join(result.errors)
-    assert "participationEvent" in joined or "participationParticipant" in joined
 
 
 # --------------------------------------------------------------------------- #

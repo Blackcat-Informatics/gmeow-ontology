@@ -5,13 +5,19 @@ OrganizationType/SiteType seed individuals, and all 14 properties minted in
 issue #258) have been migrated to the slice-resident declarative DSL cell
 file at slices/core/organization/tests/structural.ttl (#867).
 
-Retained here (not expressible as module-scoped ASK cells):
-  * Standpoint coexistence fixtures (run_shacl over ABox fixture files).
+Migrated to crates/validate/tests/conformance_organization.rs (#867):
+  * SHACL Warning text assertion (post/org mismatch) →
+    conformance_organization::membership_fills_post_org_mismatch_warns
+  * SHACL Violation text assertion (legal-identity malformed fixture) →
+    conformance_organization::legal_identifier_requires_scheme
+
+Retained here (not expressible in Rust without a graph query API):
+  * Standpoint coexistence fixtures (run_shacl + g.objects() graph-content
+    assertions that cannot be expressed as pure SHACL checks).
   * The whole-ontology Principle-9 banned-term sweep (uses the full merged
     graph; narrowing to scopeModule would miss cross-slice violations).
-  * SHACL Warning text assertions (post/org mismatch).
-  * SHACL Violation text assertions (legal-identity malformed fixture).
-  * Graph-manipulation fixture tests (wellformed legal-identity).
+  * Graph-manipulation fixture tests (wellformed legal-identity — requires
+    g.remove() before validation).
   * Cross-slice EventType seeds (eventTypeMerger/Split/... live in
     slices/core/events/module.ttl, not here).
 """
@@ -111,16 +117,6 @@ def test_post_successive_holders() -> None:
     assert holders == {EX_ORGS.aliceMembership, EX_ORGS.bobMembership}
 
 
-def test_membership_fills_post_org_mismatch_warns() -> None:
-    """A Membership filling a Post in a different org triggers a SHACL Warning."""
-    g = Graph().parse(COVERAGE_FIXTURES / "organization-posts.ttl", format="turtle")
-    result = run_shacl(g)
-    # Warnings do not fail validation (result.ok stays true).
-    assert result.ok, "\n".join(result.errors)
-    report = "\n".join(result.errors + result.warnings)
-    assert "fills a Post whose organization differs" in report
-
-
 # --------------------------------------------------------------------------- #
 # Site — organizational location (issue #258)
 # --------------------------------------------------------------------------- #
@@ -164,17 +160,6 @@ def test_change_event_entailments() -> None:
 # --------------------------------------------------------------------------- #
 # Legal identity (issue #258)
 # --------------------------------------------------------------------------- #
-
-
-def test_legal_identifier_requires_scheme() -> None:
-    """An Identifier node without identifierScheme triggers a SHACL Violation."""
-    g = Graph().parse(
-        COVERAGE_FIXTURES / "organization-legal-identity.ttl", format="turtle"
-    )
-    result = run_shacl(g)
-    assert not result.ok, "malformed legal-identity graph must fail validation"
-    report = "\n".join(result.errors)
-    assert "must declare a gmeow:identifierScheme" in report
 
 
 def test_wellformed_legal_identifier_passes() -> None:
