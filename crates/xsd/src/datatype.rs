@@ -71,6 +71,10 @@ pub const XSD_G_DAY: &str = "http://www.w3.org/2001/XMLSchema#gDay";
 pub const XSD_G_YEAR_MONTH: &str = "http://www.w3.org/2001/XMLSchema#gYearMonth";
 /// `xsd:gMonthDay` — a Gregorian month + day (e.g. `--02-29`).
 pub const XSD_G_MONTH_DAY: &str = "http://www.w3.org/2001/XMLSchema#gMonthDay";
+/// `xsd:hexBinary` — a sequence of hex-encoded bytes.
+pub const XSD_HEX_BINARY: &str = "http://www.w3.org/2001/XMLSchema#hexBinary";
+/// `xsd:base64Binary` — a Base64-encoded byte sequence.
+pub const XSD_BASE64_BINARY: &str = "http://www.w3.org/2001/XMLSchema#base64Binary";
 
 /// The XSD datatypes whose **value space** `gmeow-xsd` models.
 ///
@@ -139,6 +143,10 @@ pub enum XsdDatatype {
     GYearMonth,
     /// `xsd:gMonthDay` — Gregorian month and day.
     GMonthDay,
+    /// `xsd:hexBinary` — a sequence of bytes encoded as hexadecimal digits.
+    HexBinary,
+    /// `xsd:base64Binary` — a sequence of bytes encoded as Base64.
+    Base64Binary,
 }
 
 impl XsdDatatype {
@@ -176,6 +184,8 @@ impl XsdDatatype {
             XSD_G_DAY => Self::GDay,
             XSD_G_YEAR_MONTH => Self::GYearMonth,
             XSD_G_MONTH_DAY => Self::GMonthDay,
+            XSD_HEX_BINARY => Self::HexBinary,
+            XSD_BASE64_BINARY => Self::Base64Binary,
             _ => return None,
         })
     }
@@ -213,6 +223,8 @@ impl XsdDatatype {
             Self::GDay => XSD_G_DAY,
             Self::GYearMonth => XSD_G_YEAR_MONTH,
             Self::GMonthDay => XSD_G_MONTH_DAY,
+            Self::HexBinary => XSD_HEX_BINARY,
+            Self::Base64Binary => XSD_BASE64_BINARY,
         }
     }
 
@@ -280,6 +292,8 @@ mod tests {
             XsdDatatype::GDay,
             XsdDatatype::GYearMonth,
             XsdDatatype::GMonthDay,
+            XsdDatatype::HexBinary,
+            XsdDatatype::Base64Binary,
         ] {
             assert_eq!(XsdDatatype::from_iri(dt.iri()), Some(dt));
             assert!(dt.iri().starts_with(XSD_NS));
@@ -352,6 +366,11 @@ mod tests {
         assert_eq!(
             XSD_G_MONTH_DAY,
             "http://www.w3.org/2001/XMLSchema#gMonthDay"
+        );
+        assert_eq!(XSD_HEX_BINARY, "http://www.w3.org/2001/XMLSchema#hexBinary");
+        assert_eq!(
+            XSD_BASE64_BINARY,
+            "http://www.w3.org/2001/XMLSchema#base64Binary"
         );
     }
 

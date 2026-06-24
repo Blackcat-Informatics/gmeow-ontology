@@ -534,3 +534,115 @@ fn gregorian_canonical_is_idempotent() {
         assert_eq!(once, twice, "idempotent canonical for {lexical:?}^^{dt:?}");
     }
 }
+
+// ── xsd:hexBinary / xsd:base64Binary value-space vectors ─────────────────────────
+
+#[test]
+fn hex_binary_canonical_vectors() {
+    // "0FB7" → [0x0F, 0xB7], canonical = "0FB7".
+    let v = parse("0FB7", D::HexBinary).unwrap();
+    assert_eq!(v.canonical_lexical(), "0FB7");
+    assert_eq!(v.datatype(), D::HexBinary);
+
+    // Empty string is valid.
+    let empty = parse("", D::HexBinary).unwrap();
+    assert_eq!(empty.canonical_lexical(), "");
+    assert_eq!(empty.datatype(), D::HexBinary);
+
+    // Lowercase input → same bytes; canonical is UPPERCASE.
+    let lower = parse("0fb7", D::HexBinary).unwrap();
+    assert_eq!(lower.canonical_lexical(), "0FB7");
+}
+
+#[test]
+fn hex_binary_case_insensitive_value_equality() {
+    // Parsing "0F" and "0f" yields byte-equal values; value_cmp = Equal.
+    let upper = parse("0F", D::HexBinary).unwrap();
+    let lower = parse("0f", D::HexBinary).unwrap();
+    assert_eq!(
+        value_cmp(&upper, &lower),
+        Some(std::cmp::Ordering::Equal),
+        "\"0F\" and \"0f\" are value-equal hexBinary"
+    );
+}
+
+#[test]
+fn hex_binary_negative_vectors() {
+    // Odd-length lexical.
+    assert!(parse("0F0", D::HexBinary).is_err(), "odd-length must fail");
+    // Non-hex character.
+    assert!(parse("0G", D::HexBinary).is_err(), "non-hex char must fail");
+    // Whitespace in lexical.
+    assert!(parse("0 F", D::HexBinary).is_err(), "whitespace must fail");
+    // 'z' is not a hex digit.
+    assert!(parse("zz", D::HexBinary).is_err(), "'z' must fail");
+}
+
+#[test]
+fn base64_binary_canonical_vectors() {
+    // "TWFu" = "Man" bytes.
+    let man = parse("TWFu", D::Base64Binary).unwrap();
+    assert_eq!(man.canonical_lexical(), "TWFu");
+    assert_eq!(man.datatype(), D::Base64Binary);
+
+    // One-pad: "Ma".
+    let ma = parse("TWE=", D::Base64Binary).unwrap();
+    assert_eq!(ma.canonical_lexical(), "TWE=");
+
+    // Two-pad: "M".
+    let m = parse("TQ==", D::Base64Binary).unwrap();
+    assert_eq!(m.canonical_lexical(), "TQ==");
+
+    // Three zeros.
+    let zeros = parse("AAAA", D::Base64Binary).unwrap();
+    assert_eq!(zeros.canonical_lexical(), "AAAA");
+
+    // Empty.
+    let empty = parse("", D::Base64Binary).unwrap();
+    assert_eq!(empty.canonical_lexical(), "");
+    assert_eq!(empty.datatype(), D::Base64Binary);
+
+    // Whitespace-tolerant: "TW Fu" same bytes as "TWFu".
+    let ws = parse("TW Fu", D::Base64Binary).unwrap();
+    assert_eq!(ws.canonical_lexical(), "TWFu");
+    let no_ws = parse("TWFu", D::Base64Binary).unwrap();
+    assert_eq!(ws.canonical_lexical(), no_ws.canonical_lexical());
+}
+
+#[test]
+fn base64_binary_negative_vectors() {
+    // Not a multiple of 4.
+    assert!(parse("AAA", D::Base64Binary).is_err(), "len%4!=0 must fail");
+    // Four pad chars.
+    assert!(parse("====", D::Base64Binary).is_err(), "==== must fail");
+    // Internal pad.
+    assert!(
+        parse("AB=C", D::Base64Binary).is_err(),
+        "internal = must fail"
+    );
+    // Bad char.
+    assert!(parse("@@@@", D::Base64Binary).is_err(), "'@' must fail");
+    // Over-padding: triple pad.
+    assert!(
+        parse("TQ===", D::Base64Binary).is_err(),
+        "triple pad must fail"
+    );
+}
+
+#[test]
+fn binary_canonical_is_idempotent() {
+    for (lexical, dt) in [("0FB7", D::HexBinary), ("TWFu", D::Base64Binary)] {
+        let once = parse(lexical, dt).unwrap().canonical_lexical();
+        let twice = parse(&once, dt).unwrap().canonical_lexical();
+        assert_eq!(once, twice, "idempotent canonical for {lexical:?}^^{dt:?}");
+    }
+}
+
+#[test]
+fn binary_parse_by_iri_contract() {
+    use gmeow_xsd::XsdValue;
+    let v = parse_by_iri("0FB7", "http://www.w3.org/2001/XMLSchema#hexBinary").unwrap();
+    assert!(matches!(v, Some(XsdValue::Binary { .. })));
+    let v2 = parse_by_iri("TWFu", "http://www.w3.org/2001/XMLSchema#base64Binary").unwrap();
+    assert!(matches!(v2, Some(XsdValue::Binary { .. })));
+}

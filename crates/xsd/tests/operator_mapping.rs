@@ -169,3 +169,67 @@ fn gregorian_effective_boolean_value_is_type_error() {
     let gmd = parse("--02-29", D::GMonthDay).unwrap();
     assert_eq!(effective_boolean_value(&gmd), None, "gMonthDay has no EBV");
 }
+
+// ── xsd:hexBinary / xsd:base64Binary operator-mapping ───────────────────────────
+
+#[test]
+fn binary_cross_datatype_incomparable() {
+    // hexBinary "4D" and base64Binary "TQ==" both decode to [0x4D]
+    // but they are from DIFFERENT value spaces → incomparable.
+    let hex = parse("4D", D::HexBinary).unwrap();
+    let b64 = parse("TQ==", D::Base64Binary).unwrap();
+    assert_eq!(
+        value_cmp(&hex, &b64),
+        NC,
+        "hexBinary and base64Binary are incomparable even with identical bytes"
+    );
+    assert!(
+        !value_eq(&hex, &b64),
+        "value_eq must be false for cross-datatype binary"
+    );
+}
+
+#[test]
+fn binary_same_datatype_ordering() {
+    // hexBinary byte-lexicographic order: "00" < "FF".
+    let lo = parse("00", D::HexBinary).unwrap();
+    let hi = parse("FF", D::HexBinary).unwrap();
+    assert_eq!(value_cmp(&lo, &hi), LT, "hexBinary \"00\" < \"FF\"");
+    assert_eq!(value_cmp(&hi, &lo), GT, "hexBinary \"FF\" > \"00\"");
+
+    // Equal bytes → Equal.
+    let a = parse("0FB7", D::HexBinary).unwrap();
+    let b = parse("0fb7", D::HexBinary).unwrap();
+    assert_eq!(value_cmp(&a, &b), EQ, "\"0FB7\" == \"0fb7\" (same bytes)");
+    assert!(value_eq(&a, &b));
+
+    // base64Binary: "AAAA" (0,0,0) < "////"/base64 (255,255,255).
+    let lo64 = parse("AAAA", D::Base64Binary).unwrap();
+    let hi64 = parse("////", D::Base64Binary).unwrap();
+    assert_eq!(value_cmp(&lo64, &hi64), LT, "base64Binary AAAA < ////");
+}
+
+#[test]
+fn binary_effective_boolean_value_is_type_error() {
+    use gmeow_xsd::effective_boolean_value;
+    let hex = parse("0F", D::HexBinary).unwrap();
+    assert_eq!(effective_boolean_value(&hex), None, "hexBinary has no EBV");
+    let b64 = parse("TQ==", D::Base64Binary).unwrap();
+    assert_eq!(
+        effective_boolean_value(&b64),
+        None,
+        "base64Binary has no EBV"
+    );
+}
+
+#[test]
+fn binary_cross_family_with_other_types_incomparable() {
+    // Binary vs integer is incomparable.
+    let hex = parse("01", D::HexBinary).unwrap();
+    let int = parse("1", D::Integer).unwrap();
+    assert_eq!(value_cmp(&hex, &int), NC, "hexBinary vs integer is NC");
+
+    // Binary vs string is incomparable.
+    let s = parse("0F", D::String).unwrap();
+    assert_eq!(value_cmp(&hex, &s), NC, "hexBinary vs string is NC");
+}

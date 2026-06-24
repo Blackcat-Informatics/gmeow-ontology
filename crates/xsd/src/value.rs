@@ -55,6 +55,17 @@ pub enum XsdValue {
     Duration(temporal::Duration),
     /// `xsd:gYear`, `xsd:gMonth`, `xsd:gDay`, `xsd:gYearMonth`, `xsd:gMonthDay`.
     Gregorian(temporal::Gregorian),
+    /// `xsd:hexBinary` and `xsd:base64Binary` — a byte sequence.
+    ///
+    /// The `datatype` field distinguishes the two value spaces: even though the
+    /// underlying representation is bytes in both cases, `hexBinary` and
+    /// `base64Binary` are DIFFERENT value spaces and their values are INCOMPARABLE.
+    Binary {
+        /// The decoded byte sequence.
+        bytes: Vec<u8>,
+        /// Must be [`XsdDatatype::HexBinary`] or [`XsdDatatype::Base64Binary`].
+        datatype: XsdDatatype,
+    },
 }
 
 impl XsdValue {
@@ -73,6 +84,7 @@ impl XsdValue {
             XsdValue::Time(_) => XsdDatatype::Time,
             XsdValue::Duration(d) => d.datatype(),
             XsdValue::Gregorian(g) => g.datatype(),
+            XsdValue::Binary { datatype, .. } => *datatype,
         }
     }
 
@@ -91,6 +103,11 @@ impl XsdValue {
             XsdValue::Time(v) => v.canonical_lexical(),
             XsdValue::Duration(v) => v.canonical_lexical(),
             XsdValue::Gregorian(v) => v.canonical_lexical(),
+            XsdValue::Binary { bytes, datatype } => match datatype {
+                XsdDatatype::HexBinary => crate::binary::canonical_hex(bytes),
+                XsdDatatype::Base64Binary => crate::binary::canonical_base64(bytes),
+                _ => unreachable!("Binary variant carries only HexBinary or Base64Binary"),
+            },
         }
     }
 }
@@ -131,6 +148,12 @@ pub fn parse(lexical: &str, datatype: XsdDatatype) -> Result<XsdValue, XsdError>
         }
         D::GYear | D::GMonth | D::GDay | D::GYearMonth | D::GMonthDay => {
             temporal::parse_gregorian(datatype, lexical).map(XsdValue::Gregorian)
+        }
+        D::HexBinary => {
+            crate::binary::parse_hex(lexical).map(|bytes| XsdValue::Binary { bytes, datatype })
+        }
+        D::Base64Binary => {
+            crate::binary::parse_base64(lexical).map(|bytes| XsdValue::Binary { bytes, datatype })
         }
     }
 }

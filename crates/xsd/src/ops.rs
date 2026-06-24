@@ -22,7 +22,7 @@ use crate::value::XsdValue;
 /// same numeric tower as xsd:integer — `xsd:int 5 = xsd:long 5` is `true`.
 #[must_use]
 pub fn value_cmp(a: &XsdValue, b: &XsdValue) -> Option<Ordering> {
-    use XsdValue::{Boolean, Double, Float, Gregorian, Integer, String as Str};
+    use XsdValue::{Binary, Boolean, Double, Float, Gregorian, Integer, String as Str};
     match (a, b) {
         // Numeric tower (with promotion); covers every numeric/numeric pair,
         // including all integer-family subtypes (they share the Integer variant).
@@ -41,6 +41,33 @@ pub fn value_cmp(a: &XsdValue, b: &XsdValue) -> Option<Ordering> {
         (XsdValue::Duration(x), XsdValue::Duration(y)) => crate::temporal::cmp_duration(x, y),
         // Gregorian family: same-type comparison, cross-type incomparable.
         (Gregorian(x), Gregorian(y)) => crate::temporal::cmp_gregorian(x, y),
+        // Binary value spaces: same datatype → byte-lexicographic order; different datatypes
+        // are INCOMPARABLE even if the byte sequences coincide. xsd:hexBinary and
+        // xsd:base64Binary are distinct value spaces in the XSD spec.
+        //
+        // Note on relational operators: SPARQL defines `=`/`!=` on binary operands but
+        // NOT relational `<`/`>`/`<=`/`>=`. We return a deterministic byte-lexicographic
+        // order here so that equality is exact and `ORDER BY` is well-defined; a
+        // downstream SPARQL evaluator that needs spec-strictness may treat `<` on binary
+        // as a type error at the operator layer (above this function).
+        (
+            Binary {
+                bytes: x,
+                datatype: dx,
+            },
+            Binary {
+                bytes: y,
+                datatype: dy,
+            },
+        ) => {
+            if dx != dy {
+                // Different value spaces (hexBinary vs base64Binary) → incomparable.
+                None
+            } else {
+                // Same value space → byte-lexicographic order.
+                Some(x.cmp(y))
+            }
+        }
         // Different value-space families are incomparable.
         _ => None,
     }

@@ -50,6 +50,7 @@
 
 #![forbid(unsafe_code)]
 
+pub mod binary;
 pub mod datatype;
 pub mod numeric;
 pub mod ops;
@@ -57,6 +58,7 @@ pub mod simple;
 pub mod temporal;
 pub mod value;
 
+pub use binary::{canonical_base64, canonical_hex, parse_base64, parse_binary, parse_hex};
 pub use datatype::{XsdDatatype, XSD_NS};
 pub use numeric::Decimal;
 pub use ops::{effective_boolean_value, value_cmp, value_eq};
