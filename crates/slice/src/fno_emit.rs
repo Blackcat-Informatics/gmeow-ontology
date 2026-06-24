@@ -282,7 +282,11 @@ fn collect_dsl_store(root: &Path) -> Result<Store, SliceError> {
 /// Build the merged ontology store for `rdfs:range` lookups: `ontology/gmeow.ttl` +
 /// every slice [`ArtifactRole::Module`] artifact (the
 /// `load_merged_graph(include_imports=False)` source set).
-fn collect_ontology_store(root: &Path) -> Result<Store, SliceError> {
+///
+/// `pub(crate)` so the projection lint ([`crate::projection_lint`]) reuses the SAME
+/// ontology-merge the emitter's `fno:type` derivation reads (one source of truth for
+/// `rdfs:range`).
+pub(crate) fn collect_ontology_store(root: &Path) -> Result<Store, SliceError> {
     let store = new_store()?;
 
     let ontology_file = root.join("ontology").join("gmeow.ttl");
@@ -871,12 +875,22 @@ fn build_catalog(
     })
 }
 
-/// The `rdfs:range` IRI of a predicate in the ontology store, or `None` (mirrors
-/// `onto.value(predicate, RDFS.range)` restricted to a URIRef object).
-fn predicate_range(store: &Store, predicate: &str) -> Result<Option<String>, SliceError> {
+/// Every `rdfs:range` IRI of a predicate in the ontology store, in store-iteration
+/// order (mirrors `set(onto.objects(predicate, RDFS.range))` restricted to URIRef
+/// objects). `pub(crate)` — the single shared range lookup for both the emitter's
+/// `fno:type` derivation and the projection lint's `fno-type` check.
+pub(crate) fn predicate_ranges(store: &Store, predicate: &str) -> Result<Vec<String>, SliceError> {
     let node = NamedNode::new(predicate)
         .map_err(|e| SliceError::Parse(format!("invalid predicate IRI {predicate}: {e}")))?;
-    object_iri(store, &node, RDFS_RANGE)
+    object_iris(store, &node, RDFS_RANGE)
+}
+
+/// The `rdfs:range` IRI of a predicate in the ontology store, or `None` (mirrors
+/// `onto.value(predicate, RDFS.range)` restricted to a URIRef object). The emitter
+/// asserts a single `fno:type`, so it takes the first range; the lint compares
+/// against the full [`predicate_ranges`] set.
+fn predicate_range(store: &Store, predicate: &str) -> Result<Option<String>, SliceError> {
+    Ok(predicate_ranges(store, predicate)?.into_iter().next())
 }
 
 // ── Store helpers ──────────────────────────────────────────────────────────────

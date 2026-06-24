@@ -44,6 +44,7 @@ use crate::ownership::{
     DependencyEdge, OwnershipAnalyzer, OwnershipDiagnostic, OwnershipReport, OwnershipStatus,
     ReconciliationStatus, SliceIri,
 };
+use crate::projection_lint::lint_projection as lint_projection_native;
 
 /// The stable lowercase token a [`ReconciliationStatus`] is exposed as.
 fn reconciliation_token(status: ReconciliationStatus) -> &'static str {
@@ -641,10 +642,45 @@ fn emit_fno(root: &str) -> PyResult<String> {
         .map_err(|e| PyValueError::new_err(format!("FnO emission failed: {e}")))
 }
 
+/// Run the native cross-layer projection lint over the committed `generated/` tree at
+/// `root`, returning one dict per problem (#854).
+///
+/// This is the native replacement for the Python `projection_lint` trio (the FnO
+/// type-mismatch / EDOAL→FnO reference-integrity / CONSTRUCT↔EDOAL↔SSSOM spec-drift
+/// invariants). Each dict carries the SAME `{severity, code, message, check, instance}`
+/// shape as the native SSSOM validator (`gmeow_rdf.validate_sssom`), so the Python
+/// finding leg maps `check` → the canonical `mapping-compile.<check>` code
+/// (`fno-type` / `fno-ref` / `spec-drift`). An empty list means the projection stack
+/// is internally consistent.
+///
+/// # Errors
+///
+/// Raises `ValueError` on any missing/unparsable required source (a committed
+/// artifact, the ontology, an SSSOM source) or a profile prefix absent from the
+/// curated registry (no degraded fallback).
+#[pyfunction]
+fn lint_projection<'py>(py: Python<'py>, root: &str) -> PyResult<Vec<Bound<'py, PyDict>>> {
+    let problems = lint_projection_native(Path::new(root))
+        .map_err(|e| PyValueError::new_err(format!("projection lint failed: {e}")))?;
+    problems
+        .into_iter()
+        .map(|d| {
+            let dict = PyDict::new(py);
+            dict.set_item("severity", d.severity)?;
+            dict.set_item("code", d.code)?;
+            dict.set_item("message", d.message)?;
+            dict.set_item("check", d.check)?;
+            dict.set_item("instance", d.instance)?;
+            Ok(dict)
+        })
+        .collect()
+}
+
 /// Register the `gmeow_slice` engine surface into the given module.
 pub fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(emit_sssom, m)?)?;
     m.add_function(wrap_pyfunction!(emit_fno, m)?)?;
+    m.add_function(wrap_pyfunction!(lint_projection, m)?)?;
     m.add_class::<PyArtifactRecord>()?;
     m.add_class::<PyManifestView>()?;
     m.add_class::<PySliceRecord>()?;

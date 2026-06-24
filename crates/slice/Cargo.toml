@@ -36,6 +36,14 @@ spargebra = { version = "0.4", features = ["sparql-12"] }
 petgraph = { version = "0.8", default-features = false }
 sha2 = "0.10"
 hex = "0.4"
+# Faithful port of the projection-lint `spec-drift` CURIE scan: the Python
+# `projection_lint._target_terms_in_query` text-scans `.rq` query bodies with the
+# regex `\b(prefix):([A-Za-z][\w-]*)` (comments stripped), and the
+# `_STRUCTURAL_OUTPUTS` allowlist is tuned against THAT emitted set — so the lint
+# replicates the regex scan, not a SPARQL parse. External published crate (already
+# in the workspace lockfile, used by gmeow-validate/gmeow-shacl), so the S0.9
+# layering gate is unaffected.
+regex = "1"
 serde = { version = "1", features = ["derive"] }
 # pyo3 is pulled ONLY by the `python` feature (maturin builds the unified
 # `gmeow_native` cdylib). Same version/abi3 as the other engine crates. Only

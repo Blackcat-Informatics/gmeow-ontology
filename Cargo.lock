@@ -1788,6 +1788,7 @@ dependencies = [
  "oxigraph",
  "petgraph",
  "pyo3",
+ "regex",
  "serde",
  "sha2",
  "spargebra 0.4.6",

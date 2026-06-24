@@ -9,6 +9,8 @@
 
 from __future__ import annotations
 
+from typing import TypedDict
+
 # ── Classes ──────────────────────────────────────────────────────────────────
 
 class ArtifactRecord:
@@ -112,5 +114,28 @@ def emit_fno(root: str) -> str:
     natively from ``root``: the projection functions + cells from the
     ``dsl/mappings/`` tree + slice mapping artifacts, and each input predicate's
     ``rdfs:range`` from ``ontology/gmeow.ttl`` + slice module artifacts.
+    """
+    ...
+
+# One ``ProjectionDiagnostic`` dict per cross-layer projection-lint problem. The
+# shape matches ``gmeow_rdf.SssomDiagnostic`` so the Python finding leg packs both
+# the same way; ``check`` is the drift family (``fno-type`` / ``fno-ref`` /
+# ``spec-drift``) the leg maps to the ``mapping-compile.<check>`` code.
+class ProjectionDiagnostic(TypedDict):
+    severity: str
+    code: str
+    message: str
+    check: str
+    instance: str | None
+
+def lint_projection(root: str) -> list[ProjectionDiagnostic]:
+    """Run the native cross-layer projection lint over ``root``'s committed tree.
+
+    Ports the three Python ``projection_lint`` invariants (#854): FnO type-mismatch
+    (``fno-type``), EDOAL→FnO reference integrity (``fno-ref``), and
+    CONSTRUCT↔EDOAL↔SSSOM spec-drift (``spec-drift``). Reads the committed
+    ``generated/projections/*.{fno.ttl,edoal.ttl}`` + ``generated/queries/*.rq``,
+    the ontology ``rdfs:range``s, and the SSSOM alignment. An empty list means the
+    projection stack is internally consistent.
     """
     ...
