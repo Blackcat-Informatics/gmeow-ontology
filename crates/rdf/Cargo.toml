@@ -24,7 +24,7 @@ default = ["gts"]
 # adapter surface (re-exported from the ring-fenced `gmeow-rdf-core` kernel via
 # `gmeow-rdf-core/gts`) plus the Ed25519 signer, but no longer pulls oxigraph.
 gts = ["dep:ciborium", "dep:gmeow-gts", "dep:ed25519-dalek", "gmeow-rdf-core/gts"]
-oxigraph = ["dep:oxigraph"]
+oxigraph = ["dep:oxigraph", "dep:gmeow-rdf-events"]
 # `python` builds the `gmeow_rdf` PyO3 extension (the native statement codec).
 # It is OFF by default so the kernel rlib stays PyO3-free for its Rust consumers
 # (gmeow-logic / gmeow-shacl / gmeow-validate); only maturin enables it. This is
@@ -47,6 +47,7 @@ python = ["dep:pyo3", "gts", "oxigraph", "gmeow-gts/yaml-ld", "gmeow-gts/rdf-cod
 gmeow-rdf-core = { path = "../rdf-core", default-features = false }
 ciborium = { version = "0.2", optional = true }
 gmeow-gts = { version = "0.9.5", optional = true }
+gmeow-rdf-events = { path = "../rdf-events", optional = true }
 oxigraph = { version = "0.5", default-features = false, features = ["rdf-12"], optional = true }
 # pyo3 is pulled ONLY by the `python` feature (maturin). Same version/abi3 as the
 # sibling extension crates (validate/shacl/logic/diagnostics).

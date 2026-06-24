@@ -1805,6 +1805,7 @@ dependencies = [
  "ed25519-dalek",
  "gmeow-gts",
  "gmeow-rdf-core",
+ "gmeow-rdf-events",
  "oxigraph",
  "pretty_assertions",
  "proptest",

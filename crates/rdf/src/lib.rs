@@ -32,8 +32,8 @@
 #[cfg(feature = "gts")]
 pub use gmeow_rdf_core::gts_write;
 pub use gmeow_rdf_core::{
-    bundle, content_store, dataset_view, diagnostic, fno, ir, lookaside, loss, model, provenance,
-    sssom, store, turtle,
+    backend, bundle, content_store, dataset_view, diagnostic, fno, ir, lookaside, loss, model,
+    provenance, sssom, store, turtle,
 };
 
 #[cfg(feature = "gts")]
@@ -92,14 +92,17 @@ pub use gmeow_rdf_core::{
     QuadIds, QuadRef, RdfAnnotation, RdfBlobOrigin, RdfBlobRecord, RdfBundle, RdfDataset,
     RdfDatasetBuilder, RdfDatasetVisitor, RdfDiagnostic, RdfEnvelope, RdfLiteral, RdfLocation,
     RdfLookaside, RdfLookasideKind, RdfLookasideResource, RdfLoss, RdfMetadataEntry,
-    RdfMetadataValue, RdfOpaqueNodeRecord, RdfQuad, RdfReifier, RdfSegmentRecord, RdfSeverity,
-    RdfSignatureRecord, RdfStoreCapabilities, RdfSuppressionRecord, RdfTerm, RdfTermKind,
-    RdfTextDirection, RdfTriple, SegmentUnitMap, SssomDiagnostic, SssomMapping, SssomMappingSet,
-    SssomMeta, TermId, TermRef, TermValue, UnitCatalog, UnitId, UnitInterner, UnitMetadata,
-    SSSOM_DEFAULT_VALIDATION_TYPES,
+    RdfMetadataValue, RdfOpaqueNodeRecord, RdfParseRequest, RdfParserBackend, RdfQuad, RdfReifier,
+    RdfSegmentRecord, RdfSerializeRequest, RdfSerializer, RdfSeverity, RdfSignatureRecord,
+    RdfStoreCapabilities, RdfSuppressionRecord, RdfTerm, RdfTermKind, RdfTextDirection, RdfTriple,
+    SegmentUnitMap, SerializeGraph, SparqlEngine, SparqlRequest, SparqlResult, SssomDiagnostic,
+    SssomMapping, SssomMappingSet, SssomMeta, TermFactory, TermId, TermRef, TermValue, UnitCatalog,
+    UnitId, UnitInterner, UnitMetadata, SSSOM_DEFAULT_VALIDATION_TYPES,
 };
 #[cfg(feature = "gts")]
 pub use gmeow_rdf_core::{import_gts_events, import_gts_graph};
+#[cfg(feature = "oxigraph")]
+pub use oxigraph::backend::OxigraphBackend;
 
 /// The common gmeow-rdf surface, for `use gmeow_rdf::prelude::*;`.
 ///
