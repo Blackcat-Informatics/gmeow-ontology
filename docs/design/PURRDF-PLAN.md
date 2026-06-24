@@ -117,8 +117,9 @@ delete `RdfStore`. The write side (`DatasetMut`) + `RdfParserBackend`/`SparqlEng
 > - **P2c part 1 (#886, landed):** added the borrowed `RdfDataset::reifier_refs()`/`annotation_refs()`
 >   read surface; ported the two genuinely IR-native seams — `gts_write::to_writer`/`to_gts` (now
 >   `&RdfDataset` + `&RdfLookaside`) and the SHACL SPARQL materialization (`store_from_dataset`) — off
->   the `RdfStore` compat bridge. `RdfStore`/`VecRdfStore` are NOT deleted; a parity guard pins
->   `store_from_dataset` == `store_from_rdf_store(&dataset)`.
+>   the `RdfStore` compat bridge. `RdfStore`/`VecRdfStore` are NOT deleted; a parity guard
+>   (`store_from_dataset_matches_compat_bridge` in `crates/rdf/src/oxigraph.rs`, the crate that owns
+>   both functions) pins `store_from_dataset` == `store_from_rdf_store(&dataset)`.
 > - **P2c part 2 (follow-up, #922):** route the production GTS/oxigraph ingress through the IR
 >   (`import_gts_graph`/`import_gts_events`), migrate the remaining `GtsGraphStore`/`OxigraphStore`-sourced
 >   consumers (reasoning EL/DL/RL, metadata folds, `build_lpg`, `asserted_turtle`, SHACL
