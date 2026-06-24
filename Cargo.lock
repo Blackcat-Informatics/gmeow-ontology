@@ -1826,6 +1826,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "gmeow-xsd"
+version = "0.1.0"
+dependencies = [
+ "pretty_assertions",
+ "proptest",
+]
+
+[[package]]
 name = "h2"
 version = "0.4.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
