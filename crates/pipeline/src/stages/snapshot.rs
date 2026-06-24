@@ -167,6 +167,10 @@ const REP_MAPPINGS: &str = "mappings-archive";
 const REP_CELLS: &str = "cells-archive";
 const REP_QUERIES: &str = "queries-archive";
 const REP_TESTS: &str = "tests-archive";
+/// The full rendered ontology-docs static site (#897). The rep MUST equal the
+/// string the runtime consumer (`create_docs._unpack_doc_archive`) looks up —
+/// `"ontology-docs"`, NOT an `-archive` variant — so `gmeow extract-docs` finds it.
+const REP_ONTOLOGY_DOCS: &str = "ontology-docs";
 const ARCHIVE_MEDIA_TYPE: &str = "application/x-tar";
 /// The GNU long-name sentinel: a `'L'`-typeflag record carrying a member path
 /// that overflows the 100-byte USTAR `name` field. The doc-site archive (#897)
@@ -226,6 +230,38 @@ fn build_archive_blobs(root: &Path) -> Result<Vec<BlobRow>, PipelineError> {
         archive_blob(REP_QUERIES, &queries)?,
         archive_blob(REP_TESTS, &tests)?,
     ])
+}
+
+/// Render the full ontology-docs static site and pack it into the single
+/// `ontology-docs` archive blob (#897) — the producer half of repo-free
+/// `gmeow extract-docs`.
+///
+/// The rust doc generator (`gmeow_docs::render_site_lang`) emits a complete site
+/// (`index.md`/`index.html` per page, `assets/gmeow.css`, SVG diagrams,
+/// `search-index.json`, `llms-docs.txt`, alias redirects) as a deterministic
+/// `BTreeMap<path, bytes>`. We render it once per available language and prefix
+/// every member with that language's INTERNAL tag (`x-gmeow-english`,
+/// `x-gmeow-<lang>`, …) — the exact `{tag}/` prefix `_unpack_doc_archive` filters
+/// on (`resolve_doc_language` returns these internal tags). The prefix comes from
+/// `Translations::internal_tag`, never the carrier key or a hardcoded string, so a
+/// new `.po` catalog is picked up with the correct tag automatically.
+fn build_docs_archive(root: &Path) -> Result<BlobRow, PipelineError> {
+    let model = gmeow_docs::model::DocsModel::discover(root)
+        .map_err(|e| stage_err(&format!("docs model discovery: {e}")))?;
+    let catalog = gmeow_slice::SliceCatalog::discover(&root.join("slices"))
+        .map_err(|e| stage_err(&format!("slice catalog: {e}")))?;
+    let translations = gmeow_docs::Translations::from_catalog(&catalog);
+
+    let mut members: Vec<(String, Vec<u8>)> = Vec::new();
+    for lang in gmeow_docs::available_languages(&translations) {
+        let site = gmeow_docs::render_site_lang(&model, &lang);
+        let prefix = translations.internal_tag(&lang);
+        for (path, bytes) in site.files {
+            members.push((format!("{prefix}/{path}"), bytes));
+        }
+    }
+    members.sort_by(|a, b| a.0.cmp(&b.0));
+    archive_blob(REP_ONTOLOGY_DOCS, &members)
 }
 
 /// Every `*.<ext>` directly under `dir`, sorted by path (empty if the dir is absent).
@@ -440,14 +476,25 @@ impl Stage for SnapshotStage {
         &self.consumes
     }
     fn impl_version(&self) -> &str {
-        // v3: re-fold the mappings/cells/queries/tests archive blobs AND the
-        // per-slice docs guide blobs the #861 pipeline cutover dropped (the
-        // wheel-mode consumers + the dangling gmeow:guideBlob references need them).
-        "snapshot.v3-archive-and-guide-blobs"
+        // v4: also render+tar+embed the full ontology-docs site as the
+        // `ontology-docs` blob (#897) — the producer half of repo-free
+        // `gmeow extract-docs`. v3 added the mappings/cells/queries/tests archive
+        // blobs + per-slice docs guide blobs the #861 cutover dropped.
+        "snapshot.v4-docs-site-blob"
+    }
+    fn input_files(&self, root: &Path) -> Result<Vec<PathBuf>, PipelineError> {
+        // The embedded ontology-docs site (`build_docs_archive`) is rendered from
+        // the docs model's raw sources (slice modules / `docs.md` / examples /
+        // `docs/four-boxes.md` / `i18n/`), which the consumed upstream products do
+        // not fully reflect. Declare them so a doc-source edit busts this stage and
+        // re-renders the embedded site (cache soundness, #897) — shared with
+        // `DocsRenderStage` via `docs_source_files`.
+        crate::stages::docs_render::docs_source_files(root)
     }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, PipelineError> {
         let mut blobs = build_archive_blobs(input.root)?;
         blobs.extend(build_guide_blobs(input.root)?);
+        blobs.push(build_docs_archive(input.root)?);
         let gts = build_snapshot(input.root, input.upstream, blobs)?;
         let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
         artifacts.insert(SNAPSHOT_PATH.to_string(), gts);
@@ -1247,6 +1294,56 @@ mod ustar_tests {
         assert_eq!(&raw[257..263], b"ustar\0");
         assert_eq!(&raw[263..265], b"00");
         assert_eq!(parse(&raw), members);
+    }
+
+    fn repo_root() -> std::path::PathBuf {
+        std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("..")
+            .join("..")
+            .canonicalize()
+            .unwrap()
+    }
+
+    #[test]
+    fn build_docs_archive_packs_the_rendered_site() {
+        let blob = build_docs_archive(&repo_root()).expect("docs archive");
+        assert_eq!(blob.rep, REP_ONTOLOGY_DOCS);
+        assert_eq!(blob.media_type, ARCHIVE_MEDIA_TYPE);
+
+        let members = parse(&blob.data);
+        assert!(!members.is_empty(), "the site archive must carry members");
+
+        // Every member is under an INTERNAL `x-gmeow-*/` tag (English carrier plus
+        // any translation language) — exactly the `{tag}/` prefix
+        // `_unpack_doc_archive` filters on, NOT the carrier key (`english/`).
+        assert!(
+            members.iter().all(|(n, _)| n.starts_with("x-gmeow-")),
+            "every member must carry an internal-tag prefix, got e.g. {:?}",
+            members.iter().map(|(n, _)| n).take(3).collect::<Vec<_>>()
+        );
+        assert!(
+            members
+                .iter()
+                .any(|(n, _)| n == "x-gmeow-english/index.html"),
+            "the English landing page must be present"
+        );
+        // The site carries its structural assets (deterministic, language-keyed).
+        for asset in ["assets/gmeow.css", "search-index.json", "llms-docs.txt"] {
+            let want = format!("x-gmeow-english/{asset}");
+            assert!(
+                members.iter().any(|(n, _)| n == &want),
+                "expected site asset {want}"
+            );
+        }
+        // Member names CAN exceed the 100-byte USTAR field (LongLink-covered).
+        // Today's longest stays under it, so LongLink is a defensive net rather
+        // than currently-triggered — `long_member_name_round_trips_via_longlink`
+        // is the dedicated proof. Logged so a future overflow is visible.
+        let max_len = members.iter().map(|(n, _)| n.len()).max().unwrap_or(0);
+        eprintln!(
+            "ontology-docs: {} members, longest name {max_len}B",
+            members.len()
+        );
     }
 
     #[test]

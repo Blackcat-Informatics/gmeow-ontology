@@ -48,6 +48,41 @@ fn walk_files(dir: &Path, out: &mut Vec<std::path::PathBuf>) -> Result<(), Pipel
     Ok(())
 }
 
+/// Every raw source file `gmeow_docs::DocsModel::discover` reads: slice modules,
+/// per-slice `docs.md` guides, slice `examples/*.ttl`, `docs/four-boxes.md`, and
+/// the `i18n/` UI catalog. These are NOT reflected in the composed
+/// `stage-gts-compose` product (guide bodies ride the bundle only as blake3
+/// digests), so any stage that derives an artifact from the docs model must declare
+/// them as `input_files` for cache soundness. Shared by `DocsRenderStage` (the
+/// documentation graph) and `SnapshotStage` (the embedded rendered site, #897).
+pub(crate) fn docs_source_files(root: &Path) -> Result<Vec<std::path::PathBuf>, PipelineError> {
+    let mut files: Vec<std::path::PathBuf> = Vec::new();
+    for module in crate::stages::source_load::module_files(root)? {
+        let dir = module.parent().unwrap_or(root);
+        files.push(module.clone());
+        let docs = dir.join("docs.md");
+        if docs.is_file() {
+            files.push(docs);
+        }
+        if let Ok(entries) = std::fs::read_dir(dir.join("examples")) {
+            for entry in entries.flatten() {
+                let p = entry.path();
+                if p.extension().is_some_and(|x| x == "ttl") {
+                    files.push(p);
+                }
+            }
+        }
+    }
+    let four_boxes = root.join("docs").join("four-boxes.md");
+    if four_boxes.is_file() {
+        files.push(four_boxes);
+    }
+    walk_files(&root.join("i18n"), &mut files)?;
+    files.sort();
+    files.dedup();
+    Ok(files)
+}
+
 // ── Stage impl ───────────────────────────────────────────────────────────────
 
 /// The `docs_render` pipeline stage.
@@ -85,38 +120,11 @@ impl Stage for DocsRenderStage {
         "docs_render.v1"
     }
     fn input_files(&self, root: &Path) -> Result<Vec<std::path::PathBuf>, PipelineError> {
-        // `DocsModel::discover` reads the slice catalog (modules, per-slice `docs.md`
-        // guides, examples, recipes/learning-paths in the module graphs), plus
-        // `docs/four-boxes.md` and the `i18n/` UI catalog — sources the consumed
-        // `stage-gts-compose` product does NOT reflect (the guide BODIES ride the
-        // bundle only as blake3 blob digests, not as composed triples). Declare them
-        // so a guide / four-boxes / i18n edit busts the cache (cache soundness for the
-        // raw-source half of this DocsRender leaf, #863).
-        let mut files: Vec<std::path::PathBuf> = Vec::new();
-        for module in crate::stages::source_load::module_files(root)? {
-            let dir = module.parent().unwrap_or(root);
-            files.push(module.clone());
-            let docs = dir.join("docs.md");
-            if docs.is_file() {
-                files.push(docs);
-            }
-            if let Ok(entries) = std::fs::read_dir(dir.join("examples")) {
-                for entry in entries.flatten() {
-                    let p = entry.path();
-                    if p.extension().is_some_and(|x| x == "ttl") {
-                        files.push(p);
-                    }
-                }
-            }
-        }
-        let four_boxes = root.join("docs").join("four-boxes.md");
-        if four_boxes.is_file() {
-            files.push(four_boxes);
-        }
-        walk_files(&root.join("i18n"), &mut files)?;
-        files.sort();
-        files.dedup();
-        Ok(files)
+        // The raw-source half of this DocsRender leaf — declared so a guide /
+        // four-boxes / i18n edit busts the cache (cache soundness, #863). The
+        // snapshot stage embeds the rendered SITE from these same sources (#897),
+        // so it shares this list via `docs_source_files`.
+        docs_source_files(root)
     }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, PipelineError> {
         let graph = render_docs_graph(input.root)?;
