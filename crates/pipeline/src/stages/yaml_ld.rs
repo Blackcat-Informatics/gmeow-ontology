@@ -781,53 +781,64 @@ fn emit_value_quad(
         .map_err(|e| PipelineError::Parse(e.to_string()))?;
 
     if let Some(ann) = annotation {
-        let reifier_subject = ann
-            .get("@id")
-            .and_then(Value::as_str)
-            .ok_or_else(|| PipelineError::Decode("annotation without @id".to_string()))?;
-        let reifier: NamedOrBlankNode = if let Some(label) = reifier_subject.strip_prefix("_:") {
-            oxigraph::model::BlankNode::new(label.to_string())
-                .map_err(|e| PipelineError::Decode(e.to_string()))?
-                .into()
-        } else {
-            NamedNode::new(expand(reifier_subject))
-                .map_err(|e| PipelineError::Decode(e.to_string()))?
-                .into()
+        // The emitter may attach one annotation object or an array when several
+        // distinct reifiers annotate the same base triple (gmeow-gts#213).
+        let annotations: Vec<&Value> = match &ann {
+            Value::Array(arr) => arr.iter().collect(),
+            other => vec![other],
         };
-        let reifies = NamedNode::new(RDF_REIFIES).unwrap();
-        let quoted = oxigraph::model::Term::Triple(Box::new(oxigraph::model::Triple::new(
-            subject, predicate, object,
-        )));
-        store
-            .insert(&Quad::new(
-                reifier.clone(),
-                reifies,
-                quoted,
-                oxigraph::model::GraphName::DefaultGraph,
-            ))
-            .map_err(|e| PipelineError::Parse(e.to_string()))?;
-
-        for (key, val) in ann.as_object().unwrap() {
-            if key == "@id" {
-                continue;
-            }
-            let ann_predicate =
-                NamedNode::new(expand(key)).map_err(|e| PipelineError::Decode(e.to_string()))?;
-            let vals = if let Value::Array(arr) = val {
-                arr.clone()
+        for ann_node in annotations {
+            let reifier_subject = ann_node
+                .get("@id")
+                .and_then(Value::as_str)
+                .ok_or_else(|| PipelineError::Decode("annotation without @id".to_string()))?;
+            let reifier: NamedOrBlankNode = if let Some(label) = reifier_subject.strip_prefix("_:")
+            {
+                oxigraph::model::BlankNode::new(label.to_string())
+                    .map_err(|e| PipelineError::Decode(e.to_string()))?
+                    .into()
             } else {
-                vec![val.clone()]
+                NamedNode::new(expand(reifier_subject))
+                    .map_err(|e| PipelineError::Decode(e.to_string()))?
+                    .into()
             };
-            for v in vals {
-                let (ann_object, _) = parse_value_object(&v, expand)?;
-                store
-                    .insert(&Quad::new(
-                        reifier.clone(),
-                        ann_predicate.clone(),
-                        ann_object,
-                        oxigraph::model::GraphName::DefaultGraph,
-                    ))
-                    .map_err(|e| PipelineError::Parse(e.to_string()))?;
+            let reifies = NamedNode::new(RDF_REIFIES).unwrap();
+            let quoted = oxigraph::model::Term::Triple(Box::new(oxigraph::model::Triple::new(
+                subject.clone(),
+                predicate.clone(),
+                object.clone(),
+            )));
+            store
+                .insert(&Quad::new(
+                    reifier.clone(),
+                    reifies,
+                    quoted,
+                    oxigraph::model::GraphName::DefaultGraph,
+                ))
+                .map_err(|e| PipelineError::Parse(e.to_string()))?;
+
+            for (key, val) in ann_node.as_object().unwrap() {
+                if key == "@id" {
+                    continue;
+                }
+                let ann_predicate = NamedNode::new(expand(key))
+                    .map_err(|e| PipelineError::Decode(e.to_string()))?;
+                let vals = if let Value::Array(arr) = val {
+                    arr.clone()
+                } else {
+                    vec![val.clone()]
+                };
+                for v in vals {
+                    let (ann_object, _) = parse_value_object(&v, expand)?;
+                    store
+                        .insert(&Quad::new(
+                            reifier.clone(),
+                            ann_predicate.clone(),
+                            ann_object,
+                            oxigraph::model::GraphName::DefaultGraph,
+                        ))
+                        .map_err(|e| PipelineError::Parse(e.to_string()))?;
+                }
             }
         }
     }
@@ -1019,9 +1030,20 @@ mod tests {
     use super::*;
 
     use gmeow_gts::model::{Term, TermKind};
+    use gmeow_rdf::oxigraph::rdf_quad_from_oxigraph;
+    use gmeow_rdf::{
+        BlankScope, RdfDatasetBuilder, RdfLiteral, RdfLookaside, RdfTerm, RdfTextDirection,
+        RdfTriple, TermId,
+    };
 
     use oxigraph::io::RdfParser;
-    use oxigraph::model::{Dataset, NamedNode, NamedOrBlankNode};
+    use oxigraph::model::{
+        dataset::{CanonicalizationAlgorithm, CanonicalizationHashAlgorithm},
+        Dataset, NamedNode, NamedOrBlankNode, Quad, Term as OxTerm,
+    };
+    use std::collections::HashSet;
+    use std::path::PathBuf;
+    use std::sync::Arc;
 
     fn iri_term(value: &str) -> Term {
         Term {
@@ -1174,6 +1196,42 @@ mod tests {
             canonical_nquads(&expected),
             canonical_nquads(&actual),
             "JSON-LD-star round-trip diverged from N-Quads-star baseline"
+        );
+    }
+
+    #[test]
+    fn multiple_reifiers_on_same_triple_roundtrip() {
+        // gmeow-gts#213: RDF 1.2 allows several distinct explicit reifiers for
+        // the same triple content. The JSON-LD-star emitter serializes them as
+        // an @annotation array; the parser must reconstruct each one.
+        let mut graph = Graph::default();
+        graph.terms.push(iri_term("https://example.org/s"));
+        graph.terms.push(iri_term("https://example.org/p"));
+        graph.terms.push(iri_term("https://example.org/o"));
+        graph.terms.push(iri_term("https://example.org/r1"));
+        graph.terms.push(iri_term("https://example.org/r2"));
+        graph
+            .terms
+            .push(iri_term("https://example.org/accordingTo"));
+        graph.terms.push(iri_term("https://example.org/source-a"));
+        graph.terms.push(iri_term("https://example.org/confidence"));
+        graph.terms.push(literal_term("0.9"));
+        graph.terms.push(literal_term("0.7"));
+
+        graph.quads.push((0, 1, 2, None));
+        graph.reifiers.push((3, (0, 1, 2)));
+        graph.reifiers.push((4, (0, 1, 2)));
+        graph.annotations.push((3, 5, 6));
+        graph.annotations.push((4, 7, 8));
+
+        let json = serialize_graph(&graph).expect("serialize");
+        let expected = parse_nquads(&gmeow_gts::nquads::to_nquads(&graph));
+        let actual = parse_jsonld_star(json.as_bytes()).expect("parse JSON-LD-star");
+
+        assert_eq!(
+            canonical_nquads(&expected),
+            canonical_nquads(&actual),
+            "multiple reifiers must round-trip through JSON-LD-star"
         );
     }
 
@@ -1643,6 +1701,222 @@ mod tests {
         assert!(
             dataset_has(&dataset, &claim, &confidence, &meta),
             "typed annotation triple must survive downcast"
+        );
+    }
+
+    /// Load a Turtle-star file into an oxigraph [`Dataset`] without Store
+    /// canonicalization, preserving lexical forms from the committed artifact.
+    fn load_turtle_dataset(path: &std::path::Path) -> Result<Dataset, PipelineError> {
+        let bytes = std::fs::read(path)
+            .map_err(|e| PipelineError::Parse(format!("read {}: {e}", path.display())))?;
+        let quads: Vec<Quad> = RdfParser::from_format(RdfFormat::Turtle)
+            .lenient()
+            .for_slice(&bytes)
+            .map(|q| q.map_err(|e| PipelineError::Parse(format!("Turtle parse: {e}"))))
+            .collect::<Result<Vec<_>, _>>()?;
+        Ok(quads.into_iter().collect())
+    }
+
+    /// Convert an oxigraph term into the gmeow-rdf owned model.
+    fn rdf_term_from_oxigraph_term(term: &OxTerm) -> RdfTerm {
+        match term {
+            OxTerm::NamedNode(node) => RdfTerm::iri(node.as_str()),
+            OxTerm::BlankNode(node) => RdfTerm::blank_node(node.as_str()),
+            OxTerm::Literal(literal) => RdfTerm::literal(RdfLiteral {
+                lexical_form: literal.value().to_owned(),
+                datatype: Some(literal.datatype().as_str().to_owned()),
+                language: literal.language().map(str::to_owned),
+                direction: literal.direction().map(|direction| match direction {
+                    oxigraph::model::BaseDirection::Ltr => RdfTextDirection::Ltr,
+                    oxigraph::model::BaseDirection::Rtl => RdfTextDirection::Rtl,
+                }),
+            }),
+            OxTerm::Triple(triple) => RdfTerm::triple(rdf_triple_from_oxigraph_term(triple)),
+        }
+    }
+
+    fn rdf_triple_from_oxigraph_term(triple: &oxigraph::model::Triple) -> RdfTriple {
+        let subject = match &triple.subject {
+            NamedOrBlankNode::NamedNode(node) => RdfTerm::iri(node.as_str()),
+            NamedOrBlankNode::BlankNode(node) => RdfTerm::blank_node(node.as_str()),
+        };
+        RdfTriple::new(
+            subject,
+            triple.predicate.as_str(),
+            rdf_term_from_oxigraph_term(&triple.object),
+        )
+    }
+
+    /// Intern an owned RDF term into an [`RdfDatasetBuilder`], recursing into
+    /// triple terms so nested quoted triples are preserved.
+    fn intern_rdf_term(
+        builder: &mut RdfDatasetBuilder,
+        term: &RdfTerm,
+    ) -> Result<TermId, PipelineError> {
+        Ok(match term {
+            RdfTerm::Iri(iri) => builder.intern_iri(iri.clone()),
+            RdfTerm::BlankNode(label) => builder.intern_blank(label.clone(), BlankScope::DEFAULT),
+            RdfTerm::Literal(lit) => builder.intern_literal(lit.clone()),
+            RdfTerm::Triple(triple) => {
+                let s = intern_rdf_term(builder, &triple.subject)?;
+                let p = builder.intern_iri(triple.predicate.clone());
+                let o = intern_rdf_term(builder, &triple.object)?;
+                builder.intern_triple(s, p, o)
+            }
+        })
+    }
+
+    /// Build a gmeow-rdf [`RdfDataset`] from an oxigraph dataset, separating
+    /// RDF 1.2 reifier bindings (`?r rdf:reifies << ?s ?p ?o >>`) and their
+    /// annotation triples from regular quads.
+    fn rdf_dataset_from_oxigraph_dataset(
+        dataset: &Dataset,
+    ) -> Result<Arc<gmeow_rdf::RdfDataset>, PipelineError> {
+        let quads: Vec<Quad> = dataset.iter().map(|q| q.into_owned()).collect();
+
+        let mut reifier_subjects: HashSet<NamedOrBlankNode> = HashSet::new();
+        for quad in &quads {
+            if quad.predicate.as_str() == RDF_REIFIES && matches!(&quad.object, OxTerm::Triple(_)) {
+                reifier_subjects.insert(quad.subject.clone());
+            }
+        }
+
+        let mut builder = RdfDatasetBuilder::new();
+        for quad in &quads {
+            // Reifier binding: move to the reifier table, not the quad table.
+            if quad.predicate.as_str() == RDF_REIFIES {
+                if let OxTerm::Triple(triple) = &quad.object {
+                    let reifier = intern_rdf_term(
+                        &mut builder,
+                        &rdf_term_from_oxigraph_term(&OxTerm::from(quad.subject.clone())),
+                    )?;
+                    let s = intern_rdf_term(
+                        &mut builder,
+                        &rdf_term_from_oxigraph_term(&OxTerm::from(triple.subject.clone())),
+                    )?;
+                    let p = builder.intern_iri(triple.predicate.as_str().to_string());
+                    let o = intern_rdf_term(
+                        &mut builder,
+                        &rdf_term_from_oxigraph_term(&triple.object),
+                    )?;
+                    let triple_id = builder.intern_triple(s, p, o);
+                    builder.push_reifier(reifier, triple_id);
+                    continue;
+                }
+            }
+
+            // Annotation triple on a known reifier: move to the annotation table.
+            if reifier_subjects.contains(&quad.subject) {
+                let reifier = intern_rdf_term(
+                    &mut builder,
+                    &rdf_term_from_oxigraph_term(&OxTerm::from(quad.subject.clone())),
+                )?;
+                let p = builder.intern_iri(quad.predicate.as_str().to_string());
+                let o = intern_rdf_term(&mut builder, &rdf_term_from_oxigraph_term(&quad.object))?;
+                builder.push_annotation(reifier, p, o);
+                continue;
+            }
+
+            // Regular quad.
+            let q = rdf_quad_from_oxigraph(quad);
+            let s = intern_rdf_term(&mut builder, &q.subject)?;
+            let p = builder.intern_iri(q.predicate);
+            let o = intern_rdf_term(&mut builder, &q.object)?;
+            let g = match &q.graph_name {
+                Some(term) => Some(intern_rdf_term(&mut builder, term)?),
+                None => None,
+            };
+            builder.push_quad(s, p, o, g);
+        }
+
+        builder
+            .freeze()
+            .map_err(|e| PipelineError::Parse(format!("freeze RdfDataset: {e}")))
+    }
+
+    /// Fold an [`RdfDataset`] into a gmeow-gts [`Graph`] via the production GTS
+    /// writer/reader seam.
+    fn graph_from_rdf_dataset(
+        dataset: &Arc<gmeow_rdf::RdfDataset>,
+    ) -> Result<Graph, PipelineError> {
+        let bytes = gmeow_rdf::gts_write::to_gts(
+            dataset,
+            &RdfLookaside::default(),
+            "yaml-ld-full-roundtrip",
+        )
+        .map_err(|e| PipelineError::Parse(format!("to_gts: {e}")))?;
+        gmeow_rdf::gts::read_graph(&bytes, false)
+            .map_err(|e| PipelineError::Parse(format!("read_graph: {e}")))
+    }
+
+    /// Return an RDFC-1.0 canonical, deterministically sorted quad representation.
+    fn canonical_lines(dataset: &Dataset) -> Vec<String> {
+        let mut ds = dataset.clone();
+        ds.canonicalize(CanonicalizationAlgorithm::Rdfc10 {
+            hash_algorithm: CanonicalizationHashAlgorithm::Sha256,
+        });
+        let mut lines: Vec<String> = ds.iter().map(|q| q.to_string()).collect();
+        lines.sort();
+        lines
+    }
+
+    fn repo_root() -> PathBuf {
+        let manifest = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+        manifest
+            .parent()
+            .expect("workspace parent")
+            .parent()
+            .expect("repository root")
+            .to_path_buf()
+    }
+
+    /// Full-graph round-trip gate for the committed RDF 1.2 statement artifact
+    /// (#699 acceptance criterion #2, PR #978).
+    #[test]
+    fn committed_rdf12_statements_roundtrip_through_jsonld_star() {
+        let path = repo_root().join("generated/statements/gmeow.rdf12.ttl");
+
+        let original = load_turtle_dataset(&path)
+            .expect("load committed generated/statements/gmeow.rdf12.ttl");
+        let dataset = rdf_dataset_from_oxigraph_dataset(&original)
+            .expect("convert committed artifact to RdfDataset");
+        let graph = graph_from_rdf_dataset(&dataset).expect("fold committed artifact to GTS graph");
+        let json = serialize_graph(&graph).expect("serialize GTS graph to JSON-LD-star");
+        let roundtrip = parse_jsonld_star(json.as_bytes())
+            .expect("parse JSON-LD-star back to oxigraph dataset");
+
+        assert_eq!(
+            canonical_lines(&original),
+            canonical_lines(&roundtrip),
+            "committed generated/statements/gmeow.rdf12.ttl must round-trip through JSON-LD-star"
+        );
+    }
+
+    /// Optional full-graph round-trip gate for the built `dist/gmeow.jsonld`
+    /// artifact. Requires `make build` to have produced `dist/gmeow.jsonld`;
+    /// skipped silently when the file is absent so `cargo test` still passes
+    /// in a source-only checkout.
+    #[test]
+    fn dist_jsonld_roundtrips_through_oxigraph() {
+        let path = repo_root().join("dist/gmeow.jsonld");
+        if !path.exists() {
+            eprintln!("dist/gmeow.jsonld not present; run `make build` to exercise this test");
+            return;
+        }
+
+        let original = parse_jsonld_star(&std::fs::read(&path).expect("read dist/gmeow.jsonld"))
+            .expect("parse built dist/gmeow.jsonld");
+        let dataset = rdf_dataset_from_oxigraph_dataset(&original)
+            .expect("convert dist JSON-LD-star to RdfDataset");
+        let graph = graph_from_rdf_dataset(&dataset).expect("fold dist artifact to GTS graph");
+        let json = serialize_graph(&graph).expect("re-serialize GTS graph to JSON-LD-star");
+        let roundtrip = parse_jsonld_star(json.as_bytes())
+            .expect("parse re-serialized JSON-LD-star back to oxigraph dataset");
+
+        assert_eq!(
+            canonical_lines(&original),
+            canonical_lines(&roundtrip),
+            "built dist/gmeow.jsonld must round-trip through JSON-LD-star"
         );
     }
 
