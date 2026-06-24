@@ -40,5 +40,9 @@
 #![forbid(unsafe_code)]
 
 pub mod datatype;
+pub mod numeric;
+pub mod value;
 
 pub use datatype::{XsdDatatype, XSD_NS};
+pub use numeric::Decimal;
+pub use value::{XsdError, XsdValue};
