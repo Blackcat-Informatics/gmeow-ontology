@@ -1,21 +1,24 @@
 """Tests for the rights / IP / trademark / licensing facility (#21).
 
-Covers the ontology structure (relator groundings, reuse-by-subproperty, the
-disjoint deontic trio, the open value vocabularies, no preferred/primary right),
-the closed-world SHACL shapes (well-formed / malformed / expired-warning), and the
-ODRL / CC REL / schema.org projection round-trips over the coverage fixture.
+Structural TBox assertions (class stereotypes, subclass/subproperty wiring,
+disjointness, value-vocabulary seeding, Principle-9 guards) have been migrated
+to the declarative DSL at slices/core/rights/tests/structural.ttl and run under
+the native Rust slicetest harness (crates/slicetest).
+
+Retained here: the numeric action-count check (not expressible as a module-scoped
+ASK), the closed-world SHACL shape conformance tests, and the ODRL / CC REL /
+schema.org projection round-trips over the coverage fixture.
 """
 
 from __future__ import annotations
 
 from pathlib import Path
 
-from gmeow_rdf.compat.rdflib import OWL, RDF, RDFS, Graph, Namespace, URIRef
+from gmeow_rdf.compat.rdflib import RDF, Graph, Namespace
 
 from gmeow_tools.config import NAMESPACE
 from gmeow_tools.graph import load_merged_graph
 from gmeow_tools.projections import project_graph
-from gmeow_tools.slices import module_path
 from tests._graph_nt import run_shacl
 
 GM = Namespace(NAMESPACE)
@@ -28,7 +31,6 @@ EX = Namespace("https://example.org/rights/")
 
 SHAPES_FIXTURES = Path(__file__).parent / "fixtures" / "shapes"
 COVERAGE_FIXTURES = Path(__file__).parent / "fixtures" / "coverage"
-GUFO = Namespace("http://purl.org/nemo/gufo#")
 
 
 def _graph() -> Graph:
@@ -46,88 +48,8 @@ def _projection_source() -> Graph:
 
 
 # --------------------------------------------------------------------------- #
-# Ontology structure
+# Ontology structure (numeric check — not expressible as a module-scoped ASK)
 # --------------------------------------------------------------------------- #
-
-
-def test_core_relators_are_grounded() -> None:
-    g = _graph()
-    for cls, stereo in (
-        (GM.RightsStatement, GUFO.SubKind),
-        (GM.Copyright, GUFO.Kind),
-        (GM.Trademark, GUFO.Kind),
-        (GM.Mark, GUFO.Kind),
-        (GM.Rule, GUFO.Category),
-        (GM.Permission, GUFO.Kind),
-        (GM.Prohibition, GUFO.Kind),
-        (GM.Duty, GUFO.Kind),
-        (GM.License, GUFO.SubKind),
-    ):
-        assert (cls, RDF.type, OWL.Class) in g, cls
-        assert (cls, RDF.type, stereo) in g, (cls, stereo)
-    # The IP relators specialise gufo:Relator; the rules specialise gmeow:Rule.
-    assert (GM.RightsStatement, RDFS.subClassOf, GUFO.Relator) in g
-    assert (GM.Permission, RDFS.subClassOf, GM.Rule) in g
-
-
-def test_license_is_an_agreement() -> None:
-    g = _graph()
-    assert (GM.License, RDFS.subClassOf, GM.Agreement) in g
-
-
-def test_holder_and_party_properties_specialise_reused_terms() -> None:
-    g = _graph()
-    # Holder attribution reuses gmeow:wasAttributedTo (Principle: reuse, not duplicate).
-    assert (GM.copyrightHolder, RDFS.subPropertyOf, GM.wasAttributedTo) in g
-    assert (GM.trademarkHolder, RDFS.subPropertyOf, GM.wasAttributedTo) in g
-    # Licence parties reuse gmeow:hasParty.
-    assert (GM.licensor, RDFS.subPropertyOf, GM.hasParty) in g
-    assert (GM.licensee, RDFS.subPropertyOf, GM.hasParty) in g
-
-
-def test_deontic_trio_is_disjoint() -> None:
-    g = _graph()
-    members = set()
-    for adc in g.subjects(RDF.type, OWL.AllDisjointClasses):
-        for lst in g.objects(adc, OWL.members):
-            members |= set(g.items(lst))
-    assert {GM.Permission, GM.Prohibition, GM.Duty} <= members
-
-
-def test_value_vocabularies_are_open_individuals() -> None:
-    g = _graph()
-    vocabs = (GM.RightsAction, GM.LicenseFamily, GM.TrademarkStatus, GM.CopyrightStatus)
-    for vocab in vocabs:
-        assert (vocab, RDFS.subClassOf, GUFO.QualityValue) in g, vocab
-    # A representative seed individual from each vocabulary exists.
-    assert (GM.actionReproduce, RDF.type, GM.RightsAction) in g
-    assert (GM.licenseFamilyCC, RDF.type, GM.LicenseFamily) in g
-    assert (GM.trademarkStatusRegistered, RDF.type, GM.TrademarkStatus) in g
-    assert (GM.copyrightStatusInCopyright, RDF.type, GM.CopyrightStatus) in g
-
-
-def test_spdx_license_id_property_exists() -> None:
-    g = _graph()
-    assert (GM.spdxLicenseId, RDF.type, OWL.DatatypeProperty) in g
-    assert (GM.spdxLicenseId, RDFS.domain, GM.License) in g
-
-
-def test_constraint_algebra_terms_exist() -> None:
-    g = _graph()
-    assert (GM.AtomicConstraint, RDFS.subClassOf, GM.Constraint) in g
-    assert (GM.LogicalConstraint, RDFS.subClassOf, GM.Constraint) in g
-    assert (GM.ruleConstraint, RDF.type, OWL.ObjectProperty) in g
-    # The ODRL operand / operator / logic value vocabularies are seeded.
-    assert (GM.leftOpDateTime, RDF.type, GM.LeftOperand) in g
-    assert (GM.operatorLteq, RDF.type, GM.ConstraintOperator) in g
-    assert (GM.logicAnd, RDF.type, GM.ConstraintLogic) in g
-    assert (GM.conflictProhibit, RDF.type, GM.ConflictStrategy) in g
-
-
-def test_rights_type_vocabulary_exists() -> None:
-    g = _graph()
-    for t in ("rightsTypeCopyright", "rightsTypePatent", "rightsTypeTradeSecret"):
-        assert (GM[t], RDF.type, GM.RightsType) in g
 
 
 def test_expanded_action_vocabulary_is_seeded() -> None:
@@ -138,29 +60,6 @@ def test_expanded_action_vocabulary_is_seeded() -> None:
     assert len(actions) >= 45, len(actions)
     for a in ("actionSell", "actionStream", "actionModify", "actionAnonymize"):
         assert GM[a] in actions, a
-
-
-def test_no_action_value_is_a_class() -> None:
-    """Actions are values, never per-value subclasses (Principle 9, no overtyping)."""
-    g = _graph()
-    for action in g.subjects(RDF.type, GM.RightsAction):
-        assert (action, RDF.type, OWL.Class) not in g
-
-
-def test_no_preferred_or_primary_rights_term() -> None:
-    """No gmeow:primary* / gmeow:preferred* rights term (Principle 9)."""
-    module = Graph().parse(
-        module_path("rights"),
-        format="turtle",
-    )
-    offenders = []
-    for s in set(module.subjects()):
-        if not isinstance(s, URIRef) or not str(s).startswith(NAMESPACE):
-            continue
-        local = str(s)[len(NAMESPACE) :].lower()
-        if "/" not in local and local.startswith(("primary", "preferred")):
-            offenders.append(str(s))
-    assert offenders == [], offenders
 
 
 # --------------------------------------------------------------------------- #
