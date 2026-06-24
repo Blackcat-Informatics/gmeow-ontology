@@ -190,6 +190,8 @@ fn fold_sssom_findings(report: &mut Report, path: &str, bytes: &[u8]) {
         }
     };
 
+    // Structural SSSOM parse failures returned above are already folded into the
+    // report; semantic validation diagnostics use the closed RDF severity enum.
     for diag in gmeow_rdf::sssom::validate(&set) {
         if diag.severity == RdfSeverity::Error {
             report.add_finding(sssom_finding(
@@ -212,10 +214,7 @@ fn sssom_finding(
 ) -> Finding {
     let mut finding = Finding::new(Severity::Error, "mapping-compile.sssom", message)
         .with_tool("mapping-compile");
-    let mut location = Location::new(Some(path.to_owned()), None, None, instance);
-    if location.is_empty() {
-        location.path = Some(path.to_owned());
-    }
+    let location = Location::new(Some(path.to_owned()), None, None, instance);
     finding.add_location(location);
     finding.detail = Some(format!("check={} code={}", check.into(), code.into()));
     finding
@@ -309,6 +308,59 @@ mod tests {
                 format!("{} {} {} .", q.subject, q.predicate, q.object)
             })
             .collect()
+    }
+
+    #[test]
+    fn sssom_diagnostics_surface_parse_and_validation_errors() {
+        let mut report = Report::new("mapping-compile");
+        fold_sssom_findings(
+            &mut report,
+            "generated/mappings/bad.sssom.tsv",
+            b"# mapping_set_id: https://example.org/missing-body\n",
+        );
+        let parse = report
+            .findings
+            .iter()
+            .find(|finding| finding.detail.as_deref() == Some("check=parse code=sssom-tsv-parse"))
+            .expect("parse failure finding");
+        assert_eq!(parse.code, "mapping-compile.sssom");
+        assert_eq!(
+            parse
+                .primary_location()
+                .and_then(|location| location.path.as_deref()),
+            Some("generated/mappings/bad.sssom.tsv")
+        );
+
+        let invalid = "\
+# mapping_set_id: https://example.org/mapping\n\
+# mapping_set_version: 0.1.0\n\
+# license: https://creativecommons.org/licenses/by/4.0/\n\
+# curie_map:\n\
+#   gmeow: https://blackcatinformatics.ca/gmeow/\n\
+#   skos: http://www.w3.org/2004/02/skos/core#\n\
+#   semapv: https://w3id.org/semapv/vocab/\n\
+subject_id\tpredicate_id\tobject_id\tmapping_justification\tconfidence\tcomment\n\
+nope:Foo\tskos:closeMatch\tgmeow:Bar\tsemapv:ManualMappingCuration\t0.7\tmissing prefix\n";
+        fold_sssom_findings(
+            &mut report,
+            "generated/mappings/prefix.sssom.tsv",
+            invalid.as_bytes(),
+        );
+        let validation = report
+            .findings
+            .iter()
+            .find(|finding| {
+                finding.detail.as_deref()
+                    == Some("check=PrefixMapCompleteness code=prefix validation")
+            })
+            .expect("validation failure finding");
+        assert_eq!(validation.code, "mapping-compile.sssom");
+        assert_eq!(
+            validation
+                .primary_location()
+                .and_then(|location| location.path.as_deref()),
+            Some("generated/mappings/prefix.sssom.tsv")
+        );
     }
 
     #[test]
