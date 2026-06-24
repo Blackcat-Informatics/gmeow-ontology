@@ -105,7 +105,7 @@ def test_projection_lint_problems_become_findings(
     monkeypatch.setattr(
         gmeow_slice,
         "lint_projection",
-        lambda _root: [
+        lambda _root, allow_network=False: [
             {
                 "severity": "ERROR",
                 "code": "fno-type",
@@ -135,7 +135,7 @@ def test_projection_lint_loader_failure_degrades_to_warning(
 ) -> None:
     """A native-lint loader failure becomes one warning, not a crash (#854)."""
 
-    def _boom(_root: str) -> object:
+    def _boom(_root: str, allow_network: bool = False) -> object:
         raise RuntimeError("native ext unavailable")
 
     monkeypatch.setattr(gmeow_slice, "lint_projection", _boom)
