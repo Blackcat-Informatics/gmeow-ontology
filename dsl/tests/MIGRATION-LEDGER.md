@@ -312,6 +312,31 @@ The observation-module asserted-TBox structural assertions (#66, #69) migrated t
 
 **Observations tally:** 19 converted + 1 partial (property-bridges: 8 of 11 converted) = 23 structural cells, 5 retained-with-reason (4 generated-SSSOM-mapping reads + 1 cross-slice kin-bridge). `tests/test_observations.py` 24 → 5 fns.
 
+## #867 structural batch 4 (procedures / languages / trust / profiles / employment / risk)
+
+Six more home slices migrated to `slices/<g>/<n>/tests/structural.ttl`. 37 converted
+fns → 97 `gmeow:StructuralAssertion` cells; all green (`cargo nextest -p gmeow-slicetest`,
+46/46 cell files). Per-cell `saRationale` names the source fn; detailed cell IRIs live
+in each `structural.ttl`. Every RETAINED / PARTIAL fn is rowed (no silent drops). This
+batch includes the first slices with `run_shacl` ExampleConformance tests (trust,
+profiles, employment, risk) — those `run_shacl` fns are RETAINED in pytest (a different
+cell type, deferred to a future example-conformance parcel). `risk` is #694-migrated
+(`logic:`); the rest are `gufo:`.
+
+| Slice (stereotype) | Converted fns → cells | Retained / partial fns (reason) |
+|---|---|---|
+| `extensions/procedures` (gufo:) | 14 → 18 cells | `test_ingestion_procedure_has_six_steps` (numeric cardinality count — not a scopeModule ASK) |
+| `extensions/languages` (gufo:/logic:) | 5 → 32 cells | 14 retained: cross-slice (Language/FormalLanguage/WritingSystem in `core/language`; ProficiencyScale/Level in `core/kernel`; languageCode/Tag, transliterationScheme, writtenInLanguage, versionOf, bcp47Tag, langEnglish/French/Mandarin in other slices) + 7 tool-function/dynamic sweeps |
+| `core/trust` (gufo:) | 6 → 13 cells | `test_contested_certification_coexists` (run_shacl ExampleConformance); `test_three_axes_are_orthogonal_in_trust` (cross-slice: accordingTo/wasAttributedTo/confidence in standpoint); `test_no_preferred_or_primary_trust_term` (whole-graph dynamic sweep) |
+| `core/profiles` (gufo:) | 5 → 11 cells | 3 run_shacl ExampleConformance fns (`test_profile_shape_passes_for_wellformed_profile`, `..._fails_for_invalid_profile_applies_to`, `..._open_value_guard_warns_on_orphan`) |
+| `extensions/employment` (gufo:) | 2 → 5 cells | 6 retained: cross-slice (Membership in relator slice, eventTypeHiring in `core/events`, foundedOn in `core/agreements`); 2 run_shacl ExampleConformance; 1 whole-graph dynamic sweep |
+| `extensions/risk` (logic:) | 5 → 18 cells | `test_no_occurrence_gate` (multi-file ABox dynamic check); 2 run_shacl ExampleConformance; `test_competency_severity_order_query` (generated `.rq` read) |
+
+**Batch-4 tally:** 37 converted fns → 97 structural cells across 6 slices; 31
+retained-with-reason (cross-slice subjects, 8 run_shacl ExampleConformance fns deferred,
+whole-graph dynamic sweeps, numeric/cardinality + `.rq` reads). First batch carrying
+`run_shacl` retentions (the example-conformance cell type is a separate future parcel).
+
 ## #867 structural batch 3 (accessibility / expertise / versions / lexicon / tags / notation)
 
 Six more home slices migrated to `slices/<g>/<n>/tests/structural.ttl` (all gufo:,

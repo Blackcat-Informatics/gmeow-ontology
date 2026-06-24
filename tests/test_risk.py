@@ -1,20 +1,21 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: MIT
-"""The risk slice (#354, EPIC #348).
+"""The risk slice (#354, EPIC #348) — retained pytest tests.
 
-Counterfactual causal structure without counterfactual machinery: cascades
-relate event TYPES, never instances — the no-occurrence gate makes that
-executable. Hazard is GMEOW's first logic:Disposition use; causal links are
-standpoint-indexed claims; severity is the fourth ordered-vocabulary use;
-Mitigation bridges to the deontic and procedural worlds by deliberately open
-range (the tenurePosition precedent — no extension→extension dependency).
+Structural TBox invariants have been migrated to the declarative slicetest
+DSL in slices/extensions/risk/tests/structural.ttl. Only tests that cannot
+be expressed as module-scoped SPARQL ASK cells are retained here:
+  - test_no_occurrence_gate: multi-file ABox dynamic check
+  - test_wellformed_risk_fixture_conforms: ExampleConformance via run_shacl
+  - test_malformed_risk_fixture_is_flagged: ExampleConformance via run_shacl
+  - test_competency_severity_order_query: external .rq file / result-set count
 """
 
 from __future__ import annotations
 
 from pathlib import Path
 
-from gmeow_rdf.compat.rdflib import OWL, RDF, RDFS, Graph, Namespace
+from gmeow_rdf.compat.rdflib import RDF, Graph, Namespace
 from gmeow_rdf.compat.rdflib.query import ResultRow
 
 from gmeow_tools.config import COMPETENCY_DIR
@@ -23,8 +24,6 @@ from tests._graph_nt import run_shacl
 
 GMEOW = "https://blackcatinformatics.ca/gmeow/"
 GM = Namespace(GMEOW)
-GUFO = Namespace("http://purl.org/nemo/gufo#")
-LOGIC = Namespace("https://blackcatinformatics.ca/logic/")
 
 FIXTURES = Path(__file__).parent / "fixtures" / "shapes"
 
@@ -37,88 +36,6 @@ def _fixture(name: str) -> Graph:
     g = Graph()
     g.parse(FIXTURES / f"{name}.ttl", format="turtle")
     return g
-
-
-# --------------------------------------------------------------------------- #
-# Structural invariants
-# --------------------------------------------------------------------------- #
-
-
-def test_hazard_is_a_disposition() -> None:
-    """First logic:Disposition use in GMEOW — a hazard that never manifests
-    is fully real."""
-    g = _graph()
-    assert (GM.Hazard, RDF.type, LOGIC.Kind) in g
-    assert (GM.Hazard, RDFS.subClassOf, LOGIC.Disposition) in g
-    assert (GM.Hazard, RDFS.subClassOf, GM.RiskFactor) in g
-    assert (GM.hazardBearer, RDF.type, OWL.FunctionalProperty) in g
-    assert (GM.manifestedAsType, RDFS.range, GM.EventType) in g
-
-
-def test_type_level_links_are_never_transitive() -> None:
-    """Chain composition is solver work (P12) — no causal property may ever
-    carry a transitivity axiom."""
-    g = _graph()
-    causal_props = (
-        GM.typeCauses,
-        GM.typeEnables,
-        GM.typePrevents,
-        GM.typeMitigates,
-        GM.linkNext,
-    )
-    for prop in causal_props:
-        assert (prop, RDF.type, OWL.ObjectProperty) in g, prop
-        assert (prop, RDF.type, OWL.TransitiveProperty) not in g, prop
-        assert (prop, RDF.type, OWL.FunctionalProperty) not in g, prop
-    for prop in (GM.typeCauses, GM.typeEnables, GM.typePrevents, GM.typeMitigates):
-        assert (prop, RDFS.domain, GM.EventType) in g, prop
-        assert (prop, RDFS.range, GM.EventType) in g, prop
-
-
-def test_causal_link_constituents() -> None:
-    g = _graph()
-    assert (GM.CausalLink, RDFS.subClassOf, LOGIC.Relator) in g
-    assert (GM.CausalLink, RDFS.subClassOf, GM.RiskFactor) in g
-    functional = (GM.linkAntecedent, GM.linkConsequent, GM.causalModality)
-    for prop in functional:
-        assert (prop, RDF.type, OWL.FunctionalProperty) in g, prop
-    # Source-variable values are deliberately NOT OWL-functional (PR #385):
-    # divergent estimates/grades/statuses coexist via the statement layer;
-    # single-valuedness per base graph is SHACL's job.
-    multi_source = (
-        GM.linkStrength,
-        GM.cascadeSeverity,
-        GM.hazardSeverity,
-        GM.mitigationStatus,
-    )
-    for prop in multi_source:
-        assert (prop, RDF.type, OWL.FunctionalProperty) not in g, prop
-    # Mechanism prose is localizable: NOT functional, range-open (#376 lesson).
-    assert (GM.linkMechanism, RDF.type, OWL.FunctionalProperty) not in g
-    assert g.value(GM.linkMechanism, RDFS.range) is None
-
-
-def test_severity_is_the_fourth_ordered_vocabulary() -> None:
-    g = _graph()
-    assert (GM.moreSevereThan, RDF.type, OWL.TransitiveProperty) in g
-    assert (GM.moreSevereThan, RDFS.domain, GM.SeverityLevel) in g
-    chain = [
-        (GM.severityCatastrophic, GM.severitySevere),
-        (GM.severitySevere, GM.severityModerate),
-        (GM.severityModerate, GM.severityMinor),
-    ]
-    for graver, lesser in chain:
-        assert (graver, GM.moreSevereThan, lesser) in g
-
-
-def test_mitigation_measure_is_range_open() -> None:
-    """The tenurePosition precedent, fourth use: norms and procedures plug in
-    with no extension→extension dependency (P16)."""
-    g = _graph()
-    assert g.value(GM.mitigationMeasure, RDFS.range) is None
-    assert (GM.mitigationCounters, RDFS.range, GM.RiskFactor) in g
-    assert (GM.RiskFactor, RDF.type, LOGIC.Category) in g
-    assert (GM.RiskFactor, RDFS.subClassOf, GM.Entity) in g
 
 
 def test_no_occurrence_gate() -> None:
