@@ -224,5 +224,5 @@ def test_fixture_repository_has_materialization_depth() -> None:
     vals = list(g.objects(EX.repo, GM.materializationDepth))
     assert len(vals) == 1
     val = Literal(vals[0])
-    assert val.datatype == XSD.integer
+    assert val.datatype == XSD.nonNegativeInteger
     assert str(val) == "2"

@@ -138,6 +138,21 @@ def test_graph_keeps_plain_and_explicit_xsd_string_as_separate_terms() -> None:
     assert list(g.objects(EX.alice, RDFS.label)) == [explicit]
 
 
+def test_parsed_graph_string_patterns_use_native_value_space() -> None:
+    """Parsed/native graphs have no shim provenance, so string lookups stay broad."""
+    g = Graph()
+    g.parse(
+        data=(
+            "@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n"
+            '<http://example.org/alice> rdfs:label "Alice" .\n'
+        ),
+        format="turtle",
+    )
+
+    assert (EX.alice, RDFS.label, Literal("Alice")) in g
+    assert (EX.alice, RDFS.label, Literal("Alice", datatype=XSD.string)) in g
+
+
 def test_graph_numeric_literal_contains_uses_value_space() -> None:
     """Numeric object patterns keep the RDFLib value-space containment behavior."""
     g = Graph()

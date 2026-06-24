@@ -188,12 +188,18 @@ def _inject_bindings(query_text: str, bindings: dict[str, Identifier]) -> str:
     return query_text[: brace + 1] + clause + query_text[brace + 1 :]
 
 
-def _literal_matches(candidate: Identifier, pattern: Literal) -> bool:
+def _literal_matches(
+    candidate: Identifier,
+    pattern: Literal,
+    *,
+    exact_string_provenance: bool,
+) -> bool:
     """Return whether a stored literal satisfies an object literal pattern."""
     if not isinstance(candidate, Literal):
         return False
     if (
-        _literal_bucket(candidate) == (str(candidate), _XSD_STRING, None)
+        exact_string_provenance
+        and _literal_bucket(candidate) == (str(candidate), _XSD_STRING, None)
         and candidate.datatype != pattern.datatype
     ):
         return bool(candidate == pattern)
@@ -317,9 +323,12 @@ class Graph:
             rp = p if p is not None else _require(from_native(quad.predicate))
             candidate = _require(from_native(quad.object))
             if isinstance(candidate, Literal):
-                for variant in self._literal_variants(rs, rp, candidate, None):
+                variants, exact = self._literal_variants(rs, rp, candidate, None)
+                for variant in variants:
                     if pattern_literal is not None and not _literal_matches(
-                        variant, pattern_literal
+                        variant,
+                        pattern_literal,
+                        exact_string_provenance=exact,
                     ):
                         continue
                     yield (rs, rp, variant)
@@ -740,13 +749,13 @@ class Graph:
         predicate: Identifier,
         candidate: Literal,
         graph_name: _GraphName,
-    ) -> tuple[Literal, ...]:
-        """Return exact RDFLib literal variants for a native literal bucket."""
+    ) -> tuple[tuple[Literal, ...], bool]:
+        """Return literal variants and whether they came from exact provenance."""
         key = _literal_quad_key(subject, predicate, candidate, graph_name)
         variants = self._literal_terms.get(key)
         if variants is None:
-            return (candidate,)
-        return tuple(variants)
+            return ((candidate,), False)
+        return (tuple(variants), True)
 
 
 class _GraphView:
@@ -821,9 +830,12 @@ class Dataset(Graph):
             if pg is not None:
                 gname = pg
             if isinstance(o, Literal):
-                for variant in self._literal_variants(s, p, o, gname):
+                variants, exact = self._literal_variants(s, p, o, gname)
+                for variant in variants:
                     if pattern_literal is not None and not _literal_matches(
-                        variant, pattern_literal
+                        variant,
+                        pattern_literal,
+                        exact_string_provenance=exact,
                     ):
                         continue
                     yield (s, p, variant, gname)
