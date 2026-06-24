@@ -1,0 +1,27 @@
+---
+source: crates/validate/tests/constitution_snapshot.rs
+expression: report.normalized()
+---
+{
+  "tool": "constitution",
+  "findings": [
+    {
+      "severity": "warning",
+      "code": "constitution.honor-system",
+      "message": "principle 1 ('SOTA by being SOTA') is enforced only by review practice (honor system)",
+      "tool": "constitution"
+    },
+    {
+      "severity": "warning",
+      "code": "constitution.honor-system",
+      "message": "principle 15 ('Every module earns its consumer') is enforced only by review practice (honor system)",
+      "tool": "constitution"
+    },
+    {
+      "severity": "warning",
+      "code": "constitution.honor-system",
+      "message": "principle 6 ('Greenfield — get it right, not compatible') is enforced only by review practice (honor system)",
+      "tool": "constitution"
+    }
+  ]
+}
