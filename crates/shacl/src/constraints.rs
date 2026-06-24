@@ -50,6 +50,68 @@ pub fn validate_shape<G: ShaclDataGraph>(
         results.extend(eval_property_shape(store, focus, ps, shape));
     }
 
+    // --- sh:closed (node-shape-level; needs the sibling property shapes) ---
+    for constraint in &shape.constraints {
+        if let Constraint::Closed { ignored } = constraint {
+            let mut rs = eval_closed(store, focus, shape, ignored);
+            for r in &mut rs {
+                r.apply_box_roles(&shape.box_roles, &[]);
+            }
+            results.extend(rs);
+        }
+    }
+
+    results
+}
+
+/// Evaluate `sh:closed` against a focus node (SHACL §4.8.1).
+///
+/// The permitted predicate set is the union of:
+/// - every simple-predicate `sh:path` of the shape's property shapes (an inverse
+///   path constrains incoming, not outgoing, triples and so does not permit an
+///   outgoing predicate);
+/// - the `sh:ignoredProperties` list; and
+/// - `rdf:type` (always allowed).
+///
+/// One result per focus-node outgoing triple whose predicate is not permitted.
+fn eval_closed<G: ShaclDataGraph>(
+    store: &G,
+    focus: &Term,
+    shape: &Shape,
+    ignored: &[NamedNode],
+) -> Vec<ValidationResult> {
+    let mut permitted: HashSet<String> = HashSet::new();
+    permitted.insert(rdf::TYPE.as_str().to_owned());
+    for ps in &shape.property_shapes {
+        if let Path::Predicate(predicate) = &ps.path {
+            permitted.insert(predicate.as_str().to_owned());
+        }
+    }
+    for ign in ignored {
+        permitted.insert(ign.as_str().to_owned());
+    }
+
+    let mut results = Vec::new();
+    let quads = store.quads_for_pattern(Some(focus), None, None, GraphFilter::AnyGraph);
+    for quad in quads {
+        let predicate = quad.predicate;
+        if permitted.contains(predicate.as_str()) {
+            continue;
+        }
+        results.push(ValidationResult {
+            focus_node: focus.clone(),
+            result_path: Some(Term::NamedNode(predicate.clone())),
+            value: Some(quad.object),
+            source_constraint_component: NamedNode::from(sh::CLOSED_CONSTRAINT_COMPONENT),
+            source_shape: shape.id.clone(),
+            severity: shape.severity,
+            message: shape.message.clone(),
+            source_box_roles: vec![],
+            path_box_roles: vec![],
+            result_box_roles: vec![],
+            attributions: vec![],
+        });
+    }
     results
 }
 
@@ -596,6 +658,104 @@ fn eval_constraint<G: ShaclDataGraph>(
             results
         }
 
+        // ── MaxLength (per value node) ─────────────────────────────────────────
+        Constraint::MaxLength(n) => {
+            let mut results = Vec::new();
+            let focus = value_nodes
+                .first()
+                .cloned()
+                .unwrap_or_else(|| source_shape.clone());
+            for value in value_nodes {
+                let len_opt = lexical_length(value);
+                let violates = match len_opt {
+                    None => true, // blank node
+                    Some(len) => (len as u64) > *n,
+                };
+                if violates {
+                    results.push(ValidationResult {
+                        focus_node: focus.clone(),
+                        result_path: result_path.clone(),
+                        value: Some(value.clone()),
+                        source_constraint_component: NamedNode::from(
+                            sh::MAX_LENGTH_CONSTRAINT_COMPONENT,
+                        ),
+                        source_shape: source_shape.clone(),
+                        severity,
+                        message: message.clone(),
+                        source_box_roles: vec![],
+                        path_box_roles: vec![],
+                        result_box_roles: vec![],
+                        attributions: vec![],
+                    });
+                }
+            }
+            results
+        }
+
+        // ── LanguageIn (per value node) ────────────────────────────────────────
+        Constraint::LanguageIn(tags) => {
+            let mut results = Vec::new();
+            let focus = value_nodes
+                .first()
+                .cloned()
+                .unwrap_or_else(|| source_shape.clone());
+            for value in value_nodes {
+                if !language_matches_any(value, tags) {
+                    results.push(ValidationResult {
+                        focus_node: focus.clone(),
+                        result_path: result_path.clone(),
+                        value: Some(value.clone()),
+                        source_constraint_component: NamedNode::from(
+                            sh::LANGUAGE_IN_CONSTRAINT_COMPONENT,
+                        ),
+                        source_shape: source_shape.clone(),
+                        severity,
+                        message: message.clone(),
+                        source_box_roles: vec![],
+                        path_box_roles: vec![],
+                        result_box_roles: vec![],
+                        attributions: vec![],
+                    });
+                }
+            }
+            results
+        }
+
+        // ── Not (per value node, recursive) ────────────────────────────────────
+        Constraint::Not(inner_shape) => {
+            let mut results = Vec::new();
+            let focus = value_nodes
+                .first()
+                .cloned()
+                .unwrap_or_else(|| source_shape.clone());
+            for value in value_nodes {
+                // Violation iff the value node DOES conform to the negated shape.
+                if conforms(store, value, inner_shape) {
+                    results.push(ValidationResult {
+                        focus_node: focus.clone(),
+                        result_path: result_path.clone(),
+                        value: Some(value.clone()),
+                        source_constraint_component: NamedNode::from(sh::NOT_CONSTRAINT_COMPONENT),
+                        source_shape: source_shape.clone(),
+                        severity,
+                        message: message.clone(),
+                        source_box_roles: vec![],
+                        path_box_roles: vec![],
+                        result_box_roles: vec![],
+                        attributions: vec![],
+                    });
+                }
+            }
+            results
+        }
+
+        // ── Closed (node-shape-level; evaluated in validate_shape) ─────────────
+        // The closed-world check needs the SET of permitted predicates, derived
+        // from the sibling property shapes — data `eval_constraint` does not
+        // receive. It is evaluated directly in `validate_shape`; here it is a
+        // no-op so the match stays exhaustive.
+        Constraint::Closed { .. } => vec![],
+
         // ── UniqueLang (on the SET) ────────────────────────────────────────────
         Constraint::UniqueLang(true) => {
             let mut seen_langs: std::collections::HashMap<String, usize> =
@@ -1086,6 +1246,30 @@ fn lexical_length(value: &Term) -> Option<usize> {
         Term::NamedNode(nn) => Some(nn.as_str().chars().count()),
         _ => None,
     }
+}
+
+/// Whether a value node's language tag matches any entry in an `sh:languageIn`
+/// list, using SHACL basic-filtering / prefix semantics (RFC 4647 §3.3.1).
+///
+/// A value tag matches an entry iff, comparing case-insensitively, it equals the
+/// entry or extends it at a subtag boundary (e.g. `"en"` matches `"en"` and
+/// `"en-US"`, but not `"eng"`). A non-language-tagged literal (or any non-literal)
+/// never matches, so it always violates the constraint.
+fn language_matches_any(value: &Term, tags: &[String]) -> bool {
+    let Term::Literal(lit) = value else {
+        return false;
+    };
+    let Some(lang) = lit.language() else {
+        return false;
+    };
+    let lang = lang.to_ascii_lowercase();
+    tags.iter().any(|entry| {
+        let entry = entry.to_ascii_lowercase();
+        lang == entry
+            || (lang.len() > entry.len()
+                && lang.as_bytes()[entry.len()] == b'-'
+                && lang.starts_with(&entry))
+    })
 }
 
 /// Parse a numeric value (xsd:integer, xsd:decimal, xsd:double) as `f64`.
@@ -2243,5 +2427,167 @@ mod tests {
         // Focus node is a literal — would fail, but shape is deactivated.
         let literal_focus = Term::Literal(Literal::new_simple_literal("anything"));
         assert!(validate_shape(&store, &literal_focus, &shape).is_empty());
+    }
+
+    // ── #700: maxLength ────────────────────────────────────────────────────────
+
+    #[test]
+    fn max_length_pass() {
+        let store = load_store(&format!("@prefix ex: <{EX}> . ex:a ex:p \"abc\" ."));
+        let shape = prop_shape("S", &format!("{EX}p"), vec![Constraint::MaxLength(5)]);
+        let results = validate_shape(&store, &ex("a"), &shape);
+        assert!(results.is_empty(), "\"abc\" (len 3) ≤ 5 must pass");
+    }
+
+    #[test]
+    fn max_length_fail() {
+        let store = load_store(&format!("@prefix ex: <{EX}> . ex:a ex:p \"abcdef\" ."));
+        let shape = prop_shape("S", &format!("{EX}p"), vec![Constraint::MaxLength(5)]);
+        let results = validate_shape(&store, &ex("a"), &shape);
+        assert_eq!(results.len(), 1);
+        assert!(component_iri(&results)[0].contains("MaxLength"));
+    }
+
+    // ── #700: languageIn ───────────────────────────────────────────────────────
+
+    #[test]
+    fn language_in_pass_prefix_match() {
+        // "hello"@en-US matches the entry "en" by basic-filtering prefix match.
+        let store = load_store(&format!("@prefix ex: <{EX}> . ex:a ex:p \"hello\"@en-US ."));
+        let shape = prop_shape(
+            "S",
+            &format!("{EX}p"),
+            vec![Constraint::LanguageIn(vec!["en".into(), "fr".into()])],
+        );
+        let results = validate_shape(&store, &ex("a"), &shape);
+        assert!(results.is_empty(), "en-US must match entry \"en\"");
+    }
+
+    #[test]
+    fn language_in_fail_unlisted_and_untagged() {
+        // "guten"@de is not in the list → violation; "plain" has no tag → violation.
+        let store = load_store(&format!(
+            "@prefix ex: <{EX}> . ex:a ex:p \"guten\"@de , \"plain\" ."
+        ));
+        let shape = prop_shape(
+            "S",
+            &format!("{EX}p"),
+            vec![Constraint::LanguageIn(vec!["en".into(), "fr".into()])],
+        );
+        let results = validate_shape(&store, &ex("a"), &shape);
+        assert_eq!(
+            results.len(),
+            2,
+            "both the de literal and the untagged literal violate"
+        );
+        assert!(component_iri(&results)[0].contains("LanguageIn"));
+    }
+
+    // ── #700: not ──────────────────────────────────────────────────────────────
+
+    #[test]
+    fn not_pass_when_inner_violated() {
+        // Inner shape requires NodeKind(Iri); the value is a literal, so it does
+        // NOT conform → sh:not is satisfied.
+        let store = load_store(&format!("@prefix ex: <{EX}> . ex:a ex:p \"lit\" ."));
+        let inner = shape_with("Inner", vec![Constraint::NodeKind(NodeKindValue::Iri)]);
+        let shape = prop_shape(
+            "S",
+            &format!("{EX}p"),
+            vec![Constraint::Not(Box::new(inner))],
+        );
+        let results = validate_shape(&store, &ex("a"), &shape);
+        assert!(
+            results.is_empty(),
+            "literal does not conform to inner ⇒ not() passes"
+        );
+    }
+
+    #[test]
+    fn not_fail_when_inner_conforms() {
+        // Inner shape requires NodeKind(Iri); the value IS an IRI, so it conforms
+        // → sh:not is violated.
+        let store = load_store(&format!("@prefix ex: <{EX}> . ex:a ex:p ex:b ."));
+        let inner = shape_with("Inner", vec![Constraint::NodeKind(NodeKindValue::Iri)]);
+        let shape = prop_shape(
+            "S",
+            &format!("{EX}p"),
+            vec![Constraint::Not(Box::new(inner))],
+        );
+        let results = validate_shape(&store, &ex("a"), &shape);
+        assert_eq!(results.len(), 1);
+        assert!(component_iri(&results)[0].contains("NotConstraintComponent"));
+    }
+
+    // ── #700: closed ───────────────────────────────────────────────────────────
+
+    fn closed_shape(ignored: Vec<NamedNode>, path_iris: &[&str]) -> Shape {
+        use crate::shapes::Path;
+        let property_shapes = path_iris
+            .iter()
+            .map(|p| PropertyShape {
+                path: Path::Predicate(NamedNode::new_unchecked(*p)),
+                constraints: vec![],
+                reifier_shapes: vec![],
+                reification_required: false,
+                severity: Severity::Violation,
+                message: None,
+                box_roles: vec![],
+            })
+            .collect();
+        Shape {
+            id: ex("S"),
+            targets: vec![],
+            constraints: vec![Constraint::Closed { ignored }],
+            property_shapes,
+            severity: Severity::Violation,
+            message: None,
+            deactivated: false,
+            box_roles: vec![],
+        }
+    }
+
+    #[test]
+    fn closed_pass_only_declared_predicates() {
+        // ex:a uses only ex:name (declared) and rdf:type (always allowed).
+        let store = load_store(&format!(
+            "@prefix ex: <{EX}> . @prefix rdf: <{RDF}> . ex:a a ex:Person ; ex:name \"Al\" ."
+        ));
+        let shape = closed_shape(vec![], &[&format!("{EX}name")]);
+        let results = validate_shape(&store, &ex("a"), &shape);
+        assert!(
+            results.is_empty(),
+            "only declared/rdf:type predicates ⇒ pass"
+        );
+    }
+
+    #[test]
+    fn closed_fail_extra_predicate() {
+        // ex:a also uses ex:age, which is neither declared nor ignored.
+        let store = load_store(&format!(
+            "@prefix ex: <{EX}> . ex:a ex:name \"Al\" ; ex:age 30 ."
+        ));
+        let shape = closed_shape(vec![], &[&format!("{EX}name")]);
+        let results = validate_shape(&store, &ex("a"), &shape);
+        assert_eq!(results.len(), 1, "ex:age is an undeclared predicate");
+        assert!(component_iri(&results)[0].contains("ClosedConstraintComponent"));
+        assert_eq!(
+            results[0].result_path.as_ref().map(|t| t.to_string()),
+            Some(format!("<{EX}age>"))
+        );
+    }
+
+    #[test]
+    fn closed_pass_ignored_predicate() {
+        // ex:age is undeclared but listed in sh:ignoredProperties ⇒ allowed.
+        let store = load_store(&format!(
+            "@prefix ex: <{EX}> . ex:a ex:name \"Al\" ; ex:age 30 ."
+        ));
+        let shape = closed_shape(
+            vec![NamedNode::new_unchecked(format!("{EX}age"))],
+            &[&format!("{EX}name")],
+        );
+        let results = validate_shape(&store, &ex("a"), &shape);
+        assert!(results.is_empty(), "ignored predicate ex:age ⇒ pass");
     }
 }
