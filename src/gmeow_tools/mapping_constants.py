@@ -2,9 +2,9 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 """Shared constants for the mapping / saturation / alignment pipeline.
 
-These frozensets used to live in :mod:`gmeow_tools.alignment_lint`; they are
-authored here so the saturator can import them without depending on the
-retiring Python alignment linter (#936).
+These frozensets used to live in the retired Python alignment linter; they are
+authored here so the saturator can import them without depending on the native
+Rust alignment linter (#936).
 """
 
 from __future__ import annotations

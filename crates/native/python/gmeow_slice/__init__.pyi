@@ -136,12 +136,12 @@ def lint_projection(
 ) -> list[ProjectionDiagnostic]:
     """Run the native cross-layer projection lint over ``root``'s committed tree.
 
-    Ports the three Python ``projection_lint`` invariants (#854): FnO type-mismatch
+    Ports the three projection-lint invariants (#854): FnO type-mismatch
     (``fno-type``), EDOAL→FnO reference integrity (``fno-ref``), and
     CONSTRUCT↔EDOAL↔SSSOM spec-drift (``spec-drift``), plus the alignment-direction
-    checks from ``alignment_lint`` (#936): ``inverse-direction``, ``domain-range``,
-    ``property-character``, ``equivalence-collapse``, ``dc-refinement``, and
-    ``dc-hand-authored``. Reads the committed
+    checks (#936): ``inverse-direction``, ``domain-range``, ``property-character``,
+    ``equivalence-collapse``, ``dc-refinement``, and ``dc-hand-authored``. Reads the
+    committed
     ``generated/projections/*.{fno.ttl,edoal.ttl}`` + ``generated/queries/*.rq``,
     the ontology ``rdfs:range``s, and the SSSOM alignment.
 

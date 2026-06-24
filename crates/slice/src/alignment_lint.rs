@@ -6,9 +6,9 @@
 //! (#936 Task 3).
 //!
 //! This module ports the input-loading and the inverse-direction / domain-range /
-//! property-character / equivalence-collapse checks from
-//! `src/gmeow_tools/alignment_lint.py` into `gmeow-slice`. The remaining check
-//! (DC refinement) is Task 4.
+//! property-character / equivalence-collapse checks from the retired Python
+//! alignment linter into `gmeow-slice`. The remaining check (DC refinement) is
+//! Task 4.
 //!
 //! The diagnostic carrier is the existing [`ProjectionDiagnostic`] from
 //! [`crate::projection_lint`]; no new diagnostic struct is introduced.
@@ -27,7 +27,7 @@ use crate::fno_emit::collect_ontology_store;
 use crate::mapping_emit::PREFIX_REGISTRY;
 use crate::projection_lint::ProjectionDiagnostic;
 
-// ── Predicate / class constants (ported from alignment_lint.py) ───────────────
+// ── Predicate / class constants (ported from the retired Python linter) ────────
 
 /// Predicate CURIEs whose alignment asserts (near-)equivalence for properties.
 /// PUBLIC: the saturator may materialize cross-vocabulary triples only for these.
@@ -172,7 +172,7 @@ type JudgedSet = BTreeSet<(String, String, String)>;
 
 /// Lint DC alignments for refinement consistency and dumb-down hygiene.
 ///
-/// Two checks, ported from `src/gmeow_tools/alignment_lint.py`:
+/// Two checks, ported from the retired Python alignment linter:
 ///
 /// 1. **Refinement consistency**: if a `dcterms:` refinement is aligned, the
 ///    broader `dcterms:` element should also be aligned.

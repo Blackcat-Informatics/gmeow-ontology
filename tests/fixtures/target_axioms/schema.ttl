@@ -4,7 +4,7 @@
 # (config.policy_for_license), so its axioms must never be vendored under
 # imports/targets/ (refresh_snapshot refuses it) and must never enter the
 # published CC BY 4.0 artifact. This file lives under tests/fixtures/ and is read
-# only by the SSSOM alignment-direction linter (gmeow_tools.alignment_lint).
+# only by the native Rust alignment-direction linter (gmeow_slice.lint_projection).
 #
 # It asserts only the handful of *structural facts* (inverse pairs + soft
 # domain/range) needed to catch direction errors offline — no labels, no
