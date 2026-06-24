@@ -1040,6 +1040,7 @@ pub fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(coverage_analyze, m)?)?;
     m.add_function(wrap_pyfunction!(merge_to_ntriples, m)?)?;
     m.add_function(wrap_pyfunction!(dsl_merge_with_provenance, m)?)?;
+    m.add_function(wrap_pyfunction!(crate::py_dsl::validate_dsl_shacl, m)?)?;
     m.add_function(wrap_pyfunction!(validate_all_native, m)?)?;
     m.add_function(wrap_pyfunction!(check_statement_invariants, m)?)?;
     m.add_function(wrap_pyfunction!(check_statement_lossless, m)?)?;
