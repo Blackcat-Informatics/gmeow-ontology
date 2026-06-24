@@ -2080,6 +2080,7 @@ class PipelineStageEnum(str, Enum):
     exportCOLON_references = "stage-export-references"
     exportCOLON_research_objects = "stage-export-research-objects"
     exportCOLON_schemas = "stage-export-schemas"
+    exportCOLON_yaml_ld = "stage-export-yaml-ld"
     gts_compose = "stage-gts-compose"
     gts_sink = "stage-gts-sink"
     mappings = "stage-mappings"
