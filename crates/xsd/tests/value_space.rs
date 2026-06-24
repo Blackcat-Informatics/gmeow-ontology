@@ -195,6 +195,47 @@ fn temporal_calendar_valid_lexicals_parse_ok() {
     }
 }
 
+// ── Year-width / XSD 1.1 year-zero vectors ──────────────────────────────────────
+
+/// Negative: year field is >4 digits AND starts with '0' — must be Err.
+const YEAR_WIDTH_INVALID: &[(&str, D)] = &[
+    ("00044-03-15", D::Date),
+    ("012345-01-01", D::Date),
+    ("00044-03-15T00:00:00", D::DateTime),
+    ("012345-01-01T00:00:00", D::DateTime),
+];
+
+/// Positive: year-zero (XSD 1.1 1 BCE), negative years, long years without leading
+/// zeros, and a 4-digit leading-zero year — all must parse successfully.
+const YEAR_WIDTH_VALID: &[(&str, D)] = &[
+    ("0000-01-01", D::Date),   // XSD 1.1: 0000 = 1 BCE (forbidden in XSD 1.0)
+    ("-0001-01-01", D::Date),  // negative year (1 BCE alt encoding / proleptic)
+    ("12345-06-15", D::Date),  // 5-digit year, no leading zero — valid
+    ("-12345-06-15", D::Date), // negative 5-digit year, no leading zero — valid
+    ("0044-03-15", D::Date),   // exactly 4 digits with leading zero — valid
+];
+
+#[test]
+fn year_width_invalid_lexicals_are_hard_errors() {
+    for (lexical, dt) in YEAR_WIDTH_INVALID {
+        assert!(
+            parse(lexical, *dt).is_err(),
+            "expected Err for {lexical:?}^^{dt:?} but got Ok"
+        );
+    }
+}
+
+#[test]
+fn year_width_valid_lexicals_parse_ok() {
+    for (lexical, dt) in YEAR_WIDTH_VALID {
+        assert!(
+            parse(lexical, *dt).is_ok(),
+            "expected Ok for {lexical:?}^^{dt:?} but got Err: {:?}",
+            parse(lexical, *dt).unwrap_err()
+        );
+    }
+}
+
 mod prop {
     use super::*;
     use proptest::prelude::*;

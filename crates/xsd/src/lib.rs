@@ -31,6 +31,17 @@
 //! never a degraded fallback. `XsdValue` therefore does NOT implement `PartialOrd`
 //! (that would re-introduce the conflation for `BTreeMap`); ordering is the free fn.
 //!
+//! # XSD version: 1.1
+//!
+//! gmeow-xsd targets the **XSD 1.1** value spaces (W3C REC 2012-04-05).
+//! Two load-bearing consequences for the year lexical affect slices #911/#912:
+//!
+//! * Year `0000` is **permitted** (XSD 1.1; it denotes 1 BCE). XSD 1.0 forbade it.
+//! * The year field must have **at least 4 digits**. A year field wider than 4 digits
+//!   must **not** have a leading zero — e.g. `00044-03-15` and `012345-01-01` are
+//!   invalid; `12345-06-15` and `-12345-06-15` are valid. Exactly 4 digits with a
+//!   leading zero (`0044`, `0000`) are valid.
+//!
 //! # Hard-fail
 //!
 //! Malformed lexical input is a hard error ([`XsdError`], added with the value type),

@@ -160,6 +160,15 @@ fn parse_ymd(dt: XsdDatatype, lexical: &str, s: &str) -> Result<(i64, u8, u8), X
     if parts[0].len() < 4 || parts[1].len() != 2 || parts[2].len() != 2 {
         return Err(invalid(dt, lexical, "bad date field widths"));
     }
+    // XSD 1.1 §3.3.7: a year wider than 4 digits must not have a leading zero.
+    // Exactly 4 digits with a leading zero (e.g. "0044", "0000") are valid.
+    if parts[0].len() > 4 && parts[0].starts_with('0') {
+        return Err(invalid(
+            dt,
+            lexical,
+            "year wider than 4 digits must not have a leading zero",
+        ));
+    }
     let year_mag: i64 = parts[0]
         .parse()
         .map_err(|_| invalid(dt, lexical, "bad year"))?;
