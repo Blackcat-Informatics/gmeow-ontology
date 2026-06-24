@@ -69,36 +69,77 @@ impl Decimal {
     }
 
     /// Exact comparison of two decimals (total order — decimals are never NaN).
+    ///
+    /// ## Overflow-safety argument
+    ///
+    /// `scale` is a `u8` capped at `MAX_DECIMAL_SCALE` (= 18) at every construction
+    /// site (`parse_decimal` enforces `frac_str.len() <= 18`; `frac_part` inherits the
+    /// parent scale; `from_parts(_, 0)` for integer promotion is scale 0).
+    ///
+    /// For the fractional-alignment step the two frac mantissas satisfy:
+    ///   `|frac_m| < 10^scale ≤ 10^18`
+    /// After scaling to the common (higher) scale we multiply by at most `10^diff`
+    /// where `diff ≤ 18`, giving a product `< 10^18 × 10^18 = 10^36`.
+    /// `i128::MAX ≈ 1.7 × 10^38 > 10^36`, so the multiplication cannot overflow.
+    ///
+    /// The integer-part comparison uses `whole_part()` which returns `i128` and is
+    /// exact (no multiplication); it is compared directly.
+    ///
+    /// There is NO `f64` path and NO `unwrap_or` swallowing a failure.
     #[must_use]
     pub fn cmp_exact(&self, other: &Decimal) -> Ordering {
+        // Fast path: identical scale — single cmp, no arithmetic needed.
         if self.scale == other.scale {
             return self.mantissa.cmp(&other.mantissa);
         }
-        // Align to the larger scale; on i128 overflow fall back to f64 (only
-        // reachable for values far beyond any realistic literal).
-        let (hi, lo) = if self.scale > other.scale {
-            (self, other)
-        } else {
-            (other, self)
-        };
-        let diff = u32::from(hi.scale - lo.scale);
-        match 10i128
-            .checked_pow(diff)
-            .and_then(|f| lo.mantissa.checked_mul(f))
-        {
-            Some(lo_scaled) => {
-                let ord = lo_scaled.cmp(&hi.mantissa);
-                if self.scale > other.scale {
-                    ord.reverse()
-                } else {
-                    ord
-                }
-            }
-            None => self
-                .to_f64()
-                .partial_cmp(&other.to_f64())
-                .unwrap_or(Ordering::Equal),
+
+        // Step 1 — sign comparison.  Negative < zero < positive.
+        let s_sign = self.mantissa.signum();
+        let o_sign = other.mantissa.signum();
+        if s_sign != o_sign {
+            return s_sign.cmp(&o_sign);
         }
+        // Both zero (mantissa == 0 regardless of scale) → Equal.
+        if s_sign == 0 {
+            return Ordering::Equal;
+        }
+
+        // Step 2 — integer part comparison (both same sign, non-zero).
+        let s_whole = self.whole_part();
+        let o_whole = other.whole_part();
+        let whole_ord = s_whole.cmp(&o_whole);
+        if whole_ord != Ordering::Equal {
+            return whole_ord;
+        }
+
+        // Step 3 — fractional part comparison.
+        // Each frac mantissa satisfies |frac_m| < 10^scale ≤ 10^18.
+        // We scale the lower-scale fraction up to the higher scale by multiplying by
+        // 10^diff (diff ≤ 18).  Product < 10^18 × 10^18 = 10^36 < i128::MAX → no
+        // overflow.  (Debug assertion guards the invariant during development.)
+        debug_assert!(
+            self.scale <= MAX_DECIMAL_SCALE && other.scale <= MAX_DECIMAL_SCALE,
+            "scale invariant violated: self.scale={}, other.scale={}",
+            self.scale,
+            other.scale,
+        );
+        let s_frac = self.frac_part().mantissa;
+        let o_frac = other.frac_part().mantissa;
+        let frac_ord = if self.scale > other.scale {
+            let diff = u32::from(self.scale - other.scale);
+            // SAFETY: o_frac < 10^other.scale ≤ 10^18; diff ≤ 18; product < 10^36 < i128::MAX
+            let o_scaled = o_frac * 10i128.pow(diff);
+            s_frac.cmp(&o_scaled)
+        } else {
+            let diff = u32::from(other.scale - self.scale);
+            // SAFETY: s_frac < 10^self.scale ≤ 10^18; diff ≤ 18; product < 10^36 < i128::MAX
+            let s_scaled = s_frac * 10i128.pow(diff);
+            s_scaled.cmp(&o_frac)
+        };
+        // For negative numbers the frac mantissas are negative too (they inherit the
+        // sign from `mantissa % 10^scale`), so the direct comparison is already
+        // correct: a more-negative fraction means a smaller (more negative) value.
+        frac_ord
     }
 
     /// XSD canonical lexical form: decimal point mandatory, no trailing fractional
@@ -385,6 +426,114 @@ mod tests {
         assert_eq!(dec("1.5").cmp_exact(&dec("1.50")), Ordering::Equal);
         assert_eq!(dec("1.5").cmp_exact(&dec("1.05")), Ordering::Greater);
         assert_eq!(dec("0.1").cmp_exact(&dec("0.2")), Ordering::Less);
+    }
+
+    // ── cmp_exact correctness tests ──────────────────────────────────────────────
+
+    /// Cross-scale equality: 1.50 (mantissa=150, scale=2) == 1.5 (mantissa=15, scale=1).
+    #[test]
+    fn cmp_exact_cross_scale_equal() {
+        let a = Decimal::from_parts(150, 2); // 1.50
+        let b = Decimal::from_parts(15, 1); // 1.5
+        assert_eq!(a.cmp_exact(&b), Ordering::Equal);
+        assert_eq!(b.cmp_exact(&a), Ordering::Equal);
+    }
+
+    /// Cross-scale strict order: 1.5 < 1.50001.
+    #[test]
+    fn cmp_exact_cross_scale_strict() {
+        let a = dec("1.5");
+        let b = dec("1.50001");
+        assert_eq!(a.cmp_exact(&b), Ordering::Less);
+        assert_eq!(b.cmp_exact(&a), Ordering::Greater);
+    }
+
+    /// Negative cross-scale: -1.5 vs -1.50001.
+    /// -1.50001 < -1.5 (more negative).
+    #[test]
+    fn cmp_exact_negative_cross_scale() {
+        let a = dec("-1.5");
+        let b = dec("-1.50001");
+        assert_eq!(a.cmp_exact(&b), Ordering::Greater); // -1.5 > -1.50001
+        assert_eq!(b.cmp_exact(&a), Ordering::Less);
+    }
+
+    /// Mixed signs: any positive > any negative.
+    #[test]
+    fn cmp_exact_mixed_signs() {
+        assert_eq!(dec("0.001").cmp_exact(&dec("-999.9")), Ordering::Greater);
+        assert_eq!(dec("-0.001").cmp_exact(&dec("999.9")), Ordering::Less);
+    }
+
+    /// Both-zero regardless of scale.
+    #[test]
+    fn cmp_exact_zero_any_scale() {
+        let z0 = Decimal::from_parts(0, 0);
+        let z5 = Decimal::from_parts(0, 5);
+        let z18 = Decimal::from_parts(0, 18);
+        assert_eq!(z0.cmp_exact(&z5), Ordering::Equal);
+        assert_eq!(z5.cmp_exact(&z18), Ordering::Equal);
+        assert_eq!(z18.cmp_exact(&z0), Ordering::Equal);
+    }
+
+    /// Large-mantissa regression: two large decimals at scale 0 vs scale 1 that the
+    /// old 10^diff widening path would overflow on (mantissa near i128::MAX).
+    ///
+    /// The old code attempted: (i128::MAX / 10) * 10  which checks out but
+    /// i128::MAX * 10 overflows — so we construct a pair where the lower-scale value's
+    /// mantissa is large enough that multiplying by 10^diff would exceed i128::MAX.
+    ///
+    /// Specifically: mantissa = i128::MAX (scale 0) vs mantissa = i128::MAX (scale 1).
+    /// Value A = i128::MAX × 10^0 = i128::MAX (≈ 1.70141…×10^38)
+    /// Value B = i128::MAX × 10^(-1) ≈ 1.70141…×10^37
+    /// So A > B.  The old code would try to scale A's mantissa up by 10 → overflow.
+    #[test]
+    fn cmp_exact_large_mantissa_no_overflow() {
+        // A = i128::MAX at scale 0; B = i128::MAX at scale 1
+        // A = 170141183460469231731687303715884105727
+        // B = 17014118346046923173168730371588410572.7
+        // True order: A > B
+        let a = Decimal::from_parts(i128::MAX, 0);
+        let b = Decimal::from_parts(i128::MAX, 1);
+        assert_eq!(a.cmp_exact(&b), Ordering::Greater);
+        assert_eq!(b.cmp_exact(&a), Ordering::Less);
+    }
+
+    /// Regression vector for the exact f64 collapse bug: two large unequal decimals
+    /// at different scales that the old f64 path would round to the same f64 value
+    /// and therefore return Equal incorrectly.
+    ///
+    /// f64 has ~15.9 significant decimal digits.  Construct two values that differ
+    /// only in the 18th digit — well below f64 resolution — but whose true order
+    /// is strict.
+    ///
+    /// A = 100000000000000000.1  (mantissa=1000000000000000001, scale=1)
+    /// B = 100000000000000000.2  (mantissa=1000000000000000002, scale=1)
+    /// Both have the same f64 representation (the fractional digit is lost), but
+    /// A < B is exact.
+    #[test]
+    fn cmp_exact_large_f64_collapse_regression() {
+        // 100000000000000000.1 and 100000000000000000.2 — same scale, near i64::MAX magnitude
+        let a = Decimal::from_parts(1_000_000_000_000_000_001, 1);
+        let b = Decimal::from_parts(1_000_000_000_000_000_002, 1);
+        // Both collapse to the same f64 — the old path returns Equal incorrectly.
+        assert_eq!(a.to_f64(), b.to_f64(), "f64 collapse precondition");
+        // cmp_exact must return Less (A < B), not Equal.
+        assert_eq!(a.cmp_exact(&b), Ordering::Less);
+        assert_eq!(b.cmp_exact(&a), Ordering::Greater);
+    }
+
+    /// Same as above but across scales (scale 1 vs scale 2).
+    #[test]
+    fn cmp_exact_large_f64_collapse_cross_scale_regression() {
+        // A = 100000000000000000.1  (scale 1)
+        // B = 100000000000000000.11 (scale 2) = 10000000000000000011 mantissa
+        // A < B (0.1 < 0.11).  Both f64-identical at this magnitude.
+        let a = Decimal::from_parts(1_000_000_000_000_000_001, 1); // .1 at scale 1
+        let b = Decimal::from_parts(10_000_000_000_000_000_011, 2); // .11 at scale 2
+        assert_eq!(a.to_f64(), b.to_f64(), "f64 collapse precondition");
+        assert_eq!(a.cmp_exact(&b), Ordering::Less);
+        assert_eq!(b.cmp_exact(&a), Ordering::Greater);
     }
 
     #[test]
