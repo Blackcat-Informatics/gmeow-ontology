@@ -167,7 +167,16 @@ const REP_MAPPINGS: &str = "mappings-archive";
 const REP_CELLS: &str = "cells-archive";
 const REP_QUERIES: &str = "queries-archive";
 const REP_TESTS: &str = "tests-archive";
+/// The full rendered ontology-docs static site (#897). The rep MUST equal the
+/// string the runtime consumer (`create_docs._unpack_doc_archive`) looks up —
+/// `"ontology-docs"`, NOT an `-archive` variant — so `gmeow extract-docs` finds it.
+const REP_ONTOLOGY_DOCS: &str = "ontology-docs";
 const ARCHIVE_MEDIA_TYPE: &str = "application/x-tar";
+/// The GNU long-name sentinel: a `'L'`-typeflag record carrying a member path
+/// that overflows the 100-byte USTAR `name` field. The doc-site archive (#897)
+/// has paths well past 100 bytes; mappings/cells/queries/tests never do, so they
+/// never emit this record and stay byte-identical.
+const LONGLINK_NAME: &str = "././@LongLink";
 
 /// The per-slice guide content blobs (each slice's `docs.md`), backing the
 /// `gmeow:guideBlob "blake3:<hex>"` reference triples [`add_guide_blobs`] writes
@@ -221,6 +230,38 @@ fn build_archive_blobs(root: &Path) -> Result<Vec<BlobRow>, PipelineError> {
         archive_blob(REP_QUERIES, &queries)?,
         archive_blob(REP_TESTS, &tests)?,
     ])
+}
+
+/// Render the full ontology-docs static site and pack it into the single
+/// `ontology-docs` archive blob (#897) — the producer half of repo-free
+/// `gmeow extract-docs`.
+///
+/// The rust doc generator (`gmeow_docs::render_site_lang`) emits a complete site
+/// (`index.md`/`index.html` per page, `assets/gmeow.css`, SVG diagrams,
+/// `search-index.json`, `llms-docs.txt`, alias redirects) as a deterministic
+/// `BTreeMap<path, bytes>`. We render it once per available language and prefix
+/// every member with that language's INTERNAL tag (`x-gmeow-english`,
+/// `x-gmeow-<lang>`, …) — the exact `{tag}/` prefix `_unpack_doc_archive` filters
+/// on (`resolve_doc_language` returns these internal tags). The prefix comes from
+/// `Translations::internal_tag`, never the carrier key or a hardcoded string, so a
+/// new `.po` catalog is picked up with the correct tag automatically.
+fn build_docs_archive(root: &Path) -> Result<BlobRow, PipelineError> {
+    let model = gmeow_docs::model::DocsModel::discover(root)
+        .map_err(|e| stage_err(&format!("docs model discovery: {e}")))?;
+    let catalog = gmeow_slice::SliceCatalog::discover(&root.join("slices"))
+        .map_err(|e| stage_err(&format!("slice catalog: {e}")))?;
+    let translations = gmeow_docs::Translations::from_catalog(&catalog);
+
+    let mut members: Vec<(String, Vec<u8>)> = Vec::new();
+    for lang in gmeow_docs::available_languages(&translations) {
+        let site = gmeow_docs::render_site_lang(&model, &lang);
+        let prefix = translations.internal_tag(&lang);
+        for (path, bytes) in site.files {
+            members.push((format!("{prefix}/{path}"), bytes));
+        }
+    }
+    members.sort_by(|a, b| a.0.cmp(&b.0));
+    archive_blob(REP_ONTOLOGY_DOCS, &members)
 }
 
 /// Every `*.<ext>` directly under `dir`, sorted by path (empty if the dir is absent).
@@ -325,10 +366,25 @@ fn archive_blob(rep: &str, members: &[(String, Vec<u8>)]) -> Result<BlobRow, Pip
 
 /// A byte-deterministic USTAR archive: per-member 512-byte header + 512-padded
 /// data, terminated by two zero blocks. mtime/uid/gid = 0, mode = 0644.
+///
+/// A member whose name overflows the 100-byte `name` field is preceded by a GNU
+/// `'L'` (`LongLink`) record carrying the full path (NUL-terminated, 512-padded);
+/// the real header then truncates the name to 100 bytes (GNU convention — readers
+/// take the path from the LongLink). Names ≤ 100 bytes emit no LongLink and are
+/// byte-identical to the pre-#897 writer, so the existing archive blobs are
+/// fold-stable.
 fn ustar_archive(members: &[(String, Vec<u8>)]) -> Result<Vec<u8>, PipelineError> {
     let mut out: Vec<u8> = Vec::new();
     for (name, data) in members {
-        out.extend_from_slice(&ustar_header(name, data.len())?);
+        if name.len() > 100 {
+            let mut payload = name.as_bytes().to_vec();
+            payload.push(0); // GNU LongLink bodies are NUL-terminated.
+            out.extend_from_slice(&ustar_header(LONGLINK_NAME, payload.len(), b'L')?);
+            out.extend_from_slice(&payload);
+            let pad = (512 - payload.len() % 512) % 512;
+            out.extend(std::iter::repeat_n(0u8, pad));
+        }
+        out.extend_from_slice(&ustar_header(name, data.len(), b'0')?);
         out.extend_from_slice(data);
         let pad = (512 - data.len() % 512) % 512;
         out.extend(std::iter::repeat_n(0u8, pad));
@@ -337,18 +393,16 @@ fn ustar_archive(members: &[(String, Vec<u8>)]) -> Result<Vec<u8>, PipelineError
     Ok(out)
 }
 
-/// A single USTAR 512-byte header. Names must be ≤ 100 bytes (every repo-relative
-/// member path is well under that — asserted); no `prefix`-split path is needed.
-fn ustar_header(name: &str, size: usize) -> Result<[u8; 512], PipelineError> {
+/// A single USTAR 512-byte header with the given `typeflag` (`b'0'` regular file,
+/// `b'L'` GNU LongLink). A name longer than 100 bytes is truncated into the field
+/// — the caller MUST have emitted a preceding `LongLink` record carrying the full
+/// path (see [`ustar_archive`]). For a name ≤ 100 bytes the bytes are identical to
+/// the pre-#897 single-typeflag header.
+fn ustar_header(name: &str, size: usize, typeflag: u8) -> Result<[u8; 512], PipelineError> {
     let nb = name.as_bytes();
-    if nb.len() > 100 {
-        return Err(stage_err(&format!(
-            "USTAR member name exceeds 100 bytes ({}): {name}",
-            nb.len()
-        )));
-    }
+    let n = nb.len().min(100);
     let mut h = [0u8; 512];
-    h[..nb.len()].copy_from_slice(nb);
+    h[..n].copy_from_slice(&nb[..n]);
     write_octal(&mut h[100..108], 0o644); // mode
     write_octal(&mut h[108..116], 0); // uid
     write_octal(&mut h[116..124], 0); // gid
@@ -357,7 +411,7 @@ fn ustar_header(name: &str, size: usize) -> Result<[u8; 512], PipelineError> {
     for b in &mut h[148..156] {
         *b = b' '; // checksum field is spaces while the sum is computed
     }
-    h[156] = b'0'; // typeflag: regular file
+    h[156] = typeflag;
     h[257..263].copy_from_slice(b"ustar\0");
     h[263..265].copy_from_slice(b"00");
     let sum: u32 = h.iter().map(|&b| u32::from(b)).sum();
@@ -422,14 +476,25 @@ impl Stage for SnapshotStage {
         &self.consumes
     }
     fn impl_version(&self) -> &str {
-        // v3: re-fold the mappings/cells/queries/tests archive blobs AND the
-        // per-slice docs guide blobs the #861 pipeline cutover dropped (the
-        // wheel-mode consumers + the dangling gmeow:guideBlob references need them).
-        "snapshot.v3-archive-and-guide-blobs"
+        // v4: also render+tar+embed the full ontology-docs site as the
+        // `ontology-docs` blob (#897) — the producer half of repo-free
+        // `gmeow extract-docs`. v3 added the mappings/cells/queries/tests archive
+        // blobs + per-slice docs guide blobs the #861 cutover dropped.
+        "snapshot.v4-docs-site-blob"
+    }
+    fn input_files(&self, root: &Path) -> Result<Vec<PathBuf>, PipelineError> {
+        // The embedded ontology-docs site (`build_docs_archive`) is rendered from
+        // the docs model's raw sources (slice modules / `docs.md` / examples /
+        // `docs/four-boxes.md` / per-slice `i18n/<lang>.po` translation catalogs),
+        // which the consumed upstream products do not fully reflect. Declare them so
+        // a doc-source edit busts this stage and re-renders the embedded site (cache
+        // soundness, #897) — shared with `DocsRenderStage` via `docs_source_files`.
+        crate::stages::docs_render::docs_source_files(root)
     }
     fn run(&self, input: StageInput<'_>) -> Result<StageOutput, PipelineError> {
         let mut blobs = build_archive_blobs(input.root)?;
         blobs.extend(build_guide_blobs(input.root)?);
+        blobs.push(build_docs_archive(input.root)?);
         let gts = build_snapshot(input.root, input.upstream, blobs)?;
         let mut artifacts: BTreeMap<String, Vec<u8>> = BTreeMap::new();
         artifacts.insert(SNAPSHOT_PATH.to_string(), gts);
@@ -1142,5 +1207,163 @@ fn stage_err(message: &str) -> PipelineError {
     PipelineError::Stage {
         stage: "stage-gts-sink".to_string(),
         message: message.to_string(),
+    }
+}
+
+#[cfg(test)]
+mod ustar_tests {
+    use super::*;
+
+    /// A minimal GNU/USTAR reader for the test: decodes `(name, data)` members,
+    /// resolving `'L'` LongLink records into the following member's name. Mirrors
+    /// how Python `tarfile` (the real `_unpack_doc_archive` consumer) reads them.
+    fn parse(raw: &[u8]) -> Vec<(String, Vec<u8>)> {
+        fn octal(field: &[u8]) -> usize {
+            let s: String = field
+                .iter()
+                .take_while(|&&b| b != 0 && b != b' ')
+                .map(|&b| b as char)
+                .collect();
+            usize::from_str_radix(s.trim(), 8).unwrap_or(0)
+        }
+        fn cstr(field: &[u8]) -> String {
+            let end = field.iter().position(|&b| b == 0).unwrap_or(field.len());
+            String::from_utf8_lossy(&field[..end]).into_owned()
+        }
+        let mut out = Vec::new();
+        let mut pending: Option<String> = None;
+        let mut off = 0usize;
+        while off + 512 <= raw.len() {
+            let header = &raw[off..off + 512];
+            if header.iter().all(|&b| b == 0) {
+                break; // trailing zero blocks
+            }
+            let size = octal(&header[124..136]);
+            let typeflag = header[156];
+            off += 512;
+            let blocks = size.div_ceil(512);
+            let body = &raw[off..off + blocks * 512];
+            off += blocks * 512;
+            if typeflag == b'L' {
+                // LongLink body is the NUL-terminated path for the NEXT header.
+                pending = Some(cstr(&body[..size]));
+            } else {
+                let name = pending.take().unwrap_or_else(|| cstr(&header[..100]));
+                out.push((name, body[..size].to_vec()));
+            }
+        }
+        out
+    }
+
+    #[test]
+    fn long_member_name_round_trips_via_longlink() {
+        let long = format!(
+            "x-gmeow-english/terms/classes/gmeow-{}.html",
+            "A".repeat(90)
+        );
+        assert!(long.len() > 100, "fixture must exceed the 100-byte field");
+        let members = vec![
+            (long.clone(), b"<html>long</html>".to_vec()),
+            ("x-gmeow-english/index.html".to_string(), b"idx".to_vec()),
+        ];
+        let raw = ustar_archive(&members).expect("archive");
+        let got = parse(&raw);
+        assert_eq!(got, members, "GNU LongLink path must round-trip exactly");
+
+        // The first record on the wire is the 'L' LongLink, then the real header
+        // whose name field is the 100-byte truncation of the long path.
+        assert_eq!(raw[156], b'L', "first record is a LongLink");
+        assert_eq!(&raw[0..LONGLINK_NAME.len()], LONGLINK_NAME.as_bytes());
+    }
+
+    #[test]
+    fn short_names_emit_no_longlink_and_stay_plain_ustar() {
+        let members = vec![
+            ("mappings/a.sssom.tsv".to_string(), b"x".to_vec()),
+            ("slices/core/x/tests/t.ttl".to_string(), vec![0u8; 600]),
+        ];
+        let raw = ustar_archive(&members).expect("archive");
+        // No member name overflows 100 bytes, so NO 'L' record may appear: the
+        // four existing consumer archives must stay byte-identical (fold-stable).
+        assert!(
+            !raw.chunks(512).any(|c| c.len() == 512 && c[156] == b'L'),
+            "short-name archive must not emit a LongLink record"
+        );
+        // The first header carries the full name inline (typeflag '0', ustar magic).
+        assert_eq!(raw[156], b'0');
+        assert_eq!(&raw[257..263], b"ustar\0");
+        assert_eq!(&raw[263..265], b"00");
+        assert_eq!(parse(&raw), members);
+    }
+
+    fn repo_root() -> std::path::PathBuf {
+        std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("..")
+            .join("..")
+            .canonicalize()
+            .unwrap()
+    }
+
+    #[test]
+    fn build_docs_archive_packs_the_rendered_site() {
+        let blob = build_docs_archive(&repo_root()).expect("docs archive");
+        assert_eq!(blob.rep, REP_ONTOLOGY_DOCS);
+        assert_eq!(blob.media_type, ARCHIVE_MEDIA_TYPE);
+
+        let members = parse(&blob.data);
+        assert!(!members.is_empty(), "the site archive must carry members");
+
+        // Every member is under an INTERNAL `x-gmeow-*/` tag (English carrier plus
+        // any translation language) — exactly the `{tag}/` prefix
+        // `_unpack_doc_archive` filters on, NOT the carrier key (`english/`).
+        assert!(
+            members.iter().all(|(n, _)| n.starts_with("x-gmeow-")),
+            "every member must carry an internal-tag prefix, got e.g. {:?}",
+            members.iter().map(|(n, _)| n).take(3).collect::<Vec<_>>()
+        );
+        assert!(
+            members
+                .iter()
+                .any(|(n, _)| n == "x-gmeow-english/index.html"),
+            "the English landing page must be present"
+        );
+        // The site carries its structural assets (deterministic, language-keyed).
+        for asset in ["assets/gmeow.css", "search-index.json", "llms-docs.txt"] {
+            let want = format!("x-gmeow-english/{asset}");
+            assert!(
+                members.iter().any(|(n, _)| n == &want),
+                "expected site asset {want}"
+            );
+        }
+        // Member names CAN exceed the 100-byte USTAR field (LongLink-covered).
+        // Today's longest stays under it, so LongLink is a defensive net rather
+        // than currently-triggered — `long_member_name_round_trips_via_longlink`
+        // is the dedicated proof. Logged so a future overflow is visible.
+        let max_len = members.iter().map(|(n, _)| n.len()).max().unwrap_or(0);
+        eprintln!(
+            "ontology-docs: {} members, longest name {max_len}B",
+            members.len()
+        );
+    }
+
+    #[test]
+    fn header_checksum_is_valid() {
+        let h = ustar_header("x-gmeow-english/index.html", 42, b'0').expect("header");
+        // The stored checksum equals the sum of all bytes with the checksum field
+        // taken as spaces — the canonical USTAR self-check.
+        let stored = usize::from_str_radix(
+            std::str::from_utf8(&h[148..154])
+                .unwrap()
+                .trim_matches('\0')
+                .trim(),
+            8,
+        )
+        .unwrap();
+        let mut probe = h;
+        for b in &mut probe[148..156] {
+            *b = b' ';
+        }
+        let computed: usize = probe.iter().map(|&b| b as usize).sum();
+        assert_eq!(stored, computed);
     }
 }
