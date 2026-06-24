@@ -220,8 +220,10 @@ impl ShaclDataGraph for &RdfDataset {
 /// flattening named graphs to the default graph to match the engine's
 /// `FlattenToDefaultGraph` data policy. Shared by both IR backends.
 fn materialize_sparql_store(dataset: &RdfDataset) -> Store {
-    gmeow_rdf::oxigraph::store_from_rdf_store(
-        &dataset,
+    // Concrete-IR entrypoint (#886 part 1): materialize directly from the frozen
+    // dataset instead of routing through the `&impl RdfStore` compat bridge.
+    gmeow_rdf::oxigraph::store_from_dataset(
+        dataset,
         gmeow_rdf::oxigraph::GraphPolicy::FlattenToDefaultGraph,
     )
     .expect("IR dataset must materialize into an oxigraph Store for SPARQL")

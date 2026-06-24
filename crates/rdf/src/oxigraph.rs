@@ -8,8 +8,8 @@ use ::oxigraph::model::{
 use ::oxigraph::store::Store;
 
 use crate::{
-    RdfAnnotation, RdfDiagnostic, RdfLiteral, RdfLocation, RdfQuad, RdfReifier, RdfStore,
-    RdfStoreCapabilities, RdfTerm, RdfTextDirection, RdfTriple,
+    RdfAnnotation, RdfDataset, RdfDiagnostic, RdfLiteral, RdfLocation, RdfQuad, RdfReifier,
+    RdfStore, RdfStoreCapabilities, RdfTerm, RdfTextDirection, RdfTriple,
 };
 
 const RDF_REIFIES: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies";
@@ -90,6 +90,47 @@ pub fn store_from_rdf_store(
     for annotation in source.annotations() {
         let annotation = annotation?;
         let ox_quad = oxigraph_annotation_quad(&annotation)?;
+        store
+            .insert(&ox_quad)
+            .map_err(|e| RdfDiagnostic::error("oxigraph-store-insert", e.to_string()))?;
+    }
+    Ok(store)
+}
+
+/// Materialize a frozen [`RdfDataset`] into an in-memory oxigraph store, reading the
+/// IR directly (purrdf P2c part 1, #886).
+///
+/// The concrete-IR twin of [`store_from_rdf_store`]: it iterates the dataset's quad,
+/// reifier, and annotation tables and resolves each row through the IR's owned-boundary
+/// helpers ([`RdfDataset::to_owned_quad`] etc.) rather than the `&impl RdfStore` trait,
+/// then reuses the same per-row oxigraph builders. Byte/quad-for-quad identical to
+/// `store_from_rdf_store(&dataset, …)` (the compat bridge); a parity test pins the
+/// equivalence so the part-2 removal of the bridge is provably safe.
+pub fn store_from_dataset(
+    dataset: &RdfDataset,
+    graph_policy: GraphPolicy,
+) -> Result<Store, RdfDiagnostic> {
+    let store =
+        Store::new().map_err(|e| RdfDiagnostic::error("oxigraph-store-create", e.to_string()))?;
+    for (frozen_index, quad) in dataset.quads().enumerate() {
+        let ox_quad =
+            oxigraph_quad_from_rdf(&dataset.to_owned_quad(frozen_index, quad), graph_policy)?;
+        store
+            .insert(&ox_quad)
+            .map_err(|e| RdfDiagnostic::error("oxigraph-store-insert", e.to_string()))?;
+    }
+    let rdf_reifies = NamedNode::new(RDF_REIFIES)
+        .map_err(|e| RdfDiagnostic::error("oxigraph-rdf-reifies-iri", e.to_string()))?;
+    for (reifier, triple) in dataset.reifiers() {
+        let ox_quad =
+            oxigraph_reifier_quad(&dataset.to_owned_reifier(reifier, triple), &rdf_reifies)?;
+        store
+            .insert(&ox_quad)
+            .map_err(|e| RdfDiagnostic::error("oxigraph-store-insert", e.to_string()))?;
+    }
+    for (reifier, predicate, object) in dataset.annotations() {
+        let ox_quad =
+            oxigraph_annotation_quad(&dataset.to_owned_annotation(reifier, predicate, object))?;
         store
             .insert(&ox_quad)
             .map_err(|e| RdfDiagnostic::error("oxigraph-store-insert", e.to_string()))?;
@@ -360,5 +401,52 @@ mod tests {
             Err(err) => err,
         };
         assert_eq!(err.code, "oxigraph-subject-unsupported");
+    }
+
+    /// `store_from_dataset` (concrete IR) must be quad-for-quad identical to the
+    /// `RdfStore` compat bridge (#886 part 1) — the parity guard that makes the
+    /// part-2 removal of `store_from_rdf_store`/the bridge provably safe.
+    #[test]
+    fn store_from_dataset_matches_compat_bridge() {
+        use crate::RdfDatasetBuilder;
+
+        fn quad_set(store: &Store) -> std::collections::BTreeSet<String> {
+            store
+                .iter()
+                .map(|q| q.expect("store quad").to_string())
+                .collect()
+        }
+
+        let mut b = RdfDatasetBuilder::new();
+        let s = b.intern_iri("https://example.org/s".to_owned());
+        let p = b.intern_iri("https://example.org/p".to_owned());
+        let o = b.intern_iri("https://example.org/o".to_owned());
+        b.push_quad(s, p, o, None);
+        // Exercise the RDF 1.2 statement-layer path (reifier + annotation), since
+        // those are the rows `store_from_dataset` resolves separately.
+        let triple = b.intern_triple(s, p, o);
+        let r = b.intern_iri("https://example.org/r".to_owned());
+        b.push_reifier(r, triple);
+        let conf = b.intern_iri("https://example.org/confidence".to_owned());
+        let val = b.intern_literal(RdfLiteral::typed(
+            "0.9",
+            "http://www.w3.org/2001/XMLSchema#decimal",
+        ));
+        b.push_annotation(r, conf, val);
+        let ds = b.freeze().expect("freeze");
+        let dataset: &RdfDataset = &ds;
+
+        let via_dataset =
+            store_from_dataset(dataset, GraphPolicy::PreserveNamedGraphs).expect("via dataset");
+        let via_bridge = store_from_rdf_store(&dataset, GraphPolicy::PreserveNamedGraphs)
+            .expect("via compat bridge");
+
+        let dataset_quads = quad_set(&via_dataset);
+        assert!(!dataset_quads.is_empty(), "the store must not be empty");
+        assert_eq!(
+            dataset_quads,
+            quad_set(&via_bridge),
+            "store_from_dataset must match the compat bridge quad-for-quad"
+        );
     }
 }

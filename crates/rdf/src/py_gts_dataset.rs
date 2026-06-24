@@ -24,7 +24,9 @@ use pyo3::prelude::*;
 use pyo3::types::{PyBytes, PyString};
 
 use crate::py_store::{parse_quads, PyRdfFormat};
-use crate::{gts_write, BlankScope, RdfDataset, RdfDatasetBuilder, RdfLiteral, TermId};
+use crate::{
+    gts_write, BlankScope, RdfDataset, RdfDatasetBuilder, RdfLiteral, RdfLookaside, TermId,
+};
 
 const RDF_REIFIES: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies";
 
@@ -65,9 +67,10 @@ impl PyRdfDataset {
     /// snapshot-frame producer (the SEMANTIC-FOLD gate, #819 STEP 1).
     #[pyo3(signature = (profile="dist"))]
     fn to_gts(&self, py: Python<'_>, profile: &str) -> PyResult<Py<PyBytes>> {
-        let store = self.inner.as_ref();
-        let bytes =
-            gts_write::to_gts(&store, profile).map_err(|e| PyValueError::new_err(e.to_string()))?;
+        // A bare dataset carries no out-of-band envelope, so the lookaside is empty
+        // (matching the prior compat-bridge behavior, which yielded an empty lookaside).
+        let bytes = gts_write::to_gts(self.inner.as_ref(), &RdfLookaside::default(), profile)
+            .map_err(|e| PyValueError::new_err(e.to_string()))?;
         Ok(PyBytes::new(py, &bytes).unbind())
     }
 }
@@ -220,8 +223,8 @@ mod tests {
     fn dataset_to_gts_folds_back() {
         let nt = "<https://e/s> <https://e/p> <https://e/o> .\n";
         let ds = dataset_from_bytes(nt.as_bytes(), RdfFormat::NTriples).expect("build");
-        let store = ds.as_ref();
-        let bytes = gts_write::to_gts(&store, "dist").expect("to_gts");
+        let bytes =
+            gts_write::to_gts(ds.as_ref(), &RdfLookaside::default(), "dist").expect("to_gts");
         let graph = gmeow_gts::reader::read(&bytes, false, None);
         assert!(graph.diagnostics.is_empty(), "{:?}", graph.diagnostics);
         assert_eq!(graph.quads.len(), 1);

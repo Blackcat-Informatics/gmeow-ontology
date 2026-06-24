@@ -98,7 +98,11 @@ impl RdfDataset {
     /// source location (by its FROZEN ordinal) so consumers reading through the
     /// bridge — diagnostics/SARIF, validate lints — see the same positions the IR
     /// holds. Without this the bridge silently dropped every location.
-    fn to_owned_quad(&self, frozen_index: usize, q: QuadIds) -> RdfQuad {
+    ///
+    /// The single owned-boundary resolution: consumers that still need the owned
+    /// model (the GTS writer, the oxigraph materializer) resolve frozen rows through
+    /// this inherent method instead of the `RdfStore` trait (purrdf P2c part 1, #886).
+    pub fn to_owned_quad(&self, frozen_index: usize, q: QuadIds) -> RdfQuad {
         let mut quad = RdfQuad::new(
             self.to_owned_term(q.s),
             self.iri_string(q.p),
@@ -112,7 +116,8 @@ impl RdfDataset {
     }
 
     /// Resolve a `(reifier, triple-term)` binding to an owned [`RdfReifier`].
-    fn to_owned_reifier(&self, reifier: TermId, triple: TermId) -> RdfReifier {
+    /// See [`to_owned_quad`](Self::to_owned_quad) for the owned-boundary contract.
+    pub fn to_owned_reifier(&self, reifier: TermId, triple: TermId) -> RdfReifier {
         let statement = match self.resolve(triple) {
             TermRef::Triple { s, p, o } => RdfTriple::new(
                 self.to_owned_term(s),
@@ -125,8 +130,9 @@ impl RdfDataset {
     }
 
     /// Resolve a `(reifier, predicate, object)` annotation to an owned
-    /// [`RdfAnnotation`].
-    fn to_owned_annotation(&self, reifier: TermId, p: TermId, o: TermId) -> RdfAnnotation {
+    /// [`RdfAnnotation`]. See [`to_owned_quad`](Self::to_owned_quad) for the
+    /// owned-boundary contract.
+    pub fn to_owned_annotation(&self, reifier: TermId, p: TermId, o: TermId) -> RdfAnnotation {
         RdfAnnotation::new(
             self.to_owned_term(reifier),
             self.iri_string(p),
