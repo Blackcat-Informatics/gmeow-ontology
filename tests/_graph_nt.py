@@ -3,13 +3,13 @@
 
 """Test-only rdflib→N-Triples seam for the graph-free validation path (#579).
 
-The production validation path (``gmeow_tools.validate`` / ``reasoning_lint``)
-no longer accepts rdflib graphs — it takes FILE PATHS or N-Triples strings and
-builds its oxigraph store in Rust. Tests, however, still hand-build small
-synthetic rdflib graphs to seed a single anti-pattern or a malformed-annotation
-case. rdflib is removed only from the five validation-path source files, NOT from
-the test suite, so this helper lives here: it serializes a synthetic graph to
-N-Triples (or a temp ``.nt`` file) and calls the graph-free production functions.
+The production validation path (``gmeow_tools.validate``) no longer accepts
+rdflib graphs — it takes FILE PATHS or N-Triples strings and builds its oxigraph
+store in Rust. Tests, however, still hand-build small synthetic rdflib graphs to
+seed a single anti-pattern or a malformed-annotation case. rdflib is removed only
+from the validation-path source files, NOT from the test suite, so this helper
+lives here: it serializes a synthetic graph to N-Triples (or a temp ``.nt`` file)
+and calls the graph-free production functions.
 
 Keeping the serialization here — rather than in the source files — is the whole
 point of #579: the seam that converts a Python graph into the Rust validators'
@@ -19,14 +19,14 @@ input is a *test* concern now, exercised only by hand-built fixtures.
 from __future__ import annotations
 
 import tempfile
-from collections.abc import Iterator
+from collections.abc import Callable, Iterator
 from contextlib import contextmanager
 from pathlib import Path
 
+import gmeow_validate
 from gmeow_rdf.compat.rdflib import Graph
 
-from gmeow_tools import reasoning_lint as _reasoning_lint
-from gmeow_tools.config import SHAPES_FILE
+from gmeow_tools.config import NAMESPACE, SHAPES_FILE
 from gmeow_tools.validate import (
     ValidationResult,
 )
@@ -104,42 +104,48 @@ def guide_anchor_lint(graph: Graph, root: Path | None = None) -> ValidationResul
         return _guide_anchor_lint(paths, root=root)
 
 
-# Reasoning per-check shims: serialize the graph and route through reasoning_lint
-# (which now accepts N-Triples text directly). The production checks are typed
-# ``-> list[str]``; the explicit annotation here keeps these wrappers strict.
+# Reasoning per-check shims: serialize the graph and route each anti-pattern check
+# straight through the native ``gmeow_validate.reasoning_*_nt`` engine (#579). The
+# Rust check returns ``{"errors": [...], ...}``; tests want the bare error list. The
+# production ``validate_all`` path calls the same native entry points from Rust over
+# file paths — this seam only adapts a hand-built synthetic graph to that input.
+
+
+def _reasoning_check(
+    check: Callable[[str, str], dict[str, list[str]]], graph: Graph
+) -> list[str]:
+    """Serialize *graph* to N-Triples and route it through one native *check*."""
+    report = check(graph_to_nt(graph), str(NAMESPACE))
+    return list(report["errors"])
 
 
 def exactly_one_stereotype(graph: Graph) -> list[str]:
-    result: list[str] = _reasoning_lint.exactly_one_stereotype(graph_to_nt(graph))
-    return result
+    return _reasoning_check(gmeow_validate.reasoning_exactly_one_stereotype_nt, graph)
 
 
 def identity_overlap(graph: Graph) -> list[str]:
-    result: list[str] = _reasoning_lint.identity_overlap(graph_to_nt(graph))
-    return result
+    return _reasoning_check(gmeow_validate.reasoning_identity_overlap_nt, graph)
 
 
 def anti_rigidity_discipline(graph: Graph) -> list[str]:
-    result: list[str] = _reasoning_lint.anti_rigidity_discipline(graph_to_nt(graph))
-    return result
+    return _reasoning_check(gmeow_validate.reasoning_anti_rigidity_discipline_nt, graph)
 
 
 def relator_mediation(graph: Graph) -> list[str]:
-    result: list[str] = _reasoning_lint.relator_mediation(graph_to_nt(graph))
-    return result
+    return _reasoning_check(gmeow_validate.reasoning_relator_mediation_nt, graph)
 
 
 def coequal_facet_orthogonality(graph: Graph) -> list[str]:
-    result: list[str] = _reasoning_lint.coequal_facet_orthogonality(graph_to_nt(graph))
-    return result
+    return _reasoning_check(
+        gmeow_validate.reasoning_coequal_facet_orthogonality_nt, graph
+    )
 
 
 def frame_declaration_completeness(graph: Graph) -> list[str]:
-    nt = graph_to_nt(graph)
-    result: list[str] = _reasoning_lint.frame_declaration_completeness(nt)
-    return result
+    return _reasoning_check(
+        gmeow_validate.reasoning_frame_declaration_completeness_nt, graph
+    )
 
 
 def reasoning_invariants(graph: Graph) -> list[str]:
-    result: list[str] = _reasoning_lint.reasoning_invariants(graph_to_nt(graph))
-    return result
+    return _reasoning_check(gmeow_validate.reasoning_invariants_nt, graph)
