@@ -25,6 +25,10 @@
 //! prerequisite. Common types are re-exported from [`prelude`].
 
 pub mod bundle;
+// Narrow purrdf backend traits (P2d, #887): term interning, parser ingress,
+// SPARQL execution, and serializer egress. PyO3-free, oxigraph-free — pure
+// contract only; concrete adapters live in `gmeow-rdf`.
+pub mod backend;
 pub mod content_store;
 // The static, allocation-free read view over an RDF dataset (purrdf P2, #836):
 // `DatasetView` + `GraphMatch`. PyO3-free, oxigraph-free — pure kernel.
@@ -55,6 +59,10 @@ pub mod sssom;
 pub mod store;
 pub mod turtle;
 
+pub use backend::{
+    RdfParseRequest, RdfParserBackend, RdfSerializeRequest, RdfSerializer, SerializeGraph,
+    SparqlEngine, SparqlRequest, SparqlResult, TermFactory,
+};
 pub use bundle::{
     ArtifactIndex, ArtifactRecord, BundleError, RdfBundle, SegmentUnitMap, UnitCatalog,
     UnitMetadata,
@@ -102,6 +110,10 @@ pub use turtle::{emit_annotation, emit_quad, emit_reifier, emit_resource, emit_t
 /// capability flags, and the diagnostic type — the set a typical consumer reaches
 /// for first.
 pub mod prelude {
+    pub use crate::backend::{
+        RdfParseRequest, RdfParserBackend, RdfSerializeRequest, RdfSerializer, SerializeGraph,
+        SparqlEngine, SparqlRequest, SparqlResult, TermFactory,
+    };
     pub use crate::dataset_view::{DatasetView, GraphMatch};
     pub use crate::diagnostic::{RdfDiagnostic, RdfLocation, RdfSeverity};
     pub use crate::ir::{
