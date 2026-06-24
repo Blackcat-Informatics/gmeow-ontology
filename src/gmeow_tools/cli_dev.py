@@ -14,6 +14,7 @@ from collections.abc import Callable
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, cast
 
+import gmeow_validate
 import gts
 import httpx
 import typer
@@ -423,9 +424,11 @@ def _surface_reports() -> list[tuple[str, Callable[[], Any]]]:
         return wikidata.to_diagnostics_report(report)
 
     def _constitution() -> Any:
-        from gmeow_tools import constitution
-
-        return constitution.constitution_report()
+        return gmeow_validate.constitution_full_report(
+            str(PROJECT_ROOT / "governance" / "constitution.ttl"),
+            str(PROJECT_ROOT / "CONSTITUTION.md"),
+            str(PROJECT_ROOT),
+        )
 
     def _crate_layering() -> Any:
         from gmeow_tools import crate_layering
@@ -778,17 +781,20 @@ def external_tool_cmd(
 @app.command(name="constitution-check")
 def constitution_check() -> None:
     """Verify every constitutional principle has live enforcement (#280)."""
-    from gmeow_tools.constitution import check_constitution
-
-    result = check_constitution()
-    for warning in result.warnings:
-        err_console.print(f"[yellow]warning[/yellow] {warning}")
-    for error in result.errors:
-        err_console.print(f"[red]error[/red] {error}")
-    if result.ok:
+    report = gmeow_validate.constitution_full_report(
+        str(PROJECT_ROOT / "governance" / "constitution.ttl"),
+        str(PROJECT_ROOT / "CONSTITUTION.md"),
+        str(PROJECT_ROOT),
+    )
+    for f in report.findings:
+        if f["severity"] == "warning":
+            err_console.print(f"[yellow]warning[/yellow] {f['message']}")
+        elif f["severity"] == "error":
+            err_console.print(f"[red]error[/red] {f['message']}")
+    if report.ok:
         console.print("[green]✓ constitution check passed[/green]")
     else:
-        raise _fail(f"✗ {len(result.errors)} error(s)")
+        raise _fail("✗ constitution check failed")
 
 
 box_roles_app = typer.Typer(
