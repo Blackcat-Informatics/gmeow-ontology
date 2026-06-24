@@ -26,6 +26,7 @@ pub mod cache;
 pub mod constitution;
 pub mod coverage;
 pub mod dsl;
+pub mod dsl_shacl;
 pub mod findings;
 pub mod gufo;
 pub mod instance;

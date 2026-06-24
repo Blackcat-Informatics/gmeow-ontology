@@ -9,23 +9,79 @@
 //! canonical native entry point so the formatting and provenance enrichment live
 //! in one place — the Rust side — eliminating the dual-authority bug (#937,
 //! Principle 4).
+//!
+//! The actual merge / SHACL / provenance work lives in the engine helper in
+//! [`crate::dsl_shacl`]; this module only adapts its structured findings into
+//! the legacy formatted strings the Python callers expect.
 
-use std::collections::HashMap;
 use std::path::PathBuf;
 
-use oxigraph::model::Term;
+use gmeow_diagnostics::Finding;
 use pyo3::prelude::*;
 
 /// Render a gmeow_shacl N-Triples term as the legacy Python seam did:
 /// `<http://x>` → `http://x`; `_:b0` → `b0`; literals/plain pass through.
-fn term_to_str(term: &Term) -> String {
-    let s = term.to_string();
-    if let Some(inner) = s.strip_prefix('<').and_then(|t| t.strip_suffix('>')) {
+fn term_to_str(term: &str) -> String {
+    if let Some(inner) = term.strip_prefix('<').and_then(|t| t.strip_suffix('>')) {
         inner.to_owned()
-    } else if let Some(inner) = s.strip_prefix("_:") {
+    } else if let Some(inner) = term.strip_prefix("_:") {
         inner.to_owned()
     } else {
-        s
+        term.to_owned()
+    }
+}
+
+/// Format one structured DSL finding into the legacy string form expected by
+/// Python callers.
+///
+/// ```text
+/// focus=<focusNode> | path=<resultPath> | msg=<message> | source=<file>
+/// ```
+///
+/// `path`, `msg`, and `source` are omitted when not applicable. The special
+/// "non-conforming with no results" guard is returned as a bare message so the
+/// legacy boundary stays identical to the original implementation.
+fn format_dsl_finding(finding: &Finding) -> String {
+    // The engine's fallback guard has no focus node; preserve its raw message.
+    if finding.code.ends_with(".nonconforming")
+        && finding
+            .primary_location()
+            .and_then(|l| l.logical.as_deref())
+            .is_none()
+    {
+        return finding.message.clone();
+    }
+
+    let mut parts: Vec<String> = Vec::new();
+
+    if let Some(logical) = finding
+        .primary_location()
+        .and_then(|l| l.logical.as_deref())
+    {
+        parts.push(format!("focus={}", term_to_str(logical)));
+    }
+
+    for related in &finding.related_locations {
+        if let Some(logical) = related.logical.as_deref() {
+            if let Some(path_iri) = logical.strip_prefix("path ") {
+                parts.push(format!("path={}", term_to_str(path_iri)));
+                break;
+            }
+        }
+    }
+
+    if !finding.message.is_empty() {
+        parts.push(format!("msg={}", finding.message));
+    }
+
+    if let Some(source) = finding.primary_location().and_then(|l| l.path.as_deref()) {
+        parts.push(format!("source={source}"));
+    }
+
+    if parts.is_empty() {
+        finding.message.clone()
+    } else {
+        parts.join(" | ")
     }
 }
 
@@ -57,50 +113,14 @@ pub fn validate_dsl_shacl(dsl_paths: Vec<String>, shapes_ttl: String) -> PyResul
     }
 
     let paths: Vec<PathBuf> = dsl_paths.iter().map(PathBuf::from).collect();
-    let merge = crate::dsl::merge_with_provenance(&paths)
+    let findings = crate::dsl_shacl::validate_dsl(&paths, &shapes_ttl, "dsl")
         .map_err(pyo3::exceptions::PyValueError::new_err)?;
-    let data_store = crate::store::build_store_from_nt(&merge.data_nt)
-        .map_err(pyo3::exceptions::PyValueError::new_err)?;
-    let shapes = gmeow_shacl::engine::parse_shapes(&shapes_ttl)
-        .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))?;
-    let report = gmeow_shacl::engine::validate(&data_store, &shapes);
 
-    if report.conforms {
+    if findings.is_empty() {
         return Ok(Vec::new());
     }
 
-    let focus_to_file: HashMap<String, String> = merge.focus_to_file.into_iter().collect();
-    let mut violations: Vec<String> = Vec::new();
-
-    for result in &report.results {
-        let mut parts: Vec<String> = Vec::new();
-        let focus_str = term_to_str(&result.focus_node);
-        parts.push(format!("focus={focus_str}"));
-
-        if let Some(path) = &result.result_path {
-            parts.push(format!("path={}", term_to_str(path)));
-        }
-        if let Some(message) = &result.message {
-            parts.push(format!("msg={message}"));
-        }
-
-        // Source provenance only applies to named-IRI focus nodes.
-        if let Term::NamedNode(node) = &result.focus_node {
-            if let Some(source) = focus_to_file.get(node.as_str()) {
-                parts.push(format!("source={source}"));
-            }
-        }
-
-        violations.push(parts.join(" | "));
-    }
-
-    // Defensive: a non-conforming report with no parseable results must still
-    // surface (gmeow_shacl reports conforms == results-empty, so unreachable).
-    if violations.is_empty() {
-        violations.push("SHACL validation failed: non-conforming with no results".to_owned());
-    }
-
-    Ok(violations)
+    Ok(findings.iter().map(format_dsl_finding).collect())
 }
 
 #[cfg(test)]
@@ -208,33 +228,10 @@ ex:NodeShape a sh:NodeShape ;
 
     // Helpers that bypass the PyO3 boundary for unit tests.
     fn validate_dsl_shacl_inner(paths: &[PathBuf], shapes_ttl: String) -> Vec<String> {
-        let merge = crate::dsl::merge_with_provenance(paths).expect("merge must succeed");
-        let data_store =
-            crate::store::build_store_from_nt(&merge.data_nt).expect("store must build");
-        let shapes = gmeow_shacl::engine::parse_shapes(&shapes_ttl).expect("shapes must parse");
-        let report = gmeow_shacl::engine::validate(&data_store, &shapes);
-        if report.conforms {
-            return Vec::new();
-        }
-        let focus_to_file: HashMap<String, String> = merge.focus_to_file.into_iter().collect();
-        report
-            .results
+        crate::dsl_shacl::validate_dsl(paths, &shapes_ttl, "dsl")
+            .expect("validate_dsl must succeed")
             .iter()
-            .map(|result| {
-                let mut parts = vec![format!("focus={}", term_to_str(&result.focus_node))];
-                if let Some(path) = &result.result_path {
-                    parts.push(format!("path={}", term_to_str(path)));
-                }
-                if let Some(message) = &result.message {
-                    parts.push(format!("msg={message}"));
-                }
-                if let Term::NamedNode(node) = &result.focus_node {
-                    if let Some(source) = focus_to_file.get(node.as_str()) {
-                        parts.push(format!("source={source}"));
-                    }
-                }
-                parts.join(" | ")
-            })
+            .map(format_dsl_finding)
             .collect()
     }
 
