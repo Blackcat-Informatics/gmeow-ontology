@@ -43,6 +43,8 @@ pub mod gts;
 // author a full multi-named-graph snapshot without pulling pyo3. It ingests a flat
 // oxigraph quad list (RDF 1.1 base graph) and parses RDF bytes via oxigraph, so it
 // now needs the `oxigraph` feature explicitly — `gts` no longer implies it (#885).
+#[cfg(feature = "oxigraph")]
+pub mod dataset_io;
 #[cfg(all(feature = "gts", feature = "oxigraph"))]
 pub mod gts_compose;
 #[cfg(feature = "oxigraph")]
@@ -76,6 +78,8 @@ pub mod turtle_normalize;
 // Mirror the kernel's root-level re-exports so `gmeow_rdf::RdfTerm`,
 // `gmeow_rdf::RdfDiagnostic`, … keep resolving exactly as before. The two
 // `gts`-gated IR import helpers are re-exported under the matching gate.
+#[cfg(feature = "oxigraph")]
+pub use dataset_io::{dataset_from_bytes, dataset_from_oxigraph_quads};
 pub use gmeow_rdf_core::{
     check_provenance, dataset_diff, datasets_isomorphic, emit_annotation, emit_quad, emit_reifier,
     emit_resource, emit_term, fno_to_ntriples, fno_to_quads, gts_to_rdf_loss_ledger,
