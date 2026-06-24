@@ -519,6 +519,31 @@ plus the 17 `#[test]` functions; all helper bodies deleted. All 17 tests still p
 
 **Batch 2 grand tally:** deception 10 + evidence 5 + notes 8 + events 2 + creative_works 8 + organization 2 + finance 6 + lifecycle 2 + standpoint 5 + rights 3 + registers 2 + profiles 3 + privacy 3 + teleology 2 + norms 2 + myth 3 + narrative 4 = **70 converted** across 17 slices; retained (cross-slice/dynamic/SPARQL/disk-load/SSSOM/projection) tracked per-fn above. All **87** conformance tests (17 batch-1 + 70 batch-2) green; `uv run mypy` clean (281 files).
 
+### #867 conformance batch 3 (citations, cognition, reference_frames, narration, aboutness, disclosure)
+
+| pytest fn | source | disposition | Rust twin / retain reason |
+|-----------|--------|------------|---------------------------|
+| `test_citation_act_shacl_passes` | test_citations.py | converted | `citation_act_shacl_passes` |
+| `test_citation_act_missing_intent_fails_shacl` | test_citations.py | converted | `citation_act_missing_intent_fails_shacl` |
+| `test_contribution_with_degree_shacl_passes` | test_citations.py | converted | `contribution_with_degree_shacl_passes` |
+| 3 citations tests | test_citations.py | **retained** | self-description loader / disk-TTL `(triple) in g` / cross-format sweep |
+| `test_wellformed_knowledge_proficiency_conforms` | test_cognition.py | converted | `wellformed_knowledge_proficiency_conforms` (merged) |
+| `test_malformed_knowledge_proficiency_is_flagged` | test_cognition.py | converted | `malformed_knowledge_proficiency_is_flagged` (merged) |
+| ~6 cognition tests | test_cognition.py | **retained** | `_graph()` TBox / dynamic metaclass sweep / SSSOM mapping |
+| 8 reference-frame realm tests (measurement/currency/temporal/colourspace/linguistic/mathematical/narrative/biological) | test_reference_frames.py | converted | `*_reference_frame_passes` etc. (all 8, fixture-only) |
+| `test_wellformed_narration_fixture_conforms` | test_narration.py | converted | `wellformed_narration_fixture_conforms` |
+| `test_malformed_narration_fixture_is_flagged` | test_narration.py | converted | `malformed_narration_fixture_is_flagged` |
+| 7 narration tests | test_narration.py | **retained** | `_graph()` TBox/subject-iteration / efficiency-budget quad scan / SPARQL |
+| `test_wellformed_aboutness_fixture_conforms` | test_aboutness.py | converted | `wellformed_aboutness_fixture_conforms` |
+| `test_malformed_aboutness_fixture_is_flagged` | test_aboutness.py | converted | `malformed_aboutness_fixture_is_flagged` |
+| 7 aboutness tests | test_aboutness.py | **retained** | `_graph()` TBox / dynamic subject+combinations sweeps / SPARQL / labeled-defined sweep |
+| `test_leak_fixture_is_flagged` | test_disclosure.py | converted | `leak_fixture_is_flagged` |
+| `test_wellformed_disclosure_fixture_conforms` | test_disclosure.py | converted | `wellformed_disclosure_fixture_conforms` |
+| `test_conditional_disclosure_warns_but_does_not_fail` | test_disclosure.py | converted | `conditional_disclosure_warns_but_does_not_fail` (warning-tolerant) |
+| ~12 disclosure tests | test_disclosure.py | **retained** | `_graph()` TBox / dynamic sweeps / `.rq` SPARQL / disk-iterate |
+
+**Conformance batch-3 (wave 1+2) tally:** citations 3 + cognition 2 + reference_frames 8 + narration 2 + aboutness 2 + disclosure 3 = **20 converted**. genealogy + employment had ZERO migratable tests (every run_shacl call is paired with a dynamic `g.objects()`/`(triple) in g`/post-SHACL membership assertion — retained whole, files unchanged). All **107** conformance tests (87 prior + 20) green; `uv run mypy` clean.
+
 ## #867 structural batch 10 (places — the 129-fn slice)
 
 The largest single slice (129 pytest fns) migrated to `slices/core/places/tests/structural.ttl`

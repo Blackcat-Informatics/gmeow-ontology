@@ -38,7 +38,6 @@ from gmeow_rdf.compat.rdflib import RDF, RDFS, Graph, URIRef
 
 from gmeow_tools.graph import load_merged_graph
 from gmeow_tools.mappings import load_mappings
-from tests._graph_nt import run_shacl
 
 GMEOW = "https://blackcatinformatics.ca/gmeow/"
 GUFO = "http://purl.org/nemo/gufo#"
@@ -149,33 +148,6 @@ def test_proficiency_vocab_relocated_to_kernel() -> None:
         assert (node, RDFS.subClassOf, _logic("QualityValue")) in graph
         assert (node, RDFS.isDefinedBy, _g("slices/kernel")) in graph
         assert (node, RDFS.isDefinedBy, _g("slices/expertise")) not in graph
-
-
-# --------------------------------------------------------------------------- #
-# Closed-world SHACL: KnowledgeProficiency well-formedness (#558).
-# --------------------------------------------------------------------------- #
-
-
-def _fixture(name: str) -> Graph:
-    from pathlib import Path
-
-    path = Path(__file__).parent / "fixtures" / "shapes" / f"{name}.ttl"
-    return Graph().parse(path, format="turtle")
-
-
-def test_wellformed_knowledge_proficiency_conforms() -> None:
-    result = run_shacl(_fixture("cognition-wellformed"))
-    assert result.ok, "\n".join(result.errors)
-
-
-def test_malformed_knowledge_proficiency_is_flagged() -> None:
-    result = run_shacl(_fixture("cognition-malformed"))
-    assert not result.ok
-    assert result.errors
-    errors = "\n".join(result.errors)
-    assert "must reference exactly one subject" in errors
-    assert "must carry exactly one KnowledgeLevel" in errors
-    assert "at most one scale" in errors
 
 
 # --------------------------------------------------------------------------- #

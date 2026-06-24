@@ -18,7 +18,6 @@ from gmeow_rdf.compat.rdflib.query import ResultRow
 
 from gmeow_tools.config import COMPETENCY_DIR
 from gmeow_tools.graph import load_merged_graph
-from tests._graph_nt import run_shacl
 
 GMEOW = "https://blackcatinformatics.ca/gmeow/"
 GM = Namespace(GMEOW)
@@ -97,25 +96,6 @@ def test_no_truth_bridge_from_unreliable_mode() -> None:
     g = _graph()
     types = set(g.objects(GM.narrationUnreliable, RDF.type))
     assert types == {GM.NarrationMode}
-
-
-# --------------------------------------------------------------------------- #
-# Closed-world SHACL shapes + the efficiency doctrine in fixture form
-# --------------------------------------------------------------------------- #
-
-
-def test_wellformed_narration_fixture_conforms() -> None:
-    result = run_shacl(_fixture("narration-wellformed"))
-    assert result.ok, "\n".join(result.errors)
-
-
-def test_malformed_narration_fixture_is_flagged() -> None:
-    result = run_shacl(_fixture("narration-malformed"))
-    assert not result.ok
-    errors = "\n".join(result.errors)
-    assert "at least one gmeow:narrationMode" in errors
-    assert "exactly one gmeow:narrationSubject" in errors
-    assert "exactly one gmeow:narrationSegment" in errors
 
 
 def test_fixture_obeys_the_efficiency_budget() -> None:
