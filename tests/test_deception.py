@@ -1,22 +1,34 @@
-"""Deception · Structural foundation (issue #213).
+"""Deception -- SHACL / dynamic tests retained from issue #213.
 
-Tests the deception module: event type, divergence properties, veridicality
-vocabulary, deception roles, bullshit modality, attestation type fact-check,
-SHACL shapes, and the no-isFalse doctrine.
+TBox structural assertions (EventType individuals, property shapes,
+ClaimVeridicality, MaximViolationType, no-isFalse guards, etc.) have been
+migrated to slices/core/deception/tests/structural.ttl as declarative
+gmeow:StructuralAssertion cells run by the native Rust slicetest harness.
+
+Retained here (not migratable to module-scoped declarative cells):
+  - test_blame_deflection_example_uses_doxastic_standpoint_claims:
+      dynamic ABox file-load check over an example file.
+  - test_bullshit_modality_exists:
+      gmeow:bullshit is defined in slices/core/standpoint/module.ttl
+      (cross-slice), not in the deception module.
+  - All run_shacl() ExampleConformance tests.
+  - test_licensed_falsehood_not_a_lie:
+      run_shacl() + cross-slice NarrativeReferenceFrame guard.
+  - test_disinformation_boundary_query:
+      reads an external competency .rq file and checks result labels.
 """
 
 from __future__ import annotations
 
 from pathlib import Path
 
-from gmeow_rdf.compat.rdflib import OWL, RDF, RDFS, Graph, Literal, Namespace, URIRef
+from gmeow_rdf.compat.rdflib import OWL, RDF, Graph, Literal, Namespace, URIRef
 
 from gmeow_tools.config import COMPETENCY_DIR
 from gmeow_tools.graph import load_merged_graph
 from tests._graph_nt import run_shacl
 
 GMEOW = Namespace("https://blackcatinformatics.ca/gmeow/")
-GUFO = Namespace("http://purl.org/nemo/gufo#")
 EX = Namespace("https://example.org/test/")
 
 
@@ -50,19 +62,6 @@ def _doxastic_claim(
     return state
 
 
-def test_deception_event_type_exists() -> None:
-    graph = _graph()
-    assert (GMEOW.eventTypeDeception, RDF.type, GMEOW.EventType) in graph
-
-
-def test_divergence_properties_exist() -> None:
-    graph = _graph()
-    for prop in (GMEOW.heldStandpoint, GMEOW.projectedStandpoint):
-        assert (prop, RDF.type, OWL.ObjectProperty) in graph
-        assert (prop, RDFS.domain, GMEOW.Event) in graph
-        assert (prop, RDFS.range, GMEOW.DoxasticStandpointClaim) in graph
-
-
 def test_blame_deflection_example_uses_doxastic_standpoint_claims() -> None:
     """Issue #561 re-grounding: every held/projected standpoint in the
     blame-deflection example is typed gmeow:DoxasticStandpointClaim."""
@@ -85,67 +84,9 @@ def test_blame_deflection_example_uses_doxastic_standpoint_claims() -> None:
         ) in g, f"{standpoint} is not a DoxasticStandpointClaim"
 
 
-def test_deceptive_intent_claim_property_exists() -> None:
-    graph = _graph()
-    prop = GMEOW.deceptiveIntentClaim
-    assert (prop, RDF.type, OWL.ObjectProperty) in graph
-    assert (prop, RDFS.domain, GMEOW.Event) in graph
-    assert (prop, RDFS.range, GMEOW.StandpointClaim) in graph
-
-
-def test_implicates_property_exists() -> None:
-    graph = _graph()
-    prop = GMEOW.implicates
-    assert (prop, RDF.type, OWL.ObjectProperty) in graph
-    assert (prop, RDFS.domain, GMEOW.Event) in graph
-    assert (prop, RDFS.range, GMEOW.Entity) in graph
-
-
-def test_deception_cue_property_exists() -> None:
-    graph = _graph()
-    prop = GMEOW.deceptionCue
-    assert (prop, RDF.type, OWL.ObjectProperty) in graph
-    assert (prop, RDFS.domain, GMEOW.Event) in graph
-    assert (prop, RDFS.range, GMEOW.Observation) in graph
-
-
-def test_deception_roles_exist() -> None:
-    graph = _graph()
-    for role in (
-        GMEOW.roleDeceiver,
-        GMEOW.roleDeceived,
-        GMEOW.roleBeneficiaryOfDeception,
-        GMEOW.roleDupe,
-    ):
-        assert (role, RDF.type, GMEOW.ParticipantRole) in graph
-
-
-def test_veridicality_values_exist() -> None:
-    graph = _graph()
-    assert (GMEOW.ClaimVeridicality, RDF.type, OWL.Class) in graph
-    assert (GMEOW.ClaimVeridicality, RDFS.subClassOf, GUFO.QualityValue) in graph
-    for val in (GMEOW.veridicalityUntrue, GMEOW.veridicalityLicensedFalsehood):
-        assert (val, RDF.type, GMEOW.ClaimVeridicality) in graph
-
-
 def test_bullshit_modality_exists() -> None:
     graph = _graph()
     assert (GMEOW.bullshit, RDF.type, GMEOW.StandpointModality) in graph
-
-
-def test_attestation_type_fact_check_exists() -> None:
-    graph = _graph()
-    assert (GMEOW.attestationTypeFactCheck, RDF.type, GMEOW.AttestationType) in graph
-
-
-def test_no_is_false_axiom() -> None:
-    """Negative guard: there must be no isFalse or isDeceptive property."""
-    graph = _graph()
-    for forbidden in ("isFalse", "isDeceptive"):
-        prop = URIRef(str(GMEOW) + forbidden)
-        assert (prop, RDF.type, OWL.ObjectProperty) not in graph
-        assert (prop, RDF.type, OWL.DatatypeProperty) not in graph
-        assert (prop, RDF.type, OWL.AnnotationProperty) not in graph
 
 
 def test_standpoint_divergence_coexists() -> None:
@@ -213,79 +154,9 @@ def test_deception_cue_shacl_passes() -> None:
     assert result.ok, "\n".join(result.errors)
 
 
-def test_licensed_falsehood_is_not_deception() -> None:
-    """A claim tagged as licensed falsehood is structurally distinct from
-    deception — the safety property is explicit."""
-    graph = _graph()
-    assert (
-        GMEOW.veridicalityLicensedFalsehood,
-        RDF.type,
-        GMEOW.ClaimVeridicality,
-    ) in graph
-    # Licensed falsehood and untrue are siblings, neither subsumes the other.
-    assert (
-        GMEOW.veridicalityLicensedFalsehood,
-        RDFS.subClassOf,
-        GMEOW.veridicalityUntrue,
-    ) not in graph
-    assert (
-        GMEOW.veridicalityUntrue,
-        RDFS.subClassOf,
-        GMEOW.veridicalityLicensedFalsehood,
-    ) not in graph
-
-
 # ===========================================================================
-# Issue #215 — Speech-act deception types.
+# Issue #215 -- Speech-act deception types (SHACL conformance).
 # ===========================================================================
-
-
-def test_event_type_lie_exists() -> None:
-    graph = _graph()
-    assert (GMEOW.eventTypeLie, RDF.type, GMEOW.EventType) in graph
-
-
-def test_event_type_paltering_exists() -> None:
-    graph = _graph()
-    assert (GMEOW.eventTypePaltering, RDF.type, GMEOW.EventType) in graph
-
-
-def test_event_type_omission_exists() -> None:
-    graph = _graph()
-    assert (GMEOW.eventTypeOmission, RDF.type, GMEOW.EventType) in graph
-
-
-def test_event_type_distortion_exists() -> None:
-    graph = _graph()
-    assert (GMEOW.eventTypeDistortion, RDF.type, GMEOW.EventType) in graph
-
-
-def test_event_type_bullshit_exists() -> None:
-    graph = _graph()
-    assert (GMEOW.eventTypeBullshit, RDF.type, GMEOW.EventType) in graph
-
-
-def test_event_type_self_deception_exists() -> None:
-    graph = _graph()
-    assert (GMEOW.eventTypeSelfDeception, RDF.type, GMEOW.EventType) in graph
-
-
-def test_role_spin_doctor_exists() -> None:
-    graph = _graph()
-    assert (GMEOW.roleSpinDoctor, RDF.type, GMEOW.ParticipantRole) in graph
-
-
-def test_maxim_violation_values_exist() -> None:
-    graph = _graph()
-    assert (GMEOW.MaximViolationType, RDF.type, OWL.Class) in graph
-    assert (GMEOW.MaximViolationType, RDFS.subClassOf, GUFO.QualityValue) in graph
-    for val in (
-        GMEOW.maximViolationQuality,
-        GMEOW.maximViolationQuantity,
-        GMEOW.maximViolationRelation,
-        GMEOW.maximViolationManner,
-    ):
-        assert (val, RDF.type, GMEOW.MaximViolationType) in graph
 
 
 def test_paltering_implicates_structure() -> None:
@@ -398,23 +269,8 @@ def test_licensed_falsehood_not_a_lie() -> None:
 
 
 # ===========================================================================
-# Issue #216 — Carrier deception types.
+# Issue #216 -- Carrier deception types (SHACL conformance).
 # ===========================================================================
-
-
-def test_event_type_fabrication_exists() -> None:
-    graph = _graph()
-    assert (GMEOW.eventTypeFabrication, RDF.type, GMEOW.EventType) in graph
-
-
-def test_event_type_forgery_exists() -> None:
-    graph = _graph()
-    assert (GMEOW.eventTypeForgery, RDF.type, GMEOW.EventType) in graph
-
-
-def test_event_type_impersonation_exists() -> None:
-    graph = _graph()
-    assert (GMEOW.eventTypeImpersonation, RDF.type, GMEOW.EventType) in graph
 
 
 def test_fabrication_refuted_provenance() -> None:
@@ -498,13 +354,8 @@ def test_impersonation_facet_subject_mismatch() -> None:
 
 
 # ===========================================================================
-# Issue #217 — Disinformation campaign + per-node misinfo↔disinfo boundary.
+# Issue #217 -- Disinformation campaign (SHACL conformance + query).
 # ===========================================================================
-
-
-def test_event_type_disinformation_exists() -> None:
-    graph = _graph()
-    assert (GMEOW.eventTypeDisinformation, RDF.type, GMEOW.EventType) in graph
 
 
 def test_disinformation_propagation_chain() -> None:

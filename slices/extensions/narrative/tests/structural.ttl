@@ -1,0 +1,245 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics(R) Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Declarative structural assertions for the narrative slice (#89/#156/#358 EPIC)
+# -- the slice-resident test-DSL twin of the asserted-TBox MUST / MUST-NOT
+# invariants formerly hand-written in tests/test_narrative.py. Each assertion
+# runs as a SPARQL ASK over the narrative module graph (gmeow:scopeModule) under
+# the native Rust slicetest harness (crates/slicetest).
+#
+# Narrative is NOT yet #694-migrated: class stereotypes remain gufo:
+# (gufo:SubKind, gufo:Kind, gufo:Relator, gufo:AbstractIndividualType,
+# gufo:QualityValue, gufo:Category), NOT logic:.
+#
+# RETAINED in pytest (not migratable here):
+#   test_narrative_reference_frame_is_not_standpoint_subclass
+#     -- uses graph.transitive_objects() over the merged graph; a scopeModule
+#     cell would silently narrow the live-set sweep across imported slices.
+#   test_book_release_and_serial_installment_are_creative_works
+#     -- transitive walk; gmeow:BookRelease and gmeow:SerialInstallment are
+#     subjects in slices/core/documents/module.ttl, not the narrative module.
+#   test_frame_realm_narrative_and_frame_kind_narrative_exist
+#     -- gmeow:frameRealmNarrative and gmeow:frameKindNarrative are subjects in
+#     slices/core/places/module.ttl (cross-slice); a scopeModule cell would
+#     always return ASK FALSE.
+#   test_reading_order_subclasses_standpoint
+#     -- gmeow:ReadingOrder is a subject in slices/core/documents/module.ttl
+#     (cross-slice), not the narrative module.
+#   test_narrative_reference_frame_shacl_passes
+#     -- run_shacl() call; ExampleConformance, not a structural TBox assertion.
+#   test_narrative_frame_link_shacl_passes
+#     -- run_shacl() call; ExampleConformance, not a structural TBox assertion.
+#   test_character_arc_shacl_passes
+#     -- run_shacl() call; ExampleConformance, not a structural TBox assertion.
+#   test_character_arc_missing_subject_fails_shacl
+#     -- run_shacl() negative call with error-text assertions; ExampleConformance,
+#     not a structural TBox assertion.
+#
+# See dsl/tests/MIGRATION-LEDGER.md for the per-test pytest->DSL mapping.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/narrative/tests/> .
+
+# --- 1. NarrativeReferenceFrame subclasses ReferenceFrame (MUST) --------------
+ex:saNarrativeReferenceFrameIsReferenceFrame a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:NarrativeReferenceFrame rdfs:subClassOf gmeow:ReferenceFrame .
+}""" ;
+    gmeow:saRationale "gmeow:NarrativeReferenceFrame MUST be rdfs:subClassOf gmeow:ReferenceFrame -- canon supplies coordinate topology for in-universe claims; the gUFO MixIden rule forbids a second Kind inheritance (Standpoint). Mirrors test_narrative_reference_frame_is_reference_frame." .
+
+# --- 2. NarrativeFrameRelation is a gufo:AbstractIndividualType value vocab ----
+ex:saNarrativeFrameRelationIsValueVocab a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:NarrativeFrameRelation a gufo:AbstractIndividualType , owl:Class ;
+        rdfs:subClassOf gufo:QualityValue .
+}""" ;
+    gmeow:saRationale "gmeow:NarrativeFrameRelation MUST be an owl:Class typed gufo:AbstractIndividualType and a subclass of gufo:QualityValue -- frame-relation types are value-vocabulary individuals, never subclasses (Principle 9). Mirrors test_narrative_frame_relation_value_vocab (class part)." .
+
+# --- 3. Six NarrativeFrameRelation seed individuals exist (MUST) ---------------
+ex:saNarrativeFrameRelationSeeds a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    gmeow:relationCanon               a gmeow:NarrativeFrameRelation .
+    gmeow:relationAlternateContinuity a gmeow:NarrativeFrameRelation .
+    gmeow:relationExpandedUniverse    a gmeow:NarrativeFrameRelation .
+    gmeow:relationFanon               a gmeow:NarrativeFrameRelation .
+    gmeow:relationCrossover           a gmeow:NarrativeFrameRelation .
+    gmeow:relationAdaptationOf        a gmeow:NarrativeFrameRelation .
+}""" ;
+    gmeow:saRationale "All six NarrativeFrameRelation seed individuals (canon, alternate continuity, expanded universe, fanon, crossover, adaptation) MUST be present -- they seed the open value vocabulary. Mirrors test_narrative_frame_relation_value_vocab (individuals part)." .
+
+# --- 4. sourceFor is an owl:ObjectProperty with domain and range (MUST) --------
+ex:saSourceForProperty a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:sourceFor a owl:ObjectProperty ;
+        rdfs:domain gmeow:CreativeWork ;
+        rdfs:range gmeow:NarrativeReferenceFrame .
+}""" ;
+    gmeow:saRationale "gmeow:sourceFor MUST be an owl:ObjectProperty with rdfs:domain gmeow:CreativeWork and rdfs:range gmeow:NarrativeReferenceFrame -- out-of-universe artifacts source narrative frames, not the reverse. Mirrors test_source_for_property_exists." .
+
+# --- 5. NarrativeFrameLink subclasses gufo:Relator (MUST) ---------------------
+ex:saNarrativeFrameLinkIsRelator a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:NarrativeFrameLink rdfs:subClassOf gufo:Relator .
+}""" ;
+    gmeow:saRationale "gmeow:NarrativeFrameLink MUST be rdfs:subClassOf gufo:Relator -- a reified binding of source frame, target frame, and relation type into a single node (the NarrationUsage/Tagging idiom). Mirrors test_narrative_frame_link_is_relatore_subclass." .
+
+# --- 6. narrativeFrameLinkSource, Target, Relation are ObjectProperties (MUST) -
+ex:saNarrativeFrameLinkPropertiesAreObjectProperties a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    gmeow:narrativeFrameLinkSource   a owl:ObjectProperty .
+    gmeow:narrativeFrameLinkTarget   a owl:ObjectProperty .
+    gmeow:narrativeFrameLinkRelation a owl:ObjectProperty .
+}""" ;
+    gmeow:saRationale "gmeow:narrativeFrameLinkSource, narrativeFrameLinkTarget, and narrativeFrameLinkRelation MUST all be owl:ObjectProperty -- all three link roles of the NarrativeFrameLink relator are object relations. Mirrors test_narrative_frame_link_properties_exist (ObjectProperty part)." .
+
+# --- 7. narrativeFrameLinkSource domain and range (MUST) ----------------------
+ex:saNarrativeFrameLinkSourceDomainRange a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:narrativeFrameLinkSource rdfs:domain gmeow:NarrativeFrameLink ;
+        rdfs:range gmeow:NarrativeReferenceFrame .
+}""" ;
+    gmeow:saRationale "gmeow:narrativeFrameLinkSource MUST have rdfs:domain gmeow:NarrativeFrameLink and rdfs:range gmeow:NarrativeReferenceFrame -- the source end of the reified frame-to-frame binding. Mirrors test_narrative_frame_link_properties_exist (source domain/range part)." .
+
+# --- 8. narrativeFrameLinkTarget domain and range (MUST) ----------------------
+ex:saNarrativeFrameLinkTargetDomainRange a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:narrativeFrameLinkTarget rdfs:domain gmeow:NarrativeFrameLink ;
+        rdfs:range gmeow:NarrativeReferenceFrame .
+}""" ;
+    gmeow:saRationale "gmeow:narrativeFrameLinkTarget MUST have rdfs:domain gmeow:NarrativeFrameLink and rdfs:range gmeow:NarrativeReferenceFrame -- the target end of the reified frame-to-frame binding. Mirrors test_narrative_frame_link_properties_exist (target domain/range part)." .
+
+# --- 9. narrativeFrameLinkRelation domain and range (MUST) --------------------
+ex:saNarrativeFrameLinkRelationDomainRange a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:narrativeFrameLinkRelation rdfs:domain gmeow:NarrativeFrameLink ;
+        rdfs:range gmeow:NarrativeFrameRelation .
+}""" ;
+    gmeow:saRationale "gmeow:narrativeFrameLinkRelation MUST have rdfs:domain gmeow:NarrativeFrameLink and rdfs:range gmeow:NarrativeFrameRelation -- the relation-type slot of the reified binding. Mirrors test_narrative_frame_link_properties_exist (relation domain/range part)." .
+
+# --- 10. contributesToFrame is an ObjectProperty with domain and range (MUST) --
+ex:saContributesToFrameProperty a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:contributesToFrame a owl:ObjectProperty ;
+        rdfs:domain gmeow:InformationObject ;
+        rdfs:range gmeow:NarrativeReferenceFrame .
+}""" ;
+    gmeow:saRationale "gmeow:contributesToFrame MUST be an owl:ObjectProperty with rdfs:domain gmeow:InformationObject and rdfs:range gmeow:NarrativeReferenceFrame -- broader than sourceFor; a segment may contribute claims without being the primary source. Mirrors test_contributes_to_frame_exists." .
+
+# --- 11. CharacterArc subclasses InformationObject (MUST) ---------------------
+ex:saCharacterArcSubclassesInformationObject a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:CharacterArc rdfs:subClassOf gmeow:InformationObject .
+}""" ;
+    gmeow:saRationale "gmeow:CharacterArc MUST be rdfs:subClassOf gmeow:InformationObject -- a first-class interpretive information object, not an event or participant (standpoint-scoped analysis). Mirrors test_character_arc_subclasses_information_object." .
+
+# --- 12. arcSubject, arcFrame, arcType are functional ObjectProperties (MUST) --
+ex:saArcCorePropsFunctional a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    gmeow:arcSubject a owl:ObjectProperty , owl:FunctionalProperty .
+    gmeow:arcFrame   a owl:ObjectProperty , owl:FunctionalProperty .
+    gmeow:arcType    a owl:ObjectProperty , owl:FunctionalProperty .
+}""" ;
+    gmeow:saRationale "gmeow:arcSubject, arcFrame, and arcType MUST each be owl:ObjectProperty and owl:FunctionalProperty -- one subject, one frame, and one type per CharacterArc instance (cross-continuity arcs are separate instances). Mirrors test_character_arc_properties_exist (arcSubject/arcFrame/arcType part)." .
+
+# --- 13. arcEvidence is an owl:ObjectProperty (NOT functional) (MUST) ---------
+ex:saArcEvidenceIsObjectProperty a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    gmeow:arcEvidence a owl:ObjectProperty .
+}""" ;
+    gmeow:saRationale "gmeow:arcEvidence MUST be owl:ObjectProperty -- an arc may be evidenced by many segments or works, so it is NOT functional. Mirrors test_character_arc_properties_exist (arcEvidence part)." .
+
+# --- 14. arcEvidence must NOT be functional (MUST-NOT) ------------------------
+ex:saArcEvidenceNotFunctional a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    gmeow:arcEvidence a owl:FunctionalProperty .
+}""" ;
+    gmeow:saRationale "gmeow:arcEvidence MUST NOT be owl:FunctionalProperty -- an arc may be evidenced by many works or segments, and those coexist (Principle 9). Mirrors test_character_arc_properties_exist (arcEvidence not-functional part)." .
+
+# --- 15. ArcType is a gufo:AbstractIndividualType value vocab (MUST) -----------
+ex:saArcTypeIsValueVocab a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:ArcType a gufo:AbstractIndividualType , owl:Class ;
+        rdfs:subClassOf gufo:QualityValue .
+}""" ;
+    gmeow:saRationale "gmeow:ArcType MUST be an owl:Class typed gufo:AbstractIndividualType and a subclass of gufo:QualityValue -- arc types are an open value vocabulary (individuals, never subclasses, Principle 9). Mirrors test_arc_type_value_vocab (class part)." .
+
+# --- 16. Six ArcType seed individuals exist (MUST) ----------------------------
+ex:saArcTypeSeeds a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    gmeow:arcTypeComingOfAge a gmeow:ArcType .
+    gmeow:arcTypeRedemption  a gmeow:ArcType .
+    gmeow:arcTypeFall        a gmeow:ArcType .
+    gmeow:arcTypeCorruption  a gmeow:ArcType .
+    gmeow:arcTypeQuest       a gmeow:ArcType .
+    gmeow:arcTypeRecovery    a gmeow:ArcType .
+}""" ;
+    gmeow:saRationale "All six ArcType seed individuals (coming-of-age, redemption, fall, corruption, quest, recovery) MUST be present as gmeow:ArcType instances -- they seed the open interpretive vocabulary. Mirrors test_arc_type_value_vocab (individuals part)." .

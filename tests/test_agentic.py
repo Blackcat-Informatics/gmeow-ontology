@@ -2,11 +2,13 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 """The agentic extension (#390): tool-call provenance, gated.
 
-The agent's ACTIONS join the same provenance graph as its claims: ToolCall
-follows the ModelInvocation idiom (EventType ⊑ Activity, functional agent
-link, closed-world twins), produced entities link BACK via wasGeneratedBy
-(P5), and the gmeow memory MCP triad is the first live producer — its own
-store/revise calls are recorded and auditable.
+TBox structural assertions (ToolCall idiom, property ends/functionality, and
+the no-forward-output closed-set sweep) have been migrated to the declarative
+slicetest DSL in slices/extensions/agentic/tests/structural.ttl (#867).
+
+Retained here: SHACL conformance checks (run_shacl), the example competency
+query, and all runtime/Memory/MCP integration tests that are not expressible
+as module-scoped SPARQL ASK cells.
 """
 
 from __future__ import annotations
@@ -15,58 +17,17 @@ import json
 from pathlib import Path
 
 import pytest
-from gmeow_rdf.compat.rdflib import OWL, RDF, RDFS, Graph, Namespace
+from gmeow_rdf.compat.rdflib import Graph, Namespace
 
 from gmeow_tools.graph import load_merged_graph
 from tests._graph_nt import run_shacl
 
 GMEOW = Namespace("https://blackcatinformatics.ca/gmeow/")
-GUFO = Namespace("http://purl.org/nemo/gufo#")
 EX = Namespace("https://blackcatinformatics.ca/gmeow/examples/")
 
 
 def _graph() -> Graph:
     return load_merged_graph(include_imports=False)
-
-
-# --------------------------------------------------------------------------- #
-# TBox — the ModelInvocation idiom one level down
-# --------------------------------------------------------------------------- #
-
-
-def test_toolcall_follows_the_modelinvocation_idiom() -> None:
-    g = _graph()
-    assert (GMEOW.ToolCall, RDF.type, OWL.Class) in g
-    assert (GMEOW.ToolCall, RDF.type, GUFO.EventType) in g
-    assert (GMEOW.ToolCall, RDFS.subClassOf, GMEOW.Activity) in g
-
-
-def test_agentic_properties_have_declared_ends_and_functionality() -> None:
-    g = _graph()
-    expected = {
-        GMEOW.calledByInvocation: (GMEOW.ToolCall, GMEOW.ModelInvocation),
-        GMEOW.usedTool: (GMEOW.ToolCall, GMEOW.SoftwareAgent),
-        GMEOW.toolArguments: (GMEOW.ToolCall, RDFS.Literal),
-        GMEOW.toolResult: (GMEOW.ToolCall, RDFS.Literal),
-    }
-    for prop, (domain, range_) in expected.items():
-        assert (prop, RDFS.domain, domain) in g, prop
-        assert (prop, RDFS.range, range_) in g, prop
-        # Every OWL-functional carries a closed-world twin (tested below).
-        assert (prop, RDF.type, OWL.FunctionalProperty) in g, prop
-
-
-def test_no_forward_output_entity_property_exists() -> None:
-    """P5: produced entities link BACK via wasGeneratedBy — the agentic
-    slice must never mint a forward output object property."""
-    g = _graph()
-    agentic = "https://blackcatinformatics.ca/gmeow/slices/agentic"
-    for prop in g.subjects(RDFS.isDefinedBy, Namespace(agentic)[""]):
-        if (prop, RDF.type, OWL.ObjectProperty) in g:
-            assert str(prop) in (
-                str(GMEOW.calledByInvocation),
-                str(GMEOW.usedTool),
-            ), f"unexpected object property in agentic slice: {prop}"
 
 
 def test_double_valued_toolcall_violates_the_closed_world_twins() -> None:

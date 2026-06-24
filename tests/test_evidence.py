@@ -1,9 +1,11 @@
-"""Structural + SHACL guards for the evidence / source-typing module (#224).
+"""SHACL guards for the evidence / source-typing module (#224).
 
-Tests pin the two orthogonal axes:
-- Axis A (evidential warrant): value vocabulary, non-functionality, co-existence.
-- Axis B (source typing): independence / tier / coverage depth + notability boolean.
-- SHACL: self/private-only warning + notability-requirement violation.
+Structural TBox assertions (value vocabulary structure, property domains/ranges,
+non-functionality, no-truth-bridge) have been migrated to the declarative
+slicetest DSL in slices/core/evidence/tests/structural.ttl (#867).
+
+Retained here: run_shacl() ExampleConformance tests and fixture-based mutation
+tests that cannot be expressed as module-scoped SPARQL ASK cells.
 """
 
 from __future__ import annotations
@@ -11,126 +13,16 @@ from __future__ import annotations
 from pathlib import Path
 
 from gmeow_rdf.compat.rdflib import Graph, Literal, Namespace, URIRef
-from gmeow_rdf.compat.rdflib.namespace import OWL, RDF, RDFS, XSD
+from gmeow_rdf.compat.rdflib.namespace import RDF, XSD
 
-from gmeow_tools.graph import load_merged_graph
 from gmeow_tools.validate import ValidationResult
 from tests._graph_nt import run_shacl
 
 EVIDENCE_FIXTURES = Path(__file__).parent / "fixtures" / "evidence"
 
 GMEOW = "https://blackcatinformatics.ca/gmeow/"
-GUFO = "http://purl.org/nemo/gufo#"
 
 EX = Namespace("https://example.org/test/evidence/")
-
-
-def _graph() -> Graph:
-    return load_merged_graph(include_imports=False)
-
-
-# --------------------------------------------------------------------------- #
-# Value vocabulary structure — individuals, never subclasses (Principle 9)
-# --------------------------------------------------------------------------- #
-
-
-def test_evidence_class_is_value_vocabulary() -> None:
-    graph = _graph()
-    ec = URIRef(GMEOW + "EvidenceClass")
-    assert (ec, RDFS.subClassOf, URIRef(GUFO + "QualityValue")) in graph
-    for seed in (
-        "evidenceVERIFIED",
-        "evidenceSELF",
-        "evidenceANECDOTAL",
-        "evidenceRUMOR",
-        "evidenceIndependentTradePress",
-        "evidencePublicRegistry",
-        "evidenceLegalFiling",
-        "evidenceOfficialSource",
-        "evidenceSelfControlledSite",
-        "evidencePrivateScan",
-        "evidenceFamilyNarrative",
-        "evidenceGeneratedReport",
-        "evidenceOcrExtract",
-        "evidenceRawArchive",
-        "evidencePrivateCorrespondence",
-        "evidenceSourceCodeArchive",
-        "evidenceNewspaperLead",
-    ):
-        assert (URIRef(GMEOW + seed), RDF.type, ec) in graph
-        assert (URIRef(GMEOW + seed), RDF.type, OWL.Class) not in graph
-
-
-def test_source_independence_is_value_vocabulary() -> None:
-    graph = _graph()
-    si = URIRef(GMEOW + "SourceIndependence")
-    assert (si, RDFS.subClassOf, URIRef(GUFO + "QualityValue")) in graph
-    for seed in (
-        "sourceIndependenceIndependent",
-        "sourceIndependenceSelfOrIssuerOriginated",
-    ):
-        assert (URIRef(GMEOW + seed), RDF.type, si) in graph
-        assert (URIRef(GMEOW + seed), RDF.type, OWL.Class) not in graph
-
-
-def test_source_tier_is_value_vocabulary() -> None:
-    graph = _graph()
-    st = URIRef(GMEOW + "SourceTier")
-    assert (st, RDFS.subClassOf, URIRef(GUFO + "QualityValue")) in graph
-    for seed in ("sourceTierPrimary", "sourceTierSecondary", "sourceTierTertiary"):
-        assert (URIRef(GMEOW + seed), RDF.type, st) in graph
-        assert (URIRef(GMEOW + seed), RDF.type, OWL.Class) not in graph
-
-
-def test_coverage_depth_is_value_vocabulary() -> None:
-    graph = _graph()
-    cd = URIRef(GMEOW + "CoverageDepth")
-    assert (cd, RDFS.subClassOf, URIRef(GUFO + "QualityValue")) in graph
-    for seed in (
-        "coverageDepthSignificantCoverage",
-        "coverageDepthPassingMention",
-        "coverageDepthRoutineFiling",
-    ):
-        assert (URIRef(GMEOW + seed), RDF.type, cd) in graph
-        assert (URIRef(GMEOW + seed), RDF.type, OWL.Class) not in graph
-
-
-# --------------------------------------------------------------------------- #
-# Property structure — domains, ranges, functionality
-# --------------------------------------------------------------------------- #
-
-
-def test_has_evidence_class_is_non_functional() -> None:
-    graph = _graph()
-    prop = URIRef(GMEOW + "hasEvidenceClass")
-    assert (prop, RDF.type, OWL.ObjectProperty) in graph
-    assert (prop, RDFS.domain, URIRef(GMEOW + "CitationAct")) in graph
-    assert (prop, RDFS.range, URIRef(GMEOW + "EvidenceClass")) in graph
-    # Non-functional: competing classifications coexist (Principle 9).
-    assert (prop, RDF.type, OWL.FunctionalProperty) not in graph
-
-
-def test_source_typing_properties_exist() -> None:
-    graph = _graph()
-    for prop_name, range_name in (
-        ("sourceIndependence", "SourceIndependence"),
-        ("sourceTier", "SourceTier"),
-        ("coverageDepth", "CoverageDepth"),
-    ):
-        prop = URIRef(GMEOW + prop_name)
-        assert (prop, RDF.type, OWL.ObjectProperty) in graph
-        assert (prop, RDFS.domain, URIRef(GMEOW + "CitationAct")) in graph
-        assert (prop, RDFS.range, URIRef(GMEOW + range_name)) in graph
-        # Non-functional: competing assessments coexist (Principle 9).
-        assert (prop, RDF.type, OWL.FunctionalProperty) not in graph
-
-
-def test_supports_notability_is_boolean_datatype_property() -> None:
-    graph = _graph()
-    prop = URIRef(GMEOW + "supportsNotability")
-    assert (prop, RDF.type, OWL.DatatypeProperty) in graph
-    assert (prop, RDFS.domain, URIRef(GMEOW + "CitationAct")) in graph
-    assert (prop, RDFS.range, XSD.boolean) in graph
 
 
 def _make_citation_act(graph: Graph, uri: URIRef) -> None:
@@ -288,28 +180,6 @@ def test_notability_false_does_not_require_triad() -> None:
     # No tier, no coverage, no independence asserted.
     result = run_shacl(g)
     assert result.ok, "supportsNotability false should not require the triad"
-
-
-# --------------------------------------------------------------------------- #
-# No inferential bridges — evidence properties must not imply truth or trust
-# --------------------------------------------------------------------------- #
-
-
-def test_evidence_properties_do_not_imply_truth() -> None:
-    graph = _graph()
-    for prop in (
-        "hasEvidenceClass",
-        "sourceIndependence",
-        "sourceTier",
-        "coverageDepth",
-    ):
-        prop_node = URIRef(GMEOW + prop)
-        for banned in ("observationResult", "trustor", "trustee", "endorses"):
-            banned_node = URIRef(GMEOW + banned)
-            assert (prop_node, RDFS.subPropertyOf, banned_node) not in graph
-            assert (banned_node, RDFS.subPropertyOf, prop_node) not in graph
-            assert (prop_node, OWL.equivalentProperty, banned_node) not in graph
-            assert (banned_node, OWL.equivalentProperty, prop_node) not in graph
 
 
 # --------------------------------------------------------------------------- #

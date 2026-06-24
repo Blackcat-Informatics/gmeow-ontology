@@ -1,35 +1,42 @@
 """Narrative reference frame and creative-work sourcing (issue #89).
 
-Pins the structural core: NarrativeReferenceFrame is a ReferenceFrame (not a
-Kind/Standpoint dual inheritance — gUFO MixIden); BookRelease and
-SerialInstallment are CreativeWork subkinds; frameRealmNarrative and
-frameKindNarrative are declared; sourceFor links works to frames.
+Retained dynamic / SHACL checks -- asserted-TBox invariants whose subjects
+live in the narrative module have been migrated to
+slices/extensions/narrative/tests/structural.ttl (16 cells, #867).
+
+RETAINED here (not migratable to scopeModule cells):
+  test_narrative_reference_frame_is_not_standpoint_subclass
+    -- transitive graph walk over the merged graph; narrowing to the narrative
+    module alone would miss Standpoint imported from other slices.
+  test_book_release_and_serial_installment_are_creative_works
+    -- transitive walk; gmeow:BookRelease and gmeow:SerialInstallment are
+    subjects in slices/core/documents/module.ttl (cross-slice).
+  test_frame_realm_narrative_and_frame_kind_narrative_exist
+    -- gmeow:frameRealmNarrative and gmeow:frameKindNarrative are subjects in
+    slices/core/places/module.ttl (cross-slice).
+  test_reading_order_subclasses_standpoint
+    -- gmeow:ReadingOrder is a subject in slices/core/documents/module.ttl
+    (cross-slice).
+  test_narrative_reference_frame_shacl_passes   -- run_shacl (ExampleConformance)
+  test_narrative_frame_link_shacl_passes        -- run_shacl (ExampleConformance)
+  test_character_arc_shacl_passes               -- run_shacl (ExampleConformance)
+  test_character_arc_missing_subject_fails_shacl -- run_shacl negative
 """
 
 from __future__ import annotations
 
-from gmeow_rdf.compat.rdflib import OWL, RDF, RDFS, Graph, Literal, Namespace, URIRef
+from gmeow_rdf.compat.rdflib import RDF, RDFS, Graph, Literal, Namespace, URIRef
 from gmeow_rdf.compat.rdflib.namespace import XSD
 
 from gmeow_tools.graph import load_merged_graph
 from tests._graph_nt import run_shacl
 
 GMEOW = Namespace("https://blackcatinformatics.ca/gmeow/")
-GUFO = Namespace("http://purl.org/nemo/gufo#")
 EX = Namespace("https://example.org/test/")
 
 
 def _graph() -> Graph:
     return load_merged_graph(include_imports=False)
-
-
-def test_narrative_reference_frame_is_reference_frame() -> None:
-    graph = _graph()
-    assert (
-        GMEOW.NarrativeReferenceFrame,
-        RDFS.subClassOf,
-        GMEOW.ReferenceFrame,
-    ) in graph
 
 
 def test_narrative_reference_frame_is_not_standpoint_subclass() -> None:
@@ -53,35 +60,34 @@ def test_frame_realm_narrative_and_frame_kind_narrative_exist() -> None:
     Check that the merged RDF graph declares the narrative frame realm and
     narrative frame kind individuals.
 
-    Asserts that `GMEOW.frameRealmNarrative` is typed as `GMEOW.FrameRealm` and
-    that `GMEOW.frameKindNarrative` is typed as `GMEOW.FrameKind`.
+    Asserts that `GMEOW.frameRealmNarrative` is typed as `GMEOW.FrameRealm`
+    and that `GMEOW.frameKindNarrative` is typed as `GMEOW.FrameKind`.
     """
     graph = _graph()
     assert (GMEOW.frameRealmNarrative, RDF.type, GMEOW.FrameRealm) in graph
     assert (GMEOW.frameKindNarrative, RDF.type, GMEOW.FrameKind) in graph
 
 
-def test_narrative_frame_relation_value_vocab() -> None:
+def test_reading_order_subclasses_standpoint() -> None:
     graph = _graph()
-    rel_type = GMEOW.NarrativeFrameRelation
-    assert (rel_type, RDFS.subClassOf, GUFO.QualityValue) in graph
-    for ind in (
-        GMEOW.relationCanon,
-        GMEOW.relationAlternateContinuity,
-        GMEOW.relationExpandedUniverse,
-        GMEOW.relationFanon,
-        GMEOW.relationCrossover,
-        GMEOW.relationAdaptationOf,
-    ):
-        assert (ind, RDF.type, rel_type) in graph
+    assert (GMEOW.ReadingOrder, RDFS.subClassOf, GMEOW.Standpoint) in graph
 
 
-def test_source_for_property_exists() -> None:
-    graph = _graph()
-    prop = GMEOW.sourceFor
-    assert (prop, RDF.type, OWL.ObjectProperty) in graph
-    assert (prop, RDFS.domain, GMEOW.CreativeWork) in graph
-    assert (prop, RDFS.range, GMEOW.NarrativeReferenceFrame) in graph
+def _add_narrative_frame(g: Graph, frame: URIRef, axis: URIRef) -> None:
+    """Helper to populate a minimal narrative reference frame for SHACL."""
+    g.add((frame, RDF.type, GMEOW.NarrativeReferenceFrame))
+    g.add((frame, GMEOW.frameRealm, GMEOW.frameRealmNarrative))
+    g.add((frame, GMEOW.hasAxis, axis))
+    g.add(
+        (
+            frame,
+            GMEOW.dimensionCount,
+            Literal(1, datatype=XSD.nonNegativeInteger),
+        )
+    )
+    g.add((frame, GMEOW.frameKind, GMEOW.frameKindNarrative))
+    g.add((frame, GMEOW.requiresHost, Literal(False)))
+    g.add((frame, GMEOW.determinacyModel, GMEOW.determinacyCrisp))
 
 
 def test_narrative_reference_frame_shacl_passes() -> None:
@@ -110,70 +116,8 @@ def test_narrative_reference_frame_shacl_passes() -> None:
     assert result.ok, "\n".join(result.errors)
 
 
-def test_narrative_frame_link_is_relatore_subclass() -> None:
-    graph = _graph()
-    assert (GMEOW.NarrativeFrameLink, RDFS.subClassOf, GUFO.Relator) in graph
-
-
-def test_narrative_frame_link_properties_exist() -> None:
-    graph = _graph()
-    for prop in (
-        GMEOW.narrativeFrameLinkSource,
-        GMEOW.narrativeFrameLinkTarget,
-        GMEOW.narrativeFrameLinkRelation,
-    ):
-        assert (prop, RDF.type, OWL.ObjectProperty) in graph
-    assert (
-        GMEOW.narrativeFrameLinkSource,
-        RDFS.domain,
-        GMEOW.NarrativeFrameLink,
-    ) in graph
-    assert (
-        GMEOW.narrativeFrameLinkSource,
-        RDFS.range,
-        GMEOW.NarrativeReferenceFrame,
-    ) in graph
-    assert (
-        GMEOW.narrativeFrameLinkTarget,
-        RDFS.domain,
-        GMEOW.NarrativeFrameLink,
-    ) in graph
-    assert (
-        GMEOW.narrativeFrameLinkTarget,
-        RDFS.range,
-        GMEOW.NarrativeReferenceFrame,
-    ) in graph
-    assert (
-        GMEOW.narrativeFrameLinkRelation,
-        RDFS.domain,
-        GMEOW.NarrativeFrameLink,
-    ) in graph
-    assert (
-        GMEOW.narrativeFrameLinkRelation,
-        RDFS.range,
-        GMEOW.NarrativeFrameRelation,
-    ) in graph
-
-
-def _add_narrative_frame(g: Graph, frame: URIRef, axis: URIRef) -> None:
-    """Helper to populate a minimal narrative reference frame for SHACL."""
-    g.add((frame, RDF.type, GMEOW.NarrativeReferenceFrame))
-    g.add((frame, GMEOW.frameRealm, GMEOW.frameRealmNarrative))
-    g.add((frame, GMEOW.hasAxis, axis))
-    g.add(
-        (
-            frame,
-            GMEOW.dimensionCount,
-            Literal(1, datatype=XSD.nonNegativeInteger),
-        )
-    )
-    g.add((frame, GMEOW.frameKind, GMEOW.frameKindNarrative))
-    g.add((frame, GMEOW.requiresHost, Literal(False)))
-    g.add((frame, GMEOW.determinacyModel, GMEOW.determinacyCrisp))
-
-
 def test_narrative_frame_link_shacl_passes() -> None:
-    """A reified narrative frame link (MCU is adaptation of Earth-616) passes SHACL."""
+    """A reified frame link (MCU is adaptation of Earth-616) passes SHACL."""
     g = Graph()
     _add_narrative_frame(g, EX.mcuCanon, EX.axisPlotMcu)
     _add_narrative_frame(g, EX.earth616Canon, EX.axisPlot616)
@@ -197,50 +141,6 @@ def test_narrative_frame_link_shacl_passes() -> None:
 # =========================================================================== #
 # Book / narrative model additions (issue #156)
 # =========================================================================== #
-
-
-def test_contributes_to_frame_exists() -> None:
-    graph = _graph()
-    prop = GMEOW.contributesToFrame
-    assert (prop, RDF.type, OWL.ObjectProperty) in graph
-    assert (prop, RDFS.domain, GMEOW.InformationObject) in graph
-    assert (prop, RDFS.range, GMEOW.NarrativeReferenceFrame) in graph
-
-
-def test_character_arc_subclasses_information_object() -> None:
-    graph = _graph()
-    assert (
-        GMEOW.CharacterArc,
-        RDFS.subClassOf,
-        GMEOW.InformationObject,
-    ) in graph
-
-
-def test_character_arc_properties_exist() -> None:
-    graph = _graph()
-    for prop in (GMEOW.arcSubject, GMEOW.arcFrame, GMEOW.arcType):
-        assert (prop, RDF.type, OWL.ObjectProperty) in graph
-        assert (prop, RDF.type, OWL.FunctionalProperty) in graph
-    assert (GMEOW.arcEvidence, RDF.type, OWL.ObjectProperty) in graph
-
-
-def test_arc_type_value_vocab() -> None:
-    graph = _graph()
-    assert (GMEOW.ArcType, RDFS.subClassOf, GUFO.QualityValue) in graph
-    for ind in (
-        GMEOW.arcTypeComingOfAge,
-        GMEOW.arcTypeRedemption,
-        GMEOW.arcTypeFall,
-        GMEOW.arcTypeCorruption,
-        GMEOW.arcTypeQuest,
-        GMEOW.arcTypeRecovery,
-    ):
-        assert (ind, RDF.type, GMEOW.ArcType) in graph
-
-
-def test_reading_order_subclasses_standpoint() -> None:
-    graph = _graph()
-    assert (GMEOW.ReadingOrder, RDFS.subClassOf, GMEOW.Standpoint) in graph
 
 
 def test_character_arc_shacl_passes() -> None:
