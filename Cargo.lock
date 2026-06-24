@@ -1784,6 +1784,7 @@ dependencies = [
  "proptest",
  "pyo3",
  "regex",
+ "serde_json",
  "spargebra 0.4.6",
 ]
 
