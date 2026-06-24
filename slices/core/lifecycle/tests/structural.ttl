@@ -1,0 +1,115 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Declarative structural assertions for the lifecycle slice (#81) — the
+# slice-resident test-DSL twin of the asserted-TBox MUST / MUST-NOT invariants
+# formerly hand-written in tests/test_lifecycle.py. Each assertion runs as a
+# SPARQL ASK over the lifecycle module graph (gmeow:scopeModule) under the
+# native Rust harness (crates/slicetest).
+#
+# Lifecycle is NOT yet #694-migrated, so class stereotypes remain gufo:
+# (gufo:SituationType), not logic:.
+#
+# RETAINED in pytest (cross-slice subjects or dynamic/non-TBox checks):
+#   test_supersession_properties_are_object_properties — asserts on
+#     gmeow:supersedes, which is defined in slices/core/coreference/module.ttl
+#     not here; a scopeModule cell would silently miss the supersedes side.
+#   test_lifecycle_event_types_are_individuals_not_classes — the four
+#     eventType individuals (eventTypeCreation, eventTypeDestruction,
+#     eventTypeSupersession, eventTypeDissolution) are defined in
+#     slices/core/events/module.ttl, not this module; cross-slice check.
+#   test_no_lifecycle_event_subclasses_exist — whole-merged-graph sweep
+#     for absence of banned class IRIs; cannot be narrowed to scopeModule
+#     without silently dropping coverage.
+#   test_no_preferred_or_primary_lifecycle_term — whole-merged-graph sweep
+#     over banned property IRIs; same narrowing hazard.
+#   test_entity_existence_mediation_axiom_present — MIGRATED; this note
+#     is retained for ledger reference only.
+#   test_wellformed_entity_existence_conforms — run_shacl() call;
+#     ExampleConformance, not a structural TBox assertion.
+#   test_malformed_entity_existence_is_flagged — run_shacl() call with
+#     error-text assertions; ExampleConformance, not a structural TBox assertion.
+#   test_contested_existence_claims_coexist_and_validate — loads a coverage
+#     fixture and calls run_shacl(); multi-file ABox check.
+#   test_coverage_fixture_loads_and_validates — loads a coverage fixture,
+#     calls run_shacl(), and asserts specific ABox triples; not a TBox invariant.
+#
+# See dsl/tests/MIGRATION-LEDGER.md for the per-test pytest→DSL mapping.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/lifecycle/tests/> .
+
+# --- 1. EntityExistence is a gufo:SituationType subclass of TimeScopedRelation (MUST) ---
+ex:saEntityExistenceIsSituationType a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:EntityExistence a owl:Class , gufo:SituationType ;
+        rdfs:subClassOf gmeow:TimeScopedRelation .
+}""" ;
+    gmeow:saRationale "gmeow:EntityExistence MUST be an owl:Class typed gufo:SituationType and a subclass of gmeow:TimeScopedRelation — the reified existence record is a situation bounded by a temporal scope, the universal contested-claim pattern (#81). Mirrors test_entity_existence_is_a_gufo_situation." .
+
+# --- 2. Flat lifecycle properties are owl:ObjectProperty with domain Entity (MUST) ---
+ex:saFlatLifecyclePropertiesAreObjectProperties a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:hasCreationEvent a owl:ObjectProperty ;
+        rdfs:domain gmeow:Entity .
+    gmeow:hasDestructionEvent a owl:ObjectProperty ;
+        rdfs:domain gmeow:Entity .
+    gmeow:existenceInterval a owl:ObjectProperty ;
+        rdfs:domain gmeow:Entity .
+}""" ;
+    gmeow:saRationale "gmeow:hasCreationEvent, hasDestructionEvent, and existenceInterval MUST each be an owl:ObjectProperty with rdfs:domain gmeow:Entity — the flat-first pattern attaches lifecycle facts directly to any entity without reification (#81). Mirrors test_creation_and_destruction_are_object_properties and test_flat_lifecycle_properties_exist." .
+
+# --- 3. Reified EntityExistence has its constituent object properties (MUST) ---
+ex:saReifiedEntityExistenceProperties a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    gmeow:EntityExistence a owl:Class .
+    gmeow:existenceEntity a owl:ObjectProperty .
+    gmeow:existenceCreationEvent a owl:ObjectProperty .
+    gmeow:existenceDestructionEvent a owl:ObjectProperty .
+}""" ;
+    gmeow:saRationale "gmeow:EntityExistence MUST be an owl:Class and gmeow:existenceEntity, existenceCreationEvent, existenceDestructionEvent MUST each be owl:ObjectProperty — together they form the reified situation slot set required by SHACL (#81). Mirrors test_reified_entity_existence_exists." .
+
+# --- 4. EntityExistence carries a someValuesFrom mediation axiom on existenceEntity (MUST) ---
+ex:saEntityExistenceMediationAxiom a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:EntityExistence rdfs:subClassOf [
+        owl:onProperty gmeow:existenceEntity ;
+        owl:someValuesFrom gmeow:Entity
+    ] .
+}""" ;
+    gmeow:saRationale "gmeow:EntityExistence MUST carry an open-world EL someValuesFrom restriction on gmeow:existenceEntity to gmeow:Entity — the situation binds exactly one entity and the someValuesFrom axiom is the relator-mediation gate that makes it visible to reasoners and generators (#81). Mirrors test_entity_existence_mediation_axiom_present." .
+
+# --- 5. supersededBy is a directed owl:ObjectProperty with domain+range Entity (MUST) ---
+ex:saSupersededByIsObjectProperty a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:supersededBy a owl:ObjectProperty ;
+        rdfs:domain gmeow:Entity ;
+        rdfs:range gmeow:Entity ;
+        owl:inverseOf gmeow:supersedes .
+}""" ;
+    gmeow:saRationale "gmeow:supersededBy MUST be an owl:ObjectProperty with domain and range gmeow:Entity and declare owl:inverseOf gmeow:supersedes — it is directional (predecessor→successor) and non-symmetric; the superseded entity is retained, never deleted (Principle 10, #81). Mirrors the supersededBy half of test_supersession_properties_are_object_properties." .
