@@ -25,6 +25,7 @@ The report is a runtime artifact (it embeds run results), so it lives in
 from __future__ import annotations
 
 import datetime
+import os
 import platform
 import subprocess
 from dataclasses import dataclass
@@ -81,15 +82,9 @@ def _run_alignment() -> ValidationResult:
 
 
 def _run_check_generated() -> ValidationResult:
-    import os
+    import gmeow_native.pipeline as _pipeline
 
     result = ValidationResult()
-    try:
-        import gmeow_native.pipeline as _pipeline
-    except ImportError as exc:
-        result.warnings.append(f"generated drift not checked here: {exc}")
-        return result
-
     # The Rust pipeline (the build authority since #861 P7) reproduces every
     # committed artifact single-pass and reports any drift in CHECK mode.
     report = _pipeline.run_pipeline(str(PROJECT_ROOT), os.cpu_count() or 1, True)
