@@ -862,6 +862,28 @@ fn constitution_enforcement_report(py: Python<'_>, manifest_ttl: &str) -> PyResu
     Ok(Py::new(py, PyReport::from_engine(report))?.into_any())
 }
 
+/// Native full constitution-as-code report → diagnostics `Report` (#939).
+///
+/// Runs every constitution check: enforcement coverage, principle/heading sync,
+/// cited artifact/symbol/target/CLI existence, and supersession marker sync.
+#[pyfunction]
+fn constitution_full_report(
+    py: Python<'_>,
+    manifest_path: &str,
+    constitution_path: &str,
+    root: &str,
+) -> PyResult<Py<PyAny>> {
+    let manifest = std::path::Path::new(manifest_path);
+    let constitution = std::path::Path::new(constitution_path);
+    let root = std::path::Path::new(root);
+    let findings = constitution::constitution_full_report(manifest, constitution, root);
+    let mut report = gmeow_diagnostics::Report::new("constitution");
+    for finding in findings {
+        report.add_finding(finding);
+    }
+    Ok(Py::new(py, PyReport::from_engine(report))?.into_any())
+}
+
 /// Native slice-ownership analysis projected into a diagnostics `Report` (#809).
 ///
 /// Discovers the slice catalog under `slices_root`, runs the native `gmeow-slice`
@@ -992,6 +1014,7 @@ pub fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(check_statement_lossless, m)?)?;
     m.add_function(wrap_pyfunction!(slice_ownership_report, m)?)?;
     m.add_function(wrap_pyfunction!(constitution_enforcement_report, m)?)?;
+    m.add_function(wrap_pyfunction!(constitution_full_report, m)?)?;
     m.add_function(wrap_pyfunction!(build_deposit_xml_native, m)?)?;
     m.add_function(wrap_pyfunction!(lint_deposit_native, m)?)?;
     Ok(())
