@@ -32,7 +32,7 @@ gmeow-diagnostics = { path = "../diagnostics" }
 # it consumes the pure-Rust slice catalog (no `python` feature needed).
 gmeow-docs = { path = "../docs" }
 gmeow-shacl = { path = "../shacl" }
-gmeow-validate = { path = "../validate", features = ["extension-module"] }
+gmeow-validate = { path = "../validate" }
 gmeow-logic = { path = "../logic" }
 # `gmeow-slice` needs its `python` feature so its `register` fn (the SliceCatalog
 # discovery + ownership analyzer surface) is compiled in (#820 S8).
