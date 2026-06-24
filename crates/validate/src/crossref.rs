@@ -150,11 +150,6 @@ pub struct LintInput {
     pub citation_cff: Option<String>,
     /// Contents of ontology/gmeow.ttl (None if file does not exist).
     pub ontology_ttl: Option<String>,
-    /// Pre-rendered deposit XML from the Python path (so monkeypatching of
-    /// Python functions like ``_alignment_citations`` affects the XML checked
-    /// by the lint's round-trip and citation-key checks).  When ``None`` the
-    /// Rust side generates the XML from ``self_description`` + ``config``.
-    pub pre_rendered_xml: Option<String>,
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -1007,18 +1002,13 @@ pub fn lint_deposit(json: &str) -> Result<Vec<String>, String> {
         problems.push("self-description carries no Wikidata authority for registrant".to_string());
     }
 
-    // (b) round-trip: render the deposit (using the pre-rendered XML when provided
-    // so Python monkeypatching of alignment functions is respected), parse pairs.
-    let xml: String = if let Some(ref pre) = input.pre_rendered_xml {
-        pre.clone()
-    } else {
-        let deposit_input = DepositInput {
-            self_description: sd.clone(),
-            config: config.clone(),
-        };
-        let deposit_json = serde_json::to_string(&deposit_input).map_err(|e| e.to_string())?;
-        build_deposit_xml(&deposit_json, "00000000000000", "lint-roundtrip")?
+    // (b) round-trip: render the deposit natively from the input metadata and parse pairs.
+    let deposit_input = DepositInput {
+        self_description: sd.clone(),
+        config: config.clone(),
     };
+    let deposit_json = serde_json::to_string(&deposit_input).map_err(|e| e.to_string())?;
+    let xml: String = build_deposit_xml(&deposit_json, "00000000000000", "lint-roundtrip")?;
 
     let pairs = extract_doi_resource_pairs(&xml);
     let mut expected: BTreeSet<(String, String)> = BTreeSet::new();
