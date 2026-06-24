@@ -448,7 +448,33 @@ plus the 17 `#[test]` functions; all helper bodies deleted. All 17 tests still p
 | spine/expression/manifestation/item/contribution/content_segment SHACL (×8) | test_creative_works.py | converted | `spine_shacl_passes`, `expression_without_work_fails_shacl`, `manifestation_without_expression_fails_shacl`, `item_without_manifestation_fails_shacl`, `contribution_shacl_passes`, `contribution_missing_role_fails_shacl`, `content_segment_shacl_passes`, `content_segment_without_container_fails_shacl` |
 | 15 cross-slice/transitive/class-hierarchy tests | test_creative_works.py | **retained** | `_graph()`/`transitive_objects()` over documents/citations/events modules |
 
-**Batch 2 tally:** deception 10 + evidence 5 + notes 8 + events 2 + creative_works 8 = **33 converted**; ~35 retained (cross-slice/dynamic/SPARQL/disk-load). All 50 conformance tests (17 batch-1 + 33 batch-2) green; `uv run mypy` clean.
+**Batch 2 wave 3** (organization, finance, lifecycle, standpoint):
+
+| pytest fn | source | disposition | Rust twin / retain reason |
+|-----------|--------|------------|---------------------------|
+| `test_membership_fills_post_org_mismatch_warns` | test_organization.py | converted | `membership_fills_post_org_mismatch_warns` (merged mode) |
+| `test_legal_identifier_requires_scheme` | test_organization.py | converted | `legal_identifier_requires_scheme` (merged mode) |
+| 10 org tests (`test_contested_*`, `test_post_*`, `test_site_location`, `test_change_event_*`, `test_withdrawn_recognition_*`, `test_no_preferred_*`, `test_wellformed_legal_identifier_passes`) | test_organization.py | **retained** | SHACL + `g.objects()`/`g.subjects()` graph-content sweeps, `g.remove()` mutation, or cross-slice `_graph()` |
+| `test_finance_fixture_conforms` | test_finance.py | converted | `finance_fixture_conforms` (merged) |
+| `test_double_entry_fixture_conforms` | test_finance.py | converted | `double_entry_fixture_conforms` (merged) |
+| `test_invoice_fixture_conforms` | test_finance.py | converted | `invoice_fixture_conforms` (merged) |
+| `test_order_fixture_conforms` | test_finance.py | converted | `order_fixture_conforms` (merged) |
+| `test_holding_fixture_conforms` | test_finance.py | converted | `holding_fixture_conforms` (merged) |
+| `test_crypto_fixture_conforms` | test_finance.py | converted | `crypto_fixture_conforms` (merged) |
+| 10 finance TBox/absence tests (`test_monetary_*`, `test_currency_*`, `test_no_transaction_subclass_explosion`, `test_*_vocab_is_open_values`, `test_transaction_uses_participation_not_subproperty`) | test_finance.py | **retained** | cross-slice TBox graph-pattern + whole-graph negative sweeps |
+| `test_wellformed_entity_existence_conforms` | test_lifecycle.py | converted | `wellformed_entity_existence_conforms` |
+| `test_malformed_entity_existence_is_flagged` | test_lifecycle.py | converted | `malformed_entity_existence_is_flagged` |
+| 6 lifecycle tests (`test_supersession_*`, `test_lifecycle_event_types_*`, `test_no_lifecycle_event_subclasses_exist`, `test_no_preferred_*`, `test_contested_existence_*`, `test_coverage_fixture_loads_*`) | test_lifecycle.py | **retained** | cross-slice `_graph()` membership + dynamic sweeps + `g.subjects()` |
+| `test_coexistence_fixture_conforms` | test_standpoint.py | converted | `coexistence_fixture_conforms` |
+| `test_preferred_claim_is_flagged` | test_standpoint.py | converted | `preferred_claim_is_flagged` |
+| `test_withdrawn_standpoint_warning_does_not_fail` | test_standpoint.py | converted | `withdrawn_standpoint_warning_does_not_fail` |
+| `test_variety_coexistence_fixture_conforms` | test_standpoint.py | converted | `variety_coexistence_fixture_conforms` |
+| `test_etymology_coexistence_fixture_conforms` | test_standpoint.py | converted | `etymology_coexistence_fixture_conforms` |
+| ~20 standpoint tests (`test_modality_*`, `test_three_axes_*`, `test_vantage_*`, `test_according_to_*`, `test_*_projection_*`, `test_*_maps_to_*`, statement-DSL + SSSOM-mapping) | test_standpoint.py | **retained** | dynamic `_graph()` sweeps / OWL-restriction walks / SPARQL competency / SSSOM mapping / statement-DSL disk |
+
+**Batch 2 wave-3 tally:** organization 2 + finance 6 + lifecycle 2 + standpoint 5 = **15 converted**.
+
+**Batch 2 grand tally:** deception 10 + evidence 5 + notes 8 + events 2 + creative_works 8 + organization 2 + finance 6 + lifecycle 2 + standpoint 5 = **48 converted**; ~71 retained (cross-slice/dynamic/SPARQL/disk-load/SSSOM). All **65** conformance tests (17 batch-1 + 48 batch-2) green; `uv run mypy` clean (281 files).
 
 ## #867 structural batch 10 (places — the 129-fn slice)
 

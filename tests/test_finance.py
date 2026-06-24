@@ -22,23 +22,25 @@ RETAINED here (not migratable to scopeModule cells):
     absent StockAsset/BondAsset/CryptoAsset classes.
   - test_transaction_uses_participation_not_subproperty (negative half):
     sweep for absent hasPayer/hasPayee/hasIntermediary properties.
-  - All run_shacl calls: ExampleConformance, not TBox invariants.
+
+Migrated to crates/validate/tests/conformance_finance.rs (#867):
+  - test_finance_fixture_conforms
+  - test_double_entry_fixture_conforms
+  - test_invoice_fixture_conforms
+  - test_order_fixture_conforms
+  - test_holding_fixture_conforms
+  - test_crypto_fixture_conforms
 """
 
 from __future__ import annotations
-
-from pathlib import Path
 
 from gmeow_rdf.compat.rdflib import Graph, URIRef
 from gmeow_rdf.compat.rdflib.namespace import OWL, RDF, RDFS
 
 from gmeow_tools.graph import load_merged_graph
-from tests._graph_nt import run_shacl
 
 GMEOW = "https://blackcatinformatics.ca/gmeow/"
 LOGIC = "https://blackcatinformatics.ca/logic/"
-
-COVERAGE_FIXTURES = Path(__file__).parent / "fixtures" / "coverage"
 
 
 def _graph() -> Graph:
@@ -143,14 +145,6 @@ def test_no_transaction_subclass_explosion() -> None:
         )
 
 
-def test_finance_fixture_conforms() -> None:
-    """A well-formed finance data graph passes SHACL validation."""
-    g = _graph()
-    g.parse(COVERAGE_FIXTURES / "finance-wellformed.ttl", format="turtle")
-    result = run_shacl(g)
-    assert result.ok, "\n".join(result.errors)
-
-
 # --------------------------------------------------------------------------- #
 # Phase B -- Transactions, Ledger, Posting
 # --------------------------------------------------------------------------- #
@@ -188,14 +182,6 @@ def test_transaction_uses_participation_not_subproperty() -> None:
         ) not in graph, f"{rejected} must not exist as a property"
 
 
-def test_double_entry_fixture_conforms() -> None:
-    """A balanced journal entry passes SHACL validation."""
-    g = _graph()
-    g.parse(COVERAGE_FIXTURES / "finance-transaction.ttl", format="turtle")
-    result = run_shacl(g)
-    assert result.ok, "\n".join(result.errors)
-
-
 # --------------------------------------------------------------------------- #
 # Phase C -- Payment, Invoice, Order, Asset, Holding
 # --------------------------------------------------------------------------- #
@@ -211,40 +197,3 @@ def test_asset_type_vocab_is_open_values() -> None:
             RDF.type,
             OWL.Class,
         ) not in graph, f"{rejected} must not exist as a class"
-
-
-def test_invoice_fixture_conforms() -> None:
-    """A well-formed invoice data graph passes SHACL validation."""
-    g = _graph()
-    g.parse(COVERAGE_FIXTURES / "finance-invoice.ttl", format="turtle")
-    result = run_shacl(g)
-    assert result.ok, "\n".join(result.errors)
-
-
-def test_order_fixture_conforms() -> None:
-    """A well-formed order data graph passes SHACL validation."""
-    g = _graph()
-    g.parse(COVERAGE_FIXTURES / "finance-order.ttl", format="turtle")
-    result = run_shacl(g)
-    assert result.ok, "\n".join(result.errors)
-
-
-def test_holding_fixture_conforms() -> None:
-    """A well-formed holding data graph passes SHACL validation."""
-    g = _graph()
-    g.parse(COVERAGE_FIXTURES / "finance-holding.ttl", format="turtle")
-    result = run_shacl(g)
-    assert result.ok, "\n".join(result.errors)
-
-
-# --------------------------------------------------------------------------- #
-# Phase D -- CryptoWallet
-# --------------------------------------------------------------------------- #
-
-
-def test_crypto_fixture_conforms() -> None:
-    """A well-formed crypto wallet data graph passes SHACL validation."""
-    g = _graph()
-    g.parse(COVERAGE_FIXTURES / "finance-crypto.ttl", format="turtle")
-    result = run_shacl(g)
-    assert result.ok, "\n".join(result.errors)

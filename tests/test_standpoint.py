@@ -28,12 +28,10 @@ from gmeow_tools.graph import load_merged_graph
 from gmeow_tools.statement_dsl import (
     load_statement_dsl,
 )
-from tests._graph_nt import run_shacl
 
 GMEOW = "https://blackcatinformatics.ca/gmeow/"
 GM = Namespace(GMEOW)
 EX = Namespace("https://example.org/shapes/")
-SHAPES_FIXTURES = Path(__file__).parent / "fixtures" / "shapes"
 _PROJ_Q = PROJECTION_QUERY_DIR
 STANDPOINT_OWL2_QUERY = _PROJ_Q / "standpoint-owl2.rq"
 STANDPOINT_CRMINF_QUERY = _PROJ_Q / "standpoint-crminf.rq"
@@ -53,10 +51,6 @@ COVERAGE_FIXTURES = Path(__file__).parent / "fixtures" / "coverage"
 
 def _graph() -> Graph:
     return load_merged_graph(include_imports=False)
-
-
-def _fixture(name: str) -> Graph:
-    return Graph().parse(SHAPES_FIXTURES / f"{name}.ttl", format="turtle")
 
 
 # --------------------------------------------------------------------------- #
@@ -206,30 +200,6 @@ def test_rdf12_artifact_carries_the_standpoint_axis() -> None:
 # --------------------------------------------------------------------------- #
 # SHACL data shapes
 # --------------------------------------------------------------------------- #
-
-
-def test_coexistence_fixture_conforms() -> None:
-    """Contradictory standpoint-indexed claims COEXIST with no violation (the
-    centerpiece) — and both objects are retained."""
-    g = _fixture("standpoint-coexistence")
-    result = run_shacl(g)
-    assert result.ok, "\n".join(result.errors)
-    objs = set(g.objects(EX.crimea, GM.containedInPlace))
-    assert {EX.russia, EX.ukraine} <= objs  # both retained, neither privileged
-
-
-def test_preferred_claim_is_flagged() -> None:
-    result = run_shacl(_fixture("standpoint-preferred-violation"))
-    assert not result.ok
-    assert any("preferred/primary" in e for e in result.errors), result.errors
-
-
-def test_withdrawn_standpoint_warning_does_not_fail() -> None:
-    """A withdrawn (closed-interval) tenure without gmeow:displayable false warns,
-    but does not hard-fail (Principle 10 — suppression, never erasure)."""
-    result = run_shacl(_fixture("standpoint-withdrawn-warning"))
-    assert result.ok, f"warning-only graph must pass; errors: {result.errors}"
-    assert any("displayable false" in w for w in result.warnings), result.warnings
 
 
 # --------------------------------------------------------------------------- #
@@ -436,37 +406,9 @@ def test_bbc_projection_emits_news_event() -> None:
 # --------------------------------------------------------------------------- #
 
 
-def test_variety_coexistence_fixture_conforms() -> None:
-    """Contradictory varietyKind assertions COEXIST with no violation (Principle 9)."""
-    g = _fixture("variety-coexistence")
-    result = run_shacl(g)
-    assert result.ok, "\n".join(result.errors)
-    ex_lang = Namespace("https://example.org/lang/")
-    kinds = set(g.objects(ex_lang.scots, GM.varietyKind))
-    assert {GM.kindLanguage, GM.kindDialect} <= kinds, (
-        f"both varietyKind values must be retained: {kinds}"
-    )
-
-
 # --------------------------------------------------------------------------- #
 # Issue #171 — Etymology derivation coexistence
 # --------------------------------------------------------------------------- #
-
-
-def test_etymology_coexistence_fixture_conforms() -> None:
-    """Contradictory derivationKind assertions COEXIST with no violation
-    (Principle 9)."""
-    g = _fixture("etymology-coexistence")
-    result = run_shacl(g)
-    assert result.ok, "\n".join(result.errors)
-    all_kinds: set[URIRef] = set()
-    for deriv in g.subjects(RDF.type, GM.EtymologicalDerivation):
-        for kind in g.objects(deriv, GM.derivationKind):
-            if isinstance(kind, URIRef):
-                all_kinds.add(kind)
-    assert {GM.derivationBorrowing, GM.derivationReanalysis} <= all_kinds, (
-        f"both derivationKind values must be retained: {all_kinds}"
-    )
 
 
 # --------------------------------------------------------------------------- #
