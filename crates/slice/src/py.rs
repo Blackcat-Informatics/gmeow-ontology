@@ -642,16 +642,21 @@ fn emit_fno(root: &str) -> PyResult<String> {
         .map_err(|e| PyValueError::new_err(format!("FnO emission failed: {e}")))
 }
 
-/// Run the native cross-layer projection lint over the committed `generated/` tree at
-/// `root`, returning one dict per problem (#854).
+/// Run the native cross-layer projection lint plus alignment-direction checks over
+/// the committed `generated/` tree at `root`, returning one dict per problem (#854,
+/// #936).
 ///
 /// This is the native replacement for the Python `projection_lint` trio (the FnO
 /// type-mismatch / EDOAL→FnO reference-integrity / CONSTRUCT↔EDOAL↔SSSOM spec-drift
-/// invariants). Each dict carries the SAME `{severity, code, message, check, instance}`
-/// shape as the native SSSOM validator (`gmeow_rdf.validate_sssom`), so the Python
-/// finding leg maps `check` → the canonical `mapping-compile.<check>` code
-/// (`fno-type` / `fno-ref` / `spec-drift`). An empty list means the projection stack
-/// is internally consistent.
+/// invariants) folded together with the alignment-direction lint
+/// (`inverse-direction`, `domain-range`, `property-character`, `equivalence-collapse`,
+/// `dc-refinement`, `dc-hand-authored`). Each dict carries the SAME
+/// `{severity, code, message, check, instance}` shape as the native SSSOM validator
+/// (`gmeow_rdf.validate_sssom`). An empty list means the projection stack and SSSOM
+/// alignments are internally consistent.
+///
+/// `allow_network` (default `false`) permits live fetching of missing target-axiom
+/// snapshots when the alignment lint runs.
 ///
 /// # Errors
 ///
@@ -659,8 +664,13 @@ fn emit_fno(root: &str) -> PyResult<String> {
 /// artifact, the ontology, an SSSOM source) or a profile prefix absent from the
 /// curated registry (no degraded fallback).
 #[pyfunction]
-fn lint_projection<'py>(py: Python<'py>, root: &str) -> PyResult<Vec<Bound<'py, PyDict>>> {
-    let problems = lint_projection_native(Path::new(root))
+#[pyo3(signature = (root, allow_network = false))]
+fn lint_projection<'py>(
+    py: Python<'py>,
+    root: &str,
+    allow_network: bool,
+) -> PyResult<Vec<Bound<'py, PyDict>>> {
+    let problems = lint_projection_native(Path::new(root), allow_network)
         .map_err(|e| PyValueError::new_err(format!("projection lint failed: {e}")))?;
     problems
         .into_iter()

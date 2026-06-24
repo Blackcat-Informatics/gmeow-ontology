@@ -168,6 +168,78 @@ pub(crate) struct Mapping {
 /// Keys judged by the inverse-direction check so domain-range does not double-report.
 type JudgedSet = BTreeSet<(String, String, String)>;
 
+// ── DC refinement / dumb-down lint (#936 Task 4) ───────────────────────────────
+
+/// Lint DC alignments for refinement consistency and dumb-down hygiene.
+///
+/// Two checks, ported from `src/gmeow_tools/alignment_lint.py`:
+///
+/// 1. **Refinement consistency**: if a `dcterms:` refinement is aligned, the
+///    broader `dcterms:` element should also be aligned.
+/// 2. **No hand-authored `dc:`**: `dc:` element alignments should not be authored
+///    in the DSL; they are derived from `dcterms:` via the subproperty dumb-down.
+///    Existing grandfathered alignments are exempt.
+pub(crate) fn lint_dc_refinement(mappings: &[Mapping]) -> Vec<ProjectionDiagnostic> {
+    let mut aligned_targets: BTreeSet<String> = BTreeSet::new();
+    for m in mappings {
+        aligned_targets.insert(m.object_id.clone());
+    }
+
+    let mut findings: Vec<ProjectionDiagnostic> = Vec::new();
+
+    // Refinement consistency.
+    for (refinement, broader) in DCTERMS_REFINEMENTS {
+        let refinement_aligned = aligned_targets.contains(*refinement);
+        let broader_aligned = aligned_targets.contains(*broader);
+        if refinement_aligned && !broader_aligned {
+            let message = format!(
+                "{refinement} is aligned but its broader element {broader} is not \
+                 — did you mean add an alignment for {broader} or document why it is absent?"
+            );
+            findings.push(ProjectionDiagnostic {
+                severity: "WARNING".to_owned(),
+                check: "dc-refinement".to_owned(),
+                code: "dc-refinement".to_owned(),
+                message,
+                instance: expand_curie(broader),
+            });
+        }
+    }
+
+    // No hand-authored dc: alignments.
+    for m in mappings {
+        if m.object_id.starts_with("dc:") && !GRANDFATHERED_DC.contains(&m.object_id.as_str()) {
+            let message = format!(
+                "{} is hand-authored; dc: alignments should be derived from \
+                 dcterms: via dumb-down — did you mean remove the dc: alignment \
+                 and rely on the dcterms:→dc: subproperty derivation?",
+                m.object_id
+            );
+            findings.push(ProjectionDiagnostic {
+                severity: "WARNING".to_owned(),
+                check: "dc-hand-authored".to_owned(),
+                code: "dc-hand-authored".to_owned(),
+                message,
+                instance: expand_curie(&m.object_id),
+            });
+        }
+    }
+
+    findings.sort_by(|a, b| {
+        let order = |s: &str| match s {
+            "ERROR" => 0,
+            "WARNING" => 1,
+            "INFO" => 2,
+            _ => 3,
+        };
+        order(&a.severity)
+            .cmp(&order(&b.severity))
+            .then_with(|| a.check.cmp(&b.check))
+            .then_with(|| a.instance.cmp(&b.instance))
+    });
+    findings
+}
+
 // ── Public entry point ─────────────────────────────────────────────────────────
 
 /// Lint SSSOM property mappings for inverse / mismatched target terms.
@@ -250,6 +322,8 @@ pub(crate) fn lint_alignment_directions(
 
     let collapse_findings = check_equivalence_collapse(&mappings, &onto, &target_graphs)?;
     findings.extend(collapse_findings);
+
+    findings.extend(lint_dc_refinement(&mappings));
 
     // Stable severity-first ordering, matching Python.
     findings.sort_by(|a, b| {
@@ -1821,6 +1895,65 @@ mod tests {
             schema_character.is_empty(),
             "schema.org-like target with no OWL characteristics should not be flagged"
         );
+    }
+
+    /// A dcterms refinement aligned without its broader element is a WARNING.
+    #[test]
+    fn test_dc_refinement_flags_missing_broader() {
+        let mappings = vec![Mapping {
+            subject_id: "gmeow:abstract".to_owned(),
+            predicate_id: "skos:closeMatch".to_owned(),
+            object_id: "dcterms:abstract".to_owned(),
+            confidence: "0.9".to_owned(),
+            mapping_justification: "semapv:ManualMappingCuration".to_owned(),
+        }];
+        let findings = lint_dc_refinement(&mappings);
+        let refined: Vec<_> = findings
+            .iter()
+            .filter(|f| f.check == "dc-refinement")
+            .collect();
+        assert_eq!(refined.len(), 1, "expected one dc-refinement WARNING");
+        assert_eq!(refined[0].severity, "WARNING");
+        assert!(refined[0].message.contains("dcterms:abstract"));
+        assert!(refined[0].message.contains("dcterms:description"));
+        assert_eq!(
+            refined[0].instance.as_deref(),
+            Some("http://purl.org/dc/terms/description")
+        );
+    }
+
+    /// A hand-authored dc: alignment (other than the grandfathered dc:rights) is
+    /// a WARNING.
+    #[test]
+    fn test_dc_hand_authored_flagged() {
+        let mappings = vec![
+            Mapping {
+                subject_id: "gmeow:rights".to_owned(),
+                predicate_id: "skos:closeMatch".to_owned(),
+                object_id: "dc:rights".to_owned(),
+                confidence: "0.9".to_owned(),
+                mapping_justification: "semapv:ManualMappingCuration".to_owned(),
+            },
+            Mapping {
+                subject_id: "gmeow:creator".to_owned(),
+                predicate_id: "skos:closeMatch".to_owned(),
+                object_id: "dc:creator".to_owned(),
+                confidence: "0.9".to_owned(),
+                mapping_justification: "semapv:ManualMappingCuration".to_owned(),
+            },
+        ];
+        let findings = lint_dc_refinement(&mappings);
+        let hand: Vec<_> = findings
+            .iter()
+            .filter(|f| f.check == "dc-hand-authored")
+            .collect();
+        assert_eq!(hand.len(), 1, "expected one dc-hand-authored WARNING");
+        assert_eq!(hand[0].severity, "WARNING");
+        assert_eq!(
+            hand[0].instance.as_deref(),
+            Some("http://purl.org/dc/elements/1.1/creator")
+        );
+        assert!(hand[0].message.contains("dc:creator is hand-authored"));
     }
 
     /// A strong-equivalence chain that connects two disjoint classes is an ERROR.

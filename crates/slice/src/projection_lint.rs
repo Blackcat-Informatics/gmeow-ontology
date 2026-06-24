@@ -179,12 +179,15 @@ impl ProjectionDiagnostic {
 
 // ── Public API ─────────────────────────────────────────────────────────────────
 
-/// Run the three projection-lint invariants against the committed `generated/` tree
-/// under `root`, returning every problem as a [`ProjectionDiagnostic`].
+/// Run the projection-lint invariants plus the alignment-direction lint against the
+/// committed `generated/` tree under `root`, returning every problem as a
+/// [`ProjectionDiagnostic`].
 ///
-/// An empty result means the projection stack is internally consistent. The checks
-/// run in `fno-type` → `fno-ref` → `spec-drift` order (the Python `_run_invariants`
-/// order); within each check, problems are emitted in a deterministic sorted order.
+/// An empty result means the projection stack and SSSOM alignments are internally
+/// consistent. Projection checks run first (`fno-type` → `fno-ref` → `spec-drift`),
+/// then alignment checks (`inverse-direction`, `domain-range`, `property-character`,
+/// `equivalence-collapse`, `dc-refinement`, `dc-hand-authored`). The combined list is
+/// sorted deterministically by severity → check → instance.
 ///
 /// # Errors
 ///
@@ -192,7 +195,10 @@ impl ProjectionDiagnostic {
 /// artifact, the ontology, an SSSOM source) or a `_PROFILE_TARGETS` prefix absent
 /// from the curated [`PREFIX_REGISTRY`] — no degraded fallback (CONSTITUTION /
 /// no-compromises).
-pub fn lint_projection(root: &Path) -> Result<Vec<ProjectionDiagnostic>, SliceError> {
+pub fn lint_projection(
+    root: &Path,
+    allow_network: bool,
+) -> Result<Vec<ProjectionDiagnostic>, SliceError> {
     let projections = root.join("generated").join("projections");
     let queries = root.join("generated").join("queries");
 
@@ -203,6 +209,23 @@ pub fn lint_projection(root: &Path) -> Result<Vec<ProjectionDiagnostic>, SliceEr
     out.extend(fno_type_mismatches(&onto, &fno)?);
     out.extend(fno_reference_integrity(&fno, &projections)?);
     out.extend(projection_spec_drift(root, &projections, &queries)?);
+    out.extend(crate::alignment_lint::lint_alignment_directions(
+        root,
+        allow_network,
+    )?);
+
+    out.sort_by(|a, b| {
+        let order = |s: &str| match s {
+            "ERROR" => 0,
+            "WARNING" => 1,
+            "INFO" => 2,
+            _ => 3,
+        };
+        order(&a.severity)
+            .cmp(&order(&b.severity))
+            .then_with(|| a.check.cmp(&b.check))
+            .then_with(|| a.instance.cmp(&b.instance))
+    });
     Ok(out)
 }
 
@@ -861,5 +884,76 @@ mod tests {
         // The lenient Turtle parser reads hand-written `[]` blank-node syntax + CURIEs
         // directly, so the fixture text is written verbatim (no serializer round-trip).
         std::fs::write(path, ttl).unwrap();
+    }
+
+    /// After #936, lint_projection folds alignment-direction diagnostics too.
+    /// A hand-authored dc: alignment in the SSSOM mapping set surfaces as a
+    /// `dc-hand-authored` WARNING even when the projection stack itself is clean.
+    #[test]
+    fn lint_projection_includes_alignment_findings() {
+        let tmp = tempfile::tempdir().unwrap();
+        let root = tmp.path();
+        let proj = root.join("generated").join("projections");
+        let queries = root.join("generated").join("queries");
+        let mappings = root.join("generated").join("mappings");
+        let ontology = root.join("ontology");
+        std::fs::create_dir_all(&proj).unwrap();
+        std::fs::create_dir_all(&queries).unwrap();
+        std::fs::create_dir_all(&mappings).unwrap();
+        std::fs::create_dir_all(&ontology).unwrap();
+
+        // Minimal clean FnO catalog (transforms file must exist to avoid dsl fallback).
+        write_ttl(
+            &proj.join("functions.fno.ttl"),
+            "@prefix fno: <https://w3id.org/function/ontology#> .\n",
+        );
+        write_ttl(
+            &proj.join("transforms.fno.ttl"),
+            "@prefix fno: <https://w3id.org/function/ontology#> .\n",
+        );
+
+        // Empty executors + EDOAL cells for every profile so spec-drift is clean.
+        for (profile, _) in PROFILE_TARGETS {
+            std::fs::write(
+                queries.join(format!("{profile}.rq")),
+                "CONSTRUCT {} WHERE {}\n",
+            )
+            .unwrap();
+            write_ttl(
+                &proj.join(format!("{profile}.edoal.ttl")),
+                "@prefix align: <http://knowledgeweb.semanticweb.org/heterogeneity/alignment#> .\n",
+            );
+        }
+
+        // SSSOM mapping with a hand-authored dc: alignment.
+        std::fs::write(
+            mappings.join("dc.sssom.tsv"),
+            "subject_id\tpredicate_id\tobject_id\tmapping_justification\tconfidence\n\
+             gmeow:creator\tskos:closeMatch\tdc:creator\tsemapv:ManualMappingCuration\t0.9\n",
+        )
+        .unwrap();
+
+        // Minimal ontology so the mapping subject is recognized as a property.
+        write_ttl(
+            &ontology.join("gmeow.ttl"),
+            "@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n\
+             @prefix owl: <http://www.w3.org/2002/07/owl#> .\n\
+             gmeow:creator a owl:ObjectProperty .\n",
+        );
+
+        let problems = lint_projection(root, false).unwrap();
+        let dc: Vec<_> = problems
+            .iter()
+            .filter(|d| d.check == "dc-hand-authored")
+            .collect();
+        assert!(
+            !dc.is_empty(),
+            "expected a dc-hand-authored alignment finding, got {problems:?}"
+        );
+        assert_eq!(dc[0].severity, "WARNING");
+        assert_eq!(
+            dc[0].instance.as_deref(),
+            Some("http://purl.org/dc/elements/1.1/creator")
+        );
     }
 }
