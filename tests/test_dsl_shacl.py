@@ -13,8 +13,8 @@ from pathlib import Path
 
 import pytest
 
+from gmeow_tools.dsl_validate import validate_statement_dsl
 from gmeow_tools.mapping_dsl import CompileError, load_dsl
-from gmeow_tools.statement_dsl import load_statement_dsl
 
 _MALFORMED_MAPPING_TTL = """
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
@@ -67,10 +67,9 @@ class TestStatementDslShacl:
     def test_malformed_statement_shacl_diagnostic(self, tmp_path: Path) -> None:
         """A StatementMetadata with both qObject and qObjectLiteral must fail."""
         (tmp_path / "test.ttl").write_text(_MALFORMED_STATEMENT_TTL, encoding="utf-8")
-        with pytest.raises(CompileError) as exc_info:
-            load_statement_dsl(tmp_path)
-        msg = str(exc_info.value)
-        assert "statement DSL SHACL violations" in msg
+        violations = validate_statement_dsl([str(tmp_path / "test.ttl")])
+        msg = "\n".join(violations)
+        assert violations
         assert "focus=" in msg
         assert "msg=" in msg
         assert "source=" in msg

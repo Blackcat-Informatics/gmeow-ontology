@@ -26,6 +26,15 @@ regex = "1"
 # Serialization for timing records and JSON result export (#634).
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
+# JSON Schema draft-2020-12 instance validator (#700 Task 4). default-features
+# off drops the network/file remote-$ref resolvers (reqwest/rustls/resolve-http):
+# the GMEOW JSON Schema is fully self-contained ($defs-local refs only), so we
+# never fetch remote schemas. No optional resolver feature is enabled — a
+# capability cfg would be optionality, not compliance (#579).
+jsonschema = { version = "0.46", default-features = false }
+# YAML instance parsing: serde_yaml deserializes straight into serde_json::Value,
+# so a YAML instance validates identically to its JSON twin (#700 Task 4).
+serde_yaml = "0.9"
 # SHA-256 for content-addressed validation cache keys (parity with Python hashlib).
 sha2 = "0.10"
 # SHACL engine: the Rust-native validation orchestration reuses parsed shapes

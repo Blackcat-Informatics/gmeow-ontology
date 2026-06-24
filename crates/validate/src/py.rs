@@ -28,6 +28,7 @@ use crate::coverage;
 use crate::crossref;
 use crate::dsl;
 use crate::gufo::{self, GufoConfig};
+use crate::instance::{self, InstanceFormat};
 use crate::language_tags;
 use crate::lint::{self, LintConfig, LintReport};
 use crate::slice_ownership;
@@ -790,7 +791,7 @@ fn insert_ntriples(store: &oxigraph::store::Store, data_nt: &str) -> PyResult<()
 /// The statement-metadata invariants over the emitted OWL downcast + ontology
 /// (mirrors `statement_lint.statement_invariants`, #630 Gap B3).
 ///
-/// `statement_owl_ttl` is the `statement_compile.emit_owl` output as Turtle;
+/// `statement_owl_ttl` is the native statement-stage OWL downcast as Turtle;
 /// `ontology_nt` is the merged ontology as N-Triples. Both are loaded into ONE
 /// oxigraph store (their default-graph union), the four invariants run natively,
 /// and the violations are returned as a single canonical `Report` pyclass (every
@@ -960,6 +961,36 @@ fn build_deposit_xml_native(
         .map_err(pyo3::exceptions::PyValueError::new_err)
 }
 
+/// Validate a JSON/YAML instance document against a JSON Schema (#700 Task 4).
+///
+/// `instance_bytes` is the raw instance file; `format` is ``"json"`` or
+/// ``"yaml"`` (an unknown value maps to a Python ``ValueError``); `schema_bytes`
+/// is the draft-2020-12 JSON Schema (the SHACL-derived `gmeow.schema.json`, or a
+/// user-supplied schema). Returns the standard ``{"errors": [...],
+/// "warnings": []}`` report dict — each violation is an error string, warnings is
+/// always empty. A hard failure (malformed schema, unparsable instance) raises a
+/// ``ValueError``.
+#[pyfunction]
+fn validate_instance(
+    py: Python<'_>,
+    instance_bytes: &[u8],
+    format: &str,
+    schema_bytes: &[u8],
+) -> PyResult<Py<PyAny>> {
+    let fmt = match format {
+        "json" => InstanceFormat::Json,
+        "yaml" => InstanceFormat::Yaml,
+        other => {
+            return Err(pyo3::exceptions::PyValueError::new_err(format!(
+                "validate_instance: unknown format {other:?} (expected \"json\" or \"yaml\")"
+            )));
+        }
+    };
+    let errors = instance::validate_instance(instance_bytes, fmt, schema_bytes)
+        .map_err(pyo3::exceptions::PyValueError::new_err)?;
+    report_dict(py, errors, Vec::new())
+}
+
 /// Return DOI consistency problems from a JSON-serialised ``LintInput``.
 ///
 /// The JSON string is produced by the Python helper
@@ -1017,5 +1048,6 @@ pub fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(constitution_full_report, m)?)?;
     m.add_function(wrap_pyfunction!(build_deposit_xml_native, m)?)?;
     m.add_function(wrap_pyfunction!(lint_deposit_native, m)?)?;
+    m.add_function(wrap_pyfunction!(validate_instance, m)?)?;
     Ok(())
 }

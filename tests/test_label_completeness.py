@@ -109,7 +109,7 @@ def test_mapping_dsl_vocabulary_has_no_missing_annotations() -> None:
 
 
 def test_statement_dsl_vocabulary_has_no_missing_annotations() -> None:
-    """Every vocabulary term in statement-dsl/vocabulary.ttl is fully annotated.
+    """Every vocabulary term in dsl/statements/vocabulary.ttl is fully annotated.
 
     Only the vocabulary file is checked; example cells elsewhere in the DSL are
     not vocabulary terms and are therefore out of scope.

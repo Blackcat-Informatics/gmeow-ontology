@@ -8,8 +8,6 @@ from __future__ import annotations
 from gmeow_rdf.compat.rdflib import OWL, RDF, RDFS, Graph, Namespace, URIRef
 
 from gmeow_tools.graph import load_merged_graph
-from gmeow_tools.statement_compile import emit_owl
-from gmeow_tools.statement_dsl import load_statement_dsl
 
 GMEOW = Namespace("https://blackcatinformatics.ca/gmeow/")
 EX = Namespace("https://blackcatinformatics.ca/gmeow/examples/music/")
@@ -95,23 +93,3 @@ def test_genre_derivation_links_exist() -> None:
     assert (GMEOW.genreMathRock, GMEOW.wasDerivedFrom, GMEOW.genreRock) in graph
     assert (GMEOW.genreFusion, GMEOW.wasDerivedFrom, GMEOW.genreJazz) in graph
     assert (GMEOW.genreFusion, GMEOW.wasDerivedFrom, GMEOW.genreRock) in graph
-
-
-def test_statement_cells_include_contested_meter_pair() -> None:
-    dsl = load_statement_dsl()
-    subjects = {c.triple.subject for c in dsl.cells}
-    assert URIRef(EX + "bar17") in subjects
-
-
-def test_statement_cells_emit_owl_axioms_with_standpoints() -> None:
-    dsl = load_statement_dsl()
-    owl = emit_owl(dsl)
-    # Both meter claims should appear as owl:Axiom nodes.
-    claim_7_8 = URIRef(EX + "claim-bar17-meter-7_8")
-    claim_4_4 = URIRef(EX + "claim-bar17-meter-4_4-plus-3_8")
-    assert (claim_7_8, RDF.type, OWL.Axiom) in owl
-    assert (claim_4_4, RDF.type, OWL.Axiom) in owl
-    # Each carries a different accordingTo value.
-    a7_8 = set(owl.objects(claim_7_8, GMEOW.accordingTo))
-    a4_4 = set(owl.objects(claim_4_4, GMEOW.accordingTo))
-    assert a7_8 != a4_4

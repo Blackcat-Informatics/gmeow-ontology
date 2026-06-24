@@ -1,7 +1,7 @@
 # Competency question: "Which events are impersonations?"
 # An impersonation = deception event where a projected identity claim's subject
 # differs from the deceiver.
-# Expected: event-impersonation-001 (from statement-dsl/deception.ttl).
+# Expected: event-impersonation-001 (from dsl/statements/deception.ttl).
 
 PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
 

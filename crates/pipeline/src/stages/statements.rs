@@ -4,9 +4,9 @@
 //! The `statements` stage (#861 P3): compile `dsl/statements/*.ttl` into the OWL
 //! axiom-annotation downcast + the RDF 1.2 lead artifact.
 //!
-//! This re-cuts `src/gmeow_tools/statement_compile.py` as an in-memory Rust
-//! stage. The statement DSL is authored as plain Turtle (rdflib cannot parse
-//! RDF 1.2 triple terms), so it parses with oxigraph; each
+//! This is the native Rust statement compiler stage. The statement DSL is
+//! authored as plain Turtle (rdflib cannot parse RDF 1.2 triple terms), so it
+//! parses with oxigraph; each
 //! `gmeow:StatementMetadata` cell is a 1:1 transcription of one reifying
 //! statement (a quoted base triple + the annotations on its reifier). The OWL
 //! form reuses the reifier IRI as the named `owl:Axiom` node; the RDF 1.2 lead
@@ -72,6 +72,119 @@ pub fn compile_statements(root: &Path) -> Result<(String, String), PipelineError
     let owl_out = format!("{OWL_BANNER}{}\n", owl_ntriples.trim_end());
     let rdf12_out = format!("{RDF12_BANNER}{}\n", rdf12.trim_end());
     Ok((owl_out, rdf12_out))
+}
+
+/// Compile statement artifacts and fold their diagnostics into the native report.
+///
+/// This is the Rust-owned implementation behind the Python feedback surface:
+/// Python supplies the already-loaded ontology graph as N-Triples, but parsing,
+/// statement compilation, invariant checking, RDF 1.2 normalization, lossless
+/// comparison, and compile-error reporting all happen here.
+pub fn compile_diagnostics_report(root: &Path, ontology_nt: &str) -> gmeow_diagnostics::Report {
+    let mut report = gmeow_diagnostics::Report::new("statement-compile");
+    let (owl_ttl, rdf12_ttl) = match compile_statements(root) {
+        Ok(artifacts) => artifacts,
+        Err(err) => {
+            add_dsl_error(&mut report, err.to_string());
+            return report;
+        }
+    };
+
+    match invariant_findings(&owl_ttl, ontology_nt) {
+        Ok(findings) => {
+            for finding in findings {
+                report.add_finding(finding);
+            }
+        }
+        Err(err) => {
+            add_dsl_error(&mut report, err.to_string());
+            return report;
+        }
+    }
+
+    let normalized_owl = match gmeow_rdf::statements::normalize_rdf12_to_owl(&rdf12_ttl) {
+        Ok(normalized) => normalized,
+        Err(err) => {
+            add_dsl_error(&mut report, format!("RDF 1.2 normalization failed: {err}"));
+            return report;
+        }
+    };
+
+    match lossless_findings(&owl_ttl, &normalized_owl) {
+        Ok(findings) => {
+            for finding in findings {
+                report.add_finding(finding);
+            }
+        }
+        Err(err) => add_dsl_error(&mut report, err.to_string()),
+    }
+    report
+}
+
+fn add_dsl_error(report: &mut gmeow_diagnostics::Report, message: String) {
+    report.add_finding(
+        gmeow_diagnostics::Finding::new(
+            gmeow_diagnostics::Severity::Error,
+            "statement-compile.dsl-error",
+            message,
+        )
+        .with_tool("statement-compile"),
+    );
+}
+
+fn invariant_findings(
+    statement_owl_ttl: &str,
+    ontology_nt: &str,
+) -> Result<Vec<gmeow_diagnostics::Finding>, PipelineError> {
+    let store =
+        Store::new().map_err(|e| PipelineError::Parse(format!("store creation failed: {e}")))?;
+    insert_turtle(&store, statement_owl_ttl)?;
+    insert_ntriples(&store, ontology_nt)?;
+    Ok(gmeow_validate::statement::check_statement_invariants(
+        &store,
+    ))
+}
+
+fn lossless_findings(
+    authored_owl_ttl: &str,
+    normalized_owl_ttl: &str,
+) -> Result<Vec<gmeow_diagnostics::Finding>, PipelineError> {
+    let authored =
+        Store::new().map_err(|e| PipelineError::Parse(format!("store creation failed: {e}")))?;
+    insert_turtle(&authored, authored_owl_ttl)?;
+    let normalized =
+        Store::new().map_err(|e| PipelineError::Parse(format!("store creation failed: {e}")))?;
+    insert_turtle(&normalized, normalized_owl_ttl)?;
+    Ok(gmeow_validate::statement::check_statement_lossless(
+        &authored,
+        &normalized,
+    ))
+}
+
+fn insert_turtle(store: &Store, ttl: &str) -> Result<(), PipelineError> {
+    for quad in RdfParser::from_format(RdfFormat::Turtle)
+        .lenient()
+        .for_reader(ttl.as_bytes())
+    {
+        let quad = quad.map_err(|e| PipelineError::Parse(format!("Turtle parse error: {e}")))?;
+        store
+            .insert(&quad)
+            .map_err(|e| PipelineError::Parse(format!("store insert failed: {e}")))?;
+    }
+    Ok(())
+}
+
+fn insert_ntriples(store: &Store, nt: &str) -> Result<(), PipelineError> {
+    for quad in RdfParser::from_format(RdfFormat::NTriples)
+        .lenient()
+        .for_reader(nt.as_bytes())
+    {
+        let quad = quad.map_err(|e| PipelineError::Parse(format!("N-Triples parse error: {e}")))?;
+        store
+            .insert(&quad)
+            .map_err(|e| PipelineError::Parse(format!("store insert failed: {e}")))?;
+    }
+    Ok(())
 }
 
 /// The sorted `dsl/statements/*.ttl` source files (the leaf's raw inputs — folded
@@ -398,5 +511,137 @@ mod tests {
             triple_set(&committed_norm),
             "fresh RDF 1.2 lead must round-trip-isomorphic to committed gmeow.rdf12.ttl"
         );
+    }
+
+    #[test]
+    fn statement_compiler_is_deterministic_and_complete() {
+        let root = repo_root();
+        let first = compile_statements(&root).expect("first compile");
+        let second = compile_statements(&root).expect("second compile");
+        assert_eq!(first, second, "statement compilation must be deterministic");
+
+        let store = parse_statement_dsl(&root).expect("statement DSL parses");
+        let cells = extract_cells(&store).expect("statement cells extract");
+        let owl_axioms = triple_set(&first.0)
+            .into_iter()
+            .filter(|line| line.contains("<http://www.w3.org/2002/07/owl#Axiom>"))
+            .count();
+        assert_eq!(
+            owl_axioms,
+            cells.len(),
+            "every StatementMetadata cell must emit exactly one owl:Axiom"
+        );
+    }
+
+    #[test]
+    fn malformed_statement_dsl_returns_structured_report() {
+        let tmp = tempfile::tempdir().expect("tempdir");
+        let dsl = tmp.path().join("dsl").join("statements");
+        std::fs::create_dir_all(&dsl).expect("dsl dir");
+        std::fs::write(
+            dsl.join("bad.ttl"),
+            "@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\nnot turtle\n",
+        )
+        .expect("bad ttl");
+
+        let report = compile_diagnostics_report(tmp.path(), "");
+        assert!(!report.ok(), "malformed DSL must not produce an ok report");
+        assert_eq!(report.error_count(), 1);
+        let finding = &report.findings[0];
+        assert_eq!(finding.code, "statement-compile.dsl-error");
+        assert_eq!(finding.tool.as_deref(), Some("statement-compile"));
+        assert!(
+            finding.message.contains("syntax error") || finding.message.contains("parse"),
+            "finding should carry the parser error, got: {}",
+            finding.message
+        );
+    }
+
+    #[test]
+    fn contested_crimea_statement_cells_are_exact() {
+        let root = repo_root();
+        let (owl, _) = compile_statements(&root).expect("compile");
+        let triples = triple_set(&owl);
+        let g = GMEOW;
+        let owl_ns = OWL;
+
+        assert!(triples.contains(&format!(
+            "<{g}examples/claim-crimea-in-russia-per-ru> <{owl_ns}annotatedSource> <{g}examples/crimea> ."
+        )));
+        assert!(triples.contains(&format!(
+            "<{g}examples/claim-crimea-in-ukraine-per-un> <{owl_ns}annotatedSource> <{g}examples/crimea> ."
+        )));
+        assert!(triples.contains(&format!(
+            "<{g}examples/claim-crimea-in-russia-per-ru> <{owl_ns}annotatedProperty> <{g}containedInPlace> ."
+        )));
+        assert!(triples.contains(&format!(
+            "<{g}examples/claim-crimea-in-ukraine-per-un> <{owl_ns}annotatedProperty> <{g}containedInPlace> ."
+        )));
+        assert!(triples.contains(&format!(
+            "<{g}examples/claim-crimea-in-russia-per-ru> <{owl_ns}annotatedTarget> <{g}examples/russia> ."
+        )));
+        assert!(triples.contains(&format!(
+            "<{g}examples/claim-crimea-in-ukraine-per-un> <{owl_ns}annotatedTarget> <{g}examples/ukraine> ."
+        )));
+        assert!(triples.contains(&format!(
+            "<{g}examples/claim-crimea-in-russia-per-ru> <{g}accordingTo> <{g}examples/standpoint-ru> ."
+        )));
+        assert!(triples.contains(&format!(
+            "<{g}examples/claim-crimea-in-ukraine-per-un> <{g}accordingTo> <{g}examples/standpoint-un> ."
+        )));
+    }
+
+    #[test]
+    fn two_clock_statement_cell_keeps_fact_and_assertion_time_distinct() {
+        let root = repo_root();
+        let (owl, _) = compile_statements(&root).expect("compile");
+        let triples = triple_set(&owl);
+        let g = GMEOW;
+        let ax = format!("{g}examples/claim-territory-1850-per-2025-historiography");
+
+        assert!(
+            triples
+                .iter()
+                .any(|line| line.starts_with(&format!("<{ax}> <{g}validFrom> \"1850"))),
+            "validFrom fact-time triple missing"
+        );
+        assert!(
+            triples
+                .iter()
+                .any(|line| line.starts_with(&format!("<{ax}> <{g}assertedAt> \"2025"))),
+            "assertedAt observation-time triple missing"
+        );
+        assert!(triples.contains(&format!(
+            "<{ax}> <{g}standpointModality> <{g}conceivable> ."
+        )));
+    }
+
+    #[test]
+    fn music_meter_statement_cells_carry_distinct_standpoints() {
+        let root = repo_root();
+        let (owl, _) = compile_statements(&root).expect("compile");
+        let triples = triple_set(&owl);
+        let g = GMEOW;
+        let music = format!("{g}examples/music/");
+        let seven = format!("{music}claim-bar17-meter-7_8");
+        let compound = format!("{music}claim-bar17-meter-4_4-plus-3_8");
+
+        assert!(triples.contains(&format!(
+            "<{seven}> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <{OWL}Axiom> ."
+        )));
+        assert!(triples.contains(&format!(
+            "<{compound}> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <{OWL}Axiom> ."
+        )));
+        let seven_standpoints: Vec<_> = triples
+            .iter()
+            .filter(|line| line.starts_with(&format!("<{seven}> <{g}accordingTo> ")))
+            .collect();
+        let compound_standpoints: Vec<_> = triples
+            .iter()
+            .filter(|line| line.starts_with(&format!("<{compound}> <{g}accordingTo> ")))
+            .collect();
+        assert_eq!(seven_standpoints.len(), 1);
+        assert_eq!(compound_standpoints.len(), 1);
+        assert_ne!(seven_standpoints, compound_standpoints);
     }
 }

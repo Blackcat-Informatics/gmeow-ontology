@@ -337,6 +337,18 @@ pub mod sh {
 
     pub const REIFIER_SHAPE_CONSTRAINT_COMPONENT: NamedNodeRef<'static> =
         NamedNodeRef::new_unchecked("http://www.w3.org/ns/shacl#ReifierShapeConstraintComponent");
+
+    pub const MAX_LENGTH_CONSTRAINT_COMPONENT: NamedNodeRef<'static> =
+        NamedNodeRef::new_unchecked("http://www.w3.org/ns/shacl#MaxLengthConstraintComponent");
+
+    pub const NOT_CONSTRAINT_COMPONENT: NamedNodeRef<'static> =
+        NamedNodeRef::new_unchecked("http://www.w3.org/ns/shacl#NotConstraintComponent");
+
+    pub const LANGUAGE_IN_CONSTRAINT_COMPONENT: NamedNodeRef<'static> =
+        NamedNodeRef::new_unchecked("http://www.w3.org/ns/shacl#LanguageInConstraintComponent");
+
+    pub const CLOSED_CONSTRAINT_COMPONENT: NamedNodeRef<'static> =
+        NamedNodeRef::new_unchecked("http://www.w3.org/ns/shacl#ClosedConstraintComponent");
 }
 
 /// GMEOW namespace constants (`https://blackcatinformatics.ca/gmeow/`).

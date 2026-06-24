@@ -39,12 +39,19 @@ gmeow-logic = { path = "../logic" }
 # lane's `Report` findings (severity / `verify.<stem>` codes) to build the
 # `gmeow:graph/verify` attestation (#861 P6, two-pass like build_snapshot_bytes).
 gmeow-diagnostics = { path = "../diagnostics" }
+# The statement feedback surface folds the native statement-stage output through
+# the Rust invariant and lossless checks so Python remains only an interface.
+gmeow-validate = { path = "../validate" }
 # The `mappings` stage wires the slice-resident SSSOM + FnO emitters directly
 # (gmeow_slice::emit_sssom_sets / emit_fno) — the SSSOM/FnO halves are Rust.
 gmeow-slice = { path = "../slice" }
 # The `docs_render` stage wires the typed documentation model + RDF projection
 # (gmeow_docs::DocsModel::discover / to_gmeow_rdf / render_site) — no port (#853).
 gmeow-docs = { path = "../docs" }
+# The `json_schema` export leaf compiles the SHACL shape union into JSON Schema +
+# OpenAPI natively (gmeow_shacl::shape_union::load_shapes + json_schema::compile),
+# replacing the Python LinkML JSON-Schema/OpenAPI generators (#700).
+gmeow-shacl = { path = "../shacl" }
 # The DAG loader reads the dogfooded build graph from the same lenient oxigraph
 # Turtle parser the slice crate uses (accepts @x-gmeow-* language tags). Mirror
 # the slice/rdf crates' exact oxigraph build for a clean lockfile resolution.
