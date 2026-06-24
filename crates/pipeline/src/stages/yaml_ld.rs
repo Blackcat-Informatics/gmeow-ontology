@@ -604,7 +604,6 @@ mod tests {
         }
     }
 
-    #[allow(dead_code)]
     fn bnode_term(label: &str) -> Term {
         Term {
             kind: TermKind::Bnode,
@@ -947,6 +946,55 @@ mod tests {
         graph
     }
 
+    fn ox_named_node(iri: &str) -> NamedNode {
+        NamedNode::new(iri).expect("valid test IRI")
+    }
+
+    fn ox_simple_literal(lex: &str) -> oxigraph::model::Term {
+        oxigraph::model::Literal::new_simple_literal(lex).into()
+    }
+
+    fn ox_quoted_triple(
+        s: NamedOrBlankNode,
+        p: NamedNode,
+        o: oxigraph::model::Term,
+    ) -> oxigraph::model::Term {
+        oxigraph::model::Term::Triple(Box::new(oxigraph::model::Triple::new(s, p, o)))
+    }
+
+    fn dataset_has(
+        dataset: &Dataset,
+        subject: &NamedOrBlankNode,
+        predicate: &NamedNode,
+        object: &oxigraph::model::Term,
+    ) -> bool {
+        dataset.iter().any(|q| {
+            NamedOrBlankNode::from(q.subject) == *subject
+                && q.predicate == *predicate
+                && oxigraph::model::Term::from(q.object) == *object
+        })
+    }
+
+    fn assert_no_gmeow_at_id_leak(dataset: &Dataset, json: &str) {
+        const GMEOW_NS: &str = "https://blackcatinformatics.ca/gmeow/";
+        let at_id = format!("{GMEOW_NS}@id");
+        assert!(
+            !dataset.iter().any(|q| q.predicate.as_str() == at_id),
+            "gmeow:@id must not leak as a property triple: {json}"
+        );
+        assert!(
+            !dataset.iter().any(|q| {
+                q.predicate.as_str().starts_with(GMEOW_NS)
+                    && matches!(
+                        oxigraph::model::Term::from(q.object),
+                        oxigraph::model::Term::NamedNode(n)
+                            if n.as_str() == "http://example.org/reifier"
+                    )
+            }),
+            "reifier IRI must not appear as object of any gmeow-prefixed predicate: {json}"
+        );
+    }
+
     #[test]
     fn minimal_rdf12_roundtrips_through_oxigraph() {
         let graph = minimal_graph();
@@ -1035,6 +1083,118 @@ mod tests {
             canonical_nquads(&actual),
             "YAML-LD round-trip diverged from N-Quads-star baseline"
         );
+    }
+
+    #[test]
+    fn annotation_reifier_explicit_id_on_node_object() {
+        let mut graph = Graph::default();
+        graph.terms.push(iri_term("http://example.org/s"));
+        graph.terms.push(iri_term("http://example.org/p"));
+        graph.terms.push(iri_term("http://example.org/o"));
+        graph.terms.push(iri_term("http://example.org/reifier"));
+        graph.terms.push(iri_term("http://example.org/confidence"));
+        graph.terms.push(literal_term("0.9"));
+        graph.quads.push((0, 1, 2, None));
+        graph.reifiers.push((3, (0, 1, 2)));
+        graph.annotations.push((3, 4, 5));
+
+        let json = serialize_graph(&graph).expect("serialize");
+        let dataset = parse_jsonld_star(&json).expect("parse JSON-LD-star");
+
+        let s: NamedOrBlankNode = ox_named_node("http://example.org/s").into();
+        let p = ox_named_node("http://example.org/p");
+        let o: oxigraph::model::Term = ox_named_node("http://example.org/o").into();
+        let reifier: NamedOrBlankNode = ox_named_node("http://example.org/reifier").into();
+        let reifies = ox_named_node(RDF_REIFIES);
+        let confidence = ox_named_node("http://example.org/confidence");
+        let meta = ox_simple_literal("0.9");
+        let quoted = ox_quoted_triple(s.clone(), p.clone(), o.clone());
+
+        assert!(dataset_has(&dataset, &s, &p, &o));
+        assert!(dataset_has(&dataset, &reifier, &reifies, &quoted));
+        assert!(dataset_has(&dataset, &reifier, &confidence, &meta));
+        assert_no_gmeow_at_id_leak(&dataset, &json);
+    }
+
+    #[test]
+    fn annotation_reifier_explicit_id_on_value_object() {
+        let mut graph = Graph::default();
+        graph.terms.push(iri_term("http://example.org/s"));
+        graph.terms.push(iri_term("http://example.org/p"));
+        graph.terms.push(literal_term("hello"));
+        graph.terms.push(iri_term("http://example.org/reifier"));
+        graph.terms.push(iri_term("http://example.org/confidence"));
+        graph.terms.push(literal_term("0.9"));
+        graph.quads.push((0, 1, 2, None));
+        graph.reifiers.push((3, (0, 1, 2)));
+        graph.annotations.push((3, 4, 5));
+
+        let json = serialize_graph(&graph).expect("serialize");
+        let dataset = parse_jsonld_star(&json).expect("parse JSON-LD-star");
+
+        let s: NamedOrBlankNode = ox_named_node("http://example.org/s").into();
+        let p = ox_named_node("http://example.org/p");
+        let o = ox_simple_literal("hello");
+        let reifier: NamedOrBlankNode = ox_named_node("http://example.org/reifier").into();
+        let reifies = ox_named_node(RDF_REIFIES);
+        let confidence = ox_named_node("http://example.org/confidence");
+        let meta = ox_simple_literal("0.9");
+        let quoted = ox_quoted_triple(s.clone(), p.clone(), o.clone());
+
+        assert!(dataset_has(&dataset, &s, &p, &o));
+        assert!(dataset_has(&dataset, &reifier, &reifies, &quoted));
+        assert!(dataset_has(&dataset, &reifier, &confidence, &meta));
+        assert_no_gmeow_at_id_leak(&dataset, &json);
+    }
+
+    #[test]
+    fn annotation_reifier_blank_fallback() {
+        let mut graph = Graph::default();
+        graph.terms.push(iri_term("http://example.org/s"));
+        graph.terms.push(iri_term("http://example.org/p"));
+        graph.terms.push(iri_term("http://example.org/o"));
+        graph.terms.push(bnode_term("r1"));
+        graph.terms.push(iri_term("http://example.org/confidence"));
+        graph.terms.push(literal_term("0.9"));
+        graph.quads.push((0, 1, 2, None));
+        graph.reifiers.push((3, (0, 1, 2)));
+        graph.annotations.push((3, 4, 5));
+
+        let json = serialize_graph(&graph).expect("serialize");
+        let dataset = parse_jsonld_star(&json).expect("parse JSON-LD-star");
+
+        let s: NamedOrBlankNode = ox_named_node("http://example.org/s").into();
+        let p = ox_named_node("http://example.org/p");
+        let o: oxigraph::model::Term = ox_named_node("http://example.org/o").into();
+        let reifies = ox_named_node(RDF_REIFIES);
+        let confidence = ox_named_node("http://example.org/confidence");
+        let meta = ox_simple_literal("0.9");
+        let quoted = ox_quoted_triple(s.clone(), p.clone(), o.clone());
+
+        assert!(dataset_has(&dataset, &s, &p, &o));
+
+        let reifier_quads: Vec<_> = dataset
+            .iter()
+            .filter(|q| q.predicate == reifies && oxigraph::model::Term::from(q.object) == quoted)
+            .collect();
+        assert_eq!(
+            reifier_quads.len(),
+            1,
+            "expected exactly one rdf:reifies quad for the base triple"
+        );
+        assert!(
+            matches!(
+                NamedOrBlankNode::from(reifier_quads[0].subject),
+                NamedOrBlankNode::BlankNode(_)
+            ),
+            "blank reifier fallback must use a blank node subject: {json}"
+        );
+        assert!(dataset_has(
+            &dataset,
+            &NamedOrBlankNode::from(reifier_quads[0].subject),
+            &confidence,
+            &meta
+        ));
     }
 
     fn canonical_nquads(dataset: &Dataset) -> String {
