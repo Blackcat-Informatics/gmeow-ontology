@@ -1824,6 +1824,7 @@ dependencies = [
  "gmeow-rdf",
  "gmeow-shacl",
  "gmeow-slice",
+ "insta",
  "oxigraph",
  "pyo3",
  "regex",
