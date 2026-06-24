@@ -46,9 +46,20 @@ fn main() {
     }
 
     println!("cargo:rustc-link-search=native={libdir}");
-    println!("cargo:rustc-link-arg=-Wl,--no-as-needed");
+
+    // `-Wl,--no-as-needed` / `-Wl,--as-needed` are GNU/ELF linker flags.
+    // They are not valid on macOS (ld64), MSVC, or other non-GNU targets.
+    let is_gnu_elf = std::env::var("CARGO_CFG_TARGET_ENV")
+        .map(|env| env == "gnu")
+        .unwrap_or(false);
+
+    if is_gnu_elf {
+        println!("cargo:rustc-link-arg=-Wl,--no-as-needed");
+    }
     println!("cargo:rustc-link-arg=-lpython{version}");
-    println!("cargo:rustc-link-arg=-Wl,--as-needed");
+    if is_gnu_elf {
+        println!("cargo:rustc-link-arg=-Wl,--as-needed");
+    }
 }
 
 fn python_stdout(cmd: &str, args: &[&str]) -> String {
