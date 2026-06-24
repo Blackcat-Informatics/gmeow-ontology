@@ -1930,7 +1930,7 @@ pub(crate) fn read_fold(root: &std::path::Path) -> Result<Graph, PipelineError> 
 /// Read THIS run's fold from the `stage-snapshot` upstream product. The runtime
 /// path every fold-reading export leaf uses (single-pass): the snapshot bytes are
 /// fold-isomorphic to the committed file (proven by `fold_parity`), so the
-/// `GtsGraphStore` logic is identical — only the byte source changes.
+/// imported fold is identical — only the byte source changes.
 pub(crate) fn read_fold_upstream(
     upstream: &std::collections::BTreeMap<String, StageProduct>,
 ) -> Result<Graph, PipelineError> {

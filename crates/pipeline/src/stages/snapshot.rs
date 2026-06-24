@@ -20,7 +20,6 @@ use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
 use gmeow_rdf::gts_compose::{emit_gts, BlobRow, SnapshotBuilder};
-use gmeow_rdf::oxigraph::OxigraphStore;
 use oxigraph::io::{RdfFormat, RdfParser, RdfSerializer};
 use oxigraph::model::dataset::CanonicalizationAlgorithm;
 use oxigraph::model::{Dataset, Quad};
@@ -83,8 +82,13 @@ pub fn build_snapshot(
         let store = Store::new().map_err(|e| stage_err(&format!("store: {e}")))?;
         ingest_nq(&store, authored_canon.as_bytes())?;
         ingest_turtle(&store, &imports)?;
-        let view = OxigraphStore::new(&store);
-        run_verify_attestation(root, &view)?
+        let quads = store
+            .iter()
+            .collect::<Result<Vec<_>, _>>()
+            .map_err(|e| stage_err(&format!("verify input store iteration: {e}")))?;
+        let dataset = gmeow_rdf::dataset_from_oxigraph_quads(&quads)
+            .map_err(|e| stage_err(&format!("verify input dataset freeze: {e}")))?;
+        run_verify_attestation(root, dataset.as_ref())?
     };
 
     // ── the builder: route every source into its named graph ────────────────────
@@ -943,7 +947,10 @@ fn expand_curie(
 /// Run the native verify lane over `edb` and build the attestation graph as
 /// N-Quads. Mirrors `gts_gen.build_verify_attestation_graph` exactly (the same
 /// `gmeow:QualityAssessment` vocabulary, one per query).
-fn run_verify_attestation(root: &Path, edb: &OxigraphStore<'_>) -> Result<Vec<u8>, PipelineError> {
+fn run_verify_attestation(
+    root: &Path,
+    edb: &gmeow_rdf::RdfDataset,
+) -> Result<Vec<u8>, PipelineError> {
     let query_paths = verify_query_paths(root)?;
     let pairs: Vec<(String, String)> = query_paths
         .iter()

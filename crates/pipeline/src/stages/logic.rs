@@ -16,8 +16,9 @@
 //! smaller graph), so its closure diverges from the committed one. This leaf closes
 //! that gap: it reads THIS run's `stage-snapshot` fold bytes (the same single-pass
 //! source every other export leaf consumes) and feeds them through the IDENTICAL
-//! `GtsGraphStore` → `reason_all` → `build_*_ttl` path that `reason_native_artifacts`
-//! uses — so the three artifacts reproduce the committed bytes exactly.
+//! `import_gts_events` → `reason_all` → `build_*_ttl` path that
+//! `reason_native_artifacts` uses — so the three artifacts reproduce the
+//! committed bytes exactly.
 //!
 //! ## Engine lock
 //!
@@ -50,11 +51,10 @@ pub const LEDGER_PATH: &str = "generated/logic/dl-el-crosscheck-report.ttl";
 /// in non-merge mode (the `native_reason_gen` regenerate path): the closure is
 /// told-vs-inferred only (`merge=None`).
 fn reason_fold_artifacts(gts: &[u8]) -> Result<(String, String, String), PipelineError> {
-    let graph = gmeow_rdf::gts::read_graph(gts, true)
+    let bundle = gmeow_rdf::import_gts_events(gts)
         .map_err(|e| stage_err(&format!("read snapshot gmeow.gts: {e}")))?;
-    let store = gmeow_rdf::gts::GtsGraphStore::new(&graph);
-    let result =
-        reason_all(&store).map_err(|e| stage_err(&format!("native reasoning failed: {e}")))?;
+    let result = reason_all(bundle.dataset.as_ref())
+        .map_err(|e| stage_err(&format!("native reasoning failed: {e}")))?;
     // Non-merge (the regenerate path): the closure is told-vs-inferred only.
     let closure = build_inferred_closure_ttl(&result, None)
         .map_err(|e| stage_err(&format!("closure serialization failed: {e}")))?;
@@ -164,7 +164,7 @@ mod tests {
 
     /// Reasoning the COMMITTED `gmeow.gts` fold through the leaf's artifact path
     /// reproduces the committed logic artifacts byte-for-byte — the exact same
-    /// `GtsGraphStore` → `reason_all` → `build_*_ttl` path `native_reason_gen.py`
+    /// GTS-import → `reason_all` → `build_*_ttl` path `native_reason_gen.py`
     /// uses, so the bytes are identical (deterministic serializer over the same fold).
     #[test]
     fn logic_artifacts_reproduce_committed_over_full_fold() {

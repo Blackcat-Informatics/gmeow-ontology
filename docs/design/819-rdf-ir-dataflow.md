@@ -26,15 +26,14 @@ Designing for that end-state changes what "optimal" means. Today three RDF
 representations fight inside the Rust code, and the Python boundary forces text
 round-trips.
 
-1. **`RdfQuad` / `RdfStore` (kernel model, `crates/rdf/src/model.rs`, `store.rs`)** —
-   owned-`String` terms, no value-interning. `RdfStore::quads()` returns
-   `Box<dyn Iterator<Item = Result<RdfQuad, _>>>` that **clones every quad per
-   iteration** (`store.rs:88,92,95`) and clones the whole lookaside each call
-   (`store.rs:104`). It is a lowest-common-denominator *conversion shim*, not a working
-   IR.
+1. **Legacy owned-quad reader (kernel model, `crates/rdf/src/model.rs`, `store.rs`)** —
+   owned-`String` terms, no value-interning. Its boxed iterator **cloned every quad per
+   iteration** and cloned the whole lookaside each call. It was a lowest-common-denominator
+   *conversion shim*, not a working IR, and #922 removed it.
 2. **oxigraph `Store` (the de-facto working IR)** — `logic`, `shacl`, `validate`, and
-   `slicetest` all materialize into oxigraph and SPARQL-query it. `RdfQuad` exists only
-   to feed `store_from_rdf_store` (`crates/rdf/src/oxigraph.rs:67`).
+   `slicetest` all materialized into oxigraph and SPARQL-query it. The transitional
+   owned-quad path used to feed oxigraph materialization; #922 replaced that with
+   `RdfDataset`-native ingress.
 3. **GTS folded `Graph` (an efficient transport)** — an ID-addressed physical
    representation (`terms: Vec<Term>` + id-tuple `quads`/`reifiers`,
    `gmeow-gts model.rs:222`). **Important correction:** GTS term IDs are *segment-local
@@ -205,7 +204,7 @@ instrument to revisit the decision against, rather than re-asserting it.
 
 ### ID-native consumers
 
-- **SHACL** — the expensive seam is that `validate_rdf_store` materializes the *entire*
+- **SHACL** — the expensive seam was that the former store entrypoint materialized the *entire*
   source into oxigraph, and the Core constraint/path engine is typed around
   `oxigraph::Store`/`Term`. Ordinary SHACL targets already use oxigraph *pattern lookups*;
   only `SPARQLTarget` invokes SPARQL. So the work is to port **SHACL Core graph access,
@@ -279,7 +278,7 @@ transitional ABI.
 | **C5** | Typed Nemo bridge: typed EDB injection, `TermId ↔ AnyDataValue`, typed derived rows, handle-based provenance, direct world IDs. (First deliverable: feasibility spike + fallback boundary.) |
 | **C6** | General evented output / projection sinks (`RdfEventSink`) for chase output, SHACL results, projections. |
 | **C7** | `Arc`-backed Python handle; remove text-exchange FFI paths. |
-| **C8** | Delete the old owned `RdfStore` shim and redundant stores. |
+| **C8** | Delete the old owned store shim and redundant stores. |
 
 Ordering rationale: C0 fixes semantics *before* code; C1 is the foundation; C2 brings data
 in; **C3 lands early as a bridge**; C4/C5 are the ID-native consumer ports (C5 gated on its
@@ -292,7 +291,7 @@ spike); C6 generalizes output; C7/C8 are end-state cleanups gated on the Python 
 - GTS transport & streaming to reuse: `gmeow-gts` `model.rs` (`Graph`/`Term`),
   `StreamingSink` / `read_to_sink`.
 - Consumers to migrate: `crates/logic/src/store.rs`, `reason/mod.rs`, `provenance.rs`;
-  `crates/shacl/src/engine.rs` (`validate`, `validate_rdf_store`, `parse_shapes`, target
+  `crates/shacl/src/engine.rs` (`validate`, `validate_dataset`, `parse_shapes`, target
   helpers `:64-110`), `report.rs`; `crates/validate/src/store.rs`, `validate_all.rs`;
   `crates/slicetest/src/stores.rs`.
 - FFI scaffolding to retire: `src/gmeow_tools/native_rl_rdflib.py`, `logic_runner.py`,
@@ -445,12 +444,12 @@ RFC required as C5's first deliverable.
   **by-reference** entry: the IR holds the content-addressed `blob_id` digest +
   origin (never the payload — blobs may be multi-terabyte); payload streaming
   origin→destination is a follow-up.
-- **C3 bridge** — the `&RdfDataset: impl RdfStore` compat adapter now threads each
-  quad's source **location** into the owned model and remaps location
-  `QuadHandle`s across the freeze-time sort (two LSP-correctness fixes), and the
-  IR gains `reifiers_of`/`annotations_of` accessors.
+- **C3 bridge** — the retired dataset-to-owned-quad adapter threaded each quad's source
+  **location** into the owned model and remapped location `QuadHandle`s across the
+  freeze-time sort (two LSP-correctness fixes), and the IR gained
+  `reifiers_of`/`annotations_of` accessors.
 - **C4** — the SHACL Core engine is generic over a `ShaclDataGraph` trait with an
-  IR-native backend; `validate_rdf_store` runs on the IR with no whole-store
+  IR-native backend; `validate_dataset` runs on the IR with no whole-store
   oxigraph materialization (oxigraph retained only for SHACL-SPARQL). Conformance
   is held by a 16-case oxigraph-vs-IR differential equivalence test.
 - **C6** — `RdfEventSink`, the ID-addressed evented OUTPUT dual of the import sink.
@@ -515,19 +514,17 @@ against the materialized dataset rides with the typed-bridge implementation.
   lints run on `oxigraph::Store` today, so wiring them to read the IR accessors
   is C4-class work (port the lints to the IR), tracked as a follow-up. This is a
   gated consumer, not a data-flow gap.
-- **C8 (delete the owned `RdfStore` shim)** — the production goal is **met**: the
-  IR is the sole production working store, and `VecRdfStore` has zero production
-  construction sites. It is retained, clearly marked, only as a test-only owned
-  fixture across ~65 unit/integration sites in `gmeow-rdf`/`gmeow-logic`; retiring
-  it from those tests (incl. the nightly-gated logic suite) is a mechanical
-  follow-up, not a production concern.
+- **C8 (delete the owned store shim)** — the production goal is **met**: the
+  IR is the sole production working store. #922 completed the final cleanup by removing
+  the legacy trait, backend adapters, compat bridge, and owned fixture store from both
+  production and tests.
 
 ### CodeRabbit review (PR #825) — fixes applied + remaining deferrals
 
 Correctness fixes landed in this review pass (all gated):
 
-- **BlankScope preserved across the owned/oxigraph boundaries.** The compat bridge
-  (`ir/compat.rs`) and the SHACL IR→oxigraph conversion (`shacl/src/data.rs`) now
+- **BlankScope preserved across the owned/oxigraph boundaries.** The former compat bridge
+  and the SHACL IR→oxigraph conversion (`shacl/src/data.rs`) now
   scope-qualify a non-default blank label via the shared `BlankScope::qualify_label`
   helper (`ir/term.rs`): default scope keeps the bare label (byte-unchanged for real
   single-scope data), a non-default scope `n` renders `"{label}.s{n}"`, so two
@@ -571,14 +568,9 @@ Remaining deferrals (genuine heavy lifts, with reason):
   deliberately never holds — blobs may be multi-terabyte). The reference therefore
   round-trips out of band (the `blob-bytes-absent` intentional-loss entry); carrying
   it inline is unblocked only by a new gmeow-gts reference-only blob-entry API.
-- **Reifier/annotation tables in the DIRECT `&RdfDataset` SHACL backend** —
-  `quads_for_pattern` scans only the quad table, so a hand-built IR holding reifiers
-  /annotations in the typed tables would not surface them as `rdf:reifies`/annotation
-  quads to a *direct* `validate_with(&&RdfDataset)`. The PRODUCTION path is unaffected:
-  `validate_rdf_store` → `dataset_from_rdf_store` already projects reifiers as
-  `rdf:reifies` quads and annotations as plain triples before validation, so the
-  typed tables are empty there. Exposing the typed tables as synthetic default-graph
-  quads inside the hot pattern-scan loop is the follow-up for the direct-backend case.
+- **Reifier/annotation tables in SHACL validation** — #922 closed the direct-dataset
+  gap: `validate_dataset` now projects reifiers as `rdf:reifies` quads and annotations
+  as plain triples before the Core/SPARQL engines read the data graph.
 - **`datasets_isomorphic` completeness (`ir/compare.rs`)** — the hash-refinement
   oracle is sound on the POSITIVE side and conservative on collision: when two blanks
   share a refined signature (a symmetric blank graph the hash cannot split) it returns
@@ -590,5 +582,5 @@ Remaining deferrals (genuine heavy lifts, with reason):
 
 SHACL-SPARQL store caching (CodeRabbit "re-materializes per call") WAS fixed in this
 pass, not deferred: `CachedIrDataGraph` (`shacl/src/data.rs`) wraps `&RdfDataset` with
-a `OnceLock<Store>` so `validate_rdf_store` materializes the SPARQL store at most once
+a `OnceLock<Store>` so `validate_dataset` materializes the SPARQL store at most once
 per validation, shared across every `sh:sparql` target/constraint.

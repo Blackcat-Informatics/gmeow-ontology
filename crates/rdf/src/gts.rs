@@ -3,11 +3,11 @@
 
 //! GTS adapter surface for `gmeow-rdf`.
 //!
-//! The oxigraph-free reader half (`GtsGraphStore`, `read_graph`,
-//! `read_all_segments`, `lookaside_from_graph`, …) lives in the ring-fenced
-//! `gmeow-rdf-core` kernel and is re-exported wholesale below (#885 / purrdf
-//! P2b). This module keeps only the two `oxigraph`-gated flattening helpers,
-//! which depend on oxigraph and therefore cannot live in the oxigraph-free core.
+//! The oxigraph-free reader half (`read_graph`, `read_all_segments`,
+//! `lookaside_from_graph`, …) lives in the ring-fenced `gmeow-rdf-core` kernel and
+//! is re-exported wholesale below (#885 / purrdf P2b). This module keeps only the
+//! two `oxigraph`-gated flattening helpers, which depend on oxigraph and therefore
+//! cannot live in the oxigraph-free core.
 
 pub use gmeow_rdf_core::gts::*;
 

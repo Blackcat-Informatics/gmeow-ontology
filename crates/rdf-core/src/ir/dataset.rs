@@ -26,7 +26,10 @@ use std::hash::{Hash, Hasher};
 use std::sync::OnceLock;
 
 use crate::dataset_view::GraphMatch;
-use crate::{RdfLocation, RdfStoreCapabilities, RdfTextDirection};
+use crate::{
+    RdfAnnotation, RdfLiteral, RdfLocation, RdfQuad, RdfReifier, RdfStoreCapabilities, RdfTerm,
+    RdfTextDirection, RdfTriple,
+};
 
 use super::term::{arena_str, BlankScope, InternedTerm, TermId, TermValue};
 
@@ -331,6 +334,108 @@ impl RdfDataset {
             value_index: OnceLock::new(),
             indexes: QuadIndexes::default(),
         }
+    }
+
+    /// Resolve a term id to the owned [`RdfTerm`] model, recursively for triple
+    /// terms. This allocates owned strings at the explicit owned-model boundary
+    /// used by serializers, oxigraph materialization, and tests.
+    fn to_owned_term(&self, id: TermId) -> RdfTerm {
+        match self.resolve(id) {
+            TermRef::Iri(iri) => RdfTerm::iri(iri),
+            TermRef::Blank { label, scope } => RdfTerm::blank_node(scope.qualify_label(label)),
+            TermRef::Literal {
+                lexical,
+                datatype,
+                language,
+                direction,
+            } => {
+                let datatype_iri = match self.resolve(datatype) {
+                    TermRef::Iri(iri) => iri.to_owned(),
+                    other => {
+                        unreachable!("literal datatype must resolve to an IRI, got {other:?}")
+                    }
+                };
+                RdfTerm::literal(RdfLiteral {
+                    lexical_form: lexical.to_owned(),
+                    datatype: Some(datatype_iri),
+                    language: language.map(str::to_owned),
+                    direction,
+                })
+            }
+            TermRef::Triple { s, p, o } => {
+                let subject = self.to_owned_term(s);
+                let predicate = self.iri_string(p);
+                let object = self.to_owned_term(o);
+                RdfTerm::triple(RdfTriple::new(subject, predicate, object))
+            }
+        }
+    }
+
+    /// Resolve a term id that must be an IRI (a predicate / triple-predicate
+    /// position) to its owned IRI string.
+    fn iri_string(&self, id: TermId) -> String {
+        match self.resolve(id) {
+            TermRef::Iri(iri) => iri.to_owned(),
+            other => unreachable!("expected an IRI in this position, got {other:?}"),
+        }
+    }
+
+    /// Resolve one ID-native quad row to an owned [`RdfQuad`], attaching the
+    /// quad's source location by frozen ordinal.
+    pub fn to_owned_quad(&self, frozen_index: usize, q: QuadIds) -> RdfQuad {
+        let mut quad = RdfQuad::new(
+            self.to_owned_term(q.s),
+            self.iri_string(q.p),
+            self.to_owned_term(q.o),
+        );
+        quad.graph_name = q.g.map(|g| self.to_owned_term(g));
+        if let Some(loc) = self.location_of(QuadHandle::from_index(frozen_index as u32)) {
+            quad = quad.with_location(loc.clone());
+        }
+        quad
+    }
+
+    /// Resolve a `(reifier, triple-term)` binding to an owned [`RdfReifier`].
+    pub fn to_owned_reifier(&self, reifier: TermId, triple: TermId) -> RdfReifier {
+        let statement = match self.resolve(triple) {
+            TermRef::Triple { s, p, o } => RdfTriple::new(
+                self.to_owned_term(s),
+                self.iri_string(p),
+                self.to_owned_term(o),
+            ),
+            other => unreachable!("a reifier must bind a triple term, got {other:?}"),
+        };
+        RdfReifier::new(self.to_owned_term(reifier), statement)
+    }
+
+    /// Resolve a `(reifier, predicate, object)` annotation to an owned
+    /// [`RdfAnnotation`].
+    pub fn to_owned_annotation(&self, reifier: TermId, p: TermId, o: TermId) -> RdfAnnotation {
+        RdfAnnotation::new(
+            self.to_owned_term(reifier),
+            self.iri_string(p),
+            self.to_owned_term(o),
+        )
+    }
+
+    /// Iterate over all quads resolved to their owned [`RdfQuad`] representation.
+    pub fn owned_quads(&self) -> impl Iterator<Item = RdfQuad> + '_ {
+        self.quads()
+            .enumerate()
+            .map(|(index, quad)| self.to_owned_quad(index, quad))
+    }
+
+    /// Iterate over all reifiers resolved to their owned [`RdfReifier`] representation.
+    pub fn owned_reifiers(&self) -> impl Iterator<Item = RdfReifier> + '_ {
+        self.reifiers()
+            .map(|(reifier, triple)| self.to_owned_reifier(reifier, triple))
+    }
+
+    /// Iterate over all annotations resolved to their owned [`RdfAnnotation`] representation.
+    pub fn owned_annotations(&self) -> impl Iterator<Item = RdfAnnotation> + '_ {
+        self.annotations().map(|(reifier, predicate, object)| {
+            self.to_owned_annotation(reifier, predicate, object)
+        })
     }
 
     /// Borrow (building on first access) the ordinal-indirection array for a

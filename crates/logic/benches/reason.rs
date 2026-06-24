@@ -9,7 +9,7 @@
 //! either the constant factor or the scaling is visible:
 //! - `reason_all` — the native EL/DL/RL reasoner (#665/#686 authority): one Nemo
 //!   chase yielding the subsumption closure + the consistency verdict, over a
-//!   `VecRdfStore` class hierarchy (the same store shape the PyO3 `reason_native`
+//!   `RdfDataset` class hierarchy (the same IR shape the PyO3 `reason_native`
 //!   seam drives).
 //! - `el_closure` — the EL subsumption closure alone (the sub-path of `reason_all`
 //!   without the DL consistency verdict; whether it is meaningfully cheaper at a
@@ -21,7 +21,8 @@
 use criterion::{criterion_group, criterion_main, Criterion};
 use gmeow_logic::materialize::materialize_core;
 use gmeow_logic::reason::{el_closure, reason_all};
-use gmeow_rdf::{RdfQuad, RdfTerm, VecRdfStore};
+use gmeow_rdf::{RdfDataset, RdfDatasetBuilder, RdfQuad, RdfTerm};
+use std::sync::Arc;
 
 const W: &str = "http://gmeow.example/w";
 const RDFS_SUB: &str = "http://www.w3.org/2000/01/rdf-schema#subClassOf";
@@ -29,7 +30,7 @@ const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 
 /// A class-subsumption EDB: a `C0 ⊑ C1 ⊑ … ⊑ C{n-1}` chain plus `instances`
 /// individuals typed to `C0`, so the EL/DL closure propagates the whole chain.
-fn hierarchy_store(num_classes: usize, instances: usize) -> VecRdfStore {
+fn hierarchy_store(num_classes: usize, instances: usize) -> Arc<RdfDataset> {
     let cls = |i: usize| format!("http://gmeow.example/C{i}");
     let mut quads = Vec::new();
     for i in 0..num_classes.saturating_sub(1) {
@@ -49,7 +50,11 @@ fn hierarchy_store(num_classes: usize, instances: usize) -> VecRdfStore {
             .in_graph(RdfTerm::iri(W)),
         );
     }
-    VecRdfStore::with_quads(quads)
+    let mut builder = RdfDatasetBuilder::new();
+    for quad in quads {
+        builder.push_owned_quad(&quad);
+    }
+    builder.freeze().expect("valid benchmark dataset")
 }
 
 /// `logic:subClassOf` transitivity rule in Nemo IRI-predicate syntax (mirrors the
@@ -82,7 +87,7 @@ fn bench_reason_all(c: &mut Criterion) {
     for &(n, inst) in &[(8usize, 4usize), (30usize, 15usize)] {
         let store = hierarchy_store(n, inst);
         group.bench_function(format!("hierarchy_{n}classes_{inst}inst"), |b| {
-            b.iter(|| std::hint::black_box(reason_all(&store).expect("reason_all")));
+            b.iter(|| std::hint::black_box(reason_all(store.as_ref()).expect("reason_all")));
         });
     }
     group.finish();
@@ -94,7 +99,7 @@ fn bench_el_closure(c: &mut Criterion) {
     for &(n, inst) in &[(8usize, 4usize), (30usize, 15usize)] {
         let store = hierarchy_store(n, inst);
         group.bench_function(format!("hierarchy_{n}classes_{inst}inst"), |b| {
-            b.iter(|| std::hint::black_box(el_closure(&store).expect("el_closure")));
+            b.iter(|| std::hint::black_box(el_closure(store.as_ref()).expect("el_closure")));
         });
     }
     group.finish();

@@ -9,7 +9,7 @@ use ::oxigraph::store::Store;
 
 use crate::{
     RdfAnnotation, RdfDataset, RdfDiagnostic, RdfLiteral, RdfLocation, RdfQuad, RdfReifier,
-    RdfStore, RdfStoreCapabilities, RdfTerm, RdfTextDirection, RdfTriple,
+    RdfTerm, RdfTextDirection, RdfTriple,
 };
 
 const RDF_REIFIES: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies";
@@ -22,57 +22,15 @@ pub enum GraphPolicy {
     FlattenToDefaultGraph,
 }
 
-/// Borrowed RDF store view over an oxigraph [`Store`].
-#[derive(Clone, Copy)]
-pub struct OxigraphStore<'a> {
-    store: &'a Store,
-}
-
-impl<'a> OxigraphStore<'a> {
-    pub fn new(store: &'a Store) -> Self {
-        Self { store }
-    }
-
-    pub fn store(&self) -> &'a Store {
-        self.store
-    }
-}
-
-impl RdfStore for OxigraphStore<'_> {
-    fn quads(&self) -> Box<dyn Iterator<Item = Result<RdfQuad, RdfDiagnostic>> + '_> {
-        Box::new(self.store.iter().map(|quad| {
-            let quad =
-                quad.map_err(|e| RdfDiagnostic::error("oxigraph-store-iter", e.to_string()))?;
-            Ok(rdf_quad_from_oxigraph(&quad))
-        }))
-    }
-
-    fn capabilities(&self) -> RdfStoreCapabilities {
-        RdfStoreCapabilities {
-            named_graphs: true,
-            quoted_triples: true,
-            reifiers: false,
-            annotations: false,
-            source_locations: false,
-            loss_records: false,
-            lookaside: false,
-        }
-    }
-
-    fn len_hint(&self) -> Option<usize> {
-        self.store.len().ok()
-    }
-}
-
-/// Materialize any [`RdfStore`] into an in-memory oxigraph store.
-pub fn store_from_rdf_store(
-    source: &impl RdfStore,
+/// Materialize a frozen [`RdfDataset`] into an in-memory oxigraph store, reading the
+/// IR directly.
+pub fn store_from_dataset(
+    dataset: &RdfDataset,
     graph_policy: GraphPolicy,
 ) -> Result<Store, RdfDiagnostic> {
     let store =
         Store::new().map_err(|e| RdfDiagnostic::error("oxigraph-store-create", e.to_string()))?;
-    for quad in source.quads() {
-        let quad = quad?;
+    for quad in dataset.owned_quads() {
         let ox_quad = oxigraph_quad_from_rdf(&quad, graph_policy)?;
         store
             .insert(&ox_quad)
@@ -80,57 +38,14 @@ pub fn store_from_rdf_store(
     }
     let rdf_reifies = NamedNode::new(RDF_REIFIES)
         .map_err(|e| RdfDiagnostic::error("oxigraph-rdf-reifies-iri", e.to_string()))?;
-    for reifier in source.reifiers() {
-        let reifier = reifier?;
+    for reifier in dataset.owned_reifiers() {
         let ox_quad = oxigraph_reifier_quad(&reifier, &rdf_reifies)?;
         store
             .insert(&ox_quad)
             .map_err(|e| RdfDiagnostic::error("oxigraph-store-insert", e.to_string()))?;
     }
-    for annotation in source.annotations() {
-        let annotation = annotation?;
+    for annotation in dataset.owned_annotations() {
         let ox_quad = oxigraph_annotation_quad(&annotation)?;
-        store
-            .insert(&ox_quad)
-            .map_err(|e| RdfDiagnostic::error("oxigraph-store-insert", e.to_string()))?;
-    }
-    Ok(store)
-}
-
-/// Materialize a frozen [`RdfDataset`] into an in-memory oxigraph store, reading the
-/// IR directly (purrdf P2c part 1, #886).
-///
-/// The concrete-IR twin of [`store_from_rdf_store`]: it iterates the dataset's quad,
-/// reifier, and annotation tables and resolves each row through the IR's owned-boundary
-/// helpers ([`RdfDataset::to_owned_quad`] etc.) rather than the `&impl RdfStore` trait,
-/// then reuses the same per-row oxigraph builders. Byte/quad-for-quad identical to
-/// `store_from_rdf_store(&dataset, …)` (the compat bridge); a parity test pins the
-/// equivalence so the part-2 removal of the bridge is provably safe.
-pub fn store_from_dataset(
-    dataset: &RdfDataset,
-    graph_policy: GraphPolicy,
-) -> Result<Store, RdfDiagnostic> {
-    let store =
-        Store::new().map_err(|e| RdfDiagnostic::error("oxigraph-store-create", e.to_string()))?;
-    for (frozen_index, quad) in dataset.quads().enumerate() {
-        let ox_quad =
-            oxigraph_quad_from_rdf(&dataset.to_owned_quad(frozen_index, quad), graph_policy)?;
-        store
-            .insert(&ox_quad)
-            .map_err(|e| RdfDiagnostic::error("oxigraph-store-insert", e.to_string()))?;
-    }
-    let rdf_reifies = NamedNode::new(RDF_REIFIES)
-        .map_err(|e| RdfDiagnostic::error("oxigraph-rdf-reifies-iri", e.to_string()))?;
-    for (reifier, triple) in dataset.reifiers() {
-        let ox_quad =
-            oxigraph_reifier_quad(&dataset.to_owned_reifier(reifier, triple), &rdf_reifies)?;
-        store
-            .insert(&ox_quad)
-            .map_err(|e| RdfDiagnostic::error("oxigraph-store-insert", e.to_string()))?;
-    }
-    for (reifier, predicate, object) in dataset.annotations() {
-        let ox_quad =
-            oxigraph_annotation_quad(&dataset.to_owned_annotation(reifier, predicate, object))?;
         store
             .insert(&ox_quad)
             .map_err(|e| RdfDiagnostic::error("oxigraph-store-insert", e.to_string()))?;
@@ -370,46 +285,49 @@ impl WithOptionalLocation for RdfDiagnostic {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{RdfLiteral, RdfQuad, RdfTerm, VecRdfStore};
+    use crate::{RdfDatasetBuilder, RdfLiteral, RdfQuad, RdfTerm};
+
+    fn dataset_from_quads(quads: Vec<RdfQuad>) -> std::sync::Arc<RdfDataset> {
+        let mut builder = RdfDatasetBuilder::new();
+        for quad in quads {
+            builder.push_owned_quad(&quad);
+        }
+        builder.freeze().expect("valid test dataset")
+    }
 
     #[test]
     fn materializes_private_language_tag_without_strict_bcp47_check() {
-        let source = VecRdfStore::with_quads(vec![RdfQuad::new(
+        let source = dataset_from_quads(vec![RdfQuad::new(
             RdfTerm::iri("https://example.org/s"),
             "https://example.org/p",
             RdfTerm::literal(RdfLiteral::language_tagged("hallo", "x-gmeow-afrikaans")),
         )]);
-        let store = store_from_rdf_store(&source, GraphPolicy::FlattenToDefaultGraph)
+        let store = store_from_dataset(source.as_ref(), GraphPolicy::FlattenToDefaultGraph)
             .expect("private language tags should materialize");
         assert_eq!(store.len().unwrap(), 1);
     }
 
     #[test]
-    fn rejects_quoted_triple_subject_when_materializing_to_oxigraph() {
+    fn rejects_quoted_triple_subject_at_dataset_boundary() {
         let quoted = RdfTerm::triple(RdfTriple::new(
             RdfTerm::iri("https://example.org/a"),
             "https://example.org/p",
             RdfTerm::iri("https://example.org/b"),
         ));
-        let source = VecRdfStore::with_quads(vec![RdfQuad::new(
+        let mut builder = RdfDatasetBuilder::new();
+        builder.push_owned_quad(&RdfQuad::new(
             quoted,
             "https://example.org/p",
             RdfTerm::iri("https://example.org/o"),
-        )]);
-        let err = match store_from_rdf_store(&source, GraphPolicy::FlattenToDefaultGraph) {
-            Ok(_) => panic!("oxigraph cannot represent triple subjects"),
-            Err(err) => err,
-        };
-        assert_eq!(err.code, "oxigraph-subject-unsupported");
+        ));
+        let err = builder
+            .freeze()
+            .expect_err("asserted triple subjects are rejected before oxigraph materialization");
+        assert_eq!(err.code, "rdf-ir-triple-subject");
     }
 
-    /// `store_from_dataset` (concrete IR) must be quad-for-quad identical to the
-    /// `RdfStore` compat bridge (#886 part 1) — the parity guard that makes the
-    /// part-2 removal of `store_from_rdf_store`/the bridge provably safe.
     #[test]
-    fn store_from_dataset_matches_compat_bridge() {
-        use crate::RdfDatasetBuilder;
-
+    fn store_from_dataset_materializes_reifiers_and_annotations() {
         fn quad_set(store: &Store) -> std::collections::BTreeSet<String> {
             store
                 .iter()
@@ -438,15 +356,18 @@ mod tests {
 
         let via_dataset =
             store_from_dataset(dataset, GraphPolicy::PreserveNamedGraphs).expect("via dataset");
-        let via_bridge = store_from_rdf_store(&dataset, GraphPolicy::PreserveNamedGraphs)
-            .expect("via compat bridge");
 
         let dataset_quads = quad_set(&via_dataset);
-        assert!(!dataset_quads.is_empty(), "the store must not be empty");
         assert_eq!(
-            dataset_quads,
-            quad_set(&via_bridge),
-            "store_from_dataset must match the compat bridge quad-for-quad"
+            dataset_quads.len(),
+            3,
+            "base quad, rdf:reifies row, and annotation row must materialize"
         );
+        assert!(dataset_quads
+            .iter()
+            .any(|quad| quad.contains("22-rdf-syntax-ns#reifies")));
+        assert!(dataset_quads
+            .iter()
+            .any(|quad| quad.contains("https://example.org/confidence")));
     }
 }

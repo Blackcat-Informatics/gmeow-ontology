@@ -6,8 +6,8 @@
 //!
 //! For each `(shapes_ttl, data_nt)` case we build the SAME data twice — once as an
 //! oxigraph `Store` (the historical oracle backend) and once routed through
-//! `validate_rdf_store`, which builds an immutable `RdfDataset` and runs the
-//! generic engine over the IR. The two `ValidationReport`s must be EQUAL: same
+//! `validate_dataset`, which runs the generic engine over the immutable IR. The
+//! two `ValidationReport`s must be EQUAL: same
 //! `conforms` flag, and the same deterministically-sorted results (compared via the
 //! canonical `to_ntriples()` serialization, exactly as the in-crate determinism
 //! test does).
@@ -18,8 +18,7 @@
 use oxigraph::io::RdfFormat;
 use oxigraph::store::Store;
 
-use gmeow_rdf::oxigraph::OxigraphStore;
-use gmeow_shacl::engine::{parse_shapes, validate, validate_rdf_store};
+use gmeow_shacl::engine::{parse_shapes, validate, validate_dataset};
 
 const PREFIXES: &str = r#"
     @prefix sh:   <http://www.w3.org/ns/shacl#> .
@@ -63,10 +62,16 @@ fn assert_backends_agree_store(label: &str, shapes_ttl: &str, store: Store) {
     // Oracle: the oxigraph `Store` backend directly.
     let oracle = validate(&store, &shapes);
 
-    // IR backend: route the same data through `validate_rdf_store`, which builds an
-    // `RdfDataset` and runs the generic engine over the IR.
-    let ir = validate_rdf_store(&OxigraphStore::new(&store), &shapes)
-        .unwrap_or_else(|e| panic!("[{label}] validate_rdf_store: {e}"));
+    // IR backend: freeze the same data into `RdfDataset` and run the generic
+    // engine over the IR.
+    let quads = store
+        .iter()
+        .collect::<Result<Vec<_>, _>>()
+        .unwrap_or_else(|e| panic!("[{label}] oxigraph iteration: {e}"));
+    let dataset = gmeow_rdf::dataset_from_oxigraph_quads(&quads)
+        .unwrap_or_else(|e| panic!("[{label}] dataset freeze: {e}"));
+    let ir = validate_dataset(dataset.as_ref(), &shapes)
+        .unwrap_or_else(|e| panic!("[{label}] validate_dataset: {e}"));
 
     assert_eq!(
         oracle.conforms, ir.conforms,
