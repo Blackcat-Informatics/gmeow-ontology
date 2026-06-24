@@ -24,10 +24,9 @@
 //!     `_graph()` — pure TBox membership check.
 //!   - `test_genre_seeds_coexist`: dynamic sweep of 13 genre seeds via `_graph()`.
 //!   - `test_genre_derivation_links_exist`: TBox triple membership via `_graph()`.
-//!   - `test_statement_cells_include_contested_meter_pair`: uses the native
-//!     statement OWL downcast, no SHACL — generated-artifact check.
-//!   - `test_statement_cells_emit_owl_axioms_with_standpoints`: uses the native
-//!     statement OWL downcast, no SHACL — generated-artifact check.
+//!
+//! Statement compiler checks for the contested meter cells live with the native
+//! statement stage tests in `gmeow-pipeline`.
 
 mod conformance_support;
 use conformance_support::*;

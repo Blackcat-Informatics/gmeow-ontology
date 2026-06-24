@@ -93,33 +93,24 @@ def _statement_compile_report() -> Any:
 
     Python owns only the developer feedback surface here. The compiler itself is
     the Rust `stage-statements` implementation exposed through
-    `gmeow_native.pipeline.compile_statements`.
+    `gmeow_native.pipeline.compile_statements_report`.
     """
-    import gmeow_rdf
-    from gmeow_validate import check_statement_invariants, check_statement_lossless
-
-    from gmeow_tools import diagnostics
     from gmeow_tools.graph import load_merged_graph
 
-    artifacts = _compile_statements_native()
-    owl_ttl = artifacts["owl_ttl"]
-    rdf12_ttl = artifacts["rdf12_ttl"]
-
-    report = diagnostics.report("statement-compile")
+    try:
+        import gmeow_native.pipeline as _pipeline
+    except ImportError as exc:
+        raise _fail(
+            "✗ the native pipeline is unavailable: "
+            f"`import gmeow_native.pipeline` failed ({exc}). Rebuild the unified "
+            "extension (e.g. `maturin develop --manifest-path "
+            "crates/native/Cargo.toml`) to pick up the pipeline submodule."
+        ) from exc
     onto = load_merged_graph(include_imports=False)
-    report.extend(
-        check_statement_invariants(
-            owl_ttl,
-            onto.serialize(format="nt"),
-        )
+    return _pipeline.compile_statements_report(
+        str(PROJECT_ROOT),
+        onto.serialize(format="nt"),
     )
-    report.extend(
-        check_statement_lossless(
-            owl_ttl,
-            gmeow_rdf.normalize_rdf12_to_owl(rdf12_ttl),
-        )
-    )
-    return report
 
 
 def _regenerate_native(jobs: int | None = None, check: bool = False) -> None:

@@ -1,9 +1,8 @@
 """Tests for the RDF-1.2-first statement-metadata pipeline (issues #28, #29).
 
 The statement compiler is the native Rust `stage-statements` pipeline stage
-(#935). These tests inspect its output directly: deterministic DSL compilation,
-content-addressed reifier minting, OWL axiom-annotation shape, and the native
-lead-codec round-trip need no Jena and no Docker. The Apache Jena oracle
+(#935). Compiler behavior is covered in the Rust test framework; pytest only
+keeps Python wrapper/oracle scheduling checks here. The Apache Jena oracle
 (no-drift / isomorphism cross-check) runs through a repo-local script so Make/CI
 can schedule Docker outside pytest, in the non-required `classic-cross-check`
 lane.
@@ -11,141 +10,21 @@ lane.
 
 from __future__ import annotations
 
-from hashlib import sha1
 from pathlib import Path
-from typing import cast
 
-import gmeow_native.pipeline as native_pipeline
 import gmeow_rdf
 import pytest
-from gmeow_rdf.compat.rdflib import RDF, Graph, URIRef
+from gmeow_rdf.compat.rdflib import Graph
 from gmeow_rdf.compat.rdflib.compare import isomorphic
-from gmeow_rdf.compat.rdflib.namespace import OWL
 
 from gmeow_tools import statements_docker_check
 from gmeow_tools.config import (
-    PREFIXES,
     PROJECT_ROOT,
     STATEMENT_OWL_FILE,
     STATEMENT_RDF12_FILE,
 )
 from gmeow_tools.rdf12 import project_owl_to_rdf12
 from gmeow_tools.runner import ToolUnavailableError
-
-GM = PREFIXES["gmeow"]
-
-
-def _p(local: str) -> URIRef:
-    return URIRef(GM + local)
-
-
-def _native_statement_artifacts(root: Path = PROJECT_ROOT) -> dict[str, str]:
-    return cast("dict[str, str]", native_pipeline.compile_statements(str(root)))
-
-
-def _native_owl_graph(root: Path = PROJECT_ROOT) -> Graph:
-    graph = Graph()
-    graph.parse(data=_native_statement_artifacts(root)["owl_ttl"], format="turtle")
-    return graph
-
-
-def _statement_source_graph(root: Path = PROJECT_ROOT) -> Graph:
-    graph = Graph()
-    for path in sorted((root / "dsl" / "statements").glob("*.ttl")):
-        graph.parse(path, format="turtle")
-    return graph
-
-
-# --------------------------------------------------------------------------- #
-# Native Rust statement compiler: parsing, minting, emit, invariants
-# --------------------------------------------------------------------------- #
-
-
-def test_native_statement_compiler_is_deterministic_and_complete() -> None:
-    first = _native_statement_artifacts()
-    second = _native_statement_artifacts()
-    assert first == second
-
-    source = _statement_source_graph()
-    cells = set(source.subjects(RDF.type, _p("StatementMetadata")))
-    assert len(cells) >= 3
-
-    owl = Graph().parse(data=first["owl_ttl"], format="turtle")
-    axioms = set(owl.subjects(RDF.type, OWL.Axiom))
-    assert len(axioms) == len(cells)
-
-
-def test_reifier_minting_is_deterministic_and_content_addressed() -> None:
-    subject = URIRef(GM + "examples/alice")
-    predicate = _p("knowsLanguage")
-    obj = URIRef(GM + "examples/lang-toki-pona")
-    canonical = " ".join(term.n3() for term in (subject, predicate, obj))
-    minted = URIRef(GM + "reifier/" + sha1(canonical.encode("utf-8")).hexdigest())
-
-    owl = _native_owl_graph()
-    assert str(minted).startswith(GM + "reifier/")
-    assert (minted, RDF.type, OWL.Axiom) in owl
-    assert (minted, OWL.annotatedSource, subject) in owl
-    assert (minted, OWL.annotatedProperty, predicate) in owl
-    assert (minted, OWL.annotatedTarget, obj) in owl
-
-
-def test_duplicate_annotation_value_is_rejected(tmp_path: Path) -> None:
-    """Two annValues on one annotation node is a malformed cell, not a silent pick."""
-    ttl = (
-        "@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .\n"
-        "@prefix ex: <https://blackcatinformatics.ca/gmeow/examples/> .\n"
-        "ex:c a gmeow:StatementMetadata ;\n"
-        "    gmeow:qSubject ex:s ; gmeow:qPredicate gmeow:knowsLanguage ;\n"
-        "    gmeow:qObject ex:o ;\n"
-        "    gmeow:annotation [ gmeow:annProperty gmeow:confidence ;\n"
-        "        gmeow:annValue 0.5 ; gmeow:annValue 0.6 ] .\n"
-    )
-    dsl_dir = tmp_path / "dsl" / "statements"
-    dsl_dir.mkdir(parents=True)
-    (dsl_dir / "dup.ttl").write_text(ttl, encoding="utf-8")
-    with pytest.raises(
-        ValueError,
-        match=r"annValue|expected one",
-    ):
-        _native_statement_artifacts(tmp_path)
-
-
-def test_native_owl_output_uses_axiom_annotation_form() -> None:
-    source = _statement_source_graph()
-    owl = _native_owl_graph()
-    for cell in source.subjects(RDF.type, _p("StatementMetadata")):
-        ax = source.value(cell, _p("reifier"))
-        if ax is None:
-            continue
-        subject = source.value(cell, _p("qSubject"))
-        predicate = source.value(cell, _p("qPredicate"))
-        obj = source.value(cell, _p("qObject"))
-        if obj is None:
-            obj = source.value(cell, _p("qObjectLiteral"))
-        assert isinstance(ax, URIRef)
-        assert isinstance(subject, URIRef)
-        assert isinstance(predicate, URIRef)
-        assert obj is not None
-
-        assert (ax, RDF.type, OWL.Axiom) in owl
-        assert (ax, OWL.annotatedSource, subject) in owl
-        assert (ax, OWL.annotatedProperty, predicate) in owl
-        assert (ax, OWL.annotatedTarget, obj) in owl
-        assert (subject, predicate, obj) in owl
-        for ann in source.objects(cell, _p("annotation")):
-            prop = source.value(ann, _p("annProperty"))
-            value = source.value(ann, _p("annValue"))
-            assert isinstance(prop, URIRef)
-            assert value is not None
-            assert (ax, prop, value) in owl
-
-
-# The statement-invariant checks (annotation-property soundness, confidence range,
-# OWL 2 DL datatypes, predicate/term groundedness, no-preferred-rank) are now native
-# Rust (gmeow_validate.check_statement_invariants); their unit tests live in
-# crates/validate/src/statement.rs (issue #630).
-
 
 # --------------------------------------------------------------------------- #
 # Pure-Python: the no-preview-language gate (#28.4, #29.4)

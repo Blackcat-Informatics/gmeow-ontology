@@ -21,10 +21,9 @@ from __future__ import annotations
 from itertools import combinations
 from pathlib import Path
 
-import gmeow_native.pipeline as native_pipeline
 from gmeow_rdf.compat.rdflib import OWL, RDF, RDFS, SKOS, Graph, Namespace, URIRef
 
-from gmeow_tools.config import PROJECT_ROOT, PROJECTION_QUERY_DIR, STATEMENT_RDF12_FILE
+from gmeow_tools.config import PROJECTION_QUERY_DIR
 from gmeow_tools.graph import load_merged_graph
 
 GMEOW = "https://blackcatinformatics.ca/gmeow/"
@@ -49,27 +48,6 @@ COVERAGE_FIXTURES = Path(__file__).parent / "fixtures" / "coverage"
 
 def _graph() -> Graph:
     return load_merged_graph(include_imports=False)
-
-
-def _statement_owl_graph() -> Graph:
-    artifacts = native_pipeline.compile_statements(str(PROJECT_ROOT))
-    graph = Graph()
-    graph.parse(data=artifacts["owl_ttl"], format="turtle")
-    return graph
-
-
-def _axiom_annotations(graph: Graph, axiom: URIRef) -> dict[object, object]:
-    structural = {
-        RDF.type,
-        OWL.annotatedSource,
-        OWL.annotatedProperty,
-        OWL.annotatedTarget,
-    }
-    return {
-        prop: value
-        for prop, value in graph.predicate_objects(axiom)
-        if prop not in structural
-    }
 
 
 # --------------------------------------------------------------------------- #
@@ -173,51 +151,6 @@ def test_contested_places_cannot_force_inconsistency() -> None:
     assert (GM.containedInPlace, RDF.type, OWL.FunctionalProperty) not in g
     assert (GM.Place, RDF.type, OWL.Class) in g
     assert (GM.Place, OWL.disjointWith, GM.Place) not in g
-
-
-# --------------------------------------------------------------------------- #
-# Statement-DSL cells (the RDF-1.2 lead) + lint
-# --------------------------------------------------------------------------- #
-
-
-def test_crimea_pair_coexists_in_the_dsl() -> None:
-    """Both Crimea claims are authored, each standpoint-indexed, neither privileged."""
-    owl = _statement_owl_graph()
-    ru = URIRef(GMEOW + "examples/claim-crimea-in-russia-per-ru")
-    un = URIRef(GMEOW + "examples/claim-crimea-in-ukraine-per-un")
-    # Same subject + predicate, contradictory objects — both retained.
-    assert owl.value(ru, OWL.annotatedSource) == owl.value(un, OWL.annotatedSource)
-    assert (
-        owl.value(ru, OWL.annotatedProperty)
-        == owl.value(un, OWL.annotatedProperty)
-        == GM.containedInPlace
-    )
-    assert owl.value(ru, OWL.annotatedTarget) != owl.value(un, OWL.annotatedTarget)
-    # Each carries an accordingTo standpoint annotation.
-    for cell in (ru, un):
-        assert (cell, GM.accordingTo, None) in owl
-
-
-def test_two_clocks_stay_distinct() -> None:
-    """The two-clock cell keeps fact-time (validFrom, 1850s) and standpoint/
-    observation-time (assertedAt, 2025) apart — they never collapse."""
-    owl = _statement_owl_graph()
-    iri = URIRef(GMEOW + "examples/claim-territory-1850-per-2025-historiography")
-    ann = _axiom_annotations(owl, iri)
-    assert str(ann[GM.validFrom]).startswith("1850")
-    assert str(ann[GM.assertedAt]).startswith("2025")
-    assert ann[GM.validFrom] != ann[GM.assertedAt]
-    # And it records the standpoint's modal force as conceivable (◊), not settled.
-    assert ann[GM.standpointModality] == GM.conceivable
-
-
-def test_rdf12_artifact_carries_the_standpoint_axis() -> None:
-    """The committed RDF-1.2 lead artifact actually serialises gmeow:accordingTo
-    (the cells round-trip through the compiler — full isomorphism is covered by the
-    Jena gate in test_statements.py)."""
-    text = STATEMENT_RDF12_FILE.read_text(encoding="utf-8")
-    assert "accordingTo" in text
-    assert "standpointModality" in text
 
 
 # --------------------------------------------------------------------------- #
