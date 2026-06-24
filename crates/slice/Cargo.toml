@@ -45,6 +45,10 @@ hex = "0.4"
 # layering gate is unaffected.
 regex = "1"
 serde = { version = "1", features = ["derive"] }
+# Lightweight HTTP client for the optional network fetch path of the alignment-
+# direction linter (--network / GMEOW_RUN_NETWORK=1). Default features include
+# rustls/TLS; no native-tls dependency is introduced.
+ureq = "3"
 # pyo3 is pulled ONLY by the `python` feature (maturin builds the unified
 # `gmeow_native` cdylib). Same version/abi3 as the other engine crates. Only
 # `src/py.rs` imports it, so the engine modules stay PyO3-free.

@@ -26,7 +26,7 @@ use oxigraph::store::Store;
 
 use crate::error::SliceError;
 use crate::fno_emit::collect_ontology_store;
-use crate::mapping_emit::PREFIX_REGISTRY;
+use crate::mapping_emit::{registry_iri, PREFIX_REGISTRY};
 use crate::projection_lint::ProjectionDiagnostic;
 
 // ── Predicate / class constants (ported from the retired Python linter) ────────
@@ -153,6 +153,91 @@ const SCHEMA_INVERSE_OF: &str = "https://schema.org/inverseOf";
 const SCHEMA_DOMAIN_INCLUDES: &str = "https://schema.org/domainIncludes";
 const SCHEMA_RANGE_INCLUDES: &str = "https://schema.org/rangeIncludes";
 
+// ── Network fetch catalog for live target axioms ───────────────────────────────
+
+/// A fetchable target-vocabulary source document.
+struct TargetSource {
+    prefix: &'static str,
+    url: &'static str,
+    format: RdfFormat,
+}
+
+/// Canonical source documents per target prefix. Mirrors the retired Python
+/// `target_axioms.TARGET_SOURCES`; these are fetched only when
+/// `allow_network=true` and are never committed into the repository.
+const TARGET_SOURCES: &[TargetSource] = &[
+    TargetSource {
+        prefix: "org",
+        url: "https://www.w3.org/ns/org.ttl",
+        format: RdfFormat::Turtle,
+    },
+    TargetSource {
+        prefix: "foaf",
+        url: "http://xmlns.com/foaf/spec/index.rdf",
+        format: RdfFormat::RdfXml,
+    },
+    TargetSource {
+        prefix: "vcard",
+        url: "https://www.w3.org/2006/vcard/ns.ttl",
+        format: RdfFormat::Turtle,
+    },
+    TargetSource {
+        prefix: "prov",
+        url: "https://www.w3.org/ns/prov-o.ttl",
+        format: RdfFormat::Turtle,
+    },
+    TargetSource {
+        prefix: "time",
+        url: "https://www.w3.org/2006/time.ttl",
+        format: RdfFormat::Turtle,
+    },
+    TargetSource {
+        prefix: "geo",
+        url: "https://opengeospatial.github.io/ogc-geosparql/geosparql11/geo.ttl",
+        format: RdfFormat::Turtle,
+    },
+    TargetSource {
+        prefix: "schema",
+        url: "https://schema.org/version/latest/schemaorg-current-https.ttl",
+        format: RdfFormat::Turtle,
+    },
+    TargetSource {
+        prefix: "bfo",
+        url: "http://purl.obolibrary.org/obo/bfo.owl",
+        format: RdfFormat::RdfXml,
+    },
+    TargetSource {
+        prefix: "ontolex",
+        url: "https://www.w3.org/ns/lemon/ontolex.owl",
+        format: RdfFormat::RdfXml,
+    },
+    TargetSource {
+        prefix: "lime",
+        url: "https://www.w3.org/ns/lemon/lime.owl",
+        format: RdfFormat::RdfXml,
+    },
+    TargetSource {
+        prefix: "jams",
+        url: "http://w3id.org/polifonia/ontology/jams/",
+        format: RdfFormat::RdfXml,
+    },
+    TargetSource {
+        prefix: "pon",
+        url: "https://w3id.org/polifonia/ontology/ontology-network/",
+        format: RdfFormat::RdfXml,
+    },
+    TargetSource {
+        prefix: "chord",
+        url: "http://purl.org/ontology/chord/",
+        format: RdfFormat::RdfXml,
+    },
+    TargetSource {
+        prefix: "bot",
+        url: "https://w3id.org/bot/bot.ttl",
+        format: RdfFormat::Turtle,
+    },
+];
+
 // ── Native model ───────────────────────────────────────────────────────────────
 
 /// One SSSOM mapping row — the subset the alignment-direction lint consumes.
@@ -278,28 +363,50 @@ pub(crate) fn lint_alignment_directions(
 
     let mut findings: Vec<ProjectionDiagnostic> = Vec::new();
 
+    let mut target_graphs = load_target_axiom_stores(root, &referenced)?;
+
+    // For referenced prefixes still missing snapshots/fixtures, optionally fetch
+    // live axioms from canonical source documents.
+    let mut network_failed: BTreeSet<String> = BTreeSet::new();
     if allow_network {
-        // TODO(#936): implement network fetch for --network.
-        findings.push(ProjectionDiagnostic {
-            severity: "INFO".to_owned(),
-            check: "domain-range".to_owned(),
-            code: "domain-range".to_owned(),
-            message: "network fetch for target axioms is not yet implemented (#936)".to_owned(),
-            instance: None,
-            subject_id: None,
-            predicate_id: None,
-            object_id: None,
-        });
+        let missing: Vec<String> = referenced
+            .iter()
+            .filter(|p| !target_graphs.contains_key(*p))
+            .cloned()
+            .collect();
+        for prefix in missing {
+            if TARGET_SOURCES.iter().any(|s| s.prefix == prefix) {
+                match fetch_target_axioms(&prefix) {
+                    Ok(store) => {
+                        target_graphs.insert(prefix.clone(), store);
+                    }
+                    Err(e) => {
+                        network_failed.insert(prefix.clone());
+                        findings.push(ProjectionDiagnostic {
+                            severity: "INFO".to_owned(),
+                            check: "domain-range".to_owned(),
+                            code: "domain-range".to_owned(),
+                            message: format!(
+                                "network fetch failed for target '{prefix}': {e}; skipped"
+                            ),
+                            instance: None,
+                            subject_id: None,
+                            predicate_id: None,
+                            object_id: None,
+                        });
+                    }
+                }
+            }
+        }
     }
 
-    let target_graphs = load_target_axiom_stores(root, &referenced)?;
-
     // Emit an INFO finding for every referenced prefix with no axioms available
-    // (per mapping row, matching Python `_info_unavailable`).
+    // (per mapping row, matching Python `_info_unavailable`). Prefixes that were
+    // already attempted over the network are covered by the diagnostic above.
     for prop_mappings in gmeow_props.values() {
         for m in prop_mappings {
             let prefix = prefix_of(&m.object_id).expect("filtered to alignment targets");
-            if !target_graphs.contains_key(&prefix) {
+            if !target_graphs.contains_key(&prefix) && !network_failed.contains(&prefix) {
                 findings.push(info_unavailable(m, &prefix));
             }
         }
@@ -995,6 +1102,81 @@ fn load_target_axiom_stores(
         }
     }
     Ok(out)
+}
+
+/// Fetch a target vocabulary over the network and keep only the minimal
+/// structural axiom subset (domain/range/inverse + property types).
+///
+/// Mirrors the retired Python `target_axioms.fetch_target_axioms`.
+fn fetch_target_axioms(prefix: &str) -> Result<Store, SliceError> {
+    let source = TARGET_SOURCES
+        .iter()
+        .find(|s| s.prefix == prefix)
+        .ok_or_else(|| {
+            SliceError::Io(std::io::Error::new(
+                std::io::ErrorKind::NotFound,
+                format!("no network source configured for target {prefix}"),
+            ))
+        })?;
+    let namespace = registry_iri(prefix).ok_or_else(|| {
+        SliceError::Io(std::io::Error::new(
+            std::io::ErrorKind::NotFound,
+            format!("no namespace configured for target {prefix}"),
+        ))
+    })?;
+
+    let response = ureq::get(source.url)
+        .header(
+            "User-Agent",
+            "gmeow-slice/0.1 (ontology alignment-direction validator)",
+        )
+        .config()
+        .timeout_global(Some(std::time::Duration::from_secs(60)))
+        .build()
+        .call()
+        .map_err(|e| {
+            SliceError::Io(std::io::Error::other(format!(
+                "network fetch failed for {prefix}: {e}"
+            )))
+        })?;
+
+    let store = new_store()?;
+    for quad in RdfParser::from_format(source.format)
+        .lenient()
+        .for_reader(response.into_body().into_reader())
+    {
+        let quad =
+            quad.map_err(|e| SliceError::Parse(format!("parse error fetching {prefix}: {e}")))?;
+        if let NamedOrBlankNode::NamedNode(subj) = &quad.subject {
+            let subj_iri = subj.as_str();
+            if subj_iri.starts_with(namespace) && is_axiom_or_property_type_quad(&quad) {
+                store
+                    .insert(&quad)
+                    .map_err(|e| SliceError::Parse(format!("store insert failed: {e}")))?;
+            }
+        }
+    }
+    Ok(store)
+}
+
+/// Whether a quad is a structural axiom or an `rdf:type` naming a property kind.
+fn is_axiom_or_property_type_quad(quad: &oxigraph::model::Quad) -> bool {
+    let pred = quad.predicate.as_str();
+    if pred == RDFS_DOMAIN
+        || pred == RDFS_RANGE
+        || pred == OWL_INVERSE_OF
+        || pred == SCHEMA_INVERSE_OF
+        || pred == SCHEMA_DOMAIN_INCLUDES
+        || pred == SCHEMA_RANGE_INCLUDES
+    {
+        return true;
+    }
+    if pred == RDF_TYPE {
+        if let oxigraph::model::Term::NamedNode(obj) = &quad.object {
+            return OWL_PROPERTY_TYPES.contains(&obj.as_str());
+        }
+    }
+    false
 }
 
 /// Load a vendored target axiom snapshot from `imports/targets/<prefix>.ttl`, if
