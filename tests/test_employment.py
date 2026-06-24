@@ -1,8 +1,19 @@
-"""Structural + standpoint guards for the employment module.
+"""Standpoint guards for the employment module (retained pytest subset).
 
-The employment slice consumes the #43 standpoint facility for contested facts:
-disputed tenure, rival role claims, contested termination.
-No employment-specific dispute mechanism is minted (Principle 4, P9).
+Tests for asserted-TBox invariants that are local to the employment module have
+been migrated to slices/extensions/employment/tests/structural.ttl as declarative
+gmeow:StructuralAssertion cells and are no longer here (#867).
+
+RETAINED here (not migratable as scopeModule cells):
+  test_employment_is_gufo_grounded — cross-slice triple
+    (gmeow:Membership rdfs:subClassOf gufo:Relator) lives in the memberships slice.
+  test_employment_event_types_are_values — eventTypeHiring etc. are defined in
+    slices/core/events/module.ttl; cross-slice subjects.
+  test_founded_on_links_relator_to_agreement — gmeow:foundedOn is defined in
+    slices/core/agreements/module.ttl; cross-slice subject.
+  test_contested_employment_coexists — run_shacl() against an external fixture.
+  test_withdrawn_employment_suppressed_not_deleted — run_shacl() + ABox check.
+  test_no_preferred_or_primary_employment_term — whole-graph dynamic sweep.
 """
 
 from __future__ import annotations
@@ -36,35 +47,6 @@ def test_employment_is_gufo_grounded() -> None:
     assert (GM.Employment, RDF.type, OWL.Class) in g
     assert (GM.Employment, RDFS.subClassOf, GM.Membership) in g
     assert (GM.Membership, RDFS.subClassOf, GUFO.Relator) in g
-
-
-def test_employment_type_is_value_not_subclass() -> None:
-    """Principle 9: employment type is a value vocabulary, never a subclass."""
-    g = _graph()
-    assert (GM.EmploymentType, RDF.type, OWL.Class) in g
-    assert (GM.employmentTypeFullTime, RDF.type, GM.EmploymentType) in g
-    assert (GM.employmentTypePartTime, RDF.type, GM.EmploymentType) in g
-    assert (GM.employmentTypeContract, RDF.type, GM.EmploymentType) in g
-    assert (GM.employmentTypeIntern, RDF.type, GM.EmploymentType) in g
-    # No Employment subclass explosion
-    for banned in ("FullTimeEmployment", "PartTimeEmployment", "ContractEmployment"):
-        node = URIRef(GMEOW + banned)
-        msg = f"{banned} must not exist as a class"
-        assert (node, RDF.type, OWL.Class) not in g, msg
-
-
-def test_seniority_is_value_not_subclass() -> None:
-    """Principle 9: seniority is a value vocabulary, never a subclass."""
-    g = _graph()
-    assert (GM.SeniorityLevel, RDF.type, OWL.Class) in g
-    for level in (
-        GM.seniorityEntry,
-        GM.seniorityMid,
-        GM.senioritySenior,
-        GM.seniorityLead,
-        GM.seniorityExecutive,
-    ):
-        assert (level, RDF.type, GM.SeniorityLevel) in g
 
 
 def test_employment_event_types_are_values() -> None:

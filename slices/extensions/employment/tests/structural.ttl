@@ -1,0 +1,99 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Declarative structural assertions for the employment slice — the slice-resident
+# test-DSL twin of the asserted-TBox MUST / MUST-NOT invariants formerly
+# hand-written in tests/test_employment.py. Each runs as a SPARQL ASK over the
+# employment module graph (gmeow:scopeModule) under the native Rust slicetest
+# harness (crates/slicetest).
+#
+# Employment is NOT yet #694-migrated, so class stereotypes remain gufo:
+# (gufo:AbstractIndividualType, gufo:SubKind, gufo:QualityValue), not logic:.
+#
+# RETAINED in pytest (not migratable here):
+#   test_employment_is_gufo_grounded — includes gmeow:Membership rdfs:subClassOf
+#     gufo:Relator, which is asserted in the memberships/relator slice, not here;
+#     a scopeModule cell would silently miss the cross-slice triple.
+#   test_employment_event_types_are_values — gmeow:eventTypeHiring etc. are defined
+#     in slices/core/events/module.ttl, not here; cross-slice subjects.
+#   test_founded_on_links_relator_to_agreement — gmeow:foundedOn is defined in
+#     slices/core/agreements/module.ttl; cross-slice subject.
+#   test_contested_employment_coexists — uses run_shacl() against an external
+#     fixture file; a SHACL conformance check, not a TBox ASK.
+#   test_withdrawn_employment_suppressed_not_deleted — uses run_shacl() against
+#     an external fixture file; a SHACL conformance + ABox check.
+#   test_no_preferred_or_primary_employment_term — a whole-graph dynamic sweep
+#     across many candidate property names; scoping to the module would silently
+#     narrow the live-set check.
+#
+# See dsl/tests/MIGRATION-LEDGER.md for the per-test pytest→DSL mapping.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/employment/tests/> .
+
+# --- 1. EmploymentType is an AbstractIndividualType value vocabulary (MUST) ---
+ex:saEmploymentTypeIsValueVocab a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:EmploymentType a owl:Class , gufo:AbstractIndividualType ;
+        rdfs:subClassOf gufo:QualityValue .
+}""" ;
+    gmeow:saRationale "gmeow:EmploymentType MUST be an owl:Class typed gufo:AbstractIndividualType and a subclass of gufo:QualityValue — employment kind is a value vocabulary of individuals, never a subclass taxonomy (Principle 9). Mirrors test_employment_type_is_value_not_subclass (positive class half)." .
+
+# --- 2. Core EmploymentType seed individuals exist (MUST) ---------------------
+ex:saEmploymentTypeSeedsExist a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    gmeow:employmentTypeFullTime a gmeow:EmploymentType .
+    gmeow:employmentTypePartTime a gmeow:EmploymentType .
+    gmeow:employmentTypeContract a gmeow:EmploymentType .
+    gmeow:employmentTypeIntern   a gmeow:EmploymentType .
+}""" ;
+    gmeow:saRationale "The four core EmploymentType seed individuals (fullTime, partTime, contract, intern) MUST exist as gmeow:EmploymentType individuals — they are the minimum closed seed set (Principle 9). Mirrors test_employment_type_is_value_not_subclass (individual-existence half)." .
+
+# --- 3. No per-type Employment subclasses exist (MUST-NOT) -------------------
+ex:saNoPerTypeEmploymentSubclasses a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    VALUES ?rejected { gmeow:FullTimeEmployment gmeow:PartTimeEmployment gmeow:ContractEmployment }
+    ?rejected a owl:Class .
+}""" ;
+    gmeow:saRationale "gmeow:FullTimeEmployment, gmeow:PartTimeEmployment, and gmeow:ContractEmployment MUST NOT be declared as owl:Class — per-type subclasses are banned; all employment kinds are open individuals of EmploymentType (Principle 9). Mirrors test_employment_type_is_value_not_subclass (rejected-subclass half)." .
+
+# --- 4. SeniorityLevel is an AbstractIndividualType value vocabulary (MUST) --
+ex:saSeniorityLevelIsValueVocab a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:SeniorityLevel a owl:Class , gufo:AbstractIndividualType ;
+        rdfs:subClassOf gufo:QualityValue .
+}""" ;
+    gmeow:saRationale "gmeow:SeniorityLevel MUST be an owl:Class typed gufo:AbstractIndividualType and a subclass of gufo:QualityValue — seniority rank is a value vocabulary of individuals, never an Employment subclass (Principle 9). Mirrors test_seniority_is_value_not_subclass (positive class half)." .
+
+# --- 5. SeniorityLevel seed individuals exist (MUST) -------------------------
+ex:saSeniorityLevelSeedsExist a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    gmeow:seniorityEntry     a gmeow:SeniorityLevel .
+    gmeow:seniorityMid       a gmeow:SeniorityLevel .
+    gmeow:senioritySenior    a gmeow:SeniorityLevel .
+    gmeow:seniorityLead      a gmeow:SeniorityLevel .
+    gmeow:seniorityExecutive a gmeow:SeniorityLevel .
+}""" ;
+    gmeow:saRationale "All five SeniorityLevel seed individuals (entry, mid, senior, lead, executive) MUST exist as gmeow:SeniorityLevel individuals. Mirrors test_seniority_is_value_not_subclass (individual-existence half)." .
