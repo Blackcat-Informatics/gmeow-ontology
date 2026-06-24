@@ -1,0 +1,266 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Declarative structural assertions for the accessibility slice — the slice-resident
+# test-DSL twin of the asserted-TBox MUST / MUST-NOT invariants formerly
+# hand-written in tests/test_accessibility.py. Each assertion runs as a SPARQL ASK
+# over the accessibility module graph (gmeow:scopeModule) under the native Rust
+# harness (crates/slicetest).
+#
+# Accessibility is NOT yet #694-migrated, so class stereotypes remain gufo:
+# (gufo:Kind, gufo:AbstractIndividualType, gufo:QualityValue, gufo:Relator),
+# not logic:.
+#
+# RETAINED in pytest (dynamic combination sweep):
+#   test_no_bridge_between_feature_and_barrier — uses itertools.combinations over
+#   a live property set; decomposed into four fixed mustNot cells here (see cells
+#   10a–10d) covering all two-element pair permutations.
+#   NOTE: because there are only two properties in the axes dict, the combinations
+#   are fully enumerable, so ALL four mustNot checks are migrated here.
+#
+# See dsl/tests/MIGRATION-LEDGER.md for the per-test pytest→DSL mapping.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/accessibility/tests/> .
+
+# --- 1. AccessibilityFacet is a subclass of gufo:QualityValue (MUST) ----------
+ex:saAccessibilityFacetIsQualityValue a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK { gmeow:AccessibilityFacet rdfs:subClassOf gufo:QualityValue . }""" ;
+    gmeow:saRationale "gmeow:AccessibilityFacet MUST be a subclass of gufo:QualityValue — accessibility facets are open individual vocabularies rooted in the gufo quality hierarchy. Mirrors test_accessibility_facet_is_quality_value." .
+
+# --- 2. AccessibilityPolarity is a subclass of gufo:QualityValue (MUST) -------
+ex:saAccessibilityPolarityIsQualityValue a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK { gmeow:AccessibilityPolarity rdfs:subClassOf gufo:QualityValue . }""" ;
+    gmeow:saRationale "gmeow:AccessibilityPolarity MUST be a subclass of gufo:QualityValue — accessibility polarities are open individual vocabularies rooted in the gufo quality hierarchy. Mirrors test_accessibility_polarity_is_quality_value." .
+
+# --- 3. AccessibilityAssertion is a subclass of gufo:Relator (MUST) -----------
+ex:saAccessibilityAssertionIsRelator a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK { gmeow:AccessibilityAssertion rdfs:subClassOf gufo:Relator . }""" ;
+    gmeow:saRationale "gmeow:AccessibilityAssertion MUST be a subclass of gufo:Relator — it is a reified accessibility claim that mediates between subject, facet, and polarity (Principle 10). Mirrors test_accessibility_assertion_is_a_relator." .
+
+# --- 4a. Seven facet-value individuals exist as AccessibilityFacet (MUST) -----
+ex:saFacetValuesAreIndividuals a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    gmeow:facetWheelchair  a gmeow:AccessibilityFacet .
+    gmeow:facetStepFree    a gmeow:AccessibilityFacet .
+    gmeow:facetVisual      a gmeow:AccessibilityFacet .
+    gmeow:facetAuditory    a gmeow:AccessibilityFacet .
+    gmeow:facetCognitive   a gmeow:AccessibilityFacet .
+    gmeow:facetClearance   a gmeow:AccessibilityFacet .
+    gmeow:facetLifeSupport a gmeow:AccessibilityFacet .
+}""" ;
+    gmeow:saRationale "All seven accessibility facet seed individuals MUST exist as typed gmeow:AccessibilityFacet — the facet vocabulary is open individuals, never subclasses (Principle 9). Mirrors test_facet_values_are_individuals_not_subclasses (positive individual-existence half)." .
+
+# --- 4b. No per-facet subclasses exist as owl:Class (MUST-NOT) ----------------
+ex:saNoPerFacetSubclasses a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    VALUES ?rejected { gmeow:WheelchairFacet gmeow:StepFreeFacet gmeow:VisualFacet }
+    ?rejected a owl:Class .
+}""" ;
+    gmeow:saRationale "gmeow:WheelchairFacet, gmeow:StepFreeFacet, and gmeow:VisualFacet MUST NOT be declared as owl:Class — per-facet subclasses are banned; all facets are typed individuals (Principle 9). Mirrors test_facet_values_are_individuals_not_subclasses (rejected-subclass half)." .
+
+# --- 5a. Three polarity individuals exist as AccessibilityPolarity (MUST) -----
+ex:saPolarityValuesAreIndividuals a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    gmeow:polarityFeature a gmeow:AccessibilityPolarity .
+    gmeow:polarityBarrier a gmeow:AccessibilityPolarity .
+    gmeow:polarityLimited a gmeow:AccessibilityPolarity .
+}""" ;
+    gmeow:saRationale "All three polarity seed individuals MUST exist as typed gmeow:AccessibilityPolarity — the polarity vocabulary is an open individual vocabulary, never subclasses (Principle 9). Mirrors test_polarity_values_are_individuals_not_subclasses (positive individual-existence half)." .
+
+# --- 5b. No per-polarity subclasses exist as owl:Class (MUST-NOT) -------------
+ex:saNoPerPolaritySubclasses a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    VALUES ?rejected { gmeow:PositivePolarity gmeow:NegativePolarity gmeow:LimitedPolarity }
+    ?rejected a owl:Class .
+}""" ;
+    gmeow:saRationale "gmeow:PositivePolarity, gmeow:NegativePolarity, and gmeow:LimitedPolarity MUST NOT be declared as owl:Class — per-polarity subclasses are banned; all polarities are typed individuals (Principle 9). Mirrors test_polarity_values_are_individuals_not_subclasses (rejected-subclass half)." .
+
+# --- 6a. hasAccessibilityFeature is an ObjectProperty with range AccessibilityFacet (MUST) ---
+ex:saHasAccessibilityFeatureIsObjectProperty a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:hasAccessibilityFeature a owl:ObjectProperty ;
+        rdfs:range gmeow:AccessibilityFacet .
+}""" ;
+    gmeow:saRationale "gmeow:hasAccessibilityFeature MUST be an owl:ObjectProperty with range gmeow:AccessibilityFacet — it is the flat shortcut linking a location to a provided facet. Mirrors test_has_accessibility_feature_is_object_property (positive ObjectProperty+range half)." .
+
+# --- 6b. hasAccessibilityFeature is NOT functional (MUST-NOT) -----------------
+ex:saHasAccessibilityFeatureNotFunctional a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:hasAccessibilityFeature a owl:FunctionalProperty . }""" ;
+    gmeow:saRationale "gmeow:hasAccessibilityFeature MUST NOT be functional — a location may support many facets simultaneously (Principle 9). Mirrors test_has_accessibility_feature_is_object_property (mustNot FunctionalProperty half)." .
+
+# --- 7a. hasBarrier is an ObjectProperty with range AccessibilityFacet (MUST) --
+ex:saHasBarrierIsObjectProperty a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:hasBarrier a owl:ObjectProperty ;
+        rdfs:range gmeow:AccessibilityFacet .
+}""" ;
+    gmeow:saRationale "gmeow:hasBarrier MUST be an owl:ObjectProperty with range gmeow:AccessibilityFacet — it is the flat shortcut linking a location to an impeded facet. Mirrors test_has_barrier_is_object_property (positive ObjectProperty+range half)." .
+
+# --- 7b. hasBarrier is NOT functional (MUST-NOT) ------------------------------
+ex:saHasBarrierNotFunctional a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:hasBarrier a owl:FunctionalProperty . }""" ;
+    gmeow:saRationale "gmeow:hasBarrier MUST NOT be functional — a location may have multiple barriers simultaneously (Principle 9). Mirrors test_has_barrier_is_object_property (mustNot FunctionalProperty half)." .
+
+# --- 8a. hasAccessibilityNeed is an ObjectProperty with range AccessibilityFacet (MUST) ---
+ex:saHasAccessibilityNeedIsObjectProperty a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:hasAccessibilityNeed a owl:ObjectProperty ;
+        rdfs:range gmeow:AccessibilityFacet .
+}""" ;
+    gmeow:saRationale "gmeow:hasAccessibilityNeed MUST be an owl:ObjectProperty with range gmeow:AccessibilityFacet — it links an entity to the facets it requires in order to reach or use a location. Mirrors test_has_accessibility_need_is_object_property (positive ObjectProperty+range half)." .
+
+# --- 8b. hasAccessibilityNeed is NOT functional (MUST-NOT) --------------------
+ex:saHasAccessibilityNeedNotFunctional a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:hasAccessibilityNeed a owl:FunctionalProperty . }""" ;
+    gmeow:saRationale "gmeow:hasAccessibilityNeed MUST NOT be functional — needs are co-equal facets with no primary need (Principle 9). Mirrors test_has_accessibility_need_is_object_property (mustNot FunctionalProperty half)." .
+
+# --- 9. assertionSubject, assertionFacet, assertionPolarity are ObjectProperty+FunctionalProperty (MUST) ---
+ex:saAssertionRolesAreFunctional a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    gmeow:assertionSubject  a owl:ObjectProperty , owl:FunctionalProperty .
+    gmeow:assertionFacet    a owl:ObjectProperty , owl:FunctionalProperty .
+    gmeow:assertionPolarity a owl:ObjectProperty , owl:FunctionalProperty .
+}""" ;
+    gmeow:saRationale "gmeow:assertionSubject, gmeow:assertionFacet, and gmeow:assertionPolarity MUST all be owl:ObjectProperty and owl:FunctionalProperty — each AccessibilityAssertion relator has exactly one subject, one facet, and one polarity. Mirrors test_assertion_roles_are_functional." .
+
+# --- 10a. hasAccessibilityFeature is NOT a subPropertyOf hasBarrier (MUST-NOT) ---
+ex:saFeatureNotSubPropBarrier a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK { gmeow:hasAccessibilityFeature rdfs:subPropertyOf gmeow:hasBarrier . }""" ;
+    gmeow:saRationale "gmeow:hasAccessibilityFeature MUST NOT be a subPropertyOf gmeow:hasBarrier — the feature and barrier axes must remain orthogonal (Principle 9). Mirrors test_no_bridge_between_feature_and_barrier (feature→barrier subPropertyOf arm)." .
+
+# --- 10b. hasBarrier is NOT a subPropertyOf hasAccessibilityFeature (MUST-NOT) ---
+ex:saBarrierNotSubPropFeature a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK { gmeow:hasBarrier rdfs:subPropertyOf gmeow:hasAccessibilityFeature . }""" ;
+    gmeow:saRationale "gmeow:hasBarrier MUST NOT be a subPropertyOf gmeow:hasAccessibilityFeature — the feature and barrier axes must remain orthogonal (Principle 9). Mirrors test_no_bridge_between_feature_and_barrier (barrier→feature subPropertyOf arm)." .
+
+# --- 10c. hasAccessibilityFeature is NOT equivalentProperty to hasBarrier (MUST-NOT) ---
+ex:saFeatureNotEquivBarrier a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:hasAccessibilityFeature owl:equivalentProperty gmeow:hasBarrier . }""" ;
+    gmeow:saRationale "gmeow:hasAccessibilityFeature MUST NOT be owl:equivalentProperty to gmeow:hasBarrier — the two axes are structurally distinct; a location may simultaneously carry both for the same facet. Mirrors test_no_bridge_between_feature_and_barrier (feature≡barrier equivalentProperty arm)." .
+
+# --- 10d. hasBarrier is NOT equivalentProperty to hasAccessibilityFeature (MUST-NOT) ---
+ex:saBarrierNotEquivFeature a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:hasBarrier owl:equivalentProperty gmeow:hasAccessibilityFeature . }""" ;
+    gmeow:saRationale "gmeow:hasBarrier MUST NOT be owl:equivalentProperty to gmeow:hasAccessibilityFeature — equivalentProperty is symmetric so this cell guards the inverse assertion direction. Mirrors test_no_bridge_between_feature_and_barrier (barrier≡feature equivalentProperty arm)." .
+
+# --- 11a. AccessibilityAssertion has a someValuesFrom restriction on assertionSubject→Entity (MUST) ---
+ex:saAssertionSubjectRestriction a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:AccessibilityAssertion rdfs:subClassOf ?r .
+    ?r a owl:Restriction ;
+       owl:onProperty gmeow:assertionSubject ;
+       owl:someValuesFrom gmeow:Entity .
+}""" ;
+    gmeow:saRationale "gmeow:AccessibilityAssertion MUST carry an EL someValuesFrom restriction on gmeow:assertionSubject scoped to gmeow:Entity — the relator must mediate to at least one subject entity. Mirrors test_accessibility_assertion_has_el_existential_restrictions (assertionSubject arm)." .
+
+# --- 11b. AccessibilityAssertion has a someValuesFrom restriction on assertionFacet→AccessibilityFacet (MUST) ---
+ex:saAssertionFacetRestriction a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:AccessibilityAssertion rdfs:subClassOf ?r .
+    ?r a owl:Restriction ;
+       owl:onProperty gmeow:assertionFacet ;
+       owl:someValuesFrom gmeow:AccessibilityFacet .
+}""" ;
+    gmeow:saRationale "gmeow:AccessibilityAssertion MUST carry an EL someValuesFrom restriction on gmeow:assertionFacet scoped to gmeow:AccessibilityFacet — the relator must mediate to at least one facet. Mirrors test_accessibility_assertion_has_el_existential_restrictions (assertionFacet arm)." .
+
+# --- 11c. AccessibilityAssertion has a someValuesFrom restriction on assertionPolarity→AccessibilityPolarity (MUST) ---
+ex:saAssertionPolarityRestriction a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:AccessibilityAssertion rdfs:subClassOf ?r .
+    ?r a owl:Restriction ;
+       owl:onProperty gmeow:assertionPolarity ;
+       owl:someValuesFrom gmeow:AccessibilityPolarity .
+}""" ;
+    gmeow:saRationale "gmeow:AccessibilityAssertion MUST carry an EL someValuesFrom restriction on gmeow:assertionPolarity scoped to gmeow:AccessibilityPolarity — the relator must mediate to at least one polarity. Mirrors test_accessibility_assertion_has_el_existential_restrictions (assertionPolarity arm)." .
