@@ -413,4 +413,50 @@ mod tests {
             "acyclic nesting within the bound is valid"
         );
     }
+
+    /// An acyclic chain one level beyond MAX_TERM_NESTING_DEPTH must be rejected with
+    /// code "rdf-ir-triple-nesting-limit" — re-homes the deleted writer-level guard test.
+    ///
+    /// The depth guard (`depth > MAX_TERM_NESTING_DEPTH`) fires only when the DFS
+    /// recurses without a memoized `Done` shortcut. We force this by interning triples
+    /// in OUTER-FIRST order: the outermost triple references an inner triple that has
+    /// not yet been visited, so the DFS must recurse all the way down. We achieve this
+    /// by forging the object TermId of each triple before interning the next-inner one.
+    #[test]
+    fn freeze_err_on_too_deep_acyclic_nesting() {
+        let mut b = RdfDatasetBuilder::new();
+        let s = iri(&mut b, "s");
+        let p = iri(&mut b, "p");
+        let leaf = iri(&mut b, "o");
+
+        // We will build a chain of depth = MAX_TERM_NESTING_DEPTH + 2 triples.
+        // The guard fires when depth > MAX_TERM_NESTING_DEPTH, i.e. depth >= 17.
+        // With N triples in outer-first order (root at depth 0, innermost at depth N-1),
+        // depth N-1 > 16 requires N >= 18.  Use MAX_TERM_NESTING_DEPTH + 2 = 18.
+        let n = MAX_TERM_NESTING_DEPTH + 2;
+
+        // Intern N triples from outermost to innermost by forging forward references.
+        // triple[0] (index = base+0) has o = TermId at index base+1 (forged),
+        // triple[1] (index = base+1) has o = TermId at index base+2 (forged),
+        // ...
+        // triple[n-1] (innermost) has o = leaf.
+        let base = b.term_count(); // index of the first triple we are about to intern
+        let mut ids = Vec::with_capacity(n);
+        for i in 0..n {
+            let o = if i + 1 < n {
+                // Forge a reference to the not-yet-interned inner triple.
+                TermId::from_index((base + i + 1) as u32)
+            } else {
+                leaf
+            };
+            let t = b.intern_triple(s, p, o);
+            ids.push(t);
+        }
+        // The DFS starts at the outermost triple (ids[0]) which is a fresh Unvisited
+        // node referencing ids[1], also Unvisited, recurses all the way to depth n-1
+        // = MAX_TERM_NESTING_DEPTH + 1, which exceeds the guard threshold of 16.
+        b.push_quad(s, p, ids[0], None);
+        let err = b.freeze().expect_err("nesting beyond the limit must fail");
+        assert_eq!(err.code, "rdf-ir-triple-nesting-limit");
+    }
 }
