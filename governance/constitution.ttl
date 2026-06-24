@@ -57,8 +57,9 @@ meta:practice-rationale a meta:Practice ;
 
 meta:gate-statements a meta:Gate ;
     rdfs:label "RDF 1.2 statement compiler + losslessness gate"@x-gmeow-english ;
-    meta:artifact "dsl/statements", "src/gmeow_tools/statement_compile.py" ;
-    meta:symbol "assert_lossless" .
+    meta:artifact "dsl/statements", "crates/pipeline/src/stages/statements.rs",
+        "crates/validate/src/statement.rs" ;
+    meta:symbol "compile_statements", "check_statement_lossless" .
 
 meta:tests-statements a meta:TestSuite ;
     rdfs:label "RDF 1.2 round-trip tests"@x-gmeow-english ;

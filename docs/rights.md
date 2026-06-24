@@ -71,7 +71,7 @@ the temporal module's `gmeow:validFrom` / `gmeow:validUntil` (a licence valid 20
 a lapsed trademark with an end date — suppressed, never deleted); a deontic temporal
 bound is also expressible as an `odrl:dateTime` constraint. Who asserted a rights claim,
 when, from which source, and with what confidence — and contested rival claims indexed
-by standpoint — ride GMEOW's RDF-1.2 statement layer (`statement-dsl/rights.ttl`,
+by standpoint — ride GMEOW's RDF-1.2 statement layer (`dsl/statements/rights.ttl`,
 `gmeow:wasAttributedTo` / `mappedFrom` / `assertedAt` / `confidence` / `accordingTo`).
 
 ### Reuse, never duplicate

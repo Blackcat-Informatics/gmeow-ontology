@@ -8,9 +8,8 @@
 //! `base_triple_groundedness`, `base_triple_dl_datatypes`, and
 //! `no_preferred_rank` — guard the canonical statement DSL before either downcast
 //! is written. The Python version walked a parsed `StatementDsl` (cells) plus the
-//! ontology rdflib graph; this version walks the **emitted OWL graph**
-//! (`statement_compile.emit_owl` output) unioned with the ontology in one
-//! oxigraph [`Store`].
+//! ontology rdflib graph; this version walks the **emitted OWL graph** from the
+//! native statements stage unioned with the ontology in one oxigraph [`Store`].
 //!
 //! # The OWL-axiom mapping
 //!
@@ -283,8 +282,8 @@ const LOSSLESS_CODE: &str = "statement-compile.lossless-round-trip";
 /// **named** `owl:Axiom` node — there are no blank nodes — so graph isomorphism
 /// reduces to ground triple-set equality, and any asymmetry is a lossy round-trip.
 ///
-/// This mirrors `statement_compile.assert_lossless`, but the divergence is computed
-/// natively over oxigraph quad sets (RUST-FIRST) instead of rdflib `graph_diff`. An
+/// The divergence is computed natively over oxigraph quad sets (RUST-FIRST)
+/// instead of rdflib `graph_diff`. An
 /// empty result == lossless; otherwise each diverging triple is one error finding,
 /// directioned exactly as the Python emitter framed it.
 pub fn check_statement_lossless(
@@ -585,7 +584,7 @@ mod tests {
     use super::*;
     use oxigraph::io::{RdfFormat, RdfParser};
 
-    /// Build a store from a Turtle fixture (the `emit_owl`-output + ontology
+    /// Build a store from a Turtle fixture (the native statement OWL + ontology
     /// union the production wrapper assembles).
     fn store_from(ttl: &str) -> Store {
         let store = Store::new().unwrap();

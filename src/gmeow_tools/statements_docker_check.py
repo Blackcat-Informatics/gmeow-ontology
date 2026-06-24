@@ -5,8 +5,8 @@ writer (#667). The committed ``gmeow.rdf12.ttl`` is produced natively by the
 gmeow-rdf Rust codec on the primary path; this lane re-reads it with **Apache
 Jena** and proves the two engines agree by RDF 1.2 graph isomorphism. The lossless
 check therefore binds to Jena directly (:func:`assert_lossless_jena`), NOT to the
-native :func:`gmeow_tools.statement_compile.assert_lossless` — otherwise the
-"oracle" would silently re-run the native engine and prove nothing.
+native ``gmeow-rdf`` normalizer — otherwise the "oracle" would silently re-run
+the native engine and prove nothing.
 """
 
 from __future__ import annotations
@@ -17,10 +17,18 @@ from gmeow_rdf.compat.rdflib import RDF, Graph
 from gmeow_rdf.compat.rdflib.compare import graph_diff, isomorphic
 from gmeow_rdf.compat.rdflib.namespace import OWL
 
-from gmeow_tools.config import STATEMENT_RDF12_FILE
+from gmeow_tools.config import PROJECT_ROOT, STATEMENT_RDF12_FILE
 from gmeow_tools.rdf12 import normalize_rdf12_to_owl
-from gmeow_tools.statement_compile import emit_owl
-from gmeow_tools.statement_dsl import load_statement_dsl
+
+
+def _native_statement_owl_graph() -> Graph:
+    """Compile the statement OWL downcast through the native Rust stage."""
+    import gmeow_native.pipeline as _pipeline
+
+    artifacts = _pipeline.compile_statements(str(PROJECT_ROOT))
+    graph = Graph()
+    graph.parse(data=artifacts["owl_ttl"], format="turtle")
+    return graph
 
 
 def assert_lossless_jena(owl_graph: Graph, rdf12_path: Path) -> list[str]:
@@ -69,7 +77,7 @@ def assert_committed_artifacts_match_dsl() -> None:
 
 def assert_committed_rdf12_round_trips_to_owl() -> None:
     """The committed RDF 1.2 lead artifact normalizes back to the OWL form (Jena)."""
-    owl = emit_owl(load_statement_dsl())
+    owl = _native_statement_owl_graph()
     problems = assert_lossless_jena(owl, STATEMENT_RDF12_FILE)
     if problems:
         raise AssertionError(
@@ -79,7 +87,7 @@ def assert_committed_rdf12_round_trips_to_owl() -> None:
 
 def assert_lossless_gate_detects_a_dropped_annotation() -> None:
     """The Jena lossless gate must report a deliberately removed annotation."""
-    owl = emit_owl(load_statement_dsl())
+    owl = _native_statement_owl_graph()
     dropped = next((t for t in owl if str(t[1]).endswith("/confidence")), None)
     if dropped is None:
         raise AssertionError(

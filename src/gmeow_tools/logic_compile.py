@@ -18,8 +18,9 @@ Every artifact is drift-gated via the registered generator framework
 (``gmeow regenerate`` / ``make check-generated``).  The overclaim gate runs
 before any write reaches disk (CONSTITUTION Principle 7).
 
-This mirrors :mod:`gmeow_tools.statement_compile` (the EXEMPLAR) and is the
-CLI face of the #500 logic compiler (Task 4).
+This is the CLI face of the #500 logic compiler (Task 4); committed outputs are
+kept aligned with the same registered-generator discipline as the native
+statements stage.
 """
 
 from __future__ import annotations

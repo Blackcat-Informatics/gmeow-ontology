@@ -7,10 +7,10 @@
 @prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 
 # =============================================================================
-# SHACL shapes for the GMEOW statement DSL (statement-dsl/**/*.ttl).
+# SHACL shapes for the GMEOW statement DSL (dsl/statements/**/*.ttl).
 #
-# These shapes validate the canonical authoring source BEFORE the Python
-# graph-walkers in gmeow_tools.statement_dsl run. Violations surface as
+# These shapes validate the canonical authoring source BEFORE the native
+# statement compiler runs. Violations surface as
 # structured per-node diagnostics (focus node, path, message, source file).
 # =============================================================================
 
@@ -99,7 +99,7 @@ gmeow:StatementAnnotationShape
 
 # --------------------------------------------------------------------------- #
 # Vocabulary annotation completeness (issue #221).
-# Every term declared in statement-dsl/vocabulary.ttl must carry label,
+# Every term declared in dsl/statements/vocabulary.ttl must carry label,
 # definition, and rdfs:isDefinedBy pointing at the statement DSL vocabulary.
 # --------------------------------------------------------------------------- #
 
