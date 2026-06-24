@@ -134,6 +134,19 @@ pub fn has_type(closure: &RlClosure, individual: &str, class: &str) -> bool {
     contains(closure, individual, RDF_TYPE, class)
 }
 
+/// Assert that an individual typed `x_class` is inferred to be a `target_class` (the common
+/// "X ⊑ Observation"-style subsumption): inject `ex:<local> a gmeow:<x_class>` over `slices` and
+/// check `gmeow:<target_class>` is derived. `local` keeps each test's A-Box individual distinct.
+pub fn assert_specialises(slices: &[&str], local: &str, x_class: &str, target_class: &str) {
+    let ind = ex(local);
+    let abox = vec![iri_quad(&ind, RDF_TYPE, &gmeow(x_class))];
+    let closure = scoped_closure(slices, &abox);
+    assert!(
+        has_type(&closure, &ind, &gmeow(target_class)),
+        "ex:{local} a {target_class} ({x_class} ⊑ {target_class})"
+    );
+}
+
 /// Assert `s p o` is ENTAILED but not asserted: present in `closure`, absent from `asserted` (the
 /// injected A-Box). The native twin of the Python "absent before reasoning, present after"
 /// contrast (`*_is_entailed_not_asserted`).
@@ -675,4 +688,204 @@ fn frame_inheritance_via_coordinate_matrix() {
         contains(&closure, &matrix1, &gmeow("hasReferenceFrame"), &frame),
         "matrix1 inherits the observation's reference frame via the property chain"
     );
+}
+
+// ── Migrated from tests/test_observations.py (#69, #77, #96, #125) ──────────────────────────
+// The universal-claim-construct subsumptions, the isResultOf/frame property chains, the
+// SpatialMeasurement/CoordinateObservation entailments, and the EL-consistency survivals. The
+// Stream/property structural tests (`load_merged_graph`, no closure) stay in pytest (#867).
+// `test_sensory_observation_specialises_observation` is omitted — its twin already exists above.
+
+#[test]
+fn observation_el_axioms_fire() {
+    // A fully-propertied Observation survives materialization (EL consistency).
+    let (obs1, agent1, place1) = (ex("obs1"), ex("agent1"), ex("place1"));
+    let abox = vec![
+        iri_quad(&obs1, RDF_TYPE, &gmeow("Observation")),
+        iri_quad(&obs1, &gmeow("vantage"), &agent1),
+        iri_quad(&obs1, &gmeow("observedFeature"), &place1),
+        iri_quad(&agent1, RDF_TYPE, &gmeow("Agent")),
+        iri_quad(&place1, RDF_TYPE, &gmeow("Place")),
+    ];
+    let closure = scoped_closure(&["core/observations"], &abox);
+    assert!(has_type(&closure, &obs1, &gmeow("Observation")));
+}
+
+#[test]
+fn measurement_specialises_observation() {
+    assert_specialises(&["core/observations"], "m1", "Measurement", "Observation");
+}
+
+#[test]
+fn standpoint_claim_specialises_observation() {
+    assert_specialises(
+        &["core/observations"],
+        "c1",
+        "StandpointClaim",
+        "Observation",
+    );
+}
+
+#[test]
+fn name_usage_specialises_observation() {
+    assert_specialises(
+        &["core/observations", "core/names"],
+        "nu1",
+        "NameUsage",
+        "Observation",
+    );
+}
+
+#[test]
+fn identity_facet_specialises_observation() {
+    assert_specialises(
+        &["core/observations", "core/gender"],
+        "if1",
+        "IdentityFacet",
+        "Observation",
+    );
+}
+
+#[test]
+fn rights_statement_specialises_observation() {
+    assert_specialises(
+        &["core/observations", "core/rights"],
+        "rs1",
+        "RightsStatement",
+        "Observation",
+    );
+}
+
+#[test]
+fn kin_relationship_specialises_observation() {
+    assert_specialises(
+        &["core/observations", "extensions/genealogy"],
+        "kr1",
+        "KinRelationship",
+        "Observation",
+    );
+}
+
+#[test]
+fn spatial_measurement_infers_observation() {
+    assert_specialises(
+        &["core/observations", "core/places"],
+        "sm1",
+        "SpatialMeasurement",
+        "Observation",
+    );
+}
+
+#[test]
+fn is_result_of_provenance_chain() {
+    // isResultOf is the inverse of observationResult: q1 isResultOf obs1 ⇒ obs1 observationResult q1.
+    let (obs1, q1) = (ex("obs1"), ex("q1"));
+    let abox = vec![
+        iri_quad(&obs1, RDF_TYPE, &gmeow("Measurement")),
+        iri_quad(&q1, RDF_TYPE, &gmeow("Quantity")),
+        iri_quad(&q1, &gmeow("isResultOf"), &obs1),
+    ];
+    let closure = scoped_closure(&["core/observations"], &abox);
+    assert!(
+        contains(&closure, &obs1, &gmeow("observationResult"), &q1),
+        "obs1 observationResult q1 (inverse of isResultOf)"
+    );
+}
+
+#[test]
+fn observation_frame_inheritance_property_chain() {
+    // inverse(observationResult) ∘ hasReferenceFrame ⊑ hasReferenceFrame: a result inherits the
+    // observation's reference frame.
+    let (obs1, coords1, frame) = (ex("obs1"), ex("coords1"), ex("frameWGS84"));
+    let abox = vec![
+        iri_quad(&obs1, &gmeow("observationResult"), &coords1),
+        iri_quad(&obs1, &gmeow("hasReferenceFrame"), &frame),
+        iri_quad(&coords1, RDF_TYPE, &gmeow("GeoCoordinates")),
+        iri_quad(&frame, RDF_TYPE, &gmeow("ReferenceFrame")),
+    ];
+    let closure = scoped_closure(&["core/observations", "core/places"], &abox);
+    assert!(
+        contains(&closure, &coords1, &gmeow("hasReferenceFrame"), &frame),
+        "coords1 inherits the observation's reference frame"
+    );
+}
+
+#[test]
+fn frame_inheritance_via_quantity() {
+    // A Quantity result inherits the observation's reference frame (#77).
+    let (obs1, q1, frame) = (ex("obs1"), ex("q1"), ex("frameSI"));
+    let abox = vec![
+        iri_quad(&obs1, RDF_TYPE, &gmeow("Measurement")),
+        iri_quad(&obs1, &gmeow("observationResult"), &q1),
+        iri_quad(&obs1, &gmeow("hasReferenceFrame"), &frame),
+        iri_quad(&q1, RDF_TYPE, &gmeow("Quantity")),
+        iri_quad(&frame, RDF_TYPE, &gmeow("ReferenceFrame")),
+    ];
+    let closure = scoped_closure(&["core/observations", "core/places"], &abox);
+    assert!(
+        contains(&closure, &q1, &gmeow("hasReferenceFrame"), &frame),
+        "q1 inherits the observation's reference frame"
+    );
+}
+
+#[test]
+fn stream_el_axiom_stays_consistent() {
+    // A Stream with streamOf survives materialization (#96).
+    let (stream1, entity1) = (ex("stream1"), ex("entity1"));
+    let abox = vec![
+        iri_quad(&stream1, RDF_TYPE, &gmeow("Stream")),
+        iri_quad(&stream1, &gmeow("streamOf"), &entity1),
+        iri_quad(&entity1, RDF_TYPE, &gmeow("Entity")),
+    ];
+    let closure = scoped_closure(&["core/observations"], &abox);
+    assert!(has_type(&closure, &stream1, &gmeow("Stream")));
+}
+
+#[test]
+fn coordinate_observation_infers_spatial_measurement() {
+    // CoordinateObservation ⊑ SpatialMeasurement (⊑ Observation) (#125).
+    let co1 = ex("co1");
+    let abox = vec![iri_quad(&co1, RDF_TYPE, &gmeow("CoordinateObservation"))];
+    let closure = scoped_closure(&["core/observations", "core/places"], &abox);
+    assert!(
+        has_type(&closure, &co1, &gmeow("SpatialMeasurement")),
+        "co1 a SpatialMeasurement"
+    );
+    assert!(
+        has_type(&closure, &co1, &gmeow("Observation")),
+        "co1 a Observation (transitively)"
+    );
+}
+
+#[test]
+fn coordinate_observation_frame_inheritance() {
+    // A CoordinateObservation's result inherits the observation's reference frame.
+    let (co2, coords2, frame) = (ex("co2"), ex("coords2"), ex("frameWGS84"));
+    let abox = vec![
+        iri_quad(&co2, RDF_TYPE, &gmeow("CoordinateObservation")),
+        iri_quad(&co2, &gmeow("coordinateResult"), &coords2),
+        iri_quad(&co2, &gmeow("hasReferenceFrame"), &frame),
+        iri_quad(&coords2, RDF_TYPE, &gmeow("GeoCoordinates")),
+        iri_quad(&frame, RDF_TYPE, &gmeow("ReferenceFrame")),
+    ];
+    let closure = scoped_closure(&["core/observations", "core/places"], &abox);
+    assert!(
+        contains(&closure, &coords2, &gmeow("hasReferenceFrame"), &frame),
+        "coords2 inherits the coordinate-observation's reference frame"
+    );
+}
+
+#[test]
+fn coordinate_observation_el_axioms_stay_consistent() {
+    // A fully-propertied CoordinateObservation survives materialization.
+    let (co3, agent3, place3) = (ex("co3"), ex("agent3"), ex("place3"));
+    let abox = vec![
+        iri_quad(&co3, RDF_TYPE, &gmeow("CoordinateObservation")),
+        iri_quad(&co3, &gmeow("vantage"), &agent3),
+        iri_quad(&co3, &gmeow("observedFeature"), &place3),
+        iri_quad(&agent3, RDF_TYPE, &gmeow("Agent")),
+        iri_quad(&place3, RDF_TYPE, &gmeow("Place")),
+    ];
+    let closure = scoped_closure(&["core/observations", "core/places"], &abox);
+    assert!(has_type(&closure, &co3, &gmeow("CoordinateObservation")));
 }

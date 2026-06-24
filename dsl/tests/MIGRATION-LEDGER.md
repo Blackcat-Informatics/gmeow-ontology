@@ -307,13 +307,33 @@ pending the #867 slicetest structural migration — they are not reasoning tests
 | `test_mental_reference_frame_specialises_reference_frame` | `tests/test_sensory_environment.py` | `mental_reference_frame_specialises_reference_frame` | RL-entailment | converted | — (MentalReferenceFrame ⊑ ReferenceFrame) | `make logic-test` |
 | `test_frame_inheritance_via_coordinate_matrix` | `tests/test_sensory_environment.py` | `frame_inheritance_via_coordinate_matrix` | RL-entailment | converted | — (CoordinateMatrix inherits the observation frame) | `make logic-test` |
 | `test_mental_reference_frame_requires_host` | `tests/test_sensory_environment.py` | — | — | **retained** | MIXED: a structural blank-node `someValuesFrom` restriction-axiom check (asserted graph) + a small scoped consistency check; the inference half duplicates the migrated ReferenceFrame twin | pytest |
+| `test_observation_el_axioms_fire` | `tests/test_observations.py` | `observation_el_axioms_fire` | RL-entailment | converted | — (Observation EL consistency) | `make logic-test` |
+| `test_frame_inheritance_property_chain` | `tests/test_observations.py` | `observation_frame_inheritance_property_chain` | RL-entailment | converted | — (inverse(observationResult) ∘ hasReferenceFrame) | `make logic-test` |
+| `test_measurement_specialises_observation` | `tests/test_observations.py` | `measurement_specialises_observation` | RL-entailment | converted | — | `make logic-test` |
+| `test_sensory_observation_specialises_observation` | `tests/test_observations.py` | `sensory_observation_specialises_observation` | RL-entailment | converted | — (same subsumption as the `test_sensory.py` twin) | `make logic-test` |
+| `test_standpoint_claim_specialises_observation` | `tests/test_observations.py` | `standpoint_claim_specialises_observation` | RL-entailment | converted | — | `make logic-test` |
+| `test_name_usage_specialises_observation` | `tests/test_observations.py` | `name_usage_specialises_observation` | RL-entailment | converted | — (universal claim construct, #69) | `make logic-test` |
+| `test_identity_facet_specialises_observation` | `tests/test_observations.py` | `identity_facet_specialises_observation` | RL-entailment | converted | — (#69) | `make logic-test` |
+| `test_rights_statement_specialises_observation` | `tests/test_observations.py` | `rights_statement_specialises_observation` | RL-entailment | converted | — (#69) | `make logic-test` |
+| `test_kin_relationship_specialises_observation` | `tests/test_observations.py` | `kin_relationship_specialises_observation` | RL-entailment | converted | — (#69) | `make logic-test` |
+| `test_is_result_of_provenance_chain` | `tests/test_observations.py` | `is_result_of_provenance_chain` | RL-entailment | converted | — (isResultOf inverse of observationResult, #77) | `make logic-test` |
+| `test_frame_inheritance_via_quantity` | `tests/test_observations.py` | `frame_inheritance_via_quantity` | RL-entailment | converted | — (#77) | `make logic-test` |
+| `test_stream_el_axiom` | `tests/test_observations.py` | `stream_el_axiom_stays_consistent` | RL-entailment | converted | — (#96) | `make logic-test` |
+| `test_spatial_measurement_infers_observation` | `tests/test_observations.py` | `spatial_measurement_infers_observation` | RL-entailment | converted | — (#125) | `make logic-test` |
+| `test_coordinate_observation_infers_spatial_measurement` | `tests/test_observations.py` | `coordinate_observation_infers_spatial_measurement` | RL-entailment | converted | — (#125) | `make logic-test` |
+| `test_coordinate_observation_frame_inheritance` | `tests/test_observations.py` | `coordinate_observation_frame_inheritance` | RL-entailment | converted | — (#125) | `make logic-test` |
+| `test_coordinate_observation_el_axioms` | `tests/test_observations.py` | `coordinate_observation_el_axioms_stay_consistent` | RL-entailment | converted | — (#125) | `make logic-test` |
 
-**#896 reasoning tally (running):** 22 converted, 8 retained-with-reason (3 Python
+**#896 reasoning tally (running):** 38 converted, 8 retained-with-reason (3 Python
 Docker-orchestration, 4 structural-not-reasoning, 1 mixed structural/consistency),
 plus the 47 competency QUERY tests de-reasoned in place and the per-slice
 structural tests retained (no closure; #867 will move them to slicetest cells).
 **Files fully reasoning-free now:** `test_reasoning_entailments.py`,
-`test_mereology.py`, `test_competency.py`, `test_sensory.py`, `test_places.py`.
+`test_mereology.py`, `test_competency.py`, `test_sensory.py`, `test_places.py`,
+`test_observations.py`. **Still pending (stage 2):** `test_reason_native.py`
+(engine-direct, asserts over `reason_all` output — a different shape than the
+scoped-closure entailment tests) and `test_mcp_server.py::test_gmeow_reason_native`
+(thin Python MCP wrapper).
 The migrated `_materialize` helpers and A-Box-injection imports were removed from
 the touched pytest files; `tests/test_competency.py` dropped from ~14 min to
 **~1.7 s** (the two ~5–9 min reasoning tests gone, the closure cost removed).
