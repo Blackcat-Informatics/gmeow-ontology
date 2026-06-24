@@ -1,11 +1,57 @@
-"""Structural + DL-safety guards for the languages building block.
+"""Structural + DL-safety guards for the languages building block (RETAINED tests).
 
-Pins the registry-INDEPENDENT Language hierarchy, first-class WritingSystem, the
-two reified relators (WritingSystemUsage for co-mingled scripts, LanguageProficiency
-for leveled skill) and their functional roles, the value-vs-subclass decisions, the
-software bridge, the names↔languages transliteration retrofit, and the invariants:
-a language needs no registry code, and scriptUsageInterval is distinct from names'
-usageInterval.
+The following tests have been migrated to declarative slicetest cells in
+slices/extensions/languages/tests/structural.ttl and removed from this file:
+
+  test_reified_relators_and_functional_roles  → ex:saWritingSystemUsageIsRelator,
+      ex:saUsageLanguageFunctional, ex:saUsageWritingSystemFunctional,
+      ex:saScriptRoleFunctional, ex:saLanguageProficiencyIsRelator,
+      ex:saProficiencyAgentFunctional, ex:saProficiencyLanguageFunctional,
+      ex:saProficiencyModalityFunctional, ex:saProficiencyLevelFunctional,
+      ex:saProficiencyScaleFunctional
+  test_value_vocabularies_not_subclasses      → ex:saLanguageOriginIsValueVocab,
+      ex:saLanguageOriginSeeds, ex:saLanguageModalityIsValueVocab,
+      ex:saLanguageModalitySeeds, ex:saLanguageStatusIsValueVocab,
+      ex:saLanguageStatusSeeds, ex:saWritingSystemTypeIsValueVocab,
+      ex:saWritingSystemTypeSeeds, ex:saTextDirectionIsValueVocab,
+      ex:saTextDirectionSeeds, ex:saScriptRoleIsValueVocab, ex:saScriptRoleSeeds,
+      ex:saProficiencyModalitySeeds, ex:saProficiencyScaleSeeds,
+      ex:saProficiencyLevelSeeds, ex:saTransliterationSchemeSeeds
+  test_cefr_levels_carry_their_scale          → ex:saCefrB2CarriesScale
+  test_script_usage_interval_distinct_from_names_usage_interval →
+      ex:saScriptUsageIntervalDomain, ex:saUsageIntervalNotDomainWritingSystemUsage
+  test_knows_language_shortcut_and_native_subproperty →
+      ex:saKnowsLanguageIsObjectProperty, ex:saKnowsLanguageNotFunctional,
+      ex:saNativeLanguageSubPropertyOf
+
+RETAINED here (not migratable as scopeModule cells):
+
+  test_language_hierarchy — Language, FormalLanguage, ProgrammingLanguage,
+    WritingSystem all defined in slices/core/language/module.ttl (cross-slice).
+  test_registry_independence_no_required_code — languageCode in
+    slices/core/language/module.ttl; also performs a dynamic cardinality sweep.
+  test_transliteration_scheme_retrofits_names — transliterationScheme in
+    slices/core/language/module.ttl (cross-slice).
+  test_software_bridge_and_version_lineage — writtenInLanguage in
+    slices/core/language/module.ttl; versionOf in slices/core/coreference/module.ttl
+    (both cross-slice).
+  test_internal_language_tags — languageTag in slices/core/language/module.ttl.
+  test_projection_bcp47_tags_are_distinct_from_registry_codes — bcp47Tag in
+    slices/core/language/module.ttl (cross-slice).
+  test_core_seed_languages_use_reference_catalog_iris — langEnglish, langFrench,
+    langMandarin in slices/core/language/module.ttl (cross-slice).
+  test_reference_catalog_languages_are_annotated_and_aligned — include_imports=True;
+    dynamic sweep with numeric ISO 639-1 count assertions.
+  test_reference_catalog_writing_systems_are_annotated — include_imports=True;
+    dynamic whole-graph sweep.
+  test_reference_catalog_programming_languages_typed — include_imports=True;
+    reference-catalog subjects (cross-slice).
+  test_reference_catalog_glottolog_alignments — include_imports=True; dynamic.
+  test_language_tag_map_is_deterministic_and_covers_catalog — tests Python tool
+    function (gmeow_tools.language_tags.load_tag_map), not a TBox triple assertion.
+  test_inverse_tag_map_recovers_natural_internal_tags — tests Python tool function.
+  test_retag_graph_to_internal_lifts_public_to_canonical — tests Python tool
+    function on a synthetic graph; not a TBox triple assertion.
 """
 
 from __future__ import annotations
@@ -16,8 +62,6 @@ from gmeow_rdf.compat.rdflib.namespace import SKOS
 from gmeow_tools.graph import load_merged_graph
 
 GMEOW = "https://blackcatinformatics.ca/gmeow/"
-GUFO = "http://purl.org/nemo/gufo#"
-LOGIC = "https://blackcatinformatics.ca/logic/"
 
 #: Complete ISO 639-1 two-letter code set (184 entries). Stable since 2000.
 EXPECTED_ISO639_1_CODES: frozenset[str] = frozenset(
@@ -243,70 +287,6 @@ def test_language_hierarchy() -> None:
     ) in graph
 
 
-def test_reified_relators_and_functional_roles() -> None:
-    graph = _graph()
-    for relator, roles in (
-        ("WritingSystemUsage", ("usageLanguage", "usageWritingSystem", "scriptRole")),
-        (
-            "LanguageProficiency",
-            (
-                "proficiencyAgent",
-                "proficiencyLanguage",
-                "proficiencyModality",
-                "proficiencyLevel",
-                "proficiencyScale",
-            ),
-        ),
-    ):
-        assert (
-            URIRef(GMEOW + relator),
-            RDFS.subClassOf,
-            URIRef(GUFO + "Relator"),
-        ) in graph
-        for role in roles:
-            node = URIRef(GMEOW + role)
-            assert (node, RDF.type, OWL.ObjectProperty) in graph
-            assert (node, RDF.type, OWL.FunctionalProperty) in graph
-
-
-def test_value_vocabularies_not_subclasses() -> None:
-    graph = _graph()
-    # Vocabs that migrated to logic: in #694 use logic:QualityValue; the
-    # remaining language-extension vocabs still carry gufo:QualityValue.
-    logic_quality_vocabs = frozenset(
-        ("ProficiencyModality", "ProficiencyScale", "ProficiencyLevel")
-    )
-    for vocab, sample in (
-        ("LanguageOrigin", ("originNatural", "originAiGenerated", "originProgramming")),
-        ("LanguageModality", ("modalitySpoken", "modalitySigned", "modalityMachine")),
-        ("LanguageStatus", ("statusLiving", "statusConstructedActive")),
-        ("WritingSystemType", ("wsTypeLogographic", "wsTypeNonLinear")),
-        ("TextDirection", ("directionLtr", "directionBoustrophedon")),
-        ("ScriptRole", ("scriptRoleLogographicContent", "scriptRoleTransliteration")),
-        ("ProficiencyModality", ("profModalitySpeaking", "profModalityOverall")),
-        ("ProficiencyScale", ("scaleCEFR", "scaleILR", "scaleACTFL")),
-        ("ProficiencyLevel", ("cefrB2", "levelNative", "levelHeritage")),
-        ("TransliterationScheme", ("schemeHepburn", "schemePinyin", "schemeIPA")),
-    ):
-        quality_value_ns = LOGIC if vocab in logic_quality_vocabs else GUFO
-        assert (
-            URIRef(GMEOW + vocab),
-            RDFS.subClassOf,
-            URIRef(quality_value_ns + "QualityValue"),
-        ) in graph
-        for ind in sample:
-            assert (URIRef(GMEOW + ind), RDF.type, URIRef(GMEOW + vocab)) in graph
-
-
-def test_cefr_levels_carry_their_scale() -> None:
-    graph = _graph()
-    assert (
-        URIRef(GMEOW + "cefrB2"),
-        URIRef(GMEOW + "levelScale"),
-        URIRef(GMEOW + "scaleCEFR"),
-    ) in graph
-
-
 def test_registry_independence_no_required_code() -> None:
     """A gmeow:Language needs NO code — code-less conlangs/AI-langs are first-class."""
     graph = _graph()
@@ -322,30 +302,6 @@ def test_registry_independence_no_required_code() -> None:
             OWL.minQualifiedCardinality,
         ):
             assert not list(graph.objects(restriction, card_pred))
-
-
-def test_script_usage_interval_distinct_from_names_usage_interval() -> None:
-    graph = _graph()
-    # The languages relator carries its period via a DISTINCT property...
-    assert (
-        URIRef(GMEOW + "scriptUsageInterval"),
-        RDFS.domain,
-        URIRef(GMEOW + "WritingSystemUsage"),
-    ) in graph
-    # ...not by reusing names' usageInterval (which stays scoped to NameUsage).
-    assert (
-        URIRef(GMEOW + "usageInterval"),
-        RDFS.domain,
-        URIRef(GMEOW + "WritingSystemUsage"),
-    ) not in graph
-
-
-def test_knows_language_shortcut_and_native_subproperty() -> None:
-    graph = _graph()
-    knows = URIRef(GMEOW + "knowsLanguage")
-    assert (knows, RDF.type, OWL.ObjectProperty) in graph
-    assert (knows, RDF.type, OWL.FunctionalProperty) not in graph
-    assert (URIRef(GMEOW + "nativeLanguage"), RDFS.subPropertyOf, knows) in graph
 
 
 def test_transliteration_scheme_retrofits_names() -> None:

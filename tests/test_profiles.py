@@ -1,73 +1,22 @@
-"""Tests for the Profile meta-pattern (issue #75)."""
+"""Tests for the Profile meta-pattern (issue #75).
+
+The TBox structural assertions (the profile class/meta-property/seed-profile checks)
+have been migrated to slices/core/profiles/tests/structural.ttl as declarative
+gmeow:StructuralAssertion cells (cells ex:saProfileClassExists through
+ex:saTemporalProvenanceProfileExists). Only the run_shacl / ExampleConformance
+tests remain here — they build synthetic graphs and cannot be expressed as
+scopeModule ASK cells.
+"""
 
 from __future__ import annotations
 
 from gmeow_rdf.compat.rdflib import Graph, Literal, Namespace
-from gmeow_rdf.compat.rdflib.namespace import OWL, RDF, RDFS, SKOS
+from gmeow_rdf.compat.rdflib.namespace import RDF, RDFS, SKOS
 
-from gmeow_tools.graph import load_merged_graph
 from tests._graph_nt import run_shacl
 
 GMEOW = Namespace("https://blackcatinformatics.ca/gmeow/")
 EX = Namespace("https://example.org/test/")
-
-
-def _graph() -> Graph:
-    return load_merged_graph(include_imports=True)
-
-
-def test_profile_class_exists() -> None:
-    g = _graph()
-    assert (GMEOW.Profile, RDF.type, OWL.Class) in g
-    assert (GMEOW.Profile, RDFS.subClassOf, GMEOW.InformationObject) in g
-
-
-def test_profile_meta_properties_exist() -> None:
-    g = _graph()
-    for prop in (
-        "hasProfile",
-        "profileAppliesTo",
-        "profileOpenValue",
-    ):
-        p = GMEOW[prop]
-        assert (p, RDF.type, OWL.ObjectProperty) in g, f"{p} missing"
-    assert (GMEOW.profileDescriptor, RDF.type, OWL.AnnotationProperty) in g
-
-
-def test_reference_frame_profile_exists_with_descriptors() -> None:
-    g = _graph()
-    profile = GMEOW.profileReferenceFrame
-    assert (profile, RDF.type, GMEOW.Profile) in g
-    assert (profile, GMEOW.profileAppliesTo, GMEOW.ReferenceFrame) in g
-    # At least a handful of descriptor properties are declared
-    descriptors = set(g.objects(profile, GMEOW.profileDescriptor))
-    assert GMEOW.frameRealm in descriptors
-    assert GMEOW.hasAxis in descriptors
-    assert GMEOW.dimensionCount in descriptors
-    open_values = set(g.objects(profile, GMEOW.profileOpenValue))
-    assert GMEOW.FrameRealm in open_values
-    assert GMEOW.Axis in open_values
-
-
-def test_temporal_frame_profile_exists() -> None:
-    g = _graph()
-    profile = GMEOW.profileTemporalFrame
-    assert (profile, RDF.type, GMEOW.Profile) in g
-    assert (profile, GMEOW.profileAppliesTo, GMEOW.TemporalFrame) in g
-    descriptors = set(g.objects(profile, GMEOW.profileDescriptor))
-    assert GMEOW.frameTimeScale in descriptors
-    assert GMEOW.frameCalendarSystem in descriptors
-
-
-def test_temporal_provenance_profile_exists() -> None:
-    g = _graph()
-    profile = GMEOW.profileTemporalProvenance
-    assert (profile, RDF.type, GMEOW.Profile) in g
-    descriptors = set(g.objects(profile, GMEOW.profileDescriptor))
-    assert GMEOW.validFrom in descriptors
-    assert GMEOW.validUntil in descriptors
-    assert GMEOW.assertedAt in descriptors
-    assert GMEOW.recordedNoLaterThan in descriptors
 
 
 def test_profile_shape_passes_for_wellformed_profile() -> None:

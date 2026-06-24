@@ -1,0 +1,167 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Declarative structural assertions for the trust slice — the slice-resident
+# test-DSL twin of the asserted-TBox MUST / MUST-NOT invariants formerly
+# hand-written in tests/test_trust.py. Each assertion runs as a SPARQL ASK
+# over the trust module graph (gmeow:scopeModule) under the native Rust
+# slicetest harness. This slice has NOT been #694-migrated so class stereotypes
+# are gufo: (gufo:Kind, gufo:SubKind, gufo:AbstractIndividualType,
+# gufo:QualityValue), not logic:.
+#
+# RETAINED in pytest (not migratable here):
+#   test_contested_certification_coexists — calls run_shacl() over a fixture
+#     graph; this is ExampleConformance (SHACL validation), not a TBox ASK.
+#   test_three_axes_are_orthogonal_in_trust — subjects gmeow:accordingTo,
+#     gmeow:wasAttributedTo, gmeow:confidence are cross-slice (standpoint
+#     module), not defined in trust/module.ttl; a scopeModule cell would
+#     silently miss them.
+#   test_no_preferred_or_primary_trust_term — dynamic whole-graph sweep over
+#     _graph() (include_imports=False merged graph); cannot be expressed as a
+#     module-scoped ASK without narrowing the live-set.
+#
+# See dsl/tests/MIGRATION-LEDGER.md for the per-test pytest→DSL mapping.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/trust/tests/> .
+
+# --- 1. CryptographicKey is a subclass of InformationObject (MUST) ------------
+ex:saCryptographicKeySubclassInformationObject a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK { gmeow:CryptographicKey rdfs:subClassOf gmeow:InformationObject . }""" ;
+    gmeow:saRationale "gmeow:CryptographicKey MUST be a subclass of gmeow:InformationObject — a key is an information object, not a bare entity; the subclass anchors it in the information hierarchy. Mirrors test_key_model_uses_scheme_value_not_subclasses (subClassOf arm)." .
+
+# --- 2. KeyScheme is a value-vocabulary subclass of gufo:QualityValue (MUST) -
+ex:saKeySchemeValueVocab a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:KeyScheme a owl:Class , gufo:AbstractIndividualType ;
+        rdfs:subClassOf gufo:QualityValue .
+}""" ;
+    gmeow:saRationale "gmeow:KeyScheme MUST be an owl:Class typed gufo:AbstractIndividualType and a subclass of gufo:QualityValue — key schemes are an open individual vocabulary, not per-scheme subclasses (Principle 9). Mirrors test_key_model_uses_scheme_value_not_subclasses (value-vocab arm)." .
+
+# --- 3. keyScheme is a functional property (MUST) ----------------------------
+ex:saKeySchemeFunctional a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:keyScheme a owl:FunctionalProperty . }""" ;
+    gmeow:saRationale "gmeow:keyScheme MUST be an owl:FunctionalProperty — a key has exactly one scheme; a key in a different scheme is a different key. Mirrors test_key_model_uses_scheme_value_not_subclasses (functional arm)." .
+
+# --- 4. The four standard KeyScheme seed individuals exist (MUST) -------------
+ex:saKeySchemeSeeds a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    gmeow:keySchemePGP   a gmeow:KeyScheme .
+    gmeow:keySchemeX509  a gmeow:KeyScheme .
+    gmeow:keySchemeSSH   a gmeow:KeyScheme .
+    gmeow:keySchemeNostr a gmeow:KeyScheme .
+}""" ;
+    gmeow:saRationale "All four standard KeyScheme seed individuals (PGP, X.509, SSH, Nostr) MUST exist as gmeow:KeyScheme individuals — they are the initial enumeration of supported key formats. Mirrors test_key_model_uses_scheme_value_not_subclasses (seed-individuals arm)." .
+
+# --- 5. No per-scheme key subclasses declared (MUST-NOT) ---------------------
+ex:saNoPerSchemeSubclasses a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    VALUES ?rejected { gmeow:PGPKey gmeow:X509Certificate gmeow:SSHKey gmeow:NostrKey }  # gitleaks:allow
+    ?rejected a owl:Class .
+}""" ;
+    gmeow:saRationale "gmeow:PGPKey, gmeow:X509Certificate, gmeow:SSHKey, and gmeow:NostrKey MUST NOT be declared as owl:Class — per-scheme key subclasses are banned; key schemes are open individuals (Principle 9). Mirrors test_key_model_uses_scheme_value_not_subclasses (rejected-subclass arm)." .
+
+# --- 6. Certification is a subclass of gufo:Relator (MUST) ------------------
+ex:saCertificationIsRelator a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK { gmeow:Certification rdfs:subClassOf gufo:Relator . }""" ;
+    gmeow:saRationale "gmeow:Certification MUST be a subclass of gufo:Relator — a certification mediates the certifier, key, and identity as a reified relator. Mirrors test_certification_and_trust_are_relators (Certification arm)." .
+
+# --- 7. TrustAssertion is a subclass of gufo:Relator (MUST) -----------------
+ex:saTrustAssertionIsRelator a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK { gmeow:TrustAssertion rdfs:subClassOf gufo:Relator . }""" ;
+    gmeow:saRationale "gmeow:TrustAssertion MUST be a subclass of gufo:Relator — a trust assertion mediates trustor and trustee as a reified perspectival relator. Mirrors test_certification_and_trust_are_relators (TrustAssertion arm)." .
+
+# --- 8. endorses is an owl:ObjectProperty (MUST) -----------------------------
+ex:saEndorsesIsObjectProperty a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:endorses a owl:ObjectProperty . }""" ;
+    gmeow:saRationale "gmeow:endorses MUST be declared as owl:ObjectProperty — the directional vouch shortcut requires an object property linking two agents. Mirrors test_endorses_is_not_transitive_or_symmetric (positive ObjectProperty arm)." .
+
+# --- 9. endorses is NOT transitive (MUST-NOT) --------------------------------
+ex:saEndorsesNotTransitive a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:endorses a owl:TransitiveProperty . }""" ;
+    gmeow:saRationale "gmeow:endorses MUST NOT be owl:TransitiveProperty — trust must not propagate inside the reasoner; endorsement is directional and never entails A→B→C chains. Mirrors test_endorses_is_not_transitive_or_symmetric (TransitiveProperty mustNot arm)." .
+
+# --- 10. endorses is NOT symmetric (MUST-NOT) --------------------------------
+ex:saEndorsesNotSymmetric a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:endorses a owl:SymmetricProperty . }""" ;
+    gmeow:saRationale "gmeow:endorses MUST NOT be owl:SymmetricProperty — endorsement is directional; A endorses B does not entail B endorses A. Mirrors test_endorses_is_not_transitive_or_symmetric (SymmetricProperty mustNot arm)." .
+
+# --- 11. No global gmeow:trusts object property (MUST-NOT) -------------------
+ex:saNoGlobalTrustsProperty a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:trusts a owl:ObjectProperty . }""" ;
+    gmeow:saRationale "gmeow:trusts MUST NOT be declared as owl:ObjectProperty — perspectival trust lives only on TrustAssertion via the functional trustor; there is deliberately no global Agent→Agent trusts relation (Principle 9). Mirrors test_no_global_trusts_property." .
+
+# --- 12. Reification endpoint properties are functional (MUST) ---------------
+ex:saReificationEndpointsFunctional a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    gmeow:certifier         a owl:FunctionalProperty .
+    gmeow:certifiedKey      a owl:FunctionalProperty .
+    gmeow:certifiedIdentity a owl:FunctionalProperty .
+    gmeow:trustor           a owl:FunctionalProperty .
+    gmeow:trustee           a owl:FunctionalProperty .
+    gmeow:signingKey        a owl:FunctionalProperty .
+}""" ;
+    gmeow:saRationale "gmeow:certifier, gmeow:certifiedKey, gmeow:certifiedIdentity, gmeow:trustor, gmeow:trustee, and gmeow:signingKey MUST all be owl:FunctionalProperty — each reification binds exactly one value for its endpoint. Mirrors test_reification_endpoints_are_functional." .
+
+# --- 13. Conflict-prone key data properties are NOT functional (MUST-NOT) ----
+ex:saConflictProneKeyDataNotFunctional a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    VALUES ?prop { gmeow:fingerprint gmeow:keyId gmeow:keyAlgorithm gmeow:keyMaterial }
+    ?prop a owl:FunctionalProperty .
+}""" ;
+    gmeow:saRationale "gmeow:fingerprint, gmeow:keyId, gmeow:keyAlgorithm, and gmeow:keyMaterial MUST NOT be owl:FunctionalProperty — multi-source values must coexist without forcing a merge or inconsistency (evidence-centric design). Mirrors test_conflict_prone_key_data_is_not_functional." .
