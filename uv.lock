@@ -1826,7 +1826,7 @@ wheels = [
 
 [[package]]
 name = "music21"
-version = "10.3.0"
+version = "10.5.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "chardet" },
@@ -1838,9 +1838,9 @@ dependencies = [
     { name = "requests" },
     { name = "webcolors" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/6a/c8/6b64c241703e4b6b0f27635f8d2afab4dadab9449aa8e0792cb87d142eb9/music21-10.3.0.tar.gz", hash = "sha256:eb23059b2bfca21fda091a5f47641317d5878e768c41a374e7fd4bc1b9ecd6dc", size = 16751962, upload-time = "2026-05-26T09:41:58.767Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/cd/f4/1f95fda14554cf0e070c8b6bb375a7bc64c020016670766c44bc910a6a84/music21-10.5.0.tar.gz", hash = "sha256:f72676fb953cb592bfb4e3bb246b0a234446f89088aa8a55ec9b5fcef2ce3db2", size = 16752906, upload-time = "2026-06-17T01:22:41.67Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/fa/32/3790478438b1fdd0b9b5154e2ac6f91dce105743a26bf0bd20c04b1922ec/music21-10.3.0-py3-none-any.whl", hash = "sha256:f7b12100142537ef96a1f3ea567ca59df9b5a0c7323b988e9b05c56c52547ee1", size = 20117772, upload-time = "2026-05-26T09:42:27.793Z" },
+    { url = "https://files.pythonhosted.org/packages/81/4c/4f307e5ab6fbf59233813e58e07128a599c810dd974673449e132ce1432d/music21-10.5.0-py3-none-any.whl", hash = "sha256:9924eff5fbf58490e67cbf3b78a58ba53040e77c281930d354af32a747e94606", size = 20120138, upload-time = "2026-06-17T01:23:08.524Z" },
 ]
 
 [[package]]

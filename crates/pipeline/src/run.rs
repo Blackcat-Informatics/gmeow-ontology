@@ -124,6 +124,8 @@ pub fn full_spec() -> PipelineSpec {
             "snapshot",
             &[
                 "stage-docs-render",
+                // #700: fold THIS run's fresh JSON Schema/OpenAPI into the bundle.
+                "stage-export-json-schema",
                 "stage-gts-compose",
                 "stage-reason",
                 "stage-statements",
@@ -148,6 +150,7 @@ pub fn full_spec() -> PipelineSpec {
         ("stage-export-catalog", "catalog"),
         ("stage-export-profiles", "profiles"),
         ("stage-export-frame-shapes", "frame_shapes"),
+        ("stage-export-json-schema", "json_schema"),
         ("stage-export-matrix", "matrix"),
         ("stage-export-apache", "apache"),
         ("stage-export-references", "references"),
