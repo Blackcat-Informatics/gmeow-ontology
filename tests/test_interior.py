@@ -22,7 +22,6 @@ from gmeow_rdf.compat.rdflib.query import ResultRow
 
 from gmeow_tools.config import COMPETENCY_DIR
 from gmeow_tools.graph import load_merged_graph
-from tests._graph_nt import run_shacl
 
 GMEOW = "https://blackcatinformatics.ca/gmeow/"
 GM = Namespace(GMEOW)
@@ -164,31 +163,6 @@ def test_motif_rides_the_seam() -> None:
     assert (GM.motifOccursIn, RDFS.subPropertyOf, GM.narratedIn) in g
     assert (GM.motifOccursIn, RDFS.range, GM.ContentSegment) in g
     assert (GM.motifKind, RDF.type, OWL.FunctionalProperty) not in g
-
-
-# --------------------------------------------------------------------------- #
-# Closed-world SHACL shapes
-# --------------------------------------------------------------------------- #
-
-
-def test_wellformed_interior_fixture_conforms() -> None:
-    result = run_shacl(_fixture("interior-wellformed"))
-    assert result.ok, "\n".join(result.errors)
-
-
-def test_malformed_interior_fixture_is_flagged() -> None:
-    result = run_shacl(_fixture("interior-malformed"))
-    assert not result.ok
-    errors = "\n".join(result.errors)
-    assert "exactly one gmeow:samplePosition" in errors
-    assert "exactly one gmeow:sampleState" in errors
-    assert "protagonist-of-WHAT is half the claim" in errors
-    assert "an unnameable recurring unit is a tag" in errors
-    assert "rides the narration seam into a ContentSegment" in errors
-    assert "exactly one gmeow:emotionBearer" in errors
-    assert "at least one gmeow:emotionType" in errors
-    assert "must read SOMETHING" in errors
-    assert "half a reading is no reading" in errors
 
 
 # --------------------------------------------------------------------------- #

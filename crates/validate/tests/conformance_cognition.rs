@@ -31,7 +31,7 @@ use conformance_support::*;
 #[test]
 fn wellformed_knowledge_proficiency_conforms() {
     let nt = fixture_as_nt("shapes", "cognition-wellformed");
-    let report = validate_with_ontology(&nt);
+    let report = validate(&nt);
     assert!(
         ok(&report),
         "well-formed KnowledgeProficiency must pass SHACL; violations: {:?}",
@@ -47,7 +47,7 @@ fn wellformed_knowledge_proficiency_conforms() {
 #[test]
 fn malformed_knowledge_proficiency_is_flagged() {
     let nt = fixture_as_nt("shapes", "cognition-malformed");
-    let report = validate_with_ontology(&nt);
+    let report = validate(&nt);
     assert!(
         !ok(&report),
         "malformed KnowledgeProficiency must fail SHACL"

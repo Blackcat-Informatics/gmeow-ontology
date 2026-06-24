@@ -544,6 +544,27 @@ plus the 17 `#[test]` functions; all helper bodies deleted. All 17 tests still p
 
 **Conformance batch-3 (wave 1+2) tally:** citations 3 + cognition 2 + reference_frames 8 + narration 2 + aboutness 2 + disclosure 3 = **20 converted**. genealogy + employment had ZERO migratable tests (every run_shacl call is paired with a dynamic `g.objects()`/`(triple) in g`/post-SHACL membership assertion — retained whole, files unchanged). All **107** conformance tests (87 prior + 20) green; `uv run mypy` clean.
 
+### #867 conformance batch 3 wave 3 (risk, interior, narrative_time, software) + faithfulness fixes
+
+| pytest fn | source | disposition | Rust twin / retain reason |
+|-----------|--------|------------|---------------------------|
+| `test_wellformed_risk_fixture_conforms` | test_risk.py | converted | `wellformed_risk_fixture_conforms` |
+| `test_malformed_risk_fixture_is_flagged` | test_risk.py | converted | `malformed_risk_fixture_is_flagged` |
+| 2 risk tests | test_risk.py | **retained** | dynamic `g.subjects()` occurrence-gate sweep / SPARQL `.rq` |
+| `test_wellformed_interior_fixture_conforms` | test_interior.py | converted | `wellformed_interior_fixture_conforms` |
+| `test_malformed_interior_fixture_is_flagged` | test_interior.py | converted | `malformed_interior_fixture_is_flagged` |
+| 10 interior tests | test_interior.py | **retained** | `_graph()` TBox membership / dynamic sweeps / SPARQL |
+| `test_wellformed_narrative_time_fixture_conforms` | test_narrative_time.py | converted | `wellformed_narrative_time_fixture_conforms` |
+| `test_malformed_narrative_time_fixture_is_flagged` | test_narrative_time.py | converted | `malformed_narrative_time_fixture_is_flagged` |
+| 7 narrative_time tests | test_narrative_time.py | **retained** | `_graph()` TBox / dynamic sweep / disk graph-walk / SPARQL |
+| `test_facet_orthogonality_shacl_rejects_two_facets` | test_software.py | converted | `facet_orthogonality_shacl_rejects_two_facets` |
+| `test_fixture_parses_and_shacl_passes` | test_software.py | converted | `fixture_parses_and_shacl_passes` |
+| 13 software tests | test_software.py | **retained** | `(triple) in g` membership / `_graph()` + combinations / dynamic sweeps |
+
+**FAITHFULNESS FIXES (mode correction):** four conformance twins were authored with `validate_with_ontology` (merged) but their Python originals used fixture-only `run_shacl(_fixture(...))` / `run_shacl(Graph().parse(...))`. Corrected to fixture-only `validate()` to match exactly: `conformance_narrative_time.rs` (×2, also REVERTED two `tests/fixtures/shapes/narrative-time-*.ttl` files an agent had edited to force a merged-mode pass — a fixture fudge), `conformance_software.rs` (×1), `conformance_cognition.rs` (×2, this branch), `conformance_organization.rs` (×2, correcting a latent drift merged in #961 — `Graph().parse(coverage/organization-*.ttl)` is fixture-only). Only `conformance_finance.rs` legitimately uses `validate_with_ontology` (Python `g = _graph()`). All pass fixture-only with original fixtures.
+
+**Conformance batch-3 wave-3 tally:** risk 2 + interior 2 + narrative_time 2 + software 2 = **8 converted**. All **115** conformance tests (107 prior + 8) green; `uv run mypy` clean.
+
 ## #867 structural batch 10 (places — the 129-fn slice)
 
 The largest single slice (129 pytest fns) migrated to `slices/core/places/tests/structural.ttl`
