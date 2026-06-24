@@ -246,3 +246,63 @@ def test_transform_graph_matches_transform_file(tmp_path: Path) -> None:
     assert len(a) == len(b)
     assert from_file.asserted == from_graph.asserted
     assert from_file.projected == from_graph.projected
+
+
+def test_transpile_yaml_ld_star_preserves_statement_metadata(tmp_path: Path) -> None:
+    """RDF-1.2-star annotations in YAML-LD-star survive transpile: the base triple
+    lifts to GMEOW and the statement-metadata cell quotes it, losslessly (#699)."""
+    from typer.testing import CliRunner
+
+    from gmeow_tools.cli import app
+    from gmeow_tools.yaml_ld import yaml_ld_to_graph
+
+    src = tmp_path / "annotated.yamlld"
+    src.write_text(
+        "'@context':\n"
+        "  schema: https://schema.org/\n"
+        "  gmeow: https://blackcatinformatics.ca/gmeow/\n"
+        "  xsd: http://www.w3.org/2001/XMLSchema#\n"
+        "'@id': https://example.org/alice\n"
+        "schema:name:\n"
+        "  '@value': Alice\n"
+        "  '@annotation':\n"
+        "    '@id': https://example.org/claim-alice-name\n"
+        "    gmeow:confidence:\n"
+        "      '@value': '0.9'\n"
+        "      '@type': xsd:decimal\n",
+        encoding="utf-8",
+    )
+
+    out = tmp_path / "out"
+    result = CliRunner().invoke(
+        app,
+        ["transpile", str(src), "-o", str(out), "--profiles", "schema-org"],
+    )
+    assert result.exit_code == 0, result.output
+
+    draft = Graph().parse(out / "annotated.gmeow.ttl", format="turtle")
+    alice = URIRef("https://example.org/alice")
+    claim = URIRef("https://example.org/claim-alice-name")
+
+    # Base triple was lifted schema:name → gmeow:name.
+    assert (alice, URIRef(GM + "name"), Literal("Alice")) in draft
+
+    # GMEOW statement-metadata skeleton survived the up-projection lane.
+    assert (claim, RDF.type, URIRef(GM + "StatementMetadata")) in draft
+    assert (claim, URIRef(GM + "qSubject"), alice) in draft
+    assert (claim, URIRef(GM + "qPredicate"), URIRef(SCHEMA + "name")) in draft
+    assert (claim, URIRef(GM + "qObjectLiteral"), Literal("Alice")) in draft
+
+    # The native GMEOW annotation on the reifier passed through unchanged.
+    assert (claim, URIRef(GM + "confidence"), None) in draft
+
+    # The graph path also works and yields the same draft triples.
+    graph = yaml_ld_to_graph(src.read_bytes())
+    from gmeow_tools.transpile import transpile_graph
+
+    rep = transpile_graph(
+        graph, "annotated", out_dir=tmp_path / "out2", profiles=["schema-org"]
+    )
+    draft2 = Graph().parse(rep.draft_path, format="turtle")
+    assert (claim, RDF.type, URIRef(GM + "StatementMetadata")) in draft2
+    assert rep.gap_terms == 0 and rep.ambiguous_terms == 0

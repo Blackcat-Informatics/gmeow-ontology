@@ -474,20 +474,28 @@ def parse_yaml_ld(yaml_bytes: bytes) -> pyoxigraph.Store:
     return parse_jsonld_star(yamlld_to_jsonld(yaml_bytes))
 
 
-def yaml_ld_to_graph(yaml_bytes: bytes) -> Graph:
-    """Parse YAML-LD-star into a ``gmeow_rdf.compat.rdflib.Graph``.
+def jsonld_star_to_graph(json_bytes: bytes) -> Graph:
+    """Parse JSON-LD-star into a ``gmeow_rdf.compat.rdflib.Graph``.
 
-    This is a convenience wrapper for the existing up-projection lane: it parses
-    YAML-LD-star to a ``pyoxigraph.Store``, exports canonical N-Quads, and loads
-    them into the project's rdflib-compatible graph facade.
-
-    Note:
-        RDF 1.2 quoted triples are not representable through the compat ``Graph``
-        facade. Use :func:`parse_yaml_ld` when the document contains annotations.
+    The Rust native parser downcasts RDF 1.2 quoted triples to native GMEOW
+    statement-metadata triples before the data reaches the rdflib-compat
+    ``Graph``, so statement-level annotations survive the up-projection lane
+    losslessly (#699).
     """
-    store = parse_yaml_ld(yaml_bytes)
-    nquads = store.dump(format=pyoxigraph.RdfFormat.N_QUADS)
-    assert nquads is not None
+    import gmeow_native.pipeline as _pipeline
+
+    nquads = _pipeline.parse_jsonld_star_to_gmeow_statement_metadata_nquads(json_bytes)
     graph = Graph()
     graph.parse(data=nquads.decode("utf-8"), format="nquads")
     return graph
+
+
+def yaml_ld_to_graph(yaml_bytes: bytes) -> Graph:
+    """Parse YAML-LD-star into a ``gmeow_rdf.compat.rdflib.Graph``.
+
+    This routes YAML-LD-star through the Rust native JSON-LD-star parser, which
+    downcasts RDF 1.2 quoted triples to native GMEOW statement-metadata triples
+    so the rdflib-compat ``Graph`` facade can carry statement-level annotations
+    losslessly (#699).
+    """
+    return jsonld_star_to_graph(yamlld_to_jsonld(yaml_bytes))

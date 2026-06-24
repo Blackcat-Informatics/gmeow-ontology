@@ -161,6 +161,36 @@ fn serialize_yaml_ld(py: Python<'_>, nquads_bytes: &[u8], format: &str) -> PyRes
     Ok(PyBytes::new(py, text.as_bytes()).into_any().unbind())
 }
 
+/// Parse JSON-LD-star bytes and downcast RDF 1.2 quoted triples to GMEOW
+/// statement-metadata N-Quads.
+///
+/// The GMEOW JSON-LD-star emitter represents statement metadata with the
+/// `@annotation` idiom, which parses to `?r rdf:reifies <<( ?s ?p ?o )>>`
+/// plus annotation triples on `?r`. Those quoted triples cannot be carried
+/// through the rdflib-compat up-projection lane, so this function re-expresses
+/// each annotation as a native GMEOW statement-metadata cell:
+///
+/// ```turtle
+/// ?r a gmeow:StatementMetadata ;
+///    gmeow:qSubject ?s ;
+///    gmeow:qPredicate ?p ;
+///    gmeow:qObject ?o | gmeow:qObjectLiteral ?o ;
+///    <annotation-pred> <annotation-value> .
+/// ```
+///
+/// Returns UTF-8 N-Quads bytes with no quoted triple terms. Hard-fails on
+/// unsupported JSON-LD features.
+#[pyfunction]
+#[pyo3(signature = (json_bytes))]
+fn parse_jsonld_star_to_gmeow_statement_metadata_nquads(
+    py: Python<'_>,
+    json_bytes: &[u8],
+) -> PyResult<Py<PyAny>> {
+    let nquads = crate::stages::yaml_ld::jsonld_star_to_gmeow_statement_metadata_nquads(json_bytes)
+        .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))?;
+    Ok(PyBytes::new(py, nquads.as_bytes()).into_any().unbind())
+}
+
 /// Register the `gmeow_native.pipeline` submodule. Called by the unified
 /// `gmeow_native` cdylib (#630); exposes [`run_pipeline`].
 pub fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
@@ -169,5 +199,9 @@ pub fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(compile_statements_report, m)?)?;
     m.add_function(wrap_pyfunction!(compile_mappings_report, m)?)?;
     m.add_function(wrap_pyfunction!(serialize_yaml_ld, m)?)?;
+    m.add_function(wrap_pyfunction!(
+        parse_jsonld_star_to_gmeow_statement_metadata_nquads,
+        m
+    )?)?;
     Ok(())
 }

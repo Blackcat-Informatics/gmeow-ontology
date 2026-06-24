@@ -589,9 +589,15 @@ def transpile(
                 selector=selector,
             )
         elif source.suffix.lower() in (".jsonld", ".yamlld", ".yaml-ld", ".yld"):
-            from gmeow_tools.yaml_ld import yaml_ld_to_graph
+            from gmeow_tools.yaml_ld import jsonld_star_to_graph, yaml_ld_to_graph
 
-            graph = yaml_ld_to_graph(source.read_bytes())
+            suffix = source.suffix.lower()
+            raw = source.read_bytes()
+            graph = (
+                jsonld_star_to_graph(raw)
+                if suffix == ".jsonld"
+                else yaml_ld_to_graph(raw)
+            )
             result = transpile_graph(
                 graph,
                 source.stem,

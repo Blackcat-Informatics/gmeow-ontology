@@ -9,6 +9,9 @@
 use std::collections::BTreeMap;
 
 use gmeow_gts::model::{Graph, Term, TermKind};
+use oxigraph::io::{RdfFormat, RdfSerializer};
+use oxigraph::model::{Dataset, GraphName, NamedNode, NamedOrBlankNode, Quad, Term as OxTerm};
+use oxigraph::store::Store;
 use serde_json::Value;
 
 use crate::error::PipelineError;
@@ -25,6 +28,19 @@ const GMEOW_NAMESPACE: &str = "https://blackcatinformatics.ca/gmeow/";
 const RDF_TYPE: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 /// Default schema URL for the YAML-LD language-server header.
 const DEFAULT_SCHEMA_URL: &str = "https://blackcatinformatics.ca/gmeow/schemas/gmeow.schema.json";
+
+/// RDF 1.2 reifier predicate.
+pub const RDF_REIFIES: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies";
+/// GMEOW statement-metadata class.
+pub const GMEOW_STATEMENT_METADATA: &str = "https://blackcatinformatics.ca/gmeow/StatementMetadata";
+/// GMEOW quoted subject property.
+pub const GMEOW_QSUBJECT: &str = "https://blackcatinformatics.ca/gmeow/qSubject";
+/// GMEOW quoted predicate property.
+pub const GMEOW_QPREDICATE: &str = "https://blackcatinformatics.ca/gmeow/qPredicate";
+/// GMEOW quoted object property (IRI / blank-node objects).
+pub const GMEOW_QOBJECT: &str = "https://blackcatinformatics.ca/gmeow/qObject";
+/// GMEOW quoted literal object property.
+pub const GMEOW_QOBJECTLITERAL: &str = "https://blackcatinformatics.ca/gmeow/qObjectLiteral";
 
 // Longest-namespace-first prefix table (mirrors `src/gmeow_tools/config.py`).
 include!("lpg_prefixes.rs");
@@ -582,16 +598,430 @@ fn cmp_value(a: &Value, b: &Value) -> std::cmp::Ordering {
     key(a).cmp(&key(b))
 }
 
+/// Parse JSON-LD-star bytes into an oxigraph [`Dataset`].
+///
+/// This is the inverse of [`serialize_graph`]: it interprets the `@annotation`
+/// idiom produced by the GMEOW JSON-LD-star emitter and reconstructs RDF 1.2
+/// reifier quads (`rdf:reifies` with quoted triple objects) plus annotation
+/// triples in the default graph. Named graphs and directional language strings
+/// are preserved. Unsupported JSON-LD features hard-fail.
+pub fn parse_jsonld_star(json_bytes: &[u8]) -> Result<Dataset, PipelineError> {
+    let json = std::str::from_utf8(json_bytes)
+        .map_err(|e| PipelineError::Decode(format!("JSON-LD-star bytes are not UTF-8: {e}")))?;
+    let value: Value = serde_json::from_str(json)
+        .map_err(|e| PipelineError::Decode(format!("parse JSON-LD-star: {e}")))?;
+    let mut prefixes: BTreeMap<String, String> = BTreeMap::new();
+    let mut vocab = String::new();
+    if let Some(Value::Object(ctx)) = value.get("@context") {
+        for (k, v) in ctx {
+            if k == "@vocab" {
+                if let Some(ns) = v.as_str() {
+                    vocab = ns.to_string();
+                }
+            } else if let Some(ns) = v.as_str() {
+                prefixes.insert(k.clone(), ns.to_string());
+            }
+        }
+    }
+
+    let expand = |curie_or_iri: &str| -> String {
+        if curie_or_iri.starts_with("http://") || curie_or_iri.starts_with("https://") {
+            return curie_or_iri.to_string();
+        }
+        if let Some((p, local)) = curie_or_iri.split_once(':') {
+            if let Some(ns) = prefixes.get(p) {
+                return format!("{ns}{local}");
+            }
+        }
+        if !vocab.is_empty() && !curie_or_iri.contains(':') {
+            return format!("{vocab}{curie_or_iri}");
+        }
+        curie_or_iri.to_string()
+    };
+
+    let store = Store::new().map_err(|e| PipelineError::Parse(e.to_string()))?;
+
+    let emit_node = |node: &Value, graph_iri: Option<&str>| -> Result<(), PipelineError> {
+        let id = node
+            .get("@id")
+            .and_then(Value::as_str)
+            .ok_or_else(|| PipelineError::Decode("node without @id".to_string()))?;
+        let subject: NamedOrBlankNode = if let Some(label) = id.strip_prefix("_:") {
+            oxigraph::model::BlankNode::new(label.to_string())
+                .map_err(|e| PipelineError::Decode(e.to_string()))?
+                .into()
+        } else {
+            NamedNode::new(expand(id))
+                .map_err(|e| PipelineError::Decode(e.to_string()))?
+                .into()
+        };
+        let graph_name = graph_iri
+            .map(|g| {
+                NamedNode::new(expand(g))
+                    .map(oxigraph::model::GraphName::from)
+                    .map_err(|e| PipelineError::Decode(e.to_string()))
+            })
+            .transpose()?
+            .unwrap_or(oxigraph::model::GraphName::DefaultGraph);
+
+        if let Some(Value::Array(types)) = node.get("@type") {
+            let rdf_type = NamedNode::new(RDF_TYPE).unwrap();
+            for t in types {
+                let t_id = t
+                    .get("@id")
+                    .and_then(Value::as_str)
+                    .ok_or_else(|| PipelineError::Decode("@type value without @id".to_string()))?;
+                let obj: oxigraph::model::Term = NamedNode::new(expand(t_id))
+                    .map_err(|e| PipelineError::Decode(e.to_string()))?
+                    .into();
+                store
+                    .insert(&Quad::new(
+                        subject.clone(),
+                        rdf_type.clone(),
+                        obj,
+                        graph_name.clone(),
+                    ))
+                    .map_err(|e| PipelineError::Parse(e.to_string()))?;
+            }
+        }
+
+        for (key, val) in node.as_object().unwrap() {
+            if matches!(key.as_str(), "@id" | "@type" | "@context" | "@graph") {
+                continue;
+            }
+            let predicate =
+                NamedNode::new(expand(key)).map_err(|e| PipelineError::Decode(e.to_string()))?;
+            let values = if let Value::Array(arr) = val {
+                arr.clone()
+            } else {
+                vec![val.clone()]
+            };
+            for v in values {
+                emit_value_quad(
+                    &store,
+                    subject.clone(),
+                    predicate.clone(),
+                    graph_name.clone(),
+                    &v,
+                    &expand,
+                )?;
+            }
+        }
+        Ok(())
+    };
+
+    match &value {
+        Value::Array(entries) => {
+            for entry in entries {
+                emit_graph_entry(entry, &emit_node)?;
+            }
+        }
+        Value::Object(obj) if obj.contains_key("@graph") => {
+            let graphs = obj
+                .get("@graph")
+                .and_then(Value::as_array)
+                .ok_or_else(|| PipelineError::Decode("@graph must be an array".to_string()))?;
+            for entry in graphs {
+                emit_graph_entry(entry, &emit_node)?;
+            }
+        }
+        Value::Object(_) => {
+            emit_node(&value, None)?;
+        }
+        _ => {
+            return Err(PipelineError::Decode(
+                "JSON-LD document must be an object or array of objects".to_string(),
+            ));
+        }
+    }
+
+    store
+        .iter()
+        .collect::<Result<Dataset, _>>()
+        .map_err(|e| PipelineError::Parse(e.to_string()))
+}
+
+type EmitNodeFn<'a> = dyn Fn(&Value, Option<&str>) -> Result<(), PipelineError> + 'a;
+
+fn emit_graph_entry(entry: &Value, emit_node: &EmitNodeFn<'_>) -> Result<(), PipelineError> {
+    if entry.get("@graph").is_some() {
+        let graph_id = entry
+            .get("@id")
+            .and_then(Value::as_str)
+            .ok_or_else(|| PipelineError::Decode("named graph object must have @id".to_string()))?;
+        for node in entry
+            .get("@graph")
+            .and_then(Value::as_array)
+            .ok_or_else(|| PipelineError::Decode("@graph must be an array".to_string()))?
+        {
+            emit_node(node, Some(graph_id))?;
+        }
+    } else {
+        emit_node(entry, None)?;
+    }
+    Ok(())
+}
+
+fn emit_value_quad(
+    store: &Store,
+    subject: NamedOrBlankNode,
+    predicate: NamedNode,
+    graph_name: oxigraph::model::GraphName,
+    value: &Value,
+    expand: &dyn Fn(&str) -> String,
+) -> Result<(), PipelineError> {
+    let (object, annotation) = parse_value_object(value, expand)?;
+    store
+        .insert(&Quad::new(
+            subject.clone(),
+            predicate.clone(),
+            object.clone(),
+            graph_name.clone(),
+        ))
+        .map_err(|e| PipelineError::Parse(e.to_string()))?;
+
+    if let Some(ann) = annotation {
+        let reifier_subject = ann
+            .get("@id")
+            .and_then(Value::as_str)
+            .ok_or_else(|| PipelineError::Decode("annotation without @id".to_string()))?;
+        let reifier: NamedOrBlankNode = if let Some(label) = reifier_subject.strip_prefix("_:") {
+            oxigraph::model::BlankNode::new(label.to_string())
+                .map_err(|e| PipelineError::Decode(e.to_string()))?
+                .into()
+        } else {
+            NamedNode::new(expand(reifier_subject))
+                .map_err(|e| PipelineError::Decode(e.to_string()))?
+                .into()
+        };
+        let reifies = NamedNode::new(RDF_REIFIES).unwrap();
+        let quoted = oxigraph::model::Term::Triple(Box::new(oxigraph::model::Triple::new(
+            subject, predicate, object,
+        )));
+        store
+            .insert(&Quad::new(
+                reifier.clone(),
+                reifies,
+                quoted,
+                oxigraph::model::GraphName::DefaultGraph,
+            ))
+            .map_err(|e| PipelineError::Parse(e.to_string()))?;
+
+        for (key, val) in ann.as_object().unwrap() {
+            if key == "@id" {
+                continue;
+            }
+            let ann_predicate =
+                NamedNode::new(expand(key)).map_err(|e| PipelineError::Decode(e.to_string()))?;
+            let vals = if let Value::Array(arr) = val {
+                arr.clone()
+            } else {
+                vec![val.clone()]
+            };
+            for v in vals {
+                let (ann_object, _) = parse_value_object(&v, expand)?;
+                store
+                    .insert(&Quad::new(
+                        reifier.clone(),
+                        ann_predicate.clone(),
+                        ann_object,
+                        oxigraph::model::GraphName::DefaultGraph,
+                    ))
+                    .map_err(|e| PipelineError::Parse(e.to_string()))?;
+            }
+        }
+    }
+
+    Ok(())
+}
+
+fn parse_value_object(
+    value: &Value,
+    expand: &dyn Fn(&str) -> String,
+) -> Result<(oxigraph::model::Term, Option<Value>), PipelineError> {
+    if let Some(s) = value.as_str() {
+        return Ok((
+            NamedNode::new(expand(s))
+                .map_err(|e| PipelineError::Decode(e.to_string()))?
+                .into(),
+            None,
+        ));
+    }
+    let obj = value
+        .as_object()
+        .ok_or_else(|| PipelineError::Decode(format!("expected value object, got {value}")))?;
+    let annotation = obj.get("@annotation").cloned();
+
+    if let Some(id) = obj.get("@id").and_then(Value::as_str) {
+        let term: oxigraph::model::Term = if let Some(label) = id.strip_prefix("_:") {
+            oxigraph::model::BlankNode::new(label.to_string())
+                .map_err(|e| PipelineError::Decode(e.to_string()))?
+                .into()
+        } else {
+            NamedNode::new(expand(id))
+                .map_err(|e| PipelineError::Decode(e.to_string()))?
+                .into()
+        };
+        return Ok((term, annotation));
+    }
+
+    let lex = obj
+        .get("@value")
+        .and_then(Value::as_str)
+        .ok_or_else(|| PipelineError::Decode("literal without @value".to_string()))?
+        .to_string();
+    let lang = obj.get("@language").and_then(Value::as_str);
+    let direction = obj.get("@direction").and_then(Value::as_str);
+    let datatype = obj.get("@type").and_then(Value::as_str);
+
+    let literal = match (lang, direction, datatype) {
+        (Some(lang), Some(dir), _) => {
+            let dir = match dir {
+                "ltr" => oxigraph::model::BaseDirection::Ltr,
+                "rtl" => oxigraph::model::BaseDirection::Rtl,
+                _ => return Err(PipelineError::Decode(format!("invalid direction {dir}"))),
+            };
+            oxigraph::model::Literal::new_directional_language_tagged_literal(&lex, lang, dir)
+                .map_err(|e| PipelineError::Decode(e.to_string()))?
+        }
+        (Some(lang), None, _) => oxigraph::model::Literal::new_language_tagged_literal(&lex, lang)
+            .map_err(|e| PipelineError::Decode(e.to_string()))?,
+        (None, _, Some(dt)) => oxigraph::model::Literal::new_typed_literal(
+            &lex,
+            NamedNode::new(expand(dt)).map_err(|e| PipelineError::Decode(e.to_string()))?,
+        ),
+        _ => oxigraph::model::Literal::new_simple_literal(&lex),
+    };
+
+    Ok((literal.into(), annotation))
+}
+
+/// Convert a JSON-LD-star document to GMEOW statement-metadata N-Quads.
+///
+/// RDF 1.2 quoted triples (`?r rdf:reifies <<( ?s ?p ?o )>>`) cannot be
+/// represented by rdflib-based consumers, so this downcast re-expresses each
+/// annotated statement as a native GMEOW statement-metadata cell:
+///
+/// ```turtle
+/// ?r a gmeow:StatementMetadata ;
+///    gmeow:qSubject ?s ;
+///    gmeow:qPredicate ?p ;
+///    gmeow:qObject ?o | gmeow:qObjectLiteral ?o ;
+///    <annotation-pred> <annotation-value> .
+/// ```
+///
+/// The base triple `?s ?p ?o` is retained, and every annotation triple on the
+/// reifier is carried through unchanged. The output contains no quoted triples,
+/// so it is safe for the rdflib-compat up-projection lane.
+pub fn jsonld_star_to_gmeow_statement_metadata_nquads(
+    json_bytes: &[u8],
+) -> Result<String, PipelineError> {
+    let dataset = parse_jsonld_star(json_bytes)?;
+    let out = Store::new().map_err(|e| PipelineError::Parse(e.to_string()))?;
+
+    // Work with owned quads so subjects/objects are not reference types.
+    let quads: Vec<Quad> = dataset.iter().map(|q| q.into_owned()).collect();
+
+    // Identify reifiers and the quoted triple each one refers to.
+    let mut reifier_quotes: std::collections::HashMap<
+        NamedOrBlankNode,
+        (NamedOrBlankNode, NamedNode, OxTerm),
+    > = std::collections::HashMap::new();
+    for quad in &quads {
+        if quad.predicate.as_str() == RDF_REIFIES {
+            if let OxTerm::Triple(triple) = &quad.object {
+                reifier_quotes.insert(
+                    quad.subject.clone(),
+                    (
+                        triple.subject.clone(),
+                        triple.predicate.clone(),
+                        triple.object.clone(),
+                    ),
+                );
+            }
+        }
+    }
+
+    let rdf_type = NamedNode::new(RDF_TYPE).expect("valid rdf:type IRI");
+    let statement_metadata =
+        NamedNode::new(GMEOW_STATEMENT_METADATA).expect("valid gmeow:StatementMetadata IRI");
+    let q_subject = NamedNode::new(GMEOW_QSUBJECT).expect("valid gmeow:qSubject IRI");
+    let q_predicate = NamedNode::new(GMEOW_QPREDICATE).expect("valid gmeow:qPredicate IRI");
+    let q_object = NamedNode::new(GMEOW_QOBJECT).expect("valid gmeow:qObject IRI");
+    let q_object_literal =
+        NamedNode::new(GMEOW_QOBJECTLITERAL).expect("valid gmeow:qObjectLiteral IRI");
+
+    for quad in &quads {
+        if quad.predicate.as_str() == RDF_REIFIES {
+            // Emit the GMEOW statement-metadata skeleton for this reifier.
+            let Some((s, p, o)) = reifier_quotes.get(&quad.subject) else {
+                continue;
+            };
+            let r = quad.subject.clone();
+            out.insert(&Quad::new(
+                r.clone(),
+                rdf_type.clone(),
+                OxTerm::NamedNode(statement_metadata.clone()),
+                GraphName::DefaultGraph,
+            ))
+            .map_err(|e| PipelineError::Parse(e.to_string()))?;
+            out.insert(&Quad::new(
+                r.clone(),
+                q_subject.clone(),
+                OxTerm::from(s.clone()),
+                GraphName::DefaultGraph,
+            ))
+            .map_err(|e| PipelineError::Parse(e.to_string()))?;
+            out.insert(&Quad::new(
+                r.clone(),
+                q_predicate.clone(),
+                OxTerm::NamedNode(p.clone()),
+                GraphName::DefaultGraph,
+            ))
+            .map_err(|e| PipelineError::Parse(e.to_string()))?;
+            let q_object_pred = if matches!(o, OxTerm::Literal(_)) {
+                q_object_literal.clone()
+            } else {
+                q_object.clone()
+            };
+            out.insert(&Quad::new(
+                r.clone(),
+                q_object_pred,
+                o.clone(),
+                GraphName::DefaultGraph,
+            ))
+            .map_err(|e| PipelineError::Parse(e.to_string()))?;
+        } else if reifier_quotes.contains_key(&quad.subject) {
+            // Annotation triple on a reifier: keep it, but move it to the default graph
+            // so the downstream rdflib-compat graph (single-graph) sees it.
+            out.insert(&Quad::new(
+                quad.subject.clone(),
+                quad.predicate.clone(),
+                quad.object.clone(),
+                GraphName::DefaultGraph,
+            ))
+            .map_err(|e| PipelineError::Parse(e.to_string()))?;
+        } else {
+            // Plain base triple or named-graph triple.
+            out.insert(quad)
+                .map_err(|e| PipelineError::Parse(e.to_string()))?;
+        }
+    }
+
+    let mut buf = Vec::new();
+    out.dump_to_writer(RdfSerializer::from_format(RdfFormat::NQuads), &mut buf)
+        .map_err(|e| PipelineError::Decode(format!("serialize N-Quads: {e}")))?;
+    String::from_utf8(buf).map_err(|e| PipelineError::Decode(format!("N-Quads are not UTF-8: {e}")))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
 
     use gmeow_gts::model::{Term, TermKind};
 
-    const RDF_REIFIES: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies";
-    use oxigraph::io::{RdfFormat, RdfParser};
-    use oxigraph::model::{BaseDirection, Dataset, NamedNode, NamedOrBlankNode, Quad};
-    use oxigraph::store::Store;
+    use oxigraph::io::RdfParser;
+    use oxigraph::model::{Dataset, NamedNode, NamedOrBlankNode};
 
     fn iri_term(value: &str) -> Term {
         Term {
@@ -660,269 +1090,6 @@ mod tests {
             store.insert(&quad).unwrap();
         }
         store.iter().collect::<Result<Dataset, _>>().unwrap()
-    }
-
-    /// Parse our emitted JSON-LD-star back into an oxigraph Dataset by
-    /// interpreting the `@annotation` idiom.
-    fn parse_jsonld_star(json: &str) -> Result<Dataset, String> {
-        let value: Value = serde_json::from_str(json).map_err(|e| e.to_string())?;
-        let mut prefixes: BTreeMap<String, String> = BTreeMap::new();
-        let mut vocab = String::new();
-        if let Some(Value::Object(ctx)) = value.get("@context") {
-            for (k, v) in ctx {
-                if k == "@vocab" {
-                    if let Some(ns) = v.as_str() {
-                        vocab = ns.to_string();
-                    }
-                } else if let Some(ns) = v.as_str() {
-                    prefixes.insert(k.clone(), ns.to_string());
-                }
-            }
-        }
-
-        let expand = |curie_or_iri: &str| -> String {
-            if curie_or_iri.starts_with("http://") || curie_or_iri.starts_with("https://") {
-                return curie_or_iri.to_string();
-            }
-            if let Some((p, local)) = curie_or_iri.split_once(':') {
-                if let Some(ns) = prefixes.get(p) {
-                    return format!("{ns}{local}");
-                }
-            }
-            if !vocab.is_empty() && !curie_or_iri.contains(':') {
-                return format!("{vocab}{curie_or_iri}");
-            }
-            curie_or_iri.to_string()
-        };
-
-        let store = Store::new().map_err(|e| e.to_string())?;
-
-        let emit_node = |node: &Value, graph_iri: Option<&str>| -> Result<(), String> {
-            let id = node
-                .get("@id")
-                .and_then(Value::as_str)
-                .ok_or("node without @id")?;
-            let subject: NamedOrBlankNode = if let Some(label) = id.strip_prefix("_:") {
-                oxigraph::model::BlankNode::new(label.to_string())
-                    .map_err(|e| e.to_string())?
-                    .into()
-            } else {
-                NamedNode::new(expand(id))
-                    .map_err(|e| e.to_string())?
-                    .into()
-            };
-            let graph_name = graph_iri
-                .map(|g| {
-                    NamedNode::new(expand(g))
-                        .map(oxigraph::model::GraphName::from)
-                        .map_err(|e| e.to_string())
-                })
-                .transpose()?
-                .unwrap_or(oxigraph::model::GraphName::DefaultGraph);
-
-            if let Some(Value::Array(types)) = node.get("@type") {
-                let rdf_type = NamedNode::new(RDF_TYPE).unwrap();
-                for t in types {
-                    let t_id = t
-                        .get("@id")
-                        .and_then(Value::as_str)
-                        .ok_or("@type value without @id")?;
-                    let obj: oxigraph::model::Term = NamedNode::new(expand(t_id))
-                        .map_err(|e| e.to_string())?
-                        .into();
-                    store
-                        .insert(&Quad::new(
-                            subject.clone(),
-                            rdf_type.clone(),
-                            obj,
-                            graph_name.clone(),
-                        ))
-                        .map_err(|e| e.to_string())?;
-                }
-            }
-
-            for (key, val) in node.as_object().unwrap() {
-                if matches!(key.as_str(), "@id" | "@type" | "@context" | "@graph") {
-                    continue;
-                }
-                let predicate = NamedNode::new(expand(key)).map_err(|e| e.to_string())?;
-                let values = if let Value::Array(arr) = val {
-                    arr.clone()
-                } else {
-                    vec![val.clone()]
-                };
-                for v in values {
-                    emit_value_quad(
-                        &store,
-                        subject.clone(),
-                        predicate.clone(),
-                        graph_name.clone(),
-                        &v,
-                        &expand,
-                    )?;
-                }
-            }
-            Ok(())
-        };
-
-        if let Some(Value::Array(graphs)) = value.get("@graph") {
-            for entry in graphs {
-                if entry.get("@graph").is_some() {
-                    let graph_id = entry
-                        .get("@id")
-                        .and_then(Value::as_str)
-                        .ok_or("named graph without @id")?;
-                    for node in entry
-                        .get("@graph")
-                        .and_then(Value::as_array)
-                        .ok_or("@graph not array")?
-                    {
-                        emit_node(node, Some(graph_id))?;
-                    }
-                } else {
-                    emit_node(entry, None)?;
-                }
-            }
-        }
-
-        store
-            .iter()
-            .collect::<Result<Dataset, _>>()
-            .map_err(|e| e.to_string())
-    }
-
-    fn emit_value_quad(
-        store: &Store,
-        subject: NamedOrBlankNode,
-        predicate: NamedNode,
-        graph_name: oxigraph::model::GraphName,
-        value: &Value,
-        expand: &dyn Fn(&str) -> String,
-    ) -> Result<(), String> {
-        let (object, annotation) = parse_value_object(value, expand)?;
-        store
-            .insert(&Quad::new(
-                subject.clone(),
-                predicate.clone(),
-                object.clone(),
-                graph_name.clone(),
-            ))
-            .map_err(|e| e.to_string())?;
-
-        if let Some(ann) = annotation {
-            let reifier_subject = ann
-                .get("@id")
-                .and_then(Value::as_str)
-                .ok_or("annotation without @id")?;
-            let reifier: NamedOrBlankNode = if let Some(label) = reifier_subject.strip_prefix("_:")
-            {
-                oxigraph::model::BlankNode::new(label.to_string())
-                    .map_err(|e| e.to_string())?
-                    .into()
-            } else {
-                NamedNode::new(expand(reifier_subject))
-                    .map_err(|e| e.to_string())?
-                    .into()
-            };
-            let reifies = NamedNode::new(RDF_REIFIES).unwrap();
-            let quoted = oxigraph::model::Term::Triple(Box::new(oxigraph::model::Triple::new(
-                subject, predicate, object,
-            )));
-            store
-                .insert(&Quad::new(
-                    reifier.clone(),
-                    reifies,
-                    quoted,
-                    oxigraph::model::GraphName::DefaultGraph,
-                ))
-                .map_err(|e| e.to_string())?;
-
-            for (key, val) in ann.as_object().unwrap() {
-                if key == "@id" {
-                    continue;
-                }
-                let ann_predicate = NamedNode::new(expand(key)).map_err(|e| e.to_string())?;
-                let vals = if let Value::Array(arr) = val {
-                    arr.clone()
-                } else {
-                    vec![val.clone()]
-                };
-                for v in vals {
-                    let (ann_object, _) = parse_value_object(&v, expand)?;
-                    store
-                        .insert(&Quad::new(
-                            reifier.clone(),
-                            ann_predicate.clone(),
-                            ann_object,
-                            oxigraph::model::GraphName::DefaultGraph,
-                        ))
-                        .map_err(|e| e.to_string())?;
-                }
-            }
-        }
-
-        Ok(())
-    }
-
-    fn parse_value_object(
-        value: &Value,
-        expand: &dyn Fn(&str) -> String,
-    ) -> Result<(oxigraph::model::Term, Option<Value>), String> {
-        if let Some(s) = value.as_str() {
-            return Ok((
-                NamedNode::new(expand(s)).map_err(|e| e.to_string())?.into(),
-                None,
-            ));
-        }
-        let obj = value
-            .as_object()
-            .ok_or_else(|| format!("expected value object, got {value}"))?;
-        let annotation = obj.get("@annotation").cloned();
-
-        if let Some(id) = obj.get("@id").and_then(Value::as_str) {
-            let term: oxigraph::model::Term = if let Some(label) = id.strip_prefix("_:") {
-                oxigraph::model::BlankNode::new(label.to_string())
-                    .map_err(|e| e.to_string())?
-                    .into()
-            } else {
-                NamedNode::new(expand(id))
-                    .map_err(|e| e.to_string())?
-                    .into()
-            };
-            return Ok((term, annotation));
-        }
-
-        let lex = obj
-            .get("@value")
-            .and_then(Value::as_str)
-            .ok_or("literal without @value")?
-            .to_string();
-        let lang = obj.get("@language").and_then(Value::as_str);
-        let direction = obj.get("@direction").and_then(Value::as_str);
-        let datatype = obj.get("@type").and_then(Value::as_str);
-
-        let literal = match (lang, direction, datatype) {
-            (Some(lang), Some(dir), _) => {
-                let dir = match dir {
-                    "ltr" => BaseDirection::Ltr,
-                    "rtl" => BaseDirection::Rtl,
-                    _ => return Err(format!("invalid direction {dir}")),
-                };
-                oxigraph::model::Literal::new_directional_language_tagged_literal(&lex, lang, dir)
-                    .map_err(|e| e.to_string())?
-            }
-            (Some(lang), None, _) => {
-                oxigraph::model::Literal::new_language_tagged_literal(&lex, lang)
-                    .map_err(|e| e.to_string())?
-            }
-            (None, _, Some(dt)) => oxigraph::model::Literal::new_typed_literal(
-                &lex,
-                NamedNode::new(expand(dt)).map_err(|e| e.to_string())?,
-            ),
-            _ => oxigraph::model::Literal::new_simple_literal(&lex),
-        };
-
-        Ok((literal.into(), annotation))
     }
 
     fn minimal_graph() -> Graph {
@@ -1001,7 +1168,7 @@ mod tests {
         let json = serialize_graph(&graph).expect("serialize");
 
         let expected = parse_nquads(&gmeow_gts::nquads::to_nquads(&graph));
-        let actual = parse_jsonld_star(&json).expect("parse JSON-LD-star");
+        let actual = parse_jsonld_star(json.as_bytes()).expect("parse JSON-LD-star");
 
         assert_eq!(
             canonical_nquads(&expected),
@@ -1076,7 +1243,8 @@ mod tests {
         let json = serde_json::to_string(&yaml_value).expect("YAML -> JSON");
 
         let expected = parse_nquads(&gmeow_gts::nquads::to_nquads(&graph));
-        let actual = parse_jsonld_star(&json).expect("parse JSON-LD-star from YAML round-trip");
+        let actual =
+            parse_jsonld_star(json.as_bytes()).expect("parse JSON-LD-star from YAML round-trip");
 
         assert_eq!(
             canonical_nquads(&expected),
@@ -1099,7 +1267,7 @@ mod tests {
         graph.annotations.push((3, 4, 5));
 
         let json = serialize_graph(&graph).expect("serialize");
-        let dataset = parse_jsonld_star(&json).expect("parse JSON-LD-star");
+        let dataset = parse_jsonld_star(json.as_bytes()).expect("parse JSON-LD-star");
 
         let s: NamedOrBlankNode = ox_named_node("http://example.org/s").into();
         let p = ox_named_node("http://example.org/p");
@@ -1130,7 +1298,7 @@ mod tests {
         graph.annotations.push((3, 4, 5));
 
         let json = serialize_graph(&graph).expect("serialize");
-        let dataset = parse_jsonld_star(&json).expect("parse JSON-LD-star");
+        let dataset = parse_jsonld_star(json.as_bytes()).expect("parse JSON-LD-star");
 
         let s: NamedOrBlankNode = ox_named_node("http://example.org/s").into();
         let p = ox_named_node("http://example.org/p");
@@ -1161,7 +1329,7 @@ mod tests {
         graph.annotations.push((3, 4, 5));
 
         let json = serialize_graph(&graph).expect("serialize");
-        let dataset = parse_jsonld_star(&json).expect("parse JSON-LD-star");
+        let dataset = parse_jsonld_star(json.as_bytes()).expect("parse JSON-LD-star");
 
         let s: NamedOrBlankNode = ox_named_node("http://example.org/s").into();
         let p = ox_named_node("http://example.org/p");
@@ -1195,6 +1363,117 @@ mod tests {
             &confidence,
             &meta
         ));
+    }
+
+    #[test]
+    fn jsonld_star_downcast_to_gmeow_statement_metadata() {
+        let mut graph = Graph::default();
+        graph.terms.push(iri_term("http://example.org/s"));
+        graph.terms.push(iri_term("http://example.org/p"));
+        graph.terms.push(iri_term("http://example.org/o"));
+        graph.terms.push(iri_term("http://example.org/r"));
+        graph.terms.push(iri_term("http://example.org/confidence"));
+        graph.terms.push(literal_term("0.9"));
+        graph.quads.push((0, 1, 2, None));
+        graph.reifiers.push((3, (0, 1, 2)));
+        graph.annotations.push((3, 4, 5));
+
+        let json = serialize_graph(&graph).expect("serialize");
+        let nquads = jsonld_star_to_gmeow_statement_metadata_nquads(json.as_bytes())
+            .expect("downcast JSON-LD-star to GMEOW statement metadata");
+
+        // The output must be parseable plain N-Quads (no quoted triple terms).
+        let dataset = parse_nquads(&nquads);
+        assert!(
+            !dataset
+                .iter()
+                .any(|q| matches!(q.object, oxigraph::model::TermRef::Triple(_))),
+            "downcast output must contain no quoted triple terms"
+        );
+
+        let s: NamedOrBlankNode = ox_named_node("http://example.org/s").into();
+        let p = ox_named_node("http://example.org/p");
+        let o: oxigraph::model::Term = ox_named_node("http://example.org/o").into();
+        let r: NamedOrBlankNode = ox_named_node("http://example.org/r").into();
+        let rdf_type = ox_named_node(RDF_TYPE);
+        let statement_metadata = ox_named_node(GMEOW_STATEMENT_METADATA);
+        let q_subject = ox_named_node(GMEOW_QSUBJECT);
+        let q_predicate = ox_named_node(GMEOW_QPREDICATE);
+        let q_object = ox_named_node(GMEOW_QOBJECT);
+        let confidence = ox_named_node("http://example.org/confidence");
+        let meta = ox_simple_literal("0.9");
+
+        // Base triple is preserved.
+        assert!(
+            dataset_has(&dataset, &s, &p, &o),
+            "base triple must survive downcast"
+        );
+
+        // GMEOW statement-metadata skeleton is emitted for the reifier.
+        assert!(
+            dataset_has(
+                &dataset,
+                &r,
+                &rdf_type,
+                &OxTerm::NamedNode(statement_metadata)
+            ),
+            "reifier must be typed gmeow:StatementMetadata"
+        );
+        assert!(
+            dataset_has(&dataset, &r, &q_subject, &OxTerm::from(s.clone())),
+            "gmeow:qSubject must point to quoted subject"
+        );
+        assert!(
+            dataset_has(&dataset, &r, &q_predicate, &OxTerm::NamedNode(p.clone())),
+            "gmeow:qPredicate must point to quoted predicate"
+        );
+        assert!(
+            dataset_has(&dataset, &r, &q_object, &o),
+            "gmeow:qObject must point to quoted IRI object"
+        );
+
+        // Annotation triple on the reifier is preserved.
+        assert!(
+            dataset_has(&dataset, &r, &confidence, &meta),
+            "annotation triple must survive downcast"
+        );
+    }
+
+    #[test]
+    fn jsonld_star_downcast_preserves_literal_object() {
+        let mut graph = Graph::default();
+        graph.terms.push(iri_term("http://example.org/s"));
+        graph.terms.push(iri_term("http://example.org/p"));
+        graph.terms.push(lang_term("hello", "en"));
+        graph.terms.push(iri_term("http://example.org/r"));
+        graph.terms.push(iri_term("http://example.org/confidence"));
+        graph.terms.push(literal_term("0.95"));
+        graph.quads.push((0, 1, 2, None));
+        graph.reifiers.push((3, (0, 1, 2)));
+        graph.annotations.push((3, 4, 5));
+
+        let json = serialize_graph(&graph).expect("serialize");
+        let nquads = jsonld_star_to_gmeow_statement_metadata_nquads(json.as_bytes())
+            .expect("downcast literal-valued JSON-LD-star");
+        let dataset = parse_nquads(&nquads);
+
+        let s: NamedOrBlankNode = ox_named_node("http://example.org/s").into();
+        let p = ox_named_node("http://example.org/p");
+        let o: oxigraph::model::Term =
+            oxigraph::model::Literal::new_language_tagged_literal("hello", "en")
+                .expect("valid lang literal")
+                .into();
+        let r: NamedOrBlankNode = ox_named_node("http://example.org/r").into();
+        let q_object_literal = ox_named_node(GMEOW_QOBJECTLITERAL);
+
+        assert!(
+            dataset_has(&dataset, &s, &p, &o),
+            "base literal triple must survive"
+        );
+        assert!(
+            dataset_has(&dataset, &r, &q_object_literal, &o),
+            "gmeow:qObjectLiteral must be the literal object"
+        );
     }
 
     fn canonical_nquads(dataset: &Dataset) -> String {
