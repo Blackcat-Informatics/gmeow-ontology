@@ -217,6 +217,34 @@ ex:NodeShape a sh:NodeShape ;
         );
     }
 
+    #[test]
+    fn parse_error_hard_fails_with_path() {
+        let bad = write_tmp("gmeow_py_dsl_bad_syntax.ttl", "this is not turtle @@@ <<<");
+        let err =
+            validate_dsl_shacl_inner(&[path_arg(&bad)], &simple_shapes()).expect_err("must fail");
+        assert!(err.contains(&bad.display().to_string()), "{err}");
+    }
+
+    #[test]
+    fn legacy_format_sample_matches_python_output() {
+        // Proves parity with the deleted Python `_format_violations` helper:
+        // focus=<focusNode> | path=<resultPath> | msg=<message> | source=<file>
+        let ttl = write_tmp(
+            "gmeow_py_dsl_legacy_sample.ttl",
+            "@prefix ex: <https://example.org/> .\n\
+             ex:bob a ex:Thing .\n",
+        );
+        let violations =
+            validate_dsl_shacl_inner(&[path_arg(&ttl)], &simple_shapes()).expect("must succeed");
+        assert_eq!(violations.len(), 1);
+        let expected = format!(
+            "focus=https://example.org/bob | path=https://example.org/name | \
+             msg=Missing ex:name | source={}",
+            ttl.display()
+        );
+        assert_eq!(violations[0], expected);
+    }
+
     fn path_arg(path: &std::path::Path) -> String {
         path.to_string_lossy().into_owned()
     }
