@@ -1,15 +1,40 @@
-"""Structural + closed-world guards for the cognition module (issues #556/#557/#558).
+"""Retained guards for the cognition module (issues #556/#557/#558).
 
-Exercises the MentalMoment umbrella, the relocated proficiency value vocab, the
-reified KnowledgeProficiency relator + CognitiveState mode + KnowledgeLevel ordinal
-axis (with transitive deeperThan ON LEVELS ONLY), the teleology IntentionalMode
-reparent, the attention/interest/objectual-memory relations, and the
-KnowledgeProficiency SHACL shape.
+Asserted-TBox structural invariants whose ASK subjects live in the cognition
+module graph have been migrated to the declarative test-DSL cell file at
+slices/core/cognition/tests/structural.ttl (#867).
+
+RETAINED here (not expressible as module-scoped declarative cells):
+
+  test_mental_moment_is_category_under_intrinsic_mode --
+    gmeow:MentalMoment is defined in slices/core/kernel/module.ttl; a
+    scopeModule cell over the cognition graph would silently miss it.
+
+  test_mental_moment_has_exactly_one_gufo_metaclass --
+    Whole-graph dynamic sweep: iterates all four classes and counts
+    metaclass hits from an open gufo:/logic: set. The "exactly-one"
+    cardinality check cannot be faithfully encoded as a module-scoped
+    ASK without narrowing the assertion to a finite list.
+
+  test_intentional_mode_reparented_under_mental_moment --
+    gmeow:IntentionalMode is defined in slices/core/teleology/module.ttl;
+    cross-slice subject.
+
+  test_proficiency_vocab_relocated_to_kernel --
+    gmeow:ProficiencyScale/Level/Modality are defined in kernel; cross-
+    slice subjects.
+
+  test_wellformed_knowledge_proficiency_conforms / _is_flagged --
+    run_shacl() calls; ExampleConformance, not structural TBox assertions.
+
+  test_cognition_sssom_* --
+    load_mappings() reads of gmeow-cognition.sssom.tsv; MAP-flag ledger
+    checks, not module-scoped TBox assertions.
 """
 
 from __future__ import annotations
 
-from gmeow_rdf.compat.rdflib import OWL, RDF, RDFS, Graph, URIRef
+from gmeow_rdf.compat.rdflib import RDF, RDFS, Graph, URIRef
 
 from gmeow_tools.graph import load_merged_graph
 from gmeow_tools.mappings import load_mappings
@@ -38,12 +63,16 @@ def _logic(local: str) -> URIRef:
 
 
 # --------------------------------------------------------------------------- #
-# MentalMoment umbrella (#556) and its members.
+# MentalMoment umbrella (#556) — cross-slice / dynamic sweep; RETAINED.
 # --------------------------------------------------------------------------- #
 
 
 def test_mental_moment_is_category_under_intrinsic_mode() -> None:
-    """MentalMoment is a logic:Category placed under logic:Mode (kernel)."""
+    """MentalMoment is a logic:Category placed under logic:Mode (kernel).
+
+    Subject gmeow:MentalMoment lives in slices/core/kernel, not the cognition
+    module. A scopeModule cell would silently miss it — retained here.
+    """
     graph = _graph()
     mm = _g("MentalMoment")
     assert (mm, RDF.type, _logic("Category")) in graph
@@ -52,10 +81,12 @@ def test_mental_moment_is_category_under_intrinsic_mode() -> None:
 
 
 def test_mental_moment_has_exactly_one_gufo_metaclass() -> None:
-    """Acceptance: each new class carries exactly one ontological metaclass.
+    """Each new class carries exactly one ontological metaclass.
 
-    Checks that each term has exactly one metaclass annotation from either the
-    gufo: or logic: namespace.
+    Checks that each term has exactly one metaclass annotation from either
+    the gufo: or logic: namespace. Retained because the "exactly one"
+    cardinality check over an open metaclass set is a dynamic sweep that
+    cannot be faithfully encoded as a module-scoped ASK.
     """
     graph = _graph()
     metaclass_locals = (
@@ -89,165 +120,35 @@ def test_mental_moment_has_exactly_one_gufo_metaclass() -> None:
         )
 
 
-def test_cognitive_state_is_kind_under_mental_moment() -> None:
-    """CognitiveState (the knowing mode) is a gufo:Kind under MentalMoment."""
-    graph = _graph()
-    cs = _g("CognitiveState")
-    assert (cs, RDF.type, _gufo("Kind")) in graph
-    assert (cs, RDFS.subClassOf, _g("MentalMoment")) in graph
-
-
 def test_intentional_mode_reparented_under_mental_moment() -> None:
-    """teleology:IntentionalMode now subclasses MentalMoment (the reparent)."""
+    """teleology:IntentionalMode now subclasses MentalMoment (the reparent).
+
+    Subject gmeow:IntentionalMode lives in slices/core/teleology — cross-
+    slice; retained here.
+    """
     graph = _graph()
     im = _g("IntentionalMode")
     assert (im, RDFS.subClassOf, _g("MentalMoment")) in graph
-    # It must NOT keep a redundant direct gufo:IntrinsicMode parent assertion.
+    # Must NOT keep a redundant direct gufo:IntrinsicMode parent assertion.
     assert (im, RDFS.subClassOf, _gufo("IntrinsicMode")) not in graph
 
 
 # --------------------------------------------------------------------------- #
-# Proficiency value vocab relocated to kernel (#556) — no cycle.
+# Proficiency value vocab relocated to kernel (#556) — cross-slice; RETAINED.
 # --------------------------------------------------------------------------- #
 
 
 def test_proficiency_vocab_relocated_to_kernel() -> None:
-    """ProficiencyScale/Level/Modality are defined by the kernel slice now."""
+    """ProficiencyScale/Level/Modality are defined by the kernel slice now.
+
+    All three subjects live in slices/core/kernel — cross-slice; retained.
+    """
     graph = _graph()
     for cls in ("ProficiencyScale", "ProficiencyLevel", "ProficiencyModality"):
         node = _g(cls)
         assert (node, RDFS.subClassOf, _logic("QualityValue")) in graph
         assert (node, RDFS.isDefinedBy, _g("slices/kernel")) in graph
         assert (node, RDFS.isDefinedBy, _g("slices/expertise")) not in graph
-
-
-# --------------------------------------------------------------------------- #
-# Reified KnowledgeProficiency relator (#556), mirroring SkillProficiency.
-# --------------------------------------------------------------------------- #
-
-
-def test_knowledge_proficiency_is_relator_with_functional_roles() -> None:
-    graph = _graph()
-    assert (_g("KnowledgeProficiency"), RDFS.subClassOf, _gufo("Relator")) in graph
-    assert (_g("KnowledgeProficiency"), RDF.type, _gufo("Kind")) in graph
-    for role in (
-        "knowledgeProficiencyAgent",
-        "knowledgeProficiencySubject",
-        "knowledgeProficiencyLevel",
-        "knowledgeProficiencyScale",
-    ):
-        node = _g(role)
-        assert (node, RDF.type, OWL.ObjectProperty) in graph
-        assert (node, RDF.type, OWL.FunctionalProperty) in graph
-
-
-def test_knowledge_proficiency_interval_is_optional() -> None:
-    graph = _graph()
-    interval = _g("knowledgeProficiencyInterval")
-    assert (interval, RDF.type, OWL.ObjectProperty) in graph
-    assert (interval, RDF.type, OWL.FunctionalProperty) not in graph
-
-
-def test_knowledge_proficiency_some_values_from_axioms() -> None:
-    graph = _graph()
-    relator = _g("KnowledgeProficiency")
-    for prop, cls in (
-        ("knowledgeProficiencyAgent", "Agent"),
-        ("knowledgeProficiencySubject", "Entity"),
-        ("knowledgeProficiencyLevel", "KnowledgeLevel"),
-        ("knowledgeProficiencyScale", "ProficiencyScale"),
-    ):
-        restrictions = list(graph.objects(relator, RDFS.subClassOf))
-        assert any(
-            (rest, OWL.onProperty, _g(prop)) in graph
-            and (rest, OWL.someValuesFrom, _g(cls)) in graph
-            for rest in restrictions
-        ), f"KnowledgeProficiency missing someValuesFrom {prop} -> {cls}"
-
-
-def test_cognitive_state_and_proficiency_are_not_double_typed() -> None:
-    """Principle 12: the mode and the relator are distinct classes, never linked."""
-    graph = _graph()
-    cs, kp = _g("CognitiveState"), _g("KnowledgeProficiency")
-    assert (kp, RDFS.subClassOf, cs) not in graph
-    assert (cs, RDFS.subClassOf, kp) not in graph
-    assert (kp, RDF.type, cs) not in graph
-
-
-# --------------------------------------------------------------------------- #
-# KnowledgeLevel ordinal axis + transitive deeperThan ON LEVELS ONLY (#556).
-# --------------------------------------------------------------------------- #
-
-
-def test_knowledge_level_is_quality_value() -> None:
-    graph = _graph()
-    assert (_g("KnowledgeLevel"), RDFS.subClassOf, _gufo("QualityValue")) in graph
-
-
-def test_deeper_than_is_transitive_on_levels_only() -> None:
-    graph = _graph()
-    dt = _g("deeperThan")
-    assert (dt, RDF.type, OWL.TransitiveProperty) in graph
-    assert (dt, RDFS.domain, _g("KnowledgeLevel")) in graph
-    assert (dt, RDFS.range, _g("KnowledgeLevel")) in graph
-
-
-def test_knowledge_levels_are_ordinally_chained() -> None:
-    graph = _graph()
-    for level in (
-        "knowledgeAware",
-        "knowledgeKnowsAbout",
-        "knowledgeUnderstands",
-        "knowledgeMastered",
-    ):
-        assert (_g(level), RDF.type, _g("KnowledgeLevel")) in graph
-    chain = (
-        ("knowledgeMastered", "knowledgeUnderstands"),
-        ("knowledgeUnderstands", "knowledgeKnowsAbout"),
-        ("knowledgeKnowsAbout", "knowledgeAware"),
-    )
-    for deeper, shallower in chain:
-        assert (_g(deeper), _g("deeperThan"), _g(shallower)) in graph
-
-
-def test_spectrum_pairs_with_relator() -> None:
-    graph = _graph()
-    for prop in ("isAwareOf", "knowsAbout", "understands", "hasMastered"):
-        assert (_g(prop), _g("pairsWith"), _g("KnowledgeProficiency")) in graph
-
-
-# --------------------------------------------------------------------------- #
-# Attention / interest / objectual memory (#557).
-# --------------------------------------------------------------------------- #
-
-
-def test_attention_and_interest_relations_exist() -> None:
-    graph = _graph()
-    for prop in ("attendsTo", "interestedIn", "curiousAbout", "remembers"):
-        node = _g(prop)
-        assert (node, RDF.type, OWL.ObjectProperty) in graph
-        assert (node, RDFS.domain, _g("Agent")) in graph
-        assert (node, RDFS.range, _g("Entity")) in graph
-
-
-def test_curious_about_specializes_interested_in() -> None:
-    graph = _graph()
-    assert (_g("curiousAbout"), RDFS.subPropertyOf, _g("interestedIn")) in graph
-
-
-def test_remembers_is_objectual_memory_under_awareness() -> None:
-    """remembers ⊑ isAwareOf, and NO axiom bridge to the ai MemoryItem construct."""
-    graph = _graph()
-    assert (_g("remembers"), RDFS.subPropertyOf, _g("isAwareOf")) in graph
-    # The bridge to ai:memoryOf is documented prose, never an OWL coupling.
-    assert (_g("remembers"), RDFS.subPropertyOf, _g("memoryOf")) not in graph
-
-
-def test_no_axiom_bridge_to_teleology_desire() -> None:
-    """Principle 9: interest/attention are not subproperties of any teleology term."""
-    graph = _graph()
-    for prop in ("attendsTo", "interestedIn", "curiousAbout"):
-        assert (_g(prop), RDFS.subPropertyOf, _g("hasGoal")) not in graph
 
 
 # --------------------------------------------------------------------------- #

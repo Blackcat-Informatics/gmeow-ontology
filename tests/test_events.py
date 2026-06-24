@@ -1,24 +1,79 @@
 """The universal events facility (#41).
 
 GMEOW had no universal event: genealogy modelled life events with the exact
-double anti-pattern it refuses everywhere else — type-as-subclass (~30 LifeEvent
-subclasses) AND role-as-subproperty (hasPrincipal / hasWitness / hasOfficiant ⊑
-hasParticipant), plus a free-text eventDate. This module mints one gmeow:Event,
+double anti-pattern it refuses everywhere else -- type-as-subclass (~30 LifeEvent
+subclasses) AND role-as-subproperty (hasPrincipal / hasWitness / hasOfficiant
+=< hasParticipant), plus a free-text eventDate. This module mints one gmeow:Event,
 reifies participation as the gmeow:Participation relator, makes type and role open
 VALUE vocabularies, gives time a real precision story, and absorbs the genealogy
-hierarchy forward (Principle 6 — get it right, never keep the inferior form).
+hierarchy forward (Principle 6 -- get it right, never keep the inferior form).
 
 The centrepiece here is the anti-subclass / anti-subproperty REGRESSION GUARD: it
 pins the refactor permanently, so the frozen taxonomy can never grow back. See
-ontology/modules/events.ttl.
+slices/core/events/module.ttl.
+
+MIGRATED to slices/core/events/tests/structural.ttl (#867):
+  test_participation_is_a_gufo_relator
+  test_event_type_and_role_are_value_object_properties
+  test_former_role_subproperties_are_gone_and_are_values_now
+  test_free_text_event_date_and_place_are_gone
+  test_event_trajectory_exists_and_ranges_over_trajectory
+  test_event_spacetime_exists_and_ranges_over_location_state
+  test_event_spacetime_and_trajectory_are_orthogonal
+  test_axes_range_over_distinct_spaces
+  test_no_axis_is_inferred_from_another
+  test_temporal_datatypes_are_datetime_not_date
+  test_participant_role_vocabulary_seeded
+  test_temporal_precision_vocabulary_seeded
+  test_subevent_mereology_is_transitive
+  test_no_preferred_or_primary_event_term
+  test_allen_relations_exist_on_events
+  test_allen_inverses_and_characters
+  test_duration_and_recurrence_terms
+  test_timeml_tense_and_aspect_value_vocabs
+  test_observational_activity_is_not_observation_subclass
+  test_generated_observation_exists_and_is_dl_regular
+  test_event_observation_is_inverse_of_observation_event
+  test_observational_event_types_are_value_individuals
+  test_census_event_type_still_exists
+  test_no_primary_preferred_observation_term
+
+RETAINED here (not migratable to scopeModule cells):
+  test_event_is_grounded_in_gufo_event -- cross-slice: asserts
+    gmeow:Activity rdfs:subClassOf gmeow:Event; Activity is defined in the
+    provenance slice, so a scopeModule cell would miss that triple.
+  test_former_event_types_are_individuals_not_classes -- dynamic sweep:
+    uses g.subjects(RDFS.subClassOf, GM.LifeEvent) over the whole merged graph
+    to catch any GMEOW-prefixed subclass resurrection; narrowing to the events
+    module would silently weaken the regression guard.
+  test_participation_mediation_axiom_present -- bnode walk: inspects
+    owl:Restriction blank nodes via g.objects() + g.items() to verify
+    someValuesFrom axioms; bnode list structure is not expressible as a
+    simple module-scoped ASK.
+  test_wellformed_participation_conforms -- run_shacl() ExampleConformance.
+  test_malformed_participation_is_flagged -- run_shacl() with error-text check.
+  test_contested_event_claims_coexist_and_validate -- multi-file ABox fixture
+    loaded dynamically + run_shacl() + object sweep.
+  test_schema_role_projection_keys_by_role -- project_graph() projection check.
+  test_schema_role_projection_suppresses_withdrawn_participation -- projection.
+  test_schema_fuzzy_time_projects_earliest_bound -- projection bound check.
+  test_ical_vevent_interval_has_start_end_and_location -- projection check.
+  test_ical_vevent_point_has_start_only -- projection check.
+  test_ical_vevent_fuzzy_spans_the_bounds -- projection bound check.
+  test_ical_summary_is_the_event_type_label -- projection label check.
+  test_owl_time_projection_emits_pure_interval_relations -- projection sweep.
+  test_observational_activity_is_subclass_of_activity_and_event -- cross-slice:
+    asserts gmeow:Activity rdfs:subClassOf gmeow:Event (Activity is in provenance).
+  test_observational_activity_chain_on_was_associated_with -- bnode list walk:
+    inspects owl:propertyChainAxiom blank-node list via g.objects() + g.items()
+    to verify the exact member order of generatedObservation + vantage.
 """
 
 from __future__ import annotations
 
-from itertools import combinations
 from pathlib import Path
 
-from gmeow_rdf.compat.rdflib import OWL, RDF, RDFS, XSD, Graph, Namespace, URIRef
+from gmeow_rdf.compat.rdflib import OWL, RDF, RDFS, Graph, Namespace, URIRef
 
 from gmeow_tools.graph import load_merged_graph
 from tests._graph_nt import run_shacl
@@ -40,7 +95,7 @@ def _fixture(name: str) -> Graph:
 
 
 # --------------------------------------------------------------------------- #
-# gUFO grounding — Event is a perdurant type; Participation is a relator Kind.
+# gUFO grounding -- Event is a perdurant type; cross-slice Activity assertion.
 # --------------------------------------------------------------------------- #
 
 
@@ -49,22 +104,19 @@ def test_event_is_grounded_in_gufo_event() -> None:
     assert (GM.Event, RDF.type, OWL.Class) in g
     assert (GM.Event, RDFS.subClassOf, LOGIC.Event) in g
     # The former top occurrences re-parent onto the universal Event.
+    # Activity is defined in the provenance slice (cross-slice assertion --
+    # not migratable to a scopeModule cell).
     assert (GM.Activity, RDFS.subClassOf, GM.Event) in g
     assert (GM.LifeEvent, RDFS.subClassOf, GM.Event) in g
 
 
-def test_participation_is_a_gufo_relator() -> None:
-    g = _graph()
-    assert (GM.Participation, RDFS.subClassOf, LOGIC.Relator) in g
-    assert (GM.Participation, RDF.type, OWL.Class) in g
-
-
 # --------------------------------------------------------------------------- #
-# THE CENTREPIECE — anti-subclass / anti-subproperty regression guard. Type is a
-# value; role is a value on a relator. This locks the refactor permanently.
+# THE CENTREPIECE -- anti-subclass regression guard (dynamic g.subjects() sweep).
+# This locks the refactor permanently; a scopeModule cell would silently narrow
+# the sweep to the events graph only and miss re-introductions in other slices.
 # --------------------------------------------------------------------------- #
 
-# The former genealogy event subclasses — must NOT exist as classes again.
+# The former genealogy event subclasses -- must NOT exist as classes again.
 _FORMER_EVENT_SUBCLASSES = (
     "Birth",
     "Death",
@@ -77,29 +129,13 @@ _FORMER_EVENT_SUBCLASSES = (
     "Census",
     "Immigration",
 )
-# The former participant-role subproperties — must NOT exist as properties again.
-_FORMER_ROLE_SUBPROPERTIES = ("hasPrincipal", "hasWitness", "hasOfficiant")
-# The former free-text temporal / place properties — replaced by structured terms.
-_FORMER_FLAT_PROPERTIES = ("eventDate", "eventPlace")
-
-
-def test_event_type_and_role_are_value_object_properties() -> None:
-    """Type and role are pointed at by ObjectProperties into value vocabularies —
-    never frozen into the class/property taxonomy."""
-    g = _graph()
-    assert (GM.eventType, RDF.type, OWL.ObjectProperty) in g
-    assert (GM.eventType, RDFS.range, GM.EventType) in g
-    assert (GM.participationRole, RDF.type, OWL.ObjectProperty) in g
-    assert (GM.participationRole, RDFS.range, GM.ParticipantRole) in g
-    # eventType is NON-functional (an occurrence may bear several types).
-    assert (GM.eventType, RDF.type, OWL.FunctionalProperty) not in g
 
 
 def test_former_event_types_are_individuals_not_classes() -> None:
     """The ~30 LifeEvent subclasses became gmeow:eventType VALUE individuals.
 
     This is the permanent lock: each former type IRI is gone as a class, and its
-    replacement is an individual of gmeow:EventType — not a class, not a subclass.
+    replacement is an individual of gmeow:EventType -- not a class, not a subclass.
     """
     g = _graph()
     for local in _FORMER_EVENT_SUBCLASSES:
@@ -111,131 +147,17 @@ def test_former_event_types_are_individuals_not_classes() -> None:
         assert (value, RDF.type, GM.EventType) in g, f"eventType{local} must be a value"
         assert (value, RDF.type, OWL.Class) not in g
     # Structural lock: LifeEvent must have ZERO GMEOW subclasses (the taxonomy is
-    # gone for good) — catches ANY accidental re-introduction, not just the known list.
+    # gone for good) -- catches ANY accidental re-introduction, not just the known
+    # list.
     sub = {
         s for s in g.subjects(RDFS.subClassOf, GM.LifeEvent) if str(s).startswith(GMEOW)
     }
     assert sub == set(), f"gmeow:LifeEvent must have no subclasses; found {sub}"
 
 
-def test_former_role_subproperties_are_gone_and_are_values_now() -> None:
-    """hasPrincipal / hasWitness / hasOfficiant are no longer subproperties; the
-    roles are gmeow:ParticipantRole value individuals borne on a Participation."""
-    g = _graph()
-    prop_types = (OWL.ObjectProperty, OWL.DatatypeProperty, OWL.AnnotationProperty)
-    for local in _FORMER_ROLE_SUBPROPERTIES:
-        old = URIRef(GMEOW + local)
-        for pt in prop_types:
-            assert (old, RDF.type, pt) not in g, f"{local} must not be a property"
-        assert (old, RDFS.subPropertyOf, GM.hasParticipant) not in g
-    # The role values that generalize them exist.
-    for role in ("roleParticipantPrincipal", "roleWitness", "roleOfficiant"):
-        assert (URIRef(GMEOW + role), RDF.type, GM.ParticipantRole) in g
-
-
-def test_free_text_event_date_and_place_are_gone() -> None:
-    """gmeow:eventDate (free-text rdfs:Literal) and gmeow:eventPlace are removed;
-    structured gmeow:eventTime / eventInterval + gmeow:eventLocation replace them."""
-    g = _graph()
-    prop_types = (OWL.ObjectProperty, OWL.DatatypeProperty, OWL.AnnotationProperty)
-    for local in _FORMER_FLAT_PROPERTIES:
-        old = URIRef(GMEOW + local)
-        for pt in prop_types:
-            assert (old, RDF.type, pt) not in g, f"{local} must not exist"
-    # The structured replacements are present.
-    assert (GM.eventTime, RDF.type, OWL.DatatypeProperty) in g
-    assert (GM.eventLocation, RDF.type, OWL.ObjectProperty) in g
-    assert (GM.eventLocation, RDFS.range, GM.Location) in g
-
-
 # --------------------------------------------------------------------------- #
-# Spacetime / Trajectory (#106) — moving events and 4D spacetime slices reuse
-# LocationState and Trajectory from the locations module (#94).
-# --------------------------------------------------------------------------- #
-
-
-def test_event_trajectory_exists_and_ranges_over_trajectory() -> None:
-    g = _graph()
-    assert (GM.eventTrajectory, RDF.type, OWL.ObjectProperty) in g
-    assert (GM.eventTrajectory, RDFS.domain, GM.Event) in g
-    assert (GM.eventTrajectory, RDFS.range, GM.Trajectory) in g
-    assert (GM.eventTrajectory, RDF.type, OWL.FunctionalProperty) not in g
-
-
-def test_event_spacetime_exists_and_ranges_over_location_state() -> None:
-    g = _graph()
-    assert (GM.eventSpacetime, RDF.type, OWL.ObjectProperty) in g
-    assert (GM.eventSpacetime, RDFS.domain, GM.Event) in g
-    assert (GM.eventSpacetime, RDFS.range, GM.LocationState) in g
-    assert (GM.eventSpacetime, RDF.type, OWL.FunctionalProperty) not in g
-
-
-def test_event_spacetime_and_trajectory_are_orthogonal() -> None:
-    """No inferential bridge between eventSpacetime, eventTrajectory, eventLocation,
-    or eventInterval — each is an independent assertion axis."""
-    g = _graph()
-    for a, b in combinations(
-        ("eventSpacetime", "eventTrajectory", "eventLocation", "eventInterval"), 2
-    ):
-        na, nb = URIRef(GMEOW + a), URIRef(GMEOW + b)
-        assert (na, RDFS.subPropertyOf, nb) not in g, f"{a} ⊑ {b} forbidden"
-        assert (nb, RDFS.subPropertyOf, na) not in g, f"{b} ⊑ {a} forbidden"
-        assert (na, OWL.equivalentProperty, nb) not in g, f"{a} ≡ {b} forbidden"
-        assert (nb, OWL.equivalentProperty, na) not in g, f"{b} ≡ {a} forbidden"
-
-
-# --------------------------------------------------------------------------- #
-# Orthogonality — eventType ⟂ participationRole ⟂ temporal ⟂ location. No
-# inferential bridge, no shared value space (mirrors test_identity_orthogonality).
-# --------------------------------------------------------------------------- #
-
-# Axis representative property → its (exclusive) range class / datatype.
-_AXES: dict[str, URIRef] = {
-    "eventType": GM.EventType,
-    "participationRole": GM.ParticipantRole,
-    "eventTime": XSD.dateTime,
-    "eventLocation": GM.Location,
-}
-
-
-def test_axes_range_over_distinct_spaces() -> None:
-    g = _graph()
-    ranges: set[URIRef] = set()
-    for prop, rng in _AXES.items():
-        node = URIRef(GMEOW + prop)
-        declared = set(g.objects(node, RDFS.range))
-        assert declared == {rng}, f"{prop} must range over only {rng}"
-        ranges.add(rng)
-    assert len(ranges) == len(_AXES)  # four distinct spaces
-
-
-def test_no_axis_is_inferred_from_another() -> None:
-    g = _graph()
-    for a, b in combinations(_AXES, 2):
-        na, nb = URIRef(GMEOW + a), URIRef(GMEOW + b)
-        assert (na, RDFS.subPropertyOf, nb) not in g, f"{a} ⊑ {b} forbidden"
-        assert (nb, RDFS.subPropertyOf, na) not in g, f"{b} ⊑ {a} forbidden"
-        assert (na, OWL.equivalentProperty, nb) not in g
-        assert (nb, OWL.equivalentProperty, na) not in g
-
-
-# --------------------------------------------------------------------------- #
-# DL-clean datatypes (Principle 3) — base triples use xsd:dateTime, never
-# xsd:date (which is not in the OWL 2 datatype map).
-# --------------------------------------------------------------------------- #
-
-
-def test_temporal_datatypes_are_datetime_not_date() -> None:
-    g = _graph()
-    for prop in ("eventTime", "earliestStart", "latestEnd"):
-        node = URIRef(GMEOW + prop)
-        assert (node, RDFS.range, XSD.dateTime) in g, f"{prop} must range xsd:dateTime"
-        assert (node, RDFS.range, XSD.date) not in g, f"{prop} must not range xsd:date"
-
-
-# --------------------------------------------------------------------------- #
-# Relator mediation axiom (#38) — open-world EL someValuesFrom; closed-world
-# cardinality is SHACL's (ParticipationHasPlayersShape).
+# Relator mediation axiom (#38) -- blank-node restriction walk.
+# Not migratable: inspects owl:Restriction bnodes via g.objects() + g.items().
 # --------------------------------------------------------------------------- #
 
 
@@ -252,50 +174,6 @@ def test_participation_mediation_axiom_present() -> None:
             if on == GM.participationParticipant:
                 assert some == GM.Entity
     assert {GM.participationEvent, GM.participationParticipant} <= mediated
-
-
-# --------------------------------------------------------------------------- #
-# Value-vocabulary membership — the seeds are individuals, the set is open.
-# --------------------------------------------------------------------------- #
-
-
-def test_participant_role_vocabulary_seeded() -> None:
-    g = _graph()
-    roles = set(g.subjects(RDF.type, GM.ParticipantRole))
-    for role in (
-        "roleParticipantPrincipal",
-        "roleOrganizer",
-        "roleAttendee",
-        "rolePerformer",
-        "roleOfficiant",
-        "roleWitness",
-        "roleVictim",
-        "roleAgent",
-        "roleBeneficiary",
-    ):
-        assert URIRef(GMEOW + role) in roles
-
-
-def test_temporal_precision_vocabulary_seeded() -> None:
-    # An OPEN value vocabulary — assert the seeds are PRESENT (superset), never that
-    # the set is closed, so a future seed (or a data-minted value) doesn't break it.
-    g = _graph()
-    members = set(g.subjects(RDF.type, GM.TemporalPrecision))
-    assert {
-        GM.precisionDay,
-        GM.precisionMonth,
-        GM.precisionYear,
-        GM.precisionDecade,
-        GM.precisionCirca,
-    } <= members
-
-
-def test_subevent_mereology_is_transitive() -> None:
-    g = _graph()
-    assert (GM.subEventOf, RDF.type, OWL.TransitiveProperty) in g
-    assert (GM.hasSubEvent, RDF.type, OWL.TransitiveProperty) in g
-    # Non-simple (transitive) ⇒ never in a cardinality/functional axiom.
-    assert (GM.subEventOf, RDF.type, OWL.FunctionalProperty) not in g
 
 
 # --------------------------------------------------------------------------- #
@@ -316,46 +194,26 @@ def test_malformed_participation_is_flagged() -> None:
 
 
 # --------------------------------------------------------------------------- #
-# Standpoint coexistence — contested event-type / date claims COEXIST, none
-# privileged, no preferred/primary term (consume #43). The events slice is a
-# consumer of the standpoint facility, not a re-specifier.
+# Standpoint coexistence -- multi-file ABox fixture + run_shacl() + object sweep.
 # --------------------------------------------------------------------------- #
 
 
 def test_contested_event_claims_coexist_and_validate() -> None:
     """Two contradictory standpoint-indexed eventType claims (genocide vs armed
-    clash) load, SHACL-pass, and are BOTH retained — neither is the ground truth."""
+    clash) load, SHACL-pass, and are BOTH retained -- neither is the ground truth.
+    """
     g = Graph().parse(COVERAGE_FIXTURES / "events-contested.ttl", format="turtle")
     result = run_shacl(g)
     assert result.ok, "\n".join(result.errors)
     types = set(g.objects(EX_EVENTS.disputedEvent, GM.eventType))
     assert {EX_EVENTS.eventTypeGenocide, EX_EVENTS.eventTypeArmedClash} <= types
-    # A contested date likewise coexists — two instants, neither privileged.
+    # A contested date likewise coexists -- two instants, neither privileged.
     dates = set(g.objects(EX_EVENTS.disputedEvent, GM.eventTime))
     assert len(dates) == 2
 
 
-def test_no_preferred_or_primary_event_term() -> None:
-    """Co-equality (Principle 9): the events module mints no primary*/preferred*
-    selector for a contested type, role, date, or location."""
-    g = _graph()
-    prop_types = (OWL.ObjectProperty, OWL.DatatypeProperty, OWL.AnnotationProperty)
-    for banned in (
-        "primaryEventType",
-        "preferredEventType",
-        "primaryParticipant",
-        "preferredParticipant",
-        "primaryClaim",
-        "preferredRank",
-    ):
-        node = URIRef(GMEOW + banned)
-        for pt in prop_types:
-            assert (node, RDF.type, pt) not in g, f"{banned} must not exist"
-        assert (node, RDF.type, OWL.Class) not in g
-
-
 # --------------------------------------------------------------------------- #
-# Projections — the reified, multi-modal event downcasts to flat consumer forms.
+# Projections -- the reified, multi-modal event downcasts to flat consumer forms.
 # schema.org event roles + the iCalendar VEVENT profile (maximally projected).
 # --------------------------------------------------------------------------- #
 
@@ -374,7 +232,7 @@ def _events_projected(profile: str) -> Graph:
 
 
 def test_schema_role_projection_keys_by_role() -> None:
-    """The reified Participation downcasts to the role-keyed flat schema.org edges —
+    """The reified Participation downcasts to the role-keyed flat schema.org edges --
     each role lands on its own predicate, not all three together."""
     out = _events_projected("schema-org")
     assert EX_EVENTS.casey in set(out.objects(EX_EVENTS.reception, SCHEMA.organizer))
@@ -385,10 +243,10 @@ def test_schema_role_projection_keys_by_role() -> None:
 
 
 def test_schema_role_projection_suppresses_withdrawn_participation() -> None:
-    """A superseded participation (gmeow:displayable false) is NOT projected — the
+    """A superseded participation (gmeow:displayable false) is NOT projected -- the
     flat downcast honours suppression-not-erasure (Principle 10)."""
     out = _events_projected("schema-org")
-    # ex:erin's attendee participation is displayable false → must be dropped.
+    # ex:erin's attendee participation is displayable false -> must be dropped.
     assert EX_EVENTS.erin not in set(out.objects(EX_EVENTS.reception, SCHEMA.attendee))
 
 
@@ -415,7 +273,7 @@ def test_ical_vevent_point_has_start_only() -> None:
 
 
 def test_ical_vevent_fuzzy_spans_the_bounds() -> None:
-    """A circa-dated event becomes a VEVENT spanning earliestStart→latestEnd."""
+    """A circa-dated event becomes a VEVENT spanning earliestStart->latestEnd."""
     out = _events_projected("ical")
     starts = {str(o) for o in out.objects(EX_EVENTS.siege, ICAL.dtstart)}
     ends = {str(o) for o in out.objects(EX_EVENTS.siege, ICAL.dtend)}
@@ -430,87 +288,21 @@ def test_ical_summary_is_the_event_type_label() -> None:
     assert "marriage" in summaries
 
 
-# --------------------------------------------------------------------------- #
-# Temporal relations — Allen's interval algebra over events (OWL-Time / TEO /
-# ISO-TimeML interop). DL-clean: transitive/symmetric, never in cardinality.
-# --------------------------------------------------------------------------- #
-
-# Allen relation → (inverse local name or None if symmetric, is-transitive).
-_ALLEN: dict[str, tuple[str | None, bool]] = {
-    "before": ("after", True),
-    "after": ("before", True),
-    "meets": ("metBy", False),
-    "metBy": ("meets", False),
-    "overlaps": ("overlappedBy", False),
-    "overlappedBy": ("overlaps", False),
-    "starts": ("startedBy", False),
-    "startedBy": ("starts", False),
-    "during": ("contains", True),
-    "contains": ("during", True),
-    "finishes": ("finishedBy", False),
-    "finishedBy": ("finishes", False),
-    "coincidesWith": (None, True),  # symmetric
-}
-
-
-def test_allen_relations_exist_on_events() -> None:
-    g = _graph()
-    for rel in _ALLEN:
-        node = URIRef(GMEOW + rel)
-        assert (node, RDF.type, OWL.ObjectProperty) in g, f"{rel} must exist"
-        assert (node, RDFS.domain, GM.Event) in g, f"{rel} domain Event"
-        assert (node, RDFS.range, GM.Event) in g, f"{rel} range Event"
-
-
-def test_allen_inverses_and_characters() -> None:
-    """before/after + during/contains are transitive; coincidesWith is symmetric +
-    transitive; the rest are inverse-only — and none is functional (DL regularity)."""
-    g = _graph()
-    for rel, (inverse, transitive) in _ALLEN.items():
-        node = URIRef(GMEOW + rel)
-        if transitive:
-            assert (node, RDF.type, OWL.TransitiveProperty) in g, f"{rel} transitive"
-        # Never functional/inverse-functional (non-simple ⇒ OWL 2 DL regularity).
-        assert (node, RDF.type, OWL.FunctionalProperty) not in g
-        if inverse is None:
-            assert (node, RDF.type, OWL.SymmetricProperty) in g, f"{rel} symmetric"
-        else:
-            inv = URIRef(GMEOW + inverse)
-            assert (node, OWL.inverseOf, inv) in g or (inv, OWL.inverseOf, node) in g
-
-
-def test_duration_and_recurrence_terms() -> None:
-    g = _graph()
-    assert (GM.Duration, RDF.type, OWL.Class) in g
-    assert (GM.durationValue, RDFS.range, XSD.duration) in g  # DL-clean xsd:duration
-    assert (GM.RecurrenceRule, RDFS.subClassOf, GM.InformationObject) in g
-    assert (GM.hasRecurrenceRule, RDFS.domain, GM.EventSeries) in g
-
-
-def test_timeml_tense_and_aspect_value_vocabs() -> None:
-    g = _graph()
-    tenses = set(g.subjects(RDF.type, GM.GrammaticalTense))
-    assert {GM.tensePast, GM.tensePresent, GM.tenseFuture, GM.tenseNone} <= tenses
-    aspects = set(g.subjects(RDF.type, GM.GrammaticalAspect))
-    assert {GM.aspectPerfective, GM.aspectProgressive, GM.aspectNone} <= aspects
-    # Tense/aspect are an annotation axis — never bridged to the temporal placement.
-    assert (GM.eventTense, RDFS.subPropertyOf, GM.eventTime) not in g
-    assert (GM.eventAspect, RDFS.subPropertyOf, GM.eventTime) not in g
-
-
 def test_owl_time_projection_emits_pure_interval_relations() -> None:
     """The owl-time profile downcasts each Allen relation to OWL-Time's interval*
-    relation, 1:1 — and no relation bleeds across (distinct CONSTRUCT variables)."""
+    relation, 1:1 -- and no relation bleeds across (distinct CONSTRUCT variables).
+    """
     out = _events_projected("owl-time")
     assert (EX_EVENTS.dawn, TIME.intervalBefore, EX_EVENTS.noon) in out
     assert (EX_EVENTS.conference, TIME.intervalContains, EX_EVENTS.keynote) in out
-    # dawn→noon is ONLY intervalBefore, not all 13 relations (no var aliasing).
+    # dawn->noon is ONLY intervalBefore, not all 13 relations (no var aliasing).
     dawn_noon = {p for _, p, o in out if _ == EX_EVENTS.dawn and o == EX_EVENTS.noon}
     assert dawn_noon == {TIME.intervalBefore}
 
 
 # --------------------------------------------------------------------------- #
-# ObservationalActivity and observation linkage (#128).
+# ObservationalActivity and observation linkage (#128) -- cross-slice assertion.
+# The Activity rdfs:subClassOf Event assertion is cross-slice (provenance module).
 # --------------------------------------------------------------------------- #
 
 
@@ -519,69 +311,20 @@ def test_observational_activity_is_subclass_of_activity_and_event() -> None:
     assert (GM.ObservationalActivity, RDF.type, OWL.Class) in g
     assert (GM.ObservationalActivity, RDFS.subClassOf, GM.Activity) in g
     # Activity is already a subclass of Event, so transitively
-    # ObservationalActivity ⊑ Event.
+    # ObservationalActivity <= Event. Activity is cross-slice (provenance module).
     assert (GM.Activity, RDFS.subClassOf, GM.Event) in g
 
 
-def test_observational_activity_is_not_observation_subclass() -> None:
-    """ObservationalActivity is an Event/Activity, NOT an Observation subclass
-    (the name sounds similar but the taxonomic placement is the event stack)."""
-    g = _graph()
-    assert (GM.ObservationalActivity, RDFS.subClassOf, GM.Observation) not in g
-
-
-def test_generated_observation_exists_and_is_dl_regular() -> None:
-    g = _graph()
-    assert (GM.generatedObservation, RDF.type, OWL.ObjectProperty) in g
-    assert (GM.generatedObservation, RDFS.domain, GM.ObservationalActivity) in g
-    assert (GM.generatedObservation, RDFS.range, GM.Observation) in g
-    # DL regularity: must be a simple property (no transitivity, symmetry,
-    # functionality).
-    assert (GM.generatedObservation, RDF.type, OWL.TransitiveProperty) not in g
-    assert (GM.generatedObservation, RDF.type, OWL.SymmetricProperty) not in g
-    assert (GM.generatedObservation, RDF.type, OWL.FunctionalProperty) not in g
-
-
-def test_event_observation_is_inverse_of_observation_event() -> None:
-    g = _graph()
-    assert (GM.eventObservation, RDF.type, OWL.ObjectProperty) in g
-    assert (GM.eventObservation, RDFS.domain, GM.Event) in g
-    assert (GM.eventObservation, RDFS.range, GM.Observation) in g
-    assert (GM.eventObservation, OWL.inverseOf, GM.observationEvent) in g or (
-        GM.observationEvent,
-        OWL.inverseOf,
-        GM.eventObservation,
-    ) in g
-    assert (GM.eventObservation, RDF.type, OWL.FunctionalProperty) not in g
-
-
-def test_observational_event_types_are_value_individuals() -> None:
-    """The observational event types added in #128 are EventType VALUE individuals,
-    never classes — the same anti-subclass guard as the former genealogy types."""
-    g = _graph()
-    for local in (
-        "eventTypeCensusActivity",
-        "eventTypeSurvey",
-        "eventTypeExcavation",
-        "eventTypeAudit",
-        "eventTypeClinicalTrial",
-    ):
-        node = URIRef(GMEOW + local)
-        assert (node, RDF.type, GM.EventType) in g, (
-            f"{local} must be an EventType value"
-        )
-        assert (node, RDF.type, OWL.Class) not in g, f"{local} must not be a class"
-
-
-def test_census_event_type_still_exists() -> None:
-    """eventTypeCensus existed before #128 and must still be present."""
-    g = _graph()
-    assert (GM.eventTypeCensus, RDF.type, GM.EventType) in g
+# --------------------------------------------------------------------------- #
+# Property chain: generatedObservation + vantage -- bnode list walk.
+# Not migratable: inspects owl:propertyChainAxiom blank-node list via
+# g.objects() + g.items() to verify the exact member order.
+# --------------------------------------------------------------------------- #
 
 
 def test_observational_activity_chain_on_was_associated_with() -> None:
-    """The DL-regular property chain generatedObservation ∘ vantage ⊑ wasAssociatedWith
-    is present in the ontology with the exact ordered sequence."""
+    """The DL-regular property chain generatedObservation o vantage
+    =< wasAssociatedWith is present with the exact ordered sequence."""
     g = _graph()
     chains = list(g.objects(GM.wasAssociatedWith, OWL.propertyChainAxiom))
     assert chains, "wasAssociatedWith must have at least one property chain axiom"
@@ -597,22 +340,5 @@ def test_observational_activity_chain_on_was_associated_with() -> None:
             break
     assert found, (
         "wasAssociatedWith must have a chain containing "
-        "generatedObservation ∘ vantage in that order"
+        "generatedObservation o vantage in that order"
     )
-
-
-def test_no_primary_preferred_observation_term() -> None:
-    """Principle 9: no primary/preferred selector for observations or activities,
-    neither as properties nor as classes."""
-    g = _graph()
-    prop_types = (OWL.ObjectProperty, OWL.DatatypeProperty, OWL.AnnotationProperty)
-    for banned in (
-        "primaryObservation",
-        "preferredObservation",
-        "primaryActivity",
-        "preferredActivity",
-    ):
-        node = URIRef(GMEOW + banned)
-        for pt in prop_types:
-            assert (node, RDF.type, pt) not in g, f"{banned} must not exist"
-        assert (node, RDF.type, OWL.Class) not in g, f"{banned} must not exist"

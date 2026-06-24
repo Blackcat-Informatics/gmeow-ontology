@@ -1,0 +1,397 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Declarative structural assertions for the finance slice (#64) -- the
+# slice-resident test-DSL twin of the asserted-TBox MUST / MUST-NOT
+# invariants formerly hand-written in tests/test_finance.py. Each
+# assertion runs as a SPARQL ASK over the finance module graph
+# (gmeow:scopeModule) under the native Rust slicetest harness
+# (crates/slicetest).
+#
+# Finance is NOT yet #694-migrated: class stereotypes remain gufo:
+# (gufo:Kind, gufo:SubKind, gufo:EventType, gufo:AbstractIndividualType,
+# gufo:QualityValue, gufo:Relator), not logic:.
+#
+# RETAINED in pytest (not migratable here):
+#   test_monetary_amount_is_entity -- gmeow:MonetaryAmount is defined in
+#     a cross-slice module, not the finance module; a scopeModule cell
+#     would silently miss it.
+#   test_monetary_value_is_functional -- gmeow:monetaryValue is a
+#     cross-slice property (MonetaryAmount layer); same reason.
+#   test_currency_is_functional -- gmeow:currency is a cross-slice
+#     property; same reason.
+#   test_currency_is_subproperty_of_has_reference_frame -- gmeow:currency
+#     is cross-slice; same reason.
+#   test_currency_frames_have_realm_currency -- gmeow:referenceFrameUSD
+#     etc. are reference-frame individuals defined outside finance; cross-
+#     slice dynamic check.
+#   test_no_transaction_subclass_explosion -- whole-graph sweep asserting
+#     absence of PaymentTransaction / InvoiceTransaction /
+#     TransferTransaction as owl:Class; dynamic, not module-scoped.
+#   test_finance_fixture_conforms -- run_shacl() call; ExampleConformance.
+#   test_double_entry_fixture_conforms -- run_shacl() call;
+#     ExampleConformance.
+#   test_invoice_fixture_conforms -- run_shacl() call; ExampleConformance.
+#   test_order_fixture_conforms -- run_shacl() call; ExampleConformance.
+#   test_holding_fixture_conforms -- run_shacl() call; ExampleConformance.
+#   test_crypto_fixture_conforms -- run_shacl() call; ExampleConformance.
+#   test_currency_vocab_is_open_values_not_subclasses (negative half) --
+#     absence of BankAccount / CreditAccount / InvestmentAccount /
+#     WalletAccount as owl:Class; dynamic whole-graph sweep.
+#   test_transaction_type_vocab_is_open_values (negative half) --
+#     absence of PaymentTransaction / InvoiceTransaction /
+#     TransferTransaction / DebitPosting / CreditPosting as owl:Class;
+#     dynamic whole-graph sweep.
+#   test_asset_type_vocab_is_open_values (negative half) -- absence of
+#     StockAsset / BondAsset / CryptoAsset as owl:Class; dynamic sweep.
+#   test_transaction_uses_participation_not_subproperty (negative half) --
+#     absence of hasPayer / hasPayee / hasIntermediary as
+#     owl:ObjectProperty; dynamic whole-graph sweep.
+#
+# See dsl/tests/MIGRATION-LEDGER.md for the per-test pytest->DSL mapping.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/finance/tests/> .
+
+# --- 1. FinancialAccount is a gufo:Kind subclass of InformationObject (MUST) --
+ex:saFinancialAccountIsInformationObject a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:FinancialAccount a owl:Class , gufo:Kind ;
+        rdfs:subClassOf gmeow:InformationObject .
+}""" ;
+    gmeow:saRationale "gmeow:FinancialAccount MUST be an owl:Class typed gufo:Kind and a subclass of gmeow:InformationObject -- a financial account is an information construct (IBAN, account number, balance record), not a physical object. Mirrors test_financial_account_is_information_object." .
+
+# --- 2. Four FinancialAccountType seed individuals exist (MUST) ---------------
+ex:saFinancialAccountTypeSeeds a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    gmeow:accountTypeBank       a gmeow:FinancialAccountType .
+    gmeow:accountTypeCredit     a gmeow:FinancialAccountType .
+    gmeow:accountTypeInvestment a gmeow:FinancialAccountType .
+    gmeow:accountTypeWallet     a gmeow:FinancialAccountType .
+}""" ;
+    gmeow:saRationale "The four mandatory FinancialAccountType seed individuals (bank, credit, investment, wallet) MUST exist as open-vocabulary values, not as subclasses of FinancialAccount (Principle 9, no subclass explosion). Mirrors test_currency_vocab_is_open_values_not_subclasses (positive part)." .
+
+# --- 3. accountCurrency is an owl:ObjectProperty (MUST) -----------------------
+ex:saAccountCurrencyIsObjectProperty a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:accountCurrency a owl:ObjectProperty . }""" ;
+    gmeow:saRationale "gmeow:accountCurrency MUST be an owl:ObjectProperty. Mirrors test_account_currency_is_non_functional (ObjectProperty part)." .
+
+# --- 4. accountCurrency is NOT functional (MUST-NOT) --------------------------
+ex:saAccountCurrencyNotFunctional a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:accountCurrency a owl:FunctionalProperty . }""" ;
+    gmeow:saRationale "gmeow:accountCurrency MUST NOT be owl:FunctionalProperty -- a single account may hold balances in several currencies; the functional constraint moves to Posting/Holding relators. Mirrors test_account_currency_is_non_functional (mustNot-functional part)." .
+
+# --- 5. FinancialTransaction is a gufo:EventType subclass of Event (MUST) -----
+ex:saFinancialTransactionIsEvent a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:FinancialTransaction a owl:Class , gufo:EventType ;
+        rdfs:subClassOf gmeow:Event .
+}""" ;
+    gmeow:saRationale "gmeow:FinancialTransaction MUST be an owl:Class typed gufo:EventType and a subclass of gmeow:Event -- money movement reuses the Event/Participation substrate; payer, payee, and intermediary are ParticipantRole values on Participation relators. Mirrors test_financial_transaction_is_event." .
+
+# --- 6. JournalEntry is a gufo:EventType subclass of Event (MUST) -------------
+ex:saJournalEntryIsEvent a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:JournalEntry a owl:Class , gufo:EventType ;
+        rdfs:subClassOf gmeow:Event .
+}""" ;
+    gmeow:saRationale "gmeow:JournalEntry MUST be an owl:Class typed gufo:EventType and a subclass of gmeow:Event -- a balanced double-entry bookkeeping event is a temporal occurrence. Mirrors test_journal_entry_is_event." .
+
+# --- 7. Posting is a gufo:Kind subclass of gufo:Relator (MUST) ----------------
+ex:saPostingIsRelator a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:Posting a owl:Class , gufo:Kind ;
+        rdfs:subClassOf gufo:Relator .
+}""" ;
+    gmeow:saRationale "gmeow:Posting MUST be an owl:Class typed gufo:Kind and a subclass of gufo:Relator -- a posting is the atomic unit of double-entry bookkeeping, reifying the journal-entry x ledger-account x amount x direction tuple. Mirrors test_posting_is_relator." .
+
+# --- 8. LedgerAccount is a gufo:Kind subclass of InformationObject (MUST) -----
+ex:saLedgerAccountIsInformationObject a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:LedgerAccount a owl:Class , gufo:Kind ;
+        rdfs:subClassOf gmeow:InformationObject .
+}""" ;
+    gmeow:saRationale "gmeow:LedgerAccount MUST be an owl:Class typed gufo:Kind and a subclass of gmeow:InformationObject -- a book-keeping account is a conceptual information construct, distinct from a bank-level FinancialAccount. Mirrors test_ledger_account_is_information_object." .
+
+# --- 9. Seven TransactionType seed individuals exist (MUST) -------------------
+ex:saTransactionTypeSeeds a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    gmeow:transactionTypePayment    a gmeow:TransactionType .
+    gmeow:transactionTypeTransfer   a gmeow:TransactionType .
+    gmeow:transactionTypeDeposit    a gmeow:TransactionType .
+    gmeow:transactionTypeWithdrawal a gmeow:TransactionType .
+    gmeow:transactionTypeFee        a gmeow:TransactionType .
+    gmeow:transactionTypeInterest   a gmeow:TransactionType .
+    gmeow:transactionTypeRefund     a gmeow:TransactionType .
+}""" ;
+    gmeow:saRationale "The seven mandatory TransactionType seed individuals (payment, transfer, deposit, withdrawal, fee, interest, refund) MUST exist as open-vocabulary values, never as FinancialTransaction subclasses (Principle 9). Mirrors test_transaction_type_vocab_is_open_values (TransactionType part)." .
+
+# --- 10. Four TransactionStatus seed individuals exist (MUST) -----------------
+ex:saTransactionStatusSeeds a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    gmeow:transactionStatusPending   a gmeow:TransactionStatus .
+    gmeow:transactionStatusCompleted a gmeow:TransactionStatus .
+    gmeow:transactionStatusReversed  a gmeow:TransactionStatus .
+    gmeow:transactionStatusFailed    a gmeow:TransactionStatus .
+}""" ;
+    gmeow:saRationale "The four mandatory TransactionStatus seed individuals (pending, completed, reversed, failed) MUST exist as open-vocabulary values (Principle 9). Mirrors test_transaction_type_vocab_is_open_values (TransactionStatus part)." .
+
+# --- 11. Five LedgerAccountType seed individuals exist (MUST) -----------------
+ex:saLedgerAccountTypeSeeds a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    gmeow:ledgerAccountTypeAsset     a gmeow:LedgerAccountType .
+    gmeow:ledgerAccountTypeLiability a gmeow:LedgerAccountType .
+    gmeow:ledgerAccountTypeEquity    a gmeow:LedgerAccountType .
+    gmeow:ledgerAccountTypeRevenue   a gmeow:LedgerAccountType .
+    gmeow:ledgerAccountTypeExpense   a gmeow:LedgerAccountType .
+}""" ;
+    gmeow:saRationale "The five mandatory LedgerAccountType seed individuals (asset, liability, equity, revenue, expense) MUST exist as open-vocabulary values, never as LedgerAccount subclasses (Principle 9). Mirrors test_transaction_type_vocab_is_open_values (LedgerAccountType part)." .
+
+# --- 12. Two PostingDirection seed individuals exist (MUST) -------------------
+ex:saPostingDirectionSeeds a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    gmeow:postingDirectionDebit  a gmeow:PostingDirection .
+    gmeow:postingDirectionCredit a gmeow:PostingDirection .
+}""" ;
+    gmeow:saRationale "The two PostingDirection seed individuals (debit, credit) MUST exist as open-vocabulary values, never as Posting subclasses (Principle 9). Mirrors test_transaction_type_vocab_is_open_values (PostingDirection part)." .
+
+# --- 13. Three ParticipantRole individuals seed transaction roles (MUST) ------
+ex:saTransactionRoleSeeds a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    gmeow:rolePayer        a gmeow:ParticipantRole .
+    gmeow:rolePayee        a gmeow:ParticipantRole .
+    gmeow:roleIntermediary a gmeow:ParticipantRole .
+}""" ;
+    gmeow:saRationale "gmeow:rolePayer, rolePayee, and roleIntermediary MUST exist as gmeow:ParticipantRole individuals -- transaction participants are reused from the Event/Participation substrate, never as hasPayer/hasPayee subproperties. Mirrors test_transaction_uses_participation_not_subproperty (positive part)." .
+
+# --- 14. transactionAmount is functional (MUST) --------------------------------
+ex:saTransactionAmountFunctional a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    gmeow:transactionAmount a owl:ObjectProperty , owl:FunctionalProperty .
+}""" ;
+    gmeow:saRationale "gmeow:transactionAmount MUST be owl:ObjectProperty and owl:FunctionalProperty -- a single transaction occurrence has one canonical amount; disputed amounts are standpoint-indexed claims on separate statements. Mirrors test_transaction_amount_is_functional." .
+
+# --- 15. Four posting properties are ObjectProperty and functional (MUST) -----
+ex:saPostingPropertiesFunctional a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    gmeow:postingJournalEntry a owl:ObjectProperty , owl:FunctionalProperty .
+    gmeow:postingAccount      a owl:ObjectProperty , owl:FunctionalProperty .
+    gmeow:postingAmount       a owl:ObjectProperty , owl:FunctionalProperty .
+    gmeow:postingDirection    a owl:ObjectProperty , owl:FunctionalProperty .
+}""" ;
+    gmeow:saRationale "gmeow:postingJournalEntry, postingAccount, postingAmount, and postingDirection MUST each be owl:ObjectProperty and owl:FunctionalProperty -- a posting belongs to exactly one journal entry, affects exactly one ledger account, has exactly one amount, and is exactly one direction. Mirrors test_posting_properties_are_functional." .
+
+# --- 16. Payment is a subclass of FinancialTransaction (MUST) -----------------
+ex:saPaymentIsFinancialTransaction a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK { gmeow:Payment rdfs:subClassOf gmeow:FinancialTransaction . }""" ;
+    gmeow:saRationale "gmeow:Payment MUST be a subclass of gmeow:FinancialTransaction -- a payment event is a thin FinancialTransaction specialization distinguished by the paymentMethod facet. Mirrors test_payment_is_financial_transaction." .
+
+# --- 17. Invoice is a subclass of Document (MUST) ----------------------------
+ex:saInvoiceIsDocument a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK { gmeow:Invoice rdfs:subClassOf gmeow:Document . }""" ;
+    gmeow:saRationale "gmeow:Invoice MUST be a subclass of gmeow:Document -- a billing document is reused from the Document substrate; no re-minting. Mirrors test_invoice_is_document." .
+
+# --- 18. Order is a subclass of Agreement (MUST) ------------------------------
+ex:saOrderIsAgreement a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK { gmeow:Order rdfs:subClassOf gmeow:Agreement . }""" ;
+    gmeow:saRationale "gmeow:Order MUST be a subclass of gmeow:Agreement -- a purchase order is an agreement between buyer and seller; reuses Agreement, no re-minting. Mirrors test_order_is_agreement." .
+
+# --- 19. Five AssetType seed individuals exist (MUST) -------------------------
+ex:saAssetTypeSeeds a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    gmeow:assetTypeStock          a gmeow:AssetType .
+    gmeow:assetTypeBond           a gmeow:AssetType .
+    gmeow:assetTypeCryptocurrency a gmeow:AssetType .
+    gmeow:assetTypeRealEstate     a gmeow:AssetType .
+    gmeow:assetTypeCommodity      a gmeow:AssetType .
+}""" ;
+    gmeow:saRationale "The five mandatory AssetType seed individuals (stock, bond, cryptocurrency, real estate, commodity) MUST exist as open-vocabulary values, never as Asset subclasses (Principle 9). Mirrors test_asset_type_vocab_is_open_values (positive part)." .
+
+# --- 20. Five PaymentMethod seed individuals exist (MUST) ---------------------
+ex:saPaymentMethodSeeds a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    gmeow:paymentMethodCash         a gmeow:PaymentMethod .
+    gmeow:paymentMethodCheque       a gmeow:PaymentMethod .
+    gmeow:paymentMethodCreditCard   a gmeow:PaymentMethod .
+    gmeow:paymentMethodBankTransfer a gmeow:PaymentMethod .
+    gmeow:paymentMethodCrypto       a gmeow:PaymentMethod .
+}""" ;
+    gmeow:saRationale "The five mandatory PaymentMethod seed individuals (cash, cheque, credit card, bank transfer, cryptocurrency) MUST exist as open-vocabulary values. Mirrors test_payment_invoice_order_vocab_is_open_values (PaymentMethod part)." .
+
+# --- 21. Four InvoiceStatus seed individuals exist (MUST) --------------------
+ex:saInvoiceStatusSeeds a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    gmeow:invoiceStatusSent      a gmeow:InvoiceStatus .
+    gmeow:invoiceStatusPaid      a gmeow:InvoiceStatus .
+    gmeow:invoiceStatusOverdue   a gmeow:InvoiceStatus .
+    gmeow:invoiceStatusCancelled a gmeow:InvoiceStatus .
+}""" ;
+    gmeow:saRationale "The four mandatory InvoiceStatus seed individuals (sent, paid, overdue, cancelled) MUST exist as open-vocabulary values, never as Invoice subclasses. Mirrors test_payment_invoice_order_vocab_is_open_values (InvoiceStatus part)." .
+
+# --- 22. Four OrderStatus seed individuals exist (MUST) ----------------------
+ex:saOrderStatusSeeds a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    gmeow:orderStatusConfirmed a gmeow:OrderStatus .
+    gmeow:orderStatusShipped   a gmeow:OrderStatus .
+    gmeow:orderStatusDelivered a gmeow:OrderStatus .
+    gmeow:orderStatusCancelled a gmeow:OrderStatus .
+}""" ;
+    gmeow:saRationale "The four mandatory OrderStatus seed individuals (confirmed, shipped, delivered, cancelled) MUST exist as open-vocabulary values, never as Order subclasses. Mirrors test_payment_invoice_order_vocab_is_open_values (OrderStatus part)." .
+
+# --- 23. Four WalletScheme seed individuals exist (MUST) ----------------------
+ex:saWalletSchemeSeeds a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+ASK {
+    gmeow:walletSchemeBTC a gmeow:WalletScheme .
+    gmeow:walletSchemeETH a gmeow:WalletScheme .
+    gmeow:walletSchemeSOL a gmeow:WalletScheme .
+    gmeow:walletSchemeXMR a gmeow:WalletScheme .
+}""" ;
+    gmeow:saRationale "The four mandatory WalletScheme seed individuals (BTC, ETH, SOL, XMR) MUST exist as open-vocabulary values, never as CryptoWallet subclasses (Principle 9). Mirrors test_wallet_scheme_vocab_is_open_values." .
+
+# --- 24. Holding is a gufo:Kind subclass of gufo:Relator (MUST) ---------------
+ex:saHoldingIsRelator a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:Holding a owl:Class , gufo:Kind ;
+        rdfs:subClassOf gufo:Relator .
+}""" ;
+    gmeow:saRationale "gmeow:Holding MUST be an owl:Class typed gufo:Kind and a subclass of gufo:Relator -- a holding reifies the agent x asset x quantity x cost-basis x period tuple; promote from flat accountBalance when provenance matters. Mirrors test_holding_is_relator." .
+
+# --- 25. CryptoWallet is a gufo:SubKind subclass of FinancialAccount (MUST) ---
+ex:saCryptoWalletIsFinancialAccount a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:CryptoWallet a owl:Class , gufo:SubKind ;
+        rdfs:subClassOf gmeow:FinancialAccount .
+}""" ;
+    gmeow:saRationale "gmeow:CryptoWallet MUST be an owl:Class typed gufo:SubKind and a subclass of gmeow:FinancialAccount -- a crypto wallet is a financial-existence account with wallet-specific properties (address, scheme, key). Mirrors test_crypto_wallet_is_financial_account." .
+
+# --- 26. walletAddress is a DatatypeProperty (MUST) ---------------------------
+ex:saWalletAddressIsDatatype a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:walletAddress a owl:DatatypeProperty . }""" ;
+    gmeow:saRationale "gmeow:walletAddress MUST be an owl:DatatypeProperty. Mirrors test_wallet_address_non_functional (DatatypeProperty part)." .
+
+# --- 27. walletAddress is NOT functional (MUST-NOT) ---------------------------
+ex:saWalletAddressNotFunctional a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK { gmeow:walletAddress a owl:FunctionalProperty . }""" ;
+    gmeow:saRationale "gmeow:walletAddress MUST NOT be owl:FunctionalProperty -- a single HD wallet may have multiple addresses (derivation paths). Mirrors test_wallet_address_non_functional (mustNot-functional part)." .
+
+# --- 28. walletScheme is ObjectProperty and functional (MUST) -----------------
+ex:saWalletSchemeIsFunctional a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+ASK {
+    gmeow:walletScheme a owl:ObjectProperty , owl:FunctionalProperty .
+}""" ;
+    gmeow:saRationale "gmeow:walletScheme MUST be owl:ObjectProperty and owl:FunctionalProperty -- a wallet operates on exactly one blockchain scheme; a multi-scheme container is several wallets. Mirrors test_wallet_scheme_is_functional." .
