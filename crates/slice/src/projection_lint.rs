@@ -271,7 +271,11 @@ fn fno_reference_integrity(
                         continue;
                     };
                     let iri = nn.as_str();
-                    let local = iri.rsplit('/').next().unwrap_or(iri);
+                    // Last path segment — split on `/` OR `#`, matching the sibling
+                    // `fno_emit::local` helper. A future-proofing superset of the retired
+                    // Python `/`-only split: no behaviour change on any current FnO IRI
+                    // (all `…/fn…`), but a `#fn…` function IRI is extracted correctly.
+                    let local = iri.rsplit(['/', '#']).next().unwrap_or(iri);
                     if local.starts_with("fn") && !defined.contains(iri) {
                         problems.push(ProjectionDiagnostic::error(
                             "fno-ref",
@@ -733,6 +737,39 @@ mod tests {
         );
         let fno = parse_ttl(&proj.join("functions.fno.ttl")).unwrap();
         assert!(fno_reference_integrity(&fno, proj).unwrap().is_empty());
+    }
+
+    /// A `#`-separated FnO function IRI has its local name extracted correctly
+    /// (split on `/` OR `#`). The retired Python `/`-only split would take
+    /// `transform#fnGamma` as the local name — not starting with `fn` — and MISS
+    /// this undefined reference; the native superset catches it.
+    #[test]
+    fn hash_separated_fno_reference_is_flagged() {
+        let tmp = tempfile::tempdir().unwrap();
+        let proj = tmp.path();
+        write_ttl(
+            &proj.join("functions.fno.ttl"),
+            "@prefix fno: <https://w3id.org/function/ontology#> .\n\
+             @prefix gm: <https://blackcatinformatics.ca/gmeow/> .\n\
+             gm:fnAlpha a fno:Function .\n",
+        );
+        // seeAlso → a `#`-namespaced undefined function (local name `fnGamma`).
+        write_ttl(
+            &proj.join("h.edoal.ttl"),
+            "@prefix align: <http://knowledgeweb.semanticweb.org/heterogeneity/alignment#> .\n\
+             @prefix edoal: <http://ns.inria.org/edoal/1.0/#> .\n\
+             @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n\
+             [] a align:Cell ; edoal:transformation \
+                [ rdfs:seeAlso <https://example.org/transform#fnGamma> ] .\n",
+        );
+        let fno = parse_ttl(&proj.join("functions.fno.ttl")).unwrap();
+        let probs = fno_reference_integrity(&fno, proj).unwrap();
+        assert_eq!(
+            probs.len(),
+            1,
+            "expected the #-separated undefined ref flagged"
+        );
+        assert!(probs[0].message.contains("fnGamma"));
     }
 
     /// The CURIE scan honors word boundaries and comment stripping, and resolves to
