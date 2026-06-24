@@ -345,7 +345,7 @@ mustNot references a real `owl:ObjectProperty` in its module.
 | `test_no_flat_orientation_shortcut` | `ex:saNoFlatOrientationShortcut` | converted | — |
 | `test_competency_orientation_values_query` | — | **retained** | reads a generated `.rq` competency file + numeric `>= 16` count guard |
 
-### `slices/extensions/connectivity` (gufo:) — 4 converted (11 cells), 3 retained
+### `slices/extensions/connectivity` (gufo:) — 4 converted (12 cells), 3 retained
 
 | Pytest fn | DSL cell IRI(s) | Status | Reason if retained |
 |---|---|---|---|
@@ -357,7 +357,7 @@ mustNot references a real `owl:ObjectProperty` in its module.
 | `test_spatially_connects_to_is_symmetric_subproperty` | — | **retained** | `gmeow:spatiallyConnectsTo` cross-slice |
 | `test_genealogy_subproperties_of_connects_to` | — | **retained** | `hasSpouse`/`hasSibling`/`hasParent`/`hasChild` in the genealogy slice |
 
-### `slices/core/gender` (gufo:) — 5 converted (16 cells), 2 retained
+### `slices/core/gender` (gufo:) — 5 converted (24 cells), 2 retained
 
 | Pytest fn | DSL cell IRI(s) | Status | Reason if retained |
 |---|---|---|---|
@@ -369,7 +369,7 @@ mustNot references a real `owl:ObjectProperty` in its module.
 | `test_displayable_generalised_to_cover_identity` | — | **retained** | `gmeow:displayable` cross-slice (names slice) |
 | `test_competency_gender_values_query` | — | **retained** | generated `.rq` read + numeric `>= 11` count |
 
-### `slices/extensions/aggregation` (gufo:) — 7 converted (9 cells), 1 retained
+### `slices/extensions/aggregation` (gufo:) — 7 converted (11 cells), 1 retained
 
 | Pytest fn | DSL cell IRI(s) | Status | Reason if retained |
 |---|---|---|---|
@@ -391,7 +391,7 @@ mustNot references a real `owl:ObjectProperty` in its module.
 | `test_dual_typed_music_roles` | **retained** | all subjects cross-slice (roles in creative-works/events) |
 | `test_music_properties_functionality` | **retained** | all subjects cross-slice (`derivation*`/`hasGenre` in creative-works) |
 
-**Batch-2 tally:** 23 converted fns → 53 structural cells across 5 slices; 11
+**Batch-2 tally:** 23 converted fns → 63 structural cells across 5 slices; 11
 retained-with-reason (7 cross-slice, 3 generated-artifact/competency, 1 dynamic-set) plus music's 4 retained. Pytest fn counts: provenance 4→2, sexuality 6→1, connectivity
 7→3, gender 7→2, aggregation 8→1, music 4→4 (untouched).
 
