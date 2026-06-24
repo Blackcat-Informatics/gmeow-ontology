@@ -1,8 +1,19 @@
-"""Structural + standpoint guards for the organization module.
+"""Standpoint + fixture guards for the organization module.
 
-The organization slice consumes the #43 standpoint facility for contested facts:
-disputed membership, rival succession claims, contested recognition.
-No organization-specific dispute mechanism is minted (Principle 4, P9).
+The TBox structural assertions (gUFO grounding of Role/Membership/Post, the
+OrganizationType/SiteType seed individuals, and all 14 properties minted in
+issue #258) have been migrated to the slice-resident declarative DSL cell
+file at slices/core/organization/tests/structural.ttl (#867).
+
+Retained here (not expressible as module-scoped ASK cells):
+  * Standpoint coexistence fixtures (run_shacl over ABox fixture files).
+  * The whole-ontology Principle-9 banned-term sweep (uses the full merged
+    graph; narrowing to scopeModule would miss cross-slice violations).
+  * SHACL Warning text assertions (post/org mismatch).
+  * SHACL Violation text assertions (legal-identity malformed fixture).
+  * Graph-manipulation fixture tests (wellformed legal-identity).
+  * Cross-slice EventType seeds (eventTypeMerger/Split/... live in
+    slices/core/events/module.ttl, not here).
 """
 
 from __future__ import annotations
@@ -10,14 +21,13 @@ from __future__ import annotations
 from pathlib import Path
 
 from gmeow_rdf.compat.rdflib import Graph, Literal, Namespace, URIRef
-from gmeow_rdf.compat.rdflib.namespace import OWL, RDF, RDFS
+from gmeow_rdf.compat.rdflib.namespace import OWL, RDF
 
 from gmeow_tools.graph import load_merged_graph
 from tests._graph_nt import run_shacl
 
 GMEOW = "https://blackcatinformatics.ca/gmeow/"
 GM = Namespace(GMEOW)
-GUFO = Namespace("http://purl.org/nemo/gufo#")
 EX_ORGS = Namespace("https://blackcatinformatics.ca/gmeow/examples/organizations/")
 COVERAGE_FIXTURES = Path(__file__).parent / "fixtures" / "coverage"
 
@@ -27,19 +37,7 @@ def _graph() -> Graph:
 
 
 # --------------------------------------------------------------------------- #
-# gUFO grounding
-# --------------------------------------------------------------------------- #
-
-
-def test_organization_is_gufo_grounded() -> None:
-    g = _graph()
-    assert (GM.Role, RDF.type, OWL.Class) in g
-    assert (GM.Role, RDFS.subClassOf, URIRef(GUFO + "FunctionalComplex")) in g
-    assert (GM.Membership, RDFS.subClassOf, GUFO.Relator) in g
-
-
-# --------------------------------------------------------------------------- #
-# Standpoint coexistence — contested membership / succession (#51)
+# Standpoint coexistence -- contested membership / succession (#51)
 # --------------------------------------------------------------------------- #
 
 
@@ -92,13 +90,6 @@ def test_no_preferred_or_primary_org_term() -> None:
 # --------------------------------------------------------------------------- #
 # Post — seat independent of holder (issue #258)
 # --------------------------------------------------------------------------- #
-
-
-def test_post_is_gufo_role_mixin() -> None:
-    g = _graph()
-    assert (GM.Post, RDF.type, OWL.Class) in g
-    assert (GM.Post, RDF.type, URIRef(GUFO + "RoleMixin")) in g
-    assert (GM.Post, RDFS.subClassOf, URIRef(GUFO + "FunctionalComplex")) in g
 
 
 def test_post_seat_independent_of_holder() -> None:
@@ -205,42 +196,14 @@ def test_wellformed_legal_identifier_passes() -> None:
 
 
 # --------------------------------------------------------------------------- #
-# Organization type values (issue #258)
-# --------------------------------------------------------------------------- #
-
-
-def test_organization_type_values_exist() -> None:
-    """The organization type vocabulary is seeded with expected individuals."""
-    g = _graph()
-    expected = (
-        "organizationTypeCompany",
-        "organizationTypeNonprofit",
-        "organizationTypeGovernmentBody",
-        "organizationTypeEducationalInstitution",
-        "organizationTypeAssociation",
-        "organizationTypeCollaboration",
-    )
-    for val in expected:
-        node = URIRef(GMEOW + val)
-        assert (node, RDF.type, GM.OrganizationType) in g, f"{val} must exist"
-
-
-def test_site_type_values_exist() -> None:
-    """The site type vocabulary is seeded with expected individuals."""
-    g = _graph()
-    expected = ("siteTypeHeadquarters", "siteTypeBranch", "siteTypeRegistered")
-    for val in expected:
-        node = URIRef(GMEOW + val)
-        assert (node, RDF.type, GM.SiteType) in g, f"{val} must exist"
-
-
-# --------------------------------------------------------------------------- #
-# Change event type values (issue #258)
+# Change event type values (issue #258) -- RETAINED: cross-slice
+# eventTypeMerger/Split/SpinOff/Acquisition/Rename are defined in
+# slices/core/events/module.ttl, not here; scopeModule would miss them.
 # --------------------------------------------------------------------------- #
 
 
 def test_change_event_type_values_exist() -> None:
-    """The multi-org change event type vocabulary is seeded."""
+    """The multi-org change event type vocabulary is seeded (cross-slice)."""
     g = _graph()
     expected = (
         "eventTypeMerger",
@@ -252,33 +215,3 @@ def test_change_event_type_values_exist() -> None:
     for val in expected:
         node = URIRef(GMEOW + val)
         assert (node, RDF.type, GM.EventType) in g, f"{val} must exist"
-
-
-# --------------------------------------------------------------------------- #
-# New properties exist in the TBox (issue #258)
-# --------------------------------------------------------------------------- #
-
-
-def test_new_organization_properties_exist() -> None:
-    """Every new property minted in #258 is present in the merged graph."""
-    g = _graph()
-    for prop_name, expected_type in (
-        ("organizationType", OWL.ObjectProperty),
-        ("postIn", OWL.ObjectProperty),
-        ("fillsPost", OWL.ObjectProperty),
-        ("hasSite", OWL.ObjectProperty),
-        ("siteType", OWL.ObjectProperty),
-        ("predecessorOrganization", OWL.ObjectProperty),
-        ("successorOrganization", OWL.ObjectProperty),
-        ("hasIdentifier", OWL.ObjectProperty),
-        ("legalIdentifier", OWL.ObjectProperty),
-        ("industryClassification", OWL.ObjectProperty),
-        ("identifierValue", OWL.DatatypeProperty),
-        ("identifierScheme", OWL.DatatypeProperty),
-        ("jurisdiction", OWL.ObjectProperty),
-        ("organizationPurpose", OWL.DatatypeProperty),
-    ):
-        node = URIRef(GMEOW + prop_name)
-        assert (node, RDF.type, expected_type) in g, (
-            f"{prop_name} must be a {expected_type}"
-        )
