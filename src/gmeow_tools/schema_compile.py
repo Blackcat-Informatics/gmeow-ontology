@@ -3,11 +3,14 @@
 ``gmeow compile-schemas`` renders, from the merged GMEOW ontology graph:
 
 * ``dist/schemas/gmeow.linkml.yaml`` — the LinkML schema (lossy OWL→LinkML);
-* ``dist/schemas/gmeow.schema.json`` — JSON Schema (via LinkML JsonSchemaGenerator);
 * ``dist/schemas/gmeow.py`` — Pydantic models (via LinkML PydanticGenerator);
 * ``dist/schemas/gmeow.ts`` — TypeScript interfaces (via LinkML TypescriptGenerator);
-* ``dist/schemas/gmeow.graphql`` — GraphQL type stubs (via LinkML GraphqlGenerator);
-* ``dist/schemas/gmeow.openapi.json`` — OpenAPI 3.1 derived from the JSON Schema.
+* ``dist/schemas/gmeow.graphql`` — GraphQL type stubs (via LinkML GraphqlGenerator).
+
+JSON Schema (``gmeow.schema.json``) and OpenAPI (``gmeow.openapi.json``) are NO
+LONGER produced here: as of #700 they are emitted natively in Rust from the
+SHACL shape union by the ``stage-export-json-schema`` pipeline leaf
+(``gmeow_shacl::json_schema::compile``), not via the LinkML toolkit.
 
 The OWL→LinkML mapping is intentionally lossy:
 
@@ -27,7 +30,6 @@ from __future__ import annotations
 
 import concurrent.futures
 import inspect
-import json
 import os
 from collections.abc import Mapping, Sequence
 from pathlib import Path
@@ -47,13 +49,12 @@ from gmeow_tools.gts_views import FoldView, load_fold
 _GMEOW = str(PREFIXES["gmeow"])
 _XSD = str(PREFIXES["xsd"])
 
-#: Artifacts emitted by the schema compiler.
+#: Artifacts emitted by the schema compiler. JSON Schema + OpenAPI moved to the
+#: native Rust SHACL emitter (#700) and are no longer produced here.
 _LINKML_FILE = "gmeow.linkml.yaml"
-_JSON_SCHEMA_FILE = "gmeow.schema.json"
 _PYDANTIC_FILE = "gmeow.py"
 _TYPESCRIPT_FILE = "gmeow.ts"
 _GRAPHQL_FILE = "gmeow.graphql"
-_OPENAPI_FILE = "gmeow.openapi.json"
 
 #: OWL XSD → LinkML built-in type name.
 _XSD_TO_LINKML: Mapping[str, str] = {
@@ -371,31 +372,6 @@ def _write_yaml(
     write_text(path, dumped, name=name, source_hash=source_hash)
 
 
-def _snapshot_version() -> str:
-    """The ontology version from the snapshot's header (owl:versionInfo)."""
-    from gmeow_tools.config import ONTOLOGY_IRI
-
-    view = load_fold()
-    onto = view.tid_of_iri(ONTOLOGY_IRI)
-    version = (
-        view.value(onto, "http://www.w3.org/2002/07/owl#versionInfo")
-        if onto is not None
-        else None
-    )
-    if version is None:
-        msg = "snapshot lacks owl:versionInfo on the ontology header"
-        raise ValueError(msg)
-    return view.lex(version)
-
-
-def gen_json_schema(linkml_path: Path) -> str:
-    """Run the LinkML JSON Schema generator."""
-    from linkml.generators.jsonschemagen import JsonSchemaGenerator
-
-    gen = JsonSchemaGenerator(str(linkml_path), mergeimports=True)
-    return gen.serialize()  # type: ignore[no-any-return]
-
-
 def gen_pydantic(linkml_path: Path) -> str:
     """Run the LinkML Pydantic generator."""
     from linkml.generators.pydanticgen import PydanticGenerator
@@ -450,60 +426,6 @@ def gen_graphql(linkml_path: Path) -> str:
     return gen.serialize()  # type: ignore[no-any-return]
 
 
-def gen_openapi(json_schema_text: str) -> str:
-    """Derive an OpenAPI 3.1 spec from the JSON Schema text.
-
-    The returned string is a minimal OpenAPI document whose
-    ``components/schemas`` block is the parsed JSON Schema.
-    A thin path set (``GET /entities/{id}``) is added so the
-    spec validates as a complete OpenAPI document.
-    """
-    schema_obj = json.loads(json_schema_text)
-    # Wrap the JSON Schema under a single named component so top-level keys
-    # like "$schema" and "title" do not leak as component names.
-    component_name = schema_obj.get("title", "GMEOWSchema")
-    openapi: dict[str, Any] = {
-        "openapi": "3.1.0",
-        "info": {
-            "title": "GMEOW API",
-            "description": (
-                "OpenAPI 3.1 derived from the GMEOW LinkML developer schema. "
-                "Lossy by design — see gmeow.linkml.yaml for caveats."
-            ),
-            "version": _snapshot_version(),
-        },
-        "paths": {
-            "/entities/{id}": {
-                "get": {
-                    "summary": "Retrieve a GMEOW entity",
-                    "parameters": [
-                        {
-                            "name": "id",
-                            "in": "path",
-                            "required": True,
-                            "schema": {"type": "string"},
-                        }
-                    ],
-                    "responses": {
-                        "200": {
-                            "description": "A GMEOW entity",
-                            "content": {
-                                "application/json": {
-                                    "schema": {
-                                        "$ref": f"#/components/schemas/{component_name}"
-                                    }
-                                }
-                            },
-                        }
-                    },
-                }
-            }
-        },
-        "components": {"schemas": {component_name: schema_obj}},
-    }
-    return json.dumps(openapi, indent=2) + "\n"
-
-
 def _normalize_text(text: str) -> str:
     """Strip trailing whitespace per line and ensure exactly one trailing newline."""
     lines = text.split("\n")
@@ -513,22 +435,18 @@ def _normalize_text(text: str) -> str:
 
 def _write_artifacts(
     linkml_text: str,
-    json_schema_text: str,
     pydantic_text: str,
     typescript_text: str,
     graphql_text: str,
-    openapi_text: str,
     out_dir: Path,
 ) -> None:
-    """Write all six schema artifacts to ``out_dir``."""
+    """Write all four LinkML schema artifacts to ``out_dir``."""
     out_dir.mkdir(parents=True, exist_ok=True)
     mapping = {
         _LINKML_FILE: linkml_text,
-        _JSON_SCHEMA_FILE: json_schema_text,
         _PYDANTIC_FILE: pydantic_text,
         _TYPESCRIPT_FILE: typescript_text,
         _GRAPHQL_FILE: graphql_text,
-        _OPENAPI_FILE: openapi_text,
     }
     for name, text in mapping.items():
         path = out_dir / name
@@ -536,10 +454,6 @@ def _write_artifacts(
 
 
 #: Downstream LinkML generators that can run in parallel after LinkML YAML is written.
-def _gen_json_schema_worker(linkml_path: Path) -> tuple[str, str]:
-    return "json_schema", gen_json_schema(linkml_path)
-
-
 def _gen_pydantic_worker(linkml_path: Path, linkml_name: str) -> tuple[str, str]:
     text = gen_pydantic(linkml_path)
     text = text.replace(str(linkml_path), linkml_name)
@@ -578,11 +492,9 @@ class SchemaGenerator(Generator):
         """Committed outputs for the schema generator."""
         return [
             SCHEMAS_DIR / _LINKML_FILE,
-            SCHEMAS_DIR / _JSON_SCHEMA_FILE,
             SCHEMAS_DIR / _PYDANTIC_FILE,
             SCHEMAS_DIR / _TYPESCRIPT_FILE,
             SCHEMAS_DIR / _GRAPHQL_FILE,
-            SCHEMAS_DIR / _OPENAPI_FILE,
         ]
 
     @property
@@ -608,10 +520,9 @@ class SchemaGenerator(Generator):
             source_hash=getattr(self, "_source_hash", ""),
         )
 
-        # The four downstream LinkML generators are independent and CPU-heavy.
-        workers = max(1, min(os.cpu_count() or 1, 4))
+        # The three downstream LinkML generators are independent and CPU-heavy.
+        workers = max(1, min(os.cpu_count() or 1, 3))
         if workers == 1:
-            json_schema_text = gen_json_schema(linkml_path)
             pydantic_text = gen_pydantic(linkml_path)
             pydantic_text = pydantic_text.replace(str(linkml_path), _LINKML_FILE)
             typescript_text = gen_typescript(linkml_path)
@@ -622,9 +533,6 @@ class SchemaGenerator(Generator):
             ) as executor:
                 futures = {
                     executor.submit(
-                        _gen_json_schema_worker, linkml_path
-                    ): "json_schema",
-                    executor.submit(
                         _gen_pydantic_worker, linkml_path, _LINKML_FILE
                     ): "pydantic",
                     executor.submit(_gen_typescript_worker, linkml_path): "typescript",
@@ -634,19 +542,14 @@ class SchemaGenerator(Generator):
                 for future in concurrent.futures.as_completed(futures):
                     kind, text = future.result()
                     outputs[kind] = text
-                json_schema_text = outputs["json_schema"]
                 pydantic_text = outputs["pydantic"]
                 typescript_text = outputs["typescript"]
                 graphql_text = outputs["graphql"]
 
-        openapi_text = gen_openapi(json_schema_text)
-
         _write_artifacts(
             linkml_path.read_text(encoding="utf-8"),
-            json_schema_text,
             pydantic_text,
             typescript_text,
             graphql_text,
-            openapi_text,
             out_dir,
         )

@@ -63,3 +63,13 @@ ex:bridgeViewReport a gmeow:InformationObject ;
     rdfs:label "upper-ontology bridge view of the foundation sorts"@x-gmeow-english ;
     logic:preservationKind logic:ValidationOnly ;
     logic:complexityClass "structural validation only" .
+
+# --- The SHACL → JSON Schema projection (#700): a closed-world structural
+#     contract compiled from the SHACL shapes. It validates instance well-formedness
+#     (required/enum/pattern/cardinality/ranges) but is NOT an entailment relation,
+#     and sh:sparql (SHACL-AF) constraints have no JSON Schema equivalent so they are
+#     DROPPED — recorded here as a validation-only, lossy projection (Principle 17).
+ex:shaclJsonSchemaReport a gmeow:InformationObject ;
+    rdfs:label "SHACL → JSON Schema (closed-world) projection of the GMEOW shapes"@x-gmeow-english ;
+    logic:preservationKind logic:ValidationOnly ;
+    logic:complexityClass "closed-world structural validation; sh:sparql constraints dropped" .

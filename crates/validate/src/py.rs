@@ -28,6 +28,7 @@ use crate::coverage;
 use crate::crossref;
 use crate::dsl;
 use crate::gufo::{self, GufoConfig};
+use crate::instance::{self, InstanceFormat};
 use crate::language_tags;
 use crate::lint::{self, LintConfig, LintReport};
 use crate::slice_ownership;
@@ -938,6 +939,36 @@ fn build_deposit_xml_native(
         .map_err(pyo3::exceptions::PyValueError::new_err)
 }
 
+/// Validate a JSON/YAML instance document against a JSON Schema (#700 Task 4).
+///
+/// `instance_bytes` is the raw instance file; `format` is ``"json"`` or
+/// ``"yaml"`` (an unknown value maps to a Python ``ValueError``); `schema_bytes`
+/// is the draft-2020-12 JSON Schema (the SHACL-derived `gmeow.schema.json`, or a
+/// user-supplied schema). Returns the standard ``{"errors": [...],
+/// "warnings": []}`` report dict — each violation is an error string, warnings is
+/// always empty. A hard failure (malformed schema, unparsable instance) raises a
+/// ``ValueError``.
+#[pyfunction]
+fn validate_instance(
+    py: Python<'_>,
+    instance_bytes: &[u8],
+    format: &str,
+    schema_bytes: &[u8],
+) -> PyResult<Py<PyAny>> {
+    let fmt = match format {
+        "json" => InstanceFormat::Json,
+        "yaml" => InstanceFormat::Yaml,
+        other => {
+            return Err(pyo3::exceptions::PyValueError::new_err(format!(
+                "validate_instance: unknown format {other:?} (expected \"json\" or \"yaml\")"
+            )));
+        }
+    };
+    let errors = instance::validate_instance(instance_bytes, fmt, schema_bytes)
+        .map_err(pyo3::exceptions::PyValueError::new_err)?;
+    report_dict(py, errors, Vec::new())
+}
+
 /// Return DOI consistency problems from a JSON-serialised ``LintInput``.
 ///
 /// The JSON string is produced by the Python helper
@@ -994,5 +1025,6 @@ pub fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(constitution_enforcement_report, m)?)?;
     m.add_function(wrap_pyfunction!(build_deposit_xml_native, m)?)?;
     m.add_function(wrap_pyfunction!(lint_deposit_native, m)?)?;
+    m.add_function(wrap_pyfunction!(validate_instance, m)?)?;
     Ok(())
 }
