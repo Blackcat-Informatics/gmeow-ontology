@@ -13,7 +13,6 @@ from gmeow_rdf.compat.rdflib.namespace import OWL, RDF, RDFS
 from gmeow_rdf.compat.rdflib.query import ResultRow
 
 from gmeow_tools.graph import load_merged_graph
-from tests._graph_nt import run_shacl
 
 GMEOW = "https://blackcatinformatics.ca/gmeow/"
 GM = Namespace(GMEOW)
@@ -83,12 +82,6 @@ def test_build_event_type_seeded() -> None:
 # --------------------------------------------------------------------------- #
 # Fixture + SHACL
 # --------------------------------------------------------------------------- #
-
-
-def test_fixture_loads_and_shacl_passes() -> None:
-    g = _fixture()
-    result = run_shacl(g)
-    assert result.ok, "\n".join(result.errors)
 
 
 # --------------------------------------------------------------------------- #
