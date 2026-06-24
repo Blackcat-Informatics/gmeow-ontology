@@ -595,7 +595,20 @@ All migrated twins use fixture-only `validate()` (every Python original is `run_
 | test_music_collections.py | 11 | pitch_collection (kind/membership ×4), pitch_spelling (×4), standpoint_memberships arabic+turkish | 15 (`_graph()` TBox/`(triple) in g`, functional-property, seed/coexist) |
 | test_music_pitch.py | 9 | pitch_value (ratio/cents/missing-frame/both-fails/zero-denom), pitch_interval_xor (×3), tuning_system_requires_kind_and_realm | 10 (`_graph()` TBox, dynamic property sweeps, seed coexist) |
 
-**Conformance batch-4 tally:** places 3 + images 11 + music_collections 11 + music_pitch 9 = **34 converted**. All **155** conformance tests (121 prior + 34) green; `uv run mypy` clean (281 files). Only `conformance_finance.rs` + `conformance_music_analysis.rs` use the merged `validate_with_ontology` (both faithful — Python `g = _graph()`).
+**Conformance batch-4 tally:** places 3 + images 11 + music_collections 11 + music_pitch 9 = **34 converted**. All **155** conformance tests (121 prior + 34) green.
+
+### #867 conformance batch 4 — whole-graph / single-run_shacl tail
+
+| source | converted | Rust twin / retain reason |
+|--------|-----------|---------------------------|
+| test_ai_claims.py | 1 | `normative_fixture_validates_against_the_full_graph` (**merged** — Python `load_merged_graph()+ai-normative.ttl`); 11 retained (tombstone-absence + TBox) |
+| test_agentic.py | 1 | `double_valued_toolcall_violates_the_closed_world_twins` (**merged** — Python `run_shacl(_graph()+data)`, asserts violation substrings); 4 retained (SPARQL/memory/MCP) |
+| test_verifiable_release_chain.py | 1 | `fixture_loads_and_shacl_passes` (fixture-only — `Graph().parse(verifiable-release-chain.ttl)`); 16 retained (chain `(triple) in g` membership / SPARQL / signing) |
+| test_up_projection.py | 0 | **all retained** — both run_shacl callers use a CUSTOM `STATEMENT_DSL_SHAPES_FILE` shapes path; the conformance harness always uses the full merged corpus, so custom-shapes validations are NOT reproducible (faithful retain) |
+| test_foundation_import.py | 0 | **all retained** — the sole run_shacl validates a dynamic disk-corpus importer pipeline (`FoundationImporter.import_corpus`), not a static fixture |
+| test_identity_over_history.py | 0 | **all retained** — the sole run_shacl is paired with post-SHACL `(triple) in g` membership checks on the same graph; non-separable |
+
+**Conformance batch-4 GRAND tally:** places 3 + images 11 + music_collections 11 + music_pitch 9 + ai_claims 1 + agentic 1 + verifiable_release_chain 1 = **37 converted**. Total native conformance suite = **158 tests**. The 4 `validate_with_ontology` (merged) users — finance, music_analysis, ai_claims, agentic — are all faithful (Python `g = _graph()`/`load_merged_graph()`). The run_shacl pytest population is now exhausted: every remaining run_shacl call is a faithful RETAIN (custom-shapes, dynamic disk/sweep, post-SHACL graph-membership, or cross-slice `_graph()` TBox) documented per-file above. `uv run mypy` clean (281 files).
 
 ## #867 structural batch 10 (places — the 129-fn slice)
 

@@ -6,9 +6,11 @@ TBox structural assertions (ToolCall idiom, property ends/functionality, and
 the no-forward-output closed-set sweep) have been migrated to the declarative
 slicetest DSL in slices/extensions/agentic/tests/structural.ttl (#867).
 
-Retained here: SHACL conformance checks (run_shacl), the example competency
-query, and all runtime/Memory/MCP integration tests that are not expressible
-as module-scoped SPARQL ASK cells.
+Retained here: the example competency query, and all runtime/Memory/MCP
+integration tests that are not expressible as module-scoped SPARQL ASK cells.
+
+Migrated to crates/validate/tests/conformance_agentic.rs (#867):
+  - test_double_valued_toolcall_violates_the_closed_world_twins
 """
 
 from __future__ import annotations
@@ -20,7 +22,6 @@ import pytest
 from gmeow_rdf.compat.rdflib import Graph, Namespace
 
 from gmeow_tools.graph import load_merged_graph
-from tests._graph_nt import run_shacl
 
 GMEOW = Namespace("https://blackcatinformatics.ca/gmeow/")
 EX = Namespace("https://blackcatinformatics.ca/gmeow/examples/")
@@ -28,30 +29,6 @@ EX = Namespace("https://blackcatinformatics.ca/gmeow/examples/")
 
 def _graph() -> Graph:
     return load_merged_graph(include_imports=False)
-
-
-def test_double_valued_toolcall_violates_the_closed_world_twins() -> None:
-    """The maxCount twins make a double-valued record a VIOLATION."""
-    data = Graph()
-    data.parse(
-        data="""
-        @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
-        @prefix ex: <https://example.org/bad/> .
-        ex:t1 a gmeow:SoftwareAgent . ex:t2 a gmeow:SoftwareAgent .
-        ex:fat a gmeow:ToolCall ;
-            gmeow:usedTool ex:t1, ex:t2 ;
-            gmeow:toolArguments "a", "b" .
-        """,
-        format="turtle",
-    )
-    result = run_shacl(_graph() + data)
-    assert result.errors, "double-valued ToolCall must fail SHACL"
-    # run_shacl reports "<focus>: <sh:message>" — the messages are REPO-OWNED
-    # sh:message strings (this slice's shapes.ttl), not validator phrasing,
-    # so they are the stable contract to assert against.
-    text = "\n".join(result.errors)
-    assert "exactly one tool agent" in text
-    assert "arguments payload" in text
 
 
 # --------------------------------------------------------------------------- #
