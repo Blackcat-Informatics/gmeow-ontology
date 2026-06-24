@@ -312,6 +312,37 @@ The observation-module asserted-TBox structural assertions (#66, #69) migrated t
 
 **Observations tally:** 19 converted + 1 partial (property-bridges: 8 of 11 converted) = 23 structural cells, 5 retained-with-reason (4 generated-SSSOM-mapping reads + 1 cross-slice kin-bridge). `tests/test_observations.py` 24 → 5 fns.
 
+## #867 structural batch 10 (places — the 129-fn slice)
+
+The largest single slice (129 pytest fns) migrated to `slices/core/places/tests/structural.ttl`
+in its own parcel (the cell file is ~1750 lines, authored via chunked writes). ~87 converted
+fns → 122 `gmeow:StructuralAssertion` cells (94 must + 28 mustNot); all green
+(`cargo nextest -p gmeow-slicetest`, 61/61 cell files). places is #694-migrated (logic:).
+`make validate` ✓. The OWL-RL chain/location-propagation tests were already migrated to Rust
+(#896) and are NOT re-introduced.
+
+**Retained (42 pytest fns):**
+
+- **35 run_shacl ExampleConformance** — coexistence/contested/superseded/lapsed-tenure ABox
+  fixtures, geocode/cadastral/biological shape validation, Decimal numeric checks.
+- **~5 dynamic / bnode** — `owl:unionOf` list walks, `owl:propertyChainAxiom` bnode checks,
+  `owl:AllDisjointProperties` sweeps, a label string-content check.
+- **3 cross-slice** (restored from cells the harness rejected): `test_postal_address_frame_property`
+  and `test_address_components_present_and_nonfunctional` (postalAddressFrame/addressPlace/
+  streetAddress home-asserted in `core/contacts`); `test_alternate_name_retired` (the
+  `gmeow:hasPlaceName rdfs:range gmeow:PlaceName` arm is cross-slice — hasPlaceName/PlaceName
+  in `core/names`).
+
+**Batch-10 tally:** ~87 converted fns → 122 structural cells; 42 retained-with-reason. The
+4 harness-rejected cross-slice cells (postal-address + hasPlaceName range) were removed and
+their 3 source fns restored to pytest — the harness's module-locality check caught them, not
+an assumption. With places done, the structural Tier-B migration covers every slice that has
+migratable asserted-TBox pytest (57 slices carry `structural.ttl`); the only un-migrated
+pytest left is run_shacl ExampleConformance (a separate `example-conformance.ttl` cell type),
+competency questions (`competency.ttl`), permanent Keeps (CLI/MCP/generator/numeric/dynamic
+sweeps/SSSOM-mapping reads), and the Tier-C parity tests gated on the oracle/purrdf/native-
+producer retirements.
+
 ## #867 structural batch 9 (creative-works / genealogy)
 
 Two more home slices migrated to `slices/<g>/<n>/tests/structural.ttl` (both gufo:).
