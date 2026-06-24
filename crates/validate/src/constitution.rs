@@ -344,16 +344,20 @@ pub fn python_top_level_names(py_text: &str) -> BTreeSet<String> {
 
     let mut names = BTreeSet::new();
     for line in py_text.lines() {
-        let stripped = line.trim_start();
-        if let Some(cap) = class_re.captures(stripped) {
+        // Only collect names from zero-indented lines; nested definitions and
+        // assignments inside classes/functions must not be treated as top-level.
+        if line.starts_with(' ') || line.starts_with('\t') {
+            continue;
+        }
+        if let Some(cap) = class_re.captures(line) {
             names.insert(cap[1].to_string());
             continue;
         }
-        if let Some(cap) = def_re.captures(stripped) {
+        if let Some(cap) = def_re.captures(line) {
             names.insert(cap[1].to_string());
             continue;
         }
-        if let Some(cap) = assign_re.captures(stripped) {
+        if let Some(cap) = assign_re.captures(line) {
             let name = &cap[1];
             if !keywords.contains(name) {
                 names.insert(name.to_string());
@@ -1015,6 +1019,39 @@ mod tests {
         assert!(got.contains("X"));
         assert!(got.contains("Y"));
         assert!(!got.contains("pass"));
+    }
+
+    #[test]
+    fn python_top_level_names_ignores_nested_symbols() {
+        let py = r#"
+def outer():
+    def inner():
+        pass
+    class NestedClass:
+        pass
+    nested_var = 1
+class TopClass:
+    def method(self):
+        pass
+top_level = 42
+"#;
+        let got = python_top_level_names(py);
+        assert!(got.contains("outer"));
+        assert!(got.contains("TopClass"));
+        assert!(got.contains("top_level"));
+        assert!(!got.contains("inner"), "nested def should not be collected");
+        assert!(
+            !got.contains("NestedClass"),
+            "nested class should not be collected"
+        );
+        assert!(
+            !got.contains("nested_var"),
+            "nested assignment should not be collected"
+        );
+        assert!(
+            !got.contains("method"),
+            "method inside class should not be collected"
+        );
     }
 
     #[test]
