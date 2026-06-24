@@ -312,6 +312,31 @@ The observation-module asserted-TBox structural assertions (#66, #69) migrated t
 
 **Observations tally:** 19 converted + 1 partial (property-bridges: 8 of 11 converted) = 23 structural cells, 5 retained-with-reason (4 generated-SSSOM-mapping reads + 1 cross-slice kin-bridge). `tests/test_observations.py` 24 → 5 fns.
 
+## #867 structural batch 3 (accessibility / expertise / versions / lexicon / tags / notation)
+
+Six more home slices migrated to `slices/<g>/<n>/tests/structural.ttl` (all gufo:,
+none #694-migrated). 66 converted fns → 109 `gmeow:StructuralAssertion` cells; all
+green (`cargo nextest -p gmeow-slicetest`). Per-cell `saRationale` names the source
+fn (`Mirrors test_*`); the detailed cell IRIs live in each `structural.ttl`. Every
+RETAINED / PARTIAL / covered-elsewhere fn is rowed below (no silent drops). The
+negative "ban" cells (per-value-subclass / flat-shortcut / no-bridge) are faithful
+absence assertions; every `*NotFunctional` mustNot references a real in-module
+`owl:ObjectProperty` (non-vacuous, verified).
+
+| Slice (stereotype) | Converted fns → cells | Retained / partial fns (reason) |
+|---|---|---|
+| `extensions/accessibility` (gufo:) | 11 → 21 cells | none |
+| `core/expertise` (gufo:) | 7 → 11 cells | `test_proficiency_scale_is_generalised`, `test_proficiency_levels_carry_scale` (cross-slice: ProficiencyScale in `core/kernel`; scale*/cefr*/nih* in `extensions/languages`); `test_endorsement_uses_attestation` (cross-slice: Attestation in attestation, endorses in trust); `test_no_primary_or_preferred_skill_term` (whole-graph dynamic sweep) |
+| `core/versions` (gufo:) | 11 → 18 cells | `test_version_label_domain_is_entity` (cross-slice: versionLabel in `extensions/languages`); `test_membership_authority_bridges_to_vantage` (covered by observations `ex:saPropertyBridges` — the `membershipAuthority subPropertyOf vantage` triple is asserted in the observations module, not versions) |
+| `extensions/lexicon` (gufo:) | 13 → 18 cells | none |
+| `core/tags` (gufo:) | 13 → 22 cells | `test_no_bridge_among_has_tag_is_about_and_rdf_type` (the rdf:type-involving pairs are a dynamic/whole-graph guard; the hasTag/isAbout pair converted) |
+| `core/notation` (gufo:) | 11 → 19 cells | `test_writing_system_is_sibling_not_subclass`, `test_language_is_sibling_not_subclass_of_symbolic`, `test_formal_language_not_subclass_of_notation` (cross-slice: WritingSystem/Language/FormalLanguage subjects in other slices); `test_value_vocabularies_not_subclasses` (whole-graph `subjects(subClassOf)` sweep; positive arms converted); `test_ambiguous_cases_co_modelable` (cross-slice: originFormal/LanguageOrigin in `extensions/languages`) |
+
+**Batch-3 tally:** 66 converted fns → 109 structural cells across 6 slices; 11
+retained-with-reason (7 cross-slice, 3 whole-graph dynamic sweeps, 1 covered by an
+observations cell). Pytest fn deltas: accessibility 11→0, expertise 11→4, versions
+12→1, lexicon 13→0, tags 14→1, notation 16→5.
+
 ## #867 structural batch 2 (provenance / sexuality / connectivity / gender / aggregation)
 
 Five more home slices migrated to `slices/<g>/<n>/tests/structural.ttl` declarative
