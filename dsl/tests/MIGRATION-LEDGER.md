@@ -412,6 +412,44 @@ plus the 17 `#[test]` functions; all helper bodies deleted. All 17 tests still p
 
 **Tally:** 10 converted, 4 retained. `tests/test_deception.py` 14 → 4 fns.
 
+**Batch 2 parallel migrations** (each `tests/test_<X>.py` → `crates/validate/tests/conformance_<X>.rs`, fixture-only `validate(&nt)` unless noted; inline graphs/helpers reproduced triple-for-triple; assertions preserved):
+
+| pytest fn | source | disposition | Rust twin / retain reason |
+|-----------|--------|------------|---------------------------|
+| `test_self_private_evidence_triggers_warning` | test_evidence.py | converted | `self_private_evidence_triggers_warning` |
+| `test_mixed_evidence_does_not_trigger_self_private_warning` | test_evidence.py | converted | `mixed_evidence_does_not_trigger_self_private_warning` |
+| `test_notability_without_triad_triggers_violation` | test_evidence.py | converted | `notability_without_triad_triggers_violation` |
+| `test_notability_with_full_triad_passes` | test_evidence.py | converted | `notability_with_full_triad_passes` |
+| `test_notability_false_does_not_require_triad` | test_evidence.py | converted | `notability_false_does_not_require_triad` (`_make_citation_act` inlined as `citation_act_ttl()`) |
+| `test_infoworld_citation_passes` | test_evidence.py | **retained** | disk fixture load + per-node message check |
+| `test_orgbook_citation_passes` | test_evidence.py | **retained** | disk fixture load |
+| `test_private_contract_triggers_self_private_warning` | test_evidence.py | **retained** | disk fixture load + per-node warning check |
+| `test_orgbook_notability_mutation_triggers_violation` | test_evidence.py | **retained** | dynamic graph mutation (`g.remove`+`g.add`) post-load |
+| `test_note_with_content_passes_shacl` | test_notes.py | converted | `note_with_content_passes_shacl` |
+| `test_note_with_label_passes_shacl` | test_notes.py | converted | `note_with_label_passes_shacl` |
+| `test_note_without_content_or_label_fails_shacl` | test_notes.py | converted | `note_without_content_or_label_fails_shacl` |
+| `test_annotation_without_target_fails_shacl` | test_notes.py | converted | `annotation_without_target_fails_shacl` |
+| `test_annotation_with_target_passes_shacl` | test_notes.py | converted | `annotation_with_target_passes_shacl` |
+| `test_highlight_without_selector_fails_shacl` | test_notes.py | converted | `highlight_without_selector_fails_shacl` |
+| `test_highlight_with_selector_passes_shacl` | test_notes.py | converted | `highlight_with_selector_passes_shacl` |
+| `test_retracted_note_displayable_false` | test_notes.py | converted | `retracted_note_displayable_false` |
+| `test_evidence_span_is_information_object` | test_notes.py | **retained** | cross-slice (EvidenceSpan in evidencespan slice) |
+| `test_selector_sub_class_of_evidence_span` | test_notes.py | **retained** | cross-slice (Selector in evidencespan slice) |
+| `test_motivation_values_are_individuals` | test_notes.py | **retained** | dynamic count check (`len==10`) |
+| `test_notes_are_standpoint_indexed` | test_notes.py | **retained** | cross-slice (`accordingTo` in standpoint slice) |
+| `test_notes_*_projection_executable` (×4) | test_notes.py | **retained** | SPARQL parse tests, no SHACL |
+| `test_wellformed_participation_conforms` | test_events.py | converted | `wellformed_participation_conforms` (fixture file) |
+| `test_malformed_participation_is_flagged` | test_events.py | converted | `malformed_participation_is_flagged` (fixture file) |
+| `test_event_is_grounded_in_gufo_event` | test_events.py | **retained** | cross-slice (Activity in provenance slice) |
+| `test_former_event_types_are_individuals_not_classes` | test_events.py | **retained** | dynamic subject sweep |
+| `test_participation_mediation_axiom_present` | test_events.py | **retained** | BNode `owl:Restriction someValuesFrom` walk |
+| `test_contested_event_claims_coexist_and_validate` | test_events.py | **retained** | dynamic multi-file ABox + object sweep |
+| `test_schema_*`/`test_ical_*`/`test_owl_time_*`/`test_observational_activity_*` | test_events.py | **retained** | projection stack / cross-slice BNode property-chain |
+| spine/expression/manifestation/item/contribution/content_segment SHACL (×8) | test_creative_works.py | converted | `spine_shacl_passes`, `expression_without_work_fails_shacl`, `manifestation_without_expression_fails_shacl`, `item_without_manifestation_fails_shacl`, `contribution_shacl_passes`, `contribution_missing_role_fails_shacl`, `content_segment_shacl_passes`, `content_segment_without_container_fails_shacl` |
+| 15 cross-slice/transitive/class-hierarchy tests | test_creative_works.py | **retained** | `_graph()`/`transitive_objects()` over documents/citations/events modules |
+
+**Batch 2 tally:** deception 10 + evidence 5 + notes 8 + events 2 + creative_works 8 = **33 converted**; ~35 retained (cross-slice/dynamic/SPARQL/disk-load). All 50 conformance tests (17 batch-1 + 33 batch-2) green; `uv run mypy` clean.
+
 ## #867 structural batch 10 (places — the 129-fn slice)
 
 The largest single slice (129 pytest fns) migrated to `slices/core/places/tests/structural.ttl`
