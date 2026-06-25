@@ -1213,7 +1213,9 @@ impl Parser {
                 Ok(e)
             }
             Some(Token::Variable(_)) => Ok(Expression::Variable(self.expect_var()?)),
-            Some(Token::Iri(_)) | Some(Token::PrefixedName(_, _)) => self.parse_iri_or_function(),
+            Some(Token::Iri(_)) | Some(Token::PrefixedName(_, _)) => {
+                self.parse_iri_or_function(aggs)
+            }
             Some(Token::StringLit(_))
             | Some(Token::Integer(_))
             | Some(Token::Decimal(_))
@@ -1240,10 +1242,13 @@ impl Parser {
         }
     }
 
-    fn parse_iri_or_function(&mut self) -> Result<Expression> {
+    fn parse_iri_or_function(
+        &mut self,
+        aggs: &mut Vec<(Variable, AggregateExpression)>,
+    ) -> Result<Expression> {
         let node = self.expect_iri_node()?;
         if self.at(&Token::LParen) {
-            let args = self.parse_arg_list(&mut Vec::new())?;
+            let args = self.parse_arg_list(aggs)?;
             Ok(Expression::FunctionCall(Function::Custom(node), args))
         } else {
             Ok(Expression::NamedNode(node))
@@ -1931,5 +1936,60 @@ mod tests {
         let q =
             format!("{GM}SELECT ?a WHERE {{ ?a a gmeow:T }} SELECT ?b WHERE {{ ?b a gmeow:U }}");
         assert!(SparqlParser::new().parse_query(&q).is_err());
+    }
+    #[test]
+    fn custom_function_arg_aggregate_reaches_group() {
+        // G3 regression: `gmeow:fn(COUNT(?x))` was discarding the COUNT into a
+        // throwaway Vec rather than threading it through to the Group.  The
+        // algebra must have a Group whose aggregates list is non-empty.
+        let q =
+            format!("{GM}SELECT ?t (gmeow:fn(COUNT(?x)) AS ?n) WHERE {{ ?x a ?t }} GROUP BY ?t");
+        let where_pat = unproject(select_pattern(&q));
+        // Outermost is Extend (for the AS ?n binding).
+        let GraphPattern::Extend {
+            inner, variable, ..
+        } = where_pat
+        else {
+            panic!("expected Extend, got {where_pat:?}");
+        };
+        assert_eq!(variable, Variable::new("n"));
+        // Inner is the Group node.
+        let GraphPattern::Group {
+            variables,
+            aggregates,
+            ..
+        } = *inner
+        else {
+            panic!("expected Group under Extend, got {inner:?}");
+        };
+        assert_eq!(variables, vec![Variable::new("t")]);
+        // The COUNT aggregate must have been collected — not discarded.
+        assert_eq!(
+            aggregates.len(),
+            1,
+            "COUNT aggregate was silently discarded (G3); aggregates = {aggregates:?}"
+        );
+        assert!(
+            matches!(
+                &aggregates[0].1,
+                AggregateExpression::FunctionCall {
+                    function: AggregateFunction::Count,
+                    ..
+                }
+            ),
+            "expected COUNT aggregate, got {:?}",
+            aggregates[0].1
+        );
+    }
+
+    #[test]
+    fn aggregate_in_no_group_position_is_unsupported() {
+        // An aggregate in a plain FILTER (no GROUP BY) must still be rejected.
+        let q = format!("{GM}SELECT ?x WHERE {{ ?x a gmeow:T . FILTER(COUNT(?x) > 0) }}");
+        let err = SparqlParser::new().parse_query(&q).unwrap_err();
+        assert!(
+            matches!(err, ParseError::Unsupported(_)),
+            "expected Unsupported for aggregate in filter position, got {err:?}"
+        );
     }
 }
