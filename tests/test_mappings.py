@@ -10,7 +10,6 @@ from gmeow_tools.mappings import (
     MappingError,
     build_alignment_graph,
     build_linksets,
-    collect_wikidata_ids,
     expand_curie,
     load_mappings,
 )
@@ -65,9 +64,3 @@ def test_linksets_are_grouped() -> None:
     for node in nodes:
         assert (node, VOID.linkPredicate, None) in linksets
         assert (node, VOID.objectsTarget, None) in linksets
-
-
-def test_collect_wikidata_ids() -> None:
-    ids = collect_wikidata_ids(load_mappings())
-    assert "Q5" in ids
-    assert "Q43229" in ids

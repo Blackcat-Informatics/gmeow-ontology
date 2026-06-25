@@ -1916,6 +1916,7 @@ dependencies = [
  "serde_yaml",
  "sha2",
  "tempfile",
+ "ureq",
 ]
 
 [[package]]

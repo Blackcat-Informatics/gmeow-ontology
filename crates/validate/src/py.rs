@@ -18,6 +18,7 @@
 
 use std::collections::{BTreeSet, HashSet};
 use std::path::PathBuf;
+use std::time::Duration;
 
 use gmeow_diagnostics::py::PyReport;
 use pyo3::prelude::*;
@@ -31,6 +32,7 @@ use crate::gufo::{self, GufoConfig};
 use crate::instance::{self, InstanceFormat};
 use crate::language_tags;
 use crate::lint::{self, LintConfig, LintReport};
+use crate::mapping_eval;
 use crate::slice_ownership;
 use crate::statement;
 use crate::store;
@@ -658,6 +660,125 @@ fn coverage_analyze(
     Ok(out.into_any().unbind())
 }
 
+#[pyfunction]
+fn wikidata_check_syntax_iri(
+    iri: String,
+    in_object_position: bool,
+) -> Vec<(String, String, String)> {
+    mapping_eval::check_syntax_iri(&iri, in_object_position)
+        .into_iter()
+        .map(|misuse| {
+            (
+                misuse.local_id,
+                misuse.kind.as_str().to_owned(),
+                misuse.message,
+            )
+        })
+        .collect()
+}
+
+#[pyfunction]
+fn wikidata_mapping_syntax(py: Python<'_>, mappings_dir: String) -> PyResult<Py<PyAny>> {
+    let report = mapping_eval::wikidata_mapping_syntax(&PathBuf::from(mappings_dir))
+        .map_err(pyo3::exceptions::PyValueError::new_err)?;
+    let out = PyDict::new(py);
+    out.set_item("valid", PyList::new(py, report.valid.iter())?)?;
+    out.set_item("invalid", PyList::new(py, report.invalid.iter())?)?;
+    let misuses: Vec<(String, String, String)> = report
+        .misuses
+        .into_iter()
+        .map(|misuse| {
+            (
+                misuse.local_id,
+                misuse.kind.as_str().to_owned(),
+                misuse.message,
+            )
+        })
+        .collect();
+    out.set_item("misuses", PyList::new(py, misuses.iter())?)?;
+    Ok(out.into_any().unbind())
+}
+
+#[pyfunction]
+fn wikidata_collect_ids(mappings_dir: String) -> PyResult<Vec<String>> {
+    mapping_eval::collect_wikidata_ids(&PathBuf::from(mappings_dir))
+        .map_err(pyo3::exceptions::PyValueError::new_err)
+}
+
+#[pyfunction]
+fn wikidata_diagnostics_report(py: Python<'_>, mappings_dir: String) -> PyResult<Py<PyAny>> {
+    let report = mapping_eval::wikidata_diagnostics(&PathBuf::from(mappings_dir))
+        .map_err(pyo3::exceptions::PyValueError::new_err)?;
+    Ok(Py::new(py, PyReport::from_engine(report))?.into_any())
+}
+
+fn non_negative_finite_duration(value: f64, name: &str) -> Result<Duration, String> {
+    if value < 0.0 || !value.is_finite() {
+        return Err(format!("{name} must be a non-negative finite float"));
+    }
+    Ok(Duration::from_secs_f64(value))
+}
+
+#[pyfunction]
+#[pyo3(signature = (
+    identifiers,
+    project_root,
+    timeout = 30.0,
+    chunk_size = 50,
+    delay = 0.1,
+))]
+fn wikidata_check_existence(
+    py: Python<'_>,
+    identifiers: Vec<String>,
+    project_root: String,
+    timeout: f64,
+    chunk_size: usize,
+    delay: f64,
+) -> PyResult<Py<PyAny>> {
+    let timeout = non_negative_finite_duration(timeout, "timeout")
+        .map_err(pyo3::exceptions::PyValueError::new_err)?;
+    let delay = non_negative_finite_duration(delay, "delay")
+        .map_err(pyo3::exceptions::PyValueError::new_err)?;
+    let statuses = mapping_eval::check_existence(
+        &identifiers,
+        &PathBuf::from(project_root),
+        timeout,
+        chunk_size,
+        delay,
+    )
+    .map_err(pyo3::exceptions::PyRuntimeError::new_err)?;
+    let out = PyDict::new(py);
+    for (identifier, status) in statuses {
+        out.set_item(identifier, status.as_str())?;
+    }
+    Ok(out.into_any().unbind())
+}
+
+#[pyfunction]
+#[pyo3(signature = (root, mappings_dir, threshold = 0.5, json_mode = false))]
+fn wikidata_coverage_report(
+    root: String,
+    mappings_dir: String,
+    threshold: f64,
+    json_mode: bool,
+) -> PyResult<String> {
+    let report = mapping_eval::wikidata_coverage(
+        &PathBuf::from(root),
+        &PathBuf::from(mappings_dir),
+        threshold,
+    )
+    .map_err(pyo3::exceptions::PyValueError::new_err)?;
+    Ok(mapping_eval::render_wikidata_coverage(&report, json_mode))
+}
+
+#[pyfunction]
+#[pyo3(signature = (mappings_dir, threshold = 0.5, json_mode = false))]
+fn dc_coverage_report(mappings_dir: String, threshold: f64, json_mode: bool) -> PyResult<String> {
+    let report = mapping_eval::dc_coverage(&PathBuf::from(mappings_dir), threshold)
+        .map_err(pyo3::exceptions::PyValueError::new_err)?;
+    Ok(mapping_eval::render_dc_coverage(&report, json_mode))
+}
+
 /// Build the merged graph from `source_paths` and dump it as canonical
 /// N-Triples (legacy/test-only seam, #579/#634).
 ///
@@ -1053,6 +1174,13 @@ pub fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
         m
     )?)?;
     m.add_function(wrap_pyfunction!(coverage_analyze, m)?)?;
+    m.add_function(wrap_pyfunction!(wikidata_check_syntax_iri, m)?)?;
+    m.add_function(wrap_pyfunction!(wikidata_mapping_syntax, m)?)?;
+    m.add_function(wrap_pyfunction!(wikidata_collect_ids, m)?)?;
+    m.add_function(wrap_pyfunction!(wikidata_diagnostics_report, m)?)?;
+    m.add_function(wrap_pyfunction!(wikidata_check_existence, m)?)?;
+    m.add_function(wrap_pyfunction!(wikidata_coverage_report, m)?)?;
+    m.add_function(wrap_pyfunction!(dc_coverage_report, m)?)?;
     m.add_function(wrap_pyfunction!(merge_to_ntriples, m)?)?;
     m.add_function(wrap_pyfunction!(dsl_merge_with_provenance, m)?)?;
     m.add_function(wrap_pyfunction!(crate::py_dsl::validate_dsl_shacl, m)?)?;
@@ -1066,4 +1194,20 @@ pub fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(lint_deposit_native, m)?)?;
     m.add_function(wrap_pyfunction!(validate_instance, m)?)?;
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn duration_guard_rejects_non_finite_and_negative_values() {
+        assert!(non_negative_finite_duration(-0.1, "timeout").is_err());
+        assert!(non_negative_finite_duration(f64::NAN, "timeout").is_err());
+        assert!(non_negative_finite_duration(f64::INFINITY, "timeout").is_err());
+        assert_eq!(
+            non_negative_finite_duration(0.25, "timeout").unwrap(),
+            Duration::from_millis(250)
+        );
+    }
 }

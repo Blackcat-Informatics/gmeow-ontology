@@ -30,7 +30,6 @@ from gmeow_tools.config import (
     VOID_DATASET_IRI,
 )
 from gmeow_tools.graph import bind_prefixes, iter_module_files
-from gmeow_tools.wikidata import local_name, local_name_wdt
 
 #: Required SSSOM columns this tool consumes.
 _REQUIRED_COLUMNS = ("subject_id", "predicate_id", "object_id")
@@ -199,19 +198,6 @@ def build_linksets(mappings: list[Mapping]) -> Graph:
             )
         )
     return graph
-
-
-def collect_wikidata_ids(mappings: list[Mapping]) -> list[str]:
-    """Return the Wikidata ids targeted by the mappings (for validation)."""
-    ids: list[str] = []
-    for mapping in mappings:
-        name = local_name(str(expand_curie(mapping.object_id)))
-        if name is not None:
-            ids.append(name)
-        name_wdt = local_name_wdt(str(expand_curie(mapping.object_id)))
-        if name_wdt is not None:
-            ids.append(name_wdt)
-    return ids
 
 
 def group_mappings_by_source(mappings: list[Mapping]) -> dict[str, list[Mapping]]:

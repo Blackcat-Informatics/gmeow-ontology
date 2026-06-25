@@ -137,6 +137,31 @@ def coverage_analyze(
     aligned: list[str],
     namespace: str,
 ) -> dict[str, list[str]]: ...
+def wikidata_check_syntax_iri(
+    iri: str,
+    in_object_position: bool,
+) -> list[tuple[str, str, str]]: ...
+def wikidata_mapping_syntax(mappings_dir: str) -> dict[str, Any]: ...
+def wikidata_collect_ids(mappings_dir: str) -> list[str]: ...
+def wikidata_diagnostics_report(mappings_dir: str) -> Any: ...
+def wikidata_check_existence(
+    identifiers: list[str],
+    project_root: str,
+    timeout: float = 30.0,
+    chunk_size: int = 50,
+    delay: float = 0.1,
+) -> dict[str, str]: ...
+def wikidata_coverage_report(
+    root: str,
+    mappings_dir: str,
+    threshold: float = 0.5,
+    json_mode: bool = False,
+) -> str: ...
+def dc_coverage_report(
+    mappings_dir: str,
+    threshold: float = 0.5,
+    json_mode: bool = False,
+) -> str: ...
 
 # ── DSL utilities ────────────────────────────────────────────────────────────
 

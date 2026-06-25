@@ -23,7 +23,7 @@ from rich.console import Console
 from rich.markup import escape
 
 from gmeow_tools import __version__
-from gmeow_tools.config import PROJECT_ROOT
+from gmeow_tools.config import MAPPINGS_DIR, PROJECT_ROOT
 from gmeow_tools.projections import PROFILES as _PROFILES
 from gmeow_tools.slices import Slice
 
@@ -499,11 +499,7 @@ def _surface_reports() -> list[tuple[str, Callable[[], Any]]]:
         return acceptance.to_diagnostics_report(results)
 
     def _wikidata() -> Any:
-        from gmeow_tools import wikidata
-        from gmeow_tools.mappings import collect_wikidata_ids, load_mappings
-
-        report = wikidata.check_syntax(collect_wikidata_ids(load_mappings()))
-        return wikidata.to_diagnostics_report(report)
+        return gmeow_validate.wikidata_diagnostics_report(str(MAPPINGS_DIR))
 
     def _constitution() -> Any:
         return gmeow_validate.constitution_full_report(
@@ -1450,19 +1446,20 @@ def mappings() -> None:
     from gmeow_tools.mappings import (
         build_alignment_graph,
         build_linksets,
-        collect_wikidata_ids,
         load_mappings,
     )
-    from gmeow_tools.wikidata import check_syntax
 
     loaded = load_mappings()
     if not loaded:
         err_console.print("[yellow]no mappings found[/yellow]")
         return
 
-    syntax = check_syntax(collect_wikidata_ids(loaded))
-    if not syntax.ok:
-        raise _fail(f"✗ invalid Wikidata ids in mappings: {syntax.invalid}")
+    syntax = gmeow_validate.wikidata_mapping_syntax(str(MAPPINGS_DIR))
+    if syntax["invalid"] or syntax["misuses"]:
+        raise _fail(
+            "✗ invalid Wikidata ids in mappings: "
+            f"{syntax['invalid']} ({len(syntax['misuses'])} misuse(s))"
+        )
 
     DIST_DIR.mkdir(parents=True, exist_ok=True)
     alignments = build_alignment_graph(loaded)
@@ -1477,7 +1474,9 @@ def mappings() -> None:
         f"[green]✓ {len(loaded)} mappings → {len(alignments)} alignment axioms[/green]"
     )
     console.print(f"[green]✓ {n_links} VoID linkset descriptions[/green]")
-    console.print(f"[green]✓ {len(syntax.valid)} Wikidata id(s) passed syntax[/green]")
+    console.print(
+        f"[green]✓ {len(syntax['valid'])} Wikidata id(s) passed syntax[/green]"
+    )
 
 
 @app.command()
@@ -1490,13 +1489,6 @@ def wikidata(
     ),
 ) -> None:
     """Validate Wikidata QIDs/PIDs used in the mappings (syntax; optional live)."""
-    from gmeow_tools.mappings import collect_wikidata_ids, expand_curie, load_mappings
-    from gmeow_tools.wikidata import (
-        ExistenceStatus,
-        check_existence,
-        check_syntax,
-        check_syntax_iri,
-    )
     from gmeow_tools.wikidata_audit import audit_all, render_audit
 
     if fixtures:
@@ -1514,40 +1506,29 @@ def wikidata(
         console.print("[green]✓ fixture audit passed[/green]")
         return
 
-    ids = collect_wikidata_ids(load_mappings())
-    syntax = check_syntax(ids)
-    console.print(f"[green]✓ {len(syntax.valid)} id(s) valid syntax[/green]")
-    if syntax.invalid:
-        err_console.print(f"[red]✗ invalid ids: {syntax.invalid}[/red]")
-    if syntax.misuses:
-        for _local, misuse, message in syntax.misuses:
-            err_console.print(f"[yellow]{misuse.value}[/yellow] {message}")
-    if not syntax.ok:
-        raise _fail(f"✗ {len(syntax.invalid)} invalid, {len(syntax.misuses)} misuse(s)")
-
-    # Also check full object IRIs for namespace misuse
-    loaded = load_mappings()
-    iri_misuses = []
-    for mapping in loaded:
-        iri_misuses.extend(
-            check_syntax_iri(
-                str(expand_curie(mapping.object_id)), in_object_position=True
-            )
+    syntax = gmeow_validate.wikidata_mapping_syntax(str(MAPPINGS_DIR))
+    console.print(f"[green]✓ {len(syntax['valid'])} id(s) valid syntax[/green]")
+    if syntax["invalid"]:
+        err_console.print(f"[red]✗ invalid ids: {syntax['invalid']}[/red]")
+    if syntax["misuses"]:
+        for _local, misuse, message in syntax["misuses"]:
+            err_console.print(f"[yellow]{misuse}[/yellow] {message}")
+    if syntax["invalid"] or syntax["misuses"]:
+        raise _fail(
+            f"✗ {len(syntax['invalid'])} invalid, {len(syntax['misuses'])} misuse(s)"
         )
-    if iri_misuses:
-        for _local, misuse, message in iri_misuses:
-            err_console.print(f"[yellow]{misuse.value}[/yellow] {message}")
-        raise _fail(f"✗ {len(iri_misuses)} namespace misuse(s) in mapping IRIs")
 
     if existence:
         try:
-            statuses = check_existence(syntax.valid)
-        except httpx.HTTPError as exc:  # network failure → visible, non-fatal skip
+            statuses = gmeow_validate.wikidata_check_existence(
+                syntax["valid"], str(PROJECT_ROOT)
+            )
+        except RuntimeError as exc:  # network failure -> visible, non-fatal skip
             err_console.print(f"[yellow]existence check skipped: {exc}[/yellow]")
             return
-        bad = {k: v for k, v in statuses.items() if v is not ExistenceStatus.OK}
+        bad = {k: v for k, v in statuses.items() if v != "ok"}
         for ident, status in bad.items():
-            err_console.print(f"[red]{ident}: {status.value}[/red]")
+            err_console.print(f"[red]{ident}: {status}[/red]")
         if bad:
             raise _fail(f"✗ {len(bad)} id(s) failed existence check")
         console.print(f"[green]✓ {len(statuses)} id(s) resolve on Wikidata[/green]")
@@ -1563,11 +1544,13 @@ def wikidata_coverage(
     ),
 ) -> None:
     """Report Wikidata mapping coverage by domain/module (offline)."""
-    from gmeow_tools.wikidata_coverage import render_report, run_coverage
-
-    report = run_coverage(threshold=threshold)
-    text = render_report(report, json_mode=json_mode)
-    console.print(text)
+    text = gmeow_validate.wikidata_coverage_report(
+        str(PROJECT_ROOT), str(MAPPINGS_DIR), threshold, json_mode
+    )
+    if json_mode:
+        console.out(text)
+    else:
+        console.print(text)
 
 
 @app.command()
@@ -1580,11 +1563,11 @@ def dc_coverage(
     ),
 ) -> None:
     """Report Dublin Core mapping coverage by namespace (offline)."""
-    from gmeow_tools.dc_coverage import render_report, run_coverage
-
-    report = run_coverage(threshold=threshold)
-    text = render_report(report, json_mode=json_mode)
-    console.print(text)
+    text = gmeow_validate.dc_coverage_report(str(MAPPINGS_DIR), threshold, json_mode)
+    if json_mode:
+        console.out(text)
+    else:
+        console.print(text)
 
 
 @app.command(name="up-projection-audit")

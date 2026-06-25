@@ -9,11 +9,11 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from pathlib import Path
 
+import gmeow_validate
 from gmeow_rdf.compat.rdflib import Graph, URIRef
 
 from gmeow_tools.config import PREFIXES
 from gmeow_tools.graph import iter_module_files
-from gmeow_tools.wikidata import NamespaceMisuse, check_syntax_iri
 
 _WD_NS = PREFIXES["wd"]
 _WDT_NS = PREFIXES["wdt"]
@@ -85,11 +85,11 @@ def audit_file(path: Path) -> list[AuditFinding]:
             or obj.startswith(_WDT_NS)
             or obj.startswith("https://www.wikidata.org/entity/")
         ):
-            misuses = check_syntax_iri(obj, in_object_position=True)
+            misuses = gmeow_validate.wikidata_check_syntax_iri(
+                obj, in_object_position=True
+            )
             for _local, misuse, message in misuses:
-                severity = (
-                    "error" if misuse is NamespaceMisuse.BAD_SYNTAX else "warning"
-                )
+                severity = "error" if misuse == "bad-syntax" else "warning"
                 findings.append(
                     AuditFinding(
                         file=path,
