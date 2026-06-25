@@ -105,6 +105,13 @@ impl PyStore {
         materialize_results(py, results)
     }
 
+    /// Run a SPARQL UPDATE against the store.
+    fn update(&self, update: &str) -> PyResult<()> {
+        self.inner
+            .update(update)
+            .map_err(|e| PyValueError::new_err(format!("update evaluation error: {e}")))
+    }
+
     /// Dump the whole store (or one graph, via `from_graph`) in `format`. Mirrors
     /// the oxigraph Python `Store.dump`: when `output` (a file-like with `.write`) is given
     /// the bytes are written to it and `None` is returned; otherwise the bytes are
@@ -233,8 +240,8 @@ impl PyDataset {
 /// Iterator over a [`PyDataset`]'s quads (snapshot at iteration time).
 #[pyclass(name = "QuadIter")]
 pub struct PyQuadIter {
-    quads: Vec<Quad>,
-    pos: usize,
+    pub(crate) quads: Vec<Quad>,
+    pub(crate) pos: usize,
 }
 
 #[pymethods]

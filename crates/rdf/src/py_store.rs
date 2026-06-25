@@ -49,12 +49,15 @@
 
 mod canon;
 mod io;
+mod mutable;
 mod query;
 mod store;
 mod term;
+mod xsd;
 
 pub use canon::{canonicalize_quads, PyCanonicalizationAlgorithm};
 pub use io::{parse_quads, PyRdfFormat};
+pub use mutable::PyMutableDataset;
 pub use query::{PyQueryBoolean, PyQuerySolution, PyQuerySolutions, PyQueryTriples};
 pub use store::{PyDataset, PyQuadIter, PyStore};
 pub use term::{
@@ -80,8 +83,11 @@ pub fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<query::PyQueryBoolean>()?;
     m.add_class::<store::PyStore>()?;
     m.add_class::<store::PyDataset>()?;
+    m.add_class::<mutable::PyMutableDataset>()?;
     m.add_class::<store::PyQuadIter>()?;
     m.add_function(wrap_pyfunction!(io::parse, m)?)?;
     m.add_function(wrap_pyfunction!(io::serialize, m)?)?;
+    m.add_function(wrap_pyfunction!(xsd::xsd_value_compare, m)?)?;
+    m.add_function(wrap_pyfunction!(xsd::xsd_canonical_lexical, m)?)?;
     Ok(())
 }

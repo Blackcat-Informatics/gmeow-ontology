@@ -1806,6 +1806,7 @@ dependencies = [
  "gmeow-gts",
  "gmeow-rdf-core",
  "gmeow-rdf-events",
+ "gmeow-xsd",
  "oxigraph",
  "pretty_assertions",
  "proptest",

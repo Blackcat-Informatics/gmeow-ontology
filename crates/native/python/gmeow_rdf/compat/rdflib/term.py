@@ -18,6 +18,7 @@ is a P9 concern — here term equality follows RDFLib's *term* equality over
 from __future__ import annotations
 
 from decimal import Decimal
+from functools import total_ordering
 from typing import TYPE_CHECKING, Any
 from uuid import uuid4
 
@@ -164,6 +165,47 @@ def _infer_typed(value: object) -> tuple[str, URIRef | None]:
     return (str(value), None)
 
 
+def _literal_value_datatype(literal: Literal) -> str | None:
+    """Return the datatype IRI used for XSD value comparison, if any."""
+    if literal.language is not None:
+        return None
+    if literal.datatype is None:
+        return _XSD_STRING
+    return str(literal.datatype)
+
+
+def _xsd_value_compare(left: Literal, right: Literal) -> int | None:
+    """Native XSD value comparison, or ``None`` when not comparable."""
+    left_dt = _literal_value_datatype(left)
+    right_dt = _literal_value_datatype(right)
+    if left_dt is None or right_dt is None:
+        return None
+    compared = gmeow_rdf.xsd_value_compare(str(left), left_dt, str(right), right_dt)
+    return compared if isinstance(compared, int) else None
+
+
+def _literal_fallback_key(literal: Literal) -> tuple[str, str, str]:
+    """Ordering fallback after value comparison ties or is unavailable."""
+    return (
+        "" if literal.datatype is None else str(literal.datatype),
+        "" if literal.language is None else literal.language,
+        str(literal),
+    )
+
+
+def _language_eq(left: str | None, right: str | None) -> bool:
+    """RDFLib language-tag equality: preserve spelling, compare case-insensitively."""
+    if left is None or right is None:
+        return left is right
+    return left.lower() == right.lower()
+
+
+def _language_hash_key(language: str | None) -> str | None:
+    """Hash key matching RDFLib's case-insensitive language-tag equality."""
+    return None if language is None else language.lower()
+
+
+@total_ordering
 class Literal(Identifier):
     """An RDF literal — ``str``-subclass over the lexical form (RDFLib-shaped).
 
@@ -281,7 +323,7 @@ class Literal(Identifier):
         return (
             str.__eq__(self, other) is True
             and self._datatype == other._datatype
-            and self._language == other._language
+            and _language_eq(self._language, other._language)
         )
 
     def __ne__(self, other: object) -> bool:
@@ -293,7 +335,25 @@ class Literal(Identifier):
 
     def __hash__(self) -> int:
         """Hash over ``(lexical, datatype, language)`` — follows ``__eq__``."""
-        return hash((str(self), self._datatype, self._language))
+        return hash((str(self), self._datatype, _language_hash_key(self._language)))
+
+    def eq(self, other: object) -> bool:
+        """Return RDFLib value-space equality, distinct from term equality."""
+        if not isinstance(other, Literal):
+            return False
+        compared = _xsd_value_compare(self, other)
+        if compared is not None:
+            return compared == 0
+        return bool(self == other)
+
+    def __lt__(self, other: object) -> bool:
+        """Return deterministic literal ordering for RDFLib sorting paths."""
+        if not isinstance(other, Literal):
+            return NotImplemented
+        compared = _xsd_value_compare(self, other)
+        if compared is not None and compared != 0:
+            return compared < 0
+        return _literal_fallback_key(self) < _literal_fallback_key(other)
 
 
 class Variable(Identifier):

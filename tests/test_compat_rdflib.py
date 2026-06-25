@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
 # SPDX-License-Identifier: AGPL-3.0-only
-"""Tests for the purrdf P0 rdflib compat shim (``gmeow_rdf.compat.rdflib``).
+"""Tests for the purrdf rdflib compat shim (``gmeow_rdf.compat.rdflib``).
 
 Where real ``rdflib`` is installed, the facade is differential-tested against it
 so the term/equality/serialization behaviour matches. These run in the default
@@ -14,6 +14,7 @@ from gmeow_rdf.compat.rdflib import (
     RDF,
     RDFS,
     BNode,
+    Dataset,
     Graph,
     Literal,
     Namespace,
@@ -70,17 +71,95 @@ def test_literal_term_equality_xsd_string_asymmetry() -> None:
     assert hash(Literal("x")) == hash(Literal("x"))
 
 
-def test_graph_add_value_contains_and_native_xsd_string_normalization() -> None:
-    """Containment via the native store normalizes plain ↔ xsd:string literals."""
+def test_literal_rewrap_preserves_integer_subtype() -> None:
+    """Re-wrapping a typed literal preserves its exact datatype IRI."""
+    original = Literal("12", datatype=XSD.int)
+    wrapped = Literal(original)
+
+    assert wrapped == original
+    assert wrapped.datatype == XSD.int
+
+
+def test_literal_value_space_eq_is_separate_from_term_equality() -> None:
+    """``Literal.eq`` uses XSD values; ``==`` remains RDF term equality."""
+    one = Literal("1", datatype=XSD.integer)
+    padded = Literal("01", datatype=XSD.integer)
+    decimal = Literal("1.0", datatype=XSD.decimal)
+    plain = Literal("x")
+    explicit_string = Literal("x", datatype=XSD.string)
+
+    assert one != padded
+    assert one.eq(padded)
+    assert one.eq(decimal)
+    assert plain != explicit_string
+    assert plain.eq(explicit_string)
+
+
+def test_literal_ordering_uses_value_then_term_fallback() -> None:
+    """Value-comparable literals sort by value, then deterministic term fallback."""
+    values = [
+        Literal("2", datatype=XSD.integer),
+        Literal("01", datatype=XSD.integer),
+        Literal("1", datatype=XSD.integer),
+    ]
+    assert [str(v) for v in sorted(values)] == ["01", "1", "2"]
+
+
+def test_graph_add_value_contains_and_xsd_string_provenance() -> None:
+    """The shim preserves RDFLib plain-vs-explicit xsd:string term provenance."""
     g = Graph()
     g.add((EX.alice, RDF.type, EX.Person))
     g.add((EX.alice, RDFS.label, Literal("Alice")))
     assert len(g) == 2
     assert g.value(EX.alice, RDFS.label) == Literal("Alice")
     assert (EX.alice, RDF.type, EX.Person) in g
-    # both plain and explicit xsd:string match through the native store
+    assert (EX.alice, RDFS.label, Literal("Alice")) in g
+    assert (EX.alice, RDFS.label, Literal("Alice", datatype=XSD.string)) not in g
+
+    typed = Graph()
+    typed.add((EX.alice, RDFS.label, Literal("Alice", datatype=XSD.string)))
+    assert typed.value(EX.alice, RDFS.label) == Literal("Alice", datatype=XSD.string)
+    assert (EX.alice, RDFS.label, Literal("Alice")) not in typed
+
+
+def test_graph_keeps_plain_and_explicit_xsd_string_as_separate_terms() -> None:
+    """RDFLib stores plain and explicit xsd:string literals as distinct terms."""
+    g = Graph()
+    plain = Literal("Alice")
+    explicit = Literal("Alice", datatype=XSD.string)
+    g.add((EX.alice, RDFS.label, plain))
+    g.add((EX.alice, RDFS.label, explicit))
+
+    assert len(g) == 2
+    assert set(g.objects(EX.alice, RDFS.label)) == {plain, explicit}
+
+    g.remove((EX.alice, RDFS.label, plain))
+    assert len(g) == 1
+    assert list(g.objects(EX.alice, RDFS.label)) == [explicit]
+
+
+def test_parsed_graph_string_patterns_use_native_value_space() -> None:
+    """Parsed/native graphs have no shim provenance, so string lookups stay broad."""
+    g = Graph()
+    g.parse(
+        data=(
+            "@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n"
+            '<http://example.org/alice> rdfs:label "Alice" .\n'
+        ),
+        format="turtle",
+    )
+
     assert (EX.alice, RDFS.label, Literal("Alice")) in g
     assert (EX.alice, RDFS.label, Literal("Alice", datatype=XSD.string)) in g
+
+
+def test_graph_numeric_literal_contains_uses_value_space() -> None:
+    """Numeric object patterns keep the RDFLib value-space containment behavior."""
+    g = Graph()
+    count = EX["count"]
+    g.add((EX.alice, count, Literal("01", datatype=XSD.integer)))
+
+    assert (EX.alice, count, Literal("1", datatype=XSD.integer)) in g
 
 
 def test_graph_accessors_and_wildcards() -> None:
@@ -113,6 +192,38 @@ def test_remove_and_set() -> None:
     assert g.value(EX.a, RDFS.label) == Literal("two")
 
 
+def test_graph_intersection_symmetric_difference_and_update() -> None:
+    """P9 graph algebra and SPARQL UPDATE mutate through the native COW dataset."""
+    g1 = Graph()
+    g1.add((EX.a, EX.p, EX.one))
+    g1.add((EX.b, EX.p, EX.two))
+    g2 = Graph()
+    g2.add((EX.b, EX.p, EX.two))
+    g2.add((EX.c, EX.p, EX.three))
+
+    assert set(g1 * g2) == {(EX.b, EX.p, EX.two)}
+    assert set(g1 ^ g2) == {(EX.a, EX.p, EX.one), (EX.c, EX.p, EX.three)}
+
+    g1.update("INSERT DATA { ex:d ex:p ex:four . }", initNs={"ex": EX})
+    assert (EX.d, EX.p, EX.four) in g1
+    g1.update("DELETE DATA { ex:d ex:p ex:four . }", initNs={"ex": EX})
+    assert (EX.d, EX.p, EX.four) not in g1
+
+
+def test_dataset_named_graph_quads_filtering() -> None:
+    """Dataset quads distinguish any graph, named graph, and default graph."""
+    ds = Dataset()
+    ds.default_graph.add((EX.default, EX.p, EX.o))
+    ds.graph(EX.g).add((EX.named, EX.p, EX.o))
+
+    assert set(ds.quads((None, None, None, None))) == {
+        (EX.default, EX.p, EX.o, None),
+        (EX.named, EX.p, EX.o, EX.g),
+    }
+    assert list(ds.quads((None, None, None, EX.g))) == [(EX.named, EX.p, EX.o, EX.g)]
+    assert list(ds.triples((None, None, None))) == [(EX.default, EX.p, EX.o)]
+
+
 def test_turtle_roundtrip_and_isomorphic() -> None:
     """serialize(turtle) → canonicalize_turtle; reparse is isomorphic."""
     g = Graph()
@@ -123,6 +234,19 @@ def test_turtle_roundtrip_and_isomorphic() -> None:
     g2 = Graph()
     g2.parse(data=ttl, format="turtle")
     assert isomorphic(g, g2)
+
+
+def test_private_language_tag_survives_cow_materialization() -> None:
+    """Project-private language tags round-trip through the COW graph surface."""
+    g = Graph()
+    term = EX["term"]
+    g.add((term, RDFS.label, Literal("label", lang="x-gmeow-english")))
+    ttl = g.serialize(format="turtle")
+    assert "@x-gmeow-english" in ttl
+
+    back = Graph()
+    back.parse(data=ttl, format="turtle")
+    assert back.value(term, RDFS.label) == Literal("label", lang="x-gmeow-english")
 
 
 def test_serialize_nt_encoding_contract() -> None:
