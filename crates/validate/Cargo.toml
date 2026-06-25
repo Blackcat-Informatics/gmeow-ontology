@@ -37,6 +37,8 @@ jsonschema = { version = "0.46", default-features = false }
 serde_yaml = "0.9"
 # SHA-256 for content-addressed validation cache keys (parity with Python hashlib).
 sha2 = "0.10"
+# Blocking HTTP client for the maintainer-only Wikidata live existence lane.
+ureq = "3"
 # SHACL engine: the Rust-native validation orchestration reuses parsed shapes
 # and validates the shared store directly (#634). The engine core is PyO3-free;
 # only the py modules on both sides touch PyO3.
