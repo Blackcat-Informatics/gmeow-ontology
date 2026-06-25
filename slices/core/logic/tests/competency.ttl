@@ -1,0 +1,29 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Declarative competency question for the logic slice (crates/slicetest, #784):
+# does GMEOW express a named, parametric predicate path (logic:PathShape, #1010)
+# with the facets SPARQL §9 property paths lack? TBox subset over the asserted
+# merged ontology (subset/contains-check, no gmeow:cqExactRows).
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/logic/tests/> .
+
+ex:cqNamedParametricPaths a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "slices/core/logic/queries/competency/named-parametric-paths.rq" ;
+    gmeow:cqRationale "GMEOW must express a named, parametric predicate path (logic:PathShape) carrying a base step (named predicate or wildcard), a bounded depth, a namespace scope, and a depth parameter — the §9-extension surface SPARQL property paths lack." ;
+    gmeow:cqExpectRow ex:pfStep, ex:pfWildcard, ex:pfNamespace, ex:pfMinDepth, ex:pfMaxDepth, ex:pfDepthParam .
+
+ex:pfStep a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "facet" ; gmeow:cellValueIri logic:pathStepPredicate ] .
+ex:pfWildcard a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "facet" ; gmeow:cellValueIri logic:pathWildcard ] .
+ex:pfNamespace a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "facet" ; gmeow:cellValueIri logic:pathNamespaceScope ] .
+ex:pfMinDepth a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "facet" ; gmeow:cellValueIri logic:pathMinDepth ] .
+ex:pfMaxDepth a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "facet" ; gmeow:cellValueIri logic:pathMaxDepth ] .
+ex:pfDepthParam a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "facet" ; gmeow:cellValueIri logic:pathDepthParam ] .

@@ -1,0 +1,13 @@
+# Competency question: "What facets does GMEOW's named, parametric predicate path
+# (logic:PathShape) carry?" Expected the base-step, depth-bound, namespace-scope,
+# and depth-parameter properties that make a path a reusable, by-name, bounded,
+# wildcard-capable traversal — the §9-extension surface SPARQL property paths lack.
+# Asserted (reasoningNone) lane: rdfs:domain is stated directly in the module.
+
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+SELECT ?facet WHERE {
+    ?facet rdfs:domain logic:PathShape .
+}
+ORDER BY ?facet
