@@ -500,6 +500,46 @@ const STRATUM_1: &[Rule] = &[
         ],
         distinct_pairs: NO_GUARD,
     },
+    // ── Holonic governance: override marker (issue #706, C3) ─────────────────────────
+    // The positive, derivation-grounded face of downward constraint, mirroring the C2
+    // aggregate marker.  A logic:DownwardConstraint is OVERRIDDEN when it names an
+    // override token (constraintOverride) and the constrained target actually bears
+    // that token (bearsProperty) — the join on the SAME ?Ov is what gates this, so only
+    // the DECLARED override can fire it, never an unrelated property assertion.  It
+    // settles in stratum 1 so the binding rule's NAF over it (stratum 3) is stratified.
+    //
+    // overriddenConstraint(?C, ?C) :- constraintWhole(?C, ?W), constraintTarget(?C, ?P),
+    //     constraintOverride(?C, ?Ov), bearsProperty(?P, ?Ov)
+    Rule {
+        head: pos(
+            var("?C"),
+            TermPat::Const(logic_iri!("overriddenConstraint")),
+            var("?C"),
+        ),
+        body: &[
+            pos(
+                var("?C"),
+                TermPat::Const(logic_iri!("constraintWhole")),
+                var("?W"),
+            ),
+            pos(
+                var("?C"),
+                TermPat::Const(logic_iri!("constraintTarget")),
+                var("?P"),
+            ),
+            pos(
+                var("?C"),
+                TermPat::Const(logic_iri!("constraintOverride")),
+                var("?Ov"),
+            ),
+            pos(
+                var("?P"),
+                TermPat::Const(logic_iri!("bearsProperty")),
+                var("?Ov"),
+            ),
+        ],
+        distinct_pairs: NO_GUARD,
+    },
 ];
 
 const STRATUM_2: &[Rule] = &[
@@ -605,6 +645,21 @@ const STRATUM_2: &[Rule] = &[
             var("?A"),
             TermPat::Const(logic_iri!("aggregateAssessed")),
             var("?A"),
+        )],
+        distinct_pairs: NO_GUARD,
+    },
+    // ── Holonic governance: overridden verdict projection (issue #706, C3) ───────────
+    // constraintVerdict(?C, logic:ConstraintOverridden) :- overriddenConstraint(?C, ?C)
+    Rule {
+        head: pos(
+            var("?C"),
+            TermPat::Const(logic_iri!("constraintVerdict")),
+            TermPat::Const(logic_iri!("ConstraintOverridden")),
+        ),
+        body: &[pos(
+            var("?C"),
+            TermPat::Const(logic_iri!("overriddenConstraint")),
+            var("?C"),
         )],
         distinct_pairs: NO_GUARD,
     },
@@ -778,6 +833,78 @@ const STRATUM_3: &[Rule] = &[
             var("?A"),
             TermPat::Const(logic_iri!("emergentAssessed")),
             var("?A"),
+        )],
+        distinct_pairs: NO_GUARD,
+    },
+    // ── Holonic governance: binding marker (issue #706, C3) ──────────────────────────
+    // A downward constraint BINDS its named target by negation-as-failure over the
+    // override derivation, WHILE the constraint still binds a declared logic:GovernanceRegime
+    // (?R) whose activationBasis carries the constrained state (?S) — so the verdict is
+    // regime-relative, never a bare "unconstrained" default.  NON-TRANSITIVE by default
+    // (#775): the constraint is read only for the explicitly named ?P (a proper part of
+    // ?W); there is no rule cascading it to ?P's own sub-parts.  overriddenConstraint
+    // settles in stratum 1, so the NAF is stratified; ?C/?W/?P/?S/?R are all positively
+    // bound, so the rule is DL-safe.
+    //
+    // bindingConstraint(?C, ?C) :- constraintWhole(?C, ?W), constraintTarget(?C, ?P),
+    //     constraintState(?C, ?S), constraintRegime(?C, ?R), properPartOf(?P, ?W),
+    //     activationBasis(?R, ?S), NOT overriddenConstraint(?C, ?C)
+    Rule {
+        head: pos(
+            var("?C"),
+            TermPat::Const(logic_iri!("bindingConstraint")),
+            var("?C"),
+        ),
+        body: &[
+            neg(
+                var("?C"),
+                TermPat::Const(logic_iri!("overriddenConstraint")),
+                var("?C"),
+            ),
+            pos(
+                var("?C"),
+                TermPat::Const(logic_iri!("constraintWhole")),
+                var("?W"),
+            ),
+            pos(
+                var("?C"),
+                TermPat::Const(logic_iri!("constraintTarget")),
+                var("?P"),
+            ),
+            pos(
+                var("?C"),
+                TermPat::Const(logic_iri!("constraintState")),
+                var("?S"),
+            ),
+            pos(
+                var("?C"),
+                TermPat::Const(logic_iri!("constraintRegime")),
+                var("?R"),
+            ),
+            pos(
+                var("?P"),
+                TermPat::Const(logic_iri!("properPartOf")),
+                var("?W"),
+            ),
+            pos(
+                var("?R"),
+                TermPat::Const(logic_iri!("activationBasis")),
+                var("?S"),
+            ),
+        ],
+        distinct_pairs: NO_GUARD,
+    },
+    // constraintVerdict(?C, logic:ConstraintBinding) :- bindingConstraint(?C, ?C)
+    Rule {
+        head: pos(
+            var("?C"),
+            TermPat::Const(logic_iri!("constraintVerdict")),
+            TermPat::Const(logic_iri!("ConstraintBinding")),
+        ),
+        body: &[pos(
+            var("?C"),
+            TermPat::Const(logic_iri!("bindingConstraint")),
+            var("?C"),
         )],
         distinct_pairs: NO_GUARD,
     },
@@ -1029,6 +1156,53 @@ const STRATUM_4: &[Rule] = &[
                 var("?W"),
                 TermPat::Const(logic_iri!("bearsProperty")),
                 var("?Pv"),
+            ),
+        ],
+        distinct_pairs: NO_GUARD,
+    },
+    // ── Holonic governance: unknown verdict (issue #706, C3) ─────────────────────────
+    // The first-class third value: the constraint names a target that is a proper part
+    // of the governing whole, but neither an override-defeat nor a regime-relative
+    // binding is derivable (no constraintRegime activates the state), so the binding
+    // question cannot be posed — an un-activated constraint is never silently read as
+    // binding.  Both NAF targets (overriddenConstraint S1, bindingConstraint S3) are
+    // settled below stratum 4, so the negation is stratified; ?C/?W/?P are positively
+    // bound, so the rule is DL-safe.
+    //
+    // constraintVerdict(?C, logic:ConstraintUnknown) :- constraintWhole(?C, ?W),
+    //     constraintTarget(?C, ?P), properPartOf(?P, ?W),
+    //     NOT overriddenConstraint(?C, ?C), NOT bindingConstraint(?C, ?C)
+    Rule {
+        head: pos(
+            var("?C"),
+            TermPat::Const(logic_iri!("constraintVerdict")),
+            TermPat::Const(logic_iri!("ConstraintUnknown")),
+        ),
+        body: &[
+            neg(
+                var("?C"),
+                TermPat::Const(logic_iri!("overriddenConstraint")),
+                var("?C"),
+            ),
+            neg(
+                var("?C"),
+                TermPat::Const(logic_iri!("bindingConstraint")),
+                var("?C"),
+            ),
+            pos(
+                var("?C"),
+                TermPat::Const(logic_iri!("constraintWhole")),
+                var("?W"),
+            ),
+            pos(
+                var("?C"),
+                TermPat::Const(logic_iri!("constraintTarget")),
+                var("?P"),
+            ),
+            pos(
+                var("?P"),
+                TermPat::Const(logic_iri!("properPartOf")),
+                var("?W"),
             ),
         ],
         distinct_pairs: NO_GUARD,

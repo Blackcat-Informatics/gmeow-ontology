@@ -21,11 +21,12 @@ use gmeow_logic::foundation::{evaluate, AntiRigidityPolicy};
 use gmeow_logic::store::WorldStore;
 
 /// The foundation conformance cases under `conformance/logic/cases/foundation/`.
-const CASES: [&str; 7] = [
+const CASES: [&str; 8] = [
     "cross-world-rigidity",
     "exactly-one-stereotype",
     "free-role",
     "holonic-emergence",
+    "holonic-governance",
     "identity-overlap-mixiden",
     "mixrig-kind-under-role",
     "relcomp-under-mediated",
