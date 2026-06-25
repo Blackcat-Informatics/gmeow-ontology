@@ -17,6 +17,7 @@
 //! claims `ExactPreservation` but dropped content.  [`report::build_projection_report`]
 //! aggregates the loss ledger.
 
+pub mod paths;
 pub mod rdf;
 pub mod report;
 pub mod text;
@@ -233,6 +234,18 @@ pub(crate) fn target_meta(target: &str) -> (PreservationKind, &'static str, Vec<
             vec![],
         ),
         "nemo" => (PreservationKind::Exact, "PTIME/datalog", vec![]),
+        "property-path" => (
+            PreservationKind::SoundUnder,
+            "terminating/PTIME-data (bounded); regular (unbounded)",
+            vec![
+                "bounded depth {n,m} and the predicate wildcard are GMEOW property-path \
+                 extensions beyond SPARQL 1.1 §9; a consumer restricted to standard SPARQL \
+                 receives the unrolled (bounded) or approximated (wildcard) form",
+                "a predicate wildcard has no SPARQL §9 operator; its edge relation is \
+                 materialized by a namespace-scoped pre-pass before the depth closure",
+                "modal/world context and contextual scope are not carried by a path surface",
+            ],
+        ),
         other => panic!("unknown projection target: {other}"),
     }
 }
