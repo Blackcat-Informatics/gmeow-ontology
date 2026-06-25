@@ -18,6 +18,7 @@ use pyo3::types::{PyBytes, PyDict, PyList, PyModule};
 use gmeow_diagnostics::py::PyReport;
 
 use crate::run::{run_full, RunMode};
+use crate::scoreboards;
 use crate::transform::{self, CellInput, DerivedRowNative, TransformReportNative};
 use crate::up_projection::{self, AuditReport, LiftMap, UpProjectionReport};
 
@@ -439,6 +440,57 @@ fn transform_report_to_py(py: Python<'_>, report: &TransformReportNative) -> PyR
     Ok(out.into_any().unbind())
 }
 
+/// Run the native claim audit scoreboard over one or more Turtle files.
+#[pyfunction]
+#[pyo3(signature = (root, files))]
+fn claim_audit(py: Python<'_>, root: String, files: Vec<String>) -> PyResult<Py<PyAny>> {
+    let paths = files
+        .into_iter()
+        .map(std::path::PathBuf::from)
+        .collect::<Vec<_>>();
+    let report = py
+        .detach(move || scoreboards::claim_audit(Path::new(&root), &paths))
+        .map_err(pyo3::exceptions::PyValueError::new_err)?;
+    let text = scoreboards::render_claim_audit_text(&report);
+    let json = scoreboards::render_claim_audit_json(&report)
+        .map_err(pyo3::exceptions::PyValueError::new_err)?;
+    let diagnostics = scoreboards::claim_audit_diagnostics(&report);
+
+    let out = PyDict::new(py);
+    out.set_item("text", text)?;
+    out.set_item("json", json)?;
+    out.set_item("flagged", report.flagged())?;
+    out.set_item("shacl_errors", PyList::new(py, report.shacl_errors.iter())?)?;
+    out.set_item(
+        "shacl_warnings",
+        PyList::new(py, report.shacl_warnings.iter())?,
+    )?;
+    out.set_item("report", Py::new(py, PyReport::from_engine(diagnostics))?)?;
+    Ok(out.into_any().unbind())
+}
+
+/// Run the native claim audit and return only the canonical diagnostics report.
+#[pyfunction]
+#[pyo3(signature = (root, files))]
+fn claim_audit_diagnostics_report(
+    py: Python<'_>,
+    root: String,
+    files: Vec<String>,
+) -> PyResult<Py<PyAny>> {
+    let paths = files
+        .into_iter()
+        .map(std::path::PathBuf::from)
+        .collect::<Vec<_>>();
+    let report = py
+        .detach(move || scoreboards::claim_audit(Path::new(&root), &paths))
+        .map_err(pyo3::exceptions::PyValueError::new_err)?;
+    Ok(Py::new(
+        py,
+        PyReport::from_engine(scoreboards::claim_audit_diagnostics(&report)),
+    )?
+    .into_any())
+}
+
 fn lift_map_to_py(py: Python<'_>, lift: &LiftMap) -> PyResult<Py<PyAny>> {
     let out = PyDict::new(py);
     out.set_item("rules", string_map(py, &lift.rules)?)?;
@@ -578,5 +630,7 @@ pub fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(transform_skolemize_nt, m)?)?;
     m.add_function(wrap_pyfunction!(transform_saturate_nt, m)?)?;
     m.add_function(wrap_pyfunction!(transform_project_nt, m)?)?;
+    m.add_function(wrap_pyfunction!(claim_audit, m)?)?;
+    m.add_function(wrap_pyfunction!(claim_audit_diagnostics_report, m)?)?;
     Ok(())
 }
