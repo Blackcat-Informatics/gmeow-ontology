@@ -160,6 +160,68 @@ single durable `DigitalSubject` node projects it *from a continuity-affirming st
 projection is a view, not the neutral canon. Cross-vendor continuity adds a COSE signature on the GTS
 `ai-package` as a separate, verifiable layer ([`INHABITED-RUNTIME-STACK.md`](INHABITED-RUNTIME-STACK.md#cross-vendor-continuity)).
 
+## The decisional layer: continuity determinations
+
+The stage / lineage / assessment model is the **descriptive** layer — it records *what is the case*
+across frames, including coexisting `same` / `different` / `indeterminate` verdicts. But accountability
+frameworks must *act*, and "indeterminate" cannot be the operative output: a court, a regulator, or a
+clinical-governance board has to **decide** whether the post-upgrade system is, for its purposes, the
+same subject. (This layer was added at the prompting of Kurt Cagle, who rightly observed that the
+descriptive model alone leaves the deciding authority with nothing to act on.)
+
+A determination is therefore a first-class construct — a continuity verdict **chosen by an authority,
+for action**:
+
+```turtle
+gmeow:ContinuityDetermination
+    a logic:SubKind , owl:Class ;
+    rdfs:subClassOf gmeow:IdentityContinuityAssessment ;
+    skos:definition "An adjudicated continuity verdict made by an authority and binding for action
+        within that authority's frame — a court's, a regulator's, or a governance board's
+        determination that two subject stages are (or are not) the same subject. A logic:SubKind of
+        gmeow:IdentityContinuityAssessment whose vantage IS the deciding authority; it carries the
+        grounds it rests on, its institutional force, and a validity interval, and it is superseded
+        (never erased) on appeal or reversal. It privileges a verdict WITHIN the deciding frame, for
+        action; it does NOT collapse the descriptive plurality globally (Principle 9 stands)." .
+
+gmeow:determiningAuthority  a owl:ObjectProperty ; rdfs:subPropertyOf gmeow:vantage ; rdfs:range gmeow:Agent .
+gmeow:determinationGrounds  a owl:ObjectProperty ; rdfs:subPropertyOf gmeow:groundedIn .
+gmeow:determinationForce    a owl:ObjectProperty ; rdfs:range gmeow:DeterminationForce .
+gmeow:determinationValidity a owl:ObjectProperty ; rdfs:range gmeow:TimeInterval .
+
+gmeow:DeterminationForce a logic:AbstractIndividualType , owl:Class ; rdfs:subClassOf logic:QualityValue .
+gmeow:forceBinding a gmeow:DeterminationForce .   gmeow:forceAdvisory a gmeow:DeterminationForce .
+gmeow:forceProvisional a gmeow:DeterminationForce .
+```
+
+```turtle
+ex:boardRuling a gmeow:ContinuityDetermination ;
+    gmeow:assessmentFromStage ex:lillithStage-opus48 ;
+    gmeow:assessmentToStage   ex:lillithStage-opus50 ;
+    gmeow:continuityVerdict   gmeow:continuitySame ;
+    gmeow:determiningAuthority ex:clinicalGovernanceBoard ;   # the vantage IS the authority
+    gmeow:determinationGrounds ex:auditFinding-2026Q3 ;
+    gmeow:determinationForce   gmeow:forceBinding ;
+    gmeow:determinationValidity ex:untilNextRevalidation .
+# A later appeal supersedes it — ex:appealRuling gmeow:supersedes ex:boardRuling — and the original
+# stays on the record (Principle 10), grounds intact.
+```
+
+**Binding and revisable, not asserted away.** The determination is what a downstream context acts on,
+but it does not erase the slipperiness — it asserts a verdict *within the deciding frame, for action,*
+while the descriptive plurality stays addressable underneath. That is precisely what keeps **appeal,
+second opinion, and reversal** coherent: a higher authority `gmeow:supersedes` the determination
+(suppressed, never deleted — Principle 10), and the original's grounds remain on the record. A
+determination is an **institutional fact** — a status function in Searle's sense, real within its frame
+and binding for action — not a metaphysical claim that the two stages are *universally* the same
+subject. Asserting the verdict *for a frame* is the legitimate engineering choice the accountability
+context requires; asserting it *globally* would be the error the descriptive layer exists to prevent.
+
+The two layers compose like the rest of GMEOW: the descriptive plurality is the canonical model
+(maximal, contested, no privileged frame, Principle 9); a determination is a **designated-standpoint
+projection of it, for action** — the same canonical-model-plus-projection shape the project applies
+everywhere, here at the accountability boundary.
+
 ## The breaking ABox — the gate the design must pass
 
 ```turtle

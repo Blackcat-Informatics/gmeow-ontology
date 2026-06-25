@@ -128,7 +128,8 @@ All terms live in **core** unless tagged *(model-serving)*, the thin standalone 
 | `gmeow:EmbodimentCarrierRole` | `logic:RoleMixin` | the surface entity in role (subsumes Avatar) |
 | `gmeow:EmbodimentAssignment` | `logic:Situation ⊑ TimeScopedRelation` | subject × carrier × interval × capabilities |
 | `gmeow:SubjectStage` / `gmeow:SubjectLineage` | `logic:Situation ⊑ TimeScopedRelation` / `logic:Kind ⊑ InformationObject` | epochs and the durable identity record |
-| `gmeow:IdentityContinuityAssessment` | `logic:SubKind ⊑ Observation` | the contestable same/different/indeterminate verdict |
+| `gmeow:IdentityContinuityAssessment` | `logic:SubKind ⊑ Observation` | the contestable same/different/indeterminate verdict (descriptive layer) |
+| `gmeow:ContinuityDetermination` | `logic:SubKind ⊑ IdentityContinuityAssessment` | an adjudicated verdict by an authority, binding-for-action in its frame (decisional layer) |
 | `gmeow:ControlAssessment` | `logic:SubKind ⊑ Observation` | who controls a host/embodiment (≠ deception) |
 | `gmeow:inhabitationLocusKind` | `logic:AbstractIndividualType` (values) | self / vessel (tenancy is *derived*, not a value) |
 | `eventTypeInhabitationTransition` + `portalFrom`/`portalTo` | `gmeow:EventType` value | migration (lifecycle value, not an Event subclass) |

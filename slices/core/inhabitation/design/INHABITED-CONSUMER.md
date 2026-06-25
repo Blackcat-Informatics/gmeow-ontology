@@ -111,7 +111,10 @@ The settled design decisions the rest of this set implements:
 
 Other decisions: locus split into kind + derived tenancy; `Embodiment` split into carrier role +
 assignment; contested inhabitation as an unasserted `InhabitationClaim ⊑ StandpointClaim`; role
-classification by native `logic:` rule; competency statuses kept honest.
+classification by native `logic:` rule; competency statuses kept honest; **continuity has a descriptive
+and a decisional layer** — the contested `IdentityContinuityAssessment` plurality, plus a first-class
+`ContinuityDetermination` (an authority's binding-for-action verdict, grounded, revisable by
+supersession) for accountability contexts that must *decide* ([`INHABITED-IDENTITY.md`](INHABITED-IDENTITY.md#the-decisional-layer-continuity-determinations)).
 
 ## Eventual slice anatomy
 
@@ -126,6 +129,7 @@ slices/core/inhabitation/          # MINIMAL CORE — no extension dependencies
 │                       # InhabitationConfiguration (Situations), InhabitationClaim (⊑ StandpointClaim),
 │                       # InhabitationDescription (⊑ Proposition), SubjectStage/SubjectLineage,
 │                       # IdentityContinuityAssessment + ControlAssessment (⊑ Observation),
+│                       # ContinuityDetermination (⊑ IdentityContinuityAssessment; decisional layer),
 │                       # EmbodimentCarrierRole (RoleMixin) + EmbodimentAssignment (Situation) [universal],
 │                       # inhabitationLocusKind (values), eventTypeInhabitationTransition +
 │                       # portalFrom/portalTo, TransferManifest, OPEN configurationFacet; role-filler props
