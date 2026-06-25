@@ -309,6 +309,190 @@ def regenerate(
     _regenerate_native(jobs=jobs, check=check)
 
 
+def _parse_evidence_spec(spec: str) -> tuple[bytes, str, str, str, str]:
+    """Parse one ``path:media_type:attestation_type:rep:label`` evidence spec.
+
+    Reads the artifact file (HARD-fails if missing/unreadable — no silent skip,
+    per §18 no-optionality). The label may itself contain ``:`` (only the first
+    four separators are split). Returns the row the native fold consumes:
+    ``(data, media_type, attestation_type_iri, rep, subject_label)``.
+    """
+    parts = spec.split(":", 4)
+    if len(parts) != 5:
+        raise _fail(
+            f"✗ malformed --evidence spec {spec!r}; expected "
+            "path:media_type:attestation_type:rep:label"
+        )
+    path_str, media_type, attestation_type, rep, label = parts
+    path = Path(path_str)
+    try:
+        data = path.read_bytes()
+    except OSError as exc:
+        raise _fail(f"✗ evidence artifact {path_str!r} is unreadable: {exc}") from exc
+    return (data, media_type, attestation_type, rep, label)
+
+
+@app.command(name="release-bundle")
+def release_bundle(
+    out: Path = typer.Option(  # noqa: B008
+        Path("dist/gmeow.gts"),
+        "--out",
+        help=(
+            "Output path for the SIGNED release bundle (NEVER the committed snapshot)."
+        ),
+    ),
+    sign_key: Path = typer.Option(  # noqa: B008
+        ...,
+        "--sign-key",
+        help="ASCII-armored unencrypted Ed25519 OpenPGP SECRET key (SIGN_KEY).",
+    ),
+    public_key: Path = typer.Option(  # noqa: B008
+        ...,
+        "--public-key",
+        help="ASCII-armored Ed25519 OpenPGP PUBLIC certificate for the transport key.",
+    ),
+    source: Path = typer.Option(  # noqa: B008
+        Path("generated/dist/gmeow.gts"),
+        "--source",
+        help="The committed unsigned gmeow.gts to fold evidence into (read-only).",
+    ),
+    issued_at: str = typer.Option(
+        ...,
+        "--issued-at",
+        help="INJECTED ISO-8601 release timestamp (REQUIRED for determinism, §18).",
+    ),
+    attester: str = typer.Option(
+        "https://blackcatinformatics.ca/gmeow/agent/release-lane",
+        "--attester",
+        help="IRI of the release-lane software agent that vouches for the bundle.",
+    ),
+    release_subject: str = typer.Option(
+        "https://blackcatinformatics.ca/gmeow/release/gmeow.gts",
+        "--release-subject",
+        help="IRI naming the signed release bundle (the attested subject).",
+    ),
+    evidence: list[str] = typer.Option(  # noqa: B008
+        [],
+        "--evidence",
+        help=("Repeatable evidence spec path:media_type:attestation_type:rep:label."),
+    ),
+) -> None:
+    """Fold check/conformance/SARIF/perf evidence into a SIGNED gmeow.gts (#673).
+
+    Reads the committed unsigned snapshot and each evidence artifact (HARD-fails
+    on any missing file), then calls the native Rust
+    ``gmeow_native.pipeline.fold_release_bundle_native`` which augments the
+    snapshot with a ``graph/attestations`` named graph and the evidence blobs,
+    signs it Ed25519, and returns the bytes — written to ``--out``. This Python
+    layer does NO fold/sign/attestation logic; it only marshals paths + bytes.
+    """
+    try:
+        import gmeow_native.pipeline as _pipeline
+    except ImportError as exc:
+        raise _fail(
+            "✗ the native pipeline is unavailable: "
+            f"`import gmeow_native.pipeline` failed ({exc}). Rebuild the unified "
+            "extension (e.g. `maturin develop --manifest-path "
+            "crates/native/Cargo.toml`) to pick up the pipeline submodule."
+        ) from exc
+
+    try:
+        snapshot_bytes = source.read_bytes()
+    except OSError as exc:
+        raise _fail(f"✗ source snapshot {source} is unreadable: {exc}") from exc
+    try:
+        secret_armor = sign_key.read_text(encoding="utf-8")
+    except OSError as exc:
+        raise _fail(f"✗ signing key {sign_key} is unreadable: {exc}") from exc
+    try:
+        public_armor = public_key.read_text(encoding="utf-8")
+    except OSError as exc:
+        raise _fail(f"✗ public key {public_key} is unreadable: {exc}") from exc
+
+    rows = [_parse_evidence_spec(spec) for spec in evidence]
+
+    signed = _pipeline.fold_release_bundle_native(
+        snapshot_bytes,
+        rows,
+        attester,
+        issued_at,
+        release_subject,
+        secret_armor,
+        public_armor,
+    )
+
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_bytes(signed)
+    console.print(
+        f"[green]✓ signed release bundle: {out} "
+        f"({len(rows)} evidence artifact(s), {len(signed)} bytes)[/green]"
+    )
+
+
+@app.command(name="verify-release-bundle")
+def verify_release_bundle(
+    bundle: Path = typer.Option(  # noqa: B008
+        Path("dist/gmeow.gts"),
+        "--bundle",
+        help="The signed release bundle to verify.",
+    ),
+    public_key: Path | None = typer.Option(  # noqa: B008
+        None,
+        "--public-key",
+        help=(
+            "Optional out-of-band trusted Ed25519 OpenPGP PUBLIC certificate. "
+            "When given, the signature is checked against it, not just the "
+            "bundle's embedded transport key."
+        ),
+    ),
+) -> None:
+    """Consumer verification of a signed release bundle (#673, §18).
+
+    Verifies the COSE signature + trust policy AND walks the
+    ``graph/attestations`` frames, hard-failing if any attested artifact's bytes
+    are absent — so a consumer confirms exactly which checks ran over exactly
+    which bytes, not merely that *something* was signed. This Python layer does
+    NO verification logic; it only marshals paths + bytes into the native
+    ``gmeow_native.pipeline.verify_release_bundle_native``.
+    """
+    try:
+        import gmeow_native.pipeline as _pipeline
+    except ImportError as exc:
+        raise _fail(
+            "✗ the native pipeline is unavailable: "
+            f"`import gmeow_native.pipeline` failed ({exc}). Rebuild the unified "
+            "extension (e.g. `maturin develop --manifest-path "
+            "crates/native/Cargo.toml`) to pick up the pipeline submodule."
+        ) from exc
+
+    try:
+        bundle_bytes = bundle.read_bytes()
+    except OSError as exc:
+        raise _fail(f"✗ release bundle {bundle} is unreadable: {exc}") from exc
+
+    expected_armor: str | None = None
+    if public_key is not None:
+        try:
+            expected_armor = public_key.read_text(encoding="utf-8")
+        except OSError as exc:
+            raise _fail(f"✗ public key {public_key} is unreadable: {exc}") from exc
+
+    try:
+        signed, valid, kid, fingerprint, artifacts = (
+            _pipeline.verify_release_bundle_native(bundle_bytes, expected_armor)
+        )
+    except ValueError as exc:
+        raise _fail(f"✗ release verification failed: {exc}") from exc
+
+    key_line = f", key {kid}" if kid else ""
+    fp_line = f", fingerprint {fingerprint}" if fingerprint else ""
+    console.print(
+        f"[green]✓ release verified: {bundle} "
+        f"({valid}/{signed} valid signature(s){key_line}{fp_line}, "
+        f"{artifacts} attested artifact(s) present)[/green]"
+    )
+
+
 @app.command()
 def check_generated(
     jobs: int | None = typer.Option(

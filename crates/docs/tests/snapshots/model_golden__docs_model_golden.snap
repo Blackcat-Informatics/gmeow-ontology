@@ -1,5 +1,6 @@
 ---
 source: crates/docs/tests/model_golden.rs
+assertion_line: 182
 expression: summary
 ---
 {
@@ -191,7 +192,7 @@ expression: summary
   ],
   "mapping_set_count": 54,
   "linkage_count": 1381,
-  "example_count": 96,
+  "example_count": 97,
   "concern_count": 7,
   "external_term_count": 1206,
   "sample_mapping_set": {

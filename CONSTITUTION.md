@@ -431,8 +431,8 @@ oracle cross-check becomes an independent, separately-scheduled confirmation rat
 prerequisite.
 
 This extends Principle 17 (native authority) and Principle 13 (the consumer Docker-free gate) to the
-authoritative gate; later amendments append the public-receipts, reusable-crate-suite, and
-release-as-evidence clauses.
+authoritative gate; the release-as-evidence clause is realized below, and later amendments append the
+public-receipts and reusable-crate-suite clauses.
 
 **Extends Principle 17 and Principle 13.**
 
@@ -468,6 +468,51 @@ gate (`meta:gate-dl-el-crosscheck`), the native ⊇ oracle anti-regression super
 ([`tests/test_lane_purity.py`](./tests/test_lane_purity.py), `meta:tests-lane-purity`) that statically
 proves the required CI `quality` jobs and `make check` carry no Java and no Docker — whose
 machine-readable enforcement lives in [`governance/constitution.ttl`](./governance/constitution.ttl).
+
+**Amendment — release-as-evidence.** A GMEOW release is its own evidence. The `make full-release`
+lane runs, in order, the native authority gate (`make check`), the enforcing Java/Docker
+`classic-cross-check` oracle lane, and the public conformance + perf suites — then **folds every
+result into a single signed release bundle as content-addressed, individually-verifiable attestation
+frames**. Each artifact the lane produces — the native↔oracle agreement matrices (the native gap-zero
+DL-EL ledger and the classic ROBOT/HermiT/Jena/ELK cross-check), the public conformance-suite verdicts
+(the `gmeow-conformance` corpus rolled up by `make conformance-report`), the SHACL/diagnostics SARIF
+findings, the machine-readable compliance report, and the perf results — rides into the bundle as a
+BLAKE3-content-addressed blob, and is described by a queryable `gmeow:Attestation` envelope (from the
+`attestation` slice) in a dedicated `graph/attestations` named graph that binds the envelope to its
+blob by `gmeow:contentDigest`. A blob the committed snapshot already carries (e.g. the SHACL SARIF) is
+attested by digest in place, never re-folded as a duplicate frame. The bundle is **signed** with the
+Ed25519 release key and carries the embedded OpenPGP transport key, so any consumer can verify the
+signature and the trust policy out of band, then walk the attestation frames to confirm exactly which
+checks ran over exactly which bytes — which is precisely what `make verify-release` does: native COSE
+signature + trust-policy verification, then a walk of the `graph/attestations` frames asserting every
+attested `gmeow:contentDigest` resolves to a blob actually present in the bundle. A verified bundle is
+then **published** by the user-driven `make release-publish`: a content-addressed GitHub release (the
+signed `.gts` + a checksum sidecar + the native `gts heads` digest) and the Crossref deposit over the
+always-latest concept DOI. Signing, publishing, and DOI submission are maintainer-credentialed steps;
+the project tooling never holds signing keys. The fold is **reproducible**: release timestamps are injected
+rather than sampled, blobs and frames are content-hash-sorted, and perf timings are carried as data,
+never as a gate. Two invariants bound this lane. First, the Java/Docker oracle pass stays confined to
+`full-release` (and the maintainer lanes) — it never enters the authoritative `make check`, so
+Principle 18's primary lane stays native and offline. Second, the release fold writes only the
+release bundle (`dist/gmeow.gts`, the `--out` path) and **never mutates the committed, drift-gated
+`generated/dist/gmeow.gts`**: the committed snapshot remains the Docker-free narrow waist, and the
+signed evidence bundle is a packaging step layered over it. Perf and timing are folded as data, so
+the bundle attests *what was checked*, not a leaderboard verdict. This realizes META-EPIC #672's
+"signed, content-addressed, provenanced graphs" moat as a shippable artifact: the release graph
+carries its own proof of correctness.
+
+*Embodied in:* the Rust-native release fold + sign + verify stage
+([`crates/pipeline/src/stages/release.rs`](./crates/pipeline/src/stages/release.rs),
+`fold_release_bundle` + `verify_release_bundle`) over the snapshot composer's signing path
+([`crates/rdf/src/gts_compose.rs`](./crates/rdf/src/gts_compose.rs), `emit_gts`) and the native verify
+path ([`gmeow_gts::verify`]), the thin `release-bundle` + `verify-release-bundle` CLI commands, the
+Rust `conformance-report` roll-up ([`crates/conformance`](./crates/conformance)), the `make
+full-release` / `make verify-release` / `make release-publish` lanes, and the release-evidence frame
+schema in the [`attestation`](./slices/core/attestation/module.ttl) slice. *Tested by:* the
+release-evidence gate (`meta:gate-release-evidence`) — the Rust round-trip test that folds the evidence
+set, signs the bundle, and verifies the signature, trust policy, and `graph/attestations` frames, plus
+the consumer verify tests (well-formed bundle accepts; tampered bytes, non-GTS garbage, and an
+untrusted key reject) — surfaced to consumers as `make verify-release`.
 
 ---
 
