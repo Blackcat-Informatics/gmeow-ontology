@@ -1034,15 +1034,16 @@ real native cells instead of pytest retains.
 **Faithfulness encoding.** The TBox `_query_terms` tests asserted a *subset* of
 terms present (robust to additions), so each migrated cell enumerates exactly the
 pytest-asserted rows with `cqExactRows` **omitted** (contains-check) — never
-strengthened to an exact closed set. The two `len() >= N` floors (`life-events`
->=25, `citation-intents` >=10) are coarse bounds the DSL has no operator for; the
-named rows are pinned and the loose floor is dropped (a faithful relaxation). The
+strengthened to an exact closed set. The five `len() >= N` floors (`life-events`
+>=25, `citation-intents` >=10, `deception-types` >=10, `deception-roles` >=5,
+`myths` >=5) are coarse bounds the DSL has no operator for; the named rows are
+pinned and the loose floor is dropped (a faithful relaxation). The
 deliberately-empty queries pin `cqExpectRowCount 0`.
 
 | Owning slice | cell(s) | source `_query_terms*` test(s) | encoding |
 |---|---|---|---|
-| `core/deception` | `cqDeceptionTypes`, `cqDeceptionRoles` + 8 single-event classifiers + `cqDeceptionSelfDeception` (2-var) + `cqDeceptionLicensedFalsehood` (count 0) | deception-types/-roles + lie/omission/paltering/bullshit/distortion/self-deception/fabrication/forgery/impersonation/licensed-falsehood | subset + 9 `cqDataFile` overlays + 1 empty |
-| `extensions/narrative` | `cqMyths` | myths | subset |
+| `core/deception` | `cqDeceptionTypes`, `cqDeceptionRoles` + 8 single-event classifiers + `cqDeceptionSelfDeception` (2-var) + `cqDeceptionLicensedFalsehood` (count 0) | deception-types (was `>=10`) / deception-roles (was `>=5`) + lie/omission/paltering/bullshit/distortion/self-deception/fabrication/forgery/impersonation/licensed-falsehood | subset + 9 `cqDataFile` overlays + 1 empty |
+| `extensions/narrative` | `cqMyths` | myths (was `>=5`) | subset |
 | `core/expertise` | `cqExpertProficiency`, `cqEndorsedVsSelfAsserted` (3 rows), `cqEmploymentCredentials` | expertise expert-python / endorsed-vs-self / employment-credentials | 3 `cqDataFile` overlays (full multi-var rows) |
 | `core/names` | appellation-kinds, name-part-types, pronoun-sets, place-namings | same | subset |
 | `core/places` | location-kinds, place-types, storage-media, place-properties | same | subset |
