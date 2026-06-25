@@ -195,7 +195,12 @@ fn build_graphs(graph: &Graph) -> Result<GraphNodes, PipelineError> {
         reifier_of.entry((s, p, o)).or_default().push(rid);
     }
     for list in reifier_of.values_mut() {
-        list.sort();
+        // Sort by the reifier's stable @id, not its input-order term id.
+        list.sort_by(|a, b| {
+            let a_id = term_id(&graph.terms[*a]).expect("reifier must be IRI or blank node");
+            let b_id = term_id(&graph.terms[*b]).expect("reifier must be IRI or blank node");
+            a_id.cmp(&b_id)
+        });
     }
 
     // Annotation index: reifier id -> sorted annotation (predicate, value) rows.
@@ -204,7 +209,15 @@ fn build_graphs(graph: &Graph) -> Result<GraphNodes, PipelineError> {
         annotations_of.entry(r).or_default().push((p, v));
     }
     for list in annotations_of.values_mut() {
-        list.sort();
+        // Sort by stable predicate @id then stable value key, not raw term ids.
+        list.sort_by(|(ap, av), (bp, bv)| {
+            let a_pred = term_id(&graph.terms[*ap]).expect("annotation predicate must be IRI");
+            let b_pred = term_id(&graph.terms[*bp]).expect("annotation predicate must be IRI");
+            a_pred.cmp(&b_pred).then_with(|| {
+                term_sort_key(graph, &graph.terms[*av])
+                    .cmp(&term_sort_key(graph, &graph.terms[*bv]))
+            })
+        });
     }
 
     // Group quads by graph name (None = default graph) and then by subject.
@@ -537,6 +550,28 @@ fn term_id(term: &Term) -> Result<String, PipelineError> {
         TermKind::Triple => Err(PipelineError::Parse(
             "expected IRI or blank node, got triple term".to_string(),
         )),
+    }
+}
+
+/// Return a stable, lexical sort key for an RDF term.
+///
+/// Unlike raw term ids, this key is independent of the order in which terms
+/// were appended to the graph, so it is safe to use when normalizing output.
+fn term_sort_key(graph: &Graph, term: &Term) -> String {
+    match term.kind {
+        TermKind::Iri | TermKind::Bnode => term_id(term).unwrap_or_default(),
+        TermKind::Literal => {
+            let mut key = format!("lit:{}", term.value.as_deref().unwrap_or_default());
+            if let Some(lang) = &term.lang {
+                key.push_str(&format!("@{lang}"));
+            }
+            if let Some(dir) = &term.direction {
+                key.push_str(&format!("^{dir}"));
+            }
+            key.push_str(&format!("^^{}", graph.datatype_iri(term)));
+            key
+        }
+        TermKind::Triple => format!("triple:{}", term.reifier.unwrap_or(usize::MAX)),
     }
 }
 
@@ -1264,6 +1299,133 @@ mod tests {
         let first = serialize_graph_yaml(&graph).expect("serialize first");
         let second = serialize_graph_yaml(&graph).expect("serialize second");
         assert_eq!(first, second, "YAML-LD output must be byte-deterministic");
+    }
+
+    /// Build a non-trivial graph through hash-map collections seeded with `seed`.
+    ///
+    /// The returned graph has the same RDF content regardless of seed, but the
+    /// append order of terms, quads, reifiers, and annotations varies with the
+    /// hash-map iteration order. This lets determinism tests prove that the
+    /// serializer normalizes away any input-order dependency.
+    fn build_nontrivial_graph_with_seed(seed: usize) -> Graph {
+        use ahash::{AHashMap, RandomState};
+
+        // Terms are collected in a seed-dependent map so their ids vary by seed.
+        let mut term_inputs: AHashMap<&'static str, Term> =
+            AHashMap::with_hasher(RandomState::with_seed(seed));
+        term_inputs.insert("s", iri_term("https://example.org/s"));
+        term_inputs.insert("p1", iri_term("https://example.org/p1"));
+        term_inputs.insert("p2", iri_term("https://example.org/p2"));
+        term_inputs.insert("o1", iri_term("https://example.org/o1"));
+        term_inputs.insert("o2", dir_lang_term("bonjour", "fr", "rtl"));
+        term_inputs.insert("r1", iri_term("https://example.org/r1"));
+        term_inputs.insert("r2", iri_term("https://example.org/r2"));
+        term_inputs.insert("ap", iri_term("https://example.org/ap"));
+        term_inputs.insert("av1", literal_term("meta-one"));
+        term_inputs.insert("av2", literal_term("meta-two"));
+        term_inputs.insert("type", iri_term("https://example.org/SomeType"));
+        term_inputs.insert("rdf_type", iri_term(RDF_TYPE));
+
+        let mut graph = Graph::default();
+        let mut term_idx: AHashMap<&'static str, usize> =
+            AHashMap::with_hasher(RandomState::with_seed(seed));
+        for (key, term) in term_inputs {
+            let id = graph.terms.len();
+            graph.terms.push(term);
+            term_idx.insert(key, id);
+        }
+
+        // Quads are collected in a seed-dependent map so their row order varies by seed.
+        let mut quad_inputs: AHashMap<&'static str, (usize, usize, usize, Option<usize>)> =
+            AHashMap::with_hasher(RandomState::with_seed(seed));
+        quad_inputs.insert(
+            "type",
+            (term_idx["s"], term_idx["rdf_type"], term_idx["type"], None),
+        );
+        quad_inputs.insert("q1", (term_idx["s"], term_idx["p1"], term_idx["o1"], None));
+        quad_inputs.insert("q2", (term_idx["s"], term_idx["p2"], term_idx["o2"], None));
+
+        let mut quad_idx: AHashMap<&'static str, usize> =
+            AHashMap::with_hasher(RandomState::with_seed(seed));
+        for (key, quad) in quad_inputs {
+            let id = graph.quads.len();
+            graph.quads.push(quad);
+            quad_idx.insert(key, id);
+        }
+
+        // Reifiers are collected in a seed-dependent map.
+        let mut reifier_inputs: AHashMap<&'static str, (usize, &'static str)> =
+            AHashMap::with_hasher(RandomState::with_seed(seed));
+        reifier_inputs.insert("r1", (term_idx["r1"], "q1"));
+        reifier_inputs.insert("r2", (term_idx["r2"], "q1"));
+
+        let mut reifier_idx: AHashMap<&'static str, usize> =
+            AHashMap::with_hasher(RandomState::with_seed(seed));
+        for (key, (term_id, quad_key)) in reifier_inputs {
+            let q = graph.quads[quad_idx[quad_key]];
+            let id = graph.reifiers.len();
+            graph.reifiers.push((term_id, (q.0, q.1, q.2)));
+            reifier_idx.insert(key, id);
+        }
+
+        // Annotations are collected in a seed-dependent map.
+        let mut annotation_inputs: AHashMap<&'static str, (usize, usize, usize)> =
+            AHashMap::with_hasher(RandomState::with_seed(seed));
+        annotation_inputs.insert("a1", (term_idx["r1"], term_idx["ap"], term_idx["av1"]));
+        annotation_inputs.insert("a2", (term_idx["r2"], term_idx["ap"], term_idx["av2"]));
+        for (_, ann) in annotation_inputs {
+            graph.annotations.push(ann);
+        }
+
+        graph
+    }
+
+    /// Acceptance criterion #6 (issue #699 / PR #978): JSON-LD-star output is
+    /// byte-identical even when the input graph is constructed through hash maps
+    /// seeded with different values. The serializer orders every map and array
+    /// deterministically, so output must not depend on input append order.
+    #[test]
+    fn hash_seed_determinism_jsonld_star() {
+        let seed_a = 0x1111_1111_1111_1111_usize;
+        let seed_b = 0x2222_2222_2222_2222_usize;
+        let graph_a = build_nontrivial_graph_with_seed(seed_a);
+        let graph_b = build_nontrivial_graph_with_seed(seed_b);
+
+        // The input graphs must differ in append order; otherwise the test is not
+        // exercising hash-seed normalization.
+        assert_ne!(
+            graph_a.terms, graph_b.terms,
+            "seeds must produce different term append orders"
+        );
+        assert_ne!(
+            graph_a.quads, graph_b.quads,
+            "seeds must produce different quad append orders"
+        );
+
+        let json_a = serialize_graph(&graph_a).expect("serialize graph A");
+        let json_b = serialize_graph(&graph_b).expect("serialize graph B");
+        assert_eq!(
+            json_a, json_b,
+            "JSON-LD-star output must be identical under different hash-map seeds"
+        );
+    }
+
+    /// Acceptance criterion #6 (issue #699 / PR #978): YAML-LD-star output is
+    /// byte-identical even when the input graph is constructed through hash maps
+    /// seeded with different values.
+    #[test]
+    fn hash_seed_determinism_yaml_ld_star() {
+        let seed_a = 0x1111_1111_1111_1111_usize;
+        let seed_b = 0x2222_2222_2222_2222_usize;
+        let graph_a = build_nontrivial_graph_with_seed(seed_a);
+        let graph_b = build_nontrivial_graph_with_seed(seed_b);
+
+        let yaml_a = serialize_graph_yaml(&graph_a).expect("serialize YAML-LD A");
+        let yaml_b = serialize_graph_yaml(&graph_b).expect("serialize YAML-LD B");
+        assert_eq!(
+            yaml_a, yaml_b,
+            "YAML-LD-star output must be identical under different hash-map seeds"
+        );
     }
 
     #[test]

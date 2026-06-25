@@ -91,3 +91,6 @@ tempfile = "3"
 # reader, which takes a `ChunkReader` — `bytes::Bytes` is the simplest in-memory
 # one (already in the tree as a parquet dependency).
 bytes = "1"
+# Determinism tests for the YAML-LD-star / JSON-LD-star emitter vary hash-map
+# seeds to prove that output order is independent of input collection order.
+ahash = "0.8"
