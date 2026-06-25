@@ -1,0 +1,266 @@
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+
+<https://blackcatinformatics.ca/gmeow/corpus/foundation/activity/import>
+    a gmeow:ImportActivity ;
+    gmeow:sourceLocation "synthetic-corpus.jsonl" ;
+    gmeow:wasAssociatedWith <https://blackcatinformatics.ca/gmeow/corpus/foundation/agent/corpus-pipeline> .
+
+<https://blackcatinformatics.ca/gmeow/corpus/foundation/agent/corpus-pipeline>
+    a gmeow:SoftwareAgent ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "foundation corpus pipeline"@x-gmeow-english .
+
+<https://blackcatinformatics.ca/gmeow/corpus/foundation/book/1>
+    a gmeow:Work ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "The Clockwork Steerswoman"@x-gmeow-english ;
+    gmeow:hasContributor <https://blackcatinformatics.ca/gmeow/corpus/foundation/person/ada-synthetic> ,
+        <https://blackcatinformatics.ca/gmeow/corpus/foundation/person/basil-example> ;
+    gmeow:partOf <https://blackcatinformatics.ca/gmeow/corpus/foundation/section/test-bedrock> .
+
+<https://blackcatinformatics.ca/gmeow/corpus/foundation/book/1/chapter/1>
+    a gmeow:ContentSegment ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "One"@x-gmeow-english ;
+    gmeow:atNarrativePosition <https://blackcatinformatics.ca/gmeow/corpus/foundation/book/1/discourse-frame/pos/1> ;
+    gmeow:narrates <https://blackcatinformatics.ca/gmeow/corpus/foundation/book/1/chapter/1/event/1-rowan-swears-the-steerswoman-s-oath> ,
+        <https://blackcatinformatics.ca/gmeow/corpus/foundation/character/1/rowan-cogsworth> ;
+    gmeow:segmentOf <https://blackcatinformatics.ca/gmeow/corpus/foundation/book/1/expression> .
+
+<https://blackcatinformatics.ca/gmeow/corpus/foundation/book/1/chapter/1/event/1-rowan-swears-the-steerswoman-s-oath>
+    a gmeow:Event ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Rowan swears the steerswoman's oath"@x-gmeow-english ;
+    gmeow:eventType <https://blackcatinformatics.ca/gmeow/corpus/foundation/event-type/narrated-event> .
+
+<https://blackcatinformatics.ca/gmeow/corpus/foundation/book/1/chapter/2>
+    a gmeow:ContentSegment ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Two"@x-gmeow-english ;
+    gmeow:atNarrativePosition <https://blackcatinformatics.ca/gmeow/corpus/foundation/book/1/discourse-frame/pos/2> ;
+    gmeow:narrates <https://blackcatinformatics.ca/gmeow/corpus/foundation/book/1/chapter/2/event/1-willam-s-question-is-answered-truthfully> ,
+        <https://blackcatinformatics.ca/gmeow/corpus/foundation/book/1/chapter/2/event/2-the-ledger-is-opened-to-the-town> ,
+        <https://blackcatinformatics.ca/gmeow/corpus/foundation/character/1/rowan-cogsworth> ,
+        <https://blackcatinformatics.ca/gmeow/corpus/foundation/character/1/willam-gearhand> ;
+    gmeow:segmentOf <https://blackcatinformatics.ca/gmeow/corpus/foundation/book/1/expression> .
+
+<https://blackcatinformatics.ca/gmeow/corpus/foundation/book/1/chapter/2/event/1-willam-s-question-is-answered-truthfully>
+    a gmeow:Event ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Willam's question is answered truthfully"@x-gmeow-english ;
+    gmeow:eventType <https://blackcatinformatics.ca/gmeow/corpus/foundation/event-type/narrated-event> .
+
+<https://blackcatinformatics.ca/gmeow/corpus/foundation/book/1/chapter/2/event/2-the-ledger-is-opened-to-the-town>
+    a gmeow:Event ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "The ledger is opened to the town"@x-gmeow-english ;
+    gmeow:eventType <https://blackcatinformatics.ca/gmeow/corpus/foundation/event-type/narrated-event> .
+
+<https://blackcatinformatics.ca/gmeow/corpus/foundation/book/1/discourse-frame>
+    a gmeow:NarrativeTimeFrame ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "discourse order"@x-gmeow-english ;
+    gmeow:determinacyModel gmeow:determinacyCrisp ;
+    gmeow:dimensionCount 1 ;
+    gmeow:discourseTimeOf <https://blackcatinformatics.ca/gmeow/corpus/foundation/book/1> ;
+    gmeow:frameKind gmeow:frameKindNarrative ;
+    gmeow:frameRealm gmeow:frameRealmNarrative ;
+    gmeow:hasAxis <https://blackcatinformatics.ca/gmeow/corpus/foundation/book/1/discourse-frame/axis> ;
+    gmeow:narrativeTimeAxis gmeow:axisDiscourseTime ;
+    gmeow:requiresHost false .
+
+<https://blackcatinformatics.ca/gmeow/corpus/foundation/book/1/discourse-frame/pos/1>
+    a gmeow:NarrativePosition ;
+    gmeow:positionFrame <https://blackcatinformatics.ca/gmeow/corpus/foundation/book/1/discourse-frame> ;
+    gmeow:positionLabel "One" ;
+    gmeow:positionOrdinal 1 .
+
+<https://blackcatinformatics.ca/gmeow/corpus/foundation/book/1/discourse-frame/pos/2>
+    a gmeow:NarrativePosition ;
+    gmeow:positionFrame <https://blackcatinformatics.ca/gmeow/corpus/foundation/book/1/discourse-frame> ;
+    gmeow:positionLabel "Two" ;
+    gmeow:positionOrdinal 2 .
+
+<https://blackcatinformatics.ca/gmeow/corpus/foundation/book/1/expression>
+    a gmeow:Expression ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "The Clockwork Steerswoman (text)"@x-gmeow-english ;
+    gmeow:realizes <https://blackcatinformatics.ca/gmeow/corpus/foundation/book/1> .
+
+<https://blackcatinformatics.ca/gmeow/corpus/foundation/book/1/release>
+    a gmeow:BookRelease ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "The Clockwork Steerswoman (release)"@x-gmeow-english ;
+    gmeow:embodies <https://blackcatinformatics.ca/gmeow/corpus/foundation/book/1/expression> .
+
+<https://blackcatinformatics.ca/gmeow/corpus/foundation/book/1/score/acquire-test-knowledge>
+    a gmeow:Assessment ;
+    gmeow:assessmentCriterion <https://blackcatinformatics.ca/gmeow/corpus/foundation/criterion/acquire-test-knowledge> ;
+    gmeow:assessmentRubric <https://blackcatinformatics.ca/gmeow/corpus/foundation/rubric/principia-goals> ;
+    gmeow:assessmentScoreValue 0.4 ;
+    gmeow:assessmentTarget <https://blackcatinformatics.ca/gmeow/corpus/foundation/book/1> ;
+    gmeow:vantage <https://blackcatinformatics.ca/gmeow/corpus/foundation/agent/corpus-pipeline> .
+
+<https://blackcatinformatics.ca/gmeow/corpus/foundation/book/1/score/enforce-test-trust>
+    a gmeow:Assessment ;
+    gmeow:assessmentCriterion <https://blackcatinformatics.ca/gmeow/corpus/foundation/criterion/enforce-test-trust> ;
+    gmeow:assessmentRubric <https://blackcatinformatics.ca/gmeow/corpus/foundation/rubric/principia-goals> ;
+    gmeow:assessmentScoreValue 0.9 ;
+    gmeow:assessmentTarget <https://blackcatinformatics.ca/gmeow/corpus/foundation/book/1> ;
+    gmeow:vantage <https://blackcatinformatics.ca/gmeow/corpus/foundation/agent/corpus-pipeline> .
+
+<https://blackcatinformatics.ca/gmeow/corpus/foundation/book/1/score/unused-axis>
+    a gmeow:Assessment ;
+    gmeow:assessmentCriterion <https://blackcatinformatics.ca/gmeow/corpus/foundation/criterion/unused-axis> ;
+    gmeow:assessmentRubric <https://blackcatinformatics.ca/gmeow/corpus/foundation/rubric/principia-goals> ;
+    gmeow:assessmentScoreValue "0"^^<http://www.w3.org/2001/XMLSchema#decimal> ;
+    gmeow:assessmentTarget <https://blackcatinformatics.ca/gmeow/corpus/foundation/book/1> ;
+    gmeow:vantage <https://blackcatinformatics.ca/gmeow/corpus/foundation/agent/corpus-pipeline> .
+
+<https://blackcatinformatics.ca/gmeow/corpus/foundation/character/1/rowan-cogsworth>
+    a gmeow:Person ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Rowan Cogsworth"@x-gmeow-english ;
+    gmeow:narratedIn <https://blackcatinformatics.ca/gmeow/corpus/foundation/book/1/chapter/1> ,
+        <https://blackcatinformatics.ca/gmeow/corpus/foundation/book/1/chapter/2> .
+
+<https://blackcatinformatics.ca/gmeow/corpus/foundation/character/1/rowan-cogsworth/exemplifies/enforce-test-trust>
+    a gmeow:Exemplar ;
+    gmeow:citationIntent gmeow:intentSupports ;
+    gmeow:citedEntity <https://blackcatinformatics.ca/gmeow/corpus/foundation/book/1> ;
+    gmeow:citingEntity <https://blackcatinformatics.ca/gmeow/corpus/foundation/rubric/principia-goals> ;
+    gmeow:exemplarPolarity gmeow:polarityPositive ;
+    gmeow:exemplarRationale "Her oath to answer truthfully is identity, not choice."@x-gmeow-english ;
+    gmeow:exemplarSubject <https://blackcatinformatics.ca/gmeow/corpus/foundation/character/1/rowan-cogsworth> .
+
+<https://blackcatinformatics.ca/gmeow/corpus/foundation/character/1/rowan-cogsworth/exemplifies/enforce-test-trust/anchor>
+    a gmeow:ScoreAnchor ;
+    gmeow:anchorExemplar <https://blackcatinformatics.ca/gmeow/corpus/foundation/character/1/rowan-cogsworth/exemplifies/enforce-test-trust> ;
+    gmeow:anchorMeaning "Conduct embodying enforce_test_trust across the work."@x-gmeow-english ;
+    gmeow:anchorRangeMax "1"^^<http://www.w3.org/2001/XMLSchema#decimal> ;
+    gmeow:anchorRangeMin 0.8 .
+
+<https://blackcatinformatics.ca/gmeow/corpus/foundation/character/1/rowan-cogsworth/role-in/corpus-foundation-book-1>
+    a gmeow:RoleInNarrative ;
+    gmeow:narrativeRoleBearer <https://blackcatinformatics.ca/gmeow/corpus/foundation/character/1/rowan-cogsworth> ;
+    gmeow:narrativeRoleScope <https://blackcatinformatics.ca/gmeow/corpus/foundation/book/1> ;
+    gmeow:narrativeRoleValue gmeow:roleProtagonist .
+
+<https://blackcatinformatics.ca/gmeow/corpus/foundation/character/1/rowan-cogsworth/sample/1/resolute-doubt>
+    a gmeow:ArcSample ;
+    gmeow:developmentSignalText "She hesitates at the ledger before signing."@x-gmeow-english ;
+    gmeow:samplePosition <https://blackcatinformatics.ca/gmeow/corpus/foundation/book/1/discourse-frame/pos/1> ;
+    gmeow:sampleState <https://blackcatinformatics.ca/gmeow/corpus/foundation/emotion/resolute-doubt> ;
+    gmeow:sampleSubject <https://blackcatinformatics.ca/gmeow/corpus/foundation/character/1/rowan-cogsworth> ;
+    gmeow:vantage <https://blackcatinformatics.ca/gmeow/corpus/foundation/agent/corpus-pipeline> .
+
+<https://blackcatinformatics.ca/gmeow/corpus/foundation/character/1/rowan-cogsworth/sample/2/hard-won-calm>
+    a gmeow:ArcSample ;
+    gmeow:developmentSignalText "She answers without flinching."@x-gmeow-english ;
+    gmeow:samplePosition <https://blackcatinformatics.ca/gmeow/corpus/foundation/book/1/discourse-frame/pos/2> ;
+    gmeow:sampleState <https://blackcatinformatics.ca/gmeow/corpus/foundation/emotion/hard-won-calm> ;
+    gmeow:sampleSubject <https://blackcatinformatics.ca/gmeow/corpus/foundation/character/1/rowan-cogsworth> ;
+    gmeow:vantage <https://blackcatinformatics.ca/gmeow/corpus/foundation/agent/corpus-pipeline> .
+
+<https://blackcatinformatics.ca/gmeow/corpus/foundation/character/1/willam-gearhand>
+    a gmeow:Person ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Willam Gearhand"@x-gmeow-english ;
+    gmeow:narratedIn <https://blackcatinformatics.ca/gmeow/corpus/foundation/book/1/chapter/2> .
+
+<https://blackcatinformatics.ca/gmeow/corpus/foundation/character/1/willam-gearhand/role-in/corpus-foundation-book-1>
+    a gmeow:RoleInNarrative ;
+    gmeow:narrativeRoleBearer <https://blackcatinformatics.ca/gmeow/corpus/foundation/character/1/willam-gearhand> ;
+    gmeow:narrativeRoleScope <https://blackcatinformatics.ca/gmeow/corpus/foundation/book/1> ;
+    gmeow:narrativeRoleValue <https://blackcatinformatics.ca/gmeow/corpus/foundation/role/apprentice-sage> .
+
+<https://blackcatinformatics.ca/gmeow/corpus/foundation/character/1/willam-gearhand/sample/2/awe>
+    a gmeow:ArcSample ;
+    gmeow:samplePosition <https://blackcatinformatics.ca/gmeow/corpus/foundation/book/1/discourse-frame/pos/2> ;
+    gmeow:sampleState <https://blackcatinformatics.ca/gmeow/corpus/foundation/emotion/awe> ;
+    gmeow:sampleSubject <https://blackcatinformatics.ca/gmeow/corpus/foundation/character/1/willam-gearhand> ;
+    gmeow:vantage <https://blackcatinformatics.ca/gmeow/corpus/foundation/agent/corpus-pipeline> .
+
+<https://blackcatinformatics.ca/gmeow/corpus/foundation/criterion/acquire-test-knowledge>
+    a gmeow:Criterion ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "acquire_test_knowledge"@x-gmeow-english ;
+    gmeow:penaltyPole <https://blackcatinformatics.ca/gmeow/corpus/foundation/pole/acquire-test-knowledge-antithesis> ;
+    gmeow:rewardPole <https://blackcatinformatics.ca/gmeow/corpus/foundation/pole/acquire-test-knowledge-embodiment> .
+
+<https://blackcatinformatics.ca/gmeow/corpus/foundation/criterion/enforce-test-trust>
+    a gmeow:Criterion ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "enforce_test_trust"@x-gmeow-english ;
+    gmeow:hasScoreAnchor <https://blackcatinformatics.ca/gmeow/corpus/foundation/character/1/rowan-cogsworth/exemplifies/enforce-test-trust/anchor> ;
+    gmeow:penaltyPole <https://blackcatinformatics.ca/gmeow/corpus/foundation/pole/enforce-test-trust-antithesis> ;
+    gmeow:rewardPole <https://blackcatinformatics.ca/gmeow/corpus/foundation/pole/enforce-test-trust-embodiment> .
+
+<https://blackcatinformatics.ca/gmeow/corpus/foundation/criterion/unused-axis>
+    a gmeow:Criterion ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "unused_axis"@x-gmeow-english ;
+    gmeow:penaltyPole <https://blackcatinformatics.ca/gmeow/corpus/foundation/pole/unused-axis-antithesis> ;
+    gmeow:rewardPole <https://blackcatinformatics.ca/gmeow/corpus/foundation/pole/unused-axis-embodiment> .
+
+<https://blackcatinformatics.ca/gmeow/corpus/foundation/emotion/awe>
+    a gmeow:EmotionType ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Awe"@x-gmeow-english .
+
+<https://blackcatinformatics.ca/gmeow/corpus/foundation/emotion/hard-won-calm>
+    a gmeow:EmotionType ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Hard-won Calm"@x-gmeow-english .
+
+<https://blackcatinformatics.ca/gmeow/corpus/foundation/emotion/resolute-doubt>
+    a gmeow:EmotionType ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Resolute Doubt"@x-gmeow-english .
+
+<https://blackcatinformatics.ca/gmeow/corpus/foundation/event-type/narrated-event>
+    a gmeow:EventType ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "narrated event"@x-gmeow-english .
+
+<https://blackcatinformatics.ca/gmeow/corpus/foundation/motif/the-open-ledger>
+    a gmeow:Motif ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "The Open Ledger"@x-gmeow-english ;
+    gmeow:motifKind gmeow:motifKindTheme ;
+    gmeow:motifOccursIn <https://blackcatinformatics.ca/gmeow/corpus/foundation/book/1/chapter/1> ,
+        <https://blackcatinformatics.ca/gmeow/corpus/foundation/book/1/chapter/2> .
+
+<https://blackcatinformatics.ca/gmeow/corpus/foundation/person/ada-synthetic>
+    a gmeow:Person ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Ada Synthetic"@x-gmeow-english .
+
+<https://blackcatinformatics.ca/gmeow/corpus/foundation/person/basil-example>
+    a gmeow:Person ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Basil Example"@x-gmeow-english .
+
+<https://blackcatinformatics.ca/gmeow/corpus/foundation/pole/acquire-test-knowledge-antithesis>
+    a gmeow:CriterionPole ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "acquire_test_knowledge antithesis"@x-gmeow-english .
+
+<https://blackcatinformatics.ca/gmeow/corpus/foundation/pole/acquire-test-knowledge-embodiment>
+    a gmeow:CriterionPole ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "acquire_test_knowledge embodiment"@x-gmeow-english .
+
+<https://blackcatinformatics.ca/gmeow/corpus/foundation/pole/enforce-test-trust-antithesis>
+    a gmeow:CriterionPole ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "enforce_test_trust antithesis"@x-gmeow-english .
+
+<https://blackcatinformatics.ca/gmeow/corpus/foundation/pole/enforce-test-trust-embodiment>
+    a gmeow:CriterionPole ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "enforce_test_trust embodiment"@x-gmeow-english .
+
+<https://blackcatinformatics.ca/gmeow/corpus/foundation/pole/unused-axis-antithesis>
+    a gmeow:CriterionPole ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "unused_axis antithesis"@x-gmeow-english .
+
+<https://blackcatinformatics.ca/gmeow/corpus/foundation/pole/unused-axis-embodiment>
+    a gmeow:CriterionPole ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "unused_axis embodiment"@x-gmeow-english .
+
+<https://blackcatinformatics.ca/gmeow/corpus/foundation/role/apprentice-sage>
+    a gmeow:NarrativeRole ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "apprentice sage"@x-gmeow-english .
+
+<https://blackcatinformatics.ca/gmeow/corpus/foundation/rubric/principia-goals>
+    a gmeow:Rubric ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "principia goal rubric"@x-gmeow-english ;
+    gmeow:hasCriterion <https://blackcatinformatics.ca/gmeow/corpus/foundation/criterion/acquire-test-knowledge> ,
+        <https://blackcatinformatics.ca/gmeow/corpus/foundation/criterion/enforce-test-trust> ,
+        <https://blackcatinformatics.ca/gmeow/corpus/foundation/criterion/unused-axis> ;
+    gmeow:normIssuer <https://blackcatinformatics.ca/gmeow/corpus/foundation/agent/corpus-pipeline> ;
+    gmeow:usesScale <https://blackcatinformatics.ca/gmeow/corpus/foundation/scale/unit> .
+
+<https://blackcatinformatics.ca/gmeow/corpus/foundation/scale/unit>
+    a gmeow:ScoreScale ;
+    gmeow:scaleMax "1"^^<http://www.w3.org/2001/XMLSchema#decimal> ;
+    gmeow:scaleMin "0"^^<http://www.w3.org/2001/XMLSchema#decimal> .
+
+<https://blackcatinformatics.ca/gmeow/corpus/foundation/section/test-bedrock>
+    a gmeow:SocialObject ;
+    <http://www.w3.org/2000/01/rdf-schema#label> "Synthetic Bedrock"@x-gmeow-english .

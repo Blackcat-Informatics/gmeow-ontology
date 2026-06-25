@@ -2237,10 +2237,13 @@ def import_foundation(
     (+ optional .nq reconciliation). Corpus-derived artifacts are external
     products, never repo artifacts (privacy).
     """
-    from gmeow_tools.foundation_import import run_import
+    import gmeow_native.foundation as _foundation
 
-    _, budget = run_import(jsonl, out_dir, nq)
-    console.print(budget.as_text())
+    out_dir.mkdir(parents=True, exist_ok=True)
+    budget_text = _foundation.import_foundation(
+        str(jsonl), str(out_dir), str(nq) if nq is not None else None
+    )
+    console.print(budget_text)
     console.print(f"[green]✓[/green] artifacts → {out_dir}")
 
 
