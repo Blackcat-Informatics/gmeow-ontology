@@ -70,7 +70,15 @@ pub enum Codec {
     RdfXml,
     /// GMEOW Transport Serialization (lossless, star-capable, named-graph-capable).
     Gts,
-    /// OWL-RDF 1.2 (canonical RDF-star Turtle; star-capable, decodable).
+    /// OWL serialized as canonical RDF-1.2-faithful Turtle (star-capable,
+    /// decodable). Intentionally an *intent label* over the same RDF-1.2 Turtle
+    /// codec as [`Codec::Turtle`]: both decode/encode through
+    /// `RdfFormat::Turtle` (oxigraph's `rdf-12` feature parses the `<<( … )>>`
+    /// quoted-triple syntax). The distinct name marks "this Turtle carries OWL
+    /// in RDF-1.2 form" for routing/reporting; it does NOT imply a separate
+    /// parser or a syntactic rewrite. (We deliberately do not run the lossy,
+    /// directional `gmeow_rdf::statements::normalize_rdf12_to_owl` here — it
+    /// drops bare base triples and would break round-trip honesty.)
     OwlRdf12,
     /// OWL 2 DL projection (lossy; NOT decodable).
     OwlDl,
@@ -539,6 +547,9 @@ pub fn transcode_matrix_json() -> String {
 /// projection codec). The caller is responsible for routing those separately.
 fn codec_to_rdf_format(codec: Codec) -> Option<RdfFormat> {
     match codec {
+        // `owl-rdf12` intentionally aliases the RDF-1.2 Turtle codec: it is the
+        // same star-capable Turtle syntax, named distinctly only as an
+        // OWL-in-RDF-1.2 intent label (see the `Codec::OwlRdf12` doc).
         Codec::Turtle | Codec::OwlRdf12 => Some(RdfFormat::Turtle),
         Codec::NTriples => Some(RdfFormat::NTriples),
         Codec::NQuads => Some(RdfFormat::NQuads),
