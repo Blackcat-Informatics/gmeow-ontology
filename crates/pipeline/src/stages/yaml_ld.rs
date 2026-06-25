@@ -2439,4 +2439,101 @@ mod tests {
             "emitted YAML-LD-star must round-trip isomorphic to the source N-Quads-star"
         );
     }
+
+    /// Acceptance criterion #5 (issue #699 / PR #978): the YAML-LD-star lift
+    /// through `yaml_ld_star_to_gmeow_statement_metadata_nquads` produces a
+    /// graph that is RDFC-1.0 canonically equal to the native Turtle
+    /// (StatementMetadata) authoring of the same claim.
+    ///
+    /// Uses an explicit reifier `@id` so the downcast emits a stable IRI
+    /// reifier (not a fresh blank node), allowing the Turtle counterpart to
+    /// match exactly.
+    #[test]
+    fn yaml_ld_star_lift_equals_turtle_lift() {
+        // ── 1. Minimal YAML-LD-star document ─────────────────────────────────
+        // One base triple ex:s ex:p ex:o annotated on reifier ex:r with two
+        // metadata predicates: gmeow:claimModality and gmeow:accordingTo.
+        const YAML_DOC: &str = r#"
+"@context":
+  ex: "https://example.org/"
+  gmeow: "https://blackcatinformatics.ca/gmeow/"
+  xsd: "http://www.w3.org/2001/XMLSchema#"
+"@graph":
+  - "@id": "ex:s"
+    "ex:p":
+      "@id": "ex:o"
+      "@annotation":
+        "@id": "ex:r"
+        "gmeow:claimModality":
+          "@id": "gmeow:assertion"
+        "gmeow:accordingTo":
+          "@id": "ex:source1"
+"#;
+
+        // ── 2. Run the YAML-LD-star lift ──────────────────────────────────────
+        let nquads = yaml_ld_star_to_gmeow_statement_metadata_nquads(YAML_DOC.as_bytes())
+            .expect("YAML-LD-star lift must succeed");
+
+        // ── 3. Guard: no RDF-1.2 quoted-triple terms in the output ────────────
+        let yaml_lift = parse_nquads(&nquads);
+        assert!(
+            !yaml_lift
+                .iter()
+                .any(|q| matches!(q.object, oxigraph::model::TermRef::Triple(_))),
+            "transpiled output must contain no RDF 1.2 quoted triple terms"
+        );
+
+        // ── 4. Build the equivalent native Turtle (StatementMetadata) ─────────
+        // This Turtle reproduces EXACTLY the triples the downcast emits:
+        //   • the base triple ex:s ex:p ex:o
+        //   • ex:r rdf:type gmeow:StatementMetadata
+        //   • ex:r gmeow:qSubject ex:s
+        //   • ex:r gmeow:qPredicate ex:p
+        //   • ex:r gmeow:qObject ex:o
+        //   • ex:r gmeow:claimModality gmeow:assertion
+        //   • ex:r gmeow:accordingTo ex:source1
+        const TURTLE_DOC: &str = r#"
+@prefix ex:    <https://example.org/> .
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+
+ex:s ex:p ex:o .
+
+ex:r a gmeow:StatementMetadata ;
+     gmeow:qSubject   ex:s ;
+     gmeow:qPredicate ex:p ;
+     gmeow:qObject    ex:o ;
+     gmeow:claimModality gmeow:assertion ;
+     gmeow:accordingTo   ex:source1 .
+"#;
+
+        let turtle_quads: Vec<Quad> = RdfParser::from_format(RdfFormat::Turtle)
+            .lenient()
+            .for_slice(TURTLE_DOC.as_bytes())
+            .map(|q| q.expect("Turtle parse must succeed"))
+            .collect();
+        let turtle_lift: Dataset = turtle_quads.into_iter().collect();
+
+        // ── 5. RDFC-1.0 canonical equality: lift ≡ native Turtle ─────────────
+        let yaml_lines = canonical_lines(&yaml_lift);
+        let turtle_lines = canonical_lines(&turtle_lift);
+
+        // Sanity: both graphs must be non-empty (guard against trivially-matching
+        // empty datasets) and of the same size.
+        assert!(
+            !yaml_lines.is_empty(),
+            "YAML-LD-star lift must produce at least one quad"
+        );
+        assert_eq!(
+            yaml_lines.len(),
+            turtle_lines.len(),
+            "YAML-LD-star lift and native Turtle must have the same quad count"
+        );
+
+        assert_eq!(
+            yaml_lines, turtle_lines,
+            "YAML-LD-star lift must equal the native StatementMetadata Turtle authoring \
+             (AC#5 lossless-into-GMEOW)"
+        );
+    }
 }
