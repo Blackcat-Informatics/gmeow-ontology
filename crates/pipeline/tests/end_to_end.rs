@@ -3,9 +3,9 @@
 
 //! End-to-end executor test (#861 P3/P6): the DAG-driven executor runs the wired
 //! spine — source_load → (statements, mappings) → reason → gts_compose →
-//! docs_render → gts_sink — over the real repo, binding every stage against the
-//! default registry and serializing `gmeow.gts`. This exercises the whole
-//! machinery (validate → bind → level-parallel schedule → ENGINE_LOCK on reason →
+//! validate/docs_render → gts_sink — over the real repo, binding every stage
+//! against the default registry and serializing `gmeow.gts`. This exercises the
+//! whole machinery (DAG validate → bind → level-parallel schedule → ENGINE_LOCK on reason →
 //! content-addressed cache → one Sink) on production data, not synthetics. (GTS
 //! readability + scheduler determinism are pinned by the crate's unit tests.)
 
@@ -73,6 +73,12 @@ fn spine() -> PipelineSpec {
                 "docs_render",
                 &["stage-gts-compose"],
             ),
+            spec(
+                "stage-validate",
+                StageKind::Validate,
+                "validate",
+                &["stage-source-load"],
+            ),
             // The SHACL→JSON-Schema source leaf the snapshot folds (#700); a
             // source-reading ExportLeaf that consumes nothing.
             spec(
@@ -91,6 +97,7 @@ fn spine() -> PipelineSpec {
                     "stage-gts-compose",
                     "stage-reason",
                     "stage-statements",
+                    "stage-validate",
                 ],
             ),
             spec(
@@ -112,7 +119,7 @@ fn executor_runs_the_spine_end_to_end() {
     // engine-lock derived) + Rust/RDF consumes+kind agreement against the registry.
     let graph = spec.validate().expect("spine DAG validates");
     let bound = bind(&spec, &graph, &default_registry()).expect("every spine stage binds");
-    assert_eq!(bound.len(), 9, "all 9 spine stages bound");
+    assert_eq!(bound.len(), 10, "all 10 spine stages bound");
 
     // Run over a temp cache so the test never writes into the repo tree.
     let cache_dir = tempfile::tempdir().unwrap();
@@ -120,7 +127,7 @@ fn executor_runs_the_spine_end_to_end() {
     ctx.cache = PipelineCache::open(cache_dir.path()).unwrap();
 
     let result = run(&graph, &bound, &mut ctx).expect("pipeline runs end-to-end");
-    assert_eq!(result.products.len(), 9);
+    assert_eq!(result.products.len(), 10);
 
     // The single Sink produced gmeow.gts.
     let sink = result.products.get("stage-gts-sink").expect("sink product");

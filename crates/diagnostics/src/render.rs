@@ -506,7 +506,13 @@ fn sarif_result(finding: &Finding) -> Value {
     // The primary location: the first physical one, else the ontology-root
     // fallback. All gathered logical entries fold onto it.
     let mut primary = if physical.is_empty() {
-        json!({ "physicalLocation": { "artifactLocation": { "uri": FALLBACK_ARTIFACT_URI } } })
+        json!({
+            "physicalLocation": { "artifactLocation": { "uri": FALLBACK_ARTIFACT_URI } },
+            "properties": {
+                "gmeow.syntheticPhysicalLocation": true,
+                "gmeow.syntheticPhysicalLocationReason": "logical-only diagnostic anchor"
+            }
+        })
     } else {
         physical.remove(0)
     };
@@ -856,6 +862,36 @@ mod tests {
         assert!(related[0].get("physicalLocation").is_some());
 
         insta::assert_json_snapshot!(value);
+    }
+
+    #[test]
+    fn sarif_marks_synthetic_primary_location_for_logical_only_finding() {
+        let mut finding = Finding::new(Severity::Warning, "shacl.MinCount", "missing property")
+            .with_tool("shacl");
+        finding.add_location(Location::new(
+            None,
+            None,
+            None,
+            Some("https://blackcatinformatics.ca/gmeow/example".to_owned()),
+        ));
+        let mut report = Report::new("validate");
+        report.add_finding(finding);
+
+        let value: Value = serde_json::from_str(&to_sarif(&report).unwrap()).unwrap();
+        let location = &value["runs"][0]["results"][0]["locations"][0];
+
+        assert_eq!(
+            location["physicalLocation"]["artifactLocation"]["uri"],
+            FALLBACK_ARTIFACT_URI
+        );
+        assert_eq!(
+            location["properties"]["gmeow.syntheticPhysicalLocation"],
+            true
+        );
+        assert_eq!(
+            location["logicalLocations"][0]["fullyQualifiedName"],
+            "https://blackcatinformatics.ca/gmeow/example"
+        );
     }
 
     // ── Semantic invariants (properties a snapshot cannot express) ───────────

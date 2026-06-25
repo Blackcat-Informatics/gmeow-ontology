@@ -1,0 +1,82 @@
+{
+  "tool": "shacl",
+  "findings": [
+    {
+      "severity": "warning",
+      "code": "shacl.MinCountConstraintComponent",
+      "message": "A Expression must carry at least one reference frame (gmeow:hasReferenceFrame) — a value asserted without its frame is ill-formed (CONSTITUTION P11).",
+      "tool": "shacl",
+      "locations": [
+        {
+          "logical": "https://blackcatinformatics.ca/gmeow/fixtureRagaYamanImprovised1975"
+        }
+      ],
+      "related_locations": [
+        {
+          "logical": "path https://blackcatinformatics.ca/gmeow/hasReferenceFrame"
+        }
+      ],
+      "detail": "source shape: https://blackcatinformatics.ca/gmeow/ExpressionFrameRequirementShape"
+    },
+    {
+      "severity": "warning",
+      "code": "shacl.MinCountConstraintComponent",
+      "message": "A Expression must carry at least one reference frame (gmeow:hasReferenceFrame) — a value asserted without its frame is ill-formed (CONSTITUTION P11).",
+      "tool": "shacl",
+      "locations": [
+        {
+          "logical": "https://blackcatinformatics.ca/gmeow/fixtureRagaYamanOralExpression"
+        }
+      ],
+      "related_locations": [
+        {
+          "logical": "path https://blackcatinformatics.ca/gmeow/hasReferenceFrame"
+        }
+      ],
+      "detail": "source shape: https://blackcatinformatics.ca/gmeow/ExpressionFrameRequirementShape"
+    },
+    {
+      "severity": "warning",
+      "code": "shacl.MinCountConstraintComponent",
+      "message": "A Expression must carry at least one reference frame (gmeow:hasReferenceFrame) — a value asserted without its frame is ill-formed (CONSTITUTION P11).",
+      "tool": "shacl",
+      "locations": [
+        {
+          "logical": "https://blackcatinformatics.ca/gmeow/fixtureRagaYamanPerformed1960"
+        }
+      ],
+      "related_locations": [
+        {
+          "logical": "path https://blackcatinformatics.ca/gmeow/hasReferenceFrame"
+        }
+      ],
+      "detail": "source shape: https://blackcatinformatics.ca/gmeow/ExpressionFrameRequirementShape"
+    },
+    {
+      "severity": "warning",
+      "code": "shacl.MinCountConstraintComponent",
+      "message": "A Expression must carry at least one reference frame (gmeow:hasReferenceFrame) — a value asserted without its frame is ill-formed (CONSTITUTION P11).",
+      "tool": "shacl",
+      "locations": [
+        {
+          "logical": "https://blackcatinformatics.ca/gmeow/fixtureRagaYamanPerformed1980"
+        }
+      ],
+      "related_locations": [
+        {
+          "logical": "path https://blackcatinformatics.ca/gmeow/hasReferenceFrame"
+        }
+      ],
+      "detail": "source shape: https://blackcatinformatics.ca/gmeow/ExpressionFrameRequirementShape"
+    }
+  ],
+  "metadata": {
+    "category": "shacl",
+    "shaclConforms": false,
+    "shaclErrorCount": 0,
+    "shaclGatePassed": true,
+    "shaclResultCount": 4,
+    "shaclWarningCount": 4,
+    "stage": "stage-validate"
+  }
+}

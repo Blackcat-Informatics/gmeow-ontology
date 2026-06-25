@@ -109,6 +109,10 @@ expression: value
                 "artifactLocation": {
                   "uri": "ontology/gmeow.ttl"
                 }
+              },
+              "properties": {
+                "gmeow.syntheticPhysicalLocation": true,
+                "gmeow.syntheticPhysicalLocationReason": "logical-only diagnostic anchor"
               }
             }
           ],

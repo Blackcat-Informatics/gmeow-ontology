@@ -113,6 +113,12 @@ pub fn full_spec() -> PipelineSpec {
             ],
         ),
         st(
+            "stage-validate",
+            StageKind::Validate,
+            "validate",
+            &["stage-source-load"],
+        ),
+        st(
             "stage-docs-render",
             StageKind::DocsRender,
             "docs_render",
@@ -129,6 +135,7 @@ pub fn full_spec() -> PipelineSpec {
                 "stage-gts-compose",
                 "stage-reason",
                 "stage-statements",
+                "stage-validate",
             ],
         ),
     ];
