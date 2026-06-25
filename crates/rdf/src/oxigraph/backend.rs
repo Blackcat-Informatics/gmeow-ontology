@@ -127,6 +127,117 @@ impl RdfSerializer for OxigraphBackend {
     }
 }
 
+/// Outcome of serializing an [`RdfDataset`] to a concrete RDF format.
+#[derive(Debug, Clone)]
+pub struct SerializeOutcome {
+    /// The serialized document bytes.
+    pub bytes: Vec<u8>,
+    /// The number of RDF-1.2 statement-layer rows (reifier bindings +
+    /// annotation triples) dropped because the target format cannot represent
+    /// quoted triples. Zero for star-capable formats.
+    pub statement_rows_dropped: usize,
+}
+
+/// Whether an [`RdfFormat`] can faithfully represent RDF-1.2 quoted triples
+/// (the star layer). N-Quads, N-Triples, Turtle, and TriG are star-capable;
+/// JSON-LD, RDF/XML, and N3 are not.
+fn is_star_capable(format: RdfFormat) -> bool {
+    matches!(
+        format,
+        RdfFormat::NQuads | RdfFormat::NTriples | RdfFormat::Turtle | RdfFormat::TriG
+    )
+}
+
+/// Serialize the frozen IR to any oxigraph RDF format, returning the bytes and
+/// the count of RDF-1.2 statement-layer rows dropped because the target format
+/// cannot represent quoted triples.
+///
+/// Star-capable formats (Turtle, N-Triples, N-Quads, TriG) emit the full RDF-1.2
+/// statement layer and report `statement_rows_dropped = 0`. Star-incapable formats
+/// (JSON-LD, RDF/XML, N3) emit only the base quads and report the dropped
+/// statement-row count in the outcome — the caller records this as declared loss
+/// (#671 projection doctrine).
+///
+/// Graph selection follows the same rule as the [`RdfSerializer`] trait impl:
+/// formats that support datasets (N-Quads, TriG, JSON-LD) emit all named graphs;
+/// triple-only formats (Turtle, N-Triples, RDF/XML, N3) flatten to the default graph.
+pub fn serialize_dataset_to_format(
+    dataset: &RdfDataset,
+    format: RdfFormat,
+    base_iri: Option<&str>,
+) -> Result<SerializeOutcome, RdfDiagnostic> {
+    let mut serializer = OxRdfSerializer::from_format(format);
+    if let Some(iri) = base_iri {
+        serializer = serializer
+            .with_base_iri(iri)
+            .map_err(|e| RdfDiagnostic::error("oxigraph-serializer-base-iri", e.to_string()))?;
+    }
+
+    let mut out: Vec<u8> = Vec::new();
+    let mut writer = serializer.for_writer(&mut out);
+
+    // Emit base quads, respecting the graph-selection rule.
+    if format.supports_datasets() {
+        serialize_dataset_quads_no_star(dataset, &mut writer)?;
+    } else {
+        serialize_default_graph_no_star(dataset, &mut writer)?;
+    }
+
+    // Emit the statement layer only for star-capable formats.
+    let statement_rows_dropped = if is_star_capable(format) {
+        let mode = if format.supports_datasets() {
+            StatementGraphMode::Quads
+        } else {
+            StatementGraphMode::Triples
+        };
+        serialize_statement_rows(dataset, &mut writer, mode)?;
+        0
+    } else {
+        dataset.reifiers().count() + dataset.annotations().count()
+    };
+
+    writer.finish().map_err(serialize_error)?;
+
+    Ok(SerializeOutcome {
+        bytes: out,
+        statement_rows_dropped,
+    })
+}
+
+/// Serialize base quads for ALL graphs (dataset-capable formats), without
+/// emitting the statement layer. The caller decides whether to add statement rows.
+fn serialize_dataset_quads_no_star<W: Write>(
+    dataset: &RdfDataset,
+    serializer: &mut WriterQuadSerializer<W>,
+) -> Result<(), RdfDiagnostic> {
+    for (frozen_index, quad) in dataset.quads().enumerate() {
+        let quad = super::oxigraph_quad_from_rdf(
+            &dataset.to_owned_quad(frozen_index, quad),
+            GraphPolicy::PreserveNamedGraphs,
+        )?;
+        serialize_quad(serializer, &quad)?;
+    }
+    Ok(())
+}
+
+/// Serialize only the default-graph quads (triple-only formats), without emitting
+/// the statement layer. The caller decides whether to add statement rows.
+fn serialize_default_graph_no_star<W: Write>(
+    dataset: &RdfDataset,
+    serializer: &mut WriterQuadSerializer<W>,
+) -> Result<(), RdfDiagnostic> {
+    for (frozen_index, quad) in dataset.quads().enumerate() {
+        let ox_quad = super::oxigraph_quad_from_rdf(
+            &dataset.to_owned_quad(frozen_index, quad),
+            GraphPolicy::PreserveNamedGraphs,
+        )?;
+        if matches!(ox_quad.graph_name, GraphName::DefaultGraph) {
+            serialize_triple(serializer, &ox_quad)?;
+        }
+    }
+    Ok(())
+}
+
 fn format_from_media_type(media_type: &str) -> Result<RdfFormat, RdfDiagnostic> {
     let normalized = media_type
         .split(';')
@@ -694,5 +805,248 @@ mod tests {
         assert!(dataset
             .term_id_by_value(&TermValue::Iri("https://e/s".to_owned()))
             .is_some());
+    }
+}
+
+#[cfg(test)]
+mod serialize_to_format_tests {
+    use super::*;
+    use crate::dataset_io::dataset_from_bytes;
+    use ::oxigraph::io::{RdfFormat, RdfParser};
+    use std::collections::BTreeSet;
+
+    // ── helpers ──────────────────────────────────────────────────────────────────
+
+    fn jsonld() -> RdfFormat {
+        RdfFormat::JsonLd {
+            profile: Default::default(),
+        }
+    }
+
+    /// Parse a serialized byte slice back into a canonical set of NQ-line strings.
+    /// Uses oxigraph's lenient parser for all formats.
+    fn canonical_quad_strings(bytes: &[u8], format: RdfFormat) -> BTreeSet<String> {
+        RdfParser::from_format(format)
+            .lenient()
+            .for_slice(bytes)
+            .filter_map(|q| q.ok())
+            .map(|q| q.to_string())
+            .collect()
+    }
+
+    /// A star-free dataset: 1 default-graph quad + 1 named-graph quad.
+    fn star_free_dataset() -> std::sync::Arc<RdfDataset> {
+        let mut b = RdfDatasetBuilder::new();
+        let s = b.intern_iri_value("https://example.org/s");
+        let p = b.intern_iri_value("https://example.org/p");
+        let o = b.intern_iri_value("https://example.org/o");
+        let g = b.intern_iri_value("https://example.org/g");
+        let s2 = b.intern_iri_value("https://example.org/s2");
+        let o2 = b.intern_iri_value("https://example.org/o2");
+        b.push_quad(s, p, o, None);
+        b.push_quad(s2, p, o2, Some(g));
+        b.freeze().expect("star_free_dataset freeze")
+    }
+
+    /// A dataset WITH one reifier (rdf:reifies binding) + one annotation.
+    fn reifier_dataset() -> std::sync::Arc<RdfDataset> {
+        let nq = concat!(
+            "<https://e/s> <https://e/p> <https://e/o> .\n",
+            "<https://e/r> <http://www.w3.org/1999/02/22-rdf-syntax-ns#reifies> ",
+            "<<( <https://e/s> <https://e/p> <https://e/o> )>> .\n",
+            "<https://e/r> <https://e/confidence> \"0.9\" .\n",
+        );
+        dataset_from_bytes(nq.as_bytes(), RdfFormat::NTriples).expect("reifier_dataset")
+    }
+
+    // ── Test 1: star-free dataset round-trips through every format ──────────────
+    #[test]
+    fn star_free_nquads_roundtrip_drops_zero() {
+        let ds = star_free_dataset();
+        let out =
+            serialize_dataset_to_format(&ds, RdfFormat::NQuads, None).expect("serialize to NQuads");
+        assert_eq!(out.statement_rows_dropped, 0);
+        let text = String::from_utf8(out.bytes).expect("valid utf-8");
+        // Both quads must appear; named-graph IRI must be preserved in NQuads.
+        assert!(
+            text.contains("https://example.org/s"),
+            "default-graph quad present"
+        );
+        assert!(
+            text.contains("https://example.org/s2"),
+            "named-graph quad present"
+        );
+        assert!(
+            text.contains("https://example.org/g"),
+            "named graph IRI preserved in NQuads"
+        );
+    }
+
+    #[test]
+    fn star_free_turtle_roundtrip_drops_zero() {
+        let ds = star_free_dataset();
+        let out =
+            serialize_dataset_to_format(&ds, RdfFormat::Turtle, None).expect("serialize to Turtle");
+        assert_eq!(out.statement_rows_dropped, 0);
+        let after = canonical_quad_strings(&out.bytes, RdfFormat::Turtle);
+        // The default-graph quad must appear.
+        assert!(after.iter().any(|s| s.contains("https://example.org/s")));
+        // Turtle is default-graph-only: the named-graph quad (s2 in graph g) is
+        // NOT emitted. This is by design — triple-only formats output only the
+        // default graph. The named-graph IRI must also not appear as a graph name.
+        assert!(
+            !after.iter().any(|s| s.contains("https://example.org/g")),
+            "Turtle must not emit the named graph IRI"
+        );
+    }
+
+    #[test]
+    fn star_free_trig_roundtrip_drops_zero() {
+        let ds = star_free_dataset();
+        let out =
+            serialize_dataset_to_format(&ds, RdfFormat::TriG, None).expect("serialize to TriG");
+        assert_eq!(out.statement_rows_dropped, 0);
+        let after = canonical_quad_strings(&out.bytes, RdfFormat::TriG);
+        assert!(after.iter().any(|s| s.contains("https://example.org/s")));
+        assert!(after.iter().any(|s| s.contains("https://example.org/s2")));
+        // Named graph must survive in a dataset-capable format.
+        assert!(after.iter().any(|s| s.contains("https://example.org/g")));
+    }
+
+    #[test]
+    fn star_free_jsonld_roundtrip_drops_zero() {
+        let ds = star_free_dataset();
+        let out = serialize_dataset_to_format(&ds, jsonld(), None).expect("serialize to JSON-LD");
+        assert_eq!(out.statement_rows_dropped, 0);
+        let after = canonical_quad_strings(&out.bytes, jsonld());
+        assert!(after.iter().any(|s| s.contains("https://example.org/s")));
+    }
+
+    #[test]
+    fn star_free_rdfxml_roundtrip_drops_zero() {
+        let ds = star_free_dataset();
+        let out = serialize_dataset_to_format(&ds, RdfFormat::RdfXml, None)
+            .expect("serialize to RDF/XML");
+        assert_eq!(out.statement_rows_dropped, 0);
+        let after = canonical_quad_strings(&out.bytes, RdfFormat::RdfXml);
+        assert!(after.iter().any(|s| s.contains("https://example.org/s")));
+    }
+
+    // ── Test 2: reifier dataset → NQuads lossless ────────────────────────────────
+
+    #[test]
+    fn reifier_nquads_lossless() {
+        let ds = reifier_dataset();
+        assert_eq!(ds.reifiers().count(), 1);
+        assert_eq!(ds.annotations().count(), 1);
+
+        let out =
+            serialize_dataset_to_format(&ds, RdfFormat::NQuads, None).expect("serialize to NQuads");
+        assert_eq!(
+            out.statement_rows_dropped, 0,
+            "NQuads is star-capable: no rows dropped"
+        );
+
+        let text = String::from_utf8(out.bytes.clone()).expect("valid utf-8");
+        assert!(
+            text.contains("22-rdf-syntax-ns#reifies"),
+            "rdf:reifies row present"
+        );
+        assert!(
+            text.contains("https://e/confidence"),
+            "annotation row present"
+        );
+        assert!(text.contains("https://e/s"), "base quad present");
+    }
+
+    // ── Test 3: reifier dataset → JSON-LD drops statement rows ──────────────────
+
+    #[test]
+    fn reifier_jsonld_drops_statement_rows() {
+        let ds = reifier_dataset();
+        let out = serialize_dataset_to_format(&ds, jsonld(), None).expect("serialize to JSON-LD");
+        // 1 reifier + 1 annotation = 2 statement rows dropped.
+        assert_eq!(out.statement_rows_dropped, 2);
+
+        // Re-parsed base quads must include the original base triple.
+        let after = canonical_quad_strings(&out.bytes, jsonld());
+        assert!(
+            after.iter().any(|s| s.contains("https://e/s")),
+            "base quad present"
+        );
+        // Statement-layer triples must NOT appear.
+        assert!(
+            !after.iter().any(|s| s.contains("22-rdf-syntax-ns#reifies")),
+            "rdf:reifies must not appear in JSON-LD output"
+        );
+    }
+
+    // ── Test 4: reifier dataset → RDF/XML drops statement rows ──────────────────
+
+    #[test]
+    fn reifier_rdfxml_drops_statement_rows() {
+        let ds = reifier_dataset();
+        let out = serialize_dataset_to_format(&ds, RdfFormat::RdfXml, None)
+            .expect("serialize to RDF/XML");
+        assert_eq!(out.statement_rows_dropped, 2);
+
+        let after = canonical_quad_strings(&out.bytes, RdfFormat::RdfXml);
+        assert!(
+            after.iter().any(|s| s.contains("https://e/s")),
+            "base quad present in RDF/XML"
+        );
+        assert!(
+            !after.iter().any(|s| s.contains("22-rdf-syntax-ns#reifies")),
+            "rdf:reifies must not appear in RDF/XML output"
+        );
+    }
+
+    // ── Test 5: named graph preserved vs flattened ───────────────────────────────
+
+    #[test]
+    fn named_graph_preserved_in_nquads_and_trig() {
+        let ds = star_free_dataset();
+        for format in [RdfFormat::NQuads, RdfFormat::TriG] {
+            let out = serialize_dataset_to_format(&ds, format, None).expect("serialize");
+            let after = canonical_quad_strings(&out.bytes, format);
+            assert!(
+                after.iter().any(|s| s.contains("https://example.org/g")),
+                "{format}: named graph must be preserved"
+            );
+        }
+    }
+
+    #[test]
+    fn named_graph_flattened_in_turtle_and_ntriples_and_jsonld_and_rdfxml() {
+        let ds = star_free_dataset();
+        // Triple-only formats (Turtle, N-Triples, RDF/XML) only emit the default
+        // graph; named-graph quads are dropped entirely (the graph IRI does not
+        // appear as a graph-name component, and the triple content is omitted).
+        for (format, parse_format) in [
+            (RdfFormat::Turtle, RdfFormat::Turtle),
+            (RdfFormat::NTriples, RdfFormat::NTriples),
+            (RdfFormat::RdfXml, RdfFormat::RdfXml),
+        ] {
+            let out = serialize_dataset_to_format(&ds, format, None).expect("serialize");
+            let after = canonical_quad_strings(&out.bytes, parse_format);
+            // Default-graph triple must be present.
+            assert!(
+                after.iter().any(|s| s.contains("https://example.org/s")),
+                "{format}: default-graph quad must be present"
+            );
+            // Named-graph IRI must NOT appear (no graph component in triple-only
+            // formats, and named-graph triples are not re-emitted as default-graph).
+            assert!(
+                !after.iter().any(|s| s.contains("https://example.org/g")),
+                "{format}: named graph IRI must not appear"
+            );
+        }
+        // JSON-LD supports datasets, so g SHOULD appear.
+        let out = serialize_dataset_to_format(&ds, jsonld(), None).expect("serialize JSON-LD");
+        let after = canonical_quad_strings(&out.bytes, jsonld());
+        assert!(
+            after.iter().any(|s| s.contains("https://example.org/g")),
+            "JSON-LD: named graph must be preserved (dataset-capable)"
+        );
     }
 }
