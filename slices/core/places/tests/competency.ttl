@@ -1,0 +1,68 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Declarative competency questions for the places slice, executed by the native
+# Rust slice-test harness (crates/slicetest, #784). Migrated from the location /
+# place-type / storage-media / place-property competency tests in
+# tests/test_competency.py under #867. TBox vocabulary questions over the asserted
+# merged ontology; rows are the SUBSET the pytest asserted present (cqExactRows
+# omitted → contains-check). No #869 Gap-1 universal — fixed term sets.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/places/tests/> .
+
+# ── Location kinds ────────────────────────────────────────────────────────────
+ex:cqLocationKinds a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "queries/competency/location-kinds.rq" ;
+    gmeow:cqRationale "GMEOW must model the kinds of location it supports: the Location root plus Place, VirtualLocation, and StorageLocation." ;
+    gmeow:cqExpectRow ex:lkLocation, ex:lkPlace, ex:lkVirtualLocation, ex:lkStorageLocation .
+
+ex:lkLocation a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "kind" ; gmeow:cellValueIri gmeow:Location ] .
+ex:lkPlace a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "kind" ; gmeow:cellValueIri gmeow:Place ] .
+ex:lkVirtualLocation a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "kind" ; gmeow:cellValueIri gmeow:VirtualLocation ] .
+ex:lkStorageLocation a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "kind" ; gmeow:cellValueIri gmeow:StorageLocation ] .
+
+# ── Place types ───────────────────────────────────────────────────────────────
+ex:cqPlaceTypes a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "queries/competency/place-types.rq" ;
+    gmeow:cqRationale "GMEOW must model place-type individuals across scales: country, city, room, premises." ;
+    gmeow:cqExpectRow ex:ptCountry, ex:ptCity, ex:ptRoom, ex:ptPremises .
+
+ex:ptCountry a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "placeType" ; gmeow:cellValueIri gmeow:placeTypeCountry ] .
+ex:ptCity a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "placeType" ; gmeow:cellValueIri gmeow:placeTypeCity ] .
+ex:ptRoom a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "placeType" ; gmeow:cellValueIri gmeow:placeTypeRoom ] .
+ex:ptPremises a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "placeType" ; gmeow:cellValueIri gmeow:placeTypePremises ] .
+
+# ── Storage media ─────────────────────────────────────────────────────────────
+ex:cqStorageMedia a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "queries/competency/storage-media.rq" ;
+    gmeow:cqRationale "GMEOW must model storage media including a cloud service and a physical disk." ;
+    gmeow:cqExpectRow ex:smCloudService, ex:smPhysicalDisk .
+
+ex:smCloudService a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "medium" ; gmeow:cellValueIri gmeow:storageMediumCloudService ] .
+ex:smPhysicalDisk a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "medium" ; gmeow:cellValueIri gmeow:storageMediumPhysicalDisk ] .
+
+# ── Place properties ──────────────────────────────────────────────────────────
+ex:cqPlaceProperties a gmeow:CompetencyQuestion ;
+    gmeow:cqQueryFile "queries/competency/place-properties.rq" ;
+    gmeow:cqRationale "GMEOW must model the spatial properties of a place: containment, coordinates, geometry, and place-type assignment." ;
+    gmeow:cqExpectRow ex:ppContainedInPlace, ex:ppHasCoordinates, ex:ppHasGeometry, ex:ppPlaceType .
+
+ex:ppContainedInPlace a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "property" ; gmeow:cellValueIri gmeow:containedInPlace ] .
+ex:ppHasCoordinates a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "property" ; gmeow:cellValueIri gmeow:hasCoordinates ] .
+ex:ppHasGeometry a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "property" ; gmeow:cellValueIri gmeow:hasGeometry ] .
+ex:ppPlaceType a gmeow:ExpectedRow ;
+    gmeow:rowCell [ a gmeow:ExpectedCell ; gmeow:cellVar "property" ; gmeow:cellValueIri gmeow:placeType ] .
