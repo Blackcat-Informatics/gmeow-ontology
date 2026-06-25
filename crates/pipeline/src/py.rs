@@ -491,6 +491,92 @@ fn claim_audit_diagnostics_report(
     .into_any())
 }
 
+/// Run the native real-data acceptance scoreboard.
+#[pyfunction]
+#[pyo3(signature = (root, source = None, descend = true))]
+fn acceptance(
+    py: Python<'_>,
+    root: String,
+    source: Option<String>,
+    descend: bool,
+) -> PyResult<Py<PyAny>> {
+    let source_path = source.map(std::path::PathBuf::from);
+    let results = py
+        .detach(move || {
+            scoreboards::run_acceptance_corpus(Path::new(&root), source_path.as_deref(), descend)
+        })
+        .map_err(pyo3::exceptions::PyValueError::new_err)?;
+    let markdown = scoreboards::render_acceptance_report(&results);
+    let diagnostics = scoreboards::acceptance_diagnostics(&results);
+    let aggregate_recall = scoreboards::corpus_recall_pct(&results);
+
+    let out = PyDict::new(py);
+    out.set_item("markdown", markdown)?;
+    out.set_item(
+        "passed",
+        results.iter().all(scoreboards::FileAcceptance::passed),
+    )?;
+    out.set_item("aggregate_recall", aggregate_recall)?;
+    out.set_item("recall_pct", aggregate_recall)?;
+    out.set_item("results", file_acceptance_results_to_py(py, &results)?)?;
+    out.set_item("report", Py::new(py, PyReport::from_engine(diagnostics))?)?;
+    Ok(out.into_any().unbind())
+}
+
+/// Run the native acceptance scoreboard and return only diagnostics.
+#[pyfunction]
+#[pyo3(signature = (root, source = None, descend = true))]
+fn acceptance_diagnostics_report(
+    py: Python<'_>,
+    root: String,
+    source: Option<String>,
+    descend: bool,
+) -> PyResult<Py<PyAny>> {
+    let source_path = source.map(std::path::PathBuf::from);
+    let results = py
+        .detach(move || {
+            scoreboards::run_acceptance_corpus(Path::new(&root), source_path.as_deref(), descend)
+        })
+        .map_err(pyo3::exceptions::PyValueError::new_err)?;
+    Ok(Py::new(
+        py,
+        PyReport::from_engine(scoreboards::acceptance_diagnostics(&results)),
+    )?
+    .into_any())
+}
+
+fn file_acceptance_results_to_py(
+    py: Python<'_>,
+    results: &[scoreboards::FileAcceptance],
+) -> PyResult<Py<PyAny>> {
+    let out = PyList::empty(py);
+    for result in results {
+        let file = PyDict::new(py);
+        file.set_item("source", &result.source)?;
+        file.set_item("source_triples", result.source_triples)?;
+        file.set_item("output_triples", result.output_triples)?;
+        file.set_item("passed", result.passed())?;
+        let gates = PyList::empty(py);
+        for gate in &result.gates {
+            let item = PyDict::new(py);
+            item.set_item("name", &gate.name)?;
+            item.set_item("passed", gate.passed)?;
+            item.set_item("hard", gate.hard)?;
+            item.set_item("summary", &gate.summary)?;
+            let metrics = PyDict::new(py);
+            for (key, value) in &gate.metrics {
+                metrics.set_item(key, *value)?;
+            }
+            item.set_item("metrics", metrics)?;
+            item.set_item("detail", PyList::new(py, gate.detail.iter())?)?;
+            gates.append(item)?;
+        }
+        file.set_item("gates", gates)?;
+        out.append(file)?;
+    }
+    Ok(out.into_any().unbind())
+}
+
 fn lift_map_to_py(py: Python<'_>, lift: &LiftMap) -> PyResult<Py<PyAny>> {
     let out = PyDict::new(py);
     out.set_item("rules", string_map(py, &lift.rules)?)?;
@@ -632,5 +718,7 @@ pub fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(transform_project_nt, m)?)?;
     m.add_function(wrap_pyfunction!(claim_audit, m)?)?;
     m.add_function(wrap_pyfunction!(claim_audit_diagnostics_report, m)?)?;
+    m.add_function(wrap_pyfunction!(acceptance, m)?)?;
+    m.add_function(wrap_pyfunction!(acceptance_diagnostics_report, m)?)?;
     Ok(())
 }
