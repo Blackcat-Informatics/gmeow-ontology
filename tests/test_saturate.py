@@ -22,7 +22,6 @@ from gmeow_tools.saturate import (
     load_cells,
     saturate,
 )
-from gmeow_tools.suppression import default_suppression_vocab
 
 pytestmark = pytest.mark.maintainer
 
@@ -53,7 +52,6 @@ def _saturate(
         onto=onto,
         cells=cells,
         denied=kw.get("denied", set()),  # type: ignore[arg-type]
-        vocab=default_suppression_vocab(),
     )
 
 
