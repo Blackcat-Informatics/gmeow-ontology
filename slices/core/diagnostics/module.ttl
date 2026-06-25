@@ -4,14 +4,15 @@
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
 gmeow:DiagnosticSeverity
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
     rdfs:label "Diagnostic Severity"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The grade of a diagnostic — an open value vocabulary spanning error (gate-failing), warning, note, and info: gmeow:severityError, gmeow:severityWarning, gmeow:severityNote, gmeow:severityInfo. Members are individuals, never subclasses (Principle 9); deployments add grades without schema change. Mirrors the SARIF level and the Rust gmeow_diagnostics::Severity enum."@x-gmeow-english ;
     skos:example "ex:f1 gmeow:findingSeverity gmeow:severityError ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid subclassing it to add a grade (the members are individuals) and avoid conflating the grade with the rule code (gmeow:findingCode) or the human message (gmeow:findingMessage)."@x-gmeow-english ;
@@ -20,7 +21,7 @@ gmeow:DiagnosticSeverity
     gmeow:useWhen "Use as the value vocabulary for a finding's verdict grade — the closed-by-convention set (error, warning, note, info) a gmeow:Finding declares through gmeow:findingSeverity."@x-gmeow-english .
 
 gmeow:Finding
-    a gufo:SubKind ,
+    a logic:SubKind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/diagnostics> ;
     rdfs:label "Finding"@x-gmeow-english ;

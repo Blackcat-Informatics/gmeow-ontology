@@ -7,8 +7,8 @@
 # SPARQL ASK over the evidence module graph (gmeow:scopeModule) under the
 # native Rust slicetest harness (crates/slicetest).
 #
-# Evidence is NOT yet #694-migrated: class stereotypes remain gufo:
-# (gufo:AbstractIndividualType, gufo:Category), not logic:.
+# Evidence is #694-migrated: class stereotypes are logic:
+# (logic:AbstractIndividualType, logic:Category), not gufo:.
 #
 # RETAINED in pytest (not migratable here):
 #   test_self_private_evidence_triggers_warning -- run_shacl() call with
@@ -35,19 +35,19 @@
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/evidence/tests/> .
 
-# --- 1. EvidenceClass is a gufo:AbstractIndividualType value vocabulary (MUST) -
+# --- 1. EvidenceClass is a logic:AbstractIndividualType value vocabulary (MUST) -
 ex:saEvidenceClassIsValueVocab a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:EvidenceClass a gufo:AbstractIndividualType , owl:Class ;
-        rdfs:subClassOf gufo:QualityValue .
+    gmeow:EvidenceClass a logic:AbstractIndividualType , owl:Class ;
+        rdfs:subClassOf logic:QualityValue .
 }""" ;
-    gmeow:saRationale "gmeow:EvidenceClass MUST be an owl:Class typed gufo:AbstractIndividualType and a subclass of gufo:QualityValue -- the class is a value vocabulary (individuals, never subclasses; Principle 9). Mirrors test_evidence_class_is_value_vocabulary (superclass part)." .
+    gmeow:saRationale "gmeow:EvidenceClass MUST be an owl:Class typed logic:AbstractIndividualType and a subclass of logic:QualityValue -- the class is a value vocabulary (individuals, never subclasses; Principle 9). Mirrors test_evidence_class_is_value_vocabulary (superclass part)." .
 
 # --- 2. All 17 EvidenceClass seed individuals exist (MUST) --------------------
 ex:saEvidenceClassSeeds a gmeow:StructuralAssertion ;
@@ -105,19 +105,19 @@ ASK {
 }""" ;
     gmeow:saRationale "No EvidenceClass seed individual MUST be typed owl:Class -- evidence classes are individuals (value vocabulary), never subclasses; minting a seed as owl:Class would violate Principle 9. Mirrors test_evidence_class_is_value_vocabulary (seeds mustNot-owl:Class part)." .
 
-# --- 4. SourceIndependence is a gufo:AbstractIndividualType value vocab (MUST) -
+# --- 4. SourceIndependence is a logic:AbstractIndividualType value vocab (MUST) -
 ex:saSourceIndependenceIsValueVocab a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:SourceIndependence a gufo:AbstractIndividualType , owl:Class ;
-        rdfs:subClassOf gufo:QualityValue .
+    gmeow:SourceIndependence a logic:AbstractIndividualType , owl:Class ;
+        rdfs:subClassOf logic:QualityValue .
 }""" ;
-    gmeow:saRationale "gmeow:SourceIndependence MUST be an owl:Class typed gufo:AbstractIndividualType and a subclass of gufo:QualityValue -- it is the Axis B independence value vocabulary (individuals, never subclasses; Principle 9). Mirrors test_source_independence_is_value_vocabulary (superclass part)." .
+    gmeow:saRationale "gmeow:SourceIndependence MUST be an owl:Class typed logic:AbstractIndividualType and a subclass of logic:QualityValue -- it is the Axis B independence value vocabulary (individuals, never subclasses; Principle 9). Mirrors test_source_independence_is_value_vocabulary (superclass part)." .
 
 # --- 5. SourceIndependence seed individuals exist (MUST) ----------------------
 ex:saSourceIndependenceSeeds a gmeow:StructuralAssertion ;
@@ -145,19 +145,19 @@ ASK {
 }""" ;
     gmeow:saRationale "No SourceIndependence seed individual MUST be typed owl:Class -- the values are individuals, never subclasses (Principle 9). Mirrors test_source_independence_is_value_vocabulary (seeds mustNot-owl:Class part)." .
 
-# --- 7. SourceTier is a gufo:AbstractIndividualType value vocabulary (MUST) ---
+# --- 7. SourceTier is a logic:AbstractIndividualType value vocabulary (MUST) ---
 ex:saSourceTierIsValueVocab a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:SourceTier a gufo:AbstractIndividualType , owl:Class ;
-        rdfs:subClassOf gufo:QualityValue .
+    gmeow:SourceTier a logic:AbstractIndividualType , owl:Class ;
+        rdfs:subClassOf logic:QualityValue .
 }""" ;
-    gmeow:saRationale "gmeow:SourceTier MUST be an owl:Class typed gufo:AbstractIndividualType and a subclass of gufo:QualityValue -- the bibliographic tier value vocabulary (individuals; Principle 9). Mirrors test_source_tier_is_value_vocabulary (superclass part)." .
+    gmeow:saRationale "gmeow:SourceTier MUST be an owl:Class typed logic:AbstractIndividualType and a subclass of logic:QualityValue -- the bibliographic tier value vocabulary (individuals; Principle 9). Mirrors test_source_tier_is_value_vocabulary (superclass part)." .
 
 # --- 8. SourceTier seed individuals exist (MUST) ------------------------------
 ex:saSourceTierSeeds a gmeow:StructuralAssertion ;
@@ -187,19 +187,19 @@ ASK {
 }""" ;
     gmeow:saRationale "No SourceTier seed individual MUST be typed owl:Class -- the tiers are individuals, never subclasses (Principle 9). Mirrors test_source_tier_is_value_vocabulary (seeds mustNot-owl:Class part)." .
 
-# --- 10. CoverageDepth is a gufo:AbstractIndividualType value vocab (MUST) ----
+# --- 10. CoverageDepth is a logic:AbstractIndividualType value vocab (MUST) ----
 ex:saCoverageDepthIsValueVocab a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:CoverageDepth a gufo:AbstractIndividualType , owl:Class ;
-        rdfs:subClassOf gufo:QualityValue .
+    gmeow:CoverageDepth a logic:AbstractIndividualType , owl:Class ;
+        rdfs:subClassOf logic:QualityValue .
 }""" ;
-    gmeow:saRationale "gmeow:CoverageDepth MUST be an owl:Class typed gufo:AbstractIndividualType and a subclass of gufo:QualityValue -- the coverage depth value vocabulary (individuals; Principle 9). Mirrors test_coverage_depth_is_value_vocabulary (superclass part)." .
+    gmeow:saRationale "gmeow:CoverageDepth MUST be an owl:Class typed logic:AbstractIndividualType and a subclass of logic:QualityValue -- the coverage depth value vocabulary (individuals; Principle 9). Mirrors test_coverage_depth_is_value_vocabulary (superclass part)." .
 
 # --- 11. CoverageDepth seed individuals exist (MUST) --------------------------
 ex:saCoverageDepthSeeds a gmeow:StructuralAssertion ;

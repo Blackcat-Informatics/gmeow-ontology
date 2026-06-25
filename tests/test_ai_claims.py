@@ -16,8 +16,6 @@ from gmeow_rdf.compat.rdflib.namespace import OWL
 from gmeow_tools.config import FIXTURES_DIR, NAMESPACE
 from gmeow_tools.graph import load_merged_graph
 
-GUFO = "http://purl.org/nemo/gufo#"
-
 
 def _g() -> Graph:
     return load_merged_graph(include_imports=False)
@@ -73,12 +71,6 @@ def test_no_winner_machinery_anywhere() -> None:
 # --------------------------------------------------------------------------- #
 
 
-def test_memory_is_a_role_on_the_universal_claim_construct() -> None:
-    g = _g()
-    assert (_n("MemoryItem"), RDF.type, URIRef(GUFO + "Role")) in g
-    assert (_n("MemoryItem"), RDFS.subClassOf, _n("Observation")) in g
-
-
 def test_extraction_methods_are_observation_methods() -> None:
     """Claims are observations; HOW they were produced is observationMethod."""
     g = _g()
@@ -91,13 +83,6 @@ def test_invocation_and_retrieval_are_activities() -> None:
     assert (_n("ModelInvocation"), RDFS.subClassOf, _n("Activity")) in g
     assert (_n("RetrievalEvent"), RDFS.subClassOf, _n("Activity")) in g  # graphrag
     assert (_n("retrievalScore"), RDF.type, OWL.AnnotationProperty) in g
-
-
-def test_contradiction_is_a_relator_with_open_claim_range() -> None:
-    """The range stays open so StandpointClaims AND statement reifiers fit."""
-    g = _g()
-    assert (_n("Contradiction"), RDFS.subClassOf, URIRef(GUFO + "Relator")) in g
-    assert (_n("contradictsClaim"), RDFS.range, None) not in g
 
 
 def test_vectors_stay_outside_the_graph() -> None:

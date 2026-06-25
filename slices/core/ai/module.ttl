@@ -4,9 +4,10 @@
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
 
 gmeow:Chunk
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     rdfs:label "Chunk"@x-gmeow-english ;
@@ -24,11 +25,11 @@ gmeow:Chunk
     gmeow:useWhen "Use for a retrieval-sized segment cut from a larger source — the unit a retriever returns, a model reads, and an evidence span pins into; the genuinely missing information-object kind in the Source → Chunk → EvidenceSpan → claim spine."@x-gmeow-english .
 
 gmeow:Contradiction
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     rdfs:label "Contradiction"@x-gmeow-english ;
-    rdfs:subClassOf gufo:Relator ,
+    rdfs:subClassOf logic:Relator ,
         [
             a owl:Restriction ;
             owl:onProperty gmeow:contradictsClaim ;
@@ -46,11 +47,11 @@ gmeow:Contradiction
     gmeow:useWhen "Use to SURFACE a conflict between two or more claim nodes as a first-class, attributed, kind-classified relator — making disagreement queryable without choosing a winner (P9)."@x-gmeow-english .
 
 gmeow:ContradictionKind
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     rdfs:label "Contradiction Kind"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "An open value vocabulary of contradiction flavours."@x-gmeow-english ;
     skos:example "ex:contradictionKindFactual a gmeow:ContradictionKind ; rdfs:label \"factual\"@en ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid minting a contradiction-kind SUBCLASS of gmeow:Contradiction (the kind is a value, Principle 9) and avoid confusing it with gmeow:SupportPolarity — kind is the flavour of the conflict, polarity is a span's stance toward a claim."@x-gmeow-english ;
@@ -59,7 +60,7 @@ gmeow:ContradictionKind
     gmeow:useWhen "Use as the open value vocabulary for the contradiction-flavour axis — the kinds (factual, temporal, numeric, framing, …) that gmeow:contradictionKind draws from; mint a fresh individual for a flavour not seeded."@x-gmeow-english .
 
 gmeow:MemoryItem
-    a gufo:Role ,
+    a logic:Role ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     rdfs:label "Memory Item"@x-gmeow-english ;
@@ -81,11 +82,11 @@ gmeow:MemoryItem
     gmeow:useWhen "Use to cast any observation/claim into the contingent ROLE of an agent's remembered belief — the substrate under the gmeow client's Memory and the MCP store/recall/revise triad (P14)."@x-gmeow-english .
 
 gmeow:MemoryKind
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     rdfs:label "Memory Kind"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "An open value vocabulary of agent-memory registers."@x-gmeow-english ;
     skos:example "ex:memoryKindEpisodic a gmeow:MemoryKind ; rdfs:label \"episodic\"@en ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid minting a register SUBCLASS of gmeow:MemoryItem (the register is a value, Principle 9) and avoid overloading it with salience or recency, which are statement-level facets, not registers."@x-gmeow-english ;
@@ -94,7 +95,7 @@ gmeow:MemoryKind
     gmeow:useWhen "Use as the open value vocabulary for the memory-register axis — the cognitive registers (episodic, semantic, working, procedural, …) that gmeow:memoryKind draws from; mint a fresh individual for a register not seeded."@x-gmeow-english .
 
 gmeow:ModelCard
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     rdfs:label "Model Card"@x-gmeow-english ;
@@ -107,7 +108,7 @@ gmeow:ModelCard
     gmeow:useWhen "Use for the structured document describing a model agent — provider, version tag, context window, training cutoff; the information object ABOUT the gmeow:SoftwareAgent a gmeow:ModelInvocation uses."@x-gmeow-english .
 
 gmeow:ModelInvocation
-    a gufo:EventType ,
+    a logic:Event ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     rdfs:label "Model Invocation"@x-gmeow-english ;
@@ -125,7 +126,7 @@ gmeow:ModelInvocation
     gmeow:useWhen "Use to record one call to a generative model as the provenance anchor of its outputs — which model, prompts, and sampling parameters produced a claim; the gmeow:wasGeneratedBy target of every generated claim node (the ModelInvocation idiom)."@x-gmeow-english .
 
 gmeow:Prompt
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     rdfs:label "Prompt"@x-gmeow-english ;
@@ -138,11 +139,11 @@ gmeow:Prompt
     gmeow:useWhen "Use for the concrete instruction text presented to a model in an invocation — the provenance that makes a generated claim auditable, content-addressed and role-tagged."@x-gmeow-english .
 
 gmeow:PromptRole
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     rdfs:label "Prompt Role"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "An open value vocabulary of conversational prompt roles."@x-gmeow-english ;
     skos:example "ex:promptRoleTool a gmeow:PromptRole ; rdfs:label \"tool\"@en ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid minting a prompt-role SUBCLASS of gmeow:Prompt (the role is a value, Principle 9) and avoid confusing it with gmeow:ParticipantRole — prompt roles are conversational turns, not event participation."@x-gmeow-english ;
@@ -151,7 +152,7 @@ gmeow:PromptRole
     gmeow:useWhen "Use as the open value vocabulary for the prompt-role axis — the conversational roles (system, user, assistant, tool, …) that gmeow:promptRole draws from; mint a fresh individual for a role not seeded."@x-gmeow-english .
 
 gmeow:PromptTemplate
-    a gufo:SubKind ,
+    a logic:SubKind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     rdfs:label "Prompt Template"@x-gmeow-english ;
@@ -164,11 +165,11 @@ gmeow:PromptTemplate
     gmeow:useWhen "Use for a reusable, versioned prompt carrying unfilled variables — a published artifact (e.g. the claim-extraction template shipped as data) that concrete prompts instantiate."@x-gmeow-english .
 
 gmeow:SupportPolarity
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/ai> ;
     rdfs:label "Support Polarity"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The closed three-value polarity of an evidence span toward its claim."@x-gmeow-english ;
     skos:example "ex:polarityRefutes a gmeow:SupportPolarity ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid extending it with new individuals (the three values are closed, unlike the open kind vocabularies) and avoid using it for inter-work citation stance (that is gmeow:citationIntent)."@x-gmeow-english ;

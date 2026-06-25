@@ -4,24 +4,25 @@
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
 gmeow:DepictionContext
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> ;
     rdfs:label "Depiction Context"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The context in which an image depicts an entity — a VALUE vocabulary (individuals, never subclasses). Work, family, childhood, portrait, candid, formal, and so on; the set is open."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxCBox ,
         gmeow:boxTBox .
 
 gmeow:DepictionUsage
-    a gufo:SubKind ,
+    a logic:SubKind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> ;
     rdfs:label "Depiction Usage"@x-gmeow-english ;
-    rdfs:subClassOf gufo:Relator ,
+    rdfs:subClassOf logic:Relator ,
         gmeow:Observation ,
         [
             a owl:Restriction ;
@@ -37,16 +38,16 @@ gmeow:DepictionUsage
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:ExifTag
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> ;
     rdfs:label "EXIF Tag"@x-gmeow-english ;
-    rdfs:subClassOf gufo:FunctionalComplex ;
+    rdfs:subClassOf logic:FunctionalComplex ;
     skos:definition "A reified EXIF metadata tag of a media object — a tag identifier (gmeow:exifTagId, e.g. 'FNumber'), its value (gmeow:exifTagValue, e.g. 'f/2.0'), and a human-readable label (rdfs:label, e.g. 'Aperture'). The schema:PropertyValue shape: reification keeps each tag's id/value/label paired correctly and lets an OPEN, camera-defined EXIF set round-trip losslessly to schema:exifData."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:ImageRegion
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> ;
     rdfs:label "Image Region"@x-gmeow-english ;
@@ -60,7 +61,7 @@ gmeow:ImageRegion
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:RegionSelector
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> ;
     rdfs:label "Region Selector"@x-gmeow-english ;
@@ -69,11 +70,11 @@ gmeow:RegionSelector
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:SceneGraphEdge
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> ;
     rdfs:label "Scene Graph Edge"@x-gmeow-english ;
-    rdfs:subClassOf gufo:Relator ,
+    rdfs:subClassOf logic:Relator ,
         [
             a owl:Restriction ;
             owl:onProperty gmeow:sceneSubject ;
@@ -88,20 +89,20 @@ gmeow:SceneGraphEdge
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:SceneRelationType
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> ;
     rdfs:label "Scene Relation Type"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The spatial or semantic relation in a scene-graph edge — a VALUE vocabulary (individuals, never subclasses). leftOf, rightOf, above, below, inside, touching, near, farFrom, sameAs, partOf, holding, wearing, riding, eating, playing are examples; the set is open. Aligns by reference to Visual Genome and OVSR relation strings."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:SelectorType
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/images> ;
     rdfs:label "Selector Type"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The encoding kind of a region selector — a VALUE vocabulary (individuals, never subclasses). SVG path, pixel rectangle, fractional rectangle, polygon, RLE mask, COCO mask, DICOM-SEG mask, and Web Annotation fragment are examples; the set is open."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 

@@ -7,9 +7,9 @@
 # SPARQL ASK over the profiles module graph (gmeow:scopeModule) under the native
 # Rust harness (crates/slicetest).
 #
-# Profiles is NOT yet #694-migrated, so class stereotypes remain gufo:
-# (gufo:Kind), not logic:. The migrated tests check owl:Class and subClassOf
-# membership; gufo:Kind typing is NOT checked here as the original pytest did
+# Profiles is #694-migrated, so class stereotypes are logic:
+# (logic:Kind), not gufo:. The migrated tests check owl:Class and subClassOf
+# membership; logic:Kind typing is NOT checked here as the original pytest did
 # not assert it.
 #
 # RETAINED in pytest (run_shacl / ExampleConformance — not migratable here):

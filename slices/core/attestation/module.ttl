@@ -4,14 +4,15 @@
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
 gmeow:Attestation
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "Attestation"@x-gmeow-english ;
-    rdfs:subClassOf gufo:Relator ,
+    rdfs:subClassOf logic:Relator ,
         [
             a owl:Restriction ;
             owl:onProperty gmeow:attester ;
@@ -36,7 +37,7 @@ gmeow:Attestation
     gmeow:useWhen "Use to record that some agent VOUCHES FOR a claim, artifact, or binding under a named policy — the envelope that holds who attested, to what, under which rules, and with what cryptographic and log evidence; standpoint-indexed, never a global truth verdict (Principle 9)."@x-gmeow-english .
 
 gmeow:AttestationArtifact
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "Attestation Artifact"@x-gmeow-english ;
@@ -55,11 +56,11 @@ gmeow:AttestationArtifact
     gmeow:useWhen "Use to type the concrete serialized document that embodies an attestation — the on-disk or on-wire bytes (in-toto JSON, DSSE envelope, VC, C2PA manifest) as distinct from the logical vouching act it carries."@x-gmeow-english .
 
 gmeow:AttestationPolicy
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "Attestation Policy"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The policy or framework under which an attestation was issued — a value vocabulary (individuals, never subclasses). Open-ended; specific policies are minted as needed."@x-gmeow-english ;
     skos:example "ex:slsaL3 a gmeow:AttestationPolicy ; rdfs:label \"SLSA build level 3\"@en ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid minting per-policy subclasses (policies are individuals) and avoid using it for the attestation kind (gmeow:AttestationType); the policy is the governing framework, not the category, and policy satisfaction is a solver-layer verdict."@x-gmeow-english ;
@@ -69,11 +70,11 @@ gmeow:AttestationPolicy
     gmeow:useWhen "Use as the value vocabulary behind gmeow:attestationPolicy — the open set of individuals naming the rules or framework an attester followed (a SLSA build level, a credential-issuance policy, an editorial standard)."@x-gmeow-english .
 
 gmeow:AttestationType
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "Attestation Type"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The kind of attestation being made — a value vocabulary (individuals, never subclasses). Distinguishes SLSA provenance, in-toto attestation, VC, DSSE envelope, C2PA manifest, EAT token, signed RDF, SCITT statement, nanopublication, blockchain claim, git signed tag, release manifest, quality report attestation, and AI output attestation."@x-gmeow-english ;
     skos:example "ex:provAtt gmeow:attestationType gmeow:attestationTypeSLSAProvenance ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid minting per-type subclasses (types are individuals) and avoid using it for the concrete media type (gmeow:artifactMediaType) or the issuing policy (gmeow:AttestationPolicy); the type is the category, not the format or the framework."@x-gmeow-english ;
@@ -83,7 +84,7 @@ gmeow:AttestationType
     gmeow:useWhen "Use as the value vocabulary behind gmeow:attestationType — the open set of individuals naming the KIND of attestation (SLSA provenance, in-toto, VC, DSSE, C2PA, nanopublication, blockchain claim, git signed tag, AI output)."@x-gmeow-english .
 
 gmeow:Block
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "Block"@x-gmeow-english ;
@@ -107,7 +108,7 @@ gmeow:Block
     gmeow:useWhen "Use to model a ledger block — the container of transactions whose number and hash anchor a transaction's position in the chain — when block-level identity is needed as inclusion evidence."@x-gmeow-english .
 
 gmeow:BlockchainAccount
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "Blockchain Account"@x-gmeow-english ;
@@ -121,7 +122,7 @@ gmeow:BlockchainAccount
     gmeow:useWhen "Use to model an address-controlled account that signs ledger transactions or holds assets — the on-chain signing identity behind a blockchain claim, aligned to CAIP-10 / did:pkh."@x-gmeow-english .
 
 gmeow:BlockchainNetwork
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "Blockchain Network"@x-gmeow-english ;
@@ -140,7 +141,7 @@ gmeow:BlockchainNetwork
     gmeow:useWhen "Use to model the distributed-ledger network a transaction, contract, or account belongs to — identified by its chain id (CAIP-2) — when the chain context is needed to interpret on-chain evidence."@x-gmeow-english .
 
 gmeow:LedgerEvent
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "Ledger Event"@x-gmeow-english ;
@@ -159,11 +160,11 @@ gmeow:LedgerEvent
     gmeow:useWhen "Use to model an event emitted on-chain — a smart-contract log, oracle callback, or bridge message — as the occurrent perspective of ledger activity, distinct from the transaction that produced it."@x-gmeow-english .
 
 gmeow:LedgerFinalityStatus
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "Ledger Finality Status"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The finality state of a ledger transaction or block — a value vocabulary (individuals, never subclasses)."@x-gmeow-english ;
     skos:example "ex:tx1 gmeow:finalityStatus gmeow:finalityStatusFinalized ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid minting per-state subclasses (states are individuals) and avoid using it for the attestation verification verdict (gmeow:VerificationStatus); finality is the chain-settlement state, not a check outcome."@x-gmeow-english ;
@@ -173,7 +174,7 @@ gmeow:LedgerFinalityStatus
     gmeow:useWhen "Use as the value vocabulary behind gmeow:finalityStatus — the open set of individuals naming a ledger settlement state (pending, confirmed, finalized, orphaned, reorged)."@x-gmeow-english .
 
 gmeow:LedgerTransaction
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "Ledger Transaction"@x-gmeow-english ;
@@ -192,11 +193,11 @@ gmeow:LedgerTransaction
     gmeow:useWhen "Use to model a ledger or blockchain transaction as evidence backing an attestation — the information-object view of the payload, when its hash, finality, and confirmation depth matter."@x-gmeow-english .
 
 gmeow:SignatureScheme
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "Signature Scheme"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The cryptographic signature scheme used — a value vocabulary (individuals, never subclasses). Distinct from gmeow:KeyScheme: a key scheme names the key format (OpenPGP, X.509), while a signature scheme names the algorithm (RSA-SHA256, Ed25519)."@x-gmeow-english ;
     skos:example "ex:sig1 gmeow:signatureAlgorithm gmeow:signatureSchemeEd25519 ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid minting per-scheme subclasses (schemes are individuals) and avoid using it for the key FORMAT (that is gmeow:KeyScheme — OpenPGP, X.509); the signature scheme is the algorithm, not the key container."@x-gmeow-english ;
@@ -206,7 +207,7 @@ gmeow:SignatureScheme
     gmeow:useWhen "Use as the value vocabulary for the cryptographic signature ALGORITHM — RSA-SHA256, Ed25519, ECDSA-secp256k1, BLS12-381 — naming the scheme a gmeow:CryptographicSignature was produced with."@x-gmeow-english .
 
 gmeow:SmartContract
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "Smart Contract"@x-gmeow-english ;
@@ -225,7 +226,7 @@ gmeow:SmartContract
     gmeow:useWhen "Use to model a deployed on-chain program — a registry, oracle, or attestation contract — identified by its address, when it is the source or anchor of ledger-based attestation evidence."@x-gmeow-english .
 
 gmeow:TransparencyLogEntry
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "Transparency Log Entry"@x-gmeow-english ;
@@ -249,7 +250,7 @@ gmeow:TransparencyLogEntry
     gmeow:useWhen "Use to record append-only-log evidence for an attestation — a Rekor entry, SCITT receipt, or certificate-transparency entry — when you need to capture that the attestation was logged at a point in time."@x-gmeow-english .
 
 gmeow:VerificationActivity
-    a gufo:EventType ,
+    a logic:Event ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "Verification Activity"@x-gmeow-english ;
@@ -263,7 +264,7 @@ gmeow:VerificationActivity
     gmeow:useWhen "Use to model the ACT of checking an attestation, signature, or inclusion proof — the event a verifier (agent or software) performs — when you need the checking process with its inputs, agent, and time as a first-class occurrent."@x-gmeow-english .
 
 gmeow:VerificationResult
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "Verification Result"@x-gmeow-english ;
@@ -282,11 +283,11 @@ gmeow:VerificationResult
     gmeow:useWhen "Use to record the OUTCOME a verifier reached when checking an attestation — verified, failed, expired, revoked, policy-failed, finality-pending — as a held observation output carrying its own status, verifier, and time."@x-gmeow-english .
 
 gmeow:VerificationStatus
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/attestation> ;
     rdfs:label "Verification Status"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The outcome status of a verification result — a value vocabulary (individuals, never subclasses)."@x-gmeow-english ;
     skos:example "ex:verifyOutcome gmeow:hasVerificationStatus gmeow:verificationStatusVerified ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid minting per-status subclasses (statuses are individuals) and avoid using it for ledger settlement (that is gmeow:LedgerFinalityStatus); the verification status is a check verdict, not a chain state, and a 'verified' status is one verifier's observation, never global truth (Principle 12)."@x-gmeow-english ;

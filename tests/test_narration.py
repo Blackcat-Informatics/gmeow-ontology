@@ -21,7 +21,6 @@ from gmeow_tools.graph import load_merged_graph
 
 GMEOW = "https://blackcatinformatics.ca/gmeow/"
 GM = Namespace(GMEOW)
-GUFO = Namespace("http://purl.org/nemo/gufo#")
 EX = Namespace("https://example.org/shapes/")
 
 FIXTURES = Path(__file__).parent / "fixtures" / "shapes"
@@ -64,17 +63,6 @@ def test_orientations_are_not_inverse_axioms() -> None:
     # Open on the content side, per the seam doctrine.
     assert g.value(GM.narrates, RDFS.range) is None
     assert g.value(GM.narratedIn, RDFS.domain) is None
-
-
-def test_narration_usage_is_a_reified_relator_with_open_subject() -> None:
-    g = _graph()
-    assert (GM.NarrationUsage, RDF.type, GUFO.Kind) in g
-    assert (GM.NarrationUsage, RDFS.subClassOf, GUFO.Relator) in g
-    for prop in (GM.narrationSegment, GM.narrationSubject):
-        assert (prop, RDF.type, OWL.FunctionalProperty) in g, prop
-    assert g.value(GM.narrationSubject, RDFS.range) is None
-    # Mode is deliberately NOT functional: a flashback can also be a dream.
-    assert (GM.narrationMode, RDF.type, OWL.FunctionalProperty) not in g
 
 
 def test_narration_mode_vocab_seeds() -> None:

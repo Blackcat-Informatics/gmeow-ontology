@@ -8,8 +8,8 @@
 # (gmeow:scopeModule) under the native Rust slicetest harness
 # (crates/slicetest).
 #
-# sensory-environment is NOT #694-migrated: class stereotypes are gufo:
-# (gufo:Kind, gufo:SubKind, gufo:AbstractIndividualType), not logic:.
+# sensory-environment is #694-migrated: class stereotypes are logic:
+# (logic:Kind, logic:SubKind, logic:AbstractIndividualType), not gufo:.
 #
 # RETAINED in pytest (not migratable here):
 #   test_sosa_alignments_loaded -- load_mappings() / SOSA mapping reads;
@@ -35,75 +35,75 @@
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/sensory-environment/tests/> .
 
-# --- 1. SensoryEnvironment is a gufo:Kind subclass of gufo:Object (MUST) ------
+# --- 1. SensoryEnvironment is a logic:Kind subclass of logic:Object (MUST) ------
 ex:saSensoryEnvironmentIsKind a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:SensoryEnvironment a owl:Class , gufo:Kind ;
-        rdfs:subClassOf gufo:Object .
+    gmeow:SensoryEnvironment a owl:Class , logic:Kind ;
+        rdfs:subClassOf logic:Object .
 }""" ;
-    gmeow:saRationale "gmeow:SensoryEnvironment MUST be an owl:Class typed gufo:Kind with rdfs:subClassOf gufo:Object -- ambient-condition ensembles are independent continuants (Object). Mirrors test_sensory_environment_class_exists." .
+    gmeow:saRationale "gmeow:SensoryEnvironment MUST be an owl:Class typed logic:Kind with rdfs:subClassOf logic:Object -- ambient-condition ensembles are independent continuants (Object). Mirrors test_sensory_environment_class_exists." .
 
-# --- 2. CoordinateMatrix is a gufo:Kind subclass of gufo:Object (MUST) --------
+# --- 2. CoordinateMatrix is a logic:Kind subclass of logic:Object (MUST) --------
 ex:saCoordinateMatrixIsKind a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:CoordinateMatrix a owl:Class , gufo:Kind ;
-        rdfs:subClassOf gufo:Object .
+    gmeow:CoordinateMatrix a owl:Class , logic:Kind ;
+        rdfs:subClassOf logic:Object .
 }""" ;
-    gmeow:saRationale "gmeow:CoordinateMatrix MUST be an owl:Class typed gufo:Kind with rdfs:subClassOf gufo:Object -- multi-dimensional numeric values are independent continuants. Mirrors test_coordinate_matrix_class_exists." .
+    gmeow:saRationale "gmeow:CoordinateMatrix MUST be an owl:Class typed logic:Kind with rdfs:subClassOf logic:Object -- multi-dimensional numeric values are independent continuants. Mirrors test_coordinate_matrix_class_exists." .
 
-# --- 3. MentalReferenceFrame is a gufo:SubKind of ReferenceFrame (MUST) -------
+# --- 3. MentalReferenceFrame is a logic:SubKind of ReferenceFrame (MUST) -------
 ex:saMentalReferenceFrameIsSubKind a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:MentalReferenceFrame a owl:Class , gufo:SubKind ;
+    gmeow:MentalReferenceFrame a owl:Class , logic:SubKind ;
         rdfs:subClassOf gmeow:ReferenceFrame .
 }""" ;
-    gmeow:saRationale "gmeow:MentalReferenceFrame MUST be an owl:Class typed gufo:SubKind with rdfs:subClassOf gmeow:ReferenceFrame -- subjective frames specialise the reference-frame hierarchy. Mirrors test_mental_reference_frame_class_exists." .
+    gmeow:saRationale "gmeow:MentalReferenceFrame MUST be an owl:Class typed logic:SubKind with rdfs:subClassOf gmeow:ReferenceFrame -- subjective frames specialise the reference-frame hierarchy. Mirrors test_mental_reference_frame_class_exists." .
 
-# --- 4. SensoryPerception is a gufo:SubKind of StandpointClaim (MUST) ---------
+# --- 4. SensoryPerception is a logic:SubKind of StandpointClaim (MUST) ---------
 ex:saSensoryPerceptionIsSubKind a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:SensoryPerception a owl:Class , gufo:SubKind ;
+    gmeow:SensoryPerception a owl:Class , logic:SubKind ;
         rdfs:subClassOf gmeow:StandpointClaim .
 }""" ;
-    gmeow:saRationale "gmeow:SensoryPerception MUST be an owl:Class typed gufo:SubKind with rdfs:subClassOf gmeow:StandpointClaim -- perceptual claims are standpoint-indexed (#104). Mirrors test_sensory_perception_class_exists." .
+    gmeow:saRationale "gmeow:SensoryPerception MUST be an owl:Class typed logic:SubKind with rdfs:subClassOf gmeow:StandpointClaim -- perceptual claims are standpoint-indexed (#104). Mirrors test_sensory_perception_class_exists." .
 
 # --- 5. SensoryModality value vocabulary class exists (MUST) ------------------
 ex:saSensoryModalityIsValueVocab a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:SensoryModality a owl:Class , gufo:AbstractIndividualType ;
-        rdfs:subClassOf gufo:QualityValue .
+    gmeow:SensoryModality a owl:Class , logic:AbstractIndividualType ;
+        rdfs:subClassOf logic:QualityValue .
 }""" ;
-    gmeow:saRationale "gmeow:SensoryModality MUST be an owl:Class typed gufo:AbstractIndividualType with rdfs:subClassOf gufo:QualityValue -- sensory channels form an open value vocabulary of individuals (Principle 9). Mirrors test_sensory_modality_value_vocabulary_exists (class part)." .
+    gmeow:saRationale "gmeow:SensoryModality MUST be an owl:Class typed logic:AbstractIndividualType with rdfs:subClassOf logic:QualityValue -- sensory channels form an open value vocabulary of individuals (Principle 9). Mirrors test_sensory_modality_value_vocabulary_exists (class part)." .
 
 # --- 6. All seven SensoryModality seeds exist (MUST) --------------------------
 ex:saSensoryModalitySeeds a gmeow:StructuralAssertion ;

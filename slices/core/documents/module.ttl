@@ -4,10 +4,11 @@
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
 gmeow:Article
-    a gufo:SubKind ,
+    a logic:SubKind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
     rdfs:label "Article"@x-gmeow-english ;
@@ -20,7 +21,7 @@ gmeow:Article
     gmeow:useWhen "Use for a written work issued in a periodical, blog, or scholarly venue — a journal paper, news piece, or column at the abstract gmeow:Work tier."@x-gmeow-english .
 
 gmeow:BookRelease
-    a gufo:SubKind ,
+    a logic:SubKind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
     rdfs:label "Book Release"@x-gmeow-english ;
@@ -33,7 +34,7 @@ gmeow:BookRelease
     gmeow:useWhen "Use for a concrete published edition or release of a book — the rights-bearing, ISBN-carrying publication artifact at the gmeow:Manifestation tier."@x-gmeow-english .
 
 gmeow:Collection
-    a gufo:SubKind ,
+    a logic:SubKind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
     rdfs:label "Collection"@x-gmeow-english ;
@@ -46,7 +47,7 @@ gmeow:Collection
     gmeow:useWhen "Use for an aggregation of resources curated as a unit — an anthology, album, or gallery at the gmeow:Work tier; its members ride the universal part spine."@x-gmeow-english .
 
 gmeow:ContentSegment
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
     rdfs:label "Content Segment"@x-gmeow-english ;
@@ -59,11 +60,11 @@ gmeow:ContentSegment
     gmeow:useWhen "Use for a structural part of a work — a chapter, section, scene, or episode whose identity is its position and type within a containing whole."@x-gmeow-english .
 
 gmeow:ContentSegmentType
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
     rdfs:label "Content Segment Type"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The structural type of a content segment — a VALUE vocabulary (individuals, never subclasses). Chapter, section, scene, and paragraph are examples; the set is open."@x-gmeow-english ;
     skos:example "ex:segmentTypeAct a gmeow:ContentSegmentType ; rdfs:label \"act\"@en ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid minting a segment-kind SUBCLASS of gmeow:ContentSegment (Principle 9 — no overtyping); a new kind is always a fresh gmeow:ContentSegmentType individual, never a class."@x-gmeow-english ;
@@ -72,7 +73,7 @@ gmeow:ContentSegmentType
     gmeow:useWhen "Use as the value vocabulary for the segment-kind axis — the open set of individuals (chapter, section, scene, paragraph, front matter, …) that gmeow:segmentType draws from; mint a fresh individual for a kind not seeded."@x-gmeow-english .
 
 gmeow:CreativeWork
-    a gufo:Category ,
+    a logic:Category ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
     rdfs:label "Creative Work"@x-gmeow-english ;
@@ -85,7 +86,7 @@ gmeow:CreativeWork
     gmeow:useWhen "Use as the WEMI umbrella when a fact ranges over any tier of an intellectual or artistic creation — title, identifier, date — and the specific Work/Expression/Manifestation/Item tier is not yet fixed; it is the domain of the bibliographic date and description properties."@x-gmeow-english .
 
 gmeow:CreativeWorkTitle
-    a gufo:SubKind ,
+    a logic:SubKind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
     rdfs:label "Creative Work Title"@x-gmeow-english ;
@@ -98,7 +99,7 @@ gmeow:CreativeWorkTitle
     gmeow:useWhen "Use for a structured, language- and script-tagged title borne by a creative work when co-equal multilingual titles must each be a first-class object — an original and its translation, a romanization."@x-gmeow-english .
 
 gmeow:DataFeed
-    a gufo:SubKind ,
+    a logic:SubKind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
     rdfs:label "Data Feed"@x-gmeow-english ;
@@ -111,7 +112,7 @@ gmeow:DataFeed
     gmeow:useWhen "Use for an ongoing, ordered stream of items — an RSS/Atom/JSON feed, a timeline, an activity feed — whose membership grows over time."@x-gmeow-english .
 
 gmeow:Dataset
-    a gufo:SubKind ,
+    a logic:SubKind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
     rdfs:label "Dataset"@x-gmeow-english ;
@@ -124,7 +125,7 @@ gmeow:Dataset
     gmeow:useWhen "Use for a data collection published as a citable unit — a research dataset, statistical release, or open-data corpus at the gmeow:Work tier."@x-gmeow-english .
 
 gmeow:Document
-    a gufo:SubKind ,
+    a logic:SubKind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
     rdfs:label "Document"@x-gmeow-english ;
@@ -137,7 +138,7 @@ gmeow:Document
     gmeow:useWhen "Use for the abstract conceptual document — a report, spec, memo — at the gmeow:Work tier, independent of any file or rendering that carries it."@x-gmeow-english .
 
 gmeow:FeedPosting
-    a gufo:SubKind ,
+    a logic:SubKind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
     rdfs:label "Feed Posting"@x-gmeow-english ;
@@ -152,11 +153,11 @@ gmeow:FeedPosting
     gmeow:useWhen "Use for a short-form syndicated work published to a feed, timeline, or platform — a social post, microblog note, or blog entry that may quote or repost other content."@x-gmeow-english .
 
 gmeow:FeedPostingKind
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
     rdfs:label "Feed Posting Kind"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The kind of a syndicated posting — a VALUE vocabulary (individuals, never subclasses). Social, blog, microblog, forum, and status are examples; the set is open."@x-gmeow-english ;
     skos:example "ex:feedPostingKindForum a gmeow:FeedPostingKind ; rdfs:label \"forum\"@en ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid minting a posting-flavour SUBCLASS of gmeow:FeedPosting (Principle 9 — no overtyping); a new flavour is always a fresh gmeow:FeedPostingKind individual, never a class."@x-gmeow-english ;
@@ -165,7 +166,7 @@ gmeow:FeedPostingKind
     gmeow:useWhen "Use as the value vocabulary for the posting-flavour axis — the open set of individuals (social, blog, microblog, forum, status) that gmeow:feedPostingKind draws from; mint a fresh individual for a flavour not seeded."@x-gmeow-english .
 
 gmeow:LiteraryWork
-    a gufo:SubKind ,
+    a logic:SubKind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
     rdfs:label "Literary Work"@x-gmeow-english ;
@@ -178,7 +179,7 @@ gmeow:LiteraryWork
     gmeow:useWhen "Use for an abstract long-form authored story or text — a novel, poetry collection, play, or literary essay at the gmeow:Work tier, the out-of-universe creation that sources an in-universe narrative."@x-gmeow-english .
 
 gmeow:MediaObject
-    a gufo:SubKind ,
+    a logic:SubKind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
     rdfs:label "Media Object"@x-gmeow-english ;
@@ -193,7 +194,7 @@ gmeow:MediaObject
     gmeow:useWhen "Use for a concrete image, audio, or video file — the published media artifact that carries pixel dimensions, a MIME type, a capture time, a transcript, or a depiction."@x-gmeow-english .
 
 gmeow:Patent
-    a gufo:SubKind ,
+    a logic:SubKind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
     rdfs:label "Patent"@x-gmeow-english ;
@@ -206,7 +207,7 @@ gmeow:Patent
     gmeow:useWhen "Use for the abstract inventive concept as claimed — the patented invention at the gmeow:Work tier, independent of any filing or grant document."@x-gmeow-english .
 
 gmeow:ProfilePage
-    a gufo:SubKind ,
+    a logic:SubKind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
     rdfs:label "Profile Page"@x-gmeow-english ;
@@ -228,7 +229,7 @@ gmeow:ProfilePage
     gmeow:useWhen "Use as the QUERY target for any page that profiles an agent; membership is derived, so reach for it when selecting or projecting profile/about pages rather than to type them by hand."@x-gmeow-english .
 
 gmeow:ReadingOrder
-    a gufo:SubKind ,
+    a logic:SubKind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
     rdfs:label "Reading Order"@x-gmeow-english ;
@@ -241,7 +242,7 @@ gmeow:ReadingOrder
     gmeow:useWhen "Use to model a subjective ordering for consuming a work's segments — publication order, internal chronology, author-recommended or fandom order — that competing orderings may contradict without one being canonical."@x-gmeow-english .
 
 gmeow:SerialInstallment
-    a gufo:SubKind ,
+    a logic:SubKind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
     rdfs:label "Serial Installment"@x-gmeow-english ;
@@ -254,7 +255,7 @@ gmeow:SerialInstallment
     gmeow:useWhen "Use for one published installment of a serial — a comic issue, TV episode, magazine issue, or serial chapter at the gmeow:Manifestation tier."@x-gmeow-english .
 
 gmeow:SerialWork
-    a gufo:SubKind ,
+    a logic:SubKind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
     rdfs:label "Serial Work"@x-gmeow-english ;
@@ -267,7 +268,7 @@ gmeow:SerialWork
     gmeow:useWhen "Use for an open-ended authored work released over installments — a web serial, comic series, magazine, or podcast at the gmeow:Work tier."@x-gmeow-english .
 
 gmeow:Service
-    a gufo:SubKind ,
+    a logic:SubKind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
     rdfs:label "Service"@x-gmeow-english ;
@@ -280,7 +281,7 @@ gmeow:Service
     gmeow:useWhen "Use for a system offering one or more functions as a creative-work artifact — a web API, hosted app, or online service (schema:Service)."@x-gmeow-english .
 
 gmeow:WebPage
-    a gufo:SubKind ,
+    a logic:SubKind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
     rdfs:label "Web Page"@x-gmeow-english ;
@@ -293,7 +294,7 @@ gmeow:WebPage
     gmeow:useWhen "Use for a single web page identified by a URL — the concrete published rendering, member of a gmeow:WebSite and possibly naming a principal subject."@x-gmeow-english .
 
 gmeow:WebSite
-    a gufo:SubKind ,
+    a logic:SubKind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/documents> ;
     rdfs:label "Web Site"@x-gmeow-english ;

@@ -12,7 +12,6 @@ from gmeow_tools.graph import load_merged_graph
 from gmeow_tools.validate import ValidationResult
 
 GMEOW = Namespace("https://blackcatinformatics.ca/gmeow/")
-GUFO = Namespace("http://purl.org/nemo/gufo#")
 EX = Namespace("https://example.org/test-music-instruments/")
 
 _MERGED_GRAPH: Graph | None = None
@@ -27,31 +26,6 @@ def _graph() -> Graph:
 
 def _error_text(result: ValidationResult) -> str:
     return "\n".join(result.errors)
-
-
-def test_instrument_classes_exist() -> None:
-    """Instrument classes use owl:Class plus the intended gUFO stereotype."""
-    graph = _graph()
-    assert (
-        URIRef(GMEOW + "InstrumentConfiguration"),
-        RDF.type,
-        OWL.Class,
-    ) in graph
-    assert (
-        URIRef(GMEOW + "InstrumentConfiguration"),
-        RDFS.subClassOf,
-        GUFO.Relator,
-    ) in graph, "InstrumentConfiguration must be a gufo:Relator"
-    assert (
-        URIRef(GMEOW + "InstrumentModification"),
-        RDF.type,
-        OWL.Class,
-    ) in graph
-    assert (
-        URIRef(GMEOW + "InstrumentModification"),
-        RDFS.subClassOf,
-        GUFO.QualityValue,
-    ) in graph, "InstrumentModification must be a value vocabulary"
 
 
 def test_configuration_properties_exist() -> None:

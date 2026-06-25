@@ -3,10 +3,11 @@
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
 gmeow:InquiryTenure
-    a gufo:SituationType ,
+    a logic:Situation ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inquiry> ;
     rdfs:label "Inquiry Tenure"@x-gmeow-english ;
@@ -25,7 +26,7 @@ gmeow:InquiryTenure
     gmeow:useWhen "Use as the reified half of the gmeow:asks ↔ gmeow:InquiryTenure pair: when the opening, closing, or reopening of an agent's open question over an interval is itself the fact of interest, so the inquiry can be opened and closed rather than mutated."@x-gmeow-english .
 
 gmeow:Question
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inquiry> ;
     rdfs:label "Question"@x-gmeow-english ;
@@ -39,11 +40,11 @@ gmeow:Question
     gmeow:useWhen "Use to mint erotetic content as its own object — the thing an agent asks, wonders about, or inquires into — so the same question can be held open by several agents and answered differently from different vantages (Principle 9); reach for it whenever what is recorded is an open problem rather than a held belief or a pursued goal."@x-gmeow-english .
 
 gmeow:QuestionType
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/inquiry> ;
     rdfs:label "Question Type"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The erotetic kind of a question — a closed value vocabulary spanning polar (yes/no), alternative (which-of-a-named-set), wh (who/what/where/when), why (explanation-seeking), and how (procedure-seeking): gmeow:typePolar, gmeow:typeAlternative, gmeow:typeWh, gmeow:typeWhy, gmeow:typeHow. Its members are individuals, never subclasses, and more than one may co-apply to a single question."@x-gmeow-english ;
     skos:example "ex:whyDidItFail gmeow:questionType gmeow:typeWhy ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid subclassing it to add a kind — the vocabulary is closed and its members are individuals — and avoid forcing exactly one type onto every question; gmeow:typeWhy and gmeow:typeHow may legitimately co-apply (gmeow:questionType is non-functional)."@x-gmeow-english ;

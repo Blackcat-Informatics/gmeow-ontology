@@ -7,9 +7,9 @@
 # SPARQL ASK over the calendar module graph (gmeow:scopeModule) under the
 # native Rust harness (crates/slicetest).
 #
-# Calendar is NOT yet #694-migrated, so class stereotypes remain gufo:
-# (gufo:Kind, gufo:SubKind, gufo:SituationType, gufo:AbstractIndividualType,
-# gufo:QualityValue, gufo:Relator, gufo:Object, gufo:EventType), not logic:.
+# Calendar is #694-migrated, so class stereotypes are logic:
+# (logic:Kind, logic:SubKind, logic:Situation, logic:AbstractIndividualType,
+# logic:QualityValue, logic:Relator, logic:Object, logic:Event), not gufo:.
 #
 # CONVERTED (cells 36-41): the six test_*_vocabulary_seeded tests checked that
 #   specific hand-named seed individuals are typed as their value class (a membership
@@ -51,48 +51,48 @@ ASK {
 }""" ;
     gmeow:saRationale "gmeow:Calendar MUST be an owl:Class and a subclass of gmeow:InformationObject — a calendar is a CalDAV-style information object aggregating event members (#62). Mirrors test_calendar_is_information_object." .
 
-# --- 2. EventSchedule is a gufo:Relator (MUST) -------------------------------
+# --- 2. EventSchedule is a logic:Relator (MUST) -------------------------------
 ex:saEventScheduleIsRelator a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
     gmeow:EventSchedule a owl:Class ;
-        rdfs:subClassOf gufo:Relator .
+        rdfs:subClassOf logic:Relator .
 }""" ;
-    gmeow:saRationale "gmeow:EventSchedule MUST be an owl:Class and a subclass of gufo:Relator — it mediates the template event, recurrence rule, and generated occurrences (#62). Mirrors test_event_schedule_is_relator." .
+    gmeow:saRationale "gmeow:EventSchedule MUST be an owl:Class and a subclass of logic:Relator — it mediates the template event, recurrence rule, and generated occurrences (#62). Mirrors test_event_schedule_is_relator." .
 
-# --- 3. ScheduleException is a gufo:Relator (MUST) --------------------------
+# --- 3. ScheduleException is a logic:Relator (MUST) --------------------------
 ex:saScheduleExceptionIsRelator a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
     gmeow:ScheduleException a owl:Class ;
-        rdfs:subClassOf gufo:Relator .
+        rdfs:subClassOf logic:Relator .
 }""" ;
-    gmeow:saRationale "gmeow:ScheduleException MUST be an owl:Class and a subclass of gufo:Relator — it mediates the schedule, original date, and optional replacement event (#62). Mirrors test_schedule_exception_is_relator." .
+    gmeow:saRationale "gmeow:ScheduleException MUST be an owl:Class and a subclass of logic:Relator — it mediates the schedule, original date, and optional replacement event (#62). Mirrors test_schedule_exception_is_relator." .
 
-# --- 4. EventInvitation is an Agreement and a gufo:Relator (MUST) ------------
+# --- 4. EventInvitation is an Agreement and a logic:Relator (MUST) ------------
 ex:saEventInvitationIsAgreementAndRelator a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
     gmeow:EventInvitation a owl:Class ;
         rdfs:subClassOf gmeow:Agreement ;
-        rdfs:subClassOf gufo:Relator .
+        rdfs:subClassOf logic:Relator .
 }""" ;
-    gmeow:saRationale "gmeow:EventInvitation MUST be an owl:Class and a subclass of both gmeow:Agreement and gufo:Relator — it reifies the invitation social act as a relator and inherits the agreement spine (#62). Mirrors test_event_invitation_is_agreement_and_relator." .
+    gmeow:saRationale "gmeow:EventInvitation MUST be an owl:Class and a subclass of both gmeow:Agreement and logic:Relator — it reifies the invitation social act as a relator and inherits the agreement spine (#62). Mirrors test_event_invitation_is_agreement_and_relator." .
 
 # --- 5. Availability is a TimeScopedRelation (MUST) --------------------------
 ex:saAvailabilityIsTimeScopedRelation a gmeow:StructuralAssertion ;
@@ -147,92 +147,92 @@ ASK {
     gmeow:saRationale "gmeow:TimeZone MUST be an owl:Class and a subclass of gmeow:Entity — a time zone is a named civil offset object, not a temporal frame (#62). Mirrors test_time_zone_is_entity." .
 
 # ===========================================================================
-# Value vocabulary structure — status classes are gufo:AbstractIndividualType
+# Value vocabulary structure — status classes are logic:AbstractIndividualType
 # ===========================================================================
 
-# --- 9. InvitationStatus is a gufo:AbstractIndividualType value vocab (MUST) -
+# --- 9. InvitationStatus is a logic:AbstractIndividualType value vocab (MUST) -
 ex:saInvitationStatusIsValueVocab a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:InvitationStatus a owl:Class , gufo:AbstractIndividualType ;
-        rdfs:subClassOf gufo:QualityValue .
+    gmeow:InvitationStatus a owl:Class , logic:AbstractIndividualType ;
+        rdfs:subClassOf logic:QualityValue .
 }""" ;
-    gmeow:saRationale "gmeow:InvitationStatus MUST be an owl:Class typed gufo:AbstractIndividualType and a subclass of gufo:QualityValue — invitation states are an individuals-based value vocabulary, never subclasses (Principle 9). Mirrors test_calendar_value_vocabularies_are_object_properties (InvitationStatus)." .
+    gmeow:saRationale "gmeow:InvitationStatus MUST be an owl:Class typed logic:AbstractIndividualType and a subclass of logic:QualityValue — invitation states are an individuals-based value vocabulary, never subclasses (Principle 9). Mirrors test_calendar_value_vocabularies_are_object_properties (InvitationStatus)." .
 
-# --- 10. RsvpStatus is a gufo:AbstractIndividualType value vocab (MUST) ------
+# --- 10. RsvpStatus is a logic:AbstractIndividualType value vocab (MUST) ------
 ex:saRsvpStatusIsValueVocab a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:RsvpStatus a owl:Class , gufo:AbstractIndividualType ;
-        rdfs:subClassOf gufo:QualityValue .
+    gmeow:RsvpStatus a owl:Class , logic:AbstractIndividualType ;
+        rdfs:subClassOf logic:QualityValue .
 }""" ;
-    gmeow:saRationale "gmeow:RsvpStatus MUST be an owl:Class typed gufo:AbstractIndividualType and a subclass of gufo:QualityValue — RSVP states are a distinct value vocabulary from InvitationStatus so organizer and invitee views can coexist (Principle 9). Mirrors test_calendar_value_vocabularies_are_object_properties (RsvpStatus)." .
+    gmeow:saRationale "gmeow:RsvpStatus MUST be an owl:Class typed logic:AbstractIndividualType and a subclass of logic:QualityValue — RSVP states are a distinct value vocabulary from InvitationStatus so organizer and invitee views can coexist (Principle 9). Mirrors test_calendar_value_vocabularies_are_object_properties (RsvpStatus)." .
 
-# --- 11. AvailabilityStatus is a gufo:AbstractIndividualType value vocab (MUST)
+# --- 11. AvailabilityStatus is a logic:AbstractIndividualType value vocab (MUST)
 ex:saAvailabilityStatusIsValueVocab a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:AvailabilityStatus a owl:Class , gufo:AbstractIndividualType ;
-        rdfs:subClassOf gufo:QualityValue .
+    gmeow:AvailabilityStatus a owl:Class , logic:AbstractIndividualType ;
+        rdfs:subClassOf logic:QualityValue .
 }""" ;
-    gmeow:saRationale "gmeow:AvailabilityStatus MUST be an owl:Class typed gufo:AbstractIndividualType and a subclass of gufo:QualityValue — free-busy states are an individuals-based value vocabulary (Principle 9). Mirrors test_calendar_value_vocabularies_are_object_properties (AvailabilityStatus)." .
+    gmeow:saRationale "gmeow:AvailabilityStatus MUST be an owl:Class typed logic:AbstractIndividualType and a subclass of logic:QualityValue — free-busy states are an individuals-based value vocabulary (Principle 9). Mirrors test_calendar_value_vocabularies_are_object_properties (AvailabilityStatus)." .
 
-# --- 12. ReminderAction is a gufo:AbstractIndividualType value vocab (MUST) --
+# --- 12. ReminderAction is a logic:AbstractIndividualType value vocab (MUST) --
 ex:saReminderActionIsValueVocab a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:ReminderAction a owl:Class , gufo:AbstractIndividualType ;
-        rdfs:subClassOf gufo:QualityValue .
+    gmeow:ReminderAction a owl:Class , logic:AbstractIndividualType ;
+        rdfs:subClassOf logic:QualityValue .
 }""" ;
-    gmeow:saRationale "gmeow:ReminderAction MUST be an owl:Class typed gufo:AbstractIndividualType and a subclass of gufo:QualityValue — alarm actions are an individuals-based value vocabulary, never Reminder subclasses (Principle 9). Mirrors test_calendar_value_vocabularies_are_object_properties (ReminderAction)." .
+    gmeow:saRationale "gmeow:ReminderAction MUST be an owl:Class typed logic:AbstractIndividualType and a subclass of logic:QualityValue — alarm actions are an individuals-based value vocabulary, never Reminder subclasses (Principle 9). Mirrors test_calendar_value_vocabularies_are_object_properties (ReminderAction)." .
 
-# --- 13. TaskStatus is a gufo:AbstractIndividualType value vocab (MUST) ------
+# --- 13. TaskStatus is a logic:AbstractIndividualType value vocab (MUST) ------
 ex:saTaskStatusIsValueVocab a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:TaskStatus a owl:Class , gufo:AbstractIndividualType ;
-        rdfs:subClassOf gufo:QualityValue .
+    gmeow:TaskStatus a owl:Class , logic:AbstractIndividualType ;
+        rdfs:subClassOf logic:QualityValue .
 }""" ;
-    gmeow:saRationale "gmeow:TaskStatus MUST be an owl:Class typed gufo:AbstractIndividualType and a subclass of gufo:QualityValue — task progress states are individuals, never Task subclasses (Principles 9, 10). Mirrors test_calendar_value_vocabularies_are_object_properties (TaskStatus)." .
+    gmeow:saRationale "gmeow:TaskStatus MUST be an owl:Class typed logic:AbstractIndividualType and a subclass of logic:QualityValue — task progress states are individuals, never Task subclasses (Principles 9, 10). Mirrors test_calendar_value_vocabularies_are_object_properties (TaskStatus)." .
 
-# --- 14. ExceptionType is a gufo:AbstractIndividualType value vocab (MUST) ---
+# --- 14. ExceptionType is a logic:AbstractIndividualType value vocab (MUST) ---
 ex:saExceptionTypeIsValueVocab a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:ExceptionType a owl:Class , gufo:AbstractIndividualType ;
-        rdfs:subClassOf gufo:QualityValue .
+    gmeow:ExceptionType a owl:Class , logic:AbstractIndividualType ;
+        rdfs:subClassOf logic:QualityValue .
 }""" ;
-    gmeow:saRationale "gmeow:ExceptionType MUST be an owl:Class typed gufo:AbstractIndividualType and a subclass of gufo:QualityValue — exception kinds are individuals on the open-value axis, never ScheduleException subclasses (Principle 9). Mirrors test_calendar_value_vocabularies_are_object_properties (ExceptionType)." .
+    gmeow:saRationale "gmeow:ExceptionType MUST be an owl:Class typed logic:AbstractIndividualType and a subclass of logic:QualityValue — exception kinds are individuals on the open-value axis, never ScheduleException subclasses (Principle 9). Mirrors test_calendar_value_vocabularies_are_object_properties (ExceptionType)." .
 
 # ===========================================================================
 # Value vocabulary object properties — axes range over vocab classes

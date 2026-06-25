@@ -3,14 +3,15 @@
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
 gmeow:CitationAct
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
     rdfs:label "Citation Act"@x-gmeow-english ;
-    rdfs:subClassOf gufo:Relator ,
+    rdfs:subClassOf logic:Relator ,
         [
             a owl:Restriction ;
             owl:onProperty gmeow:citingEntity ;
@@ -37,11 +38,11 @@ gmeow:CitationAct
     gmeow:useWhen "Use when a citation needs its own intent, pinpoint selector, provenance, confidence, or standpoint to be first-class — scholarly references, genealogical evidence links, dataset provenance — rather than a bare entity-to-work pointer."@x-gmeow-english .
 
 gmeow:CitationIntent
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
     rdfs:label "Citation Intent"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The intent with which one entity cites another — a VALUE vocabulary (individuals, never subclasses) characterizing a gmeow:CitationAct. Bridged by reference to CiTO sub-properties (e.g. cito:citesAsDataSource). The set is open."@x-gmeow-english ;
     skos:example "ex:intent a gmeow:CitationIntent ; rdfs:label \"refutes\"@en ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid minting a subclass for a new intent (intents are individuals on an open vocabulary) and avoid using it where the contribution's weight, not the citation's purpose, is meant — that is gmeow:ContributionDegree."@x-gmeow-english ;
@@ -50,11 +51,11 @@ gmeow:CitationIntent
     gmeow:useWhen "Use as the open value vocabulary for citation intent — referenced from a gmeow:CitationAct via gmeow:citationIntent, or extended with a new individual when a CiTO-style intent not yet seeded is needed."@x-gmeow-english .
 
 gmeow:ContributionDegree
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
     rdfs:label "Contribution Degree"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The degree or weight of a contribution — a VALUE vocabulary (individuals, never subclasses) characterizing a gmeow:Contribution. Lead, equal, and supporting are the canonical seeds; the set is open."@x-gmeow-english ;
     skos:example "ex:credit gmeow:contributionDegree gmeow:degreeLead ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid minting a subclass for a new degree (degrees are individuals on an open vocabulary) and avoid using it for the CITATION's purpose (that is gmeow:CitationIntent); degree weights credit, intent types citation."@x-gmeow-english ;
@@ -63,7 +64,7 @@ gmeow:ContributionDegree
     gmeow:useWhen "Use as the open value vocabulary for the weight of a credit — lead, equal, or supporting — characterizing a gmeow:Contribution and projecting to CRediT degree qualifiers."@x-gmeow-english .
 
 gmeow:Selector
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
     rdfs:label "Selector"@x-gmeow-english ;
@@ -76,11 +77,11 @@ gmeow:Selector
     gmeow:useWhen "Use to mint a pinpoint anchor into a cited work — a page, character offset, verbatim quote, or generic locator — referenced from a gmeow:CitationAct via gmeow:viaSelector."@x-gmeow-english .
 
 gmeow:SourceRole
-    a gufo:RoleMixin ,
+    a logic:RoleMixin ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/citations> ;
     rdfs:label "Source Role"@x-gmeow-english ;
-    rdfs:subClassOf gufo:FunctionalComplex ,
+    rdfs:subClassOf logic:FunctionalComplex ,
         gmeow:CreativeWork ;
     skos:definition "The anti-rigid role of being a source — borne by a gmeow:CreativeWork when it is used as evidence for a claim. A thing is only contingently a source; the same work may be evidence for one claim, the subject of another, and a work in its own right. Source-hood is primarily relator-mediated (via CitationAct), but SourceRole provides a named handle when needed."@x-gmeow-english ;
     skos:example "ex:parishRegister a gmeow:SourceRole ."@x-gmeow-english ;

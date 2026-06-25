@@ -136,15 +136,15 @@ expression: summary
         "role": "Module",
         "logical_path": "module.ttl",
         "media_type": "text/turtle",
-        "raw_digest": "d95a3f16d1797212fd00a4d83843e480126f0c0399d5ff2a7ace67228e5ba520",
-        "semantic_digest": "2fda785eafc3d4285ee09336d457434c3818b624dfdd7048200c3f48712c304c"
+        "raw_digest": "7a6add3719932a36dc535d90998abed130f11755ce618bfcb7c978d87fe76a78",
+        "semantic_digest": "5ae0a77b18f23a1e80347ef7e47086e831fd87aeffe463b1ec3be8fdb703004b"
       },
       {
         "role": "TestDsl",
         "logical_path": "tests/structural.ttl",
         "media_type": "text/turtle",
-        "raw_digest": "2db163f0fe2d4c0542fb19641435c5ae509c8d647ba5b2710611d3595148c698",
-        "semantic_digest": "67ef63d509dfb6940e8dc33685bbce7e39889ff3769e86169cc3b37cdcae64fe"
+        "raw_digest": "4415b880cf4e3e108c7daba1a56fac4c081215791a0dd623e791f6a409c85b68",
+        "semantic_digest": "fea12563ba72950e3fa70398d379ad68aad50fbbe78e904713e8d269804dbf28"
       }
     ]
   },
@@ -193,7 +193,7 @@ expression: summary
   "linkage_count": 1381,
   "example_count": 95,
   "concern_count": 7,
-  "external_term_count": 1213,
+  "external_term_count": 1206,
   "sample_mapping_set": {
     "iri": "https://blackcatinformatics.ca/gmeow/mapsetAccessibility",
     "curie": "gmeow:mapsetAccessibility",

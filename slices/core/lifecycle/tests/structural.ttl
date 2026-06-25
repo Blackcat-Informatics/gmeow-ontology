@@ -7,8 +7,8 @@
 # SPARQL ASK over the lifecycle module graph (gmeow:scopeModule) under the
 # native Rust harness (crates/slicetest).
 #
-# Lifecycle is NOT yet #694-migrated, so class stereotypes remain gufo:
-# (gufo:SituationType), not logic:.
+# Lifecycle is #694-migrated, so class stereotypes are logic:
+# (logic:Situation), not gufo:.
 #
 # RETAINED in pytest (cross-slice subjects or dynamic/non-TBox checks):
 #   test_supersession_properties_are_object_properties — asserts on
@@ -39,19 +39,19 @@
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/lifecycle/tests/> .
 
-# --- 1. EntityExistence is a gufo:SituationType subclass of TimeScopedRelation (MUST) ---
+# --- 1. EntityExistence is a logic:Situation subclass of TimeScopedRelation (MUST) ---
 ex:saEntityExistenceIsSituationType a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:EntityExistence a owl:Class , gufo:SituationType ;
+    gmeow:EntityExistence a owl:Class , logic:Situation ;
         rdfs:subClassOf gmeow:TimeScopedRelation .
 }""" ;
-    gmeow:saRationale "gmeow:EntityExistence MUST be an owl:Class typed gufo:SituationType and a subclass of gmeow:TimeScopedRelation — the reified existence record is a situation bounded by a temporal scope, the universal contested-claim pattern (#81). Mirrors test_entity_existence_is_a_gufo_situation." .
+    gmeow:saRationale "gmeow:EntityExistence MUST be an owl:Class typed logic:Situation and a subclass of gmeow:TimeScopedRelation — the reified existence record is a situation bounded by a temporal scope, the universal contested-claim pattern (#81). Mirrors test_entity_existence_is_a_gufo_situation." .
 
 # --- 2. Flat lifecycle properties are owl:ObjectProperty with domain Entity (MUST) ---
 ex:saFlatLifecyclePropertiesAreObjectProperties a gmeow:StructuralAssertion ;

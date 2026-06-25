@@ -4,10 +4,11 @@
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
 gmeow:AtomicConstraint
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "Atomic Constraint"@x-gmeow-english ;
@@ -30,11 +31,11 @@ gmeow:AtomicConstraint
     gmeow:useWhen "Use for a single rule-condition comparison — a dimension, an operator, and a value (dateTime ≤ 2030, spatial = EU, count ≤ 5) — the leaf of the ODRL constraint algebra."@x-gmeow-english .
 
 gmeow:ConflictStrategy
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "Conflict Strategy"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "A policy conflict-resolution strategy — the ODRL conflict values perm / prohibit / invalid."@x-gmeow-english ;
     skos:example "ex:cs a gmeow:ConflictStrategy ; rdfs:label \"prohibition wins\"@en ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid minting per-strategy subclasses (strategies are individuals, Principle 9) and avoid using it for the atomic comparison operators, which are gmeow:ConstraintOperator."@x-gmeow-english ;
@@ -43,11 +44,11 @@ gmeow:ConflictStrategy
     gmeow:useWhen "Use as the value vocabulary for the policy conflict-resolution axis — the ODRL strategy (perm, prohibit, invalid) a rights statement declares via gmeow:conflictStrategy."@x-gmeow-english .
 
 gmeow:Constraint
-    a gufo:Category ,
+    a logic:Category ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "Constraint"@x-gmeow-english ;
-    rdfs:subClassOf gufo:Relator ;
+    rdfs:subClassOf logic:Relator ;
     skos:definition "The abstract base of a condition on a rights rule (odrl:Constraint) — specialised by gmeow:AtomicConstraint (a leftOperand / operator / rightOperand comparison, e.g. dateTime ≤ 2030, spatial = EU, count ≤ 5) and gmeow:LogicalConstraint (a boolean combination of constraints). A licence's temporal bound is an AtomicConstraint over the dateTime operand."@x-gmeow-english ;
     skos:example "ex:c a gmeow:AtomicConstraint ; gmeow:leftOperand gmeow:leftOpSpatial ; gmeow:constraintOperator gmeow:operatorEq ; gmeow:rightOperand \"EU\" ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid typing an instance as a bare gmeow:Constraint (the two kinds are disjoint and one always applies) and avoid using a constraint where a simple validity window suffices — a licence term is fine as gmeow:validFrom / gmeow:validUntil."@x-gmeow-english ;
@@ -56,11 +57,11 @@ gmeow:Constraint
     gmeow:useWhen "Use as the abstract base only when reasoning over any rule condition regardless of kind; for a concrete condition mint a gmeow:AtomicConstraint (one comparison) or a gmeow:LogicalConstraint (a boolean combination)."@x-gmeow-english .
 
 gmeow:ConstraintLogic
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "Constraint Logic"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The boolean operator of a logical constraint — odrl:and / odrl:or / odrl:xone (exactly one) / odrl:andSequence (ordered conjunction)."@x-gmeow-english ;
     skos:example "ex:logXone a gmeow:ConstraintLogic ; rdfs:label \"exactly one\"@en ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid minting per-operator subclasses (operators are individuals, Principle 9) and avoid using it for an atomic comparison operator, which is gmeow:ConstraintOperator."@x-gmeow-english ;
@@ -69,11 +70,11 @@ gmeow:ConstraintLogic
     gmeow:useWhen "Use as the value vocabulary for the boolean-combination axis — the operator (and, or, xone, andSequence) a logical constraint uses, referenced via gmeow:constraintLogic."@x-gmeow-english .
 
 gmeow:ConstraintOperator
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "Constraint Operator"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The comparison operator of an atomic constraint — the ODRL operator vocabulary (eq, neq, lt, lteq, gt, gteq, isPartOf, isA, isAnyOf, …)."@x-gmeow-english ;
     skos:example "ex:opLteq a gmeow:ConstraintOperator ; rdfs:label \"less than or equal to\"@en ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid minting per-operator subclasses (operators are individuals, Principle 9) and avoid inventing operators beyond the ODRL set; reference a seeded value."@x-gmeow-english ;
@@ -82,11 +83,11 @@ gmeow:ConstraintOperator
     gmeow:useWhen "Use as the value vocabulary for the comparison-operator axis — the ODRL operator (eq, lteq, isAnyOf, …) an atomic constraint applies, referenced via gmeow:constraintOperator."@x-gmeow-english .
 
 gmeow:Copyright
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "Copyright"@x-gmeow-english ;
-    rdfs:subClassOf gufo:Relator ,
+    rdfs:subClassOf logic:Relator ,
         [
             a owl:Restriction ;
             owl:onProperty gmeow:copyrightWork ;
@@ -108,11 +109,11 @@ gmeow:Copyright
     gmeow:useWhen "Use to reify the copyright over a work when its holder(s), year, notice, or RightsStatements.org/PREMIS status must be recorded as a first-class relator."@x-gmeow-english .
 
 gmeow:CopyrightStatus
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "Copyright Status"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The copyright standing of a work — a VALUE aligned to the RightsStatements.org standardized statements and PREMIS copyright status. Open: a finer-grained statement is a fresh individual."@x-gmeow-english ;
     skos:example "ex:statusInC a gmeow:CopyrightStatus ; rdfs:label \"in copyright\"@en ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid minting per-status subclasses (statuses are individuals, Principle 9) and avoid using it for licence or trademark standing; those have their own vocabularies."@x-gmeow-english ;
@@ -121,7 +122,7 @@ gmeow:CopyrightStatus
     gmeow:useWhen "Use as the open value vocabulary for the copyright-standing axis — the RightsStatements.org / PREMIS statements a work declares via gmeow:copyrightStatus."@x-gmeow-english .
 
 gmeow:Duty
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "Duty"@x-gmeow-english ;
@@ -134,11 +135,11 @@ gmeow:Duty
     gmeow:useWhen "Use for an obligation that must be discharged — attribute, share-alike, retain-notice, obtain-consent — typically as a condition of a permission (the odrl:Duty / odrl:obligation rule, CC REL cc:requires)."@x-gmeow-english .
 
 gmeow:LeftOperand
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "Left Operand"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The dimension an atomic constraint tests — an OPEN value vocabulary mirroring the ODRL leftOperand vocabulary (dateTime, spatial, count, purpose, recipient, industry, …)."@x-gmeow-english ;
     skos:example "ex:opPurpose a gmeow:LeftOperand ; rdfs:label \"purpose\"@en ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid minting per-dimension subclasses (operands are individuals, Principle 9) and avoid inventing a free-text dimension; reuse a seeded ODRL value or mint a fresh individual."@x-gmeow-english ;
@@ -147,7 +148,7 @@ gmeow:LeftOperand
     gmeow:useWhen "Use as the open value vocabulary for the constraint-dimension axis — the operand (dateTime, spatial, count, purpose, recipient, …) an atomic constraint tests, referenced via gmeow:leftOperand."@x-gmeow-english .
 
 gmeow:License
-    a gufo:SubKind ,
+    a logic:SubKind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "License"@x-gmeow-english ;
@@ -174,11 +175,11 @@ gmeow:License
     gmeow:useWhen "Use to model a licence granting rights in a work — an SPDX-identified open-source or Creative Commons licence, a proprietary grant, or any cc:License / ODRL Offer / dcterms:LicenseDocument — reusing gmeow:Agreement for its parties."@x-gmeow-english .
 
 gmeow:LicenseFamily
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "License Family"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The family of a licence — public-domain, Creative Commons, permissive, copyleft, proprietary, or dual. An OPEN value vocabulary; the ontology-side reflection of the config.py license classification, not a duplicate of it."@x-gmeow-english ;
     skos:example "ex:famPermissive a gmeow:LicenseFamily ; rdfs:label \"permissive\"@en ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid minting per-family subclasses (families are individuals, Principle 9) and avoid treating it as the runtime import/link policy — that stays exclusively in config.py; this is a RELATED reflection, never a copy."@x-gmeow-english ;
@@ -187,7 +188,7 @@ gmeow:LicenseFamily
     gmeow:useWhen "Use as the open value vocabulary for the licence-family axis — the coarse class (public-domain, CC, permissive, copyleft, proprietary, dual) a licence declares via gmeow:licenseFamily."@x-gmeow-english .
 
 gmeow:LogicalConstraint
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "Logical Constraint"@x-gmeow-english ;
@@ -210,7 +211,7 @@ gmeow:LogicalConstraint
     gmeow:useWhen "Use to combine two or more constraints under a boolean operator — AND (all), OR (any), XONE (exactly one), or AND-sequence (ordered) — the ODRL LogicalConstraint."@x-gmeow-english .
 
 gmeow:Mark
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "Mark"@x-gmeow-english ;
@@ -223,7 +224,7 @@ gmeow:Mark
     gmeow:useWhen "Use for the brand, sign, name, or logo itself — the information object a gmeow:Trademark protects (schema:Brand), and which may also bear its own copyright as a creative work."@x-gmeow-english .
 
 gmeow:Permission
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "Permission"@x-gmeow-english ;
@@ -236,7 +237,7 @@ gmeow:Permission
     gmeow:useWhen "Use for a granted ability — an action the assignee is allowed to exercise over the asset (the odrl:Permission rule), optionally conditioned by its own duties."@x-gmeow-english .
 
 gmeow:PrivacyNotice
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "Privacy Notice"@x-gmeow-english ;
@@ -251,7 +252,7 @@ gmeow:PrivacyNotice
     gmeow:useWhen "Use for the privacy notice document itself — the information object that informs data subjects how their personal data is processed (the dpv:PrivacyNotice / schema:PrivacyPolicy counterpart)."@x-gmeow-english .
 
 gmeow:Prohibition
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "Prohibition"@x-gmeow-english ;
@@ -264,11 +265,11 @@ gmeow:Prohibition
     gmeow:useWhen "Use for a forbidden action — something the assignee may not do with the asset (the odrl:Prohibition rule), e.g. no commercial use under a CC BY-NC licence."@x-gmeow-english .
 
 gmeow:RightsAction
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "Rights Action"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The kind of action a rights rule regulates — a VALUE, never a rule subclass. The set is open (ODRL's action vocabulary + CC REL); an action not among the seed individuals is a FRESH gmeow:RightsAction individual carrying rdfs:label. Pointed at by gmeow:ruleAction."@x-gmeow-english ;
     skos:example "ex:actionMint a gmeow:RightsAction ; rdfs:label \"mint\"@en ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid modelling an action as a rule subclass (actions are individuals, Principle 9) and avoid inventing a free-text action; reuse a seeded ODRL/CC REL value or mint a fresh individual."@x-gmeow-english ;
@@ -277,11 +278,11 @@ gmeow:RightsAction
     gmeow:useWhen "Use as the open value vocabulary for the regulated-action axis — the kind of act (reproduce, distribute, derive, attribute, …) a rule controls, referenced via gmeow:ruleAction."@x-gmeow-english .
 
 gmeow:RightsStatement
-    a gufo:SubKind ,
+    a logic:SubKind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "Rights Statement"@x-gmeow-english ;
-    rdfs:subClassOf gufo:Relator ,
+    rdfs:subClassOf logic:Relator ,
         gmeow:Observation ,
         [
             a owl:Restriction ;
@@ -302,11 +303,11 @@ gmeow:RightsStatement
     gmeow:useWhen "Use when the rights over an asset need first-class deontic rules — explicit permissions, prohibitions, or duties, an ODRL policy, a consent posture, or a conflict-resolution strategy that a flat licence/copyright link cannot carry."@x-gmeow-english .
 
 gmeow:RightsType
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "Rights Type"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "A kind of intellectual-property right — an OPEN value vocabulary (copyright, trademark, patent, industrial design, trade secret, related rights, moral rights, database right, plant breeders' rights), linked to Wikidata / WIPO."@x-gmeow-english ;
     skos:example "ex:rtPatent a gmeow:RightsType ; rdfs:label \"patent\"@en ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid minting per-kind subclasses (right kinds are individuals, Principle 9) and avoid using it for the standing of a right, which is gmeow:copyrightStatus / gmeow:trademarkStatus."@x-gmeow-english ;
@@ -315,11 +316,11 @@ gmeow:RightsType
     gmeow:useWhen "Use as the open value vocabulary for the IP-right-kind axis — the right(s) a statement concerns (copyright, trademark, patent, moral rights, database right, …), referenced via gmeow:rightsType."@x-gmeow-english .
 
 gmeow:Rule
-    a gufo:Category ,
+    a logic:Category ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "Rule"@x-gmeow-english ;
-    rdfs:subClassOf gufo:Relator ,
+    rdfs:subClassOf logic:Relator ,
         [
             a owl:Restriction ;
             owl:onProperty gmeow:ruleAction ;
@@ -333,11 +334,11 @@ gmeow:Rule
     gmeow:useWhen "Use as the abstract base only when reasoning over any deontic rule regardless of polarity; for a concrete rule mint the specific kind — gmeow:Permission, gmeow:Prohibition, or gmeow:Duty."@x-gmeow-english .
 
 gmeow:Trademark
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "Trademark"@x-gmeow-english ;
-    rdfs:subClassOf gufo:Relator ,
+    rdfs:subClassOf logic:Relator ,
         [
             a owl:Restriction ;
             owl:onProperty gmeow:trademarkMark ;
@@ -358,11 +359,11 @@ gmeow:Trademark
     gmeow:useWhen "Use to reify a trademark right over a mark when its holder, registration number, or ™/®/status must be recorded — distinct from the mark itself (gmeow:Mark)."@x-gmeow-english .
 
 gmeow:TrademarkStatus
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/rights> ;
     rdfs:label "Trademark Status"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The registration status of a trademark — a VALUE: unregistered (™), registered (®), pending, expired, or cancelled. Open vocabulary."@x-gmeow-english ;
     skos:example "ex:statusRegistered a gmeow:TrademarkStatus ; rdfs:label \"registered (®)\"@en ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid minting per-status subclasses (statuses are individuals, Principle 9) and avoid reusing it for copyright or licence standing, which have their own vocabularies."@x-gmeow-english ;

@@ -1,0 +1,40 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics(R) Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Declarative structural assertions for the AI slice. Each assertion runs as a
+# SPARQL ASK over ai/module.ttl under the native Rust slicetest harness.
+
+@prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
+@prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/ai/tests/> .
+
+ex:saMemoryItemIsClaimRole a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:MemoryItem a owl:Class , logic:Role ;
+        rdfs:subClassOf gmeow:Observation .
+}""" ;
+    gmeow:saRationale "gmeow:MemoryItem MUST be a logic:Role on the universal Observation claim construct. Replaces the stale gufo:Role pytest assertion." .
+
+ex:saContradictionIsOpenClaimRelator a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:must ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK {
+    gmeow:Contradiction rdfs:subClassOf logic:Relator .
+}""" ;
+    gmeow:saRationale "gmeow:Contradiction MUST be a logic:Relator surfacing claim conflict without choosing a winner. Replaces the stale gufo:Relator pytest assertion." .
+
+ex:saContradictsClaimRangeOpen a gmeow:StructuralAssertion ;
+    gmeow:saPolarity gmeow:mustNot ;
+    gmeow:saScope gmeow:scopeModule ;
+    gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+ASK { gmeow:contradictsClaim rdfs:range ?range . }""" ;
+    gmeow:saRationale "gmeow:contradictsClaim MUST NOT have an rdfs:range; the claim node form is intentionally open across StandpointClaims, Observations, and statement reifiers." .

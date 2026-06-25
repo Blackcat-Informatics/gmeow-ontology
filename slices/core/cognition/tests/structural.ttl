@@ -7,8 +7,8 @@
 # runs as a SPARQL ASK over the cognition module graph (gmeow:scopeModule)
 # under the native Rust slicetest harness (crates/slicetest).
 #
-# Cognition is NOT yet #694-migrated: class stereotypes remain gufo:
-# (gufo:Kind, gufo:AbstractIndividualType, gufo:QualityValue), not logic:.
+# Cognition is #694-migrated: class stereotypes are logic:
+# (logic:Kind, logic:AbstractIndividualType, logic:QualityValue), not gufo:.
 #
 # RETAINED in pytest (not migratable here):
 #   test_mental_moment_is_category_under_intrinsic_mode --
@@ -44,33 +44,33 @@
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/cognition/tests/> .
 
-# --- 1. CognitiveState is a gufo:Kind subclass of MentalMoment (MUST) --------
+# --- 1. CognitiveState is a logic:Kind subclass of MentalMoment (MUST) --------
 ex:saCognitiveStateIsKindUnderMentalMoment a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:CognitiveState a owl:Class , gufo:Kind ;
+    gmeow:CognitiveState a owl:Class , logic:Kind ;
         rdfs:subClassOf gmeow:MentalMoment .
 }""" ;
-    gmeow:saRationale "gmeow:CognitiveState MUST be an owl:Class typed gufo:Kind and a subclass of gmeow:MentalMoment -- the knowing mode that grounds the knowledge spectrum lives under the kernel mental-moment umbrella (Principle 15). Mirrors test_cognitive_state_is_kind_under_mental_moment." .
+    gmeow:saRationale "gmeow:CognitiveState MUST be an owl:Class typed logic:Kind and a subclass of gmeow:MentalMoment -- the knowing mode that grounds the knowledge spectrum lives under the kernel mental-moment umbrella (Principle 15). Mirrors test_cognitive_state_is_kind_under_mental_moment." .
 
-# --- 2. KnowledgeProficiency is a gufo:Kind subclass of gufo:Relator (MUST) --
+# --- 2. KnowledgeProficiency is a logic:Kind subclass of logic:Relator (MUST) --
 ex:saKnowledgeProficiencyIsKindRelator a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:KnowledgeProficiency a owl:Class , gufo:Kind ;
-        rdfs:subClassOf gufo:Relator .
+    gmeow:KnowledgeProficiency a owl:Class , logic:Kind ;
+        rdfs:subClassOf logic:Relator .
 }""" ;
-    gmeow:saRationale "gmeow:KnowledgeProficiency MUST be an owl:Class typed gufo:Kind and a subclass of gufo:Relator -- the reified leveled depth-of-knowledge relator binding agent x subject x level x scale (mirrors gmeow:SkillProficiency). Mirrors test_knowledge_proficiency_is_relator_with_functional_roles (class part)." .
+    gmeow:saRationale "gmeow:KnowledgeProficiency MUST be an owl:Class typed logic:Kind and a subclass of logic:Relator -- the reified leveled depth-of-knowledge relator binding agent x subject x level x scale (mirrors gmeow:SkillProficiency). Mirrors test_knowledge_proficiency_is_relator_with_functional_roles (class part)." .
 
 # --- 3. The four KnowledgeProficiency role properties are functional (MUST) ---
 ex:saKnowledgeProficiencyRolesAreFunctional a gmeow:StructuralAssertion ;
@@ -180,19 +180,19 @@ ASK {
 }""" ;
     gmeow:saRationale "gmeow:KnowledgeProficiency MUST NOT be axiomatically linked to gmeow:CognitiveState (no subclass or type relation in either direction) -- the mode and the relator are distinct individuals for the same knowing relation, never double-typed (Principle 12). Mirrors test_cognitive_state_and_proficiency_are_not_double_typed." .
 
-# --- 7. KnowledgeLevel is a gufo:AbstractIndividualType under gufo:QualityValue
+# --- 7. KnowledgeLevel is a logic:AbstractIndividualType under logic:QualityValue
 ex:saKnowledgeLevelIsQualityValue a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:KnowledgeLevel a owl:Class , gufo:AbstractIndividualType ;
-        rdfs:subClassOf gufo:QualityValue .
+    gmeow:KnowledgeLevel a owl:Class , logic:AbstractIndividualType ;
+        rdfs:subClassOf logic:QualityValue .
 }""" ;
-    gmeow:saRationale "gmeow:KnowledgeLevel MUST be an owl:Class typed gufo:AbstractIndividualType and a subclass of gufo:QualityValue -- the knowledge-depth axis is an open ordered value vocabulary (individuals, not subclasses; the kernel GranularityLevel pattern). Mirrors test_knowledge_level_is_quality_value." .
+    gmeow:saRationale "gmeow:KnowledgeLevel MUST be an owl:Class typed logic:AbstractIndividualType and a subclass of logic:QualityValue -- the knowledge-depth axis is an open ordered value vocabulary (individuals, not subclasses; the kernel GranularityLevel pattern). Mirrors test_knowledge_level_is_quality_value." .
 
 # --- 8. deeperThan is transitive with domain and range KnowledgeLevel (MUST) --
 ex:saDeeperThanIsTransitiveOnLevelsOnly a gmeow:StructuralAssertion ;

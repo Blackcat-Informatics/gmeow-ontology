@@ -4,10 +4,11 @@
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
 gmeow:Asset
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "Asset"@x-gmeow-english ;
@@ -16,16 +17,16 @@ gmeow:Asset
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:AssetType
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "Asset Type"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The kind of a financial asset — a VALUE, never an Asset subclass. Open vocabulary."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:CryptoWallet
-    a gufo:SubKind ,
+    a logic:SubKind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "Crypto Wallet"@x-gmeow-english ;
@@ -39,7 +40,7 @@ gmeow:CryptoWallet
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:FinancialAccount
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "Financial Account"@x-gmeow-english ;
@@ -54,16 +55,16 @@ gmeow:FinancialAccount
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:FinancialAccountType
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "Financial Account Type"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The kind of a financial account — a VALUE, never a FinancialAccount subclass. The set is open; a kind not among the seeds is a FRESH gmeow:FinancialAccountType individual carrying rdfs:label. Pointed at by gmeow:accountType."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:FinancialTransaction
-    a gufo:EventType ,
+    a logic:Event ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "Financial Transaction"@x-gmeow-english ;
@@ -77,11 +78,11 @@ gmeow:FinancialTransaction
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:Holding
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "Holding"@x-gmeow-english ;
-    rdfs:subClassOf gufo:Relator ,
+    rdfs:subClassOf logic:Relator ,
         [
             a owl:Restriction ;
             owl:onProperty gmeow:holdingAgent ;
@@ -96,7 +97,7 @@ gmeow:Holding
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:Invoice
-    a gufo:SubKind ,
+    a logic:SubKind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "Invoice"@x-gmeow-english ;
@@ -120,16 +121,16 @@ gmeow:Invoice
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:InvoiceStatus
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "Invoice Status"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The status of an invoice — a VALUE, never a subclass. Open vocabulary."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:JournalEntry
-    a gufo:EventType ,
+    a logic:Event ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "Journal Entry"@x-gmeow-english ;
@@ -143,7 +144,7 @@ gmeow:JournalEntry
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:LedgerAccount
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "Ledger Account"@x-gmeow-english ;
@@ -162,16 +163,16 @@ gmeow:LedgerAccount
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:LedgerAccountType
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "Ledger Account Type"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The kind of a ledger account — a VALUE, never a LedgerAccount subclass. The set is open; a kind not among the seeds is a FRESH LedgerAccountType individual carrying rdfs:label. Pointed at by gmeow:ledgerAccountType."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:Order
-    a gufo:SubKind ,
+    a logic:SubKind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "Order"@x-gmeow-english ;
@@ -195,16 +196,16 @@ gmeow:Order
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:OrderStatus
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "Order Status"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The status of an order — a VALUE, never a subclass. Open vocabulary."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:Payment
-    a gufo:EventType ,
+    a logic:Event ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "Payment"@x-gmeow-english ;
@@ -213,20 +214,20 @@ gmeow:Payment
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:PaymentMethod
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "Payment Method"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The method or instrument used to make a payment — a VALUE, never a subclass. Open vocabulary."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:Posting
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "Posting"@x-gmeow-english ;
-    rdfs:subClassOf gufo:Relator ,
+    rdfs:subClassOf logic:Relator ,
         [
             a owl:Restriction ;
             owl:onProperty gmeow:postingJournalEntry ;
@@ -251,38 +252,38 @@ gmeow:Posting
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:PostingDirection
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "Posting Direction"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The direction of a posting in double-entry bookkeeping — a VALUE, never a subclass. Only debit and credit are seeded; the vocabulary is closed in practice but modelled as open for consistency."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:TransactionStatus
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "Transaction Status"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The status of a financial transaction — a VALUE, never a subclass. Open vocabulary; seeds in Phase B."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:TransactionType
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "Transaction Type"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The kind of a financial transaction — a VALUE, never a subclass. Open vocabulary; seeds in Phase B."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:WalletScheme
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/finance> ;
     rdfs:label "Wallet Scheme"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The blockchain or cryptographic scheme of a wallet — a VALUE, never a subclass. Open vocabulary."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 

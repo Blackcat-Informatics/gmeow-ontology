@@ -4,14 +4,15 @@
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
 gmeow:Availability
-    a gufo:SituationType ,
+    a logic:Situation ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/calendar> ;
     rdfs:label "Availability"@x-gmeow-english ;
-    rdfs:subClassOf gufo:Situation ,
+    rdfs:subClassOf logic:Situation ,
         gmeow:TimeScopedRelation ,
         [
             a owl:Restriction ;
@@ -31,11 +32,11 @@ gmeow:Availability
     gmeow:useWhen "Use to state whether an agent is free, busy, tentative, or out-of-office over a bounded interval — the iCalendar VFREEBUSY case, reified as a time-scoped situation so the slot and status are queryable."@x-gmeow-english .
 
 gmeow:AvailabilityStatus
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/calendar> ;
     rdfs:label "Availability Status"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The availability state of an agent over a time slot — a VALUE vocabulary aligned to iCalendar VFREEBUSY, never a subclass."@x-gmeow-english ;
     skos:example "ex:lillithBusy gmeow:availabilityStatus gmeow:availabilityStatusBusy ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid modelling these as Availability subclasses; the state is an individual on this axis, extended by minting new individuals (Principle 9)."@x-gmeow-english ;
@@ -44,11 +45,11 @@ gmeow:AvailabilityStatus
     gmeow:useWhen "Use as the value vocabulary gmeow:availabilityStatus ranges over — the iCalendar FBTYPE states (free, busy, tentative, out-of-office) an availability declares."@x-gmeow-english .
 
 gmeow:Calendar
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/calendar> ;
     rdfs:label "Calendar"@x-gmeow-english ;
-    rdfs:subClassOf gufo:Object ,
+    rdfs:subClassOf logic:Object ,
         gmeow:InformationObject ;
     skos:definition "A CalDAV-style collection of scheduled events — an information object that aggregates calendar members and carries a default time zone. The container, not the contents."@x-gmeow-english ;
     skos:example "ex:workCal a gmeow:Calendar ; gmeow:calendarTimeZone ex:torontoZone ; gmeow:calendarMember ex:standupEvent ."@x-gmeow-english ;
@@ -60,11 +61,11 @@ gmeow:Calendar
     gmeow:useWhen "Use for a named collection that aggregates events and supplies a default time zone — a CalDAV-style container reused across the scheduling layer; the container, not any one event it holds."@x-gmeow-english .
 
 gmeow:EventInvitation
-    a gufo:SubKind ,
+    a logic:SubKind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/calendar> ;
     rdfs:label "Event Invitation"@x-gmeow-english ;
-    rdfs:subClassOf gufo:Relator ,
+    rdfs:subClassOf logic:Relator ,
         gmeow:Agreement ,
         [
             a owl:Restriction ;
@@ -84,11 +85,11 @@ gmeow:EventInvitation
     gmeow:useWhen "Use to reify the act of inviting an agent to an event as a first-class relator — so the invitee, the organizer's status, and the invitee's RSVP are each queryable and can disagree (Principle 9)."@x-gmeow-english .
 
 gmeow:EventSchedule
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/calendar> ;
     rdfs:label "Event Schedule"@x-gmeow-english ;
-    rdfs:subClassOf gufo:Relator ,
+    rdfs:subClassOf logic:Relator ,
         [
             a owl:Restriction ;
             owl:onProperty gmeow:scheduleTemplateEvent ;
@@ -102,11 +103,11 @@ gmeow:EventSchedule
     gmeow:useWhen "Use to model the rule-plus-anchor that GENERATES a series of occurrences — a weekly standup, a monthly review — when the generator must be a queryable thing distinct from any occurrence it produces (Principle 1)."@x-gmeow-english .
 
 gmeow:ExceptionType
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/calendar> ;
     rdfs:label "Exception Type"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The kind of a schedule exception — a VALUE, never a subclass."@x-gmeow-english ;
     skos:example "ex:standupSkip gmeow:exceptionType gmeow:exceptionTypeCancellation ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid modelling these as ScheduleException subclasses; the kind is an individual on this axis, extended by minting new individuals, not subclasses (Principle 9)."@x-gmeow-english ;
@@ -115,11 +116,11 @@ gmeow:ExceptionType
     gmeow:useWhen "Use as the value vocabulary the gmeow:exceptionType property ranges over — the open set (cancellation, rescheduling) a schedule exception declares."@x-gmeow-english .
 
 gmeow:InvitationStatus
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/calendar> ;
     rdfs:label "Invitation Status"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The status of an event invitation — a VALUE vocabulary aligned to iTIP PARTSTAT, never a subclass."@x-gmeow-english ;
     skos:example "ex:standupInvite gmeow:invitationStatus gmeow:invitationStatusAccepted ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid modelling these as EventInvitation subclasses, and avoid reusing them for the invitee's reply — that is the parallel gmeow:RsvpStatus vocabulary kept distinct so the views can coexist."@x-gmeow-english ;
@@ -128,11 +129,11 @@ gmeow:InvitationStatus
     gmeow:useWhen "Use as the value vocabulary gmeow:invitationStatus ranges over — the iTIP PARTSTAT states (needs-action, accepted, declined, tentative) the organizer records."@x-gmeow-english .
 
 gmeow:Reminder
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/calendar> ;
     rdfs:label "Reminder"@x-gmeow-english ;
-    rdfs:subClassOf gufo:Object ,
+    rdfs:subClassOf logic:Object ,
         gmeow:Entity ,
         [
             a owl:Restriction ;
@@ -147,11 +148,11 @@ gmeow:Reminder
     gmeow:useWhen "Use to model an iCalendar VALARM attached to an event — a trigger (an offset before it or an absolute time) plus an action to fire."@x-gmeow-english .
 
 gmeow:ReminderAction
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/calendar> ;
     rdfs:label "Reminder Action"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The action to take when a reminder fires — a VALUE vocabulary aligned to iCalendar ACTION, never a subclass."@x-gmeow-english ;
     skos:example "ex:standupAlarm gmeow:reminderAction gmeow:reminderActionDisplay ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid modelling these as Reminder subclasses; the action is an individual on this axis, extended by minting new individuals (Principle 9)."@x-gmeow-english ;
@@ -160,11 +161,11 @@ gmeow:ReminderAction
     gmeow:useWhen "Use as the value vocabulary gmeow:reminderAction ranges over — the iCalendar ACTION kinds (display, email, audio) a reminder can fire."@x-gmeow-english .
 
 gmeow:RsvpStatus
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/calendar> ;
     rdfs:label "RSVP Status"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The RSVP response status as asserted by an invitee — a VALUE vocabulary, distinct from InvitationStatus so that organizer and invitee claims can coexist (Principle 9)."@x-gmeow-english ;
     skos:example "ex:standupInvite gmeow:rsvpStatus gmeow:rsvpStatusTentative ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid collapsing it into gmeow:InvitationStatus; the two are deliberately separate vocabularies so the organizer's view and the invitee's view can disagree without overwriting (Principle 9)."@x-gmeow-english ;
@@ -173,11 +174,11 @@ gmeow:RsvpStatus
     gmeow:useWhen "Use as the value vocabulary gmeow:rsvpStatus ranges over — the invitee-asserted reply states (needs-action, accepted, declined, tentative)."@x-gmeow-english .
 
 gmeow:ScheduleException
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/calendar> ;
     rdfs:label "Schedule Exception"@x-gmeow-english ;
-    rdfs:subClassOf gufo:Relator ,
+    rdfs:subClassOf logic:Relator ,
         [
             a owl:Restriction ;
             owl:onProperty gmeow:exceptionSchedule ;
@@ -196,7 +197,7 @@ gmeow:ScheduleException
     gmeow:useWhen "Use when one occurrence of a recurring schedule is cancelled or moved — the RFC 5545 EXDATE/RECURRENCE-ID case — so the deviation is recorded against the rule without rewriting it."@x-gmeow-english .
 
 gmeow:Task
-    a gufo:EventType ,
+    a logic:Event ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/calendar> ;
     rdfs:label "Task"@x-gmeow-english ;
@@ -209,11 +210,11 @@ gmeow:Task
     gmeow:useWhen "Use for an iCalendar VTODO — a to-do with a due date, status, and priority that should inherit the full event spine (temporal placement, location, participation, scheduling)."@x-gmeow-english .
 
 gmeow:TaskStatus
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/calendar> ;
     rdfs:label "Task Status"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The status of a task — a VALUE vocabulary, never a Task subclass."@x-gmeow-english ;
     skos:example "ex:fileReport gmeow:taskStatus gmeow:taskStatusCompleted ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid modelling these as Task subclasses; the status is an individual on this axis, and a cancelled task is retained displayable false, not deleted (Principles 9, 10)."@x-gmeow-english ;
@@ -222,11 +223,11 @@ gmeow:TaskStatus
     gmeow:useWhen "Use as the value vocabulary gmeow:taskStatus ranges over — the progress states (not-started, in-progress, completed, cancelled) a task declares."@x-gmeow-english .
 
 gmeow:TimeZone
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/calendar> ;
     rdfs:label "Time Zone"@x-gmeow-english ;
-    rdfs:subClassOf gufo:Object ,
+    rdfs:subClassOf logic:Object ,
         gmeow:Entity ;
     skos:definition "A time zone identified by an IANA tzid (e.g. America/Toronto). Used by calendars, schedules, and events to express civil time relative to a geographic reference position."@x-gmeow-english ;
     skos:example "ex:torontoZone a gmeow:TimeZone ; gmeow:timeZoneIanaId \"America/Toronto\" ."@x-gmeow-english ;

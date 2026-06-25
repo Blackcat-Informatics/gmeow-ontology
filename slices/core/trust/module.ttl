@@ -4,14 +4,15 @@
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
 gmeow:Certification
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/trust> ;
     rdfs:label "Certification"@x-gmeow-english ;
-    rdfs:subClassOf gufo:Relator ,
+    rdfs:subClassOf logic:Relator ,
         [
             a owl:Restriction ;
             owl:onProperty gmeow:certifier ;
@@ -35,7 +36,7 @@ gmeow:Certification
     gmeow:useWhen "Use to reify a Web-of-Trust attestation — a PGP key-signature — that a certifying agent vouches a given key belongs to a given identity; the relator that mediates certifier, key, and identity and carries its own dated validity window."@x-gmeow-english .
 
 gmeow:CryptographicKey
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/trust> ;
     rdfs:label "Cryptographic Key"@x-gmeow-english ;
@@ -48,7 +49,7 @@ gmeow:CryptographicKey
     gmeow:useWhen "Use to model a public key, certificate, or key material as a first-class entity that an agent holds, a certification vouches for, and a signature is made with — across OpenPGP, X.509, SSH, or Nostr."@x-gmeow-english .
 
 gmeow:CryptographicSignature
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/trust> ;
     rdfs:label "Cryptographic Signature"@x-gmeow-english ;
@@ -61,11 +62,11 @@ gmeow:CryptographicSignature
     gmeow:useWhen "Use to model a signature over any artifact — a message, document, or headers — asserting its origin and integrity; the generic parent of PGP and S/MIME signatures, signing more than mail."@x-gmeow-english .
 
 gmeow:KeyScheme
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/trust> ;
     rdfs:label "Key Scheme"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The cryptographic scheme/format of a key (OpenPGP, X.509, SSH, Nostr, …). Modelled as a value, not a key subclass: the set of schemes is open-ended and they carry no distinct key structure here, so a new scheme is a new individual, not a new class."@x-gmeow-english ;
     skos:example "ex:keySchemeMinisign a gmeow:KeyScheme ; rdfs:label \"Minisign\"@en ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid minting per-scheme key subclasses (schemes are individuals, not classes) and avoid using it for the key's algorithm (that is the literal gmeow:keyAlgorithm, e.g. ed25519); the scheme is the format family, not the primitive."@x-gmeow-english ;
@@ -74,7 +75,7 @@ gmeow:KeyScheme
     gmeow:useWhen "Use as the value vocabulary behind gmeow:keyScheme — the open set of individuals naming a key's format (OpenPGP, X.509, SSH, Nostr, …) so consumers can filter or align keys by scheme."@x-gmeow-english .
 
 gmeow:PGPSignature
-    a gufo:SubKind ,
+    a logic:SubKind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/trust> ;
     rdfs:label "PGP Signature"@x-gmeow-english ;
@@ -87,7 +88,7 @@ gmeow:PGPSignature
     gmeow:useWhen "Use when a signature is specifically an OpenPGP signature (RFC 4880/9580, PGP-MIME) bound to a PGP key — the scheme-typed specialization of gmeow:CryptographicSignature."@x-gmeow-english .
 
 gmeow:SMIMESignature
-    a gufo:SubKind ,
+    a logic:SubKind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/trust> ;
     rdfs:label "S/MIME Signature"@x-gmeow-english ;
@@ -100,11 +101,11 @@ gmeow:SMIMESignature
     gmeow:useWhen "Use when a signature is specifically an S/MIME signature (RFC 8551) bound to an X.509 certificate — the scheme-typed specialization of gmeow:CryptographicSignature."@x-gmeow-english .
 
 gmeow:TrustAssertion
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/trust> ;
     rdfs:label "Trust Assertion"@x-gmeow-english ;
-    rdfs:subClassOf gufo:Relator ,
+    rdfs:subClassOf logic:Relator ,
         [
             a owl:Restriction ;
             owl:onProperty gmeow:trustor ;

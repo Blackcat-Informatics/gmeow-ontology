@@ -4,14 +4,15 @@
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
 gmeow:ClaimVeridicality
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/deception> ;
     rdfs:label "Claim Veridicality"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The veridicality status of a claim — whether it is untrue, licensed-false (fiction, satire, sarcasm), or true. A closed value vocabulary (individuals, never subclasses) that makes the licensed-falsehood safety property explicit, separating intentional deception from harmless fictional assertion."@x-gmeow-english ;
     skos:example "gmeow:veridicalityLicensedFalsehood a gmeow:ClaimVeridicality ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid minting per-status subclasses (statuses are individuals) and avoid using it as a global truth flag; veridicality is a frame-relative, standpoint-indexed assessment, never an isFalse axiom (Principle 11)."@x-gmeow-english ;
@@ -21,11 +22,11 @@ gmeow:ClaimVeridicality
     gmeow:useWhen "Use as the value vocabulary behind gmeow:claimVeridicality — the closed set of individuals (untrue, licensed falsehood) that distinguish harmless fictional assertion from deceptive untruth as an explicit safety property."@x-gmeow-english .
 
 gmeow:MaximViolationType
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/deception> ;
     rdfs:label "Maxim Violation Type"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "A value vocabulary for conversational maxim violations (Gricean maxims: quality, quantity, relation, manner)."@x-gmeow-english ;
     skos:example "gmeow:maximViolationQuality a gmeow:MaximViolationType ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid minting per-maxim subclasses (the four are individuals) and avoid treating the classification as an entailment; which maxim a deception violates is a solver-layer judgement (Principle 12), not an OWL-derived fact."@x-gmeow-english ;

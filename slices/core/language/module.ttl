@@ -5,10 +5,11 @@
 @prefix wd: <http://www.wikidata.org/entity/> .
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
 gmeow:FormalLanguage
-    a gufo:SubKind ,
+    a logic:SubKind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/language> ;
     rdfs:label "Formal Language"@x-gmeow-english ;
@@ -21,7 +22,7 @@ gmeow:FormalLanguage
     gmeow:useWhen "Use for a grammar-defined, machine-modality language with no human native speakers — markup, query, logic, schema, or configuration languages — where the sociolinguistic facets of a natural language do not apply."@x-gmeow-english .
 
 gmeow:Language
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/language> ;
     rdfs:label "Language"@x-gmeow-english ;
@@ -34,7 +35,7 @@ gmeow:Language
     gmeow:useWhen "Use to mint a language as a first-class IRI rather than a flat code literal — the registry-independent target of gmeow:writtenInLanguage and the anchor of every x-gmeow-* private-use tag, so a code-less conlang or AI-generated language is fully modelled (no privileged language, Principle 9)."@x-gmeow-english .
 
 gmeow:ProgrammingLanguage
-    a gufo:SubKind ,
+    a logic:SubKind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/language> ;
     rdfs:label "Programming Language"@x-gmeow-english ;
@@ -47,11 +48,11 @@ gmeow:ProgrammingLanguage
     gmeow:useWhen "Use for a formal language that expresses executable computation — the first-class IRI a software project points at through gmeow:writtenInLanguage to declare the languages it is implemented in."@x-gmeow-english .
 
 gmeow:TransliterationScheme
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/language> ;
     rdfs:label "Transliteration Scheme"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "A named transliteration/romanization/transcription system (Hepburn, Pinyin, ISO 233, IPA, …). A value carried by gmeow:transliterationScheme; the major schemes are catalogued as FnO functions in the projection layer (projections/transforms.fno.ttl)."@x-gmeow-english ;
     skos:example "ex:schemeHepburn a gmeow:TransliterationScheme ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid minting per-scheme subclasses (schemes are individuals) and avoid using it for the romanized string or the script itself (gmeow:WritingSystem); a scheme is a transform, not a script."@x-gmeow-english ;
@@ -60,7 +61,7 @@ gmeow:TransliterationScheme
     gmeow:useWhen "Use as the value vocabulary for the transliteration axis — the named systems (Hepburn, Pinyin, ISO 233, IPA, …) a romanization can declare it was produced by via gmeow:transliterationScheme."@x-gmeow-english .
 
 gmeow:WritingSystem
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/language> ;
     rdfs:label "Writing System"@x-gmeow-english ;

@@ -3,10 +3,11 @@
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
 gmeow:RomanticOrientation
-    a gufo:SubKind ,
+    a logic:SubKind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sexuality> ;
     rdfs:label "Romantic Orientation"@x-gmeow-english ;
@@ -24,11 +25,11 @@ gmeow:RomanticOrientation
     gmeow:useWhen "Use to reify a person's self-asserted pattern of romantic attraction as a first-class facet — mutually independent of sexual orientation under the split-attraction model, so asexual-yet-biromantic and aromantic-yet-bisexual are directly expressible."@x-gmeow-english .
 
 gmeow:RomanticOrientationValue
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sexuality> ;
     rdfs:label "Romantic Orientation Value"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "A pattern of romantic attraction — a VALUE pointed at by gmeow:romanticOrientationValue, never a subclass. Kept separate from sexual orientation (split-attraction). Open: a fresh individual with rdfs:label when none is seeded."@x-gmeow-english ;
     skos:example "gmeow:romanticBiromantic a gmeow:RomanticOrientationValue ; rdfs:label \"biromantic\"@en ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid minting per-value subclasses or a closed enum (it is an open individual vocabulary), and avoid co-typing a romantic value as a sexual one — the two value spaces are disjoint so asexual ≠ aromantic stays expressible."@x-gmeow-english ;
@@ -37,7 +38,7 @@ gmeow:RomanticOrientationValue
     gmeow:useWhen "Use as the open value vocabulary for romantic-attraction patterns, kept deliberately separate from the sexual value space — reference a seed (heteroromantic, homoromantic, biromantic, panromantic, aromantic, demiromantic, queerromantic, questioning) or mint a fresh individual."@x-gmeow-english .
 
 gmeow:SexualOrientation
-    a gufo:SubKind ,
+    a logic:SubKind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sexuality> ;
     rdfs:label "Sexual Orientation"@x-gmeow-english ;
@@ -55,11 +56,11 @@ gmeow:SexualOrientation
     gmeow:useWhen "Use to reify a person's self-asserted pattern of sexual attraction as a first-class facet that can carry its own determinacy, sensitivity, standpoint, and supersession — one of seven co-equal identity axes, never a default or a derivation of any other."@x-gmeow-english .
 
 gmeow:SexualOrientationValue
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sexuality> ;
     rdfs:label "Sexual Orientation Value"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "A pattern of sexual attraction — a VALUE pointed at by gmeow:sexualOrientationValue, never a subclass. Open: an orientation not seeded here is a fresh individual with rdfs:label."@x-gmeow-english ;
     skos:example "gmeow:orientPansexual a gmeow:SexualOrientationValue ; rdfs:label \"pansexual\"@en ."@x-gmeow-english ;
     gmeow:avoidWhen "Avoid minting per-value subclasses or forcing the set into a closed enum (it is an open individual vocabulary), and avoid co-typing a sexual value as a romantic one — the two value spaces are kept disjoint under split-attraction."@x-gmeow-english ;

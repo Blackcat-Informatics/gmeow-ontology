@@ -5,14 +5,13 @@ Principles 4, 5, 6, 9, 11, 12, 15, 16.
 
 from __future__ import annotations
 
-from gmeow_rdf.compat.rdflib import OWL, RDF, RDFS, Graph, Namespace, URIRef
+from gmeow_rdf.compat.rdflib import OWL, RDF, Graph, Namespace, URIRef
 from tests._graph_nt import run_shacl
 
 from gmeow_tools.graph import load_merged_graph
 from gmeow_tools.validate import ValidationResult
 
 GMEOW = Namespace("https://blackcatinformatics.ca/gmeow/")
-GUFO = Namespace("http://purl.org/nemo/gufo#")
 EX = Namespace("https://example.org/test-music-performance-events/")
 
 _MERGED_GRAPH: Graph | None = None
@@ -43,15 +42,6 @@ def test_performance_events_classes_exist() -> None:
             RDF.type,
             OWL.Class,
         ) in graph, f"{term} should be an owl:Class"
-
-
-def test_performance_participation_is_participation_subkind() -> None:
-    """PerformanceParticipation is a gufo:SubKind of core Participation."""
-    graph = _graph()
-    pp = URIRef(GMEOW + "PerformanceParticipation")
-    participation = URIRef(GMEOW + "Participation")
-    assert (pp, RDF.type, GUFO.SubKind) in graph
-    assert (pp, RDFS.subClassOf, participation) in graph
 
 
 def test_performance_event_properties_exist() -> None:

@@ -4,10 +4,11 @@
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
 gmeow:Concept
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/concepts> ;
     rdfs:label "Concept"@x-gmeow-english ;
@@ -21,7 +22,7 @@ gmeow:Concept
     gmeow:useWhen "Use to model a category, schema, frame, or abstraction that agents hold and apply to entities, when the concept itself — its intension, structure, change over time, or standpoint-indexed application — matters."@x-gmeow-english .
 
 gmeow:ConceptCategorization
-    a gufo:SubKind ,
+    a logic:SubKind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/concepts> ;
     rdfs:label "Concept Categorization"@x-gmeow-english ;
@@ -45,7 +46,7 @@ gmeow:ConceptCategorization
     gmeow:useWhen "Use when a categorization is perspectival, graded, time-scoped, or must carry provenance — the promotion target from the flat gmeow:instanceOfConcept shortcut."@x-gmeow-english .
 
 gmeow:ConceptTenure
-    a gufo:SituationType ,
+    a logic:Situation ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/concepts> ;
     rdfs:label "Concept Tenure"@x-gmeow-english ;

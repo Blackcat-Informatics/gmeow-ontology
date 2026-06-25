@@ -7,9 +7,9 @@
 # SPARQL ASK over the images module graph (gmeow:scopeModule) under the native
 # Rust slicetest harness (crates/slicetest).
 #
-# Images is NOT yet #694-migrated: class stereotypes remain gufo:
-# (gufo:SubKind, gufo:Kind, gufo:AbstractIndividualType, gufo:QualityValue),
-# not logic:.
+# Images is #694-migrated: class stereotypes are logic:
+# (logic:SubKind, logic:Kind, logic:AbstractIndividualType, logic:QualityValue),
+# not gufo:.
 #
 # RETAINED in pytest (not migratable here):
 #   test_depicts_is_subproperty_of_is_about -- gmeow:depicts is defined in
@@ -55,63 +55,63 @@
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/images/tests/> .
 
-# --- 1. DepictionUsage is a gufo:SubKind subclass of Observation and
+# --- 1. DepictionUsage is a logic:SubKind subclass of Observation and
 #        Relator (MUST) ---------------------------------------------------
 ex:saDepictionUsageIsSubKindRelator a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:DepictionUsage a gufo:SubKind , owl:Class ;
+    gmeow:DepictionUsage a logic:SubKind , owl:Class ;
         rdfs:subClassOf gmeow:Observation ;
-        rdfs:subClassOf gufo:Relator .
+        rdfs:subClassOf logic:Relator .
 }""" ;
-    gmeow:saRationale "gmeow:DepictionUsage MUST be an owl:Class typed gufo:SubKind with rdfs:subClassOf gmeow:Observation and gufo:Relator -- a reified depiction is a relator (binding subject, image, context) and an observation in the universal claim spine (#22). Mirrors test_depiction_usage_is_relator_kind." .
+    gmeow:saRationale "gmeow:DepictionUsage MUST be an owl:Class typed logic:SubKind with rdfs:subClassOf gmeow:Observation and logic:Relator -- a reified depiction is a relator (binding subject, image, context) and an observation in the universal claim spine (#22). Mirrors test_depiction_usage_is_relator_kind." .
 
-# --- 2. ImageRegion is a gufo:Kind subclass of InformationObject (MUST) ---
+# --- 2. ImageRegion is a logic:Kind subclass of InformationObject (MUST) ---
 ex:saImageRegionIsKindInformationObject a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:ImageRegion a gufo:Kind , owl:Class ;
+    gmeow:ImageRegion a logic:Kind , owl:Class ;
         rdfs:subClassOf gmeow:InformationObject .
 }""" ;
-    gmeow:saRationale "gmeow:ImageRegion MUST be an owl:Class typed gufo:Kind and a subclass of gmeow:InformationObject -- image regions are functional complexes that carry their own identity (face, bounding box, polygon) within a single image (#22). Mirrors test_image_region_is_kind." .
+    gmeow:saRationale "gmeow:ImageRegion MUST be an owl:Class typed logic:Kind and a subclass of gmeow:InformationObject -- image regions are functional complexes that carry their own identity (face, bounding box, polygon) within a single image (#22). Mirrors test_image_region_is_kind." .
 
-# --- 3. RegionSelector is a gufo:Kind subclass of InformationObject (MUST) -
+# --- 3. RegionSelector is a logic:Kind subclass of InformationObject (MUST) -
 ex:saRegionSelectorIsKindInformationObject a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:RegionSelector a gufo:Kind , owl:Class ;
+    gmeow:RegionSelector a logic:Kind , owl:Class ;
         rdfs:subClassOf gmeow:InformationObject .
 }""" ;
-    gmeow:saRationale "gmeow:RegionSelector MUST be an owl:Class typed gufo:Kind and a subclass of gmeow:InformationObject -- the encoding descriptor carries its own identity separate from the region it describes (#22). Mirrors test_region_selector_is_kind." .
+    gmeow:saRationale "gmeow:RegionSelector MUST be an owl:Class typed logic:Kind and a subclass of gmeow:InformationObject -- the encoding descriptor carries its own identity separate from the region it describes (#22). Mirrors test_region_selector_is_kind." .
 
-# --- 4. SceneGraphEdge is a gufo:Kind subclass of Relator (MUST) ----------
+# --- 4. SceneGraphEdge is a logic:Kind subclass of Relator (MUST) ----------
 ex:saSceneGraphEdgeIsKindRelator a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:SceneGraphEdge a gufo:Kind , owl:Class ;
-        rdfs:subClassOf gufo:Relator .
+    gmeow:SceneGraphEdge a logic:Kind , owl:Class ;
+        rdfs:subClassOf logic:Relator .
 }""" ;
-    gmeow:saRationale "gmeow:SceneGraphEdge MUST be an owl:Class typed gufo:Kind and a subclass of gufo:Relator -- a scene-graph edge reifies a spatial or semantic relation between two image regions; its identity is the triple (subject, object, relation type) (#22). Mirrors test_scene_graph_edge_is_relator_kind." .
+    gmeow:saRationale "gmeow:SceneGraphEdge MUST be an owl:Class typed logic:Kind and a subclass of logic:Relator -- a scene-graph edge reifies a spatial or semantic relation between two image regions; its identity is the triple (subject, object, relation type) (#22). Mirrors test_scene_graph_edge_is_relator_kind." .
 
 # --- 5. DepictionUsage role properties are ObjectProperties with correct
 #        domains, ranges, and functionality (MUST) -------------------------
@@ -211,15 +211,15 @@ ASK {
 }""" ;
     gmeow:saRationale "sceneSubject, sceneObject, sceneRelation, and sceneConfidence MUST all be present as owl:FunctionalProperty with domain gmeow:SceneGraphEdge and correct ranges -- a reified edge binds exactly one subject region, one object region, one relation type, and one confidence value. Mirrors test_scene_graph_edge_properties_exist." .
 
-# --- 9. SelectorType is a gufo:QualityValue and its nine seeds exist (MUST) -
+# --- 9. SelectorType is a logic:QualityValue and its nine seeds exist (MUST) -
 ex:saSelectorTypeValueVocab a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:SelectorType rdfs:subClassOf gufo:QualityValue .
+    gmeow:SelectorType rdfs:subClassOf logic:QualityValue .
     gmeow:selectorTypeSvgPath               a gmeow:SelectorType .
     gmeow:selectorTypePixelRectangle        a gmeow:SelectorType .
     gmeow:selectorTypeFractionalRectangle   a gmeow:SelectorType .
@@ -230,18 +230,18 @@ ASK {
     gmeow:selectorTypePixelMask             a gmeow:SelectorType .
     gmeow:selectorTypeWebAnnotationFragment a gmeow:SelectorType .
 }""" ;
-    gmeow:saRationale "gmeow:SelectorType MUST be a subclass of gufo:QualityValue and all nine seed individuals (SVG path, pixel rectangle, fractional rectangle, polygon path, RLE, COCO RLE mask, DICOM-SEG mask, pixel mask, Web Annotation fragment) MUST exist as gmeow:SelectorType instances (open value vocabulary, Principle 9). Mirrors test_selector_type_value_vocab." .
+    gmeow:saRationale "gmeow:SelectorType MUST be a subclass of logic:QualityValue and all nine seed individuals (SVG path, pixel rectangle, fractional rectangle, polygon path, RLE, COCO RLE mask, DICOM-SEG mask, pixel mask, Web Annotation fragment) MUST exist as gmeow:SelectorType instances (open value vocabulary, Principle 9). Mirrors test_selector_type_value_vocab." .
 
-# --- 10. DepictionContext is a gufo:QualityValue and its twelve seeds
+# --- 10. DepictionContext is a logic:QualityValue and its twelve seeds
 #         exist (MUST) ---------------------------------------------------
 ex:saDepictionContextValueVocab a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:DepictionContext rdfs:subClassOf gufo:QualityValue .
+    gmeow:DepictionContext rdfs:subClassOf logic:QualityValue .
     gmeow:depictionContextWork          a gmeow:DepictionContext .
     gmeow:depictionContextFamily        a gmeow:DepictionContext .
     gmeow:depictionContextChildhood     a gmeow:DepictionContext .
@@ -255,18 +255,18 @@ ASK {
     gmeow:depictionContextActionShot    a gmeow:DepictionContext .
     gmeow:depictionContextEvent         a gmeow:DepictionContext .
 }""" ;
-    gmeow:saRationale "gmeow:DepictionContext MUST be a subclass of gufo:QualityValue and all twelve seed individuals (work, family, childhood, now, portrait, candid, formal, professional, social, self-portrait, action shot, event) MUST exist as gmeow:DepictionContext instances (open value vocabulary, Principle 9). Mirrors test_depiction_context_value_vocab." .
+    gmeow:saRationale "gmeow:DepictionContext MUST be a subclass of logic:QualityValue and all twelve seed individuals (work, family, childhood, now, portrait, candid, formal, professional, social, self-portrait, action shot, event) MUST exist as gmeow:DepictionContext instances (open value vocabulary, Principle 9). Mirrors test_depiction_context_value_vocab." .
 
-# --- 11. SceneRelationType is a gufo:QualityValue and its fifteen seeds
+# --- 11. SceneRelationType is a logic:QualityValue and its fifteen seeds
 #         exist (MUST) ---------------------------------------------------
 ex:saSceneRelationTypeValueVocab a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 ASK {
-    gmeow:SceneRelationType rdfs:subClassOf gufo:QualityValue .
+    gmeow:SceneRelationType rdfs:subClassOf logic:QualityValue .
     gmeow:sceneRelationLeftOf   a gmeow:SceneRelationType .
     gmeow:sceneRelationRightOf  a gmeow:SceneRelationType .
     gmeow:sceneRelationAbove    a gmeow:SceneRelationType .
@@ -283,4 +283,4 @@ ASK {
     gmeow:sceneRelationEating   a gmeow:SceneRelationType .
     gmeow:sceneRelationPlaying  a gmeow:SceneRelationType .
 }""" ;
-    gmeow:saRationale "gmeow:SceneRelationType MUST be a subclass of gufo:QualityValue and all fifteen seed individuals (leftOf, rightOf, above, below, inside, touching, near, farFrom, sameAs, partOf, holding, wearing, riding, eating, playing) MUST exist as gmeow:SceneRelationType instances (open value vocabulary, Principle 9). Mirrors test_scene_relation_type_value_vocab." .
+    gmeow:saRationale "gmeow:SceneRelationType MUST be a subclass of logic:QualityValue and all fifteen seed individuals (leftOf, rightOf, above, below, inside, touching, near, farFrom, sameAs, partOf, holding, wearing, riding, eating, playing) MUST exist as gmeow:SceneRelationType instances (open value vocabulary, Principle 9). Mirrors test_scene_relation_type_value_vocab." .

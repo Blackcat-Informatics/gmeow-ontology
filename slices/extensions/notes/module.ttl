@@ -4,14 +4,15 @@
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
 gmeow:Annotation
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notes> ;
     rdfs:label "Annotation"@x-gmeow-english ;
-    rdfs:subClassOf gufo:Relator ,
+    rdfs:subClassOf logic:Relator ,
         [
             a owl:Restriction ;
             owl:onProperty gmeow:annotationTarget ;
@@ -26,16 +27,16 @@ gmeow:Annotation
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:AnnotationMotivation
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notes> ;
     rdfs:label "Annotation Motivation"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "The purpose for which an annotation is created — a VALUE vocabulary (individuals, never subclasses) aligned to the W3C Web Annotation motivation set. Co-equal: no motivation is primary or default. The set is open."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:Bookmark
-    a gufo:SubKind ,
+    a logic:SubKind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notes> ;
     rdfs:label "Bookmark"@x-gmeow-english ;
@@ -44,7 +45,7 @@ gmeow:Bookmark
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:Comment
-    a gufo:SubKind ,
+    a logic:SubKind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notes> ;
     rdfs:label "Comment"@x-gmeow-english ;
@@ -53,7 +54,7 @@ gmeow:Comment
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:Highlight
-    a gufo:SubKind ,
+    a logic:SubKind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notes> ;
     rdfs:label "Highlight"@x-gmeow-english ;
@@ -67,7 +68,7 @@ gmeow:Highlight
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:Note
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/notes> ;
     rdfs:label "Note"@x-gmeow-english ;

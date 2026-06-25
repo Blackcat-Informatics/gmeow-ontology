@@ -7,9 +7,9 @@
 # over the accessibility module graph (gmeow:scopeModule) under the native Rust
 # harness (crates/slicetest).
 #
-# Accessibility is NOT yet #694-migrated, so class stereotypes remain gufo:
-# (gufo:Kind, gufo:AbstractIndividualType, gufo:QualityValue, gufo:Relator),
-# not logic:.
+# Accessibility is #694-migrated, so class stereotypes are logic:
+# (logic:Kind, logic:AbstractIndividualType, logic:QualityValue, logic:Relator),
+# not gufo:.
 #
 # RETAINED in pytest (dynamic combination sweep):
 #   test_no_bridge_between_feature_and_barrier — uses itertools.combinations over
@@ -23,35 +23,35 @@
 @prefix gmeow: <https://blackcatinformatics.ca/gmeow/> .
 @prefix ex:    <https://blackcatinformatics.ca/gmeow/examples/accessibility/tests/> .
 
-# --- 1. AccessibilityFacet is a subclass of gufo:QualityValue (MUST) ----------
+# --- 1. AccessibilityFacet is a subclass of logic:QualityValue (MUST) ----------
 ex:saAccessibilityFacetIsQualityValue a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-ASK { gmeow:AccessibilityFacet rdfs:subClassOf gufo:QualityValue . }""" ;
-    gmeow:saRationale "gmeow:AccessibilityFacet MUST be a subclass of gufo:QualityValue — accessibility facets are open individual vocabularies rooted in the gufo quality hierarchy. Mirrors test_accessibility_facet_is_quality_value." .
+ASK { gmeow:AccessibilityFacet rdfs:subClassOf logic:QualityValue . }""" ;
+    gmeow:saRationale "gmeow:AccessibilityFacet MUST be a subclass of logic:QualityValue — accessibility facets are open individual vocabularies rooted in the gufo quality hierarchy. Mirrors test_accessibility_facet_is_quality_value." .
 
-# --- 2. AccessibilityPolarity is a subclass of gufo:QualityValue (MUST) -------
+# --- 2. AccessibilityPolarity is a subclass of logic:QualityValue (MUST) -------
 ex:saAccessibilityPolarityIsQualityValue a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-ASK { gmeow:AccessibilityPolarity rdfs:subClassOf gufo:QualityValue . }""" ;
-    gmeow:saRationale "gmeow:AccessibilityPolarity MUST be a subclass of gufo:QualityValue — accessibility polarities are open individual vocabularies rooted in the gufo quality hierarchy. Mirrors test_accessibility_polarity_is_quality_value." .
+ASK { gmeow:AccessibilityPolarity rdfs:subClassOf logic:QualityValue . }""" ;
+    gmeow:saRationale "gmeow:AccessibilityPolarity MUST be a subclass of logic:QualityValue — accessibility polarities are open individual vocabularies rooted in the gufo quality hierarchy. Mirrors test_accessibility_polarity_is_quality_value." .
 
-# --- 3. AccessibilityAssertion is a subclass of gufo:Relator (MUST) -----------
+# --- 3. AccessibilityAssertion is a subclass of logic:Relator (MUST) -----------
 ex:saAccessibilityAssertionIsRelator a gmeow:StructuralAssertion ;
     gmeow:saPolarity gmeow:must ;
     gmeow:saScope gmeow:scopeModule ;
     gmeow:saPattern """PREFIX gmeow: <https://blackcatinformatics.ca/gmeow/>
-PREFIX gufo: <http://purl.org/nemo/gufo#>
+PREFIX logic: <https://blackcatinformatics.ca/logic/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-ASK { gmeow:AccessibilityAssertion rdfs:subClassOf gufo:Relator . }""" ;
-    gmeow:saRationale "gmeow:AccessibilityAssertion MUST be a subclass of gufo:Relator — it is a reified accessibility claim that mediates between subject, facet, and polarity (Principle 10). Mirrors test_accessibility_assertion_is_a_relator." .
+ASK { gmeow:AccessibilityAssertion rdfs:subClassOf logic:Relator . }""" ;
+    gmeow:saRationale "gmeow:AccessibilityAssertion MUST be a subclass of logic:Relator — it is a reified accessibility claim that mediates between subject, facet, and polarity (Principle 10). Mirrors test_accessibility_assertion_is_a_relator." .
 
 # --- 4a. Seven facet-value individuals exist as AccessibilityFacet (MUST) -----
 ex:saFacetValuesAreIndividuals a gmeow:StructuralAssertion ;

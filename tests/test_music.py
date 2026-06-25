@@ -21,7 +21,6 @@ from gmeow_rdf.compat.rdflib import (
 from gmeow_tools.graph import load_merged_graph
 
 GMEOW = Namespace("https://blackcatinformatics.ca/gmeow/")
-GUFO = Namespace("http://purl.org/nemo/gufo#")
 
 
 def _graph() -> Graph:

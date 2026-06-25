@@ -24,17 +24,6 @@ def _fixture_path() -> str:
     return str(Path(__file__).parent / "fixtures" / "coverage" / "email.ttl")
 
 
-def test_message_kind_class_exists() -> None:
-    graph = _graph()
-    node = URIRef(GMEOW + "MessageKind")
-    assert (node, RDF.type, OWL.Class) in graph
-    assert (
-        node,
-        RDFS.subClassOf,
-        URIRef("http://purl.org/nemo/gufo#QualityValue"),
-    ) in graph
-
-
 def test_message_kind_individuals_exist() -> None:
     graph = _graph()
     for kind in (

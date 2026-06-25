@@ -7,8 +7,8 @@
 # SPARQL ASK over the sensory module graph (gmeow:scopeModule) under the native
 # Rust slicetest harness (crates/slicetest).
 #
-# Sensory is NOT #694-migrated: class stereotypes are gufo: (gufo:Kind,
-# gufo:RoleMixin, gufo:AbstractIndividualType), NOT logic:.
+# Sensory is #694-migrated: class stereotypes are logic: (logic:Kind,
+# logic:RoleMixin, logic:AbstractIndividualType), not gufo:.
 #
 # NOTE: gmeow:SensoryObservation a owl:Class is declared in the observations
 # module (rdfs:isDefinedBy observations, stereotype logic:SubKind). The

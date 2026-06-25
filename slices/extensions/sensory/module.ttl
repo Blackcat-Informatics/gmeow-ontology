@@ -3,33 +3,34 @@
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
 gmeow:ObservableProperty
-    a gufo:AbstractIndividualType ,
+    a logic:AbstractIndividualType ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sensory> ;
     rdfs:label "Observable Property"@x-gmeow-english ;
-    rdfs:subClassOf gufo:QualityValue ;
+    rdfs:subClassOf logic:QualityValue ;
     skos:definition "A physical, chemical, biological, or environmental property that can be observed or measured by a sensor. A value vocabulary (individuals, never subclasses) so any new property — from temperature to neural activation to social sentiment — is a new individual, not a new class (Principle 9)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:Sensor
-    a gufo:RoleMixin ,
+    a logic:RoleMixin ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sensory> ;
     rdfs:label "Sensor"@x-gmeow-english ;
-    rdfs:subClassOf gufo:FunctionalComplex ,
+    rdfs:subClassOf logic:FunctionalComplex ,
         gmeow:Agent ;
     skos:definition "An agent that produces observations by responding to a stimulus — a physical device, a software process, or a biological perceiver. The observer in a sensory observation; the vantage of a SensoryObservation may be a Sensor, a person, or an organization. Co-equal: no sensor is privileged as the 'primary' observer (Principle 9)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
 
 gmeow:SensorPlatform
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sensory> ;
     rdfs:label "Sensor Platform"@x-gmeow-english ;
-    rdfs:subClassOf gufo:Object ,
+    rdfs:subClassOf logic:Object ,
         gmeow:Entity ;
     skos:definition "A physical entity that hosts one or more sensors — a weather station, a satellite, a buoy, a drone, a vehicle, or a building-mounted instrument. The platform is situated at a place and carries sensors that observe properties of the environment. Distinct from the Sensor itself (the observing agent) and from the Place (the location)."@x-gmeow-english ;
     gmeow:graphBoxRole gmeow:boxTBox .
@@ -57,11 +58,11 @@ gmeow:SensoryObservation
         ] .
 
 gmeow:SensoryQuantity
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/sensory> ;
     rdfs:label "Sensory Quantity"@x-gmeow-english ;
-    rdfs:subClassOf gufo:Object ,
+    rdfs:subClassOf logic:Object ,
         gmeow:Entity ;
     owl:equivalentClass gmeow:ScalarQuantity ;
     skos:definition "The scalar numeric result of a sensory observation — a value with unit, determinacy, and granularity. Equivalent to gmeow:ScalarQuantity (following the ScalarQuantity alias precedent); the name 'SensoryQuantity' is the domain-specific label for the same construct in the sensor/observation stack."@x-gmeow-english ;

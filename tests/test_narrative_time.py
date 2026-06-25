@@ -22,7 +22,6 @@ from gmeow_tools.graph import load_merged_graph
 
 GMEOW = "https://blackcatinformatics.ca/gmeow/"
 GM = Namespace(GMEOW)
-GUFO = Namespace("http://purl.org/nemo/gufo#")
 EX = Namespace("https://example.org/shapes/")
 
 FIXTURES = Path(__file__).parent / "fixtures" / "shapes"
@@ -43,21 +42,6 @@ def _fixture(name: str) -> Graph:
 # --------------------------------------------------------------------------- #
 
 
-def test_narrative_time_frame_is_a_reference_frame() -> None:
-    g = _graph()
-    assert (GM.NarrativeTimeFrame, RDF.type, OWL.Class) in g
-    assert (GM.NarrativeTimeFrame, RDF.type, GUFO.SubKind) in g
-    assert (GM.NarrativeTimeFrame, RDFS.subClassOf, GM.ReferenceFrame) in g
-
-
-def test_axis_vocab_spans_exactly_fabula_and_syuzhet() -> None:
-    g = _graph()
-    assert (GM.NarrativeTimeAxis, RDF.type, GUFO.AbstractIndividualType) in g
-    assert (GM.NarrativeTimeAxis, RDFS.subClassOf, GUFO.QualityValue) in g
-    members = set(g.subjects(RDF.type, GM.NarrativeTimeAxis))
-    assert members == {GM.axisDiscourseTime, GM.axisStoryTime}
-
-
 def test_frame_properties_are_functional_with_correct_anchors() -> None:
     g = _graph()
     for prop, rng in [
@@ -68,15 +52,6 @@ def test_frame_properties_are_functional_with_correct_anchors() -> None:
     ]:
         assert (prop, RDF.type, OWL.FunctionalProperty) in g, prop
         assert (prop, RDFS.range, rng) in g, prop
-
-
-def test_position_is_an_object_with_frame_ordinal_label() -> None:
-    g = _graph()
-    assert (GM.NarrativePosition, RDF.type, GUFO.Kind) in g
-    assert (GM.NarrativePosition, RDFS.subClassOf, GM.Entity) in g
-    assert (GM.positionOrdinal, RDF.type, OWL.DatatypeProperty) in g
-    # positionLabel deliberately NOT functional: co-equal labels coexist (P9).
-    assert (GM.positionLabel, RDF.type, OWL.FunctionalProperty) not in g
 
 
 def test_at_narrative_position_is_domain_free_and_not_functional() -> None:

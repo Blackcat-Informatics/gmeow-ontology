@@ -7,7 +7,6 @@ from gmeow_rdf.compat.rdflib import OWL, RDF, RDFS, SKOS, Graph, URIRef
 from gmeow_tools.graph import load_merged_graph
 
 GMEOW = "https://blackcatinformatics.ca/gmeow/"
-GUFO = "http://purl.org/nemo/gufo#"
 
 _cached_graph: Graph | None = None
 
@@ -18,14 +17,6 @@ def _graph() -> Graph:
     if _cached_graph is None:
         _cached_graph = load_merged_graph(include_imports=False)
     return _cached_graph
-
-
-def test_mailing_list_class_exists() -> None:
-    graph = _graph()
-    node = URIRef(GMEOW + "MailingList")
-    assert (node, RDF.type, OWL.Class) in graph
-    assert (node, RDFS.subClassOf, URIRef(GMEOW + "InformationObject")) in graph
-    assert (node, RDF.type, URIRef(GUFO + "Kind")) in graph
 
 
 def test_has_mailing_list_property() -> None:

@@ -4,10 +4,11 @@
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix gufo: <http://purl.org/nemo/gufo#> .
+@prefix logic: <https://blackcatinformatics.ca/logic/> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
 
 gmeow:Credential
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/expertise> ;
     rdfs:label "Credential"@x-gmeow-english ;
@@ -20,7 +21,7 @@ gmeow:Credential
     gmeow:useWhen "Use for a degree, certification, badge, or license that qualifies an agent in a skill or occupation — the credential carries the qualification content, an agent holds it via gmeow:holdsCredential."@x-gmeow-english .
 
 gmeow:Skill
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/expertise> ;
     rdfs:label "Skill"@x-gmeow-english ;
@@ -33,11 +34,11 @@ gmeow:Skill
     gmeow:useWhen "Use to mint a competency or ability an agent can apply to a task — a skill in its own right, independent of any occupation, that an agent reaches via gmeow:hasSkill or a leveled gmeow:SkillProficiency."@x-gmeow-english .
 
 gmeow:SkillProficiency
-    a gufo:Kind ,
+    a logic:Kind ,
         owl:Class ;
     rdfs:isDefinedBy <https://blackcatinformatics.ca/gmeow/slices/expertise> ;
     rdfs:label "Skill Proficiency"@x-gmeow-english ;
-    rdfs:subClassOf gufo:Relator ,
+    rdfs:subClassOf logic:Relator ,
         [
             a owl:Restriction ;
             owl:onProperty gmeow:skillProficiencyAgent ;

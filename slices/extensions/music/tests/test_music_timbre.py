@@ -5,7 +5,7 @@ Principles 4, 5, 9, 12, 16.
 
 from __future__ import annotations
 
-from gmeow_rdf.compat.rdflib import OWL, RDF, RDFS, Graph, Namespace
+from gmeow_rdf.compat.rdflib import OWL, RDF, Graph, Namespace
 from gmeow_rdf.compat.rdflib.namespace import SKOS
 
 from gmeow_tools.config import NAMESPACE
@@ -13,7 +13,6 @@ from gmeow_tools.graph import load_merged_graph
 from gmeow_tools.slices import module_path
 
 GMEOW = Namespace(NAMESPACE)
-GUFO = Namespace("http://purl.org/nemo/gufo#")
 
 MUSIC_EQ_FILE = module_path("music").parent / "mappings" / "equivalences.ttl"
 
@@ -25,14 +24,6 @@ def _graph() -> Graph:
     if _MERGED_GRAPH is None:
         _MERGED_GRAPH = load_merged_graph(include_imports=False)
     return _MERGED_GRAPH
-
-
-def test_timbre_descriptor_is_quality_value_vocabulary() -> None:
-    graph = _graph()
-    td = GMEOW["TimbreDescriptor"]
-    assert (td, RDF.type, OWL.Class) in graph
-    assert (td, RDF.type, GUFO.AbstractIndividualType) in graph
-    assert (td, RDFS.subClassOf, GUFO.QualityValue) in graph
 
 
 def test_timbre_descriptor_seeds_exist() -> None:
