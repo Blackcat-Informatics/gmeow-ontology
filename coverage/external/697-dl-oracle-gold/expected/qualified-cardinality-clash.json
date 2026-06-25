@@ -1,0 +1,21 @@
+{
+  "consistent": false,
+  "cross_reference": {
+    "elk": {
+      "consistent": true,
+      "unsatisfiable_classes": []
+    },
+    "elk_note": "ELK is the EL oracle, recorded for reference only. It ignores beyond-EL axioms, so a disagreement with HermiT is expected and HermiT is authoritative."
+  },
+  "dataset": "qualified-cardinality-clash.ttl",
+  "oracle": "hermit",
+  "provenance": {
+    "dataset_license": "CC-BY-4.0",
+    "generated_utc": "2026-06-25T01:58:34Z",
+    "generator": "scripts/gen_dl_oracle_gold.py (make maint-697-oracle-gold)",
+    "image": "obolibrary/robot:v1.9.7",
+    "note": "Frozen ORACLE verdict. Native Docker-free reasoner is asserted to reproduce every inconsistency/unsat class (native \u2287 oracle) offline in crates/conformance. Never hand-edited to match native.",
+    "producing_oracle": "ROBOT/HermiT"
+  },
+  "unsatisfiable_classes": []
+}

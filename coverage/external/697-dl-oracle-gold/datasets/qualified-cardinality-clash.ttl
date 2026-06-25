@@ -1,0 +1,28 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Construct family: maxQualifiedCardinality clash.
+# x ⊑ (≤1 p.C); two p-fillers y, z both typed C and owl:differentFrom -> INCONSISTENT.
+@prefix owl:  <http://www.w3.org/2002/07/owl#> .
+@prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex:   <https://gmeow.example/dl/qual-card#> .
+
+ex: a owl:Ontology .
+
+ex:p a owl:ObjectProperty .
+ex:C a owl:Class .
+
+ex:A a owl:Class ;
+  rdfs:subClassOf
+    [ a owl:Restriction ;
+      owl:onProperty ex:p ;
+      owl:maxQualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+      owl:onClass ex:C ] .
+
+ex:x a owl:NamedIndividual , ex:A ;
+  ex:p ex:y , ex:z .
+ex:y a owl:NamedIndividual , ex:C .
+ex:z a owl:NamedIndividual , ex:C .
+ex:y owl:differentFrom ex:z .

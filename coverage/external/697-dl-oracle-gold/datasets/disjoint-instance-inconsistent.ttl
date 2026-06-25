@@ -1,0 +1,17 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Construct family: class disjointness asserted on an individual.
+# x is typed into both disjoint classes B and C -> the ontology is INCONSISTENT.
+@prefix owl:  <http://www.w3.org/2002/07/owl#> .
+@prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix ex:   <https://gmeow.example/dl/disjoint-instance#> .
+
+ex: a owl:Ontology .
+
+ex:B a owl:Class .
+ex:C a owl:Class .
+ex:B owl:disjointWith ex:C .
+
+ex:x a owl:NamedIndividual , ex:B , ex:C .

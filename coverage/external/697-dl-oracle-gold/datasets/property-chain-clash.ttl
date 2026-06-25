@@ -1,0 +1,29 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Construct family: property chain axiom (owl:propertyChainAxiom).
+# r ← p ∘ q (p then q implies r). r has rdfs:range C; q-edge target z would be
+# inferred into C via the chain. We force a clash: z is typed D, C disjointWith D,
+# and the chain entails (a r z) so z must be C -> INCONSISTENT.
+@prefix owl:  <http://www.w3.org/2002/07/owl#> .
+@prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix ex:   <https://gmeow.example/dl/prop-chain#> .
+
+ex: a owl:Ontology .
+
+ex:C a owl:Class .
+ex:D a owl:Class .
+ex:C owl:disjointWith ex:D .
+
+ex:p a owl:ObjectProperty .
+ex:q a owl:ObjectProperty .
+ex:r a owl:ObjectProperty ;
+  owl:propertyChainAxiom ( ex:p ex:q ) ;
+  rdfs:range ex:C .
+
+ex:a a owl:NamedIndividual .
+ex:b a owl:NamedIndividual .
+ex:z a owl:NamedIndividual , ex:D .
+ex:a ex:p ex:b .
+ex:b ex:q ex:z .

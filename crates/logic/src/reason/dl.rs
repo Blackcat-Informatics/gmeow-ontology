@@ -744,6 +744,76 @@ pub(crate) fn augment_inferred_with_dl(
                             )],
                         );
                     }
+                    // Nominal closure: `C ≡ oneOf(m1..mk)` means every instance of
+                    // `C` is one of the members. So an individual typed `C` that is
+                    // asserted **explicitly distinct** (`owl:differentFrom`) from
+                    // *every* member can be no member at all and is forced into
+                    // `owl:Nothing` — an inconsistency. This is the closure half of
+                    // `oneOf` (the member→type direction above is the easy half); it
+                    // terminates because the enumeration is finite and no witnesses
+                    // are invented. (Issue #697 Gap G: the frozen HermiT gold caught
+                    // this clash; native must too — native ⊇ oracle.)
+                    //
+                    // Distinctness here is the **explicit** stance only (asserted
+                    // `owl:differentFrom`), NOT the UNA default the cardinality
+                    // anti-merge uses: standard OWL does not assume unique names, so
+                    // an instance of a `oneOf` class merely *named* differently from
+                    // the members can still be `owl:sameAs` one of them and is
+                    // consistent. Requiring explicit `differentFrom` keeps native
+                    // faithful to the oracle (no false inconsistency on a
+                    // non-UNA-consistent ontology) — soundness over an over-eager
+                    // superset.
+                    let one_of_class = fact.subject.clone();
+                    let instances: Vec<String> = facts
+                        .iter()
+                        .filter(|f| {
+                            f.predicate == RDF_TYPE
+                                && f.object == one_of_class
+                                && f.world == fact.world
+                        })
+                        .map(|f| f.subject.clone())
+                        .collect();
+                    for instance in instances {
+                        // Skip the members themselves: a member IS in the class.
+                        if members.iter().any(|m| m == &instance) {
+                            continue;
+                        }
+                        let distinct_from_all = members.iter().all(|m| {
+                            has_fact(&facts, &fact.world, &instance, OWL_DIFFERENT_FROM, m)
+                                || has_fact(&facts, &fact.world, m, OWL_DIFFERENT_FROM, &instance)
+                        });
+                        if !distinct_from_all {
+                            continue;
+                        }
+                        let mut premises: Vec<(String, String, String)> = vec![
+                            (
+                                one_of_class.clone(),
+                                OWL_ONE_OF.to_owned(),
+                                fact.object.clone(),
+                            ),
+                            (instance.clone(), RDF_TYPE.to_owned(), one_of_class.clone()),
+                        ];
+                        for m in members {
+                            premises.push((
+                                instance.clone(),
+                                OWL_DIFFERENT_FROM.to_owned(),
+                                m.clone(),
+                            ));
+                        }
+                        premises.sort();
+                        add_inferred_fact(
+                            inferred,
+                            &mut facts,
+                            Fact::new(
+                                instance.clone(),
+                                RDF_TYPE.to_owned(),
+                                OWL_NOTHING.to_owned(),
+                                fact.world.clone(),
+                            ),
+                            "dl:oneOf-closure-clash",
+                            premises,
+                        );
+                    }
                     continue;
                 }
                 for member in members {
@@ -1926,6 +1996,79 @@ mod tests {
             "coverage records unionOf as decided: {:?}",
             verdict.coverage
         );
+    }
+
+    #[test]
+    fn one_of_closure_forces_a_non_member_instance_into_nothing() {
+        // Colour = oneOf (red green); x : Colour but x differentFrom both red and
+        // green ⇒ x can be no member ⇒ x : owl:Nothing ⇒ INCONSISTENT. This is the
+        // CLOSURE half of oneOf (the member→type direction is the easy half), the
+        // beyond-EL nominal reasoning the #697 frozen HermiT gold demands native
+        // catch (native ⊇ oracle).
+        const FIRST: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#first";
+        const REST: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#rest";
+        const NIL: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#nil";
+        let colour = "http://gmeow.example/Colour";
+        let red = "http://gmeow.example/red";
+        let green = "http://gmeow.example/green";
+        let l0 = "http://gmeow.example/l0";
+        let l1 = "http://gmeow.example/l1";
+        let store = dataset(vec![
+            quad(colour, super::OWL_ONE_OF, l0),
+            quad(l0, FIRST, red),
+            quad(l0, REST, l1),
+            quad(l1, FIRST, green),
+            quad(l1, REST, NIL),
+            quad(X, TYPE, colour),
+            quad(X, OWL_DIFFERENT_FROM, red),
+            quad(X, OWL_DIFFERENT_FROM, green),
+        ]);
+        let verdict = dl_consistency(store.as_ref()).expect("dl consistency should succeed");
+
+        assert!(
+            !verdict.consistent,
+            "an enumeration instance distinct from every member must clash: {:?}",
+            verdict.inconsistencies
+        );
+        assert!(
+            verdict.inconsistencies.iter().any(|w| w.individual == X),
+            "x must be the inconsistency witness: {:?}",
+            verdict.inconsistencies
+        );
+        assert!(verdict.gaps.is_empty(), "no gap: {:?}", verdict.gaps);
+    }
+
+    #[test]
+    fn one_of_with_a_member_instance_is_consistent() {
+        // Same enumeration, but x is NOT asserted distinct from the members, so by
+        // the open identity stance it may be one of them ⇒ NO clash ⇒ CONSISTENT.
+        // Proves the closure clash is real (driven by differentFrom), not a blanket
+        // "any instance of a oneOf class is unsat".
+        const FIRST: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#first";
+        const REST: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#rest";
+        const NIL: &str = "http://www.w3.org/1999/02/22-rdf-syntax-ns#nil";
+        let colour = "http://gmeow.example/Colour";
+        let red = "http://gmeow.example/red";
+        let green = "http://gmeow.example/green";
+        let l0 = "http://gmeow.example/l0";
+        let l1 = "http://gmeow.example/l1";
+        let store = dataset(vec![
+            quad(colour, super::OWL_ONE_OF, l0),
+            quad(l0, FIRST, red),
+            quad(l0, REST, l1),
+            quad(l1, FIRST, green),
+            quad(l1, REST, NIL),
+            quad(X, TYPE, colour),
+        ]);
+        let verdict = dl_consistency(store.as_ref()).expect("dl consistency should succeed");
+
+        assert!(
+            verdict.consistent,
+            "an enumeration instance not asserted distinct from the members is \
+             consistent: {:?}",
+            verdict.inconsistencies
+        );
+        assert!(verdict.gaps.is_empty(), "no gap: {:?}", verdict.gaps);
     }
 
     const SOME_VALUES_FROM: &str = "http://www.w3.org/2002/07/owl#someValuesFrom";

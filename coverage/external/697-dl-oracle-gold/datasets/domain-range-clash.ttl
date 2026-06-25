@@ -1,0 +1,24 @@
+# SPDX-FileCopyrightText: 2026 Blackcat Informatics® Inc. <paudley@blackcatinformatics.ca>
+# SPDX-License-Identifier: CC-BY-4.0
+#
+# Construct family: property domain/range entailment into a disjointness clash.
+# p has rdfs:range C; q has rdfs:range D; C disjointWith D. x p y and x q y assert
+# y into both C and D -> INCONSISTENT (range inference + disjointness).
+@prefix owl:  <http://www.w3.org/2002/07/owl#> .
+@prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix ex:   <https://gmeow.example/dl/domain-range#> .
+
+ex: a owl:Ontology .
+
+ex:C a owl:Class .
+ex:D a owl:Class .
+ex:C owl:disjointWith ex:D .
+
+ex:p a owl:ObjectProperty ; rdfs:range ex:C .
+ex:q a owl:ObjectProperty ; rdfs:range ex:D .
+
+ex:x a owl:NamedIndividual .
+ex:y a owl:NamedIndividual .
+ex:x ex:p ex:y .
+ex:x ex:q ex:y .
