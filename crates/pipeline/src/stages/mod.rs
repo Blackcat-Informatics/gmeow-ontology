@@ -79,4 +79,5 @@ pub fn register_default(registry: &mut StageRegistry) {
     registry.register("okf", Arc::new(okf::OkfStage::new()));
     registry.register("export", Arc::new(export::ExportStage::new()));
     registry.register("yaml_ld", Arc::new(yaml_ld::YamlLdStage::new()));
+    registry.register("bench", Arc::new(bench::BenchLeaderboardStage));
 }

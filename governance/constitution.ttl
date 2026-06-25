@@ -79,7 +79,7 @@ meta:gate-generator-registry a meta:Gate ;
         "gts_compose", "snapshot", "docs_render", "gts_sink", "logic",
         "metadata", "schemas", "lpg", "matrix", "apache",
         "catalog", "profiles", "frame_shapes", "evals", "parquet",
-        "research-objects", "references", "export", "okf" .
+        "research-objects", "references", "export", "okf", "bench" .
 
 meta:tests-narrow-waist a meta:TestSuite ;
     rdfs:label "narrow-waist seal (GTS is the only exit for data)"@x-gmeow-english ;
