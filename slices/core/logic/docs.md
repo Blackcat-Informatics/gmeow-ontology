@@ -139,8 +139,9 @@ universal context-independent truth.
 State change is the `transaction-path` value of the Evolution facet. A query in this facet is
 evaluated over a **path** — an ordered sequence of states — rather than over a single state.
 Serial conjunction is a program combinator (do φ, then ψ) typed apart from ordinary conjunction,
-which holds at a state. Updates are supersession, never erasure: a `del` sets the retired fact
-non-displayable and advances the path; the substrate remains append-only and fully auditable.
+which holds at a state. Updates are supersession, never erasure: a `del` retires one active support
+in the successor state and records supersession provenance; displayability remains a separate
+disclosure policy, and the substrate remains append-only and fully auditable.
 
 The hypothetical operator — testing a transaction without committing its effects — is distinct
 from modal possibility: it asks whether a program *can execute*, not whether a proposition holds
