@@ -374,8 +374,9 @@ impl Parser {
         let where_pat = self.parse_group_graph_pattern()?;
         let mut aggregates = Vec::new();
         let modifiers = self.parse_solution_modifiers(&mut aggregates)?;
-        if !aggregates.is_empty() || !modifiers.group_by.is_empty() {
-            return Err(ParseError::unsupported("aggregation in CONSTRUCT"));
+        if !aggregates.is_empty() || !modifiers.group_by.is_empty() || !modifiers.having.is_empty()
+        {
+            return Err(ParseError::unsupported("aggregation/HAVING in CONSTRUCT"));
         }
         let mut p = where_pat;
         if !modifiers.order_by.is_empty() {
@@ -404,7 +405,12 @@ impl Parser {
         self.eat_kw("WHERE");
         let pattern = self.parse_group_graph_pattern()?;
         let mut aggregates = Vec::new();
-        let _ = self.parse_solution_modifiers(&mut aggregates)?;
+        let modifiers = self.parse_solution_modifiers(&mut aggregates)?;
+        // ASK ignores solution modifiers semantically; rather than silently
+        // dropping a parsed one, hard-fail (no-optionality / no silent discard).
+        if !modifiers.is_empty() || !aggregates.is_empty() {
+            return Err(ParseError::unsupported("solution modifiers on ASK"));
+        }
         Ok(Query::Ask { pattern, base_iri })
     }
 
@@ -436,7 +442,10 @@ impl Parser {
             GraphPattern::Bgp { patterns: vec![] }
         };
         let mut aggregates = Vec::new();
-        let _ = self.parse_solution_modifiers(&mut aggregates)?;
+        let modifiers = self.parse_solution_modifiers(&mut aggregates)?;
+        if !modifiers.is_empty() || !aggregates.is_empty() {
+            return Err(ParseError::unsupported("solution modifiers on DESCRIBE"));
+        }
         Ok(Query::Describe {
             pattern,
             targets,
@@ -915,6 +924,16 @@ impl Parser {
                     row.push(self.parse_data_cell()?);
                 }
                 self.expect(&Token::RParen)?;
+                if row.len() != variables.len() {
+                    return Err(ParseError::syntax(
+                        format!(
+                            "VALUES row has {} cells for {} variable(s)",
+                            row.len(),
+                            variables.len()
+                        ),
+                        self.span(),
+                    ));
+                }
                 bindings.push(row);
             }
             self.expect(&Token::RBrace)?;
@@ -1357,11 +1376,14 @@ impl Parser {
     ) -> Result<Expression> {
         self.pos += 1; // function name
         self.expect(&Token::LParen)?;
+        // DISTINCT precedes `*` in `COUNT(DISTINCT *)`; consume it first so the
+        // star form carries the flag (the `*` arm previously hid the DISTINCT,
+        // making CountStar { distinct: true } unreachable).
+        let distinct = self.eat_kw("DISTINCT");
         let agg = if self.eat(&Token::Star) {
-            // COUNT(*)
-            AggregateExpression::CountStar { distinct: false }
+            // COUNT(*) / COUNT(DISTINCT *)
+            AggregateExpression::CountStar { distinct }
         } else {
-            let distinct = self.eat_kw("DISTINCT");
             let inner = self.parse_expression()?;
             let separator = if let AggregateFunction::GroupConcat { .. } = func {
                 self.parse_optional_separator()?
@@ -1476,6 +1498,17 @@ struct Modifiers {
     order_by: Vec<OrderExpression>,
     limit: Option<usize>,
     offset: Option<usize>,
+}
+
+impl Modifiers {
+    /// True when no solution modifier was parsed at all.
+    fn is_empty(&self) -> bool {
+        self.group_by.is_empty()
+            && self.having.is_empty()
+            && self.order_by.is_empty()
+            && self.limit.is_none()
+            && self.offset.is_none()
+    }
 }
 
 // ── free helpers ─────────────────────────────────────────────────────────────

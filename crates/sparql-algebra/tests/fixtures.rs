@@ -57,6 +57,7 @@ fn positive_in_scope_features() {
     ok("SELECT ?m (COUNT(?c) AS ?n) WHERE { ?c gmeow:v ?m } GROUP BY ?m");
     ok("SELECT ?m (COUNT(DISTINCT ?c) AS ?n) WHERE { ?c gmeow:v ?m } GROUP BY ?m HAVING (COUNT(?c) >= 3)");
     ok("SELECT (SUM(?x) AS ?s) WHERE { ?a gmeow:x ?x }");
+    ok("SELECT (COUNT(DISTINCT *) AS ?n) WHERE { ?a gmeow:x ?x }");
     ok("SELECT DISTINCT ?a WHERE { ?a a gmeow:T } ORDER BY DESC(?a) LIMIT 5 OFFSET 2");
     ok("SELECT ?a WHERE { ?a a gmeow:T } ORDER BY ?a");
 
@@ -160,5 +161,27 @@ fn negative_out_of_scope_and_malformed() {
             .parse_query("PREFIX ex:local <http://e/>\nSELECT ?a WHERE { ?a a ex:T }")
             .unwrap_err(),
         ParseError::Syntax { .. }
+    ));
+
+    // VALUES row arity mismatch (1 cell for 2 variables) → Syntax.
+    assert!(matches!(
+        err("SELECT ?x ?y WHERE { VALUES (?x ?y) { (gmeow:a) } }"),
+        ParseError::Syntax { .. }
+    ));
+
+    // Solution modifiers on ASK / DESCRIBE → Unsupported (not silently dropped).
+    assert!(matches!(
+        err("ASK WHERE { ?a a gmeow:T } LIMIT 1"),
+        ParseError::Unsupported(_)
+    ));
+    assert!(matches!(
+        err("DESCRIBE gmeow:thing ORDER BY ?a"),
+        ParseError::Unsupported(_)
+    ));
+
+    // HAVING in CONSTRUCT → Unsupported (was silently ignored).
+    assert!(matches!(
+        err("CONSTRUCT { ?s a gmeow:O } WHERE { ?s gmeow:x ?x } HAVING (?x > 3)"),
+        ParseError::Unsupported(_)
     ));
 }
