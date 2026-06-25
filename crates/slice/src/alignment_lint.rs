@@ -352,7 +352,7 @@ pub(crate) fn lint_alignment_directions(
         let Some(subj_iri) = expand_curie(&m.subject_id) else {
             continue;
         };
-        if !is_property(&onto, &subj_iri) {
+        if !is_property(&onto, &subj_iri)? {
             continue;
         }
         gmeow_props.entry(subj_iri).or_default().push(m.clone());
@@ -1728,13 +1728,16 @@ fn has_type(store: &Store, term: &str, type_iri: &str) -> Result<bool, SliceErro
         Some(object.as_ref().into()),
         Some(GraphNameRef::DefaultGraph),
     );
-    Ok(iter.next().is_some())
+    Ok(iter
+        .next()
+        .transpose()
+        .map_err(|e| SliceError::Parse(e.to_string()))?
+        .is_some())
 }
 
 /// Whether the expanded IRI is declared as an OWL ObjectProperty or DatatypeProperty.
-fn is_property(store: &Store, iri: &str) -> bool {
-    has_type(store, iri, OWL_OBJECT_PROPERTY).unwrap_or(false)
-        || has_type(store, iri, OWL_DATATYPE_PROPERTY).unwrap_or(false)
+fn is_property(store: &Store, iri: &str) -> Result<bool, SliceError> {
+    Ok(has_type(store, iri, OWL_OBJECT_PROPERTY)? || has_type(store, iri, OWL_DATATYPE_PROPERTY)?)
 }
 
 // ── Tests ──────────────────────────────────────────────────────────────────────
