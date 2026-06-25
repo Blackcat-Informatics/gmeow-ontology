@@ -216,9 +216,17 @@ pub fn validate_with<G: ShaclDataGraph>(data: &G, shapes: &Shapes) -> Validation
 
         let focus_nodes = resolve_focus_nodes(data, &shape.targets, &mut closure_memo);
 
+        // Per-focus constraint evaluation stays SERIAL. A rayon `par_iter` over the
+        // focus loop was measured on `shacl_validate/large_hierarchy` (3000 focus
+        // nodes) and REGRESSED ~9% (15.71 ms → 16.43 ms), confirming #827: per-focus
+        // work (~5 µs: an rdfs:subClassOf BFS-backed lookup + a `sh:pattern` regex)
+        // is dwarfed by thread-pool dispatch and shared-`Store` read contention. The
+        // `ShaclDataGraph: Send + Sync` bound (data.rs) keeps the seam ready, but the
+        // parallel path waits on the re-entry condition: per-focus cost >50–100 µs,
+        // i.e. once SHACL-SPARQL constraints are common or the IR-native backend runs
+        // end-to-end (dropping the shared-`Store` contention). See #828 (item 2).
         for focus in &focus_nodes {
-            let results = crate::constraints::validate_shape(data, focus, shape);
-            all_results.extend(results);
+            all_results.extend(crate::constraints::validate_shape(data, focus, shape));
         }
     }
 
