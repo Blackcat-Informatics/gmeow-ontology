@@ -216,9 +216,17 @@ pub fn validate_with<G: ShaclDataGraph>(data: &G, shapes: &Shapes) -> Validation
 
         let focus_nodes = resolve_focus_nodes(data, &shape.targets, &mut closure_memo);
 
+        // Per-focus constraint evaluation stays SERIAL. A rayon `par_iter` over the
+        // focus loop was measured on `shacl_validate/large_hierarchy` (3000 focus
+        // nodes) and REGRESSED ~9% (15.71 ms → 16.43 ms), confirming #827: per-focus
+        // work (~5 µs: an rdfs:subClassOf BFS-backed lookup + a `sh:pattern` regex)
+        // is dwarfed by thread-pool dispatch and shared-`Store` read contention. The
+        // `ShaclDataGraph: Send + Sync` bound (data.rs) keeps the seam ready, but the
+        // parallel path waits on the re-entry condition: per-focus cost >50–100 µs,
+        // i.e. once SHACL-SPARQL constraints are common or the IR-native backend runs
+        // end-to-end (dropping the shared-`Store` contention). See #828 (item 2).
         for focus in &focus_nodes {
-            let results = crate::constraints::validate_shape(data, focus, shape);
-            all_results.extend(results);
+            all_results.extend(crate::constraints::validate_shape(data, focus, shape));
         }
     }
 
@@ -337,11 +345,26 @@ pub fn parse_shapes(shapes_ttl: &str) -> Result<Shapes, String> {
         let mut parser = RdfParser::from_format(RdfFormat::Turtle)
             .lenient()
             .for_reader(shapes_ttl.as_bytes());
+        // Accumulate EVERY syntax error rather than short-circuiting on the first.
+        // oxttl drives an error-recovery state (the toolkit transitions the parser
+        // into `error_recovery_state` after a malformed statement), so a single
+        // pass keeps yielding past the first break and surfaces all of them. A
+        // SHACL author then sees the complete list in one report instead of the
+        // fix-one-rerun-find-the-next loop. See #828 (item 4). Well-formed quads
+        // are still inserted, but a non-empty error set is a hard parse failure.
+        let mut errors: Vec<String> = Vec::new();
         for quad in parser.by_ref() {
-            let quad = quad.map_err(|e| format!("Turtle parse error: {e}"))?;
-            shapes_store
-                .insert(&quad)
-                .map_err(|e| format!("shapes store insert failed: {e}"))?;
+            match quad {
+                Ok(quad) => {
+                    shapes_store
+                        .insert(&quad)
+                        .map_err(|e| format!("shapes store insert failed: {e}"))?;
+                }
+                Err(e) => errors.push(format!("Turtle parse error: {e}")),
+            }
+        }
+        if !errors.is_empty() {
+            return Err(errors.join("\n"));
         }
         doc_prefixes = parser
             .prefixes()
@@ -371,11 +394,25 @@ pub fn parse_shapes(shapes_ttl: &str) -> Result<Shapes, String> {
 pub fn validate_graphs(data_nt: &str, shapes_ttl: &str) -> Result<ValidationReport, String> {
     let data = Store::new().map_err(|e| format!("data store creation failed: {e}"))?;
     if !data_nt.is_empty() {
-        data.load_from_reader(
-            RdfParser::from_format(RdfFormat::NTriples).lenient(),
-            data_nt.as_bytes(),
-        )
-        .map_err(|e| format!("N-Triples parse error: {e}"))?;
+        // Iterate (rather than `load_from_reader`, which collapses to the FIRST
+        // error) so every malformed N-Triples line is reported in one pass —
+        // same multi-error contract as `parse_shapes`. See #828 (item 4).
+        let mut errors: Vec<String> = Vec::new();
+        for quad in RdfParser::from_format(RdfFormat::NTriples)
+            .lenient()
+            .for_reader(data_nt.as_bytes())
+        {
+            match quad {
+                Ok(quad) => {
+                    data.insert(&quad)
+                        .map_err(|e| format!("data store insert failed: {e}"))?;
+                }
+                Err(e) => errors.push(format!("N-Triples parse error: {e}")),
+            }
+        }
+        if !errors.is_empty() {
+            return Err(errors.join("\n"));
+        }
     }
 
     let shapes = parse_shapes(shapes_ttl)?;
@@ -428,6 +465,57 @@ mod tests {
             .load_from_reader(RdfFormat::Turtle, ttl.as_bytes())
             .unwrap();
         crate::shapes::from_store(&store).expect("shapes parse must succeed")
+    }
+
+    // ── Multi-error syntax reporting (#828 item 4) ─────────────────────────────
+
+    #[test]
+    fn parse_shapes_reports_all_syntax_errors() {
+        // Two independently-malformed Turtle STATEMENTS, separated by a valid one.
+        // oxttl recovers at statement granularity (resync on the `.` terminator),
+        // so BOTH errors must surface in one report — proving the accumulator is
+        // real, not a one-element surface. (A lexer-level break such as an
+        // unterminated string literal instead consumes to EOF and yields a single
+        // error; that is correct, not a regression. The recoverable case below is
+        // what proves multi-error reporting works.) If this regresses to a single
+        // error on recoverable input, item 4's premise has broken.
+        let bad = concat!(
+            "@prefix ex: <http://example.org/ns#> .\n",
+            "ex:a ex:p .\n",                // missing object → recoverable error
+            "ex:b ex:q ex:c .\n",           // valid, between the two errors
+            "ex:d ex:r ex:s ex:t ex:u .\n", // too many terms → recoverable error
+        );
+        let err = parse_shapes(bad).expect_err("malformed Turtle must error");
+        let n = err.matches("Turtle parse error").count();
+        assert!(
+            n >= 2,
+            "expected >=2 accumulated Turtle errors, got {n}:\n{err}"
+        );
+    }
+
+    #[test]
+    fn validate_graphs_reports_all_data_syntax_errors() {
+        // Multiple malformed N-Triples lines must all be reported in one pass
+        // rather than short-circuiting on the first (the `load_from_reader`
+        // behavior item 4 replaced).
+        let bad_data = concat!(
+            "this is not a triple\n",
+            "<http://example.org/s> <http://example.org/p> .\n",
+            "neither is this\n",
+        );
+        let err = validate_graphs(bad_data, "").expect_err("malformed N-Triples must error");
+        let n = err.matches("N-Triples parse error").count();
+        assert!(
+            n >= 2,
+            "expected >=2 accumulated N-Triples errors, got {n}:\n{err}"
+        );
+    }
+
+    #[test]
+    fn parse_shapes_clean_input_still_succeeds() {
+        // The accumulator must not turn a well-formed document into a failure.
+        let ok = format!("{PREFIXES}\nex:Shape a sh:NodeShape ; sh:targetClass ex:Thing .\n");
+        parse_shapes(&ok).expect("well-formed shapes must parse");
     }
 
     // ── Pre-existing tests ─────────────────────────────────────────────────────
