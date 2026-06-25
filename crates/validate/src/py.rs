@@ -712,6 +712,13 @@ fn wikidata_diagnostics_report(py: Python<'_>, mappings_dir: String) -> PyResult
     Ok(Py::new(py, PyReport::from_engine(report))?.into_any())
 }
 
+fn non_negative_finite_duration(value: f64, name: &str) -> Result<Duration, String> {
+    if value < 0.0 || !value.is_finite() {
+        return Err(format!("{name} must be a non-negative finite float"));
+    }
+    Ok(Duration::from_secs_f64(value))
+}
+
 #[pyfunction]
 #[pyo3(signature = (
     identifiers,
@@ -728,12 +735,16 @@ fn wikidata_check_existence(
     chunk_size: usize,
     delay: f64,
 ) -> PyResult<Py<PyAny>> {
+    let timeout = non_negative_finite_duration(timeout, "timeout")
+        .map_err(pyo3::exceptions::PyValueError::new_err)?;
+    let delay = non_negative_finite_duration(delay, "delay")
+        .map_err(pyo3::exceptions::PyValueError::new_err)?;
     let statuses = mapping_eval::check_existence(
         &identifiers,
         &PathBuf::from(project_root),
-        Duration::from_secs_f64(timeout),
+        timeout,
         chunk_size,
-        Duration::from_secs_f64(delay),
+        delay,
     )
     .map_err(pyo3::exceptions::PyRuntimeError::new_err)?;
     let out = PyDict::new(py);
@@ -1183,4 +1194,20 @@ pub fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(lint_deposit_native, m)?)?;
     m.add_function(wrap_pyfunction!(validate_instance, m)?)?;
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn duration_guard_rejects_non_finite_and_negative_values() {
+        assert!(non_negative_finite_duration(-0.1, "timeout").is_err());
+        assert!(non_negative_finite_duration(f64::NAN, "timeout").is_err());
+        assert!(non_negative_finite_duration(f64::INFINITY, "timeout").is_err());
+        assert_eq!(
+            non_negative_finite_duration(0.25, "timeout").unwrap(),
+            Duration::from_millis(250)
+        );
+    }
 }

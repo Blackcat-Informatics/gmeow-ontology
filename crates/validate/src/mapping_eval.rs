@@ -964,6 +964,12 @@ fn slice_module_files(root: &Path) -> Result<Vec<PathBuf>, String> {
         }
     }
     paths.sort();
+    if paths.is_empty() {
+        return Err(format!(
+            "no slice module files found in {}",
+            slices.display()
+        ));
+    }
     Ok(paths)
 }
 
@@ -1137,5 +1143,13 @@ mod tests {
         let ids = collect_wikidata_ids(&root.join("generated").join("mappings")).unwrap();
         assert!(ids.iter().any(|id| id == "Q5"));
         assert!(ids.iter().any(|id| id == "Q43229"));
+    }
+
+    #[test]
+    fn slice_module_discovery_fails_loudly_when_empty() {
+        let root = tempfile::tempdir().unwrap();
+        std::fs::create_dir(root.path().join("slices")).unwrap();
+        let err = slice_module_files(root.path()).unwrap_err();
+        assert!(err.contains("no slice module files found"));
     }
 }
