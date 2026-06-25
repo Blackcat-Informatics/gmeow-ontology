@@ -178,25 +178,48 @@ Cagle's "scene graph" maps Avatars and Roles, not Actors. In GMEOW it is a **pro
 `Inhabitation`s. It is generated on demand by the solver/projection layer, never materialized as
 triples — exactly as RCC-8 composition and trajectory interpolation are computed, not asserted.
 
-## The deferred `Holon`
+## The holon: deferred at the domain layer, supplied at the foundation layer
 
-Cagle frames an inhabited system as a *holon* — a whole that is also a part. GMEOW **defers** a
-first-class `gmeow:Holon` Kind, for three reasons:
+Cagle frames an inhabited system as a *holon* — a whole that is also a part. The inhabitation slice
+**defers a domain-level `gmeow:Holon` Kind** while **aligning to the foundation-level holon kernel**
+that the logic slice supplies. The two are not in tension; they are different layers.
 
-1. **It is already expressible.** Anything simultaneously `gmeow:partOf` something and `gmeow:hasPart`
-   something is, structurally, a holon. The universal mereology spine carries it today.
-2. **Minting it rigidly would overtype (Principle 9).** "Holon-ness" is a *relational position*
-   (being both part and whole), not a principle of identity. A rigid `Holon` Kind is the subclass
-   explosion Principle 9 structurally refuses, and a thing typed `Holon` that ceased to be a sub-whole
-   would trip the rigidity gate.
-3. **Deferral is free of retroactive cost.** When demand arrives, a holon is added as a role/relator
-   over the existing `partOf` spine — touching no existing axioms — so nothing is lost by waiting
-   (Principle 15: breadth follows demand).
+**The foundation already has the holon kernel.** The logic foundation (the holon-kernel work tracked
+on issue #704) mints, in `logic:`, exactly the right constructs:
 
-The interim is `gmeow:InhabitedSystem` (the host's contingent role) plus `logic:HolonicPosition`
-aligned by reference. A first-class holon construct, if it is ever minted, is evaluated separately as
-a kernel-level concern across organization, connectivity, and procedures; this slice does not
-preempt it.
+- `logic:Holarchy` — the bounded `logic:properPartOf` strict partial order, a DAG (Koestler's sense);
+- `logic:HolonicPosition` — *the canonical relational construct of holon-ness*: a **five-place**
+  relation (entity × holarchy × context × interval × path), reified with `logic:positionEntity`,
+  `logic:positionHolarchy`, `logic:positionContext`, `logic:positionInterval`, and
+  `logic:positionPath`;
+- `logic:Holon` — the *lossy unary projection* of a `HolonicPosition`: an entity simultaneously a
+  proper part of some whole and itself having a proper part.
+
+The kernel's own doctrine is decisive and it is **the same argument this slice makes for the durable
+subject**: *"Holon-ness is never a bare property of the entity; it is a position occupied in a
+particular holarchy, context, interval, and path."* Holon-ness is relational and contextual, not a
+rigid type — exactly why `DigitalSubject`, `Inhabitant`, and `InhabitedSystem` are anti-rigid roles,
+not Kinds ([`INHABITED-IDENTITY.md`](INHABITED-IDENTITY.md)). The foundation reaching this conclusion
+independently is a strong cross-check on the inhabitation design.
+
+**Why the domain `gmeow:Holon` Kind is deferred.** Given the foundation kernel, a *domain* `gmeow:Holon`
+Kind would be redundant and would overtype: a rigid `gmeow:Holon` Kind reasserts as a bare property
+what `logic:HolonicPosition` correctly models as a five-place relational position, and a thing typed
+`Holon` that ceased to be a sub-whole would trip the rigidity gate (Principle 9). So the slice mints no
+domain holon Kind; breadth follows demand (Principle 15).
+
+**How `InhabitedSystem` aligns to it — concretely.** `gmeow:InhabitedSystem` is the host's contingent
+role, and it *is* a reading of a `logic:HolonicPosition`: the inhabited host is the `positionEntity`,
+the inhabitation's holarchy is the `positionHolarchy`, the standpoint frame under which the
+inhabitation is claimed is the `positionContext`, the inhabitation interval is the `positionInterval`,
+and the holarchy path is the `positionPath`. The alignment is by reference (the kernel is the
+foundation's, not this slice's), and it is exact rather than a hand-wave: an inhabited system is a host
+occupying a holonic position over the inhabitation's interval, in the claim's frame.
+
+> **Sequencing note.** The `logic:Holon` / `logic:HolonicPosition` kernel is in-flight (issue #704,
+> not yet on `main`). The inhabitation slice's references to it are forward-looking and resolve once
+> #704 lands; until then `InhabitedSystem` stands on the universal `logic:properPartOf` spine and
+> records the holonic-position alignment as documented intent.
 
 ## Scope and seams
 

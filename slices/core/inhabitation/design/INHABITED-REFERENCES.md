@@ -54,6 +54,7 @@ inherits **no** metaphysical commitment. The full ledger is in
 |---|---|---|
 | `CONSTITUTION.md` | Principles 5, 6, 9, 10, 11, 12, 14, 15, 16, 17. | the normative basis for every disposition in this set |
 | `slices/core/logic/design/` | the GMEOW Logic design set. | the `logic:` stereotypes and the `logic:Path`/`State` typed context algebra used for sessions/episodes; the voice and structure template for this set |
+| `logic:` holon kernel (issue #704) | `logic:Holarchy`, `logic:HolonicPosition` (five-place entity × holarchy × context × interval × path), `logic:Holon` (lossy unary projection), typed mereology + weak supplementation. | the foundation-layer holon kernel `gmeow:InhabitedSystem` aligns to by reference; the reason a *domain* `gmeow:Holon` Kind is deferred ([`INHABITED-TOPOLOGY.md`](INHABITED-TOPOLOGY.md#the-holon-deferred-at-the-domain-layer-supplied-at-the-foundation-layer)). In-flight; not yet on `main`. |
 | `slices/core/{ai,awareness,coreference,temporal,lifecycle,standpoint,deception,imagination,mentation,creative-works,organization,expertise,teleology,entities,kernel}` | the reuse anchors. | every REUSE disposition in [`INHABITED-CROSSWALK.md`](INHABITED-CROSSWALK.md) resolves to one of these |
 | `slices/extensions/{agentic,norms,software}` | the agentic deferral, the `gmeow:Persona` relator, the five-facet template. | consumed by reference (agentic), kept distinct (norms `Persona`), mirrored (software) |
 
